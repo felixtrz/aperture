@@ -1478,8 +1478,8 @@ function standardTextureVariantBindings(
     bindings.push({
       id: "skinJointMatrices",
       label: "Standard material skin joint matrices",
-      group: 5,
-      binding: 0,
+      group: 1,
+      binding: 1,
       resource: "read-only-storage-buffer",
     });
   }

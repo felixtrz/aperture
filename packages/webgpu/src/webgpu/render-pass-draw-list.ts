@@ -5,6 +5,7 @@ import type {
 import type { GetOrCreateRenderPipelineResult } from "./pipeline-cache-integration.js";
 import type { UnlitBindGroupResource } from "./unlit-bind-group.js";
 import { requiredBindGroupGroupsForPipelineKey } from "./material-pipeline-selection.js";
+import { skinningJointBufferResourceKeyForRenderId } from "./skinning-joint-buffer.js";
 
 export type RenderPassDrawListDiagnosticCode =
   | "renderPassDrawList.missingPipelineResource"
@@ -289,6 +290,10 @@ function findBindGroup(
     return findMaterialBindGroup(command, bindGroups, group, scratch);
   }
 
+  if (group === 1) {
+    return findWorldTransformBindGroup(command, bindGroups, group, scratch);
+  }
+
   let firstCandidate: UnlitBindGroupResource | undefined;
   let hasPipelineScopedCandidate = false;
 
@@ -311,6 +316,59 @@ function findBindGroup(
   }
 
   return hasPipelineScopedCandidate ? undefined : firstCandidate;
+}
+
+function findWorldTransformBindGroup(
+  command: DrawCommandDescriptor,
+  bindGroups: readonly UnlitBindGroupResource[],
+  group: number,
+  scratch: RenderPassDrawListScratch,
+): UnlitBindGroupResource | undefined {
+  const skinned = command.pipelineKey.split("|").includes("skinned");
+  const drawSkinningResourceKey = skinningJointBufferResourceKeyForRenderId(
+    command.renderId,
+  );
+  let firstCandidate: UnlitBindGroupResource | undefined;
+  let hasPipelineScopedCandidate = false;
+
+  for (const bindGroup of bindGroups) {
+    if (bindGroup.group !== group) {
+      continue;
+    }
+
+    const drawScoped = bindGroup.entryResourceKeys.includes(
+      drawSkinningResourceKey,
+    );
+
+    if (skinned) {
+      if (drawScoped) {
+        return bindGroup;
+      }
+      continue;
+    }
+
+    if (drawScoped) {
+      continue;
+    }
+
+    firstCandidate ??= bindGroup;
+
+    if (!hasPipelineScopedKey(bindGroup, scratch.pipelineKeys)) {
+      continue;
+    }
+
+    hasPipelineScopedCandidate = true;
+
+    if (bindGroup.entryResourceKeys.includes(command.pipelineKey)) {
+      return bindGroup;
+    }
+  }
+
+  return skinned
+    ? undefined
+    : hasPipelineScopedCandidate
+      ? undefined
+      : firstCandidate;
 }
 
 function findMaterialBindGroup(

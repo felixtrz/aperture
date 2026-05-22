@@ -250,7 +250,9 @@ function standardBindGroupLayoutKeys(
 
   return [
     "standard/group-0:view-uniform@0",
-    "standard/group-1:world-transforms@0",
+    features.skinned === true
+      ? STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY
+      : "standard/group-1:world-transforms@0",
     standardMaterialLayoutKey(features),
     features.shadowMap === true && features.pointShadowMap === true
       ? "standard/lights-multi-shadow/group-3:light-floats@0,light-metadata@1,directional-matrix@2,directional-depth@3,directional-sampler@4,spot-matrix@5,spot-depth@6,spot-sampler@7,point-matrix@8,point-depth-cube@9,point-sampler@10"
@@ -267,9 +269,6 @@ function standardBindGroupLayoutKeys(
               ? "standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7"
               : "standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6"
             : "lights/group-3:light-floats@0,light-metadata@1",
-    ...(features.skinned === true
-      ? [STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY]
-      : []),
   ];
 }
 

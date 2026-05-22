@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-22 00:35 UTC</dd>
+            <dd>2026-05-22 01:21 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -407,16 +407,17 @@
               <code>.hdr</code> assets; and
               <code>examples/tonemap-showcase.html</code> compares four
               operators over the same worker-authored HDR IBL probe scene. The
-              StandardMaterial shader planner now also recognizes skinned
-              batches, emits JOINTS_0/WEIGHTS_0 vertex attributes, includes a
-              group-5 joint-matrix layout key, and has targeted pipeline tests
-              for the first Tier 11 skinning slice. The render-packet inspector
-              example now renders a worker-authored snapshot while publishing
-              JSON-safe packet tables for views, draws, lights, environments,
-              bounds, queue keys, handles, skipped-entity explanations, and
-              culling stats. Extraction now builds camera frustum planes from
-              view-projection matrices, skips mesh draws outside every matching
-              camera view, reports per-view <code>cullStats</code>, and exposes
+              StandardMaterial skinning path now accepts ECS-authored
+              <code>Skin</code> palettes, extracts snapshot
+              <code>bones</code> data with per-draw offsets, and binds
+              draw-scoped joint-matrix storage buffers through browser-safe
+              group 1 binding 1. The render-packet inspector example now renders
+              a worker-authored snapshot while publishing JSON-safe packet
+              tables for views, draws, lights, environments, bounds, queue keys,
+              handles, skipped-entity explanations, and culling stats.
+              Extraction now builds camera frustum planes from view-projection
+              matrices, skips mesh draws outside every matching camera view,
+              reports per-view <code>cullStats</code>, and exposes
               <code>frustumCulling: false</code> as a camera opt-out. Custom
               WGSL materials can now declare per-instance attribute layouts with
               <code>defineInstanceAttributes(...)</code>, runtime entities can
@@ -1235,7 +1236,7 @@
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3055 skinning bind group + bone matrix buffer</dd>
+            <dd>task-3056 morph target shader variant + interpolation</dd>
           </dl>
         </aside>
       </header>
@@ -4147,13 +4148,12 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3055</code>, the skinning bind group and bone matrix
-                buffer for StandardMaterial.
+                <code>task-3056</code>, the morph target shader variant and
+                interpolation path for StandardMaterial.
               </li>
               <li>
-                Follow-up visible slices wire the skinning bind group/bone
-                matrix buffer, then show a rigged character in
-                <code>glb-viewer</code>.
+                Follow-up visible slices show a rigged character and a
+                morph-target sample in <code>glb-viewer</code>.
               </li>
               <li>
                 Keep the recommended next task visible-feature first; avoid
@@ -4171,12 +4171,23 @@
         </div>
         <article class="card timeline">
           <div class="timeline-item">
+            <div class="task-id">task-3055</div>
+            <div>
+              <strong>Skin palettes reach WebGPU frame resources.</strong>
+              <span>
+                ECS <code>Skin</code> palettes now extract into snapshot
+                <code>bones</code> data, and skinned draws bind draw-scoped
+                joint storage buffers through group 1 binding 1.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
             <div class="task-id">task-3054</div>
             <div>
               <strong>StandardMaterial has a skinned shader variant.</strong>
               <span>
                 The WebGPU pipeline now plans JOINTS_0/WEIGHTS_0 attributes and
-                a group-5 joint-matrix layout key for skinned batches.
+                skinning metadata for skinned batches.
               </span>
             </div>
           </div>

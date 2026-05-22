@@ -264,7 +264,7 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain("@location(8) joints0: vec4u");
     expect(shader.code).toContain("@location(9) weights0: vec4f");
     expect(shader.code).toContain(
-      "@group(5) @binding(0) var<storage, read> skinJointMatrices",
+      "@group(1) @binding(1) var<storage, read> skinJointMatrices",
     );
     expect(shader.code).toContain("fn apertureSkinMatrix");
     expect(shader.code).toContain("apertureSkinPosition(input.position");
@@ -276,9 +276,9 @@ describe("built-in standard material WGSL shader metadata", () => {
         binding.binding,
         binding.resource,
       ]),
-    ).toContainEqual(["skinJointMatrices", 5, 0, "read-only-storage-buffer"]);
+    ).toContainEqual(["skinJointMatrices", 1, 1, "read-only-storage-buffer"]);
     expect(STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY).toBe(
-      "standard/skinning/group-5:joint-matrices@0",
+      "standard/group-1:world-transforms@0,skin-joint-matrices@1",
     );
 
     const deformed = applySyntheticSkinningPosition({

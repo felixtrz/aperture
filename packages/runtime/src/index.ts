@@ -42,12 +42,14 @@ import {
   RenderOrder,
   ShadowCaster,
   ShadowReceiver,
+  Skin,
   Visibility,
   createCamera,
   createInstanceData,
   createInstanceTint,
   createLight,
   createLightShadowSettings,
+  createSkin,
   extractRenderSnapshot,
   replayGltfEcsAuthoringCommands,
   registerRenderAuthoringComponents,
@@ -58,6 +60,7 @@ import {
   type LightInput,
   type LightShadowSettingsInput,
   type RenderSnapshot,
+  type SkinInput,
 } from "@aperture-engine/render";
 
 export * from "./simulation-worker.js";
@@ -344,6 +347,13 @@ export function withInstanceData(
       InstanceData,
       createInstanceData({ materialKind, values }),
     );
+  };
+}
+
+export function withSkin(input: SkinInput): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(Skin, createSkin(input));
   };
 }
 

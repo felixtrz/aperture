@@ -1289,6 +1289,7 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           device: options.app.initialization.device,
           cache: options.cache.standardFrame,
           snapshot: options.snapshot,
+          draw: options.item.draw,
           mesh: options.item.mesh,
           meshHandle: options.item.draw.mesh,
           meshKey: options.item.meshKey,

@@ -53,6 +53,8 @@ export interface MeshDrawPacket {
   readonly worldTransformOffset: number;
   readonly instanceTintOffset?: number;
   readonly instanceAttributePacketIndex?: number;
+  readonly boneMatrixOffset?: number;
+  readonly boneMatrixCount?: number;
   readonly boundsIndex: number;
   readonly layerMask: number;
   readonly castsShadow?: boolean;
@@ -186,6 +188,7 @@ export interface RenderSnapshot {
   readonly shadowRequests: readonly ShadowRequestPacket[];
   readonly bounds: readonly BoundsPacket[];
   readonly transforms: Float32Array;
+  readonly bones?: Float32Array;
   readonly instanceTints?: Float32Array;
   readonly instanceAttributes?: Float32Array;
   readonly instanceAttributePackets?: readonly InstanceAttributePacket[];

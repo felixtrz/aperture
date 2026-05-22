@@ -1,12 +1,30 @@
 # Completed Tasks
 
+## task-3055 — Skinning bind group + bone matrix buffer
+
+Completed: 2026-05-22
+
+- Added renderer-independent `Skin` authoring with serialized joint matrix
+  palettes plus runtime `withSkin(...)`.
+- Extended extraction snapshots with optional `bones` data and per-draw
+  `boneMatrixOffset` / `boneMatrixCount`, and made skinned StandardMaterial
+  draws produce `skinned` batch/pipeline keys.
+- Moved the StandardMaterial skin matrix storage binding to browser-safe group 1
+  binding 1 alongside world transforms, then created draw-scoped skinning joint
+  storage-buffer resources for skinned frame resources.
+- Updated packet encoding and snapshot transfer cost/transfer-list helpers for
+  the new `bones` buffer.
+- Validation run: build, targeted render/runtime/WebGPU TypeScript, targeted
+  Vitest, and targeted ESLint passed.
+
 ## task-3054 — GPU skinning shader variant
 
 Completed: 2026-05-21
 
 - Added `packages/webgpu/src/webgpu/standard-skinning-shader.ts` with the
   StandardMaterial skinned WGSL transform helper, `JOINTS_0` / `WEIGHTS_0`
-  attribute locations, and the group-5 joint matrix bind-group layout key.
+  attribute locations, and the initial joint matrix bind-group metadata later
+  moved to browser-safe group 1 binding 1 by `task-3055`.
 - Extended StandardMaterial shader feature planning so `batchKey.skinned` or a
   `skinned` pipeline token generates a skinned variant, adds skinning metadata,
   includes joint/weight vertex semantics, and includes the skinning bind group

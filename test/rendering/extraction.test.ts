@@ -13,6 +13,7 @@ import {
   RenderLayer,
   ShadowCaster,
   ShadowReceiver,
+  Skin,
   Visibility,
   WorldTransform,
   createBoxMeshAsset,
@@ -31,6 +32,7 @@ import {
   createTextureHandle,
   createRootTransform,
   createRenderExtractionCache,
+  createSkin,
   createStableRenderId,
   createUnlitMaterialAsset,
   createWorld,
@@ -187,6 +189,46 @@ describe("render extraction", () => {
       1,
       1,
     ]);
+  });
+
+  it("extracts StandardMaterial skin palettes into snapshot bone matrices", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      meshAsset: withSkinningAttributes(createBoxMeshAsset()),
+      materialAsset: createStandardMaterialAsset(),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const entity = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    entity.addComponent(
+      Skin,
+      createSkin({
+        jointMatrices: [...identityMatrix(), ...translationMatrix(2, 0, 0)],
+      }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 14 });
+    const draw = required(snapshot.meshDraws[0]);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.bones).toBeInstanceOf(Float32Array);
+    expect(Array.from(snapshot.bones ?? [])).toEqual([
+      ...identityMatrix(),
+      ...translationMatrix(2, 0, 0),
+    ]);
+    expect(draw).toMatchObject({
+      boneMatrixOffset: 0,
+      boneMatrixCount: 2,
+      batchKey: {
+        skinned: true,
+        pipelineKey: "standard|skinned|opaque|back|less|none",
+      },
+    });
   });
 
   it("extracts named custom instance data into snapshot attribute packets", () => {
@@ -1989,6 +2031,45 @@ function withTexCoord1Attribute(mesh: MeshAsset): MeshAsset {
       },
     ],
   };
+}
+
+function withSkinningAttributes(mesh: MeshAsset): MeshAsset {
+  const stream = required(mesh.vertexStreams[0]);
+
+  return {
+    ...mesh,
+    vertexStreams: [
+      {
+        ...stream,
+        attributes: [
+          ...stream.attributes,
+          {
+            semantic: "JOINTS_0",
+            format: "uint16x4",
+            offset: stream.arrayStride,
+          },
+          {
+            semantic: "WEIGHTS_0",
+            format: "float32x4",
+            offset: stream.arrayStride + 8,
+          },
+        ],
+        arrayStride: stream.arrayStride + 24,
+      },
+    ],
+    skinning: {
+      joints0: "JOINTS_0",
+      weights0: "WEIGHTS_0",
+    },
+  };
+}
+
+function identityMatrix(): number[] {
+  return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+}
+
+function translationMatrix(x: number, y: number, z: number): number[] {
+  return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1];
 }
 
 function createTwoRenderableTextureDependencyFixture(

@@ -77,6 +77,10 @@ export interface InstanceDataInput {
   readonly values: InstanceDataValues;
 }
 
+export interface SkinInput {
+  readonly jointMatrices: ArrayLike<number>;
+}
+
 export type RenderAuthoringDiagnosticCode =
   | "camera.invalidProjection"
   | "camera.invalidViewport"
@@ -156,6 +160,15 @@ export const InstanceData = defineComponent(
     valuesJson: { type: EcsType.String, default: "{}" },
   },
   "Per-entity named instance data packed for custom material instance attributes.",
+);
+
+export const Skin = defineComponent(
+  "aperture.render.skin",
+  {
+    jointCount: { type: EcsType.Int32, default: 0 },
+    jointMatricesJson: { type: EcsType.String, default: "[]" },
+  },
+  "Renderer-independent per-entity skin palette stored as serialized joint matrices.",
 );
 
 export const Camera = defineComponent(
@@ -242,6 +255,7 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(RenderOrder);
   world.registerComponent(InstanceTint);
   world.registerComponent(InstanceData);
+  world.registerComponent(Skin);
   world.registerComponent(Light);
   world.registerComponent(ShadowCaster);
   world.registerComponent(ShadowReceiver);
@@ -317,6 +331,17 @@ export function createInstanceData(
   return {
     materialKind: input.materialKind,
     valuesJson: JSON.stringify(input.values),
+  };
+}
+
+export function createSkin(
+  input: SkinInput,
+): ComponentInitialData<typeof Skin> {
+  const jointMatrices = Array.from(input.jointMatrices);
+
+  return {
+    jointCount: Math.floor(jointMatrices.length / 16),
+    jointMatricesJson: JSON.stringify(jointMatrices),
   };
 }
 

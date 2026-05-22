@@ -4,7 +4,7 @@ export const STANDARD_SKINNING_FEATURE = "skinned";
 export const STANDARD_SKINNING_JOINTS_LOCATION = 8;
 export const STANDARD_SKINNING_WEIGHTS_LOCATION = 9;
 export const STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY =
-  "standard/skinning/group-5:joint-matrices@0";
+  "standard/group-1:world-transforms@0,skin-joint-matrices@1";
 
 interface StandardSkinningFeatureInput {
   readonly skinned?: boolean;
@@ -48,7 +48,7 @@ export function applyStandardSkinningToWgsl(
       `@group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4f>;
 @group(2) @binding(0) var<uniform> material: StandardMaterialUniform;`,
       `@group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4f>;
-@group(5) @binding(0) var<storage, read> skinJointMatrices: array<mat4x4f>;
+@group(1) @binding(1) var<storage, read> skinJointMatrices: array<mat4x4f>;
 @group(2) @binding(0) var<uniform> material: StandardMaterialUniform;`,
     )
     .replace(

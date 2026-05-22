@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createRenderPassDrawListScratch,
   planRenderPassDrawList,
+  skinningJointBufferResourceKeyForRenderId,
   writeRenderPassDrawList,
   type DrawCommandDescriptor,
   type GetOrCreateRenderPipelineResult,
@@ -296,6 +297,37 @@ describe("render pass draw list planning", () => {
     ]);
   });
 
+  it("selects draw-scoped skinning joint bind groups for skinned standard draws", () => {
+    const skinnedPipeline = "standard|skinned|opaque|back|less|none";
+    const materialResourceKey = "material-buffer:Standard/uniform";
+    const plan = planRenderPassDrawList({
+      drawCommands: [
+        drawCommand(10, {
+          pipelineKey: skinnedPipeline,
+          materialResourceKey,
+        }),
+        drawCommand(11, {
+          pipelineKey: skinnedPipeline,
+          materialResourceKey,
+        }),
+      ],
+      pipelines: [pipeline(skinnedPipeline)],
+      bindGroups: [
+        bindGroups(materialResourceKey)[0] as UnlitBindGroupResource,
+        skinningSharedBindGroup(10),
+        skinningSharedBindGroup(11),
+        materialBindGroup(materialResourceKey),
+        lightBindGroup(),
+      ],
+    });
+
+    expect(plan.valid).toBe(true);
+    expect(plan.draws.map((draw) => draw.bindGroupKeys[1])).toEqual([
+      "bind-group:transforms-skinning:10",
+      "bind-group:transforms-skinning:11",
+    ]);
+  });
+
   it("can reuse caller-owned draw-list scratch on the frame hot path", () => {
     const scratch = createRenderPassDrawListScratch(2);
     const options = {
@@ -396,6 +428,19 @@ function lightBindGroup(): UnlitBindGroupResource {
     entryResourceKeys: [
       "light-buffer:main/floats",
       "light-buffer:main/metadata",
+    ],
+  };
+}
+
+function skinningSharedBindGroup(renderId: number): UnlitBindGroupResource {
+  return {
+    group: 1,
+    resourceKey: `bind-group:transforms-skinning:${renderId}`,
+    layoutKey: "layout:transforms-skinning",
+    bindGroup: {},
+    entryResourceKeys: [
+      "buffer:transforms",
+      skinningJointBufferResourceKeyForRenderId(renderId),
     ],
   };
 }

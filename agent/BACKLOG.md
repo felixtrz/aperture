@@ -59,16 +59,17 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3055`: Skinning bind group + bone matrix buffer.
+Start `task-3056`: Morph target shader variant + interpolation.
 
 Why this next: the Tier 10 output-stage/color-management track is now complete:
 tonemap operators route through explicit sRGB output encoding, native RGBE
 `.hdr` loading feeds the HDR IBL examples, and the tonemap showcase compares
 Linear, Reinhard, ACES, and AgX over the same worker-authored HDR scene.
-`task-3054` also landed the StandardMaterial skinned WGSL variant and pipeline
-metadata for `JOINTS_0` / `WEIGHTS_0`. The next visible gap is wiring extracted
-skin assets into a WebGPU group-5 joint-matrix buffer so the shader variant can
-consume real bone palettes.
+`task-3054` landed the StandardMaterial skinned WGSL variant and pipeline
+metadata for `JOINTS_0` / `WEIGHTS_0`, and `task-3055` wires ECS-authored skin
+palettes into snapshot `bones` data plus draw-scoped WebGPU storage-buffer
+resources. The next visible gap is morph target interpolation so the Tier 11
+deformation track has both skeletal and blend-shape paths.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -115,15 +116,17 @@ encoding, texture metadata carries explicit color-space/semantic information,
 `loadHdrFromUri()` parses Radiance RGBE `.hdr` data into linear floats, and
 `examples/tonemap-showcase.html` compares four operators over the same
 worker-authored HDR scene. StandardMaterial now has a `skinned` shader variant
-with JOINTS_0/WEIGHTS_0 vertex attributes, group-5 joint matrix metadata, and
-targeted shader/pipeline tests.
+with JOINTS_0/WEIGHTS_0 vertex attributes, browser-safe group-1 joint matrix
+metadata, ECS `Skin` palette extraction into snapshot `bones`, draw-scoped
+skinning joint storage buffers, and targeted shader/pipeline/resource tests.
 
 Reference anchors (read before writing):
 
-- `references/three.js/src/renderers/webgpu/nodes/WGSLNodeBuilder.js` and
-  StandardMaterial/skinning shader paths around skin/joint attributes.
-- `references/engine/src/scene/skin-instance.js` and PlayCanvas shader chunks
-  for joint matrix palette sampling.
+- `references/three.js/src/renderers/shaders/ShaderChunk/morphtarget_*.glsl.js`
+  and StandardMaterial morph-target shader planning.
+- `references/engine/src/scene/morph.js` and
+  `references/engine/src/scene/morph-instance.js` for morph target weights and
+  per-instance state.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -774,13 +777,13 @@ Acceptance criteria:
 - Vitest covers shader generation + pipeline-key shape.
 - Synthetic test deforms a known cube via known bone matrices; readback confirms vertex positions match expected deformed positions.
 
-### task-3055 — Skinning bind group + bone matrix buffer (Tier 11 part 2)
+### task-3055 — Skinning bind group + bone matrix buffer (Tier 11 part 2) — Completed 2026-05-22
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/`, `packages/render/src/rendering/extraction.ts` (skinning extraction), targeted tests.
 Dependencies: task-3054.
 Reference anchor: `references/engine/src/scene/skin-instance.js` (PlayCanvas per-instance bone matrices); `references/three.js/src/objects/Skeleton.js` (three.js bone matrix array).
-Insertion point: extract per-entity bone matrices from the ECS skeleton state into a packed storage buffer, bind to the skinned pipeline at slot 5 (or a free slot).
+Insertion point: extract per-entity bone matrices from the ECS skeleton state into a packed storage buffer, bind to the skinned pipeline through browser-safe group 1 binding 1.
 
 Acceptance criteria:
 

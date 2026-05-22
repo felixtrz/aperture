@@ -26,6 +26,7 @@ import {
   createStandardMaterialTextureReadinessReport,
   type SamplerAsset,
   type MaterialAsset,
+  type MaterialPipelineKeyInput,
   type MaterialTextureBinding,
   type StandardMaterialAsset,
   type TextureAsset,
@@ -55,6 +56,7 @@ import {
   RenderOrder,
   ShadowCaster,
   ShadowReceiver,
+  Skin,
   Visibility,
   registerRenderAuthoringComponents,
   type CameraInput,
@@ -134,6 +136,11 @@ interface ViewCullContext {
   readonly stats: MutableViewCullStats;
 }
 
+interface SkinExtraction {
+  readonly jointMatrices: readonly number[];
+  readonly jointCount: number;
+}
+
 export function createRenderExtractionCache(): RenderExtractionCache {
   const meshDrawEntities = new Map<string, CachedMeshDrawEntity>();
 
@@ -156,6 +163,7 @@ export function extractRenderSnapshot(
 
   const diagnostics: RenderDiagnostic[] = [];
   const transforms: number[] = [];
+  const bones: number[] = [];
   const instanceTints: number[] = [];
   const instanceAttributes: number[] = [];
   const instanceAttributePackets: InstanceAttributePacket[] = [];
@@ -187,6 +195,7 @@ export function extractRenderSnapshot(
     world,
     assets,
     transforms,
+    bones,
     instanceTints,
     instanceAttributes,
     instanceAttributePackets,
@@ -207,6 +216,7 @@ export function extractRenderSnapshot(
     shadowRequests,
     bounds,
     transforms: new Float32Array(transforms),
+    ...(bones.length === 0 ? {} : { bones: new Float32Array(bones) }),
     instanceTints: new Float32Array(instanceTints),
     ...(instanceAttributes.length === 0
       ? {}
@@ -526,6 +536,7 @@ function extractMeshDraws(
   world: EcsWorld,
   assets: AssetRegistry,
   transforms: number[],
+  bones: number[],
   instanceTints: number[],
   instanceAttributes: number[],
   instanceAttributePackets: InstanceAttributePacket[],
@@ -670,6 +681,14 @@ function extractMeshDraws(
       diagnostics,
       entity,
     );
+    const skinning = readSkinning(entity, meshEntry.asset, diagnostics);
+
+    if (skinning === null) {
+      continue;
+    }
+
+    const boneMatrixOffset =
+      skinning === undefined ? undefined : pushBoneMatrices(bones, skinning);
     const boundsIndex = bounds.length;
 
     bounds.push(boundsPacket);
@@ -747,17 +766,12 @@ function extractMeshDraws(
       const baseMaterialPipeline = createMaterialPipelineKeyInput(
         materialEntry.asset,
       );
-      const materialPipeline =
-        instanceTintOffset !== undefined &&
-        materialEntry.asset.kind === "standard"
-          ? {
-              ...baseMaterialPipeline,
-              features: [
-                ...baseMaterialPipeline.features,
-                "instance-tint",
-              ].sort(),
-            }
-          : baseMaterialPipeline;
+      const materialPipeline = createExtractedMaterialPipelineKeyInput({
+        base: baseMaterialPipeline,
+        material: materialEntry.asset,
+        instanceTint: instanceTintOffset !== undefined,
+        skinned: skinning !== undefined,
+      });
 
       const stableId =
         createStableRenderId(entityRef(entity)) + submesh.materialSlot;
@@ -786,6 +800,12 @@ function extractMeshDraws(
         ...(instanceAttributePacketIndex === undefined
           ? {}
           : { instanceAttributePacketIndex }),
+        ...(boneMatrixOffset === undefined || skinning === undefined
+          ? {}
+          : {
+              boneMatrixOffset,
+              boneMatrixCount: skinning.jointCount,
+            }),
         boundsIndex,
         layerMask,
         castsShadow,
@@ -809,6 +829,8 @@ function extractMeshDraws(
             )
             .join(","),
           topology: submesh.topology,
+          skinned:
+            skinning !== undefined && materialEntry.asset.kind === "standard",
         }),
       });
     }
@@ -819,7 +841,8 @@ function extractMeshDraws(
       cache !== undefined &&
       entityDraws.length > 0 &&
       diagnostics.length === entityDiagnosticsStart &&
-      !entity.hasComponent(InstanceData)
+      !entity.hasComponent(InstanceData) &&
+      !entity.hasComponent(Skin)
     ) {
       const sourceBounds = bounds[boundsIndex];
 
@@ -1568,6 +1591,122 @@ function pushInstanceAttributePacket(
   });
 
   return packetIndex;
+}
+
+function readSkinning(
+  entity: Entity,
+  mesh: MeshAsset,
+  diagnostics: RenderDiagnostic[],
+): SkinExtraction | undefined | null {
+  if (!entity.hasComponent(Skin)) {
+    return undefined;
+  }
+
+  if (!meshHasVertexSemantic(mesh, "JOINTS_0")) {
+    diagnostics.push(diagnostic("render.skinning.missingJoints0", entity));
+    return null;
+  }
+
+  if (!meshHasVertexSemantic(mesh, "WEIGHTS_0")) {
+    diagnostics.push(diagnostic("render.skinning.missingWeights0", entity));
+    return null;
+  }
+
+  const jointCount = entity.getValue(Skin, "jointCount") ?? 0;
+  const jointMatricesJson = entity.getValue(Skin, "jointMatricesJson") ?? "[]";
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(jointMatricesJson);
+  } catch {
+    diagnostics.push(diagnostic("render.skinning.invalidJson", entity));
+    return null;
+  }
+
+  if (!Array.isArray(parsed)) {
+    diagnostics.push(diagnostic("render.skinning.invalidMatrices", entity));
+    return null;
+  }
+
+  const jointMatrices = parseFiniteNumberArray(parsed);
+
+  if (jointMatrices === null || jointMatrices.length === 0) {
+    diagnostics.push(diagnostic("render.skinning.invalidMatrices", entity));
+    return null;
+  }
+
+  if (jointMatrices.length % 16 !== 0) {
+    diagnostics.push(diagnostic("render.skinning.misalignedMatrices", entity));
+    return null;
+  }
+
+  const matrixCount = jointMatrices.length / 16;
+
+  if (jointCount !== matrixCount) {
+    diagnostics.push(diagnostic("render.skinning.jointCountMismatch", entity));
+    return null;
+  }
+
+  return { jointMatrices, jointCount: matrixCount };
+}
+
+function pushBoneMatrices(values: number[], skinning: SkinExtraction): number {
+  const offset = values.length;
+
+  values.push(...skinning.jointMatrices);
+  return offset;
+}
+
+function createExtractedMaterialPipelineKeyInput(input: {
+  readonly base: MaterialPipelineKeyInput;
+  readonly material: MaterialAsset;
+  readonly instanceTint: boolean;
+  readonly skinned: boolean;
+}): MaterialPipelineKeyInput {
+  if (
+    input.material.kind !== "standard" ||
+    (!input.instanceTint && !input.skinned)
+  ) {
+    return input.base;
+  }
+
+  const features = new Set(input.base.features);
+
+  if (input.instanceTint) {
+    features.add("instance-tint");
+  }
+
+  if (input.skinned) {
+    features.add("skinned");
+  }
+
+  return {
+    ...input.base,
+    features: [...features].sort(),
+  };
+}
+
+function meshHasVertexSemantic(
+  mesh: MeshAsset,
+  semantic: "JOINTS_0" | "WEIGHTS_0",
+): boolean {
+  return mesh.vertexStreams.some((stream) =>
+    stream.attributes.some((attribute) => attribute.semantic === semantic),
+  );
+}
+
+function parseFiniteNumberArray(values: readonly unknown[]): number[] | null {
+  const result: number[] = [];
+
+  for (const value of values) {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      return null;
+    }
+
+    result.push(value);
+  }
+
+  return result;
 }
 
 function instanceDataComponents(value: unknown): readonly number[] | null {

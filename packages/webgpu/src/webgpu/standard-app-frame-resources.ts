@@ -6,6 +6,7 @@ import type {
 import { assetHandleKey } from "@aperture-engine/simulation";
 import type {
   MeshAsset,
+  MeshDrawPacket,
   PackedSnapshotInstanceTints,
   PackedSnapshotTransforms,
   PackedSnapshotViewUniforms,
@@ -124,6 +125,7 @@ export function createOrReuseStandardAppFrameResources(options: {
   readonly device: unknown;
   readonly cache: StandardAppFrameResourceCacheSlot;
   readonly snapshot: RenderSnapshot;
+  readonly draw?: MeshDrawPacket;
   readonly mesh: MeshAsset | null;
   readonly meshHandle: MeshHandle;
   readonly meshKey: string;
@@ -220,6 +222,7 @@ export function createOrReuseStandardAppFrameResources(options: {
     cached.lightMetadataByteLength ===
       lightDescriptor.plan.source.metadata.byteLength &&
     !requiresInstanceTintBuffer(options.pipelineKey) &&
+    !requiresSkinningJointBuffer(options.pipelineKey) &&
     writeBufferData(
       options.device,
       cached.result.resources.viewUniform.buffer,
@@ -286,6 +289,7 @@ export function createOrReuseStandardAppFrameResources(options: {
       typeof createStandardFrameGpuResources
     >[0]["device"],
     snapshot: options.snapshot,
+    ...(options.draw === undefined ? {} : { draw: options.draw }),
     pipelineKey: options.pipelineKey,
     mesh: options.mesh,
     ...(preparedMesh === null
@@ -378,6 +382,10 @@ export function createOrReuseStandardAppFrameResources(options: {
 
 function requiresInstanceTintBuffer(pipelineKey: string): boolean {
   return pipelineKey.split("|").includes("instance-tint");
+}
+
+function requiresSkinningJointBuffer(pipelineKey: string): boolean {
+  return pipelineKey.split("|").includes("skinned");
 }
 
 type PreparedStandardMaterialUse = PreparedAppMaterialResourceUse<

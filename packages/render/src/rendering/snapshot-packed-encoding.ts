@@ -24,7 +24,7 @@ export const SNAPSHOT_PACKET_ENCODING_VERSION = 1;
 
 export const SNAPSHOT_PACKET_HEADER_WORDS = 8;
 export const VIEW_PACKET_WORDS = 36;
-export const MESH_DRAW_PACKET_WORDS = 28;
+export const MESH_DRAW_PACKET_WORDS = 30;
 export const LIGHT_PACKET_WORDS = 22;
 export const ENVIRONMENT_PACKET_WORDS = 13;
 export const SHADOW_REQUEST_PACKET_WORDS = 5;
@@ -485,6 +485,8 @@ function writeMeshDrawPacket(
   words[offset + 25] = registry.stringId(packet.batchKey.meshLayoutKey);
   words[offset + 26] = topologyId(packet.batchKey.topology);
   words[offset + 27] = batchFlags(packet);
+  writeOptionalUint32(words, offset + 28, packet.boneMatrixOffset);
+  writeOptionalUint32(words, offset + 29, packet.boneMatrixCount);
 }
 
 function readMeshDrawPacket(
@@ -496,6 +498,8 @@ function readMeshDrawPacket(
   const castsShadow = readBoolState(words[offset + 11] ?? 0);
   const receivesShadow = readBoolState(words[offset + 12] ?? 0);
   const batchFlags = words[offset + 27] ?? 0;
+  const boneMatrixOffset = readOptionalUint32(words, offset + 28);
+  const boneMatrixCount = readOptionalUint32(words, offset + 29);
   const packet: MeshDrawPacket = {
     renderId: words[offset] ?? 0,
     entity: readEntity(words, offset + 1),
@@ -531,6 +535,8 @@ function readMeshDrawPacket(
   return {
     ...packet,
     ...(instanceTintOffset === undefined ? {} : { instanceTintOffset }),
+    ...(boneMatrixOffset === undefined ? {} : { boneMatrixOffset }),
+    ...(boneMatrixCount === undefined ? {} : { boneMatrixCount }),
     ...(castsShadow === undefined ? {} : { castsShadow }),
     ...(receivesShadow === undefined ? {} : { receivesShadow }),
   };

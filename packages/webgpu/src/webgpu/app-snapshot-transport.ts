@@ -212,7 +212,7 @@ export function readWebGpuAppSharedSnapshot(
 export function estimateSharedSnapshotTransportReduction(input: {
   readonly snapshot: Pick<
     RenderSnapshot,
-    "transforms" | "viewMatrices" | "instanceTints"
+    "transforms" | "viewMatrices" | "bones" | "instanceTints"
   >;
   readonly packetByteLength: number;
 }): {
@@ -223,6 +223,7 @@ export function estimateSharedSnapshotTransportReduction(input: {
   const transferableBytes =
     input.snapshot.transforms.byteLength +
     input.snapshot.viewMatrices.byteLength +
+    (input.snapshot.bones?.byteLength ?? 0) +
     (input.snapshot.instanceTints?.byteLength ?? 0) +
     input.packetByteLength;
 

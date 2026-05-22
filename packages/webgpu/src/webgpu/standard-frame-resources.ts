@@ -1,6 +1,7 @@
 import {
   createMeshGpuUploadPlan,
   type MeshAsset,
+  type MeshDrawPacket,
   type MeshUploadPlanDiagnostic,
   type PackedSnapshotInstanceTints,
   type PackedSnapshotTransforms,
@@ -29,6 +30,13 @@ import {
   type InstanceTintGpuBufferDiagnostic,
   type InstanceTintGpuBufferResource,
 } from "./instance-tint-buffer.js";
+import {
+  createSkinningJointBufferDescriptor,
+  createSkinningJointGpuBuffer,
+  type SkinningJointBufferDescriptorDiagnostic,
+  type SkinningJointGpuBufferDiagnostic,
+  type SkinningJointGpuBufferResource,
+} from "./skinning-joint-buffer.js";
 import {
   createMeshGpuBuffers,
   type MeshGpuBufferCreationDiagnostic,
@@ -130,6 +138,8 @@ export type CreateStandardFrameGpuResourcesDiagnostic =
   | ViewUniformGpuBufferDiagnostic
   | WorldTransformBufferDescriptorDiagnostic
   | WorldTransformGpuBufferDiagnostic
+  | SkinningJointBufferDescriptorDiagnostic
+  | SkinningJointGpuBufferDiagnostic
   | InstanceTintBufferDescriptorDiagnostic
   | InstanceTintGpuBufferDiagnostic
   | StandardMaterialPackingDiagnostic
@@ -151,6 +161,7 @@ export interface StandardFrameGpuResourceDeviceLike extends WebGpuBufferDeviceLi
 export interface CreateStandardFrameGpuResourcesOptions {
   readonly device: StandardFrameGpuResourceDeviceLike;
   readonly snapshot: RenderSnapshot;
+  readonly draw?: MeshDrawPacket;
   readonly pipelineKey: string;
   readonly mesh: MeshAsset | null;
   readonly preparedMesh?: MeshGpuBufferResource | undefined;
@@ -197,6 +208,7 @@ export interface StandardFrameGpuResources {
   readonly viewUniform: ViewUniformGpuBufferResource;
   readonly worldTransforms: WorldTransformGpuBufferResource;
   readonly instanceTints?: InstanceTintGpuBufferResource;
+  readonly skinningJointMatrices?: SkinningJointGpuBufferResource;
   readonly material: StandardMaterialGpuBufferResource;
   readonly lightGpuBuffers: CreateSnapshotLightGpuBuffersResult;
   readonly materialBindGroup: StandardMaterialBindGroupResource;
@@ -226,6 +238,10 @@ export function createStandardFrameGpuResources(
   const viewUniform = createViewUniformResource(options, diagnostics);
   const worldTransforms = createWorldTransformResource(options, diagnostics);
   const instanceTints = createInstanceTintResource(options, diagnostics);
+  const skinningJointMatrices = createSkinningJointResource(
+    options,
+    diagnostics,
+  );
   const material =
     options.preparedMaterial?.material ??
     createMaterialResource(options, diagnostics);
@@ -233,6 +249,7 @@ export function createStandardFrameGpuResources(
     options,
     viewUniform,
     worldTransforms,
+    skinningJointMatrices,
     diagnostics,
   );
   const materialBindGroup =
@@ -266,6 +283,8 @@ export function createStandardFrameGpuResources(
     worldTransforms === null ||
     (requiresInstanceTintBuffer(options.pipelineKey) &&
       instanceTints === null) ||
+    (requiresSkinningJointBuffer(options.pipelineKey) &&
+      skinningJointMatrices === null) ||
     material === null ||
     !sharedBindGroups.valid ||
     materialBindGroup === null ||
@@ -283,6 +302,7 @@ export function createStandardFrameGpuResources(
       viewUniform,
       worldTransforms,
       ...(instanceTints === null ? {} : { instanceTints }),
+      ...(skinningJointMatrices === null ? {} : { skinningJointMatrices }),
       material,
       lightGpuBuffers,
       materialBindGroup,
@@ -302,6 +322,10 @@ export function createStandardFrameGpuResources(
 
 function requiresInstanceTintBuffer(pipelineKey: string): boolean {
   return pipelineKey.split("|").includes("instance-tint");
+}
+
+function requiresSkinningJointBuffer(pipelineKey: string): boolean {
+  return pipelineKey.split("|").includes("skinned");
 }
 
 function resolveStandardMaterialIblBindGroupResource(
@@ -450,6 +474,45 @@ function createInstanceTintResource(
   return resource.valid ? resource.resource : null;
 }
 
+function createSkinningJointResource(
+  options: Pick<
+    CreateStandardFrameGpuResourcesOptions,
+    "device" | "snapshot" | "draw" | "pipelineKey"
+  >,
+  diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
+): SkinningJointGpuBufferResource | null {
+  if (!requiresSkinningJointBuffer(options.pipelineKey)) {
+    return null;
+  }
+
+  if (options.draw === undefined) {
+    diagnostics.push({
+      code: "skinningJointBuffer.missingOffset",
+      renderId: 0,
+      field: "draw",
+      message:
+        "Standard frame GPU resource creation requires a draw packet for a skinned pipeline.",
+    });
+    return null;
+  }
+
+  const descriptor = createSkinningJointBufferDescriptor(
+    options.snapshot,
+    options.draw,
+  );
+
+  diagnostics.push(...descriptor.diagnostics);
+
+  const resource = createSkinningJointGpuBuffer({
+    device: options.device,
+    plan: descriptor.plan,
+  });
+
+  diagnostics.push(...resource.diagnostics);
+
+  return resource.valid ? resource.resource : null;
+}
+
 function createMaterialResource(
   options: Pick<CreateStandardFrameGpuResourcesOptions, "device" | "material">,
   diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
@@ -483,11 +546,17 @@ function createSharedBindGroups(
   options: CreateStandardFrameGpuResourcesOptions,
   viewUniform: ViewUniformGpuBufferResource | null,
   worldTransforms: WorldTransformGpuBufferResource | null,
+  skinningJointMatrices: SkinningJointGpuBufferResource | null,
   diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
 ): CreateUnlitBindGroupsResult {
   const plan = createSharedBindGroupDescriptorPlan({
     viewUniformResourceKey: viewUniform?.resourceKey ?? null,
     worldTransformResourceKey: worldTransforms?.resourceKey ?? null,
+    ...(requiresSkinningJointBuffer(options.pipelineKey)
+      ? {
+          skinningJointResourceKey: skinningJointMatrices?.resourceKey ?? null,
+        }
+      : {}),
   });
 
   diagnostics.push(...plan.diagnostics);
@@ -512,6 +581,14 @@ function createSharedBindGroups(
             {
               resourceKey: worldTransforms.resourceKey,
               buffer: worldTransforms.buffer,
+            },
+          ]),
+      ...(skinningJointMatrices === null
+        ? []
+        : [
+            {
+              resourceKey: skinningJointMatrices.resourceKey,
+              buffer: skinningJointMatrices.buffer,
             },
           ]),
     ],
@@ -752,6 +829,7 @@ function createLightShadowBindGroup(
 function createSharedBindGroupDescriptorPlan(input: {
   readonly viewUniformResourceKey: string | null;
   readonly worldTransformResourceKey: string | null;
+  readonly skinningJointResourceKey?: string | null;
 }): UnlitBindGroupDescriptorPlan {
   const diagnostics: UnlitBindGroupDescriptorDiagnostic[] = [];
   const entries: UnlitBindGroupDescriptorEntry[] = [];
@@ -781,6 +859,21 @@ function createSharedBindGroupDescriptorPlan(input: {
       group: 1,
       binding: 0,
       resourceKey: input.worldTransformResourceKey,
+      resourceKind: "buffer",
+    });
+  }
+
+  if (input.skinningJointResourceKey === null) {
+    diagnostics.push({
+      code: "unlitBindGroup.missingTransformResource",
+      message:
+        "Standard skinned shared bind group planning requires a skinning joint matrix buffer.",
+    });
+  } else if (input.skinningJointResourceKey !== undefined) {
+    entries.push({
+      group: 1,
+      binding: 1,
+      resourceKey: input.skinningJointResourceKey,
       resourceKind: "buffer",
     });
   }

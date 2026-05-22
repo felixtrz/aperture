@@ -1,6 +1,63 @@
 # Agent Handoff
 
-Updated: 2026-05-22T00:46:09Z
+Updated: 2026-05-22T01:25:13Z
+
+## Current Run Update — 2026-05-22T01:25:13Z — Skin palettes reach WebGPU buffers
+
+Completed `task-3055`.
+
+### What changed
+
+- Added renderer-independent `Skin` authoring plus runtime `withSkin(...)` so
+  ECS state can carry serialized joint-matrix palettes without renderer-owned
+  skeleton state.
+- Extended render extraction snapshots with optional `bones` data and per-draw
+  `boneMatrixOffset` / `boneMatrixCount`; skinned StandardMaterial draws now
+  produce `skinned` batch/pipeline keys only when the mesh has `JOINTS_0` and
+  `WEIGHTS_0`.
+- Moved the StandardMaterial skin matrix storage binding to browser-safe group 1
+  binding 1 alongside world transforms, avoiding the practical browser
+  bind-group-count budget that would make a new group 5 binding unsafe.
+- Added draw-scoped WebGPU skinning joint storage-buffer resources and routed
+  skinned draw bind groups by `renderId`, while rigid StandardMaterial draws
+  keep using the shared world-transform bind group.
+- Updated packed snapshot encoding, worker transfer lists, and transport byte
+  estimates for the optional `bones` buffer.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3056`.
+
+### References inspected
+
+- `references/engine/src/scene/skin-instance.js`
+- `references/engine/src/scene/renderer/renderer.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/common/vert/skin.js`
+- `references/three.js/src/objects/Skeleton.js`
+- `references/three.js/src/renderers/webgpu/nodes/WGSLNodeBuilder.js`
+
+### Validation
+
+- `pnpm run check` passed, including package-boundary checks, progress tracker
+  checks, build/typecheck, test typecheck, example syntax checks, ESLint,
+  Prettier format check, and all 334 Vitest files / 1,645 tests.
+- Earlier targeted checks also passed for render/runtime/WebGPU TypeScript,
+  skinning extraction, skinning joint-buffer resources, draw-list bind-group
+  routing, StandardMaterial shader/layout metadata, packet encoding, simulation
+  worker transfer helpers, frame-resource planning, and targeted ESLint.
+
+### Known issues
+
+- No visible rigged-character browser proof has landed yet; `task-3057` remains
+  the visible skinning sample once the Tier 11 shader/resource prerequisites are
+  complete.
+- SharedArrayBuffer transport byte estimates include `bones`, but the SAB frame
+  storage path still does not carry a live bones region. Use transferable
+  snapshots first for skinned samples, or add SAB bones storage as a focused
+  follow-up if the skinned sample needs SAB mode.
+
+### Recommended next task
+
+Start `task-3056`: add the StandardMaterial morph target shader variant and
+weighted interpolation path.
 
 ## Current Run Update — 2026-05-22T00:46:09Z — Tier 10 color path and skinning shader variant shipped
 
