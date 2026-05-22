@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-22 05:36 UTC</dd>
+            <dd>2026-05-22 06:20 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -430,13 +430,18 @@
               <code>KHR_meshopt_compression</code> payloads into virtual
               bufferViews before normal accessor validation, and
               <code>glb-viewer</code> renders a committed Meshopt-compressed
-              cube sample. The render-packet inspector example now renders a
-              worker-authored snapshot while publishing JSON-safe packet tables
-              for views, draws, lights, environments, bounds, queue keys,
-              handles, skipped-entity explanations, and culling stats.
-              Extraction now builds camera frustum planes from view-projection
-              matrices, skips mesh draws outside every matching camera view,
-              reports per-view <code>cullStats</code>, and exposes
+              cube sample. A real-world Khronos A Beautiful Game KTX2 + Draco
+              fixture now exercises the combined compressed-loader path in
+              <code>glb-viewer</code>: 33 KTX2/BasisU images decode, 15 Draco
+              source meshes build, 49 ECS draw packets extract, and the browser
+              proof renders visible StandardMaterial pixels with zero
+              unsupported-feature diagnostics. The render-packet inspector
+              example now renders a worker-authored snapshot while publishing
+              JSON-safe packet tables for views, draws, lights, environments,
+              bounds, queue keys, handles, skipped-entity explanations, and
+              culling stats. Extraction now builds camera frustum planes from
+              view-projection matrices, skips mesh draws outside every matching
+              camera view, reports per-view <code>cullStats</code>, and exposes
               <code>frustumCulling: false</code> as a camera opt-out. Custom
               WGSL materials can now declare per-instance attribute layouts with
               <code>defineInstanceAttributes(...)</code>, runtime entities can
@@ -1256,7 +1261,7 @@
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3062 Real-world compressed glTF sample</dd>
+            <dd>task-3063 Multiple render target support</dd>
           </dl>
         </aside>
       </header>
@@ -4186,16 +4191,16 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3062</code>, a real-world compressed glTF sample in
-                <code>glb-viewer</code>.
+                <code>task-3063</code>, multiple render target support in the
+                WebGPU render-pass path.
               </li>
               <li>
-                Use the completed BasisU, Draco, and Meshopt decoder paths as
-                the import baseline for the sample choice.
+                Use the existing off-screen render target helpers and render
+                pass command tests as the baseline.
               </li>
               <li>
-                Keep the recommended next task visible-feature first; avoid
-                diagnostic-only queue refill.
+                Keep the slice narrow: two color attachments first, then
+                ID-buffer picking in <code>task-3064</code>.
               </li>
             </ul>
           </article>
@@ -4208,6 +4213,17 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3062</div>
+            <div>
+              <strong>Real-world compressed GLB sample renders.</strong>
+              <span>
+                A Khronos A Beautiful Game KTX2 + Draco fixture now exercises 33
+                decoded KTX2 images, 15 Draco source meshes, and 49 extracted
+                ECS draw packets in <code>glb-viewer</code>.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3061</div>
             <div>

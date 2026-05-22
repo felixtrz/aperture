@@ -1,5 +1,28 @@
 # Completed Tasks
 
+## task-3062 — Real-world glTF sample in glb-viewer
+
+Completed: 2026-05-22
+
+- Added a derived Khronos A Beautiful Game KTX2 + Draco GLB fixture to
+  `examples/assets/abeautifulgame-ktx-draco.glb`, with attribution notes in
+  `examples/assets/abeautifulgame-ktx-draco.LICENSE.md`.
+- Kept the Khronos sample geometry, embedded KTX2/BasisU texture payloads, and
+  Draco mesh compression, while removing optional transmission/volume material
+  extension metadata so the fixture targets Aperture's current StandardMaterial
+  import subset without claiming future extension support.
+- Added the fixture to the GLB viewer sample selector.
+- Added focused Playwright coverage proving 33 KTX2 images decode, 15 Draco
+  source meshes build, 49 ECS draw packets extract, StandardMaterial replay is
+  valid, unsupported-feature diagnostics are empty, and the browser canvas has
+  visible non-clear pixels.
+- Validation run: renderer-independent import probe passed, `node --check`
+  passed for the sample catalog, `pnpm exec tsc --noEmit -p tsconfig.test.json`
+  passed, `pnpm run check:examples` passed, `pnpm run format:check` passed, and
+  the focused GLB viewer Playwright assertion passed. The existing headed Chrome
+  teardown hang still required stopping the Playwright process after the
+  assertion completed.
+
 ## task-3061 — Meshopt decoder integration
 
 Completed: 2026-05-22

@@ -1,6 +1,76 @@
 # Agent Handoff
 
-Updated: 2026-05-22T05:41:30Z
+Updated: 2026-05-22T06:20:00Z
+
+## Current Run Update — 2026-05-22T06:20:00Z — Real-world compressed GLB sample shipped
+
+Completed `task-3062`.
+
+### What changed
+
+- Added `examples/assets/abeautifulgame-ktx-draco.glb`, a derived Khronos A
+  Beautiful Game KTX2 + Draco GLB fixture, plus
+  `examples/assets/abeautifulgame-ktx-draco.LICENSE.md` with source and
+  attribution notes.
+- The fixture keeps the Khronos geometry, embedded KTX2/BasisU texture payloads,
+  and Draco mesh compression, but removes optional
+  `KHR_materials_transmission` / `KHR_materials_volume` material-extension
+  metadata so it targets Aperture's current StandardMaterial subset without
+  claiming support for those future material extensions.
+- Added the `abeautifulgame-ktx-draco` sample selector entry.
+- Added focused GLB viewer Playwright coverage proving 33 decoded KTX2 images,
+  15 Draco source meshes, 49 extracted ECS draw packets, valid
+  StandardMaterial replay, zero unsupported-feature diagnostics, and visible
+  non-clear browser pixels.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3063`.
+
+### References inspected
+
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+  `GLTFTextureBasisUExtension`, `GLTFDracoMeshCompressionExtension`, and
+  `GLTFMeshoptCompression`
+- `references/engine/src/framework/parsers/glb-parser.js` Draco primitive and
+  `KHR_texture_basisu` texture-source handling
+- Khronos glTF Sample Assets metadata for `ABeautifulGame`, `CarConcept`, and
+  `BoomBox`
+
+Common pattern adapted: reference engines resolve compressed textures and
+geometry at loader boundaries, then feed normal mesh/material/render paths.
+Aperture now has a real-world GLB viewer proof that the completed BasisU and
+Draco loader boundaries combine without changing ECS replay or WebGPU resource
+ownership.
+
+### Validation
+
+- Renderer-independent import probe passed for
+  `examples/assets/abeautifulgame-ktx-draco.glb`: 33 decoded images, 15 meshes,
+  416,734 vertices, 1,721,856 indices, and zero unsupported diagnostics.
+- `node --check examples/glb-viewer-assets.js` passed.
+- `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- `pnpm run check:examples` passed.
+- `pnpm run format:check` passed.
+- Focused GLB viewer Playwright assertion for
+  `?asset=abeautifulgame-ktx-draco` passed in headed Chrome after 8.5s:
+  status reported required `KHR_texture_basisu` and
+  `KHR_draco_mesh_compression`, 33 KTX2 images, 15 source meshes, 49 extracted
+  draws, zero unsupported-feature diagnostics, and visible non-clear pixels.
+  The process hit the existing local headed Chrome teardown hang after the
+  assertion passed and was stopped manually.
+
+### Known issues
+
+- The headed Playwright teardown hang is unchanged from the Draco/Meshopt proofs.
+- The A Beautiful Game fixture intentionally removes optional
+  transmission/volume metadata; real rendering support for those material
+  extensions remains deferred to Tier 18.
+
+### Recommended next task
+
+Start `task-3063`: add multiple render target support in render passes. Inspect
+`references/three.js/src/renderers/WebGLMultipleRenderTargets.js`, PlayCanvas
+graphics-device MRT patterns under `references/engine/src/platform/graphics/`,
+and the existing Aperture render target / render-pass command helpers.
 
 ## Current Run Update — 2026-05-22T05:36:30Z — Meshopt compressed GLB geometry shipped
 

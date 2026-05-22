@@ -225,6 +225,12 @@ export const sampleAssets = [
     source: "sample",
   },
   {
+    id: "abeautifulgame-ktx-draco",
+    label: "A Beautiful Game KTX2 + Draco",
+    url: new URL("./assets/abeautifulgame-ktx-draco.glb", import.meta.url),
+    source: "sample",
+  },
+  {
     id: "embedded-texture",
     label: "Embedded texture",
     url: new URL("./assets/embedded-texture.glb", import.meta.url),

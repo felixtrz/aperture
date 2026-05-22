@@ -18744,6 +18744,191 @@ test("Playwright renders a Meshopt-compressed GLB mesh in the viewer", async ({
   webGpuValidation.expectNoWarnings();
 });
 
+test("Playwright renders a real-world KTX2 + Draco GLB sample in the viewer", async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=abeautifulgame-ktx-draco");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(
+    initialStatus,
+    "A Beautiful Game GLB viewer status should publish",
+  ).toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("A Beautiful Game GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly source?: {
+              readonly ok?: boolean;
+              readonly imageDecode?: {
+                readonly decoded?: readonly {
+                  readonly mimeType?: string;
+                }[];
+                readonly diagnostics?: readonly unknown[];
+              };
+              readonly outputSummary?: {
+                readonly meshConstruction?: {
+                  readonly status?: string;
+                  readonly meshCount?: number;
+                  readonly submeshCount?: number;
+                  readonly vertexCount?: number;
+                  readonly indexCount?: number;
+                };
+              };
+            };
+            readonly gltf?: {
+              readonly metadata?: {
+                readonly extensions?: {
+                  readonly used?: readonly string[];
+                  readonly required?: readonly string[];
+                };
+                readonly unsupportedFeatureDiagnostics?: readonly unknown[];
+              };
+              readonly primitiveMaterials?: {
+                readonly resolved?: number;
+                readonly diagnostics?: number;
+              };
+              readonly replay?: { readonly valid?: boolean };
+            };
+            readonly extraction?: {
+              readonly meshDraws?: number;
+              readonly diagnostics?: number;
+            };
+            readonly draw?: { readonly drawCalls?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+      const decodedKtx2Count =
+        status?.source?.imageDecode?.decoded?.filter(
+          (entry) => entry.mimeType === "image/ktx2",
+        ).length ?? 0;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "abeautifulgame-ktx-draco" &&
+        status.selectedAsset.loading === false &&
+        status.source?.ok === true &&
+        decodedKtx2Count === 33 &&
+        status.source.imageDecode?.diagnostics?.length === 0 &&
+        status.source.outputSummary?.meshConstruction?.status === "ready" &&
+        status.source.outputSummary.meshConstruction.meshCount === 15 &&
+        status.source.outputSummary.meshConstruction.submeshCount === 15 &&
+        status.source.outputSummary.meshConstruction.vertexCount === 416734 &&
+        status.source.outputSummary.meshConstruction.indexCount === 1721856 &&
+        status.gltf?.metadata?.extensions?.required?.includes(
+          "KHR_draco_mesh_compression",
+        ) === true &&
+        status.gltf.metadata.extensions.required.includes(
+          "KHR_texture_basisu",
+        ) === true &&
+        (status.gltf.metadata.unsupportedFeatureDiagnostics?.length ?? 0) ===
+          0 &&
+        status.gltf?.primitiveMaterials?.resolved === 15 &&
+        status.gltf.primitiveMaterials.diagnostics === 0 &&
+        status.gltf?.replay?.valid === true &&
+        status.extraction?.meshDraws === 49 &&
+        status.extraction.diagnostics === 0 &&
+        (status.draw?.drawCalls ?? 0) > 0
+      );
+    },
+    undefined,
+    { timeout: 30000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(
+    status,
+    "A Beautiful Game GLB viewer status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    throw new Error("A Beautiful Game GLB viewer status did not publish.");
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const visible = strongestNearCenterSample(screenshot, clear);
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "abeautifulgame-ktx-draco",
+      label: "A Beautiful Game KTX2 + Draco",
+      source: "sample",
+      url: "/examples/assets/abeautifulgame-ktx-draco.glb",
+      loading: false,
+      materialFamilies: [{ family: "standard", count: 15 }],
+    },
+    source: {
+      ok: true,
+      imageDecode: {
+        diagnostics: [],
+      },
+      outputSummary: {
+        meshConstruction: {
+          status: "ready",
+          meshCount: 15,
+          submeshCount: 15,
+          vertexCount: 416734,
+          indexCount: 1721856,
+        },
+      },
+    },
+    gltf: {
+      metadata: {
+        extensions: {
+          used: ["KHR_draco_mesh_compression", "KHR_texture_basisu"],
+          required: ["KHR_draco_mesh_compression", "KHR_texture_basisu"],
+        },
+        unsupportedFeatureDiagnostics: [],
+      },
+      primitiveMaterials: {
+        valid: true,
+        resolved: 15,
+        diagnostics: 0,
+      },
+      replay: { valid: true, diagnostics: 0 },
+    },
+    extraction: {
+      views: 1,
+      meshDraws: 49,
+      diagnostics: 0,
+    },
+  });
+  expect(
+    status.source?.imageDecode.decoded.filter(
+      (entry) => entry.mimeType === "image/ktx2",
+    ),
+  ).toHaveLength(33);
+  expect(
+    pixelDistance(visible, clear),
+    `A Beautiful Game sample should render visible real-world mesh pixels; sample=${JSON.stringify(
+      visible,
+    )}`,
+  ).toBeGreaterThan(20);
+  webGpuValidation.expectNoWarnings();
+});
+
 test("Playwright renders an embedded-image GLB texture sample", async ({
   page,
 }) => {
