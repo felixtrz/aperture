@@ -1,6 +1,6 @@
 # Agent Handoff
 
-Updated: 2026-05-22T01:35:26Z
+Updated: 2026-05-22T01:50:02Z
 
 ## Current Run Update — 2026-05-22T01:35:26Z — Morph shader variant added
 
@@ -34,6 +34,19 @@ Completed `task-3056` after checkpoint commit `f7a6768` for `task-3055`.
 - `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
   passed.
 - Targeted ESLint passed for the touched mesh/WebGPU/test files.
+- `pnpm run check` passed through boundaries, progress, build/typecheck,
+  test typecheck, example syntax, lint, and format, then failed once on the
+  existing timing-sensitive frustum-culling microbenchmark threshold.
+- Reruns passed: the focused frustum-culling microbenchmark and full
+  `pnpm test` both passed afterward.
+- Late pre-stop reruns passed:
+  `pnpm exec prettier --check agent/HANDOFF.md`,
+  `pnpm run check:progress`,
+  `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`,
+  `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`, and
+  `pnpm exec tsc --noEmit -p packages/runtime/tsconfig.json`,
+  `pnpm run lint`, and
+  `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`.
 
 ### Known issues
 
@@ -42,6 +55,65 @@ Completed `task-3056` after checkpoint commit `f7a6768` for `task-3055`.
   remain for later visible slices.
 - `task-3057` is still the recommended next visible feature: prove the
   skeletal path with a rigged `glb-viewer` sample.
+
+### task-3057 context gathered
+
+- Reference pattern: three.js `webgpu_skinning.html` loads a skinned GLB, starts
+  the first animation clip through `AnimationMixer`, and renders through WebGPU;
+  the fallback `webgl_animation_skinning_blending.html` shows the same
+  GLTFLoader + mixer pattern with multiple clip weights.
+- Existing Aperture sample `examples/assets/skinning.glb` has one mesh, one
+  skin, two joints, `JOINTS_0`, `WEIGHTS_0`, and inverse-bind matrices, but no
+  animation clip. It can still prove visible deformation if the worker drives a
+  simple procedural joint palette.
+- Exact sample metadata: mesh 0 primitive 0 uses POSITION accessor 0
+  (`FLOAT VEC3`, count 4), NORMAL accessor 1 (`FLOAT VEC3`, count 4), indices
+  accessor 2 (`UNSIGNED_SHORT SCALAR`, count 6), `JOINTS_0` accessor 3
+  (`UNSIGNED_BYTE VEC4`, count 4), `WEIGHTS_0` accessor 4 (`FLOAT VEC4`, count
+  4), and inverse-bind matrices accessor 5 (`FLOAT MAT4`, count 2). Node 0 is
+  `SkinnedBaseMeshNode` with `mesh: 0`, `skin: 0`, and child joint nodes
+  `RootJoint` / `TipJoint`.
+- The sample has no authored `TEXCOORD_0`, but current Standard/Unlit pipeline
+  layouts require POSITION/NORMAL/TEXCOORD_0 as the base vertex stream. `3057`
+  likely needs a zero-UV fallback in mesh construction for skinned renderable
+  primitives or a narrower vertex-layout variant; keep that choice explicit.
+- Mesh upload accepts `Float32Array`, `Uint16Array`, or `Uint8Array` stream
+  data, but current Standard pipeline layout selection returns one interleaved
+  vertex-buffer layout for the skinned path. The practical import route is
+  probably a single `Uint8Array` interleaved stream packed with `DataView`
+  writes for mixed float/uint fields, unless the task deliberately adds
+  multi-buffer Standard layouts.
+- Current GLB import gaps for `task-3057`:
+  `packages/render/src/assets/gltf-mesh-primitive.ts` only maps
+  POSITION/NORMAL/TEXCOORD/TANGENT/COLOR semantics; accessor validation/decoding
+  lacks VEC4 joint formats; `gltf-mesh-asset-construction.ts` packs one
+  float-only interleaved stream while the Standard skin pipeline expects
+  `JOINTS_0` as `uint16x4` at byte offset 32 and `WEIGHTS_0` as `float32x4` at
+  byte offset 40; `gltf-ecs-authoring-command-plan.ts` and
+  `gltf-ecs-command-replay.ts` do not support a `Skin` command/component yet;
+  and `examples/glb-viewer.worker.js` / `.main.js` still emit
+  `gltfMetadata.unsupportedSkins`.
+- Viewer insertion point: `examples/glb-viewer.worker.js` creates `commandPlan`,
+  replays it with `aperture.applyGltfEcsCommandPlanToApp(...)`, then builds
+  animation/imported-camera/imported-light state. The skin attach/bootstrap can
+  run after replay, while per-frame procedural palettes can run beside
+  `updateActiveAnimation(...)` inside `createGlbWorkerSnapshotMessage(...)`.
+- The current Playwright coverage to replace is
+  `test/e2e/glb-viewer.spec.ts` test
+  "Playwright reports unsupported skinning while rendering the base GLB mesh";
+  it waits for the unsupported skin diagnostic, asserts one resolved primitive,
+  and verifies one draw call / one visible base mesh.
+- Focused unit coverage for the import half should land in the existing
+  `test/assets/gltf-mesh-primitive.test.ts`,
+  `test/assets/gltf-accessor-validation.test.ts`,
+  `test/assets/gltf-accessor-decoding.test.ts`,
+  `test/assets/gltf-mesh-asset-construction.test.ts`,
+  `test/assets/gltf-ecs-authoring-command-plan.test.ts`, and
+  `test/assets/gltf-ecs-command-replay.test.ts` suites.
+- Smallest next slice: decode/import `JOINTS_0` and `WEIGHTS_0` for the existing
+  sample, attach `Skin` to the skinned mesh entity, update `Skin` matrices each
+  worker frame from the two known joints, and replace the unsupported-skin
+  Playwright assertion with a deformation/readback proof.
 
 ### Recommended next task
 

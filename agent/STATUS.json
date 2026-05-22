@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "a1e1e10",
   "activePid": null,
-  "notes": "Completed tasks 3051-3054: sRGB output color path, shared HDR RGBE loader, tonemap showcase example, and StandardMaterial skinning shader/pipeline variant. Validation passed: targeted typechecks/tests, build, check:examples, check:progress, format:check, lint, full pnpm test, and pnpm run check. Known issue: headed Playwright WebGPU test assertion passed but local browser/server teardown can hang after the visible window flashes; no listener remains on port 4173. Next task: task-3055 skinning bind group and bone matrix buffer wiring.",
-  "lastRunFinishedAt": "2026-05-22T00:50:08Z"
+  "notes": "Completed task-3055 skinning joint buffers and task-3056 morph shader variant; validated targeted suites, build/check, lint, and refreshed handoff for task-3057.",
+  "lastRunFinishedAt": "2026-05-22T01:50:29Z"
 }
