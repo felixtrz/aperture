@@ -39,6 +39,7 @@ import {
 } from "@aperture-engine/core";
 import {
   createQueuedMaterialAdapterRegistry,
+  createWebGpuCopyPostEffect,
   createWebGpuApp as createRendererOnlyWebGpuApp,
   createWebGpuAppRenderTargetAsset,
   createWebGpuAppDiagnosticsSummary,
@@ -670,6 +671,81 @@ describe("WebGPU app facade", () => {
       standard: 0,
     });
     expectPreparedMeshFacadeSummary(sourceVersionFrame, { totalEntries: 1 });
+  });
+
+  it("runs a no-op post effect chain after rendering the swapchain scene", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+      postEffects: [createWebGpuCopyPostEffect({ id: "noop" })],
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "White" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 14);
+
+    expect(frame.ok).toBe(true);
+    expect(frame.counts).toMatchObject({
+      views: 1,
+      meshDraws: 1,
+      drawCalls: 2,
+      diagnostics: 0,
+    });
+    expect(frame.boundaries).toHaveLength(2);
+    expect(frame.postEffects).toEqual([
+      {
+        effectId: "noop",
+        label: "Copy Post Effect",
+        viewId: 0,
+        input: "aperture-webgpu-app:post:scene",
+        output: "swapchain",
+        ok: true,
+        drawCalls: 1,
+      },
+    ]);
+    expect(frame.renderTargets).toMatchObject([
+      {
+        source: "swapchain",
+        ok: true,
+        drawCalls: 1,
+      },
+    ]);
+    expect(events).toContain("device:texture:aperture-webgpu-app:post:scene");
+    expect(events).toContain(
+      "device:pipeline:aperture-webgpu-app:post:noop:noop:pipeline",
+    );
+    expect(events.filter((event) => event === "queue:submit:1")).toHaveLength(
+      2,
+    );
+    expect(webGpuAppRenderReportToJsonValue(frame).postEffects).toEqual(
+      frame.postEffects,
+    );
   });
 
   it("surfaces per-pass GPU timings in the app diagnostics summary", async () => {

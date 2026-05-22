@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-22 07:30 UTC</dd>
+            <dd>2026-05-22 08:40 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1270,10 +1270,16 @@
               to a <code>RenderEntityRef</code> or <code>null</code>. The
               simulation package also exposes a pure
               <code>raycast(world, origin, direction)</code> helper for
-              bounds-based worker-side picking and spatial queries.
+              bounds-based worker-side picking and spatial queries. The Tier 14
+              post-processing slice now adds
+              <code>createWebGpuApp({ postEffects })</code>, renderer-owned
+              post-pass intermediate textures, built-in copy, FXAA, and bloom
+              effects, JSON-safe post-effect reports, final-pass readback, and
+              <code>examples/post-effects.html</code> with worker-authored
+              toggles and browser pixel-delta proof.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3067 Post-pass framework</dd>
+            <dd>task-3071 Animation weighted clip blending</dd>
           </dl>
         </aside>
       </header>
@@ -1296,9 +1302,9 @@
         <div class="grid metrics">
           <article class="card metric">
             <div class="label">overall foundation</div>
-            <div class="value">46%</div>
-            <div class="bar" aria-label="46 percent complete">
-              <span style="width: 46%"></span>
+            <div class="value">47%</div>
+            <div class="bar" aria-label="47 percent complete">
+              <span style="width: 47%"></span>
             </div>
             <p>
               ECS, transforms, extraction, typed assets, diagnostics, and basic
@@ -1308,9 +1314,9 @@
           </article>
           <article class="card metric">
             <div class="label">render pipeline</div>
-            <div class="value">88%</div>
-            <div class="bar" aria-label="88 percent complete">
-              <span style="width: 88%"></span>
+            <div class="value">90%</div>
+            <div class="bar" aria-label="90 percent complete">
+              <span style="width: 90%"></span>
             </div>
             <p>
               The ECS-to-WebGPU spine is usable, app route reporting runs
@@ -1973,24 +1979,27 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">task-3059</span> Added BasisU KTX2
-                texture transcoding, wired <code>KHR_texture_basisu</code>
-                through async image decode, and added a compressed-texture GLB
-                viewer sample with status and pixel proof.
+                <span class="badge green">task-3070</span> Added
+                <code>examples/post-effects.html</code>, a worker-authored scene
+                with FXAA and bloom toggles plus Playwright pixel-delta
+                coverage.
               </li>
               <li>
-                <span class="badge green">task-3058</span> Replaced the GLB
-                viewer morph metadata fixture with a visible StandardMaterial
-                morph-target sample. The loader now maps two morph target
-                streams, attaches ECS <code>MorphTargetWeights</code>, and
-                drives live weight sliders with browser pixel proof.
+                <span class="badge green">task-3069</span> Added
+                <code>createWebGpuBloomPostEffect()</code>, a first single-pass
+                bright-neighbor bloom effect with browser readback proof of glow
+                beyond bright pixels.
               </li>
               <li>
-                <span class="badge green">task-3045</span> Added
-                <code>instance-attributes</code>, a worker-split custom WGSL
-                example where 576 entities share one mesh/material while
-                per-entity <code>phase</code> and <code>swayAmount</code>
-                attributes animate visible pixels through one draw call.
+                <span class="badge green">task-3068</span> Added
+                <code>createWebGpuFxaaPostEffect()</code> with a focused
+                high-contrast edge proof.
+              </li>
+              <li>
+                <span class="badge green">task-3067</span> Added
+                <code>createWebGpuApp({ postEffects })</code>, renderer-owned
+                post-pass texture caches, a copy/no-op proof pass, final-pass
+                readback, and custom-effect documentation.
               </li>
               <li>
                 <span class="badge green">task-3044</span> Added
@@ -4213,17 +4222,17 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3067</code>, the post-pass framework that chains
-                renderer-owned off-screen targets into the existing output
-                stage.
+                <code>task-3071</code>, animation weighted clip blending for
+                multiple active clips.
               </li>
               <li>
-                Use the current render-target helpers, MRT attachment planning,
-                and output-stage tonemap path as the baseline.
+                Anchor on Three.js animation action weights and the existing
+                Aperture GLB animation playback path.
               </li>
               <li>
-                Keep the slice narrow: a no-op post pass should preserve the
-                rendered output before FXAA and bloom build on it.
+                Keep the slice pure simulation/runtime first: typed API,
+                deterministic transform blending, and targeted tests before
+                adding cross-fade UI.
               </li>
             </ul>
           </article>
@@ -4236,6 +4245,50 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3070</div>
+            <div>
+              <strong>Post-effects demo shipped.</strong>
+              <span>
+                <code>examples/post-effects.html</code> now toggles FXAA and
+                bloom over a worker-authored ECS scene, with Playwright proving
+                ordered reports, draw counts, and visible pixel changes.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3069</div>
+            <div>
+              <strong>Bloom post effect shipped.</strong>
+              <span>
+                <code>createWebGpuBloomPostEffect()</code> adds a first
+                single-pass bright-neighbor glow through the post-pass framework
+                and proves glow readback around bright pixels.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3068</div>
+            <div>
+              <strong>FXAA post effect shipped.</strong>
+              <span>
+                <code>createWebGpuFxaaPostEffect()</code> registers as a
+                renderer-owned post pass and softens a high-contrast edge in a
+                focused browser proof.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3067</div>
+            <div>
+              <strong>Post-pass framework shipped.</strong>
+              <span>
+                <code>createWebGpuApp({ postEffects })</code> now routes
+                swapchain rendering through ordered renderer-owned post passes
+                with JSON-safe reports and final-pass readback.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3066</div>
             <div>

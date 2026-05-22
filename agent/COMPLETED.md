@@ -1,5 +1,62 @@
 # Completed Tasks
 
+## task-3070 — Post-effects demo example
+
+Completed: 2026-05-22
+
+- Added `examples/post-effects.html` with FXAA and bloom toggles, a renderer-only
+  main entry, and a worker-owned ECS scene that renders high-contrast and bright
+  planes through `createWebGpuApp({ postEffects })`.
+- Added `test/e2e/post-effects.spec.ts`, which toggles FXAA and bloom in the
+  page, asserts ordered post-effect reports and draw-call counts, and compares
+  readback samples for visible FXAA and bloom pixel changes.
+- Added the example to the browser harness link list.
+- Validation run: focused post-effects Playwright coverage passed, plus the
+  post-pass/FXAA/bloom Playwright coverage and targeted WebGPU Vitest coverage.
+
+## task-3069 — Bloom post effect
+
+Completed: 2026-05-22
+
+- Added `createWebGpuBloomPostEffect(...)`, a built-in single-pass bloom effect
+  that samples bright neighboring pixels and additively composites glow through
+  the renderer-owned post-pass contract.
+- Exported the bloom effect through `@aperture-engine/webgpu`.
+- Added unit coverage proving the bloom effect prepares an ordered full-screen
+  post-pass draw with threshold/intensity/radius baked into its pipeline key.
+- Added a browser WebGPU proof that compares copy output against bloom output
+  on a synthetic bright texture and asserts glow extends into adjacent dark
+  pixels.
+
+## task-3068 — FXAA post effect
+
+Completed: 2026-05-22
+
+- Added `createWebGpuFxaaPostEffect(...)`, a built-in FXAA post effect that
+  samples the previous pass texture and writes a full-screen triangle into the
+  next post-pass target.
+- Exported the FXAA effect through `@aperture-engine/webgpu`.
+- Added unit coverage proving the FXAA effect registers through the post-pass
+  framework and emits the expected full-screen draw commands.
+- Added a browser WebGPU proof that runs copy and FXAA over a high-contrast
+  diagonal texture and asserts the FXAA output changes edge pixels.
+
+## task-3067 — Post-pass framework
+
+Completed: 2026-05-22
+
+- Added the renderer-owned `WebGpuPostEffect` contract, post-pass intermediate
+  texture cache helpers, and `createWebGpuCopyPostEffect(...)` as the no-op
+  proof pass.
+- Extended `createWebGpuApp({ postEffects })` so swapchain views render the
+  ECS-derived scene into an off-screen texture, run enabled post effects in
+  order, and present the final post output to the swapchain.
+- Added post-effect entries to WebGPU app frame reports and JSON output, with
+  readback attached to the final post boundary when requested.
+- Documented the custom effect shape in `docs/POST_EFFECTS.md`.
+- Validation run: WebGPU package TypeScript, test TypeScript, targeted
+  post-pass Vitest, build, and browser no-op post-pass coverage passed.
+
 ## task-3066 — Math-side raycaster API
 
 Completed: 2026-05-22

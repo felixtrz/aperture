@@ -59,14 +59,13 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3067`: Post-pass framework.
+Start `task-3071`: Animation weighted clip blending.
 
-Why this next: Tier 13 is now complete. `task-3063` established render-pass MRT
-support, `task-3064` added the `r32uint` ID-buffer proof, `task-3065` exposed
-public `app.pick(x, y)` readback through the WebGPU app facade, and
-`task-3066` added a pure simulation-side bounds raycaster. The next visible gap
-is Tier 14's post-pass framework, which should build on the existing output
-stage and off-screen render-target helpers before FXAA and bloom are added.
+Why this next: Tier 14 now has the renderer-owned post-pass chain, built-in
+FXAA, built-in bloom, and a worker-authored post-effects demo with toggle
+coverage. The next visible gap is Tier 15 animation blending: multiple active
+clips should be able to contribute weighted transform output before the public
+cross-fade facade and GLB viewer UI build on it.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -945,7 +944,7 @@ Acceptance criteria:
 - Test casts a known ray through a known scene; asserts hit list matches expected.
 - No GPU dependency — runs in the worker.
 
-### task-3067 — Post-pass framework (Tier 14 part 1)
+### task-3067 — Post-pass framework (Tier 14 part 1) — Completed 2026-05-22
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/post-pass-*.ts` (new), targeted tests.
@@ -959,7 +958,7 @@ Acceptance criteria:
 - Test with a no-op pass (input == output) confirms chain works end-to-end.
 - Framework documented with how to write a custom post effect.
 
-### task-3068 — FXAA post effect (Tier 14 part 2)
+### task-3068 — FXAA post effect (Tier 14 part 2) — Completed 2026-05-22
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/post-fxaa.ts` (new), targeted tests.
@@ -972,7 +971,7 @@ Acceptance criteria:
 - FXAA effect registers via the post-pass framework.
 - Test renders a high-contrast edge scene; pixel comparison shows FXAA reduces aliasing.
 
-### task-3069 — Bloom post effect (Tier 14 part 3)
+### task-3069 — Bloom post effect (Tier 14 part 3) — Completed 2026-05-22
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/post-bloom.ts` (new), targeted tests.
@@ -985,7 +984,7 @@ Acceptance criteria:
 - Bloom effect registers via the post-pass framework.
 - Test with a bright emissive sphere shows visible bloom glow extending beyond the sphere's silhouette.
 
-### task-3070 — Post-effects demo example (Tier 14 part 4)
+### task-3070 — Post-effects demo example (Tier 14 part 4) — Completed 2026-05-22
 
 Category: `runtime-orchestration`
 Package/write-scope: `examples/post-effects.{html,main.js,worker.js}`, `test/e2e/post-effects.spec.ts`.

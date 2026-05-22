@@ -1,6 +1,116 @@
 # Agent Handoff
 
-Updated: 2026-05-22T07:50:00Z
+Updated: 2026-05-22T08:46:24Z
+
+## Current Run Update — 2026-05-22T08:46:24Z — Post effects shipped
+
+Completed `task-3067`, `task-3068`, `task-3069`, and `task-3070`.
+
+### What changed
+
+- Added a renderer-owned post-pass framework. `createWebGpuApp({ postEffects })`
+  now routes swapchain scene rendering through an off-screen scene texture,
+  executes enabled post effects in order, reports each effect as JSON-safe app
+  frame data, and attaches requested readback samples to the final post pass.
+- Added `WebGpuPostEffect`, post-pass texture cache helpers, and
+  `createWebGpuCopyPostEffect(...)` as the no-op proof pass.
+- Added built-in `createWebGpuFxaaPostEffect(...)` and
+  `createWebGpuBloomPostEffect(...)`. The bloom slice is intentionally a first
+  single-pass bright-neighbor glow; a later pass graph can add downsampled
+  blur/mip compositing.
+- Added `docs/POST_EFFECTS.md` with app usage, built-in effects, custom effect
+  boundaries, and the renderer/ECS ownership rules.
+- Added `examples/post-effects.html` with a renderer-only main entry, a
+  worker-owned ECS scene, FXAA/Bloom toggles, and status/readback reporting.
+- Added the post-effects example to `examples/index.html` and added its main
+  and worker files to `pnpm run check:examples`.
+- Updated the public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3071`.
+
+### References inspected
+
+- `references/three.js/examples/jsm/postprocessing/EffectComposer.js`
+- `references/three.js/examples/jsm/postprocessing/Pass.js`
+- `references/three.js/examples/jsm/postprocessing/ShaderPass.js`
+- `references/three.js/examples/jsm/postprocessing/FXAAPass.js`
+- `references/three.js/examples/jsm/shaders/FXAAShader.js`
+- `references/three.js/examples/jsm/postprocessing/UnrealBloomPass.js`
+- `references/three.js/examples/webgpu_postprocessing.html`
+- `references/engine/scripts/posteffects/posteffect-fxaa.js`
+- `references/engine/scripts/posteffects/posteffect-bloom.js`
+
+Common pattern adapted: Three and PlayCanvas chain ordered full-screen passes
+that sample a prior color target and draw into either another intermediate
+target or the final output. Aperture keeps that as renderer-owned WebGPU
+resources derived from ECS snapshots; post effects receive no ECS/world handles
+and return ordinary render-pass commands plus JSON-safe diagnostics.
+
+### Validation
+
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json` passed.
+- `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts test/webgpu/webgpu-app.test.ts --reporter=dot`
+  passed.
+- `pnpm exec playwright test test/e2e/post-pass.spec.ts test/e2e/post-effects.spec.ts --reporter=list`
+  passed.
+- `pnpm run build` passed.
+- `pnpm run lint` passed.
+- `pnpm run format:check` passed.
+- `pnpm run check:progress` passed.
+- `pnpm run check:examples` passed after adding the new post-effects main/worker
+  files to the syntax-check script.
+- Final `pnpm run check` passed after the `check:examples` script update,
+  covering package boundaries, progress tracker freshness, build/typecheck, test
+  typecheck, example syntax checks, lint, format check, and all 342 Vitest files
+  / 1,686 tests.
+
+### Known issues
+
+- Bloom is a first single-pass bright-neighbor effect, not yet a multi-pass
+  downsampled Gaussian/mip bloom graph.
+- The next ready task, `task-3071`, was not started because it is a separate
+  animation blending slice and could not be completed, validated, and handed off
+  cleanly in the remaining pre-`:50` window after the Tier 14 render-pipeline
+  work.
+
+### Recommended next task
+
+Start `task-3071`: add weighted animation clip blending. Inspect
+`references/three.js/src/animation/AnimationAction.js` and
+`references/three.js/src/animation/AnimationMixer.js`, then adapt the weight
+model to Aperture's existing GLB animation playback without making a renderer
+or scene graph authoritative.
+
+### task-3071 preflight notes
+
+- Three's `AnimationAction` keeps a per-action `weight` / effective weight and
+  `crossFadeTo(...)` delegates to paired fade-in/fade-out weight schedules. The
+  useful concept for Aperture is independent active clip actions with normalized
+  influence, not Three's object-bound `PropertyMixer` ownership model.
+- Three's `PropertyMixer` accumulates weighted samples per property and applies
+  interpolation only once after all active actions have contributed. Aperture can
+  borrow that grouping idea while keeping values as plain ECS transform writes.
+- Bevy's animation graph separates clip nodes from blend/add nodes and
+  normalizes child weights for blend nodes. Its transition helper fades old
+  active animations out while assigning the remaining normalized weight to the
+  main animation. This supports starting with a flat weighted-action list in
+  Aperture before any graph/mask feature.
+- Current Aperture GLB animation playback lives in
+  `examples/glb-viewer.worker.js` (and mirrored historical logic in
+  `examples/glb-viewer.main.js`). `updateActiveAnimation(...)` computes one
+  active clip local time and `applyAnimationAtTime(...)` writes sampled channel
+  values directly into each animated entity's `LocalTransform`.
+- The first safe vertical slice should extract a pure helper around channel
+  sampling/blending before changing UI: given N clip samples with weights, group
+  channels by entity+path, blend translation/scale linearly, blend rotations with
+  quaternion sign correction plus normalization, and write one final value per
+  animated property.
+- Keep blending worker-side/simulation-side. The WebGPU renderer should keep
+  consuming extracted transform snapshots only.
+- Existing browser coverage around `multi-clip`, playback speed, loop modes, and
+  `animatedNodes` lives in `test/e2e/glb-viewer.spec.ts`; the first weighted
+  blend test can likely start as a pure unit/helper test before extending that
+  page-level coverage.
 
 ## Current Run Update — 2026-05-22T07:30:00Z — Public picking and raycasting shipped
 

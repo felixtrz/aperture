@@ -254,6 +254,13 @@ import {
   type WebGpuIdBufferPickPipelineResource,
   type WebGpuIdBufferPickReadbackResult,
 } from "./id-buffer-pick.js";
+import {
+  createOrReuseWebGpuPostPassTexture,
+  createWebGpuPostPassTextureCacheSlot,
+  type WebGpuPostEffect,
+  type WebGpuPostPassTextureCacheSlot,
+  type WebGpuPostPassTextureResource,
+} from "./post-pass.js";
 import { parseMaterialPipelineRenderStateTokens } from "./material-render-state.js";
 import {
   initializeWebGpu,
@@ -313,6 +320,16 @@ export interface WebGpuAppRenderTargetSubmissionReport {
   readonly width: number;
   readonly height: number;
   readonly format: string;
+  readonly ok: boolean;
+  readonly drawCalls: number;
+}
+
+export interface WebGpuAppPostEffectSubmissionReport {
+  readonly effectId: string;
+  readonly label: string;
+  readonly viewId: number;
+  readonly input: string;
+  readonly output: "swapchain" | "offscreen";
   readonly ok: boolean;
   readonly drawCalls: number;
 }
@@ -447,6 +464,7 @@ export interface WebGpuAppRenderReport {
   readonly boundary: FrameBoundaryAssemblyReport | null;
   readonly boundaries?: readonly FrameBoundaryAssemblyReport[];
   readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];
+  readonly postEffects?: readonly WebGpuAppPostEffectSubmissionReport[];
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: FrameBoundaryReadbackResult;
   readonly gpuTimings?: GpuPassTimingReport;
@@ -469,6 +487,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly resourceReuse: WebGpuAppResourceReuseReport;
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];
+  readonly postEffects?: readonly WebGpuAppPostEffectSubmissionReport[];
   readonly readback?: WebGpuAppJsonValue;
   readonly gpuTimings?: GpuPassTimingReport;
   readonly materialDependencyReadiness?: readonly MaterialAssetDependencyReadinessReportJsonValue[];
@@ -501,6 +520,7 @@ interface WebGpuAppResourceCache {
   readonly preparedMaterials: PreparedBuiltInMaterialStore;
   readonly preparedMaterialFacade: PreparedMaterialStore;
   readonly idPickPipelines: Map<string, WebGpuIdBufferPickPipelineResource>;
+  readonly postPasses: WebGpuAppPostPassCache;
   readonly frameScratch: WebGpuAppFrameScratch;
   readonly unlitFrame: UnlitAppFrameResourceCacheSlot;
   readonly matcapFrame: MatcapAppFrameResourceCacheSlot;
@@ -508,6 +528,12 @@ interface WebGpuAppResourceCache {
   readonly debugNormalFrame: DebugNormalAppFrameResourceCacheSlot;
   readonly depth: WebGpuDepthTextureCacheSlot;
   readonly depthByRenderTarget: Map<string, WebGpuDepthTextureCacheSlot>;
+}
+
+interface WebGpuAppPostPassCache {
+  readonly scene: WebGpuPostPassTextureCacheSlot;
+  readonly ping: WebGpuPostPassTextureCacheSlot;
+  readonly pong: WebGpuPostPassTextureCacheSlot;
 }
 
 interface WebGpuAppFrameScratch {
@@ -604,6 +630,7 @@ export interface WebGpuApp {
   readonly renderWorld: RenderWorld;
   readonly tonemap: TonemapOperator;
   readonly outputColorSpace: OutputColorSpace;
+  readonly postEffects: readonly WebGpuPostEffect[];
   start(options?: WebGpuAppStartOptions): void;
   stop(): void;
   getDiagnostics(): WebGpuAppDiagnostics;
@@ -627,6 +654,7 @@ export interface CreateWebGpuAppOptions extends Omit<
   readonly sharedSnapshotTransport?: WebGpuAppSharedSnapshotTransportOptions;
   readonly tonemap?: TonemapOperator;
   readonly outputColorSpace?: OutputColorSpace;
+  readonly postEffects?: readonly WebGpuPostEffect[];
 }
 
 export interface CreateWebGpuAppSuccess {
@@ -670,6 +698,7 @@ export async function createWebGpuApp(
   const renderWorld = new RenderWorld();
   const tonemap = resolveTonemapOperator(options.tonemap);
   const outputColorSpace = resolveOutputColorSpace(options.outputColorSpace);
+  const postEffects = [...(options.postEffects ?? [])];
   const resourceCache = createWebGpuAppResourceCache();
   const snapshotTransport = createWebGpuAppSnapshotTransport({
     ...(options.transport === undefined ? {} : { mode: options.transport }),
@@ -691,6 +720,7 @@ export async function createWebGpuApp(
     renderWorld,
     tonemap,
     outputColorSpace,
+    postEffects,
     start(startOptions = {}) {
       if (running) {
         return;
@@ -867,6 +897,11 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     preparedMaterials: createPreparedBuiltInMaterialStore(),
     preparedMaterialFacade: createPreparedMaterialStore(),
     idPickPipelines: new Map(),
+    postPasses: {
+      scene: createWebGpuPostPassTextureCacheSlot(),
+      ping: createWebGpuPostPassTextureCacheSlot(),
+      pong: createWebGpuPostPassTextureCacheSlot(),
+    },
     frameScratch: createWebGpuAppFrameScratch(),
     unlitFrame:
       createWebGpuAppFrameResourceCacheSlot<CachedUnlitAppFrameResources>(),
@@ -1444,6 +1479,7 @@ interface WebGpuAppFrameBoundaryAssemblyResult {
   readonly boundary: FrameBoundaryAssemblyReport | null;
   readonly boundaries: readonly FrameBoundaryAssemblyReport[];
   readonly renderTargets: readonly WebGpuAppRenderTargetSubmissionReport[];
+  readonly postEffects: readonly WebGpuAppPostEffectSubmissionReport[];
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readbackBoundary: FrameBoundaryAssemblyReport | null;
   readonly gpuTimingReadbacks: readonly WebGpuAppGpuTimingReadback[];
@@ -1619,6 +1655,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     boundary: boundaries.boundary,
     boundaries: boundaries.boundaries,
     renderTargets: boundaries.renderTargets,
+    postEffects: boundaries.postEffects,
     ...(boundaries.depthAttachment === undefined
       ? {}
       : { depthAttachment: boundaries.depthAttachment }),
@@ -1665,6 +1702,7 @@ function assembleWebGpuAppFrameBoundaries(options: {
       boundary: null,
       boundaries: [],
       renderTargets: [],
+      postEffects: [],
       readbackBoundary: null,
       gpuTimingReadbacks: [],
       gpuTimingDiagnostics: [],
@@ -1676,7 +1714,11 @@ function assembleWebGpuAppFrameBoundaries(options: {
 
   const boundaries: FrameBoundaryAssemblyReport[] = [];
   const renderTargets: WebGpuAppRenderTargetSubmissionReport[] = [];
+  const postEffects: WebGpuAppPostEffectSubmissionReport[] = [];
   const diagnostics: unknown[] = [];
+  const activePostEffects = options.app.postEffects.filter(
+    (effect) => effect.enabled !== false,
+  );
   let firstBoundary: FrameBoundaryAssemblyReport | null = null;
   let firstDepthAttachment: WebGpuAppDepthAttachmentReport | undefined;
   let readbackBoundary: FrameBoundaryAssemblyReport | null = null;
@@ -1684,6 +1726,7 @@ function assembleWebGpuAppFrameBoundaries(options: {
   const gpuTimingDiagnostics: GpuTimestampQueryDiagnostic[] = [];
   let plannedCommands = 0;
   let drawCalls = 0;
+  let allTargetsValid = true;
 
   for (const target of targetPlan.targets) {
     const commands = writeCommandsForView(
@@ -1713,6 +1756,46 @@ function assembleWebGpuAppFrameBoundaries(options: {
         passName: gpuTiming.passName,
         resources: gpuTiming.resources,
       });
+    }
+
+    if (target.source === "swapchain" && activePostEffects.length > 0) {
+      const postTarget = assembleWebGpuAppPostProcessedSwapchainTarget({
+        app: options.app,
+        cache: options.cache,
+        snapshot: options.snapshot,
+        target,
+        commands,
+        depthAttachment,
+        effects: activePostEffects,
+        label: options.label,
+        clearColor: options.clearColor ?? target.view.clearColor,
+        ...(includeReadback
+          ? { readbackSamples: options.readbackSamples }
+          : {}),
+        ...(gpuTiming.resources === null
+          ? {}
+          : {
+              gpuTiming: {
+                passName: gpuTiming.passName,
+                resources: gpuTiming.resources,
+              },
+            }),
+      });
+
+      firstBoundary ??= postTarget.boundaries[0] ?? null;
+      firstDepthAttachment ??= createWebGpuAppDepthAttachmentReport(
+        options.snapshot,
+        depthAttachment,
+      );
+      readbackBoundary ??= postTarget.readbackBoundary;
+      boundaries.push(...postTarget.boundaries);
+      renderTargets.push(postTarget.renderTarget);
+      postEffects.push(...postTarget.postEffects);
+      plannedCommands += postTarget.plannedCommands;
+      drawCalls += postTarget.drawCalls;
+      allTargetsValid &&= postTarget.valid;
+      diagnostics.push(...postTarget.diagnostics);
+      continue;
     }
 
     const boundary = assembleFrameBoundary({
@@ -1772,6 +1855,7 @@ function assembleWebGpuAppFrameBoundaries(options: {
     }
 
     boundaries.push(boundary);
+    allTargetsValid &&= boundary.valid;
     renderTargets.push({
       viewId: target.view.viewId,
       source: target.source,
@@ -1799,10 +1883,13 @@ function assembleWebGpuAppFrameBoundaries(options: {
   return {
     valid:
       targetPlan.targets.length > 0 &&
-      boundaries.every((boundary) => boundary.valid),
+      allTargetsValid &&
+      boundaries.every((boundary) => boundary.valid) &&
+      postEffects.every((effect) => effect.ok),
     boundary: firstBoundary,
     boundaries,
     renderTargets,
+    postEffects,
     ...(firstDepthAttachment === undefined
       ? {}
       : { depthAttachment: firstDepthAttachment }),
@@ -1813,6 +1900,258 @@ function assembleWebGpuAppFrameBoundaries(options: {
     drawCalls,
     diagnostics,
   };
+}
+
+interface WebGpuAppPostProcessedSwapchainTargetResult {
+  readonly valid: boolean;
+  readonly boundaries: readonly FrameBoundaryAssemblyReport[];
+  readonly renderTarget: WebGpuAppRenderTargetSubmissionReport;
+  readonly postEffects: readonly WebGpuAppPostEffectSubmissionReport[];
+  readonly readbackBoundary: FrameBoundaryAssemblyReport | null;
+  readonly plannedCommands: number;
+  readonly drawCalls: number;
+  readonly diagnostics: readonly unknown[];
+}
+
+function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
+  readonly app: WebGpuApp;
+  readonly cache: WebGpuAppResourceCache;
+  readonly snapshot: RenderSnapshot;
+  readonly target: Extract<
+    WebGpuAppFrameBoundaryTarget,
+    { source: "swapchain" }
+  >;
+  readonly commands: readonly RenderPassCommand[];
+  readonly depthAttachment: CachedWebGpuDepthTextureResource;
+  readonly effects: readonly WebGpuPostEffect[];
+  readonly label: string;
+  readonly clearColor?: readonly number[];
+  readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
+  readonly gpuTiming?: Parameters<typeof assembleFrameBoundary>[0]["gpuTiming"];
+}): WebGpuAppPostProcessedSwapchainTargetResult {
+  const boundaries: FrameBoundaryAssemblyReport[] = [];
+  const postEffects: WebGpuAppPostEffectSubmissionReport[] = [];
+  const diagnostics: unknown[] = [];
+  const device = options.app.initialization.device as Parameters<
+    typeof assembleFrameBoundary
+  >[0]["device"];
+  const queue = (
+    options.app.initialization.device as { readonly queue: unknown }
+  ).queue as Parameters<typeof assembleFrameBoundary>[0]["queue"];
+  const context = options.app.initialization.context as Parameters<
+    typeof assembleFrameBoundary
+  >[0]["context"];
+  const sceneTexture = createOrReuseWebGpuPostPassTexture({
+    device: options.app.initialization.device as Parameters<
+      typeof createOrReuseWebGpuPostPassTexture
+    >[0]["device"],
+    slot: options.cache.postPasses.scene,
+    width: options.target.width,
+    height: options.target.height,
+    format: options.target.format,
+    label: `${options.label}:post:scene`,
+  });
+
+  diagnostics.push(...sceneTexture.diagnostics);
+
+  if (!sceneTexture.valid || sceneTexture.resource === null) {
+    return {
+      valid: false,
+      boundaries,
+      renderTarget: {
+        viewId: options.target.view.viewId,
+        source: "swapchain",
+        renderTargetKey: null,
+        width: options.target.width,
+        height: options.target.height,
+        format: options.target.format,
+        ok: false,
+        drawCalls: 0,
+      },
+      postEffects,
+      readbackBoundary: null,
+      plannedCommands: 0,
+      drawCalls: 0,
+      diagnostics,
+    };
+  }
+
+  const sceneBoundary = assembleFrameBoundary({
+    context,
+    device,
+    queue,
+    commands: options.commands,
+    label: `${options.label}:swapchain:scene`,
+    colorTarget: {
+      source: "offscreen-target",
+      texture: sceneTexture.resource.texture,
+    },
+    ...(options.clearColor === undefined
+      ? {}
+      : { clearColor: options.clearColor }),
+    depthTarget: {
+      view: options.depthAttachment.view,
+      depthClearValue: options.target.view.clearDepth,
+      depthLoadOp: "clear",
+      depthStoreOp: "store",
+    },
+    ...(options.gpuTiming === undefined
+      ? {}
+      : { gpuTiming: options.gpuTiming }),
+  });
+  let input: WebGpuPostPassTextureResource = sceneTexture.resource;
+  let readbackBoundary: FrameBoundaryAssemblyReport | null = null;
+  let plannedCommands = options.commands.length;
+  let drawCalls = countDrawCommands(options.commands);
+  let valid = sceneBoundary.valid;
+
+  boundaries.push(sceneBoundary);
+  appendFrameBoundaryDiagnostics(diagnostics, sceneBoundary);
+
+  for (
+    let effectIndex = 0;
+    effectIndex < options.effects.length;
+    effectIndex += 1
+  ) {
+    const effect = options.effects[effectIndex];
+
+    if (effect === undefined) {
+      continue;
+    }
+
+    const isLast = effectIndex === options.effects.length - 1;
+    let outputTexture: WebGpuPostPassTextureResource | null = null;
+
+    if (!isLast) {
+      const intermediate = createOrReuseWebGpuPostPassTexture({
+        device: options.app.initialization.device as Parameters<
+          typeof createOrReuseWebGpuPostPassTexture
+        >[0]["device"],
+        slot:
+          effectIndex % 2 === 0
+            ? options.cache.postPasses.ping
+            : options.cache.postPasses.pong,
+        width: options.target.width,
+        height: options.target.height,
+        format: options.target.format,
+        label: `${options.label}:post:${effectIndex}:intermediate`,
+      });
+
+      diagnostics.push(...intermediate.diagnostics);
+      outputTexture = intermediate.resource;
+
+      if (!intermediate.valid || outputTexture === null) {
+        valid = false;
+        break;
+      }
+    }
+
+    const prepared = effect.prepare({
+      device: options.app.initialization.device as Parameters<
+        WebGpuPostEffect["prepare"]
+      >[0]["device"],
+      input,
+      outputFormat: options.target.format,
+      width: options.target.width,
+      height: options.target.height,
+      frame: options.snapshot.frame,
+      passIndex: effectIndex,
+      label: `${options.label}:post:${effect.id}`,
+    });
+
+    diagnostics.push(...prepared.diagnostics);
+
+    const postBoundary = assembleFrameBoundary({
+      context,
+      device,
+      queue,
+      commands: prepared.commands,
+      label: `${options.label}:post:${effectIndex}:${effect.id}`,
+      ...(isLast
+        ? {}
+        : {
+            colorTarget: {
+              source: "offscreen-target" as const,
+              texture: outputTexture?.texture,
+            },
+          }),
+      clearColor: [0, 0, 0, 1],
+      ...(isLast && options.readbackSamples !== undefined
+        ? {
+            readback: {
+              format: options.target.format,
+              width: options.target.width,
+              height: options.target.height,
+              samples: options.readbackSamples,
+            },
+          }
+        : {}),
+    });
+
+    const postOk =
+      postBoundary.valid &&
+      prepared.diagnostics.length === 0 &&
+      (isLast || outputTexture !== null);
+
+    postEffects.push({
+      effectId: prepared.effectId,
+      label: prepared.label,
+      viewId: options.target.view.viewId,
+      input: input.label,
+      output: isLast ? "swapchain" : "offscreen",
+      ok: postOk,
+      drawCalls: postBoundary.execution?.drawCalls ?? 0,
+    });
+    boundaries.push(postBoundary);
+    appendFrameBoundaryDiagnostics(diagnostics, postBoundary);
+    plannedCommands += prepared.commands.length;
+    drawCalls += countDrawCommands(prepared.commands);
+    valid &&= postOk;
+
+    if (postBoundary.readback !== null && postBoundary.readback !== undefined) {
+      readbackBoundary = postBoundary;
+    }
+
+    if (!isLast && outputTexture !== null) {
+      input = outputTexture;
+    }
+  }
+
+  return {
+    valid,
+    boundaries,
+    renderTarget: {
+      viewId: options.target.view.viewId,
+      source: "swapchain",
+      renderTargetKey: null,
+      width: options.target.width,
+      height: options.target.height,
+      format: options.target.format,
+      ok: valid,
+      drawCalls: sceneBoundary.execution?.drawCalls ?? 0,
+    },
+    postEffects,
+    readbackBoundary,
+    plannedCommands,
+    drawCalls,
+    diagnostics,
+  };
+}
+
+function appendFrameBoundaryDiagnostics(
+  diagnostics: unknown[],
+  boundary: FrameBoundaryAssemblyReport,
+): void {
+  diagnostics.push(
+    ...boundary.texture.diagnostics,
+    ...(boundary.attachments?.diagnostics ?? []),
+    ...(boundary.encoder?.diagnostics ?? []),
+    ...(boundary.begin?.diagnostics ?? []),
+    ...(boundary.execution?.diagnostics ?? []),
+    ...(boundary.end?.diagnostics ?? []),
+    ...(boundary.finish?.diagnostics ?? []),
+    ...(boundary.submit?.diagnostics ?? []),
+  );
 }
 
 function createWebGpuAppGpuTimingForTarget(
@@ -2922,6 +3261,7 @@ async function renderWebGpuAppFrame(
     boundary: boundaries.boundary,
     boundaries: boundaries.boundaries,
     renderTargets: boundaries.renderTargets,
+    postEffects: boundaries.postEffects,
     ...(boundaries.depthAttachment === undefined
       ? {}
       : { depthAttachment: boundaries.depthAttachment }),
@@ -3929,6 +4269,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.renderTargets === undefined
       ? {}
       : { renderTargets: report.renderTargets }),
+    ...(report.postEffects === undefined
+      ? {}
+      : { postEffects: report.postEffects }),
     ...(report.readback === undefined
       ? {}
       : { readback: toWebGpuAppJsonValue(report.readback) }),
@@ -4026,6 +4369,7 @@ function renderReport(input: {
   readonly boundary?: FrameBoundaryAssemblyReport | null;
   readonly boundaries?: readonly FrameBoundaryAssemblyReport[];
   readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];
+  readonly postEffects?: readonly WebGpuAppPostEffectSubmissionReport[];
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: FrameBoundaryReadbackResult;
   readonly gpuTimings?: GpuPassTimingReport;
@@ -4057,6 +4401,9 @@ function renderReport(input: {
     ...(input.renderTargets === undefined
       ? {}
       : { renderTargets: input.renderTargets }),
+    ...(input.postEffects === undefined
+      ? {}
+      : { postEffects: input.postEffects }),
     ...(input.depthAttachment === undefined
       ? {}
       : { depthAttachment: input.depthAttachment }),
