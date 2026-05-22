@@ -59,13 +59,13 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3074`: RectAreaLight + LTC.
+Start `task-3075`: Disk and sphere area lights.
 
-Why this next: Tier 15 now has public weighted animation clip blending,
-cross-fade transition weights, and a visible `glb-viewer` cross-fade control
-that blends the multi-clip sample before ECS transform extraction. The next
-visible gap is Tier 16 area lighting: RectAreaLight authoring should extract
-through ECS light packets and render with renderer-owned LTC resources.
+Why this next: Tier 16 now has the first RectAreaLight/LTC slice: ECS authoring
+extracts width/height, StandardMaterial binds renderer-owned LTC resources, and
+`examples/rect-area-light.html` proves a worker-authored rectangular area light
+with browser readback. The next visible gap is extending the same area-light
+path to disk and sphere shapes without changing the ECS-first ownership model.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -121,10 +121,10 @@ shader/pipeline/resource/importer tests.
 
 Reference anchors (read before writing):
 
-- `references/three.js/src/lights/RectAreaLight.js`.
-- `references/three.js/examples/jsm/lights/RectAreaLightUniformsLib.js`.
-- PlayCanvas area-light LUT integration under
-  `references/engine/src/scene/lighting/`.
+- `references/engine/src/scene/light.js` (`LIGHTSHAPE_DISK`,
+  `LIGHTSHAPE_SPHERE`).
+- `references/engine/src/scene/lighting/lights-buffer.js`.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/ltc.js`.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -1035,7 +1035,7 @@ Acceptance criteria:
 
 - Playwright triggers cross-fade; pixel readback at multiple frames shows the character transitioning between the two clips' poses.
 
-### task-3074 — RectAreaLight + LTC (Tier 16 part 1)
+### task-3074 — RectAreaLight + LTC (Tier 16 part 1) — Completed 2026-05-22
 
 Category: `webgpu-render`
 Package/write-scope: `packages/render/src/rendering/authoring.ts` (`LightKind.RectArea`), `packages/webgpu/src/webgpu/`, LTC LUT textures, targeted tests.
@@ -1050,14 +1050,25 @@ Acceptance criteria:
 ### task-3075 — Disk and sphere area lights (Tier 16 part 2)
 
 Category: `webgpu-render`
-Package/write-scope: extends task-3074.
+Package/write-scope: `packages/render/src/rendering/authoring.ts`,
+`packages/render/src/rendering/snapshot*.ts`,
+`packages/webgpu/src/webgpu/light-packing.ts`,
+`packages/webgpu/src/webgpu/standard-shader.ts`, RectAreaLight example or new
+area-light comparison example, targeted tests.
 Dependencies: task-3074.
 Reference anchor: `references/engine/src/scene/light.js` (LIGHTSHAPE_DISK, LIGHTSHAPE_SPHERE).
-Insertion point: extend `LightKind.RectArea` with shape variants (disk, sphere).
+Insertion point: extend the `LightKind.RectArea` path with data-only light shape
+metadata (rect/disk/sphere) that survives extraction, packed snapshot encoding,
+WebGPU light packing, and StandardMaterial WGSL evaluation.
 
 Acceptance criteria:
 
-- New light shapes render correctly; pixel readback distinguishes rect/disk/sphere illumination patterns.
+- Public authoring accepts rect, disk, and sphere area-light shape metadata with
+  typed defaults and validation.
+- Snapshot extraction, packed snapshot encoding, and WebGPU light packing
+  preserve the selected shape.
+- Browser proof distinguishes rect/disk/sphere illumination patterns with
+  readback samples and no WebGPU validation warnings.
 
 ### task-3076 — Cascaded shadow maps for directional lights (Tier 16 part 3)
 

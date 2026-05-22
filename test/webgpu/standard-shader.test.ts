@@ -154,8 +154,11 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(STANDARD_MESH_WGSL).toContain(
       `const LIGHT_KIND_DIRECTIONAL: i32 = ${PackedLightKindId.Directional};`,
     );
+    expect(STANDARD_MESH_WGSL).toContain(
+      `const LIGHT_KIND_RECT_AREA: i32 = ${PackedLightKindId.RectArea};`,
+    );
     expect(STANDARD_MESH_WGSL).toContain("LIGHT_KIND_AMBIENT");
-    expect(STANDARD_MESH_WGSL).not.toContain("textureSample");
+    expect(STANDARD_MESH_WGSL).toContain("standardAreaLightLtcMatrixTexture");
   });
 
   it("declares base-color texture bindings for the textured StandardMaterial variant", () => {

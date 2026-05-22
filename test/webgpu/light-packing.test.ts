@@ -29,25 +29,29 @@ describe("light packet packing", () => {
       light("directional", 2),
       light("point", 3),
       light("spot", 4),
+      light("rect-area", 5),
     ];
 
     const packed = packLightPackets(lights);
 
-    expect(packed.count).toBe(4);
+    expect(packed.count).toBe(5);
     expect(packed.floatStride).toBe(PACKED_LIGHT_FLOAT_STRIDE);
     expect(packed.metadataStride).toBe(PACKED_LIGHT_METADATA_STRIDE);
-    expect(Array.from(packed.floats.slice(0, 8))).toEqual([
-      1, 0.5, 0.25, 1, 10, 20, 0.125, 0.25,
+    expect(Array.from(packed.floats.slice(0, 12))).toEqual([
+      1, 0.5, 0.25, 1, 10, 20, 0.125, 0.25, 2.5, 1.5, 0, 0,
     ]);
     expect(metadataColumn(packed.metadata, 0)).toEqual([
       PackedLightKindId.Ambient,
       PackedLightKindId.Directional,
       PackedLightKindId.Point,
       PackedLightKindId.Spot,
+      PackedLightKindId.RectArea,
     ]);
-    expect(metadataColumn(packed.metadata, 1)).toEqual([16, 32, 48, 64]);
-    expect(metadataColumn(packed.metadata, 2)).toEqual([2, 4, 8, 16]);
-    expect(metadataColumn(packed.metadata, 3)).toEqual([101, 102, 103, 104]);
+    expect(metadataColumn(packed.metadata, 1)).toEqual([16, 32, 48, 64, 80]);
+    expect(metadataColumn(packed.metadata, 2)).toEqual([2, 4, 8, 16, 32]);
+    expect(metadataColumn(packed.metadata, 3)).toEqual([
+      101, 102, 103, 104, 105,
+    ]);
   });
 
   it("packs snapshot lights without reading ECS state", () => {
@@ -287,10 +291,15 @@ describe("light packet packing", () => {
 
   it("maps all light kinds to stable numeric ids", () => {
     expect(
-      ["ambient", "directional", "point", "spot", "environment"].map((kind) =>
-        packedLightKindId(kind as LightPacket["kind"]),
-      ),
-    ).toEqual([0, 1, 2, 3, 4]);
+      [
+        "ambient",
+        "directional",
+        "point",
+        "spot",
+        "environment",
+        "rect-area",
+      ].map((kind) => packedLightKindId(kind as LightPacket["kind"])),
+    ).toEqual([0, 1, 2, 3, 4, 5]);
   });
 });
 
@@ -304,6 +313,8 @@ function light(kind: LightPacket["kind"], seed: number): LightPacket {
     range: 20 * seed,
     innerConeAngle: 0.125 * seed,
     outerConeAngle: 0.25 * seed,
+    width: 2.5,
+    height: 1.5,
     worldTransformOffset: 16 * seed,
     layerMask: 1 << seed,
   };

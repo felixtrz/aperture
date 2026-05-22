@@ -79,6 +79,7 @@ import {
   type StandardLightShadowBindGroupLayoutResource,
   type StandardLightShadowBindGroupResource,
 } from "./standard-light-shadow-bind-group.js";
+import type { StandardAreaLightLtcResources } from "./standard-area-light-ltc-resource.js";
 import {
   createStandardMaterialGpuBuffer,
   type StandardMaterialGpuBufferDiagnostic,
@@ -189,6 +190,7 @@ export interface CreateStandardFrameGpuResourcesOptions {
     | null;
   readonly shadowReceiverResources?: StandardFrameShadowReceiverResources;
   readonly standardMaterialIblResources?: StandardFrameIblResources;
+  readonly standardAreaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly textures?: readonly TextureGpuResource[];
   readonly samplers?: readonly SamplerGpuResource[];
 }
@@ -737,6 +739,7 @@ function createLightBindGroup(
     lightGpuBufferResource: lightGpuBuffers.resource,
     layoutKey: options.lightLayout?.layoutKey ?? null,
     label: "standard/lights",
+    areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
     ...(options.lightLayout === null
       ? {}
       : { group: options.lightLayout.group }),
@@ -789,6 +792,7 @@ function createLightIblBindGroup(
       : {}),
     samplerResource: iblResources.samplerResource,
     shadowRequired,
+    areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
     ...(shadowReceiverResources === undefined
       ? {}
       : { shadowReceiverResources }),
@@ -817,6 +821,7 @@ function createLightIblBindGroup(
       ? { specularTextureResource: iblResources.specularTextureResource }
       : {}),
     iblSamplerResource: iblResources.samplerResource,
+    areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
   });
 
   diagnostics.push(...result.diagnostics);
@@ -850,6 +855,7 @@ function createLightShadowBindGroup(
         shadowReceiverResources.spotShadowReceiverResources,
       pointShadowReceiverResources:
         shadowReceiverResources.pointShadowReceiverResources,
+      areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
     });
 
     diagnostics.push(...plan.diagnostics);
@@ -867,6 +873,7 @@ function createLightShadowBindGroup(
         shadowReceiverResources.spotShadowReceiverResources,
         shadowReceiverResources.pointShadowReceiverResources,
       ],
+      areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
     });
 
     diagnostics.push(...result.diagnostics);
@@ -881,6 +888,7 @@ function createLightShadowBindGroup(
     matrixBufferResource: shadowReceiverResources.matrixBufferResource,
     depthTextureResources: shadowReceiverResources.depthTextureResources,
     samplerResource: shadowReceiverResources.samplerResource,
+    areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
   });
 
   diagnostics.push(...plan.diagnostics);
@@ -894,6 +902,7 @@ function createLightShadowBindGroup(
     matrixBufferResource: shadowReceiverResources.matrixBufferResource,
     depthTextureResources: shadowReceiverResources.depthTextureResources,
     samplerResource: shadowReceiverResources.samplerResource,
+    areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
   });
 
   diagnostics.push(...result.diagnostics);

@@ -72,6 +72,8 @@ export interface LightPacket {
   readonly range: number;
   readonly innerConeAngle: number;
   readonly outerConeAngle: number;
+  readonly width?: number;
+  readonly height?: number;
   readonly worldTransformOffset: number;
   readonly layerMask: number;
 }

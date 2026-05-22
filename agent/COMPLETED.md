@@ -1,5 +1,24 @@
 # Completed Tasks
 
+## task-3074 — RectAreaLight + LTC
+
+Completed: 2026-05-22
+
+- Added `LightKind.RectArea` with finite positive `width`/`height` validation,
+  extraction into `LightPacket`, fixed-stride packed snapshot encoding, and
+  direct-light readiness counts.
+- Extended WebGPU light packing and StandardMaterial lighting with an
+  approximate rect-area LTC evaluation path backed by renderer-owned LTC
+  matrix/fresnel textures plus a sampler.
+- Routed the area-light LTC resources through standard app frame resources,
+  shadow/IBL-capable light bind groups, queued built-in frame preparation, and
+  pick/readback paths without moving ECS state into the renderer.
+- Added `examples/rect-area-light.html` with worker-owned ECS authoring and
+  browser readback samples proving a lit center and side falloff.
+- Validation run: typecheck, test typecheck, lint, example syntax checks,
+  targeted Vitest coverage, and focused headed Chrome WebGPU Playwright coverage
+  passed.
+
 ## task-3073 — Visible cross-fade in glb-viewer
 
 Completed: 2026-05-22

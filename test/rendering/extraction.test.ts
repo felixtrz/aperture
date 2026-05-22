@@ -1573,6 +1573,12 @@ describe("render extraction", () => {
       outerConeAngle: 1,
       layerMask: 0,
     });
+    createLightEntity(world, {
+      kind: LightKind.RectArea,
+      width: 0,
+      height: 1,
+      layerMask: 1,
+    });
 
     const snapshot = extractRenderSnapshot(world, createReadyAssets());
 
@@ -1589,13 +1595,14 @@ describe("render extraction", () => {
       views: 1,
       meshDraws: 1,
       lights: 1,
-      diagnostics: 4,
+      diagnostics: 5,
     });
     expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
       "render.light.invalidIntensity",
       "render.light.invalidRange",
       "render.light.invalidSpotCone",
       "render.light.zeroLayerMask",
+      "render.light.invalidAreaSize",
     ]);
   });
 
@@ -1631,6 +1638,13 @@ describe("render extraction", () => {
       outerConeAngle: 0.2,
       layerMask: 1,
     });
+    createTransformlessLightEntity(world, {
+      kind: LightKind.RectArea,
+      intensity: 1,
+      width: 2,
+      height: 1,
+      layerMask: 1,
+    });
 
     const snapshot = extractRenderSnapshot(world, createReadyAssets());
 
@@ -1655,9 +1669,10 @@ describe("render extraction", () => {
     expect(snapshot.report).toMatchObject({
       lights: 1,
       environments: 1,
-      diagnostics: 3,
+      diagnostics: 4,
     });
     expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "render.lightMissingTransform",
       "render.lightMissingTransform",
       "render.lightMissingTransform",
       "render.lightMissingTransform",
@@ -1786,7 +1801,7 @@ describe("render extraction", () => {
     ]);
   });
 
-  it("extracts point and spot light packet fields in entity order", () => {
+  it("extracts point, spot, and rect area light packet fields in entity order", () => {
     const world = createRuntimeWorld();
     const pointLight = createLightEntity(world, {
       kind: LightKind.Point,
@@ -1804,12 +1819,20 @@ describe("render extraction", () => {
       outerConeAngle: 0.5,
       layerMask: 0b0100,
     });
+    const rectAreaLight = createLightEntity(world, {
+      kind: LightKind.RectArea,
+      intensity: 5,
+      width: 3,
+      height: 1.5,
+      layerMask: 0b1000,
+    });
 
     const snapshot = extractRenderSnapshot(world, createReadyAssets());
 
     expect(snapshot.lights.map((light) => light.entity.index)).toEqual([
       pointLight.index,
       spotLight.index,
+      rectAreaLight.index,
     ]);
     expect(
       snapshot.lights.map((light) => ({
@@ -1818,6 +1841,8 @@ describe("render extraction", () => {
         range: light.range,
         innerConeAngle: light.innerConeAngle,
         outerConeAngle: light.outerConeAngle,
+        width: light.width,
+        height: light.height,
         layerMask: light.layerMask,
       })),
     ).toEqual([
@@ -1827,6 +1852,8 @@ describe("render extraction", () => {
         range: 12,
         innerConeAngle: 0.125,
         outerConeAngle: 0.25,
+        width: 2,
+        height: 2,
         layerMask: 0b0010,
       },
       {
@@ -1835,11 +1862,23 @@ describe("render extraction", () => {
         range: 9,
         innerConeAngle: 0.25,
         outerConeAngle: 0.5,
+        width: 2,
+        height: 2,
         layerMask: 0b0100,
+      },
+      {
+        kind: LightKind.RectArea,
+        intensity: 5,
+        range: 10,
+        innerConeAngle: 0.39269909262657166,
+        outerConeAngle: 0.5235987901687622,
+        width: 3,
+        height: 1.5,
+        layerMask: 0b1000,
       },
     ]);
     expect(snapshot.diagnostics).toEqual([]);
-    expect(snapshot.report).toMatchObject({ lights: 2, diagnostics: 0 });
+    expect(snapshot.report).toMatchObject({ lights: 3, diagnostics: 0 });
   });
 
   it("extracts directional and spot shadow requests and diagnoses unsupported shadow light kinds", () => {
@@ -1868,6 +1907,13 @@ describe("render extraction", () => {
       outerConeAngle: 0.5,
       layerMask: 1,
     });
+    const rectAreaLight = createLightEntity(world, {
+      kind: LightKind.RectArea,
+      intensity: 1,
+      width: 2,
+      height: 1,
+      layerMask: 1,
+    });
 
     directionalLight.addComponent(
       LightShadowSettings,
@@ -1892,6 +1938,10 @@ describe("render extraction", () => {
         casterLayerMask: 0b0110,
         receiverLayerMask: 0b1001,
       }),
+    );
+    rectAreaLight.addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({ enabled: true }),
     );
 
     const snapshot = extractRenderSnapshot(world, createReadyAssets());
@@ -1921,12 +1971,13 @@ describe("render extraction", () => {
       },
     ]);
     expect(snapshot.report).toMatchObject({
-      lights: 4,
+      lights: 5,
       shadowRequests: 2,
-      diagnostics: 1,
+      diagnostics: 2,
     });
     expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
       "render.shadowUnsupportedLightKind.ambient",
+      "render.shadowUnsupportedLightKind.rect-area",
     ]);
   });
 });

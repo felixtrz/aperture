@@ -18,7 +18,8 @@ describe("direct light readiness report", () => {
           light("directional", 2),
           light("point", 3),
           light("spot", 4),
-          light("environment", 5),
+          light("rect-area", 5),
+          light("environment", 6),
         ],
       }),
       resources: {
@@ -32,12 +33,13 @@ describe("direct light readiness report", () => {
     expect(report).toEqual({
       ready: true,
       lightCounts: {
-        total: 5,
-        direct: 3,
+        total: 6,
+        direct: 4,
         ambient: 1,
         directional: 1,
         point: 1,
         spot: 1,
+        rectArea: 1,
         environment: 1,
       },
       sections: {
@@ -89,6 +91,7 @@ describe("direct light readiness report", () => {
         directional: 0,
         point: 0,
         spot: 0,
+        rectArea: 0,
         environment: 0,
       },
       sections: {
@@ -121,14 +124,14 @@ describe("direct light readiness report", () => {
           resourceKey: "light-buffer:main",
           usageIntent: "read-only-storage",
           count: 1,
-          byteLength: 56,
-          floatByteLength: 32,
+          byteLength: 72,
+          floatByteLength: 48,
           metadataByteLength: 24,
           packed: {
             count: 1,
-            floatStride: 8,
+            floatStride: 12,
             metadataStride: 6,
-            floats: new Float32Array(8),
+            floats: new Float32Array(12),
             metadata: new Int32Array(6),
           },
         },
@@ -200,6 +203,8 @@ function light(kind: LightPacket["kind"], seed: number): LightPacket {
     range: seed + 2,
     innerConeAngle: 0.1,
     outerConeAngle: 0.3,
+    width: 2,
+    height: 1,
     worldTransformOffset: seed * 16,
     layerMask: 1,
   };

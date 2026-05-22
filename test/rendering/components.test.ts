@@ -82,10 +82,11 @@ describe("render authoring ECS components", () => {
     light.addComponent(
       Light,
       createLight({
-        kind: LightKind.Spot,
+        kind: LightKind.RectArea,
         color: [1, 0.8, 0.5, 1],
         intensity: 2,
-        range: 20,
+        width: 4,
+        height: 2,
       }),
     );
     environment.addComponent(
@@ -105,9 +106,10 @@ describe("render authoring ECS components", () => {
       camera.getVectorView(Camera, "clearColor"),
       [0.1, 0.2, 0.3, 1],
     );
-    expect(light.getValue(Light, "kind")).toBe(LightKind.Spot);
+    expect(light.getValue(Light, "kind")).toBe(LightKind.RectArea);
     expect(light.getValue(Light, "intensity")).toBe(2);
-    expect(light.getValue(Light, "range")).toBe(20);
+    expect(light.getValue(Light, "width")).toBe(4);
+    expect(light.getValue(Light, "height")).toBe(2);
     expectVector(light.getVectorView(Light, "color"), [1, 0.8, 0.5, 1]);
     expect(environment.getValue(Light, "environmentMapId")).toBe(
       "environment-map:studio",
@@ -134,18 +136,16 @@ describe("render authoring ECS components", () => {
 
   it("validates invalid light fields", () => {
     const report = validateLightInput({
-      kind: LightKind.Spot,
+      kind: LightKind.RectArea,
       intensity: -1,
-      range: 0,
-      innerConeAngle: 2,
-      outerConeAngle: 1,
+      width: 0,
+      height: Number.NaN,
       layerMask: 0,
     });
 
     expect(report.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
       "light.invalidIntensity",
-      "light.invalidRange",
-      "light.invalidSpotCone",
+      "light.invalidAreaSize",
       "light.zeroLayerMask",
     ]);
   });

@@ -3,6 +3,12 @@ import {
   DEFAULT_LIGHT_BIND_GROUP,
   type LightBindGroupLayoutResource,
 } from "./light-bind-group-layout.js";
+import {
+  STANDARD_AREA_LIGHT_LTC_FRESNEL_BINDING,
+  STANDARD_AREA_LIGHT_LTC_MATRIX_BINDING,
+  STANDARD_AREA_LIGHT_LTC_SAMPLER_BINDING,
+  type StandardAreaLightLtcResources,
+} from "./standard-area-light-ltc-resource.js";
 
 export type LightBindGroupDescriptorDiagnosticCode =
   | "lightBindGroup.missingLightGpuBufferResource"
@@ -15,6 +21,7 @@ export interface LightBindGroupDescriptorDiagnostic {
 
 export interface CreateLightBindGroupDescriptorPlanOptions {
   readonly lightGpuBufferResource: LightGpuBufferResource | null;
+  readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly layoutKey: string | null;
   readonly group?: number;
   readonly label?: string;
@@ -23,9 +30,10 @@ export interface CreateLightBindGroupDescriptorPlanOptions {
 export interface LightBindGroupDescriptorEntry {
   readonly binding: number;
   readonly resourceKey: string;
-  readonly resource: {
-    readonly buffer: unknown;
-  };
+  readonly resource:
+    | { readonly buffer: unknown }
+    | { readonly textureView: unknown }
+    | { readonly sampler: unknown };
 }
 
 export interface LightBindGroupDescriptorPlan {
@@ -47,7 +55,7 @@ export interface LightBindGroupDescriptorPlanJsonValue {
   readonly entries: readonly {
     readonly binding: number;
     readonly resourceKey: string;
-    readonly resourceKind: "buffer";
+    readonly resourceKind: "buffer" | "texture-view" | "sampler";
   }[];
   readonly diagnostics: readonly LightBindGroupDescriptorDiagnostic[];
 }
@@ -68,7 +76,7 @@ export interface LightBindGroupResourceDiagnostic {
 
 export interface LightBindGroupCreationEntry {
   readonly binding: number;
-  readonly resource: LightBindGroupDescriptorEntry["resource"];
+  readonly resource: unknown;
 }
 
 export interface LightBindGroupCreationDescriptor {
@@ -148,7 +156,7 @@ export function createLightBindGroupDescriptorPlan(
     });
   }
 
-  const entries =
+  const entries: LightBindGroupDescriptorEntry[] =
     options.lightGpuBufferResource === null
       ? []
       : [
@@ -165,6 +173,8 @@ export function createLightBindGroupDescriptorPlan(
             },
           },
         ];
+
+  appendAreaLightLtcEntries(entries, options.areaLightLtcResources ?? null);
 
   return {
     valid: diagnostics.length === 0,
@@ -195,7 +205,7 @@ export function lightBindGroupDescriptorPlanToJsonValue(
     entries: plan.entries.map((entry) => ({
       binding: entry.binding,
       resourceKey: entry.resourceKey,
-      resourceKind: "buffer",
+      resourceKind: lightBindGroupEntryResourceKind(entry),
     })),
     diagnostics: plan.diagnostics.map((diagnostic) => ({ ...diagnostic })),
   };
@@ -283,7 +293,7 @@ export function createLightBindGroupResource(
     layout: options.layout.layout,
     entries: options.plan.entries.map((entry) => ({
       binding: entry.binding,
-      resource: entry.resource,
+      resource: lightBindGroupCreationResource(entry),
     })),
   };
 
@@ -344,6 +354,61 @@ export function createLightBindGroupResourceResultToJson(
   result: CreateLightBindGroupResourceResult,
 ): string {
   return JSON.stringify(createLightBindGroupResourceResultToJsonValue(result));
+}
+
+function appendAreaLightLtcEntries(
+  entries: LightBindGroupDescriptorEntry[],
+  resources: StandardAreaLightLtcResources | null,
+): void {
+  if (resources === null) {
+    return;
+  }
+
+  entries.push(
+    {
+      binding: STANDARD_AREA_LIGHT_LTC_MATRIX_BINDING,
+      resourceKey: resources.matrixTexture.resourceKey,
+      resource: { textureView: resources.matrixTexture.view },
+    },
+    {
+      binding: STANDARD_AREA_LIGHT_LTC_FRESNEL_BINDING,
+      resourceKey: resources.fresnelTexture.resourceKey,
+      resource: { textureView: resources.fresnelTexture.view },
+    },
+    {
+      binding: STANDARD_AREA_LIGHT_LTC_SAMPLER_BINDING,
+      resourceKey: resources.sampler.resourceKey,
+      resource: { sampler: resources.sampler.sampler },
+    },
+  );
+}
+
+function lightBindGroupEntryResourceKind(
+  entry: LightBindGroupDescriptorEntry,
+): "buffer" | "texture-view" | "sampler" {
+  if ("buffer" in entry.resource) {
+    return "buffer";
+  }
+
+  if ("textureView" in entry.resource) {
+    return "texture-view";
+  }
+
+  return "sampler";
+}
+
+function lightBindGroupCreationResource(
+  entry: LightBindGroupDescriptorEntry,
+): unknown {
+  if ("textureView" in entry.resource) {
+    return entry.resource.textureView;
+  }
+
+  if ("sampler" in entry.resource) {
+    return entry.resource.sampler;
+  }
+
+  return entry.resource;
 }
 
 function messageFromCause(cause: unknown): string {

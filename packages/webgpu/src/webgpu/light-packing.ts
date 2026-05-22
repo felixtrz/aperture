@@ -11,7 +11,7 @@ import {
 } from "./buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "./mesh-buffer-descriptors.js";
 
-export const PACKED_LIGHT_FLOAT_STRIDE = 8;
+export const PACKED_LIGHT_FLOAT_STRIDE = 12;
 export const PACKED_LIGHT_METADATA_STRIDE = 6;
 
 export const PackedLightKindId = {
@@ -20,6 +20,7 @@ export const PackedLightKindId = {
   Point: 2,
   Spot: 3,
   Environment: 4,
+  RectArea: 5,
 } as const;
 
 export type PackedLightKindId =
@@ -257,6 +258,10 @@ export function writePackedLightPackets(
         light.range,
         light.innerConeAngle,
         light.outerConeAngle,
+        light.width ?? 0,
+        light.height ?? 0,
+        0,
+        0,
       ],
       floatOffset,
     );
@@ -623,5 +628,7 @@ export function packedLightKindId(kind: LightKind): PackedLightKindId {
       return PackedLightKindId.Spot;
     case "environment":
       return PackedLightKindId.Environment;
+    case "rect-area":
+      return PackedLightKindId.RectArea;
   }
 }

@@ -322,6 +322,7 @@ function directLightingSummary() {
       directional: 1,
       point: 0,
       spot: 0,
+      rectArea: 0,
       environment: 0,
     },
     sections: {

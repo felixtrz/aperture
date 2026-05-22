@@ -15,6 +15,7 @@ export interface DirectLightKindCounts {
   readonly directional: number;
   readonly point: number;
   readonly spot: number;
+  readonly rectArea: number;
   readonly environment: number;
 }
 
@@ -159,11 +160,12 @@ function countDirectLightKinds(
     directional: 0,
     point: 0,
     spot: 0,
+    rectArea: 0,
     environment: 0,
   };
 
   for (const light of lights) {
-    counts[light.kind] += 1;
+    incrementLightKindCount(counts, light.kind);
 
     if (isDirectLightKind(light.kind)) {
       counts.direct += 1;
@@ -174,9 +176,40 @@ function countDirectLightKinds(
 }
 
 function isDirectLightKind(kind: LightKind): boolean {
-  return kind === "directional" || kind === "point" || kind === "spot";
+  return (
+    kind === "directional" ||
+    kind === "point" ||
+    kind === "spot" ||
+    kind === "rect-area"
+  );
 }
 
 type MutableDirectLightKindCounts = {
   -readonly [Key in keyof DirectLightKindCounts]: DirectLightKindCounts[Key];
 };
+
+function incrementLightKindCount(
+  counts: MutableDirectLightKindCounts,
+  kind: LightKind,
+): void {
+  switch (kind) {
+    case "ambient":
+      counts.ambient += 1;
+      return;
+    case "directional":
+      counts.directional += 1;
+      return;
+    case "point":
+      counts.point += 1;
+      return;
+    case "spot":
+      counts.spot += 1;
+      return;
+    case "rect-area":
+      counts.rectArea += 1;
+      return;
+    case "environment":
+      counts.environment += 1;
+      return;
+  }
+}

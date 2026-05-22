@@ -191,6 +191,10 @@ import {
   type CreateStandardAppFrameResourcesResult,
   type StandardAppFrameResourceCacheSlot,
 } from "./standard-app-frame-resources.js";
+import {
+  createStandardAreaLightLtcResources,
+  type StandardAreaLightLtcResources,
+} from "./standard-area-light-ltc-resource.js";
 import type {
   StandardFrameIblResources,
   StandardFrameShadowReceiverResources,
@@ -616,6 +620,10 @@ interface QueuedBuiltInFrameResourcePreparationOptions {
     | StandardFrameShadowReceiverResources
     | undefined;
   readonly standardMaterialIblResources?: StandardFrameIblResources | undefined;
+  readonly standardAreaLightLtcResources?:
+    | StandardAreaLightLtcResources
+    | null
+    | undefined;
   readonly reuse: WebGpuAppResourceReuseReport;
 }
 
@@ -1419,6 +1427,12 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
                 standardMaterialIblResources:
                   options.standardMaterialIblResources,
               }),
+          ...(options.standardAreaLightLtcResources === undefined
+            ? {}
+            : {
+                standardAreaLightLtcResources:
+                  options.standardAreaLightLtcResources,
+              }),
           preparedMeshes: options.cache.preparedMeshes,
           preparedScalarMaterials: options.preparedMaterials.standard,
           reuse: options.reuse,
@@ -1522,11 +1536,33 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     packedTransforms,
     options.cache.frameScratch.instanceTints,
   );
+  const standardAreaLightLtc = resolveStandardAreaLightLtcResources({
+    app: options.app,
+    cache: options.cache,
+    required: queuedBuiltInResourceSetHasStandardMaterial(options.resourceSet),
+  });
+
+  if (!standardAreaLightLtc.valid) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      resourceReuse: options.reuse,
+      diagnostics: [
+        ...options.snapshot.diagnostics,
+        ...packedViews.diagnostics,
+        ...packedTransforms.diagnostics,
+        ...packedInstanceTints.diagnostics,
+        ...standardAreaLightLtc.diagnostics,
+      ],
+    });
+  }
+
   const prepared = await prepareQueuedBuiltInFrameResources({
     ...options,
     viewUniforms: packedViews,
     worldTransforms: packedTransforms,
     instanceTints: packedInstanceTints,
+    standardAreaLightLtcResources: standardAreaLightLtc.resources,
     ...(options.standardMaterialShadowReceiverResources === undefined
       ? {}
       : {
@@ -2586,6 +2622,40 @@ function createQueuedBuiltInRouteFailureDiagnosticsSummary(
       });
 }
 
+function queuedBuiltInResourceSetHasStandardMaterial(
+  resourceSet: QueuedBuiltInAppResourceSet,
+): boolean {
+  return resourceSet.items.some((item) => item.adapter.kind === "standard");
+}
+
+function resolveStandardAreaLightLtcResources(options: {
+  readonly app: WebGpuApp;
+  readonly cache: WebGpuAppResourceCache;
+  readonly required: boolean;
+}): {
+  readonly valid: boolean;
+  readonly resources: StandardAreaLightLtcResources | null;
+  readonly diagnostics: readonly unknown[];
+} {
+  if (!options.required) {
+    return { valid: true, resources: null, diagnostics: [] };
+  }
+
+  const result = createStandardAreaLightLtcResources({
+    device: options.app.initialization.device as Parameters<
+      typeof createStandardAreaLightLtcResources
+    >[0]["device"],
+    textureCache: options.cache.textures,
+    samplerCache: options.cache.samplers,
+  });
+
+  return {
+    valid: result.valid,
+    resources: result.resources,
+    diagnostics: result.diagnostics,
+  };
+}
+
 async function prepareQueuedBuiltInFrameResources(options: {
   readonly app: WebGpuApp;
   readonly assets: AssetRegistry;
@@ -2600,6 +2670,10 @@ async function prepareQueuedBuiltInFrameResources(options: {
     | StandardFrameShadowReceiverResources
     | undefined;
   readonly standardMaterialIblResources?: StandardFrameIblResources | undefined;
+  readonly standardAreaLightLtcResources?:
+    | StandardAreaLightLtcResources
+    | null
+    | undefined;
 }): Promise<{
   readonly valid: boolean;
   readonly resources: QueuedBuiltInFrameResources | null;
@@ -2679,6 +2753,12 @@ async function prepareQueuedBuiltInFrameResources(options: {
                 standardMaterialIblResources:
                   options.standardMaterialIblResources,
               }),
+          ...(options.standardAreaLightLtcResources === undefined
+            ? {}
+            : {
+                standardAreaLightLtcResources:
+                  options.standardAreaLightLtcResources,
+              }),
           reuse: options.reuse,
         }),
     },
@@ -2700,6 +2780,10 @@ function createQueuedBuiltInFrameResourceOptions(input: {
     | StandardFrameShadowReceiverResources
     | undefined;
   readonly standardMaterialIblResources?: StandardFrameIblResources | undefined;
+  readonly standardAreaLightLtcResources?:
+    | StandardAreaLightLtcResources
+    | null
+    | undefined;
   readonly reuse: WebGpuAppResourceReuseReport;
 }): QueuedBuiltInFrameResourcePreparationOptions {
   return {
@@ -2726,6 +2810,11 @@ function createQueuedBuiltInFrameResourceOptions(input: {
       ? {}
       : {
           standardMaterialIblResources: input.standardMaterialIblResources,
+        }),
+    ...(input.standardAreaLightLtcResources === undefined
+      ? {}
+      : {
+          standardAreaLightLtcResources: input.standardAreaLightLtcResources,
         }),
     reuse: input.reuse,
   };
@@ -3126,6 +3215,28 @@ async function renderWebGpuAppFrame(
       });
     }
 
+    const standardAreaLightLtc = resolveStandardAreaLightLtcResources({
+      app,
+      cache: resourceCache,
+      required: item.adapter.kind === "standard",
+    });
+
+    if (!standardAreaLightLtc.valid) {
+      return renderReport({
+        ok: false,
+        snapshot,
+        pipeline,
+        resourceReuse: reuse,
+        diagnostics: [
+          ...snapshot.diagnostics,
+          ...packedViews.diagnostics,
+          ...packedTransforms.diagnostics,
+          ...packedInstanceTints.diagnostics,
+          ...standardAreaLightLtc.diagnostics,
+        ],
+      });
+    }
+
     const textureSamplerDependencies =
       createPreparedMaterialTextureSamplerDependencies(preparedTextures);
 
@@ -3141,6 +3252,7 @@ async function renderWebGpuAppFrame(
       worldTransforms: packedTransforms,
       instanceTints: packedInstanceTints,
       layouts,
+      standardAreaLightLtcResources: standardAreaLightLtc.resources,
       ...(options.standardMaterialShadowReceiverResources === undefined
         ? {}
         : {
@@ -3798,6 +3910,29 @@ async function prepareWebGpuAppPickFrameResources(
     packedTransforms,
     resourceCache.frameScratch.instanceTints,
   );
+  const standardAreaLightLtc = resolveStandardAreaLightLtcResources({
+    app: context.app,
+    cache: resourceCache,
+    required: queuedBuiltInResourceSetHasStandardMaterial(
+      queuedBuiltIn.resourceSet,
+    ),
+  });
+
+  if (!standardAreaLightLtc.valid) {
+    return {
+      valid: false,
+      framePlan: null,
+      resources: null,
+      pipelineResults: [],
+      diagnostics: [
+        ...packedViews.diagnostics,
+        ...packedTransforms.diagnostics,
+        ...packedInstanceTints.diagnostics,
+        ...standardAreaLightLtc.diagnostics,
+      ],
+    };
+  }
+
   const prepared = await prepareQueuedBuiltInFrameResources({
     app: context.app,
     assets: context.sourceAssets,
@@ -3808,6 +3943,7 @@ async function prepareWebGpuAppPickFrameResources(
     viewUniforms: packedViews,
     worldTransforms: packedTransforms,
     instanceTints: packedInstanceTints,
+    standardAreaLightLtcResources: standardAreaLightLtc.resources,
   });
 
   if (!prepared.valid || prepared.resources === null) {

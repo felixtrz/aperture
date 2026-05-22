@@ -1,6 +1,121 @@
 # Agent Handoff
 
-Updated: 2026-05-22T09:44:52Z
+Updated: 2026-05-22T10:40:00Z
+
+## Current Run Update — 2026-05-22T10:40:00Z — RectAreaLight first slice shipped
+
+Completed `task-3074`.
+
+### What changed
+
+- Added `LightKind.RectArea` with finite positive `width`/`height` validation,
+  extraction into `LightPacket`, packed snapshot encoding/decoding, and
+  direct-light readiness counts.
+- Extended WebGPU light packing to carry area-light dimensions and added
+  StandardMaterial WGSL support for rect-area evaluation using renderer-owned
+  LTC matrix/fresnel textures plus a sampler.
+- Routed StandardMaterial area-light LTC resources through normal light,
+  shadow-capable, multi-shadow, IBL, queued app-frame, single built-in, and pick
+  paths so StandardMaterial bind groups satisfy the new shader bindings.
+- Added `examples/rect-area-light.html` with a renderer-only main thread, a
+  worker-authored ECS scene, transferable snapshot status, and readback samples
+  proving a lit center and side falloff.
+- Updated public progress tracker pages, completed-task log, and backlog.
+  Recommended next task is now `task-3075`.
+
+### Files touched
+
+- Agent/docs: `agent/BACKLOG.md`, `agent/COMPLETED.md`,
+  `agent/HANDOFF.md`, `docs/index.html`,
+  `docs/render-pipeline-comparison.html`.
+- Render bridge: `packages/render/src/rendering/authoring.ts`,
+  `packages/render/src/rendering/extraction.ts`,
+  `packages/render/src/rendering/snapshot.ts`,
+  `packages/render/src/rendering/snapshot-packed-encoding.ts`.
+- WebGPU: `packages/webgpu/src/webgpu/app.ts`,
+  `packages/webgpu/src/webgpu/direct-light-readiness.ts`,
+  `packages/webgpu/src/webgpu/index.ts`,
+  `packages/webgpu/src/webgpu/light-bind-group.ts`,
+  `packages/webgpu/src/webgpu/light-packing.ts`,
+  `packages/webgpu/src/webgpu/light-shader-metadata.ts`,
+  `packages/webgpu/src/webgpu/shadow-texture-resource.ts`,
+  `packages/webgpu/src/webgpu/standard-app-frame-resources.ts`,
+  `packages/webgpu/src/webgpu/standard-area-light-ltc-resource.ts`,
+  `packages/webgpu/src/webgpu/standard-frame-resources.ts`,
+  `packages/webgpu/src/webgpu/standard-light-shadow-bind-group.ts`,
+  `packages/webgpu/src/webgpu/standard-shader.ts`.
+- Examples/tests: `package.json`, `examples/rect-area-light.html`,
+  `examples/rect-area-light.js`, `examples/rect-area-light.main.js`,
+  `examples/rect-area-light.worker.js`,
+  `examples/rect-area-light-scene.js`,
+  `test/e2e/rect-area-light.spec.ts`, plus targeted render/WebGPU example
+  tests updated for RectAreaLight and the extended light buffer stride.
+
+### References inspected
+
+- `references/three.js/src/lights/RectAreaLight.js`
+- `references/three.js/examples/jsm/lights/RectAreaLightUniformsLib.js`
+- `references/three.js/examples/jsm/lights/RectAreaLightTexturesLib.js`
+- `references/engine/src/scene/lighting/lights-buffer.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/ltc.js`
+
+Common pattern adapted: Three and PlayCanvas keep rectangular area-light shape
+data on authored lights while the renderer owns LTC lookup resources and derives
+world-space rectangle axes from the light transform. Aperture keeps the same
+boundary: ECS snapshots carry kind/transform/width/height; WebGPU owns textures,
+samplers, bind groups, and shader evaluation.
+
+### Validation
+
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run lint` passed.
+- `pnpm run check:examples` passed.
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs test/rendering/components.test.ts test/rendering/extraction.test.ts test/rendering/snapshot-packed-encoding.test.ts test/webgpu/app-diagnostics-summary.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/standard-shader.test.ts test/webgpu/light-shader-metadata.test.ts test/webgpu/direct-light-readiness.test.ts test/webgpu/light-packing.test.ts --reporter=dot`
+  passed.
+- `pnpm exec playwright test test/e2e/rect-area-light.spec.ts --project=chrome-webgpu-headed`
+  passed.
+- `pnpm run check` passed after updating two stale WebGPU app facade assertions
+  for the new renderer-owned LTC bind-group/cache entries. This covered package
+  boundaries, progress tracker freshness, build/typecheck, test typecheck,
+  example syntax checks, lint, format check, and all 343 Vitest files / 1,690
+  tests.
+- In-app browser status readback confirmed `phase: "submit"`, one draw call,
+  `rectArea: 1`, no diagnostics, and center sample `157/156/150` versus side
+  clear-color samples. Browser screenshot capture timed out twice, so no manual
+  screenshot artifact was kept.
+
+### Known issues
+
+- The LTC lookup textures are a small renderer-owned procedural first slice,
+  not a production-fidelity LTC table. The next area-light work should improve
+  shape coverage before replacing the LUT payload.
+- RectAreaLight shadows remain unsupported by design; extraction reports the
+  existing `render.shadowUnsupportedLightKind.rect-area` diagnostic if shadowing
+  is requested.
+
+### Recommended next task
+
+Start `task-3075`: add disk and sphere area-light variants on the RectAreaLight
+path. Inspect PlayCanvas `LIGHTSHAPE_DISK` / `LIGHTSHAPE_SPHERE`, keep the
+authoring data-only, extend packed light metadata and WGSL shape evaluation, and
+add a visible pixel-readback comparison.
+
+### task-3075 preflight notes
+
+- Quick reference pass inspected `references/engine/src/scene/light.js`,
+  `references/engine/src/scene/lighting/lights-buffer.js`, and
+  `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/ltc.js`.
+- PlayCanvas models area lights as shape metadata (`LIGHTSHAPE_RECT`,
+  `LIGHTSHAPE_DISK`, `LIGHTSHAPE_SPHERE`) rather than separate renderer-owned
+  scene objects. The constants are punctual=0, rect=1, disk=2, sphere=3, and
+  `Light.shape` invalidates shadow/key/cluster flags when changed. Aperture
+  should likely add a data-only `LightShape`/shape field alongside
+  `LightKind.RectArea`, preserve it through `LightPacket` and packed snapshot
+  encoding, then consume it in WebGPU light packing/WGSL.
+- Do not start this as a quick shader-only patch: it needs public authoring
+  shape metadata, transport coverage, shader metadata/tests, and one visible
+  rect/disk/sphere comparison proof.
 
 ## Current Run Update — 2026-05-22T09:44:52Z — Animation blending shipped
 

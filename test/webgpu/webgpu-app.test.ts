@@ -5524,7 +5524,7 @@ describe("WebGPU app facade", () => {
       [],
     );
     expect(queuedBindGroupResourceKeys(frame.resources?.resources, 3)).toEqual([
-      "bind-group:webgpu-app/standard/lights-ibl/group-3/0:light-buffer:main/floats/1:light-buffer:main/metadata/5:texture:test:diffuse:texture/6:texture:test:diffuse:sampler|pipeline:standard|iblDiffuse|opaque|back|less|none",
+      "bind-group:webgpu-app/standard/lights-ibl/group-3/0:light-buffer:main/floats/1:light-buffer:main/metadata/5:texture:test:diffuse:texture/6:texture:test:diffuse:sampler/11:standard-area-light-ltc:matrix/12:standard-area-light-ltc:fresnel/13:standard-area-light-ltc:sampler|pipeline:standard|iblDiffuse|opaque|back|less|none",
     ]);
     expect(standardIblBindGroupResource(frame.resources?.resources)).toBe(
       standardMaterialIblResources.bindGroupResource.resource,
@@ -6349,8 +6349,8 @@ describe("WebGPU app facade", () => {
         .preparedMeshCache.totalEntries,
     ).toBeGreaterThan(0);
     expectTextureSamplerCacheSummary(thirdFrame, {
-      textureEntries: 1,
-      samplerEntries: 1,
+      textureEntries: 3,
+      samplerEntries: 2,
     });
     expectRetainedBackendCacheSummariesAreJsonSafe(thirdFrame, [
       "TexturedStandardCube",

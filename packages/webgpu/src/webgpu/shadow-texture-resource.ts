@@ -12,7 +12,8 @@ export interface ShadowTextureResourceDescriptor {
     | "point"
     | "spot"
     | "ambient"
-    | "environment";
+    | "environment"
+    | "rect-area";
   readonly resourceKey: string;
   readonly textureKey: string;
   readonly viewKey: string;

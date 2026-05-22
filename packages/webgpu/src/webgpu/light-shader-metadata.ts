@@ -336,7 +336,7 @@ function createLightShaderWgslSource(
   return `
 // Aperture packed light buffer contract.
 // lightFloats field order per light:
-// 0 color.r, 1 color.g, 2 color.b, 3 color.a, 4 intensity, 5 range, 6 innerConeAngle, 7 outerConeAngle.
+// 0 color.r, 1 color.g, 2 color.b, 3 color.a, 4 intensity, 5 range, 6 innerConeAngle, 7 outerConeAngle, 8 width, 9 height, 10-11 reserved.
 // lightMetadata field order per light:
 // 0 kind, 1 worldTransformOffset, 2 layerMask, 3 lightId, 4 entity.index, 5 entity.generation.
 const PACKED_LIGHT_FLOAT_STRIDE: u32 = ${PACKED_LIGHT_FLOAT_STRIDE}u;
@@ -348,6 +348,10 @@ struct PackedLightFloatFields {
   range: f32,
   innerConeAngle: f32,
   outerConeAngle: f32,
+  width: f32,
+  height: f32,
+  reserved0: f32,
+  reserved1: f32,
 };
 
 struct PackedLightMetadataFields {

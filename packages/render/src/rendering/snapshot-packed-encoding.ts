@@ -25,7 +25,7 @@ export const SNAPSHOT_PACKET_ENCODING_VERSION = 1;
 export const SNAPSHOT_PACKET_HEADER_WORDS = 8;
 export const VIEW_PACKET_WORDS = 36;
 export const MESH_DRAW_PACKET_WORDS = 30;
-export const LIGHT_PACKET_WORDS = 22;
+export const LIGHT_PACKET_WORDS = 26;
 export const ENVIRONMENT_PACKET_WORDS = 13;
 export const SHADOW_REQUEST_PACKET_WORDS = 5;
 export const BOUNDS_PACKET_WORDS = 43;
@@ -128,6 +128,7 @@ const LightKindId = Object.freeze({
   Directional: 3,
   Point: 4,
   Spot: 5,
+  RectArea: 6,
 });
 
 const TopologyId = Object.freeze({
@@ -555,8 +556,10 @@ function writeLightPacket(
   writeFloat64(words, offset + 14, packet.range);
   writeFloat64(words, offset + 16, packet.innerConeAngle);
   writeFloat64(words, offset + 18, packet.outerConeAngle);
-  words[offset + 20] = packet.worldTransformOffset >>> 0;
-  words[offset + 21] = packet.layerMask >>> 0;
+  writeFloat64(words, offset + 20, packet.width ?? 0);
+  writeFloat64(words, offset + 22, packet.height ?? 0);
+  words[offset + 24] = packet.worldTransformOffset >>> 0;
+  words[offset + 25] = packet.layerMask >>> 0;
 }
 
 function readLightPacket(words: Uint32Array, offset: number): LightPacket {
@@ -569,8 +572,10 @@ function readLightPacket(words: Uint32Array, offset: number): LightPacket {
     range: readFloat64(words, offset + 14),
     innerConeAngle: readFloat64(words, offset + 16),
     outerConeAngle: readFloat64(words, offset + 18),
-    worldTransformOffset: words[offset + 20] ?? 0,
-    layerMask: words[offset + 21] ?? 0,
+    width: readFloat64(words, offset + 20),
+    height: readFloat64(words, offset + 22),
+    worldTransformOffset: words[offset + 24] ?? 0,
+    layerMask: words[offset + 25] ?? 0,
   };
 }
 
@@ -840,6 +845,8 @@ function lightKindId(kind: LightKind): number {
       return LightKindId.Point;
     case "spot":
       return LightKindId.Spot;
+    case "rect-area":
+      return LightKindId.RectArea;
   }
 }
 
@@ -855,6 +862,8 @@ function lightKindValue(id: number): LightKind {
       return "point";
     case LightKindId.Spot:
       return "spot";
+    case LightKindId.RectArea:
+      return "rect-area";
     default:
       throw new RangeError(`Unknown snapshot packet light kind id '${id}'.`);
   }

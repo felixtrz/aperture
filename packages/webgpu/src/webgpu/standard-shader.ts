@@ -71,6 +71,7 @@ export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
     "occlusionTexture",
     "ambientLight",
     "directionalLight",
+    "rectAreaLight",
   ],
   deferred: ["imageBasedLighting", "shadows"],
 } as const;
@@ -145,6 +146,7 @@ const LIGHT_KIND_AMBIENT: i32 = ${PackedLightKindId.Ambient};
 const LIGHT_KIND_DIRECTIONAL: i32 = ${PackedLightKindId.Directional};
 const LIGHT_KIND_POINT: i32 = ${PackedLightKindId.Point};
 const LIGHT_KIND_SPOT: i32 = ${PackedLightKindId.Spot};
+const LIGHT_KIND_RECT_AREA: i32 = ${PackedLightKindId.RectArea};
 const STANDARD_FEATURE_ALPHA_MASK: u32 = 32u;
 
 @group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
@@ -152,6 +154,9 @@ const STANDARD_FEATURE_ALPHA_MASK: u32 = 32u;
 @group(2) @binding(0) var<uniform> material: StandardMaterialUniform;
 @group(3) @binding(0) var<storage, read> lightFloats: array<f32>;
 @group(3) @binding(1) var<storage, read> lightMetadata: array<i32>;
+@group(3) @binding(11) var standardAreaLightLtcMatrixTexture: texture_2d<f32>;
+@group(3) @binding(12) var standardAreaLightLtcFresnelTexture: texture_2d<f32>;
+@group(3) @binding(13) var standardAreaLightLtcSampler: sampler;
 
 @vertex
 fn vs_main(input: VertexInput) -> VertexOutput {
@@ -286,6 +291,135 @@ fn spotLightConeAttenuation(lightIndex: u32, lightToReceiver: vec3f) -> f32 {
   return saturate((cosTheta - outerCos) / max(innerCos - outerCos, 0.0001));
 }
 
+fn safeNormalize(value: vec3f, fallback: vec3f) -> vec3f {
+  let valueLength = length(value);
+
+  if (valueLength <= 0.0001) {
+    return fallback;
+  }
+
+  return value / valueLength;
+}
+
+fn rectAreaLightSize(lightIndex: u32) -> vec2f {
+  let offset = lightFloatOffset(lightIndex);
+  return max(vec2f(lightFloats[offset + 8u], lightFloats[offset + 9u]), vec2f(0.0001));
+}
+
+fn rectAreaLightCenter(lightIndex: u32) -> vec3f {
+  let world = worldTransforms[lightTransformIndex(lightIndex)];
+  return world[3].xyz;
+}
+
+fn rectAreaLightHalfWidth(lightIndex: u32) -> vec3f {
+  let world = worldTransforms[lightTransformIndex(lightIndex)];
+  return safeNormalize(world[0].xyz, vec3f(1.0, 0.0, 0.0)) * rectAreaLightSize(lightIndex).x * 0.5;
+}
+
+fn rectAreaLightHalfHeight(lightIndex: u32) -> vec3f {
+  let world = worldTransforms[lightTransformIndex(lightIndex)];
+  return safeNormalize(world[1].xyz, vec3f(0.0, 1.0, 0.0)) * rectAreaLightSize(lightIndex).y * 0.5;
+}
+
+fn rectAreaLightNormal(lightIndex: u32) -> vec3f {
+  let world = worldTransforms[lightTransformIndex(lightIndex)];
+  return safeNormalize(-world[2].xyz, vec3f(0.0, 0.0, -1.0));
+}
+
+fn areaLightLtcUv(normal: vec3f, viewDir: vec3f, roughness: f32) -> vec2f {
+  let nDotV = saturate(dot(normal, viewDir));
+  return vec2f(clamp(roughness, 0.0, 1.0), sqrt(1.0 - nDotV));
+}
+
+fn areaLightLtcScale(normal: vec3f, viewDir: vec3f, roughness: f32) -> f32 {
+  let uv = areaLightLtcUv(normal, viewDir, roughness);
+  let matrix = textureSampleLevel(
+    standardAreaLightLtcMatrixTexture,
+    standardAreaLightLtcSampler,
+    uv,
+    0.0,
+  );
+  let fresnel = textureSampleLevel(
+    standardAreaLightLtcFresnelTexture,
+    standardAreaLightLtcSampler,
+    uv,
+    0.0,
+  );
+  return max((matrix.x + matrix.z) * 0.5 * max(fresnel.x, 0.04), 0.0001);
+}
+
+fn ltcEdgeVectorFormFactor(v1: vec3f, v2: vec3f) -> vec3f {
+  let edge = cross(v1, v2);
+  let edgeLength = length(edge);
+
+  if (edgeLength <= 0.0001) {
+    return vec3f(0.0);
+  }
+
+  let angle = acos(clamp(dot(v1, v2), -0.9999, 0.9999));
+  return edge * (angle / edgeLength);
+}
+
+fn rectAreaLightFormFactor(
+  normal: vec3f,
+  position: vec3f,
+  p0: vec3f,
+  p1: vec3f,
+  p2: vec3f,
+  p3: vec3f,
+) -> f32 {
+  let v0 = safeNormalize(p0 - position, normal);
+  let v1 = safeNormalize(p1 - position, normal);
+  let v2 = safeNormalize(p2 - position, normal);
+  let v3 = safeNormalize(p3 - position, normal);
+  let vectorFormFactor =
+    ltcEdgeVectorFormFactor(v0, v1) +
+    ltcEdgeVectorFormFactor(v1, v2) +
+    ltcEdgeVectorFormFactor(v2, v3) +
+    ltcEdgeVectorFormFactor(v3, v0);
+  return saturate(abs(dot(normal, vectorFormFactor)) / (2.0 * PI));
+}
+
+fn evaluateRectAreaLight(
+  lightIndex: u32,
+  position: vec3f,
+  normal: vec3f,
+  viewDir: vec3f,
+  baseColor: vec3f,
+  metallic: f32,
+  roughness: f32,
+) -> vec3f {
+  let center = rectAreaLightCenter(lightIndex);
+  let lightNormal = rectAreaLightNormal(lightIndex);
+  let lightToReceiver = position - center;
+
+  if (dot(lightNormal, lightToReceiver) <= 0.0) {
+    return vec3f(0.0);
+  }
+
+  let halfWidth = rectAreaLightHalfWidth(lightIndex);
+  let halfHeight = rectAreaLightHalfHeight(lightIndex);
+  let p0 = center - halfWidth - halfHeight;
+  let p1 = center + halfWidth - halfHeight;
+  let p2 = center + halfWidth + halfHeight;
+  let p3 = center - halfWidth + halfHeight;
+  let formFactor = rectAreaLightFormFactor(normal, position, p0, p1, p2, p3);
+
+  if (formFactor <= 0.0) {
+    return vec3f(0.0);
+  }
+
+  let ltcScale = areaLightLtcScale(normal, viewDir, roughness);
+  let lightDir = safeNormalize(center - position, normal);
+  let f0 = mix(vec3f(0.04), baseColor, vec3f(metallic));
+  let fresnel = fresnelSchlick(max(dot(viewDir, lightDir), 0.0), f0);
+  let diffuse = ((vec3f(1.0) - fresnel) * (1.0 - metallic) * baseColor) / PI;
+  let reflectionDir = reflect(-viewDir, normal);
+  let specularPower = mix(64.0, 4.0, roughness);
+  let specular = fresnel * pow(saturate(dot(reflectionDir, lightDir)), specularPower) * ltcScale;
+  return (diffuse + specular) * lightRadiance(lightIndex) * formFactor;
+}
+
 @fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   let baseColor = material.baseColorFactor.rgb;
@@ -361,6 +495,18 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
           roughness,
         );
       }
+    }
+
+    if (kind == LIGHT_KIND_RECT_AREA) {
+      direct = direct + evaluateRectAreaLight(
+        lightIndex,
+        input.worldPosition,
+        normal,
+        viewDir,
+        baseColor,
+        metallic,
+        roughness,
+      );
     }
   }
 

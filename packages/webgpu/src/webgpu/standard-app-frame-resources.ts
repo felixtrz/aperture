@@ -53,6 +53,7 @@ import type { StandardMaterialBindGroupLayoutResource } from "./standard-bind-gr
 import {
   createStandardFrameGpuResources,
   type CreateStandardFrameGpuResourcesResult,
+  type CreateStandardFrameGpuResourcesOptions,
   type StandardFrameIblResources,
   type StandardFrameShadowReceiverResources,
 } from "./standard-frame-resources.js";
@@ -147,6 +148,7 @@ export function createOrReuseStandardAppFrameResources(options: {
     | null;
   readonly shadowReceiverResources?: StandardFrameShadowReceiverResources;
   readonly standardMaterialIblResources?: StandardFrameIblResources;
+  readonly standardAreaLightLtcResources?: CreateStandardFrameGpuResourcesOptions["standardAreaLightLtcResources"];
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
   readonly preparedScalarMaterials: PreparedScalarStandardMaterialCache;
   readonly reuse: StandardAppFrameResourceReuseReport;
@@ -314,6 +316,11 @@ export function createOrReuseStandardAppFrameResources(options: {
     ...(options.standardMaterialIblResources === undefined
       ? {}
       : { standardMaterialIblResources: options.standardMaterialIblResources }),
+    ...(options.standardAreaLightLtcResources === undefined
+      ? {}
+      : {
+          standardAreaLightLtcResources: options.standardAreaLightLtcResources,
+        }),
     textures: options.textureSamplerDependencies.textures,
     samplers: options.textureSamplerDependencies.samplers,
   });

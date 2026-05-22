@@ -10,6 +10,12 @@ import type {
 import type { LightGpuBufferResource } from "./light-packing.js";
 import type { ShadowDepthTextureResourceReport } from "./shadow-depth-texture-resource.js";
 import type { ShadowMatrixBufferResourceReport } from "./shadow-matrix-buffer-resource.js";
+import {
+  STANDARD_AREA_LIGHT_LTC_FRESNEL_BINDING,
+  STANDARD_AREA_LIGHT_LTC_MATRIX_BINDING,
+  STANDARD_AREA_LIGHT_LTC_SAMPLER_BINDING,
+  type StandardAreaLightLtcResources,
+} from "./standard-area-light-ltc-resource.js";
 import type { ShadowSamplerResourceReport } from "./standard-material-shadow-bind-group.js";
 
 export const STANDARD_LIGHT_SHADOW_BIND_GROUP = 3;
@@ -80,6 +86,7 @@ export interface CreateStandardLightShadowBindGroupDescriptorPlanOptions {
   readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
   readonly depthTextureResources: ShadowDepthTextureResourceReport;
   readonly samplerResource: ShadowSamplerResourceReport;
+  readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly layoutKey?: string | null;
   readonly label?: string;
 }
@@ -89,6 +96,7 @@ export interface CreateStandardLightMultiShadowBindGroupDescriptorPlanOptions {
   readonly directionalShadowReceiverResources: StandardLightIblShadowReceiverResources;
   readonly spotShadowReceiverResources: StandardLightIblShadowReceiverResources;
   readonly pointShadowReceiverResources: StandardLightIblShadowReceiverResources;
+  readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly layoutKey?: string | null;
   readonly label?: string;
 }
@@ -100,6 +108,7 @@ export interface CreateStandardLightIblBindGroupDescriptorPlanOptions {
   readonly samplerResource: IblSamplerResourceReport;
   readonly shadowReceiverResources?: StandardLightIblShadowReceiverResources;
   readonly shadowRequired?: boolean;
+  readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly layoutKey?: string | null;
   readonly label?: string;
 }
@@ -364,6 +373,8 @@ export function createStandardLightShadowBindGroupDescriptorPlan(
     });
   }
 
+  appendAreaLightLtcEntries(entries, options.areaLightLtcResources ?? null);
+
   return {
     valid: diagnostics.length === 0,
     group: STANDARD_LIGHT_SHADOW_BIND_GROUP,
@@ -435,6 +446,7 @@ export function createStandardLightMultiShadowBindGroupDescriptorPlan(
     diagnostics,
     { matrix: 8, depth: 9, sampler: 10 },
   );
+  appendAreaLightLtcEntries(entries, options.areaLightLtcResources ?? null);
 
   return {
     valid: diagnostics.length === 0,
@@ -581,6 +593,8 @@ export function createStandardLightIblBindGroupDescriptorPlan(
     }
   }
 
+  appendAreaLightLtcEntries(entries, options.areaLightLtcResources ?? null);
+
   return {
     valid: diagnostics.length === 0,
     group: STANDARD_LIGHT_SHADOW_BIND_GROUP,
@@ -607,6 +621,7 @@ export function createStandardLightShadowBindGroupResource(options: {
   readonly diffuseTextureResource?: DiffuseIblTextureResourceReport;
   readonly specularTextureResource?: SpecularIblTextureResourceReport;
   readonly iblSamplerResource?: IblSamplerResourceReport;
+  readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
 }): CreateStandardLightShadowBindGroupResourceResult {
   if (options.plan === null) {
     return resourceResult(
@@ -770,6 +785,24 @@ function createCreationEntries(
     }
   }
 
+  if (
+    resources.areaLightLtcResources !== undefined &&
+    resources.areaLightLtcResources !== null
+  ) {
+    textures.set(
+      resources.areaLightLtcResources.matrixTexture.resourceKey,
+      resources.areaLightLtcResources.matrixTexture.view,
+    );
+    textures.set(
+      resources.areaLightLtcResources.fresnelTexture.resourceKey,
+      resources.areaLightLtcResources.fresnelTexture.view,
+    );
+    samplers.set(
+      resources.areaLightLtcResources.sampler.resourceKey,
+      resources.areaLightLtcResources.sampler.sampler,
+    );
+  }
+
   return plan.entries.flatMap((entry) => {
     if (entry.resourceKind === "texture-view") {
       const texture = textures.get(entry.resourceKey);
@@ -790,6 +823,33 @@ function createCreationEntries(
       ? []
       : [{ binding: entry.binding, resource: { buffer } }];
   });
+}
+
+function appendAreaLightLtcEntries(
+  entries: StandardLightShadowBindGroupDescriptorEntry[],
+  resources: StandardAreaLightLtcResources | null,
+): void {
+  if (resources === null) {
+    return;
+  }
+
+  entries.push(
+    {
+      binding: STANDARD_AREA_LIGHT_LTC_MATRIX_BINDING,
+      resourceKey: resources.matrixTexture.resourceKey,
+      resourceKind: "texture-view",
+    },
+    {
+      binding: STANDARD_AREA_LIGHT_LTC_FRESNEL_BINDING,
+      resourceKey: resources.fresnelTexture.resourceKey,
+      resourceKind: "texture-view",
+    },
+    {
+      binding: STANDARD_AREA_LIGHT_LTC_SAMPLER_BINDING,
+      resourceKey: resources.sampler.resourceKey,
+      resourceKind: "sampler",
+    },
+  );
 }
 
 function appendShadowEntries(

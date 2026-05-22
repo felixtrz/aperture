@@ -90,6 +90,12 @@ const workerSplitExamples = [
     legacy: "examples/standard-queue-phases.js",
   },
   {
+    html: "examples/rect-area-light.html",
+    main: "examples/rect-area-light.main.js",
+    worker: "examples/rect-area-light.worker.js",
+    legacy: "examples/rect-area-light.js",
+  },
+  {
     html: "examples/instancing.html",
     main: "examples/instancing.main.js",
     worker: "examples/instancing.worker.js",

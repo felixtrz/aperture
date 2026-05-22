@@ -448,6 +448,8 @@ function extractLights(
       range: entity.getValue(Light, "range") ?? 10,
       innerConeAngle: entity.getValue(Light, "innerConeAngle") ?? Math.PI / 8,
       outerConeAngle: entity.getValue(Light, "outerConeAngle") ?? Math.PI / 6,
+      width: entity.getValue(Light, "width") ?? 2,
+      height: entity.getValue(Light, "height") ?? 2,
       worldTransformOffset,
       layerMask: entity.getValue(Light, "layerMask") ?? 1,
     });
@@ -1535,11 +1537,14 @@ function lightInput(entity: Entity): LightInput {
       | "environment"
       | "directional"
       | "point"
-      | "spot",
+      | "spot"
+      | "rect-area",
     intensity: entity.getValue(Light, "intensity") ?? 1,
     range: entity.getValue(Light, "range") ?? 10,
     innerConeAngle: entity.getValue(Light, "innerConeAngle") ?? Math.PI / 8,
     outerConeAngle: entity.getValue(Light, "outerConeAngle") ?? Math.PI / 6,
+    width: entity.getValue(Light, "width") ?? 2,
+    height: entity.getValue(Light, "height") ?? 2,
     layerMask: entity.getValue(Light, "layerMask") ?? 1,
   };
 }

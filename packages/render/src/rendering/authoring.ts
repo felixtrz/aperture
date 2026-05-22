@@ -25,6 +25,7 @@ export const LightKind = {
   Directional: "directional",
   Point: "point",
   Spot: "spot",
+  RectArea: "rect-area",
 } as const;
 
 export type LightKind = (typeof LightKind)[keyof typeof LightKind];
@@ -55,6 +56,8 @@ export interface LightInput {
   readonly range?: number;
   readonly innerConeAngle?: number;
   readonly outerConeAngle?: number;
+  readonly width?: number;
+  readonly height?: number;
   readonly layerMask?: number;
   readonly environmentMap?: EnvironmentMapHandle | null;
 }
@@ -93,6 +96,7 @@ export type RenderAuthoringDiagnosticCode =
   | "light.invalidIntensity"
   | "light.invalidRange"
   | "light.invalidSpotCone"
+  | "light.invalidAreaSize"
   | "light.zeroLayerMask"
   | "shadow.invalidMapSize"
   | "shadow.invalidBias"
@@ -224,6 +228,8 @@ export const Light = defineComponent(
     range: { type: EcsType.Float32, default: 10 },
     innerConeAngle: { type: EcsType.Float32, default: Math.PI / 8 },
     outerConeAngle: { type: EcsType.Float32, default: Math.PI / 6 },
+    width: { type: EcsType.Float32, default: 2 },
+    height: { type: EcsType.Float32, default: 2 },
     layerMask: { type: EcsType.Int32, default: 1 },
     environmentMapId: { type: EcsType.String, default: "" },
   },
@@ -310,6 +316,8 @@ export function createLight(
     range: input.range ?? 10,
     innerConeAngle: input.innerConeAngle ?? Math.PI / 8,
     outerConeAngle: input.outerConeAngle ?? Math.PI / 6,
+    width: input.width ?? 2,
+    height: input.height ?? 2,
     layerMask: input.layerMask ?? 1,
     environmentMapId:
       input.environmentMap === undefined || input.environmentMap === null
@@ -436,6 +444,8 @@ export function validateLightInput(
   const range = light.range ?? 10;
   const innerConeAngle = light.innerConeAngle ?? Math.PI / 8;
   const outerConeAngle = light.outerConeAngle ?? Math.PI / 6;
+  const width = light.width ?? 2;
+  const height = light.height ?? 2;
   const layerMask = light.layerMask ?? 1;
   const diagnostics: RenderAuthoringDiagnostic[] = [];
 
@@ -465,6 +475,20 @@ export function validateLightInput(
       code: "light.invalidSpotCone",
       field: "innerConeAngle/outerConeAngle",
       message: "Spot lights require 0 <= innerConeAngle <= outerConeAngle.",
+    });
+  }
+
+  if (
+    kind === LightKind.RectArea &&
+    (!Number.isFinite(width) ||
+      !Number.isFinite(height) ||
+      width <= 0 ||
+      height <= 0)
+  ) {
+    diagnostics.push({
+      code: "light.invalidAreaSize",
+      field: "width/height",
+      message: "Rect area lights require finite width > 0 and height > 0.",
     });
   }
 

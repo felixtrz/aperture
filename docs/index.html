@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-22 09:30 UTC</dd>
+            <dd>2026-05-22 10:34 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1282,10 +1282,15 @@
               per-clip-weight status, and a cross-fade control that blends the
               committed multi-clip sample from <code>SlideX</code> to
               <code>RiseY</code> without moving animation state into the
-              renderer.
+              renderer. Tier 16 has started: ECS lights now include
+              <code>LightKind.RectArea</code> with extracted
+              <code>width</code>/<code>height</code>, StandardMaterial binds
+              renderer-owned LTC resources, and
+              <code>examples/rect-area-light.html</code> proves a
+              worker-authored rectangular area light with browser readback.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3074 RectAreaLight + LTC</dd>
+            <dd>task-3075 disk and sphere area lights</dd>
           </dl>
         </aside>
       </header>
@@ -4246,16 +4251,16 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3074</code>, RectAreaLight authoring and LTC renderer
-                integration.
+                <code>task-3075</code>, disk and sphere area-light shape
+                variants on top of the RectAreaLight/LTC path.
               </li>
               <li>
-                Anchor on Three.js <code>RectAreaLight</code> and LTC uniform
-                setup plus PlayCanvas area-light LUT integration.
+                Anchor on PlayCanvas area-light shape constants and keep ECS
+                authoring data-only.
               </li>
               <li>
-                Keep the slice narrow: ECS light extraction, renderer-owned LUT
-                resources, and one visible StandardMaterial surface proof.
+                Keep the slice narrow: shape authoring, packed light metadata,
+                WGSL shape evaluation, and one pixel-proven comparison example.
               </li>
             </ul>
           </article>
@@ -4268,6 +4273,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3074</div>
+            <div>
+              <strong>RectAreaLight LTC path shipped.</strong>
+              <span>
+                ECS-authored rect-area lights now extract width/height,
+                StandardMaterial binds renderer-owned LTC textures/sampler, and
+                <code>examples/rect-area-light.html</code> proves the lit
+                surface with browser readback.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3073</div>
             <div>

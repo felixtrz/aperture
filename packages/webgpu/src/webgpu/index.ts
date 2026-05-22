@@ -155,6 +155,7 @@ export * from "./shadow-texture-resource.js";
 export * from "./standard-bind-group-layout.js";
 export * from "./standard-bind-group.js";
 export * from "./standard-app-frame-resources.js";
+export * from "./standard-area-light-ltc-resource.js";
 export * from "./standard-frame-resources.js";
 export * from "./standard-material-buffer-resource.js";
 export * from "./standard-material-buffer.js";
