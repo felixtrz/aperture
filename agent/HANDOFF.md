@@ -49,6 +49,16 @@ to feed its output into the existing glTF accessor/mesh-construction reports.
 
 - Teach the glTF report/import path to branch compressed primitives through the
   Draco decoder instead of validating nonexistent accessor bufferViews.
+- Concrete insertion points inspected after the helper landed:
+  `gltf-mesh-primitive.ts` currently emits
+  `gltfMesh.unsupportedCompressedPrimitive` from `inspectUnsupportedCompression`;
+  `gltf-report-driven-import.ts#createMeshReports()` is still synchronous and
+  calls `validateGltfPrimitiveAccessorReferences()` then
+  `decodeGltfPrimitiveAccessors()` before construction; and the GLB viewer reads
+  `importReport.meshConstruction` in both main-thread source registration and
+  worker replay paths. The next slice likely needs an async/provided
+  Draco-decoded mesh-construction branch rather than forcing compressed
+  primitives through the normal accessor bufferView validator.
 - Mark `KHR_draco_mesh_compression` supported only when the replay path can
   produce real `MeshAsset` data.
 - Add a visible Draco GLB viewer sample and Playwright status/pixel proof.

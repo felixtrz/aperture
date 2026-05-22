@@ -864,7 +864,11 @@ decode coverage. Remaining work is to thread that decoder through
 `glb-viewer` sample.
 
 Category: `render-bridge`
-Package/write-scope: `packages/render/src/assets/draco-decoder.ts` (new) + wasm transcoder, targeted tests.
+Package/write-scope: `packages/render/src/assets/draco-decoder.ts`,
+`packages/render/src/assets/gltf-report-driven-import.ts`,
+`packages/render/src/assets/gltf-mesh-primitive.ts`,
+`packages/render/src/assets/gltf-mesh-asset-construction.ts`,
+`examples/glb-viewer.{main.js,worker.js}`, targeted tests.
 Reference anchor: `references/three.js/examples/jsm/loaders/DRACOLoader.js`; PlayCanvas Draco support (search `references/engine/src/`).
 Insertion point: integrate google/draco wasm decoder. The gltf loader's `KHR_draco_mesh_compression` detection path replaces the "unsupported" diagnostic with real decoding.
 
