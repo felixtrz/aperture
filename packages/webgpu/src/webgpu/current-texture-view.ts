@@ -12,6 +12,7 @@ export type CurrentTextureViewDiagnosticCode =
 export interface CurrentTextureViewDiagnostic {
   readonly code: CurrentTextureViewDiagnosticCode;
   readonly message: string;
+  readonly targetIndex?: number;
 }
 
 export interface CurrentTextureContextLike {
@@ -36,10 +37,27 @@ export interface CreateOffscreenColorTargetOptions {
   readonly storeOp?: RenderPassAttachmentStoreOp;
 }
 
+export interface CreateOffscreenColorTargetsOptions {
+  readonly textures: readonly (CurrentTextureLike | null | undefined)[];
+  readonly clearColor?: readonly number[];
+  readonly clearColors?: readonly (readonly number[] | undefined)[];
+  readonly loadOp?: RenderPassAttachmentLoadOp;
+  readonly loadOps?: readonly (RenderPassAttachmentLoadOp | undefined)[];
+  readonly storeOp?: RenderPassAttachmentStoreOp;
+  readonly storeOps?: readonly (RenderPassAttachmentStoreOp | undefined)[];
+}
+
 export interface CreateCurrentTextureColorTargetResult {
   readonly valid: boolean;
   readonly texture?: CurrentTextureLike | null;
   readonly target: RenderPassColorAttachmentInput | null;
+  readonly diagnostics: readonly CurrentTextureViewDiagnostic[];
+}
+
+export interface CreateOffscreenColorTargetsResult {
+  readonly valid: boolean;
+  readonly textures: readonly (CurrentTextureLike | null)[];
+  readonly targets: readonly RenderPassColorAttachmentInput[];
   readonly diagnostics: readonly CurrentTextureViewDiagnostic[];
 }
 
@@ -132,6 +150,50 @@ export function createOffscreenColorTarget(
   };
 }
 
+export function createOffscreenColorTargets(
+  options: CreateOffscreenColorTargetsOptions,
+): CreateOffscreenColorTargetsResult {
+  const textures: (CurrentTextureLike | null)[] = [];
+  const targets: RenderPassColorAttachmentInput[] = [];
+  const diagnostics: CurrentTextureViewDiagnostic[] = [];
+
+  for (let i = 0; i < options.textures.length; i += 1) {
+    const clearColor = colorOptionAt(
+      options.clearColors,
+      i,
+      options.clearColor,
+    );
+    const loadOp = attachmentOptionAt(options.loadOps, i, options.loadOp);
+    const storeOp = attachmentOptionAt(options.storeOps, i, options.storeOp);
+    const targetOptions: CreateOffscreenColorTargetOptions = {
+      texture: options.textures[i],
+      ...(clearColor === undefined ? {} : { clearColor }),
+      ...(loadOp === undefined ? {} : { loadOp }),
+      ...(storeOp === undefined ? {} : { storeOp }),
+    };
+
+    const result = createOffscreenColorTarget(targetOptions);
+
+    textures.push(result.texture ?? null);
+
+    if (result.target !== null) {
+      targets.push(result.target);
+    }
+
+    for (const diagnostic of result.diagnostics) {
+      diagnostics.push({ ...diagnostic, targetIndex: i });
+    }
+  }
+
+  return {
+    valid:
+      diagnostics.length === 0 && targets.length === options.textures.length,
+    textures,
+    targets,
+    diagnostics,
+  };
+}
+
 function createColorTargetInput(
   target: RenderPassColorAttachmentInput,
   options: {
@@ -148,4 +210,22 @@ function createColorTargetInput(
     ...(options.loadOp === undefined ? {} : { loadOp: options.loadOp }),
     ...(options.storeOp === undefined ? {} : { storeOp: options.storeOp }),
   };
+}
+
+function colorOptionAt(
+  values: readonly (readonly number[] | undefined)[] | undefined,
+  index: number,
+  fallback: readonly number[] | undefined,
+): readonly number[] | undefined {
+  return values?.[index] ?? fallback;
+}
+
+function attachmentOptionAt<
+  T extends RenderPassAttachmentLoadOp | RenderPassAttachmentStoreOp,
+>(
+  values: readonly (T | undefined)[] | undefined,
+  index: number,
+  fallback: T | undefined,
+): T | undefined {
+  return values?.[index] ?? fallback;
 }

@@ -1,5 +1,22 @@
 # Completed Tasks
 
+## task-3063 — Multiple render target support in render passes
+
+Completed: 2026-05-22
+
+- Added `createOffscreenColorTargets(...)` for ordered MRT off-screen color
+  attachment inputs with per-target clear/load/store options and target-indexed
+  diagnostics.
+- Confirmed the render-pass attachment planner preserves multiple color
+  attachments in target order with per-target load/store ops.
+- Added a Playwright WebGPU proof that renders one triangle into two off-screen
+  color targets in a single pass, writes distinct fragment outputs at
+  `@location(0)` and `@location(1)`, and reads back both textures.
+- Validation run: targeted current-texture/attachment Vitest coverage passed,
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed,
+  `pnpm run format:check` passed, `pnpm run build` passed, and the focused
+  Playwright MRT assertion passed.
+
 ## task-3062 — Real-world glTF sample in glb-viewer
 
 Completed: 2026-05-22

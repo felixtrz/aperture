@@ -59,27 +59,13 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3063`: Multiple render target support in render passes.
+Start `task-3064`: ID-buffer rendering for picking.
 
-Why this next: the Tier 11 skinning and morph-target paths now have visible GLB
-viewer proofs. `task-3057` replaced the old skinning metadata diagnostic sample
-with a visible StandardMaterial skinned-character GLB path: the importer maps
-`JOINTS_0`/`WEIGHTS_0`, packs the mixed vertex stream, attaches ECS `Skin`
-palettes, and proves animated joint matrices with a headed Chrome pixel smoke.
-`task-3058` replaced the morph metadata diagnostic sample with a visible
-StandardMaterial morph-target path: the importer maps two morph target streams,
-attaches ECS `MorphTargetWeights`, publishes live slider state, and proves
-slider-driven pixel changes. `task-3059` completed the compressed texture slice:
-BasisU-compressed KTX2 payloads now transcode through caller-provided Basis
-Universal JS/WASM assets, `KHR_texture_basisu` is a supported root extension,
-and `glb-viewer` renders a committed compressed-texture sample. `task-3060`
-completed Draco compressed geometry, and `task-3061` completed Meshopt
-compressed bufferView decoding with a committed `glb-viewer` sample.
-`task-3062` then added a real-world Khronos A Beautiful Game KTX2 + Draco GLB
-fixture to `glb-viewer`, proving 33 KTX2/BasisU images, 15 Draco source
-meshes, 49 extracted ECS draw packets, and zero unsupported-feature diagnostics.
-The next visible gap is Tier 13: render-pass multi-render-target support, which
-unlocks ID-buffer picking and later post-processing work.
+Why this next: `task-3063` established the render-pass MRT foundation by
+planning multiple ordered color attachments and proving one WebGPU pass can
+write different fragment outputs into two off-screen targets with browser
+readback. The next visible Tier 13 gap is the ID buffer that uses that MRT
+foundation for screen-space picking.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -203,7 +189,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 **Tier 13 — MRT + picking + raycasting (queued after Tier 12):**
 
-20. Multi-render-target + ID buffer + picking API (task-3063, task-3064, task-3065, task-3066) — adds multi-render-target support to render passes, ID-buffer rendering for screen-space picking, and public `app.pick(x, y) → entity` API. Also adds a math-side raycaster for non-screen-space queries. Required for any interactive 3D app. Closes gaps #5 and #11.
+20. Multi-render-target + ID buffer + picking API (task-3063, task-3064, task-3065, task-3066) — task-3063 shipped render-pass MRT support; remaining slices add ID-buffer rendering for screen-space picking, public `app.pick(x, y) → entity`, and a math-side raycaster for non-screen-space queries. Required for any interactive 3D app. Closes gaps #5 and #11.
 
 **Tier 14 — Post-processing foundation + FXAA + bloom (queued after Tier 13):**
 
@@ -906,11 +892,11 @@ Acceptance criteria:
 - glb-viewer loads and renders a Khronos sample with KTX2 textures + Draco-compressed mesh.
 - Playwright asserts non-trivial pixel content and zero "unsupported" diagnostics.
 
-### task-3063 — Multiple render target support in render passes (Tier 13 part 1)
+### task-3063 — Multiple render target support in render passes (Tier 13 part 1) — Completed 2026-05-22
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/render-pass-commands.ts`, `packages/webgpu/src/webgpu/current-texture-view.ts`, targeted tests.
-Reference anchor: `references/three.js/src/renderers/WebGLMultipleRenderTargets.js`; PlayCanvas MRT in `references/engine/src/platform/graphics/`.
+Reference anchor: `references/three.js/src/nodes/core/MRTNode.js`; PlayCanvas MRT in `references/engine/src/platform/graphics/webgpu/webgpu-render-target.js` and `references/engine/src/platform/graphics/webgpu/webgpu-render-pipeline.js`.
 Insertion point: extend the color-attachment factory from task-3004/3005 to support N color attachments in one render pass.
 
 Acceptance criteria:

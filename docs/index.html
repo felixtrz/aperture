@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-22 06:20 UTC</dd>
+            <dd>2026-05-22 06:31 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1259,9 +1259,12 @@
               sample bootstrapping with invalid-ID fallback diagnostics, and the
               StandardMaterial route now scopes material bind groups by pipeline
               key so live route changes do not reuse incompatible layouts.
+              Render-pass MRT groundwork now plans ordered color attachments and
+              has a browser proof that one WebGPU pass writes different fragment
+              outputs into two off-screen targets with readback from both.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3063 Multiple render target support</dd>
+            <dd>task-3064 ID-buffer rendering for picking</dd>
           </dl>
         </aside>
       </header>
@@ -4191,16 +4194,17 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3063</code>, multiple render target support in the
-                WebGPU render-pass path.
+                <code>task-3064</code>, ID-buffer rendering on top of the new
+                MRT render-pass path.
               </li>
               <li>
-                Use the existing off-screen render target helpers and render
-                pass command tests as the baseline.
+                Use the plural off-screen color-target helper and the two-target
+                Playwright proof as the baseline.
               </li>
               <li>
-                Keep the slice narrow: two color attachments first, then
-                ID-buffer picking in <code>task-3064</code>.
+                Keep the slice narrow: render entity IDs into an
+                <code>r32uint</code> attachment before adding the public picking
+                facade in <code>task-3065</code>.
               </li>
             </ul>
           </article>
@@ -4213,6 +4217,17 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3063</div>
+            <div>
+              <strong>Render-pass MRT proof shipped.</strong>
+              <span>
+                Ordered off-screen color targets now feed one WebGPU render
+                pass, with Playwright proving two distinct fragment outputs and
+                readbacks from both textures.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3062</div>
             <div>

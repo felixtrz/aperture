@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createCurrentTextureColorTarget,
   createOffscreenColorTarget,
+  createOffscreenColorTargets,
 } from "@aperture-engine/webgpu";
 
 describe("current texture view acquisition", () => {
@@ -73,6 +74,58 @@ describe("current texture view acquisition", () => {
         storeOp: "store",
       },
       diagnostics: [],
+    });
+  });
+
+  it("creates ordered color attachment target inputs from multiple off-screen texture views", () => {
+    const viewA = { label: "offscreen-view-a" };
+    const viewB = { label: "offscreen-view-b" };
+    const textureA = { createView: () => viewA };
+    const textureB = { createView: () => viewB };
+
+    expect(
+      createOffscreenColorTargets({
+        textures: [textureA, textureB],
+        clearColors: [
+          [0.1, 0.2, 0.3, 1],
+          [0.4, 0.5, 0.6, 1],
+        ],
+        loadOps: ["clear", "load"],
+        storeOp: "store",
+      }),
+    ).toEqual({
+      valid: true,
+      textures: [textureA, textureB],
+      targets: [
+        {
+          view: viewA,
+          clearColor: [0.1, 0.2, 0.3, 1],
+          loadOp: "clear",
+          storeOp: "store",
+        },
+        {
+          view: viewB,
+          clearColor: [0.4, 0.5, 0.6, 1],
+          loadOp: "load",
+          storeOp: "store",
+        },
+      ],
+      diagnostics: [],
+    });
+  });
+
+  it("diagnoses missing off-screen texture views by target index", () => {
+    expect(
+      createOffscreenColorTargets({
+        textures: [{ createView: () => ({}) }, null, {}],
+      }),
+    ).toMatchObject({
+      valid: false,
+      targets: [{ view: {} }],
+      diagnostics: [
+        { code: "currentTextureView.missingTexture", targetIndex: 1 },
+        { code: "currentTextureView.missingTextureView", targetIndex: 2 },
+      ],
     });
   });
 

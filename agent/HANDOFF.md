@@ -1,6 +1,54 @@
 # Agent Handoff
 
-Updated: 2026-05-22T06:20:00Z
+Updated: 2026-05-22T06:31:00Z
+
+## Current Run Update — 2026-05-22T06:31:00Z — MRT render-pass proof shipped
+
+Completed `task-3063` after `task-3062`.
+
+### What changed
+
+- Added `createOffscreenColorTargets(...)` to build ordered off-screen color
+  attachment inputs from multiple GPU textures, preserving per-target clear,
+  load, and store options and reporting target-indexed acquisition diagnostics.
+- Added unit coverage proving multiple planned color attachments preserve target
+  order and attachment ops.
+- Added Playwright coverage that creates two off-screen textures, renders one
+  triangle into both in a single WebGPU render pass with distinct
+  `@location(0)` and `@location(1)` fragment outputs, and reads back both
+  center pixels.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3064`.
+
+### References inspected
+
+- `references/three.js/src/nodes/core/MRTNode.js`
+- `references/engine/src/platform/graphics/webgpu/webgpu-render-target.js`
+- `references/engine/src/platform/graphics/webgpu/webgpu-render-pipeline.js`
+
+Common pattern adapted: reference engines model MRT as an ordered color-target
+list where render target attachments and fragment pipeline targets line up by
+index. Aperture keeps this as plain attachment-plan data and proves the WebGPU
+pass without introducing renderer-owned ECS state.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/current-texture-view.test.ts test/webgpu/render-pass-attachments.test.ts --reporter=dot` passed.
+- `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- `pnpm run format:check` passed.
+- `pnpm run build` passed.
+- Focused Playwright MRT assertion passed:
+  `pnpm exec playwright test test/e2e/offscreen-color-target.spec.ts -g "two off-screen color targets" --reporter=list`.
+
+### Known issues
+
+- None for this slice.
+
+### Recommended next task
+
+Start `task-3064`: add ID-buffer rendering for picking. Use the new MRT
+attachment proof as the render-pass baseline, then render entity IDs into an
+`r32uint` target before adding the public picking facade in `task-3065`.
 
 ## Current Run Update — 2026-05-22T06:20:00Z — Real-world compressed GLB sample shipped
 

@@ -26,6 +26,45 @@ describe("render pass attachment descriptor planning", () => {
     });
   });
 
+  it("plans multiple color attachments in target order", () => {
+    const albedo = { label: "albedo" };
+    const entityId = { label: "entity-id" };
+
+    expect(
+      createRenderPassAttachmentPlan({
+        colorTargets: [
+          {
+            view: albedo,
+            clearColor: [0, 0, 0, 1],
+            loadOp: "clear",
+            storeOp: "store",
+          },
+          {
+            view: entityId,
+            clearColor: [0, 0, 0, 0],
+            loadOp: "clear",
+            storeOp: "discard",
+          },
+        ],
+      }).plan,
+    ).toEqual({
+      colorAttachments: [
+        {
+          view: albedo,
+          clearValue: { r: 0, g: 0, b: 0, a: 1 },
+          loadOp: "clear",
+          storeOp: "store",
+        },
+        {
+          view: entityId,
+          clearValue: { r: 0, g: 0, b: 0, a: 0 },
+          loadOp: "clear",
+          storeOp: "discard",
+        },
+      ],
+    });
+  });
+
   it("plans color and depth attachments", () => {
     const color = { label: "color" };
     const depth = { label: "depth" };
