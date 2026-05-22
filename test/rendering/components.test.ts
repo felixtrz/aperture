@@ -13,16 +13,20 @@ import {
   RenderOrder,
   ShadowCaster,
   ShadowReceiver,
+  Skybox,
   Visibility,
   createCamera,
   createEnvironmentMapHandle,
   createLight,
   createLightShadowSettings,
+  createSkybox,
+  createTextureHandle,
   createWorld,
   registerRenderAuthoringComponents,
   validateCameraInput,
   validateLightShadowSettingsInput,
   validateLightInput,
+  validateSkyboxInput,
 } from "@aperture-engine/core";
 
 describe("render authoring ECS components", () => {
@@ -117,6 +121,31 @@ describe("render authoring ECS components", () => {
     expect(environment.getValue(Light, "environmentMapId")).toBe(
       "environment-map:studio",
     );
+  });
+
+  it("attaches and validates skybox authoring data", () => {
+    const world = createWorld({ entityCapacity: 4 });
+    registerRenderAuthoringComponents(world);
+    const texture = createTextureHandle("studio-cube");
+    const skybox = world.createEntity();
+
+    skybox.addComponent(
+      Skybox,
+      createSkybox({
+        texture,
+        intensity: 1.5,
+      }),
+    );
+
+    expect(skybox.getValue(Skybox, "textureId")).toBe("texture:studio-cube");
+    expect(skybox.getValue(Skybox, "samplerId")).toBe("");
+    expect(skybox.getValue(Skybox, "intensity")).toBeCloseTo(1.5, 6);
+    expect(
+      validateSkyboxInput({
+        texture,
+        intensity: -1,
+      }).diagnostics.map((diagnostic) => diagnostic.code),
+    ).toEqual(["skybox.invalidIntensity"]);
   });
 
   it("validates invalid camera fields", () => {

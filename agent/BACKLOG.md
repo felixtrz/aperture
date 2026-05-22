@@ -59,15 +59,17 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3079`: Skybox-as-scene-element.
+Start `task-3080`: Fog.
 
 Why this next: Tier 16 has RectAreaLight/LTC, rect/disk/sphere area-light shape
 metadata, executable directional CSM, and the combined
 `examples/outdoor-scene.html` proof. Tier 17 has started with ECS-authored
-sprites and `examples/sprite-billboard.html`, which proves camera-facing
-billboards without introducing a scene graph or letting the renderer own app
-state. The next visible gap is a rendered skybox background authored as data and
-prepared/submitted by the WebGPU renderer.
+sprites and a rendered cube-map skybox. `examples/sprite-billboard.html` proves
+camera-facing billboards, and `examples/skybox.html` proves an ECS-authored
+skybox background rendered behind scene geometry without introducing a scene
+graph or letting the renderer own app state. The next visible gap is fog:
+linear, exponential, and exponential-squared attenuation authored as data and
+consumed by the WebGPU StandardMaterial path.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -123,8 +125,9 @@ shader/pipeline/resource/importer tests.
 
 Reference anchors (read before writing):
 
-- `references/three.js/src/scenes/Scene.js`.
-- `references/engine/src/scene/skybox/sky.js`.
+- `references/three.js/src/scenes/Fog.js`.
+- `references/three.js/src/scenes/FogExp2.js`.
+- `references/engine/src/scene/fog-params.js`.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -1139,12 +1142,10 @@ Category: `render-bridge`
 Package/write-scope: `packages/render/src/rendering/authoring.ts` (`Sprite` component), `packages/webgpu/src/webgpu/sprite-pipeline-*.ts`, targeted tests.
 Reference anchor: `references/three.js/src/objects/Sprite.js` + `references/three.js/src/materials/SpriteMaterial.js`; `references/engine/src/scene/sprite.js`.
 Insertion point: new ECS component `Sprite { texture, color, sizeMode }`. New render pipeline that draws camera-facing billboard quads.
-Progress note 2026-05-22: first bridge slice added ECS `Sprite` authoring,
-`withSprite({ texture, size, color })`, snapshot `spriteDraws`, extraction unit
-coverage, and an experimental WebGPU sprite-only path. The browser proof failed:
-the app reported one draw call and no diagnostics, but readback pixels stayed
-black/zero. Keep the task open; next work should debug or replace the WebGPU
-pixel path and then restore a public sprite billboard example/E2E.
+Completion note 2026-05-22: ECS `Sprite` authoring, `withSprite`, snapshot
+`spriteDraws`, extraction validation, renderer-owned sprite resources, and the
+WebGPU camera-facing billboard path shipped with `examples/sprite-billboard.html`
+and headed Chrome WebGPU readback coverage.
 
 Acceptance criteria:
 
@@ -1154,10 +1155,16 @@ Acceptance criteria:
 
 ### task-3079 — Skybox-as-scene-element (Tier 17 part 2)
 
+Status: completed 2026-05-22. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/skybox-pipeline-*.ts` (new), `packages/render/src/rendering/authoring.ts` (`Skybox` component), targeted tests.
 Reference anchor: `references/three.js/src/scenes/Scene.js` (`background` property); `references/engine/src/scene/skybox/sky.js`.
 Insertion point: new ECS component `Skybox { cubeTextureHandle }`. Render pass draws the skybox at infinite depth before opaque geometry.
+Completion note 2026-05-22: ECS `Skybox` authoring, `withSkybox`, snapshot
+`skyboxes`, cube-texture validation diagnostics, the WebGPU skybox pipeline,
+renderer-owned cube texture/sampler binding, and `examples/skybox.html` shipped
+with headed Chrome WebGPU readback coverage proving sky pixels behind geometry.
 
 Acceptance criteria:
 

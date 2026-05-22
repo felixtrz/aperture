@@ -79,6 +79,15 @@ export interface SpriteDrawPacket {
   readonly sortKey: RenderSortKey;
 }
 
+export interface SkyboxPacket {
+  readonly skyboxId: number;
+  readonly entity: RenderEntityRef;
+  readonly texture: TextureHandle;
+  readonly sampler?: SamplerHandle | null;
+  readonly intensity: number;
+  readonly layerMask: number;
+}
+
 export interface LightPacket {
   readonly lightId: number;
   readonly entity: RenderEntityRef;
@@ -182,6 +191,7 @@ export interface RenderSnapshotReport {
   readonly views: number;
   readonly meshDraws: number;
   readonly spriteDraws?: number;
+  readonly skyboxes?: number;
   readonly lights: number;
   readonly environments: number;
   readonly shadowRequests: number;
@@ -205,6 +215,7 @@ export interface RenderSnapshot {
   readonly views: readonly ViewPacket[];
   readonly meshDraws: readonly MeshDrawPacket[];
   readonly spriteDraws?: readonly SpriteDrawPacket[];
+  readonly skyboxes?: readonly SkyboxPacket[];
   readonly lights: readonly LightPacket[];
   readonly environments: readonly EnvironmentPacket[];
   readonly shadowRequests: readonly ShadowRequestPacket[];

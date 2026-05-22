@@ -12,6 +12,7 @@ import {
   RenderLayer,
   ShadowCaster,
   ShadowReceiver,
+  Skybox,
   Spin,
   SpinSystem,
   Visibility,
@@ -29,6 +30,8 @@ import {
   createRenderAssetCollections,
   createRootTransform,
   createSimulationApp,
+  createTextureAsset,
+  createTextureHandle,
   createUnlitMaterialAsset,
   withCamera,
   withEnvironmentMap,
@@ -39,6 +42,7 @@ import {
   withShadowCaster,
   withShadowReceiver,
   withSpin,
+  withSkybox,
   withTransform,
   withVisibility,
   type GltfEcsAuthoringCommandPlan,
@@ -180,6 +184,43 @@ describe("runtime facade", () => {
       handle: environmentMap,
       intensity: 1.25,
       layerMask: 3,
+    });
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it("spawns an ECS-authored skybox with a cube texture handle", () => {
+    const app = createExtractionApp({ worldOptions: { entityCapacity: 4 } });
+    const texture = createTextureHandle("runtime-skybox");
+
+    app.assets.register(texture);
+    app.assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "RuntimeSkybox",
+        dimension: "cube",
+        width: 1,
+        height: 1,
+        depthOrLayers: 6,
+        format: "rgba8unorm",
+        colorSpace: "srgb",
+        semantic: "base-color",
+      }),
+    );
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+
+    const skybox = app.spawn(withSkybox({ texture, intensity: 0.75 }));
+    const snapshot = app.stepAndExtract(1 / 60, 1, 12);
+
+    expect(skybox.hasComponent(Skybox)).toBe(true);
+    expect(skybox.getValue(Skybox, "textureId")).toBe(assetHandleKey(texture));
+    expect(snapshot.skyboxes).toHaveLength(1);
+    expect(snapshot.skyboxes?.[0]).toMatchObject({
+      texture,
+      intensity: 0.75,
+      layerMask: 1,
     });
     expect(snapshot.diagnostics).toEqual([]);
   });

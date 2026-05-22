@@ -46,6 +46,7 @@ import {
   ShadowReceiver,
   Skin,
   Sprite,
+  Skybox,
   Visibility,
   createCamera,
   createInstanceData,
@@ -55,6 +56,7 @@ import {
   createMorphTargetWeights,
   createSkin,
   createSprite,
+  createSkybox,
   extractRenderSnapshot,
   replayGltfEcsAuthoringCommands,
   registerRenderAuthoringComponents,
@@ -68,6 +70,7 @@ import {
   type RenderSnapshot,
   type SkinInput,
   type SpriteInput,
+  type SkyboxInput,
 } from "@aperture-engine/render";
 
 export * from "./simulation-worker.js";
@@ -275,6 +278,15 @@ export function withSprite(
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(Sprite, createSprite(input));
+  };
+}
+
+export function withSkybox(
+  input: Omit<SkyboxInput, "texture"> & { readonly texture: TextureHandle },
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(Skybox, createSkybox(input));
   };
 }
 

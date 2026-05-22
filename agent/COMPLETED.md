@@ -215,6 +215,30 @@ Completed: 2026-05-22
   one mesh draw, one draw call, ready skinning, square canvas, and non-clear
   pixels.
 
+## task-3079 — Skybox-as-scene-element
+
+Completed: 2026-05-22
+
+- Added renderer-independent ECS `Skybox` authoring with cube texture handle,
+  optional sampler handle, and non-negative intensity validation.
+- Added `withSkybox(...)`, snapshot `skyboxes`, extraction validation for
+  visibility, layers, cube texture readiness, sampler readiness, and
+  `render.skybox.textureNotCube` diagnostics.
+- Added a WebGPU skybox pipeline that renders a full-screen infinite-depth
+  cube-map background before opaque geometry, reconstructs view rays from the
+  inverse view-projection matrix, applies the cube-map handedness flip used by
+  Bevy's skybox shader, and keeps texture views, samplers, uniform buffers,
+  bind groups, and pipeline state renderer-owned.
+- Added `examples/skybox.html` with a renderer-only main entry, worker-owned
+  ECS/extraction entry, square 1:1 canvas, a procedural cube-map texture, and a
+  foreground cube proving skybox occlusion.
+- Added `test/e2e/skybox.spec.ts` plus targeted render/runtime/WebGPU tests
+  proving authoring, extraction, pipeline descriptors, draw ordering, and
+  browser readback pixels.
+- Validation run: package typecheck, test typecheck, targeted skybox
+  render/runtime/WebGPU Vitest coverage, headed Chrome WebGPU Playwright
+  coverage, and direct Chrome/WebGPU status/readback probe passed.
+
 ## task-3078 — Sprite component + billboard renderer
 
 Completed: 2026-05-22

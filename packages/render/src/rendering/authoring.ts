@@ -91,6 +91,12 @@ export interface SpriteInput {
   readonly color?: Vec4Like;
 }
 
+export interface SkyboxInput {
+  readonly texture: TextureHandle;
+  readonly sampler?: SamplerHandle | null;
+  readonly intensity?: number;
+}
+
 export interface InstanceTintInput {
   readonly color?: Vec4Like;
 }
@@ -120,6 +126,8 @@ export type RenderAuthoringDiagnosticCode =
   | "light.zeroLayerMask"
   | "sprite.invalidTexture"
   | "sprite.invalidSize"
+  | "skybox.invalidTexture"
+  | "skybox.invalidIntensity"
   | "shadow.invalidMapSize"
   | "shadow.invalidBias"
   | "shadow.invalidCascadeCount"
@@ -162,6 +170,16 @@ export const Sprite = defineComponent(
     height: { type: EcsType.Float32, default: 1 },
   },
   "Renderer-independent sprite authoring component for camera-facing billboard quads.",
+);
+
+export const Skybox = defineComponent(
+  "aperture.render.skybox",
+  {
+    textureId: { type: EcsType.String, default: "" },
+    samplerId: { type: EcsType.String, default: "" },
+    intensity: { type: EcsType.Float32, default: 1 },
+  },
+  "Renderer-independent skybox authoring component that stores cube texture and sampler handle ids only.",
 );
 
 export const Visibility = defineComponent(
@@ -310,6 +328,7 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(Mesh);
   world.registerComponent(Material);
   world.registerComponent(Sprite);
+  world.registerComponent(Skybox);
   world.registerComponent(Camera);
   world.registerComponent(Visibility);
   world.registerComponent(RenderLayer);
@@ -397,6 +416,19 @@ export function createSprite(
     color: toTuple4(input.color ?? [1, 1, 1, 1]),
     width: size[0],
     height: size[1],
+  };
+}
+
+export function createSkybox(
+  input: SkyboxInput,
+): ComponentInitialData<typeof Skybox> {
+  return {
+    textureId: assetHandleKey(input.texture),
+    samplerId:
+      input.sampler === undefined || input.sampler === null
+        ? ""
+        : assetHandleKey(input.sampler),
+    intensity: input.intensity ?? 1,
   };
 }
 
@@ -639,6 +671,33 @@ export function validateSpriteInput(
       code: "sprite.invalidSize",
       field: "size",
       message: "Sprites require finite positive width and height.",
+    });
+  }
+
+  return { valid: diagnostics.length === 0, diagnostics };
+}
+
+export function validateSkyboxInput(
+  input: SkyboxInput,
+): RenderAuthoringValidationReport {
+  const skybox = createSkybox(input);
+  const textureId = skybox.textureId ?? "";
+  const intensity = skybox.intensity ?? 1;
+  const diagnostics: RenderAuthoringDiagnostic[] = [];
+
+  if (textureId.trim().length === 0) {
+    diagnostics.push({
+      code: "skybox.invalidTexture",
+      field: "texture",
+      message: "Skyboxes require a cube texture handle.",
+    });
+  }
+
+  if (!Number.isFinite(intensity) || intensity < 0) {
+    diagnostics.push({
+      code: "skybox.invalidIntensity",
+      field: "intensity",
+      message: "Skybox intensity must be a finite non-negative number.",
     });
   }
 

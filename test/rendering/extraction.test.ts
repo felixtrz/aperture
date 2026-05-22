@@ -16,6 +16,7 @@ import {
   ShadowReceiver,
   Skin,
   Sprite,
+  Skybox,
   Visibility,
   WorldTransform,
   createBoxMeshAsset,
@@ -37,6 +38,7 @@ import {
   createSkin,
   createStableRenderId,
   createSprite,
+  createSkybox,
   createUnlitMaterialAsset,
   createWorld,
   extractRenderSnapshot,
@@ -140,6 +142,106 @@ describe("render extraction", () => {
       diagnostics: 0,
     });
     expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it("extracts skyboxes as cube-texture background packets", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    const texture = createTextureHandle("studio-cube");
+    const sampler = createSamplerHandle("linear-clamp");
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "StudioCube",
+        dimension: "cube",
+        width: 2,
+        height: 2,
+        depthOrLayers: 6,
+        format: "rgba8unorm",
+        colorSpace: "srgb",
+        semantic: "base-color",
+      }),
+    );
+    assets.register(sampler);
+    assets.markReady(sampler, createSamplerAsset({ label: "LinearClamp" }));
+    createCameraEntity(world, { priority: 0, layerMask: 0b01 });
+
+    const entity = world.createEntity();
+
+    entity.addComponent(
+      Skybox,
+      createSkybox({
+        texture,
+        sampler,
+        intensity: 1.25,
+      }),
+    );
+    entity.addComponent(RenderLayer, { mask: 0b01 });
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 4 });
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.skyboxes).toHaveLength(1);
+    expect(snapshot.skyboxes?.[0]).toMatchObject({
+      skyboxId: createStableRenderId({
+        index: entity.index,
+        generation: entity.generation,
+      }),
+      texture,
+      sampler,
+      intensity: 1.25,
+      layerMask: 0b01,
+    });
+    expect(snapshot.report).toMatchObject({
+      views: 1,
+      meshDraws: 0,
+      skyboxes: 1,
+      diagnostics: 0,
+    });
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it("diagnoses skybox textures that are not cube assets", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    const texture = createTextureHandle("flat-background");
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "FlatBackground",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "srgb",
+        semantic: "base-color",
+      }),
+    );
+    createCameraEntity(world, { priority: 0, layerMask: 0b01 });
+
+    const entity = world.createEntity();
+
+    entity.addComponent(Skybox, createSkybox({ texture }));
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 5 });
+
+    expect(snapshot.skyboxes).toEqual([]);
+    expect(snapshot.report).toMatchObject({
+      views: 1,
+      skyboxes: 0,
+      diagnostics: 1,
+    });
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.skybox.textureNotCube",
+        entity: { index: entity.index, generation: entity.generation },
+        assetKey: "texture:flat-background",
+      },
+    ]);
   });
 
   it("reuses unchanged entity versions during cached mesh extraction", () => {

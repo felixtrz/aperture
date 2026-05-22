@@ -1,6 +1,68 @@
 # Agent Handoff
 
-Updated: 2026-05-22T21:23:21Z
+Updated: 2026-05-22T22:19:35Z
+
+## Current Run Update — 2026-05-22T22:19:35Z — Skybox scene element
+
+Completed `task-3079`, the Tier 17 skybox-as-scene-element slice.
+
+### What changed
+
+- Added ECS `Skybox` authoring with cube texture handle, optional sampler
+  handle, and intensity validation.
+- Added `withSkybox(...)`, snapshot `skyboxes`, extraction validation for
+  visibility/layers, cube texture readiness, sampler readiness, and
+  `render.skybox.textureNotCube` diagnostics.
+- Added a WebGPU skybox pipeline that draws a full-screen infinite-depth
+  cube-map background before opaque geometry, reconstructs rays from inverse
+  view-projection data, applies the Bevy-style cube-map Z handedness flip, and
+  keeps cube texture views, samplers, uniform buffers, bind groups, and pipeline
+  state renderer-owned.
+- Added `examples/skybox.html`, `examples/skybox.main.js`,
+  `examples/skybox.worker.js`, and `examples/skybox-scene.js`, using the
+  worker-owned ECS/extraction shape and a square 1:1 canvas.
+- Added targeted unit coverage plus `test/e2e/skybox.spec.ts` for headed
+  Chrome/WebGPU readback proof.
+- Aligned stale GLB source-view JSON and worker-split test expectations
+  uncovered by the full suite with the already-shipped direct source-view and
+  native KTX2 behavior.
+
+### Reference comparison
+
+- three.js keeps `Scene.background` separate from `Scene.environment`; Aperture
+  similarly keeps `Skybox` distinct from existing environment/IBL packets.
+- PlayCanvas renders sky through a dedicated sky mesh/layer with depth writes
+  disabled; Aperture draws the skybox first with depth writes disabled and lets
+  opaque geometry occlude it.
+- Bevy exposes `Skybox` as ECS data separate from `EnvironmentMapLight` and its
+  shader flips cubemap Z handedness; Aperture mirrors those architectural
+  choices in TypeScript/WebGPU form.
+
+### Validation
+
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm exec vitest run test/rendering/components.test.ts test/rendering/extraction.test.ts test/runtime/runtime.test.ts test/webgpu/skybox-pipeline.test.ts test/webgpu/webgpu-app.test.ts --reporter=dot` passed: 5 files, 123 tests.
+- `pnpm exec vitest run test/assets/glb-container.test.ts test/assets/gltf-accessor-validation-json.test.ts test/assets/gltf-combined-import-fixture-json.test.ts test/assets/gltf-report-driven-import-json.test.ts test/examples/worker-split-examples.test.mjs --reporter=dot` passed: 5 files, 43 tests.
+- `pnpm test` passed: 347 files, 1777 tests.
+- `pnpm run check:boundaries`, `pnpm run lint`, `pnpm run check:examples`,
+  `pnpm run check:progress`, `pnpm run format:check`, and `git diff --check`
+  passed.
+- `pnpm exec playwright test test/e2e/skybox.spec.ts --project=chrome-webgpu-headed --timeout=20000 --reporter=line` passed.
+- Direct Chrome/WebGPU probe for `/examples/skybox.html` reached `ok: true`,
+  square 960x960 canvas, one mesh draw, one skybox, two draw calls, zero
+  diagnostics, non-clear sky readbacks, and a red occluding center cube.
+
+### Known issues
+
+- SharedArrayBuffer packet encoding still covers view/mesh/light/environment/
+  shadow/bounds records; sprite and skybox optional packets currently rely on
+  the default transferable snapshot path.
+
+### Recommended next task
+
+Continue with `task-3080`, Fog, from `agent/CURRENT_TASK.md`. Read the
+three.js `Fog`/`FogExp2` and PlayCanvas fog parameter anchors before writing.
 
 ## Current Run Update — 2026-05-22T21:23:21Z — Native compressed KTX2 textures
 

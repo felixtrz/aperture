@@ -153,6 +153,7 @@ export * from "./shadow-pass-encoder-assembly-report.js";
 export * from "./shadow-pass-plan.js";
 export * from "./shadow-resource-readiness.js";
 export * from "./shadow-texture-resource.js";
+export * from "./skybox-pipeline.js";
 export * from "./standard-bind-group-layout.js";
 export * from "./standard-bind-group.js";
 export * from "./standard-app-frame-resources.js";

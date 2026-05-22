@@ -1342,15 +1342,18 @@
               receiver shadows in headed Chrome. The outdoor scene proof now
               combines the same directional CSM receiver path with a
               RectAreaLight contribution in one worker-authored browser scene.
-              Tier 17 has started with ECS-authored sprites:
-              <code>Sprite</code> authoring extracts snapshot
-              <code>spriteDraws</code>, the WebGPU sprite path builds
-              camera-facing billboard quads from the active camera, and
-              <code>examples/sprite-billboard.html</code> proves stable readback
-              quadrants across front and orbit camera snapshots.
+              Tier 17 scene atmosphere now has ECS-authored sprites and a
+              rendered skybox: <code>Sprite</code> authoring extracts snapshot
+              <code>spriteDraws</code>, <code>Skybox</code> authoring extracts
+              cube texture/sampler handles into snapshot <code>skyboxes</code>,
+              the WebGPU sprite path builds camera-facing billboards, and the
+              skybox path draws an infinite-depth cube-map background before
+              opaque geometry. <code>examples/sprite-billboard.html</code> and
+              <code>examples/skybox.html</code> prove both paths in headed
+              Chrome/WebGPU.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3079 skybox-as-scene-element</dd>
+            <dd>task-3080 fog</dd>
           </dl>
         </aside>
       </header>
@@ -4348,16 +4351,18 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3079</code>, a skybox-as-scene-element path.
+                <code>task-3080</code>, fog for linear, exponential, and
+                exponential-squared scene atmosphere.
               </li>
               <li>
-                Anchor on Three.js <code>Scene.background</code> and PlayCanvas
-                skybox rendering while keeping cube texture handles authored in
-                ECS and GPU resources renderer-owned.
+                Anchor on Three.js <code>Fog</code>/<code>FogExp2</code>,
+                PlayCanvas fog parameters, and Bevy-style extracted view data
+                while keeping fog parameters ECS-authored and renderer-owned in
+                WebGPU.
               </li>
               <li>
-                Add a browser proof that a rendered background is visible behind
-                scene geometry and distinct from the clear color.
+                Add browser proof that distant StandardMaterial pixels fade
+                toward the authored fog color while near pixels remain distinct.
               </li>
             </ul>
           </article>
@@ -4388,6 +4393,18 @@
                 descriptors now derive combined vertex layouts from concrete
                 mesh layout keys. GPU timestamp query resources are cached and
                 validation-gated to avoid repeated invalid timing submissions.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3079</div>
+            <div>
+              <strong>Skybox scene element shipped.</strong>
+              <span>
+                ECS <code>Skybox</code> authoring now extracts cube texture and
+                sampler handles into snapshot <code>skyboxes</code>, and the
+                WebGPU path renders an infinite-depth cube-map background behind
+                scene geometry in <code>examples/skybox.html</code>.
               </span>
             </div>
           </div>

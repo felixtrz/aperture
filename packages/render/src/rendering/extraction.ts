@@ -61,6 +61,7 @@ import {
   ShadowReceiver,
   Skin,
   Sprite,
+  Skybox,
   Visibility,
   registerRenderAuthoringComponents,
   type CameraInput,
@@ -70,7 +71,9 @@ import {
   validateLightInput,
   validateLightShadowSettingsInput,
   validateSpriteInput,
+  validateSkyboxInput,
   type SpriteInput,
+  type SkyboxInput,
 } from "./index.js";
 import {
   compareRenderSortKeys,
@@ -88,6 +91,7 @@ import {
   type RenderSnapshot,
   type ShadowRequestPacket,
   type SpriteDrawPacket,
+  type SkyboxPacket,
   type ViewPacket,
   type ViewCullStats,
 } from "./snapshot.js";
@@ -224,12 +228,14 @@ export function extractRenderSnapshot(
     cameraLayerMask,
     viewCullContexts,
   ).sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
+  const skyboxes = extractSkyboxes(world, assets, diagnostics, cameraLayerMask);
 
   return {
     frame: options.frame ?? 0,
     views,
     meshDraws,
     spriteDraws,
+    skyboxes,
     lights,
     environments,
     shadowRequests,
@@ -252,6 +258,7 @@ export function extractRenderSnapshot(
       views: views.length,
       meshDraws: meshDraws.length,
       spriteDraws: spriteDraws.length,
+      skyboxes: skyboxes.length,
       lights: lights.length,
       environments: environments.length,
       shadowRequests: shadowRequests.length,
@@ -1126,6 +1133,87 @@ function extractSpriteDraws(
   return draws;
 }
 
+function extractSkyboxes(
+  world: EcsWorld,
+  assets: AssetRegistry,
+  diagnostics: RenderDiagnostic[],
+  cameraLayerMask: number,
+): SkyboxPacket[] {
+  const query = world.queryManager.registerQuery({ required: [Skybox] });
+  const packets: SkyboxPacket[] = [];
+
+  for (const entity of sortedEntities(query.entities)) {
+    if (
+      entity.hasComponent(Enabled) &&
+      entity.getValue(Enabled, "value") === false
+    ) {
+      diagnostics.push(diagnostic("render.disabled", entity));
+      continue;
+    }
+
+    if (
+      entity.hasComponent(Visibility) &&
+      entity.getValue(Visibility, "visible") === false
+    ) {
+      diagnostics.push(diagnostic("render.invisible", entity));
+      continue;
+    }
+
+    const input = skyboxInput(entity);
+    const validation = validateSkyboxInput(input);
+    const layerMask = entity.hasComponent(RenderLayer)
+      ? (entity.getValue(RenderLayer, "mask") ?? 1)
+      : 1;
+
+    if (!validation.valid) {
+      for (const skyboxDiagnostic of validation.diagnostics) {
+        diagnostics.push(diagnostic(`render.${skyboxDiagnostic.code}`, entity));
+      }
+      continue;
+    }
+
+    if (layerMask === 0) {
+      diagnostics.push(diagnostic("render.zeroLayerMask", entity));
+      continue;
+    }
+
+    if (cameraLayerMask !== 0 && (layerMask & cameraLayerMask) === 0) {
+      diagnostics.push(diagnostic("render.layerMismatch", entity));
+      continue;
+    }
+
+    if (
+      validateSkyboxTextureAssetState(
+        input.texture,
+        assets,
+        entity,
+        diagnostics,
+      ) === null
+    ) {
+      continue;
+    }
+
+    if (
+      input.sampler !== undefined &&
+      input.sampler !== null &&
+      !validateSamplerAssetState(input.sampler, assets, entity, diagnostics)
+    ) {
+      continue;
+    }
+
+    packets.push({
+      skyboxId: createStableRenderId(entityRef(entity)),
+      entity: entityRef(entity),
+      texture: input.texture,
+      ...(input.sampler === undefined ? {} : { sampler: input.sampler }),
+      intensity: entity.getValue(Skybox, "intensity") ?? 1,
+      layerMask,
+    });
+  }
+
+  return packets;
+}
+
 function appendCachedMeshDrawEntity(
   cached: CachedMeshDrawEntity,
   transforms: number[],
@@ -1594,6 +1682,36 @@ function validateTextureAssetState(
   return true;
 }
 
+function validateSkyboxTextureAssetState(
+  handle: TextureHandle,
+  assets: AssetRegistry,
+  entity: Entity,
+  diagnostics: RenderDiagnostic[],
+): TextureAsset | null {
+  const entry = assets.get<"texture", TextureAsset>(handle);
+
+  if (entry === undefined) {
+    diagnostics.push(diagnostic("render.texture.missing", entity, handle));
+    return null;
+  }
+
+  if (entry.status !== "ready" || entry.asset === null) {
+    diagnostics.push(
+      diagnostic(`render.texture.${entry.status}`, entity, handle),
+    );
+    return null;
+  }
+
+  if (entry.asset.dimension !== "cube" || entry.asset.depthOrLayers !== 6) {
+    diagnostics.push(
+      diagnostic("render.skybox.textureNotCube", entity, handle),
+    );
+    return null;
+  }
+
+  return entry.asset;
+}
+
 function validateSamplerAssetState(
   handle: SamplerHandle,
   assets: AssetRegistry,
@@ -1832,6 +1950,24 @@ function spriteInput(entity: Entity): SpriteInput {
       number,
       number,
     ],
+  };
+}
+
+function skyboxInput(entity: Entity): SkyboxInput {
+  const texture = parseTextureHandle(
+    entity.getValue(Skybox, "textureId") ?? "",
+  );
+  const samplerId = entity.getValue(Skybox, "samplerId") ?? "";
+  const sampler = samplerId === "" ? null : parseSamplerHandle(samplerId);
+
+  return {
+    texture: texture ?? createTextureHandle("__invalid_skybox_texture__"),
+    ...(samplerId === ""
+      ? {}
+      : {
+          sampler: sampler ?? createSamplerHandle("__invalid_skybox_sampler__"),
+        }),
+    intensity: entity.getValue(Skybox, "intensity") ?? 1,
   };
 }
 

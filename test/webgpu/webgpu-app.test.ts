@@ -27,6 +27,7 @@ import {
   withMaterial,
   withMesh,
   withRenderLayer,
+  withSkybox,
   withTransform,
   withVisibility,
   type MeshAsset,
@@ -1813,6 +1814,91 @@ describe("WebGPU app facade", () => {
     expect(json).not.toContain("snapshot");
     expect(json).not.toContain("commandBuffer");
     expect(events).not.toContain("queue:submit:1");
+  });
+
+  it("renders an ECS-authored skybox before opaque mesh draws", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const material = assets.materials.unlit.add(createUnlitMaterialAsset());
+    const skyboxTexture = createTextureHandle("unit-skybox");
+    const skyboxSampler = createSamplerHandle("unit-skybox-sampler");
+
+    app.assets.register(skyboxTexture);
+    app.assets.markReady(
+      skyboxTexture,
+      createTextureAsset({
+        label: "UnitSkybox",
+        dimension: "cube",
+        width: 1,
+        height: 1,
+        depthOrLayers: 6,
+        format: "rgba8unorm-srgb",
+        colorSpace: "srgb",
+        semantic: "base-color",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array(24),
+          bytesPerRow: 4,
+          rowsPerImage: 1,
+        },
+      }),
+    );
+    app.assets.register(skyboxSampler);
+    app.assets.markReady(
+      skyboxSampler,
+      createSamplerAsset({ label: "UnitSkyboxSampler" }),
+    );
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withSkybox({ texture: skyboxTexture, sampler: skyboxSampler }),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 24);
+
+    expect(frame.ok).toBe(true);
+    expect(frame.counts).toMatchObject({
+      views: 1,
+      meshDraws: 1,
+      skyboxes: 1,
+      drawCalls: 2,
+      diagnostics: 0,
+    });
+    expect(frame.resourceReuse).toMatchObject({
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+    });
+    expect(events).toContain("device:pipeline:aperture/skybox:bgra8unorm");
+    expect(events).toContain("textureResource:view:UnitSkybox");
+    expect(events.indexOf("pass:draw:3")).toBeLessThan(
+      events.indexOf("pass:drawIndexed:36"),
+    );
   });
 
   it("prepares and reuses textured unlit app material resources", async () => {
