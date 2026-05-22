@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "3c2760b",
+  "lastCommit": "62aff5a",
   "activePid": null,
   "notes": "Completed task-3074 RectAreaLight/LTC first slice with ECS width/height extraction, renderer-owned LTC resources, StandardMaterial WGSL path, visible rect-area-light example, tracker/backlog updates, and validation.",
-  "lastRunFinishedAt": "2026-05-22T10:50:09Z"
+  "lastRunFinishedAt": "2026-05-22T10:51:22Z"
 }
