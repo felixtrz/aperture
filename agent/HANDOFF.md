@@ -1,6 +1,6 @@
 # Agent Handoff
 
-Updated: 2026-05-22T04:36:40Z
+Updated: 2026-05-22T04:43:41Z
 
 ## Current Run Update — 2026-05-22T04:36:40Z — Draco decoder helper started
 
@@ -47,8 +47,8 @@ to feed its output into the existing glTF accessor/mesh-construction reports.
 - `pnpm run build` passed.
 - `pnpm run lint` passed.
 - `pnpm run format:check` passed.
-- `pnpm run check` passed after the initial Draco helper checkpoint, including
-  all 337 Vitest files / 1,666 tests.
+- `pnpm run check` passed after the Draco helper and glTF accessor bridge,
+  including all 337 Vitest files / 1,666 tests.
 
 ### Remaining `task-3060` work
 
