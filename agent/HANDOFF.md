@@ -1,6 +1,53 @@
 # Agent Handoff
 
-Updated: 2026-05-23T21:36:09Z
+Updated: 2026-05-23T21:54:18Z
+
+## Current Run Update — 2026-05-23T21:54:18Z — Broader environment asset preparation
+
+Completed `task-3118`, broadening environment asset preparation beyond the
+single-app proof route.
+
+### What changed
+
+- Added `prepareWebGpuAppEnvironmentAssets()` for preparing multiple
+  ECS-authored environment handles as renderer-owned diffuse/specular IBL asset
+  sets with stable versioned resource keys.
+- Extended diffuse IBL texture resources with real cube-face source uploads, so
+  prepared environment assets can produce distinct visible diffuse response
+  instead of all sharing the deterministic default upload.
+- Threaded prepared environment status through JSON-safe summaries that report
+  diffuse/specular texture reuse, sampler reuse, StandardMaterial IBL bind-group
+  reuse, cache entries, active environment key, versions, and resource keys
+  without raw GPU handles.
+- Updated `examples/materials-showcase.html` so the worker switches between
+  warm and cool environment handles and the main thread selects the matching
+  prepared IBL resources for rendering.
+- Expanded `test/e2e/materials-showcase.spec.ts` to prove the warm/cool switch
+  changes the StandardMaterial cube pixels while preserving zero WebGPU
+  validation warnings.
+- Updated public tracker pages, backlog, current-task pointer, and completed
+  task log. Recommended next task is `task-3119`, a fresh post-environment
+  parity audit against three.js and PlayCanvas.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/app-environment-resources.test.ts test/webgpu/ibl-texture-resource.test.ts test/webgpu/standard-material-ibl-bind-group.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/materials-showcase.spec.ts --reporter=line`
+
+### Known issues
+
+- The in-app Browser backend was unavailable in this session (`iab` was not
+  listed), so browser runtime proof used the repository Playwright e2e path.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3119`, auditing the post-environment render pipeline against the
+local three.js and PlayCanvas references to choose the next visible SOTA slice.
 
 ## Current Run Update — 2026-05-23T21:36:09Z — Bloom post-effect graph
 

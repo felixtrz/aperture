@@ -5,7 +5,9 @@ import {
   createIblResourceDescriptorReport,
   createIblSamplerDescriptorReadinessReport,
   createIblTexturePreparationReport,
+  prepareWebGpuAppEnvironmentAssets,
   prepareWebGpuAppIblResourceReports,
+  webGpuPreparedEnvironmentAssetSetToJsonValue,
   type EnvironmentPacket,
   type TextureGpuDeviceLike,
 } from "@aperture-engine/webgpu";
@@ -117,6 +119,93 @@ describe("WebGPU app environment resource cache", () => {
     expect(report.reuse.specularTextureResourcesCreated).toBe(1);
     expect(calls.filter((call) => call === "dispatch")).toHaveLength(3);
   });
+
+  it("prepares multiple versioned environment assets with reuse and invalidation summaries", () => {
+    const calls: string[] = [];
+    const app = {
+      initialization: {
+        device: pmremDevice(calls),
+      },
+    };
+    const warm = createEnvironmentMapHandle("materials-showcase-warm");
+    const cool = createEnvironmentMapHandle("materials-showcase-cool");
+
+    const first = prepareWebGpuAppEnvironmentAssets({
+      app,
+      assets: [
+        environmentAsset(warm, "warm", "v1"),
+        environmentAsset(cool, "cool", "v1"),
+      ],
+      activeHandle: warm,
+    });
+    const second = prepareWebGpuAppEnvironmentAssets({
+      app,
+      assets: [
+        environmentAsset(warm, "warm", "v1"),
+        environmentAsset(cool, "cool", "v1"),
+      ],
+      activeHandle: cool,
+    });
+    const invalidated = prepareWebGpuAppEnvironmentAssets({
+      app,
+      assets: [
+        environmentAsset(warm, "warm", "v2"),
+        environmentAsset(cool, "cool", "v1"),
+      ],
+      activeHandle: warm,
+    });
+    const json = webGpuPreparedEnvironmentAssetSetToJsonValue(second);
+
+    expect(first.totals).toMatchObject({
+      assetCount: 2,
+      readyAssetCount: 2,
+      diffuseTextureResourcesCreated: 2,
+      diffuseTextureResourcesReused: 0,
+      specularTextureResourcesCreated: 2,
+      specularTextureResourcesReused: 0,
+      samplerResourcesCreated: 4,
+      samplerResourcesReused: 0,
+      standardIblBindGroupsCreated: 2,
+      standardIblBindGroupsReused: 0,
+    });
+    expect(second.totals).toMatchObject({
+      assetCount: 2,
+      readyAssetCount: 2,
+      diffuseTextureResourcesCreated: 0,
+      diffuseTextureResourcesReused: 2,
+      specularTextureResourcesCreated: 0,
+      specularTextureResourcesReused: 2,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 4,
+      standardIblBindGroupsCreated: 0,
+      standardIblBindGroupsReused: 2,
+    });
+    expect(second.active?.environmentMapResourceKey).toBe(
+      "environment-map:materials-showcase-cool",
+    );
+    expect(json.assets.map((asset) => asset.version)).toEqual(["v1", "v1"]);
+    expect(json.assets[0]?.resourceKeys.diffuseResourceKey).toBe(
+      "texture:warm:diffuse@v1",
+    );
+    expect(json.assets[1]?.resourceKeys.specularTextureKey).toBe(
+      "texture:cool:specular@v1:texture",
+    );
+    expect(invalidated.totals).toMatchObject({
+      assetCount: 2,
+      readyAssetCount: 2,
+      diffuseTextureResourcesCreated: 1,
+      diffuseTextureResourcesReused: 1,
+      specularTextureResourcesCreated: 1,
+      specularTextureResourcesReused: 1,
+      samplerResourcesCreated: 2,
+      samplerResourcesReused: 2,
+      standardIblBindGroupsCreated: 1,
+      standardIblBindGroupsReused: 1,
+    });
+    expect(JSON.stringify(json)).not.toMatch(
+      /GPUTexture|GPUTextureView|GPUSampler|GPUBindGroup|"raw"/,
+    );
+  });
 });
 
 function textures() {
@@ -180,6 +269,36 @@ function cubeFaces(faceSize: number): Uint8Array[] {
 
     return data;
   });
+}
+
+function environmentAsset(
+  handle: ReturnType<typeof createEnvironmentMapHandle>,
+  label: string,
+  version: string,
+) {
+  const faces = cubeFaces(4);
+
+  return {
+    handle,
+    label,
+    version,
+    diffuseResourceKey: `texture:${label}:diffuse`,
+    specularResourceKey: `texture:${label}:specular`,
+    diffuseSource: {
+      label: `${label}:diffuse`,
+      faceSize: 4,
+      faces,
+      format: "rgba8unorm" as const,
+    },
+    specularPmremSource: {
+      label: `${label}:specular`,
+      faceSize: 4,
+      faces,
+      format: "rgba8unorm" as const,
+      mipLevelCount: 3,
+    },
+    standardMaterialCount: 1,
+  };
 }
 
 function pmremDevice(calls: string[]) {

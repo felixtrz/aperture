@@ -28,8 +28,38 @@ interface MaterialShowcaseStatus extends ExampleStatusBase {
   readonly environment?: {
     readonly authored: number;
     readonly extracted: number;
-    readonly handleKey: string;
-    readonly resourceKey?: string;
+    readonly activeKey: string;
+    readonly activeVersion: string;
+    readonly activeReady: boolean;
+    readonly workerActiveIndex: number;
+    readonly prepared?: {
+      readonly activeReady: boolean;
+      readonly totals: {
+        readonly assetCount: number;
+        readonly readyAssetCount: number;
+        readonly diffuseTextureResourcesCreated: number;
+        readonly diffuseTextureResourcesReused: number;
+        readonly specularTextureResourcesCreated: number;
+        readonly specularTextureResourcesReused: number;
+        readonly samplerResourcesCreated: number;
+        readonly samplerResourcesReused: number;
+        readonly standardIblBindGroupsCreated: number;
+        readonly standardIblBindGroupsReused: number;
+      };
+      readonly assets: readonly {
+        readonly environmentMapResourceKey: string;
+        readonly version: string;
+        readonly ready: boolean;
+        readonly resourceKeys: {
+          readonly diffuseResourceKey: string;
+          readonly diffuseTextureKey: string;
+          readonly specularResourceKey: string;
+          readonly specularTextureKey: string;
+          readonly samplerKeys: readonly string[];
+          readonly bindGroupResourceKey: string | null;
+        };
+      }[];
+    };
   };
   readonly resources?: {
     readonly pipelineKeys?: readonly string[];
@@ -68,15 +98,33 @@ test("Playwright shows three spinning material showcase cubes", async ({
     animation: { spinningCubes: 3 },
     extraction: { environments: 1 },
     environment: {
-      authored: 1,
+      authored: 2,
       extracted: 1,
-      handleKey: "environment-map:materials-showcase-studio",
-      resourceKey: "texture:materials-showcase-studio:diffuse:texture",
+      activeKey: "environment-map:materials-showcase-warm-studio",
+      activeVersion: "warm-v1",
+      activeReady: true,
+      workerActiveIndex: 0,
+      prepared: {
+        activeReady: true,
+        totals: {
+          assetCount: 2,
+          readyAssetCount: 2,
+          diffuseTextureResourcesCreated: 0,
+          diffuseTextureResourcesReused: 2,
+          specularTextureResourcesCreated: 0,
+          specularTextureResourcesReused: 2,
+          samplerResourcesCreated: 0,
+          samplerResourcesReused: 4,
+          standardIblBindGroupsCreated: 0,
+          standardIblBindGroupsReused: 2,
+        },
+      },
     },
     draw: { cubes: 3, indexedDrawCalls: 3, indexCount: 36 },
     resources: {
       pipelineKeys: expect.arrayContaining([
         expect.stringContaining("iblDiffuse"),
+        expect.stringContaining("iblSpecularProof"),
       ]),
       standardTextureFeatures: [
         "baseColorTexture",
@@ -84,19 +132,40 @@ test("Playwright shows three spinning material showcase cubes", async ({
         "occlusionTexture",
         "emissiveTexture",
         "iblDiffuse",
+        "iblSpecularProof",
       ],
     },
   });
 
   const firstFrame = initialStatus.frame ?? 0;
   const firstScreenshot = await page.locator("#aperture-canvas").screenshot();
+  const warmStandardSample = strongestRegionSample(
+    firstScreenshot,
+    0.43,
+    0.4,
+    0.56,
+    0.68,
+  );
 
   expectVisibleMaterialRegions(firstScreenshot);
 
   const laterStatus = await waitForShowcaseFrame(page, firstFrame + 12);
   const laterScreenshot = await page.locator("#aperture-canvas").screenshot();
+  const coolStatus = await waitForShowcaseEnvironment(
+    page,
+    "environment-map:materials-showcase-cool-studio",
+  );
+  const coolScreenshot = await page.locator("#aperture-canvas").screenshot();
+  const coolStandardSample = strongestRegionSample(
+    coolScreenshot,
+    0.43,
+    0.4,
+    0.56,
+    0.68,
+  );
 
   await attachExampleStatus("materials-showcase-later-status", laterStatus);
+  await attachExampleStatus("materials-showcase-cool-status", coolStatus);
   await test.info().attach("materials-showcase-frame.png", {
     body: laterScreenshot,
     contentType: "image/png",
@@ -104,7 +173,20 @@ test("Playwright shows three spinning material showcase cubes", async ({
   expectStatusJsonSafeForGpu(laterStatus);
   webGpuValidation.expectNoWarnings();
   expect(laterStatus.frame ?? 0).toBeGreaterThanOrEqual(firstFrame + 12);
+  expect(coolStatus.environment).toMatchObject({
+    activeKey: "environment-map:materials-showcase-cool-studio",
+    activeVersion: "cool-v1",
+    activeReady: true,
+    workerActiveIndex: 1,
+  });
+  expect(
+    pixelDistance(warmStandardSample, coolStandardSample),
+    `warm and cool prepared IBL assets should visibly alter the StandardMaterial cube; warm=${JSON.stringify(
+      warmStandardSample,
+    )} cool=${JSON.stringify(coolStandardSample)}`,
+  ).toBeGreaterThan(20);
   expectVisibleMaterialRegions(laterScreenshot);
+  expectVisibleMaterialRegions(coolScreenshot);
 });
 
 function expectVisibleMaterialRegions(screenshot: Buffer): void {
@@ -171,6 +253,35 @@ async function waitForShowcaseFrame(
 
     return status?.ok === true && (status.frame ?? 0) >= frame;
   }, minimumFrame);
+
+  return page.evaluate(
+    () =>
+      (
+        globalThis as typeof globalThis & {
+          readonly __APERTURE_EXAMPLE_STATUS__?: MaterialShowcaseStatus;
+        }
+      ).__APERTURE_EXAMPLE_STATUS__ as MaterialShowcaseStatus,
+  );
+}
+
+async function waitForShowcaseEnvironment(
+  page: Page,
+  activeKey: string,
+): Promise<MaterialShowcaseStatus> {
+  await page.waitForFunction((expectedActiveKey) => {
+    const status = (
+      globalThis as typeof globalThis & {
+        readonly __APERTURE_EXAMPLE_STATUS__?: MaterialShowcaseStatus;
+      }
+    ).__APERTURE_EXAMPLE_STATUS__;
+
+    return (
+      status?.ok === true &&
+      status.environment?.activeKey === expectedActiveKey &&
+      status.environment.activeReady === true &&
+      status.extraction?.environments === 1
+    );
+  }, activeKey);
 
   return page.evaluate(
     () =>

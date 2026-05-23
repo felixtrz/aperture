@@ -59,7 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3118`: broaden environment asset preparation beyond the current single-app proof.
+Start `task-3119`: audit post-environment render-pipeline parity and select
+the next visible SOTA slice.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -152,13 +153,19 @@ render-order buckets. `task-3115` now reuses shared queued built-in bind groups
 across compatible frame-resource routes and exposes creation-vs-reuse pressure
 in app/browser status. `task-3116` now preserves previous per-object transform
 history for TAA motion vectors and proves moving-geometry history in
-`examples/taa.html`. `task-3117` now runs bloom through a two-level renderer-owned downsample/upsample graph and reports pass/resource counts in `examples/post-effects.html`. The remaining closest visible SOTA gap is broader environment asset preparation.
+`examples/taa.html`. `task-3117` now runs bloom through a two-level
+renderer-owned downsample/upsample graph and reports pass/resource counts in
+`examples/post-effects.html`. `task-3118` now broadens environment asset
+preparation to multiple versioned renderer-owned diffuse/specular IBL assets
+with warm/cool browser proof. The next step is a post-environment parity audit
+before selecting more feature work.
 
 Reference anchors for the next task (read before writing):
 
-- `references/bevy/crates/bevy_pbr/src/light_probe/environment_map.rs`.
-- `references/bevy/crates/bevy_pbr/src/light_probe/environment_filter.wgsl`.
-- `references/engine/src/scene/graphics/env-lighting.js`.
+- `references/three.js/src/renderers/common/Renderer.js`.
+- `references/three.js/src/renderers/webgpu/WebGPUBackend.js`.
+- `references/engine/src/scene/renderer/renderer.js`.
+- `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -463,6 +470,8 @@ Acceptance criteria:
 
 ### task-3118 — Broaden environment asset preparation beyond the current single-app proof
 
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/render/src/materials/`, `packages/webgpu/src/webgpu/*environment*`, `examples/materials-showcase.*` or `examples/spinning-cube.*`, targeted tests.
 Reference anchor: `references/bevy/crates/bevy_pbr/src/light_probe/environment_map.rs`, `references/bevy/crates/bevy_pbr/src/light_probe/environment_filter.wgsl`, `references/engine/src/scene/graphics/env-lighting.js`.
@@ -472,6 +481,18 @@ Acceptance criteria:
 - Environment-map preparation supports multiple renderer-owned environment assets with stable readiness/version summaries instead of only the current single proof route.
 - App status reports prepared diffuse/specular environment asset reuse and invalidation without raw texture or bind-group handles.
 - A browser example switches between two environment handles or material probes and shows distinct IBL response while preserving zero WebGPU diagnostics.
+
+### task-3119 — Audit post-environment render-pipeline parity and select the next SOTA slice
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research/`, `docs/render-pipeline-comparison.html`, `docs/index.html`, `agent/BACKLOG.md`, `agent/HANDOFF.md`.
+Reference anchor: `references/three.js/src/renderers/common/Renderer.js`, `references/three.js/src/renderers/webgpu/WebGPUBackend.js`, `references/engine/src/scene/renderer/renderer.js`, `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`.
+
+Acceptance criteria:
+
+- Re-audit Aperture's covered render pipeline after tasks 3111-3118 against the local three.js and PlayCanvas WebGPU references, focusing on remaining SOTA/efficiency gaps rather than repeating already-closed items.
+- Record the findings in a new dated research note and update the public render-pipeline comparison page with any revised phase estimates and concrete missing pieces.
+- Add the next visible implementation task with specific reference anchors and acceptance criteria, or explicitly document why no concrete visible gap can be selected yet.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

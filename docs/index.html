@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 21:01 UTC</dd>
+            <dd>2026-05-23 21:54 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1474,12 +1474,15 @@
               use renderer-side previous per-object transform history for
               independently moving built-in mesh geometry, and bloom now runs
               through a two-level downsample/upsample post-effect graph with
-              JSON-safe pass and resource counts.
+              JSON-safe pass and resource counts. Environment asset preparation
+              now handles two versioned renderer-owned diffuse/specular IBL
+              assets with JSON-safe reuse/invalidation status, and
+              <code>examples/materials-showcase.html</code> switches between
+              warm and cool ECS-authored environment handles with distinct
+              StandardMaterial IBL response.
             </dd>
             <dt>Next focus</dt>
-            <dd>
-              task-3118 broader environment asset preparation
-            </dd>
+            <dd>task-3119 post-environment parity audit</dd>
           </dl>
         </aside>
       </header>
@@ -2253,16 +2256,16 @@
               independently moving geometry; the TAA proof reports one previous
               object transform used, zero fallback transforms, and zero
               diagnostics while the worker moves the mesh independently of the
-              camera jitter.
-              <code>createWebGpuApp({ msaa })</code> now renders forward passes
-              through cached multisampled color/depth attachments, resolves to
-              the swapchain or off-screen target, and keys built-in pipelines by
-              effective sample count.
+              camera jitter. <code>createWebGpuApp({ msaa })</code> now renders
+              forward passes through cached multisampled color/depth
+              attachments, resolves to the swapchain or off-screen target, and
+              keys built-in pipelines by effective sample count.
             </p>
             <ul>
               <li>
-                Missing broader environment asset preparation beyond the current
-                single-app proof route.
+                Next audit should compare the post-environment pipeline against
+                three.js and PlayCanvas again and select the next visible SOTA
+                gap.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2284,9 +2287,16 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">task-3117</span> Added a renderer-owned
-                downsample/upsample post-effect graph for bloom and exposed
-                pass/resource counts in the post-effects browser proof.
+                <span class="badge green">task-3118</span> Added versioned
+                multi-environment IBL asset preparation with renderer-owned
+                diffuse/specular resources, reuse/invalidation summaries, and a
+                warm/cool materials-showcase browser proof.
+              </li>
+              <li>
+                <span class="badge green">task-3117</span> Added a
+                renderer-owned downsample/upsample post-effect graph for bloom
+                and exposed pass/resource counts in the post-effects browser
+                proof.
               </li>
               <li>
                 <span class="badge green">task-3116</span> Added previous
@@ -4559,13 +4569,14 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Implement
-                <code>task-3118</code>: broader environment asset preparation
-                beyond the current single proof route.
+                <span class="badge amber">next</span> Run
+                <code>task-3119</code>: audit the post-environment render
+                pipeline against three.js and PlayCanvas, then pick the next
+                visible SOTA gap.
               </li>
               <li>
-                Then select the next visible render-pipeline parity slice from
-                the comparison page.
+                The audit should add the next visible implementation slice with
+                concrete reference anchors before more feature work.
               </li>
             </ul>
           </article>
@@ -4578,6 +4589,20 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3118</div>
+            <div>
+              <strong>Broader environment asset preparation shipped.</strong>
+              <span>
+                WebGPU app environment preparation now supports multiple
+                versioned renderer-owned diffuse/specular IBL assets with
+                JSON-safe reuse and invalidation summaries. The materials
+                showcase switches between warm and cool ECS-authored environment
+                handles and proves distinct StandardMaterial IBL response with
+                zero WebGPU validation warnings.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3115</div>
             <div>

@@ -56,13 +56,19 @@ try {
 
 function createMainScene(aperture, app, sourceAssets, targetCanvas) {
   const scene = registerMaterialsShowcaseAssets(aperture, sourceAssets);
-  const iblResources = createShowcaseDiffuseIblResources(aperture, app);
+  const environmentAssetInputs = createShowcaseEnvironmentAssetInputs(scene);
+  const environmentAssets = aperture.prepareWebGpuAppEnvironmentAssets({
+    app,
+    assets: environmentAssetInputs,
+    activeHandle: scene.environmentMap,
+  });
 
   return {
     ...scene,
     canvas: targetCanvas,
     cubes: cubeSpecs,
-    iblResources,
+    environmentAssetInputs,
+    environmentAssets,
   };
 }
 
@@ -134,18 +140,43 @@ async function handleWorkerMessage(
 
   loop.receivedSnapshots += 1;
 
+  const activeEnvironmentKey =
+    message.environment?.activeEnvironmentMapKey ??
+    activeEnvironmentMapKeyFromSnapshot(aperture, message.snapshot) ??
+    aperture.assetHandleKey(scene.environmentMap);
+  const environmentAssets = aperture.prepareWebGpuAppEnvironmentAssets({
+    app,
+    assets: scene.environmentAssetInputs,
+    activeEnvironmentMapResourceKey: activeEnvironmentKey,
+  });
+  const activeEnvironment =
+    environmentAssets.active ?? environmentAssets.assets[0] ?? null;
   const typedSnapshot = inspectStructuredCloneSnapshot(message.snapshot);
   const report = await app.renderSnapshot(message.snapshot, {
     frame: message.frame ?? loop.frame,
     clearColor,
     label: "materials-showcase-app",
-    standardMaterialIblResources: scene.iblResources,
+    ...(activeEnvironment === null
+      ? {}
+      : {
+          standardMaterialIblResources:
+            activeEnvironment.standardMaterialIblResources,
+        }),
+    readbackSamples: [
+      {
+        id: "standard-cube",
+        x: Math.floor(scene.canvas.width / 2),
+        y: Math.floor(scene.canvas.height / 2),
+      },
+    ],
   });
 
   publishFrameStatus(
     aperture,
     app,
     scene,
+    environmentAssets,
+    activeEnvironment,
     loop,
     message,
     report,
@@ -173,6 +204,8 @@ function publishFrameStatus(
   aperture,
   app,
   scene,
+  environmentAssets,
+  activeEnvironment,
   loop,
   message,
   report,
@@ -208,12 +241,16 @@ function publishFrameStatus(
       diagnostics: report.snapshot.diagnostics.length,
     },
     environment: {
-      authored: 1,
+      authored: scene.environmentAssetInputs.length,
       extracted: report.snapshot.environments.length,
-      handleKey: aperture.assetHandleKey(scene.environmentMap),
-      resourceKey:
-        scene.iblResources.diffuseTextureResource.resources[0]?.resource
-          ?.resourceKey,
+      activeKey: environmentAssets.activeEnvironmentMapResourceKey,
+      activeVersion: activeEnvironment?.version ?? null,
+      activeReady: activeEnvironment?.ready ?? false,
+      workerActiveIndex: message.environment?.activeIndex ?? null,
+      prepared:
+        aperture.webGpuPreparedEnvironmentAssetSetToJsonValue(
+          environmentAssets,
+        ),
     },
     resources: {
       materials: scene.cubes.length,
@@ -226,6 +263,7 @@ function publishFrameStatus(
         "occlusionTexture",
         "emissiveTexture",
         "iblDiffuse",
+        "iblSpecularProof",
       ],
       bindGroups:
         report.resources?.resources === null ||
@@ -247,155 +285,100 @@ function publishFrameStatus(
   });
 }
 
-function createShowcaseDiffuseIblResources(aperture, app) {
-  const cache = aperture.getOrCreateWebGpuAppEnvironmentResourceCache(app);
-  const device = app.initialization.device;
-  const diffuseResourceKey =
-    "texture:materials-showcase-studio:diffuse:texture";
-  const samplerResourceKey =
-    "texture:materials-showcase-studio:diffuse:sampler";
-  let diffuseTexture = cache.diffuseTextures.get(diffuseResourceKey);
-  let iblSampler = cache.samplers.get(samplerResourceKey);
+function activeEnvironmentMapKeyFromSnapshot(aperture, snapshot) {
+  const environment = snapshot.environments[0];
 
-  if (diffuseTexture === undefined) {
-    diffuseTexture = createFaceColoredDiffuseCubeTexture(
-      device,
-      diffuseResourceKey,
-    );
-    cache.diffuseTextures.set(diffuseResourceKey, diffuseTexture);
-  }
+  return environment?.handle === undefined || environment.handle === null
+    ? null
+    : aperture.assetHandleKey(environment.handle);
+}
 
-  if (iblSampler === undefined) {
-    iblSampler = createDiffuseIblSampler(device, samplerResourceKey);
-    cache.samplers.set(samplerResourceKey, iblSampler);
-  }
-
-  return {
-    bindGroupResource: {
-      ready: true,
-      status: "available",
+function createShowcaseEnvironmentAssetInputs(scene) {
+  return [
+    {
+      handle: scene.environmentMaps.warm,
+      label: "materials-showcase-warm-studio",
+      version: "warm-v1",
+      diffuseResourceKey: "texture:materials-showcase-warm-studio:diffuse",
+      specularResourceKey: "texture:materials-showcase-warm-studio:specular",
+      diffuseSource: {
+        faceSize: 4,
+        faces: cubeFaces(4, [
+          [238, 132, 74, 255],
+          [224, 92, 72, 255],
+          [255, 220, 142, 255],
+          [96, 54, 42, 255],
+          [238, 156, 110, 255],
+          [168, 78, 64, 255],
+        ]),
+        format: "rgba8unorm",
+      },
+      specularPmremSource: {
+        faceSize: 4,
+        faces: cubeFaces(4, [
+          [255, 164, 86, 255],
+          [232, 96, 82, 255],
+          [255, 232, 154, 255],
+          [116, 62, 46, 255],
+          [248, 176, 118, 255],
+          [186, 90, 70, 255],
+        ]),
+        format: "rgba8unorm",
+        mipLevelCount: 3,
+      },
       standardMaterialCount: 1,
-      group: 4,
-      createdBindGroupCount: 0,
-      reusedBindGroupCount: 1,
-      sections: {
-        descriptorPlan: true,
-        layoutResource: true,
-        textureResources: true,
-        samplerResource: true,
-        bindGroupResource: true,
-        shaderSampling: true,
-      },
-      resource: {
-        group: 4,
-        resourceKey: "bind-group:standard/ibl/group-4/materials-showcase",
-        layoutKey: "standard/ibl/group-4",
-        bindGroup: { label: "standard/ibl/group-4/materials-showcase" },
-        entryResourceKeys: [diffuseResourceKey, samplerResourceKey],
-      },
-      diagnostics: [],
     },
-    diffuseTextureResource: {
-      ready: true,
-      status: "available",
-      textureSlotCount: 1,
-      diffuseSlotCount: 1,
-      createdTextureCount: 1,
-      reusedTextureCount: 0,
-      sections: {
-        texturePreparation: true,
-        diffuseTextureResource: true,
-        gpuAllocation: true,
-        specularPrefiltering: false,
-        shaderSampling: true,
+    {
+      handle: scene.environmentMaps.cool,
+      label: "materials-showcase-cool-studio",
+      version: "cool-v1",
+      diffuseResourceKey: "texture:materials-showcase-cool-studio:diffuse",
+      specularResourceKey: "texture:materials-showcase-cool-studio:specular",
+      diffuseSource: {
+        faceSize: 4,
+        faces: cubeFaces(4, [
+          [62, 152, 246, 255],
+          [54, 96, 220, 255],
+          [166, 236, 255, 255],
+          [26, 52, 96, 255],
+          [104, 204, 238, 255],
+          [42, 72, 156, 255],
+        ]),
+        format: "rgba8unorm",
       },
-      resources: [{ valid: true, resource: diffuseTexture, diagnostics: [] }],
-      diagnostics: [],
-    },
-    samplerResource: {
-      ready: true,
-      status: "available",
-      samplerDescriptorCount: 1,
-      createdSamplerCount: 1,
-      reusedSamplerCount: 0,
-      sections: {
-        samplerDescriptors: true,
-        gpuAllocation: true,
-        bindGroupLayout: true,
-        shaderSampling: true,
+      specularPmremSource: {
+        faceSize: 4,
+        faces: cubeFaces(4, [
+          [74, 176, 255, 255],
+          [64, 112, 238, 255],
+          [182, 242, 255, 255],
+          [34, 62, 112, 255],
+          [116, 216, 248, 255],
+          [50, 84, 172, 255],
+        ]),
+        format: "rgba8unorm",
+        mipLevelCount: 3,
       },
-      resources: [{ valid: true, resource: iblSampler, diagnostics: [] }],
-      diagnostics: [],
+      standardMaterialCount: 1,
     },
-  };
-}
-
-function createFaceColoredDiffuseCubeTexture(device, resourceKey) {
-  const texture = device.createTexture({
-    label: "materials-showcase-studio:diffuse-ibl",
-    size: [1, 1, 6],
-    format: "rgba8unorm",
-    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
-    mipLevelCount: 1,
-  });
-  const faceColors = [
-    [220, 108, 52, 255],
-    [48, 136, 220, 255],
-    [228, 220, 126, 255],
-    [40, 92, 78, 255],
-    [186, 86, 214, 255],
-    [72, 80, 124, 255],
   ];
-
-  faceColors.forEach((color, face) => {
-    const data = new Uint8Array(256);
-
-    data.set(color, 0);
-    device.queue.writeTexture(
-      { texture, origin: [0, 0, face] },
-      data,
-      { bytesPerRow: 256, rowsPerImage: 1 },
-      [1, 1, 1],
-    );
-  });
-
-  return {
-    resourceKey,
-    texture,
-    view: texture.createView({
-      label: "materials-showcase-studio:diffuse-ibl-view",
-      dimension: "cube",
-    }),
-    descriptor: {
-      label: "materials-showcase-studio:diffuse-ibl",
-      size: [1, 1, 6],
-      format: "rgba8unorm",
-      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
-      mipLevelCount: 1,
-    },
-    viewDescriptor: { dimension: "cube" },
-  };
 }
 
-function createDiffuseIblSampler(device, resourceKey) {
-  const descriptor = {
-    label: "materials-showcase-studio:diffuse-ibl-sampler",
-    addressModeU: "clamp-to-edge",
-    addressModeV: "clamp-to-edge",
-    addressModeW: "clamp-to-edge",
-    magFilter: "linear",
-    minFilter: "linear",
-    mipmapFilter: "nearest",
-    lodMinClamp: 0,
-    lodMaxClamp: 0,
-    maxAnisotropy: 1,
-  };
+function cubeFaces(faceSize, colors) {
+  return colors.map((color, face) => {
+    const data = new Uint8Array(faceSize * faceSize * 4);
 
-  return {
-    resourceKey,
-    sampler: device.createSampler(descriptor),
-    descriptor,
-  };
+    for (let index = 0; index < data.length; index += 4) {
+      const shade = 1 - face * 0.035;
+
+      data[index] = Math.round(color[0] * shade);
+      data[index + 1] = Math.round(color[1] * shade);
+      data[index + 2] = Math.round(color[2] * shade);
+      data[index + 3] = color[3];
+    }
+
+    return data;
+  });
 }
 
 function publishStatus(status) {

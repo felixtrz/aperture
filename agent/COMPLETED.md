@@ -1,5 +1,39 @@
 # Completed Tasks
 
+## task-3118 — Broaden environment asset preparation beyond the current single-app proof
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added `prepareWebGpuAppEnvironmentAssets()` to prepare multiple
+  ECS-authored environment handles into renderer-owned diffuse cube textures,
+  PMREM-backed specular cube textures, samplers, and StandardMaterial IBL
+  bind-group readiness reports.
+- Added versioned environment resource keys so app status can show stable
+  readiness, reuse, and invalidation summaries for diffuse/specular/sampler/
+  bind-group resources without exposing raw GPU handles.
+- Extended diffuse IBL texture resources to upload real cube-face source data
+  instead of only the deterministic default upload.
+- Updated `examples/materials-showcase.html` to prepare warm and cool
+  environment handles, switch the worker-authored environment map over time,
+  select matching renderer-owned IBL resources on the main thread, and publish
+  JSON-safe prepared-environment status.
+- Expanded the materials showcase e2e test to prove the warm/cool switch
+  changes the StandardMaterial IBL response while keeping WebGPU validation
+  warnings at zero.
+- Updated public tracker pages and backlog. Recommended next task is
+  `task-3119`, a post-environment parity audit to select the next visible SOTA
+  slice.
+
+Validation:
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/app-environment-resources.test.ts test/webgpu/ibl-texture-resource.test.ts test/webgpu/standard-material-ibl-bind-group.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/materials-showcase.spec.ts --reporter=line`
+
 ## task-3110 — Audit post-Tier-20 render pipeline parity and choose next SOTA slice
 
 Completed: 2026-05-23
@@ -26200,7 +26234,7 @@ Validation:
 - Browser proof with a focused Playwright script against
   `http://127.0.0.1:4173/examples/taa.html`: `ok: true`, frame 24, one mesh
   draw, zero diagnostics, TAA post effect OK, `motionVectors.status:
-  "scene-attachment"`, previous object transform history available, one object
+"scene-attachment"`, previous object transform history available, one object
   transform used, zero fallback transforms, and worker `objectOffset` nonzero.
   The headed browser closed slowly in this environment and the process was
   killed after the status proof was captured.
@@ -26233,7 +26267,7 @@ Validation:
 - `pnpm run check:examples`
 - Playwright MCP browser proof for
   `http://127.0.0.1:4173/examples/post-effects.html?fxaa=0&bloom=1`: `ok:
-  true`, zero diagnostics, frame draw calls 6, bloom effect draw calls 4,
+true`, zero diagnostics, frame draw calls 6, bloom effect draw calls 4,
   `graph.topology: "downsample-upsample"`, pass count 4, resource count 3, two
   downsample levels at 480x270 and 240x135, and direct-vs-bloom readback max
   dark-sample brightening 250.185.

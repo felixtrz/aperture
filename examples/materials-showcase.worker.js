@@ -49,6 +49,9 @@ async function handleMessage(data) {
         scene: {
           meshKey: aperture.assetHandleKey(scene.mesh),
           environmentMapKey: aperture.assetHandleKey(scene.environmentMap),
+          environmentMapKeys: scene.environmentMaps.map((handle) =>
+            aperture.assetHandleKey(handle),
+          ),
           cubeCount: scene.cubes.length,
         },
       });
@@ -60,7 +63,7 @@ async function handleMessage(data) {
         throw new Error("Worker scene has not been initialized.");
       }
 
-      const snapshotMessage = createSnapshotMessage(scene, data);
+      const snapshotMessage = createSnapshotMessage(aperture, scene, data);
       self.postMessage(
         snapshotMessage,
         aperture.renderSnapshotTransferList(snapshotMessage.snapshot),
@@ -129,7 +132,7 @@ function createWorkerScene(aperture, canvasSize) {
       layerMask: 1,
     }),
   );
-  app.spawn(
+  const environmentEntity = app.spawn(
     aperture.withEnvironmentMap(assets.environmentMap, {
       color: [1, 1, 1, 1],
       intensity: 1,
@@ -142,12 +145,15 @@ function createWorkerScene(aperture, canvasSize) {
     cubes,
     mesh: assets.mesh,
     environmentMap: assets.environmentMap,
+    environmentMaps: [assets.environmentMaps.warm, assets.environmentMaps.cool],
+    environmentEntity,
     firstTimestamp: null,
     previousTimestamp: null,
+    activeEnvironmentIndex: 0,
   };
 }
 
-function createSnapshotMessage(workerScene, data) {
+function createSnapshotMessage(aperture, workerScene, data) {
   const timestamp = finiteNumber(data.timestamp, 0);
 
   if (workerScene.firstTimestamp === null) {
@@ -159,8 +165,19 @@ function createSnapshotMessage(workerScene, data) {
   const elapsedSeconds = (timestamp - workerScene.firstTimestamp) / 1000;
   const deltaSeconds = Math.max(0, (timestamp - previousTimestamp) / 1000);
   const frame = finiteInteger(data.frame, 0);
+  const activeEnvironmentIndex = Math.floor(elapsedSeconds / 1.4) % 2;
+  const activeEnvironmentMap =
+    workerScene.environmentMaps[activeEnvironmentIndex] ??
+    workerScene.environmentMap;
+  const activeEnvironmentMapKey = activeEnvironmentMap.id;
 
   workerScene.previousTimestamp = timestamp;
+  workerScene.activeEnvironmentIndex = activeEnvironmentIndex;
+  workerScene.environmentEntity.setValue(
+    aperture.Light,
+    "environmentMapId",
+    aperture.assetHandleKey(activeEnvironmentMap),
+  );
 
   const step = workerScene.app.step(deltaSeconds, elapsedSeconds);
   const snapshot = workerScene.app.extract(frame);
@@ -173,6 +190,11 @@ function createSnapshotMessage(workerScene, data) {
       frames: frame,
       elapsedSeconds,
       deltaSeconds,
+    },
+    environment: {
+      activeIndex: activeEnvironmentIndex,
+      activeEnvironmentMapKey: aperture.assetHandleKey(activeEnvironmentMap),
+      activeEnvironmentMapId: activeEnvironmentMapKey,
     },
     workerStep: {
       transformDiagnostics: step.transform.diagnostics.length,

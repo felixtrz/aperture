@@ -228,14 +228,28 @@ export function registerMaterialsShowcaseAssets(aperture, registry) {
     }),
     { id: "showcase-matcap" },
   );
-  const environmentMap = aperture.createEnvironmentMapHandle(
-    "materials-showcase-studio",
+  const warmEnvironmentMap = aperture.createEnvironmentMapHandle(
+    "materials-showcase-warm-studio",
+  );
+  const coolEnvironmentMap = aperture.createEnvironmentMapHandle(
+    "materials-showcase-cool-studio",
   );
 
-  registry.register(environmentMap, { label: "Materials showcase IBL" });
-  registry.markReady(environmentMap, {
-    label: "Materials showcase IBL",
-    diffuseResourceKey: "materials-showcase-studio/diffuse",
+  registry.register(warmEnvironmentMap, {
+    label: "Materials showcase warm IBL",
+  });
+  registry.markReady(warmEnvironmentMap, {
+    label: "Materials showcase warm IBL",
+    diffuseResourceKey: "materials-showcase-warm-studio/diffuse",
+    specularResourceKey: "materials-showcase-warm-studio/specular",
+  });
+  registry.register(coolEnvironmentMap, {
+    label: "Materials showcase cool IBL",
+  });
+  registry.markReady(coolEnvironmentMap, {
+    label: "Materials showcase cool IBL",
+    diffuseResourceKey: "materials-showcase-cool-studio/diffuse",
+    specularResourceKey: "materials-showcase-cool-studio/specular",
   });
 
   return {
@@ -251,6 +265,10 @@ export function registerMaterialsShowcaseAssets(aperture, registry) {
     standardEmissiveSampler,
     matcapTexture,
     matcapSampler,
-    environmentMap,
+    environmentMap: warmEnvironmentMap,
+    environmentMaps: {
+      warm: warmEnvironmentMap,
+      cool: coolEnvironmentMap,
+    },
   };
 }
