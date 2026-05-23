@@ -195,7 +195,7 @@ Acceptance criteria:
 
 Category: `runtime-orchestration`
 Package/write-scope: `packages/render/src/rendering/`, `packages/webgpu/src/webgpu/app-snapshot-transport.ts`, `examples/worker-cube.*`, targeted tests.
-Reference anchor: `references/bevy/crates/bevy_render/src/extract_component.rs`, `references/bevy/crates/bevy_ecs/src/change_detection.rs`.
+Reference anchor: `references/bevy/crates/bevy_render/src/extract_component.rs`, `references/bevy/crates/bevy_ecs/src/change_detection/mod.rs`, `references/bevy/crates/bevy_ecs/src/change_detection/tick.rs`.
 
 Acceptance criteria:
 

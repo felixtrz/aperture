@@ -1,6 +1,39 @@
 # Agent Handoff
 
-Updated: 2026-05-23T14:47:32Z
+Updated: 2026-05-23T14:54:03Z
+
+## Current Run Update — 2026-05-23T14:54:03Z — Stop gate before task-3101
+
+No implementation work was started because this continuation began after the
+repository stop gate (`:53` local minute). The working tree was on
+`main...origin/main`, with only the pre-existing unrelated deletion of
+`.codex/hooks.json` and untracked
+`docs/DEVELOPER_API_FEEDBACK.md` /
+`docs/DEVELOPER_API_PROPOSAL.md` present.
+
+### Context gathered
+
+- Confirmed `task-3101` is the next ready slice: add a generic snapshot
+  change-set scheduler for render-world updates.
+- Read the Bevy extraction reference at
+  `references/bevy/crates/bevy_render/src/extract_component.rs`.
+- The backlog's cited
+  `references/bevy/crates/bevy_ecs/src/change_detection.rs` path is a stale
+  single-file reference for this checkout. The current local Bevy files are
+  under `references/bevy/crates/bevy_ecs/src/change_detection/`, especially
+  `mod.rs` and `tick.rs`.
+
+### Validation
+
+- `git status --short --branch`
+- `date '+%Y-%m-%dT%H:%M:%S%z %M'`
+- `rg --files references/bevy/crates/bevy_ecs/src | rg 'change|detect|tick'`
+
+### Recommended next task
+
+Start `task-3101`, adding a generic snapshot change-set scheduler for
+render-world updates so unchanged snapshot families can avoid full packet
+refresh work.
 
 ## Current Run Update — 2026-05-23T14:47:32Z — Transmission grab-pass refraction
 
