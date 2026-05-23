@@ -1,6 +1,23 @@
 # Agent Handoff
 
-Updated: 2026-05-23T06:50:05Z
+Updated: 2026-05-23T06:54:14Z
+
+## Current Run Update — 2026-05-23T06:54:14Z — Minute-50 stop gate
+
+No implementation was started because the run began after the repository's
+minute-50 stop gate (`:54` local minute). The working tree was clean on
+`main...origin/main`, and `task-3098` remains the recommended next task.
+
+### Validation
+
+- `git status --short --branch`
+- `date '+%Y-%m-%dT%H:%M:%S%z %M'`
+
+### Recommended next task
+
+Start `task-3098`, executing PMREM-generated specular IBL resources through the
+app path so StandardMaterial specular IBL no longer relies on the deterministic
+proof-upload placeholder.
 
 ## Current Run Update — 2026-05-23T06:47:50Z — PMREM GGX/VNDF compute prefilter
 
