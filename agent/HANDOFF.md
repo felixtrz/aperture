@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-23T04:41:14Z
+Updated: 2026-05-23T04:47:45Z
+
+## Current Run Update — 2026-05-23T04:47:45Z — SSR reference-parity follow-up
+
+Completed `task-3094`, a Tier 20 SSR parity follow-up.
+
+### What changed
+
+- Upgraded `createWebGpuSsrPostEffect()` with perspective depth linearization,
+  depth-derived view normals, view-space reflection ray projection,
+  max-distance semantics, fresnel weighting, distance attenuation, reflection
+  softening, and tunable fallback reflection weight.
+- Preserved the renderer-owned scene depth dependency and the existing
+  missing-depth diagnostics.
+- Retuned `examples/ssr.html` to exercise the richer SSR controls while
+  preserving the square raw-vs-SSR browser proof.
+
+### Reference comparison
+
+- three.js `SSRPass` / `SSRShader` anchor the normal-aware reflected ray,
+  fresnel, distance attenuation, thickness, max-distance, and blur concepts.
+- PlayCanvas camera-frame render passes anchor keeping screen-space effects as
+  renderer-owned post-processing derived from camera/depth inputs.
+- Aperture still avoids a scene-graph reflector object; the effect remains a
+  full-screen pass over renderer-owned color/depth textures.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts --reporter=dot`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/ssr.spec.ts --reporter=list --timeout=60000`
+
+### Known issues
+
+- DOF and MSAA-depth screen-space support remain open Tier 20 parity follow-ups:
+  `task-3095` and `task-3096`.
+
+### Recommended next task
+
+Start `task-3095`, DOF PlayCanvas/Bevy circle-of-confusion quality follow-up.
 
 ## Current Run Update — 2026-05-23T04:41:14Z — SSAO reference-parity follow-up
 

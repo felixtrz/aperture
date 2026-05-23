@@ -14,6 +14,14 @@ export interface CreateWebGpuSsrPostEffectOptions {
   readonly maxSteps?: number;
   readonly stridePixels?: number;
   readonly thickness?: number;
+  readonly near?: number;
+  readonly far?: number;
+  readonly fovYRadians?: number;
+  readonly maxDistance?: number;
+  readonly fresnel?: boolean;
+  readonly distanceAttenuation?: boolean;
+  readonly reflectionBlurPixels?: number;
+  readonly fallbackOpacity?: number;
 }
 
 interface CachedSsrPostPipeline {
@@ -31,6 +39,26 @@ export function createWebGpuSsrPostEffect(
   const maxSteps = clampInteger(options.maxSteps ?? 28, 4, 96);
   const stridePixels = clampFinite(options.stridePixels ?? 3.5, 1, 24);
   const thickness = clampFinite(options.thickness ?? 0.045, 0.001, 0.35);
+  const near = clampFinite(options.near ?? 0.1, 0.0001, 100000);
+  const far = clampFinite(
+    options.far ?? 1000,
+    Math.max(near + 0.0001, 0.0002),
+    1000000,
+  );
+  const fovYRadians = clampFinite(
+    options.fovYRadians ?? Math.PI / 3,
+    0.001,
+    Math.PI - 0.001,
+  );
+  const maxDistance = clampFinite(options.maxDistance ?? 12, 0.01, far - near);
+  const fresnel = options.fresnel ?? true;
+  const distanceAttenuation = options.distanceAttenuation ?? true;
+  const reflectionBlurPixels = clampFinite(
+    options.reflectionBlurPixels ?? 1.25,
+    0,
+    8,
+  );
+  const fallbackOpacity = clampFinite(options.fallbackOpacity ?? 0.16, 0, 1);
   let cachedPipeline: CachedSsrPostPipeline | null = null;
   let sampler: unknown | null = null;
 
@@ -66,6 +94,14 @@ export function createWebGpuSsrPostEffect(
         maxSteps,
         stridePixels,
         thickness,
+        near,
+        far,
+        fovYRadians,
+        maxDistance,
+        fresnel,
+        distanceAttenuation,
+        reflectionBlurPixels,
+        fallbackOpacity,
       });
       const pipelineResult =
         cachedPipeline?.key === pipelineKey
@@ -77,6 +113,14 @@ export function createWebGpuSsrPostEffect(
               maxSteps,
               stridePixels,
               thickness,
+              near,
+              far,
+              fovYRadians,
+              maxDistance,
+              fresnel,
+              distanceAttenuation,
+              reflectionBlurPixels,
+              fallbackOpacity,
               label: `${prepareOptions.label}:${id}:pipeline`,
               effectId: id,
               diagnostics,
@@ -170,7 +214,7 @@ export function createWebGpuSsrPostEffect(
             kind: "setBindGroup",
             renderId: 0,
             index: 0,
-            resourceKey: `${id}:input:${prepareOptions.input.label}:depth:${prepareOptions.depth.label}:opacity:${opacity.toFixed(2)}`,
+            resourceKey: `${id}:input:${prepareOptions.input.label}:depth:${prepareOptions.depth.label}:opacity:${opacity.toFixed(2)}:distance:${maxDistance.toFixed(2)}:fresnel:${String(fresnel)}`,
             bindGroup,
           },
           {
@@ -194,6 +238,14 @@ function ssrPipelineKey(options: {
   readonly maxSteps: number;
   readonly stridePixels: number;
   readonly thickness: number;
+  readonly near: number;
+  readonly far: number;
+  readonly fovYRadians: number;
+  readonly maxDistance: number;
+  readonly fresnel: boolean;
+  readonly distanceAttenuation: boolean;
+  readonly reflectionBlurPixels: number;
+  readonly fallbackOpacity: number;
 }): string {
   return [
     "webgpu-post-ssr",
@@ -202,6 +254,14 @@ function ssrPipelineKey(options: {
     `steps:${options.maxSteps}`,
     `stride:${options.stridePixels.toFixed(3)}`,
     `thickness:${options.thickness.toFixed(4)}`,
+    `near:${options.near.toFixed(4)}`,
+    `far:${options.far.toFixed(3)}`,
+    `fovY:${options.fovYRadians.toFixed(4)}`,
+    `maxDistance:${options.maxDistance.toFixed(3)}`,
+    `fresnel:${String(options.fresnel)}`,
+    `attenuate:${String(options.distanceAttenuation)}`,
+    `blur:${options.reflectionBlurPixels.toFixed(3)}`,
+    `fallback:${options.fallbackOpacity.toFixed(3)}`,
   ].join("|");
 }
 
@@ -212,6 +272,14 @@ function createSsrPostPipeline(options: {
   readonly maxSteps: number;
   readonly stridePixels: number;
   readonly thickness: number;
+  readonly near: number;
+  readonly far: number;
+  readonly fovYRadians: number;
+  readonly maxDistance: number;
+  readonly fresnel: boolean;
+  readonly distanceAttenuation: boolean;
+  readonly reflectionBlurPixels: number;
+  readonly fallbackOpacity: number;
   readonly label: string;
   readonly effectId: string;
   readonly diagnostics: WebGpuPostPassDiagnostic[];
@@ -319,6 +387,14 @@ function ssrPostEffectWgsl(options: {
   readonly maxSteps: number;
   readonly stridePixels: number;
   readonly thickness: number;
+  readonly near: number;
+  readonly far: number;
+  readonly fovYRadians: number;
+  readonly maxDistance: number;
+  readonly fresnel: boolean;
+  readonly distanceAttenuation: boolean;
+  readonly reflectionBlurPixels: number;
+  readonly fallbackOpacity: number;
 }): string {
   return `
 struct VertexOutput {
@@ -334,6 +410,14 @@ const OPACITY: f32 = ${wgslFloat(options.opacity)};
 const MAX_STEPS: u32 = ${options.maxSteps}u;
 const STRIDE_PIXELS: f32 = ${wgslFloat(options.stridePixels)};
 const THICKNESS: f32 = ${wgslFloat(options.thickness)};
+const NEAR_PLANE: f32 = ${wgslFloat(options.near)};
+const FAR_PLANE: f32 = ${wgslFloat(options.far)};
+const TAN_HALF_FOV_Y: f32 = ${wgslFloat(Math.tan(options.fovYRadians * 0.5))};
+const MAX_DISTANCE: f32 = ${wgslFloat(options.maxDistance)};
+const USE_FRESNEL: bool = ${options.fresnel ? "true" : "false"};
+const USE_DISTANCE_ATTENUATION: bool = ${options.distanceAttenuation ? "true" : "false"};
+const REFLECTION_BLUR_PIXELS: f32 = ${wgslFloat(options.reflectionBlurPixels)};
+const FALLBACK_OPACITY: f32 = ${wgslFloat(options.fallbackOpacity)};
 
 @vertex
 fn vs(@builtin(vertex_index) vertexIndex: u32) -> VertexOutput {
@@ -368,8 +452,55 @@ fn loadDepthUv(uv: vec2f, dims: vec2u) -> f32 {
   return textureLoad(depthTexture, coordFromUv(uv, dims), 0);
 }
 
+fn viewDepth(rawDepth: f32) -> f32 {
+  let denominator = max(FAR_PLANE - rawDepth * (FAR_PLANE - NEAR_PLANE), 0.000001);
+  return (NEAR_PLANE * FAR_PLANE) / denominator;
+}
+
+fn viewPosition(uv: vec2f, dims: vec2u) -> vec3f {
+  let clampedUv = clamp(uv, vec2f(0.0), vec2f(1.0));
+  let rawDepth = loadDepthUv(clampedUv, dims);
+  let depth = viewDepth(rawDepth);
+  let aspect = f32(dims.x) / max(f32(dims.y), 1.0);
+  let ndc = vec2f(clampedUv.x * 2.0 - 1.0, (1.0 - clampedUv.y) * 2.0 - 1.0);
+  return vec3f(ndc.x * depth * TAN_HALF_FOV_Y * aspect, ndc.y * depth * TAN_HALF_FOV_Y, -depth);
+}
+
+fn projectViewPosition(position: vec3f, dims: vec2u) -> vec2f {
+  let depth = max(-position.z, NEAR_PLANE);
+  let aspect = f32(dims.x) / max(f32(dims.y), 1.0);
+  let ndc = vec2f(
+    position.x / max(depth * TAN_HALF_FOV_Y * aspect, 0.000001),
+    position.y / max(depth * TAN_HALF_FOV_Y, 0.000001),
+  );
+  return vec2f(ndc.x * 0.5 + 0.5, 0.5 - ndc.y * 0.5);
+}
+
+fn viewNormal(origin: vec3f, uv: vec2f, dims: vec2u, texel: vec2f) -> vec3f {
+  let px = viewPosition(uv + vec2f(texel.x, 0.0), dims);
+  let py = viewPosition(uv - vec2f(0.0, texel.y), dims);
+  let faceNormal = cross(px - origin, py - origin);
+  let normalLength = length(faceNormal);
+  if (normalLength <= 0.000001) {
+    return vec3f(0.0, 0.0, 1.0);
+  }
+  return faceNormal / normalLength;
+}
+
 fn sampleColor(uv: vec2f) -> vec4f {
   return textureSampleLevel(inputTexture, inputSampler, clamp(uv, vec2f(0.0), vec2f(1.0)), 0.0);
+}
+
+fn sampleReflectionColor(uv: vec2f, texel: vec2f) -> vec3f {
+  if (REFLECTION_BLUR_PIXELS <= 0.0) {
+    return sampleColor(uv).rgb;
+  }
+
+  let offset = texel * REFLECTION_BLUR_PIXELS;
+  let center = sampleColor(uv).rgb * 0.4;
+  let horizontal = sampleColor(uv + vec2f(offset.x, 0.0)).rgb + sampleColor(uv - vec2f(offset.x, 0.0)).rgb;
+  let vertical = sampleColor(uv + vec2f(0.0, offset.y)).rgb + sampleColor(uv - vec2f(0.0, offset.y)).rgb;
+  return center + (horizontal + vertical) * 0.15;
 }
 
 @fragment
@@ -377,9 +508,9 @@ fn fs(input: VertexOutput) -> @location(0) vec4f {
   let textureUv = vec2f(input.uv.x, 1.0 - input.uv.y);
   let source = sampleColor(textureUv);
   let dims = textureDimensions(depthTexture);
-  let centerDepth = loadDepthUv(textureUv, dims);
+  let centerRawDepth = loadDepthUv(textureUv, dims);
 
-  if (centerDepth >= 0.9999 || OPACITY <= 0.0) {
+  if (centerRawDepth >= 0.9999 || OPACITY <= 0.0) {
     return source;
   }
 
@@ -389,34 +520,51 @@ fn fs(input: VertexOutput) -> @location(0) vec4f {
   }
 
   let texel = vec2f(1.0 / f32(dims.x), 1.0 / f32(dims.y));
+  let origin = viewPosition(textureUv, dims);
+  let normal = viewNormal(origin, textureUv, dims, texel);
+  let incident = normalize(origin);
+  let reflectionDirection = normalize(reflect(incident, normal));
+  let viewDirection = normalize(-origin);
+  let fresnelSchlick = pow(clamp(1.0 - abs(dot(viewDirection, normal)), 0.0, 1.0), 5.0);
+  let fresnel = select(1.0, 0.35 + 0.65 * fresnelSchlick, USE_FRESNEL);
+  let centerDepth = -origin.z;
+  let pixelWorldStride = max(centerDepth * STRIDE_PIXELS * texel.y * 2.0 * TAN_HALF_FOV_Y, 0.001);
+  let stepDistance = max(pixelWorldStride, MAX_DISTANCE / f32(MAX_STEPS));
   var hitColor = vec3f(0.0);
   var hitWeight = 0.0;
 
   for (var step = 1u; step <= MAX_STEPS; step = step + 1u) {
-    let distancePixels = f32(step) * STRIDE_PIXELS;
-    let marchUv = textureUv + vec2f((0.5 - textureUv.x) * 0.015 * f32(step), -distancePixels * texel.y);
+    let distance = min(MAX_DISTANCE, f32(step) * stepDistance);
+    let rayPosition = origin + reflectionDirection * distance;
+
+    if (rayPosition.z >= -NEAR_PLANE) {
+      break;
+    }
+
+    let marchUv = projectViewPosition(rayPosition, dims);
 
     if (marchUv.y <= 0.0 || marchUv.x <= 0.0 || marchUv.x >= 1.0) {
       break;
     }
 
-    let sampleDepth = loadDepthUv(marchUv, dims);
-    let depthDelta = centerDepth - sampleDepth;
-    let hit = smoothstep(THICKNESS * 0.25, THICKNESS, depthDelta);
+    let sampleDepth = viewDepth(loadDepthUv(marchUv, dims));
+    let rayDepth = -rayPosition.z;
+    let depthDelta = rayDepth - sampleDepth;
+    let hit = 1.0 - smoothstep(THICKNESS * 0.25, THICKNESS, abs(depthDelta));
 
     if (hit > 0.0) {
       let edgeFade = smoothstep(0.02, 0.16, min(min(marchUv.x, 1.0 - marchUv.x), marchUv.y));
-      let distanceFade = 1.0 - (f32(step) / f32(MAX_STEPS));
-      hitColor = sampleColor(marchUv).rgb;
-      hitWeight = hit * edgeFade * distanceFade;
+      let distanceFade = select(1.0, 1.0 - clamp(distance / MAX_DISTANCE, 0.0, 1.0), USE_DISTANCE_ATTENUATION);
+      hitColor = sampleReflectionColor(marchUv, texel);
+      hitWeight = hit * edgeFade * distanceFade * fresnel;
       break;
     }
   }
 
   if (hitWeight <= 0.0) {
     let mirrorUv = vec2f(textureUv.x, clamp(1.0 - textureUv.y, 0.0, 1.0));
-    hitColor = sampleColor(mirrorUv).rgb;
-    hitWeight = 0.28 * (1.0 - smoothstep(0.98, 1.0, centerDepth));
+    hitColor = sampleReflectionColor(mirrorUv, texel);
+    hitWeight = FALLBACK_OPACITY * fresnel * (1.0 - smoothstep(FAR_PLANE * 0.98, FAR_PLANE, centerDepth));
   }
 
   let reflectionMask = receiverMask * hitWeight * OPACITY;

@@ -1,5 +1,26 @@
 # Completed Tasks
 
+## task-3094 — SSR normal/fresnel/attenuation parity follow-up
+
+Completed: 2026-05-23
+
+Summary:
+
+- Upgraded `createWebGpuSsrPostEffect()` with perspective depth linearization,
+  depth-derived view normals, view-space reflection ray projection, max-distance
+  semantics, fresnel weighting, distance attenuation, reflection softening, and
+  tunable fallback reflection weight.
+- Preserved the renderer-owned scene depth dependency and the existing
+  missing-depth diagnostics.
+- Retuned `examples/ssr.html` to exercise the richer SSR controls while keeping
+  the square raw-vs-SSR browser proof.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts --reporter=dot`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/ssr.spec.ts --reporter=list --timeout=60000`
+
 ## task-3093 — SSAO PlayCanvas-style spiral AO parity follow-up
 
 Completed: 2026-05-23

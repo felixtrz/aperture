@@ -68,6 +68,14 @@ async function createSsrRuntime(aperture, canvas, enabled) {
           maxSteps: 48,
           stridePixels: 2.5,
           thickness: 0.16,
+          near: 0.1,
+          far: 40,
+          fovYRadians: Math.PI / 3,
+          maxDistance: 9,
+          fresnel: true,
+          distanceAttenuation: true,
+          reflectionBlurPixels: 1.5,
+          fallbackOpacity: 0.2,
         }),
       ]
     : [];

@@ -360,6 +360,14 @@ describe("WebGPU post-pass helpers", () => {
       maxSteps: 16,
       stridePixels: 4,
       thickness: 0.05,
+      near: 0.1,
+      far: 40,
+      fovYRadians: Math.PI / 3,
+      maxDistance: 8,
+      fresnel: true,
+      distanceAttenuation: true,
+      reflectionBlurPixels: 1.5,
+      fallbackOpacity: 0.12,
     });
     const input = postTexture("scene", events);
     const depth = postDepthTexture("scene-depth", events);
@@ -382,11 +390,12 @@ describe("WebGPU post-pass helpers", () => {
       {
         kind: "setPipeline",
         pipelineKey:
-          "webgpu-post-ssr|rgba8unorm|opacity:0.500|steps:16|stride:4.000|thickness:0.0500",
+          "webgpu-post-ssr|rgba8unorm|opacity:0.500|steps:16|stride:4.000|thickness:0.0500|near:0.1000|far:40.000|fovY:1.0472|maxDistance:8.000|fresnel:true|attenuate:true|blur:1.500|fallback:0.120",
       },
       {
         kind: "setBindGroup",
-        resourceKey: "ssr:input:scene:depth:scene-depth:opacity:0.50",
+        resourceKey:
+          "ssr:input:scene:depth:scene-depth:opacity:0.50:distance:8.00:fresnel:true",
       },
       { kind: "draw", vertexCount: 3 },
     ]);

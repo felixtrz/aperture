@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 04:41 UTC</dd>
+            <dd>2026-05-23 04:47 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1406,16 +1406,18 @@
               texture, <code>createWebGpuSsaoPostEffect()</code> now uses
               PlayCanvas-style spiral AO with linearized depth and depth-derived
               normals, <code>createWebGpuSsrPostEffect()</code>
-              blends reflected scene color from depth, and
+              blends reflected scene color from depth using depth-derived
+              normals, fresnel, distance attenuation, and reflection softening,
+              and
               <code>createWebGpuDofPostEffect()</code> blurs by focus distance
               and aperture. <code>examples/ssao.html</code>,
               <code>examples/ssr.html</code>, and <code>examples/dof.html</code>
               prove raw-vs-effect differences in square canvases. Remaining Tier
-              20 parity work covers SSR controls, DOF CoC quality, and MSAA
-              depth inputs for screen-space effects.
+              20 parity work covers DOF CoC quality and MSAA depth inputs for
+              screen-space effects.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3094 — SSR reference-parity follow-up</dd>
+            <dd>task-3095 — DOF CoC quality follow-up</dd>
           </dl>
         </aside>
       </header>
@@ -4439,18 +4441,17 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Continue Tier 20
-                reference-parity follow-ups with SSR.
+                reference-parity follow-ups with DOF.
               </li>
               <li>
                 SSAO now uses a PlayCanvas-style spiral AO shader with
-                linearized depth and depth-derived normals; SSR and DOF still
-                need parity upgrades before the strict Tier 20 objective is
-                complete.
+                linearized depth and depth-derived normals; SSR now adds
+                depth-derived normals, fresnel, distance attenuation,
+                max-distance semantics, and reflection softening.
               </li>
               <li>
-                Next work should improve SSR toward three.js
-                <code>SSRPass</code> normals, fresnel, distance attenuation, and
-                reflection-softening behavior.
+                Next work should improve DOF toward PlayCanvas/Bevy explicit
+                circle-of-confusion and near/far blur quality behavior.
               </li>
             </ul>
           </article>
@@ -4463,6 +4464,22 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3094</div>
+            <div>
+              <strong>SSR reference-parity follow-up shipped.</strong>
+              <span>
+                <code>createWebGpuSsrPostEffect()</code> now uses perspective
+                depth linearization, depth-derived view normals, projected
+                reflection rays, max-distance semantics, fresnel weighting,
+                distance attenuation, reflection softening, and tunable fallback
+                reflection weight.
+                <code>examples/ssr.html</code>
+                still proves visible reflected receiver pixels in square
+                canvases.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3093</div>
             <div>

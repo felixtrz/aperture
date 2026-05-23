@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Continue Tier 20 reference-parity follow-ups with `task-3094`, improving SSR
-toward the three.js `SSRPass` feature shape.
+Continue Tier 20 reference-parity follow-ups with `task-3095`, improving DOF
+toward the PlayCanvas/Bevy circle-of-confusion quality shape.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter user objective also asks
@@ -1381,9 +1381,9 @@ Acceptance criteria:
 - `createWebGpuSsaoPostEffect()` exposes sample-count, min-angle, power, camera near/far/FOV, and random-seed controls while preserving depth-texture diagnostics.
 - `examples/ssao.html` uses the upgraded kernel and headed Chrome/WebGPU still proves visible contact darkening with no validation warnings.
 
-### task-3094 — SSR normal/fresnel/attenuation parity follow-up (Tier 20 follow-up 2)
+### task-3094 — SSR normal/fresnel/attenuation parity follow-up (Tier 20 follow-up 2) — Completed 2026-05-23
 
-Status: ready.
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/post-ssr.ts`, `examples/ssr.main.js`, targeted tests.
