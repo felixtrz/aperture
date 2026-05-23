@@ -52,8 +52,8 @@ describe("view uniform buffer descriptor planning", () => {
   it("uses the logical float count from scratch-backed packed views", () => {
     const packed = {
       ...packedViews(2),
-      data: new Float32Array(64),
       floatCount: 2 * PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+      data: new Float32Array(2 * PACKED_VIEW_UNIFORM_FLOAT_STRIDE + 16),
     };
     const result = createViewUniformBufferDescriptor(packed);
 
@@ -71,8 +71,8 @@ describe("view uniform buffer descriptor planning", () => {
     const scratch = createViewUniformBufferDescriptorScratch();
     const packed = {
       ...packedViews(2),
-      data: new Float32Array(64),
       floatCount: 2 * PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+      data: new Float32Array(2 * PACKED_VIEW_UNIFORM_FLOAT_STRIDE + 16),
     };
     const first = writeViewUniformBufferDescriptor(packed, scratch);
     const firstPlan = first.plan;

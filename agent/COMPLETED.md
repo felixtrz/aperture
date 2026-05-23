@@ -27,6 +27,7 @@ Validation:
 - `pnpm run lint`
 - `pnpm run format:check`
 - `git diff --check`
+- `pnpm test`
 - `pnpm exec playwright test test/e2e/ssr.spec.ts --reporter=list --timeout=30000`
 
 ## task-3087 — TAA with motion vectors

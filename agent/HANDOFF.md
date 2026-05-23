@@ -1,8 +1,8 @@
 # Agent Handoff
 
-Updated: 2026-05-23T03:51:06Z
+Updated: 2026-05-23T03:55:40Z
 
-## Current Run Update — 2026-05-23T03:51:06Z — SSR depth-readable post effect
+## Current Run Update — 2026-05-23T03:55:40Z — SSR depth-readable post effect
 
 Completed `task-3089`, the Tier 20 SSR slice.
 
@@ -36,7 +36,18 @@ Completed `task-3089`, the Tier 20 SSR slice.
 - `pnpm run lint`
 - `pnpm run format:check`
 - `git diff --check`
+- `pnpm test`
 - `pnpm exec playwright test test/e2e/ssr.spec.ts --reporter=list --timeout=30000`
+
+### Stop-hook follow-up
+
+- The first stop-hook run failed in
+  `test/webgpu/view-uniform-buffer.test.ts` because the scratch-backed fixture
+  allocated fewer floats than the now-expanded packed view-uniform stride while
+  still expecting the larger logical size.
+- Updated that fixture to allocate spare capacity relative to
+  `PACKED_VIEW_UNIFORM_FLOAT_STRIDE`; the targeted test and full `pnpm test`
+  suite now pass.
 
 ### Known issues
 
