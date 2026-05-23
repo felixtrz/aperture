@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3123`: broaden clustered local-light clusters to view-depth bins
-with a browser-visible proof.
+Start `task-3124`: use occlusion-query feedback to skip previously hidden
+opt-in draws with a browser-visible proof.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -169,13 +169,16 @@ reports one hidden queried draw with zero samples and one visible queried draw
 with non-zero samples. `task-3122` now renders one source mesh through separate
 material-slot primitive ranges from ECS extraction through queue records and
 WebGPU draw commands, with a browser proof that reports the two distinct
-material/range records. The next SOTA efficiency gap is view/depth-space
-clustered-light binning.
+material/range records. `task-3123` now derives view/depth-space clustered
+local-light bins from the active camera, samples those bins in StandardMaterial,
+and proves camera movement changes reported cluster occupancy. The next SOTA
+efficiency gap is using renderer-owned occlusion feedback to skip eligible
+previously hidden draws instead of only reporting query results.
 
 Reference anchors for the next task (read before writing):
 
-- `references/engine/src/scene/lighting/world-clusters.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLight.js`.
+- `references/three.js/src/renderers/webgl-fallback/WebGLBackend.js`.
+- `references/engine/src/scene/layer.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -551,6 +554,8 @@ Acceptance criteria:
 
 ### task-3123 — Broaden clustered local-light clusters to view-depth bins
 
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.
 Reference anchor: `references/engine/src/scene/lighting/world-clusters.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLight.js`.
@@ -567,6 +572,73 @@ Acceptance criteria:
   changes reported cluster occupancy without increasing diagnostics, and max
   plus average lights per populated cell remain materially below total local
   lights.
+
+### task-3124 — Skip previously hidden opt-in draws from occlusion feedback
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*occlusion*`, `packages/webgpu/src/webgpu/app.ts`, `packages/webgpu/src/webgpu/render-pass-*`, `examples/occlusion-feedback.*`, `test/webgpu/`, `test/e2e/`.
+Reference anchor: `references/three.js/src/renderers/webgl-fallback/WebGLBackend.js`, `references/engine/src/scene/layer.js`.
+
+Acceptance criteria:
+
+- Renderer-owned occlusion-query readback from frame N can mark eligible
+  ECS-authored opt-in mesh draws as skipped for frame N+1 without mutating ECS
+  visibility or hiding non-opt-in draws.
+- The app report publishes JSON-safe occlusion-culling pressure: queried draws,
+  resolved query results, skipped-from-query draws, forced-probe draws, and
+  fallback reason when query results are unavailable.
+- `examples/occlusion-feedback.html` proves one previously hidden queried draw
+  is skipped on a later frame while the visible queried draw and occluder still
+  render, with zero WebGPU validation warnings.
+
+### task-3125 — Split clustered local-light resources per active view/light set
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.
+Reference anchor: `references/engine/src/scene/renderer/world-clusters-allocator.js`, `references/engine/src/scene/lighting/world-clusters.js`.
+
+Acceptance criteria:
+
+- The WebGPU app can prepare stable renderer-owned local-light cluster
+  descriptors/resources for at least two active views or view/light-set keys
+  instead of sharing one cluster descriptor for every StandardMaterial draw.
+- StandardMaterial clustered-light bind-group selection uses the draw/view
+  route's matching cluster resource and preserves the packed-loop fallback when
+  a compatible cluster is unavailable.
+- A two-camera clustered-light browser proof reports two distinct view ids,
+  distinct occupancy hashes, and max/average lights per populated cell below
+  total local lights for each view.
+
+### task-3126 — Replace placeholder area-light LTC payloads with production tables
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*ltc*`, `packages/webgpu/src/webgpu/standard-*`, `examples/area-light-shapes.*`, `test/webgpu/`, `test/e2e/`.
+Reference anchor: `references/three.js/src/renderers/shaders/ShaderChunk/lights_physical_pars_fragment.glsl.js`, `references/engine/src/scene/area-light-luts.js`.
+
+Acceptance criteria:
+
+- Renderer-owned RectAreaLight LTC matrix/fresnel textures are populated from
+  production-fidelity table payloads instead of deterministic placeholder data.
+- StandardMaterial area-light shading samples those tables through the existing
+  group-3 route without exposing GPU state to ECS.
+- `examples/area-light-shapes.html` or a focused variant proves roughness/view
+  angle changes produce stable rect/disk/sphere area-light response with zero
+  WebGPU validation warnings.
+
+### task-3127 — Re-audit post-cluster render pipeline parity
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research/`, `docs/render-pipeline-comparison.html`, `docs/index.html`, `agent/BACKLOG.md`.
+Reference anchor: `references/three.js/src/renderers/WebGLRenderer.js`, `references/engine/src/scene/renderer/forward-renderer.js`.
+
+Acceptance criteria:
+
+- A fresh audit compares the covered Aperture render pipeline against three.js
+  and PlayCanvas after the occlusion, multi-view cluster, and LTC table slices.
+- The audit identifies remaining gaps by phase and distinguishes SOTA blockers
+  from broad feature-parity work.
+- The ready queue is refilled with at least three visible-feature tasks with
+  concrete reference anchors and browser-verifiable acceptance criteria.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

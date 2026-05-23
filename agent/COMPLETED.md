@@ -1,5 +1,39 @@
 # Completed Tasks
 
+## task-3123 — Broaden clustered local-light clusters to view-depth bins
+
+Completed: 2026-05-23
+
+Summary:
+
+- Extended clustered local-light descriptors with `world` versus `view-depth`
+  coordinate-space metadata, selected view id, view/depth bounds, selected view
+  matrix packing, and a stable occupancy hash for JSON-safe reporting.
+- Descriptor generation now transforms local point/spot light spheres into the
+  selected active camera's view space and derives depth/frustum-shaped cluster
+  bounds instead of using only world-space light bounds when view data is
+  available.
+- StandardMaterial clustered-light WGSL now transforms the fragment world
+  position through the packed view matrix before computing cluster coordinates,
+  while preserving the existing packed-light fallback for sparse local-light
+  scenes.
+- Updated `examples/clustered-lights.html` so the ECS worker moves the camera
+  across frames and the main-thread proof waits for reported cluster occupancy
+  to change without increasing diagnostics.
+- Added focused unit and Playwright coverage for view/depth descriptors,
+  camera-dependent occupancy, shader metadata, and browser-visible clustered
+  local-light rendering.
+- Updated public tracker pages and backlog. Recommended next task is
+  `task-3124`, occlusion-query-driven draw skipping.
+
+Validation:
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/light-bind-group.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts --reporter=line`
+
 ## task-3122 — Render multi-material primitive groups through queue records
 
 Completed: 2026-05-23

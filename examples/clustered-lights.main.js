@@ -92,6 +92,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     receivedSnapshots: 0,
     workerReady: false,
     workerScene: null,
+    previousClusterOccupancy: null,
   };
 
   worker.addEventListener("message", (event) => {
@@ -203,8 +204,13 @@ function statusFromReport(
     (draw) => draw.batchKey.pipelineKey,
   );
   const localLightClusters = reportJson.localLightClusters ?? null;
-  const clusterStatus = createClusterStatus(localLightClusters, pipelineKeys);
+  const clusterStatus = createClusterStatus(
+    localLightClusters,
+    pipelineKeys,
+    loop,
+  );
   const readbackStatus = createReadbackStatus(reportJson.readback);
+  recordClusterOccupancy(loop, localLightClusters);
 
   return {
     example: "clustered-lights",
@@ -236,30 +242,59 @@ function statusFromReport(
   };
 }
 
-function createClusterStatus(localLightClusters, pipelineKeys) {
+function createClusterStatus(localLightClusters, pipelineKeys, loop) {
   const clusterPipelineUsed = pipelineKeys.some((pipelineKey) =>
     pipelineKey.includes("clusteredLocalLights"),
   );
   const totalLocalLights = localLightClusters?.totalLocalLights ?? 0;
   const averageLights =
     localLightClusters?.averageLightsPerPopulatedCell ?? totalLocalLights;
+  const occupancyHash = localLightClusters?.occupancyHash ?? null;
+  const previousOccupancyHash = loop.previousClusterOccupancy?.hash ?? null;
+  const occupancyChanged =
+    occupancyHash !== null &&
+    previousOccupancyHash !== null &&
+    occupancyHash !== previousOccupancyHash;
 
   return {
     ok:
       localLightClusters?.enabled === true &&
+      localLightClusters.coordinateSpace === "view-depth" &&
       clusterPipelineUsed &&
       totalLocalLights >= 64 &&
       (localLightClusters?.maxLightsPerPopulatedCell ?? totalLocalLights) <
         totalLocalLights &&
       averageLights < totalLocalLights &&
+      occupancyChanged &&
       (localLightClusters?.resourceReuse?.buffersReused ?? 0) >= 3,
     clusterPipelineUsed,
+    coordinateSpace: localLightClusters?.coordinateSpace ?? null,
+    viewId: localLightClusters?.viewId ?? null,
     totalLocalLights,
+    populatedCells: localLightClusters?.populatedCells ?? null,
     averageLightsPerPopulatedCell: averageLights,
     maxLightsPerPopulatedCell:
       localLightClusters?.maxLightsPerPopulatedCell ?? null,
+    totalAssignedLightReferences:
+      localLightClusters?.totalAssignedLightReferences ?? null,
+    occupancyHash,
+    previousOccupancyHash,
+    occupancyChanged,
     buffersCreated: localLightClusters?.resourceReuse?.buffersCreated ?? 0,
     buffersReused: localLightClusters?.resourceReuse?.buffersReused ?? 0,
+  };
+}
+
+function recordClusterOccupancy(loop, localLightClusters) {
+  if (localLightClusters?.enabled !== true) {
+    return;
+  }
+
+  loop.previousClusterOccupancy = {
+    hash: localLightClusters.occupancyHash ?? null,
+    populatedCells: localLightClusters.populatedCells ?? null,
+    totalAssignedLightReferences:
+      localLightClusters.totalAssignedLightReferences ?? null,
   };
 }
 

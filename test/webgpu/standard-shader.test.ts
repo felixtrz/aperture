@@ -226,6 +226,8 @@ describe("built-in standard material WGSL shader metadata", () => {
       ]),
     );
     expect(shader.code).toContain("fn localLightClusterCellIndex");
+    expect(shader.code).toContain("fn localLightClusterSamplePosition");
+    expect(shader.code).toContain("localLightClusterViewMatrix()");
     expect(shader.code).toContain("fn evaluateClusteredLocalLights");
     expect(shader.code).toContain(
       "direct = direct + evaluateClusteredLocalLights",

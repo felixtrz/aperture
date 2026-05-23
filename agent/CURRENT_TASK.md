@@ -3,9 +3,9 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3123.
+Current task: task-3124.
 
-Status: `task-3122` completed multi-material primitive/group queueing.
+Status: `task-3123` completed view/depth clustered-light binning.
 
 Key finding:
 
@@ -31,14 +31,20 @@ Key finding:
 - `examples/multi-material-groups.html` proves one source mesh rendering as two
   visibly distinct material groups, with JSON-safe material/range status and two
   indexed draw calls where the second draw starts at index 6.
-- The next SOTA efficiency gap is clustered local-light binning in view/depth
-  space. Current clustering is renderer-owned and functional, but still needs
-  view/depth bin derivation closer to PlayCanvas' clustered-light shape.
+- Clustered local-light descriptors now derive view/depth-space bounds from an
+  active camera, pack the selected view matrix for shader-side cluster lookup,
+  report coordinate space/view id/bounds/occupancy hash, and
+  `examples/clustered-lights.html` proves camera movement changes reported
+  cluster occupancy while keeping max/average lights per populated cell below
+  total lights.
+- The next SOTA efficiency gap is using renderer-owned occlusion-query feedback
+  to skip eligible previously hidden opt-in draws instead of only reporting
+  visibility results.
 
-Next step: run `task-3123` from `agent/BACKLOG.md`, broadening clustered
-local-light clusters to view-depth bins with a browser-visible proof.
+Next step: run `task-3124` from `agent/BACKLOG.md`, using occlusion-query
+feedback to skip previously hidden opt-in draws with a browser-visible proof.
 
 Reference anchors for the next task:
 
-- `references/engine/src/scene/lighting/world-clusters.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLight.js`.
+- `references/three.js/src/renderers/webgl-fallback/WebGLBackend.js`.
+- `references/engine/src/scene/layer.js`.

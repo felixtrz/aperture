@@ -20,9 +20,13 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
       readonly y: number;
       readonly z: number;
     };
+    readonly coordinateSpace: "world" | "view-depth";
+    readonly viewId: number | null;
     readonly populatedCells: number;
     readonly maxLightsPerPopulatedCell: number;
     readonly averageLightsPerPopulatedCell: number;
+    readonly totalAssignedLightReferences: number;
+    readonly occupancyHash: number;
     readonly resourceReuse: {
       readonly buffersCreated: number;
       readonly buffersReused: number;
@@ -31,9 +35,16 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
   readonly clusterStatus?: {
     readonly ok: boolean;
     readonly clusterPipelineUsed: boolean;
+    readonly coordinateSpace: "world" | "view-depth" | null;
+    readonly viewId: number | null;
     readonly totalLocalLights: number;
+    readonly populatedCells: number | null;
     readonly averageLightsPerPopulatedCell: number;
     readonly maxLightsPerPopulatedCell: number | null;
+    readonly totalAssignedLightReferences: number | null;
+    readonly occupancyHash: number | null;
+    readonly previousOccupancyHash: number | null;
+    readonly occupancyChanged: boolean;
     readonly buffersCreated: number;
     readonly buffersReused: number;
   };
@@ -76,6 +87,8 @@ test("browser renders StandardMaterial through clustered local lights", async ({
       ok: true,
       clusterPipelineUsed: true,
       totalLocalLights: 64,
+      coordinateSpace: "view-depth",
+      occupancyChanged: true,
       buffersReused: 3,
     },
     counts: {
@@ -90,8 +103,14 @@ test("browser renders StandardMaterial through clustered local lights", async ({
     enabled: true,
     totalLocalLights: 64,
     clusteredLocalLights: 64,
+    coordinateSpace: "view-depth",
     clusterDimensions: { x: 8, y: 4, z: 8 },
   });
+  expect(status.localLightClusters?.viewId).not.toBeNull();
+  expect(status.localLightClusters?.occupancyHash ?? 0).toBeGreaterThan(0);
+  expect(status.clusterStatus?.previousOccupancyHash).not.toBe(
+    status.clusterStatus?.occupancyHash,
+  );
   expect(
     status.localLightClusters?.maxLightsPerPopulatedCell ?? 64,
   ).toBeLessThan(64);

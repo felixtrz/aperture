@@ -57,6 +57,7 @@ async function handleMessage(data) {
       }
 
       const frame = finiteInteger(data.frame, 0);
+      const cameraX = updateClusterCamera(aperture, scene, frame);
       const snapshot = scene.app.stepAndExtract(0, frame / 60, frame);
 
       self.postMessage(
@@ -69,6 +70,7 @@ async function handleMessage(data) {
             meshDraws: snapshot.meshDraws.length,
             lights: snapshot.lights.length,
             localLights: scene.localLightCount,
+            cameraX,
             diagnostics: snapshot.diagnostics.length,
           },
         },
@@ -95,7 +97,7 @@ function createWorkerScene(aperture, canvasSize) {
   });
   const assets = registerClusteredLightAssets(aperture, app.assets);
 
-  app.spawn(
+  const cameraEntity = app.spawn(
     aperture.withTransform({ translation: [0, 0, 4.8] }),
     aperture.withCamera({
       aspect: canvasSize.width / canvasSize.height,
@@ -125,10 +127,21 @@ function createWorkerScene(aperture, canvasSize) {
 
   return {
     app,
+    cameraEntity,
     panelMesh: assets.panelMesh,
     panelMaterial: assets.panelMaterial,
     localLightCount: localLightGrid.columns * localLightGrid.rows,
   };
+}
+
+function updateClusterCamera(aperture, scene, frame) {
+  const cameraX = frame % 2 === 0 ? 0.52 : -0.52;
+
+  scene.cameraEntity
+    .getVectorView(aperture.LocalTransform, "translation")
+    .set([cameraX, 0, 4.8]);
+
+  return cameraX;
 }
 
 function registerClusteredLightAssets(aperture, registry) {

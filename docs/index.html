@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 23:37 UTC</dd>
+            <dd>2026-05-23 23:52 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1491,10 +1491,14 @@
               multiple material-slot primitive ranges through separate
               extraction, queue, draw-command, and WebGPU indexed draw records;
               <code>examples/multi-material-groups.html</code> proves two
-              visibly distinct material groups from one source mesh.
+              visibly distinct material groups from one source mesh. Clustered
+              StandardMaterial local lights now derive view/depth-space bins
+              from the active camera, and
+              <code>examples/clustered-lights.html</code> proves camera
+              movement changes reported cluster occupancy.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3123 view/depth clustered-light bins</dd>
+            <dd>task-3124 occlusion-query draw skipping</dd>
           </dl>
         </aside>
       </header>
@@ -2095,9 +2099,9 @@
             </p>
             <ul>
               <li>
-                Remaining local-light work is view/depth-space cluster tuning
-                and broader clustered-light permutations beyond the initial
-                StandardMaterial many-light path.
+                Remaining local-light work is per-view/per-light-set cluster
+                resource splitting and broader clustered-light permutations
+                beyond the active-view StandardMaterial many-light path.
               </li>
               <li>
                 Missing production-fidelity LTC table payloads and broader
@@ -2298,11 +2302,14 @@
               resource resolution, render-pass command emission, and render
               bundles, so one prepared mesh can submit distinct material groups
               with the correct <code>firstIndex</code> / <code>firstVertex</code>
-              offsets.
+              offsets. Clustered local-light lookup now uses active-view
+              view/depth coordinates and reports occupancy hashes for
+              camera-dependent bins.
             </p>
             <ul>
               <li>
-                Next visible SOTA gap: view/depth-space clustered-light bins.
+                Next visible SOTA gap: skip eligible previously hidden
+                occlusion-query draws.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -4615,12 +4622,12 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Run
-                <code>task-3123</code>: broaden clustered local-light clusters
-                to view/depth-space bins.
+                <code>task-3124</code>: use occlusion-query feedback to skip
+                previously hidden opt-in draws.
               </li>
               <li>
-                Follow-up SOTA work should include the next parity audit after a
-                few implementation slices.
+                Follow-up SOTA work should include per-view clustered-light
+                resources, production LTC tables, then the next parity audit.
               </li>
             </ul>
           </article>
@@ -4666,14 +4673,16 @@
           <div class="timeline-item">
             <div class="task-id">task-3120</div>
             <div>
-              <strong>Clustered local-light preparation shipped.</strong>
+              <strong>View/depth clustered local-light bins shipped.</strong>
               <span>
                 StandardMaterial many-light scenes now prepare renderer-owned
-                local-light cluster buffers and bind them through the light
-                group. <code>examples/clustered-lights.html</code> proves 64
-                ECS-authored point lights, cluster buffer reuse, max/average
-                lights per populated cell below total local lights, and zero
-                render diagnostics.
+                local-light cluster buffers in active-view coordinates and bind
+                them through the light group.
+                <code>examples/clustered-lights.html</code> proves 64
+                ECS-authored point lights, cluster buffer reuse, changed
+                occupancy after camera movement, max/average lights per
+                populated cell below total local lights, and zero render
+                diagnostics.
               </span>
             </div>
           </div>

@@ -23,8 +23,11 @@ describe("local light cluster preparation", () => {
       totalLights: 4,
       totalLocalLights: 4,
       clusteredLocalLights: 0,
+      coordinateSpace: "world",
+      viewId: null,
     });
     expect(descriptor.params[11]).toBe(0);
+    expect(descriptor.params).toHaveLength(28);
   });
 
   it("builds a bounded 3D index grid for many local lights", () => {
@@ -39,6 +42,8 @@ describe("local light cluster preparation", () => {
     expect(descriptor.fallbackReason).toBeNull();
     expect(descriptor.totalLocalLights).toBe(16);
     expect(descriptor.clusteredLocalLights).toBe(16);
+    expect(descriptor.coordinateSpace).toBe("world");
+    expect(descriptor.viewId).toBeNull();
     expect(descriptor.cellCount).toBe(16);
     expect(descriptor.cells).toHaveLength(32);
     expect(descriptor.indices.length).toBeGreaterThan(0);
@@ -49,6 +54,58 @@ describe("local light cluster preparation", () => {
     expect(descriptor.params[9]).toBe(1);
     expect(descriptor.params[10]).toBe(4);
     expect(descriptor.params[11]).toBe(1);
+    expect(Array.from(descriptor.params.slice(12, 28))).toEqual([
+      1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      0, 0, 0, 1,
+    ]);
+  });
+
+  it("derives view/depth cluster bounds from the active view", () => {
+    const viewMatrix = matrixWithTranslation(-2, 0, -32);
+    const descriptor = createLocalLightClusterDescriptor(
+      snapshotWithPointLights(16, { viewId: 7, viewMatrix }),
+      {
+        dimensions: { x: 4, y: 1, z: 4 },
+        maxLightsPerCell: 8,
+      },
+    );
+
+    expect(descriptor.enabled).toBe(true);
+    expect(descriptor.coordinateSpace).toBe("view-depth");
+    expect(descriptor.viewId).toBe(7);
+    expect(descriptor.params[3]).toBe(1);
+    expect(descriptor.params[7]).toBe(7);
+    expect(descriptor.boundsMin.x).toBeLessThan(0);
+    expect(descriptor.boundsMax.x).toBeGreaterThan(0);
+    expect(descriptor.boundsMin.z).toBeLessThan(descriptor.boundsMax.z);
+    expect(Array.from(descriptor.params.slice(12, 28))).toEqual(viewMatrix);
+  });
+
+  it("changes cluster occupancy when the selected camera moves", () => {
+    const centered = createLocalLightClusterDescriptor(
+      snapshotWithPointLights(16, {
+        viewMatrix: matrixWithTranslation(0, 0, -32),
+      }),
+      {
+        dimensions: { x: 4, y: 1, z: 4 },
+        maxLightsPerCell: 8,
+      },
+    );
+    const shifted = createLocalLightClusterDescriptor(
+      snapshotWithPointLights(16, {
+        viewMatrix: matrixWithTranslation(-8, 0, -32),
+      }),
+      {
+        dimensions: { x: 4, y: 1, z: 4 },
+        maxLightsPerCell: 8,
+      },
+    );
+
+    expect(centered.coordinateSpace).toBe("view-depth");
+    expect(shifted.coordinateSpace).toBe("view-depth");
+    expect(Array.from(centered.cells)).not.toEqual(Array.from(shifted.cells));
   });
 
   it("surfaces missing light transforms instead of clustering invalid data", () => {
@@ -112,10 +169,23 @@ describe("local light cluster preparation", () => {
   });
 });
 
-function snapshotWithPointLights(count: number): RenderSnapshot {
+function snapshotWithPointLights(
+  count: number,
+  options: {
+    readonly viewId?: number;
+    readonly viewMatrix?: readonly number[];
+    readonly projectionMatrix?: readonly number[];
+  } = {},
+): RenderSnapshot {
   const transforms = new Float32Array(count * 16);
   const lights: LightPacket[] = [];
   const width = Math.ceil(Math.sqrt(count));
+  const viewMatrix = options.viewMatrix ?? null;
+  const projectionMatrix = options.projectionMatrix ?? defaultProjectionMatrix();
+  const viewMatrices =
+    viewMatrix === null
+      ? new Float32Array(0)
+      : new Float32Array([...viewMatrix, ...projectionMatrix, ...projectionMatrix]);
 
   for (let index = 0; index < count; index += 1) {
     const offset = index * 16;
@@ -134,14 +204,33 @@ function snapshotWithPointLights(count: number): RenderSnapshot {
 
   return {
     frame: 1,
-    views: [],
+    views:
+      viewMatrix === null
+        ? []
+        : [
+            {
+              viewId: options.viewId ?? 1,
+              camera: { index: 500, generation: 0 },
+              priority: 0,
+              layerMask: 1,
+              viewMatrixOffset: 0,
+              projectionMatrixOffset: 16,
+              viewProjectionMatrixOffset: 32,
+              viewport: [0, 0, 1, 1],
+              scissor: [0, 0, 1, 1],
+              clearColor: [0, 0, 0, 1],
+              clearDepth: 1,
+              clearStencil: 0,
+              renderTarget: null,
+            },
+          ],
     meshDraws: [],
     lights,
     environments: [],
     shadowRequests: [],
     bounds: [],
     transforms,
-    viewMatrices: new Float32Array(0),
+    viewMatrices,
     diagnostics: [],
     report: {
       views: 0,
@@ -153,6 +242,28 @@ function snapshotWithPointLights(count: number): RenderSnapshot {
       diagnostics: 0,
     },
   };
+}
+
+function matrixWithTranslation(
+  x: number,
+  y: number,
+  z: number,
+): readonly number[] {
+  return [
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    x, y, z, 1,
+  ];
+}
+
+function defaultProjectionMatrix(): readonly number[] {
+  return [
+    1.6, 0, 0, 0,
+    0, 1.6, 0, 0,
+    0, 0, -1, -1,
+    0, 0, -0.2, 0,
+  ];
 }
 
 function pointLight(seed: number, worldTransformOffset: number): LightPacket {

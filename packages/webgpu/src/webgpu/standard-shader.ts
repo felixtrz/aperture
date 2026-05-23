@@ -3525,7 +3525,7 @@ function applyStandardClusteredLocalLightSampling(code: string): string {
       `@fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4f {`,
       `fn localLightClusterEnabled() -> bool {
-  return arrayLength(&localLightClusterParams) >= 12u && localLightClusterParams[11] > 0.5;
+  return arrayLength(&localLightClusterParams) >= 28u && localLightClusterParams[11] > 0.5;
 }
 
 fn localLightClusterDimensions() -> vec3u {
@@ -3541,6 +3541,43 @@ fn localLightClusterDimensions() -> vec3u {
 
 fn localLightClusterInvalidCell() -> u32 {
   return 4294967295u;
+}
+
+fn localLightClusterViewMatrix() -> mat4x4f {
+  return mat4x4f(
+    vec4f(
+      localLightClusterParams[12],
+      localLightClusterParams[13],
+      localLightClusterParams[14],
+      localLightClusterParams[15],
+    ),
+    vec4f(
+      localLightClusterParams[16],
+      localLightClusterParams[17],
+      localLightClusterParams[18],
+      localLightClusterParams[19],
+    ),
+    vec4f(
+      localLightClusterParams[20],
+      localLightClusterParams[21],
+      localLightClusterParams[22],
+      localLightClusterParams[23],
+    ),
+    vec4f(
+      localLightClusterParams[24],
+      localLightClusterParams[25],
+      localLightClusterParams[26],
+      localLightClusterParams[27],
+    ),
+  );
+}
+
+fn localLightClusterSamplePosition(position: vec3f) -> vec3f {
+  if (localLightClusterParams[3] > 0.5) {
+    return (localLightClusterViewMatrix() * vec4f(position, 1.0)).xyz;
+  }
+
+  return position;
 }
 
 fn localLightClusterCellIndex(position: vec3f) -> u32 {
@@ -3559,7 +3596,8 @@ fn localLightClusterCellIndex(position: vec3f) -> u32 {
     localLightClusterParams[6],
   );
   let dimensions = localLightClusterDimensions();
-  let clusterPosition = (position - minBounds) * invCellSize;
+  let samplePosition = localLightClusterSamplePosition(position);
+  let clusterPosition = (samplePosition - minBounds) * invCellSize;
 
   if (
     clusterPosition.x < 0.0 ||

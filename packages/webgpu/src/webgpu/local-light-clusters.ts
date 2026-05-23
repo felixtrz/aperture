@@ -11,11 +11,23 @@ export const LOCAL_LIGHT_CLUSTER_MIN_LIGHTS = 16;
 export const LOCAL_LIGHT_CLUSTER_PARAMS_BINDING = 16;
 export const LOCAL_LIGHT_CLUSTER_CELLS_BINDING = 17;
 export const LOCAL_LIGHT_CLUSTER_INDICES_BINDING = 18;
-export const LOCAL_LIGHT_CLUSTER_PARAM_FLOATS = 12;
+export const LOCAL_LIGHT_CLUSTER_PARAM_FLOATS = 28;
 export const DEFAULT_LOCAL_LIGHT_CLUSTER_RESOURCE_KEY =
   "local-light-cluster:main";
 
+export type LocalLightClusterCoordinateSpace = "world" | "view-depth";
+
+export type LocalLightClusterCoordinateSpaceOption =
+  | LocalLightClusterCoordinateSpace
+  | "auto";
+
 export interface LocalLightClusterDimensions {
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+}
+
+export interface LocalLightClusterBoundsPoint {
   readonly x: number;
   readonly y: number;
   readonly z: number;
@@ -26,6 +38,8 @@ export interface LocalLightClusterDescriptorOptions {
   readonly dimensions?: Partial<LocalLightClusterDimensions>;
   readonly minLocalLights?: number;
   readonly maxLightsPerCell?: number;
+  readonly coordinateSpace?: LocalLightClusterCoordinateSpaceOption;
+  readonly viewId?: number;
 }
 
 export type LocalLightClusterFallbackReason =
@@ -40,12 +54,17 @@ export interface LocalLightClusterDescriptor {
   readonly totalLights: number;
   readonly totalLocalLights: number;
   readonly clusteredLocalLights: number;
+  readonly coordinateSpace: LocalLightClusterCoordinateSpace;
+  readonly viewId: number | null;
+  readonly boundsMin: LocalLightClusterBoundsPoint;
+  readonly boundsMax: LocalLightClusterBoundsPoint;
   readonly dimensions: LocalLightClusterDimensions;
   readonly cellCount: number;
   readonly populatedCells: number;
   readonly maxLightsPerPopulatedCell: number;
   readonly averageLightsPerPopulatedCell: number;
   readonly totalAssignedLightReferences: number;
+  readonly occupancyHash: number;
   readonly overflowedCells: number;
   readonly maxLightsPerCell: number;
   readonly params: Float32Array;
@@ -86,12 +105,17 @@ export interface LocalLightClusterReport {
   readonly totalLights: number;
   readonly totalLocalLights: number;
   readonly clusteredLocalLights: number;
+  readonly coordinateSpace: LocalLightClusterCoordinateSpace;
+  readonly viewId: number | null;
+  readonly boundsMin: LocalLightClusterBoundsPoint;
+  readonly boundsMax: LocalLightClusterBoundsPoint;
   readonly clusterDimensions: LocalLightClusterDimensions;
   readonly cellCount: number;
   readonly populatedCells: number;
   readonly maxLightsPerPopulatedCell: number;
   readonly averageLightsPerPopulatedCell: number;
   readonly totalAssignedLightReferences: number;
+  readonly occupancyHash: number;
   readonly overflowedCells: number;
   readonly maxLightsPerCell: number;
   readonly resourceKey: string;
@@ -111,6 +135,29 @@ interface LocalLightSphere {
   readonly z: number;
   readonly radius: number;
 }
+
+interface LocalLightClusterBounds {
+  readonly minX: number;
+  readonly minY: number;
+  readonly minZ: number;
+  readonly maxX: number;
+  readonly maxY: number;
+  readonly maxZ: number;
+}
+
+interface SelectedLocalLightClusterSpace {
+  readonly coordinateSpace: LocalLightClusterCoordinateSpace;
+  readonly viewId: number | null;
+  readonly viewMatrix: ArrayLike<number>;
+  readonly projectionMatrix: ArrayLike<number> | null;
+}
+
+const IDENTITY_VIEW_MATRIX = Object.freeze([
+  1, 0, 0, 0,
+  0, 1, 0, 0,
+  0, 0, 1, 0,
+  0, 0, 0, 1,
+] as const);
 
 export function snapshotShouldUseClusteredLocalLights(
   snapshot: RenderSnapshot,
@@ -136,6 +183,7 @@ export function createLocalLightClusterDescriptor(
   );
   const totalLocalLights = countLocalLights(snapshot.lights);
   const localLights = localLightSpheres(snapshot);
+  const clusterSpace = selectLocalLightClusterSpace(snapshot, options);
   const cellCount = dimensions.x * dimensions.y * dimensions.z;
   const empty = () =>
     emptyLocalLightClusterDescriptor({
@@ -145,6 +193,7 @@ export function createLocalLightClusterDescriptor(
       maxLightsPerCell,
       totalLights: snapshot.lights.length,
       totalLocalLights,
+      clusterSpace,
       fallbackReason: localLights.missingTransform
         ? "missing-transform"
         : localLights.spheres.length === 0
@@ -160,7 +209,15 @@ export function createLocalLightClusterDescriptor(
     return empty();
   }
 
-  const bounds = localLightBounds(localLights.spheres);
+  const clusterLights =
+    clusterSpace.coordinateSpace === "view-depth"
+      ? transformLocalLightSpheres(localLights.spheres, clusterSpace.viewMatrix)
+      : localLights.spheres;
+  const bounds =
+    clusterSpace.coordinateSpace === "view-depth" &&
+    clusterSpace.projectionMatrix !== null
+      ? viewDepthClusterBounds(clusterLights, clusterSpace.projectionMatrix)
+      : localLightBounds(clusterLights);
   const cellSize = {
     x: Math.max((bounds.maxX - bounds.minX) / dimensions.x, 0.0001),
     y: Math.max((bounds.maxY - bounds.minY) / dimensions.y, 0.0001),
@@ -179,11 +236,11 @@ export function createLocalLightClusterDescriptor(
       bounds.minX,
       bounds.minY,
       bounds.minZ,
-      0,
+      clusterSpace.coordinateSpace === "view-depth" ? 1 : 0,
       1 / cellSize.x,
       1 / cellSize.y,
       1 / cellSize.z,
-      0,
+      clusterSpace.viewId ?? -1,
       dimensions.x,
       dimensions.y,
       dimensions.z,
@@ -191,13 +248,14 @@ export function createLocalLightClusterDescriptor(
     ],
     0,
   );
+  params.set(clusterSpace.viewMatrix, 12);
 
   for (let z = 0; z < dimensions.z; z += 1) {
     for (let y = 0; y < dimensions.y; y += 1) {
       for (let x = 0; x < dimensions.x; x += 1) {
         const cellIndex = clusterCellIndex(x, y, z, dimensions);
         const cellLights = localLightsForCell({
-          lights: localLights.spheres,
+          lights: clusterLights,
           x,
           y,
           z,
@@ -241,7 +299,11 @@ export function createLocalLightClusterDescriptor(
     fallbackReason: null,
     totalLights: snapshot.lights.length,
     totalLocalLights,
-    clusteredLocalLights: localLights.spheres.length,
+    clusteredLocalLights: clusterLights.length,
+    coordinateSpace: clusterSpace.coordinateSpace,
+    viewId: clusterSpace.viewId,
+    boundsMin: { x: bounds.minX, y: bounds.minY, z: bounds.minZ },
+    boundsMax: { x: bounds.maxX, y: bounds.maxY, z: bounds.maxZ },
     dimensions,
     cellCount,
     populatedCells,
@@ -249,6 +311,7 @@ export function createLocalLightClusterDescriptor(
     averageLightsPerPopulatedCell:
       populatedCells === 0 ? 0 : totalAssignedLightReferences / populatedCells,
     totalAssignedLightReferences,
+    occupancyHash: hashLocalLightClusterCells(cells),
     overflowedCells,
     maxLightsPerCell,
     params,
@@ -335,12 +398,17 @@ export function localLightClusterReportFromDescriptor(
     totalLights: descriptor.totalLights,
     totalLocalLights: descriptor.totalLocalLights,
     clusteredLocalLights: descriptor.clusteredLocalLights,
+    coordinateSpace: descriptor.coordinateSpace,
+    viewId: descriptor.viewId,
+    boundsMin: { ...descriptor.boundsMin },
+    boundsMax: { ...descriptor.boundsMax },
     clusterDimensions: { ...descriptor.dimensions },
     cellCount: descriptor.cellCount,
     populatedCells: descriptor.populatedCells,
     maxLightsPerPopulatedCell: descriptor.maxLightsPerPopulatedCell,
     averageLightsPerPopulatedCell: descriptor.averageLightsPerPopulatedCell,
     totalAssignedLightReferences: descriptor.totalAssignedLightReferences,
+    occupancyHash: descriptor.occupancyHash,
     overflowedCells: descriptor.overflowedCells,
     maxLightsPerCell: descriptor.maxLightsPerCell,
     resourceKey: descriptor.resourceKey,
@@ -364,11 +432,29 @@ function emptyLocalLightClusterDescriptor(input: {
   readonly maxLightsPerCell: number;
   readonly totalLights: number;
   readonly totalLocalLights: number;
+  readonly clusterSpace: SelectedLocalLightClusterSpace;
   readonly fallbackReason: LocalLightClusterFallbackReason;
 }): LocalLightClusterDescriptor {
   const params = new Float32Array(LOCAL_LIGHT_CLUSTER_PARAM_FLOATS);
 
-  params.set([0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0], 0);
+  params.set(
+    [
+      0,
+      0,
+      0,
+      input.clusterSpace.coordinateSpace === "view-depth" ? 1 : 0,
+      1,
+      1,
+      1,
+      input.clusterSpace.viewId ?? -1,
+      1,
+      1,
+      1,
+      0,
+    ],
+    0,
+  );
+  params.set(input.clusterSpace.viewMatrix, 12);
 
   return {
     resourceKey: input.resourceKey,
@@ -377,12 +463,17 @@ function emptyLocalLightClusterDescriptor(input: {
     totalLights: input.totalLights,
     totalLocalLights: input.totalLocalLights,
     clusteredLocalLights: 0,
+    coordinateSpace: input.clusterSpace.coordinateSpace,
+    viewId: input.clusterSpace.viewId,
+    boundsMin: { x: 0, y: 0, z: 0 },
+    boundsMax: { x: 1, y: 1, z: 1 },
     dimensions: input.dimensions,
     cellCount: input.cellCount,
     populatedCells: 0,
     maxLightsPerPopulatedCell: 0,
     averageLightsPerPopulatedCell: 0,
     totalAssignedLightReferences: 0,
+    occupancyHash: 0,
     overflowedCells: 0,
     maxLightsPerCell: input.maxLightsPerCell,
     params,
@@ -439,14 +530,100 @@ function localLightSpheres(snapshot: RenderSnapshot): {
   return { spheres, missingTransform };
 }
 
-function localLightBounds(lights: readonly LocalLightSphere[]): {
-  readonly minX: number;
-  readonly minY: number;
-  readonly minZ: number;
-  readonly maxX: number;
-  readonly maxY: number;
-  readonly maxZ: number;
-} {
+function selectLocalLightClusterSpace(
+  snapshot: RenderSnapshot,
+  options: Pick<
+    LocalLightClusterDescriptorOptions,
+    "coordinateSpace" | "viewId"
+  >,
+): SelectedLocalLightClusterSpace {
+  const requested = options.coordinateSpace ?? "auto";
+
+  if (requested === "world") {
+    return worldLocalLightClusterSpace();
+  }
+
+  const view = selectLocalLightClusterView(snapshot, options.viewId);
+
+  if (view === null) {
+    return worldLocalLightClusterSpace();
+  }
+
+  return {
+    coordinateSpace: "view-depth",
+    viewId: view.viewId,
+    viewMatrix: snapshot.viewMatrices.subarray(
+      view.viewMatrixOffset,
+      view.viewMatrixOffset + 16,
+    ),
+    projectionMatrix: snapshot.viewMatrices.subarray(
+      view.projectionMatrixOffset,
+      view.projectionMatrixOffset + 16,
+    ),
+  };
+}
+
+function worldLocalLightClusterSpace(): SelectedLocalLightClusterSpace {
+  return {
+    coordinateSpace: "world",
+    viewId: null,
+    viewMatrix: IDENTITY_VIEW_MATRIX,
+    projectionMatrix: null,
+  };
+}
+
+function selectLocalLightClusterView(
+  snapshot: RenderSnapshot,
+  viewId: number | undefined,
+): RenderSnapshot["views"][number] | null {
+  let selected: RenderSnapshot["views"][number] | null = null;
+
+  for (const view of snapshot.views) {
+    if (viewId !== undefined && view.viewId !== viewId) {
+      continue;
+    }
+
+    if (
+      hasMatrixRange(snapshot.viewMatrices, view.viewMatrixOffset) &&
+      hasMatrixRange(snapshot.viewMatrices, view.projectionMatrixOffset)
+    ) {
+      if (viewId !== undefined) {
+        return view;
+      }
+
+      if (
+        selected === null ||
+        view.priority > selected.priority ||
+        (view.priority === selected.priority && view.viewId < selected.viewId)
+      ) {
+        selected = view;
+      }
+    }
+  }
+
+  return selected;
+}
+
+function transformLocalLightSpheres(
+  spheres: readonly LocalLightSphere[],
+  matrix: ArrayLike<number>,
+): readonly LocalLightSphere[] {
+  const transformed: LocalLightSphere[] = [];
+
+  for (const sphere of spheres) {
+    transformed.push({
+      lightIndex: sphere.lightIndex,
+      ...transformPoint(matrix, sphere.x, sphere.y, sphere.z),
+      radius: sphere.radius,
+    });
+  }
+
+  return transformed;
+}
+
+function localLightBounds(
+  lights: readonly LocalLightSphere[],
+): LocalLightClusterBounds {
   let minX = Number.POSITIVE_INFINITY;
   let minY = Number.POSITIVE_INFINITY;
   let minZ = Number.POSITIVE_INFINITY;
@@ -472,6 +649,39 @@ function localLightBounds(lights: readonly LocalLightSphere[]): {
     maxX: maxX + padding,
     maxY: maxY + padding,
     maxZ: maxZ + padding,
+  };
+}
+
+function viewDepthClusterBounds(
+  lights: readonly LocalLightSphere[],
+  projectionMatrix: ArrayLike<number>,
+): LocalLightClusterBounds {
+  let minDepth = Number.POSITIVE_INFINITY;
+  let maxDepth = Number.NEGATIVE_INFINITY;
+
+  for (const light of lights) {
+    const depth = -light.z;
+
+    minDepth = Math.min(minDepth, depth - light.radius);
+    maxDepth = Math.max(maxDepth, depth + light.radius);
+  }
+
+  const nearDepth = Math.max(minDepth, 0.0001);
+  const farDepth = Math.max(maxDepth, nearDepth + 0.0001);
+  const perspective = projectionLooksPerspective(projectionMatrix);
+  const projectionX = Math.max(Math.abs(projectionMatrix[0] ?? 1), 0.0001);
+  const projectionY = Math.max(Math.abs(projectionMatrix[5] ?? 1), 0.0001);
+  const xExtent = perspective ? farDepth / projectionX : 1 / projectionX;
+  const yExtent = perspective ? farDepth / projectionY : 1 / projectionY;
+  const padding = 0.001;
+
+  return {
+    minX: -xExtent - padding,
+    minY: -yExtent - padding,
+    minZ: -farDepth - padding,
+    maxX: xExtent + padding,
+    maxY: yExtent + padding,
+    maxZ: -nearDepth + padding,
   };
 }
 
@@ -533,6 +743,57 @@ function axisDistanceSquared(value: number, min: number, max: number): number {
   }
 
   return 0;
+}
+
+function transformPoint(
+  matrix: ArrayLike<number>,
+  x: number,
+  y: number,
+  z: number,
+): { readonly x: number; readonly y: number; readonly z: number } {
+  return {
+    x:
+      (matrix[0] ?? 1) * x +
+      (matrix[4] ?? 0) * y +
+      (matrix[8] ?? 0) * z +
+      (matrix[12] ?? 0),
+    y:
+      (matrix[1] ?? 0) * x +
+      (matrix[5] ?? 1) * y +
+      (matrix[9] ?? 0) * z +
+      (matrix[13] ?? 0),
+    z:
+      (matrix[2] ?? 0) * x +
+      (matrix[6] ?? 0) * y +
+      (matrix[10] ?? 1) * z +
+      (matrix[14] ?? 0),
+  };
+}
+
+function projectionLooksPerspective(projectionMatrix: ArrayLike<number>): boolean {
+  return (
+    Math.abs(projectionMatrix[11] ?? 0) > 0.5 ||
+    Math.abs(projectionMatrix[15] ?? 1) < 0.5
+  );
+}
+
+function hasMatrixRange(values: Float32Array, offset: number): boolean {
+  return (
+    Number.isInteger(offset) &&
+    offset >= 0 &&
+    offset + 16 <= values.length
+  );
+}
+
+function hashLocalLightClusterCells(cells: Uint32Array): number {
+  let hash = 2166136261;
+
+  for (let index = 0; index < cells.length; index += 1) {
+    hash ^= cells[index] ?? 0;
+    hash = Math.imul(hash, 16777619) >>> 0;
+  }
+
+  return hash;
 }
 
 function clusterCellIndex(

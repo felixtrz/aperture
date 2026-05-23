@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-23T23:37:25Z
+Updated: 2026-05-23T23:52:16Z
+
+## Current Run Update — 2026-05-23T23:52:16Z — View/depth clustered-light bins
+
+Completed `task-3123`, broadening clustered local-light bins from light-bounds
+space to active-view view/depth space.
+
+### What changed
+
+- Extended clustered local-light descriptors and JSON-safe reports with
+  coordinate space, selected view id, cluster bounds, packed view matrix, and a
+  stable occupancy hash.
+- Descriptor generation now transforms local point/spot light spheres into the
+  selected active camera's view space and derives view/depth bounds from the
+  camera projection when view data is available; no-view snapshots still use the
+  world-space fallback.
+- StandardMaterial clustered-light WGSL now transforms fragment world positions
+  through the packed view matrix before computing cluster coordinates, while
+  preserving the sparse-light packed-loop fallback.
+- Updated `examples/clustered-lights.html` so the worker moves the camera across
+  frames and the main-thread proof requires changed reported occupancy, reused
+  cluster buffers, max/average lights per populated cell below total lights, and
+  zero diagnostics.
+- Updated public tracker pages, backlog, current-task pointer, and completed
+  task log. Recommended next task is `task-3124`, occlusion-query-driven draw
+  skipping.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/light-bind-group.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts --reporter=line`
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3124`, using occlusion-query feedback to skip eligible previously
+hidden opt-in draws instead of only reporting query results.
 
 ## Current Run Update — 2026-05-23T23:37:25Z — Multi-material primitive group queueing
 
