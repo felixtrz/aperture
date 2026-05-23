@@ -1,6 +1,56 @@
 # Agent Handoff
 
-Updated: 2026-05-23T16:19:18Z
+Updated: 2026-05-23T16:47:35Z
+
+## Current Run Update — 2026-05-23T16:47:35Z — Texture-backed sheen color factor
+
+Completed `task-3105`, the next post-Tier-20 reference-parity slice.
+
+### What changed
+
+- Added `sheenColorTexture` to the renderer-independent StandardMaterial asset
+  contract and mapped glTF `KHR_materials_sheen.sheenColorTexture` into that
+  slot without the old unsupported-extension warning.
+- Extended WebGPU StandardMaterial packing, bind group metadata, prepared
+  texture/sampler resource selection, pipeline feature decoding, shader
+  metadata, and WGSL so sampled sheen color RGB multiplies scalar
+  `sheenColorFactor` before the Charlie-style fabric lobe is evaluated.
+- Expanded `examples/sheen.html` with a shared-material texture-masked fabric
+  panel. Browser status now publishes a `textureContrast` report; direct browser
+  proof showed high/low texture distance about `129.6`, with the high texel
+  producing a visibly greener/brighter fabric sheen than the low texel.
+- Updated the public tracker, render-pipeline comparison page, backlog,
+  current-task pointer, and completed-task log. Recommended next task is now
+  `task-3106`.
+
+### Validation
+
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/materials/standard-sampler-fidelity.test.ts test/materials/standard-proof-point.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-material-resource-inspection.test.ts test/webgpu/standard-bind-group-layout.test.ts test/webgpu/standard-bind-group.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/app-texture-sampler-resources.test.ts --reporter=dot`
+- `pnpm exec playwright test test/e2e/sheen.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000 --global-timeout=120000`
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm run typecheck:test`
+- `pnpm exec prettier --check $(git diff --name-only --diff-filter=ACMRTUXB)`
+- `git diff --check`
+- `pnpm run lint`
+- `pnpm test` (349 files / 1845 tests)
+- Direct browser proof for `http://127.0.0.1:4173/examples/sheen.html`:
+  status reported `ok: true`, 3 mesh draws, the texture-backed sheen pipeline
+  key, and `textureContrast.ok: true`. The only console issue was the existing
+  favicon 403.
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `docs/DEVELOPER_API_FEEDBACK.md` /
+  `docs/DEVELOPER_API_PROPOSAL.md` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3106`, rendering texture-backed StandardMaterial iridescence
+factors so at least one `KHR_materials_iridescence` texture slot drives
+thin-film response per texel instead of remaining an unsupported extension slot.
 
 ## Current Run Update — 2026-05-23T16:19:18Z — Texture-backed transmission factor
 

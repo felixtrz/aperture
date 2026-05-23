@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3105`: render texture-backed StandardMaterial sheen factors so at
-least one `KHR_materials_sheen` texture slot can drive fabric response per
-texel instead of remaining an unsupported extension slot.
+Start `task-3106`: render texture-backed StandardMaterial iridescence factors
+so at least one `KHR_materials_iridescence` texture slot can drive thin-film
+response per texel instead of remaining an unsupported extension slot.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -106,7 +106,9 @@ depth/order/stable-id sorting with overlapping StandardMaterial surfaces, while
 queue/app diagnostics publish the applied transparent sort policy.
 `examples/transmission.html` now proves roughness-aware renderer-owned
 scene-color filtering with glossy and rough transmitted StandardMaterial
-objects over high-contrast background stripes.
+objects over high-contrast background stripes. `examples/sheen.html` now proves
+texture-backed sheen color sampling with a shared-material panel whose high and
+low texels produce visibly different fabric response.
 `examples/render-packet-inspector.html` now renders worker-authored packets and
 publishes JSON-safe views, draws, bounds, queue keys, handles, skipped-entity
 explanations, and culling stats. Extraction now builds camera frustum planes
@@ -136,8 +138,8 @@ shader/pipeline/resource/importer tests.
 Reference anchors (read before writing):
 
 - `references/three.js/src/nodes/functions/PhysicalLightingModel.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/transmission.js`.
-- Existing WebGPU transmission path in `packages/webgpu/src/webgpu/standard-shader.ts`.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/iridescence.js`.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/iridescenceThickness.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -258,6 +260,8 @@ Acceptance criteria:
 - Targeted glTF material mapping, StandardMaterial shader/resource, and headed browser readback tests pass.
 
 ### task-3105 — Render texture-backed StandardMaterial sheen factors
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/render/src/materials/`, `packages/webgpu/src/webgpu/standard-*`, `examples/sheen.*`, targeted tests.

@@ -3,7 +3,7 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3105.
+Current task: task-3106.
 
 Status: Tier 20 is complete. Baseline SSAO, SSR, and DOF shipped as
 depth-readable post effects with square raw-vs-effect browser proofs, and the
@@ -17,7 +17,7 @@ strict reference-parity follow-ups are complete:
 - `task-3096` added a renderer-owned multisampled-depth shader route so SSAO,
   SSR, and DOF can run in MSAA scenes without example-specific depth plumbing.
 
-Next step: start `task-3105` from `agent/BACKLOG.md`, rendering
-texture-backed StandardMaterial sheen factors so at least one
-`KHR_materials_sheen` texture slot drives fabric response per texel instead of
-remaining an unsupported extension slot.
+Next step: start `task-3106` from `agent/BACKLOG.md`, rendering
+texture-backed StandardMaterial iridescence factors so at least one
+`KHR_materials_iridescence` texture slot drives thin-film response per texel
+instead of remaining an unsupported extension slot.

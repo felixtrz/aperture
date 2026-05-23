@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 16:13 UTC</dd>
+            <dd>2026-05-23 16:47 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1396,7 +1396,9 @@
               spheres plus a texture-masked glass panel whose high and low
               texels produce different scene-color transmission while sharing
               one scalar material setup, while <code>examples/sheen.html</code>
-              proves a fabric sphere with a visibly brighter sheen rim and
+              now proves a texture-masked fabric panel whose high sheen-color
+              texel produces a visibly greener/brighter fabric response than the
+              low texel, and
               <code>examples/iridescence.html</code> proves a cyan thin-film
               highlight distinct from the matching base material. Tier 19 is
               complete: <code>createWebGpuApp({ msaa })</code> now accepts 1x,
@@ -1442,10 +1444,12 @@
               example now proves texture-backed transmission factor sampling: a
               shared-material glass panel uses a 2x1 data texture to make the
               high-transmission texel visibly closer to the backing panel than
-              the low-transmission texel.
+              the low-transmission texel. Texture-backed sheen color factors now
+              bind through the StandardMaterial group-2 texture path and
+              multiply scalar sheen color per texel.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3105: texture-backed sheen factors</dd>
+            <dd>task-3106: texture-backed iridescence factors</dd>
           </dl>
         </aside>
       </header>
@@ -2034,8 +2038,9 @@
                 Missing app-level generic material adapter route boundary.
               </li>
               <li>
-                Missing texture-backed sheen/iridescence PBR extension resources
-                beyond the rendered clearcoat and transmission factor slots.
+                Missing texture-backed iridescence PBR extension resources
+                beyond the rendered clearcoat, transmission, and sheen color
+                factor slots.
               </li>
               <li>
                 Missing IBL, shadow, render-target, and hot-path scratch polish.
@@ -2187,7 +2192,7 @@
             <ul>
               <li>
                 Missing remaining texture-backed StandardMaterial PBR extension
-                resources for sheen and iridescence.
+                resources for iridescence.
               </li>
               <li>
                 Missing broader environment asset preparation and previous
@@ -4479,7 +4484,7 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Render texture-backed
-                StandardMaterial sheen factors.
+                StandardMaterial iridescence factors.
               </li>
               <li>
                 SSAO now uses a PlayCanvas-style spiral AO shader with
@@ -4495,7 +4500,7 @@
                 transmission grab-pass refraction and generic snapshot
                 change-set scheduling plus a deterministic transparent ordering
                 proof plus texture-backed transmission. It continues with
-                texture-backed sheen and iridescence factors.
+                texture-backed iridescence factors.
               </li>
             </ul>
           </article>
@@ -4508,6 +4513,22 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3105</div>
+            <div>
+              <strong>Texture-backed sheen color shipped.</strong>
+              <span>
+                StandardMaterial now maps
+                <code>KHR_materials_sheen.sheenColorTexture</code> into a
+                renderer-independent sheen color texture slot, prepares the
+                texture/sampler through the WebGPU material route, and samples
+                RGB per texel before the fabric BRDF lobe.
+                <code>examples/sheen.html</code> proves high and low sheen-color
+                texels produce visibly different shared-material fabric
+                response.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3103</div>
             <div>
@@ -4633,8 +4654,9 @@
                 <code>sheenRoughnessFactor</code> fields, glTF
                 <code>KHR_materials_sheen</code> scalar mapping, sheen pipeline
                 keys, WebGPU uniform packing, and a WGSL Charlie-style fabric
-                lobe. <code>examples/sheen.html</code> proves a visibly brighter
-                fabric rim-light than the matching base sphere in headed Chrome.
+                lobe. <code>examples/sheen.html</code> proves visibly brighter
+                fabric response than the matching base material in headed
+                Chrome.
               </span>
             </div>
           </div>

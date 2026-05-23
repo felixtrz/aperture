@@ -1,5 +1,40 @@
 # Completed Tasks
 
+## task-3105 — Render texture-backed StandardMaterial sheen factors
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added `sheenColorTexture` as a renderer-independent StandardMaterial texture
+  slot, mapped glTF `KHR_materials_sheen.sheenColorTexture` into it, and
+  narrowed the unsupported sheen texture warning to the still-missing roughness
+  texture slot.
+- Extended StandardMaterial WebGPU packing, bind group layout metadata,
+  prepared texture dependencies, pipeline feature keys, shader metadata, and
+  WGSL variants so sampled sheen color RGB multiplies scalar
+  `sheenColorFactor` before the fabric BRDF lobe is evaluated.
+- Expanded `examples/sheen.html` with a shared-material texture-masked fabric
+  panel. Browser status now reports `textureContrast`, proving high and low
+  sheen-color texels produce visibly different fabric response while the scalar
+  material setup is shared.
+
+Validation:
+
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/materials/standard-sampler-fidelity.test.ts test/materials/standard-proof-point.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-material-resource-inspection.test.ts test/webgpu/standard-bind-group-layout.test.ts test/webgpu/standard-bind-group.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/app-texture-sampler-resources.test.ts --reporter=dot`
+- `pnpm exec playwright test test/e2e/sheen.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000 --global-timeout=120000`
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm run typecheck:test`
+- `pnpm exec prettier --check $(git diff --name-only --diff-filter=ACMRTUXB)`
+- `git diff --check`
+- `pnpm run lint`
+- `pnpm test` (349 files / 1845 tests)
+- Direct browser proof for `http://127.0.0.1:4173/examples/sheen.html`:
+  status reported `ok: true`, 3 mesh draws,
+  `standard|sheen|sheenColorTexture|opaque|none|less|none`, and
+  `textureContrast.ok: true` with high/low distance about `129.6`.
+
 ## task-3104 — Render texture-backed StandardMaterial transmission factor
 
 Completed: 2026-05-23
