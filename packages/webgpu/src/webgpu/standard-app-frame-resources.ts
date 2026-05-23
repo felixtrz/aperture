@@ -90,6 +90,7 @@ import {
   createWorldTransformBufferDescriptorScratch,
   writeWorldTransformBufferDescriptor,
   type WorldTransformBufferDescriptorScratch,
+  type WorldTransformGpuBufferResource,
 } from "./world-transform-buffer.js";
 
 export interface CachedStandardAppFrameResources {
@@ -101,6 +102,7 @@ export interface CachedStandardAppFrameResources {
   readonly standardMaterialIblBindGroupResourceKey: string | null;
   readonly standardMaterialShadowReceiverResourceKey: string | null;
   readonly transmissionSceneColorResourceKey: string | null;
+  readonly previousWorldTransformResourceKey: string | null;
   readonly textureKeys: readonly string[];
   readonly samplerKeys: readonly string[];
   readonly viewByteLength: number;
@@ -163,6 +165,7 @@ export function createOrReuseStandardAppFrameResources(options: {
   readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
+  readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
   readonly instanceTints?: PackedSnapshotInstanceTints | null;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
   readonly materialLayout: StandardMaterialBindGroupLayoutResource | null;
@@ -243,6 +246,8 @@ export function createOrReuseStandardAppFrameResources(options: {
       standardMaterialShadowReceiverResourceKey &&
     cached.transmissionSceneColorResourceKey ===
       transmissionSceneColorResourceKey &&
+    cached.previousWorldTransformResourceKey ===
+      (options.previousWorldTransforms?.resourceKey ?? null) &&
     sameStringList(
       cached.textureKeys,
       options.textureSamplerDependencies.textureKeys,
@@ -344,6 +349,9 @@ export function createOrReuseStandardAppFrameResources(options: {
       : { preparedMaterial: preparedMaterial.resource }),
     viewUniforms: options.viewUniforms,
     worldTransforms: options.worldTransforms,
+    ...(options.previousWorldTransforms === undefined
+      ? {}
+      : { previousWorldTransforms: options.previousWorldTransforms }),
     ...(options.instanceTints === undefined
       ? {}
       : { instanceTints: options.instanceTints }),
@@ -412,6 +420,8 @@ export function createOrReuseStandardAppFrameResources(options: {
       standardMaterialIblBindGroupResourceKey,
       standardMaterialShadowReceiverResourceKey,
       transmissionSceneColorResourceKey,
+      previousWorldTransformResourceKey:
+        options.previousWorldTransforms?.resourceKey ?? null,
       textureKeys: [...options.textureSamplerDependencies.textureKeys],
       samplerKeys: [...options.textureSamplerDependencies.samplerKeys],
       viewByteLength:

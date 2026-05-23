@@ -26168,3 +26168,39 @@ Validation:
   18 queued bind groups reused, cache size 3, render-bundle reuse with
   `encodedCommands: 0`, and opaque state-aware pipeline switches 2 versus
   stable-baseline 3.
+
+## task-3116 — Add previous transform history for independently moving TAA geometry
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added renderer-side previous transform history packing keyed by stable
+  `renderId`, so previous per-object matrices are derived from
+  `RenderSnapshot` packets without direct ECS world access.
+- Added a motion-vector shader variant binding for
+  `previousWorldTransforms` and changed motion-vector clip calculation to use
+  previous object transforms plus previous view-projection matrices.
+- Threaded optional previous-world-transform buffers through Unlit, Matcap,
+  StandardMaterial, and DebugNormal frame-resource bind groups for
+  motion-vector pipelines.
+- Published JSON-safe motion-vector status with object-history used/fallback
+  counts and fallback reasons.
+- Updated `examples/taa.html` so the worker moves the mesh independently from
+  camera jitter/pan and browser status proves one previous object transform was
+  used with zero fallback transforms and zero diagnostics.
+- Updated backlog, current task, public tracker, render-pipeline comparison,
+  and handoff. Recommended next task is `task-3117`.
+
+Validation:
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/rendering/transform-pack.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/unlit-bind-group.test.ts test/webgpu/unlit-bind-group-layout.test.ts test/webgpu/unlit-frame-resources.test.ts`
+- `pnpm run examples:build`
+- Browser proof with a focused Playwright script against
+  `http://127.0.0.1:4173/examples/taa.html`: `ok: true`, frame 24, one mesh
+  draw, zero diagnostics, TAA post effect OK, `motionVectors.status:
+  "scene-attachment"`, previous object transform history available, one object
+  transform used, zero fallback transforms, and worker `objectOffset` nonzero.
+  The headed browser closed slowly in this environment and the process was
+  killed after the status proof was captured.

@@ -1,6 +1,57 @@
 # Agent Handoff
 
-Updated: 2026-05-23T21:01:47Z
+Updated: 2026-05-23T21:22:47Z
+
+## Current Run Update — 2026-05-23T21:22:47Z — TAA object transform history
+
+Completed `task-3116`, previous transform history for independently moving TAA
+geometry.
+
+### What changed
+
+- Added `RenderSnapshot`-driven previous transform history packing keyed by
+  stable render id, with update/stale-removal reports and focused tests.
+- Added `previousWorldTransforms` to motion-vector shader variants and bind
+  group metadata, using previous object transforms for previous clip positions
+  instead of reusing the current world transform.
+- Threaded optional previous-world-transform buffers through built-in Unlit,
+  Matcap, StandardMaterial, and DebugNormal frame-resource bind groups when
+  motion-vector MRT pipelines are active.
+- Added JSON-safe WebGPU app motion-vector reports with status, fallback
+  reason, object-history used/fallback counts, resource key, and stale update
+  counts.
+- Updated `examples/taa.html` so the worker moves the mesh independently from
+  camera jitter/pan; final status now requires object transform history to be
+  available and used.
+- Updated the public tracker, render-pipeline comparison page, backlog,
+  current-task pointer, and completed-task log. Recommended next task is now
+  `task-3117`, a downsample/upsample post-effect graph for bloom.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/rendering/transform-pack.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/unlit-bind-group.test.ts test/webgpu/unlit-bind-group-layout.test.ts test/webgpu/unlit-frame-resources.test.ts`
+- `pnpm run examples:build`
+- Focused Playwright browser proof for
+  `http://127.0.0.1:4173/examples/taa.html`: `ok: true`, frame 24, one mesh
+  draw, zero extraction/raw/TAA diagnostics, TAA post effect OK,
+  `motionVectors.status: "scene-attachment"`, previous object transform
+  history available, one object transform used, zero fallback transforms, and
+  worker `objectOffset` nonzero. The existing headed browser close path hung
+  after status capture and the process was killed.
+
+### Known issues
+
+- The headed Playwright project/browser can hang during browser shutdown in
+  this environment. The runtime status proof above was captured before killing
+  the hung process.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3117`, adding a renderer-owned downsample/upsample post-effect
+graph for bloom and publishing pass/resource counts in browser-visible status.
 
 ## Current Run Update — 2026-05-23T21:01:47Z — Shared queued bind-group reuse
 

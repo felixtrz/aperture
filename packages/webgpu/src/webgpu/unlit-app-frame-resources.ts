@@ -46,6 +46,7 @@ import {
   createWorldTransformBufferDescriptorScratch,
   writeWorldTransformBufferDescriptor,
   type WorldTransformBufferDescriptorScratch,
+  type WorldTransformGpuBufferResource,
 } from "./world-transform-buffer.js";
 
 export interface CachedUnlitAppFrameResources {
@@ -53,6 +54,7 @@ export interface CachedUnlitAppFrameResources {
   readonly materialKey: string;
   readonly textureKeys: readonly string[];
   readonly samplerKeys: readonly string[];
+  readonly previousWorldTransformResourceKey: string | null;
   readonly viewByteLength: number;
   readonly worldTransformByteLength: number;
   readonly viewDescriptorScratch: ViewUniformBufferDescriptorScratch;
@@ -108,6 +110,7 @@ export function createOrReuseUnlitAppFrameResources(options: {
   readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
+  readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
   readonly bindGroupCache?:
     | BindGroupResourceCache<UnlitBindGroupResource>
@@ -141,6 +144,8 @@ export function createOrReuseUnlitAppFrameResources(options: {
       cached.samplerKeys,
       options.textureSamplerDependencies.samplerKeys,
     ) &&
+    cached.previousWorldTransformResourceKey ===
+      (options.previousWorldTransforms?.resourceKey ?? null) &&
     cached.result.resources !== null &&
     viewDescriptor.plan !== null &&
     transformDescriptor.plan !== null &&
@@ -200,6 +205,9 @@ export function createOrReuseUnlitAppFrameResources(options: {
       : { preparedMaterial: preparedMaterial.resource }),
     viewUniforms: options.viewUniforms,
     worldTransforms: options.worldTransforms,
+    ...(options.previousWorldTransforms === undefined
+      ? {}
+      : { previousWorldTransforms: options.previousWorldTransforms }),
     layouts: options.layouts,
     bindGroupCache: options.bindGroupCache,
     textures: options.textureSamplerDependencies.textures,
@@ -233,6 +241,8 @@ export function createOrReuseUnlitAppFrameResources(options: {
       materialKey: options.materialKey,
       textureKeys: [...options.textureSamplerDependencies.textureKeys],
       samplerKeys: [...options.textureSamplerDependencies.samplerKeys],
+      previousWorldTransformResourceKey:
+        options.previousWorldTransforms?.resourceKey ?? null,
       viewByteLength:
         viewDescriptor.plan?.source.byteLength ??
         options.viewUniforms.data.byteLength,

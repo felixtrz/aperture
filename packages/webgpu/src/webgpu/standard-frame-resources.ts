@@ -180,6 +180,7 @@ export interface CreateStandardFrameGpuResourcesOptions {
   readonly preparedMesh?: MeshGpuBufferResource | undefined;
   readonly viewUniforms: PackedSnapshotViewUniforms | null;
   readonly worldTransforms: PackedSnapshotTransforms | null;
+  readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
   readonly instanceTints?: PackedSnapshotInstanceTints | null;
   readonly material: StandardMaterialAsset | null;
   readonly preparedMaterial?:
@@ -245,6 +246,7 @@ export interface StandardFrameGpuResources {
   readonly mesh: MeshGpuBufferResource;
   readonly viewUniform: ViewUniformGpuBufferResource;
   readonly worldTransforms: WorldTransformGpuBufferResource;
+  readonly previousWorldTransforms?: WorldTransformGpuBufferResource;
   readonly instanceTints?: InstanceTintGpuBufferResource;
   readonly skinningJointMatrices?: SkinningJointGpuBufferResource;
   readonly morphTargetWeights?: MorphTargetWeightGpuBufferResource;
@@ -347,6 +349,10 @@ export function createStandardFrameGpuResources(
       mesh,
       viewUniform,
       worldTransforms,
+      ...(options.previousWorldTransforms === undefined ||
+      options.previousWorldTransforms === null
+        ? {}
+        : { previousWorldTransforms: options.previousWorldTransforms }),
       ...(instanceTints === null ? {} : { instanceTints }),
       ...(skinningJointMatrices === null ? {} : { skinningJointMatrices }),
       ...(morphTargetWeights === null ? {} : { morphTargetWeights }),
@@ -653,6 +659,12 @@ function createSharedBindGroups(
           morphTargetWeightResourceKey: morphTargetWeights?.resourceKey ?? null,
         }
       : {}),
+    ...(options.previousWorldTransforms === undefined
+      ? {}
+      : {
+          previousWorldTransformResourceKey:
+            options.previousWorldTransforms?.resourceKey ?? null,
+        }),
   });
 
   diagnostics.push(...plan.diagnostics);
@@ -694,6 +706,15 @@ function createSharedBindGroups(
             {
               resourceKey: morphTargetWeights.resourceKey,
               buffer: morphTargetWeights.buffer,
+            },
+          ]),
+      ...(options.previousWorldTransforms === undefined ||
+      options.previousWorldTransforms === null
+        ? []
+        : [
+            {
+              resourceKey: options.previousWorldTransforms.resourceKey,
+              buffer: options.previousWorldTransforms.buffer,
             },
           ]),
     ],
@@ -956,6 +977,7 @@ function createSharedBindGroupDescriptorPlan(input: {
   readonly worldTransformResourceKey: string | null;
   readonly skinningJointResourceKey?: string | null;
   readonly morphTargetWeightResourceKey?: string | null;
+  readonly previousWorldTransformResourceKey?: string | null;
 }): UnlitBindGroupDescriptorPlan {
   const diagnostics: UnlitBindGroupDescriptorDiagnostic[] = [];
   const entries: UnlitBindGroupDescriptorEntry[] = [];
@@ -1017,6 +1039,23 @@ function createSharedBindGroupDescriptorPlan(input: {
       resourceKey: input.morphTargetWeightResourceKey,
       resourceKind: "buffer",
     });
+  }
+
+  if (input.previousWorldTransformResourceKey !== undefined) {
+    if (input.previousWorldTransformResourceKey === null) {
+      diagnostics.push({
+        code: "unlitBindGroup.missingTransformResource",
+        message:
+          "Standard motion-vector shared bind group planning requires a previous world transform buffer.",
+      });
+    } else {
+      entries.push({
+        group: 1,
+        binding: 3,
+        resourceKey: input.previousWorldTransformResourceKey,
+        resourceKind: "buffer",
+      });
+    }
   }
 
   return { valid: diagnostics.length === 0, entries, diagnostics };

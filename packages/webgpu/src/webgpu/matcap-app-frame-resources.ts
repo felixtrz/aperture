@@ -45,6 +45,7 @@ import {
   createWorldTransformBufferDescriptorScratch,
   writeWorldTransformBufferDescriptor,
   type WorldTransformBufferDescriptorScratch,
+  type WorldTransformGpuBufferResource,
 } from "./world-transform-buffer.js";
 
 export interface CachedMatcapAppFrameResources {
@@ -52,6 +53,7 @@ export interface CachedMatcapAppFrameResources {
   readonly materialKey: string;
   readonly textureKeys: readonly string[];
   readonly samplerKeys: readonly string[];
+  readonly previousWorldTransformResourceKey: string | null;
   readonly viewByteLength: number;
   readonly worldTransformByteLength: number;
   readonly viewDescriptorScratch: ViewUniformBufferDescriptorScratch;
@@ -105,6 +107,7 @@ export function createOrReuseMatcapAppFrameResources(options: {
   readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
+  readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
   readonly materialLayout: MatcapMaterialBindGroupLayoutResource | null;
   readonly bindGroupCache?:
@@ -141,6 +144,8 @@ export function createOrReuseMatcapAppFrameResources(options: {
       cached.samplerKeys,
       options.textureSamplerDependencies.samplerKeys,
     ) &&
+    cached.previousWorldTransformResourceKey ===
+      (options.previousWorldTransforms?.resourceKey ?? null) &&
     cached.result.resources !== null &&
     viewDescriptor.plan !== null &&
     transformDescriptor.plan !== null &&
@@ -200,6 +205,9 @@ export function createOrReuseMatcapAppFrameResources(options: {
       : { preparedMaterial: preparedMaterial.resource }),
     viewUniforms: options.viewUniforms,
     worldTransforms: options.worldTransforms,
+    ...(options.previousWorldTransforms === undefined
+      ? {}
+      : { previousWorldTransforms: options.previousWorldTransforms }),
     sharedLayouts: options.sharedLayouts,
     materialLayout: options.materialLayout,
     bindGroupCache: options.bindGroupCache,
@@ -234,6 +242,8 @@ export function createOrReuseMatcapAppFrameResources(options: {
       materialKey: options.materialKey,
       textureKeys: [...options.textureSamplerDependencies.textureKeys],
       samplerKeys: [...options.textureSamplerDependencies.samplerKeys],
+      previousWorldTransformResourceKey:
+        options.previousWorldTransforms?.resourceKey ?? null,
       viewByteLength:
         viewDescriptor.plan?.source.byteLength ??
         options.viewUniforms.data.byteLength,

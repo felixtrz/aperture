@@ -189,6 +189,8 @@ function createTaaStatus(input) {
     input.rawReport.diagnostics.length +
     input.taaReport.diagnostics.length;
   const taaEffects = input.taaReport.postEffects ?? [];
+  const motionVectors = input.taaReport.motionVectors ?? null;
+  const objectTransforms = motionVectors?.objectTransforms ?? null;
 
   return {
     ...baseStatus,
@@ -197,6 +199,9 @@ function createTaaStatus(input) {
       input.taaReport.ok === true &&
       input.snapshot.meshDraws.length === 1 &&
       diagnostics === 0 &&
+      motionVectors?.status === "scene-attachment" &&
+      objectTransforms?.used > 0 &&
+      objectTransforms?.available === true &&
       taaEffects.some((effect) => effect.effectId === "taa" && effect.ok),
     phase: "submit",
     apertureVersion: input.aperture.APERTURE_VERSION,
@@ -207,6 +212,7 @@ function createTaaStatus(input) {
     },
     raw: rawFrame,
     taa: taaFrame,
+    motionVectors,
     extraction: {
       frame: input.snapshot.frame,
       views: input.snapshot.views.length,
@@ -240,6 +246,7 @@ function frameStatus(report) {
     },
     counts: report.counts,
     postEffects: report.postEffects ?? [],
+    motionVectors: report.motionVectors ?? null,
     boundaries: report.boundaries?.length ?? 0,
     diagnosticCodes: report.diagnostics.map((diagnostic) => diagnostic.code),
   };

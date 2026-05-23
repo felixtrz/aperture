@@ -11,6 +11,7 @@ import {
   createPreparedMaterialStore,
   createMaterialQueueScratch,
   createPackedSnapshotTransformsScratch,
+  createPackedSnapshotPreviousTransformsScratch,
   createPackedSnapshotInstanceTintsScratch,
   createPackedSnapshotViewUniformsScratch,
   createMaterialDependencyReadinessReport,
@@ -24,7 +25,9 @@ import {
   preparedMeshStoreSummaryToJsonValue,
   preparedMaterialStoreSummaryToJsonValue,
   writeMaterialQueueFromSnapshot,
+  writePackedSnapshotPreviousTransforms,
   writePackedSnapshotTransforms,
+  rememberPackedSnapshotTransformsByRenderId,
   writePackedSnapshotInstanceTintsForVertexBuffer,
   writePackedSnapshotViewUniforms,
   type MaterialQueueScratch,
@@ -34,6 +37,9 @@ import {
   type MaterialAsset,
   type MeshAsset,
   type PackedSnapshotTransforms,
+  type PackedSnapshotPreviousTransforms,
+  type PackedPreviousSnapshotTransformHistoryReport,
+  type PackedSnapshotTransformHistoryUpdateReport,
   type PackedSnapshotInstanceTints,
   type PackedSnapshotViewUniforms,
   type PreparedMaterialStore,
@@ -50,6 +56,7 @@ import {
   type RenderSnapshotChangeSet,
   type RenderSnapshotUpdateSchedule,
 } from "@aperture-engine/render";
+import { writeBufferData } from "./app-frame-resource-utils.js";
 import {
   createAppTextureSamplerResourceCacheSummary,
   prepareAppTextureResource,
@@ -324,6 +331,13 @@ import {
   type WebGpuPostPassTextureCacheSlot,
   type WebGpuPostPassTextureResource,
 } from "./post-pass.js";
+import {
+  createWorldTransformBufferDescriptorScratch,
+  createWorldTransformGpuBuffer,
+  writeWorldTransformBufferDescriptor,
+  type WorldTransformBufferDescriptorScratch,
+  type WorldTransformGpuBufferResource,
+} from "./world-transform-buffer.js";
 import { parseMaterialPipelineRenderStateTokens } from "./material-render-state.js";
 import {
   initializeWebGpu,
@@ -573,6 +587,38 @@ export interface WebGpuAppRenderReport {
   readonly commandPressure?: RenderPassCommandPressureReport;
   readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly indirectDraws?: IndirectDrawCommandReport;
+  readonly motionVectors?: WebGpuAppMotionVectorReport;
+}
+
+export type WebGpuAppMotionVectorStatus =
+  | "disabled"
+  | "scene-attachment"
+  | "fallback-clear";
+
+export type WebGpuAppMotionVectorFallbackReason =
+  | "not-required"
+  | "msaa"
+  | "unsupported-scene-packets"
+  | "unsupported-target"
+  | "missing-previous-object-transform-buffer";
+
+export interface WebGpuAppMotionVectorObjectTransformHistoryReport {
+  readonly available: boolean;
+  readonly resourceKey: string | null;
+  readonly total: number;
+  readonly used: number;
+  readonly fallback: number;
+  readonly missing: readonly number[];
+  readonly stored: number;
+  readonly staleRemoved: number;
+}
+
+export interface WebGpuAppMotionVectorReport {
+  readonly required: boolean;
+  readonly status: WebGpuAppMotionVectorStatus;
+  readonly colorFormat: string | null;
+  readonly fallbackReason?: WebGpuAppMotionVectorFallbackReason;
+  readonly objectTransforms: WebGpuAppMotionVectorObjectTransformHistoryReport;
 }
 
 export type WebGpuAppJsonValue =
@@ -602,6 +648,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly commandPressure?: WebGpuAppJsonValue;
   readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly indirectDraws?: IndirectDrawCommandReport;
+  readonly motionVectors?: WebGpuAppMotionVectorReport;
   readonly materialDependencyReadiness?: readonly MaterialAssetDependencyReadinessReportJsonValue[];
 }
 
@@ -691,6 +738,13 @@ interface WebGpuAppPostPassCache {
   readonly motionVector: WebGpuPostPassTextureCacheSlot;
   readonly transmissionGrab: WebGpuPostPassTextureCacheSlot;
   readonly previousViewProjectionByViewId: Map<number, Float32Array>;
+  readonly previousWorldTransformsByRenderId: Map<number, Float32Array>;
+  readonly previousWorldTransformsScratch: ReturnType<
+    typeof createPackedSnapshotPreviousTransformsScratch
+  >;
+  readonly previousWorldTransformDescriptorScratch: WorldTransformBufferDescriptorScratch;
+  previousWorldTransformResource: WorldTransformGpuBufferResource | null;
+  previousWorldTransformByteLength: number;
 }
 
 interface WebGpuAppFrameScratch {
@@ -774,6 +828,7 @@ interface QueuedBuiltInFrameResourcePreparationOptions {
   readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
+  readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
   readonly instanceTints?: PackedSnapshotInstanceTints | null;
   readonly layouts: WebGpuAppPipelineLayouts;
   readonly sharedBindGroupCache: BindGroupResourceCache<UnlitBindGroupResource>;
@@ -1105,6 +1160,13 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
       motionVector: createWebGpuPostPassTextureCacheSlot(),
       transmissionGrab: createWebGpuPostPassTextureCacheSlot(),
       previousViewProjectionByViewId: new Map(),
+      previousWorldTransformsByRenderId: new Map(),
+      previousWorldTransformsScratch:
+        createPackedSnapshotPreviousTransformsScratch(),
+      previousWorldTransformDescriptorScratch:
+        createWorldTransformBufferDescriptorScratch(),
+      previousWorldTransformResource: null,
+      previousWorldTransformByteLength: 0,
     },
     frameScratch: createWebGpuAppFrameScratch(),
     unlitFrame:
@@ -1585,6 +1647,9 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           textureSamplerDependencies: options.textureSamplerDependencies,
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
+          ...(options.previousWorldTransforms === undefined
+            ? {}
+            : { previousWorldTransforms: options.previousWorldTransforms }),
           layouts: options.layouts.sharedLayouts,
           bindGroupCache: options.sharedBindGroupCache,
           reuse: options.reuse,
@@ -1606,6 +1671,9 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           textureSamplerDependencies: options.textureSamplerDependencies,
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
+          ...(options.previousWorldTransforms === undefined
+            ? {}
+            : { previousWorldTransforms: options.previousWorldTransforms }),
           ...(options.instanceTints === undefined
             ? {}
             : { instanceTints: options.instanceTints }),
@@ -1635,6 +1703,9 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           textureSamplerDependencies: options.textureSamplerDependencies,
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
+          ...(options.previousWorldTransforms === undefined
+            ? {}
+            : { previousWorldTransforms: options.previousWorldTransforms }),
           ...(options.instanceTints === undefined
             ? {}
             : { instanceTints: options.instanceTints }),
@@ -1691,6 +1762,9 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           assets: options.assets,
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
+          ...(options.previousWorldTransforms === undefined
+            ? {}
+            : { previousWorldTransforms: options.previousWorldTransforms }),
           sharedLayouts: options.layouts.sharedLayouts,
           materialLayout: options.layouts
             .materialLayout as DebugNormalMaterialBindGroupLayoutResource | null,
@@ -1797,6 +1871,18 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     options.snapshot,
     options.cache.frameScratch.worldTransforms,
   );
+  const previousObjectTransforms =
+    prepareWebGpuAppPreviousObjectTransformResource({
+      device: options.app.initialization.device,
+      cache: options.cache.postPasses,
+      currentTransforms: packedTransforms,
+      required: sceneMotionVectors.colorFormat !== null,
+    });
+  const motionVectorColorFormat =
+    sceneMotionVectors.colorFormat !== null &&
+    previousObjectTransforms.resource === null
+      ? null
+      : sceneMotionVectors.colorFormat;
   const packedInstanceTints = writePackedSnapshotInstanceTintsForVertexBuffer(
     options.snapshot,
     packedTransforms,
@@ -1824,6 +1910,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
         ...options.snapshot.diagnostics,
         ...packedViews.diagnostics,
         ...packedTransforms.diagnostics,
+        ...previousObjectTransforms.diagnostics,
         ...packedInstanceTints.diagnostics,
         ...standardAreaLightLtc.diagnostics,
         ...transmissionGrabResources.diagnostics,
@@ -1833,9 +1920,12 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
 
   const prepared = await prepareQueuedBuiltInFrameResources({
     ...options,
-    motionVectorColorFormat: sceneMotionVectors.colorFormat,
+    motionVectorColorFormat,
     viewUniforms: packedViews,
     worldTransforms: packedTransforms,
+    ...(previousObjectTransforms.resource === null
+      ? {}
+      : { previousWorldTransforms: previousObjectTransforms.resource }),
     instanceTints: packedInstanceTints,
     standardAreaLightLtcResources: standardAreaLightLtc.resources,
     transmissionSceneColorResources: transmissionGrabResources.resources,
@@ -1869,6 +1959,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
         ...options.snapshot.diagnostics,
         ...packedViews.diagnostics,
         ...packedTransforms.diagnostics,
+        ...previousObjectTransforms.diagnostics,
         ...packedInstanceTints.diagnostics,
         ...prepared.diagnostics,
       ],
@@ -1898,6 +1989,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
         ...options.snapshot.diagnostics,
         ...packedViews.diagnostics,
         ...packedTransforms.diagnostics,
+        ...previousObjectTransforms.diagnostics,
         ...packedInstanceTints.diagnostics,
         ...queue.diagnostics,
       ],
@@ -1971,7 +2063,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     commands: indirectDraws.commands,
     label: options.label ?? "aperture-webgpu-app",
     reuse: options.reuse,
-    motionVectorColorFormat: sceneMotionVectors.colorFormat,
+    motionVectorColorFormat,
     transmissionSceneColorResources: transmissionGrabResources.resources,
     enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(
       options.snapshotUpdateSchedule,
@@ -1987,6 +2079,19 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     options.snapshot,
     options.cache.postPasses.previousViewProjectionByViewId,
   );
+  const motionVectorHistoryUpdate =
+    sceneMotionVectors.required && previousObjectTransforms.resource !== null
+      ? rememberPackedSnapshotTransformsByRenderId(
+          packedTransforms,
+          options.cache.postPasses.previousWorldTransformsByRenderId,
+        )
+      : { stored: 0, staleRemoved: 0 };
+  const motionVectorReport = createWebGpuAppMotionVectorReport({
+    plan: sceneMotionVectors,
+    objectHistory: previousObjectTransforms.history,
+    resource: previousObjectTransforms.resource,
+    update: motionVectorHistoryUpdate,
+  });
 
   await waitForSubmittedWork(options.app.initialization.device);
   const gpuTimings = await readWebGpuAppGpuTimings({
@@ -2026,6 +2131,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     boundaries: boundaries.boundaries,
     renderTargets: boundaries.renderTargets,
     postEffects: boundaries.postEffects,
+    motionVectors: motionVectorReport,
     ...(boundaries.renderBundles === undefined
       ? {}
       : { renderBundles: boundaries.renderBundles }),
@@ -2049,6 +2155,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     commandPressure: framePlan.commandPlan.pressure,
     diagnostics: [
       ...options.snapshot.diagnostics,
+      ...previousObjectTransforms.diagnostics,
       ...framePlan.bindingPlan.diagnostics,
       ...framePlan.readiness.diagnostics,
       ...framePlan.packages.diagnostics,
@@ -3508,7 +3615,9 @@ interface WebGpuAppPostProcessedSwapchainTargetResult {
 }
 
 interface WebGpuAppSceneMotionVectorPlan {
+  readonly required: boolean;
   readonly colorFormat: string | null;
+  readonly fallbackReason?: WebGpuAppMotionVectorFallbackReason;
 }
 
 function createWebGpuAppSceneMotionVectorPlan(options: {
@@ -3521,15 +3630,27 @@ function createWebGpuAppSceneMotionVectorPlan(options: {
       effect.enabled !== false && effect.requiresMotionVectors === true,
   );
 
-  if (!needsMotionVectors || options.app.msaa.sampleCount > 1) {
-    return { colorFormat: null };
+  if (!needsMotionVectors) {
+    return {
+      required: false,
+      colorFormat: null,
+      fallbackReason: "not-required",
+    };
+  }
+
+  if (options.app.msaa.sampleCount > 1) {
+    return { required: true, colorFormat: null, fallbackReason: "msaa" };
   }
 
   if (
     (options.snapshot.spriteDraws?.length ?? 0) > 0 ||
     (options.snapshot.skyboxes?.length ?? 0) > 0
   ) {
-    return { colorFormat: null };
+    return {
+      required: true,
+      colorFormat: null,
+      fallbackReason: "unsupported-scene-packets",
+    };
   }
 
   const targetPlan = createWebGpuAppFrameBoundaryTargets(
@@ -3543,10 +3664,147 @@ function createWebGpuAppSceneMotionVectorPlan(options: {
     targetPlan.targets.length !== 1 ||
     targetPlan.targets[0]?.source !== "swapchain"
   ) {
-    return { colorFormat: null };
+    return {
+      required: true,
+      colorFormat: null,
+      fallbackReason: "unsupported-target",
+    };
   }
 
-  return { colorFormat: options.app.initialization.format };
+  return { required: true, colorFormat: options.app.initialization.format };
+}
+
+interface WebGpuAppPreviousObjectTransformResourceResult {
+  readonly resource: WorldTransformGpuBufferResource | null;
+  readonly packed: PackedSnapshotPreviousTransforms | null;
+  readonly history: PackedPreviousSnapshotTransformHistoryReport;
+  readonly diagnostics: readonly unknown[];
+}
+
+function prepareWebGpuAppPreviousObjectTransformResource(options: {
+  readonly device: unknown;
+  readonly cache: WebGpuAppPostPassCache;
+  readonly currentTransforms: PackedSnapshotTransforms;
+  readonly required: boolean;
+}): WebGpuAppPreviousObjectTransformResourceResult {
+  if (!options.required) {
+    return {
+      resource: null,
+      packed: null,
+      history: emptyPreviousObjectTransformHistoryReport(),
+      diagnostics: [],
+    };
+  }
+
+  const packed = writePackedSnapshotPreviousTransforms(
+    options.currentTransforms,
+    options.cache.previousWorldTransformsByRenderId,
+    options.cache.previousWorldTransformsScratch,
+  );
+  const descriptor = writeWorldTransformBufferDescriptor(
+    packed,
+    options.cache.previousWorldTransformDescriptorScratch,
+    {
+      label: previousWorldTransformBufferLabel(
+        packed.floatCount ?? packed.data.length,
+      ),
+    },
+  );
+  const diagnostics: unknown[] = [
+    ...packed.diagnostics,
+    ...descriptor.diagnostics,
+  ];
+
+  if (descriptor.plan === null) {
+    options.cache.previousWorldTransformResource = null;
+    options.cache.previousWorldTransformByteLength = 0;
+    return {
+      resource: null,
+      packed,
+      history: packed.history,
+      diagnostics,
+    };
+  }
+
+  const byteLength = descriptor.plan.source.byteLength;
+  const cached = options.cache.previousWorldTransformResource;
+
+  if (
+    cached !== null &&
+    options.cache.previousWorldTransformByteLength === byteLength &&
+    writeBufferData(options.device, cached.buffer, descriptor.plan.source)
+  ) {
+    return {
+      resource: cached,
+      packed,
+      history: packed.history,
+      diagnostics,
+    };
+  }
+
+  const resource = createWorldTransformGpuBuffer({
+    device: options.device as Parameters<
+      typeof createWorldTransformGpuBuffer
+    >[0]["device"],
+    plan: descriptor.plan,
+  });
+
+  diagnostics.push(...resource.diagnostics);
+  options.cache.previousWorldTransformResource = resource.resource;
+  options.cache.previousWorldTransformByteLength =
+    resource.resource === null ? 0 : byteLength;
+
+  return {
+    resource: resource.resource,
+    packed,
+    history: packed.history,
+    diagnostics,
+  };
+}
+
+function createWebGpuAppMotionVectorReport(options: {
+  readonly plan: WebGpuAppSceneMotionVectorPlan;
+  readonly objectHistory: PackedPreviousSnapshotTransformHistoryReport;
+  readonly resource: WorldTransformGpuBufferResource | null;
+  readonly update: PackedSnapshotTransformHistoryUpdateReport;
+}): WebGpuAppMotionVectorReport {
+  const missingPreviousBuffer =
+    options.plan.required &&
+    options.plan.colorFormat !== null &&
+    options.resource === null;
+  const fallbackReason = missingPreviousBuffer
+    ? "missing-previous-object-transform-buffer"
+    : options.plan.fallbackReason;
+  const status: WebGpuAppMotionVectorStatus = !options.plan.required
+    ? "disabled"
+    : options.plan.colorFormat === null || missingPreviousBuffer
+      ? "fallback-clear"
+      : "scene-attachment";
+
+  return {
+    required: options.plan.required,
+    status,
+    colorFormat: missingPreviousBuffer ? null : options.plan.colorFormat,
+    ...(fallbackReason === undefined ? {} : { fallbackReason }),
+    objectTransforms: {
+      available: options.resource !== null,
+      resourceKey: options.resource?.resourceKey ?? null,
+      total: options.objectHistory.total,
+      used: options.objectHistory.used,
+      fallback: options.objectHistory.fallback,
+      missing: options.objectHistory.missing,
+      stored: options.update.stored,
+      staleRemoved: options.update.staleRemoved,
+    },
+  };
+}
+
+function emptyPreviousObjectTransformHistoryReport(): PackedPreviousSnapshotTransformHistoryReport {
+  return { total: 0, used: 0, fallback: 0, missing: [] };
+}
+
+function previousWorldTransformBufferLabel(floatCount: number): string {
+  return `PreviousWorldTransforms/storage/${floatCount}`;
 }
 
 function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
@@ -4717,6 +4975,7 @@ async function prepareQueuedBuiltInFrameResources(options: {
   readonly motionVectorColorFormat?: string | null;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
+  readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
   readonly instanceTints?: PackedSnapshotInstanceTints | null;
   readonly standardMaterialShadowReceiverResources?:
     | StandardFrameShadowReceiverResources
@@ -4801,6 +5060,9 @@ async function prepareQueuedBuiltInFrameResources(options: {
           textureSamplerDependencies,
           viewUniforms,
           worldTransforms,
+          ...(options.previousWorldTransforms === undefined
+            ? {}
+            : { previousWorldTransforms: options.previousWorldTransforms }),
           ...(instanceTints === undefined ? {} : { instanceTints }),
           layouts,
           sharedBindGroupCache,
@@ -4854,6 +5116,7 @@ function createQueuedBuiltInFrameResourceOptions(input: {
   readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
+  readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
   readonly instanceTints?: PackedSnapshotInstanceTints | null;
   readonly layouts: WebGpuAppPipelineLayouts;
   readonly sharedBindGroupCache: BindGroupResourceCache<UnlitBindGroupResource>;
@@ -4883,6 +5146,9 @@ function createQueuedBuiltInFrameResourceOptions(input: {
     textureSamplerDependencies: input.textureSamplerDependencies,
     viewUniforms: input.viewUniforms,
     worldTransforms: input.worldTransforms,
+    ...(input.previousWorldTransforms === undefined
+      ? {}
+      : { previousWorldTransforms: input.previousWorldTransforms }),
     ...(input.instanceTints === undefined
       ? {}
       : { instanceTints: input.instanceTints }),
@@ -6654,6 +6920,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.indirectDraws === undefined
       ? {}
       : { indirectDraws: report.indirectDraws }),
+    ...(report.motionVectors === undefined
+      ? {}
+      : { motionVectors: report.motionVectors }),
     ...(materialDependencyReadiness.length === 0
       ? {}
       : { materialDependencyReadiness }),
@@ -6756,6 +7025,7 @@ function renderReport(input: {
   readonly commandPressure?: RenderPassCommandPressureReport;
   readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly indirectDraws?: IndirectDrawCommandReport;
+  readonly motionVectors?: WebGpuAppMotionVectorReport;
   readonly drawPackages?: number;
   readonly drawCommands?: number;
   readonly drawCalls?: number;
@@ -6814,6 +7084,9 @@ function renderReport(input: {
     ...(input.indirectDraws === undefined
       ? {}
       : { indirectDraws: input.indirectDraws }),
+    ...(input.motionVectors === undefined
+      ? {}
+      : { motionVectors: input.motionVectors }),
   };
 }
 

@@ -17,8 +17,12 @@ interface TaaStatus extends ExampleStatusBase {
   };
   readonly raw?: TaaFrameStatus;
   readonly taa?: TaaFrameStatus;
+  readonly motionVectors?: TaaMotionVectorStatus | null;
   readonly worker?: {
     readonly snapshotsReceived: number;
+    readonly step?: {
+      readonly objectOffset?: number;
+    };
   };
   readonly extraction?: {
     readonly frame: number;
@@ -41,6 +45,23 @@ interface TaaFrameStatus {
     readonly ok: boolean;
   }[];
   readonly boundaries: number;
+  readonly motionVectors?: TaaMotionVectorStatus | null;
+}
+
+interface TaaMotionVectorStatus {
+  readonly required: boolean;
+  readonly status: string;
+  readonly colorFormat: string | null;
+  readonly objectTransforms: {
+    readonly available: boolean;
+    readonly resourceKey: string | null;
+    readonly total: number;
+    readonly used: number;
+    readonly fallback: number;
+    readonly missing: readonly number[];
+    readonly stored: number;
+    readonly staleRemoved: number;
+  };
 }
 
 test("browser accumulates jittered frames through TAA history and motion vectors", async ({
@@ -98,11 +119,37 @@ test("browser accumulates jittered frames through TAA history and motion vectors
         { effectId: "taa-present", output: "swapchain", ok: true },
       ],
       boundaries: 3,
+      motionVectors: {
+        required: true,
+        status: "scene-attachment",
+        objectTransforms: {
+          available: true,
+          total: 1,
+          used: 1,
+          fallback: 0,
+          stored: 1,
+        },
+      },
+    },
+    motionVectors: {
+      required: true,
+      status: "scene-attachment",
+      objectTransforms: {
+        available: true,
+        total: 1,
+        used: 1,
+        fallback: 0,
+        stored: 1,
+      },
     },
     worker: {
       snapshotsReceived: 24,
     },
   });
+  expect(status.motionVectors?.objectTransforms.resourceKey).toContain(
+    "PreviousWorldTransforms/storage",
+  );
+  expect(status.worker?.step?.objectOffset ?? 0).not.toBe(0);
 
   await page.waitForTimeout(100);
 

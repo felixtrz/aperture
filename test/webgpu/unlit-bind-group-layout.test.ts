@@ -57,6 +57,13 @@ describe("unlit bind group layout descriptor planning", () => {
                 visibility: ["vertex"],
                 required: true,
               },
+              {
+                binding: 3,
+                name: "previousWorldTransforms",
+                resourceKind: "buffer",
+                visibility: ["vertex"],
+                required: false,
+              },
             ],
           },
         },

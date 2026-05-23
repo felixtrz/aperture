@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "1b8e899",
   "activePid": null,
-  "notes": "Completed task-3115 shared queued built-in bind-group reuse; browser proof shows standard queue phases created 3 queued bind groups, reused 18, cache size 3, with 8 draws and zero diagnostics. Next task: task-3116 previous transform history for moving TAA geometry.",
-  "lastRunFinishedAt": "2026-05-23T21:01:47Z"
+  "notes": "Completed task-3116 previous object transform history for TAA motion vectors; next task is task-3117 bloom post-effect graph composition.",
+  "lastRunFinishedAt": "2026-05-23T21:26:49Z"
 }

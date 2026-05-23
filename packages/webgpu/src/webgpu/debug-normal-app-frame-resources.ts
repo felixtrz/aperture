@@ -46,11 +46,13 @@ import {
   createWorldTransformBufferDescriptorScratch,
   writeWorldTransformBufferDescriptor,
   type WorldTransformBufferDescriptorScratch,
+  type WorldTransformGpuBufferResource,
 } from "./world-transform-buffer.js";
 
 export interface CachedDebugNormalAppFrameResources {
   readonly meshKey: string;
   readonly materialKey: string;
+  readonly previousWorldTransformResourceKey: string | null;
   readonly viewByteLength: number;
   readonly worldTransformByteLength: number;
   readonly viewDescriptorScratch: ViewUniformBufferDescriptorScratch;
@@ -103,6 +105,7 @@ export function createOrReuseDebugNormalAppFrameResources(options: {
   readonly assets: AssetRegistry;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
+  readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
   readonly materialLayout: DebugNormalMaterialBindGroupLayoutResource | null;
   readonly bindGroupCache?:
@@ -131,6 +134,8 @@ export function createOrReuseDebugNormalAppFrameResources(options: {
     cached !== null &&
     cached.meshKey === options.meshKey &&
     cached.materialKey === options.materialKey &&
+    cached.previousWorldTransformResourceKey ===
+      (options.previousWorldTransforms?.resourceKey ?? null) &&
     cached.result.resources !== null &&
     viewDescriptor.plan !== null &&
     transformDescriptor.plan !== null &&
@@ -190,6 +195,9 @@ export function createOrReuseDebugNormalAppFrameResources(options: {
       : { preparedMaterial: preparedMaterial.resource }),
     viewUniforms: options.viewUniforms,
     worldTransforms: options.worldTransforms,
+    ...(options.previousWorldTransforms === undefined
+      ? {}
+      : { previousWorldTransforms: options.previousWorldTransforms }),
     sharedLayouts: options.sharedLayouts,
     materialLayout: options.materialLayout,
     bindGroupCache: options.bindGroupCache,
@@ -220,6 +228,8 @@ export function createOrReuseDebugNormalAppFrameResources(options: {
     options.cache.current = {
       meshKey: options.meshKey,
       materialKey: options.materialKey,
+      previousWorldTransformResourceKey:
+        options.previousWorldTransforms?.resourceKey ?? null,
       viewByteLength:
         viewDescriptor.plan?.source.byteLength ??
         options.viewUniforms.data.byteLength,

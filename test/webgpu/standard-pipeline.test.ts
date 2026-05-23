@@ -104,6 +104,19 @@ describe("browser standard material pipeline bridge", () => {
     });
 
     expect(shader.code).toContain("previousViewProjection: mat4x4f");
+    expect(shader.code).toContain(
+      "@group(1) @binding(3) var<storage, read> previousWorldTransforms",
+    );
+    expect(shader.code).toContain(
+      "view.previousViewProjection * previousWorld * vec4f(input.position, 1.0)",
+    );
+    expect(shader.bindings).toContainEqual({
+      id: "previousWorldTransforms",
+      label: "Previous world transform matrix storage",
+      group: 1,
+      binding: 3,
+      resource: "read-only-storage-buffer",
+    });
     expect(shader.code).toContain("@location(1) motionVector: vec4f");
     expect(descriptor.fragment).toMatchObject({
       module: shaderModule,

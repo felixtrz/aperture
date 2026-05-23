@@ -1470,12 +1470,15 @@
               inside authored render-order buckets. Queued built-in
               frame-resource preparation now reuses compatible shared view,
               transform, light, and light/shadow bind groups and publishes
-              creation-vs-reuse pressure in app status.
+              creation-vs-reuse pressure in app status. TAA motion vectors now
+              use renderer-side previous per-object transform history for
+              independently moving built-in mesh geometry, with
+              <code>examples/taa.html</code> reporting one object transform
+              history hit and zero fallback transforms.
             </dd>
             <dt>Next focus</dt>
             <dd>
-              task-3116 previous transform history for independently moving TAA
-              geometry
+              task-3117 downsample/upsample post-effect graph for bloom
             </dd>
           </dl>
         </aside>
@@ -2245,7 +2248,12 @@
               stable-baseline pipeline switches to 2 state-aware pipeline
               switches while keeping 8 draw calls and zero diagnostics. The same
               proof now reports shared queued bind-group pressure with 3 created
-              bind groups, 18 reused bind groups, and 3 cached entries.
+              bind groups, 18 reused bind groups, and 3 cached entries. TAA now
+              preserves previous per-object transform history across
+              independently moving geometry; the TAA proof reports one previous
+              object transform used, zero fallback transforms, and zero
+              diagnostics while the worker moves the mesh independently of the
+              camera jitter.
               <code>createWebGpuApp({ msaa })</code> now renders forward passes
               through cached multisampled color/depth attachments, resolves to
               the swapchain or off-screen target, and keys built-in pipelines by
@@ -2253,8 +2261,8 @@
             </p>
             <ul>
               <li>
-                Missing broader environment asset preparation and previous
-                transform history for independently moving temporal geometry.
+                Missing a downsample/upsample post-effect graph for bloom and
+                broader environment asset preparation.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2276,15 +2284,15 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">task-3116</span> Added previous
+                per-object transform history for TAA motion vectors and proved
+                moving-geometry history in the TAA browser proof.
+              </li>
+              <li>
                 <span class="badge green">task-3115</span> Reused shared queued
                 built-in bind groups across compatible frame-resource routes and
                 exposed created/reused/cache pressure in the standard queue
                 phase browser proof.
-              </li>
-              <li>
-                <span class="badge green">task-3114</span> Added state-aware
-                opaque queue ordering and exposed stable-vs-state-aware pipeline
-                switch pressure in the standard queue phase browser proof.
               </li>
               <li>
                 <span class="badge green">loading</span> Preserved glTF source
@@ -4553,16 +4561,16 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Implement
-                <code>task-3116</code>: preserve previous transform history for
-                independently moving TAA geometry.
-              </li>
-              <li>
-                Then implement <code>task-3117</code>: a downsample/upsample
-                post-effect graph for bloom.
+                <code>task-3117</code>: a downsample/upsample post-effect graph
+                for bloom.
               </li>
               <li>
                 Then implement <code>task-3118</code>: broader environment asset
                 preparation and switching beyond the current single proof route.
+              </li>
+              <li>
+                Then select the next visible render-pipeline parity slice from
+                the comparison page.
               </li>
             </ul>
           </article>

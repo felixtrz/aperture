@@ -83,6 +83,37 @@ describe("unlit bind group descriptor planning", () => {
     });
   });
 
+  it("adds previous world transforms for motion-vector pipelines", () => {
+    expect(
+      createUnlitBindGroupDescriptorPlan({
+        viewUniformResourceKey: "view",
+        worldTransformResourceKey: "transforms",
+        previousWorldTransformResourceKey: "previous-transforms",
+        materialResourceKey: "material",
+      }).entries,
+    ).toEqual([
+      { group: 0, binding: 0, resourceKey: "view", resourceKind: "buffer" },
+      {
+        group: 1,
+        binding: 0,
+        resourceKey: "transforms",
+        resourceKind: "buffer",
+      },
+      {
+        group: 1,
+        binding: 3,
+        resourceKey: "previous-transforms",
+        resourceKind: "buffer",
+      },
+      {
+        group: 2,
+        binding: 0,
+        resourceKey: "material",
+        resourceKind: "buffer",
+      },
+    ]);
+  });
+
   it("diagnoses partial textured bind group resource keys", () => {
     expect(
       createUnlitBindGroupDescriptorPlan({

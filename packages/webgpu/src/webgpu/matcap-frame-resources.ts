@@ -104,6 +104,7 @@ export interface CreateMatcapFrameGpuResourcesOptions {
   readonly preparedMesh?: MeshGpuBufferResource | undefined;
   readonly viewUniforms: PackedSnapshotViewUniforms | null;
   readonly worldTransforms: PackedSnapshotTransforms | null;
+  readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
   readonly material: MatcapMaterialAsset | null;
   readonly preparedMaterial?: PreparedMatcapFrameMaterialResources | undefined;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
@@ -119,6 +120,7 @@ export interface MatcapFrameGpuResources {
   readonly mesh: MeshGpuBufferResource;
   readonly viewUniform: ViewUniformGpuBufferResource;
   readonly worldTransforms: WorldTransformGpuBufferResource;
+  readonly previousWorldTransforms?: WorldTransformGpuBufferResource;
   readonly material: MatcapMaterialGpuBufferResource;
   readonly materialBindGroup: MatcapMaterialBindGroupResource;
   readonly bindGroups: readonly (
@@ -175,6 +177,10 @@ export function createMatcapFrameGpuResources(
       mesh,
       viewUniform,
       worldTransforms,
+      ...(options.previousWorldTransforms === undefined ||
+      options.previousWorldTransforms === null
+        ? {}
+        : { previousWorldTransforms: options.previousWorldTransforms }),
       material,
       materialBindGroup,
       bindGroups: [...sharedBindGroups.resources, materialBindGroup],
@@ -320,6 +326,12 @@ function createSharedBindGroups(
   const plan = createSharedBindGroupDescriptorPlan({
     viewUniformResourceKey: viewUniform?.resourceKey ?? null,
     worldTransformResourceKey: worldTransforms?.resourceKey ?? null,
+    ...(options.previousWorldTransforms === undefined
+      ? {}
+      : {
+          previousWorldTransformResourceKey:
+            options.previousWorldTransforms?.resourceKey ?? null,
+        }),
   });
 
   diagnostics.push(...plan.diagnostics);
@@ -345,6 +357,15 @@ function createSharedBindGroups(
             {
               resourceKey: worldTransforms.resourceKey,
               buffer: worldTransforms.buffer,
+            },
+          ]),
+      ...(options.previousWorldTransforms === undefined ||
+      options.previousWorldTransforms === null
+        ? []
+        : [
+            {
+              resourceKey: options.previousWorldTransforms.resourceKey,
+              buffer: options.previousWorldTransforms.buffer,
             },
           ]),
     ],
@@ -397,6 +418,7 @@ function createMaterialBindGroup(
 function createSharedBindGroupDescriptorPlan(input: {
   readonly viewUniformResourceKey: string | null;
   readonly worldTransformResourceKey: string | null;
+  readonly previousWorldTransformResourceKey?: string | null;
 }): UnlitBindGroupDescriptorPlan {
   const diagnostics: UnlitBindGroupDescriptorDiagnostic[] = [];
   const entries: UnlitBindGroupDescriptorEntry[] = [];
@@ -428,6 +450,23 @@ function createSharedBindGroupDescriptorPlan(input: {
       resourceKey: input.worldTransformResourceKey,
       resourceKind: "buffer",
     });
+  }
+
+  if (input.previousWorldTransformResourceKey !== undefined) {
+    if (input.previousWorldTransformResourceKey === null) {
+      diagnostics.push({
+        code: "unlitBindGroup.missingTransformResource",
+        message:
+          "Matcap motion-vector shared bind group planning requires a previous world transform buffer.",
+      });
+    } else {
+      entries.push({
+        group: 1,
+        binding: 3,
+        resourceKey: input.previousWorldTransformResourceKey,
+        resourceKind: "buffer",
+      });
+    }
   }
 
   return { valid: diagnostics.length === 0, entries, diagnostics };

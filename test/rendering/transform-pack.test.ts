@@ -9,11 +9,14 @@ import {
   createUnlitMaterialAsset,
   defineInstanceAttributes,
   createInstanceAttributeLayout,
+  createPackedSnapshotPreviousTransformsScratch,
   createPackedSnapshotInstanceTintsScratch,
   createPackedSnapshotTransformsScratch,
+  rememberPackedSnapshotTransformsByRenderId,
   packSnapshotInstanceAttributesForVertexBuffer,
   packSnapshotInstanceTintsForVertexBuffer,
   packSnapshotTransforms,
+  writePackedSnapshotPreviousTransforms,
   writePackedSnapshotInstanceTintsForVertexBuffer,
   writePackedSnapshotTransforms,
   type InstanceAttributePacket,
@@ -96,6 +99,63 @@ describe("render snapshot transform packing", () => {
       ...matrix(1),
       ...matrix(2),
     ]);
+  });
+
+  it("packs previous transforms by stable render id without ECS access", () => {
+    const firstSnapshot = snapshot(
+      [packet(10, 0), packet(11, 16)],
+      matrices([1, 2]),
+    );
+    const secondSnapshot = snapshot(
+      [packet(11, 0), packet(10, 16), packet(12, 32)],
+      matrices([20, 10, 30]),
+    );
+    const history = new Map<number, Float32Array>();
+    const scratch = createPackedSnapshotPreviousTransformsScratch();
+    const firstTransforms = packSnapshotTransforms(firstSnapshot);
+
+    expect(
+      rememberPackedSnapshotTransformsByRenderId(firstTransforms, history),
+    ).toEqual({ stored: 2, staleRemoved: 0 });
+
+    const secondTransforms = packSnapshotTransforms(secondSnapshot);
+    const previous = writePackedSnapshotPreviousTransforms(
+      secondTransforms,
+      history,
+      scratch,
+    );
+
+    expect(previous.history).toEqual({
+      total: 3,
+      used: 2,
+      fallback: 1,
+      missing: [12],
+    });
+    expect(Array.from(previous.data.subarray(0, previous.floatCount))).toEqual([
+      ...matrix(2),
+      ...matrix(1),
+      ...matrix(30),
+    ]);
+    expect(previous.offsets.map((offset) => offset.renderId)).toEqual([
+      11, 10, 12,
+    ]);
+    expect(previous.diagnostics).toEqual([]);
+  });
+
+  it("removes stale previous transform history entries", () => {
+    const history = new Map<number, Float32Array>([
+      [1, new Float32Array(matrix(1))],
+      [2, new Float32Array(matrix(2))],
+    ]);
+    const transforms = packSnapshotTransforms(
+      snapshot([packet(2, 0)], matrix(20)),
+    );
+
+    expect(
+      rememberPackedSnapshotTransformsByRenderId(transforms, history),
+    ).toEqual({ stored: 1, staleRemoved: 1 });
+    expect([...history.keys()]).toEqual([2]);
+    expect(Array.from(history.get(2) ?? [])).toEqual(matrix(20));
   });
 
   it("packs instance tints into transform-aligned vertex buffer slots", () => {

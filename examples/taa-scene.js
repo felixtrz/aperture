@@ -45,6 +45,10 @@ export function cameraPanForFrame(frame) {
   return Math.sin(frame * 0.58) * 0.018;
 }
 
+export function objectMotionForFrame(frame) {
+  return Math.sin(frame * 0.47) * 0.046;
+}
+
 const taaJitterSamples = [
   [0.125, -0.375],
   [-0.375, 0.125],

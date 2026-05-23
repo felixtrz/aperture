@@ -19,6 +19,22 @@ export interface PackedSnapshotTransforms {
   readonly diagnostics: readonly RenderDiagnostic[];
 }
 
+export interface PackedPreviousSnapshotTransformHistoryReport {
+  readonly total: number;
+  readonly used: number;
+  readonly fallback: number;
+  readonly missing: readonly number[];
+}
+
+export interface PackedSnapshotPreviousTransforms extends PackedSnapshotTransforms {
+  readonly history: PackedPreviousSnapshotTransformHistoryReport;
+}
+
+export interface PackedSnapshotTransformHistoryUpdateReport {
+  readonly stored: number;
+  readonly staleRemoved: number;
+}
+
 export interface PackedInstanceTintOffset {
   readonly renderId: number;
   readonly sourceOffset: number;
@@ -55,6 +71,16 @@ export interface PackedSnapshotTransformsScratch {
   readonly result: PackedSnapshotTransforms;
 }
 
+export interface PackedSnapshotPreviousTransformsScratch {
+  data: Float32Array;
+  readonly offsets: PackedTransformOffset[];
+  readonly diagnostics: RenderDiagnostic[];
+  readonly offsetPool: PackedTransformOffset[];
+  readonly missing: number[];
+  readonly history: MutablePackedPreviousSnapshotTransformHistoryReport;
+  readonly result: PackedSnapshotPreviousTransforms;
+}
+
 export interface PackedSnapshotInstanceTintsScratch {
   data: Float32Array;
   readonly offsets: PackedInstanceTintOffset[];
@@ -88,6 +114,17 @@ interface MutablePackedSnapshotTransforms {
   floatCount: number;
   offsets: readonly PackedTransformOffset[];
   diagnostics: readonly RenderDiagnostic[];
+}
+
+interface MutablePackedSnapshotPreviousTransforms extends MutablePackedSnapshotTransforms {
+  history: PackedPreviousSnapshotTransformHistoryReport;
+}
+
+interface MutablePackedPreviousSnapshotTransformHistoryReport {
+  total: number;
+  used: number;
+  fallback: number;
+  missing: readonly number[];
 }
 
 interface MutablePackedSnapshotInstanceTints {
@@ -231,6 +268,32 @@ export function createPackedSnapshotTransformsScratch(
   };
 }
 
+export function createPackedSnapshotPreviousTransformsScratch(
+  floatCapacity = 0,
+  offsetCapacity = 0,
+): PackedSnapshotPreviousTransformsScratch {
+  const offsets: PackedTransformOffset[] = [];
+  const diagnostics: RenderDiagnostic[] = [];
+  const offsetPool: PackedTransformOffset[] = [];
+  const missing: number[] = [];
+  const data = new Float32Array(floatCapacity);
+  const history = { total: 0, used: 0, fallback: 0, missing };
+
+  for (let i = 0; i < offsetCapacity; i += 1) {
+    offsetPool.push(createEmptyOffset());
+  }
+
+  return {
+    data,
+    offsets,
+    diagnostics,
+    offsetPool,
+    missing,
+    history,
+    result: { data, floatCount: 0, offsets, diagnostics, history },
+  };
+}
+
 export function createPackedSnapshotInstanceTintsScratch(
   floatCapacity = 0,
   offsetCapacity = 0,
@@ -320,6 +383,104 @@ export function writePackedSnapshotTransforms(
   result.data = scratch.data;
 
   return scratch.result;
+}
+
+export function writePackedSnapshotPreviousTransforms(
+  currentTransforms: PackedSnapshotTransforms,
+  previousByRenderId: ReadonlyMap<number, Float32Array>,
+  scratch: PackedSnapshotPreviousTransformsScratch,
+): PackedSnapshotPreviousTransforms {
+  const result = scratch.result as MutablePackedSnapshotPreviousTransforms;
+  const floatCount =
+    currentTransforms.floatCount ?? currentTransforms.data.length;
+
+  scratch.offsets.length = 0;
+  scratch.diagnostics.length = 0;
+  scratch.missing.length = 0;
+  scratch.history.total = currentTransforms.offsets.length;
+  scratch.history.used = 0;
+  scratch.history.fallback = 0;
+  scratch.history.missing = scratch.missing;
+  result.floatCount = floatCount;
+
+  ensurePreviousTransformDataCapacity(scratch, floatCount);
+  scratch.data.set(currentTransforms.data.subarray(0, floatCount));
+
+  for (const sourceOffset of currentTransforms.offsets) {
+    const offset = previousOffsetAt(scratch, scratch.offsets.length);
+
+    offset.renderId = sourceOffset.renderId;
+    offset.sourceOffset = sourceOffset.sourceOffset;
+    offset.packedOffset = sourceOffset.packedOffset;
+    scratch.offsets.push(offset);
+
+    if (!hasTransformRange(floatCount, sourceOffset.packedOffset)) {
+      scratch.diagnostics.push({
+        code: "renderPreviousTransformPack.missingCurrentTransform",
+        message: `Render id ${sourceOffset.renderId} references packed transform offset ${sourceOffset.packedOffset}, but current packed transform data length is ${floatCount}.`,
+        severity: "warning",
+      });
+      scratch.history.fallback += 1;
+      scratch.missing.push(sourceOffset.renderId);
+      continue;
+    }
+
+    const previous = previousByRenderId.get(sourceOffset.renderId);
+
+    if (previous === undefined || previous.length < 16) {
+      scratch.history.fallback += 1;
+      scratch.missing.push(sourceOffset.renderId);
+      continue;
+    }
+
+    scratch.data.set(previous.subarray(0, 16), sourceOffset.packedOffset);
+    scratch.history.used += 1;
+  }
+
+  result.data = scratch.data;
+  result.history = scratch.history;
+
+  return scratch.result;
+}
+
+export function rememberPackedSnapshotTransformsByRenderId(
+  currentTransforms: PackedSnapshotTransforms,
+  previousByRenderId: Map<number, Float32Array>,
+): PackedSnapshotTransformHistoryUpdateReport {
+  const seen = new Set<number>();
+  const floatCount =
+    currentTransforms.floatCount ?? currentTransforms.data.length;
+  let stored = 0;
+
+  for (const offset of currentTransforms.offsets) {
+    if (!hasTransformRange(floatCount, offset.packedOffset)) {
+      continue;
+    }
+
+    const matrix =
+      previousByRenderId.get(offset.renderId) ?? new Float32Array(16);
+
+    matrix.set(
+      currentTransforms.data.subarray(
+        offset.packedOffset,
+        offset.packedOffset + 16,
+      ),
+    );
+    previousByRenderId.set(offset.renderId, matrix);
+    seen.add(offset.renderId);
+    stored += 1;
+  }
+
+  let staleRemoved = 0;
+
+  for (const renderId of previousByRenderId.keys()) {
+    if (!seen.has(renderId)) {
+      previousByRenderId.delete(renderId);
+      staleRemoved += 1;
+    }
+  }
+
+  return { stored, staleRemoved };
 }
 
 export function writePackedSnapshotInstanceTintsForVertexBuffer(
@@ -535,6 +696,26 @@ function ensureTransformDataCapacity(
   scratch.data = next;
 }
 
+function ensurePreviousTransformDataCapacity(
+  scratch: PackedSnapshotPreviousTransformsScratch,
+  required: number,
+): void {
+  if (scratch.data.length >= required) {
+    return;
+  }
+
+  let capacity = Math.max(16, scratch.data.length);
+
+  while (capacity < required) {
+    capacity *= 2;
+  }
+
+  const next = new Float32Array(capacity);
+
+  next.set(scratch.data.subarray(0, scratch.data.length));
+  scratch.data = next;
+}
+
 function ensureInstanceTintDataCapacity(
   scratch: PackedSnapshotInstanceTintsScratch,
   required: number,
@@ -571,6 +752,24 @@ function ensureInstanceAttributeDataCapacity(
 
 function offsetAt(
   scratch: PackedSnapshotTransformsScratch,
+  index: number,
+): MutablePackedTransformOffset {
+  const existing = scratch.offsetPool[index] as
+    | MutablePackedTransformOffset
+    | undefined;
+
+  if (existing !== undefined) {
+    return existing;
+  }
+
+  const offset = createEmptyOffset();
+
+  scratch.offsetPool.push(offset);
+  return offset;
+}
+
+function previousOffsetAt(
+  scratch: PackedSnapshotPreviousTransformsScratch,
   index: number,
 ): MutablePackedTransformOffset {
   const existing = scratch.offsetPool[index] as
@@ -652,6 +851,10 @@ function hasTransform(transforms: Float32Array, offset: number): boolean {
   return (
     Number.isInteger(offset) && offset >= 0 && offset + 16 <= transforms.length
   );
+}
+
+function hasTransformRange(floatCount: number, offset: number): boolean {
+  return Number.isInteger(offset) && offset >= 0 && offset + 16 <= floatCount;
 }
 
 function hasVec4(values: Float32Array, offset: number): boolean {

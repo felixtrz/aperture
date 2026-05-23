@@ -59,8 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3116`: add previous transform history for independently moving TAA
-geometry.
+Start `task-3117`: add a downsample/upsample post-effect graph for bloom.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -151,9 +150,11 @@ compatible grouped draws through an indirect argument buffer when supported.
 material-resource, mesh-layout, and mesh-resource state inside authored
 render-order buckets. `task-3115` now reuses shared queued built-in bind groups
 across compatible frame-resource routes and exposes creation-vs-reuse pressure
-in app/browser status. The remaining closest visible SOTA gap is temporal
-history for independently moving geometry, followed by deeper post-effect graph
-composition and broader environment asset preparation.
+in app/browser status. `task-3116` now preserves previous per-object transform
+history for TAA motion vectors and proves moving-geometry history in
+`examples/taa.html`. The remaining closest visible SOTA gap is deeper
+post-effect graph composition, followed by broader environment asset
+preparation.
 
 Reference anchors for the next task (read before writing):
 
@@ -435,6 +436,8 @@ Acceptance criteria:
 - The selected scene keeps its existing pixel/readback proof, render-bundle reuse remains valid, and targeted frame-resource cache tests cover invalidation when buffer/layout/resource keys change.
 
 ### task-3116 — Add previous transform history for independently moving TAA geometry
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/render/src/rendering/`, `packages/webgpu/src/webgpu/*taa*`, `examples/taa.*`, targeted tests.

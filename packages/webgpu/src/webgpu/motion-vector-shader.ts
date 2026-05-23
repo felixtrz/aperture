@@ -1,12 +1,15 @@
 import type { BuiltInShaderSourceModule } from "./unlit-shader.js";
 
 export const MOTION_VECTOR_SHADER_VARIANT_SUFFIX = "motion-vector";
+export const PREVIOUS_WORLD_TRANSFORM_BINDING = 3;
 
 export function createMotionVectorBuiltInShaderVariant(
   shader: BuiltInShaderSourceModule,
 ): BuiltInShaderSourceModule {
   const codeWithUniform = addPreviousViewProjectionUniform(shader.code);
-  const codeWithVaryings = addMotionVectorVaryings(codeWithUniform);
+  const codeWithPreviousTransforms =
+    addPreviousWorldTransformStorage(codeWithUniform);
+  const codeWithVaryings = addMotionVectorVaryings(codeWithPreviousTransforms);
   const codeWithAssignments = addMotionVectorAssignments(codeWithVaryings);
   const code = wrapFragmentWithMotionVectorOutput(
     codeWithAssignments,
@@ -17,6 +20,7 @@ export function createMotionVectorBuiltInShaderVariant(
     ...shader,
     label: `${shader.label}/${MOTION_VECTOR_SHADER_VARIANT_SUFFIX}`,
     code,
+    bindings: addPreviousWorldTransformBinding(shader.bindings),
   };
 }
 
@@ -28,6 +32,18 @@ function addPreviousViewProjectionUniform(code: string): string {
   return code.replace(
     "  cameraPosition: vec4f,\n",
     "  cameraPosition: vec4f,\n  previousViewProjection: mat4x4f,\n",
+  );
+}
+
+function addPreviousWorldTransformStorage(code: string): string {
+  if (code.includes("previousWorldTransforms: array<mat4x4f>")) {
+    return code;
+  }
+
+  return code.replace(
+    "@group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4f>;",
+    `@group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4f>;
+@group(1) @binding(${PREVIOUS_WORLD_TRANSFORM_BINDING}) var<storage, read> previousWorldTransforms: array<mat4x4f>;`,
   );
 }
 
@@ -47,17 +63,75 @@ function addMotionVectorAssignments(code: string): string {
     return code;
   }
 
-  if (code.includes("output.position = view.viewProjection * worldPosition;")) {
-    return code.replace(
+  const codeWithPreviousWorld = addPreviousWorldLocal(code);
+  const previousLocalPosition = previousLocalPositionExpression(
+    codeWithPreviousWorld,
+  );
+
+  if (
+    codeWithPreviousWorld.includes(
+      "output.position = view.viewProjection * worldPosition;",
+    )
+  ) {
+    return codeWithPreviousWorld.replace(
       "  output.position = view.viewProjection * worldPosition;\n",
-      "  output.position = view.viewProjection * worldPosition;\n  output.motionClipPosition = output.position;\n  output.previousMotionClipPosition = view.previousViewProjection * worldPosition;\n",
+      `  output.position = view.viewProjection * worldPosition;
+  output.motionClipPosition = output.position;
+  output.previousMotionClipPosition = view.previousViewProjection * previousWorld * ${previousLocalPosition};
+`,
     );
   }
 
-  return code.replace(
+  return codeWithPreviousWorld.replace(
     "  output.position = view.viewProjection * world * vec4f(input.position, 1.0);\n",
-    "  let worldPosition = world * vec4f(input.position, 1.0);\n  output.position = view.viewProjection * worldPosition;\n  output.motionClipPosition = output.position;\n  output.previousMotionClipPosition = view.previousViewProjection * worldPosition;\n",
+    `  let worldPosition = world * vec4f(input.position, 1.0);
+  output.position = view.viewProjection * worldPosition;
+  output.motionClipPosition = output.position;
+  output.previousMotionClipPosition = view.previousViewProjection * previousWorld * vec4f(input.position, 1.0);
+`,
   );
+}
+
+function addPreviousWorldLocal(code: string): string {
+  if (code.includes("let previousWorld = previousWorldTransforms")) {
+    return code;
+  }
+
+  return code.replace(
+    "  let world = worldTransforms[input.instanceIndex];",
+    "  let world = worldTransforms[input.instanceIndex];\n  let previousWorld = previousWorldTransforms[input.instanceIndex];",
+  );
+}
+
+function previousLocalPositionExpression(code: string): string {
+  if (code.includes("let skinnedPosition = ")) {
+    return "vec4f(skinnedPosition, 1.0)";
+  }
+
+  if (code.includes("let morphedPosition = ")) {
+    return "vec4f(morphedPosition, 1.0)";
+  }
+
+  return "vec4f(input.position, 1.0)";
+}
+
+function addPreviousWorldTransformBinding(
+  bindings: BuiltInShaderSourceModule["bindings"],
+): BuiltInShaderSourceModule["bindings"] {
+  if (bindings.some((binding) => binding.id === "previousWorldTransforms")) {
+    return bindings;
+  }
+
+  return [
+    ...bindings,
+    {
+      id: "previousWorldTransforms",
+      label: "Previous world transform matrix storage",
+      group: 1,
+      binding: PREVIOUS_WORLD_TRANSFORM_BINDING,
+      resource: "read-only-storage-buffer",
+    },
+  ];
 }
 
 function wrapFragmentWithMotionVectorOutput(

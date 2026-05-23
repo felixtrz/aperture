@@ -10,6 +10,7 @@ export type BuiltInShaderBindingResource =
 export type BuiltInShaderBindingId =
   | "viewProjection"
   | "worldTransforms"
+  | "previousWorldTransforms"
   | "unlitMaterial"
   | "matcapMaterial"
   | "standardMaterial"

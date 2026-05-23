@@ -20,6 +20,7 @@ export interface UnlitBindGroupDescriptorDiagnostic {
 export interface UnlitBindGroupResourceInput {
   readonly viewUniformResourceKey: string | null;
   readonly worldTransformResourceKey: string | null;
+  readonly previousWorldTransformResourceKey?: string | null;
   readonly materialResourceKey: string | null;
   readonly baseColorTextureResourceKey?: string | null;
   readonly baseColorSamplerResourceKey?: string | null;
@@ -192,6 +193,23 @@ export function createUnlitBindGroupDescriptorPlan(
       resourceKey: input.worldTransformResourceKey,
       resourceKind: "buffer",
     });
+  }
+
+  if (input.previousWorldTransformResourceKey !== undefined) {
+    if (input.previousWorldTransformResourceKey === null) {
+      diagnostics.push({
+        code: "unlitBindGroup.missingTransformResource",
+        message:
+          "Motion-vector bind group planning requires a previous world transform buffer resource.",
+      });
+    } else {
+      entries.push({
+        group: 1,
+        binding: 3,
+        resourceKey: input.previousWorldTransformResourceKey,
+        resourceKind: "buffer",
+      });
+    }
   }
 
   if (input.materialResourceKey === null) {
@@ -517,6 +535,13 @@ export function createUnlitBindGroupLayoutMetadata(
             resourceKind: "buffer",
             visibility: ["vertex"],
             required: true,
+          },
+          {
+            binding: 3,
+            name: "previousWorldTransforms",
+            resourceKind: "buffer",
+            visibility: ["vertex"],
+            required: false,
           },
         ],
       };

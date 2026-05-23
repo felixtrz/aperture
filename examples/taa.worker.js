@@ -1,6 +1,7 @@
 import {
   cameraPanForFrame,
   clearColor,
+  objectMotionForFrame,
   registerTaaScene,
   taaCanvasSize,
   temporalJitterForFrame,
@@ -62,6 +63,7 @@ async function handleMessage(data) {
       const frame = Number.isInteger(data.frame) ? data.frame : 1;
 
       updateCameraForFrame(aperture, scene, frame);
+      updateObjectForFrame(aperture, scene, frame);
       scene.app.step(0, frame / 60);
       const snapshot = scene.app.extract(frame);
 
@@ -73,6 +75,7 @@ async function handleMessage(data) {
           workerStep: {
             jitter: scene.jitter,
             pan: scene.pan,
+            objectOffset: scene.objectOffset,
             transforms: snapshot.transforms.length / 16,
             viewMatrices: snapshot.viewMatrices.length / 16,
             meshDraws: snapshot.meshDraws.length,
@@ -116,7 +119,7 @@ function createWorkerScene(aperture, canvasSize) {
     }),
   );
 
-  app.spawn(
+  const edge = app.spawn(
     aperture.withTransform({
       translation: [-0.08, 0, 0],
       rotation: edgeRotation,
@@ -131,8 +134,10 @@ function createWorkerScene(aperture, canvasSize) {
     ...registered,
     app,
     camera,
+    edge,
     jitter: [0, 0],
     pan: 0,
+    objectOffset: 0,
     canvasSize,
   };
 }
@@ -152,6 +157,15 @@ function updateCameraForFrame(aperture, currentScene, frame) {
     .set([pan, 0, 2.6]);
   currentScene.jitter = jitter;
   currentScene.pan = pan;
+}
+
+function updateObjectForFrame(aperture, currentScene, frame) {
+  const objectOffset = objectMotionForFrame(frame);
+
+  currentScene.edge
+    .getVectorView(aperture.LocalTransform, "translation")
+    .set([-0.08 + objectOffset, 0, 0]);
+  currentScene.objectOffset = objectOffset;
 }
 
 function messageFromError(error) {

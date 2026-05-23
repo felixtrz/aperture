@@ -102,6 +102,7 @@ export interface CreateUnlitFrameGpuResourcesOptions {
   readonly preparedMesh?: MeshGpuBufferResource | undefined;
   readonly viewUniforms: PackedSnapshotViewUniforms | null;
   readonly worldTransforms: PackedSnapshotTransforms | null;
+  readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
   readonly material: MaterialAsset | null;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
   readonly preparedMaterial?: PreparedUnlitFrameMaterialResources | undefined;
@@ -117,6 +118,7 @@ export interface CreateMultiMaterialUnlitFrameGpuResourcesOptions {
   readonly mesh: MeshAsset | null;
   readonly viewUniforms: PackedSnapshotViewUniforms | null;
   readonly worldTransforms: PackedSnapshotTransforms | null;
+  readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
   readonly materials: readonly (MaterialAsset | null)[] | null;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
   readonly bindGroupCache?:
@@ -133,6 +135,7 @@ export interface UnlitFrameGpuResources {
   readonly mesh: MeshGpuBufferResource;
   readonly viewUniform: ViewUniformGpuBufferResource;
   readonly worldTransforms: WorldTransformGpuBufferResource;
+  readonly previousWorldTransforms?: WorldTransformGpuBufferResource;
   readonly material: UnlitMaterialGpuBufferResource;
   readonly bindGroups: CreateUnlitBindGroupsResult["resources"];
 }
@@ -146,6 +149,7 @@ export interface MultiMaterialUnlitFrameGpuResources {
   readonly mesh: MeshGpuBufferResource;
   readonly viewUniform: ViewUniformGpuBufferResource;
   readonly worldTransforms: WorldTransformGpuBufferResource;
+  readonly previousWorldTransforms?: WorldTransformGpuBufferResource;
   readonly materials: readonly UnlitMaterialGpuBufferResource[];
   readonly bindGroups: CreateUnlitBindGroupsResult["resources"];
 }
@@ -178,6 +182,12 @@ export function createUnlitFrameGpuResources(
     const bindGroupPlan = createUnlitBindGroupDescriptorPlan({
       viewUniformResourceKey: viewUniform?.resourceKey ?? null,
       worldTransformResourceKey: worldTransforms?.resourceKey ?? null,
+      ...(options.previousWorldTransforms === undefined
+        ? {}
+        : {
+            previousWorldTransformResourceKey:
+              options.previousWorldTransforms?.resourceKey ?? null,
+          }),
       materialResourceKey: material?.resourceKey ?? null,
       baseColorTextureResourceKey:
         material?.dependencies.baseColorTextureKey ?? null,
@@ -205,6 +215,13 @@ export function createUnlitFrameGpuResources(
               resourceKey: worldTransforms.resourceKey,
               buffer: worldTransforms.buffer,
             },
+        options.previousWorldTransforms === undefined ||
+        options.previousWorldTransforms === null
+          ? null
+          : {
+              resourceKey: options.previousWorldTransforms.resourceKey,
+              buffer: options.previousWorldTransforms.buffer,
+            },
         material === null
           ? null
           : {
@@ -220,6 +237,9 @@ export function createUnlitFrameGpuResources(
       device: options.device,
       viewUniform,
       worldTransforms,
+      ...(options.previousWorldTransforms === undefined
+        ? {}
+        : { previousWorldTransforms: options.previousWorldTransforms }),
       layouts: options.layouts,
       preparedMaterial: options.preparedMaterial,
       bindGroupCache: options.bindGroupCache,
@@ -244,6 +264,10 @@ export function createUnlitFrameGpuResources(
       mesh,
       viewUniform,
       worldTransforms,
+      ...(options.previousWorldTransforms === undefined ||
+      options.previousWorldTransforms === null
+        ? {}
+        : { previousWorldTransforms: options.previousWorldTransforms }),
       material,
       bindGroups: bindGroups.resources,
     },
@@ -255,6 +279,7 @@ function createUnlitFrameBindGroupsFromPreparedMaterial(options: {
   readonly device: UnlitFrameGpuResourceDeviceLike;
   readonly viewUniform: ViewUniformGpuBufferResource | null;
   readonly worldTransforms: WorldTransformGpuBufferResource | null;
+  readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
   readonly preparedMaterial: PreparedUnlitFrameMaterialResources;
   readonly bindGroupCache?:
@@ -264,6 +289,12 @@ function createUnlitFrameBindGroupsFromPreparedMaterial(options: {
   const sharedBindGroupPlan = createSharedBindGroupDescriptorPlan({
     viewUniformResourceKey: options.viewUniform?.resourceKey ?? null,
     worldTransformResourceKey: options.worldTransforms?.resourceKey ?? null,
+    ...(options.previousWorldTransforms === undefined
+      ? {}
+      : {
+          previousWorldTransformResourceKey:
+            options.previousWorldTransforms?.resourceKey ?? null,
+        }),
   });
   const sharedBindGroups = createUnlitBindGroupsFromGpuResources({
     device: options.device,
@@ -282,6 +313,13 @@ function createUnlitFrameBindGroupsFromPreparedMaterial(options: {
         : {
             resourceKey: options.worldTransforms.resourceKey,
             buffer: options.worldTransforms.buffer,
+          },
+      options.previousWorldTransforms === undefined ||
+      options.previousWorldTransforms === null
+        ? null
+        : {
+            resourceKey: options.previousWorldTransforms.resourceKey,
+            buffer: options.previousWorldTransforms.buffer,
           },
     ]),
     requiredGroups: [0, 1],
@@ -317,6 +355,12 @@ export function createMultiMaterialUnlitFrameGpuResources(
   const sharedBindGroupPlan = createSharedBindGroupDescriptorPlan({
     viewUniformResourceKey: viewUniform?.resourceKey ?? null,
     worldTransformResourceKey: worldTransforms?.resourceKey ?? null,
+    ...(options.previousWorldTransforms === undefined
+      ? {}
+      : {
+          previousWorldTransformResourceKey:
+            options.previousWorldTransforms?.resourceKey ?? null,
+        }),
   });
 
   diagnostics.push(...sharedBindGroupPlan.diagnostics);
@@ -335,6 +379,13 @@ export function createMultiMaterialUnlitFrameGpuResources(
         : {
             resourceKey: worldTransforms.resourceKey,
             buffer: worldTransforms.buffer,
+          },
+      options.previousWorldTransforms === undefined ||
+      options.previousWorldTransforms === null
+        ? null
+        : {
+            resourceKey: options.previousWorldTransforms.resourceKey,
+            buffer: options.previousWorldTransforms.buffer,
           },
     ]),
     textures: options.textures,
@@ -368,6 +419,10 @@ export function createMultiMaterialUnlitFrameGpuResources(
       mesh,
       viewUniform,
       worldTransforms,
+      ...(options.previousWorldTransforms === undefined ||
+      options.previousWorldTransforms === null
+        ? {}
+        : { previousWorldTransforms: options.previousWorldTransforms }),
       materials,
       bindGroups: [
         ...sharedBindGroups.resources,
@@ -552,6 +607,7 @@ function createMaterialResources(
 function createSharedBindGroupDescriptorPlan(input: {
   readonly viewUniformResourceKey: string | null;
   readonly worldTransformResourceKey: string | null;
+  readonly previousWorldTransformResourceKey?: string | null;
 }): UnlitBindGroupDescriptorPlan {
   const diagnostics: UnlitBindGroupDescriptorDiagnostic[] = [];
   const entries: UnlitBindGroupDescriptorEntry[] = [];
@@ -583,6 +639,23 @@ function createSharedBindGroupDescriptorPlan(input: {
       resourceKey: input.worldTransformResourceKey,
       resourceKind: "buffer",
     });
+  }
+
+  if (input.previousWorldTransformResourceKey !== undefined) {
+    if (input.previousWorldTransformResourceKey === null) {
+      diagnostics.push({
+        code: "unlitBindGroup.missingTransformResource",
+        message:
+          "Motion-vector shared bind group planning requires a previous world transform buffer resource.",
+      });
+    } else {
+      entries.push({
+        group: 1,
+        binding: 3,
+        resourceKey: input.previousWorldTransformResourceKey,
+        resourceKind: "buffer",
+      });
+    }
   }
 
   return {
