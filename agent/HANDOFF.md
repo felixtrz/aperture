@@ -1,6 +1,65 @@
 # Agent Handoff
 
-Updated: 2026-05-23T03:55:40Z
+Updated: 2026-05-23T04:26:31Z
+
+## Current Run Update — 2026-05-23T04:26:31Z — DOF depth-readable post effect
+
+Completed `task-3090`, the Tier 20 DOF slice. Tier 20 is now complete:
+SSAO, SSR, and DOF all ship as depth-readable WebGPU post effects with square
+raw-vs-effect browser proofs.
+
+### What changed
+
+- Added `createWebGpuDofPostEffect()` with a renderer-owned scene depth
+  dependency, single-sample depth guard, camera near/far linearization, focus
+  distance/range, aperture, max blur radius, and optional near-blur controls.
+- Exported the DOF effect from `@aperture-engine/webgpu`.
+- Added `examples/dof.html`, `examples/dof.main.js`,
+  `examples/dof.worker.js`, and shared DOF scene assets. The example compares
+  raw and DOF square canvases over a worker-authored foreground/background
+  focus scene.
+- Added Playwright coverage that verifies the DOF frame status, proves many
+  background pixels change from depth-based blur, and verifies the focused
+  foreground stays stable.
+
+### Reference comparison
+
+- three.js `BokehPass` / `BokehShader` anchor the focus/aperture/max-blur
+  full-screen bokeh composite shape.
+- PlayCanvas `posteffect-bokeh.js` anchors the 41-tap circular blur kernel and
+  explicit depth-buffer dependency.
+- Bevy DOF anchors circle-of-confusion clamping and keeping the effect as
+  renderer-owned post-processing derived from camera/depth inputs.
+- Aperture uses its existing renderer-owned scene depth texture, so the GLB
+  viewer and examples do not own custom loading or depth-render logic for DOF.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts --reporter=dot`
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `git diff --check`
+- `pnpm test`
+- `pnpm exec playwright test test/e2e/dof.spec.ts --reporter=list --timeout=60000`
+
+### Known issues
+
+- The first DOF implementation is a one-pass 41-tap bokeh approximation. It
+  matches the three.js/PlayCanvas simple bokeh pass shape and uses the existing
+  scene depth efficiently, but it is not yet Bevy/modern-PlayCanvas style
+  multi-pass CoC/downsample/near-far separation.
+- DOF currently rejects multisampled depth inputs; use it with single-sample
+  scenes until a depth resolve or multisampled depth sampling route exists.
+
+### Recommended next task
+
+The user's requested scope, "finish all work up to Tier 20", is complete. If
+continuing beyond that scope, refill/select the next visible-feature roadmap
+slice and add a concrete reference anchor before implementation.
 
 ## Current Run Update — 2026-05-23T03:55:40Z — SSR depth-readable post effect
 

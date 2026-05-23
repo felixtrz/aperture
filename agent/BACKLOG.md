@@ -59,25 +59,14 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3090`: DOF (depth of field).
+Tier 20 is complete. `task-3088` SSAO, `task-3089` SSR, and `task-3090` DOF
+have shipped as depth-readable post effects with square raw-vs-effect browser
+proofs.
 
-Why this next: Tier 17 scene atmosphere is complete, and Tier 18 has shipped
-scalar StandardMaterial clearcoat, scalar thin-wall transmission, scalar sheen,
-and scalar iridescence.
-`examples/clearcoat.html` proves a clearcoat highlight distinct from the base
-StandardMaterial specular response, and `examples/transmission.html` proves a
-glass-like surface with the background visible through the transmitted
-material. `examples/sheen.html` proves a fabric-like material with a
-characteristic sheen rim-light. `examples/iridescence.html` proves a thin-film
-material with a cyan wavelength-dependent color shift. Tier 19 has shipped:
-MSAA provides configurable 1x/4x/8x-request rendering with WebGPU resolve
-targets, and TAA now adds ECS-authored temporal jitter, a history-buffered
-WebGPU post effect, renderer-owned motion-vector textures, geometry-aware
-main-pass motion-vector output for compatible built-in mesh scenes, fallback
-camera-motion clears for unsupported combinations, and `examples/taa.html`
-square-canvas browser proof. Tier 20 has shipped depth-fed SSAO and SSR post
-effects with square raw-vs-effect browser proofs. The next slice is DOF using
-the same depth-readable post-pass foundation.
+Recommended next action if work continues beyond the user's Tier 20 objective:
+refill the ready queue with the next visible-feature roadmap slice, including a
+specific reference anchor under `references/bevy`, `references/engine`, or
+`references/three.js`.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -1362,7 +1351,9 @@ Acceptance criteria:
 
 - Visible reflections on a glossy floor surface; reflected scene geometry recognizable.
 
-### task-3090 — Depth of field (bokeh) (Tier 20 part 3)
+### task-3090 — Depth of field (bokeh) (Tier 20 part 3) — Completed 2026-05-23
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/post-dof.ts` (new), targeted tests.

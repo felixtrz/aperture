@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 03:51 UTC</dd>
+            <dd>2026-05-23 04:26 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1401,17 +1401,18 @@
               renderer-owned motion-vector texture input, compatible built-in
               mesh scenes write geometry-aware motion vectors in the main pass,
               and <code>examples/taa.html</code> compares raw jitter against
-              accumulated TAA on square canvases. Tier 20 has shipped
-              depth-readable SSAO and SSR: post effects can request the
-              renderer-owned scene depth texture,
+              accumulated TAA on square canvases. Tier 20 is now complete: post
+              effects can request the renderer-owned scene depth texture,
               <code>createWebGpuSsaoPostEffect()</code> samples depth in a
               full-screen WebGPU pass, <code>createWebGpuSsrPostEffect()</code>
               blends reflected scene color from depth, and
-              <code>examples/ssao.html</code> / <code>examples/ssr.html</code>
+              <code>createWebGpuDofPostEffect()</code> blurs by focus distance
+              and aperture. <code>examples/ssao.html</code>,
+              <code>examples/ssr.html</code>, and <code>examples/dof.html</code>
               prove raw-vs-effect differences in square canvases.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3090 DOF depth of field</dd>
+            <dd>Tier 20 complete; select the next visible-feature slice</dd>
           </dl>
         </aside>
       </header>
@@ -4434,18 +4435,18 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Start
-                <code>task-3090</code>, DOF depth of field.
+                <span class="badge green">done</span> Tier 20 screen-space
+                effects are complete.
               </li>
               <li>
-                Anchor on three.js <code>BokehPass</code>, PlayCanvas
-                <code>posteffect-bokeh.js</code>, and the existing
-                depth-readable post-pass path from Tier 20.
+                SSAO, SSR, and DOF now share the renderer-owned scene-depth
+                post-pass foundation and each has a square raw-vs-effect browser
+                proof.
               </li>
               <li>
-                Tier 20 now has SSAO depth sampling and SSR reflected-color
-                browser proofs; the next screen-space slice should blur by depth
-                while keeping the focused foreground sharp.
+                Next work should refill/select the next visible-feature roadmap
+                slice with a concrete three.js, PlayCanvas, or Bevy reference
+                anchor.
               </li>
             </ul>
           </article>
@@ -4458,6 +4459,21 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3090</div>
+            <div>
+              <strong>DOF depth-readable post effect shipped.</strong>
+              <span>
+                <code>createWebGpuDofPostEffect()</code> now reads the
+                renderer-owned scene depth texture, rejects unsupported
+                multisampled depth inputs, and applies a focus/aperture bokeh
+                blur in a full-screen WebGPU pass.
+                <code>examples/dof.html</code>
+                proves background defocus while the foreground stays sharp in
+                square canvases.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3089</div>
             <div>

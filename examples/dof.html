@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Aperture MSAA</title>
+    <title>Aperture DOF</title>
     <link rel="stylesheet" href="./styles.css" />
     <script type="importmap">
       {
@@ -24,33 +24,33 @@
     <main class="runtime-shell">
       <section
         class="viewport-panel msaa-viewport-grid"
-        aria-label="Aperture MSAA comparison"
+        aria-label="Aperture depth-of-field comparison"
       >
         <figure class="msaa-canvas-frame">
           <canvas
-            id="msaa-canvas-1x"
+            id="dof-canvas-raw"
             class="msaa-canvas"
             width="512"
             height="512"
-            aria-label="Aperture WebGPU 1x canvas"
+            aria-label="Aperture WebGPU raw canvas"
           ></canvas>
-          <figcaption>1x</figcaption>
+          <figcaption>raw</figcaption>
         </figure>
         <figure class="msaa-canvas-frame">
           <canvas
-            id="msaa-canvas-8x"
+            id="dof-canvas-dof"
             class="msaa-canvas"
             width="512"
             height="512"
-            aria-label="Aperture WebGPU 8x request canvas"
+            aria-label="Aperture WebGPU DOF canvas"
           ></canvas>
-          <figcaption>8x request</figcaption>
+          <figcaption>DOF</figcaption>
         </figure>
       </section>
       <aside class="status-panel" aria-label="Runtime status">
         <div class="status-row">
           <span>example</span>
-          <strong id="example-name">msaa</strong>
+          <strong id="example-name">dof</strong>
         </div>
         <div class="status-row">
           <span>state</span>
@@ -58,19 +58,16 @@
         </div>
         <nav class="example-links" aria-label="Examples">
           <a href="/">clear</a>
-          <a href="/examples/triangle.html">triangle</a>
           <a href="/examples/post-effects.html">post effects</a>
-          <a href="/examples/msaa.html">msaa</a>
           <a href="/examples/taa.html">taa</a>
           <a href="/examples/ssao.html">ssao</a>
           <a href="/examples/ssr.html">ssr</a>
           <a href="/examples/dof.html">dof</a>
-          <a href="/examples/atmosphere.html">atmosphere</a>
           <a href="/examples/glb-viewer.html">glb viewer</a>
         </nav>
         <pre id="example-json">{}</pre>
       </aside>
     </main>
-    <script type="module" src="./msaa.main.js"></script>
+    <script type="module" src="./dof.main.js"></script>
   </body>
 </html>

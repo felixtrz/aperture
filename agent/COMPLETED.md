@@ -1,5 +1,38 @@
 # Completed Tasks
 
+## task-3090 — Depth of field (bokeh)
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added `createWebGpuDofPostEffect()` as a depth-reading WebGPU post effect
+  that declares `requiresDepthTexture`, rejects multisampled depth inputs, and
+  exposes camera near/far, focus distance/range, aperture, max blur radius, and
+  near-blur controls.
+- Matched the three.js/PlayCanvas bokeh pass shape with a 41-tap circular
+  full-screen shader while using Aperture's existing renderer-owned scene depth
+  texture instead of adding viewer-owned loading or scene logic.
+- Exported the DOF effect from `@aperture-engine/webgpu` and added focused
+  post-pass coverage for successful preparation, missing-depth diagnostics, and
+  multisampled-depth diagnostics.
+- Added `examples/dof.html` with raw-vs-DOF square canvases and a worker-owned
+  foreground/background focus scene, plus headed Chrome/WebGPU coverage proving
+  many background pixels change while the focused foreground remains stable.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts --reporter=dot`
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `git diff --check`
+- `pnpm test`
+- `pnpm exec playwright test test/e2e/dof.spec.ts --reporter=list --timeout=60000`
+
 ## task-3089 — SSR screen-space reflections
 
 Completed: 2026-05-23

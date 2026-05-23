@@ -4,6 +4,7 @@ import {
   createOrReuseWebGpuPostPassTexture,
   createWebGpuBloomPostEffect,
   createWebGpuCopyPostEffect,
+  createWebGpuDofPostEffect,
   createWebGpuFxaaPostEffect,
   createWebGpuPostPassTextureCacheSlot,
   createWebGpuSsaoPostEffect,
@@ -410,6 +411,102 @@ describe("WebGPU post-pass helpers", () => {
     expect(prepared.commands).toEqual([]);
     expect(prepared.diagnostics).toMatchObject([
       { code: "webGpuPostPass.depthTextureUnavailable", effectId: "ssr" },
+    ]);
+  });
+
+  it("prepares DOF as a depth-reading bokeh post-pass draw", () => {
+    const events: string[] = [];
+    const effect = createWebGpuDofPostEffect({
+      near: 0.1,
+      far: 20,
+      focusDistance: 3.2,
+      focusRange: 0.8,
+      aperture: 1.25,
+      maxBlurPixels: 9,
+      nearBlur: false,
+    });
+    const input = postTexture("scene", events);
+    const depth = postDepthTexture("scene-depth", events);
+    const prepared = effect.prepare({
+      device: postDevice(events),
+      input,
+      depth,
+      outputFormat: "rgba8unorm",
+      width: 32,
+      height: 16,
+      frame: 1,
+      passIndex: 0,
+      isLast: true,
+      label: "test-dof",
+    });
+
+    expect(effect.requiresDepthTexture).toBe(true);
+    expect(prepared.diagnostics).toEqual([]);
+    expect(prepared.commands).toMatchObject([
+      {
+        kind: "setPipeline",
+        pipelineKey:
+          "webgpu-post-dof|rgba8unorm|near:0.1000|far:20.000|focus:3.200|range:0.800|aperture:1.250|max:9.000|nearBlur:false",
+      },
+      {
+        kind: "setBindGroup",
+        resourceKey:
+          "dof:input:scene:depth:scene-depth:focus:3.20:aperture:1.25",
+      },
+      { kind: "draw", vertexCount: 3 },
+    ]);
+    expect(events).toEqual([
+      "device:shader:test-dof:dof:pipeline:shader",
+      "device:pipeline:test-dof:dof:pipeline",
+      "device:sampler:aperture/post/dof/sampler",
+      "view:scene",
+      "view:scene-depth",
+      "pipeline:layout:0",
+      "device:bindGroup:test-dof:dof:bind-group",
+    ]);
+  });
+
+  it("diagnoses DOF when scene depth is unavailable", () => {
+    const effect = createWebGpuDofPostEffect();
+    const prepared = effect.prepare({
+      device: postDevice([]),
+      input: postTexture("scene", []),
+      outputFormat: "rgba8unorm",
+      width: 32,
+      height: 16,
+      frame: 1,
+      passIndex: 0,
+      isLast: true,
+      label: "test-dof",
+    });
+
+    expect(prepared.commands).toEqual([]);
+    expect(prepared.diagnostics).toMatchObject([
+      { code: "webGpuPostPass.depthTextureUnavailable", effectId: "dof" },
+    ]);
+  });
+
+  it("diagnoses DOF when scene depth is multisampled", () => {
+    const effect = createWebGpuDofPostEffect();
+    const prepared = effect.prepare({
+      device: postDevice([]),
+      input: postTexture("scene", []),
+      depth: postDepthTexture("msaa-depth", [], 4),
+      outputFormat: "rgba8unorm",
+      width: 32,
+      height: 16,
+      frame: 1,
+      passIndex: 0,
+      isLast: true,
+      label: "test-dof",
+    });
+
+    expect(prepared.commands).toEqual([]);
+    expect(prepared.diagnostics).toMatchObject([
+      {
+        code: "webGpuPostPass.depthTextureUnsupportedSampleCount",
+        effectId: "dof",
+      },
     ]);
   });
 

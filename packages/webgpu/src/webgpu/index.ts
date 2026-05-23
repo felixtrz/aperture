@@ -92,6 +92,7 @@ export * from "./output-stage-tonemap.js";
 export * from "./output-stage-color-space.js";
 export * from "./pmrem-compute-pipeline.js";
 export * from "./post-bloom.js";
+export * from "./post-dof.js";
 export * from "./post-fxaa.js";
 export * from "./post-pass.js";
 export * from "./post-ssao.js";
