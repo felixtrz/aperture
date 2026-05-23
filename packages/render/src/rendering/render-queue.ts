@@ -3,7 +3,10 @@ import type {
   RenderWorldReadyDraw,
 } from "./render-world.js";
 import type { RenderDiagnostic } from "./snapshot.js";
-import { compareRenderSortKeys } from "./snapshot.js";
+import {
+  compareStateAwareRenderRecords,
+  OPAQUE_STATE_SORT_POLICY_NAME,
+} from "./render-state-sort.js";
 import type { PackedSnapshotTransforms } from "./transform-pack.js";
 
 export const DEFAULT_RENDER_QUEUE_VIEW_ID = "default";
@@ -47,7 +50,7 @@ export interface RenderQueueSortPhaseReport {
 }
 
 export type RenderQueueSortPolicyName =
-  | "opaque-resource-front-to-back-stable"
+  | typeof OPAQUE_STATE_SORT_POLICY_NAME
   | "transparent-order-back-to-front-stable";
 
 export type RenderQueueDepthOrder = "front-to-back" | "back-to-front";
@@ -261,11 +264,7 @@ export function compareRenderQueueRecords(
   a: RenderQueueRecord,
   b: RenderQueueRecord,
 ): number {
-  return (
-    compareRenderSortKeys(a.sortKey, b.sortKey) ||
-    a.renderId - b.renderId ||
-    a.sortOrdinal - b.sortOrdinal
-  );
+  return compareStateAwareRenderRecords(a, b) || a.sortOrdinal - b.sortOrdinal;
 }
 
 export function coalesceRenderQueueRecords(
@@ -549,7 +548,7 @@ export function renderQueueSortPolicyForPhase(
 }
 
 const OPAQUE_RENDER_QUEUE_SORT_POLICY: RenderQueueSortPolicyReport = {
-  name: "opaque-resource-front-to-back-stable",
+  name: OPAQUE_STATE_SORT_POLICY_NAME,
   depthOrder: "front-to-back",
   primaryKeys: [
     "queue",
@@ -557,8 +556,9 @@ const OPAQUE_RENDER_QUEUE_SORT_POLICY: RenderQueueSortPolicyReport = {
     "layer",
     "order",
     "pipelineKey",
-    "materialKey",
-    "meshKey",
+    "materialResourceKey",
+    "meshLayoutKey",
+    "meshResourceKey",
     "depth",
   ],
   tieBreakers: ["stableId", "renderId", "sortOrdinal"],

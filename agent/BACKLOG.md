@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3114`: add state-aware opaque queue ordering to lower submit
-pressure while preserving visible queue semantics.
+Start `task-3115`: reuse shared queued built-in bind groups across compatible
+frame resources.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -146,8 +146,10 @@ not yet SOTA on submit efficiency. `task-3111` now elides redundant main forward
 pipeline, bind-group, vertex-buffer, and index-buffer state commands and exposes
 planned-vs-emitted pressure in browser status. `task-3112` now reuses static
 WebGPU render bundles for unchanged command plans. `task-3113` now submits
-compatible grouped draws through an indirect argument buffer when supported. The
-remaining polish blockers are state-aware opaque ordering and shared bind-group
+compatible grouped draws through an indirect argument buffer when supported.
+`task-3114` now sorts opaque/alpha-test queue records by prepared pipeline,
+material-resource, mesh-layout, and mesh-resource state inside authored
+render-order buckets. The remaining polish blocker is shared bind-group
 allocation pressure.
 
 Reference anchors for the next task (read before writing):
@@ -402,6 +404,8 @@ Acceptance criteria:
 - The selected instancing or instance-attribute example keeps its existing pixel/readback proof while exercising the indirect route when supported.
 
 ### task-3114 — Add state-aware opaque queue ordering to lower submit pressure
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/render/src/rendering/render-queue.ts`, `packages/render/src/rendering/material-queue.ts`, `examples/standard-queue-phases.*` or `examples/batching.*`, targeted tests.

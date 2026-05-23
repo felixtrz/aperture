@@ -1,6 +1,56 @@
 # Agent Handoff
 
-Updated: 2026-05-23T20:08:33Z
+Updated: 2026-05-23T20:29:30Z
+
+## Current Run Update — 2026-05-23T20:29:30Z — State-aware opaque queue ordering
+
+Completed `task-3114`, the fourth post-audit submit-efficiency slice.
+
+### What changed
+
+- Added a shared state-aware render ordering helper for opaque/alpha-test draw
+  packages and render queue records.
+- Opaque/alpha-test ordering now preserves view, layer, and authored render
+  order, then groups prepared pipeline, material-resource, mesh-layout, and
+  mesh-resource state before depth/stable-id tie-breaks.
+- Transparent records keep the existing back-to-front and stable-id ordering.
+- Material queue ordering now includes mesh-layout state before mesh-resource
+  keys.
+- Draw-package summaries and WebGPU app diagnostics now include JSON-safe opaque
+  state-sort pressure comparing stable nontransparent order against state-aware
+  order.
+- `examples/standard-queue-phases.html` publishes `queueStateSort`; browser
+  status showed stable opaque pipeline switches 3, state-aware switches 2, 8
+  draw calls, and zero diagnostics.
+- Updated the public tracker, render-pipeline comparison page, backlog,
+  current-task pointer, and completed-task log. Recommended next task is now
+  `task-3115`, shared queued built-in bind-group reuse.
+
+### Validation
+
+- `pnpm exec vitest run test/rendering/draw-package.test.ts test/rendering/render-queue.test.ts test/rendering/material-queue.test.ts test/webgpu/app-diagnostics-summary.test.ts test/webgpu/frame-readiness.test.ts test/webgpu/webgpu-app.test.ts --reporter=dot`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run examples:build`
+- Playwright MCP browser proof for
+  `http://127.0.0.1:4174/examples/standard-queue-phases.html`: `ok: true`, 8
+  draw calls, zero diagnostics, 56 planned state commands, 21 emitted state
+  commands, 35 elided state commands, stable opaque pipeline switches 3,
+  state-aware opaque pipeline switches 2, and reused render bundle with
+  `encodedCommands: 0`. The only console error was the existing favicon 403.
+
+### Known issues
+
+- The headed Playwright project still times out during suite startup in this
+  environment before test bodies run; runtime behavior was validated through the
+  Playwright MCP browser proof above.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3115`, reusing shared queued built-in bind groups across compatible
+frame resources and publishing creation-vs-reuse pressure in app/browser
+status.
 
 ## Current Run Update — 2026-05-23T20:08:33Z — Indirect grouped draws
 

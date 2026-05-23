@@ -316,6 +316,32 @@ function renderFrameQueueSummary(): RenderFrameQueueDiagnosticsSummary {
     packageSlotsReused: 2,
     packageSlotsCreated: 0,
     missingPackedTransformCount: 0,
+    stateSort: {
+      phase: "opaque",
+      policy: "opaque-state-resource-front-to-back-stable",
+      recordCount: 2,
+      stableOrder: {
+        pipeline: 2,
+        materialResource: 2,
+        meshLayout: 1,
+        meshResource: 2,
+        total: 7,
+      },
+      stateAwareOrder: {
+        pipeline: 1,
+        materialResource: 1,
+        meshLayout: 1,
+        meshResource: 2,
+        total: 5,
+      },
+      delta: {
+        pipeline: 1,
+        materialResource: 1,
+        meshLayout: 0,
+        meshResource: 0,
+        total: 2,
+      },
+    },
     diagnostics: {
       total: 0,
       byCode: {},

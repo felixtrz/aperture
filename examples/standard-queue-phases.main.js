@@ -272,6 +272,8 @@ function statusFromReport(
     loop,
     reportJson.renderBundles ?? null,
   );
+  const queueStateSort =
+    reportJson.diagnosticsSummary?.renderFrameQueue?.stateSort ?? null;
   const transparentSort = report.snapshot.meshDraws
     .filter((draw) => draw.sortKey.queue === "transparent")
     .map((draw) => ({
@@ -309,6 +311,7 @@ function statusFromReport(
         (phase) => phase.phase === "transparent",
       )?.sortPolicy ?? null,
     commandPressure: reportJson.commandPressure ?? null,
+    queueStateSort,
     renderBundles: reportJson.renderBundles ?? null,
     renderBundleHistory,
     report: reportJson,

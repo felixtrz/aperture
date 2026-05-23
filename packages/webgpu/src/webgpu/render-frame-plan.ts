@@ -3,6 +3,7 @@ import type {
   PackedSnapshotTransforms,
   RenderDiagnostic,
   RenderSnapshot,
+  OpaqueRenderStateSortPressureReport,
   RenderWorldDrawPackagePlan,
   RenderWorldDrawPackageScratch,
   RenderWorld,
@@ -135,6 +136,7 @@ export interface RenderFrameQueueDiagnosticsSummary {
   readonly packageSlotsReused: number;
   readonly packageSlotsCreated: number;
   readonly missingPackedTransformCount: number;
+  readonly stateSort: OpaqueRenderStateSortPressureReport;
   readonly diagnostics: RenderFrameQueueDiagnosticSummary;
 }
 
@@ -332,6 +334,7 @@ export function createRenderFrameQueueDiagnosticsSummary(
     packageSlotsCreated: input.packages.summary.packageSlotsCreated,
     missingPackedTransformCount:
       input.packages.summary.missingPackedTransformCount,
+    stateSort: input.packages.summary.stateSort,
     diagnostics: {
       total,
       byCode,

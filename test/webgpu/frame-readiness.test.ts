@@ -122,6 +122,32 @@ function drawPackages(count: number): RenderWorldDrawPackagePlan {
       packageSlotsReused: count,
       packageSlotsCreated: 0,
       missingPackedTransformCount: 0,
+      stateSort: {
+        phase: "opaque",
+        policy: "opaque-state-resource-front-to-back-stable",
+        recordCount: 0,
+        stableOrder: {
+          pipeline: 0,
+          materialResource: 0,
+          meshLayout: 0,
+          meshResource: 0,
+          total: 0,
+        },
+        stateAwareOrder: {
+          pipeline: 0,
+          materialResource: 0,
+          meshLayout: 0,
+          meshResource: 0,
+          total: 0,
+        },
+        delta: {
+          pipeline: 0,
+          materialResource: 0,
+          meshLayout: 0,
+          meshResource: 0,
+          total: 0,
+        },
+      },
       diagnostics: { total: 0, byCode: {} },
     },
   };

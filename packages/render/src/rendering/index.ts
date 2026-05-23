@@ -9,6 +9,7 @@ export * from "./prepared-mesh-queue-resolver.js";
 export * from "./prepared-material-queue-resolver.js";
 export * from "./render-frame-phases.js";
 export * from "./render-queue.js";
+export * from "./render-state-sort.js";
 export * from "./render-world.js";
 export * from "./render-world-prepared-meshes.js";
 export * from "./render-world-prepared-materials.js";

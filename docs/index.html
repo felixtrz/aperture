@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 20:08 UTC</dd>
+            <dd>2026-05-23 20:29 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1465,12 +1465,14 @@
               renderer-owned WebGPU render bundles on unchanged mesh-draw frames
               with app-visible create/reuse pressure. Compatible grouped draws
               now also submit through a renderer-owned indirect argument buffer
-              when supported.
+              when supported, and opaque/alpha-test queues now group prepared
+              pipeline, material-resource, mesh-layout, and mesh-resource state
+              inside authored render-order buckets.
             </dd>
             <dt>Next focus</dt>
             <dd>
-              task-3114 state-aware opaque queue ordering to lower submit
-              pressure
+              task-3115 shared queued built-in bind-group reuse to reduce
+              allocation pressure
             </dd>
           </dl>
         </aside>
@@ -2078,9 +2080,9 @@
           <article class="phase">
             <div class="topline">
               <h3>4. queue</h3>
-              <span class="percent">90%</span>
+              <span class="percent">92%</span>
             </div>
-            <div class="bar"><span style="width: 90%"></span></div>
+            <div class="bar"><span style="width: 92%"></span></div>
             <p>
               Material-family queueing, route diagnostics, resource key
               resolution, Standard transparent phases, app route reporting,
@@ -2119,48 +2121,46 @@
               primitive, queue-level static merged records, and a browser
               example that renders 20 source shapes as five draw calls. Queue
               plans now also publish opaque/transparent sort-phase counts for
-              diagnostics, and app reports now publish queue-to-submit command
-              pressure after state-command elision.
+              diagnostics, app reports now publish queue-to-submit command
+              pressure after state-command elision, and opaque/alpha-test queue
+              ordering now groups prepared pipeline, material-resource,
+              mesh-layout, and mesh-resource state inside authored render-order
+              buckets.
             </p>
             <ul>
               <li>
                 Missing app-level generic material adapter route boundary.
               </li>
               <li>Missing multi-material primitive queue rules.</li>
-              <li>
-                Missing state-aware opaque ordering and shared bind-group
-                allocation pressure reduction.
-              </li>
+              <li>Missing shared bind-group allocation pressure reduction.</li>
             </ul>
           </article>
           <article class="phase">
             <div class="topline">
               <h3>5. sort</h3>
-              <span class="percent">82%</span>
+              <span class="percent">86%</span>
             </div>
-            <div class="bar"><span style="width: 82%"></span></div>
+            <div class="bar"><span style="width: 86%"></span></div>
             <p>
               Opaque queue sorting is stable and deterministic; alpha-test and
               transparent phase placement exists; transparent records now sort
               by view-relative depth, render order, stable id, and queue-record
-              fallbacks; and queue/app diagnostics expose the applied sort
-              policy.
+              fallbacks; queue/app diagnostics expose the applied sort policy;
+              and app diagnostics now compare stable nontransparent order
+              against state-aware opaque order so browser status can prove lower
+              pipeline switch pressure.
             </p>
             <ul>
               <li>Missing phase duration telemetry.</li>
-              <li>
-                Missing batching and pipeline pressure summaries, including
-                evidence that sorted order minimizes repeated pipeline,
-                bind-group, vertex-buffer, and index-buffer state changes.
-              </li>
+              <li>Missing broader batching pressure summaries.</li>
             </ul>
           </article>
           <article class="phase">
             <div class="topline">
               <h3>6. submit</h3>
-              <span class="percent">98%</span>
+              <span class="percent">99%</span>
             </div>
-            <div class="bar"><span style="width: 98%"></span></div>
+            <div class="bar"><span style="width: 99%"></span></div>
             <p>
               WebGPU command submission renders the current proof paths with
               pipeline, bind group, transform, light, mesh, and material
@@ -2236,7 +2236,10 @@
               renderer-owned indirect argument buffer and submitted through
               <code>drawIndexedIndirect</code>; the instancing proof reports one
               indirect candidate, one indexed indirect draw, one 20-byte
-              argument buffer, one draw call, and zero diagnostics.
+              argument buffer, one draw call, and zero diagnostics. Opaque queue
+              state sorting now lowers the standard queue phase proof from 3
+              stable-baseline pipeline switches to 2 state-aware pipeline
+              switches while keeping 8 draw calls and zero diagnostics.
               <code>createWebGpuApp({ msaa })</code> now renders forward passes
               through cached multisampled color/depth attachments, resolves to
               the swapchain or off-screen target, and keys built-in pipelines by
@@ -2267,10 +2270,9 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">task-3113</span> Added an indirect
-                draw argument-buffer route for compatible grouped draws and
-                exposed indirect/fallback status in the instancing browser
-                proof.
+                <span class="badge green">task-3114</span> Added state-aware
+                opaque queue ordering and exposed stable-vs-state-aware pipeline
+                switch pressure in the standard queue phase browser proof.
               </li>
               <li>
                 <span class="badge green">loading</span> Preserved glTF source
@@ -4539,18 +4541,17 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Implement
-                <code>task-3114</code>: add state-aware opaque queue ordering to
-                lower submit pressure.
+                <code>task-3115</code>: reuse shared queued built-in bind groups
+                across compatible frame resources.
               </li>
               <li>
-                Follow with shared queued built-in bind-group reuse to reduce
-                allocation pressure.
+                Then audit the submit-efficiency slices against three.js and
+                PlayCanvas before moving to the next visible rendering gap.
               </li>
               <li>
                 The audit conclusion is clear: covered feature breadth is high,
-                and the main submit-efficiency gaps are now closed; the next
-                work is pressure polish on queue ordering and shared bind-group
-                allocation.
+                and the main submit-efficiency gaps are nearly closed; the next
+                work is shared bind-group allocation pressure.
               </li>
             </ul>
           </article>
@@ -4564,18 +4565,17 @@
         </div>
         <article class="card timeline">
           <div class="timeline-item">
-            <div class="task-id">task-3113</div>
+            <div class="task-id">task-3114</div>
             <div>
-              <strong>Indirect grouped draws shipped.</strong>
+              <strong>State-aware opaque queue ordering shipped.</strong>
               <span>
-                Compatible grouped draw commands can now be packed into a
-                renderer-owned WebGPU indirect argument buffer and submitted
-                through <code>drawIndexedIndirect</code> when the device exposes
-                the required first-instance feature.
-                <code>examples/instancing.html</code> reports one indirect
-                candidate, one indexed indirect draw, one 20-byte argument
-                buffer, one draw call, fallback reason <code>null</code>, and
-                zero diagnostics.
+                Opaque and alpha-test records now group prepared pipeline,
+                material-resource, mesh-layout, and mesh-resource state inside
+                authored render-order buckets while transparent records remain
+                back-to-front. <code>examples/standard-queue-phases.html</code>
+                reports 3 stable-baseline pipeline switches reduced to 2
+                state-aware pipeline switches with 8 draw calls and zero
+                diagnostics.
               </span>
             </div>
           </div>

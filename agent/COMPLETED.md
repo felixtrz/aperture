@@ -26099,3 +26099,37 @@ Validation:
 - Playwright MCP browser proof for `examples/instancing.html`: one indirect
   candidate, one indexed indirect draw, zero direct grouped draws, one 20-byte
   argument buffer, one draw call, fallback reason `null`, and zero diagnostics.
+
+## task-3114 — Add state-aware opaque queue ordering to lower submit pressure
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added shared state-aware render ordering for opaque/alpha-test records that
+  preserves view/layer/render-order buckets, keeps transparent ordering
+  back-to-front, and groups prepared pipeline, material-resource, mesh-layout,
+  and mesh-resource state before depth/stable-id tie-breaks.
+- Threaded opaque state-sort pressure into draw-package summaries and WebGPU app
+  diagnostics, comparing stable nontransparent order against the state-aware
+  order without exposing raw GPU handles.
+- Updated `examples/standard-queue-phases.html` and e2e status coverage to
+  report queue state-sort pressure: stable order needs 3 opaque pipeline
+  switches, while state-aware order needs 2, with 8 draw calls and zero
+  diagnostics in the browser proof.
+- Updated render queue and material queue sorting/tests to use prepared resource
+  and mesh-layout keys for state locality.
+- Updated backlog, current task, public tracker, render-pipeline comparison, and
+  handoff. Recommended next task is `task-3115`.
+
+Validation:
+
+- `pnpm exec vitest run test/rendering/draw-package.test.ts test/rendering/render-queue.test.ts test/rendering/material-queue.test.ts test/webgpu/app-diagnostics-summary.test.ts test/webgpu/frame-readiness.test.ts test/webgpu/webgpu-app.test.ts --reporter=dot`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run examples:build`
+- Playwright MCP browser proof for
+  `http://127.0.0.1:4174/examples/standard-queue-phases.html`: `ok: true`,
+  8 draw calls, zero diagnostics, 56 planned state commands, 21 emitted state
+  commands, 35 elided state commands, stable opaque pipeline switches 3,
+  state-aware opaque pipeline switches 2, and render-bundle reuse with
+  `encodedCommands: 0`.

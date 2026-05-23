@@ -285,8 +285,10 @@ import {
   type CreateSkyboxRenderPipelineResourceResult,
 } from "./skybox-pipeline.js";
 import {
+  createRenderFrameQueueDiagnosticsSummary,
   createRenderFramePlanScratch,
   writeRenderFramePlanFromSnapshot,
+  type PlanRenderFrameFromSnapshotResult,
   type RenderFramePlanScratch,
 } from "./render-frame-plan.js";
 import type {
@@ -1900,6 +1902,12 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     bindGroups: prepared.resources.bindGroups,
     scratch: options.cache.frameScratch.framePlan,
   });
+  const frameDiagnosticsSummary = createQueuedBuiltInAppDiagnosticsSummary({
+    snapshot: options.snapshot,
+    resourceSet: options.resourceSet,
+    resources: prepared.resources,
+    framePlan,
+  });
   const spriteFrame = await prepareSpriteFrameResourcesForSnapshot({
     app: options.app,
     assets: options.assets,
@@ -1917,7 +1925,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       pipeline: prepared.firstPipeline,
       resources: prepared.resourcesResult,
       resourceReuse: options.reuse,
-      diagnosticsSummary,
+      diagnosticsSummary: frameDiagnosticsSummary,
       diagnostics: [
         ...options.snapshot.diagnostics,
         ...packedViews.diagnostics,
@@ -1968,11 +1976,11 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     readbacks: boundaries.gpuTimingReadbacks,
     diagnostics: boundaries.gpuTimingDiagnostics,
   });
-  const frameDiagnosticsSummary =
+  const finalDiagnosticsSummary =
     gpuTimings === undefined
-      ? diagnosticsSummary
+      ? frameDiagnosticsSummary
       : createWebGpuAppDiagnosticsSummaryWithGpuTimings(
-          diagnosticsSummary,
+          frameDiagnosticsSummary,
           gpuTimings,
         );
   const frameOk =
@@ -2017,7 +2025,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       ? {}
       : { indirectDraws: indirectDraws.report }),
     resourceReuse: options.reuse,
-    diagnosticsSummary: frameDiagnosticsSummary,
+    diagnosticsSummary: finalDiagnosticsSummary,
     drawPackages: framePlan.packages.packages.length,
     drawCommands: boundaries.plannedCommands,
     drawCalls: boundaries.drawCalls,
@@ -4391,6 +4399,10 @@ function createQueuedBuiltInAppDiagnosticsSummary(input: {
   readonly snapshot: RenderSnapshot;
   readonly resourceSet: QueuedBuiltInAppResourceSet;
   readonly resources: QueuedBuiltInFrameResources | null;
+  readonly framePlan?: Pick<
+    PlanRenderFrameFromSnapshotResult,
+    "readiness" | "packages"
+  >;
 }): WebGpuAppDiagnosticsSummary {
   const hasStandardRoute = input.resourceSet.items.some(
     (item) => item.queueItem.materialFamily === "standard",
@@ -4413,6 +4425,13 @@ function createQueuedBuiltInAppDiagnosticsSummary(input: {
     renderQueueSortPhases: createQueuedBuiltInAppSortPhaseSummary(
       input.resourceSet.items,
     ),
+    ...(input.framePlan === undefined
+      ? {}
+      : {
+          renderFrameQueue: createRenderFrameQueueDiagnosticsSummary(
+            input.framePlan,
+          ),
+        }),
     builtInAppResourceAdapters: QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION,
     ...(hasStandardRoute
       ? {

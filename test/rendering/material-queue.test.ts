@@ -108,7 +108,7 @@ describe("material family render queue", () => {
     expect(parsed).toEqual(plan.items);
   });
 
-  it("groups opaque items by pipeline, material resource, and mesh resource before depth", () => {
+  it("groups opaque items by pipeline, material resource, layout, and mesh before depth", () => {
     const snapshot = renderSnapshot([
       drawPacket({
         renderId: 1,
@@ -153,6 +153,57 @@ describe("material family render queue", () => {
       "gpu-material:material:material-a",
       "gpu-material:material:material-a",
       "gpu-material:material:material-b",
+    ]);
+  });
+
+  it("groups opaque items by mesh layout before mesh resource keys", () => {
+    const snapshot = renderSnapshot([
+      drawPacket({
+        renderId: 1,
+        materialFamily: "standard",
+        meshId: "a-layout-b",
+        materialId: "shared",
+        meshLayoutKey: "layout-b",
+      }),
+      drawPacket({
+        renderId: 2,
+        materialFamily: "standard",
+        meshId: "z-layout-a",
+        materialId: "shared",
+        meshLayoutKey: "layout-a",
+      }),
+      drawPacket({
+        renderId: 3,
+        materialFamily: "standard",
+        meshId: "y-layout-a",
+        materialId: "shared",
+        meshLayoutKey: "layout-a",
+      }),
+    ]);
+    const plan = buildMaterialQueueFromSnapshot(snapshot, resourceResolvers());
+
+    expect(
+      plan.items.map((item) => ({
+        renderId: item.renderId,
+        meshLayoutKey: item.meshLayoutKey,
+        meshResourceKey: item.meshResourceKey,
+      })),
+    ).toEqual([
+      {
+        renderId: 3,
+        meshLayoutKey: "layout-a",
+        meshResourceKey: "gpu-mesh:mesh:y-layout-a",
+      },
+      {
+        renderId: 2,
+        meshLayoutKey: "layout-a",
+        meshResourceKey: "gpu-mesh:mesh:z-layout-a",
+      },
+      {
+        renderId: 1,
+        meshLayoutKey: "layout-b",
+        meshResourceKey: "gpu-mesh:mesh:a-layout-b",
+      },
     ]);
   });
 
@@ -639,6 +690,7 @@ function drawPacket(options: {
   readonly queue?: RenderQueue;
   readonly depth?: number;
   readonly stableId?: number;
+  readonly meshLayoutKey?: string;
 }): MeshDrawPacket {
   const renderId = options.renderId;
   const meshId = options.meshId ?? "cube";
@@ -668,7 +720,7 @@ function drawPacket(options: {
       depth: options.depth ?? 0,
       stableId: options.stableId ?? renderId,
     }),
-    batchKey: batchKey(pipelineKey, materialKey),
+    batchKey: batchKey(pipelineKey, materialKey, options.meshLayoutKey),
   };
 }
 
@@ -690,11 +742,12 @@ function blendPresetForAlphaMode(alphaMode: string): string {
 function batchKey(
   pipelineKey: string,
   materialKey: string,
+  meshLayoutKey = "POSITION,NORMAL,UV_0",
 ): BatchCompatibilityKey {
   return {
     pipelineKey,
     materialKey,
-    meshLayoutKey: "POSITION,NORMAL,UV_0",
+    meshLayoutKey,
     topology: "triangle-list",
     instanced: false,
     skinned: false,

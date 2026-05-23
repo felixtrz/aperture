@@ -3195,7 +3195,7 @@ describe("WebGPU app facade", () => {
     expect(
       webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary,
     ).toMatchObject({
-      sectionCount: 4,
+      sectionCount: 5,
       materialQueue: {
         itemCount: 2,
         byPhase: [{ phase: "opaque", itemCount: 2 }],
@@ -4074,7 +4074,7 @@ describe("WebGPU app facade", () => {
     expect(diagnosticsSummary).not.toHaveProperty("unlitResourceSet");
     expect(diagnosticsSummary).not.toHaveProperty("matcapResourceSet");
     expect(diagnosticsSummary).toMatchObject({
-      sectionCount: 5,
+      sectionCount: 6,
       materialQueue: {
         itemCount: 3,
         byPhase: [{ phase: "opaque", itemCount: 3 }],
@@ -4616,7 +4616,7 @@ describe("WebGPU app facade", () => {
     ).toBe(1);
     expect(webGpuAppRenderReportToJsonValue(frame)).toMatchObject({
       diagnosticsSummary: {
-        sectionCount: 4,
+        sectionCount: 5,
         materialQueue: {
           itemCount: 2,
           byFamily: expect.arrayContaining([
@@ -5715,7 +5715,7 @@ describe("WebGPU app facade", () => {
       },
       diagnostics: [],
       diagnosticsSummary: {
-        sectionCount: 5,
+        sectionCount: 6,
         materialQueue: {
           itemCount: 1,
           byPhase: [{ phase: "opaque", itemCount: 1 }],
@@ -6652,7 +6652,7 @@ describe("WebGPU app facade", () => {
     expect(
       webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary,
     ).toMatchObject({
-      sectionCount: 5,
+      sectionCount: 6,
       routedResourceSet: {
         itemCount: 1,
         byFamily: [{ family: "standard", itemCount: 1 }],
@@ -8085,6 +8085,10 @@ function webGpuHarness(
               events.push(`pass:draw:${vertexCount}`),
             drawIndexed: (indexCount: number) =>
               events.push(`pass:drawIndexed:${indexCount}`),
+            drawIndirect: (_buffer: unknown, offset: number) =>
+              events.push(`pass:drawIndirect:${offset}`),
+            drawIndexedIndirect: (_buffer: unknown, offset: number) =>
+              events.push(`pass:drawIndexedIndirect:${offset}`),
             end: () => events.push("pass:end"),
           };
         },

@@ -204,6 +204,70 @@ describe("render queue records", () => {
     ]);
   });
 
+  it("state sorts opaque records by prepared resources inside render-order buckets", () => {
+    const redA = readyDraw(1, {
+      order: 0,
+      meshResourceKey: "mesh:a",
+      materialResourceKey: "material:red",
+      batchKey: {
+        ...BATCH_KEY,
+        pipelineKey: "standard|opaque|back|less|none",
+        materialKey: "material:red",
+      },
+    });
+    const cutout = readyDraw(2, {
+      queue: "alpha-test",
+      order: 0,
+      meshResourceKey: "mesh:cutout",
+      materialResourceKey: "material:cutout",
+      batchKey: {
+        ...BATCH_KEY,
+        pipelineKey: "standard|mask|back|less|none",
+        materialKey: "material:cutout",
+      },
+    });
+    const redB = readyDraw(3, {
+      order: 0,
+      meshResourceKey: "mesh:b",
+      materialResourceKey: "material:red",
+      batchKey: {
+        ...BATCH_KEY,
+        pipelineKey: "standard|opaque|back|less|none",
+        materialKey: "material:red",
+      },
+    });
+    const laterCutout = readyDraw(4, {
+      queue: "alpha-test",
+      order: 1,
+      meshResourceKey: "mesh:later-cutout",
+      materialResourceKey: "material:cutout",
+      batchKey: {
+        ...BATCH_KEY,
+        pipelineKey: "standard|mask|back|less|none",
+        materialKey: "material:cutout",
+      },
+    });
+    const plan = planRenderQueueRecords(
+      {
+        ready: [redA, cutout, redB, laterCutout],
+        blocked: [],
+        diagnostics: [],
+      },
+      transforms([1, 2, 3, 4]),
+    );
+
+    expect(plan.records.map((record) => record.renderId)).toEqual([1, 3, 2, 4]);
+    expect(plan.sortPhases[0]?.sortPolicy).toMatchObject({
+      name: "opaque-state-resource-front-to-back-stable",
+      primaryKeys: expect.arrayContaining([
+        "pipelineKey",
+        "materialResourceKey",
+        "meshLayoutKey",
+        "meshResourceKey",
+      ]),
+    });
+  });
+
   it("sorts equal-depth transparent records by stable tie-breaks without native sort stability", () => {
     const plan = planRenderQueueRecords(
       {
@@ -389,6 +453,7 @@ function readyDraw(
   renderId: number,
   overrides: {
     readonly meshResourceKey?: string;
+    readonly materialResourceKey?: string;
     readonly batchKey?: BatchCompatibilityKey;
     readonly queue?: "opaque" | "alpha-test" | "transparent";
     readonly order?: number;
@@ -402,7 +467,7 @@ function readyDraw(
     renderId,
     packet: packet(renderId, batchKey, overrides),
     meshResourceKey: overrides.meshResourceKey ?? `mesh:${renderId}`,
-    materialResourceKey: "material:white",
+    materialResourceKey: overrides.materialResourceKey ?? "material:white",
     batchKey,
   };
 }
@@ -411,6 +476,7 @@ function packet(
   renderId: number,
   batchKey = BATCH_KEY,
   overrides: {
+    readonly meshResourceKey?: string;
     readonly queue?: "opaque" | "alpha-test" | "transparent";
     readonly order?: number;
     readonly depth?: number;
@@ -427,7 +493,7 @@ function packet(
     worldTransformOffset: renderId * 16,
     boundsIndex: -1,
     layerMask: 1,
-    sortKey: sortKey(renderId, overrides),
+    sortKey: sortKey(renderId, batchKey, overrides),
     batchKey,
   };
 }
@@ -446,7 +512,9 @@ function transforms(renderIds: readonly number[]): PackedSnapshotTransforms {
 
 function sortKey(
   renderId: number,
+  batchKey = BATCH_KEY,
   overrides: {
+    readonly meshResourceKey?: string;
     readonly queue?: "opaque" | "alpha-test" | "transparent";
     readonly order?: number;
     readonly depth?: number;
@@ -458,8 +526,8 @@ function sortKey(
     stableId: overrides.stableId ?? renderId,
     order: overrides.order ?? renderId,
     depth: overrides.depth ?? 0,
-    pipelineKey: "pipeline:unlit",
-    materialKey: "material:white",
-    meshKey: "mesh:cube",
+    pipelineKey: batchKey.pipelineKey,
+    materialKey: batchKey.materialKey,
+    meshKey: overrides.meshResourceKey ?? "mesh:cube",
   });
 }

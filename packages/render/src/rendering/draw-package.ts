@@ -3,7 +3,15 @@ import type {
   RenderWorldReadyDraw,
 } from "./render-world.js";
 import type { RenderDiagnostic } from "./snapshot.js";
-import { compareRenderSortKeys } from "./snapshot.js";
+import {
+  compareStableRenderRecords,
+  compareStateAwareRenderRecords,
+  countOpaqueRenderStateRecords,
+  countOpaqueRenderStateSwitches,
+  createOpaqueRenderStateSortPressureReport,
+  emptyOpaqueRenderStateSortPressureReport,
+  type OpaqueRenderStateSortPressureReport,
+} from "./render-state-sort.js";
 import type { PackedSnapshotTransforms } from "./transform-pack.js";
 
 export interface RenderWorldDrawPackage {
@@ -37,12 +45,14 @@ export interface RenderWorldDrawPackageScratchSummary {
   readonly packageSlotsCreated: number;
   readonly missingPackedTransformCount: number;
   readonly diagnostics: RenderWorldDrawPackageDiagnosticSummary;
+  readonly stateSort: OpaqueRenderStateSortPressureReport;
 }
 
 export interface RenderWorldDrawPackageScratch {
   readonly packages: RenderWorldDrawPackage[];
   readonly diagnostics: RenderDiagnostic[];
   readonly packagePool: RenderWorldDrawPackage[];
+  readonly stableOrderScratch: RenderWorldDrawPackage[];
   readonly summary: RenderWorldDrawPackageScratchSummary;
   readonly plan: RenderWorldDrawPackagePlan;
 }
@@ -72,6 +82,7 @@ interface MutableRenderWorldDrawPackageScratchSummary {
   packageSlotsCreated: number;
   missingPackedTransformCount: number;
   readonly diagnostics: MutableRenderWorldDrawPackageDiagnosticSummary;
+  stateSort: OpaqueRenderStateSortPressureReport;
 }
 
 export function planRenderWorldDrawPackages(
@@ -90,6 +101,7 @@ export function createRenderWorldDrawPackageScratch(
 ): RenderWorldDrawPackageScratch {
   const packagePool: RenderWorldDrawPackage[] = [];
   const packages: RenderWorldDrawPackage[] = [];
+  const stableOrderScratch: RenderWorldDrawPackage[] = [];
   const diagnostics: RenderDiagnostic[] = [];
   const summary = createEmptySummary();
 
@@ -101,6 +113,7 @@ export function createRenderWorldDrawPackageScratch(
     packages,
     diagnostics,
     packagePool,
+    stableOrderScratch,
     summary,
     plan: { packages, diagnostics, summary },
   };
@@ -157,10 +170,26 @@ export function writeRenderWorldDrawPackages(
     scratch.packages.push(drawPackage);
   }
 
-  scratch.packages.sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
-  writeScratchSummary(readiness, scratch, packagePoolSizeBeforeWrite);
+  const stableOrderStateSwitches = countStableOrderStateSwitches(
+    scratch.packages,
+    scratch.stableOrderScratch,
+  );
+  scratch.packages.sort(compareRenderWorldDrawPackages);
+  writeScratchSummary(
+    readiness,
+    scratch,
+    packagePoolSizeBeforeWrite,
+    stableOrderStateSwitches,
+  );
 
   return scratch.plan;
+}
+
+export function compareRenderWorldDrawPackages(
+  a: RenderWorldDrawPackage,
+  b: RenderWorldDrawPackage,
+): number {
+  return compareStateAwareRenderRecords(a, b);
 }
 
 function findPackedTransformOffset(
@@ -220,6 +249,7 @@ function createEmptySummary(): MutableRenderWorldDrawPackageScratchSummary {
       total: 0,
       byCode: {},
     },
+    stateSort: emptyOpaqueRenderStateSortPressureReport(),
   };
 }
 
@@ -227,6 +257,7 @@ function writeScratchSummary(
   readiness: RenderWorldDrawReadinessReport,
   scratch: RenderWorldDrawPackageScratch,
   packagePoolSizeBeforeWrite: number,
+  stableOrderStateSwitches: ReturnType<typeof countOpaqueRenderStateSwitches>,
 ): void {
   const summary =
     scratch.summary as MutableRenderWorldDrawPackageScratchSummary;
@@ -247,6 +278,11 @@ function writeScratchSummary(
     scratch.packagePool.length - packagePoolSizeBeforeWrite,
   );
   summary.missingPackedTransformCount = 0;
+  summary.stateSort = createOpaqueRenderStateSortPressureReport({
+    stableOrder: stableOrderStateSwitches,
+    stateAwareOrder: countOpaqueRenderStateSwitches(scratch.packages),
+    recordCount: countOpaqueRenderStateRecords(scratch.packages),
+  });
   diagnostics.total = scratch.diagnostics.length;
 
   for (const code in diagnostics.byCode) {
@@ -261,4 +297,19 @@ function writeScratchSummary(
       summary.missingPackedTransformCount += 1;
     }
   }
+}
+
+function countStableOrderStateSwitches(
+  packages: readonly RenderWorldDrawPackage[],
+  scratch: RenderWorldDrawPackage[],
+): ReturnType<typeof countOpaqueRenderStateSwitches> {
+  scratch.length = 0;
+
+  for (const drawPackage of packages) {
+    scratch.push(drawPackage);
+  }
+
+  scratch.sort(compareStableRenderRecords);
+
+  return countOpaqueRenderStateSwitches(scratch);
 }

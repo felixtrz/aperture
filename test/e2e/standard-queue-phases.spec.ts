@@ -83,6 +83,32 @@ interface StandardQueuePhasesStatus extends ExampleStatusBase {
       };
     };
   } | null;
+  readonly queueStateSort?: {
+    readonly phase: "opaque";
+    readonly policy: string;
+    readonly recordCount: number;
+    readonly stableOrder: {
+      readonly pipeline: number;
+      readonly materialResource: number;
+      readonly meshLayout: number;
+      readonly meshResource: number;
+      readonly total: number;
+    };
+    readonly stateAwareOrder: {
+      readonly pipeline: number;
+      readonly materialResource: number;
+      readonly meshLayout: number;
+      readonly meshResource: number;
+      readonly total: number;
+    };
+    readonly delta: {
+      readonly pipeline: number;
+      readonly materialResource: number;
+      readonly meshLayout: number;
+      readonly meshResource: number;
+      readonly total: number;
+    };
+  } | null;
   readonly renderBundles?: {
     readonly created: number;
     readonly reused: number;
@@ -180,6 +206,13 @@ test("browser renders StandardMaterial opaque, alpha-test, and transparent queue
     totalOrder: true,
   });
   expect(status.commandPressure?.drawCommands).toBe(8);
+  expect(status.queueStateSort).toMatchObject({
+    phase: "opaque",
+    policy: "opaque-state-resource-front-to-back-stable",
+    recordCount: 4,
+  });
+  expect(status.queueStateSort?.delta.pipeline ?? 0).toBeGreaterThan(0);
+  expect(status.queueStateSort?.delta.total ?? 0).toBeGreaterThan(0);
   expect(status.commandPressure?.stateCommands.planned ?? 0).toBeGreaterThan(
     status.commandPressure?.stateCommands.emitted ?? Number.POSITIVE_INFINITY,
   );

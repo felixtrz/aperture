@@ -72,7 +72,102 @@ describe("render-world draw package planning", () => {
       packageSlotsReused: 0,
       packageSlotsCreated: 0,
       missingPackedTransformCount: 0,
+      stateSort: {
+        phase: "opaque",
+        policy: "opaque-state-resource-front-to-back-stable",
+        recordCount: 0,
+        stableOrder: {
+          pipeline: 0,
+          materialResource: 0,
+          meshLayout: 0,
+          meshResource: 0,
+          total: 0,
+        },
+        stateAwareOrder: {
+          pipeline: 0,
+          materialResource: 0,
+          meshLayout: 0,
+          meshResource: 0,
+          total: 0,
+        },
+        delta: {
+          pipeline: 0,
+          materialResource: 0,
+          meshLayout: 0,
+          meshResource: 0,
+          total: 0,
+        },
+      },
       diagnostics: { total: 0, byCode: {} },
+    });
+  });
+
+  it("groups opaque packages by prepared state inside authored render-order buckets", () => {
+    const redA = readyDraw(1, {
+      pipelineKey: "standard|opaque|back|less|none",
+      materialResourceKey: "material-resource:red",
+      meshResourceKey: "mesh-resource:a",
+    });
+    const cutout = readyDraw(2, {
+      queue: "alpha-test",
+      pipelineKey: "standard|mask|back|less|none",
+      materialResourceKey: "material-resource:cutout",
+      meshResourceKey: "mesh-resource:cutout",
+    });
+    const redB = readyDraw(3, {
+      pipelineKey: "standard|opaque|back|less|none",
+      materialResourceKey: "material-resource:red",
+      meshResourceKey: "mesh-resource:b",
+    });
+    const laterCutout = readyDraw(4, {
+      queue: "alpha-test",
+      order: 1,
+      pipelineKey: "standard|mask|back|less|none",
+      materialResourceKey: "material-resource:cutout",
+      meshResourceKey: "mesh-resource:later-cutout",
+    });
+
+    const result = planRenderWorldDrawPackages(
+      readiness({ ready: [redA, cutout, redB, laterCutout] }),
+      transforms([
+        [redA.renderId, 0],
+        [cutout.renderId, 16],
+        [redB.renderId, 32],
+        [laterCutout.renderId, 48],
+      ]),
+    );
+
+    expect(result.packages.map((drawPackage) => drawPackage.renderId)).toEqual([
+      redA.renderId,
+      redB.renderId,
+      cutout.renderId,
+      laterCutout.renderId,
+    ]);
+    expect(result.summary.stateSort).toMatchObject({
+      phase: "opaque",
+      policy: "opaque-state-resource-front-to-back-stable",
+      recordCount: 4,
+      stableOrder: {
+        pipeline: 4,
+        materialResource: 4,
+        meshLayout: 1,
+        meshResource: 4,
+        total: 13,
+      },
+      stateAwareOrder: {
+        pipeline: 2,
+        materialResource: 2,
+        meshLayout: 1,
+        meshResource: 4,
+        total: 9,
+      },
+      delta: {
+        pipeline: 2,
+        materialResource: 2,
+        meshLayout: 0,
+        meshResource: 0,
+        total: 4,
+      },
     });
   });
 
@@ -213,15 +308,23 @@ describe("render-world draw package planning", () => {
 
 function readyDraw(
   seed: number,
-  sort: { readonly order?: number } = {},
+  sort: {
+    readonly order?: number;
+    readonly queue?: "opaque" | "alpha-test" | "transparent";
+    readonly pipelineKey?: string;
+    readonly materialResourceKey?: string;
+    readonly meshResourceKey?: string;
+    readonly meshLayoutKey?: string;
+  } = {},
 ): RenderWorldReadyDraw {
   const packetValue = packet(seed, sort);
 
   return {
     renderId: packetValue.renderId,
     packet: packetValue,
-    meshResourceKey: `mesh-resource:${seed}`,
-    materialResourceKey: `material-resource:${seed}`,
+    meshResourceKey: sort.meshResourceKey ?? `mesh-resource:${seed}`,
+    materialResourceKey:
+      sort.materialResourceKey ?? `material-resource:${seed}`,
     batchKey: packetValue.batchKey,
   };
 }
@@ -253,7 +356,14 @@ function transforms(
 
 function packet(
   seed: number,
-  sort: { readonly order?: number } = {},
+  sort: {
+    readonly order?: number;
+    readonly queue?: "opaque" | "alpha-test" | "transparent";
+    readonly pipelineKey?: string;
+    readonly materialResourceKey?: string;
+    readonly meshResourceKey?: string;
+    readonly meshLayoutKey?: string;
+  } = {},
 ): MeshDrawPacket {
   const entity = { index: seed, generation: 0 };
   const stableId = createStableRenderId(entity);
@@ -261,6 +371,13 @@ function packet(
   const material = createMaterialHandle(`material-${seed}`);
   const materialAsset = createUnlitMaterialAsset();
   const materialPipeline = createMaterialPipelineKeyInput(materialAsset);
+
+  const batchKey = createBatchCompatibilityKey({
+    materialPipeline,
+    materialKey: material.id,
+    meshLayoutKey: sort.meshLayoutKey ?? "p3n3uv2",
+    topology: "triangle-list",
+  });
 
   return {
     renderId: stableId,
@@ -272,12 +389,18 @@ function packet(
     worldTransformOffset: seed * 16,
     boundsIndex: seed,
     layerMask: 1,
-    sortKey: createRenderSortKey({ stableId, order: sort.order ?? 0 }),
-    batchKey: createBatchCompatibilityKey({
-      materialPipeline,
+    sortKey: createRenderSortKey({
+      stableId,
+      order: sort.order ?? 0,
+      pipelineKey: sort.pipelineKey ?? batchKey.pipelineKey,
       materialKey: material.id,
-      meshLayoutKey: "p3n3uv2",
-      topology: "triangle-list",
+      meshKey: mesh.id,
+      ...(sort.queue === undefined ? {} : { queue: sort.queue }),
     }),
+    batchKey: {
+      ...batchKey,
+      pipelineKey: sort.pipelineKey ?? batchKey.pipelineKey,
+      meshLayoutKey: sort.meshLayoutKey ?? batchKey.meshLayoutKey,
+    },
   };
 }

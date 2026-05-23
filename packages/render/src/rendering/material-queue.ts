@@ -356,6 +356,7 @@ function compareMaterialQueueItems(
     a.sortKey.order - b.sortKey.order ||
     compareStrings(a.pipelineKey, b.pipelineKey) ||
     compareStrings(a.materialResourceKey, b.materialResourceKey) ||
+    compareStrings(a.meshLayoutKey, b.meshLayoutKey) ||
     compareStrings(a.meshResourceKey, b.meshResourceKey) ||
     a.depth - b.depth ||
     a.sortKey.stableId - b.sortKey.stableId ||
