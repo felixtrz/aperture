@@ -1,6 +1,6 @@
 # Agent Handoff
 
-Updated: 2026-05-23T06:47:50Z
+Updated: 2026-05-23T06:50:05Z
 
 ## Current Run Update — 2026-05-23T06:47:50Z — PMREM GGX/VNDF compute prefilter
 
@@ -44,6 +44,14 @@ current render-pipeline audit.
 - `task-3098` remains open: app-level specular IBL still needs to execute and
   consume PMREM-generated mip textures instead of the deterministic proof-upload
   placeholder.
+- Initial `task-3098` inspection found that `examples/spinning-cube.main.js`
+  and `examples/tonemap-showcase-environment.js` already contain nearly
+  identical local PMREM dispatch helpers that return `prefiltered: true`; the
+  reusable `packages/webgpu/src/webgpu/ibl-texture-resource.ts` path still owns
+  the generic `specularProofUploadPlaceholder` /
+  `specularPrefilteringDeferred` diagnostics. The next slice should move that
+  logic into the library-owned app/environment resource path rather than
+  extending the duplication in examples.
 - Texture-backed PBR extension slots, transmission grab-pass refraction, generic
   change-set scheduling, and transparent tie-break proof are queued follow-ups.
 
