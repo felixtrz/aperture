@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 17:08 UTC</dd>
+            <dd>2026-05-23 17:38 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1446,12 +1446,14 @@
               high-transmission texel visibly closer to the backing panel than
               the low-transmission texel. Texture-backed sheen color factors now
               bind through the StandardMaterial group-2 texture path and
-              multiply scalar sheen color per texel, and texture-backed
-              iridescence factors now multiply scalar thin-film response per
-              texel in <code>examples/iridescence.html</code>.
+              multiply scalar sheen color per texel, and texture-backed sheen
+              roughness factors now sample alpha as a per-texel multiplier for
+              scalar fabric roughness. Texture-backed iridescence factors now
+              multiply scalar thin-film response per texel in
+              <code>examples/iridescence.html</code>.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3107: texture-backed sheen roughness factors</dd>
+            <dd>task-3108: texture-backed iridescence thickness factors</dd>
           </dl>
         </aside>
       </header>
@@ -1897,15 +1899,18 @@
               </li>
               <li>
                 glTF material mapping now treats scalar
-                <code>KHR_materials_clearcoat</code> and
-                <code>KHR_materials_transmission</code> plus
-                <code>KHR_materials_sheen</code> as supported StandardMaterial
-                extensions, and
-                <code>KHR_materials_clearcoat.clearcoatTexture</code> now maps
-                to a rendered StandardMaterial texture slot; glTF
-                <code>KHR_materials_transmission.transmissionTexture</code> now
-                maps to a renderer-independent StandardMaterial texture slot as
-                well instead of an unsupported-extension warning.
+                <code>KHR_materials_clearcoat</code>,
+                <code>KHR_materials_transmission</code>,
+                <code>KHR_materials_sheen</code>, and
+                <code>KHR_materials_iridescence</code> as supported
+                StandardMaterial extensions.
+                <code>KHR_materials_clearcoat.clearcoatTexture</code>,
+                <code>KHR_materials_transmission.transmissionTexture</code>,
+                <code>KHR_materials_sheen.sheenColorTexture</code>,
+                <code>KHR_materials_sheen.sheenRoughnessTexture</code>, and
+                <code>KHR_materials_iridescence.iridescenceTexture</code> now
+                map to rendered StandardMaterial texture slots instead of
+                unsupported-extension warnings.
               </li>
               <li>Missing broader automatic unload policy integration.</li>
             </ul>
@@ -2040,9 +2045,10 @@
                 Missing app-level generic material adapter route boundary.
               </li>
               <li>
-                Missing remaining roughness/thickness PBR extension texture
-                slots beyond the rendered clearcoat, transmission, sheen color,
-                and iridescence factor slots.
+                Missing remaining PBR extension texture slots for iridescence
+                thickness and clearcoat roughness beyond the rendered clearcoat,
+                transmission, sheen color, sheen roughness, and iridescence
+                factor slots.
               </li>
               <li>
                 Missing IBL, shadow, render-target, and hot-path scratch polish.
@@ -2184,7 +2190,8 @@
               roughness-derived blur radius before applying blend alpha, so the
               glass proof can show glossy and rough transmitted background
               detail without exposing ECS scene state. Texture-backed
-              transmission factors and iridescence factors now bind through the
+              transmission factors, sheen color factors, sheen roughness
+              factors, and iridescence factors now bind through the
               StandardMaterial group-2 texture path and multiply scalar factors
               per texel. <code>createWebGpuApp({ msaa })</code> now renders
               forward passes through cached multisampled color/depth
@@ -2194,8 +2201,7 @@
             <ul>
               <li>
                 Missing remaining texture-backed StandardMaterial PBR extension
-                resources for sheen roughness, iridescence thickness, and
-                clearcoat roughness.
+                resources for iridescence thickness and clearcoat roughness.
               </li>
               <li>
                 Missing broader environment asset preparation and previous
@@ -4487,7 +4493,7 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Render texture-backed
-                StandardMaterial sheen roughness factors.
+                StandardMaterial iridescence thickness factors.
               </li>
               <li>
                 SSAO now uses a PlayCanvas-style spiral AO shader with
@@ -4502,9 +4508,9 @@
                 The post-Tier-20 reference-parity queue now has renderer-owned
                 transmission grab-pass refraction and generic snapshot
                 change-set scheduling plus a deterministic transparent ordering
-                proof plus texture-backed transmission, sheen color, and
-                iridescence factors. It continues with texture-backed sheen
-                roughness factors.
+                proof plus texture-backed transmission, sheen color, sheen
+                roughness, and iridescence factors. It continues with
+                texture-backed iridescence thickness factors.
               </li>
             </ul>
           </article>
@@ -4517,6 +4523,22 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3107</div>
+            <div>
+              <strong>Texture-backed sheen roughness shipped.</strong>
+              <span>
+                StandardMaterial now maps
+                <code>KHR_materials_sheen.sheenRoughnessTexture</code> into a
+                renderer-independent sheen roughness texture slot, prepares the
+                texture/sampler through the WebGPU material route, and samples
+                alpha per texel before fabric BRDF evaluation.
+                <code>examples/sheen.html</code> proves low and high roughness
+                texels produce visibly different shared-material fabric
+                response.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3106</div>
             <div>

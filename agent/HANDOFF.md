@@ -1,6 +1,59 @@
 # Agent Handoff
 
-Updated: 2026-05-23T17:08:05Z
+Updated: 2026-05-23T17:38:24Z
+
+## Current Run Update — 2026-05-23T17:38:24Z — Texture-backed sheen roughness factor
+
+Completed `task-3107`, the next post-Tier-20 reference-parity slice.
+
+### What changed
+
+- Added `sheenRoughnessTexture` to the renderer-independent StandardMaterial
+  asset contract and mapped glTF `KHR_materials_sheen.sheenRoughnessTexture`
+  into that slot without the old unsupported-extension warning.
+- Extended WebGPU StandardMaterial packing, bind group metadata, prepared
+  texture/sampler resource selection, pipeline feature decoding, shader
+  metadata, and WGSL so sampled sheen roughness alpha multiplies scalar
+  `sheenRoughnessFactor` before the fabric lobe is evaluated.
+- Fixed the generated sheen roughness WGSL path so texture sampling happens in
+  fragment scope, then passes the resolved roughness into direct-light
+  evaluation. The earlier form sampled `input.uv` inside `evaluateDirectLight`,
+  which Chrome correctly rejected.
+- Expanded `examples/sheen.html` with a shared-material texture-masked roughness
+  panel. The headed browser proof now waits for the presented canvas and checks
+  high/low roughness texels for visibly different fabric response.
+- Updated the public tracker, render-pipeline comparison page, backlog,
+  current-task pointer, and completed-task log. Recommended next task is now
+  `task-3108`.
+
+### Validation
+
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/materials/standard-sampler-fidelity.test.ts test/materials/standard-proof-point.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-material-resource-inspection.test.ts test/webgpu/standard-bind-group-layout.test.ts test/webgpu/standard-bind-group.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/app-texture-sampler-resources.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm exec playwright test test/e2e/sheen.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000 --global-timeout=120000`
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `git diff --check`
+- `pnpm test` (349 files / 1847 tests)
+- Direct browser proof for `http://127.0.0.1:4173/examples/sheen.html`:
+  status reported `ok: true`, 4 mesh draws, the texture-backed sheen roughness
+  pipeline key, and a delayed canvas screenshot with visible roughness-masked
+  low/high texel response. The only console issue was the existing favicon 403.
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3108`, rendering texture-backed StandardMaterial iridescence
+thickness factors so `KHR_materials_iridescence.iridescenceThicknessTexture`
+drives thin-film color per texel instead of remaining an unsupported extension
+slot.
 
 ## Current Run Update — 2026-05-23T17:08:05Z — Texture-backed iridescence factor
 
