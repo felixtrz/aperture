@@ -375,6 +375,7 @@ function collectMaterialTextureSlots(material: unknown): readonly {
     textureSlot(clearcoat?.clearcoatTexture, "clearcoatTexture"),
     textureSlot(transmission?.transmissionTexture, "transmissionTexture"),
     textureSlot(sheen?.sheenColorTexture, "sheenColorTexture"),
+    textureSlot(sheen?.sheenRoughnessTexture, "sheenRoughnessTexture"),
     textureSlot(iridescence?.iridescenceTexture, "iridescenceTexture"),
     textureSlot(material.normalTexture, "normalTexture"),
     textureSlot(material.occlusionTexture, "occlusionTexture"),

@@ -26,6 +26,8 @@ export type BuiltInShaderBindingId =
   | "transmissionSampler"
   | "sheenColorTexture"
   | "sheenColorSampler"
+  | "sheenRoughnessTexture"
+  | "sheenRoughnessSampler"
   | "iridescenceTexture"
   | "iridescenceSampler"
   | "normalTexture"

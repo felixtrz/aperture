@@ -108,6 +108,11 @@ describe("standard material WebGPU uniform packing", () => {
           1,
         ),
         sheenColorTexture: textureBinding("sheen", "sheen-sampler", 1),
+        sheenRoughnessTexture: textureBinding(
+          "sheen-roughness",
+          "sheen-roughness-sampler",
+          1,
+        ),
         iridescenceTexture: textureBinding(
           "iridescence",
           "iridescence-sampler",
@@ -127,6 +132,7 @@ describe("standard material WebGPU uniform packing", () => {
         STANDARD_MATERIAL_FEATURE_FLAGS.CLEARCOAT_TEXTURE |
         STANDARD_MATERIAL_FEATURE_FLAGS.TRANSMISSION_TEXTURE |
         STANDARD_MATERIAL_FEATURE_FLAGS.SHEEN_COLOR_TEXTURE |
+        STANDARD_MATERIAL_FEATURE_FLAGS.SHEEN_ROUGHNESS_TEXTURE |
         STANDARD_MATERIAL_FEATURE_FLAGS.IRIDESCENCE_TEXTURE,
     );
     expect(result.packed?.dependencies).toEqual({
@@ -170,6 +176,11 @@ describe("standard material WebGPU uniform packing", () => {
         samplerKey: "sampler:sheen-sampler",
         texCoord: 1,
       },
+      sheenRoughness: {
+        textureKey: "texture:sheen-roughness",
+        samplerKey: "sampler:sheen-roughness-sampler",
+        texCoord: 1,
+      },
       iridescence: {
         textureKey: "texture:iridescence",
         samplerKey: "sampler:iridescence-sampler",
@@ -183,6 +194,7 @@ describe("standard material WebGPU uniform packing", () => {
     expect(result.packed?.uniformUint32[60]).toBe(1);
     expect(result.packed?.uniformUint32[61]).toBe(1);
     expect(result.packed?.uniformUint32[62]).toBe(1);
+    expect(result.packed?.uniformUint32[63]).toBe(1);
     expect(
       Array.from(result.packed?.uniformFloat32.slice(18, 22) ?? []),
     ).toEqual([0, 0, 1, 1]);
@@ -326,6 +338,9 @@ describe("standard material WebGPU uniform packing", () => {
     expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[62]).toBe(
       "iridescenceTexCoord.u32",
     );
+    expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[63]).toBe(
+      "sheenRoughnessTexCoord.u32",
+    );
     expect(STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH).toBe(256);
   });
 
@@ -464,6 +479,7 @@ function invalidPacked(): PackedStandardMaterial {
       clearcoat: { textureKey: null, samplerKey: null, texCoord: 0 },
       transmission: { textureKey: null, samplerKey: null, texCoord: 0 },
       sheenColor: { textureKey: null, samplerKey: null, texCoord: 0 },
+      sheenRoughness: { textureKey: null, samplerKey: null, texCoord: 0 },
       iridescence: { textureKey: null, samplerKey: null, texCoord: 0 },
     },
   };

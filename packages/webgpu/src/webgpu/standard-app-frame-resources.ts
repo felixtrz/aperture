@@ -45,6 +45,7 @@ import {
   prepareOcclusionEmissiveTexturedStandardMaterialResource,
   prepareScalarStandardMaterialResource,
   prepareSheenColorTexturedStandardMaterialResource,
+  prepareSheenRoughnessTexturedStandardMaterialResource,
   prepareTransmissionTexturedStandardMaterialResource,
   type PreparedBaseColorTexturedStandardMaterialResource,
   type PreparedClearcoatTexturedStandardMaterialResource,
@@ -55,6 +56,7 @@ import {
   type PreparedScalarStandardMaterialCache,
   type PreparedScalarStandardMaterialResource,
   type PreparedSheenColorTexturedStandardMaterialResource,
+  type PreparedSheenRoughnessTexturedStandardMaterialResource,
   type PreparedTransmissionTexturedStandardMaterialResource,
 } from "./prepared-standard-material-cache.js";
 import type { StandardMaterialBindGroupLayoutResource } from "./standard-bind-group.js";
@@ -433,6 +435,7 @@ type PreparedStandardMaterialUse = PreparedAppMaterialResourceUse<
   | PreparedClearcoatTexturedStandardMaterialResource
   | PreparedTransmissionTexturedStandardMaterialResource
   | PreparedSheenColorTexturedStandardMaterialResource
+  | PreparedSheenRoughnessTexturedStandardMaterialResource
   | PreparedIridescenceTexturedStandardMaterialResource
   | PreparedOcclusionEmissiveTexturedStandardMaterialResource
 >;
@@ -586,11 +589,11 @@ function preparePreparedStandardMaterial(
                     textures: options.textureSamplerDependencies.textures,
                     samplers: options.textureSamplerDependencies.samplers,
                   })
-                : options.material.iridescenceTexture !== null
-                  ? prepareIridescenceTexturedStandardMaterialResource({
+                : options.material.sheenRoughnessTexture !== null
+                  ? prepareSheenRoughnessTexturedStandardMaterialResource({
                       registry: options.assets,
                       device: options.device as Parameters<
-                        typeof prepareIridescenceTexturedStandardMaterialResource
+                        typeof prepareSheenRoughnessTexturedStandardMaterialResource
                       >[0]["device"],
                       cache: options.preparedScalarMaterials,
                       handle: options.materialHandle,
@@ -602,12 +605,11 @@ function preparePreparedStandardMaterial(
                       textures: options.textureSamplerDependencies.textures,
                       samplers: options.textureSamplerDependencies.samplers,
                     })
-                  : options.material.occlusionTexture !== null ||
-                      options.material.emissiveTexture !== null
-                    ? prepareOcclusionEmissiveTexturedStandardMaterialResource({
+                  : options.material.iridescenceTexture !== null
+                    ? prepareIridescenceTexturedStandardMaterialResource({
                         registry: options.assets,
                         device: options.device as Parameters<
-                          typeof prepareOcclusionEmissiveTexturedStandardMaterialResource
+                          typeof prepareIridescenceTexturedStandardMaterialResource
                         >[0]["device"],
                         cache: options.preparedScalarMaterials,
                         handle: options.materialHandle,
@@ -619,18 +621,39 @@ function preparePreparedStandardMaterial(
                         textures: options.textureSamplerDependencies.textures,
                         samplers: options.textureSamplerDependencies.samplers,
                       })
-                    : prepareScalarStandardMaterialResource({
-                        device: options.device as Parameters<
-                          typeof prepareScalarStandardMaterialResource
-                        >[0]["device"],
-                        cache: options.preparedScalarMaterials,
-                        handle: options.materialHandle,
-                        material: options.material,
-                        sourceVersion,
-                        frame: options.frame,
-                        pipelineKey: options.pipelineKey,
-                        layout: options.materialLayout,
-                      });
+                    : options.material.occlusionTexture !== null ||
+                        options.material.emissiveTexture !== null
+                      ? prepareOcclusionEmissiveTexturedStandardMaterialResource(
+                          {
+                            registry: options.assets,
+                            device: options.device as Parameters<
+                              typeof prepareOcclusionEmissiveTexturedStandardMaterialResource
+                            >[0]["device"],
+                            cache: options.preparedScalarMaterials,
+                            handle: options.materialHandle,
+                            material: options.material,
+                            sourceVersion,
+                            frame: options.frame,
+                            pipelineKey: options.pipelineKey,
+                            layout: options.materialLayout,
+                            textures:
+                              options.textureSamplerDependencies.textures,
+                            samplers:
+                              options.textureSamplerDependencies.samplers,
+                          },
+                        )
+                      : prepareScalarStandardMaterialResource({
+                          device: options.device as Parameters<
+                            typeof prepareScalarStandardMaterialResource
+                          >[0]["device"],
+                          cache: options.preparedScalarMaterials,
+                          handle: options.materialHandle,
+                          material: options.material,
+                          sourceVersion,
+                          frame: options.frame,
+                          pipelineKey: options.pipelineKey,
+                          layout: options.materialLayout,
+                        });
 
   if (
     result.valid &&

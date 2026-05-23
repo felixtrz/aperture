@@ -55,6 +55,7 @@ describe("StandardMaterial proof-point contract", () => {
     expect(report.supportedFeatures).toContain("transmissionFactor");
     expect(report.supportedFeatures).toContain("sheenColorFactor");
     expect(report.supportedFeatures).toContain("sheenRoughnessFactor");
+    expect(report.supportedFeatures).toContain("sheenRoughnessTexture");
     expect(report.supportedFeatures).toContain("iridescenceFactor");
     expect(report.supportedFeatures).toContain("iridescenceIor");
     expect(report.supportedFeatures).toContain("iridescenceThicknessRange");

@@ -83,7 +83,7 @@ export const STANDARD_MATERIAL_UNIFORM_LAYOUT = [
   "transmissionTexCoord.u32",
   "sheenColorTexCoord.u32",
   "iridescenceTexCoord.u32",
-  "padding6.z",
+  "sheenRoughnessTexCoord.u32",
 ] as const;
 
 export const STANDARD_MATERIAL_FEATURE_FLAGS = {
@@ -99,6 +99,7 @@ export const STANDARD_MATERIAL_FEATURE_FLAGS = {
   TRANSMISSION_TEXTURE: 1 << 9,
   SHEEN_COLOR_TEXTURE: 1 << 10,
   IRIDESCENCE_TEXTURE: 1 << 11,
+  SHEEN_ROUGHNESS_TEXTURE: 1 << 12,
 } as const;
 
 export type StandardMaterialFeatureFlag =
@@ -132,6 +133,7 @@ export interface StandardMaterialResourceDependencies {
   readonly clearcoat: StandardMaterialTextureDependency;
   readonly transmission: StandardMaterialTextureDependency;
   readonly sheenColor: StandardMaterialTextureDependency;
+  readonly sheenRoughness: StandardMaterialTextureDependency;
   readonly iridescence: StandardMaterialTextureDependency;
 }
 
@@ -282,6 +284,7 @@ export function packStandardMaterial(
   uniformUint32[60] = dependencies.transmission.texCoord;
   uniformUint32[61] = dependencies.sheenColor.texCoord;
   uniformUint32[62] = dependencies.iridescence.texCoord;
+  uniformUint32[63] = dependencies.sheenRoughness.texCoord;
 
   return {
     valid: true,
@@ -468,6 +471,11 @@ function collectStandardMaterialDependencies(
       material.sheenColorTexture,
       diagnostics,
     ),
+    sheenRoughness: textureDependency(
+      "sheenRoughnessTexture",
+      material.sheenRoughnessTexture,
+      diagnostics,
+    ),
     iridescence: textureDependency(
       "iridescenceTexture",
       material.iridescenceTexture,
@@ -543,6 +551,10 @@ function standardMaterialFeatureFlags(material: StandardMaterialAsset): number {
 
   if (material.sheenColorTexture !== null) {
     flags |= STANDARD_MATERIAL_FEATURE_FLAGS.SHEEN_COLOR_TEXTURE;
+  }
+
+  if (material.sheenRoughnessTexture !== null) {
+    flags |= STANDARD_MATERIAL_FEATURE_FLAGS.SHEEN_ROUGHNESS_TEXTURE;
   }
 
   if (material.iridescenceTexture !== null) {

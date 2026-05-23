@@ -966,6 +966,12 @@ function textureSlotInfo(slot: GltfMaterialTextureSlot): {
         colorSpace: "srgb",
         format: "rgba8unorm-srgb",
       };
+    case "sheenRoughnessTexture":
+      return {
+        semantic: "sheen-roughness",
+        colorSpace: "data",
+        format: "rgba8unorm",
+      };
     case "iridescenceTexture":
       return {
         semantic: "iridescence",

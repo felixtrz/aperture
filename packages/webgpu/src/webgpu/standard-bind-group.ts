@@ -19,6 +19,7 @@ export type StandardMaterialTextureSlot =
   | "clearcoat"
   | "transmission"
   | "sheenColor"
+  | "sheenRoughness"
   | "iridescence";
 
 export type StandardMaterialBindGroupDescriptorDiagnosticCode =
@@ -228,6 +229,14 @@ export function createStandardMaterialBindGroupDescriptorPlan(
     17,
     18,
     input.dependencies.iridescence,
+  );
+  addTexturePair(
+    entries,
+    diagnostics,
+    "sheenRoughness",
+    19,
+    20,
+    input.dependencies.sheenRoughness,
   );
 
   return {

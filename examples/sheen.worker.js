@@ -47,8 +47,12 @@ async function handleMessage(data) {
           baseMaterialKey: scene.baseMaterialKey,
           fabricMaterialKey: scene.fabricMaterialKey,
           texturedFabricMaterialKey: scene.texturedFabricMaterialKey,
+          roughnessTexturedFabricMaterialKey:
+            scene.roughnessTexturedFabricMaterialKey,
           sheenColorTextureKey: scene.sheenColorTextureKey,
           sheenColorSamplerKey: scene.sheenColorSamplerKey,
+          sheenRoughnessTextureKey: scene.sheenRoughnessTextureKey,
+          sheenRoughnessSamplerKey: scene.sheenRoughnessSamplerKey,
         },
       });
       return;
@@ -81,7 +85,7 @@ function loadAperture() {
 
 function createWorkerScene(aperture, canvasSize) {
   const app = aperture.createExtractionApp({
-    worldOptions: { entityCapacity: 8 },
+    worldOptions: { entityCapacity: 9 },
   });
   const registered = registerSheenScene(aperture, app.assets);
   const aspect = canvasSize.width / Math.max(1, canvasSize.height);
@@ -135,6 +139,13 @@ function createWorkerScene(aperture, canvasSize) {
     aperture.withTransform({ translation: [0.05, -0.62, 0] }),
     aperture.withMesh(registered.textureMesh),
     aperture.withMaterial(registered.texturedFabricMaterial),
+    aperture.withRenderLayer(1),
+    aperture.withVisibility(true),
+  );
+  app.spawn(
+    aperture.withTransform({ translation: [0.05, -1.02, 0] }),
+    aperture.withMesh(registered.textureMesh),
+    aperture.withMaterial(registered.roughnessTexturedFabricMaterial),
     aperture.withRenderLayer(1),
     aperture.withVisibility(true),
   );

@@ -77,6 +77,11 @@ describe("standard material bind group descriptor planning", () => {
           samplerKey: "sampler:sheen",
           texCoord: 0,
         },
+        sheenRoughness: {
+          textureKey: "texture:sheen-roughness",
+          samplerKey: "sampler:sheen-roughness",
+          texCoord: 0,
+        },
         iridescence: {
           textureKey: "texture:iridescence",
           samplerKey: "sampler:iridescence",
@@ -109,9 +114,11 @@ describe("standard material bind group descriptor planning", () => {
       [16, "sampler:sheen"],
       [17, "texture:iridescence"],
       [18, "sampler:iridescence"],
+      [19, "texture:sheen-roughness"],
+      [20, "sampler:sheen-roughness"],
     ]);
     expect(plan.resourceKey).toBe(
-      "bind-group:standard/group-2/0:material-buffer:StandardMaterial/Textured/uniform/1:texture:base/2:sampler:base/3:texture:mr/4:sampler:mr/5:texture:normal/6:sampler:normal/7:texture:ao/8:sampler:ao/9:texture:emissive/10:sampler:emissive/11:texture:clearcoat/12:sampler:clearcoat/13:texture:transmission/14:sampler:transmission/15:texture:sheen/16:sampler:sheen/17:texture:iridescence/18:sampler:iridescence",
+      "bind-group:standard/group-2/0:material-buffer:StandardMaterial/Textured/uniform/1:texture:base/2:sampler:base/3:texture:mr/4:sampler:mr/5:texture:normal/6:sampler:normal/7:texture:ao/8:sampler:ao/9:texture:emissive/10:sampler:emissive/11:texture:clearcoat/12:sampler:clearcoat/13:texture:transmission/14:sampler:transmission/15:texture:sheen/16:sampler:sheen/17:texture:iridescence/18:sampler:iridescence/19:texture:sheen-roughness/20:sampler:sheen-roughness",
     );
   });
 
@@ -274,6 +281,7 @@ function emptyDependencies(): StandardMaterialResourceDependencies {
     clearcoat: { textureKey: null, samplerKey: null, texCoord: 0 },
     transmission: { textureKey: null, samplerKey: null, texCoord: 0 },
     sheenColor: { textureKey: null, samplerKey: null, texCoord: 0 },
+    sheenRoughness: { textureKey: null, samplerKey: null, texCoord: 0 },
     iridescence: { textureKey: null, samplerKey: null, texCoord: 0 },
   };
 }

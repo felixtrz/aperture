@@ -161,21 +161,27 @@ function createSheenStatus(scene, loop, diagnostics) {
   const textureContrast = createSheenTextureContrastReport(
     loop.frame?.readback,
   );
+  const roughnessContrast = createSheenRoughnessContrastReport(
+    loop.frame?.readback,
+  );
   const readbackContrastOk =
     loop.frame?.readback?.ok !== true ||
-    textureContrast === null ||
-    textureContrast.ok === true;
+    ((textureContrast === null || textureContrast.ok === true) &&
+      (roughnessContrast === null || roughnessContrast.ok === true));
 
   return {
     ...baseStatus,
     ok:
-      counts?.meshDraws === 3 &&
+      counts?.meshDraws === 4 &&
       loop.frame?.snapshot?.lights === 2 &&
       (counts?.drawCalls ?? 0) >= 1 &&
       counts?.diagnostics === 0 &&
       pipelineKeys.includes("standard|sheen|opaque|none|less|none") &&
       pipelineKeys.includes(
         "standard|sheen|sheenColorTexture|opaque|none|less|none",
+      ) &&
+      pipelineKeys.includes(
+        "standard|sheen|sheenRoughnessTexture|opaque|none|less|none",
       ) &&
       readbackContrastOk,
     phase: "submit",
@@ -186,12 +192,18 @@ function createSheenStatus(scene, loop, diagnostics) {
       baseMaterialKey: scene.baseMaterialKey,
       fabricMaterialKey: scene.fabricMaterialKey,
       texturedFabricMaterialKey: scene.texturedFabricMaterialKey,
+      roughnessTexturedFabricMaterialKey:
+        scene.roughnessTexturedFabricMaterialKey,
       sheenColorTextureKey: scene.sheenColorTextureKey,
       sheenColorSamplerKey: scene.sheenColorSamplerKey,
+      sheenRoughnessTextureKey: scene.sheenRoughnessTextureKey,
+      sheenRoughnessSamplerKey: scene.sheenRoughnessSamplerKey,
       sheenColorFactor: [0.15, 1, 0.45],
       sheenRoughnessFactor: 1,
       textureBackedColor: true,
+      textureBackedRoughness: true,
       textureContrast,
+      roughnessContrast,
       samples: scene.samples,
     },
     worker: {
@@ -229,6 +241,37 @@ function createSheenTextureContrastReport(readback) {
 
   return {
     ok: highLowDistance > 45 && highLuminance > lowLuminance + 35,
+    highLowDistance,
+    lowLuminance,
+    highLuminance,
+  };
+}
+
+function createSheenRoughnessContrastReport(readback) {
+  if (readback?.ok !== true || !Array.isArray(readback.samples)) {
+    return null;
+  }
+
+  const low = findReadbackPixel(readback.samples, "roughness-low");
+  const high = findReadbackPixel(readback.samples, "roughness-high");
+
+  if (low === null || high === null) {
+    return {
+      ok: false,
+      reason: "missing-roughness-sample",
+    };
+  }
+
+  if (isTransparentZeroPixel(low) && isTransparentZeroPixel(high)) {
+    return null;
+  }
+
+  const highLowDistance = pixelDistance(high, low);
+  const lowLuminance = luminance(low);
+  const highLuminance = luminance(high);
+
+  return {
+    ok: highLowDistance > 18,
     highLowDistance,
     lowLuminance,
     highLuminance,

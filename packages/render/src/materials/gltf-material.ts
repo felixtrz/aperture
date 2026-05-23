@@ -16,6 +16,7 @@ export type GltfMaterialTextureSlot =
   | "clearcoatTexture"
   | "transmissionTexture"
   | "sheenColorTexture"
+  | "sheenRoughnessTexture"
   | "iridescenceTexture"
   | "normalTexture"
   | "occlusionTexture"
@@ -329,6 +330,14 @@ export function createMaterialAssetFromGltfMaterial(
       fallback: 0,
       diagnostics,
     }),
+    sheenRoughnessTexture: mapTextureBinding({
+      materialKey,
+      slot: "sheenRoughnessTexture",
+      field: `extensions.${SHEEN_EXTENSION}.sheenRoughnessTexture`,
+      value: sheenSource?.sheenRoughnessTexture,
+      resolver: options.resolveTextureBinding,
+      diagnostics,
+    }),
     iridescenceFactor: mapFiniteNumber({
       materialKey,
       field: `extensions.${IRIDESCENCE_EXTENSION}.iridescenceFactor`,
@@ -424,7 +433,6 @@ export function createMaterialAssetFromGltfMaterial(
     materialKey,
     diagnostics,
   );
-  inspectUnsupportedSheenTextures(sheenSource, materialKey, diagnostics);
   inspectUnsupportedIridescenceTextures(
     iridescenceSource,
     materialKey,
@@ -495,31 +503,6 @@ function inspectUnsupportedClearcoatTextures(
       field: `extensions.${CLEARCOAT_EXTENSION}.${field}`,
       extensionName: CLEARCOAT_EXTENSION,
       message: `${CLEARCOAT_EXTENSION}.${field} is preserved in source data but current clearcoat rendering only samples clearcoatTexture.`,
-    });
-  }
-}
-
-function inspectUnsupportedSheenTextures(
-  sheenSource: Record<string, unknown> | undefined,
-  materialKey: string,
-  diagnostics: GltfMaterialMappingDiagnostic[],
-): void {
-  if (sheenSource === undefined) {
-    return;
-  }
-
-  for (const field of ["sheenRoughnessTexture"] as const) {
-    if (sheenSource[field] === undefined) {
-      continue;
-    }
-
-    diagnostics.push({
-      code: "gltfMaterial.unsupportedOptionalExtension",
-      severity: "warning",
-      materialKey,
-      field: `extensions.${SHEEN_EXTENSION}.${field}`,
-      extensionName: SHEEN_EXTENSION,
-      message: `${SHEEN_EXTENSION}.${field} is preserved in source data but current sheen rendering only samples sheenColorTexture.`,
     });
   }
 }

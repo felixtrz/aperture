@@ -23,6 +23,7 @@ export type StandardMaterialTextureField =
   | "clearcoatTexture"
   | "transmissionTexture"
   | "sheenColorTexture"
+  | "sheenRoughnessTexture"
   | "iridescenceTexture"
   | "normalTexture"
   | "occlusionTexture"
@@ -123,6 +124,11 @@ const STANDARD_TEXTURE_EXPECTATIONS = [
     field: "sheenColorTexture",
     semantic: "sheen-color",
     colorSpaces: ["srgb"],
+  },
+  {
+    field: "sheenRoughnessTexture",
+    semantic: "sheen-roughness",
+    colorSpaces: ["linear", "data"],
   },
   {
     field: "iridescenceTexture",
