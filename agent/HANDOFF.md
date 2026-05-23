@@ -1,6 +1,36 @@
 # Agent Handoff
 
-Updated: 2026-05-23T14:54:03Z
+Updated: 2026-05-23T14:55:33Z
+
+## Current Run Update — 2026-05-23T14:55:33Z — Repeated stop gate before task-3101
+
+No implementation work was started because this continuation began after the
+repository stop gate (`:55` local minute). The working tree was on
+`main...origin/main`, with only the pre-existing unrelated deletion of
+`.codex/hooks.json` and untracked
+`docs/DEVELOPER_API_FEEDBACK.md` /
+`docs/DEVELOPER_API_PROPOSAL.md` present.
+
+### Context gathered
+
+- Re-read the required project/agent state files named by `AGENTS.md`.
+- Confirmed `task-3101` remains the next ready slice: add a generic snapshot
+  change-set scheduler for render-world updates.
+- Confirmed the corrected task references now point at existing Bevy files:
+  `references/bevy/crates/bevy_render/src/extract_component.rs`,
+  `references/bevy/crates/bevy_ecs/src/change_detection/mod.rs`, and
+  `references/bevy/crates/bevy_ecs/src/change_detection/tick.rs`.
+
+### Validation
+
+- `git status --short --branch`
+- `date '+%Y-%m-%dT%H:%M:%S%z %M'`
+
+### Recommended next task
+
+Start `task-3101`, adding a generic snapshot change-set scheduler for
+render-world updates so unchanged snapshot families can avoid full packet
+refresh work.
 
 ## Current Run Update — 2026-05-23T14:54:03Z — Stop gate before task-3101
 
