@@ -34,6 +34,7 @@ describe("glTF material mapping", () => {
       transmissionFactor: 0,
       transmissionTexture: null,
       sheenColorFactor: [0, 0, 0],
+      sheenColorTexture: null,
       sheenRoughnessFactor: 0,
       iridescenceFactor: 0,
       iridescenceIor: 1.3,
@@ -226,32 +227,34 @@ describe("glTF material mapping", () => {
     });
   });
 
-  it("warns when KHR_materials_sheen uses unsupported texture slots", () => {
+  it("maps KHR_materials_sheen sheenColorTexture and warns for remaining unsupported texture slots", () => {
     const report = createMaterialAssetFromGltfMaterial(
       {
         extensions: {
           KHR_materials_sheen: {
             sheenColorFactor: [1, 0.5, 0.2],
-            sheenColorTexture: { index: 0 },
+            sheenColorTexture: { index: 0, texCoord: 1 },
             sheenRoughnessTexture: { index: 1 },
           },
         },
       },
-      { materialKey: "material:sheen-textures" },
+      {
+        materialKey: "material:sheen-textures",
+        resolveTextureBinding,
+      },
     );
 
     expect(report.valid).toBe(true);
     expect(report.material).toMatchObject({
       kind: "standard",
       sheenColorFactor: [1, 0.5, 0.2],
+      sheenColorTexture: {
+        texture: createTextureHandle("texture-0"),
+        sampler: createSamplerHandle("sampler-0"),
+        texCoord: 1,
+      },
     });
     expect(report.diagnostics).toMatchObject([
-      {
-        code: "gltfMaterial.unsupportedOptionalExtension",
-        severity: "warning",
-        field: "extensions.KHR_materials_sheen.sheenColorTexture",
-        extensionName: "KHR_materials_sheen",
-      },
       {
         code: "gltfMaterial.unsupportedOptionalExtension",
         severity: "warning",

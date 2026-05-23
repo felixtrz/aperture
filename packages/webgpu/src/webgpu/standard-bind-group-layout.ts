@@ -79,6 +79,8 @@ export function createStandardMaterialBindGroupLayoutMetadata(
       samplerBinding(12, "clearcoatSampler"),
       textureBinding(13, "transmissionTexture"),
       samplerBinding(14, "transmissionSampler"),
+      textureBinding(15, "sheenColorTexture"),
+      samplerBinding(16, "sheenColorSampler"),
     ],
   };
 }

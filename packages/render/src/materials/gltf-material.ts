@@ -15,6 +15,7 @@ export type GltfMaterialTextureSlot =
   | "metallicRoughnessTexture"
   | "clearcoatTexture"
   | "transmissionTexture"
+  | "sheenColorTexture"
   | "normalTexture"
   | "occlusionTexture"
   | "emissiveTexture";
@@ -312,6 +313,14 @@ export function createMaterialAssetFromGltfMaterial(
       fallback: [0, 0, 0],
       diagnostics,
     }),
+    sheenColorTexture: mapTextureBinding({
+      materialKey,
+      slot: "sheenColorTexture",
+      field: `extensions.${SHEEN_EXTENSION}.sheenColorTexture`,
+      value: sheenSource?.sheenColorTexture,
+      resolver: options.resolveTextureBinding,
+      diagnostics,
+    }),
     sheenRoughnessFactor: mapFiniteNumber({
       materialKey,
       field: `extensions.${SHEEN_EXTENSION}.sheenRoughnessFactor`,
@@ -490,7 +499,7 @@ function inspectUnsupportedSheenTextures(
     return;
   }
 
-  for (const field of ["sheenColorTexture", "sheenRoughnessTexture"] as const) {
+  for (const field of ["sheenRoughnessTexture"] as const) {
     if (sheenSource[field] === undefined) {
       continue;
     }
@@ -501,7 +510,7 @@ function inspectUnsupportedSheenTextures(
       materialKey,
       field: `extensions.${SHEEN_EXTENSION}.${field}`,
       extensionName: SHEEN_EXTENSION,
-      message: `${SHEEN_EXTENSION}.${field} is preserved in source data but scalar sheen rendering does not sample sheen textures yet.`,
+      message: `${SHEEN_EXTENSION}.${field} is preserved in source data but current sheen rendering only samples sheenColorTexture.`,
     });
   }
 }

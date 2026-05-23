@@ -24,6 +24,8 @@ export type BuiltInShaderBindingId =
   | "clearcoatSampler"
   | "transmissionTexture"
   | "transmissionSampler"
+  | "sheenColorTexture"
+  | "sheenColorSampler"
   | "normalTexture"
   | "normalSampler"
   | "occlusionTexture"

@@ -107,6 +107,7 @@ describe("standard material WebGPU uniform packing", () => {
           "transmission-sampler",
           1,
         ),
+        sheenColorTexture: textureBinding("sheen", "sheen-sampler", 1),
       }),
     );
 
@@ -119,7 +120,8 @@ describe("standard material WebGPU uniform packing", () => {
         STANDARD_MATERIAL_FEATURE_FLAGS.OCCLUSION_TEXTURE |
         STANDARD_MATERIAL_FEATURE_FLAGS.EMISSIVE_TEXTURE |
         STANDARD_MATERIAL_FEATURE_FLAGS.CLEARCOAT_TEXTURE |
-        STANDARD_MATERIAL_FEATURE_FLAGS.TRANSMISSION_TEXTURE,
+        STANDARD_MATERIAL_FEATURE_FLAGS.TRANSMISSION_TEXTURE |
+        STANDARD_MATERIAL_FEATURE_FLAGS.SHEEN_COLOR_TEXTURE,
     );
     expect(result.packed?.dependencies).toEqual({
       baseColor: {
@@ -157,12 +159,18 @@ describe("standard material WebGPU uniform packing", () => {
         samplerKey: "sampler:transmission-sampler",
         texCoord: 1,
       },
+      sheenColor: {
+        textureKey: "texture:sheen",
+        samplerKey: "sampler:sheen-sampler",
+        texCoord: 1,
+      },
     });
     expect(
       Array.from(result.packed?.uniformUint32.slice(13, 18) ?? []),
     ).toEqual([1, 2, 3, 4, 5]);
     expect(result.packed?.uniformUint32[51]).toBe(1);
     expect(result.packed?.uniformUint32[60]).toBe(1);
+    expect(result.packed?.uniformUint32[61]).toBe(1);
     expect(
       Array.from(result.packed?.uniformFloat32.slice(18, 22) ?? []),
     ).toEqual([0, 0, 1, 1]);
@@ -302,6 +310,7 @@ describe("standard material WebGPU uniform packing", () => {
     expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[60]).toBe(
       "transmissionTexCoord.u32",
     );
+    expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[61]).toBe("sheenColorTexCoord.u32");
     expect(STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH).toBe(256);
   });
 
@@ -439,6 +448,7 @@ function invalidPacked(): PackedStandardMaterial {
       emissive: { textureKey: null, samplerKey: null, texCoord: 0 },
       clearcoat: { textureKey: null, samplerKey: null, texCoord: 0 },
       transmission: { textureKey: null, samplerKey: null, texCoord: 0 },
+      sheenColor: { textureKey: null, samplerKey: null, texCoord: 0 },
     },
   };
 }

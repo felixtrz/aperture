@@ -21,6 +21,7 @@ export function materialTextureBindings(
         ["metallicRoughnessTexture", material.metallicRoughnessTexture],
         ["clearcoatTexture", material.clearcoatTexture],
         ["transmissionTexture", material.transmissionTexture],
+        ["sheenColorTexture", material.sheenColorTexture],
         ["normalTexture", material.normalTexture],
         ["occlusionTexture", material.occlusionTexture],
         ["emissiveTexture", material.emissiveTexture],

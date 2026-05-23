@@ -13,10 +13,22 @@ import type { ExampleStatusBase } from "./example-status-types.js";
 interface SheenStatus extends ExampleStatusBase {
   readonly sheen?: {
     readonly meshKey: string;
+    readonly textureMeshKey: string;
     readonly baseMaterialKey: string;
     readonly fabricMaterialKey: string;
+    readonly texturedFabricMaterialKey: string;
+    readonly sheenColorTextureKey: string;
+    readonly sheenColorSamplerKey: string;
     readonly sheenColorFactor: readonly [number, number, number];
     readonly sheenRoughnessFactor: number;
+    readonly textureBackedColor: boolean;
+    readonly textureContrast?: {
+      readonly ok: boolean;
+      readonly highLowDistance?: number;
+      readonly lowLuminance?: number;
+      readonly highLuminance?: number;
+      readonly reason?: string;
+    } | null;
   };
   readonly frame?: SheenFrameStatus;
 }
@@ -78,20 +90,25 @@ test("browser renders scalar sheen with a distinct fabric rim response", async (
     },
     sheen: {
       meshKey: "mesh:sheen-panel-mesh",
+      textureMeshKey: "mesh:sheen-texture-panel-mesh",
       baseMaterialKey: "material:sheen-base-material",
       fabricMaterialKey: "material:sheen-fabric-material",
-      sheenColorFactor: [1, 0.55, 0.22],
-      sheenRoughnessFactor: 0.28,
+      texturedFabricMaterialKey: "material:sheen-textured-fabric-material",
+      sheenColorTextureKey: "texture:sheen-color-factor-texture",
+      sheenColorSamplerKey: "sampler:sheen-color-nearest",
+      sheenColorFactor: [0.15, 1, 0.45],
+      sheenRoughnessFactor: 1,
+      textureBackedColor: true,
     },
     frame: {
       snapshot: {
         views: 1,
-        meshDraws: 2,
+        meshDraws: 3,
         lights: 2,
         diagnostics: 0,
       },
       counts: {
-        meshDraws: 2,
+        meshDraws: 3,
         diagnostics: 0,
       },
     },
@@ -110,6 +127,7 @@ test("browser renders scalar sheen with a distinct fabric rim response", async (
     expect.arrayContaining([
       "standard|opaque|none|less|none",
       "standard|sheen|opaque|none|less|none",
+      "standard|sheen|sheenColorTexture|opaque|none|less|none",
     ]),
   );
 
@@ -128,13 +146,26 @@ function assertSheenScreenshot(screenshot: Buffer): void {
   const clear = rgbaColorToPixel({ r: 0.018, g: 0.02, b: 0.024, a: 1 });
   const basePanel = readPngPixel(screenshot, 0.34, 0.42);
   const sheenPanel = readPngPixel(screenshot, 0.77, 0.42);
+  const textureLow = readPngPixel(screenshot, 0.3, 0.76);
+  const textureHigh = readPngPixel(screenshot, 0.57, 0.76);
   const background = readPngPixel(screenshot, 0.5, 0.12);
 
-  expect(pixelDistance(basePanel, clear)).toBeGreaterThan(30);
-  expect(pixelDistance(sheenPanel, clear)).toBeGreaterThan(30);
+  expect(pixelDistance(basePanel, clear)).toBeGreaterThan(45);
+  expect(pixelDistance(sheenPanel, clear)).toBeGreaterThan(45);
   expect(pixelDistance(background, clear)).toBeLessThan(12);
-  expect(luminance(sheenPanel)).toBeGreaterThan(luminance(basePanel) + 60);
-  expect(sheenPanel.g).toBeGreaterThan(basePanel.g + 60);
+  expect(luminance(sheenPanel)).toBeGreaterThan(luminance(basePanel) + 45);
+  expect(
+    pixelDistance(textureHigh, textureLow),
+    JSON.stringify({ textureLow, textureHigh }),
+  ).toBeGreaterThan(75);
+  expect(
+    luminance(textureHigh),
+    JSON.stringify({ textureLow, textureHigh }),
+  ).toBeGreaterThan(luminance(textureLow) + 45);
+  expect(
+    textureHigh.g,
+    JSON.stringify({ textureLow, textureHigh }),
+  ).toBeGreaterThan(textureLow.g + 70);
 }
 
 function luminance(pixel: {

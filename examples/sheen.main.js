@@ -158,23 +158,40 @@ async function handleWorkerMessage(
 function createSheenStatus(scene, loop, diagnostics) {
   const counts = loop.frame?.counts;
   const pipelineKeys = loop.frame?.pipelineKeys ?? [];
+  const textureContrast = createSheenTextureContrastReport(
+    loop.frame?.readback,
+  );
+  const readbackContrastOk =
+    loop.frame?.readback?.ok !== true ||
+    textureContrast === null ||
+    textureContrast.ok === true;
 
   return {
     ...baseStatus,
     ok:
-      counts?.meshDraws === 2 &&
+      counts?.meshDraws === 3 &&
       loop.frame?.snapshot?.lights === 2 &&
       (counts?.drawCalls ?? 0) >= 1 &&
       counts?.diagnostics === 0 &&
-      pipelineKeys.includes("standard|sheen|opaque|none|less|none"),
+      pipelineKeys.includes("standard|sheen|opaque|none|less|none") &&
+      pipelineKeys.includes(
+        "standard|sheen|sheenColorTexture|opaque|none|less|none",
+      ) &&
+      readbackContrastOk,
     phase: "submit",
     renderingBackend: "webgpu-explicit",
     sheen: {
       meshKey: scene.meshKey,
+      textureMeshKey: scene.textureMeshKey,
       baseMaterialKey: scene.baseMaterialKey,
       fabricMaterialKey: scene.fabricMaterialKey,
-      sheenColorFactor: [1, 0.55, 0.22],
-      sheenRoughnessFactor: 0.28,
+      texturedFabricMaterialKey: scene.texturedFabricMaterialKey,
+      sheenColorTextureKey: scene.sheenColorTextureKey,
+      sheenColorSamplerKey: scene.sheenColorSamplerKey,
+      sheenColorFactor: [0.15, 1, 0.45],
+      sheenRoughnessFactor: 1,
+      textureBackedColor: true,
+      textureContrast,
       samples: scene.samples,
     },
     worker: {
@@ -185,6 +202,58 @@ function createSheenStatus(scene, loop, diagnostics) {
     frame: loop.frame,
     diagnosticCodes: diagnostics.map((diagnostic) => diagnostic.code),
   };
+}
+
+function createSheenTextureContrastReport(readback) {
+  if (readback?.ok !== true || !Array.isArray(readback.samples)) {
+    return null;
+  }
+
+  const low = findReadbackPixel(readback.samples, "texture-low");
+  const high = findReadbackPixel(readback.samples, "texture-high");
+
+  if (low === null || high === null) {
+    return {
+      ok: false,
+      reason: "missing-texture-sample",
+    };
+  }
+
+  if (isTransparentZeroPixel(low) && isTransparentZeroPixel(high)) {
+    return null;
+  }
+
+  const highLowDistance = pixelDistance(high, low);
+  const lowLuminance = luminance(low);
+  const highLuminance = luminance(high);
+
+  return {
+    ok: highLowDistance > 45 && highLuminance > lowLuminance + 35,
+    highLowDistance,
+    lowLuminance,
+    highLuminance,
+  };
+}
+
+function isTransparentZeroPixel(pixel) {
+  return pixel.r === 0 && pixel.g === 0 && pixel.b === 0 && pixel.a === 0;
+}
+
+function findReadbackPixel(samples, id) {
+  return samples.find((sample) => sample.id === id)?.pixel ?? null;
+}
+
+function pixelDistance(a, b) {
+  const dr = a.r - b.r;
+  const dg = a.g - b.g;
+  const db = a.b - b.b;
+  const da = a.a - b.a;
+
+  return Math.sqrt(dr * dr + dg * dg + db * db + da * da);
+}
+
+function luminance(pixel) {
+  return pixel.r * 0.2126 + pixel.g * 0.7152 + pixel.b * 0.0722;
 }
 
 function failure(reason, message, extra = {}) {

@@ -11,6 +11,7 @@ export type StandardMaterialProofPointFeature =
   | "transmissionFactor"
   | "transmissionTexture"
   | "sheenColorFactor"
+  | "sheenColorTexture"
   | "sheenRoughnessFactor"
   | "iridescenceFactor"
   | "iridescenceIor"
@@ -43,6 +44,7 @@ export const STANDARD_MATERIAL_PROOF_POINT_SCOPE = {
     "transmissionFactor",
     "transmissionTexture",
     "sheenColorFactor",
+    "sheenColorTexture",
     "sheenRoughnessFactor",
     "iridescenceFactor",
     "iridescenceIor",

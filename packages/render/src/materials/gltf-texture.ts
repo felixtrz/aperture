@@ -960,6 +960,12 @@ function textureSlotInfo(slot: GltfMaterialTextureSlot): {
         colorSpace: "srgb",
         format: "rgba8unorm-srgb",
       };
+    case "sheenColorTexture":
+      return {
+        semantic: "sheen-color",
+        colorSpace: "srgb",
+        format: "rgba8unorm-srgb",
+      };
     case "metallicRoughnessTexture":
       return {
         semantic: "metallic-roughness",

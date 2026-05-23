@@ -636,6 +636,80 @@ describe("built-in standard material WGSL shader metadata", () => {
     ).toBe("standard|sheen|opaque|back|less|none");
   });
 
+  it("generates a texture-backed sheen color StandardMaterial shader variant", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      sheenColorTexture: true,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      sheen: true,
+    });
+    const material = createStandardMaterialAsset({
+      sheenColorFactor: [0.9, 0.52, 0.2],
+      sheenColorTexture: {
+        texture: createTextureHandle("sheen-color"),
+        sampler: createSamplerHandle("sheen-nearest"),
+      },
+      sheenRoughnessFactor: 0.35,
+    });
+
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        sheenColorTexture: true,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: false,
+        sheen: true,
+      }),
+    ).toBe("direct-lit-metallic-roughness-sheen-color-texture-sheen-texture");
+    expect(shader.label).toBe(
+      "aperture/standard-mesh-sheen-color-texture-sheen-textured",
+    );
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.bindings).toEqual([
+      ...STANDARD_MESH_SHADER.bindings,
+      {
+        id: "sheenColorTexture",
+        label: "Sheen color texture",
+        group: 2,
+        binding: 15,
+        resource: "texture",
+      },
+      {
+        id: "sheenColorSampler",
+        label: "Sheen color sampler",
+        group: 2,
+        binding: 16,
+        resource: "sampler",
+      },
+    ]);
+    expect(shader.code).toContain(
+      "@group(2) @binding(15) var sheenColorTexture: texture_2d<f32>;",
+    );
+    expect(shader.code).toContain(
+      "let sheenColor = clamp(material.sheenColorRoughnessFactor.rgb * textureSample(sheenColorTexture, sheenColorSampler, input.uv).rgb",
+    );
+    expect(shader.code).toContain("sheenColor: vec3f");
+    expect(shader.code).toContain(
+      `        roughness,
+        sheenColor,
+      );`,
+    );
+    expect(shader.code).not.toContain(
+      "textureSample(sheenColorTexture, sheenColorSampler, input.uv).rgb, vec3f(0.0), vec3f(1.0));\n  let sheenRoughness",
+    );
+    expect(
+      materialPipelineKeyInputToKey(createMaterialPipelineKeyInput(material)),
+    ).toBe("standard|sheen|sheenColorTexture|opaque|back|less|none");
+  });
+
   it("generates a scalar iridescence StandardMaterial shader variant", () => {
     const shader = createStandardTextureVariantShader({
       baseColorTexture: false,

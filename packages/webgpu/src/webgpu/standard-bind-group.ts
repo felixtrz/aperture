@@ -17,7 +17,8 @@ export type StandardMaterialTextureSlot =
   | "occlusion"
   | "emissive"
   | "clearcoat"
-  | "transmission";
+  | "transmission"
+  | "sheenColor";
 
 export type StandardMaterialBindGroupDescriptorDiagnosticCode =
   | "standardMaterialBindGroup.missingMaterialResource"
@@ -210,6 +211,14 @@ export function createStandardMaterialBindGroupDescriptorPlan(
     13,
     14,
     input.dependencies.transmission,
+  );
+  addTexturePair(
+    entries,
+    diagnostics,
+    "sheenColor",
+    15,
+    16,
+    input.dependencies.sheenColor,
   );
 
   return {

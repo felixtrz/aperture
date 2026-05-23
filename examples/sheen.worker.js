@@ -43,8 +43,12 @@ async function handleMessage(data) {
         type: "ready",
         scene: {
           meshKey: scene.meshKey,
+          textureMeshKey: scene.textureMeshKey,
           baseMaterialKey: scene.baseMaterialKey,
           fabricMaterialKey: scene.fabricMaterialKey,
+          texturedFabricMaterialKey: scene.texturedFabricMaterialKey,
+          sheenColorTextureKey: scene.sheenColorTextureKey,
+          sheenColorSamplerKey: scene.sheenColorSamplerKey,
         },
       });
       return;
@@ -99,16 +103,16 @@ function createWorkerScene(aperture, canvasSize) {
     aperture.withLight({
       kind: aperture.LightKind.Ambient,
       color: [1, 1, 1, 1],
-      intensity: 0.1,
+      intensity: 0.04,
       layerMask: 1,
     }),
   );
   app.spawn(
-    aperture.withTransform({ translation: [0.65, 0.18, 3.4] }),
+    aperture.withTransform({ translation: [2.1, 0, 1.1] }),
     aperture.withLight({
       kind: aperture.LightKind.Point,
-      color: [1, 0.9, 0.76, 1],
-      intensity: 14,
+      color: [1, 1, 1, 1],
+      intensity: 18,
       range: 8,
       layerMask: 1,
     }),
@@ -124,6 +128,13 @@ function createWorkerScene(aperture, canvasSize) {
     aperture.withTransform({ translation: [0.55, 0, 0] }),
     aperture.withMesh(registered.mesh),
     aperture.withMaterial(registered.fabricMaterial),
+    aperture.withRenderLayer(1),
+    aperture.withVisibility(true),
+  );
+  app.spawn(
+    aperture.withTransform({ translation: [0.05, -0.62, 0] }),
+    aperture.withMesh(registered.textureMesh),
+    aperture.withMaterial(registered.texturedFabricMaterial),
     aperture.withRenderLayer(1),
     aperture.withVisibility(true),
   );

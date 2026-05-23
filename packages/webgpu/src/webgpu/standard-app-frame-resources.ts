@@ -43,6 +43,7 @@ import {
   prepareNormalTexturedStandardMaterialResource,
   prepareOcclusionEmissiveTexturedStandardMaterialResource,
   prepareScalarStandardMaterialResource,
+  prepareSheenColorTexturedStandardMaterialResource,
   prepareTransmissionTexturedStandardMaterialResource,
   type PreparedBaseColorTexturedStandardMaterialResource,
   type PreparedClearcoatTexturedStandardMaterialResource,
@@ -51,6 +52,7 @@ import {
   type PreparedOcclusionEmissiveTexturedStandardMaterialResource,
   type PreparedScalarStandardMaterialCache,
   type PreparedScalarStandardMaterialResource,
+  type PreparedSheenColorTexturedStandardMaterialResource,
   type PreparedTransmissionTexturedStandardMaterialResource,
 } from "./prepared-standard-material-cache.js";
 import type { StandardMaterialBindGroupLayoutResource } from "./standard-bind-group.js";
@@ -428,6 +430,7 @@ type PreparedStandardMaterialUse = PreparedAppMaterialResourceUse<
   | PreparedNormalTexturedStandardMaterialResource
   | PreparedClearcoatTexturedStandardMaterialResource
   | PreparedTransmissionTexturedStandardMaterialResource
+  | PreparedSheenColorTexturedStandardMaterialResource
   | PreparedOcclusionEmissiveTexturedStandardMaterialResource
 >;
 
@@ -564,12 +567,11 @@ function preparePreparedStandardMaterial(
                   textures: options.textureSamplerDependencies.textures,
                   samplers: options.textureSamplerDependencies.samplers,
                 })
-              : options.material.occlusionTexture !== null ||
-                  options.material.emissiveTexture !== null
-                ? prepareOcclusionEmissiveTexturedStandardMaterialResource({
+              : options.material.sheenColorTexture !== null
+                ? prepareSheenColorTexturedStandardMaterialResource({
                     registry: options.assets,
                     device: options.device as Parameters<
-                      typeof prepareOcclusionEmissiveTexturedStandardMaterialResource
+                      typeof prepareSheenColorTexturedStandardMaterialResource
                     >[0]["device"],
                     cache: options.preparedScalarMaterials,
                     handle: options.materialHandle,
@@ -581,18 +583,35 @@ function preparePreparedStandardMaterial(
                     textures: options.textureSamplerDependencies.textures,
                     samplers: options.textureSamplerDependencies.samplers,
                   })
-                : prepareScalarStandardMaterialResource({
-                    device: options.device as Parameters<
-                      typeof prepareScalarStandardMaterialResource
-                    >[0]["device"],
-                    cache: options.preparedScalarMaterials,
-                    handle: options.materialHandle,
-                    material: options.material,
-                    sourceVersion,
-                    frame: options.frame,
-                    pipelineKey: options.pipelineKey,
-                    layout: options.materialLayout,
-                  });
+                : options.material.occlusionTexture !== null ||
+                    options.material.emissiveTexture !== null
+                  ? prepareOcclusionEmissiveTexturedStandardMaterialResource({
+                      registry: options.assets,
+                      device: options.device as Parameters<
+                        typeof prepareOcclusionEmissiveTexturedStandardMaterialResource
+                      >[0]["device"],
+                      cache: options.preparedScalarMaterials,
+                      handle: options.materialHandle,
+                      material: options.material,
+                      sourceVersion,
+                      frame: options.frame,
+                      pipelineKey: options.pipelineKey,
+                      layout: options.materialLayout,
+                      textures: options.textureSamplerDependencies.textures,
+                      samplers: options.textureSamplerDependencies.samplers,
+                    })
+                  : prepareScalarStandardMaterialResource({
+                      device: options.device as Parameters<
+                        typeof prepareScalarStandardMaterialResource
+                      >[0]["device"],
+                      cache: options.preparedScalarMaterials,
+                      handle: options.materialHandle,
+                      material: options.material,
+                      sourceVersion,
+                      frame: options.frame,
+                      pipelineKey: options.pipelineKey,
+                      layout: options.materialLayout,
+                    });
 
   if (
     result.valid &&

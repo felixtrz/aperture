@@ -168,6 +168,7 @@ function standardResource(
       emissive: textureDependency(),
       clearcoat: textureDependency(),
       transmission: textureDependency(),
+      sheenColor: textureDependency(),
     },
   };
 }
