@@ -1,5 +1,27 @@
 # Completed Tasks
 
+## task-3100 — Add renderer-owned grab-pass refraction for transmission
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added a renderer-owned transmission scene-color grab texture and sampler that
+  are allocated in the WebGPU app path before StandardMaterial frame resources
+  are prepared.
+- Bound transmission StandardMaterial variants to group 3 scene-color bindings
+  and updated the WGSL path to sample the grabbed scene color with a small
+  normal-derived refraction offset instead of only attenuating alpha.
+- Updated `examples/transmission.html` to publish grab-pass status and prove the
+  pass through headed Chrome/WebGPU readbacks.
+
+Validation:
+
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/render-pass-draw-list.test.ts test/webgpu/webgpu-app.test.ts test/webgpu/unlit-app-frame-resources.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm exec playwright test test/e2e/transmission.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000`
+
 ## task-3099 — Render texture-backed StandardMaterial PBR extension factors
 
 Completed: 2026-05-23

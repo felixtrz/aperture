@@ -469,10 +469,32 @@ describe("built-in standard material WGSL shader metadata", () => {
       valid: true,
       diagnostics: [],
     });
-    expect(shader.bindings).toEqual(STANDARD_MESH_SHADER.bindings);
+    expect(shader.bindings).toEqual([
+      ...STANDARD_MESH_SHADER.bindings,
+      {
+        id: "standardTransmissionSceneColorTexture",
+        label: "Standard material transmission scene color texture",
+        group: 3,
+        binding: 14,
+        resource: "texture",
+      },
+      {
+        id: "standardTransmissionSceneColorSampler",
+        label: "Standard material transmission scene color sampler",
+        group: 3,
+        binding: 15,
+        resource: "sampler",
+      },
+    ]);
     expect(shader.code).toContain("transmissionFactor: f32");
     expect(shader.code).toContain(
+      "@group(3) @binding(14) var standardTransmissionSceneColorTexture: texture_2d<f32>;",
+    );
+    expect(shader.code).toContain(
       "let transmission = clamp(material.transmissionFactor",
+    );
+    expect(shader.code).toContain(
+      "textureSampleLevel(\n    standardTransmissionSceneColorTexture",
     );
     expect(shader.code).toContain("var alpha = material.baseColorFactor.a");
     expect(shader.code).toContain("alpha = alpha * (1.0 - transmission)");

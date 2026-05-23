@@ -29,6 +29,35 @@ describe("light bind group layout resources", () => {
     });
   });
 
+  it("adds transmission scene color bindings when requested", () => {
+    expect(
+      createLightBindGroupLayoutDescriptor({
+        transmissionSceneColor: true,
+      }).entries,
+    ).toEqual([
+      {
+        binding: 0,
+        visibility: DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
+        buffer: { type: "read-only-storage" },
+      },
+      {
+        binding: 1,
+        visibility: DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
+        buffer: { type: "read-only-storage" },
+      },
+      {
+        binding: 14,
+        visibility: DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
+        texture: { sampleType: "float" },
+      },
+      {
+        binding: 15,
+        visibility: DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
+        sampler: { type: "filtering" },
+      },
+    ]);
+  });
+
   it("creates renderer-owned light bind group layout resources", () => {
     const descriptors: WebGpuBindGroupLayoutDescriptor[] = [];
     const result = createLightBindGroupLayoutResource({

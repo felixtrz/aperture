@@ -1,6 +1,58 @@
 # Agent Handoff
 
-Updated: 2026-05-23T14:31:42Z
+Updated: 2026-05-23T14:47:32Z
+
+## Current Run Update — 2026-05-23T14:47:32Z — Transmission grab-pass refraction
+
+Completed `task-3100`, the next post-Tier-20 reference-parity slice.
+
+### What changed
+
+- Added renderer-owned StandardMaterial transmission scene-color resources:
+  the WebGPU app now allocates a grab texture plus sampler before frame-resource
+  preparation, records a pre-pass that excludes transmission draws, and binds
+  the grabbed scene color through group 3 bindings 14/15 for transmission
+  variants.
+- Updated the StandardMaterial transmission WGSL path to sample the grabbed
+  scene color with a small normal-derived refraction offset, then mix it with
+  the lit material color before alpha attenuation.
+- Updated the transmission example and e2e proof so
+  `examples/transmission.html` publishes `transmissionGrabPass` status and
+  asserts the renderer-owned grab texture/sampler keys.
+- Added focused coverage for transmission light bind-group layout/planning,
+  pipeline layout keys, shader bindings, draw-list selection with mixed opaque
+  and transmission StandardMaterial draws, app resource routing, and the headed
+  Chrome/WebGPU transmission proof.
+- Updated the public tracker, render-pipeline comparison, backlog,
+  current-task pointer, and completed-task log. Recommended next task is now
+  `task-3101`.
+
+### Validation
+
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/render-pass-draw-list.test.ts test/webgpu/webgpu-app.test.ts test/webgpu/unlit-app-frame-resources.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/transmission.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000`
+- `pnpm run lint`
+- `pnpm exec prettier --check $(git diff --name-only --diff-filter=ACMRTUXB)`
+- `git diff --check`
+- `pnpm test`
+
+### Known issues
+
+- The Browser plugin was attempted for an in-app browser check, but the
+  `iab` backend was unavailable in this session. The headed Chrome/WebGPU
+  Playwright proof passed.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `docs/DEVELOPER_API_FEEDBACK.md` / `docs/DEVELOPER_API_PROPOSAL.md` were not
+  made by this run and were left untouched.
+
+### Recommended next task
+
+Start `task-3101`, adding a generic snapshot change-set scheduler for
+render-world updates.
 
 ## Current Run Update — 2026-05-23T14:31:42Z — Texture-backed clearcoat factor
 

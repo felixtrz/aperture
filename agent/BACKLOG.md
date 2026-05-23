@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3100`: add renderer-owned grab-pass refraction for transmission so
-the transmitted StandardMaterial path samples scene color instead of only
-attenuating alpha.
+Start `task-3101`: add a generic snapshot change-set scheduler for render-world
+updates so app-frame work can be driven by changed snapshot families instead of
+full packet refresh.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -126,7 +126,7 @@ shader/pipeline/resource/importer tests.
 Reference anchors (read before writing):
 
 - `references/three.js/src/nodes/functions/PhysicalLightingModel.js`.
-- `references/engine/src/scene/shader-lib/chunks/lit/frag/refraction.js`.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/refractionDynamic.js`.
 - Existing WebGPU transmission path in `packages/webgpu/src/webgpu/standard-shader.ts`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
@@ -179,9 +179,11 @@ Acceptance criteria:
 
 ### task-3100 — Add renderer-owned grab-pass refraction for transmission
 
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/`, `examples/transmission.*`, targeted tests.
-Reference anchor: `references/three.js/src/nodes/functions/PhysicalLightingModel.js`, `references/engine/src/scene/shader-lib/chunks/lit/frag/refraction.js`.
+Reference anchor: `references/three.js/src/nodes/functions/PhysicalLightingModel.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/refractionDynamic.js`.
 
 Acceptance criteria:
 
@@ -212,6 +214,18 @@ Acceptance criteria:
 - `examples/standard-queue-phases.html` renders overlapping transparent StandardMaterial surfaces with a deterministic depth/order/stable-id tie-break visible in browser readbacks.
 - Queue or material-sort reports expose the applied transparent ordering policy without relying on JavaScript engine sort stability.
 - Targeted render-queue/material-queue tests pass for equal-depth transparent records.
+
+### task-3103 — Add roughness-aware transmission scene-color filtering
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/`, `examples/transmission.*`, targeted tests.
+Reference anchor: `references/three.js/src/nodes/functions/PhysicalLightingModel.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/transmission.js`.
+
+Acceptance criteria:
+
+- `examples/transmission.html` renders at least two transmitted StandardMaterial objects with different roughness values that sample the renderer-owned scene color grab with visibly different sharpness.
+- The shader/resource path remains renderer-owned and derives filtering from material roughness or prepared renderer mips/downsampled scene color, not ECS-owned scene graph state.
+- Playwright readbacks or canvas analysis prove the rough transmitted object has lower high-frequency contrast through the background than the glossy transmitted object while opaque background samples remain stable.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

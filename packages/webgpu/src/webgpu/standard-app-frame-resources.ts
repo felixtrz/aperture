@@ -58,6 +58,7 @@ import {
   type CreateStandardFrameGpuResourcesOptions,
   type StandardFrameIblResources,
   type StandardFrameShadowReceiverResources,
+  type StandardFrameTransmissionSceneColorResources,
 } from "./standard-frame-resources.js";
 import type { UnlitBindGroupLayoutResource } from "./unlit-bind-group.js";
 import {
@@ -79,6 +80,7 @@ export interface CachedStandardAppFrameResources {
   readonly lightLayoutKey: string | null;
   readonly standardMaterialIblBindGroupResourceKey: string | null;
   readonly standardMaterialShadowReceiverResourceKey: string | null;
+  readonly transmissionSceneColorResourceKey: string | null;
   readonly textureKeys: readonly string[];
   readonly samplerKeys: readonly string[];
   readonly viewByteLength: number;
@@ -151,6 +153,7 @@ export function createOrReuseStandardAppFrameResources(options: {
   readonly shadowReceiverResources?: StandardFrameShadowReceiverResources;
   readonly standardMaterialIblResources?: StandardFrameIblResources;
   readonly standardAreaLightLtcResources?: CreateStandardFrameGpuResourcesOptions["standardAreaLightLtcResources"];
+  readonly transmissionSceneColorResources?: StandardFrameTransmissionSceneColorResources | null;
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
   readonly preparedScalarMaterials: PreparedScalarStandardMaterialCache;
   readonly reuse: StandardAppFrameResourceReuseReport;
@@ -163,6 +166,10 @@ export function createOrReuseStandardAppFrameResources(options: {
   const standardMaterialShadowReceiverResourceKey =
     standardMaterialShadowReceiverResourceKeyFromResources(
       options.shadowReceiverResources,
+    );
+  const transmissionSceneColorResourceKey =
+    transmissionSceneColorResourceKeyFromResources(
+      options.transmissionSceneColorResources,
     );
   const materialLayoutKey = options.materialLayout?.layoutKey ?? null;
   const lightLayoutKey = options.lightLayout?.layoutKey ?? null;
@@ -205,6 +212,8 @@ export function createOrReuseStandardAppFrameResources(options: {
       standardMaterialIblBindGroupResourceKey &&
     cached.standardMaterialShadowReceiverResourceKey ===
       standardMaterialShadowReceiverResourceKey &&
+    cached.transmissionSceneColorResourceKey ===
+      transmissionSceneColorResourceKey &&
     sameStringList(
       cached.textureKeys,
       options.textureSamplerDependencies.textureKeys,
@@ -323,6 +332,13 @@ export function createOrReuseStandardAppFrameResources(options: {
       : {
           standardAreaLightLtcResources: options.standardAreaLightLtcResources,
         }),
+    ...(options.transmissionSceneColorResources === undefined ||
+    options.transmissionSceneColorResources === null
+      ? {}
+      : {
+          transmissionSceneColorResources:
+            options.transmissionSceneColorResources,
+        }),
     textures: options.textureSamplerDependencies.textures,
     samplers: options.textureSamplerDependencies.samplers,
   });
@@ -362,6 +378,7 @@ export function createOrReuseStandardAppFrameResources(options: {
       lightLayoutKey,
       standardMaterialIblBindGroupResourceKey,
       standardMaterialShadowReceiverResourceKey,
+      transmissionSceneColorResourceKey,
       textureKeys: [...options.textureSamplerDependencies.textureKeys],
       samplerKeys: [...options.textureSamplerDependencies.samplerKeys],
       viewByteLength:
@@ -616,6 +633,12 @@ function standardMaterialShadowReceiverResourceKeyFromResources(
   const samplerKey = resources.samplerResource.resource?.resourceKey ?? "";
 
   return `${matrixKey}|${depthKeys}|${samplerKey}`;
+}
+
+function transmissionSceneColorResourceKeyFromResources(
+  resources?: StandardFrameTransmissionSceneColorResources | null,
+): string | null {
+  return resources?.texture.resourceKey ?? null;
 }
 
 function sourceVersionFromAssetKey(

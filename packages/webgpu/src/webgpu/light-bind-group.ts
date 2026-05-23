@@ -10,6 +10,9 @@ import {
   type StandardAreaLightLtcResources,
 } from "./standard-area-light-ltc-resource.js";
 
+export const STANDARD_TRANSMISSION_SCENE_COLOR_TEXTURE_BINDING = 14;
+export const STANDARD_TRANSMISSION_SCENE_COLOR_SAMPLER_BINDING = 15;
+
 export type LightBindGroupDescriptorDiagnosticCode =
   | "lightBindGroup.missingLightGpuBufferResource"
   | "lightBindGroup.missingLayoutKey";
@@ -22,9 +25,22 @@ export interface LightBindGroupDescriptorDiagnostic {
 export interface CreateLightBindGroupDescriptorPlanOptions {
   readonly lightGpuBufferResource: LightGpuBufferResource | null;
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
+  readonly transmissionSceneColorResources?: StandardTransmissionSceneColorResources | null;
+  readonly pipelineKey?: string | null;
   readonly layoutKey: string | null;
   readonly group?: number;
   readonly label?: string;
+}
+
+export interface StandardTransmissionSceneColorResources {
+  readonly texture: {
+    readonly resourceKey: string;
+    readonly view: unknown;
+  };
+  readonly sampler: {
+    readonly resourceKey: string;
+    readonly sampler: unknown;
+  };
 }
 
 export interface LightBindGroupDescriptorEntry {
@@ -42,6 +58,7 @@ export interface LightBindGroupDescriptorPlan {
   readonly label: string;
   readonly resourceKey: string | null;
   readonly layoutKey: string | null;
+  readonly pipelineKey?: string;
   readonly entries: readonly LightBindGroupDescriptorEntry[];
   readonly diagnostics: readonly LightBindGroupDescriptorDiagnostic[];
 }
@@ -52,6 +69,7 @@ export interface LightBindGroupDescriptorPlanJsonValue {
   readonly label: string;
   readonly resourceKey: string | null;
   readonly layoutKey: string | null;
+  readonly pipelineKey?: string;
   readonly entries: readonly {
     readonly binding: number;
     readonly resourceKey: string;
@@ -130,8 +148,11 @@ export interface CreateLightBindGroupResourceResultJsonValue {
 export function lightBindGroupResourceKey(
   lightBufferResourceKey: string,
   group = DEFAULT_LIGHT_BIND_GROUP,
+  pipelineKey: string | null = null,
 ): string {
-  return `bind-group:lights/group-${group}/${lightBufferResourceKey}`;
+  const base = `bind-group:lights/group-${group}/${lightBufferResourceKey}`;
+
+  return pipelineKey === null ? base : `${base}|pipeline:${pipelineKey}`;
 }
 
 export function createLightBindGroupDescriptorPlan(
@@ -175,6 +196,15 @@ export function createLightBindGroupDescriptorPlan(
         ];
 
   appendAreaLightLtcEntries(entries, options.areaLightLtcResources ?? null);
+  appendTransmissionSceneColorEntries(
+    entries,
+    options.transmissionSceneColorResources ?? null,
+  );
+
+  const pipelineKey =
+    options.pipelineKey === undefined || options.pipelineKey === null
+      ? null
+      : options.pipelineKey;
 
   return {
     valid: diagnostics.length === 0,
@@ -186,8 +216,10 @@ export function createLightBindGroupDescriptorPlan(
         : lightBindGroupResourceKey(
             options.lightGpuBufferResource.resourceKey,
             group,
+            pipelineKey,
           ),
     layoutKey: options.layoutKey,
+    ...(pipelineKey === null ? {} : { pipelineKey }),
     entries,
     diagnostics,
   };
@@ -202,6 +234,9 @@ export function lightBindGroupDescriptorPlanToJsonValue(
     label: plan.label,
     resourceKey: plan.resourceKey,
     layoutKey: plan.layoutKey,
+    ...(plan.pipelineKey === undefined
+      ? {}
+      : { pipelineKey: plan.pipelineKey }),
     entries: plan.entries.map((entry) => ({
       binding: entry.binding,
       resourceKey: entry.resourceKey,
@@ -305,9 +340,12 @@ export function createLightBindGroupResource(
         resourceKey: options.plan.resourceKey,
         layoutKey: options.layout.layoutKey,
         bindGroup: options.device.createBindGroup(descriptor),
-        entryResourceKeys: options.plan.entries.map(
-          (entry) => entry.resourceKey,
-        ),
+        entryResourceKeys: [
+          ...options.plan.entries.map((entry) => entry.resourceKey),
+          ...(options.plan.pipelineKey === undefined
+            ? []
+            : [options.plan.pipelineKey]),
+        ],
       },
       diagnostics: [],
     };
@@ -377,6 +415,28 @@ function appendAreaLightLtcEntries(
     },
     {
       binding: STANDARD_AREA_LIGHT_LTC_SAMPLER_BINDING,
+      resourceKey: resources.sampler.resourceKey,
+      resource: { sampler: resources.sampler.sampler },
+    },
+  );
+}
+
+function appendTransmissionSceneColorEntries(
+  entries: LightBindGroupDescriptorEntry[],
+  resources: StandardTransmissionSceneColorResources | null,
+): void {
+  if (resources === null) {
+    return;
+  }
+
+  entries.push(
+    {
+      binding: STANDARD_TRANSMISSION_SCENE_COLOR_TEXTURE_BINDING,
+      resourceKey: resources.texture.resourceKey,
+      resource: { textureView: resources.texture.view },
+    },
+    {
+      binding: STANDARD_TRANSMISSION_SCENE_COLOR_SAMPLER_BINDING,
       resourceKey: resources.sampler.resourceKey,
       resource: { sampler: resources.sampler.sampler },
     },

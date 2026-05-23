@@ -139,6 +139,7 @@ async function handleWorkerMessage(
     counts: reportJson.counts,
     renderOk: reportJson.ok,
     renderTargets: reportJson.renderTargets,
+    transmissionGrabPass: reportJson.transmissionGrabPass,
     readback: reportJson.readback,
     pipelineKeys: report.snapshot.meshDraws.map(
       (draw) => draw.batchKey.pipelineKey,
@@ -166,6 +167,7 @@ function createTransmissionStatus(scene, loop, diagnostics) {
       loop.frame?.snapshot?.lights === 2 &&
       (counts?.drawCalls ?? 0) >= 2 &&
       counts?.diagnostics === 0 &&
+      loop.frame?.transmissionGrabPass?.ok === true &&
       pipelineKeys.includes("standard|transmission|blend|none|less|alpha"),
     phase: "submit",
     renderingBackend: "webgpu-explicit",

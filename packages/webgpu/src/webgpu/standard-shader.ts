@@ -1735,6 +1735,13 @@ function standardTextureVariantDeclaration(
     );
   }
 
+  if (features.transmission === true) {
+    declarations.push(
+      "@group(3) @binding(14) var standardTransmissionSceneColorTexture: texture_2d<f32>;",
+      "@group(3) @binding(15) var standardTransmissionSceneColorSampler: sampler;",
+    );
+  }
+
   declarations.push(
     "@group(3) @binding(0) var<storage, read> lightFloats: array<f32>;",
   );
@@ -1970,6 +1977,25 @@ function standardTextureVariantBindings(
       binding: 7,
       resource: "texture",
     });
+  }
+
+  if (features.transmission === true) {
+    bindings.push(
+      {
+        id: "standardTransmissionSceneColorTexture",
+        label: "Standard material transmission scene color texture",
+        group: 3,
+        binding: 14,
+        resource: "texture",
+      },
+      {
+        id: "standardTransmissionSceneColorSampler",
+        label: "Standard material transmission scene color sampler",
+        group: 3,
+        binding: 15,
+        resource: "sampler",
+      },
+    );
   }
 
   if (features.skinned === true) {
@@ -2701,16 +2727,34 @@ function applyStandardSheenSampling(code: string): string {
 
 function applyStandardTransmissionSampling(code: string): string {
   const fragmentStart = code.indexOf(`@fragment\nfn fs_main`);
-  const withMutableAlpha =
+  const withMutableFragment =
     fragmentStart < 0
       ? code
       : `${code.slice(0, fragmentStart)}${code
           .slice(fragmentStart)
-          .replace(`  let alpha = `, `  var alpha = `)}`;
+          .replace(`  let alpha = `, `  var alpha = `)
+          .replace(
+            `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
+            `  var color = ambientDiffuse + direct + material.emissiveFactor;`,
+          )
+          .replace(
+            `  let color = ambientDiffuse + direct + emissive;`,
+            `  var color = ambientDiffuse + direct + emissive;`,
+          )}`;
 
-  return withMutableAlpha.replace(
+  return withMutableFragment.replace(
     `  return vec4f(color, alpha);`,
     `  let transmission = clamp(material.transmissionFactor, 0.0, 1.0);
+  let sceneColorSize = vec2f(textureDimensions(standardTransmissionSceneColorTexture));
+  let sceneColorUv = clamp(input.position.xy / max(sceneColorSize, vec2f(1.0)), vec2f(0.0), vec2f(1.0));
+  let refractionOffset = clamp(normal.xy * transmission * (0.045 + roughness * 0.02), vec2f(-0.08), vec2f(0.08));
+  let transmittedSceneColor = textureSampleLevel(
+    standardTransmissionSceneColorTexture,
+    standardTransmissionSceneColorSampler,
+    clamp(sceneColorUv + refractionOffset, vec2f(0.0), vec2f(1.0)),
+    0.0,
+  ).rgb;
+  color = mix(color, transmittedSceneColor * max(baseColor, vec3f(0.04)), transmission);
   alpha = alpha * (1.0 - transmission);
   return vec4f(color, alpha);`,
   );

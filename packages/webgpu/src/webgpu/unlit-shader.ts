@@ -34,6 +34,8 @@ export type BuiltInShaderBindingId =
   | "standardDiffuseIblTexture"
   | "standardSpecularIblTexture"
   | "standardIblSampler"
+  | "standardTransmissionSceneColorTexture"
+  | "standardTransmissionSceneColorSampler"
   | "skinJointMatrices"
   | "standardMorphTargetWeights"
   | "matcapTexture"

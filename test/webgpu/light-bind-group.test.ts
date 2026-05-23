@@ -121,6 +121,45 @@ describe("light bind group descriptor planning", () => {
     });
   });
 
+  it("plans transmission scene color resources as pipeline-scoped light bindings", () => {
+    const plan = createLightBindGroupDescriptorPlan({
+      lightGpuBufferResource: lightGpuBufferResource(),
+      layoutKey: "bind-group-layout:lights/group-3",
+      pipelineKey: "standard|transmission|blend|back|less|alpha",
+      transmissionSceneColorResources: {
+        texture: {
+          resourceKey:
+            "standard-transmission-grab:scene-color:960:960:bgra8unorm",
+          view: { handle: "raw-transmission-scene-color-view" },
+        },
+        sampler: {
+          resourceKey: "standard-transmission-grab:sampler",
+          sampler: { handle: "raw-transmission-scene-color-sampler" },
+        },
+      },
+    });
+
+    expect(plan).toMatchObject({
+      valid: true,
+      resourceKey:
+        "bind-group:lights/group-3/light-buffer:main|pipeline:standard|transmission|blend|back|less|alpha",
+      pipelineKey: "standard|transmission|blend|back|less|alpha",
+      entries: [
+        { binding: 0, resourceKey: "light-buffer:main/floats" },
+        { binding: 1, resourceKey: "light-buffer:main/metadata" },
+        {
+          binding: 14,
+          resourceKey:
+            "standard-transmission-grab:scene-color:960:960:bgra8unorm",
+        },
+        {
+          binding: 15,
+          resourceKey: "standard-transmission-grab:sampler",
+        },
+      ],
+    });
+  });
+
   it("creates renderer-owned light bind group resources from descriptor plans", () => {
     const descriptors: LightBindGroupCreationDescriptor[] = [];
     const result = createLightBindGroupResource({

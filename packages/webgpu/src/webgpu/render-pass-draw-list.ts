@@ -315,7 +315,10 @@ function findBindGroup(
     }
   }
 
-  return hasPipelineScopedCandidate ? undefined : firstCandidate;
+  return hasPipelineScopedCandidate &&
+    pipelineRequiresScopedBindGroup(command.pipelineKey, group)
+    ? undefined
+    : firstCandidate;
 }
 
 function findWorldTransformBindGroup(
@@ -416,6 +419,13 @@ function hasPipelineScopedKey(
   }
 
   return false;
+}
+
+function pipelineRequiresScopedBindGroup(
+  pipelineKey: string,
+  group: number,
+): boolean {
+  return group === 3 && pipelineKey.split("|").includes("transmission");
 }
 
 function drawListRecordAt(

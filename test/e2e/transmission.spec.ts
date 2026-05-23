@@ -34,6 +34,16 @@ interface TransmissionFrameStatus {
     readonly diagnostics: number;
   };
   readonly pipelineKeys?: readonly string[];
+  readonly transmissionGrabPass?: {
+    readonly enabled: boolean;
+    readonly ok: boolean;
+    readonly width: number;
+    readonly height: number;
+    readonly commands: number;
+    readonly drawCalls: number;
+    readonly textureResourceKey: string;
+    readonly samplerResourceKey: string;
+  };
   readonly readback?: {
     readonly ok: boolean;
     readonly reason?: string;
@@ -94,6 +104,15 @@ test("browser renders scalar transmission with background visible through glass"
         meshDraws: 2,
         diagnostics: 0,
       },
+      transmissionGrabPass: {
+        enabled: true,
+        ok: true,
+        width: 960,
+        height: 960,
+        textureResourceKey:
+          "standard-transmission-grab:scene-color:960:960:bgra8unorm",
+        samplerResourceKey: "standard-transmission-grab:sampler",
+      },
     },
   });
 
@@ -106,6 +125,8 @@ test("browser renders scalar transmission with background visible through glass"
   }
 
   expect(frame.counts?.drawCalls).toBeGreaterThanOrEqual(2);
+  expect(frame.transmissionGrabPass?.commands).toBeGreaterThan(0);
+  expect(frame.transmissionGrabPass?.drawCalls).toBeGreaterThanOrEqual(1);
   expect(frame.pipelineKeys).toEqual(
     expect.arrayContaining([
       "standard|opaque|none|less|none",

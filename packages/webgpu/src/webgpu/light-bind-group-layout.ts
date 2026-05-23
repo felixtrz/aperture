@@ -20,6 +20,7 @@ export interface CreateLightBindGroupLayoutDescriptorOptions {
   readonly group?: number;
   readonly label?: string;
   readonly visibility?: number;
+  readonly transmissionSceneColor?: boolean;
 }
 
 export interface CreateLightBindGroupLayoutResourceOptions extends CreateLightBindGroupLayoutDescriptorOptions {
@@ -66,6 +67,20 @@ export function createLightBindGroupLayoutDescriptor(
         visibility,
         buffer: { type: "read-only-storage" },
       },
+      ...(options.transmissionSceneColor === true
+        ? [
+            {
+              binding: 14,
+              visibility,
+              texture: { sampleType: "float" },
+            },
+            {
+              binding: 15,
+              visibility,
+              sampler: { type: "filtering" },
+            },
+          ]
+        : []),
     ],
   };
 }

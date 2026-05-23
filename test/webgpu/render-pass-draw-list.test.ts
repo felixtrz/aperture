@@ -200,6 +200,36 @@ describe("render pass draw list planning", () => {
     ]);
   });
 
+  it("uses transmission-scoped light bind groups without blocking opaque standard draws", () => {
+    const opaquePipeline = "standard|opaque|back|less|none";
+    const transmissionPipeline = "standard|transmission|blend|back|less|alpha";
+    const materialResourceKey = "material-buffer:Standard/uniform";
+    const plan = planRenderPassDrawList({
+      drawCommands: [
+        drawCommand(1, {
+          pipelineKey: opaquePipeline,
+          materialResourceKey,
+        }),
+        drawCommand(2, {
+          pipelineKey: transmissionPipeline,
+          materialResourceKey,
+        }),
+      ],
+      pipelines: [pipeline(opaquePipeline), pipeline(transmissionPipeline)],
+      bindGroups: [
+        ...bindGroups(materialResourceKey),
+        lightBindGroup(),
+        transmissionLightBindGroup(transmissionPipeline),
+      ],
+    });
+
+    expect(plan.valid).toBe(true);
+    expect(plan.draws.map((draw) => draw.bindGroupKeys[3])).toEqual([
+      "bind-group:lights",
+      "bind-group:lights:transmission",
+    ]);
+  });
+
   it("diagnoses unprepared standard material lighting resources instead of falling back", () => {
     const plan = planRenderPassDrawList({
       drawCommands: [
@@ -428,6 +458,24 @@ function lightBindGroup(): UnlitBindGroupResource {
     entryResourceKeys: [
       "light-buffer:main/floats",
       "light-buffer:main/metadata",
+    ],
+  };
+}
+
+function transmissionLightBindGroup(
+  pipelineKey: string,
+): UnlitBindGroupResource {
+  return {
+    group: 3,
+    resourceKey: "bind-group:lights:transmission",
+    layoutKey: "layout:lights:transmission",
+    bindGroup: {},
+    entryResourceKeys: [
+      "light-buffer:main/floats",
+      "light-buffer:main/metadata",
+      "standard-transmission-grab:scene-color:960:960:bgra8unorm",
+      "standard-transmission-grab:sampler",
+      pipelineKey,
     ],
   };
 }

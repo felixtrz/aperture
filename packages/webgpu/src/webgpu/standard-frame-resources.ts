@@ -10,12 +10,14 @@ import {
   type StandardMaterialAsset,
 } from "@aperture-engine/render";
 import type { WebGpuBufferDeviceLike } from "./buffer.js";
+import type { CurrentTextureLike } from "./current-texture-view.js";
 import {
   createLightBindGroupDescriptorPlan,
   createLightBindGroupResource,
   type LightBindGroupDescriptorDiagnostic,
   type LightBindGroupResource,
   type LightBindGroupResourceDiagnostic,
+  type StandardTransmissionSceneColorResources,
 } from "./light-bind-group.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
 import {
@@ -191,8 +193,18 @@ export interface CreateStandardFrameGpuResourcesOptions {
   readonly shadowReceiverResources?: StandardFrameShadowReceiverResources;
   readonly standardMaterialIblResources?: StandardFrameIblResources;
   readonly standardAreaLightLtcResources?: StandardAreaLightLtcResources | null;
+  readonly transmissionSceneColorResources?: StandardFrameTransmissionSceneColorResources | null;
   readonly textures?: readonly TextureGpuResource[];
   readonly samplers?: readonly SamplerGpuResource[];
+}
+
+export interface StandardFrameTransmissionSceneColorResources extends StandardTransmissionSceneColorResources {
+  readonly texture: StandardTransmissionSceneColorResources["texture"] & {
+    readonly texture: CurrentTextureLike;
+    readonly width: number;
+    readonly height: number;
+    readonly format: string;
+  };
 }
 
 export interface StandardFrameShadowReceiverResourceSet {
@@ -745,6 +757,15 @@ function createLightBindGroup(
     layoutKey: options.lightLayout?.layoutKey ?? null,
     label: "standard/lights",
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
+    ...(options.transmissionSceneColorResources === undefined ||
+    options.transmissionSceneColorResources === null ||
+    !options.pipelineKey.split("|").includes("transmission")
+      ? {}
+      : {
+          transmissionSceneColorResources:
+            options.transmissionSceneColorResources,
+          pipelineKey: options.pipelineKey,
+        }),
     ...(options.lightLayout === null
       ? {}
       : { group: options.lightLayout.group }),

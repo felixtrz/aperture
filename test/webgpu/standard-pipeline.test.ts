@@ -374,7 +374,7 @@ describe("browser standard material pipeline bridge", () => {
             "standard/group-0:view-uniform@0",
             "standard/group-1:world-transforms@0",
             "standard/group-2:material@0",
-            "lights/group-3:light-floats@0,light-metadata@1",
+            "lights/group-3:light-floats@0,light-metadata@1,transmission-scene-color@14,transmission-scene-sampler@15",
           ],
         },
         descriptor: {

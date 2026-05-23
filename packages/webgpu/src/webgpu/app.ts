@@ -216,6 +216,7 @@ import {
 import type {
   StandardFrameIblResources,
   StandardFrameShadowReceiverResources,
+  StandardFrameTransmissionSceneColorResources,
 } from "./standard-frame-resources.js";
 import {
   createStandardRenderPipelineResource,
@@ -384,6 +385,18 @@ export interface WebGpuAppPostEffectSubmissionReport {
   readonly drawCalls: number;
 }
 
+export interface WebGpuAppTransmissionGrabPassReport {
+  readonly enabled: boolean;
+  readonly ok: boolean;
+  readonly width: number;
+  readonly height: number;
+  readonly format: string;
+  readonly commands: number;
+  readonly drawCalls: number;
+  readonly textureResourceKey: string;
+  readonly samplerResourceKey: string;
+}
+
 export interface WebGpuAppResourceReuseReport {
   pipelineHits: number;
   pipelineMisses: number;
@@ -515,6 +528,7 @@ export interface WebGpuAppRenderReport {
   readonly boundaries?: readonly FrameBoundaryAssemblyReport[];
   readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];
   readonly postEffects?: readonly WebGpuAppPostEffectSubmissionReport[];
+  readonly transmissionGrabPass?: WebGpuAppTransmissionGrabPassReport;
   readonly msaa?: WebGpuAppMsaaReport;
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: FrameBoundaryReadbackResult;
@@ -539,6 +553,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];
   readonly postEffects?: readonly WebGpuAppPostEffectSubmissionReport[];
+  readonly transmissionGrabPass?: WebGpuAppTransmissionGrabPassReport;
   readonly msaa?: WebGpuAppMsaaReport;
   readonly readback?: WebGpuAppJsonValue;
   readonly gpuTimings?: GpuPassTimingReport;
@@ -602,6 +617,7 @@ interface WebGpuAppPostPassCache {
   readonly ping: WebGpuPostPassTextureCacheSlot;
   readonly pong: WebGpuPostPassTextureCacheSlot;
   readonly motionVector: WebGpuPostPassTextureCacheSlot;
+  readonly transmissionGrab: WebGpuPostPassTextureCacheSlot;
   readonly previousViewProjectionByViewId: Map<number, Float32Array>;
 }
 
@@ -694,6 +710,10 @@ interface QueuedBuiltInFrameResourcePreparationOptions {
   readonly standardMaterialIblResources?: StandardFrameIblResources | undefined;
   readonly standardAreaLightLtcResources?:
     | StandardAreaLightLtcResources
+    | null
+    | undefined;
+  readonly transmissionSceneColorResources?:
+    | StandardFrameTransmissionSceneColorResources
     | null
     | undefined;
   readonly reuse: WebGpuAppResourceReuseReport;
@@ -994,6 +1014,7 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
       ping: createWebGpuPostPassTextureCacheSlot(),
       pong: createWebGpuPostPassTextureCacheSlot(),
       motionVector: createWebGpuPostPassTextureCacheSlot(),
+      transmissionGrab: createWebGpuPostPassTextureCacheSlot(),
       previousViewProjectionByViewId: new Map(),
     },
     frameScratch: createWebGpuAppFrameScratch(),
@@ -1548,6 +1569,13 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
                 standardAreaLightLtcResources:
                   options.standardAreaLightLtcResources,
               }),
+          ...(options.transmissionSceneColorResources === undefined ||
+          options.transmissionSceneColorResources === null
+            ? {}
+            : {
+                transmissionSceneColorResources:
+                  options.transmissionSceneColorResources,
+              }),
           preparedMeshes: options.cache.preparedMeshes,
           preparedScalarMaterials: options.preparedMaterials.standard,
           reuse: options.reuse,
@@ -1609,6 +1637,7 @@ interface WebGpuAppFrameBoundaryAssemblyResult {
   readonly boundaries: readonly FrameBoundaryAssemblyReport[];
   readonly renderTargets: readonly WebGpuAppRenderTargetSubmissionReport[];
   readonly postEffects: readonly WebGpuAppPostEffectSubmissionReport[];
+  readonly transmissionGrabPass?: WebGpuAppTransmissionGrabPassReport;
   readonly msaa?: WebGpuAppMsaaReport;
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readbackBoundary: FrameBoundaryAssemblyReport | null;
@@ -1628,6 +1657,12 @@ interface WebGpuAppMsaaColorTargetResult {
   readonly valid: boolean;
   readonly status: "created" | "reused" | "disabled" | "failed";
   readonly resource: CachedWebGpuMsaaColorTextureResource | null;
+  readonly diagnostics: readonly unknown[];
+}
+
+interface WebGpuAppTransmissionGrabResourcesResult {
+  readonly valid: boolean;
+  readonly resources: StandardFrameTransmissionSceneColorResources | null;
   readonly diagnostics: readonly unknown[];
 }
 
@@ -1673,8 +1708,15 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     cache: options.cache,
     required: queuedBuiltInResourceSetHasStandardMaterial(options.resourceSet),
   });
+  const transmissionGrabResources = createWebGpuAppTransmissionGrabResources({
+    app: options.app,
+    assets: options.assets,
+    cache: options.cache,
+    snapshot: options.snapshot,
+    required: snapshotUsesTransmission(options.snapshot),
+  });
 
-  if (!standardAreaLightLtc.valid) {
+  if (!standardAreaLightLtc.valid || !transmissionGrabResources.valid) {
     return renderReport({
       ok: false,
       snapshot: options.snapshot,
@@ -1685,6 +1727,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
         ...packedTransforms.diagnostics,
         ...packedInstanceTints.diagnostics,
         ...standardAreaLightLtc.diagnostics,
+        ...transmissionGrabResources.diagnostics,
       ],
     });
   }
@@ -1696,6 +1739,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     worldTransforms: packedTransforms,
     instanceTints: packedInstanceTints,
     standardAreaLightLtcResources: standardAreaLightLtc.resources,
+    transmissionSceneColorResources: transmissionGrabResources.resources,
     ...(options.standardMaterialShadowReceiverResources === undefined
       ? {}
       : {
@@ -1816,6 +1860,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     label: options.label ?? "aperture-webgpu-app",
     reuse: options.reuse,
     motionVectorColorFormat: sceneMotionVectors.colorFormat,
+    transmissionSceneColorResources: transmissionGrabResources.resources,
     ...(options.clearColor === undefined
       ? {}
       : { clearColor: options.clearColor }),
@@ -1864,6 +1909,9 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     boundaries: boundaries.boundaries,
     renderTargets: boundaries.renderTargets,
     postEffects: boundaries.postEffects,
+    ...(boundaries.transmissionGrabPass === undefined
+      ? {}
+      : { transmissionGrabPass: boundaries.transmissionGrabPass }),
     ...(boundaries.msaa === undefined ? {} : { msaa: boundaries.msaa }),
     ...(boundaries.depthAttachment === undefined
       ? {}
@@ -1899,6 +1947,7 @@ async function assembleWebGpuAppFrameBoundaries(options: {
   readonly label: string;
   readonly reuse: WebGpuAppResourceReuseReport;
   readonly motionVectorColorFormat?: string | null;
+  readonly transmissionSceneColorResources?: StandardFrameTransmissionSceneColorResources | null;
   readonly clearColor?: readonly number[];
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
 }): Promise<WebGpuAppFrameBoundaryAssemblyResult> {
@@ -1936,6 +1985,9 @@ async function assembleWebGpuAppFrameBoundaries(options: {
   let readbackBoundary: FrameBoundaryAssemblyReport | null = null;
   const gpuTimingReadbacks: WebGpuAppGpuTimingReadback[] = [];
   const gpuTimingDiagnostics: GpuTimestampQueryDiagnostic[] = [];
+  let transmissionGrabPassReport:
+    | WebGpuAppTransmissionGrabPassReport
+    | undefined;
   let plannedCommands = 0;
   let drawCalls = 0;
   let msaaColorTargets = 0;
@@ -2055,6 +2107,30 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       continue;
     }
 
+    const transmissionGrabPass =
+      options.transmissionSceneColorResources === undefined ||
+      options.transmissionSceneColorResources === null
+        ? null
+        : assembleWebGpuAppTransmissionGrabPass({
+            app: options.app,
+            target,
+            commands,
+            depthAttachment,
+            label: options.label,
+            clearColor: options.clearColor ?? target.view.clearColor,
+            resources: options.transmissionSceneColorResources,
+          });
+
+    if (transmissionGrabPass !== null) {
+      firstBoundary ??= transmissionGrabPass.boundary;
+      boundaries.push(transmissionGrabPass.boundary);
+      plannedCommands += transmissionGrabPass.report.commands;
+      drawCalls += transmissionGrabPass.report.drawCalls;
+      allTargetsValid &&= transmissionGrabPass.boundary.valid;
+      transmissionGrabPassReport = transmissionGrabPass.report;
+      diagnostics.push(...transmissionGrabPass.diagnostics);
+    }
+
     const boundary = assembleFrameBoundary({
       context: options.app.initialization.context as Parameters<
         typeof assembleFrameBoundary
@@ -2158,6 +2234,9 @@ async function assembleWebGpuAppFrameBoundaries(options: {
     boundaries,
     renderTargets,
     postEffects,
+    ...(transmissionGrabPassReport === undefined
+      ? {}
+      : { transmissionGrabPass: transmissionGrabPassReport }),
     ...(!options.app.msaa.enabled && !options.app.msaa.clamped
       ? {}
       : {
@@ -2178,6 +2257,100 @@ async function assembleWebGpuAppFrameBoundaries(options: {
     drawCalls,
     diagnostics,
   };
+}
+
+function assembleWebGpuAppTransmissionGrabPass(options: {
+  readonly app: WebGpuApp;
+  readonly target: WebGpuAppFrameBoundaryTarget;
+  readonly commands: readonly RenderPassCommand[];
+  readonly depthAttachment: CachedWebGpuDepthTextureResource;
+  readonly label: string;
+  readonly clearColor: readonly number[];
+  readonly resources: StandardFrameTransmissionSceneColorResources;
+}): {
+  readonly boundary: FrameBoundaryAssemblyReport;
+  readonly report: WebGpuAppTransmissionGrabPassReport;
+  readonly diagnostics: readonly unknown[];
+} {
+  const commands = commandsWithoutTransmissionDraws(options.commands);
+  const boundary = assembleFrameBoundary({
+    context: options.app.initialization.context as Parameters<
+      typeof assembleFrameBoundary
+    >[0]["context"],
+    device: options.app.initialization.device as Parameters<
+      typeof assembleFrameBoundary
+    >[0]["device"],
+    queue: (options.app.initialization.device as { readonly queue: unknown })
+      .queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
+    commands,
+    label: `${options.label}:transmission-grab:${options.target.renderTargetKey ?? "swapchain"}`,
+    colorTarget: {
+      source: "offscreen-target",
+      texture: options.resources.texture.texture,
+    },
+    clearColor: options.clearColor,
+    depthTarget: {
+      view: options.depthAttachment.view,
+      depthClearValue: options.target.view.clearDepth,
+      depthLoadOp: "clear",
+      depthStoreOp: "store",
+    },
+  });
+  const diagnostics = [
+    ...boundary.texture.diagnostics,
+    ...(boundary.attachments?.diagnostics ?? []),
+    ...(boundary.encoder?.diagnostics ?? []),
+    ...(boundary.begin?.diagnostics ?? []),
+    ...(boundary.execution?.diagnostics ?? []),
+    ...(boundary.end?.diagnostics ?? []),
+    ...(boundary.finish?.diagnostics ?? []),
+    ...(boundary.submit?.diagnostics ?? []),
+  ];
+
+  return {
+    boundary,
+    report: {
+      enabled: true,
+      ok: boundary.valid,
+      width: options.resources.texture.width,
+      height: options.resources.texture.height,
+      format: options.resources.texture.format,
+      commands: commands.length,
+      drawCalls: countDrawCommands(commands),
+      textureResourceKey: options.resources.texture.resourceKey,
+      samplerResourceKey: options.resources.sampler.resourceKey,
+    },
+    diagnostics,
+  };
+}
+
+function commandsWithoutTransmissionDraws(
+  commands: readonly RenderPassCommand[],
+): readonly RenderPassCommand[] {
+  const transmissionRenderIds = new Set<number>();
+
+  for (const command of commands) {
+    if (
+      command.kind === "setPipeline" &&
+      command.pipelineKey.split("|").includes("transmission")
+    ) {
+      transmissionRenderIds.add(command.renderId);
+    }
+  }
+
+  if (transmissionRenderIds.size === 0) {
+    return commands;
+  }
+
+  return commands.filter(
+    (command) => !transmissionRenderIds.has(command.renderId),
+  );
+}
+
+function snapshotUsesTransmission(snapshot: RenderSnapshot): boolean {
+  return snapshot.meshDraws.some((draw) =>
+    draw.batchKey.pipelineKey.split("|").includes("transmission"),
+  );
 }
 
 async function renderSpriteOnlyWebGpuAppFrame(
@@ -4111,6 +4284,139 @@ function resolveStandardAreaLightLtcResources(options: {
   };
 }
 
+function createWebGpuAppTransmissionGrabResources(options: {
+  readonly app: WebGpuApp;
+  readonly assets: AssetRegistry;
+  readonly cache: WebGpuAppResourceCache;
+  readonly snapshot: RenderSnapshot;
+  readonly required: boolean;
+}): WebGpuAppTransmissionGrabResourcesResult {
+  if (!options.required) {
+    return { valid: true, resources: null, diagnostics: [] };
+  }
+
+  const targetPlan = createWebGpuAppFrameBoundaryTargets(
+    options.app,
+    options.assets,
+    options.snapshot,
+  );
+  const target = targetPlan.targets[0];
+
+  if (target === undefined) {
+    return {
+      valid: false,
+      resources: null,
+      diagnostics: targetPlan.diagnostics,
+    };
+  }
+
+  const texture = createOrReuseWebGpuPostPassTexture({
+    device: options.app.initialization.device as Parameters<
+      typeof createOrReuseWebGpuPostPassTexture
+    >[0]["device"],
+    slot: options.cache.postPasses.transmissionGrab,
+    width: target.width,
+    height: target.height,
+    format: target.format,
+    label: "aperture/standard-transmission-grab/scene-color",
+  });
+  const diagnostics: unknown[] = [
+    ...targetPlan.diagnostics,
+    ...texture.diagnostics,
+  ];
+
+  if (!texture.valid || texture.resource === null) {
+    return { valid: false, resources: null, diagnostics };
+  }
+
+  const view = texture.resource.texture.createView?.();
+
+  if (view === undefined) {
+    diagnostics.push({
+      code: "webGpuApp.transmissionGrabTextureViewUnavailable",
+      message:
+        "StandardMaterial transmission grab pass requires a scene color texture view.",
+    });
+    return { valid: false, resources: null, diagnostics };
+  }
+
+  const sampler = createOrReuseTransmissionGrabSampler(options);
+
+  diagnostics.push(...sampler.diagnostics);
+
+  if (sampler.resource === null) {
+    return { valid: false, resources: null, diagnostics };
+  }
+
+  return {
+    valid: diagnostics.length === 0,
+    resources: {
+      texture: {
+        resourceKey: transmissionGrabTextureResourceKey(texture.resource),
+        texture: texture.resource.texture,
+        view,
+        width: texture.resource.width,
+        height: texture.resource.height,
+        format: texture.resource.format,
+      },
+      sampler: {
+        resourceKey: sampler.resource.resourceKey,
+        sampler: sampler.resource.sampler,
+      },
+    },
+    diagnostics,
+  };
+}
+
+function createOrReuseTransmissionGrabSampler(options: {
+  readonly app: WebGpuApp;
+  readonly cache: WebGpuAppResourceCache;
+}): {
+  readonly resource: SamplerGpuResource | null;
+  readonly diagnostics: readonly unknown[];
+} {
+  const resourceKey = "standard-transmission-grab:sampler";
+  const cached = options.cache.samplers.get(resourceKey);
+
+  if (cached !== undefined) {
+    return { resource: cached, diagnostics: [] };
+  }
+
+  const result = createSamplerGpuResource({
+    device: options.app.initialization.device as Parameters<
+      typeof createSamplerGpuResource
+    >[0]["device"],
+    resourceKey,
+    sampler: createSamplerAsset({
+      label: "Standard transmission scene color sampler",
+      addressModeU: "clamp-to-edge",
+      addressModeV: "clamp-to-edge",
+      addressModeW: "clamp-to-edge",
+      magFilter: "linear",
+      minFilter: "linear",
+      mipmapFilter: "nearest",
+      lodMaxClamp: 0,
+    }),
+  });
+
+  if (result.valid && result.resource !== null) {
+    options.cache.samplers.set(resourceKey, result.resource);
+  }
+
+  return { resource: result.resource, diagnostics: result.diagnostics };
+}
+
+function transmissionGrabTextureResourceKey(
+  resource: WebGpuPostPassTextureResource,
+): string {
+  return [
+    "standard-transmission-grab:scene-color",
+    resource.width,
+    resource.height,
+    resource.format,
+  ].join(":");
+}
+
 async function prepareQueuedBuiltInFrameResources(options: {
   readonly app: WebGpuApp;
   readonly assets: AssetRegistry;
@@ -4128,6 +4434,10 @@ async function prepareQueuedBuiltInFrameResources(options: {
   readonly standardMaterialIblResources?: StandardFrameIblResources | undefined;
   readonly standardAreaLightLtcResources?:
     | StandardAreaLightLtcResources
+    | null
+    | undefined;
+  readonly transmissionSceneColorResources?:
+    | StandardFrameTransmissionSceneColorResources
     | null
     | undefined;
 }): Promise<{
@@ -4218,6 +4528,12 @@ async function prepareQueuedBuiltInFrameResources(options: {
                 standardAreaLightLtcResources:
                   options.standardAreaLightLtcResources,
               }),
+          ...(options.transmissionSceneColorResources === undefined
+            ? {}
+            : {
+                transmissionSceneColorResources:
+                  options.transmissionSceneColorResources,
+              }),
           reuse: options.reuse,
         }),
     },
@@ -4241,6 +4557,10 @@ function createQueuedBuiltInFrameResourceOptions(input: {
   readonly standardMaterialIblResources?: StandardFrameIblResources | undefined;
   readonly standardAreaLightLtcResources?:
     | StandardAreaLightLtcResources
+    | null
+    | undefined;
+  readonly transmissionSceneColorResources?:
+    | StandardFrameTransmissionSceneColorResources
     | null
     | undefined;
   readonly reuse: WebGpuAppResourceReuseReport;
@@ -4274,6 +4594,12 @@ function createQueuedBuiltInFrameResourceOptions(input: {
       ? {}
       : {
           standardAreaLightLtcResources: input.standardAreaLightLtcResources,
+        }),
+    ...(input.transmissionSceneColorResources === undefined
+      ? {}
+      : {
+          transmissionSceneColorResources:
+            input.transmissionSceneColorResources,
         }),
     reuse: input.reuse,
   };
@@ -5940,6 +6266,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.postEffects === undefined
       ? {}
       : { postEffects: report.postEffects }),
+    ...(report.transmissionGrabPass === undefined
+      ? {}
+      : { transmissionGrabPass: report.transmissionGrabPass }),
     ...(report.msaa === undefined ? {} : { msaa: report.msaa }),
     ...(report.readback === undefined
       ? {}
@@ -6039,6 +6368,7 @@ function renderReport(input: {
   readonly boundaries?: readonly FrameBoundaryAssemblyReport[];
   readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];
   readonly postEffects?: readonly WebGpuAppPostEffectSubmissionReport[];
+  readonly transmissionGrabPass?: WebGpuAppTransmissionGrabPassReport;
   readonly msaa?: WebGpuAppMsaaReport;
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: FrameBoundaryReadbackResult;
@@ -6077,6 +6407,9 @@ function renderReport(input: {
     ...(input.postEffects === undefined
       ? {}
       : { postEffects: input.postEffects }),
+    ...(input.transmissionGrabPass === undefined
+      ? {}
+      : { transmissionGrabPass: input.transmissionGrabPass }),
     ...(input.msaa === undefined ? {} : { msaa: input.msaa }),
     ...(input.depthAttachment === undefined
       ? {}
