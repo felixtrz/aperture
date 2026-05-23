@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "031d5ac",
+  "lastCommit": "5cf901a",
   "activePid": null,
-  "notes": "Completed task-3087: TAA now has previous view-projection packing, built-in main-pass geometry-aware motion-vector output for compatible mesh scenes, fallback camera-motion clears, and square browser proof. Next task is Tier 20 task-3088 SSAO.",
-  "lastRunFinishedAt": "2026-05-23T02:50:07Z"
+  "notes": "Completed task-3088: SSAO now has renderer-owned depth texture post-pass plumbing, sampleable app depth attachments, createWebGpuSsaoPostEffect(), and square raw-vs-SSAO browser proof. Next task is Tier 20 task-3089 SSR.",
+  "lastRunFinishedAt": "2026-05-23T03:39:15Z"
 }
