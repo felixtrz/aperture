@@ -93,7 +93,7 @@ function createWorkerScene(aperture, canvasSize) {
   app.assets.markReady(environmentMap, {
     label: "Spinning cube Pisa HDR studio IBL",
     diffuseResourceKey: "spinning-cube-pisa-studio/diffuse",
-    specularResourceKey: "spinning-cube-pisa-studio/specular-proof",
+    specularResourceKey: "spinning-cube-pisa-studio/specular-prefilter",
   });
   app.registerSystem(aperture.SpinSystem);
 

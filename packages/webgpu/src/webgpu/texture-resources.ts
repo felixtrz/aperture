@@ -55,6 +55,7 @@ export interface TextureGpuResource {
   readonly view: unknown;
   readonly descriptor: TextureDescriptorInput;
   readonly viewDescriptor?: unknown;
+  readonly prefiltered?: boolean;
 }
 
 export interface SamplerGpuResource {

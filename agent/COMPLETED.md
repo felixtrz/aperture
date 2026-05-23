@@ -1,5 +1,30 @@
 # Completed Tasks
 
+## task-3098 — Execute PMREM-generated specular IBL resources in the app path
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added a shared specular IBL PMREM source path to the WebGPU texture-resource
+  layer. It uploads renderer-owned cubemap faces, dispatches the existing PMREM
+  compute pipeline across the mip chain, caches the prefiltered texture
+  resource, and reports `sections.prefiltering: true` without the old
+  proof-upload placeholder diagnostic.
+- Threaded PMREM sources through app-owned IBL environment resource reports.
+- Updated `spinning-cube` and `tonemap-showcase` to consume shared PMREM
+  resources instead of local duplicated PMREM dispatch helpers.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/specular-ibl-texture-resource.test.ts test/webgpu/ibl-texture-resource.test.ts test/webgpu/app-environment-resources.test.ts --reporter=dot`
+- `pnpm run typecheck:test`
+- `pnpm run examples:build`
+- Focused headed Chrome Playwright probe for `examples/spinning-cube.html`:
+  status reported `specularPrefiltering: true`, no
+  `iblTextureResource.specularProofUploadPlaceholder` diagnostic, and glossy vs
+  rough PMREM probe distance `43`.
+
 ## task-3097 — Replace placeholder PMREM with GGX/VNDF prefilter sampling
 
 Completed: 2026-05-23

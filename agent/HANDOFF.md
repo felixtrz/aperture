@@ -1,6 +1,51 @@
 # Agent Handoff
 
-Updated: 2026-05-23T06:57:03Z
+Updated: 2026-05-23T14:04:25Z
+
+## Current Run Update — 2026-05-23T14:04:25Z — PMREM app resource execution
+
+Completed `task-3098`, the next post-Tier-20 reference-parity slice.
+
+### What changed
+
+- Added a shared PMREM source path to
+  `createSpecularIblTextureResourceReport()`: renderer-owned cubemap faces are
+  uploaded, the existing PMREM compute pipeline dispatches each mip, the
+  resulting resource is cached, and reports set `sections.prefiltering: true`
+  without the old `iblTextureResource.specularProofUploadPlaceholder`
+  diagnostic.
+- Threaded optional `specularPmremSources` through
+  `prepareWebGpuAppIblResourceReports()`.
+- Reworked `examples/spinning-cube.*` and `examples/tonemap-showcase.*` so
+  StandardMaterial specular IBL consumes the shared PMREM resource path instead
+  of duplicated example-local PMREM dispatch helpers.
+- Updated the public tracker and render-pipeline comparison. Recommended next
+  task is now `task-3099`.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/specular-ibl-texture-resource.test.ts test/webgpu/ibl-texture-resource.test.ts test/webgpu/app-environment-resources.test.ts --reporter=dot`
+- `pnpm run typecheck:test`
+- `pnpm run examples:build`
+- Focused headed Chrome Playwright probe for `examples/spinning-cube.html`:
+  status reported `specularPrefiltering: true`, no
+  `iblTextureResource.specularProofUploadPlaceholder` diagnostic, and glossy vs
+  rough PMREM probe distance `43`.
+
+### Known issues
+
+- The standard headed Playwright `spinning-cube.spec.ts` was attempted, but in
+  this desktop session Chrome intermittently returned black WebGPU canvas
+  screenshots to the Playwright runner while the app status continued to report
+  successful frames. A focused Playwright probe using `page.bringToFront()`
+  produced the expected visible PMREM proof.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3099`, rendering texture-backed StandardMaterial PBR extension
+factors.
 
 ## Current Run Update — 2026-05-23T06:57:03Z — Repeated stop gate
 

@@ -35,6 +35,7 @@ interface TonemapShowcaseStatus extends ExampleStatusBase {
       readonly faceCount?: number;
     };
     readonly specularPrefiltering?: boolean;
+    readonly specularDiagnosticCodes?: readonly string[];
   };
   readonly tonemap?: {
     readonly operator: string;
@@ -204,6 +205,7 @@ async function waitForShowcaseReadback(
         faceCount: 6,
       },
       specularPrefiltering: true,
+      specularDiagnosticCodes: [],
     },
     tonemap: {
       operator,

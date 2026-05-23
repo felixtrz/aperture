@@ -32,11 +32,10 @@ export function createTonemapShowcaseIblResources(
   const diffuseResourceKey =
     "texture:tonemap-showcase-pisa-studio:diffuse:texture";
   const specularResourceKey =
-    "texture:tonemap-showcase-pisa-studio:specular-proof:texture";
+    "texture:tonemap-showcase-pisa-studio:specular-prefilter:texture";
   const samplerResourceKey =
     "texture:tonemap-showcase-pisa-studio:diffuse:sampler";
   let diffuseTexture = cache.diffuseTextures.get(diffuseResourceKey);
-  let specularTexture = cache.specularTextures.get(specularResourceKey);
   let iblSampler = cache.samplers.get(samplerResourceKey);
 
   if (diffuseTexture === undefined) {
@@ -49,15 +48,22 @@ export function createTonemapShowcaseIblResources(
     cache.diffuseTextures.set(diffuseResourceKey, diffuseTexture);
   }
 
-  if (specularTexture === undefined) {
-    specularTexture = createEnvironmentSpecularCubeTexture(
-      aperture,
+  const specularTextureResource =
+    aperture.createSpecularIblTextureResourceReport({
       device,
-      specularResourceKey,
-      environmentSource,
-    );
-    cache.specularTextures.set(specularResourceKey, specularTexture);
-  }
+      textures: createTonemapShowcaseIblTexturePreparation(aperture),
+      cache: cache.specularTextures,
+      pmremSources: [
+        {
+          resourceKey: specularResourceKey,
+          label: "tonemap-showcase-pisa-studio",
+          faceSize: environmentSource.faceSize,
+          faces: environmentSource.faces.map((face) => face.rgba),
+          format: "rgba8unorm",
+          mipLevelCount: 4,
+        },
+      ],
+    });
 
   if (iblSampler === undefined) {
     iblSampler = createDiffuseIblSampler(device, samplerResourceKey);
@@ -118,40 +124,7 @@ export function createTonemapShowcaseIblResources(
       ],
       diagnostics: [],
     },
-    specularTextureResource: {
-      ready: true,
-      status: "available",
-      textureSlotCount: 1,
-      specularSlotCount: 1,
-      createdTextureCount: 1,
-      reusedTextureCount: 0,
-      sections: {
-        texturePreparation: true,
-        specularTextureResource: true,
-        gpuAllocation: true,
-        proofUpload: !specularTexture.prefiltered,
-        prefiltering: specularTexture.prefiltered,
-        bindGroupResource: false,
-        shaderSampling: true,
-      },
-      resources: [
-        {
-          valid: true,
-          resource: specularTexture,
-          diagnostics: [],
-        },
-      ],
-      diagnostics: specularTexture.prefiltered
-        ? []
-        : [
-            {
-              code: "iblTextureResource.specularPrefilteringDeferred",
-              severity: "warning",
-              message:
-                "Specular IBL texture resource fell back to a deterministic minimal mip chain; full PMREM/GGX prefiltering remains deferred.",
-            },
-          ],
-    },
+    specularTextureResource,
     samplerResource: {
       ready: true,
       status: "available",
@@ -176,196 +149,34 @@ export function createTonemapShowcaseIblResources(
   };
 }
 
-function createEnvironmentSpecularCubeTexture(
-  aperture,
-  device,
-  resourceKey,
-  environmentSource,
-) {
-  const baseSize = environmentSource.faceSize;
-  const mipLevelCount = 4;
-  const usage = resolveTextureUsage(aperture);
-  const bufferUsage = resolveBufferUsage();
-  const pipeline = aperture.createPmremComputePipeline({
-    device,
-    storageFormat: "rgba8unorm",
-    label: "tonemap-showcase-pisa-studio:pmrem",
-  });
-
-  if (!pipeline.valid || pipeline.resource === null) {
-    return createEnvironmentSpecularFallbackCubeTexture(
-      device,
-      resourceKey,
-      usage,
-      environmentSource,
-    );
-  }
-
-  const source = device.createTexture({
-    label: "tonemap-showcase-pisa-studio:specular-ibl-source",
-    size: [baseSize, baseSize, 6],
-    format: "rgba8unorm",
-    usage: usage.TEXTURE_BINDING | usage.COPY_DST,
-  });
-  const texture = device.createTexture({
-    label: "tonemap-showcase-pisa-studio:specular-ibl-pmrem-mip-chain",
-    size: [baseSize, baseSize, 6],
-    format: "rgba8unorm",
-    usage:
-      usage.TEXTURE_BINDING | usage.STORAGE_BINDING | usage.RENDER_ATTACHMENT,
-    mipLevelCount,
-  });
-  const faceUploads = environmentSource.faces.map((face) =>
-    createPaddedFaceUpload(face.rgba, baseSize),
+function createTonemapShowcaseIblTexturePreparation(aperture) {
+  const environmentMap = aperture.createEnvironmentMapHandle(
+    "spinning-cube-pisa-studio",
   );
-
-  faceUploads.forEach((upload, face) => {
-    device.queue.writeTexture(
-      { texture: source, origin: [0, 0, face] },
-      upload.data,
-      { bytesPerRow: upload.bytesPerRow, rowsPerImage: baseSize },
-      [baseSize, baseSize, 1],
-    );
+  const descriptors = aperture.createIblResourceDescriptorReport({
+    snapshot: [
+      {
+        environmentId: 1,
+        handle: environmentMap,
+        color: [1, 1, 1, 1],
+        intensity: 1,
+        layerMask: 1,
+      },
+    ],
+    descriptors: [
+      {
+        environmentMapResourceKey: "environment-map:spinning-cube-pisa-studio",
+        diffuseResourceKey: "texture:tonemap-showcase-pisa-studio:diffuse",
+        specularResourceKey:
+          "texture:tonemap-showcase-pisa-studio:specular-prefilter",
+      },
+    ],
   });
 
-  const sampler = device.createSampler({
-    label: "tonemap-showcase-pisa-studio:pmrem-source-sampler",
-    addressModeU: "clamp-to-edge",
-    addressModeV: "clamp-to-edge",
-    addressModeW: "clamp-to-edge",
-    magFilter: "nearest",
-    minFilter: "nearest",
+  return aperture.createIblTexturePreparationReport({
+    descriptors,
+    preparation: "ready",
   });
-  const sourceView = source.createView({
-    label: "tonemap-showcase-pisa-studio:pmrem-source-view",
-    dimension: "cube",
-  });
-  const encoder = device.createCommandEncoder({
-    label: "tonemap-showcase-pisa-studio:pmrem-dispatch",
-  });
-  const pass = encoder.beginComputePass({
-    label: "tonemap-showcase-pisa-studio:pmrem-mip-chain",
-  });
-
-  pass.setPipeline(pipeline.resource.pipeline);
-
-  for (let mipLevel = 0; mipLevel < mipLevelCount; mipLevel += 1) {
-    const mipSize = Math.max(1, baseSize >> mipLevel);
-    const params = device.createBuffer({
-      label: `tonemap-showcase-pisa-studio:pmrem-mip-${mipLevel}-params`,
-      size: 16,
-      usage: bufferUsage.UNIFORM | bufferUsage.COPY_DST,
-    });
-
-    device.queue.writeBuffer(
-      params,
-      0,
-      new Uint32Array([mipSize, mipSize, 6, mipLevel]),
-    );
-
-    const bindGroup = device.createBindGroup({
-      label: `tonemap-showcase-pisa-studio:pmrem-mip-${mipLevel}`,
-      layout: pipeline.resource.bindGroupLayout,
-      entries: [
-        { binding: 0, resource: sampler },
-        { binding: 1, resource: sourceView },
-        {
-          binding: 2,
-          resource: texture.createView({
-            dimension: "2d-array",
-            baseMipLevel: mipLevel,
-            mipLevelCount: 1,
-          }),
-        },
-        { binding: 3, resource: { buffer: params } },
-      ],
-    });
-    const dispatch = aperture.createPmremComputeDispatchSize({
-      width: mipSize,
-      height: mipSize,
-      layers: 6,
-    });
-
-    pass.setBindGroup(0, bindGroup);
-    pass.dispatchWorkgroups(dispatch.x, dispatch.y, dispatch.z);
-  }
-
-  pass.end();
-  device.queue.submit([encoder.finish()]);
-
-  return {
-    resourceKey,
-    texture,
-    view: texture.createView({
-      label: "tonemap-showcase-pisa-studio:specular-ibl-pmrem-mip-chain-view",
-      dimension: "cube",
-    }),
-    descriptor: {
-      label: "tonemap-showcase-pisa-studio:specular-ibl-pmrem-mip-chain",
-      size: [baseSize, baseSize, 6],
-      format: "rgba8unorm",
-      usage:
-        usage.TEXTURE_BINDING | usage.STORAGE_BINDING | usage.RENDER_ATTACHMENT,
-      mipLevelCount,
-    },
-    viewDescriptor: { dimension: "cube" },
-    prefiltered: true,
-  };
-}
-
-function createEnvironmentSpecularFallbackCubeTexture(
-  device,
-  resourceKey,
-  usage,
-  environmentSource,
-) {
-  const baseSize = environmentSource.faceSize;
-  const mipLevelCount = 4;
-  const texture = device.createTexture({
-    label: "tonemap-showcase-pisa-studio:specular-ibl-minimal-mip-chain",
-    size: [baseSize, baseSize, 6],
-    format: "rgba8unorm",
-    usage: usage.TEXTURE_BINDING | usage.COPY_DST,
-    mipLevelCount,
-  });
-
-  for (let mipLevel = 0; mipLevel < mipLevelCount; mipLevel += 1) {
-    const mipSize = Math.max(1, baseSize >> mipLevel);
-
-    environmentSource.faces.forEach((sourceFace, face) => {
-      const upload = createFallbackMipUpload(
-        sourceFace.rgba,
-        environmentSource.faceAverages[face],
-        baseSize,
-        mipSize,
-      );
-
-      device.queue.writeTexture(
-        { texture, mipLevel, origin: [0, 0, face] },
-        upload.data,
-        { bytesPerRow: upload.bytesPerRow, rowsPerImage: mipSize },
-        [mipSize, mipSize, 1],
-      );
-    });
-  }
-
-  return {
-    resourceKey,
-    texture,
-    view: texture.createView({
-      label: "tonemap-showcase-pisa-studio:specular-ibl-minimal-mip-chain-view",
-      dimension: "cube",
-    }),
-    descriptor: {
-      label: "tonemap-showcase-pisa-studio:specular-ibl-minimal-mip-chain",
-      size: [baseSize, baseSize, 6],
-      format: "rgba8unorm",
-      usage: usage.TEXTURE_BINDING | usage.COPY_DST,
-      mipLevelCount,
-    },
-    viewDescriptor: { dimension: "cube" },
-    prefiltered: false,
-  };
 }
 
 function createEnvironmentDiffuseCubeTexture(
@@ -530,54 +341,6 @@ function averageRgba(rgba) {
   ];
 }
 
-function createPaddedFaceUpload(rgba, size) {
-  const bytesPerRow = alignTo(size * 4, 256);
-  const data = new Uint8Array(bytesPerRow * size);
-
-  for (let row = 0; row < size; row += 1) {
-    data.set(
-      rgba.subarray(row * size * 4, (row + 1) * size * 4),
-      row * bytesPerRow,
-    );
-  }
-
-  return { data, bytesPerRow };
-}
-
-function createFallbackMipUpload(sourceRgba, faceAverage, baseSize, mipSize) {
-  const bytesPerRow = alignTo(mipSize * 4, 256);
-  const data = new Uint8Array(bytesPerRow * mipSize);
-  const sourceStep = baseSize / mipSize;
-
-  for (let y = 0; y < mipSize; y += 1) {
-    for (let x = 0; x < mipSize; x += 1) {
-      const sourceX = Math.min(baseSize - 1, Math.floor(x * sourceStep));
-      const sourceY = Math.min(baseSize - 1, Math.floor(y * sourceStep));
-      const source = (sourceY * baseSize + sourceX) * 4;
-      const target = y * bytesPerRow + x * 4;
-
-      data[target] = Math.round((sourceRgba[source] + faceAverage[0]) * 0.5);
-      data[target + 1] = Math.round(
-        (sourceRgba[source + 1] + faceAverage[1]) * 0.5,
-      );
-      data[target + 2] = Math.round(
-        (sourceRgba[source + 2] + faceAverage[2]) * 0.5,
-      );
-      data[target + 3] = 255;
-    }
-  }
-
-  return { data, bytesPerRow };
-}
-
 function resolveTextureUsage(aperture) {
   return globalThis.GPUTextureUsage ?? aperture.WEBGPU_TEXTURE_USAGE_FLAGS;
-}
-
-function resolveBufferUsage() {
-  return globalThis.GPUBufferUsage ?? { UNIFORM: 0x40, COPY_DST: 0x08 };
-}
-
-function alignTo(value, alignment) {
-  return Math.ceil(value / alignment) * alignment;
 }

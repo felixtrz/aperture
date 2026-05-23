@@ -207,7 +207,7 @@ async function createShowcaseScene(aperture, app, sourceAssets) {
   sourceAssets.markReady(environmentMap, {
     label: "Tonemap showcase Pisa HDR studio IBL",
     diffuseResourceKey: "tonemap-showcase-pisa-studio/diffuse",
-    specularResourceKey: "tonemap-showcase-pisa-studio/specular-proof",
+    specularResourceKey: "tonemap-showcase-pisa-studio/specular-prefilter",
   });
 
   const environmentSource = await loadTonemapShowcaseEnvironment(aperture);
@@ -463,6 +463,10 @@ function createFrameStatus(
       specularResourceKey:
         scene.iblResources.specularTextureResource.resources[0]?.resource
           ?.resourceKey,
+      specularDiagnosticCodes:
+        scene.iblResources.specularTextureResource.diagnostics.map(
+          (diagnostic) => diagnostic.code,
+        ),
       samplerKey:
         scene.iblResources.samplerResource.resources[0]?.resource?.resourceKey,
     },

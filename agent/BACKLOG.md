@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3098`: execute PMREM-generated specular IBL resources in the app
-path so the StandardMaterial specular IBL route consumes renderer-owned
-prefiltered mip textures instead of the deterministic proof-upload placeholder.
+Start `task-3099`: render texture-backed StandardMaterial PBR extension factors
+so at least one glTF PBR extension factor can vary by texture value instead of
+requiring separate scalar materials.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -150,6 +150,8 @@ Acceptance criteria:
 - `pnpm exec playwright test test/e2e/pmrem-compute-pipeline.spec.ts --reporter=list --timeout=60000` passes.
 
 ### task-3098 — Execute PMREM-generated specular IBL resources in the app path
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/ibl-texture-resource.ts`, `packages/webgpu/src/webgpu/app-environment-resources.ts`, `examples/tonemap-showcase.*`, `examples/spinning-cube.*`, tracker/docs.

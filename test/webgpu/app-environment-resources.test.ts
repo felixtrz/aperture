@@ -76,6 +76,47 @@ describe("WebGPU app environment resource cache", () => {
       /GPUTexture|GPUTextureView|GPUSampler|raw/,
     );
   });
+
+  it("threads PMREM sources into app-owned specular IBL resources", () => {
+    const calls: string[] = [];
+    const app = {
+      initialization: {
+        device: pmremDevice(calls),
+      },
+    };
+    const preparedTextures = textures();
+    const preparedSamplers = createIblSamplerDescriptorReadinessReport({
+      textures: preparedTextures,
+      allocation: "ready",
+    });
+    const report = prepareWebGpuAppIblResourceReports({
+      app,
+      textures: preparedTextures,
+      samplers: preparedSamplers,
+      specularPmremSources: [
+        {
+          sourceResourceKey: "texture:studio:specular-prefilter",
+          label: "studio",
+          faceSize: 4,
+          faces: cubeFaces(4),
+          format: "rgba8unorm",
+          mipLevelCount: 3,
+        },
+      ],
+    });
+
+    expect(report.specularTextureResource.sections).toMatchObject({
+      proofUpload: false,
+      prefiltering: true,
+    });
+    expect(
+      report.specularTextureResource.diagnostics.map(
+        (diagnostic) => diagnostic.code,
+      ),
+    ).not.toContain("iblTextureResource.specularProofUploadPlaceholder");
+    expect(report.reuse.specularTextureResourcesCreated).toBe(1);
+    expect(calls.filter((call) => call === "dispatch")).toHaveLength(3);
+  });
 });
 
 function textures() {
@@ -122,6 +163,59 @@ function device(
       createdSamplers.push(descriptor);
 
       return { descriptor };
+    },
+  };
+}
+
+function cubeFaces(faceSize: number): Uint8Array[] {
+  return Array.from({ length: 6 }, (_, face) => {
+    const data = new Uint8Array(faceSize * faceSize * 4);
+
+    for (let offset = 0; offset < data.length; offset += 4) {
+      data[offset] = face * 24;
+      data[offset + 1] = 48 + face * 18;
+      data[offset + 2] = 220 - face * 20;
+      data[offset + 3] = 255;
+    }
+
+    return data;
+  });
+}
+
+function pmremDevice(calls: string[]) {
+  return {
+    createShaderModule: (descriptor: unknown) => ({ descriptor }),
+    createBindGroupLayout: (descriptor: unknown) => ({ descriptor }),
+    createPipelineLayout: (descriptor: unknown) => ({ descriptor }),
+    createComputePipeline: (descriptor: unknown) => ({ descriptor }),
+    createTexture: (descriptor: unknown) => ({
+      descriptor,
+      createView: (viewDescriptor?: unknown) => ({
+        descriptor,
+        viewDescriptor,
+      }),
+    }),
+    createSampler: (descriptor: unknown) => ({ descriptor }),
+    createBuffer: (descriptor: unknown) => ({ descriptor }),
+    createBindGroup: (descriptor: unknown) => ({ descriptor }),
+    createCommandEncoder: (descriptor: unknown) => ({
+      descriptor,
+      beginComputePass: (passDescriptor: unknown) => ({
+        passDescriptor,
+        setPipeline: () => calls.push("setPipeline"),
+        setBindGroup: () => calls.push("setBindGroup"),
+        dispatchWorkgroups: () => calls.push("dispatch"),
+        end: () => calls.push("end"),
+      }),
+      finish: () => {
+        calls.push("finish");
+        return { descriptor };
+      },
+    }),
+    queue: {
+      writeTexture: () => calls.push("writeTexture"),
+      writeBuffer: () => calls.push("writeBuffer"),
+      submit: () => calls.push("submit"),
     },
   };
 }

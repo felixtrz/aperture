@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 06:45 UTC</dd>
+            <dd>2026-05-23 14:03 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -580,8 +580,9 @@
               mip 0 plus a GGX/VNDF rough mip 2 with browser readback, and the
               spinning-cube example now loads a compact Pisa RGBE HDR cube
               atlas, uploads its real environment pixels into diffuse/specular
-              IBL cube textures, and uses generated PMREM mips for glossy and
-              rough probe cubes. ECS worlds now expose monotonic
+              IBL cube textures, and now creates those specular resources
+              through the shared app-level PMREM path with no proof-upload
+              placeholder diagnostic. ECS worlds now expose monotonic
               generation-scoped entity versions for component writes, including
               typed-vector writes, and extraction can now use an explicit cache
               to reuse unchanged mesh packets while keeping snapshots
@@ -754,9 +755,9 @@
               multi-light shadow example now binds directional, spot, and point
               receiver resources in one browser-safe group 3 StandardMaterial
               route, submits all three shadow pass families, and Playwright
-              verifies six named receiver samples in one scene. Broader PMREM
-              remains deferred. The GLTF scene now exposes live caster/receiver
-              shadow toggles, now driven by public
+              verifies six named receiver samples in one scene. Broader
+              environment asset preparation remains deferred. The GLTF scene now
+              exposes live caster/receiver shadow toggles, now driven by public
               <code>withShadowCaster</code> and
               <code>withShadowReceiver</code> ECS authoring helpers. Extraction
               publishes caster/receiver flags on mesh draws, shadow caster
@@ -1150,9 +1151,9 @@
               now reports diffuse IBL shader sampling ready. The spinning-cube
               route now samples a renderer-owned specular cube texture from
               group 3 binding 7 and uses a minimal roughness-addressed mip chain
-              while app-level PMREM-generated specular IBL execution remains the
-              next IBL gap. Playwright covers diffuse/specular pixel deltas plus
-              the combined
+              and app-level PMREM-generated specular IBL now executes through
+              the shared resource path. Playwright covers diffuse/specular pixel
+              deltas plus the combined
               <code>iblDiffuse|iblSpecularProof|shadowMap</code> route, and draw
               commands still stay within groups 0 through 3 under Chrome's
               four-bind-group limit. The spinning-cube example now uses the same
@@ -2156,9 +2157,8 @@
                 Missing texture-backed StandardMaterial PBR extension resources.
               </li>
               <li>
-                Missing app-level PMREM-generated specular IBL execution,
-                broader environment asset preparation, and previous transform
-                history for independently moving temporal geometry.
+                Missing broader environment asset preparation and previous
+                transform history for independently moving temporal geometry.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -4445,8 +4445,8 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Execute PMREM-generated
-                specular IBL resources in the app path.
+                <span class="badge amber">next</span> Render texture-backed
+                StandardMaterial PBR extension factors.
               </li>
               <li>
                 SSAO now uses a PlayCanvas-style spiral AO shader with
@@ -4459,9 +4459,8 @@
               </li>
               <li>
                 The post-Tier-20 reference-parity queue now starts with
-                app-level specular IBL prefilter execution, then texture-backed
-                PBR extension factors, transmission refraction, and a generic
-                snapshot change-set scheduler.
+                texture-backed PBR extension factors, then transmission
+                refraction and a generic snapshot change-set scheduler.
               </li>
             </ul>
           </article>
@@ -5194,6 +5193,18 @@
               <span
                 >Render-queue and draw-list planners fold contiguous
                 mesh/material-identical records into one grouped draw.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3098</div>
+            <div>
+              <strong>PMREM app resources replace the IBL placeholder.</strong>
+              <span
+                >Spinning-cube and tonemap-showcase now create StandardMaterial
+                specular IBL textures through the shared renderer-owned PMREM
+                resource path and report no proof-upload placeholder
+                diagnostic.</span
               >
             </div>
           </div>

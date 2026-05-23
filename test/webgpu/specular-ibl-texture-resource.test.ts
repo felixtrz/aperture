@@ -65,6 +65,56 @@ describe("specular IBL texture resource", () => {
     expect(JSON.stringify(json)).not.toMatch(/GPUTexture|GPUTextureView|"raw"/);
     expect(created).toHaveLength(1);
   });
+
+  it("executes renderer-owned PMREM prefiltering when a source cubemap is provided", () => {
+    const calls: string[] = [];
+    const report = createSpecularIblTextureResourceReport({
+      device: pmremDevice(calls),
+      textures: textures("ready"),
+      pmremSources: [
+        {
+          sourceResourceKey: "texture:studio:specular-prefilter",
+          label: "studio",
+          faceSize: 4,
+          faces: cubeFaces(4),
+          format: "rgba8unorm",
+          mipLevelCount: 3,
+        },
+      ],
+    });
+    const json = specularIblTextureResourceReportToJsonValue(report);
+
+    expect(json).toMatchObject({
+      ready: true,
+      status: "available",
+      specularSlotCount: 1,
+      createdTextureCount: 1,
+      sections: {
+        proofUpload: false,
+        prefiltering: true,
+      },
+      resources: [
+        {
+          valid: true,
+          resourceKey: "texture:studio:specular-prefilter:texture",
+          descriptor: {
+            label: "studio:specular-ibl-pmrem-mip-chain",
+            size: [4, 4, 6],
+            format: "rgba8unorm",
+            usage: 28,
+            mipLevelCount: 3,
+          },
+        },
+      ],
+      diagnostics: [],
+    });
+    expect(calls.filter((call) => call === "writeTexture")).toHaveLength(6);
+    expect(calls.filter((call) => call === "dispatch")).toHaveLength(3);
+    expect(calls).toContain("submit");
+    expect(JSON.stringify(json)).not.toMatch(
+      /specularProofUploadPlaceholder|GPUTexture|GPUTextureView|"raw"/,
+    );
+  });
 });
 
 function textures(preparation: "deferred" | "ready" | "unsupported") {
@@ -104,6 +154,59 @@ function deviceWithTextures(created: unknown[]): TextureGpuDeviceLike {
       return {
         createView: () => ({ descriptor }),
       };
+    },
+  };
+}
+
+function cubeFaces(faceSize: number): Uint8Array[] {
+  return Array.from({ length: 6 }, (_, face) => {
+    const data = new Uint8Array(faceSize * faceSize * 4);
+
+    for (let offset = 0; offset < data.length; offset += 4) {
+      data[offset] = face * 30;
+      data[offset + 1] = 32 + face * 20;
+      data[offset + 2] = 224 - face * 24;
+      data[offset + 3] = 255;
+    }
+
+    return data;
+  });
+}
+
+function pmremDevice(calls: string[]) {
+  return {
+    createShaderModule: (descriptor: unknown) => ({ descriptor }),
+    createBindGroupLayout: (descriptor: unknown) => ({ descriptor }),
+    createPipelineLayout: (descriptor: unknown) => ({ descriptor }),
+    createComputePipeline: (descriptor: unknown) => ({ descriptor }),
+    createTexture: (descriptor: unknown) => ({
+      descriptor,
+      createView: (viewDescriptor?: unknown) => ({
+        descriptor,
+        viewDescriptor,
+      }),
+    }),
+    createSampler: (descriptor: unknown) => ({ descriptor }),
+    createBuffer: (descriptor: unknown) => ({ descriptor }),
+    createBindGroup: (descriptor: unknown) => ({ descriptor }),
+    createCommandEncoder: (descriptor: unknown) => ({
+      descriptor,
+      beginComputePass: (passDescriptor: unknown) => ({
+        passDescriptor,
+        setPipeline: () => calls.push("setPipeline"),
+        setBindGroup: () => calls.push("setBindGroup"),
+        dispatchWorkgroups: () => calls.push("dispatch"),
+        end: () => calls.push("end"),
+      }),
+      finish: () => {
+        calls.push("finish");
+        return { descriptor };
+      },
+    }),
+    queue: {
+      writeTexture: () => calls.push("writeTexture"),
+      writeBuffer: () => calls.push("writeBuffer"),
+      submit: () => calls.push("submit"),
     },
   };
 }

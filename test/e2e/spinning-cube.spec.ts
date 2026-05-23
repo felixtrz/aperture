@@ -58,6 +58,7 @@ interface SpinningCubeStatus extends ExampleStatusBase {
     };
     readonly diffuseResourceKey?: string;
     readonly specularResourceKey?: string;
+    readonly specularDiagnosticCodes?: readonly string[];
     readonly samplerKey?: string;
   };
   readonly pipeline?: {
@@ -207,7 +208,8 @@ test("Playwright shows an ECS-driven spinning lit standard cube", async ({
       specularPrefiltering: true,
       diffuseResourceKey: "texture:spinning-cube-pisa-studio:diffuse:texture",
       specularResourceKey:
-        "texture:spinning-cube-pisa-studio:specular-proof:texture",
+        "texture:spinning-cube-pisa-studio:specular-prefilter:texture",
+      specularDiagnosticCodes: [],
       samplerKey: "texture:spinning-cube-pisa-studio:diffuse:sampler",
       source: {
         kind: "radiance-rgbe-cube-atlas",
@@ -447,14 +449,7 @@ function expectNonBlankCubePixel(
   status: SpinningCubeStatus,
 ): void {
   const center = readPngPixel(screenshot, 0.5, 0.5);
-  const clear =
-    status.clearColor !== undefined &&
-    typeof status.clearColor === "object" &&
-    status.clearColor !== null
-      ? rgbaColorToPixel(
-          status.clearColor as { r: number; g: number; b: number; a: number },
-        )
-      : { r: 4, g: 6, b: 9, a: 255 };
+  const clear = clearPixelFromStatus(status);
 
   const centerDistance = pixelDistance(center, clear);
 
@@ -476,6 +471,18 @@ function expectNonBlankCubePixel(
       center,
     )} visible=${JSON.stringify(visible)} clear=${JSON.stringify(clear)}`,
   ).toBeGreaterThan(36);
+}
+
+function clearPixelFromStatus(
+  status: SpinningCubeStatus,
+): ReturnType<typeof rgbaColorToPixel> {
+  return status.clearColor !== undefined &&
+    typeof status.clearColor === "object" &&
+    status.clearColor !== null
+    ? rgbaColorToPixel(
+        status.clearColor as { r: number; g: number; b: number; a: number },
+      )
+    : { r: 4, g: 6, b: 9, a: 255 };
 }
 
 function expectDirectionDependentDiffuseIblPixels(

@@ -2,6 +2,7 @@ import {
   createDiffuseIblTextureResourceReport,
   createSpecularIblTextureResourceReport,
   type DiffuseIblTextureResourceReport,
+  type SpecularIblPmremSource,
   type SpecularIblTextureResourceReport,
 } from "./ibl-texture-resource.js";
 import {
@@ -77,6 +78,7 @@ export interface PrepareWebGpuAppIblResourceReportsOptions {
   readonly device?: TextureGpuDeviceLike;
   readonly textures: IblTexturePreparationReport;
   readonly samplers: IblSamplerDescriptorReadinessReport;
+  readonly specularPmremSources?: readonly SpecularIblPmremSource[];
 }
 
 const APP_ENVIRONMENT_RESOURCE_CACHES = new WeakMap<
@@ -189,6 +191,9 @@ export function prepareWebGpuAppIblResourceReports(
     device,
     textures: options.textures,
     cache: cache.specularTextures,
+    ...(options.specularPmremSources === undefined
+      ? {}
+      : { pmremSources: options.specularPmremSources }),
   });
   reuse.specularTextureResourcesCreated =
     specularTextureResource.createdTextureCount;
