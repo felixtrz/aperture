@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 16:47 UTC</dd>
+            <dd>2026-05-23 17:08 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1446,10 +1446,12 @@
               high-transmission texel visibly closer to the backing panel than
               the low-transmission texel. Texture-backed sheen color factors now
               bind through the StandardMaterial group-2 texture path and
-              multiply scalar sheen color per texel.
+              multiply scalar sheen color per texel, and texture-backed
+              iridescence factors now multiply scalar thin-film response per
+              texel in <code>examples/iridescence.html</code>.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3106: texture-backed iridescence factors</dd>
+            <dd>task-3107: texture-backed sheen roughness factors</dd>
           </dl>
         </aside>
       </header>
@@ -2038,9 +2040,9 @@
                 Missing app-level generic material adapter route boundary.
               </li>
               <li>
-                Missing texture-backed iridescence PBR extension resources
-                beyond the rendered clearcoat, transmission, and sheen color
-                factor slots.
+                Missing remaining roughness/thickness PBR extension texture
+                slots beyond the rendered clearcoat, transmission, sheen color,
+                and iridescence factor slots.
               </li>
               <li>
                 Missing IBL, shadow, render-target, and hot-path scratch polish.
@@ -2182,17 +2184,18 @@
               roughness-derived blur radius before applying blend alpha, so the
               glass proof can show glossy and rough transmitted background
               detail without exposing ECS scene state. Texture-backed
-              transmission factors now bind through the StandardMaterial group-2
-              texture path and multiply scalar transmission per texel.
-              <code>createWebGpuApp({ msaa })</code> now renders forward passes
-              through cached multisampled color/depth attachments, resolves to
-              the swapchain or off-screen target, and keys built-in pipelines by
-              effective sample count.
+              transmission factors and iridescence factors now bind through the
+              StandardMaterial group-2 texture path and multiply scalar factors
+              per texel. <code>createWebGpuApp({ msaa })</code> now renders
+              forward passes through cached multisampled color/depth
+              attachments, resolves to the swapchain or off-screen target, and
+              keys built-in pipelines by effective sample count.
             </p>
             <ul>
               <li>
                 Missing remaining texture-backed StandardMaterial PBR extension
-                resources for iridescence.
+                resources for sheen roughness, iridescence thickness, and
+                clearcoat roughness.
               </li>
               <li>
                 Missing broader environment asset preparation and previous
@@ -4484,7 +4487,7 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Render texture-backed
-                StandardMaterial iridescence factors.
+                StandardMaterial sheen roughness factors.
               </li>
               <li>
                 SSAO now uses a PlayCanvas-style spiral AO shader with
@@ -4499,8 +4502,9 @@
                 The post-Tier-20 reference-parity queue now has renderer-owned
                 transmission grab-pass refraction and generic snapshot
                 change-set scheduling plus a deterministic transparent ordering
-                proof plus texture-backed transmission. It continues with
-                texture-backed iridescence factors.
+                proof plus texture-backed transmission, sheen color, and
+                iridescence factors. It continues with texture-backed sheen
+                roughness factors.
               </li>
             </ul>
           </article>
@@ -4513,6 +4517,22 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3106</div>
+            <div>
+              <strong>Texture-backed iridescence factor shipped.</strong>
+              <span>
+                StandardMaterial now maps
+                <code>KHR_materials_iridescence.iridescenceTexture</code> into a
+                renderer-independent iridescence texture slot, prepares the
+                texture/sampler through the WebGPU material route, and samples
+                the red channel per texel before thin-film Fresnel evaluation.
+                <code>examples/iridescence.html</code> proves high and low
+                iridescence texels produce visibly different shared-material
+                response.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3105</div>
             <div>

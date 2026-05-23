@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3106`: render texture-backed StandardMaterial iridescence factors
-so at least one `KHR_materials_iridescence` texture slot can drive thin-film
-response per texel instead of remaining an unsupported extension slot.
+Start `task-3107`: render texture-backed StandardMaterial sheen roughness
+factors so `KHR_materials_sheen.sheenRoughnessTexture` can vary the fabric lobe
+per texel instead of remaining an unsupported extension slot.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -108,7 +108,10 @@ queue/app diagnostics publish the applied transparent sort policy.
 scene-color filtering with glossy and rough transmitted StandardMaterial
 objects over high-contrast background stripes. `examples/sheen.html` now proves
 texture-backed sheen color sampling with a shared-material panel whose high and
-low texels produce visibly different fabric response.
+low texels produce visibly different fabric response. `examples/iridescence.html`
+now proves texture-backed iridescence factor sampling with a shared-material
+tilted panel whose high and low texels produce visibly different thin-film
+response.
 `examples/render-packet-inspector.html` now renders worker-authored packets and
 publishes JSON-safe views, draws, bounds, queue keys, handles, skipped-entity
 explanations, and culling stats. Extraction now builds camera frustum planes
@@ -137,9 +140,9 @@ shader/pipeline/resource/importer tests.
 
 Reference anchors (read before writing):
 
+- `references/engine/src/framework/parsers/glb-parser.js`.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/sheenGloss.js`.
 - `references/three.js/src/nodes/functions/PhysicalLightingModel.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/iridescence.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/iridescenceThickness.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -275,6 +278,8 @@ Acceptance criteria:
 
 ### task-3106 — Render texture-backed StandardMaterial iridescence factors
 
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/render/src/materials/`, `packages/webgpu/src/webgpu/standard-*`, `examples/iridescence.*`, targeted tests.
 Reference anchor: `references/engine/src/framework/parsers/glb-parser.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/iridescence.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/iridescenceThickness.js`.
@@ -284,6 +289,42 @@ Acceptance criteria:
 - At least one `KHR_materials_iridescence` texture slot maps to a renderer-independent StandardMaterial texture slot and no longer reports an unsupported-extension-slot warning for that implemented slot.
 - `examples/iridescence.html` renders a texture-driven iridescence response where two same-material regions differ by texture value or thickness rather than separate scalar iridescence materials.
 - Targeted glTF material mapping, StandardMaterial shader/resource, and headed browser readback tests pass.
+
+### task-3107 — Render texture-backed StandardMaterial sheen roughness factors
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/materials/`, `packages/webgpu/src/webgpu/standard-*`, `examples/sheen.*`, targeted tests.
+Reference anchor: `references/engine/src/framework/parsers/glb-parser.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/sheenGloss.js`, `references/three.js/src/nodes/functions/PhysicalLightingModel.js`.
+
+Acceptance criteria:
+
+- `KHR_materials_sheen.sheenRoughnessTexture` maps to a renderer-independent StandardMaterial texture slot and no longer reports an unsupported-extension-slot warning for that implemented slot.
+- `examples/sheen.html` renders a texture-driven fabric roughness response where two same-material regions differ by sheen highlight width or intensity while sharing scalar sheen color.
+- Targeted glTF material mapping, StandardMaterial shader/resource, and browser readback tests pass.
+
+### task-3108 — Render texture-backed StandardMaterial iridescence thickness factors
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/materials/`, `packages/webgpu/src/webgpu/standard-*`, `examples/iridescence.*`, targeted tests.
+Reference anchor: `references/engine/src/framework/parsers/glb-parser.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/iridescenceThickness.js`, `references/three.js/src/materials/MeshPhysicalMaterial.js`.
+
+Acceptance criteria:
+
+- `KHR_materials_iridescence.iridescenceThicknessTexture` maps to a renderer-independent StandardMaterial texture slot and no longer reports an unsupported-extension-slot warning for that implemented slot.
+- `examples/iridescence.html` renders two same-material texture regions whose sampled thickness values produce visibly different thin-film colors or highlight response.
+- Targeted glTF material mapping, StandardMaterial shader/resource, and browser readback tests pass.
+
+### task-3109 — Render texture-backed StandardMaterial clearcoat roughness factors
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/materials/`, `packages/webgpu/src/webgpu/standard-*`, `examples/clearcoat.*`, targeted tests.
+Reference anchor: `references/engine/src/framework/parsers/glb-parser.js`, `references/three.js/src/renderers/shaders/ShaderChunk/lights_physical_fragment.glsl.js`, `references/three.js/src/materials/MeshPhysicalMaterial.js`.
+
+Acceptance criteria:
+
+- `KHR_materials_clearcoat.clearcoatRoughnessTexture` maps to a renderer-independent StandardMaterial texture slot and no longer reports an unsupported-extension-slot warning for that implemented slot.
+- `examples/clearcoat.html` renders a shared-material clearcoat surface where low and high roughness texels produce visibly sharper vs broader coating highlights.
+- Targeted glTF material mapping, StandardMaterial shader/resource, and browser readback tests pass.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

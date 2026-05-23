@@ -1,5 +1,43 @@
 # Completed Tasks
 
+## task-3106 — Render texture-backed StandardMaterial iridescence factors
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added `iridescenceTexture` as a renderer-independent StandardMaterial texture
+  slot, mapped glTF `KHR_materials_iridescence.iridescenceTexture` into it, and
+  narrowed the unsupported iridescence texture warning to the still-missing
+  thickness texture slot.
+- Extended StandardMaterial WebGPU packing, bind group layout metadata,
+  prepared texture dependencies, pipeline feature keys, shader metadata, and
+  WGSL variants so sampled iridescence red-channel values multiply scalar
+  `iridescenceFactor` before thin-film Fresnel is evaluated.
+- Expanded `examples/iridescence.html` with a shared-material texture-masked
+  tilted panel. Browser status now reports `textureContrast`, proving high and
+  low iridescence texels produce visibly different thin-film response while the
+  scalar material setup is shared.
+
+Validation:
+
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/materials/standard-sampler-fidelity.test.ts test/materials/standard-proof-point.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-material-resource-inspection.test.ts test/webgpu/standard-bind-group-layout.test.ts test/webgpu/standard-bind-group.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/app-texture-sampler-resources.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm run typecheck:test`
+- `pnpm exec prettier --check $(git diff --name-only --diff-filter=ACMRTUXB)`
+- `git diff --check`
+- `pnpm run lint`
+- `pnpm test` (349 files / 1846 tests)
+- Direct browser proof for `http://127.0.0.1:4173/examples/iridescence.html`:
+  status reported `ok: true`, 3 mesh draws,
+  `standard|iridescence|iridescenceTexture|opaque|none|less|none`, and
+  `textureContrast.ok: true` with high/low distance about `37.9`.
+- `pnpm exec playwright test test/e2e/iridescence.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000 --global-timeout=120000`
+  did not execute the spec in this environment; the headed Playwright runner
+  timed out waiting for the suite, matching a known local runner issue. The
+  direct browser proof above exercised the same page status and readback path.
+
 ## task-3105 — Render texture-backed StandardMaterial sheen factors
 
 Completed: 2026-05-23

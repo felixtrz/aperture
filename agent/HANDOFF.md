@@ -1,6 +1,58 @@
 # Agent Handoff
 
-Updated: 2026-05-23T16:47:35Z
+Updated: 2026-05-23T17:08:05Z
+
+## Current Run Update — 2026-05-23T17:08:05Z — Texture-backed iridescence factor
+
+Completed `task-3106`, the next post-Tier-20 reference-parity slice.
+
+### What changed
+
+- Added `iridescenceTexture` to the renderer-independent StandardMaterial asset
+  contract and mapped glTF `KHR_materials_iridescence.iridescenceTexture` into
+  that slot without the old unsupported-extension warning.
+- Extended WebGPU StandardMaterial packing, bind group metadata, prepared
+  texture/sampler resource selection, pipeline feature decoding, shader
+  metadata, and WGSL so sampled iridescence texture red values multiply scalar
+  `iridescenceFactor` before the thin-film Fresnel response is evaluated.
+- Expanded `examples/iridescence.html` with a shared-material texture-masked
+  tilted panel. Browser status now publishes a `textureContrast` report; direct
+  browser proof showed high/low texture distance about `37.9`, with the high
+  texel producing a visibly brighter thin-film response than the low texel.
+- Updated the public tracker, render-pipeline comparison page, backlog,
+  current-task pointer, and completed-task log. Recommended next task is now
+  `task-3107`.
+
+### Validation
+
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/materials/standard-sampler-fidelity.test.ts test/materials/standard-proof-point.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-material-resource-inspection.test.ts test/webgpu/standard-bind-group-layout.test.ts test/webgpu/standard-bind-group.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/app-texture-sampler-resources.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm run typecheck:test`
+- `pnpm exec prettier --check $(git diff --name-only --diff-filter=ACMRTUXB)`
+- `git diff --check`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm test` (349 files / 1846 tests)
+- Direct browser proof for
+  `http://127.0.0.1:4173/examples/iridescence.html`: status reported
+  `ok: true`, 3 mesh draws, the texture-backed iridescence pipeline key, and
+  `textureContrast.ok: true`. No console warnings/errors were reported.
+
+### Known issues
+
+- `pnpm exec playwright test test/e2e/iridescence.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000 --global-timeout=120000`
+  timed out waiting for the headed Playwright suite to run and did not execute
+  the spec. The direct browser proof above covered the same page status and
+  readback behavior.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3107`, rendering texture-backed StandardMaterial sheen roughness
+factors so `KHR_materials_sheen.sheenRoughnessTexture` drives fabric roughness
+per texel instead of remaining an unsupported extension slot.
 
 ## Current Run Update — 2026-05-23T16:47:35Z — Texture-backed sheen color factor
 
