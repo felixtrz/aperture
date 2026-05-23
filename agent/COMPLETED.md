@@ -1,5 +1,38 @@
 # Completed Tasks
 
+## task-3109 — Render texture-backed StandardMaterial clearcoat roughness factors
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added `clearcoatRoughnessTexture` as a renderer-independent StandardMaterial
+  texture slot, mapped glTF
+  `KHR_materials_clearcoat.clearcoatRoughnessTexture` into it, and removed the
+  unsupported clearcoat roughness texture warning for that implemented slot.
+- Extended StandardMaterial WebGPU packing, bind group layout metadata,
+  prepared texture dependencies, app texture/sampler preparation, pipeline
+  feature keys, shader metadata, and WGSL variants so sampled clearcoat
+  roughness green-channel values multiply `clearcoatRoughnessFactor` before the
+  coating lobe is evaluated.
+- Expanded `examples/clearcoat.html` with a second shared-material
+  texture-masked roughness panel. Browser status now reports
+  `textureBackedRoughness`, proving low and high roughness texels produce
+  sharper vs broader coating highlights while scalar clearcoat amount is shared.
+
+Validation:
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/gltf-texture.test.ts test/materials/standard-texture-readiness.test.ts test/materials/standard-proof-point.test.ts test/assets/gltf-asset-mapping.test.ts test/assets/gltf-source-registration-dependencies.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-bind-group.test.ts test/webgpu/standard-bind-group-layout.test.ts test/webgpu/standard-shader.test.ts test/webgpu/prepared-standard-material-cache.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/app-texture-sampler-resources.test.ts test/webgpu/standard-material-resource-inspection.test.ts`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/clearcoat.spec.ts --timeout=60000`
+- `pnpm run check:examples`
+- Direct browser proof for
+  `http://127.0.0.1:4173/examples/clearcoat.html`: status reported
+  `ok: true`, 2 mesh draws,
+  `standard|clearcoat|clearcoatRoughnessTexture|opaque|none|less|none`,
+  `textureBackedRoughness: true`, and zero Aperture diagnostics.
+
 ## task-3108 — Render texture-backed StandardMaterial iridescence thickness factors
 
 Completed: 2026-05-23

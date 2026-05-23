@@ -222,6 +222,7 @@ const standardTextureSlots = [
   { slot: "occlusionTexture" },
   { slot: "emissiveTexture" },
   { slot: "iridescenceThicknessTexture" },
+  { slot: "clearcoatRoughnessTexture" },
 ] as const;
 
 function rootForSlot(
@@ -248,9 +249,17 @@ function rootForSlot(
               },
             },
           }
-        : {
-            [slot.slot]: textureInfo,
-          };
+        : slot.slot === "clearcoatRoughnessTexture"
+          ? {
+              extensions: {
+                KHR_materials_clearcoat: {
+                  clearcoatRoughnessTexture: textureInfo,
+                },
+              },
+            }
+          : {
+              [slot.slot]: textureInfo,
+            };
 
   return {
     asset: { version: "2.0" },

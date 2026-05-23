@@ -363,6 +363,7 @@ function standardTextureFeatures(
     baseColorTexture: tokens.includes("baseColorTexture"),
     metallicRoughnessTexture: tokens.includes("metallicRoughnessTexture"),
     clearcoatTexture: tokens.includes("clearcoatTexture"),
+    clearcoatRoughnessTexture: tokens.includes("clearcoatRoughnessTexture"),
     transmissionTexture: tokens.includes("transmissionTexture"),
     sheenColorTexture: tokens.includes("sheenColorTexture"),
     sheenRoughnessTexture: tokens.includes("sheenRoughnessTexture"),
@@ -460,6 +461,7 @@ function standardMaterialLayoutKey(features: {
   readonly baseColorTexture: boolean;
   readonly metallicRoughnessTexture: boolean;
   readonly clearcoatTexture?: boolean;
+  readonly clearcoatRoughnessTexture?: boolean;
   readonly transmissionTexture?: boolean;
   readonly sheenColorTexture?: boolean;
   readonly sheenRoughnessTexture?: boolean;
@@ -473,6 +475,7 @@ function standardMaterialLayoutKey(features: {
     features.baseColorTexture &&
     features.metallicRoughnessTexture &&
     features.clearcoatTexture !== true &&
+    features.clearcoatRoughnessTexture !== true &&
     features.transmissionTexture !== true &&
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
@@ -489,6 +492,7 @@ function standardMaterialLayoutKey(features: {
     features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
     features.clearcoatTexture !== true &&
+    features.clearcoatRoughnessTexture !== true &&
     features.transmissionTexture !== true &&
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
@@ -505,6 +509,7 @@ function standardMaterialLayoutKey(features: {
     features.metallicRoughnessTexture &&
     !features.baseColorTexture &&
     features.clearcoatTexture !== true &&
+    features.clearcoatRoughnessTexture !== true &&
     features.transmissionTexture !== true &&
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
@@ -521,6 +526,7 @@ function standardMaterialLayoutKey(features: {
     features.baseColorTexture ||
     features.metallicRoughnessTexture ||
     features.clearcoatTexture === true ||
+    features.clearcoatRoughnessTexture === true ||
     features.transmissionTexture === true ||
     features.sheenColorTexture === true ||
     features.sheenRoughnessTexture === true ||
@@ -546,6 +552,11 @@ function standardMaterialLayoutKey(features: {
     if (features.clearcoatTexture === true) {
       names.push("clearcoat");
       bindings.push(11, 12);
+    }
+
+    if (features.clearcoatRoughnessTexture === true) {
+      names.push("clearcoat-roughness");
+      bindings.push(23, 24);
     }
 
     if (features.transmissionTexture === true) {

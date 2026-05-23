@@ -1,6 +1,56 @@
 # Agent Handoff
 
-Updated: 2026-05-23T18:03:03Z
+Updated: 2026-05-23T18:55:01Z
+
+## Current Run Update — 2026-05-23T18:55:01Z — Texture-backed clearcoat roughness factor
+
+Completed `task-3109`, closing the post-Tier-20 texture-backed PBR extension
+queue.
+
+### What changed
+
+- Added `clearcoatRoughnessTexture` to the renderer-independent
+  StandardMaterial asset contract and mapped glTF
+  `KHR_materials_clearcoat.clearcoatRoughnessTexture` into that slot without the
+  old unsupported-extension warning.
+- Extended WebGPU StandardMaterial packing, bind group metadata, prepared
+  texture dependencies, app texture/sampler preparation, pipeline feature keys,
+  shader metadata, and WGSL so the sampled clearcoat roughness texture green
+  channel multiplies `clearcoatRoughnessFactor` before the coating lobe is
+  evaluated.
+- Expanded `examples/clearcoat.html` with a second shared-material
+  texture-masked roughness panel. Browser status now publishes
+  `textureBackedRoughness` and proves high/low roughness texels produce sharper
+  vs broader coating highlights while scalar clearcoat amount is shared.
+- Updated the public tracker, render-pipeline comparison page, backlog,
+  current-task pointer, and completed-task log. Recommended next work is
+  `task-3110`, a post-Tier-20 render-pipeline parity audit to select the next
+  highest-impact visible SOTA gap.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/gltf-texture.test.ts test/materials/standard-texture-readiness.test.ts test/materials/standard-proof-point.test.ts test/assets/gltf-asset-mapping.test.ts test/assets/gltf-source-registration-dependencies.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-bind-group.test.ts test/webgpu/standard-bind-group-layout.test.ts test/webgpu/standard-shader.test.ts test/webgpu/prepared-standard-material-cache.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/app-texture-sampler-resources.test.ts test/webgpu/standard-material-resource-inspection.test.ts`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/clearcoat.spec.ts --timeout=60000`
+- `pnpm run check:examples`
+- Direct browser proof for
+  `http://127.0.0.1:4173/examples/clearcoat.html`: status reported
+  `ok: true`, 2 mesh draws,
+  `standard|clearcoat|clearcoatRoughnessTexture|opaque|none|less|none`,
+  `textureBackedRoughness: true`, roughness sample distance about 15, and zero
+  Aperture diagnostics.
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3110`, auditing the post-Tier-20 render pipeline against three.js
+and PlayCanvas to identify the highest-impact remaining SOTA/efficiency gaps
+and queue the next visible implementation slices.
 
 ## Current Run Update — 2026-05-23T18:03:03Z — Texture-backed iridescence thickness factor
 

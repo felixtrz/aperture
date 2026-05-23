@@ -67,6 +67,11 @@ describe("standard material bind group descriptor planning", () => {
           samplerKey: "sampler:clearcoat",
           texCoord: 0,
         },
+        clearcoatRoughness: {
+          textureKey: "texture:clearcoat-roughness",
+          samplerKey: "sampler:clearcoat-roughness",
+          texCoord: 0,
+        },
         transmission: {
           textureKey: "texture:transmission",
           samplerKey: "sampler:transmission",
@@ -113,6 +118,8 @@ describe("standard material bind group descriptor planning", () => {
       [10, "sampler:emissive"],
       [11, "texture:clearcoat"],
       [12, "sampler:clearcoat"],
+      [23, "texture:clearcoat-roughness"],
+      [24, "sampler:clearcoat-roughness"],
       [13, "texture:transmission"],
       [14, "sampler:transmission"],
       [15, "texture:sheen"],
@@ -125,7 +132,7 @@ describe("standard material bind group descriptor planning", () => {
       [22, "sampler:iridescence-thickness"],
     ]);
     expect(plan.resourceKey).toBe(
-      "bind-group:standard/group-2/0:material-buffer:StandardMaterial/Textured/uniform/1:texture:base/2:sampler:base/3:texture:mr/4:sampler:mr/5:texture:normal/6:sampler:normal/7:texture:ao/8:sampler:ao/9:texture:emissive/10:sampler:emissive/11:texture:clearcoat/12:sampler:clearcoat/13:texture:transmission/14:sampler:transmission/15:texture:sheen/16:sampler:sheen/17:texture:iridescence/18:sampler:iridescence/19:texture:sheen-roughness/20:sampler:sheen-roughness/21:texture:iridescence-thickness/22:sampler:iridescence-thickness",
+      "bind-group:standard/group-2/0:material-buffer:StandardMaterial/Textured/uniform/1:texture:base/2:sampler:base/3:texture:mr/4:sampler:mr/5:texture:normal/6:sampler:normal/7:texture:ao/8:sampler:ao/9:texture:emissive/10:sampler:emissive/11:texture:clearcoat/12:sampler:clearcoat/13:texture:transmission/14:sampler:transmission/15:texture:sheen/16:sampler:sheen/17:texture:iridescence/18:sampler:iridescence/19:texture:sheen-roughness/20:sampler:sheen-roughness/21:texture:iridescence-thickness/22:sampler:iridescence-thickness/23:texture:clearcoat-roughness/24:sampler:clearcoat-roughness",
     );
   });
 
@@ -286,6 +293,7 @@ function emptyDependencies(): StandardMaterialResourceDependencies {
     occlusion: { textureKey: null, samplerKey: null, texCoord: 0 },
     emissive: { textureKey: null, samplerKey: null, texCoord: 0 },
     clearcoat: { textureKey: null, samplerKey: null, texCoord: 0 },
+    clearcoatRoughness: { textureKey: null, samplerKey: null, texCoord: 0 },
     transmission: { textureKey: null, samplerKey: null, texCoord: 0 },
     sheenColor: { textureKey: null, samplerKey: null, texCoord: 0 },
     sheenRoughness: { textureKey: null, samplerKey: null, texCoord: 0 },

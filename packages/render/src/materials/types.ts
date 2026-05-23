@@ -22,6 +22,7 @@ export type TextureColorSpace = "srgb" | "linear" | "data";
 export type TextureSemantic =
   | "base-color"
   | "emissive"
+  | "clearcoat-roughness"
   | "sheen-color"
   | "sheen-roughness"
   | "iridescence"
@@ -125,6 +126,7 @@ export interface StandardMaterialAsset extends BaseMaterialAsset {
   readonly clearcoatFactor: number;
   readonly clearcoatTexture: MaterialTextureBinding | null;
   readonly clearcoatRoughnessFactor: number;
+  readonly clearcoatRoughnessTexture: MaterialTextureBinding | null;
   readonly transmissionFactor: number;
   readonly transmissionTexture: MaterialTextureBinding | null;
   readonly sheenColorFactor: readonly [number, number, number];

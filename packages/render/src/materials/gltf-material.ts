@@ -14,6 +14,7 @@ export type GltfMaterialTextureSlot =
   | "baseColorTexture"
   | "metallicRoughnessTexture"
   | "clearcoatTexture"
+  | "clearcoatRoughnessTexture"
   | "transmissionTexture"
   | "sheenColorTexture"
   | "sheenRoughnessTexture"
@@ -300,6 +301,14 @@ export function createMaterialAssetFromGltfMaterial(
       fallback: 0,
       diagnostics,
     }),
+    clearcoatRoughnessTexture: mapTextureBinding({
+      materialKey,
+      slot: "clearcoatRoughnessTexture",
+      field: `extensions.${CLEARCOAT_EXTENSION}.clearcoatRoughnessTexture`,
+      value: clearcoatSource?.clearcoatRoughnessTexture,
+      resolver: options.resolveTextureBinding,
+      diagnostics,
+    }),
     transmissionFactor,
     transmissionTexture: mapTextureBinding({
       materialKey,
@@ -491,10 +500,7 @@ function inspectUnsupportedClearcoatTextures(
     return;
   }
 
-  for (const field of [
-    "clearcoatRoughnessTexture",
-    "clearcoatNormalTexture",
-  ] as const) {
+  for (const field of ["clearcoatNormalTexture"] as const) {
     if (clearcoatSource[field] === undefined) {
       continue;
     }
@@ -505,7 +511,7 @@ function inspectUnsupportedClearcoatTextures(
       materialKey,
       field: `extensions.${CLEARCOAT_EXTENSION}.${field}`,
       extensionName: CLEARCOAT_EXTENSION,
-      message: `${CLEARCOAT_EXTENSION}.${field} is preserved in source data but current clearcoat rendering only samples clearcoatTexture.`,
+      message: `${CLEARCOAT_EXTENSION}.${field} is preserved in source data but current clearcoat rendering only samples clearcoatTexture and clearcoatRoughnessTexture.`,
     });
   }
 }

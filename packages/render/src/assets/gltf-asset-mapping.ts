@@ -373,6 +373,10 @@ function collectMaterialTextureSlots(material: unknown): readonly {
     textureSlot(pbr?.baseColorTexture, "baseColorTexture"),
     textureSlot(pbr?.metallicRoughnessTexture, "metallicRoughnessTexture"),
     textureSlot(clearcoat?.clearcoatTexture, "clearcoatTexture"),
+    textureSlot(
+      clearcoat?.clearcoatRoughnessTexture,
+      "clearcoatRoughnessTexture",
+    ),
     textureSlot(transmission?.transmissionTexture, "transmissionTexture"),
     textureSlot(sheen?.sheenColorTexture, "sheenColorTexture"),
     textureSlot(sheen?.sheenRoughnessTexture, "sheenRoughnessTexture"),

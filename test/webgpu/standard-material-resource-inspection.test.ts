@@ -167,6 +167,7 @@ function standardResource(
       occlusion: textureDependency(),
       emissive: textureDependency(),
       clearcoat: textureDependency(),
+      clearcoatRoughness: textureDependency(),
       transmission: textureDependency(),
       sheenColor: textureDependency(),
       sheenRoughness: textureDependency(),

@@ -85,7 +85,7 @@ export const STANDARD_MATERIAL_UNIFORM_LAYOUT = [
   "iridescenceTexCoord.u32",
   "sheenRoughnessTexCoord.u32",
   "iridescenceThicknessTexCoord.u32",
-  "padding6.u32",
+  "clearcoatRoughnessTexCoord.u32",
   "padding7.u32",
   "padding8.u32",
 ] as const;
@@ -105,6 +105,7 @@ export const STANDARD_MATERIAL_FEATURE_FLAGS = {
   IRIDESCENCE_TEXTURE: 1 << 11,
   SHEEN_ROUGHNESS_TEXTURE: 1 << 12,
   IRIDESCENCE_THICKNESS_TEXTURE: 1 << 13,
+  CLEARCOAT_ROUGHNESS_TEXTURE: 1 << 14,
 } as const;
 
 export type StandardMaterialFeatureFlag =
@@ -136,6 +137,7 @@ export interface StandardMaterialResourceDependencies {
   readonly occlusion: StandardMaterialTextureDependency;
   readonly emissive: StandardMaterialTextureDependency;
   readonly clearcoat: StandardMaterialTextureDependency;
+  readonly clearcoatRoughness: StandardMaterialTextureDependency;
   readonly transmission: StandardMaterialTextureDependency;
   readonly sheenColor: StandardMaterialTextureDependency;
   readonly sheenRoughness: StandardMaterialTextureDependency;
@@ -292,6 +294,7 @@ export function packStandardMaterial(
   uniformUint32[62] = dependencies.iridescence.texCoord;
   uniformUint32[63] = dependencies.sheenRoughness.texCoord;
   uniformUint32[64] = dependencies.iridescenceThickness.texCoord;
+  uniformUint32[65] = dependencies.clearcoatRoughness.texCoord;
 
   return {
     valid: true,
@@ -468,6 +471,11 @@ function collectStandardMaterialDependencies(
       material.clearcoatTexture,
       diagnostics,
     ),
+    clearcoatRoughness: textureDependency(
+      "clearcoatRoughnessTexture",
+      material.clearcoatRoughnessTexture,
+      diagnostics,
+    ),
     transmission: textureDependency(
       "transmissionTexture",
       material.transmissionTexture,
@@ -555,6 +563,10 @@ function standardMaterialFeatureFlags(material: StandardMaterialAsset): number {
 
   if (material.clearcoatTexture !== null) {
     flags |= STANDARD_MATERIAL_FEATURE_FLAGS.CLEARCOAT_TEXTURE;
+  }
+
+  if (material.clearcoatRoughnessTexture !== null) {
+    flags |= STANDARD_MATERIAL_FEATURE_FLAGS.CLEARCOAT_ROUGHNESS_TEXTURE;
   }
 
   if (material.transmissionTexture !== null) {

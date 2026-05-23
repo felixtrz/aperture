@@ -44,7 +44,9 @@ async function handleMessage(data) {
         scene: {
           meshKey: scene.meshKey,
           materialKey: scene.materialKey,
+          roughnessMaterialKey: scene.roughnessMaterialKey,
           clearcoatTextureKey: scene.clearcoatTextureKey,
+          roughnessTextureKey: scene.roughnessTextureKey,
         },
       });
       return;
@@ -108,15 +110,22 @@ function createWorkerScene(aperture, canvasSize) {
     aperture.withLight({
       kind: aperture.LightKind.Point,
       color: [1, 0.94, 0.82, 1],
-      intensity: 12,
+      intensity: 16,
       range: 8,
       layerMask: 1,
     }),
   );
   app.spawn(
-    aperture.withTransform({ translation: [0.05, 0, 0] }),
+    aperture.withTransform({ translation: [0.05, 0.48, 0] }),
     aperture.withMesh(registered.mesh),
     aperture.withMaterial(registered.material),
+    aperture.withRenderLayer(1),
+    aperture.withVisibility(true),
+  );
+  app.spawn(
+    aperture.withTransform({ translation: [0.05, -0.48, 0] }),
+    aperture.withMesh(registered.mesh),
+    aperture.withMaterial(registered.roughnessMaterial),
     aperture.withRenderLayer(1),
     aperture.withVisibility(true),
   );

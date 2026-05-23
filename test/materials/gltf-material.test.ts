@@ -31,6 +31,7 @@ describe("glTF material mapping", () => {
       clearcoatFactor: 0,
       clearcoatTexture: null,
       clearcoatRoughnessFactor: 0,
+      clearcoatRoughnessTexture: null,
       transmissionFactor: 0,
       transmissionTexture: null,
       sheenColorFactor: [0, 0, 0],
@@ -86,10 +87,11 @@ describe("glTF material mapping", () => {
       clearcoatFactor: 0.9,
       clearcoatTexture: null,
       clearcoatRoughnessFactor: 0.08,
+      clearcoatRoughnessTexture: null,
     });
   });
 
-  it("maps KHR_materials_clearcoat clearcoatTexture and warns on remaining unsupported texture slots", () => {
+  it("maps KHR_materials_clearcoat clearcoat textures and warns on remaining unsupported texture slots", () => {
     const report = createMaterialAssetFromGltfMaterial(
       {
         extensions: {
@@ -115,14 +117,12 @@ describe("glTF material mapping", () => {
         texture: createTextureHandle("texture-0"),
         sampler: createSamplerHandle("sampler-0"),
       },
+      clearcoatRoughnessTexture: {
+        texture: createTextureHandle("texture-1"),
+        sampler: createSamplerHandle("sampler-1"),
+      },
     });
     expect(report.diagnostics).toMatchObject([
-      {
-        code: "gltfMaterial.unsupportedOptionalExtension",
-        severity: "warning",
-        field: "extensions.KHR_materials_clearcoat.clearcoatRoughnessTexture",
-        extensionName: "KHR_materials_clearcoat",
-      },
       {
         code: "gltfMaterial.unsupportedOptionalExtension",
         severity: "warning",

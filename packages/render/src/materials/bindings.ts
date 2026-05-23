@@ -20,6 +20,7 @@ export function materialTextureBindings(
         ["baseColorTexture", material.baseColorTexture],
         ["metallicRoughnessTexture", material.metallicRoughnessTexture],
         ["clearcoatTexture", material.clearcoatTexture],
+        ["clearcoatRoughnessTexture", material.clearcoatRoughnessTexture],
         ["transmissionTexture", material.transmissionTexture],
         ["sheenColorTexture", material.sheenColorTexture],
         ["sheenRoughnessTexture", material.sheenRoughnessTexture],

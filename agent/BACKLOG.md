@@ -59,10 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3109`: render texture-backed StandardMaterial clearcoat roughness
-factors so `KHR_materials_clearcoat.clearcoatRoughnessTexture` can vary coating
-highlight sharpness per texel instead of remaining an unsupported extension
-slot.
+Start `task-3110`: audit the post-Tier-20 render pipeline against three.js and
+PlayCanvas, identify the highest-impact remaining SOTA gaps, and queue the next
+visible implementation slices.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -114,7 +113,9 @@ whose high and low texels produce visibly different fabric response.
 sampling with a shared-material tilted panel whose high and low texels produce
 visibly different thin-film response, and texture-backed iridescence thickness
 sampling with a second shared-material panel whose low and high thickness texels
-produce distinct thin-film color response.
+produce distinct thin-film color response. `examples/clearcoat.html` now proves
+texture-backed clearcoat roughness sampling with a shared-material panel whose
+low and high roughness texels produce sharper vs broader coating highlights.
 `examples/render-packet-inspector.html` now renders worker-authored packets and
 publishes JSON-safe views, draws, bounds, queue keys, handles, skipped-entity
 explanations, and culling stats. Extraction now builds camera frustum planes
@@ -323,6 +324,8 @@ Acceptance criteria:
 
 ### task-3109 — Render texture-backed StandardMaterial clearcoat roughness factors
 
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/render/src/materials/`, `packages/webgpu/src/webgpu/standard-*`, `examples/clearcoat.*`, targeted tests.
 Reference anchor: `references/engine/src/framework/parsers/glb-parser.js`, `references/three.js/src/renderers/shaders/ShaderChunk/lights_physical_fragment.glsl.js`, `references/three.js/src/materials/MeshPhysicalMaterial.js`.
@@ -332,6 +335,19 @@ Acceptance criteria:
 - `KHR_materials_clearcoat.clearcoatRoughnessTexture` maps to a renderer-independent StandardMaterial texture slot and no longer reports an unsupported-extension-slot warning for that implemented slot.
 - `examples/clearcoat.html` renders a shared-material clearcoat surface where low and high roughness texels produce visibly sharper vs broader coating highlights.
 - Targeted glTF material mapping, StandardMaterial shader/resource, and browser readback tests pass.
+
+### task-3110 — Audit post-Tier-20 render pipeline parity and choose next SOTA slice
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research/`, `agent/BACKLOG.md`, `docs/index.html`, `docs/render-pipeline-comparison.html`; source changes only if the audit finds a narrow documentation mismatch.
+Reference anchor: `references/three.js/src/renderers/WebGPURenderer.js`, `references/three.js/src/renderers/common/Renderer.js`, `references/engine/src/scene/renderer/renderer.js`, `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`.
+
+Acceptance criteria:
+
+- Produce a current-state audit comparing Aperture's extract, collect, prepare, queue, sort, and submit phases against the three.js and PlayCanvas references in the areas Aperture now covers.
+- Identify the highest-impact remaining SOTA/efficiency gaps with concrete evidence, not generic renderer wishes.
+- Add the next visible implementation slices to the ready queue with specific reference anchors and make the recommended next task a visible feature.
+- Update public tracker estimates if the audit changes phase completion or missing-piece statements.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

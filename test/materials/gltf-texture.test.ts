@@ -269,6 +269,24 @@ describe("glTF texture mapping", () => {
     });
   });
 
+  it("maps clearcoat roughness textures to green-channel data metadata", () => {
+    const report = createTextureAssetFromGltfTexture({
+      textureIndex: 0,
+      slot: "clearcoatRoughnessTexture",
+      textures: [{ source: 0, name: "CoatingRoughness" }],
+      images: [{ uri: "clearcoat-roughness.png" }],
+      resolveImageData,
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.texture).toMatchObject({
+      label: "CoatingRoughness",
+      semantic: "clearcoat-roughness",
+      colorSpace: "data",
+      format: "rgba8unorm",
+    });
+  });
+
   it("reports unsupported texture extensions and resolver failures", () => {
     const report = createTextureAssetFromGltfTexture({
       textureIndex: 0,

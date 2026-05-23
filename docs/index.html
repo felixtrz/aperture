@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 18:03 UTC</dd>
+            <dd>2026-05-23 18:55 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1452,10 +1452,17 @@
               multiply scalar thin-film response per texel, and iridescence
               thickness textures now sample the green channel to interpolate the
               nanometer thickness range in
-              <code>examples/iridescence.html</code>.
+              <code>examples/iridescence.html</code>. Texture-backed clearcoat
+              roughness now maps from
+              <code>KHR_materials_clearcoat.clearcoatRoughnessTexture</code>
+              through StandardMaterial and WebGPU, with
+              <code>examples/clearcoat.html</code> proving sharper and broader
+              coating highlights from high/low roughness texels.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3109: texture-backed clearcoat roughness factors</dd>
+            <dd>
+              Post-3109 render-pipeline parity audit and next gap selection
+            </dd>
           </dl>
         </aside>
       </header>
@@ -2194,21 +2201,21 @@
               samples a renderer-owned scene-color grab texture with a
               roughness-derived blur radius before applying blend alpha, so the
               glass proof can show glossy and rough transmitted background
-              detail without exposing ECS scene state. Texture-backed
-              transmission factors, sheen color factors, sheen roughness
-              factors, iridescence factors, and iridescence thickness factors
-              now bind through the StandardMaterial group-2 texture path and
-              multiply or interpolate scalar factors per texel.
+              detail without exposing ECS scene state. Texture-backed clearcoat
+              roughness factors now sample the green channel as a per-texel
+              multiplier for coating roughness, so
+              <code>examples/clearcoat.html</code> proves both texture-backed
+              coating amount and sharper-vs-broader coating highlights.
+              Texture-backed transmission factors, sheen color factors, sheen
+              roughness factors, iridescence factors, and iridescence thickness
+              factors now bind through the StandardMaterial group-2 texture path
+              and multiply or interpolate scalar factors per texel.
               <code>createWebGpuApp({ msaa })</code> now renders forward passes
               through cached multisampled color/depth attachments, resolves to
               the swapchain or off-screen target, and keys built-in pipelines by
               effective sample count.
             </p>
             <ul>
-              <li>
-                Missing remaining texture-backed StandardMaterial PBR extension
-                resources for clearcoat roughness.
-              </li>
               <li>
                 Missing broader environment asset preparation and previous
                 transform history for independently moving temporal geometry.
@@ -4498,8 +4505,9 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Render texture-backed
-                StandardMaterial clearcoat roughness factors.
+                <span class="badge amber">next</span> Audit the post-Tier-20
+                render pipeline against three.js and PlayCanvas, then queue the
+                next visible SOTA gap.
               </li>
               <li>
                 SSAO now uses a PlayCanvas-style spiral AO shader with
@@ -4516,8 +4524,9 @@
                 change-set scheduling plus a deterministic transparent ordering
                 proof plus texture-backed transmission, sheen color, sheen
                 roughness, iridescence factors, and iridescence thickness
-                factors. It continues with texture-backed clearcoat roughness
-                factors.
+                factors, and clearcoat roughness factors. The next pass is an
+                audit to pick the highest-impact remaining gap before opening
+                the next implementation slice.
               </li>
             </ul>
           </article>
@@ -4530,6 +4539,22 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3109</div>
+            <div>
+              <strong>Texture-backed clearcoat roughness shipped.</strong>
+              <span>
+                StandardMaterial now maps
+                <code>KHR_materials_clearcoat.clearcoatRoughnessTexture</code>
+                into a renderer-independent clearcoat roughness texture slot,
+                prepares the texture/sampler through the WebGPU material route,
+                and samples the green channel as a per-texel multiplier for
+                coating roughness. <code>examples/clearcoat.html</code> now
+                proves both texture-backed coating amount and high/low roughness
+                texels with sharper-vs-broader coating highlights.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3108</div>
             <div>

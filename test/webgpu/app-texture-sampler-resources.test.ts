@@ -199,6 +199,125 @@ describe("app texture sampler resource cache summaries", () => {
       samplerResourcesReused: 0,
     });
   });
+
+  it("prepares clearcoat roughness StandardMaterial texture and sampler resources", () => {
+    const registry = new AssetRegistry();
+    const roughnessTexture = createTextureHandle("clearcoat-roughness");
+    const roughnessSampler = createSamplerHandle("clearcoat-roughness-nearest");
+    const createdTextures: unknown[] = [];
+    const createdSamplers: unknown[] = [];
+    const writes: unknown[] = [];
+    const reuse = {
+      textureResourcesCreated: 0,
+      textureResourcesReused: 0,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 0,
+    };
+
+    registry.register(roughnessTexture);
+    registry.register(roughnessSampler);
+    registry.markReady(
+      roughnessTexture,
+      createTextureAsset({
+        label: "clearcoat-roughness",
+        dimension: "2d",
+        width: 2,
+        height: 1,
+        format: "rgba8unorm",
+        colorSpace: "data",
+        semantic: "clearcoat-roughness",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array([0, 255, 0, 255, 0, 0, 0, 255]),
+          bytesPerRow: 8,
+        },
+      }),
+    );
+    registry.markReady(
+      roughnessSampler,
+      createSamplerAsset({
+        label: "clearcoat-roughness-nearest",
+        addressModeU: "clamp-to-edge",
+        addressModeV: "clamp-to-edge",
+        magFilter: "nearest",
+        minFilter: "nearest",
+        mipmapFilter: "nearest",
+      }),
+    );
+
+    const result = prepareStandardAppTextureSamplerResources({
+      assets: registry,
+      cache: createCache(),
+      device: {
+        createTexture: (descriptor: unknown) => {
+          createdTextures.push(descriptor);
+          return { createView: () => ({ label: "roughness-view" }) };
+        },
+        createSampler: (descriptor: unknown) => {
+          createdSamplers.push(descriptor);
+          return { label: "roughness-sampler-gpu" };
+        },
+        queue: {
+          writeTexture: (
+            destination: unknown,
+            data: Uint8Array,
+            layout: unknown,
+            size: unknown,
+          ) => {
+            writes.push({ destination, data, layout, size });
+          },
+        },
+      },
+      material: createStandardMaterialAsset({
+        clearcoatRoughnessTexture: {
+          texture: roughnessTexture,
+          sampler: roughnessSampler,
+        },
+      }),
+      reuse,
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.textureKeys).toEqual(["texture:clearcoat-roughness@1"]);
+    expect(result.samplerKeys).toEqual([
+      "sampler:clearcoat-roughness-nearest@1",
+    ]);
+    expect(result.textures[0]?.descriptor).toMatchObject({
+      label: "clearcoat-roughness",
+      format: "rgba8unorm",
+      colorSpace: "data",
+      semantic: "clearcoat-roughness",
+    });
+    expect(createdTextures).toEqual([
+      {
+        label: "clearcoat-roughness",
+        size: [2, 1, 1],
+        format: "rgba8unorm",
+        usage: 6,
+        mipLevelCount: 1,
+      },
+    ]);
+    expect(createdSamplers).toEqual([
+      expect.objectContaining({
+        label: "clearcoat-roughness-nearest",
+        magFilter: "nearest",
+        minFilter: "nearest",
+      }),
+    ]);
+    expect(writes).toMatchObject([
+      {
+        layout: { bytesPerRow: 8 },
+        size: [2, 1, 1],
+      },
+    ]);
+    expect(reuse).toEqual({
+      textureResourcesCreated: 1,
+      textureResourcesReused: 0,
+      samplerResourcesCreated: 1,
+      samplerResourcesReused: 0,
+    });
+  });
 });
 
 function createCache(): AppTextureSamplerResourceCache {

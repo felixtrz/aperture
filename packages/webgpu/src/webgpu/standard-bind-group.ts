@@ -17,6 +17,7 @@ export type StandardMaterialTextureSlot =
   | "occlusion"
   | "emissive"
   | "clearcoat"
+  | "clearcoatRoughness"
   | "transmission"
   | "sheenColor"
   | "sheenRoughness"
@@ -206,6 +207,14 @@ export function createStandardMaterialBindGroupDescriptorPlan(
     11,
     12,
     input.dependencies.clearcoat,
+  );
+  addTexturePair(
+    entries,
+    diagnostics,
+    "clearcoatRoughness",
+    23,
+    24,
+    input.dependencies.clearcoatRoughness,
   );
   addTexturePair(
     entries,

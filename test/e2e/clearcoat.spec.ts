@@ -17,11 +17,16 @@ interface ClearcoatStatus extends ExampleStatusBase {
   readonly clearcoat?: {
     readonly meshKey: string;
     readonly materialKey: string;
+    readonly roughnessMaterialKey: string;
     readonly clearcoatTextureKey: string;
     readonly clearcoatSamplerKey: string;
+    readonly roughnessTextureKey: string;
+    readonly roughnessSamplerKey: string;
     readonly clearcoatFactor: number;
     readonly textureBackedFactor: boolean;
     readonly clearcoatRoughnessFactor: number;
+    readonly textureBackedRoughness: boolean;
+    readonly roughnessTextureFactor: number;
   };
   readonly frame?: ClearcoatFrameStatus;
 }
@@ -95,21 +100,26 @@ test("browser renders texture-backed clearcoat with a distinct coating highlight
     clearcoat: {
       meshKey: "mesh:clearcoat-panel-mesh",
       materialKey: "material:clearcoat-textured-material",
+      roughnessMaterialKey: "material:clearcoat-roughness-textured-material",
       clearcoatTextureKey: "texture:clearcoat-factor-texture",
       clearcoatSamplerKey: "sampler:clearcoat-factor-nearest",
+      roughnessTextureKey: "texture:clearcoat-roughness-factor-texture",
+      roughnessSamplerKey: "sampler:clearcoat-roughness-factor-nearest",
       clearcoatFactor: 1,
       textureBackedFactor: true,
       clearcoatRoughnessFactor: 0.12,
+      textureBackedRoughness: true,
+      roughnessTextureFactor: 1,
     },
     frame: {
       snapshot: {
         views: 1,
-        meshDraws: 1,
+        meshDraws: 2,
         lights: 2,
         diagnostics: 0,
       },
       counts: {
-        meshDraws: 1,
+        meshDraws: 2,
         diagnostics: 0,
       },
     },
@@ -127,6 +137,7 @@ test("browser renders texture-backed clearcoat with a distinct coating highlight
   expect(frame.pipelineKeys).toEqual(
     expect.arrayContaining([
       "standard|clearcoat|clearcoatTexture|opaque|none|less|none",
+      "standard|clearcoat|clearcoatRoughnessTexture|opaque|none|less|none",
     ]),
   );
 
@@ -148,16 +159,26 @@ function assertClearcoatSamples(frame: ClearcoatFrameStatus): void {
   const samples = frame.readback?.samples ?? [];
   const basePanel = requiredSample(samples, "base-panel");
   const clearcoatPanel = requiredSample(samples, "clearcoat-panel");
+  const roughnessBroad = requiredSample(samples, "roughness-broad");
+  const roughnessSharp = requiredSample(samples, "roughness-sharp");
   const background = requiredSample(samples, "background");
 
   expect(pixelDistance(basePanel.pixel, clear)).toBeGreaterThan(35);
   expect(pixelDistance(clearcoatPanel.pixel, clear)).toBeGreaterThan(35);
+  expect(pixelDistance(roughnessBroad.pixel, clear)).toBeGreaterThan(35);
+  expect(pixelDistance(roughnessSharp.pixel, clear)).toBeGreaterThan(35);
   expect(pixelDistance(background.pixel, clear)).toBeLessThan(8);
   expect(luminance(clearcoatPanel.pixel)).toBeGreaterThan(
     luminance(basePanel.pixel) + 18,
   );
   expect(clearcoatPanel.pixel.g).toBeGreaterThan(basePanel.pixel.g + 12);
   expect(clearcoatPanel.pixel.b).toBeGreaterThan(basePanel.pixel.b + 10);
+  expect(
+    pixelDistance(roughnessSharp.pixel, roughnessBroad.pixel),
+  ).toBeGreaterThan(12);
+  expect(luminance(roughnessSharp.pixel)).toBeGreaterThan(
+    luminance(roughnessBroad.pixel) + 8,
+  );
 }
 
 function luminance(pixel: {

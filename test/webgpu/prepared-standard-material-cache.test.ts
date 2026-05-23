@@ -4,6 +4,7 @@ import {
   AssetRegistry,
   assetHandleKey,
   createMaterialHandle,
+  createPreparedStandardClearcoatRoughnessTextureDependencyKeys,
   createPreparedScalarStandardMaterialCache,
   createPreparedStandardBaseColorTextureDependencyKeys,
   createPreparedStandardIridescenceThicknessTextureDependencyKeys,
@@ -17,6 +18,7 @@ import {
   createTextureAsset,
   createTextureHandle,
   prepareBaseColorTexturedStandardMaterialResource,
+  prepareClearcoatRoughnessTexturedStandardMaterialResource,
   prepareIridescenceThicknessTexturedStandardMaterialResource,
   prepareMetallicRoughnessTexturedStandardMaterialResource,
   prepareNormalTexturedStandardMaterialResource,
@@ -179,6 +181,10 @@ describe("StandardMaterial prepared texture dependency keys", () => {
     const normal = readyTextureSamplerPair(registry, "normal");
     const occlusion = readyTextureSamplerPair(registry, "occlusion");
     const emissive = readyTextureSamplerPair(registry, "emissive");
+    const clearcoatRoughness = readyTextureSamplerPair(
+      registry,
+      "clearcoat-roughness",
+    );
     const iridescenceThickness = readyTextureSamplerPair(
       registry,
       "iridescence-thickness",
@@ -192,6 +198,7 @@ describe("StandardMaterial prepared texture dependency keys", () => {
         normalTexture: normal,
         occlusionTexture: occlusion,
         emissiveTexture: emissive,
+        clearcoatRoughnessTexture: clearcoatRoughness,
         iridescenceThicknessTexture: iridescenceThickness,
       }),
     });
@@ -203,6 +210,7 @@ describe("StandardMaterial prepared texture dependency keys", () => {
     ).toEqual([
       "baseColorTexture",
       "metallicRoughnessTexture",
+      "clearcoatRoughnessTexture",
       "iridescenceThicknessTexture",
       "normalTexture",
       "occlusionTexture",
@@ -213,6 +221,8 @@ describe("StandardMaterial prepared texture dependency keys", () => {
       "baseColorTexture:sampler:sampler:base-color-sampler@1",
       "metallicRoughnessTexture:texture:texture:metallic-roughness@1",
       "metallicRoughnessTexture:sampler:sampler:metallic-roughness-sampler@1",
+      "clearcoatRoughnessTexture:texture:texture:clearcoat-roughness@1",
+      "clearcoatRoughnessTexture:sampler:sampler:clearcoat-roughness-sampler@1",
       "iridescenceThicknessTexture:texture:texture:iridescence-thickness@1",
       "iridescenceThicknessTexture:sampler:sampler:iridescence-thickness-sampler@1",
       "normalTexture:texture:texture:normal@1",
@@ -222,6 +232,60 @@ describe("StandardMaterial prepared texture dependency keys", () => {
       "emissiveTexture:texture:texture:emissive@1",
       "emissiveTexture:sampler:sampler:emissive-sampler@1",
     ]);
+  });
+
+  it("derives ready clearcoat roughness texture and sampler handle/version keys", () => {
+    const registry = new AssetRegistry();
+    const texture = createTextureHandle("standard-clearcoat-roughness");
+    const sampler = createSamplerHandle("standard-clearcoat-roughness-sampler");
+
+    registry.register(texture);
+    registry.register(sampler);
+    const textureEntry = registry.markReady(
+      texture,
+      textureAsset({
+        label: "standard-clearcoat-roughness",
+        format: "rgba8unorm",
+        colorSpace: "data",
+        semantic: "clearcoat-roughness",
+      }),
+    );
+    const samplerEntry = registry.markReady(
+      sampler,
+      createSamplerAsset({ label: "nearest" }),
+    );
+
+    const result =
+      createPreparedStandardClearcoatRoughnessTextureDependencyKeys({
+        registry,
+        material: createStandardMaterialAsset({
+          clearcoatRoughnessTexture: { texture, sampler },
+        }),
+      });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.dependencies).toEqual({
+      field: "clearcoatRoughnessTexture",
+      texture: {
+        field: "clearcoatRoughnessTexture",
+        kind: "texture",
+        handleKey: "texture:standard-clearcoat-roughness",
+        version: textureEntry.version,
+        versionKey: "texture:standard-clearcoat-roughness@1",
+      },
+      sampler: {
+        field: "clearcoatRoughnessTexture",
+        kind: "sampler",
+        handleKey: "sampler:standard-clearcoat-roughness-sampler",
+        version: samplerEntry.version,
+        versionKey: "sampler:standard-clearcoat-roughness-sampler@1",
+      },
+      cacheKeySegments: [
+        "clearcoatRoughnessTexture:texture:texture:standard-clearcoat-roughness@1",
+        "clearcoatRoughnessTexture:sampler:sampler:standard-clearcoat-roughness-sampler@1",
+      ],
+    });
   });
 
   it("derives ready iridescence thickness texture and sampler handle/version keys", () => {
@@ -834,6 +898,76 @@ describe("iridescence thickness textured StandardMaterial prepared material cach
       "material-buffer:prepared-material:material:iridescence-thickness-standard",
       "texture:iridescence-thickness",
       "sampler:iridescence-thickness-sampler",
+    ]);
+    expect(createdBuffers).toHaveLength(1);
+    expect(createdBindGroups).toHaveLength(1);
+  });
+});
+
+describe("clearcoat roughness textured StandardMaterial prepared material cache", () => {
+  it("creates a single-texture group-2 prepared resource", () => {
+    const createdBuffers: unknown[] = [];
+    const createdBindGroups: StandardMaterialBindGroupCreationDescriptor[] = [];
+    const registry = new AssetRegistry();
+    const cache = createPreparedScalarStandardMaterialCache();
+    const handle = createMaterialHandle("clearcoat-roughness-standard");
+    const texture = createTextureHandle("clearcoat-roughness");
+    const sampler = createSamplerHandle("clearcoat-roughness-sampler");
+    const device = deviceWithResources(createdBuffers, createdBindGroups);
+
+    registry.register(texture);
+    registry.register(sampler);
+    registry.register(handle);
+    registry.markReady(
+      texture,
+      textureAsset({
+        label: "clearcoat-roughness",
+        format: "rgba8unorm",
+        colorSpace: "data",
+        semantic: "clearcoat-roughness",
+      }),
+    );
+    registry.markReady(sampler, createSamplerAsset({ label: "nearest" }));
+    const material = createStandardMaterialAsset({
+      label: "Clearcoat Roughness Standard",
+      clearcoatFactor: 1,
+      clearcoatRoughnessFactor: 0.86,
+      clearcoatRoughnessTexture: { texture, sampler },
+    });
+    const materialEntry = registry.markReady(handle, material);
+
+    const result = prepareClearcoatRoughnessTexturedStandardMaterialResource({
+      registry,
+      device,
+      cache,
+      handle,
+      material,
+      sourceVersion: materialEntry.version,
+      frame: 72,
+      pipelineKey:
+        "standard|clearcoat|clearcoatRoughnessTexture|opaque|back|less|none",
+      layout: materialLayout(),
+      textures: [textureGpuResource(texture)],
+      samplers: [samplerGpuResource(sampler)],
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.status).toBe("created");
+    expect(result.diagnostics).toEqual([]);
+    expect(result.resource).toMatchObject({
+      sourceMaterialKey: "material:clearcoat-roughness-standard",
+      sourceVersion: materialEntry.version,
+      dependencyCacheKeySegments: [
+        "clearcoatRoughnessTexture:texture:texture:clearcoat-roughness@1",
+        "clearcoatRoughnessTexture:sampler:sampler:clearcoat-roughness-sampler@1",
+      ],
+      textureResourceKey: "texture:clearcoat-roughness",
+      samplerResourceKey: "sampler:clearcoat-roughness-sampler",
+    });
+    expect(result.resource?.bindGroup.entryResourceKeys).toEqual([
+      "material-buffer:prepared-material:material:clearcoat-roughness-standard",
+      "texture:clearcoat-roughness",
+      "sampler:clearcoat-roughness-sampler",
     ]);
     expect(createdBuffers).toHaveLength(1);
     expect(createdBindGroups).toHaveLength(1);

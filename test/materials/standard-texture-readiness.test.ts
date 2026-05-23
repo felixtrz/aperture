@@ -20,6 +20,7 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
     const sampler = createSamplerHandle("linear");
     const baseColor = createTextureHandle("base-color");
     const metallicRoughness = createTextureHandle("metallic-roughness");
+    const clearcoatRoughness = createTextureHandle("clearcoat-roughness");
     const sheenRoughness = createTextureHandle("sheen-roughness");
     const iridescenceThickness = createTextureHandle("iridescence-thickness");
     const normal = createTextureHandle("normal");
@@ -30,6 +31,7 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
     registry.markReady(sampler, createSamplerAsset());
     readyTexture(registry, baseColor, "base-color", "srgb");
     readyTexture(registry, metallicRoughness, "metallic-roughness", "data");
+    readyTexture(registry, clearcoatRoughness, "clearcoat-roughness", "data");
     readyTexture(registry, sheenRoughness, "sheen-roughness", "data");
     readyTexture(
       registry,
@@ -46,6 +48,7 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
       createStandardMaterialAsset({
         baseColorTexture: { texture: baseColor, sampler },
         metallicRoughnessTexture: { texture: metallicRoughness, sampler },
+        clearcoatRoughnessTexture: { texture: clearcoatRoughness, sampler },
         sheenRoughnessTexture: { texture: sheenRoughness, sampler },
         iridescenceThicknessTexture: {
           texture: iridescenceThickness,
@@ -78,6 +81,12 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
         field: "metallicRoughnessTexture",
         textureKey: "texture:metallic-roughness",
         expectedSemantic: "metallic-roughness",
+        actualColorSpace: "data",
+      },
+      {
+        field: "clearcoatRoughnessTexture",
+        textureKey: "texture:clearcoat-roughness",
+        expectedSemantic: "clearcoat-roughness",
         actualColorSpace: "data",
       },
       {
@@ -123,6 +132,7 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
     const sampler = createSamplerHandle("linear");
     const baseColor = createTextureHandle("base-color-uv1");
     const metallicRoughness = createTextureHandle("metallic-roughness-uv1");
+    const clearcoatRoughness = createTextureHandle("clearcoat-roughness-uv1");
     const sheenRoughness = createTextureHandle("sheen-roughness-uv1");
     const iridescenceThickness = createTextureHandle(
       "iridescence-thickness-uv1",
@@ -135,6 +145,7 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
     registry.markReady(sampler, createSamplerAsset());
     readyTexture(registry, baseColor, "base-color", "srgb");
     readyTexture(registry, metallicRoughness, "metallic-roughness", "data");
+    readyTexture(registry, clearcoatRoughness, "clearcoat-roughness", "data");
     readyTexture(registry, sheenRoughness, "sheen-roughness", "data");
     readyTexture(
       registry,
@@ -152,6 +163,11 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
         baseColorTexture: { texture: baseColor, sampler, texCoord: 1 },
         metallicRoughnessTexture: {
           texture: metallicRoughness,
+          sampler,
+          texCoord: 1,
+        },
+        clearcoatRoughnessTexture: {
+          texture: clearcoatRoughness,
           sampler,
           texCoord: 1,
         },
@@ -195,6 +211,12 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
       {
         field: "metallicRoughnessTexture",
         textureKey: "texture:metallic-roughness-uv1",
+        texCoord: 1,
+        ready: true,
+      },
+      {
+        field: "clearcoatRoughnessTexture",
+        textureKey: "texture:clearcoat-roughness-uv1",
         texCoord: 1,
         ready: true,
       },

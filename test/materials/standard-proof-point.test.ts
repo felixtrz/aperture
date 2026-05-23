@@ -52,6 +52,7 @@ describe("StandardMaterial proof-point contract", () => {
     expect(report.supportedFeatures).toContain("emissiveTexture");
     expect(report.supportedFeatures).toContain("clearcoatFactor");
     expect(report.supportedFeatures).toContain("clearcoatRoughnessFactor");
+    expect(report.supportedFeatures).toContain("clearcoatRoughnessTexture");
     expect(report.supportedFeatures).toContain("transmissionFactor");
     expect(report.supportedFeatures).toContain("sheenColorFactor");
     expect(report.supportedFeatures).toContain("sheenRoughnessFactor");

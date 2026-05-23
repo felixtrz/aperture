@@ -22,6 +22,8 @@ export type BuiltInShaderBindingId =
   | "metallicRoughnessSampler"
   | "clearcoatTexture"
   | "clearcoatSampler"
+  | "clearcoatRoughnessTexture"
+  | "clearcoatRoughnessSampler"
   | "transmissionTexture"
   | "transmissionSampler"
   | "sheenColorTexture"

@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "1b8e899",
   "activePid": null,
-  "notes": "Completed task-3108 texture-backed iridescence thickness factor; task-3109 texture-backed clearcoat roughness is next.",
+  "notes": "Completed task-3109 texture-backed clearcoat roughness factor; task-3110 post-Tier-20 render-pipeline parity audit is next.",
   "lastRunFinishedAt": "2026-05-23T18:03:03Z"
 }

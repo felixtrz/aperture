@@ -545,6 +545,47 @@ describe("standard material pipeline descriptor planning", () => {
     );
   });
 
+  it("specializes clearcoat roughness texture variants with group-2 bindings", () => {
+    const result = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey: {
+        ...STANDARD_BATCH_KEY,
+        pipelineKey:
+          "standard|clearcoat|clearcoatRoughnessTexture|opaque|back|less|none",
+      },
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.plan?.descriptor).toMatchObject({
+      label:
+        "aperture/standard-mesh-clearcoat-roughness-texture-clearcoat-textured:bgra8unorm:triangle-list",
+      vertex: {
+        moduleLabel:
+          "aperture/standard-mesh-clearcoat-roughness-texture-clearcoat-textured",
+      },
+      fragment: {
+        moduleLabel:
+          "aperture/standard-mesh-clearcoat-roughness-texture-clearcoat-textured",
+      },
+    });
+    expect(JSON.parse(required(result.plan).cacheKey) as unknown).toMatchObject(
+      {
+        shader: {
+          variantKey:
+            "direct-lit-metallic-roughness-clearcoat-roughness-texture-clearcoat-texture",
+        },
+        layouts: {
+          bindGroups: [
+            "standard/group-0:view-uniform@0",
+            "standard/group-1:world-transforms@0",
+            "standard/group-2:material-clearcoat-roughness-texture@0,23,24",
+            "lights/group-3:light-floats@0,light-metadata@1",
+          ],
+        },
+      },
+    );
+  });
+
   it("specializes normal-map variants with tangent vertex attributes", () => {
     const featurePlan = createStandardPipelineShaderFeaturePlan({
       ...STANDARD_BATCH_KEY,
