@@ -159,24 +159,37 @@ async function handleWorkerMessage(
 function createTransmissionStatus(scene, loop, diagnostics) {
   const counts = loop.frame?.counts;
   const pipelineKeys = loop.frame?.pipelineKeys ?? [];
+  const roughnessContrast = createTransmissionContrastReport(
+    loop.frame?.readback,
+  );
+  const readbackContrastOk =
+    loop.frame?.readback?.ok !== true || roughnessContrast?.ok === true;
 
   return {
     ...baseStatus,
     ok:
-      counts?.meshDraws === 2 &&
+      counts?.meshDraws === scene.expectedMeshDraws &&
       loop.frame?.snapshot?.lights === 2 &&
       (counts?.drawCalls ?? 0) >= 2 &&
       counts?.diagnostics === 0 &&
       loop.frame?.transmissionGrabPass?.ok === true &&
-      pipelineKeys.includes("standard|transmission|blend|none|less|alpha"),
+      pipelineKeys.includes("standard|transmission|blend|none|less|alpha") &&
+      readbackContrastOk,
     phase: "submit",
     renderingBackend: "webgpu-explicit",
     transmission: {
       sphereMeshKey: scene.sphereMeshKey,
       panelMeshKey: scene.panelMeshKey,
       glassMaterialKey: scene.glassMaterialKey,
+      roughGlassMaterialKey: scene.roughGlassMaterialKey,
       backgroundMaterialKey: scene.backgroundMaterialKey,
-      transmissionFactor: 0.65,
+      brightBackgroundMaterialKey: scene.brightBackgroundMaterialKey,
+      darkBackgroundMaterialKey: scene.darkBackgroundMaterialKey,
+      transmissionFactor: scene.transmissionFactor,
+      roughness: scene.roughness,
+      stripeCount: scene.stripeCount,
+      expectedMeshDraws: scene.expectedMeshDraws,
+      roughnessContrast,
       samples: scene.samples,
     },
     worker: {
@@ -187,6 +200,87 @@ function createTransmissionStatus(scene, loop, diagnostics) {
     frame: loop.frame,
     diagnosticCodes: diagnostics.map((diagnostic) => diagnostic.code),
   };
+}
+
+function createTransmissionContrastReport(readback) {
+  if (readback?.ok !== true || !Array.isArray(readback.samples)) {
+    return null;
+  }
+
+  const glossyDark = findReadbackPixel(readback.samples, "glossy-dark");
+  const glossyBright = findReadbackPixel(readback.samples, "glossy-bright");
+  const roughDark = findReadbackPixel(readback.samples, "rough-dark");
+  const roughBright = findReadbackPixel(readback.samples, "rough-bright");
+  const backgroundGlossyDark = findReadbackPixel(
+    readback.samples,
+    "background-glossy-dark",
+  );
+  const backgroundGlossyBright = findReadbackPixel(
+    readback.samples,
+    "background-glossy-bright",
+  );
+  const backgroundRoughDark = findReadbackPixel(
+    readback.samples,
+    "background-rough-dark",
+  );
+  const backgroundRoughBright = findReadbackPixel(
+    readback.samples,
+    "background-rough-bright",
+  );
+
+  if (
+    glossyDark === null ||
+    glossyBright === null ||
+    roughDark === null ||
+    roughBright === null ||
+    backgroundGlossyDark === null ||
+    backgroundGlossyBright === null ||
+    backgroundRoughDark === null ||
+    backgroundRoughBright === null
+  ) {
+    return {
+      ok: false,
+      reason: "missing-contrast-sample",
+    };
+  }
+
+  const glossy = pixelDistance(glossyDark, glossyBright);
+  const rough = pixelDistance(roughDark, roughBright);
+  const backgroundGlossy = pixelDistance(
+    backgroundGlossyDark,
+    backgroundGlossyBright,
+  );
+  const backgroundRough = pixelDistance(
+    backgroundRoughDark,
+    backgroundRoughBright,
+  );
+  const roughToGlossyRatio = rough / Math.max(1, glossy);
+
+  return {
+    ok:
+      glossy > 25 &&
+      rough < glossy * 0.85 &&
+      backgroundGlossy > 70 &&
+      backgroundRough > 70,
+    glossy,
+    rough,
+    backgroundGlossy,
+    backgroundRough,
+    roughToGlossyRatio,
+  };
+}
+
+function findReadbackPixel(samples, id) {
+  return samples.find((sample) => sample.id === id)?.pixel ?? null;
+}
+
+function pixelDistance(a, b) {
+  const dr = a.r - b.r;
+  const dg = a.g - b.g;
+  const db = a.b - b.b;
+  const da = a.a - b.a;
+
+  return Math.sqrt(dr * dr + dg * dg + db * db + da * da);
 }
 
 function failure(reason, message, extra = {}) {

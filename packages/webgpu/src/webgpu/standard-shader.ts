@@ -2748,14 +2748,34 @@ function applyStandardTransmissionSampling(code: string): string {
   let sceneColorSize = vec2f(textureDimensions(standardTransmissionSceneColorTexture));
   let sceneColorUv = clamp(input.position.xy / max(sceneColorSize, vec2f(1.0)), vec2f(0.0), vec2f(1.0));
   let refractionOffset = clamp(normal.xy * transmission * (0.045 + roughness * 0.02), vec2f(-0.08), vec2f(0.08));
-  let transmittedSceneColor = textureSampleLevel(
+  let transmissionUv = clamp(sceneColorUv + refractionOffset, vec2f(0.0), vec2f(1.0));
+  let transmissionRoughness = clamp(roughness, 0.0, 1.0);
+  let transmissionBlurRadiusPixels = transmissionRoughness * transmissionRoughness * 42.0;
+  let transmissionBlurTexel = transmissionBlurRadiusPixels / max(sceneColorSize, vec2f(1.0));
+  let transmissionSharpColor = textureSampleLevel(
     standardTransmissionSceneColorTexture,
     standardTransmissionSceneColorSampler,
-    clamp(sceneColorUv + refractionOffset, vec2f(0.0), vec2f(1.0)),
+    transmissionUv,
     0.0,
   ).rgb;
+  let transmissionBlurColor = (
+    transmissionSharpColor * 0.24 +
+    textureSampleLevel(standardTransmissionSceneColorTexture, standardTransmissionSceneColorSampler, clamp(transmissionUv + vec2f(transmissionBlurTexel.x, 0.0), vec2f(0.0), vec2f(1.0)), 0.0).rgb * 0.12 +
+    textureSampleLevel(standardTransmissionSceneColorTexture, standardTransmissionSceneColorSampler, clamp(transmissionUv - vec2f(transmissionBlurTexel.x, 0.0), vec2f(0.0), vec2f(1.0)), 0.0).rgb * 0.12 +
+    textureSampleLevel(standardTransmissionSceneColorTexture, standardTransmissionSceneColorSampler, clamp(transmissionUv + vec2f(0.0, transmissionBlurTexel.y), vec2f(0.0), vec2f(1.0)), 0.0).rgb * 0.12 +
+    textureSampleLevel(standardTransmissionSceneColorTexture, standardTransmissionSceneColorSampler, clamp(transmissionUv - vec2f(0.0, transmissionBlurTexel.y), vec2f(0.0), vec2f(1.0)), 0.0).rgb * 0.12 +
+    textureSampleLevel(standardTransmissionSceneColorTexture, standardTransmissionSceneColorSampler, clamp(transmissionUv + transmissionBlurTexel, vec2f(0.0), vec2f(1.0)), 0.0).rgb * 0.07 +
+    textureSampleLevel(standardTransmissionSceneColorTexture, standardTransmissionSceneColorSampler, clamp(transmissionUv - transmissionBlurTexel, vec2f(0.0), vec2f(1.0)), 0.0).rgb * 0.07 +
+    textureSampleLevel(standardTransmissionSceneColorTexture, standardTransmissionSceneColorSampler, clamp(transmissionUv + vec2f(transmissionBlurTexel.x, -transmissionBlurTexel.y), vec2f(0.0), vec2f(1.0)), 0.0).rgb * 0.07 +
+    textureSampleLevel(standardTransmissionSceneColorTexture, standardTransmissionSceneColorSampler, clamp(transmissionUv + vec2f(-transmissionBlurTexel.x, transmissionBlurTexel.y), vec2f(0.0), vec2f(1.0)), 0.0).rgb * 0.07
+  );
+  let transmittedSceneColor = mix(
+    transmissionSharpColor,
+    transmissionBlurColor,
+    smoothstep(0.08, 0.85, transmissionRoughness),
+  );
   color = mix(color, transmittedSceneColor * max(baseColor, vec3f(0.04)), transmission);
-  alpha = alpha * (1.0 - transmission);
+  alpha = alpha * max(1.0 - transmission * 0.25, 0.72);
   return vec4f(color, alpha);`,
   );
 }

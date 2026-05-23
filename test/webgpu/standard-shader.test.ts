@@ -496,8 +496,17 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain(
       "textureSampleLevel(\n    standardTransmissionSceneColorTexture",
     );
+    expect(shader.code).toContain("transmissionBlurRadiusPixels");
+    expect(shader.code).toContain(
+      "transmissionRoughness * transmissionRoughness * 42.0",
+    );
+    expect(shader.code).toContain(
+      "smoothstep(0.08, 0.85, transmissionRoughness)",
+    );
     expect(shader.code).toContain("var alpha = material.baseColorFactor.a");
-    expect(shader.code).toContain("alpha = alpha * (1.0 - transmission)");
+    expect(shader.code).toContain(
+      "alpha = alpha * max(1.0 - transmission * 0.25, 0.72)",
+    );
     expect(shader.code).toContain("return vec4f(color, alpha);");
     expect(
       materialPipelineKeyInputToKey(createMaterialPipelineKeyInput(material)),

@@ -15,8 +15,26 @@ interface TransmissionStatus extends ExampleStatusBase {
     readonly sphereMeshKey: string;
     readonly panelMeshKey: string;
     readonly glassMaterialKey: string;
+    readonly roughGlassMaterialKey: string;
     readonly backgroundMaterialKey: string;
+    readonly brightBackgroundMaterialKey: string;
+    readonly darkBackgroundMaterialKey: string;
     readonly transmissionFactor: number;
+    readonly roughness: {
+      readonly glossy: number;
+      readonly rough: number;
+    };
+    readonly stripeCount: number;
+    readonly expectedMeshDraws: number;
+    readonly roughnessContrast?: {
+      readonly ok: boolean;
+      readonly reason?: string;
+      readonly glossy?: number;
+      readonly rough?: number;
+      readonly backgroundGlossy?: number;
+      readonly backgroundRough?: number;
+      readonly roughToGlossyRatio?: number;
+    } | null;
   };
   readonly frame?: TransmissionFrameStatus;
 }
@@ -59,7 +77,7 @@ interface TransmissionFrameStatus {
   };
 }
 
-test("browser renders scalar transmission with background visible through glass", async ({
+test("browser renders roughness-filtered transmission through scene color", async ({
   page,
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
@@ -90,18 +108,29 @@ test("browser renders scalar transmission with background visible through glass"
       sphereMeshKey: "mesh:transmission-sphere-mesh",
       panelMeshKey: "mesh:transmission-panel-mesh",
       glassMaterialKey: "material:transmission-glass-material",
-      backgroundMaterialKey: "material:transmission-background-material",
-      transmissionFactor: 0.65,
+      roughGlassMaterialKey: "material:transmission-rough-glass-material",
+      backgroundMaterialKey: "material:transmission-background-bright-material",
+      brightBackgroundMaterialKey:
+        "material:transmission-background-bright-material",
+      darkBackgroundMaterialKey:
+        "material:transmission-background-dark-material",
+      transmissionFactor: 0.9,
+      roughness: {
+        glossy: 0.02,
+        rough: 0.85,
+      },
+      stripeCount: 24,
+      expectedMeshDraws: 26,
     },
     frame: {
       snapshot: {
         views: 1,
-        meshDraws: 2,
+        meshDraws: 26,
         lights: 2,
         diagnostics: 0,
       },
       counts: {
-        meshDraws: 2,
+        meshDraws: 26,
         diagnostics: 0,
       },
       transmissionGrabPass: {
@@ -144,6 +173,7 @@ test("browser renders scalar transmission with background visible through glass"
   }
 
   assertTransmissionSamples(frame);
+  assertTransmissionRoughnessContrast(status, frame);
   webGpuValidation.expectNoWarnings();
 });
 
@@ -152,7 +182,34 @@ function assertTransmissionSamples(frame: TransmissionFrameStatus): void {
   const samples = frame.readback?.samples ?? [];
   const throughGlass = requiredSample(samples, "through-glass");
   const background = requiredSample(samples, "background");
+  const glossyDark = requiredSample(samples, "glossy-dark");
+  const glossyBright = requiredSample(samples, "glossy-bright");
+  const roughDark = requiredSample(samples, "rough-dark");
+  const roughBright = requiredSample(samples, "rough-bright");
+  const backgroundGlossyDark = requiredSample(
+    samples,
+    "background-glossy-dark",
+  );
+  const backgroundGlossyBright = requiredSample(
+    samples,
+    "background-glossy-bright",
+  );
+  const backgroundRoughDark = requiredSample(samples, "background-rough-dark");
+  const backgroundRoughBright = requiredSample(
+    samples,
+    "background-rough-bright",
+  );
   const clearSample = requiredSample(samples, "clear");
+  const glossyContrast = pixelDistance(glossyDark.pixel, glossyBright.pixel);
+  const roughContrast = pixelDistance(roughDark.pixel, roughBright.pixel);
+  const backgroundGlossyContrast = pixelDistance(
+    backgroundGlossyDark.pixel,
+    backgroundGlossyBright.pixel,
+  );
+  const backgroundRoughContrast = pixelDistance(
+    backgroundRoughDark.pixel,
+    backgroundRoughBright.pixel,
+  );
 
   expect(pixelDistance(background.pixel, clear)).toBeGreaterThan(80);
   expect(pixelDistance(throughGlass.pixel, clear)).toBeGreaterThan(60);
@@ -161,6 +218,33 @@ function assertTransmissionSamples(frame: TransmissionFrameStatus): void {
   expect(throughGlass.pixel.g).toBeGreaterThan(80);
   expect(throughGlass.pixel.b).toBeGreaterThan(70);
   expect(throughGlass.pixel.r).toBeGreaterThan(background.pixel.r * 0.3);
+  expect(backgroundGlossyContrast).toBeGreaterThan(70);
+  expect(backgroundRoughContrast).toBeGreaterThan(70);
+  expect(glossyContrast).toBeGreaterThan(25);
+  expect(roughContrast).toBeLessThan(glossyContrast * 0.85);
+}
+
+function assertTransmissionRoughnessContrast(
+  status: TransmissionStatus,
+  frame: TransmissionFrameStatus,
+): void {
+  const samples = frame.readback?.samples ?? [];
+  const glossy = pixelDistance(
+    requiredSample(samples, "glossy-dark").pixel,
+    requiredSample(samples, "glossy-bright").pixel,
+  );
+  const rough = pixelDistance(
+    requiredSample(samples, "rough-dark").pixel,
+    requiredSample(samples, "rough-bright").pixel,
+  );
+  const reported = status.transmission?.roughnessContrast;
+
+  expect(reported, JSON.stringify(status, null, 2)).toMatchObject({
+    ok: true,
+  });
+  expect(reported?.glossy).toBeCloseTo(glossy, 6);
+  expect(reported?.rough).toBeCloseTo(rough, 6);
+  expect(reported?.roughToGlossyRatio).toBeLessThan(0.85);
 }
 
 function requiredSample(

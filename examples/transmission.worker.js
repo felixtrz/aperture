@@ -1,4 +1,9 @@
-import { clearColor, registerTransmissionScene } from "./transmission-scene.js";
+import {
+  clearColor,
+  registerTransmissionScene,
+  transmissionStripeCount,
+  transmissionStripeSpan,
+} from "./transmission-scene.js";
 
 let apertureModulePromise = null;
 let scene = null;
@@ -45,7 +50,9 @@ async function handleMessage(data) {
           sphereMeshKey: scene.sphereMeshKey,
           panelMeshKey: scene.panelMeshKey,
           glassMaterialKey: scene.glassMaterialKey,
-          backgroundMaterialKey: scene.backgroundMaterialKey,
+          roughGlassMaterialKey: scene.roughGlassMaterialKey,
+          brightBackgroundMaterialKey: scene.brightBackgroundMaterialKey,
+          darkBackgroundMaterialKey: scene.darkBackgroundMaterialKey,
         },
       });
       return;
@@ -78,7 +85,7 @@ function loadAperture() {
 
 function createWorkerScene(aperture, canvasSize) {
   const app = aperture.createExtractionApp({
-    worldOptions: { entityCapacity: 8 },
+    worldOptions: { entityCapacity: 32 },
   });
   const registered = registerTransmissionScene(aperture, app.assets);
   const aspect = canvasSize.width / Math.max(1, canvasSize.height);
@@ -114,20 +121,18 @@ function createWorkerScene(aperture, canvasSize) {
       layerMask: 1,
     }),
   );
+  spawnBackgroundStripes(aperture, app, registered);
   app.spawn(
-    aperture.withTransform({
-      translation: [0, 0, -0.35],
-      scale: [1.8, 1.1, 0.04],
-    }),
-    aperture.withMesh(registered.panelMesh),
-    aperture.withMaterial(registered.backgroundMaterial),
+    aperture.withTransform({ translation: [-0.48, 0, 0] }),
+    aperture.withMesh(registered.sphereMesh),
+    aperture.withMaterial(registered.glassMaterial),
     aperture.withRenderLayer(1),
     aperture.withVisibility(true),
   );
   app.spawn(
-    aperture.withTransform({ translation: [0, 0, 0] }),
+    aperture.withTransform({ translation: [0.48, 0, 0] }),
     aperture.withMesh(registered.sphereMesh),
-    aperture.withMaterial(registered.glassMaterial),
+    aperture.withMaterial(registered.roughGlassMaterial),
     aperture.withRenderLayer(1),
     aperture.withVisibility(true),
   );
@@ -137,6 +142,30 @@ function createWorkerScene(aperture, canvasSize) {
     app,
     canvasSize,
   };
+}
+
+function spawnBackgroundStripes(aperture, app, registered) {
+  const stripeWidth = transmissionStripeSpan / transmissionStripeCount;
+  const leftEdge = -transmissionStripeSpan * 0.5;
+
+  for (let index = 0; index < transmissionStripeCount; index += 1) {
+    const centerX = leftEdge + stripeWidth * (index + 0.5);
+    const material =
+      index % 2 === 0
+        ? registered.brightBackgroundMaterial
+        : registered.darkBackgroundMaterial;
+
+    app.spawn(
+      aperture.withTransform({
+        translation: [centerX, 0, -0.35],
+        scale: [stripeWidth * 0.98, 1.28, 0.04],
+      }),
+      aperture.withMesh(registered.panelMesh),
+      aperture.withMaterial(material),
+      aperture.withRenderLayer(1),
+      aperture.withVisibility(true),
+    );
+  }
 }
 
 function createSnapshotMessage(workerScene, data) {
