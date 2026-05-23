@@ -19,6 +19,7 @@ export function summarizeFrameBoundaryDiagnostics(
       ...(report.encoder?.diagnostics ?? []),
       ...(report.begin?.diagnostics ?? []),
       ...(report.execution?.diagnostics ?? []),
+      ...(report.renderBundle?.diagnostics ?? []),
       ...(report.end?.diagnostics ?? []),
       ...(report.finish?.diagnostics ?? []),
       ...(report.submit?.diagnostics ?? []),

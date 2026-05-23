@@ -1,6 +1,51 @@
 # Agent Handoff
 
-Updated: 2026-05-23T19:29:41Z
+Updated: 2026-05-23T20:00:20Z
+
+## Current Run Update — 2026-05-23T20:00:20Z — Static render-bundle reuse
+
+Completed `task-3112`, the second post-audit submit-efficiency slice.
+
+### What changed
+
+- Added a renderer-owned WebGPU render-bundle cache and command-key builder for
+  stable command plans.
+- Threaded optional render-bundle execution through `assembleFrameBoundary()`.
+  On a cache miss it records commands into a render bundle and executes it; on a
+  cache hit it executes the cached bundle with `encodedCommands: 0`.
+- Enabled app-level bundle use when snapshot update scheduling reports first
+  frame, `meshDraws: reuse`, or `meshDraws: skip` evidence.
+- Published JSON-safe bundle create/reuse pressure through WebGPU app reports and
+  `examples/standard-queue-phases.html`.
+- Updated the public tracker, render-pipeline comparison page, backlog,
+  current-task pointer, and completed-task log. Recommended next task is now
+  `task-3113`, indirect draw argument buffers for compatible grouped draws.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/frame-boundary-json.test.ts test/webgpu/render-pass-commands.test.ts test/webgpu/render-pass-command-executor.test.ts test/webgpu/render-pass-assembly-smoke.test.ts --reporter=dot`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec prettier --check packages/webgpu/src/webgpu/render-bundle.ts packages/webgpu/src/webgpu/frame-boundary.ts packages/webgpu/src/webgpu/frame-boundary-diagnostics.ts packages/webgpu/src/webgpu/frame-boundary-json.ts packages/webgpu/src/webgpu/index.ts packages/webgpu/src/webgpu/app.ts examples/standard-queue-phases.main.js test/webgpu/frame-boundary.test.ts test/webgpu/frame-boundary-json.test.ts test/e2e/standard-queue-phases.spec.ts`
+- `pnpm run examples:build`
+- Playwright MCP browser proof for
+  `http://127.0.0.1:4173/examples/standard-queue-phases.html`: `ok: true`,
+  frame 3, 8 draw calls, zero diagnostics, one render-bundle creation, two
+  render-bundle reuses, current-frame `encodedCommands: 0`, and cache size 1.
+  The only console error was the existing favicon 403.
+
+### Known issues
+
+- `pnpm exec playwright test test/e2e/standard-queue-phases.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000 --global-timeout=120000`
+  still timed out in suite startup before the test body ran. The same runtime
+  behavior was validated through the Playwright MCP browser proof above.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3113`, adding an indirect draw argument-buffer route for compatible
+grouped draws and publishing indirect/fallback status in a browser-visible
+proof.
 
 ## Current Run Update — 2026-05-23T19:29:41Z — Render-pass state-command elision
 

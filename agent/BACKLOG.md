@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3112`: cache WebGPU render bundles for unchanged static command
-plans and publish first-create/reuse status in a browser-visible proof.
+Start `task-3113`: add an indirect draw argument-buffer route for compatible
+grouped draws and publish indirect/fallback status in a browser-visible proof.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -144,15 +144,15 @@ shader/pipeline/resource/importer tests.
 The post-Tier-20 audit found Aperture is close on covered feature breadth but
 not yet SOTA on submit efficiency. `task-3111` now elides redundant main forward
 pipeline, bind-group, vertex-buffer, and index-buffer state commands and exposes
-planned-vs-emitted pressure in browser status. The remaining top blockers are
-static render-bundle reuse for unchanged command plans and indirect argument
-buffers for compatible grouped draws.
+planned-vs-emitted pressure in browser status. `task-3112` now reuses static
+WebGPU render bundles for unchanged command plans. The remaining top blocker is
+an indirect argument-buffer route for compatible grouped draws.
 
 Reference anchors for the next task (read before writing):
 
-- `references/three.js/src/renderers/common/BundleGroup.js`.
+- `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`.
 - `references/three.js/src/renderers/webgpu/WebGPUBackend.js`.
-- `references/three.js/src/renderers/webgpu/utils/WebGPUPipelineUtils.js`.
+- `references/three.js/src/renderers/common/IndirectStorageBufferAttribute.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -373,6 +373,8 @@ Acceptance criteria:
 
 ### task-3112 — Cache WebGPU render bundles for unchanged static command plans
 
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/`, `examples/batching.*` or a focused static-bundle example, targeted tests.
 Reference anchor: `references/three.js/src/renderers/common/BundleGroup.js`, `references/three.js/src/renderers/webgpu/WebGPUBackend.js`, `references/three.js/src/renderers/webgpu/utils/WebGPUPipelineUtils.js`.
@@ -394,6 +396,30 @@ Acceptance criteria:
 - Compatible coalesced draw-list records can be packed into a renderer-owned WebGPU indirect draw argument buffer, with a direct-draw fallback when adapter support or first-instance requirements make indirect unsafe.
 - Browser-visible status reports indirect argument-buffer creation, indirect draw command count, and fallback reason when applicable.
 - The selected instancing or instance-attribute example keeps its existing pixel/readback proof while exercising the indirect route when supported.
+
+### task-3114 — Add state-aware opaque queue ordering to lower submit pressure
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/rendering/render-queue.ts`, `packages/render/src/rendering/material-queue.ts`, `examples/standard-queue-phases.*` or `examples/batching.*`, targeted tests.
+Reference anchor: `references/three.js/src/renderers/common/RenderList.js`, `references/engine/src/scene/renderer/renderer.js`, `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`.
+
+Acceptance criteria:
+
+- Opaque and alpha-test queue ordering can group compatible pipeline/material/resource state more aggressively while preserving transparent back-to-front/stable-id ordering and user-authored render-order constraints.
+- Browser-visible status reports lower pipeline or bind-group switch pressure for the selected multi-material scene than the current stable queue order.
+- The selected scene keeps its existing pixel/readback proof and draw count while the command-pressure report shows fewer emitted state commands or fewer state switches.
+
+### task-3115 — Reuse shared queued built-in bind groups across compatible frame resources
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/queued-*`, `packages/webgpu/src/webgpu/*app-frame-resources.ts`, a focused multi-material example/status proof, targeted tests.
+Reference anchor: `references/three.js/src/renderers/webgpu/WebGPUBackend.js`, `references/three.js/src/renderers/common/Bindings.js`, `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`.
+
+Acceptance criteria:
+
+- Shared per-view, per-transform, and per-light bind groups for queued built-in materials are reused across compatible material families/pipeline routes instead of recreated as wrapper objects for each compatible frame-resource item.
+- App status or diagnostics expose bind-group creation-vs-reuse pressure for a multi-material scene without exposing raw GPU handles.
+- The selected scene keeps its existing pixel/readback proof, render-bundle reuse remains valid, and targeted frame-resource cache tests cover invalidation when buffer/layout/resource keys change.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

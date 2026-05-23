@@ -26041,3 +26041,31 @@ Validation:
 - `pnpm run check:examples`
 - Browser status proof for `examples/standard-queue-phases.html`
 - `git diff --check`
+
+## task-3112 — Cache WebGPU render bundles for unchanged static command plans
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added a renderer-owned render-bundle cache and stable command-plan key builder
+  for WebGPU frame-boundary submission.
+- Threaded optional bundle execution through `assembleFrameBoundary()`: cache
+  misses encode commands into a bundle, while cache hits execute the cached
+  bundle with zero per-frame command encoding.
+- Enabled bundle use from app rendering when snapshot update scheduling reports
+  first-frame or unchanged mesh-draw work, and published JSON-safe bundle
+  create/reuse pressure through app reports and
+  `examples/standard-queue-phases.html`.
+- Updated tracker, render-pipeline comparison, backlog, current task, and
+  handoff. Recommended next task is `task-3113`.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/frame-boundary-json.test.ts test/webgpu/render-pass-commands.test.ts test/webgpu/render-pass-command-executor.test.ts test/webgpu/render-pass-assembly-smoke.test.ts --reporter=dot`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec prettier --check packages/webgpu/src/webgpu/render-bundle.ts packages/webgpu/src/webgpu/frame-boundary.ts packages/webgpu/src/webgpu/frame-boundary-diagnostics.ts packages/webgpu/src/webgpu/frame-boundary-json.ts packages/webgpu/src/webgpu/index.ts packages/webgpu/src/webgpu/app.ts examples/standard-queue-phases.main.js test/webgpu/frame-boundary.test.ts test/webgpu/frame-boundary-json.test.ts test/e2e/standard-queue-phases.spec.ts`
+- `pnpm run examples:build`
+- Playwright MCP browser proof for `examples/standard-queue-phases.html`:
+  frame 3, 8 draw calls, zero diagnostics, one render-bundle creation, two
+  render-bundle reuses, current-frame `encodedCommands: 0`, and cache size 1.

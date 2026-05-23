@@ -95,6 +95,12 @@ import {
   type FrameBoundaryReadbackSampleRequest,
 } from "./frame-boundary.js";
 import {
+  createRenderBundleCache,
+  createRenderBundleCommandKey,
+  type RenderBundleCache,
+  type RenderBundleExecutionReport,
+} from "./render-bundle.js";
+import {
   createGpuPassTimingReport,
   createGpuTimestampQueryResourcesChecked,
   readGpuTimestampQueryResults,
@@ -550,6 +556,7 @@ export interface WebGpuAppRenderReport {
   readonly readback?: FrameBoundaryReadbackResult;
   readonly gpuTimings?: GpuPassTimingReport;
   readonly commandPressure?: RenderPassCommandPressureReport;
+  readonly renderBundles?: WebGpuAppRenderBundleReport;
 }
 
 export type WebGpuAppJsonValue =
@@ -577,7 +584,33 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly readback?: WebGpuAppJsonValue;
   readonly gpuTimings?: GpuPassTimingReport;
   readonly commandPressure?: WebGpuAppJsonValue;
+  readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly materialDependencyReadiness?: readonly MaterialAssetDependencyReadinessReportJsonValue[];
+}
+
+export interface WebGpuAppRenderBundleReport {
+  readonly created: number;
+  readonly reused: number;
+  readonly unsupported: number;
+  readonly failed: number;
+  readonly disabled: number;
+  readonly encodedCommands: number;
+  readonly executedBundles: number;
+  readonly drawCalls: number;
+  readonly cacheSize: number;
+  readonly reports: readonly WebGpuAppRenderBundleFrameReport[];
+}
+
+export interface WebGpuAppRenderBundleFrameReport {
+  readonly valid: boolean;
+  readonly status: RenderBundleExecutionReport["status"];
+  readonly key: string | null;
+  readonly commandCount: number;
+  readonly encodedCommands: number;
+  readonly executedBundles: number;
+  readonly drawCalls: number;
+  readonly cacheSize: number;
+  readonly diagnostics: readonly WebGpuAppJsonValue[];
 }
 
 export type WebGpuAppPipelineResourceResult =
@@ -617,6 +650,7 @@ interface WebGpuAppResourceCache {
   readonly preparedMaterialFacade: PreparedMaterialStore;
   readonly idPickPipelines: Map<string, WebGpuIdBufferPickPipelineResource>;
   readonly gpuTimings: Map<string, WebGpuAppGpuTimingCacheEntry>;
+  readonly renderBundles: RenderBundleCache;
   readonly postPasses: WebGpuAppPostPassCache;
   readonly frameScratch: WebGpuAppFrameScratch;
   readonly unlitFrame: UnlitAppFrameResourceCacheSlot;
@@ -1041,6 +1075,7 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     preparedMaterialFacade: createPreparedMaterialStore(),
     idPickPipelines: new Map(),
     gpuTimings: new Map(),
+    renderBundles: createRenderBundleCache(),
     postPasses: {
       scene: createWebGpuPostPassTextureCacheSlot(),
       ping: createWebGpuPostPassTextureCacheSlot(),
@@ -1672,6 +1707,7 @@ interface WebGpuAppFrameBoundaryAssemblyResult {
   readonly transmissionGrabPass?: WebGpuAppTransmissionGrabPassReport;
   readonly msaa?: WebGpuAppMsaaReport;
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
+  readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly readbackBoundary: FrameBoundaryAssemblyReport | null;
   readonly gpuTimingReadbacks: readonly WebGpuAppGpuTimingReadback[];
   readonly gpuTimingDiagnostics: readonly GpuTimestampQueryDiagnostic[];
@@ -1896,6 +1932,9 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     reuse: options.reuse,
     motionVectorColorFormat: sceneMotionVectors.colorFormat,
     transmissionSceneColorResources: transmissionGrabResources.resources,
+    enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(
+      options.snapshotUpdateSchedule,
+    ),
     ...(options.clearColor === undefined
       ? {}
       : { clearColor: options.clearColor }),
@@ -1946,6 +1985,9 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     boundaries: boundaries.boundaries,
     renderTargets: boundaries.renderTargets,
     postEffects: boundaries.postEffects,
+    ...(boundaries.renderBundles === undefined
+      ? {}
+      : { renderBundles: boundaries.renderBundles }),
     ...(boundaries.transmissionGrabPass === undefined
       ? {}
       : { transmissionGrabPass: boundaries.transmissionGrabPass }),
@@ -1988,6 +2030,7 @@ async function assembleWebGpuAppFrameBoundaries(options: {
   readonly transmissionSceneColorResources?: StandardFrameTransmissionSceneColorResources | null;
   readonly clearColor?: readonly number[];
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
+  readonly enableRenderBundles?: boolean;
 }): Promise<WebGpuAppFrameBoundaryAssemblyResult> {
   const targetPlan = createWebGpuAppFrameBoundaryTargets(
     options.app,
@@ -2169,6 +2212,20 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       diagnostics.push(...transmissionGrabPass.diagnostics);
     }
 
+    const sampleCount = msaaColorTarget.resource?.sampleCount ?? 1;
+    const renderBundleDescriptor = {
+      colorFormats: [target.format],
+      depthStencilFormat: WEBGPU_APP_DEPTH_FORMAT,
+      sampleCount,
+    };
+    const renderBundleKey = createRenderBundleCommandKey(
+      {
+        targetKey: createWebGpuAppRenderBundleTargetKey(target, sampleCount),
+        ...renderBundleDescriptor,
+        commands,
+      },
+      options.cache.renderBundles,
+    );
     const boundary = assembleFrameBoundary({
       context: options.app.initialization.context as Parameters<
         typeof assembleFrameBoundary
@@ -2195,6 +2252,15 @@ async function assembleWebGpuAppFrameBoundaries(options: {
         depthLoadOp: "clear",
         depthStoreOp: "store",
       },
+      ...(commands.length === 0 || options.enableRenderBundles === false
+        ? {}
+        : {
+            renderBundle: {
+              cache: options.cache.renderBundles,
+              key: renderBundleKey,
+              descriptor: renderBundleDescriptor,
+            },
+          }),
       ...(msaaColorTarget.resource === null
         ? {}
         : {
@@ -2256,11 +2322,14 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       ...(boundary.encoder?.diagnostics ?? []),
       ...(boundary.begin?.diagnostics ?? []),
       ...(boundary.execution?.diagnostics ?? []),
+      ...(boundary.renderBundle?.diagnostics ?? []),
       ...(boundary.end?.diagnostics ?? []),
       ...(boundary.finish?.diagnostics ?? []),
       ...(boundary.submit?.diagnostics ?? []),
     );
   }
+
+  const renderBundleReport = createWebGpuAppRenderBundleReport(boundaries);
 
   return {
     valid:
@@ -2288,6 +2357,9 @@ async function assembleWebGpuAppFrameBoundaries(options: {
     ...(firstDepthAttachment === undefined
       ? {}
       : { depthAttachment: firstDepthAttachment }),
+    ...(renderBundleReport === undefined
+      ? {}
+      : { renderBundles: renderBundleReport }),
     readbackBoundary,
     gpuTimingReadbacks,
     gpuTimingDiagnostics,
@@ -2295,6 +2367,95 @@ async function assembleWebGpuAppFrameBoundaries(options: {
     drawCalls,
     diagnostics,
   };
+}
+
+function createWebGpuAppRenderBundleTargetKey(
+  target: WebGpuAppFrameBoundaryTarget,
+  sampleCount: number,
+): string {
+  return [
+    target.source,
+    target.renderTargetKey ?? "swapchain",
+    `view:${target.view.viewId}`,
+    `size:${target.width}x${target.height}`,
+    `color:${target.format}`,
+    `depth:${WEBGPU_APP_DEPTH_FORMAT}`,
+    `samples:${sampleCount}`,
+  ].join("|");
+}
+
+function shouldUseRenderBundlesForSnapshotSchedule(
+  schedule: RenderSnapshotUpdateSchedule,
+): boolean {
+  const meshDraws = schedule.byFamily.meshDraws.action;
+
+  return (
+    schedule.previousFrame === null ||
+    meshDraws === "reuse" ||
+    meshDraws === "skip"
+  );
+}
+
+function createWebGpuAppRenderBundleReport(
+  boundaries: readonly FrameBoundaryAssemblyReport[],
+): WebGpuAppRenderBundleReport | undefined {
+  const reports = boundaries
+    .map((boundary) => boundary.renderBundle)
+    .filter((report): report is RenderBundleExecutionReport => {
+      return report !== undefined && report !== null;
+    });
+
+  if (
+    reports.length === 0 ||
+    reports.every(
+      (report) =>
+        (report.status === "unsupported" || report.status === "disabled") &&
+        report.diagnostics.length === 0,
+    )
+  ) {
+    return undefined;
+  }
+
+  return {
+    created: countRenderBundleStatus(reports, "created"),
+    reused: countRenderBundleStatus(reports, "reused"),
+    unsupported: countRenderBundleStatus(reports, "unsupported"),
+    failed: countRenderBundleStatus(reports, "failed"),
+    disabled: countRenderBundleStatus(reports, "disabled"),
+    encodedCommands: reports.reduce(
+      (total, report) => total + report.encodedCommands,
+      0,
+    ),
+    executedBundles: reports.reduce(
+      (total, report) => total + report.executedBundles,
+      0,
+    ),
+    drawCalls: reports.reduce((total, report) => total + report.drawCalls, 0),
+    cacheSize: reports.reduce(
+      (max, report) => Math.max(max, report.cacheSize),
+      0,
+    ),
+    reports: reports.map((report) => ({
+      valid: report.valid,
+      status: report.status,
+      key: report.key,
+      commandCount: report.commandCount,
+      encodedCommands: report.encodedCommands,
+      executedBundles: report.executedBundles,
+      drawCalls: report.drawCalls,
+      cacheSize: report.cacheSize,
+      diagnostics: report.diagnostics.map((diagnostic) =>
+        toWebGpuAppJsonValue(diagnostic),
+      ),
+    })),
+  };
+}
+
+function countRenderBundleStatus(
+  reports: readonly RenderBundleExecutionReport[],
+  status: RenderBundleExecutionReport["status"],
+): number {
+  return reports.filter((report) => report.status === status).length;
 }
 
 function assembleWebGpuAppTransmissionGrabPass(options: {
@@ -2496,6 +2657,9 @@ async function renderSpriteOnlyWebGpuAppFrame(
     boundaries: boundaries.boundaries,
     renderTargets: boundaries.renderTargets,
     postEffects: boundaries.postEffects,
+    ...(boundaries.renderBundles === undefined
+      ? {}
+      : { renderBundles: boundaries.renderBundles }),
     ...(boundaries.msaa === undefined ? {} : { msaa: boundaries.msaa }),
     ...(boundaries.depthAttachment === undefined
       ? {}
@@ -5249,6 +5413,9 @@ async function renderWebGpuAppFrame(
     commands: frameCommands,
     label: options.label ?? "aperture-webgpu-app",
     reuse,
+    enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(
+      updateMetadata.snapshotUpdateSchedule,
+    ),
     ...(options.clearColor === undefined
       ? {}
       : { clearColor: options.clearColor }),
@@ -5284,6 +5451,9 @@ async function renderWebGpuAppFrame(
     boundaries: boundaries.boundaries,
     renderTargets: boundaries.renderTargets,
     postEffects: boundaries.postEffects,
+    ...(boundaries.renderBundles === undefined
+      ? {}
+      : { renderBundles: boundaries.renderBundles }),
     ...(boundaries.depthAttachment === undefined
       ? {}
       : { depthAttachment: boundaries.depthAttachment }),
@@ -6368,6 +6538,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.commandPressure === undefined
       ? {}
       : { commandPressure: toWebGpuAppJsonValue(report.commandPressure) }),
+    ...(report.renderBundles === undefined
+      ? {}
+      : { renderBundles: report.renderBundles }),
     ...(materialDependencyReadiness.length === 0
       ? {}
       : { materialDependencyReadiness }),
@@ -6468,6 +6641,7 @@ function renderReport(input: {
   readonly readback?: FrameBoundaryReadbackResult;
   readonly gpuTimings?: GpuPassTimingReport;
   readonly commandPressure?: RenderPassCommandPressureReport;
+  readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly drawPackages?: number;
   readonly drawCommands?: number;
   readonly drawCalls?: number;
@@ -6520,6 +6694,9 @@ function renderReport(input: {
     ...(input.commandPressure === undefined
       ? {}
       : { commandPressure: input.commandPressure }),
+    ...(input.renderBundles === undefined
+      ? {}
+      : { renderBundles: input.renderBundles }),
   };
 }
 

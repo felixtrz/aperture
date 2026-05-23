@@ -131,6 +131,7 @@ export * from "./renderer-frame-summary.js";
 export * from "./renderer-assembly-smoke.js";
 export * from "./render-pass-attachments.js";
 export * from "./render-pass-assembly-smoke.js";
+export * from "./render-bundle.js";
 export * from "./render-pass-command-executor.js";
 export * from "./render-pass-draw-list.js";
 export * from "./render-pass-commands.js";

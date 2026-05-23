@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 19:06 UTC</dd>
+            <dd>2026-05-23 20:00 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1461,12 +1461,14 @@
               forward render-pass command planner now elides redundant pipeline,
               bind-group, vertex-buffer, and index-buffer state commands between
               adjacent compatible draws while publishing planned-vs-emitted
-              command pressure in app status.
+              command pressure in app status, and static command plans now reuse
+              renderer-owned WebGPU render bundles on unchanged mesh-draw frames
+              with app-visible create/reuse pressure.
             </dd>
             <dt>Next focus</dt>
             <dd>
-              task-3112 static WebGPU render-bundle reuse for unchanged command
-              plans
+              task-3113 indirect draw argument-buffer route for compatible
+              grouped draws
             </dd>
           </dl>
         </aside>
@@ -2063,8 +2065,8 @@
                 Missing app-level generic material adapter route boundary.
               </li>
               <li>
-                Missing prepared render-bundle and indirect argument-buffer
-                resources for static or grouped submit paths.
+                Missing indirect argument-buffer resources for grouped submit
+                paths.
               </li>
               <li>
                 Missing IBL, shadow, render-target, and hot-path scratch polish.
@@ -2123,10 +2125,7 @@
                 Missing app-level generic material adapter route boundary.
               </li>
               <li>Missing multi-material primitive queue rules.</li>
-              <li>
-                Missing static render-bundle and indirect-draw pressure feedback
-                for queued static/grouped work.
-              </li>
+              <li>Missing indirect-draw pressure feedback for grouped work.</li>
             </ul>
           </article>
           <article class="phase">
@@ -2154,9 +2153,9 @@
           <article class="phase">
             <div class="topline">
               <h3>6. submit</h3>
-              <span class="percent">96%</span>
+              <span class="percent">98%</span>
             </div>
-            <div class="bar"><span style="width: 96%"></span></div>
+            <div class="bar"><span style="width: 98%"></span></div>
             <p>
               WebGPU command submission renders the current proof paths with
               pipeline, bind group, transform, light, mesh, and material
@@ -2223,17 +2222,18 @@
               vertex buffers, and index buffer and skips redundant state
               commands while preserving draw commands; the standard queue phase
               proof reports 56 planned state commands reduced to 21 emitted
-              commands with 35 elided.
-              <code>createWebGpuApp({ msaa })</code> now renders forward passes
-              through cached multisampled color/depth attachments, resolves to
-              the swapchain or off-screen target, and keys built-in pipelines by
-              effective sample count.
+              commands with 35 elided. Static command plans can now be encoded
+              into renderer-owned WebGPU render bundles and reused on later
+              frames when snapshot scheduling reports unchanged mesh-draw work;
+              the standard queue phase proof reports one bundle creation, later
+              reuse, 8 draw calls, and zero per-frame command encoding on the
+              reused frame. <code>createWebGpuApp({ msaa })</code> now renders
+              forward passes through cached multisampled color/depth
+              attachments, resolves to the swapchain or off-screen target, and
+              keys built-in pipelines by effective sample count.
             </p>
             <ul>
-              <li>
-                Missing static render-bundle reuse and indirect draw argument
-                buffers.
-              </li>
+              <li>Missing indirect draw argument buffers.</li>
               <li>
                 Missing broader environment asset preparation and previous
                 transform history for independently moving temporal geometry.
@@ -2258,9 +2258,10 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">task-3111</span> Elided redundant
-                render-pass state commands and exposed planned-vs-emitted
-                command pressure in the standard queue phase browser status.
+                <span class="badge green">task-3112</span> Cached static WebGPU
+                render bundles for unchanged command plans and exposed
+                created-vs-reused bundle status in the standard queue phase
+                browser proof.
               </li>
               <li>
                 <span class="badge green">loading</span> Preserved glTF source
@@ -4529,9 +4530,8 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Implement
-                <code>task-3112</code>: cache static WebGPU render bundles for
-                unchanged command plans and prove bundle reuse in browser
-                status.
+                <code>task-3113</code>: add an indirect draw argument-buffer
+                route for compatible grouped draws.
               </li>
               <li>
                 Follow with an indirect draw argument-buffer route for
@@ -4540,7 +4540,7 @@
               <li>
                 The audit conclusion is clear: covered feature breadth is high,
                 but submit efficiency still blocks an honest SOTA claim until
-                static command reuse and indirect draw paths are closed.
+                the indirect draw path is closed.
               </li>
             </ul>
           </article>
@@ -4554,15 +4554,18 @@
         </div>
         <article class="card timeline">
           <div class="timeline-item">
-            <div class="task-id">task-3111</div>
+            <div class="task-id">task-3112</div>
             <div>
-              <strong>Render-pass state-command elision shipped.</strong>
+              <strong>Static render-bundle reuse shipped.</strong>
               <span>
-                The command planner now reuses active pipeline, bind-group,
-                vertex-buffer, and index-buffer state between compatible draws.
-                <code>examples/standard-queue-phases.html</code> reports 8 draw
-                commands, 56 planned state commands, 21 emitted state commands,
-                and 35 elided state commands with zero diagnostics.
+                The frame-boundary path can now encode stable command plans into
+                renderer-owned WebGPU render bundles and execute cached bundles
+                on later frames when snapshot scheduling reports unchanged
+                mesh-draw work.
+                <code>examples/standard-queue-phases.html</code> reports one
+                bundle creation, later bundle reuse, 8 draw calls, zero
+                diagnostics, and <code>encodedCommands: 0</code> on the reused
+                frame.
               </span>
             </div>
           </div>

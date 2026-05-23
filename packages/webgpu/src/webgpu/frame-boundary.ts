@@ -31,6 +31,14 @@ import {
 } from "./render-pass-command-executor.js";
 import type { RenderPassCommand } from "./render-pass-commands.js";
 import {
+  executeRenderPassCommandsWithRenderBundle,
+  type RenderBundleCache,
+  type RenderBundleDeviceLike,
+  type RenderBundleEncoderDescriptorLike,
+  type RenderBundleExecutionReport,
+  type RenderBundleRenderPassLike,
+} from "./render-bundle.js";
+import {
   resolveGpuTimestampQueries,
   writeGpuTimestampQuery,
   type GpuTimestampCommandEncoderLike,
@@ -46,7 +54,8 @@ import {
   type RenderPassEncoderWithEndLike,
 } from "./render-pass-lifecycle.js";
 
-export interface FrameBoundaryDeviceLike extends CommandEncoderDeviceLike {
+export interface FrameBoundaryDeviceLike
+  extends CommandEncoderDeviceLike, RenderBundleDeviceLike {
   createCommandEncoder?: () => RenderPassCommandEncoderLike &
     CommandEncoderFinishLike &
     FrameBoundaryReadbackCommandEncoderLike;
@@ -185,6 +194,14 @@ export interface AssembleFrameBoundaryOptions {
   readonly depthTarget?: RenderPassDepthAttachmentInput | null;
   readonly readback?: FrameBoundaryReadbackOptions;
   readonly gpuTiming?: FrameBoundaryGpuTimingOptions;
+  readonly renderBundle?: FrameBoundaryRenderBundleOptions;
+}
+
+export interface FrameBoundaryRenderBundleOptions {
+  readonly cache: RenderBundleCache;
+  readonly key: string;
+  readonly descriptor: RenderBundleEncoderDescriptorLike;
+  readonly enabled?: boolean;
 }
 
 export interface FrameBoundaryGpuTimingOptions {
@@ -212,6 +229,7 @@ export interface FrameBoundaryAssemblyReport {
   readonly encoder: CreateCommandEncoderResult | null;
   readonly begin: BeginRenderPassResult | null;
   readonly execution: RenderPassCommandExecutionReport | null;
+  readonly renderBundle?: RenderBundleExecutionReport | null;
   readonly end: EndRenderPassResult | null;
   readonly finish: FinishCommandEncoderResult | null;
   readonly submit: SubmitCommandBuffersReport | null;
@@ -285,13 +303,20 @@ export function assembleFrameBoundary(
           plan: attachments.plan,
         });
   const pass = begin?.pass ?? null;
-  const execution =
+  const commandExecution =
     pass === null
       ? null
-      : executeRenderPassCommands({
-          pass: pass as RenderPassEncoderLike,
+      : executeFrameBoundaryCommands({
+          pass,
+          device: options.device,
           commands: options.commands,
+          label: options.label,
+          ...(options.renderBundle === undefined
+            ? {}
+            : { renderBundle: options.renderBundle }),
         });
+  const execution = commandExecution?.execution ?? null;
+  const renderBundle = commandExecution?.renderBundle ?? null;
   const end =
     pass === null
       ? null
@@ -344,6 +369,7 @@ export function assembleFrameBoundary(
     encoder,
     begin,
     execution,
+    renderBundle,
     end,
     finish,
     submit,
@@ -358,6 +384,40 @@ export function assembleFrameBoundary(
             gpuTimingResolve,
           ),
   };
+}
+
+function executeFrameBoundaryCommands(options: {
+  readonly pass: unknown;
+  readonly device: FrameBoundaryDeviceLike;
+  readonly commands: readonly RenderPassCommand[];
+  readonly label: string;
+  readonly renderBundle?: FrameBoundaryRenderBundleOptions;
+}): {
+  readonly execution: RenderPassCommandExecutionReport;
+  readonly renderBundle: RenderBundleExecutionReport | null;
+} {
+  if (options.renderBundle === undefined) {
+    return {
+      execution: executeRenderPassCommands({
+        pass: options.pass as RenderPassEncoderLike,
+        commands: options.commands,
+      }),
+      renderBundle: null,
+    };
+  }
+
+  return executeRenderPassCommandsWithRenderBundle({
+    pass: options.pass as RenderBundleRenderPassLike,
+    device: options.device,
+    commands: options.commands,
+    cache: options.renderBundle.cache,
+    key: options.renderBundle.key,
+    descriptor: options.renderBundle.descriptor,
+    label: options.label,
+    ...(options.renderBundle.enabled === undefined
+      ? {}
+      : { enabled: options.renderBundle.enabled }),
+  });
 }
 
 function writeFrameBoundaryGpuTimingStart(

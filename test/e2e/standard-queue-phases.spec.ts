@@ -83,6 +83,40 @@ interface StandardQueuePhasesStatus extends ExampleStatusBase {
       };
     };
   } | null;
+  readonly renderBundles?: {
+    readonly created: number;
+    readonly reused: number;
+    readonly unsupported: number;
+    readonly failed: number;
+    readonly disabled: number;
+    readonly encodedCommands: number;
+    readonly executedBundles: number;
+    readonly drawCalls: number;
+    readonly reports: readonly {
+      readonly status: string;
+      readonly commandCount: number;
+      readonly encodedCommands: number;
+      readonly executedBundles: number;
+      readonly drawCalls: number;
+    }[];
+  } | null;
+  readonly renderBundleHistory?: {
+    readonly created: number;
+    readonly reused: number;
+    readonly unsupported: number;
+    readonly failed: number;
+    readonly disabled: number;
+    readonly encodedCommands: number;
+    readonly executedBundles: number;
+    readonly drawCalls: number;
+    readonly reports: readonly {
+      readonly status: string;
+      readonly commandCount: number;
+      readonly encodedCommands: number;
+      readonly executedBundles: number;
+      readonly drawCalls: number;
+    }[];
+  };
   readonly counts?: {
     readonly meshDraws: number;
     readonly drawCalls: number;
@@ -150,6 +184,8 @@ test("browser renders StandardMaterial opaque, alpha-test, and transparent queue
     status.commandPressure?.stateCommands.emitted ?? Number.POSITIVE_INFINITY,
   );
   expect(status.commandPressure?.stateCommands.elided ?? 0).toBeGreaterThan(0);
+  expect(status.renderBundleHistory?.created ?? 0).toBeGreaterThan(0);
+  expect(status.renderBundleHistory?.failed ?? 0).toBe(0);
   expect(status.transparentSort?.map((entry) => entry.materialKey)).toEqual([
     status.materialKeys?.transparentDepthBack,
     status.materialKeys?.transparentDepthFront,
@@ -180,6 +216,16 @@ test("browser renders StandardMaterial opaque, alpha-test, and transparent queue
     renderedStatus,
   );
   expectStatusJsonSafeForGpu(renderedStatus);
+  expect(renderedStatus.renderBundleHistory?.created ?? 0).toBeGreaterThan(0);
+  expect(renderedStatus.renderBundleHistory?.reused ?? 0).toBeGreaterThan(0);
+  expect(renderedStatus.renderBundles).toMatchObject({
+    reused: expect.any(Number),
+    failed: 0,
+    encodedCommands: 0,
+    executedBundles: expect.any(Number),
+    drawCalls: 8,
+  });
+  expect(renderedStatus.renderBundles?.reused ?? 0).toBeGreaterThan(0);
   webGpuValidation.expectNoWarnings();
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();

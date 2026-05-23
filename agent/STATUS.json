@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "1b8e899",
   "activePid": null,
-  "notes": "Completed task-3111 render-pass state-command elision and command-pressure reporting; task-3112 static render-bundle reuse is next.",
-  "lastRunFinishedAt": "2026-05-23T19:29:41Z"
+  "notes": "Completed task-3112 static render-bundle reuse for unchanged command plans; task-3113 indirect draw argument buffers are next.",
+  "lastRunFinishedAt": "2026-05-23T20:00:20Z"
 }

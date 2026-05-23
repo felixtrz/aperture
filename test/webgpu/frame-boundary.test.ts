@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   assembleFrameBoundary,
+  createRenderBundleCache,
+  createRenderBundleCommandKey,
   type RenderPassCommand,
 } from "@aperture-engine/webgpu";
 
@@ -190,6 +192,137 @@ describe("frame boundary assembly helper", () => {
       { code: "queueSubmit.missingSubmit" },
     ]);
   });
+
+  it("creates and reuses render bundles for matching static command plans", () => {
+    const events: string[] = [];
+    const cache = createRenderBundleCache();
+    const renderBundle = {
+      cache,
+      key: "static-plane",
+      descriptor: {
+        colorFormats: ["bgra8unorm"],
+        depthStencilFormat: "depth24plus",
+        sampleCount: 1,
+      },
+    };
+
+    const first = assembleFrameBoundary({
+      context: contextWithView({ label: "view" }),
+      device: renderBundleDevice(events),
+      queue: { submit: (buffers) => events.push(`submit:${buffers.length}`) },
+      commands: [drawCommand()],
+      label: "frame",
+      renderBundle,
+    });
+    const second = assembleFrameBoundary({
+      context: contextWithView({ label: "view" }),
+      device: renderBundleDevice(events),
+      queue: { submit: (buffers) => events.push(`submit:${buffers.length}`) },
+      commands: [drawCommand()],
+      label: "frame",
+      renderBundle,
+    });
+
+    expect(first.valid).toBe(true);
+    expect(first.execution).toMatchObject({
+      commandCount: 1,
+      executedCommands: 1,
+      drawCalls: 1,
+    });
+    expect(first.renderBundle).toMatchObject({
+      status: "created",
+      encodedCommands: 1,
+      executedBundles: 1,
+      drawCalls: 1,
+    });
+    expect(second.valid).toBe(true);
+    expect(second.renderBundle).toMatchObject({
+      status: "reused",
+      encodedCommands: 0,
+      executedBundles: 1,
+      drawCalls: 1,
+    });
+    expect(events).toEqual([
+      "begin",
+      "bundle:create:frame:bundle",
+      "bundle:draw",
+      "bundle:finish",
+      "executeBundles:1",
+      "end",
+      "finish",
+      "submit:1",
+      "begin",
+      "executeBundles:1",
+      "end",
+      "finish",
+      "submit:1",
+    ]);
+  });
+
+  it("falls back to direct command execution when render bundles are unsupported", () => {
+    const events: string[] = [];
+    const report = assembleFrameBoundary({
+      context: contextWithView({ label: "view" }),
+      device: device(events),
+      queue: { submit: (buffers) => events.push(`submit:${buffers.length}`) },
+      commands: [drawCommand()],
+      label: "frame",
+      renderBundle: {
+        cache: createRenderBundleCache(),
+        key: "static-plane",
+        descriptor: { colorFormats: ["bgra8unorm"] },
+      },
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.renderBundle).toMatchObject({
+      status: "unsupported",
+      encodedCommands: 1,
+      executedBundles: 0,
+      drawCalls: 1,
+    });
+    expect(events).toEqual(["begin", "draw", "end", "finish", "submit:1"]);
+  });
+
+  it("keys bind group bundle compatibility by resource key instead of wrapper identity", () => {
+    const cache = createRenderBundleCache();
+    const first = createRenderBundleCommandKey(
+      {
+        targetKey: "swapchain",
+        colorFormats: ["bgra8unorm"],
+        commands: [
+          {
+            kind: "setBindGroup",
+            renderId: 1,
+            index: 0,
+            resourceKey: "bind-group:view-buffer",
+            bindGroup: { frame: 1 },
+          },
+          drawCommand(),
+        ],
+      },
+      cache,
+    );
+    const second = createRenderBundleCommandKey(
+      {
+        targetKey: "swapchain",
+        colorFormats: ["bgra8unorm"],
+        commands: [
+          {
+            kind: "setBindGroup",
+            renderId: 1,
+            index: 0,
+            resourceKey: "bind-group:view-buffer",
+            bindGroup: { frame: 2 },
+          },
+          drawCommand(),
+        ],
+      },
+      cache,
+    );
+
+    expect(second).toBe(first);
+  });
 });
 
 function contextWithView(view: unknown) {
@@ -214,6 +347,36 @@ function device(
         events.push("begin");
         return {
           ...(options.omitDraw ? {} : { draw: () => events.push("draw") }),
+          end: () => events.push("end"),
+        };
+      },
+      finish: () => {
+        events.push("finish");
+        return { label: "command-buffer" };
+      },
+    }),
+  };
+}
+
+function renderBundleDevice(events: string[]) {
+  return {
+    createRenderBundleEncoder: (descriptor: { readonly label?: string }) => {
+      events.push(`bundle:create:${descriptor.label ?? "unlabeled"}`);
+
+      return {
+        draw: () => events.push("bundle:draw"),
+        finish: () => {
+          events.push("bundle:finish");
+          return { label: "render-bundle" };
+        },
+      };
+    },
+    createCommandEncoder: () => ({
+      beginRenderPass: () => {
+        events.push("begin");
+        return {
+          executeBundles: (bundles: readonly unknown[]) =>
+            events.push(`executeBundles:${bundles.length}`),
           end: () => events.push("end"),
         };
       },

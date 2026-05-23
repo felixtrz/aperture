@@ -135,6 +135,17 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     receivedSnapshots: 0,
     workerReady: false,
     workerScene: null,
+    renderBundleHistory: {
+      created: 0,
+      reused: 0,
+      unsupported: 0,
+      failed: 0,
+      disabled: 0,
+      encodedCommands: 0,
+      executedBundles: 0,
+      drawCalls: 0,
+      reports: [],
+    },
   };
 
   worker.addEventListener("message", (event) => {
@@ -257,6 +268,10 @@ function statusFromReport(
   typedSnapshot,
 ) {
   const reportJson = aperture.webGpuAppRenderReportToJsonValue(report);
+  const renderBundleHistory = updateRenderBundleHistory(
+    loop,
+    reportJson.renderBundles ?? null,
+  );
   const transparentSort = report.snapshot.meshDraws
     .filter((draw) => draw.sortKey.queue === "transparent")
     .map((draw) => ({
@@ -294,9 +309,48 @@ function statusFromReport(
         (phase) => phase.phase === "transparent",
       )?.sortPolicy ?? null,
     commandPressure: reportJson.commandPressure ?? null,
+    renderBundles: reportJson.renderBundles ?? null,
+    renderBundleHistory,
     report: reportJson,
     counts: reportJson.counts,
     diagnostics: reportJson.diagnostics,
+  };
+}
+
+function updateRenderBundleHistory(loop, renderBundles) {
+  const history = loop.renderBundleHistory;
+
+  if (renderBundles !== null) {
+    history.created += renderBundles.created ?? 0;
+    history.reused += renderBundles.reused ?? 0;
+    history.unsupported += renderBundles.unsupported ?? 0;
+    history.failed += renderBundles.failed ?? 0;
+    history.disabled += renderBundles.disabled ?? 0;
+    history.encodedCommands += renderBundles.encodedCommands ?? 0;
+    history.executedBundles += renderBundles.executedBundles ?? 0;
+    history.drawCalls += renderBundles.drawCalls ?? 0;
+    history.reports = [
+      ...history.reports,
+      ...(renderBundles.reports ?? []).map((entry) => ({
+        status: entry.status,
+        commandCount: entry.commandCount,
+        encodedCommands: entry.encodedCommands,
+        executedBundles: entry.executedBundles,
+        drawCalls: entry.drawCalls,
+      })),
+    ].slice(-8);
+  }
+
+  return {
+    created: history.created,
+    reused: history.reused,
+    unsupported: history.unsupported,
+    failed: history.failed,
+    disabled: history.disabled,
+    encodedCommands: history.encodedCommands,
+    executedBundles: history.executedBundles,
+    drawCalls: history.drawCalls,
+    reports: history.reports,
   };
 }
 
