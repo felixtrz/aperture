@@ -1589,6 +1589,9 @@ describe("WebGPU app facade", () => {
       preparedMaterialBindGroupsReused: 2,
       bindGroupsCreated: 4,
       bindGroupsReused: 2,
+      queuedBindGroupsCreated: 2,
+      queuedBindGroupsReused: 2,
+      queuedBindGroupCacheSize: 2,
       dynamicBufferWrites: 0,
     });
     expect(secondUnlitResources).toHaveLength(2);
@@ -2393,7 +2396,7 @@ describe("WebGPU app facade", () => {
       textureViews: firstResourceEvents.textureViews,
       samplers: firstResourceEvents.samplers,
       buffers: firstResourceEvents.buffers + 8,
-      bindGroups: firstResourceEvents.bindGroups + 4,
+      bindGroups: firstResourceEvents.bindGroups + 2,
     });
     expect(
       webGpuAppRenderReportToJsonValue(secondFrame).resourceReuse,

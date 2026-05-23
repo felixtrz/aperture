@@ -2,12 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   createUnlitBindGroupLayoutMetadata,
+  createBindGroupResourceCache,
   createUnlitBindGroupDescriptorPlan,
   createUnlitBindGroups,
   createUnlitBindGroupsFromBuffers,
   createUnlitBindGroupsFromGpuResources,
   type UnlitBindGroupCreationDescriptor,
   type UnlitBindGroupLayoutResource,
+  type UnlitBindGroupResource,
 } from "@aperture-engine/webgpu";
 
 describe("unlit bind group descriptor planning", () => {
@@ -180,6 +182,67 @@ describe("unlit bind group descriptor planning", () => {
         ],
       },
     ]);
+  });
+
+  it("reuses cached bind group resources until layout or entry keys change", () => {
+    const descriptors: UnlitBindGroupCreationDescriptor[] = [];
+    const cache = createBindGroupResourceCache<UnlitBindGroupResource>();
+    const plan = createUnlitBindGroupDescriptorPlan({
+      viewUniformResourceKey: "view-uniform-buffer:main",
+      worldTransformResourceKey: "buffer:transforms",
+      materialResourceKey: "material-buffer:white",
+    });
+    const device = {
+      createBindGroup: (descriptor: UnlitBindGroupCreationDescriptor) => {
+        descriptors.push(descriptor);
+        return { label: descriptor.label, index: descriptors.length };
+      },
+    };
+    const first = createUnlitBindGroups({
+      device,
+      plan,
+      layouts: layoutResources(),
+      bindGroupCache: cache,
+    });
+    const second = createUnlitBindGroups({
+      device,
+      plan,
+      layouts: layoutResources(),
+      bindGroupCache: cache,
+    });
+    const layoutVersion = createUnlitBindGroups({
+      device,
+      plan,
+      layouts: layoutResources().map((layout) =>
+        layout.group === 0 ? { ...layout, layoutKey: "layout:0:v2" } : layout,
+      ),
+      bindGroupCache: cache,
+    });
+    const resourceVersion = createUnlitBindGroups({
+      device,
+      plan: createUnlitBindGroupDescriptorPlan({
+        viewUniformResourceKey: "view-uniform-buffer:main-v2",
+        worldTransformResourceKey: "buffer:transforms",
+        materialResourceKey: "material-buffer:white",
+      }),
+      layouts: layoutResources(),
+      bindGroupCache: cache,
+    });
+
+    expect(first.createdBindGroupCount).toBe(3);
+    expect(first.reusedBindGroupCount).toBe(0);
+    expect(second.createdBindGroupCount).toBe(0);
+    expect(second.reusedBindGroupCount).toBe(3);
+    expect(second.resources).toEqual(first.resources);
+    expect(layoutVersion.createdBindGroupCount).toBe(1);
+    expect(layoutVersion.reusedBindGroupCount).toBe(2);
+    expect(resourceVersion.createdBindGroupCount).toBe(1);
+    expect(resourceVersion.reusedBindGroupCount).toBe(2);
+    expect(cache).toMatchObject({
+      created: 5,
+      reused: 7,
+    });
+    expect(descriptors).toHaveLength(5);
   });
 
   it("creates bind groups from actual GPU buffer binding resources", () => {

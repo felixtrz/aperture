@@ -10,6 +10,7 @@ import {
   type StandardMaterialAsset,
 } from "@aperture-engine/render";
 import type { WebGpuBufferDeviceLike } from "./buffer.js";
+import type { BindGroupResourceCache } from "./bind-group-resource-cache.js";
 import type { CurrentTextureLike } from "./current-texture-view.js";
 import {
   createLightBindGroupDescriptorPlan,
@@ -190,6 +191,15 @@ export interface CreateStandardFrameGpuResourcesOptions {
     | LightBindGroupLayoutResource
     | StandardLightShadowBindGroupLayoutResource
     | null;
+  readonly sharedBindGroupCache?:
+    | BindGroupResourceCache<UnlitBindGroupResource>
+    | undefined;
+  readonly lightBindGroupCache?:
+    | BindGroupResourceCache<LightBindGroupResource>
+    | undefined;
+  readonly standardLightShadowBindGroupCache?:
+    | BindGroupResourceCache<StandardLightShadowBindGroupResource>
+    | undefined;
   readonly shadowReceiverResources?: StandardFrameShadowReceiverResources;
   readonly standardMaterialIblResources?: StandardFrameIblResources;
   readonly standardAreaLightLtcResources?: StandardAreaLightLtcResources | null;
@@ -652,6 +662,7 @@ function createSharedBindGroups(
     plan,
     layouts: options.sharedLayouts,
     requiredGroups: [0, 1],
+    bindGroupCache: options.sharedBindGroupCache,
     buffers: [
       ...(viewUniform === null
         ? []
@@ -777,6 +788,7 @@ function createLightBindGroup(
     device: options.device,
     plan,
     layout: options.lightLayout,
+    bindGroupCache: options.lightBindGroupCache,
   });
 
   diagnostics.push(...result.diagnostics);
@@ -831,6 +843,7 @@ function createLightIblBindGroup(
     plan,
     layout:
       options.lightLayout as StandardLightShadowBindGroupLayoutResource | null,
+    bindGroupCache: options.standardLightShadowBindGroupCache,
     lightGpuBufferResource: lightGpuBuffers.resource,
     matrixBufferResource:
       shadowReceiverResources?.matrixBufferResource ??
@@ -891,6 +904,7 @@ function createLightShadowBindGroup(
       plan,
       layout:
         options.lightLayout as StandardLightShadowBindGroupLayoutResource | null,
+      bindGroupCache: options.standardLightShadowBindGroupCache,
       lightGpuBufferResource: lightGpuBuffers.resource,
       matrixBufferResource: shadowReceiverResources.matrixBufferResource,
       depthTextureResources: shadowReceiverResources.depthTextureResources,
@@ -924,6 +938,7 @@ function createLightShadowBindGroup(
     plan,
     layout:
       options.lightLayout as StandardLightShadowBindGroupLayoutResource | null,
+    bindGroupCache: options.standardLightShadowBindGroupCache,
     lightGpuBufferResource: lightGpuBuffers.resource,
     matrixBufferResource: shadowReceiverResources.matrixBufferResource,
     depthTextureResources: shadowReceiverResources.depthTextureResources,

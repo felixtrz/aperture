@@ -4,6 +4,13 @@ import type {
   PackedSnapshotViewUniforms,
 } from "@aperture-engine/render";
 import {
+  bindGroupResourceCacheReport,
+  createBindGroupResourceCache,
+  resetBindGroupResourceCache,
+  type BindGroupResourceCache,
+  type BindGroupResourceCacheReport,
+} from "./bind-group-resource-cache.js";
+import {
   appendQueuedBuiltInFrameResourceViaAdapter,
   type CreateQueuedBuiltInFamilyFrameResourcesResult,
   type QueuedBuiltInFrameResource,
@@ -14,9 +21,12 @@ import type {
 } from "./queued-built-in-app-resource-set.js";
 import type { PreparedMaterialTextureSamplerDependencies } from "./prepared-material-texture-sampler-dependencies.js";
 import type { DebugNormalFrameGpuResources } from "./debug-normal-frame-resources.js";
+import type { LightBindGroupResource } from "./light-bind-group.js";
 import type { MatcapFrameGpuResources } from "./matcap-frame-resources.js";
 import type { StandardFrameGpuResources } from "./standard-frame-resources.js";
+import type { StandardLightShadowBindGroupResource } from "./standard-light-shadow-bind-group.js";
 import type { UnlitFrameGpuResources } from "./unlit-frame-resources.js";
+import type { UnlitBindGroupResource } from "./unlit-bind-group.js";
 import {
   createQueuedMaterialFrameResourceScratch,
   prepareQueuedMaterialFrameResourceSet,
@@ -54,11 +64,22 @@ export interface QueuedBuiltInFrameResources {
   readonly byFamily: QueuedMaterialFrameResourceBuckets<QueuedBuiltInFrameResource>;
   readonly byFamilySummary: readonly QueuedMaterialFrameResourceBucketSummary[];
   readonly bindGroups: readonly UnlitFrameGpuResources["bindGroups"][number][];
+  readonly bindGroupReuse: QueuedBuiltInBindGroupReuseReport;
+}
+
+export interface QueuedBuiltInBindGroupReuseReport {
+  readonly created: number;
+  readonly reused: number;
+  readonly cached: number;
+  readonly shared: BindGroupResourceCacheReport;
+  readonly lights: BindGroupResourceCacheReport;
+  readonly standardLightShadows: BindGroupResourceCacheReport;
 }
 
 export interface CreateQueuedBuiltInFrameResourcesResult {
   readonly valid: boolean;
   readonly resources: QueuedBuiltInFrameResources | null;
+  readonly bindGroupReuse: QueuedBuiltInBindGroupReuseReport;
   readonly diagnostics: readonly unknown[];
 }
 
@@ -80,6 +101,9 @@ export interface QueuedBuiltInFrameResourceScratch<
   readonly standard: StandardFrameGpuResources[];
   readonly debugNormal: DebugNormalFrameGpuResources[];
   readonly byFamily: QueuedMaterialFrameResourceBuckets<QueuedBuiltInFrameResource>;
+  readonly sharedBindGroupCache: BindGroupResourceCache<UnlitBindGroupResource>;
+  readonly lightBindGroupCache: BindGroupResourceCache<LightBindGroupResource>;
+  readonly standardLightShadowBindGroupCache: BindGroupResourceCache<StandardLightShadowBindGroupResource>;
 }
 
 export interface PrepareQueuedBuiltInFrameResourceSetCallbacks<
@@ -111,6 +135,9 @@ export interface PrepareQueuedBuiltInFrameResourceSetCallbacks<
     readonly worldTransforms: PackedSnapshotTransforms;
     readonly instanceTints?: PackedSnapshotInstanceTints | null;
     readonly layouts: TPipelineLayouts;
+    readonly sharedBindGroupCache: BindGroupResourceCache<UnlitBindGroupResource>;
+    readonly lightBindGroupCache: BindGroupResourceCache<LightBindGroupResource>;
+    readonly standardLightShadowBindGroupCache: BindGroupResourceCache<StandardLightShadowBindGroupResource>;
   }): TFrameOptions;
 }
 
@@ -162,6 +189,11 @@ export function createQueuedBuiltInFrameResourceScratch<
     debugNormal: [],
     byFamily:
       createQueuedMaterialFrameResourceBuckets<QueuedBuiltInFrameResource>(),
+    sharedBindGroupCache:
+      createBindGroupResourceCache<UnlitBindGroupResource>(),
+    lightBindGroupCache: createBindGroupResourceCache<LightBindGroupResource>(),
+    standardLightShadowBindGroupCache:
+      createBindGroupResourceCache<StandardLightShadowBindGroupResource>(),
   };
 }
 
@@ -219,6 +251,10 @@ export async function prepareQueuedBuiltInFrameResourceSet<
           ...(options.instanceTints === undefined
             ? {}
             : { instanceTints: options.instanceTints }),
+          sharedBindGroupCache: scratch.sharedBindGroupCache,
+          lightBindGroupCache: scratch.lightBindGroupCache,
+          standardLightShadowBindGroupCache:
+            scratch.standardLightShadowBindGroupCache,
         }),
       createFrameResources: ({ item, options: frameOptions }) =>
         item.adapter.createFrameResources(
@@ -258,8 +294,10 @@ export async function prepareQueuedBuiltInFrameResourceSet<
   });
 
   const resources = prepared.valid ? prepared.firstResources : null;
+  const bindGroupReuse = createQueuedBuiltInBindGroupReuseReport(scratch);
   const result: CreateQueuedBuiltInFrameResourcesResult = {
     valid: prepared.valid,
+    bindGroupReuse,
     resources: resources
       ? {
           mesh: resources.mesh,
@@ -275,6 +313,7 @@ export async function prepareQueuedBuiltInFrameResourceSet<
             scratch.byFamily,
           ),
           bindGroups: prepared.bindGroups,
+          bindGroupReuse,
         }
       : null,
     diagnostics: prepared.diagnostics,
@@ -319,6 +358,33 @@ function resetQueuedBuiltInFrameResourceScratch<TPipelinePlanResult>(
   scratch.standard.length = 0;
   scratch.debugNormal.length = 0;
   resetQueuedMaterialFrameResourceBuckets(scratch.byFamily);
+  resetBindGroupResourceCache(scratch.sharedBindGroupCache);
+  resetBindGroupResourceCache(scratch.lightBindGroupCache);
+  resetBindGroupResourceCache(scratch.standardLightShadowBindGroupCache);
 
   return scratch;
+}
+
+function createQueuedBuiltInBindGroupReuseReport(
+  scratch: Pick<
+    QueuedBuiltInFrameResourceScratch<unknown>,
+    | "sharedBindGroupCache"
+    | "lightBindGroupCache"
+    | "standardLightShadowBindGroupCache"
+  >,
+): QueuedBuiltInBindGroupReuseReport {
+  const shared = bindGroupResourceCacheReport(scratch.sharedBindGroupCache);
+  const lights = bindGroupResourceCacheReport(scratch.lightBindGroupCache);
+  const standardLightShadows = bindGroupResourceCacheReport(
+    scratch.standardLightShadowBindGroupCache,
+  );
+
+  return {
+    created: shared.created + lights.created + standardLightShadows.created,
+    reused: shared.reused + lights.reused + standardLightShadows.reused,
+    cached: shared.cached + lights.cached + standardLightShadows.cached,
+    shared,
+    lights,
+    standardLightShadows,
+  };
 }

@@ -1,6 +1,55 @@
 # Agent Handoff
 
-Updated: 2026-05-23T20:29:30Z
+Updated: 2026-05-23T21:01:47Z
+
+## Current Run Update — 2026-05-23T21:01:47Z — Shared queued bind-group reuse
+
+Completed `task-3115`, the fifth post-audit submit-efficiency slice.
+
+### What changed
+
+- Added a generic renderer-owned bind-group resource cache helper.
+- Threaded per-frame shared bind-group caches through queued built-in
+  frame-resource preparation for Unlit, Matcap, StandardMaterial, and
+  DebugNormal routes.
+- Reused compatible shared view, transform, light, and StandardMaterial
+  light/shadow bind groups within queued built-in frame-resource preparation
+  instead of creating duplicate wrapper resources for every compatible route.
+- Kept cache invalidation keyed by layout plus concrete entry/resource keys,
+  including light-side optional entries such as transmission scene-color
+  bindings.
+- Published JSON-safe queued bind-group creation/reuse/cache pressure through
+  WebGPU app resource reuse reports and
+  `examples/standard-queue-phases.html`.
+- Updated the public tracker, render-pipeline comparison page, backlog,
+  current-task pointer, and completed-task log. Recommended next task is now
+  `task-3116`, previous transform history for independently moving TAA
+  geometry.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/unlit-bind-group.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/unlit-frame-resources.test.ts test/webgpu/matcap-frame-resources.test.ts test/webgpu/debug-normal-frame-resources.test.ts test/webgpu/unlit-app-frame-resources.test.ts test/webgpu/debug-normal-app-frame-resources.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/webgpu-app.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- Playwright MCP browser proof for
+  `http://127.0.0.1:4175/examples/standard-queue-phases.html`: `ok: true`,
+  submit phase, 8 draw calls, zero diagnostics, 3 queued bind groups created,
+  18 queued bind groups reused, cache size 3, render-bundle reuse with
+  `encodedCommands: 0`, and opaque state-aware pipeline switches 2 versus
+  stable-baseline 3.
+
+### Known issues
+
+- The headed Playwright project has previously timed out during suite startup
+  in this environment before test bodies run; runtime behavior was validated
+  through the Playwright MCP browser proof above.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3116`, adding previous transform history for independently moving
+TAA geometry while preserving the worker snapshot boundary.
 
 ## Current Run Update — 2026-05-23T20:29:30Z — State-aware opaque queue ordering
 

@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3115`: reuse shared queued built-in bind groups across compatible
-frame resources.
+Start `task-3116`: add previous transform history for independently moving TAA
+geometry.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -149,14 +149,17 @@ WebGPU render bundles for unchanged command plans. `task-3113` now submits
 compatible grouped draws through an indirect argument buffer when supported.
 `task-3114` now sorts opaque/alpha-test queue records by prepared pipeline,
 material-resource, mesh-layout, and mesh-resource state inside authored
-render-order buckets. The remaining polish blocker is shared bind-group
-allocation pressure.
+render-order buckets. `task-3115` now reuses shared queued built-in bind groups
+across compatible frame-resource routes and exposes creation-vs-reuse pressure
+in app/browser status. The remaining closest visible SOTA gap is temporal
+history for independently moving geometry, followed by deeper post-effect graph
+composition and broader environment asset preparation.
 
 Reference anchors for the next task (read before writing):
 
-- `references/three.js/src/renderers/common/RenderList.js`.
-- `references/engine/src/scene/renderer/renderer.js`.
-- `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`.
+- `references/engine/src/extras/render-passes/render-pass-taa.js`.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/render-pass/frag/taaResolve.js`.
+- `references/bevy/examples/3d/motion_blur.rs`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -419,6 +422,8 @@ Acceptance criteria:
 
 ### task-3115 — Reuse shared queued built-in bind groups across compatible frame resources
 
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/queued-*`, `packages/webgpu/src/webgpu/*app-frame-resources.ts`, a focused multi-material example/status proof, targeted tests.
 Reference anchor: `references/three.js/src/renderers/webgpu/WebGPUBackend.js`, `references/three.js/src/renderers/common/Bindings.js`, `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`.
@@ -428,6 +433,42 @@ Acceptance criteria:
 - Shared per-view, per-transform, and per-light bind groups for queued built-in materials are reused across compatible material families/pipeline routes instead of recreated as wrapper objects for each compatible frame-resource item.
 - App status or diagnostics expose bind-group creation-vs-reuse pressure for a multi-material scene without exposing raw GPU handles.
 - The selected scene keeps its existing pixel/readback proof, render-bundle reuse remains valid, and targeted frame-resource cache tests cover invalidation when buffer/layout/resource keys change.
+
+### task-3116 — Add previous transform history for independently moving TAA geometry
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/rendering/`, `packages/webgpu/src/webgpu/*taa*`, `examples/taa.*`, targeted tests.
+Reference anchor: `references/engine/src/extras/render-passes/render-pass-taa.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/render-pass/frag/taaResolve.js`, `references/bevy/examples/3d/motion_blur.rs`.
+
+Acceptance criteria:
+
+- Render snapshots or WebGPU app temporal state preserve previous per-draw transform matrices for independently moving built-in mesh geometry without requiring renderer access to ECS world state.
+- The TAA motion-vector path uses previous per-object transform history when available, and reports a JSON-safe fallback reason when history is unavailable or incompatible.
+- `examples/taa.html` includes a moving-geometry proof where browser status shows object-motion history was used and readbacks remain stable with zero diagnostics.
+
+### task-3117 — Add a downsample/upsample post-effect graph for bloom
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/post-*`, `examples/post-effects.*`, targeted tests.
+Reference anchor: `references/engine/src/extras/render-passes/frame-pass-bloom.js`, `references/engine/src/extras/render-passes/render-pass-downsample.js`, `references/engine/src/extras/render-passes/render-pass-upsample.js`.
+
+Acceptance criteria:
+
+- The post-effect framework can allocate a renderer-owned downsample chain and an upsample/composite chain as one declared graph rather than a single flat full-resolution pass list.
+- Bloom uses the graph route for at least two lower-resolution levels and exposes JSON-safe pass/resource counts without exposing GPU handles.
+- `examples/post-effects.html` or a focused bloom example proves visible glow contribution and status-reported downsample/upsample execution in the browser.
+
+### task-3118 — Broaden environment asset preparation beyond the current single-app proof
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/materials/`, `packages/webgpu/src/webgpu/*environment*`, `examples/materials-showcase.*` or `examples/spinning-cube.*`, targeted tests.
+Reference anchor: `references/bevy/crates/bevy_pbr/src/light_probe/environment_map.rs`, `references/bevy/crates/bevy_pbr/src/light_probe/environment_filter.wgsl`, `references/engine/src/scene/graphics/env-lighting.js`.
+
+Acceptance criteria:
+
+- Environment-map preparation supports multiple renderer-owned environment assets with stable readiness/version summaries instead of only the current single proof route.
+- App status reports prepared diffuse/specular environment asset reuse and invalidation without raw texture or bind-group handles.
+- A browser example switches between two environment handles or material probes and shows distinct IBL response while preserving zero WebGPU diagnostics.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

@@ -26133,3 +26133,38 @@ Validation:
   commands, 35 elided state commands, stable opaque pipeline switches 3,
   state-aware opaque pipeline switches 2, and render-bundle reuse with
   `encodedCommands: 0`.
+
+## task-3115 — Reuse shared queued built-in bind groups across compatible frame resources
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added a generic bind-group resource cache for renderer-owned shared bind
+  groups.
+- Threaded shared per-frame bind-group caches through queued built-in
+  frame-resource preparation for Unlit, Matcap, StandardMaterial, and
+  DebugNormal routes.
+- Reused shared view, transform, light, and StandardMaterial light/shadow bind
+  groups across compatible frame-resource items while keeping layout/resource
+  key invalidation explicit.
+- Published JSON-safe queued bind-group creation/reuse/cache pressure through
+  WebGPU app resource reuse reports and
+  `examples/standard-queue-phases.html`.
+- Updated the standard queue phase e2e status contract and targeted cache tests
+  so incompatible layout, buffer, light-entry, and resource keys create fresh
+  bind groups.
+- Updated backlog, current task, public tracker, render-pipeline comparison,
+  and handoff. Recommended next task is `task-3116`.
+
+Validation:
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/unlit-bind-group.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/unlit-frame-resources.test.ts test/webgpu/matcap-frame-resources.test.ts test/webgpu/debug-normal-frame-resources.test.ts test/webgpu/unlit-app-frame-resources.test.ts test/webgpu/debug-normal-app-frame-resources.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/webgpu-app.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- Playwright MCP browser proof for
+  `http://127.0.0.1:4175/examples/standard-queue-phases.html`: `ok: true`,
+  submit phase, 8 draw calls, zero diagnostics, 3 queued bind groups created,
+  18 queued bind groups reused, cache size 3, render-bundle reuse with
+  `encodedCommands: 0`, and opaque state-aware pipeline switches 2 versus
+  stable-baseline 3.

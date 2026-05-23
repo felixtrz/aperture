@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 20:29 UTC</dd>
+            <dd>2026-05-23 21:01 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1467,12 +1467,15 @@
               now also submit through a renderer-owned indirect argument buffer
               when supported, and opaque/alpha-test queues now group prepared
               pipeline, material-resource, mesh-layout, and mesh-resource state
-              inside authored render-order buckets.
+              inside authored render-order buckets. Queued built-in
+              frame-resource preparation now reuses compatible shared view,
+              transform, light, and light/shadow bind groups and publishes
+              creation-vs-reuse pressure in app status.
             </dd>
             <dt>Next focus</dt>
             <dd>
-              task-3115 shared queued built-in bind-group reuse to reduce
-              allocation pressure
+              task-3116 previous transform history for independently moving TAA
+              geometry
             </dd>
           </dl>
         </aside>
@@ -2062,15 +2065,14 @@
               invalid-field fallback diagnostics. StandardMaterial app-frame
               resource reuse now keys off pipeline and layout state so live GLB
               viewer shadow/IBL route changes do not reuse incompatible prepared
-              bind groups.
+              bind groups. Queued built-in frame-resource preparation now also
+              reuses compatible shared view, transform, light, and
+              StandardMaterial light/shadow bind groups within a frame while
+              publishing JSON-safe creation/reuse/cache pressure.
             </p>
             <ul>
               <li>
                 Missing app-level generic material adapter route boundary.
-              </li>
-              <li>
-                Missing shared bind-group allocation pressure reduction for
-                grouped submit paths.
               </li>
               <li>
                 Missing IBL, shadow, render-target, and hot-path scratch polish.
@@ -2080,9 +2082,9 @@
           <article class="phase">
             <div class="topline">
               <h3>4. queue</h3>
-              <span class="percent">92%</span>
+              <span class="percent">94%</span>
             </div>
-            <div class="bar"><span style="width: 92%"></span></div>
+            <div class="bar"><span style="width: 94%"></span></div>
             <p>
               Material-family queueing, route diagnostics, resource key
               resolution, Standard transparent phases, app route reporting,
@@ -2125,14 +2127,16 @@
               pressure after state-command elision, and opaque/alpha-test queue
               ordering now groups prepared pipeline, material-resource,
               mesh-layout, and mesh-resource state inside authored render-order
-              buckets.
+              buckets. Shared queued built-in bind-group reuse now lowers
+              frame-resource allocation pressure for compatible multi-material
+              routes while keeping cache keys tied to layout and entry-resource
+              identities.
             </p>
             <ul>
               <li>
                 Missing app-level generic material adapter route boundary.
               </li>
               <li>Missing multi-material primitive queue rules.</li>
-              <li>Missing shared bind-group allocation pressure reduction.</li>
             </ul>
           </article>
           <article class="phase">
@@ -2239,7 +2243,9 @@
               argument buffer, one draw call, and zero diagnostics. Opaque queue
               state sorting now lowers the standard queue phase proof from 3
               stable-baseline pipeline switches to 2 state-aware pipeline
-              switches while keeping 8 draw calls and zero diagnostics.
+              switches while keeping 8 draw calls and zero diagnostics. The same
+              proof now reports shared queued bind-group pressure with 3 created
+              bind groups, 18 reused bind groups, and 3 cached entries.
               <code>createWebGpuApp({ msaa })</code> now renders forward passes
               through cached multisampled color/depth attachments, resolves to
               the swapchain or off-screen target, and keys built-in pipelines by
@@ -2269,6 +2275,12 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3115</span> Reused shared queued
+                built-in bind groups across compatible frame-resource routes and
+                exposed created/reused/cache pressure in the standard queue
+                phase browser proof.
+              </li>
               <li>
                 <span class="badge green">task-3114</span> Added state-aware
                 opaque queue ordering and exposed stable-vs-state-aware pipeline
@@ -4541,17 +4553,16 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Implement
-                <code>task-3115</code>: reuse shared queued built-in bind groups
-                across compatible frame resources.
+                <code>task-3116</code>: preserve previous transform history for
+                independently moving TAA geometry.
               </li>
               <li>
-                Then audit the submit-efficiency slices against three.js and
-                PlayCanvas before moving to the next visible rendering gap.
+                Then implement <code>task-3117</code>: a downsample/upsample
+                post-effect graph for bloom.
               </li>
               <li>
-                The audit conclusion is clear: covered feature breadth is high,
-                and the main submit-efficiency gaps are nearly closed; the next
-                work is shared bind-group allocation pressure.
+                Then implement <code>task-3118</code>: broader environment asset
+                preparation and switching beyond the current single proof route.
               </li>
             </ul>
           </article>
@@ -4564,6 +4575,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3115</div>
+            <div>
+              <strong>Shared queued bind-group reuse shipped.</strong>
+              <span>
+                Queued built-in frame-resource preparation now reuses compatible
+                shared view, transform, light, and StandardMaterial light/shadow
+                bind groups. The standard queue phase proof reports 3 queued
+                bind groups created, 18 reused, cache size 3, 8 draw calls,
+                render-bundle reuse, and zero diagnostics.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3114</div>
             <div>

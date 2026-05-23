@@ -109,6 +109,11 @@ interface StandardQueuePhasesStatus extends ExampleStatusBase {
       readonly total: number;
     };
   } | null;
+  readonly queuedBindGroups?: {
+    readonly created: number;
+    readonly reused: number;
+    readonly cacheSize: number;
+  };
   readonly renderBundles?: {
     readonly created: number;
     readonly reused: number;
@@ -213,6 +218,9 @@ test("browser renders StandardMaterial opaque, alpha-test, and transparent queue
   });
   expect(status.queueStateSort?.delta.pipeline ?? 0).toBeGreaterThan(0);
   expect(status.queueStateSort?.delta.total ?? 0).toBeGreaterThan(0);
+  expect(status.queuedBindGroups?.created ?? 0).toBeGreaterThan(0);
+  expect(status.queuedBindGroups?.reused ?? 0).toBeGreaterThan(0);
+  expect(status.queuedBindGroups?.cacheSize ?? 0).toBeGreaterThan(0);
   expect(status.commandPressure?.stateCommands.planned ?? 0).toBeGreaterThan(
     status.commandPressure?.stateCommands.emitted ?? Number.POSITIVE_INFINITY,
   );

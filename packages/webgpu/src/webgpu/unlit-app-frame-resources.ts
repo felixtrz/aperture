@@ -11,6 +11,7 @@ import type {
   PackedSnapshotViewUniforms,
 } from "@aperture-engine/render";
 import { sameStringList, writeBufferData } from "./app-frame-resource-utils.js";
+import type { BindGroupResourceCache } from "./bind-group-resource-cache.js";
 import {
   createPreparedAppMaterialFallbackDiagnostic,
   recordPreparedAppMaterialResourceUse,
@@ -35,6 +36,7 @@ import {
   type PreparedMeshGpuResourceCache,
 } from "./prepared-app-mesh-resource.js";
 import type { UnlitBindGroupLayoutResource } from "./unlit-bind-group.js";
+import type { UnlitBindGroupResource } from "./unlit-bind-group.js";
 import {
   createViewUniformBufferDescriptorScratch,
   writeViewUniformBufferDescriptor,
@@ -107,6 +109,9 @@ export function createOrReuseUnlitAppFrameResources(options: {
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
+  readonly bindGroupCache?:
+    | BindGroupResourceCache<UnlitBindGroupResource>
+    | undefined;
   readonly reuse: UnlitAppFrameResourceReuseReport;
 }): CreateUnlitAppFrameResourcesResult {
   const cached = options.cache.current;
@@ -196,6 +201,7 @@ export function createOrReuseUnlitAppFrameResources(options: {
     viewUniforms: options.viewUniforms,
     worldTransforms: options.worldTransforms,
     layouts: options.layouts,
+    bindGroupCache: options.bindGroupCache,
     textures: options.textureSamplerDependencies.textures,
     samplers: options.textureSamplerDependencies.samplers,
   });

@@ -3,21 +3,14 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3115.
+Current task: task-3116.
 
 Status: Tier 20 is complete. The post-Tier-20 audit selected submit efficiency
 as the current SOTA blocker. `task-3111` closed redundant state-command
-emission, and `task-3112` now closes static command-plan render-bundle reuse:
-stable WebGPU command plans can be encoded into renderer-owned render bundles
-and executed from cache on later frames when snapshot scheduling reports
-unchanged mesh-draw work. `task-3113` closes the indirect grouped-draw route:
-compatible grouped draw commands can be packed into a renderer-owned WebGPU
-indirect argument buffer and submitted through `drawIndexedIndirect` when the
-device supports the required first-instance feature. `task-3114` now closes the
-state-aware opaque queue-ordering slice: opaque/alpha-test draw packages,
-render-queue records, and material-queue items group by prepared pipeline,
-material-resource, mesh-layout, and mesh-resource state inside authored
-render-order buckets while transparent records keep back-to-front ordering.
+emission, `task-3112` closed static command-plan render-bundle reuse,
+`task-3113` closed the indirect grouped-draw route, `task-3114` closed
+state-aware opaque/alpha-test queue ordering, and `task-3115` closed shared
+queued built-in bind-group reuse across compatible frame-resource routes.
 
 Browser proof:
 
@@ -25,15 +18,17 @@ Browser proof:
   diagnostics.
 - Browser status reported 56 planned state commands, 21 emitted state commands,
   and 35 elided state commands.
-- Browser status also reported one render-bundle creation, later render-bundle
-  reuse, 8 draw calls, and `encodedCommands: 0` on the reused frame.
+- Browser status also reported render-bundle reuse with `encodedCommands: 0` on
+  the reused frame.
 - `examples/instancing.html` reported one indirect draw candidate, one
   `drawIndexedIndirect` command, one 20-byte argument buffer, one draw call, and
   zero diagnostics.
-- `examples/standard-queue-phases.html` now reports opaque state-sort pressure:
-  the stable nontransparent baseline needs 3 pipeline switches, while the
-  state-aware order needs 2, with the same 8 draw calls and zero diagnostics.
+- `examples/standard-queue-phases.html` reports opaque state-sort pressure: the
+  stable nontransparent baseline needs 3 pipeline switches, while the
+  state-aware order needs 2.
+- `examples/standard-queue-phases.html` now reports queued bind-group reuse:
+  3 created shared queued bind groups, 18 reused, and 3 cached entries while
+  keeping render-bundle reuse valid.
 
-Next step: start `task-3115` from `agent/BACKLOG.md`, reusing shared queued
-built-in bind groups across compatible frame resources without exposing raw GPU
-handles.
+Next step: start `task-3116` from `agent/BACKLOG.md`, adding previous transform
+history for independently moving TAA geometry.

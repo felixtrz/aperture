@@ -1,3 +1,8 @@
+import {
+  readCachedBindGroupResource,
+  writeCachedBindGroupResource,
+  type BindGroupResourceCache,
+} from "./bind-group-resource-cache.js";
 import type { LightGpuBufferResource } from "./light-packing.js";
 import {
   DEFAULT_LIGHT_BIND_GROUP,
@@ -119,6 +124,9 @@ export interface CreateLightBindGroupResourceOptions {
   readonly device: LightBindGroupDeviceLike;
   readonly plan: LightBindGroupDescriptorPlan | null;
   readonly layout: LightBindGroupLayoutResource | null;
+  readonly bindGroupCache?:
+    | BindGroupResourceCache<LightBindGroupResource>
+    | undefined;
 }
 
 export interface CreateLightBindGroupResourceResult {
@@ -331,22 +339,36 @@ export function createLightBindGroupResource(
       resource: lightBindGroupCreationResource(entry),
     })),
   };
+  const cacheKey = lightBindGroupCacheKey(
+    options.layout.layoutKey,
+    options.plan.resourceKey,
+    options.plan.entries,
+  );
+  const cached = readCachedBindGroupResource(options.bindGroupCache, cacheKey);
+
+  if (cached !== null) {
+    return { valid: true, resource: cached, diagnostics: [] };
+  }
 
   try {
+    const resource: LightBindGroupResource = {
+      group: options.plan.group,
+      resourceKey: options.plan.resourceKey,
+      layoutKey: options.layout.layoutKey,
+      bindGroup: options.device.createBindGroup(descriptor),
+      entryResourceKeys: [
+        ...options.plan.entries.map((entry) => entry.resourceKey),
+        ...(options.plan.pipelineKey === undefined
+          ? []
+          : [options.plan.pipelineKey]),
+      ],
+    };
+
+    writeCachedBindGroupResource(options.bindGroupCache, cacheKey, resource);
+
     return {
       valid: true,
-      resource: {
-        group: options.plan.group,
-        resourceKey: options.plan.resourceKey,
-        layoutKey: options.layout.layoutKey,
-        bindGroup: options.device.createBindGroup(descriptor),
-        entryResourceKeys: [
-          ...options.plan.entries.map((entry) => entry.resourceKey),
-          ...(options.plan.pipelineKey === undefined
-            ? []
-            : [options.plan.pipelineKey]),
-        ],
-      },
+      resource,
       diagnostics: [],
     };
   } catch (cause) {
@@ -392,6 +414,16 @@ export function createLightBindGroupResourceResultToJson(
   result: CreateLightBindGroupResourceResult,
 ): string {
   return JSON.stringify(createLightBindGroupResourceResultToJsonValue(result));
+}
+
+function lightBindGroupCacheKey(
+  layoutKey: string,
+  resourceKey: string,
+  entries: readonly LightBindGroupDescriptorEntry[],
+): string {
+  return `${layoutKey}|${resourceKey}|${entries
+    .map((entry) => `${entry.binding}:${entry.resourceKey}`)
+    .join("/")}`;
 }
 
 function appendAreaLightLtcEntries(

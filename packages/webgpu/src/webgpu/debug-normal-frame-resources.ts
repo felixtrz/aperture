@@ -34,6 +34,7 @@ import {
   type MeshGpuBufferCreationDiagnostic,
   type MeshGpuBufferResource,
 } from "./mesh-buffer-resources.js";
+import type { BindGroupResourceCache } from "./bind-group-resource-cache.js";
 import {
   createUnlitBindGroupsFromGpuResources,
   type CreateUnlitBindGroupsResult,
@@ -110,6 +111,9 @@ export interface CreateDebugNormalFrameGpuResourcesOptions {
     | undefined;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
   readonly materialLayout: DebugNormalMaterialBindGroupLayoutResource | null;
+  readonly bindGroupCache?:
+    | BindGroupResourceCache<UnlitBindGroupResource>
+    | undefined;
 }
 
 export interface DebugNormalFrameGpuResources {
@@ -327,6 +331,7 @@ function createSharedBindGroups(
     plan,
     layouts: options.sharedLayouts,
     requiredGroups: [0, 1],
+    bindGroupCache: options.bindGroupCache,
     buffers: [
       ...(viewUniform === null
         ? []

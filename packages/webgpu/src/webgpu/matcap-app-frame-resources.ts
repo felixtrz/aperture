@@ -11,6 +11,7 @@ import type {
   PackedSnapshotViewUniforms,
 } from "@aperture-engine/render";
 import { sameStringList, writeBufferData } from "./app-frame-resource-utils.js";
+import type { BindGroupResourceCache } from "./bind-group-resource-cache.js";
 import {
   createPreparedAppMaterialFallbackDiagnostic,
   recordPreparedAppMaterialResourceUse,
@@ -34,6 +35,7 @@ import {
   type PreparedMeshGpuResourceCache,
 } from "./prepared-app-mesh-resource.js";
 import type { UnlitBindGroupLayoutResource } from "./unlit-bind-group.js";
+import type { UnlitBindGroupResource } from "./unlit-bind-group.js";
 import {
   createViewUniformBufferDescriptorScratch,
   writeViewUniformBufferDescriptor,
@@ -105,6 +107,9 @@ export function createOrReuseMatcapAppFrameResources(options: {
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
   readonly materialLayout: MatcapMaterialBindGroupLayoutResource | null;
+  readonly bindGroupCache?:
+    | BindGroupResourceCache<UnlitBindGroupResource>
+    | undefined;
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
   readonly preparedMatcapMaterials: PreparedMatcapMaterialCache;
   readonly reuse: MatcapAppFrameResourceReuseReport;
@@ -197,6 +202,7 @@ export function createOrReuseMatcapAppFrameResources(options: {
     worldTransforms: options.worldTransforms,
     sharedLayouts: options.sharedLayouts,
     materialLayout: options.materialLayout,
+    bindGroupCache: options.bindGroupCache,
     textures: options.textureSamplerDependencies.textures,
     samplers: options.textureSamplerDependencies.samplers,
   });

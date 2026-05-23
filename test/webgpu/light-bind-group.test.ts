@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createBindGroupResourceCache,
   createLightBindGroupResource,
   createLightBindGroupResourceResultToJson,
   createLightBindGroupResourceResultToJsonValue,
@@ -10,6 +11,7 @@ import {
   lightBindGroupResourceKey,
   type LightBindGroupCreationDescriptor,
   type LightBindGroupLayoutResource,
+  type LightBindGroupResource,
   type LightGpuBufferResource,
 } from "@aperture-engine/webgpu";
 
@@ -207,6 +209,60 @@ describe("light bind group descriptor planning", () => {
         ],
       },
     ]);
+  });
+
+  it("reuses cached light bind group resources until layout or entries change", () => {
+    const descriptors: LightBindGroupCreationDescriptor[] = [];
+    const cache = createBindGroupResourceCache<LightBindGroupResource>();
+    const device = {
+      createBindGroup: (descriptor: LightBindGroupCreationDescriptor) => {
+        descriptors.push(descriptor);
+        return { handle: `raw-light-bind-group-${descriptors.length}` };
+      },
+    };
+
+    const first = createLightBindGroupResource({
+      device,
+      plan: validPlan(),
+      layout: layoutResource(),
+      bindGroupCache: cache,
+    });
+    const second = createLightBindGroupResource({
+      device,
+      plan: validPlan(),
+      layout: layoutResource(),
+      bindGroupCache: cache,
+    });
+    const transmission = createLightBindGroupResource({
+      device,
+      plan: createLightBindGroupDescriptorPlan({
+        lightGpuBufferResource: lightGpuBufferResource(),
+        layoutKey: "bind-group-layout:lights/group-3",
+        pipelineKey: "standard|transmission|blend|back|less|alpha",
+        transmissionSceneColorResources: {
+          texture: {
+            resourceKey:
+              "standard-transmission-grab:scene-color:960:960:bgra8unorm",
+            view: { handle: "raw-transmission-scene-color-view" },
+          },
+          sampler: {
+            resourceKey: "standard-transmission-grab:sampler",
+            sampler: { handle: "raw-transmission-scene-color-sampler" },
+          },
+        },
+      }),
+      layout: layoutResource(),
+      bindGroupCache: cache,
+    });
+
+    expect(first.valid).toBe(true);
+    expect(second.resource).toBe(first.resource);
+    expect(transmission.resource).not.toBe(first.resource);
+    expect(descriptors).toHaveLength(2);
+    expect(cache).toMatchObject({
+      created: 2,
+      reused: 1,
+    });
   });
 
   it("diagnoses null and invalid light bind group descriptor plans", () => {

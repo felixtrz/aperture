@@ -9,6 +9,7 @@ export * from "./built-in-material-queue-adapter.js";
 export * from "./built-in-material-queue-family.js";
 export * from "./built-in-material-queue-phase.js";
 export * from "./bind-group-layout-cache.js";
+export * from "./bind-group-resource-cache.js";
 export * from "./clear.js";
 export * from "./clear-readback.js";
 export * from "./clear-compatibility.js";

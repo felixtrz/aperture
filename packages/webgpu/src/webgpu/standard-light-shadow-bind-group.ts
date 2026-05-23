@@ -1,3 +1,8 @@
+import {
+  readCachedBindGroupResource,
+  writeCachedBindGroupResource,
+  type BindGroupResourceCache,
+} from "./bind-group-resource-cache.js";
 import type {
   WebGpuBindGroupLayoutDescriptor,
   WebGpuBindGroupLayoutEntryDescriptor,
@@ -624,6 +629,9 @@ export function createStandardLightShadowBindGroupResource(options: {
   readonly device: StandardLightShadowBindGroupDeviceLike;
   readonly plan: StandardLightShadowBindGroupDescriptorPlan | null;
   readonly layout: StandardLightShadowBindGroupLayoutResource | null;
+  readonly bindGroupCache?:
+    | BindGroupResourceCache<StandardLightShadowBindGroupResource>
+    | undefined;
   readonly lightGpuBufferResource: LightGpuBufferResource | null;
   readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
   readonly depthTextureResources: ShadowDepthTextureResourceReport;
@@ -678,6 +686,19 @@ export function createStandardLightShadowBindGroupResource(options: {
   }
 
   try {
+    const cacheKey = standardLightShadowBindGroupCacheKey(
+      options.layout.layoutKey,
+      options.plan.resourceKey,
+    );
+    const cached = readCachedBindGroupResource(
+      options.bindGroupCache,
+      cacheKey,
+    );
+
+    if (cached !== null) {
+      return { valid: true, resource: cached, diagnostics: [] };
+    }
+
     const resource: StandardLightShadowBindGroupResource = {
       group: STANDARD_LIGHT_SHADOW_BIND_GROUP,
       resourceKey: options.plan.resourceKey,
@@ -689,6 +710,8 @@ export function createStandardLightShadowBindGroupResource(options: {
       }),
       entryResourceKeys: options.plan.entries.map((entry) => entry.resourceKey),
     };
+
+    writeCachedBindGroupResource(options.bindGroupCache, cacheKey, resource);
 
     return { valid: true, resource, diagnostics: [] };
   } catch (cause) {
@@ -705,6 +728,13 @@ export function createStandardLightShadowBindGroupResource(options: {
       ],
     };
   }
+}
+
+function standardLightShadowBindGroupCacheKey(
+  layoutKey: string,
+  resourceKey: string,
+): string {
+  return `${layoutKey}|${resourceKey}`;
 }
 
 function standardLightShadowBindGroupResourceKey(

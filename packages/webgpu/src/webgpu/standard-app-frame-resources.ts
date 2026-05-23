@@ -14,6 +14,7 @@ import type {
   StandardMaterialAsset,
 } from "@aperture-engine/render";
 import { sameStringList, writeBufferData } from "./app-frame-resource-utils.js";
+import type { BindGroupResourceCache } from "./bind-group-resource-cache.js";
 import {
   createPreparedAppMaterialFallbackDiagnostic,
   recordPreparedAppMaterialResourceUse,
@@ -22,7 +23,11 @@ import {
 } from "./prepared-app-material-resource.js";
 import type { PreparedMaterialTextureSamplerDependencies } from "./prepared-material-texture-sampler-dependencies.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
-import type { StandardLightShadowBindGroupLayoutResource } from "./standard-light-shadow-bind-group.js";
+import type { LightBindGroupResource } from "./light-bind-group.js";
+import type {
+  StandardLightShadowBindGroupLayoutResource,
+  StandardLightShadowBindGroupResource,
+} from "./standard-light-shadow-bind-group.js";
 import {
   createLightBufferDescriptorPlanScratch,
   createLightBufferDescriptorScratch,
@@ -72,7 +77,10 @@ import {
   type StandardFrameShadowReceiverResources,
   type StandardFrameTransmissionSceneColorResources,
 } from "./standard-frame-resources.js";
-import type { UnlitBindGroupLayoutResource } from "./unlit-bind-group.js";
+import type {
+  UnlitBindGroupLayoutResource,
+  UnlitBindGroupResource,
+} from "./unlit-bind-group.js";
 import {
   createViewUniformBufferDescriptorScratch,
   writeViewUniformBufferDescriptor,
@@ -162,6 +170,15 @@ export function createOrReuseStandardAppFrameResources(options: {
     | LightBindGroupLayoutResource
     | StandardLightShadowBindGroupLayoutResource
     | null;
+  readonly sharedBindGroupCache?:
+    | BindGroupResourceCache<UnlitBindGroupResource>
+    | undefined;
+  readonly lightBindGroupCache?:
+    | BindGroupResourceCache<LightBindGroupResource>
+    | undefined;
+  readonly standardLightShadowBindGroupCache?:
+    | BindGroupResourceCache<StandardLightShadowBindGroupResource>
+    | undefined;
   readonly shadowReceiverResources?: StandardFrameShadowReceiverResources;
   readonly standardMaterialIblResources?: StandardFrameIblResources;
   readonly standardAreaLightLtcResources?: CreateStandardFrameGpuResourcesOptions["standardAreaLightLtcResources"];
@@ -333,6 +350,10 @@ export function createOrReuseStandardAppFrameResources(options: {
     sharedLayouts: options.sharedLayouts,
     materialLayout: options.materialLayout,
     lightLayout: options.lightLayout,
+    sharedBindGroupCache: options.sharedBindGroupCache,
+    lightBindGroupCache: options.lightBindGroupCache,
+    standardLightShadowBindGroupCache:
+      options.standardLightShadowBindGroupCache,
     ...(options.shadowReceiverResources === undefined
       ? {}
       : { shadowReceiverResources: options.shadowReceiverResources }),

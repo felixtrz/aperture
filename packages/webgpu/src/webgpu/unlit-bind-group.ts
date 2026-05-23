@@ -1,3 +1,8 @@
+import {
+  readCachedBindGroupResource,
+  writeCachedBindGroupResource,
+  type BindGroupResourceCache,
+} from "./bind-group-resource-cache.js";
 import { bindGroupResourceKey } from "./resource-keys.js";
 
 export type UnlitBindGroupDescriptorDiagnosticCode =
@@ -107,6 +112,9 @@ export interface CreateUnlitBindGroupsOptions {
   readonly plan: UnlitBindGroupDescriptorPlan | null;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
   readonly requiredGroups?: readonly number[];
+  readonly bindGroupCache?:
+    | BindGroupResourceCache<UnlitBindGroupResource>
+    | undefined;
 }
 
 export interface UnlitBindGroupBufferResource {
@@ -130,16 +138,24 @@ export interface CreateUnlitBindGroupsFromBuffersOptions {
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
   readonly buffers: readonly UnlitBindGroupBufferResource[];
   readonly requiredGroups?: readonly number[];
+  readonly bindGroupCache?:
+    | BindGroupResourceCache<UnlitBindGroupResource>
+    | undefined;
 }
 
 export interface CreateUnlitBindGroupsFromGpuResourcesOptions extends CreateUnlitBindGroupsFromBuffersOptions {
   readonly textures?: readonly UnlitBindGroupTextureResource[] | undefined;
   readonly samplers?: readonly UnlitBindGroupSamplerResource[] | undefined;
+  readonly bindGroupCache?:
+    | BindGroupResourceCache<UnlitBindGroupResource>
+    | undefined;
 }
 
 export interface CreateUnlitBindGroupsResult {
   readonly valid: boolean;
   readonly resources: readonly UnlitBindGroupResource[];
+  readonly createdBindGroupCount: number;
+  readonly reusedBindGroupCount: number;
   readonly diagnostics: readonly UnlitBindGroupResourceDiagnostic[];
 }
 
@@ -241,6 +257,7 @@ export function createUnlitBindGroups(
     device: options.device,
     plan: options.plan,
     layouts: options.layouts,
+    bindGroupCache: options.bindGroupCache,
     ...(options.requiredGroups === undefined
       ? {}
       : { requiredGroups: options.requiredGroups }),
@@ -277,6 +294,7 @@ export function createUnlitBindGroupsFromGpuResources(
     device: options.device,
     plan: options.plan,
     layouts: options.layouts,
+    bindGroupCache: options.bindGroupCache,
     ...(options.requiredGroups === undefined
       ? {}
       : { requiredGroups: options.requiredGroups }),
@@ -337,6 +355,9 @@ interface CreateUnlitBindGroupResourcesOptions {
   readonly plan: UnlitBindGroupDescriptorPlan | null;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
   readonly requiredGroups?: readonly number[];
+  readonly bindGroupCache?:
+    | BindGroupResourceCache<UnlitBindGroupResource>
+    | undefined;
   readonly resolveResource: (
     entry: UnlitBindGroupDescriptorEntry,
     diagnostics: UnlitBindGroupResourceDiagnostic[],
@@ -350,6 +371,8 @@ function createUnlitBindGroupResources(
     return {
       valid: false,
       resources: [],
+      createdBindGroupCount: 0,
+      reusedBindGroupCount: 0,
       diagnostics: [
         {
           code: "unlitBindGroupResource.nullDescriptorPlan",
@@ -374,6 +397,8 @@ function createUnlitBindGroupResources(
     return {
       valid: false,
       resources: [],
+      createdBindGroupCount: 0,
+      reusedBindGroupCount: 0,
       diagnostics: [
         ...diagnostics,
         {
@@ -388,6 +413,8 @@ function createUnlitBindGroupResources(
     options.layouts.map((layout) => [layout.group, layout]),
   );
   const resources: UnlitBindGroupResource[] = [];
+  let createdBindGroupCount = 0;
+  let reusedBindGroupCount = 0;
   const entriesByGroup = groupPlanEntries(options.plan.entries);
 
   diagnostics.push(
@@ -423,20 +450,37 @@ function createUnlitBindGroupResources(
       continue;
     }
 
-    const bindGroup = options.device.createBindGroup(descriptor);
+    const resourceKey = createUnlitBindGroupResourceKey(group, entries);
+    const cacheKey = unlitBindGroupCacheKey(layout.layoutKey, resourceKey);
+    const cached = readCachedBindGroupResource(
+      options.bindGroupCache,
+      cacheKey,
+    );
 
-    resources.push({
+    if (cached !== null) {
+      resources.push(cached);
+      reusedBindGroupCount += 1;
+      continue;
+    }
+
+    const resource: UnlitBindGroupResource = {
       group,
-      resourceKey: createUnlitBindGroupResourceKey(group, entries),
+      resourceKey,
       layoutKey: layout.layoutKey,
-      bindGroup,
+      bindGroup: options.device.createBindGroup(descriptor),
       entryResourceKeys: entries.map((entry) => entry.resourceKey),
-    });
+    };
+
+    writeCachedBindGroupResource(options.bindGroupCache, cacheKey, resource);
+    createdBindGroupCount += 1;
+    resources.push(resource);
   }
 
   return {
     valid: diagnostics.length === 0,
     resources,
+    createdBindGroupCount,
+    reusedBindGroupCount,
     diagnostics,
   };
 }
@@ -657,4 +701,11 @@ function createUnlitBindGroupResourceKey(
       ...entries.map((entry) => `${entry.binding}:${entry.resourceKey}`),
     ].join("/"),
   );
+}
+
+function unlitBindGroupCacheKey(
+  layoutKey: string,
+  resourceKey: string,
+): string {
+  return `${layoutKey}|${resourceKey}`;
 }

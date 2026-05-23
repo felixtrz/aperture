@@ -34,6 +34,7 @@ import {
   createMeshUploadBufferDescriptors,
   type MeshUploadBufferDescriptorDiagnostic,
 } from "./mesh-buffer-descriptors.js";
+import type { BindGroupResourceCache } from "./bind-group-resource-cache.js";
 import type {
   SamplerGpuResource,
   TextureGpuResource,
@@ -107,6 +108,9 @@ export interface CreateMatcapFrameGpuResourcesOptions {
   readonly preparedMaterial?: PreparedMatcapFrameMaterialResources | undefined;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
   readonly materialLayout: MatcapMaterialBindGroupLayoutResource | null;
+  readonly bindGroupCache?:
+    | BindGroupResourceCache<UnlitBindGroupResource>
+    | undefined;
   readonly textures: readonly TextureGpuResource[];
   readonly samplers: readonly SamplerGpuResource[];
 }
@@ -325,6 +329,7 @@ function createSharedBindGroups(
     plan,
     layouts: options.sharedLayouts,
     requiredGroups: [0, 1],
+    bindGroupCache: options.bindGroupCache,
     buffers: [
       ...(viewUniform === null
         ? []

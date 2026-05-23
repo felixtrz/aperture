@@ -274,6 +274,11 @@ function statusFromReport(
   );
   const queueStateSort =
     reportJson.diagnosticsSummary?.renderFrameQueue?.stateSort ?? null;
+  const queuedBindGroups = {
+    created: reportJson.resourceReuse?.queuedBindGroupsCreated ?? 0,
+    reused: reportJson.resourceReuse?.queuedBindGroupsReused ?? 0,
+    cacheSize: reportJson.resourceReuse?.queuedBindGroupCacheSize ?? 0,
+  };
   const transparentSort = report.snapshot.meshDraws
     .filter((draw) => draw.sortKey.queue === "transparent")
     .map((draw) => ({
@@ -312,6 +317,7 @@ function statusFromReport(
       )?.sortPolicy ?? null,
     commandPressure: reportJson.commandPressure ?? null,
     queueStateSort,
+    queuedBindGroups,
     renderBundles: reportJson.renderBundles ?? null,
     renderBundleHistory,
     report: reportJson,

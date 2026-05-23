@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "1b8e899",
   "activePid": null,
-  "notes": "Completed task-3114 state-aware opaque queue ordering; task-3115 shared queued built-in bind-group reuse is next.",
-  "lastRunFinishedAt": "2026-05-23T20:36:04Z"
+  "notes": "Completed task-3115 shared queued built-in bind-group reuse; browser proof shows standard queue phases created 3 queued bind groups, reused 18, cache size 3, with 8 draws and zero diagnostics. Next task: task-3116 previous transform history for moving TAA geometry.",
+  "lastRunFinishedAt": "2026-05-23T21:01:47Z"
 }

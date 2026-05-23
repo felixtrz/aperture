@@ -132,9 +132,11 @@ import {
   type WebGpuMsaaConfig,
 } from "./msaa.js";
 import { createWebGpuBuffer } from "./buffer.js";
+import type { BindGroupResourceCache } from "./bind-group-resource-cache.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "./mesh-buffer-descriptors.js";
 import { createLightBindGroupLayoutDescriptor } from "./light-bind-group-layout.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
+import type { LightBindGroupResource } from "./light-bind-group.js";
 import {
   STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY,
@@ -148,6 +150,7 @@ import {
   createStandardLightPointShadowBindGroupLayoutDescriptor,
   createStandardLightShadowBindGroupLayoutDescriptor,
   type StandardLightShadowBindGroupLayoutResource,
+  type StandardLightShadowBindGroupResource,
 } from "./standard-light-shadow-bind-group.js";
 import {
   createOrReuseDebugNormalAppFrameResources,
@@ -263,6 +266,7 @@ import {
 import {
   createUnlitBindGroupLayoutMetadata,
   type UnlitBindGroupLayoutResource,
+  type UnlitBindGroupResource,
 } from "./unlit-bind-group.js";
 import {
   createUnlitRenderPipelineResource,
@@ -449,6 +453,9 @@ export interface WebGpuAppResourceReuseReport {
   samplerResourcesReused: number;
   bindGroupsCreated: number;
   bindGroupsReused: number;
+  queuedBindGroupsCreated: number;
+  queuedBindGroupsReused: number;
+  queuedBindGroupCacheSize: number;
   lightBuffersCreated: number;
   lightBuffersReused: number;
   dynamicBufferWrites: number;
@@ -769,6 +776,9 @@ interface QueuedBuiltInFrameResourcePreparationOptions {
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly instanceTints?: PackedSnapshotInstanceTints | null;
   readonly layouts: WebGpuAppPipelineLayouts;
+  readonly sharedBindGroupCache: BindGroupResourceCache<UnlitBindGroupResource>;
+  readonly lightBindGroupCache: BindGroupResourceCache<LightBindGroupResource>;
+  readonly standardLightShadowBindGroupCache: BindGroupResourceCache<StandardLightShadowBindGroupResource>;
   readonly standardMaterialShadowReceiverResources?:
     | StandardFrameShadowReceiverResources
     | undefined;
@@ -1576,6 +1586,7 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
           layouts: options.layouts.sharedLayouts,
+          bindGroupCache: options.sharedBindGroupCache,
           reuse: options.reuse,
         }),
       createMatcapFrameResources: (options) =>
@@ -1601,6 +1612,7 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           sharedLayouts: options.layouts.sharedLayouts,
           materialLayout: options.layouts
             .materialLayout as MatcapMaterialBindGroupLayoutResource | null,
+          bindGroupCache: options.sharedBindGroupCache,
           preparedMeshes: options.cache.preparedMeshes,
           preparedMatcapMaterials: options.preparedMaterials.matcap,
           reuse: options.reuse,
@@ -1630,6 +1642,10 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           materialLayout: options.layouts
             .materialLayout as StandardMaterialBindGroupLayoutResource | null,
           lightLayout: options.layouts.lightLayout,
+          sharedBindGroupCache: options.sharedBindGroupCache,
+          lightBindGroupCache: options.lightBindGroupCache,
+          standardLightShadowBindGroupCache:
+            options.standardLightShadowBindGroupCache,
           ...(options.standardMaterialShadowReceiverResources === undefined
             ? {}
             : {
@@ -1678,6 +1694,7 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           sharedLayouts: options.layouts.sharedLayouts,
           materialLayout: options.layouts
             .materialLayout as DebugNormalMaterialBindGroupLayoutResource | null,
+          bindGroupCache: options.sharedBindGroupCache,
           preparedMeshes: options.cache.preparedMeshes,
           preparedDebugNormalMaterials: options.preparedMaterials.debugNormal,
           reuse: options.reuse,
@@ -4723,7 +4740,7 @@ async function prepareQueuedBuiltInFrameResources(options: {
   readonly meshResourceKeys: ReadonlyMap<string, string>;
   readonly materialResourceKeys: ReadonlyMap<string, string>;
 }> {
-  return prepareQueuedBuiltInFrameResourceSet({
+  const prepared = await prepareQueuedBuiltInFrameResourceSet({
     resourceSet: options.resourceSet,
     scratch: options.cache.frameScratch.queuedBuiltInFrameResources,
     viewUniforms: options.viewUniforms,
@@ -4771,6 +4788,9 @@ async function prepareQueuedBuiltInFrameResources(options: {
         worldTransforms,
         instanceTints,
         layouts,
+        sharedBindGroupCache,
+        lightBindGroupCache,
+        standardLightShadowBindGroupCache,
       }) =>
         createQueuedBuiltInFrameResourceOptions({
           app: options.app,
@@ -4783,6 +4803,9 @@ async function prepareQueuedBuiltInFrameResources(options: {
           worldTransforms,
           ...(instanceTints === undefined ? {} : { instanceTints }),
           layouts,
+          sharedBindGroupCache,
+          lightBindGroupCache,
+          standardLightShadowBindGroupCache,
           ...(options.standardMaterialShadowReceiverResources === undefined
             ? {}
             : {
@@ -4811,6 +4834,15 @@ async function prepareQueuedBuiltInFrameResources(options: {
         }),
     },
   });
+
+  options.reuse.queuedBindGroupsCreated +=
+    prepared.resourcesResult.bindGroupReuse.created;
+  options.reuse.queuedBindGroupsReused +=
+    prepared.resourcesResult.bindGroupReuse.reused;
+  options.reuse.queuedBindGroupCacheSize +=
+    prepared.resourcesResult.bindGroupReuse.cached;
+
+  return prepared;
 }
 
 function createQueuedBuiltInFrameResourceOptions(input: {
@@ -4824,6 +4856,9 @@ function createQueuedBuiltInFrameResourceOptions(input: {
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly instanceTints?: PackedSnapshotInstanceTints | null;
   readonly layouts: WebGpuAppPipelineLayouts;
+  readonly sharedBindGroupCache: BindGroupResourceCache<UnlitBindGroupResource>;
+  readonly lightBindGroupCache: BindGroupResourceCache<LightBindGroupResource>;
+  readonly standardLightShadowBindGroupCache: BindGroupResourceCache<StandardLightShadowBindGroupResource>;
   readonly standardMaterialShadowReceiverResources?:
     | StandardFrameShadowReceiverResources
     | undefined;
@@ -4852,6 +4887,9 @@ function createQueuedBuiltInFrameResourceOptions(input: {
       ? {}
       : { instanceTints: input.instanceTints }),
     layouts: input.layouts,
+    sharedBindGroupCache: input.sharedBindGroupCache,
+    lightBindGroupCache: input.lightBindGroupCache,
+    standardLightShadowBindGroupCache: input.standardLightShadowBindGroupCache,
     ...(input.standardMaterialShadowReceiverResources === undefined
       ? {}
       : {
@@ -6854,6 +6892,9 @@ function createWebGpuAppResourceReuseReport(): WebGpuAppResourceReuseReport {
     samplerResourcesReused: 0,
     bindGroupsCreated: 0,
     bindGroupsReused: 0,
+    queuedBindGroupsCreated: 0,
+    queuedBindGroupsReused: 0,
+    queuedBindGroupCacheSize: 0,
     lightBuffersCreated: 0,
     lightBuffersReused: 0,
     dynamicBufferWrites: 0,

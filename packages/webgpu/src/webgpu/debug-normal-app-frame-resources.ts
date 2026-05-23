@@ -11,6 +11,7 @@ import type {
   PackedSnapshotViewUniforms,
 } from "@aperture-engine/render";
 import { writeBufferData } from "./app-frame-resource-utils.js";
+import type { BindGroupResourceCache } from "./bind-group-resource-cache.js";
 import type { DebugNormalMaterialBindGroupLayoutResource } from "./debug-normal-bind-group.js";
 import {
   createDebugNormalFrameGpuResources,
@@ -32,7 +33,10 @@ import {
   type PreparedDebugNormalMaterialCache,
   type PreparedDebugNormalMaterialResource,
 } from "./prepared-debug-normal-material-cache.js";
-import type { UnlitBindGroupLayoutResource } from "./unlit-bind-group.js";
+import type {
+  UnlitBindGroupLayoutResource,
+  UnlitBindGroupResource,
+} from "./unlit-bind-group.js";
 import {
   createViewUniformBufferDescriptorScratch,
   writeViewUniformBufferDescriptor,
@@ -101,6 +105,9 @@ export function createOrReuseDebugNormalAppFrameResources(options: {
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
   readonly materialLayout: DebugNormalMaterialBindGroupLayoutResource | null;
+  readonly bindGroupCache?:
+    | BindGroupResourceCache<UnlitBindGroupResource>
+    | undefined;
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
   readonly preparedDebugNormalMaterials: PreparedDebugNormalMaterialCache;
   readonly reuse: DebugNormalAppFrameResourceReuseReport;
@@ -185,6 +192,7 @@ export function createOrReuseDebugNormalAppFrameResources(options: {
     worldTransforms: options.worldTransforms,
     sharedLayouts: options.sharedLayouts,
     materialLayout: options.materialLayout,
+    bindGroupCache: options.bindGroupCache,
   });
 
   if (result.valid && result.resources !== null) {

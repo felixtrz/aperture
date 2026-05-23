@@ -21,6 +21,7 @@ import {
   createMeshUploadBufferDescriptors,
   type MeshUploadBufferDescriptorDiagnostic,
 } from "./mesh-buffer-descriptors.js";
+import type { BindGroupResourceCache } from "./bind-group-resource-cache.js";
 import {
   createUnlitBindGroupDescriptorPlan,
   createUnlitBindGroupsFromGpuResources,
@@ -104,6 +105,9 @@ export interface CreateUnlitFrameGpuResourcesOptions {
   readonly material: MaterialAsset | null;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
   readonly preparedMaterial?: PreparedUnlitFrameMaterialResources | undefined;
+  readonly bindGroupCache?:
+    | BindGroupResourceCache<UnlitBindGroupResource>
+    | undefined;
   readonly textures?: readonly TextureGpuResource[];
   readonly samplers?: readonly SamplerGpuResource[];
 }
@@ -115,6 +119,9 @@ export interface CreateMultiMaterialUnlitFrameGpuResourcesOptions {
   readonly worldTransforms: PackedSnapshotTransforms | null;
   readonly materials: readonly (MaterialAsset | null)[] | null;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
+  readonly bindGroupCache?:
+    | BindGroupResourceCache<UnlitBindGroupResource>
+    | undefined;
   readonly materialLayouts?:
     | readonly (readonly UnlitBindGroupLayoutResource[])[]
     | undefined;
@@ -184,6 +191,7 @@ export function createUnlitFrameGpuResources(
       device: options.device,
       plan: bindGroupPlan,
       layouts: options.layouts,
+      bindGroupCache: options.bindGroupCache,
       buffers: compactBufferResources([
         viewUniform === null
           ? null
@@ -214,6 +222,7 @@ export function createUnlitFrameGpuResources(
       worldTransforms,
       layouts: options.layouts,
       preparedMaterial: options.preparedMaterial,
+      bindGroupCache: options.bindGroupCache,
     });
   }
 
@@ -248,6 +257,9 @@ function createUnlitFrameBindGroupsFromPreparedMaterial(options: {
   readonly worldTransforms: WorldTransformGpuBufferResource | null;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
   readonly preparedMaterial: PreparedUnlitFrameMaterialResources;
+  readonly bindGroupCache?:
+    | BindGroupResourceCache<UnlitBindGroupResource>
+    | undefined;
 }): CreateUnlitFrameBindGroupsResult {
   const sharedBindGroupPlan = createSharedBindGroupDescriptorPlan({
     viewUniformResourceKey: options.viewUniform?.resourceKey ?? null,
@@ -257,6 +269,7 @@ function createUnlitFrameBindGroupsFromPreparedMaterial(options: {
     device: options.device,
     plan: sharedBindGroupPlan,
     layouts: options.layouts,
+    bindGroupCache: options.bindGroupCache,
     buffers: compactBufferResources([
       options.viewUniform === null
         ? null
@@ -312,6 +325,7 @@ export function createMultiMaterialUnlitFrameGpuResources(
     device: options.device,
     plan: sharedBindGroupPlan,
     layouts: options.layouts,
+    bindGroupCache: options.bindGroupCache,
     buffers: compactBufferResources([
       viewUniform === null
         ? null
@@ -603,6 +617,7 @@ function createMaterialBindGroups(
         diagnostics: [],
       },
       layouts: options.materialLayouts?.[index] ?? options.layouts,
+      bindGroupCache: options.bindGroupCache,
       buffers: [
         {
           resourceKey: material.resourceKey,
