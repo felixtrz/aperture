@@ -1,6 +1,51 @@
 # Agent Handoff
 
-Updated: 2026-05-23T21:22:47Z
+Updated: 2026-05-23T21:36:09Z
+
+## Current Run Update — 2026-05-23T21:36:09Z — Bloom post-effect graph
+
+Completed `task-3117`, a renderer-owned downsample/upsample post-effect graph
+for bloom.
+
+### What changed
+
+- Extended prepared post effects with an optional declared graph of named
+  passes while preserving the existing single-pass effect contract.
+- Updated WebGPU app post-effect execution to run graph passes as separate
+  renderer-owned frame boundaries and aggregate JSON-safe graph pass/resource
+  counts in `postEffects`.
+- Replaced the old single-pass bloom shader route with two lower-resolution
+  downsample passes, one upsample pass, and one composite pass.
+- Published bloom graph status through `examples/post-effects.html`, including
+  topology, pass count, resource count, downsample/upsample/composite pass
+  counts, and level dimensions.
+- Updated post-effect docs and focused unit/e2e expectations for the graph
+  route. Recommended next task is now `task-3118`, broader environment asset
+  preparation.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- Playwright MCP browser proof for
+  `http://127.0.0.1:4173/examples/post-effects.html?fxaa=0&bloom=1`:
+  `ok: true`, zero extraction/render diagnostics, frame draw calls 6, bloom
+  effect draw calls 4, `graph.topology: "downsample-upsample"`, pass count 4,
+  resource count 3, two downsample levels at 480x270 and 240x135, and direct vs
+  bloom readback max dark-sample brightening 250.185. Browser console only
+  reported the existing `/favicon.ico` 403.
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3118`, broadening environment asset preparation beyond the current
+single-app proof and publishing reusable environment readiness/version status.
 
 ## Current Run Update — 2026-05-23T21:22:47Z — TAA object transform history
 

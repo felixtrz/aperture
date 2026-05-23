@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3117`: add a downsample/upsample post-effect graph for bloom.
+Start `task-3118`: broaden environment asset preparation beyond the current single-app proof.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -152,15 +152,13 @@ render-order buckets. `task-3115` now reuses shared queued built-in bind groups
 across compatible frame-resource routes and exposes creation-vs-reuse pressure
 in app/browser status. `task-3116` now preserves previous per-object transform
 history for TAA motion vectors and proves moving-geometry history in
-`examples/taa.html`. The remaining closest visible SOTA gap is deeper
-post-effect graph composition, followed by broader environment asset
-preparation.
+`examples/taa.html`. `task-3117` now runs bloom through a two-level renderer-owned downsample/upsample graph and reports pass/resource counts in `examples/post-effects.html`. The remaining closest visible SOTA gap is broader environment asset preparation.
 
 Reference anchors for the next task (read before writing):
 
-- `references/engine/src/extras/render-passes/render-pass-taa.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/render-pass/frag/taaResolve.js`.
-- `references/bevy/examples/3d/motion_blur.rs`.
+- `references/bevy/crates/bevy_pbr/src/light_probe/environment_map.rs`.
+- `references/bevy/crates/bevy_pbr/src/light_probe/environment_filter.wgsl`.
+- `references/engine/src/scene/graphics/env-lighting.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -450,6 +448,8 @@ Acceptance criteria:
 - `examples/taa.html` includes a moving-geometry proof where browser status shows object-motion history was used and readbacks remain stable with zero diagnostics.
 
 ### task-3117 — Add a downsample/upsample post-effect graph for bloom
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/post-*`, `examples/post-effects.*`, targeted tests.

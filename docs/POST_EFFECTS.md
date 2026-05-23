@@ -40,10 +40,10 @@ Built-in effects:
 - `createWebGpuCopyPostEffect(...)` samples the previous pass and writes it
   unchanged.
 - `createWebGpuFxaaPostEffect(...)` applies a single-pass FXAA shader.
-- `createWebGpuBloomPostEffect(...)` applies the first built-in bloom slice: a
-  thresholded bright-neighbor glow and additive composite. It is intentionally
-  single-pass; a future pass-graph extension can add multi-pass downsampled blur
-  and mip compositing.
+- `createWebGpuBloomPostEffect(...)` declares a renderer-owned
+  downsample/upsample graph. The default route builds two lower-resolution
+  bright-pass levels, upsamples the lowest level, and composites the blurred
+  glow back into the final output.
 
 `examples/post-effects.html` renders a worker-authored ECS scene through the
 same app path and exposes FXAA/Bloom toggles for browser validation.
@@ -66,5 +66,5 @@ Keep custom effects within the renderer boundary:
   effect.
 
 The app frame report includes `postEffects` entries with effect id, label,
-input, output target, readiness, and draw-call count so agents can inspect the
-chain without raw GPU handles.
+input, output target, readiness, draw-call count, and optional graph pass /
+resource counts so agents can inspect the chain without raw GPU handles.

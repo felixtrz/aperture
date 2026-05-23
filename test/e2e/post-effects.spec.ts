@@ -19,6 +19,18 @@ interface PostEffectsStatus extends ExampleStatusBase {
       readonly ok: boolean;
       readonly output: string;
       readonly drawCalls: number;
+      readonly graph?: {
+        readonly topology: string;
+        readonly passCount: number;
+        readonly resourceCount: number;
+        readonly downsamplePasses: number;
+        readonly upsamplePasses: number;
+        readonly compositePasses: number;
+        readonly levels: readonly {
+          readonly width: number;
+          readonly height: number;
+        }[];
+      };
     }[];
   };
   readonly extraction?: {
@@ -76,8 +88,17 @@ test("post effects example toggles FXAA and bloom with visible pixel changes", a
   expect(effectIds(both.status)).toEqual(["fxaa", "bloom"]);
   expect(direct.status.draw?.drawCalls).toBe(2);
   expect(fxaa.status.draw?.drawCalls).toBe(3);
-  expect(bloom.status.draw?.drawCalls).toBe(3);
-  expect(both.status.draw?.drawCalls).toBe(4);
+  expect(bloom.status.draw?.drawCalls).toBe(6);
+  expect(both.status.draw?.drawCalls).toBe(7);
+  expect(bloom.status.effects?.report[0]?.graph).toMatchObject({
+    topology: "downsample-upsample",
+    passCount: 4,
+    resourceCount: 3,
+    downsamplePasses: 2,
+    upsamplePasses: 1,
+    compositePasses: 1,
+  });
+  expect(bloom.status.effects?.report[0]?.graph?.levels.length).toBe(2);
   expect(
     maxSharedSampleDistance(direct.samples, fxaa.samples),
     "FXAA should alter at least one sampled high-contrast edge pixel.",

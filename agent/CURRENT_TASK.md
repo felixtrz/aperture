@@ -3,7 +3,7 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3117.
+Current task: task-3118.
 
 Status: Tier 20 is complete. The post-Tier-20 audit selected submit efficiency
 as the current SOTA blocker. `task-3111` closed redundant state-command
@@ -12,7 +12,7 @@ emission, `task-3112` closed static command-plan render-bundle reuse,
 state-aware opaque/alpha-test queue ordering, `task-3115` closed shared queued
 built-in bind-group reuse across compatible frame-resource routes, and
 `task-3116` closed previous per-object transform history for TAA motion
-vectors.
+vectors. `task-3117` closed the bloom downsample/upsample post-effect graph.
 
 Browser proof:
 
@@ -34,6 +34,9 @@ Browser proof:
 - `examples/taa.html` now reports TAA motion-vector object history with
   `status: "scene-attachment"`, one previous object transform used, zero
   fallback transforms, and zero diagnostics for a moving mesh.
+- `examples/post-effects.html?fxaa=0&bloom=1` now reports bloom graph
+  execution with topology `downsample-upsample`, four bloom passes, three
+  graph-owned resources, two lower-resolution levels, and zero diagnostics.
 
-Next step: start `task-3117` from `agent/BACKLOG.md`, adding a renderer-owned
-downsample/upsample post-effect graph for bloom.
+Next step: start `task-3118` from `agent/BACKLOG.md`, broadening environment
+asset preparation beyond the current single-app proof.

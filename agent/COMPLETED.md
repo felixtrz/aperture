@@ -26204,3 +26204,36 @@ Validation:
   transform used, zero fallback transforms, and worker `objectOffset` nonzero.
   The headed browser closed slowly in this environment and the process was
   killed after the status proof was captured.
+
+## task-3117 — Add a downsample/upsample post-effect graph for bloom
+
+Completed: 2026-05-23
+
+Summary:
+
+- Extended prepared WebGPU post effects with an optional declared pass graph
+  while preserving the existing single-pass contract for copy, FXAA, SSAO, SSR,
+  DOF, and TAA.
+- Updated the WebGPU app post-effect executor to run graph passes as separate
+  renderer-owned frame boundaries and aggregate JSON-safe graph pass/resource
+  counts in app reports.
+- Replaced the previous single-pass bloom shader route with a two-level
+  downsample chain, one upsample pass, and a final composite pass.
+- Published bloom graph status through `examples/post-effects.html`, including
+  topology, pass count, resource count, downsample/upsample/composite counts,
+  and lower-resolution level dimensions.
+- Updated post-effect documentation, unit coverage, and the post-effects e2e
+  status contract. Recommended next task is `task-3118`.
+
+Validation:
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- Playwright MCP browser proof for
+  `http://127.0.0.1:4173/examples/post-effects.html?fxaa=0&bloom=1`: `ok:
+  true`, zero diagnostics, frame draw calls 6, bloom effect draw calls 4,
+  `graph.topology: "downsample-upsample"`, pass count 4, resource count 3, two
+  downsample levels at 480x270 and 240x135, and direct-vs-bloom readback max
+  dark-sample brightening 250.185.

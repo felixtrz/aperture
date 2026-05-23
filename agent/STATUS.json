@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "1b8e899",
   "activePid": null,
-  "notes": "Completed task-3116 previous object transform history for TAA motion vectors; next task is task-3117 bloom post-effect graph composition.",
-  "lastRunFinishedAt": "2026-05-23T21:26:49Z"
+  "notes": "Completed task-3117 bloom downsample/upsample post-effect graph; next task is task-3118 broader environment asset preparation.",
+  "lastRunFinishedAt": "2026-05-23T21:38:28Z"
 }

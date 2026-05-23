@@ -1472,13 +1472,13 @@
               transform, light, and light/shadow bind groups and publishes
               creation-vs-reuse pressure in app status. TAA motion vectors now
               use renderer-side previous per-object transform history for
-              independently moving built-in mesh geometry, with
-              <code>examples/taa.html</code> reporting one object transform
-              history hit and zero fallback transforms.
+              independently moving built-in mesh geometry, and bloom now runs
+              through a two-level downsample/upsample post-effect graph with
+              JSON-safe pass and resource counts.
             </dd>
             <dt>Next focus</dt>
             <dd>
-              task-3117 downsample/upsample post-effect graph for bloom
+              task-3118 broader environment asset preparation
             </dd>
           </dl>
         </aside>
@@ -2261,8 +2261,8 @@
             </p>
             <ul>
               <li>
-                Missing a downsample/upsample post-effect graph for bloom and
-                broader environment asset preparation.
+                Missing broader environment asset preparation beyond the current
+                single-app proof route.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2284,15 +2284,14 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">task-3117</span> Added a renderer-owned
+                downsample/upsample post-effect graph for bloom and exposed
+                pass/resource counts in the post-effects browser proof.
+              </li>
+              <li>
                 <span class="badge green">task-3116</span> Added previous
                 per-object transform history for TAA motion vectors and proved
                 moving-geometry history in the TAA browser proof.
-              </li>
-              <li>
-                <span class="badge green">task-3115</span> Reused shared queued
-                built-in bind groups across compatible frame-resource routes and
-                exposed created/reused/cache pressure in the standard queue
-                phase browser proof.
               </li>
               <li>
                 <span class="badge green">loading</span> Preserved glTF source
@@ -4561,12 +4560,8 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Implement
-                <code>task-3117</code>: a downsample/upsample post-effect graph
-                for bloom.
-              </li>
-              <li>
-                Then implement <code>task-3118</code>: broader environment asset
-                preparation and switching beyond the current single proof route.
+                <code>task-3118</code>: broader environment asset preparation
+                beyond the current single proof route.
               </li>
               <li>
                 Then select the next visible render-pipeline parity slice from

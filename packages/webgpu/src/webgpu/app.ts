@@ -330,6 +330,8 @@ import {
   type WebGpuPostPassDepthTextureResource,
   type WebGpuPostPassTextureCacheSlot,
   type WebGpuPostPassTextureResource,
+  type WebGpuPreparedPostEffectGraph,
+  type WebGpuPreparedPostEffectGraphPass,
 } from "./post-pass.js";
 import {
   createWorldTransformBufferDescriptorScratch,
@@ -429,6 +431,20 @@ export interface WebGpuAppPostEffectSubmissionReport {
   readonly output: "swapchain" | "offscreen";
   readonly ok: boolean;
   readonly drawCalls: number;
+  readonly graph?: WebGpuAppPostEffectGraphSubmissionReport;
+}
+
+export interface WebGpuAppPostEffectGraphSubmissionReport {
+  readonly topology: "single-pass" | "downsample-upsample";
+  readonly passCount: number;
+  readonly resourceCount: number;
+  readonly downsamplePasses: number;
+  readonly upsamplePasses: number;
+  readonly compositePasses: number;
+  readonly levels: readonly {
+    readonly width: number;
+    readonly height: number;
+  }[];
 }
 
 export interface WebGpuAppTransmissionGrabPassReport {
@@ -4058,6 +4074,59 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
 
     diagnostics.push(...prepared.diagnostics);
 
+    if (prepared.graph !== undefined) {
+      const graphResult = assembleWebGpuAppPreparedPostEffectGraph({
+        context,
+        device,
+        queue,
+        effectId: prepared.effectId,
+        label: `${options.label}:post:${effectIndex}:${effect.id}`,
+        graph: prepared.graph,
+        isLast,
+        outputFormat: options.target.format,
+        ...(options.readbackSamples === undefined
+          ? {}
+          : { readbackSamples: options.readbackSamples }),
+      });
+
+      boundaries.push(...graphResult.boundaries);
+      diagnostics.push(...graphResult.diagnostics);
+      postEffects.push({
+        effectId: prepared.effectId,
+        label: prepared.label,
+        viewId: options.target.view.viewId,
+        input: input.label,
+        output: graphResult.output,
+        ok:
+          graphResult.valid &&
+          prepared.diagnostics.length === 0 &&
+          (isLast || graphResult.outputResource !== null),
+        drawCalls: graphResult.drawCalls,
+        graph: prepared.graph.report,
+      });
+      plannedCommands += graphResult.plannedCommands;
+      drawCalls += graphResult.drawCalls;
+      valid &&=
+        graphResult.valid &&
+        prepared.diagnostics.length === 0 &&
+        (isLast || graphResult.outputResource !== null);
+
+      if (graphResult.readbackBoundary !== null) {
+        readbackBoundary = graphResult.readbackBoundary;
+      }
+
+      if (!isLast) {
+        if (graphResult.outputResource === null) {
+          valid = false;
+          break;
+        }
+
+        input = graphResult.outputResource;
+      }
+
+      continue;
+    }
+
     const postBoundary = assembleFrameBoundary({
       context,
       device,
@@ -4136,6 +4205,134 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     plannedCommands,
     drawCalls,
     diagnostics,
+  };
+}
+
+function assembleWebGpuAppPreparedPostEffectGraph(options: {
+  readonly context: Parameters<typeof assembleFrameBoundary>[0]["context"];
+  readonly device: Parameters<typeof assembleFrameBoundary>[0]["device"];
+  readonly queue: Parameters<typeof assembleFrameBoundary>[0]["queue"];
+  readonly effectId: string;
+  readonly label: string;
+  readonly graph: WebGpuPreparedPostEffectGraph;
+  readonly isLast: boolean;
+  readonly outputFormat: string;
+  readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
+}): {
+  readonly valid: boolean;
+  readonly boundaries: readonly FrameBoundaryAssemblyReport[];
+  readonly diagnostics: readonly unknown[];
+  readonly readbackBoundary: FrameBoundaryAssemblyReport | null;
+  readonly output: "swapchain" | "offscreen";
+  readonly outputResource: WebGpuPostPassTextureResource | null;
+  readonly plannedCommands: number;
+  readonly drawCalls: number;
+} {
+  const boundaries: FrameBoundaryAssemblyReport[] = [];
+  const diagnostics: unknown[] = [];
+  let valid = options.graph.passes.length > 0;
+  let readbackBoundary: FrameBoundaryAssemblyReport | null = null;
+  let output: "swapchain" | "offscreen" = options.isLast
+    ? "swapchain"
+    : "offscreen";
+  let outputResource: WebGpuPostPassTextureResource | null = null;
+  let plannedCommands = 0;
+  let drawCalls = 0;
+
+  if (options.graph.passes.length === 0) {
+    diagnostics.push({
+      code: "webGpuPostPass.outputTextureUnavailable",
+      effectId: options.effectId,
+      message: `Post effect '${options.effectId}' prepared an empty post-effect graph.`,
+    });
+  }
+
+  for (
+    let graphPassIndex = 0;
+    graphPassIndex < options.graph.passes.length;
+    graphPassIndex += 1
+  ) {
+    const graphPass = options.graph.passes[graphPassIndex];
+
+    if (graphPass === undefined) {
+      continue;
+    }
+
+    diagnostics.push(...graphPass.diagnostics);
+    plannedCommands += graphPass.commands.length;
+    drawCalls += countDrawCommands(graphPass.commands);
+    output = graphPass.output;
+    outputResource =
+      graphPass.output === "offscreen"
+        ? (graphPass.outputResource ?? null)
+        : null;
+
+    const graphPassOutputResource = graphPass.outputResource;
+
+    if (
+      graphPass.output === "offscreen" &&
+      graphPassOutputResource === undefined
+    ) {
+      diagnostics.push({
+        code: "webGpuPostPass.outputTextureUnavailable",
+        effectId: options.effectId,
+        message: `Post effect '${options.effectId}' graph pass '${graphPass.label}' did not provide an off-screen output texture.`,
+      });
+      valid = false;
+      continue;
+    }
+
+    const postBoundary =
+      graphPass.output === "offscreen"
+        ? assembleFrameBoundary({
+            context: options.context,
+            device: options.device,
+            queue: options.queue,
+            commands: graphPass.commands,
+            label: `${options.label}:${graphPassIndex}:${graphPass.kind}`,
+            colorTarget: {
+              source: "offscreen-target" as const,
+              texture: graphPassOutputResource!.texture,
+            },
+            clearColor: [0, 0, 0, 1],
+          })
+        : assembleFrameBoundary({
+            context: options.context,
+            device: options.device,
+            queue: options.queue,
+            commands: graphPass.commands,
+            label: `${options.label}:${graphPassIndex}:${graphPass.kind}`,
+            clearColor: [0, 0, 0, 1],
+            ...(options.isLast && options.readbackSamples !== undefined
+              ? {
+                  readback: {
+                    format: options.outputFormat,
+                    width: graphPass.width,
+                    height: graphPass.height,
+                    samples: options.readbackSamples,
+                  },
+                }
+              : {}),
+          });
+
+    boundaries.push(postBoundary);
+    appendFrameBoundaryDiagnostics(diagnostics, postBoundary);
+    valid &&= postBoundary.valid && graphPass.diagnostics.length === 0;
+
+    if (postBoundary.readback !== null && postBoundary.readback !== undefined) {
+      readbackBoundary = postBoundary;
+    }
+  }
+
+  return {
+    valid,
+    boundaries,
+    diagnostics,
+    readbackBoundary,
+    output,
+    outputResource,
+    plannedCommands,
+    drawCalls,
   };
 }
 

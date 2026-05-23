@@ -73,11 +73,48 @@ export interface WebGpuPostEffectPrepareOptions {
   readonly label: string;
 }
 
+export type WebGpuPreparedPostEffectGraphPassKind =
+  | "downsample"
+  | "upsample"
+  | "composite"
+  | "custom";
+
+export interface WebGpuPreparedPostEffectGraphPass {
+  readonly label: string;
+  readonly kind: WebGpuPreparedPostEffectGraphPassKind;
+  readonly input: string;
+  readonly output: "swapchain" | "offscreen";
+  readonly outputResource?: WebGpuPostPassTextureResource;
+  readonly width: number;
+  readonly height: number;
+  readonly commands: readonly RenderPassCommand[];
+  readonly diagnostics: readonly WebGpuPostPassDiagnostic[];
+}
+
+export interface WebGpuPreparedPostEffectGraphReport {
+  readonly topology: "single-pass" | "downsample-upsample";
+  readonly passCount: number;
+  readonly resourceCount: number;
+  readonly downsamplePasses: number;
+  readonly upsamplePasses: number;
+  readonly compositePasses: number;
+  readonly levels: readonly {
+    readonly width: number;
+    readonly height: number;
+  }[];
+}
+
+export interface WebGpuPreparedPostEffectGraph {
+  readonly passes: readonly WebGpuPreparedPostEffectGraphPass[];
+  readonly report: WebGpuPreparedPostEffectGraphReport;
+}
+
 export interface WebGpuPreparedPostEffectPass {
   readonly effectId: string;
   readonly label: string;
   readonly commands: readonly RenderPassCommand[];
   readonly diagnostics: readonly WebGpuPostPassDiagnostic[];
+  readonly graph?: WebGpuPreparedPostEffectGraph;
 }
 
 export interface WebGpuPostEffect {

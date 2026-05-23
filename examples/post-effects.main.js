@@ -440,6 +440,7 @@ function effectStatus(config, report) {
       input: effect.input,
       output: effect.output,
       drawCalls: effect.drawCalls,
+      graph: effect.graph,
       diagnostics: effect.diagnostics,
     })),
   };

@@ -126,7 +126,7 @@ describe("WebGPU post-pass helpers", () => {
     expect(events).toContain("device:pipeline:test-fxaa:fxaa:pipeline");
   });
 
-  it("prepares bloom as an ordered bright-neighbor post-pass draw", () => {
+  it("prepares bloom as a downsample/upsample post-pass graph", () => {
     const events: string[] = [];
     const effect = createWebGpuBloomPostEffect({
       threshold: 0.7,
@@ -146,7 +146,7 @@ describe("WebGPU post-pass helpers", () => {
       label: "bright-input",
     };
     const prepared = effect.prepare({
-      device: postDevice(events),
+      device: postGraphDevice(events),
       input,
       outputFormat: "rgba8unorm",
       width: 32,
@@ -161,16 +161,58 @@ describe("WebGPU post-pass helpers", () => {
     expect(prepared).toMatchObject({
       effectId: "bloom",
       label: "Bloom Post Effect",
-      commands: [
-        {
-          kind: "setPipeline",
-          pipelineKey: "webgpu-post-bloom|rgba8unorm|0.7000|1.2500|2.0000",
+      commands: [],
+      graph: {
+        report: {
+          topology: "downsample-upsample",
+          passCount: 4,
+          resourceCount: 3,
+          downsamplePasses: 2,
+          upsamplePasses: 1,
+          compositePasses: 1,
+          levels: [
+            { width: 16, height: 8 },
+            { width: 8, height: 4 },
+          ],
         },
-        { kind: "setBindGroup", index: 0 },
-        { kind: "draw", vertexCount: 3 },
-      ],
+      },
     });
-    expect(events).toContain("device:pipeline:test-bloom:bloom:pipeline");
+    expect(prepared.graph?.passes.map((pass) => pass.kind)).toEqual([
+      "downsample",
+      "downsample",
+      "upsample",
+      "composite",
+    ]);
+    expect(prepared.graph?.passes.map((pass) => pass.commands.length)).toEqual([
+      3, 3, 3, 3,
+    ]);
+    expect(prepared.graph?.passes[0]?.commands).toMatchObject([
+      {
+        kind: "setPipeline",
+        pipelineKey:
+          "webgpu-post-bloom|downsample|rgba8unorm|0.7000|1.2500|2.0000",
+      },
+      { kind: "setBindGroup", index: 0 },
+      { kind: "draw", vertexCount: 3 },
+    ]);
+    expect(prepared.graph?.passes[3]?.commands).toMatchObject([
+      {
+        kind: "setPipeline",
+        pipelineKey:
+          "webgpu-post-bloom|composite|rgba8unorm|0.7000|1.2500|2.0000",
+      },
+      { kind: "setBindGroup", index: 0 },
+      { kind: "draw", vertexCount: 3 },
+    ]);
+    expect(events).toContain(
+      "device:pipeline:test-bloom:bloom:downsample:0:pipeline",
+    );
+    expect(events).toContain(
+      "device:pipeline:test-bloom:bloom:upsample:0:pipeline",
+    );
+    expect(events).toContain(
+      "device:pipeline:test-bloom:bloom:composite:pipeline",
+    );
   });
 
   it("prepares TAA with persistent alternating history output", () => {
@@ -692,6 +734,13 @@ function postDevice(events: string[]) {
       events.push(`device:bindGroup:${input.label ?? "unlabeled"}`);
       return { descriptor: input };
     },
+  };
+}
+
+function postGraphDevice(events: string[]) {
+  return {
+    ...postDevice(events),
+    ...textureDevice(events),
   };
 }
 
