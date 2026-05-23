@@ -147,6 +147,25 @@ describe("material, texture, sampler, and render-state schemas", () => {
     ]);
   });
 
+  it("adds a stable StandardMaterial iridescence pipeline feature", () => {
+    const material = createStandardMaterialAsset({
+      metallicFactor: 0,
+      roughnessFactor: 0.2,
+      iridescenceFactor: 1,
+      iridescenceIor: 1.3,
+      iridescenceThicknessMinimum: 120,
+      iridescenceThicknessMaximum: 520,
+    });
+
+    expect(validateMaterialAsset(material)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(createMaterialPipelineKeyInput(material).features).toEqual([
+      "iridescence",
+    ]);
+  });
+
   it("validates texture color-space rules", () => {
     const invalidNormal = createTextureAsset({
       label: "Normal",

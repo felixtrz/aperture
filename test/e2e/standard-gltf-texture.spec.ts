@@ -5048,8 +5048,8 @@ test("standard glTF texture fixture reports unsupported required material extens
         code: "gltfMaterial.unsupportedRequiredExtension",
         severity: "error",
         materialIndex: 0,
-        field: "extensions.KHR_materials_iridescence",
-        extensionName: "KHR_materials_iridescence",
+        field: "extensions.KHR_materials_specular",
+        extensionName: "KHR_materials_specular",
       }),
     ]),
   );
@@ -5134,8 +5134,8 @@ test("standard glTF texture fixture renders unsupported optional material extens
         code: "gltfMaterial.unsupportedOptionalExtension",
         severity: "warning",
         materialIndex: 0,
-        field: "extensions.KHR_materials_iridescence",
-        extensionName: "KHR_materials_iridescence",
+        field: "extensions.KHR_materials_specular",
+        extensionName: "KHR_materials_specular",
       }),
     ]),
   );
@@ -5223,8 +5223,8 @@ test("standard glTF texture fixture reports multiple unsupported optional materi
         code: "gltfMaterial.unsupportedOptionalExtension",
         severity: "warning",
         materialIndex: 0,
-        field: "extensions.KHR_materials_iridescence",
-        extensionName: "KHR_materials_iridescence",
+        field: "extensions.KHR_materials_volume",
+        extensionName: "KHR_materials_volume",
       }),
       expect.objectContaining({
         layer: "material",

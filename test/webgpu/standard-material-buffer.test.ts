@@ -28,6 +28,10 @@ describe("standard material WebGPU uniform packing", () => {
       transmissionFactor: 0.65,
       sheenColorFactor: [0.9, 0.4, 0.15],
       sheenRoughnessFactor: 0.35,
+      iridescenceFactor: 0.95,
+      iridescenceIor: 1.38,
+      iridescenceThicknessMinimum: 130,
+      iridescenceThicknessMaximum: 510,
       normalScale: 0.5,
       occlusionStrength: 0.9,
       emissiveFactor: [0.1, 0.2, 0.3],
@@ -78,6 +82,14 @@ describe("standard material WebGPU uniform packing", () => {
       expect.closeTo(0.4, 5),
       expect.closeTo(0.15, 5),
       expect.closeTo(0.35, 5),
+    ]);
+    expect(
+      Array.from(result.packed?.uniformFloat32.slice(56, 60) ?? []),
+    ).toEqual([
+      expect.closeTo(0.95, 5),
+      expect.closeTo(1.38, 5),
+      expect.closeTo(130, 5),
+      expect.closeTo(510, 5),
     ]);
   });
 
@@ -262,7 +274,11 @@ describe("standard material WebGPU uniform packing", () => {
     expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[50]).toBe("transmissionFactor");
     expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[52]).toBe("sheenColorFactor.r");
     expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[55]).toBe("sheenRoughnessFactor");
-    expect(STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH).toBe(224);
+    expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[56]).toBe("iridescenceFactor");
+    expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[59]).toBe(
+      "iridescenceThicknessMaximum",
+    );
+    expect(STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH).toBe(240);
   });
 
   it("packs textured alpha-mask flags and cutoff for shader discard", () => {

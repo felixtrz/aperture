@@ -10,6 +10,9 @@ export type StandardMaterialProofPointFeature =
   | "transmissionFactor"
   | "sheenColorFactor"
   | "sheenRoughnessFactor"
+  | "iridescenceFactor"
+  | "iridescenceIor"
+  | "iridescenceThicknessRange"
   | "metallicRoughnessTexture"
   | "normalTexture"
   | "emissiveFactor"
@@ -37,6 +40,9 @@ export const STANDARD_MATERIAL_PROOF_POINT_SCOPE = {
     "transmissionFactor",
     "sheenColorFactor",
     "sheenRoughnessFactor",
+    "iridescenceFactor",
+    "iridescenceIor",
+    "iridescenceThicknessRange",
     "metallicRoughnessTexture",
     "normalTexture",
     "emissiveFactor",
@@ -104,6 +110,13 @@ export function validateStandardMaterialProofPoint(
     "sheenRoughnessFactor",
     diagnostics,
   );
+  validateUnitFactor(
+    material.iridescenceFactor,
+    "iridescenceFactor",
+    diagnostics,
+  );
+  validateIridescenceIor(material.iridescenceIor, diagnostics);
+  validateIridescenceThicknessRange(material, diagnostics);
 
   for (const feature of material.unsupportedFeatures) {
     diagnostics.push({
@@ -133,6 +146,40 @@ function validateUnitFactor(
       field,
       severity: "error",
       message: `${field} must be a finite value between 0 and 1.`,
+    });
+  }
+}
+
+function validateIridescenceIor(
+  value: number,
+  diagnostics: StandardMaterialProofPointDiagnostic[],
+): void {
+  if (!Number.isFinite(value) || value < 1 || value > 2.333) {
+    diagnostics.push({
+      code: "standardMaterial.invalidFactor",
+      field: "iridescenceIor",
+      severity: "error",
+      message: "iridescenceIor must be a finite value between 1 and 2.333.",
+    });
+  }
+}
+
+function validateIridescenceThicknessRange(
+  material: StandardMaterialAsset,
+  diagnostics: StandardMaterialProofPointDiagnostic[],
+): void {
+  if (
+    !Number.isFinite(material.iridescenceThicknessMinimum) ||
+    !Number.isFinite(material.iridescenceThicknessMaximum) ||
+    material.iridescenceThicknessMinimum < 0 ||
+    material.iridescenceThicknessMaximum < material.iridescenceThicknessMinimum
+  ) {
+    diagnostics.push({
+      code: "standardMaterial.invalidFactor",
+      field: "iridescenceThicknessRange",
+      severity: "error",
+      message:
+        "iridescence thickness range must contain finite non-negative values with maximum greater than or equal to minimum.",
     });
   }
 }

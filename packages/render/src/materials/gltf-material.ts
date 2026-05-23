@@ -104,11 +104,13 @@ export interface GltfMaterialMappingReportJsonValue {
 const CLEARCOAT_EXTENSION = "KHR_materials_clearcoat";
 const TRANSMISSION_EXTENSION = "KHR_materials_transmission";
 const SHEEN_EXTENSION = "KHR_materials_sheen";
+const IRIDESCENCE_EXTENSION = "KHR_materials_iridescence";
 const SUPPORTED_MATERIAL_EXTENSIONS = new Set([
   "KHR_materials_unlit",
   CLEARCOAT_EXTENSION,
   TRANSMISSION_EXTENSION,
   SHEEN_EXTENSION,
+  IRIDESCENCE_EXTENSION,
 ]);
 const TEXTURE_TRANSFORM_EXTENSION = "KHR_texture_transform";
 
@@ -184,6 +186,16 @@ export function createMaterialAssetFromGltfMaterial(
       ? optionalRecordField({
           source: materialExtensions,
           field: SHEEN_EXTENSION,
+          materialKey,
+          diagnostics,
+        })
+      : undefined;
+  const iridescenceSource =
+    isRecord(materialExtensions) &&
+    materialExtensions[IRIDESCENCE_EXTENSION] !== undefined
+      ? optionalRecordField({
+          source: materialExtensions,
+          field: IRIDESCENCE_EXTENSION,
           materialKey,
           diagnostics,
         })
@@ -289,6 +301,34 @@ export function createMaterialAssetFromGltfMaterial(
       fallback: 0,
       diagnostics,
     }),
+    iridescenceFactor: mapFiniteNumber({
+      materialKey,
+      field: `extensions.${IRIDESCENCE_EXTENSION}.iridescenceFactor`,
+      value: iridescenceSource?.iridescenceFactor,
+      fallback: 0,
+      diagnostics,
+    }),
+    iridescenceIor: mapFiniteNumber({
+      materialKey,
+      field: `extensions.${IRIDESCENCE_EXTENSION}.iridescenceIor`,
+      value: iridescenceSource?.iridescenceIor,
+      fallback: 1.3,
+      diagnostics,
+    }),
+    iridescenceThicknessMinimum: mapFiniteNumber({
+      materialKey,
+      field: `extensions.${IRIDESCENCE_EXTENSION}.iridescenceThicknessMinimum`,
+      value: iridescenceSource?.iridescenceThicknessMinimum,
+      fallback: 100,
+      diagnostics,
+    }),
+    iridescenceThicknessMaximum: mapFiniteNumber({
+      materialKey,
+      field: `extensions.${IRIDESCENCE_EXTENSION}.iridescenceThicknessMaximum`,
+      value: iridescenceSource?.iridescenceThicknessMaximum,
+      fallback: 400,
+      diagnostics,
+    }),
     metallicRoughnessTexture: mapTextureBinding({
       materialKey,
       slot: "metallicRoughnessTexture",
@@ -354,6 +394,11 @@ export function createMaterialAssetFromGltfMaterial(
     diagnostics,
   );
   inspectUnsupportedSheenTextures(sheenSource, materialKey, diagnostics);
+  inspectUnsupportedIridescenceTextures(
+    iridescenceSource,
+    materialKey,
+    diagnostics,
+  );
 
   return {
     valid: diagnostics.every((diagnostic) => diagnostic.severity !== "error"),
@@ -468,6 +513,34 @@ function inspectUnsupportedSheenTextures(
       field: `extensions.${SHEEN_EXTENSION}.${field}`,
       extensionName: SHEEN_EXTENSION,
       message: `${SHEEN_EXTENSION}.${field} is preserved in source data but scalar sheen rendering does not sample sheen textures yet.`,
+    });
+  }
+}
+
+function inspectUnsupportedIridescenceTextures(
+  iridescenceSource: Record<string, unknown> | undefined,
+  materialKey: string,
+  diagnostics: GltfMaterialMappingDiagnostic[],
+): void {
+  if (iridescenceSource === undefined) {
+    return;
+  }
+
+  for (const field of [
+    "iridescenceTexture",
+    "iridescenceThicknessTexture",
+  ] as const) {
+    if (iridescenceSource[field] === undefined) {
+      continue;
+    }
+
+    diagnostics.push({
+      code: "gltfMaterial.unsupportedOptionalExtension",
+      severity: "warning",
+      materialKey,
+      field: `extensions.${IRIDESCENCE_EXTENSION}.${field}`,
+      extensionName: IRIDESCENCE_EXTENSION,
+      message: `${IRIDESCENCE_EXTENSION}.${field} is preserved in source data but scalar iridescence rendering does not sample iridescence textures yet.`,
     });
   }
 }

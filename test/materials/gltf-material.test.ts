@@ -33,6 +33,10 @@ describe("glTF material mapping", () => {
       transmissionFactor: 0,
       sheenColorFactor: [0, 0, 0],
       sheenRoughnessFactor: 0,
+      iridescenceFactor: 0,
+      iridescenceIor: 1.3,
+      iridescenceThicknessMinimum: 100,
+      iridescenceThicknessMaximum: 400,
       normalScale: 1,
       occlusionStrength: 1,
       emissiveFactor: [0, 0, 0],
@@ -249,6 +253,79 @@ describe("glTF material mapping", () => {
         severity: "warning",
         field: "extensions.KHR_materials_sheen.sheenRoughnessTexture",
         extensionName: "KHR_materials_sheen",
+      },
+    ]);
+  });
+
+  it("maps KHR_materials_iridescence scalar factors to StandardMaterial fields", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        name: "Soap Film",
+        extensions: {
+          KHR_materials_iridescence: {
+            iridescenceFactor: 0.9,
+            iridescenceIor: 1.42,
+            iridescenceThicknessMinimum: 120,
+            iridescenceThicknessMaximum: 520,
+          },
+        },
+        pbrMetallicRoughness: {
+          metallicFactor: 0,
+          roughnessFactor: 0.18,
+        },
+      },
+      {
+        materialKey: "material:iridescence",
+        extensionsRequired: ["KHR_materials_iridescence"],
+      },
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      label: "Soap Film",
+      metallicFactor: 0,
+      roughnessFactor: 0.18,
+      iridescenceFactor: 0.9,
+      iridescenceIor: 1.42,
+      iridescenceThicknessMinimum: 120,
+      iridescenceThicknessMaximum: 520,
+    });
+  });
+
+  it("warns when KHR_materials_iridescence uses unsupported texture slots", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        extensions: {
+          KHR_materials_iridescence: {
+            iridescenceFactor: 1,
+            iridescenceTexture: { index: 0 },
+            iridescenceThicknessTexture: { index: 1 },
+          },
+        },
+      },
+      { materialKey: "material:iridescence-textures" },
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      iridescenceFactor: 1,
+    });
+    expect(report.diagnostics).toMatchObject([
+      {
+        code: "gltfMaterial.unsupportedOptionalExtension",
+        severity: "warning",
+        field: "extensions.KHR_materials_iridescence.iridescenceTexture",
+        extensionName: "KHR_materials_iridescence",
+      },
+      {
+        code: "gltfMaterial.unsupportedOptionalExtension",
+        severity: "warning",
+        field:
+          "extensions.KHR_materials_iridescence.iridescenceThicknessTexture",
+        extensionName: "KHR_materials_iridescence",
       },
     ]);
   });
@@ -785,14 +862,14 @@ describe("glTF material mapping", () => {
   it("reports unsupported required extensions and unresolved texture handles", () => {
     const report = createMaterialAssetFromGltfMaterial(
       {
-        extensions: { KHR_materials_iridescence: {} },
+        extensions: { KHR_materials_specular: {} },
         pbrMetallicRoughness: {
           baseColorTexture: { index: 2 },
         },
       },
       {
         materialKey: "material:bad",
-        extensionsRequired: ["KHR_materials_iridescence"],
+        extensionsRequired: ["KHR_materials_specular"],
       },
     );
 
@@ -801,7 +878,7 @@ describe("glTF material mapping", () => {
       {
         code: "gltfMaterial.unsupportedRequiredExtension",
         severity: "error",
-        extensionName: "KHR_materials_iridescence",
+        extensionName: "KHR_materials_specular",
       },
       {
         code: "gltfMaterial.unresolvedTextureBinding",

@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 00:59 UTC</dd>
+            <dd>2026-05-23 01:28 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1359,32 +1359,40 @@
               path now also appends sprite billboard commands alongside opaque
               mesh draws instead of only rendering sprites in sprite-only
               snapshots. Tier 18 PBR material extensions now include scalar
-              clearcoat, scalar thin-wall transmission, and scalar sheen:
-              StandardMaterial now carries scalar
+              clearcoat, scalar thin-wall transmission, scalar sheen, and scalar
+              iridescence: StandardMaterial now carries scalar
               <code>clearcoatFactor</code> and
               <code>clearcoatRoughnessFactor</code> fields plus
               <code>transmissionFactor</code>, <code>sheenColorFactor</code>,
-              and <code>sheenRoughnessFactor</code>, glTF
+              <code>sheenRoughnessFactor</code>, and
+              <code>iridescenceFactor</code>/<code>iridescenceIor</code> with a
+              nanometer thickness range, glTF
               <code>KHR_materials_clearcoat</code> scalar factors map through
               the library material mapper, glTF
               <code>KHR_materials_transmission</code> scalar factors map to
               alpha-blended StandardMaterial assets, and glTF
               <code>KHR_materials_sheen</code> scalar factors map to
-              fabric-style StandardMaterial assets. WebGPU packs the extension
+              fabric-style StandardMaterial assets, while glTF
+              <code>KHR_materials_iridescence</code> scalar factors map to
+              thin-film StandardMaterial assets. WebGPU packs the extension
               scalars into the StandardMaterial buffer, WGSL clearcoat variants
               add a coating specular lobe, WGSL transmission variants attenuate
               fragment alpha while preserving output-stage tonemap and sRGB
               composition, and WGSL sheen variants add a Charlie-style fabric
-              rim-light lobe. <code>examples/clearcoat.html</code> proves a
-              square worker-authored base-coat vs clearcoat comparison with a
-              visibly brighter coating highlight, and
+              rim-light lobe; WGSL iridescence variants mix a wavelength-aware
+              thin-film Fresnel color into the direct-light specular response.
+              <code>examples/clearcoat.html</code> proves a square
+              worker-authored base-coat vs clearcoat comparison with a visibly
+              brighter coating highlight, and
               <code>examples/transmission.html</code> proves a glass sphere with
               the background visible through the transmitted material, while
               <code>examples/sheen.html</code> proves a fabric sphere with a
-              visibly brighter sheen rim.
+              visibly brighter sheen rim and
+              <code>examples/iridescence.html</code> proves a cyan thin-film
+              highlight distinct from the matching base material.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3085 iridescence extension</dd>
+            <dd>task-3086 MSAA support in render passes</dd>
           </dl>
         </aside>
       </header>
@@ -1967,8 +1975,8 @@
                 Missing app-level generic material adapter route boundary.
               </li>
               <li>
-                Missing texture-backed clearcoat/transmission/sheen and the
-                remaining iridescence PBR extension resources.
+                Missing texture-backed clearcoat/transmission/sheen/iridescence
+                PBR extension resources.
               </li>
               <li>
                 Missing IBL, shadow, render-target, and hot-path scratch polish.
@@ -2101,16 +2109,17 @@
               outdoor scene example now proves directional CSM and RectAreaLight
               LTC contribution together through the same worker-snapshot and
               renderer-owned WebGPU resource path. Tier 18 now also submits
-              scalar clearcoat, scalar thin-wall transmission, and scalar sheen
-              StandardMaterial variants: clearcoat adds a coating specular lobe,
-              transmission attenuates alpha through the blend pipeline so a
-              background panel remains visible through the glass proof sphere,
-              and sheen adds a fabric rim-light lobe.
+              scalar clearcoat, scalar thin-wall transmission, scalar sheen, and
+              scalar iridescence StandardMaterial variants: clearcoat adds a
+              coating specular lobe, transmission attenuates alpha through the
+              blend pipeline so a background panel remains visible through the
+              glass proof sphere, sheen adds a fabric rim-light lobe, and
+              iridescence adds a thin-film Fresnel color shift.
             </p>
             <ul>
               <li>Missing true grab-pass refraction for transmission.</li>
               <li>
-                Missing texture-backed sheen and iridescence PBR resources.
+                Missing texture-backed StandardMaterial PBR extension resources.
               </li>
               <li>
                 Missing full GGX importance sampling, post-processing, and
@@ -4402,17 +4411,15 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3085</code>, the StandardMaterial iridescence
-                extension.
+                <code>task-3086</code>, MSAA support in render passes.
               </li>
               <li>
-                Anchor on three.js <code>MeshPhysicalMaterial</code>, PlayCanvas
-                iridescence behavior, and glTF
-                <code>KHR_materials_iridescence</code>.
+                Anchor on three.js render target sample-count handling and
+                PlayCanvas render-target multisampling behavior.
               </li>
               <li>
-                Add schema, shader, and browser proof for a thin-film surface
-                with visible iridescent color shift.
+                Add configurable 1x/4x/8x render-pass samples with resolve-to-
+                present behavior and a browser edge-quality proof.
               </li>
             </ul>
           </article>

@@ -15,7 +15,7 @@ import { WEBGPU_BUFFER_USAGE_FLAGS } from "./mesh-buffer-descriptors.js";
 import { materialUniformBufferResourceKey } from "./resource-keys.js";
 import { createStandardMaterialBindGroupDescriptorPlan } from "./standard-bind-group.js";
 
-export const STANDARD_MATERIAL_UNIFORM_FLOATS = 56;
+export const STANDARD_MATERIAL_UNIFORM_FLOATS = 60;
 export const STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH =
   STANDARD_MATERIAL_UNIFORM_FLOATS * Float32Array.BYTES_PER_ELEMENT;
 
@@ -76,6 +76,10 @@ export const STANDARD_MATERIAL_UNIFORM_LAYOUT = [
   "sheenColorFactor.g",
   "sheenColorFactor.b",
   "sheenRoughnessFactor",
+  "iridescenceFactor",
+  "iridescenceIor",
+  "iridescenceThicknessMinimum",
+  "iridescenceThicknessMaximum",
 ] as const;
 
 export const STANDARD_MATERIAL_FEATURE_FLAGS = {
@@ -258,6 +262,10 @@ export function packStandardMaterial(
   uniformFloat32[50] = material.transmissionFactor;
   uniformFloat32.set(material.sheenColorFactor, 52);
   uniformFloat32[55] = material.sheenRoughnessFactor;
+  uniformFloat32[56] = material.iridescenceFactor;
+  uniformFloat32[57] = material.iridescenceIor;
+  uniformFloat32[58] = material.iridescenceThicknessMinimum;
+  uniformFloat32[59] = material.iridescenceThicknessMaximum;
 
   return {
     valid: true,

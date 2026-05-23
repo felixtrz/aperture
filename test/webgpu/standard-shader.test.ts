@@ -36,6 +36,7 @@ import {
   STANDARD_MESH_WGSL,
   STANDARD_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY,
   STANDARD_SHEEN_SHADER_VARIANT,
+  STANDARD_IRIDESCENCE_SHADER_VARIANT,
   createStandardMeshShaderModuleDescriptor,
   createStandardTextureShaderVariantKey,
   createStandardTextureVariantShader,
@@ -414,6 +415,48 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(
       materialPipelineKeyInputToKey(createMaterialPipelineKeyInput(material)),
     ).toBe("standard|sheen|opaque|back|less|none");
+  });
+
+  it("generates a scalar iridescence StandardMaterial shader variant", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      iridescence: true,
+    });
+    const material = createStandardMaterialAsset({
+      iridescenceFactor: 1,
+      iridescenceIor: 1.3,
+      iridescenceThicknessMinimum: 100,
+      iridescenceThicknessMaximum: 480,
+    });
+
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: false,
+        iridescence: true,
+      }),
+    ).toBe(STANDARD_IRIDESCENCE_SHADER_VARIANT);
+    expect(shader.label).toBe("aperture/standard-mesh-iridescence");
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.bindings).toEqual(STANDARD_MESH_SHADER.bindings);
+    expect(shader.code).toContain("iridescenceFactorIorThickness: vec4f");
+    expect(shader.code).toContain("fn standardIridescenceFresnel");
+    expect(shader.code).toContain(
+      "fresnel = mix(fresnel, iridescenceFresnel, iridescence)",
+    );
+    expect(
+      materialPipelineKeyInputToKey(createMaterialPipelineKeyInput(material)),
+    ).toBe("standard|iridescence|opaque|back|less|none");
   });
 
   it("generates a skinned StandardMaterial shader variant", () => {

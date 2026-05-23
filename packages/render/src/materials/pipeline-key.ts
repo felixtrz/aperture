@@ -28,6 +28,10 @@ export function createMaterialPipelineKeyInput(
     features.push("sheen");
   }
 
+  if (usesStandardIridescence(material)) {
+    features.push("iridescence");
+  }
+
   return {
     shaderFamily: material.kind,
     features: features.sort(),
@@ -64,6 +68,10 @@ function usesStandardSheen(material: MaterialAsset): boolean {
       material.sheenColorFactor[1] > 0 ||
       material.sheenColorFactor[2] > 0)
   );
+}
+
+function usesStandardIridescence(material: MaterialAsset): boolean {
+  return material.kind === "standard" && material.iridescenceFactor > 0;
 }
 
 export function materialPipelineKeyInputToKey(

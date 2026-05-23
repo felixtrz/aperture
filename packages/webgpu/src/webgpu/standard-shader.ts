@@ -47,6 +47,8 @@ export const STANDARD_TRANSMISSION_SHADER_VARIANT =
   "direct-lit-metallic-roughness-transmission";
 export const STANDARD_SHEEN_SHADER_VARIANT =
   "direct-lit-metallic-roughness-sheen";
+export const STANDARD_IRIDESCENCE_SHADER_VARIANT =
+  "direct-lit-metallic-roughness-iridescence";
 
 export interface StandardTextureShaderFeatures {
   readonly baseColorTexture: boolean;
@@ -67,6 +69,7 @@ export interface StandardTextureShaderFeatures {
   readonly clearcoat?: boolean;
   readonly transmission?: boolean;
   readonly sheen?: boolean;
+  readonly iridescence?: boolean;
   readonly fogLinear?: boolean;
   readonly fogExp?: boolean;
   readonly fogExp2?: boolean;
@@ -95,6 +98,9 @@ export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
     "transmissionFactor",
     "sheenColorFactor",
     "sheenRoughnessFactor",
+    "iridescenceFactor",
+    "iridescenceIor",
+    "iridescenceThicknessRange",
     "linearFog",
     "exponentialFog",
     "exponentialSquaredFog",
@@ -152,6 +158,7 @@ struct StandardMaterialUniform {
   transmissionFactor: f32,
   padding9: f32,
   sheenColorRoughnessFactor: vec4f,
+  iridescenceFactorIorThickness: vec4f,
 };
 
 struct VertexInput {
@@ -994,6 +1001,7 @@ export function createStandardTextureShaderVariantKey(
     features.morphed !== true &&
     features.transmission !== true &&
     features.sheen !== true &&
+    features.iridescence !== true &&
     !hasStandardFogFeature(features)
   ) {
     return STANDARD_CLEARCOAT_SHADER_VARIANT;
@@ -1018,6 +1026,7 @@ export function createStandardTextureShaderVariantKey(
     features.morphed !== true &&
     features.clearcoat !== true &&
     features.sheen !== true &&
+    features.iridescence !== true &&
     !hasStandardFogFeature(features)
   ) {
     return STANDARD_TRANSMISSION_SHADER_VARIANT;
@@ -1042,9 +1051,35 @@ export function createStandardTextureShaderVariantKey(
     features.morphed !== true &&
     features.clearcoat !== true &&
     features.transmission !== true &&
+    features.iridescence !== true &&
     !hasStandardFogFeature(features)
   ) {
     return STANDARD_SHEEN_SHADER_VARIANT;
+  }
+
+  if (
+    features.iridescence === true &&
+    !features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture &&
+    features.shadowMap !== true &&
+    features.cascadedShadowMap !== true &&
+    features.pointShadowMap !== true &&
+    features.iblDiffuse !== true &&
+    features.iblSpecularProof !== true &&
+    features.texCoord1 !== true &&
+    features.vertexColor !== true &&
+    features.instanceTint !== true &&
+    features.skinned !== true &&
+    features.morphed !== true &&
+    features.clearcoat !== true &&
+    features.transmission !== true &&
+    features.sheen !== true &&
+    !hasStandardFogFeature(features)
+  ) {
+    return STANDARD_IRIDESCENCE_SHADER_VARIANT;
   }
 
   const names: string[] = [];
@@ -1111,6 +1146,10 @@ export function createStandardTextureShaderVariantKey(
 
   if (features.sheen === true) {
     names.push("sheen");
+  }
+
+  if (features.iridescence === true) {
+    names.push("iridescence");
   }
 
   appendStandardSkinningFeatureName(names, features);
@@ -1517,6 +1556,10 @@ ${emissive}
 
   if (features.iblSpecularProof === true) {
     code = applyStandardSpecularIblProofSampling(code);
+  }
+
+  if (features.iridescence === true) {
+    code = applyStandardIridescenceSampling(code);
   }
 
   if (features.clearcoat === true) {
@@ -2107,6 +2150,7 @@ function standardTextureVariantShaderLabel(
     features.morphed !== true &&
     features.transmission !== true &&
     features.sheen !== true &&
+    features.iridescence !== true &&
     !hasStandardFogFeature(features)
   ) {
     return "aperture/standard-mesh-clearcoat";
@@ -2131,6 +2175,7 @@ function standardTextureVariantShaderLabel(
     features.morphed !== true &&
     features.clearcoat !== true &&
     features.sheen !== true &&
+    features.iridescence !== true &&
     !hasStandardFogFeature(features)
   ) {
     return "aperture/standard-mesh-transmission";
@@ -2155,9 +2200,35 @@ function standardTextureVariantShaderLabel(
     features.morphed !== true &&
     features.clearcoat !== true &&
     features.transmission !== true &&
+    features.iridescence !== true &&
     !hasStandardFogFeature(features)
   ) {
     return "aperture/standard-mesh-sheen";
+  }
+
+  if (
+    features.iridescence === true &&
+    !features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture &&
+    features.shadowMap !== true &&
+    features.cascadedShadowMap !== true &&
+    features.pointShadowMap !== true &&
+    features.iblDiffuse !== true &&
+    features.iblSpecularProof !== true &&
+    features.texCoord1 !== true &&
+    features.vertexColor !== true &&
+    features.instanceTint !== true &&
+    features.skinned !== true &&
+    features.morphed !== true &&
+    features.clearcoat !== true &&
+    features.transmission !== true &&
+    features.sheen !== true &&
+    !hasStandardFogFeature(features)
+  ) {
+    return "aperture/standard-mesh-iridescence";
   }
 
   return `aperture/standard-mesh-${standardTextureFeatureNames(features).join(
@@ -2234,6 +2305,10 @@ function standardTextureFeatureNames(
     names.push("sheen");
   }
 
+  if (features.iridescence === true) {
+    names.push("iridescence");
+  }
+
   appendStandardSkinningFeatureName(names, features);
   appendStandardMorphTargetFeatureName(names, features);
   appendStandardFogFeatureName(names, features);
@@ -2275,6 +2350,7 @@ function hasStandardGenericOnlyFeature(
     features.clearcoat === true ||
     features.transmission === true ||
     features.sheen === true ||
+    features.iridescence === true ||
     hasStandardFogFeature(features)
   );
 }
@@ -2301,9 +2377,138 @@ function hasAnyStandardTextureFeature(
     features.clearcoat === true ||
     features.transmission === true ||
     features.sheen === true ||
+    features.iridescence === true ||
     hasStandardFogFeature(features)
   );
 }
+
+function applyStandardIridescenceSampling(code: string): string {
+  return code
+    .replace(
+      `fn evaluateDirectLight(
+  normal: vec3f,`,
+      `${STANDARD_IRIDESCENCE_WGSL}
+
+fn evaluateDirectLight(
+  normal: vec3f,`,
+    )
+    .replace(
+      `  let f0 = mix(vec3f(0.04), baseColor, vec3f(metallic));
+  let fresnel = fresnelSchlick(max(dot(halfVector, viewDir), 0.0), f0);`,
+      `  let f0 = mix(vec3f(0.04), baseColor, vec3f(metallic));
+  let iridescence = clamp(material.iridescenceFactorIorThickness.x, 0.0, 1.0);
+  let iridescenceIor = clamp(material.iridescenceFactorIorThickness.y, 1.0, 2.333);
+  let iridescenceThickness = clamp(material.iridescenceFactorIorThickness.w, 0.0, 1200.0);
+  var fresnel = fresnelSchlick(max(dot(halfVector, viewDir), 0.0), f0);
+  let iridescenceFresnel = standardIridescenceFresnel(
+    max(dot(normal, viewDir), 0.0),
+    f0,
+    iridescenceThickness,
+    iridescenceIor,
+  );
+  fresnel = mix(fresnel, iridescenceFresnel, iridescence);`,
+    )
+    .replace(
+      `  let f0 = mix(vec3f(0.04), baseColor, vec3f(metallic));
+  let fresnel = fresnelSchlick(max(dot(viewDir, lightDir), 0.0), f0);`,
+      `  let f0 = mix(vec3f(0.04), baseColor, vec3f(metallic));
+  let iridescence = clamp(material.iridescenceFactorIorThickness.x, 0.0, 1.0);
+  let iridescenceIor = clamp(material.iridescenceFactorIorThickness.y, 1.0, 2.333);
+  let iridescenceThickness = clamp(material.iridescenceFactorIorThickness.w, 0.0, 1200.0);
+  var fresnel = fresnelSchlick(max(dot(viewDir, lightDir), 0.0), f0);
+  let iridescenceFresnel = standardIridescenceFresnel(
+    max(dot(normal, viewDir), 0.0),
+    f0,
+    iridescenceThickness,
+    iridescenceIor,
+  );
+  fresnel = mix(fresnel, iridescenceFresnel, iridescence);`,
+    );
+}
+
+const STANDARD_IRIDESCENCE_WGSL = `
+fn iridescenceIorToFresnelScalar(transmittedIor: f32, incidentIor: f32) -> f32 {
+  return pow((transmittedIor - incidentIor) / (transmittedIor + incidentIor), 2.0);
+}
+
+fn iridescenceIorToFresnelVec3(transmittedIor: vec3f, incidentIor: f32) -> vec3f {
+  return pow((transmittedIor - vec3f(incidentIor)) / (transmittedIor + vec3f(incidentIor)), vec3f(2.0));
+}
+
+fn iridescenceFresnelToIor(f0: vec3f) -> vec3f {
+  let safeF0 = clamp(f0, vec3f(0.0001), vec3f(0.99));
+  let sqrtF0 = sqrt(safeF0);
+  return (vec3f(1.0) + sqrtF0) / (vec3f(1.0) - sqrtF0);
+}
+
+const IRIDESCENCE_XYZ_TO_REC709: mat3x3f = mat3x3f(
+  vec3f(3.2404542, -1.5371385, -0.4985314),
+  vec3f(-0.9692660, 1.8760108, 0.0415560),
+  vec3f(0.0556434, -0.2040259, 1.0572252)
+);
+
+fn iridescenceSensitivity(opd: f32, shift: vec3f) -> vec3f {
+  let phase = 2.0 * PI * opd * 1.0e-9;
+  let primaryValue = vec3f(5.4856e-13, 4.4201e-13, 5.2481e-13);
+  let primaryPosition = vec3f(1.6810e+06, 1.7953e+06, 2.2084e+06);
+  let primaryVariance = vec3f(4.3278e+09, 9.3046e+09, 6.6121e+09);
+  var xyz = primaryValue * sqrt(2.0 * PI * primaryVariance) *
+    cos(primaryPosition * phase + shift) *
+    exp(-pow(phase, 2.0) * primaryVariance);
+  xyz = xyz + vec3f(
+    9.7470e-14 * sqrt(2.0 * PI * 4.5282e+09) *
+      cos(2.2399e+06 * phase + shift.x) *
+      exp(-4.5282e+09 * pow(phase, 2.0)),
+    0.0,
+    0.0,
+  );
+  return IRIDESCENCE_XYZ_TO_REC709 * (xyz / vec3f(1.0685e-07));
+}
+
+fn iridescenceFresnelScalar(cosTheta: f32, f0: f32) -> f32 {
+  let x = clamp(1.0 - cosTheta, 0.0, 1.0);
+  let x2 = x * x;
+  return f0 + (1.0 - f0) * x * x2 * x2;
+}
+
+fn iridescenceFresnelVec3(cosTheta: f32, f0: vec3f) -> vec3f {
+  let x = clamp(1.0 - cosTheta, 0.0, 1.0);
+  let x2 = x * x;
+  return f0 + (vec3f(1.0) - f0) * x * x2 * x2;
+}
+
+fn standardIridescenceFresnel(cosTheta: f32, baseF0: vec3f, thickness: f32, filmIor: f32) -> vec3f {
+  let outsideIor = 1.0;
+  let iridescenceIor = mix(outsideIor, filmIor, smoothstep(0.0, 0.03, thickness));
+  let sinTheta2Sq = pow(outsideIor / iridescenceIor, 2.0) * (1.0 - pow(cosTheta, 2.0));
+  let cosTheta2Sq = 1.0 - sinTheta2Sq;
+
+  if (cosTheta2Sq < 0.0) {
+    return vec3f(1.0);
+  }
+
+  let cosTheta2 = sqrt(cosTheta2Sq);
+  let r0 = iridescenceIorToFresnelScalar(iridescenceIor, outsideIor);
+  let r12 = iridescenceFresnelScalar(cosTheta, r0);
+  let t121 = 1.0 - r12;
+  let phi12 = select(0.0, PI, iridescenceIor < outsideIor);
+  let phi21 = PI - phi12;
+  let baseIor = iridescenceFresnelToIor(baseF0 + vec3f(0.0001));
+  let r1 = iridescenceIorToFresnelVec3(baseIor, iridescenceIor);
+  let r23 = iridescenceFresnelVec3(cosTheta2, r1);
+  let phi23 = select(vec3f(0.0), vec3f(PI), baseIor < vec3f(iridescenceIor));
+  let opd = 2.0 * iridescenceIor * thickness * cosTheta2;
+  let phi = vec3f(phi21) + phi23;
+  let r123Sq = clamp(vec3f(r12) * r23, vec3f(1e-5), vec3f(0.9999));
+  let r123 = sqrt(r123Sq);
+  let rs = pow(vec3f(t121), vec3f(2.0)) * r23 / (vec3f(1.0) - r123Sq);
+  var color = vec3f(r12) + rs;
+  var coefficient = (rs - vec3f(t121)) * r123;
+  color = color + coefficient * (2.0 * iridescenceSensitivity(opd, phi));
+  coefficient = coefficient * r123;
+  color = color + coefficient * (2.0 * iridescenceSensitivity(2.0 * opd, 2.0 * phi));
+  return max(color, vec3f(0.0));
+}`;
 
 function applyStandardClearcoatSampling(code: string): string {
   return code.replace(

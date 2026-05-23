@@ -59,18 +59,19 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3085`: Iridescence extension.
+Start `task-3086`: MSAA support in render passes.
 
 Why this next: Tier 17 scene atmosphere is complete, and Tier 18 has shipped
-scalar StandardMaterial clearcoat, scalar thin-wall transmission, and scalar
-sheen.
+scalar StandardMaterial clearcoat, scalar thin-wall transmission, scalar sheen,
+and scalar iridescence.
 `examples/clearcoat.html` proves a clearcoat highlight distinct from the base
 StandardMaterial specular response, and `examples/transmission.html` proves a
 glass-like surface with the background visible through the transmitted
 material. `examples/sheen.html` proves a fabric-like material with a
-characteristic sheen rim-light. The next visible gap is iridescence as the
-remaining Tier 18 `MeshPhysicalMaterial`/glTF PBR-extension surface: a
-thin-film material with wavelength-dependent color shift.
+characteristic sheen rim-light. `examples/iridescence.html` proves a thin-film
+material with a cyan wavelength-dependent color shift. The next visible gap is
+Tier 19 antialiasing: configurable multisample render targets that resolve to
+the presented output.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -126,9 +127,9 @@ shader/pipeline/resource/importer tests.
 
 Reference anchors (read before writing):
 
-- `references/three.js/src/materials/MeshPhysicalMaterial.js`.
-- `references/engine/src/scene/materials/standard-material.js`.
-- glTF `KHR_materials_iridescence` extension behavior.
+- `references/three.js/src/renderers/WebGLRenderTarget.js`.
+- `references/engine/src/platform/graphics/render-target.js`.
+- Existing WebGPU render-target/output-stage path in `packages/webgpu/src/webgpu/`.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -1274,10 +1275,19 @@ Acceptance criteria:
 
 ### task-3085 — Iridescence extension (Tier 18 part 4)
 
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: extends Tier 18 part 1.
 Reference anchor: `references/three.js/src/materials/MeshPhysicalMaterial.js` (iridescence); glTF `KHR_materials_iridescence`.
 Insertion point: thin-film iridescence via wavelength-dependent reflectance.
+Completion note 2026-05-23: scalar StandardMaterial iridescence shipped with
+`iridescenceFactor`, `iridescenceIor`, and nanometer thickness range fields,
+glTF `KHR_materials_iridescence` scalar mapping, iridescence pipeline-key
+routing, uniform packing, WGSL direct-light thin-film Fresnel color shift, and
+`examples/iridescence.html` browser coverage showing a cyan thin-film highlight
+distinct from the matching base material. Iridescence texture slots remain
+follow-up work and are reported as unsupported optional slots.
 
 Acceptance criteria:
 

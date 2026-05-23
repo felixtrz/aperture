@@ -1,5 +1,33 @@
 # Completed Tasks
 
+## task-3085 — Iridescence extension
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added scalar StandardMaterial iridescence support with
+  `iridescenceFactor`, `iridescenceIor`, and nanometer thickness range fields,
+  defaults, proof-point validation, material pipeline-key routing, and WebGPU
+  uniform packing.
+- Added glTF `KHR_materials_iridescence` scalar mapping to the library material
+  mapper and warnings for currently unsupported `iridescenceTexture` and
+  `iridescenceThicknessTexture` slots.
+- Added a scalar WGSL iridescence variant that mixes a PlayCanvas-style
+  thin-film diffraction Fresnel color into the direct-light specular response.
+- Added `examples/iridescence.html` with a square worker-authored base material
+  vs thin-film scene, plus headed Chrome/WebGPU screenshot proof that the film
+  highlight shifts to cyan against the matching base material.
+
+Validation:
+
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/materials/materials.test.ts test/materials/standard-proof-point.test.ts test/materials/gltf-material.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts`
+- `pnpm exec playwright test test/e2e/iridescence.spec.ts --reporter=line --timeout=30000`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "unsupported required material extension|unsupported optional material extension|multiple unsupported optional material extension" --reporter=line --timeout=60000`
+
 ## task-3084 — Sheen extension
 
 Completed: 2026-05-23

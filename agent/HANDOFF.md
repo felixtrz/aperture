@@ -1,6 +1,62 @@
 # Agent Handoff
 
-Updated: 2026-05-23T00:59:06Z
+Updated: 2026-05-23T01:32:47Z
+
+## Current Run Update — 2026-05-23T01:32:47Z — Iridescence
+
+Completed `task-3085`, the Tier 18 scalar iridescence slice.
+
+### What changed
+
+- Added StandardMaterial scalar iridescence fields:
+  `iridescenceFactor`, `iridescenceIor`,
+  `iridescenceThicknessMinimum`, and `iridescenceThicknessMaximum`.
+- Added defaults, proof-point validation, material pipeline-key routing,
+  StandardMaterial uniform packing, pipeline descriptor parsing, and a WGSL
+  thin-film diffraction Fresnel color path for direct-light specular response.
+- Added glTF `KHR_materials_iridescence` scalar mapping in the library material
+  mapper, with unsupported `iridescenceTexture` and
+  `iridescenceThicknessTexture` slots reported as optional warnings.
+- Added `examples/iridescence.html`, `examples/iridescence.main.js`,
+  `examples/iridescence.worker.js`, and `examples/iridescence-scene.js` with a
+  square worker-authored base gloss vs thin-film material proof scene.
+- Added headed Chrome/WebGPU coverage proving the iridescent sphere has a cyan
+  wavelength-dependent color shift relative to the matching base material, plus
+  focused unit coverage for material schema/defaults, glTF mapping, pipeline
+  keys, uniform packing, shader variant generation, and pipeline
+  specialization.
+
+### Reference comparison
+
+- three.js exposes iridescence on `MeshPhysicalMaterial` and maps glTF
+  `KHR_materials_iridescence` into scalar factor, IOR, and thickness range
+  properties, with texture slots multiplying or selecting those values.
+- PlayCanvas exposes StandardMaterial iridescence controls and uses
+  thin-film diffraction Fresnel terms in its lit shader path.
+- Bevy's local glTF support table still marks `KHR_materials_iridescence`
+  unsupported, but its ECS/render boundary remains the reference for keeping
+  material source data in assets and renderer-owned GPU state out of ECS.
+
+### Validation
+
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run check:examples` passed.
+- `pnpm exec vitest run test/materials/materials.test.ts test/materials/standard-proof-point.test.ts test/materials/gltf-material.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts`
+  passed: 6 files, 113 tests.
+- `pnpm exec playwright test test/e2e/iridescence.spec.ts --reporter=line --timeout=30000`
+  passed.
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "unsupported required material extension|unsupported optional material extension|multiple unsupported optional material extension" --reporter=line --timeout=60000`
+  passed: 3 tests.
+
+### Known issues
+
+- Iridescence texture slots are detected and reported as optional warnings, but
+  are not sampled yet.
+
+### Recommended next task
+
+Start Tier 19 with `task-3086`, MSAA support in render passes.
 
 ## Current Run Update — 2026-05-23T00:59:06Z — Sheen
 
