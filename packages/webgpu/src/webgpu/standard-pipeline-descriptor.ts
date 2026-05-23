@@ -31,6 +31,7 @@ import {
   standardMorphTargetsEnabledFromBatchKey,
 } from "./standard-morph-target-shader.js";
 import { STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY } from "./standard-light-shadow-bind-group.js";
+import { CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE } from "./local-light-clusters.js";
 import type { BuiltInShaderSourceModule } from "./unlit-shader.js";
 
 export const STANDARD_DEFERRED_PIPELINE_FEATURES = [] as const;
@@ -324,7 +325,10 @@ function standardBindGroupLayoutKeys(
     "standard/group-0:view-uniform@0",
     standardTransformBindGroupLayoutKey(features),
     standardMaterialLayoutKey(features),
-    standardTransmissionLightGroupLayoutKey(lightGroupKey, features),
+    standardClusteredLocalLightGroupLayoutKey(
+      standardTransmissionLightGroupLayoutKey(lightGroupKey, features),
+      features,
+    ),
   ];
 }
 
@@ -334,6 +338,15 @@ function standardTransmissionLightGroupLayoutKey(
 ): string {
   return features.transmission === true
     ? `${lightGroupKey},transmission-scene-color@14,transmission-scene-sampler@15`
+    : lightGroupKey;
+}
+
+function standardClusteredLocalLightGroupLayoutKey(
+  lightGroupKey: string,
+  features: StandardTextureShaderFeatures,
+): string {
+  return features.clusteredLocalLights === true
+    ? `${lightGroupKey},cluster-params@16,cluster-cells@17,cluster-indices@18`
     : lightGroupKey;
 }
 
@@ -386,6 +399,9 @@ function standardTextureFeatures(
     fogLinear: tokens.includes("fogLinear"),
     fogExp: tokens.includes("fogExp"),
     fogExp2: tokens.includes("fogExp2"),
+    clusteredLocalLights: tokens.includes(
+      CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
+    ),
     skinned: standardSkinningEnabledFromBatchKey(batchKey),
     morphed: standardMorphTargetsEnabledFromBatchKey(batchKey),
     vertexColor:

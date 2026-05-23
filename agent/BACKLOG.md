@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3120`: add clustered local-light preparation for StandardMaterial
-with a many-light browser proof.
+Start `task-3121`: add GPU occlusion-query visibility feedback with a
+browser-visible occluder proof.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -159,16 +159,17 @@ renderer-owned downsample/upsample graph and reports pass/resource counts in
 preparation to multiple versioned renderer-owned diffuse/specular IBL assets
 with warm/cool browser proof. `task-3119` re-audited the post-environment
 pipeline and found the next SOTA efficiency gap is many-light local-light
-shading: Aperture still evaluates every packed StandardMaterial light per
+shading: Aperture still evaluated every packed StandardMaterial light per
 fragment, while PlayCanvas clusters local lights per view/light set and shades
-only the lights affecting the fragment's cluster.
+only the lights affecting the fragment's cluster. `task-3120` now adds
+renderer-owned clustered local-light buffers for StandardMaterial and a
+64-point-light browser proof. The next SOTA efficiency gap is renderer-owned GPU
+occlusion-query visibility feedback for hidden-but-frustum-visible objects.
 
 Reference anchors for the next task (read before writing):
 
-- `references/engine/src/scene/lighting/world-clusters.js`.
-- `references/engine/src/scene/renderer/world-clusters-allocator.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLight.js`.
-- `references/three.js/examples/jsm/lighting/ClusteredLighting.js`.
+- `references/three.js/src/renderers/common/RenderList.js`.
+- `references/three.js/src/renderers/webgpu/WebGPUBackend.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -501,6 +502,8 @@ Acceptance criteria:
 
 ### task-3120 — Add clustered local-light preparation for StandardMaterial
 
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.
 Reference anchor: `references/engine/src/scene/lighting/world-clusters.js`, `references/engine/src/scene/renderer/world-clusters-allocator.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLight.js`, `references/three.js/examples/jsm/lighting/ClusteredLighting.js`.
@@ -535,6 +538,25 @@ Acceptance criteria:
 - A single source mesh can expose multiple primitive/group ranges with distinct material handles while keeping ECS as the source of truth and without introducing a renderer-owned scene graph.
 - Extraction and queueing emit separate queue records per material group with stable range/material diagnostics, sort keys, and batch compatibility keys.
 - A browser example or GLB viewer fixture renders one mesh with at least two visibly distinct material groups, reports the group ranges/material handles in JSON-safe status, and passes targeted queue/material-route tests.
+
+### task-3123 — Broaden clustered local-light clusters to view-depth bins
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.
+Reference anchor: `references/engine/src/scene/lighting/world-clusters.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLight.js`.
+
+Acceptance criteria:
+
+- Cluster descriptor generation can derive view/depth-space cluster bounds for
+  at least one active camera instead of using only world-space light bounds,
+  while keeping GPU resources renderer-owned and snapshots authoritative.
+- StandardMaterial clustered local-light shading uses the view/depth cluster
+  coordinates for point and spot lights and preserves the existing sparse-light
+  packed-loop fallback.
+- `examples/clustered-lights.html` or a focused variant proves camera movement
+  changes reported cluster occupancy without increasing diagnostics, and max
+  plus average lights per populated cell remain materially below total local
+  lights.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

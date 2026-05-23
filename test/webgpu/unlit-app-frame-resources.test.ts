@@ -667,6 +667,8 @@ function standardReuseCounters() {
     ...reuseCounters(),
     lightBuffersCreated: 0,
     lightBuffersReused: 0,
+    localLightClusterBuffersCreated: 0,
+    localLightClusterBuffersReused: 0,
   };
 }
 

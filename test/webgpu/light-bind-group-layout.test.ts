@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_LIGHT_BIND_GROUP,
   DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
+  LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
+  LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+  LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
   createLightBindGroupLayoutDescriptor,
   createLightBindGroupLayoutResource,
   lightBindGroupLayoutResourceKey,
@@ -54,6 +57,30 @@ describe("light bind group layout resources", () => {
         binding: 15,
         visibility: DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
         sampler: { type: "filtering" },
+      },
+    ]);
+  });
+
+  it("adds clustered local-light storage bindings when requested", () => {
+    expect(
+      createLightBindGroupLayoutDescriptor({
+        clusteredLocalLights: true,
+      }).entries.slice(2),
+    ).toEqual([
+      {
+        binding: LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
+        visibility: DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
+        buffer: { type: "read-only-storage" },
+      },
+      {
+        binding: LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
+        visibility: DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
+        buffer: { type: "read-only-storage" },
+      },
+      {
+        binding: LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+        visibility: DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
+        buffer: { type: "read-only-storage" },
       },
     ]);
   });

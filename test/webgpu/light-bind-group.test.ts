@@ -9,10 +9,14 @@ import {
   lightBindGroupDescriptorPlanToJson,
   lightBindGroupDescriptorPlanToJsonValue,
   lightBindGroupResourceKey,
+  LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
+  LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+  LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
   type LightBindGroupCreationDescriptor,
   type LightBindGroupLayoutResource,
   type LightBindGroupResource,
   type LightGpuBufferResource,
+  type LocalLightClusterGpuResource,
 } from "@aperture-engine/webgpu";
 
 describe("light bind group descriptor planning", () => {
@@ -157,6 +161,36 @@ describe("light bind group descriptor planning", () => {
         {
           binding: 15,
           resourceKey: "standard-transmission-grab:sampler",
+        },
+      ],
+    });
+  });
+
+  it("plans clustered local-light storage entries for StandardMaterial variants", () => {
+    const plan = createLightBindGroupDescriptorPlan({
+      lightGpuBufferResource: lightGpuBufferResource(),
+      layoutKey: "bind-group-layout:lights/group-3/clustered",
+      localLightClusterResources: localLightClusterResource(),
+    });
+
+    expect(plan).toMatchObject({
+      valid: true,
+      resourceKey: "bind-group:lights/group-3/light-buffer:main",
+      layoutKey: "bind-group-layout:lights/group-3/clustered",
+      entries: [
+        { binding: 0, resourceKey: "light-buffer:main/floats" },
+        { binding: 1, resourceKey: "light-buffer:main/metadata" },
+        {
+          binding: LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
+          resourceKey: "local-light-cluster:test/params",
+        },
+        {
+          binding: LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
+          resourceKey: "local-light-cluster:test/cells",
+        },
+        {
+          binding: LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+          resourceKey: "local-light-cluster:test/indices",
         },
       ],
     });
@@ -465,6 +499,37 @@ function lightGpuBufferResource(): LightGpuBufferResource {
     floatBuffer: { handle: "raw-light-float-buffer" },
     metadataBuffer: { handle: "raw-light-metadata-buffer" },
     count: 1,
+  };
+}
+
+function localLightClusterResource(): LocalLightClusterGpuResource {
+  return {
+    resourceKey: "local-light-cluster:test",
+    paramsResourceKey: "local-light-cluster:test/params",
+    cellsResourceKey: "local-light-cluster:test/cells",
+    indicesResourceKey: "local-light-cluster:test/indices",
+    paramsBuffer: { handle: "raw-local-light-cluster-params" },
+    cellsBuffer: { handle: "raw-local-light-cluster-cells" },
+    indicesBuffer: { handle: "raw-local-light-cluster-indices" },
+    descriptor: {
+      resourceKey: "local-light-cluster:test",
+      enabled: true,
+      fallbackReason: null,
+      totalLights: 16,
+      totalLocalLights: 16,
+      clusteredLocalLights: 16,
+      dimensions: { x: 8, y: 4, z: 8 },
+      cellCount: 256,
+      populatedCells: 4,
+      maxLightsPerPopulatedCell: 4,
+      averageLightsPerPopulatedCell: 2,
+      totalAssignedLightReferences: 8,
+      overflowedCells: 0,
+      maxLightsPerCell: 64,
+      params: new Float32Array(12),
+      cells: new Uint32Array(512),
+      indices: new Uint32Array([0]),
+    },
   };
 }
 

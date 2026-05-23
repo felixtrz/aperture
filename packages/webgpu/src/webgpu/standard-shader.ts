@@ -5,6 +5,11 @@ import {
   PackedLightKindId,
 } from "./light-packing.js";
 import {
+  LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
+  LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+  LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
+} from "./local-light-clusters.js";
+import {
   appendStandardSkinningFeatureName,
   applyStandardSkinningToWgsl,
 } from "./standard-skinning-shader.js";
@@ -80,6 +85,7 @@ export interface StandardTextureShaderFeatures {
   readonly fogLinear?: boolean;
   readonly fogExp?: boolean;
   readonly fogExp2?: boolean;
+  readonly clusteredLocalLights?: boolean;
 }
 
 export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
@@ -1267,6 +1273,10 @@ export function createStandardTextureShaderVariantKey(
     names.push("iridescence");
   }
 
+  if (features.clusteredLocalLights === true) {
+    names.push("clustered-local-lights");
+  }
+
   appendStandardSkinningFeatureName(names, features);
   appendStandardMorphTargetFeatureName(names, features);
   appendStandardFogFeatureName(names, features);
@@ -1747,6 +1757,10 @@ ${emissive}
     code = applyStandardFogSampling(code, features);
   }
 
+  if (features.clusteredLocalLights === true) {
+    code = applyStandardClusteredLocalLightSampling(code);
+  }
+
   return applyStandardMorphTargetsToWgsl(
     applyStandardSkinningToWgsl(code, features),
     features,
@@ -1947,6 +1961,14 @@ function standardTextureVariantDeclaration(
     declarations.push(
       "@group(3) @binding(14) var standardTransmissionSceneColorTexture: texture_2d<f32>;",
       "@group(3) @binding(15) var standardTransmissionSceneColorSampler: sampler;",
+    );
+  }
+
+  if (features.clusteredLocalLights === true) {
+    declarations.push(
+      `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_PARAMS_BINDING}) var<storage, read> localLightClusterParams: array<f32>;`,
+      `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_CELLS_BINDING}) var<storage, read> localLightClusterCells: array<u32>;`,
+      `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_INDICES_BINDING}) var<storage, read> localLightClusterIndices: array<u32>;`,
     );
   }
 
@@ -2316,6 +2338,32 @@ function standardTextureVariantBindings(
         group: 3,
         binding: 15,
         resource: "sampler",
+      },
+    );
+  }
+
+  if (features.clusteredLocalLights === true) {
+    bindings.push(
+      {
+        id: "localLightClusterParams",
+        label: "Standard material local-light cluster params",
+        group: 3,
+        binding: LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
+        resource: "read-only-storage-buffer",
+      },
+      {
+        id: "localLightClusterCells",
+        label: "Standard material local-light cluster cells",
+        group: 3,
+        binding: LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
+        resource: "read-only-storage-buffer",
+      },
+      {
+        id: "localLightClusterIndices",
+        label: "Standard material local-light cluster indices",
+        group: 3,
+        binding: LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+        resource: "read-only-storage-buffer",
       },
     );
   }
@@ -2813,6 +2861,10 @@ function standardTextureFeatureNames(
     names.push("iridescence");
   }
 
+  if (features.clusteredLocalLights === true) {
+    names.push("clustered-local-lights");
+  }
+
   appendStandardSkinningFeatureName(names, features);
   appendStandardMorphTargetFeatureName(names, features);
   appendStandardFogFeatureName(names, features);
@@ -2860,6 +2912,7 @@ function hasStandardGenericOnlyFeature(
     features.iridescence === true ||
     features.iridescenceTexture === true ||
     features.iridescenceThicknessTexture === true ||
+    features.clusteredLocalLights === true ||
     hasStandardFogFeature(features)
   );
 }
@@ -2894,6 +2947,7 @@ function hasAnyStandardTextureFeature(
     features.transmission === true ||
     features.sheen === true ||
     features.iridescence === true ||
+    features.clusteredLocalLights === true ||
     hasStandardFogFeature(features)
   );
 }
@@ -3462,6 +3516,266 @@ fn evaluateDirectLight(
       `  return vec4f(color, alpha);`,
       `  color = applyDistanceFog(color, length(view.cameraPosition.xyz - input.worldPosition));
   return vec4f(color, alpha);`,
+    );
+}
+
+function applyStandardClusteredLocalLightSampling(code: string): string {
+  return code
+    .replace(
+      `@fragment
+fn fs_main(input: VertexOutput) -> @location(0) vec4f {`,
+      `fn localLightClusterEnabled() -> bool {
+  return arrayLength(&localLightClusterParams) >= 12u && localLightClusterParams[11] > 0.5;
+}
+
+fn localLightClusterDimensions() -> vec3u {
+  return max(
+    vec3u(
+      u32(max(localLightClusterParams[8], 1.0)),
+      u32(max(localLightClusterParams[9], 1.0)),
+      u32(max(localLightClusterParams[10], 1.0)),
+    ),
+    vec3u(1u),
+  );
+}
+
+fn localLightClusterInvalidCell() -> u32 {
+  return 4294967295u;
+}
+
+fn localLightClusterCellIndex(position: vec3f) -> u32 {
+  if (!localLightClusterEnabled()) {
+    return localLightClusterInvalidCell();
+  }
+
+  let minBounds = vec3f(
+    localLightClusterParams[0],
+    localLightClusterParams[1],
+    localLightClusterParams[2],
+  );
+  let invCellSize = vec3f(
+    localLightClusterParams[4],
+    localLightClusterParams[5],
+    localLightClusterParams[6],
+  );
+  let dimensions = localLightClusterDimensions();
+  let clusterPosition = (position - minBounds) * invCellSize;
+
+  if (
+    clusterPosition.x < 0.0 ||
+    clusterPosition.y < 0.0 ||
+    clusterPosition.z < 0.0 ||
+    clusterPosition.x >= f32(dimensions.x) ||
+    clusterPosition.y >= f32(dimensions.y) ||
+    clusterPosition.z >= f32(dimensions.z)
+  ) {
+    return localLightClusterInvalidCell();
+  }
+
+  let x = min(u32(clusterPosition.x), dimensions.x - 1u);
+  let y = min(u32(clusterPosition.y), dimensions.y - 1u);
+  let z = min(u32(clusterPosition.z), dimensions.z - 1u);
+  return x + y * dimensions.x + z * dimensions.x * dimensions.y;
+}
+
+fn evaluateClusteredLocalLights(
+  position: vec3f,
+  normal: vec3f,
+  viewDir: vec3f,
+  baseColor: vec3f,
+  metallic: f32,
+  roughness: f32,
+) -> vec3f {
+  let cellIndex = localLightClusterCellIndex(position);
+
+  if (cellIndex == localLightClusterInvalidCell()) {
+    return vec3f(0.0);
+  }
+
+  let cellOffset = cellIndex * 2u;
+
+  if (cellOffset + 1u >= arrayLength(&localLightClusterCells)) {
+    return vec3f(0.0);
+  }
+
+  let lightOffset = localLightClusterCells[cellOffset];
+  let localLightCount = localLightClusterCells[cellOffset + 1u];
+  var clusteredDirect = vec3f(0.0);
+
+  for (
+    var itemIndex = 0u;
+    itemIndex < localLightCount && lightOffset + itemIndex < arrayLength(&localLightClusterIndices);
+    itemIndex = itemIndex + 1u
+  ) {
+    let lightIndex = localLightClusterIndices[lightOffset + itemIndex];
+
+    if (lightIndex < lightCount()) {
+      let kind = lightKind(lightIndex);
+
+      if (kind == LIGHT_KIND_POINT) {
+        let lightPosition = pointLightPosition(lightIndex);
+        let toLight = lightPosition - position;
+        let lightDistance = length(toLight);
+        let lightRange = pointLightRange(lightIndex);
+        let attenuation = pow(saturate(1.0 - lightDistance / lightRange), 2.0);
+
+        if (attenuation > 0.0 && lightDistance > 0.0001) {
+          clusteredDirect = clusteredDirect + evaluateDirectLight(
+            normal,
+            viewDir,
+            toLight / lightDistance,
+            lightRadiance(lightIndex) * attenuation,
+            baseColor,
+            metallic,
+            roughness,
+          );
+        }
+      }
+
+      if (kind == LIGHT_KIND_SPOT) {
+        let lightPosition = pointLightPosition(lightIndex);
+        let toLight = lightPosition - position;
+        let lightDistance = length(toLight);
+        let lightRange = pointLightRange(lightIndex);
+        let rangeAttenuation = pow(saturate(1.0 - lightDistance / lightRange), 2.0);
+
+        if (rangeAttenuation > 0.0 && lightDistance > 0.0001) {
+          let lightDir = toLight / lightDistance;
+          let coneAttenuation = spotLightConeAttenuation(lightIndex, -lightDir);
+          clusteredDirect = clusteredDirect + evaluateDirectLight(
+            normal,
+            viewDir,
+            lightDir,
+            lightRadiance(lightIndex) * rangeAttenuation * coneAttenuation,
+            baseColor,
+            metallic,
+            roughness,
+          );
+        }
+      }
+    }
+  }
+
+  return clusteredDirect;
+}
+
+@fragment
+fn fs_main(input: VertexOutput) -> @location(0) vec4f {`,
+    )
+    .replace(
+      `  for (var lightIndex = 0u; lightIndex < lightCount(); lightIndex = lightIndex + 1u) {
+    let kind = lightKind(lightIndex);
+
+    if (kind == LIGHT_KIND_AMBIENT) {
+      ambient = ambient + lightRadiance(lightIndex);
+    }
+
+    if (kind == LIGHT_KIND_DIRECTIONAL) {
+      direct = direct + evaluateDirectLight(
+        normal,
+        viewDir,
+        directionalLightDirection(lightIndex),
+        lightRadiance(lightIndex),
+        baseColor,
+        metallic,
+        roughness,
+      );
+    }
+
+    if (kind == LIGHT_KIND_POINT) {
+      let lightPosition = pointLightPosition(lightIndex);
+      let toLight = lightPosition - input.worldPosition;
+      let lightDistance = length(toLight);
+      let lightRange = pointLightRange(lightIndex);
+      let attenuation = pow(saturate(1.0 - lightDistance / lightRange), 2.0);
+
+      if (attenuation > 0.0 && lightDistance > 0.0001) {
+        direct = direct + evaluateDirectLight(
+          normal,
+          viewDir,
+          toLight / lightDistance,
+          lightRadiance(lightIndex) * attenuation,
+          baseColor,
+          metallic,
+          roughness,
+        );
+      }
+    }
+
+    if (kind == LIGHT_KIND_SPOT) {
+      let lightPosition = pointLightPosition(lightIndex);
+      let toLight = lightPosition - input.worldPosition;
+      let lightDistance = length(toLight);
+      let lightRange = pointLightRange(lightIndex);
+      let rangeAttenuation = pow(saturate(1.0 - lightDistance / lightRange), 2.0);
+
+      if (rangeAttenuation > 0.0 && lightDistance > 0.0001) {
+        let lightDir = toLight / lightDistance;
+        let coneAttenuation = spotLightConeAttenuation(lightIndex, -lightDir);
+        direct = direct + evaluateDirectLight(
+          normal,
+          viewDir,
+          lightDir,
+          lightRadiance(lightIndex) * rangeAttenuation * coneAttenuation,
+          baseColor,
+          metallic,
+          roughness,
+        );
+      }
+    }
+
+    if (kind == LIGHT_KIND_RECT_AREA) {
+      direct = direct + evaluateAreaLight(
+        lightIndex,
+        input.worldPosition,
+        normal,
+        viewDir,
+        baseColor,
+        metallic,
+        roughness,
+      );
+    }
+  }`,
+      `  for (var lightIndex = 0u; lightIndex < lightCount(); lightIndex = lightIndex + 1u) {
+    let kind = lightKind(lightIndex);
+
+    if (kind == LIGHT_KIND_AMBIENT) {
+      ambient = ambient + lightRadiance(lightIndex);
+    }
+
+    if (kind == LIGHT_KIND_DIRECTIONAL) {
+      direct = direct + evaluateDirectLight(
+        normal,
+        viewDir,
+        directionalLightDirection(lightIndex),
+        lightRadiance(lightIndex),
+        baseColor,
+        metallic,
+        roughness,
+      );
+    }
+
+    if (kind == LIGHT_KIND_RECT_AREA) {
+      direct = direct + evaluateAreaLight(
+        lightIndex,
+        input.worldPosition,
+        normal,
+        viewDir,
+        baseColor,
+        metallic,
+        roughness,
+      );
+    }
+  }
+
+  direct = direct + evaluateClusteredLocalLights(
+    input.worldPosition,
+    normal,
+    viewDir,
+    baseColor,
+    metallic,
+    roughness,
+  );`,
     );
 }
 

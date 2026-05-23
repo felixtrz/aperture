@@ -1,6 +1,56 @@
 # Agent Handoff
 
-Updated: 2026-05-23T22:09:15Z
+Updated: 2026-05-23T22:51:27Z
+
+## Current Run Update — 2026-05-23T22:51:27Z — Clustered local-light preparation
+
+Completed `task-3120`, adding renderer-owned clustered local-light preparation
+for StandardMaterial many-light scenes.
+
+### What changed
+
+- Added local-light cluster descriptor/resource preparation for extracted point
+  and spot lights, with JSON-safe status for fallback reason, dimensions,
+  populated cells, max/average lights per populated cell, assignment pressure,
+  overflow count, and buffer reuse.
+- Added clustered StandardMaterial pipeline/shader variants that bind cluster
+  params, cell, and index buffers through group 3 and evaluate point/spot lights
+  from per-cluster index lists while preserving the packed-light path for
+  ambient, directional, and area lights.
+- Threaded cluster resource planning through app frame-resource reuse,
+  light/shadow/IBL bind groups, pipeline layout keys, app render reports, and
+  the WebGPU package exports.
+- Added `examples/clustered-lights.html` with a worker-authored 64-point-light
+  scene and browser status proving clustered pressure plus second-frame buffer
+  reuse.
+- Updated the public tracker pages, backlog, current-task pointer, and
+  completed task log. Recommended next task is `task-3121`, GPU
+  occlusion-query visibility feedback.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/unlit-app-frame-resources.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts --reporter=line`
+- Direct headed Chrome/WebGPU status probe for
+  `http://127.0.0.1:4173/examples/clustered-lights.html`: `ok: true`,
+  clustered pipeline key, 64 clustered local lights, 256 cells, max 32 lights
+  per populated cell, 14.828125 average lights per populated cell, three reused
+  cluster buffers, and zero diagnostics.
+- `git diff --check`
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3121`, adding renderer-owned GPU occlusion-query visibility
+feedback with a browser-visible occluder proof.
 
 ## Current Run Update — 2026-05-23T22:09:15Z — Post-environment render-pipeline parity audit
 

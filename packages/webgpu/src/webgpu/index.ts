@@ -81,6 +81,7 @@ export * from "./light-bind-group-layout.js";
 export * from "./light-packing.js";
 export * from "./light-shader-metadata.js";
 export * from "./lighting-resource-plan.js";
+export * from "./local-light-clusters.js";
 export * from "./mesh-buffer-descriptors.js";
 export * from "./mesh-buffer-resources.js";
 export * from "./morph-target-weight-buffer.js";

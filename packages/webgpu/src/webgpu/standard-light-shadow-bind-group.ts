@@ -21,6 +21,8 @@ import {
   STANDARD_AREA_LIGHT_LTC_SAMPLER_BINDING,
   type StandardAreaLightLtcResources,
 } from "./standard-area-light-ltc-resource.js";
+import { appendClusteredLocalLightLayoutEntries } from "./light-bind-group-layout.js";
+import type { LocalLightClusterGpuResource } from "./local-light-clusters.js";
 import type { ShadowSamplerResourceReport } from "./standard-material-shadow-bind-group.js";
 
 export const STANDARD_LIGHT_SHADOW_BIND_GROUP = 3;
@@ -94,6 +96,7 @@ export interface CreateStandardLightShadowBindGroupDescriptorPlanOptions {
   readonly depthTextureResources: ShadowDepthTextureResourceReport;
   readonly samplerResource: ShadowSamplerResourceReport;
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
+  readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
   readonly layoutKey?: string | null;
   readonly label?: string;
 }
@@ -104,6 +107,7 @@ export interface CreateStandardLightMultiShadowBindGroupDescriptorPlanOptions {
   readonly spotShadowReceiverResources: StandardLightIblShadowReceiverResources;
   readonly pointShadowReceiverResources: StandardLightIblShadowReceiverResources;
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
+  readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
   readonly layoutKey?: string | null;
   readonly label?: string;
 }
@@ -116,6 +120,7 @@ export interface CreateStandardLightIblBindGroupDescriptorPlanOptions {
   readonly shadowReceiverResources?: StandardLightIblShadowReceiverResources;
   readonly shadowRequired?: boolean;
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
+  readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
   readonly layoutKey?: string | null;
   readonly label?: string;
 }
@@ -144,64 +149,114 @@ export interface StandardLightShadowBindGroupDeviceLike {
   }) => unknown;
 }
 
-export function createStandardLightShadowBindGroupLayoutDescriptor(): WebGpuBindGroupLayoutDescriptor {
-  return createStandardLightShadowBindGroupLayoutDescriptorForView("2d");
+export function createStandardLightShadowBindGroupLayoutDescriptor(options?: {
+  readonly clusteredLocalLights?: boolean;
+}): WebGpuBindGroupLayoutDescriptor {
+  return createStandardLightShadowBindGroupLayoutDescriptorForView(
+    "2d",
+    options,
+  );
 }
 
-export function createStandardLightCascadedShadowBindGroupLayoutDescriptor(): WebGpuBindGroupLayoutDescriptor {
-  return createStandardLightShadowBindGroupLayoutDescriptorForView("2d-array");
+export function createStandardLightCascadedShadowBindGroupLayoutDescriptor(options?: {
+  readonly clusteredLocalLights?: boolean;
+}): WebGpuBindGroupLayoutDescriptor {
+  return createStandardLightShadowBindGroupLayoutDescriptorForView(
+    "2d-array",
+    options,
+  );
 }
 
-export function createStandardLightPointShadowBindGroupLayoutDescriptor(): WebGpuBindGroupLayoutDescriptor {
-  return createStandardLightShadowBindGroupLayoutDescriptorForView("cube");
+export function createStandardLightPointShadowBindGroupLayoutDescriptor(options?: {
+  readonly clusteredLocalLights?: boolean;
+}): WebGpuBindGroupLayoutDescriptor {
+  return createStandardLightShadowBindGroupLayoutDescriptorForView(
+    "cube",
+    options,
+  );
 }
 
-export function createStandardLightMultiShadowBindGroupLayoutDescriptor(): WebGpuBindGroupLayoutDescriptor {
+export function createStandardLightMultiShadowBindGroupLayoutDescriptor(options?: {
+  readonly clusteredLocalLights?: boolean;
+}): WebGpuBindGroupLayoutDescriptor {
+  const entries: WebGpuBindGroupLayoutEntryDescriptor[] = [
+    { binding: 0, visibility: 0x2, buffer: { type: "read-only-storage" } },
+    { binding: 1, visibility: 0x2, buffer: { type: "read-only-storage" } },
+    { binding: 2, visibility: 0x3, buffer: { type: "read-only-storage" } },
+    {
+      binding: 3,
+      visibility: 0x2,
+      texture: {
+        sampleType: "depth",
+        viewDimension: "2d",
+        multisampled: false,
+      },
+    },
+    { binding: 4, visibility: 0x2, sampler: { type: "comparison" } },
+    { binding: 5, visibility: 0x3, buffer: { type: "read-only-storage" } },
+    {
+      binding: 6,
+      visibility: 0x2,
+      texture: {
+        sampleType: "depth",
+        viewDimension: "2d",
+        multisampled: false,
+      },
+    },
+    { binding: 7, visibility: 0x2, sampler: { type: "comparison" } },
+    { binding: 8, visibility: 0x3, buffer: { type: "read-only-storage" } },
+    {
+      binding: 9,
+      visibility: 0x2,
+      texture: {
+        sampleType: "depth",
+        viewDimension: "cube",
+        multisampled: false,
+      },
+    },
+    { binding: 10, visibility: 0x2, sampler: { type: "comparison" } },
+  ];
+
+  appendClusteredLocalLightLayoutEntries(
+    entries,
+    0x2,
+    options?.clusteredLocalLights === true,
+  );
+
   return {
     label: STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY,
-    entries: [
-      { binding: 0, visibility: 0x2, buffer: { type: "read-only-storage" } },
-      { binding: 1, visibility: 0x2, buffer: { type: "read-only-storage" } },
-      { binding: 2, visibility: 0x3, buffer: { type: "read-only-storage" } },
-      {
-        binding: 3,
-        visibility: 0x2,
-        texture: {
-          sampleType: "depth",
-          viewDimension: "2d",
-          multisampled: false,
-        },
-      },
-      { binding: 4, visibility: 0x2, sampler: { type: "comparison" } },
-      { binding: 5, visibility: 0x3, buffer: { type: "read-only-storage" } },
-      {
-        binding: 6,
-        visibility: 0x2,
-        texture: {
-          sampleType: "depth",
-          viewDimension: "2d",
-          multisampled: false,
-        },
-      },
-      { binding: 7, visibility: 0x2, sampler: { type: "comparison" } },
-      { binding: 8, visibility: 0x3, buffer: { type: "read-only-storage" } },
-      {
-        binding: 9,
-        visibility: 0x2,
-        texture: {
-          sampleType: "depth",
-          viewDimension: "cube",
-          multisampled: false,
-        },
-      },
-      { binding: 10, visibility: 0x2, sampler: { type: "comparison" } },
-    ],
+    entries,
   };
 }
 
 function createStandardLightShadowBindGroupLayoutDescriptorForView(
   viewDimension: "2d" | "2d-array" | "cube",
+  options?: {
+    readonly clusteredLocalLights?: boolean;
+  },
 ): WebGpuBindGroupLayoutDescriptor {
+  const entries: WebGpuBindGroupLayoutEntryDescriptor[] = [
+    { binding: 0, visibility: 0x2, buffer: { type: "read-only-storage" } },
+    { binding: 1, visibility: 0x2, buffer: { type: "read-only-storage" } },
+    { binding: 2, visibility: 0x3, buffer: { type: "read-only-storage" } },
+    {
+      binding: 3,
+      visibility: 0x2,
+      texture: {
+        sampleType: "depth",
+        viewDimension,
+        multisampled: false,
+      },
+    },
+    { binding: 4, visibility: 0x2, sampler: { type: "comparison" } },
+  ];
+
+  appendClusteredLocalLightLayoutEntries(
+    entries,
+    0x2,
+    options?.clusteredLocalLights === true,
+  );
+
   return {
     label:
       viewDimension === "cube"
@@ -209,27 +264,14 @@ function createStandardLightShadowBindGroupLayoutDescriptorForView(
         : viewDimension === "2d-array"
           ? STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY
           : STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
-    entries: [
-      { binding: 0, visibility: 0x2, buffer: { type: "read-only-storage" } },
-      { binding: 1, visibility: 0x2, buffer: { type: "read-only-storage" } },
-      { binding: 2, visibility: 0x3, buffer: { type: "read-only-storage" } },
-      {
-        binding: 3,
-        visibility: 0x2,
-        texture: {
-          sampleType: "depth",
-          viewDimension,
-          multisampled: false,
-        },
-      },
-      { binding: 4, visibility: 0x2, sampler: { type: "comparison" } },
-    ],
+    entries,
   };
 }
 
 export function createStandardLightIblBindGroupLayoutDescriptor(options?: {
   readonly shadowMap?: boolean;
   readonly specularProof?: boolean;
+  readonly clusteredLocalLights?: boolean;
 }): WebGpuBindGroupLayoutDescriptor {
   const entries: WebGpuBindGroupLayoutEntryDescriptor[] = [
     { binding: 0, visibility: 0x2, buffer: { type: "read-only-storage" } },
@@ -276,6 +318,12 @@ export function createStandardLightIblBindGroupLayoutDescriptor(options?: {
       },
     });
   }
+
+  appendClusteredLocalLightLayoutEntries(
+    entries,
+    0x2,
+    options?.clusteredLocalLights === true,
+  );
 
   return {
     label:
@@ -390,6 +438,10 @@ export function createStandardLightShadowBindGroupDescriptorPlan(
   }
 
   appendAreaLightLtcEntries(entries, options.areaLightLtcResources ?? null);
+  appendLocalLightClusterEntries(
+    entries,
+    options.localLightClusterResources ?? null,
+  );
 
   return {
     valid: diagnostics.length === 0,
@@ -463,6 +515,10 @@ export function createStandardLightMultiShadowBindGroupDescriptorPlan(
     { matrix: 8, depth: 9, sampler: 10 },
   );
   appendAreaLightLtcEntries(entries, options.areaLightLtcResources ?? null);
+  appendLocalLightClusterEntries(
+    entries,
+    options.localLightClusterResources ?? null,
+  );
 
   return {
     valid: diagnostics.length === 0,
@@ -610,6 +666,10 @@ export function createStandardLightIblBindGroupDescriptorPlan(
   }
 
   appendAreaLightLtcEntries(entries, options.areaLightLtcResources ?? null);
+  appendLocalLightClusterEntries(
+    entries,
+    options.localLightClusterResources ?? null,
+  );
 
   return {
     valid: diagnostics.length === 0,
@@ -641,6 +701,7 @@ export function createStandardLightShadowBindGroupResource(options: {
   readonly specularTextureResource?: SpecularIblTextureResourceReport;
   readonly iblSamplerResource?: IblSamplerResourceReport;
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
+  readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
 }): CreateStandardLightShadowBindGroupResourceResult {
   if (options.plan === null) {
     return resourceResult(
@@ -844,6 +905,24 @@ function createCreationEntries(
     );
   }
 
+  if (
+    resources.localLightClusterResources !== undefined &&
+    resources.localLightClusterResources !== null
+  ) {
+    buffers.set(
+      resources.localLightClusterResources.paramsResourceKey,
+      resources.localLightClusterResources.paramsBuffer,
+    );
+    buffers.set(
+      resources.localLightClusterResources.cellsResourceKey,
+      resources.localLightClusterResources.cellsBuffer,
+    );
+    buffers.set(
+      resources.localLightClusterResources.indicesResourceKey,
+      resources.localLightClusterResources.indicesBuffer,
+    );
+  }
+
   return plan.entries.flatMap((entry) => {
     if (entry.resourceKind === "texture-view") {
       const texture = textures.get(entry.resourceKey);
@@ -889,6 +968,33 @@ function appendAreaLightLtcEntries(
       binding: STANDARD_AREA_LIGHT_LTC_SAMPLER_BINDING,
       resourceKey: resources.sampler.resourceKey,
       resourceKind: "sampler",
+    },
+  );
+}
+
+function appendLocalLightClusterEntries(
+  entries: StandardLightShadowBindGroupDescriptorEntry[],
+  resources: LocalLightClusterGpuResource | null,
+): void {
+  if (resources === null) {
+    return;
+  }
+
+  entries.push(
+    {
+      binding: 16,
+      resourceKey: resources.paramsResourceKey,
+      resourceKind: "buffer",
+    },
+    {
+      binding: 17,
+      resourceKey: resources.cellsResourceKey,
+      resourceKind: "buffer",
+    },
+    {
+      binding: 18,
+      resourceKey: resources.indicesResourceKey,
+      resourceKind: "buffer",
     },
   );
 }

@@ -24,6 +24,10 @@ import {
 import type { PreparedMaterialTextureSamplerDependencies } from "./prepared-material-texture-sampler-dependencies.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
 import type { LightBindGroupResource } from "./light-bind-group.js";
+import {
+  CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
+  createLocalLightClusterDescriptor,
+} from "./local-light-clusters.js";
 import type {
   StandardLightShadowBindGroupLayoutResource,
   StandardLightShadowBindGroupResource,
@@ -109,6 +113,9 @@ export interface CachedStandardAppFrameResources {
   readonly worldTransformByteLength: number;
   readonly lightFloatByteLength: number;
   readonly lightMetadataByteLength: number;
+  readonly localLightClusterParamsByteLength: number;
+  readonly localLightClusterCellsByteLength: number;
+  readonly localLightClusterIndicesByteLength: number;
   readonly viewDescriptorScratch: ViewUniformBufferDescriptorScratch;
   readonly worldTransformDescriptorScratch: WorldTransformBufferDescriptorScratch;
   readonly lightBufferDescriptorScratch: LightBufferDescriptorScratch;
@@ -135,6 +142,8 @@ export interface StandardAppFrameResourceReuseReport {
   bindGroupsReused: number;
   lightBuffersCreated: number;
   lightBuffersReused: number;
+  localLightClusterBuffersCreated: number;
+  localLightClusterBuffersReused: number;
   dynamicBufferWrites: number;
 }
 
@@ -232,6 +241,13 @@ export function createOrReuseStandardAppFrameResources(options: {
     lightBuffer,
     lightBufferDescriptorPlanScratch,
   );
+  const localLightClusterDescriptor = requiresClusteredLocalLights(
+    options.pipelineKey,
+  )
+    ? createLocalLightClusterDescriptor(options.snapshot)
+    : null;
+  const cachedLocalLightClusters =
+    cached?.result.resources?.localLightClusters ?? null;
 
   if (
     cached !== null &&
@@ -268,6 +284,14 @@ export function createOrReuseStandardAppFrameResources(options: {
       lightDescriptor.plan.source.floats.byteLength &&
     cached.lightMetadataByteLength ===
       lightDescriptor.plan.source.metadata.byteLength &&
+    (localLightClusterDescriptor === null ||
+      (cachedLocalLightClusters !== null &&
+        cached.localLightClusterParamsByteLength ===
+          localLightClusterDescriptor.params.byteLength &&
+        cached.localLightClusterCellsByteLength ===
+          localLightClusterDescriptor.cells.byteLength &&
+        cached.localLightClusterIndicesByteLength ===
+          localLightClusterDescriptor.indices.byteLength)) &&
     !requiresInstanceTintBuffer(options.pipelineKey) &&
     !requiresSkinningJointBuffer(options.pipelineKey) &&
     !requiresMorphTargetWeightBuffer(options.pipelineKey) &&
@@ -290,13 +314,38 @@ export function createOrReuseStandardAppFrameResources(options: {
       options.device,
       cached.result.resources.lightGpuBuffers.resource.metadataBuffer,
       lightDescriptor.plan.source.metadata,
-    )
+    ) &&
+    (localLightClusterDescriptor === null ||
+      (cachedLocalLightClusters !== null &&
+        writeBufferData(
+          options.device,
+          cachedLocalLightClusters.paramsBuffer,
+          localLightClusterDescriptor.params,
+        ) &&
+        writeBufferData(
+          options.device,
+          cachedLocalLightClusters.cellsBuffer,
+          localLightClusterDescriptor.cells,
+        ) &&
+        writeBufferData(
+          options.device,
+          cachedLocalLightClusters.indicesBuffer,
+          localLightClusterDescriptor.indices,
+        )))
   ) {
     options.reuse.meshBuffersReused += 1;
     options.reuse.materialBuffersReused += 1;
     options.reuse.bindGroupsReused += cached.result.resources.bindGroups.length;
     options.reuse.lightBuffersReused += 1;
     options.reuse.dynamicBufferWrites += 4;
+    if (
+      localLightClusterDescriptor !== null &&
+      cachedLocalLightClusters !== null
+    ) {
+      cachedLocalLightClusters.descriptor = localLightClusterDescriptor;
+      options.reuse.localLightClusterBuffersReused += 3;
+      options.reuse.dynamicBufferWrites += 3;
+    }
 
     const resources = cached.result.resources;
 
@@ -373,6 +422,9 @@ export function createOrReuseStandardAppFrameResources(options: {
       : {
           standardAreaLightLtcResources: options.standardAreaLightLtcResources,
         }),
+    ...(localLightClusterDescriptor === null
+      ? {}
+      : { localLightClusterDescriptor }),
     ...(options.transmissionSceneColorResources === undefined ||
     options.transmissionSceneColorResources === null
       ? {}
@@ -411,6 +463,9 @@ export function createOrReuseStandardAppFrameResources(options: {
     }
 
     options.reuse.lightBuffersCreated += 1;
+    if (result.resources.localLightClusters !== undefined) {
+      options.reuse.localLightClusterBuffersCreated += 3;
+    }
     options.cache.current = {
       meshKey: options.meshKey,
       materialKey: options.materialKey,
@@ -436,6 +491,12 @@ export function createOrReuseStandardAppFrameResources(options: {
       lightMetadataByteLength:
         result.resources.lightGpuBuffers.descriptorPlan.source.metadata
           .byteLength,
+      localLightClusterParamsByteLength:
+        result.resources.localLightClusters?.descriptor.params.byteLength ?? 0,
+      localLightClusterCellsByteLength:
+        result.resources.localLightClusters?.descriptor.cells.byteLength ?? 0,
+      localLightClusterIndicesByteLength:
+        result.resources.localLightClusters?.descriptor.indices.byteLength ?? 0,
       viewDescriptorScratch,
       worldTransformDescriptorScratch,
       lightBufferDescriptorScratch,
@@ -460,6 +521,12 @@ function requiresSkinningJointBuffer(pipelineKey: string): boolean {
 
 function requiresMorphTargetWeightBuffer(pipelineKey: string): boolean {
   return pipelineKey.split("|").includes("morphed");
+}
+
+function requiresClusteredLocalLights(pipelineKey: string): boolean {
+  return pipelineKey
+    .split("|")
+    .includes(CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE);
 }
 
 type PreparedStandardMaterialUse = PreparedAppMaterialResourceUse<

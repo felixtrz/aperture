@@ -229,6 +229,14 @@ import {
   createDirectLightReadinessReport,
   directLightReadinessResourceStateFromStandardFrameResources,
 } from "./direct-light-readiness.js";
+import {
+  CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
+  createLocalLightClusterDescriptor,
+  localLightClusterReportFromDescriptor,
+  snapshotShouldUseClusteredLocalLights,
+  type LocalLightClusterGpuResource,
+  type LocalLightClusterReport,
+} from "./local-light-clusters.js";
 import { createStandardMaterialBindGroupLayoutPlan } from "./standard-bind-group-layout.js";
 import type { StandardMaterialBindGroupLayoutResource } from "./standard-bind-group.js";
 import {
@@ -488,6 +496,8 @@ export interface WebGpuAppResourceReuseReport {
   queuedBindGroupCacheSize: number;
   lightBuffersCreated: number;
   lightBuffersReused: number;
+  localLightClusterBuffersCreated: number;
+  localLightClusterBuffersReused: number;
   dynamicBufferWrites: number;
 }
 
@@ -604,6 +614,7 @@ export interface WebGpuAppRenderReport {
   readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly indirectDraws?: IndirectDrawCommandReport;
   readonly motionVectors?: WebGpuAppMotionVectorReport;
+  readonly localLightClusters?: LocalLightClusterReport;
 }
 
 export type WebGpuAppMotionVectorStatus =
@@ -665,6 +676,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly indirectDraws?: IndirectDrawCommandReport;
   readonly motionVectors?: WebGpuAppMotionVectorReport;
+  readonly localLightClusters?: LocalLightClusterReport;
   readonly materialDependencyReadiness?: readonly MaterialAssetDependencyReadinessReportJsonValue[];
 }
 
@@ -1396,7 +1408,9 @@ function createStandardAppPipelineLayouts(
   const usesLightMultiShadowGroup = pipelineResourceKey.includes(
     STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY,
   );
-  const lightLayoutKey = usesLightShadowIblGroup
+  const usesClusteredLocalLights =
+    pipelineResourceKey.includes("cluster-params@16");
+  const baseLightLayoutKey = usesLightShadowIblGroup
     ? "webgpu-app/standard/lights-shadow-ibl/group-3"
     : usesLightIblGroup
       ? "webgpu-app/standard/lights-ibl/group-3"
@@ -1409,6 +1423,9 @@ function createStandardAppPipelineLayouts(
             : usesLightShadowGroup
               ? "webgpu-app/standard/lights-shadow/group-3"
               : "webgpu-app/standard/group-3";
+  const lightLayoutKey = usesClusteredLocalLights
+    ? `${baseLightLayoutKey}/clustered-local-lights`
+    : baseLightLayoutKey;
 
   return {
     kind: "standard",
@@ -1439,18 +1456,28 @@ function createStandardAppPipelineLayouts(
           ? createStandardLightIblBindGroupLayoutDescriptor({
               shadowMap: usesLightShadowIblGroup,
               specularProof: usesSpecularIblProof,
+              clusteredLocalLights: usesClusteredLocalLights,
             })
           : usesLightMultiShadowGroup
-            ? createStandardLightMultiShadowBindGroupLayoutDescriptor()
+            ? createStandardLightMultiShadowBindGroupLayoutDescriptor({
+                clusteredLocalLights: usesClusteredLocalLights,
+              })
             : usesLightCascadedShadowGroup
-              ? createStandardLightCascadedShadowBindGroupLayoutDescriptor()
+              ? createStandardLightCascadedShadowBindGroupLayoutDescriptor({
+                  clusteredLocalLights: usesClusteredLocalLights,
+                })
               : usesLightShadowGroup
-                ? createStandardLightShadowBindGroupLayoutDescriptor()
+                ? createStandardLightShadowBindGroupLayoutDescriptor({
+                    clusteredLocalLights: usesClusteredLocalLights,
+                  })
                 : usesLightPointShadowGroup
-                  ? createStandardLightPointShadowBindGroupLayoutDescriptor()
+                  ? createStandardLightPointShadowBindGroupLayoutDescriptor({
+                      clusteredLocalLights: usesClusteredLocalLights,
+                    })
                   : createLightBindGroupLayoutDescriptor({
                       group: 3,
                       label: "webgpu-app/standard/group-3",
+                      clusteredLocalLights: usesClusteredLocalLights,
                     }),
     },
   };
@@ -5455,7 +5482,7 @@ async function renderWebGpuAppFrame(
         ),
       )
     : extractedSnapshot;
-  const snapshot = hasReadyStandardDiffuseIblResources(
+  const iblSnapshot = hasReadyStandardDiffuseIblResources(
     options.standardMaterialIblResources,
   )
     ? withStandardIblPipelineKeys(
@@ -5465,6 +5492,7 @@ async function renderWebGpuAppFrame(
         ),
       )
     : shadowSnapshot;
+  const snapshot = withStandardClusteredLocalLightPipelineKeys(iblSnapshot);
   const updateMetadata = createWebGpuAppSnapshotUpdateMetadata(
     snapshot,
     options,
@@ -6910,6 +6938,42 @@ function withStandardIblPipelineKeys(
   return changed ? { ...snapshot, meshDraws } : snapshot;
 }
 
+function withStandardClusteredLocalLightPipelineKeys(
+  snapshot: RenderSnapshot,
+): RenderSnapshot {
+  const descriptor = createLocalLightClusterDescriptor(snapshot);
+
+  if (!descriptor.enabled) {
+    return snapshot;
+  }
+
+  let changed = false;
+  const meshDraws = snapshot.meshDraws.map((draw) => {
+    const pipelineKey = draw.batchKey.pipelineKey;
+
+    if (
+      !pipelineKey.startsWith("standard|") ||
+      pipelineKey.split("|").includes(CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE)
+    ) {
+      return draw;
+    }
+
+    changed = true;
+    const clusteredPipelineKey = pipelineKey.replace(
+      /^standard\|/,
+      `standard|${CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE}|`,
+    );
+
+    return {
+      ...draw,
+      batchKey: { ...draw.batchKey, pipelineKey: clusteredPipelineKey },
+      sortKey: { ...draw.sortKey, pipelineKey: clusteredPipelineKey },
+    };
+  });
+
+  return changed ? { ...snapshot, meshDraws } : snapshot;
+}
+
 export function createWebGpuAppDrawResourceSetPlan(
   snapshot: RenderSnapshot,
 ): WebGpuAppDrawResourceSetPlan {
@@ -7120,6 +7184,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.motionVectors === undefined
       ? {}
       : { motionVectors: report.motionVectors }),
+    ...(report.localLightClusters === undefined
+      ? {}
+      : { localLightClusters: report.localLightClusters }),
     ...(materialDependencyReadiness.length === 0
       ? {}
       : { materialDependencyReadiness }),
@@ -7227,6 +7294,14 @@ function renderReport(input: {
   readonly drawCommands?: number;
   readonly drawCalls?: number;
 }): WebGpuAppRenderReport {
+  const resourceReuse =
+    input.resourceReuse ?? createWebGpuAppResourceReuseReport();
+  const localLightClusters = createWebGpuAppLocalLightClusterReport(
+    input.snapshot,
+    input.resources ?? null,
+    resourceReuse,
+  );
+
   return {
     ok: input.ok,
     frame: input.snapshot.frame,
@@ -7252,7 +7327,7 @@ function renderReport(input: {
     ...(input.diagnosticsSummary === undefined
       ? {}
       : { diagnosticsSummary: input.diagnosticsSummary }),
-    resourceReuse: input.resourceReuse ?? createWebGpuAppResourceReuseReport(),
+    resourceReuse,
     pipeline: input.pipeline ?? null,
     resources: input.resources ?? null,
     boundary: input.boundary ?? null,
@@ -7284,7 +7359,60 @@ function renderReport(input: {
     ...(input.motionVectors === undefined
       ? {}
       : { motionVectors: input.motionVectors }),
+    ...(localLightClusters === undefined ? {} : { localLightClusters }),
   };
+}
+
+function createWebGpuAppLocalLightClusterReport(
+  snapshot: RenderSnapshot,
+  resources: WebGpuAppFrameResourcesResult | null,
+  reuse: WebGpuAppResourceReuseReport,
+): LocalLightClusterReport | undefined {
+  const resource = findWebGpuAppLocalLightClusterResource(resources);
+
+  if (resource !== null) {
+    return localLightClusterReportFromDescriptor(resource.descriptor, {
+      resource,
+      buffersCreated: reuse.localLightClusterBuffersCreated,
+      buffersReused: reuse.localLightClusterBuffersReused,
+    });
+  }
+
+  if (!snapshotShouldUseClusteredLocalLights(snapshot)) {
+    return undefined;
+  }
+
+  return localLightClusterReportFromDescriptor(
+    createLocalLightClusterDescriptor(snapshot),
+    {
+      buffersCreated: reuse.localLightClusterBuffersCreated,
+      buffersReused: reuse.localLightClusterBuffersReused,
+    },
+  );
+}
+
+function findWebGpuAppLocalLightClusterResource(
+  result: WebGpuAppFrameResourcesResult | null,
+): LocalLightClusterGpuResource | null {
+  const resources = result?.resources;
+
+  if (resources === null || resources === undefined) {
+    return null;
+  }
+
+  if ("localLightClusters" in resources) {
+    return resources.localLightClusters ?? null;
+  }
+
+  if ("standard" in resources) {
+    for (const standardResources of resources.standard) {
+      if (standardResources.localLightClusters !== undefined) {
+        return standardResources.localLightClusters;
+      }
+    }
+  }
+
+  return null;
 }
 
 function createWebGpuAppDepthAttachmentReport(
@@ -7367,6 +7495,8 @@ function createWebGpuAppResourceReuseReport(): WebGpuAppResourceReuseReport {
     queuedBindGroupCacheSize: 0,
     lightBuffersCreated: 0,
     lightBuffersReused: 0,
+    localLightClusterBuffersCreated: 0,
+    localLightClusterBuffersReused: 0,
     dynamicBufferWrites: 0,
   };
 }

@@ -1,5 +1,42 @@
 # Completed Tasks
 
+## task-3120 — Add clustered local-light preparation for StandardMaterial
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added renderer-owned local-light cluster descriptor/resource preparation for
+  extracted point and spot lights, including JSON-safe reports for cluster
+  dimensions, population pressure, fallback reason, and buffer reuse.
+- Added clustered StandardMaterial shader/pipeline variants that bind local
+  cluster params, cell, and index buffers through the light group and evaluate
+  point/spot lights through per-cluster index lists while preserving the packed
+  path for ambient, directional, and area lights.
+- Threaded clustered local-light resources through app frame-resource reuse,
+  light/shadow/IBL bind-group planning, pipeline layout keys, and app render
+  reports without moving GPU state into ECS or snapshots.
+- Added `examples/clustered-lights.html`, using 64 ECS-authored point lights to
+  prove clustered StandardMaterial rendering, reported pressure below total
+  local lights, cluster buffer reuse, and zero render diagnostics.
+- Updated public tracker pages and backlog. Recommended next task is
+  `task-3121`, GPU occlusion-query visibility feedback.
+
+Validation:
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/unlit-app-frame-resources.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts --reporter=line`
+- Direct headed Chrome/WebGPU status probe for
+  `http://127.0.0.1:4173/examples/clustered-lights.html` returned `ok: true`
+  with the clustered pipeline key, 64 clustered local lights, 256 cells, max 32
+  lights per populated cell, average 14.828125 lights per populated cell, three
+  reused cluster buffers, and zero diagnostics.
+- `git diff --check`
+
 ## task-3119 — Audit post-environment render-pipeline parity and select the next SOTA slice
 
 Completed: 2026-05-23

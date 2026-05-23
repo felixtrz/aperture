@@ -20,6 +20,7 @@ import {
   createBrowserStandardRenderPipelineDescriptor,
   createMotionVectorBuiltInShaderVariant,
   createOutputColorSpacePipelineKey,
+  CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
   createStandardRenderPipelineResource,
   createStandardPipelineDescriptorPlan,
   createStandardTextureVariantShader,
@@ -328,6 +329,34 @@ describe("browser standard material pipeline bridge", () => {
           vertex: {
             buffers: ["POSITION", "NORMAL", "TEXCOORD_0"],
           },
+        },
+      },
+    });
+  });
+
+  it("specializes StandardMaterial pipeline keys for clustered local lights", () => {
+    const batchKey: BatchCompatibilityKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey: `standard|${CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE}|opaque|back|less|none`,
+    };
+    const plan = createStandardPipelineDescriptorPlan({
+      batchKey,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+    });
+
+    expect(plan).toMatchObject({
+      valid: true,
+      plan: {
+        keyInput: {
+          shaderVariantKey:
+            "direct-lit-metallic-roughness-clustered-local-lights-texture",
+          bindGroupLayoutKeys: [
+            "standard/group-0:view-uniform@0",
+            "standard/group-1:world-transforms@0",
+            "standard/group-2:material@0",
+            "lights/group-3:light-floats@0,light-metadata@1,cluster-params@16,cluster-cells@17,cluster-indices@18",
+          ],
         },
       },
     });

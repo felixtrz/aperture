@@ -20,6 +20,14 @@ import {
   type LightBindGroupResourceDiagnostic,
   type StandardTransmissionSceneColorResources,
 } from "./light-bind-group.js";
+import {
+  CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
+  createLocalLightClusterDescriptor,
+  createLocalLightClusterGpuResource,
+  type LocalLightClusterDescriptor,
+  type LocalLightClusterGpuResource,
+  type LocalLightClusterGpuResourceDiagnostic,
+} from "./local-light-clusters.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
 import {
   createSnapshotLightGpuBuffers,
@@ -163,6 +171,7 @@ export type CreateStandardFrameGpuResourcesDiagnostic =
   | CreateSnapshotLightGpuBuffersDiagnostic
   | LightBindGroupDescriptorDiagnostic
   | LightBindGroupResourceDiagnostic
+  | LocalLightClusterGpuResourceDiagnostic
   | StandardLightShadowBindGroupDiagnostic
   | UnlitBindGroupDescriptorDiagnostic
   | UnlitBindGroupResourceDiagnostic;
@@ -204,6 +213,8 @@ export interface CreateStandardFrameGpuResourcesOptions {
   readonly shadowReceiverResources?: StandardFrameShadowReceiverResources;
   readonly standardMaterialIblResources?: StandardFrameIblResources;
   readonly standardAreaLightLtcResources?: StandardAreaLightLtcResources | null;
+  readonly localLightClusterDescriptor?: LocalLightClusterDescriptor | null;
+  readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
   readonly transmissionSceneColorResources?: StandardFrameTransmissionSceneColorResources | null;
   readonly textures?: readonly TextureGpuResource[];
   readonly samplers?: readonly SamplerGpuResource[];
@@ -252,6 +263,7 @@ export interface StandardFrameGpuResources {
   readonly morphTargetWeights?: MorphTargetWeightGpuBufferResource;
   readonly material: StandardMaterialGpuBufferResource;
   readonly lightGpuBuffers: CreateSnapshotLightGpuBuffersResult;
+  readonly localLightClusters?: LocalLightClusterGpuResource;
   readonly materialBindGroup: StandardMaterialBindGroupResource;
   readonly lightBindGroup:
     | LightBindGroupResource
@@ -315,9 +327,14 @@ export function createStandardFrameGpuResources(
     });
   }
 
+  const localLightClusters = createLocalLightClusterResource(
+    options,
+    diagnostics,
+  );
   const lightBindGroup = createLightBindGroup(
     options,
     lightGpuBuffers,
+    localLightClusters,
     diagnostics,
   );
   const standardMaterialIblBindGroup =
@@ -338,6 +355,8 @@ export function createStandardFrameGpuResources(
     materialBindGroup === null ||
     !lightGpuBuffers.valid ||
     lightGpuBuffers.resource === null ||
+    (requiresClusteredLocalLightBuffer(options.pipelineKey) &&
+      localLightClusters === null) ||
     lightBindGroup === null
   ) {
     return { valid: false, resources: null, diagnostics };
@@ -358,6 +377,7 @@ export function createStandardFrameGpuResources(
       ...(morphTargetWeights === null ? {} : { morphTargetWeights }),
       material,
       lightGpuBuffers,
+      ...(localLightClusters === null ? {} : { localLightClusters }),
       materialBindGroup,
       lightBindGroup,
       ...(standardMaterialIblBindGroup === null
@@ -383,6 +403,44 @@ function requiresSkinningJointBuffer(pipelineKey: string): boolean {
 
 function requiresMorphTargetWeightBuffer(pipelineKey: string): boolean {
   return pipelineKey.split("|").includes("morphed");
+}
+
+function requiresClusteredLocalLightBuffer(pipelineKey: string): boolean {
+  return pipelineKey
+    .split("|")
+    .includes(CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE);
+}
+
+function createLocalLightClusterResource(
+  options: Pick<
+    CreateStandardFrameGpuResourcesOptions,
+    | "device"
+    | "snapshot"
+    | "pipelineKey"
+    | "localLightClusterDescriptor"
+    | "localLightClusterResources"
+  >,
+  diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
+): LocalLightClusterGpuResource | null {
+  if (!requiresClusteredLocalLightBuffer(options.pipelineKey)) {
+    return null;
+  }
+
+  if (options.localLightClusterResources !== undefined) {
+    return options.localLightClusterResources;
+  }
+
+  const descriptor =
+    options.localLightClusterDescriptor ??
+    createLocalLightClusterDescriptor(options.snapshot);
+  const result = createLocalLightClusterGpuResource({
+    device: options.device,
+    descriptor,
+  });
+
+  diagnostics.push(...result.diagnostics);
+
+  return result.valid ? result.resource : null;
 }
 
 function resolveStandardMaterialIblBindGroupResource(
@@ -767,13 +825,19 @@ function createMaterialBindGroup(
 function createLightBindGroup(
   options: CreateStandardFrameGpuResourcesOptions,
   lightGpuBuffers: CreateSnapshotLightGpuBuffersResult,
+  localLightClusters: LocalLightClusterGpuResource | null,
   diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
 ): LightBindGroupResource | StandardLightShadowBindGroupResource | null {
   if (
     options.pipelineKey.includes("iblDiffuse") &&
     options.standardMaterialIblResources !== undefined
   ) {
-    return createLightIblBindGroup(options, lightGpuBuffers, diagnostics);
+    return createLightIblBindGroup(
+      options,
+      lightGpuBuffers,
+      localLightClusters,
+      diagnostics,
+    );
   }
 
   if (
@@ -781,7 +845,12 @@ function createLightBindGroup(
       options.pipelineKey.includes("pointShadowMap")) &&
     options.shadowReceiverResources !== undefined
   ) {
-    return createLightShadowBindGroup(options, lightGpuBuffers, diagnostics);
+    return createLightShadowBindGroup(
+      options,
+      lightGpuBuffers,
+      localLightClusters,
+      diagnostics,
+    );
   }
 
   const plan = createLightBindGroupDescriptorPlan({
@@ -789,6 +858,7 @@ function createLightBindGroup(
     layoutKey: options.lightLayout?.layoutKey ?? null,
     label: "standard/lights",
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
+    localLightClusterResources: localLightClusters,
     ...(options.transmissionSceneColorResources === undefined ||
     options.transmissionSceneColorResources === null ||
     !options.pipelineKey.split("|").includes("transmission")
@@ -820,6 +890,7 @@ function createLightBindGroup(
 function createLightIblBindGroup(
   options: CreateStandardFrameGpuResourcesOptions,
   lightGpuBuffers: CreateSnapshotLightGpuBuffersResult,
+  localLightClusters: LocalLightClusterGpuResource | null,
   diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
 ): StandardLightShadowBindGroupResource | null {
   const iblResources = options.standardMaterialIblResources;
@@ -852,6 +923,7 @@ function createLightIblBindGroup(
     samplerResource: iblResources.samplerResource,
     shadowRequired,
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
+    localLightClusterResources: localLightClusters,
     ...(shadowReceiverResources === undefined
       ? {}
       : { shadowReceiverResources }),
@@ -882,6 +954,7 @@ function createLightIblBindGroup(
       : {}),
     iblSamplerResource: iblResources.samplerResource,
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
+    localLightClusterResources: localLightClusters,
   });
 
   diagnostics.push(...result.diagnostics);
@@ -892,6 +965,7 @@ function createLightIblBindGroup(
 function createLightShadowBindGroup(
   options: CreateStandardFrameGpuResourcesOptions,
   lightGpuBuffers: CreateSnapshotLightGpuBuffersResult,
+  localLightClusters: LocalLightClusterGpuResource | null,
   diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
 ): StandardLightShadowBindGroupResource | null {
   const shadowReceiverResources = options.shadowReceiverResources;
@@ -916,6 +990,7 @@ function createLightShadowBindGroup(
       pointShadowReceiverResources:
         shadowReceiverResources.pointShadowReceiverResources,
       areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
+      localLightClusterResources: localLightClusters,
     });
 
     diagnostics.push(...plan.diagnostics);
@@ -935,6 +1010,7 @@ function createLightShadowBindGroup(
         shadowReceiverResources.pointShadowReceiverResources,
       ],
       areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
+      localLightClusterResources: localLightClusters,
     });
 
     diagnostics.push(...result.diagnostics);
@@ -950,6 +1026,7 @@ function createLightShadowBindGroup(
     depthTextureResources: shadowReceiverResources.depthTextureResources,
     samplerResource: shadowReceiverResources.samplerResource,
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
+    localLightClusterResources: localLightClusters,
   });
 
   diagnostics.push(...plan.diagnostics);
@@ -965,6 +1042,7 @@ function createLightShadowBindGroup(
     depthTextureResources: shadowReceiverResources.depthTextureResources,
     samplerResource: shadowReceiverResources.samplerResource,
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
+    localLightClusterResources: localLightClusters,
   });
 
   diagnostics.push(...result.diagnostics);

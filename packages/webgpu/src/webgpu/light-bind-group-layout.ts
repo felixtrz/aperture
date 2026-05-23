@@ -1,7 +1,13 @@
 import type {
   WebGpuBindGroupLayoutDescriptor,
+  WebGpuBindGroupLayoutEntryDescriptor,
   WebGpuBindGroupLayoutDeviceLike,
 } from "./bind-group-layout-cache.js";
+import {
+  LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
+  LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+  LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
+} from "./local-light-clusters.js";
 
 export const DEFAULT_LIGHT_BIND_GROUP = 3;
 export const DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY = 0x2;
@@ -21,6 +27,7 @@ export interface CreateLightBindGroupLayoutDescriptorOptions {
   readonly label?: string;
   readonly visibility?: number;
   readonly transmissionSceneColor?: boolean;
+  readonly clusteredLocalLights?: boolean;
 }
 
 export interface CreateLightBindGroupLayoutResourceOptions extends CreateLightBindGroupLayoutDescriptorOptions {
@@ -54,35 +61,71 @@ export function createLightBindGroupLayoutDescriptor(
   const visibility =
     options.visibility ?? DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY;
 
+  const entries: WebGpuBindGroupLayoutEntryDescriptor[] = [
+    {
+      binding: 0,
+      visibility,
+      buffer: { type: "read-only-storage" },
+    },
+    {
+      binding: 1,
+      visibility,
+      buffer: { type: "read-only-storage" },
+    },
+    ...(options.transmissionSceneColor === true
+      ? [
+          {
+            binding: 14,
+            visibility,
+            texture: { sampleType: "float" },
+          },
+          {
+            binding: 15,
+            visibility,
+            sampler: { type: "filtering" },
+          },
+        ]
+      : []),
+  ];
+
+  appendClusteredLocalLightLayoutEntries(
+    entries,
+    visibility,
+    options.clusteredLocalLights === true,
+  );
+
   return {
     label: options.label ?? `lights/group-${group}`,
-    entries: [
-      {
-        binding: 0,
-        visibility,
-        buffer: { type: "read-only-storage" },
-      },
-      {
-        binding: 1,
-        visibility,
-        buffer: { type: "read-only-storage" },
-      },
-      ...(options.transmissionSceneColor === true
-        ? [
-            {
-              binding: 14,
-              visibility,
-              texture: { sampleType: "float" },
-            },
-            {
-              binding: 15,
-              visibility,
-              sampler: { type: "filtering" },
-            },
-          ]
-        : []),
-    ],
+    entries,
   };
+}
+
+export function appendClusteredLocalLightLayoutEntries(
+  entries: WebGpuBindGroupLayoutEntryDescriptor[],
+  visibility: number,
+  enabled: boolean,
+): void {
+  if (!enabled) {
+    return;
+  }
+
+  entries.push(
+    {
+      binding: LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
+      visibility,
+      buffer: { type: "read-only-storage" },
+    },
+    {
+      binding: LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
+      visibility,
+      buffer: { type: "read-only-storage" },
+    },
+    {
+      binding: LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+      visibility,
+      buffer: { type: "read-only-storage" },
+    },
+  );
 }
 
 export function createLightBindGroupLayoutResource(

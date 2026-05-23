@@ -1479,13 +1479,13 @@
               assets with JSON-safe reuse/invalidation status, and
               <code>examples/materials-showcase.html</code> switches between
               warm and cool ECS-authored environment handles with distinct
-              StandardMaterial IBL response. The post-environment parity audit
-              found the next SOTA efficiency gap: StandardMaterial still scans
-              every packed light per fragment, so the next implementation slice
-              is clustered local-light preparation.
+              StandardMaterial IBL response. StandardMaterial many-light scenes
+              now opt into renderer-owned clustered local-light buffers, so
+              point and spot lights shade from per-cluster index lists instead
+              of scanning every packed light per fragment.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3120 clustered local-light preparation</dd>
+            <dd>task-3121 GPU occlusion-query visibility feedback</dd>
           </dl>
         </aside>
       </header>
@@ -2077,15 +2077,16 @@
               bind groups. Queued built-in frame-resource preparation now also
               reuses compatible shared view, transform, light, and
               StandardMaterial light/shadow bind groups within a frame while
-              publishing JSON-safe creation/reuse/cache pressure.
-              Renderer-owned bloom graph resources and versioned
-              multi-environment diffuse/specular IBL resources are now prepared
-              and reused through app-visible summaries.
+              publishing JSON-safe creation/reuse/cache pressure. Renderer-owned
+              bloom graph resources and versioned multi-environment
+              diffuse/specular IBL resources are now prepared and reused through
+              app-visible summaries.
             </p>
             <ul>
               <li>
-                Missing renderer-owned clustered local-light preparation for
-                many point and spot lights.
+                Remaining local-light work is view/depth-space cluster tuning
+                and broader clustered-light permutations beyond the initial
+                StandardMaterial many-light path.
               </li>
               <li>
                 Missing production-fidelity LTC table payloads and broader
@@ -2148,7 +2149,7 @@
             </p>
             <ul>
               <li>
-                Missing clustered local-light queue/readiness routing.
+                Missing GPU occlusion-query feedback in queue/readiness status.
               </li>
               <li>Missing multi-material primitive queue rules.</li>
             </ul>
@@ -2270,16 +2271,15 @@
               keys built-in pipelines by effective sample count. Bloom now
               submits through a renderer-owned downsample/upsample graph, and
               StandardMaterial IBL resources can execute from multiple
-              renderer-owned environment assets. The remaining submit-adjacent
-              efficiency gap is shader work: StandardMaterial still evaluates
-              every packed local light per fragment instead of shading from
-              clustered local-light indices.
+              renderer-owned environment assets. StandardMaterial many-light
+              scenes now prepare clustered local-light indices and bind them
+              through the light group, reducing point/spot fragment work to the
+              current cluster's local index list.
             </p>
             <ul>
               <li>
-                Post-environment audit complete: the next visible SOTA gap is
-                clustered local-light preparation for StandardMaterial many-light
-                scenes.
+                Next visible SOTA gap: GPU occlusion-query feedback for
+                hidden-but-frustum-visible mesh draws.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -4584,12 +4584,13 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Run
-                <code>task-3120</code>: add clustered local-light preparation
-                for StandardMaterial with a many-light browser proof.
+                <code>task-3121</code>: add GPU occlusion-query visibility
+                feedback with a browser-visible occluder proof.
               </li>
               <li>
-                Follow-up SOTA slices are GPU occlusion-query feedback and
-                multi-material primitive/group queueing.
+                Follow-up SOTA slices include multi-material primitive/group
+                queueing and the next parity audit after a few implementation
+                slices.
               </li>
             </ul>
           </article>
@@ -4602,6 +4603,20 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3120</div>
+            <div>
+              <strong>Clustered local-light preparation shipped.</strong>
+              <span>
+                StandardMaterial many-light scenes now prepare renderer-owned
+                local-light cluster buffers and bind them through the light
+                group. <code>examples/clustered-lights.html</code> proves 64
+                ECS-authored point lights, cluster buffer reuse, max/average
+                lights per populated cell below total local lights, and zero
+                render diagnostics.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3118</div>
             <div>

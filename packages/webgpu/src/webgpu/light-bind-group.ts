@@ -14,6 +14,7 @@ import {
   STANDARD_AREA_LIGHT_LTC_SAMPLER_BINDING,
   type StandardAreaLightLtcResources,
 } from "./standard-area-light-ltc-resource.js";
+import type { LocalLightClusterGpuResource } from "./local-light-clusters.js";
 
 export const STANDARD_TRANSMISSION_SCENE_COLOR_TEXTURE_BINDING = 14;
 export const STANDARD_TRANSMISSION_SCENE_COLOR_SAMPLER_BINDING = 15;
@@ -31,6 +32,7 @@ export interface CreateLightBindGroupDescriptorPlanOptions {
   readonly lightGpuBufferResource: LightGpuBufferResource | null;
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly transmissionSceneColorResources?: StandardTransmissionSceneColorResources | null;
+  readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
   readonly pipelineKey?: string | null;
   readonly layoutKey: string | null;
   readonly group?: number;
@@ -207,6 +209,10 @@ export function createLightBindGroupDescriptorPlan(
   appendTransmissionSceneColorEntries(
     entries,
     options.transmissionSceneColorResources ?? null,
+  );
+  appendLocalLightClusterEntries(
+    entries,
+    options.localLightClusterResources ?? null,
   );
 
   const pipelineKey =
@@ -471,6 +477,33 @@ function appendTransmissionSceneColorEntries(
       binding: STANDARD_TRANSMISSION_SCENE_COLOR_SAMPLER_BINDING,
       resourceKey: resources.sampler.resourceKey,
       resource: { sampler: resources.sampler.sampler },
+    },
+  );
+}
+
+function appendLocalLightClusterEntries(
+  entries: LightBindGroupDescriptorEntry[],
+  resources: LocalLightClusterGpuResource | null,
+): void {
+  if (resources === null) {
+    return;
+  }
+
+  entries.push(
+    {
+      binding: 16,
+      resourceKey: resources.paramsResourceKey,
+      resource: { buffer: resources.paramsBuffer },
+    },
+    {
+      binding: 17,
+      resourceKey: resources.cellsResourceKey,
+      resource: { buffer: resources.cellsBuffer },
+    },
+    {
+      binding: 18,
+      resourceKey: resources.indicesResourceKey,
+      resource: { buffer: resources.indicesBuffer },
     },
   );
 }

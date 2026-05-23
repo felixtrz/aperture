@@ -37,6 +37,9 @@ import {
   STANDARD_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY,
   STANDARD_SHEEN_SHADER_VARIANT,
   STANDARD_IRIDESCENCE_SHADER_VARIANT,
+  LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
+  LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+  LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
   createStandardMeshShaderModuleDescriptor,
   createStandardTextureShaderVariantKey,
   createStandardTextureVariantShader,
@@ -171,6 +174,68 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
     expect(STANDARD_MESH_WGSL).toContain("LIGHT_KIND_AMBIENT");
     expect(STANDARD_MESH_WGSL).toContain("standardAreaLightLtcMatrixTexture");
+  });
+
+  it("routes StandardMaterial point and spot lights through clustered local-light storage", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      clusteredLocalLights: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: false,
+        clusteredLocalLights: true,
+      }),
+    ).toBe("direct-lit-metallic-roughness-clustered-local-lights-texture");
+    expect(shader.bindings).toEqual(
+      expect.arrayContaining([
+        {
+          id: "localLightClusterParams",
+          label: "Standard material local-light cluster params",
+          group: 3,
+          binding: LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
+          resource: "read-only-storage-buffer",
+        },
+        {
+          id: "localLightClusterCells",
+          label: "Standard material local-light cluster cells",
+          group: 3,
+          binding: LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
+          resource: "read-only-storage-buffer",
+        },
+        {
+          id: "localLightClusterIndices",
+          label: "Standard material local-light cluster indices",
+          group: 3,
+          binding: LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+          resource: "read-only-storage-buffer",
+        },
+      ]),
+    );
+    expect(shader.code).toContain("fn localLightClusterCellIndex");
+    expect(shader.code).toContain("fn evaluateClusteredLocalLights");
+    expect(shader.code).toContain(
+      "direct = direct + evaluateClusteredLocalLights",
+    );
+    expect(shader.code.match(/if \(kind == LIGHT_KIND_POINT\)/g)).toHaveLength(
+      1,
+    );
+    expect(shader.code.match(/if \(kind == LIGHT_KIND_SPOT\)/g)).toHaveLength(
+      1,
+    );
   });
 
   it("declares base-color texture bindings for the textured StandardMaterial variant", () => {

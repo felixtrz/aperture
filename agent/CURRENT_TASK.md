@@ -3,9 +3,10 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3120.
+Current task: task-3121.
 
-Status: `task-3119` completed the post-environment parity audit.
+Status: `task-3120` completed clustered local-light preparation for
+StandardMaterial.
 
 Key finding:
 
@@ -16,18 +17,22 @@ Key finding:
   state, queued built-in bind groups are reused, TAA has previous per-object
   transform history, bloom has a downsample/upsample graph, and multiple
   environment-map handles can prepare versioned diffuse/specular IBL resources.
-- The next SOTA efficiency gap is many-light local-light shading. Aperture's
-  StandardMaterial shader still loops over every packed light for every
-  fragment, while PlayCanvas prepares clustered local-light data per
-  view/light-set and shades only the lights assigned to the fragment's cluster.
+- StandardMaterial many-light scenes now prepare renderer-owned local-light
+  cluster buffers for extracted point/spot lights, bind them through group 3,
+  and shade point/spot lights from per-cluster index lists instead of scanning
+  every packed light per fragment.
+- `examples/clustered-lights.html` proves 64 ECS-authored point lights through
+  the clustered StandardMaterial pipeline and reports JSON-safe cluster pressure
+  plus buffer reuse.
+- The next SOTA efficiency gap is hidden-but-frustum-visible geometry.
+  Aperture has frustum culling, but does not yet allocate, resolve, and publish
+  renderer-owned GPU occlusion-query visibility feedback like the referenced
+  WebGPU pipelines.
 
-Next step: run `task-3120` from `agent/BACKLOG.md`, adding renderer-owned
-clustered local-light preparation for StandardMaterial with a many-light browser
-proof.
+Next step: run `task-3121` from `agent/BACKLOG.md`, adding GPU occlusion-query
+visibility feedback with a browser-visible occluder proof.
 
 Reference anchors for the next task:
 
-- `references/engine/src/scene/lighting/world-clusters.js`.
-- `references/engine/src/scene/renderer/world-clusters-allocator.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLight.js`.
-- `references/three.js/examples/jsm/lighting/ClusteredLighting.js`.
+- `references/three.js/src/renderers/common/RenderList.js`.
+- `references/three.js/src/renderers/webgpu/WebGPUBackend.js`.
