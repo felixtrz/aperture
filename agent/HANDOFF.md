@@ -1,6 +1,53 @@
 # Agent Handoff
 
-Updated: 2026-05-23T04:47:45Z
+Updated: 2026-05-23T05:22:58Z
+
+## Current Run Update — 2026-05-23T05:22:58Z — DOF CoC quality follow-up
+
+Completed `task-3095`, a Tier 20 DOF reference-parity follow-up.
+
+### What changed
+
+- Upgraded `createWebGpuDofPostEffect()` from a fixed bokeh tap table to a
+  PlayCanvas-style concentric kernel controlled by `blurRings` and
+  `blurRingPoints`.
+- Split circle-of-confusion into explicit far/near channels, added
+  `farBlurScale` and `nearBlurScale`, and weighted far-blur samples by their
+  own CoC so sharp foreground samples do not bleed into defocused background
+  blur.
+- Retuned `examples/dof.html` to exercise the higher-quality kernel and updated
+  the focused DOF browser proof to wait for Chrome to present the submitted
+  post-pass frame before sampling pixels.
+
+### Reference comparison
+
+- PlayCanvas DOF references anchor the separate CoC pass, concentric blur
+  kernel, far-blur premultiplication, and near/far blur separation.
+- Bevy DOF anchors explicit CoC handling and clamped focus/falloff behavior.
+- Aperture keeps the implementation as a renderer-owned depth-reading post
+  effect; no viewer-owned loading or example-specific depth path was added.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts --reporter=dot`
+- `pnpm run typecheck:test`
+- `pnpm run examples:build`
+- Custom headed Chrome/WebGPU DOF probe matching `test/e2e/dof.spec.ts`
+  thresholds: 512x512 raw/DOF canvases, zero diagnostics, zero WebGPU validation
+  warnings, `changedBackgroundPixels=45517`, and `foregroundMeanDelta=0`.
+
+### Known issues
+
+- The focused Playwright DOF spec was attempted with the headed Chrome/WebGPU
+  project, but the run hung in Playwright/Chrome browser cleanup after the
+  headed probe showed the page reaches `ready`.
+- MSAA-depth screen-space support remains the final open Tier 20 follow-up:
+  `task-3096`.
+
+### Recommended next task
+
+Start `task-3096`, adding a renderer-owned single-sample depth route or
+equivalent prepass/resolve path so SSAO, SSR, and DOF can run in MSAA scenes.
 
 ## Current Run Update — 2026-05-23T04:47:45Z — SSR reference-parity follow-up
 

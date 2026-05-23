@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Continue Tier 20 reference-parity follow-ups with `task-3095`, improving DOF
-toward the PlayCanvas/Bevy circle-of-confusion quality shape.
+Continue Tier 20 reference-parity follow-ups with `task-3096`, adding an MSAA
+depth route so screen-space effects do not reject multisampled scenes.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter user objective also asks
@@ -1396,9 +1396,9 @@ Acceptance criteria:
 - `createWebGpuSsrPostEffect()` exposes documented SSR controls aligned with three.js `SSRPass` rather than only opacity/stride/thickness.
 - `examples/ssr.html` still renders a recognizable reflected receiver, and Playwright proves reflected pixels change without WebGPU validation warnings.
 
-### task-3095 — DOF PlayCanvas/Bevy CoC quality follow-up (Tier 20 follow-up 3)
+### task-3095 — DOF PlayCanvas/Bevy CoC quality follow-up (Tier 20 follow-up 3) — Completed 2026-05-23
 
-Status: ready.
+Status: completed. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/post-dof.ts`, post-pass framework only if needed, `examples/dof.main.js`, targeted tests.

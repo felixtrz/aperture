@@ -440,6 +440,10 @@ describe("WebGPU post-pass helpers", () => {
       aperture: 1.25,
       maxBlurPixels: 9,
       nearBlur: false,
+      blurRings: 4,
+      blurRingPoints: 4,
+      farBlurScale: 0.75,
+      nearBlurScale: 1.1,
     });
     const input = postTexture("scene", events);
     const depth = postDepthTexture("scene-depth", events);
@@ -462,12 +466,12 @@ describe("WebGPU post-pass helpers", () => {
       {
         kind: "setPipeline",
         pipelineKey:
-          "webgpu-post-dof|rgba8unorm|near:0.1000|far:20.000|focus:3.200|range:0.800|aperture:1.250|max:9.000|nearBlur:false",
+          "webgpu-post-dof|rgba8unorm|near:0.1000|far:20.000|focus:3.200|range:0.800|aperture:1.250|max:9.000|nearBlur:false|rings:4|ringPoints:4|farScale:0.750|nearScale:1.100",
       },
       {
         kind: "setBindGroup",
         resourceKey:
-          "dof:input:scene:depth:scene-depth:focus:3.20:aperture:1.25",
+          "dof:input:scene:depth:scene-depth:focus:3.20:aperture:1.25:kernel:4x4",
       },
       { kind: "draw", vertexCount: 3 },
     ]);

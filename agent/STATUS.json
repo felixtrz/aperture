@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "4b63db1",
   "activePid": null,
-  "notes": "Completed Tier 20 SSAO and SSR reference-parity follow-ups; next task is task-3095 DOF CoC quality follow-up.",
+  "notes": "Completed Tier 20 SSAO, SSR, and DOF reference-parity follow-ups; next task is task-3096 MSAA depth route.",
   "lastRunFinishedAt": "2026-05-23T04:51:04Z"
 }

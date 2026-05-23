@@ -1,5 +1,30 @@
 # Completed Tasks
 
+## task-3095 — DOF PlayCanvas/Bevy CoC quality follow-up
+
+Completed: 2026-05-23
+
+Summary:
+
+- Upgraded `createWebGpuDofPostEffect()` from a fixed bokeh tap table to a
+  PlayCanvas-style concentric kernel controlled by `blurRings` and
+  `blurRingPoints`.
+- Split circle-of-confusion handling into explicit far/near channels, added
+  configurable `farBlurScale` / `nearBlurScale`, and weighted far blur taps by
+  sample CoC so sharp foreground samples do not bleed into defocused
+  background blur.
+- Retuned `examples/dof.html` to exercise the higher-quality kernel while
+  preserving square raw-vs-DOF output and focused foreground stability.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts --reporter=dot`
+- `pnpm run typecheck:test`
+- `pnpm run examples:build`
+- Custom headed Chrome/WebGPU DOF probe matching `test/e2e/dof.spec.ts`
+  thresholds: 512x512 raw/DOF canvases, zero diagnostics, zero WebGPU validation
+  warnings, `changedBackgroundPixels=45517`, and `foregroundMeanDelta=0`.
+
 ## task-3094 — SSR normal/fresnel/attenuation parity follow-up
 
 Completed: 2026-05-23

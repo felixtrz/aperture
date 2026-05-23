@@ -85,7 +85,7 @@ test("browser blurs background while preserving focused foreground with depth of
     },
   });
 
-  await page.waitForTimeout(100);
+  await page.waitForTimeout(1000);
 
   const rawScreenshot = await page.locator("#dof-canvas-raw").screenshot();
   const dofScreenshot = await page.locator("#dof-canvas-dof").screenshot();

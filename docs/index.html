@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 04:47 UTC</dd>
+            <dd>2026-05-23 05:22 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1409,15 +1409,16 @@
               blends reflected scene color from depth using depth-derived
               normals, fresnel, distance attenuation, and reflection softening,
               and
-              <code>createWebGpuDofPostEffect()</code> blurs by focus distance
-              and aperture. <code>examples/ssao.html</code>,
-              <code>examples/ssr.html</code>, and <code>examples/dof.html</code>
+              <code>createWebGpuDofPostEffect()</code> now uses explicit
+              far/near circle-of-confusion channels plus configurable concentric
+              kernel quality for focus/aperture blur.
+              <code>examples/ssao.html</code>, <code>examples/ssr.html</code>,
+              and <code>examples/dof.html</code>
               prove raw-vs-effect differences in square canvases. Remaining Tier
-              20 parity work covers DOF CoC quality and MSAA depth inputs for
-              screen-space effects.
+              20 parity work covers MSAA depth inputs for screen-space effects.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3095 — DOF CoC quality follow-up</dd>
+            <dd>task-3096 — MSAA depth route for screen-space effects</dd>
           </dl>
         </aside>
       </header>
@@ -4441,17 +4442,20 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Continue Tier 20
-                reference-parity follow-ups with DOF.
+                reference-parity follow-ups with MSAA depth support.
               </li>
               <li>
                 SSAO now uses a PlayCanvas-style spiral AO shader with
                 linearized depth and depth-derived normals; SSR now adds
                 depth-derived normals, fresnel, distance attenuation,
-                max-distance semantics, and reflection softening.
+                max-distance semantics, and reflection softening; DOF now uses
+                explicit far/near CoC channels and configurable concentric
+                kernel quality.
               </li>
               <li>
-                Next work should improve DOF toward PlayCanvas/Bevy explicit
-                circle-of-confusion and near/far blur quality behavior.
+                Next work should add a renderer-owned single-sample depth route
+                or equivalent prepass/resolve path so depth-fed post effects can
+                run in MSAA scenes.
               </li>
             </ul>
           </article>

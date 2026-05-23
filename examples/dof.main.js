@@ -69,6 +69,10 @@ async function createDofRuntime(aperture, canvas, enabled) {
           aperture: 1.55,
           maxBlurPixels: 18,
           nearBlur: false,
+          blurRings: 4,
+          blurRingPoints: 4,
+          farBlurScale: 0.75,
+          nearBlurScale: 1,
         }),
       ]
     : [];

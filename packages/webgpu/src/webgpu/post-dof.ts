@@ -17,6 +17,10 @@ export interface CreateWebGpuDofPostEffectOptions {
   readonly aperture?: number;
   readonly maxBlurPixels?: number;
   readonly nearBlur?: boolean;
+  readonly blurRings?: number;
+  readonly blurRingPoints?: number;
+  readonly farBlurScale?: number;
+  readonly nearBlurScale?: number;
 }
 
 interface CachedDofPostPipeline {
@@ -41,6 +45,14 @@ export function createWebGpuDofPostEffect(
   const aperture = clampFinite(options.aperture ?? 1, 0, 8);
   const maxBlurPixels = clampFinite(options.maxBlurPixels ?? 8, 0, 48);
   const nearBlur = options.nearBlur ?? true;
+  const blurRings = clampInteger(options.blurRings ?? 3, 1, 6);
+  const blurRingPoints = clampInteger(options.blurRingPoints ?? 3, 3, 12);
+  const farBlurScale = clampFinite(options.farBlurScale ?? 1, 0, 4);
+  const nearBlurScale = clampFinite(options.nearBlurScale ?? 1, 0, 4);
+  const sampleOffsets = createConcentricDofSampleOffsets(
+    blurRings,
+    blurRingPoints,
+  );
   let cachedPipeline: CachedDofPostPipeline | null = null;
   let sampler: unknown | null = null;
 
@@ -79,6 +91,10 @@ export function createWebGpuDofPostEffect(
         aperture,
         maxBlurPixels,
         nearBlur,
+        blurRings,
+        blurRingPoints,
+        farBlurScale,
+        nearBlurScale,
       });
       const pipelineResult =
         cachedPipeline?.key === pipelineKey
@@ -93,6 +109,11 @@ export function createWebGpuDofPostEffect(
               aperture,
               maxBlurPixels,
               nearBlur,
+              blurRings,
+              blurRingPoints,
+              farBlurScale,
+              nearBlurScale,
+              sampleOffsets,
               label: `${prepareOptions.label}:${id}:pipeline`,
               effectId: id,
               diagnostics,
@@ -186,7 +207,7 @@ export function createWebGpuDofPostEffect(
             kind: "setBindGroup",
             renderId: 0,
             index: 0,
-            resourceKey: `${id}:input:${prepareOptions.input.label}:depth:${prepareOptions.depth.label}:focus:${focusDistance.toFixed(2)}:aperture:${aperture.toFixed(2)}`,
+            resourceKey: `${id}:input:${prepareOptions.input.label}:depth:${prepareOptions.depth.label}:focus:${focusDistance.toFixed(2)}:aperture:${aperture.toFixed(2)}:kernel:${blurRings}x${blurRingPoints}`,
             bindGroup,
           },
           {
@@ -213,6 +234,10 @@ function dofPipelineKey(options: {
   readonly aperture: number;
   readonly maxBlurPixels: number;
   readonly nearBlur: boolean;
+  readonly blurRings: number;
+  readonly blurRingPoints: number;
+  readonly farBlurScale: number;
+  readonly nearBlurScale: number;
 }): string {
   return [
     "webgpu-post-dof",
@@ -224,6 +249,10 @@ function dofPipelineKey(options: {
     `aperture:${options.aperture.toFixed(3)}`,
     `max:${options.maxBlurPixels.toFixed(3)}`,
     `nearBlur:${String(options.nearBlur)}`,
+    `rings:${options.blurRings}`,
+    `ringPoints:${options.blurRingPoints}`,
+    `farScale:${options.farBlurScale.toFixed(3)}`,
+    `nearScale:${options.nearBlurScale.toFixed(3)}`,
   ].join("|");
 }
 
@@ -237,6 +266,11 @@ function createDofPostPipeline(options: {
   readonly aperture: number;
   readonly maxBlurPixels: number;
   readonly nearBlur: boolean;
+  readonly blurRings: number;
+  readonly blurRingPoints: number;
+  readonly farBlurScale: number;
+  readonly nearBlurScale: number;
+  readonly sampleOffsets: readonly (readonly [number, number])[];
   readonly label: string;
   readonly effectId: string;
   readonly diagnostics: WebGpuPostPassDiagnostic[];
@@ -327,58 +361,48 @@ function clampFinite(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
+function clampInteger(value: number, min: number, max: number): number {
+  if (!Number.isFinite(value)) {
+    return min;
+  }
+
+  return Math.min(Math.max(Math.floor(value), min), max);
+}
+
 function wgslFloat(value: number): string {
   return value.toFixed(6);
 }
 
-const dofSampleOffsets = [
-  [0.0, 0.4],
-  [0.15, 0.37],
-  [0.29, 0.29],
-  [-0.37, 0.15],
-  [0.4, 0.0],
-  [0.37, -0.15],
-  [0.29, -0.29],
-  [-0.15, -0.37],
-  [0.0, -0.4],
-  [-0.15, 0.37],
-  [-0.29, 0.29],
-  [0.37, 0.15],
-  [-0.4, 0.0],
-  [-0.37, -0.15],
-  [-0.29, -0.29],
-  [0.15, -0.37],
-  [0.135, 0.333],
-  [-0.333, 0.135],
-  [0.333, -0.135],
-  [-0.135, -0.333],
-  [-0.135, 0.333],
-  [0.333, 0.135],
-  [-0.333, -0.135],
-  [0.135, -0.333],
-  [0.203, 0.203],
-  [0.28, 0.0],
-  [0.203, -0.203],
-  [0.0, -0.28],
-  [-0.203, 0.203],
-  [-0.28, 0.0],
-  [-0.203, -0.203],
-  [0.0, 0.28],
-  [0.116, 0.116],
-  [0.16, 0.0],
-  [0.116, -0.116],
-  [0.0, -0.16],
-  [-0.116, 0.116],
-  [-0.16, 0.0],
-  [-0.116, -0.116],
-  [0.0, 0.16],
-] as const;
+function createConcentricDofSampleOffsets(
+  blurRings: number,
+  blurRingPoints: number,
+): readonly (readonly [number, number])[] {
+  const offsets: [number, number][] = [];
+  const spacing = (2 * Math.PI) / blurRings / blurRingPoints;
 
-function dofSampleAccumulationWgsl(): string {
-  return dofSampleOffsets
+  for (let ring = 1; ring <= blurRings; ring += 1) {
+    const radius = ring / blurRings;
+    const circumference = 2 * Math.PI * radius;
+    const pointsPerRing = Math.max(1, Math.floor(circumference / spacing));
+    const angleStep = (2 * Math.PI) / pointsPerRing;
+
+    for (let point = 0; point < pointsPerRing; point += 1) {
+      const angle = point * angleStep;
+
+      offsets.push([radius * Math.cos(angle), radius * Math.sin(angle)]);
+    }
+  }
+
+  return offsets;
+}
+
+function dofSampleAccumulationWgsl(
+  sampleOffsets: readonly (readonly [number, number])[],
+): string {
+  return sampleOffsets
     .map(
       ([x, y], index) => `
-  let tap${index} = weightedSample(textureUv, vec2f(${wgslFloat(x)}, ${wgslFloat(y)}), blurPixels, texel, dims);
+  let tap${index} = weightedSample(textureUv, vec2f(${wgslFloat(x)}, ${wgslFloat(y)}), blurPixels, texel, dims, blurMode);
   sum = sum + tap${index}.rgb;
   weightSum = weightSum + tap${index}.a;`,
     )
@@ -393,6 +417,9 @@ function dofPostEffectWgsl(options: {
   readonly aperture: number;
   readonly maxBlurPixels: number;
   readonly nearBlur: boolean;
+  readonly farBlurScale: number;
+  readonly nearBlurScale: number;
+  readonly sampleOffsets: readonly (readonly [number, number])[];
 }): string {
   return `
 struct VertexOutput {
@@ -411,6 +438,10 @@ const FOCUS_RANGE: f32 = ${wgslFloat(options.focusRange)};
 const APERTURE: f32 = ${wgslFloat(options.aperture)};
 const MAX_BLUR_PIXELS: f32 = ${wgslFloat(options.maxBlurPixels)};
 const NEAR_BLUR: bool = ${options.nearBlur ? "true" : "false"};
+const FAR_BLUR_SCALE: f32 = ${wgslFloat(options.farBlurScale)};
+const NEAR_BLUR_SCALE: f32 = ${wgslFloat(options.nearBlurScale)};
+const BLUR_MODE_FAR: u32 = 0u;
+const BLUR_MODE_NEAR: u32 = 1u;
 
 @vertex
 fn vs(@builtin(vertex_index) vertexIndex: u32) -> VertexOutput {
@@ -450,36 +481,55 @@ fn viewDepth(rawDepth: f32) -> f32 {
   return (NEAR_PLANE * FAR_PLANE) / denominator;
 }
 
-fn blurPixelsForDepth(rawDepth: f32) -> f32 {
+fn circleOfConfusion(rawDepth: f32) -> vec2f {
   if (rawDepth >= 0.9999 || APERTURE <= 0.0 || MAX_BLUR_PIXELS <= 0.0) {
-    return 0.0;
+    return vec2f(0.0);
   }
 
   let depth = viewDepth(rawDepth);
   let halfRange = FOCUS_RANGE * 0.5;
   let farStart = FOCUS_DISTANCE + halfRange;
   let nearStart = max(NEAR_PLANE, FOCUS_DISTANCE - halfRange);
-  var coc = 0.0;
+  var cocFar = 0.0;
+  var cocNear = 0.0;
 
   if (depth > farStart) {
-    coc = (depth - farStart) / FOCUS_RANGE;
+    cocFar = (depth - farStart) / FOCUS_RANGE;
   } else if (NEAR_BLUR && depth < nearStart) {
-    coc = (nearStart - depth) / FOCUS_RANGE;
+    cocNear = (nearStart - depth) / FOCUS_RANGE;
   }
 
-  return clamp(coc * APERTURE * MAX_BLUR_PIXELS, 0.0, MAX_BLUR_PIXELS);
+  return clamp(vec2f(cocFar, cocNear) * APERTURE, vec2f(0.0), vec2f(1.0));
+}
+
+fn blurPixelsForCoc(coc: vec2f, blurMode: u32) -> f32 {
+  if (blurMode == BLUR_MODE_NEAR) {
+    return coc.g * MAX_BLUR_PIXELS * NEAR_BLUR_SCALE;
+  }
+
+  return coc.r * MAX_BLUR_PIXELS * FAR_BLUR_SCALE;
 }
 
 fn sampleColor(uv: vec2f) -> vec4f {
   return textureSampleLevel(inputTexture, inputSampler, clamp(uv, vec2f(0.0), vec2f(1.0)), 0.0);
 }
 
-fn weightedSample(textureUv: vec2f, offset: vec2f, blurPixels: f32, texel: vec2f, dims: vec2u) -> vec4f {
+fn weightedSample(textureUv: vec2f, offset: vec2f, blurPixels: f32, texel: vec2f, dims: vec2u, blurMode: u32) -> vec4f {
   let sampleUv = textureUv + offset * blurPixels * texel;
   let sampleDepth = loadDepthUv(sampleUv, dims);
-  let sampleBlur = blurPixelsForDepth(sampleDepth);
-  let depthWeight = clamp(sampleBlur / max(blurPixels, 0.001), 0.0, 1.0);
-  let weight = max(0.08, depthWeight);
+  let sampleCoc = circleOfConfusion(sampleDepth);
+  var weight = 1.0;
+
+  if (blurMode == BLUR_MODE_FAR) {
+    // Match PlayCanvas' far blur premultiplication idea: sharp foreground
+    // samples should not leak into defocused background blur.
+    weight = sampleCoc.r;
+  }
+
+  if (!(weight > 0.0001)) {
+    return vec4f(0.0);
+  }
+
   return vec4f(sampleColor(sampleUv).rgb * weight, weight);
 }
 
@@ -489,18 +539,26 @@ fn fs(input: VertexOutput) -> @location(0) vec4f {
   let source = sampleColor(textureUv);
   let dims = textureDimensions(depthTexture);
   let centerDepth = loadDepthUv(textureUv, dims);
-  let blurPixels = blurPixelsForDepth(centerDepth);
+  let centerCoc = circleOfConfusion(centerDepth);
+  let blurMode = select(BLUR_MODE_FAR, BLUR_MODE_NEAR, centerCoc.g > centerCoc.r);
+  let blurPixels = blurPixelsForCoc(centerCoc, blurMode);
+  let blend = select(centerCoc.r, centerCoc.g, blurMode == BLUR_MODE_NEAR);
 
-  if (blurPixels <= 0.25) {
+  if (!(blurPixels > 0.25)) {
     return source;
   }
 
   let texel = vec2f(1.0 / f32(dims.x), 1.0 / f32(dims.y));
-  var sum = source.rgb;
-  var weightSum = 1.0;
-${dofSampleAccumulationWgsl()}
+  var sum = source.rgb * select(centerCoc.r, 1.0, blurMode == BLUR_MODE_NEAR);
+  var weightSum = select(centerCoc.r, 1.0, blurMode == BLUR_MODE_NEAR);
+${dofSampleAccumulationWgsl(options.sampleOffsets)}
 
-  return vec4f(sum / weightSum, source.a);
+  if (!(weightSum > 0.0001)) {
+    return source;
+  }
+
+  let blurred = sum / weightSum;
+  return vec4f(mix(source.rgb, blurred, clamp(blend, 0.0, 1.0)), source.a);
 }
 `;
 }
