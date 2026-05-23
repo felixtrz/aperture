@@ -3,34 +3,31 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3119.
+Current task: task-3120.
 
-Status: Tier 20 is complete. The post-Tier-20 submit-efficiency and immediate
-environment-preparation slices have shipped:
+Status: `task-3119` completed the post-environment parity audit.
 
-- `task-3111` closed redundant state-command emission.
-- `task-3112` closed static command-plan render-bundle reuse.
-- `task-3113` closed indirect grouped draws.
-- `task-3114` closed state-aware opaque/alpha-test queue ordering.
-- `task-3115` closed shared queued built-in bind-group reuse.
-- `task-3116` closed previous per-object transform history for TAA motion
-  vectors.
-- `task-3117` closed the bloom downsample/upsample post-effect graph.
-- `task-3118` closed broader environment asset preparation with versioned
-  multi-environment diffuse/specular IBL resources.
+Key finding:
 
-Browser proof:
+- The post-Tier-20 submit-efficiency blockers are closed for the covered main
+  forward path: redundant state commands are elided, static command plans can
+  reuse WebGPU render bundles, compatible grouped draws can use indirect
+  argument buffers, opaque/alpha-test queue ordering groups prepared resource
+  state, queued built-in bind groups are reused, TAA has previous per-object
+  transform history, bloom has a downsample/upsample graph, and multiple
+  environment-map handles can prepare versioned diffuse/specular IBL resources.
+- The next SOTA efficiency gap is many-light local-light shading. Aperture's
+  StandardMaterial shader still loops over every packed light for every
+  fragment, while PlayCanvas prepares clustered local-light data per
+  view/light-set and shades only the lights assigned to the fragment's cluster.
 
-- `examples/materials-showcase.html` now prepares warm and cool ECS-authored
-  environment handles as renderer-owned diffuse/specular IBL assets.
-- Browser status reports two prepared environment assets, two ready assets,
-  two diffuse/specular texture resources reused, four sampler resources reused,
-  and two StandardMaterial IBL bind groups reused without raw GPU handles.
-- The headed Playwright proof switches from
-  `environment-map:materials-showcase-warm-studio` to
-  `environment-map:materials-showcase-cool-studio`, observes distinct
-  StandardMaterial cube pixels, and reports zero WebGPU validation warnings.
+Next step: run `task-3120` from `agent/BACKLOG.md`, adding renderer-owned
+clustered local-light preparation for StandardMaterial with a many-light browser
+proof.
 
-Next step: run `task-3119` from `agent/BACKLOG.md`, a fresh render-pipeline
-parity audit against three.js and PlayCanvas to select the next visible SOTA
-implementation slice.
+Reference anchors for the next task:
+
+- `references/engine/src/scene/lighting/world-clusters.js`.
+- `references/engine/src/scene/renderer/world-clusters-allocator.js`.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLight.js`.
+- `references/three.js/examples/jsm/lighting/ClusteredLighting.js`.

@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 21:54 UTC</dd>
+            <dd>2026-05-23 22:09 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1479,10 +1479,13 @@
               assets with JSON-safe reuse/invalidation status, and
               <code>examples/materials-showcase.html</code> switches between
               warm and cool ECS-authored environment handles with distinct
-              StandardMaterial IBL response.
+              StandardMaterial IBL response. The post-environment parity audit
+              found the next SOTA efficiency gap: StandardMaterial still scans
+              every packed light per fragment, so the next implementation slice
+              is clustered local-light preparation.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3119 post-environment parity audit</dd>
+            <dd>task-3120 clustered local-light preparation</dd>
           </dl>
         </aside>
       </header>
@@ -1840,9 +1843,9 @@
           <article class="phase">
             <div class="topline">
               <h3>1. extract</h3>
-              <span class="percent">99%</span>
+              <span class="percent">97%</span>
             </div>
-            <div class="bar"><span style="width: 99%"></span></div>
+            <div class="bar"><span style="width: 97%"></span></div>
             <p>
               ECS state produces serializable render snapshots with draw, view,
               light, environment, shadow request, bounds, and diagnostic
@@ -1866,8 +1869,8 @@
             </p>
             <ul>
               <li>
-                Missing broader visibility explanations beyond current cull
-                stats.
+                Missing GPU occlusion-query feedback for hidden but
+                frustum-visible meshes.
               </li>
               <li>
                 Missing multi-view render-target coverage beyond current
@@ -1951,9 +1954,9 @@
           <article class="phase">
             <div class="topline">
               <h3>3. prepare</h3>
-              <span class="percent">87%</span>
+              <span class="percent">96%</span>
             </div>
-            <div class="bar"><span style="width: 87%"></span></div>
+            <div class="bar"><span style="width: 96%"></span></div>
             <p>
               Prepared mesh/material facades and WebGPU-private backend caches
               exist for built-in material families, with compact render-world
@@ -2075,13 +2078,18 @@
               reuses compatible shared view, transform, light, and
               StandardMaterial light/shadow bind groups within a frame while
               publishing JSON-safe creation/reuse/cache pressure.
+              Renderer-owned bloom graph resources and versioned
+              multi-environment diffuse/specular IBL resources are now prepared
+              and reused through app-visible summaries.
             </p>
             <ul>
               <li>
-                Missing app-level generic material adapter route boundary.
+                Missing renderer-owned clustered local-light preparation for
+                many point and spot lights.
               </li>
               <li>
-                Missing IBL, shadow, render-target, and hot-path scratch polish.
+                Missing production-fidelity LTC table payloads and broader
+                CSM/IBL/multi-shadow permutations.
               </li>
             </ul>
           </article>
@@ -2140,7 +2148,7 @@
             </p>
             <ul>
               <li>
-                Missing app-level generic material adapter route boundary.
+                Missing clustered local-light queue/readiness routing.
               </li>
               <li>Missing multi-material primitive queue rules.</li>
             </ul>
@@ -2148,9 +2156,9 @@
           <article class="phase">
             <div class="topline">
               <h3>5. sort</h3>
-              <span class="percent">86%</span>
+              <span class="percent">90%</span>
             </div>
-            <div class="bar"><span style="width: 86%"></span></div>
+            <div class="bar"><span style="width: 90%"></span></div>
             <p>
               Opaque queue sorting is stable and deterministic; alpha-test and
               transparent phase placement exists; transparent records now sort
@@ -2162,15 +2170,15 @@
             </p>
             <ul>
               <li>Missing phase duration telemetry.</li>
-              <li>Missing broader batching pressure summaries.</li>
+              <li>Missing broader phase pressure history.</li>
             </ul>
           </article>
           <article class="phase">
             <div class="topline">
               <h3>6. submit</h3>
-              <span class="percent">99%</span>
+              <span class="percent">96%</span>
             </div>
-            <div class="bar"><span style="width: 99%"></span></div>
+            <div class="bar"><span style="width: 96%"></span></div>
             <p>
               WebGPU command submission renders the current proof paths with
               pipeline, bind group, transform, light, mesh, and material
@@ -2259,13 +2267,19 @@
               camera jitter. <code>createWebGpuApp({ msaa })</code> now renders
               forward passes through cached multisampled color/depth
               attachments, resolves to the swapchain or off-screen target, and
-              keys built-in pipelines by effective sample count.
+              keys built-in pipelines by effective sample count. Bloom now
+              submits through a renderer-owned downsample/upsample graph, and
+              StandardMaterial IBL resources can execute from multiple
+              renderer-owned environment assets. The remaining submit-adjacent
+              efficiency gap is shader work: StandardMaterial still evaluates
+              every packed local light per fragment instead of shading from
+              clustered local-light indices.
             </p>
             <ul>
               <li>
-                Next audit should compare the post-environment pipeline against
-                three.js and PlayCanvas again and select the next visible SOTA
-                gap.
+                Post-environment audit complete: the next visible SOTA gap is
+                clustered local-light preparation for StandardMaterial many-light
+                scenes.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -4570,13 +4584,12 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Run
-                <code>task-3119</code>: audit the post-environment render
-                pipeline against three.js and PlayCanvas, then pick the next
-                visible SOTA gap.
+                <code>task-3120</code>: add clustered local-light preparation
+                for StandardMaterial with a many-light browser proof.
               </li>
               <li>
-                The audit should add the next visible implementation slice with
-                concrete reference anchors before more feature work.
+                Follow-up SOTA slices are GPU occlusion-query feedback and
+                multi-material primitive/group queueing.
               </li>
             </ul>
           </article>

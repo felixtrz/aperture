@@ -1,6 +1,41 @@
 # Agent Handoff
 
-Updated: 2026-05-23T21:54:18Z
+Updated: 2026-05-23T22:09:15Z
+
+## Current Run Update — 2026-05-23T22:09:15Z — Post-environment render-pipeline parity audit
+
+Completed `task-3119`, a fresh parity audit after the post-Tier-20 submit and
+environment-preparation slices.
+
+### What changed
+
+- Added
+  `docs/research/POST_ENVIRONMENT_RENDER_PIPELINE_PARITY_AUDIT_2026_05_23.md`.
+- Updated the public render-pipeline comparison page to reflect the new audit
+  finding: command submission is now competitive for the covered path, but
+  StandardMaterial many-light shading is still not SOTA because Aperture loops
+  over every packed light per fragment.
+- Updated the public tracker, backlog, current-task pointer, and completed task
+  log.
+- Added the next ready visible-feature queue:
+  - `task-3120` clustered local-light preparation for StandardMaterial.
+  - `task-3121` GPU occlusion-query visibility feedback.
+  - `task-3122` multi-material primitive/group queueing.
+
+### Validation
+
+- `pnpm run check:progress`
+- `git diff --check`
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3120`, adding renderer-owned clustered local-light preparation for
+StandardMaterial with a many-light browser proof.
 
 ## Current Run Update — 2026-05-23T21:54:18Z — Broader environment asset preparation
 

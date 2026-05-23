@@ -1,5 +1,29 @@
 # Completed Tasks
 
+## task-3119 — Audit post-environment render-pipeline parity and select the next SOTA slice
+
+Completed: 2026-05-23
+
+Summary:
+
+- Audited Aperture's current extract, collect, prepare, queue, sort, and submit
+  phases after tasks 3111-3118 against the local three.js WebGPU and PlayCanvas
+  WebGPU references.
+- Recorded the audit in
+  `docs/research/POST_ENVIRONMENT_RENDER_PIPELINE_PARITY_AUDIT_2026_05_23.md`.
+- Found that the prior submit-efficiency blockers are now mostly closed for the
+  covered path, but Aperture is still not SOTA on many-light efficiency because
+  StandardMaterial evaluates every packed light per fragment.
+- Added the next visible implementation queue: `task-3120` clustered local-light
+  preparation, `task-3121` GPU occlusion-query feedback, and `task-3122`
+  multi-material primitive/group queueing. Recommended next task is
+  `task-3120`.
+
+Validation:
+
+- `pnpm run check:progress`
+- `git diff --check`
+
 ## task-3118 — Broaden environment asset preparation beyond the current single-app proof
 
 Completed: 2026-05-23

@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3119`: audit post-environment render-pipeline parity and select
-the next visible SOTA slice.
+Start `task-3120`: add clustered local-light preparation for StandardMaterial
+with a many-light browser proof.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -157,15 +157,18 @@ history for TAA motion vectors and proves moving-geometry history in
 renderer-owned downsample/upsample graph and reports pass/resource counts in
 `examples/post-effects.html`. `task-3118` now broadens environment asset
 preparation to multiple versioned renderer-owned diffuse/specular IBL assets
-with warm/cool browser proof. The next step is a post-environment parity audit
-before selecting more feature work.
+with warm/cool browser proof. `task-3119` re-audited the post-environment
+pipeline and found the next SOTA efficiency gap is many-light local-light
+shading: Aperture still evaluates every packed StandardMaterial light per
+fragment, while PlayCanvas clusters local lights per view/light set and shades
+only the lights affecting the fragment's cluster.
 
 Reference anchors for the next task (read before writing):
 
-- `references/three.js/src/renderers/common/Renderer.js`.
-- `references/three.js/src/renderers/webgpu/WebGPUBackend.js`.
-- `references/engine/src/scene/renderer/renderer.js`.
-- `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`.
+- `references/engine/src/scene/lighting/world-clusters.js`.
+- `references/engine/src/scene/renderer/world-clusters-allocator.js`.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLight.js`.
+- `references/three.js/examples/jsm/lighting/ClusteredLighting.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -484,6 +487,8 @@ Acceptance criteria:
 
 ### task-3119 — Audit post-environment render-pipeline parity and select the next SOTA slice
 
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research/`, `docs/render-pipeline-comparison.html`, `docs/index.html`, `agent/BACKLOG.md`, `agent/HANDOFF.md`.
 Reference anchor: `references/three.js/src/renderers/common/Renderer.js`, `references/three.js/src/renderers/webgpu/WebGPUBackend.js`, `references/engine/src/scene/renderer/renderer.js`, `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`.
@@ -493,6 +498,43 @@ Acceptance criteria:
 - Re-audit Aperture's covered render pipeline after tasks 3111-3118 against the local three.js and PlayCanvas WebGPU references, focusing on remaining SOTA/efficiency gaps rather than repeating already-closed items.
 - Record the findings in a new dated research note and update the public render-pipeline comparison page with any revised phase estimates and concrete missing pieces.
 - Add the next visible implementation task with specific reference anchors and acceptance criteria, or explicitly document why no concrete visible gap can be selected yet.
+
+### task-3120 — Add clustered local-light preparation for StandardMaterial
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.
+Reference anchor: `references/engine/src/scene/lighting/world-clusters.js`, `references/engine/src/scene/renderer/world-clusters-allocator.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLight.js`, `references/three.js/examples/jsm/lighting/ClusteredLighting.js`.
+
+Acceptance criteria:
+
+- The WebGPU app path can prepare renderer-owned local-light cluster data from extracted point/spot lights for at least one view without storing GPU state in ECS or changing the `RenderSnapshot` authority boundary.
+- StandardMaterial can render a clustered-local-light variant where point/spot lighting samples only the light indices assigned to the current fragment's cluster while ambient/directional lighting remains compatible with the existing packed-light path.
+- JSON-safe app status reports total local lights, clustered local lights, cluster dimensions, populated cells, max lights per populated cell, average lights per populated cell, fallback reason, and resource reuse without raw GPU handles.
+- `examples/clustered-lights.html` renders at least 64 ECS-authored local lights and proves visible local-light response plus reported clustered pressure where max/average lights per populated cell are materially below total local lights, with zero WebGPU validation warnings.
+
+### task-3121 — Add GPU occlusion-query visibility feedback
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*occlusion*`, `packages/render/src/rendering/`, `examples/occlusion-feedback.*`, `test/webgpu/`, `test/e2e/`.
+Reference anchor: `references/three.js/src/renderers/common/RenderList.js`, `references/three.js/src/renderers/webgpu/WebGPUBackend.js`.
+
+Acceptance criteria:
+
+- The WebGPU backend can allocate, resolve, and read renderer-owned occlusion query results for opted-in ECS-authored mesh draws without exposing live GPU objects through public JSON.
+- A following frame can report occluded render IDs separately from frustum-culled and visible render IDs while preserving deterministic snapshot identity and worker/main boundaries.
+- `examples/occlusion-feedback.html` shows an occluder/occluded-object scene where app status reports at least one occluded entity after query resolution and the visible output remains unchanged with zero WebGPU validation warnings.
+
+### task-3122 — Render multi-material primitive groups through queue records
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/rendering/`, `packages/render/src/assets/`, `packages/webgpu/src/webgpu/`, `examples/glb-viewer.*` or `examples/multi-material-groups.*`, targeted tests.
+Reference anchor: `references/three.js/src/renderers/common/Renderer.js`, `references/engine/src/framework/parsers/glb-parser.js`, `references/engine/src/scene/mesh-instance.js`.
+
+Acceptance criteria:
+
+- A single source mesh can expose multiple primitive/group ranges with distinct material handles while keeping ECS as the source of truth and without introducing a renderer-owned scene graph.
+- Extraction and queueing emit separate queue records per material group with stable range/material diagnostics, sort keys, and batch compatibility keys.
+- A browser example or GLB viewer fixture renders one mesh with at least two visibly distinct material groups, reports the group ranges/material handles in JSON-safe status, and passes targeted queue/material-route tests.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
