@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aperture MSAA</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "@aperture-engine/core": "/packages/core/dist/index.js",
+          "@aperture-engine/render": "/packages/render/dist/index.js",
+          "@aperture-engine/runtime": "/packages/runtime/dist/index.js",
+          "@aperture-engine/simulation": "/packages/simulation/dist/index.js",
+          "@aperture-engine/webgpu": "/packages/webgpu/dist/index.js",
+          "elics": "/node_modules/elics/lib/index.js",
+          "wgpu-matrix": "/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
+          "@preact/signals-core": "/node_modules/@preact/signals-core/dist/signals-core.mjs"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main class="runtime-shell">
+      <section
+        class="viewport-panel msaa-viewport-grid"
+        aria-label="Aperture MSAA comparison"
+      >
+        <figure class="msaa-canvas-frame">
+          <canvas
+            id="msaa-canvas-1x"
+            class="msaa-canvas"
+            width="512"
+            height="512"
+            aria-label="Aperture WebGPU 1x canvas"
+          ></canvas>
+          <figcaption>1x</figcaption>
+        </figure>
+        <figure class="msaa-canvas-frame">
+          <canvas
+            id="msaa-canvas-8x"
+            class="msaa-canvas"
+            width="512"
+            height="512"
+            aria-label="Aperture WebGPU 8x request canvas"
+          ></canvas>
+          <figcaption>8x request</figcaption>
+        </figure>
+      </section>
+      <aside class="status-panel" aria-label="Runtime status">
+        <div class="status-row">
+          <span>example</span>
+          <strong id="example-name">msaa</strong>
+        </div>
+        <div class="status-row">
+          <span>state</span>
+          <strong id="example-state">loading</strong>
+        </div>
+        <nav class="example-links" aria-label="Examples">
+          <a href="/">clear</a>
+          <a href="/examples/triangle.html">triangle</a>
+          <a href="/examples/post-effects.html">post effects</a>
+          <a href="/examples/msaa.html">msaa</a>
+          <a href="/examples/atmosphere.html">atmosphere</a>
+          <a href="/examples/glb-viewer.html">glb viewer</a>
+        </nav>
+        <pre id="example-json">{}</pre>
+      </aside>
+    </main>
+    <script type="module" src="./msaa.main.js"></script>
+  </body>
+</html>

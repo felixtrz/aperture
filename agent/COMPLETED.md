@@ -1,5 +1,38 @@
 # Completed Tasks
 
+## task-3086 — MSAA support in render passes
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added app-level MSAA configuration with `createWebGpuApp({ msaa })`,
+  accepting 1x, 4x, and 8x requests while reporting the effective
+  WebGPU-supported sample count.
+- Added renderer-owned multisampled color target caching per swapchain or
+  off-screen render target, matching sample-count depth attachments, and
+  resolve-to-present color attachment planning.
+- Added built-in pipeline sample-count specialization for Standard, Unlit,
+  Matcap, DebugNormal, Sprite, Skybox, and custom WGSL routes.
+- Added JSON-safe MSAA frame reports for requested/effective sample counts,
+  clamp state, color target counts, and created/reused MSAA color textures.
+- Added `examples/msaa.html` with two square worker-authored canvases comparing
+  1x rendering against an 8x request that resolves through the effective 4x
+  WebGPU path.
+
+Validation:
+
+- `pnpm run check:examples`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm run lint`
+- `git diff --check`
+- `pnpm test`
+- `pnpm exec vitest run test/webgpu/msaa.test.ts test/webgpu/render-pass-attachments.test.ts test/webgpu/frame-boundary.test.ts test/webgpu/pipeline-cache.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec playwright test test/e2e/msaa.spec.ts --reporter=line --timeout=60000`
+
 ## task-3085 — Iridescence extension
 
 Completed: 2026-05-23

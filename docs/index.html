@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 01:28 UTC</dd>
+            <dd>2026-05-23 02:05 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1389,10 +1389,16 @@
               <code>examples/sheen.html</code> proves a fabric sphere with a
               visibly brighter sheen rim and
               <code>examples/iridescence.html</code> proves a cyan thin-film
-              highlight distinct from the matching base material.
+              highlight distinct from the matching base material. Tier 19 has
+              started: <code>createWebGpuApp({ msaa })</code> now accepts 1x,
+              4x, and 8x requests, resolves WebGPU multisampled color targets
+              into the presented output, specializes built-in pipelines and
+              depth attachments by sample count, and
+              <code>examples/msaa.html</code> proves visibly smoother resolved
+              edges against the 1x path in square canvases.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3086 MSAA support in render passes</dd>
+            <dd>task-3087 TAA with motion vectors</dd>
           </dl>
         </aside>
       </header>
@@ -2063,9 +2069,9 @@
           <article class="phase">
             <div class="topline">
               <h3>6. submit</h3>
-              <span class="percent">97%</span>
+              <span class="percent">98%</span>
             </div>
-            <div class="bar"><span style="width: 97%"></span></div>
+            <div class="bar"><span style="width: 98%"></span></div>
             <p>
               WebGPU command submission renders the current proof paths with
               pipeline, bind group, transform, light, mesh, and material
@@ -2115,6 +2121,10 @@
               blend pipeline so a background panel remains visible through the
               glass proof sphere, sheen adds a fabric rim-light lobe, and
               iridescence adds a thin-film Fresnel color shift.
+              <code>createWebGpuApp({ msaa })</code> now renders forward passes
+              through cached multisampled color/depth attachments, resolves to
+              the swapchain or off-screen target, and keys built-in pipelines by
+              effective sample count.
             </p>
             <ul>
               <li>Missing true grab-pass refraction for transmission.</li>
@@ -2122,8 +2132,8 @@
                 Missing texture-backed StandardMaterial PBR extension resources.
               </li>
               <li>
-                Missing full GGX importance sampling, post-processing, and
-                broader environment asset preparation.
+                Missing TAA, screen-space effects, full GGX importance sampling,
+                and broader environment asset preparation.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -4411,15 +4421,17 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3086</code>, MSAA support in render passes.
+                <code>task-3087</code>, TAA with motion vectors.
               </li>
               <li>
-                Anchor on three.js render target sample-count handling and
-                PlayCanvas render-target multisampling behavior.
+                Anchor on three.js <code>TAARenderPass</code>, modern temporal
+                antialiasing references, and PlayCanvas-style render-target
+                history/resource hygiene.
               </li>
               <li>
-                Add configurable 1x/4x/8x render-pass samples with resolve-to-
-                present behavior and a browser edge-quality proof.
+                Add motion-vector output, history accumulation, and a moving
+                scene browser proof that temporal smoothing beats the non-TAA
+                path.
               </li>
             </ul>
           </article>

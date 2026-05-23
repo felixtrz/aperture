@@ -1295,10 +1295,21 @@ Acceptance criteria:
 
 ### task-3086 — MSAA support in render passes (Tier 19 part 1)
 
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/`, configurable via `createWebGpuApp({ msaa: 1 | 4 | 8 })`, targeted tests.
 Reference anchor: `references/three.js/src/renderers/WebGLRenderTarget.js` (samples field); `references/engine/src/platform/graphics/render-target.js`.
 Insertion point: render to a multisampled color target, resolve to single-sample for the output stage.
+Completion note 2026-05-23: `createWebGpuApp({ msaa })` now resolves 1x,
+4x, and 8x requests into WebGPU-supported sample counts; 8x requests are
+accepted with an explicit 4x effective clamp report matching PlayCanvas'
+WebGPU limit behavior. Swapchain and off-screen render targets use cached
+renderer-owned multisampled color textures, matching sample-count depth
+attachments, built-in pipeline sample-count specialization, resolve-to-present
+attachments, JSON-safe MSAA creation/reuse reports, and
+`examples/msaa.html` headed Chrome/WebGPU coverage proving smoother resolved
+edges in square canvases.
 
 Acceptance criteria:
 

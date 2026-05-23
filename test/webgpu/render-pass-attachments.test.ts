@@ -65,6 +65,33 @@ describe("render pass attachment descriptor planning", () => {
     });
   });
 
+  it("plans multisample color attachments with resolve targets", () => {
+    const msaaColor = { label: "msaa-color" };
+    const resolvedColor = { label: "resolved-color" };
+
+    expect(
+      createRenderPassAttachmentPlan({
+        colorTargets: [
+          {
+            view: msaaColor,
+            resolveTarget: resolvedColor,
+            clearColor: [0.1, 0.2, 0.3, 1],
+          },
+        ],
+      }).plan,
+    ).toEqual({
+      colorAttachments: [
+        {
+          view: msaaColor,
+          resolveTarget: resolvedColor,
+          clearValue: { r: 0.1, g: 0.2, b: 0.3, a: 1 },
+          loadOp: "clear",
+          storeOp: "discard",
+        },
+      ],
+    });
+  });
+
   it("plans color and depth attachments", () => {
     const color = { label: "color" };
     const depth = { label: "depth" };

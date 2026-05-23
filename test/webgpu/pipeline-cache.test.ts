@@ -66,6 +66,9 @@ describe("WebGPU render pipeline cache", () => {
         alphaToCoverageEnabled: false,
         colorTargets: [{ format: "bgra8unorm", blend: null, writeMask: "all" }],
       },
+      multisample: {
+        sampleCount: 1,
+      },
       material: {
         pipelineKey: BATCH_KEY.pipelineKey,
         variantKey: BATCH_KEY.materialKey,
@@ -152,11 +155,16 @@ describe("WebGPU render pipeline cache", () => {
       ...base,
       materialVariantKey: "material:white|alpha-cutout",
     });
+    const sampleCount = createWebGpuRenderPipelineCacheKey({
+      ...base,
+      sampleCount: 4,
+    });
 
     expect(baseline).not.toBe(vertexLayout);
     expect(baseline).not.toBe(bindGroupLayout);
     expect(baseline).not.toBe(cullMode);
     expect(baseline).not.toBe(materialVariant);
+    expect(baseline).not.toBe(sampleCount);
   });
 
   it("reports missing createRenderPipeline support on cache misses", () => {

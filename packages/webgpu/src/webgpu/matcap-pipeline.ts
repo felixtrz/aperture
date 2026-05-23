@@ -45,6 +45,7 @@ export interface BrowserMatcapRenderPipelineDescriptorInput {
   readonly shader?: BuiltInShaderSourceModule;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
+  readonly sampleCount?: number;
   readonly batchKey?: BatchCompatibilityKey;
 }
 
@@ -52,6 +53,7 @@ export interface CreateMatcapRenderPipelineResourceOptions {
   readonly device: MatcapRenderPipelineDeviceLike;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
+  readonly sampleCount?: number;
   readonly batchKey: BatchCompatibilityKey;
   readonly shader?: BuiltInShaderSourceModule;
 }
@@ -80,6 +82,9 @@ export async function createMatcapRenderPipelineResource(
     shader,
     colorFormat: options.colorFormat,
     batchKey: options.batchKey,
+    ...(options.sampleCount === undefined
+      ? {}
+      : { sampleCount: options.sampleCount }),
     ...(options.depthFormat === undefined
       ? {}
       : { depthFormat: options.depthFormat }),
@@ -133,6 +138,9 @@ export async function createMatcapRenderPipelineResource(
     shaderModule: shaderModule.module,
     colorFormat: options.colorFormat,
     batchKey: options.batchKey,
+    ...(options.sampleCount === undefined
+      ? {}
+      : { sampleCount: options.sampleCount }),
     ...(options.depthFormat === undefined
       ? {}
       : { depthFormat: options.depthFormat }),
@@ -196,6 +204,9 @@ export function createBrowserMatcapRenderPipelineDescriptor(
       topology: "triangle-list",
       frontFace: "ccw",
       cullMode: renderState.cullMode,
+    },
+    multisample: {
+      count: input.sampleCount ?? 1,
     },
   };
   const depthStencil = createWebGpuDepthStencilDescriptor(

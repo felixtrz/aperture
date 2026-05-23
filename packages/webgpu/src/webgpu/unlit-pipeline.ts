@@ -124,6 +124,7 @@ export interface BrowserUnlitRenderPipelineDescriptorInput {
   readonly shader?: BuiltInShaderSourceModule;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
+  readonly sampleCount?: number;
   readonly batchKey?: BatchCompatibilityKey;
 }
 
@@ -131,6 +132,7 @@ export interface CreateUnlitRenderPipelineResourceOptions {
   readonly device: UnlitRenderPipelineDeviceLike;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
+  readonly sampleCount?: number;
   readonly batchKey: BatchCompatibilityKey;
   readonly shader?: BuiltInShaderSourceModule;
 }
@@ -162,6 +164,9 @@ export async function createUnlitRenderPipelineResource(
     shader,
     colorFormat: options.colorFormat,
     batchKey: options.batchKey,
+    ...(options.sampleCount === undefined
+      ? {}
+      : { sampleCount: options.sampleCount }),
     ...(options.depthFormat === undefined
       ? {}
       : { depthFormat: options.depthFormat }),
@@ -215,6 +220,9 @@ export async function createUnlitRenderPipelineResource(
     shaderModule: shaderModule.module,
     colorFormat: options.colorFormat,
     batchKey: options.batchKey,
+    ...(options.sampleCount === undefined
+      ? {}
+      : { sampleCount: options.sampleCount }),
     ...(options.depthFormat === undefined
       ? {}
       : { depthFormat: options.depthFormat }),
@@ -278,6 +286,9 @@ export function createBrowserUnlitRenderPipelineDescriptor(
       topology: "triangle-list",
       frontFace: "ccw",
       cullMode: renderState.cullMode,
+    },
+    multisample: {
+      count: input.sampleCount ?? 1,
     },
   };
   const depthStencil = createWebGpuDepthStencilDescriptor(

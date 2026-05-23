@@ -106,6 +106,14 @@ import {
   type CachedWebGpuDepthTextureResource,
   type WebGpuDepthTextureCacheSlot,
 } from "./depth-texture-resource.js";
+import {
+  createOrReuseWebGpuMsaaColorTexture,
+  createWebGpuMsaaColorTextureCacheSlot,
+  resolveWebGpuMsaaConfig,
+  type CachedWebGpuMsaaColorTextureResource,
+  type WebGpuMsaaColorTextureCacheSlot,
+  type WebGpuMsaaConfig,
+} from "./msaa.js";
 import { createWebGpuBuffer } from "./buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "./mesh-buffer-descriptors.js";
 import { createLightBindGroupLayoutDescriptor } from "./light-bind-group-layout.js";
@@ -342,6 +350,17 @@ export interface WebGpuAppDepthAttachmentReport {
   readonly opaquePipelineDepthWriteCount: number;
 }
 
+export interface WebGpuAppMsaaReport {
+  readonly requestedSampleCount: number;
+  readonly sampleCount: number;
+  readonly enabled: boolean;
+  readonly clamped: boolean;
+  readonly supportedSampleCounts: readonly number[];
+  readonly colorTargets: number;
+  readonly colorTexturesCreated: number;
+  readonly colorTexturesReused: number;
+}
+
 export interface WebGpuAppRenderTargetSubmissionReport {
   readonly viewId: number;
   readonly source: "swapchain" | "offscreen";
@@ -351,6 +370,7 @@ export interface WebGpuAppRenderTargetSubmissionReport {
   readonly format: string;
   readonly ok: boolean;
   readonly drawCalls: number;
+  readonly msaaSampleCount?: number;
 }
 
 export interface WebGpuAppPostEffectSubmissionReport {
@@ -494,6 +514,7 @@ export interface WebGpuAppRenderReport {
   readonly boundaries?: readonly FrameBoundaryAssemblyReport[];
   readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];
   readonly postEffects?: readonly WebGpuAppPostEffectSubmissionReport[];
+  readonly msaa?: WebGpuAppMsaaReport;
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: FrameBoundaryReadbackResult;
   readonly gpuTimings?: GpuPassTimingReport;
@@ -517,6 +538,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];
   readonly postEffects?: readonly WebGpuAppPostEffectSubmissionReport[];
+  readonly msaa?: WebGpuAppMsaaReport;
   readonly readback?: WebGpuAppJsonValue;
   readonly gpuTimings?: GpuPassTimingReport;
   readonly materialDependencyReadiness?: readonly MaterialAssetDependencyReadinessReportJsonValue[];
@@ -567,6 +589,11 @@ interface WebGpuAppResourceCache {
   readonly debugNormalFrame: DebugNormalAppFrameResourceCacheSlot;
   readonly depth: WebGpuDepthTextureCacheSlot;
   readonly depthByRenderTarget: Map<string, WebGpuDepthTextureCacheSlot>;
+  readonly msaaColor: WebGpuMsaaColorTextureCacheSlot;
+  readonly msaaColorByRenderTarget: Map<
+    string,
+    WebGpuMsaaColorTextureCacheSlot
+  >;
 }
 
 interface WebGpuAppPostPassCache {
@@ -680,6 +707,7 @@ export interface WebGpuApp {
   readonly renderWorld: RenderWorld;
   readonly tonemap: TonemapOperator;
   readonly outputColorSpace: OutputColorSpace;
+  readonly msaa: WebGpuMsaaConfig;
   readonly postEffects: readonly WebGpuPostEffect[];
   start(options?: WebGpuAppStartOptions): void;
   stop(): void;
@@ -702,6 +730,8 @@ export interface CreateWebGpuAppOptions extends Omit<
   readonly workerStartOptions?: WebGpuAppStartOptions;
   readonly transport?: WebGpuAppSnapshotTransportMode;
   readonly sharedSnapshotTransport?: WebGpuAppSharedSnapshotTransportOptions;
+  readonly msaa?: number;
+  readonly msaaSampleCount?: number;
   readonly tonemap?: TonemapOperator;
   readonly outputColorSpace?: OutputColorSpace;
   readonly postEffects?: readonly WebGpuPostEffect[];
@@ -748,6 +778,7 @@ export async function createWebGpuApp(
   const renderWorld = new RenderWorld();
   const tonemap = resolveTonemapOperator(options.tonemap);
   const outputColorSpace = resolveOutputColorSpace(options.outputColorSpace);
+  const msaa = resolveWebGpuMsaaConfig(options.msaa ?? options.msaaSampleCount);
   const postEffects = [...(options.postEffects ?? [])];
   const resourceCache = createWebGpuAppResourceCache();
   const snapshotTransport = createWebGpuAppSnapshotTransport({
@@ -770,6 +801,7 @@ export async function createWebGpuApp(
     renderWorld,
     tonemap,
     outputColorSpace,
+    msaa,
     postEffects,
     start(startOptions = {}) {
       if (running) {
@@ -970,6 +1002,8 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
       createWebGpuAppFrameResourceCacheSlot<CachedDebugNormalAppFrameResources>(),
     depth: createWebGpuDepthTextureCacheSlot(),
     depthByRenderTarget: new Map(),
+    msaaColor: createWebGpuMsaaColorTextureCacheSlot(),
+    msaaColorByRenderTarget: new Map(),
   };
 }
 
@@ -1006,6 +1040,7 @@ async function getOrCreateWebGpuAppPipeline(options: {
     options.kind,
     options.app.initialization.format,
     WEBGPU_APP_DEPTH_FORMAT,
+    `samples:${options.app.msaa.sampleCount}`,
     options.pipelineKey,
     options.kind === "standard"
       ? createTonemapPipelineKey(options.app.tonemap)
@@ -1031,6 +1066,7 @@ async function getOrCreateWebGpuAppPipeline(options: {
           >[0]["device"],
           colorFormat: options.app.initialization.format,
           depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+          sampleCount: options.app.msaa.sampleCount,
           batchKey: options.batchKey,
           tonemap: options.app.tonemap,
           outputColorSpace: options.app.outputColorSpace,
@@ -1042,6 +1078,7 @@ async function getOrCreateWebGpuAppPipeline(options: {
             >[0]["device"],
             colorFormat: options.app.initialization.format,
             depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+            sampleCount: options.app.msaa.sampleCount,
             batchKey: options.batchKey,
           })
         : options.kind === "matcap"
@@ -1051,6 +1088,7 @@ async function getOrCreateWebGpuAppPipeline(options: {
               >[0]["device"],
               colorFormat: options.app.initialization.format,
               depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+              sampleCount: options.app.msaa.sampleCount,
               batchKey: options.batchKey,
             })
           : await createUnlitRenderPipelineResource({
@@ -1059,6 +1097,7 @@ async function getOrCreateWebGpuAppPipeline(options: {
               >[0]["device"],
               colorFormat: options.app.initialization.format,
               depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+              sampleCount: options.app.msaa.sampleCount,
               batchKey: options.batchKey,
             });
 
@@ -1551,6 +1590,7 @@ interface WebGpuAppFrameBoundaryAssemblyResult {
   readonly boundaries: readonly FrameBoundaryAssemblyReport[];
   readonly renderTargets: readonly WebGpuAppRenderTargetSubmissionReport[];
   readonly postEffects: readonly WebGpuAppPostEffectSubmissionReport[];
+  readonly msaa?: WebGpuAppMsaaReport;
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readbackBoundary: FrameBoundaryAssemblyReport | null;
   readonly gpuTimingReadbacks: readonly WebGpuAppGpuTimingReadback[];
@@ -1563,6 +1603,13 @@ interface WebGpuAppFrameBoundaryAssemblyResult {
 interface WebGpuAppGpuTimingReadback {
   readonly passName: string;
   readonly resources: GpuTimestampQueryResources;
+}
+
+interface WebGpuAppMsaaColorTargetResult {
+  readonly valid: boolean;
+  readonly status: "created" | "reused" | "disabled" | "failed";
+  readonly resource: CachedWebGpuMsaaColorTextureResource | null;
+  readonly diagnostics: readonly unknown[];
 }
 
 async function renderQueuedBuiltInWebGpuAppFrame(options: {
@@ -1783,6 +1830,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     boundaries: boundaries.boundaries,
     renderTargets: boundaries.renderTargets,
     postEffects: boundaries.postEffects,
+    ...(boundaries.msaa === undefined ? {} : { msaa: boundaries.msaa }),
     ...(boundaries.depthAttachment === undefined
       ? {}
       : { depthAttachment: boundaries.depthAttachment }),
@@ -1855,6 +1903,9 @@ async function assembleWebGpuAppFrameBoundaries(options: {
   const gpuTimingDiagnostics: GpuTimestampQueryDiagnostic[] = [];
   let plannedCommands = 0;
   let drawCalls = 0;
+  let msaaColorTargets = 0;
+  let msaaColorTexturesCreated = 0;
+  let msaaColorTexturesReused = 0;
   let allTargetsValid = true;
 
   for (const target of targetPlan.targets) {
@@ -1881,6 +1932,24 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       options.cache,
       target,
     );
+    const msaaColorTarget = createWebGpuAppMsaaColorTargetForTarget(
+      options.app,
+      options.cache,
+      target,
+    );
+    diagnostics.push(...msaaColorTarget.diagnostics);
+    allTargetsValid &&= msaaColorTarget.valid;
+
+    if (msaaColorTarget.resource !== null) {
+      msaaColorTargets += 1;
+
+      if (msaaColorTarget.status === "created") {
+        msaaColorTexturesCreated += 1;
+      } else if (msaaColorTarget.status === "reused") {
+        msaaColorTexturesReused += 1;
+      }
+    }
+
     const includeReadback =
       options.readbackSamples !== undefined &&
       readbackBoundary === null &&
@@ -1911,6 +1980,14 @@ async function assembleWebGpuAppFrameBoundaries(options: {
         effects: activePostEffects,
         label: options.label,
         clearColor: options.clearColor ?? target.view.clearColor,
+        ...(msaaColorTarget.resource === null
+          ? {}
+          : {
+              msaaColorTarget: {
+                view: msaaColorTarget.resource.view,
+                sampleCount: msaaColorTarget.resource.sampleCount,
+              },
+            }),
         ...(includeReadback
           ? { readbackSamples: options.readbackSamples }
           : {}),
@@ -1966,6 +2043,14 @@ async function assembleWebGpuAppFrameBoundaries(options: {
         depthLoadOp: "clear",
         depthStoreOp: "store",
       },
+      ...(msaaColorTarget.resource === null
+        ? {}
+        : {
+            msaaColorTarget: {
+              view: msaaColorTarget.resource.view,
+              sampleCount: msaaColorTarget.resource.sampleCount,
+            },
+          }),
       ...(gpuTiming.resources === null
         ? {}
         : {
@@ -2007,6 +2092,9 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       format: target.format,
       ok: boundary.valid,
       drawCalls: boundary.execution?.drawCalls ?? 0,
+      ...(msaaColorTarget.resource === null
+        ? {}
+        : { msaaSampleCount: msaaColorTarget.resource.sampleCount }),
     });
     plannedCommands += commands.length;
     drawCalls += countDrawCommands(commands);
@@ -2032,6 +2120,16 @@ async function assembleWebGpuAppFrameBoundaries(options: {
     boundaries,
     renderTargets,
     postEffects,
+    ...(!options.app.msaa.enabled && !options.app.msaa.clamped
+      ? {}
+      : {
+          msaa: createWebGpuAppMsaaReport({
+            config: options.app.msaa,
+            colorTargets: msaaColorTargets,
+            colorTexturesCreated: msaaColorTexturesCreated,
+            colorTexturesReused: msaaColorTexturesReused,
+          }),
+        }),
     ...(firstDepthAttachment === undefined
       ? {}
       : { depthAttachment: firstDepthAttachment }),
@@ -2149,6 +2247,7 @@ async function renderSpriteOnlyWebGpuAppFrame(
     boundaries: boundaries.boundaries,
     renderTargets: boundaries.renderTargets,
     postEffects: boundaries.postEffects,
+    ...(boundaries.msaa === undefined ? {} : { msaa: boundaries.msaa }),
     ...(boundaries.depthAttachment === undefined
       ? {}
       : { depthAttachment: boundaries.depthAttachment }),
@@ -2464,6 +2563,7 @@ async function getOrCreateWebGpuAppSpritePipeline(
   const key = spritePipelineCacheKey(
     app.initialization.format,
     WEBGPU_APP_DEPTH_FORMAT,
+    app.msaa.sampleCount,
   );
   const cached = cache.spritePipelines.get(key);
 
@@ -2477,6 +2577,7 @@ async function getOrCreateWebGpuAppSpritePipeline(
     >[0]["device"],
     colorFormat: app.initialization.format,
     depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+    sampleCount: app.msaa.sampleCount,
   });
 
   cache.spritePipelines.set(key, result);
@@ -2758,6 +2859,7 @@ async function getOrCreateWebGpuAppSkyboxPipeline(
   const key = skyboxPipelineCacheKey(
     app.initialization.format,
     WEBGPU_APP_DEPTH_FORMAT,
+    app.msaa.sampleCount,
   );
   const cached = cache.skyboxPipelines.get(key);
 
@@ -2774,6 +2876,7 @@ async function getOrCreateWebGpuAppSkyboxPipeline(
     >[0]["device"],
     colorFormat: app.initialization.format,
     depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+    sampleCount: app.msaa.sampleCount,
   });
 
   cache.skyboxPipelines.set(key, result);
@@ -2940,6 +3043,9 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   readonly effects: readonly WebGpuPostEffect[];
   readonly label: string;
   readonly clearColor?: readonly number[];
+  readonly msaaColorTarget?: Parameters<
+    typeof assembleFrameBoundary
+  >[0]["msaaColorTarget"];
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
   readonly gpuTiming?: Parameters<typeof assembleFrameBoundary>[0]["gpuTiming"];
 }): WebGpuAppPostProcessedSwapchainTargetResult {
@@ -2981,6 +3087,10 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
         format: options.target.format,
         ok: false,
         drawCalls: 0,
+        ...(options.msaaColorTarget === undefined ||
+        options.msaaColorTarget === null
+          ? {}
+          : { msaaSampleCount: options.msaaColorTarget.sampleCount }),
       },
       postEffects,
       readbackBoundary: null,
@@ -3003,6 +3113,9 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     ...(options.clearColor === undefined
       ? {}
       : { clearColor: options.clearColor }),
+    ...(options.msaaColorTarget === undefined
+      ? {}
+      : { msaaColorTarget: options.msaaColorTarget }),
     depthTarget: {
       view: options.depthAttachment.view,
       depthClearValue: options.target.view.clearDepth,
@@ -3143,6 +3256,10 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
       format: options.target.format,
       ok: valid,
       drawCalls: sceneBoundary.execution?.drawCalls ?? 0,
+      ...(options.msaaColorTarget === undefined ||
+      options.msaaColorTarget === null
+        ? {}
+        : { msaaSampleCount: options.msaaColorTarget.sampleCount }),
     },
     postEffects,
     readbackBoundary,
@@ -3493,7 +3610,36 @@ function createWebGpuAppDepthAttachmentForTarget(
     width: target.width,
     height: target.height,
     format: WEBGPU_APP_DEPTH_FORMAT,
+    sampleCount: app.msaa.sampleCount,
   }).resource;
+}
+
+function createWebGpuAppMsaaColorTargetForTarget(
+  app: WebGpuApp,
+  resourceCache: WebGpuAppResourceCache,
+  target: WebGpuAppFrameBoundaryTarget,
+): WebGpuAppMsaaColorTargetResult {
+  const result = createOrReuseWebGpuMsaaColorTexture({
+    device: app.initialization.device as Parameters<
+      typeof createOrReuseWebGpuMsaaColorTexture
+    >[0]["device"],
+    cache: msaaColorCacheSlotForTarget(resourceCache, target),
+    width: target.width,
+    height: target.height,
+    format: target.format,
+    sampleCount: app.msaa.sampleCount,
+    label:
+      target.source === "swapchain"
+        ? "aperture/webgpu-app/msaa/swapchain"
+        : `aperture/webgpu-app/msaa/${target.renderTargetKey}`,
+  });
+
+  return {
+    valid: result.valid,
+    status: result.status,
+    resource: result.resource,
+    diagnostics: result.diagnostics,
+  };
 }
 
 function depthCacheSlotForTarget(
@@ -3512,6 +3658,42 @@ function depthCacheSlotForTarget(
   }
 
   return slot;
+}
+
+function msaaColorCacheSlotForTarget(
+  resourceCache: WebGpuAppResourceCache,
+  target: WebGpuAppFrameBoundaryTarget,
+): WebGpuMsaaColorTextureCacheSlot {
+  if (target.source === "swapchain") {
+    return resourceCache.msaaColor;
+  }
+
+  let slot = resourceCache.msaaColorByRenderTarget.get(target.renderTargetKey);
+
+  if (slot === undefined) {
+    slot = createWebGpuMsaaColorTextureCacheSlot();
+    resourceCache.msaaColorByRenderTarget.set(target.renderTargetKey, slot);
+  }
+
+  return slot;
+}
+
+function createWebGpuAppMsaaReport(input: {
+  readonly config: WebGpuMsaaConfig;
+  readonly colorTargets: number;
+  readonly colorTexturesCreated: number;
+  readonly colorTexturesReused: number;
+}): WebGpuAppMsaaReport {
+  return {
+    requestedSampleCount: input.config.requestedSampleCount,
+    sampleCount: input.config.sampleCount,
+    enabled: input.config.enabled,
+    clamped: input.config.clamped,
+    supportedSampleCounts: input.config.supportedSampleCounts,
+    colorTargets: input.colorTargets,
+    colorTexturesCreated: input.colorTexturesCreated,
+    colorTexturesReused: input.colorTexturesReused,
+  };
 }
 
 function createQueuedBuiltInAppDiagnosticsSummary(input: {
@@ -5482,6 +5664,7 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.postEffects === undefined
       ? {}
       : { postEffects: report.postEffects }),
+    ...(report.msaa === undefined ? {} : { msaa: report.msaa }),
     ...(report.readback === undefined
       ? {}
       : { readback: toWebGpuAppJsonValue(report.readback) }),
@@ -5580,6 +5763,7 @@ function renderReport(input: {
   readonly boundaries?: readonly FrameBoundaryAssemblyReport[];
   readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];
   readonly postEffects?: readonly WebGpuAppPostEffectSubmissionReport[];
+  readonly msaa?: WebGpuAppMsaaReport;
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: FrameBoundaryReadbackResult;
   readonly gpuTimings?: GpuPassTimingReport;
@@ -5617,6 +5801,7 @@ function renderReport(input: {
     ...(input.postEffects === undefined
       ? {}
       : { postEffects: input.postEffects }),
+    ...(input.msaa === undefined ? {} : { msaa: input.msaa }),
     ...(input.depthAttachment === undefined
       ? {}
       : { depthAttachment: input.depthAttachment }),

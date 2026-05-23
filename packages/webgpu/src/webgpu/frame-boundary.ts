@@ -162,6 +162,11 @@ export type FrameBoundaryColorTarget =
   | FrameBoundaryCurrentTextureTarget
   | FrameBoundaryOffscreenTarget;
 
+export interface FrameBoundaryMsaaColorTarget {
+  readonly view: unknown;
+  readonly sampleCount: number;
+}
+
 type TextureByteOrder = "rgba" | "bgra";
 
 const readbackBytesPerRow = 256;
@@ -173,6 +178,7 @@ export interface AssembleFrameBoundaryOptions {
   readonly commands: readonly RenderPassCommand[];
   readonly label: string;
   readonly colorTarget?: FrameBoundaryColorTarget;
+  readonly msaaColorTarget?: FrameBoundaryMsaaColorTarget | null;
   readonly clearColor?: readonly number[];
   readonly depthTarget?: RenderPassDepthAttachmentInput | null;
   readonly readback?: FrameBoundaryReadbackOptions;
@@ -235,7 +241,18 @@ export function assembleFrameBoundary(
     texture.target === null
       ? null
       : createRenderPassAttachmentPlan({
-          colorTargets: [texture.target],
+          colorTargets: [
+            options.msaaColorTarget === undefined ||
+            options.msaaColorTarget === null ||
+            options.msaaColorTarget.sampleCount <= 1
+              ? texture.target
+              : {
+                  ...texture.target,
+                  view: options.msaaColorTarget.view,
+                  resolveTarget: texture.target.view,
+                  storeOp: "discard",
+                },
+          ],
           ...(options.depthTarget === undefined
             ? {}
             : { depthTarget: options.depthTarget }),

@@ -15,6 +15,13 @@ export interface RgbaColor {
   readonly a: number;
 }
 
+export interface PngImage {
+  readonly width: number;
+  readonly height: number;
+  readonly bytesPerPixel: number;
+  readonly pixels: Uint8Array;
+}
+
 export function expectChannelClose(
   label: string,
   actual: number,
@@ -49,6 +56,27 @@ export function readPngPixel(
   xRatio: number,
   yRatio: number,
 ): RgbaPixel {
+  return readPngImagePixel(readPngImage(png), xRatio, yRatio);
+}
+
+export function readPngImagePixel(
+  image: PngImage,
+  xRatio: number,
+  yRatio: number,
+): RgbaPixel {
+  const x = clampIndex(Math.floor(image.width * xRatio), image.width);
+  const y = clampIndex(Math.floor(image.height * yRatio), image.height);
+  const pixelOffset = (y * image.width + x) * image.bytesPerPixel;
+
+  return {
+    r: image.pixels[pixelOffset] ?? 0,
+    g: image.pixels[pixelOffset + 1] ?? 0,
+    b: image.pixels[pixelOffset + 2] ?? 0,
+    a: image.bytesPerPixel === 4 ? (image.pixels[pixelOffset + 3] ?? 0) : 255,
+  };
+}
+
+export function readPngImage(png: Buffer): PngImage {
   if (png.subarray(0, 8).toString("hex") !== "89504e470d0a1a0a") {
     throw new Error("Screenshot is not a PNG.");
   }
@@ -99,15 +127,12 @@ export function readPngPixel(
     height,
     bytesPerPixel,
   );
-  const x = clampIndex(Math.floor(width * xRatio), width);
-  const y = clampIndex(Math.floor(height * yRatio), height);
-  const pixelOffset = (y * width + x) * bytesPerPixel;
 
   return {
-    r: pixels[pixelOffset] ?? 0,
-    g: pixels[pixelOffset + 1] ?? 0,
-    b: pixels[pixelOffset + 2] ?? 0,
-    a: colorType === 6 ? (pixels[pixelOffset + 3] ?? 0) : 255,
+    width,
+    height,
+    bytesPerPixel,
+    pixels,
   };
 }
 

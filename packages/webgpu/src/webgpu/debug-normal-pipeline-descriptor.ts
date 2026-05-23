@@ -40,6 +40,7 @@ export interface DebugNormalPipelineDescriptorInput {
   readonly shader?: BuiltInShaderSourceModule;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
+  readonly sampleCount?: number;
   readonly topology?: MeshTopology;
   readonly batchKey: BatchCompatibilityKey;
 }
@@ -109,6 +110,7 @@ export function createDebugNormalPipelineDescriptorPlan(
   }
 
   const resolvedTopology = topology ?? batchKey.topology;
+  const sampleCount = input.sampleCount ?? 1;
   const renderState = resolveWebGpuPipelineRenderState(
     batchKey.pipelineKey,
     input.depthFormat,
@@ -144,6 +146,7 @@ export function createDebugNormalPipelineDescriptorPlan(
         createWebGpuColorTargetStateKey(input.colorFormat, renderState),
       ],
     },
+    sampleCount,
     materialPipelineKey: batchKey.pipelineKey,
     materialVariantKey: batchKey.materialKey,
     batchKey,
@@ -166,6 +169,9 @@ export function createDebugNormalPipelineDescriptorPlan(
       topology: resolvedTopology,
       cullMode: renderState.cullMode,
       frontFace: "ccw",
+    },
+    multisample: {
+      count: sampleCount,
     },
   };
   const depthStencilDescriptor = createWebGpuDepthStencilDescriptor(

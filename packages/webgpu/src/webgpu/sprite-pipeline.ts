@@ -91,6 +91,7 @@ export interface CreateSpriteRenderPipelineResourceOptions {
   readonly device: SpriteRenderPipelineDeviceLike;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
+  readonly sampleCount?: number;
 }
 
 export type SpriteRenderPipelineDiagnosticCode =
@@ -166,6 +167,9 @@ export async function createSpriteRenderPipelineResource(
   const descriptor = createBrowserSpriteRenderPipelineDescriptor({
     shaderModule: shaderModule.module,
     colorFormat: options.colorFormat,
+    ...(options.sampleCount === undefined
+      ? {}
+      : { sampleCount: options.sampleCount }),
     ...(options.depthFormat === undefined
       ? {}
       : { depthFormat: options.depthFormat }),
@@ -178,6 +182,7 @@ export async function createSpriteRenderPipelineResource(
         cacheKey: spritePipelineCacheKey(
           options.colorFormat,
           options.depthFormat ?? null,
+          options.sampleCount ?? 1,
         ),
         shaderModule: shaderModule.module,
         pipeline: options.device.createRenderPipeline(descriptor),
@@ -206,14 +211,16 @@ export async function createSpriteRenderPipelineResource(
 export function spritePipelineCacheKey(
   colorFormat: string,
   depthFormat: string | null,
+  sampleCount = 1,
 ): string {
-  return `${SPRITE_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}`;
+  return `${SPRITE_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}`;
 }
 
 function createBrowserSpriteRenderPipelineDescriptor(input: {
   readonly shaderModule: unknown;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
+  readonly sampleCount?: number;
 }): WebGpuRenderPipelineCreateDescriptor {
   return {
     label: `${SPRITE_PIPELINE_KEY}:${input.colorFormat}`,
@@ -249,6 +256,9 @@ function createBrowserSpriteRenderPipelineDescriptor(input: {
       topology: "triangle-list",
       frontFace: "ccw",
       cullMode: "none",
+    },
+    multisample: {
+      count: input.sampleCount ?? 1,
     },
     ...(input.depthFormat === undefined || input.depthFormat === null
       ? {}

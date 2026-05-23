@@ -45,6 +45,7 @@ export interface BrowserDebugNormalRenderPipelineDescriptorInput {
   readonly shader?: BuiltInShaderSourceModule;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
+  readonly sampleCount?: number;
   readonly batchKey?: BatchCompatibilityKey;
 }
 
@@ -52,6 +53,7 @@ export interface CreateDebugNormalRenderPipelineResourceOptions {
   readonly device: DebugNormalRenderPipelineDeviceLike;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
+  readonly sampleCount?: number;
   readonly batchKey: BatchCompatibilityKey;
   readonly shader?: BuiltInShaderSourceModule;
 }
@@ -80,6 +82,9 @@ export async function createDebugNormalRenderPipelineResource(
     shader,
     colorFormat: options.colorFormat,
     batchKey: options.batchKey,
+    ...(options.sampleCount === undefined
+      ? {}
+      : { sampleCount: options.sampleCount }),
     ...(options.depthFormat === undefined
       ? {}
       : { depthFormat: options.depthFormat }),
@@ -134,6 +139,9 @@ export async function createDebugNormalRenderPipelineResource(
     shaderModule: shaderModule.module,
     colorFormat: options.colorFormat,
     batchKey: options.batchKey,
+    ...(options.sampleCount === undefined
+      ? {}
+      : { sampleCount: options.sampleCount }),
     ...(options.depthFormat === undefined
       ? {}
       : { depthFormat: options.depthFormat }),
@@ -197,6 +205,9 @@ export function createBrowserDebugNormalRenderPipelineDescriptor(
       topology: "triangle-list",
       frontFace: "ccw",
       cullMode: renderState.cullMode,
+    },
+    multisample: {
+      count: input.sampleCount ?? 1,
     },
   };
   const depthStencil = createWebGpuDepthStencilDescriptor(

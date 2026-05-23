@@ -53,6 +53,32 @@ body {
   background-size: 32px 32px;
 }
 
+.msaa-viewport-grid {
+  grid-template-columns: repeat(2, minmax(0, 512px));
+  gap: 12px;
+}
+
+.msaa-canvas-frame {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.msaa-canvas-frame figcaption {
+  color: #9ca8b7;
+  font-size: 12px;
+  font-weight: 650;
+  text-align: center;
+}
+
+.msaa-canvas {
+  display: block;
+  width: min(100%, 512px);
+  height: auto;
+  aspect-ratio: 1 / 1;
+  background: #0b0d10;
+}
+
 .status-panel {
   align-self: start;
   display: grid;

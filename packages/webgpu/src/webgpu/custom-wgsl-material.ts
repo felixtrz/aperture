@@ -53,6 +53,7 @@ export interface BrowserCustomWgslMaterialPipelineDescriptorInput {
   readonly shaderModule: unknown;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
+  readonly sampleCount?: number;
 }
 
 export interface CreateCustomWgslMaterialRenderPipelineResourceOptions {
@@ -60,6 +61,7 @@ export interface CreateCustomWgslMaterialRenderPipelineResourceOptions {
   readonly material: PreparedCustomWgslMaterial;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
+  readonly sampleCount?: number;
 }
 
 export interface CustomWgslMaterialRenderPipelineResource {
@@ -217,6 +219,9 @@ export async function createCustomWgslMaterialRenderPipelineResource(
     material: options.material,
     shaderModule: shaderModule.module,
     colorFormat: options.colorFormat,
+    ...(options.sampleCount === undefined
+      ? {}
+      : { sampleCount: options.sampleCount }),
     ...(options.depthFormat === undefined
       ? {}
       : { depthFormat: options.depthFormat }),
@@ -229,6 +234,9 @@ export async function createCustomWgslMaterialRenderPipelineResource(
         cacheKey: customWgslMaterialRenderPipelineCacheKey({
           material: options.material,
           colorFormat: options.colorFormat,
+          ...(options.sampleCount === undefined
+            ? {}
+            : { sampleCount: options.sampleCount }),
           ...(options.depthFormat === undefined
             ? {}
             : { depthFormat: options.depthFormat }),
@@ -290,6 +298,9 @@ export function createBrowserCustomWgslMaterialPipelineDescriptor(
       topology: "triangle-list",
       frontFace: input.material.pipeline.renderState.frontFace,
       cullMode: renderState.cullMode,
+    },
+    multisample: {
+      count: input.sampleCount ?? 1,
     },
   };
   const depthStencil = createWebGpuDepthStencilDescriptor(
@@ -542,11 +553,13 @@ function customWgslMaterialRenderPipelineCacheKey(input: {
   readonly material: PreparedCustomWgslMaterial;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
+  readonly sampleCount?: number;
 }): string {
   return [
     "custom-wgsl",
     input.colorFormat,
     input.depthFormat ?? "none",
+    `samples-${input.sampleCount ?? 1}`,
     input.material.pipeline.pipelineKey,
   ].join("|");
 }

@@ -10,6 +10,7 @@ export interface WebGpuDepthTextureDeviceLike {
     readonly label?: string;
     readonly size: readonly [number, number, number];
     readonly format: string;
+    readonly sampleCount?: number;
     readonly usage: number;
   }): WebGpuDepthTextureLike;
 }
@@ -18,6 +19,7 @@ export interface CachedWebGpuDepthTextureResource {
   readonly format: string;
   readonly width: number;
   readonly height: number;
+  readonly sampleCount: number;
   readonly texture: WebGpuDepthTextureLike;
   readonly view: unknown;
 }
@@ -32,6 +34,7 @@ export interface CreateOrReuseWebGpuDepthTextureOptions {
   readonly width: number;
   readonly height: number;
   readonly format?: string;
+  readonly sampleCount?: number;
   readonly label?: string;
 }
 
@@ -50,13 +53,15 @@ export function createOrReuseWebGpuDepthTexture(
   const format = options.format ?? WEBGPU_APP_DEPTH_FORMAT;
   const width = Math.max(1, Math.floor(options.width));
   const height = Math.max(1, Math.floor(options.height));
+  const sampleCount = Math.max(1, Math.floor(options.sampleCount ?? 1));
   const current = options.cache.current;
 
   if (
     current !== null &&
     current.format === format &&
     current.width === width &&
-    current.height === height
+    current.height === height &&
+    current.sampleCount === sampleCount
   ) {
     return { status: "reused", resource: current };
   }
@@ -67,12 +72,14 @@ export function createOrReuseWebGpuDepthTexture(
     label: options.label ?? "aperture/webgpu-app/depth",
     size: [width, height, 1],
     format,
+    sampleCount,
     usage: webGpuRenderAttachmentUsage(),
   });
   const resource: CachedWebGpuDepthTextureResource = {
     format,
     width,
     height,
+    sampleCount,
     texture,
     view: texture.createView(),
   };

@@ -59,6 +59,33 @@ describe("frame boundary assembly helper", () => {
     ]);
   });
 
+  it("assembles a multisampled color attachment that resolves into the presented target", () => {
+    const events: string[] = [];
+    const passDescriptors: unknown[] = [];
+    const resolvedView = { label: "resolved-view" };
+    const msaaView = { label: "msaa-view" };
+    const report = assembleFrameBoundary({
+      context: contextWithView(resolvedView),
+      device: device(events, { passDescriptors }),
+      queue: { submit: (buffers) => events.push(`submit:${buffers.length}`) },
+      commands: [drawCommand()],
+      label: "msaa-frame",
+      clearColor: [0, 0, 0, 1],
+      msaaColorTarget: {
+        view: msaaView,
+        sampleCount: 4,
+      },
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.attachments?.plan?.colorAttachments[0]).toMatchObject({
+      view: msaaView,
+      resolveTarget: resolvedView,
+      storeOp: "discard",
+    });
+    expect(passDescriptors[0]).toBe(report.attachments?.plan);
+  });
+
   it("stops at texture view acquisition failures", () => {
     const report = assembleFrameBoundary({
       context: { getCurrentTexture: () => ({}) },
@@ -145,11 +172,15 @@ function contextWithView(view: unknown) {
 
 function device(
   events: string[],
-  options: { readonly omitDraw?: boolean } = {},
+  options: {
+    readonly omitDraw?: boolean;
+    readonly passDescriptors?: unknown[];
+  } = {},
 ) {
   return {
     createCommandEncoder: () => ({
-      beginRenderPass: () => {
+      beginRenderPass: (descriptor: unknown) => {
+        options.passDescriptors?.push(descriptor);
         events.push("begin");
         return {
           ...(options.omitDraw ? {} : { draw: () => events.push("draw") }),

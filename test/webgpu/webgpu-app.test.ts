@@ -925,6 +925,95 @@ describe("WebGPU app facade", () => {
     ).toHaveLength(2);
   });
 
+  it("renders swapchain frames through cached MSAA color and depth attachments", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+
+    Object.assign(canvas, { width: 320, height: 180 });
+
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      msaa: 8,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "MsaaCube" }));
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "MsaaWhite" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const firstFrame = await app.stepAndRender(1 / 60, 1, 70);
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 71);
+    const pipelineDescriptor = firstFrame.pipeline?.resource?.descriptor as
+      | { readonly multisample?: { readonly count?: number } }
+      | undefined;
+
+    expect(firstFrame.ok).toBe(true);
+    expect(firstFrame.msaa).toEqual({
+      requestedSampleCount: 8,
+      sampleCount: 4,
+      enabled: true,
+      clamped: true,
+      supportedSampleCounts: [1, 4],
+      colorTargets: 1,
+      colorTexturesCreated: 1,
+      colorTexturesReused: 0,
+    });
+    expect(firstFrame.renderTargets).toEqual([
+      {
+        viewId: firstFrame.snapshot.views[0]?.viewId,
+        source: "swapchain",
+        renderTargetKey: null,
+        width: 320,
+        height: 180,
+        format: "bgra8unorm",
+        ok: true,
+        drawCalls: 1,
+        msaaSampleCount: 4,
+      },
+    ]);
+    expect(
+      firstFrame.boundary?.attachments?.plan?.colorAttachments[0],
+    ).toMatchObject({
+      storeOp: "discard",
+      resolveTarget: expect.anything(),
+    });
+    expect(pipelineDescriptor?.multisample?.count).toBe(4);
+    expect(secondFrame.msaa).toMatchObject({
+      requestedSampleCount: 8,
+      sampleCount: 4,
+      colorTexturesCreated: 0,
+      colorTexturesReused: 1,
+    });
+    expect(webGpuAppRenderReportToJsonValue(firstFrame).msaa).toBe(
+      firstFrame.msaa,
+    );
+    expect(events).toContain(
+      "device:texture:aperture/webgpu-app/msaa/swapchain",
+    );
+  });
+
   it("reuses prepared scalar unlit mesh buffers across frame-resource misses", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);

@@ -21,6 +21,7 @@ export type RenderPassClearColorTuple = readonly [
 
 export interface RenderPassColorAttachmentInput {
   readonly view: unknown | null;
+  readonly resolveTarget?: unknown | null;
   readonly clearColor?: readonly number[];
   readonly loadOp?: RenderPassAttachmentLoadOp;
   readonly storeOp?: RenderPassAttachmentStoreOp;
@@ -41,6 +42,7 @@ export interface PlannedRenderPassColorAttachment {
     readonly b: number;
     readonly a: number;
   };
+  readonly resolveTarget?: unknown;
   readonly loadOp: RenderPassAttachmentLoadOp;
   readonly storeOp: RenderPassAttachmentStoreOp;
 }
@@ -131,14 +133,20 @@ function createColorAttachment(
   const attachment: PlannedRenderPassColorAttachment = {
     view: target.view,
     loadOp: target.loadOp ?? (clearValue === undefined ? "load" : "clear"),
-    storeOp: target.storeOp ?? "store",
+    storeOp:
+      target.storeOp ??
+      (target.resolveTarget === undefined ? "store" : "discard"),
   };
+  const resolvedAttachment =
+    target.resolveTarget === undefined || target.resolveTarget === null
+      ? attachment
+      : { ...attachment, resolveTarget: target.resolveTarget };
 
   if (clearValue !== undefined) {
-    return [{ ...attachment, clearValue }];
+    return [{ ...resolvedAttachment, clearValue }];
   }
 
-  return [attachment];
+  return [resolvedAttachment];
 }
 
 function createDepthAttachment(

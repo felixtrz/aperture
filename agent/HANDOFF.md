@@ -1,6 +1,70 @@
 # Agent Handoff
 
-Updated: 2026-05-23T01:32:47Z
+Updated: 2026-05-23T02:05:00Z
+
+## Current Run Update — 2026-05-23T02:05:00Z — MSAA
+
+Completed `task-3086`, the Tier 19 MSAA render-pass slice.
+
+### What changed
+
+- Added app-level MSAA configuration through `createWebGpuApp({ msaa })`, with
+  `msaaSampleCount` still accepted as a compatibility alias.
+- Added WebGPU MSAA configuration helpers that accept 1x, 4x, and 8x requests.
+  WebGPU currently resolves requests above 1x to effective 4x and reports 8x as
+  explicitly clamped, matching PlayCanvas' WebGPU render-target behavior.
+- Added renderer-owned multisampled color texture caching per swapchain or
+  off-screen render target, matching sample-count depth attachments, and color
+  attachment resolve targets that discard the multisampled store.
+- Added sample-count specialization to built-in WebGPU pipeline descriptors and
+  cache keys across Standard, Unlit, Matcap, DebugNormal, Sprite, Skybox, and
+  custom WGSL paths.
+- Added JSON-safe MSAA reports for requested/effective sample counts, clamp
+  state, color target count, and created/reused MSAA color textures.
+- Added `examples/msaa.html`, `examples/msaa.main.js`,
+  `examples/msaa.worker.js`, and `examples/msaa-scene.js` with two square
+  worker-authored canvases comparing 1x rendering against an 8x request that
+  resolves through the effective 4x WebGPU path.
+- Added headed Chrome/WebGPU coverage proving the resolved MSAA canvas has many
+  more partial-coverage edge pixels than the 1x canvas, plus focused unit
+  coverage for helper resolution, attachment planning, frame-boundary assembly,
+  pipeline cache keys, and app-level MSAA resource reuse.
+
+### Reference comparison
+
+- three.js exposes render-target sample-count authoring through the
+  `RenderTarget.samples` field.
+- PlayCanvas clamps WebGPU render-target samples to supported values and uses
+  automatic resolve from a multisampled target into the readable/presentable
+  color buffer.
+- Aperture now keeps sample-count authoring as app configuration, keeps the
+  multisampled color/depth resources renderer-owned, and resolves through the
+  existing render-pass boundary without adding scene-graph state.
+
+### Validation
+
+- `pnpm run check:examples` passed.
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run check:progress` passed.
+- `pnpm run format:check` passed.
+- `pnpm run lint` passed.
+- `git diff --check` passed.
+- `pnpm test` passed: 348 files, 1810 tests.
+- `pnpm exec vitest run test/webgpu/msaa.test.ts test/webgpu/render-pass-attachments.test.ts test/webgpu/frame-boundary.test.ts test/webgpu/pipeline-cache.test.ts test/webgpu/webgpu-app.test.ts`
+  passed: 5 files, 76 tests.
+- `pnpm exec playwright test test/e2e/msaa.spec.ts --reporter=line --timeout=60000`
+  passed.
+
+### Known issues
+
+- WebGPU exposes effective 4x MSAA here; 8x is accepted as a request and
+  reported as clamped rather than pretending native 8x is available.
+- TAA and Tier 20 screen-space effects remain open.
+
+### Recommended next task
+
+Continue Tier 19 with `task-3087`, TAA with motion vectors.
 
 ## Current Run Update — 2026-05-23T01:32:47Z — Iridescence
 

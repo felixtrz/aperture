@@ -45,6 +45,7 @@ export interface WebGpuRenderPipelineCacheKeyInput {
   readonly primitive?: WebGpuRenderPipelinePrimitiveStateKey;
   readonly depthStencil?: WebGpuRenderPipelineDepthStencilStateKey;
   readonly blend?: WebGpuRenderPipelineBlendStateKey;
+  readonly sampleCount?: number;
   readonly materialPipelineKey?: string;
   readonly materialVariantKey?: string;
   readonly batchKey: BatchCompatibilityKey;
@@ -174,6 +175,9 @@ export function createWebGpuRenderPipelineCacheKey(
           blend: null,
           writeMask: "all",
         })),
+    },
+    multisample: {
+      sampleCount: input.sampleCount ?? 1,
     },
     material: {
       pipelineKey: input.materialPipelineKey ?? input.batchKey.pipelineKey,
