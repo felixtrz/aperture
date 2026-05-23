@@ -16,6 +16,7 @@ export type GltfMaterialTextureSlot =
   | "clearcoatTexture"
   | "transmissionTexture"
   | "sheenColorTexture"
+  | "iridescenceTexture"
   | "normalTexture"
   | "occlusionTexture"
   | "emissiveTexture";
@@ -335,6 +336,14 @@ export function createMaterialAssetFromGltfMaterial(
       fallback: 0,
       diagnostics,
     }),
+    iridescenceTexture: mapTextureBinding({
+      materialKey,
+      slot: "iridescenceTexture",
+      field: `extensions.${IRIDESCENCE_EXTENSION}.iridescenceTexture`,
+      value: iridescenceSource?.iridescenceTexture,
+      resolver: options.resolveTextureBinding,
+      diagnostics,
+    }),
     iridescenceIor: mapFiniteNumber({
       materialKey,
       field: `extensions.${IRIDESCENCE_EXTENSION}.iridescenceIor`,
@@ -524,10 +533,7 @@ function inspectUnsupportedIridescenceTextures(
     return;
   }
 
-  for (const field of [
-    "iridescenceTexture",
-    "iridescenceThicknessTexture",
-  ] as const) {
+  for (const field of ["iridescenceThicknessTexture"] as const) {
     if (iridescenceSource[field] === undefined) {
       continue;
     }
@@ -538,7 +544,7 @@ function inspectUnsupportedIridescenceTextures(
       materialKey,
       field: `extensions.${IRIDESCENCE_EXTENSION}.${field}`,
       extensionName: IRIDESCENCE_EXTENSION,
-      message: `${IRIDESCENCE_EXTENSION}.${field} is preserved in source data but scalar iridescence rendering does not sample iridescence textures yet.`,
+      message: `${IRIDESCENCE_EXTENSION}.${field} is preserved in source data but current iridescence rendering only samples iridescenceTexture.`,
     });
   }
 }

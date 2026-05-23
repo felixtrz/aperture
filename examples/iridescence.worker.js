@@ -43,8 +43,12 @@ async function handleMessage(data) {
         type: "ready",
         scene: {
           meshKey: scene.meshKey,
+          textureMeshKey: scene.textureMeshKey,
           baseMaterialKey: scene.baseMaterialKey,
           filmMaterialKey: scene.filmMaterialKey,
+          texturedFilmMaterialKey: scene.texturedFilmMaterialKey,
+          iridescenceTextureKey: scene.iridescenceTextureKey,
+          iridescenceSamplerKey: scene.iridescenceSamplerKey,
         },
       });
       return;
@@ -77,7 +81,7 @@ function loadAperture() {
 
 function createWorkerScene(aperture, canvasSize) {
   const app = aperture.createExtractionApp({
-    worldOptions: { entityCapacity: 8 },
+    worldOptions: { entityCapacity: 10 },
   });
   const registered = registerIridescenceScene(aperture, app.assets);
   const aspect = canvasSize.width / Math.max(1, canvasSize.height);
@@ -124,6 +128,16 @@ function createWorkerScene(aperture, canvasSize) {
     aperture.withTransform({ translation: [0.55, 0, 0] }),
     aperture.withMesh(registered.mesh),
     aperture.withMaterial(registered.filmMaterial),
+    aperture.withRenderLayer(1),
+    aperture.withVisibility(true),
+  );
+  app.spawn(
+    aperture.withTransform({
+      translation: [0.25, -0.68, 0],
+      rotation: [0, -0.422618, 0, 0.906308],
+    }),
+    aperture.withMesh(registered.textureMesh),
+    aperture.withMaterial(registered.texturedFilmMaterial),
     aperture.withRenderLayer(1),
     aperture.withVisibility(true),
   );

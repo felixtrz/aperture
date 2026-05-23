@@ -86,6 +86,7 @@ export function createStandardMaterialAsset(
     sheenColorTexture: input.sheenColorTexture ?? null,
     sheenRoughnessFactor: input.sheenRoughnessFactor ?? 0,
     iridescenceFactor: input.iridescenceFactor ?? 0,
+    iridescenceTexture: input.iridescenceTexture ?? null,
     iridescenceIor: input.iridescenceIor ?? 1.3,
     iridescenceThicknessMinimum: input.iridescenceThicknessMinimum ?? 100,
     iridescenceThicknessMaximum: input.iridescenceThicknessMaximum ?? 400,

@@ -37,6 +37,7 @@ describe("glTF material mapping", () => {
       sheenColorTexture: null,
       sheenRoughnessFactor: 0,
       iridescenceFactor: 0,
+      iridescenceTexture: null,
       iridescenceIor: 1.3,
       iridescenceThicknessMinimum: 100,
       iridescenceThicknessMaximum: 400,
@@ -301,7 +302,7 @@ describe("glTF material mapping", () => {
     });
   });
 
-  it("warns when KHR_materials_iridescence uses unsupported texture slots", () => {
+  it("maps KHR_materials_iridescence iridescenceTexture and warns for remaining unsupported texture slots", () => {
     const report = createMaterialAssetFromGltfMaterial(
       {
         extensions: {
@@ -312,21 +313,22 @@ describe("glTF material mapping", () => {
           },
         },
       },
-      { materialKey: "material:iridescence-textures" },
+      {
+        materialKey: "material:iridescence-textures",
+        resolveTextureBinding,
+      },
     );
 
     expect(report.valid).toBe(true);
     expect(report.material).toMatchObject({
       kind: "standard",
       iridescenceFactor: 1,
+      iridescenceTexture: {
+        texture: createTextureHandle("texture-0"),
+        sampler: createSamplerHandle("sampler-0"),
+      },
     });
     expect(report.diagnostics).toMatchObject([
-      {
-        code: "gltfMaterial.unsupportedOptionalExtension",
-        severity: "warning",
-        field: "extensions.KHR_materials_iridescence.iridescenceTexture",
-        extensionName: "KHR_materials_iridescence",
-      },
       {
         code: "gltfMaterial.unsupportedOptionalExtension",
         severity: "warning",

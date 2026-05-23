@@ -365,6 +365,7 @@ function standardTextureFeatures(
     clearcoatTexture: tokens.includes("clearcoatTexture"),
     transmissionTexture: tokens.includes("transmissionTexture"),
     sheenColorTexture: tokens.includes("sheenColorTexture"),
+    iridescenceTexture: tokens.includes("iridescenceTexture"),
     normalTexture: tokens.includes("normalTexture"),
     occlusionTexture: tokens.includes("occlusionTexture"),
     emissiveTexture: tokens.includes("emissiveTexture"),
@@ -459,6 +460,7 @@ function standardMaterialLayoutKey(features: {
   readonly clearcoatTexture?: boolean;
   readonly transmissionTexture?: boolean;
   readonly sheenColorTexture?: boolean;
+  readonly iridescenceTexture?: boolean;
   readonly normalTexture: boolean;
   readonly occlusionTexture: boolean;
   readonly emissiveTexture: boolean;
@@ -469,6 +471,7 @@ function standardMaterialLayoutKey(features: {
     features.clearcoatTexture !== true &&
     features.transmissionTexture !== true &&
     features.sheenColorTexture !== true &&
+    features.iridescenceTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture
@@ -482,6 +485,7 @@ function standardMaterialLayoutKey(features: {
     features.clearcoatTexture !== true &&
     features.transmissionTexture !== true &&
     features.sheenColorTexture !== true &&
+    features.iridescenceTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture
@@ -495,6 +499,7 @@ function standardMaterialLayoutKey(features: {
     features.clearcoatTexture !== true &&
     features.transmissionTexture !== true &&
     features.sheenColorTexture !== true &&
+    features.iridescenceTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture
@@ -508,6 +513,7 @@ function standardMaterialLayoutKey(features: {
     features.clearcoatTexture === true ||
     features.transmissionTexture === true ||
     features.sheenColorTexture === true ||
+    features.iridescenceTexture === true ||
     features.normalTexture ||
     features.occlusionTexture ||
     features.emissiveTexture
@@ -538,6 +544,11 @@ function standardMaterialLayoutKey(features: {
     if (features.sheenColorTexture === true) {
       names.push("sheen-color");
       bindings.push(15, 16);
+    }
+
+    if (features.iridescenceTexture === true) {
+      names.push("iridescence");
+      bindings.push(17, 18);
     }
 
     if (features.normalTexture) {

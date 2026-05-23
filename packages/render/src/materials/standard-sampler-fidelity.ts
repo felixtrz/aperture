@@ -78,6 +78,7 @@ const STANDARD_SAMPLER_TEXTURE_FIELDS = [
   "clearcoatTexture",
   "transmissionTexture",
   "sheenColorTexture",
+  "iridescenceTexture",
   "normalTexture",
   "occlusionTexture",
   "emissiveTexture",
