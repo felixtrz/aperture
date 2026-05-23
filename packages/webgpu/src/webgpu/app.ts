@@ -122,6 +122,14 @@ import {
   type GpuTimestampQueryDeviceLike,
   type GpuTimestampQueryResources,
 } from "./gpu-timing.js";
+import {
+  createGpuOcclusionQueryResources,
+  readGpuOcclusionQueryResults,
+  type GpuOcclusionQueryDiagnostic,
+  type GpuOcclusionQueryDeviceLike,
+  type GpuOcclusionQueryReadbackResult,
+  type GpuOcclusionQueryResources,
+} from "./occlusion-query.js";
 import type { CurrentTextureLike } from "./current-texture-view.js";
 import {
   createOrReuseWebGpuDepthTexture,
@@ -615,6 +623,7 @@ export interface WebGpuAppRenderReport {
   readonly indirectDraws?: IndirectDrawCommandReport;
   readonly motionVectors?: WebGpuAppMotionVectorReport;
   readonly localLightClusters?: LocalLightClusterReport;
+  readonly occlusionQueries?: WebGpuAppOcclusionQueryReport;
 }
 
 export type WebGpuAppMotionVectorStatus =
@@ -648,6 +657,16 @@ export interface WebGpuAppMotionVectorReport {
   readonly objectTransforms: WebGpuAppMotionVectorObjectTransformHistoryReport;
 }
 
+export interface WebGpuAppOcclusionQueryReport {
+  readonly status: "inactive" | "ready" | "unsupported";
+  readonly queryCount: number;
+  readonly testedRenderIds: readonly number[];
+  readonly visibleRenderIds: readonly number[];
+  readonly occludedRenderIds: readonly number[];
+  readonly sampleCounts: readonly string[];
+  readonly diagnostics: readonly GpuOcclusionQueryDiagnostic[];
+}
+
 export type WebGpuAppJsonValue =
   | null
   | boolean
@@ -677,6 +696,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly indirectDraws?: IndirectDrawCommandReport;
   readonly motionVectors?: WebGpuAppMotionVectorReport;
   readonly localLightClusters?: LocalLightClusterReport;
+  readonly occlusionQueries?: WebGpuAppOcclusionQueryReport;
   readonly materialDependencyReadiness?: readonly MaterialAssetDependencyReadinessReportJsonValue[];
 }
 
@@ -742,6 +762,7 @@ interface WebGpuAppResourceCache {
   readonly preparedMaterialFacade: PreparedMaterialStore;
   readonly idPickPipelines: Map<string, WebGpuIdBufferPickPipelineResource>;
   readonly gpuTimings: Map<string, WebGpuAppGpuTimingCacheEntry>;
+  readonly occlusionQueries: Map<string, GpuOcclusionQueryResources>;
   readonly renderBundles: RenderBundleCache;
   readonly indirectDraws: IndirectDrawCommandCache;
   readonly postPasses: WebGpuAppPostPassCache;
@@ -791,6 +812,7 @@ interface WebGpuAppFrameScratch {
   readonly queuedBuiltInFrameResources: QueuedBuiltInFrameResourceScratch<WebGpuAppPipelinePlanResult>;
   readonly viewCommands: RenderPassCommand[];
   readonly skyboxCommands: RenderPassCommand[];
+  readonly occlusionFallbackCommands: RenderPassCommand[];
 }
 
 interface WebGpuAppGpuTimingCacheEntry {
@@ -1179,6 +1201,7 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     preparedMaterialFacade: createPreparedMaterialStore(),
     idPickPipelines: new Map(),
     gpuTimings: new Map(),
+    occlusionQueries: new Map(),
     renderBundles: createRenderBundleCache(),
     indirectDraws: createIndirectDrawCommandCache(),
     postPasses: {
@@ -1230,6 +1253,7 @@ function createWebGpuAppFrameScratch(): WebGpuAppFrameScratch {
       createQueuedBuiltInFrameResourceScratch<WebGpuAppPipelinePlanResult>(),
     viewCommands: [],
     skyboxCommands: [],
+    occlusionFallbackCommands: [],
   };
 }
 
@@ -1857,6 +1881,9 @@ interface WebGpuAppFrameBoundaryAssemblyResult {
   readonly readbackBoundary: FrameBoundaryAssemblyReport | null;
   readonly gpuTimingReadbacks: readonly WebGpuAppGpuTimingReadback[];
   readonly gpuTimingDiagnostics: readonly GpuTimestampQueryDiagnostic[];
+  readonly occlusionQueryReadbacks: readonly WebGpuAppOcclusionQueryReadback[];
+  readonly occlusionQueryDiagnostics: readonly GpuOcclusionQueryDiagnostic[];
+  readonly occlusionQueryCount: number;
   readonly plannedCommands: number;
   readonly drawCalls: number;
   readonly diagnostics: readonly unknown[];
@@ -1865,6 +1892,12 @@ interface WebGpuAppFrameBoundaryAssemblyResult {
 interface WebGpuAppGpuTimingReadback {
   readonly passName: string;
   readonly resources: GpuTimestampQueryResources;
+}
+
+interface WebGpuAppOcclusionQueryReadback {
+  readonly passName: string;
+  readonly resources: GpuOcclusionQueryResources;
+  readonly renderIds: readonly number[];
 }
 
 interface WebGpuAppMsaaColorTargetResult {
@@ -2141,6 +2174,11 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     readbacks: boundaries.gpuTimingReadbacks,
     diagnostics: boundaries.gpuTimingDiagnostics,
   });
+  const occlusionQueries = await readWebGpuAppOcclusionQueries({
+    readbacks: boundaries.occlusionQueryReadbacks,
+    diagnostics: boundaries.occlusionQueryDiagnostics,
+    queryCount: boundaries.occlusionQueryCount,
+  });
   const finalDiagnosticsSummary =
     gpuTimings === undefined
       ? frameDiagnosticsSummary
@@ -2157,7 +2195,8 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     framePlan.resources.valid &&
     framePlan.commandPlan.valid &&
     spriteFrame.resources.diagnostics.length === 0 &&
-    boundaries.valid;
+    boundaries.valid &&
+    (occlusionQueries === undefined || occlusionQueries.status === "ready");
   const readback = await mapFrameBoundaryReadbackSamples(
     boundaries.readbackBoundary?.readback,
     frameOk,
@@ -2187,6 +2226,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       : { depthAttachment: boundaries.depthAttachment }),
     ...(readback === undefined ? {} : { readback }),
     ...(gpuTimings === undefined ? {} : { gpuTimings }),
+    ...(occlusionQueries === undefined ? {} : { occlusionQueries }),
     ...(indirectDraws.report.status === "skipped"
       ? {}
       : { indirectDraws: indirectDraws.report }),
@@ -2208,6 +2248,10 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       ...framePlan.commandPlan.diagnostics,
       ...spriteFrame.resources.diagnostics,
       ...boundaries.diagnostics,
+      ...newOcclusionQueryDiagnostics(
+        occlusionQueries,
+        boundaries.occlusionQueryDiagnostics,
+      ),
     ],
   });
 }
@@ -2242,6 +2286,9 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       readbackBoundary: null,
       gpuTimingReadbacks: [],
       gpuTimingDiagnostics: [],
+      occlusionQueryReadbacks: [],
+      occlusionQueryDiagnostics: [],
+      occlusionQueryCount: 0,
       plannedCommands: 0,
       drawCalls: 0,
       diagnostics: targetPlan.diagnostics,
@@ -2260,11 +2307,14 @@ async function assembleWebGpuAppFrameBoundaries(options: {
   let readbackBoundary: FrameBoundaryAssemblyReport | null = null;
   const gpuTimingReadbacks: WebGpuAppGpuTimingReadback[] = [];
   const gpuTimingDiagnostics: GpuTimestampQueryDiagnostic[] = [];
+  const occlusionQueryReadbacks: WebGpuAppOcclusionQueryReadback[] = [];
+  const occlusionQueryDiagnostics: GpuOcclusionQueryDiagnostic[] = [];
   let transmissionGrabPassReport:
     | WebGpuAppTransmissionGrabPassReport
     | undefined;
   let plannedCommands = 0;
   let drawCalls = 0;
+  let occlusionQueryCount = 0;
   let msaaColorTargets = 0;
   let msaaColorTexturesCreated = 0;
   let msaaColorTexturesReused = 0;
@@ -2287,6 +2337,29 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       options.cache.frameScratch.viewCommands,
       skybox.commands,
     );
+    const occlusionRenderIds = normalizeOcclusionQueryCommands(commands);
+    const occlusionQueries =
+      occlusionRenderIds.length === 0
+        ? null
+        : createWebGpuAppOcclusionQueryResources({
+            app: options.app,
+            cache: options.cache,
+            label: options.label,
+            target,
+            queryCount: occlusionRenderIds.length,
+          });
+    const commandsForBoundary =
+      occlusionRenderIds.length > 0 && occlusionQueries?.resources === null
+        ? commandsWithoutOcclusionQueryCommands(
+            commands,
+            options.cache.frameScratch.occlusionFallbackCommands,
+          )
+        : commands;
+
+    occlusionQueryCount += occlusionRenderIds.length;
+    occlusionQueryDiagnostics.push(...(occlusionQueries?.diagnostics ?? []));
+    diagnostics.push(...(occlusionQueries?.diagnostics ?? []));
+    allTargetsValid &&= occlusionQueries === null || occlusionQueries.valid;
     diagnostics.push(...skybox.diagnostics);
     allTargetsValid &&= skybox.valid;
     const depthAttachment = createWebGpuAppDepthAttachmentForTarget(
@@ -2337,7 +2410,7 @@ async function assembleWebGpuAppFrameBoundaries(options: {
         cache: options.cache,
         snapshot: options.snapshot,
         target,
-        commands,
+        commands: commandsForBoundary,
         depthAttachment,
         effects: activePostEffects,
         label: options.label,
@@ -2364,7 +2437,36 @@ async function assembleWebGpuAppFrameBoundaries(options: {
                 resources: gpuTiming.resources,
               },
             }),
+        ...(occlusionQueries?.resources === undefined ||
+        occlusionQueries.resources === null
+          ? {}
+          : {
+              occlusionQueries: {
+                resources: occlusionQueries.resources,
+                queryCount: occlusionRenderIds.length,
+              },
+            }),
       });
+      const sceneOcclusionQueries =
+        postTarget.boundaries[0]?.occlusionQueries ?? null;
+
+      for (const boundary of postTarget.boundaries) {
+        occlusionQueryDiagnostics.push(
+          ...(boundary.occlusionQueries?.diagnostics ?? []),
+        );
+      }
+
+      if (
+        occlusionQueries?.resources !== undefined &&
+        occlusionQueries.resources !== null &&
+        sceneOcclusionQueries?.valid === true
+      ) {
+        occlusionQueryReadbacks.push({
+          passName: gpuTiming.passName,
+          resources: occlusionQueries.resources,
+          renderIds: [...occlusionRenderIds],
+        });
+      }
 
       firstBoundary ??= postTarget.boundaries[0] ?? null;
       firstDepthAttachment ??= createWebGpuAppDepthAttachmentReport(
@@ -2389,7 +2491,7 @@ async function assembleWebGpuAppFrameBoundaries(options: {
         : assembleWebGpuAppTransmissionGrabPass({
             app: options.app,
             target,
-            commands,
+            commands: commandsForBoundary,
             depthAttachment,
             label: options.label,
             clearColor: options.clearColor ?? target.view.clearColor,
@@ -2416,7 +2518,7 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       {
         targetKey: createWebGpuAppRenderBundleTargetKey(target, sampleCount),
         ...renderBundleDescriptor,
-        commands,
+        commands: commandsForBoundary,
       },
       options.cache.renderBundles,
     );
@@ -2429,7 +2531,7 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       >[0]["device"],
       queue: (options.app.initialization.device as { readonly queue: unknown })
         .queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
-      commands,
+      commands: commandsForBoundary,
       label: `${options.label}:${target.renderTargetKey ?? "swapchain"}`,
       ...(target.source === "offscreen"
         ? {
@@ -2446,7 +2548,9 @@ async function assembleWebGpuAppFrameBoundaries(options: {
         depthLoadOp: "clear",
         depthStoreOp: "store",
       },
-      ...(commands.length === 0 || options.enableRenderBundles === false
+      ...(commandsForBoundary.length === 0 ||
+      options.enableRenderBundles === false ||
+      occlusionRenderIds.length > 0
         ? {}
         : {
             renderBundle: {
@@ -2469,6 +2573,15 @@ async function assembleWebGpuAppFrameBoundaries(options: {
             gpuTiming: {
               passName: gpuTiming.passName,
               resources: gpuTiming.resources,
+            },
+          }),
+      ...(occlusionQueries?.resources === undefined ||
+      occlusionQueries.resources === null
+        ? {}
+        : {
+            occlusionQueries: {
+              resources: occlusionQueries.resources,
+              queryCount: occlusionRenderIds.length,
             },
           }),
       ...(includeReadback
@@ -2495,6 +2608,22 @@ async function assembleWebGpuAppFrameBoundaries(options: {
 
     boundaries.push(boundary);
     allTargetsValid &&= boundary.valid;
+    occlusionQueryDiagnostics.push(
+      ...(boundary.occlusionQueries?.diagnostics ?? []),
+    );
+
+    if (
+      occlusionQueries?.resources !== undefined &&
+      occlusionQueries.resources !== null &&
+      boundary.occlusionQueries?.valid === true
+    ) {
+      occlusionQueryReadbacks.push({
+        passName: gpuTiming.passName,
+        resources: occlusionQueries.resources,
+        renderIds: [...occlusionRenderIds],
+      });
+    }
+
     renderTargets.push({
       viewId: target.view.viewId,
       source: target.source,
@@ -2508,8 +2637,8 @@ async function assembleWebGpuAppFrameBoundaries(options: {
         ? {}
         : { msaaSampleCount: msaaColorTarget.resource.sampleCount }),
     });
-    plannedCommands += commands.length;
-    drawCalls += countDrawCommands(commands);
+    plannedCommands += commandsForBoundary.length;
+    drawCalls += countDrawCommands(commandsForBoundary);
     diagnostics.push(
       ...boundary.texture.diagnostics,
       ...(boundary.attachments?.diagnostics ?? []),
@@ -2518,6 +2647,7 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       ...(boundary.execution?.diagnostics ?? []),
       ...(boundary.renderBundle?.diagnostics ?? []),
       ...(boundary.end?.diagnostics ?? []),
+      ...(boundary.occlusionQueries?.diagnostics ?? []),
       ...(boundary.finish?.diagnostics ?? []),
       ...(boundary.submit?.diagnostics ?? []),
     );
@@ -2557,6 +2687,9 @@ async function assembleWebGpuAppFrameBoundaries(options: {
     readbackBoundary,
     gpuTimingReadbacks,
     gpuTimingDiagnostics,
+    occlusionQueryReadbacks,
+    occlusionQueryDiagnostics,
+    occlusionQueryCount,
     plannedCommands,
     drawCalls,
     diagnostics,
@@ -2608,6 +2741,45 @@ function prepareWebGpuAppIndirectDrawCommands(options: {
         "indirect-first-instance",
       ) === true,
   });
+}
+
+function createWebGpuAppOcclusionQueryResources(options: {
+  readonly app: WebGpuApp;
+  readonly cache: WebGpuAppResourceCache;
+  readonly label: string;
+  readonly target: WebGpuAppFrameBoundaryTarget;
+  readonly queryCount: number;
+}): {
+  readonly valid: boolean;
+  readonly resources: GpuOcclusionQueryResources | null;
+  readonly diagnostics: readonly GpuOcclusionQueryDiagnostic[];
+} {
+  const cacheKey = [
+    options.label,
+    options.target.renderTargetKey ?? "swapchain",
+    `view:${options.target.view.viewId}`,
+  ].join(":");
+  const cached = options.cache.occlusionQueries.get(cacheKey);
+
+  if (cached !== undefined && cached.queryCount >= options.queryCount) {
+    return { valid: true, resources: cached, diagnostics: [] };
+  }
+
+  const created = createGpuOcclusionQueryResources({
+    device: options.app.initialization.device as GpuOcclusionQueryDeviceLike,
+    label: `${options.label}:occlusion:${options.target.renderTargetKey ?? "swapchain"}:${options.target.view.viewId}`,
+    queryCount: options.queryCount,
+  });
+
+  if (created.resources !== null) {
+    options.cache.occlusionQueries.set(cacheKey, created.resources);
+  }
+
+  return {
+    valid: created.resources !== null && created.diagnostics.length === 0,
+    resources: created.resources,
+    diagnostics: created.diagnostics,
+  };
 }
 
 function createWebGpuAppRenderBundleReport(
@@ -2685,7 +2857,9 @@ function assembleWebGpuAppTransmissionGrabPass(options: {
   readonly report: WebGpuAppTransmissionGrabPassReport;
   readonly diagnostics: readonly unknown[];
 } {
-  const commands = commandsWithoutTransmissionDraws(options.commands);
+  const commands = commandsWithoutOcclusionQueryCommands(
+    commandsWithoutTransmissionDraws(options.commands),
+  );
   const boundary = assembleFrameBoundary({
     context: options.app.initialization.context as Parameters<
       typeof assembleFrameBoundary
@@ -2757,6 +2931,62 @@ function commandsWithoutTransmissionDraws(
 
   return commands.filter(
     (command) => !transmissionRenderIds.has(command.renderId),
+  );
+}
+
+function commandsWithoutOcclusionQueryCommands(
+  commands: readonly RenderPassCommand[],
+  target?: RenderPassCommand[],
+): readonly RenderPassCommand[] {
+  if (!commands.some(isOcclusionQueryCommand)) {
+    return commands;
+  }
+
+  if (target === undefined) {
+    return commands.filter((command) => !isOcclusionQueryCommand(command));
+  }
+
+  target.length = 0;
+
+  for (const command of commands) {
+    if (!isOcclusionQueryCommand(command)) {
+      target.push(command);
+    }
+  }
+
+  return target;
+}
+
+function normalizeOcclusionQueryCommands(
+  commands: readonly RenderPassCommand[],
+): readonly number[] {
+  const renderIds: number[] = [];
+  let queryIndex = 0;
+  let activeQueryIndex = -1;
+
+  for (const command of commands) {
+    if (command.kind === "beginOcclusionQuery") {
+      (command as { queryIndex: number }).queryIndex = queryIndex;
+      activeQueryIndex = queryIndex;
+      renderIds.push(command.renderId);
+      queryIndex += 1;
+      continue;
+    }
+
+    if (command.kind === "endOcclusionQuery") {
+      (command as { queryIndex: number }).queryIndex =
+        activeQueryIndex >= 0 ? activeQueryIndex : Math.max(0, queryIndex - 1);
+      activeQueryIndex = -1;
+    }
+  }
+
+  return renderIds;
+}
+
+function isOcclusionQueryCommand(command: RenderPassCommand): boolean {
+  return (
+    command.kind === "beginOcclusionQuery" ||
+    command.kind === "endOcclusionQuery"
   );
 }
 
@@ -3869,6 +4099,9 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   >[0]["msaaColorTarget"];
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
   readonly gpuTiming?: Parameters<typeof assembleFrameBoundary>[0]["gpuTiming"];
+  readonly occlusionQueries?: Parameters<
+    typeof assembleFrameBoundary
+  >[0]["occlusionQueries"];
 }): WebGpuAppPostProcessedSwapchainTargetResult {
   const boundaries: FrameBoundaryAssemblyReport[] = [];
   const postEffects: WebGpuAppPostEffectSubmissionReport[] = [];
@@ -4005,6 +4238,9 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     ...(options.gpuTiming === undefined
       ? {}
       : { gpuTiming: options.gpuTiming }),
+    ...(options.occlusionQueries === undefined
+      ? {}
+      : { occlusionQueries: options.occlusionQueries }),
   });
   let input: WebGpuPostPassTextureResource = sceneTexture.resource;
   let readbackBoundary: FrameBoundaryAssemblyReport | null = null;
@@ -4473,6 +4709,7 @@ function appendFrameBoundaryDiagnostics(
     ...(boundary.begin?.diagnostics ?? []),
     ...(boundary.execution?.diagnostics ?? []),
     ...(boundary.end?.diagnostics ?? []),
+    ...(boundary.occlusionQueries?.diagnostics ?? []),
     ...(boundary.finish?.diagnostics ?? []),
     ...(boundary.submit?.diagnostics ?? []),
   );
@@ -4557,6 +4794,71 @@ async function readWebGpuAppGpuTimings(input: {
       ...passReports.flatMap((report) => report.diagnostics),
     ],
   };
+}
+
+async function readWebGpuAppOcclusionQueries(input: {
+  readonly readbacks: readonly WebGpuAppOcclusionQueryReadback[];
+  readonly diagnostics: readonly GpuOcclusionQueryDiagnostic[];
+  readonly queryCount: number;
+}): Promise<WebGpuAppOcclusionQueryReport | undefined> {
+  if (input.queryCount === 0 && input.diagnostics.length === 0) {
+    return undefined;
+  }
+
+  const readbackResults: GpuOcclusionQueryReadbackResult[] = [];
+
+  for (const readback of input.readbacks) {
+    readbackResults.push(
+      await readGpuOcclusionQueryResults(
+        readback.resources,
+        readback.renderIds,
+      ),
+    );
+  }
+
+  const diagnostics = [
+    ...input.diagnostics,
+    ...readbackResults.flatMap((result) => result.diagnostics),
+  ];
+  const allReadbacksValid =
+    readbackResults.length > 0 &&
+    readbackResults.every((result) => result.valid);
+  const status =
+    input.queryCount === 0
+      ? "inactive"
+      : allReadbacksValid &&
+          diagnostics.every((entry) => entry.severity !== "error")
+        ? "ready"
+        : "unsupported";
+
+  return {
+    status,
+    queryCount: input.queryCount,
+    testedRenderIds: readbackResults.flatMap(
+      (result) => result.testedRenderIds,
+    ),
+    visibleRenderIds: readbackResults.flatMap(
+      (result) => result.visibleRenderIds,
+    ),
+    occludedRenderIds: readbackResults.flatMap(
+      (result) => result.occludedRenderIds,
+    ),
+    sampleCounts: readbackResults.flatMap((result) => result.sampleCounts),
+    diagnostics,
+  };
+}
+
+function newOcclusionQueryDiagnostics(
+  report: WebGpuAppOcclusionQueryReport | undefined,
+  existing: readonly GpuOcclusionQueryDiagnostic[],
+): readonly GpuOcclusionQueryDiagnostic[] {
+  if (report === undefined) {
+    return [];
+  }
+
+  return report.diagnostics.filter(
+    (diagnostic) => !existing.includes(diagnostic),
+  );
 }
 
 function createWebGpuAppDiagnosticsSummaryWithGpuTimings(
@@ -6023,6 +6325,11 @@ async function renderWebGpuAppFrame(
   });
 
   await waitForSubmittedWork(app.initialization.device);
+  const occlusionQueries = await readWebGpuAppOcclusionQueries({
+    readbacks: boundaries.occlusionQueryReadbacks,
+    diagnostics: boundaries.occlusionQueryDiagnostics,
+    queryCount: boundaries.occlusionQueryCount,
+  });
   const frameOk =
     framePlan.apply.diagnostics.length === 0 &&
     framePlan.bindingPlan.diagnostics.length === 0 &&
@@ -6032,7 +6339,8 @@ async function renderWebGpuAppFrame(
     framePlan.resources.valid &&
     framePlan.commandPlan.valid &&
     spriteFrame.resources.diagnostics.length === 0 &&
-    boundaries.valid;
+    boundaries.valid &&
+    (occlusionQueries === undefined || occlusionQueries.status === "ready");
   const readback = await mapFrameBoundaryReadbackSamples(
     boundaries.readbackBoundary?.readback,
     frameOk,
@@ -6056,6 +6364,7 @@ async function renderWebGpuAppFrame(
       ? {}
       : { depthAttachment: boundaries.depthAttachment }),
     ...(readback === undefined ? {} : { readback }),
+    ...(occlusionQueries === undefined ? {} : { occlusionQueries }),
     ...(indirectDraws.report.status === "skipped"
       ? {}
       : { indirectDraws: indirectDraws.report }),
@@ -6075,6 +6384,10 @@ async function renderWebGpuAppFrame(
       ...framePlan.commandPlan.diagnostics,
       ...spriteFrame.resources.diagnostics,
       ...boundaries.diagnostics,
+      ...newOcclusionQueryDiagnostics(
+        occlusionQueries,
+        boundaries.occlusionQueryDiagnostics,
+      ),
     ],
   });
 }
@@ -7187,6 +7500,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.localLightClusters === undefined
       ? {}
       : { localLightClusters: report.localLightClusters }),
+    ...(report.occlusionQueries === undefined
+      ? {}
+      : { occlusionQueries: report.occlusionQueries }),
     ...(materialDependencyReadiness.length === 0
       ? {}
       : { materialDependencyReadiness }),
@@ -7290,6 +7606,7 @@ function renderReport(input: {
   readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly indirectDraws?: IndirectDrawCommandReport;
   readonly motionVectors?: WebGpuAppMotionVectorReport;
+  readonly occlusionQueries?: WebGpuAppOcclusionQueryReport;
   readonly drawPackages?: number;
   readonly drawCommands?: number;
   readonly drawCalls?: number;
@@ -7360,6 +7677,9 @@ function renderReport(input: {
       ? {}
       : { motionVectors: input.motionVectors }),
     ...(localLightClusters === undefined ? {} : { localLightClusters }),
+    ...(input.occlusionQueries === undefined
+      ? {}
+      : { occlusionQueries: input.occlusionQueries }),
   };
 }
 

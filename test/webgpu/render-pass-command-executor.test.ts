@@ -104,6 +104,37 @@ describe("render pass command executor", () => {
     ]);
   });
 
+  it("executes occlusion query command records around draws", () => {
+    const calls: unknown[] = [];
+    const report = executeRenderPassCommands({
+      pass: recordingPass(calls),
+      commands: [
+        { kind: "beginOcclusionQuery", renderId: 3, queryIndex: 0 },
+        {
+          kind: "draw",
+          renderId: 3,
+          vertexCount: 24,
+          instanceCount: 1,
+          firstVertex: 0,
+          firstInstance: 0,
+        },
+        { kind: "endOcclusionQuery", renderId: 3, queryIndex: 0 },
+      ],
+    });
+
+    expect(report).toMatchObject({
+      valid: true,
+      commandCount: 3,
+      executedCommands: 3,
+      drawCalls: 1,
+    });
+    expect(calls).toEqual([
+      ["beginOcclusionQuery", 0],
+      ["draw", 24, 1, 0, 0],
+      ["endOcclusionQuery"],
+    ]);
+  });
+
   it("diagnoses missing pass encoder methods and skips those commands", () => {
     const report = executeRenderPassCommands({
       pass: {},
@@ -173,6 +204,9 @@ function recordingPass(calls: unknown[]): RenderPassEncoderLike {
       calls.push(["setVertexBuffer", slot, buffer]),
     setIndexBuffer: (buffer, format) =>
       calls.push(["setIndexBuffer", buffer, format]),
+    beginOcclusionQuery: (queryIndex) =>
+      calls.push(["beginOcclusionQuery", queryIndex]),
+    endOcclusionQuery: () => calls.push(["endOcclusionQuery"]),
     draw: (vertexCount, instanceCount, firstVertex, firstInstance) =>
       calls.push([
         "draw",

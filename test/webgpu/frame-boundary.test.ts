@@ -118,6 +118,55 @@ describe("frame boundary assembly helper", () => {
     ]);
   });
 
+  it("attaches, executes, and resolves occlusion query resources", () => {
+    const events: string[] = [];
+    const passDescriptors: unknown[] = [];
+    const querySet = { label: "query-set" };
+    const resolveBuffer = { label: "resolve-buffer", mapAsync: async () => {} };
+    const readbackBuffer = {
+      label: "readback-buffer",
+      mapAsync: async () => {},
+    };
+    const report = assembleFrameBoundary({
+      context: contextWithView({ label: "view" }),
+      device: device(events, { passDescriptors }),
+      queue: { submit: (buffers) => events.push(`submit:${buffers.length}`) },
+      commands: [
+        { kind: "beginOcclusionQuery", renderId: 1, queryIndex: 0 },
+        drawCommand(),
+        { kind: "endOcclusionQuery", renderId: 1, queryIndex: 0 },
+      ],
+      label: "occlusion-frame",
+      occlusionQueries: {
+        queryCount: 1,
+        resources: {
+          label: "occlusion",
+          queryCount: 1,
+          byteLength: 8,
+          querySet,
+          resolveBuffer,
+          readbackBuffer,
+        },
+      },
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.attachments?.plan?.occlusionQuerySet).toBe(querySet);
+    expect(report.occlusionQueries).toEqual({ valid: true, diagnostics: [] });
+    expect(passDescriptors[0]).toBe(report.attachments?.plan);
+    expect(events).toEqual([
+      "begin",
+      "beginOcclusionQuery:0",
+      "draw",
+      "endOcclusionQuery",
+      "end",
+      "resolveQuerySet:1",
+      "copyBufferToBuffer:8",
+      "finish",
+      "submit:1",
+    ]);
+  });
+
   it("stops at texture view acquisition failures", () => {
     const report = assembleFrameBoundary({
       context: { getCurrentTexture: () => ({}) },
@@ -347,9 +396,24 @@ function device(
         events.push("begin");
         return {
           ...(options.omitDraw ? {} : { draw: () => events.push("draw") }),
+          beginOcclusionQuery: (queryIndex: number) =>
+            events.push(`beginOcclusionQuery:${queryIndex}`),
+          endOcclusionQuery: () => events.push("endOcclusionQuery"),
           end: () => events.push("end"),
         };
       },
+      resolveQuerySet: (
+        _querySet: unknown,
+        _firstQuery: number,
+        queryCount: number,
+      ) => events.push(`resolveQuerySet:${queryCount}`),
+      copyBufferToBuffer: (
+        _source: unknown,
+        _sourceOffset: number,
+        _destination: unknown,
+        _destinationOffset: number,
+        size: number,
+      ) => events.push(`copyBufferToBuffer:${size}`),
       finish: () => {
         events.push("finish");
         return { label: "command-buffer" };

@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-23T22:51:27Z
+Updated: 2026-05-23T23:18:54Z
+
+## Current Run Update — 2026-05-23T23:18:54Z — GPU occlusion-query visibility feedback
+
+Completed `task-3121`, adding renderer-owned WebGPU occlusion-query visibility
+feedback for opted-in ECS mesh draws.
+
+### What changed
+
+- Added renderer-independent `OcclusionQuery` authoring, runtime
+  `withOcclusionQuery()`, extraction support, snapshot transport, and packed
+  encoding so mesh draws can request GPU visibility feedback without exposing
+  GPU state through ECS.
+- Added WebGPU occlusion query resources, begin/end query render-pass commands,
+  query-set attachment planning, resolve/copy/readback handling, JSON-safe app
+  reports, and unsupported-feature fallbacks that strip query commands before
+  submission.
+- Preserved batching and submission correctness by keeping occlusion-query draws
+  out of draw coalescing and render-bundle reuse.
+- Added `examples/occlusion-feedback.html` with a worker-authored occluder
+  scene proving one hidden queried cube reports zero samples and one visible
+  queried cube reports non-zero samples.
+- Updated the public tracker pages, backlog, current-task pointer, and
+  completed task log. Recommended next task is `task-3122`, multi-material
+  primitive/group queueing.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/rendering/snapshot-packed-encoding.test.ts test/webgpu/draw-command.test.ts test/webgpu/render-pass-draw-list.test.ts test/webgpu/render-pass-resources.test.ts test/webgpu/render-pass-commands.test.ts test/webgpu/render-pass-command-executor.test.ts test/webgpu/frame-boundary.test.ts test/webgpu/occlusion-query.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/occlusion-feedback.spec.ts --reporter=line`
+- `git diff --check`
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3122`, rendering multi-material primitive groups through queue
+records with a browser-visible proof.
 
 ## Current Run Update — 2026-05-23T22:51:27Z — Clustered local-light preparation
 

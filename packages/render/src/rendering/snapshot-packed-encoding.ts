@@ -546,6 +546,7 @@ function readMeshDrawPacket(
     ...(boneMatrixCount === undefined ? {} : { boneMatrixCount }),
     ...(castsShadow === undefined ? {} : { castsShadow }),
     ...(receivesShadow === undefined ? {} : { receivesShadow }),
+    ...((batchFlags & 8) === 0 ? {} : { occlusionQuery: true }),
   };
 }
 
@@ -816,7 +817,8 @@ function batchFlags(packet: MeshDrawPacket): number {
   return (
     (packet.batchKey.instanced ? 1 : 0) |
     (packet.batchKey.skinned ? 2 : 0) |
-    (packet.batchKey.morphed ? 4 : 0)
+    (packet.batchKey.morphed ? 4 : 0) |
+    (packet.occlusionQuery === true ? 8 : 0)
   );
 }
 

@@ -399,6 +399,10 @@ function commandKeyPart(
         command.format,
         resourceIdentity(command.buffer, cache),
       ];
+    case "beginOcclusionQuery":
+      return ["oq-begin", command.queryIndex];
+    case "endOcclusionQuery":
+      return ["oq-end", command.queryIndex];
     case "draw":
       return [
         "d",

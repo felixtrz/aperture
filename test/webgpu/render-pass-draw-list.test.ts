@@ -148,6 +148,33 @@ describe("render pass draw list planning", () => {
     expect(plan.draws.map((draw) => draw.instanceCount)).toEqual([1, 1]);
   });
 
+  it("does not coalesce occlusion-query draw commands", () => {
+    const plan = planRenderPassDrawList({
+      drawCommands: [
+        drawCommand(1, {
+          meshResourceKey: "mesh:cube",
+          vertexBufferKeys: ["mesh:cube/vertex"],
+          indexBufferKey: "mesh:cube/index",
+          transformPackedOffset: 0,
+          occlusionQuery: true,
+        }),
+        drawCommand(2, {
+          meshResourceKey: "mesh:cube",
+          vertexBufferKeys: ["mesh:cube/vertex"],
+          indexBufferKey: "mesh:cube/index",
+          transformPackedOffset: 16,
+          occlusionQuery: true,
+        }),
+      ],
+      pipelines: [pipeline("pipeline:unlit")],
+      bindGroups: bindGroups("material:white"),
+    });
+
+    expect(plan.valid).toBe(true);
+    expect(plan.draws).toHaveLength(2);
+    expect(plan.draws.map((draw) => draw.occlusionQuery)).toEqual([true, true]);
+  });
+
   it("prefers pipeline-specific shared bind groups when present", () => {
     const plan = planRenderPassDrawList({
       drawCommands: [
@@ -404,6 +431,7 @@ function drawCommand(
         : overrides.indexBufferKey,
     indexCount: overrides.indexCount ?? 6,
     transformPackedOffset: overrides.transformPackedOffset ?? renderId * 16,
+    ...(overrides.occlusionQuery === true ? { occlusionQuery: true } : {}),
   };
 }
 

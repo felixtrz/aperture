@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "1b8e899",
+  "lastCommit": "a2d4f00",
   "activePid": null,
-  "notes": "Completed task-3120 clustered local-light preparation; next task is task-3121 GPU occlusion-query visibility feedback.",
-  "lastRunFinishedAt": "2026-05-23T22:51:27Z"
+  "notes": "Completed task-3121 GPU occlusion-query visibility feedback; next task is task-3122 multi-material primitive/group queueing.",
+  "lastRunFinishedAt": "2026-05-23T23:18:54Z"
 }

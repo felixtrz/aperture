@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3121`: add GPU occlusion-query visibility feedback with a
-browser-visible occluder proof.
+Start `task-3122`: render multi-material primitive groups through queue records
+with a browser-visible proof.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -163,13 +163,18 @@ shading: Aperture still evaluated every packed StandardMaterial light per
 fragment, while PlayCanvas clusters local lights per view/light set and shades
 only the lights affecting the fragment's cluster. `task-3120` now adds
 renderer-owned clustered local-light buffers for StandardMaterial and a
-64-point-light browser proof. The next SOTA efficiency gap is renderer-owned GPU
-occlusion-query visibility feedback for hidden-but-frustum-visible objects.
+64-point-light browser proof. `task-3121` now adds renderer-owned GPU
+occlusion-query feedback for opted-in ECS mesh draws, with a browser proof that
+reports one hidden queried draw with zero samples and one visible queried draw
+with non-zero samples. The next SOTA efficiency gap is multi-material
+primitive/group queueing for single source meshes with distinct material
+ranges.
 
 Reference anchors for the next task (read before writing):
 
-- `references/three.js/src/renderers/common/RenderList.js`.
-- `references/three.js/src/renderers/webgpu/WebGPUBackend.js`.
+- `references/three.js/src/renderers/common/Renderer.js`.
+- `references/engine/src/framework/parsers/glb-parser.js`.
+- `references/engine/src/scene/mesh-instance.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -516,6 +521,8 @@ Acceptance criteria:
 - `examples/clustered-lights.html` renders at least 64 ECS-authored local lights and proves visible local-light response plus reported clustered pressure where max/average lights per populated cell are materially below total local lights, with zero WebGPU validation warnings.
 
 ### task-3121 — Add GPU occlusion-query visibility feedback
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*occlusion*`, `packages/render/src/rendering/`, `examples/occlusion-feedback.*`, `test/webgpu/`, `test/e2e/`.

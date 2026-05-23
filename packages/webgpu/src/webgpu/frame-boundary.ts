@@ -46,6 +46,12 @@ import {
   type GpuTimestampQueryResources,
 } from "./gpu-timing.js";
 import {
+  resolveGpuOcclusionQueries,
+  type GpuOcclusionCommandEncoderLike,
+  type GpuOcclusionQueryResources,
+  type GpuOcclusionQueryResolveReport,
+} from "./occlusion-query.js";
+import {
   beginPlannedRenderPass,
   endPlannedRenderPass,
   type BeginRenderPassResult,
@@ -194,6 +200,7 @@ export interface AssembleFrameBoundaryOptions {
   readonly depthTarget?: RenderPassDepthAttachmentInput | null;
   readonly readback?: FrameBoundaryReadbackOptions;
   readonly gpuTiming?: FrameBoundaryGpuTimingOptions;
+  readonly occlusionQueries?: FrameBoundaryOcclusionQueryOptions;
   readonly renderBundle?: FrameBoundaryRenderBundleOptions;
 }
 
@@ -210,6 +217,11 @@ export interface FrameBoundaryGpuTimingOptions {
   readonly startQuery?: number;
   readonly endQuery?: number;
   readonly resolveQueryCount?: number;
+}
+
+export interface FrameBoundaryOcclusionQueryOptions {
+  readonly resources: GpuOcclusionQueryResources;
+  readonly queryCount: number;
 }
 
 export interface FrameBoundaryGpuTimingCommandReport {
@@ -235,6 +247,7 @@ export interface FrameBoundaryAssemblyReport {
   readonly submit: SubmitCommandBuffersReport | null;
   readonly readback?: FrameBoundaryReadbackPlan | null;
   readonly gpuTiming?: FrameBoundaryGpuTimingCommandReport | null;
+  readonly occlusionQueries?: GpuOcclusionQueryResolveReport | null;
 }
 
 export function assembleFrameBoundary(
@@ -277,6 +290,11 @@ export function assembleFrameBoundary(
           ...(options.depthTarget === undefined
             ? {}
             : { depthTarget: options.depthTarget }),
+          ...(options.occlusionQueries === undefined
+            ? {}
+            : {
+                occlusionQuerySet: options.occlusionQueries.resources.querySet,
+              }),
         });
   const encoder =
     attachments?.valid === true
@@ -289,7 +307,8 @@ export function assembleFrameBoundary(
     | (RenderPassCommandEncoderLike &
         CommandEncoderFinishLike &
         FrameBoundaryReadbackCommandEncoderLike &
-        GpuTimestampCommandEncoderLike)
+        GpuTimestampCommandEncoderLike &
+        GpuOcclusionCommandEncoderLike)
     | undefined;
   const gpuTimingStart = writeFrameBoundaryGpuTimingStart(
     encoderHandle,
@@ -324,6 +343,10 @@ export function assembleFrameBoundary(
   const gpuTimingEnd = writeFrameBoundaryGpuTimingEnd(
     encoderHandle,
     options.gpuTiming,
+  );
+  const occlusionQueries = resolveFrameBoundaryOcclusionQueries(
+    encoderHandle,
+    options.occlusionQueries,
   );
   const gpuTimingResolve = resolveFrameBoundaryGpuTiming(
     encoderHandle,
@@ -362,6 +385,7 @@ export function assembleFrameBoundary(
       begin?.valid === true &&
       execution?.valid === true &&
       end?.valid === true &&
+      (occlusionQueries === null || occlusionQueries.valid) &&
       finish?.valid === true &&
       submit?.valid === true,
     texture,
@@ -383,7 +407,43 @@ export function assembleFrameBoundary(
             gpuTimingEnd,
             gpuTimingResolve,
           ),
+    occlusionQueries,
   };
+}
+
+function resolveFrameBoundaryOcclusionQueries(
+  encoder:
+    | (RenderPassCommandEncoderLike &
+        CommandEncoderFinishLike &
+        FrameBoundaryReadbackCommandEncoderLike &
+        GpuTimestampCommandEncoderLike &
+        GpuOcclusionCommandEncoderLike)
+    | undefined,
+  options: FrameBoundaryOcclusionQueryOptions | undefined,
+): GpuOcclusionQueryResolveReport | null {
+  if (options === undefined) {
+    return null;
+  }
+
+  if (encoder === undefined) {
+    return {
+      valid: false,
+      diagnostics: [
+        {
+          code: "gpuOcclusion.commandEncodingUnsupported",
+          severity: "error",
+          message:
+            "GPU occlusion query resolve requires a command encoder resource.",
+        },
+      ],
+    };
+  }
+
+  return resolveGpuOcclusionQueries(
+    encoder,
+    options.resources,
+    options.queryCount,
+  );
 }
 
 function executeFrameBoundaryCommands(options: {

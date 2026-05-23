@@ -61,6 +61,7 @@ export interface MeshDrawPacket {
   readonly layerMask: number;
   readonly castsShadow?: boolean;
   readonly receivesShadow?: boolean;
+  readonly occlusionQuery?: boolean;
   readonly sortKey: RenderSortKey;
   readonly batchKey: BatchCompatibilityKey;
 }

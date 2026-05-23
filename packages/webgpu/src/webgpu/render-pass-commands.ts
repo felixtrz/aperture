@@ -5,6 +5,8 @@ export type RenderPassCommandKind =
   | "setBindGroup"
   | "setVertexBuffer"
   | "setIndexBuffer"
+  | "beginOcclusionQuery"
+  | "endOcclusionQuery"
   | "draw"
   | "drawIndexed"
   | "drawIndirect"
@@ -58,6 +60,18 @@ export interface SetIndexBufferCommand {
   readonly format: string;
 }
 
+export interface BeginOcclusionQueryCommand {
+  readonly kind: "beginOcclusionQuery";
+  readonly renderId: number;
+  readonly queryIndex: number;
+}
+
+export interface EndOcclusionQueryCommand {
+  readonly kind: "endOcclusionQuery";
+  readonly renderId: number;
+  readonly queryIndex: number;
+}
+
 export interface DrawCommand {
   readonly kind: "draw";
   readonly renderId: number;
@@ -107,6 +121,8 @@ export type RenderPassCommand =
   | SetBindGroupCommand
   | SetVertexBufferCommand
   | SetIndexBufferCommand
+  | BeginOcclusionQueryCommand
+  | EndOcclusionQueryCommand
   | DrawCommand
   | DrawIndexedCommand
   | DrawIndirectCommand
@@ -122,6 +138,8 @@ export interface RenderPassCommandPlan {
   readonly drawCount: number;
   readonly indexedDrawCount: number;
   readonly nonIndexedDrawCount: number;
+  readonly occlusionQueryCount: number;
+  readonly occlusionQueryRenderIds: readonly number[];
   readonly pressure: RenderPassCommandPressureReport;
   readonly diagnostics: readonly RenderPassCommandDiagnostic[];
 }
@@ -154,6 +172,7 @@ export interface RenderPassCommandScratch {
   readonly activeBindGroups: Map<number, unknown>;
   readonly activeVertexBufferResourceKeys: Map<number, string>;
   readonly activeVertexBuffers: Map<number, unknown>;
+  readonly occlusionQueryRenderIds: number[];
   readonly pressure: RenderPassCommandPressureReport;
   readonly plan: RenderPassCommandPlan;
 }
@@ -176,6 +195,7 @@ interface MutableRenderPassCommand {
   firstIndex?: number;
   baseVertex?: number;
   firstInstance?: number;
+  queryIndex?: number;
 }
 
 export function planRenderPassCommands(
@@ -194,6 +214,7 @@ export function createRenderPassCommandScratch(
   const commands: RenderPassCommand[] = [];
   const diagnostics: RenderPassCommandDiagnostic[] = [];
   const commandPool: RenderPassCommand[] = [];
+  const occlusionQueryRenderIds: number[] = [];
   const pressure = createRenderPassCommandPressureReport();
 
   for (let i = 0; i < capacity; i += 1) {
@@ -209,6 +230,7 @@ export function createRenderPassCommandScratch(
     activeBindGroups: new Map(),
     activeVertexBufferResourceKeys: new Map(),
     activeVertexBuffers: new Map(),
+    occlusionQueryRenderIds,
     pressure,
     plan: {
       valid: true,
@@ -216,6 +238,8 @@ export function createRenderPassCommandScratch(
       drawCount: 0,
       indexedDrawCount: 0,
       nonIndexedDrawCount: 0,
+      occlusionQueryCount: 0,
+      occlusionQueryRenderIds,
       pressure,
       diagnostics,
     },
@@ -232,10 +256,12 @@ export function writeRenderPassCommands(
   scratch.activeBindGroups.clear();
   scratch.activeVertexBufferResourceKeys.clear();
   scratch.activeVertexBuffers.clear();
+  scratch.occlusionQueryRenderIds.length = 0;
   resetRenderPassCommandPressure(scratch.pressure);
 
   let indexedDrawCount = 0;
   let nonIndexedDrawCount = 0;
+  let occlusionQueryCount = 0;
   let activePipelineKey = "";
   let activePipeline: unknown = null;
   let hasActivePipeline = false;
@@ -372,7 +398,18 @@ export function writeRenderPassCommands(
         continue;
       }
 
+      if (draw.occlusionQuery === true) {
+        pushBeginOcclusionQueryCommand(scratch, draw, occlusionQueryCount);
+      }
+
       pushDrawIndexedCommand(scratch, draw, indexCount, firstInstance);
+
+      if (draw.occlusionQuery === true) {
+        pushEndOcclusionQueryCommand(scratch, draw, occlusionQueryCount);
+        scratch.occlusionQueryRenderIds.push(draw.renderId);
+        occlusionQueryCount += 1;
+      }
+
       indexedDrawCount += 1;
       continue;
     }
@@ -386,7 +423,18 @@ export function writeRenderPassCommands(
       continue;
     }
 
+    if (draw.occlusionQuery === true) {
+      pushBeginOcclusionQueryCommand(scratch, draw, occlusionQueryCount);
+    }
+
     pushDrawCommand(scratch, draw, firstInstance);
+
+    if (draw.occlusionQuery === true) {
+      pushEndOcclusionQueryCommand(scratch, draw, occlusionQueryCount);
+      scratch.occlusionQueryRenderIds.push(draw.renderId);
+      occlusionQueryCount += 1;
+    }
+
     nonIndexedDrawCount += 1;
   }
 
@@ -396,10 +444,37 @@ export function writeRenderPassCommands(
   plan.drawCount = indexedDrawCount + nonIndexedDrawCount;
   plan.indexedDrawCount = indexedDrawCount;
   plan.nonIndexedDrawCount = nonIndexedDrawCount;
+  plan.occlusionQueryCount = occlusionQueryCount;
   (scratch.pressure as MutableRenderPassCommandPressureReport).drawCommands =
     plan.drawCount;
 
   return scratch.plan;
+}
+
+function pushBeginOcclusionQueryCommand(
+  scratch: RenderPassCommandScratch,
+  draw: ResolvedRenderPassDraw,
+  queryIndex: number,
+): void {
+  const command = commandAt(scratch);
+
+  command.kind = "beginOcclusionQuery";
+  command.renderId = draw.renderId;
+  command.queryIndex = queryIndex;
+  scratch.commands.push(command as BeginOcclusionQueryCommand);
+}
+
+function pushEndOcclusionQueryCommand(
+  scratch: RenderPassCommandScratch,
+  draw: ResolvedRenderPassDraw,
+  queryIndex: number,
+): void {
+  const command = commandAt(scratch);
+
+  command.kind = "endOcclusionQuery";
+  command.renderId = draw.renderId;
+  command.queryIndex = queryIndex;
+  scratch.commands.push(command as EndOcclusionQueryCommand);
 }
 
 function createRenderPassCommandPressureReport(): RenderPassCommandPressureReport {

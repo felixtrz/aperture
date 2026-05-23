@@ -34,6 +34,7 @@ export interface RenderPassDrawListRecord {
   readonly indexCount: number | null;
   readonly instanceCount: number;
   readonly transformPackedOffset: number;
+  readonly occlusionQuery?: boolean;
 }
 
 export interface RenderPassDrawListOptions {
@@ -73,6 +74,7 @@ interface MutableRenderPassDrawListRecord {
   indexCount: number | null;
   instanceCount: number;
   transformPackedOffset: number;
+  occlusionQuery?: boolean;
 }
 
 export function planRenderPassDrawList(
@@ -181,6 +183,11 @@ export function writeRenderPassDrawList(
     record.indexCount = command.indexCount;
     record.instanceCount = 1;
     record.transformPackedOffset = command.transformPackedOffset;
+    if (command.occlusionQuery === true) {
+      record.occlusionQuery = true;
+    } else {
+      delete record.occlusionQuery;
+    }
     scratch.draws.push(record);
   }
 
@@ -206,6 +213,8 @@ function canCoalesceDrawListRecord(
     previous.vertexCount === command.vertexCount &&
     previous.indexBufferKey === command.indexBufferKey &&
     previous.indexCount === command.indexCount &&
+    previous.occlusionQuery !== true &&
+    command.occlusionQuery !== true &&
     previous.transformPackedOffset + previous.instanceCount * 16 ===
       command.transformPackedOffset &&
     stringArraysMatch(previous.vertexBufferKeys, command.vertexBufferKeys) &&

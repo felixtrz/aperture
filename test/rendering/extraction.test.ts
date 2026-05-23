@@ -13,6 +13,7 @@ import {
   LightShadowSettings,
   Material,
   Mesh,
+  OcclusionQuery,
   RenderLayer,
   ShadowCaster,
   ShadowReceiver,
@@ -30,6 +31,7 @@ import {
   createLightShadowSettings,
   createMaterialHandle,
   createMeshHandle,
+  createOcclusionQuery,
   createRenderTargetHandle,
   createSamplerAsset,
   createSamplerHandle,
@@ -84,6 +86,37 @@ describe("render extraction", () => {
       bounds: 1,
       diagnostics: 0,
     });
+  });
+
+  it("extracts mesh draw occlusion-query opt-in without renderer-owned state", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    createCameraEntity(world, { priority: 0, layerMask: 0b01 });
+    const visible = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 0b01,
+    });
+    const disabled = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 0b01,
+      translation: [2, 0, 0],
+    });
+
+    visible.addComponent(OcclusionQuery, createOcclusionQuery());
+    disabled.addComponent(
+      OcclusionQuery,
+      createOcclusionQuery({ enabled: false }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 8 });
+    const byEntity = new Map(
+      snapshot.meshDraws.map((draw) => [draw.entity.index, draw]),
+    );
+
+    expect(byEntity.get(visible.index)?.occlusionQuery).toBe(true);
+    expect(byEntity.get(disabled.index)?.occlusionQuery).toBeUndefined();
   });
 
   it("extracts view-relative transparent sort depths before stable ids", () => {

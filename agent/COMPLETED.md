@@ -1,5 +1,36 @@
 # Completed Tasks
 
+## task-3121 — Add GPU occlusion-query visibility feedback
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added renderer-independent `OcclusionQuery` authoring, runtime
+  `withOcclusionQuery()`, extraction support, snapshot transport, and packed
+  encoding so ECS-authored mesh draws can opt into GPU visibility feedback
+  without making GPU state authoritative.
+- Added WebGPU occlusion query resources, begin/end query render-pass commands,
+  query-set attachment planning, resolve/copy/readback handling, JSON-safe app
+  reports, and fallbacks that strip query commands when unsupported.
+- Preserved batching correctness by preventing queried draws from coalescing and
+  disabled render-bundle reuse for passes with active occlusion queries.
+- Added `examples/occlusion-feedback.html`, a worker-authored scene with one
+  occluded queried cube and one visible queried cube, plus browser status that
+  reports visible and occluded render IDs with sample counts.
+- Updated public tracker pages and backlog. Recommended next task is
+  `task-3122`, multi-material primitive/group queueing.
+
+Validation:
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/rendering/snapshot-packed-encoding.test.ts test/webgpu/draw-command.test.ts test/webgpu/render-pass-draw-list.test.ts test/webgpu/render-pass-resources.test.ts test/webgpu/render-pass-commands.test.ts test/webgpu/render-pass-command-executor.test.ts test/webgpu/frame-boundary.test.ts test/webgpu/occlusion-query.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/occlusion-feedback.spec.ts --reporter=line`
+- `git diff --check`
+
 ## task-3120 — Add clustered local-light preparation for StandardMaterial
 
 Completed: 2026-05-23

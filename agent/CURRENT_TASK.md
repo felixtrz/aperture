@@ -3,10 +3,9 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3121.
+Current task: task-3122.
 
-Status: `task-3120` completed clustered local-light preparation for
-StandardMaterial.
+Status: `task-3121` completed GPU occlusion-query visibility feedback.
 
 Key finding:
 
@@ -24,15 +23,24 @@ Key finding:
 - `examples/clustered-lights.html` proves 64 ECS-authored point lights through
   the clustered StandardMaterial pipeline and reports JSON-safe cluster pressure
   plus buffer reuse.
-- The next SOTA efficiency gap is hidden-but-frustum-visible geometry.
-  Aperture has frustum culling, but does not yet allocate, resolve, and publish
-  renderer-owned GPU occlusion-query visibility feedback like the referenced
-  WebGPU pipelines.
+- ECS mesh draws can now opt into renderer-owned WebGPU occlusion queries via
+  `withOcclusionQuery()`, extraction/snapshot transport preserves that opt-in,
+  the WebGPU app allocates query sets, wraps queried draws, resolves/copies
+  results, and reports visible versus occluded render IDs without exposing live
+  GPU objects.
+- `examples/occlusion-feedback.html` proves one hidden-but-frustum-visible
+  queried cube with zero samples and one visible queried cube with non-zero
+  samples, while keeping the worker/main snapshot boundary intact.
+- The next SOTA efficiency gap is multi-material primitive/group queueing.
+  Aperture can render many material entities, but a single source mesh still
+  needs first-class primitive/group ranges that produce distinct queue records
+  and material-route diagnostics without introducing a scene graph.
 
-Next step: run `task-3121` from `agent/BACKLOG.md`, adding GPU occlusion-query
-visibility feedback with a browser-visible occluder proof.
+Next step: run `task-3122` from `agent/BACKLOG.md`, rendering multi-material
+primitive groups through queue records with a browser-visible proof.
 
 Reference anchors for the next task:
 
-- `references/three.js/src/renderers/common/RenderList.js`.
-- `references/three.js/src/renderers/webgpu/WebGPUBackend.js`.
+- `references/three.js/src/renderers/common/Renderer.js`.
+- `references/engine/src/framework/parsers/glb-parser.js`.
+- `references/engine/src/scene/mesh-instance.js`.

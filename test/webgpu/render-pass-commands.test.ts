@@ -182,6 +182,36 @@ describe("render pass command planning", () => {
     });
   });
 
+  it("wraps occlusion-query draws with per-draw query commands", () => {
+    const plan = planRenderPassCommands({
+      draws: [resolvedDraw(7, { occlusionQuery: true })],
+    });
+
+    expect(plan.valid).toBe(true);
+    expect(plan.occlusionQueryCount).toBe(1);
+    expect(plan.occlusionQueryRenderIds).toEqual([7]);
+    expect(plan.commands.map((command) => command.kind)).toEqual([
+      "setPipeline",
+      "setBindGroup",
+      "setBindGroup",
+      "setVertexBuffer",
+      "setIndexBuffer",
+      "beginOcclusionQuery",
+      "drawIndexed",
+      "endOcclusionQuery",
+    ]);
+    expect(plan.commands.at(-3)).toMatchObject({
+      kind: "beginOcclusionQuery",
+      renderId: 7,
+      queryIndex: 0,
+    });
+    expect(plan.commands.at(-1)).toMatchObject({
+      kind: "endOcclusionQuery",
+      renderId: 7,
+      queryIndex: 0,
+    });
+  });
+
   it("sorts bind groups and preserves resolved draw order", () => {
     const plan = planRenderPassCommands({
       draws: [resolvedDraw(2), resolvedDraw(1)],
@@ -261,6 +291,7 @@ function resolvedDraw(
     readonly indexCount?: number | null;
     readonly vertexCount?: number;
     readonly transformPackedOffset?: number;
+    readonly occlusionQuery?: boolean;
   } = {},
 ): ResolvedRenderPassDraw {
   const indexed = options.indexed ?? true;
@@ -300,5 +331,6 @@ function resolvedDraw(
     indexCount: indexed ? (options.indexCount ?? 6) : null,
     instanceCount: 1,
     transformPackedOffset: options.transformPackedOffset ?? renderId * 16,
+    ...(options.occlusionQuery === true ? { occlusionQuery: true } : {}),
   };
 }

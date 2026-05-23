@@ -157,6 +157,8 @@ function commands(valid: boolean): RenderPassCommandPlan {
     drawCount: valid ? 1 : 0,
     indexedDrawCount: valid ? 1 : 0,
     nonIndexedDrawCount: 0,
+    occlusionQueryCount: 0,
+    occlusionQueryRenderIds: [],
     pressure: {
       resolvedDraws: valid ? 1 : 0,
       drawCommands: valid ? 1 : 0,

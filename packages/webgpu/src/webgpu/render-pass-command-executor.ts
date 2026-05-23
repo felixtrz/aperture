@@ -8,6 +8,8 @@ export type RenderPassEncoderMethod =
   | "setBindGroup"
   | "setVertexBuffer"
   | "setIndexBuffer"
+  | "beginOcclusionQuery"
+  | "endOcclusionQuery"
   | "draw"
   | "drawIndexed"
   | "drawIndirect"
@@ -25,6 +27,8 @@ export interface RenderPassEncoderLike {
   setBindGroup?: (index: number, bindGroup: unknown) => void;
   setVertexBuffer?: (slot: number, buffer: unknown) => void;
   setIndexBuffer?: (buffer: unknown, format: string) => void;
+  beginOcclusionQuery?: (queryIndex: number) => void;
+  endOcclusionQuery?: () => void;
   draw?: (
     vertexCount: number,
     instanceCount: number,
@@ -105,6 +109,30 @@ export function executeRenderPassCommands(
         }
 
         options.pass.setIndexBuffer(command.buffer, command.format);
+        executedCommands += 1;
+        break;
+      }
+      case "beginOcclusionQuery": {
+        if (options.pass.beginOcclusionQuery === undefined) {
+          diagnostics.push(
+            missingMethod("beginOcclusionQuery", command.renderId),
+          );
+          break;
+        }
+
+        options.pass.beginOcclusionQuery(command.queryIndex);
+        executedCommands += 1;
+        break;
+      }
+      case "endOcclusionQuery": {
+        if (options.pass.endOcclusionQuery === undefined) {
+          diagnostics.push(
+            missingMethod("endOcclusionQuery", command.renderId),
+          );
+          break;
+        }
+
+        options.pass.endOcclusionQuery();
         executedCommands += 1;
         break;
       }

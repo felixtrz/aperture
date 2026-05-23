@@ -57,6 +57,7 @@ import {
   Material,
   Mesh,
   MorphTargetWeights,
+  OcclusionQuery,
   RenderLayer,
   RenderOrder,
   ShadowCaster,
@@ -761,6 +762,9 @@ function extractMeshDraws(
 
     const boneMatrixOffset =
       skinning === undefined ? undefined : pushBoneMatrices(bones, skinning);
+    const occlusionQuery =
+      entity.hasComponent(OcclusionQuery) &&
+      entity.getValue(OcclusionQuery, "enabled") !== false;
     const boundsIndex = bounds.length;
     const sortView = firstMatchingSortView(layerMask, viewCullContexts);
     const sortViewId = sortView?.viewId ?? 0;
@@ -893,6 +897,7 @@ function extractMeshDraws(
         layerMask,
         castsShadow,
         receivesShadow,
+        ...(occlusionQuery ? { occlusionQuery } : {}),
         sortKey: createRenderSortKey({
           queue,
           viewId: sortViewId,
@@ -1367,6 +1372,9 @@ function createMeshDrawPacketTemplate(
     ...(draw.receivesShadow === undefined
       ? {}
       : { receivesShadow: draw.receivesShadow }),
+    ...(draw.occlusionQuery === undefined
+      ? {}
+      : { occlusionQuery: draw.occlusionQuery }),
     sortKey: draw.sortKey,
     batchKey: draw.batchKey,
   };

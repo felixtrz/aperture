@@ -175,6 +175,7 @@ function randomPacketBundle(): SnapshotPacketBundle {
         instanceTintOffset: 12,
         castsShadow: true,
         receivesShadow: false,
+        occlusionQuery: true,
       }),
       meshDraw({
         seed: 1,
@@ -186,6 +187,7 @@ function randomPacketBundle(): SnapshotPacketBundle {
         instanceTintOffset: undefined,
         castsShadow: false,
         receivesShadow: true,
+        occlusionQuery: false,
       }),
     ],
     lights: [
@@ -266,6 +268,7 @@ function meshDraw(options: {
   readonly instanceTintOffset: number | undefined;
   readonly castsShadow: boolean;
   readonly receivesShadow: boolean;
+  readonly occlusionQuery: boolean;
 }): SnapshotPacketBundle["meshDraws"][number] {
   const seed = options.seed;
   const packet: SnapshotPacketBundle["meshDraws"][number] = {
@@ -300,6 +303,7 @@ function meshDraw(options: {
       skinned: seed === 1,
       morphed: false,
     },
+    ...(options.occlusionQuery ? { occlusionQuery: true } : {}),
   };
 
   return {

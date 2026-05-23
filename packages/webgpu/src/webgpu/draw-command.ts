@@ -28,6 +28,7 @@ export interface DrawCommandDescriptor {
   readonly indexBufferKey: string | null;
   readonly indexCount: number | null;
   readonly transformPackedOffset: number;
+  readonly occlusionQuery?: boolean;
 }
 
 export interface DrawCommandDescriptorPlan {
@@ -59,6 +60,7 @@ interface MutableDrawCommandDescriptor {
   indexBufferKey: string | null;
   indexCount: number | null;
   transformPackedOffset: number;
+  occlusionQuery?: boolean;
 }
 
 export function createDrawCommandDescriptors(
@@ -160,6 +162,11 @@ export function writeDrawCommandDescriptors(
     descriptor.indexBufferKey = mesh.indexBuffer?.resourceKey ?? null;
     descriptor.indexCount = mesh.indexBuffer?.indexCount ?? null;
     descriptor.transformPackedOffset = drawPackage.transformPackedOffset;
+    if (drawPackage.packet.occlusionQuery === true) {
+      descriptor.occlusionQuery = true;
+    } else {
+      delete descriptor.occlusionQuery;
+    }
     scratch.descriptors.push(descriptor);
   }
 

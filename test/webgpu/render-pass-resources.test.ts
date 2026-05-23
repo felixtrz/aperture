@@ -69,6 +69,21 @@ describe("render pass resource resolution", () => {
     expect(result.draws.map((draw) => draw.renderId)).toEqual([2, 1]);
   });
 
+  it("preserves occlusion-query draw metadata during resource resolution", () => {
+    const result = resolveRenderPassResources({
+      drawList: [{ ...drawListRecord(1), occlusionQuery: true }],
+      pipelines: [pipeline("pipeline:unlit")],
+      bindGroups: bindGroups(),
+      meshResources: [meshResource(1)],
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.draws[0]).toMatchObject({
+      renderId: 1,
+      occlusionQuery: true,
+    });
+  });
+
   it("diagnoses missing pipeline handles", () => {
     const result = resolveRenderPassResources({
       drawList: [drawListRecord(1)],

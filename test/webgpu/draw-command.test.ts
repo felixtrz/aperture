@@ -58,6 +58,19 @@ describe("draw command descriptor planning", () => {
     });
   });
 
+  it("preserves renderer-owned occlusion query opt-in from draw packets", () => {
+    const result = createDrawCommandDescriptors(
+      [drawPackage(1, "mesh:a", "unlit", { occlusionQuery: true })],
+      [meshResource("mesh:a", true)],
+    );
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.descriptors[0]).toMatchObject({
+      renderId: 1,
+      occlusionQuery: true,
+    });
+  });
+
   it("reports missing mesh resources", () => {
     expect(
       createDrawCommandDescriptors([drawPackage(1, "mesh:missing")], [])
@@ -194,13 +207,18 @@ function drawPackage(
   renderId: number,
   meshResourceKey: string,
   pipelineKey = "unlit",
+  packet: Partial<RenderWorldDrawPackage["packet"]> = {},
 ): RenderWorldDrawPackage {
   return {
     renderId,
     batchKey: { ...BATCH, pipelineKey },
     meshResourceKey,
     materialResourceKey: "material:a",
-    packet: { instanceTintOffset: 0, instanceAttributePacketIndex: 0 },
+    packet: {
+      instanceTintOffset: 0,
+      instanceAttributePacketIndex: 0,
+      ...packet,
+    },
     transformPackedOffset: renderId * 16,
   } as unknown as RenderWorldDrawPackage;
 }

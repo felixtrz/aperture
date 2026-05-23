@@ -54,6 +54,7 @@ export interface ResolvedRenderPassDraw {
   readonly indexCount: number | null;
   readonly instanceCount: number;
   readonly transformPackedOffset: number;
+  readonly occlusionQuery?: boolean;
 }
 
 export interface ResolveRenderPassResourcesOptions {
@@ -109,6 +110,7 @@ interface MutableResolvedRenderPassDraw {
   indexCount: number | null;
   instanceCount: number;
   transformPackedOffset: number;
+  occlusionQuery?: boolean;
 }
 
 interface MutableResolvedRenderPassBindGroup {
@@ -190,6 +192,11 @@ export function writeResolveRenderPassResources(
     resolvedDraw.indexCount = draw.indexCount;
     resolvedDraw.instanceCount = draw.instanceCount;
     resolvedDraw.transformPackedOffset = draw.transformPackedOffset;
+    if (draw.occlusionQuery === true) {
+      resolvedDraw.occlusionQuery = true;
+    } else {
+      delete resolvedDraw.occlusionQuery;
+    }
 
     const bindGroupsReady = resolveBindGroups(draw, scratch, resolvedDraw);
     const vertexBuffersReady = resolveVertexBuffers(

@@ -41,6 +41,7 @@ import {
   Material,
   Mesh,
   MorphTargetWeights,
+  OcclusionQuery,
   RenderLayer,
   RenderOrder,
   ShadowCaster,
@@ -56,6 +57,7 @@ import {
   createLight,
   createLightShadowSettings,
   createMorphTargetWeights,
+  createOcclusionQuery,
   createSkin,
   createSprite,
   createSkybox,
@@ -70,6 +72,7 @@ import {
   type LightInput,
   type LightShadowSettingsInput,
   type MorphTargetWeightsInput,
+  type OcclusionQueryInput,
   type RenderSnapshot,
   type SkinInput,
   type SpriteInput,
@@ -352,6 +355,15 @@ export function withVisibility(visible = true): SpawnEntityInitializer {
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(Visibility, { visible });
+  };
+}
+
+export function withOcclusionQuery(
+  input: OcclusionQueryInput = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(OcclusionQuery, createOcclusionQuery(input));
   };
 }
 

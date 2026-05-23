@@ -57,11 +57,13 @@ export interface PlannedRenderPassDepthStencilAttachment {
 export interface RenderPassAttachmentDescriptorPlan {
   readonly colorAttachments: readonly PlannedRenderPassColorAttachment[];
   readonly depthStencilAttachment?: PlannedRenderPassDepthStencilAttachment;
+  readonly occlusionQuerySet?: unknown;
 }
 
 export interface CreateRenderPassAttachmentPlanOptions {
   readonly colorTargets: readonly RenderPassColorAttachmentInput[];
   readonly depthTarget?: RenderPassDepthAttachmentInput | null;
+  readonly occlusionQuerySet?: unknown;
 }
 
 export interface CreateRenderPassAttachmentPlanResult {
@@ -94,7 +96,12 @@ export function createRenderPassAttachmentPlan(
     return { valid: false, plan: null, diagnostics };
   }
 
-  const plan: RenderPassAttachmentDescriptorPlan = { colorAttachments };
+  const plan: RenderPassAttachmentDescriptorPlan = {
+    colorAttachments,
+    ...(options.occlusionQuerySet === undefined
+      ? {}
+      : { occlusionQuerySet: options.occlusionQuerySet }),
+  };
 
   if (depthStencilAttachment !== undefined) {
     return {

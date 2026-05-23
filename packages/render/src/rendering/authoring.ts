@@ -114,6 +114,10 @@ export interface FogInput {
   readonly end?: number;
 }
 
+export interface OcclusionQueryInput {
+  readonly enabled?: boolean;
+}
+
 export interface InstanceTintInput {
   readonly color?: Vec4Like;
 }
@@ -226,6 +230,14 @@ export const Visibility = defineComponent(
     visible: { type: EcsType.Boolean, default: true },
   },
   "Authoring visibility flag consumed by render extraction.",
+);
+
+export const OcclusionQuery = defineComponent(
+  "aperture.render.occlusionQuery",
+  {
+    enabled: { type: EcsType.Boolean, default: true },
+  },
+  "Opt-in renderer-owned GPU occlusion-query feedback for mesh draws.",
 );
 
 export const RenderLayer = defineComponent(
@@ -372,6 +384,7 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(Fog);
   world.registerComponent(Camera);
   world.registerComponent(Visibility);
+  world.registerComponent(OcclusionQuery);
   world.registerComponent(RenderLayer);
   world.registerComponent(RenderOrder);
   world.registerComponent(InstanceTint);
@@ -486,6 +499,14 @@ export function createFog(
     density: input.density ?? (mode === FogMode.Linear ? 0 : 0.00025),
     start: input.start ?? 1,
     end: input.end ?? 1000,
+  };
+}
+
+export function createOcclusionQuery(
+  input: OcclusionQueryInput = {},
+): ComponentInitialData<typeof OcclusionQuery> {
+  return {
+    enabled: input.enabled ?? true,
   };
 }
 

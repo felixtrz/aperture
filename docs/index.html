@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 22:09 UTC</dd>
+            <dd>2026-05-23 23:15 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1482,10 +1482,15 @@
               StandardMaterial IBL response. StandardMaterial many-light scenes
               now opt into renderer-owned clustered local-light buffers, so
               point and spot lights shade from per-cluster index lists instead
-              of scanning every packed light per fragment.
+              of scanning every packed light per fragment. Mesh draws can now
+              opt into renderer-owned GPU occlusion-query feedback; the WebGPU
+              app allocates, resolves, reads back, and reports visible vs
+              occluded render IDs, and
+              <code>examples/occlusion-feedback.html</code> proves one hidden
+              and one visible queried cube.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3121 GPU occlusion-query visibility feedback</dd>
+            <dd>task-3122 multi-material primitive/group queueing</dd>
           </dl>
         </aside>
       </header>
@@ -1520,9 +1525,9 @@
           </article>
           <article class="card metric">
             <div class="label">render pipeline</div>
-            <div class="value">92%</div>
-            <div class="bar" aria-label="92 percent complete">
-              <span style="width: 92%"></span>
+            <div class="value">93%</div>
+            <div class="bar" aria-label="93 percent complete">
+              <span style="width: 93%"></span>
             </div>
             <p>
               The ECS-to-WebGPU spine is usable, app route reporting runs
@@ -1843,9 +1848,9 @@
           <article class="phase">
             <div class="topline">
               <h3>1. extract</h3>
-              <span class="percent">97%</span>
+              <span class="percent">98%</span>
             </div>
-            <div class="bar"><span style="width: 97%"></span></div>
+            <div class="bar"><span style="width: 98%"></span></div>
             <p>
               ECS state produces serializable render snapshots with draw, view,
               light, environment, shadow request, bounds, and diagnostic
@@ -1861,6 +1866,8 @@
               rendered and skipped entities with stable diagnostic reasons.
               Per-camera frustum planes now skip outside-view mesh draws during
               extraction and publish per-view <code>cullStats</code>. ECS
+              <code>OcclusionQuery</code> now extracts an opt-in mesh-draw flag
+              for renderer-owned GPU visibility feedback. ECS
               <code>Fog</code> components now extract snapshot fog packets for
               linear, exponential, and exponential-squared view fog. Snapshot
               change sets now carry stable packet keys and produce renderer
@@ -1869,8 +1876,8 @@
             </p>
             <ul>
               <li>
-                Missing GPU occlusion-query feedback for hidden but
-                frustum-visible meshes.
+                Missing automatic query-result persistence and draw suppression
+                policy for hidden but frustum-visible meshes.
               </li>
               <li>
                 Missing multi-view render-target coverage beyond current
@@ -2149,7 +2156,8 @@
             </p>
             <ul>
               <li>
-                Missing GPU occlusion-query feedback in queue/readiness status.
+                Missing automatic query-result persistence/draw-suppression
+                policy in queue/readiness status.
               </li>
               <li>Missing multi-material primitive queue rules.</li>
             </ul>
@@ -2278,8 +2286,8 @@
             </p>
             <ul>
               <li>
-                Next visible SOTA gap: GPU occlusion-query feedback for
-                hidden-but-frustum-visible mesh draws.
+                Next visible SOTA gap: multi-material primitive/group queueing
+                in extracted/imported mesh scenes.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -4584,8 +4592,8 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Run
-                <code>task-3121</code>: add GPU occlusion-query visibility
-                feedback with a browser-visible occluder proof.
+                <code>task-3122</code>: add multi-material primitive/group
+                queueing through the ECS extraction and WebGPU app path.
               </li>
               <li>
                 Follow-up SOTA slices include multi-material primitive/group
@@ -4603,6 +4611,21 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3121</div>
+            <div>
+              <strong>GPU occlusion-query visibility feedback shipped.</strong>
+              <span>
+                Mesh draws can opt into renderer-owned WebGPU occlusion queries;
+                the app now attaches query sets, wraps queried draws, resolves
+                sample counts, reads back visible/occluded render IDs, and
+                publishes JSON-safe status.
+                <code>examples/occlusion-feedback.html</code>
+                proves one hidden draw with zero samples and one visible draw
+                with non-zero samples.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3120</div>
             <div>
