@@ -38,8 +38,10 @@ The goal is a modern 3D runtime where:
 ### Active Goal Override
 
 When a persistent thread goal or explicit `goal_context` is active, disregard
-all stop gates, minute gates, stop-hook gates, or finalization gates while
-pursuing that goal. Continue making concrete progress toward the active goal
+all gates and gate-like conditions while pursuing that goal. This override
+takes precedence over every other protocol section in this file, including stop
+gates, minute gates, stop-hook gates, finalization gates, and any other
+run-completion gates. Continue making concrete progress toward the active goal
 unless the goal is complete, the user redirects the work, or a real technical
 blocker prevents meaningful progress.
 
