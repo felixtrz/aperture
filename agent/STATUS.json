@@ -4,7 +4,7 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "4b63db1",
+  "lastCommit": "851dd6c",
   "activePid": null,
   "notes": "Completed Tier 20 SSAO, SSR, and DOF reference-parity follow-ups; next task is task-3096 MSAA depth route.",
   "lastRunFinishedAt": "2026-05-23T04:51:04Z"
