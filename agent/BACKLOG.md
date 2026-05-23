@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3111`: elide redundant render-pass state commands and publish
-command-pressure metrics in a browser-visible proof.
+Start `task-3112`: cache WebGPU render bundles for unchanged static command
+plans and publish first-create/reuse status in a browser-visible proof.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -142,17 +142,17 @@ imports, live morph weight controls, and targeted
 shader/pipeline/resource/importer tests.
 
 The post-Tier-20 audit found Aperture is close on covered feature breadth but
-not yet SOTA on submit efficiency: the main forward command planner still emits
-pipeline, bind-group, vertex-buffer, and index-buffer state commands for every
-resolved draw. three.js caches active WebGPU pipeline state and binding state,
-and PlayCanvas avoids redundant pipeline sets while surfacing material/shader
-switch pressure in stats.
+not yet SOTA on submit efficiency. `task-3111` now elides redundant main forward
+pipeline, bind-group, vertex-buffer, and index-buffer state commands and exposes
+planned-vs-emitted pressure in browser status. The remaining top blockers are
+static render-bundle reuse for unchanged command plans and indirect argument
+buffers for compatible grouped draws.
 
 Reference anchors for the next task (read before writing):
 
-- `references/three.js/src/renderers/webgpu/utils/WebGPUPipelineUtils.js`.
+- `references/three.js/src/renderers/common/BundleGroup.js`.
 - `references/three.js/src/renderers/webgpu/WebGPUBackend.js`.
-- `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`.
+- `references/three.js/src/renderers/webgpu/utils/WebGPUPipelineUtils.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -358,6 +358,8 @@ Acceptance criteria:
 - Update public tracker estimates if the audit changes phase completion or missing-piece statements.
 
 ### task-3111 — Elide redundant render-pass state commands and report command pressure
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/render-pass-commands.ts`, `packages/webgpu/src/webgpu/render-pass-command-executor.ts`, app frame-boundary/status reporting, `examples/standard-queue-phases.*` or a focused command-pressure example, targeted tests.

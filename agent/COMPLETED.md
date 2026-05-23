@@ -26016,3 +26016,28 @@ Validation:
 - `pnpm exec vitest run test/webgpu/standard-pipeline-descriptor.test.ts`
 - `pnpm exec tsc --noEmit -p tsconfig.test.json`
 - `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "alpha-mask plus metallic-roughness textures"`
+
+## task-3111 — Elide redundant render-pass state commands and report command pressure
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added render-pass command-planner state tracking for active pipeline, bind
+  groups, vertex buffers, and index buffer so adjacent compatible draws skip
+  redundant state setup while preserving draw commands.
+- Added JSON-safe planned/emitted/elided command-pressure metrics to command
+  plans and WebGPU app reports.
+- Updated `examples/standard-queue-phases.html` status and browser coverage to
+  prove the scene keeps 8 draw commands and zero diagnostics while reducing 56
+  planned state commands to 21 emitted commands with 35 elided.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/render-pass-commands.test.ts test/webgpu/render-pass-command-executor.test.ts test/webgpu/render-pass-assembly-smoke.test.ts --reporter=dot`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec prettier --check packages/webgpu/src/webgpu/render-pass-commands.ts packages/webgpu/src/webgpu/app.ts examples/standard-queue-phases.main.js test/webgpu/render-pass-commands.test.ts test/webgpu/render-pass-assembly-smoke.test.ts test/e2e/standard-queue-phases.spec.ts`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- Browser status proof for `examples/standard-queue-phases.html`
+- `git diff --check`

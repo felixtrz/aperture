@@ -3,32 +3,22 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3111.
+Current task: task-3112.
 
-Status: Tier 20 is complete. Baseline SSAO, SSR, and DOF shipped as
-depth-readable post effects with square raw-vs-effect browser proofs, and the
-strict reference-parity follow-ups are complete:
+Status: Tier 20 is complete. The post-Tier-20 audit selected submit efficiency
+as the current SOTA blocker. `task-3111` has now closed the first submit
+efficiency gap: `writeRenderPassCommands()` tracks active pipeline, bind-group,
+vertex-buffer, and index-buffer state, skips redundant state commands between
+adjacent compatible draws, and publishes command-pressure metrics through app
+status.
 
-- `task-3093` upgraded SSAO toward the PlayCanvas spiral AO reference.
-- `task-3094` upgraded SSR toward the three.js `SSRPass`
-  normal/fresnel/distance-attenuation shape.
-- `task-3095` upgraded DOF toward the PlayCanvas/Bevy
-  circle-of-confusion quality shape.
-- `task-3096` added a renderer-owned multisampled-depth shader route so SSAO,
-  SSR, and DOF can run in MSAA scenes without example-specific depth plumbing.
-- `task-3108` added texture-backed iridescence thickness factors, so
-  `KHR_materials_iridescence.iridescenceThicknessTexture` now maps into
-  StandardMaterial and drives per-texel thin-film thickness in the browser
-  proof.
-- `task-3109` added texture-backed clearcoat roughness factors, so
-  `KHR_materials_clearcoat.clearcoatRoughnessTexture` now maps into
-  StandardMaterial and drives per-texel coating highlight sharpness in the
-  browser proof.
+Browser proof:
 
-`task-3110` completed the post-Tier-20 audit and selected submit efficiency as
-the next SOTA blocker. The audit is recorded in
-`docs/research/POST_TIER20_RENDER_PIPELINE_PARITY_AUDIT_2026_05_23.md`.
+- `examples/standard-queue-phases.html` rendered 8 draw commands with zero
+  diagnostics.
+- Browser status reported 56 planned state commands, 21 emitted state commands,
+  and 35 elided state commands.
 
-Next step: start `task-3111` from `agent/BACKLOG.md`, eliding redundant
-render-pass state commands and publishing command-pressure metrics in a
-browser-visible proof.
+Next step: start `task-3112` from `agent/BACKLOG.md`, caching WebGPU render
+bundles for unchanged static command plans and publishing bundle create/reuse
+status in a browser-visible proof.

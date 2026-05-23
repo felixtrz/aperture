@@ -1457,16 +1457,16 @@
               <code>KHR_materials_clearcoat.clearcoatRoughnessTexture</code>
               through StandardMaterial and WebGPU, with
               <code>examples/clearcoat.html</code> proving sharper and broader
-              coating highlights from high/low roughness texels. The
-              post-Tier-20 SOTA audit found the next highest-impact gap is now
-              submit efficiency: Aperture still emits repeated render-pass state
-              setup commands per draw, while three.js and PlayCanvas cache or
-              track that state pressure.
+              coating highlights from high/low roughness texels. The main
+              forward render-pass command planner now elides redundant pipeline,
+              bind-group, vertex-buffer, and index-buffer state commands between
+              adjacent compatible draws while publishing planned-vs-emitted
+              command pressure in app status.
             </dd>
             <dt>Next focus</dt>
             <dd>
-              task-3111 render-pass state-command elision and command-pressure
-              proof
+              task-3112 static WebGPU render-bundle reuse for unchanged command
+              plans
             </dd>
           </dl>
         </aside>
@@ -2115,14 +2115,18 @@
               primitive, queue-level static merged records, and a browser
               example that renders 20 source shapes as five draw calls. Queue
               plans now also publish opaque/transparent sort-phase counts for
-              diagnostics.
+              diagnostics, and app reports now publish queue-to-submit command
+              pressure after state-command elision.
             </p>
             <ul>
               <li>
                 Missing app-level generic material adapter route boundary.
               </li>
               <li>Missing multi-material primitive queue rules.</li>
-              <li>Missing queue-to-submit command-pressure summaries.</li>
+              <li>
+                Missing static render-bundle and indirect-draw pressure feedback
+                for queued static/grouped work.
+              </li>
             </ul>
           </article>
           <article class="phase">
@@ -2150,9 +2154,9 @@
           <article class="phase">
             <div class="topline">
               <h3>6. submit</h3>
-              <span class="percent">95%</span>
+              <span class="percent">96%</span>
             </div>
-            <div class="bar"><span style="width: 95%"></span></div>
+            <div class="bar"><span style="width: 96%"></span></div>
             <p>
               WebGPU command submission renders the current proof paths with
               pipeline, bind group, transform, light, mesh, and material
@@ -2214,7 +2218,12 @@
               Texture-backed transmission factors, sheen color factors, sheen
               roughness factors, iridescence factors, and iridescence thickness
               factors now bind through the StandardMaterial group-2 texture path
-              and multiply or interpolate scalar factors per texel.
+              and multiply or interpolate scalar factors per texel. Render-pass
+              command planning now tracks the active pipeline, bind groups,
+              vertex buffers, and index buffer and skips redundant state
+              commands while preserving draw commands; the standard queue phase
+              proof reports 56 planned state commands reduced to 21 emitted
+              commands with 35 elided.
               <code>createWebGpuApp({ msaa })</code> now renders forward passes
               through cached multisampled color/depth attachments, resolves to
               the swapchain or off-screen target, and keys built-in pipelines by
@@ -2222,8 +2231,8 @@
             </p>
             <ul>
               <li>
-                Missing render-pass state-command elision, static render-bundle
-                reuse, and indirect draw argument buffers.
+                Missing static render-bundle reuse and indirect draw argument
+                buffers.
               </li>
               <li>
                 Missing broader environment asset preparation and previous
@@ -2249,9 +2258,9 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">task-3110</span> Completed the
-                post-Tier-20 SOTA audit and selected submit command-pressure
-                work as the next efficiency target.
+                <span class="badge green">task-3111</span> Elided redundant
+                render-pass state commands and exposed planned-vs-emitted
+                command pressure in the standard queue phase browser status.
               </li>
               <li>
                 <span class="badge green">loading</span> Preserved glTF source
@@ -4520,20 +4529,18 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Implement
-                <code>task-3111</code>: elide redundant render-pass state
-                commands and publish command-pressure metrics in a
-                browser-visible proof.
+                <code>task-3112</code>: cache static WebGPU render bundles for
+                unchanged command plans and prove bundle reuse in browser
+                status.
               </li>
               <li>
-                Follow with static render-bundle reuse for unchanged command
-                plans, then an indirect draw argument-buffer route for
+                Follow with an indirect draw argument-buffer route for
                 compatible grouped draws.
               </li>
               <li>
                 The audit conclusion is clear: covered feature breadth is high,
                 but submit efficiency still blocks an honest SOTA claim until
-                repeated state setup, static command reuse, and indirect draw
-                paths are closed.
+                static command reuse and indirect draw paths are closed.
               </li>
             </ul>
           </article>
@@ -4547,15 +4554,15 @@
         </div>
         <article class="card timeline">
           <div class="timeline-item">
-            <div class="task-id">task-3110</div>
+            <div class="task-id">task-3111</div>
             <div>
-              <strong>Post-Tier-20 SOTA audit completed.</strong>
+              <strong>Render-pass state-command elision shipped.</strong>
               <span>
-                The audit compared Aperture's extract, collect, prepare, queue,
-                sort, and submit phases against three.js WebGPU and PlayCanvas.
-                It selected submit efficiency as the next blocker: redundant
-                state commands, missing static render-bundle reuse, and missing
-                indirect draw argument buffers.
+                The command planner now reuses active pipeline, bind-group,
+                vertex-buffer, and index-buffer state between compatible draws.
+                <code>examples/standard-queue-phases.html</code> reports 8 draw
+                commands, 56 planned state commands, 21 emitted state commands,
+                and 35 elided state commands with zero diagnostics.
               </span>
             </div>
           </div>

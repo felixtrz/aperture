@@ -157,6 +157,35 @@ function commands(valid: boolean): RenderPassCommandPlan {
     drawCount: valid ? 1 : 0,
     indexedDrawCount: valid ? 1 : 0,
     nonIndexedDrawCount: 0,
+    pressure: {
+      resolvedDraws: valid ? 1 : 0,
+      drawCommands: valid ? 1 : 0,
+      stateCommands: {
+        planned: valid ? 4 : 0,
+        emitted: valid ? 4 : 0,
+        elided: 0,
+        setPipeline: {
+          planned: valid ? 1 : 0,
+          emitted: valid ? 1 : 0,
+          elided: 0,
+        },
+        setBindGroup: {
+          planned: valid ? 1 : 0,
+          emitted: valid ? 1 : 0,
+          elided: 0,
+        },
+        setVertexBuffer: {
+          planned: valid ? 1 : 0,
+          emitted: valid ? 1 : 0,
+          elided: 0,
+        },
+        setIndexBuffer: {
+          planned: valid ? 1 : 0,
+          emitted: valid ? 1 : 0,
+          elided: 0,
+        },
+      },
+    },
     diagnostics: valid
       ? []
       : [

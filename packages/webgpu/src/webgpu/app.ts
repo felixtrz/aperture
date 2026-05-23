@@ -277,7 +277,10 @@ import {
   writeRenderFramePlanFromSnapshot,
   type RenderFramePlanScratch,
 } from "./render-frame-plan.js";
-import type { RenderPassCommand } from "./render-pass-commands.js";
+import type {
+  RenderPassCommand,
+  RenderPassCommandPressureReport,
+} from "./render-pass-commands.js";
 import {
   createWebGpuIdBufferEntries,
   findWebGpuIdBufferEntry,
@@ -546,6 +549,7 @@ export interface WebGpuAppRenderReport {
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: FrameBoundaryReadbackResult;
   readonly gpuTimings?: GpuPassTimingReport;
+  readonly commandPressure?: RenderPassCommandPressureReport;
 }
 
 export type WebGpuAppJsonValue =
@@ -572,6 +576,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly msaa?: WebGpuAppMsaaReport;
   readonly readback?: WebGpuAppJsonValue;
   readonly gpuTimings?: GpuPassTimingReport;
+  readonly commandPressure?: WebGpuAppJsonValue;
   readonly materialDependencyReadiness?: readonly MaterialAssetDependencyReadinessReportJsonValue[];
 }
 
@@ -1955,6 +1960,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     drawPackages: framePlan.packages.packages.length,
     drawCommands: boundaries.plannedCommands,
     drawCalls: boundaries.drawCalls,
+    commandPressure: framePlan.commandPlan.pressure,
     diagnostics: [
       ...options.snapshot.diagnostics,
       ...framePlan.bindingPlan.diagnostics,
@@ -5286,6 +5292,7 @@ async function renderWebGpuAppFrame(
     drawPackages: framePlan.packages.packages.length,
     drawCommands: boundaries.plannedCommands,
     drawCalls: boundaries.drawCalls,
+    commandPressure: framePlan.commandPlan.pressure,
     diagnostics: [
       ...snapshot.diagnostics,
       ...framePlan.bindingPlan.diagnostics,
@@ -6358,6 +6365,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.gpuTimings === undefined
       ? {}
       : { gpuTimings: report.gpuTimings }),
+    ...(report.commandPressure === undefined
+      ? {}
+      : { commandPressure: toWebGpuAppJsonValue(report.commandPressure) }),
     ...(materialDependencyReadiness.length === 0
       ? {}
       : { materialDependencyReadiness }),
@@ -6457,6 +6467,7 @@ function renderReport(input: {
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: FrameBoundaryReadbackResult;
   readonly gpuTimings?: GpuPassTimingReport;
+  readonly commandPressure?: RenderPassCommandPressureReport;
   readonly drawPackages?: number;
   readonly drawCommands?: number;
   readonly drawCalls?: number;
@@ -6506,6 +6517,9 @@ function renderReport(input: {
       : { depthAttachment: input.depthAttachment }),
     ...(input.readback === undefined ? {} : { readback: input.readback }),
     ...(input.gpuTimings === undefined ? {} : { gpuTimings: input.gpuTimings }),
+    ...(input.commandPressure === undefined
+      ? {}
+      : { commandPressure: input.commandPressure }),
   };
 }
 

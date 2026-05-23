@@ -293,6 +293,7 @@ function statusFromReport(
       reportJson.diagnosticsSummary?.renderQueueSortPhases?.find(
         (phase) => phase.phase === "transparent",
       )?.sortPolicy ?? null,
+    commandPressure: reportJson.commandPressure ?? null,
     report: reportJson,
     counts: reportJson.counts,
     diagnostics: reportJson.diagnostics,

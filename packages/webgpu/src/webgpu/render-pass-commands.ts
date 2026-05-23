@@ -8,6 +8,12 @@ export type RenderPassCommandKind =
   | "draw"
   | "drawIndexed";
 
+export type RenderPassStateCommandKind =
+  | "setPipeline"
+  | "setBindGroup"
+  | "setVertexBuffer"
+  | "setIndexBuffer";
+
 export type RenderPassCommandDiagnosticCode =
   | "renderPassCommand.invalidVertexCount"
   | "renderPassCommand.invalidIndexCount"
@@ -87,7 +93,27 @@ export interface RenderPassCommandPlan {
   readonly drawCount: number;
   readonly indexedDrawCount: number;
   readonly nonIndexedDrawCount: number;
+  readonly pressure: RenderPassCommandPressureReport;
   readonly diagnostics: readonly RenderPassCommandDiagnostic[];
+}
+
+export interface RenderPassStateCommandPressure {
+  readonly planned: number;
+  readonly emitted: number;
+  readonly elided: number;
+}
+
+export interface RenderPassStateCommandPressureReport extends RenderPassStateCommandPressure {
+  readonly setPipeline: RenderPassStateCommandPressure;
+  readonly setBindGroup: RenderPassStateCommandPressure;
+  readonly setVertexBuffer: RenderPassStateCommandPressure;
+  readonly setIndexBuffer: RenderPassStateCommandPressure;
+}
+
+export interface RenderPassCommandPressureReport {
+  readonly resolvedDraws: number;
+  readonly drawCommands: number;
+  readonly stateCommands: RenderPassStateCommandPressureReport;
 }
 
 export interface RenderPassCommandScratch {
@@ -95,6 +121,11 @@ export interface RenderPassCommandScratch {
   readonly diagnostics: RenderPassCommandDiagnostic[];
   readonly commandPool: RenderPassCommand[];
   readonly sortedBindGroups: ResolvedRenderPassDraw["bindGroups"][number][];
+  readonly activeBindGroupResourceKeys: Map<number, string>;
+  readonly activeBindGroups: Map<number, unknown>;
+  readonly activeVertexBufferResourceKeys: Map<number, string>;
+  readonly activeVertexBuffers: Map<number, unknown>;
+  readonly pressure: RenderPassCommandPressureReport;
   readonly plan: RenderPassCommandPlan;
 }
 
@@ -134,6 +165,7 @@ export function createRenderPassCommandScratch(
   const commands: RenderPassCommand[] = [];
   const diagnostics: RenderPassCommandDiagnostic[] = [];
   const commandPool: RenderPassCommand[] = [];
+  const pressure = createRenderPassCommandPressureReport();
 
   for (let i = 0; i < capacity; i += 1) {
     commandPool.push(createEmptyCommand() as RenderPassCommand);
@@ -144,12 +176,18 @@ export function createRenderPassCommandScratch(
     diagnostics,
     commandPool,
     sortedBindGroups: [],
+    activeBindGroupResourceKeys: new Map(),
+    activeBindGroups: new Map(),
+    activeVertexBufferResourceKeys: new Map(),
+    activeVertexBuffers: new Map(),
+    pressure,
     plan: {
       valid: true,
       commands,
       drawCount: 0,
       indexedDrawCount: 0,
       nonIndexedDrawCount: 0,
+      pressure,
       diagnostics,
     },
   };
@@ -161,9 +199,24 @@ export function writeRenderPassCommands(
 ): RenderPassCommandPlan {
   scratch.commands.length = 0;
   scratch.diagnostics.length = 0;
+  scratch.activeBindGroupResourceKeys.clear();
+  scratch.activeBindGroups.clear();
+  scratch.activeVertexBufferResourceKeys.clear();
+  scratch.activeVertexBuffers.clear();
+  resetRenderPassCommandPressure(scratch.pressure);
 
   let indexedDrawCount = 0;
   let nonIndexedDrawCount = 0;
+  let activePipelineKey = "";
+  let activePipeline: unknown = null;
+  let hasActivePipeline = false;
+  let activeIndexBufferResourceKey = "";
+  let activeIndexBuffer: unknown = null;
+  let activeIndexBufferFormat = "";
+  let hasActiveIndexBuffer = false;
+
+  (scratch.pressure as MutableRenderPassCommandPressureReport).resolvedDraws =
+    options.draws.length;
 
   for (const draw of options.draws) {
     const firstInstance = transformPackedOffsetToInstance(
@@ -179,7 +232,19 @@ export function writeRenderPassCommands(
       continue;
     }
 
-    pushSetPipelineCommand(scratch, draw);
+    if (
+      hasActivePipeline &&
+      activePipelineKey === draw.pipelineKey &&
+      activePipeline === draw.pipeline
+    ) {
+      recordStateCommandPressure(scratch.pressure, "setPipeline", "elided");
+    } else {
+      pushSetPipelineCommand(scratch, draw);
+      recordStateCommandPressure(scratch.pressure, "setPipeline", "emitted");
+      activePipelineKey = draw.pipelineKey;
+      activePipeline = draw.pipeline;
+      hasActivePipeline = true;
+    }
 
     scratch.sortedBindGroups.length = 0;
 
@@ -190,21 +255,84 @@ export function writeRenderPassCommands(
     scratch.sortedBindGroups.sort((a, b) => a.group - b.group);
 
     for (const bindGroup of scratch.sortedBindGroups) {
-      pushSetBindGroupCommand(scratch, draw.renderId, bindGroup);
+      if (
+        scratch.activeBindGroupResourceKeys.get(bindGroup.group) ===
+          bindGroup.resourceKey &&
+        scratch.activeBindGroups.get(bindGroup.group) === bindGroup.bindGroup
+      ) {
+        recordStateCommandPressure(scratch.pressure, "setBindGroup", "elided");
+      } else {
+        pushSetBindGroupCommand(scratch, draw.renderId, bindGroup);
+        recordStateCommandPressure(scratch.pressure, "setBindGroup", "emitted");
+        scratch.activeBindGroupResourceKeys.set(
+          bindGroup.group,
+          bindGroup.resourceKey,
+        );
+        scratch.activeBindGroups.set(bindGroup.group, bindGroup.bindGroup);
+      }
     }
 
     for (let slot = 0; slot < draw.vertexBuffers.length; slot += 1) {
       const vertexBuffer = draw.vertexBuffers[slot];
 
       if (vertexBuffer !== undefined) {
-        pushSetVertexBufferCommand(scratch, draw.renderId, slot, vertexBuffer);
+        if (
+          scratch.activeVertexBufferResourceKeys.get(slot) ===
+            vertexBuffer.resourceKey &&
+          scratch.activeVertexBuffers.get(slot) === vertexBuffer.buffer
+        ) {
+          recordStateCommandPressure(
+            scratch.pressure,
+            "setVertexBuffer",
+            "elided",
+          );
+        } else {
+          pushSetVertexBufferCommand(
+            scratch,
+            draw.renderId,
+            slot,
+            vertexBuffer,
+          );
+          recordStateCommandPressure(
+            scratch.pressure,
+            "setVertexBuffer",
+            "emitted",
+          );
+          scratch.activeVertexBufferResourceKeys.set(
+            slot,
+            vertexBuffer.resourceKey,
+          );
+          scratch.activeVertexBuffers.set(slot, vertexBuffer.buffer);
+        }
       }
     }
 
     if (draw.indexBuffer !== null) {
       const indexCount = draw.indexCount ?? draw.indexBuffer.indexCount;
 
-      pushSetIndexBufferCommand(scratch, draw);
+      if (
+        hasActiveIndexBuffer &&
+        activeIndexBufferResourceKey === draw.indexBuffer.resourceKey &&
+        activeIndexBuffer === draw.indexBuffer.buffer &&
+        activeIndexBufferFormat === draw.indexBuffer.format
+      ) {
+        recordStateCommandPressure(
+          scratch.pressure,
+          "setIndexBuffer",
+          "elided",
+        );
+      } else {
+        pushSetIndexBufferCommand(scratch, draw);
+        recordStateCommandPressure(
+          scratch.pressure,
+          "setIndexBuffer",
+          "emitted",
+        );
+        activeIndexBufferResourceKey = draw.indexBuffer.resourceKey;
+        activeIndexBuffer = draw.indexBuffer.buffer;
+        activeIndexBufferFormat = draw.indexBuffer.format;
+        hasActiveIndexBuffer = true;
+      }
 
       if (!isPositiveInteger(indexCount)) {
         scratch.diagnostics.push({
@@ -239,8 +367,95 @@ export function writeRenderPassCommands(
   plan.drawCount = indexedDrawCount + nonIndexedDrawCount;
   plan.indexedDrawCount = indexedDrawCount;
   plan.nonIndexedDrawCount = nonIndexedDrawCount;
+  (scratch.pressure as MutableRenderPassCommandPressureReport).drawCommands =
+    plan.drawCount;
 
   return scratch.plan;
+}
+
+function createRenderPassCommandPressureReport(): RenderPassCommandPressureReport {
+  const setPipeline = createRenderPassStateCommandPressure();
+  const setBindGroup = createRenderPassStateCommandPressure();
+  const setVertexBuffer = createRenderPassStateCommandPressure();
+  const setIndexBuffer = createRenderPassStateCommandPressure();
+
+  return {
+    resolvedDraws: 0,
+    drawCommands: 0,
+    stateCommands: {
+      planned: 0,
+      emitted: 0,
+      elided: 0,
+      setPipeline,
+      setBindGroup,
+      setVertexBuffer,
+      setIndexBuffer,
+    },
+  };
+}
+
+function createRenderPassStateCommandPressure(): RenderPassStateCommandPressure {
+  return {
+    planned: 0,
+    emitted: 0,
+    elided: 0,
+  };
+}
+
+function resetRenderPassCommandPressure(
+  pressure: RenderPassCommandPressureReport,
+): void {
+  const mutablePressure = pressure as MutableRenderPassCommandPressureReport;
+
+  mutablePressure.resolvedDraws = 0;
+  mutablePressure.drawCommands = 0;
+  resetRenderPassStateCommandPressure(mutablePressure.stateCommands);
+  resetRenderPassStateCommandPressure(
+    mutablePressure.stateCommands.setPipeline,
+  );
+  resetRenderPassStateCommandPressure(
+    mutablePressure.stateCommands.setBindGroup,
+  );
+  resetRenderPassStateCommandPressure(
+    mutablePressure.stateCommands.setVertexBuffer,
+  );
+  resetRenderPassStateCommandPressure(
+    mutablePressure.stateCommands.setIndexBuffer,
+  );
+}
+
+function resetRenderPassStateCommandPressure(
+  pressure: RenderPassStateCommandPressure,
+): void {
+  const mutable = pressure as MutableRenderPassStateCommandPressure;
+
+  mutable.planned = 0;
+  mutable.emitted = 0;
+  mutable.elided = 0;
+}
+
+function recordStateCommandPressure(
+  pressure: RenderPassCommandPressureReport,
+  kind: RenderPassStateCommandKind,
+  result: "emitted" | "elided",
+): void {
+  const stateCommands =
+    pressure.stateCommands as MutableRenderPassStateCommandPressureReport;
+  const commandPressure = stateCommands[
+    kind
+  ] as MutableRenderPassStateCommandPressure;
+
+  stateCommands.planned += 1;
+  commandPressure.planned += 1;
+
+  if (result === "emitted") {
+    stateCommands.emitted += 1;
+    commandPressure.emitted += 1;
+    return;
+  }
+
+  stateCommands.elided += 1;
+  commandPressure.elided += 1;
 }
 
 function pushSetPipelineCommand(
@@ -362,6 +577,19 @@ function createEmptyCommand(): MutableRenderPassCommand {
 type MutableRenderPassCommandPlan = {
   -readonly [Key in keyof RenderPassCommandPlan]: RenderPassCommandPlan[Key];
 };
+
+type MutableRenderPassCommandPressureReport = {
+  -readonly [Key in keyof RenderPassCommandPressureReport]: RenderPassCommandPressureReport[Key];
+};
+
+type MutableRenderPassStateCommandPressure = {
+  -readonly [Key in keyof RenderPassStateCommandPressure]: RenderPassStateCommandPressure[Key];
+};
+
+type MutableRenderPassStateCommandPressureReport =
+  MutableRenderPassStateCommandPressure & {
+    -readonly [Key in RenderPassStateCommandKind]: RenderPassStateCommandPressureReport[Key];
+  };
 
 function isPositiveInteger(value: number): boolean {
   return Number.isInteger(value) && value > 0;

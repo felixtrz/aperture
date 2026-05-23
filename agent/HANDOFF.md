@@ -1,6 +1,54 @@
 # Agent Handoff
 
-Updated: 2026-05-23T19:06:56Z
+Updated: 2026-05-23T19:29:41Z
+
+## Current Run Update — 2026-05-23T19:29:41Z — Render-pass state-command elision
+
+Completed `task-3111`, the first post-audit submit-efficiency slice.
+
+### What changed
+
+- Added command-planner state tracking for the active pipeline, bind groups,
+  vertex buffers, and index buffer. Adjacent compatible draws now skip redundant
+  state setup while preserving all draw commands.
+- Added a JSON-safe render-pass command-pressure report with resolved draw
+  count, draw command count, and planned/emitted/elided state-command totals by
+  command kind.
+- Threaded command pressure through WebGPU app reports and
+  `examples/standard-queue-phases.html`, where browser status proves the scene
+  still renders 8 draws with zero diagnostics while reducing 56 planned state
+  commands to 21 emitted commands and eliding 35.
+- Updated the public tracker, render-pipeline comparison page, backlog,
+  current-task pointer, and completed-task log. Recommended next task is now
+  `task-3112`, static render-bundle reuse for unchanged command plans.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/render-pass-commands.test.ts test/webgpu/render-pass-command-executor.test.ts test/webgpu/render-pass-assembly-smoke.test.ts --reporter=dot`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec prettier --check packages/webgpu/src/webgpu/render-pass-commands.ts packages/webgpu/src/webgpu/app.ts examples/standard-queue-phases.main.js test/webgpu/render-pass-commands.test.ts test/webgpu/render-pass-assembly-smoke.test.ts test/e2e/standard-queue-phases.spec.ts`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- Browser status proof for
+  `http://127.0.0.1:4173/examples/standard-queue-phases.html`: `ok: true`,
+  8 draw commands, zero diagnostics, 56 planned state commands, 21 emitted state
+  commands, 35 elided state commands. The only console error was the existing
+  favicon 403.
+- `git diff --check`
+
+### Known issues
+
+- `pnpm exec playwright test test/e2e/standard-queue-phases.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000 --global-timeout=120000`
+  timed out in suite setup before the test body ran. The same browser proof was
+  completed through the Browser/Playwright MCP path against the local example
+  server.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3112`, caching WebGPU render bundles for unchanged static command
+plans and publishing first-create/reuse status in a browser-visible proof.
 
 ## Current Run Update — 2026-05-23T19:06:56Z — Post-Tier-20 SOTA audit
 

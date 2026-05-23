@@ -54,6 +54,35 @@ interface StandardQueuePhasesStatus extends ExampleStatusBase {
     readonly tieBreakers: readonly string[];
     readonly totalOrder: boolean;
   } | null;
+  readonly commandPressure?: {
+    readonly resolvedDraws: number;
+    readonly drawCommands: number;
+    readonly stateCommands: {
+      readonly planned: number;
+      readonly emitted: number;
+      readonly elided: number;
+      readonly setPipeline: {
+        readonly planned: number;
+        readonly emitted: number;
+        readonly elided: number;
+      };
+      readonly setBindGroup: {
+        readonly planned: number;
+        readonly emitted: number;
+        readonly elided: number;
+      };
+      readonly setVertexBuffer: {
+        readonly planned: number;
+        readonly emitted: number;
+        readonly elided: number;
+      };
+      readonly setIndexBuffer: {
+        readonly planned: number;
+        readonly emitted: number;
+        readonly elided: number;
+      };
+    };
+  } | null;
   readonly counts?: {
     readonly meshDraws: number;
     readonly drawCalls: number;
@@ -116,6 +145,11 @@ test("browser renders StandardMaterial opaque, alpha-test, and transparent queue
     tieBreakers: expect.arrayContaining(["stableId", "sortOrdinal"]),
     totalOrder: true,
   });
+  expect(status.commandPressure?.drawCommands).toBe(8);
+  expect(status.commandPressure?.stateCommands.planned ?? 0).toBeGreaterThan(
+    status.commandPressure?.stateCommands.emitted ?? Number.POSITIVE_INFINITY,
+  );
+  expect(status.commandPressure?.stateCommands.elided ?? 0).toBeGreaterThan(0);
   expect(status.transparentSort?.map((entry) => entry.materialKey)).toEqual([
     status.materialKeys?.transparentDepthBack,
     status.materialKeys?.transparentDepthFront,

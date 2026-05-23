@@ -15,6 +15,15 @@ describe("render pass command planning", () => {
     expect(plan.drawCount).toBe(1);
     expect(plan.indexedDrawCount).toBe(1);
     expect(plan.nonIndexedDrawCount).toBe(0);
+    expect(plan.pressure).toMatchObject({
+      resolvedDraws: 1,
+      drawCommands: 1,
+      stateCommands: {
+        planned: 5,
+        emitted: 5,
+        elided: 0,
+      },
+    });
     expect(plan.commands).toMatchObject([
       { kind: "setPipeline", renderId: 1, pipelineKey: "pipeline:unlit" },
       { kind: "setBindGroup", renderId: 1, index: 0, resourceKey: "bind:view" },
@@ -44,6 +53,116 @@ describe("render pass command planning", () => {
         firstInstance: 1,
       },
     ]);
+  });
+
+  it("elides redundant state commands between adjacent compatible draws", () => {
+    const first = resolvedDraw(1);
+    const second = {
+      ...resolvedDraw(2),
+      pipelineKey: first.pipelineKey,
+      pipeline: first.pipeline,
+      bindGroups: first.bindGroups,
+      vertexBuffers: first.vertexBuffers,
+      indexBuffer: first.indexBuffer,
+      indexCount: first.indexCount,
+    };
+    const plan = planRenderPassCommands({ draws: [first, second] });
+
+    expect(plan.valid).toBe(true);
+    expect(plan.drawCount).toBe(2);
+    expect(plan.commands).toMatchObject([
+      { kind: "setPipeline", renderId: 1, pipelineKey: "pipeline:unlit" },
+      { kind: "setBindGroup", renderId: 1, index: 0, resourceKey: "bind:view" },
+      {
+        kind: "setBindGroup",
+        renderId: 1,
+        index: 1,
+        resourceKey: "bind:transforms",
+      },
+      {
+        kind: "setVertexBuffer",
+        renderId: 1,
+        slot: 0,
+        resourceKey: "mesh:1/vertex",
+      },
+      {
+        kind: "setIndexBuffer",
+        renderId: 1,
+        resourceKey: "mesh:1/index",
+        format: "uint16",
+      },
+      { kind: "drawIndexed", renderId: 1, firstInstance: 1 },
+      { kind: "drawIndexed", renderId: 2, firstInstance: 2 },
+    ]);
+    expect(plan.pressure).toMatchObject({
+      resolvedDraws: 2,
+      drawCommands: 2,
+      stateCommands: {
+        planned: 10,
+        emitted: 5,
+        elided: 5,
+        setPipeline: { planned: 2, emitted: 1, elided: 1 },
+        setBindGroup: { planned: 4, emitted: 2, elided: 2 },
+        setVertexBuffer: { planned: 2, emitted: 1, elided: 1 },
+        setIndexBuffer: { planned: 2, emitted: 1, elided: 1 },
+      },
+    });
+  });
+
+  it("emits only the state commands whose tracked resources changed", () => {
+    const first = resolvedDraw(1);
+    const second = {
+      ...resolvedDraw(2),
+      pipelineKey: first.pipelineKey,
+      pipeline: first.pipeline,
+      bindGroups: [
+        first.bindGroups[0]!,
+        {
+          group: 1,
+          resourceKey: "bind:transforms:updated",
+          bindGroup: { group: 1, version: 2 },
+        },
+      ],
+      vertexBuffers: first.vertexBuffers,
+      indexBuffer: first.indexBuffer,
+      indexCount: first.indexCount,
+    };
+    const plan = planRenderPassCommands({ draws: [first, second] });
+
+    expect(plan.valid).toBe(true);
+    expect(
+      plan.commands
+        .filter((command) => command.kind !== "drawIndexed")
+        .map((command) => ({
+          kind: command.kind,
+          renderId: command.renderId,
+          resourceKey: "resourceKey" in command ? command.resourceKey : null,
+        })),
+    ).toEqual([
+      { kind: "setPipeline", renderId: 1, resourceKey: null },
+      { kind: "setBindGroup", renderId: 1, resourceKey: "bind:view" },
+      {
+        kind: "setBindGroup",
+        renderId: 1,
+        resourceKey: "bind:transforms",
+      },
+      { kind: "setVertexBuffer", renderId: 1, resourceKey: "mesh:1/vertex" },
+      { kind: "setIndexBuffer", renderId: 1, resourceKey: "mesh:1/index" },
+      {
+        kind: "setBindGroup",
+        renderId: 2,
+        resourceKey: "bind:transforms:updated",
+      },
+    ]);
+    expect(plan.pressure.stateCommands).toMatchObject({
+      planned: 10,
+      emitted: 6,
+      elided: 4,
+      setPipeline: { planned: 2, emitted: 1, elided: 1 },
+      setBindGroup: { planned: 4, emitted: 3, elided: 1 },
+      setVertexBuffer: { planned: 2, emitted: 1, elided: 1 },
+      setIndexBuffer: { planned: 2, emitted: 1, elided: 1 },
+    });
   });
 
   it("plans non-indexed render pass commands", () => {
@@ -126,6 +245,7 @@ describe("render pass command planning", () => {
 
     expect(second).toBe(first);
     expect(new Set(second.commands)).toEqual(new Set(firstCommands));
+    expect(second.pressure).toBe(first.pressure);
     expect(
       second.commands
         .filter((command) => command.kind === "drawIndexed")
