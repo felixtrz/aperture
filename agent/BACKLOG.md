@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3104`: render a texture-backed StandardMaterial transmission factor
-so `KHR_materials_transmission.transmissionTexture` can drive transmitted scene
-color per texel instead of remaining an unsupported extension slot.
+Start `task-3105`: render texture-backed StandardMaterial sheen factors so at
+least one `KHR_materials_sheen` texture slot can drive fabric response per
+texel instead of remaining an unsupported extension slot.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -244,6 +244,8 @@ Acceptance criteria:
 - Playwright readbacks or canvas analysis prove the rough transmitted object has lower high-frequency contrast through the background than the glossy transmitted object while opaque background samples remain stable.
 
 ### task-3104 — Render texture-backed StandardMaterial transmission factor
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/render/src/materials/`, `packages/webgpu/src/webgpu/standard-*`, `examples/transmission.*`, targeted tests.

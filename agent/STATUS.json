@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "77000dd",
+  "lastCommit": "77b5236",
   "activePid": null,
-  "notes": "Completed task-3103 roughness-aware transmission filtering; task-3104 texture-backed transmission factor is next.",
-  "lastRunFinishedAt": "2026-05-23T15:56:16Z"
+  "notes": "Completed task-3104 texture-backed transmission factor; task-3105 texture-backed sheen factors is next.",
+  "lastRunFinishedAt": "2026-05-23T16:20:25Z"
 }

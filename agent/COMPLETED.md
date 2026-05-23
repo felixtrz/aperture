@@ -1,5 +1,40 @@
 # Completed Tasks
 
+## task-3104 — Render texture-backed StandardMaterial transmission factor
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added `transmissionTexture` as a renderer-independent StandardMaterial texture
+  slot, mapped glTF `KHR_materials_transmission.transmissionTexture` into it,
+  and removed the unsupported-extension-slot warning for that implemented slot.
+- Extended StandardMaterial WebGPU packing, bind group layout metadata,
+  prepared texture dependencies, pipeline feature keys, and WGSL variants so the
+  transmission texture red channel multiplies scalar scene-color transmission.
+- Expanded `examples/transmission.html` with a shared-material texture-masked
+  glass panel over a known bright backing panel. Browser status now reports
+  `textureContrast`, proving high and low texture values produce visibly
+  different scene-color transmission while the scalar material setup is shared.
+
+Validation:
+
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/materials/standard-sampler-fidelity.test.ts test/materials/standard-proof-point.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-material-resource-inspection.test.ts test/webgpu/standard-bind-group-layout.test.ts test/webgpu/standard-bind-group.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/app-texture-sampler-resources.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run typecheck:test`
+- `pnpm exec prettier --check $(git diff --name-only --diff-filter=ACMRTUXB)`
+- `git diff --check`
+- `pnpm run lint`
+- `pnpm test` (349 files / 1844 tests passed after an isolated rerun confirmed
+  the parallel-run extraction microbenchmark timing failure was noise)
+- `pnpm exec playwright test test/e2e/transmission.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000 --global-timeout=120000`
+- In-app browser proof for `http://127.0.0.1:4173/examples/transmission.html`:
+  status reported `ok: true`, 28 mesh draws,
+  `standard|transmission|transmissionTexture|blend|none|less|alpha`, and
+  `textureContrast.ok: true` with high/low distance about `82.1`.
+
 ## task-3103 — Add roughness-aware transmission scene-color filtering
 
 Completed: 2026-05-23

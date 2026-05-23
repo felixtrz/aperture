@@ -1,6 +1,63 @@
 # Agent Handoff
 
-Updated: 2026-05-23T15:56:16Z
+Updated: 2026-05-23T16:19:18Z
+
+## Current Run Update — 2026-05-23T16:19:18Z — Texture-backed transmission factor
+
+Completed `task-3104`, the next post-Tier-20 reference-parity slice.
+
+### What changed
+
+- Added `transmissionTexture` to the renderer-independent StandardMaterial
+  asset contract and mapped glTF
+  `KHR_materials_transmission.transmissionTexture` into that slot without the
+  old unsupported-extension warning.
+- Extended WebGPU StandardMaterial packing, bind group metadata, prepared
+  texture/sampler resource selection, pipeline feature decoding, shader
+  metadata, and WGSL so the transmission texture red channel multiplies scalar
+  scene-color transmission.
+- Expanded `examples/transmission.html` with a shared-material texture-masked
+  glass panel over a known bright backing panel. Browser status now publishes a
+  `textureContrast` report; the in-app browser proof showed high/low texture
+  distance about `82.1`, with the high-transmission texel substantially closer
+  to the backing panel than the low-transmission texel.
+- Updated the public tracker, render-pipeline comparison page, backlog,
+  current-task pointer, and completed-task log. Recommended next task is now
+  `task-3105`.
+
+### Validation
+
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/materials/standard-sampler-fidelity.test.ts test/materials/standard-proof-point.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-material-resource-inspection.test.ts test/webgpu/standard-bind-group-layout.test.ts test/webgpu/standard-bind-group.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/app-texture-sampler-resources.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run typecheck:test`
+- `pnpm exec prettier --check $(git diff --name-only --diff-filter=ACMRTUXB)`
+- `git diff --check`
+- `pnpm run lint`
+- `pnpm test` (first parallel run hit the known timing-sensitive extraction
+  microbenchmark while browser tests were also running; the isolated benchmark
+  rerun passed, and the full suite then passed alone with 349 files / 1844
+  tests)
+- `pnpm exec vitest run test/rendering/extraction.test.ts -t "microbenchmarks frustum culling against an opt-out baseline" --reporter=dot`
+- `pnpm exec playwright test test/e2e/transmission.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000 --global-timeout=120000`
+- In-app browser proof for
+  `http://127.0.0.1:4173/examples/transmission.html`: status reported
+  `ok: true`, 28 mesh draws, the texture-backed transmission pipeline key, and
+  `textureContrast.ok: true`. The only console issue was the existing favicon 403.
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `docs/DEVELOPER_API_FEEDBACK.md` /
+  `docs/DEVELOPER_API_PROPOSAL.md` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3105`, rendering texture-backed StandardMaterial sheen factors so
+at least one `KHR_materials_sheen` texture slot drives fabric response per texel
+instead of remaining an unsupported extension slot.
 
 ## Current Run Update — 2026-05-23T15:56:16Z — Roughness-aware transmission filtering
 
