@@ -4,7 +4,7 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "851dd6c",
+  "lastCommit": "35b14fc",
   "activePid": null,
   "notes": "Completed Tier 20 SSAO, SSR, DOF, reference-parity follow-ups, and MSAA depth support for depth-fed post effects; no ready task remains.",
   "lastRunFinishedAt": "2026-05-23T04:51:04Z"
