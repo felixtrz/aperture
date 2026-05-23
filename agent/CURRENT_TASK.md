@@ -3,7 +3,7 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: none.
+Current task: task-3104.
 
 Status: Tier 20 is complete. Baseline SSAO, SSR, and DOF shipped as
 depth-readable post effects with square raw-vs-effect browser proofs, and the
@@ -17,6 +17,7 @@ strict reference-parity follow-ups are complete:
 - `task-3096` added a renderer-owned multisampled-depth shader route so SSAO,
   SSR, and DOF can run in MSAA scenes without example-specific depth plumbing.
 
-Next step: start `task-3103` from `agent/BACKLOG.md`, adding roughness-aware
-transmission scene-color filtering so the renderer-owned grab texture can be
-sampled at visibly different sharpness levels per material roughness.
+Next step: start `task-3104` from `agent/BACKLOG.md`, rendering a
+texture-backed StandardMaterial transmission factor so
+`KHR_materials_transmission.transmissionTexture` drives transmitted scene color
+per texel instead of remaining an unsupported extension slot.

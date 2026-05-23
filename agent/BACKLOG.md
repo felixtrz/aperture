@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3103`: add roughness-aware transmission scene-color filtering so
-transmitted StandardMaterial objects can blur the renderer-owned grab texture
-according to roughness.
+Start `task-3104`: render a texture-backed StandardMaterial transmission factor
+so `KHR_materials_transmission.transmissionTexture` can drive transmitted scene
+color per texel instead of remaining an unsupported extension slot.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -104,6 +104,9 @@ from keyed change sets while keeping current snapshot packet offsets.
 `examples/standard-queue-phases.html` now proves deterministic transparent
 depth/order/stable-id sorting with overlapping StandardMaterial surfaces, while
 queue/app diagnostics publish the applied transparent sort policy.
+`examples/transmission.html` now proves roughness-aware renderer-owned
+scene-color filtering with glossy and rough transmitted StandardMaterial
+objects over high-contrast background stripes.
 `examples/render-packet-inspector.html` now renders worker-authored packets and
 publishes JSON-safe views, draws, bounds, queue keys, handles, skipped-entity
 explanations, and culling stats. Extraction now builds camera frustum planes
@@ -228,6 +231,8 @@ Acceptance criteria:
 
 ### task-3103 — Add roughness-aware transmission scene-color filtering
 
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/`, `examples/transmission.*`, targeted tests.
 Reference anchor: `references/three.js/src/nodes/functions/PhysicalLightingModel.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/transmission.js`.
@@ -237,6 +242,42 @@ Acceptance criteria:
 - `examples/transmission.html` renders at least two transmitted StandardMaterial objects with different roughness values that sample the renderer-owned scene color grab with visibly different sharpness.
 - The shader/resource path remains renderer-owned and derives filtering from material roughness or prepared renderer mips/downsampled scene color, not ECS-owned scene graph state.
 - Playwright readbacks or canvas analysis prove the rough transmitted object has lower high-frequency contrast through the background than the glossy transmitted object while opaque background samples remain stable.
+
+### task-3104 — Render texture-backed StandardMaterial transmission factor
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/materials/`, `packages/webgpu/src/webgpu/standard-*`, `examples/transmission.*`, targeted tests.
+Reference anchor: `references/engine/src/framework/parsers/glb-parser.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/transmission.js`, `references/three.js/src/materials/MeshPhysicalMaterial.js`.
+
+Acceptance criteria:
+
+- `KHR_materials_transmission.transmissionTexture` maps to a renderer-independent StandardMaterial texture slot and no longer reports an unsupported-extension-slot warning for that implemented slot.
+- `examples/transmission.html` renders a texture-driven transmitted StandardMaterial region where high and low texture values produce visibly different scene-color transmission while sharing the same scalar material setup.
+- Targeted glTF material mapping, StandardMaterial shader/resource, and headed browser readback tests pass.
+
+### task-3105 — Render texture-backed StandardMaterial sheen factors
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/materials/`, `packages/webgpu/src/webgpu/standard-*`, `examples/sheen.*`, targeted tests.
+Reference anchor: `references/engine/src/framework/parsers/glb-parser.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/sheen.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/sheenGloss.js`.
+
+Acceptance criteria:
+
+- At least one `KHR_materials_sheen` texture slot maps to a renderer-independent StandardMaterial texture slot and no longer reports an unsupported-extension-slot warning for that implemented slot.
+- `examples/sheen.html` renders a texture-driven sheen response where two same-material regions differ by texture value rather than separate scalar sheen materials.
+- Targeted glTF material mapping, StandardMaterial shader/resource, and headed browser readback tests pass.
+
+### task-3106 — Render texture-backed StandardMaterial iridescence factors
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/materials/`, `packages/webgpu/src/webgpu/standard-*`, `examples/iridescence.*`, targeted tests.
+Reference anchor: `references/engine/src/framework/parsers/glb-parser.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/iridescence.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/iridescenceThickness.js`.
+
+Acceptance criteria:
+
+- At least one `KHR_materials_iridescence` texture slot maps to a renderer-independent StandardMaterial texture slot and no longer reports an unsupported-extension-slot warning for that implemented slot.
+- `examples/iridescence.html` renders a texture-driven iridescence response where two same-material regions differ by texture value or thickness rather than separate scalar iridescence materials.
+- Targeted glTF material mapping, StandardMaterial shader/resource, and headed browser readback tests pass.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

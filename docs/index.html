@@ -1430,10 +1430,14 @@
               sorting now computes view-relative depths during extraction,
               publishes JSON-safe sort-policy reports, and
               <code>standard-queue-phases</code> proves depth/order/stable-id
-              ordering with overlapping StandardMaterial surfaces.
+              ordering with overlapping StandardMaterial surfaces. Transmission
+              now derives scene-color filtering from material roughness, and
+              <code>examples/transmission.html</code> proves a rough glass
+              object has lower high-frequency background contrast than a glossy
+              object while unobstructed background stripes stay sharp.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3103: roughness-aware transmission filtering</dd>
+            <dd>task-3104: texture-backed transmission factor</dd>
           </dl>
         </aside>
       </header>
@@ -2159,19 +2163,19 @@
               blend pipeline so a background panel remains visible through the
               glass proof sphere, sheen adds a fabric rim-light lobe, and
               iridescence adds a thin-film Fresnel color shift. Transmission now
-              samples a renderer-owned scene-color grab texture before applying
-              blend alpha so the glass proof sphere refracts the background
-              without exposing ECS scene state.
+              samples a renderer-owned scene-color grab texture with a
+              roughness-derived blur radius before applying blend alpha, so the
+              glass proof can show glossy and rough transmitted background
+              detail without exposing ECS scene state.
               <code>createWebGpuApp({ msaa })</code> now renders forward passes
               through cached multisampled color/depth attachments, resolves to
               the swapchain or off-screen target, and keys built-in pipelines by
               effective sample count.
             </p>
             <ul>
-              <li>Missing roughness-aware transmission filtering.</li>
               <li>
                 Missing remaining texture-backed StandardMaterial PBR extension
-                resources beyond clearcoat.
+                resources for transmission, sheen, and iridescence.
               </li>
               <li>
                 Missing broader environment asset preparation and previous
@@ -4462,8 +4466,8 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add roughness-aware
-                transmission scene-color filtering.
+                <span class="badge amber">next</span> Render a texture-backed
+                StandardMaterial transmission factor.
               </li>
               <li>
                 SSAO now uses a PlayCanvas-style spiral AO shader with
@@ -4478,7 +4482,7 @@
                 The post-Tier-20 reference-parity queue now has renderer-owned
                 transmission grab-pass refraction and generic snapshot
                 change-set scheduling plus a deterministic transparent ordering
-                proof. It continues with roughness-aware transmission filtering.
+                proof. It continues with texture-backed PBR extension factors.
               </li>
             </ul>
           </article>
@@ -4491,6 +4495,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3103</div>
+            <div>
+              <strong>Roughness-aware transmission filtering shipped.</strong>
+              <span>
+                StandardMaterial transmission now filters renderer-owned scene
+                color by material roughness, keeps that filtered source from
+                being defeated by sharp destination blending, and proves glossy
+                versus rough glass contrast in
+                <code>examples/transmission.html</code>.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3100</div>
             <div>

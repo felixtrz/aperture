@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "90895d2",
+  "lastCommit": "77000dd",
   "activePid": null,
-  "notes": "Completed task-3102 deterministic transparent ordering; task-3103 roughness-aware transmission filtering is next.",
-  "lastRunFinishedAt": "2026-05-23T15:44:56Z"
+  "notes": "Completed task-3103 roughness-aware transmission filtering; task-3104 texture-backed transmission factor is next.",
+  "lastRunFinishedAt": "2026-05-23T15:56:16Z"
 }

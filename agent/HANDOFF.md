@@ -1,6 +1,57 @@
 # Agent Handoff
 
-Updated: 2026-05-23T15:44:31Z
+Updated: 2026-05-23T15:56:16Z
+
+## Current Run Update — 2026-05-23T15:56:16Z — Roughness-aware transmission filtering
+
+Completed `task-3103`, the next post-Tier-20 reference-parity slice.
+
+### What changed
+
+- Added roughness-derived multi-tap filtering to the StandardMaterial
+  transmission scene-color sample while keeping the grab texture and sampler
+  renderer-owned.
+- Adjusted transmission alpha output so the filtered scene-color source is not
+  overwhelmed by the already-rendered sharp destination background.
+- Expanded `examples/transmission.html` to render glossy and rough transmitted
+  spheres over high-contrast background stripes. The example now publishes a
+  `roughnessContrast` report; browser readback showed glossy contrast about
+  `145.6`, rough contrast about `41.0`, and unobstructed background contrast
+  about `275`.
+- Updated the public tracker, render-pipeline comparison page, backlog,
+  current-task pointer, and completed-task log. Recommended next task is now
+  `task-3104`.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/transmission.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000 --global-timeout=120000`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/render-pass-draw-list.test.ts test/webgpu/webgpu-app.test.ts --reporter=dot`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check examples/transmission-scene.js examples/transmission.main.js examples/transmission.worker.js packages/webgpu/src/webgpu/standard-shader.ts test/e2e/transmission.spec.ts test/webgpu/standard-shader.test.ts docs/index.html docs/render-pipeline-comparison.html agent/BACKLOG.md agent/CURRENT_TASK.md agent/COMPLETED.md agent/HANDOFF.md`
+- `git diff --check`
+- `pnpm run lint`
+- `pnpm test`
+- In-app browser proof for
+  `http://127.0.0.1:4173/examples/transmission.html`: status reported
+  `ok: true`, 26 mesh draws, renderer-owned grab texture/sampler keys, and
+  rough/glossy/background contrast values above.
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `docs/DEVELOPER_API_FEEDBACK.md` /
+  `docs/DEVELOPER_API_PROPOSAL.md` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3104`, rendering a texture-backed StandardMaterial transmission
+factor so `KHR_materials_transmission.transmissionTexture` drives transmitted
+scene color per texel instead of remaining an unsupported extension slot.
 
 ## Current Run Update — 2026-05-23T15:44:31Z — Deterministic transparent ordering
 

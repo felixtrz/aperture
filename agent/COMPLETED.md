@@ -1,5 +1,33 @@
 # Completed Tasks
 
+## task-3103 — Add roughness-aware transmission scene-color filtering
+
+Completed: 2026-05-23
+
+Summary:
+
+- Updated the StandardMaterial transmission WGSL path to derive a multi-tap
+  scene-color filter radius from material roughness, following the three.js
+  roughness-to-transmission-sample shape while keeping resources renderer-owned.
+- Adjusted the transmission blend output so the filtered scene-color sample is
+  not defeated by the already-rendered sharp destination background.
+- Expanded `examples/transmission.html` to render glossy and rough transmitted
+  StandardMaterial spheres over high-contrast background stripes, with status
+  readbacks proving the rough sphere has lower high-frequency contrast while
+  unobstructed background stripes remain sharp.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/transmission.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000 --global-timeout=120000`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/render-pass-draw-list.test.ts test/webgpu/webgpu-app.test.ts --reporter=dot`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm test`
+
 ## task-3102 — Prove deterministic transparent ordering tie-breaks
 
 Completed: 2026-05-23
