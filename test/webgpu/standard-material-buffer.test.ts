@@ -101,6 +101,7 @@ describe("standard material WebGPU uniform packing", () => {
         normalTexture: textureBinding("normal", "normal-sampler", 3),
         occlusionTexture: textureBinding("ao", "ao-sampler", 4),
         emissiveTexture: textureBinding("emissive", "emissive-sampler", 5),
+        clearcoatTexture: textureBinding("clearcoat", "clearcoat-sampler", 1),
       }),
     );
 
@@ -111,7 +112,8 @@ describe("standard material WebGPU uniform packing", () => {
         STANDARD_MATERIAL_FEATURE_FLAGS.METALLIC_ROUGHNESS_TEXTURE |
         STANDARD_MATERIAL_FEATURE_FLAGS.NORMAL_TEXTURE |
         STANDARD_MATERIAL_FEATURE_FLAGS.OCCLUSION_TEXTURE |
-        STANDARD_MATERIAL_FEATURE_FLAGS.EMISSIVE_TEXTURE,
+        STANDARD_MATERIAL_FEATURE_FLAGS.EMISSIVE_TEXTURE |
+        STANDARD_MATERIAL_FEATURE_FLAGS.CLEARCOAT_TEXTURE,
     );
     expect(result.packed?.dependencies).toEqual({
       baseColor: {
@@ -139,10 +141,16 @@ describe("standard material WebGPU uniform packing", () => {
         samplerKey: "sampler:emissive-sampler",
         texCoord: 5,
       },
+      clearcoat: {
+        textureKey: "texture:clearcoat",
+        samplerKey: "sampler:clearcoat-sampler",
+        texCoord: 1,
+      },
     });
     expect(
       Array.from(result.packed?.uniformUint32.slice(13, 18) ?? []),
     ).toEqual([1, 2, 3, 4, 5]);
+    expect(result.packed?.uniformUint32[51]).toBe(1);
     expect(
       Array.from(result.packed?.uniformFloat32.slice(18, 22) ?? []),
     ).toEqual([0, 0, 1, 1]);
@@ -272,6 +280,7 @@ describe("standard material WebGPU uniform packing", () => {
       "clearcoatRoughnessFactor",
     );
     expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[50]).toBe("transmissionFactor");
+    expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[51]).toBe("clearcoatTexCoord.u32");
     expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[52]).toBe("sheenColorFactor.r");
     expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[55]).toBe("sheenRoughnessFactor");
     expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[56]).toBe("iridescenceFactor");
@@ -413,6 +422,7 @@ function invalidPacked(): PackedStandardMaterial {
       normal: { textureKey: null, samplerKey: null, texCoord: 0 },
       occlusion: { textureKey: null, samplerKey: null, texCoord: 0 },
       emissive: { textureKey: null, samplerKey: null, texCoord: 0 },
+      clearcoat: { textureKey: null, samplerKey: null, texCoord: 0 },
     },
   };
 }

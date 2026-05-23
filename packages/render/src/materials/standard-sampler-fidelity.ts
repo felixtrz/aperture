@@ -75,6 +75,7 @@ export type StandardMaterialSamplerFidelityReportJsonValue =
 const STANDARD_SAMPLER_TEXTURE_FIELDS = [
   "baseColorTexture",
   "metallicRoughnessTexture",
+  "clearcoatTexture",
   "normalTexture",
   "occlusionTexture",
   "emissiveTexture",

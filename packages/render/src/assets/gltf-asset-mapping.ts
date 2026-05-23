@@ -353,9 +353,14 @@ function collectMaterialTextureSlots(material: unknown): readonly {
   }
 
   const pbr = recordField(material, "pbrMetallicRoughness");
+  const clearcoat = recordField(
+    recordField(material, "extensions") ?? {},
+    "KHR_materials_clearcoat",
+  );
   return [
     textureSlot(pbr?.baseColorTexture, "baseColorTexture"),
     textureSlot(pbr?.metallicRoughnessTexture, "metallicRoughnessTexture"),
+    textureSlot(clearcoat?.clearcoatTexture, "clearcoatTexture"),
     textureSlot(material.normalTexture, "normalTexture"),
     textureSlot(material.occlusionTexture, "occlusionTexture"),
     textureSlot(material.emissiveTexture, "emissiveTexture"),

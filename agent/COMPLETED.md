@@ -1,5 +1,30 @@
 # Completed Tasks
 
+## task-3099 — Render texture-backed StandardMaterial PBR extension factors
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added `StandardMaterial.clearcoatTexture` as the first rendered
+  texture-backed PBR extension factor, including glTF
+  `KHR_materials_clearcoat.clearcoatTexture` mapping, texture metadata,
+  readiness/fidelity summaries, dependency packing, bind-group layout entries,
+  pipeline keys, shader bindings, and app resource preparation.
+- Updated `examples/clearcoat.html` to render one texture-backed clearcoat
+  panel where the left and right regions share a material but differ by the
+  sampled clearcoat factor texture.
+- Fixed the clearcoat shader transform so all direct-light calls receive the
+  generated `clearcoatFactor` argument.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/app-texture-sampler-resources.test.ts --reporter=dot`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/materials/standard-sampler-fidelity.test.ts test/webgpu/app-texture-sampler-resources.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-bind-group.test.ts test/webgpu/standard-bind-group-layout.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/prepared-standard-material-cache.test.ts --reporter=dot`
+- `pnpm run typecheck:test`
+- `pnpm run examples:build`
+- `pnpm exec playwright test test/e2e/clearcoat.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000`
+
 ## task-3098 — Execute PMREM-generated specular IBL resources in the app path
 
 Completed: 2026-05-23

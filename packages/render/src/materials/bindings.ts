@@ -19,6 +19,7 @@ export function materialTextureBindings(
       return optionalBindings([
         ["baseColorTexture", material.baseColorTexture],
         ["metallicRoughnessTexture", material.metallicRoughnessTexture],
+        ["clearcoatTexture", material.clearcoatTexture],
         ["normalTexture", material.normalTexture],
         ["occlusionTexture", material.occlusionTexture],
         ["emissiveTexture", material.emissiveTexture],

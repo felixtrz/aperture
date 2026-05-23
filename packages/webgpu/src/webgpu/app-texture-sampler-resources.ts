@@ -215,6 +215,7 @@ export function prepareStandardAppTextureSamplerResources(
   const bindings = [
     options.material.baseColorTexture,
     options.material.metallicRoughnessTexture,
+    options.material.clearcoatTexture,
     options.material.normalTexture,
     options.material.occlusionTexture,
     options.material.emissiveTexture,

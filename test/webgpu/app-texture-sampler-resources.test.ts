@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  AssetRegistry,
   createAppTextureSamplerResourceCacheSummary,
+  createSamplerAsset,
+  createSamplerHandle,
+  createStandardMaterialAsset,
+  createTextureAsset,
+  createTextureHandle,
+  prepareStandardAppTextureSamplerResources,
   writeAppTextureSamplerResourceCacheSummary,
   type AppTextureSamplerResourceCache,
 } from "@aperture-engine/webgpu";
@@ -71,6 +78,125 @@ describe("app texture sampler resource cache summaries", () => {
       textureEntries: 0,
       samplerEntries: 0,
       totalEntries: 0,
+    });
+  });
+
+  it("prepares clearcoat-only StandardMaterial texture and sampler resources", () => {
+    const registry = new AssetRegistry();
+    const clearcoatTexture = createTextureHandle("clearcoat-factor");
+    const clearcoatSampler = createSamplerHandle("clearcoat-nearest");
+    const createdTextures: unknown[] = [];
+    const createdSamplers: unknown[] = [];
+    const writes: unknown[] = [];
+    const reuse = {
+      textureResourcesCreated: 0,
+      textureResourcesReused: 0,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 0,
+    };
+
+    registry.register(clearcoatTexture);
+    registry.register(clearcoatSampler);
+    registry.markReady(
+      clearcoatTexture,
+      createTextureAsset({
+        label: "clearcoat-factor",
+        dimension: "2d",
+        width: 2,
+        height: 1,
+        format: "rgba8unorm",
+        colorSpace: "data",
+        semantic: "data",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array([0, 0, 0, 255, 255, 0, 0, 255]),
+          bytesPerRow: 8,
+        },
+      }),
+    );
+    registry.markReady(
+      clearcoatSampler,
+      createSamplerAsset({
+        label: "clearcoat-nearest",
+        addressModeU: "clamp-to-edge",
+        addressModeV: "clamp-to-edge",
+        magFilter: "nearest",
+        minFilter: "nearest",
+        mipmapFilter: "nearest",
+      }),
+    );
+
+    const result = prepareStandardAppTextureSamplerResources({
+      assets: registry,
+      cache: createCache(),
+      device: {
+        createTexture: (descriptor: unknown) => {
+          createdTextures.push(descriptor);
+          return { createView: () => ({ label: "clearcoat-view" }) };
+        },
+        createSampler: (descriptor: unknown) => {
+          createdSamplers.push(descriptor);
+          return { label: "clearcoat-sampler-gpu" };
+        },
+        queue: {
+          writeTexture: (
+            destination: unknown,
+            data: Uint8Array,
+            layout: unknown,
+            size: unknown,
+          ) => {
+            writes.push({ destination, data, layout, size });
+          },
+        },
+      },
+      material: createStandardMaterialAsset({
+        clearcoatTexture: {
+          texture: clearcoatTexture,
+          sampler: clearcoatSampler,
+        },
+      }),
+      reuse,
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.textureKeys).toEqual(["texture:clearcoat-factor@1"]);
+    expect(result.samplerKeys).toEqual(["sampler:clearcoat-nearest@1"]);
+    expect(result.textures).toHaveLength(1);
+    expect(result.samplers).toHaveLength(1);
+    expect(result.textures[0]?.descriptor).toMatchObject({
+      label: "clearcoat-factor",
+      format: "rgba8unorm",
+      colorSpace: "data",
+      semantic: "data",
+    });
+    expect(createdTextures).toEqual([
+      {
+        label: "clearcoat-factor",
+        size: [2, 1, 1],
+        format: "rgba8unorm",
+        usage: 6,
+        mipLevelCount: 1,
+      },
+    ]);
+    expect(createdSamplers).toEqual([
+      expect.objectContaining({
+        label: "clearcoat-nearest",
+        magFilter: "nearest",
+        minFilter: "nearest",
+      }),
+    ]);
+    expect(writes).toMatchObject([
+      {
+        layout: { bytesPerRow: 8 },
+        size: [2, 1, 1],
+      },
+    ]);
+    expect(reuse).toEqual({
+      textureResourcesCreated: 1,
+      textureResourcesReused: 0,
+      samplerResourcesCreated: 1,
+      samplerResourcesReused: 0,
     });
   });
 });

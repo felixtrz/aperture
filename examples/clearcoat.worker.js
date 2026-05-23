@@ -43,8 +43,8 @@ async function handleMessage(data) {
         type: "ready",
         scene: {
           meshKey: scene.meshKey,
-          baseMaterialKey: scene.baseMaterialKey,
-          coatedMaterialKey: scene.coatedMaterialKey,
+          materialKey: scene.materialKey,
+          clearcoatTextureKey: scene.clearcoatTextureKey,
         },
       });
       return;
@@ -114,16 +114,9 @@ function createWorkerScene(aperture, canvasSize) {
     }),
   );
   app.spawn(
-    aperture.withTransform({ translation: [-0.45, 0, 0] }),
+    aperture.withTransform({ translation: [0.05, 0, 0] }),
     aperture.withMesh(registered.mesh),
-    aperture.withMaterial(registered.baseMaterial),
-    aperture.withRenderLayer(1),
-    aperture.withVisibility(true),
-  );
-  app.spawn(
-    aperture.withTransform({ translation: [0.55, 0, 0] }),
-    aperture.withMesh(registered.mesh),
-    aperture.withMaterial(registered.coatedMaterial),
+    aperture.withMaterial(registered.material),
     aperture.withRenderLayer(1),
     aperture.withVisibility(true),
   );

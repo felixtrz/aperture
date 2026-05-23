@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 14:03 UTC</dd>
+            <dd>2026-05-23 14:25 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1383,9 +1383,12 @@
               composition, and WGSL sheen variants add a Charlie-style fabric
               rim-light lobe; WGSL iridescence variants mix a wavelength-aware
               thin-film Fresnel color into the direct-light specular response.
-              <code>examples/clearcoat.html</code> proves a square
-              worker-authored base-coat vs clearcoat comparison with a visibly
-              brighter coating highlight, and
+              <code>examples/clearcoat.html</code> now proves a texture-backed
+              clearcoat factor in one shared material: a 2x2 data texture drives
+              zero-clearcoat and full-clearcoat panel regions with distinct
+              readback luminance, and glTF
+              <code>KHR_materials_clearcoat.clearcoatTexture</code> mapping no
+              longer reports an unsupported-slot warning. Meanwhile,
               <code>examples/transmission.html</code> proves a glass sphere with
               the background visible through the transmitted material, while
               <code>examples/sheen.html</code> proves a fabric sphere with a
@@ -1422,7 +1425,9 @@
               proves SSAO over an 8x-request / 4x-effective MSAA scene.
             </dd>
             <dt>Next focus</dt>
-            <dd>Backlog refill for the next visible-feature roadmap slice</dd>
+            <dd>
+              task-3100: renderer-owned grab-pass refraction for transmission
+            </dd>
           </dl>
         </aside>
       </header>
@@ -1869,8 +1874,10 @@
                 <code>KHR_materials_clearcoat</code> and
                 <code>KHR_materials_transmission</code> plus
                 <code>KHR_materials_sheen</code> as supported StandardMaterial
-                extensions, with unsupported extension texture slots reported as
-                optional warnings.
+                extensions, and
+                <code>KHR_materials_clearcoat.clearcoatTexture</code> now maps
+                to a rendered StandardMaterial texture slot instead of an
+                unsupported-extension warning.
               </li>
               <li>Missing broader automatic unload policy integration.</li>
             </ul>
@@ -1878,9 +1885,9 @@
           <article class="phase">
             <div class="topline">
               <h3>3. prepare</h3>
-              <span class="percent">84%</span>
+              <span class="percent">86%</span>
             </div>
-            <div class="bar"><span style="width: 84%"></span></div>
+            <div class="bar"><span style="width: 86%"></span></div>
             <p>
               Prepared mesh/material facades and WebGPU-private backend caches
               exist for built-in material families, with compact render-world
@@ -2005,8 +2012,8 @@
                 Missing app-level generic material adapter route boundary.
               </li>
               <li>
-                Missing texture-backed clearcoat/transmission/sheen/iridescence
-                PBR extension resources.
+                Missing texture-backed transmission/sheen/iridescence PBR
+                extension resources beyond the rendered clearcoat factor slot.
               </li>
               <li>
                 Missing IBL, shadow, render-target, and hot-path scratch polish.
@@ -2154,7 +2161,8 @@
             <ul>
               <li>Missing true grab-pass refraction for transmission.</li>
               <li>
-                Missing texture-backed StandardMaterial PBR extension resources.
+                Missing remaining texture-backed StandardMaterial PBR extension
+                resources beyond clearcoat.
               </li>
               <li>
                 Missing broader environment asset preparation and previous
@@ -4445,8 +4453,8 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Render texture-backed
-                StandardMaterial PBR extension factors.
+                <span class="badge amber">next</span> Add renderer-owned
+                grab-pass refraction for transmission.
               </li>
               <li>
                 SSAO now uses a PlayCanvas-style spiral AO shader with
@@ -4458,9 +4466,9 @@
                 MSAA scenes.
               </li>
               <li>
-                The post-Tier-20 reference-parity queue now starts with
-                texture-backed PBR extension factors, then transmission
-                refraction and a generic snapshot change-set scheduler.
+                The post-Tier-20 reference-parity queue now continues with
+                transmission refraction, then a generic snapshot change-set
+                scheduler and deterministic transparent ordering proof.
               </li>
             </ul>
           </article>
@@ -4473,6 +4481,21 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3099</div>
+            <div>
+              <strong>Texture-backed clearcoat factor shipped.</strong>
+              <span>
+                StandardMaterial now maps
+                <code>KHR_materials_clearcoat.clearcoatTexture</code> into a
+                rendered <code>clearcoatTexture</code> slot, prepares its
+                renderer-owned texture/sampler resources, binds it in the
+                clearcoat shader variant, and proves one shared-material panel
+                with two texture-driven coating responses in
+                <code>examples/clearcoat.html</code>.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3094</div>
             <div>

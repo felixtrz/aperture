@@ -31,6 +31,7 @@ export interface StandardMaterialSamplerFidelitySummary {
 const STANDARD_SAMPLER_FIELD_ORDER: readonly StandardMaterialTextureField[] = [
   "baseColorTexture",
   "metallicRoughnessTexture",
+  "clearcoatTexture",
   "normalTexture",
   "occlusionTexture",
   "emissiveTexture",

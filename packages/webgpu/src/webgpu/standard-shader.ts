@@ -53,6 +53,7 @@ export const STANDARD_IRIDESCENCE_SHADER_VARIANT =
 export interface StandardTextureShaderFeatures {
   readonly baseColorTexture: boolean;
   readonly metallicRoughnessTexture: boolean;
+  readonly clearcoatTexture?: boolean;
   readonly normalTexture: boolean;
   readonly occlusionTexture: boolean;
   readonly emissiveTexture: boolean;
@@ -94,6 +95,7 @@ export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
     "diskAreaLight",
     "sphereAreaLight",
     "clearcoatFactor",
+    "clearcoatTexture",
     "clearcoatRoughnessFactor",
     "transmissionFactor",
     "sheenColorFactor",
@@ -157,7 +159,7 @@ struct StandardMaterialUniform {
   clearcoatFactor: f32,
   clearcoatRoughnessFactor: f32,
   transmissionFactor: f32,
-  padding9: f32,
+  clearcoatTexCoord: u32,
   sheenColorRoughnessFactor: vec4f,
   iridescenceFactorIorThickness: vec4f,
 };
@@ -862,6 +864,7 @@ export function createStandardTextureShaderVariantKey(
     features.cascadedShadowMap !== true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -883,6 +886,7 @@ export function createStandardTextureShaderVariantKey(
     features.cascadedShadowMap === true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -905,6 +909,7 @@ export function createStandardTextureShaderVariantKey(
     features.cascadedShadowMap !== true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -926,6 +931,7 @@ export function createStandardTextureShaderVariantKey(
     features.pointShadowMap === true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -946,6 +952,7 @@ export function createStandardTextureShaderVariantKey(
     features.iblSpecularProof !== true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -967,6 +974,7 @@ export function createStandardTextureShaderVariantKey(
     features.iblSpecularProof === true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -987,6 +995,7 @@ export function createStandardTextureShaderVariantKey(
     features.clearcoat === true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -1012,6 +1021,7 @@ export function createStandardTextureShaderVariantKey(
     features.transmission === true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -1037,6 +1047,7 @@ export function createStandardTextureShaderVariantKey(
     features.sheen === true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -1062,6 +1073,7 @@ export function createStandardTextureShaderVariantKey(
     features.iridescence === true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -1091,6 +1103,10 @@ export function createStandardTextureShaderVariantKey(
 
   if (features.metallicRoughnessTexture) {
     names.push("metallic-roughness");
+  }
+
+  if (features.clearcoatTexture === true) {
+    names.push("clearcoat-texture");
   }
 
   if (features.normalTexture) {
@@ -1168,6 +1184,7 @@ function createStandardTextureVariantWgsl(
     features,
     "metallicRoughness",
   );
+  const clearcoatUv = standardTextureUvExpression(features, "clearcoat");
   const normalUv = standardTextureUvExpression(features, "normal");
   const occlusionUv = standardTextureUvExpression(features, "occlusion");
   const emissiveUv = standardTextureUvExpression(features, "emissive");
@@ -1358,6 +1375,7 @@ fn saturate(value: f32) -> f32 {`,
   if (
     features.baseColorTexture ||
     features.metallicRoughnessTexture ||
+    features.clearcoatTexture === true ||
     features.normalTexture ||
     features.occlusionTexture ||
     features.emissiveTexture
@@ -1564,7 +1582,12 @@ ${emissive}
   }
 
   if (features.clearcoat === true) {
-    code = applyStandardClearcoatSampling(code);
+    code = applyStandardClearcoatSampling(code, {
+      textureSample:
+        features.clearcoatTexture === true
+          ? `textureSample(clearcoatTexture, clearcoatSampler, ${clearcoatUv}).r`
+          : null,
+    });
   }
 
   if (features.sheen === true) {
@@ -1605,6 +1628,7 @@ function standardTextureUvExpression(
   field:
     | "baseColor"
     | "metallicRoughness"
+    | "clearcoat"
     | "normal"
     | "occlusion"
     | "emissive",
@@ -1634,6 +1658,13 @@ function standardTextureVariantDeclaration(
     declarations.push(
       "@group(2) @binding(3) var metallicRoughnessTexture: texture_2d<f32>;",
       "@group(2) @binding(4) var metallicRoughnessSampler: sampler;",
+    );
+  }
+
+  if (features.clearcoatTexture === true) {
+    declarations.push(
+      "@group(2) @binding(11) var clearcoatTexture: texture_2d<f32>;",
+      "@group(2) @binding(12) var clearcoatSampler: sampler;",
     );
   }
 
@@ -1749,6 +1780,25 @@ function standardTextureVariantBindings(
         label: "Metallic roughness sampler",
         group: 2,
         binding: 4,
+        resource: "sampler",
+      },
+    );
+  }
+
+  if (features.clearcoatTexture === true) {
+    bindings.push(
+      {
+        id: "clearcoatTexture",
+        label: "Clearcoat texture",
+        group: 2,
+        binding: 11,
+        resource: "texture",
+      },
+      {
+        id: "clearcoatSampler",
+        label: "Clearcoat sampler",
+        group: 2,
+        binding: 12,
         resource: "sampler",
       },
     );
@@ -1951,6 +2001,7 @@ function standardTextureVariantShaderLabel(
   if (
     features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2015,6 +2066,7 @@ function standardTextureVariantShaderLabel(
     features.cascadedShadowMap !== true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2035,6 +2087,7 @@ function standardTextureVariantShaderLabel(
     features.cascadedShadowMap === true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2056,6 +2109,7 @@ function standardTextureVariantShaderLabel(
     features.cascadedShadowMap !== true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2076,6 +2130,7 @@ function standardTextureVariantShaderLabel(
     features.pointShadowMap === true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2095,6 +2150,7 @@ function standardTextureVariantShaderLabel(
     features.iblSpecularProof !== true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2116,6 +2172,7 @@ function standardTextureVariantShaderLabel(
     features.iblSpecularProof === true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2136,6 +2193,7 @@ function standardTextureVariantShaderLabel(
     features.clearcoat === true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2161,6 +2219,7 @@ function standardTextureVariantShaderLabel(
     features.transmission === true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2186,6 +2245,7 @@ function standardTextureVariantShaderLabel(
     features.sheen === true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2211,6 +2271,7 @@ function standardTextureVariantShaderLabel(
     features.iridescence === true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2248,6 +2309,10 @@ function standardTextureFeatureNames(
 
   if (features.metallicRoughnessTexture) {
     names.push("metallic-roughness");
+  }
+
+  if (features.clearcoatTexture === true) {
+    names.push("clearcoat-texture");
   }
 
   if (features.normalTexture) {
@@ -2362,6 +2427,7 @@ function hasAnyStandardTextureFeature(
   return (
     features.baseColorTexture ||
     features.metallicRoughnessTexture ||
+    features.clearcoatTexture === true ||
     features.normalTexture ||
     features.occlusionTexture ||
     features.emissiveTexture ||
@@ -2511,12 +2577,94 @@ fn standardIridescenceFresnel(cosTheta: f32, baseF0: vec3f, thickness: f32, film
   return max(color, vec3f(0.0));
 }`;
 
-function applyStandardClearcoatSampling(code: string): string {
-  return code.replace(
+function applyStandardClearcoatSampling(
+  code: string,
+  options: { readonly textureSample: string | null } = { textureSample: null },
+): string {
+  const clearcoatTextureFactor = options.textureSample ?? "1.0";
+  const withClearcoatFactor = code
+    .replace(
+      `fn evaluateDirectLight(
+  normal: vec3f,
+  viewDir: vec3f,
+  lightDir: vec3f,
+  radiance: vec3f,
+  baseColor: vec3f,
+  metallic: f32,
+  roughness: f32,
+) -> vec3f {`,
+      `fn evaluateDirectLight(
+  normal: vec3f,
+  viewDir: vec3f,
+  lightDir: vec3f,
+  radiance: vec3f,
+  baseColor: vec3f,
+  metallic: f32,
+  roughness: f32,
+  clearcoatFactor: f32,
+) -> vec3f {`,
+    )
+    .replace(
+      `      direct = direct + evaluateDirectLight(
+        normal,
+        viewDir,
+        directionalLightDirection(lightIndex),
+        lightRadiance(lightIndex),
+        baseColor,
+        metallic,
+        roughness,
+      );`,
+      `      direct = direct + evaluateDirectLight(
+        normal,
+        viewDir,
+        directionalLightDirection(lightIndex),
+        lightRadiance(lightIndex),
+        baseColor,
+        metallic,
+        roughness,
+        clearcoatFactor,
+      );`,
+    )
+    .replaceAll(
+      `        roughness,
+      ) * shadowFactor;`,
+      `        roughness,
+        clearcoatFactor,
+      ) * shadowFactor;`,
+    )
+    .replaceAll(
+      `          roughness,
+        ) * shadowFactor;`,
+      `          roughness,
+          clearcoatFactor,
+        ) * shadowFactor;`,
+    )
+    .replaceAll(
+      `          roughness,
+        );`,
+      `          roughness,
+          clearcoatFactor,
+        );`,
+    )
+    .replace(
+      `  let metallic = clamp(material.metallicFactor, 0.0, 1.0);
+  let roughness = clamp(material.roughnessFactor, 0.045, 1.0);`,
+      `  let metallic = clamp(material.metallicFactor, 0.0, 1.0);
+  let roughness = clamp(material.roughnessFactor, 0.045, 1.0);
+  let clearcoatFactor = clamp(material.clearcoatFactor * ${clearcoatTextureFactor}, 0.0, 1.0);`,
+    )
+    .replace(
+      `  let metallic = clamp(material.metallicFactor * metallicRoughnessSample.b, 0.0, 1.0);
+  let roughness = clamp(material.roughnessFactor * metallicRoughnessSample.g, 0.045, 1.0);`,
+      `  let metallic = clamp(material.metallicFactor * metallicRoughnessSample.b, 0.0, 1.0);
+  let roughness = clamp(material.roughnessFactor * metallicRoughnessSample.g, 0.045, 1.0);
+  let clearcoatFactor = clamp(material.clearcoatFactor * ${clearcoatTextureFactor}, 0.0, 1.0);`,
+    );
+
+  return withClearcoatFactor.replace(
     `  var brdf = diffuse + specular;
   return brdf * radiance * nDotL;`,
-    `  let clearcoat = clamp(material.clearcoatFactor, 0.0, 1.0);
-  let clearcoatRoughness = clamp(material.clearcoatRoughnessFactor, 0.045, 1.0);
+    `  let clearcoatRoughness = clamp(material.clearcoatRoughnessFactor, 0.045, 1.0);
   let clearcoatFresnel = fresnelSchlick(
     max(dot(halfVector, viewDir), 0.0),
     vec3f(0.04),
@@ -2525,8 +2673,8 @@ function applyStandardClearcoatSampling(code: string): string {
   let clearcoatVisibility = geometrySmith(normal, viewDir, lightDir, clearcoatRoughness);
   let clearcoatSpecular = (clearcoatDistribution * clearcoatVisibility * clearcoatFresnel) /
     max(4.0 * max(dot(normal, viewDir), 0.0) * nDotL, 0.0001);
-  let clearcoatAttenuation = vec3f(1.0) - clearcoat * clearcoatFresnel;
-  var brdf = (diffuse + specular) * clearcoatAttenuation + clearcoatSpecular * clearcoat;
+  let clearcoatAttenuation = vec3f(1.0) - clearcoatFactor * clearcoatFresnel;
+  var brdf = (diffuse + specular) * clearcoatAttenuation + clearcoatSpecular * clearcoatFactor;
   return brdf * radiance * nDotL;`,
   );
 }

@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3099`: render texture-backed StandardMaterial PBR extension factors
-so at least one glTF PBR extension factor can vary by texture value instead of
-requiring separate scalar materials.
+Start `task-3100`: add renderer-owned grab-pass refraction for transmission so
+the transmitted StandardMaterial path samples scene color instead of only
+attenuating alpha.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -125,9 +125,9 @@ shader/pipeline/resource/importer tests.
 
 Reference anchors (read before writing):
 
-- `references/three.js/src/extras/PMREMGenerator.js`.
-- `references/engine/src/scene/graphics/reproject-texture.js`.
-- Existing WebGPU PMREM path in `packages/webgpu/src/webgpu/pmrem-compute-pipeline.ts`.
+- `references/three.js/src/nodes/functions/PhysicalLightingModel.js`.
+- `references/engine/src/scene/shader-lib/chunks/lit/frag/refraction.js`.
+- Existing WebGPU transmission path in `packages/webgpu/src/webgpu/standard-shader.ts`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -164,6 +164,8 @@ Acceptance criteria:
 - A Playwright readback shows rough and glossy probes sample different PMREM mip responses.
 
 ### task-3099 — Render texture-backed StandardMaterial PBR extension factors
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/render/src/materials/`, `packages/webgpu/src/webgpu/standard-*`, `examples/clearcoat.*`, `examples/transmission.*`, `examples/sheen.*`, `examples/iridescence.*`, targeted tests.

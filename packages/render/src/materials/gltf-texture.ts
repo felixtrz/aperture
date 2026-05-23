@@ -966,6 +966,8 @@ function textureSlotInfo(slot: GltfMaterialTextureSlot): {
         colorSpace: "data",
         format: "rgba8unorm",
       };
+    case "clearcoatTexture":
+      return { semantic: "data", colorSpace: "data", format: "rgba8unorm" };
     case "normalTexture":
       return { semantic: "normal", colorSpace: "data", format: "rgba8unorm" };
     case "occlusionTexture":

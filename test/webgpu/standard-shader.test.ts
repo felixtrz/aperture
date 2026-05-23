@@ -326,11 +326,114 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.bindings).toEqual(STANDARD_MESH_SHADER.bindings);
     expect(shader.code).toContain("clearcoatFactor: f32");
     expect(shader.code).toContain("clearcoatRoughnessFactor: f32");
+    expect(shader.code).toContain(`directionalLightDirection(lightIndex),
+        lightRadiance(lightIndex),
+        baseColor,
+        metallic,
+        roughness,
+        clearcoatFactor,`);
     expect(shader.code).toContain("let clearcoatFresnel = fresnelSchlick");
     expect(shader.code).toContain("clearcoatAttenuation");
     expect(
       materialPipelineKeyInputToKey(createMaterialPipelineKeyInput(material)),
     ).toBe("standard|clearcoat|opaque|back|less|none");
+  });
+
+  it("generates a texture-backed clearcoat StandardMaterial shader variant", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      clearcoatTexture: true,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      clearcoat: true,
+    });
+    const material = createStandardMaterialAsset({
+      clearcoatFactor: 1,
+      clearcoatTexture: {
+        texture: createTextureHandle("clearcoat-factor"),
+        sampler: createSamplerHandle("clearcoat-nearest"),
+      },
+      clearcoatRoughnessFactor: 0.08,
+    });
+
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        clearcoatTexture: true,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: false,
+        clearcoat: true,
+      }),
+    ).toBe("direct-lit-metallic-roughness-clearcoat-texture-clearcoat-texture");
+    expect(shader.label).toBe(
+      "aperture/standard-mesh-clearcoat-texture-clearcoat-textured",
+    );
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.bindings).toEqual([
+      ...STANDARD_MESH_SHADER.bindings,
+      {
+        id: "clearcoatTexture",
+        label: "Clearcoat texture",
+        group: 2,
+        binding: 11,
+        resource: "texture",
+      },
+      {
+        id: "clearcoatSampler",
+        label: "Clearcoat sampler",
+        group: 2,
+        binding: 12,
+        resource: "sampler",
+      },
+    ]);
+    expect(shader.code).toContain(
+      "@group(2) @binding(11) var clearcoatTexture: texture_2d<f32>;",
+    );
+    expect(shader.code).toContain(
+      "textureSample(clearcoatTexture, clearcoatSampler, input.uv).r",
+    );
+    expect(shader.code).toContain(`directionalLightDirection(lightIndex),
+        lightRadiance(lightIndex),
+        baseColor,
+        metallic,
+        roughness,
+        clearcoatFactor,`);
+    expect(
+      materialPipelineKeyInputToKey(createMaterialPipelineKeyInput(material)),
+    ).toBe("standard|clearcoat|clearcoatTexture|opaque|back|less|none");
+  });
+
+  it("threads clearcoat factors through shadowed direct-light calls", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      clearcoatTexture: true,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      clearcoat: true,
+      shadowMap: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.code).toContain(`roughness,
+        clearcoatFactor,
+      ) * shadowFactor;`);
+    expect(shader.code).toContain(`roughness,
+          clearcoatFactor,
+        );`);
+    expect(shader.code).not.toContain(`roughness,
+      ) * shadowFactor;`);
   });
 
   it("generates a scalar transmission StandardMaterial shader variant", () => {

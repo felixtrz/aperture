@@ -71,7 +71,7 @@ export const STANDARD_MATERIAL_UNIFORM_LAYOUT = [
   "clearcoatFactor",
   "clearcoatRoughnessFactor",
   "transmissionFactor",
-  "padding9",
+  "clearcoatTexCoord.u32",
   "sheenColorFactor.r",
   "sheenColorFactor.g",
   "sheenColorFactor.b",
@@ -91,6 +91,7 @@ export const STANDARD_MATERIAL_FEATURE_FLAGS = {
   ALPHA_MASK: 1 << 5,
   ALPHA_BLEND: 1 << 6,
   DOUBLE_SIDED: 1 << 7,
+  CLEARCOAT_TEXTURE: 1 << 8,
 } as const;
 
 export type StandardMaterialFeatureFlag =
@@ -121,6 +122,7 @@ export interface StandardMaterialResourceDependencies {
   readonly normal: StandardMaterialTextureDependency;
   readonly occlusion: StandardMaterialTextureDependency;
   readonly emissive: StandardMaterialTextureDependency;
+  readonly clearcoat: StandardMaterialTextureDependency;
 }
 
 export interface PackedStandardMaterial {
@@ -260,6 +262,7 @@ export function packStandardMaterial(
   uniformFloat32[48] = material.clearcoatFactor;
   uniformFloat32[49] = material.clearcoatRoughnessFactor;
   uniformFloat32[50] = material.transmissionFactor;
+  uniformUint32[51] = dependencies.clearcoat.texCoord;
   uniformFloat32.set(material.sheenColorFactor, 52);
   uniformFloat32[55] = material.sheenRoughnessFactor;
   uniformFloat32[56] = material.iridescenceFactor;
@@ -437,6 +440,11 @@ function collectStandardMaterialDependencies(
       material.emissiveTexture,
       diagnostics,
     ),
+    clearcoat: textureDependency(
+      "clearcoatTexture",
+      material.clearcoatTexture,
+      diagnostics,
+    ),
   };
 }
 
@@ -495,6 +503,10 @@ function standardMaterialFeatureFlags(material: StandardMaterialAsset): number {
 
   if (material.emissiveTexture !== null) {
     flags |= STANDARD_MATERIAL_FEATURE_FLAGS.EMISSIVE_TEXTURE;
+  }
+
+  if (material.clearcoatTexture !== null) {
+    flags |= STANDARD_MATERIAL_FEATURE_FLAGS.CLEARCOAT_TEXTURE;
   }
 
   if (material.renderState.alphaMode === "mask") {

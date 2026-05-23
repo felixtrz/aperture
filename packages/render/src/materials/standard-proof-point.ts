@@ -6,6 +6,7 @@ export type StandardMaterialProofPointFeature =
   | "metallicFactor"
   | "roughnessFactor"
   | "clearcoatFactor"
+  | "clearcoatTexture"
   | "clearcoatRoughnessFactor"
   | "transmissionFactor"
   | "sheenColorFactor"
@@ -36,6 +37,7 @@ export const STANDARD_MATERIAL_PROOF_POINT_SCOPE = {
     "metallicFactor",
     "roughnessFactor",
     "clearcoatFactor",
+    "clearcoatTexture",
     "clearcoatRoughnessFactor",
     "transmissionFactor",
     "sheenColorFactor",

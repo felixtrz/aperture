@@ -17,6 +17,6 @@ strict reference-parity follow-ups are complete:
 - `task-3096` added a renderer-owned multisampled-depth shader route so SSAO,
   SSR, and DOF can run in MSAA scenes without example-specific depth plumbing.
 
-Next step: start `task-3099` from `agent/BACKLOG.md`, rendering a
-texture-backed StandardMaterial PBR extension factor so one existing extension
-demo varies by texture value instead of separate scalar materials.
+Next step: start `task-3100` from `agent/BACKLOG.md`, adding renderer-owned
+grab-pass refraction for transmission so the existing transmission demo samples
+scene color instead of only attenuating alpha.

@@ -13,6 +13,7 @@ import type {
 export type GltfMaterialTextureSlot =
   | "baseColorTexture"
   | "metallicRoughnessTexture"
+  | "clearcoatTexture"
   | "normalTexture"
   | "occlusionTexture"
   | "emissiveTexture";
@@ -279,6 +280,14 @@ export function createMaterialAssetFromGltfMaterial(
       fallback: 0,
       diagnostics,
     }),
+    clearcoatTexture: mapTextureBinding({
+      materialKey,
+      slot: "clearcoatTexture",
+      field: `extensions.${CLEARCOAT_EXTENSION}.clearcoatTexture`,
+      value: clearcoatSource?.clearcoatTexture,
+      resolver: options.resolveTextureBinding,
+      diagnostics,
+    }),
     clearcoatRoughnessFactor: mapFiniteNumber({
       materialKey,
       field: `extensions.${CLEARCOAT_EXTENSION}.clearcoatRoughnessFactor`,
@@ -450,7 +459,6 @@ function inspectUnsupportedClearcoatTextures(
   }
 
   for (const field of [
-    "clearcoatTexture",
     "clearcoatRoughnessTexture",
     "clearcoatNormalTexture",
   ] as const) {
@@ -464,7 +472,7 @@ function inspectUnsupportedClearcoatTextures(
       materialKey,
       field: `extensions.${CLEARCOAT_EXTENSION}.${field}`,
       extensionName: CLEARCOAT_EXTENSION,
-      message: `${CLEARCOAT_EXTENSION}.${field} is preserved in source data but scalar clearcoat rendering does not sample clearcoat textures yet.`,
+      message: `${CLEARCOAT_EXTENSION}.${field} is preserved in source data but current clearcoat rendering only samples clearcoatTexture.`,
     });
   }
 }
@@ -885,7 +893,7 @@ function mapTextureTransform(input: {
       field: `${input.field}.extensions.${TEXTURE_TRANSFORM_EXTENSION}`,
       slot: input.slot,
       ...(textureIndex === undefined ? {} : { textureIndex }),
-      message: `${TEXTURE_TRANSFORM_EXTENSION} is preserved, but only base-color, metallic-roughness, normal, occlusion, and emissive transforms on TEXCOORD_0 or TEXCOORD_1 are rendered by current material shaders.`,
+      message: `${TEXTURE_TRANSFORM_EXTENSION} is preserved, but only base-color, metallic-roughness, clearcoat, normal, occlusion, and emissive transforms on TEXCOORD_0 or TEXCOORD_1 are rendered by current material shaders.`,
     });
   }
 
@@ -1241,6 +1249,7 @@ function isSupportedTextureTransform(
   return (
     (slot === "baseColorTexture" ||
       slot === "metallicRoughnessTexture" ||
+      slot === "clearcoatTexture" ||
       slot === "normalTexture" ||
       slot === "occlusionTexture" ||
       slot === "emissiveTexture") &&

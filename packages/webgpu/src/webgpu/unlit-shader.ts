@@ -20,6 +20,8 @@ export type BuiltInShaderBindingId =
   | "baseColorSampler"
   | "metallicRoughnessTexture"
   | "metallicRoughnessSampler"
+  | "clearcoatTexture"
+  | "clearcoatSampler"
   | "normalTexture"
   | "normalSampler"
   | "occlusionTexture"

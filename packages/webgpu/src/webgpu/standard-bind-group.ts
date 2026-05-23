@@ -15,7 +15,8 @@ export type StandardMaterialTextureSlot =
   | "metallicRoughness"
   | "normal"
   | "occlusion"
-  | "emissive";
+  | "emissive"
+  | "clearcoat";
 
 export type StandardMaterialBindGroupDescriptorDiagnosticCode =
   | "standardMaterialBindGroup.missingMaterialResource"
@@ -192,6 +193,14 @@ export function createStandardMaterialBindGroupDescriptorPlan(
     9,
     10,
     input.dependencies.emissive,
+  );
+  addTexturePair(
+    entries,
+    diagnostics,
+    "clearcoat",
+    11,
+    12,
+    input.dependencies.clearcoat,
   );
 
   return {

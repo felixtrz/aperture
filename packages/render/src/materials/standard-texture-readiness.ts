@@ -20,6 +20,7 @@ import type {
 export type StandardMaterialTextureField =
   | "baseColorTexture"
   | "metallicRoughnessTexture"
+  | "clearcoatTexture"
   | "normalTexture"
   | "occlusionTexture"
   | "emissiveTexture";
@@ -103,6 +104,11 @@ const STANDARD_TEXTURE_EXPECTATIONS = [
   {
     field: "metallicRoughnessTexture",
     semantic: "metallic-roughness",
+    colorSpaces: ["linear", "data"],
+  },
+  {
+    field: "clearcoatTexture",
+    semantic: "data",
     colorSpaces: ["linear", "data"],
   },
   {
@@ -544,6 +550,7 @@ function isSupportedStandardTextureTransform(input: {
   return (
     (input.field === "baseColorTexture" ||
       input.field === "metallicRoughnessTexture" ||
+      input.field === "clearcoatTexture" ||
       input.field === "normalTexture" ||
       input.field === "occlusionTexture" ||
       input.field === "emissiveTexture") &&

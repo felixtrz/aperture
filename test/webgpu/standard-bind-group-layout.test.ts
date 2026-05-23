@@ -43,6 +43,8 @@ describe("standard material bind group layout metadata", () => {
       { binding: 8, label: "occlusionSampler", resource: "sampler" },
       { binding: 9, label: "emissiveTexture", resource: "texture" },
       { binding: 10, label: "emissiveSampler", resource: "sampler" },
+      { binding: 11, label: "clearcoatTexture", resource: "texture" },
+      { binding: 12, label: "clearcoatSampler", resource: "sampler" },
     ]);
     expect(plan.layout.metadata.bindings[0]).toEqual({
       binding: 0,

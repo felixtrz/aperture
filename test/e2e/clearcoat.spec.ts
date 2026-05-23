@@ -16,9 +16,11 @@ type ClearcoatExampleGlobal = typeof globalThis & {
 interface ClearcoatStatus extends ExampleStatusBase {
   readonly clearcoat?: {
     readonly meshKey: string;
-    readonly baseMaterialKey: string;
-    readonly coatedMaterialKey: string;
+    readonly materialKey: string;
+    readonly clearcoatTextureKey: string;
+    readonly clearcoatSamplerKey: string;
     readonly clearcoatFactor: number;
+    readonly textureBackedFactor: boolean;
     readonly clearcoatRoughnessFactor: number;
   };
   readonly frame?: ClearcoatFrameStatus;
@@ -52,7 +54,7 @@ interface ClearcoatFrameStatus {
   };
 }
 
-test("browser renders scalar clearcoat with a distinct coating highlight", async ({
+test("browser renders texture-backed clearcoat with a distinct coating highlight", async ({
   page,
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
@@ -92,20 +94,22 @@ test("browser renders scalar clearcoat with a distinct coating highlight", async
     },
     clearcoat: {
       meshKey: "mesh:clearcoat-panel-mesh",
-      baseMaterialKey: "material:clearcoat-base-material",
-      coatedMaterialKey: "material:clearcoat-coated-material",
+      materialKey: "material:clearcoat-textured-material",
+      clearcoatTextureKey: "texture:clearcoat-factor-texture",
+      clearcoatSamplerKey: "sampler:clearcoat-factor-nearest",
       clearcoatFactor: 1,
+      textureBackedFactor: true,
       clearcoatRoughnessFactor: 0.12,
     },
     frame: {
       snapshot: {
         views: 1,
-        meshDraws: 2,
+        meshDraws: 1,
         lights: 2,
         diagnostics: 0,
       },
       counts: {
-        meshDraws: 2,
+        meshDraws: 1,
         diagnostics: 0,
       },
     },
@@ -122,8 +126,7 @@ test("browser renders scalar clearcoat with a distinct coating highlight", async
   expect(frame.counts?.drawCalls).toBeGreaterThanOrEqual(1);
   expect(frame.pipelineKeys).toEqual(
     expect.arrayContaining([
-      "standard|opaque|none|less|none",
-      "standard|clearcoat|opaque|none|less|none",
+      "standard|clearcoat|clearcoatTexture|opaque|none|less|none",
     ]),
   );
 

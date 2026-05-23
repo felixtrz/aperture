@@ -1,6 +1,57 @@
 # Agent Handoff
 
-Updated: 2026-05-23T14:04:25Z
+Updated: 2026-05-23T14:31:42Z
+
+## Current Run Update — 2026-05-23T14:31:42Z — Texture-backed clearcoat factor
+
+Completed `task-3099`, the next post-Tier-20 reference-parity slice.
+
+### What changed
+
+- Added `StandardMaterial.clearcoatTexture` as the first rendered
+  texture-backed PBR extension factor. The slot now flows through material
+  defaults, texture binding enumeration, proof-point support, glTF
+  `KHR_materials_clearcoat.clearcoatTexture` mapping, texture metadata,
+  readiness/fidelity reports, dependency packing, bind-group layout/resource
+  plans, pipeline keys, shader binding metadata, and app texture/sampler
+  preparation.
+- Updated the clearcoat example from two scalar materials to one
+  texture-backed material on a single panel. A 2x2 data texture drives
+  zero-clearcoat and full-clearcoat regions, and the headed browser proof checks
+  distinct readback luminance from those same-material regions.
+- Fixed the clearcoat shader transform so scalar, texture-backed, and
+  shadow-combined direct-light calls all receive the generated
+  `clearcoatFactor` argument.
+- Updated the public tracker, render-pipeline comparison, backlog, current-task
+  pointer, and completed-task log. Recommended next task is now `task-3100`.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts --reporter=dot`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/materials/standard-sampler-fidelity.test.ts test/webgpu/app-texture-sampler-resources.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-bind-group.test.ts test/webgpu/standard-bind-group-layout.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/prepared-standard-material-cache.test.ts --reporter=dot`
+- `pnpm run typecheck:test`
+- `pnpm run examples:build`
+- `pnpm test`
+- `pnpm exec playwright test test/e2e/clearcoat.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check $(git diff --name-only --diff-filter=ACMRTUXB)`
+- `pnpm run lint`
+- `git diff --check`
+
+### Known issues
+
+- `pnpm run format:check` was attempted, but it is currently blocked by
+  untracked `docs/DEVELOPER_API_PROPOSAL.md`, which was not part of this task
+  and was left untouched. The tracked files changed by this slice pass Prettier.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `docs/DEVELOPER_API_FEEDBACK.md` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3100`, adding renderer-owned grab-pass refraction for transmission
+so the transmitted StandardMaterial path samples scene color instead of only
+attenuating alpha.
 
 ## Current Run Update — 2026-05-23T14:04:25Z — PMREM app resource execution
 

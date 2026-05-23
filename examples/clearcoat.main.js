@@ -162,18 +162,22 @@ function createClearcoatStatus(scene, loop, diagnostics) {
   return {
     ...baseStatus,
     ok:
-      counts?.meshDraws === 2 &&
+      counts?.meshDraws === 1 &&
       loop.frame?.snapshot?.lights === 2 &&
       (counts?.drawCalls ?? 0) >= 1 &&
       counts?.diagnostics === 0 &&
-      pipelineKeys.includes("standard|clearcoat|opaque|none|less|none"),
+      pipelineKeys.includes(
+        "standard|clearcoat|clearcoatTexture|opaque|none|less|none",
+      ),
     phase: "submit",
     renderingBackend: "webgpu-explicit",
     clearcoat: {
       meshKey: scene.meshKey,
-      baseMaterialKey: scene.baseMaterialKey,
-      coatedMaterialKey: scene.coatedMaterialKey,
+      materialKey: scene.materialKey,
+      clearcoatTextureKey: scene.clearcoatTextureKey,
+      clearcoatSamplerKey: scene.clearcoatSamplerKey,
       clearcoatFactor: 1,
+      textureBackedFactor: true,
       clearcoatRoughnessFactor: 0.12,
       samples: scene.samples,
     },

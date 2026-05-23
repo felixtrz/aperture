@@ -351,6 +351,7 @@ function standardTextureFeatures(
   return {
     baseColorTexture: tokens.includes("baseColorTexture"),
     metallicRoughnessTexture: tokens.includes("metallicRoughnessTexture"),
+    clearcoatTexture: tokens.includes("clearcoatTexture"),
     normalTexture: tokens.includes("normalTexture"),
     occlusionTexture: tokens.includes("occlusionTexture"),
     emissiveTexture: tokens.includes("emissiveTexture"),
@@ -442,6 +443,7 @@ function standardShaderVariantKey(
 function standardMaterialLayoutKey(features: {
   readonly baseColorTexture: boolean;
   readonly metallicRoughnessTexture: boolean;
+  readonly clearcoatTexture?: boolean;
   readonly normalTexture: boolean;
   readonly occlusionTexture: boolean;
   readonly emissiveTexture: boolean;
@@ -479,6 +481,7 @@ function standardMaterialLayoutKey(features: {
   if (
     features.baseColorTexture ||
     features.metallicRoughnessTexture ||
+    features.clearcoatTexture === true ||
     features.normalTexture ||
     features.occlusionTexture ||
     features.emissiveTexture
@@ -494,6 +497,11 @@ function standardMaterialLayoutKey(features: {
     if (features.metallicRoughnessTexture) {
       names.push("metallic-roughness");
       bindings.push(3, 4);
+    }
+
+    if (features.clearcoatTexture === true) {
+      names.push("clearcoat");
+      bindings.push(11, 12);
     }
 
     if (features.normalTexture) {
