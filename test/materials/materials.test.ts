@@ -109,6 +109,27 @@ describe("material, texture, sampler, and render-state schemas", () => {
     ]);
   });
 
+  it("adds a stable StandardMaterial transmission pipeline feature", () => {
+    const material = createStandardMaterialAsset({
+      metallicFactor: 0,
+      roughnessFactor: 0.05,
+      transmissionFactor: 0.72,
+      renderState: {
+        alphaMode: "blend",
+        depth: { test: true, write: false, compare: "less" },
+        blend: { preset: "alpha" },
+      },
+    });
+
+    expect(validateMaterialAsset(material)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(createMaterialPipelineKeyInput(material).features).toEqual([
+      "transmission",
+    ]);
+  });
+
   it("validates texture color-space rules", () => {
     const invalidNormal = createTextureAsset({
       label: "Normal",

@@ -102,9 +102,11 @@ export interface GltfMaterialMappingReportJsonValue {
 }
 
 const CLEARCOAT_EXTENSION = "KHR_materials_clearcoat";
+const TRANSMISSION_EXTENSION = "KHR_materials_transmission";
 const SUPPORTED_MATERIAL_EXTENSIONS = new Set([
   "KHR_materials_unlit",
   CLEARCOAT_EXTENSION,
+  TRANSMISSION_EXTENSION,
 ]);
 const TEXTURE_TRANSFORM_EXTENSION = "KHR_texture_transform";
 
@@ -164,6 +166,23 @@ export function createMaterialAssetFromGltfMaterial(
           diagnostics,
         })
       : undefined;
+  const transmissionSource =
+    isRecord(materialExtensions) &&
+    materialExtensions[TRANSMISSION_EXTENSION] !== undefined
+      ? optionalRecordField({
+          source: materialExtensions,
+          field: TRANSMISSION_EXTENSION,
+          materialKey,
+          diagnostics,
+        })
+      : undefined;
+  const transmissionFactor = mapFiniteNumber({
+    materialKey,
+    field: `extensions.${TRANSMISSION_EXTENSION}.transmissionFactor`,
+    value: transmissionSource?.transmissionFactor,
+    fallback: 0,
+    diagnostics,
+  });
 
   if (unlit) {
     const mapped = createUnlitMaterialAsset({
@@ -200,7 +219,7 @@ export function createMaterialAssetFromGltfMaterial(
 
   const mapped = createStandardMaterialAsset({
     label,
-    renderState,
+    renderState: withTransmissionRenderState(renderState, transmissionFactor),
     baseColorFactor: mapBaseColorFactor({
       materialKey,
       field: "pbrMetallicRoughness.baseColorFactor",
@@ -243,6 +262,7 @@ export function createMaterialAssetFromGltfMaterial(
       fallback: 0,
       diagnostics,
     }),
+    transmissionFactor,
     metallicRoughnessTexture: mapTextureBinding({
       materialKey,
       slot: "metallicRoughnessTexture",
@@ -302,6 +322,11 @@ export function createMaterialAssetFromGltfMaterial(
     materialKey,
     diagnostics,
   );
+  inspectUnsupportedTransmissionTextures(
+    transmissionSource,
+    materialKey,
+    diagnostics,
+  );
 
   return {
     valid: diagnostics.every((diagnostic) => diagnostic.severity !== "error"),
@@ -325,6 +350,22 @@ export function gltfMaterialMappingReportToJson(
   report: GltfMaterialMappingReport,
 ): string {
   return JSON.stringify(gltfMaterialMappingReportToJsonValue(report));
+}
+
+function withTransmissionRenderState(
+  renderState: RenderStateDescriptor,
+  transmissionFactor: number,
+): RenderStateDescriptor {
+  if (transmissionFactor <= 0 || renderState.alphaMode !== "opaque") {
+    return renderState;
+  }
+
+  return createDefaultRenderState({
+    ...renderState,
+    alphaMode: "blend",
+    depth: { ...renderState.depth, write: false },
+    blend: { preset: "alpha" },
+  });
 }
 
 function inspectUnsupportedClearcoatTextures(
@@ -354,6 +395,29 @@ function inspectUnsupportedClearcoatTextures(
       message: `${CLEARCOAT_EXTENSION}.${field} is preserved in source data but scalar clearcoat rendering does not sample clearcoat textures yet.`,
     });
   }
+}
+
+function inspectUnsupportedTransmissionTextures(
+  transmissionSource: Record<string, unknown> | undefined,
+  materialKey: string,
+  diagnostics: GltfMaterialMappingDiagnostic[],
+): void {
+  if (transmissionSource === undefined) {
+    return;
+  }
+
+  if (transmissionSource.transmissionTexture === undefined) {
+    return;
+  }
+
+  diagnostics.push({
+    code: "gltfMaterial.unsupportedOptionalExtension",
+    severity: "warning",
+    materialKey,
+    field: `extensions.${TRANSMISSION_EXTENSION}.transmissionTexture`,
+    extensionName: TRANSMISSION_EXTENSION,
+    message: `${TRANSMISSION_EXTENSION}.transmissionTexture is preserved in source data but scalar transmission rendering does not sample transmission textures yet.`,
+  });
 }
 
 function gltfRenderState(

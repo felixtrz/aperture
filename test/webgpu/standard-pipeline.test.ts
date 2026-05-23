@@ -273,6 +273,7 @@ describe("browser standard material pipeline bridge", () => {
     const plan = createStandardPipelineDescriptorPlan({
       batchKey,
       colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
     });
 
     expect(plan).toMatchObject({
@@ -302,6 +303,7 @@ describe("browser standard material pipeline bridge", () => {
     const plan = createStandardPipelineDescriptorPlan({
       batchKey,
       colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
     });
 
     expect(plan).toMatchObject({
@@ -320,6 +322,46 @@ describe("browser standard material pipeline bridge", () => {
         descriptor: {
           vertex: {
             buffers: ["POSITION", "NORMAL", "TEXCOORD_0"],
+          },
+        },
+      },
+    });
+  });
+
+  it("specializes StandardMaterial pipeline keys for scalar transmission", () => {
+    const batchKey: BatchCompatibilityKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey: "standard|transmission|blend|back|less|alpha",
+    };
+    const plan = createStandardPipelineDescriptorPlan({
+      batchKey,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+    });
+
+    expect(plan).toMatchObject({
+      valid: true,
+      plan: {
+        keyInput: {
+          shaderVariantKey: "direct-lit-metallic-roughness-transmission",
+          vertexLayoutKey: "primitive-interleaved",
+          bindGroupLayoutKeys: [
+            "standard/group-0:view-uniform@0",
+            "standard/group-1:world-transforms@0",
+            "standard/group-2:material@0",
+            "lights/group-3:light-floats@0,light-metadata@1",
+          ],
+        },
+        descriptor: {
+          fragment: {
+            targets: [
+              {
+                blend: ALPHA_BLEND_STATE,
+              },
+            ],
+          },
+          depthStencil: {
+            depthWriteEnabled: false,
           },
         },
       },

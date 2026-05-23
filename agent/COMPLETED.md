@@ -1,5 +1,35 @@
 # Completed Tasks
 
+## task-3083 — Transmission extension
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added scalar StandardMaterial transmission support with `transmissionFactor`,
+  defaults, proof-point validation, material pipeline-key routing, and WebGPU
+  uniform packing.
+- Added glTF `KHR_materials_transmission` scalar mapping to the library material
+  mapper, including blend/depth-state mapping for transmitted opaque glTF
+  materials and warnings for currently unsupported `transmissionTexture`.
+- Added a scalar thin-wall WGSL transmission variant that preserves output-stage
+  tonemap/color-space composition while attenuating fragment alpha by the
+  authored transmission factor.
+- Added `examples/transmission.html` with a square worker-authored glass sphere
+  in front of a background panel, plus headed Chrome/WebGPU readback proof that
+  the background remains visible through the transmitted material.
+
+Validation:
+
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/materials/materials.test.ts test/materials/standard-proof-point.test.ts test/materials/gltf-material.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/output-stage-tonemap.test.ts`
+- `pnpm exec playwright test test/e2e/transmission.spec.ts --reporter=line --timeout=30000`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "multiple unsupported optional material extension" --reporter=line --timeout=60000`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "unsupported required material extension" --reporter=line --timeout=60000`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "unsupported optional material extension" --reporter=line --timeout=60000`
+
 ## task-3082 — Clearcoat extension
 
 Completed: 2026-05-22

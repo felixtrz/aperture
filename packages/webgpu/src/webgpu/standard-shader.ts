@@ -43,6 +43,8 @@ export const STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT =
   "direct-lit-metallic-roughness-diffuse-specular-ibl-proof";
 export const STANDARD_CLEARCOAT_SHADER_VARIANT =
   "direct-lit-metallic-roughness-clearcoat";
+export const STANDARD_TRANSMISSION_SHADER_VARIANT =
+  "direct-lit-metallic-roughness-transmission";
 
 export interface StandardTextureShaderFeatures {
   readonly baseColorTexture: boolean;
@@ -61,6 +63,7 @@ export interface StandardTextureShaderFeatures {
   readonly skinned?: boolean;
   readonly morphed?: boolean;
   readonly clearcoat?: boolean;
+  readonly transmission?: boolean;
   readonly fogLinear?: boolean;
   readonly fogExp?: boolean;
   readonly fogExp2?: boolean;
@@ -86,6 +89,7 @@ export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
     "sphereAreaLight",
     "clearcoatFactor",
     "clearcoatRoughnessFactor",
+    "transmissionFactor",
     "linearFog",
     "exponentialFog",
     "exponentialSquaredFog",
@@ -140,7 +144,7 @@ struct StandardMaterialUniform {
   padding5: f32,
   clearcoatFactor: f32,
   clearcoatRoughnessFactor: f32,
-  padding8: f32,
+  transmissionFactor: f32,
   padding9: f32,
 };
 
@@ -981,9 +985,33 @@ export function createStandardTextureShaderVariantKey(
     features.instanceTint !== true &&
     features.skinned !== true &&
     features.morphed !== true &&
+    features.transmission !== true &&
     !hasStandardFogFeature(features)
   ) {
     return STANDARD_CLEARCOAT_SHADER_VARIANT;
+  }
+
+  if (
+    features.transmission === true &&
+    !features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture &&
+    features.shadowMap !== true &&
+    features.cascadedShadowMap !== true &&
+    features.pointShadowMap !== true &&
+    features.iblDiffuse !== true &&
+    features.iblSpecularProof !== true &&
+    features.texCoord1 !== true &&
+    features.vertexColor !== true &&
+    features.instanceTint !== true &&
+    features.skinned !== true &&
+    features.morphed !== true &&
+    features.clearcoat !== true &&
+    !hasStandardFogFeature(features)
+  ) {
+    return STANDARD_TRANSMISSION_SHADER_VARIANT;
   }
 
   const names: string[] = [];
@@ -1042,6 +1070,10 @@ export function createStandardTextureShaderVariantKey(
 
   if (features.clearcoat === true) {
     names.push("clearcoat");
+  }
+
+  if (features.transmission === true) {
+    names.push("transmission");
   }
 
   appendStandardSkinningFeatureName(names, features);
@@ -1452,6 +1484,10 @@ ${emissive}
 
   if (features.clearcoat === true) {
     code = applyStandardClearcoatSampling(code);
+  }
+
+  if (features.transmission === true) {
+    code = applyStandardTransmissionSampling(code);
   }
 
   if (hasStandardFogFeature(features)) {
@@ -2028,9 +2064,33 @@ function standardTextureVariantShaderLabel(
     features.instanceTint !== true &&
     features.skinned !== true &&
     features.morphed !== true &&
+    features.transmission !== true &&
     !hasStandardFogFeature(features)
   ) {
     return "aperture/standard-mesh-clearcoat";
+  }
+
+  if (
+    features.transmission === true &&
+    !features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture &&
+    features.shadowMap !== true &&
+    features.cascadedShadowMap !== true &&
+    features.pointShadowMap !== true &&
+    features.iblDiffuse !== true &&
+    features.iblSpecularProof !== true &&
+    features.texCoord1 !== true &&
+    features.vertexColor !== true &&
+    features.instanceTint !== true &&
+    features.skinned !== true &&
+    features.morphed !== true &&
+    features.clearcoat !== true &&
+    !hasStandardFogFeature(features)
+  ) {
+    return "aperture/standard-mesh-transmission";
   }
 
   return `aperture/standard-mesh-${standardTextureFeatureNames(features).join(
@@ -2099,6 +2159,10 @@ function standardTextureFeatureNames(
     names.push("clearcoat");
   }
 
+  if (features.transmission === true) {
+    names.push("transmission");
+  }
+
   appendStandardSkinningFeatureName(names, features);
   appendStandardMorphTargetFeatureName(names, features);
   appendStandardFogFeatureName(names, features);
@@ -2136,7 +2200,11 @@ function hasStandardFogFeature(
 function hasStandardGenericOnlyFeature(
   features: StandardTextureShaderFeatures,
 ): boolean {
-  return features.clearcoat === true || hasStandardFogFeature(features);
+  return (
+    features.clearcoat === true ||
+    features.transmission === true ||
+    hasStandardFogFeature(features)
+  );
 }
 
 function hasAnyStandardTextureFeature(
@@ -2159,6 +2227,7 @@ function hasAnyStandardTextureFeature(
     features.skinned === true ||
     features.morphed === true ||
     features.clearcoat === true ||
+    features.transmission === true ||
     hasStandardFogFeature(features)
   );
 }
@@ -2178,6 +2247,23 @@ function applyStandardClearcoatSampling(code: string): string {
     max(4.0 * max(dot(normal, viewDir), 0.0) * nDotL, 0.0001);
   let clearcoatAttenuation = vec3f(1.0) - clearcoat * clearcoatFresnel;
   return ((diffuse + specular) * clearcoatAttenuation + clearcoatSpecular * clearcoat) * radiance * nDotL;`,
+  );
+}
+
+function applyStandardTransmissionSampling(code: string): string {
+  const fragmentStart = code.indexOf(`@fragment\nfn fs_main`);
+  const withMutableAlpha =
+    fragmentStart < 0
+      ? code
+      : `${code.slice(0, fragmentStart)}${code
+          .slice(fragmentStart)
+          .replace(`  let alpha = `, `  var alpha = `)}`;
+
+  return withMutableAlpha.replace(
+    `  return vec4f(color, alpha);`,
+    `  let transmission = clamp(material.transmissionFactor, 0.0, 1.0);
+  alpha = alpha * (1.0 - transmission);
+  return vec4f(color, alpha);`,
   );
 }
 

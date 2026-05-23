@@ -59,15 +59,16 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3083`: Transmission extension.
+Start `task-3084`: Sheen extension.
 
-Why this next: Tier 17 scene atmosphere is complete, and Tier 18 has started
-with scalar StandardMaterial clearcoat. `examples/clearcoat.html` now proves a
-clearcoat highlight distinct from the base StandardMaterial specular response,
-with library-owned schema, glTF scalar mapping, uniform packing, pipeline-key
-routing, and WGSL shader support. The next visible gap is transmission as the
-second `MeshPhysicalMaterial`/glTF PBR-extension surface: a glass-like material
-where the background remains visible through the object.
+Why this next: Tier 17 scene atmosphere is complete, and Tier 18 has shipped
+scalar StandardMaterial clearcoat plus scalar thin-wall transmission.
+`examples/clearcoat.html` proves a clearcoat highlight distinct from the base
+StandardMaterial specular response, and `examples/transmission.html` proves a
+glass-like surface with the background visible through the transmitted material.
+The next visible gap is sheen as the third `MeshPhysicalMaterial`/glTF
+PBR-extension surface: a fabric-like material with a characteristic
+sheen/rim-light response.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -125,7 +126,7 @@ Reference anchors (read before writing):
 
 - `references/three.js/src/materials/MeshPhysicalMaterial.js`.
 - `references/engine/src/scene/materials/standard-material.js`.
-- glTF `KHR_materials_clearcoat` extension behavior.
+- glTF `KHR_materials_sheen` extension behavior.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -1231,10 +1232,19 @@ Acceptance criteria:
 
 ### task-3083 — Transmission extension (Tier 18 part 2)
 
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: extends Tier 18 part 1.
 Reference anchor: `references/three.js/src/materials/MeshPhysicalMaterial.js` (transmission); glTF `KHR_materials_transmission`.
 Insertion point: thin-walled transmission for glass-like surfaces. Requires a grab-pass (sample of the back buffer) for refraction.
+Completion note 2026-05-23: scalar thin-wall StandardMaterial transmission
+shipped with `transmissionFactor`, glTF `KHR_materials_transmission` scalar
+mapping, blend/depth-state mapping for transmitted opaque glTF materials,
+transmission pipeline-key routing, uniform packing, WGSL alpha attenuation, and
+`examples/transmission.html` browser coverage showing a background panel visible
+through the glass sphere. Transmission texture slots and true grab-pass
+refraction remain follow-up work and are reported as unsupported optional slots.
 
 Acceptance criteria:
 

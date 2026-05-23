@@ -30,6 +30,7 @@ describe("glTF material mapping", () => {
       roughnessFactor: 1,
       clearcoatFactor: 0,
       clearcoatRoughnessFactor: 0,
+      transmissionFactor: 0,
       normalScale: 1,
       occlusionStrength: 1,
       emissiveFactor: [0, 0, 0],
@@ -113,6 +114,71 @@ describe("glTF material mapping", () => {
         severity: "warning",
         field: "extensions.KHR_materials_clearcoat.clearcoatNormalTexture",
         extensionName: "KHR_materials_clearcoat",
+      },
+    ]);
+  });
+
+  it("maps KHR_materials_transmission scalar factors to StandardMaterial fields", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        name: "Thin Glass",
+        extensions: {
+          KHR_materials_transmission: {
+            transmissionFactor: 0.72,
+          },
+        },
+        pbrMetallicRoughness: {
+          baseColorFactor: [0.65, 0.82, 1, 1],
+          metallicFactor: 0,
+          roughnessFactor: 0.04,
+        },
+      },
+      {
+        materialKey: "material:transmission",
+        extensionsRequired: ["KHR_materials_transmission"],
+      },
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      label: "Thin Glass",
+      metallicFactor: 0,
+      roughnessFactor: 0.04,
+      transmissionFactor: 0.72,
+      renderState: {
+        alphaMode: "blend",
+        depth: { write: false },
+        blend: { preset: "alpha" },
+      },
+    });
+  });
+
+  it("warns when KHR_materials_transmission uses unsupported texture slots", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        extensions: {
+          KHR_materials_transmission: {
+            transmissionFactor: 1,
+            transmissionTexture: { index: 0 },
+          },
+        },
+      },
+      { materialKey: "material:transmission-texture" },
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      transmissionFactor: 1,
+    });
+    expect(report.diagnostics).toMatchObject([
+      {
+        code: "gltfMaterial.unsupportedOptionalExtension",
+        severity: "warning",
+        field: "extensions.KHR_materials_transmission.transmissionTexture",
+        extensionName: "KHR_materials_transmission",
       },
     ]);
   });
@@ -649,14 +715,14 @@ describe("glTF material mapping", () => {
   it("reports unsupported required extensions and unresolved texture handles", () => {
     const report = createMaterialAssetFromGltfMaterial(
       {
-        extensions: { KHR_materials_transmission: {} },
+        extensions: { KHR_materials_sheen: {} },
         pbrMetallicRoughness: {
           baseColorTexture: { index: 2 },
         },
       },
       {
         materialKey: "material:bad",
-        extensionsRequired: ["KHR_materials_transmission"],
+        extensionsRequired: ["KHR_materials_sheen"],
       },
     );
 
@@ -665,7 +731,7 @@ describe("glTF material mapping", () => {
       {
         code: "gltfMaterial.unsupportedRequiredExtension",
         severity: "error",
-        extensionName: "KHR_materials_transmission",
+        extensionName: "KHR_materials_sheen",
       },
       {
         code: "gltfMaterial.unresolvedTextureBinding",

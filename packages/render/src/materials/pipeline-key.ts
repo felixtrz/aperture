@@ -20,6 +20,10 @@ export function createMaterialPipelineKeyInput(
     features.push("clearcoat");
   }
 
+  if (usesStandardTransmission(material)) {
+    features.push("transmission");
+  }
+
   return {
     shaderFamily: material.kind,
     features: features.sort(),
@@ -43,6 +47,10 @@ function usesStandardTexCoord1(material: MaterialAsset): boolean {
 
 function usesStandardClearcoat(material: MaterialAsset): boolean {
   return material.kind === "standard" && material.clearcoatFactor > 0;
+}
+
+function usesStandardTransmission(material: MaterialAsset): boolean {
+  return material.kind === "standard" && material.transmissionFactor > 0;
 }
 
 export function materialPipelineKeyInputToKey(

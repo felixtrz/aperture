@@ -26,6 +26,7 @@ import {
   PackedLightKindId,
   STANDARD_CASCADED_SHADOW_MAP_SHADER_VARIANT,
   STANDARD_CLEARCOAT_SHADER_VARIANT,
+  STANDARD_TRANSMISSION_SHADER_VARIANT,
   STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY,
   STANDARD_SHADOW_MAP_SHADER_VARIANT,
   STANDARD_SHADOW_RECEIVER_MESH_SHADER,
@@ -328,6 +329,52 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(
       materialPipelineKeyInputToKey(createMaterialPipelineKeyInput(material)),
     ).toBe("standard|clearcoat|opaque|back|less|none");
+  });
+
+  it("generates a scalar transmission StandardMaterial shader variant", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      transmission: true,
+    });
+    const material = createStandardMaterialAsset({
+      transmissionFactor: 0.72,
+      renderState: {
+        alphaMode: "blend",
+        depth: { test: true, write: false, compare: "less" },
+        blend: { preset: "alpha" },
+      },
+    });
+
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: false,
+        transmission: true,
+      }),
+    ).toBe(STANDARD_TRANSMISSION_SHADER_VARIANT);
+    expect(shader.label).toBe("aperture/standard-mesh-transmission");
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.bindings).toEqual(STANDARD_MESH_SHADER.bindings);
+    expect(shader.code).toContain("transmissionFactor: f32");
+    expect(shader.code).toContain(
+      "let transmission = clamp(material.transmissionFactor",
+    );
+    expect(shader.code).toContain("var alpha = material.baseColorFactor.a");
+    expect(shader.code).toContain("alpha = alpha * (1.0 - transmission)");
+    expect(shader.code).toContain("return vec4f(color, alpha);");
+    expect(
+      materialPipelineKeyInputToKey(createMaterialPipelineKeyInput(material)),
+    ).toBe("standard|transmission|blend|back|less|alpha");
   });
 
   it("generates a skinned StandardMaterial shader variant", () => {

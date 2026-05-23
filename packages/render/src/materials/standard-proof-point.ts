@@ -7,6 +7,7 @@ export type StandardMaterialProofPointFeature =
   | "roughnessFactor"
   | "clearcoatFactor"
   | "clearcoatRoughnessFactor"
+  | "transmissionFactor"
   | "metallicRoughnessTexture"
   | "normalTexture"
   | "emissiveFactor"
@@ -21,7 +22,7 @@ export type StandardMaterialProofPointFeature =
 export type DeferredStandardMaterialFeature =
   | "imageBasedLighting"
   | "shadows"
-  | "transmission";
+  | "transmissionGrabPass";
 
 export const STANDARD_MATERIAL_PROOF_POINT_SCOPE = {
   supported: [
@@ -31,6 +32,7 @@ export const STANDARD_MATERIAL_PROOF_POINT_SCOPE = {
     "roughnessFactor",
     "clearcoatFactor",
     "clearcoatRoughnessFactor",
+    "transmissionFactor",
     "metallicRoughnessTexture",
     "normalTexture",
     "emissiveFactor",
@@ -42,7 +44,7 @@ export const STANDARD_MATERIAL_PROOF_POINT_SCOPE = {
     "ambientLight",
     "directionalLight",
   ],
-  deferred: ["imageBasedLighting", "shadows", "transmission"],
+  deferred: ["imageBasedLighting", "shadows", "transmissionGrabPass"],
 } as const satisfies {
   readonly supported: readonly StandardMaterialProofPointFeature[];
   readonly deferred: readonly DeferredStandardMaterialFeature[];
@@ -81,6 +83,11 @@ export function validateStandardMaterialProofPoint(
   validateUnitFactor(
     material.clearcoatRoughnessFactor,
     "clearcoatRoughnessFactor",
+    diagnostics,
+  );
+  validateUnitFactor(
+    material.transmissionFactor,
+    "transmissionFactor",
     diagnostics,
   );
 

@@ -1,6 +1,68 @@
 # Agent Handoff
 
-Updated: 2026-05-22T23:58:11Z
+Updated: 2026-05-23T00:24:28Z
+
+## Current Run Update — 2026-05-23T00:24:28Z — Transmission
+
+Completed `task-3083`, the Tier 18 scalar thin-wall transmission slice.
+
+### What changed
+
+- Added StandardMaterial scalar transmission field `transmissionFactor`.
+- Added default values, proof-point validation, material pipeline-key routing,
+  and WebGPU StandardMaterial uniform packing for transmission.
+- Added glTF `KHR_materials_transmission` scalar mapping in the library material
+  mapper. Opaque glTF materials with scalar transmission now map to alpha
+  blending with depth writes disabled; unsupported `transmissionTexture` slots
+  are reported as optional warnings.
+- Added a scalar WGSL transmission path that attenuates fragment alpha by the
+  authored factor while preserving StandardMaterial output-stage tonemap and
+  sRGB color-space composition.
+- Added `examples/transmission.html`, `examples/transmission.main.js`,
+  `examples/transmission.worker.js`, and `examples/transmission-scene.js` with a
+  square worker-authored glass sphere over a visible background panel.
+- Added headed Chrome/WebGPU coverage proving the transmission route uses the
+  expected blend pipeline and keeps the background visible through the sphere,
+  plus unit coverage for material schema, glTF mapping, pipeline keys, uniform
+  packing, shader variants, and pipeline descriptors.
+
+### Reference comparison
+
+- three.js exposes transmission on `MeshPhysicalMaterial` and maps glTF
+  `KHR_materials_transmission` into the physical-material path.
+- PlayCanvas routes transmission/refraction through StandardMaterial physical
+  parameters with optional dynamic refraction.
+- Aperture now keeps scalar transmission data in renderer-independent
+  StandardMaterial assets, derives the transmission pipeline feature through
+  material keys, and keeps WebGPU uniforms/shaders renderer-owned. Full
+  grab-pass refraction and transmission textures remain follow-up work.
+
+### Validation
+
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run check:examples` passed.
+- `pnpm exec vitest run test/materials/materials.test.ts test/materials/standard-proof-point.test.ts test/materials/gltf-material.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/output-stage-tonemap.test.ts` passed: 7 files, 109 tests.
+- `pnpm exec playwright test test/e2e/transmission.spec.ts --reporter=line --timeout=30000` passed.
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "multiple unsupported optional material extension" --reporter=line --timeout=60000` passed.
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "unsupported required material extension" --reporter=line --timeout=60000` passed.
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "unsupported optional material extension" --reporter=line --timeout=60000` passed.
+
+### Known issues
+
+- Transmission texture slots are detected and reported as optional warnings, but
+  are not sampled yet.
+- This slice uses alpha-based thin-wall transmission. True grab-pass refraction
+  remains a later renderer feature.
+- The grouped glTF unsupported-extension Playwright run stalled once after all
+  individual cases had started; rerunning the affected tests individually
+  passed.
+
+### Recommended next task
+
+Continue with `task-3084`, Sheen extension, from `agent/CURRENT_TASK.md`. The
+visible proof should show a fabric-like surface with a characteristic sheen
+rim-light while keeping material mapping in the library path.
 
 ## Current Run Update — 2026-05-22T23:58:11Z — Clearcoat
 

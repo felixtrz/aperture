@@ -25,6 +25,7 @@ describe("standard material WebGPU uniform packing", () => {
       roughnessFactor: 0.75,
       clearcoatFactor: 0.85,
       clearcoatRoughnessFactor: 0.12,
+      transmissionFactor: 0.65,
       normalScale: 0.5,
       occlusionStrength: 0.9,
       emissiveFactor: [0.1, 0.2, 0.3],
@@ -67,6 +68,7 @@ describe("standard material WebGPU uniform packing", () => {
     );
     expect(result.packed?.uniformFloat32[48]).toBeCloseTo(0.85);
     expect(result.packed?.uniformFloat32[49]).toBeCloseTo(0.12);
+    expect(result.packed?.uniformFloat32[50]).toBeCloseTo(0.65);
   });
 
   it("records texture dependencies and feature flags without raw handles", () => {
@@ -247,6 +249,7 @@ describe("standard material WebGPU uniform packing", () => {
     expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[49]).toBe(
       "clearcoatRoughnessFactor",
     );
+    expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[50]).toBe("transmissionFactor");
     expect(STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH).toBe(208);
   });
 
