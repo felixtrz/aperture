@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3088`: SSAO (screen-space ambient occlusion).
+Start `task-3089`: SSR (screen-space reflections).
 
 Why this next: Tier 17 scene atmosphere is complete, and Tier 18 has shipped
 scalar StandardMaterial clearcoat, scalar thin-wall transmission, scalar sheen,
@@ -75,7 +75,9 @@ targets, and TAA now adds ECS-authored temporal jitter, a history-buffered
 WebGPU post effect, renderer-owned motion-vector textures, geometry-aware
 main-pass motion-vector output for compatible built-in mesh scenes, fallback
 camera-motion clears for unsupported combinations, and `examples/taa.html`
-square-canvas browser proof. Tier 20 begins with depth-reading SSAO.
+square-canvas browser proof. Tier 20 has started with a depth-reading SSAO post
+effect and `examples/ssao.html` square-canvas browser proof; the next slice is
+SSR using the same depth-readable post-pass foundation.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -1335,7 +1337,7 @@ Acceptance criteria:
 - Visible reduction in temporal aliasing on a moving camera scene.
 - Playwright video-frame comparison shows TAA frames smoother than non-TAA.
 
-### task-3088 — SSAO (screen-space ambient occlusion) (Tier 20 part 1)
+### task-3088 — SSAO (screen-space ambient occlusion) (Tier 20 part 1) — Completed 2026-05-23
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/post-ssao.ts` (new), depth attachment access from main pass, targeted tests.

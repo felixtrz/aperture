@@ -292,6 +292,7 @@ import {
   createOrReuseWebGpuPostPassTexture,
   createWebGpuPostPassTextureCacheSlot,
   type WebGpuPostEffect,
+  type WebGpuPostPassDepthTextureResource,
   type WebGpuPostPassTextureCacheSlot,
   type WebGpuPostPassTextureResource,
 } from "./post-pass.js";
@@ -3204,6 +3205,21 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     }
   }
 
+  const requiresDepthTexture = options.effects.some(
+    (effect) => effect.requiresDepthTexture === true,
+  );
+  const depthTexture: WebGpuPostPassDepthTextureResource | undefined =
+    requiresDepthTexture
+      ? {
+          texture: options.depthAttachment.texture,
+          width: options.depthAttachment.width,
+          height: options.depthAttachment.height,
+          format: options.depthAttachment.format,
+          sampleCount: options.depthAttachment.sampleCount,
+          label: `${options.label}:post:depth`,
+        }
+      : undefined;
+
   const motionVectorAttachmentView =
     options.motionVectorColorFormat === undefined ||
     options.motionVectorColorFormat === null
@@ -3338,6 +3354,7 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
       ...(motionVectorTexture === undefined
         ? {}
         : { motionVector: motionVectorTexture }),
+      ...(depthTexture === undefined ? {} : { depth: depthTexture }),
       ...(outputTexture === null ? {} : { output: outputTexture }),
       label: `${options.label}:post:${effect.id}`,
     });

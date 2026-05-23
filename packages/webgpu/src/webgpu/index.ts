@@ -94,6 +94,7 @@ export * from "./pmrem-compute-pipeline.js";
 export * from "./post-bloom.js";
 export * from "./post-fxaa.js";
 export * from "./post-pass.js";
+export * from "./post-ssao.js";
 export * from "./post-taa.js";
 export * from "./point-shadow-matrix-computation.js";
 export * from "./point-shadow-view-projection-plan.js";

@@ -42,6 +42,7 @@ import {
 import {
   createQueuedMaterialAdapterRegistry,
   createWebGpuCopyPostEffect,
+  createWebGpuSsaoPostEffect,
   createWebGpuApp as createRendererOnlyWebGpuApp,
   createWebGpuAppRenderTargetAsset,
   createWebGpuAppDiagnosticsSummary,
@@ -748,6 +749,71 @@ describe("WebGPU app facade", () => {
     expect(webGpuAppRenderReportToJsonValue(frame).postEffects).toEqual(
       frame.postEffects,
     );
+  });
+
+  it("passes the renderer-owned scene depth texture to SSAO post effects", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+      postEffects: [createWebGpuSsaoPostEffect({ radiusPixels: 6 })],
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "White" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 141);
+
+    expect(frame.ok).toBe(true);
+    expect(frame.postEffects).toEqual([
+      {
+        effectId: "ssao",
+        label: "SSAO Post Effect",
+        viewId: 0,
+        input: "aperture-webgpu-app:post:scene",
+        output: "swapchain",
+        ok: true,
+        drawCalls: 1,
+      },
+    ]);
+    expect(frame.depthAttachment).toMatchObject({
+      format: "depth24plus",
+      width: 1,
+      height: 1,
+      attached: true,
+    });
+    expect(events).toContain(
+      "device:pipeline:aperture-webgpu-app:post:ssao:ssao:pipeline",
+    );
+    expect(
+      events.filter(
+        (event) => event === "textureResource:view:aperture/webgpu-app/depth",
+      ).length,
+    ).toBeGreaterThanOrEqual(2);
   });
 
   it("surfaces per-pass GPU timings in the app diagnostics summary", async () => {

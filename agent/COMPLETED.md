@@ -25348,6 +25348,33 @@ Validation:
 - `pnpm exec tsc --noEmit -p tsconfig.test.json`
 - `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "UV1 base-color plus emissive textures"`
 
+## task-3088 — SSAO (screen-space ambient occlusion)
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added a depth dependency to the WebGPU post-pass contract and passed the
+  renderer-owned scene depth attachment into effects that declare
+  `requiresDepthTexture`.
+- Made app depth attachments sampleable by adding `TEXTURE_BINDING` usage while
+  keeping them renderer-owned forward-pass resources.
+- Added `createWebGpuSsaoPostEffect()` with a depth-reading full-screen WGSL
+  sampling kernel, single-sample depth validation, and source-color
+  multiplication for contact/depth-discontinuity darkening.
+- Added `examples/ssao.html` with raw vs SSAO square canvases over a
+  worker-authored contact/corner scene, plus browser coverage proving the SSAO
+  canvas has visibly darker pixels than the raw path.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts test/webgpu/depth-texture-resource.test.ts --reporter=dot`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --reporter=dot`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/ssao.spec.ts --reporter=list --timeout=30000`
+
 ## task-2169 — Add transformed base-color plus metallic-roughness GLB viewer sample
 
 Completed: 2026-05-20

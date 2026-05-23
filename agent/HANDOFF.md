@@ -1,6 +1,56 @@
 # Agent Handoff
 
-Updated: 2026-05-23T03:06:27Z
+Updated: 2026-05-23T03:34:50Z
+
+## Current Run Update — 2026-05-23T03:34:50Z — SSAO depth-readable post effect
+
+Completed `task-3088`, the Tier 20 SSAO slice.
+
+### What changed
+
+- Extended the WebGPU post-pass contract with `requiresDepthTexture` and a
+  renderer-owned depth texture prepare input.
+- Made app forward depth attachments sampleable by adding `TEXTURE_BINDING`
+  usage while preserving `depth24plus` render attachment ownership.
+- Added `createWebGpuSsaoPostEffect()` with a depth-reading full-screen WGSL
+  sampling kernel, single-sample depth guard, and source-color multiplication
+  for contact/depth-discontinuity darkening.
+- Added `examples/ssao.html`, `examples/ssao.main.js`,
+  `examples/ssao.worker.js`, and shared SSAO scene assets for a square
+  raw-vs-SSAO browser proof.
+- Added Playwright coverage that compares the raw and SSAO canvases and asserts
+  visibly darker pixels with the SSAO pass enabled.
+
+### Reference comparison
+
+- three.js `SSAOPass` anchors the depth-texture post-pass shape and
+  full-screen composition.
+- PlayCanvas `posteffect-ssao.js` anchors the explicit depth-buffer dependency
+  and screen-space depth sampling model.
+- Bevy SSAO anchors keeping the effect renderer-owned and depth/prepass-driven,
+  rather than moving scene data into the post effect.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts test/webgpu/depth-texture-resource.test.ts --reporter=dot`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --reporter=dot`
+- `pnpm run build`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/ssao.spec.ts --reporter=list --timeout=30000`
+
+### Known issues
+
+- The first SSAO implementation is a lightweight depth-contrast/contact
+  approximation, not a normal-buffer GTAO/SAO quality pass.
+- SSAO currently rejects multisampled depth inputs; use it with single-sample
+  scenes until a depth resolve or multisampled depth sampling route exists.
+
+### Recommended next task
+
+Start `task-3089`, SSR. Reuse the new post-pass depth dependency and compare
+against three.js `SSRPass` before implementing the ray-march/reflection slice.
 
 ## Current Run Update — 2026-05-23T03:06:27Z — TAA motion-vector completion
 

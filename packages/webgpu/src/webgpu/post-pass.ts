@@ -12,7 +12,9 @@ export type WebGpuPostPassDiagnosticCode =
   | "webGpuPostPass.inputTextureViewUnavailable"
   | "webGpuPostPass.pipelineLayoutUnavailable"
   | "webGpuPostPass.outputTextureUnavailable"
-  | "webGpuPostPass.motionVectorTextureUnavailable";
+  | "webGpuPostPass.motionVectorTextureUnavailable"
+  | "webGpuPostPass.depthTextureUnavailable"
+  | "webGpuPostPass.depthTextureUnsupportedSampleCount";
 
 export interface WebGpuPostPassDiagnostic {
   readonly code: WebGpuPostPassDiagnosticCode;
@@ -36,6 +38,15 @@ export interface WebGpuPostPassTextureResource {
   readonly label: string;
 }
 
+export interface WebGpuPostPassDepthTextureResource {
+  readonly texture: CurrentTextureLike;
+  readonly width: number;
+  readonly height: number;
+  readonly format: string;
+  readonly sampleCount: number;
+  readonly label: string;
+}
+
 export interface WebGpuPostPassTextureCacheSlot {
   current: WebGpuPostPassTextureResource | null;
 }
@@ -51,6 +62,7 @@ export interface WebGpuPostEffectPrepareOptions {
   readonly device: WebGpuPostPassDeviceLike;
   readonly input: WebGpuPostPassTextureResource;
   readonly motionVector?: WebGpuPostPassTextureResource;
+  readonly depth?: WebGpuPostPassDepthTextureResource;
   readonly outputFormat: string;
   readonly width: number;
   readonly height: number;
@@ -73,6 +85,7 @@ export interface WebGpuPostEffect {
   readonly label?: string;
   readonly enabled?: boolean;
   readonly requiresMotionVectors?: boolean;
+  readonly requiresDepthTexture?: boolean;
   prepare(
     options: WebGpuPostEffectPrepareOptions,
   ): WebGpuPreparedPostEffectPass;

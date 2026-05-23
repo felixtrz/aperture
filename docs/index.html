@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 02:44 UTC</dd>
+            <dd>2026-05-23 03:34 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1401,10 +1401,14 @@
               renderer-owned motion-vector texture input, compatible built-in
               mesh scenes write geometry-aware motion vectors in the main pass,
               and <code>examples/taa.html</code> compares raw jitter against
-              accumulated TAA on square canvases.
+              accumulated TAA on square canvases. Tier 20 has started: post
+              effects can request the renderer-owned scene depth texture,
+              <code>createWebGpuSsaoPostEffect()</code> samples depth in a
+              full-screen WebGPU pass, and <code>examples/ssao.html</code>
+              proves raw-vs-SSAO contact darkening in square canvases.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3088 SSAO screen-space ambient occlusion</dd>
+            <dd>task-3089 SSR screen-space reflections</dd>
           </dl>
         </aside>
       </header>
@@ -4428,16 +4432,16 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Start
-                <code>task-3088</code>, SSAO screen-space ambient occlusion.
+                <code>task-3089</code>, SSR screen-space reflections.
               </li>
               <li>
-                Anchor on three.js <code>SSAOPass</code> and PlayCanvas
-                <code>posteffect-ssao.js</code> depth-buffer sampling patterns.
+                Anchor on three.js <code>SSRPass</code> and the existing
+                depth-readable post-pass path from <code>task-3088</code>.
               </li>
               <li>
-                Tier 19 is complete; the next screen-space slice should make the
-                main-pass depth attachment readable by post effects and prove
-                visible contact darkening in a concave scene.
+                Tier 20 now has SSAO depth sampling and a raw-vs-SSAO browser
+                proof; the next screen-space slice should ray march against
+                depth and prove recognizable reflections on a glossy receiver.
               </li>
             </ul>
           </article>

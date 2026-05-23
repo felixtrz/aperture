@@ -59,10 +59,10 @@ describe("WebGPU app depth texture resource", () => {
     expect(resized.status).toBe("created");
     expect(resized.resource).toMatchObject({ width: 800, height: 450 });
     expect(events).toEqual([
-      'create:{"label":"aperture/webgpu-app/depth","size":[640,360,1],"format":"depth24plus","sampleCount":1,"usage":16}',
+      'create:{"label":"aperture/webgpu-app/depth","size":[640,360,1],"format":"depth24plus","sampleCount":1,"usage":20}',
       "view:1",
       "destroy:1",
-      'create:{"label":"aperture/webgpu-app/depth","size":[800,450,1],"format":"depth24plus","sampleCount":1,"usage":16}',
+      'create:{"label":"aperture/webgpu-app/depth","size":[800,450,1],"format":"depth24plus","sampleCount":1,"usage":20}',
       "view:2",
     ]);
   });

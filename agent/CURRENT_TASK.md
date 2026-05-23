@@ -3,16 +3,15 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: `task-3088` — SSAO (screen-space ambient occlusion).
+Current task: `task-3089` — SSR (screen-space reflections).
 
-Status: ready. Tier 19 has shipped `task-3086` MSAA and `task-3087` TAA with
-motion vectors. The TAA path now uses ECS-authored temporal jitter, a
-history-buffered post effect, renderer-owned motion-vector textures,
-geometry-aware main-pass motion-vector output for compatible built-in mesh
-scenes, fallback camera-motion clears for unsupported combinations, and
-`examples/taa.html` square-canvas browser proof.
+Status: ready. Tier 20 has shipped `task-3088` SSAO. The post-pass contract now
+supports renderer-owned depth texture dependencies, app depth attachments are
+sampleable by post effects, `createWebGpuSsaoPostEffect()` reads scene depth in
+a full-screen WebGPU pass, and `examples/ssao.html` proves visible
+raw-vs-SSAO darkening in square canvases.
 
-Next step: start Tier 20 with depth-readable screen-space post effects by adding
-SSAO. Read the `task-3088` references first:
-`references/three.js/examples/jsm/postprocessing/SSAOPass.js` and
-`references/engine/scripts/posteffects/posteffect-ssao.js`.
+Next step: continue Tier 20 with screen-space reflections. Read the `task-3089`
+references first: `references/three.js/examples/jsm/postprocessing/SSRPass.js`
+and the relevant PlayCanvas/Bevy depth-screen-space references before writing
+code.

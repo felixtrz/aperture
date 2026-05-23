@@ -6,6 +6,7 @@ import {
   createWebGpuCopyPostEffect,
   createWebGpuFxaaPostEffect,
   createWebGpuPostPassTextureCacheSlot,
+  createWebGpuSsaoPostEffect,
   createWebGpuTaaPostEffect,
 } from "@aperture-engine/webgpu";
 
@@ -250,6 +251,99 @@ describe("WebGPU post-pass helpers", () => {
     ]);
   });
 
+  it("prepares SSAO as a depth-reading post-pass draw", () => {
+    const events: string[] = [];
+    const effect = createWebGpuSsaoPostEffect({
+      radiusPixels: 7,
+      intensity: 1.5,
+      depthBias: 0.001,
+      maxDepthDifference: 0.08,
+    });
+    const input = postTexture("scene", events);
+    const depth = postDepthTexture("scene-depth", events);
+    const prepared = effect.prepare({
+      device: postDevice(events),
+      input,
+      depth,
+      outputFormat: "rgba8unorm",
+      width: 32,
+      height: 16,
+      frame: 1,
+      passIndex: 0,
+      isLast: true,
+      label: "test-ssao",
+    });
+
+    expect(effect.requiresDepthTexture).toBe(true);
+    expect(prepared.diagnostics).toEqual([]);
+    expect(prepared.commands).toMatchObject([
+      {
+        kind: "setPipeline",
+        pipelineKey:
+          "webgpu-post-ssao|rgba8unorm|radius:7.000|intensity:1.500|bias:0.00100|range:0.0800",
+      },
+      {
+        kind: "setBindGroup",
+        resourceKey:
+          "ssao:input:scene:depth:scene-depth:radius:7.00:intensity:1.50",
+      },
+      { kind: "draw", vertexCount: 3 },
+    ]);
+    expect(events).toEqual([
+      "device:shader:test-ssao:ssao:pipeline:shader",
+      "device:pipeline:test-ssao:ssao:pipeline",
+      "device:sampler:aperture/post/ssao/sampler",
+      "view:scene",
+      "view:scene-depth",
+      "pipeline:layout:0",
+      "device:bindGroup:test-ssao:ssao:bind-group",
+    ]);
+  });
+
+  it("diagnoses SSAO when scene depth is unavailable", () => {
+    const effect = createWebGpuSsaoPostEffect();
+    const prepared = effect.prepare({
+      device: postDevice([]),
+      input: postTexture("scene", []),
+      outputFormat: "rgba8unorm",
+      width: 32,
+      height: 16,
+      frame: 1,
+      passIndex: 0,
+      isLast: true,
+      label: "test-ssao",
+    });
+
+    expect(prepared.commands).toEqual([]);
+    expect(prepared.diagnostics).toMatchObject([
+      { code: "webGpuPostPass.depthTextureUnavailable", effectId: "ssao" },
+    ]);
+  });
+
+  it("diagnoses SSAO when scene depth is multisampled", () => {
+    const effect = createWebGpuSsaoPostEffect();
+    const prepared = effect.prepare({
+      device: postDevice([]),
+      input: postTexture("scene", []),
+      depth: postDepthTexture("msaa-depth", [], 4),
+      outputFormat: "rgba8unorm",
+      width: 32,
+      height: 16,
+      frame: 1,
+      passIndex: 0,
+      isLast: true,
+      label: "test-ssao",
+    });
+
+    expect(prepared.commands).toEqual([]);
+    expect(prepared.diagnostics).toMatchObject([
+      {
+        code: "webGpuPostPass.depthTextureUnsupportedSampleCount",
+        effectId: "ssao",
+      },
+    ]);
+  });
+
   it("diagnoses TAA when no persistent output texture is available", () => {
     const effect = createWebGpuTaaPostEffect();
     const prepared = effect.prepare({
@@ -306,6 +400,22 @@ function postTexture(label: string, events: string[]) {
     width: 32,
     height: 16,
     format: "rgba8unorm",
+    label,
+  };
+}
+
+function postDepthTexture(label: string, events: string[], sampleCount = 1) {
+  return {
+    texture: {
+      createView: () => {
+        events.push(`view:${label}`);
+        return { label };
+      },
+    },
+    width: 32,
+    height: 16,
+    format: "depth24plus",
+    sampleCount,
     label,
   };
 }

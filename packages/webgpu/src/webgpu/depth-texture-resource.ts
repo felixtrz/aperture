@@ -1,3 +1,5 @@
+import { WEBGPU_TEXTURE_USAGE_FLAGS } from "./texture-resources.js";
+
 export const WEBGPU_APP_DEPTH_FORMAT = "depth24plus";
 
 export interface WebGpuDepthTextureLike {
@@ -90,8 +92,13 @@ export function createOrReuseWebGpuDepthTexture(
 
 function webGpuRenderAttachmentUsage(): number {
   const usage = (
-    globalThis as { GPUTextureUsage?: { RENDER_ATTACHMENT: number } }
+    globalThis as {
+      GPUTextureUsage?: { RENDER_ATTACHMENT: number; TEXTURE_BINDING: number };
+    }
   ).GPUTextureUsage;
 
-  return usage?.RENDER_ATTACHMENT ?? 0x10;
+  return (
+    (usage?.RENDER_ATTACHMENT ?? WEBGPU_TEXTURE_USAGE_FLAGS.RENDER_ATTACHMENT) |
+    (usage?.TEXTURE_BINDING ?? WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING)
+  );
 }
