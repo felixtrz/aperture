@@ -1,5 +1,29 @@
 # Completed Tasks
 
+## task-3093 — SSAO PlayCanvas-style spiral AO parity follow-up
+
+Completed: 2026-05-23
+
+Summary:
+
+- Upgraded `createWebGpuSsaoPostEffect()` from a fixed raw-depth offset pass to
+  a PlayCanvas-style spiral ambient-obscurance pass with perspective depth
+  linearization, depth-derived view normals, configurable sample count, minimum
+  horizon angle, power curve, camera near/far/FOV controls, and random seed.
+- Preserved the renderer-owned scene depth dependency and the existing
+  missing-depth / multisampled-depth diagnostics.
+- Retuned `examples/ssao.html` to use the upgraded SSAO kernel while keeping
+  the square raw-vs-SSAO browser proof.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts --reporter=dot`
+- `pnpm run typecheck:test`
+- `pnpm run examples:build`
+- `pnpm exec playwright test test/e2e/ssao.spec.ts --reporter=list --timeout=60000`
+- Browser plugin opened `http://127.0.0.1:4173/examples/ssao.html`; only the
+  existing favicon 403 appeared in console output.
+
 ## task-3090 — Depth of field (bokeh)
 
 Completed: 2026-05-23

@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 04:26 UTC</dd>
+            <dd>2026-05-23 04:41 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1401,18 +1401,21 @@
               renderer-owned motion-vector texture input, compatible built-in
               mesh scenes write geometry-aware motion vectors in the main pass,
               and <code>examples/taa.html</code> compares raw jitter against
-              accumulated TAA on square canvases. Tier 20 is now complete: post
-              effects can request the renderer-owned scene depth texture,
-              <code>createWebGpuSsaoPostEffect()</code> samples depth in a
-              full-screen WebGPU pass, <code>createWebGpuSsrPostEffect()</code>
+              accumulated TAA on square canvases. Tier 20 baseline effects have
+              shipped: post effects can request the renderer-owned scene depth
+              texture, <code>createWebGpuSsaoPostEffect()</code> now uses
+              PlayCanvas-style spiral AO with linearized depth and depth-derived
+              normals, <code>createWebGpuSsrPostEffect()</code>
               blends reflected scene color from depth, and
               <code>createWebGpuDofPostEffect()</code> blurs by focus distance
               and aperture. <code>examples/ssao.html</code>,
               <code>examples/ssr.html</code>, and <code>examples/dof.html</code>
-              prove raw-vs-effect differences in square canvases.
+              prove raw-vs-effect differences in square canvases. Remaining Tier
+              20 parity work covers SSR controls, DOF CoC quality, and MSAA
+              depth inputs for screen-space effects.
             </dd>
             <dt>Next focus</dt>
-            <dd>Tier 20 complete; select the next visible-feature slice</dd>
+            <dd>task-3094 — SSR reference-parity follow-up</dd>
           </dl>
         </aside>
       </header>
@@ -4435,18 +4438,19 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge green">done</span> Tier 20 screen-space
-                effects are complete.
+                <span class="badge amber">next</span> Continue Tier 20
+                reference-parity follow-ups with SSR.
               </li>
               <li>
-                SSAO, SSR, and DOF now share the renderer-owned scene-depth
-                post-pass foundation and each has a square raw-vs-effect browser
-                proof.
+                SSAO now uses a PlayCanvas-style spiral AO shader with
+                linearized depth and depth-derived normals; SSR and DOF still
+                need parity upgrades before the strict Tier 20 objective is
+                complete.
               </li>
               <li>
-                Next work should refill/select the next visible-feature roadmap
-                slice with a concrete three.js, PlayCanvas, or Bevy reference
-                anchor.
+                Next work should improve SSR toward three.js
+                <code>SSRPass</code> normals, fresnel, distance attenuation, and
+                reflection-softening behavior.
               </li>
             </ul>
           </article>
@@ -4459,6 +4463,21 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3093</div>
+            <div>
+              <strong>SSAO reference-parity follow-up shipped.</strong>
+              <span>
+                <code>createWebGpuSsaoPostEffect()</code> now uses
+                PlayCanvas-style spiral ambient obscurance with perspective
+                depth linearization, depth-derived normals, sample-count,
+                min-angle, power, near/far/FOV, and random-seed controls while
+                preserving renderer-owned scene-depth diagnostics.
+                <code>examples/ssao.html</code>
+                still proves visible contact darkening in square canvases.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3090</div>
             <div>

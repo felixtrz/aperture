@@ -260,6 +260,13 @@ describe("WebGPU post-pass helpers", () => {
       intensity: 1.5,
       depthBias: 0.001,
       maxDepthDifference: 0.08,
+      near: 0.1,
+      far: 40,
+      fovYRadians: Math.PI / 3,
+      sampleCount: 18,
+      minAngleDegrees: 7,
+      power: 1.2,
+      randomSeed: 0.25,
     });
     const input = postTexture("scene", events);
     const depth = postDepthTexture("scene-depth", events);
@@ -282,12 +289,12 @@ describe("WebGPU post-pass helpers", () => {
       {
         kind: "setPipeline",
         pipelineKey:
-          "webgpu-post-ssao|rgba8unorm|radius:7.000|intensity:1.500|bias:0.00100|range:0.0800",
+          "webgpu-post-ssao|rgba8unorm|radius:7.000|intensity:1.500|bias:0.00100|range:0.0800|near:0.1000|far:40.000|fovY:1.0472|samples:18|minAngle:7.00|power:1.200|random:0.2500",
       },
       {
         kind: "setBindGroup",
         resourceKey:
-          "ssao:input:scene:depth:scene-depth:radius:7.00:intensity:1.50",
+          "ssao:input:scene:depth:scene-depth:radius:7.00:samples:18:intensity:1.50",
       },
       { kind: "draw", vertexCount: 3 },
     ]);

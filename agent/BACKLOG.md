@@ -59,14 +59,14 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Tier 20 is complete. `task-3088` SSAO, `task-3089` SSR, and `task-3090` DOF
-have shipped as depth-readable post effects with square raw-vs-effect browser
-proofs.
+Continue Tier 20 reference-parity follow-ups with `task-3094`, improving SSR
+toward the three.js `SSRPass` feature shape.
 
-Recommended next action if work continues beyond the user's Tier 20 objective:
-refill the ready queue with the next visible-feature roadmap slice, including a
-specific reference anchor under `references/bevy`, `references/engine`, or
-`references/three.js`.
+Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
+with square raw-vs-effect browser proofs. The stricter user objective also asks
+for parity against the best three.js/PlayCanvas references, so the ready queue
+now tracks the remaining visible parity slices instead of treating Tier 20 as
+fully achieved.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -1365,6 +1365,66 @@ Acceptance criteria:
 
 - Visible focus/defocus on a scene with foreground + background.
 - Playwright asserts background pixels are blurred while foreground stays sharp.
+
+### task-3093 — SSAO PlayCanvas-style spiral AO parity follow-up (Tier 20 follow-up 1) — Completed 2026-05-23
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/post-ssao.ts`, `examples/ssao.main.js`, targeted tests.
+Dependencies: task-3088.
+Reference anchor: `references/engine/src/extras/render-passes/render-pass-ssao.js`; `references/engine/src/scene/shader-lib/wgsl/chunks/render-pass/frag/ssao.js`; `references/three.js/examples/jsm/postprocessing/SSAOPass.js`.
+Insertion point: upgrade the shipped SSAO full-screen pass from fixed raw-depth offsets to linearized depth, depth-derived normals, and a configurable spiral SAO kernel.
+
+Acceptance criteria:
+
+- `createWebGpuSsaoPostEffect()` exposes sample-count, min-angle, power, camera near/far/FOV, and random-seed controls while preserving depth-texture diagnostics.
+- `examples/ssao.html` uses the upgraded kernel and headed Chrome/WebGPU still proves visible contact darkening with no validation warnings.
+
+### task-3094 — SSR normal/fresnel/attenuation parity follow-up (Tier 20 follow-up 2)
+
+Status: ready.
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/post-ssr.ts`, `examples/ssr.main.js`, targeted tests.
+Dependencies: task-3089.
+Reference anchor: `references/three.js/examples/jsm/postprocessing/SSRPass.js`; `references/three.js/examples/jsm/shaders/SSRShader.js`; `references/engine/src/extras/render-passes/frame-pass-camera-frame.js`.
+Insertion point: enrich the shipped SSR full-screen pass with depth-derived view normals, distance attenuation, fresnel control, max-distance semantics, and optional reflection softening without adding a scene-graph reflector object.
+
+Acceptance criteria:
+
+- `createWebGpuSsrPostEffect()` exposes documented SSR controls aligned with three.js `SSRPass` rather than only opacity/stride/thickness.
+- `examples/ssr.html` still renders a recognizable reflected receiver, and Playwright proves reflected pixels change without WebGPU validation warnings.
+
+### task-3095 — DOF PlayCanvas/Bevy CoC quality follow-up (Tier 20 follow-up 3)
+
+Status: ready.
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/post-dof.ts`, post-pass framework only if needed, `examples/dof.main.js`, targeted tests.
+Dependencies: task-3090.
+Reference anchor: `references/engine/src/extras/render-passes/frame-pass-dof.js`; `references/engine/src/extras/render-passes/render-pass-coc.js`; `references/engine/src/extras/render-passes/render-pass-dof-blur.js`; `references/bevy/crates/bevy_post_process/src/dof/dof.wgsl`.
+Insertion point: improve the shipped one-pass bokeh approximation toward explicit circle-of-confusion handling, configurable near/far blur quality, and downsample-friendly behavior while preserving renderer-owned depth.
+
+Acceptance criteria:
+
+- DOF controls map cleanly to focus distance/range, near blur, blur radius, and kernel quality concepts from PlayCanvas/Bevy references.
+- `examples/dof.html` still proves background defocus and focused foreground stability with no WebGPU validation warnings.
+
+### task-3096 — MSAA depth route for screen-space post effects (Tier 20 follow-up 4)
+
+Status: ready.
+
+Category: `webgpu-render`
+Package/write-scope: post-pass depth resource plumbing, MSAA/depth attachment handling, `examples/msaa.html` or a focused screen-space example, targeted tests.
+Dependencies: task-3088, task-3089, task-3090, task-3068.
+Reference anchor: `references/engine/src/extras/render-passes/frame-pass-camera-frame.js`; `references/engine/src/extras/render-passes/render-pass-prepass.js`; `references/three.js/src/renderers/common/RenderTarget.js`.
+Insertion point: provide a renderer-owned single-sample depth input path or equivalent prepass/resolve route so SSAO, SSR, and DOF do not reject MSAA scenes.
+
+Acceptance criteria:
+
+- Screen-space effects no longer fail solely because the main scene depth attachment is multisampled.
+- Browser coverage proves a square MSAA scene with at least one depth-fed effect submits successfully and shows a visible effect difference.
 
 ### task-3091 — External glTF image-URI fetching in loadGltfFromUri (Tier 12 follow-up)
 

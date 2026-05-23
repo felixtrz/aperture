@@ -1,6 +1,56 @@
 # Agent Handoff
 
-Updated: 2026-05-23T04:26:31Z
+Updated: 2026-05-23T04:41:14Z
+
+## Current Run Update — 2026-05-23T04:41:14Z — SSAO reference-parity follow-up
+
+Completed `task-3093`, a Tier 20 SSAO parity follow-up. The earlier baseline
+Tier 20 effects were visible and tested, but the stricter user objective asks
+for parity against the best three.js/PlayCanvas references. The audit found
+SSAO was the easiest contained gap to close first.
+
+### What changed
+
+- Upgraded `createWebGpuSsaoPostEffect()` from fixed raw-depth offsets to a
+  PlayCanvas-style spiral ambient-obscurance shader.
+- Added perspective depth linearization, depth-derived view normals,
+  sample-count, minimum horizon angle, power curve, camera near/far/FOV, and
+  random-seed controls.
+- Preserved the renderer-owned depth dependency plus missing-depth and
+  multisampled-depth diagnostics.
+- Retuned `examples/ssao.html` to use the upgraded kernel while preserving the
+  square raw-vs-SSAO browser proof.
+
+### Reference comparison
+
+- PlayCanvas `RenderPassSsao` and its WGSL `ssao` chunk anchor the spiral sample
+  pattern, depth-derived normals, horizon-angle rejection, and configurable
+  sample-count/power/radius shape.
+- three.js `SSAOPass` anchors the public post-effect role and raw-vs-AO contact
+  darkening expectation.
+- Aperture still keeps SSAO as a renderer-owned post effect derived from ECS
+  snapshot rendering plus the scene depth texture; no scene graph or example
+  owned prepass was added.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts --reporter=dot`
+- `pnpm run typecheck:test`
+- `pnpm run examples:build`
+- `pnpm exec playwright test test/e2e/ssao.spec.ts --reporter=list --timeout=60000`
+- Browser plugin opened `http://127.0.0.1:4173/examples/ssao.html`; only the
+  existing favicon 403 appeared in console output.
+
+### Known issues
+
+- SSR and DOF still need parity follow-ups before the full user objective can
+  be marked complete. Ready tasks are now `task-3094`, `task-3095`, and
+  `task-3096`.
+
+### Recommended next task
+
+Start `task-3094`, SSR normal/fresnel/attenuation parity follow-up, anchored to
+three.js `SSRPass` / `SSRShader`.
 
 ## Current Run Update — 2026-05-23T04:26:31Z — DOF depth-readable post effect
 

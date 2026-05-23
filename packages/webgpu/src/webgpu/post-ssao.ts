@@ -14,6 +14,13 @@ export interface CreateWebGpuSsaoPostEffectOptions {
   readonly intensity?: number;
   readonly depthBias?: number;
   readonly maxDepthDifference?: number;
+  readonly near?: number;
+  readonly far?: number;
+  readonly fovYRadians?: number;
+  readonly sampleCount?: number;
+  readonly minAngleDegrees?: number;
+  readonly power?: number;
+  readonly randomSeed?: number;
 }
 
 interface CachedSsaoPostPipeline {
@@ -35,6 +42,21 @@ export function createWebGpuSsaoPostEffect(
     0.001,
     0.5,
   );
+  const near = clampFinite(options.near ?? 0.1, 0.0001, 100000);
+  const far = clampFinite(
+    options.far ?? 1000,
+    Math.max(near + 0.0001, 0.0002),
+    1000000,
+  );
+  const fovYRadians = clampFinite(
+    options.fovYRadians ?? Math.PI / 3,
+    0.001,
+    Math.PI - 0.001,
+  );
+  const sampleCount = clampInteger(options.sampleCount ?? 12, 4, 64);
+  const minAngleDegrees = clampFinite(options.minAngleDegrees ?? 5, 0, 45);
+  const power = clampFinite(options.power ?? 1, 0.25, 8);
+  const randomSeed = clampFinite(options.randomSeed ?? 0, 0, 1);
   let cachedPipeline: CachedSsaoPostPipeline | null = null;
   let sampler: unknown | null = null;
 
@@ -70,6 +92,13 @@ export function createWebGpuSsaoPostEffect(
         intensity,
         depthBias,
         maxDepthDifference,
+        near,
+        far,
+        fovYRadians,
+        sampleCount,
+        minAngleDegrees,
+        power,
+        randomSeed,
       });
       const pipelineResult =
         cachedPipeline?.key === pipelineKey
@@ -81,6 +110,13 @@ export function createWebGpuSsaoPostEffect(
               intensity,
               depthBias,
               maxDepthDifference,
+              near,
+              far,
+              fovYRadians,
+              sampleCount,
+              minAngleDegrees,
+              power,
+              randomSeed,
               label: `${prepareOptions.label}:${id}:pipeline`,
               effectId: id,
               diagnostics,
@@ -174,7 +210,7 @@ export function createWebGpuSsaoPostEffect(
             kind: "setBindGroup",
             renderId: 0,
             index: 0,
-            resourceKey: `${id}:input:${prepareOptions.input.label}:depth:${prepareOptions.depth.label}:radius:${radiusPixels.toFixed(2)}:intensity:${intensity.toFixed(2)}`,
+            resourceKey: `${id}:input:${prepareOptions.input.label}:depth:${prepareOptions.depth.label}:radius:${radiusPixels.toFixed(2)}:samples:${sampleCount}:intensity:${intensity.toFixed(2)}`,
             bindGroup,
           },
           {
@@ -198,6 +234,13 @@ function ssaoPipelineKey(options: {
   readonly intensity: number;
   readonly depthBias: number;
   readonly maxDepthDifference: number;
+  readonly near: number;
+  readonly far: number;
+  readonly fovYRadians: number;
+  readonly sampleCount: number;
+  readonly minAngleDegrees: number;
+  readonly power: number;
+  readonly randomSeed: number;
 }): string {
   return [
     "webgpu-post-ssao",
@@ -206,6 +249,13 @@ function ssaoPipelineKey(options: {
     `intensity:${options.intensity.toFixed(3)}`,
     `bias:${options.depthBias.toFixed(5)}`,
     `range:${options.maxDepthDifference.toFixed(4)}`,
+    `near:${options.near.toFixed(4)}`,
+    `far:${options.far.toFixed(3)}`,
+    `fovY:${options.fovYRadians.toFixed(4)}`,
+    `samples:${options.sampleCount}`,
+    `minAngle:${options.minAngleDegrees.toFixed(2)}`,
+    `power:${options.power.toFixed(3)}`,
+    `random:${options.randomSeed.toFixed(4)}`,
   ].join("|");
 }
 
@@ -216,6 +266,13 @@ function createSsaoPostPipeline(options: {
   readonly intensity: number;
   readonly depthBias: number;
   readonly maxDepthDifference: number;
+  readonly near: number;
+  readonly far: number;
+  readonly fovYRadians: number;
+  readonly sampleCount: number;
+  readonly minAngleDegrees: number;
+  readonly power: number;
+  readonly randomSeed: number;
   readonly label: string;
   readonly effectId: string;
   readonly diagnostics: WebGpuPostPassDiagnostic[];
@@ -245,6 +302,13 @@ function createSsaoPostPipeline(options: {
       intensity: options.intensity,
       depthBias: options.depthBias,
       maxDepthDifference: options.maxDepthDifference,
+      near: options.near,
+      far: options.far,
+      fovYRadians: options.fovYRadians,
+      sampleCount: options.sampleCount,
+      minAngleDegrees: options.minAngleDegrees,
+      power: options.power,
+      randomSeed: options.randomSeed,
     }),
   });
   const pipeline = options.device.createRenderPipeline({
@@ -311,6 +375,14 @@ function clampFinite(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
+function clampInteger(value: number, min: number, max: number): number {
+  if (!Number.isFinite(value)) {
+    return min;
+  }
+
+  return Math.min(Math.max(Math.floor(value), min), max);
+}
+
 function wgslFloat(value: number): string {
   return value.toFixed(6);
 }
@@ -320,7 +392,16 @@ function ssaoPostEffectWgsl(options: {
   readonly intensity: number;
   readonly depthBias: number;
   readonly maxDepthDifference: number;
+  readonly near: number;
+  readonly far: number;
+  readonly fovYRadians: number;
+  readonly sampleCount: number;
+  readonly minAngleDegrees: number;
+  readonly power: number;
+  readonly randomSeed: number;
 }): string {
+  const minAngleSine = Math.sin((options.minAngleDegrees * Math.PI) / 180);
+
   return `
 struct VertexOutput {
   @builtin(position) position: vec4f,
@@ -331,25 +412,20 @@ struct VertexOutput {
 @group(0) @binding(1) var inputTexture: texture_2d<f32>;
 @group(0) @binding(2) var depthTexture: texture_depth_2d;
 
-const SAMPLE_COUNT: u32 = 12u;
+const SAMPLE_COUNT: u32 = ${options.sampleCount}u;
+const INV_SAMPLE_COUNT: f32 = ${wgslFloat(1 / options.sampleCount)};
 const RADIUS_PIXELS: f32 = ${wgslFloat(options.radiusPixels)};
 const INTENSITY: f32 = ${wgslFloat(options.intensity)};
 const DEPTH_BIAS: f32 = ${wgslFloat(options.depthBias)};
 const MAX_DEPTH_DIFFERENCE: f32 = ${wgslFloat(options.maxDepthDifference)};
-const SAMPLE_OFFSETS = array<vec2f, 12>(
-  vec2f(1.0000, 0.0000),
-  vec2f(0.5000, 0.8660),
-  vec2f(-0.5000, 0.8660),
-  vec2f(-1.0000, 0.0000),
-  vec2f(-0.5000, -0.8660),
-  vec2f(0.5000, -0.8660),
-  vec2f(0.7071, 0.7071),
-  vec2f(-0.7071, 0.7071),
-  vec2f(-0.7071, -0.7071),
-  vec2f(0.7071, -0.7071),
-  vec2f(0.0000, 0.5200),
-  vec2f(0.0000, -0.5200),
-);
+const NEAR_PLANE: f32 = ${wgslFloat(options.near)};
+const FAR_PLANE: f32 = ${wgslFloat(options.far)};
+const TAN_HALF_FOV_Y: f32 = ${wgslFloat(Math.tan(options.fovYRadians * 0.5))};
+const MIN_HORIZON_ANGLE_SINE_SQUARED: f32 = ${wgslFloat(minAngleSine * minAngleSine)};
+const POWER: f32 = ${wgslFloat(options.power)};
+const RANDOM_SEED: f32 = ${wgslFloat(options.randomSeed)};
+const PI: f32 = 3.14159265;
+const SPIRAL_TURNS: f32 = 10.0;
 
 @vertex
 fn vs(@builtin(vertex_index) vertexIndex: u32) -> VertexOutput {
@@ -384,6 +460,51 @@ fn loadDepth(coord: vec2i, dims: vec2u) -> f32 {
   return textureLoad(depthTexture, clampCoord(coord, dims), 0);
 }
 
+fn loadDepthUv(uv: vec2f, dims: vec2u) -> f32 {
+  return loadDepth(coordFromUv(uv, dims), dims);
+}
+
+fn viewDepth(rawDepth: f32) -> f32 {
+  let denominator = max(FAR_PLANE - rawDepth * (FAR_PLANE - NEAR_PLANE), 0.000001);
+  return (NEAR_PLANE * FAR_PLANE) / denominator;
+}
+
+fn viewPosition(uv: vec2f, dims: vec2u) -> vec3f {
+  let clampedUv = clamp(uv, vec2f(0.0), vec2f(1.0));
+  let rawDepth = loadDepthUv(clampedUv, dims);
+  let depth = viewDepth(rawDepth);
+  let aspect = f32(dims.x) / max(f32(dims.y), 1.0);
+  let ndc = vec2f(clampedUv.x * 2.0 - 1.0, (1.0 - clampedUv.y) * 2.0 - 1.0);
+  return vec3f(ndc.x * depth * TAN_HALF_FOV_Y * aspect, ndc.y * depth * TAN_HALF_FOV_Y, -depth);
+}
+
+fn viewNormal(origin: vec3f, uv: vec2f, dims: vec2u, texel: vec2f) -> vec3f {
+  let px = viewPosition(uv + vec2f(texel.x, 0.0), dims);
+  let py = viewPosition(uv - vec2f(0.0, texel.y), dims);
+  let faceNormal = cross(px - origin, py - origin);
+  let normalLength = length(faceNormal);
+  if (normalLength <= 0.000001) {
+    return vec3f(0.0, 0.0, 1.0);
+  }
+  return faceNormal / normalLength;
+}
+
+fn random(fragCoord: vec2f) -> f32 {
+  let seed = fragCoord + vec2f(RANDOM_SEED * 127.1, RANDOM_SEED * 311.7);
+  return fract(52.9829189 * fract(dot(seed, vec2f(0.06711056, 0.00583715))));
+}
+
+fn startPosition(noise: f32) -> vec2f {
+  let angle = ((2.0 * PI) * 2.4) * noise;
+  return vec2f(cos(angle), sin(angle));
+}
+
+fn tapAngleStep() -> mat2x2f {
+  let step = (INV_SAMPLE_COUNT * SPIRAL_TURNS) * 2.0 * PI;
+  let t = vec2f(cos(step), sin(step));
+  return mat2x2f(vec2f(t.x, t.y), vec2f(-t.y, t.x));
+}
+
 fn sampleColor(uv: vec2f) -> vec4f {
   return textureSample(inputTexture, inputSampler, clamp(uv, vec2f(0.0), vec2f(1.0)));
 }
@@ -393,38 +514,45 @@ fn fs(input: VertexOutput) -> @location(0) vec4f {
   let textureUv = vec2f(input.uv.x, 1.0 - input.uv.y);
   let source = sampleColor(textureUv);
   let dims = textureDimensions(depthTexture);
-  let centerCoord = coordFromUv(textureUv, dims);
-  let centerDepth = loadDepth(centerCoord, dims);
+  let centerDepth = loadDepthUv(textureUv, dims);
 
   if (centerDepth >= 0.9999) {
     return source;
   }
 
+  let texel = vec2f(1.0 / f32(dims.x), 1.0 / f32(dims.y));
+  let origin = viewPosition(textureUv, dims);
+  let normal = viewNormal(origin, textureUv, dims, texel);
+  let centerLinearDepth = -origin.z;
+  let viewRadius = max(centerLinearDepth * RADIUS_PIXELS * texel.y * 2.0 * TAN_HALF_FOV_Y, 0.0001);
+  let invRadiusSquared = 1.0 / (viewRadius * viewRadius);
+  let peak = max(0.1 * viewRadius, 0.0001);
+  let peakSquared = peak * peak;
+  let noise = random(input.position.xy);
+  let angleStep = tapAngleStep();
+  var tapPosition = startPosition(noise);
   var occlusion = 0.0;
-  var weightSum = 0.0;
 
   for (var i = 0u; i < SAMPLE_COUNT; i = i + 1u) {
-    let unitOffset = SAMPLE_OFFSETS[i];
-    let offset = unitOffset * RADIUS_PIXELS;
-    let sampleCoord = centerCoord + vec2i(i32(offset.x), i32(offset.y));
-    let sampleDepth = loadDepth(sampleCoord, dims);
-    let depthDelta = centerDepth - sampleDepth;
-    let contrast = abs(depthDelta);
-    let depthContrast = smoothstep(DEPTH_BIAS, MAX_DEPTH_DIFFERENCE, contrast);
-    let depthRange = 1.0 - smoothstep(
-      MAX_DEPTH_DIFFERENCE * 4.0,
-      MAX_DEPTH_DIFFERENCE * 12.0,
-      contrast,
-    );
-    let occluderBias = select(0.45, 1.0, depthDelta > 0.0);
-    let radialWeight = 1.0 - min(1.0, length(offset) / max(RADIUS_PIXELS, 1.0));
-    let weight = max(0.08, radialWeight);
-    occlusion = occlusion + depthContrast * depthRange * occluderBias * weight;
-    weightSum = weightSum + weight;
+    let radiusUnit = (f32(i) + noise + 0.5) * INV_SAMPLE_COUNT;
+    let sampleRadiusPixels = max(1.0, radiusUnit * radiusUnit * RADIUS_PIXELS);
+    let sampleUv = textureUv + tapPosition * sampleRadiusPixels * texel;
+    let samplePosition = viewPosition(sampleUv, dims);
+    let sampleDepth = -samplePosition.z;
+    let viewVector = samplePosition - origin;
+    let viewVectorSquared = max(dot(viewVector, viewVector), 0.0000001);
+    let normalDistance = dot(viewVector, normal);
+    var weight = max(0.0, 1.0 - viewVectorSquared * invRadiusSquared);
+    weight = weight * weight;
+    weight = weight * step(viewVectorSquared * MIN_HORIZON_ANGLE_SINE_SQUARED, normalDistance * normalDistance);
+    let relativeDepthDelta = abs(centerLinearDepth - sampleDepth) / max(centerLinearDepth, 0.0001);
+    let depthRange = 1.0 - smoothstep(MAX_DEPTH_DIFFERENCE, MAX_DEPTH_DIFFERENCE * 4.0, relativeDepthDelta);
+    occlusion = occlusion + weight * depthRange * max(0.0, normalDistance + origin.z * DEPTH_BIAS) / (viewVectorSquared + peakSquared);
+    tapPosition = angleStep * tapPosition;
   }
 
-  let normalizedOcclusion = select(0.0, occlusion / weightSum, weightSum > 0.0);
-  let visibility = 1.0 - min(0.85, normalizedOcclusion * INTENSITY);
+  let normalizedOcclusion = occlusion * ((2.0 * peak * 2.0 * PI * INTENSITY) / f32(SAMPLE_COUNT));
+  let visibility = pow(clamp(1.0 - normalizedOcclusion, 0.0, 1.0), POWER);
   return vec4f(source.rgb * visibility, source.a);
 }
 `;

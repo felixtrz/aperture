@@ -82,10 +82,16 @@ async function createSsaoRuntime(aperture, canvas, enabled, readbackUsage) {
   const postEffects = enabled
     ? [
         aperture.createWebGpuSsaoPostEffect({
-          radiusPixels: 11,
-          intensity: 2.1,
+          near: 0.1,
+          far: 40,
+          fovYRadians: Math.PI / 3,
+          radiusPixels: 18,
+          sampleCount: 18,
+          minAngleDegrees: 5,
+          intensity: 2.8,
+          power: 1.15,
           depthBias: 0.0004,
-          maxDepthDifference: 0.11,
+          maxDepthDifference: 0.18,
         }),
       ]
     : [];
