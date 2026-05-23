@@ -1039,10 +1039,12 @@ async function getOrCreateWebGpuAppPipeline(options: {
   readonly kind: WebGpuAppMaterialKind;
   readonly pipelineKey: string;
   readonly batchKey: RenderSnapshot["meshDraws"][number]["batchKey"];
+  readonly motionVectorColorFormat?: string | null;
 }): Promise<WebGpuAppPipelineResourceResult> {
   const key = [
     options.kind,
     options.app.initialization.format,
+    `motion:${options.motionVectorColorFormat ?? "none"}`,
     WEBGPU_APP_DEPTH_FORMAT,
     `samples:${options.app.msaa.sampleCount}`,
     options.pipelineKey,
@@ -1069,6 +1071,9 @@ async function getOrCreateWebGpuAppPipeline(options: {
             typeof createStandardRenderPipelineResource
           >[0]["device"],
           colorFormat: options.app.initialization.format,
+          ...(options.motionVectorColorFormat === undefined
+            ? {}
+            : { motionVectorColorFormat: options.motionVectorColorFormat }),
           depthFormat: WEBGPU_APP_DEPTH_FORMAT,
           sampleCount: options.app.msaa.sampleCount,
           batchKey: options.batchKey,
@@ -1081,6 +1086,9 @@ async function getOrCreateWebGpuAppPipeline(options: {
               typeof createDebugNormalRenderPipelineResource
             >[0]["device"],
             colorFormat: options.app.initialization.format,
+            ...(options.motionVectorColorFormat === undefined
+              ? {}
+              : { motionVectorColorFormat: options.motionVectorColorFormat }),
             depthFormat: WEBGPU_APP_DEPTH_FORMAT,
             sampleCount: options.app.msaa.sampleCount,
             batchKey: options.batchKey,
@@ -1091,6 +1099,9 @@ async function getOrCreateWebGpuAppPipeline(options: {
                 typeof createMatcapRenderPipelineResource
               >[0]["device"],
               colorFormat: options.app.initialization.format,
+              ...(options.motionVectorColorFormat === undefined
+                ? {}
+                : { motionVectorColorFormat: options.motionVectorColorFormat }),
               depthFormat: WEBGPU_APP_DEPTH_FORMAT,
               sampleCount: options.app.msaa.sampleCount,
               batchKey: options.batchKey,
@@ -1100,6 +1111,9 @@ async function getOrCreateWebGpuAppPipeline(options: {
                 typeof createUnlitRenderPipelineResource
               >[0]["device"],
               colorFormat: options.app.initialization.format,
+              ...(options.motionVectorColorFormat === undefined
+                ? {}
+                : { motionVectorColorFormat: options.motionVectorColorFormat }),
               depthFormat: WEBGPU_APP_DEPTH_FORMAT,
               sampleCount: options.app.msaa.sampleCount,
               batchKey: options.batchKey,
@@ -1631,9 +1645,18 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     | undefined;
   readonly standardMaterialIblResources?: StandardFrameIblResources | undefined;
 }): Promise<WebGpuAppRenderReport> {
+  const sceneMotionVectors = createWebGpuAppSceneMotionVectorPlan({
+    app: options.app,
+    assets: options.assets,
+    snapshot: options.snapshot,
+  });
   const packedViews = writePackedSnapshotViewUniforms(
     options.snapshot,
     options.cache.frameScratch.viewUniforms,
+    {
+      previousViewProjectionByViewId:
+        options.cache.postPasses.previousViewProjectionByViewId,
+    },
   );
   const packedTransforms = writePackedSnapshotTransforms(
     options.snapshot,
@@ -1667,6 +1690,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
 
   const prepared = await prepareQueuedBuiltInFrameResources({
     ...options,
+    motionVectorColorFormat: sceneMotionVectors.colorFormat,
     viewUniforms: packedViews,
     worldTransforms: packedTransforms,
     instanceTints: packedInstanceTints,
@@ -1790,6 +1814,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     commands: frameCommands,
     label: options.label ?? "aperture-webgpu-app",
     reuse: options.reuse,
+    motionVectorColorFormat: sceneMotionVectors.colorFormat,
     ...(options.clearColor === undefined
       ? {}
       : { clearColor: options.clearColor }),
@@ -1797,6 +1822,10 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       ? {}
       : { readbackSamples: options.readbackSamples }),
   });
+  rememberCurrentViewProjectionMatrices(
+    options.snapshot,
+    options.cache.postPasses.previousViewProjectionByViewId,
+  );
 
   await waitForSubmittedWork(options.app.initialization.device);
   const gpuTimings = await readWebGpuAppGpuTimings({
@@ -1868,6 +1897,7 @@ async function assembleWebGpuAppFrameBoundaries(options: {
   readonly commands: readonly RenderPassCommand[];
   readonly label: string;
   readonly reuse: WebGpuAppResourceReuseReport;
+  readonly motionVectorColorFormat?: string | null;
   readonly clearColor?: readonly number[];
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
 }): Promise<WebGpuAppFrameBoundaryAssemblyResult> {
@@ -1984,6 +2014,9 @@ async function assembleWebGpuAppFrameBoundaries(options: {
         effects: activePostEffects,
         label: options.label,
         clearColor: options.clearColor ?? target.view.clearColor,
+        ...(options.motionVectorColorFormat === undefined
+          ? {}
+          : { motionVectorColorFormat: options.motionVectorColorFormat }),
         ...(msaaColorTarget.resource === null
           ? {}
           : {
@@ -3034,6 +3067,48 @@ interface WebGpuAppPostProcessedSwapchainTargetResult {
   readonly diagnostics: readonly unknown[];
 }
 
+interface WebGpuAppSceneMotionVectorPlan {
+  readonly colorFormat: string | null;
+}
+
+function createWebGpuAppSceneMotionVectorPlan(options: {
+  readonly app: WebGpuApp;
+  readonly assets: AssetRegistry;
+  readonly snapshot: RenderSnapshot;
+}): WebGpuAppSceneMotionVectorPlan {
+  const needsMotionVectors = options.app.postEffects.some(
+    (effect) =>
+      effect.enabled !== false && effect.requiresMotionVectors === true,
+  );
+
+  if (!needsMotionVectors || options.app.msaa.sampleCount > 1) {
+    return { colorFormat: null };
+  }
+
+  if (
+    (options.snapshot.spriteDraws?.length ?? 0) > 0 ||
+    (options.snapshot.skyboxes?.length ?? 0) > 0
+  ) {
+    return { colorFormat: null };
+  }
+
+  const targetPlan = createWebGpuAppFrameBoundaryTargets(
+    options.app,
+    options.assets,
+    options.snapshot,
+  );
+
+  if (
+    targetPlan.diagnostics.length > 0 ||
+    targetPlan.targets.length !== 1 ||
+    targetPlan.targets[0]?.source !== "swapchain"
+  ) {
+    return { colorFormat: null };
+  }
+
+  return { colorFormat: options.app.initialization.format };
+}
+
 function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   readonly app: WebGpuApp;
   readonly cache: WebGpuAppResourceCache;
@@ -3047,6 +3122,7 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   readonly effects: readonly WebGpuPostEffect[];
   readonly label: string;
   readonly clearColor?: readonly number[];
+  readonly motionVectorColorFormat?: string | null;
   readonly msaaColorTarget?: Parameters<
     typeof assembleFrameBoundary
   >[0]["msaaColorTarget"];
@@ -3104,6 +3180,38 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     };
   }
 
+  const requiresMotionVectors = options.effects.some(
+    (effect) => effect.requiresMotionVectors === true,
+  );
+  let motionVectorTexture: WebGpuPostPassTextureResource | undefined;
+
+  if (requiresMotionVectors) {
+    const motionVector = createOrReuseWebGpuPostPassTexture({
+      device: options.app.initialization.device as Parameters<
+        typeof createOrReuseWebGpuPostPassTexture
+      >[0]["device"],
+      slot: options.cache.postPasses.motionVector,
+      width: options.target.width,
+      height: options.target.height,
+      format: options.motionVectorColorFormat ?? options.target.format,
+      label: `${options.label}:post:motion-vector`,
+    });
+
+    diagnostics.push(...motionVector.diagnostics);
+
+    if (motionVector.valid && motionVector.resource !== null) {
+      motionVectorTexture = motionVector.resource;
+    }
+  }
+
+  const motionVectorAttachmentView =
+    options.motionVectorColorFormat === undefined ||
+    options.motionVectorColorFormat === null
+      ? undefined
+      : motionVectorTexture?.texture.createView?.();
+  const useSceneMotionVectorAttachment =
+    motionVectorTexture !== undefined &&
+    motionVectorAttachmentView !== undefined;
   const sceneBoundary = assembleFrameBoundary({
     context,
     device,
@@ -3120,6 +3228,18 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     ...(options.msaaColorTarget === undefined
       ? {}
       : { msaaColorTarget: options.msaaColorTarget }),
+    ...(useSceneMotionVectorAttachment
+      ? {
+          additionalColorTargets: [
+            {
+              view: motionVectorAttachmentView,
+              clearColor: [0.5, 0.5, 0.5, 1],
+              loadOp: "clear",
+              storeOp: "store",
+            },
+          ],
+        }
+      : {}),
     depthTarget: {
       view: options.depthAttachment.view,
       depthClearValue: options.target.view.clearDepth,
@@ -3135,29 +3255,14 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   let plannedCommands = options.commands.length;
   let drawCalls = countDrawCommands(options.commands);
   let valid = sceneBoundary.valid;
-  let motionVectorTexture: WebGpuPostPassTextureResource | undefined;
 
   boundaries.push(sceneBoundary);
   appendFrameBoundaryDiagnostics(diagnostics, sceneBoundary);
 
-  if (options.effects.some((effect) => effect.requiresMotionVectors === true)) {
-    const motionVector = createOrReuseWebGpuPostPassTexture({
-      device: options.app.initialization.device as Parameters<
-        typeof createOrReuseWebGpuPostPassTexture
-      >[0]["device"],
-      slot: options.cache.postPasses.motionVector,
-      width: options.target.width,
-      height: options.target.height,
-      format: options.target.format,
-      label: `${options.label}:post:motion-vector`,
-    });
-
-    diagnostics.push(...motionVector.diagnostics);
-
-    if (!motionVector.valid || motionVector.resource === null) {
+  if (requiresMotionVectors) {
+    if (motionVectorTexture === undefined) {
       valid = false;
-    } else {
-      motionVectorTexture = motionVector.resource;
+    } else if (!useSceneMotionVectorAttachment) {
       const motionBoundary = assembleFrameBoundary({
         context,
         device,
@@ -3166,7 +3271,7 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
         label: `${options.label}:post:motion-vector`,
         colorTarget: {
           source: "offscreen-target",
-          texture: motionVector.resource.texture,
+          texture: motionVectorTexture.texture,
         },
         clearColor: encodePostPassMotionVectorClearColor({
           snapshot: options.snapshot,
@@ -3355,6 +3460,25 @@ function encodePostPassMotionVectorClearColor(options: {
     0.5,
     1,
   ];
+}
+
+function rememberCurrentViewProjectionMatrices(
+  snapshot: RenderSnapshot,
+  previousViewProjectionByViewId: Map<number, Float32Array>,
+): void {
+  for (const view of snapshot.views) {
+    const current = readSnapshotViewProjectionMatrix(snapshot, view);
+
+    if (current === null) {
+      continue;
+    }
+
+    const stored =
+      previousViewProjectionByViewId.get(view.viewId) ?? new Float32Array(16);
+
+    stored.set(current);
+    previousViewProjectionByViewId.set(view.viewId, stored);
+  }
 }
 
 function readSnapshotViewProjectionMatrix(
@@ -3977,6 +4101,7 @@ async function prepareQueuedBuiltInFrameResources(options: {
   readonly snapshot: RenderSnapshot;
   readonly resourceSet: QueuedBuiltInAppResourceSet;
   readonly reuse: WebGpuAppResourceReuseReport;
+  readonly motionVectorColorFormat?: string | null;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly instanceTints?: PackedSnapshotInstanceTints | null;
@@ -4015,6 +4140,9 @@ async function prepareQueuedBuiltInFrameResources(options: {
           kind: item.adapter.kind,
           pipelineKey: item.draw.batchKey.pipelineKey,
           batchKey: item.draw.batchKey,
+          ...(options.motionVectorColorFormat === undefined
+            ? {}
+            : { motionVectorColorFormat: options.motionVectorColorFormat }),
         }),
       getPipelineView: (pipeline) => pipeline,
       createPipelinePlanResult: ({ item, pipeline }) =>

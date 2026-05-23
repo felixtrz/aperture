@@ -22,6 +22,7 @@ import {
   type WebGpuShaderDiagnostic,
   type WebGpuShaderFailureReason,
 } from "./shader.js";
+import { createMotionVectorBuiltInShaderVariant } from "./motion-vector-shader.js";
 import { resolveUnlitVertexBufferLayouts } from "./unlit-pipeline.js";
 import type { BuiltInShaderSourceModule } from "./unlit-shader.js";
 
@@ -44,6 +45,7 @@ export interface BrowserMatcapRenderPipelineDescriptorInput {
   readonly shaderModule: unknown;
   readonly shader?: BuiltInShaderSourceModule;
   readonly colorFormat: string;
+  readonly motionVectorColorFormat?: string | null;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
   readonly batchKey?: BatchCompatibilityKey;
@@ -52,6 +54,7 @@ export interface BrowserMatcapRenderPipelineDescriptorInput {
 export interface CreateMatcapRenderPipelineResourceOptions {
   readonly device: MatcapRenderPipelineDeviceLike;
   readonly colorFormat: string;
+  readonly motionVectorColorFormat?: string | null;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
   readonly batchKey: BatchCompatibilityKey;
@@ -77,11 +80,19 @@ export interface MatcapRenderPipelineDeviceLike
 export async function createMatcapRenderPipelineResource(
   options: CreateMatcapRenderPipelineResourceOptions,
 ): Promise<CreateMatcapRenderPipelineResourceResult> {
-  const shader = options.shader ?? MATCAP_MESH_SHADER;
+  const baseShader = options.shader ?? MATCAP_MESH_SHADER;
+  const shader =
+    options.motionVectorColorFormat === undefined ||
+    options.motionVectorColorFormat === null
+      ? baseShader
+      : createMotionVectorBuiltInShaderVariant(baseShader);
   const descriptorPlan = createMatcapPipelineDescriptorPlan({
     shader,
     colorFormat: options.colorFormat,
     batchKey: options.batchKey,
+    ...(options.motionVectorColorFormat === undefined
+      ? {}
+      : { motionVectorColorFormat: options.motionVectorColorFormat }),
     ...(options.sampleCount === undefined
       ? {}
       : { sampleCount: options.sampleCount }),
@@ -138,6 +149,9 @@ export async function createMatcapRenderPipelineResource(
     shaderModule: shaderModule.module,
     colorFormat: options.colorFormat,
     batchKey: options.batchKey,
+    ...(options.motionVectorColorFormat === undefined
+      ? {}
+      : { motionVectorColorFormat: options.motionVectorColorFormat }),
     ...(options.sampleCount === undefined
       ? {}
       : { sampleCount: options.sampleCount }),
@@ -187,6 +201,11 @@ export function createBrowserMatcapRenderPipelineDescriptor(
     input.colorFormat,
     renderState,
   );
+  const targets =
+    input.motionVectorColorFormat === undefined ||
+    input.motionVectorColorFormat === null
+      ? [colorTarget]
+      : [colorTarget, { format: input.motionVectorColorFormat }];
   const descriptor: WebGpuRenderPipelineCreateDescriptor = {
     label: `${shader.label}:${input.colorFormat}:triangle-list`,
     layout: "auto",
@@ -198,7 +217,7 @@ export function createBrowserMatcapRenderPipelineDescriptor(
     fragment: {
       module: input.shaderModule,
       entryPoint: shader.entryPoints.fragment,
-      targets: [colorTarget],
+      targets,
     },
     primitive: {
       topology: "triangle-list",

@@ -1,6 +1,59 @@
 # Agent Handoff
 
-Updated: 2026-05-23T02:44:00Z
+Updated: 2026-05-23T03:06:27Z
+
+## Current Run Update — 2026-05-23T03:06:27Z — TAA motion-vector completion
+
+Completed `task-3087`, the Tier 19 TAA with motion-vectors slice.
+
+### What changed
+
+- Added previous view-projection matrix packing to per-view uniforms. The app
+  cache now supplies the previous frame's view-projection matrix while the
+  current frame remains packed at the existing start of the view uniform.
+- Added built-in mesh shader motion-vector variants that write a second
+  fragment output from current vs previous clip-space positions, following the
+  Bevy motion-vector formula and using Aperture's MRT path.
+- Specialized Standard, Unlit, Matcap, and DebugNormal pipeline descriptors,
+  browser descriptors, and app pipeline cache keys by optional motion-vector
+  target format.
+- Extended frame-boundary assembly with additional color targets so compatible
+  TAA frames render scene color and motion vectors in one main pass.
+- Kept a fallback renderer-owned camera-motion clear for unsupported
+  combinations such as MSAA, sprites/skyboxes, multiple targets, or off-screen
+  render-target scenes.
+- `examples/taa.html` still compares raw jitter against accumulated TAA in
+  square canvases; the TAA route now uses the main-pass motion-vector
+  attachment and reports one fewer boundary than the old clear-pass path.
+
+### Reference comparison
+
+- three.js `TAARenderPass` remains the non-reprojecting accumulation baseline.
+- PlayCanvas anchors the history-buffer lifecycle, reprojection target, and
+  neighborhood clamp behavior.
+- Bevy anchors the current/previous clip-position motion-vector math.
+
+### Validation
+
+- `pnpm exec vitest run test/rendering/view-pack.test.ts test/webgpu/frame-boundary.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/post-pass.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/webgpu/unlit-pipeline.test.ts test/webgpu/matcap-pipeline.test.ts test/webgpu/debug-normal-pipeline.test.ts`
+- `pnpm exec playwright test test/e2e/taa.spec.ts --reporter=list --timeout=30000`
+
+### Known issues
+
+- The main-pass motion-vector route covers compatible built-in mesh scenes and
+  camera/geometry depth differences. Previous per-object transforms, skeletal
+  joint history, and morph-weight history are not yet tracked for independently
+  moving geometry.
+- TAA still uses a copy post effect to present while preserving persistent
+  history output.
+
+### Recommended next task
+
+Start Tier 20 with `task-3088`, SSAO. Read the three.js `SSAOPass` and
+PlayCanvas `posteffect-ssao.js` references before writing code.
 
 ## Current Run Update — 2026-05-23T02:44:00Z — TAA checkpoint
 

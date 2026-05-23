@@ -97,7 +97,7 @@ test("browser accumulates jittered frames through TAA history and motion vectors
         { effectId: "taa", output: "offscreen", ok: true },
         { effectId: "taa-present", output: "swapchain", ok: true },
       ],
-      boundaries: 4,
+      boundaries: 3,
     },
     worker: {
       snapshotsReceived: 24,

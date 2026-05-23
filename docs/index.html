@@ -1396,14 +1396,15 @@
               depth attachments by sample count, and
               <code>examples/msaa.html</code> proves visibly smoother resolved
               edges against the 1x path in square canvases. Tier 19 TAA is now
-              partially in place as well: ECS cameras can author temporal
-              jitter, the WebGPU post chain has a history-buffered TAA effect
-              with a renderer-owned motion-vector texture input, and
-              <code>examples/taa.html</code> compares raw jitter against
+              complete as well: ECS cameras can author temporal jitter, the
+              WebGPU post chain has a history-buffered TAA effect with a
+              renderer-owned motion-vector texture input, compatible built-in
+              mesh scenes write geometry-aware motion vectors in the main pass,
+              and <code>examples/taa.html</code> compares raw jitter against
               accumulated TAA on square canvases.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3087 geometry/depth-aware TAA motion vectors</dd>
+            <dd>task-3088 SSAO screen-space ambient occlusion</dd>
           </dl>
         </aside>
       </header>
@@ -2137,9 +2138,9 @@
                 Missing texture-backed StandardMaterial PBR extension resources.
               </li>
               <li>
-                Missing geometry/depth-aware TAA motion vectors, screen-space
-                effects, full GGX importance sampling, and broader environment
-                asset preparation.
+                Missing Tier 20 screen-space effects, full GGX importance
+                sampling, broader environment asset preparation, and previous
+                transform history for independently moving temporal geometry.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -4426,19 +4427,17 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Continue
-                <code>task-3087</code>, geometry/depth-aware TAA motion vectors.
+                <span class="badge amber">next</span> Start
+                <code>task-3088</code>, SSAO screen-space ambient occlusion.
               </li>
               <li>
-                Anchor on three.js <code>TAARenderPass</code>, modern temporal
-                antialiasing references, and PlayCanvas-style render-target
-                history/resource hygiene.
+                Anchor on three.js <code>SSAOPass</code> and PlayCanvas
+                <code>posteffect-ssao.js</code> depth-buffer sampling patterns.
               </li>
               <li>
-                History accumulation and the moving-scene browser proof are now
-                in place; replace or extend the current camera-motion texture
-                clear with a scene motion-vector attachment or depth
-                reprojection path.
+                Tier 19 is complete; the next screen-space slice should make the
+                main-pass depth attachment readable by post effects and prove
+                visible contact darkening in a concave scene.
               </li>
             </ul>
           </article>

@@ -82,6 +82,7 @@ export * from "./lighting-resource-plan.js";
 export * from "./mesh-buffer-descriptors.js";
 export * from "./mesh-buffer-resources.js";
 export * from "./morph-target-weight-buffer.js";
+export * from "./motion-vector-shader.js";
 export * from "./mvp-frame-readiness.js";
 export * from "./msaa.js";
 export * from "./pipeline-cache.js";

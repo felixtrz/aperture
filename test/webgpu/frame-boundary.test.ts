@@ -86,6 +86,36 @@ describe("frame boundary assembly helper", () => {
     expect(passDescriptors[0]).toBe(report.attachments?.plan);
   });
 
+  it("assembles an additional color target for MRT scene outputs", () => {
+    const events: string[] = [];
+    const motionView = { label: "motion-view" };
+    const report = assembleFrameBoundary({
+      context: contextWithView({ label: "scene-view" }),
+      device: device(events),
+      queue: { submit: (buffers) => events.push(`submit:${buffers.length}`) },
+      commands: [drawCommand()],
+      label: "mrt-frame",
+      clearColor: [0, 0, 0, 1],
+      additionalColorTargets: [
+        {
+          view: motionView,
+          clearColor: [0.5, 0.5, 0.5, 1],
+          loadOp: "clear",
+          storeOp: "store",
+        },
+      ],
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.attachments?.plan?.colorAttachments).toMatchObject([
+      { view: { label: "scene-view" } },
+      {
+        view: motionView,
+        clearValue: { r: 0.5, g: 0.5, b: 0.5, a: 1 },
+      },
+    ]);
+  });
+
   it("stops at texture view acquisition failures", () => {
     const report = assembleFrameBoundary({
       context: { getCurrentTexture: () => ({}) },

@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Continue `task-3087`: TAA with motion vectors.
+Start `task-3088`: SSAO (screen-space ambient occlusion).
 
 Why this next: Tier 17 scene atmosphere is complete, and Tier 18 has shipped
 scalar StandardMaterial clearcoat, scalar thin-wall transmission, scalar sheen,
@@ -69,13 +69,13 @@ StandardMaterial specular response, and `examples/transmission.html` proves a
 glass-like surface with the background visible through the transmitted
 material. `examples/sheen.html` proves a fabric-like material with a
 characteristic sheen rim-light. `examples/iridescence.html` proves a thin-film
-material with a cyan wavelength-dependent color shift. Tier 19 MSAA has shipped,
-and the first TAA slice now adds ECS-authored temporal jitter, a history-buffered
-TAA post effect, a renderer-owned motion-vector texture input, and
-`examples/taa.html` square-canvas browser proof. The remaining Tier 19 gap is
-the higher-fidelity scene motion path: geometry/depth-aware motion vectors via a
-main-pass G-buffer or depth reprojection, instead of the current camera-motion
-texture clear.
+material with a cyan wavelength-dependent color shift. Tier 19 has shipped:
+MSAA provides configurable 1x/4x/8x-request rendering with WebGPU resolve
+targets, and TAA now adds ECS-authored temporal jitter, a history-buffered
+WebGPU post effect, renderer-owned motion-vector textures, geometry-aware
+main-pass motion-vector output for compatible built-in mesh scenes, fallback
+camera-motion clears for unsupported combinations, and `examples/taa.html`
+square-canvas browser proof. Tier 20 begins with depth-reading SSAO.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -1322,10 +1322,7 @@ Acceptance criteria:
 
 ### task-3087 — TAA (temporal antialiasing) with motion vectors (Tier 19 part 2)
 
-Status: in progress. First slice adds temporal jitter, history accumulation,
-camera-motion texture input, and visible square-canvas proof. Remaining work:
-true geometry/depth-aware motion vectors, ideally through a main-pass
-motion-vector attachment or PlayCanvas-style depth reprojection.
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/post-taa.ts` (new), motion-vector G-buffer attachment in main pass, targeted tests.

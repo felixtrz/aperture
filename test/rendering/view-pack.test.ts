@@ -75,7 +75,7 @@ describe("snapshot view uniform packing", () => {
     expect(Array.from(result.data.slice(16, 20))).toEqual([2, 3, 4, 1]);
   });
 
-  it("packs fog color and mode parameters after camera position", () => {
+  it("packs fog color and mode parameters after temporal matrices", () => {
     const viewMatrix = viewMatrixForCamera(2, 3, 4);
     const viewProjection = matrixValues(100);
     const result = packSnapshotViewUniforms(
@@ -98,18 +98,36 @@ describe("snapshot view uniform packing", () => {
     );
 
     expect(result.diagnostics).toEqual([]);
-    expect(Array.from(result.data.slice(20, 24))).toEqual([
+    expect(Array.from(result.data.slice(36, 40))).toEqual([
       0.5,
       expect.closeTo(0.65, 5),
       expect.closeTo(0.8, 5),
       0.75,
     ]);
-    expect(Array.from(result.data.slice(24, 28))).toEqual([
+    expect(Array.from(result.data.slice(40, 44))).toEqual([
       3,
       expect.closeTo(0.035, 5),
       3,
       18,
     ]);
+  });
+
+  it("packs previous view-projection matrices for temporal reprojection", () => {
+    const current = matrixValues(1);
+    const previous = matrixValues(200);
+    const result = packSnapshotViewUniforms(
+      snapshot({
+        views: [view(12, 0)],
+        viewMatrices: current,
+      }),
+      {
+        previousViewProjectionByViewId: new Map([[12, previous]]),
+      },
+    );
+
+    expect(result.diagnostics).toEqual([]);
+    expect(Array.from(result.data.slice(0, 16))).toEqual(Array.from(current));
+    expect(Array.from(result.data.slice(20, 36))).toEqual(Array.from(previous));
   });
 
   it("diagnoses missing and out-of-range matrix data", () => {

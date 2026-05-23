@@ -22,6 +22,7 @@ import {
   createWebGpuDepthStencilDescriptor,
   resolveWebGpuPipelineRenderState,
 } from "./material-render-state.js";
+import { createMotionVectorBuiltInShaderVariant } from "./motion-vector-shader.js";
 import type {
   WebGpuRenderPipelineCreateDescriptor,
   WebGpuRenderPipelineDeviceLike,
@@ -123,6 +124,7 @@ export interface BrowserUnlitRenderPipelineDescriptorInput {
   readonly shaderModule: unknown;
   readonly shader?: BuiltInShaderSourceModule;
   readonly colorFormat: string;
+  readonly motionVectorColorFormat?: string | null;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
   readonly batchKey?: BatchCompatibilityKey;
@@ -131,6 +133,7 @@ export interface BrowserUnlitRenderPipelineDescriptorInput {
 export interface CreateUnlitRenderPipelineResourceOptions {
   readonly device: UnlitRenderPipelineDeviceLike;
   readonly colorFormat: string;
+  readonly motionVectorColorFormat?: string | null;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
   readonly batchKey: BatchCompatibilityKey;
@@ -156,14 +159,22 @@ export interface UnlitRenderPipelineDeviceLike
 export async function createUnlitRenderPipelineResource(
   options: CreateUnlitRenderPipelineResourceOptions,
 ): Promise<CreateUnlitRenderPipelineResourceResult> {
-  const shader = resolveUnlitShaderForBatchKey(
+  const baseShader = resolveUnlitShaderForBatchKey(
     options.batchKey,
     options.shader,
   );
+  const shader =
+    options.motionVectorColorFormat === undefined ||
+    options.motionVectorColorFormat === null
+      ? baseShader
+      : createMotionVectorBuiltInShaderVariant(baseShader);
   const descriptorPlan = createUnlitPipelineDescriptorPlan({
     shader,
     colorFormat: options.colorFormat,
     batchKey: options.batchKey,
+    ...(options.motionVectorColorFormat === undefined
+      ? {}
+      : { motionVectorColorFormat: options.motionVectorColorFormat }),
     ...(options.sampleCount === undefined
       ? {}
       : { sampleCount: options.sampleCount }),
@@ -220,6 +231,9 @@ export async function createUnlitRenderPipelineResource(
     shaderModule: shaderModule.module,
     colorFormat: options.colorFormat,
     batchKey: options.batchKey,
+    ...(options.motionVectorColorFormat === undefined
+      ? {}
+      : { motionVectorColorFormat: options.motionVectorColorFormat }),
     ...(options.sampleCount === undefined
       ? {}
       : { sampleCount: options.sampleCount }),
@@ -269,6 +283,11 @@ export function createBrowserUnlitRenderPipelineDescriptor(
     input.colorFormat,
     renderState,
   );
+  const targets =
+    input.motionVectorColorFormat === undefined ||
+    input.motionVectorColorFormat === null
+      ? [colorTarget]
+      : [colorTarget, { format: input.motionVectorColorFormat }];
   const descriptor: WebGpuRenderPipelineCreateDescriptor = {
     label: `${shader.label}:${input.colorFormat}:triangle-list`,
     layout: "auto",
@@ -280,7 +299,7 @@ export function createBrowserUnlitRenderPipelineDescriptor(
     fragment: {
       module: input.shaderModule,
       entryPoint: shader.entryPoints.fragment,
-      targets: [colorTarget],
+      targets,
     },
     primitive: {
       topology: "triangle-list",

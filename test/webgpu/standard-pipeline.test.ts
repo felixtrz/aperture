@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   STANDARD_SHADOW_RECEIVER_MESH_WGSL,
   INSTANCE_TINT_VERTEX_BUFFER_LAYOUT,
+  STANDARD_MESH_SHADER,
   STANDARD_MESH_WGSL,
   STANDARD_MORPHED_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   STANDARD_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY,
@@ -17,6 +18,7 @@ import {
   STANDARD_VERTEX_COLOR_UNORM8_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   createBrowserStandardRenderPipelineDescriptor,
+  createMotionVectorBuiltInShaderVariant,
   createOutputColorSpacePipelineKey,
   createStandardRenderPipelineResource,
   createStandardPipelineDescriptorPlan,
@@ -84,6 +86,29 @@ describe("browser standard material pipeline bridge", () => {
         depthWriteEnabled: true,
         depthCompare: "less",
       },
+    });
+  });
+
+  it("builds a motion-vector MRT standard pipeline descriptor", () => {
+    const shaderModule = {
+      compilationInfo: async () => ({ messages: [] }),
+    };
+    const shader = createMotionVectorBuiltInShaderVariant(STANDARD_MESH_SHADER);
+    const descriptor = createBrowserStandardRenderPipelineDescriptor({
+      shader,
+      shaderModule,
+      colorFormat: "bgra8unorm",
+      motionVectorColorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey: STANDARD_BATCH_KEY,
+    });
+
+    expect(shader.code).toContain("previousViewProjection: mat4x4f");
+    expect(shader.code).toContain("@location(1) motionVector: vec4f");
+    expect(descriptor.fragment).toMatchObject({
+      module: shaderModule,
+      entryPoint: "fs_main",
+      targets: [{ format: "bgra8unorm" }, { format: "bgra8unorm" }],
     });
   });
 

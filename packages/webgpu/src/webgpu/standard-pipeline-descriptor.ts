@@ -55,6 +55,7 @@ export interface StandardPipelineDescriptorDiagnostic {
 export interface StandardPipelineDescriptorInput {
   readonly shader?: BuiltInShaderSourceModule;
   readonly colorFormat: string;
+  readonly motionVectorColorFormat?: string | null;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
   readonly topology?: MeshTopology;
@@ -167,11 +168,21 @@ export function createStandardPipelineDescriptorPlan(
     input.colorFormat,
     renderState,
   );
+  const colorFormats =
+    input.motionVectorColorFormat === undefined ||
+    input.motionVectorColorFormat === null
+      ? [input.colorFormat]
+      : [input.colorFormat, input.motionVectorColorFormat];
+  const colorTargets =
+    input.motionVectorColorFormat === undefined ||
+    input.motionVectorColorFormat === null
+      ? [colorTarget]
+      : [colorTarget, { format: input.motionVectorColorFormat }];
   const keyInput: WebGpuRenderPipelineCacheKeyInput = {
     shaderLabel: shader.label,
     shaderFamily: "standard",
     shaderVariantKey: shaderFeaturePlan.variantKey,
-    colorFormats: [input.colorFormat],
+    colorFormats,
     depthFormat: input.depthFormat ?? null,
     stencilFormat: null,
     topology: resolvedTopology,
@@ -188,6 +199,16 @@ export function createStandardPipelineDescriptorPlan(
       alphaToCoverageEnabled: false,
       colorTargets: [
         createWebGpuColorTargetStateKey(input.colorFormat, renderState),
+        ...(input.motionVectorColorFormat === undefined ||
+        input.motionVectorColorFormat === null
+          ? []
+          : [
+              {
+                format: input.motionVectorColorFormat,
+                blend: null,
+                writeMask: "all" as const,
+              },
+            ]),
       ],
     },
     sampleCount,
@@ -207,7 +228,7 @@ export function createStandardPipelineDescriptorPlan(
     fragment: {
       moduleLabel: shader.label,
       entryPoint: shader.entryPoints.fragment,
-      targets: [colorTarget],
+      targets: colorTargets,
     },
     primitive: {
       topology: resolvedTopology,

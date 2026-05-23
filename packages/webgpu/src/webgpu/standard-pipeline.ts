@@ -36,6 +36,7 @@ import {
   DEFAULT_OUTPUT_COLOR_SPACE,
   type OutputColorSpace,
 } from "./output-stage-color-space.js";
+import { createMotionVectorBuiltInShaderVariant } from "./motion-vector-shader.js";
 import { INSTANCE_TINT_VERTEX_BUFFER_LAYOUT } from "./instance-tint-buffer.js";
 import {
   createWebGpuShaderModule,
@@ -272,6 +273,7 @@ export interface BrowserStandardRenderPipelineDescriptorInput {
   readonly shaderModule: unknown;
   readonly shader?: BuiltInShaderSourceModule;
   readonly colorFormat: string;
+  readonly motionVectorColorFormat?: string | null;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
   readonly batchKey?: BatchCompatibilityKey;
@@ -280,6 +282,7 @@ export interface BrowserStandardRenderPipelineDescriptorInput {
 export interface CreateStandardRenderPipelineResourceOptions {
   readonly device: StandardRenderPipelineDeviceLike;
   readonly colorFormat: string;
+  readonly motionVectorColorFormat?: string | null;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
   readonly batchKey: BatchCompatibilityKey;
@@ -307,15 +310,23 @@ export interface StandardRenderPipelineDeviceLike
 export async function createStandardRenderPipelineResource(
   options: CreateStandardRenderPipelineResourceOptions,
 ): Promise<CreateStandardRenderPipelineResourceResult> {
-  const shader = applyOutputTonemapToStandardShader(
+  const baseShader = applyOutputTonemapToStandardShader(
     resolveStandardShaderForBatchKey(options.batchKey, options.shader),
     options.tonemap ?? DEFAULT_TONEMAP_OPERATOR,
     options.outputColorSpace ?? DEFAULT_OUTPUT_COLOR_SPACE,
   );
+  const shader =
+    options.motionVectorColorFormat === undefined ||
+    options.motionVectorColorFormat === null
+      ? baseShader
+      : createMotionVectorBuiltInShaderVariant(baseShader);
   const descriptorPlan = createStandardPipelineDescriptorPlan({
     shader,
     colorFormat: options.colorFormat,
     batchKey: options.batchKey,
+    ...(options.motionVectorColorFormat === undefined
+      ? {}
+      : { motionVectorColorFormat: options.motionVectorColorFormat }),
     ...(options.sampleCount === undefined
       ? {}
       : { sampleCount: options.sampleCount }),
@@ -372,6 +383,9 @@ export async function createStandardRenderPipelineResource(
     shaderModule: shaderModule.module,
     colorFormat: options.colorFormat,
     batchKey: options.batchKey,
+    ...(options.motionVectorColorFormat === undefined
+      ? {}
+      : { motionVectorColorFormat: options.motionVectorColorFormat }),
     ...(options.sampleCount === undefined
       ? {}
       : { sampleCount: options.sampleCount }),
@@ -421,6 +435,11 @@ export function createBrowserStandardRenderPipelineDescriptor(
     input.colorFormat,
     renderState,
   );
+  const targets =
+    input.motionVectorColorFormat === undefined ||
+    input.motionVectorColorFormat === null
+      ? [colorTarget]
+      : [colorTarget, { format: input.motionVectorColorFormat }];
   const descriptor: WebGpuRenderPipelineCreateDescriptor = {
     label: `${shader.label}:${input.colorFormat}:triangle-list`,
     layout: "auto",
@@ -432,7 +451,7 @@ export function createBrowserStandardRenderPipelineDescriptor(
     fragment: {
       module: input.shaderModule,
       entryPoint: shader.entryPoints.fragment,
-      targets: [colorTarget],
+      targets,
     },
     primitive: {
       topology: "triangle-list",

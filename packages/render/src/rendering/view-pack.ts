@@ -3,9 +3,10 @@ import type { FogPacket, RenderSnapshot, ViewPacket } from "./snapshot.js";
 
 const VIEW_PROJECTION_FLOAT_COUNT = 16;
 const VIEW_CAMERA_POSITION_FLOAT_OFFSET = 16;
-const VIEW_FOG_COLOR_FLOAT_OFFSET = 20;
-const VIEW_FOG_PARAMS_FLOAT_OFFSET = 24;
-export const PACKED_VIEW_UNIFORM_FLOAT_STRIDE = 28;
+const VIEW_PREVIOUS_VIEW_PROJECTION_FLOAT_OFFSET = 20;
+const VIEW_FOG_COLOR_FLOAT_OFFSET = 36;
+const VIEW_FOG_PARAMS_FLOAT_OFFSET = 40;
+export const PACKED_VIEW_UNIFORM_FLOAT_STRIDE = 44;
 
 export type SnapshotViewUniformPackDiagnosticCode =
   | "viewUniform.emptySnapshot"
@@ -33,6 +34,10 @@ export interface PackedSnapshotViewUniforms {
   readonly diagnostics: readonly SnapshotViewUniformPackDiagnostic[];
 }
 
+export interface SnapshotViewUniformPackOptions {
+  readonly previousViewProjectionByViewId?: ReadonlyMap<number, Float32Array>;
+}
+
 export interface PackedSnapshotViewUniformsScratch {
   data: Float32Array;
   readonly views: PackedSnapshotViewUniformRecord[];
@@ -57,6 +62,7 @@ interface MutablePackedSnapshotViewUniforms {
 
 export function packSnapshotViewUniforms(
   snapshot: RenderSnapshot,
+  options: SnapshotViewUniformPackOptions = {},
 ): PackedSnapshotViewUniforms {
   const diagnostics: SnapshotViewUniformPackDiagnostic[] = [];
   const views: PackedSnapshotViewUniformRecord[] = [];
@@ -139,6 +145,13 @@ export function packSnapshotViewUniforms(
       snapshot.viewMatrices,
       view.viewMatrixOffset,
     );
+    writePreviousViewProjection(
+      data,
+      packedOffset + VIEW_PREVIOUS_VIEW_PROJECTION_FLOAT_OFFSET,
+      snapshot.viewMatrices,
+      view,
+      options.previousViewProjectionByViewId,
+    );
     writeFogParameters(
       data,
       packedOffset + VIEW_FOG_COLOR_FLOAT_OFFSET,
@@ -182,6 +195,7 @@ export function createPackedSnapshotViewUniformsScratch(
 export function writePackedSnapshotViewUniforms(
   snapshot: RenderSnapshot,
   scratch: PackedSnapshotViewUniformsScratch,
+  options: SnapshotViewUniformPackOptions = {},
 ): PackedSnapshotViewUniforms {
   const result = scratch.result as MutablePackedSnapshotViewUniforms;
 
@@ -260,6 +274,13 @@ export function writePackedSnapshotViewUniforms(
       snapshot.viewMatrices,
       view.viewMatrixOffset,
     );
+    writePreviousViewProjection(
+      scratch.data,
+      result.floatCount + VIEW_PREVIOUS_VIEW_PROJECTION_FLOAT_OFFSET,
+      snapshot.viewMatrices,
+      view,
+      options.previousViewProjectionByViewId,
+    );
     writeFogParameters(
       scratch.data,
       result.floatCount + VIEW_FOG_COLOR_FLOAT_OFFSET,
@@ -285,6 +306,32 @@ function hasMatrixRange(values: Float32Array, sourceOffset: number): boolean {
   return (
     sourceOffset >= 0 &&
     sourceOffset + VIEW_PROJECTION_FLOAT_COUNT <= values.length
+  );
+}
+
+function writePreviousViewProjection(
+  target: Float32Array,
+  targetOffset: number,
+  viewMatrices: Float32Array,
+  view: ViewPacket,
+  previousViewProjectionByViewId: ReadonlyMap<number, Float32Array> | undefined,
+): void {
+  const previous = previousViewProjectionByViewId?.get(view.viewId);
+
+  if (
+    previous !== undefined &&
+    previous.length >= VIEW_PROJECTION_FLOAT_COUNT
+  ) {
+    target.set(previous.subarray(0, VIEW_PROJECTION_FLOAT_COUNT), targetOffset);
+    return;
+  }
+
+  target.set(
+    viewMatrices.subarray(
+      view.viewProjectionMatrixOffset,
+      view.viewProjectionMatrixOffset + VIEW_PROJECTION_FLOAT_COUNT,
+    ),
+    targetOffset,
   );
 }
 

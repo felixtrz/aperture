@@ -21,6 +21,7 @@ import type { SubmitCommandBuffersReport } from "./queue-submit.js";
 import {
   createRenderPassAttachmentPlan,
   type CreateRenderPassAttachmentPlanResult,
+  type RenderPassColorAttachmentInput,
   type RenderPassDepthAttachmentInput,
 } from "./render-pass-attachments.js";
 import {
@@ -178,6 +179,7 @@ export interface AssembleFrameBoundaryOptions {
   readonly commands: readonly RenderPassCommand[];
   readonly label: string;
   readonly colorTarget?: FrameBoundaryColorTarget;
+  readonly additionalColorTargets?: readonly RenderPassColorAttachmentInput[];
   readonly msaaColorTarget?: FrameBoundaryMsaaColorTarget | null;
   readonly clearColor?: readonly number[];
   readonly depthTarget?: RenderPassDepthAttachmentInput | null;
@@ -252,6 +254,7 @@ export function assembleFrameBoundary(
                   resolveTarget: texture.target.view,
                   storeOp: "discard",
                 },
+            ...(options.additionalColorTargets ?? []),
           ],
           ...(options.depthTarget === undefined
             ? {}

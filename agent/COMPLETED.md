@@ -1,5 +1,34 @@
 # Completed Tasks
 
+## task-3087 — TAA with motion vectors
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added previous view-projection matrix packing to view uniforms so temporal
+  post effects and shader variants can compare current and previous clip-space
+  positions.
+- Added built-in mesh shader motion-vector variants for Standard, Unlit,
+  Matcap, and DebugNormal pipelines. Compatible TAA scenes now render a
+  main-pass motion-vector attachment as a second color target.
+- Extended frame-boundary assembly to support additional MRT color targets, and
+  specialized built-in pipeline descriptors/cache keys by motion-vector target
+  format.
+- Kept a renderer-owned fallback camera-motion clear path for unsupported
+  combinations such as MSAA, sprites/skyboxes, multiple targets, or render-target
+  scenes that cannot safely share the two-target mesh pipeline.
+- Kept `examples/taa.html` as the square raw-jitter vs accumulated-TAA proof;
+  the browser proof now validates the scene motion-vector attachment path.
+
+Validation:
+
+- `pnpm exec vitest run test/rendering/view-pack.test.ts test/webgpu/frame-boundary.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/post-pass.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/webgpu/unlit-pipeline.test.ts test/webgpu/matcap-pipeline.test.ts test/webgpu/debug-normal-pipeline.test.ts`
+- `pnpm exec playwright test test/e2e/taa.spec.ts --reporter=list --timeout=30000`
+
 ## task-3086 — MSAA support in render passes
 
 Completed: 2026-05-23

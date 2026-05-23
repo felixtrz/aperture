@@ -115,6 +115,7 @@ export const STANDARD_MESH_WGSL = `
 struct ViewProjectionUniform {
   viewProjection: mat4x4f,
   cameraPosition: vec4f,
+  previousViewProjection: mat4x4f,
   fogColor: vec4f,
   fogParams: vec4f,
 };
