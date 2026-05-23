@@ -31,6 +31,8 @@ describe("glTF material mapping", () => {
       clearcoatFactor: 0,
       clearcoatRoughnessFactor: 0,
       transmissionFactor: 0,
+      sheenColorFactor: [0, 0, 0],
+      sheenRoughnessFactor: 0,
       normalScale: 1,
       occlusionStrength: 1,
       emissiveFactor: [0, 0, 0],
@@ -179,6 +181,74 @@ describe("glTF material mapping", () => {
         severity: "warning",
         field: "extensions.KHR_materials_transmission.transmissionTexture",
         extensionName: "KHR_materials_transmission",
+      },
+    ]);
+  });
+
+  it("maps KHR_materials_sheen scalar factors to StandardMaterial fields", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        name: "Woven Fabric",
+        extensions: {
+          KHR_materials_sheen: {
+            sheenColorFactor: [0.85, 0.42, 0.16],
+            sheenRoughnessFactor: 0.38,
+          },
+        },
+        pbrMetallicRoughness: {
+          metallicFactor: 0,
+          roughnessFactor: 0.75,
+        },
+      },
+      {
+        materialKey: "material:sheen",
+        extensionsRequired: ["KHR_materials_sheen"],
+      },
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      label: "Woven Fabric",
+      metallicFactor: 0,
+      roughnessFactor: 0.75,
+      sheenColorFactor: [0.85, 0.42, 0.16],
+      sheenRoughnessFactor: 0.38,
+    });
+  });
+
+  it("warns when KHR_materials_sheen uses unsupported texture slots", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        extensions: {
+          KHR_materials_sheen: {
+            sheenColorFactor: [1, 0.5, 0.2],
+            sheenColorTexture: { index: 0 },
+            sheenRoughnessTexture: { index: 1 },
+          },
+        },
+      },
+      { materialKey: "material:sheen-textures" },
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      sheenColorFactor: [1, 0.5, 0.2],
+    });
+    expect(report.diagnostics).toMatchObject([
+      {
+        code: "gltfMaterial.unsupportedOptionalExtension",
+        severity: "warning",
+        field: "extensions.KHR_materials_sheen.sheenColorTexture",
+        extensionName: "KHR_materials_sheen",
+      },
+      {
+        code: "gltfMaterial.unsupportedOptionalExtension",
+        severity: "warning",
+        field: "extensions.KHR_materials_sheen.sheenRoughnessTexture",
+        extensionName: "KHR_materials_sheen",
       },
     ]);
   });
@@ -715,14 +785,14 @@ describe("glTF material mapping", () => {
   it("reports unsupported required extensions and unresolved texture handles", () => {
     const report = createMaterialAssetFromGltfMaterial(
       {
-        extensions: { KHR_materials_sheen: {} },
+        extensions: { KHR_materials_iridescence: {} },
         pbrMetallicRoughness: {
           baseColorTexture: { index: 2 },
         },
       },
       {
         materialKey: "material:bad",
-        extensionsRequired: ["KHR_materials_sheen"],
+        extensionsRequired: ["KHR_materials_iridescence"],
       },
     );
 
@@ -731,7 +801,7 @@ describe("glTF material mapping", () => {
       {
         code: "gltfMaterial.unsupportedRequiredExtension",
         severity: "error",
-        extensionName: "KHR_materials_sheen",
+        extensionName: "KHR_materials_iridescence",
       },
       {
         code: "gltfMaterial.unresolvedTextureBinding",

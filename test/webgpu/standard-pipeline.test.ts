@@ -368,6 +368,39 @@ describe("browser standard material pipeline bridge", () => {
     });
   });
 
+  it("specializes StandardMaterial pipeline keys for scalar sheen", () => {
+    const batchKey: BatchCompatibilityKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey: "standard|sheen|opaque|back|less|none",
+    };
+    const plan = createStandardPipelineDescriptorPlan({
+      batchKey,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+    });
+
+    expect(plan).toMatchObject({
+      valid: true,
+      plan: {
+        keyInput: {
+          shaderVariantKey: "direct-lit-metallic-roughness-sheen",
+          vertexLayoutKey: "primitive-interleaved",
+          bindGroupLayoutKeys: [
+            "standard/group-0:view-uniform@0",
+            "standard/group-1:world-transforms@0",
+            "standard/group-2:material@0",
+            "lights/group-3:light-floats@0,light-metadata@1",
+          ],
+        },
+        descriptor: {
+          vertex: {
+            buffers: ["POSITION", "NORMAL", "TEXCOORD_0"],
+          },
+        },
+      },
+    });
+  });
+
   it("uses joint and weight attributes for skinned StandardMaterial shaders", () => {
     const shaderModule = {
       compilationInfo: async () => ({ messages: [] }),

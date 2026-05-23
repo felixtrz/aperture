@@ -8,6 +8,8 @@ export type StandardMaterialProofPointFeature =
   | "clearcoatFactor"
   | "clearcoatRoughnessFactor"
   | "transmissionFactor"
+  | "sheenColorFactor"
+  | "sheenRoughnessFactor"
   | "metallicRoughnessTexture"
   | "normalTexture"
   | "emissiveFactor"
@@ -33,6 +35,8 @@ export const STANDARD_MATERIAL_PROOF_POINT_SCOPE = {
     "clearcoatFactor",
     "clearcoatRoughnessFactor",
     "transmissionFactor",
+    "sheenColorFactor",
+    "sheenRoughnessFactor",
     "metallicRoughnessTexture",
     "normalTexture",
     "emissiveFactor",
@@ -88,6 +92,16 @@ export function validateStandardMaterialProofPoint(
   validateUnitFactor(
     material.transmissionFactor,
     "transmissionFactor",
+    diagnostics,
+  );
+  validateColor(
+    [...material.sheenColorFactor, 1],
+    "sheenColorFactor",
+    diagnostics,
+  );
+  validateUnitFactor(
+    material.sheenRoughnessFactor,
+    "sheenRoughnessFactor",
     diagnostics,
   );
 

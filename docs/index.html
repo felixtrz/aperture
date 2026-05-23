@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 00:24 UTC</dd>
+            <dd>2026-05-23 00:59 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1359,25 +1359,32 @@
               path now also appends sprite billboard commands alongside opaque
               mesh draws instead of only rendering sprites in sprite-only
               snapshots. Tier 18 PBR material extensions now include scalar
-              clearcoat and scalar thin-wall transmission: StandardMaterial now
-              carries scalar <code>clearcoatFactor</code> and
+              clearcoat, scalar thin-wall transmission, and scalar sheen:
+              StandardMaterial now carries scalar
+              <code>clearcoatFactor</code> and
               <code>clearcoatRoughnessFactor</code> fields plus
-              <code>transmissionFactor</code>, glTF
+              <code>transmissionFactor</code>, <code>sheenColorFactor</code>,
+              and <code>sheenRoughnessFactor</code>, glTF
               <code>KHR_materials_clearcoat</code> scalar factors map through
               the library material mapper, glTF
               <code>KHR_materials_transmission</code> scalar factors map to
-              alpha-blended StandardMaterial assets, WebGPU packs both extension
+              alpha-blended StandardMaterial assets, and glTF
+              <code>KHR_materials_sheen</code> scalar factors map to
+              fabric-style StandardMaterial assets. WebGPU packs the extension
               scalars into the StandardMaterial buffer, WGSL clearcoat variants
-              add a coating specular lobe, and WGSL transmission variants
-              attenuate fragment alpha while preserving output-stage tonemap and
-              sRGB composition. <code>examples/clearcoat.html</code> proves a
+              add a coating specular lobe, WGSL transmission variants attenuate
+              fragment alpha while preserving output-stage tonemap and sRGB
+              composition, and WGSL sheen variants add a Charlie-style fabric
+              rim-light lobe. <code>examples/clearcoat.html</code> proves a
               square worker-authored base-coat vs clearcoat comparison with a
               visibly brighter coating highlight, and
               <code>examples/transmission.html</code> proves a glass sphere with
-              the background visible through the transmitted material.
+              the background visible through the transmitted material, while
+              <code>examples/sheen.html</code> proves a fabric sphere with a
+              visibly brighter sheen rim.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3084 sheen extension</dd>
+            <dd>task-3085 iridescence extension</dd>
           </dl>
         </aside>
       </header>
@@ -1822,9 +1829,10 @@
               <li>
                 glTF material mapping now treats scalar
                 <code>KHR_materials_clearcoat</code> and
-                <code>KHR_materials_transmission</code> as supported
-                StandardMaterial extensions, with unsupported extension texture
-                slots reported as optional warnings.
+                <code>KHR_materials_transmission</code> plus
+                <code>KHR_materials_sheen</code> as supported StandardMaterial
+                extensions, with unsupported extension texture slots reported as
+                optional warnings.
               </li>
               <li>Missing broader automatic unload policy integration.</li>
             </ul>
@@ -1959,8 +1967,8 @@
                 Missing app-level generic material adapter route boundary.
               </li>
               <li>
-                Missing texture-backed clearcoat/transmission and the remaining
-                sheen/iridescence PBR extension resources.
+                Missing texture-backed clearcoat/transmission/sheen and the
+                remaining iridescence PBR extension resources.
               </li>
               <li>
                 Missing IBL, shadow, render-target, and hot-path scratch polish.
@@ -2093,13 +2101,17 @@
               outdoor scene example now proves directional CSM and RectAreaLight
               LTC contribution together through the same worker-snapshot and
               renderer-owned WebGPU resource path. Tier 18 now also submits
-              scalar clearcoat and scalar thin-wall transmission
+              scalar clearcoat, scalar thin-wall transmission, and scalar sheen
               StandardMaterial variants: clearcoat adds a coating specular lobe,
-              while transmission attenuates alpha through the blend pipeline so
-              a background panel remains visible through the glass proof sphere.
+              transmission attenuates alpha through the blend pipeline so a
+              background panel remains visible through the glass proof sphere,
+              and sheen adds a fabric rim-light lobe.
             </p>
             <ul>
               <li>Missing true grab-pass refraction for transmission.</li>
+              <li>
+                Missing texture-backed sheen and iridescence PBR resources.
+              </li>
               <li>
                 Missing full GGX importance sampling, post-processing, and
                 broader environment asset preparation.
@@ -4390,15 +4402,17 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3084</code>, the StandardMaterial sheen extension.
+                <code>task-3085</code>, the StandardMaterial iridescence
+                extension.
               </li>
               <li>
                 Anchor on three.js <code>MeshPhysicalMaterial</code>, PlayCanvas
-                sheen behavior, and glTF <code>KHR_materials_sheen</code>.
+                iridescence behavior, and glTF
+                <code>KHR_materials_iridescence</code>.
               </li>
               <li>
-                Add schema, shader, and browser proof for a fabric-like surface
-                with a characteristic sheen rim-light.
+                Add schema, shader, and browser proof for a thin-film surface
+                with visible iridescent color shift.
               </li>
             </ul>
           </article>
@@ -4411,6 +4425,21 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3084</div>
+            <div>
+              <strong>Scalar sheen shipped.</strong>
+              <span>
+                StandardMaterial now has scalar
+                <code>sheenColorFactor</code> and
+                <code>sheenRoughnessFactor</code> fields, glTF
+                <code>KHR_materials_sheen</code> scalar mapping, sheen pipeline
+                keys, WebGPU uniform packing, and a WGSL Charlie-style fabric
+                lobe. <code>examples/sheen.html</code> proves a visibly brighter
+                fabric rim-light than the matching base sphere in headed Chrome.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3083</div>
             <div>

@@ -1,5 +1,31 @@
 # Completed Tasks
 
+## task-3084 — Sheen extension
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added scalar StandardMaterial sheen support with `sheenColorFactor` and
+  `sheenRoughnessFactor`, defaults, proof-point validation, material
+  pipeline-key routing, and WebGPU uniform packing.
+- Added glTF `KHR_materials_sheen` scalar mapping to the library material
+  mapper and warnings for currently unsupported `sheenColorTexture` and
+  `sheenRoughnessTexture` slots.
+- Added a scalar WGSL sheen variant that uses a Charlie-style fabric lobe and
+  PlayCanvas-style base-lobe attenuation for direct lights.
+- Added `examples/sheen.html` with a square worker-authored base fabric vs
+  sheen fabric scene, plus headed Chrome/WebGPU screenshot proof that the sheen
+  rim-light is visibly distinct.
+
+Validation:
+
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/materials/materials.test.ts test/materials/standard-proof-point.test.ts test/materials/gltf-material.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts`
+- `pnpm exec playwright test test/e2e/sheen.spec.ts --reporter=line --timeout=30000`
+
 ## task-3083 — Transmission extension
 
 Completed: 2026-05-23

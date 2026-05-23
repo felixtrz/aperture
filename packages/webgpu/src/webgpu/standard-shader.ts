@@ -45,6 +45,8 @@ export const STANDARD_CLEARCOAT_SHADER_VARIANT =
   "direct-lit-metallic-roughness-clearcoat";
 export const STANDARD_TRANSMISSION_SHADER_VARIANT =
   "direct-lit-metallic-roughness-transmission";
+export const STANDARD_SHEEN_SHADER_VARIANT =
+  "direct-lit-metallic-roughness-sheen";
 
 export interface StandardTextureShaderFeatures {
   readonly baseColorTexture: boolean;
@@ -64,6 +66,7 @@ export interface StandardTextureShaderFeatures {
   readonly morphed?: boolean;
   readonly clearcoat?: boolean;
   readonly transmission?: boolean;
+  readonly sheen?: boolean;
   readonly fogLinear?: boolean;
   readonly fogExp?: boolean;
   readonly fogExp2?: boolean;
@@ -90,6 +93,8 @@ export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
     "clearcoatFactor",
     "clearcoatRoughnessFactor",
     "transmissionFactor",
+    "sheenColorFactor",
+    "sheenRoughnessFactor",
     "linearFog",
     "exponentialFog",
     "exponentialSquaredFog",
@@ -146,6 +151,7 @@ struct StandardMaterialUniform {
   clearcoatRoughnessFactor: f32,
   transmissionFactor: f32,
   padding9: f32,
+  sheenColorRoughnessFactor: vec4f,
 };
 
 struct VertexInput {
@@ -247,7 +253,8 @@ fn evaluateDirectLight(
   let specular = (distribution * visibility * fresnel) /
     max(4.0 * max(dot(normal, viewDir), 0.0) * nDotL, 0.0001);
   let diffuse = ((vec3f(1.0) - fresnel) * (1.0 - metallic) * baseColor) / PI;
-  return (diffuse + specular) * radiance * nDotL;
+  var brdf = diffuse + specular;
+  return brdf * radiance * nDotL;
 }
 
 fn lightCount() -> u32 {
@@ -986,6 +993,7 @@ export function createStandardTextureShaderVariantKey(
     features.skinned !== true &&
     features.morphed !== true &&
     features.transmission !== true &&
+    features.sheen !== true &&
     !hasStandardFogFeature(features)
   ) {
     return STANDARD_CLEARCOAT_SHADER_VARIANT;
@@ -1009,9 +1017,34 @@ export function createStandardTextureShaderVariantKey(
     features.skinned !== true &&
     features.morphed !== true &&
     features.clearcoat !== true &&
+    features.sheen !== true &&
     !hasStandardFogFeature(features)
   ) {
     return STANDARD_TRANSMISSION_SHADER_VARIANT;
+  }
+
+  if (
+    features.sheen === true &&
+    !features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture &&
+    features.shadowMap !== true &&
+    features.cascadedShadowMap !== true &&
+    features.pointShadowMap !== true &&
+    features.iblDiffuse !== true &&
+    features.iblSpecularProof !== true &&
+    features.texCoord1 !== true &&
+    features.vertexColor !== true &&
+    features.instanceTint !== true &&
+    features.skinned !== true &&
+    features.morphed !== true &&
+    features.clearcoat !== true &&
+    features.transmission !== true &&
+    !hasStandardFogFeature(features)
+  ) {
+    return STANDARD_SHEEN_SHADER_VARIANT;
   }
 
   const names: string[] = [];
@@ -1074,6 +1107,10 @@ export function createStandardTextureShaderVariantKey(
 
   if (features.transmission === true) {
     names.push("transmission");
+  }
+
+  if (features.sheen === true) {
+    names.push("sheen");
   }
 
   appendStandardSkinningFeatureName(names, features);
@@ -1484,6 +1521,10 @@ ${emissive}
 
   if (features.clearcoat === true) {
     code = applyStandardClearcoatSampling(code);
+  }
+
+  if (features.sheen === true) {
+    code = applyStandardSheenSampling(code);
   }
 
   if (features.transmission === true) {
@@ -2065,6 +2106,7 @@ function standardTextureVariantShaderLabel(
     features.skinned !== true &&
     features.morphed !== true &&
     features.transmission !== true &&
+    features.sheen !== true &&
     !hasStandardFogFeature(features)
   ) {
     return "aperture/standard-mesh-clearcoat";
@@ -2088,9 +2130,34 @@ function standardTextureVariantShaderLabel(
     features.skinned !== true &&
     features.morphed !== true &&
     features.clearcoat !== true &&
+    features.sheen !== true &&
     !hasStandardFogFeature(features)
   ) {
     return "aperture/standard-mesh-transmission";
+  }
+
+  if (
+    features.sheen === true &&
+    !features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture &&
+    features.shadowMap !== true &&
+    features.cascadedShadowMap !== true &&
+    features.pointShadowMap !== true &&
+    features.iblDiffuse !== true &&
+    features.iblSpecularProof !== true &&
+    features.texCoord1 !== true &&
+    features.vertexColor !== true &&
+    features.instanceTint !== true &&
+    features.skinned !== true &&
+    features.morphed !== true &&
+    features.clearcoat !== true &&
+    features.transmission !== true &&
+    !hasStandardFogFeature(features)
+  ) {
+    return "aperture/standard-mesh-sheen";
   }
 
   return `aperture/standard-mesh-${standardTextureFeatureNames(features).join(
@@ -2163,6 +2230,10 @@ function standardTextureFeatureNames(
     names.push("transmission");
   }
 
+  if (features.sheen === true) {
+    names.push("sheen");
+  }
+
   appendStandardSkinningFeatureName(names, features);
   appendStandardMorphTargetFeatureName(names, features);
   appendStandardFogFeatureName(names, features);
@@ -2203,6 +2274,7 @@ function hasStandardGenericOnlyFeature(
   return (
     features.clearcoat === true ||
     features.transmission === true ||
+    features.sheen === true ||
     hasStandardFogFeature(features)
   );
 }
@@ -2228,13 +2300,15 @@ function hasAnyStandardTextureFeature(
     features.morphed === true ||
     features.clearcoat === true ||
     features.transmission === true ||
+    features.sheen === true ||
     hasStandardFogFeature(features)
   );
 }
 
 function applyStandardClearcoatSampling(code: string): string {
   return code.replace(
-    `  return (diffuse + specular) * radiance * nDotL;`,
+    `  var brdf = diffuse + specular;
+  return brdf * radiance * nDotL;`,
     `  let clearcoat = clamp(material.clearcoatFactor, 0.0, 1.0);
   let clearcoatRoughness = clamp(material.clearcoatRoughnessFactor, 0.045, 1.0);
   let clearcoatFresnel = fresnelSchlick(
@@ -2246,7 +2320,28 @@ function applyStandardClearcoatSampling(code: string): string {
   let clearcoatSpecular = (clearcoatDistribution * clearcoatVisibility * clearcoatFresnel) /
     max(4.0 * max(dot(normal, viewDir), 0.0) * nDotL, 0.0001);
   let clearcoatAttenuation = vec3f(1.0) - clearcoat * clearcoatFresnel;
-  return ((diffuse + specular) * clearcoatAttenuation + clearcoatSpecular * clearcoat) * radiance * nDotL;`,
+  var brdf = (diffuse + specular) * clearcoatAttenuation + clearcoatSpecular * clearcoat;
+  return brdf * radiance * nDotL;`,
+  );
+}
+
+function applyStandardSheenSampling(code: string): string {
+  return code.replace(
+    `  return brdf * radiance * nDotL;`,
+    `  let sheenColor = clamp(material.sheenColorRoughnessFactor.rgb, vec3f(0.0), vec3f(1.0));
+  let sheenRoughness = clamp(material.sheenColorRoughnessFactor.a, 0.045, 1.0);
+  let sheenInvRoughness = 1.0 / max(sheenRoughness * sheenRoughness, 0.0001);
+  let sheenNoH2 = pow(max(dot(normal, halfVector), 0.0), 2.0);
+  let sheenSin2H = max(1.0 - sheenNoH2, 0.0078125);
+  let sheenDistribution = (2.0 + sheenInvRoughness) *
+    pow(sheenSin2H, sheenInvRoughness * 0.5) / (2.0 * PI);
+  let sheenVisibility = 1.0 /
+    max(4.0 * (max(dot(normal, viewDir), 0.000001) + nDotL -
+    max(dot(normal, viewDir), 0.000001) * nDotL), 0.000001);
+  let sheenSpecular = sheenDistribution * sheenVisibility * sheenColor;
+  let sheenAttenuation = 1.0 - max(max(sheenColor.r, sheenColor.g), sheenColor.b) * 0.157;
+  brdf = brdf * sheenAttenuation + sheenSpecular;
+  return brdf * radiance * nDotL;`,
   );
 }
 

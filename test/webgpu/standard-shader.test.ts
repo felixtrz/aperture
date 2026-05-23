@@ -35,6 +35,7 @@ import {
   STANDARD_MESH_SHADER,
   STANDARD_MESH_WGSL,
   STANDARD_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY,
+  STANDARD_SHEEN_SHADER_VARIANT,
   createStandardMeshShaderModuleDescriptor,
   createStandardTextureShaderVariantKey,
   createStandardTextureVariantShader,
@@ -375,6 +376,44 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(
       materialPipelineKeyInputToKey(createMaterialPipelineKeyInput(material)),
     ).toBe("standard|transmission|blend|back|less|alpha");
+  });
+
+  it("generates a scalar sheen StandardMaterial shader variant", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      sheen: true,
+    });
+    const material = createStandardMaterialAsset({
+      sheenColorFactor: [0.9, 0.52, 0.2],
+      sheenRoughnessFactor: 0.35,
+    });
+
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: false,
+        sheen: true,
+      }),
+    ).toBe(STANDARD_SHEEN_SHADER_VARIANT);
+    expect(shader.label).toBe("aperture/standard-mesh-sheen");
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.bindings).toEqual(STANDARD_MESH_SHADER.bindings);
+    expect(shader.code).toContain("sheenColorRoughnessFactor: vec4f");
+    expect(shader.code).toContain("let sheenDistribution");
+    expect(shader.code).toContain("brdf = brdf * sheenAttenuation");
+    expect(
+      materialPipelineKeyInputToKey(createMaterialPipelineKeyInput(material)),
+    ).toBe("standard|sheen|opaque|back|less|none");
   });
 
   it("generates a skinned StandardMaterial shader variant", () => {

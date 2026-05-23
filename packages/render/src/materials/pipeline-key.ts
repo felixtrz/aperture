@@ -24,6 +24,10 @@ export function createMaterialPipelineKeyInput(
     features.push("transmission");
   }
 
+  if (usesStandardSheen(material)) {
+    features.push("sheen");
+  }
+
   return {
     shaderFamily: material.kind,
     features: features.sort(),
@@ -51,6 +55,15 @@ function usesStandardClearcoat(material: MaterialAsset): boolean {
 
 function usesStandardTransmission(material: MaterialAsset): boolean {
   return material.kind === "standard" && material.transmissionFactor > 0;
+}
+
+function usesStandardSheen(material: MaterialAsset): boolean {
+  return (
+    material.kind === "standard" &&
+    (material.sheenColorFactor[0] > 0 ||
+      material.sheenColorFactor[1] > 0 ||
+      material.sheenColorFactor[2] > 0)
+  );
 }
 
 export function materialPipelineKeyInputToKey(

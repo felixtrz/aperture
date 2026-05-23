@@ -130,6 +130,23 @@ describe("material, texture, sampler, and render-state schemas", () => {
     ]);
   });
 
+  it("adds a stable StandardMaterial sheen pipeline feature", () => {
+    const material = createStandardMaterialAsset({
+      metallicFactor: 0,
+      roughnessFactor: 0.7,
+      sheenColorFactor: [0.85, 0.42, 0.18],
+      sheenRoughnessFactor: 0.35,
+    });
+
+    expect(validateMaterialAsset(material)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(createMaterialPipelineKeyInput(material).features).toEqual([
+      "sheen",
+    ]);
+  });
+
   it("validates texture color-space rules", () => {
     const invalidNormal = createTextureAsset({
       label: "Normal",

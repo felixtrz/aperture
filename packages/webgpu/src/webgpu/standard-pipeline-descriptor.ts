@@ -336,6 +336,7 @@ function standardTextureFeatures(
     instanceTint: tokens.includes("instance-tint"),
     clearcoat: tokens.includes("clearcoat"),
     transmission: tokens.includes("transmission"),
+    sheen: tokens.includes("sheen"),
     fogLinear: tokens.includes("fogLinear"),
     fogExp: tokens.includes("fogExp"),
     fogExp2: tokens.includes("fogExp2"),

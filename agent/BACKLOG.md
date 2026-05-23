@@ -59,16 +59,18 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3084`: Sheen extension.
+Start `task-3085`: Iridescence extension.
 
 Why this next: Tier 17 scene atmosphere is complete, and Tier 18 has shipped
-scalar StandardMaterial clearcoat plus scalar thin-wall transmission.
+scalar StandardMaterial clearcoat, scalar thin-wall transmission, and scalar
+sheen.
 `examples/clearcoat.html` proves a clearcoat highlight distinct from the base
 StandardMaterial specular response, and `examples/transmission.html` proves a
-glass-like surface with the background visible through the transmitted material.
-The next visible gap is sheen as the third `MeshPhysicalMaterial`/glTF
-PBR-extension surface: a fabric-like material with a characteristic
-sheen/rim-light response.
+glass-like surface with the background visible through the transmitted
+material. `examples/sheen.html` proves a fabric-like material with a
+characteristic sheen rim-light. The next visible gap is iridescence as the
+remaining Tier 18 `MeshPhysicalMaterial`/glTF PBR-extension surface: a
+thin-film material with wavelength-dependent color shift.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -126,7 +128,7 @@ Reference anchors (read before writing):
 
 - `references/three.js/src/materials/MeshPhysicalMaterial.js`.
 - `references/engine/src/scene/materials/standard-material.js`.
-- glTF `KHR_materials_sheen` extension behavior.
+- glTF `KHR_materials_iridescence` extension behavior.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -1252,10 +1254,19 @@ Acceptance criteria:
 
 ### task-3084 — Sheen extension (Tier 18 part 3)
 
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: extends Tier 18 part 1.
 Reference anchor: `references/three.js/src/materials/MeshPhysicalMaterial.js` (sheen); glTF `KHR_materials_sheen`.
 Insertion point: sheen BRDF lobe (Charlie distribution) for fabric.
+Completion note 2026-05-23: scalar StandardMaterial sheen shipped with
+`sheenColorFactor` and `sheenRoughnessFactor` fields, glTF
+`KHR_materials_sheen` scalar mapping, sheen pipeline-key routing, uniform
+packing, a WGSL direct-light Charlie-style fabric lobe, and
+`examples/sheen.html` browser coverage showing a characteristic brighter
+fabric rim-light than the matching base sphere. Sheen texture slots remain
+follow-up work and are reported as unsupported optional slots.
 
 Acceptance criteria:
 

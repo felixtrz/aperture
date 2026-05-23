@@ -26,6 +26,8 @@ describe("standard material WebGPU uniform packing", () => {
       clearcoatFactor: 0.85,
       clearcoatRoughnessFactor: 0.12,
       transmissionFactor: 0.65,
+      sheenColorFactor: [0.9, 0.4, 0.15],
+      sheenRoughnessFactor: 0.35,
       normalScale: 0.5,
       occlusionStrength: 0.9,
       emissiveFactor: [0.1, 0.2, 0.3],
@@ -69,6 +71,14 @@ describe("standard material WebGPU uniform packing", () => {
     expect(result.packed?.uniformFloat32[48]).toBeCloseTo(0.85);
     expect(result.packed?.uniformFloat32[49]).toBeCloseTo(0.12);
     expect(result.packed?.uniformFloat32[50]).toBeCloseTo(0.65);
+    expect(
+      Array.from(result.packed?.uniformFloat32.slice(52, 56) ?? []),
+    ).toEqual([
+      expect.closeTo(0.9, 5),
+      expect.closeTo(0.4, 5),
+      expect.closeTo(0.15, 5),
+      expect.closeTo(0.35, 5),
+    ]);
   });
 
   it("records texture dependencies and feature flags without raw handles", () => {
@@ -250,7 +260,9 @@ describe("standard material WebGPU uniform packing", () => {
       "clearcoatRoughnessFactor",
     );
     expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[50]).toBe("transmissionFactor");
-    expect(STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH).toBe(208);
+    expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[52]).toBe("sheenColorFactor.r");
+    expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[55]).toBe("sheenRoughnessFactor");
+    expect(STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH).toBe(224);
   });
 
   it("packs textured alpha-mask flags and cutoff for shader discard", () => {

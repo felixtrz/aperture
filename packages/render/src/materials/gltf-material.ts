@@ -103,10 +103,12 @@ export interface GltfMaterialMappingReportJsonValue {
 
 const CLEARCOAT_EXTENSION = "KHR_materials_clearcoat";
 const TRANSMISSION_EXTENSION = "KHR_materials_transmission";
+const SHEEN_EXTENSION = "KHR_materials_sheen";
 const SUPPORTED_MATERIAL_EXTENSIONS = new Set([
   "KHR_materials_unlit",
   CLEARCOAT_EXTENSION,
   TRANSMISSION_EXTENSION,
+  SHEEN_EXTENSION,
 ]);
 const TEXTURE_TRANSFORM_EXTENSION = "KHR_texture_transform";
 
@@ -172,6 +174,16 @@ export function createMaterialAssetFromGltfMaterial(
       ? optionalRecordField({
           source: materialExtensions,
           field: TRANSMISSION_EXTENSION,
+          materialKey,
+          diagnostics,
+        })
+      : undefined;
+  const sheenSource =
+    isRecord(materialExtensions) &&
+    materialExtensions[SHEEN_EXTENSION] !== undefined
+      ? optionalRecordField({
+          source: materialExtensions,
+          field: SHEEN_EXTENSION,
           materialKey,
           diagnostics,
         })
@@ -263,6 +275,20 @@ export function createMaterialAssetFromGltfMaterial(
       diagnostics,
     }),
     transmissionFactor,
+    sheenColorFactor: mapVec3({
+      materialKey,
+      field: `extensions.${SHEEN_EXTENSION}.sheenColorFactor`,
+      value: sheenSource?.sheenColorFactor,
+      fallback: [0, 0, 0],
+      diagnostics,
+    }),
+    sheenRoughnessFactor: mapFiniteNumber({
+      materialKey,
+      field: `extensions.${SHEEN_EXTENSION}.sheenRoughnessFactor`,
+      value: sheenSource?.sheenRoughnessFactor,
+      fallback: 0,
+      diagnostics,
+    }),
     metallicRoughnessTexture: mapTextureBinding({
       materialKey,
       slot: "metallicRoughnessTexture",
@@ -327,6 +353,7 @@ export function createMaterialAssetFromGltfMaterial(
     materialKey,
     diagnostics,
   );
+  inspectUnsupportedSheenTextures(sheenSource, materialKey, diagnostics);
 
   return {
     valid: diagnostics.every((diagnostic) => diagnostic.severity !== "error"),
@@ -418,6 +445,31 @@ function inspectUnsupportedTransmissionTextures(
     extensionName: TRANSMISSION_EXTENSION,
     message: `${TRANSMISSION_EXTENSION}.transmissionTexture is preserved in source data but scalar transmission rendering does not sample transmission textures yet.`,
   });
+}
+
+function inspectUnsupportedSheenTextures(
+  sheenSource: Record<string, unknown> | undefined,
+  materialKey: string,
+  diagnostics: GltfMaterialMappingDiagnostic[],
+): void {
+  if (sheenSource === undefined) {
+    return;
+  }
+
+  for (const field of ["sheenColorTexture", "sheenRoughnessTexture"] as const) {
+    if (sheenSource[field] === undefined) {
+      continue;
+    }
+
+    diagnostics.push({
+      code: "gltfMaterial.unsupportedOptionalExtension",
+      severity: "warning",
+      materialKey,
+      field: `extensions.${SHEEN_EXTENSION}.${field}`,
+      extensionName: SHEEN_EXTENSION,
+      message: `${SHEEN_EXTENSION}.${field} is preserved in source data but scalar sheen rendering does not sample sheen textures yet.`,
+    });
+  }
 }
 
 function gltfRenderState(

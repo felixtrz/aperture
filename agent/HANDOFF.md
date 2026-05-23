@@ -1,6 +1,66 @@
 # Agent Handoff
 
-Updated: 2026-05-23T00:24:28Z
+Updated: 2026-05-23T00:59:06Z
+
+## Current Run Update — 2026-05-23T00:59:06Z — Sheen
+
+Completed `task-3084`, the Tier 18 scalar sheen slice.
+
+### What changed
+
+- Added StandardMaterial scalar sheen fields:
+  `sheenColorFactor` and `sheenRoughnessFactor`.
+- Added defaults, proof-point validation, pipeline-key routing, StandardMaterial
+  uniform packing, pipeline descriptor parsing, and a WGSL direct-light sheen
+  lobe using a Charlie-style distribution plus PlayCanvas-style base lobe
+  attenuation.
+- Added glTF `KHR_materials_sheen` scalar mapping in the library material
+  mapper, with unsupported `sheenColorTexture` and `sheenRoughnessTexture`
+  slots reported as optional warnings.
+- Added `examples/sheen.html`, `examples/sheen.main.js`,
+  `examples/sheen.worker.js`, and `examples/sheen-scene.js` with a square
+  worker-authored base fabric vs sheen fabric proof scene.
+- Added headed Chrome/WebGPU coverage proving the sheen sphere has a brighter
+  fabric rim-light than the matching base sphere, plus focused unit coverage for
+  material schema/defaults, glTF mapping, pipeline keys, uniform packing, shader
+  variant generation, and pipeline specialization.
+- Updated the glTF unsupported-extension fixtures to use still-unsupported
+  iridescence/specular extension names now that sheen is a supported scalar
+  extension.
+
+### Reference comparison
+
+- three.js exposes sheen on `MeshPhysicalMaterial` and maps glTF
+  `KHR_materials_sheen` into `sheenColor`, `sheenRoughness`, and a positive
+  sheen intensity.
+- PlayCanvas exposes StandardMaterial sheen color/gloss parameters and combines
+  the sheen specular lobe by attenuating the base response before adding sheen.
+- Bevy's local glTF table still marks `KHR_materials_sheen` unsupported, but
+  its ECS/render boundary remains the reference for keeping material source data
+  in assets and renderer-owned GPU state out of ECS.
+
+### Validation
+
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run check:examples` passed.
+- `pnpm exec vitest run test/materials/materials.test.ts test/materials/standard-proof-point.test.ts test/materials/gltf-material.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts` passed: 6 files, 108 tests.
+- `pnpm exec playwright test test/e2e/sheen.spec.ts --reporter=line --timeout=30000`
+  passed.
+
+### Known issues
+
+- Sheen texture slots are detected and reported as optional warnings, but are
+  not sampled yet.
+- The sheen example's app-level current-texture readback reports zero-valued
+  samples in this Chrome/WebGPU route even though the canvas screenshot shows
+  the correct visible pixels. The e2e proof samples the canvas screenshot, which
+  matches other presentation-oriented browser tests. A later readback robustness
+  pass can isolate that current-texture copy quirk separately.
+
+### Recommended next task
+
+Continue Tier 18 with `task-3085`, Iridescence extension.
 
 ## Current Run Update — 2026-05-23T00:24:28Z — Transmission
 

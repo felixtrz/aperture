@@ -32,6 +32,8 @@ describe("StandardMaterial proof-point contract", () => {
       clearcoatFactor: 0.75,
       clearcoatRoughnessFactor: 0.12,
       transmissionFactor: 0.7,
+      sheenColorFactor: [0.8, 0.35, 0.12],
+      sheenRoughnessFactor: 0.4,
       emissiveFactor: [0.05, 0.04, 0.03],
     });
 
@@ -47,6 +49,8 @@ describe("StandardMaterial proof-point contract", () => {
     expect(report.supportedFeatures).toContain("clearcoatFactor");
     expect(report.supportedFeatures).toContain("clearcoatRoughnessFactor");
     expect(report.supportedFeatures).toContain("transmissionFactor");
+    expect(report.supportedFeatures).toContain("sheenColorFactor");
+    expect(report.supportedFeatures).toContain("sheenRoughnessFactor");
     expect(report.supportedFeatures).toContain("directionalLight");
     expect(report.deferredFeatures).toContain("imageBasedLighting");
     expect(report.deferredFeatures).not.toContain("clearcoat");
