@@ -1,5 +1,27 @@
 # Completed Tasks
 
+## task-3110 — Audit post-Tier-20 render pipeline parity and choose next SOTA slice
+
+Completed: 2026-05-23
+
+Summary:
+
+- Audited Aperture's extract, collect, prepare, queue, sort, and submit phases
+  against the local three.js WebGPU and PlayCanvas WebGPU references after the
+  Tier 20 plus texture-backed PBR-extension queue completed.
+- Recorded the audit in
+  `docs/research/POST_TIER20_RENDER_PIPELINE_PARITY_AUDIT_2026_05_23.md`.
+- Found that Aperture is close on covered feature breadth but not yet SOTA on
+  efficiency because the main forward command planner still emits repeated
+  render-pass state setup commands per draw and lacks static render-bundle reuse
+  and indirect draw argument-buffer routes.
+- Added `task-3111`, `task-3112`, and `task-3113` as the next visible
+  implementation queue, with `task-3111` recommended first.
+
+Validation:
+
+- `pnpm run check:progress`
+
 ## task-3109 — Render texture-backed StandardMaterial clearcoat roughness factors
 
 Completed: 2026-05-23

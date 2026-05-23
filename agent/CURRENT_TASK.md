@@ -3,7 +3,7 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3110.
+Current task: task-3111.
 
 Status: Tier 20 is complete. Baseline SSAO, SSR, and DOF shipped as
 depth-readable post effects with square raw-vs-effect browser proofs, and the
@@ -25,7 +25,10 @@ strict reference-parity follow-ups are complete:
   StandardMaterial and drives per-texel coating highlight sharpness in the
   browser proof.
 
-Next step: start `task-3110` from `agent/BACKLOG.md`, auditing the current
-post-Tier-20 render pipeline against three.js and PlayCanvas to identify the
-highest-impact remaining SOTA/efficiency gaps and queue the next visible
-implementation slices.
+`task-3110` completed the post-Tier-20 audit and selected submit efficiency as
+the next SOTA blocker. The audit is recorded in
+`docs/research/POST_TIER20_RENDER_PIPELINE_PARITY_AUDIT_2026_05_23.md`.
+
+Next step: start `task-3111` from `agent/BACKLOG.md`, eliding redundant
+render-pass state commands and publishing command-pressure metrics in a
+browser-visible proof.

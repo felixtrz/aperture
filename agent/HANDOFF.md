@@ -1,6 +1,41 @@
 # Agent Handoff
 
-Updated: 2026-05-23T18:55:01Z
+Updated: 2026-05-23T19:06:56Z
+
+## Current Run Update — 2026-05-23T19:06:56Z — Post-Tier-20 SOTA audit
+
+Completed `task-3110`, the post-Tier-20 render-pipeline parity audit.
+
+### What changed
+
+- Added
+  `docs/research/POST_TIER20_RENDER_PIPELINE_PARITY_AUDIT_2026_05_23.md`,
+  comparing Aperture's extract, collect, prepare, queue, sort, and submit
+  phases against local three.js WebGPU and PlayCanvas WebGPU references.
+- Found Aperture is close on covered feature breadth, but not yet SOTA on
+  submit efficiency: the main forward command planner still emits repeated
+  pipeline, bind-group, vertex-buffer, and index-buffer setup commands per
+  resolved draw, while the references cache or track that pressure.
+- Updated the backlog, current-task pointer, public tracker, render-pipeline
+  comparison page, and completed-task log. The next visible queue is
+  `task-3111` state-command elision, `task-3112` static render-bundle reuse,
+  and `task-3113` indirect draw argument buffers.
+
+### Validation
+
+- `pnpm exec prettier --check agent/BACKLOG.md agent/COMPLETED.md agent/CURRENT_TASK.md agent/HANDOFF.md agent/STATUS.json docs/index.html docs/render-pipeline-comparison.html docs/research/POST_TIER20_RENDER_PIPELINE_PARITY_AUDIT_2026_05_23.md`
+- `pnpm run check:progress`
+- `git diff --check`
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3111`, eliding redundant render-pass state commands and publishing
+browser-visible command-pressure metrics.
 
 ## Current Run Update — 2026-05-23T18:55:01Z — Texture-backed clearcoat roughness factor
 

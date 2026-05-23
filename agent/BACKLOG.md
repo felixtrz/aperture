@@ -59,9 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3110`: audit the post-Tier-20 render pipeline against three.js and
-PlayCanvas, identify the highest-impact remaining SOTA gaps, and queue the next
-visible implementation slices.
+Start `task-3111`: elide redundant render-pass state commands and publish
+command-pressure metrics in a browser-visible proof.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -142,11 +141,18 @@ position/normal delta target streams, visible GLB viewer skinning and morph
 imports, live morph weight controls, and targeted
 shader/pipeline/resource/importer tests.
 
-Reference anchors (read before writing):
+The post-Tier-20 audit found Aperture is close on covered feature breadth but
+not yet SOTA on submit efficiency: the main forward command planner still emits
+pipeline, bind-group, vertex-buffer, and index-buffer state commands for every
+resolved draw. three.js caches active WebGPU pipeline state and binding state,
+and PlayCanvas avoids redundant pipeline sets while surfacing material/shader
+switch pressure in stats.
 
-- `references/engine/src/framework/parsers/glb-parser.js`.
-- `references/three.js/src/renderers/shaders/ShaderChunk/lights_physical_fragment.glsl.js`.
-- `references/three.js/src/materials/MeshPhysicalMaterial.js`.
+Reference anchors for the next task (read before writing):
+
+- `references/three.js/src/renderers/webgpu/utils/WebGPUPipelineUtils.js`.
+- `references/three.js/src/renderers/webgpu/WebGPUBackend.js`.
+- `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -338,9 +344,11 @@ Acceptance criteria:
 
 ### task-3110 — Audit post-Tier-20 render pipeline parity and choose next SOTA slice
 
+Status: completed 2026-05-23. See `docs/research/POST_TIER20_RENDER_PIPELINE_PARITY_AUDIT_2026_05_23.md` and `agent/COMPLETED.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research/`, `agent/BACKLOG.md`, `docs/index.html`, `docs/render-pipeline-comparison.html`; source changes only if the audit finds a narrow documentation mismatch.
-Reference anchor: `references/three.js/src/renderers/WebGPURenderer.js`, `references/three.js/src/renderers/common/Renderer.js`, `references/engine/src/scene/renderer/renderer.js`, `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`.
+Reference anchor: `references/three.js/src/renderers/webgpu/WebGPURenderer.js`, `references/three.js/src/renderers/common/Renderer.js`, `references/engine/src/scene/renderer/renderer.js`, `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`.
 
 Acceptance criteria:
 
@@ -348,6 +356,42 @@ Acceptance criteria:
 - Identify the highest-impact remaining SOTA/efficiency gaps with concrete evidence, not generic renderer wishes.
 - Add the next visible implementation slices to the ready queue with specific reference anchors and make the recommended next task a visible feature.
 - Update public tracker estimates if the audit changes phase completion or missing-piece statements.
+
+### task-3111 — Elide redundant render-pass state commands and report command pressure
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/render-pass-commands.ts`, `packages/webgpu/src/webgpu/render-pass-command-executor.ts`, app frame-boundary/status reporting, `examples/standard-queue-phases.*` or a focused command-pressure example, targeted tests.
+Reference anchor: `references/three.js/src/renderers/webgpu/utils/WebGPUPipelineUtils.js`, `references/three.js/src/renderers/webgpu/WebGPUBackend.js`, `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`.
+
+Acceptance criteria:
+
+- Render-pass command planning tracks the current pipeline, bind groups, vertex buffers, and index buffer and skips redundant state commands between adjacent resolved draws while preserving draw commands.
+- Browser-visible status publishes planned-versus-emitted state command counts or an equivalent command-pressure report, proving a multi-draw scene emits fewer state commands than the old per-draw state setup.
+- The selected example renders the same visible pixels and draw count after elision, and targeted render-pass command/executor tests pass.
+
+### task-3112 — Cache WebGPU render bundles for unchanged static command plans
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/`, `examples/batching.*` or a focused static-bundle example, targeted tests.
+Reference anchor: `references/three.js/src/renderers/common/BundleGroup.js`, `references/three.js/src/renderers/webgpu/WebGPUBackend.js`, `references/three.js/src/renderers/webgpu/utils/WebGPUPipelineUtils.js`.
+
+Acceptance criteria:
+
+- The WebGPU backend can encode a stable compatible command plan into a renderer-owned render bundle and execute the bundle on later frames when snapshot change-set evidence says the draw work is unchanged.
+- Browser-visible status reports bundle creation on the first frame and bundle reuse on a later frame without exposing ECS state or raw GPU handles.
+- The selected static scene keeps the same readback pixels and draw counts while reporting fewer per-frame command-encoding operations after bundle reuse.
+
+### task-3113 — Add an indirect draw argument-buffer route for compatible grouped draws
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/`, `examples/instancing.*` or `examples/instance-attributes.*`, targeted tests.
+Reference anchor: `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`, `references/three.js/src/renderers/webgpu/WebGPUBackend.js`, `references/three.js/src/renderers/common/IndirectStorageBufferAttribute.js`.
+
+Acceptance criteria:
+
+- Compatible coalesced draw-list records can be packed into a renderer-owned WebGPU indirect draw argument buffer, with a direct-draw fallback when adapter support or first-instance requirements make indirect unsafe.
+- Browser-visible status reports indirect argument-buffer creation, indirect draw command count, and fallback reason when applicable.
+- The selected instancing or instance-attribute example keeps its existing pixel/readback proof while exercising the indirect route when supported.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

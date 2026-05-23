@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 18:55 UTC</dd>
+            <dd>2026-05-23 19:06 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1457,11 +1457,16 @@
               <code>KHR_materials_clearcoat.clearcoatRoughnessTexture</code>
               through StandardMaterial and WebGPU, with
               <code>examples/clearcoat.html</code> proving sharper and broader
-              coating highlights from high/low roughness texels.
+              coating highlights from high/low roughness texels. The
+              post-Tier-20 SOTA audit found the next highest-impact gap is now
+              submit efficiency: Aperture still emits repeated render-pass state
+              setup commands per draw, while three.js and PlayCanvas cache or
+              track that state pressure.
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Post-3109 render-pipeline parity audit and next gap selection
+              task-3111 render-pass state-command elision and command-pressure
+              proof
             </dd>
           </dl>
         </aside>
@@ -1914,6 +1919,7 @@
                 <code>KHR_materials_iridescence</code> as supported
                 StandardMaterial extensions.
                 <code>KHR_materials_clearcoat.clearcoatTexture</code>,
+                <code>KHR_materials_clearcoat.clearcoatRoughnessTexture</code>,
                 <code>KHR_materials_transmission.transmissionTexture</code>,
                 <code>KHR_materials_sheen.sheenColorTexture</code>,
                 <code>KHR_materials_sheen.sheenRoughnessTexture</code>, and
@@ -2057,10 +2063,8 @@
                 Missing app-level generic material adapter route boundary.
               </li>
               <li>
-                Missing remaining PBR extension texture slot for clearcoat
-                roughness beyond the rendered clearcoat, transmission, sheen
-                color, sheen roughness, iridescence factor, and iridescence
-                thickness slots.
+                Missing prepared render-bundle and indirect argument-buffer
+                resources for static or grouped submit paths.
               </li>
               <li>
                 Missing IBL, shadow, render-target, and hot-path scratch polish.
@@ -2118,10 +2122,7 @@
                 Missing app-level generic material adapter route boundary.
               </li>
               <li>Missing multi-material primitive queue rules.</li>
-              <li>
-                Missing GPU timing overlay example for live performance
-                inspection.
-              </li>
+              <li>Missing queue-to-submit command-pressure summaries.</li>
             </ul>
           </article>
           <article class="phase">
@@ -2139,15 +2140,19 @@
             </p>
             <ul>
               <li>Missing phase duration telemetry.</li>
-              <li>Missing batching and pipeline pressure summaries.</li>
+              <li>
+                Missing batching and pipeline pressure summaries, including
+                evidence that sorted order minimizes repeated pipeline,
+                bind-group, vertex-buffer, and index-buffer state changes.
+              </li>
             </ul>
           </article>
           <article class="phase">
             <div class="topline">
               <h3>6. submit</h3>
-              <span class="percent">98%</span>
+              <span class="percent">95%</span>
             </div>
-            <div class="bar"><span style="width: 98%"></span></div>
+            <div class="bar"><span style="width: 95%"></span></div>
             <p>
               WebGPU command submission renders the current proof paths with
               pipeline, bind group, transform, light, mesh, and material
@@ -2217,6 +2222,10 @@
             </p>
             <ul>
               <li>
+                Missing render-pass state-command elision, static render-bundle
+                reuse, and indirect draw argument buffers.
+              </li>
+              <li>
                 Missing broader environment asset preparation and previous
                 transform history for independently moving temporal geometry.
               </li>
@@ -2239,6 +2248,11 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3110</span> Completed the
+                post-Tier-20 SOTA audit and selected submit command-pressure
+                work as the next efficiency target.
+              </li>
               <li>
                 <span class="badge green">loading</span> Preserved glTF source
                 bufferViews as direct mesh streams, including padded/nonzero
@@ -4505,28 +4519,21 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Audit the post-Tier-20
-                render pipeline against three.js and PlayCanvas, then queue the
-                next visible SOTA gap.
+                <span class="badge amber">next</span> Implement
+                <code>task-3111</code>: elide redundant render-pass state
+                commands and publish command-pressure metrics in a
+                browser-visible proof.
               </li>
               <li>
-                SSAO now uses a PlayCanvas-style spiral AO shader with
-                linearized depth and depth-derived normals; SSR now adds
-                depth-derived normals, fresnel, distance attenuation,
-                max-distance semantics, and reflection softening; DOF now uses
-                explicit far/near CoC channels and configurable concentric
-                kernel quality; all three can sample multisampled scene depth in
-                MSAA scenes.
+                Follow with static render-bundle reuse for unchanged command
+                plans, then an indirect draw argument-buffer route for
+                compatible grouped draws.
               </li>
               <li>
-                The post-Tier-20 reference-parity queue now has renderer-owned
-                transmission grab-pass refraction and generic snapshot
-                change-set scheduling plus a deterministic transparent ordering
-                proof plus texture-backed transmission, sheen color, sheen
-                roughness, iridescence factors, and iridescence thickness
-                factors, and clearcoat roughness factors. The next pass is an
-                audit to pick the highest-impact remaining gap before opening
-                the next implementation slice.
+                The audit conclusion is clear: covered feature breadth is high,
+                but submit efficiency still blocks an honest SOTA claim until
+                repeated state setup, static command reuse, and indirect draw
+                paths are closed.
               </li>
             </ul>
           </article>
@@ -4539,6 +4546,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3110</div>
+            <div>
+              <strong>Post-Tier-20 SOTA audit completed.</strong>
+              <span>
+                The audit compared Aperture's extract, collect, prepare, queue,
+                sort, and submit phases against three.js WebGPU and PlayCanvas.
+                It selected submit efficiency as the next blocker: redundant
+                state commands, missing static render-bundle reuse, and missing
+                indirect draw argument buffers.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3109</div>
             <div>
