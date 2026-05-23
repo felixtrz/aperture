@@ -162,8 +162,12 @@ function createTransmissionStatus(scene, loop, diagnostics) {
   const roughnessContrast = createTransmissionContrastReport(
     loop.frame?.readback,
   );
+  const textureContrast = createTransmissionTextureContrastReport(
+    loop.frame?.readback,
+  );
   const readbackContrastOk =
-    loop.frame?.readback?.ok !== true || roughnessContrast?.ok === true;
+    loop.frame?.readback?.ok !== true ||
+    (roughnessContrast?.ok === true && textureContrast?.ok === true);
 
   return {
     ...baseStatus,
@@ -174,14 +178,21 @@ function createTransmissionStatus(scene, loop, diagnostics) {
       counts?.diagnostics === 0 &&
       loop.frame?.transmissionGrabPass?.ok === true &&
       pipelineKeys.includes("standard|transmission|blend|none|less|alpha") &&
+      pipelineKeys.includes(
+        "standard|transmission|transmissionTexture|blend|none|less|alpha",
+      ) &&
       readbackContrastOk,
     phase: "submit",
     renderingBackend: "webgpu-explicit",
     transmission: {
       sphereMeshKey: scene.sphereMeshKey,
       panelMeshKey: scene.panelMeshKey,
+      maskMeshKey: scene.maskMeshKey,
       glassMaterialKey: scene.glassMaterialKey,
       roughGlassMaterialKey: scene.roughGlassMaterialKey,
+      texturedGlassMaterialKey: scene.texturedGlassMaterialKey,
+      transmissionTextureKey: scene.transmissionTextureKey,
+      transmissionSamplerKey: scene.transmissionSamplerKey,
       backgroundMaterialKey: scene.backgroundMaterialKey,
       brightBackgroundMaterialKey: scene.brightBackgroundMaterialKey,
       darkBackgroundMaterialKey: scene.darkBackgroundMaterialKey,
@@ -190,6 +201,7 @@ function createTransmissionStatus(scene, loop, diagnostics) {
       stripeCount: scene.stripeCount,
       expectedMeshDraws: scene.expectedMeshDraws,
       roughnessContrast,
+      textureContrast,
       samples: scene.samples,
     },
     worker: {
@@ -267,6 +279,36 @@ function createTransmissionContrastReport(readback) {
     backgroundGlossy,
     backgroundRough,
     roughToGlossyRatio,
+  };
+}
+
+function createTransmissionTextureContrastReport(readback) {
+  if (readback?.ok !== true || !Array.isArray(readback.samples)) {
+    return null;
+  }
+
+  const low = findReadbackPixel(readback.samples, "texture-low");
+  const high = findReadbackPixel(readback.samples, "texture-high");
+  const background = findReadbackPixel(readback.samples, "texture-background");
+
+  if (low === null || high === null || background === null) {
+    return {
+      ok: false,
+      reason: "missing-texture-sample",
+    };
+  }
+
+  const highLowDistance = pixelDistance(high, low);
+  const highBackgroundDistance = pixelDistance(high, background);
+  const lowBackgroundDistance = pixelDistance(low, background);
+
+  return {
+    ok:
+      highLowDistance > 45 &&
+      highBackgroundDistance < lowBackgroundDistance * 0.85,
+    highLowDistance,
+    highBackgroundDistance,
+    lowBackgroundDistance,
   };
 }
 

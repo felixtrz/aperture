@@ -1,15 +1,19 @@
 export const clearColor = [0.018, 0.022, 0.028, 1];
 export const transmissionSphereMeshId = "transmission-sphere-mesh";
 export const transmissionPanelMeshId = "transmission-panel-mesh";
+export const transmissionMaskMeshId = "transmission-mask-panel-mesh";
 export const glassMaterialId = "transmission-glass-material";
 export const roughGlassMaterialId = "transmission-rough-glass-material";
+export const texturedGlassMaterialId = "transmission-textured-glass-material";
+export const transmissionTextureId = "transmission-factor-texture";
+export const transmissionSamplerId = "transmission-factor-nearest";
 export const brightBackgroundMaterialId =
   "transmission-background-bright-material";
 export const darkBackgroundMaterialId = "transmission-background-dark-material";
 
 export const transmissionStripeCount = 24;
 export const transmissionStripeSpan = 2.16;
-export const transmissionExpectedMeshDraws = transmissionStripeCount + 2;
+export const transmissionExpectedMeshDraws = transmissionStripeCount + 4;
 
 export const transmissionReadbackSamples = [
   { id: "glossy-dark", x: 0.2875, y: 0.5 },
@@ -20,6 +24,9 @@ export const transmissionReadbackSamples = [
   { id: "background-glossy-bright", x: 0.325, y: 0.72 },
   { id: "background-rough-dark", x: 0.6875, y: 0.72 },
   { id: "background-rough-bright", x: 0.725, y: 0.72 },
+  { id: "texture-low", x: 0.4125, y: 0.865 },
+  { id: "texture-high", x: 0.5875, y: 0.865 },
+  { id: "texture-background", x: 0.5875, y: 0.955 },
   { id: "through-glass", x: 0.2875, y: 0.5 },
   { id: "background", x: 0.325, y: 0.72 },
   { id: "clear", x: 0.08, y: 0.12 },
@@ -28,9 +35,19 @@ export const transmissionReadbackSamples = [
 export function registerTransmissionScene(aperture, registry) {
   const sphereMesh = aperture.createMeshHandle(transmissionSphereMeshId);
   const panelMesh = aperture.createMeshHandle(transmissionPanelMeshId);
+  const maskMesh = aperture.createMeshHandle(transmissionMaskMeshId);
   const glassMaterial = aperture.createMaterialHandle(glassMaterialId);
   const roughGlassMaterial =
     aperture.createMaterialHandle(roughGlassMaterialId);
+  const texturedGlassMaterial = aperture.createMaterialHandle(
+    texturedGlassMaterialId,
+  );
+  const transmissionTexture = aperture.createTextureHandle(
+    transmissionTextureId,
+  );
+  const transmissionSampler = aperture.createSamplerHandle(
+    transmissionSamplerId,
+  );
   const brightBackgroundMaterial = aperture.createMaterialHandle(
     brightBackgroundMaterialId,
   );
@@ -52,6 +69,46 @@ export function registerTransmissionScene(aperture, registry) {
   registry.markReady(
     panelMesh,
     aperture.createBoxMeshAsset({ label: "TransmissionBackgroundPanel" }),
+  );
+  registry.register(maskMesh);
+  registry.markReady(
+    maskMesh,
+    aperture.createPlaneMeshAsset({
+      label: "TransmissionTextureMaskPanel",
+      width: 0.84,
+      height: 0.34,
+    }),
+  );
+  registry.register(transmissionTexture);
+  registry.markReady(
+    transmissionTexture,
+    aperture.createTextureAsset({
+      label: "TransmissionFactorTexture",
+      dimension: "2d",
+      width: 2,
+      height: 1,
+      format: "rgba8unorm",
+      colorSpace: "data",
+      semantic: "data",
+      usage: ["sampled", "copy-dst"],
+      sourceData: {
+        bytes: new Uint8Array([0, 0, 0, 255, 255, 0, 0, 255]),
+        bytesPerRow: 8,
+      },
+    }),
+  );
+  registry.register(transmissionSampler);
+  registry.markReady(
+    transmissionSampler,
+    aperture.createSamplerAsset({
+      label: "TransmissionNearestSampler",
+      addressModeU: "clamp-to-edge",
+      addressModeV: "clamp-to-edge",
+      addressModeW: "clamp-to-edge",
+      magFilter: "nearest",
+      minFilter: "nearest",
+      mipmapFilter: "nearest",
+    }),
   );
   registry.register(glassMaterial);
   registry.markReady(
@@ -79,6 +136,27 @@ export function registerTransmissionScene(aperture, registry) {
       metallicFactor: 0,
       roughnessFactor: 0.85,
       transmissionFactor: 0.9,
+      renderState: {
+        alphaMode: "blend",
+        depth: { test: true, write: false, compare: "less" },
+        blend: { preset: "alpha" },
+        cullMode: "none",
+      },
+    }),
+  );
+  registry.register(texturedGlassMaterial);
+  registry.markReady(
+    texturedGlassMaterial,
+    aperture.createStandardMaterialAsset({
+      label: "TextureMaskedBlueGlass",
+      baseColorFactor: new Float32Array([0.42, 0.72, 1, 1]),
+      metallicFactor: 0,
+      roughnessFactor: 0.02,
+      transmissionFactor: 0.9,
+      transmissionTexture: {
+        texture: transmissionTexture,
+        sampler: transmissionSampler,
+      },
       renderState: {
         alphaMode: "blend",
         depth: { test: true, write: false, compare: "less" },
@@ -115,14 +193,22 @@ export function registerTransmissionScene(aperture, registry) {
   return {
     sphereMesh,
     panelMesh,
+    maskMesh,
     glassMaterial,
     roughGlassMaterial,
+    texturedGlassMaterial,
+    transmissionTexture,
+    transmissionSampler,
     brightBackgroundMaterial,
     darkBackgroundMaterial,
     sphereMeshKey: aperture.assetHandleKey(sphereMesh),
     panelMeshKey: aperture.assetHandleKey(panelMesh),
+    maskMeshKey: aperture.assetHandleKey(maskMesh),
     glassMaterialKey: aperture.assetHandleKey(glassMaterial),
     roughGlassMaterialKey: aperture.assetHandleKey(roughGlassMaterial),
+    texturedGlassMaterialKey: aperture.assetHandleKey(texturedGlassMaterial),
+    transmissionTextureKey: aperture.assetHandleKey(transmissionTexture),
+    transmissionSamplerKey: aperture.assetHandleKey(transmissionSampler),
     brightBackgroundMaterialKey: aperture.assetHandleKey(
       brightBackgroundMaterial,
     ),

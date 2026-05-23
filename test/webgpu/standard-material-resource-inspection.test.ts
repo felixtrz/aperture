@@ -167,6 +167,7 @@ function standardResource(
       occlusion: textureDependency(),
       emissive: textureDependency(),
       clearcoat: textureDependency(),
+      transmission: textureDependency(),
     },
   };
 }

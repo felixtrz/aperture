@@ -49,8 +49,11 @@ async function handleMessage(data) {
         scene: {
           sphereMeshKey: scene.sphereMeshKey,
           panelMeshKey: scene.panelMeshKey,
+          maskMeshKey: scene.maskMeshKey,
           glassMaterialKey: scene.glassMaterialKey,
           roughGlassMaterialKey: scene.roughGlassMaterialKey,
+          texturedGlassMaterialKey: scene.texturedGlassMaterialKey,
+          transmissionTextureKey: scene.transmissionTextureKey,
           brightBackgroundMaterialKey: scene.brightBackgroundMaterialKey,
           darkBackgroundMaterialKey: scene.darkBackgroundMaterialKey,
         },
@@ -123,6 +126,16 @@ function createWorkerScene(aperture, canvasSize) {
   );
   spawnBackgroundStripes(aperture, app, registered);
   app.spawn(
+    aperture.withTransform({
+      translation: [0, -0.88, -0.28],
+      scale: [0.9, 0.5, 0.04],
+    }),
+    aperture.withMesh(registered.panelMesh),
+    aperture.withMaterial(registered.brightBackgroundMaterial),
+    aperture.withRenderLayer(1),
+    aperture.withVisibility(true),
+  );
+  app.spawn(
     aperture.withTransform({ translation: [-0.48, 0, 0] }),
     aperture.withMesh(registered.sphereMesh),
     aperture.withMaterial(registered.glassMaterial),
@@ -133,6 +146,13 @@ function createWorkerScene(aperture, canvasSize) {
     aperture.withTransform({ translation: [0.48, 0, 0] }),
     aperture.withMesh(registered.sphereMesh),
     aperture.withMaterial(registered.roughGlassMaterial),
+    aperture.withRenderLayer(1),
+    aperture.withVisibility(true),
+  );
+  app.spawn(
+    aperture.withTransform({ translation: [0, -0.88, 0.08] }),
+    aperture.withMesh(registered.maskMesh),
+    aperture.withMaterial(registered.texturedGlassMaterial),
     aperture.withRenderLayer(1),
     aperture.withVisibility(true),
   );

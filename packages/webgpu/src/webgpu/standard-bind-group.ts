@@ -16,7 +16,8 @@ export type StandardMaterialTextureSlot =
   | "normal"
   | "occlusion"
   | "emissive"
-  | "clearcoat";
+  | "clearcoat"
+  | "transmission";
 
 export type StandardMaterialBindGroupDescriptorDiagnosticCode =
   | "standardMaterialBindGroup.missingMaterialResource"
@@ -201,6 +202,14 @@ export function createStandardMaterialBindGroupDescriptorPlan(
     11,
     12,
     input.dependencies.clearcoat,
+  );
+  addTexturePair(
+    entries,
+    diagnostics,
+    "transmission",
+    13,
+    14,
+    input.dependencies.transmission,
   );
 
   return {

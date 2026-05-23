@@ -78,6 +78,12 @@ export interface PreparedClearcoatTexturedStandardMaterialResource extends Prepa
   readonly samplerResourceKey: string;
 }
 
+export interface PreparedTransmissionTexturedStandardMaterialResource extends PreparedScalarStandardMaterialResource {
+  readonly dependencyCacheKeySegments: readonly string[];
+  readonly textureResourceKey: string;
+  readonly samplerResourceKey: string;
+}
+
 export interface PreparedOcclusionEmissiveTexturedStandardMaterialResource extends PreparedScalarStandardMaterialResource {
   readonly dependencyCacheKeySegments: readonly string[];
   readonly textureResourceKeys: readonly string[];
@@ -92,6 +98,7 @@ export type StandardTextureDependencyField =
   | "baseColorTexture"
   | "metallicRoughnessTexture"
   | "clearcoatTexture"
+  | "transmissionTexture"
   | "normalTexture"
   | "occlusionTexture"
   | "emissiveTexture";
@@ -101,6 +108,7 @@ const STANDARD_TEXTURE_DEPENDENCY_FIELDS: readonly StandardTextureDependencyFiel
     "baseColorTexture",
     "metallicRoughnessTexture",
     "clearcoatTexture",
+    "transmissionTexture",
     "normalTexture",
     "occlusionTexture",
     "emissiveTexture",
@@ -189,6 +197,17 @@ export interface CreatePreparedStandardClearcoatTextureDependencyKeysOptions {
 }
 
 export interface CreatePreparedStandardClearcoatTextureDependencyKeysResult {
+  readonly valid: boolean;
+  readonly dependencies: PreparedStandardTextureBindingDependencyKeys | null;
+  readonly diagnostics: readonly PreparedStandardTextureDependencyDiagnostic[];
+}
+
+export interface CreatePreparedStandardTransmissionTextureDependencyKeysOptions {
+  readonly registry: AssetRegistry;
+  readonly material: StandardMaterialAsset;
+}
+
+export interface CreatePreparedStandardTransmissionTextureDependencyKeysResult {
   readonly valid: boolean;
   readonly dependencies: PreparedStandardTextureBindingDependencyKeys | null;
   readonly diagnostics: readonly PreparedStandardTextureDependencyDiagnostic[];
@@ -284,6 +303,23 @@ export type PreparedClearcoatTexturedStandardMaterialDiagnostic =
         | "preparedClearcoatTexturedStandardMaterial.notClearcoatTextured"
         | "preparedClearcoatTexturedStandardMaterial.missingLayout"
         | "preparedClearcoatTexturedStandardMaterial.missingPreparedBindGroup";
+      readonly message: string;
+      readonly materialKey?: string;
+      readonly layoutKey?: string;
+    };
+
+export type PreparedTransmissionTexturedStandardMaterialDiagnostic =
+  | PreparedStandardTextureDependencyDiagnostic
+  | StandardMaterialPackingDiagnostic
+  | StandardMaterialBufferDescriptorDiagnostic
+  | StandardMaterialGpuBufferDiagnostic
+  | StandardMaterialBindGroupDescriptorDiagnostic
+  | StandardMaterialBindGroupResourceDiagnostic
+  | {
+      readonly code:
+        | "preparedTransmissionTexturedStandardMaterial.notTransmissionTextured"
+        | "preparedTransmissionTexturedStandardMaterial.missingLayout"
+        | "preparedTransmissionTexturedStandardMaterial.missingPreparedBindGroup";
       readonly message: string;
       readonly materialKey?: string;
       readonly layoutKey?: string;
@@ -406,6 +442,27 @@ export interface PrepareClearcoatTexturedStandardMaterialResourceResult {
   readonly status: PreparedScalarStandardMaterialCacheStatus;
   readonly resource: PreparedClearcoatTexturedStandardMaterialResource | null;
   readonly diagnostics: readonly PreparedClearcoatTexturedStandardMaterialDiagnostic[];
+}
+
+export interface PrepareTransmissionTexturedStandardMaterialResourceOptions {
+  readonly registry: AssetRegistry;
+  readonly device: StandardFrameGpuResourceDeviceLike;
+  readonly cache: PreparedScalarStandardMaterialCache;
+  readonly handle: MaterialHandle;
+  readonly material: StandardMaterialAsset;
+  readonly sourceVersion: number;
+  readonly frame?: number | undefined;
+  readonly pipelineKey: string;
+  readonly layout: StandardMaterialBindGroupLayoutResource | null;
+  readonly textures: readonly TextureGpuResource[];
+  readonly samplers: readonly SamplerGpuResource[];
+}
+
+export interface PrepareTransmissionTexturedStandardMaterialResourceResult {
+  readonly valid: boolean;
+  readonly status: PreparedScalarStandardMaterialCacheStatus;
+  readonly resource: PreparedTransmissionTexturedStandardMaterialResource | null;
+  readonly diagnostics: readonly PreparedTransmissionTexturedStandardMaterialDiagnostic[];
 }
 
 export interface PrepareOcclusionEmissiveTexturedStandardMaterialResourceOptions {
@@ -537,6 +594,22 @@ export function createPreparedStandardClearcoatTextureDependencyKeys(
   return createPreparedStandardTextureBindingDependencyKeys({
     registry: options.registry,
     field: "clearcoatTexture",
+    binding,
+  });
+}
+
+export function createPreparedStandardTransmissionTextureDependencyKeys(
+  options: CreatePreparedStandardTransmissionTextureDependencyKeysOptions,
+): CreatePreparedStandardTransmissionTextureDependencyKeysResult {
+  const binding = options.material.transmissionTexture;
+
+  if (binding === null) {
+    return { valid: true, dependencies: null, diagnostics: [] };
+  }
+
+  return createPreparedStandardTextureBindingDependencyKeys({
+    registry: options.registry,
+    field: "transmissionTexture",
     binding,
   });
 }
@@ -851,6 +924,35 @@ export function prepareClearcoatTexturedStandardMaterialResource(
   };
 }
 
+export function prepareTransmissionTexturedStandardMaterialResource(
+  options: PrepareTransmissionTexturedStandardMaterialResourceOptions,
+): PrepareTransmissionTexturedStandardMaterialResourceResult {
+  const result = prepareSingleTexturedStandardMaterialResource(options, {
+    field: "transmissionTexture",
+    acceptsMaterial: isTransmissionOnlyStandardMaterial,
+    notTexturedCode:
+      "preparedTransmissionTexturedStandardMaterial.notTransmissionTextured",
+    missingLayoutCode:
+      "preparedTransmissionTexturedStandardMaterial.missingLayout",
+    missingPreparedBindGroupCode:
+      "preparedTransmissionTexturedStandardMaterial.missingPreparedBindGroup",
+    notTexturedMessage:
+      "Transmission textured StandardMaterial prepared caching requires exactly a transmission texture binding.",
+    missingLayoutMessage:
+      "Transmission textured StandardMaterial prepared caching requires a group-2 material bind group layout.",
+    missingPreparedBindGroupMessage:
+      "Transmission textured StandardMaterial prepared caching did not create a group-2 bind group.",
+  });
+
+  return {
+    ...result,
+    resource:
+      result.resource as PreparedTransmissionTexturedStandardMaterialResource | null,
+    diagnostics:
+      result.diagnostics as readonly PreparedTransmissionTexturedStandardMaterialDiagnostic[],
+  };
+}
+
 export function prepareOcclusionEmissiveTexturedStandardMaterialResource(
   options: PrepareOcclusionEmissiveTexturedStandardMaterialResourceOptions,
 ): PrepareOcclusionEmissiveTexturedStandardMaterialResourceResult {
@@ -899,6 +1001,9 @@ type PreparedSingleTexturedStandardMaterialCustomCode =
   | "preparedClearcoatTexturedStandardMaterial.notClearcoatTextured"
   | "preparedClearcoatTexturedStandardMaterial.missingLayout"
   | "preparedClearcoatTexturedStandardMaterial.missingPreparedBindGroup"
+  | "preparedTransmissionTexturedStandardMaterial.notTransmissionTextured"
+  | "preparedTransmissionTexturedStandardMaterial.missingLayout"
+  | "preparedTransmissionTexturedStandardMaterial.missingPreparedBindGroup"
   | "preparedOcclusionEmissiveTexturedStandardMaterial.notOcclusionEmissiveTextured"
   | "preparedOcclusionEmissiveTexturedStandardMaterial.missingLayout"
   | "preparedOcclusionEmissiveTexturedStandardMaterial.missingPreparedBindGroup";
@@ -1229,6 +1334,7 @@ function isScalarStandardMaterial(material: StandardMaterialAsset): boolean {
     material.baseColorTexture === null &&
     material.metallicRoughnessTexture === null &&
     material.clearcoatTexture === null &&
+    material.transmissionTexture === null &&
     material.normalTexture === null &&
     material.occlusionTexture === null &&
     material.emissiveTexture === null
@@ -1242,6 +1348,7 @@ function isBaseColorOnlyStandardMaterial(
     material.baseColorTexture !== null &&
     material.metallicRoughnessTexture === null &&
     material.clearcoatTexture === null &&
+    material.transmissionTexture === null &&
     material.normalTexture === null &&
     material.occlusionTexture === null &&
     material.emissiveTexture === null
@@ -1255,6 +1362,7 @@ function isMetallicRoughnessOnlyStandardMaterial(
     material.baseColorTexture === null &&
     material.metallicRoughnessTexture !== null &&
     material.clearcoatTexture === null &&
+    material.transmissionTexture === null &&
     material.normalTexture === null &&
     material.occlusionTexture === null &&
     material.emissiveTexture === null
@@ -1268,6 +1376,7 @@ function isNormalOnlyStandardMaterial(
     material.baseColorTexture === null &&
     material.metallicRoughnessTexture === null &&
     material.clearcoatTexture === null &&
+    material.transmissionTexture === null &&
     material.normalTexture !== null &&
     material.occlusionTexture === null &&
     material.emissiveTexture === null
@@ -1281,6 +1390,7 @@ function isOcclusionEmissiveOnlyStandardMaterial(
     material.baseColorTexture === null &&
     material.metallicRoughnessTexture === null &&
     material.clearcoatTexture === null &&
+    material.transmissionTexture === null &&
     material.normalTexture === null &&
     (material.occlusionTexture !== null || material.emissiveTexture !== null)
   );
@@ -1293,6 +1403,21 @@ function isClearcoatOnlyStandardMaterial(
     material.baseColorTexture === null &&
     material.metallicRoughnessTexture === null &&
     material.clearcoatTexture !== null &&
+    material.transmissionTexture === null &&
+    material.normalTexture === null &&
+    material.occlusionTexture === null &&
+    material.emissiveTexture === null
+  );
+}
+
+function isTransmissionOnlyStandardMaterial(
+  material: StandardMaterialAsset,
+): boolean {
+  return (
+    material.baseColorTexture === null &&
+    material.metallicRoughnessTexture === null &&
+    material.clearcoatTexture === null &&
+    material.transmissionTexture !== null &&
     material.normalTexture === null &&
     material.occlusionTexture === null &&
     material.emissiveTexture === null
@@ -1310,6 +1435,8 @@ function standardTextureBinding(
       return material.metallicRoughnessTexture;
     case "clearcoatTexture":
       return material.clearcoatTexture;
+    case "transmissionTexture":
+      return material.transmissionTexture;
     case "normalTexture":
       return material.normalTexture;
     case "occlusionTexture":
@@ -1328,6 +1455,7 @@ function emptyStandardMaterialDependencies(): Parameters<
     baseColor: empty,
     metallicRoughness: empty,
     clearcoat: empty,
+    transmission: empty,
     normal: empty,
     occlusion: empty,
     emissive: empty,

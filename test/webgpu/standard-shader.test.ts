@@ -513,6 +513,91 @@ describe("built-in standard material WGSL shader metadata", () => {
     ).toBe("standard|transmission|blend|back|less|alpha");
   });
 
+  it("generates a texture-backed transmission StandardMaterial shader variant", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      transmissionTexture: true,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      transmission: true,
+    });
+    const material = createStandardMaterialAsset({
+      transmissionFactor: 0.9,
+      transmissionTexture: {
+        texture: createTextureHandle("transmission-factor"),
+        sampler: createSamplerHandle("transmission-nearest"),
+      },
+      renderState: {
+        alphaMode: "blend",
+        depth: { test: true, write: false, compare: "less" },
+        blend: { preset: "alpha" },
+      },
+    });
+
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        transmissionTexture: true,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: false,
+        transmission: true,
+      }),
+    ).toBe(
+      "direct-lit-metallic-roughness-transmission-texture-transmission-texture",
+    );
+    expect(shader.label).toBe(
+      "aperture/standard-mesh-transmission-texture-transmission-textured",
+    );
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.bindings).toEqual([
+      ...STANDARD_MESH_SHADER.bindings,
+      {
+        id: "transmissionTexture",
+        label: "Transmission texture",
+        group: 2,
+        binding: 13,
+        resource: "texture",
+      },
+      {
+        id: "transmissionSampler",
+        label: "Transmission sampler",
+        group: 2,
+        binding: 14,
+        resource: "sampler",
+      },
+      {
+        id: "standardTransmissionSceneColorTexture",
+        label: "Standard material transmission scene color texture",
+        group: 3,
+        binding: 14,
+        resource: "texture",
+      },
+      {
+        id: "standardTransmissionSceneColorSampler",
+        label: "Standard material transmission scene color sampler",
+        group: 3,
+        binding: 15,
+        resource: "sampler",
+      },
+    ]);
+    expect(shader.code).toContain(
+      "@group(2) @binding(13) var transmissionTexture: texture_2d<f32>;",
+    );
+    expect(shader.code).toContain(
+      "let transmission = clamp(material.transmissionFactor * textureSample(transmissionTexture, transmissionSampler, input.uv).r",
+    );
+    expect(
+      materialPipelineKeyInputToKey(createMaterialPipelineKeyInput(material)),
+    ).toBe("standard|transmission|transmissionTexture|blend|back|less|alpha");
+  });
+
   it("generates a scalar sheen StandardMaterial shader variant", () => {
     const shader = createStandardTextureVariantShader({
       baseColorTexture: false,

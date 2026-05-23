@@ -32,6 +32,7 @@ describe("glTF material mapping", () => {
       clearcoatTexture: null,
       clearcoatRoughnessFactor: 0,
       transmissionFactor: 0,
+      transmissionTexture: null,
       sheenColorFactor: [0, 0, 0],
       sheenRoughnessFactor: 0,
       iridescenceFactor: 0,
@@ -164,7 +165,7 @@ describe("glTF material mapping", () => {
     });
   });
 
-  it("warns when KHR_materials_transmission uses unsupported texture slots", () => {
+  it("maps KHR_materials_transmission transmissionTexture without unsupported-slot warnings", () => {
     const report = createMaterialAssetFromGltfMaterial(
       {
         extensions: {
@@ -174,22 +175,22 @@ describe("glTF material mapping", () => {
           },
         },
       },
-      { materialKey: "material:transmission-texture" },
+      {
+        materialKey: "material:transmission-texture",
+        resolveTextureBinding,
+      },
     );
 
     expect(report.valid).toBe(true);
     expect(report.material).toMatchObject({
       kind: "standard",
       transmissionFactor: 1,
-    });
-    expect(report.diagnostics).toMatchObject([
-      {
-        code: "gltfMaterial.unsupportedOptionalExtension",
-        severity: "warning",
-        field: "extensions.KHR_materials_transmission.transmissionTexture",
-        extensionName: "KHR_materials_transmission",
+      transmissionTexture: {
+        texture: createTextureHandle("texture-0"),
+        sampler: createSamplerHandle("sampler-0"),
       },
-    ]);
+    });
+    expect(report.diagnostics).toEqual([]);
   });
 
   it("maps KHR_materials_sheen scalar factors to StandardMaterial fields", () => {

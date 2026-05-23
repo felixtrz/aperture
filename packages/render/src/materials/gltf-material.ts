@@ -14,6 +14,7 @@ export type GltfMaterialTextureSlot =
   | "baseColorTexture"
   | "metallicRoughnessTexture"
   | "clearcoatTexture"
+  | "transmissionTexture"
   | "normalTexture"
   | "occlusionTexture"
   | "emissiveTexture";
@@ -296,6 +297,14 @@ export function createMaterialAssetFromGltfMaterial(
       diagnostics,
     }),
     transmissionFactor,
+    transmissionTexture: mapTextureBinding({
+      materialKey,
+      slot: "transmissionTexture",
+      field: `extensions.${TRANSMISSION_EXTENSION}.transmissionTexture`,
+      value: transmissionSource?.transmissionTexture,
+      resolver: options.resolveTextureBinding,
+      diagnostics,
+    }),
     sheenColorFactor: mapVec3({
       materialKey,
       field: `extensions.${SHEEN_EXTENSION}.sheenColorFactor`,
@@ -397,11 +406,6 @@ export function createMaterialAssetFromGltfMaterial(
     materialKey,
     diagnostics,
   );
-  inspectUnsupportedTransmissionTextures(
-    transmissionSource,
-    materialKey,
-    diagnostics,
-  );
   inspectUnsupportedSheenTextures(sheenSource, materialKey, diagnostics);
   inspectUnsupportedIridescenceTextures(
     iridescenceSource,
@@ -475,29 +479,6 @@ function inspectUnsupportedClearcoatTextures(
       message: `${CLEARCOAT_EXTENSION}.${field} is preserved in source data but current clearcoat rendering only samples clearcoatTexture.`,
     });
   }
-}
-
-function inspectUnsupportedTransmissionTextures(
-  transmissionSource: Record<string, unknown> | undefined,
-  materialKey: string,
-  diagnostics: GltfMaterialMappingDiagnostic[],
-): void {
-  if (transmissionSource === undefined) {
-    return;
-  }
-
-  if (transmissionSource.transmissionTexture === undefined) {
-    return;
-  }
-
-  diagnostics.push({
-    code: "gltfMaterial.unsupportedOptionalExtension",
-    severity: "warning",
-    materialKey,
-    field: `extensions.${TRANSMISSION_EXTENSION}.transmissionTexture`,
-    extensionName: TRANSMISSION_EXTENSION,
-    message: `${TRANSMISSION_EXTENSION}.transmissionTexture is preserved in source data but scalar transmission rendering does not sample transmission textures yet.`,
-  });
 }
 
 function inspectUnsupportedSheenTextures(

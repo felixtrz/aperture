@@ -363,6 +363,7 @@ function standardTextureFeatures(
     baseColorTexture: tokens.includes("baseColorTexture"),
     metallicRoughnessTexture: tokens.includes("metallicRoughnessTexture"),
     clearcoatTexture: tokens.includes("clearcoatTexture"),
+    transmissionTexture: tokens.includes("transmissionTexture"),
     normalTexture: tokens.includes("normalTexture"),
     occlusionTexture: tokens.includes("occlusionTexture"),
     emissiveTexture: tokens.includes("emissiveTexture"),
@@ -455,6 +456,7 @@ function standardMaterialLayoutKey(features: {
   readonly baseColorTexture: boolean;
   readonly metallicRoughnessTexture: boolean;
   readonly clearcoatTexture?: boolean;
+  readonly transmissionTexture?: boolean;
   readonly normalTexture: boolean;
   readonly occlusionTexture: boolean;
   readonly emissiveTexture: boolean;
@@ -462,6 +464,8 @@ function standardMaterialLayoutKey(features: {
   if (
     features.baseColorTexture &&
     features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
+    features.transmissionTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture
@@ -472,6 +476,8 @@ function standardMaterialLayoutKey(features: {
   if (
     features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    features.clearcoatTexture !== true &&
+    features.transmissionTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture
@@ -482,6 +488,8 @@ function standardMaterialLayoutKey(features: {
   if (
     features.metallicRoughnessTexture &&
     !features.baseColorTexture &&
+    features.clearcoatTexture !== true &&
+    features.transmissionTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture
@@ -493,6 +501,7 @@ function standardMaterialLayoutKey(features: {
     features.baseColorTexture ||
     features.metallicRoughnessTexture ||
     features.clearcoatTexture === true ||
+    features.transmissionTexture === true ||
     features.normalTexture ||
     features.occlusionTexture ||
     features.emissiveTexture
@@ -513,6 +522,11 @@ function standardMaterialLayoutKey(features: {
     if (features.clearcoatTexture === true) {
       names.push("clearcoat");
       bindings.push(11, 12);
+    }
+
+    if (features.transmissionTexture === true) {
+      names.push("transmission");
+      bindings.push(13, 14);
     }
 
     if (features.normalTexture) {

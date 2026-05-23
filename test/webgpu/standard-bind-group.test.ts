@@ -67,6 +67,11 @@ describe("standard material bind group descriptor planning", () => {
           samplerKey: "sampler:clearcoat",
           texCoord: 0,
         },
+        transmission: {
+          textureKey: "texture:transmission",
+          samplerKey: "sampler:transmission",
+          texCoord: 0,
+        },
       },
     });
 
@@ -88,9 +93,11 @@ describe("standard material bind group descriptor planning", () => {
       [10, "sampler:emissive"],
       [11, "texture:clearcoat"],
       [12, "sampler:clearcoat"],
+      [13, "texture:transmission"],
+      [14, "sampler:transmission"],
     ]);
     expect(plan.resourceKey).toBe(
-      "bind-group:standard/group-2/0:material-buffer:StandardMaterial/Textured/uniform/1:texture:base/2:sampler:base/3:texture:mr/4:sampler:mr/5:texture:normal/6:sampler:normal/7:texture:ao/8:sampler:ao/9:texture:emissive/10:sampler:emissive/11:texture:clearcoat/12:sampler:clearcoat",
+      "bind-group:standard/group-2/0:material-buffer:StandardMaterial/Textured/uniform/1:texture:base/2:sampler:base/3:texture:mr/4:sampler:mr/5:texture:normal/6:sampler:normal/7:texture:ao/8:sampler:ao/9:texture:emissive/10:sampler:emissive/11:texture:clearcoat/12:sampler:clearcoat/13:texture:transmission/14:sampler:transmission",
     );
   });
 
@@ -251,5 +258,6 @@ function emptyDependencies(): StandardMaterialResourceDependencies {
     occlusion: { textureKey: null, samplerKey: null, texCoord: 0 },
     emissive: { textureKey: null, samplerKey: null, texCoord: 0 },
     clearcoat: { textureKey: null, samplerKey: null, texCoord: 0 },
+    transmission: { textureKey: null, samplerKey: null, texCoord: 0 },
   };
 }

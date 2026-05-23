@@ -102,6 +102,11 @@ describe("standard material WebGPU uniform packing", () => {
         occlusionTexture: textureBinding("ao", "ao-sampler", 4),
         emissiveTexture: textureBinding("emissive", "emissive-sampler", 5),
         clearcoatTexture: textureBinding("clearcoat", "clearcoat-sampler", 1),
+        transmissionTexture: textureBinding(
+          "transmission",
+          "transmission-sampler",
+          1,
+        ),
       }),
     );
 
@@ -113,7 +118,8 @@ describe("standard material WebGPU uniform packing", () => {
         STANDARD_MATERIAL_FEATURE_FLAGS.NORMAL_TEXTURE |
         STANDARD_MATERIAL_FEATURE_FLAGS.OCCLUSION_TEXTURE |
         STANDARD_MATERIAL_FEATURE_FLAGS.EMISSIVE_TEXTURE |
-        STANDARD_MATERIAL_FEATURE_FLAGS.CLEARCOAT_TEXTURE,
+        STANDARD_MATERIAL_FEATURE_FLAGS.CLEARCOAT_TEXTURE |
+        STANDARD_MATERIAL_FEATURE_FLAGS.TRANSMISSION_TEXTURE,
     );
     expect(result.packed?.dependencies).toEqual({
       baseColor: {
@@ -146,11 +152,17 @@ describe("standard material WebGPU uniform packing", () => {
         samplerKey: "sampler:clearcoat-sampler",
         texCoord: 1,
       },
+      transmission: {
+        textureKey: "texture:transmission",
+        samplerKey: "sampler:transmission-sampler",
+        texCoord: 1,
+      },
     });
     expect(
       Array.from(result.packed?.uniformUint32.slice(13, 18) ?? []),
     ).toEqual([1, 2, 3, 4, 5]);
     expect(result.packed?.uniformUint32[51]).toBe(1);
+    expect(result.packed?.uniformUint32[60]).toBe(1);
     expect(
       Array.from(result.packed?.uniformFloat32.slice(18, 22) ?? []),
     ).toEqual([0, 0, 1, 1]);
@@ -287,7 +299,10 @@ describe("standard material WebGPU uniform packing", () => {
     expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[59]).toBe(
       "iridescenceThicknessMaximum",
     );
-    expect(STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH).toBe(240);
+    expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[60]).toBe(
+      "transmissionTexCoord.u32",
+    );
+    expect(STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH).toBe(256);
   });
 
   it("packs textured alpha-mask flags and cutoff for shader discard", () => {
@@ -423,6 +438,7 @@ function invalidPacked(): PackedStandardMaterial {
       occlusion: { textureKey: null, samplerKey: null, texCoord: 0 },
       emissive: { textureKey: null, samplerKey: null, texCoord: 0 },
       clearcoat: { textureKey: null, samplerKey: null, texCoord: 0 },
+      transmission: { textureKey: null, samplerKey: null, texCoord: 0 },
     },
   };
 }

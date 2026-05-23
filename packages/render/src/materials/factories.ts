@@ -81,6 +81,7 @@ export function createStandardMaterialAsset(
     clearcoatTexture: input.clearcoatTexture ?? null,
     clearcoatRoughnessFactor: input.clearcoatRoughnessFactor ?? 0,
     transmissionFactor: input.transmissionFactor ?? 0,
+    transmissionTexture: input.transmissionTexture ?? null,
     sheenColorFactor: input.sheenColorFactor ?? [0, 0, 0],
     sheenRoughnessFactor: input.sheenRoughnessFactor ?? 0,
     iridescenceFactor: input.iridescenceFactor ?? 0,

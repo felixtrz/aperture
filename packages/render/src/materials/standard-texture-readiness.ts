@@ -21,6 +21,7 @@ export type StandardMaterialTextureField =
   | "baseColorTexture"
   | "metallicRoughnessTexture"
   | "clearcoatTexture"
+  | "transmissionTexture"
   | "normalTexture"
   | "occlusionTexture"
   | "emissiveTexture";
@@ -108,6 +109,11 @@ const STANDARD_TEXTURE_EXPECTATIONS = [
   },
   {
     field: "clearcoatTexture",
+    semantic: "data",
+    colorSpaces: ["linear", "data"],
+  },
+  {
+    field: "transmissionTexture",
     semantic: "data",
     colorSpaces: ["linear", "data"],
   },

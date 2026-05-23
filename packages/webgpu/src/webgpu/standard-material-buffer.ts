@@ -15,7 +15,7 @@ import { WEBGPU_BUFFER_USAGE_FLAGS } from "./mesh-buffer-descriptors.js";
 import { materialUniformBufferResourceKey } from "./resource-keys.js";
 import { createStandardMaterialBindGroupDescriptorPlan } from "./standard-bind-group.js";
 
-export const STANDARD_MATERIAL_UNIFORM_FLOATS = 60;
+export const STANDARD_MATERIAL_UNIFORM_FLOATS = 64;
 export const STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH =
   STANDARD_MATERIAL_UNIFORM_FLOATS * Float32Array.BYTES_PER_ELEMENT;
 
@@ -80,6 +80,10 @@ export const STANDARD_MATERIAL_UNIFORM_LAYOUT = [
   "iridescenceIor",
   "iridescenceThicknessMinimum",
   "iridescenceThicknessMaximum",
+  "transmissionTexCoord.u32",
+  "padding6.x",
+  "padding6.y",
+  "padding6.z",
 ] as const;
 
 export const STANDARD_MATERIAL_FEATURE_FLAGS = {
@@ -92,6 +96,7 @@ export const STANDARD_MATERIAL_FEATURE_FLAGS = {
   ALPHA_BLEND: 1 << 6,
   DOUBLE_SIDED: 1 << 7,
   CLEARCOAT_TEXTURE: 1 << 8,
+  TRANSMISSION_TEXTURE: 1 << 9,
 } as const;
 
 export type StandardMaterialFeatureFlag =
@@ -123,6 +128,7 @@ export interface StandardMaterialResourceDependencies {
   readonly occlusion: StandardMaterialTextureDependency;
   readonly emissive: StandardMaterialTextureDependency;
   readonly clearcoat: StandardMaterialTextureDependency;
+  readonly transmission: StandardMaterialTextureDependency;
 }
 
 export interface PackedStandardMaterial {
@@ -269,6 +275,7 @@ export function packStandardMaterial(
   uniformFloat32[57] = material.iridescenceIor;
   uniformFloat32[58] = material.iridescenceThicknessMinimum;
   uniformFloat32[59] = material.iridescenceThicknessMaximum;
+  uniformUint32[60] = dependencies.transmission.texCoord;
 
   return {
     valid: true,
@@ -445,6 +452,11 @@ function collectStandardMaterialDependencies(
       material.clearcoatTexture,
       diagnostics,
     ),
+    transmission: textureDependency(
+      "transmissionTexture",
+      material.transmissionTexture,
+      diagnostics,
+    ),
   };
 }
 
@@ -507,6 +519,10 @@ function standardMaterialFeatureFlags(material: StandardMaterialAsset): number {
 
   if (material.clearcoatTexture !== null) {
     flags |= STANDARD_MATERIAL_FEATURE_FLAGS.CLEARCOAT_TEXTURE;
+  }
+
+  if (material.transmissionTexture !== null) {
+    flags |= STANDARD_MATERIAL_FEATURE_FLAGS.TRANSMISSION_TEXTURE;
   }
 
   if (material.renderState.alphaMode === "mask") {

@@ -14,8 +14,12 @@ interface TransmissionStatus extends ExampleStatusBase {
   readonly transmission?: {
     readonly sphereMeshKey: string;
     readonly panelMeshKey: string;
+    readonly maskMeshKey: string;
     readonly glassMaterialKey: string;
     readonly roughGlassMaterialKey: string;
+    readonly texturedGlassMaterialKey: string;
+    readonly transmissionTextureKey: string;
+    readonly transmissionSamplerKey: string;
     readonly backgroundMaterialKey: string;
     readonly brightBackgroundMaterialKey: string;
     readonly darkBackgroundMaterialKey: string;
@@ -34,6 +38,13 @@ interface TransmissionStatus extends ExampleStatusBase {
       readonly backgroundGlossy?: number;
       readonly backgroundRough?: number;
       readonly roughToGlossyRatio?: number;
+    } | null;
+    readonly textureContrast?: {
+      readonly ok: boolean;
+      readonly reason?: string;
+      readonly highLowDistance?: number;
+      readonly highBackgroundDistance?: number;
+      readonly lowBackgroundDistance?: number;
     } | null;
   };
   readonly frame?: TransmissionFrameStatus;
@@ -107,8 +118,12 @@ test("browser renders roughness-filtered transmission through scene color", asyn
     transmission: {
       sphereMeshKey: "mesh:transmission-sphere-mesh",
       panelMeshKey: "mesh:transmission-panel-mesh",
+      maskMeshKey: "mesh:transmission-mask-panel-mesh",
       glassMaterialKey: "material:transmission-glass-material",
       roughGlassMaterialKey: "material:transmission-rough-glass-material",
+      texturedGlassMaterialKey: "material:transmission-textured-glass-material",
+      transmissionTextureKey: "texture:transmission-factor-texture",
+      transmissionSamplerKey: "sampler:transmission-factor-nearest",
       backgroundMaterialKey: "material:transmission-background-bright-material",
       brightBackgroundMaterialKey:
         "material:transmission-background-bright-material",
@@ -120,17 +135,17 @@ test("browser renders roughness-filtered transmission through scene color", asyn
         rough: 0.85,
       },
       stripeCount: 24,
-      expectedMeshDraws: 26,
+      expectedMeshDraws: 28,
     },
     frame: {
       snapshot: {
         views: 1,
-        meshDraws: 26,
+        meshDraws: 28,
         lights: 2,
         diagnostics: 0,
       },
       counts: {
-        meshDraws: 26,
+        meshDraws: 28,
         diagnostics: 0,
       },
       transmissionGrabPass: {
@@ -160,6 +175,7 @@ test("browser renders roughness-filtered transmission through scene color", asyn
     expect.arrayContaining([
       "standard|opaque|none|less|none",
       "standard|transmission|blend|none|less|alpha",
+      "standard|transmission|transmissionTexture|blend|none|less|alpha",
     ]),
   );
 
@@ -174,6 +190,7 @@ test("browser renders roughness-filtered transmission through scene color", asyn
 
   assertTransmissionSamples(frame);
   assertTransmissionRoughnessContrast(status, frame);
+  assertTransmissionTextureContrast(status, frame);
   webGpuValidation.expectNoWarnings();
 });
 
@@ -186,6 +203,9 @@ function assertTransmissionSamples(frame: TransmissionFrameStatus): void {
   const glossyBright = requiredSample(samples, "glossy-bright");
   const roughDark = requiredSample(samples, "rough-dark");
   const roughBright = requiredSample(samples, "rough-bright");
+  const textureLow = requiredSample(samples, "texture-low");
+  const textureHigh = requiredSample(samples, "texture-high");
+  const textureBackground = requiredSample(samples, "texture-background");
   const backgroundGlossyDark = requiredSample(
     samples,
     "background-glossy-dark",
@@ -210,6 +230,15 @@ function assertTransmissionSamples(frame: TransmissionFrameStatus): void {
     backgroundRoughDark.pixel,
     backgroundRoughBright.pixel,
   );
+  const textureDistance = pixelDistance(textureHigh.pixel, textureLow.pixel);
+  const textureHighBackgroundDistance = pixelDistance(
+    textureHigh.pixel,
+    textureBackground.pixel,
+  );
+  const textureLowBackgroundDistance = pixelDistance(
+    textureLow.pixel,
+    textureBackground.pixel,
+  );
 
   expect(pixelDistance(background.pixel, clear)).toBeGreaterThan(80);
   expect(pixelDistance(throughGlass.pixel, clear)).toBeGreaterThan(60);
@@ -222,6 +251,10 @@ function assertTransmissionSamples(frame: TransmissionFrameStatus): void {
   expect(backgroundRoughContrast).toBeGreaterThan(70);
   expect(glossyContrast).toBeGreaterThan(25);
   expect(roughContrast).toBeLessThan(glossyContrast * 0.85);
+  expect(textureDistance).toBeGreaterThan(45);
+  expect(textureHighBackgroundDistance).toBeLessThan(
+    textureLowBackgroundDistance * 0.85,
+  );
 }
 
 function assertTransmissionRoughnessContrast(
@@ -245,6 +278,34 @@ function assertTransmissionRoughnessContrast(
   expect(reported?.glossy).toBeCloseTo(glossy, 6);
   expect(reported?.rough).toBeCloseTo(rough, 6);
   expect(reported?.roughToGlossyRatio).toBeLessThan(0.85);
+}
+
+function assertTransmissionTextureContrast(
+  status: TransmissionStatus,
+  frame: TransmissionFrameStatus,
+): void {
+  const samples = frame.readback?.samples ?? [];
+  const textureHigh = requiredSample(samples, "texture-high").pixel;
+  const textureLow = requiredSample(samples, "texture-low").pixel;
+  const textureBackground = requiredSample(samples, "texture-background").pixel;
+  const highLowDistance = pixelDistance(textureHigh, textureLow);
+  const highBackgroundDistance = pixelDistance(textureHigh, textureBackground);
+  const lowBackgroundDistance = pixelDistance(textureLow, textureBackground);
+  const reported = status.transmission?.textureContrast;
+
+  expect(reported, JSON.stringify(status, null, 2)).toMatchObject({
+    ok: true,
+  });
+  expect(reported?.highLowDistance).toBeCloseTo(highLowDistance, 6);
+  expect(reported?.highBackgroundDistance).toBeCloseTo(
+    highBackgroundDistance,
+    6,
+  );
+  expect(reported?.lowBackgroundDistance).toBeCloseTo(lowBackgroundDistance, 6);
+  expect(reported?.highLowDistance).toBeGreaterThan(45);
+  expect(reported?.highBackgroundDistance).toBeLessThan(
+    lowBackgroundDistance * 0.85,
+  );
 }
 
 function requiredSample(
