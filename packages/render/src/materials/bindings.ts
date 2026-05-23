@@ -24,6 +24,7 @@ export function materialTextureBindings(
         ["sheenColorTexture", material.sheenColorTexture],
         ["sheenRoughnessTexture", material.sheenRoughnessTexture],
         ["iridescenceTexture", material.iridescenceTexture],
+        ["iridescenceThicknessTexture", material.iridescenceThicknessTexture],
         ["normalTexture", material.normalTexture],
         ["occlusionTexture", material.occlusionTexture],
         ["emissiveTexture", material.emissiveTexture],

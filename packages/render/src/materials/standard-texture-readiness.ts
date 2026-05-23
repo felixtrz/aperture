@@ -25,6 +25,7 @@ export type StandardMaterialTextureField =
   | "sheenColorTexture"
   | "sheenRoughnessTexture"
   | "iridescenceTexture"
+  | "iridescenceThicknessTexture"
   | "normalTexture"
   | "occlusionTexture"
   | "emissiveTexture";
@@ -133,6 +134,11 @@ const STANDARD_TEXTURE_EXPECTATIONS = [
   {
     field: "iridescenceTexture",
     semantic: "iridescence",
+    colorSpaces: ["linear", "data"],
+  },
+  {
+    field: "iridescenceThicknessTexture",
+    semantic: "iridescence-thickness",
     colorSpaces: ["linear", "data"],
   },
   {

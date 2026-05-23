@@ -21,6 +21,7 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
     const baseColor = createTextureHandle("base-color");
     const metallicRoughness = createTextureHandle("metallic-roughness");
     const sheenRoughness = createTextureHandle("sheen-roughness");
+    const iridescenceThickness = createTextureHandle("iridescence-thickness");
     const normal = createTextureHandle("normal");
     const occlusion = createTextureHandle("occlusion");
     const emissive = createTextureHandle("emissive");
@@ -30,6 +31,12 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
     readyTexture(registry, baseColor, "base-color", "srgb");
     readyTexture(registry, metallicRoughness, "metallic-roughness", "data");
     readyTexture(registry, sheenRoughness, "sheen-roughness", "data");
+    readyTexture(
+      registry,
+      iridescenceThickness,
+      "iridescence-thickness",
+      "data",
+    );
     readyTexture(registry, normal, "normal", "linear");
     readyTexture(registry, occlusion, "occlusion", "data");
     readyTexture(registry, emissive, "emissive", "srgb");
@@ -40,6 +47,10 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
         baseColorTexture: { texture: baseColor, sampler },
         metallicRoughnessTexture: { texture: metallicRoughness, sampler },
         sheenRoughnessTexture: { texture: sheenRoughness, sampler },
+        iridescenceThicknessTexture: {
+          texture: iridescenceThickness,
+          sampler,
+        },
         normalTexture: { texture: normal, sampler },
         occlusionTexture: { texture: occlusion, sampler },
         emissiveTexture: { texture: emissive, sampler },
@@ -76,6 +87,12 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
         actualColorSpace: "data",
       },
       {
+        field: "iridescenceThicknessTexture",
+        textureKey: "texture:iridescence-thickness",
+        expectedSemantic: "iridescence-thickness",
+        actualColorSpace: "data",
+      },
+      {
         field: "normalTexture",
         textureKey: "texture:normal",
         expectedSemantic: "normal",
@@ -107,6 +124,9 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
     const baseColor = createTextureHandle("base-color-uv1");
     const metallicRoughness = createTextureHandle("metallic-roughness-uv1");
     const sheenRoughness = createTextureHandle("sheen-roughness-uv1");
+    const iridescenceThickness = createTextureHandle(
+      "iridescence-thickness-uv1",
+    );
     const normal = createTextureHandle("normal-uv1");
     const occlusion = createTextureHandle("occlusion-uv1");
     const emissive = createTextureHandle("emissive-uv1");
@@ -116,6 +136,12 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
     readyTexture(registry, baseColor, "base-color", "srgb");
     readyTexture(registry, metallicRoughness, "metallic-roughness", "data");
     readyTexture(registry, sheenRoughness, "sheen-roughness", "data");
+    readyTexture(
+      registry,
+      iridescenceThickness,
+      "iridescence-thickness",
+      "data",
+    );
     readyTexture(registry, normal, "normal", "linear");
     readyTexture(registry, occlusion, "occlusion", "data");
     readyTexture(registry, emissive, "emissive", "srgb");
@@ -131,6 +157,11 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
         },
         sheenRoughnessTexture: {
           texture: sheenRoughness,
+          sampler,
+          texCoord: 1,
+        },
+        iridescenceThicknessTexture: {
+          texture: iridescenceThickness,
           sampler,
           texCoord: 1,
         },
@@ -170,6 +201,12 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
       {
         field: "sheenRoughnessTexture",
         textureKey: "texture:sheen-roughness-uv1",
+        texCoord: 1,
+        ready: true,
+      },
+      {
+        field: "iridescenceThicknessTexture",
+        textureKey: "texture:iridescence-thickness-uv1",
         texCoord: 1,
         ready: true,
       },

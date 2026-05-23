@@ -161,21 +161,27 @@ function createIridescenceStatus(scene, loop, diagnostics) {
   const textureContrast = createIridescenceTextureContrastReport(
     loop.frame?.readback,
   );
+  const thicknessContrast = createIridescenceThicknessContrastReport(
+    loop.frame?.readback,
+  );
   const readbackContrastOk =
     loop.frame?.readback?.ok !== true ||
-    textureContrast === null ||
-    textureContrast.ok === true;
+    ((textureContrast === null || textureContrast.ok === true) &&
+      (thicknessContrast === null || thicknessContrast.ok === true));
 
   return {
     ...baseStatus,
     ok:
-      counts?.meshDraws === 3 &&
+      counts?.meshDraws === 4 &&
       loop.frame?.snapshot?.lights === 2 &&
       (counts?.drawCalls ?? 0) >= 1 &&
       counts?.diagnostics === 0 &&
       pipelineKeys.includes("standard|iridescence|opaque|none|less|none") &&
       pipelineKeys.includes(
         "standard|iridescence|iridescenceTexture|opaque|none|less|none",
+      ) &&
+      pipelineKeys.includes(
+        "standard|iridescence|iridescenceThicknessTexture|opaque|none|less|none",
       ) &&
       readbackContrastOk,
     phase: "submit",
@@ -186,14 +192,18 @@ function createIridescenceStatus(scene, loop, diagnostics) {
       baseMaterialKey: scene.baseMaterialKey,
       filmMaterialKey: scene.filmMaterialKey,
       texturedFilmMaterialKey: scene.texturedFilmMaterialKey,
+      thicknessTexturedFilmMaterialKey: scene.thicknessTexturedFilmMaterialKey,
       iridescenceTextureKey: scene.iridescenceTextureKey,
+      iridescenceThicknessTextureKey: scene.iridescenceThicknessTextureKey,
       iridescenceSamplerKey: scene.iridescenceSamplerKey,
       iridescenceFactor: 1,
       iridescenceIor: 1.3,
       iridescenceThicknessMinimum: 120,
       iridescenceThicknessMaximum: 560,
       textureBackedFactor: true,
+      textureBackedThickness: true,
       textureContrast,
+      thicknessContrast,
       samples: scene.samples,
     },
     worker: {
@@ -231,6 +241,37 @@ function createIridescenceTextureContrastReport(readback) {
 
   return {
     ok: highLowDistance > 28,
+    highLowDistance,
+    lowLuminance,
+    highLuminance,
+  };
+}
+
+function createIridescenceThicknessContrastReport(readback) {
+  if (readback?.ok !== true || !Array.isArray(readback.samples)) {
+    return null;
+  }
+
+  const low = findReadbackPixel(readback.samples, "thickness-low");
+  const high = findReadbackPixel(readback.samples, "thickness-high");
+
+  if (low === null || high === null) {
+    return {
+      ok: false,
+      reason: "missing-thickness-sample",
+    };
+  }
+
+  if (isTransparentZeroPixel(low) && isTransparentZeroPixel(high)) {
+    return null;
+  }
+
+  const highLowDistance = pixelDistance(high, low);
+  const highLuminance = luminance(high);
+  const lowLuminance = luminance(low);
+
+  return {
+    ok: highLowDistance > 18,
     highLowDistance,
     lowLuminance,
     highLuminance,

@@ -887,14 +887,88 @@ describe("built-in standard material WGSL shader metadata", () => {
       "let iridescence = clamp(material.iridescenceFactorIorThickness.x * textureSample(iridescenceTexture, iridescenceSampler, input.uv).r",
     );
     expect(shader.code).toContain("iridescence: f32");
+    expect(shader.code).toContain("iridescenceThickness: f32");
     expect(shader.code).toContain(
       `        roughness,
         iridescence,
+        iridescenceThickness,
       );`,
     );
     expect(
       materialPipelineKeyInputToKey(createMaterialPipelineKeyInput(material)),
     ).toBe("standard|iridescence|iridescenceTexture|opaque|back|less|none");
+  });
+
+  it("generates a texture-backed iridescence thickness StandardMaterial shader variant", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      iridescenceThicknessTexture: true,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      iridescence: true,
+    });
+    const material = createStandardMaterialAsset({
+      iridescenceFactor: 1,
+      iridescenceThicknessTexture: {
+        texture: createTextureHandle("iridescence-thickness"),
+        sampler: createSamplerHandle("iridescence-thickness-nearest"),
+      },
+      iridescenceIor: 1.3,
+      iridescenceThicknessMinimum: 100,
+      iridescenceThicknessMaximum: 480,
+    });
+
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        iridescenceThicknessTexture: true,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: false,
+        iridescence: true,
+      }),
+    ).toBe(
+      "direct-lit-metallic-roughness-iridescence-thickness-texture-iridescence-texture",
+    );
+    expect(shader.label).toBe(
+      "aperture/standard-mesh-iridescence-thickness-texture-iridescence-textured",
+    );
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.bindings).toEqual([
+      ...STANDARD_MESH_SHADER.bindings,
+      {
+        id: "iridescenceThicknessTexture",
+        label: "Iridescence thickness texture",
+        group: 2,
+        binding: 21,
+        resource: "texture",
+      },
+      {
+        id: "iridescenceThicknessSampler",
+        label: "Iridescence thickness sampler",
+        group: 2,
+        binding: 22,
+        resource: "sampler",
+      },
+    ]);
+    expect(shader.code).toContain(
+      "@group(2) @binding(21) var iridescenceThicknessTexture: texture_2d<f32>;",
+    );
+    expect(shader.code).toContain(
+      "let iridescenceThickness = clamp(mix(material.iridescenceFactorIorThickness.z, material.iridescenceFactorIorThickness.w, textureSample(iridescenceThicknessTexture, iridescenceThicknessSampler, input.uv).g), 0.0, 1200.0);",
+    );
+    expect(shader.code).toContain("iridescenceThickness: f32");
+    expect(
+      materialPipelineKeyInputToKey(createMaterialPipelineKeyInput(material)),
+    ).toBe(
+      "standard|iridescence|iridescenceThicknessTexture|opaque|back|less|none",
+    );
   });
 
   it("generates a skinned StandardMaterial shader variant", () => {

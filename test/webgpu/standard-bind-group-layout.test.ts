@@ -53,6 +53,16 @@ describe("standard material bind group layout metadata", () => {
       { binding: 18, label: "iridescenceSampler", resource: "sampler" },
       { binding: 19, label: "sheenRoughnessTexture", resource: "texture" },
       { binding: 20, label: "sheenRoughnessSampler", resource: "sampler" },
+      {
+        binding: 21,
+        label: "iridescenceThicknessTexture",
+        resource: "texture",
+      },
+      {
+        binding: 22,
+        label: "iridescenceThicknessSampler",
+        resource: "sampler",
+      },
     ]);
     expect(plan.layout.metadata.bindings[0]).toEqual({
       binding: 0,

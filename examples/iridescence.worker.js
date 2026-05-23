@@ -47,7 +47,10 @@ async function handleMessage(data) {
           baseMaterialKey: scene.baseMaterialKey,
           filmMaterialKey: scene.filmMaterialKey,
           texturedFilmMaterialKey: scene.texturedFilmMaterialKey,
+          thicknessTexturedFilmMaterialKey:
+            scene.thicknessTexturedFilmMaterialKey,
           iridescenceTextureKey: scene.iridescenceTextureKey,
+          iridescenceThicknessTextureKey: scene.iridescenceThicknessTextureKey,
           iridescenceSamplerKey: scene.iridescenceSamplerKey,
         },
       });
@@ -138,6 +141,16 @@ function createWorkerScene(aperture, canvasSize) {
     }),
     aperture.withMesh(registered.textureMesh),
     aperture.withMaterial(registered.texturedFilmMaterial),
+    aperture.withRenderLayer(1),
+    aperture.withVisibility(true),
+  );
+  app.spawn(
+    aperture.withTransform({
+      translation: [0.25, -1.02, 0],
+      rotation: [0, -0.422618, 0, 0.906308],
+    }),
+    aperture.withMesh(registered.textureMesh),
+    aperture.withMaterial(registered.thicknessTexturedFilmMaterial),
     aperture.withRenderLayer(1),
     aperture.withVisibility(true),
   );

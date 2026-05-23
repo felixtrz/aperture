@@ -6,6 +6,7 @@ import {
   createMaterialHandle,
   createPreparedScalarStandardMaterialCache,
   createPreparedStandardBaseColorTextureDependencyKeys,
+  createPreparedStandardIridescenceThicknessTextureDependencyKeys,
   createPreparedStandardMetallicRoughnessTextureDependencyKeys,
   createPreparedStandardNormalTextureDependencyKeys,
   createPreparedStandardTextureDependencyKeys,
@@ -16,6 +17,7 @@ import {
   createTextureAsset,
   createTextureHandle,
   prepareBaseColorTexturedStandardMaterialResource,
+  prepareIridescenceThicknessTexturedStandardMaterialResource,
   prepareMetallicRoughnessTexturedStandardMaterialResource,
   prepareNormalTexturedStandardMaterialResource,
   prepareOcclusionEmissiveTexturedStandardMaterialResource,
@@ -177,6 +179,10 @@ describe("StandardMaterial prepared texture dependency keys", () => {
     const normal = readyTextureSamplerPair(registry, "normal");
     const occlusion = readyTextureSamplerPair(registry, "occlusion");
     const emissive = readyTextureSamplerPair(registry, "emissive");
+    const iridescenceThickness = readyTextureSamplerPair(
+      registry,
+      "iridescence-thickness",
+    );
 
     const result = createPreparedStandardTextureDependencyKeys({
       registry,
@@ -186,6 +192,7 @@ describe("StandardMaterial prepared texture dependency keys", () => {
         normalTexture: normal,
         occlusionTexture: occlusion,
         emissiveTexture: emissive,
+        iridescenceThicknessTexture: iridescenceThickness,
       }),
     });
 
@@ -196,6 +203,7 @@ describe("StandardMaterial prepared texture dependency keys", () => {
     ).toEqual([
       "baseColorTexture",
       "metallicRoughnessTexture",
+      "iridescenceThicknessTexture",
       "normalTexture",
       "occlusionTexture",
       "emissiveTexture",
@@ -205,6 +213,8 @@ describe("StandardMaterial prepared texture dependency keys", () => {
       "baseColorTexture:sampler:sampler:base-color-sampler@1",
       "metallicRoughnessTexture:texture:texture:metallic-roughness@1",
       "metallicRoughnessTexture:sampler:sampler:metallic-roughness-sampler@1",
+      "iridescenceThicknessTexture:texture:texture:iridescence-thickness@1",
+      "iridescenceThicknessTexture:sampler:sampler:iridescence-thickness-sampler@1",
       "normalTexture:texture:texture:normal@1",
       "normalTexture:sampler:sampler:normal-sampler@1",
       "occlusionTexture:texture:texture:occlusion@1",
@@ -212,6 +222,62 @@ describe("StandardMaterial prepared texture dependency keys", () => {
       "emissiveTexture:texture:texture:emissive@1",
       "emissiveTexture:sampler:sampler:emissive-sampler@1",
     ]);
+  });
+
+  it("derives ready iridescence thickness texture and sampler handle/version keys", () => {
+    const registry = new AssetRegistry();
+    const texture = createTextureHandle("standard-iridescence-thickness");
+    const sampler = createSamplerHandle(
+      "standard-iridescence-thickness-sampler",
+    );
+
+    registry.register(texture);
+    registry.register(sampler);
+    const textureEntry = registry.markReady(
+      texture,
+      textureAsset({
+        label: "standard-iridescence-thickness",
+        format: "rgba8unorm",
+        colorSpace: "data",
+        semantic: "iridescence-thickness",
+      }),
+    );
+    const samplerEntry = registry.markReady(
+      sampler,
+      createSamplerAsset({ label: "nearest" }),
+    );
+
+    const result =
+      createPreparedStandardIridescenceThicknessTextureDependencyKeys({
+        registry,
+        material: createStandardMaterialAsset({
+          iridescenceThicknessTexture: { texture, sampler },
+        }),
+      });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.dependencies).toEqual({
+      field: "iridescenceThicknessTexture",
+      texture: {
+        field: "iridescenceThicknessTexture",
+        kind: "texture",
+        handleKey: "texture:standard-iridescence-thickness",
+        version: textureEntry.version,
+        versionKey: "texture:standard-iridescence-thickness@1",
+      },
+      sampler: {
+        field: "iridescenceThicknessTexture",
+        kind: "sampler",
+        handleKey: "sampler:standard-iridescence-thickness-sampler",
+        version: samplerEntry.version,
+        versionKey: "sampler:standard-iridescence-thickness-sampler@1",
+      },
+      cacheKeySegments: [
+        "iridescenceThicknessTexture:texture:texture:standard-iridescence-thickness@1",
+        "iridescenceThicknessTexture:sampler:sampler:standard-iridescence-thickness-sampler@1",
+      ],
+    });
   });
 
   it("derives ready metallic-roughness texture and sampler handle/version keys", () => {
@@ -702,6 +768,75 @@ describe("base-color textured StandardMaterial prepared material cache", () => {
         materialKey: "material:multi-texture",
       }),
     ]);
+  });
+});
+
+describe("iridescence thickness textured StandardMaterial prepared material cache", () => {
+  it("creates a single-texture group-2 prepared resource", () => {
+    const createdBuffers: unknown[] = [];
+    const createdBindGroups: StandardMaterialBindGroupCreationDescriptor[] = [];
+    const registry = new AssetRegistry();
+    const cache = createPreparedScalarStandardMaterialCache();
+    const handle = createMaterialHandle("iridescence-thickness-standard");
+    const texture = createTextureHandle("iridescence-thickness");
+    const sampler = createSamplerHandle("iridescence-thickness-sampler");
+    const device = deviceWithResources(createdBuffers, createdBindGroups);
+
+    registry.register(texture);
+    registry.register(sampler);
+    registry.register(handle);
+    registry.markReady(
+      texture,
+      textureAsset({
+        label: "iridescence-thickness",
+        format: "rgba8unorm",
+        colorSpace: "data",
+        semantic: "iridescence-thickness",
+      }),
+    );
+    registry.markReady(sampler, createSamplerAsset({ label: "nearest" }));
+    const material = createStandardMaterialAsset({
+      label: "Iridescence Thickness Standard",
+      iridescenceFactor: 1,
+      iridescenceThicknessTexture: { texture, sampler },
+    });
+    const materialEntry = registry.markReady(handle, material);
+
+    const result = prepareIridescenceThicknessTexturedStandardMaterialResource({
+      registry,
+      device,
+      cache,
+      handle,
+      material,
+      sourceVersion: materialEntry.version,
+      frame: 70,
+      pipelineKey:
+        "standard|iridescence|iridescenceThicknessTexture|opaque|back|less|none",
+      layout: materialLayout(),
+      textures: [textureGpuResource(texture)],
+      samplers: [samplerGpuResource(sampler)],
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.status).toBe("created");
+    expect(result.diagnostics).toEqual([]);
+    expect(result.resource).toMatchObject({
+      sourceMaterialKey: "material:iridescence-thickness-standard",
+      sourceVersion: materialEntry.version,
+      dependencyCacheKeySegments: [
+        "iridescenceThicknessTexture:texture:texture:iridescence-thickness@1",
+        "iridescenceThicknessTexture:sampler:sampler:iridescence-thickness-sampler@1",
+      ],
+      textureResourceKey: "texture:iridescence-thickness",
+      samplerResourceKey: "sampler:iridescence-thickness-sampler",
+    });
+    expect(result.resource?.bindGroup.entryResourceKeys).toEqual([
+      "material-buffer:prepared-material:material:iridescence-thickness-standard",
+      "texture:iridescence-thickness",
+      "sampler:iridescence-thickness-sampler",
+    ]);
+    expect(createdBuffers).toHaveLength(1);
+    expect(createdBindGroups).toHaveLength(1);
   });
 });
 

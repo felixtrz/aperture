@@ -251,6 +251,24 @@ describe("glTF texture mapping", () => {
     });
   });
 
+  it("maps iridescence thickness textures to green-channel data metadata", () => {
+    const report = createTextureAssetFromGltfTexture({
+      textureIndex: 0,
+      slot: "iridescenceThicknessTexture",
+      textures: [{ source: 0, name: "FilmThickness" }],
+      images: [{ uri: "thickness.png" }],
+      resolveImageData,
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.texture).toMatchObject({
+      label: "FilmThickness",
+      semantic: "iridescence-thickness",
+      colorSpace: "data",
+      format: "rgba8unorm",
+    });
+  });
+
   it("reports unsupported texture extensions and resolver failures", () => {
     const report = createTextureAssetFromGltfTexture({
       textureIndex: 0,

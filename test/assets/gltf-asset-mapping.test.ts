@@ -370,6 +370,10 @@ const standardTextureSlots = [
   { slot: "normalTexture", field: "normalTexture" },
   { slot: "occlusionTexture", field: "occlusionTexture" },
   { slot: "emissiveTexture", field: "emissiveTexture" },
+  {
+    slot: "iridescenceThicknessTexture",
+    field: "extensions.KHR_materials_iridescence.iridescenceThicknessTexture",
+  },
 ] as const;
 
 function rootForSlot(
@@ -388,9 +392,17 @@ function rootForSlot(
             [slot.slot]: textureInfo,
           },
         }
-      : {
-          [slot.slot]: textureInfo,
-        };
+      : slot.slot === "iridescenceThicknessTexture"
+        ? {
+            extensions: {
+              KHR_materials_iridescence: {
+                iridescenceThicknessTexture: textureInfo,
+              },
+            },
+          }
+        : {
+            [slot.slot]: textureInfo,
+          };
 
   return {
     asset: { version: "2.0" },

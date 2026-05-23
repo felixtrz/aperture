@@ -171,6 +171,7 @@ function standardResource(
       sheenColor: textureDependency(),
       sheenRoughness: textureDependency(),
       iridescence: textureDependency(),
+      iridescenceThickness: textureDependency(),
     },
   };
 }

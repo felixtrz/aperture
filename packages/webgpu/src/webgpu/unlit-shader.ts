@@ -30,6 +30,8 @@ export type BuiltInShaderBindingId =
   | "sheenRoughnessSampler"
   | "iridescenceTexture"
   | "iridescenceSampler"
+  | "iridescenceThicknessTexture"
+  | "iridescenceThicknessSampler"
   | "normalTexture"
   | "normalSampler"
   | "occlusionTexture"

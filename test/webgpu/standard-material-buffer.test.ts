@@ -118,6 +118,11 @@ describe("standard material WebGPU uniform packing", () => {
           "iridescence-sampler",
           1,
         ),
+        iridescenceThicknessTexture: textureBinding(
+          "iridescence-thickness",
+          "iridescence-thickness-sampler",
+          1,
+        ),
       }),
     );
 
@@ -133,7 +138,8 @@ describe("standard material WebGPU uniform packing", () => {
         STANDARD_MATERIAL_FEATURE_FLAGS.TRANSMISSION_TEXTURE |
         STANDARD_MATERIAL_FEATURE_FLAGS.SHEEN_COLOR_TEXTURE |
         STANDARD_MATERIAL_FEATURE_FLAGS.SHEEN_ROUGHNESS_TEXTURE |
-        STANDARD_MATERIAL_FEATURE_FLAGS.IRIDESCENCE_TEXTURE,
+        STANDARD_MATERIAL_FEATURE_FLAGS.IRIDESCENCE_TEXTURE |
+        STANDARD_MATERIAL_FEATURE_FLAGS.IRIDESCENCE_THICKNESS_TEXTURE,
     );
     expect(result.packed?.dependencies).toEqual({
       baseColor: {
@@ -186,6 +192,11 @@ describe("standard material WebGPU uniform packing", () => {
         samplerKey: "sampler:iridescence-sampler",
         texCoord: 1,
       },
+      iridescenceThickness: {
+        textureKey: "texture:iridescence-thickness",
+        samplerKey: "sampler:iridescence-thickness-sampler",
+        texCoord: 1,
+      },
     });
     expect(
       Array.from(result.packed?.uniformUint32.slice(13, 18) ?? []),
@@ -195,6 +206,7 @@ describe("standard material WebGPU uniform packing", () => {
     expect(result.packed?.uniformUint32[61]).toBe(1);
     expect(result.packed?.uniformUint32[62]).toBe(1);
     expect(result.packed?.uniformUint32[63]).toBe(1);
+    expect(result.packed?.uniformUint32[64]).toBe(1);
     expect(
       Array.from(result.packed?.uniformFloat32.slice(18, 22) ?? []),
     ).toEqual([0, 0, 1, 1]);
@@ -341,7 +353,10 @@ describe("standard material WebGPU uniform packing", () => {
     expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[63]).toBe(
       "sheenRoughnessTexCoord.u32",
     );
-    expect(STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH).toBe(256);
+    expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[64]).toBe(
+      "iridescenceThicknessTexCoord.u32",
+    );
+    expect(STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH).toBe(272);
   });
 
   it("packs textured alpha-mask flags and cutoff for shader discard", () => {
@@ -481,6 +496,7 @@ function invalidPacked(): PackedStandardMaterial {
       sheenColor: { textureKey: null, samplerKey: null, texCoord: 0 },
       sheenRoughness: { textureKey: null, samplerKey: null, texCoord: 0 },
       iridescence: { textureKey: null, samplerKey: null, texCoord: 0 },
+      iridescenceThickness: { textureKey: null, samplerKey: null, texCoord: 0 },
     },
   };
 }

@@ -220,6 +220,7 @@ export function prepareStandardAppTextureSamplerResources(
     options.material.sheenColorTexture,
     options.material.sheenRoughnessTexture,
     options.material.iridescenceTexture,
+    options.material.iridescenceThicknessTexture,
     options.material.normalTexture,
     options.material.occlusionTexture,
     options.material.emissiveTexture,

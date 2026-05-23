@@ -39,6 +39,7 @@ describe("glTF material mapping", () => {
       sheenRoughnessTexture: null,
       iridescenceFactor: 0,
       iridescenceTexture: null,
+      iridescenceThicknessTexture: null,
       iridescenceIor: 1.3,
       iridescenceThicknessMinimum: 100,
       iridescenceThicknessMaximum: 400,
@@ -301,7 +302,7 @@ describe("glTF material mapping", () => {
     });
   });
 
-  it("maps KHR_materials_iridescence iridescenceTexture and warns for remaining unsupported texture slots", () => {
+  it("maps KHR_materials_iridescence texture slots", () => {
     const report = createMaterialAssetFromGltfMaterial(
       {
         extensions: {
@@ -326,16 +327,12 @@ describe("glTF material mapping", () => {
         texture: createTextureHandle("texture-0"),
         sampler: createSamplerHandle("sampler-0"),
       },
-    });
-    expect(report.diagnostics).toMatchObject([
-      {
-        code: "gltfMaterial.unsupportedOptionalExtension",
-        severity: "warning",
-        field:
-          "extensions.KHR_materials_iridescence.iridescenceThicknessTexture",
-        extensionName: "KHR_materials_iridescence",
+      iridescenceThicknessTexture: {
+        texture: createTextureHandle("texture-1"),
+        sampler: createSamplerHandle("sampler-1"),
       },
-    ]);
+    });
+    expect(report.diagnostics).toEqual([]);
   });
 
   it("maps metallic-roughness texture slots through caller-provided handles", () => {

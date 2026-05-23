@@ -59,9 +59,10 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3108`: render texture-backed StandardMaterial iridescence thickness
-factors so `KHR_materials_iridescence.iridescenceThicknessTexture` can vary
-thin-film color per texel instead of remaining an unsupported extension slot.
+Start `task-3109`: render texture-backed StandardMaterial clearcoat roughness
+factors so `KHR_materials_clearcoat.clearcoatRoughnessTexture` can vary coating
+highlight sharpness per texel instead of remaining an unsupported extension
+slot.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -111,7 +112,9 @@ texture-backed sheen color and roughness sampling with shared-material panels
 whose high and low texels produce visibly different fabric response.
 `examples/iridescence.html` now proves texture-backed iridescence factor
 sampling with a shared-material tilted panel whose high and low texels produce
-visibly different thin-film response.
+visibly different thin-film response, and texture-backed iridescence thickness
+sampling with a second shared-material panel whose low and high thickness texels
+produce distinct thin-film color response.
 `examples/render-packet-inspector.html` now renders worker-authored packets and
 publishes JSON-safe views, draws, bounds, queue keys, handles, skipped-entity
 explanations, and culling stats. Extraction now builds camera frustum planes
@@ -141,7 +144,7 @@ shader/pipeline/resource/importer tests.
 Reference anchors (read before writing):
 
 - `references/engine/src/framework/parsers/glb-parser.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/iridescenceThickness.js`.
+- `references/three.js/src/renderers/shaders/ShaderChunk/lights_physical_fragment.glsl.js`.
 - `references/three.js/src/materials/MeshPhysicalMaterial.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
@@ -305,6 +308,8 @@ Acceptance criteria:
 - Targeted glTF material mapping, StandardMaterial shader/resource, and browser readback tests pass.
 
 ### task-3108 — Render texture-backed StandardMaterial iridescence thickness factors
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/render/src/materials/`, `packages/webgpu/src/webgpu/standard-*`, `examples/iridescence.*`, targeted tests.

@@ -15,7 +15,7 @@ import { WEBGPU_BUFFER_USAGE_FLAGS } from "./mesh-buffer-descriptors.js";
 import { materialUniformBufferResourceKey } from "./resource-keys.js";
 import { createStandardMaterialBindGroupDescriptorPlan } from "./standard-bind-group.js";
 
-export const STANDARD_MATERIAL_UNIFORM_FLOATS = 64;
+export const STANDARD_MATERIAL_UNIFORM_FLOATS = 68;
 export const STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH =
   STANDARD_MATERIAL_UNIFORM_FLOATS * Float32Array.BYTES_PER_ELEMENT;
 
@@ -84,6 +84,10 @@ export const STANDARD_MATERIAL_UNIFORM_LAYOUT = [
   "sheenColorTexCoord.u32",
   "iridescenceTexCoord.u32",
   "sheenRoughnessTexCoord.u32",
+  "iridescenceThicknessTexCoord.u32",
+  "padding6.u32",
+  "padding7.u32",
+  "padding8.u32",
 ] as const;
 
 export const STANDARD_MATERIAL_FEATURE_FLAGS = {
@@ -100,6 +104,7 @@ export const STANDARD_MATERIAL_FEATURE_FLAGS = {
   SHEEN_COLOR_TEXTURE: 1 << 10,
   IRIDESCENCE_TEXTURE: 1 << 11,
   SHEEN_ROUGHNESS_TEXTURE: 1 << 12,
+  IRIDESCENCE_THICKNESS_TEXTURE: 1 << 13,
 } as const;
 
 export type StandardMaterialFeatureFlag =
@@ -135,6 +140,7 @@ export interface StandardMaterialResourceDependencies {
   readonly sheenColor: StandardMaterialTextureDependency;
   readonly sheenRoughness: StandardMaterialTextureDependency;
   readonly iridescence: StandardMaterialTextureDependency;
+  readonly iridescenceThickness: StandardMaterialTextureDependency;
 }
 
 export interface PackedStandardMaterial {
@@ -285,6 +291,7 @@ export function packStandardMaterial(
   uniformUint32[61] = dependencies.sheenColor.texCoord;
   uniformUint32[62] = dependencies.iridescence.texCoord;
   uniformUint32[63] = dependencies.sheenRoughness.texCoord;
+  uniformUint32[64] = dependencies.iridescenceThickness.texCoord;
 
   return {
     valid: true,
@@ -481,6 +488,11 @@ function collectStandardMaterialDependencies(
       material.iridescenceTexture,
       diagnostics,
     ),
+    iridescenceThickness: textureDependency(
+      "iridescenceThicknessTexture",
+      material.iridescenceThicknessTexture,
+      diagnostics,
+    ),
   };
 }
 
@@ -559,6 +571,10 @@ function standardMaterialFeatureFlags(material: StandardMaterialAsset): number {
 
   if (material.iridescenceTexture !== null) {
     flags |= STANDARD_MATERIAL_FEATURE_FLAGS.IRIDESCENCE_TEXTURE;
+  }
+
+  if (material.iridescenceThicknessTexture !== null) {
+    flags |= STANDARD_MATERIAL_FEATURE_FLAGS.IRIDESCENCE_THICKNESS_TEXTURE;
   }
 
   if (material.renderState.alphaMode === "mask") {

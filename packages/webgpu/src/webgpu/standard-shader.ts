@@ -58,6 +58,7 @@ export interface StandardTextureShaderFeatures {
   readonly sheenColorTexture?: boolean;
   readonly sheenRoughnessTexture?: boolean;
   readonly iridescenceTexture?: boolean;
+  readonly iridescenceThicknessTexture?: boolean;
   readonly normalTexture: boolean;
   readonly occlusionTexture: boolean;
   readonly emissiveTexture: boolean;
@@ -109,6 +110,7 @@ export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
     "sheenRoughnessTexture",
     "iridescenceFactor",
     "iridescenceTexture",
+    "iridescenceThicknessTexture",
     "iridescenceIor",
     "iridescenceThicknessRange",
     "linearFog",
@@ -171,6 +173,7 @@ struct StandardMaterialUniform {
   sheenColorRoughnessFactor: vec4f,
   iridescenceFactorIorThickness: vec4f,
   transmissionTexCoordPadding: vec4u,
+  iridescenceThicknessTexCoordPadding: vec4u,
 };
 
 struct VertexInput {
@@ -878,6 +881,7 @@ export function createStandardTextureShaderVariantKey(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -904,6 +908,7 @@ export function createStandardTextureShaderVariantKey(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -931,6 +936,7 @@ export function createStandardTextureShaderVariantKey(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -957,6 +963,7 @@ export function createStandardTextureShaderVariantKey(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -982,6 +989,7 @@ export function createStandardTextureShaderVariantKey(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -1008,6 +1016,7 @@ export function createStandardTextureShaderVariantKey(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -1033,6 +1042,7 @@ export function createStandardTextureShaderVariantKey(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -1063,6 +1073,7 @@ export function createStandardTextureShaderVariantKey(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -1093,6 +1104,7 @@ export function createStandardTextureShaderVariantKey(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -1123,6 +1135,7 @@ export function createStandardTextureShaderVariantKey(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -1172,6 +1185,10 @@ export function createStandardTextureShaderVariantKey(
 
   if (features.iridescenceTexture === true) {
     names.push("iridescence-texture");
+  }
+
+  if (features.iridescenceThicknessTexture === true) {
+    names.push("iridescence-thickness-texture");
   }
 
   if (features.normalTexture) {
@@ -1257,6 +1274,10 @@ function createStandardTextureVariantWgsl(
     "sheenRoughness",
   );
   const iridescenceUv = standardTextureUvExpression(features, "iridescence");
+  const iridescenceThicknessUv = standardTextureUvExpression(
+    features,
+    "iridescenceThickness",
+  );
   const normalUv = standardTextureUvExpression(features, "normal");
   const occlusionUv = standardTextureUvExpression(features, "occlusion");
   const emissiveUv = standardTextureUvExpression(features, "emissive");
@@ -1451,6 +1472,7 @@ fn saturate(value: f32) -> f32 {`,
     features.transmissionTexture === true ||
     features.sheenColorTexture === true ||
     features.sheenRoughnessTexture === true ||
+    features.iridescenceThicknessTexture === true ||
     features.normalTexture ||
     features.occlusionTexture ||
     features.emissiveTexture
@@ -1680,6 +1702,10 @@ ${emissive}
         features.iridescenceTexture === true
           ? `textureSample(iridescenceTexture, iridescenceSampler, ${iridescenceUv}).r`
           : null,
+      thicknessTextureSample:
+        features.iridescenceThicknessTexture === true
+          ? `textureSample(iridescenceThicknessTexture, iridescenceThicknessSampler, ${iridescenceThicknessUv}).g`
+          : null,
     });
   }
 
@@ -1727,6 +1753,7 @@ function standardTextureUvExpression(
     | "sheenColor"
     | "sheenRoughness"
     | "iridescence"
+    | "iridescenceThickness"
     | "normal"
     | "occlusion"
     | "emissive",
@@ -1744,7 +1771,9 @@ function standardTextureUvExpression(
           ? "transmissionTexCoordPadding.z"
           : field === "sheenRoughness"
             ? "transmissionTexCoordPadding.w"
-            : `${field}TexCoord`;
+            : field === "iridescenceThickness"
+              ? "iridescenceThicknessTexCoordPadding.x"
+              : `${field}TexCoord`;
 
   return `standardTextureUv(material.${texCoordField}, input.uv, input.uv1)`;
 }
@@ -1802,6 +1831,13 @@ function standardTextureVariantDeclaration(
     declarations.push(
       "@group(2) @binding(17) var iridescenceTexture: texture_2d<f32>;",
       "@group(2) @binding(18) var iridescenceSampler: sampler;",
+    );
+  }
+
+  if (features.iridescenceThicknessTexture === true) {
+    declarations.push(
+      "@group(2) @binding(21) var iridescenceThicknessTexture: texture_2d<f32>;",
+      "@group(2) @binding(22) var iridescenceThicknessSampler: sampler;",
     );
   }
 
@@ -2019,6 +2055,25 @@ function standardTextureVariantBindings(
         label: "Iridescence sampler",
         group: 2,
         binding: 18,
+        resource: "sampler",
+      },
+    );
+  }
+
+  if (features.iridescenceThicknessTexture === true) {
+    bindings.push(
+      {
+        id: "iridescenceThicknessTexture",
+        label: "Iridescence thickness texture",
+        group: 2,
+        binding: 21,
+        resource: "texture",
+      },
+      {
+        id: "iridescenceThicknessSampler",
+        label: "Iridescence thickness sampler",
+        group: 2,
+        binding: 22,
         resource: "sampler",
       },
     );
@@ -2245,6 +2300,7 @@ function standardTextureVariantShaderLabel(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2314,6 +2370,7 @@ function standardTextureVariantShaderLabel(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2339,6 +2396,7 @@ function standardTextureVariantShaderLabel(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2365,6 +2423,7 @@ function standardTextureVariantShaderLabel(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2390,6 +2449,7 @@ function standardTextureVariantShaderLabel(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2414,6 +2474,7 @@ function standardTextureVariantShaderLabel(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2440,6 +2501,7 @@ function standardTextureVariantShaderLabel(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2465,6 +2527,7 @@ function standardTextureVariantShaderLabel(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2495,6 +2558,7 @@ function standardTextureVariantShaderLabel(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2525,6 +2589,7 @@ function standardTextureVariantShaderLabel(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2555,6 +2620,7 @@ function standardTextureVariantShaderLabel(
     features.sheenColorTexture !== true &&
     features.sheenRoughnessTexture !== true &&
     features.iridescenceTexture !== true &&
+    features.iridescenceThicknessTexture !== true &&
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
@@ -2612,6 +2678,10 @@ function standardTextureFeatureNames(
 
   if (features.iridescenceTexture === true) {
     names.push("iridescence-texture");
+  }
+
+  if (features.iridescenceThicknessTexture === true) {
+    names.push("iridescence-thickness-texture");
   }
 
   if (features.normalTexture) {
@@ -2720,6 +2790,7 @@ function hasStandardGenericOnlyFeature(
     features.sheen === true ||
     features.iridescence === true ||
     features.iridescenceTexture === true ||
+    features.iridescenceThicknessTexture === true ||
     hasStandardFogFeature(features)
   );
 }
@@ -2735,6 +2806,7 @@ function hasAnyStandardTextureFeature(
     features.sheenColorTexture === true ||
     features.sheenRoughnessTexture === true ||
     features.iridescenceTexture === true ||
+    features.iridescenceThicknessTexture === true ||
     features.normalTexture ||
     features.occlusionTexture ||
     features.emissiveTexture ||
@@ -2758,12 +2830,20 @@ function hasAnyStandardTextureFeature(
 
 function applyStandardIridescenceSampling(
   code: string,
-  options: { readonly textureSample: string | null } = { textureSample: null },
+  options: {
+    readonly textureSample: string | null;
+    readonly thicknessTextureSample?: string | null;
+  } = { textureSample: null, thicknessTextureSample: null },
 ): string {
   const iridescenceFactorExpression =
     options.textureSample === null
       ? "material.iridescenceFactorIorThickness.x"
       : `material.iridescenceFactorIorThickness.x * ${options.textureSample}`;
+  const iridescenceThicknessExpression =
+    options.thicknessTextureSample === undefined ||
+    options.thicknessTextureSample === null
+      ? "material.iridescenceFactorIorThickness.w"
+      : `mix(material.iridescenceFactorIorThickness.z, material.iridescenceFactorIorThickness.w, ${options.thicknessTextureSample})`;
 
   return code
     .replace(
@@ -2779,15 +2859,18 @@ fn evaluateDirectLight(
 `,
       `  roughness: f32,
   iridescence: f32,
+  iridescenceThickness: f32,
 `,
     )
-    .replace(/\n(\s*)roughness,\n/gu, "\n$1roughness,\n$1iridescence,\n")
+    .replace(
+      /\n(\s*)roughness,\n/gu,
+      "\n$1roughness,\n$1iridescence,\n$1iridescenceThickness,\n",
+    )
     .replace(
       `  let f0 = mix(vec3f(0.04), baseColor, vec3f(metallic));
   let fresnel = fresnelSchlick(max(dot(halfVector, viewDir), 0.0), f0);`,
       `  let f0 = mix(vec3f(0.04), baseColor, vec3f(metallic));
   let iridescenceIor = clamp(material.iridescenceFactorIorThickness.y, 1.0, 2.333);
-  let iridescenceThickness = clamp(material.iridescenceFactorIorThickness.w, 0.0, 1200.0);
   var fresnel = fresnelSchlick(max(dot(halfVector, viewDir), 0.0), f0);
   let iridescenceFresnel = standardIridescenceFresnel(
     max(dot(normal, viewDir), 0.0),
@@ -2802,7 +2885,6 @@ fn evaluateDirectLight(
   let fresnel = fresnelSchlick(max(dot(viewDir, lightDir), 0.0), f0);`,
       `  let f0 = mix(vec3f(0.04), baseColor, vec3f(metallic));
   let iridescenceIor = clamp(material.iridescenceFactorIorThickness.y, 1.0, 2.333);
-  let iridescenceThickness = clamp(material.iridescenceFactorIorThickness.w, 0.0, 1200.0);
   var fresnel = fresnelSchlick(max(dot(viewDir, lightDir), 0.0), f0);
   let iridescenceFresnel = standardIridescenceFresnel(
     max(dot(normal, viewDir), 0.0),
@@ -2817,14 +2899,16 @@ fn evaluateDirectLight(
   let roughness = clamp(material.roughnessFactor, 0.045, 1.0);`,
       `  let metallic = clamp(material.metallicFactor, 0.0, 1.0);
   let roughness = clamp(material.roughnessFactor, 0.045, 1.0);
-  let iridescence = clamp(${iridescenceFactorExpression}, 0.0, 1.0);`,
+  let iridescence = clamp(${iridescenceFactorExpression}, 0.0, 1.0);
+  let iridescenceThickness = clamp(${iridescenceThicknessExpression}, 0.0, 1200.0);`,
     )
     .replace(
       `  let metallic = clamp(material.metallicFactor * metallicRoughnessSample.b, 0.0, 1.0);
   let roughness = clamp(material.roughnessFactor * metallicRoughnessSample.g, 0.045, 1.0);`,
       `  let metallic = clamp(material.metallicFactor * metallicRoughnessSample.b, 0.0, 1.0);
   let roughness = clamp(material.roughnessFactor * metallicRoughnessSample.g, 0.045, 1.0);
-  let iridescence = clamp(${iridescenceFactorExpression}, 0.0, 1.0);`,
+  let iridescence = clamp(${iridescenceFactorExpression}, 0.0, 1.0);
+  let iridescenceThickness = clamp(${iridescenceThicknessExpression}, 0.0, 1200.0);`,
     );
 }
 

@@ -25,6 +25,7 @@ export type TextureSemantic =
   | "sheen-color"
   | "sheen-roughness"
   | "iridescence"
+  | "iridescence-thickness"
   | "metallic-roughness"
   | "normal"
   | "occlusion"
@@ -132,6 +133,7 @@ export interface StandardMaterialAsset extends BaseMaterialAsset {
   readonly sheenRoughnessTexture: MaterialTextureBinding | null;
   readonly iridescenceFactor: number;
   readonly iridescenceTexture: MaterialTextureBinding | null;
+  readonly iridescenceThicknessTexture: MaterialTextureBinding | null;
   readonly iridescenceIor: number;
   readonly iridescenceThicknessMinimum: number;
   readonly iridescenceThicknessMaximum: number;

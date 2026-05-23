@@ -85,6 +85,8 @@ export function createStandardMaterialBindGroupLayoutMetadata(
       samplerBinding(18, "iridescenceSampler"),
       textureBinding(19, "sheenRoughnessTexture"),
       samplerBinding(20, "sheenRoughnessSampler"),
+      textureBinding(21, "iridescenceThicknessTexture"),
+      samplerBinding(22, "iridescenceThicknessSampler"),
     ],
   };
 }

@@ -978,6 +978,12 @@ function textureSlotInfo(slot: GltfMaterialTextureSlot): {
         colorSpace: "data",
         format: "rgba8unorm",
       };
+    case "iridescenceThicknessTexture":
+      return {
+        semantic: "iridescence-thickness",
+        colorSpace: "data",
+        format: "rgba8unorm",
+      };
     case "metallicRoughnessTexture":
       return {
         semantic: "metallic-roughness",

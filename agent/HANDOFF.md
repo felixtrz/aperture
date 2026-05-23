@@ -1,6 +1,57 @@
 # Agent Handoff
 
-Updated: 2026-05-23T17:38:24Z
+Updated: 2026-05-23T18:03:03Z
+
+## Current Run Update — 2026-05-23T18:03:03Z — Texture-backed iridescence thickness factor
+
+Completed `task-3108`, the next post-Tier-20 reference-parity slice.
+
+### What changed
+
+- Added `iridescenceThicknessTexture` to the renderer-independent
+  StandardMaterial asset contract and mapped glTF
+  `KHR_materials_iridescence.iridescenceThicknessTexture` into that slot without
+  the old unsupported-extension warning.
+- Extended WebGPU StandardMaterial packing, bind group metadata, prepared
+  texture dependencies, pipeline feature keys, shader metadata, and WGSL so the
+  sampled thickness texture green channel interpolates between
+  `iridescenceThicknessMinimum` and `iridescenceThicknessMaximum` before
+  thin-film Fresnel evaluation.
+- Expanded `examples/iridescence.html` with a shared-material
+  texture-masked thickness panel. Browser status now publishes
+  `textureBackedThickness` and `thicknessContrast`, proving high and low
+  thickness texels produce visibly different thin-film response while the scalar
+  material setup is shared.
+- Updated the public tracker, render-pipeline comparison page, backlog,
+  current-task pointer, and completed-task log. Recommended next task is now
+  `task-3109`.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/gltf-texture.test.ts test/materials/standard-texture-readiness.test.ts test/materials/standard-proof-point.test.ts test/assets/gltf-asset-mapping.test.ts test/assets/gltf-source-registration-dependencies.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-bind-group.test.ts test/webgpu/standard-bind-group-layout.test.ts test/webgpu/standard-shader.test.ts test/webgpu/prepared-standard-material-cache.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec vitest run test/materials/gltf-material-texture-integration.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/app-texture-sampler-resources.test.ts test/webgpu/standard-material-resource-inspection.test.ts test/webgpu/standard-material-buffer-resource.test.ts`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/iridescence.spec.ts`
+- `pnpm run check:examples`
+- `pnpm exec prettier --check $(git diff --name-only --diff-filter=ACMRTUXB)`
+- Direct browser proof for
+  `http://127.0.0.1:4173/examples/iridescence.html`: status reported
+  `ok: true`, 4 mesh draws,
+  `standard|iridescence|iridescenceThicknessTexture|opaque|none|less|none`,
+  `textureBackedThickness: true`, and zero Aperture diagnostics.
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3109`, rendering texture-backed StandardMaterial clearcoat roughness
+factors so `KHR_materials_clearcoat.clearcoatRoughnessTexture` drives coating
+highlight sharpness per texel instead of remaining an unsupported extension
+slot.
 
 ## Current Run Update — 2026-05-23T17:38:24Z — Texture-backed sheen roughness factor
 

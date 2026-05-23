@@ -17,14 +17,23 @@ interface IridescenceStatus extends ExampleStatusBase {
     readonly baseMaterialKey: string;
     readonly filmMaterialKey: string;
     readonly texturedFilmMaterialKey: string;
+    readonly thicknessTexturedFilmMaterialKey: string;
     readonly iridescenceTextureKey: string;
+    readonly iridescenceThicknessTextureKey: string;
     readonly iridescenceSamplerKey: string;
     readonly iridescenceFactor: number;
     readonly iridescenceIor: number;
     readonly iridescenceThicknessMinimum: number;
     readonly iridescenceThicknessMaximum: number;
     readonly textureBackedFactor: boolean;
+    readonly textureBackedThickness: boolean;
     readonly textureContrast?: {
+      readonly ok: boolean;
+      readonly highLowDistance: number;
+      readonly lowLuminance: number;
+      readonly highLuminance: number;
+    } | null;
+    readonly thicknessContrast?: {
       readonly ok: boolean;
       readonly highLowDistance: number;
       readonly lowLuminance: number;
@@ -95,26 +104,34 @@ test("browser renders scalar iridescence with a distinct thin-film color shift",
       baseMaterialKey: "material:iridescence-base-material",
       filmMaterialKey: "material:iridescence-film-material",
       texturedFilmMaterialKey: "material:iridescence-textured-film-material",
+      thicknessTexturedFilmMaterialKey:
+        "material:iridescence-thickness-textured-film-material",
       iridescenceTextureKey: "texture:iridescence-factor-texture",
+      iridescenceThicknessTextureKey:
+        "texture:iridescence-thickness-factor-texture",
       iridescenceSamplerKey: "sampler:iridescence-factor-nearest",
       iridescenceFactor: 1,
       iridescenceIor: 1.3,
       iridescenceThicknessMinimum: 120,
       iridescenceThicknessMaximum: 560,
       textureBackedFactor: true,
+      textureBackedThickness: true,
       textureContrast: {
+        ok: true,
+      },
+      thicknessContrast: {
         ok: true,
       },
     },
     frame: {
       snapshot: {
         views: 1,
-        meshDraws: 3,
+        meshDraws: 4,
         lights: 2,
         diagnostics: 0,
       },
       counts: {
-        meshDraws: 3,
+        meshDraws: 4,
         diagnostics: 0,
       },
     },
@@ -134,6 +151,7 @@ test("browser renders scalar iridescence with a distinct thin-film color shift",
       "standard|opaque|none|less|none",
       "standard|iridescence|opaque|none|less|none",
       "standard|iridescence|iridescenceTexture|opaque|none|less|none",
+      "standard|iridescence|iridescenceThicknessTexture|opaque|none|less|none",
     ]),
   );
 
@@ -155,15 +173,20 @@ function assertIridescenceScreenshot(screenshot: Buffer): void {
   const filmPanel = readPngPixel(screenshot, 0.625, 0.5);
   const textureLow = readPngPixel(screenshot, 0.38, 0.78);
   const textureHigh = readPngPixel(screenshot, 0.66, 0.78);
+  const thicknessLow = readPngPixel(screenshot, 0.38, 0.92);
+  const thicknessHigh = readPngPixel(screenshot, 0.66, 0.92);
   const background = readPngPixel(screenshot, 0.5, 0.12);
 
   expect(pixelDistance(basePanel, clear)).toBeGreaterThan(24);
   expect(pixelDistance(filmPanel, clear)).toBeGreaterThan(24);
   expect(pixelDistance(textureLow, clear)).toBeGreaterThan(18);
   expect(pixelDistance(textureHigh, clear)).toBeGreaterThan(18);
+  expect(pixelDistance(thicknessLow, clear)).toBeGreaterThan(18);
+  expect(pixelDistance(thicknessHigh, clear)).toBeGreaterThan(18);
   expect(pixelDistance(background, clear)).toBeLessThan(12);
   expect(pixelDistance(filmPanel, basePanel)).toBeGreaterThan(70);
   expect(pixelDistance(textureHigh, textureLow)).toBeGreaterThan(28);
+  expect(pixelDistance(thicknessHigh, thicknessLow)).toBeGreaterThan(18);
   expect(filmPanel.g).toBeGreaterThan(filmPanel.r + 25);
   expect(filmPanel.b).toBeGreaterThan(filmPanel.r + 25);
 }

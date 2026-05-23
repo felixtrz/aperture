@@ -18,6 +18,7 @@ export type GltfMaterialTextureSlot =
   | "sheenColorTexture"
   | "sheenRoughnessTexture"
   | "iridescenceTexture"
+  | "iridescenceThicknessTexture"
   | "normalTexture"
   | "occlusionTexture"
   | "emissiveTexture";
@@ -353,6 +354,14 @@ export function createMaterialAssetFromGltfMaterial(
       resolver: options.resolveTextureBinding,
       diagnostics,
     }),
+    iridescenceThicknessTexture: mapTextureBinding({
+      materialKey,
+      slot: "iridescenceThicknessTexture",
+      field: `extensions.${IRIDESCENCE_EXTENSION}.iridescenceThicknessTexture`,
+      value: iridescenceSource?.iridescenceThicknessTexture,
+      resolver: options.resolveTextureBinding,
+      diagnostics,
+    }),
     iridescenceIor: mapFiniteNumber({
       materialKey,
       field: `extensions.${IRIDESCENCE_EXTENSION}.iridescenceIor`,
@@ -433,12 +442,6 @@ export function createMaterialAssetFromGltfMaterial(
     materialKey,
     diagnostics,
   );
-  inspectUnsupportedIridescenceTextures(
-    iridescenceSource,
-    materialKey,
-    diagnostics,
-  );
-
   return {
     valid: diagnostics.every((diagnostic) => diagnostic.severity !== "error"),
     material: mapped,
@@ -503,31 +506,6 @@ function inspectUnsupportedClearcoatTextures(
       field: `extensions.${CLEARCOAT_EXTENSION}.${field}`,
       extensionName: CLEARCOAT_EXTENSION,
       message: `${CLEARCOAT_EXTENSION}.${field} is preserved in source data but current clearcoat rendering only samples clearcoatTexture.`,
-    });
-  }
-}
-
-function inspectUnsupportedIridescenceTextures(
-  iridescenceSource: Record<string, unknown> | undefined,
-  materialKey: string,
-  diagnostics: GltfMaterialMappingDiagnostic[],
-): void {
-  if (iridescenceSource === undefined) {
-    return;
-  }
-
-  for (const field of ["iridescenceThicknessTexture"] as const) {
-    if (iridescenceSource[field] === undefined) {
-      continue;
-    }
-
-    diagnostics.push({
-      code: "gltfMaterial.unsupportedOptionalExtension",
-      severity: "warning",
-      materialKey,
-      field: `extensions.${IRIDESCENCE_EXTENSION}.${field}`,
-      extensionName: IRIDESCENCE_EXTENSION,
-      message: `${IRIDESCENCE_EXTENSION}.${field} is preserved in source data but current iridescence rendering only samples iridescenceTexture.`,
     });
   }
 }

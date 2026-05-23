@@ -80,6 +80,7 @@ const STANDARD_SAMPLER_TEXTURE_FIELDS = [
   "sheenColorTexture",
   "sheenRoughnessTexture",
   "iridescenceTexture",
+  "iridescenceThicknessTexture",
   "normalTexture",
   "occlusionTexture",
   "emissiveTexture",

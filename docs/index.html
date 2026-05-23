@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 17:38 UTC</dd>
+            <dd>2026-05-23 18:03 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1449,11 +1449,13 @@
               multiply scalar sheen color per texel, and texture-backed sheen
               roughness factors now sample alpha as a per-texel multiplier for
               scalar fabric roughness. Texture-backed iridescence factors now
-              multiply scalar thin-film response per texel in
+              multiply scalar thin-film response per texel, and iridescence
+              thickness textures now sample the green channel to interpolate the
+              nanometer thickness range in
               <code>examples/iridescence.html</code>.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3108: texture-backed iridescence thickness factors</dd>
+            <dd>task-3109: texture-backed clearcoat roughness factors</dd>
           </dl>
         </aside>
       </header>
@@ -1488,9 +1490,9 @@
           </article>
           <article class="card metric">
             <div class="label">render pipeline</div>
-            <div class="value">91%</div>
-            <div class="bar" aria-label="91 percent complete">
-              <span style="width: 91%"></span>
+            <div class="value">92%</div>
+            <div class="bar" aria-label="92 percent complete">
+              <span style="width: 92%"></span>
             </div>
             <p>
               The ECS-to-WebGPU spine is usable, app route reporting runs
@@ -1538,9 +1540,9 @@
           </article>
           <article class="card metric">
             <div class="label">material system</div>
-            <div class="value">62%</div>
-            <div class="bar" aria-label="62 percent complete">
-              <span style="width: 62%"></span>
+            <div class="value">63%</div>
+            <div class="bar" aria-label="63 percent complete">
+              <span style="width: 63%"></span>
             </div>
             <p>
               Unlit, Matcap, DebugNormal, and direct-lit StandardMaterial paths
@@ -1849,9 +1851,9 @@
           <article class="phase">
             <div class="topline">
               <h3>2. collect</h3>
-              <span class="percent">96%</span>
+              <span class="percent">97%</span>
             </div>
-            <div class="bar"><span style="width: 96%"></span></div>
+            <div class="bar"><span style="width: 97%"></span></div>
             <p>
               Asset readiness and source-version dependency summaries exist for
               meshes, materials, textures, and samplers. GLB-shaped invalid
@@ -1908,8 +1910,11 @@
                 <code>KHR_materials_transmission.transmissionTexture</code>,
                 <code>KHR_materials_sheen.sheenColorTexture</code>,
                 <code>KHR_materials_sheen.sheenRoughnessTexture</code>, and
-                <code>KHR_materials_iridescence.iridescenceTexture</code> now
-                map to rendered StandardMaterial texture slots instead of
+                <code>KHR_materials_iridescence.iridescenceTexture</code> plus
+                <code
+                  >KHR_materials_iridescence.iridescenceThicknessTexture</code
+                >
+                now map to rendered StandardMaterial texture slots instead of
                 unsupported-extension warnings.
               </li>
               <li>Missing broader automatic unload policy integration.</li>
@@ -2045,10 +2050,10 @@
                 Missing app-level generic material adapter route boundary.
               </li>
               <li>
-                Missing remaining PBR extension texture slots for iridescence
-                thickness and clearcoat roughness beyond the rendered clearcoat,
-                transmission, sheen color, sheen roughness, and iridescence
-                factor slots.
+                Missing remaining PBR extension texture slot for clearcoat
+                roughness beyond the rendered clearcoat, transmission, sheen
+                color, sheen roughness, iridescence factor, and iridescence
+                thickness slots.
               </li>
               <li>
                 Missing IBL, shadow, render-target, and hot-path scratch polish.
@@ -2191,17 +2196,18 @@
               glass proof can show glossy and rough transmitted background
               detail without exposing ECS scene state. Texture-backed
               transmission factors, sheen color factors, sheen roughness
-              factors, and iridescence factors now bind through the
-              StandardMaterial group-2 texture path and multiply scalar factors
-              per texel. <code>createWebGpuApp({ msaa })</code> now renders
-              forward passes through cached multisampled color/depth
-              attachments, resolves to the swapchain or off-screen target, and
-              keys built-in pipelines by effective sample count.
+              factors, iridescence factors, and iridescence thickness factors
+              now bind through the StandardMaterial group-2 texture path and
+              multiply or interpolate scalar factors per texel.
+              <code>createWebGpuApp({ msaa })</code> now renders forward passes
+              through cached multisampled color/depth attachments, resolves to
+              the swapchain or off-screen target, and keys built-in pipelines by
+              effective sample count.
             </p>
             <ul>
               <li>
                 Missing remaining texture-backed StandardMaterial PBR extension
-                resources for iridescence thickness and clearcoat roughness.
+                resources for clearcoat roughness.
               </li>
               <li>
                 Missing broader environment asset preparation and previous
@@ -4493,7 +4499,7 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Render texture-backed
-                StandardMaterial iridescence thickness factors.
+                StandardMaterial clearcoat roughness factors.
               </li>
               <li>
                 SSAO now uses a PlayCanvas-style spiral AO shader with
@@ -4509,8 +4515,9 @@
                 transmission grab-pass refraction and generic snapshot
                 change-set scheduling plus a deterministic transparent ordering
                 proof plus texture-backed transmission, sheen color, sheen
-                roughness, and iridescence factors. It continues with
-                texture-backed iridescence thickness factors.
+                roughness, iridescence factors, and iridescence thickness
+                factors. It continues with texture-backed clearcoat roughness
+                factors.
               </li>
             </ul>
           </article>
@@ -4523,6 +4530,25 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3108</div>
+            <div>
+              <strong>Texture-backed iridescence thickness shipped.</strong>
+              <span>
+                StandardMaterial now maps
+                <code
+                  >KHR_materials_iridescence.iridescenceThicknessTexture</code
+                >
+                into a renderer-independent iridescence thickness texture slot,
+                prepares the texture/sampler through the WebGPU material route,
+                and samples the green channel to interpolate the thin-film
+                thickness range per texel.
+                <code>examples/iridescence.html</code> proves low and high
+                thickness texels produce visibly different shared-material
+                response.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3107</div>
             <div>

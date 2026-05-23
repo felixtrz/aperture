@@ -4,7 +4,11 @@ export const iridescenceTextureMeshId = "iridescence-texture-panel-mesh";
 export const baseMaterialId = "iridescence-base-material";
 export const filmMaterialId = "iridescence-film-material";
 export const texturedFilmMaterialId = "iridescence-textured-film-material";
+export const thicknessTexturedFilmMaterialId =
+  "iridescence-thickness-textured-film-material";
 export const iridescenceTextureId = "iridescence-factor-texture";
+export const iridescenceThicknessTextureId =
+  "iridescence-thickness-factor-texture";
 export const iridescenceSamplerId = "iridescence-factor-nearest";
 
 export const iridescenceReadbackSamples = [
@@ -12,6 +16,8 @@ export const iridescenceReadbackSamples = [
   { id: "film-highlight", x: 0.625, y: 0.5 },
   { id: "texture-low", x: 0.38, y: 0.78 },
   { id: "texture-high", x: 0.66, y: 0.78 },
+  { id: "thickness-low", x: 0.38, y: 0.92 },
+  { id: "thickness-high", x: 0.66, y: 0.92 },
   { id: "background", x: 0.5, y: 0.12 },
 ];
 
@@ -23,7 +29,13 @@ export function registerIridescenceScene(aperture, registry) {
   const texturedFilmMaterial = aperture.createMaterialHandle(
     texturedFilmMaterialId,
   );
+  const thicknessTexturedFilmMaterial = aperture.createMaterialHandle(
+    thicknessTexturedFilmMaterialId,
+  );
   const iridescenceTexture = aperture.createTextureHandle(iridescenceTextureId);
+  const iridescenceThicknessTexture = aperture.createTextureHandle(
+    iridescenceThicknessTextureId,
+  );
   const iridescenceSampler = aperture.createSamplerHandle(iridescenceSamplerId);
 
   registry.register(mesh);
@@ -59,6 +71,24 @@ export function registerIridescenceScene(aperture, registry) {
       usage: ["sampled", "copy-dst"],
       sourceData: {
         bytes: new Uint8Array([0, 0, 0, 255, 255, 0, 0, 255]),
+        bytesPerRow: 8,
+      },
+    }),
+  );
+  registry.register(iridescenceThicknessTexture);
+  registry.markReady(
+    iridescenceThicknessTexture,
+    aperture.createTextureAsset({
+      label: "IridescenceThicknessTexture",
+      dimension: "2d",
+      width: 2,
+      height: 1,
+      format: "rgba8unorm",
+      colorSpace: "data",
+      semantic: "iridescence-thickness",
+      usage: ["sampled", "copy-dst"],
+      sourceData: {
+        bytes: new Uint8Array([0, 0, 0, 255, 0, 255, 0, 255]),
         bytesPerRow: 8,
       },
     }),
@@ -121,6 +151,25 @@ export function registerIridescenceScene(aperture, registry) {
       renderState: { cullMode: "none" },
     }),
   );
+  registry.register(thicknessTexturedFilmMaterial);
+  registry.markReady(
+    thicknessTexturedFilmMaterial,
+    aperture.createStandardMaterialAsset({
+      label: "ThicknessTexturedSoapFilmIridescence",
+      baseColorFactor: new Float32Array([0.045, 0.07, 0.105, 1]),
+      metallicFactor: 0,
+      roughnessFactor: 0.18,
+      iridescenceFactor: 1,
+      iridescenceThicknessTexture: {
+        texture: iridescenceThicknessTexture,
+        sampler: iridescenceSampler,
+      },
+      iridescenceIor: 1.3,
+      iridescenceThicknessMinimum: 120,
+      iridescenceThicknessMaximum: 560,
+      renderState: { cullMode: "none" },
+    }),
+  );
 
   return {
     mesh,
@@ -128,14 +177,22 @@ export function registerIridescenceScene(aperture, registry) {
     baseMaterial,
     filmMaterial,
     texturedFilmMaterial,
+    thicknessTexturedFilmMaterial,
     iridescenceTexture,
+    iridescenceThicknessTexture,
     iridescenceSampler,
     meshKey: aperture.assetHandleKey(mesh),
     textureMeshKey: aperture.assetHandleKey(textureMesh),
     baseMaterialKey: aperture.assetHandleKey(baseMaterial),
     filmMaterialKey: aperture.assetHandleKey(filmMaterial),
     texturedFilmMaterialKey: aperture.assetHandleKey(texturedFilmMaterial),
+    thicknessTexturedFilmMaterialKey: aperture.assetHandleKey(
+      thicknessTexturedFilmMaterial,
+    ),
     iridescenceTextureKey: aperture.assetHandleKey(iridescenceTexture),
+    iridescenceThicknessTextureKey: aperture.assetHandleKey(
+      iridescenceThicknessTexture,
+    ),
     iridescenceSamplerKey: aperture.assetHandleKey(iridescenceSampler),
     samples: iridescenceReadbackSamples,
   };
