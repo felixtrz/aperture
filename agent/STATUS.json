@@ -6,6 +6,6 @@
   "lastResult": "stop-condition",
   "lastCommit": "35b14fc",
   "activePid": null,
-  "notes": "No implementation started because the run began after the minute-50 stop gate; next task remains task-3098.",
-  "lastRunFinishedAt": "2026-05-23T06:54:30Z"
+  "notes": "No implementation started because the resumed run began after the minute-50 stop gate; next task remains task-3098.",
+  "lastRunFinishedAt": "2026-05-23T06:56:03Z"
 }

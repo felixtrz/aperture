@@ -1,6 +1,25 @@
 # Agent Handoff
 
-Updated: 2026-05-23T06:54:14Z
+Updated: 2026-05-23T06:55:31Z
+
+## Current Run Update — 2026-05-23T06:55:31Z — Continuation hit stop gate
+
+The active render-pipeline goal was resumed, but no implementation was started
+because the run began after the minute-50 stop gate (`:55` local minute). The
+working tree was clean on `main...origin/main`, `agent/STATUS.json` was already
+idle, and `task-3098` remains the next implementation slice toward the
+three.js/PlayCanvas render-pipeline parity goal.
+
+### Validation
+
+- `git status --short --branch`
+- `date '+%Y-%m-%dT%H:%M:%S%z %M'`
+
+### Recommended next task
+
+Start `task-3098`, executing PMREM-generated specular IBL resources through the
+app path so StandardMaterial specular IBL no longer relies on the deterministic
+proof-upload placeholder.
 
 ## Current Run Update — 2026-05-23T06:54:14Z — Minute-50 stop gate
 
