@@ -71,6 +71,28 @@ describe("draw command descriptor planning", () => {
     });
   });
 
+  it("uses submesh draw ranges from render packets", () => {
+    const result = createDrawCommandDescriptors(
+      [
+        drawPackage(1, "mesh:a", "unlit", {
+          vertexStart: 4,
+          vertexCount: 8,
+          indexStart: 6,
+          indexCount: 12,
+        }),
+      ],
+      [meshResource("mesh:a", true)],
+    );
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.descriptors[0]).toMatchObject({
+      vertexStart: 4,
+      vertexCount: 8,
+      indexStart: 6,
+      indexCount: 12,
+    });
+  });
+
   it("reports missing mesh resources", () => {
     expect(
       createDrawCommandDescriptors([drawPackage(1, "mesh:missing")], [])

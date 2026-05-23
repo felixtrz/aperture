@@ -229,6 +229,83 @@ describe("material family render queue", () => {
     expect(plan.items.map((item) => item.renderId)).toEqual([11, 12]);
   });
 
+  it("emits separate queue items for one mesh with material-slot ranges", () => {
+    const snapshot = renderSnapshot([
+      drawPacket({
+        renderId: 21,
+        materialFamily: "unlit",
+        meshId: "panel",
+        materialId: "left",
+        submesh: 0,
+        materialSlot: 0,
+        vertexStart: 0,
+        vertexCount: 4,
+        indexStart: 0,
+        indexCount: 6,
+      }),
+      drawPacket({
+        renderId: 22,
+        materialFamily: "unlit",
+        meshId: "panel",
+        materialId: "right",
+        submesh: 1,
+        materialSlot: 1,
+        vertexStart: 4,
+        vertexCount: 4,
+        indexStart: 6,
+        indexCount: 6,
+      }),
+    ]);
+    const plan = buildMaterialQueueFromSnapshot(snapshot, resourceResolvers());
+
+    expect(plan.diagnostics).toEqual([]);
+    expect(
+      plan.items.map((item) => ({
+        renderId: item.renderId,
+        meshKey: item.meshKey,
+        materialKey: item.materialKey,
+        submesh: item.submesh,
+        materialSlot: item.materialSlot,
+        vertexStart: item.vertexStart,
+        vertexCount: item.vertexCount,
+        indexStart: item.indexStart,
+        indexCount: item.indexCount,
+        sortKey: item.sortKey,
+      })),
+    ).toMatchObject([
+      {
+        renderId: 21,
+        meshKey: "mesh:panel",
+        materialKey: "material:left",
+        submesh: 0,
+        materialSlot: 0,
+        vertexStart: 0,
+        vertexCount: 4,
+        indexStart: 0,
+        indexCount: 6,
+        sortKey: {
+          materialResourceKey: "gpu-material:material:left",
+          meshResourceKey: "gpu-mesh:mesh:panel",
+        },
+      },
+      {
+        renderId: 22,
+        meshKey: "mesh:panel",
+        materialKey: "material:right",
+        submesh: 1,
+        materialSlot: 1,
+        vertexStart: 4,
+        vertexCount: 4,
+        indexStart: 6,
+        indexCount: 6,
+        sortKey: {
+          materialResourceKey: "gpu-material:material:right",
+          meshResourceKey: "gpu-mesh:mesh:panel",
+        },
+      },
+    ]);
+  });
+
   it("sorts derived queue items without mutating the source snapshot", () => {
     const snapshot = renderSnapshot([
       drawPacket({
@@ -691,6 +768,12 @@ function drawPacket(options: {
   readonly depth?: number;
   readonly stableId?: number;
   readonly meshLayoutKey?: string;
+  readonly submesh?: number;
+  readonly materialSlot?: number;
+  readonly vertexStart?: number;
+  readonly vertexCount?: number;
+  readonly indexStart?: number;
+  readonly indexCount?: number;
 }): MeshDrawPacket {
   const renderId = options.renderId;
   const meshId = options.meshId ?? "cube";
@@ -707,8 +790,20 @@ function drawPacket(options: {
     entity: { index: renderId, generation: 1 },
     mesh: createMeshHandle(meshId),
     material: createMaterialHandle(materialId),
-    submesh: 0,
-    materialSlot: 0,
+    submesh: options.submesh ?? 0,
+    materialSlot: options.materialSlot ?? 0,
+    ...(options.vertexStart === undefined
+      ? {}
+      : { vertexStart: options.vertexStart }),
+    ...(options.vertexCount === undefined
+      ? {}
+      : { vertexCount: options.vertexCount }),
+    ...(options.indexStart === undefined
+      ? {}
+      : { indexStart: options.indexStart }),
+    ...(options.indexCount === undefined
+      ? {}
+      : { indexCount: options.indexCount }),
     worldTransformOffset: renderId * 16,
     boundsIndex: -1,
     layerMask: 1,

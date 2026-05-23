@@ -7,6 +7,7 @@ import {
 import {
   assetHandleKey,
   type EnvironmentMapHandle,
+  type MaterialHandle,
   type SamplerHandle,
   type TextureHandle,
 } from "@aperture-engine/simulation";
@@ -118,6 +119,15 @@ export interface OcclusionQueryInput {
   readonly enabled?: boolean;
 }
 
+export interface MaterialSlotBindingInput {
+  readonly slot: number;
+  readonly material: MaterialHandle;
+}
+
+export interface MaterialSlotsInput {
+  readonly slots: readonly MaterialSlotBindingInput[];
+}
+
 export interface InstanceTintInput {
   readonly color?: Vec4Like;
 }
@@ -184,6 +194,14 @@ export const Material = defineComponent(
     materialId: { type: EcsType.String, default: "" },
   },
   "Renderer-independent material authoring component that stores a material asset handle id only.",
+);
+
+export const MaterialSlots = defineComponent(
+  "aperture.render.materialSlots",
+  {
+    slotsJson: { type: EcsType.String, default: "[]" },
+  },
+  "Renderer-independent material slot overrides for multi-submesh mesh draws.",
 );
 
 export const Sprite = defineComponent(
@@ -379,6 +397,7 @@ export const LightShadowSettings = defineComponent(
 export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(Mesh);
   world.registerComponent(Material);
+  world.registerComponent(MaterialSlots);
   world.registerComponent(Sprite);
   world.registerComponent(Skybox);
   world.registerComponent(Fog);
@@ -507,6 +526,19 @@ export function createOcclusionQuery(
 ): ComponentInitialData<typeof OcclusionQuery> {
   return {
     enabled: input.enabled ?? true,
+  };
+}
+
+export function createMaterialSlots(
+  input: MaterialSlotsInput,
+): ComponentInitialData<typeof MaterialSlots> {
+  return {
+    slotsJson: JSON.stringify(
+      input.slots.map((slot) => ({
+        slot: Math.trunc(slot.slot),
+        materialId: assetHandleKey(slot.material),
+      })),
+    ),
   };
 }
 

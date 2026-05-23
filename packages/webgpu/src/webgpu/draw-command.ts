@@ -25,8 +25,10 @@ export interface DrawCommandDescriptor {
   readonly materialResourceKey: string;
   readonly vertexBufferKeys: readonly string[];
   readonly vertexCount: number;
+  readonly vertexStart?: number;
   readonly indexBufferKey: string | null;
   readonly indexCount: number | null;
+  readonly indexStart?: number | null;
   readonly transformPackedOffset: number;
   readonly occlusionQuery?: boolean;
 }
@@ -57,8 +59,10 @@ interface MutableDrawCommandDescriptor {
   materialResourceKey: string;
   vertexBufferKeys: string[];
   vertexCount: number;
+  vertexStart: number;
   indexBufferKey: string | null;
   indexCount: number | null;
+  indexStart: number | null;
   transformPackedOffset: number;
   occlusionQuery?: boolean;
 }
@@ -158,9 +162,17 @@ export function writeDrawCommandDescriptors(
       continue;
     }
 
-    descriptor.vertexCount = mesh.vertexCount;
+    descriptor.vertexCount = drawPackage.packet.vertexCount ?? mesh.vertexCount;
+    descriptor.vertexStart = drawPackage.packet.vertexStart ?? 0;
     descriptor.indexBufferKey = mesh.indexBuffer?.resourceKey ?? null;
-    descriptor.indexCount = mesh.indexBuffer?.indexCount ?? null;
+    descriptor.indexCount =
+      mesh.indexBuffer === undefined
+        ? null
+        : (drawPackage.packet.indexCount ?? mesh.indexBuffer.indexCount);
+    descriptor.indexStart =
+      mesh.indexBuffer === undefined
+        ? null
+        : (drawPackage.packet.indexStart ?? 0);
     descriptor.transformPackedOffset = drawPackage.transformPackedOffset;
     if (drawPackage.packet.occlusionQuery === true) {
       descriptor.occlusionQuery = true;
@@ -277,8 +289,10 @@ function createEmptyDescriptor(): MutableDrawCommandDescriptor {
     materialResourceKey: "",
     vertexBufferKeys: [],
     vertexCount: 0,
+    vertexStart: 0,
     indexBufferKey: null,
     indexCount: null,
+    indexStart: null,
     transformPackedOffset: 0,
   };
 }

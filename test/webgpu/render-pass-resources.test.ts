@@ -84,6 +84,31 @@ describe("render pass resource resolution", () => {
     });
   });
 
+  it("preserves submesh range metadata during resource resolution", () => {
+    const result = resolveRenderPassResources({
+      drawList: [
+        {
+          ...drawListRecord(1),
+          vertexStart: 4,
+          vertexCount: 8,
+          indexStart: 6,
+          indexCount: 12,
+        },
+      ],
+      pipelines: [pipeline("pipeline:unlit")],
+      bindGroups: bindGroups(),
+      meshResources: [meshResource(1)],
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.draws[0]).toMatchObject({
+      vertexStart: 4,
+      vertexCount: 8,
+      indexStart: 6,
+      indexCount: 12,
+    });
+  });
+
   it("diagnoses missing pipeline handles", () => {
     const result = resolveRenderPassResources({
       drawList: [drawListRecord(1)],

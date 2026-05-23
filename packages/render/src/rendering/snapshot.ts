@@ -52,6 +52,10 @@ export interface MeshDrawPacket {
   readonly material: MaterialHandle;
   readonly submesh: number;
   readonly materialSlot: number;
+  readonly vertexStart?: number;
+  readonly vertexCount?: number;
+  readonly indexStart?: number;
+  readonly indexCount?: number;
   readonly worldTransformOffset: number;
   readonly instanceTintOffset?: number;
   readonly instanceAttributePacketIndex?: number;

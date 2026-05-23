@@ -27,6 +27,12 @@ export interface RenderQueueRecord {
   readonly passId: string;
   readonly queueKind: RenderQueueKind;
   readonly packet: RenderWorldReadyDraw["packet"];
+  readonly submesh: number;
+  readonly materialSlot: number;
+  readonly vertexStart?: number;
+  readonly vertexCount?: number;
+  readonly indexStart?: number;
+  readonly indexCount?: number;
   readonly meshResourceKey: string;
   readonly materialResourceKey: string;
   readonly pipelineKey: string;
@@ -102,6 +108,12 @@ interface MutableRenderQueueRecord {
   passId: string;
   queueKind: RenderQueueKind;
   packet: RenderWorldReadyDraw["packet"];
+  submesh: number;
+  materialSlot: number;
+  vertexStart?: number;
+  vertexCount?: number;
+  indexStart?: number;
+  indexCount?: number;
   meshResourceKey: string;
   materialResourceKey: string;
   pipelineKey: string;
@@ -232,6 +244,12 @@ export function writeUnsortedRenderQueueRecords(
     record.queueKind =
       queueKindOverride ?? renderQueueKindFromSortKey(draw.packet.sortKey);
     record.packet = draw.packet;
+    record.submesh = draw.packet.submesh;
+    record.materialSlot = draw.packet.materialSlot;
+    assignOptionalNumber(record, "vertexStart", draw.packet.vertexStart);
+    assignOptionalNumber(record, "vertexCount", draw.packet.vertexCount);
+    assignOptionalNumber(record, "indexStart", draw.packet.indexStart);
+    assignOptionalNumber(record, "indexCount", draw.packet.indexCount);
     record.meshResourceKey = draw.meshResourceKey;
     record.materialResourceKey = draw.materialResourceKey;
     record.pipelineKey = draw.batchKey.pipelineKey;
@@ -415,6 +433,7 @@ function canCoalesceRenderQueueRecord(
     previous.materialKey === record.materialKey &&
     previous.meshLayoutKey === record.meshLayoutKey &&
     batchKeysMatch(previous.batchKey, record.batchKey) &&
+    drawRangesMatch(previous, record) &&
     previous.transformPackedOffset + previous.instanceCount * 16 ===
       record.transformPackedOffset
   );
@@ -477,6 +496,49 @@ function batchKeysMatch(
   );
 }
 
+function drawRangesMatch(
+  a: Pick<
+    RenderQueueRecord,
+    | "submesh"
+    | "materialSlot"
+    | "vertexStart"
+    | "vertexCount"
+    | "indexStart"
+    | "indexCount"
+  >,
+  b: Pick<
+    RenderQueueRecord,
+    | "submesh"
+    | "materialSlot"
+    | "vertexStart"
+    | "vertexCount"
+    | "indexStart"
+    | "indexCount"
+  >,
+): boolean {
+  return (
+    a.submesh === b.submesh &&
+    a.materialSlot === b.materialSlot &&
+    a.vertexStart === b.vertexStart &&
+    a.vertexCount === b.vertexCount &&
+    a.indexStart === b.indexStart &&
+    a.indexCount === b.indexCount
+  );
+}
+
+function assignOptionalNumber<T extends object, K extends keyof T>(
+  target: T,
+  key: K,
+  value: number | undefined,
+): void {
+  if (value === undefined) {
+    delete target[key];
+    return;
+  }
+
+  target[key] = value as T[K];
+}
+
 function recordAt(
   scratch: RenderQueueScratch,
   index: number,
@@ -523,6 +585,8 @@ function createEmptyRecord(): MutableRenderQueueRecord {
     passId: DEFAULT_RENDER_QUEUE_PASS_ID,
     queueKind: "opaque",
     packet: null as unknown as RenderWorldReadyDraw["packet"],
+    submesh: 0,
+    materialSlot: 0,
     meshResourceKey: "",
     materialResourceKey: "",
     pipelineKey: "",

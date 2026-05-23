@@ -175,6 +175,60 @@ describe("render pass draw list planning", () => {
     expect(plan.draws.map((draw) => draw.occlusionQuery)).toEqual([true, true]);
   });
 
+  it("does not coalesce compatible commands with different submesh ranges", () => {
+    const plan = planRenderPassDrawList({
+      drawCommands: [
+        drawCommand(1, {
+          meshResourceKey: "mesh:cube",
+          vertexBufferKeys: ["mesh:cube/vertex"],
+          indexBufferKey: "mesh:cube/index",
+          indexStart: 0,
+          indexCount: 6,
+          transformPackedOffset: 0,
+        }),
+        drawCommand(2, {
+          meshResourceKey: "mesh:cube",
+          vertexBufferKeys: ["mesh:cube/vertex"],
+          indexBufferKey: "mesh:cube/index",
+          indexStart: 6,
+          indexCount: 6,
+          transformPackedOffset: 16,
+        }),
+      ],
+      pipelines: [pipeline("pipeline:unlit")],
+      bindGroups: bindGroups("material:white"),
+    });
+
+    expect(plan.valid).toBe(true);
+    expect(plan.draws).toMatchObject([
+      { renderId: 1, indexStart: 0, indexCount: 6, instanceCount: 1 },
+      { renderId: 2, indexStart: 6, indexCount: 6, instanceCount: 1 },
+    ]);
+  });
+
+  it("preserves submesh ranges on draw records", () => {
+    const plan = planRenderPassDrawList({
+      drawCommands: [
+        drawCommand(1, {
+          vertexStart: 4,
+          vertexCount: 8,
+          indexStart: 6,
+          indexCount: 12,
+        }),
+      ],
+      pipelines: [pipeline("pipeline:unlit")],
+      bindGroups: bindGroups("material:white"),
+    });
+
+    expect(plan.valid).toBe(true);
+    expect(plan.draws[0]).toMatchObject({
+      vertexStart: 4,
+      vertexCount: 8,
+      indexStart: 6,
+      indexCount: 12,
+    });
+  });
+
   it("prefers pipeline-specific shared bind groups when present", () => {
     const plan = planRenderPassDrawList({
       drawCommands: [
@@ -425,11 +479,17 @@ function drawCommand(
     materialResourceKey: overrides.materialResourceKey ?? "material:white",
     vertexBufferKeys: overrides.vertexBufferKeys ?? [`mesh:${renderId}/vertex`],
     vertexCount: overrides.vertexCount ?? 24,
+    ...(overrides.vertexStart === undefined
+      ? {}
+      : { vertexStart: overrides.vertexStart }),
     indexBufferKey:
       overrides.indexBufferKey === undefined
         ? `mesh:${renderId}/index`
         : overrides.indexBufferKey,
     indexCount: overrides.indexCount ?? 6,
+    ...(overrides.indexStart === undefined
+      ? {}
+      : { indexStart: overrides.indexStart }),
     transformPackedOffset: overrides.transformPackedOffset ?? renderId * 16,
     ...(overrides.occlusionQuery === true ? { occlusionQuery: true } : {}),
   };

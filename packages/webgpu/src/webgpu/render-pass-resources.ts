@@ -50,8 +50,10 @@ export interface ResolvedRenderPassDraw {
   readonly bindGroups: readonly ResolvedRenderPassBindGroup[];
   readonly vertexBuffers: readonly ResolvedRenderPassVertexBuffer[];
   readonly vertexCount: number;
+  readonly vertexStart?: number;
   readonly indexBuffer: ResolvedRenderPassIndexBuffer | null;
   readonly indexCount: number | null;
+  readonly indexStart?: number | null;
   readonly instanceCount: number;
   readonly transformPackedOffset: number;
   readonly occlusionQuery?: boolean;
@@ -106,8 +108,10 @@ interface MutableResolvedRenderPassDraw {
   bindGroups: ResolvedRenderPassBindGroup[];
   vertexBuffers: ResolvedRenderPassVertexBuffer[];
   vertexCount: number;
+  vertexStart: number;
   indexBuffer: ResolvedRenderPassIndexBuffer | null;
   indexCount: number | null;
+  indexStart: number | null;
   instanceCount: number;
   transformPackedOffset: number;
   occlusionQuery?: boolean;
@@ -188,8 +192,10 @@ export function writeResolveRenderPassResources(
     resolvedDraw.bindGroups.length = 0;
     resolvedDraw.vertexBuffers.length = 0;
     resolvedDraw.vertexCount = draw.vertexCount;
+    resolvedDraw.vertexStart = draw.vertexStart ?? 0;
     resolvedDraw.indexBuffer = null;
     resolvedDraw.indexCount = draw.indexCount;
+    resolvedDraw.indexStart = draw.indexStart ?? null;
     resolvedDraw.instanceCount = draw.instanceCount;
     resolvedDraw.transformPackedOffset = draw.transformPackedOffset;
     if (draw.occlusionQuery === true) {
@@ -455,8 +461,10 @@ function createEmptyResolvedDraw(): MutableResolvedRenderPassDraw {
     bindGroups: [],
     vertexBuffers: [],
     vertexCount: 0,
+    vertexStart: 0,
     indexBuffer: null,
     indexCount: null,
+    indexStart: null,
     instanceCount: 1,
     transformPackedOffset: 0,
   };

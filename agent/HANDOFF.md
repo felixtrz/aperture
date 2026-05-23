@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-23T23:18:54Z
+Updated: 2026-05-23T23:37:25Z
+
+## Current Run Update — 2026-05-23T23:37:25Z — Multi-material primitive group queueing
+
+Completed `task-3122`, rendering one source mesh through multiple
+material-slot primitive ranges from ECS extraction through WebGPU submission.
+
+### What changed
+
+- Added renderer-independent `MaterialSlots` authoring, runtime
+  `withMaterialSlots()`, and extraction support so a single ECS mesh entity can
+  map submesh material slots to distinct material handles without introducing a
+  renderer-owned scene graph.
+- Extended mesh draw packets and packed snapshot encoding with
+  `vertexStart`/`vertexCount` and `indexStart`/`indexCount`.
+- Preserved range metadata through material queue items, render queue records,
+  draw-command descriptors, draw-list records, resource resolution, and
+  render-pass command emission. Render queue coalescing now refuses to merge
+  different primitive ranges.
+- Added `examples/multi-material-groups.html`, `*.main.js`, `*.worker.js`, and a
+  Playwright proof that renders one source mesh as two visibly distinct indexed
+  material groups and reports JSON-safe group ranges/material handles.
+- Updated the public tracker pages, backlog, current-task pointer, and
+  completed task log. Recommended next task is `task-3123`, view/depth
+  clustered-light bins.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/rendering/snapshot-packed-encoding.test.ts test/rendering/material-queue.test.ts test/rendering/render-queue.test.ts test/webgpu/draw-command.test.ts test/webgpu/render-pass-draw-list.test.ts test/webgpu/render-pass-resources.test.ts test/webgpu/render-pass-commands.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/multi-material-groups.spec.ts --reporter=line`
+- `git diff --check`
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3123`, broadening clustered local-light clusters to view/depth bins.
 
 ## Current Run Update — 2026-05-23T23:18:54Z — GPU occlusion-query visibility feedback
 

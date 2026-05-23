@@ -632,7 +632,7 @@ function pushDrawIndexedCommand(
   command.renderId = draw.renderId;
   command.indexCount = indexCount;
   command.instanceCount = draw.instanceCount;
-  command.firstIndex = 0;
+  command.firstIndex = draw.indexStart ?? 0;
   command.baseVertex = 0;
   command.firstInstance = firstInstance;
   scratch.commands.push(command as DrawIndexedCommand);
@@ -649,7 +649,7 @@ function pushDrawCommand(
   command.renderId = draw.renderId;
   command.vertexCount = draw.vertexCount;
   command.instanceCount = draw.instanceCount;
-  command.firstVertex = 0;
+  command.firstVertex = draw.vertexStart ?? 0;
   command.firstInstance = firstInstance;
   scratch.commands.push(command as DrawCommand);
 }

@@ -30,8 +30,10 @@ export interface RenderPassDrawListRecord {
   readonly materialResourceKey: string;
   readonly vertexBufferKeys: readonly string[];
   readonly vertexCount: number;
+  readonly vertexStart?: number;
   readonly indexBufferKey: string | null;
   readonly indexCount: number | null;
+  readonly indexStart?: number | null;
   readonly instanceCount: number;
   readonly transformPackedOffset: number;
   readonly occlusionQuery?: boolean;
@@ -70,8 +72,10 @@ interface MutableRenderPassDrawListRecord {
   materialResourceKey: string;
   vertexBufferKeys: string[];
   vertexCount: number;
+  vertexStart: number;
   indexBufferKey: string | null;
   indexCount: number | null;
+  indexStart: number | null;
   instanceCount: number;
   transformPackedOffset: number;
   occlusionQuery?: boolean;
@@ -179,8 +183,10 @@ export function writeRenderPassDrawList(
     }
 
     record.vertexCount = command.vertexCount;
+    record.vertexStart = command.vertexStart ?? 0;
     record.indexBufferKey = command.indexBufferKey;
     record.indexCount = command.indexCount;
+    record.indexStart = command.indexStart ?? null;
     record.instanceCount = 1;
     record.transformPackedOffset = command.transformPackedOffset;
     if (command.occlusionQuery === true) {
@@ -211,8 +217,10 @@ function canCoalesceDrawListRecord(
     previous.meshResourceKey === command.meshResourceKey &&
     previous.materialResourceKey === command.materialResourceKey &&
     previous.vertexCount === command.vertexCount &&
+    previous.vertexStart === (command.vertexStart ?? 0) &&
     previous.indexBufferKey === command.indexBufferKey &&
     previous.indexCount === command.indexCount &&
+    previous.indexStart === (command.indexStart ?? null) &&
     previous.occlusionQuery !== true &&
     command.occlusionQuery !== true &&
     previous.transformPackedOffset + previous.instanceCount * 16 ===
@@ -464,8 +472,10 @@ function createEmptyDrawListRecord(): MutableRenderPassDrawListRecord {
     materialResourceKey: "",
     vertexBufferKeys: [],
     vertexCount: 0,
+    vertexStart: 0,
     indexBufferKey: null,
     indexCount: null,
+    indexStart: null,
     instanceCount: 1,
     transformPackedOffset: 0,
   };

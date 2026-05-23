@@ -39,6 +39,7 @@ import {
   LightKind,
   LightShadowSettings,
   Material,
+  MaterialSlots,
   Mesh,
   MorphTargetWeights,
   OcclusionQuery,
@@ -56,6 +57,7 @@ import {
   createInstanceTint,
   createLight,
   createLightShadowSettings,
+  createMaterialSlots,
   createMorphTargetWeights,
   createOcclusionQuery,
   createSkin,
@@ -71,6 +73,7 @@ import {
   type InstanceDataValues,
   type LightInput,
   type LightShadowSettingsInput,
+  type MaterialSlotsInput,
   type MorphTargetWeightsInput,
   type OcclusionQueryInput,
   type RenderSnapshot,
@@ -278,12 +281,36 @@ export function withMaterial(handle: MaterialHandle): SpawnEntityInitializer {
   };
 }
 
+export function withMaterialSlots(
+  input: MaterialSlotsInput | readonly MaterialHandle[],
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(
+      MaterialSlots,
+      createMaterialSlots(materialSlotsInput(input)),
+    );
+  };
+}
+
 export function withSprite(
   input: Omit<SpriteInput, "texture"> & { readonly texture: TextureHandle },
 ): SpawnEntityInitializer {
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(Sprite, createSprite(input));
+  };
+}
+
+function materialSlotsInput(
+  input: MaterialSlotsInput | readonly MaterialHandle[],
+): MaterialSlotsInput {
+  if ("slots" in input) {
+    return input;
+  }
+
+  return {
+    slots: input.map((material, slot) => ({ slot, material })),
   };
 }
 

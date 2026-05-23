@@ -45,6 +45,12 @@ export interface MaterialQueueItem {
   readonly renderId: number;
   readonly drawIndex: number;
   readonly entity: RenderEntityRef;
+  readonly submesh?: number;
+  readonly materialSlot?: number;
+  readonly vertexStart?: number;
+  readonly vertexCount?: number;
+  readonly indexStart?: number;
+  readonly indexCount?: number;
   readonly renderPhase: RenderQueue;
   readonly materialFamily: MaterialQueueFamily;
   readonly pipelineKey: string;
@@ -97,6 +103,12 @@ interface MutableMaterialQueueItem {
   renderId: number;
   drawIndex: number;
   entity: RenderEntityRef;
+  submesh?: number;
+  materialSlot?: number;
+  vertexStart?: number;
+  vertexCount?: number;
+  indexStart?: number;
+  indexCount?: number;
   renderPhase: RenderQueue;
   materialFamily: MaterialQueueFamily;
   pipelineKey: string;
@@ -234,6 +246,12 @@ export function writeMaterialQueueFromSnapshot(
     item.renderId = draw.renderId;
     item.drawIndex = drawIndex;
     item.entity = draw.entity;
+    item.submesh = draw.submesh;
+    item.materialSlot = draw.materialSlot;
+    assignOptionalNumber(item, "vertexStart", draw.vertexStart);
+    assignOptionalNumber(item, "vertexCount", draw.vertexCount);
+    assignOptionalNumber(item, "indexStart", draw.indexStart);
+    assignOptionalNumber(item, "indexCount", draw.indexCount);
     item.renderPhase = draw.sortKey.queue;
     item.materialFamily = materialFamily;
     item.pipelineKey = draw.batchKey.pipelineKey;
@@ -385,6 +403,19 @@ function compareStrings(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;
 }
 
+function assignOptionalNumber<T extends object, K extends keyof T>(
+  target: T,
+  key: K,
+  value: number | undefined,
+): void {
+  if (value === undefined) {
+    delete target[key];
+    return;
+  }
+
+  target[key] = value as T[K];
+}
+
 function missingPreparedResourceMessage(input: {
   readonly draw: MeshDrawPacket;
   readonly meshKey: string;
@@ -430,6 +461,8 @@ function createEmptyItem(): MutableMaterialQueueItem {
     renderId: 0,
     drawIndex: 0,
     entity: { index: 0, generation: 0 },
+    submesh: 0,
+    materialSlot: 0,
     renderPhase: "opaque",
     materialFamily: "unlit",
     pipelineKey: "",

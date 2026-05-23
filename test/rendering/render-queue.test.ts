@@ -136,6 +136,53 @@ describe("render queue records", () => {
     expect(plan.sortPhases).toEqual([sortPhase("opaque", 2)]);
   });
 
+  it("does not coalesce one mesh's distinct submesh ranges", () => {
+    const plan = planRenderQueueRecords(
+      {
+        ready: [
+          readyDraw(1, {
+            meshResourceKey: "mesh:panel",
+            indexStart: 0,
+            indexCount: 6,
+            submesh: 0,
+            materialSlot: 0,
+          }),
+          readyDraw(2, {
+            meshResourceKey: "mesh:panel",
+            indexStart: 6,
+            indexCount: 6,
+            submesh: 1,
+            materialSlot: 0,
+          }),
+        ],
+        blocked: [],
+        diagnostics: [],
+      },
+      transforms([1, 2]),
+    );
+
+    expect(plan.records).toMatchObject([
+      {
+        renderId: 1,
+        meshResourceKey: "mesh:panel",
+        submesh: 0,
+        materialSlot: 0,
+        indexStart: 0,
+        indexCount: 6,
+        instanceCount: 1,
+      },
+      {
+        renderId: 2,
+        meshResourceKey: "mesh:panel",
+        submesh: 1,
+        materialSlot: 0,
+        indexStart: 6,
+        indexCount: 6,
+        instanceCount: 1,
+      },
+    ]);
+  });
+
   it("plans static merged batches for adjacent distinct opaque meshes", () => {
     const renderIds = Array.from({ length: 20 }, (_, index) => index + 1);
     const plan = planRenderQueueRecords(
@@ -459,6 +506,12 @@ function readyDraw(
     readonly order?: number;
     readonly depth?: number;
     readonly stableId?: number;
+    readonly submesh?: number;
+    readonly materialSlot?: number;
+    readonly vertexStart?: number;
+    readonly vertexCount?: number;
+    readonly indexStart?: number;
+    readonly indexCount?: number;
   } = {},
 ) {
   const batchKey = overrides.batchKey ?? BATCH_KEY;
@@ -481,6 +534,12 @@ function packet(
     readonly order?: number;
     readonly depth?: number;
     readonly stableId?: number;
+    readonly submesh?: number;
+    readonly materialSlot?: number;
+    readonly vertexStart?: number;
+    readonly vertexCount?: number;
+    readonly indexStart?: number;
+    readonly indexCount?: number;
   } = {},
 ) {
   return {
@@ -488,8 +547,20 @@ function packet(
     entity: { index: renderId, generation: 1 },
     mesh: createMeshHandle("cube"),
     material: createMaterialHandle("white"),
-    submesh: 0,
-    materialSlot: 0,
+    submesh: overrides.submesh ?? 0,
+    materialSlot: overrides.materialSlot ?? 0,
+    ...(overrides.vertexStart === undefined
+      ? {}
+      : { vertexStart: overrides.vertexStart }),
+    ...(overrides.vertexCount === undefined
+      ? {}
+      : { vertexCount: overrides.vertexCount }),
+    ...(overrides.indexStart === undefined
+      ? {}
+      : { indexStart: overrides.indexStart }),
+    ...(overrides.indexCount === undefined
+      ? {}
+      : { indexCount: overrides.indexCount }),
     worldTransformOffset: renderId * 16,
     boundsIndex: -1,
     layerMask: 1,

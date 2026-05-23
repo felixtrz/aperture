@@ -1,5 +1,39 @@
 # Completed Tasks
 
+## task-3122 — Render multi-material primitive groups through queue records
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added renderer-independent `MaterialSlots` authoring plus runtime
+  `withMaterialSlots()` so one ECS mesh entity can map submesh material slots to
+  distinct material handles without introducing a scene graph.
+- Extraction now emits one mesh draw per submesh with stable submesh indices,
+  material-slot ids, vertex/index ranges, distinct material handles, sort keys,
+  and batch compatibility keys.
+- Packed snapshot transport preserves submesh draw ranges, material queue items
+  and render queue records expose range metadata, and render queue coalescing
+  refuses to merge different primitive ranges.
+- WebGPU draw descriptors, draw-list records, resource resolution, render-pass
+  commands, and render bundles now carry `vertexStart`/`indexStart` and
+  `vertexCount`/`indexCount`, so indexed and non-indexed submesh ranges submit
+  with the correct offsets.
+- Added `examples/multi-material-groups.html`, a worker-authored browser proof
+  that renders one source mesh as two visibly distinct material groups and
+  publishes JSON-safe range/material status.
+- Updated public tracker pages and backlog. Recommended next task is
+  `task-3123`, view/depth clustered-light bins.
+
+Validation:
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/rendering/snapshot-packed-encoding.test.ts test/rendering/material-queue.test.ts test/rendering/render-queue.test.ts test/webgpu/draw-command.test.ts test/webgpu/render-pass-draw-list.test.ts test/webgpu/render-pass-resources.test.ts test/webgpu/render-pass-commands.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/multi-material-groups.spec.ts --reporter=line`
+- `git diff --check`
+
 ## task-3121 — Add GPU occlusion-query visibility feedback
 
 Completed: 2026-05-23

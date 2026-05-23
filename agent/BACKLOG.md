@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3122`: render multi-material primitive groups through queue records
+Start `task-3123`: broaden clustered local-light clusters to view-depth bins
 with a browser-visible proof.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
@@ -166,15 +166,16 @@ renderer-owned clustered local-light buffers for StandardMaterial and a
 64-point-light browser proof. `task-3121` now adds renderer-owned GPU
 occlusion-query feedback for opted-in ECS mesh draws, with a browser proof that
 reports one hidden queried draw with zero samples and one visible queried draw
-with non-zero samples. The next SOTA efficiency gap is multi-material
-primitive/group queueing for single source meshes with distinct material
-ranges.
+with non-zero samples. `task-3122` now renders one source mesh through separate
+material-slot primitive ranges from ECS extraction through queue records and
+WebGPU draw commands, with a browser proof that reports the two distinct
+material/range records. The next SOTA efficiency gap is view/depth-space
+clustered-light binning.
 
 Reference anchors for the next task (read before writing):
 
-- `references/three.js/src/renderers/common/Renderer.js`.
-- `references/engine/src/framework/parsers/glb-parser.js`.
-- `references/engine/src/scene/mesh-instance.js`.
+- `references/engine/src/scene/lighting/world-clusters.js`.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLight.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -535,6 +536,8 @@ Acceptance criteria:
 - `examples/occlusion-feedback.html` shows an occluder/occluded-object scene where app status reports at least one occluded entity after query resolution and the visible output remains unchanged with zero WebGPU validation warnings.
 
 ### task-3122 — Render multi-material primitive groups through queue records
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/rendering/`, `packages/render/src/assets/`, `packages/webgpu/src/webgpu/`, `examples/glb-viewer.*` or `examples/multi-material-groups.*`, targeted tests.

@@ -212,6 +212,42 @@ describe("render pass command planning", () => {
     });
   });
 
+  it("emits indexed and non-indexed submesh draw ranges", () => {
+    const plan = planRenderPassCommands({
+      draws: [
+        resolvedDraw(1, {
+          indexStart: 6,
+          indexCount: 12,
+        }),
+        resolvedDraw(2, {
+          indexed: false,
+          vertexStart: 4,
+          vertexCount: 8,
+        }),
+      ],
+    });
+
+    expect(plan.valid).toBe(true);
+    expect(
+      plan.commands.filter((command) => command.kind === "drawIndexed"),
+    ).toMatchObject([
+      {
+        renderId: 1,
+        indexCount: 12,
+        firstIndex: 6,
+      },
+    ]);
+    expect(
+      plan.commands.filter((command) => command.kind === "draw"),
+    ).toMatchObject([
+      {
+        renderId: 2,
+        vertexCount: 8,
+        firstVertex: 4,
+      },
+    ]);
+  });
+
   it("sorts bind groups and preserves resolved draw order", () => {
     const plan = planRenderPassCommands({
       draws: [resolvedDraw(2), resolvedDraw(1)],
@@ -289,7 +325,9 @@ function resolvedDraw(
   options: {
     readonly indexed?: boolean;
     readonly indexCount?: number | null;
+    readonly indexStart?: number | null;
     readonly vertexCount?: number;
+    readonly vertexStart?: number;
     readonly transformPackedOffset?: number;
     readonly occlusionQuery?: boolean;
   } = {},
@@ -320,6 +358,7 @@ function resolvedDraw(
       },
     ],
     vertexCount: options.vertexCount ?? 24,
+    vertexStart: options.vertexStart ?? 0,
     indexBuffer: indexed
       ? {
           resourceKey: `mesh:${renderId}/index`,
@@ -329,6 +368,7 @@ function resolvedDraw(
         }
       : null,
     indexCount: indexed ? (options.indexCount ?? 6) : null,
+    indexStart: indexed ? (options.indexStart ?? 0) : null,
     instanceCount: 1,
     transformPackedOffset: options.transformPackedOffset ?? renderId * 16,
     ...(options.occlusionQuery === true ? { occlusionQuery: true } : {}),

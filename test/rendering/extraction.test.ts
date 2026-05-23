@@ -12,6 +12,7 @@ import {
   LightKind,
   LightShadowSettings,
   Material,
+  MaterialSlots,
   Mesh,
   OcclusionQuery,
   RenderLayer,
@@ -29,6 +30,7 @@ import {
   createInstanceData,
   createLight,
   createLightShadowSettings,
+  createMaterialSlots,
   createMaterialHandle,
   createMeshHandle,
   createOcclusionQuery,
@@ -117,6 +119,74 @@ describe("render extraction", () => {
 
     expect(byEntity.get(visible.index)?.occlusionQuery).toBe(true);
     expect(byEntity.get(disabled.index)?.occlusionQuery).toBeUndefined();
+  });
+
+  it("extracts one mesh entity into material-slot submesh draw records", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      meshAsset: createTwoSubmeshBoxMesh(),
+    });
+    const secondaryMaterial = createMaterialHandle("secondary");
+
+    assets.register(secondaryMaterial);
+    assets.markReady(
+      secondaryMaterial,
+      createUnlitMaterialAsset({
+        baseColorFactor: [0.1, 0.8, 0.2, 1],
+      }),
+    );
+    createCameraEntity(world, { priority: 0, layerMask: 0b01 });
+    const entity = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 0b01,
+    });
+
+    entity.addComponent(
+      MaterialSlots,
+      createMaterialSlots({
+        slots: [{ slot: 1, material: secondaryMaterial }],
+      }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 9 });
+    const baseRenderId = createStableRenderId({
+      index: entity.index,
+      generation: entity.generation,
+    });
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.meshDraws).toHaveLength(2);
+    const drawsBySubmesh = [...snapshot.meshDraws].sort(
+      (a, b) => a.submesh - b.submesh,
+    );
+
+    expect(drawsBySubmesh).toMatchObject([
+      {
+        renderId: baseRenderId,
+        submesh: 0,
+        materialSlot: 0,
+        material: createMaterialHandle("unlit"),
+        vertexStart: 0,
+        vertexCount: 4,
+        indexStart: 0,
+        indexCount: 6,
+      },
+      {
+        renderId: baseRenderId + 1,
+        submesh: 1,
+        materialSlot: 1,
+        material: secondaryMaterial,
+        vertexStart: 4,
+        vertexCount: 4,
+        indexStart: 6,
+        indexCount: 6,
+      },
+    ]);
+    expect(drawsBySubmesh.map((draw) => draw.sortKey.materialKey)).toEqual([
+      "material:unlit",
+      "material:secondary",
+    ]);
   });
 
   it("extracts view-relative transparent sort depths before stable ids", () => {
@@ -2509,6 +2579,38 @@ function createReadyAssets(
     options.materialAsset ?? createUnlitMaterialAsset(),
   );
   return registry;
+}
+
+function createTwoSubmeshBoxMesh(): MeshAsset {
+  const mesh = createBoxMeshAsset({ label: "TwoSubmeshBox" });
+
+  return {
+    ...mesh,
+    materialSlots: [
+      { index: 0, label: "primary" },
+      { index: 1, label: "secondary" },
+    ],
+    submeshes: [
+      {
+        label: "front",
+        topology: "triangle-list",
+        materialSlot: 0,
+        vertexStart: 0,
+        vertexCount: 4,
+        indexStart: 0,
+        indexCount: 6,
+      },
+      {
+        label: "back",
+        topology: "triangle-list",
+        materialSlot: 1,
+        vertexStart: 4,
+        vertexCount: 4,
+        indexStart: 6,
+        indexCount: 6,
+      },
+    ],
+  };
 }
 
 function withTexCoord1Attribute(mesh: MeshAsset): MeshAsset {

@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 23:15 UTC</dd>
+            <dd>2026-05-23 23:37 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1487,10 +1487,14 @@
               app allocates, resolves, reads back, and reports visible vs
               occluded render IDs, and
               <code>examples/occlusion-feedback.html</code> proves one hidden
-              and one visible queried cube.
+              and one visible queried cube. One ECS mesh can now render
+              multiple material-slot primitive ranges through separate
+              extraction, queue, draw-command, and WebGPU indexed draw records;
+              <code>examples/multi-material-groups.html</code> proves two
+              visibly distinct material groups from one source mesh.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3122 multi-material primitive/group queueing</dd>
+            <dd>task-3123 view/depth clustered-light bins</dd>
           </dl>
         </aside>
       </header>
@@ -2104,9 +2108,9 @@
           <article class="phase">
             <div class="topline">
               <h3>4. queue</h3>
-              <span class="percent">94%</span>
+              <span class="percent">95%</span>
             </div>
-            <div class="bar"><span style="width: 94%"></span></div>
+            <div class="bar"><span style="width: 95%"></span></div>
             <p>
               Material-family queueing, route diagnostics, resource key
               resolution, Standard transparent phases, app route reporting,
@@ -2152,14 +2156,21 @@
               buckets. Shared queued built-in bind-group reuse now lowers
               frame-resource allocation pressure for compatible multi-material
               routes while keeping cache keys tied to layout and entry-resource
-              identities.
+              identities. Multi-material mesh groups now stay explicit through
+              extraction and queueing: queue records carry submesh,
+              material-slot, vertex-range, and index-range metadata, material
+              queue items preserve the distinct material resource keys, and
+              queue coalescing refuses to merge different primitive ranges.
             </p>
             <ul>
               <li>
                 Missing automatic query-result persistence/draw-suppression
                 policy in queue/readiness status.
               </li>
-              <li>Missing multi-material primitive queue rules.</li>
+              <li>
+                Missing broader imported GLB fixtures for multi-material
+                primitive groups.
+              </li>
             </ul>
           </article>
           <article class="phase">
@@ -2282,12 +2293,16 @@
               renderer-owned environment assets. StandardMaterial many-light
               scenes now prepare clustered local-light indices and bind them
               through the light group, reducing point/spot fragment work to the
-              current cluster's local index list.
+              current cluster's local index list. Submesh draw ranges now travel
+              through draw packages, draw-command descriptors, draw lists,
+              resource resolution, render-pass command emission, and render
+              bundles, so one prepared mesh can submit distinct material groups
+              with the correct <code>firstIndex</code> / <code>firstVertex</code>
+              offsets.
             </p>
             <ul>
               <li>
-                Next visible SOTA gap: multi-material primitive/group queueing
-                in extracted/imported mesh scenes.
+                Next visible SOTA gap: view/depth-space clustered-light bins.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2308,6 +2323,14 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3122</span> Added
+                multi-material primitive/group queueing from ECS material-slot
+                authoring through extraction, material/render queue records,
+                draw descriptors, and WebGPU range-aware indexed submission.
+                <code>examples/multi-material-groups.html</code> proves one
+                source mesh rendering as two visibly distinct material groups.
+              </li>
               <li>
                 <span class="badge green">task-3118</span> Added versioned
                 multi-environment IBL asset preparation with renderer-owned
@@ -4592,13 +4615,12 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Run
-                <code>task-3122</code>: add multi-material primitive/group
-                queueing through the ECS extraction and WebGPU app path.
+                <code>task-3123</code>: broaden clustered local-light clusters
+                to view/depth-space bins.
               </li>
               <li>
-                Follow-up SOTA slices include multi-material primitive/group
-                queueing and the next parity audit after a few implementation
-                slices.
+                Follow-up SOTA work should include the next parity audit after a
+                few implementation slices.
               </li>
             </ul>
           </article>
@@ -4611,6 +4633,21 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3122</div>
+            <div>
+              <strong>Multi-material primitive group queueing shipped.</strong>
+              <span>
+                ECS material-slot authoring now lets one mesh produce separate
+                submesh draw records with distinct material handles and
+                vertex/index ranges. The WebGPU path preserves those ranges
+                through queue records, draw descriptors, draw lists, resource
+                resolution, and indexed command emission, while
+                <code>examples/multi-material-groups.html</code> proves two
+                visibly distinct groups from one source mesh.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3121</div>
             <div>

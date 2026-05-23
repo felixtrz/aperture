@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "a2d4f00",
   "activePid": null,
-  "notes": "Completed task-3121 GPU occlusion-query visibility feedback; next task is task-3122 multi-material primitive/group queueing.",
-  "lastRunFinishedAt": "2026-05-23T23:18:54Z"
+  "notes": "Completed task-3122 multi-material primitive/group queueing; next task is task-3123 view/depth clustered-light bins.",
+  "lastRunFinishedAt": "2026-05-23T23:37:25Z"
 }

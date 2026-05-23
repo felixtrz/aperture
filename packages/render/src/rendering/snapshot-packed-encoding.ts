@@ -20,11 +20,11 @@ import type {
 } from "./snapshot.js";
 
 export const SNAPSHOT_PACKET_ENCODING_MAGIC = 0x4150_5350; // "APSP"
-export const SNAPSHOT_PACKET_ENCODING_VERSION = 3;
+export const SNAPSHOT_PACKET_ENCODING_VERSION = 4;
 
 export const SNAPSHOT_PACKET_HEADER_WORDS = 8;
 export const VIEW_PACKET_WORDS = 36;
-export const MESH_DRAW_PACKET_WORDS = 30;
+export const MESH_DRAW_PACKET_WORDS = 34;
 export const LIGHT_PACKET_WORDS = 27;
 export const ENVIRONMENT_PACKET_WORDS = 13;
 export const SHADOW_REQUEST_PACKET_WORDS = 6;
@@ -494,6 +494,10 @@ function writeMeshDrawPacket(
   words[offset + 27] = batchFlags(packet);
   writeOptionalUint32(words, offset + 28, packet.boneMatrixOffset);
   writeOptionalUint32(words, offset + 29, packet.boneMatrixCount);
+  writeOptionalUint32(words, offset + 30, packet.vertexStart);
+  writeOptionalUint32(words, offset + 31, packet.vertexCount);
+  writeOptionalUint32(words, offset + 32, packet.indexStart);
+  writeOptionalUint32(words, offset + 33, packet.indexCount);
 }
 
 function readMeshDrawPacket(
@@ -507,6 +511,10 @@ function readMeshDrawPacket(
   const batchFlags = words[offset + 27] ?? 0;
   const boneMatrixOffset = readOptionalUint32(words, offset + 28);
   const boneMatrixCount = readOptionalUint32(words, offset + 29);
+  const vertexStart = readOptionalUint32(words, offset + 30);
+  const vertexCount = readOptionalUint32(words, offset + 31);
+  const indexStart = readOptionalUint32(words, offset + 32);
+  const indexCount = readOptionalUint32(words, offset + 33);
   const packet: MeshDrawPacket = {
     renderId: words[offset] ?? 0,
     entity: readEntity(words, offset + 1),
@@ -544,6 +552,10 @@ function readMeshDrawPacket(
     ...(instanceTintOffset === undefined ? {} : { instanceTintOffset }),
     ...(boneMatrixOffset === undefined ? {} : { boneMatrixOffset }),
     ...(boneMatrixCount === undefined ? {} : { boneMatrixCount }),
+    ...(vertexStart === undefined ? {} : { vertexStart }),
+    ...(vertexCount === undefined ? {} : { vertexCount }),
+    ...(indexStart === undefined ? {} : { indexStart }),
+    ...(indexCount === undefined ? {} : { indexCount }),
     ...(castsShadow === undefined ? {} : { castsShadow }),
     ...(receivesShadow === undefined ? {} : { receivesShadow }),
     ...((batchFlags & 8) === 0 ? {} : { occlusionQuery: true }),

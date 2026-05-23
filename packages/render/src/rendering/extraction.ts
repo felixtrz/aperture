@@ -55,6 +55,7 @@ import {
   Light,
   LightShadowSettings,
   Material,
+  MaterialSlots,
   Mesh,
   MorphTargetWeights,
   OcclusionQuery,
@@ -781,10 +782,24 @@ function extractMeshDraws(
     const entityDiagnosticsStart = diagnostics.length;
     const entityDraws: MeshDrawPacket[] = [];
 
-    for (const submesh of meshEntry.asset.submeshes) {
-      const materialHandle = parseMaterialHandle(
-        entity.getValue(Material, "materialId") ?? "",
-      );
+    const primaryMaterialHandle = parseMaterialHandle(
+      entity.getValue(Material, "materialId") ?? "",
+    );
+    const materialSlots = readMaterialSlots(entity, diagnostics);
+
+    for (
+      let submeshIndex = 0;
+      submeshIndex < meshEntry.asset.submeshes.length;
+      submeshIndex += 1
+    ) {
+      const submesh = meshEntry.asset.submeshes[submeshIndex];
+
+      if (submesh === undefined) {
+        continue;
+      }
+
+      const materialHandle =
+        materialSlots.get(submesh.materialSlot) ?? primaryMaterialHandle;
       const materialEntry =
         materialHandle === null
           ? undefined
@@ -860,8 +875,7 @@ function extractMeshDraws(
         fogMode: selectFogModeForLayer(layerMask, fogs),
       });
 
-      const stableId =
-        createStableRenderId(entityRef(entity)) + submesh.materialSlot;
+      const stableId = createStableRenderId(entityRef(entity)) + submeshIndex;
       const normalMapReadiness = validateStandardNormalMapReadiness({
         mesh: meshEntry.asset,
         material: materialEntry.asset,
@@ -880,8 +894,12 @@ function extractMeshDraws(
         entity: entityRef(entity),
         mesh: meshHandle,
         material: materialHandle,
-        submesh: submesh.materialSlot,
+        submesh: submeshIndex,
         materialSlot: submesh.materialSlot,
+        vertexStart: submesh.vertexStart,
+        vertexCount: submesh.vertexCount,
+        indexStart: submesh.indexStart,
+        indexCount: submesh.indexCount,
         worldTransformOffset,
         ...(instanceTintOffset === undefined ? {} : { instanceTintOffset }),
         ...(instanceAttributePacketIndex === undefined
@@ -1362,6 +1380,14 @@ function createMeshDrawPacketTemplate(
     material: draw.material,
     submesh: draw.submesh,
     materialSlot: draw.materialSlot,
+    ...(draw.vertexStart === undefined
+      ? {}
+      : { vertexStart: draw.vertexStart }),
+    ...(draw.vertexCount === undefined
+      ? {}
+      : { vertexCount: draw.vertexCount }),
+    ...(draw.indexStart === undefined ? {} : { indexStart: draw.indexStart }),
+    ...(draw.indexCount === undefined ? {} : { indexCount: draw.indexCount }),
     layerMask: draw.layerMask,
     ...(draw.instanceTintOffset === undefined
       ? {}
@@ -2493,6 +2519,59 @@ function pushVec4(values: number[], vector: ArrayLike<number>): number {
   const offset = values.length;
   values.push(vector[0] ?? 1, vector[1] ?? 1, vector[2] ?? 1, vector[3] ?? 1);
   return offset;
+}
+
+function readMaterialSlots(
+  entity: Entity,
+  diagnostics: RenderDiagnostic[],
+): Map<number, MaterialHandle> {
+  const slots = new Map<number, MaterialHandle>();
+
+  if (!entity.hasComponent(MaterialSlots)) {
+    return slots;
+  }
+
+  const slotsJson = entity.getValue(MaterialSlots, "slotsJson") ?? "[]";
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(slotsJson);
+  } catch {
+    diagnostics.push(diagnostic("render.invalidMaterialSlots", entity));
+    return slots;
+  }
+
+  if (!Array.isArray(parsed)) {
+    diagnostics.push(diagnostic("render.invalidMaterialSlots", entity));
+    return slots;
+  }
+
+  for (const entry of parsed) {
+    if (
+      typeof entry !== "object" ||
+      entry === null ||
+      !Number.isInteger((entry as { slot?: unknown }).slot) ||
+      ((entry as { slot?: number }).slot ?? -1) < 0 ||
+      typeof (entry as { materialId?: unknown }).materialId !== "string"
+    ) {
+      diagnostics.push(diagnostic("render.invalidMaterialSlots", entity));
+      continue;
+    }
+
+    const slot = (entry as { slot: number }).slot;
+    const material = parseMaterialHandle(
+      (entry as { materialId: string }).materialId,
+    );
+
+    if (material === null) {
+      diagnostics.push(diagnostic("render.invalidMaterialSlots", entity));
+      continue;
+    }
+
+    slots.set(slot, material);
+  }
+
+  return slots;
 }
 
 function parseMeshHandle(value: string): MeshHandle | null {

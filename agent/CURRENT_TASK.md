@@ -3,9 +3,9 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3122.
+Current task: task-3123.
 
-Status: `task-3121` completed GPU occlusion-query visibility feedback.
+Status: `task-3122` completed multi-material primitive/group queueing.
 
 Key finding:
 
@@ -20,27 +20,25 @@ Key finding:
   cluster buffers for extracted point/spot lights, bind them through group 3,
   and shade point/spot lights from per-cluster index lists instead of scanning
   every packed light per fragment.
-- `examples/clustered-lights.html` proves 64 ECS-authored point lights through
-  the clustered StandardMaterial pipeline and reports JSON-safe cluster pressure
-  plus buffer reuse.
-- ECS mesh draws can now opt into renderer-owned WebGPU occlusion queries via
-  `withOcclusionQuery()`, extraction/snapshot transport preserves that opt-in,
-  the WebGPU app allocates query sets, wraps queried draws, resolves/copies
-  results, and reports visible versus occluded render IDs without exposing live
-  GPU objects.
-- `examples/occlusion-feedback.html` proves one hidden-but-frustum-visible
-  queried cube with zero samples and one visible queried cube with non-zero
-  samples, while keeping the worker/main snapshot boundary intact.
-- The next SOTA efficiency gap is multi-material primitive/group queueing.
-  Aperture can render many material entities, but a single source mesh still
-  needs first-class primitive/group ranges that produce distinct queue records
-  and material-route diagnostics without introducing a scene graph.
+- ECS mesh draws can opt into renderer-owned WebGPU occlusion queries via
+  `withOcclusionQuery()`, and the app reports visible versus occluded render IDs
+  without exposing live GPU objects.
+- Single ECS mesh entities can now author material-slot overrides with
+  `withMaterialSlots()`. Extraction emits one mesh draw per submesh with
+  submesh/material-slot and vertex/index range metadata, queue records preserve
+  those ranges, WebGPU command descriptors carry the range offsets, and
+  render-pass commands emit the correct first index/vertex values.
+- `examples/multi-material-groups.html` proves one source mesh rendering as two
+  visibly distinct material groups, with JSON-safe material/range status and two
+  indexed draw calls where the second draw starts at index 6.
+- The next SOTA efficiency gap is clustered local-light binning in view/depth
+  space. Current clustering is renderer-owned and functional, but still needs
+  view/depth bin derivation closer to PlayCanvas' clustered-light shape.
 
-Next step: run `task-3122` from `agent/BACKLOG.md`, rendering multi-material
-primitive groups through queue records with a browser-visible proof.
+Next step: run `task-3123` from `agent/BACKLOG.md`, broadening clustered
+local-light clusters to view-depth bins with a browser-visible proof.
 
 Reference anchors for the next task:
 
-- `references/three.js/src/renderers/common/Renderer.js`.
-- `references/engine/src/framework/parsers/glb-parser.js`.
-- `references/engine/src/scene/mesh-instance.js`.
+- `references/engine/src/scene/lighting/world-clusters.js`.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLight.js`.
