@@ -3,9 +3,9 @@
   "currentTaskId": null,
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
-  "lastResult": "stop-condition",
-  "lastCommit": "b632e3c",
+  "lastResult": "blocked",
+  "lastCommit": "f3375f8",
   "activePid": null,
-  "notes": "Continuation began after the minute-50 stop gate again; task-3101 remains the next ready render-pipeline slice.",
-  "lastRunFinishedAt": "2026-05-23T14:55:45Z"
+  "notes": "Third consecutive continuation began after the minute-50 stop gate; task-3101 remains the next ready render-pipeline slice.",
+  "lastRunFinishedAt": "2026-05-23T14:57:14Z"
 }
