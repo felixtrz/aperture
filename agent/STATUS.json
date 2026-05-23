@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "61bd014",
+  "lastCommit": "402291b",
   "activePid": null,
-  "notes": "Completed task-3084 sheen: StandardMaterial scalar sheen fields, glTF KHR_materials_sheen scalar mapping, WebGPU uniform/shader support, sheen example, trackers, and validation passed.",
-  "lastRunFinishedAt": "2026-05-23T00:59:06Z"
+  "notes": "Committed TAA checkpoint: ECS temporal jitter, history-buffered TAA post effect, renderer-owned camera-motion texture input, square TAA example and tests. Remaining task-3087 work is geometry/depth-aware motion vectors.",
+  "lastRunFinishedAt": "2026-05-23T02:50:07Z"
 }
