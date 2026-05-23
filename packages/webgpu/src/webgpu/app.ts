@@ -600,6 +600,8 @@ interface WebGpuAppPostPassCache {
   readonly scene: WebGpuPostPassTextureCacheSlot;
   readonly ping: WebGpuPostPassTextureCacheSlot;
   readonly pong: WebGpuPostPassTextureCacheSlot;
+  readonly motionVector: WebGpuPostPassTextureCacheSlot;
+  readonly previousViewProjectionByViewId: Map<number, Float32Array>;
 }
 
 interface WebGpuAppFrameScratch {
@@ -990,6 +992,8 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
       scene: createWebGpuPostPassTextureCacheSlot(),
       ping: createWebGpuPostPassTextureCacheSlot(),
       pong: createWebGpuPostPassTextureCacheSlot(),
+      motionVector: createWebGpuPostPassTextureCacheSlot(),
+      previousViewProjectionByViewId: new Map(),
     },
     frameScratch: createWebGpuAppFrameScratch(),
     unlitFrame:
@@ -3131,9 +3135,51 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   let plannedCommands = options.commands.length;
   let drawCalls = countDrawCommands(options.commands);
   let valid = sceneBoundary.valid;
+  let motionVectorTexture: WebGpuPostPassTextureResource | undefined;
 
   boundaries.push(sceneBoundary);
   appendFrameBoundaryDiagnostics(diagnostics, sceneBoundary);
+
+  if (options.effects.some((effect) => effect.requiresMotionVectors === true)) {
+    const motionVector = createOrReuseWebGpuPostPassTexture({
+      device: options.app.initialization.device as Parameters<
+        typeof createOrReuseWebGpuPostPassTexture
+      >[0]["device"],
+      slot: options.cache.postPasses.motionVector,
+      width: options.target.width,
+      height: options.target.height,
+      format: options.target.format,
+      label: `${options.label}:post:motion-vector`,
+    });
+
+    diagnostics.push(...motionVector.diagnostics);
+
+    if (!motionVector.valid || motionVector.resource === null) {
+      valid = false;
+    } else {
+      motionVectorTexture = motionVector.resource;
+      const motionBoundary = assembleFrameBoundary({
+        context,
+        device,
+        queue,
+        commands: [],
+        label: `${options.label}:post:motion-vector`,
+        colorTarget: {
+          source: "offscreen-target",
+          texture: motionVector.resource.texture,
+        },
+        clearColor: encodePostPassMotionVectorClearColor({
+          snapshot: options.snapshot,
+          view: options.target.view,
+          cache: options.cache.postPasses,
+        }),
+      });
+
+      boundaries.push(motionBoundary);
+      appendFrameBoundaryDiagnostics(diagnostics, motionBoundary);
+      valid &&= motionBoundary.valid;
+    }
+  }
 
   for (
     let effectIndex = 0;
@@ -3155,7 +3201,7 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
           typeof createOrReuseWebGpuPostPassTexture
         >[0]["device"],
         slot:
-          effectIndex % 2 === 0
+          (effectIndex + options.snapshot.frame) % 2 === 0
             ? options.cache.postPasses.ping
             : options.cache.postPasses.pong,
         width: options.target.width,
@@ -3183,6 +3229,11 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
       height: options.target.height,
       frame: options.snapshot.frame,
       passIndex: effectIndex,
+      isLast,
+      ...(motionVectorTexture === undefined
+        ? {}
+        : { motionVector: motionVectorTexture }),
+      ...(outputTexture === null ? {} : { output: outputTexture }),
       label: `${options.label}:post:${effect.id}`,
     });
 
@@ -3267,6 +3318,86 @@ function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     drawCalls,
     diagnostics,
   };
+}
+
+function encodePostPassMotionVectorClearColor(options: {
+  readonly snapshot: RenderSnapshot;
+  readonly view: RenderSnapshot["views"][number];
+  readonly cache: Pick<
+    WebGpuAppPostPassCache,
+    "previousViewProjectionByViewId"
+  >;
+}): readonly [number, number, number, number] {
+  const current = readSnapshotViewProjectionMatrix(
+    options.snapshot,
+    options.view,
+  );
+
+  if (current === null) {
+    return [0.5, 0.5, 0.5, 1];
+  }
+
+  const previous = options.cache.previousViewProjectionByViewId.get(
+    options.view.viewId,
+  );
+  const motion =
+    previous === undefined
+      ? [0, 0]
+      : screenMotionForViewProjectionMatrices(current, previous);
+  const stored = previous ?? new Float32Array(16);
+
+  stored.set(current);
+  options.cache.previousViewProjectionByViewId.set(options.view.viewId, stored);
+
+  return [
+    encodeSignedMotionComponent(motion[0] ?? 0),
+    encodeSignedMotionComponent(motion[1] ?? 0),
+    0.5,
+    1,
+  ];
+}
+
+function readSnapshotViewProjectionMatrix(
+  snapshot: RenderSnapshot,
+  view: RenderSnapshot["views"][number],
+): Float32Array | null {
+  const offset = view.viewProjectionMatrixOffset;
+
+  if (offset < 0 || offset + 16 > snapshot.viewMatrices.length) {
+    return null;
+  }
+
+  return snapshot.viewMatrices.subarray(offset, offset + 16);
+}
+
+function screenMotionForViewProjectionMatrices(
+  current: ArrayLike<number>,
+  previous: ArrayLike<number>,
+): readonly [number, number] {
+  const currentNdc = projectWorldOriginToNdc(current);
+  const previousNdc = projectWorldOriginToNdc(previous);
+
+  return [
+    (currentNdc[0] - previousNdc[0]) * 0.5,
+    (currentNdc[1] - previousNdc[1]) * -0.5,
+  ];
+}
+
+function projectWorldOriginToNdc(
+  matrix: ArrayLike<number>,
+): readonly [number, number] {
+  const w = finiteNonZero(matrix[15] ?? 1);
+
+  return [(matrix[12] ?? 0) / w, (matrix[13] ?? 0) / w];
+}
+
+function finiteNonZero(value: number): number {
+  return Number.isFinite(value) && Math.abs(value) > 0.000001 ? value : 1;
+}
+
+function encodeSignedMotionComponent(value: number): number {
+  const clamped = Number.isFinite(value) ? Math.min(Math.max(value, -1), 1) : 0;
+  return clamped * 0.5 + 0.5;
 }
 
 function appendFrameBoundaryDiagnostics(

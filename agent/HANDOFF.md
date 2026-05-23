@@ -1,6 +1,65 @@
 # Agent Handoff
 
-Updated: 2026-05-23T02:05:00Z
+Updated: 2026-05-23T02:44:00Z
+
+## Current Run Update — 2026-05-23T02:44:00Z — TAA checkpoint
+
+Advanced `task-3087`, the Tier 19 TAA with motion-vectors slice. This is a
+coherent feature checkpoint, not the full task completion.
+
+### What changed
+
+- Added ECS-authored camera temporal jitter through `Camera.temporalJitterX/Y`,
+  `createCamera({ temporalJitter })`, validation, extraction, and snapshot
+  projection-matrix packing.
+- Added `createWebGpuTaaPostEffect()` with persistent alternating history
+  output, configurable history weight, neighborhood history clamping, and a
+  required renderer-owned motion-vector texture input.
+- Extended the post-pass contract so effects can require motion vectors and
+  persistent off-screen outputs before presentation.
+- Added a renderer-owned post-pass motion-vector texture cache. The current
+  source is a per-view camera-motion clear derived from current vs previous
+  view-projection matrices.
+- Added `examples/taa.html` with square raw-jitter vs TAA canvases, a
+  worker-authored moving camera scene, and headed Chrome/WebGPU coverage proving
+  the TAA path accumulates more partial edge coverage than the raw jittered path.
+
+### Reference comparison
+
+- three.js `TAARenderPass` accumulates jittered samples but does not do
+  reprojection.
+- PlayCanvas uses double-buffered history render targets, previous/current view
+  matrices, depth reprojection, Catmull-Rom history sampling, and neighborhood
+  clamping.
+- Bevy anchors the ECS side with `TemporalJitter` and motion-vector prepass
+  math based on current and previous clip positions.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts test/rendering/extraction.test.ts test/rendering/components.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts test/webgpu/webgpu-app.test.ts test/rendering/extraction.test.ts test/rendering/components.test.ts`
+- `pnpm exec playwright test test/e2e/taa.spec.ts --reporter=list --timeout=30000`
+- `pnpm run format:check`
+- `pnpm run lint`
+- `git diff --check`
+
+### Known issues
+
+- The motion-vector texture is still a camera-motion clear. It is useful for the
+  square proof scene, but it is not the final geometry/depth-aware motion-vector
+  G-buffer described by `task-3087`.
+- TAA currently needs a follow-up copy post effect to present while preserving
+  the persistent history output.
+- Next work should replace or extend the camera-motion texture clear with a
+  main-pass motion-vector attachment or PlayCanvas-style depth reprojection.
+
+### Recommended next task
+
+Continue `task-3087` with true geometry/depth-aware TAA motion vectors.
 
 ## Current Run Update — 2026-05-23T02:05:00Z — MSAA
 

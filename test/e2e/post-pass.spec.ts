@@ -239,6 +239,7 @@ test("FXAA post effect softens a high-contrast texture edge", async ({
         height,
         frame: 1,
         passIndex: 0,
+        isLast: true,
         label: `edge-${effect.id}`,
       });
       const boundary = assembleFrameBoundary({
@@ -420,6 +421,7 @@ test("bloom post effect adds glow around bright pixels", async ({ page }) => {
         height,
         frame: 1,
         passIndex: 0,
+        isLast: true,
         label: `bloom-${effect.id}`,
       });
       const boundary = assembleFrameBoundary({

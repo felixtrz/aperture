@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 02:05 UTC</dd>
+            <dd>2026-05-23 02:44 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1395,10 +1395,15 @@
               into the presented output, specializes built-in pipelines and
               depth attachments by sample count, and
               <code>examples/msaa.html</code> proves visibly smoother resolved
-              edges against the 1x path in square canvases.
+              edges against the 1x path in square canvases. Tier 19 TAA is now
+              partially in place as well: ECS cameras can author temporal
+              jitter, the WebGPU post chain has a history-buffered TAA effect
+              with a renderer-owned motion-vector texture input, and
+              <code>examples/taa.html</code> compares raw jitter against
+              accumulated TAA on square canvases.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3087 TAA with motion vectors</dd>
+            <dd>task-3087 geometry/depth-aware TAA motion vectors</dd>
           </dl>
         </aside>
       </header>
@@ -2132,8 +2137,9 @@
                 Missing texture-backed StandardMaterial PBR extension resources.
               </li>
               <li>
-                Missing TAA, screen-space effects, full GGX importance sampling,
-                and broader environment asset preparation.
+                Missing geometry/depth-aware TAA motion vectors, screen-space
+                effects, full GGX importance sampling, and broader environment
+                asset preparation.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -4420,8 +4426,8 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Build
-                <code>task-3087</code>, TAA with motion vectors.
+                <span class="badge amber">next</span> Continue
+                <code>task-3087</code>, geometry/depth-aware TAA motion vectors.
               </li>
               <li>
                 Anchor on three.js <code>TAARenderPass</code>, modern temporal
@@ -4429,9 +4435,10 @@
                 history/resource hygiene.
               </li>
               <li>
-                Add motion-vector output, history accumulation, and a moving
-                scene browser proof that temporal smoothing beats the non-TAA
-                path.
+                History accumulation and the moving-scene browser proof are now
+                in place; replace or extend the current camera-motion texture
+                clear with a scene motion-vector attachment or depth
+                reprojection path.
               </li>
             </ul>
           </article>

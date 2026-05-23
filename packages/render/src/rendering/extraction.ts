@@ -332,6 +332,7 @@ function extractViews(
             readCameraNumber(entity, "near"),
             readCameraNumber(entity, "far"),
           );
+    applyTemporalJitter(projectionMatrix, entity);
     const viewProjectionMatrix = multiplyMat4(projectionMatrix, viewMatrix);
     const viewOffset = pushMatrix(viewMatrices, viewMatrix);
     const projectionOffset = pushMatrix(viewMatrices, projectionMatrix);
@@ -1979,7 +1980,23 @@ function cameraInput(entity: Entity): CameraInput {
     ],
     layerMask: entity.getValue(Camera, "layerMask") ?? 1,
     frustumCulling: entity.getValue(Camera, "frustumCulling") !== false,
+    temporalJitter: [
+      readCameraNumber(entity, "temporalJitterX"),
+      readCameraNumber(entity, "temporalJitterY"),
+    ],
   };
+}
+
+function applyTemporalJitter(projectionMatrix: Mat4, entity: Entity): void {
+  const jitterX = readCameraNumber(entity, "temporalJitterX");
+  const jitterY = readCameraNumber(entity, "temporalJitterY");
+
+  if (jitterX === 0 && jitterY === 0) {
+    return;
+  }
+
+  projectionMatrix[8] = (projectionMatrix[8] ?? 0) + jitterX;
+  projectionMatrix[9] = (projectionMatrix[9] ?? 0) + jitterY;
 }
 
 function lightInput(entity: Entity): LightInput {

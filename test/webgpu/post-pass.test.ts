@@ -6,6 +6,7 @@ import {
   createWebGpuCopyPostEffect,
   createWebGpuFxaaPostEffect,
   createWebGpuPostPassTextureCacheSlot,
+  createWebGpuTaaPostEffect,
 } from "@aperture-engine/webgpu";
 
 describe("WebGPU post-pass helpers", () => {
@@ -32,6 +33,7 @@ describe("WebGPU post-pass helpers", () => {
       height: 16,
       frame: 1,
       passIndex: 0,
+      isLast: true,
       label: "test-post",
     });
 
@@ -104,6 +106,7 @@ describe("WebGPU post-pass helpers", () => {
       height: 16,
       frame: 2,
       passIndex: 0,
+      isLast: true,
       label: "test-fxaa",
     });
 
@@ -147,6 +150,7 @@ describe("WebGPU post-pass helpers", () => {
       height: 16,
       frame: 3,
       passIndex: 0,
+      isLast: true,
       label: "test-bloom",
     });
 
@@ -165,7 +169,146 @@ describe("WebGPU post-pass helpers", () => {
     });
     expect(events).toContain("device:pipeline:test-bloom:bloom:pipeline");
   });
+
+  it("prepares TAA with persistent alternating history output", () => {
+    const events: string[] = [];
+    const effect = createWebGpuTaaPostEffect();
+    const firstInput = postTexture("scene-a", events);
+    const firstOutput = postTexture("history-a", events);
+    const firstMotion = postTexture("motion-a", events);
+    const secondInput = postTexture("scene-b", events);
+    const secondOutput = postTexture("history-b", events);
+    const secondMotion = postTexture("motion-b", events);
+
+    const first = effect.prepare({
+      device: postDevice(events),
+      input: firstInput,
+      motionVector: firstMotion,
+      output: firstOutput,
+      outputFormat: "rgba8unorm",
+      width: 32,
+      height: 16,
+      frame: 1,
+      passIndex: 0,
+      isLast: false,
+      label: "test-taa",
+    });
+    const second = effect.prepare({
+      device: postDevice(events),
+      input: secondInput,
+      motionVector: secondMotion,
+      output: secondOutput,
+      outputFormat: "rgba8unorm",
+      width: 32,
+      height: 16,
+      frame: 2,
+      passIndex: 0,
+      isLast: false,
+      label: "test-taa",
+    });
+
+    expect(first.diagnostics).toEqual([]);
+    expect(second.diagnostics).toEqual([]);
+    expect(first.commands).toMatchObject([
+      {
+        kind: "setPipeline",
+        pipelineKey: "webgpu-post-taa|rgba8unorm|history:0.950",
+      },
+      {
+        kind: "setBindGroup",
+        resourceKey:
+          "taa:input:scene-a:history:scene-a:motion:motion-a:weight:0.950",
+      },
+      { kind: "draw", vertexCount: 3 },
+    ]);
+    expect(second.commands).toMatchObject([
+      {
+        kind: "setPipeline",
+        pipelineKey: "webgpu-post-taa|rgba8unorm|history:0.950",
+      },
+      {
+        kind: "setBindGroup",
+        resourceKey:
+          "taa:input:scene-b:history:history-a:motion:motion-b:weight:0.950",
+      },
+      { kind: "draw", vertexCount: 3 },
+    ]);
+    expect(events).toEqual([
+      "device:shader:test-taa:taa:pipeline:shader",
+      "device:pipeline:test-taa:taa:pipeline",
+      "device:sampler:aperture/post/taa/sampler",
+      "view:scene-a",
+      "view:scene-a",
+      "view:motion-a",
+      "pipeline:layout:0",
+      "device:bindGroup:test-taa:taa:bind-group",
+      "view:scene-b",
+      "view:history-a",
+      "view:motion-b",
+      "pipeline:layout:0",
+      "device:bindGroup:test-taa:taa:bind-group",
+    ]);
+  });
+
+  it("diagnoses TAA when no persistent output texture is available", () => {
+    const effect = createWebGpuTaaPostEffect();
+    const prepared = effect.prepare({
+      device: postDevice([]),
+      input: postTexture("scene", []),
+      outputFormat: "rgba8unorm",
+      width: 32,
+      height: 16,
+      frame: 1,
+      passIndex: 0,
+      isLast: true,
+      label: "test-taa",
+    });
+
+    expect(prepared.commands).toEqual([]);
+    expect(prepared.diagnostics).toMatchObject([
+      { code: "webGpuPostPass.outputTextureUnavailable", effectId: "taa" },
+    ]);
+  });
+
+  it("diagnoses TAA when the motion-vector texture is unavailable", () => {
+    const effect = createWebGpuTaaPostEffect();
+    const prepared = effect.prepare({
+      device: postDevice([]),
+      input: postTexture("scene", []),
+      output: postTexture("history", []),
+      outputFormat: "rgba8unorm",
+      width: 32,
+      height: 16,
+      frame: 1,
+      passIndex: 0,
+      isLast: false,
+      label: "test-taa",
+    });
+
+    expect(prepared.commands).toEqual([]);
+    expect(prepared.diagnostics).toMatchObject([
+      {
+        code: "webGpuPostPass.motionVectorTextureUnavailable",
+        effectId: "taa",
+      },
+    ]);
+  });
 });
+
+function postTexture(label: string, events: string[]) {
+  return {
+    texture: {
+      createView: () => {
+        events.push(`view:${label}`);
+        return { label };
+      },
+    },
+    width: 32,
+    height: 16,
+    format: "rgba8unorm",
+    label,
+  };
+}
 
 function postDevice(events: string[]) {
   return {

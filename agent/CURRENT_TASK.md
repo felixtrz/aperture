@@ -18,5 +18,14 @@ effective 4x on WebGPU with an explicit report, resolves multisampled color
 targets into square canvases, and proves smoother edges in
 `examples/msaa.html`.
 
-Next step: continue Tier 19 by adding TAA with motion vectors and a visible
-moving-scene temporal smoothing proof.
+Current `task-3087` progress: the first TAA slice adds ECS-authored temporal
+jitter, a history-buffered WebGPU TAA post effect, a renderer-owned
+motion-vector texture input, and `examples/taa.html` proving temporal smoothing
+on square raw-vs-TAA canvases. This is not the full task yet: the remaining
+Tier 19 gap is true geometry/depth-aware motion vectors, ideally through a
+main-pass motion-vector attachment or PlayCanvas-style depth reprojection rather
+than the current camera-motion texture clear.
+
+Next step: continue Tier 19 by replacing or extending the camera-motion texture
+clear with geometry/depth-aware scene motion vectors and update the TAA proof to
+cover that path.

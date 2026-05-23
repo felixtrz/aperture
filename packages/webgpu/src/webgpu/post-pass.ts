@@ -10,7 +10,9 @@ export type WebGpuPostPassDiagnosticCode =
   | "webGpuPostPass.createSamplerUnavailable"
   | "webGpuPostPass.createBindGroupUnavailable"
   | "webGpuPostPass.inputTextureViewUnavailable"
-  | "webGpuPostPass.pipelineLayoutUnavailable";
+  | "webGpuPostPass.pipelineLayoutUnavailable"
+  | "webGpuPostPass.outputTextureUnavailable"
+  | "webGpuPostPass.motionVectorTextureUnavailable";
 
 export interface WebGpuPostPassDiagnostic {
   readonly code: WebGpuPostPassDiagnosticCode;
@@ -48,11 +50,14 @@ export interface CreateWebGpuPostPassTextureResult {
 export interface WebGpuPostEffectPrepareOptions {
   readonly device: WebGpuPostPassDeviceLike;
   readonly input: WebGpuPostPassTextureResource;
+  readonly motionVector?: WebGpuPostPassTextureResource;
   readonly outputFormat: string;
   readonly width: number;
   readonly height: number;
   readonly frame: number;
   readonly passIndex: number;
+  readonly isLast: boolean;
+  readonly output?: WebGpuPostPassTextureResource;
   readonly label: string;
 }
 
@@ -67,6 +72,7 @@ export interface WebGpuPostEffect {
   readonly id: string;
   readonly label?: string;
   readonly enabled?: boolean;
+  readonly requiresMotionVectors?: boolean;
   prepare(
     options: WebGpuPostEffectPrepareOptions,
   ): WebGpuPreparedPostEffectPass;

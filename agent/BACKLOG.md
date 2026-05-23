@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3086`: MSAA support in render passes.
+Continue `task-3087`: TAA with motion vectors.
 
 Why this next: Tier 17 scene atmosphere is complete, and Tier 18 has shipped
 scalar StandardMaterial clearcoat, scalar thin-wall transmission, scalar sheen,
@@ -69,9 +69,13 @@ StandardMaterial specular response, and `examples/transmission.html` proves a
 glass-like surface with the background visible through the transmitted
 material. `examples/sheen.html` proves a fabric-like material with a
 characteristic sheen rim-light. `examples/iridescence.html` proves a thin-film
-material with a cyan wavelength-dependent color shift. The next visible gap is
-Tier 19 antialiasing: configurable multisample render targets that resolve to
-the presented output.
+material with a cyan wavelength-dependent color shift. Tier 19 MSAA has shipped,
+and the first TAA slice now adds ECS-authored temporal jitter, a history-buffered
+TAA post effect, a renderer-owned motion-vector texture input, and
+`examples/taa.html` square-canvas browser proof. The remaining Tier 19 gap is
+the higher-fidelity scene motion path: geometry/depth-aware motion vectors via a
+main-pass G-buffer or depth reprojection, instead of the current camera-motion
+texture clear.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -1317,6 +1321,11 @@ Acceptance criteria:
 - Playwright shows anti-aliased edges at 4× vs aliased at 1×.
 
 ### task-3087 — TAA (temporal antialiasing) with motion vectors (Tier 19 part 2)
+
+Status: in progress. First slice adds temporal jitter, history accumulation,
+camera-motion texture input, and visible square-canvas proof. Remaining work:
+true geometry/depth-aware motion vectors, ideally through a main-pass
+motion-vector attachment or PlayCanvas-style depth reprojection.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/post-taa.ts` (new), motion-vector G-buffer attachment in main pass, targeted tests.

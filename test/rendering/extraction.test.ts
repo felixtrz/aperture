@@ -656,6 +656,31 @@ describe("render extraction", () => {
     expect(viewProjection).not.toEqual(view);
   });
 
+  it("applies ECS-authored temporal jitter to camera projection matrices", () => {
+    const world = createRuntimeWorld();
+
+    createCameraEntity(world, {
+      priority: 0,
+      layerMask: 1,
+      temporalJitter: [0.125, -0.0625],
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+    const projection = matrixAt(
+      snapshot.viewMatrices,
+      snapshot.views[0]?.projectionMatrixOffset,
+    );
+    const viewProjection = matrixAt(
+      snapshot.viewMatrices,
+      snapshot.views[0]?.viewProjectionMatrixOffset,
+    );
+
+    expect(projection[8]).toBeCloseTo(0.125, 6);
+    expect(projection[9]).toBeCloseTo(-0.0625, 6);
+    expect(viewProjection[8]).toBeCloseTo(0.125, 6);
+    expect(viewProjection[9]).toBeCloseTo(-0.0625, 6);
+  });
+
   it("extracts ECS-authored shadow caster and receiver flags on mesh draws", () => {
     const world = createRuntimeWorld();
     const assets = createReadyAssets();
@@ -2683,6 +2708,7 @@ function createCameraEntity(
     readonly translation?: readonly [number, number, number];
     readonly renderTargetId?: string;
     readonly frustumCulling?: boolean;
+    readonly temporalJitter?: readonly [number, number];
   },
 ) {
   const entity = world.createEntity();
@@ -2703,6 +2729,9 @@ function createCameraEntity(
       ...(input.frustumCulling === undefined
         ? {}
         : { frustumCulling: input.frustumCulling }),
+      ...(input.temporalJitter === undefined
+        ? {}
+        : { temporalJitter: input.temporalJitter }),
     }),
   );
   return entity;

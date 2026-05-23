@@ -66,6 +66,7 @@ export interface CameraInput {
   readonly priority?: number;
   readonly renderTargetId?: string;
   readonly frustumCulling?: boolean;
+  readonly temporalJitter?: readonly [number, number];
 }
 
 export interface LightInput {
@@ -135,6 +136,7 @@ export type RenderAuthoringDiagnosticCode =
   | "camera.invalidViewport"
   | "camera.invalidClipRange"
   | "camera.zeroLayerMask"
+  | "camera.invalidTemporalJitter"
   | "light.invalidIntensity"
   | "light.invalidRange"
   | "light.invalidSpotCone"
@@ -300,6 +302,8 @@ export const Camera = defineComponent(
     priority: { type: EcsType.Int32, default: 0 },
     renderTargetId: { type: EcsType.String, default: "" },
     frustumCulling: { type: EcsType.Boolean, default: true },
+    temporalJitterX: { type: EcsType.Float32, default: 0 },
+    temporalJitterY: { type: EcsType.Float32, default: 0 },
   },
   "Renderer-independent camera authoring component.",
 );
@@ -401,6 +405,8 @@ export function createCamera(
     priority: input.priority ?? 0,
     renderTargetId: input.renderTargetId ?? "",
     frustumCulling: input.frustumCulling ?? true,
+    temporalJitterX: input.temporalJitter?.[0] ?? 0,
+    temporalJitterY: input.temporalJitter?.[1] ?? 0,
   };
 }
 
@@ -535,6 +541,8 @@ export function validateCameraInput(
   const viewport = camera.viewport ?? tuple4(0, 0, 1, 1);
   const scissor = camera.scissor ?? tuple4(0, 0, 1, 1);
   const layerMask = camera.layerMask ?? 1;
+  const temporalJitterX = camera.temporalJitterX ?? 0;
+  const temporalJitterY = camera.temporalJitterY ?? 0;
   const diagnostics: RenderAuthoringDiagnostic[] = [];
 
   if (
@@ -573,6 +581,14 @@ export function validateCameraInput(
       code: "camera.zeroLayerMask",
       field: "layerMask",
       message: "Camera layerMask must not be zero.",
+    });
+  }
+
+  if (!Number.isFinite(temporalJitterX) || !Number.isFinite(temporalJitterY)) {
+    diagnostics.push({
+      code: "camera.invalidTemporalJitter",
+      field: "temporalJitter",
+      message: "Camera temporalJitter values must be finite numbers.",
     });
   }
 
