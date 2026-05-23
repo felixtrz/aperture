@@ -7,6 +7,7 @@ import {
   createWebGpuFxaaPostEffect,
   createWebGpuPostPassTextureCacheSlot,
   createWebGpuSsaoPostEffect,
+  createWebGpuSsrPostEffect,
   createWebGpuTaaPostEffect,
 } from "@aperture-engine/webgpu";
 
@@ -341,6 +342,74 @@ describe("WebGPU post-pass helpers", () => {
         code: "webGpuPostPass.depthTextureUnsupportedSampleCount",
         effectId: "ssao",
       },
+    ]);
+  });
+
+  it("prepares SSR as a depth-reading post-pass draw", () => {
+    const events: string[] = [];
+    const effect = createWebGpuSsrPostEffect({
+      opacity: 0.5,
+      maxSteps: 16,
+      stridePixels: 4,
+      thickness: 0.05,
+    });
+    const input = postTexture("scene", events);
+    const depth = postDepthTexture("scene-depth", events);
+    const prepared = effect.prepare({
+      device: postDevice(events),
+      input,
+      depth,
+      outputFormat: "rgba8unorm",
+      width: 32,
+      height: 16,
+      frame: 1,
+      passIndex: 0,
+      isLast: true,
+      label: "test-ssr",
+    });
+
+    expect(effect.requiresDepthTexture).toBe(true);
+    expect(prepared.diagnostics).toEqual([]);
+    expect(prepared.commands).toMatchObject([
+      {
+        kind: "setPipeline",
+        pipelineKey:
+          "webgpu-post-ssr|rgba8unorm|opacity:0.500|steps:16|stride:4.000|thickness:0.0500",
+      },
+      {
+        kind: "setBindGroup",
+        resourceKey: "ssr:input:scene:depth:scene-depth:opacity:0.50",
+      },
+      { kind: "draw", vertexCount: 3 },
+    ]);
+    expect(events).toEqual([
+      "device:shader:test-ssr:ssr:pipeline:shader",
+      "device:pipeline:test-ssr:ssr:pipeline",
+      "device:sampler:aperture/post/ssr/sampler",
+      "view:scene",
+      "view:scene-depth",
+      "pipeline:layout:0",
+      "device:bindGroup:test-ssr:ssr:bind-group",
+    ]);
+  });
+
+  it("diagnoses SSR when scene depth is unavailable", () => {
+    const effect = createWebGpuSsrPostEffect();
+    const prepared = effect.prepare({
+      device: postDevice([]),
+      input: postTexture("scene", []),
+      outputFormat: "rgba8unorm",
+      width: 32,
+      height: 16,
+      frame: 1,
+      passIndex: 0,
+      isLast: true,
+      label: "test-ssr",
+    });
+
+    expect(prepared.commands).toEqual([]);
+    expect(prepared.diagnostics).toMatchObject([
+      { code: "webGpuPostPass.depthTextureUnavailable", effectId: "ssr" },
     ]);
   });
 

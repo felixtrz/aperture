@@ -1,6 +1,56 @@
 # Agent Handoff
 
-Updated: 2026-05-23T03:34:50Z
+Updated: 2026-05-23T03:51:06Z
+
+## Current Run Update — 2026-05-23T03:51:06Z — SSR depth-readable post effect
+
+Completed `task-3089`, the Tier 20 SSR slice.
+
+### What changed
+
+- Added `createWebGpuSsrPostEffect()` with a renderer-owned scene depth
+  dependency, single-sample depth guard, full-screen WebGPU composition, and
+  screen-space reflected color blending.
+- Exported the SSR post effect from `@aperture-engine/webgpu`.
+- Reused the SSAO worker-authored depth scene in `examples/ssr.html` to compare
+  raw and SSR square canvases side by side.
+- Added Playwright coverage that compares raw and SSR screenshots and asserts
+  visible lower-half receiver pixel changes with no WebGPU validation warnings.
+
+### Reference comparison
+
+- three.js `SSRPass` anchors the depth-fed screen-space reflection post-pass
+  shape.
+- PlayCanvas post-effect examples anchor the renderer-owned input/depth
+  sampling and full-screen pass lifecycle.
+- Aperture keeps the effect as renderer-owned post-processing derived from the
+  ECS-authored snapshot rather than adding a scene-graph reflection object.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts test/webgpu/depth-texture-resource.test.ts test/webgpu/webgpu-app.test.ts --reporter=dot`
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `git diff --check`
+- `pnpm exec playwright test test/e2e/ssr.spec.ts --reporter=list --timeout=30000`
+
+### Known issues
+
+- The first SSR implementation is a lightweight screen-space approximation. It
+  uses bounded depth marching plus a fallback reflection blend; it is not yet a
+  physically complete roughness-aware reflection model.
+- SSR currently rejects multisampled depth inputs; use it with single-sample
+  scenes until a depth resolve or multisampled depth sampling route exists.
+
+### Recommended next task
+
+Start `task-3090`, depth of field. Reuse the same depth-readable post-pass
+foundation and compare against three.js `BokehPass` plus the PlayCanvas bokeh
+post effect before implementing the blur/focus controls.
 
 ## Current Run Update — 2026-05-23T03:34:50Z — SSAO depth-readable post effect
 

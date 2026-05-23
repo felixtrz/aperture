@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3089`: SSR (screen-space reflections).
+Start `task-3090`: DOF (depth of field).
 
 Why this next: Tier 17 scene atmosphere is complete, and Tier 18 has shipped
 scalar StandardMaterial clearcoat, scalar thin-wall transmission, scalar sheen,
@@ -75,9 +75,9 @@ targets, and TAA now adds ECS-authored temporal jitter, a history-buffered
 WebGPU post effect, renderer-owned motion-vector textures, geometry-aware
 main-pass motion-vector output for compatible built-in mesh scenes, fallback
 camera-motion clears for unsupported combinations, and `examples/taa.html`
-square-canvas browser proof. Tier 20 has started with a depth-reading SSAO post
-effect and `examples/ssao.html` square-canvas browser proof; the next slice is
-SSR using the same depth-readable post-pass foundation.
+square-canvas browser proof. Tier 20 has shipped depth-fed SSAO and SSR post
+effects with square raw-vs-effect browser proofs. The next slice is DOF using
+the same depth-readable post-pass foundation.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -1350,7 +1350,7 @@ Acceptance criteria:
 - Visible darkening in crevices and contact regions.
 - Playwright asserts pixels in expected concave regions are darker with SSAO on vs off.
 
-### task-3089 — SSR (screen-space reflections) (Tier 20 part 2)
+### task-3089 — SSR (screen-space reflections) (Tier 20 part 2) — Completed 2026-05-23
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/post-ssr.ts` (new), targeted tests.

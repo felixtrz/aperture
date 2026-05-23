@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 03:34 UTC</dd>
+            <dd>2026-05-23 03:51 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1389,8 +1389,8 @@
               <code>examples/sheen.html</code> proves a fabric sphere with a
               visibly brighter sheen rim and
               <code>examples/iridescence.html</code> proves a cyan thin-film
-              highlight distinct from the matching base material. Tier 19 has
-              started: <code>createWebGpuApp({ msaa })</code> now accepts 1x,
+              highlight distinct from the matching base material. Tier 19 is
+              complete: <code>createWebGpuApp({ msaa })</code> now accepts 1x,
               4x, and 8x requests, resolves WebGPU multisampled color targets
               into the presented output, specializes built-in pipelines and
               depth attachments by sample count, and
@@ -1401,14 +1401,17 @@
               renderer-owned motion-vector texture input, compatible built-in
               mesh scenes write geometry-aware motion vectors in the main pass,
               and <code>examples/taa.html</code> compares raw jitter against
-              accumulated TAA on square canvases. Tier 20 has started: post
-              effects can request the renderer-owned scene depth texture,
+              accumulated TAA on square canvases. Tier 20 has shipped
+              depth-readable SSAO and SSR: post effects can request the
+              renderer-owned scene depth texture,
               <code>createWebGpuSsaoPostEffect()</code> samples depth in a
-              full-screen WebGPU pass, and <code>examples/ssao.html</code>
-              proves raw-vs-SSAO contact darkening in square canvases.
+              full-screen WebGPU pass, <code>createWebGpuSsrPostEffect()</code>
+              blends reflected scene color from depth, and
+              <code>examples/ssao.html</code> / <code>examples/ssr.html</code>
+              prove raw-vs-effect differences in square canvases.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3089 SSR screen-space reflections</dd>
+            <dd>task-3090 DOF depth of field</dd>
           </dl>
         </aside>
       </header>
@@ -4432,16 +4435,17 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Start
-                <code>task-3089</code>, SSR screen-space reflections.
+                <code>task-3090</code>, DOF depth of field.
               </li>
               <li>
-                Anchor on three.js <code>SSRPass</code> and the existing
-                depth-readable post-pass path from <code>task-3088</code>.
+                Anchor on three.js <code>BokehPass</code>, PlayCanvas
+                <code>posteffect-bokeh.js</code>, and the existing
+                depth-readable post-pass path from Tier 20.
               </li>
               <li>
-                Tier 20 now has SSAO depth sampling and a raw-vs-SSAO browser
-                proof; the next screen-space slice should ray march against
-                depth and prove recognizable reflections on a glossy receiver.
+                Tier 20 now has SSAO depth sampling and SSR reflected-color
+                browser proofs; the next screen-space slice should blur by depth
+                while keeping the focused foreground sharp.
               </li>
             </ul>
           </article>
@@ -4454,6 +4458,33 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3089</div>
+            <div>
+              <strong>SSR screen-space reflections shipped.</strong>
+              <span>
+                <code>createWebGpuSsrPostEffect()</code> now reads the
+                renderer-owned scene depth texture, rejects unsupported
+                multisampled depth inputs, and blends screen-space reflected
+                scene color in a full-screen WebGPU pass.
+                <code>examples/ssr.html</code> proves raw-vs-SSR receiver pixel
+                changes in square canvases.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3088</div>
+            <div>
+              <strong>SSAO depth-readable post effect shipped.</strong>
+              <span>
+                The post-pass contract now supports renderer-owned scene depth
+                inputs, app depth attachments are sampleable by post effects,
+                and <code>createWebGpuSsaoPostEffect()</code> darkens contact
+                regions from depth. <code>examples/ssao.html</code> proves
+                visible raw-vs-SSAO darkening in square canvases.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3084</div>
             <div>

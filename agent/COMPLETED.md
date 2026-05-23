@@ -1,5 +1,34 @@
 # Completed Tasks
 
+## task-3089 — SSR screen-space reflections
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added `createWebGpuSsrPostEffect()` as a depth-reading WebGPU post effect
+  that declares `requiresDepthTexture`, rejects multisampled depth inputs, and
+  blends reflected scene color into the full-screen output.
+- Added an SSR WGSL pass with bounded screen-space depth marching and an
+  explicit-LOD input color sample route that is valid inside the loop.
+- Exported the SSR effect from `@aperture-engine/webgpu` and added focused
+  post-pass coverage for successful preparation and missing-depth diagnostics.
+- Added `examples/ssr.html` with raw-vs-SSR square canvases reusing the worker
+  depth scene, plus headed Chrome/WebGPU coverage proving visible lower-half
+  receiver pixel changes and no WebGPU validation warnings.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts test/webgpu/depth-texture-resource.test.ts test/webgpu/webgpu-app.test.ts --reporter=dot`
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `git diff --check`
+- `pnpm exec playwright test test/e2e/ssr.spec.ts --reporter=list --timeout=30000`
+
 ## task-3087 — TAA with motion vectors
 
 Completed: 2026-05-23
