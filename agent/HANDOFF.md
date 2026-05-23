@@ -1,6 +1,28 @@
 # Agent Handoff
 
-Updated: 2026-05-23T06:55:31Z
+Updated: 2026-05-23T06:57:03Z
+
+## Current Run Update — 2026-05-23T06:57:03Z — Repeated stop gate
+
+The active render-pipeline goal was resumed again, but the repository stop gate
+was still open (`:57` local minute), so no implementation work was started. The
+working tree was clean on `main...origin/main`, `agent/STATUS.json` was idle,
+and `task-3098` remains the next implementation slice.
+
+This is the same time-gate blocker as the previous continuations. Work can
+resume safely when a new run starts before local minute `:50`, or if the repo
+stop-gate protocol is explicitly changed.
+
+### Validation
+
+- `git status --short --branch`
+- `date '+%Y-%m-%dT%H:%M:%S%z %M'`
+
+### Recommended next task
+
+Start `task-3098`, executing PMREM-generated specular IBL resources through the
+app path so StandardMaterial specular IBL no longer relies on the deterministic
+proof-upload placeholder.
 
 ## Current Run Update — 2026-05-23T06:55:31Z — Continuation hit stop gate
 
