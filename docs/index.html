@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 05:39 UTC</dd>
+            <dd>2026-05-23 06:45 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -577,7 +577,7 @@
               256x256 off-screen ECS pass on a main-canvas textured quad, and
               Playwright checks the quad center pixel. The PMREM compute path
               now creates an executable bind-group/compute pipeline and proves
-              mip 0 plus a rougher mip 2 with browser readback, and the
+              mip 0 plus a GGX/VNDF rough mip 2 with browser readback, and the
               spinning-cube example now loads a compact Pisa RGBE HDR cube
               atlas, uploads its real environment pixels into diffuse/specular
               IBL cube textures, and uses generated PMREM mips for glossy and
@@ -1150,8 +1150,9 @@
               now reports diffuse IBL shader sampling ready. The spinning-cube
               route now samples a renderer-owned specular cube texture from
               group 3 binding 7 and uses a minimal roughness-addressed mip chain
-              while keeping full PMREM/GGX prefiltering deferred. Playwright
-              covers diffuse/specular pixel deltas plus the combined
+              while app-level PMREM-generated specular IBL execution remains the
+              next IBL gap. Playwright covers diffuse/specular pixel deltas plus
+              the combined
               <code>iblDiffuse|iblSpecularProof|shadowMap</code> route, and draw
               commands still stay within groups 0 through 3 under Chrome's
               four-bind-group limit. The spinning-cube example now uses the same
@@ -2105,31 +2106,32 @@
               paths with live control coverage, including a BasisU KTX2
               compressed-texture GLB sample. Off-screen ViewPacket render
               targets and the render-to-texture example now have Playwright
-              proof, and PMREM compute has mip 0 plus mip-chain browser readback
-              proof plus spinning-cube real RGBE environment-map IBL wiring. The
-              first instance-transform buffer proof renders four indexed cube
-              instances from one draw, and render-pass draw-list planning now
-              emits grouped instance counts for compatible contiguous draws. The
-              instancing example now proves 1,000 ECS-authored boxes through one
-              grouped draw call. A static mesh merge browser proof now renders a
-              merged vertex/index buffer pixel-identical to separate per-mesh
-              draws, and the batching example now submits 20 heterogeneous
-              StandardMaterial source shapes as five draw calls. Standalone GPU
-              timestamp query resources now support creation, resolve/copy, and
-              readback behind feature detection, and the WebGPU app now reports
-              per-pass timings for main and shadow pass submissions when
-              timestamp queries are available. The GPU profiler example now
-              displays live main/offscreen pass timings in a DOM overlay. The
-              triangle custom WGSL route now submits a prepared custom shader
-              module, render pipeline, and group-2 material bind group through
-              the shared render-world, draw-list, and command path, and the
-              custom-material example now proves an animated WaterMaterial-style
-              plane by changing a fragment uniform across frames.
-              StandardMaterial <code>instance-tint</code> pipelines now bind an
-              instance-rate tint vertex buffer and sample it in WGSL to multiply
-              base color and alpha; the instance-tint example now proves those
-              values visibly across a 256-box gradient swarm. Custom WGSL
-              pipelines now also bind generic instance-attribute buffers; the
+              proof, and PMREM compute has mip 0 plus GGX/VNDF rough-mip browser
+              readback proof plus spinning-cube real RGBE environment-map IBL
+              wiring. The first instance-transform buffer proof renders four
+              indexed cube instances from one draw, and render-pass draw-list
+              planning now emits grouped instance counts for compatible
+              contiguous draws. The instancing example now proves 1,000
+              ECS-authored boxes through one grouped draw call. A static mesh
+              merge browser proof now renders a merged vertex/index buffer
+              pixel-identical to separate per-mesh draws, and the batching
+              example now submits 20 heterogeneous StandardMaterial source
+              shapes as five draw calls. Standalone GPU timestamp query
+              resources now support creation, resolve/copy, and readback behind
+              feature detection, and the WebGPU app now reports per-pass timings
+              for main and shadow pass submissions when timestamp queries are
+              available. The GPU profiler example now displays live
+              main/offscreen pass timings in a DOM overlay. The triangle custom
+              WGSL route now submits a prepared custom shader module, render
+              pipeline, and group-2 material bind group through the shared
+              render-world, draw-list, and command path, and the custom-material
+              example now proves an animated WaterMaterial-style plane by
+              changing a fragment uniform across frames. StandardMaterial
+              <code>instance-tint</code> pipelines now bind an instance-rate
+              tint vertex buffer and sample it in WGSL to multiply base color
+              and alpha; the instance-tint example now proves those values
+              visibly across a 256-box gradient swarm. Custom WGSL pipelines now
+              also bind generic instance-attribute buffers; the
               instance-attributes example proves 576 ECS-authored phase/sway
               rows through one custom material and one instanced draw. The
               picking facade now submits a pick-only ID pass and reads one
@@ -2154,9 +2156,9 @@
                 Missing texture-backed StandardMaterial PBR extension resources.
               </li>
               <li>
-                Missing Tier 20 screen-space effects, full GGX importance
-                sampling, broader environment asset preparation, and previous
-                transform history for independently moving temporal geometry.
+                Missing app-level PMREM-generated specular IBL execution,
+                broader environment asset preparation, and previous transform
+                history for independently moving temporal geometry.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -4443,9 +4445,8 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Refill the backlog with
-                the next visible-feature roadmap slice and concrete reference
-                anchors.
+                <span class="badge amber">next</span> Execute PMREM-generated
+                specular IBL resources in the app path.
               </li>
               <li>
                 SSAO now uses a PlayCanvas-style spiral AO shader with
@@ -4457,8 +4458,10 @@
                 MSAA scenes.
               </li>
               <li>
-                Tier 20 is complete; no ready task remains in the immediate
-                backlog.
+                The post-Tier-20 reference-parity queue now starts with
+                app-level specular IBL prefilter execution, then texture-backed
+                PBR extension factors, transmission refraction, and a generic
+                snapshot change-set scheduler.
               </li>
             </ul>
           </article>
@@ -5267,7 +5270,9 @@
               <span
                 >WebGPU now exposes a PMREM compute pipeline and dispatch
                 helper, and browser coverage proves constant cubemap color
-                reaches mip 0.</span
+                reaches mip 0. The current shader now replaces the old six-face
+                average placeholder with deterministic GGX/VNDF rough-mip
+                sampling.</span
               >
             </div>
           </div>

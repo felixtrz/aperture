@@ -17,6 +17,6 @@ strict reference-parity follow-ups are complete:
 - `task-3096` added a renderer-owned multisampled-depth shader route so SSAO,
   SSR, and DOF can run in MSAA scenes without example-specific depth plumbing.
 
-Next step: no ready task remains in `agent/BACKLOG.md`. Refill the backlog with
-the next visible-feature roadmap slice before continuing beyond the user's
-"through Tier 20" objective.
+Next step: start `task-3098` from `agent/BACKLOG.md`, executing
+PMREM-generated specular IBL resources through the app path so StandardMaterial
+specular IBL no longer relies on the deterministic proof-upload placeholder.

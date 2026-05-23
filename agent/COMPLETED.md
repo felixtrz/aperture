@@ -1,5 +1,29 @@
 # Completed Tasks
 
+## task-3097 — Replace placeholder PMREM with GGX/VNDF prefilter sampling
+
+Completed: 2026-05-23
+
+Summary:
+
+- Replaced the PMREM compute shader's rough-mip six-face average placeholder
+  with deterministic Hammersley GGX/VNDF hemisphere sampling.
+- Kept mip-zero behavior as an exact source cubemap copy so existing PMREM
+  callers preserve the sharp path.
+- Updated the browser PMREM proof to assert the rough mip keeps dominant face
+  energy while still mixing toward neighboring radiance, matching the reference
+  prefilter shape more closely than the old placeholder.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/pmrem-compute-pipeline.spec.ts --reporter=list --timeout=60000`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm run lint`
+- `git diff --check`
+- `pnpm test`
+
 ## task-3096 — MSAA depth route for screen-space post effects
 
 Completed: 2026-05-23

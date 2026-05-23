@@ -214,6 +214,9 @@ struct PmremParams {
 @group(0) @binding(2) var outputMip: texture_storage_2d_array<${format}, write>;
 @group(0) @binding(3) var<uniform> params: PmremParams;
 
+const PI: f32 = 3.141592653589793;
+const PMREM_GGX_SAMPLE_COUNT: u32 = 128u;
+
 fn cubeDirection(face: u32, uv: vec2f) -> vec3f {
   let xy = uv * 2.0 - vec2f(1.0, 1.0);
 
@@ -239,6 +242,52 @@ fn cubeDirection(face: u32, uv: vec2f) -> vec3f {
   }
 }
 
+fn radicalInverseVdc(inputBits: u32) -> f32 {
+  var bits = inputBits;
+  bits = (bits << 16u) | (bits >> 16u);
+  bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+  bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+  bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+  bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+  return f32(bits) * 2.3283064365386963e-10;
+}
+
+fn hammersley(index: u32, count: u32) -> vec2f {
+  return vec2f(f32(index) / f32(count), radicalInverseVdc(index));
+}
+
+fn importanceSampleGGXVNDF(xi: vec2f, roughness: f32) -> vec3f {
+  let alpha = max(0.001, roughness * roughness);
+  let radius = sqrt(xi.x);
+  let phi = 2.0 * PI * xi.y;
+  let t1 = radius * cos(phi);
+  let t2 = radius * sin(phi);
+  let nhZ = sqrt(max(0.0, 1.0 - t1 * t1 - t2 * t2));
+
+  return normalize(vec3f(alpha * t1, alpha * t2, nhZ));
+}
+
+fn worldFromTangentSample(normal: vec3f, tangentSample: vec3f) -> vec3f {
+  var up = vec3f(0.0, 0.0, 1.0);
+
+  if (abs(normal.z) >= 0.999) {
+    up = vec3f(1.0, 0.0, 0.0);
+  }
+
+  let tangent = normalize(cross(up, normal));
+  let bitangent = cross(normal, tangent);
+
+  return normalize(
+    tangent * tangentSample.x +
+    bitangent * tangentSample.y +
+    normal * tangentSample.z,
+  );
+}
+
+fn roughnessFromMipLevel(mipLevel: u32) -> f32 {
+  return clamp(f32(mipLevel) / 5.0, 0.0, 1.0);
+}
+
 fn roughnessColor(direction: vec3f) -> vec4f {
   let baseColor = textureSampleLevel(sourceCube, sourceSampler, direction, 0.0);
 
@@ -246,18 +295,32 @@ fn roughnessColor(direction: vec3f) -> vec4f {
     return baseColor;
   }
 
-  let averageColor = (
-    textureSampleLevel(sourceCube, sourceSampler, vec3f(1.0, 0.0, 0.0), 0.0) +
-    textureSampleLevel(sourceCube, sourceSampler, vec3f(-1.0, 0.0, 0.0), 0.0) +
-    textureSampleLevel(sourceCube, sourceSampler, vec3f(0.0, 1.0, 0.0), 0.0) +
-    textureSampleLevel(sourceCube, sourceSampler, vec3f(0.0, -1.0, 0.0), 0.0) +
-    textureSampleLevel(sourceCube, sourceSampler, vec3f(0.0, 0.0, 1.0), 0.0) +
-    textureSampleLevel(sourceCube, sourceSampler, vec3f(0.0, 0.0, -1.0), 0.0)
-  ) / 6.0;
-  let roughnessWeight = min(1.0, f32(params.sourceMipLevel) / 4.0);
-  let roughnessEnergy = max(0.35, 1.0 - f32(params.sourceMipLevel) * 0.2);
+  let normal = normalize(direction);
+  let roughness = roughnessFromMipLevel(params.sourceMipLevel);
+  var prefilteredColor = vec3f(0.0, 0.0, 0.0);
+  var totalWeight = 0.0;
 
-  return vec4f(mix(baseColor.rgb, averageColor.rgb, roughnessWeight) * roughnessEnergy, baseColor.a);
+  for (var sampleIndex = 0u; sampleIndex < PMREM_GGX_SAMPLE_COUNT; sampleIndex += 1u) {
+    let xi = hammersley(sampleIndex, PMREM_GGX_SAMPLE_COUNT);
+    let halfVector = worldFromTangentSample(
+      normal,
+      importanceSampleGGXVNDF(xi, roughness),
+    );
+    let sampleDirection = normalize(2.0 * dot(normal, halfVector) * halfVector - normal);
+    let sampleWeight = max(dot(normal, sampleDirection), 0.0);
+
+    if (sampleWeight > 0.0) {
+      let sampleColor = textureSampleLevel(sourceCube, sourceSampler, sampleDirection, 0.0);
+      prefilteredColor += sampleColor.rgb * sampleWeight;
+      totalWeight += sampleWeight;
+    }
+  }
+
+  if (totalWeight <= 0.0) {
+    return baseColor;
+  }
+
+  return vec4f(prefilteredColor / totalWeight, baseColor.a);
 }
 
 @compute @workgroup_size(${WORKGROUP_SIZE[0]}, ${WORKGROUP_SIZE[1]}, ${WORKGROUP_SIZE[2]})

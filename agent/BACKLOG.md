@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-No ready task remains after `task-3096`; the user's requested "through Tier 20"
-scope is complete. Before continuing beyond this objective, refill the backlog
-with the next visible-feature roadmap slice and concrete reference anchors.
+Start `task-3098`: execute PMREM-generated specular IBL resources in the app
+path so the StandardMaterial specular IBL route consumes renderer-owned
+prefiltered mip textures instead of the deterministic proof-upload placeholder.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -125,9 +125,89 @@ shader/pipeline/resource/importer tests.
 
 Reference anchors (read before writing):
 
-- `references/three.js/src/renderers/WebGLRenderTarget.js`.
-- `references/engine/src/platform/graphics/render-target.js`.
-- Existing WebGPU render-target/output-stage path in `packages/webgpu/src/webgpu/`.
+- `references/three.js/src/extras/PMREMGenerator.js`.
+- `references/engine/src/scene/graphics/reproject-texture.js`.
+- Existing WebGPU PMREM path in `packages/webgpu/src/webgpu/pmrem-compute-pipeline.ts`.
+
+## Ready Tasks — Post-Tier-20 Reference-Parity Queue
+
+These tasks come from the current render-pipeline comparison against three.js
+and PlayCanvas after Tier 20 shipped. They are ordered by impact on the user's
+SOTA/efficiency objective and each is sized as a visible or public-API slice.
+
+### task-3097 — Replace placeholder PMREM with GGX/VNDF prefilter sampling
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/pmrem-compute-pipeline.ts`, `test/e2e/pmrem-compute-pipeline.spec.ts`, tracker/docs.
+Reference anchor: `references/three.js/src/extras/PMREMGenerator.js`, `references/engine/src/scene/graphics/reproject-texture.js`.
+
+Acceptance criteria:
+
+- Public API `createPmremComputePipeline()` writes mip-zero output that still matches the source cubemap exactly.
+- Public API `createPmremComputePipeline()` writes a rough mip whose sampled color is produced by GGX/VNDF hemisphere samples rather than the old six-face average placeholder.
+- `pnpm exec playwright test test/e2e/pmrem-compute-pipeline.spec.ts --reporter=list --timeout=60000` passes.
+
+### task-3098 — Execute PMREM-generated specular IBL resources in the app path
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/ibl-texture-resource.ts`, `packages/webgpu/src/webgpu/app-environment-resources.ts`, `examples/tonemap-showcase.*`, `examples/spinning-cube.*`, tracker/docs.
+Reference anchor: `references/three.js/src/extras/PMREMGenerator.js`, `references/engine/src/scene/graphics/reproject-texture.js`.
+
+Acceptance criteria:
+
+- `examples/tonemap-showcase.html` or `examples/spinning-cube.html` renders StandardMaterial specular IBL from renderer-owned PMREM mip textures instead of the deterministic proof-upload placeholder.
+- Browser status for the example reports specular IBL prefiltering as executed with no `specularProofUploadPlaceholder` diagnostic.
+- A Playwright readback shows rough and glossy probes sample different PMREM mip responses.
+
+### task-3099 — Render texture-backed StandardMaterial PBR extension factors
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/materials/`, `packages/webgpu/src/webgpu/standard-*`, `examples/clearcoat.*`, `examples/transmission.*`, `examples/sheen.*`, `examples/iridescence.*`, targeted tests.
+Reference anchor: `references/three.js/src/materials/MeshPhysicalMaterial.js`, `references/engine/src/framework/parsers/glb-parser.js`, `references/engine/src/extras/exporters/gltf-exporter.js`.
+
+Acceptance criteria:
+
+- At least one existing PBR-extension example renders a texture-backed extension factor where two same-material regions differ by texture value rather than by separate scalar materials.
+- The mapped texture slot no longer reports an unsupported-extension-slot warning for that implemented slot.
+- Targeted material mapping, shader, and browser tests pass for the implemented slot.
+
+### task-3100 — Add renderer-owned grab-pass refraction for transmission
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/`, `examples/transmission.*`, targeted tests.
+Reference anchor: `references/three.js/src/nodes/functions/PhysicalLightingModel.js`, `references/engine/src/scene/shader-lib/chunks/lit/frag/refraction.js`.
+
+Acceptance criteria:
+
+- `examples/transmission.html` renders a transmitted StandardMaterial object that samples a renderer-owned scene color grab texture rather than only attenuating alpha.
+- Playwright readbacks show background color distortion/visibility through the transmitted object while opaque objects remain unchanged.
+- The implementation keeps transmission resources renderer-owned and does not expose main-thread ECS state.
+
+### task-3101 — Add a generic snapshot change-set scheduler for render-world updates
+
+Category: `runtime-orchestration`
+Package/write-scope: `packages/render/src/rendering/`, `packages/webgpu/src/webgpu/app-snapshot-transport.ts`, `examples/worker-cube.*`, targeted tests.
+Reference anchor: `references/bevy/crates/bevy_render/src/extract_component.rs`, `references/bevy/crates/bevy_ecs/src/change_detection.rs`.
+
+Acceptance criteria:
+
+- Public API or app status for `examples/worker-cube.html` shows renderer update work driven by unchanged/changed/removed snapshot families instead of full-packet refresh every frame.
+- The example renders the same moving cube while reporting at least one unchanged packet family after a stable frame.
+- Targeted snapshot change-set scheduler tests pass.
+
+### task-3102 — Prove deterministic transparent ordering tie-breaks
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/rendering/render-queue.ts`, `packages/render/src/rendering/material-queue.ts`, `examples/standard-queue-phases.*`, targeted tests.
+Reference anchor: `references/three.js/src/renderers/webgl/WebGLRenderLists.js`, `references/engine/src/scene/layer.js`, `references/engine/src/scene/composition/layer-composition.js`.
+
+Acceptance criteria:
+
+- `examples/standard-queue-phases.html` renders overlapping transparent StandardMaterial surfaces with a deterministic depth/order/stable-id tie-break visible in browser readbacks.
+- Queue or material-sort reports expose the applied transparent ordering policy without relying on JavaScript engine sort stability.
+- Targeted render-queue/material-queue tests pass for equal-depth transparent records.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

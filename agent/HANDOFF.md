@@ -1,6 +1,57 @@
 # Agent Handoff
 
-Updated: 2026-05-23T05:39:00Z
+Updated: 2026-05-23T06:47:50Z
+
+## Current Run Update — 2026-05-23T06:47:50Z — PMREM GGX/VNDF compute prefilter
+
+Completed `task-3097`, the first post-Tier-20 reference-parity slice from the
+current render-pipeline audit.
+
+### What changed
+
+- Refilled the ready queue with the next five visible/public-API render-pipeline
+  gaps from the three.js/PlayCanvas comparison: app-level PMREM specular IBL,
+  texture-backed PBR extension factors, transmission grab-pass refraction,
+  generic snapshot change-set scheduling, and deterministic transparent sort
+  tie-breaks.
+- Replaced the PMREM compute shader's rough-mip six-face average placeholder
+  with deterministic Hammersley GGX/VNDF hemisphere sampling.
+- Kept mip-zero output as an exact source cubemap copy while the rough mip now
+  preserves dominant face energy and still mixes neighboring cubemap radiance.
+- Updated the public progress tracker and render-pipeline comparison so the
+  remaining IBL gap is specifically app-level PMREM-generated specular resource
+  execution, not the compute shader sampling model.
+
+### References inspected
+
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/three.js/src/renderers/common/extras/PMREMGenerator.js`
+- `references/engine/src/scene/graphics/reproject-texture.js`
+- `references/engine/src/extras/exporters/gltf-exporter.js`
+
+### Validation
+
+- `pnpm exec playwright test test/e2e/pmrem-compute-pipeline.spec.ts --reporter=list --timeout=60000`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm run lint`
+- `git diff --check`
+- `pnpm test`
+
+### Known issues
+
+- `task-3098` remains open: app-level specular IBL still needs to execute and
+  consume PMREM-generated mip textures instead of the deterministic proof-upload
+  placeholder.
+- Texture-backed PBR extension slots, transmission grab-pass refraction, generic
+  change-set scheduling, and transparent tie-break proof are queued follow-ups.
+
+### Recommended next task
+
+Start `task-3098`, executing PMREM-generated specular IBL resources through the
+app path and removing the `specularProofUploadPlaceholder` status from the
+example proof.
 
 ## Current Run Update — 2026-05-23T05:39:00Z — MSAA depth route for screen-space effects
 

@@ -207,7 +207,7 @@ test("PMREM compute pipeline writes constant cubemap color into mip zero", async
   expect(result.pixel).toEqual(result.expected);
 });
 
-test("PMREM compute pipeline writes rougher colors into higher mips", async ({
+test("PMREM compute pipeline writes GGX-prefiltered colors into rough mips", async ({
   page,
 }) => {
   await page.goto("/examples/");
@@ -464,8 +464,10 @@ test("PMREM compute pipeline writes rougher colors into higher mips", async ({
       rgbaArrayToPixel(result.mip0 ?? []),
       rgbaArrayToPixel(result.mip2 ?? []),
     ),
-  ).toBeGreaterThan(80);
+  ).toBeGreaterThan(15);
+  expect(result.mip2?.[0] ?? 0).toBeGreaterThan(result.mip0?.[0] ?? 255);
   expect(result.mip2?.[1] ?? 255).toBeLessThan(result.mip0?.[1] ?? 0);
+  expect(result.mip2?.[1] ?? 0).toBeGreaterThan(150);
 });
 
 function rgbaArrayToPixel(value: readonly number[]) {
