@@ -35,6 +35,20 @@ The goal is a modern 3D runtime where:
 
 ## Autonomous Work Protocol
 
+### Active Goal Override
+
+When a persistent thread goal or explicit `goal_context` is active, disregard
+all stop gates, minute gates, stop-hook gates, or finalization gates while
+pursuing that goal. Continue making concrete progress toward the active goal
+unless the goal is complete, the user redirects the work, or a real technical
+blocker prevents meaningful progress.
+
+Do not stop, finalize, or mark a goal blocked merely because the wall-clock
+minute is `:50` or later, a stop-gate rule would otherwise apply, or a
+stop-hook workflow is referenced elsewhere in this file. In active goal work,
+commit completed coherent slices as usual and continue into the next aligned
+task when practical.
+
 There is no run-start hook. Do not write `currentRunStartedAt` at wake time.
 `agent/STATUS.json.currentRunStartedAt` should remain `null` unless a future,
 explicitly documented workflow reintroduces active-run ownership. The stop hook
