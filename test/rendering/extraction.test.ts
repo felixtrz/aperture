@@ -86,6 +86,54 @@ describe("render extraction", () => {
     });
   });
 
+  it("extracts view-relative transparent sort depths before stable ids", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      materialAsset: createStandardMaterialAsset({
+        renderState: {
+          alphaMode: "blend",
+          depth: { test: true, write: false, compare: "less" },
+          blend: { preset: "alpha" },
+        },
+      }),
+    });
+    createCameraEntity(world, {
+      priority: 0,
+      layerMask: 0b01,
+      translation: [0, 0, 5],
+      frustumCulling: false,
+    });
+    const near = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 0b01,
+      translation: [0, 0, 1],
+    });
+    const far = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 0b01,
+      translation: [0, 0, -1],
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 8 });
+
+    expect(snapshot.meshDraws.map((draw) => draw.entity.index)).toEqual([
+      far.index,
+      near.index,
+    ]);
+    expect(snapshot.meshDraws.map((draw) => draw.sortKey.queue)).toEqual([
+      "transparent",
+      "transparent",
+    ]);
+    expect(snapshot.meshDraws[0]?.sortKey.depth).toBeGreaterThan(
+      snapshot.meshDraws[1]?.sortKey.depth ?? 0,
+    );
+    expect(snapshot.meshDraws[0]?.sortKey.viewId).toBe(
+      snapshot.views[0]?.viewId,
+    );
+  });
+
   it("extracts sprite draws as snapshot-safe billboard packets", () => {
     const world = createRuntimeWorld();
     const assets = createReadyAssets();

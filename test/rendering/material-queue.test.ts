@@ -261,6 +261,45 @@ describe("material family render queue", () => {
     ]);
   });
 
+  it("sorts equal-depth transparent queue items by stable id before draw index", () => {
+    const snapshot = renderSnapshot([
+      drawPacket({
+        renderId: 30,
+        materialFamily: "unlit",
+        queue: "transparent",
+        depth: 10,
+        stableId: 4,
+      }),
+      drawPacket({
+        renderId: 20,
+        materialFamily: "unlit",
+        queue: "transparent",
+        depth: 10,
+        stableId: 2,
+      }),
+      drawPacket({
+        renderId: 10,
+        materialFamily: "unlit",
+        queue: "transparent",
+        depth: 10,
+        stableId: 2,
+      }),
+    ]);
+    const plan = buildMaterialQueueFromSnapshot(snapshot, resourceResolvers());
+
+    expect(
+      plan.items.map((item) => ({
+        renderId: item.renderId,
+        stableId: item.sortKey.stableId,
+        drawIndex: item.drawIndex,
+      })),
+    ).toEqual([
+      { renderId: 20, stableId: 2, drawIndex: 1 },
+      { renderId: 10, stableId: 2, drawIndex: 2 },
+      { renderId: 30, stableId: 4, drawIndex: 0 },
+    ]);
+  });
+
   it("diagnoses missing prepared resource keys without queueing the draw", () => {
     const snapshot = renderSnapshot([
       drawPacket({

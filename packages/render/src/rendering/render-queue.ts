@@ -19,6 +19,7 @@ export interface RenderQueueScope {
 
 export interface RenderQueueRecord {
   readonly renderId: number;
+  readonly sortOrdinal: number;
   readonly viewId: string;
   readonly passId: string;
   readonly queueKind: RenderQueueKind;
@@ -41,7 +42,22 @@ export interface RenderQueueRecord {
 export interface RenderQueueSortPhaseReport {
   readonly phase: RenderQueueKind;
   readonly recordCount: number;
+  readonly sortPolicy: RenderQueueSortPolicyReport;
   readonly durationUs?: number;
+}
+
+export type RenderQueueSortPolicyName =
+  | "opaque-resource-front-to-back-stable"
+  | "transparent-order-back-to-front-stable";
+
+export type RenderQueueDepthOrder = "front-to-back" | "back-to-front";
+
+export interface RenderQueueSortPolicyReport {
+  readonly name: RenderQueueSortPolicyName;
+  readonly depthOrder: RenderQueueDepthOrder;
+  readonly primaryKeys: readonly string[];
+  readonly tieBreakers: readonly string[];
+  readonly totalOrder: true;
 }
 
 export interface RenderQueuePlan {
@@ -72,11 +88,13 @@ export interface RenderQueueScratch {
 interface MutableRenderQueueSortPhaseReport {
   phase: RenderQueueKind;
   recordCount: number;
+  sortPolicy: RenderQueueSortPolicyReport;
   durationUs?: number;
 }
 
 interface MutableRenderQueueRecord {
   renderId: number;
+  sortOrdinal: number;
   viewId: string;
   passId: string;
   queueKind: RenderQueueKind;
@@ -114,8 +132,16 @@ export function createRenderQueueScratch(capacity = 0): RenderQueueScratch {
   const diagnostics: RenderDiagnostic[] = [];
   const sortPhases: RenderQueueSortPhaseReport[] = [];
   const sortPhasePool: RenderQueueSortPhaseReport[] = [
-    { phase: "opaque", recordCount: 0 },
-    { phase: "transparent", recordCount: 0 },
+    {
+      phase: "opaque",
+      recordCount: 0,
+      sortPolicy: renderQueueSortPolicyForPhase("opaque"),
+    },
+    {
+      phase: "transparent",
+      recordCount: 0,
+      sortPolicy: renderQueueSortPolicyForPhase("transparent"),
+    },
   ];
 
   for (let i = 0; i < capacity; i += 1) {
@@ -197,6 +223,7 @@ export function writeUnsortedRenderQueueRecords(
     const record = recordAt(scratch, scratch.records.length);
 
     record.renderId = draw.renderId;
+    record.sortOrdinal = scratch.records.length;
     record.viewId = viewId;
     record.passId = passId;
     record.queueKind =
@@ -226,8 +253,19 @@ export function writeUnsortedRenderQueueRecords(
 export function sortRenderQueueRecords(
   records: RenderQueueRecord[],
 ): RenderQueueRecord[] {
-  records.sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
+  records.sort(compareRenderQueueRecords);
   return records;
+}
+
+export function compareRenderQueueRecords(
+  a: RenderQueueRecord,
+  b: RenderQueueRecord,
+): number {
+  return (
+    compareRenderSortKeys(a.sortKey, b.sortKey) ||
+    a.renderId - b.renderId ||
+    a.sortOrdinal - b.sortOrdinal
+  );
 }
 
 export function coalesceRenderQueueRecords(
@@ -327,6 +365,7 @@ export function writeRenderQueueSortPhases(
 
     phase.phase = "opaque";
     phase.recordCount = opaque;
+    phase.sortPolicy = renderQueueSortPolicyForPhase("opaque");
     delete phase.durationUs;
     output.push(phase);
   }
@@ -336,6 +375,7 @@ export function writeRenderQueueSortPhases(
 
     phase.phase = "transparent";
     phase.recordCount = transparent;
+    phase.sortPolicy = renderQueueSortPolicyForPhase("transparent");
     delete phase.durationUs;
     output.push(phase);
   }
@@ -469,6 +509,7 @@ function sortPhaseAt(
   const phase: MutableRenderQueueSortPhaseReport = {
     phase: "opaque",
     recordCount: 0,
+    sortPolicy: renderQueueSortPolicyForPhase("opaque"),
   };
 
   pool.push(phase);
@@ -478,6 +519,7 @@ function sortPhaseAt(
 function createEmptyRecord(): MutableRenderQueueRecord {
   return {
     renderId: 0,
+    sortOrdinal: 0,
     viewId: DEFAULT_RENDER_QUEUE_VIEW_ID,
     passId: DEFAULT_RENDER_QUEUE_PASS_ID,
     queueKind: "opaque",
@@ -497,3 +539,43 @@ function createEmptyRecord(): MutableRenderQueueRecord {
     sourceMeshResourceKeys: [],
   };
 }
+
+export function renderQueueSortPolicyForPhase(
+  phase: RenderQueueKind,
+): RenderQueueSortPolicyReport {
+  return phase === "transparent"
+    ? TRANSPARENT_RENDER_QUEUE_SORT_POLICY
+    : OPAQUE_RENDER_QUEUE_SORT_POLICY;
+}
+
+const OPAQUE_RENDER_QUEUE_SORT_POLICY: RenderQueueSortPolicyReport = {
+  name: "opaque-resource-front-to-back-stable",
+  depthOrder: "front-to-back",
+  primaryKeys: [
+    "queue",
+    "viewId",
+    "layer",
+    "order",
+    "pipelineKey",
+    "materialKey",
+    "meshKey",
+    "depth",
+  ],
+  tieBreakers: ["stableId", "renderId", "sortOrdinal"],
+  totalOrder: true,
+};
+
+const TRANSPARENT_RENDER_QUEUE_SORT_POLICY: RenderQueueSortPolicyReport = {
+  name: "transparent-order-back-to-front-stable",
+  depthOrder: "back-to-front",
+  primaryKeys: ["queue", "viewId", "layer", "order", "depth"],
+  tieBreakers: [
+    "stableId",
+    "pipelineKey",
+    "materialKey",
+    "meshKey",
+    "renderId",
+    "sortOrdinal",
+  ],
+  totalOrder: true,
+};

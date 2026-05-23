@@ -22,8 +22,38 @@ interface StandardQueuePhasesStatus extends ExampleStatusBase {
   readonly pipelineKeys?: readonly string[];
   readonly expectedSamples?: {
     readonly alphaCutout: readonly [number, number, number, number];
-    readonly transparentBlend: readonly [number, number, number, number];
+    readonly transparentDepthTieBreak: readonly [
+      number,
+      number,
+      number,
+      number,
+    ];
+    readonly transparentStableTieBreak: readonly [
+      number,
+      number,
+      number,
+      number,
+    ];
   };
+  readonly materialKeys?: {
+    readonly transparentDepthBack?: string;
+    readonly transparentDepthFront?: string;
+    readonly transparentStableFirst?: string;
+    readonly transparentStableLast?: string;
+  };
+  readonly transparentSort?: readonly {
+    readonly renderId: number;
+    readonly materialKey: string;
+    readonly order: number;
+    readonly depth: number;
+    readonly stableId: number;
+  }[];
+  readonly transparentSortPolicy?: {
+    readonly name: string;
+    readonly depthOrder: string;
+    readonly tieBreakers: readonly string[];
+    readonly totalOrder: boolean;
+  } | null;
   readonly counts?: {
     readonly meshDraws: number;
     readonly drawCalls: number;
@@ -54,19 +84,58 @@ test("browser renders StandardMaterial opaque, alpha-test, and transparent queue
     ok: true,
     phase: "submit",
     renderingBackend: "webgpu-explicit",
-    queues: ["opaque", "opaque", "alpha-test", "transparent"],
+    queues: [
+      "opaque",
+      "opaque",
+      "opaque",
+      "alpha-test",
+      "transparent",
+      "transparent",
+      "transparent",
+      "transparent",
+    ],
     pipelineKeys: [
+      "standard|opaque|none|less|none",
       "standard|opaque|none|less|none",
       "standard|opaque|none|less|none",
       "standard|mask|none|less|none",
       "standard|blend|none|less|alpha",
+      "standard|blend|none|less|alpha",
+      "standard|blend|none|less|alpha",
+      "standard|blend|none|less|alpha",
     ],
     counts: {
-      meshDraws: 4,
-      drawCalls: 4,
+      meshDraws: 8,
+      drawCalls: 8,
       diagnostics: 0,
     },
   });
+  expect(status.transparentSortPolicy).toMatchObject({
+    name: "transparent-order-back-to-front-stable",
+    depthOrder: "back-to-front",
+    tieBreakers: expect.arrayContaining(["stableId", "sortOrdinal"]),
+    totalOrder: true,
+  });
+  expect(status.transparentSort?.map((entry) => entry.materialKey)).toEqual([
+    status.materialKeys?.transparentDepthBack,
+    status.materialKeys?.transparentDepthFront,
+    status.materialKeys?.transparentStableFirst,
+    status.materialKeys?.transparentStableLast,
+  ]);
+  expect(status.transparentSort?.[0]?.order).toBe(2);
+  expect(status.transparentSort?.[1]?.order).toBe(2);
+  expect(status.transparentSort?.[0]?.depth ?? 0).toBeGreaterThan(
+    status.transparentSort?.[1]?.depth ?? 0,
+  );
+  expect(status.transparentSort?.[2]?.order).toBe(5);
+  expect(status.transparentSort?.[3]?.order).toBe(5);
+  expect(status.transparentSort?.[2]?.depth ?? Number.NaN).toBeCloseTo(
+    status.transparentSort?.[3]?.depth ?? Number.NaN,
+    5,
+  );
+  expect(status.transparentSort?.[2]?.stableId ?? 0).toBeLessThan(
+    status.transparentSort?.[3]?.stableId ?? 0,
+  );
 
   const renderedStatus = await waitForQueuePhaseFrame(
     page,
@@ -87,18 +156,32 @@ test("browser renders StandardMaterial opaque, alpha-test, and transparent queue
   });
 
   const alphaCutout = strongestRegionSample(screenshot, 0.38, 0.43, 0.5, 0.66);
-  const transparentBlend = strongestRegionSample(
+  const transparentDepthTieBreak = strongestRegionSample(
     screenshot,
-    0.5,
+    0.45,
     0.43,
-    0.62,
+    0.56,
+    0.66,
+  );
+  const transparentStableTieBreak = strongestRegionSample(
+    screenshot,
+    0.54,
+    0.43,
+    0.68,
     0.66,
   );
   const expectedAlphaCutout = rgbaTupleToPixel(
     renderedStatus.expectedSamples?.alphaCutout ?? [0.95, 0.08, 0.04, 1],
   );
-  const expectedTransparentBlend = rgbaTupleToPixel(
-    renderedStatus.expectedSamples?.transparentBlend ?? [0.54, 0.54, 0.54, 1],
+  const expectedTransparentDepthTieBreak = rgbaTupleToPixel(
+    renderedStatus.expectedSamples?.transparentDepthTieBreak ?? [
+      0.56, 0.28, 0.2, 1,
+    ],
+  );
+  const expectedTransparentStableTieBreak = rgbaTupleToPixel(
+    renderedStatus.expectedSamples?.transparentStableTieBreak ?? [
+      0.56, 0.28, 0.2, 1,
+    ],
   );
   const clear = rgbaColorToPixel(
     renderedStatus.clearColor ?? { r: 0.02, g: 0.025, b: 0.03, a: 1 },
@@ -113,12 +196,26 @@ test("browser renders StandardMaterial opaque, alpha-test, and transparent queue
   expect(pixelDistance(alphaCutout, clear)).toBeGreaterThan(80);
 
   expect(
-    pixelDistance(transparentBlend, expectedTransparentBlend),
-    `transparent alpha blend should mix yellow over blue; sample=${JSON.stringify(
-      transparentBlend,
+    pixelDistance(transparentDepthTieBreak, expectedTransparentDepthTieBreak),
+    `transparent depth tie-break should put the nearer red surface over green; sample=${JSON.stringify(
+      transparentDepthTieBreak,
     )}`,
-  ).toBeLessThan(110);
-  expect(pixelDistance(transparentBlend, clear)).toBeGreaterThan(70);
+  ).toBeLessThan(140);
+  expect(pixelDistance(transparentDepthTieBreak, clear)).toBeGreaterThan(70);
+  expect(transparentDepthTieBreak.r).toBeGreaterThan(
+    transparentDepthTieBreak.g + 20,
+  );
+
+  expect(
+    pixelDistance(transparentStableTieBreak, expectedTransparentStableTieBreak),
+    `transparent stable-id tie-break should put the later stable red surface over green; sample=${JSON.stringify(
+      transparentStableTieBreak,
+    )}`,
+  ).toBeLessThan(140);
+  expect(pixelDistance(transparentStableTieBreak, clear)).toBeGreaterThan(70);
+  expect(transparentStableTieBreak.r).toBeGreaterThan(
+    transparentStableTieBreak.g + 20,
+  );
 });
 
 function rgbaTupleToPixel(

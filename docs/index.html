@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 15:18 UTC</dd>
+            <dd>2026-05-23 15:41 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1426,10 +1426,14 @@
               snapshot change sets now feed a generic render-update schedule,
               and <code>worker-cube</code> reports unchanged, changed, and
               removed packet-family work while the render world reuses unchanged
-              draw objects when keyed packet data is stable.
+              draw objects when keyed packet data is stable. Transparent queue
+              sorting now computes view-relative depths during extraction,
+              publishes JSON-safe sort-policy reports, and
+              <code>standard-queue-phases</code> proves depth/order/stable-id
+              ordering with overlapping StandardMaterial surfaces.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3102: deterministic transparent ordering tie-breaks</dd>
+            <dd>task-3103: roughness-aware transmission filtering</dd>
           </dl>
         </aside>
       </header>
@@ -2084,19 +2088,17 @@
           <article class="phase">
             <div class="topline">
               <h3>5. sort</h3>
-              <span class="percent">70%</span>
+              <span class="percent">82%</span>
             </div>
-            <div class="bar"><span style="width: 70%"></span></div>
+            <div class="bar"><span style="width: 82%"></span></div>
             <p>
               Opaque queue sorting is stable and deterministic; alpha-test and
-              transparent phase placement exists, and queue/app diagnostics now
-              report opaque and transparent phase counts.
+              transparent phase placement exists; transparent records now sort
+              by view-relative depth, render order, stable id, and queue-record
+              fallbacks; and queue/app diagnostics expose the applied sort
+              policy.
             </p>
             <ul>
-              <li>
-                Missing complete transparent ordering policy and tie-break
-                diagnostics.
-              </li>
               <li>Missing phase duration telemetry.</li>
               <li>Missing batching and pipeline pressure summaries.</li>
             </ul>
@@ -4460,8 +4462,8 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Prove deterministic
-                transparent ordering tie-breaks.
+                <span class="badge amber">next</span> Add roughness-aware
+                transmission scene-color filtering.
               </li>
               <li>
                 SSAO now uses a PlayCanvas-style spiral AO shader with
@@ -4475,9 +4477,8 @@
               <li>
                 The post-Tier-20 reference-parity queue now has renderer-owned
                 transmission grab-pass refraction and generic snapshot
-                change-set scheduling. It continues with a deterministic
-                transparent ordering proof and roughness-aware transmission
-                filtering.
+                change-set scheduling plus a deterministic transparent ordering
+                proof. It continues with roughness-aware transmission filtering.
               </li>
             </ul>
           </article>

@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## task-3102 — Prove deterministic transparent ordering tie-breaks
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added JSON-safe opaque/transparent render-queue sort-policy reports,
+  including depth order, primary keys, stable tie-breakers, and a total-order
+  flag.
+- Made render-queue sorting total by assigning each queue record a stable
+  `sortOrdinal` and falling back through `renderId` and `sortOrdinal` when
+  sort keys collide.
+- Computed view-relative mesh/sprite sort depths during extraction from the
+  first matching sorted view, so transparent depth ordering is driven by camera
+  distance instead of the previous default zero depth.
+- Expanded `examples/standard-queue-phases.html` to render overlapping
+  transparent StandardMaterial pairs that prove depth/order/stable-id ordering
+  in browser status and pixel readbacks.
+
+Validation:
+
+- `pnpm exec vitest run test/rendering/render-queue.test.ts test/rendering/material-queue.test.ts test/rendering/extraction.test.ts test/webgpu/app-diagnostics-summary.test.ts --reporter=dot`
+- `pnpm run typecheck:test`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- Direct Playwright browser proof for
+  `examples/standard-queue-phases.html`: status reported 8 mesh draws,
+  transparent policy `transparent-order-back-to-front-stable`, ordered
+  depth/stable-id transparent records, and red-dominant depth/stable pixel
+  samples. The headed Playwright test-runner command hung before executing the
+  spec in this environment and was stopped by a hard global timeout.
+
 ## task-3101 — Add a generic snapshot change-set scheduler for render-world updates
 
 Completed: 2026-05-23

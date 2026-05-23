@@ -147,6 +147,7 @@ interface ViewCullContext {
   readonly camera: RenderEntityRef;
   readonly priority: number;
   readonly layerMask: number;
+  readonly viewMatrix: Mat4;
   readonly frustumCulling: boolean;
   readonly planes: readonly FrustumPlane[];
   readonly stats: MutableViewCullStats;
@@ -343,6 +344,7 @@ function extractViews(
       camera,
       priority,
       layerMask,
+      viewMatrix,
       frustumCulling: entity.getValue(Camera, "frustumCulling") !== false,
       planes: createFrustumPlanes(viewProjectionMatrix),
       stats: {
@@ -760,6 +762,15 @@ function extractMeshDraws(
     const boneMatrixOffset =
       skinning === undefined ? undefined : pushBoneMatrices(bones, skinning);
     const boundsIndex = bounds.length;
+    const sortView = firstMatchingSortView(layerMask, viewCullContexts);
+    const sortViewId = sortView?.viewId ?? 0;
+    const sortDepth =
+      sortView === undefined
+        ? 0
+        : computeViewDepth(
+            sortView.viewMatrix,
+            boundsPacket.worldSphere.center,
+          );
 
     bounds.push(boundsPacket);
 
@@ -884,10 +895,12 @@ function extractMeshDraws(
         receivesShadow,
         sortKey: createRenderSortKey({
           queue,
+          viewId: sortViewId,
           layer: layerMask,
           order: entity.hasComponent(RenderOrder)
             ? (entity.getValue(RenderOrder, "value") ?? 0)
             : 0,
+          depth: sortDepth,
           materialKey,
           meshKey,
           stableId,
@@ -1110,6 +1123,15 @@ function extractSpriteDraws(
     const stableId = createStableRenderId(entityRef(entity));
     const textureKey = assetHandleKey(input.texture);
     const boundsIndex = bounds.length;
+    const sortView = firstMatchingSortView(layerMask, viewCullContexts);
+    const sortViewId = sortView?.viewId ?? 0;
+    const sortDepth =
+      sortView === undefined
+        ? 0
+        : computeViewDepth(
+            sortView.viewMatrix,
+            boundsPacket.worldSphere.center,
+          );
 
     bounds.push(boundsPacket);
     draws.push({
@@ -1130,10 +1152,12 @@ function extractSpriteDraws(
       layerMask,
       sortKey: createRenderSortKey({
         queue: "transparent",
+        viewId: sortViewId,
         layer: layerMask,
         order: entity.hasComponent(RenderOrder)
           ? (entity.getValue(RenderOrder, "value") ?? 0)
           : 0,
+        depth: sortDepth,
         pipelineKey: "sprite-billboard",
         materialKey: textureKey,
         meshKey: "sprite-quad",
@@ -1382,6 +1406,35 @@ function isVisibleInAnyMatchingView(
   return !matchedView || includedInAnyView;
 }
 
+function firstMatchingSortView(
+  layerMask: number,
+  viewCullContexts: readonly ViewCullContext[],
+): ViewCullContext | undefined {
+  for (const context of viewCullContexts) {
+    if ((context.layerMask & layerMask) !== 0) {
+      return context;
+    }
+  }
+
+  return undefined;
+}
+
+function computeViewDepth(
+  viewMatrix: Mat4,
+  worldCenter: BoundingSphere["center"],
+): number {
+  const x = worldCenter[0] ?? 0;
+  const y = worldCenter[1] ?? 0;
+  const z = worldCenter[2] ?? 0;
+
+  return -(
+    x * (viewMatrix[2] ?? 0) +
+    y * (viewMatrix[6] ?? 0) +
+    z * (viewMatrix[10] ?? 0) +
+    (viewMatrix[14] ?? 0)
+  );
+}
+
 function aabbIntersectsFrustum(
   aabb: Aabb,
   planes: readonly FrustumPlane[],
@@ -1462,6 +1515,7 @@ function createViewCullSignature(
 
   for (const context of viewCullContexts) {
     hash = hashCullNumber(hash, context.viewId);
+    hash = hashCullNumber(hash, context.priority);
     hash = hashCullNumber(hash, context.layerMask);
     hash = hashCullNumber(hash, context.frustumCulling ? 1 : 0);
 

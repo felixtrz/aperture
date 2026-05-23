@@ -50,7 +50,7 @@ function registerQueuePhaseAssets(aperture, sourceAssets) {
   const mesh = assets.meshes.add(
     aperture.createPlaneMeshAsset({
       label: "StandardQueuePhasePlane",
-      width: 0.9,
+      width: 0.48,
       height: 0.9,
     }),
     { id: "standard-queue-phase-plane" },
@@ -66,17 +66,41 @@ function registerQueuePhaseAssets(aperture, sourceAssets) {
     }),
     { id: "phase-alpha-cutout" },
   );
-  const rightOpaque = assets.materials.standard.add(
+  const blueOpaque = assets.materials.standard.add(
     standardMaterial(aperture, "PhaseOpaqueBlue", [0.08, 0.16, 0.95, 1]),
     { id: "phase-opaque-blue" },
   );
-  const transparent = assets.materials.standard.add(
-    standardMaterial(aperture, "PhaseTransparentYellow", [1, 0.92, 0.12, 0.5], {
-      alphaMode: "blend",
-      depth: { test: true, write: false, compare: "less" },
-      blend: { preset: "alpha" },
-    }),
-    { id: "phase-transparent-yellow" },
+  const transparentDepthBack = assets.materials.standard.add(
+    transparentMaterial(
+      aperture,
+      "PhaseTransparentDepthBack",
+      [0.02, 0.95, 0.16, 0.55],
+    ),
+    { id: "phase-transparent-depth-back" },
+  );
+  const transparentDepthFront = assets.materials.standard.add(
+    transparentMaterial(
+      aperture,
+      "PhaseTransparentDepthFront",
+      [1, 0.08, 0.04, 0.55],
+    ),
+    { id: "phase-transparent-depth-front" },
+  );
+  const transparentStableFirst = assets.materials.standard.add(
+    transparentMaterial(
+      aperture,
+      "PhaseTransparentStableFirst",
+      [0.02, 0.95, 0.16, 0.55],
+    ),
+    { id: "phase-transparent-stable-first" },
+  );
+  const transparentStableLast = assets.materials.standard.add(
+    transparentMaterial(
+      aperture,
+      "PhaseTransparentStableLast",
+      [1, 0.08, 0.04, 0.55],
+    ),
+    { id: "phase-transparent-stable-last" },
   );
 
   return {
@@ -84,12 +108,16 @@ function registerQueuePhaseAssets(aperture, sourceAssets) {
     materialKeys: {
       leftOpaque: aperture.assetHandleKey(leftOpaque),
       alphaCutout: aperture.assetHandleKey(alphaCutout),
-      rightOpaque: aperture.assetHandleKey(rightOpaque),
-      transparent: aperture.assetHandleKey(transparent),
+      blueOpaque: aperture.assetHandleKey(blueOpaque),
+      transparentDepthBack: aperture.assetHandleKey(transparentDepthBack),
+      transparentDepthFront: aperture.assetHandleKey(transparentDepthFront),
+      transparentStableFirst: aperture.assetHandleKey(transparentStableFirst),
+      transparentStableLast: aperture.assetHandleKey(transparentStableLast),
     },
     expectedSamples: {
       alphaCutout: [0.95, 0.08, 0.04, 1],
-      transparentBlend: [0.54, 0.54, 0.54, 1],
+      transparentDepthTieBreak: [0.56, 0.28, 0.2, 1],
+      transparentStableTieBreak: [0.56, 0.28, 0.2, 1],
     },
   };
 }
@@ -212,6 +240,14 @@ function standardMaterial(aperture, label, color, renderState = {}) {
   });
 }
 
+function transparentMaterial(aperture, label, color) {
+  return standardMaterial(aperture, label, color, {
+    alphaMode: "blend",
+    depth: { test: true, write: false, compare: "less" },
+    blend: { preset: "alpha" },
+  });
+}
+
 function statusFromReport(
   aperture,
   report,
@@ -221,6 +257,15 @@ function statusFromReport(
   typedSnapshot,
 ) {
   const reportJson = aperture.webGpuAppRenderReportToJsonValue(report);
+  const transparentSort = report.snapshot.meshDraws
+    .filter((draw) => draw.sortKey.queue === "transparent")
+    .map((draw) => ({
+      renderId: draw.renderId,
+      materialKey: draw.sortKey.materialKey,
+      order: draw.sortKey.order,
+      depth: draw.sortKey.depth,
+      stableId: draw.sortKey.stableId,
+    }));
 
   return {
     example: "standard-queue-phases",
@@ -243,6 +288,11 @@ function statusFromReport(
     pipelineKeys: report.snapshot.meshDraws.map(
       (draw) => draw.batchKey.pipelineKey,
     ),
+    transparentSort,
+    transparentSortPolicy:
+      reportJson.diagnosticsSummary?.renderQueueSortPhases?.find(
+        (phase) => phase.phase === "transparent",
+      )?.sortPolicy ?? null,
     report: reportJson,
     counts: reportJson.counts,
     diagnostics: reportJson.diagnostics,

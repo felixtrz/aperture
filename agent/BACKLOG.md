@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3102`: prove deterministic transparent ordering tie-breaks so
-transparent queue ordering is explicit, stable, and visible in browser
-readbacks.
+Start `task-3103`: add roughness-aware transmission scene-color filtering so
+transmitted StandardMaterial objects can blur the renderer-owned grab texture
+according to roughness.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -101,6 +101,9 @@ classifies refresh/reuse/remove/mixed/skip packet-family work; the WebGPU app
 report and `examples/worker-cube.html` publish render-update schedules; and
 `RenderWorld.applySnapshot()` can preserve unchanged draw resource bindings
 from keyed change sets while keeping current snapshot packet offsets.
+`examples/standard-queue-phases.html` now proves deterministic transparent
+depth/order/stable-id sorting with overlapping StandardMaterial surfaces, while
+queue/app diagnostics publish the applied transparent sort policy.
 `examples/render-packet-inspector.html` now renders worker-authored packets and
 publishes JSON-safe views, draws, bounds, queue keys, handles, skipped-entity
 explanations, and culling stats. Extraction now builds camera frustum planes
@@ -130,7 +133,7 @@ shader/pipeline/resource/importer tests.
 Reference anchors (read before writing):
 
 - `references/three.js/src/nodes/functions/PhysicalLightingModel.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/refractionDynamic.js`.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/transmission.js`.
 - Existing WebGPU transmission path in `packages/webgpu/src/webgpu/standard-shader.ts`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
@@ -210,6 +213,8 @@ Acceptance criteria:
 - Targeted snapshot change-set scheduler tests pass.
 
 ### task-3102 — Prove deterministic transparent ordering tie-breaks
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/render/src/rendering/render-queue.ts`, `packages/render/src/rendering/material-queue.ts`, `examples/standard-queue-phases.*`, targeted tests.

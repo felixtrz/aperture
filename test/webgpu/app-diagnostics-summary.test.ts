@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import type { MaterialQueuePhaseSummary } from "@aperture-engine/render";
+import {
+  renderQueueSortPolicyForPhase,
+  type MaterialQueuePhaseSummary,
+} from "@aperture-engine/render";
 import {
   collectWebGpuAppMaterialDependencyReadiness,
   collectWebGpuAppMaterialQueueRouteReport,
@@ -32,8 +35,16 @@ describe("WebGPU app diagnostics summary", () => {
     const routedResourceSet = routedResourceSetSummary();
     const renderFrameQueue = renderFrameQueueSummary();
     const renderQueueSortPhases = [
-      { phase: "opaque" as const, recordCount: 2 },
-      { phase: "transparent" as const, recordCount: 1 },
+      {
+        phase: "opaque" as const,
+        recordCount: 2,
+        sortPolicy: renderQueueSortPolicyForPhase("opaque"),
+      },
+      {
+        phase: "transparent" as const,
+        recordCount: 1,
+        sortPolicy: renderQueueSortPolicyForPhase("transparent"),
+      },
     ];
     const gpuTimings = gpuTimingSummary();
     const directLighting = directLightingSummary();

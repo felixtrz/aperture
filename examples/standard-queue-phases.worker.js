@@ -78,7 +78,7 @@ function loadAperture() {
 
 function createWorkerScene(aperture, canvasSize) {
   const app = aperture.createExtractionApp({
-    worldOptions: { entityCapacity: 10 },
+    worldOptions: { entityCapacity: 16 },
   });
   const assets = registerQueuePhaseAssets(aperture, app.assets);
 
@@ -93,30 +93,62 @@ function createWorkerScene(aperture, canvasSize) {
     }),
   );
   app.spawn(
-    aperture.withTransform({ translation: [-0.65, 0, 0] }),
+    aperture.withTransform({ translation: [-0.72, 0, 0] }),
     aperture.withMesh(assets.mesh),
     aperture.withMaterial(assets.leftOpaque),
     aperture.withRenderLayer(1),
     aperture.withVisibility(true),
   );
   app.spawn(
-    aperture.withTransform({ translation: [-0.65, 0, 0.02] }),
+    aperture.withTransform({ translation: [-0.72, 0, 0.02] }),
     aperture.withMesh(assets.mesh),
     aperture.withMaterial(assets.alphaCutout),
     aperture.withRenderLayer(1),
     aperture.withVisibility(true),
   );
   app.spawn(
-    aperture.withTransform({ translation: [0.65, 0, 0] }),
+    aperture.withTransform({ translation: [0, 0, 0] }),
     aperture.withMesh(assets.mesh),
-    aperture.withMaterial(assets.rightOpaque),
+    aperture.withMaterial(assets.blueOpaque),
     aperture.withRenderLayer(1),
     aperture.withVisibility(true),
   );
   app.spawn(
-    aperture.withTransform({ translation: [0.65, 0, 0.02] }),
+    aperture.withTransform({ translation: [0, 0, 0.02] }),
     aperture.withMesh(assets.mesh),
-    aperture.withMaterial(assets.transparent),
+    aperture.withMaterial(assets.transparentDepthBack),
+    aperture.withRenderOrder(2),
+    aperture.withRenderLayer(1),
+    aperture.withVisibility(true),
+  );
+  app.spawn(
+    aperture.withTransform({ translation: [0, 0, 0.06] }),
+    aperture.withMesh(assets.mesh),
+    aperture.withMaterial(assets.transparentDepthFront),
+    aperture.withRenderOrder(2),
+    aperture.withRenderLayer(1),
+    aperture.withVisibility(true),
+  );
+  app.spawn(
+    aperture.withTransform({ translation: [0.72, 0, 0] }),
+    aperture.withMesh(assets.mesh),
+    aperture.withMaterial(assets.blueOpaque),
+    aperture.withRenderLayer(1),
+    aperture.withVisibility(true),
+  );
+  app.spawn(
+    aperture.withTransform({ translation: [0.72, 0, 0.04] }),
+    aperture.withMesh(assets.mesh),
+    aperture.withMaterial(assets.transparentStableFirst),
+    aperture.withRenderOrder(5),
+    aperture.withRenderLayer(1),
+    aperture.withVisibility(true),
+  );
+  app.spawn(
+    aperture.withTransform({ translation: [0.72, 0, 0.04] }),
+    aperture.withMesh(assets.mesh),
+    aperture.withMaterial(assets.transparentStableLast),
+    aperture.withRenderOrder(5),
     aperture.withRenderLayer(1),
     aperture.withVisibility(true),
   );
@@ -144,8 +176,19 @@ function createWorkerScene(aperture, canvasSize) {
     materialKeys: {
       leftOpaque: aperture.assetHandleKey(assets.leftOpaque),
       alphaCutout: aperture.assetHandleKey(assets.alphaCutout),
-      rightOpaque: aperture.assetHandleKey(assets.rightOpaque),
-      transparent: aperture.assetHandleKey(assets.transparent),
+      blueOpaque: aperture.assetHandleKey(assets.blueOpaque),
+      transparentDepthBack: aperture.assetHandleKey(
+        assets.transparentDepthBack,
+      ),
+      transparentDepthFront: aperture.assetHandleKey(
+        assets.transparentDepthFront,
+      ),
+      transparentStableFirst: aperture.assetHandleKey(
+        assets.transparentStableFirst,
+      ),
+      transparentStableLast: aperture.assetHandleKey(
+        assets.transparentStableLast,
+      ),
     },
   };
 }
@@ -157,7 +200,7 @@ function registerQueuePhaseAssets(aperture, registry) {
   const mesh = assets.meshes.add(
     aperture.createPlaneMeshAsset({
       label: "StandardQueuePhasePlane",
-      width: 0.9,
+      width: 0.48,
       height: 0.9,
     }),
     { id: "standard-queue-phase-plane" },
@@ -173,20 +216,53 @@ function registerQueuePhaseAssets(aperture, registry) {
     }),
     { id: "phase-alpha-cutout" },
   );
-  const rightOpaque = assets.materials.standard.add(
+  const blueOpaque = assets.materials.standard.add(
     standardMaterial(aperture, "PhaseOpaqueBlue", [0.08, 0.16, 0.95, 1]),
     { id: "phase-opaque-blue" },
   );
-  const transparent = assets.materials.standard.add(
-    standardMaterial(aperture, "PhaseTransparentYellow", [1, 0.92, 0.12, 0.5], {
-      alphaMode: "blend",
-      depth: { test: true, write: false, compare: "less" },
-      blend: { preset: "alpha" },
-    }),
-    { id: "phase-transparent-yellow" },
+  const transparentDepthBack = assets.materials.standard.add(
+    transparentMaterial(
+      aperture,
+      "PhaseTransparentDepthBack",
+      [0.02, 0.95, 0.16, 0.55],
+    ),
+    { id: "phase-transparent-depth-back" },
+  );
+  const transparentDepthFront = assets.materials.standard.add(
+    transparentMaterial(
+      aperture,
+      "PhaseTransparentDepthFront",
+      [1, 0.08, 0.04, 0.55],
+    ),
+    { id: "phase-transparent-depth-front" },
+  );
+  const transparentStableFirst = assets.materials.standard.add(
+    transparentMaterial(
+      aperture,
+      "PhaseTransparentStableFirst",
+      [0.02, 0.95, 0.16, 0.55],
+    ),
+    { id: "phase-transparent-stable-first" },
+  );
+  const transparentStableLast = assets.materials.standard.add(
+    transparentMaterial(
+      aperture,
+      "PhaseTransparentStableLast",
+      [1, 0.08, 0.04, 0.55],
+    ),
+    { id: "phase-transparent-stable-last" },
   );
 
-  return { mesh, leftOpaque, alphaCutout, rightOpaque, transparent };
+  return {
+    mesh,
+    leftOpaque,
+    alphaCutout,
+    blueOpaque,
+    transparentDepthBack,
+    transparentDepthFront,
+    transparentStableFirst,
+    transparentStableLast,
+  };
 }
 
 function standardMaterial(aperture, label, color, renderState = {}) {
@@ -197,6 +273,14 @@ function standardMaterial(aperture, label, color, renderState = {}) {
     metallicFactor: 0,
     roughnessFactor: 1,
     renderState: { cullMode: "none", ...renderState },
+  });
+}
+
+function transparentMaterial(aperture, label, color) {
+  return standardMaterial(aperture, label, color, {
+    alphaMode: "blend",
+    depth: { test: true, write: false, compare: "less" },
+    blend: { preset: "alpha" },
   });
 }
 

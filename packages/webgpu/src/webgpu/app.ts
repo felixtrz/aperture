@@ -16,6 +16,7 @@ import {
   createMaterialDependencyReadinessReport,
   createRenderSnapshotChangeSet,
   createRenderSnapshotUpdateSchedule,
+  renderQueueSortPolicyForPhase,
   createSamplerAsset,
   materialDependencyReadinessReportToJsonValue,
   prepareSnapshotMeshes,
@@ -4256,11 +4257,19 @@ function createQueuedBuiltInAppSortPhaseSummary(
   const phases: RenderQueueSortPhaseReport[] = [];
 
   if (opaque > 0) {
-    phases.push({ phase: "opaque", recordCount: opaque });
+    phases.push({
+      phase: "opaque",
+      recordCount: opaque,
+      sortPolicy: renderQueueSortPolicyForPhase("opaque"),
+    });
   }
 
   if (transparent > 0) {
-    phases.push({ phase: "transparent", recordCount: transparent });
+    phases.push({
+      phase: "transparent",
+      recordCount: transparent,
+      sortPolicy: renderQueueSortPolicyForPhase("transparent"),
+    });
   }
 
   return phases;

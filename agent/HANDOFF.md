@@ -1,6 +1,61 @@
 # Agent Handoff
 
-Updated: 2026-05-23T15:21:13Z
+Updated: 2026-05-23T15:44:31Z
+
+## Current Run Update — 2026-05-23T15:44:31Z — Deterministic transparent ordering
+
+Completed `task-3102`, the next post-Tier-20 reference-parity slice.
+
+### What changed
+
+- Added explicit JSON-safe render-queue sort-policy reports for opaque and
+  transparent phases, including depth order, primary keys, stable tie-breakers,
+  and a total-order flag.
+- Made render-queue sorting total by assigning queue records a `sortOrdinal`
+  and falling back through `renderId` and `sortOrdinal` when sort keys collide.
+- Computed view-relative mesh and sprite sort depths during extraction from the
+  first matching sorted view, so transparent back-to-front ordering is driven by
+  camera distance instead of default zero depth.
+- Expanded `examples/standard-queue-phases.html` to render overlapping
+  transparent StandardMaterial surfaces that prove depth/order/stable-id
+  ordering in browser status and pixel readbacks.
+- Updated the public tracker, render-pipeline comparison, backlog,
+  current-task pointer, and completed-task log. Recommended next task is now
+  `task-3103`.
+
+### Validation
+
+- `pnpm exec vitest run test/rendering/render-queue.test.ts test/rendering/material-queue.test.ts test/rendering/extraction.test.ts test/webgpu/app-diagnostics-summary.test.ts --reporter=dot`
+- `pnpm run typecheck:test`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check $(git diff --name-only --diff-filter=ACMRTUXB)`
+- `git diff --check`
+- `pnpm run lint`
+- `pnpm test`
+- Direct Playwright browser proof for
+  `http://127.0.0.1:4173/examples/standard-queue-phases.html`: status reported
+  8 mesh draws, transparent policy
+  `transparent-order-back-to-front-stable`, ordered depth/stable-id transparent
+  records, and red-dominant depth/stable pixel samples.
+
+### Known issues
+
+- `pnpm exec playwright test test/e2e/standard-queue-phases.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000 --global-timeout=120000`
+  hung in the Playwright runner before executing the spec and was stopped by
+  the hard global timeout. The direct Playwright browser proof above covered the
+  same page status and pixel-readback behavior.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `docs/DEVELOPER_API_FEEDBACK.md` /
+  `docs/DEVELOPER_API_PROPOSAL.md` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3103`, adding roughness-aware transmission scene-color filtering so
+the renderer-owned grab texture can be sampled at visibly different sharpness
+levels per material roughness.
 
 ## Current Run Update — 2026-05-23T15:21:13Z — Snapshot update scheduling
 
