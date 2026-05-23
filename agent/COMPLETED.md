@@ -1,5 +1,33 @@
 # Completed Tasks
 
+## task-3096 — MSAA depth route for screen-space post effects
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added a shared post-depth sampling WGSL helper that specializes depth-fed
+  post-effect shaders for either `texture_depth_2d` or
+  `texture_depth_multisampled_2d`.
+- Updated SSAO, SSR, and DOF to include depth sample count in pipeline/resource
+  keys and to average multisampled scene-depth samples instead of rejecting
+  MSAA depth attachments.
+- Updated `examples/ssao.html` so the SSAO side runs with an 8x request /
+  4x-effective MSAA scene and reports MSAA state in the example status.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts test/webgpu/webgpu-app.test.ts --reporter=dot`
+- `pnpm run typecheck:test`
+- `pnpm run examples:build`
+- `pnpm exec playwright test test/e2e/ssao.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm run lint`
+- `git diff --check`
+- `pnpm test`
+
 ## task-3095 — DOF PlayCanvas/Bevy CoC quality follow-up
 
 Completed: 2026-05-23

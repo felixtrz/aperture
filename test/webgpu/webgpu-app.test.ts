@@ -816,6 +816,86 @@ describe("WebGPU app facade", () => {
     ).toBeGreaterThanOrEqual(2);
   });
 
+  it("passes multisampled scene depth to SSAO post effects", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      msaa: 8,
+      worldOptions: { entityCapacity: 8 },
+      postEffects: [createWebGpuSsaoPostEffect({ radiusPixels: 6 })],
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "MsaaCube" }));
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "MsaaWhite" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 142);
+
+    expect(frame.ok).toBe(true);
+    expect(frame.msaa).toMatchObject({
+      requestedSampleCount: 8,
+      sampleCount: 4,
+      enabled: true,
+      clamped: true,
+      colorTargets: 1,
+    });
+    expect(frame.renderTargets).toMatchObject([
+      {
+        source: "swapchain",
+        ok: true,
+        drawCalls: 1,
+        msaaSampleCount: 4,
+      },
+    ]);
+    expect(frame.postEffects).toEqual([
+      {
+        effectId: "ssao",
+        label: "SSAO Post Effect",
+        viewId: 0,
+        input: "aperture-webgpu-app:post:scene",
+        output: "swapchain",
+        ok: true,
+        drawCalls: 1,
+      },
+    ]);
+    expect(frame.diagnostics).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "webGpuPostPass.depthTextureUnsupportedSampleCount",
+        }),
+      ]),
+    );
+    expect(events).toContain(
+      "device:texture:aperture/webgpu-app/msaa/swapchain",
+    );
+    expect(events).toContain(
+      "device:pipeline:aperture-webgpu-app:post:ssao:ssao:pipeline",
+    );
+  });
+
   it("surfaces per-pass GPU timings in the app diagnostics summary", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events, {

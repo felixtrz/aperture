@@ -289,12 +289,12 @@ describe("WebGPU post-pass helpers", () => {
       {
         kind: "setPipeline",
         pipelineKey:
-          "webgpu-post-ssao|rgba8unorm|radius:7.000|intensity:1.500|bias:0.00100|range:0.0800|near:0.1000|far:40.000|fovY:1.0472|samples:18|minAngle:7.00|power:1.200|random:0.2500",
+          "webgpu-post-ssao|rgba8unorm|depthSamples:1|radius:7.000|intensity:1.500|bias:0.00100|range:0.0800|near:0.1000|far:40.000|fovY:1.0472|samples:18|minAngle:7.00|power:1.200|random:0.2500",
       },
       {
         kind: "setBindGroup",
         resourceKey:
-          "ssao:input:scene:depth:scene-depth:radius:7.00:samples:18:intensity:1.50",
+          "ssao:input:scene:depth:scene-depth:depthSamples:1:radius:7.00:samples:18:intensity:1.50",
       },
       { kind: "draw", vertexCount: 3 },
     ]);
@@ -329,12 +329,13 @@ describe("WebGPU post-pass helpers", () => {
     ]);
   });
 
-  it("diagnoses SSAO when scene depth is multisampled", () => {
+  it("prepares SSAO when scene depth is multisampled", () => {
+    const events: string[] = [];
     const effect = createWebGpuSsaoPostEffect();
     const prepared = effect.prepare({
-      device: postDevice([]),
-      input: postTexture("scene", []),
-      depth: postDepthTexture("msaa-depth", [], 4),
+      device: postDevice(events),
+      input: postTexture("scene", events),
+      depth: postDepthTexture("msaa-depth", events, 4),
       outputFormat: "rgba8unorm",
       width: 32,
       height: 16,
@@ -344,12 +345,21 @@ describe("WebGPU post-pass helpers", () => {
       label: "test-ssao",
     });
 
-    expect(prepared.commands).toEqual([]);
-    expect(prepared.diagnostics).toMatchObject([
+    expect(prepared.diagnostics).toEqual([]);
+    expect(prepared.commands).toMatchObject([
       {
-        code: "webGpuPostPass.depthTextureUnsupportedSampleCount",
-        effectId: "ssao",
+        kind: "setPipeline",
+        pipelineKey: expect.stringContaining(
+          "webgpu-post-ssao|rgba8unorm|depthSamples:4|",
+        ),
       },
+      {
+        kind: "setBindGroup",
+        resourceKey: expect.stringContaining(
+          "ssao:input:scene:depth:msaa-depth:depthSamples:4:",
+        ),
+      },
+      { kind: "draw", vertexCount: 3 },
     ]);
   });
 
@@ -390,12 +400,12 @@ describe("WebGPU post-pass helpers", () => {
       {
         kind: "setPipeline",
         pipelineKey:
-          "webgpu-post-ssr|rgba8unorm|opacity:0.500|steps:16|stride:4.000|thickness:0.0500|near:0.1000|far:40.000|fovY:1.0472|maxDistance:8.000|fresnel:true|attenuate:true|blur:1.500|fallback:0.120",
+          "webgpu-post-ssr|rgba8unorm|depthSamples:1|opacity:0.500|steps:16|stride:4.000|thickness:0.0500|near:0.1000|far:40.000|fovY:1.0472|maxDistance:8.000|fresnel:true|attenuate:true|blur:1.500|fallback:0.120",
       },
       {
         kind: "setBindGroup",
         resourceKey:
-          "ssr:input:scene:depth:scene-depth:opacity:0.50:distance:8.00:fresnel:true",
+          "ssr:input:scene:depth:scene-depth:depthSamples:1:opacity:0.50:distance:8.00:fresnel:true",
       },
       { kind: "draw", vertexCount: 3 },
     ]);
@@ -427,6 +437,40 @@ describe("WebGPU post-pass helpers", () => {
     expect(prepared.commands).toEqual([]);
     expect(prepared.diagnostics).toMatchObject([
       { code: "webGpuPostPass.depthTextureUnavailable", effectId: "ssr" },
+    ]);
+  });
+
+  it("prepares SSR when scene depth is multisampled", () => {
+    const events: string[] = [];
+    const effect = createWebGpuSsrPostEffect();
+    const prepared = effect.prepare({
+      device: postDevice(events),
+      input: postTexture("scene", events),
+      depth: postDepthTexture("msaa-depth", events, 4),
+      outputFormat: "rgba8unorm",
+      width: 32,
+      height: 16,
+      frame: 1,
+      passIndex: 0,
+      isLast: true,
+      label: "test-ssr",
+    });
+
+    expect(prepared.diagnostics).toEqual([]);
+    expect(prepared.commands).toMatchObject([
+      {
+        kind: "setPipeline",
+        pipelineKey: expect.stringContaining(
+          "webgpu-post-ssr|rgba8unorm|depthSamples:4|",
+        ),
+      },
+      {
+        kind: "setBindGroup",
+        resourceKey: expect.stringContaining(
+          "ssr:input:scene:depth:msaa-depth:depthSamples:4:",
+        ),
+      },
+      { kind: "draw", vertexCount: 3 },
     ]);
   });
 
@@ -466,12 +510,12 @@ describe("WebGPU post-pass helpers", () => {
       {
         kind: "setPipeline",
         pipelineKey:
-          "webgpu-post-dof|rgba8unorm|near:0.1000|far:20.000|focus:3.200|range:0.800|aperture:1.250|max:9.000|nearBlur:false|rings:4|ringPoints:4|farScale:0.750|nearScale:1.100",
+          "webgpu-post-dof|rgba8unorm|depthSamples:1|near:0.1000|far:20.000|focus:3.200|range:0.800|aperture:1.250|max:9.000|nearBlur:false|rings:4|ringPoints:4|farScale:0.750|nearScale:1.100",
       },
       {
         kind: "setBindGroup",
         resourceKey:
-          "dof:input:scene:depth:scene-depth:focus:3.20:aperture:1.25:kernel:4x4",
+          "dof:input:scene:depth:scene-depth:depthSamples:1:focus:3.20:aperture:1.25:kernel:4x4",
       },
       { kind: "draw", vertexCount: 3 },
     ]);
@@ -506,12 +550,13 @@ describe("WebGPU post-pass helpers", () => {
     ]);
   });
 
-  it("diagnoses DOF when scene depth is multisampled", () => {
+  it("prepares DOF when scene depth is multisampled", () => {
+    const events: string[] = [];
     const effect = createWebGpuDofPostEffect();
     const prepared = effect.prepare({
-      device: postDevice([]),
-      input: postTexture("scene", []),
-      depth: postDepthTexture("msaa-depth", [], 4),
+      device: postDevice(events),
+      input: postTexture("scene", events),
+      depth: postDepthTexture("msaa-depth", events, 4),
       outputFormat: "rgba8unorm",
       width: 32,
       height: 16,
@@ -521,12 +566,21 @@ describe("WebGPU post-pass helpers", () => {
       label: "test-dof",
     });
 
-    expect(prepared.commands).toEqual([]);
-    expect(prepared.diagnostics).toMatchObject([
+    expect(prepared.diagnostics).toEqual([]);
+    expect(prepared.commands).toMatchObject([
       {
-        code: "webGpuPostPass.depthTextureUnsupportedSampleCount",
-        effectId: "dof",
+        kind: "setPipeline",
+        pipelineKey: expect.stringContaining(
+          "webgpu-post-dof|rgba8unorm|depthSamples:4|",
+        ),
       },
+      {
+        kind: "setBindGroup",
+        resourceKey: expect.stringContaining(
+          "dof:input:scene:depth:msaa-depth:depthSamples:4:",
+        ),
+      },
+      { kind: "draw", vertexCount: 3 },
     ]);
   });
 

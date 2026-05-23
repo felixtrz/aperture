@@ -4,6 +4,12 @@ import type {
   WebGpuPostPassDeviceLike,
   WebGpuPreparedPostEffectPass,
 } from "./post-pass.js";
+import {
+  postDepthLoadFunctionWgsl,
+  postDepthPipelineKeyToken,
+  postDepthTextureBindingWgsl,
+  resolvePostDepthSampleCount,
+} from "./post-depth-sampling.js";
 import type { RenderPassCommand } from "./render-pass-commands.js";
 
 export interface CreateWebGpuDofPostEffectOptions {
@@ -73,17 +79,12 @@ export function createWebGpuDofPostEffect(
         return preparedDofPass(id, label, [], diagnostics);
       }
 
-      if (prepareOptions.depth.sampleCount !== 1) {
-        diagnostics.push({
-          code: "webGpuPostPass.depthTextureUnsupportedSampleCount",
-          effectId: id,
-          message: `DOF post effect '${id}' requires a single-sample depth texture, but '${prepareOptions.depth.label}' has sample count ${prepareOptions.depth.sampleCount}.`,
-        });
-        return preparedDofPass(id, label, [], diagnostics);
-      }
-
+      const depthSampleCount = resolvePostDepthSampleCount(
+        prepareOptions.depth.sampleCount,
+      );
       const pipelineKey = dofPipelineKey({
         outputFormat: prepareOptions.outputFormat,
+        depthSampleCount,
         near,
         far,
         focusDistance,
@@ -102,6 +103,7 @@ export function createWebGpuDofPostEffect(
           : createDofPostPipeline({
               device: prepareOptions.device,
               outputFormat: prepareOptions.outputFormat,
+              depthSampleCount,
               near,
               far,
               focusDistance,
@@ -207,7 +209,7 @@ export function createWebGpuDofPostEffect(
             kind: "setBindGroup",
             renderId: 0,
             index: 0,
-            resourceKey: `${id}:input:${prepareOptions.input.label}:depth:${prepareOptions.depth.label}:focus:${focusDistance.toFixed(2)}:aperture:${aperture.toFixed(2)}:kernel:${blurRings}x${blurRingPoints}`,
+            resourceKey: `${id}:input:${prepareOptions.input.label}:depth:${prepareOptions.depth.label}:depthSamples:${depthSampleCount}:focus:${focusDistance.toFixed(2)}:aperture:${aperture.toFixed(2)}:kernel:${blurRings}x${blurRingPoints}`,
             bindGroup,
           },
           {
@@ -227,6 +229,7 @@ export function createWebGpuDofPostEffect(
 
 function dofPipelineKey(options: {
   readonly outputFormat: string;
+  readonly depthSampleCount: number;
   readonly near: number;
   readonly far: number;
   readonly focusDistance: number;
@@ -242,6 +245,7 @@ function dofPipelineKey(options: {
   return [
     "webgpu-post-dof",
     options.outputFormat,
+    postDepthPipelineKeyToken(options.depthSampleCount),
     `near:${options.near.toFixed(4)}`,
     `far:${options.far.toFixed(3)}`,
     `focus:${options.focusDistance.toFixed(3)}`,
@@ -259,6 +263,7 @@ function dofPipelineKey(options: {
 function createDofPostPipeline(options: {
   readonly device: WebGpuPostPassDeviceLike;
   readonly outputFormat: string;
+  readonly depthSampleCount: number;
   readonly near: number;
   readonly far: number;
   readonly focusDistance: number;
@@ -410,6 +415,7 @@ function dofSampleAccumulationWgsl(
 }
 
 function dofPostEffectWgsl(options: {
+  readonly depthSampleCount: number;
   readonly near: number;
   readonly far: number;
   readonly focusDistance: number;
@@ -429,7 +435,7 @@ struct VertexOutput {
 
 @group(0) @binding(0) var inputSampler: sampler;
 @group(0) @binding(1) var inputTexture: texture_2d<f32>;
-@group(0) @binding(2) var depthTexture: texture_depth_2d;
+${postDepthTextureBindingWgsl(options.depthSampleCount)}
 
 const NEAR_PLANE: f32 = ${wgslFloat(options.near)};
 const FAR_PLANE: f32 = ${wgslFloat(options.far)};
@@ -472,8 +478,10 @@ fn coordFromUv(uv: vec2f, dims: vec2u) -> vec2i {
   return clampCoord(vec2i(i32(pixel.x), i32(pixel.y)), dims);
 }
 
+${postDepthLoadFunctionWgsl(options.depthSampleCount)}
+
 fn loadDepthUv(uv: vec2f, dims: vec2u) -> f32 {
-  return textureLoad(depthTexture, coordFromUv(uv, dims), 0);
+  return loadDepth(coordFromUv(uv, dims), dims);
 }
 
 fn viewDepth(rawDepth: f32) -> f32 {

@@ -3,16 +3,20 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3096 — MSAA depth route for screen-space post effects.
+Current task: none.
 
-Status: Tier 20 baseline SSAO, SSR, and DOF have shipped as depth-readable post
-effects with square raw-vs-effect browser proofs. The strict parity audit found
-that additional Tier 20 follow-ups are needed before the user's full objective
-can be marked complete. `task-3093` upgraded SSAO toward the PlayCanvas modern
-spiral AO reference, `task-3094` upgraded SSR toward the three.js `SSRPass`
-normal/fresnel/distance-attenuation shape, and `task-3095` upgraded DOF toward
-the PlayCanvas/Bevy circle-of-confusion quality shape.
+Status: Tier 20 is complete. Baseline SSAO, SSR, and DOF shipped as
+depth-readable post effects with square raw-vs-effect browser proofs, and the
+strict reference-parity follow-ups are complete:
 
-Next step: start `task-3096`, adding a renderer-owned single-sample depth route
-or equivalent prepass/resolve path so SSAO, SSR, and DOF can run in MSAA scenes
-without example-specific depth plumbing.
+- `task-3093` upgraded SSAO toward the PlayCanvas spiral AO reference.
+- `task-3094` upgraded SSR toward the three.js `SSRPass`
+  normal/fresnel/distance-attenuation shape.
+- `task-3095` upgraded DOF toward the PlayCanvas/Bevy
+  circle-of-confusion quality shape.
+- `task-3096` added a renderer-owned multisampled-depth shader route so SSAO,
+  SSR, and DOF can run in MSAA scenes without example-specific depth plumbing.
+
+Next step: no ready task remains in `agent/BACKLOG.md`. Refill the backlog with
+the next visible-feature roadmap slice before continuing beyond the user's
+"through Tier 20" objective.

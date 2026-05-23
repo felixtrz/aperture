@@ -1,6 +1,57 @@
 # Agent Handoff
 
-Updated: 2026-05-23T05:22:58Z
+Updated: 2026-05-23T05:39:00Z
+
+## Current Run Update — 2026-05-23T05:39:00Z — MSAA depth route for screen-space effects
+
+Completed `task-3096`, the final Tier 20 reference-parity follow-up. The user's
+requested "through Tier 20" scope is now complete.
+
+### What changed
+
+- Added a shared post-depth WGSL sampling helper that emits either
+  `texture_depth_2d` or `texture_depth_multisampled_2d` bindings based on the
+  renderer-owned scene depth attachment sample count.
+- Updated SSAO, SSR, and DOF to include depth sample count in their
+  pipeline/resource keys and to average multisampled depth samples instead of
+  rejecting MSAA depth inputs.
+- Updated `examples/ssao.html` so the SSAO comparison runs the effect canvas
+  with an 8x MSAA request / 4x effective WebGPU sample count and reports MSAA
+  state in the JSON status.
+
+### Reference comparison
+
+- PlayCanvas camera-frame/prepass references anchor keeping screen-space depth
+  inputs renderer-owned rather than viewer-owned.
+- three.js render-target references anchor sample-count-aware render target
+  configuration and depth handling.
+- Aperture uses a WebGPU-native multisampled-depth shader route instead of
+  adding example-specific prepass plumbing or a scene graph.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts test/webgpu/webgpu-app.test.ts --reporter=dot`
+- `pnpm run typecheck:test`
+- `pnpm run examples:build`
+- `pnpm exec playwright test test/e2e/ssao.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm run lint`
+- `git diff --check`
+- `pnpm test`
+
+### Known issues
+
+- No ready task remains in `agent/BACKLOG.md` after `task-3096`.
+- Phase 6 still has broader future gaps outside the user's Tier 20 scope, such
+  as true transmission grab-pass/refraction, texture-backed material-extension
+  sampling, and previous transform history for independently moving geometry.
+
+### Recommended next task
+
+Refill the backlog with the next visible-feature roadmap slice and concrete
+reference anchors before continuing beyond Tier 20.
 
 ## Current Run Update — 2026-05-23T05:22:58Z — DOF CoC quality follow-up
 

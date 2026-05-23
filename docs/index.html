@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 05:22 UTC</dd>
+            <dd>2026-05-23 05:39 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1413,12 +1413,14 @@
               far/near circle-of-confusion channels plus configurable concentric
               kernel quality for focus/aperture blur.
               <code>examples/ssao.html</code>, <code>examples/ssr.html</code>,
-              and <code>examples/dof.html</code>
-              prove raw-vs-effect differences in square canvases. Remaining Tier
-              20 parity work covers MSAA depth inputs for screen-space effects.
+              and <code>examples/dof.html</code> prove raw-vs-effect differences
+              in square canvases. Tier 20 is now complete: depth-fed post
+              effects can sample multisampled scene depth, and
+              <code>examples/ssao.html</code>
+              proves SSAO over an 8x-request / 4x-effective MSAA scene.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3096 — MSAA depth route for screen-space effects</dd>
+            <dd>Backlog refill for the next visible-feature roadmap slice</dd>
           </dl>
         </aside>
       </header>
@@ -4441,8 +4443,9 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Continue Tier 20
-                reference-parity follow-ups with MSAA depth support.
+                <span class="badge amber">next</span> Refill the backlog with
+                the next visible-feature roadmap slice and concrete reference
+                anchors.
               </li>
               <li>
                 SSAO now uses a PlayCanvas-style spiral AO shader with
@@ -4450,12 +4453,12 @@
                 depth-derived normals, fresnel, distance attenuation,
                 max-distance semantics, and reflection softening; DOF now uses
                 explicit far/near CoC channels and configurable concentric
-                kernel quality.
+                kernel quality; all three can sample multisampled scene depth in
+                MSAA scenes.
               </li>
               <li>
-                Next work should add a renderer-owned single-sample depth route
-                or equivalent prepass/resolve path so depth-fed post effects can
-                run in MSAA scenes.
+                Tier 20 is complete; no ready task remains in the immediate
+                backlog.
               </li>
             </ul>
           </article>

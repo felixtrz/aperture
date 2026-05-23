@@ -4,6 +4,12 @@ import type {
   WebGpuPostPassDeviceLike,
   WebGpuPreparedPostEffectPass,
 } from "./post-pass.js";
+import {
+  postDepthLoadFunctionWgsl,
+  postDepthPipelineKeyToken,
+  postDepthTextureBindingWgsl,
+  resolvePostDepthSampleCount,
+} from "./post-depth-sampling.js";
 import type { RenderPassCommand } from "./render-pass-commands.js";
 
 export interface CreateWebGpuSsrPostEffectOptions {
@@ -79,17 +85,12 @@ export function createWebGpuSsrPostEffect(
         return preparedSsrPass(id, label, [], diagnostics);
       }
 
-      if (prepareOptions.depth.sampleCount !== 1) {
-        diagnostics.push({
-          code: "webGpuPostPass.depthTextureUnsupportedSampleCount",
-          effectId: id,
-          message: `SSR post effect '${id}' requires a single-sample depth texture, but '${prepareOptions.depth.label}' has sample count ${prepareOptions.depth.sampleCount}.`,
-        });
-        return preparedSsrPass(id, label, [], diagnostics);
-      }
-
+      const depthSampleCount = resolvePostDepthSampleCount(
+        prepareOptions.depth.sampleCount,
+      );
       const pipelineKey = ssrPipelineKey({
         outputFormat: prepareOptions.outputFormat,
+        depthSampleCount,
         opacity,
         maxSteps,
         stridePixels,
@@ -109,6 +110,7 @@ export function createWebGpuSsrPostEffect(
           : createSsrPostPipeline({
               device: prepareOptions.device,
               outputFormat: prepareOptions.outputFormat,
+              depthSampleCount,
               opacity,
               maxSteps,
               stridePixels,
@@ -214,7 +216,7 @@ export function createWebGpuSsrPostEffect(
             kind: "setBindGroup",
             renderId: 0,
             index: 0,
-            resourceKey: `${id}:input:${prepareOptions.input.label}:depth:${prepareOptions.depth.label}:opacity:${opacity.toFixed(2)}:distance:${maxDistance.toFixed(2)}:fresnel:${String(fresnel)}`,
+            resourceKey: `${id}:input:${prepareOptions.input.label}:depth:${prepareOptions.depth.label}:depthSamples:${depthSampleCount}:opacity:${opacity.toFixed(2)}:distance:${maxDistance.toFixed(2)}:fresnel:${String(fresnel)}`,
             bindGroup,
           },
           {
@@ -234,6 +236,7 @@ export function createWebGpuSsrPostEffect(
 
 function ssrPipelineKey(options: {
   readonly outputFormat: string;
+  readonly depthSampleCount: number;
   readonly opacity: number;
   readonly maxSteps: number;
   readonly stridePixels: number;
@@ -250,6 +253,7 @@ function ssrPipelineKey(options: {
   return [
     "webgpu-post-ssr",
     options.outputFormat,
+    postDepthPipelineKeyToken(options.depthSampleCount),
     `opacity:${options.opacity.toFixed(3)}`,
     `steps:${options.maxSteps}`,
     `stride:${options.stridePixels.toFixed(3)}`,
@@ -268,6 +272,7 @@ function ssrPipelineKey(options: {
 function createSsrPostPipeline(options: {
   readonly device: WebGpuPostPassDeviceLike;
   readonly outputFormat: string;
+  readonly depthSampleCount: number;
   readonly opacity: number;
   readonly maxSteps: number;
   readonly stridePixels: number;
@@ -383,6 +388,7 @@ function wgslFloat(value: number): string {
 }
 
 function ssrPostEffectWgsl(options: {
+  readonly depthSampleCount: number;
   readonly opacity: number;
   readonly maxSteps: number;
   readonly stridePixels: number;
@@ -404,7 +410,7 @@ struct VertexOutput {
 
 @group(0) @binding(0) var inputSampler: sampler;
 @group(0) @binding(1) var inputTexture: texture_2d<f32>;
-@group(0) @binding(2) var depthTexture: texture_depth_2d;
+${postDepthTextureBindingWgsl(options.depthSampleCount)}
 
 const OPACITY: f32 = ${wgslFloat(options.opacity)};
 const MAX_STEPS: u32 = ${options.maxSteps}u;
@@ -448,8 +454,10 @@ fn coordFromUv(uv: vec2f, dims: vec2u) -> vec2i {
   return clampCoord(vec2i(i32(pixel.x), i32(pixel.y)), dims);
 }
 
+${postDepthLoadFunctionWgsl(options.depthSampleCount)}
+
 fn loadDepthUv(uv: vec2f, dims: vec2u) -> f32 {
-  return textureLoad(depthTexture, coordFromUv(uv, dims), 0);
+  return loadDepth(coordFromUv(uv, dims), dims);
 }
 
 fn viewDepth(rawDepth: f32) -> f32 {

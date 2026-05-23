@@ -59,14 +59,17 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Continue Tier 20 reference-parity follow-ups with `task-3096`, adding an MSAA
-depth route so screen-space effects do not reject multisampled scenes.
+No ready task remains after `task-3096`; the user's requested "through Tier 20"
+scope is complete. Before continuing beyond this objective, refill the backlog
+with the next visible-feature roadmap slice and concrete reference anchors.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
-with square raw-vs-effect browser proofs. The stricter user objective also asks
-for parity against the best three.js/PlayCanvas references, so the ready queue
-now tracks the remaining visible parity slices instead of treating Tier 20 as
-fully achieved.
+with square raw-vs-effect browser proofs. The stricter reference-parity
+follow-ups are also complete: SSAO now follows the PlayCanvas spiral AO shape,
+SSR follows the three.js `SSRPass` normal/fresnel/attenuation shape, DOF follows
+the PlayCanvas/Bevy circle-of-confusion quality shape, and depth-fed post
+effects can sample multisampled scene depth in MSAA scenes without
+example-specific depth plumbing.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -1411,9 +1414,9 @@ Acceptance criteria:
 - DOF controls map cleanly to focus distance/range, near blur, blur radius, and kernel quality concepts from PlayCanvas/Bevy references.
 - `examples/dof.html` still proves background defocus and focused foreground stability with no WebGPU validation warnings.
 
-### task-3096 — MSAA depth route for screen-space post effects (Tier 20 follow-up 4)
+### task-3096 — MSAA depth route for screen-space post effects (Tier 20 follow-up 4) — Completed 2026-05-23
 
-Status: ready.
+Status: completed. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: post-pass depth resource plumbing, MSAA/depth attachment handling, `examples/msaa.html` or a focused screen-space example, targeted tests.

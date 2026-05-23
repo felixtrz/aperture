@@ -4,6 +4,12 @@ import type {
   WebGpuPostPassDeviceLike,
   WebGpuPreparedPostEffectPass,
 } from "./post-pass.js";
+import {
+  postDepthLoadFunctionWgsl,
+  postDepthPipelineKeyToken,
+  postDepthTextureBindingWgsl,
+  resolvePostDepthSampleCount,
+} from "./post-depth-sampling.js";
 import type { RenderPassCommand } from "./render-pass-commands.js";
 
 export interface CreateWebGpuSsaoPostEffectOptions {
@@ -77,17 +83,12 @@ export function createWebGpuSsaoPostEffect(
         return preparedSsaoPass(id, label, [], diagnostics);
       }
 
-      if (prepareOptions.depth.sampleCount !== 1) {
-        diagnostics.push({
-          code: "webGpuPostPass.depthTextureUnsupportedSampleCount",
-          effectId: id,
-          message: `SSAO post effect '${id}' requires a single-sample depth texture, but '${prepareOptions.depth.label}' has sample count ${prepareOptions.depth.sampleCount}.`,
-        });
-        return preparedSsaoPass(id, label, [], diagnostics);
-      }
-
+      const depthSampleCount = resolvePostDepthSampleCount(
+        prepareOptions.depth.sampleCount,
+      );
       const pipelineKey = ssaoPipelineKey({
         outputFormat: prepareOptions.outputFormat,
+        depthSampleCount,
         radiusPixels,
         intensity,
         depthBias,
@@ -106,6 +107,7 @@ export function createWebGpuSsaoPostEffect(
           : createSsaoPostPipeline({
               device: prepareOptions.device,
               outputFormat: prepareOptions.outputFormat,
+              depthSampleCount,
               radiusPixels,
               intensity,
               depthBias,
@@ -210,7 +212,7 @@ export function createWebGpuSsaoPostEffect(
             kind: "setBindGroup",
             renderId: 0,
             index: 0,
-            resourceKey: `${id}:input:${prepareOptions.input.label}:depth:${prepareOptions.depth.label}:radius:${radiusPixels.toFixed(2)}:samples:${sampleCount}:intensity:${intensity.toFixed(2)}`,
+            resourceKey: `${id}:input:${prepareOptions.input.label}:depth:${prepareOptions.depth.label}:depthSamples:${depthSampleCount}:radius:${radiusPixels.toFixed(2)}:samples:${sampleCount}:intensity:${intensity.toFixed(2)}`,
             bindGroup,
           },
           {
@@ -230,6 +232,7 @@ export function createWebGpuSsaoPostEffect(
 
 function ssaoPipelineKey(options: {
   readonly outputFormat: string;
+  readonly depthSampleCount: number;
   readonly radiusPixels: number;
   readonly intensity: number;
   readonly depthBias: number;
@@ -245,6 +248,7 @@ function ssaoPipelineKey(options: {
   return [
     "webgpu-post-ssao",
     options.outputFormat,
+    postDepthPipelineKeyToken(options.depthSampleCount),
     `radius:${options.radiusPixels.toFixed(3)}`,
     `intensity:${options.intensity.toFixed(3)}`,
     `bias:${options.depthBias.toFixed(5)}`,
@@ -262,6 +266,7 @@ function ssaoPipelineKey(options: {
 function createSsaoPostPipeline(options: {
   readonly device: WebGpuPostPassDeviceLike;
   readonly outputFormat: string;
+  readonly depthSampleCount: number;
   readonly radiusPixels: number;
   readonly intensity: number;
   readonly depthBias: number;
@@ -298,6 +303,7 @@ function createSsaoPostPipeline(options: {
   const module = options.device.createShaderModule({
     label: `${options.label}:shader`,
     code: ssaoPostEffectWgsl({
+      depthSampleCount: options.depthSampleCount,
       radiusPixels: options.radiusPixels,
       intensity: options.intensity,
       depthBias: options.depthBias,
@@ -388,6 +394,7 @@ function wgslFloat(value: number): string {
 }
 
 function ssaoPostEffectWgsl(options: {
+  readonly depthSampleCount: number;
   readonly radiusPixels: number;
   readonly intensity: number;
   readonly depthBias: number;
@@ -410,7 +417,7 @@ struct VertexOutput {
 
 @group(0) @binding(0) var inputSampler: sampler;
 @group(0) @binding(1) var inputTexture: texture_2d<f32>;
-@group(0) @binding(2) var depthTexture: texture_depth_2d;
+${postDepthTextureBindingWgsl(options.depthSampleCount)}
 
 const SAMPLE_COUNT: u32 = ${options.sampleCount}u;
 const INV_SAMPLE_COUNT: f32 = ${wgslFloat(1 / options.sampleCount)};
@@ -456,9 +463,7 @@ fn coordFromUv(uv: vec2f, dims: vec2u) -> vec2i {
   return clampCoord(vec2i(i32(pixel.x), i32(pixel.y)), dims);
 }
 
-fn loadDepth(coord: vec2i, dims: vec2u) -> f32 {
-  return textureLoad(depthTexture, clampCoord(coord, dims), 0);
-}
+${postDepthLoadFunctionWgsl(options.depthSampleCount)}
 
 fn loadDepthUv(uv: vec2f, dims: vec2u) -> f32 {
   return loadDepth(coordFromUv(uv, dims), dims);

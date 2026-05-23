@@ -37,6 +37,14 @@ interface SsaoFrameStatus {
     readonly width: number;
     readonly height: number;
     readonly drawCalls: number;
+    readonly msaaSampleCount: number;
+  };
+  readonly msaa: {
+    readonly requestedSampleCount: number;
+    readonly sampleCount: number;
+    readonly enabled: boolean;
+    readonly clamped: boolean;
+    readonly colorTargets: number;
   };
   readonly postEffects: readonly {
     readonly effectId: string;
@@ -46,7 +54,7 @@ interface SsaoFrameStatus {
   readonly boundaries: number;
 }
 
-test("browser darkens contact regions through depth-fed SSAO", async ({
+test("browser darkens contact regions through depth-fed SSAO with MSAA depth", async ({
   page,
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
@@ -85,6 +93,14 @@ test("browser darkens contact regions through depth-fed SSAO", async ({
         width: 512,
         height: 512,
         drawCalls: 3,
+        msaaSampleCount: 1,
+      },
+      msaa: {
+        requestedSampleCount: 1,
+        sampleCount: 1,
+        enabled: false,
+        clamped: false,
+        colorTargets: 0,
       },
       postEffects: [],
     },
@@ -94,6 +110,14 @@ test("browser darkens contact regions through depth-fed SSAO", async ({
         width: 512,
         height: 512,
         drawCalls: 3,
+        msaaSampleCount: 4,
+      },
+      msaa: {
+        requestedSampleCount: 8,
+        sampleCount: 4,
+        enabled: true,
+        clamped: true,
+        colorTargets: 1,
       },
       postEffects: [{ effectId: "ssao", output: "swapchain", ok: true }],
       boundaries: 2,
@@ -102,7 +126,7 @@ test("browser darkens contact regions through depth-fed SSAO", async ({
       snapshotsReceived: 1,
     },
   });
-  await page.waitForTimeout(100);
+  await page.waitForTimeout(1000);
 
   const rawScreenshot = await page.locator("#ssao-canvas-raw").screenshot();
   const ssaoScreenshot = await page.locator("#ssao-canvas-ssao").screenshot();
