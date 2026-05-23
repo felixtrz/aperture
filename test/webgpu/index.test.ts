@@ -149,6 +149,32 @@ describe("WebGPU support boundary", () => {
     ]);
   });
 
+  it("requests indirect-first-instance automatically when the adapter exposes it", async () => {
+    const descriptors: unknown[] = [];
+    const device: WebGpuDeviceLike = {};
+    const gpu = fakeGpu({
+      features: {
+        has: (feature) => feature === "indirect-first-instance",
+      },
+      requestDevice: async (descriptor) => {
+        descriptors.push(descriptor);
+        return device;
+      },
+    });
+
+    const result = await initializeWebGpu({
+      environment: { navigator: { gpu } },
+      context: fakeContext(),
+    });
+
+    expect(result).toMatchObject({ ok: true });
+    expect(descriptors).toEqual([
+      {
+        requiredFeatures: ["indirect-first-instance"],
+      },
+    ]);
+  });
+
   it("does not request timestamp-query when disabled", async () => {
     const descriptors: unknown[] = [];
     const device: WebGpuDeviceLike = {};

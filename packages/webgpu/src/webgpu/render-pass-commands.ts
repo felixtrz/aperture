@@ -6,7 +6,9 @@ export type RenderPassCommandKind =
   | "setVertexBuffer"
   | "setIndexBuffer"
   | "draw"
-  | "drawIndexed";
+  | "drawIndexed"
+  | "drawIndirect"
+  | "drawIndexedIndirect";
 
 export type RenderPassStateCommandKind =
   | "setPipeline"
@@ -75,13 +77,40 @@ export interface DrawIndexedCommand {
   readonly firstInstance: number;
 }
 
+export interface DrawIndirectCommand {
+  readonly kind: "drawIndirect";
+  readonly renderId: number;
+  readonly resourceKey: string;
+  readonly buffer: unknown;
+  readonly offset: number;
+  readonly vertexCount: number;
+  readonly instanceCount: number;
+  readonly firstVertex: number;
+  readonly firstInstance: number;
+}
+
+export interface DrawIndexedIndirectCommand {
+  readonly kind: "drawIndexedIndirect";
+  readonly renderId: number;
+  readonly resourceKey: string;
+  readonly buffer: unknown;
+  readonly offset: number;
+  readonly indexCount: number;
+  readonly instanceCount: number;
+  readonly firstIndex: number;
+  readonly baseVertex: number;
+  readonly firstInstance: number;
+}
+
 export type RenderPassCommand =
   | SetPipelineCommand
   | SetBindGroupCommand
   | SetVertexBufferCommand
   | SetIndexBufferCommand
   | DrawCommand
-  | DrawIndexedCommand;
+  | DrawIndexedCommand
+  | DrawIndirectCommand
+  | DrawIndexedIndirectCommand;
 
 export interface RenderPassCommandPlanOptions {
   readonly draws: readonly ResolvedRenderPassDraw[];

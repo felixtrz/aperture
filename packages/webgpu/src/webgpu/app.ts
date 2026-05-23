@@ -101,6 +101,12 @@ import {
   type RenderBundleExecutionReport,
 } from "./render-bundle.js";
 import {
+  createIndirectDrawCommandCache,
+  prepareIndirectDrawCommands,
+  type IndirectDrawCommandCache,
+  type IndirectDrawCommandReport,
+} from "./indirect-draw-commands.js";
+import {
   createGpuPassTimingReport,
   createGpuTimestampQueryResourcesChecked,
   readGpuTimestampQueryResults,
@@ -557,6 +563,7 @@ export interface WebGpuAppRenderReport {
   readonly gpuTimings?: GpuPassTimingReport;
   readonly commandPressure?: RenderPassCommandPressureReport;
   readonly renderBundles?: WebGpuAppRenderBundleReport;
+  readonly indirectDraws?: IndirectDrawCommandReport;
 }
 
 export type WebGpuAppJsonValue =
@@ -585,6 +592,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly gpuTimings?: GpuPassTimingReport;
   readonly commandPressure?: WebGpuAppJsonValue;
   readonly renderBundles?: WebGpuAppRenderBundleReport;
+  readonly indirectDraws?: IndirectDrawCommandReport;
   readonly materialDependencyReadiness?: readonly MaterialAssetDependencyReadinessReportJsonValue[];
 }
 
@@ -651,6 +659,7 @@ interface WebGpuAppResourceCache {
   readonly idPickPipelines: Map<string, WebGpuIdBufferPickPipelineResource>;
   readonly gpuTimings: Map<string, WebGpuAppGpuTimingCacheEntry>;
   readonly renderBundles: RenderBundleCache;
+  readonly indirectDraws: IndirectDrawCommandCache;
   readonly postPasses: WebGpuAppPostPassCache;
   readonly frameScratch: WebGpuAppFrameScratch;
   readonly unlitFrame: UnlitAppFrameResourceCacheSlot;
@@ -1076,6 +1085,7 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     idPickPipelines: new Map(),
     gpuTimings: new Map(),
     renderBundles: createRenderBundleCache(),
+    indirectDraws: createIndirectDrawCommandCache(),
     postPasses: {
       scene: createWebGpuPostPassTextureCacheSlot(),
       ping: createWebGpuPostPassTextureCacheSlot(),
@@ -1922,12 +1932,18 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     spriteFrame.resources.commands.length === 0
       ? framePlan.commandPlan.commands
       : [...framePlan.commandPlan.commands, ...spriteFrame.resources.commands];
+  const indirectDraws = prepareWebGpuAppIndirectDrawCommands({
+    app: options.app,
+    cache: options.cache,
+    commands: frameCommands,
+    label: options.label ?? "aperture-webgpu-app",
+  });
   const boundaries = await assembleWebGpuAppFrameBoundaries({
     app: options.app,
     assets: options.assets,
     cache: options.cache,
     snapshot: options.snapshot,
-    commands: frameCommands,
+    commands: indirectDraws.commands,
     label: options.label ?? "aperture-webgpu-app",
     reuse: options.reuse,
     motionVectorColorFormat: sceneMotionVectors.colorFormat,
@@ -1997,6 +2013,9 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       : { depthAttachment: boundaries.depthAttachment }),
     ...(readback === undefined ? {} : { readback }),
     ...(gpuTimings === undefined ? {} : { gpuTimings }),
+    ...(indirectDraws.report.status === "skipped"
+      ? {}
+      : { indirectDraws: indirectDraws.report }),
     resourceReuse: options.reuse,
     diagnosticsSummary: frameDiagnosticsSummary,
     drawPackages: framePlan.packages.packages.length,
@@ -2394,6 +2413,26 @@ function shouldUseRenderBundlesForSnapshotSchedule(
     meshDraws === "reuse" ||
     meshDraws === "skip"
   );
+}
+
+function prepareWebGpuAppIndirectDrawCommands(options: {
+  readonly app: WebGpuApp;
+  readonly cache: WebGpuAppResourceCache;
+  readonly commands: readonly RenderPassCommand[];
+  readonly label: string;
+}): ReturnType<typeof prepareIndirectDrawCommands> {
+  return prepareIndirectDrawCommands({
+    device: options.app.initialization.device as Parameters<
+      typeof prepareIndirectDrawCommands
+    >[0]["device"],
+    cache: options.cache.indirectDraws,
+    commands: options.commands,
+    label: options.label,
+    supportsIndirectFirstInstance:
+      options.app.initialization.adapter.features?.has?.(
+        "indirect-first-instance",
+      ) === true,
+  });
 }
 
 function createWebGpuAppRenderBundleReport(
@@ -4236,7 +4275,12 @@ function countDrawCommands(commands: readonly RenderPassCommand[]): number {
   let count = 0;
 
   for (const command of commands) {
-    if (command.kind === "draw" || command.kind === "drawIndexed") {
+    if (
+      command.kind === "draw" ||
+      command.kind === "drawIndexed" ||
+      command.kind === "drawIndirect" ||
+      command.kind === "drawIndexedIndirect"
+    ) {
       count += 1;
     }
   }
@@ -5405,12 +5449,18 @@ async function renderWebGpuAppFrame(
     spriteFrame.resources.commands.length === 0
       ? framePlan.commandPlan.commands
       : [...framePlan.commandPlan.commands, ...spriteFrame.resources.commands];
+  const indirectDraws = prepareWebGpuAppIndirectDrawCommands({
+    app,
+    cache: resourceCache,
+    commands: frameCommands,
+    label: options.label ?? "aperture-webgpu-app",
+  });
   const boundaries = await assembleWebGpuAppFrameBoundaries({
     app,
     assets: sourceAssets,
     cache: resourceCache,
     snapshot,
-    commands: frameCommands,
+    commands: indirectDraws.commands,
     label: options.label ?? "aperture-webgpu-app",
     reuse,
     enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(
@@ -5458,6 +5508,9 @@ async function renderWebGpuAppFrame(
       ? {}
       : { depthAttachment: boundaries.depthAttachment }),
     ...(readback === undefined ? {} : { readback }),
+    ...(indirectDraws.report.status === "skipped"
+      ? {}
+      : { indirectDraws: indirectDraws.report }),
     resourceReuse: reuse,
     drawPackages: framePlan.packages.packages.length,
     drawCommands: boundaries.plannedCommands,
@@ -6541,6 +6594,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.renderBundles === undefined
       ? {}
       : { renderBundles: report.renderBundles }),
+    ...(report.indirectDraws === undefined
+      ? {}
+      : { indirectDraws: report.indirectDraws }),
     ...(materialDependencyReadiness.length === 0
       ? {}
       : { materialDependencyReadiness }),
@@ -6642,6 +6698,7 @@ function renderReport(input: {
   readonly gpuTimings?: GpuPassTimingReport;
   readonly commandPressure?: RenderPassCommandPressureReport;
   readonly renderBundles?: WebGpuAppRenderBundleReport;
+  readonly indirectDraws?: IndirectDrawCommandReport;
   readonly drawPackages?: number;
   readonly drawCommands?: number;
   readonly drawCalls?: number;
@@ -6697,6 +6754,9 @@ function renderReport(input: {
     ...(input.renderBundles === undefined
       ? {}
       : { renderBundles: input.renderBundles }),
+    ...(input.indirectDraws === undefined
+      ? {}
+      : { indirectDraws: input.indirectDraws }),
   };
 }
 

@@ -1,6 +1,51 @@
 # Agent Handoff
 
-Updated: 2026-05-23T20:00:20Z
+Updated: 2026-05-23T20:08:33Z
+
+## Current Run Update — 2026-05-23T20:08:33Z — Indirect grouped draws
+
+Completed `task-3113`, the third post-audit submit-efficiency slice.
+
+### What changed
+
+- Added an indirect draw command preparation path that packs compatible grouped
+  direct draw commands into a renderer-owned WebGPU indirect argument buffer.
+- Added `drawIndirect` / `drawIndexedIndirect` command records and executor
+  support.
+- Requested optional `indirect-first-instance` support during WebGPU
+  initialization when the adapter exposes it, with direct fallback and
+  JSON-safe fallback reasons when indirect submission is unsafe.
+- Threaded indirect draw status through WebGPU app reports and
+  `examples/instancing.html`.
+- Updated the public tracker, render-pipeline comparison page, backlog,
+  current-task pointer, and completed-task log. Recommended next task is now
+  `task-3114`, state-aware opaque queue ordering.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/indirect-draw-commands.test.ts test/webgpu/render-pass-command-executor.test.ts test/webgpu/index.test.ts --reporter=dot`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec prettier --check packages/webgpu/src/webgpu/indirect-draw-commands.ts packages/webgpu/src/webgpu/render-pass-commands.ts packages/webgpu/src/webgpu/render-pass-command-executor.ts packages/webgpu/src/webgpu/render-bundle.ts packages/webgpu/src/webgpu/app.ts packages/webgpu/src/webgpu/index.ts packages/webgpu/src/webgpu/mesh-buffer-descriptors.ts examples/instancing.main.js test/webgpu/indirect-draw-commands.test.ts test/webgpu/render-pass-command-executor.test.ts test/webgpu/index.test.ts test/e2e/instancing.spec.ts`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- Playwright MCP browser proof for
+  `http://127.0.0.1:4173/examples/instancing.html`: `ok: true`, one grouped
+  draw, one indirect candidate, one `drawIndexedIndirect` command, zero direct
+  grouped draws, one 20-byte argument buffer, fallback reason `null`, and zero
+  diagnostics. The only console error was the existing favicon 403.
+
+### Known issues
+
+- The headed Playwright project still times out during suite startup in this
+  environment before test bodies run; runtime behavior was validated through the
+  Playwright MCP browser proof above.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3114`, adding state-aware opaque queue ordering to lower submit
+pressure while preserving visible queue semantics.
 
 ## Current Run Update — 2026-05-23T20:00:20Z — Static render-bundle reuse
 

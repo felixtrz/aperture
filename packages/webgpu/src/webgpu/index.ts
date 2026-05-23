@@ -44,6 +44,7 @@ export * from "./ibl-texture-preparation.js";
 export * from "./ibl-texture-resource.js";
 export * from "./id-buffer.js";
 export * from "./id-buffer-pick.js";
+export * from "./indirect-draw-commands.js";
 export * from "./instance-buffer.js";
 export * from "./instance-attribute-buffer.js";
 export * from "./instance-tint-buffer.js";
@@ -290,6 +291,7 @@ export interface InitializeWebGpuOptions {
   readonly deviceDescriptor?: unknown;
   readonly timestampQuery?: "auto" | boolean;
   readonly textureCompression?: "auto" | boolean;
+  readonly indirectFirstInstance?: "auto" | boolean;
   readonly alphaMode?: "opaque" | "premultiplied";
   readonly textureUsage?: number;
   readonly displayColorSpace?: "srgb";
@@ -345,6 +347,7 @@ export async function initializeWebGpu(
       deviceDescriptorWithOptionalFeatures(adapter, options.deviceDescriptor, {
         timestampQuery: options.timestampQuery ?? "auto",
         textureCompression: options.textureCompression ?? "auto",
+        indirectFirstInstance: options.indirectFirstInstance ?? "auto",
       }),
     );
   } catch (cause) {
@@ -405,6 +408,7 @@ function deviceDescriptorWithOptionalFeatures(
   options: {
     readonly timestampQuery: "auto" | boolean;
     readonly textureCompression: "auto" | boolean;
+    readonly indirectFirstInstance: "auto" | boolean;
   },
 ): unknown {
   const features: string[] = [];
@@ -422,6 +426,17 @@ function deviceDescriptorWithOptionalFeatures(
       if (adapter.features?.has?.(feature) === true) {
         features.push(feature);
       }
+    }
+  }
+
+  if (options.indirectFirstInstance !== false) {
+    const indirectFirstInstanceSupported =
+      adapter.features?.has?.("indirect-first-instance") === true;
+    if (
+      indirectFirstInstanceSupported ||
+      options.indirectFirstInstance === true
+    ) {
+      features.push("indirect-first-instance");
     }
   }
 

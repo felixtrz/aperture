@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3113`: add an indirect draw argument-buffer route for compatible
-grouped draws and publish indirect/fallback status in a browser-visible proof.
+Start `task-3114`: add state-aware opaque queue ordering to lower submit
+pressure while preserving visible queue semantics.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -145,14 +145,16 @@ The post-Tier-20 audit found Aperture is close on covered feature breadth but
 not yet SOTA on submit efficiency. `task-3111` now elides redundant main forward
 pipeline, bind-group, vertex-buffer, and index-buffer state commands and exposes
 planned-vs-emitted pressure in browser status. `task-3112` now reuses static
-WebGPU render bundles for unchanged command plans. The remaining top blocker is
-an indirect argument-buffer route for compatible grouped draws.
+WebGPU render bundles for unchanged command plans. `task-3113` now submits
+compatible grouped draws through an indirect argument buffer when supported. The
+remaining polish blockers are state-aware opaque ordering and shared bind-group
+allocation pressure.
 
 Reference anchors for the next task (read before writing):
 
+- `references/three.js/src/renderers/common/RenderList.js`.
+- `references/engine/src/scene/renderer/renderer.js`.
 - `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`.
-- `references/three.js/src/renderers/webgpu/WebGPUBackend.js`.
-- `references/three.js/src/renderers/common/IndirectStorageBufferAttribute.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -386,6 +388,8 @@ Acceptance criteria:
 - The selected static scene keeps the same readback pixels and draw counts while reporting fewer per-frame command-encoding operations after bundle reuse.
 
 ### task-3113 — Add an indirect draw argument-buffer route for compatible grouped draws
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/`, `examples/instancing.*` or `examples/instance-attributes.*`, targeted tests.

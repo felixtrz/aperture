@@ -9,7 +9,9 @@ export type RenderPassEncoderMethod =
   | "setVertexBuffer"
   | "setIndexBuffer"
   | "draw"
-  | "drawIndexed";
+  | "drawIndexed"
+  | "drawIndirect"
+  | "drawIndexedIndirect";
 
 export interface RenderPassCommandExecutorDiagnostic {
   readonly code: RenderPassCommandExecutorDiagnosticCode;
@@ -36,6 +38,8 @@ export interface RenderPassEncoderLike {
     baseVertex: number,
     firstInstance: number,
   ) => void;
+  drawIndirect?: (buffer: unknown, offset: number) => void;
+  drawIndexedIndirect?: (buffer: unknown, offset: number) => void;
 }
 
 export interface ExecuteRenderPassCommandsOptions {
@@ -133,6 +137,30 @@ export function executeRenderPassCommands(
           command.baseVertex,
           command.firstInstance,
         );
+        executedCommands += 1;
+        indexedDrawCalls += 1;
+        break;
+      }
+      case "drawIndirect": {
+        if (options.pass.drawIndirect === undefined) {
+          diagnostics.push(missingMethod("drawIndirect", command.renderId));
+          break;
+        }
+
+        options.pass.drawIndirect(command.buffer, command.offset);
+        executedCommands += 1;
+        nonIndexedDrawCalls += 1;
+        break;
+      }
+      case "drawIndexedIndirect": {
+        if (options.pass.drawIndexedIndirect === undefined) {
+          diagnostics.push(
+            missingMethod("drawIndexedIndirect", command.renderId),
+          );
+          break;
+        }
+
+        options.pass.drawIndexedIndirect(command.buffer, command.offset);
         executedCommands += 1;
         indexedDrawCalls += 1;
         break;

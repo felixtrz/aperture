@@ -26069,3 +26069,33 @@ Validation:
 - Playwright MCP browser proof for `examples/standard-queue-phases.html`:
   frame 3, 8 draw calls, zero diagnostics, one render-bundle creation, two
   render-bundle reuses, current-frame `encodedCommands: 0`, and cache size 1.
+
+## task-3113 — Add an indirect draw argument-buffer route for compatible grouped draws
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added an indirect draw command preparation path that packs compatible grouped
+  direct draw commands into a renderer-owned WebGPU indirect argument buffer.
+- Added `drawIndirect` and `drawIndexedIndirect` command records plus executor
+  support, with direct fallback and JSON-safe fallback reason reporting when
+  indirect first-instance support or buffer upload support is unavailable.
+- Requested the optional `indirect-first-instance` WebGPU feature when adapters
+  expose it, so grouped draws with non-zero `firstInstance` can use the indirect
+  path in supporting browsers.
+- Updated `examples/instancing.html` status and browser coverage to prove the
+  1,000-box grouped draw submits through one indexed indirect draw command.
+- Updated tracker, render-pipeline comparison, backlog, current task, and
+  handoff. Recommended next task is `task-3114`.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/indirect-draw-commands.test.ts test/webgpu/render-pass-command-executor.test.ts test/webgpu/index.test.ts --reporter=dot`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec prettier --check packages/webgpu/src/webgpu/indirect-draw-commands.ts packages/webgpu/src/webgpu/render-pass-commands.ts packages/webgpu/src/webgpu/render-pass-command-executor.ts packages/webgpu/src/webgpu/render-bundle.ts packages/webgpu/src/webgpu/app.ts packages/webgpu/src/webgpu/index.ts packages/webgpu/src/webgpu/mesh-buffer-descriptors.ts examples/instancing.main.js test/webgpu/indirect-draw-commands.test.ts test/webgpu/render-pass-command-executor.test.ts test/webgpu/index.test.ts test/e2e/instancing.spec.ts`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- Playwright MCP browser proof for `examples/instancing.html`: one indirect
+  candidate, one indexed indirect draw, zero direct grouped draws, one 20-byte
+  argument buffer, one draw call, fallback reason `null`, and zero diagnostics.

@@ -58,6 +58,52 @@ describe("render pass command executor", () => {
     expect(calls).toEqual([["draw", 24, 1, 0, 0]]);
   });
 
+  it("executes indirect draw command records", () => {
+    const calls: unknown[] = [];
+    const indirectBuffer = { label: "indirect" };
+    const report = executeRenderPassCommands({
+      pass: recordingPass(calls),
+      commands: [
+        {
+          kind: "drawIndirect",
+          renderId: 1,
+          resourceKey: "indirect:key",
+          buffer: indirectBuffer,
+          offset: 0,
+          vertexCount: 24,
+          instanceCount: 4,
+          firstVertex: 0,
+          firstInstance: 0,
+        },
+        {
+          kind: "drawIndexedIndirect",
+          renderId: 2,
+          resourceKey: "indirect:key",
+          buffer: indirectBuffer,
+          offset: 20,
+          indexCount: 36,
+          instanceCount: 8,
+          firstIndex: 0,
+          baseVertex: 0,
+          firstInstance: 0,
+        },
+      ],
+    });
+
+    expect(report).toMatchObject({
+      valid: true,
+      commandCount: 2,
+      executedCommands: 2,
+      drawCalls: 2,
+      indexedDrawCalls: 1,
+      nonIndexedDrawCalls: 1,
+    });
+    expect(calls).toEqual([
+      ["drawIndirect", indirectBuffer, 0],
+      ["drawIndexedIndirect", indirectBuffer, 20],
+    ]);
+  });
+
   it("diagnoses missing pass encoder methods and skips those commands", () => {
     const report = executeRenderPassCommands({
       pass: {},
@@ -150,5 +196,9 @@ function recordingPass(calls: unknown[]): RenderPassEncoderLike {
         baseVertex,
         firstInstance,
       ]),
+    drawIndirect: (buffer, offset) =>
+      calls.push(["drawIndirect", buffer, offset]),
+    drawIndexedIndirect: (buffer, offset) =>
+      calls.push(["drawIndexedIndirect", buffer, offset]),
   };
 }

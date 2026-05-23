@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 20:00 UTC</dd>
+            <dd>2026-05-23 20:08 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1463,12 +1463,14 @@
               adjacent compatible draws while publishing planned-vs-emitted
               command pressure in app status, and static command plans now reuse
               renderer-owned WebGPU render bundles on unchanged mesh-draw frames
-              with app-visible create/reuse pressure.
+              with app-visible create/reuse pressure. Compatible grouped draws
+              now also submit through a renderer-owned indirect argument buffer
+              when supported.
             </dd>
             <dt>Next focus</dt>
             <dd>
-              task-3113 indirect draw argument-buffer route for compatible
-              grouped draws
+              task-3114 state-aware opaque queue ordering to lower submit
+              pressure
             </dd>
           </dl>
         </aside>
@@ -1827,9 +1829,9 @@
           <article class="phase">
             <div class="topline">
               <h3>1. extract</h3>
-              <span class="percent">98%</span>
+              <span class="percent">99%</span>
             </div>
-            <div class="bar"><span style="width: 98%"></span></div>
+            <div class="bar"><span style="width: 99%"></span></div>
             <p>
               ECS state produces serializable render snapshots with draw, view,
               light, environment, shadow request, bounds, and diagnostic
@@ -2065,8 +2067,8 @@
                 Missing app-level generic material adapter route boundary.
               </li>
               <li>
-                Missing indirect argument-buffer resources for grouped submit
-                paths.
+                Missing shared bind-group allocation pressure reduction for
+                grouped submit paths.
               </li>
               <li>
                 Missing IBL, shadow, render-target, and hot-path scratch polish.
@@ -2125,7 +2127,10 @@
                 Missing app-level generic material adapter route boundary.
               </li>
               <li>Missing multi-material primitive queue rules.</li>
-              <li>Missing indirect-draw pressure feedback for grouped work.</li>
+              <li>
+                Missing state-aware opaque ordering and shared bind-group
+                allocation pressure reduction.
+              </li>
             </ul>
           </article>
           <article class="phase">
@@ -2227,13 +2232,17 @@
               frames when snapshot scheduling reports unchanged mesh-draw work;
               the standard queue phase proof reports one bundle creation, later
               reuse, 8 draw calls, and zero per-frame command encoding on the
-              reused frame. <code>createWebGpuApp({ msaa })</code> now renders
-              forward passes through cached multisampled color/depth
-              attachments, resolves to the swapchain or off-screen target, and
-              keys built-in pipelines by effective sample count.
+              reused frame. Compatible grouped draws can now be packed into a
+              renderer-owned indirect argument buffer and submitted through
+              <code>drawIndexedIndirect</code>; the instancing proof reports one
+              indirect candidate, one indexed indirect draw, one 20-byte
+              argument buffer, one draw call, and zero diagnostics.
+              <code>createWebGpuApp({ msaa })</code> now renders forward passes
+              through cached multisampled color/depth attachments, resolves to
+              the swapchain or off-screen target, and keys built-in pipelines by
+              effective sample count.
             </p>
             <ul>
-              <li>Missing indirect draw argument buffers.</li>
               <li>
                 Missing broader environment asset preparation and previous
                 transform history for independently moving temporal geometry.
@@ -2258,10 +2267,10 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">task-3112</span> Cached static WebGPU
-                render bundles for unchanged command plans and exposed
-                created-vs-reused bundle status in the standard queue phase
-                browser proof.
+                <span class="badge green">task-3113</span> Added an indirect
+                draw argument-buffer route for compatible grouped draws and
+                exposed indirect/fallback status in the instancing browser
+                proof.
               </li>
               <li>
                 <span class="badge green">loading</span> Preserved glTF source
@@ -4530,17 +4539,18 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Implement
-                <code>task-3113</code>: add an indirect draw argument-buffer
-                route for compatible grouped draws.
+                <code>task-3114</code>: add state-aware opaque queue ordering to
+                lower submit pressure.
               </li>
               <li>
-                Follow with an indirect draw argument-buffer route for
-                compatible grouped draws.
+                Follow with shared queued built-in bind-group reuse to reduce
+                allocation pressure.
               </li>
               <li>
                 The audit conclusion is clear: covered feature breadth is high,
-                but submit efficiency still blocks an honest SOTA claim until
-                the indirect draw path is closed.
+                and the main submit-efficiency gaps are now closed; the next
+                work is pressure polish on queue ordering and shared bind-group
+                allocation.
               </li>
             </ul>
           </article>
@@ -4554,18 +4564,18 @@
         </div>
         <article class="card timeline">
           <div class="timeline-item">
-            <div class="task-id">task-3112</div>
+            <div class="task-id">task-3113</div>
             <div>
-              <strong>Static render-bundle reuse shipped.</strong>
+              <strong>Indirect grouped draws shipped.</strong>
               <span>
-                The frame-boundary path can now encode stable command plans into
-                renderer-owned WebGPU render bundles and execute cached bundles
-                on later frames when snapshot scheduling reports unchanged
-                mesh-draw work.
-                <code>examples/standard-queue-phases.html</code> reports one
-                bundle creation, later bundle reuse, 8 draw calls, zero
-                diagnostics, and <code>encodedCommands: 0</code> on the reused
-                frame.
+                Compatible grouped draw commands can now be packed into a
+                renderer-owned WebGPU indirect argument buffer and submitted
+                through <code>drawIndexedIndirect</code> when the device exposes
+                the required first-instance feature.
+                <code>examples/instancing.html</code> reports one indirect
+                candidate, one indexed indirect draw, one 20-byte argument
+                buffer, one draw call, fallback reason <code>null</code>, and
+                zero diagnostics.
               </span>
             </div>
           </div>

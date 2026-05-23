@@ -21,6 +21,19 @@ interface InstancingStatus extends ExampleStatusBase {
     readonly b: number;
     readonly a: number;
   };
+  readonly indirectDraws?: {
+    readonly valid: boolean;
+    readonly status: string;
+    readonly candidates: number;
+    readonly indirectDraws: number;
+    readonly directDraws: number;
+    readonly indexedIndirectDraws: number;
+    readonly nonIndexedIndirectDraws: number;
+    readonly bufferResourceKey: string | null;
+    readonly bufferBytes: number;
+    readonly fallbackReason: string | null;
+    readonly diagnostics: readonly unknown[];
+  } | null;
 }
 
 test("instancing example renders 1,000 ECS boxes as one grouped draw", async ({
@@ -52,6 +65,17 @@ test("instancing example renders 1,000 ECS boxes as one grouped draw", async ({
       diagnostics: 0,
     },
   });
+  expect(status.indirectDraws).toMatchObject({
+    valid: true,
+    candidates: 1,
+    indirectDraws: 1,
+    directDraws: 0,
+    indexedIndirectDraws: 1,
+    fallbackReason: null,
+    diagnostics: [],
+  });
+  expect(status.indirectDraws?.status).toMatch(/created|updated/);
+  expect(status.indirectDraws?.bufferBytes).toBeGreaterThanOrEqual(20);
   webGpuValidation.expectNoWarnings();
 
   await attachExampleStatus("instancing-status", status);

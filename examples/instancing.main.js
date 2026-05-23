@@ -169,6 +169,7 @@ function statusFromReport(aperture, report, loop, message, typedSnapshot) {
     },
     transport: typedSnapshot,
     counts: reportJson.counts,
+    indirectDraws: reportJson.indirectDraws ?? null,
     report: reportJson,
     diagnostics: reportJson.diagnostics,
   };

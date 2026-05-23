@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "1b8e899",
   "activePid": null,
-  "notes": "Completed task-3112 static render-bundle reuse for unchanged command plans; task-3113 indirect draw argument buffers are next.",
-  "lastRunFinishedAt": "2026-05-23T20:00:20Z"
+  "notes": "Completed task-3113 indirect draw argument-buffer route for compatible grouped draws; task-3114 state-aware opaque queue ordering is next.",
+  "lastRunFinishedAt": "2026-05-23T20:14:29Z"
 }

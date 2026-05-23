@@ -416,6 +416,20 @@ function commandKeyPart(
         command.baseVertex,
         command.firstInstance,
       ];
+    case "drawIndirect":
+      return [
+        "d-indirect",
+        command.resourceKey,
+        resourceIdentity(command.buffer, cache),
+        command.offset,
+      ];
+    case "drawIndexedIndirect":
+      return [
+        "di-indirect",
+        command.resourceKey,
+        resourceIdentity(command.buffer, cache),
+        command.offset,
+      ];
   }
 }
 
