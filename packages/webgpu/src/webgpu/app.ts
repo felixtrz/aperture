@@ -14,6 +14,8 @@ import {
   createPackedSnapshotInstanceTintsScratch,
   createPackedSnapshotViewUniformsScratch,
   createMaterialDependencyReadinessReport,
+  createRenderSnapshotChangeSet,
+  createRenderSnapshotUpdateSchedule,
   createSamplerAsset,
   materialDependencyReadinessReportToJsonValue,
   prepareSnapshotMeshes,
@@ -44,6 +46,8 @@ import {
   type SpriteDrawPacket,
   type StandardMaterialAsset,
   type UnlitMaterialAsset,
+  type RenderSnapshotChangeSet,
+  type RenderSnapshotUpdateSchedule,
 } from "@aperture-engine/render";
 import {
   createAppTextureSamplerResourceCacheSummary,
@@ -192,6 +196,7 @@ import {
 import {
   createWebGpuAppSnapshotTransport,
   createWebGpuAppSnapshotTransportStartPayload,
+  readWebGpuAppSnapshotChangeSet,
   readWebGpuAppSharedSnapshot,
   type WebGpuAppSharedSnapshotTransportOptions,
   type WebGpuAppSnapshotTransportDiagnostics,
@@ -309,11 +314,16 @@ import {
 export interface WebGpuAppRenderOptions {
   readonly frame?: number;
   readonly snapshot?: RenderSnapshot;
+  readonly snapshotChangeSet?: RenderSnapshotChangeSet;
   readonly clearColor?: readonly number[];
   readonly label?: string;
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
   readonly standardMaterialShadowReceiverResources?: StandardFrameShadowReceiverResources;
   readonly standardMaterialIblResources?: StandardFrameIblResources;
+}
+
+interface WebGpuAppFrameRenderOptions extends WebGpuAppRenderOptions {
+  readonly previousSnapshotForUpdate?: RenderSnapshot | null;
 }
 
 export interface WebGpuAppRenderTargetAssetInput {
@@ -518,6 +528,8 @@ export interface WebGpuAppRenderReport {
   readonly ok: boolean;
   readonly frame: number;
   readonly snapshot: RenderSnapshot;
+  readonly snapshotChangeSet?: RenderSnapshotChangeSet;
+  readonly snapshotUpdateSchedule?: RenderSnapshotUpdateSchedule;
   readonly counts: WebGpuAppRenderCounts;
   readonly diagnostics: readonly unknown[];
   readonly diagnosticsSummary?: WebGpuAppDiagnosticsSummary;
@@ -546,6 +558,8 @@ export type WebGpuAppJsonValue =
 export interface WebGpuAppRenderReportJsonValue {
   readonly ok: boolean;
   readonly frame: number;
+  readonly renderChangeSet?: WebGpuAppJsonValue;
+  readonly renderUpdateSchedule?: WebGpuAppJsonValue;
   readonly counts: WebGpuAppRenderCounts;
   readonly diagnostics: readonly WebGpuAppJsonValue[];
   readonly diagnosticsSummary?: WebGpuAppDiagnosticsSummary;
@@ -815,6 +829,7 @@ export async function createWebGpuApp(
   let unsubscribeError: (() => void) | null = null;
   let renderQueue: Promise<void> = Promise.resolve();
   let latestReport: WebGpuAppRenderReport | null = null;
+  let previousSnapshotForUpdate: RenderSnapshot | null = null;
   let latestPickReport: WebGpuAppPickReport | null = null;
   let latestWorkerError: WebGpuAppWorkerRenderErrorDiagnostic | null = null;
 
@@ -840,8 +855,14 @@ export async function createWebGpuApp(
               event.message,
             );
             const snapshot = sharedSnapshot ?? event.snapshot;
+            const snapshotChangeSet = readWebGpuAppSnapshotChangeSet(
+              event.message,
+            );
 
-            await app.renderSnapshot(snapshot, { frame: snapshot.frame });
+            await app.renderSnapshot(snapshot, {
+              frame: snapshot.frame,
+              ...(snapshotChangeSet === null ? {} : { snapshotChangeSet }),
+            });
           })
           .catch((error: unknown) => {
             latestWorkerError = {
@@ -913,7 +934,11 @@ export async function createWebGpuApp(
       const report = await renderWebGpuAppFrame(
         { app, sourceAssets },
         resourceCache,
-        { ...renderOptions, snapshot },
+        {
+          ...renderOptions,
+          snapshot,
+          previousSnapshotForUpdate,
+        },
       );
 
       prepareSnapshotMeshes({
@@ -948,6 +973,7 @@ export async function createWebGpuApp(
       );
 
       latestReport = report;
+      previousSnapshotForUpdate = report.snapshot;
       latestWorkerError = null;
       return report;
     },
@@ -1671,6 +1697,8 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
   readonly assets: AssetRegistry;
   readonly cache: WebGpuAppResourceCache;
   readonly snapshot: RenderSnapshot;
+  readonly snapshotChangeSet: RenderSnapshotChangeSet;
+  readonly snapshotUpdateSchedule: RenderSnapshotUpdateSchedule;
   readonly resourceSet: QueuedBuiltInAppResourceSet;
   readonly reuse: WebGpuAppResourceReuseReport;
   readonly clearColor?: readonly number[];
@@ -1807,6 +1835,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
 
   const framePlan = writeRenderFramePlanFromSnapshot({
     snapshot: options.snapshot,
+    snapshotChangeSet: options.snapshotChangeSet,
     renderWorld: options.app.renderWorld,
     transforms: packedTransforms,
     resolveMeshResourceKey: (draw) =>
@@ -1903,6 +1932,8 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
   return renderReport({
     ok: frameOk,
     snapshot: options.snapshot,
+    snapshotChangeSet: options.snapshotChangeSet,
+    snapshotUpdateSchedule: options.snapshotUpdateSchedule,
     pipeline: prepared.firstPipeline,
     resources: prepared.resourcesResult,
     boundary: boundaries.boundary,
@@ -4624,10 +4655,33 @@ function createWebGpuAppPipelinePlanResult(
   };
 }
 
+function createWebGpuAppSnapshotUpdateMetadata(
+  snapshot: RenderSnapshot,
+  options: WebGpuAppFrameRenderOptions,
+): {
+  readonly snapshotChangeSet: RenderSnapshotChangeSet;
+  readonly snapshotUpdateSchedule: RenderSnapshotUpdateSchedule;
+} {
+  const snapshotChangeSet =
+    options.snapshotChangeSet?.frame === snapshot.frame &&
+    options.snapshot === snapshot
+      ? options.snapshotChangeSet
+      : createRenderSnapshotChangeSet(
+          options.previousSnapshotForUpdate ?? null,
+          snapshot,
+        );
+
+  return {
+    snapshotChangeSet,
+    snapshotUpdateSchedule:
+      createRenderSnapshotUpdateSchedule(snapshotChangeSet),
+  };
+}
+
 async function renderWebGpuAppFrame(
   context: WebGpuAppRenderContext,
   resourceCache: WebGpuAppResourceCache,
-  options: WebGpuAppRenderOptions,
+  options: WebGpuAppFrameRenderOptions,
 ): Promise<WebGpuAppRenderReport> {
   const { app, sourceAssets } = context;
   const reuse = createWebGpuAppResourceReuseReport();
@@ -4668,6 +4722,10 @@ async function renderWebGpuAppFrame(
         ),
       )
     : shadowSnapshot;
+  const updateMetadata = createWebGpuAppSnapshotUpdateMetadata(
+    snapshot,
+    options,
+  );
   const firstDraw = snapshot.meshDraws[0];
   const firstView = snapshot.views[0];
   const spriteDraws = snapshot.spriteDraws ?? [];
@@ -4837,6 +4895,8 @@ async function renderWebGpuAppFrame(
       assets: sourceAssets,
       cache: resourceCache,
       snapshot,
+      snapshotChangeSet: updateMetadata.snapshotChangeSet,
+      snapshotUpdateSchedule: updateMetadata.snapshotUpdateSchedule,
       resourceSet: queuedBuiltIn.resourceSet,
       reuse,
       ...(options.clearColor === undefined
@@ -5120,6 +5180,7 @@ async function renderWebGpuAppFrame(
   };
   const framePlan = writeRenderFramePlanFromSnapshot({
     snapshot,
+    snapshotChangeSet: updateMetadata.snapshotChangeSet,
     renderWorld: app.renderWorld,
     transforms: packedTransforms,
     resolveMeshResourceKey: (draw) =>
@@ -5200,6 +5261,8 @@ async function renderWebGpuAppFrame(
   return renderReport({
     ok: frameOk,
     snapshot,
+    snapshotChangeSet: updateMetadata.snapshotChangeSet,
+    snapshotUpdateSchedule: updateMetadata.snapshotUpdateSchedule,
     pipeline,
     resources,
     boundary: boundaries.boundary,
@@ -6249,6 +6312,16 @@ export function webGpuAppRenderReportToJsonValue(
   return {
     ok: report.ok,
     frame: report.frame,
+    ...(report.snapshotChangeSet === undefined
+      ? {}
+      : { renderChangeSet: toWebGpuAppJsonValue(report.snapshotChangeSet) }),
+    ...(report.snapshotUpdateSchedule === undefined
+      ? {}
+      : {
+          renderUpdateSchedule: toWebGpuAppJsonValue(
+            report.snapshotUpdateSchedule,
+          ),
+        }),
     counts: { ...report.counts },
     diagnostics: report.diagnostics.map((diagnostic) =>
       toWebGpuAppJsonValue(diagnostic),
@@ -6359,6 +6432,8 @@ function toWebGpuAppJsonValue(
 function renderReport(input: {
   readonly ok: boolean;
   readonly snapshot: RenderSnapshot;
+  readonly snapshotChangeSet?: RenderSnapshotChangeSet;
+  readonly snapshotUpdateSchedule?: RenderSnapshotUpdateSchedule;
   readonly diagnostics: readonly unknown[];
   readonly diagnosticsSummary?: WebGpuAppDiagnosticsSummary;
   readonly resourceReuse?: WebGpuAppResourceReuseReport;
@@ -6381,6 +6456,12 @@ function renderReport(input: {
     ok: input.ok,
     frame: input.snapshot.frame,
     snapshot: input.snapshot,
+    ...(input.snapshotChangeSet === undefined
+      ? {}
+      : { snapshotChangeSet: input.snapshotChangeSet }),
+    ...(input.snapshotUpdateSchedule === undefined
+      ? {}
+      : { snapshotUpdateSchedule: input.snapshotUpdateSchedule }),
     counts: {
       views: input.snapshot.views.length,
       meshDraws: input.snapshot.meshDraws.length,

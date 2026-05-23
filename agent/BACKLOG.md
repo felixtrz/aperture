@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3101`: add a generic snapshot change-set scheduler for render-world
-updates so app-frame work can be driven by changed snapshot families instead of
-full packet refresh.
+Start `task-3102`: prove deterministic transparent ordering tie-breaks so
+transparent queue ordering is explicit, stable, and visible in browser
+readbacks.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -95,8 +95,12 @@ typed fallback diagnostics, and is proven by `examples/sab-cube.html`.
 status and stable reason strings, and the disabled visible peer scenario
 publishes explanations for both the rendered and skipped entities.
 `createRenderSnapshotChangeSet(previous, next)` now reports changed, unchanged,
-and removed counts for views, mesh draws, lights, environments, shadow requests,
-and bounds; `examples/worker-cube.html` publishes these counts in status.
+and removed counts plus stable packet keys for views, mesh draws, lights,
+environments, shadow requests, and bounds; `createRenderSnapshotUpdateSchedule()`
+classifies refresh/reuse/remove/mixed/skip packet-family work; the WebGPU app
+report and `examples/worker-cube.html` publish render-update schedules; and
+`RenderWorld.applySnapshot()` can preserve unchanged draw resource bindings
+from keyed change sets while keeping current snapshot packet offsets.
 `examples/render-packet-inspector.html` now renders worker-authored packets and
 publishes JSON-safe views, draws, bounds, queue keys, handles, skipped-entity
 explanations, and culling stats. Extraction now builds camera frustum planes
@@ -192,6 +196,8 @@ Acceptance criteria:
 - The implementation keeps transmission resources renderer-owned and does not expose main-thread ECS state.
 
 ### task-3101 — Add a generic snapshot change-set scheduler for render-world updates
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `runtime-orchestration`
 Package/write-scope: `packages/render/src/rendering/`, `packages/webgpu/src/webgpu/app-snapshot-transport.ts`, `examples/worker-cube.*`, targeted tests.

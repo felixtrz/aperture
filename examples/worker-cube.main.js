@@ -153,6 +153,9 @@ async function handleWorkerMessage(
   const report = await app.renderSnapshot(snapshot, {
     clearColor,
     label: "worker-cube-snapshot",
+    ...(message.changeSet === undefined
+      ? {}
+      : { snapshotChangeSet: message.changeSet }),
   });
   const status = createFrameStatus(
     aperture,
@@ -254,6 +257,7 @@ function createFrameStatus(
       drawCalls: report.counts.drawCalls,
     },
     changeSet: message.changeSet ?? null,
+    rendererUpdate: reportJson.renderUpdateSchedule ?? null,
     animation: message.animation,
     diagnosticsSummary: reportJson.diagnosticsSummary,
     diagnostics: reportJson.diagnostics,

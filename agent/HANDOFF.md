@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-23T14:56:50Z
+Updated: 2026-05-23T15:21:13Z
+
+## Current Run Update — 2026-05-23T15:21:13Z — Snapshot update scheduling
+
+Completed `task-3101`, the next post-Tier-20 reference-parity slice.
+
+### What changed
+
+- Added public `createRenderSnapshotUpdateSchedule()` to classify snapshot
+  family deltas as refresh, reuse, remove, mixed, or skip work.
+- Extended `createRenderSnapshotChangeSet()` with stable packet keys and wired
+  `RenderWorld.applySnapshot(snapshot, { changeSet })` so unchanged mesh draw
+  resource bindings are preserved while current snapshot packet offsets remain
+  authoritative.
+- Threaded render-update metadata through the WebGPU app, shared snapshot
+  transport message reader, and `examples/worker-cube.html`. The worker-cube
+  status now publishes renderer update scheduling, and the e2e proof asserts
+  the moving cube still renders while later frames report reused view-family
+  work.
+- Updated the public tracker, render-pipeline comparison page, backlog,
+  current-task pointer, and completed-task log. Recommended next task is now
+  `task-3102`.
+
+### Validation
+
+- `pnpm exec vitest run test/rendering/snapshot-change-set.test.ts test/rendering/snapshot-update-scheduler.test.ts test/rendering/render-world.test.ts test/webgpu/render-frame-plan.test.ts --reporter=dot`
+- `pnpm exec vitest run test/rendering/snapshot-update-scheduler.test.ts test/webgpu/webgpu-app.test.ts test/webgpu/render-frame-snapshot-json.test.ts test/webgpu/render-frame-snapshot-runner.test.ts --reporter=dot`
+- `pnpm run typecheck:test`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/worker-cube.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000`
+- In-app browser smoke: opened `http://127.0.0.1:4173/examples/worker-cube.html`;
+  only console issue was the existing missing favicon request.
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `docs/DEVELOPER_API_FEEDBACK.md` /
+  `docs/DEVELOPER_API_PROPOSAL.md` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3102`, proving deterministic transparent ordering tie-breaks for
+equal-depth transparent records without relying on JavaScript sort stability.
 
 ## Current Run Update — 2026-05-23T14:56:50Z — Blocked by repeated stop gate
 

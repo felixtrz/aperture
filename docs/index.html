@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 14:47 UTC</dd>
+            <dd>2026-05-23 15:18 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1422,13 +1422,14 @@
               in square canvases. Tier 20 is now complete: depth-fed post
               effects can sample multisampled scene depth, and
               <code>examples/ssao.html</code>
-              proves SSAO over an 8x-request / 4x-effective MSAA scene.
+              proves SSAO over an 8x-request / 4x-effective MSAA scene. Worker
+              snapshot change sets now feed a generic render-update schedule,
+              and <code>worker-cube</code> reports unchanged, changed, and
+              removed packet-family work while the render world reuses unchanged
+              draw objects when keyed packet data is stable.
             </dd>
             <dt>Next focus</dt>
-            <dd>
-              task-3101: generic snapshot change-set scheduler for render-world
-              updates
-            </dd>
+            <dd>task-3102: deterministic transparent ordering tie-breaks</dd>
           </dl>
         </aside>
       </header>
@@ -1786,9 +1787,9 @@
           <article class="phase">
             <div class="topline">
               <h3>1. extract</h3>
-              <span class="percent">97%</span>
+              <span class="percent">98%</span>
             </div>
-            <div class="bar"><span style="width: 97%"></span></div>
+            <div class="bar"><span style="width: 98%"></span></div>
             <p>
               ECS state produces serializable render snapshots with draw, view,
               light, environment, shadow request, bounds, and diagnostic
@@ -1805,14 +1806,16 @@
               Per-camera frustum planes now skip outside-view mesh draws during
               extraction and publish per-view <code>cullStats</code>. ECS
               <code>Fog</code> components now extract snapshot fog packets for
-              linear, exponential, and exponential-squared view fog.
+              linear, exponential, and exponential-squared view fog. Snapshot
+              change sets now carry stable packet keys and produce renderer
+              update schedules that classify refresh, reuse, removal, mixed, and
+              skipped packet-family work.
             </p>
             <ul>
               <li>
                 Missing broader visibility explanations beyond current cull
                 stats.
               </li>
-              <li>Missing a generic change-set scheduler.</li>
               <li>
                 Missing multi-view render-target coverage beyond current
                 foundations.
@@ -4457,8 +4460,8 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add a generic snapshot
-                change-set scheduler for render-world updates.
+                <span class="badge amber">next</span> Prove deterministic
+                transparent ordering tie-breaks.
               </li>
               <li>
                 SSAO now uses a PlayCanvas-style spiral AO shader with
@@ -4471,9 +4474,10 @@
               </li>
               <li>
                 The post-Tier-20 reference-parity queue now has renderer-owned
-                transmission grab-pass refraction. It continues with a generic
-                snapshot change-set scheduler, deterministic transparent
-                ordering proof, and roughness-aware transmission filtering.
+                transmission grab-pass refraction and generic snapshot
+                change-set scheduling. It continues with a deterministic
+                transparent ordering proof and roughness-aware transmission
+                filtering.
               </li>
             </ul>
           </article>

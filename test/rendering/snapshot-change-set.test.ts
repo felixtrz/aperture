@@ -34,6 +34,11 @@ describe("render snapshot change set", () => {
       bounds: { changed: 0, unchanged: 1, removed: 0 },
       total: { changed: 0, unchanged: 6, removed: 0 },
     });
+    expect(changeSet.keys?.meshDraws).toEqual({
+      changed: [],
+      unchanged: [`mesh-draw:${meshDrawPacket().renderId}`],
+      removed: [],
+    });
   });
 
   it("counts packet changes and removals by family", () => {

@@ -27,6 +27,16 @@ export interface RenderSnapshotFamilyChangeCounts {
   readonly removed: number;
 }
 
+export interface RenderSnapshotFamilyChangeKeys {
+  readonly changed: readonly string[];
+  readonly unchanged: readonly string[];
+  readonly removed: readonly string[];
+}
+
+export type RenderSnapshotChangeSetKeys = {
+  readonly [Family in RenderSnapshotChangeSetFamily]: RenderSnapshotFamilyChangeKeys;
+};
+
 export interface RenderSnapshotChangeSet {
   readonly previousFrame: number | null;
   readonly frame: number;
@@ -37,12 +47,18 @@ export interface RenderSnapshotChangeSet {
   readonly shadowRequests: RenderSnapshotFamilyChangeCounts;
   readonly bounds: RenderSnapshotFamilyChangeCounts;
   readonly total: RenderSnapshotFamilyChangeCounts;
+  readonly keys?: RenderSnapshotChangeSetKeys;
 }
 
 interface PacketSnapshot<TPacket> {
   readonly packets: readonly TPacket[];
   readonly signature: (packet: TPacket) => string;
   readonly key: (packet: TPacket) => string;
+}
+
+interface PacketFamilyComparison {
+  readonly counts: RenderSnapshotFamilyChangeCounts;
+  readonly keys: RenderSnapshotFamilyChangeKeys;
 }
 
 export function createRenderSnapshotChangeSet(
@@ -74,28 +90,38 @@ export function createRenderSnapshotChangeSet(
   return {
     previousFrame: previous?.frame ?? null,
     frame: next.frame,
-    views,
-    meshDraws,
-    lights,
-    environments,
-    shadowRequests,
-    bounds,
+    views: views.counts,
+    meshDraws: meshDraws.counts,
+    lights: lights.counts,
+    environments: environments.counts,
+    shadowRequests: shadowRequests.counts,
+    bounds: bounds.counts,
     total: totalCounts([
-      views,
-      meshDraws,
-      lights,
-      environments,
-      shadowRequests,
-      bounds,
+      views.counts,
+      meshDraws.counts,
+      lights.counts,
+      environments.counts,
+      shadowRequests.counts,
+      bounds.counts,
     ]),
+    keys: {
+      views: views.keys,
+      meshDraws: meshDraws.keys,
+      lights: lights.keys,
+      environments: environments.keys,
+      shadowRequests: shadowRequests.keys,
+      bounds: bounds.keys,
+    },
   };
 }
 
 function comparePacketFamily<TPacket>(
   previous: PacketSnapshot<TPacket>,
   next: PacketSnapshot<TPacket>,
-): RenderSnapshotFamilyChangeCounts {
+): PacketFamilyComparison {
   const previousSignatures = new Map<string, string>();
+  const changedKeys: string[] = [];
+  const unchangedKeys: string[] = [];
 
   for (const packet of previous.packets) {
     previousSignatures.set(previous.key(packet), previous.signature(packet));
@@ -113,17 +139,26 @@ function comparePacketFamily<TPacket>(
       previousSignature === next.signature(packet)
     ) {
       unchanged += 1;
+      unchangedKeys.push(key);
     } else {
       changed += 1;
+      changedKeys.push(key);
     }
 
     previousSignatures.delete(key);
   }
 
   return {
-    changed,
-    unchanged,
-    removed: previousSignatures.size,
+    counts: {
+      changed,
+      unchanged,
+      removed: previousSignatures.size,
+    },
+    keys: {
+      changed: changedKeys,
+      unchanged: unchangedKeys,
+      removed: [...previousSignatures.keys()],
+    },
   };
 }
 

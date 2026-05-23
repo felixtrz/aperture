@@ -6,6 +6,7 @@ import {
   createMaterialHandle,
   createMaterialPipelineKeyInput,
   createMeshHandle,
+  createRenderSnapshotChangeSet,
   createRenderSortKey,
   createStableRenderId,
   createUnlitMaterialAsset,
@@ -55,6 +56,41 @@ describe("render world lifecycle", () => {
     expect(world.listObjects().map((object) => object.renderId)).toEqual([
       draw.renderId,
     ]);
+  });
+
+  it("reuses unchanged render object bindings while keeping current packet offsets", () => {
+    const world = new RenderWorld();
+    const draw = packet(33);
+    const nextDraw = {
+      ...draw,
+      worldTransformOffset: draw.worldTransformOffset + 16,
+    };
+    const previous = snapshot([draw], 1);
+    const next = snapshot([nextDraw], 2);
+
+    world.applySnapshot(previous);
+    world.updateResourceBindings(draw.renderId, {
+      meshResourceKey: "mesh:unchanged",
+      materialResourceKey: "material:unchanged",
+    });
+
+    const changeSet = createRenderSnapshotChangeSet(previous, next);
+    const report = world.applySnapshot(next, { changeSet });
+
+    expect(report).toMatchObject({
+      created: 0,
+      updated: 0,
+      unchanged: 1,
+      removed: 0,
+      active: 1,
+    });
+    expect(world.getObject(draw.renderId)?.packet.worldTransformOffset).toBe(
+      nextDraw.worldTransformOffset,
+    );
+    expect(world.getObject(draw.renderId)?.gpu).toEqual({
+      meshResourceKey: "mesh:unchanged",
+      materialResourceKey: "material:unchanged",
+    });
   });
 
   it("reports duplicate render ids and keeps the first packet", () => {
@@ -283,9 +319,12 @@ function packet(seed: number): MeshDrawPacket {
   };
 }
 
-function snapshot(meshDraws: readonly MeshDrawPacket[]): RenderSnapshot {
+function snapshot(
+  meshDraws: readonly MeshDrawPacket[],
+  frame = 1,
+): RenderSnapshot {
   return {
-    frame: 1,
+    frame,
     views: [],
     meshDraws,
     lights: [],

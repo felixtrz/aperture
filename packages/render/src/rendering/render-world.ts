@@ -3,6 +3,7 @@ import type {
   RenderDiagnostic,
   RenderSnapshot,
 } from "./snapshot.js";
+import type { RenderSnapshotChangeSet } from "./snapshot-change-set.js";
 
 export type RenderWorldObjectStatus = "active";
 
@@ -65,9 +66,14 @@ export type RenderWorldResourceBindingResult =
 export interface RenderWorldApplyReport {
   readonly created: number;
   readonly updated: number;
+  readonly unchanged: number;
   readonly removed: number;
   readonly active: number;
   readonly diagnostics: readonly RenderDiagnostic[];
+}
+
+export interface RenderWorldApplyOptions {
+  readonly changeSet?: RenderSnapshotChangeSet;
 }
 
 export class RenderWorld {
@@ -127,12 +133,20 @@ export class RenderWorld {
     return { ok: true, object };
   }
 
-  applySnapshot(snapshot: RenderSnapshot): RenderWorldApplyReport {
+  applySnapshot(
+    snapshot: RenderSnapshot,
+    options: RenderWorldApplyOptions = {},
+  ): RenderWorldApplyReport {
     const diagnostics: RenderDiagnostic[] = [];
     const seen = new Set<number>();
     const next = new Map<number, RenderWorldObject>();
+    const unchangedRenderIds = unchangedMeshDrawRenderIds(
+      options.changeSet,
+      snapshot.frame,
+    );
     let created = 0;
     let updated = 0;
+    let unchanged = 0;
 
     for (const packet of snapshot.meshDraws) {
       if (seen.has(packet.renderId)) {
@@ -150,6 +164,8 @@ export class RenderWorld {
 
       if (existing === undefined) {
         created += 1;
+      } else if (unchangedRenderIds.has(packet.renderId)) {
+        unchanged += 1;
       } else {
         updated += 1;
       }
@@ -178,11 +194,49 @@ export class RenderWorld {
     return {
       created,
       updated,
+      unchanged,
       removed,
       active: this.#objects.size,
       diagnostics,
     };
   }
+}
+
+function unchangedMeshDrawRenderIds(
+  changeSet: RenderSnapshotChangeSet | undefined,
+  frame: number,
+): ReadonlySet<number> {
+  const keys = changeSet?.frame === frame ? changeSet.keys?.meshDraws : null;
+
+  if (keys === null || keys === undefined || keys.unchanged.length === 0) {
+    return EMPTY_RENDER_IDS;
+  }
+
+  const renderIds = new Set<number>();
+
+  for (const key of keys.unchanged) {
+    const renderId = renderIdFromMeshDrawKey(key);
+
+    if (renderId !== null) {
+      renderIds.add(renderId);
+    }
+  }
+
+  return renderIds;
+}
+
+const EMPTY_RENDER_IDS = new Set<number>();
+
+function renderIdFromMeshDrawKey(key: string): number | null {
+  const prefix = "mesh-draw:";
+
+  if (!key.startsWith(prefix)) {
+    return null;
+  }
+
+  const renderId = Number(key.slice(prefix.length));
+
+  return Number.isSafeInteger(renderId) ? renderId : null;
 }
 
 export function planRenderWorldDrawReadiness(

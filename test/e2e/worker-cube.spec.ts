@@ -56,6 +56,28 @@ interface WorkerCubeStatus extends ExampleStatusBase {
   readonly draw?: {
     readonly drawCalls: number;
   };
+  readonly rendererUpdate?: {
+    readonly fullRefresh: boolean;
+    readonly incremental: boolean;
+    readonly byFamily: Record<
+      string,
+      {
+        readonly action: string;
+        readonly changed: number;
+        readonly unchanged: number;
+        readonly removed: number;
+        readonly refreshes: number;
+        readonly reuses: number;
+        readonly removals: number;
+      }
+    >;
+    readonly total: {
+      readonly packetRefreshes: number;
+      readonly packetReuses: number;
+      readonly packetRemovals: number;
+      readonly packetWork: number;
+    };
+  } | null;
   readonly animation?: {
     readonly frames: number;
     readonly rotationRadians: number;
@@ -160,6 +182,15 @@ test("worker cube renders snapshots produced by worker ECS extraction", async ({
   ).toBeGreaterThan(8);
   expect(laterStatus.transport?.snapshotsReceived ?? 0).toBeGreaterThan(
     firstStatus.transport?.snapshotsReceived ?? 0,
+  );
+  expect(laterStatus.rendererUpdate?.incremental).toBe(true);
+  expect(laterStatus.rendererUpdate?.byFamily.views).toMatchObject({
+    action: "reuse",
+    unchanged: 1,
+    reuses: 1,
+  });
+  expect(laterStatus.rendererUpdate?.total.packetReuses ?? 0).toBeGreaterThan(
+    0,
   );
 
   guard.expectNoWarnings();

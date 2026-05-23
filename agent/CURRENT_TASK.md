@@ -17,6 +17,6 @@ strict reference-parity follow-ups are complete:
 - `task-3096` added a renderer-owned multisampled-depth shader route so SSAO,
   SSR, and DOF can run in MSAA scenes without example-specific depth plumbing.
 
-Next step: start `task-3101` from `agent/BACKLOG.md`, adding a generic
-snapshot change-set scheduler for render-world updates so unchanged snapshot
-families can avoid full packet refresh work.
+Next step: start `task-3102` from `agent/BACKLOG.md`, proving deterministic
+transparent ordering tie-breaks so equal-depth transparent records no longer
+depend on JavaScript sort stability.

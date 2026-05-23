@@ -6,6 +6,7 @@ import type {
   RenderWorldDrawPackagePlan,
   RenderWorldDrawPackageScratch,
   RenderWorld,
+  RenderSnapshotChangeSet,
 } from "@aperture-engine/render";
 import {
   createRenderWorldDrawPackageScratch,
@@ -60,6 +61,7 @@ import type {
 
 export interface PlanRenderFrameFromSnapshotInput {
   readonly snapshot: RenderSnapshot;
+  readonly snapshotChangeSet?: RenderSnapshotChangeSet;
   readonly renderWorld: RenderWorld;
   readonly transforms: PackedSnapshotTransforms;
   readonly resolveMeshResourceKey: (draw: MeshDrawPacket) => string | null;
@@ -77,6 +79,7 @@ export interface RenderFramePlanCounts {
     readonly active: number;
     readonly created: number;
     readonly updated: number;
+    readonly unchanged: number;
     readonly removed: number;
   };
   readonly binding: {
@@ -222,7 +225,11 @@ export function createRenderFramePlanScratch(
 export function writeRenderFramePlanFromSnapshot(
   input: WriteRenderFrameFromSnapshotInput,
 ): PlanRenderFrameFromSnapshotResult {
-  const apply = input.renderWorld.applySnapshot(input.snapshot);
+  const apply = input.renderWorld.applySnapshot(input.snapshot, {
+    ...(input.snapshotChangeSet === undefined
+      ? {}
+      : { changeSet: input.snapshotChangeSet }),
+  });
   const bindingPlan = writeInjectedRenderFrameSnapshotResourceBindings(
     {
       snapshot: input.snapshot,
@@ -345,6 +352,7 @@ export function createRenderFramePlanSummaryScratch(): RenderFramePlanSummaryScr
       active: 0,
       created: 0,
       updated: 0,
+      unchanged: 0,
       removed: 0,
     },
     binding: {
@@ -522,6 +530,7 @@ function summarizeRenderFramePlan(
   counts.apply.active = result.apply.active;
   counts.apply.created = result.apply.created;
   counts.apply.updated = result.apply.updated;
+  counts.apply.unchanged = result.apply.unchanged;
   counts.apply.removed = result.apply.removed;
   counts.binding.planned = result.bindingPlan.bindings.length;
   counts.binding.applied = appliedBindings;

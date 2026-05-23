@@ -291,6 +291,7 @@ export interface InjectedRenderFrameSnapshotRunnerReportJsonValue {
     readonly valid: boolean;
     readonly created: number;
     readonly updated: number;
+    readonly unchanged: number;
     readonly removed: number;
     readonly active: number;
     readonly diagnostics: DiagnosticSummary;
@@ -894,6 +895,7 @@ export function injectedRenderFrameSnapshotRunnerReportToJsonValue(
       valid: applyDiagnostics.total === 0,
       created: report.apply.created,
       updated: report.apply.updated,
+      unchanged: report.apply.unchanged,
       removed: report.apply.removed,
       active: report.apply.active,
       diagnostics: cloneDiagnosticSummary(applyDiagnostics),

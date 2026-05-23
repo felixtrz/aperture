@@ -22,5 +22,6 @@ export * from "./snapshot-inspection.js";
 export * from "./snapshot-packed-encoding.js";
 export * from "./snapshot-prepared-meshes.js";
 export * from "./snapshot-prepared-materials.js";
+export * from "./snapshot-update-scheduler.js";
 export * from "./transform-pack.js";
 export * from "./view-pack.js";

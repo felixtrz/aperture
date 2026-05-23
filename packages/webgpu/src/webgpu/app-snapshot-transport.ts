@@ -10,6 +10,8 @@ import {
   decodeSnapshotPackets,
   type RenderDiagnostic,
   type RenderSnapshot,
+  type RenderSnapshotChangeSet,
+  type RenderSnapshotFamilyChangeCounts,
   type SnapshotPacketRegistrySnapshot,
 } from "@aperture-engine/render";
 import {
@@ -209,6 +211,29 @@ export function readWebGpuAppSharedSnapshot(
   };
 }
 
+export function readWebGpuAppSnapshotChangeSet(
+  message: unknown,
+): RenderSnapshotChangeSet | null {
+  if (!isRecord(message)) {
+    return null;
+  }
+
+  const topLevel = message.changeSet;
+
+  if (isRenderSnapshotChangeSet(topLevel)) {
+    return topLevel;
+  }
+
+  const transport = message.transport;
+  const transportChangeSet = isRecord(transport)
+    ? transport.changeSet
+    : undefined;
+
+  return isRenderSnapshotChangeSet(transportChangeSet)
+    ? transportChangeSet
+    : null;
+}
+
 export function estimateSharedSnapshotTransportReduction(input: {
   readonly snapshot: Pick<
     RenderSnapshot,
@@ -326,4 +351,35 @@ function isRegistrySnapshot(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function isRenderSnapshotChangeSet(
+  value: unknown,
+): value is RenderSnapshotChangeSet {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    (value.previousFrame === null || Number.isInteger(value.previousFrame)) &&
+    Number.isInteger(value.frame) &&
+    isFamilyCounts(value.views) &&
+    isFamilyCounts(value.meshDraws) &&
+    isFamilyCounts(value.lights) &&
+    isFamilyCounts(value.environments) &&
+    isFamilyCounts(value.shadowRequests) &&
+    isFamilyCounts(value.bounds) &&
+    isFamilyCounts(value.total)
+  );
+}
+
+function isFamilyCounts(
+  value: unknown,
+): value is RenderSnapshotFamilyChangeCounts {
+  return (
+    isRecord(value) &&
+    Number.isInteger(value.changed) &&
+    Number.isInteger(value.unchanged) &&
+    Number.isInteger(value.removed)
+  );
 }

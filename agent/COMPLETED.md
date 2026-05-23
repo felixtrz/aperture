@@ -1,5 +1,32 @@
 # Completed Tasks
 
+## task-3101 — Add a generic snapshot change-set scheduler for render-world updates
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added `createRenderSnapshotUpdateSchedule()` as a public render API that
+  classifies changed, unchanged, and removed snapshot families into refresh,
+  reuse, remove, mixed, and skip renderer work.
+- Extended `createRenderSnapshotChangeSet()` with stable packet keys and wired
+  `RenderWorld.applySnapshot()` to preserve unchanged mesh draw resource
+  bindings while keeping fresh snapshot packet offsets when a matching keyed
+  change set is supplied.
+- Threaded render-update metadata through the WebGPU app report,
+  `app-snapshot-transport`, and `examples/worker-cube.html`, where browser
+  status now proves incremental update scheduling while the cube continues to
+  animate from worker ECS snapshots.
+
+Validation:
+
+- `pnpm exec vitest run test/rendering/snapshot-change-set.test.ts test/rendering/snapshot-update-scheduler.test.ts test/rendering/render-world.test.ts test/webgpu/render-frame-plan.test.ts --reporter=dot`
+- `pnpm exec vitest run test/rendering/snapshot-update-scheduler.test.ts test/webgpu/webgpu-app.test.ts test/webgpu/render-frame-snapshot-json.test.ts test/webgpu/render-frame-snapshot-runner.test.ts --reporter=dot`
+- `pnpm run typecheck:test`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/worker-cube.spec.ts --project=chrome-webgpu-headed --reporter=list --timeout=60000`
+
 ## task-3100 — Add renderer-owned grab-pass refraction for transmission
 
 Completed: 2026-05-23
