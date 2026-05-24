@@ -1,6 +1,69 @@
 # Agent Handoff
 
-Updated: 2026-05-24T11:06:34Z
+Updated: 2026-05-24T11:37:07Z
+
+## Current Run Update — 2026-05-24T11:37:07Z — Shadow-aligned cookie atlas
+
+Completed `task-3150`, adding a shadow-aligned clustered cookie atlas path for
+the compact nonuniform atlas shadow-cookie route.
+
+### What changed
+
+- Added explicit `atlasRegion` metadata to clustered spot-shadow descriptors,
+  texture resources, and live depth resources so cookie preparation can compare
+  a spot cookie against the matching shadow tile.
+- Clustered spot-cookie atlas preparation now prefers a shadow-aligned atlas
+  when every supported atlas-cookie light has a matching 2D spot-shadow atlas
+  region, resampling cookie texels into the shadow tile footprint when needed.
+- The compact `clusteredLocalLightShadowCookies` atlas route now reuses
+  spot-shadow matrices only when the cookie atlas reports
+  `shadowMatrixCompatible: true`; otherwise the app avoids the compact reuse
+  claim.
+- `examples/clustered-lights.html?enable-cluster-shadow-cookie-atlas=1` now
+  reports `routePackedShadowCookieAtlasShadowAligned` alongside atlas shadow,
+  cookie, pipeline, and sampling readiness.
+- Focused tests cover atlas-region propagation, shadow-aligned atlas upload
+  sizes, resampled tile packing, compact matrix-key generation, and the e2e
+  status assertion.
+
+### Validation
+
+- `node --check examples/clustered-lights.main.js`
+- `node --check examples/clustered-lights.worker.js`
+- `pnpm exec vitest run test/webgpu/local-light-cookie-resources.test.ts test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run build`
+- Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-shadow-cookie-atlas=1&proof=task3150`:
+  `ok: true`, `readbackStatus.ok: true`,
+  `routePackedShadowCookieAtlasShadowReady`,
+  `routePackedShadowCookieAtlasCookieReady`,
+  `routePackedShadowCookieAtlasShadowAligned`,
+  `routePackedShadowCookieAtlasSamplingOk`,
+  `routePackedShadowCookiePipelineOk`,
+  `routeMixedPackedSpotShadowAtlasSamplingOk`, and
+  `routeCookieAtlasSamplingOk` true, luminance range about `68.36`, max clear
+  distance about `119.68`, diagnostics `0`, and relevant WebGPU validation
+  warnings/errors `0`. The only console error was the existing favicon `403`.
+
+### Known issues
+
+- The broad multi-page `test/e2e/clustered-lights.spec.ts` remains locally
+  unreliable: a full headed run first hit Playwright's default test timeout,
+  then exposed pre-existing non-task issues around route metadata equality and
+  transparent-zero readback on the default clustered-lights route. The focused
+  atlas proof passed, and the broad spec changes were kept scoped to the new
+  shadow-aligned atlas status field.
+- The pre-existing working-tree deletion of `.codex/hooks.json`, untracked
+  `.playwright-mcp/` scratch directory, and untracked
+  `shadow-cookie-console-errors.txt` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3151`: add a dynamic clustered shadow/cookie atlas allocator proof
+with stable per-light slots, because the covered static/proof atlas
+shadow-cookie invariant is now closed.
 
 ## Current Run Update — 2026-05-24T11:06:34Z — Clustered shadow-cookie audit
 

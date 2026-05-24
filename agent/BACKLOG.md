@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3150`: add shadow-aligned clustered cookie atlas packing/resampling
-so the compact nonuniform atlas shadow-cookie route can reuse spot-shadow
-matrices with the same per-light atlas layout that PlayCanvas relies on.
+Start `task-3151`: add a dynamic clustered shadow/cookie atlas allocator proof
+so the compact atlas path that now uses shadow-aligned cookie tiles can also
+survive changing light sets without static proof-route assumptions.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -228,23 +228,22 @@ shadows through flattened cube-face layers in one renderer-owned 2D depth array
 while preserving the packed spot-shadow-array route. `task-3146` now combines
 one supported point shadow, two packed spot shadows, and a clustered local
 cookie in one WebGPU-minimum StandardMaterial route by reusing spot-shadow
-matrices for the matching spot-cookie projection. The next SOTA gap is carrying
-that same shadow/cookie pressure through the flattened multi-point-shadow array
-route. `task-3147` now proves that route with two point shadows through 12
-flattened layers, two packed spot shadows, and one clustered cookie. The next
-SOTA gap is combining atlas-backed local shadows and atlas-backed local cookies,
-followed by broader clustered-light tuning. `task-3148` now combines
-nonuniform atlas-backed spot shadows with nonuniform atlas-backed spot cookies
-by making both cookie lights shadowed spot lights and reusing the spot-shadow
-matrices for cookie projection. The next step is a focused re-audit of the
-clustered shadow/cookie routes against the references before adding the next
-implementation slice.
+matrices for the matching spot-cookie projection. The same pressure now carries
+through the flattened multi-point-shadow array route: `task-3147` proves two
+point shadows through 12 flattened layers, two packed spot shadows, and one
+clustered cookie. `task-3148` combines nonuniform atlas-backed spot shadows
+with nonuniform atlas-backed spot cookies in one route, and `task-3149`
+re-audited that pressure lane against PlayCanvas and three.js. `task-3150` now
+closes the remaining static atlas invariant by making clustered spot-cookie
+atlas preparation shadow-aligned before the compact route reuses spot-shadow
+matrices. The next SOTA gap is moving from static proof-route atlas placement
+to dynamic, stable local-shadow/cookie atlas allocation and update behavior.
 
 Reference anchors for the next visible slice (read before writing):
 
+- `references/engine/src/scene/lighting/light-texture-atlas.js`.
+- `references/engine/src/scene/renderer/shadow-map-cache.js`.
 - `references/engine/src/scene/lighting/lights-buffer.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightCookies.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`.
 - `docs/render-pipeline-comparison.html`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
@@ -1122,7 +1121,7 @@ Acceptance criteria:
 
 ### task-3150 — Add shadow-aligned clustered cookie atlas for compact matrix reuse
 
-Status: ready
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cookie*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
@@ -1145,6 +1144,66 @@ Acceptance criteria:
   still passes browser readback with zero relevant WebGPU validation warnings.
 - Focused tests cover the aligned atlas path and a mismatched atlas/cookie case
   that must not enable shadow-matrix reuse.
+
+### task-3151 — Add dynamic clustered shadow/cookie atlas slot allocation
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cookie*`, `packages/webgpu/src/webgpu/*cluster*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
+Reference anchor: `references/engine/src/scene/lighting/light-texture-atlas.js`, `references/engine/src/scene/renderer/shadow-map-cache.js`, `references/engine/src/scene/lighting/lights-buffer.js`.
+
+Acceptance criteria:
+
+- Clustered local shadow/cookie atlas allocation is driven by stable per-light
+  allocation keys instead of proof-route fixed tiles, while preserving the
+  shadow-aligned cookie invariant from `task-3150`.
+- A new clustered-lights proof route can toggle or resize at least four
+  shadowed spot-cookie lights across frames and keep valid atlas regions,
+  matrix reuse, and metadata indices without leaking stale slots.
+- Browser status reports atlas slot count, reused slot count, evicted/stale
+  slot count, and shadow/cookie alignment status for the dynamic route.
+- Playwright/Chrome readback shows visible shadow and cookie contribution after
+  the light-set change, with zero relevant WebGPU validation warnings.
+
+### task-3152 — Add GPU-updated clustered cookie atlas blits
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*cookie*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
+Reference anchor: `references/engine/src/scene/renderer/render-pass-cookie-renderer.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/internal/frag/cookie-blit-2d.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/internal/vert/cookie-blit.js`.
+
+Acceptance criteria:
+
+- Clustered spot-cookie atlas updates can copy/blit compatible GPU texture
+  sources into atlas tiles without CPU byte re-upload when the source texture is
+  already renderer-owned.
+- A clustered-lights proof route animates or swaps an atlas-backed spot cookie
+  over time and reports a GPU atlas update path rather than a CPU upload path.
+- Browser readback samples before and after the cookie update show a visible
+  color/luminance change while the atlas allocation remains stable.
+- Existing CPU-upload cookie atlas tests remain valid for byte-backed sources.
+
+### task-3153 — Cache unchanged clustered local shadow maps across frames
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/app.ts`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
+Reference anchor: `references/engine/src/scene/renderer/shadow-map-cache.js`, `references/engine/src/scene/renderer/shadow-renderer-local.js`, `references/engine/src/scene/renderer/render-pass-shadow-local-clustered.js`.
+
+Acceptance criteria:
+
+- Clustered local shadow resources can reuse an unchanged shadow map when the
+  caster set, light transform, map size, and atlas region are stable across
+  frames.
+- A clustered-lights proof route reports first-frame local-shadow renders and
+  later-frame cache hits while preserving visible point/spot shadow results.
+- Cache invalidation is covered for at least one changed light transform or
+  changed caster transform.
+- Browser readback remains non-clear and relevant WebGPU validation warnings
+  stay at zero.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

@@ -3,10 +3,11 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: `task-3150` — add shadow-aligned clustered cookie atlas for
-compact matrix reuse.
+Current task: `task-3151` — add dynamic clustered shadow/cookie atlas slot
+allocation.
 
-Status: `task-3149` completed the clustered shadow/cookie route-pressure audit.
+Status: `task-3150` completed the shadow-aligned clustered cookie atlas path
+for compact atlas matrix reuse.
 
 Key findings:
 
@@ -20,17 +21,17 @@ Key findings:
   one atlas slot per light for both shadow and cookie atlas use, and
   `LightsBuffer` writes a projection/viewport layout that stays consistent for
   clustered shadow and cookie sampling.
-- Aperture's browser-proven nonuniform atlas shadow-cookie route currently
-  reuses spot-shadow matrices, but the generic cookie atlas is packed
-  independently by cookie source texture dimensions. The compact atlas route
-  needs a shadow-aligned cookie atlas invariant before the matrix-reuse path is
-  generally correct for arbitrary nonuniform cookie dimensions.
+- Aperture's browser-proven nonuniform atlas shadow-cookie route now exposes
+  per-light shadow atlas regions and builds a shadow-aligned cookie atlas before
+  reusing spot-shadow matrices. The static/proof atlas invariant is closed.
+- The next gap is dynamic behavior: atlas slots should remain stable, reusable,
+  and invalidation-safe as clustered shadow/cookie light sets change rather
+  than relying on fixed proof-route tile placement.
 
-Next step: implement `task-3150`.
+Next step: implement `task-3151`.
 
-Reference anchors for `task-3150`:
+Reference anchors for `task-3151`:
 
 - `references/engine/src/scene/lighting/light-texture-atlas.js`.
+- `references/engine/src/scene/renderer/shadow-map-cache.js`.
 - `references/engine/src/scene/lighting/lights-buffer.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightCookies.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`.

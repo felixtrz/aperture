@@ -1,5 +1,54 @@
 # Completed Tasks
 
+## task-3150 — Add shadow-aligned clustered cookie atlas for compact matrix reuse
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added explicit `atlasRegion` metadata to clustered spot-shadow descriptors,
+  shadow texture resources, and live shadow depth resources.
+- Clustered spot-cookie atlas preparation now builds a shadow-aligned atlas
+  when every atlas-backed spot-cookie light has a matching spot-shadow atlas
+  region, resampling cookie bytes into the matching shadow tile size when
+  needed.
+- The compact atlas `clusteredLocalLightShadowCookies` path now reuses
+  spot-shadow matrices only when the cookie atlas reports
+  `shadowMatrixCompatible: true`; otherwise it avoids claiming the compact
+  matrix-reuse path.
+- `examples/clustered-lights.html?enable-cluster-shadow-cookie-atlas=1` now
+  reports `routePackedShadowCookieAtlasShadowAligned` and keeps the compact
+  atlas shadow-cookie route browser-proven.
+- Focused tests cover atlas-region normalization/propagation, shadow-aligned
+  atlas upload sizes, matrix keys, and route status.
+
+Validation:
+
+- `node --check examples/clustered-lights.main.js`
+- `node --check examples/clustered-lights.worker.js`
+- `pnpm exec vitest run test/webgpu/local-light-cookie-resources.test.ts test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run build`
+- Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-shadow-cookie-atlas=1&proof=task3150`:
+  `ok: true`, `readbackStatus.ok: true`,
+  `routePackedShadowCookieAtlasShadowReady`,
+  `routePackedShadowCookieAtlasCookieReady`,
+  `routePackedShadowCookieAtlasShadowAligned`,
+  `routePackedShadowCookieAtlasSamplingOk`,
+  `routePackedShadowCookiePipelineOk`,
+  `routeMixedPackedSpotShadowAtlasSamplingOk`, and
+  `routeCookieAtlasSamplingOk` true, with diagnostics `0` and zero relevant
+  WebGPU validation warnings/errors.
+
+Known follow-up:
+
+- `task-3151` should replace static proof-route atlas placement with dynamic,
+  stable per-light shadow/cookie atlas slot allocation.
+- The broad clustered-lights Playwright spec still has pre-existing local
+  reliability issues around multi-page headed timing and transparent-zero
+  readback; the focused Chrome/WebGPU route proof passed.
+
 ## task-3149 — Re-audit clustered shadow/cookie route pressure
 
 Completed: 2026-05-24
