@@ -4,7 +4,7 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "2f1ff00",
+  "lastCommit": "629efa4",
   "activePid": null,
   "notes": "Completed task-3144 metadata-indexed clustered local shadow softness; next task-3145 packs multiple clustered point shadows.",
   "lastRunFinishedAt": "2026-05-24T09:27:44Z"
