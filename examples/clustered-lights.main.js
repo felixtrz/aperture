@@ -72,10 +72,21 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     }),
     { id: "clustered-lights-standard" },
   );
+  const secondaryPanelMaterial = assets.materials.standard.add(
+    aperture.createStandardMaterialAsset({
+      label: "ClusteredLightsStandardSecondary",
+      baseColorFactor: new Float32Array([0.68, 0.76, 0.88, 1]),
+      metallicFactor: 0.02,
+      roughnessFactor: 0.84,
+      emissiveFactor: [0, 0, 0],
+    }),
+    { id: "clustered-lights-standard-secondary" },
+  );
 
   return {
     meshKey: aperture.assetHandleKey(panelMesh),
     materialKey: aperture.assetHandleKey(panelMaterial),
+    secondaryMaterialKey: aperture.assetHandleKey(secondaryPanelMaterial),
   };
 }
 
@@ -246,56 +257,120 @@ function createClusterStatus(localLightClusters, pipelineKeys, loop) {
   const clusterPipelineUsed = pipelineKeys.some((pipelineKey) =>
     pipelineKey.includes("clusteredLocalLights"),
   );
-  const totalLocalLights = localLightClusters?.totalLocalLights ?? 0;
+  const clusterRoutes = clusterRoutesFromReport(localLightClusters);
+  const primaryRoute = clusterRoutes[0] ?? null;
+  const totalLocalLights = primaryRoute?.totalLocalLights ?? 0;
   const averageLights =
-    localLightClusters?.averageLightsPerPopulatedCell ?? totalLocalLights;
-  const occupancyHash = localLightClusters?.occupancyHash ?? null;
+    primaryRoute?.averageLightsPerPopulatedCell ?? totalLocalLights;
+  const occupancyHash = primaryRoute?.occupancyHash ?? null;
   const previousOccupancyHash = loop.previousClusterOccupancy?.hash ?? null;
   const occupancyChanged =
     occupancyHash !== null &&
     previousOccupancyHash !== null &&
     occupancyHash !== previousOccupancyHash;
+  const routeViewIds = clusterRoutes.map((route) => route.viewId ?? null);
+  const routeOccupancyHashes = clusterRoutes.map(
+    (route) => route.occupancyHash ?? null,
+  );
+  const distinctViewIds = new Set(
+    routeViewIds.filter((viewId) => viewId !== null),
+  ).size;
+  const distinctOccupancyHashes = new Set(
+    routeOccupancyHashes.filter((hash) => hash !== null),
+  ).size;
+  const routePressureOk =
+    clusterRoutes.length > 0 &&
+    clusterRoutes.every((route) => {
+      const routeTotalLocalLights = route.totalLocalLights ?? 0;
+
+      return (
+        route.enabled === true &&
+        route.coordinateSpace === "view-depth" &&
+        routeTotalLocalLights >= 64 &&
+        (route.maxLightsPerPopulatedCell ?? routeTotalLocalLights) <
+          routeTotalLocalLights &&
+        (route.averageLightsPerPopulatedCell ?? routeTotalLocalLights) <
+          routeTotalLocalLights
+      );
+    });
 
   return {
     ok:
-      localLightClusters?.enabled === true &&
-      localLightClusters.coordinateSpace === "view-depth" &&
       clusterPipelineUsed &&
-      totalLocalLights >= 64 &&
-      (localLightClusters?.maxLightsPerPopulatedCell ?? totalLocalLights) <
-        totalLocalLights &&
-      averageLights < totalLocalLights &&
+      clusterRoutes.length >= 2 &&
+      distinctViewIds >= 2 &&
+      distinctOccupancyHashes >= 2 &&
+      routePressureOk &&
       occupancyChanged &&
-      (localLightClusters?.resourceReuse?.buffersReused ?? 0) >= 3,
+      (localLightClusters?.resourceReuse?.buffersReused ?? 0) >= 6,
     clusterPipelineUsed,
-    coordinateSpace: localLightClusters?.coordinateSpace ?? null,
-    viewId: localLightClusters?.viewId ?? null,
+    coordinateSpace: primaryRoute?.coordinateSpace ?? null,
+    viewId: primaryRoute?.viewId ?? null,
     totalLocalLights,
-    populatedCells: localLightClusters?.populatedCells ?? null,
+    populatedCells: primaryRoute?.populatedCells ?? null,
     averageLightsPerPopulatedCell: averageLights,
-    maxLightsPerPopulatedCell:
-      localLightClusters?.maxLightsPerPopulatedCell ?? null,
-    totalAssignedLightReferences:
-      localLightClusters?.totalAssignedLightReferences ?? null,
+    maxLightsPerPopulatedCell: primaryRoute?.maxLightsPerPopulatedCell ?? null,
+    totalAssignedLightReferences: primaryRoute?.totalAssignedLightReferences ??
+      null,
     occupancyHash,
     previousOccupancyHash,
     occupancyChanged,
+    routeCount: clusterRoutes.length,
+    routeViewIds,
+    routeOccupancyHashes,
+    distinctViewIds,
+    distinctOccupancyHashes,
+    routePressureOk,
+    routes: clusterRoutes.map((route) => ({
+      enabled: route.enabled,
+      layerMask: route.layerMask ?? null,
+      lightSetKey: route.lightSetKey ?? null,
+      coordinateSpace: route.coordinateSpace ?? null,
+      viewId: route.viewId ?? null,
+      totalLocalLights: route.totalLocalLights ?? 0,
+      clusteredLocalLights: route.clusteredLocalLights ?? 0,
+      populatedCells: route.populatedCells ?? null,
+      averageLightsPerPopulatedCell:
+        route.averageLightsPerPopulatedCell ?? null,
+      maxLightsPerPopulatedCell: route.maxLightsPerPopulatedCell ?? null,
+      totalAssignedLightReferences:
+        route.totalAssignedLightReferences ?? null,
+      occupancyHash: route.occupancyHash ?? null,
+      resourceKey: route.resourceKey ?? null,
+    })),
     buffersCreated: localLightClusters?.resourceReuse?.buffersCreated ?? 0,
     buffersReused: localLightClusters?.resourceReuse?.buffersReused ?? 0,
   };
 }
 
 function recordClusterOccupancy(loop, localLightClusters) {
-  if (localLightClusters?.enabled !== true) {
+  const primaryRoute = clusterRoutesFromReport(localLightClusters)[0] ?? null;
+
+  if (primaryRoute?.enabled !== true) {
     return;
   }
 
   loop.previousClusterOccupancy = {
-    hash: localLightClusters.occupancyHash ?? null,
-    populatedCells: localLightClusters.populatedCells ?? null,
-    totalAssignedLightReferences:
-      localLightClusters.totalAssignedLightReferences ?? null,
+    hash: primaryRoute.occupancyHash ?? null,
+    populatedCells: primaryRoute.populatedCells ?? null,
+    totalAssignedLightReferences: primaryRoute.totalAssignedLightReferences ??
+      null,
   };
+}
+
+function clusterRoutesFromReport(localLightClusters) {
+  if (localLightClusters === null || localLightClusters === undefined) {
+    return [];
+  }
+
+  if (
+    Array.isArray(localLightClusters.routes) &&
+    localLightClusters.routes.length > 0
+  ) {
+    return localLightClusters.routes;
+  }
+
+  return [localLightClusters];
 }
 
 function createReadbackStatus(readback) {

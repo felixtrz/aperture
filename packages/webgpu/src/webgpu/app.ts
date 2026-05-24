@@ -254,7 +254,7 @@ import { createStandardMaterialBindGroupLayoutPlan } from "./standard-bind-group
 import type { StandardMaterialBindGroupLayoutResource } from "./standard-bind-group.js";
 import {
   createOrReuseStandardAppFrameResources,
-  type CachedStandardAppFrameResources,
+  createStandardAppFrameResourceCacheSlot,
   type CreateStandardAppFrameResourcesResult,
   type StandardAppFrameResourceCacheSlot,
 } from "./standard-app-frame-resources.js";
@@ -1240,8 +1240,7 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
       createWebGpuAppFrameResourceCacheSlot<CachedUnlitAppFrameResources>(),
     matcapFrame:
       createWebGpuAppFrameResourceCacheSlot<CachedMatcapAppFrameResources>(),
-    standardFrame:
-      createWebGpuAppFrameResourceCacheSlot<CachedStandardAppFrameResources>(),
+    standardFrame: createStandardAppFrameResourceCacheSlot(),
     debugNormalFrame:
       createWebGpuAppFrameResourceCacheSlot<CachedDebugNormalAppFrameResources>(),
     depth: createWebGpuDepthTextureCacheSlot(),
@@ -5248,18 +5247,66 @@ function writeCommandsForView(
   prefixCommands: readonly RenderPassCommand[] = [],
 ): readonly RenderPassCommand[] {
   target.length = 0;
+  const pendingStateCommands: RenderPassCommand[] = [];
 
   for (const command of prefixCommands) {
     target.push(command);
   }
 
   for (const command of commands) {
+    if (isRenderPassStateCommand(command)) {
+      queuePendingRenderPassStateCommand(pendingStateCommands, command);
+      continue;
+    }
+
     if (isRenderPassCommandVisibleToView(command, snapshot, view)) {
+      target.push(...pendingStateCommands);
+      pendingStateCommands.length = 0;
       target.push(command);
     }
   }
 
   return target;
+}
+
+function isRenderPassStateCommand(command: RenderPassCommand): boolean {
+  return (
+    command.kind === "setPipeline" ||
+    command.kind === "setBindGroup" ||
+    command.kind === "setVertexBuffer" ||
+    command.kind === "setIndexBuffer"
+  );
+}
+
+function queuePendingRenderPassStateCommand(
+  target: RenderPassCommand[],
+  command: RenderPassCommand,
+): void {
+  const key = renderPassStateCommandKey(command);
+
+  for (let index = 0; index < target.length; index += 1) {
+    if (renderPassStateCommandKey(target[index] as RenderPassCommand) === key) {
+      target[index] = command;
+      return;
+    }
+  }
+
+  target.push(command);
+}
+
+function renderPassStateCommandKey(command: RenderPassCommand): string {
+  switch (command.kind) {
+    case "setPipeline":
+      return "pipeline";
+    case "setBindGroup":
+      return `bind-group:${String(command.index)}`;
+    case "setVertexBuffer":
+      return `vertex-buffer:${String(command.slot)}`;
+    case "setIndexBuffer":
+      return "index-buffer";
+    default:
+      return "non-state";
+  }
 }
 
 function isRenderPassCommandVisibleToView(
@@ -7894,14 +7941,28 @@ function createWebGpuAppLocalLightClusterReport(
   resources: WebGpuAppFrameResourcesResult | null,
   reuse: WebGpuAppResourceReuseReport,
 ): LocalLightClusterReport | undefined {
-  const resource = findWebGpuAppLocalLightClusterResource(resources);
+  const clusterResources = collectWebGpuAppLocalLightClusterResources(resources);
+  const resource = clusterResources[0] ?? null;
 
   if (resource !== null) {
-    return localLightClusterReportFromDescriptor(resource.descriptor, {
+    const report = localLightClusterReportFromDescriptor(resource.descriptor, {
       resource,
       buffersCreated: reuse.localLightClusterBuffersCreated,
       buffersReused: reuse.localLightClusterBuffersReused,
     });
+
+    if (clusterResources.length <= 1) {
+      return report;
+    }
+
+    return {
+      ...report,
+      routes: clusterResources.map((routeResource) =>
+        localLightClusterReportFromDescriptor(routeResource.descriptor, {
+          resource: routeResource,
+        }),
+      ),
+    };
   }
 
   if (!snapshotShouldUseClusteredLocalLights(snapshot)) {
@@ -7917,28 +7978,41 @@ function createWebGpuAppLocalLightClusterReport(
   );
 }
 
-function findWebGpuAppLocalLightClusterResource(
+function collectWebGpuAppLocalLightClusterResources(
   result: WebGpuAppFrameResourcesResult | null,
-): LocalLightClusterGpuResource | null {
+): readonly LocalLightClusterGpuResource[] {
   const resources = result?.resources;
 
   if (resources === null || resources === undefined) {
-    return null;
+    return [];
   }
 
   if ("localLightClusters" in resources) {
-    return resources.localLightClusters ?? null;
+    return resources.localLightClusters === undefined
+      ? []
+      : [resources.localLightClusters];
   }
 
   if ("standard" in resources) {
+    const clusterResources: LocalLightClusterGpuResource[] = [];
+    const seenResourceKeys = new Set<string>();
+
     for (const standardResources of resources.standard) {
-      if (standardResources.localLightClusters !== undefined) {
-        return standardResources.localLightClusters;
+      const localLightClusters = standardResources.localLightClusters;
+
+      if (
+        localLightClusters !== undefined &&
+        !seenResourceKeys.has(localLightClusters.resourceKey)
+      ) {
+        seenResourceKeys.add(localLightClusters.resourceKey);
+        clusterResources.push(localLightClusters);
       }
     }
+
+    return clusterResources;
   }
 
-  return null;
+  return [];
 }
 
 function createWebGpuAppDepthAttachmentReport(

@@ -518,6 +518,8 @@ function localLightClusterResource(): LocalLightClusterGpuResource {
       totalLights: 16,
       totalLocalLights: 16,
       clusteredLocalLights: 16,
+      layerMask: null,
+      lightSetKey: "layers:all|lights:test",
       coordinateSpace: "view-depth",
       viewId: 1,
       boundsMin: { x: -1, y: -1, z: -8 },

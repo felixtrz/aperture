@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-23 23:52 UTC</dd>
+            <dd>2026-05-24 00:28 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1500,10 +1500,15 @@
               StandardMaterial local lights now derive view/depth-space bins
               from the active camera, and
               <code>examples/clustered-lights.html</code> proves camera
-              movement changes reported cluster occupancy.
+              movement changes reported cluster occupancy. Clustered local
+              lights now also split renderer-owned resources per active
+              view/light-set route, carry view-filtered render state correctly,
+              reuse fixed-capacity cluster buffers across moving-camera updates,
+              and prove two distinct active cluster routes in the same browser
+              example.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3125 per-view clustered-light resources</dd>
+            <dd>task-3126 production-fidelity area-light LTC tables</dd>
           </dl>
         </aside>
       </header>
@@ -2104,9 +2109,9 @@
             </p>
             <ul>
               <li>
-                Remaining local-light work is per-view/per-light-set cluster
-                resource splitting and broader clustered-light permutations
-                beyond the active-view StandardMaterial many-light path.
+                Remaining local-light work is broader clustered-light
+                permutations beyond the active-view StandardMaterial many-light
+                path; per-view/per-light-set resource splitting is now covered.
               </li>
               <li>
                 Missing production-fidelity LTC table payloads and broader
@@ -4627,8 +4632,8 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Run
-                <code>task-3125</code>: split clustered local-light resources
-                per active view and light set.
+                <code>task-3126</code>: replace placeholder area-light LTC
+                payloads with production-fidelity tables.
               </li>
               <li>
                 Follow-up SOTA work should include production LTC tables and
@@ -4645,6 +4650,21 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3125</div>
+            <div>
+              <strong>Per-view clustered-light resources shipped.</strong>
+              <span>
+                StandardMaterial clustered-light routes now prepare separate
+                renderer-owned cluster resources per active view/light set and
+                reuse fixed-capacity cluster buffers as occupancy changes.
+                <code>examples/clustered-lights.html</code> proves two active
+                cluster routes with distinct view ids, distinct occupancy
+                hashes, six reused cluster buffers, and zero validation
+                warnings.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3124</div>
             <div>

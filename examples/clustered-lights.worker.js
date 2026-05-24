@@ -45,7 +45,11 @@ async function handleMessage(data) {
         scene: {
           meshKey: aperture.assetHandleKey(scene.panelMesh),
           materialKey: aperture.assetHandleKey(scene.panelMaterial),
+          secondaryMaterialKey: aperture.assetHandleKey(
+            scene.secondaryPanelMaterial,
+          ),
           localLights: scene.localLightCount,
+          routeLocalLights: scene.routeLocalLightCount,
         },
       });
       return;
@@ -70,6 +74,7 @@ async function handleMessage(data) {
             meshDraws: snapshot.meshDraws.length,
             lights: snapshot.lights.length,
             localLights: scene.localLightCount,
+            routeLocalLights: scene.routeLocalLightCount,
             cameraX,
             diagnostics: snapshot.diagnostics.length,
           },
@@ -93,25 +98,46 @@ function loadAperture() {
 
 function createWorkerScene(aperture, canvasSize) {
   const app = aperture.createExtractionApp({
-    worldOptions: { entityCapacity: 96 },
+    worldOptions: { entityCapacity: 180 },
   });
   const assets = registerClusteredLightAssets(aperture, app.assets);
 
-  const cameraEntity = app.spawn(
-    aperture.withTransform({ translation: [0, 0, 4.8] }),
+  const primaryCamera = app.spawn(
+    aperture.withTransform({ translation: [-0.4, 0, 4.8] }),
     aperture.withCamera({
       aspect: canvasSize.width / canvasSize.height,
       near: 0.1,
       far: 100,
       clearColor,
       layerMask: 1,
+      viewport: [0, 0, 0.5, 1],
+      scissor: [0, 0, 0.5, 1],
+    }),
+  );
+  const secondaryCamera = app.spawn(
+    aperture.withTransform({ translation: [0.4, 0, 4.8] }),
+    aperture.withCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor,
+      layerMask: 2,
+      viewport: [0.5, 0, 0.5, 1],
+      scissor: [0.5, 0, 0.5, 1],
     }),
   );
   app.spawn(
-    aperture.withTransform({ translation: [0, 0, 0] }),
+    aperture.withTransform({ translation: [-1.1, 0, 0] }),
     aperture.withMesh(assets.panelMesh),
-    aperture.withMaterial(assets.panelMaterial),
+    aperture.withMaterial(assets.primaryPanelMaterial),
     aperture.withRenderLayer(1),
+    aperture.withVisibility(true),
+  );
+  app.spawn(
+    aperture.withTransform({ translation: [1.1, 0, 0] }),
+    aperture.withMesh(assets.panelMesh),
+    aperture.withMaterial(assets.secondaryPanelMaterial),
+    aperture.withRenderLayer(2),
     aperture.withVisibility(true),
   );
   app.spawn(
@@ -122,24 +148,39 @@ function createWorkerScene(aperture, canvasSize) {
       layerMask: 1,
     }),
   );
+  app.spawn(
+    aperture.withLight({
+      kind: aperture.LightKind.Ambient,
+      color: [0.35, 0.39, 0.46, 1],
+      intensity: 0.08,
+      layerMask: 2,
+    }),
+  );
 
-  spawnPointLightGrid(aperture, app);
+  spawnPointLightGrid(aperture, app, { layerMask: 1, xOffset: -1.1 });
+  spawnPointLightGrid(aperture, app, { layerMask: 2, xOffset: 1.1 });
 
   return {
     app,
-    cameraEntity,
+    primaryCamera,
+    secondaryCamera,
     panelMesh: assets.panelMesh,
-    panelMaterial: assets.panelMaterial,
-    localLightCount: localLightGrid.columns * localLightGrid.rows,
+    panelMaterial: assets.primaryPanelMaterial,
+    secondaryPanelMaterial: assets.secondaryPanelMaterial,
+    localLightCount: localLightGrid.columns * localLightGrid.rows * 2,
+    routeLocalLightCount: localLightGrid.columns * localLightGrid.rows,
   };
 }
 
 function updateClusterCamera(aperture, scene, frame) {
   const cameraX = frame % 2 === 0 ? 0.52 : -0.52;
 
-  scene.cameraEntity
+  scene.primaryCamera
     .getVectorView(aperture.LocalTransform, "translation")
-    .set([cameraX, 0, 4.8]);
+    .set([-0.4 + cameraX, 0, 4.8]);
+  scene.secondaryCamera
+    .getVectorView(aperture.LocalTransform, "translation")
+    .set([0.4 - cameraX, 0, 4.8]);
 
   return cameraX;
 }
@@ -154,7 +195,7 @@ function registerClusteredLightAssets(aperture, registry) {
     }),
     { id: "clustered-lights-panel" },
   );
-  const panelMaterial = assets.materials.standard.add(
+  const primaryPanelMaterial = assets.materials.standard.add(
     aperture.createStandardMaterialAsset({
       label: "ClusteredLightsStandard",
       baseColorFactor: new Float32Array([0.78, 0.8, 0.72, 1]),
@@ -164,11 +205,21 @@ function registerClusteredLightAssets(aperture, registry) {
     }),
     { id: "clustered-lights-standard" },
   );
+  const secondaryPanelMaterial = assets.materials.standard.add(
+    aperture.createStandardMaterialAsset({
+      label: "ClusteredLightsStandardSecondary",
+      baseColorFactor: new Float32Array([0.68, 0.76, 0.88, 1]),
+      metallicFactor: 0.02,
+      roughnessFactor: 0.84,
+      emissiveFactor: [0, 0, 0],
+    }),
+    { id: "clustered-lights-standard-secondary" },
+  );
 
-  return { panelMesh, panelMaterial };
+  return { panelMesh, primaryPanelMaterial, secondaryPanelMaterial };
 }
 
-function spawnPointLightGrid(aperture, app) {
+function spawnPointLightGrid(aperture, app, options) {
   const palette = [
     [1, 0.3, 0.22, 1],
     [0.2, 0.65, 1, 1],
@@ -187,7 +238,7 @@ function spawnPointLightGrid(aperture, app) {
       app.spawn(
         aperture.withTransform({
           translation: [
-            -2.25 + u * 4.5,
+            options.xOffset - 2.25 + u * 4.5,
             -1.15 + v * 2.3,
             1.15 + ((x + y) % 2) * 0.18,
           ],
@@ -197,7 +248,7 @@ function spawnPointLightGrid(aperture, app) {
           color,
           intensity: 16,
           range: 1.08,
-          layerMask: 1,
+          layerMask: options.layerMask,
         }),
       );
     }

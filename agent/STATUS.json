@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-3125",
+  "currentTaskId": "task-3126",
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "a4babf5",
+  "lastCommit": "3a52db0",
   "activePid": null,
-  "notes": "Completed task-3124 occlusion-query-driven draw skipping; next task is task-3125 per-view clustered-light resources.",
-  "lastRunFinishedAt": "2026-05-23T23:52:16Z"
+  "notes": "Completed task-3125 per-view clustered-light resources; next task is task-3126 production-fidelity area-light LTC tables.",
+  "lastRunFinishedAt": "2026-05-24T00:28:38Z"
 }

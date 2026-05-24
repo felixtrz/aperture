@@ -3,9 +3,9 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3125.
+Current task: task-3126.
 
-Status: `task-3124` completed occlusion-query-driven draw skipping.
+Status: `task-3125` completed per-view clustered-light resources.
 
 Key finding:
 
@@ -42,13 +42,23 @@ Key finding:
   visibility, reports query/culling pressure, and
   `examples/occlusion-feedback.html` proves the worker still authors all ECS
   mesh draws while the renderer submits fewer draw calls.
-- The next SOTA efficiency gap is splitting clustered local-light resources per
-  active view/light set instead of sharing one active-view cluster descriptor.
+- Clustered StandardMaterial routes now build local-light cluster descriptors
+  per active view/light set, bind the route-matching cluster resource for each
+  draw, preserve required render-pass state commands when filtering commands
+  per view, and use fixed-capacity cluster index buffers so camera movement
+  updates can reuse GPU buffers.
+- `examples/clustered-lights.html` now proves two active view/light-set
+  cluster routes with distinct view ids, distinct occupancy hashes, per-route
+  max/average cell pressure below 64 local lights, six reused cluster buffers,
+  and zero WebGPU validation warnings.
+- The next SOTA shading gap is replacing placeholder RectAreaLight LTC payloads
+  with production-fidelity tables.
 
-Next step: run `task-3125` from `agent/BACKLOG.md`, splitting clustered
-local-light resources per active view/light set with a browser-visible proof.
+Next step: run `task-3126` from `agent/BACKLOG.md`, replacing placeholder
+area-light LTC payloads with production-fidelity tables and a browser-visible
+proof.
 
 Reference anchors for the next task:
 
-- `references/engine/src/scene/renderer/world-clusters-allocator.js`.
-- `references/engine/src/scene/lighting/world-clusters.js`.
+- `references/three.js/src/renderers/shaders/ShaderChunk/lights_physical_pars_fragment.glsl.js`.
+- `references/engine/src/scene/area-light-luts.js`.

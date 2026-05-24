@@ -105,7 +105,37 @@ describe("local light cluster preparation", () => {
 
     expect(centered.coordinateSpace).toBe("view-depth");
     expect(shifted.coordinateSpace).toBe("view-depth");
+    expect(centered.indices).toHaveLength(centered.cellCount * 8);
+    expect(shifted.indices).toHaveLength(shifted.cellCount * 8);
     expect(Array.from(centered.cells)).not.toEqual(Array.from(shifted.cells));
+  });
+
+  it("creates distinct view/light-set descriptors for layer-isolated views", () => {
+    const snapshot = snapshotWithTwoLayerViews();
+    const firstView = createLocalLightClusterDescriptor(snapshot, {
+      layerMask: 1,
+      minLocalLights: 1,
+      dimensions: { x: 4, y: 1, z: 4 },
+      maxLightsPerCell: 8,
+    });
+    const secondView = createLocalLightClusterDescriptor(snapshot, {
+      layerMask: 2,
+      minLocalLights: 1,
+      dimensions: { x: 4, y: 1, z: 4 },
+      maxLightsPerCell: 8,
+    });
+
+    expect(firstView.enabled).toBe(true);
+    expect(secondView.enabled).toBe(true);
+    expect(firstView.viewId).toBe(1);
+    expect(secondView.viewId).toBe(2);
+    expect(firstView.layerMask).toBe(1);
+    expect(secondView.layerMask).toBe(2);
+    expect(firstView.totalLocalLights).toBe(8);
+    expect(secondView.totalLocalLights).toBe(8);
+    expect(firstView.lightSetKey).not.toBe(secondView.lightSetKey);
+    expect(firstView.resourceKey).not.toBe(secondView.resourceKey);
+    expect(firstView.occupancyHash).not.toBe(secondView.occupancyHash);
   });
 
   it("surfaces missing light transforms instead of clustering invalid data", () => {
@@ -241,6 +271,69 @@ function snapshotWithPointLights(
       bounds: 0,
       diagnostics: 0,
     },
+  };
+}
+
+function snapshotWithTwoLayerViews(): RenderSnapshot {
+  const firstViewMatrix = matrixWithTranslation(0, 0, -32);
+  const secondViewMatrix = matrixWithTranslation(-8, 0, -32);
+  const projectionMatrix = defaultProjectionMatrix();
+  const snapshot = snapshotWithPointLights(16);
+
+  return {
+    ...snapshot,
+    views: [
+      viewPacket({
+        viewId: 1,
+        layerMask: 1,
+        viewMatrixOffset: 0,
+        projectionMatrixOffset: 16,
+        viewProjectionMatrixOffset: 32,
+      }),
+      viewPacket({
+        viewId: 2,
+        layerMask: 2,
+        viewMatrixOffset: 48,
+        projectionMatrixOffset: 64,
+        viewProjectionMatrixOffset: 80,
+      }),
+    ],
+    viewMatrices: new Float32Array([
+      ...firstViewMatrix,
+      ...projectionMatrix,
+      ...projectionMatrix,
+      ...secondViewMatrix,
+      ...projectionMatrix,
+      ...projectionMatrix,
+    ]),
+    lights: snapshot.lights.map((light, index) => ({
+      ...light,
+      layerMask: index < 8 ? 1 : 2,
+    })),
+  };
+}
+
+function viewPacket(input: {
+  readonly viewId: number;
+  readonly layerMask: number;
+  readonly viewMatrixOffset: number;
+  readonly projectionMatrixOffset: number;
+  readonly viewProjectionMatrixOffset: number;
+}): RenderSnapshot["views"][number] {
+  return {
+    viewId: input.viewId,
+    camera: { index: 500 + input.viewId, generation: 0 },
+    priority: 0,
+    layerMask: input.layerMask,
+    viewMatrixOffset: input.viewMatrixOffset,
+    projectionMatrixOffset: input.projectionMatrixOffset,
+    viewProjectionMatrixOffset: input.viewProjectionMatrixOffset,
+    viewport: [0, 0, 1, 1],
+    scissor: [0, 0, 1, 1],
+    clearColor: [0, 0, 0, 1],
+    clearDepth: 1,
+    clearStencil: 0,
+    renderTarget: null,
   };
 }
 

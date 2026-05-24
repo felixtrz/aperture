@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3125`: split clustered local-light resources per active view and
-light set with a browser-visible proof.
+Start `task-3126`: replace placeholder area-light LTC payloads with
+production-fidelity tables and a browser-visible proof.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -175,13 +175,17 @@ and proves camera movement changes reported cluster occupancy. `task-3124` now
 uses renderer-owned occlusion feedback to skip eligible previously hidden
 opt-in draws on later frames, reports query/culling pressure, and proves the
 worker still authors all ECS mesh draws while the renderer submits fewer draw
-calls. The next SOTA efficiency gap is splitting clustered local-light
-resources per active view/light set.
+calls. `task-3125` now splits clustered local-light resources by active
+view/light-set route, preserves state commands when filtering render passes per
+view, uses fixed-capacity cluster index buffers so moving cameras can reuse GPU
+buffers, and proves two active cluster routes in
+`examples/clustered-lights.html`. The next SOTA shading gap is replacing
+placeholder area-light LTC data with production-fidelity tables.
 
 Reference anchors for the next task (read before writing):
 
-- `references/engine/src/scene/renderer/world-clusters-allocator.js`.
-- `references/engine/src/scene/lighting/world-clusters.js`.
+- `references/three.js/src/renderers/shaders/ShaderChunk/lights_physical_pars_fragment.glsl.js`.
+- `references/engine/src/scene/area-light-luts.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -597,6 +601,8 @@ Acceptance criteria:
   render, with zero WebGPU validation warnings.
 
 ### task-3125 — Split clustered local-light resources per active view/light set
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.

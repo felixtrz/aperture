@@ -40,6 +40,7 @@ export interface LocalLightClusterDescriptorOptions {
   readonly maxLightsPerCell?: number;
   readonly coordinateSpace?: LocalLightClusterCoordinateSpaceOption;
   readonly viewId?: number;
+  readonly layerMask?: number;
 }
 
 export type LocalLightClusterFallbackReason =
@@ -54,6 +55,8 @@ export interface LocalLightClusterDescriptor {
   readonly totalLights: number;
   readonly totalLocalLights: number;
   readonly clusteredLocalLights: number;
+  readonly layerMask: number | null;
+  readonly lightSetKey: string;
   readonly coordinateSpace: LocalLightClusterCoordinateSpace;
   readonly viewId: number | null;
   readonly boundsMin: LocalLightClusterBoundsPoint;
@@ -105,6 +108,8 @@ export interface LocalLightClusterReport {
   readonly totalLights: number;
   readonly totalLocalLights: number;
   readonly clusteredLocalLights: number;
+  readonly layerMask: number | null;
+  readonly lightSetKey: string;
   readonly coordinateSpace: LocalLightClusterCoordinateSpace;
   readonly viewId: number | null;
   readonly boundsMin: LocalLightClusterBoundsPoint;
@@ -126,6 +131,7 @@ export interface LocalLightClusterReport {
     readonly buffersCreated: number;
     readonly buffersReused: number;
   };
+  readonly routes?: readonly LocalLightClusterReport[];
 }
 
 interface LocalLightSphere {
@@ -162,16 +168,18 @@ const IDENTITY_VIEW_MATRIX = Object.freeze([
 export function snapshotShouldUseClusteredLocalLights(
   snapshot: RenderSnapshot,
   minLocalLights = LOCAL_LIGHT_CLUSTER_MIN_LIGHTS,
+  layerMask?: number,
 ): boolean {
-  return countLocalLights(snapshot.lights) >= minLocalLights;
+  return (
+    countLocalLights(snapshot.lights, normalizeLayerMask(layerMask)) >=
+    minLocalLights
+  );
 }
 
 export function createLocalLightClusterDescriptor(
   snapshot: RenderSnapshot,
   options: LocalLightClusterDescriptorOptions = {},
 ): LocalLightClusterDescriptor {
-  const resourceKey =
-    options.resourceKey ?? DEFAULT_LOCAL_LIGHT_CLUSTER_RESOURCE_KEY;
   const dimensions = normalizeDimensions(options.dimensions);
   const maxLightsPerCell = normalizePositiveInteger(
     options.maxLightsPerCell,
@@ -181,13 +189,26 @@ export function createLocalLightClusterDescriptor(
     options.minLocalLights,
     LOCAL_LIGHT_CLUSTER_MIN_LIGHTS,
   );
-  const totalLocalLights = countLocalLights(snapshot.lights);
-  const localLights = localLightSpheres(snapshot);
-  const clusterSpace = selectLocalLightClusterSpace(snapshot, options);
+  const layerMask = normalizeLayerMask(options.layerMask);
+  const totalLocalLights = countLocalLights(snapshot.lights, layerMask);
+  const localLights = localLightSpheres(snapshot, layerMask);
+  const clusterSpace = selectLocalLightClusterSpace(snapshot, {
+    ...(options.coordinateSpace === undefined
+      ? {}
+      : { coordinateSpace: options.coordinateSpace }),
+    ...(options.viewId === undefined ? {} : { viewId: options.viewId }),
+    layerMask,
+  });
+  const lightSetKey = localLightSetKey(snapshot.lights, layerMask);
+  const resourceKey =
+    options.resourceKey ??
+    createLocalLightClusterResourceKey(clusterSpace, lightSetKey);
   const cellCount = dimensions.x * dimensions.y * dimensions.z;
   const empty = () =>
     emptyLocalLightClusterDescriptor({
       resourceKey,
+      layerMask,
+      lightSetKey,
       dimensions,
       cellCount,
       maxLightsPerCell,
@@ -225,7 +246,8 @@ export function createLocalLightClusterDescriptor(
   };
   const params = new Float32Array(LOCAL_LIGHT_CLUSTER_PARAM_FLOATS);
   const cells = new Uint32Array(cellCount * 2);
-  const indices: number[] = [];
+  const indices = new Uint32Array(Math.max(cellCount * maxLightsPerCell, 1));
+  let indexCursor = 0;
   let populatedCells = 0;
   let maxLightsPerPopulatedCell = 0;
   let totalAssignedLightReferences = 0;
@@ -263,7 +285,7 @@ export function createLocalLightClusterDescriptor(
           cellSize,
           maxLightsPerCell,
         });
-        const cellOffset = indices.length;
+        const cellOffset = indexCursor;
         const storedCount = Math.min(cellLights.length, maxLightsPerCell);
 
         if (cellLights.length > maxLightsPerCell) {
@@ -274,7 +296,8 @@ export function createLocalLightClusterDescriptor(
           const lightIndex = cellLights[index];
 
           if (lightIndex !== undefined) {
-            indices.push(lightIndex);
+            indices[indexCursor] = lightIndex;
+            indexCursor += 1;
           }
         }
 
@@ -300,6 +323,8 @@ export function createLocalLightClusterDescriptor(
     totalLights: snapshot.lights.length,
     totalLocalLights,
     clusteredLocalLights: clusterLights.length,
+    layerMask,
+    lightSetKey,
     coordinateSpace: clusterSpace.coordinateSpace,
     viewId: clusterSpace.viewId,
     boundsMin: { x: bounds.minX, y: bounds.minY, z: bounds.minZ },
@@ -316,7 +341,7 @@ export function createLocalLightClusterDescriptor(
     maxLightsPerCell,
     params,
     cells,
-    indices: new Uint32Array(indices.length === 0 ? [0] : indices),
+    indices,
   };
 }
 
@@ -398,6 +423,8 @@ export function localLightClusterReportFromDescriptor(
     totalLights: descriptor.totalLights,
     totalLocalLights: descriptor.totalLocalLights,
     clusteredLocalLights: descriptor.clusteredLocalLights,
+    layerMask: descriptor.layerMask,
+    lightSetKey: descriptor.lightSetKey,
     coordinateSpace: descriptor.coordinateSpace,
     viewId: descriptor.viewId,
     boundsMin: { ...descriptor.boundsMin },
@@ -427,6 +454,8 @@ export function localLightClusterReportFromDescriptor(
 
 function emptyLocalLightClusterDescriptor(input: {
   readonly resourceKey: string;
+  readonly layerMask: number | null;
+  readonly lightSetKey: string;
   readonly dimensions: LocalLightClusterDimensions;
   readonly cellCount: number;
   readonly maxLightsPerCell: number;
@@ -463,6 +492,8 @@ function emptyLocalLightClusterDescriptor(input: {
     totalLights: input.totalLights,
     totalLocalLights: input.totalLocalLights,
     clusteredLocalLights: 0,
+    layerMask: input.layerMask,
+    lightSetKey: input.lightSetKey,
     coordinateSpace: input.clusterSpace.coordinateSpace,
     viewId: input.clusterSpace.viewId,
     boundsMin: { x: 0, y: 0, z: 0 },
@@ -482,11 +513,79 @@ function emptyLocalLightClusterDescriptor(input: {
   };
 }
 
-function countLocalLights(lights: readonly LightPacket[]): number {
+function normalizeLayerMask(layerMask: number | undefined): number | null {
+  if (layerMask === undefined || !Number.isFinite(layerMask)) {
+    return null;
+  }
+
+  const normalized = Math.trunc(layerMask);
+
+  return normalized === 0 ? null : normalized;
+}
+
+function lightMatchesLayer(
+  light: Pick<LightPacket, "layerMask">,
+  layerMask: number | null,
+): boolean {
+  return layerMask === null || (light.layerMask & layerMask) !== 0;
+}
+
+function localLightSetKey(
+  lights: readonly LightPacket[],
+  layerMask: number | null,
+): string {
+  const lightIds: number[] = [];
+
+  for (let index = 0; index < lights.length; index += 1) {
+    const light = lights[index];
+
+    if (
+      light !== undefined &&
+      (light.kind === "point" || light.kind === "spot") &&
+      lightMatchesLayer(light, layerMask)
+    ) {
+      lightIds.push(light.lightId);
+    }
+  }
+
+  return [
+    `layers:${layerMask === null ? "all" : layerMask.toString(16)}`,
+    `lights:${lightIds.join(",")}`,
+  ].join("|");
+}
+
+function createLocalLightClusterResourceKey(
+  clusterSpace: SelectedLocalLightClusterSpace,
+  lightSetKey: string,
+): string {
+  const viewKey =
+    clusterSpace.viewId === null ? "world" : `view-${clusterSpace.viewId}`;
+
+  return `local-light-cluster:${viewKey}:set-${hashString(lightSetKey).toString(16)}`;
+}
+
+function hashString(value: string): number {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return hash >>> 0;
+}
+
+function countLocalLights(
+  lights: readonly LightPacket[],
+  layerMask: number | null = null,
+): number {
   let count = 0;
 
   for (const light of lights) {
-    if (light.kind === "point" || light.kind === "spot") {
+    if (
+      (light.kind === "point" || light.kind === "spot") &&
+      lightMatchesLayer(light, layerMask)
+    ) {
       count += 1;
     }
   }
@@ -494,7 +593,10 @@ function countLocalLights(lights: readonly LightPacket[]): number {
   return count;
 }
 
-function localLightSpheres(snapshot: RenderSnapshot): {
+function localLightSpheres(
+  snapshot: RenderSnapshot,
+  layerMask: number | null,
+): {
   readonly spheres: readonly LocalLightSphere[];
   readonly missingTransform: boolean;
 } {
@@ -506,7 +608,8 @@ function localLightSpheres(snapshot: RenderSnapshot): {
 
     if (
       light === undefined ||
-      (light.kind !== "point" && light.kind !== "spot")
+      (light.kind !== "point" && light.kind !== "spot") ||
+      !lightMatchesLayer(light, layerMask)
     ) {
       continue;
     }
@@ -535,7 +638,7 @@ function selectLocalLightClusterSpace(
   options: Pick<
     LocalLightClusterDescriptorOptions,
     "coordinateSpace" | "viewId"
-  >,
+  > & { readonly layerMask: number | null },
 ): SelectedLocalLightClusterSpace {
   const requested = options.coordinateSpace ?? "auto";
 
@@ -543,7 +646,11 @@ function selectLocalLightClusterSpace(
     return worldLocalLightClusterSpace();
   }
 
-  const view = selectLocalLightClusterView(snapshot, options.viewId);
+  const view = selectLocalLightClusterView(
+    snapshot,
+    options.viewId,
+    options.layerMask,
+  );
 
   if (view === null) {
     return worldLocalLightClusterSpace();
@@ -575,11 +682,20 @@ function worldLocalLightClusterSpace(): SelectedLocalLightClusterSpace {
 function selectLocalLightClusterView(
   snapshot: RenderSnapshot,
   viewId: number | undefined,
+  layerMask: number | null,
 ): RenderSnapshot["views"][number] | null {
   let selected: RenderSnapshot["views"][number] | null = null;
 
   for (const view of snapshot.views) {
     if (viewId !== undefined && view.viewId !== viewId) {
+      continue;
+    }
+
+    if (
+      viewId === undefined &&
+      layerMask !== null &&
+      (view.layerMask & layerMask) === 0
+    ) {
       continue;
     }
 

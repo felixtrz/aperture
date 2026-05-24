@@ -116,6 +116,7 @@ export interface CachedStandardAppFrameResources {
   readonly localLightClusterParamsByteLength: number;
   readonly localLightClusterCellsByteLength: number;
   readonly localLightClusterIndicesByteLength: number;
+  readonly localLightClusterResourceKey: string | null;
   readonly viewDescriptorScratch: ViewUniformBufferDescriptorScratch;
   readonly worldTransformDescriptorScratch: WorldTransformBufferDescriptorScratch;
   readonly lightBufferDescriptorScratch: LightBufferDescriptorScratch;
@@ -125,6 +126,11 @@ export interface CachedStandardAppFrameResources {
 
 export interface StandardAppFrameResourceCacheSlot {
   current: CachedStandardAppFrameResources | null;
+  readonly byRoute?: Map<string, CachedStandardAppFrameResources>;
+}
+
+export function createStandardAppFrameResourceCacheSlot(): StandardAppFrameResourceCacheSlot {
+  return { current: null, byRoute: new Map() };
 }
 
 export interface StandardAppFrameResourceReuseReport {
@@ -199,7 +205,6 @@ export function createOrReuseStandardAppFrameResources(options: {
   readonly preparedScalarMaterials: PreparedScalarStandardMaterialCache;
   readonly reuse: StandardAppFrameResourceReuseReport;
 }): CreateStandardAppFrameResourcesResult {
-  const cached = options.cache.current;
   const standardMaterialIblBindGroupResourceKey =
     standardMaterialIblBindGroupResourceKeyFromResources(
       options.standardMaterialIblResources,
@@ -214,6 +219,36 @@ export function createOrReuseStandardAppFrameResources(options: {
     );
   const materialLayoutKey = options.materialLayout?.layoutKey ?? null;
   const lightLayoutKey = options.lightLayout?.layoutKey ?? null;
+  const localLightClusterDescriptor = requiresClusteredLocalLights(
+    options.pipelineKey,
+  )
+    ? createLocalLightClusterDescriptor(options.snapshot, {
+        ...(options.draw === undefined
+          ? {}
+          : { layerMask: options.draw.layerMask }),
+      })
+    : null;
+  const localLightClusterResourceKey =
+    localLightClusterDescriptor?.resourceKey ?? null;
+  const routeCacheKey = createStandardAppFrameResourceCacheKey({
+    meshKey: options.meshKey,
+    materialKey: options.materialKey,
+    pipelineKey: options.pipelineKey,
+    materialLayoutKey,
+    lightLayoutKey,
+    standardMaterialIblBindGroupResourceKey,
+    standardMaterialShadowReceiverResourceKey,
+    transmissionSceneColorResourceKey,
+    previousWorldTransformResourceKey:
+      options.previousWorldTransforms?.resourceKey ?? null,
+    localLightClusterResourceKey,
+    textureKeys: options.textureSamplerDependencies.textureKeys,
+    samplerKeys: options.textureSamplerDependencies.samplerKeys,
+  });
+  const cached =
+    options.cache.byRoute === undefined
+      ? options.cache.current
+      : (options.cache.byRoute.get(routeCacheKey) ?? null);
   const viewDescriptorScratch =
     cached?.viewDescriptorScratch ?? createViewUniformBufferDescriptorScratch();
   const worldTransformDescriptorScratch =
@@ -241,11 +276,6 @@ export function createOrReuseStandardAppFrameResources(options: {
     lightBuffer,
     lightBufferDescriptorPlanScratch,
   );
-  const localLightClusterDescriptor = requiresClusteredLocalLights(
-    options.pipelineKey,
-  )
-    ? createLocalLightClusterDescriptor(options.snapshot)
-    : null;
   const cachedLocalLightClusters =
     cached?.result.resources?.localLightClusters ?? null;
 
@@ -262,6 +292,7 @@ export function createOrReuseStandardAppFrameResources(options: {
       standardMaterialShadowReceiverResourceKey &&
     cached.transmissionSceneColorResourceKey ===
       transmissionSceneColorResourceKey &&
+    cached.localLightClusterResourceKey === localLightClusterResourceKey &&
     cached.previousWorldTransformResourceKey ===
       (options.previousWorldTransforms?.resourceKey ?? null) &&
     sameStringList(
@@ -466,7 +497,7 @@ export function createOrReuseStandardAppFrameResources(options: {
     if (result.resources.localLightClusters !== undefined) {
       options.reuse.localLightClusterBuffersCreated += 3;
     }
-    options.cache.current = {
+    const cacheEntry = {
       meshKey: options.meshKey,
       materialKey: options.materialKey,
       pipelineKey: options.pipelineKey,
@@ -497,12 +528,15 @@ export function createOrReuseStandardAppFrameResources(options: {
         result.resources.localLightClusters?.descriptor.cells.byteLength ?? 0,
       localLightClusterIndicesByteLength:
         result.resources.localLightClusters?.descriptor.indices.byteLength ?? 0,
+      localLightClusterResourceKey,
       viewDescriptorScratch,
       worldTransformDescriptorScratch,
       lightBufferDescriptorScratch,
       lightBufferDescriptorPlanScratch,
       result,
     };
+    options.cache.current = cacheEntry;
+    options.cache.byRoute?.set(routeCacheKey, cacheEntry);
   }
 
   return appendPreparedMaterialFallbackDiagnostics(
@@ -527,6 +561,36 @@ function requiresClusteredLocalLights(pipelineKey: string): boolean {
   return pipelineKey
     .split("|")
     .includes(CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE);
+}
+
+function createStandardAppFrameResourceCacheKey(input: {
+  readonly meshKey: string;
+  readonly materialKey: string;
+  readonly pipelineKey: string;
+  readonly materialLayoutKey: string | null;
+  readonly lightLayoutKey: string | null;
+  readonly standardMaterialIblBindGroupResourceKey: string | null;
+  readonly standardMaterialShadowReceiverResourceKey: string | null;
+  readonly transmissionSceneColorResourceKey: string | null;
+  readonly previousWorldTransformResourceKey: string | null;
+  readonly localLightClusterResourceKey: string | null;
+  readonly textureKeys: readonly string[];
+  readonly samplerKeys: readonly string[];
+}): string {
+  return [
+    input.meshKey,
+    input.materialKey,
+    input.pipelineKey,
+    input.materialLayoutKey ?? "material-layout:none",
+    input.lightLayoutKey ?? "light-layout:none",
+    input.standardMaterialIblBindGroupResourceKey ?? "ibl:none",
+    input.standardMaterialShadowReceiverResourceKey ?? "shadow:none",
+    input.transmissionSceneColorResourceKey ?? "transmission:none",
+    input.previousWorldTransformResourceKey ?? "previous-world:none",
+    input.localLightClusterResourceKey ?? "local-light-cluster:none",
+    `textures:${input.textureKeys.join(",")}`,
+    `samplers:${input.samplerKeys.join(",")}`,
+  ].join("|");
 }
 
 type PreparedStandardMaterialUse = PreparedAppMaterialResourceUse<

@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## task-3125 — Split clustered local-light resources per active view/light set
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added layer/view-aware clustered local-light descriptor routing so
+  StandardMaterial draws can bind a renderer-owned cluster resource for their
+  active view/light-set route instead of sharing one active-view descriptor.
+- Added stable per-route cluster keys and JSON-safe route reports with layer
+  masks, light-set keys, view ids, occupancy hashes, and resource keys.
+- Changed cluster index buffers to fixed per-cell capacity, keeping cell
+  offset/count metadata authoritative while allowing moving-camera occupancy
+  updates to reuse existing GPU buffers.
+- Fixed per-view render-pass command filtering so state commands elided for a
+  hidden draw are carried forward to the next visible draw in the same command
+  stream.
+- Updated `examples/clustered-lights.html` to render two layer-isolated views
+  with separate 64-light sets and assert two distinct cluster routes, distinct
+  occupancy hashes, reused cluster buffers, and zero WebGPU validation warnings.
+- Updated public tracker pages, backlog, current task, and handoff.
+  Recommended next task is `task-3126`, production-fidelity area-light LTC
+  tables.
+
+Validation:
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/local-light-clusters.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/webgpu-app.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts --reporter=line --timeout=60000`
+
 ## task-3124 — Skip previously hidden opt-in draws from occlusion feedback
 
 Completed: 2026-05-23

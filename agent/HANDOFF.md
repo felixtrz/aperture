@@ -1,6 +1,55 @@
 # Agent Handoff
 
-Updated: 2026-05-24T00:08:08Z
+Updated: 2026-05-24T00:28:38Z
+
+## Current Run Update — 2026-05-24T00:28:38Z — Per-view clustered-light resources
+
+Completed `task-3125`, splitting clustered StandardMaterial local-light
+resources per active view/light-set route.
+
+### What changed
+
+- Clustered local-light descriptors now accept a draw layer mask, select a
+  compatible active view, filter point/spot lights to the matching light set,
+  and publish stable `lightSetKey`/resource-key metadata for JSON-safe reports.
+- StandardMaterial app-frame resource caching now keys clustered routes by the
+  selected cluster resource, so different active views/light sets can keep
+  separate renderer-owned params/cell/index buffers and bind groups.
+- Cluster index buffers now use fixed per-cell capacity. Cell offset/count data
+  still controls the active light references, while moving-camera occupancy
+  updates can rewrite existing buffers instead of reallocating when the active
+  reference count changes.
+- WebGPU app cluster reports now collect distinct route resources from queued
+  StandardMaterial resources and publish them under `localLightClusters.routes`.
+- Per-view render-pass command filtering now carries pending state commands
+  forward to the next visible draw, preserving correctness when a hidden draw
+  caused pipeline, bind-group, vertex-buffer, or index-buffer setup that was
+  elided for the following visible draw.
+- `examples/clustered-lights.html` now uses two layer-isolated active cameras,
+  two panels, and two 64-point-light sets. The browser proof requires two
+  cluster routes, distinct view ids, distinct occupancy hashes, per-route
+  max/average pressure below 64 local lights, and six reused cluster buffers.
+- Updated public tracker pages, backlog, current-task pointer, and completed
+  task log. Recommended next task is `task-3126`, replacing placeholder
+  area-light LTC payloads with production-fidelity tables.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/local-light-clusters.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/webgpu-app.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts --reporter=line --timeout=60000`
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3126`, replacing placeholder RectAreaLight LTC matrix/fresnel
+payloads with production-fidelity table data.
 
 ## Current Run Update — 2026-05-24T00:08:08Z — Occlusion-query draw skipping
 
