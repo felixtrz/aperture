@@ -123,8 +123,13 @@ import {
   type GpuTimestampQueryResources,
 } from "./gpu-timing.js";
 import {
+  createGpuOcclusionFeedbackState,
   createGpuOcclusionQueryResources,
+  planGpuOcclusionFeedbackCulling,
   readGpuOcclusionQueryResults,
+  updateGpuOcclusionFeedbackState,
+  type GpuOcclusionFeedbackFallbackReason,
+  type GpuOcclusionFeedbackState,
   type GpuOcclusionQueryDiagnostic,
   type GpuOcclusionQueryDeviceLike,
   type GpuOcclusionQueryReadbackResult,
@@ -660,6 +665,14 @@ export interface WebGpuAppMotionVectorReport {
 export interface WebGpuAppOcclusionQueryReport {
   readonly status: "inactive" | "ready" | "unsupported";
   readonly queryCount: number;
+  readonly queryCandidateDraws: number;
+  readonly queriedDraws: number;
+  readonly resolvedQueryResults: number;
+  readonly skippedFromQuery: number;
+  readonly skippedRenderIds: readonly number[];
+  readonly forcedProbeDraws: number;
+  readonly forcedProbeRenderIds: readonly number[];
+  readonly fallbackReason: GpuOcclusionFeedbackFallbackReason | null;
   readonly testedRenderIds: readonly number[];
   readonly visibleRenderIds: readonly number[];
   readonly occludedRenderIds: readonly number[];
@@ -763,6 +776,7 @@ interface WebGpuAppResourceCache {
   readonly idPickPipelines: Map<string, WebGpuIdBufferPickPipelineResource>;
   readonly gpuTimings: Map<string, WebGpuAppGpuTimingCacheEntry>;
   readonly occlusionQueries: Map<string, GpuOcclusionQueryResources>;
+  readonly occlusionFeedback: GpuOcclusionFeedbackState;
   readonly renderBundles: RenderBundleCache;
   readonly indirectDraws: IndirectDrawCommandCache;
   readonly postPasses: WebGpuAppPostPassCache;
@@ -813,6 +827,7 @@ interface WebGpuAppFrameScratch {
   readonly viewCommands: RenderPassCommand[];
   readonly skyboxCommands: RenderPassCommand[];
   readonly occlusionFallbackCommands: RenderPassCommand[];
+  readonly occlusionCulledCommands: RenderPassCommand[];
 }
 
 interface WebGpuAppGpuTimingCacheEntry {
@@ -1202,6 +1217,7 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     idPickPipelines: new Map(),
     gpuTimings: new Map(),
     occlusionQueries: new Map(),
+    occlusionFeedback: createGpuOcclusionFeedbackState(),
     renderBundles: createRenderBundleCache(),
     indirectDraws: createIndirectDrawCommandCache(),
     postPasses: {
@@ -1254,6 +1270,7 @@ function createWebGpuAppFrameScratch(): WebGpuAppFrameScratch {
     viewCommands: [],
     skyboxCommands: [],
     occlusionFallbackCommands: [],
+    occlusionCulledCommands: [],
   };
 }
 
@@ -1883,10 +1900,21 @@ interface WebGpuAppFrameBoundaryAssemblyResult {
   readonly gpuTimingDiagnostics: readonly GpuTimestampQueryDiagnostic[];
   readonly occlusionQueryReadbacks: readonly WebGpuAppOcclusionQueryReadback[];
   readonly occlusionQueryDiagnostics: readonly GpuOcclusionQueryDiagnostic[];
+  readonly occlusionCulling: WebGpuAppOcclusionCullingReport;
   readonly occlusionQueryCount: number;
   readonly plannedCommands: number;
   readonly drawCalls: number;
   readonly diagnostics: readonly unknown[];
+}
+
+interface WebGpuAppOcclusionCullingReport {
+  queryCandidateDraws: number;
+  queriedDraws: number;
+  skippedFromQuery: number;
+  readonly skippedRenderIds: number[];
+  forcedProbeDraws: number;
+  readonly forcedProbeRenderIds: number[];
+  fallbackReason: GpuOcclusionFeedbackFallbackReason | null;
 }
 
 interface WebGpuAppGpuTimingReadback {
@@ -1896,6 +1924,7 @@ interface WebGpuAppGpuTimingReadback {
 
 interface WebGpuAppOcclusionQueryReadback {
   readonly passName: string;
+  readonly viewId: number;
   readonly resources: GpuOcclusionQueryResources;
   readonly renderIds: readonly number[];
 }
@@ -2178,6 +2207,9 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     readbacks: boundaries.occlusionQueryReadbacks,
     diagnostics: boundaries.occlusionQueryDiagnostics,
     queryCount: boundaries.occlusionQueryCount,
+    frame: options.snapshot.frame,
+    feedbackState: options.cache.occlusionFeedback,
+    culling: boundaries.occlusionCulling,
   });
   const finalDiagnosticsSummary =
     gpuTimings === undefined
@@ -2196,7 +2228,8 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     framePlan.commandPlan.valid &&
     spriteFrame.resources.diagnostics.length === 0 &&
     boundaries.valid &&
-    (occlusionQueries === undefined || occlusionQueries.status === "ready");
+    (occlusionQueries === undefined ||
+      occlusionQueries.status !== "unsupported");
   const readback = await mapFrameBoundaryReadbackSamples(
     boundaries.readbackBoundary?.readback,
     frameOk,
@@ -2288,6 +2321,7 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       gpuTimingDiagnostics: [],
       occlusionQueryReadbacks: [],
       occlusionQueryDiagnostics: [],
+      occlusionCulling: createWebGpuAppOcclusionCullingReport(),
       occlusionQueryCount: 0,
       plannedCommands: 0,
       drawCalls: 0,
@@ -2309,6 +2343,7 @@ async function assembleWebGpuAppFrameBoundaries(options: {
   const gpuTimingDiagnostics: GpuTimestampQueryDiagnostic[] = [];
   const occlusionQueryReadbacks: WebGpuAppOcclusionQueryReadback[] = [];
   const occlusionQueryDiagnostics: GpuOcclusionQueryDiagnostic[] = [];
+  const occlusionCulling = createWebGpuAppOcclusionCullingReport();
   let transmissionGrabPassReport:
     | WebGpuAppTransmissionGrabPassReport
     | undefined;
@@ -2330,14 +2365,32 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       target: options.cache.frameScratch.skyboxCommands,
       reuse: options.reuse,
     });
-    const commands = writeCommandsForView(
+    const commandsForView = writeCommandsForView(
       options.commands,
       options.snapshot,
       target.view,
       options.cache.frameScratch.viewCommands,
       skybox.commands,
     );
+    const occlusionCandidateRenderIds =
+      collectOcclusionQueryRenderIds(commandsForView);
+    const occlusionCullingPlan = planGpuOcclusionFeedbackCulling({
+      state: options.cache.occlusionFeedback,
+      viewId: target.view.viewId,
+      frame: options.snapshot.frame,
+      candidateRenderIds: occlusionCandidateRenderIds,
+    });
+    appendWebGpuAppOcclusionCullingPlan(
+      occlusionCulling,
+      occlusionCullingPlan,
+    );
+    const commands = commandsWithoutSkippedOcclusionDraws(
+      commandsForView,
+      occlusionCullingPlan.skippedRenderIds,
+      options.cache.frameScratch.occlusionCulledCommands,
+    );
     const occlusionRenderIds = normalizeOcclusionQueryCommands(commands);
+    occlusionCulling.queriedDraws += occlusionRenderIds.length;
     const occlusionQueries =
       occlusionRenderIds.length === 0
         ? null
@@ -2356,6 +2409,12 @@ async function assembleWebGpuAppFrameBoundaries(options: {
           )
         : commands;
 
+    if (occlusionRenderIds.length > 0 && occlusionQueries?.resources === null) {
+      recordWebGpuAppOcclusionCullingFallback(
+        occlusionCulling,
+        "unsupported",
+      );
+    }
     occlusionQueryCount += occlusionRenderIds.length;
     occlusionQueryDiagnostics.push(...(occlusionQueries?.diagnostics ?? []));
     diagnostics.push(...(occlusionQueries?.diagnostics ?? []));
@@ -2463,6 +2522,7 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       ) {
         occlusionQueryReadbacks.push({
           passName: gpuTiming.passName,
+          viewId: target.view.viewId,
           resources: occlusionQueries.resources,
           renderIds: [...occlusionRenderIds],
         });
@@ -2619,6 +2679,7 @@ async function assembleWebGpuAppFrameBoundaries(options: {
     ) {
       occlusionQueryReadbacks.push({
         passName: gpuTiming.passName,
+        viewId: target.view.viewId,
         resources: occlusionQueries.resources,
         renderIds: [...occlusionRenderIds],
       });
@@ -2689,6 +2750,7 @@ async function assembleWebGpuAppFrameBoundaries(options: {
     gpuTimingDiagnostics,
     occlusionQueryReadbacks,
     occlusionQueryDiagnostics,
+    occlusionCulling,
     occlusionQueryCount,
     plannedCommands,
     drawCalls,
@@ -2934,6 +2996,86 @@ function commandsWithoutTransmissionDraws(
   );
 }
 
+function createWebGpuAppOcclusionCullingReport(): WebGpuAppOcclusionCullingReport {
+  return {
+    queryCandidateDraws: 0,
+    queriedDraws: 0,
+    skippedFromQuery: 0,
+    skippedRenderIds: [],
+    forcedProbeDraws: 0,
+    forcedProbeRenderIds: [],
+    fallbackReason: null,
+  };
+}
+
+function appendWebGpuAppOcclusionCullingPlan(
+  report: WebGpuAppOcclusionCullingReport,
+  plan: ReturnType<typeof planGpuOcclusionFeedbackCulling>,
+): void {
+  report.queryCandidateDraws += plan.candidateDraws;
+  report.skippedFromQuery += plan.skippedRenderIds.length;
+  report.skippedRenderIds.push(...plan.skippedRenderIds);
+  report.forcedProbeDraws += plan.forcedProbeRenderIds.length;
+  report.forcedProbeRenderIds.push(...plan.forcedProbeRenderIds);
+
+  if (plan.fallbackReason !== null) {
+    recordWebGpuAppOcclusionCullingFallback(report, plan.fallbackReason);
+  }
+}
+
+function recordWebGpuAppOcclusionCullingFallback(
+  report: WebGpuAppOcclusionCullingReport,
+  fallbackReason: GpuOcclusionFeedbackFallbackReason,
+): void {
+  if (
+    report.fallbackReason === null ||
+    fallbackReason === "unsupported" ||
+    report.fallbackReason !== "unsupported"
+  ) {
+    report.fallbackReason = fallbackReason;
+  }
+}
+
+function collectOcclusionQueryRenderIds(
+  commands: readonly RenderPassCommand[],
+): readonly number[] {
+  const renderIds: number[] = [];
+
+  for (const command of commands) {
+    if (command.kind === "beginOcclusionQuery") {
+      renderIds.push(command.renderId);
+    }
+  }
+
+  return renderIds;
+}
+
+function commandsWithoutSkippedOcclusionDraws(
+  commands: readonly RenderPassCommand[],
+  skippedRenderIds: readonly number[],
+  target: RenderPassCommand[],
+): readonly RenderPassCommand[] {
+  if (skippedRenderIds.length === 0) {
+    return commands;
+  }
+
+  const skipped = new Set(skippedRenderIds);
+  target.length = 0;
+
+  for (const command of commands) {
+    if (
+      skipped.has(command.renderId) &&
+      (isOcclusionQueryCommand(command) || isDrawCommand(command))
+    ) {
+      continue;
+    }
+
+    target.push(command);
+  }
+
+  return target;
+}
+
 function commandsWithoutOcclusionQueryCommands(
   commands: readonly RenderPassCommand[],
   target?: RenderPassCommand[],
@@ -2987,6 +3129,15 @@ function isOcclusionQueryCommand(command: RenderPassCommand): boolean {
   return (
     command.kind === "beginOcclusionQuery" ||
     command.kind === "endOcclusionQuery"
+  );
+}
+
+function isDrawCommand(command: RenderPassCommand): boolean {
+  return (
+    command.kind === "draw" ||
+    command.kind === "drawIndexed" ||
+    command.kind === "drawIndirect" ||
+    command.kind === "drawIndexedIndirect"
   );
 }
 
@@ -4800,29 +4951,43 @@ async function readWebGpuAppOcclusionQueries(input: {
   readonly readbacks: readonly WebGpuAppOcclusionQueryReadback[];
   readonly diagnostics: readonly GpuOcclusionQueryDiagnostic[];
   readonly queryCount: number;
+  readonly frame: number;
+  readonly feedbackState: GpuOcclusionFeedbackState;
+  readonly culling: WebGpuAppOcclusionCullingReport;
 }): Promise<WebGpuAppOcclusionQueryReport | undefined> {
-  if (input.queryCount === 0 && input.diagnostics.length === 0) {
+  if (
+    input.queryCount === 0 &&
+    input.diagnostics.length === 0 &&
+    input.culling.queryCandidateDraws === 0 &&
+    input.culling.skippedFromQuery === 0 &&
+    input.culling.forcedProbeDraws === 0 &&
+    input.culling.fallbackReason === null
+  ) {
     return undefined;
   }
 
-  const readbackResults: GpuOcclusionQueryReadbackResult[] = [];
+  const readbackResults: {
+    readonly viewId: number;
+    readonly result: GpuOcclusionQueryReadbackResult;
+  }[] = [];
 
   for (const readback of input.readbacks) {
-    readbackResults.push(
-      await readGpuOcclusionQueryResults(
+    readbackResults.push({
+      viewId: readback.viewId,
+      result: await readGpuOcclusionQueryResults(
         readback.resources,
         readback.renderIds,
       ),
-    );
+    });
   }
 
   const diagnostics = [
     ...input.diagnostics,
-    ...readbackResults.flatMap((result) => result.diagnostics),
+    ...readbackResults.flatMap((entry) => entry.result.diagnostics),
   ];
   const allReadbacksValid =
     readbackResults.length > 0 &&
-    readbackResults.every((result) => result.valid);
+    readbackResults.every((entry) => entry.result.valid);
   const status =
     input.queryCount === 0
       ? "inactive"
@@ -4831,19 +4996,56 @@ async function readWebGpuAppOcclusionQueries(input: {
         ? "ready"
         : "unsupported";
 
+  if (status === "ready") {
+    for (const readback of readbackResults) {
+      updateGpuOcclusionFeedbackState({
+        state: input.feedbackState,
+        viewId: readback.viewId,
+        frame: input.frame,
+        status,
+        testedRenderIds: readback.result.testedRenderIds,
+        visibleRenderIds: readback.result.visibleRenderIds,
+        occludedRenderIds: readback.result.occludedRenderIds,
+      });
+    }
+  } else if (status === "unsupported") {
+    updateGpuOcclusionFeedbackState({
+      state: input.feedbackState,
+      viewId: 0,
+      frame: input.frame,
+      status,
+      testedRenderIds: [],
+      visibleRenderIds: [],
+      occludedRenderIds: [],
+    });
+  }
+
   return {
     status,
     queryCount: input.queryCount,
+    queryCandidateDraws: input.culling.queryCandidateDraws,
+    queriedDraws: input.culling.queriedDraws,
+    resolvedQueryResults: readbackResults.reduce(
+      (total, entry) =>
+        total + (entry.result.valid ? entry.result.testedRenderIds.length : 0),
+      0,
+    ),
+    skippedFromQuery: input.culling.skippedFromQuery,
+    skippedRenderIds: [...input.culling.skippedRenderIds],
+    forcedProbeDraws: input.culling.forcedProbeDraws,
+    forcedProbeRenderIds: [...input.culling.forcedProbeRenderIds],
+    fallbackReason:
+      status === "unsupported" ? "unsupported" : input.culling.fallbackReason,
     testedRenderIds: readbackResults.flatMap(
-      (result) => result.testedRenderIds,
+      (entry) => entry.result.testedRenderIds,
     ),
     visibleRenderIds: readbackResults.flatMap(
-      (result) => result.visibleRenderIds,
+      (entry) => entry.result.visibleRenderIds,
     ),
     occludedRenderIds: readbackResults.flatMap(
-      (result) => result.occludedRenderIds,
+      (entry) => entry.result.occludedRenderIds,
     ),
-    sampleCounts: readbackResults.flatMap((result) => result.sampleCounts),
+    sampleCounts: readbackResults.flatMap((entry) => entry.result.sampleCounts),
     diagnostics,
   };
 }
@@ -6329,6 +6531,9 @@ async function renderWebGpuAppFrame(
     readbacks: boundaries.occlusionQueryReadbacks,
     diagnostics: boundaries.occlusionQueryDiagnostics,
     queryCount: boundaries.occlusionQueryCount,
+    frame: snapshot.frame,
+    feedbackState: resourceCache.occlusionFeedback,
+    culling: boundaries.occlusionCulling,
   });
   const frameOk =
     framePlan.apply.diagnostics.length === 0 &&
@@ -6340,7 +6545,8 @@ async function renderWebGpuAppFrame(
     framePlan.commandPlan.valid &&
     spriteFrame.resources.diagnostics.length === 0 &&
     boundaries.valid &&
-    (occlusionQueries === undefined || occlusionQueries.status === "ready");
+    (occlusionQueries === undefined ||
+      occlusionQueries.status !== "unsupported");
   const readback = await mapFrameBoundaryReadbackSamples(
     boundaries.readbackBoundary?.readback,
     frameOk,

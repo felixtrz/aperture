@@ -3,9 +3,9 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3124.
+Current task: task-3125.
 
-Status: `task-3123` completed view/depth clustered-light binning.
+Status: `task-3124` completed occlusion-query-driven draw skipping.
 
 Key finding:
 
@@ -37,14 +37,18 @@ Key finding:
   `examples/clustered-lights.html` proves camera movement changes reported
   cluster occupancy while keeping max/average lights per populated cell below
   total lights.
-- The next SOTA efficiency gap is using renderer-owned occlusion-query feedback
-  to skip eligible previously hidden opt-in draws instead of only reporting
-  visibility results.
+- Renderer-owned occlusion-query feedback now keeps view-local history, skips
+  eligible previously hidden opt-in draws on later frames without mutating ECS
+  visibility, reports query/culling pressure, and
+  `examples/occlusion-feedback.html` proves the worker still authors all ECS
+  mesh draws while the renderer submits fewer draw calls.
+- The next SOTA efficiency gap is splitting clustered local-light resources per
+  active view/light set instead of sharing one active-view cluster descriptor.
 
-Next step: run `task-3124` from `agent/BACKLOG.md`, using occlusion-query
-feedback to skip previously hidden opt-in draws with a browser-visible proof.
+Next step: run `task-3125` from `agent/BACKLOG.md`, splitting clustered
+local-light resources per active view/light set with a browser-visible proof.
 
 Reference anchors for the next task:
 
-- `references/three.js/src/renderers/webgl-fallback/WebGLBackend.js`.
-- `references/engine/src/scene/layer.js`.
+- `references/engine/src/scene/renderer/world-clusters-allocator.js`.
+- `references/engine/src/scene/lighting/world-clusters.js`.

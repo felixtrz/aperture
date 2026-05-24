@@ -2,9 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   GPU_OCCLUSION_MAP_READ,
+  createGpuOcclusionFeedbackState,
   createGpuOcclusionQueryResources,
+  planGpuOcclusionFeedbackCulling,
   readGpuOcclusionQueryResults,
   resolveGpuOcclusionQueries,
+  updateGpuOcclusionFeedbackState,
   type GpuOcclusionBufferLike,
 } from "@aperture-engine/webgpu";
 
@@ -88,6 +91,107 @@ describe("GPU occlusion query helpers", () => {
       16,
     );
     expect(resources.readbackBuffer.unmap).toHaveBeenCalled();
+  });
+
+  it("plans no skips until view-local feedback has ready query results", () => {
+    const state = createGpuOcclusionFeedbackState();
+    const plan = planGpuOcclusionFeedbackCulling({
+      state,
+      viewId: 1,
+      frame: 2,
+      candidateRenderIds: [10, 11],
+    });
+
+    expect(plan).toEqual({
+      candidateDraws: 2,
+      skippedRenderIds: [],
+      forcedProbeRenderIds: [],
+      fallbackReason: "not-ready",
+    });
+  });
+
+  it("skips previously occluded draws and probes them after the interval", () => {
+    const state = createGpuOcclusionFeedbackState();
+
+    updateGpuOcclusionFeedbackState({
+      state,
+      viewId: 1,
+      frame: 1,
+      status: "ready",
+      testedRenderIds: [10, 11],
+      visibleRenderIds: [11],
+      occludedRenderIds: [10],
+    });
+
+    expect(
+      planGpuOcclusionFeedbackCulling({
+        state,
+        viewId: 1,
+        frame: 2,
+        candidateRenderIds: [10, 11],
+      }),
+    ).toMatchObject({
+      candidateDraws: 2,
+      skippedRenderIds: [10],
+      forcedProbeRenderIds: [],
+      fallbackReason: null,
+    });
+    expect(
+      planGpuOcclusionFeedbackCulling({
+        state,
+        viewId: 2,
+        frame: 2,
+        candidateRenderIds: [10],
+      }),
+    ).toMatchObject({
+      skippedRenderIds: [],
+      forcedProbeRenderIds: [],
+      fallbackReason: null,
+    });
+    expect(
+      planGpuOcclusionFeedbackCulling({
+        state,
+        viewId: 1,
+        frame: 5,
+        candidateRenderIds: [10],
+      }),
+    ).toMatchObject({
+      skippedRenderIds: [],
+      forcedProbeRenderIds: [10],
+      fallbackReason: null,
+    });
+  });
+
+  it("removes a render id from skip feedback when a later probe is visible", () => {
+    const state = createGpuOcclusionFeedbackState();
+
+    updateGpuOcclusionFeedbackState({
+      state,
+      viewId: 1,
+      frame: 1,
+      status: "ready",
+      testedRenderIds: [10],
+      visibleRenderIds: [],
+      occludedRenderIds: [10],
+    });
+    updateGpuOcclusionFeedbackState({
+      state,
+      viewId: 1,
+      frame: 5,
+      status: "ready",
+      testedRenderIds: [10],
+      visibleRenderIds: [10],
+      occludedRenderIds: [],
+    });
+
+    expect(
+      planGpuOcclusionFeedbackCulling({
+        state,
+        viewId: 1,
+        frame: 6,
+        candidateRenderIds: [10],
+      }).skippedRenderIds,
+    ).toEqual([]);
   });
 });
 

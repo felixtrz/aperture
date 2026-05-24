@@ -1,6 +1,52 @@
 # Agent Handoff
 
-Updated: 2026-05-23T23:52:16Z
+Updated: 2026-05-24T00:08:08Z
+
+## Current Run Update — 2026-05-24T00:08:08Z — Occlusion-query draw skipping
+
+Completed `task-3124`, turning renderer-owned occlusion-query readback into a
+view-local feedback policy that skips eligible previously hidden opt-in draws on
+later frames.
+
+### What changed
+
+- Added renderer-owned occlusion feedback state keyed by view id plus render id,
+  with helper coverage for not-ready fallbacks, view-local skipped draw
+  decisions, forced re-probe intervals, and visible-probe recovery.
+- Threaded the feedback policy through WebGPU app frame-boundary assembly:
+  occlusion-query candidates are planned, previously occluded opt-in draw
+  commands are skipped without mutating ECS visibility, query indices are
+  renormalized, and unsupported query resources strip only query commands.
+- Extended app occlusion reports with JSON-safe culling pressure:
+  candidate/queried/resolved counts, skipped render ids, forced-probe render
+  ids, and fallback reason.
+- Updated `examples/occlusion-feedback.html` and its e2e proof so the worker
+  still reports three mesh draws and two query opt-ins while the renderer
+  reports one skipped-from-query draw and two submitted draw calls.
+- Updated public tracker pages, backlog, current-task pointer, and completed
+  task log. Recommended next task is `task-3125`, splitting clustered local
+  light resources per active view/light set.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/occlusion-query.test.ts --reporter=dot`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/occlusion-feedback.spec.ts --reporter=line`
+- `git diff --check`
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3125`, splitting clustered local-light resources per active view and
+light set.
 
 ## Current Run Update — 2026-05-23T23:52:16Z — View/depth clustered-light bins
 

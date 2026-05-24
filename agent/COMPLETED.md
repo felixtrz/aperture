@@ -1,5 +1,38 @@
 # Completed Tasks
 
+## task-3124 — Skip previously hidden opt-in draws from occlusion feedback
+
+Completed: 2026-05-23
+
+Summary:
+
+- Added renderer-owned occlusion feedback state keyed by view id plus render id,
+  so query results from one camera do not suppress draws for another camera.
+- Added a feedback policy that skips eligible previously occluded opt-in draw
+  commands on later frames, keeps state setup commands intact for command-plan
+  correctness, and forces periodic re-probes so hidden draws can recover when
+  they become visible.
+- Extended WebGPU app occlusion reports with JSON-safe candidate, queried,
+  resolved, skipped-from-query, forced-probe, skipped-render-id, and fallback
+  pressure fields.
+- Updated `examples/occlusion-feedback.html` so the browser proof requires a
+  previously hidden queried draw to be skipped while the visible queried draw
+  and occluder still render and the worker snapshot still contains all ECS mesh
+  draws.
+- Updated public tracker pages, backlog, current task, and handoff.
+  Recommended next task is `task-3125`, per-view clustered-light resources.
+
+Validation:
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/occlusion-query.test.ts --reporter=dot`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/occlusion-feedback.spec.ts --reporter=line`
+- `git diff --check`
+
 ## task-3123 — Broaden clustered local-light clusters to view-depth bins
 
 Completed: 2026-05-23

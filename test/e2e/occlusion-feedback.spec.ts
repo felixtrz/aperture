@@ -13,6 +13,14 @@ interface OcclusionFeedbackStatus extends ExampleStatusBase {
   readonly occlusionQueries?: {
     readonly status: "inactive" | "ready" | "unsupported";
     readonly queryCount: number;
+    readonly queryCandidateDraws: number;
+    readonly queriedDraws: number;
+    readonly resolvedQueryResults: number;
+    readonly skippedFromQuery: number;
+    readonly skippedRenderIds: readonly number[];
+    readonly forcedProbeDraws: number;
+    readonly forcedProbeRenderIds: readonly number[];
+    readonly fallbackReason: string | null;
     readonly testedRenderIds: readonly number[];
     readonly visibleRenderIds: readonly number[];
     readonly occludedRenderIds: readonly number[];
@@ -23,10 +31,17 @@ interface OcclusionFeedbackStatus extends ExampleStatusBase {
     readonly ok: boolean;
     readonly status: string;
     readonly queryCount: number;
+    readonly queryCandidateDraws: number;
+    readonly queriedDraws: number;
+    readonly resolvedQueryResults: number;
+    readonly skippedFromQuery: number;
+    readonly forcedProbeDraws: number;
+    readonly fallbackReason: string | null;
     readonly visibleRenderId: number | null;
     readonly hiddenRenderId: number | null;
     readonly visibleReported: boolean;
     readonly hiddenReported: boolean;
+    readonly hiddenSkipped: boolean;
     readonly hasZeroSample: boolean;
     readonly hasNonZeroSample: boolean;
   };
@@ -70,14 +85,19 @@ test("browser publishes GPU occlusion-query visibility feedback", async ({
     occlusionStatus: {
       ok: true,
       status: "ready",
-      queryCount: 2,
+      queryCandidateDraws: 2,
+      queriedDraws: 1,
+      resolvedQueryResults: 1,
+      skippedFromQuery: 1,
+      forcedProbeDraws: 0,
+      fallbackReason: null,
       visibleReported: true,
-      hiddenReported: true,
-      hasZeroSample: true,
+      hiddenSkipped: true,
       hasNonZeroSample: true,
     },
     counts: {
       meshDraws: 3,
+      drawCalls: 2,
       diagnostics: 0,
     },
     worker: {
@@ -90,10 +110,19 @@ test("browser publishes GPU occlusion-query visibility feedback", async ({
   });
   expect(status.occlusionQueries).toMatchObject({
     status: "ready",
-    queryCount: 2,
+    queryCount: 1,
+    queryCandidateDraws: 2,
+    queriedDraws: 1,
+    resolvedQueryResults: 1,
+    skippedFromQuery: 1,
+    forcedProbeDraws: 0,
+    fallbackReason: null,
     diagnostics: [],
   });
-  expect(status.occlusionQueries?.sampleCounts).toContain("0");
+  expect(status.occlusionStatus?.hiddenRenderId).not.toBeNull();
+  expect(status.occlusionQueries?.skippedRenderIds).toContain(
+    status.occlusionStatus?.hiddenRenderId ?? -1,
+  );
   expect(
     status.occlusionQueries?.sampleCounts.some((value) => Number(value) > 0),
   ).toBe(true);

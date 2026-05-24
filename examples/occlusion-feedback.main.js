@@ -256,6 +256,7 @@ function createOcclusionStatus(occlusionQueries, workerScene) {
   const hiddenRenderId = workerScene?.hiddenRenderId ?? null;
   const visibleIds = occlusionQueries?.visibleRenderIds ?? [];
   const occludedIds = occlusionQueries?.occludedRenderIds ?? [];
+  const skippedIds = occlusionQueries?.skippedRenderIds ?? [];
   const sampleCounts = occlusionQueries?.sampleCounts ?? [];
   const hasZeroSample = sampleCounts.includes("0");
   const hasNonZeroSample = sampleCounts.some((value) => Number(value) > 0);
@@ -263,22 +264,34 @@ function createOcclusionStatus(occlusionQueries, workerScene) {
     visibleRenderId !== null && visibleIds.includes(visibleRenderId);
   const hiddenReported =
     hiddenRenderId !== null && occludedIds.includes(hiddenRenderId);
+  const hiddenSkipped =
+    hiddenRenderId !== null && skippedIds.includes(hiddenRenderId);
 
   return {
     ok:
       occlusionQueries?.status === "ready" &&
-      occlusionQueries.queryCount >= 2 &&
+      occlusionQueries.queryCandidateDraws >= 2 &&
+      occlusionQueries.queriedDraws >= 1 &&
+      occlusionQueries.resolvedQueryResults >= 1 &&
+      occlusionQueries.skippedFromQuery >= 1 &&
       visibleReported &&
-      hiddenReported &&
-      hasZeroSample &&
+      hiddenSkipped &&
       hasNonZeroSample &&
+      occlusionQueries.fallbackReason === null &&
       (occlusionQueries.diagnostics?.length ?? 0) === 0,
     status: occlusionQueries?.status ?? "missing",
     queryCount: occlusionQueries?.queryCount ?? 0,
+    queryCandidateDraws: occlusionQueries?.queryCandidateDraws ?? 0,
+    queriedDraws: occlusionQueries?.queriedDraws ?? 0,
+    resolvedQueryResults: occlusionQueries?.resolvedQueryResults ?? 0,
+    skippedFromQuery: occlusionQueries?.skippedFromQuery ?? 0,
+    forcedProbeDraws: occlusionQueries?.forcedProbeDraws ?? 0,
+    fallbackReason: occlusionQueries?.fallbackReason ?? null,
     visibleRenderId,
     hiddenRenderId,
     visibleReported,
     hiddenReported,
+    hiddenSkipped,
     hasZeroSample,
     hasNonZeroSample,
   };

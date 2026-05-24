@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3124`: use occlusion-query feedback to skip previously hidden
-opt-in draws with a browser-visible proof.
+Start `task-3125`: split clustered local-light resources per active view and
+light set with a browser-visible proof.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -171,14 +171,17 @@ material-slot primitive ranges from ECS extraction through queue records and
 WebGPU draw commands, with a browser proof that reports the two distinct
 material/range records. `task-3123` now derives view/depth-space clustered
 local-light bins from the active camera, samples those bins in StandardMaterial,
-and proves camera movement changes reported cluster occupancy. The next SOTA
-efficiency gap is using renderer-owned occlusion feedback to skip eligible
-previously hidden draws instead of only reporting query results.
+and proves camera movement changes reported cluster occupancy. `task-3124` now
+uses renderer-owned occlusion feedback to skip eligible previously hidden
+opt-in draws on later frames, reports query/culling pressure, and proves the
+worker still authors all ECS mesh draws while the renderer submits fewer draw
+calls. The next SOTA efficiency gap is splitting clustered local-light
+resources per active view/light set.
 
 Reference anchors for the next task (read before writing):
 
-- `references/three.js/src/renderers/webgl-fallback/WebGLBackend.js`.
-- `references/engine/src/scene/layer.js`.
+- `references/engine/src/scene/renderer/world-clusters-allocator.js`.
+- `references/engine/src/scene/lighting/world-clusters.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -574,6 +577,8 @@ Acceptance criteria:
   lights.
 
 ### task-3124 — Skip previously hidden opt-in draws from occlusion feedback
+
+Status: completed 2026-05-23. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*occlusion*`, `packages/webgpu/src/webgpu/app.ts`, `packages/webgpu/src/webgpu/render-pass-*`, `examples/occlusion-feedback.*`, `test/webgpu/`, `test/e2e/`.

@@ -97,6 +97,45 @@ export interface GpuOcclusionQueryReadbackResult {
   readonly diagnostics: readonly GpuOcclusionQueryDiagnostic[];
 }
 
+export type GpuOcclusionFeedbackStatus = "empty" | "ready" | "unsupported";
+
+export type GpuOcclusionFeedbackFallbackReason =
+  | "not-ready"
+  | "unsupported";
+
+export interface GpuOcclusionFeedbackState {
+  readonly occludedQueryKeys: Set<string>;
+  readonly lastTestedFrameByQueryKey: Map<string, number>;
+  status: GpuOcclusionFeedbackStatus;
+}
+
+export interface GpuOcclusionFeedbackCullingPlan {
+  readonly candidateDraws: number;
+  readonly skippedRenderIds: readonly number[];
+  readonly forcedProbeRenderIds: readonly number[];
+  readonly fallbackReason: GpuOcclusionFeedbackFallbackReason | null;
+}
+
+export interface PlanGpuOcclusionFeedbackCullingOptions {
+  readonly state: GpuOcclusionFeedbackState;
+  readonly viewId: number;
+  readonly frame: number;
+  readonly candidateRenderIds: readonly number[];
+  readonly forceProbeInterval?: number;
+}
+
+export interface UpdateGpuOcclusionFeedbackStateOptions {
+  readonly state: GpuOcclusionFeedbackState;
+  readonly viewId: number;
+  readonly frame: number;
+  readonly status: "inactive" | "ready" | "unsupported";
+  readonly testedRenderIds: readonly number[];
+  readonly visibleRenderIds: readonly number[];
+  readonly occludedRenderIds: readonly number[];
+}
+
+const DEFAULT_OCCLUSION_FEEDBACK_FORCE_PROBE_INTERVAL = 4;
+
 export function createGpuOcclusionQueryResources(
   options: CreateGpuOcclusionQueryResourcesOptions,
 ): CreateGpuOcclusionQueryResourcesResult {
@@ -159,6 +198,106 @@ export function createGpuOcclusionQueryResources(
       severity: "warning",
       message: `GPU occlusion query resource creation failed: ${String(cause)}`,
     });
+  }
+}
+
+export function createGpuOcclusionFeedbackState(): GpuOcclusionFeedbackState {
+  return {
+    occludedQueryKeys: new Set(),
+    lastTestedFrameByQueryKey: new Map(),
+    status: "empty",
+  };
+}
+
+export function planGpuOcclusionFeedbackCulling(
+  options: PlanGpuOcclusionFeedbackCullingOptions,
+): GpuOcclusionFeedbackCullingPlan {
+  const candidateDraws = options.candidateRenderIds.length;
+
+  if (candidateDraws === 0) {
+    return {
+      candidateDraws: 0,
+      skippedRenderIds: [],
+      forcedProbeRenderIds: [],
+      fallbackReason: null,
+    };
+  }
+
+  if (options.state.status !== "ready") {
+    return {
+      candidateDraws,
+      skippedRenderIds: [],
+      forcedProbeRenderIds: [],
+      fallbackReason:
+        options.state.status === "unsupported" ? "unsupported" : "not-ready",
+    };
+  }
+
+  const forceProbeInterval =
+    options.forceProbeInterval ??
+    DEFAULT_OCCLUSION_FEEDBACK_FORCE_PROBE_INTERVAL;
+  const skippedRenderIds: number[] = [];
+  const forcedProbeRenderIds: number[] = [];
+
+  for (const renderId of options.candidateRenderIds) {
+    const queryKey = occlusionFeedbackQueryKey(options.viewId, renderId);
+
+    if (!options.state.occludedQueryKeys.has(queryKey)) {
+      continue;
+    }
+
+    const lastTestedFrame =
+      options.state.lastTestedFrameByQueryKey.get(queryKey) ?? options.frame;
+
+    if (options.frame - lastTestedFrame >= forceProbeInterval) {
+      forcedProbeRenderIds.push(renderId);
+      continue;
+    }
+
+    skippedRenderIds.push(renderId);
+  }
+
+  return {
+    candidateDraws,
+    skippedRenderIds,
+    forcedProbeRenderIds,
+    fallbackReason: null,
+  };
+}
+
+export function updateGpuOcclusionFeedbackState(
+  options: UpdateGpuOcclusionFeedbackStateOptions,
+): void {
+  if (options.status === "inactive") {
+    return;
+  }
+
+  if (options.status === "unsupported") {
+    options.state.status = "unsupported";
+    options.state.occludedQueryKeys.clear();
+    options.state.lastTestedFrameByQueryKey.clear();
+    return;
+  }
+
+  options.state.status = "ready";
+
+  for (const renderId of options.testedRenderIds) {
+    options.state.lastTestedFrameByQueryKey.set(
+      occlusionFeedbackQueryKey(options.viewId, renderId),
+      options.frame,
+    );
+  }
+
+  for (const renderId of options.visibleRenderIds) {
+    options.state.occludedQueryKeys.delete(
+      occlusionFeedbackQueryKey(options.viewId, renderId),
+    );
+  }
+
+  for (const renderId of options.occludedRenderIds) {
+    options.state.occludedQueryKeys.add(
+      occlusionFeedbackQueryKey(options.viewId, renderId),
+    );
   }
 }
 
@@ -285,6 +424,10 @@ function bigUint64View(
   }
 
   return new BigUint64Array(mapped, 0, Math.floor(byteLength / 8));
+}
+
+function occlusionFeedbackQueryKey(viewId: number, renderId: number): string {
+  return `${String(viewId)}:${String(renderId)}`;
 }
 
 function createUnsupportedResult(

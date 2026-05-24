@@ -1485,9 +1485,14 @@
               of scanning every packed light per fragment. Mesh draws can now
               opt into renderer-owned GPU occlusion-query feedback; the WebGPU
               app allocates, resolves, reads back, and reports visible vs
-              occluded render IDs, and
-              <code>examples/occlusion-feedback.html</code> proves one hidden
-              and one visible queried cube. One ECS mesh can now render
+              occluded render IDs, keeps view-local feedback history, skips
+              eligible previously hidden opt-in draws on later frames without
+              mutating ECS visibility, and reports queried, resolved, skipped,
+              forced-probe, and fallback pressure.
+              <code>examples/occlusion-feedback.html</code> proves the worker
+              still authors three mesh draws and two query opt-ins while the
+              renderer submits two draw calls after skipping the hidden queried
+              cube. One ECS mesh can now render
               multiple material-slot primitive ranges through separate
               extraction, queue, draw-command, and WebGPU indexed draw records;
               <code>examples/multi-material-groups.html</code> proves two
@@ -1498,7 +1503,7 @@
               movement changes reported cluster occupancy.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3124 occlusion-query draw skipping</dd>
+            <dd>task-3125 per-view clustered-light resources</dd>
           </dl>
         </aside>
       </header>
@@ -1884,8 +1889,8 @@
             </p>
             <ul>
               <li>
-                Missing automatic query-result persistence and draw suppression
-                policy for hidden but frustum-visible meshes.
+                Missing broader visibility explanations that connect frustum
+                culling and occlusion-feedback skip decisions.
               </li>
               <li>
                 Missing multi-view render-target coverage beyond current
@@ -2168,8 +2173,8 @@
             </p>
             <ul>
               <li>
-                Missing automatic query-result persistence/draw-suppression
-                policy in queue/readiness status.
+                Missing broader queue/readiness history for occlusion-feedback
+                skip pressure across long sessions.
               </li>
               <li>
                 Missing broader imported GLB fixtures for multi-material
@@ -4622,12 +4627,12 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Run
-                <code>task-3124</code>: use occlusion-query feedback to skip
-                previously hidden opt-in draws.
+                <code>task-3125</code>: split clustered local-light resources
+                per active view and light set.
               </li>
               <li>
-                Follow-up SOTA work should include per-view clustered-light
-                resources, production LTC tables, then the next parity audit.
+                Follow-up SOTA work should include production LTC tables and
+                then the next parity audit.
               </li>
             </ul>
           </article>
@@ -4640,6 +4645,21 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3124</div>
+            <div>
+              <strong>Occlusion-query draw skipping shipped.</strong>
+              <span>
+                Renderer-owned occlusion feedback now keeps view-local
+                visibility history and skips eligible previously hidden opt-in
+                draws on later frames without changing ECS visibility.
+                <code>examples/occlusion-feedback.html</code> proves the worker
+                snapshot still contains three mesh draws and two query opt-ins
+                while the renderer submits two draw calls, reports one
+                skipped-from-query draw, and keeps zero diagnostics.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3122</div>
             <div>
@@ -4671,7 +4691,7 @@
             </div>
           </div>
           <div class="timeline-item">
-            <div class="task-id">task-3120</div>
+            <div class="task-id">task-3123</div>
             <div>
               <strong>View/depth clustered local-light bins shipped.</strong>
               <span>
