@@ -189,12 +189,17 @@ function createSnapshotMessage(workerScene, data) {
   workerScene.previousTimestamp = timestamp;
 
   const step = workerScene.app.step(deltaSeconds, elapsedSeconds);
+  const extractStartedAt = performance.now();
   const snapshot = workerScene.app.extract(frame);
+  const extractMilliseconds = performance.now() - extractStartedAt;
 
   return {
     type: "snapshot",
     frame,
     snapshot,
+    phaseTimingSamples: {
+      extract: extractMilliseconds,
+    },
     animation: {
       frames: frame,
       elapsedSeconds,
@@ -206,6 +211,7 @@ function createSnapshotMessage(workerScene, data) {
       viewMatrices: snapshot.viewMatrices.length / 16,
       meshDraws: snapshot.meshDraws.length,
       diagnostics: snapshot.diagnostics.length,
+      extractMilliseconds,
     },
   };
 }

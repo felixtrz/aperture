@@ -1,5 +1,47 @@
 # Completed Tasks
 
+## task-3155 — Add render-pipeline phase timing history to the GPU profiler
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added `WebGpuApp` rolling CPU phase timing reports for extract, collect,
+  prepare, queue, sort, and submit.
+- Added a small phase-timing history module with a 60-sample rolling window,
+  latest/average/min/max milliseconds, and JSON-safe report output.
+- Threaded worker-measured extraction time into
+  `examples/gpu-profiler.html?phase-history=1`.
+- Extended the GPU profiler overlay with a six-row CPU phase table while
+  preserving the existing GPU pass timing table.
+- Added unit and e2e coverage for phase timing rows, sample counts, changing
+  samples, and visible non-clear pixels.
+
+Validation:
+
+- `node --check examples/gpu-profiler.main.js`
+- `node --check examples/gpu-profiler.worker.js`
+- `git diff --check`
+- `pnpm exec prettier --check packages/webgpu/src/webgpu/app-phase-timing.ts packages/webgpu/src/webgpu/app.ts packages/webgpu/src/webgpu/index.ts examples/gpu-profiler.main.js examples/gpu-profiler.worker.js examples/gpu-profiler.html test/e2e/gpu-profiler.spec.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `pnpm run build`
+- `pnpm run check:examples`
+- Browser proof:
+  `examples/gpu-profiler.html?phase-history=1&proof=task3155` returned
+  `ok: true`, `routePhaseHistoryReady: true`, six phase rows, two GPU pass
+  rows, rolling sample counts of 60, changing phase samples, draw calls `50`,
+  and diagnostics `0`.
+- `pnpm exec playwright test test/e2e/gpu-profiler.spec.ts --timeout=45000`
+  printed both profiler tests as passed; the headed runner then hung during
+  teardown and was killed to avoid leaving the process active.
+
+Known follow-up:
+
+- `task-3156` should add transparent sort pressure proof coverage so the
+  remaining sort/SOTA claim is backed by visible alpha-blend pixels and
+  reported inversion pressure.
+
 ## task-3154 — Skip unchanged clustered local-light buffer writes across frames
 
 Completed: 2026-05-24

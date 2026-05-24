@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "3cecb43",
   "activePid": null,
-  "notes": "Completed task-3154 clustered local-light buffer-write skipping with stable content keys, changed-content rewrite coverage, skipped unchanged writes, and browser proof; next task-3155 adds render-pipeline phase timing history to the GPU profiler.",
-  "lastRunFinishedAt": "2026-05-24T13:13:13Z"
+  "notes": "Completed task-3155 GPU profiler phase timing history with WebGpuApp rolling CPU phase reports, six visible phase rows, browser proof, and updated tracker; next task-3156 adds a transparent sort pressure proof route.",
+  "lastRunFinishedAt": "2026-05-24T13:39:00Z"
 }

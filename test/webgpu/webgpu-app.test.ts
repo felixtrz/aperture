@@ -944,6 +944,31 @@ describe("WebGPU app facade", () => {
       diagnostics: [],
     });
     expect(frame.gpuTimings?.passes[0]?.microseconds).toBeGreaterThan(0);
+    expect(frame.phaseTimings).toMatchObject({
+      ready: true,
+      frame: 21,
+      sampleWindow: 60,
+    });
+    expect(frame.phaseTimings?.phases.map((phase) => phase.phase)).toEqual([
+      "extract",
+      "collect",
+      "prepare",
+      "queue",
+      "sort",
+      "submit",
+    ]);
+    expect(
+      frame.phaseTimings?.phases.every((phase) => phase.sampleCount === 1),
+    ).toBe(true);
+    expect(frame.phaseTimings?.totalMilliseconds).toBeGreaterThanOrEqual(0);
+    expect(json.phaseTimings?.phases.map((phase) => phase.phase)).toEqual([
+      "extract",
+      "collect",
+      "prepare",
+      "queue",
+      "sort",
+      "submit",
+    ]);
     expect(json.diagnosticsSummary?.gpuTimings).toEqual(json.gpuTimings);
     expect(json.diagnosticsSummary?.gpuTimings?.passes[0]).toMatchObject({
       pass: "main",
@@ -959,6 +984,11 @@ describe("WebGPU app facade", () => {
 
     expect(secondFrame.ok).toBe(true);
     expect(secondFrame.gpuTimings?.ready).toBe(true);
+    expect(
+      secondFrame.phaseTimings?.phases.every(
+        (phase) => phase.sampleCount === 2,
+      ),
+    ).toBe(true);
     expect(
       events.filter((event) => event.startsWith("device:querySet:")),
     ).toHaveLength(1);

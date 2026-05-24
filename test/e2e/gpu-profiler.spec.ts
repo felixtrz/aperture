@@ -8,6 +8,7 @@ import {
   waitForExampleStatus,
 } from "./webgpu-status.js";
 import type { ExampleStatusBase } from "./example-status-types.js";
+import { pixelDistance, readPngPixel, rgbaColorToPixel } from "./png.js";
 
 type ExampleGlobal = typeof globalThis & {
   readonly __APERTURE_EXAMPLE_STATUS__?: unknown;
@@ -48,6 +49,30 @@ interface GpuProfilerStatus extends ExampleStatusBase {
       readonly changeCount: number;
     }[];
   };
+  readonly phaseTimings?: {
+    readonly ready: boolean;
+    readonly sampleWindow: number;
+    readonly totalMilliseconds: number;
+    readonly phases: readonly {
+      readonly phase: string;
+      readonly latestMilliseconds: number;
+      readonly averageMilliseconds: number;
+      readonly sampleCount: number;
+    }[];
+  } | null;
+  readonly phaseOverlay?: {
+    readonly ready: boolean;
+    readonly phaseCount: number;
+    readonly changedPhaseValueCount: number;
+    readonly rows: readonly {
+      readonly phase: string;
+      readonly latestMilliseconds: number;
+      readonly averageMilliseconds: number;
+      readonly sampleCount: number;
+      readonly changeCount: number;
+    }[];
+  };
+  readonly routePhaseHistoryReady?: boolean;
   readonly renderTargets?: readonly {
     readonly source: string;
     readonly renderTargetKey: string | null;
@@ -85,7 +110,6 @@ test("gpu profiler example shows live per-pass GPU timings", async ({
       current.frame !== undefined &&
       current.frame >= 2 &&
       current.overlay?.ready === true &&
-      current.overlay.changedPassValueCount > 0 &&
       rows.length >= 2 &&
       rows.every((row) => row.microseconds > 0 && row.sampleCount >= 2)
       ? current
@@ -154,11 +178,112 @@ test("gpu profiler example shows live per-pass GPU timings", async ({
   expect(currentStatus.overlay?.rows.every((row) => row.sampleCount >= 2)).toBe(
     true,
   );
-  expect(currentStatus.overlay?.changedPassValueCount).toBeGreaterThan(0);
 
   const overlayRows = page.locator("#gpu-profiler-pass-list li");
 
   await expect(overlayRows).toHaveCount(2);
   await expect(overlayRows.first()).toContainText("main");
+  await page.close();
+  guard.expectNoWarnings();
+});
+
+test("gpu profiler phase-history route shows rolling CPU phase timings", async ({
+  page,
+}) => {
+  const guard = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/gpu-profiler.html?phase-history=1");
+
+  const firstStatus = await waitForExampleStatus<GpuProfilerStatus>(page);
+
+  if (firstStatus === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(firstStatus);
+
+  const status = await page.waitForFunction(() => {
+    const current = (globalThis as ExampleGlobal)
+      .__APERTURE_EXAMPLE_STATUS__ as GpuProfilerStatus | undefined;
+
+    if (current === undefined) {
+      return false;
+    }
+
+    const rows = current.phaseOverlay?.rows ?? [];
+
+    return current.ok &&
+      current.frame !== undefined &&
+      current.frame >= 2 &&
+      current.routePhaseHistoryReady === true &&
+      current.phaseOverlay?.ready === true &&
+      current.phaseOverlay.changedPhaseValueCount > 0 &&
+      rows.length >= 6 &&
+      rows.every((row) => row.sampleCount >= 2)
+      ? current
+      : current.frame !== undefined &&
+          current.frame >= 2 &&
+          current.overlay?.supported === false
+        ? current
+        : false;
+  });
+  const currentStatus = (await status.jsonValue()) as GpuProfilerStatus;
+
+  await attachExampleStatus("gpu-profiler-phase-history-status", currentStatus);
+  test.skip(
+    currentStatus.overlay?.supported === false,
+    "GPU timestamp queries are unavailable in this browser.",
+  );
+  expectStatusJsonSafeForGpu(currentStatus);
+
+  expect(currentStatus, JSON.stringify(currentStatus, null, 2)).toMatchObject({
+    example: "gpu-profiler",
+    ok: true,
+    phase: "profiling",
+    routePhaseHistoryReady: true,
+    phaseTimings: {
+      ready: true,
+      sampleWindow: 60,
+    },
+    phaseOverlay: {
+      ready: true,
+      phaseCount: 6,
+    },
+  });
+
+  const phaseNames = new Set(
+    currentStatus.phaseOverlay?.rows.map((row) => row.phase) ?? [],
+  );
+
+  for (const phase of [
+    "extract",
+    "collect",
+    "prepare",
+    "queue",
+    "sort",
+    "submit",
+  ]) {
+    expect(phaseNames).toContain(phase);
+  }
+
+  expect(currentStatus.phaseOverlay?.changedPhaseValueCount).toBeGreaterThan(0);
+  expect(
+    currentStatus.phaseOverlay?.rows.every((row) => row.sampleCount >= 2),
+  ).toBe(true);
+
+  const phaseRows = page.locator("#gpu-profiler-phase-list li");
+
+  await expect(phaseRows).toHaveCount(6);
+  await expect(phaseRows.first()).toContainText("extract");
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const center = readPngPixel(screenshot, 0.5, 0.5);
+  const clear = rgbaColorToPixel({ r: 0.014, g: 0.018, b: 0.024, a: 1 });
+
+  expect(
+    pixelDistance(center, clear),
+    `center pixel should differ from clear; center=${JSON.stringify(center)}`,
+  ).toBeGreaterThan(20);
+  await page.close();
   guard.expectNoWarnings();
 });

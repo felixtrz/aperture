@@ -1242,7 +1242,7 @@ and only the existing favicon `403` console error.
 
 ### task-3155 — Add render-pipeline phase timing history to the GPU profiler
 
-Status: ready
+Status: completed
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*timing*`, `packages/webgpu/src/webgpu/app.ts`, `examples/gpu-profiler.*`, `test/webgpu/`, `test/e2e/`.
@@ -1258,6 +1258,11 @@ Acceptance criteria:
 - Browser proof sees all six named phase rows, a nonzero sample count, and
   changing frame samples while rendering non-clear pixels.
 - Existing GPU timestamp query tests and profiler route validation remain green.
+
+Completed: 2026-05-24. `WebGpuApp` now reports a rolling six-phase CPU timing
+history, `examples/gpu-profiler.html?phase-history=1` renders latest and
+average phase rows beside the GPU pass overlay, and browser proof saw all six
+phase rows with changing samples, non-clear pixels, and zero app diagnostics.
 
 ### task-3156 — Add a transparent sort pressure proof route
 

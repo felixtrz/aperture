@@ -123,6 +123,14 @@ import {
   type GpuTimestampQueryResources,
 } from "./gpu-timing.js";
 import {
+  createWebGpuAppRenderPhaseTimer,
+  createWebGpuAppRenderPhaseTimingHistory,
+  type WebGpuAppRenderPhaseTimingHistory,
+  type WebGpuAppRenderPhaseTimingReport,
+  type WebGpuAppRenderPhaseTimingSamples,
+  type WebGpuAppRenderPhaseTimer,
+} from "./app-phase-timing.js";
+import {
   createGpuOcclusionFeedbackState,
   createGpuOcclusionQueryResources,
   planGpuOcclusionFeedbackCulling,
@@ -391,6 +399,7 @@ export interface WebGpuAppRenderOptions {
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
   readonly standardMaterialShadowReceiverResources?: StandardFrameShadowReceiverResources;
   readonly standardMaterialIblResources?: StandardFrameIblResources;
+  readonly phaseTimingSamples?: WebGpuAppRenderPhaseTimingSamples;
 }
 
 interface WebGpuAppFrameRenderOptions extends WebGpuAppRenderOptions {
@@ -637,6 +646,7 @@ export interface WebGpuAppRenderReport {
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: FrameBoundaryReadbackResult;
   readonly gpuTimings?: GpuPassTimingReport;
+  readonly phaseTimings?: WebGpuAppRenderPhaseTimingReport;
   readonly commandPressure?: RenderPassCommandPressureReport;
   readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly indirectDraws?: IndirectDrawCommandReport;
@@ -719,6 +729,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly msaa?: WebGpuAppMsaaReport;
   readonly readback?: WebGpuAppJsonValue;
   readonly gpuTimings?: GpuPassTimingReport;
+  readonly phaseTimings?: WebGpuAppRenderPhaseTimingReport;
   readonly commandPressure?: WebGpuAppJsonValue;
   readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly indirectDraws?: IndirectDrawCommandReport;
@@ -805,6 +816,7 @@ interface WebGpuAppResourceCache {
   readonly preparedMaterialFacade: PreparedMaterialStore;
   readonly idPickPipelines: Map<string, WebGpuIdBufferPickPipelineResource>;
   readonly gpuTimings: Map<string, WebGpuAppGpuTimingCacheEntry>;
+  readonly phaseTimingHistory: WebGpuAppRenderPhaseTimingHistory;
   readonly occlusionQueries: Map<string, GpuOcclusionQueryResources>;
   readonly occlusionFeedback: GpuOcclusionFeedbackState;
   readonly renderBundles: RenderBundleCache;
@@ -1251,6 +1263,7 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     preparedMaterialFacade: createPreparedMaterialStore(),
     idPickPipelines: new Map(),
     gpuTimings: new Map(),
+    phaseTimingHistory: createWebGpuAppRenderPhaseTimingHistory(),
     occlusionQueries: new Map(),
     occlusionFeedback: createGpuOcclusionFeedbackState(),
     renderBundles: createRenderBundleCache(),
@@ -2108,6 +2121,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     | LocalLightClusterCookieResources
     | null
     | undefined;
+  readonly phaseTimer: WebGpuAppRenderPhaseTimer;
 }): Promise<WebGpuAppRenderReport> {
   const sceneMotionVectors = createWebGpuAppSceneMotionVectorPlan({
     app: options.app,
@@ -2161,6 +2175,10 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       ok: false,
       snapshot: options.snapshot,
       resourceReuse: options.reuse,
+      phaseTimings: options.phaseTimer.report(
+        options.cache.phaseTimingHistory,
+        options.snapshot.frame,
+      ),
       diagnostics: [
         ...options.snapshot.diagnostics,
         ...packedViews.diagnostics,
@@ -2202,6 +2220,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     resourceSet: options.resourceSet,
     resources: prepared.resources,
   });
+  options.phaseTimer.finish("prepare");
 
   if (!prepared.valid || prepared.resources === null) {
     return renderReport({
@@ -2210,6 +2229,10 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       pipeline: prepared.firstPipeline,
       resources: prepared.resourcesResult,
       resourceReuse: options.reuse,
+      phaseTimings: options.phaseTimer.report(
+        options.cache.phaseTimingHistory,
+        options.snapshot.frame,
+      ),
       diagnosticsSummary,
       diagnostics: [
         ...options.snapshot.diagnostics,
@@ -2222,6 +2245,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     });
   }
 
+  options.phaseTimer.start("queue");
   const queue = writeMaterialQueueFromSnapshot(
     { meshDraws: options.snapshot.meshDraws, diagnostics: [] },
     {
@@ -2232,6 +2256,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     },
     options.cache.frameScratch.materialQueue,
   );
+  options.phaseTimer.finish("queue");
 
   if (queue.diagnostics.length > 0) {
     return renderReport({
@@ -2240,6 +2265,10 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       pipeline: prepared.firstPipeline,
       resources: prepared.resourcesResult,
       resourceReuse: options.reuse,
+      phaseTimings: options.phaseTimer.report(
+        options.cache.phaseTimingHistory,
+        options.snapshot.frame,
+      ),
       diagnosticsSummary,
       diagnostics: [
         ...options.snapshot.diagnostics,
@@ -2252,6 +2281,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     });
   }
 
+  options.phaseTimer.start("sort");
   const framePlan = writeRenderFramePlanFromSnapshot({
     snapshot: options.snapshot,
     snapshotChangeSet: options.snapshotChangeSet,
@@ -2267,12 +2297,14 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     bindGroups: prepared.resources.bindGroups,
     scratch: options.cache.frameScratch.framePlan,
   });
+  options.phaseTimer.finish("sort");
   const frameDiagnosticsSummary = createQueuedBuiltInAppDiagnosticsSummary({
     snapshot: options.snapshot,
     resourceSet: options.resourceSet,
     resources: prepared.resources,
     framePlan,
   });
+  options.phaseTimer.start("prepare");
   const spriteFrame = await prepareSpriteFrameResourcesForSnapshot({
     app: options.app,
     assets: options.assets,
@@ -2282,6 +2314,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     worldTransforms: packedTransforms,
     reuse: options.reuse,
   });
+  options.phaseTimer.finish("prepare");
 
   if (!spriteFrame.resources.valid) {
     return renderReport({
@@ -2290,6 +2323,10 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       pipeline: prepared.firstPipeline,
       resources: prepared.resourcesResult,
       resourceReuse: options.reuse,
+      phaseTimings: options.phaseTimer.report(
+        options.cache.phaseTimingHistory,
+        options.snapshot.frame,
+      ),
       diagnosticsSummary: frameDiagnosticsSummary,
       diagnostics: [
         ...options.snapshot.diagnostics,
@@ -2311,6 +2348,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     commands: frameCommands,
     label: options.label ?? "aperture-webgpu-app",
   });
+  options.phaseTimer.start("submit");
   const boundaries = await assembleWebGpuAppFrameBoundaries({
     app: options.app,
     assets: options.assets,
@@ -2385,6 +2423,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     boundaries.readbackBoundary?.readback,
     frameOk,
   );
+  options.phaseTimer.finish("submit");
 
   return renderReport({
     ok: frameOk,
@@ -2410,6 +2449,10 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       : { depthAttachment: boundaries.depthAttachment }),
     ...(readback === undefined ? {} : { readback }),
     ...(gpuTimings === undefined ? {} : { gpuTimings }),
+    phaseTimings: options.phaseTimer.report(
+      options.cache.phaseTimingHistory,
+      options.snapshot.frame,
+    ),
     ...(occlusionQueries === undefined ? {} : { occlusionQueries }),
     ...(indirectDraws.report.status === "skipped"
       ? {}
@@ -6173,13 +6216,24 @@ async function renderWebGpuAppFrame(
 ): Promise<WebGpuAppRenderReport> {
   const { app, sourceAssets } = context;
   const reuse = createWebGpuAppResourceReuseReport();
+  const phaseTimer = createWebGpuAppRenderPhaseTimer(
+    options.phaseTimingSamples,
+  );
   const extractedSnapshot = options.snapshot;
 
+  phaseTimer.start("collect");
+
   if (extractedSnapshot === undefined) {
+    const emptySnapshot = createEmptyRenderSnapshot(options.frame ?? 0);
+
     return renderReport({
       ok: false,
-      snapshot: createEmptyRenderSnapshot(options.frame ?? 0),
+      snapshot: emptySnapshot,
       resourceReuse: reuse,
+      phaseTimings: phaseTimer.report(
+        resourceCache.phaseTimingHistory,
+        emptySnapshot.frame,
+      ),
       diagnostics: [
         {
           code: "webGpuApp.missingSnapshot",
@@ -6229,6 +6283,10 @@ async function renderWebGpuAppFrame(
       ok: false,
       snapshot: iblSnapshot,
       resourceReuse: reuse,
+      phaseTimings: phaseTimer.report(
+        resourceCache.phaseTimingHistory,
+        iblSnapshot.frame,
+      ),
       diagnostics: [
         ...iblSnapshot.diagnostics,
         ...localLightCookieResources.diagnostics,
@@ -6262,6 +6320,9 @@ async function renderWebGpuAppFrame(
     firstView !== undefined &&
     (spriteDraws.length > 0 || skyboxes.length > 0)
   ) {
+    phaseTimer.finish("collect");
+    phaseTimer.start("prepare");
+
     return renderSpriteOnlyWebGpuAppFrame(context, resourceCache, {
       ...options,
       snapshot,
@@ -6278,6 +6339,10 @@ async function renderWebGpuAppFrame(
       ok: false,
       snapshot,
       resourceReuse: reuse,
+      phaseTimings: phaseTimer.report(
+        resourceCache.phaseTimingHistory,
+        snapshot.frame,
+      ),
       diagnostics: [
         ...snapshot.diagnostics,
         ...materialDependencyDiagnostics,
@@ -6298,6 +6363,10 @@ async function renderWebGpuAppFrame(
       ok: false,
       snapshot,
       resourceReuse: reuse,
+      phaseTimings: phaseTimer.report(
+        resourceCache.phaseTimingHistory,
+        snapshot.frame,
+      ),
       diagnostics: [
         ...snapshot.diagnostics,
         ...snapshotMaterialDependencyDiagnostics,
@@ -6317,6 +6386,10 @@ async function renderWebGpuAppFrame(
       ok: false,
       snapshot,
       resourceReuse: reuse,
+      phaseTimings: phaseTimer.report(
+        resourceCache.phaseTimingHistory,
+        snapshot.frame,
+      ),
       diagnostics: [
         {
           code: "webGpuApp.missingSourceAsset",
@@ -6336,6 +6409,10 @@ async function renderWebGpuAppFrame(
       ok: false,
       snapshot,
       resourceReuse: reuse,
+      phaseTimings: phaseTimer.report(
+        resourceCache.phaseTimingHistory,
+        snapshot.frame,
+      ),
       diagnostics: [
         ...snapshot.diagnostics,
         createWebGpuAppMaterialDependencyDiagnostic(
@@ -6354,6 +6431,10 @@ async function renderWebGpuAppFrame(
       ok: false,
       snapshot,
       resourceReuse: reuse,
+      phaseTimings: phaseTimer.report(
+        resourceCache.phaseTimingHistory,
+        snapshot.frame,
+      ),
       diagnostics: [
         {
           code: "webGpuApp.unsupportedMaterialKind",
@@ -6409,10 +6490,17 @@ async function renderWebGpuAppFrame(
       ok: false,
       snapshot,
       resourceReuse: reuse,
+      phaseTimings: phaseTimer.report(
+        resourceCache.phaseTimingHistory,
+        snapshot.frame,
+      ),
       ...(diagnosticsSummary === undefined ? {} : { diagnosticsSummary }),
       diagnostics: [...snapshot.diagnostics, ...queuedBuiltIn.diagnostics],
     });
   }
+
+  phaseTimer.finish("collect");
+  phaseTimer.start("prepare");
 
   if (queuedBuiltIn !== null && queuedBuiltIn.resourceSet !== null) {
     return renderQueuedBuiltInWebGpuAppFrame({
@@ -6443,6 +6531,7 @@ async function renderWebGpuAppFrame(
             standardMaterialIblResources: options.standardMaterialIblResources,
           }),
       localLightCookieResources: localLightCookieResources.resources,
+      phaseTimer,
     });
   }
 
@@ -6705,6 +6794,8 @@ async function renderWebGpuAppFrame(
     pipeline: pipeline.resource.pipeline,
     diagnostics: [],
   };
+  phaseTimer.finish("prepare");
+  phaseTimer.start("queue");
   const framePlan = writeRenderFramePlanFromSnapshot({
     snapshot,
     snapshotChangeSet: updateMetadata.snapshotChangeSet,
@@ -6722,6 +6813,10 @@ async function renderWebGpuAppFrame(
     bindGroups: frameResources.bindGroups,
     scratch: resourceCache.frameScratch.framePlan,
   });
+  phaseTimer.finish("queue");
+  phaseTimer.start("sort");
+  phaseTimer.finish("sort");
+  phaseTimer.start("prepare");
   const spriteFrame = await prepareSpriteFrameResourcesForSnapshot({
     app,
     assets: sourceAssets,
@@ -6731,6 +6826,7 @@ async function renderWebGpuAppFrame(
     worldTransforms: packedTransforms,
     reuse,
   });
+  phaseTimer.finish("prepare");
 
   if (!spriteFrame.resources.valid) {
     return renderReport({
@@ -6739,6 +6835,10 @@ async function renderWebGpuAppFrame(
       pipeline,
       resources,
       resourceReuse: reuse,
+      phaseTimings: phaseTimer.report(
+        resourceCache.phaseTimingHistory,
+        snapshot.frame,
+      ),
       diagnostics: [
         ...snapshot.diagnostics,
         ...packedViews.diagnostics,
@@ -6759,6 +6859,7 @@ async function renderWebGpuAppFrame(
     commands: frameCommands,
     label: options.label ?? "aperture-webgpu-app",
   });
+  phaseTimer.start("submit");
   const boundaries = await assembleWebGpuAppFrameBoundaries({
     app,
     assets: sourceAssets,
@@ -6803,6 +6904,7 @@ async function renderWebGpuAppFrame(
     boundaries.readbackBoundary?.readback,
     frameOk,
   );
+  phaseTimer.finish("submit");
 
   return renderReport({
     ok: frameOk,
@@ -6828,6 +6930,10 @@ async function renderWebGpuAppFrame(
       : { indirectDraws: indirectDraws.report }),
     localLightCookieResources: localLightCookieResources.resources,
     resourceReuse: reuse,
+    phaseTimings: phaseTimer.report(
+      resourceCache.phaseTimingHistory,
+      snapshot.frame,
+    ),
     drawPackages: framePlan.packages.packages.length,
     drawCommands: boundaries.plannedCommands,
     drawCalls: boundaries.drawCalls,
@@ -8085,6 +8191,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.gpuTimings === undefined
       ? {}
       : { gpuTimings: report.gpuTimings }),
+    ...(report.phaseTimings === undefined
+      ? {}
+      : { phaseTimings: report.phaseTimings }),
     ...(report.commandPressure === undefined
       ? {}
       : { commandPressure: toWebGpuAppJsonValue(report.commandPressure) }),
@@ -8205,6 +8314,7 @@ function renderReport(input: {
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: FrameBoundaryReadbackResult;
   readonly gpuTimings?: GpuPassTimingReport;
+  readonly phaseTimings?: WebGpuAppRenderPhaseTimingReport;
   readonly commandPressure?: RenderPassCommandPressureReport;
   readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly indirectDraws?: IndirectDrawCommandReport;
@@ -8274,6 +8384,9 @@ function renderReport(input: {
       : { depthAttachment: input.depthAttachment }),
     ...(input.readback === undefined ? {} : { readback: input.readback }),
     ...(input.gpuTimings === undefined ? {} : { gpuTimings: input.gpuTimings }),
+    ...(input.phaseTimings === undefined
+      ? {}
+      : { phaseTimings: input.phaseTimings }),
     ...(input.commandPressure === undefined
       ? {}
       : { commandPressure: input.commandPressure }),

@@ -1,6 +1,7 @@
 export * from "./app.js";
 export * from "./app-diagnostics-summary.js";
 export * from "./app-environment-resources.js";
+export * from "./app-phase-timing.js";
 export * from "./app-snapshot-transport.js";
 export * from "./app-texture-sampler-resources.js";
 export * from "./buffer.js";

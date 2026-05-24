@@ -393,15 +393,15 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 13:13 UTC</dd>
+            <dd>2026-05-24 13:39 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest render-pipeline slice: clustered local-light
-              params/cells/indices/metadata buffers now skip unchanged rewrites
-              across stable clustered frames, and the recommended next task is
-              phase timing history in the GPU profiler.
+              Latest render-pipeline slice: the GPU profiler now shows rolling
+              CPU phase history for extract, collect, prepare, queue, sort, and
+              submit while preserving the existing GPU timestamp overlay. The
+              recommended next task is a transparent sort pressure proof route.
               The Tier 10 output-stage track is complete:
               <code>createWebGpuApp({ tonemap })</code> selects Linear,
               Reinhard, ACES, AgX, Neutral, or None; StandardMaterial output now
@@ -1617,9 +1617,9 @@
           </article>
           <article class="card metric">
             <div class="label">render pipeline</div>
-            <div class="value">97%</div>
-            <div class="bar" aria-label="97 percent complete">
-              <span style="width: 97%"></span>
+            <div class="value">98%</div>
+            <div class="bar" aria-label="98 percent complete">
+              <span style="width: 98%"></span>
             </div>
             <p>
               The ECS-to-WebGPU spine is usable, app route reporting runs
@@ -2270,9 +2270,9 @@
           <article class="phase">
             <div class="topline">
               <h3>5. sort</h3>
-              <span class="percent">90%</span>
+              <span class="percent">92%</span>
             </div>
-            <div class="bar"><span style="width: 90%"></span></div>
+            <div class="bar"><span style="width: 92%"></span></div>
             <p>
               Opaque queue sorting is stable and deterministic; alpha-test and
               transparent phase placement exists; transparent records now sort
@@ -2280,11 +2280,15 @@
               fallbacks; queue/app diagnostics expose the applied sort policy;
               and app diagnostics now compare stable nontransparent order
               against state-aware opaque order so browser status can prove lower
-              pipeline switch pressure.
+              pipeline switch pressure. The GPU profiler now exposes rolling CPU
+              phase timing for the named sort boundary alongside extract,
+              collect, prepare, queue, and submit timings.
             </p>
             <ul>
-              <li>Missing phase duration telemetry.</li>
-              <li>Missing broader phase pressure history.</li>
+              <li>Missing a transparent sort pressure proof route.</li>
+              <li>
+                Missing broader phase pressure history beyond the profiler.
+              </li>
             </ul>
           </article>
           <article class="phase">
@@ -2442,11 +2446,12 @@
             </p>
             <ul>
               <li>
-                Next step: skip unchanged clustered local-light buffer writes
-                across stable clustered routes.
+                Next step: add a transparent sort pressure proof route with
+                visible alpha-blend ordering and reported inversion pressure.
               </li>
               <li>
-                Missing deeper profiler controls and historical timing charts.
+                Missing deeper profiler controls beyond the current rolling
+                phase history table.
               </li>
             </ul>
           </article>
@@ -2465,6 +2470,13 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">task-3155</span> Added rolling CPU
+                render-phase timing history to <code>WebGpuApp</code> and the
+                GPU profiler. The phase-history route now renders extract,
+                collect, prepare, queue, sort, and submit rows with latest and
+                rolling-average timings beside the existing GPU pass overlay.
+              </li>
+              <li>
                 <span class="badge green">task-3154</span> Added clustered
                 local-light buffer-write skipping across frames. Stable
                 clustered routes now reuse params, cells, indices, and metadata
@@ -2472,11 +2484,11 @@
                 rewrites the same renderer-owned buffers in place.
               </li>
               <li>
-                <span class="badge green">task-3153</span> Added clustered
-                local shadow-map caching across frames, with depth allocation
-                reuse, a caster-transform invalidation proof, and a browser
-                route that reports one later-frame cache hit skipping four
-                unchanged atlas-backed spot-shadow passes.
+                <span class="badge green">task-3153</span> Added clustered local
+                shadow-map caching across frames, with depth allocation reuse, a
+                caster-transform invalidation proof, and a browser route that
+                reports one later-frame cache hit skipping four unchanged
+                atlas-backed spot-shadow passes.
               </li>
               <li>
                 <span class="badge green">task-3152</span> Added GPU-updated
@@ -4870,14 +4882,13 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add render-pipeline phase
-                timing history to the GPU profiler so extract, collect,
-                prepare, queue, sort, and submit pressure is visible over time.
+                <span class="badge amber">next</span> Add a transparent sort
+                pressure proof route so alpha-blend ordering and inversion
+                pressure are visible in browser status and pixels.
               </li>
               <li>
-                Then add a transparent sort pressure proof route and clustered
-                cache pressure history so the remaining SOTA claims are backed
-                by visible pixels and measured savings.
+                Then add clustered cache pressure history so the remaining SOTA
+                claims are backed by visible pixels and measured savings.
               </li>
             </ul>
           </article>
@@ -4890,6 +4901,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3155</div>
+            <div>
+              <strong>GPU profiler phase history shipped.</strong>
+              <span>
+                <code>WebGpuApp</code> now reports rolling CPU timings for
+                extract, collect, prepare, queue, sort, and submit, and the GPU
+                profiler phase-history route renders six visible rows with
+                latest and average timings beside the GPU pass overlay.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3154</div>
             <div>
@@ -4910,8 +4933,8 @@
                 Unchanged clustered spot-shadow atlas maps now reuse the
                 renderer-owned depth allocation and skip redundant shadow
                 submission after a conservative content-key check, with a
-                browser proof covering deliberate caster-transform
-                invalidation and a later cache hit.
+                browser proof covering deliberate caster-transform invalidation
+                and a later cache hit.
               </span>
             </div>
           </div>

@@ -3,11 +3,10 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: `task-3155` — add render-pipeline phase timing history to the GPU
-profiler.
+Current task: `task-3156` — add a transparent sort pressure proof route.
 
-Status: `task-3154` completed unchanged clustered local-light buffer write
-skipping across frames.
+Status: `task-3155` completed rolling CPU phase timing history in the GPU
+profiler.
 
 Key findings:
 
@@ -18,13 +17,17 @@ Key findings:
   changed cluster phase followed by a stable frame with zero clustered
   local-light buffer writes and 16 skipped clustered buffer writes across the
   two view/light routes.
-- The hard SOTA claim should still wait on broader phase timing/pressure
-  visibility. The render-pipeline tracker still lists sort at 90% because phase
-  duration telemetry and broader batching/pressure history are missing.
+- `WebGpuApp` now reports rolling CPU phase timings for extract, collect,
+  prepare, queue, sort, and submit.
+- `examples/gpu-profiler.html?phase-history=1` renders those six phase rows
+  with latest and rolling-average timings beside the existing GPU timestamp
+  pass overlay.
+- The hard SOTA claim should still wait on broader transparent-sort pressure
+  proof coverage and clustered-light cache pressure history.
 
-Next step: implement `task-3155`.
+Next step: implement `task-3156`.
 
-Reference anchors for `task-3155`:
+Reference anchors for `task-3156`:
 
-- `references/engine/src/extras/mini-stats/gpu-timer.js`.
-- `references/engine/src/framework/stats.js`.
+- `references/three.js/manual/en/transparency.html`.
+- `references/engine/src/scene/layer.js`.

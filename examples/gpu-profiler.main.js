@@ -15,8 +15,25 @@ const overlayFrameElement = document.querySelector("#gpu-profiler-frame");
 const overlayPassListElement = document.querySelector(
   "#gpu-profiler-pass-list",
 );
+const overlayPhaseFrameElement = document.querySelector(
+  "#gpu-profiler-phase-frame",
+);
+const overlayPhaseListElement = document.querySelector(
+  "#gpu-profiler-phase-list",
+);
+const routeParams = new URLSearchParams(location.search);
+const phaseHistoryEnabled = routeParams.has("phase-history");
 
 const timingHistory = new Map();
+const phaseTimingHistory = new Map();
+const expectedPhaseNames = [
+  "extract",
+  "collect",
+  "prepare",
+  "queue",
+  "sort",
+  "submit",
+];
 
 const baseStatus = {
   example: "gpu-profiler",
@@ -28,6 +45,8 @@ const baseStatus = {
   profiler: {
     source: "WebGpuAppRenderReport.gpuTimings",
     requiredPassCount: 2,
+    phaseHistoryEnabled,
+    requiredPhaseNames: expectedPhaseNames,
   },
 };
 
@@ -179,6 +198,7 @@ async function handleWorkerMessage(
     frame: message.frame ?? loop.frame,
     clearColor,
     label: "gpu-profiler",
+    phaseTimingSamples: message.phaseTimingSamples,
   });
   const status = createProfilerStatus({
     aperture,
@@ -221,11 +241,23 @@ function createProfilerStatus({
     reportJson.gpuTimings,
     message.frame ?? 0,
   );
+  const phaseOverlay = updatePhaseTimingOverlay(
+    reportJson.phaseTimings,
+    message.frame ?? 0,
+  );
+  const routePhaseHistoryReady =
+    !phaseHistoryEnabled ||
+    (phaseOverlay.ready && phaseOverlay.changedPhaseValueCount > 0);
 
   return {
     ...baseStatus,
-    ok: report.ok && overlay.ready,
-    phase: overlay.ready ? "profiling" : "timing-unavailable",
+    ok: report.ok && overlay.ready && routePhaseHistoryReady,
+    phase:
+      overlay.ready && routePhaseHistoryReady
+        ? "profiling"
+        : phaseHistoryEnabled && !phaseOverlay.ready
+          ? "phase-history-unavailable"
+          : "timing-unavailable",
     apertureVersion: aperture.APERTURE_VERSION,
     renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
     frame: message.frame ?? 0,
@@ -253,7 +285,10 @@ function createProfilerStatus({
     },
     renderTargets: reportJson.renderTargets ?? [],
     gpuTimings: reportJson.gpuTimings ?? null,
+    phaseTimings: reportJson.phaseTimings ?? null,
     overlay,
+    phaseOverlay,
+    routePhaseHistoryReady,
     report: reportJson,
   };
 }
@@ -303,6 +338,56 @@ function updateTimingOverlay(gpuTimings, frame) {
   };
 }
 
+function updatePhaseTimingOverlay(phaseTimings, frame) {
+  if (overlayPhaseFrameElement !== null) {
+    overlayPhaseFrameElement.textContent = `frame ${frame}`;
+  }
+
+  const phases = Array.isArray(phaseTimings?.phases) ? phaseTimings.phases : [];
+  const rows = phases.map((phase) => {
+    const previous = phaseTimingHistory.get(phase.phase);
+    const latestMilliseconds = finiteNumber(phase.latestMilliseconds, 0);
+    const averageMilliseconds = finiteNumber(phase.averageMilliseconds, 0);
+    const sampleCount = finiteInteger(phase.sampleCount, 0);
+    const changed =
+      previous !== undefined &&
+      previous.latestMilliseconds !== latestMilliseconds;
+    const changeCount = (previous?.changeCount ?? 0) + (changed ? 1 : 0);
+    const row = {
+      phase: phase.phase,
+      latestMilliseconds,
+      averageMilliseconds,
+      formattedLatestMilliseconds: formatMilliseconds(latestMilliseconds),
+      formattedAverageMilliseconds: formatMilliseconds(averageMilliseconds),
+      sampleCount,
+      changeCount,
+      changed,
+    };
+
+    phaseTimingHistory.set(phase.phase, row);
+    return row;
+  });
+
+  if (overlayPhaseListElement !== null) {
+    overlayPhaseListElement.replaceChildren(
+      ...rows.map((row) => createPhaseTimingRowElement(row)),
+    );
+  }
+
+  const phaseNames = new Set(rows.map((row) => row.phase));
+
+  return {
+    ready:
+      phaseTimings?.ready === true &&
+      expectedPhaseNames.every((phase) => phaseNames.has(phase)) &&
+      rows.length >= expectedPhaseNames.length &&
+      rows.every((row) => row.sampleCount > 0),
+    phaseCount: rows.length,
+    changedPhaseValueCount: rows.filter((row) => row.changeCount > 0).length,
+    rows,
+  };
+}
+
 function createTimingRowElement(row) {
   const item = document.createElement("li");
   const name = document.createElement("span");
@@ -314,6 +399,23 @@ function createTimingRowElement(row) {
   item.dataset.changeCount = String(row.changeCount);
   name.textContent = row.pass;
   value.textContent = row.formattedMicroseconds;
+  item.append(name, value);
+
+  return item;
+}
+
+function createPhaseTimingRowElement(row) {
+  const item = document.createElement("li");
+  const name = document.createElement("span");
+  const value = document.createElement("strong");
+
+  item.dataset.phase = row.phase;
+  item.dataset.latestMilliseconds = String(row.latestMilliseconds);
+  item.dataset.averageMilliseconds = String(row.averageMilliseconds);
+  item.dataset.sampleCount = String(row.sampleCount);
+  item.dataset.changeCount = String(row.changeCount);
+  name.textContent = row.phase;
+  value.textContent = `${row.formattedLatestMilliseconds} avg ${row.formattedAverageMilliseconds}`;
   item.append(name, value);
 
   return item;
@@ -333,6 +435,30 @@ function formatMicroseconds(value) {
   }
 
   return `${Math.round(value)} us`;
+}
+
+function formatMilliseconds(value) {
+  if (!Number.isFinite(value)) {
+    return "0.000 ms";
+  }
+
+  if (value < 1) {
+    return `${value.toFixed(3)} ms`;
+  }
+
+  if (value < 10) {
+    return `${value.toFixed(2)} ms`;
+  }
+
+  return `${Math.round(value)} ms`;
+}
+
+function finiteNumber(value, fallback) {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function finiteInteger(value, fallback) {
+  return Number.isInteger(value) ? value : fallback;
 }
 
 function resolveTextureUsage(aperture) {

@@ -1,6 +1,62 @@
 # Agent Handoff
 
-Updated: 2026-05-24T13:13:13Z
+Updated: 2026-05-24T13:39:00Z
+
+## Current Run Update — 2026-05-24T13:39:00Z — GPU profiler phase history
+
+Completed `task-3155`, adding rolling CPU render-phase timing history to the
+GPU profiler and `WebGpuApp` reports.
+
+### What changed
+
+- Added `packages/webgpu/src/webgpu/app-phase-timing.ts` with the canonical
+  `extract`, `collect`, `prepare`, `queue`, `sort`, and `submit` phase list,
+  a 60-sample rolling history, and latest/average/min/max millisecond reports.
+- Threaded phase timing history through `WebGpuAppRenderReport` and
+  `webGpuAppRenderReportToJsonValue()`.
+- Instrumented the WebGPU app render boundary so queued StandardMaterial frames
+  report collect, prepare, queue, sort, and submit CPU spans.
+- Measured worker extraction time in `examples/gpu-profiler.worker.js` and
+  passed it into `app.renderSnapshot()` as the external `extract` phase sample.
+- Added `examples/gpu-profiler.html?phase-history=1`, which renders six CPU
+  phase rows with latest and rolling-average timings next to the existing GPU
+  pass timing overlay.
+- Updated e2e/unit coverage and public tracker pages. Current task now points
+  to `task-3156`.
+
+### Validation
+
+- `node --check examples/gpu-profiler.main.js`
+- `node --check examples/gpu-profiler.worker.js`
+- `git diff --check`
+- `pnpm exec prettier --check packages/webgpu/src/webgpu/app-phase-timing.ts packages/webgpu/src/webgpu/app.ts packages/webgpu/src/webgpu/index.ts examples/gpu-profiler.main.js examples/gpu-profiler.worker.js examples/gpu-profiler.html test/e2e/gpu-profiler.spec.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `pnpm run build`
+- `pnpm run check:examples`
+- Browser proof for
+  `examples/gpu-profiler.html?phase-history=1&proof=task3155`: `ok: true`,
+  `routePhaseHistoryReady: true`, six phase rows, two GPU pass rows, rolling
+  sample counts of `60`, changing phase samples, draw calls `50`, and
+  diagnostics `0`.
+- `pnpm exec playwright test test/e2e/gpu-profiler.spec.ts --timeout=45000`
+  printed both GPU profiler tests as passed. The headed Playwright runner then
+  hung during teardown and was killed to avoid leaving an active process.
+
+### Known issues
+
+- Full SOTA is still not done. The covered clustered StandardMaterial lane is
+  close, and phase timing is now visible, but the next proof should exercise
+  transparent sort pressure with visible alpha-blend pixels and inversion
+  metrics.
+- The pre-existing working-tree deletion of `.codex/hooks.json`, untracked
+  `.playwright-mcp/` scratch directory, and untracked
+  `shadow-cookie-console-errors.txt` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3156`: add a transparent sort pressure proof route.
 
 ## Current Run Update — 2026-05-24T13:13:13Z — Clustered buffer-write cache
 
