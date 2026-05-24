@@ -52,6 +52,7 @@ async function handleMessage(data) {
         data.clusteredMultiCookieEnabled === true,
         data.clusteredAtlasCookieEnabled === true,
         data.clusteredShadowCookieEnabled === true,
+        data.clusteredShadowCookiePointArrayEnabled === true,
         data.clusteredCookieOnlyEnabled === true,
         data.clusteredSpotShadowAtlasEnabled === true,
         data.clusteredMultiSpotShadowEnabled === true,
@@ -91,6 +92,8 @@ async function handleMessage(data) {
           clusteredMultiCookieEnabled: scene.clusteredMultiCookieEnabled,
           clusteredAtlasCookieEnabled: scene.clusteredAtlasCookieEnabled,
           clusteredShadowCookieEnabled: scene.clusteredShadowCookieEnabled,
+          clusteredShadowCookiePointArrayEnabled:
+            scene.clusteredShadowCookiePointArrayEnabled,
           clusteredCookieOnlyEnabled: scene.clusteredCookieOnlyEnabled,
           clusteredSpotShadowAtlasEnabled:
             scene.clusteredSpotShadowAtlasEnabled,
@@ -154,6 +157,7 @@ function createWorkerScene(
   clusteredMultiCookieEnabled,
   clusteredAtlasCookieEnabled,
   clusteredShadowCookieEnabled,
+  clusteredShadowCookiePointArrayEnabled,
   clusteredCookieOnlyEnabled,
   clusteredSpotShadowAtlasEnabled,
   clusteredMultiSpotShadowEnabled,
@@ -398,6 +402,7 @@ function createWorkerScene(
     clusteredMultiCookieEnabled,
     clusteredAtlasCookieEnabled,
     clusteredShadowCookieEnabled,
+    clusteredShadowCookiePointArrayEnabled,
     clusteredCookieOnlyEnabled,
     clusteredSpotShadowAtlasEnabled,
     clusteredMultiSpotShadowEnabled,

@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 10:31 UTC</dd>
+            <dd>2026-05-24 10:46 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -2416,8 +2416,8 @@
             </p>
             <ul>
               <li>
-                Next step: combine flattened point-shadow arrays with
-                clustered local cookies in one WebGPU-minimum route.
+                Next step: combine nonuniform clustered shadow atlases with
+                clustered cookie atlases in one WebGPU-minimum route.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2438,6 +2438,12 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3147</span> Combined two
+                flattened point-shadow-array lights, two packed spot shadows,
+                and one clustered local cookie in one StandardMaterial frame,
+                with explicit point-array shadow-cookie readiness status.
+              </li>
               <li>
                 <span class="badge green">task-3146</span> Combined one
                 supported point shadow, two packed spot shadows, and one
@@ -4797,8 +4803,8 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Combine flattened
-                point-shadow arrays with clustered local cookies in one
+                <span class="badge amber">next</span> Combine nonuniform
+                clustered shadow atlases with clustered cookie atlases in one
                 StandardMaterial route without exceeding WebGPU minimum
                 bind/storage limits.
               </li>
@@ -4817,6 +4823,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3147</div>
+            <div>
+              <strong>Flattened point-shadow arrays plus cookies shipped.</strong>
+              <span>
+                The clustered route now renders two point shadows through 12
+                flattened cube-face layers, two packed spot shadows, and one
+                local cookie together in a WebGPU-minimum StandardMaterial
+                frame.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3146</div>
             <div>

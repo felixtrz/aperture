@@ -1,5 +1,51 @@
 # Completed Tasks
 
+## task-3147 — Combine flattened point-shadow arrays with clustered local cookies
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added a named
+  `examples/clustered-lights.html?enable-cluster-shadow-cookie-point-array=1`
+  proof route for the compact clustered shadow-cookie path with flattened
+  point-shadow arrays.
+- The route composes two point shadows through one 12-layer flattened
+  cube-face depth array, two packed spot-array shadows, and one clustered local
+  spot cookie in the same StandardMaterial frame.
+- Cluster status now reports `routePackedShadowCookiePointArrayReady` and
+  `routePackedShadowCookiePointArraySamplingOk` separately from the generic
+  packed-shadow-cookie readiness.
+- Added focused layout, pipeline, shader, and e2e assertions for the
+  `clusteredLocalLightShadowCookies` +
+  `clusteredLocalLightPointArrayShadows` +
+  `clusteredLocalLightArrayShadows` route.
+- Public trackers and agent task pointers now recommend `task-3148`, combining
+  nonuniform local-shadow atlases with clustered cookie atlases.
+
+Validation:
+
+- `node --check examples/clustered-lights.main.js && node --check examples/clustered-lights.worker.js`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/local-light-clusters.test.ts`
+- `pnpm run build`
+- Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-shadow-cookie-point-array=1&proof=task3147`:
+  `ok: true`, `readbackStatus.ok: true`, luminance range about `68.36`,
+  `routeMultiPointShadowSamplingOk`,
+  `routePackedShadowCookiePointArrayReady`, and
+  `routePackedShadowCookiePointArraySamplingOk` true, four supported shadowed
+  lights, one supported cookie, point-shadow layer count `12`, diagnostics `0`,
+  and relevant WebGPU validation warnings `0`.
+
+Known follow-up:
+
+- `task-3148` should combine the nonuniform spot-shadow atlas route with the
+  clustered spot-cookie atlas route.
+- The broad clustered-lights Playwright spec was updated but not run end to
+  end in this slice because previous multi-page headed runs went idle locally;
+  the focused Chrome/WebGPU route proof passed.
+
 ## task-3146 — Combine packed local shadows with clustered local cookies
 
 Completed: 2026-05-24

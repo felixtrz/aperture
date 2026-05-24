@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3147`: combine flattened point-shadow arrays with clustered local
-cookies so the most compact clustered StandardMaterial shadow route also proves
-cookie pressure without exceeding WebGPU minimum limits.
+Start `task-3148`: combine nonuniform clustered local shadow atlases with
+clustered local cookie atlases so the atlas-backed routes also prove
+shadow/cookie pressure without exceeding WebGPU minimum limits.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -230,7 +230,10 @@ one supported point shadow, two packed spot shadows, and a clustered local
 cookie in one WebGPU-minimum StandardMaterial route by reusing spot-shadow
 matrices for the matching spot-cookie projection. The next SOTA gap is carrying
 that same shadow/cookie pressure through the flattened multi-point-shadow array
-route, followed by broader clustered-light tuning.
+route. `task-3147` now proves that route with two point shadows through 12
+flattened layers, two packed spot shadows, and one clustered cookie. The next
+SOTA gap is combining atlas-backed local shadows and atlas-backed local cookies,
+followed by broader clustered-light tuning.
 
 Reference anchors for the next visible slice (read before writing):
 
@@ -1057,7 +1060,7 @@ Acceptance criteria:
 
 ### task-3147 — Combine flattened point-shadow arrays with clustered local cookies
 
-Status: ready
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cookie*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
@@ -1073,6 +1076,25 @@ Acceptance criteria:
   spot-shadow readiness, and cookie readiness for that combined route.
 - Browser readbacks show visible contribution from point shadows, spot shadows,
   and cookies with zero relevant WebGPU validation warnings.
+
+### task-3148 — Combine nonuniform local shadow atlases with clustered cookie atlases
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cookie*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
+Reference anchor: `references/engine/src/scene/lighting/light-texture-atlas.js`, `references/engine/src/scene/lighting/lights-buffer.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightCookies.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`.
+
+Acceptance criteria:
+
+- A clustered StandardMaterial route can render at least one point shadow,
+  multiple nonuniform atlas-backed spot shadows, and at least one
+  atlas-backed clustered spot cookie in the same frame without exceeding
+  WebGPU minimum bind/storage limits.
+- Cluster status separately reports shadow-atlas readiness and cookie-atlas
+  readiness for that combined route.
+- Browser readbacks show visible contribution from shadows and cookies with
+  zero relevant WebGPU validation warnings.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

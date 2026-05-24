@@ -113,6 +113,8 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
     readonly routePackedShadowCookieCookieReady?: boolean;
     readonly routePackedShadowCookiePipelineOk?: boolean;
     readonly routePackedShadowCookieSamplingOk?: boolean;
+    readonly routePackedShadowCookiePointArrayReady?: boolean;
+    readonly routePackedShadowCookiePointArraySamplingOk?: boolean;
     readonly routeCookieSamplingOk: boolean;
     readonly routeCookieAtlasSamplingOk?: boolean;
     readonly requiredPointShadowSupportedCount?: number;
@@ -521,6 +523,36 @@ test("browser renders StandardMaterial through clustered local lights", async ({
 
   skipIfUnsupportedWebGpu(packedShadowCookie);
   expectStatusJsonSafeForGpu(packedShadowCookie);
+
+  const packedShadowCookiePointArrayPage = await page.context().newPage();
+  const packedShadowCookiePointArrayWebGpuValidation =
+    attachWebGpuValidationConsoleGuard(packedShadowCookiePointArrayPage);
+
+  await packedShadowCookiePointArrayPage.goto(
+    "/examples/clustered-lights.html?enable-cluster-shadow-cookie-point-array=1",
+  );
+  await packedShadowCookiePointArrayPage.bringToFront();
+
+  const packedShadowCookiePointArray =
+    await waitForExampleStatus<ClusteredLightsStatus>(
+      packedShadowCookiePointArrayPage,
+    );
+
+  await attachExampleStatus(
+    "clustered-lights-packed-shadow-cookie-point-array-status",
+    packedShadowCookiePointArray,
+  );
+  expect(
+    packedShadowCookiePointArray,
+    "clustered lights packed-shadow-cookie point-array status should publish",
+  ).toBeDefined();
+
+  if (packedShadowCookiePointArray === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(packedShadowCookiePointArray);
+  expectStatusJsonSafeForGpu(packedShadowCookiePointArray);
 
   const multiPointShadowPage = await page.context().newPage();
   const multiPointShadowWebGpuValidation =
@@ -1170,6 +1202,78 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   expect(
     packedShadowCookie.readbackStatus?.maxClearDistance ?? 0,
   ).toBeGreaterThan(24);
+  expect(packedShadowCookiePointArray.clusterStatus).toMatchObject({
+    ok: true,
+    routeMetadataOk: true,
+    routePointShadowSamplingOk: true,
+    routeSpotShadowSamplingOk: true,
+    routeMultiSpotShadowSamplingOk: true,
+    routeMixedShadowSamplingOk: true,
+    routeMixedPackedSpotShadowSamplingOk: true,
+    routeMultiPointShadowSamplingOk: true,
+    routeCookieSamplingOk: true,
+    routePackedShadowCookieShadowReady: true,
+    routePackedShadowCookieCookieReady: true,
+    routePackedShadowCookiePipelineOk: true,
+    routePackedShadowCookieSamplingOk: true,
+    routePackedShadowCookiePointArrayReady: true,
+    routePackedShadowCookiePointArraySamplingOk: true,
+    requiredPointShadowSupportedCount: 2,
+    requiredSpotShadowSupportedCount: 2,
+    requiredCookieSupportedCount: 1,
+  });
+  expect(packedShadowCookiePointArray.shadowStatus).toMatchObject({
+    enabled: true,
+    supported: true,
+    mode: "clustered-point-array-spot-array-depth-compare",
+    point: {
+      enabled: true,
+      supported: true,
+      mode: "clustered-point-depth-2d-array-compare",
+      supportedLightCount: 2,
+      layerCount: 12,
+    },
+    spot: {
+      enabled: true,
+      supported: true,
+      mode: "clustered-spot-array-depth-compare",
+      supportedLightCount: 2,
+      layerCount: 2,
+    },
+  });
+  expect(
+    (packedShadowCookiePointArray.pipelineKeys ?? []).some(
+      (pipelineKey) =>
+        pipelineKey.startsWith("standard|") &&
+        pipelineKey.includes("clusteredLocalLights") &&
+        pipelineKey.includes("clusteredLocalLightCookies") &&
+        pipelineKey.includes("clusteredLocalLightShadowCookies") &&
+        pipelineKey.includes("clusteredLocalLightPointArrayShadows") &&
+        pipelineKey.includes("clusteredLocalLightArrayShadows") &&
+        pipelineKey.includes("pointShadowMap") &&
+        pipelineKey.includes("shadowMap"),
+    ),
+  ).toBe(true);
+  expect(
+    (packedShadowCookiePointArray.localLightClusters?.routes ?? []).some(
+      (route) =>
+        (route.layerMask ?? 0) === 2 &&
+        route.shadowCookieMetadata?.shadow.status === "sampling-ready" &&
+        route.shadowCookieMetadata.shadow.samplingSupported === true &&
+        route.shadowCookieMetadata.shadow.localRequestCount >= 6 &&
+        route.shadowCookieMetadata.shadow.clusteredLightCount >= 6 &&
+        route.shadowCookieMetadata.shadow.supportedLightCount >= 4 &&
+        route.shadowCookieMetadata.cookie.status === "sampling-ready" &&
+        route.shadowCookieMetadata.cookie.samplingSupported === true &&
+        route.shadowCookieMetadata.cookie.localRequestCount >= 1 &&
+        route.shadowCookieMetadata.cookie.clusteredLightCount >= 1 &&
+        route.shadowCookieMetadata.cookie.supportedLightCount >= 1,
+    ),
+  ).toBe(true);
+  expect(packedShadowCookiePointArray.readbackStatus?.ok).toBe(true);
+  expect(
+    packedShadowCookiePointArray.readbackStatus?.maxClearDistance ?? 0,
+  ).toBeGreaterThan(24);
   expect(multiPointShadow.clusterStatus).toMatchObject({
     ok: true,
     routeMetadataOk: true,
@@ -1288,6 +1392,12 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   expect(maxSampleLuminanceDelta(cookie, packedShadowCookie)).toBeGreaterThan(
     1,
   );
+  expect(
+    maxSampleLuminanceDelta(multiPointShadow, packedShadowCookiePointArray),
+  ).toBeGreaterThan(1);
+  expect(
+    maxSampleLuminanceDelta(cookie, packedShadowCookiePointArray),
+  ).toBeGreaterThan(1);
   expect(maxSampleLuminanceDelta(atlasSpot, packedShadowAtlas)).toBeGreaterThan(
     1,
   );
@@ -1307,6 +1417,7 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   mixedShadowWebGpuValidation.expectNoWarnings();
   packedShadowWebGpuValidation.expectNoWarnings();
   packedShadowCookieWebGpuValidation.expectNoWarnings();
+  packedShadowCookiePointArrayWebGpuValidation.expectNoWarnings();
   multiPointShadowWebGpuValidation.expectNoWarnings();
   packedShadowAtlasWebGpuValidation.expectNoWarnings();
   shadowWebGpuValidation.expectNoWarnings();

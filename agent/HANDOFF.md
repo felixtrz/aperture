@@ -1,6 +1,59 @@
 # Agent Handoff
 
-Updated: 2026-05-24T10:31:33Z
+Updated: 2026-05-24T10:46:49Z
+
+## Current Run Update — 2026-05-24T10:46:49Z — Flattened point-shadow arrays plus cookies
+
+Completed `task-3147`, combining flattened clustered point-shadow arrays with
+clustered local cookies.
+
+### What changed
+
+- Added the named
+  `examples/clustered-lights.html?enable-cluster-shadow-cookie-point-array=1`
+  proof route.
+- The route composes two point shadows through 12 flattened cube-face
+  depth-array layers, two packed spot-array shadows, and one clustered local
+  spot cookie in the same StandardMaterial frame.
+- Cluster status now reports `routePackedShadowCookiePointArrayReady` and
+  `routePackedShadowCookiePointArraySamplingOk` separately from the generic
+  packed shadow-cookie readiness.
+- Focused tests cover the combined `clusteredLocalLightShadowCookies`,
+  `clusteredLocalLightPointArrayShadows`, and
+  `clusteredLocalLightArrayShadows` layout, pipeline, and WGSL path.
+- Public trackers and agent task pointers now recommend `task-3148`, combining
+  nonuniform local-shadow atlases with clustered cookie atlases.
+
+### Validation
+
+- `node --check examples/clustered-lights.main.js && node --check examples/clustered-lights.worker.js`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/local-light-clusters.test.ts`
+- `pnpm run build`
+- Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-shadow-cookie-point-array=1&proof=task3147`:
+  `ok: true`, `readbackStatus.ok: true`, luminance range about `68.36`,
+  `routeMultiPointShadowSamplingOk`,
+  `routePackedShadowCookiePointArrayReady`, and
+  `routePackedShadowCookiePointArraySamplingOk` true, four supported shadowed
+  lights, one supported cookie, point-shadow layer count `12`, diagnostics `0`,
+  and relevant WebGPU validation warnings `0`. The only console error was the
+  existing favicon `403`.
+
+### Known issues
+
+- The broad clustered-lights e2e spec was updated for the point-array
+  shadow-cookie route but was not run end to end because previous multi-page
+  headed runs went idle locally; the focused Chrome/WebGPU route proof passed.
+- The pre-existing working-tree deletion of `.codex/hooks.json`, untracked
+  `.playwright-mcp/` scratch directory, and untracked
+  `shadow-cookie-console-errors.txt` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3148`: combine nonuniform clustered local shadow atlases with
+clustered local cookie atlases.
 
 ## Current Run Update — 2026-05-24T10:31:33Z — Packed clustered shadows plus cookies
 

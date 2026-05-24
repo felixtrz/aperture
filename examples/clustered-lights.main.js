@@ -15,8 +15,14 @@ const clusteredMixedCookieEnabled =
 const clusteredAtlasCookieEnabled =
   exampleParams.has("enable-cluster-cookie-atlas") &&
   !exampleParams.has("disable-cluster-cookie");
+const clusteredShadowCookiePointArrayEnabled =
+  exampleParams.has("enable-cluster-shadow-cookie-point-array") &&
+  !exampleParams.has("disable-cluster-cookie") &&
+  !exampleParams.has("disable-cluster-point-shadow") &&
+  !exampleParams.has("disable-cluster-spot-shadow");
 const clusteredShadowCookieEnabled =
-  exampleParams.has("enable-cluster-shadow-cookie") &&
+  (exampleParams.has("enable-cluster-shadow-cookie") ||
+    clusteredShadowCookiePointArrayEnabled) &&
   !exampleParams.has("disable-cluster-cookie") &&
   !exampleParams.has("disable-cluster-point-shadow") &&
   !exampleParams.has("disable-cluster-spot-shadow");
@@ -44,7 +50,8 @@ const clusteredShadowSoftnessAtlasEnabled =
   !clusteredMultiCookieEnabled &&
   !clusteredPointCookieEnabled;
 const clusteredMultiPointShadowEnabled =
-  exampleParams.has("enable-cluster-multi-point-shadow") &&
+  (exampleParams.has("enable-cluster-multi-point-shadow") ||
+    clusteredShadowCookiePointArrayEnabled) &&
   !exampleParams.has("disable-cluster-point-shadow") &&
   !exampleParams.has("disable-cluster-spot-shadow") &&
   !clusteredCookieOnlyEnabled &&
@@ -325,6 +332,7 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     clusteredMultiCookieEnabled,
     clusteredAtlasCookieEnabled,
     clusteredShadowCookieEnabled,
+    clusteredShadowCookiePointArrayEnabled,
     clusteredCookieOnlyEnabled,
     clusteredMixedShadowEnabled,
     clusteredPackedSpotShadowArrayEnabled,
@@ -545,6 +553,8 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     clusteredMultiCookieEnabled: scene.clusteredMultiCookieEnabled,
     clusteredAtlasCookieEnabled: scene.clusteredAtlasCookieEnabled,
     clusteredShadowCookieEnabled: scene.clusteredShadowCookieEnabled,
+    clusteredShadowCookiePointArrayEnabled:
+      scene.clusteredShadowCookiePointArrayEnabled,
     clusteredCookieOnlyEnabled: scene.clusteredCookieOnlyEnabled,
     clusteredSpotShadowAtlasEnabled: scene.clusteredSpotShadowAtlasEnabled,
     clusteredMultiSpotShadowEnabled: scene.clusteredMultiSpotShadowEnabled,
@@ -687,6 +697,7 @@ function statusFromReport(
     scene.clusteredPackedSpotShadowAtlasEnabled,
     scene.clusteredMultiPointShadowEnabled,
     scene.clusteredShadowCookieEnabled,
+    scene.clusteredShadowCookiePointArrayEnabled,
     scene.clusteredShadowSoftnessEnabled ||
       scene.clusteredShadowSoftnessAtlasEnabled,
   );
@@ -749,6 +760,7 @@ function createClusterStatus(
   packedSpotShadowAtlasEnabled,
   multiPointShadowEnabled,
   shadowCookieEnabled,
+  shadowCookiePointArrayEnabled,
   shadowSoftnessEnabled,
 ) {
   const clusterPipelineUsed = pipelineKeys.some((pipelineKey) =>
@@ -1108,6 +1120,18 @@ function createClusterStatus(
         pipelineKey.includes("pointShadowMap") &&
         pipelineKey.includes("shadowMap"),
     );
+  const routePackedShadowCookiePointArrayReady =
+    shadowCookiePointArrayEnabled === true &&
+    routePackedShadowCookieShadowReady &&
+    routeMultiPointShadowSamplingOk &&
+    pipelineKeys.some(
+      (pipelineKey) =>
+        pipelineKey.includes("clusteredLocalLightShadowCookies") &&
+        pipelineKey.includes("clusteredLocalLightPointArrayShadows") &&
+        pipelineKey.includes("clusteredLocalLightArrayShadows") &&
+        pipelineKey.includes("pointShadowMap") &&
+        pipelineKey.includes("shadowMap"),
+    );
   const routePackedShadowCookieSamplingOk =
     shadowCookieEnabled !== true ||
     (routePackedShadowCookieShadowReady &&
@@ -1115,6 +1139,11 @@ function createClusterStatus(
       routePackedShadowCookiePipelineOk &&
       routeMixedPackedSpotShadowSamplingOk &&
       routeCookieSamplingOk);
+  const routePackedShadowCookiePointArraySamplingOk =
+    shadowCookiePointArrayEnabled !== true ||
+    (routePackedShadowCookiePointArrayReady &&
+      routePackedShadowCookieCookieReady &&
+      routePackedShadowCookieSamplingOk);
 
   return {
     ok:
@@ -1135,6 +1164,7 @@ function createClusterStatus(
         routeMixedPackedSpotShadowAtlasSamplingOk) &&
       (multiPointShadowEnabled !== true || routeMultiPointShadowSamplingOk) &&
       routePackedShadowCookieSamplingOk &&
+      routePackedShadowCookiePointArraySamplingOk &&
       routeShadowSoftnessSamplingOk &&
       (cookieEnabled !== true || routeCookieSamplingOk) &&
       occupancyChanged &&
@@ -1170,6 +1200,8 @@ function createClusterStatus(
     routePackedShadowCookieCookieReady,
     routePackedShadowCookiePipelineOk,
     routePackedShadowCookieSamplingOk,
+    routePackedShadowCookiePointArrayReady,
+    routePackedShadowCookiePointArraySamplingOk,
     routeShadowHardFilterReady,
     routeShadowSoftFilterReady,
     routePointShadowSoftnessReady,

@@ -279,6 +279,48 @@ describe("StandardMaterial light/shadow bind group", () => {
     );
   });
 
+  it("keeps flattened point-array shadows plus cookies within a WebGPU-minimum group layout", () => {
+    const descriptor = createStandardLightMultiShadowBindGroupLayoutDescriptor({
+      clusteredLocalLights: true,
+      clusteredLocalLightArrayShadows: true,
+      clusteredLocalLightPointArrayShadows: true,
+      clusteredLocalLightCookies: true,
+      clusteredLocalLightShadowCookies: true,
+      clusteredLocalLightCookieTextureViewDimension: "2d",
+    });
+
+    expect(descriptor.entries).toHaveLength(14);
+    expect(descriptor.entries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          binding: 3,
+          texture: expect.objectContaining({ viewDimension: "2d-array" }),
+        }),
+        expect.objectContaining({
+          binding: 9,
+          texture: expect.objectContaining({ viewDimension: "2d-array" }),
+        }),
+        expect.objectContaining({
+          binding: 20,
+          texture: expect.objectContaining({ viewDimension: "2d" }),
+        }),
+        expect.objectContaining({ binding: 21 }),
+      ]),
+    );
+    expect(descriptor.entries).not.toContainEqual(
+      expect.objectContaining({ binding: 22 }),
+    );
+    expect(descriptor.entries).not.toContainEqual(
+      expect.objectContaining({ binding: 5 }),
+    );
+    expect(descriptor.entries).not.toContainEqual(
+      expect.objectContaining({ binding: 6 }),
+    );
+    expect(descriptor.entries).not.toContainEqual(
+      expect.objectContaining({ binding: 7 }),
+    );
+  });
+
   it("creates a multi-shadow light bind group resource", () => {
     const createdBindGroups: unknown[] = [];
     const directional = resourceInputs("directional", "2d");
