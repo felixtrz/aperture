@@ -1,5 +1,43 @@
 # Completed Tasks
 
+## task-3137 — Support mixed clustered point and spot cookies per frame
+
+Completed: 2026-05-24
+
+Summary:
+
+- Extended clustered local-light cookie array preparation from spot-only
+  candidates to compatible spot 2D cookies plus point cube cookies, flattening
+  point cube faces into consecutive layers of one renderer-owned
+  `texture_2d_array`.
+- Added per-light layer-base metadata so point lights can sample the correct
+  six cube-face layers while spot lights continue to use their projected cookie
+  matrix/layer entry.
+- Added WGSL cube-face coordinate mapping for the array-cookie route, keeping
+  the existing cube-texture route available for point-cookie-only pipelines.
+- Added `examples/clustered-lights.html?enable-cluster-mixed-cookie=1`, which
+  authors two spot cookies plus one point cube cookie in one clustered frame and
+  reports three supported cookie lights.
+- Updated focused resource, shader, and e2e status coverage for the mixed
+  route. Recommended next task is `task-3138`, broadening clustered local
+  shadow resource packing toward PlayCanvas-style atlas coverage.
+
+Validation:
+
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/local-light-cookie-resources.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/light-bind-group-layout.test.ts`
+- `node --check examples/clustered-lights.main.js && node --check examples/clustered-lights.worker.js`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm run lint`
+- `pnpm exec prettier --check examples/clustered-lights.main.js packages/webgpu/src/webgpu/local-light-cookie-resources.ts packages/webgpu/src/webgpu/standard-shader.ts test/e2e/clustered-lights.spec.ts test/webgpu/local-light-cookie-resources.test.ts test/webgpu/standard-shader.test.ts`
+- Narrow Chrome/WebGPU proof for
+  `examples/clustered-lights.html?enable-cluster-mixed-cookie=1`: array-cookie
+  pipeline key present, route cookie metadata `sampling-ready` with three
+  supported clustered cookie lights, readback luminance range about `251`, and
+  relevant WebGPU validation warnings `0`.
+
 ## task-3136 — Support multiple clustered local-light cookies per frame
 
 Completed: 2026-05-24

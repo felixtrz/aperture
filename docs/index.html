@@ -1532,15 +1532,17 @@
               lights can now sample ECS-authored cube-cookie textures through a
               cube-view StandardMaterial route. Compatible clustered spot
               cookies can now share a renderer-owned 2D texture array with
-              per-light metadata layer indices.
+              per-light metadata layer indices, and compatible spot cookies plus
+              point cube cookies can now share the same array route by
+              flattening point cube faces into six consecutive layers.
               <code>examples/clustered-lights.html</code> now exposes point
               shadow, spot shadow, spot-cookie, and cookie-only spot-cookie
-              proof routes plus point cube-cookie and multi-cookie proof routes.
-              The next step is a covered render-pipeline re-audit before
-              selecting the next SOTA blocker.
+              proof routes plus point cube-cookie, multi-cookie, and mixed
+              point/spot cookie proof routes. The next step is a mixed
+              local-shadow proof and broader atlas-style packing.
             </dd>
             <dt>Next focus</dt>
-            <dd>Post-cookie render-pipeline audit</dd>
+            <dd>Mixed clustered local shadows</dd>
           </dl>
         </aside>
       </header>
@@ -1575,9 +1577,9 @@
           </article>
           <article class="card metric">
             <div class="label">render pipeline</div>
-            <div class="value">94%</div>
-            <div class="bar" aria-label="94 percent complete">
-              <span style="width: 94%"></span>
+            <div class="value">95%</div>
+            <div class="bar" aria-label="95 percent complete">
+              <span style="width: 95%"></span>
             </div>
             <p>
               The ECS-to-WebGPU spine is usable, app route reporting runs
@@ -2144,7 +2146,7 @@
                 Remaining local-light work is broader clustered-light
                 permutations beyond the active-view StandardMaterial many-light
                 path; per-view/per-light-set resource splitting and compatible
-                multi-cookie spot-light resources are now covered.
+                mixed point/spot cookie resources are now covered.
               </li>
               <li>
                 Production-fidelity LTC table payloads are now covered; broader
@@ -2389,6 +2391,12 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3137</span> Added mixed clustered
+                point and spot cookies through one renderer-owned 2D-array
+                cookie resource, with a clustered-lights proof route reporting
+                three supported cookie lights.
+              </li>
               <li>
                 <span class="badge green">task-3136</span> Added multiple
                 clustered spot cookies per frame through a renderer-owned
@@ -4704,12 +4712,12 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Run the post-cookie
-                render-pipeline audit against PlayCanvas and three.js.
+                <span class="badge amber">next</span> Add a mixed clustered
+                point/spot local-shadow proof route.
               </li>
               <li>
-                Then select the next visible SOTA lighting, material, or
-                pipeline-efficiency slice from evidence.
+                Then broaden clustered local shadow and cookie atlas/resource
+                packing from the PlayCanvas reference shape.
               </li>
             </ul>
           </article>
@@ -4722,6 +4730,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3137</div>
+            <div>
+              <strong>Mixed clustered point and spot cookies shipped.</strong>
+              <span>
+                Compatible spot cookies and point cube cookies now share a
+                renderer-owned 2D texture array, point cube faces flatten into
+                six layers, and
+                <code>enable-cluster-mixed-cookie=1</code> reports three
+                supported cookie lights with non-clear Chrome/WebGPU readback.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3136</div>
             <div>

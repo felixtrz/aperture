@@ -1,6 +1,68 @@
 # Agent Handoff
 
-Updated: 2026-05-24T05:10:00Z
+Updated: 2026-05-24T05:44:18Z
+
+## Current Run Update — 2026-05-24T05:44:18Z — Mixed clustered local-light cookies
+
+Completed `task-3137`, adding mixed clustered point and spot cookies in the
+same clustered StandardMaterial frame.
+
+### What changed
+
+- Clustered local-light cookie array preparation now accepts compatible spot
+  2D cookies and point cube cookies, flattening each point cube's six faces into
+  consecutive layers of the same renderer-owned `texture_2d_array`.
+- Cookie resource compatibility now compares sampler descriptors instead of
+  requiring identical sampler handles, so separately authored but equivalent
+  point/spot samplers can share the array resource.
+- Cluster metadata stores each supported light's cookie layer base. Spot lights
+  use that index for projection-matrix and layer lookup; point lights add the
+  shader-derived cube-face index.
+- StandardMaterial WGSL gained an array-cookie point-light sampling path with
+  cube-face coordinate mapping based on the PlayCanvas atlas reference shape.
+- `examples/clustered-lights.html?enable-cluster-mixed-cookie=1` now authors
+  two spot cookies plus one point cube cookie and requires three supported
+  cookie lights in status.
+- Public trackers and agent task pointers now recommend `task-3138`, a visible
+  mixed local-shadow proof, before broader atlas/packing slices.
+
+### Validation
+
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/local-light-cookie-resources.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/light-bind-group-layout.test.ts`
+- `node --check examples/clustered-lights.main.js && node --check examples/clustered-lights.worker.js`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm run lint`
+- `pnpm exec prettier --check examples/clustered-lights.main.js packages/webgpu/src/webgpu/local-light-cookie-resources.ts packages/webgpu/src/webgpu/standard-shader.ts test/e2e/clustered-lights.spec.ts test/webgpu/local-light-cookie-resources.test.ts test/webgpu/standard-shader.test.ts`
+- Narrow headed Chrome/WebGPU proof against
+  `http://127.0.0.1:4181/examples/clustered-lights.html?enable-cluster-mixed-cookie=1`:
+  route `ok`, array-cookie pipeline key present, cookie metadata
+  `sampling-ready`, three supported clustered cookie lights, readback
+  luminance range about `251`, and relevant WebGPU validation warnings `0`.
+
+### Known issues
+
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts --project=chrome-webgpu-headed`
+  first caught a stale hard-coded `totalMetadataLights` expectation; that
+  assertion is now derived from the route's local-light count. A rerun then
+  hung in the local headed Chrome runner, matching the existing multi-page
+  clustered-lights teardown/readback flake. Treat the narrow fresh Chrome proof
+  plus focused unit/build validation as the reliable browser signal for this
+  slice.
+- Port `4173` had an older long-running example server whose current-texture
+  readback returned transparent zero for the narrow probe; the fresh `4181`
+  server produced valid non-clear readback.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3138`: add an opt-in clustered-lights route proving supported
+point and spot local-shadow sampling in the same clustered StandardMaterial
+frame. Then move into atlas/array packing for broader local shadow and
+nonuniform cookie permutations.
 
 ## Current Run Update — 2026-05-24T05:10:00Z — Multiple clustered local-light cookies
 

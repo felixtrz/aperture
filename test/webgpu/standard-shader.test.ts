@@ -1628,6 +1628,13 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain(
       "let cookiePosition = localLightClusterCookieMatrices[matrixBaseIndex] * vec4f(position, 1.0);",
     );
+    expect(shader.code).toContain(
+      "struct LocalLightClusterCubeFaceCoordinates",
+    );
+    expect(shader.code).toContain(
+      "let layerIndex = layerBaseIndex + faceCoordinates.faceIndex;",
+    );
+    expect(shader.code).toContain("i32(layerIndex),");
     expect(shader.code).not.toContain("texture_cube<f32>");
   });
 

@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "2e675c6",
   "activePid": null,
-  "notes": "Completed task-3136 multiple clustered local-light cookies via renderer-owned 2D array resources; next step is post-cookie render-pipeline audit.",
-  "lastRunFinishedAt": "2026-05-24T05:17:14Z"
+  "notes": "Completed task-3137 mixed clustered point/spot cookies through one renderer-owned 2D-array path; next task-3138 mixed clustered local shadows.",
+  "lastRunFinishedAt": "2026-05-24T05:51:41Z"
 }

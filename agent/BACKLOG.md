@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Re-audit the covered render pipeline against PlayCanvas and three.js after
-`task-3136`, then select the next visible SOTA slice.
+Start `task-3138`: add a mixed clustered point/spot local-shadow proof route
+and close the next PlayCanvas-style local shadow resource packing gap.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -204,15 +204,20 @@ resources. `task-3134` now gives clustered spot cookies renderer-owned
 projection matrices that do not depend on shadow depth resources. `task-3135`
 now adds clustered point-light cube cookie sampling through cube texture views.
 `task-3136` now supports multiple ready clustered spot cookies in one frame
-through a renderer-owned 2D texture array and per-light metadata indices. The
-next step is a covered-pipeline re-audit before selecting the next visible SOTA
-slice.
+through a renderer-owned 2D texture array and per-light metadata indices.
+`task-3137` now supports mixed clustered spot cookies and point cube cookies in
+one frame by flattening point cube faces into the same renderer-owned 2D-array
+path. The next SOTA gap is broader local shadow resource packing: PlayCanvas
+allocates clustered local shadow/cookie atlas slots across mixed point/spot
+lights, while Aperture still proves those permutations through narrower fixed
+resource shapes.
 
-Reference anchors for the next audit (read before writing):
+Reference anchors for the next visible slice (read before writing):
 
 - `references/engine/src/scene/lighting/lights-buffer.js`.
+- `references/engine/src/scene/lighting/light-texture-atlas.js`.
 - `references/engine/src/scene/renderer/forward-renderer.js`.
-- `references/three.js/src/renderers/webgl/WebGLLights.js`.
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
 - `docs/render-pipeline-comparison.html`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
@@ -837,6 +842,82 @@ Acceptance criteria:
 - A browser proof renders at least two differently patterned local-light
   cookies in one clustered scene and reports both as supported with zero WebGPU
   validation warnings.
+
+### task-3137 — Support mixed clustered point and spot cookies per frame
+
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.
+Reference anchor: `references/engine/src/scene/lighting/light-texture-atlas.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightUtils.js`, `references/engine/src/scene/lighting/lights-buffer.js`.
+
+Acceptance criteria:
+
+- The clustered local-light route supports compatible spot cookies and point
+  cube cookies in the same frame through one WebGPU-layout-compatible
+  renderer-owned cookie resource.
+- Cluster metadata records per-light cookie layer bases without exposing GPU
+  resources through ECS or a hidden renderer-owned scene graph.
+- `examples/clustered-lights.html?enable-cluster-mixed-cookie=1` reports three
+  supported clustered cookie lights, renders non-clear cookie-modulated
+  receiver pixels, and keeps zero relevant WebGPU validation warnings.
+
+### task-3138 — Add mixed clustered point and spot local-shadow proof
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
+Reference anchor: `references/engine/src/scene/lighting/light-texture-atlas.js`, `references/engine/src/scene/lighting/lights-buffer.js`, `references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
+
+Acceptance criteria:
+
+- Add an opt-in clustered-lights route that enables supported local point and
+  spot shadow sampling in the same clustered StandardMaterial frame.
+- The route must report supported point and spot shadow metadata/resources
+  together, preserve direct clustered lighting, and avoid exposing renderer GPU
+  resources through ECS or snapshots.
+- Browser status/readbacks must show both point-shadow and spot-shadow receiver
+  changes against disabled-shadow baselines with zero relevant WebGPU
+  validation warnings.
+
+### task-3139 — Pack multiple clustered local shadow resources by metadata index
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
+Reference anchor: `references/engine/src/scene/lighting/light-texture-atlas.js`, `references/engine/src/scene/lighting/lights-buffer.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`.
+
+Acceptance criteria:
+
+- Compatible clustered local shadow maps can be packed into a renderer-owned
+  array or atlas resource, with metadata selecting the per-light shadow layer or
+  atlas viewport.
+- A clustered-lights proof route renders more than one supported local shadow
+  of the same broad resource family in one frame without adding new ECS-owned
+  renderer state.
+- Focused resource/shader tests and a browser proof pass with zero relevant
+  WebGPU validation warnings.
+
+### task-3140 — Add atlas-space clustered cookie metadata for nonuniform local cookies
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*cookie*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
+Reference anchor: `references/engine/src/scene/lighting/light-texture-atlas.js`, `references/engine/src/scene/lighting/lights-buffer.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightCookies.js`.
+
+Acceptance criteria:
+
+- Clustered local cookies that cannot share the current compatible-size array
+  path have an atlas-space metadata route or explicit unsupported fallback that
+  is visible in browser status.
+- A proof route renders at least two local cookies with non-identical source
+  dimensions or point/spot atlas footprints while preserving renderer-owned GPU
+  resources.
+- Targeted resource/shader tests and a browser proof pass with zero relevant
+  WebGPU validation warnings.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

@@ -3775,9 +3775,9 @@ function applyStandardClusteredLocalLightSampling(
   _ = position;
   return localLightClusterUnsupportedShadowFactor(lightIndex);
 }`;
-  const pointCookieColorFunction =
-    options.localLightCookies && options.localLightCubeCookies
-      ? `fn localLightClusterPointCookieColor(position: vec3f, lightIndex: u32, lightPosition: vec3f) -> vec3f {
+  const pointCookieColorFunction = (() => {
+    if (options.localLightCookies && options.localLightCubeCookies) {
+      return `fn localLightClusterPointCookieColor(position: vec3f, lightIndex: u32, lightPosition: vec3f) -> vec3f {
   let metadataFlags = localLightClusterMetadataFlags(lightIndex);
 
   if ((metadataFlags & ${LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_REQUEST}u) == 0u) {
@@ -3807,12 +3807,83 @@ function applyStandardClusteredLocalLightSampling(
     0.0,
   ).rgb;
   return mix(vec3f(1.0), cookieTexel, saturate(localLightClusterCookieIntensity(lightIndex)));
-}`
-      : `fn localLightClusterPointCookieColor(position: vec3f, lightIndex: u32, lightPosition: vec3f) -> vec3f {
+}`;
+    }
+
+    if (options.localLightCookies && options.localLightArrayCookies) {
+      return `struct LocalLightClusterCubeFaceCoordinates {
+  uv: vec2f,
+  faceIndex: u32,
+}
+
+fn localLightClusterCubeFaceCoordinates(dir: vec3f) -> LocalLightClusterCubeFaceCoordinates {
+  let vAbs = abs(dir);
+  var uv = vec2f(0.5);
+  var faceIndex = 0u;
+  var ma = 0.5;
+
+  if (vAbs.z >= vAbs.x && vAbs.z >= vAbs.y) {
+    let negZ = dir.z < 0.0;
+    faceIndex = select(4u, 5u, negZ);
+    ma = 0.5 / max(vAbs.z, 0.00001);
+    uv = vec2f(select(dir.x, -dir.x, negZ), -dir.y);
+  } else if (vAbs.y >= vAbs.x) {
+    let negY = dir.y < 0.0;
+    faceIndex = select(2u, 3u, negY);
+    ma = 0.5 / max(vAbs.y, 0.00001);
+    uv = vec2f(dir.x, select(dir.z, -dir.z, negY));
+  } else {
+    let negX = dir.x < 0.0;
+    faceIndex = select(0u, 1u, negX);
+    ma = 0.5 / max(vAbs.x, 0.00001);
+    uv = vec2f(select(-dir.z, dir.z, negX), -dir.y);
+  }
+
+  return LocalLightClusterCubeFaceCoordinates(uv * ma + vec2f(0.5), faceIndex);
+}
+
+fn localLightClusterPointCookieColor(position: vec3f, lightIndex: u32, lightPosition: vec3f) -> vec3f {
+  let metadataFlags = localLightClusterMetadataFlags(lightIndex);
+
+  if ((metadataFlags & ${LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_REQUEST}u) == 0u) {
+    return vec3f(1.0);
+  }
+
+  if ((metadataFlags & ${LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_SUPPORTED}u) == 0u) {
+    return localLightClusterUnsupportedCookieColor(lightIndex);
+  }
+
+  let layerBaseIndex = localLightClusterCookieMatrixBase(lightIndex);
+  let toReceiver = position - lightPosition;
+
+  if (length(toReceiver) <= 0.0001) {
+    return vec3f(1.0);
+  }
+
+  let faceCoordinates = localLightClusterCubeFaceCoordinates(normalize(toReceiver));
+  let layerIndex = layerBaseIndex + faceCoordinates.faceIndex;
+
+  if (layerIndex >= arrayLength(&localLightClusterCookieMatrices)) {
+    return localLightClusterUnsupportedCookieColor(lightIndex);
+  }
+
+  let cookieTexel = textureSampleLevel(
+    localLightClusterCookieTexture,
+    localLightClusterCookieSampler,
+    clamp(faceCoordinates.uv, vec2f(0.0), vec2f(1.0)),
+    i32(layerIndex),
+    0.0,
+  ).rgb;
+  return mix(vec3f(1.0), cookieTexel, saturate(localLightClusterCookieIntensity(lightIndex)));
+}`;
+    }
+
+    return `fn localLightClusterPointCookieColor(position: vec3f, lightIndex: u32, lightPosition: vec3f) -> vec3f {
   _ = position;
   _ = lightPosition;
   return localLightClusterUnsupportedCookieColor(lightIndex);
 }`;
+  })();
   const spotCookieSampleExpression = options.localLightArrayCookies
     ? `textureSampleLevel(
     localLightClusterCookieTexture,

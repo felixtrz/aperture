@@ -3,28 +3,33 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: post-task-3136 render-pipeline audit.
+Current task: `task-3138` — add mixed clustered point and spot local-shadow
+proof.
 
-Status: `task-3136` completed multiple clustered local-light cookies per frame.
+Status: `task-3137` completed mixed clustered local-light cookies per frame.
 
-Key finding:
+Key findings:
 
-- Compatible clustered spot-cookie texture handles now pack into a
-  renderer-owned `2d-array` texture resource with a matching matrix buffer.
-- Cluster metadata word 3 records the per-light matrix/array-layer index used
-  by the StandardMaterial clustered shader.
-- `examples/clustered-lights.html?enable-cluster-multi-cookie=1` renders two
-  differently patterned local spot cookies in one clustered frame, reports two
-  supported cookie lights, and kept WebGPU validation warnings at zero in the
-  narrow Chrome proof.
+- Compatible clustered spot-cookie 2D textures and point cube-cookie textures
+  now pack into one renderer-owned `texture_2d_array` path when their source
+  dimensions/format/sampler descriptors are compatible.
+- Point cube-cookie faces flatten into six consecutive array layers, and the
+  clustered metadata word stores each light's base layer so the
+  StandardMaterial shader can derive the cube face layer at sample time.
+- `examples/clustered-lights.html?enable-cluster-mixed-cookie=1` reports three
+  supported cookie lights, the array-cookie pipeline key, non-clear readback
+  pixels, and zero relevant WebGPU validation warnings in the narrow headed
+  Chrome proof.
+- The post-task-3137 audit still finds a PlayCanvas-style gap around clustered
+  local shadow/cookie atlas breadth. Aperture now has strong fixed-resource
+  proofs, but it still needs broader mixed local-shadow permutations and
+  metadata-driven resource packing.
 
-Next step: re-audit the covered render pipeline against the local PlayCanvas
-and three.js references, then select the next visible SOTA slice.
+Next step: implement `task-3138`.
 
-Reference anchors for the next audit:
+Reference anchors for `task-3138`:
 
-- `docs/render-pipeline-comparison.html`.
-- `references/engine/src/scene/lighting/lights-buffer.js`.
 - `references/engine/src/scene/lighting/light-texture-atlas.js`.
+- `references/engine/src/scene/lighting/lights-buffer.js`.
 - `references/engine/src/scene/renderer/forward-renderer.js`.
-- `references/three.js/src/renderers/webgl/WebGLLights.js`.
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`.

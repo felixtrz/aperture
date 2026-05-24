@@ -365,7 +365,8 @@ describe("clustered local-light cookie resources", () => {
     expect(result.diagnostics).toEqual([]);
     expect(result.resources).toMatchObject({
       matrixResource: {
-        resourceKey: "local-light-cookie-matrix-array:v1:spot:100,101",
+        resourceKey:
+          "local-light-cookie-matrix-array:v1:spot:100@0+1,spot:101@1+1",
         matrixCount: 2,
         entryLightIds: [100, 101],
       },
@@ -391,7 +392,7 @@ describe("clustered local-light cookie resources", () => {
     );
     expect(createdBuffers).toMatchObject([
       {
-        label: "local-light-cookie-matrix-array:v1:spot:100,101",
+        label: "local-light-cookie-matrix-array:v1:spot:100@0+1,spot:101@1+1",
         size: 128,
       },
     ]);
@@ -420,6 +421,139 @@ describe("clustered local-light cookie resources", () => {
       32, 32, 32, 255, 255, 255, 255, 255, 255, 255, 255, 255, 32, 32, 32, 255,
     ]);
     expect(bufferWrites).toHaveLength(1);
+    expect(reuse).toMatchObject({
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+    });
+  });
+
+  it("packs compatible spot and point cookies into one renderer-owned texture array", () => {
+    const registry = new AssetRegistry();
+    const spotTexture = createTextureHandle("mixed-spot-cookie");
+    const pointTexture = createTextureHandle("mixed-point-cookie");
+    const spotSampler = createSamplerHandle("mixed-spot-sampler");
+    const pointSampler = createSamplerHandle("mixed-point-sampler");
+    const createdTextures: unknown[] = [];
+    const createdViews: unknown[] = [];
+    const createdSamplers: unknown[] = [];
+    const createdBuffers: unknown[] = [];
+    const textureWrites: Array<{
+      readonly data: Uint8Array;
+      readonly layout: unknown;
+      readonly size: unknown;
+    }> = [];
+    const reuse = createReuseReport();
+
+    registry.register(spotTexture);
+    registry.register(pointTexture);
+    registry.register(spotSampler);
+    registry.register(pointSampler);
+    registry.markReady(
+      spotTexture,
+      createTestCookieTextureAsset(
+        "MixedSpotCookie",
+        [
+          250, 250, 250, 255, 10, 10, 10, 255, 10, 10, 10, 255, 250, 250, 250,
+          255,
+        ],
+      ),
+    );
+    registry.markReady(pointTexture, createTestCookieCubeTextureAsset());
+    registry.markReady(spotSampler, createLinearCookieSamplerAsset());
+    registry.markReady(pointSampler, createLinearCookieSamplerAsset());
+
+    const result = prepareLocalLightClusterCookieResources({
+      assets: registry,
+      cache: createCache(),
+      device: {
+        createTexture: (descriptor: unknown) => {
+          createdTextures.push(descriptor);
+          return {
+            createView: (viewDescriptor: unknown) => {
+              createdViews.push(viewDescriptor);
+              return { label: "mixed-cookie-array-view" };
+            },
+          };
+        },
+        createSampler: (descriptor: unknown) => {
+          createdSamplers.push(descriptor);
+          return { label: "mixed-cookie-sampler" };
+        },
+        createBuffer: (descriptor: unknown) => {
+          createdBuffers.push(descriptor);
+          return { label: "mixed-cookie-matrix-array-buffer" };
+        },
+        queue: {
+          writeTexture: (
+            _destination: unknown,
+            data: Uint8Array,
+            layout: unknown,
+            size: unknown,
+          ) => {
+            textureWrites.push({ data, layout, size });
+          },
+          writeBuffer: () => undefined,
+        },
+      },
+      reuse,
+      snapshot: snapshotWithMixedCookies(
+        spotTexture,
+        pointTexture,
+        spotSampler,
+        pointSampler,
+      ),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.resources).toMatchObject({
+      matrixResource: {
+        resourceKey:
+          "local-light-cookie-matrix-array:v1:spot:100@0+1,point:101@1+6",
+        matrixCount: 7,
+        entryLightIds: [100, 101],
+      },
+      textureViewDimension: "2d-array",
+      samplerKey: "sampler:mixed-spot-sampler@1",
+      supportedResources: [
+        {
+          lightId: 100,
+          samplerKey: "sampler:mixed-spot-sampler@1",
+          textureViewDimension: "2d-array",
+          matrixBaseIndex: 0,
+        },
+        {
+          lightId: 101,
+          samplerKey: "sampler:mixed-spot-sampler@1",
+          textureViewDimension: "2d-array",
+          matrixBaseIndex: 1,
+        },
+      ],
+    });
+    expect(createdBuffers).toMatchObject([
+      {
+        label: "local-light-cookie-matrix-array:v1:spot:100@0+1,point:101@1+6",
+        size: 448,
+      },
+    ]);
+    expect(createdTextures).toMatchObject([
+      {
+        size: [2, 2, 7],
+        format: "rgba8unorm",
+        usage: 6,
+      },
+    ]);
+    expect(createdViews).toEqual([{ dimension: "2d-array" }]);
+    expect(createdSamplers).toHaveLength(1);
+    expect(textureWrites).toHaveLength(1);
+    expect(textureWrites[0]).toMatchObject({
+      layout: { bytesPerRow: 8, rowsPerImage: 2 },
+      size: [2, 2, 7],
+    });
+    expect(textureWrites[0]?.data.byteLength).toBe(112);
+    expect(Array.from(textureWrites[0]?.data.subarray(0, 16) ?? [])).toEqual([
+      250, 250, 250, 255, 10, 10, 10, 255, 10, 10, 10, 255, 250, 250, 250, 255,
+    ]);
     expect(reuse).toMatchObject({
       textureResourcesCreated: 1,
       samplerResourcesCreated: 1,
@@ -646,6 +780,52 @@ function snapshotWithTwoSpotCookies(
   };
 }
 
+function snapshotWithMixedCookies(
+  spotTexture: ReturnType<typeof createTextureHandle>,
+  pointTexture: ReturnType<typeof createTextureHandle>,
+  spotSampler: ReturnType<typeof createSamplerHandle>,
+  pointSampler: ReturnType<typeof createSamplerHandle>,
+): RenderSnapshot {
+  return {
+    frame: 1,
+    views: [],
+    meshDraws: [],
+    lights: [
+      spotCookieLight(100, 0, spotTexture, spotSampler),
+      {
+        lightId: 101,
+        entity: { index: 101, generation: 0 },
+        kind: "point",
+        color: [1, 1, 1, 1],
+        intensity: 10,
+        range: 4,
+        innerConeAngle: 0,
+        outerConeAngle: 0,
+        worldTransformOffset: 16,
+        layerMask: 1,
+        cookieTexture: pointTexture,
+        cookieSampler: pointSampler,
+        cookieIntensity: 1,
+      },
+    ],
+    environments: [],
+    shadowRequests: [],
+    bounds: [],
+    transforms: twoIdentityTransforms(),
+    viewMatrices: new Float32Array(0),
+    diagnostics: [],
+    report: {
+      views: 0,
+      meshDraws: 0,
+      lights: 2,
+      environments: 0,
+      shadowRequests: 0,
+      bounds: 0,
+      diagnostics: 0,
+    },
+  };
+}
+
 function spotCookieLight(
   lightId: number,
   worldTransformOffset: number,
@@ -699,6 +879,51 @@ function createTestCookieTextureAsset(label: string, bytes: readonly number[]) {
       bytesPerRow: 8,
       rowsPerImage: 2,
     },
+  });
+}
+
+function createTestCookieCubeTextureAsset() {
+  const layerBytes = 16;
+  const bytes = new Uint8Array(layerBytes * 6);
+
+  for (let layer = 0; layer < 6; layer += 1) {
+    bytes.fill(layer * 32, layer * layerBytes, (layer + 1) * layerBytes);
+    for (
+      let alpha = layer * layerBytes + 3;
+      alpha < (layer + 1) * layerBytes;
+      alpha += 4
+    ) {
+      bytes[alpha] = 255;
+    }
+  }
+
+  return createTextureAsset({
+    label: "MixedPointCookieCube",
+    dimension: "cube",
+    width: 2,
+    height: 2,
+    depthOrLayers: 6,
+    format: "rgba8unorm",
+    colorSpace: "linear",
+    semantic: "data",
+    usage: ["sampled", "copy-dst"],
+    sourceData: {
+      bytes,
+      bytesPerRow: 8,
+      rowsPerImage: 2,
+    },
+  });
+}
+
+function createLinearCookieSamplerAsset() {
+  return createSamplerAsset({
+    label: "MixedCookieLinear",
+    addressModeU: "clamp-to-edge",
+    addressModeV: "clamp-to-edge",
+    addressModeW: "clamp-to-edge",
+    magFilter: "nearest",
+    minFilter: "nearest",
+    mipmapFilter: "nearest",
   });
 }
 

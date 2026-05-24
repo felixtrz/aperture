@@ -9,12 +9,16 @@ const exampleParams = new URLSearchParams(globalThis.location.search);
 const clusteredCookieOnlyEnabled =
   exampleParams.has("enable-cluster-cookie-only") &&
   !exampleParams.has("disable-cluster-cookie");
+const clusteredMixedCookieEnabled =
+  exampleParams.has("enable-cluster-mixed-cookie") &&
+  !exampleParams.has("disable-cluster-cookie");
 const clusteredMultiCookieEnabled =
-  exampleParams.has("enable-cluster-multi-cookie") &&
+  (exampleParams.has("enable-cluster-multi-cookie") ||
+    clusteredMixedCookieEnabled) &&
   !exampleParams.has("disable-cluster-cookie");
 const clusteredPointCookieEnabled =
-  exampleParams.has("enable-cluster-point-cookie") &&
-  !clusteredMultiCookieEnabled &&
+  (exampleParams.has("enable-cluster-point-cookie") ||
+    clusteredMixedCookieEnabled) &&
   !exampleParams.has("disable-cluster-cookie");
 const clusteredPointShadowEnabled =
   !exampleParams.has("disable-cluster-point-shadow") &&
@@ -520,6 +524,7 @@ function statusFromReport(
     scene.clusteredSpotShadowEnabled,
     scene.clusteredCookieEnabled,
     scene.clusteredMultiCookieEnabled,
+    scene.clusteredPointCookieEnabled,
   );
   const readbackStatus = createReadbackStatus(reportJson.readback);
   recordClusterOccupancy(loop, localLightClusters);
@@ -563,6 +568,7 @@ function createClusterStatus(
   spotShadowEnabled,
   cookieEnabled,
   multiCookieEnabled,
+  pointCookieEnabled,
 ) {
   const clusterPipelineUsed = pipelineKeys.some((pipelineKey) =>
     pipelineKey.includes("clusteredLocalLights"),
@@ -659,7 +665,9 @@ function createClusterStatus(
         shadow.clusteredLightCount >= expectedShadowRequestCount &&
         shadow.supportedLightCount >= 1,
     );
-  const requiredCookieSupportedCount = multiCookieEnabled === true ? 2 : 1;
+  const requiredCookieSupportedCount =
+    (multiCookieEnabled === true ? 2 : 0) +
+      (pointCookieEnabled === true ? 1 : 0) || (cookieEnabled === true ? 1 : 0);
   const routeCookieSamplingOk =
     cookieEnabled === true &&
     routeCookieStates.some(
