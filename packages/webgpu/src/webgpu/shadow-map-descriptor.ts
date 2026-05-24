@@ -14,6 +14,8 @@ export interface ShadowMapDescriptorSource {
   readonly depthFormat?: "depth24plus";
   readonly faceCount?: 1 | 6;
   readonly viewDimension?: "2d" | "2d-array" | "cube";
+  readonly textureWidth?: number;
+  readonly textureHeight?: number;
   readonly layerCount?: number;
   readonly layerBaseIndex?: number;
   readonly resourceKey?: string;
@@ -26,6 +28,8 @@ export interface ShadowMapDescriptor {
   readonly resourceKey: string;
   readonly depthFormat: "depth24plus";
   readonly mapSize: number;
+  readonly textureWidth: number;
+  readonly textureHeight: number;
   readonly depthBias: number;
   readonly normalBias: number;
   readonly cascadeCount: number;
@@ -118,6 +122,14 @@ export function createShadowMapDescriptorReport(
       source?.layerCount ??
         (lightKind === "directional" ? cascadeCount : faceCount),
     );
+    const textureWidth = normalizeTextureExtent(
+      source?.textureWidth,
+      source?.mapSize,
+    );
+    const textureHeight = normalizeTextureExtent(
+      source?.textureHeight,
+      source?.mapSize,
+    );
 
     return {
       shadowId: request.shadowId,
@@ -128,6 +140,8 @@ export function createShadowMapDescriptorReport(
         `shadow-map:${request.shadowId}:light:${request.lightId}`,
       depthFormat: source?.depthFormat ?? "depth24plus",
       mapSize: source?.mapSize ?? 0,
+      textureWidth,
+      textureHeight,
       depthBias: source?.depthBias ?? 0,
       normalBias: source?.normalBias ?? 0,
       cascadeCount,
@@ -188,4 +202,20 @@ function clampCascadeCount(value: number): number {
   }
 
   return Math.min(4, Math.max(1, value));
+}
+
+function normalizeTextureExtent(
+  value: number | undefined,
+  mapSize: number | undefined,
+): number {
+  const fallback =
+    Number.isInteger(mapSize) && mapSize !== undefined && mapSize > 0
+      ? mapSize
+      : 0;
+
+  if (value === undefined || !Number.isInteger(value) || value <= 0) {
+    return fallback;
+  }
+
+  return value;
 }

@@ -37,7 +37,7 @@ export interface ShadowPassPlan {
   readonly depthFormat: "depth24plus";
   readonly casterLayerMask: number;
   readonly receiverLayerMask: number;
-  readonly depthLoadOp: "clear";
+  readonly depthLoadOp: "clear" | "load";
   readonly depthStoreOp: "store";
   readonly depthClearValue: 0 | 1;
   readonly submission: Exclude<ShadowPassSubmissionMode, "ready"> | "ready";
@@ -115,6 +115,7 @@ export function createShadowPassPlanReport(
       request,
     ]),
   );
+  const usedDepthViews = new Set<string>();
   const passes: ShadowPassPlan[] = [];
 
   for (const texture of input.textures.textures) {
@@ -131,7 +132,13 @@ export function createShadowPassPlanReport(
       continue;
     }
 
-    passes.push(...createShadowPassPlans(texture, request, submission));
+    for (const pass of createShadowPassPlans(texture, request, submission)) {
+      const depthViewKey = `${pass.textureKey}:${pass.viewKey}`;
+      const depthLoadOp = usedDepthViews.has(depthViewKey) ? "load" : "clear";
+
+      usedDepthViews.add(depthViewKey);
+      passes.push({ ...pass, depthLoadOp });
+    }
   }
 
   if (submission === "unsupported") {

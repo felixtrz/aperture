@@ -31,8 +31,15 @@ const clusteredMixedShadowEnabled =
   !clusteredCookieOnlyEnabled &&
   !clusteredMultiCookieEnabled &&
   !clusteredPointCookieEnabled;
+const clusteredSpotShadowAtlasEnabled =
+  exampleParams.has("enable-cluster-spot-shadow-atlas") &&
+  !exampleParams.has("disable-cluster-spot-shadow") &&
+  !clusteredCookieOnlyEnabled &&
+  !clusteredMultiCookieEnabled &&
+  !clusteredPointCookieEnabled;
 const clusteredMultiSpotShadowEnabled =
-  exampleParams.has("enable-cluster-multi-spot-shadow") &&
+  (exampleParams.has("enable-cluster-multi-spot-shadow") ||
+    clusteredSpotShadowAtlasEnabled) &&
   !exampleParams.has("disable-cluster-spot-shadow") &&
   !clusteredCookieOnlyEnabled &&
   !clusteredMultiCookieEnabled &&
@@ -76,6 +83,7 @@ const clusteredSpotShadowIntent = {
   casterLayerMask: 2,
   receiverLayerMask: 2,
 };
+const clusteredSpotShadowAtlasMapSizes = [256, 128];
 const maxStatusWarmupFrames = 90;
 const maxTransparentReadbackWarmupFrames = 150;
 const readbackSamples = [
@@ -263,6 +271,7 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     clusteredAtlasCookieEnabled,
     clusteredCookieOnlyEnabled,
     clusteredMixedShadowEnabled,
+    clusteredSpotShadowAtlasEnabled,
     clusteredMultiSpotShadowEnabled,
     cameraFrameOffset:
       clusteredPointShadowEnabled || clusteredSpotShadowEnabled ? 0 : 1,
@@ -475,6 +484,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     clusteredMultiCookieEnabled: scene.clusteredMultiCookieEnabled,
     clusteredAtlasCookieEnabled: scene.clusteredAtlasCookieEnabled,
     clusteredCookieOnlyEnabled: scene.clusteredCookieOnlyEnabled,
+    clusteredSpotShadowAtlasEnabled: scene.clusteredSpotShadowAtlasEnabled,
     clusteredMultiSpotShadowEnabled: scene.clusteredMultiSpotShadowEnabled,
     canvas: {
       width: canvas?.width ?? 960,
@@ -604,6 +614,7 @@ function statusFromReport(
     scene.clusteredMultiCookieEnabled,
     scene.clusteredPointCookieEnabled,
     scene.clusteredAtlasCookieEnabled,
+    scene.clusteredSpotShadowAtlasEnabled,
     scene.clusteredMultiSpotShadowEnabled,
   );
   const readbackStatus = createReadbackStatus(reportJson.readback);
@@ -651,6 +662,7 @@ function createClusterStatus(
   multiCookieEnabled,
   pointCookieEnabled,
   atlasCookieEnabled,
+  spotShadowAtlasEnabled,
   multiSpotShadowEnabled,
 ) {
   const clusterPipelineUsed = pipelineKeys.some((pipelineKey) =>
@@ -756,6 +768,16 @@ function createClusterStatus(
     );
   const routeMultiSpotShadowSamplingOk =
     multiSpotShadowEnabled === true && routeSpotShadowSamplingOk;
+  const routeSpotShadowAtlasSamplingOk =
+    spotShadowAtlasEnabled === true &&
+    routeSpotShadowSamplingOk &&
+    shadowStatus?.spot?.mode === "clustered-spot-atlas-depth-compare" &&
+    pipelineKeys.some(
+      (pipelineKey) =>
+        pipelineKey.includes("clusteredLocalLights") &&
+        pipelineKey.includes("shadowMap") &&
+        !pipelineKey.includes("clusteredLocalLightArrayShadows"),
+    );
   const mixedShadowEnabled =
     pointShadowEnabled === true && spotShadowEnabled === true;
   const routeMixedShadowSamplingOk =
@@ -848,6 +870,7 @@ function createClusterStatus(
       (pointShadowEnabled !== true || routePointShadowSamplingOk) &&
       (spotShadowEnabled !== true || routeSpotShadowSamplingOk) &&
       (multiSpotShadowEnabled !== true || routeMultiSpotShadowSamplingOk) &&
+      (spotShadowAtlasEnabled !== true || routeSpotShadowAtlasSamplingOk) &&
       (mixedShadowEnabled !== true || routeMixedShadowSamplingOk) &&
       (cookieEnabled !== true || routeCookieSamplingOk) &&
       occupancyChanged &&
@@ -874,6 +897,7 @@ function createClusterStatus(
     routePointShadowSamplingOk,
     routeSpotShadowSamplingOk,
     routeMultiSpotShadowSamplingOk,
+    routeSpotShadowAtlasSamplingOk,
     routeMixedShadowSamplingOk,
     routeCookieSamplingOk,
     routeCookieAtlasSamplingOk,
@@ -1344,16 +1368,24 @@ async function createClusteredSpotShadowReceiverResources(
     };
   }
 
-  const spotArrayEnabled = requiredSpotShadowCount > 1;
-  const spotResourceKey = spotArrayEnabled
-    ? "shadow-map:clustered-spot-array"
-    : undefined;
+  const spotAtlasEnabled =
+    scene.clusteredSpotShadowAtlasEnabled === true &&
+    requiredSpotShadowCount > 1;
+  const spotArrayEnabled = requiredSpotShadowCount > 1 && !spotAtlasEnabled;
+  const atlasTiles = spotAtlasEnabled
+    ? createClusteredSpotShadowAtlasTiles(shadowRequests)
+    : [];
+  const spotResourceKey = spotAtlasEnabled
+    ? "shadow-map:clustered-spot-atlas"
+    : spotArrayEnabled
+      ? "shadow-map:clustered-spot-array"
+      : undefined;
   const shadowDescriptor = aperture.createShadowMapDescriptorReport({
     shadowRequests,
     descriptors: shadowRequests.map((request, index) => ({
       shadowId: request.shadowId,
       lightId: request.lightId,
-      mapSize: clusteredSpotShadowIntent.mapSize,
+      mapSize: atlasTiles[index]?.mapSize ?? clusteredSpotShadowIntent.mapSize,
       depthBias: clusteredSpotShadowIntent.depthBias,
       normalBias: clusteredSpotShadowIntent.normalBias,
       faceCount: 1,
@@ -1361,6 +1393,12 @@ async function createClusteredSpotShadowReceiverResources(
       ...(spotResourceKey === undefined
         ? {}
         : { resourceKey: spotResourceKey }),
+      ...(spotAtlasEnabled
+        ? {
+            textureWidth: atlasTiles[0]?.atlasWidth,
+            textureHeight: atlasTiles[0]?.atlasHeight,
+          }
+        : {}),
       ...(spotArrayEnabled
         ? {
             layerCount: shadowRequests.length,
@@ -1409,19 +1447,27 @@ async function createClusteredSpotShadowReceiverResources(
       viewProjection: shadowViewProjection,
       transforms: report.snapshot.transforms,
     });
+  const shadowMatrixComputationForUpload = spotAtlasEnabled
+    ? createAtlasAdjustedSpotShadowMatrixComputation(
+        shadowMatrixComputation,
+        atlasTiles,
+      )
+    : shadowMatrixComputation;
   const shadowMatrixBuffer = aperture.createShadowMatrixBufferDescriptorReport({
     viewProjection: shadowViewProjection,
     upload: "ready",
-    resourceKey: spotArrayEnabled
-      ? "shadow-matrix-buffer:clustered-spot-array"
-      : "shadow-matrix-buffer:clustered-spot",
+    resourceKey: spotAtlasEnabled
+      ? "shadow-matrix-buffer:clustered-spot-atlas"
+      : spotArrayEnabled
+        ? "shadow-matrix-buffer:clustered-spot-array"
+        : "shadow-matrix-buffer:clustered-spot",
     label: "ClusteredSpotShadowMatrices/storage",
   });
   const shadowMatrixBufferResourceReport =
     aperture.createShadowMatrixBufferResourceReport({
       device: app.initialization.device,
       descriptor: shadowMatrixBuffer,
-      matrices: shadowMatrixComputation,
+      matrices: shadowMatrixComputationForUpload,
     });
   const shadowCasterMeshDraws = report.snapshot.meshDraws.filter(
     (draw) =>
@@ -1519,9 +1565,11 @@ async function createClusteredSpotShadowReceiverResources(
   const shadowPassCommandEncoderResource =
     aperture.createCommandEncoderResource({
       device: app.initialization.device,
-      label: spotArrayEnabled
-        ? "shadow-pass:clustered-spot-array"
-        : "shadow-pass:clustered-spot",
+      label: spotAtlasEnabled
+        ? "shadow-pass:clustered-spot-atlas"
+        : spotArrayEnabled
+          ? "shadow-pass:clustered-spot-array"
+          : "shadow-pass:clustered-spot",
     });
   const shadowPassEncoderAssemblyReport =
     aperture.createShadowPassEncoderAssemblyReport({
@@ -1550,9 +1598,13 @@ async function createClusteredSpotShadowReceiverResources(
       queue: app.initialization.device.queue,
       label: spotArrayEnabled
         ? "shadow-pass:clustered-spot-array"
-        : "shadow-pass:clustered-spot",
+        : spotAtlasEnabled
+          ? "shadow-pass:clustered-spot-atlas"
+          : "shadow-pass:clustered-spot",
       submit: true,
     });
+  const atlasWidth = atlasTiles[0]?.atlasWidth ?? 0;
+  const atlasHeight = atlasTiles[0]?.atlasHeight ?? 0;
   const supported =
     shadowPassCommandBufferSubmissionReport.status === "submitted" &&
     shadowMatrixBufferResourceReport.resource !== null &&
@@ -1565,7 +1617,12 @@ async function createClusteredSpotShadowReceiverResources(
           resource.allocation.resource !== null &&
           (!spotArrayEnabled ||
             ((resource.layerCount ?? 0) >= shadowRequests.length &&
-              resource.layerBaseIndex === index)),
+              resource.layerBaseIndex === index)) &&
+          (!spotAtlasEnabled ||
+            (resource.resourceKey === spotResourceKey &&
+              (resource.layerCount ?? 1) === 1 &&
+              resource.allocation.resource.descriptor.size[0] === atlasWidth &&
+              resource.allocation.resource.descriptor.size[1] === atlasHeight)),
       ),
     ) &&
     shadowSamplerResourceReport.resource !== null;
@@ -1582,9 +1639,11 @@ async function createClusteredSpotShadowReceiverResources(
     shadowStatus: {
       enabled: true,
       supported,
-      mode: spotArrayEnabled
-        ? "clustered-spot-array-depth-compare"
-        : "clustered-spot-depth-compare",
+      mode: spotAtlasEnabled
+        ? "clustered-spot-atlas-depth-compare"
+        : spotArrayEnabled
+          ? "clustered-spot-array-depth-compare"
+          : "clustered-spot-depth-compare",
       shadowId: shadowRequests[0]?.shadowId ?? null,
       lightId: shadowRequests[0]?.lightId ?? null,
       shadowIds: shadowRequests.map((request) => request.shadowId),
@@ -1592,11 +1651,103 @@ async function createClusteredSpotShadowReceiverResources(
       requiredSpotShadowCount,
       supportedLightCount: supported ? shadowRequests.length : 0,
       layerCount: spotArrayEnabled ? shadowRequests.length : 1,
+      ...(spotAtlasEnabled
+        ? {
+            atlasWidth,
+            atlasHeight,
+            atlasTiles: atlasTiles.map((tile) => ({
+              shadowId: tile.shadowId,
+              lightId: tile.lightId,
+              x: tile.x,
+              y: tile.y,
+              width: tile.mapSize,
+              height: tile.mapSize,
+            })),
+          }
+        : {}),
       casterDraws: shadowCasterMeshDraws.length,
       faceCount: shadowPassPlan.passCount,
       submission: shadowPassCommandBufferSubmissionReport.status,
     },
   };
+}
+
+function createClusteredSpotShadowAtlasTiles(shadowRequests) {
+  const mapSizes = shadowRequests.map(
+    (_request, index) =>
+      clusteredSpotShadowAtlasMapSizes[index] ??
+      clusteredSpotShadowIntent.mapSize,
+  );
+  const atlasWidth = mapSizes.reduce((sum, mapSize) => sum + mapSize, 0);
+  const atlasHeight = Math.max(...mapSizes, clusteredSpotShadowIntent.mapSize);
+  let x = 0;
+
+  return shadowRequests.map((request, index) => {
+    const mapSize = mapSizes[index] ?? clusteredSpotShadowIntent.mapSize;
+    const tile = {
+      shadowId: request.shadowId,
+      lightId: request.lightId,
+      mapSize,
+      atlasWidth,
+      atlasHeight,
+      x,
+      y: 0,
+    };
+
+    x += mapSize;
+    return tile;
+  });
+}
+
+function createAtlasAdjustedSpotShadowMatrixComputation(computation, tiles) {
+  const tileByShadowLight = new Map(
+    tiles.map((tile) => [`${tile.shadowId}:${tile.lightId}`, tile]),
+  );
+
+  return {
+    ...computation,
+    matrices: computation.matrices.map((matrix) => {
+      const tile = tileByShadowLight.get(
+        `${matrix.shadowId}:${matrix.lightId}`,
+      );
+
+      if (tile === undefined) {
+        return matrix;
+      }
+
+      return {
+        ...matrix,
+        viewProjectionMatrix: Array.from(
+          atlasAdjustedShadowMatrix(matrix.viewProjectionMatrix, {
+            x: tile.x / tile.atlasWidth,
+            y: tile.y / tile.atlasHeight,
+            width: tile.mapSize / tile.atlasWidth,
+            height: tile.mapSize / tile.atlasHeight,
+          }),
+        ),
+      };
+    }),
+  };
+}
+
+function atlasAdjustedShadowMatrix(matrix, rect) {
+  const result = new Float32Array(matrix);
+  const xScale = rect.width;
+  const xOffset = 2 * rect.x + rect.width - 1;
+  const yScale = rect.height;
+  const yOffset = 1 - 2 * rect.y - rect.height;
+
+  for (let column = 0; column < 4; column += 1) {
+    const offset = column * 4;
+    const row0 = matrix[offset] ?? 0;
+    const row1 = matrix[offset + 1] ?? 0;
+    const row3 = matrix[offset + 3] ?? 0;
+
+    result[offset] = xScale * row0 + xOffset * row3;
+    result[offset + 1] = yScale * row1 + yOffset * row3;
+  }
+
+  return result;
 }
 
 function createShadowCasterPreparedMeshViews(report) {

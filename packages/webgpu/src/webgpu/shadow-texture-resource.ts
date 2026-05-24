@@ -102,8 +102,8 @@ export function createShadowTextureResourceReport(
                   ? `${descriptor.resourceKey}:cascade-${index}:view`
                   : `${descriptor.resourceKey}:face-${index}:view`,
         ),
-        width: descriptor.mapSize,
-        height: descriptor.mapSize,
+        width: descriptor.textureWidth,
+        height: descriptor.textureHeight,
         depthFormat: descriptor.depthFormat,
         cascadeCount: descriptor.cascadeCount,
         layerCount,

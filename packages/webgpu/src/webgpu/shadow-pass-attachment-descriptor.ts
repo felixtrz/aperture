@@ -31,7 +31,7 @@ export interface ShadowPassDepthAttachmentDescriptor {
   readonly width: number;
   readonly height: number;
   readonly depthFormat: "depth24plus";
-  readonly depthLoadOp: "clear";
+  readonly depthLoadOp: "clear" | "load";
   readonly depthStoreOp: "store";
   readonly depthClearValue: 0 | 1;
 }

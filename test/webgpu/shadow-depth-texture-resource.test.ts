@@ -297,6 +297,84 @@ describe("shadow depth texture resource", () => {
       },
     });
   });
+
+  it("shares one 2d atlas depth allocation across nonuniform local spot shadows", () => {
+    const createdTextures: unknown[] = [];
+    const createdViews: unknown[] = [];
+    const report = createShadowDepthTextureResourceReport({
+      device: deviceWithTextures(createdTextures, createdViews),
+      textures: createShadowTextureResourceReport({
+        descriptors: createShadowMapDescriptorReport({
+          shadowRequests: [
+            { ...shadowRequest(13, 21), lightKind: "spot" },
+            { ...shadowRequest(14, 22), lightKind: "spot" },
+          ],
+          descriptors: [
+            {
+              shadowId: 13,
+              lightId: 21,
+              mapSize: 256,
+              textureWidth: 384,
+              textureHeight: 256,
+              depthBias: 0.002,
+              resourceKey: "shadow-map:clustered-spot-atlas",
+              viewDimension: "2d",
+            },
+            {
+              shadowId: 14,
+              lightId: 22,
+              mapSize: 128,
+              textureWidth: 384,
+              textureHeight: 256,
+              depthBias: 0.002,
+              resourceKey: "shadow-map:clustered-spot-atlas",
+              viewDimension: "2d",
+            },
+          ],
+        }),
+      }),
+    });
+
+    expect(report.ready).toBe(true);
+    expect(report.createdTextureCount).toBe(1);
+    expect(report.resources).toMatchObject([
+      {
+        shadowId: 13,
+        lightId: 21,
+        textureKey: "shadow-map:clustered-spot-atlas:texture",
+        viewDimension: "2d",
+        layerCount: 1,
+        layerBaseIndex: 0,
+        attachmentViews: [{ viewKey: "shadow-map:clustered-spot-atlas:view" }],
+      },
+      {
+        shadowId: 14,
+        lightId: 22,
+        textureKey: "shadow-map:clustered-spot-atlas:texture",
+        viewDimension: "2d",
+        layerCount: 1,
+        layerBaseIndex: 0,
+        attachmentViews: [{ viewKey: "shadow-map:clustered-spot-atlas:view" }],
+      },
+    ]);
+    expect(createdTextures).toEqual([
+      {
+        label: "shadow-map:clustered-spot-atlas:depth",
+        size: [384, 256, 1],
+        format: "depth24plus",
+        usage: 20,
+        mipLevelCount: 1,
+      },
+    ]);
+    expect(createdViews).toEqual([undefined]);
+    expect(
+      resolveShadowDepthTextureAttachmentView(report, {
+        shadowId: 14,
+        lightId: 22,
+        viewKey: "shadow-map:clustered-spot-atlas:view",
+      }),
+    ).toEqual({ descriptor: undefined });
+  });
 });
 
 function textures() {

@@ -101,6 +101,7 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
     readonly routePointShadowSamplingOk: boolean;
     readonly routeSpotShadowSamplingOk: boolean;
     readonly routeMultiSpotShadowSamplingOk?: boolean;
+    readonly routeSpotShadowAtlasSamplingOk?: boolean;
     readonly routeMixedShadowSamplingOk: boolean;
     readonly routeCookieSamplingOk: boolean;
     readonly routeCookieAtlasSamplingOk?: boolean;
@@ -149,6 +150,16 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
       readonly submission?: string;
       readonly supportedLightCount?: number;
       readonly layerCount?: number;
+      readonly atlasWidth?: number;
+      readonly atlasHeight?: number;
+      readonly atlasTiles?: readonly {
+        readonly shadowId: number;
+        readonly lightId: number;
+        readonly x: number;
+        readonly y: number;
+        readonly width: number;
+        readonly height: number;
+      }[];
     };
   };
   readonly counts?: {
@@ -227,6 +238,31 @@ test("browser renders StandardMaterial through clustered local lights", async ({
 
   skipIfUnsupportedWebGpu(multiSpot);
   expectStatusJsonSafeForGpu(multiSpot);
+
+  const atlasSpotPage = await page.context().newPage();
+  const atlasSpotWebGpuValidation =
+    attachWebGpuValidationConsoleGuard(atlasSpotPage);
+
+  await atlasSpotPage.goto(
+    "/examples/clustered-lights.html?enable-cluster-spot-shadow-atlas=1",
+  );
+  await atlasSpotPage.bringToFront();
+
+  const atlasSpot =
+    await waitForExampleStatus<ClusteredLightsStatus>(atlasSpotPage);
+
+  await attachExampleStatus("clustered-lights-atlas-spot-status", atlasSpot);
+  expect(
+    atlasSpot,
+    "clustered lights atlas-spot status should publish",
+  ).toBeDefined();
+
+  if (atlasSpot === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(atlasSpot);
+  expectStatusJsonSafeForGpu(atlasSpot);
 
   const cookiePage = await page.context().newPage();
   const cookieWebGpuValidation = attachWebGpuValidationConsoleGuard(cookiePage);
@@ -600,6 +636,53 @@ test("browser renders StandardMaterial through clustered local lights", async ({
         route.shadowCookieMetadata.shadow.supportedLightCount >= 2,
     ),
   ).toBe(true);
+  expect(atlasSpot.clusterStatus).toMatchObject({
+    ok: true,
+    routeMetadataOk: true,
+    routeSpotShadowSamplingOk: true,
+    routeMultiSpotShadowSamplingOk: true,
+    routeSpotShadowAtlasSamplingOk: true,
+    routeMixedShadowSamplingOk: false,
+    routeCookieSamplingOk: false,
+    requiredSpotShadowSupportedCount: 2,
+  });
+  expect(atlasSpot.shadowStatus).toMatchObject({
+    enabled: true,
+    supported: true,
+    mode: "clustered-spot-atlas-depth-compare",
+    spot: {
+      enabled: true,
+      supported: true,
+      mode: "clustered-spot-atlas-depth-compare",
+      casterDraws: 2,
+      faceCount: 2,
+      supportedLightCount: 2,
+      layerCount: 1,
+      atlasWidth: 384,
+      atlasHeight: 256,
+      atlasTiles: [
+        { x: 0, y: 0, width: 256, height: 256 },
+        { x: 256, y: 0, width: 128, height: 128 },
+      ],
+      submission: "submitted",
+    },
+  });
+  expect(atlasSpot.pipelineKeys ?? []).toContain(
+    "standard|clusteredLocalLights|shadowMap|opaque|back|less|none",
+  );
+  expect(atlasSpot.pipelineKeys ?? []).not.toContain(
+    "standard|clusteredLocalLights|clusteredLocalLightArrayShadows|shadowMap|opaque|back|less|none",
+  );
+  expect(
+    (atlasSpot.localLightClusters?.routes ?? []).some(
+      (route) =>
+        route.shadowCookieMetadata?.shadow.status === "sampling-ready" &&
+        route.shadowCookieMetadata.shadow.samplingSupported === true &&
+        route.shadowCookieMetadata.shadow.localRequestCount >= 2 &&
+        route.shadowCookieMetadata.shadow.clusteredLightCount >= 2 &&
+        route.shadowCookieMetadata.shadow.supportedLightCount >= 2,
+    ),
+  ).toBe(true);
   expect(cookie.clusterStatus).toMatchObject({
     ok: true,
     routeMetadataOk: true,
@@ -859,9 +942,11 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   expect(maxSampleLuminanceDelta(status, mixedShadow)).toBeGreaterThan(2);
   expect(status.readbackStatus?.ok).toBe(true);
   expect(status.readbackStatus?.maxClearDistance ?? 0).toBeGreaterThan(24);
+  expect(maxSampleLuminanceDarkening(baseline, atlasSpot)).toBeGreaterThan(2);
   webGpuValidation.expectNoWarnings();
   spotWebGpuValidation.expectNoWarnings();
   multiSpotWebGpuValidation.expectNoWarnings();
+  atlasSpotWebGpuValidation.expectNoWarnings();
   cookieWebGpuValidation.expectNoWarnings();
   cookieOnlyWebGpuValidation.expectNoWarnings();
   pointCookieWebGpuValidation.expectNoWarnings();

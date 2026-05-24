@@ -40,6 +40,8 @@ describe("shadow-map descriptors", () => {
           resourceKey: "shadow-map:7:light:11",
           depthFormat: "depth24plus",
           mapSize: 1024,
+          textureWidth: 1024,
+          textureHeight: 1024,
           depthBias: 0.001,
           normalBias: 0.01,
           cascadeCount: 1,
@@ -129,6 +131,65 @@ describe("shadow-map descriptors", () => {
         viewDimension: "2d-array",
         layerCount: 2,
         layerBaseIndex: 1,
+      },
+    ]);
+  });
+
+  it("carries shared atlas texture dimensions for nonuniform local spot shadows", () => {
+    const report = createShadowMapDescriptorReport({
+      shadowRequests: [
+        { ...shadowRequest(13, 21), lightKind: "spot" },
+        { ...shadowRequest(14, 22), lightKind: "spot" },
+      ],
+      descriptors: [
+        {
+          shadowId: 13,
+          lightId: 21,
+          mapSize: 256,
+          textureWidth: 384,
+          textureHeight: 256,
+          depthBias: 0.002,
+          resourceKey: "shadow-map:clustered-spot-atlas",
+          viewDimension: "2d",
+        },
+        {
+          shadowId: 14,
+          lightId: 22,
+          mapSize: 128,
+          textureWidth: 384,
+          textureHeight: 256,
+          depthBias: 0.002,
+          resourceKey: "shadow-map:clustered-spot-atlas",
+          viewDimension: "2d",
+        },
+      ],
+    });
+
+    expect(report.ready).toBe(true);
+    expect(report.descriptors).toMatchObject([
+      {
+        shadowId: 13,
+        lightId: 21,
+        lightKind: "spot",
+        resourceKey: "shadow-map:clustered-spot-atlas",
+        mapSize: 256,
+        textureWidth: 384,
+        textureHeight: 256,
+        viewDimension: "2d",
+        layerCount: 1,
+        layerBaseIndex: 0,
+      },
+      {
+        shadowId: 14,
+        lightId: 22,
+        lightKind: "spot",
+        resourceKey: "shadow-map:clustered-spot-atlas",
+        mapSize: 128,
+        textureWidth: 384,
+        textureHeight: 256,
+        viewDimension: "2d",
+        layerCount: 1,
+        layerBaseIndex: 0,
       },
     ]);
   });

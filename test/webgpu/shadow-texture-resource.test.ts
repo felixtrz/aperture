@@ -154,6 +154,67 @@ describe("shadow texture resources", () => {
     ]);
   });
 
+  it("plans shared 2d atlas descriptors for nonuniform local spot shadows", () => {
+    const report = createShadowTextureResourceReport({
+      descriptors: createShadowMapDescriptorReport({
+        shadowRequests: [
+          { ...shadowRequest(13, 21), lightKind: "spot" },
+          { ...shadowRequest(14, 22), lightKind: "spot" },
+        ],
+        descriptors: [
+          {
+            shadowId: 13,
+            lightId: 21,
+            mapSize: 256,
+            textureWidth: 384,
+            textureHeight: 256,
+            depthBias: 0.002,
+            resourceKey: "shadow-map:clustered-spot-atlas",
+            viewDimension: "2d",
+          },
+          {
+            shadowId: 14,
+            lightId: 22,
+            mapSize: 128,
+            textureWidth: 384,
+            textureHeight: 256,
+            depthBias: 0.002,
+            resourceKey: "shadow-map:clustered-spot-atlas",
+            viewDimension: "2d",
+          },
+        ],
+      }),
+    });
+
+    expect(report.textureCount).toBe(2);
+    expect(report.textures.map((texture) => texture.textureKey)).toEqual([
+      "shadow-map:clustered-spot-atlas:texture",
+      "shadow-map:clustered-spot-atlas:texture",
+    ]);
+    expect(report.textures).toMatchObject([
+      {
+        shadowId: 13,
+        lightId: 21,
+        width: 384,
+        height: 256,
+        viewDimension: "2d",
+        layerCount: 1,
+        layerBaseIndex: 0,
+        attachmentViewKeys: ["shadow-map:clustered-spot-atlas:view"],
+      },
+      {
+        shadowId: 14,
+        lightId: 22,
+        width: 384,
+        height: 256,
+        viewDimension: "2d",
+        layerCount: 1,
+        layerBaseIndex: 0,
+        attachmentViewKeys: ["shadow-map:clustered-spot-atlas:view"],
+      },
+    ]);
+  });
+
   it("reports missing shadow-map descriptors", () => {
     const report = createShadowTextureResourceReport({
       descriptors: createShadowMapDescriptorReport({

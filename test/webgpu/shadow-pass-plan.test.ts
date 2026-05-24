@@ -187,6 +187,68 @@ describe("shadow pass planning", () => {
     expect(ready.sections.gpuCommands).toBe(false);
     expect(ready.diagnostics).toEqual([]);
   });
+
+  it("loads repeated atlas depth views after the first clear", () => {
+    const shadowRequests: ShadowRequestPacket[] = [
+      { ...shadowRequest(13, 21), lightKind: "spot" },
+      { ...shadowRequest(14, 22), lightKind: "spot" },
+    ];
+    const report = createShadowPassPlanReport({
+      shadowRequests,
+      textures: createShadowTextureResourceReport({
+        descriptors: createShadowMapDescriptorReport({
+          shadowRequests,
+          descriptors: [
+            {
+              shadowId: 13,
+              lightId: 21,
+              mapSize: 256,
+              textureWidth: 384,
+              textureHeight: 256,
+              depthBias: 0.002,
+              resourceKey: "shadow-map:clustered-spot-atlas",
+              viewDimension: "2d",
+            },
+            {
+              shadowId: 14,
+              lightId: 22,
+              mapSize: 128,
+              textureWidth: 384,
+              textureHeight: 256,
+              depthBias: 0.002,
+              resourceKey: "shadow-map:clustered-spot-atlas",
+              viewDimension: "2d",
+            },
+          ],
+        }),
+      }),
+      submission: "ready",
+    });
+
+    expect(report.ready).toBe(true);
+    expect(report.passes).toMatchObject([
+      {
+        shadowId: 13,
+        lightId: 21,
+        resourceKey: "shadow-map:clustered-spot-atlas",
+        textureKey: "shadow-map:clustered-spot-atlas:texture",
+        viewKey: "shadow-map:clustered-spot-atlas:view",
+        width: 384,
+        height: 256,
+        depthLoadOp: "clear",
+      },
+      {
+        shadowId: 14,
+        lightId: 22,
+        resourceKey: "shadow-map:clustered-spot-atlas",
+        textureKey: "shadow-map:clustered-spot-atlas:texture",
+        viewKey: "shadow-map:clustered-spot-atlas:view",
+        width: 384,
+        height: 256,
+        depthLoadOp: "load",
+      },
+    ]);
+  });
 });
 
 function shadowRequest(shadowId: number, lightId: number): ShadowRequestPacket {

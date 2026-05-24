@@ -675,7 +675,10 @@ function supportedSpotShadowResourcesFromReceiver(
   return spotDepthResources.map((resource, index) => ({
     shadowId: resource.shadowId,
     lightId: resource.lightId,
-    matrixBaseIndex: resource.layerBaseIndex ?? index,
+    matrixBaseIndex:
+      resource.viewDimension === "2d-array"
+        ? (resource.layerBaseIndex ?? index)
+        : index,
   }));
 }
 

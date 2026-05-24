@@ -51,6 +51,7 @@ async function handleMessage(data) {
         data.clusteredMultiCookieEnabled === true,
         data.clusteredAtlasCookieEnabled === true,
         data.clusteredCookieOnlyEnabled === true,
+        data.clusteredSpotShadowAtlasEnabled === true,
         data.clusteredMultiSpotShadowEnabled === true,
       );
       self.postMessage({
@@ -87,6 +88,8 @@ async function handleMessage(data) {
           clusteredMultiCookieEnabled: scene.clusteredMultiCookieEnabled,
           clusteredAtlasCookieEnabled: scene.clusteredAtlasCookieEnabled,
           clusteredCookieOnlyEnabled: scene.clusteredCookieOnlyEnabled,
+          clusteredSpotShadowAtlasEnabled:
+            scene.clusteredSpotShadowAtlasEnabled,
           clusteredMultiSpotShadowEnabled:
             scene.clusteredMultiSpotShadowEnabled,
         },
@@ -145,6 +148,7 @@ function createWorkerScene(
   clusteredMultiCookieEnabled,
   clusteredAtlasCookieEnabled,
   clusteredCookieOnlyEnabled,
+  clusteredSpotShadowAtlasEnabled,
   clusteredMultiSpotShadowEnabled,
 ) {
   const app = aperture.createExtractionApp({
@@ -340,7 +344,7 @@ function createWorkerScene(
       }),
       aperture.withLightShadowSettings({
         enabled: true,
-        mapSize: 256,
+        mapSize: clusteredSpotShadowAtlasEnabled ? 128 : 256,
         bias: 0.002,
         normalBias: 0.01,
         casterLayerMask: 2,
@@ -373,6 +377,7 @@ function createWorkerScene(
     clusteredMultiCookieEnabled,
     clusteredAtlasCookieEnabled,
     clusteredCookieOnlyEnabled,
+    clusteredSpotShadowAtlasEnabled,
     clusteredMultiSpotShadowEnabled,
     localLightCount:
       localLightGrid.columns * localLightGrid.rows * 2 +

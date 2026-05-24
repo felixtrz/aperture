@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3142`: add atlas-space clustered spot-shadow metadata for
-nonuniform maps, with browser-visible fallback for unsupported combinations.
+Start `task-3143`: combine clustered point shadows with packed spot-shadow
+metadata while staying within WebGPU minimum bind/storage limits.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -215,17 +215,18 @@ point/spot local-shadow fragment path no longer reads `worldTransforms` and no
 longer requests a higher-than-minimum WebGPU storage-buffer limit. `task-3140`
 now adds a renderer-owned 2D cookie atlas for nonuniform clustered spot cookies,
 uploads each source texture into an atlas tile, and adjusts each light's cookie
-projection matrix into atlas UV space. The next SOTA gap is broader local
-shadow atlas packing: PlayCanvas allocates clustered local shadow/cookie atlas
-slots across mixed point/spot lights, while Aperture still needs multiple local
-spot shadows and nonuniform local shadow maps to share renderer-owned resources
-through metadata indices instead of one-off bindings.
+projection matrix into atlas UV space. `task-3141` now supports multiple
+compatible clustered spot shadows through one renderer-owned 2D depth array,
+and `task-3142` now supports nonuniform clustered spot shadows through one
+renderer-owned 2D atlas with atlas-adjusted matrix metadata. The next SOTA gap
+is combining clustered point shadows with the packed spot-shadow metadata
+routes in one WebGPU-minimum StandardMaterial frame.
 
 Reference anchors for the next visible slice (read before writing):
 
 - `references/engine/src/scene/lighting/light-texture-atlas.js`.
 - `references/engine/src/scene/lighting/lights-buffer.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`.
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
 - `docs/render-pipeline-comparison.html`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
@@ -951,7 +952,7 @@ Acceptance criteria:
 
 ### task-3142 — Add atlas-space clustered spot-shadow metadata for nonuniform maps
 
-Status: ready
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.

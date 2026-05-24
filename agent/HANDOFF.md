@@ -1,6 +1,58 @@
 # Agent Handoff
 
-Updated: 2026-05-24T08:05:45Z
+Updated: 2026-05-24T08:32:24Z
+
+## Current Run Update — 2026-05-24T08:32:24Z — Nonuniform clustered spot-shadow atlas
+
+Completed `task-3142`, adding atlas-space clustered spot-shadow metadata for
+nonuniform maps.
+
+### What changed
+
+- Shadow-map descriptors can now carry renderer-owned atlas texture extents
+  separately from each spot light's map footprint.
+- Shadow texture/depth resource planning now lets nonuniform spot-shadow
+  descriptors share one 2D atlas depth texture, and shadow pass planning clears
+  a shared atlas view once before loading it for later tile passes.
+- Clustered spot-shadow receiver setup now creates a 384x256 atlas route for
+  two spot shadows with 256 and 128 footprints, adjusts receiver matrices into
+  atlas space, and reports the `clustered-spot-atlas-depth-compare` mode.
+- Clustered local-light metadata now uses sequential matrix indices for
+  non-array atlas resources while preserving layer-base indices for compatible
+  2D-array shadow resources.
+- `examples/clustered-lights.html?enable-cluster-spot-shadow-atlas=1` now
+  reports two supported local spot shadows through the atlas route.
+- Public trackers and agent task pointers now recommend `task-3143`, combining
+  clustered point shadows with packed spot-shadow metadata.
+
+### Validation
+
+- `node --check examples/clustered-lights.main.js && node --check examples/clustered-lights.worker.js`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/shadow-pass-plan.test.ts test/webgpu/shadow-pass-attachment-descriptor.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm run examples:build`
+- Narrow headed Chrome/WebGPU proof for
+  `examples/clustered-lights.html?enable-cluster-spot-shadow-atlas=1`: route
+  `ok`, `routeSpotShadowAtlasSamplingOk` true, required supported spot-shadow
+  count `2`, `clustered-spot-atlas-depth-compare` mode, atlas `384x256`, tile
+  footprints `256` and `128`, non-clear readback, and relevant WebGPU
+  validation warnings `0`.
+
+### Known issues
+
+- The broad clustered-lights e2e spec was updated for the new atlas route but
+  was not run end to end in this slice because previous multi-page headed runs
+  went idle locally; the focused fresh Chrome/WebGPU proof passed.
+- The next visible SOTA gap is combining clustered point shadows with the
+  packed spot-shadow metadata routes while staying within WebGPU minimum
+  bind/storage limits.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3143`: combine clustered point shadows with packed spot-shadow
+metadata.
 
 ## Current Run Update — 2026-05-24T08:05:45Z — Multiple clustered spot shadows
 

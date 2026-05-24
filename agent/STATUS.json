@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "2e675c6",
+  "lastCommit": "91a07de",
   "activePid": null,
-  "notes": "Completed task-3141 multiple clustered local spot shadows per frame; next task-3142 adds atlas-space clustered spot-shadow metadata for nonuniform maps.",
-  "lastRunFinishedAt": "2026-05-24T08:05:45Z"
+  "notes": "Completed task-3142 atlas-space clustered spot-shadow metadata for nonuniform maps; next task-3143 combines clustered point shadows with packed spot-shadow metadata.",
+  "lastRunFinishedAt": "2026-05-24T08:32:24Z"
 }

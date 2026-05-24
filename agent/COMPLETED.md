@@ -1,5 +1,47 @@
 # Completed Tasks
 
+## task-3142 — Add atlas-space clustered spot-shadow metadata for nonuniform maps
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added shared atlas texture extents to shadow-map descriptors so nonuniform
+  local spot-shadow maps can render into one renderer-owned 2D depth texture.
+- Shadow depth resource planning now allocates one atlas texture for matching
+  resource keys, while shadow pass planning clears the shared view once and
+  loads it for later atlas tile passes.
+- `examples/clustered-lights.html?enable-cluster-spot-shadow-atlas=1` now
+  authors two spot shadows with 256 and 128 atlas footprints, adjusts their
+  receiver matrices into atlas space, and reports the
+  `clustered-spot-atlas-depth-compare` route.
+- Clustered spot-shadow metadata now uses sequential matrix indices for
+  non-array atlas resources while preserving layer indices for 2D-array
+  resources.
+- Public trackers and agent task pointers now recommend `task-3143`, combining
+  clustered point shadows with packed spot-shadow metadata.
+
+Validation:
+
+- `node --check examples/clustered-lights.main.js && node --check examples/clustered-lights.worker.js`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/shadow-pass-plan.test.ts test/webgpu/shadow-pass-attachment-descriptor.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm run examples:build`
+- Narrow Chrome/WebGPU proof for
+  `examples/clustered-lights.html?enable-cluster-spot-shadow-atlas=1`: route
+  `ok`, atlas spot-shadow sampling true, required supported spot-shadow count
+  `2`, atlas size `384x256` with `256` and `128` footprints, non-clear
+  readback, and relevant WebGPU validation warnings `0`.
+
+Known follow-up:
+
+- `task-3143` should prove one supported point shadow plus packed spot-shadow
+  metadata in one clustered StandardMaterial route while staying within WebGPU
+  minimum limits.
+- The broad clustered-lights e2e spec was updated for the atlas route but not
+  run end to end in this slice because previous multi-page headed runs went
+  idle locally; the focused fresh Chrome/WebGPU proof passed.
+
 ## task-3141 — Support multiple clustered local spot shadows per frame
 
 Completed: 2026-05-24

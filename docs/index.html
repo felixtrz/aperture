@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 08:05 UTC</dd>
+            <dd>2026-05-24 08:32 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1549,18 +1549,21 @@
               2D-array path cannot cover the same lights. Compatible clustered
               spot-shadow maps now share one renderer-owned 2D depth array, and
               per-light clustered metadata selects the matching shadow
-              matrix/layer entry.
+              matrix/layer entry. Nonuniform clustered spot-shadow maps now
+              share one renderer-owned 2D atlas with atlas-adjusted per-light
+              matrices and distinct metadata indices for 256 and 128 footprints.
               <code>examples/clustered-lights.html</code> now exposes point
               shadow, spot shadow, spot-cookie, and cookie-only spot-cookie
               proof routes plus point cube-cookie, multi-cookie, and mixed
               point/spot cookie proof routes, plus the mixed point/spot
               local-shadow proof route, a nonuniform spot-cookie atlas proof
-              route, and a multi-spot local-shadow array proof route. The next
-              step is atlas-space spot-shadow metadata for nonuniform local
-              shadow maps.
+              route, a multi-spot local-shadow array proof route, and a
+              nonuniform spot-shadow atlas proof route. The next step is
+              combining point shadows with the packed spot-shadow metadata
+              routes.
             </dd>
             <dt>Next focus</dt>
-            <dd>Nonuniform clustered spot-shadow atlas metadata</dd>
+            <dd>Packed point plus spot clustered shadows</dd>
           </dl>
         </aside>
       </header>
@@ -2400,12 +2403,14 @@
               renderer-owned 2D atlas with atlas-adjusted per-light matrices.
               Compatible clustered spot-shadow maps now bind through one
               renderer-owned 2D depth array with metadata-indexed matrix/layer
-              selection.
+              selection. Nonuniform clustered spot-shadow maps now bind through
+              one renderer-owned 2D atlas with atlas-adjusted per-light matrices
+              and sequential metadata indices for non-array atlas resources.
             </p>
             <ul>
               <li>
-                Next step: add atlas-space clustered spot-shadow metadata for
-                nonuniform local shadow maps.
+                Next step: combine clustered point shadows with packed
+                spot-shadow metadata in one WebGPU-minimum route.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2426,6 +2431,12 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3142</span> Added a
+                renderer-owned 2D atlas path for nonuniform clustered local spot
+                shadows, with 256 and 128 footprints, atlas-adjusted matrices,
+                and a focused browser proof route.
+              </li>
               <li>
                 <span class="badge green">task-3141</span> Added a
                 renderer-owned 2D depth-array path for multiple clustered local
@@ -4765,13 +4776,13 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Support multiple clustered
-                local spot shadows per frame through a packed renderer-owned
-                shadow resource.
+                <span class="badge amber">next</span> Combine clustered point
+                shadows with packed spot-shadow metadata in one StandardMaterial
+                route.
               </li>
               <li>
-                Then add atlas-space spot-shadow metadata for nonuniform maps
-                and combine packed spot shadows with point-shadow readiness.
+                Then continue broader local shadow/cookie atlas packing and
+                mixed-family readiness coverage.
               </li>
             </ul>
           </article>
@@ -4784,6 +4795,17 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3142</div>
+            <div>
+              <strong>Nonuniform clustered spot-shadow atlas shipped.</strong>
+              <span>
+                Two clustered spot shadows with different map footprints now
+                share one renderer-owned 2D depth atlas with atlas-adjusted
+                per-light matrices and JSON-safe route status.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3141</div>
             <div>

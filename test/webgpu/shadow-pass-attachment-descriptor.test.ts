@@ -82,6 +82,39 @@ describe("shadow pass attachment descriptors", () => {
     });
   });
 
+  it("preserves clear/load operations for repeated atlas depth views", () => {
+    const json = shadowPassAttachmentDescriptorReportToJsonValue(
+      createShadowPassAttachmentDescriptorReport({
+        shadowPassPlan: atlasPassPlan(),
+        depthTextureResources: atlasDepthResources(),
+      }),
+    );
+
+    expect(json.ready).toBe(true);
+    expect(json.attachments).toMatchObject([
+      {
+        passKey: "shadow-pass:13:light:21",
+        shadowId: 13,
+        lightId: 21,
+        textureKey: "shadow-map:clustered-spot-atlas:texture",
+        viewKey: "shadow-map:clustered-spot-atlas:view",
+        width: 384,
+        height: 256,
+        depthLoadOp: "clear",
+      },
+      {
+        passKey: "shadow-pass:14:light:22",
+        shadowId: 14,
+        lightId: 22,
+        textureKey: "shadow-map:clustered-spot-atlas:texture",
+        viewKey: "shadow-map:clustered-spot-atlas:view",
+        width: 384,
+        height: 256,
+        depthLoadOp: "load",
+      },
+    ]);
+  });
+
   it("reports missing pass plans and depth views", () => {
     const missingPass = shadowPassAttachmentDescriptorReportToJsonValue(
       createShadowPassAttachmentDescriptorReport({
@@ -161,6 +194,132 @@ function passPlan(
               submission: status === "ready" ? "ready" : "deferred",
             },
           ],
+    diagnostics: [],
+  };
+}
+
+function atlasPassPlan(): ShadowPassPlanReport {
+  return {
+    ready: true,
+    status: "ready",
+    requestCount: 2,
+    textureCount: 2,
+    passCount: 2,
+    sections: {
+      shadowRequests: true,
+      textureResources: true,
+      passPlans: true,
+      passSubmission: true,
+      gpuCommands: false,
+    },
+    passes: [
+      {
+        shadowId: 13,
+        lightId: 21,
+        lightKind: "spot",
+        faceIndex: 0,
+        faceCount: 1,
+        passKey: "shadow-pass:13:light:21",
+        resourceKey: "shadow-map:clustered-spot-atlas",
+        textureKey: "shadow-map:clustered-spot-atlas:texture",
+        viewKey: "shadow-map:clustered-spot-atlas:view",
+        width: 384,
+        height: 256,
+        depthFormat: "depth24plus",
+        casterLayerMask: 2,
+        receiverLayerMask: 2,
+        depthLoadOp: "clear",
+        depthStoreOp: "store",
+        depthClearValue: 1,
+        submission: "ready",
+      },
+      {
+        shadowId: 14,
+        lightId: 22,
+        lightKind: "spot",
+        faceIndex: 0,
+        faceCount: 1,
+        passKey: "shadow-pass:14:light:22",
+        resourceKey: "shadow-map:clustered-spot-atlas",
+        textureKey: "shadow-map:clustered-spot-atlas:texture",
+        viewKey: "shadow-map:clustered-spot-atlas:view",
+        width: 384,
+        height: 256,
+        depthFormat: "depth24plus",
+        casterLayerMask: 2,
+        receiverLayerMask: 2,
+        depthLoadOp: "load",
+        depthStoreOp: "store",
+        depthClearValue: 1,
+        submission: "ready",
+      },
+    ],
+    diagnostics: [],
+  };
+}
+
+function atlasDepthResources(): ShadowDepthTextureResourceReport {
+  const attachmentView = {
+    faceIndex: 0,
+    viewKey: "shadow-map:clustered-spot-atlas:view",
+    view: {},
+  };
+  const allocation = {
+    valid: true as const,
+    resource: {
+      resourceKey: "shadow-map:clustered-spot-atlas:texture",
+      texture: {},
+      view: {},
+      descriptor: {
+        size: [384, 256, 1] as const,
+        format: "depth24plus",
+        usage: 20,
+      },
+    },
+    diagnostics: [],
+  };
+
+  return {
+    ready: true,
+    status: "available",
+    textureDescriptorCount: 2,
+    createdTextureCount: 1,
+    sections: {
+      textureDescriptors: true,
+      depthTextureResource: true,
+      gpuAllocation: true,
+      matrixUpload: false,
+      passSubmission: false,
+      shaderSampling: false,
+    },
+    resources: [
+      {
+        shadowId: 13,
+        lightId: 21,
+        resourceKey: "shadow-map:clustered-spot-atlas",
+        textureKey: "shadow-map:clustered-spot-atlas:texture",
+        viewKey: "shadow-map:clustered-spot-atlas:view",
+        layerCount: 1,
+        layerBaseIndex: 0,
+        faceCount: 1,
+        viewDimension: "2d",
+        attachmentViews: [attachmentView],
+        allocation,
+      },
+      {
+        shadowId: 14,
+        lightId: 22,
+        resourceKey: "shadow-map:clustered-spot-atlas",
+        textureKey: "shadow-map:clustered-spot-atlas:texture",
+        viewKey: "shadow-map:clustered-spot-atlas:view",
+        layerCount: 1,
+        layerBaseIndex: 0,
+        faceCount: 1,
+        viewDimension: "2d",
+        attachmentViews: [attachmentView],
+        allocation,
+      },
+    ],
     diagnostics: [],
   };
 }
