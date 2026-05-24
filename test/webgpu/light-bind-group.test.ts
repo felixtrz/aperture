@@ -15,6 +15,7 @@ import {
   LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
   LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
   LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
+  LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE,
   LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
   type LightBindGroupCreationDescriptor,
   type LightBindGroupLayoutResource,
@@ -598,7 +599,7 @@ function localLightClusterResource(): LocalLightClusterGpuResource {
         skippedOverflowReferences: 0,
       },
       shadowCookieMetadata: {
-        wordsPerLight: 4,
+        wordsPerLight: LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE,
         totalMetadataLights: 16,
         shadow: {
           status: "not-requested",
@@ -606,6 +607,9 @@ function localLightClusterResource(): LocalLightClusterGpuResource {
           localRequestCount: 0,
           clusteredLightCount: 0,
           supportedLightCount: 0,
+          hardFilterLightCount: 0,
+          softFilterLightCount: 0,
+          maxFilterRadiusTexels: 0,
           fallbackReason: null,
         },
         cookie: {
@@ -620,7 +624,7 @@ function localLightClusterResource(): LocalLightClusterGpuResource {
       params: new Float32Array(28),
       cells: new Uint32Array(512),
       indices: new Uint32Array([0]),
-      metadata: new Uint32Array(64),
+      metadata: new Uint32Array(16 * LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE),
     },
   };
 }

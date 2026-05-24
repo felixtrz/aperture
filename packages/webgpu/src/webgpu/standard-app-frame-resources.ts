@@ -638,6 +638,9 @@ function supportedPointShadowResourcesFromReceiver(
       shadowId: firstPointDepth.shadowId,
       lightId: firstPointDepth.lightId,
       matrixBaseIndex: 0,
+      ...(firstPointDepth.filterRadiusTexels === undefined
+        ? {}
+        : { filterRadiusTexels: firstPointDepth.filterRadiusTexels }),
     },
   ];
 }
@@ -679,6 +682,9 @@ function supportedSpotShadowResourcesFromReceiver(
       resource.viewDimension === "2d-array"
         ? (resource.layerBaseIndex ?? index)
         : index,
+    ...(resource.filterRadiusTexels === undefined
+      ? {}
+      : { filterRadiusTexels: resource.filterRadiusTexels }),
   }));
 }
 

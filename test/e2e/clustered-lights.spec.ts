@@ -43,6 +43,9 @@ interface LocalLightClusterRouteStatus {
       readonly localRequestCount: number;
       readonly clusteredLightCount: number;
       readonly supportedLightCount: number;
+      readonly hardFilterLightCount?: number;
+      readonly softFilterLightCount?: number;
+      readonly maxFilterRadiusTexels?: number;
       readonly fallbackReason: string | null;
     };
     readonly cookie: {
@@ -630,7 +633,7 @@ test("browser renders StandardMaterial through clustered local lights", async ({
       fallbackReason: null,
     });
     expect(route.shadowCookieMetadata).toMatchObject({
-      wordsPerLight: 4,
+      wordsPerLight: 5,
     });
     expect(route.shadowCookieMetadata?.totalMetadataLights).toBe(
       route.totalLocalLights,

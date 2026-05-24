@@ -10,6 +10,7 @@ export interface ShadowMapDescriptorSource {
   readonly mapSize: number;
   readonly depthBias: number;
   readonly normalBias?: number;
+  readonly filterRadiusTexels?: number;
   readonly cascadeCount?: number;
   readonly depthFormat?: "depth24plus";
   readonly faceCount?: 1 | 6;
@@ -32,6 +33,7 @@ export interface ShadowMapDescriptor {
   readonly textureHeight: number;
   readonly depthBias: number;
   readonly normalBias: number;
+  readonly filterRadiusTexels: number;
   readonly cascadeCount: number;
   readonly faceCount: 1 | 6;
   readonly viewDimension: "2d" | "2d-array" | "cube";
@@ -144,6 +146,10 @@ export function createShadowMapDescriptorReport(
       textureHeight,
       depthBias: source?.depthBias ?? 0,
       normalBias: source?.normalBias ?? 0,
+      filterRadiusTexels: normalizeFilterRadiusTexels(
+        source?.filterRadiusTexels,
+        lightKind,
+      ),
       cascadeCount,
       faceCount,
       viewDimension,
@@ -190,6 +196,19 @@ export function shadowMapDescriptorReportToJson(
   report: ShadowMapDescriptorReport,
 ): string {
   return JSON.stringify(shadowMapDescriptorReportToJsonValue(report));
+}
+
+function normalizeFilterRadiusTexels(
+  value: number | undefined,
+  lightKind: NonNullable<ShadowRequestPacket["lightKind"]>,
+): number {
+  const fallback = lightKind === "point" ? 0 : 1;
+
+  if (value === undefined || !Number.isFinite(value)) {
+    return fallback;
+  }
+
+  return Math.min(16, Math.max(0, Math.round(value)));
 }
 
 function descriptorKey(shadowId: number, lightId: number): string {

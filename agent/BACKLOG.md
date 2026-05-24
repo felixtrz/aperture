@@ -59,8 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3144`: add metadata-indexed clustered local shadow softness so hard
-and soft local shadows can coexist in one StandardMaterial route.
+Start `task-3145`: pack multiple clustered point shadows through flattened
+face metadata so more than one local point shadow can render in one
+StandardMaterial route.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -220,8 +221,11 @@ compatible clustered spot shadows through one renderer-owned 2D depth array,
 and `task-3142` now supports nonuniform clustered spot shadows through one
 renderer-owned 2D atlas with atlas-adjusted matrix metadata. `task-3143` now
 combines one supported point cube shadow with packed spot-shadow array and
-atlas metadata routes in one WebGPU-minimum StandardMaterial frame. The next
-SOTA gap is local-shadow quality and broader clustered-light tuning.
+atlas metadata routes in one WebGPU-minimum StandardMaterial frame.
+`task-3144` now adds metadata-indexed hard/soft local-shadow filter radii with
+array and atlas browser proof. The next SOTA gap is multiple clustered point
+shadows, combined shadow-plus-cookie pressure, and broader clustered-light
+tuning.
 
 Reference anchors for the next visible slice (read before writing):
 
@@ -990,7 +994,7 @@ Acceptance criteria:
 
 ### task-3144 — Add metadata-indexed clustered local shadow softness
 
-Status: ready
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.

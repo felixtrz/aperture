@@ -24,15 +24,31 @@ const clusteredPointCookieEnabled =
   (exampleParams.has("enable-cluster-point-cookie") ||
     clusteredMixedCookieEnabled) &&
   !exampleParams.has("disable-cluster-cookie");
+const clusteredShadowSoftnessEnabled =
+  exampleParams.has("enable-cluster-shadow-softness") &&
+  !exampleParams.has("disable-cluster-point-shadow") &&
+  !exampleParams.has("disable-cluster-spot-shadow") &&
+  !clusteredCookieOnlyEnabled &&
+  !clusteredMultiCookieEnabled &&
+  !clusteredPointCookieEnabled;
+const clusteredShadowSoftnessAtlasEnabled =
+  exampleParams.has("enable-cluster-shadow-softness-atlas") &&
+  !exampleParams.has("disable-cluster-point-shadow") &&
+  !exampleParams.has("disable-cluster-spot-shadow") &&
+  !clusteredCookieOnlyEnabled &&
+  !clusteredMultiCookieEnabled &&
+  !clusteredPointCookieEnabled;
 const clusteredPackedSpotShadowArrayEnabled =
-  exampleParams.has("enable-cluster-packed-shadow") &&
+  (exampleParams.has("enable-cluster-packed-shadow") ||
+    clusteredShadowSoftnessEnabled) &&
   !exampleParams.has("disable-cluster-point-shadow") &&
   !exampleParams.has("disable-cluster-spot-shadow") &&
   !clusteredCookieOnlyEnabled &&
   !clusteredMultiCookieEnabled &&
   !clusteredPointCookieEnabled;
 const clusteredPackedSpotShadowAtlasEnabled =
-  exampleParams.has("enable-cluster-packed-shadow-atlas") &&
+  (exampleParams.has("enable-cluster-packed-shadow-atlas") ||
+    clusteredShadowSoftnessAtlasEnabled) &&
   !exampleParams.has("disable-cluster-point-shadow") &&
   !exampleParams.has("disable-cluster-spot-shadow") &&
   !clusteredCookieOnlyEnabled &&
@@ -93,6 +109,7 @@ const clusteredPointShadowIntent = {
   mapSize: 256,
   depthBias: 0.0001,
   normalBias: 0.01,
+  filterRadiusTexels: 0,
   casterLayerMask: 1,
   receiverLayerMask: 1,
 };
@@ -100,10 +117,13 @@ const clusteredSpotShadowIntent = {
   mapSize: 256,
   depthBias: 0.002,
   normalBias: 0.01,
+  filterRadiusTexels: 1,
   casterLayerMask: 2,
   receiverLayerMask: 2,
 };
 const clusteredSpotShadowAtlasMapSizes = [256, 128];
+const clusteredShadowSoftnessPointFilterRadiusTexels = 3;
+const clusteredShadowSoftnessSpotFilterRadiiTexels = [0, 5];
 const maxStatusWarmupFrames = 90;
 const maxTransparentReadbackWarmupFrames = 150;
 const readbackSamples = [
@@ -293,6 +313,8 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     clusteredMixedShadowEnabled,
     clusteredPackedSpotShadowArrayEnabled,
     clusteredPackedSpotShadowAtlasEnabled,
+    clusteredShadowSoftnessEnabled,
+    clusteredShadowSoftnessAtlasEnabled,
     clusteredSpotShadowAtlasEnabled,
     clusteredMultiSpotShadowEnabled,
     cameraFrameOffset:
@@ -644,8 +666,16 @@ function statusFromReport(
     scene.clusteredMultiSpotShadowEnabled,
     scene.clusteredPackedSpotShadowArrayEnabled,
     scene.clusteredPackedSpotShadowAtlasEnabled,
+    scene.clusteredShadowSoftnessEnabled ||
+      scene.clusteredShadowSoftnessAtlasEnabled,
   );
   const readbackStatus = createReadbackStatus(reportJson.readback);
+  const shadowSoftnessReadbackStatus = createShadowSoftnessReadbackStatus(
+    readbackStatus,
+    loop.shadowStatus,
+    scene.clusteredShadowSoftnessEnabled ||
+      scene.clusteredShadowSoftnessAtlasEnabled,
+  );
   recordClusterOccupancy(loop, localLightClusters);
 
   return {
@@ -654,6 +684,7 @@ function statusFromReport(
       report.ok &&
       reportJson.counts.diagnostics === 0 &&
       clusterStatus.ok &&
+      shadowSoftnessReadbackStatus.ok &&
       readbackStatus.ok,
     phase: report.ok ? "submit" : "failed",
     renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
@@ -671,6 +702,7 @@ function statusFromReport(
     localLightClusters,
     clusterStatus,
     shadowStatus: loop.shadowStatus,
+    shadowSoftnessReadbackStatus,
     readbackStatus,
     readback: reportJson.readback ?? null,
     resourceReuse: reportJson.resourceReuse,
@@ -694,6 +726,7 @@ function createClusterStatus(
   multiSpotShadowEnabled,
   packedSpotShadowArrayEnabled,
   packedSpotShadowAtlasEnabled,
+  shadowSoftnessEnabled,
 ) {
   const clusterPipelineUsed = pipelineKeys.some((pipelineKey) =>
     pipelineKey.includes("clusteredLocalLights"),
@@ -752,6 +785,9 @@ function createClusterStatus(
       localRequestCount: shadow?.localRequestCount ?? 0,
       clusteredLightCount: shadow?.clusteredLightCount ?? 0,
       supportedLightCount: shadow?.supportedLightCount ?? 0,
+      hardFilterLightCount: shadow?.hardFilterLightCount ?? 0,
+      softFilterLightCount: shadow?.softFilterLightCount ?? 0,
+      maxFilterRadiusTexels: shadow?.maxFilterRadiusTexels ?? 0,
       fallbackReason: shadow?.fallbackReason ?? null,
     };
   });
@@ -847,6 +883,46 @@ function createClusterStatus(
         pipelineKey.includes("shadowMap") &&
         !pipelineKey.includes("clusteredLocalLightArrayShadows"),
     );
+  const routeShadowHardFilterReady = routeShadowStates.some(
+    (shadow) =>
+      shadow.status === "sampling-ready" &&
+      shadow.hardFilterLightCount >= 1,
+  );
+  const routeShadowSoftFilterReady = routeShadowStates.some(
+    (shadow) =>
+      shadow.status === "sampling-ready" &&
+      shadow.softFilterLightCount >= 1 &&
+      shadow.maxFilterRadiusTexels >= 2,
+  );
+  const routePointShadowSoftnessReady =
+    shadowSoftnessEnabled === true &&
+    shadowStatus?.point?.supported === true &&
+    (shadowStatus.point.filterRadiusTexels ?? 0) >=
+      clusteredShadowSoftnessPointFilterRadiusTexels;
+  const routeSpotShadowArraySoftnessReady =
+    shadowSoftnessEnabled === true &&
+    shadowStatus?.spot?.supported === true &&
+    shadowStatus.spot.mode === "clustered-spot-array-depth-compare" &&
+    Array.isArray(shadowStatus.spot.filterRadiusTexels) &&
+    shadowStatus.spot.filterRadiusTexels.some((radius) => radius <= 0) &&
+    shadowStatus.spot.filterRadiusTexels.some((radius) => radius >= 2) &&
+    routeShadowHardFilterReady &&
+    routeShadowSoftFilterReady;
+  const routeSpotShadowAtlasSoftnessReady =
+    shadowSoftnessEnabled === true &&
+    shadowStatus?.spot?.supported === true &&
+    shadowStatus.spot.mode === "clustered-spot-atlas-depth-compare" &&
+    Array.isArray(shadowStatus.spot.filterRadiusTexels) &&
+    shadowStatus.spot.filterRadiusTexels.some((radius) => radius <= 0) &&
+    shadowStatus.spot.filterRadiusTexels.some((radius) => radius >= 2) &&
+    routeShadowHardFilterReady &&
+    routeShadowSoftFilterReady;
+  const routeShadowSoftnessSamplingOk =
+    shadowSoftnessEnabled !== true ||
+    (routePointShadowSoftnessReady &&
+      (spotShadowAtlasEnabled === true
+        ? routeSpotShadowAtlasSoftnessReady
+        : routeSpotShadowArraySoftnessReady));
   const requiredCookieSupportedCount =
     (multiCookieEnabled === true ? 2 : 0) +
       (pointCookieEnabled === true ? 1 : 0) || (cookieEnabled === true ? 1 : 0);
@@ -939,6 +1015,7 @@ function createClusterStatus(
         routeMixedPackedSpotShadowSamplingOk) &&
       (packedSpotShadowAtlasEnabled !== true ||
         routeMixedPackedSpotShadowAtlasSamplingOk) &&
+      routeShadowSoftnessSamplingOk &&
       (cookieEnabled !== true || routeCookieSamplingOk) &&
       occupancyChanged &&
       (localLightClusters?.resourceReuse?.buffersReused ?? 0) >= 8,
@@ -968,6 +1045,12 @@ function createClusterStatus(
     routeMixedShadowSamplingOk,
     routeMixedPackedSpotShadowSamplingOk,
     routeMixedPackedSpotShadowAtlasSamplingOk,
+    routeShadowHardFilterReady,
+    routeShadowSoftFilterReady,
+    routePointShadowSoftnessReady,
+    routeSpotShadowArraySoftnessReady,
+    routeSpotShadowAtlasSoftnessReady,
+    routeShadowSoftnessSamplingOk,
     routeCookieSamplingOk,
     routeCookieAtlasSamplingOk,
     requiredSpotShadowSupportedCount,
@@ -1025,6 +1108,53 @@ function clusterRoutesFromReport(localLightClusters) {
   }
 
   return [localLightClusters];
+}
+
+function createShadowSoftnessReadbackStatus(
+  readbackStatus,
+  shadowStatus,
+  shadowSoftnessEnabled,
+) {
+  if (shadowSoftnessEnabled !== true) {
+    return { enabled: false, ok: true };
+  }
+
+  const samples = new Map(
+    (readbackStatus?.samples ?? []).map((sample) => [sample.id, sample]),
+  );
+  const hardProbe = samples.get("right-cookie-upper") ?? null;
+  const softProbe = samples.get("right-cookie-lower") ?? null;
+  const hardLuminance =
+    hardProbe === null ? null : luminance(hardProbe.pixel);
+  const softLuminance =
+    softProbe === null ? null : luminance(softProbe.pixel);
+  const sampleLuminanceDelta =
+    hardLuminance === null || softLuminance === null
+      ? 0
+      : Math.abs(hardLuminance - softLuminance);
+  const spotFilterRadii = Array.isArray(shadowStatus?.spot?.filterRadiusTexels)
+    ? shadowStatus.spot.filterRadiusTexels
+    : [];
+
+  return {
+    enabled: true,
+    ok:
+      readbackStatus?.ok === true &&
+      hardProbe !== null &&
+      softProbe !== null &&
+      sampleLuminanceDelta > 12 &&
+      spotFilterRadii.some((radius) => radius <= 0) &&
+      spotFilterRadii.some((radius) => radius >= 2),
+    hardProbe: hardProbe?.id ?? null,
+    softProbe: softProbe?.id ?? null,
+    hardProbePixel: hardProbe?.pixel ?? null,
+    softProbePixel: softProbe?.pixel ?? null,
+    hardProbeLuminance: hardLuminance,
+    softProbeLuminance: softLuminance,
+    sampleLuminanceDelta,
+    pointFilterRadiusTexels: shadowStatus?.point?.filterRadiusTexels ?? null,
+    spotFilterRadiusTexels: spotFilterRadii,
+  };
 }
 
 function createReadbackStatus(readback) {
@@ -1112,6 +1242,7 @@ async function createClusteredPointShadowReceiverResources(
         mapSize: clusteredPointShadowIntent.mapSize,
         depthBias: clusteredPointShadowIntent.depthBias,
         normalBias: clusteredPointShadowIntent.normalBias,
+        filterRadiusTexels: clusteredPointShadowFilterRadiusTexels(scene),
         faceCount: 6,
         viewDimension: "cube",
       },
@@ -1322,6 +1453,7 @@ async function createClusteredPointShadowReceiverResources(
       mode: "clustered-point-depth-cube-compare",
       shadowId: request.shadowId,
       lightId: request.lightId,
+      filterRadiusTexels: clusteredPointShadowFilterRadiusTexels(scene),
       casterDraws: shadowCasterMeshDraws.length,
       faceCount: shadowPassPlan.passCount,
       submission: shadowPassCommandBufferSubmissionReport.status,
@@ -1468,6 +1600,7 @@ async function createClusteredSpotShadowReceiverResources(
       mapSize: atlasTiles[index]?.mapSize ?? clusteredSpotShadowIntent.mapSize,
       depthBias: clusteredSpotShadowIntent.depthBias,
       normalBias: clusteredSpotShadowIntent.normalBias,
+      filterRadiusTexels: clusteredSpotShadowFilterRadiusTexels(scene, index),
       faceCount: 1,
       viewDimension: spotArrayEnabled ? "2d-array" : "2d",
       ...(spotResourceKey === undefined
@@ -1730,6 +1863,9 @@ async function createClusteredSpotShadowReceiverResources(
       lightIds: shadowRequests.map((request) => request.lightId),
       requiredSpotShadowCount,
       supportedLightCount: supported ? shadowRequests.length : 0,
+      filterRadiusTexels: shadowRequests.map((_request, index) =>
+        clusteredSpotShadowFilterRadiusTexels(scene, index),
+      ),
       layerCount: spotArrayEnabled ? shadowRequests.length : 1,
       ...(spotAtlasEnabled
         ? {
@@ -1750,6 +1886,27 @@ async function createClusteredSpotShadowReceiverResources(
       submission: shadowPassCommandBufferSubmissionReport.status,
     },
   };
+}
+
+function clusteredPointShadowFilterRadiusTexels(scene) {
+  return scene.clusteredShadowSoftnessEnabled ||
+    scene.clusteredShadowSoftnessAtlasEnabled
+    ? clusteredShadowSoftnessPointFilterRadiusTexels
+    : clusteredPointShadowIntent.filterRadiusTexels;
+}
+
+function clusteredSpotShadowFilterRadiusTexels(scene, index) {
+  if (
+    scene.clusteredShadowSoftnessEnabled ||
+    scene.clusteredShadowSoftnessAtlasEnabled
+  ) {
+    return (
+      clusteredShadowSoftnessSpotFilterRadiiTexels[index] ??
+      clusteredSpotShadowIntent.filterRadiusTexels
+    );
+  }
+
+  return clusteredSpotShadowIntent.filterRadiusTexels;
 }
 
 function createClusteredSpotShadowAtlasTiles(shadowRequests) {

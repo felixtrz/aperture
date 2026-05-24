@@ -21,6 +21,7 @@ export interface ShadowTextureResourceDescriptor {
   readonly width: number;
   readonly height: number;
   readonly depthFormat: "depth24plus";
+  readonly filterRadiusTexels?: number;
   readonly cascadeCount?: number;
   readonly layerCount?: number;
   readonly layerBaseIndex?: number;
@@ -105,6 +106,7 @@ export function createShadowTextureResourceReport(
         width: descriptor.textureWidth,
         height: descriptor.textureHeight,
         depthFormat: descriptor.depthFormat,
+        filterRadiusTexels: descriptor.filterRadiusTexels,
         cascadeCount: descriptor.cascadeCount,
         layerCount,
         layerBaseIndex,

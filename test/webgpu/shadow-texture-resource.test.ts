@@ -46,6 +46,7 @@ describe("shadow texture resources", () => {
           width: 1024,
           height: 1024,
           depthFormat: "depth24plus",
+          filterRadiusTexels: 1,
           cascadeCount: 1,
           layerCount: 1,
           layerBaseIndex: 0,

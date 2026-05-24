@@ -18,6 +18,7 @@ import {
   LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST,
   LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED,
   LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED,
+  LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE,
   LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
 } from "./local-light-clusters.js";
 import {
@@ -3838,6 +3839,7 @@ function applyStandardClusteredLocalLightSampling(
     position,
     lightPosition,
     localLightClusterPointShadowMatrixBase(lightIndex),
+    localLightClusterShadowFilterRadiusTexels(lightIndex),
   );
 }`
     : `fn localLightClusterPointShadowFactor(position: vec3f, lightIndex: u32, lightPosition: vec3f) -> f32 {
@@ -3860,6 +3862,7 @@ function applyStandardClusteredLocalLightSampling(
   return sampleSpotShadowFactorWithMatrixBase(
     position,
     localLightClusterPointShadowMatrixBase(lightIndex),
+    localLightClusterShadowFilterRadiusTexels(lightIndex),
   );
 }`
     : `fn localLightClusterSpotShadowFactor(position: vec3f, lightIndex: u32) -> f32 {
@@ -4095,7 +4098,7 @@ fn localLightClusterInvalidCell() -> u32 {
 }
 
 fn localLightClusterMetadataFlags(lightIndex: u32) -> u32 {
-  let metadataOffset = lightIndex * 4u;
+  let metadataOffset = lightIndex * ${LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE}u;
 
   if (metadataOffset >= arrayLength(&localLightClusterMetadata)) {
     return 0u;
@@ -4105,7 +4108,7 @@ fn localLightClusterMetadataFlags(lightIndex: u32) -> u32 {
 }
 
 fn localLightClusterPointShadowMatrixBase(lightIndex: u32) -> u32 {
-  let metadataOffset = lightIndex * 4u + 2u;
+  let metadataOffset = lightIndex * ${LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE}u + 2u;
 
   if (metadataOffset >= arrayLength(&localLightClusterMetadata)) {
     return 0u;
@@ -4115,13 +4118,23 @@ fn localLightClusterPointShadowMatrixBase(lightIndex: u32) -> u32 {
 }
 
 fn localLightClusterCookieMatrixBase(lightIndex: u32) -> u32 {
-  let metadataOffset = lightIndex * 4u + 3u;
+  let metadataOffset = lightIndex * ${LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE}u + 3u;
 
   if (metadataOffset >= arrayLength(&localLightClusterMetadata)) {
     return 0u;
   }
 
   return localLightClusterMetadata[metadataOffset];
+}
+
+fn localLightClusterShadowFilterRadiusTexels(lightIndex: u32) -> f32 {
+  let metadataOffset = lightIndex * ${LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE}u + 4u;
+
+  if (metadataOffset >= arrayLength(&localLightClusterMetadata)) {
+    return 1.0;
+  }
+
+  return f32(localLightClusterMetadata[metadataOffset]);
 }
 
 fn localLightClusterCookieIntensity(lightIndex: u32) -> f32 {
@@ -4603,16 +4616,17 @@ fn sampleDirectionalShadowReceiverFactor(worldPosition: vec3f) -> f32 {
       : `const STANDARD_SHADOW_MIN_VISIBILITY: f32 = 0.45;
 const STANDARD_SHADOW_DEPTH_BIAS: f32 = 0.002;
 
-fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32${options.arrayShadows === true ? ", layerIndex: u32" : ""}) -> f32 {
+fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32${options.arrayShadows === true ? ", layerIndex: u32" : ""}, filterRadiusTexels: f32) -> f32 {
   let shadowDimensions = textureDimensions(directionalShadowMap);
   let shadowMapSize = vec2f(f32(shadowDimensions.x), f32(shadowDimensions.y));
   let texelSize = 1.0 / max(shadowMapSize, vec2f(1.0));
+  let filterRadius = max(filterRadiusTexels, 0.0);
   var visibility = 0.0;
 
   for (var y: i32 = -1; y <= 1; y = y + 1) {
     for (var x: i32 = -1; x <= 1; x = x + 1) {
       let sampleUv = clamp(
-        shadowUv + vec2f(f32(x), f32(y)) * texelSize,
+        shadowUv + vec2f(f32(x), f32(y)) * texelSize * filterRadius,
         vec2f(0.0),
         vec2f(1.0),
       );
@@ -4634,10 +4648,10 @@ fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32 {
     return 1.0;
   }
 
-  return sampleSpotShadowFactorWithMatrixBase(worldPosition, 0u);
+  return sampleSpotShadowFactorWithMatrixBase(worldPosition, 0u, 1.0);
 }
 
-fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u32) -> f32 {
+fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u32, filterRadiusTexels: f32) -> f32 {
   if (matrixBaseIndex >= arrayLength(&directionalShadowMatrices)) {
     return 1.0;
   }
@@ -4674,7 +4688,8 @@ fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u
   let rawVisibility = sampleDirectionalShadowPcf3x3(
     clampedShadowUv,
     receiverDepth,
-    ${options.arrayShadows === true ? "matrixBaseIndex,\n  " : ""});
+    ${options.arrayShadows === true ? "matrixBaseIndex,\n    " : ""}filterRadiusTexels,
+  );
   let visibility = select(
     clamp(rawVisibility, 0.0, 1.0),
     1.0,
@@ -4759,7 +4774,7 @@ fn pointShadowFaceIndex(toReceiver: vec3f) -> u32 {
   return select(5u, 4u, toReceiver.z >= 0.0);
 }
 
-fn samplePointShadowFactorWithMatrixBase(worldPosition: vec3f, lightPosition: vec3f, matrixBaseIndex: u32) -> f32 {
+fn samplePointShadowFactorWithMatrixBase(worldPosition: vec3f, lightPosition: vec3f, matrixBaseIndex: u32, filterRadiusTexels: f32) -> f32 {
   if (arrayLength(&pointShadowMatrices) < matrixBaseIndex + 6u) {
     return 1.0;
   }
@@ -4795,12 +4810,35 @@ fn samplePointShadowFactorWithMatrixBase(worldPosition: vec3f, lightPosition: ve
     0.0,
     1.0,
   );
-  let rawVisibility = textureSampleCompareLevel(
+  let baseDirection = normalize(toReceiver);
+  let baseVisibility = textureSampleCompareLevel(
     pointShadowMap,
     pointShadowSampler,
-    normalize(toReceiver),
+    baseDirection,
     receiverDepth,
   );
+  let filterRadius = max(filterRadiusTexels, 0.0);
+  var rawVisibility = baseVisibility;
+
+  if (filterRadius > 0.0) {
+    let shadowDimensions = textureDimensions(pointShadowMap);
+    let cubeSize = f32(max(max(shadowDimensions.x, shadowDimensions.y), 1u));
+    let angularRadius = filterRadius * 2.0 / cubeSize;
+    var tangentSeed = vec3f(0.0, 1.0, 0.0);
+    if (abs(baseDirection.y) > 0.9) {
+      tangentSeed = vec3f(1.0, 0.0, 0.0);
+    }
+    let tangent = normalize(cross(tangentSeed, baseDirection));
+    let bitangent = normalize(cross(baseDirection, tangent));
+
+    rawVisibility = (
+      baseVisibility +
+      textureSampleCompareLevel(pointShadowMap, pointShadowSampler, normalize(toReceiver + tangent * receiverDistance * angularRadius), receiverDepth) +
+      textureSampleCompareLevel(pointShadowMap, pointShadowSampler, normalize(toReceiver - tangent * receiverDistance * angularRadius), receiverDepth) +
+      textureSampleCompareLevel(pointShadowMap, pointShadowSampler, normalize(toReceiver + bitangent * receiverDistance * angularRadius), receiverDepth) +
+      textureSampleCompareLevel(pointShadowMap, pointShadowSampler, normalize(toReceiver - bitangent * receiverDistance * angularRadius), receiverDepth)
+    ) * 0.2;
+  }
   let visibility = select(
     clamp(rawVisibility, 0.0, 1.0),
     1.0,
@@ -4811,7 +4849,7 @@ fn samplePointShadowFactorWithMatrixBase(worldPosition: vec3f, lightPosition: ve
 }
 
 fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32 {
-  return samplePointShadowFactorWithMatrixBase(worldPosition, lightPosition, 0u);
+  return samplePointShadowFactorWithMatrixBase(worldPosition, lightPosition, 0u, 0.0);
 }
 
 fn samplePointShadowReceiverFactor(worldPosition: vec3f) -> f32 {
@@ -4876,16 +4914,17 @@ const STANDARD_SHADOW_DEPTH_BIAS: f32 = 0.002;
 const STANDARD_POINT_SHADOW_MIN_VISIBILITY: f32 = 0.5;
 const STANDARD_POINT_SHADOW_DEPTH_BIAS: f32 = 0.0001;
 
-fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32${options.arrayShadows === true ? ", layerIndex: u32" : ""}) -> f32 {
+fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32${options.arrayShadows === true ? ", layerIndex: u32" : ""}, filterRadiusTexels: f32) -> f32 {
   let shadowDimensions = textureDimensions(directionalShadowMap);
   let shadowMapSize = vec2f(f32(shadowDimensions.x), f32(shadowDimensions.y));
   let texelSize = 1.0 / max(shadowMapSize, vec2f(1.0));
+  let filterRadius = max(filterRadiusTexels, 0.0);
   var visibility = 0.0;
 
   for (var y: i32 = -1; y <= 1; y = y + 1) {
     for (var x: i32 = -1; x <= 1; x = x + 1) {
       let sampleUv = clamp(
-        shadowUv + vec2f(f32(x), f32(y)) * texelSize,
+        shadowUv + vec2f(f32(x), f32(y)) * texelSize * filterRadius,
         vec2f(0.0),
         vec2f(1.0),
       );
@@ -4902,16 +4941,17 @@ fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32${options.ar
   return visibility * (1.0 / 9.0);
 }
 
-fn sampleSpotShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32${options.arrayShadows === true ? ", layerIndex: u32" : ""}) -> f32 {
+fn sampleSpotShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32${options.arrayShadows === true ? ", layerIndex: u32" : ""}, filterRadiusTexels: f32) -> f32 {
   let shadowDimensions = textureDimensions(spotShadowMap);
   let shadowMapSize = vec2f(f32(shadowDimensions.x), f32(shadowDimensions.y));
   let texelSize = 1.0 / max(shadowMapSize, vec2f(1.0));
+  let filterRadius = max(filterRadiusTexels, 0.0);
   var visibility = 0.0;
 
   for (var y: i32 = -1; y <= 1; y = y + 1) {
     for (var x: i32 = -1; x <= 1; x = x + 1) {
       let sampleUv = clamp(
-        shadowUv + vec2f(f32(x), f32(y)) * texelSize,
+        shadowUv + vec2f(f32(x), f32(y)) * texelSize * filterRadius,
         vec2f(0.0),
         vec2f(1.0),
       );
@@ -4965,7 +5005,8 @@ fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32 {
   let rawVisibility = sampleDirectionalShadowPcf3x3(
     clampedShadowUv,
     receiverDepth,
-    ${options.arrayShadows === true ? "0u,\n  " : ""});
+    ${options.arrayShadows === true ? "0u,\n    " : ""}1.0,
+  );
   let visibility = select(
     clamp(rawVisibility, 0.0, 1.0),
     1.0,
@@ -4975,7 +5016,7 @@ fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32 {
   return mix(STANDARD_SHADOW_MIN_VISIBILITY, 1.0, visibility);
 }
 
-fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u32) -> f32 {
+fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u32, filterRadiusTexels: f32) -> f32 {
   if (matrixBaseIndex >= arrayLength(&spotShadowMatrices)) {
     return 1.0;
   }
@@ -5012,7 +5053,8 @@ fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u
   let rawVisibility = sampleSpotShadowPcf3x3(
     clampedShadowUv,
     receiverDepth,
-    ${options.arrayShadows === true ? "matrixBaseIndex,\n  " : ""});
+    ${options.arrayShadows === true ? "matrixBaseIndex,\n    " : ""}filterRadiusTexels,
+  );
   let visibility = select(
     clamp(rawVisibility, 0.0, 1.0),
     1.0,
@@ -5023,7 +5065,7 @@ fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u
 }
 
 fn sampleSpotShadowFactor(worldPosition: vec3f) -> f32 {
-  return sampleSpotShadowFactorWithMatrixBase(worldPosition, 0u);
+  return sampleSpotShadowFactorWithMatrixBase(worldPosition, 0u, 1.0);
 }
 
 fn pointShadowFaceIndex(toReceiver: vec3f) -> u32 {
@@ -5040,7 +5082,7 @@ fn pointShadowFaceIndex(toReceiver: vec3f) -> u32 {
   return select(5u, 4u, toReceiver.z >= 0.0);
 }
 
-fn samplePointShadowFactorWithMatrixBase(worldPosition: vec3f, lightPosition: vec3f, matrixBaseIndex: u32) -> f32 {
+fn samplePointShadowFactorWithMatrixBase(worldPosition: vec3f, lightPosition: vec3f, matrixBaseIndex: u32, filterRadiusTexels: f32) -> f32 {
   if (arrayLength(&pointShadowMatrices) < matrixBaseIndex + 6u) {
     return 1.0;
   }
@@ -5075,12 +5117,35 @@ fn samplePointShadowFactorWithMatrixBase(worldPosition: vec3f, lightPosition: ve
     0.0,
     1.0,
   );
-  let rawVisibility = textureSampleCompareLevel(
+  let baseDirection = normalize(toReceiver);
+  let baseVisibility = textureSampleCompareLevel(
     pointShadowMap,
     pointShadowSampler,
-    normalize(toReceiver),
+    baseDirection,
     receiverDepth,
   );
+  let filterRadius = max(filterRadiusTexels, 0.0);
+  var rawVisibility = baseVisibility;
+
+  if (filterRadius > 0.0) {
+    let shadowDimensions = textureDimensions(pointShadowMap);
+    let cubeSize = f32(max(max(shadowDimensions.x, shadowDimensions.y), 1u));
+    let angularRadius = filterRadius * 2.0 / cubeSize;
+    var tangentSeed = vec3f(0.0, 1.0, 0.0);
+    if (abs(baseDirection.y) > 0.9) {
+      tangentSeed = vec3f(1.0, 0.0, 0.0);
+    }
+    let tangent = normalize(cross(tangentSeed, baseDirection));
+    let bitangent = normalize(cross(baseDirection, tangent));
+
+    rawVisibility = (
+      baseVisibility +
+      textureSampleCompareLevel(pointShadowMap, pointShadowSampler, normalize(toReceiver + tangent * receiverDistance * angularRadius), receiverDepth) +
+      textureSampleCompareLevel(pointShadowMap, pointShadowSampler, normalize(toReceiver - tangent * receiverDistance * angularRadius), receiverDepth) +
+      textureSampleCompareLevel(pointShadowMap, pointShadowSampler, normalize(toReceiver + bitangent * receiverDistance * angularRadius), receiverDepth) +
+      textureSampleCompareLevel(pointShadowMap, pointShadowSampler, normalize(toReceiver - bitangent * receiverDistance * angularRadius), receiverDepth)
+    ) * 0.2;
+  }
   let visibility = select(
     clamp(rawVisibility, 0.0, 1.0),
     1.0,
@@ -5091,7 +5156,7 @@ fn samplePointShadowFactorWithMatrixBase(worldPosition: vec3f, lightPosition: ve
 }
 
 fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32 {
-  return samplePointShadowFactorWithMatrixBase(worldPosition, lightPosition, 0u);
+  return samplePointShadowFactorWithMatrixBase(worldPosition, lightPosition, 0u, 0.0);
 }
 
 fn samplePointShadowReceiverFactor(worldPosition: vec3f) -> f32 {

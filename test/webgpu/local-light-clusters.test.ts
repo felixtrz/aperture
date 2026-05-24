@@ -384,6 +384,7 @@ describe("local light cluster preparation", () => {
       firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED,
     ).toBe(0);
     expect(descriptor.metadata[2]).toBe(0);
+    expect(descriptor.metadata[4]).toBe(0);
     expect(
       secondFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED,
     ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED);
@@ -393,6 +394,9 @@ describe("local light cluster preparation", () => {
       localRequestCount: 3,
       clusteredLightCount: 3,
       supportedLightCount: 1,
+      hardFilterLightCount: 1,
+      softFilterLightCount: 0,
+      maxFilterRadiusTexels: 0,
       fallbackReason: "clustered-local-shadow-sampling-partial",
     });
   });
@@ -429,6 +433,7 @@ describe("local light cluster preparation", () => {
       firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED,
     ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED);
     expect(descriptor.metadata[2]).toBe(0);
+    expect(descriptor.metadata[4]).toBe(1);
     expect(
       secondFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED,
     ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED);
@@ -438,6 +443,9 @@ describe("local light cluster preparation", () => {
       localRequestCount: 2,
       clusteredLightCount: 2,
       supportedLightCount: 1,
+      hardFilterLightCount: 0,
+      softFilterLightCount: 0,
+      maxFilterRadiusTexels: 1,
       fallbackReason: "clustered-local-shadow-sampling-partial",
     });
   });
@@ -479,12 +487,69 @@ describe("local light cluster preparation", () => {
     ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED);
     expect(descriptor.metadata[2]).toBe(0);
     expect(descriptor.metadata[secondOffset + 2]).toBe(1);
+    expect(descriptor.metadata[4]).toBe(1);
+    expect(descriptor.metadata[secondOffset + 4]).toBe(1);
     expect(descriptor.shadowCookieMetadata.shadow).toMatchObject({
       status: "sampling-ready",
       samplingSupported: true,
       localRequestCount: 2,
       clusteredLightCount: 2,
       supportedLightCount: 2,
+      hardFilterLightCount: 0,
+      softFilterLightCount: 0,
+      maxFilterRadiusTexels: 1,
+      fallbackReason: null,
+    });
+  });
+
+  it("records per-light shadow filter radii in cluster metadata", () => {
+    const base = snapshotWithPointLights(16, { shadowedLightCount: 2 });
+    const descriptor = createLocalLightClusterDescriptor(
+      {
+        ...base,
+        lights: base.lights.map((light) => ({
+          ...light,
+          kind: "spot",
+          innerConeAngle: 0.2,
+          outerConeAngle: 0.6,
+        })),
+        shadowRequests: base.shadowRequests.map((request) => ({
+          ...request,
+          lightKind: "spot",
+        })),
+      },
+      {
+        dimensions: { x: 4, y: 1, z: 4 },
+        maxLightsPerCell: 8,
+        supportedSpotShadowResources: [
+          {
+            shadowId: 1000,
+            lightId: 100,
+            matrixBaseIndex: 0,
+            filterRadiusTexels: 0,
+          },
+          {
+            shadowId: 1001,
+            lightId: 101,
+            matrixBaseIndex: 1,
+            filterRadiusTexels: 5,
+          },
+        ],
+      },
+    );
+    const secondOffset = LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE;
+
+    expect(descriptor.metadata[4]).toBe(0);
+    expect(descriptor.metadata[secondOffset + 4]).toBe(5);
+    expect(descriptor.shadowCookieMetadata.shadow).toMatchObject({
+      status: "sampling-ready",
+      samplingSupported: true,
+      localRequestCount: 2,
+      clusteredLightCount: 2,
+      supportedLightCount: 2,
+      hardFilterLightCount: 1,
+      softFilterLightCount: 1,
+      maxFilterRadiusTexels: 5,
       fallbackReason: null,
     });
   });

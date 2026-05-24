@@ -1,5 +1,56 @@
 # Completed Tasks
 
+## task-3144 — Add metadata-indexed clustered local shadow softness
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added renderer-owned `filterRadiusTexels` propagation from shadow-map
+  descriptors through shadow texture/depth resources and clustered local-light
+  supported-resource metadata.
+- Expanded clustered local-light metadata to five words per light, adding a
+  per-light shadow filter-radius word alongside flags, shadow id, shadow matrix
+  base, and cookie matrix base.
+- StandardMaterial WGSL now reads the metadata-indexed filter radius for
+  clustered local spot and point shadows; spot PCF offsets scale by the radius,
+  and point cube shadows use a small radius-controlled comparison pattern.
+- Cluster status now reports hard and soft filter readiness plus point,
+  spot-array, and spot-atlas softness route readiness.
+- `examples/clustered-lights.html?enable-cluster-shadow-softness=1` proves one
+  point shadow with radius `3` plus two spot shadows with radii `[0, 5]` in the
+  packed array route, with readback probe luminance delta about `57.36`.
+- `examples/clustered-lights.html?enable-cluster-shadow-softness-atlas=1`
+  proves the same hard/soft metadata through the nonuniform spot-shadow atlas
+  route.
+- Public trackers and agent task pointers now recommend `task-3145`, packing
+  multiple clustered point shadows through flattened cube-face metadata.
+
+Validation:
+
+- `node --check examples/clustered-lights.main.js && node --check examples/clustered-lights.worker.js`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/local-light-clusters.test.ts test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/light-bind-group.test.ts`
+- `pnpm run examples:build`
+- In-app Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-shadow-softness=1`: route
+  `ok`, `routeShadowSoftnessSamplingOk` true,
+  `routeSpotShadowArraySoftnessReady` true, `pointFilterRadiusTexels: 3`,
+  `spotFilterRadiusTexels: [0, 5]`, readback probe luminance delta
+  `57.36`, zero diagnostics, and relevant WebGPU validation warnings `0`.
+- In-app Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-shadow-softness-atlas=1`:
+  route `ok`, `routeSpotShadowAtlasSoftnessReady` true,
+  `clustered-point-spot-atlas-depth-compare`, readback probe luminance delta
+  `57.36`, zero diagnostics, and relevant WebGPU validation warnings `0`.
+
+Known follow-up:
+
+- `task-3145` should extend the same metadata approach to multiple clustered
+  point shadows rather than only one supported point cube shadow.
+- The broad clustered-lights e2e spec was not run end to end because previous
+  multi-page headed runs went idle locally; focused browser route proofs passed.
+
 ## task-3143 — Combine clustered point shadows with packed spot-shadow metadata
 
 Completed: 2026-05-24

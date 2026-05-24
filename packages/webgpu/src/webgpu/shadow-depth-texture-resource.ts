@@ -44,6 +44,7 @@ export interface ShadowDepthTextureResource {
   readonly layerCount?: number;
   readonly layerBaseIndex?: number;
   readonly attachmentLayerCount?: number;
+  readonly filterRadiusTexels?: number;
   readonly faceCount: 1 | 6;
   readonly viewDimension: "2d" | "2d-array" | "cube";
   readonly attachmentViews: readonly ShadowDepthTextureAttachmentView[];
@@ -88,6 +89,7 @@ export interface ShadowDepthTextureResourceReportJsonValue {
     readonly viewKey: string;
     readonly layerCount?: number;
     readonly layerBaseIndex?: number;
+    readonly filterRadiusTexels: number;
     readonly faceCount: 1 | 6;
     readonly viewDimension: "2d" | "2d-array" | "cube";
     readonly attachmentViewKeys: readonly string[];
@@ -211,6 +213,7 @@ export function shadowDepthTextureResourceReportToJsonValue(
       ...(resource.layerBaseIndex === undefined || resource.layerBaseIndex === 0
         ? {}
         : { layerBaseIndex: resource.layerBaseIndex }),
+      filterRadiusTexels: shadowFilterRadiusTexels(resource),
       faceCount: resource.faceCount,
       viewDimension: resource.viewDimension,
       attachmentViewKeys: resource.attachmentViews.map((view) => view.viewKey),
@@ -304,6 +307,8 @@ function createShadowDepthTextureResource(
     layerCount: shadowTextureLayerCount(texture),
     layerBaseIndex: texture.layerBaseIndex ?? 0,
     attachmentLayerCount: texture.attachmentViewKeys.length,
+    filterRadiusTexels:
+      texture.filterRadiusTexels ?? shadowTextureDefaultFilterRadius(texture),
     faceCount: texture.faceCount,
     viewDimension: texture.viewDimension,
     attachmentViews: createAttachmentViews(texture, allocation),
@@ -355,6 +360,24 @@ function createAttachmentViews(
       return [];
     }
   });
+}
+
+function shadowFilterRadiusTexels(
+  resource: Pick<
+    ShadowDepthTextureResource,
+    "filterRadiusTexels" | "viewDimension"
+  >,
+): number {
+  return (
+    resource.filterRadiusTexels ??
+    (resource.viewDimension === "cube" ? 0 : 1)
+  );
+}
+
+function shadowTextureDefaultFilterRadius(
+  texture: Pick<ShadowTextureResourceDescriptor, "viewDimension">,
+): number {
+  return texture.viewDimension === "cube" ? 0 : 1;
 }
 
 function shadowTextureLayerCount(

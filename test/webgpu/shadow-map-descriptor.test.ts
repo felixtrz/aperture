@@ -44,6 +44,7 @@ describe("shadow-map descriptors", () => {
           textureHeight: 1024,
           depthBias: 0.001,
           normalBias: 0.01,
+          filterRadiusTexels: 1,
           cascadeCount: 1,
           faceCount: 1,
           viewDimension: "2d",

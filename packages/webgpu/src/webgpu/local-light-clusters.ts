@@ -24,7 +24,7 @@ export const LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING = 20;
 export const LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING = 21;
 export const LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING = 22;
 export const LOCAL_LIGHT_CLUSTER_PARAM_FLOATS = 28;
-export const LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE = 4;
+export const LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE = 5;
 export const LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST = 1 << 0;
 export const LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_REQUEST = 1 << 1;
 export const LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED =
@@ -77,6 +77,7 @@ export interface LocalLightClusterSupportedShadowResource {
   readonly shadowId: number;
   readonly lightId: number;
   readonly matrixBaseIndex?: number;
+  readonly filterRadiusTexels?: number;
 }
 
 export type LocalLightClusterSupportedPointShadowResource =
@@ -102,6 +103,9 @@ export interface LocalLightClusterShadowCookieMetadata {
     readonly localRequestCount: number;
     readonly clusteredLightCount: number;
     readonly supportedLightCount: number;
+    readonly hardFilterLightCount: number;
+    readonly softFilterLightCount: number;
+    readonly maxFilterRadiusTexels: number;
     readonly fallbackReason: string | null;
   };
   readonly cookie: {
@@ -828,13 +832,25 @@ function createLocalLightClusterShadowCookieMetadata(
   const supportedPointShadowByKey = new Map(
     supportedPointShadowResources.map((resource, index) => [
       `${resource.shadowId}:${resource.lightId}`,
-      Math.max(resource.matrixBaseIndex ?? index * 6, 0),
+      {
+        matrixBaseIndex: Math.max(resource.matrixBaseIndex ?? index * 6, 0),
+        filterRadiusTexels: normalizeShadowFilterRadiusTexels(
+          resource.filterRadiusTexels,
+          0,
+        ),
+      },
     ]),
   );
   const supportedSpotShadowByKey = new Map(
     supportedSpotShadowResources.map((resource, index) => [
       `${resource.shadowId}:${resource.lightId}`,
-      Math.max(resource.matrixBaseIndex ?? index, 0),
+      {
+        matrixBaseIndex: Math.max(resource.matrixBaseIndex ?? index, 0),
+        filterRadiusTexels: normalizeShadowFilterRadiusTexels(
+          resource.filterRadiusTexels,
+          1,
+        ),
+      },
     ]),
   );
   const supportedCookieByLightId = new Map(
@@ -906,7 +922,7 @@ function createLocalLightClusterShadowCookieMetadata(
 
     localShadowLightIndices.add(lightIndex);
 
-    const supportedMatrixBaseIndex =
+    const supportedShadowResource =
       request.lightKind === "point"
         ? supportedPointShadowByKey.get(
             `${request.shadowId}:${request.lightId}`,
@@ -920,18 +936,21 @@ function createLocalLightClusterShadowCookieMetadata(
       lightIndex * LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE;
     const shadowFlags =
       LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST |
-      (supportedMatrixBaseIndex === undefined
+      (supportedShadowResource === undefined
         ? LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED
         : LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED);
 
     metadata[metadataOffset] = (metadata[metadataOffset] ?? 0) | shadowFlags;
     metadata[metadataOffset + 1] = request.shadowId >>> 0;
-    metadata[metadataOffset + 2] = supportedMatrixBaseIndex ?? 0;
+    metadata[metadataOffset + 2] =
+      supportedShadowResource?.matrixBaseIndex ?? 0;
+    metadata[metadataOffset + 4] =
+      supportedShadowResource?.filterRadiusTexels ?? 0;
 
     if (clusteredLightIndices.has(lightIndex)) {
       clusteredShadowLightIndices.add(lightIndex);
 
-      if (supportedMatrixBaseIndex !== undefined) {
+      if (supportedShadowResource !== undefined) {
         supportedShadowLightIndices.add(lightIndex);
       }
     }
@@ -940,6 +959,29 @@ function createLocalLightClusterShadowCookieMetadata(
   const localShadowRequestCount = localShadowLightIndices.size;
   const clusteredShadowLightCount = clusteredShadowLightIndices.size;
   const supportedShadowLightCount = supportedShadowLightIndices.size;
+  let hardFilterLightCount = 0;
+  let softFilterLightCount = 0;
+  let maxFilterRadiusTexels = 0;
+
+  for (const lightIndex of supportedShadowLightIndices) {
+    const metadataOffset =
+      lightIndex * LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE;
+    const filterRadiusTexels = metadata[metadataOffset + 4] ?? 0;
+
+    if (filterRadiusTexels <= 0) {
+      hardFilterLightCount += 1;
+    }
+
+    if (filterRadiusTexels > 1) {
+      softFilterLightCount += 1;
+    }
+
+    maxFilterRadiusTexels = Math.max(
+      maxFilterRadiusTexels,
+      filterRadiusTexels,
+    );
+  }
+
   const shadowStatus: LocalLightClusterFeatureStatus =
     supportedShadowLightCount > 0
       ? "sampling-ready"
@@ -967,6 +1009,9 @@ function createLocalLightClusterShadowCookieMetadata(
         localRequestCount: localShadowRequestCount,
         clusteredLightCount: clusteredShadowLightCount,
         supportedLightCount: supportedShadowLightCount,
+        hardFilterLightCount,
+        softFilterLightCount,
+        maxFilterRadiusTexels,
         fallbackReason:
           shadowStatus === "sampling-ready" &&
           supportedShadowLightCount < clusteredShadowLightCount
@@ -1002,6 +1047,17 @@ function cloneShadowCookieMetadata(
     shadow: { ...metadata.shadow },
     cookie: { ...metadata.cookie },
   };
+}
+
+function normalizeShadowFilterRadiusTexels(
+  value: number | undefined,
+  fallback: number,
+): number {
+  if (value === undefined || !Number.isFinite(value)) {
+    return fallback;
+  }
+
+  return Math.min(16, Math.max(0, Math.round(value)));
 }
 
 function selectLocalLightClusterSpace(

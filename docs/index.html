@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 08:32 UTC</dd>
+            <dd>2026-05-24 09:23 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -2435,22 +2435,23 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">task-3144</span> Added
+                metadata-indexed clustered local shadow softness, with
+                renderer-owned per-light filter radii, point radius
+                <code>3</code>, spot radii <code>[0, 5]</code>, and array plus
+                atlas browser proof routes.
+              </li>
+              <li>
+                <span class="badge green">task-3143</span> Combined one
+                clustered point shadow with multiple packed spot shadows in one
+                StandardMaterial route, covering both spot arrays and
+                nonuniform spot atlases.
+              </li>
+              <li>
                 <span class="badge green">task-3142</span> Added a
                 renderer-owned 2D atlas path for nonuniform clustered local spot
                 shadows, with 256 and 128 footprints, atlas-adjusted matrices,
                 and a focused browser proof route.
-              </li>
-              <li>
-                <span class="badge green">task-3141</span> Added a
-                renderer-owned 2D depth-array path for multiple clustered local
-                spot shadows, with per-light matrix/layer metadata and a
-                multi-spot browser proof route.
-              </li>
-              <li>
-                <span class="badge green">task-3140</span> Added a
-                renderer-owned 2D atlas path for nonuniform clustered spot
-                cookies, with per-light atlas-space projection matrices and an
-                atlas-cookie browser proof route.
               </li>
               <li>
                 <span class="badge green">task-3139</span> Packed fragment-stage
@@ -4779,13 +4780,14 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add metadata-indexed
-                clustered local shadow softness so hard and soft local shadows
-                can coexist in one StandardMaterial route.
+                <span class="badge amber">next</span> Pack multiple clustered
+                point shadows through flattened cube-face metadata so more than
+                one local point shadow can render in one StandardMaterial route.
               </li>
               <li>
-                Then continue multi-point local shadow packing and mixed
-                packed-shadow plus cookie route coverage.
+                Then combine packed local shadows with clustered local cookies
+                and re-audit the clustered-light route for remaining SOTA
+                efficiency gaps.
               </li>
             </ul>
           </article>
@@ -4798,6 +4800,17 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3144</div>
+            <div>
+              <strong>Metadata-indexed local shadow softness shipped.</strong>
+              <span>
+                Clustered point and spot shadows now carry renderer-owned
+                per-light filter radii, allowing hard and soft local shadows in
+                one StandardMaterial frame with JSON-safe readback proof.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3143</div>
             <div>

@@ -258,6 +258,9 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain("fn localLightClusterSamplePosition");
     expect(shader.code).toContain("fn localLightClusterMetadataFlags");
     expect(shader.code).toContain(
+      "fn localLightClusterShadowFilterRadiusTexels",
+    );
+    expect(shader.code).toContain(
       "fn localLightClusterUnsupportedShadowFactor",
     );
     expect(shader.code).toContain("return 0.99999994;");
@@ -1300,7 +1303,7 @@ describe("built-in standard material WGSL shader metadata", () => {
       "const STANDARD_SHADOW_MIN_VISIBILITY: f32 = 0.45;",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
-      "fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32) -> f32",
+      "fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32, filterRadiusTexels: f32) -> f32",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "for (var y: i32 = -1; y <= 1; y = y + 1)",
@@ -1365,7 +1368,7 @@ describe("built-in standard material WGSL shader metadata", () => {
       "fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32",
     );
     expect(shader.code).toContain(
-      "fn samplePointShadowFactorWithMatrixBase(worldPosition: vec3f, lightPosition: vec3f, matrixBaseIndex: u32) -> f32",
+      "fn samplePointShadowFactorWithMatrixBase(worldPosition: vec3f, lightPosition: vec3f, matrixBaseIndex: u32, filterRadiusTexels: f32) -> f32",
     );
     expect(shader.code).toContain("let clampedShadowDepth = clamp(");
     expect(shader.code).toContain(
@@ -1480,7 +1483,7 @@ describe("built-in standard material WGSL shader metadata", () => {
       "fn sampleSpotShadowFactor(worldPosition: vec3f) -> f32",
     );
     expect(shader.code).toContain(
-      "fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u32) -> f32",
+      "fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u32, filterRadiusTexels: f32) -> f32",
     );
     expect(shader.code).toContain(
       "fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32",
@@ -1626,7 +1629,7 @@ describe("built-in standard material WGSL shader metadata", () => {
       "@group(3) @binding(3) var directionalShadowMap: texture_depth_2d_array;",
     );
     expect(shader.code).toContain(
-      "fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32, layerIndex: u32) -> f32",
+      "fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32, layerIndex: u32, filterRadiusTexels: f32) -> f32",
     );
     expect(shader.code).toContain("i32(layerIndex),\n        receiverDepth");
     expect(shader.code).toContain("receiverDepth,\n    matrixBaseIndex,");
