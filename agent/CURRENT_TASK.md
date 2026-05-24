@@ -3,9 +3,9 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3126.
+Current task: task-3127.
 
-Status: `task-3125` completed per-view clustered-light resources.
+Status: `task-3126` completed production-fidelity RectAreaLight LTC tables.
 
 Key finding:
 
@@ -51,14 +51,22 @@ Key finding:
   cluster routes with distinct view ids, distinct occupancy hashes, per-route
   max/average cell pressure below 64 local lights, six reused cluster buffers,
   and zero WebGPU validation warnings.
-- The next SOTA shading gap is replacing placeholder RectAreaLight LTC payloads
-  with production-fidelity tables.
+- Renderer-owned RectAreaLight LTC matrix/fresnel textures now use production
+  RGBA16F table payloads derived from the three.js/selfshadow reference instead
+  of placeholder `rgba8unorm` bytes.
+- StandardMaterial area-light shading now applies the reference LUT scale/bias,
+  builds the LTC inverse matrix/fresnel terms from the sampled tables, evaluates
+  rect area lights through the matrix path, and clamps non-finite area-light
+  contribution terms so high-roughness table samples cannot poison output.
+- `examples/area-light-shapes.html` now proves rect, disk, and sphere area
+  lights across glossy, rough, and oblique-view scenarios with bound LTC table
+  resource status and zero WebGPU validation warnings.
 
-Next step: run `task-3126` from `agent/BACKLOG.md`, replacing placeholder
-area-light LTC payloads with production-fidelity tables and a browser-visible
-proof.
+Next step: run `task-3127` from `agent/BACKLOG.md`, re-auditing Aperture's
+covered render pipeline against three.js and PlayCanvas after the occlusion,
+multi-view clustered-light, and LTC table slices.
 
 Reference anchors for the next task:
 
-- `references/three.js/src/renderers/shaders/ShaderChunk/lights_physical_pars_fragment.glsl.js`.
-- `references/engine/src/scene/area-light-luts.js`.
+- `references/three.js/src/renderers/WebGLRenderer.js`.
+- `references/engine/src/scene/renderer/forward-renderer.js`.

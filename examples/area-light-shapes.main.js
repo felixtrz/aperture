@@ -1,6 +1,7 @@
 import { createNoopSimulationWorker } from "./noop-simulation-worker.js";
 import { inspectStructuredCloneSnapshot } from "./snapshot-transport-status.js";
 import {
+  areaLightScenarios,
   areaLightShapes,
   clearColor,
   readbackSamples,
@@ -59,7 +60,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
   );
   const loop = {
     receivedSnapshots: 0,
-    requestedShapeIndex: 0,
+    requestedScenarioIndex: 0,
     workerReady: false,
     workerScene: null,
     results: [],
@@ -99,7 +100,7 @@ async function handleWorkerMessage(
   if (message?.type === "ready") {
     loop.workerReady = true;
     loop.workerScene = message.scene ?? null;
-    requestNextShape(worker, loop);
+    requestNextScenario(worker, loop);
     return;
   }
 
@@ -123,22 +124,26 @@ async function handleWorkerMessage(
   const report = await app.renderSnapshot(message.snapshot, {
     frame: message.frame ?? loop.receivedSnapshots,
     clearColor,
-    label: `area-light-shapes-${message.shape?.shape ?? "unknown"}`,
+    label: `area-light-shapes-${message.scenario?.id ?? "unknown"}`,
     readbackSamples,
   });
 
   loop.lastReport = report;
   loop.lastMessage = message;
   loop.results.push({
-    shape: message.shape,
+    scenario: message.scenario,
     report,
-    samples: prefixSamples(message.shape?.shape ?? "unknown", report.readback),
+    samples: prefixSamples(
+      message.scenario?.id ?? "unknown",
+      message.scenario?.shape ?? "unknown",
+      report.readback,
+    ),
     workerStep: message.workerStep,
     transport: inspectStructuredCloneSnapshot(report.snapshot),
   });
 
-  if (loop.requestedShapeIndex < areaLightShapes.length) {
-    requestNextShape(worker, loop);
+  if (loop.requestedScenarioIndex < areaLightScenarios.length) {
+    requestNextScenario(worker, loop);
     return;
   }
 
@@ -146,19 +151,20 @@ async function handleWorkerMessage(
   worker.terminate();
 }
 
-function requestNextShape(worker, loop) {
-  const shape = areaLightShapes[loop.requestedShapeIndex];
+function requestNextScenario(worker, loop) {
+  const scenario = areaLightScenarios[loop.requestedScenarioIndex];
 
-  loop.requestedShapeIndex += 1;
+  loop.requestedScenarioIndex += 1;
   worker.postMessage({
     type: "frame",
-    shape: shape.shape,
+    scenario: scenario.id,
   });
 }
 
-function prefixSamples(shape, readback) {
+function prefixSamples(scenario, shape, readback) {
   return (readback?.samples ?? []).map((sample) => ({
-    id: `${shape}-${sample.id}`,
+    id: `${scenario}-${sample.id}`,
+    scenario,
     shape,
     pixel: sample.pixel,
   }));
@@ -170,24 +176,36 @@ function createStatus(aperture, app, scene, loop) {
   const standardResources =
     lastReport?.resources?.resources?.standard?.[0] ?? null;
   const samples = loop.results.flatMap((result) => result.samples);
+  const areaLightLtcEntryKeys =
+    standardResources?.lightBindGroup?.entryResourceKeys?.filter((key) =>
+      key.includes("standard-area-light-ltc"),
+    ) ?? [];
 
   return {
     example: "area-light-shapes",
     ok:
-      loop.results.length === areaLightShapes.length &&
+      loop.results.length === areaLightScenarios.length &&
       loop.results.every((result) => result.report.ok),
     phase:
-      lastReport?.ok === true && loop.results.length === areaLightShapes.length
+      lastReport?.ok === true &&
+      loop.results.length === areaLightScenarios.length
         ? "submit"
         : "render",
     renderingBackend: "webgpu-explicit",
     frame: lastReport?.frame ?? 0,
-    areaLights: loop.results.map((result) => ({
+    areaLights: areaLightShapes.map((shape) => ({
       kind: "rect-area",
-      shape: result.shape?.shape ?? "unknown",
-      width: result.shape?.width ?? 0,
-      height: result.shape?.height ?? 0,
-      intensity: result.shape?.intensity ?? 0,
+      shape: shape.shape,
+      width: shape.width,
+      height: shape.height,
+      intensity: shape.intensity,
+    })),
+    scenarios: loop.results.map((result) => ({
+      id: result.scenario?.id ?? "unknown",
+      shape: result.scenario?.shape ?? "unknown",
+      material: result.scenario?.material ?? "unknown",
+      roughness: result.scenario?.roughness ?? 0,
+      surfaceRotationY: result.scenario?.surfaceRotationY ?? 0,
     })),
     counts: {
       meshDraws: lastReport?.snapshot.meshDraws.length ?? 0,
@@ -198,12 +216,19 @@ function createStatus(aperture, app, scene, loop) {
       ),
       drawCalls:
         lastReport?.counts?.drawCalls ?? lastReport?.draw?.drawCalls ?? 0,
-      submittedShapes: loop.results.length,
+      submittedShapes: areaLightShapes.length,
+      submittedScenarios: loop.results.length,
     },
     resources: {
       lightBindGroup: standardResources?.lightBindGroup === undefined ? 0 : 1,
       lightGpuBuffers:
         standardResources?.lightGpuBuffers?.lightBuffer.count ?? 0,
+      areaLightLtc: {
+        size: aperture.STANDARD_AREA_LIGHT_LTC_SIZE,
+        format: aperture.STANDARD_AREA_LIGHT_LTC_TEXTURE_FORMAT,
+        payloadBytes: aperture.STANDARD_AREA_LIGHT_LTC_PAYLOAD_BYTE_LENGTH,
+        boundEntries: areaLightLtcEntryKeys,
+      },
     },
     readback: {
       ok: loop.results.every((result) => result.report.readback?.ok === true),

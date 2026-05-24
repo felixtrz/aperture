@@ -24,7 +24,23 @@ interface AreaLightShapesStatus extends ExampleStatusBase {
     readonly diagnostics: number;
     readonly drawCalls: number;
     readonly submittedShapes: number;
+    readonly submittedScenarios: number;
   };
+  readonly resources?: {
+    readonly areaLightLtc?: {
+      readonly size: number;
+      readonly format: string;
+      readonly payloadBytes: number;
+      readonly boundEntries: readonly string[];
+    };
+  };
+  readonly scenarios?: readonly {
+    readonly id: string;
+    readonly shape: "rect" | "disk" | "sphere";
+    readonly material: string;
+    readonly roughness: number;
+    readonly surfaceRotationY: number;
+  }[];
   readonly readback?: {
     readonly ok: boolean;
     readonly samples?: readonly AreaLightShapeSample[];
@@ -33,6 +49,7 @@ interface AreaLightShapesStatus extends ExampleStatusBase {
 
 interface AreaLightShapeSample {
   readonly id: string;
+  readonly scenario: string;
   readonly shape: "rect" | "disk" | "sphere";
   readonly pixel: {
     readonly r: number;
@@ -75,18 +92,42 @@ test("browser distinguishes rect, disk, and sphere area-light shapes", async ({
       lights: 2,
       diagnostics: 0,
       submittedShapes: 3,
+      submittedScenarios: 9,
+    },
+    resources: {
+      areaLightLtc: {
+        size: 64,
+        format: "rgba16float",
+        payloadBytes: 32768,
+        boundEntries: [
+          "standard-area-light-ltc:matrix",
+          "standard-area-light-ltc:fresnel",
+          "standard-area-light-ltc:sampler",
+        ],
+      },
     },
   });
+  expect(status.scenarios?.map((scenario) => scenario.id)).toEqual([
+    "rect-glossy",
+    "rect-rough",
+    "rect-oblique",
+    "disk-glossy",
+    "disk-rough",
+    "disk-oblique",
+    "sphere-glossy",
+    "sphere-rough",
+    "sphere-oblique",
+  ]);
 
   if (status.readback?.ok !== true) {
     test.skip(true, "Area-light shape pixel assertion requires readback.");
   }
 
-  const rect = requiredSample(status, "rect-center");
-  const disk = requiredSample(status, "disk-center");
-  const sphere = requiredSample(status, "sphere-center");
-  const rectLeft = requiredSample(status, "rect-left");
-  const rectUpper = requiredSample(status, "rect-upper");
+  const rect = requiredSample(status, "rect-rough-center");
+  const disk = requiredSample(status, "disk-rough-center");
+  const sphere = requiredSample(status, "sphere-rough-center");
+  const rectLeft = requiredSample(status, "rect-rough-left");
+  const rectUpper = requiredSample(status, "rect-rough-upper");
   const clear = rgbaColorToPixel({ r: 0.012, g: 0.018, b: 0.026, a: 1 });
 
   for (const sample of [rect, disk, sphere]) {
@@ -100,6 +141,14 @@ test("browser distinguishes rect, disk, and sphere area-light shapes", async ({
   expect(pixelDistance(disk.pixel, sphere.pixel)).toBeGreaterThan(4);
   expect(pixelLuma(rect.pixel)).toBeGreaterThan(pixelLuma(rectLeft.pixel) + 4);
   expect(pixelLuma(rect.pixel)).toBeGreaterThan(pixelLuma(rectUpper.pixel) + 4);
+  for (const shape of ["rect", "disk", "sphere"] as const) {
+    const glossy = requiredSample(status, `${shape}-glossy-center`);
+    const rough = requiredSample(status, `${shape}-rough-center`);
+    const oblique = requiredSample(status, `${shape}-oblique-center`);
+
+    expect(pixelDistance(glossy.pixel, rough.pixel)).toBeGreaterThan(2);
+    expect(pixelDistance(rough.pixel, oblique.pixel)).toBeGreaterThan(2);
+  }
   webGpuValidation.expectNoWarnings();
 });
 

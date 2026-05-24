@@ -168,6 +168,7 @@ export * from "./skybox-pipeline.js";
 export * from "./standard-bind-group-layout.js";
 export * from "./standard-bind-group.js";
 export * from "./standard-app-frame-resources.js";
+export * from "./standard-area-light-ltc-data.js";
 export * from "./standard-area-light-ltc-resource.js";
 export * from "./standard-frame-resources.js";
 export * from "./standard-material-buffer-resource.js";

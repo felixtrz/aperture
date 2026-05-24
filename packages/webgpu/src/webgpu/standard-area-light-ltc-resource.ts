@@ -1,6 +1,13 @@
 import { createSamplerAsset } from "@aperture-engine/render";
 
 import {
+  STANDARD_AREA_LIGHT_LTC_BYTES_PER_TEXEL,
+  STANDARD_AREA_LIGHT_LTC_SIZE,
+  STANDARD_AREA_LIGHT_LTC_TEXTURE_FORMAT,
+  createStandardAreaLightLtcFresnelData,
+  createStandardAreaLightLtcMatrixData,
+} from "./standard-area-light-ltc-data.js";
+import {
   WEBGPU_TEXTURE_USAGE_FLAGS,
   createSamplerGpuResource,
   createTextureGpuResource,
@@ -43,20 +50,18 @@ export interface CreateStandardAreaLightLtcResourcesResult {
   readonly reusedSamplerCount: number;
 }
 
-const LUT_SIZE = 64;
-
 export function createStandardAreaLightLtcResources(
   options: CreateStandardAreaLightLtcResourcesOptions,
 ): CreateStandardAreaLightLtcResourcesResult {
   const matrix = createOrReuseLtcTexture(
     options,
     STANDARD_AREA_LIGHT_LTC_MATRIX_RESOURCE_KEY,
-    createIdentityMatrixLutData(),
+    createStandardAreaLightLtcMatrixData(),
   );
   const fresnel = createOrReuseLtcTexture(
     options,
     STANDARD_AREA_LIGHT_LTC_FRESNEL_RESOURCE_KEY,
-    createUnitFresnelLutData(),
+    createStandardAreaLightLtcFresnelData(),
   );
   const sampler = createOrReuseLtcSampler(options);
   const diagnostics = [
@@ -108,8 +113,8 @@ function createOrReuseLtcTexture(
     resourceKey,
     descriptor: {
       label: resourceKey,
-      size: [LUT_SIZE, LUT_SIZE, 1],
-      format: "rgba8unorm",
+      size: [STANDARD_AREA_LIGHT_LTC_SIZE, STANDARD_AREA_LIGHT_LTC_SIZE, 1],
+      format: STANDARD_AREA_LIGHT_LTC_TEXTURE_FORMAT,
       usage:
         WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING |
         WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST,
@@ -118,8 +123,9 @@ function createOrReuseLtcTexture(
     },
     upload: {
       data,
-      bytesPerRow: LUT_SIZE * 4,
-      rowsPerImage: LUT_SIZE,
+      bytesPerRow:
+        STANDARD_AREA_LIGHT_LTC_SIZE * STANDARD_AREA_LIGHT_LTC_BYTES_PER_TEXEL,
+      rowsPerImage: STANDARD_AREA_LIGHT_LTC_SIZE,
     },
   });
 
@@ -176,30 +182,4 @@ function createOrReuseLtcSampler(
     diagnostics: result.diagnostics,
     reused: false,
   };
-}
-
-function createIdentityMatrixLutData(): Uint8Array {
-  const data = new Uint8Array(LUT_SIZE * LUT_SIZE * 4);
-
-  for (let offset = 0; offset < data.length; offset += 4) {
-    data[offset] = 255;
-    data[offset + 1] = 0;
-    data[offset + 2] = 255;
-    data[offset + 3] = 255;
-  }
-
-  return data;
-}
-
-function createUnitFresnelLutData(): Uint8Array {
-  const data = new Uint8Array(LUT_SIZE * LUT_SIZE * 4);
-
-  for (let offset = 0; offset < data.length; offset += 4) {
-    data[offset] = 255;
-    data[offset + 1] = 255;
-    data[offset + 2] = 0;
-    data[offset + 3] = 255;
-  }
-
-  return data;
 }

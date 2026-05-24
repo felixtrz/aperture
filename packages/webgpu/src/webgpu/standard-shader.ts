@@ -395,57 +395,129 @@ fn rectAreaLightNormal(lightIndex: u32) -> vec3f {
 }
 
 fn areaLightLtcUv(normal: vec3f, viewDir: vec3f, roughness: f32) -> vec2f {
+  let lutSize = 64.0;
+  let lutScale = (lutSize - 1.0) / lutSize;
+  let lutBias = 0.5 / lutSize;
   let nDotV = saturate(dot(normal, viewDir));
-  return vec2f(clamp(roughness, 0.0, 1.0), sqrt(1.0 - nDotV));
+  let uv = vec2f(clamp(roughness, 0.0, 1.0), sqrt(1.0 - nDotV));
+  return uv * lutScale + vec2f(lutBias);
 }
 
-fn areaLightLtcScale(normal: vec3f, viewDir: vec3f, roughness: f32) -> f32 {
-  let uv = areaLightLtcUv(normal, viewDir, roughness);
-  let matrix = textureSampleLevel(
-    standardAreaLightLtcMatrixTexture,
-    standardAreaLightLtcSampler,
-    uv,
+fn areaLightLtcMatrix(texel: vec4f) -> mat3x3f {
+  return mat3x3f(
+    vec3f(texel.x, 0.0, texel.y),
+    vec3f(0.0, 1.0, 0.0),
+    vec3f(texel.z, 0.0, texel.w),
+  );
+}
+
+fn areaLightLtcFresnel(texel: vec4f, specularColor: vec3f) -> vec3f {
+  return specularColor * texel.x + (vec3f(1.0) - specularColor) * texel.y;
+}
+
+fn areaLightLtcScalarScale(matrixTexel: vec4f, fresnelTexel: vec4f) -> f32 {
+  return max((matrixTexel.x + matrixTexel.z) * 0.5 * max(fresnelTexel.x, 0.04), 0.0001);
+}
+
+fn ltcIdentityMatrix() -> mat3x3f {
+  return mat3x3f(
+    vec3f(1.0, 0.0, 0.0),
+    vec3f(0.0, 1.0, 0.0),
+    vec3f(0.0, 0.0, 1.0),
+  );
+}
+
+fn ltcTransposeMat3(matrix: mat3x3f) -> mat3x3f {
+  return mat3x3f(
+    vec3f(matrix[0].x, matrix[1].x, matrix[2].x),
+    vec3f(matrix[0].y, matrix[1].y, matrix[2].y),
+    vec3f(matrix[0].z, matrix[1].z, matrix[2].z),
+  );
+}
+
+fn ltcClippedSphereFormFactor(vectorFormFactor: vec3f) -> f32 {
+  let vectorLength = length(vectorFormFactor);
+  return max(
+    (vectorLength * vectorLength + vectorFormFactor.z) /
+      max(vectorLength + 1.0, 0.0001),
     0.0,
   );
-  let fresnel = textureSampleLevel(
-    standardAreaLightLtcFresnelTexture,
-    standardAreaLightLtcSampler,
-    uv,
-    0.0,
+}
+
+fn areaLightFiniteNonNegative(value: f32) -> f32 {
+  if (value != value) {
+    return 0.0;
+  }
+
+  return max(value, 0.0);
+}
+
+fn areaLightFiniteColor(color: vec3f) -> vec3f {
+  return vec3f(
+    areaLightFiniteNonNegative(color.x),
+    areaLightFiniteNonNegative(color.y),
+    areaLightFiniteNonNegative(color.z),
   );
-  return max((matrix.x + matrix.z) * 0.5 * max(fresnel.x, 0.04), 0.0001);
 }
 
 fn ltcEdgeVectorFormFactor(v1: vec3f, v2: vec3f) -> vec3f {
-  let edge = cross(v1, v2);
-  let edgeLength = length(edge);
+  let x = clamp(dot(v1, v2), -0.9999, 0.9999);
+  let y = abs(x);
+  let a = 0.8543985 + (0.4965155 + 0.0145206 * y) * y;
+  let b = 3.4175940 + (4.1616724 + y) * y;
+  let v = a / b;
+  var thetaSinTheta = v;
 
-  if (edgeLength <= 0.0001) {
-    return vec3f(0.0);
+  if (x <= 0.0) {
+    thetaSinTheta = 0.5 * inverseSqrt(max(1.0 - x * x, 0.0000001)) - v;
   }
 
-  let angle = acos(clamp(dot(v1, v2), -0.9999, 0.9999));
-  return edge * (angle / edgeLength);
+  return cross(v1, v2) * thetaSinTheta;
+}
+
+fn ltcEvaluateRect(
+  normal: vec3f,
+  viewDir: vec3f,
+  position: vec3f,
+  inverseMatrix: mat3x3f,
+  p0: vec3f,
+  p1: vec3f,
+  p2: vec3f,
+  p3: vec3f,
+) -> f32 {
+  let lightEdge1 = p1 - p0;
+  let lightEdge2 = p3 - p0;
+  let lightNormal = cross(lightEdge1, lightEdge2);
+  let handedness = sign(-dot(lightNormal, position - p0));
+  let tangent = safeNormalize(
+    viewDir - normal * dot(viewDir, normal),
+    vec3f(1.0, 0.0, 0.0),
+  );
+  let bitangent = handedness * cross(normal, tangent);
+  let basis = ltcTransposeMat3(mat3x3f(tangent, bitangent, normal));
+  let ltcTransform = inverseMatrix * basis;
+  let v0 = safeNormalize(ltcTransform * (p0 - position), vec3f(0.0, 0.0, 1.0));
+  let v1 = safeNormalize(ltcTransform * (p1 - position), vec3f(0.0, 0.0, 1.0));
+  let v2 = safeNormalize(ltcTransform * (p2 - position), vec3f(0.0, 0.0, 1.0));
+  let v3 = safeNormalize(ltcTransform * (p3 - position), vec3f(0.0, 0.0, 1.0));
+  let vectorFormFactor =
+    ltcEdgeVectorFormFactor(v0, v1) +
+    ltcEdgeVectorFormFactor(v1, v2) +
+    ltcEdgeVectorFormFactor(v2, v3) +
+    ltcEdgeVectorFormFactor(v3, v0);
+  return saturate(ltcClippedSphereFormFactor(vectorFormFactor));
 }
 
 fn rectAreaLightFormFactor(
   normal: vec3f,
+  viewDir: vec3f,
   position: vec3f,
   p0: vec3f,
   p1: vec3f,
   p2: vec3f,
   p3: vec3f,
 ) -> f32 {
-  let v0 = safeNormalize(p0 - position, normal);
-  let v1 = safeNormalize(p1 - position, normal);
-  let v2 = safeNormalize(p2 - position, normal);
-  let v3 = safeNormalize(p3 - position, normal);
-  let vectorFormFactor =
-    ltcEdgeVectorFormFactor(v0, v1) +
-    ltcEdgeVectorFormFactor(v1, v2) +
-    ltcEdgeVectorFormFactor(v2, v3) +
-    ltcEdgeVectorFormFactor(v3, v0);
-  return saturate(abs(dot(normal, vectorFormFactor)) / (2.0 * PI));
+  return ltcEvaluateRect(normal, viewDir, position, ltcIdentityMatrix(), p0, p1, p2, p3);
 }
 
 fn diskAreaLightFormFactor(
@@ -484,6 +556,7 @@ fn areaLightFormFactor(
   lightIndex: u32,
   shape: i32,
   normal: vec3f,
+  viewDir: vec3f,
   position: vec3f,
   center: vec3f,
   halfWidth: vec3f,
@@ -501,7 +574,7 @@ fn areaLightFormFactor(
   let p1 = center + halfWidth - halfHeight;
   let p2 = center + halfWidth + halfHeight;
   let p3 = center - halfWidth + halfHeight;
-  return rectAreaLightFormFactor(normal, position, p0, p1, p2, p3);
+  return rectAreaLightFormFactor(normal, viewDir, position, p0, p1, p2, p3);
 }
 
 fn evaluateAreaLight(
@@ -523,29 +596,73 @@ fn evaluateAreaLight(
 
   let halfWidth = rectAreaLightHalfWidth(lightIndex);
   let halfHeight = rectAreaLightHalfHeight(lightIndex);
-  let formFactor = areaLightFormFactor(
+  let shape = areaLightShape(lightIndex);
+  var diffuseFactor = areaLightFormFactor(
     lightIndex,
-    areaLightShape(lightIndex),
+    shape,
     normal,
+    viewDir,
     position,
     center,
     halfWidth,
     halfHeight,
   );
+  let f0 = mix(vec3f(0.04), baseColor, vec3f(metallic));
+  let ltcUv = areaLightLtcUv(normal, viewDir, roughness);
+  let ltcMatrixTexel = textureSampleLevel(
+    standardAreaLightLtcMatrixTexture,
+    standardAreaLightLtcSampler,
+    ltcUv,
+    0.0,
+  );
+  let ltcFresnelTexel = textureSampleLevel(
+    standardAreaLightLtcFresnelTexture,
+    standardAreaLightLtcSampler,
+    ltcUv,
+    0.0,
+  );
+  var specularFactor =
+    diffuseFactor * areaLightLtcScalarScale(ltcMatrixTexel, ltcFresnelTexel);
 
-  if (formFactor <= 0.0) {
+  if (shape == AREA_LIGHT_SHAPE_RECT) {
+    let p0 = center - halfWidth - halfHeight;
+    let p1 = center + halfWidth - halfHeight;
+    let p2 = center + halfWidth + halfHeight;
+    let p3 = center - halfWidth + halfHeight;
+    diffuseFactor = rectAreaLightFormFactor(
+      normal,
+      viewDir,
+      position,
+      p0,
+      p1,
+      p2,
+      p3,
+    );
+    specularFactor = ltcEvaluateRect(
+      normal,
+      viewDir,
+      position,
+      areaLightLtcMatrix(ltcMatrixTexel),
+      p0,
+      p1,
+      p2,
+      p3,
+    );
+  }
+
+  diffuseFactor = areaLightFiniteNonNegative(diffuseFactor);
+  specularFactor = areaLightFiniteNonNegative(specularFactor);
+
+  if (diffuseFactor <= 0.0 && specularFactor <= 0.0) {
     return vec3f(0.0);
   }
 
-  let ltcScale = areaLightLtcScale(normal, viewDir, roughness);
-  let lightDir = safeNormalize(center - position, normal);
-  let f0 = mix(vec3f(0.04), baseColor, vec3f(metallic));
-  let fresnel = fresnelSchlick(max(dot(viewDir, lightDir), 0.0), f0);
-  let diffuse = ((vec3f(1.0) - fresnel) * (1.0 - metallic) * baseColor) / PI;
-  let reflectionDir = reflect(-viewDir, normal);
-  let specularPower = mix(64.0, 4.0, roughness);
-  let specular = fresnel * pow(saturate(dot(reflectionDir, lightDir)), specularPower) * ltcScale;
-  return (diffuse + specular) * lightRadiance(lightIndex) * formFactor;
+  let fresnel = areaLightLtcFresnel(ltcFresnelTexel, f0);
+  let diffuse = ((vec3f(1.0) - f0) * (1.0 - metallic) * baseColor) / PI;
+  let specular = fresnel * specularFactor;
+  return areaLightFiniteColor(
+    (diffuse * diffuseFactor + specular) * lightRadiance(lightIndex),
+  );
 }
 
 @fragment

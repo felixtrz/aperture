@@ -59,8 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3126`: replace placeholder area-light LTC payloads with
-production-fidelity tables and a browser-visible proof.
+Start `task-3127`: re-audit post-cluster render pipeline parity against
+three.js and PlayCanvas after the occlusion, multi-view clustered-light, and
+production LTC table slices.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -179,13 +180,17 @@ calls. `task-3125` now splits clustered local-light resources by active
 view/light-set route, preserves state commands when filtering render passes per
 view, uses fixed-capacity cluster index buffers so moving cameras can reuse GPU
 buffers, and proves two active cluster routes in
-`examples/clustered-lights.html`. The next SOTA shading gap is replacing
-placeholder area-light LTC data with production-fidelity tables.
+`examples/clustered-lights.html`. `task-3126` now replaces placeholder
+RectAreaLight LTC data with production RGBA16F table payloads, samples the
+matrix/fresnel terms through the existing group-3 route, and proves
+roughness/view-angle response for rect, disk, and sphere area lights in
+`examples/area-light-shapes.html`. The next SOTA step is a fresh parity audit
+before selecting the next visible render-pipeline slice.
 
 Reference anchors for the next task (read before writing):
 
-- `references/three.js/src/renderers/shaders/ShaderChunk/lights_physical_pars_fragment.glsl.js`.
-- `references/engine/src/scene/area-light-luts.js`.
+- `references/three.js/src/renderers/WebGLRenderer.js`.
+- `references/engine/src/scene/renderer/forward-renderer.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -621,6 +626,8 @@ Acceptance criteria:
   total local lights for each view.
 
 ### task-3126 — Replace placeholder area-light LTC payloads with production tables
+
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*ltc*`, `packages/webgpu/src/webgpu/standard-*`, `examples/area-light-shapes.*`, `test/webgpu/`, `test/e2e/`.

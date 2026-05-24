@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-24T00:28:38Z
+Updated: 2026-05-24T00:52:00Z
+
+## Current Run Update — 2026-05-24T00:52:00Z — Production area-light LTC tables
+
+Completed `task-3126`, replacing placeholder RectAreaLight LTC payloads with
+production-fidelity table data and a browser-visible roughness/view proof.
+
+### What changed
+
+- Added generated RectAreaLight LTC matrix/fresnel table payloads from the
+  local three.js/selfshadow reference as little-endian RGBA16F bytes with
+  exported size/format/payload constants.
+- Replaced the old deterministic `rgba8unorm` LTC placeholders with
+  renderer-owned `rgba16float` texture uploads while keeping the existing
+  StandardMaterial group-3 light bind-group route.
+- Updated StandardMaterial area-light WGSL to apply the reference LUT
+  scale/bias, build the sampled LTC inverse matrix and fresnel terms, evaluate
+  rect area lights through the matrix path, and clamp non-finite contribution
+  terms so high-roughness samples cannot poison output.
+- Expanded `examples/area-light-shapes.html` to submit rect, disk, and sphere
+  scenarios for glossy, rough, and oblique-view cases, and to publish the bound
+  LTC table resource status.
+- Updated public tracker pages, backlog, current-task pointer, and completed
+  task log. Recommended next task is `task-3127`, re-auditing the covered render
+  pipeline against three.js and PlayCanvas after the recent occlusion,
+  multi-view clustered-light, and LTC table slices.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/standard-area-light-ltc-resource.test.ts test/webgpu/standard-shader.test.ts --reporter=dot`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/rect-area-light.spec.ts --reporter=line --timeout=30000`
+- `pnpm exec playwright test test/e2e/area-light-shapes.spec.ts --reporter=line --timeout=30000`
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3127`, a fresh post-LTC render-pipeline parity audit.
 
 ## Current Run Update — 2026-05-24T00:28:38Z — Per-view clustered-light resources
 

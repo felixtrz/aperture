@@ -1,4 +1,5 @@
 import {
+  areaLightScenarios,
   areaLightShapes,
   clearColor,
   registerAreaLightShapesScene,
@@ -48,7 +49,14 @@ async function handleMessage(data) {
         scene: {
           meshKey: aperture.assetHandleKey(scene.mesh),
           materialKey: aperture.assetHandleKey(scene.material),
+          materialKeys: Object.fromEntries(
+            Object.entries(scene.materials).map(([key, handle]) => [
+              key,
+              aperture.assetHandleKey(handle),
+            ]),
+          ),
           shapes: areaLightShapes,
+          scenarios: areaLightScenarios,
         },
       });
       return;
@@ -59,15 +67,17 @@ async function handleMessage(data) {
         throw new Error("Worker scene has not been initialized.");
       }
 
-      const shape = areaLightShapes.find(
-        (candidate) => candidate.shape === data.shape,
+      const scenario = areaLightScenarios.find(
+        (candidate) => candidate.id === data.scenario,
       );
 
-      if (shape === undefined) {
-        throw new Error(`Unknown area light shape '${String(data.shape)}'.`);
+      if (scenario === undefined) {
+        throw new Error(
+          `Unknown area light scenario '${String(data.scenario)}'.`,
+        );
       }
 
-      const snapshotMessage = createSnapshotMessage(aperture, scene, shape);
+      const snapshotMessage = createSnapshotMessage(aperture, scene, scenario);
       self.postMessage(
         snapshotMessage,
         aperture.renderSnapshotTransferList(snapshotMessage.snapshot),
@@ -93,7 +103,7 @@ function createWorkerScene(aperture, canvasSize) {
   });
   const registered = registerAreaLightShapesScene(aperture, app.assets);
 
-  app.spawn(
+  const cameraEntity = app.spawn(
     aperture.withTransform({ translation: [0, 0, 3.3] }),
     aperture.withCamera({
       aspect: canvasSize.width / canvasSize.height,
@@ -103,7 +113,7 @@ function createWorkerScene(aperture, canvasSize) {
       layerMask: 1,
     }),
   );
-  app.spawn(
+  const surfaceEntity = app.spawn(
     aperture.withTransform(),
     aperture.withMesh(registered.mesh),
     aperture.withMaterial(registered.material),
@@ -134,30 +144,50 @@ function createWorkerScene(aperture, canvasSize) {
   return {
     ...registered,
     app,
+    cameraEntity,
+    surfaceEntity,
     areaLightEntity,
   };
 }
 
-function createSnapshotMessage(aperture, workerScene, shape) {
-  workerScene.areaLightEntity.setValue(aperture.Light, "shape", shape.shape);
+function createSnapshotMessage(aperture, workerScene, scenario) {
+  const material = workerScene.materials[scenario.material];
+
+  if (material === undefined) {
+    throw new Error(`Unknown material scenario '${scenario.material}'.`);
+  }
+
+  workerScene.surfaceEntity.setValue(
+    aperture.Material,
+    "materialId",
+    aperture.assetHandleKey(material),
+  );
+  workerScene.surfaceEntity
+    .getVectorView(aperture.LocalTransform, "rotation")
+    .set(rotationY(scenario.surfaceRotationY));
+  workerScene.areaLightEntity.setValue(aperture.Light, "shape", scenario.shape);
   workerScene.areaLightEntity.setValue(
     aperture.Light,
     "intensity",
-    shape.intensity,
+    scenario.intensity,
   );
-  workerScene.areaLightEntity.setValue(aperture.Light, "width", shape.width);
-  workerScene.areaLightEntity.setValue(aperture.Light, "height", shape.height);
+  workerScene.areaLightEntity.setValue(aperture.Light, "width", scenario.width);
+  workerScene.areaLightEntity.setValue(
+    aperture.Light,
+    "height",
+    scenario.height,
+  );
 
   workerScene.app.step(0, 0);
   const frame =
-    areaLightShapes.findIndex((candidate) => candidate.shape === shape.shape) +
+    areaLightScenarios.findIndex((candidate) => candidate.id === scenario.id) +
     1;
   const snapshot = workerScene.app.extract(frame);
 
   return {
     type: "snapshot",
     frame,
-    shape,
+    scenario,
     snapshot,
     workerStep: {
       transforms: snapshot.transforms.length / 16,
@@ -167,6 +197,11 @@ function createSnapshotMessage(aperture, workerScene, shape) {
       diagnostics: snapshot.diagnostics.length,
     },
   };
+}
+
+function rotationY(radians) {
+  const half = radians * 0.5;
+  return [0, Math.sin(half), 0, Math.cos(half)];
 }
 
 function messageFromError(error) {

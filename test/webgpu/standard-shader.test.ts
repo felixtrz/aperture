@@ -176,6 +176,24 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(STANDARD_MESH_WGSL).toContain("standardAreaLightLtcMatrixTexture");
   });
 
+  it("samples production LTC area-light tables with reference UV scale and matrix/fresnel terms", () => {
+    expect(STANDARD_MESH_WGSL).toContain(
+      "let lutScale = (lutSize - 1.0) / lutSize;",
+    );
+    expect(STANDARD_MESH_WGSL).toContain("let lutBias = 0.5 / lutSize;");
+    expect(STANDARD_MESH_WGSL).toContain(
+      "return uv * lutScale + vec2f(lutBias);",
+    );
+    expect(STANDARD_MESH_WGSL).toContain("fn areaLightLtcMatrix");
+    expect(STANDARD_MESH_WGSL).toContain("fn areaLightLtcFresnel");
+    expect(STANDARD_MESH_WGSL).toContain("fn ltcEvaluateRect");
+    expect(STANDARD_MESH_WGSL).toContain("fn areaLightFiniteNonNegative");
+    expect(STANDARD_MESH_WGSL).toContain(
+      "specularColor * texel.x + (vec3f(1.0) - specularColor) * texel.y",
+    );
+    expect(STANDARD_MESH_WGSL).toContain("areaLightLtcMatrix(ltcMatrixTexel)");
+  });
+
   it("routes StandardMaterial point and spot lights through clustered local-light storage", () => {
     const shader = createStandardTextureVariantShader({
       baseColorTexture: false,

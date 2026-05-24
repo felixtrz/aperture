@@ -1,5 +1,40 @@
 # Completed Tasks
 
+## task-3126 — Replace placeholder area-light LTC payloads with production tables
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added generated renderer-owned RectAreaLight LTC table data from the local
+  three.js/selfshadow reference, encoded as little-endian RGBA16F bytes with
+  exported size/format/payload constants.
+- Replaced the old deterministic `rgba8unorm` matrix/fresnel placeholders with
+  production `rgba16float` texture uploads and preserved the existing group-3
+  bind-group route.
+- Updated StandardMaterial area-light WGSL to use the reference LUT scale/bias,
+  build the sampled LTC inverse matrix and fresnel terms, evaluate rect area
+  lights through the matrix path, and clamp non-finite area-light contribution
+  terms for high-roughness stability.
+- Expanded `examples/area-light-shapes.html` to render rect, disk, and sphere
+  scenarios across glossy, rough, and oblique-view cases while reporting the
+  bound LTC table resources.
+- Added focused LTC resource tests, shader contract coverage, and a Playwright
+  proof that roughness/view-angle responses remain visible with zero WebGPU
+  validation warnings.
+- Updated backlog, current-task pointer, handoff, public tracker pages, and
+  render-pipeline comparison. Recommended next task is `task-3127`, a fresh
+  post-LTC render-pipeline parity audit.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-area-light-ltc-resource.test.ts test/webgpu/standard-shader.test.ts --reporter=dot`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/rect-area-light.spec.ts --reporter=line --timeout=30000`
+- `pnpm exec playwright test test/e2e/area-light-shapes.spec.ts --reporter=line --timeout=30000`
+
 ## task-3125 — Split clustered local-light resources per active view/light set
 
 Completed: 2026-05-23

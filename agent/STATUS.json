@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-3126",
+  "currentTaskId": "task-3127",
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
   "lastCommit": "3a52db0",
   "activePid": null,
-  "notes": "Completed task-3125 per-view clustered-light resources; next task is task-3126 production-fidelity area-light LTC tables.",
-  "lastRunFinishedAt": "2026-05-24T00:28:38Z"
+  "notes": "Completed task-3126 production-fidelity area-light LTC tables; next task is task-3127 post-LTC render-pipeline parity audit.",
+  "lastRunFinishedAt": "2026-05-24T00:52:00Z"
 }

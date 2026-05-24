@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 00:28 UTC</dd>
+            <dd>2026-05-24 00:52 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1505,10 +1505,14 @@
               view/light-set route, carry view-filtered render state correctly,
               reuse fixed-capacity cluster buffers across moving-camera updates,
               and prove two distinct active cluster routes in the same browser
-              example.
+              example. RectAreaLight LTC resources now use production RGBA16F
+              matrix/fresnel table payloads, and
+              <code>examples/area-light-shapes.html</code> proves glossy,
+              rough, and oblique-view response for rect, disk, and sphere area
+              lights with zero validation warnings.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3126 production-fidelity area-light LTC tables</dd>
+            <dd>task-3127 post-LTC render-pipeline parity audit</dd>
           </dl>
         </aside>
       </header>
@@ -2114,8 +2118,8 @@
                 path; per-view/per-light-set resource splitting is now covered.
               </li>
               <li>
-                Missing production-fidelity LTC table payloads and broader
-                CSM/IBL/multi-shadow permutations.
+                Production-fidelity LTC table payloads are now covered; broader
+                CSM/IBL/multi-shadow permutations remain open.
               </li>
             </ul>
           </article>
@@ -4632,12 +4636,13 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Run
-                <code>task-3126</code>: replace placeholder area-light LTC
-                payloads with production-fidelity tables.
+                <code>task-3127</code>: re-audit the covered render pipeline
+                against three.js and PlayCanvas after the occlusion,
+                multi-view clustered-light, and production LTC table slices.
               </li>
               <li>
-                Follow-up SOTA work should include production LTC tables and
-                then the next parity audit.
+                Use the audit to refill the ready queue with visible,
+                browser-verifiable SOTA render-pipeline gaps.
               </li>
             </ul>
           </article>
@@ -4650,6 +4655,21 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3126</div>
+            <div>
+              <strong>Production area-light LTC tables shipped.</strong>
+              <span>
+                Renderer-owned RectAreaLight matrix/fresnel LUTs now upload
+                production RGBA16F table payloads, StandardMaterial samples the
+                reference LUT scale/bias, matrix, and fresnel terms through the
+                existing group-3 route, and
+                <code>examples/area-light-shapes.html</code> proves glossy,
+                rough, and oblique-view rect/disk/sphere response with zero
+                validation warnings.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3125</div>
             <div>

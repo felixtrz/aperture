@@ -21,6 +21,30 @@ export const areaLightShapes = [
   },
 ];
 
+export const areaLightScenarios = areaLightShapes.flatMap((shape) => [
+  {
+    id: `${shape.shape}-glossy`,
+    ...shape,
+    material: "glossy",
+    roughness: 0.18,
+    surfaceRotationY: 0,
+  },
+  {
+    id: `${shape.shape}-rough`,
+    ...shape,
+    material: "rough",
+    roughness: 0.82,
+    surfaceRotationY: 0,
+  },
+  {
+    id: `${shape.shape}-oblique`,
+    ...shape,
+    material: "rough",
+    roughness: 0.82,
+    surfaceRotationY: 0.42,
+  },
+]);
+
 export const readbackSamples = [
   { id: "center", x: 0.5, y: 0.5 },
   { id: "left", x: 0.28, y: 0.5 },
@@ -39,20 +63,34 @@ export function registerAreaLightShapesScene(aperture, registry) {
     }),
     { id: "area-light-shapes-surface" },
   );
-  const material = assets.materials.standard.add(
+  const roughMaterial = assets.materials.standard.add(
     aperture.createStandardMaterialAsset({
-      label: "AreaLightShapesMatteSurface",
+      label: "AreaLightShapesRoughMetalSurface",
       baseColorFactor: new Float32Array([0.72, 0.76, 0.82, 1]),
       metallicFactor: 0,
-      roughnessFactor: 0.5,
+      roughnessFactor: 0.82,
     }),
-    { id: "area-light-shapes-matte-surface" },
+    { id: "area-light-shapes-rough-surface" },
+  );
+  const glossyMaterial = assets.materials.standard.add(
+    aperture.createStandardMaterialAsset({
+      label: "AreaLightShapesGlossyMetalSurface",
+      baseColorFactor: new Float32Array([0.72, 0.76, 0.82, 1]),
+      metallicFactor: 0,
+      roughnessFactor: 0.18,
+    }),
+    { id: "area-light-shapes-glossy-surface" },
   );
 
   return {
     mesh,
-    material,
+    material: roughMaterial,
+    materials: {
+      rough: roughMaterial,
+      glossy: glossyMaterial,
+    },
     areaLightShapes,
+    areaLightScenarios,
     readbackSamples,
   };
 }
