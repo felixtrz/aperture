@@ -117,6 +117,7 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
     readonly routePackedShadowCookiePointArraySamplingOk?: boolean;
     readonly routePackedShadowCookieAtlasShadowReady?: boolean;
     readonly routePackedShadowCookieAtlasCookieReady?: boolean;
+    readonly routePackedShadowCookieAtlasShadowAligned?: boolean;
     readonly routePackedShadowCookieAtlasSamplingOk?: boolean;
     readonly routeCookieSamplingOk: boolean;
     readonly routeCookieAtlasSamplingOk?: boolean;
@@ -1324,6 +1325,7 @@ test("browser renders StandardMaterial through clustered local lights", async ({
     routePackedShadowCookieSamplingOk: true,
     routePackedShadowCookieAtlasShadowReady: true,
     routePackedShadowCookieAtlasCookieReady: true,
+    routePackedShadowCookieAtlasShadowAligned: true,
     routePackedShadowCookieAtlasSamplingOk: true,
     requiredPointShadowSupportedCount: 1,
     requiredSpotShadowSupportedCount: 2,

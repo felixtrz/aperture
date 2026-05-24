@@ -1,3 +1,4 @@
+import type { ShadowAtlasRegion } from "./shadow-map-descriptor.js";
 import type {
   ShadowTextureResourceDescriptor,
   ShadowTextureResourceReport,
@@ -44,6 +45,7 @@ export interface ShadowDepthTextureResource {
   readonly layerCount?: number;
   readonly layerBaseIndex?: number;
   readonly attachmentLayerCount?: number;
+  readonly atlasRegion?: ShadowAtlasRegion;
   readonly filterRadiusTexels?: number;
   readonly faceCount: 1 | 6;
   readonly viewDimension: "2d" | "2d-array" | "cube";
@@ -89,6 +91,7 @@ export interface ShadowDepthTextureResourceReportJsonValue {
     readonly viewKey: string;
     readonly layerCount?: number;
     readonly layerBaseIndex?: number;
+    readonly atlasRegion?: ShadowAtlasRegion;
     readonly filterRadiusTexels: number;
     readonly faceCount: 1 | 6;
     readonly viewDimension: "2d" | "2d-array" | "cube";
@@ -213,6 +216,9 @@ export function shadowDepthTextureResourceReportToJsonValue(
       ...(resource.layerBaseIndex === undefined || resource.layerBaseIndex === 0
         ? {}
         : { layerBaseIndex: resource.layerBaseIndex }),
+      ...(resource.atlasRegion === undefined
+        ? {}
+        : { atlasRegion: { ...resource.atlasRegion } }),
       filterRadiusTexels: shadowFilterRadiusTexels(resource),
       faceCount: resource.faceCount,
       viewDimension: resource.viewDimension,
@@ -307,6 +313,9 @@ function createShadowDepthTextureResource(
     layerCount: shadowTextureLayerCount(texture),
     layerBaseIndex: texture.layerBaseIndex ?? 0,
     attachmentLayerCount: texture.attachmentViewKeys.length,
+    ...(texture.atlasRegion === undefined
+      ? {}
+      : { atlasRegion: { ...texture.atlasRegion } }),
     filterRadiusTexels:
       texture.filterRadiusTexels ?? shadowTextureDefaultFilterRadius(texture),
     faceCount: texture.faceCount,

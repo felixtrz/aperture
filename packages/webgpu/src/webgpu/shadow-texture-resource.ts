@@ -1,4 +1,7 @@
-import type { ShadowMapDescriptorReport } from "./shadow-map-descriptor.js";
+import type {
+  ShadowAtlasRegion,
+  ShadowMapDescriptorReport,
+} from "./shadow-map-descriptor.js";
 
 export type ShadowTextureResourceDiagnosticCode =
   | "shadowTextureResource.missingDescriptors"
@@ -25,6 +28,7 @@ export interface ShadowTextureResourceDescriptor {
   readonly cascadeCount?: number;
   readonly layerCount?: number;
   readonly layerBaseIndex?: number;
+  readonly atlasRegion?: ShadowAtlasRegion;
   readonly faceCount: 1 | 6;
   readonly viewDimension: "2d" | "2d-array" | "cube";
   readonly usageIntent: "render-attachment";
@@ -110,6 +114,9 @@ export function createShadowTextureResourceReport(
         cascadeCount: descriptor.cascadeCount,
         layerCount,
         layerBaseIndex,
+        ...(descriptor.atlasRegion === undefined
+          ? {}
+          : { atlasRegion: { ...descriptor.atlasRegion } }),
         faceCount: descriptor.faceCount,
         viewDimension: descriptor.viewDimension,
         usageIntent: "render-attachment" as const,

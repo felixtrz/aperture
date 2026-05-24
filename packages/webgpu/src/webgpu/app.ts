@@ -7681,6 +7681,13 @@ function canReuseClusteredLocalLightShadowMatricesForCookies(
     return false;
   }
 
+  if (
+    cookieResources.textureLayout === "atlas" &&
+    cookieResources.shadowMatrixCompatible !== true
+  ) {
+    return false;
+  }
+
   const spotResources = isMultiShadowKind(shadowResources.shadowKind)
     ? shadowResources.spotShadowReceiverResources
     : shadowResources.shadowKind === "spot" ||

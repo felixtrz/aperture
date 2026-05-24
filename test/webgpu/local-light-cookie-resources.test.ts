@@ -597,6 +597,109 @@ describe("clustered local-light cookie resources", () => {
     });
   });
 
+  it("packs nonuniform spot cookies into a shadow-aligned atlas when spot atlas regions match", () => {
+    const registry = new AssetRegistry();
+    const firstTexture = createTextureHandle("spot-cookie-small");
+    const secondTexture = createTextureHandle("spot-cookie-wide");
+    const sampler = createSamplerHandle("spot-cookie-linear");
+    const createdTextures: unknown[] = [];
+    const textureWrites: Array<{
+      readonly destination: unknown;
+      readonly data: Uint8Array;
+      readonly layout: unknown;
+      readonly size: unknown;
+    }> = [];
+    const reuse = createReuseReport();
+
+    registry.register(firstTexture);
+    registry.register(secondTexture);
+    registry.register(sampler);
+    registry.markReady(
+      firstTexture,
+      createTestCookieTextureAsset(
+        "SpotCookieSmall",
+        [
+          255, 255, 255, 255, 24, 24, 24, 255, 24, 24, 24, 255, 255, 255, 255,
+          255,
+        ],
+      ),
+    );
+    registry.markReady(
+      secondTexture,
+      createWideTestCookieTextureAsset("SpotCookieWide"),
+    );
+    registry.markReady(sampler, createLinearCookieSamplerAsset());
+
+    const result = prepareLocalLightClusterCookieResources({
+      assets: registry,
+      cache: createCache(),
+      device: {
+        createTexture: (descriptor: unknown) => {
+          createdTextures.push(descriptor);
+          return {
+            createView: () => ({ label: "shadow-aligned-cookie-atlas-view" }),
+          };
+        },
+        createSampler: () => ({ label: "shadow-aligned-cookie-atlas-sampler" }),
+        createBuffer: () => ({ label: "shadow-aligned-cookie-atlas-matrix" }),
+        queue: {
+          writeTexture: (
+            destination: unknown,
+            data: Uint8Array,
+            layout: unknown,
+            size: unknown,
+          ) => {
+            textureWrites.push({ destination, data, layout, size });
+          },
+          writeBuffer: () => undefined,
+        },
+      },
+      reuse,
+      shadowReceiverResources: shadowAlignedSpotShadowResources(),
+      snapshot: snapshotWithTwoSpotCookies(
+        firstTexture,
+        secondTexture,
+        sampler,
+      ),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.resources).toMatchObject({
+      textureLayout: "atlas",
+      shadowMatrixCompatible: true,
+      matrixResource: {
+        resourceKey:
+          "local-light-cookie-matrix-atlas:v1:spot:100@0:0,0+4x4,spot:101@1:4,0+8x4",
+        matrixCount: 2,
+        entryLightIds: [100, 101],
+      },
+    });
+    expect(result.resources?.textureKey).toContain(
+      "local-light-cookie-atlas:v1:12x4:",
+    );
+    expect(createdTextures).toMatchObject([
+      {
+        size: [12, 4, 1],
+        format: "rgba8unorm",
+        usage: 6,
+      },
+    ]);
+    expect(textureWrites).toHaveLength(2);
+    expect(textureWrites[0]).toMatchObject({
+      destination: { origin: { x: 0, y: 0, z: 0 } },
+      layout: { bytesPerRow: 16, rowsPerImage: 4 },
+      size: [4, 4, 1],
+    });
+    expect(textureWrites[0]?.data.byteLength).toBe(64);
+    expect(textureWrites[1]).toMatchObject({
+      destination: { origin: { x: 4, y: 0, z: 0 } },
+      layout: { bytesPerRow: 32, rowsPerImage: 4 },
+      size: [8, 4, 1],
+    });
+    expect(textureWrites[1]?.data.byteLength).toBe(128);
+  });
+
   it("packs compatible spot and point cookies into one renderer-owned texture array", () => {
     const registry = new AssetRegistry();
     const spotTexture = createTextureHandle("mixed-spot-cookie");
@@ -1143,6 +1246,38 @@ function spotShadowReceiverResources(lightId: number, matrixBaseIndex: number) {
         viewDimension: "2d",
         allocation: { resource: { label: `spot-depth-${index}` } },
       })),
+    },
+  } as never;
+}
+
+function shadowAlignedSpotShadowResources() {
+  return {
+    shadowKind: "spot",
+    matrixBufferResource: { resource: { label: "spot-atlas-matrices" } },
+    samplerResource: { resource: { label: "spot-shadow-sampler" } },
+    depthTextureResources: {
+      resources: [
+        {
+          lightId: 100,
+          viewDimension: "2d",
+          allocation: {
+            resource: {
+              descriptor: { size: [12, 4, 1] },
+            },
+          },
+          atlasRegion: { originX: 0, originY: 0, width: 4, height: 4 },
+        },
+        {
+          lightId: 101,
+          viewDimension: "2d",
+          allocation: {
+            resource: {
+              descriptor: { size: [12, 4, 1] },
+            },
+          },
+          atlasRegion: { originX: 4, originY: 0, width: 8, height: 4 },
+        },
+      ],
     },
   } as never;
 }

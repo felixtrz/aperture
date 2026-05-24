@@ -19,7 +19,15 @@ export interface ShadowMapDescriptorSource {
   readonly textureHeight?: number;
   readonly layerCount?: number;
   readonly layerBaseIndex?: number;
+  readonly atlasRegion?: ShadowAtlasRegion;
   readonly resourceKey?: string;
+}
+
+export interface ShadowAtlasRegion {
+  readonly originX: number;
+  readonly originY: number;
+  readonly width: number;
+  readonly height: number;
 }
 
 export interface ShadowMapDescriptor {
@@ -39,6 +47,7 @@ export interface ShadowMapDescriptor {
   readonly viewDimension: "2d" | "2d-array" | "cube";
   readonly layerCount: number;
   readonly layerBaseIndex: number;
+  readonly atlasRegion?: ShadowAtlasRegion;
   readonly casterLayerMask: number;
   readonly receiverLayerMask: number;
   readonly ready: boolean;
@@ -132,6 +141,11 @@ export function createShadowMapDescriptorReport(
       source?.textureHeight,
       source?.mapSize,
     );
+    const atlasRegion = normalizeAtlasRegion(
+      source?.atlasRegion,
+      textureWidth,
+      textureHeight,
+    );
 
     return {
       shadowId: request.shadowId,
@@ -155,6 +169,7 @@ export function createShadowMapDescriptorReport(
       viewDimension,
       layerCount,
       layerBaseIndex: Math.max(0, source?.layerBaseIndex ?? 0),
+      ...(atlasRegion === undefined ? {} : { atlasRegion }),
       casterLayerMask: request.casterLayerMask,
       receiverLayerMask: request.receiverLayerMask,
       ready: source !== undefined && source.mapSize > 0,
@@ -234,6 +249,44 @@ function normalizeTextureExtent(
 
   if (value === undefined || !Number.isInteger(value) || value <= 0) {
     return fallback;
+  }
+
+  return value;
+}
+
+function normalizeAtlasRegion(
+  value: ShadowAtlasRegion | undefined,
+  textureWidth: number,
+  textureHeight: number,
+): ShadowAtlasRegion | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const originX = normalizeAtlasInteger(value.originX);
+  const originY = normalizeAtlasInteger(value.originY);
+  const width = normalizeAtlasInteger(value.width);
+  const height = normalizeAtlasInteger(value.height);
+
+  if (
+    originX === null ||
+    originY === null ||
+    width === null ||
+    height === null ||
+    width <= 0 ||
+    height <= 0 ||
+    originX + width > textureWidth ||
+    originY + height > textureHeight
+  ) {
+    return undefined;
+  }
+
+  return { originX, originY, width, height };
+}
+
+function normalizeAtlasInteger(value: number): number | null {
+  if (!Number.isInteger(value) || value < 0) {
+    return null;
   }
 
   return value;

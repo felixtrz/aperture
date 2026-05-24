@@ -59,6 +59,8 @@ export interface LocalLightClusterCookieResources {
   readonly textureResource: TextureGpuResource;
   readonly samplerResource: SamplerGpuResource;
   readonly textureViewDimension: LocalLightClusterCookieTextureViewDimension;
+  readonly textureLayout?: "single" | "array" | "atlas";
+  readonly shadowMatrixCompatible?: boolean;
   readonly textureKey: string;
   readonly samplerKey: string;
   readonly supportedResources: readonly LocalLightClusterSupportedCookieResource[];
@@ -123,7 +125,10 @@ interface CookieAtlasCandidate {
   readonly originY: number;
   readonly atlasWidth: number;
   readonly atlasHeight: number;
+  readonly atlasTileWidth: number;
+  readonly atlasTileHeight: number;
   readonly matrixBaseIndex: number;
+  readonly shadowMatrixCompatible?: boolean;
 }
 
 export function prepareLocalLightClusterCookieResources(
@@ -137,7 +142,15 @@ export function prepareLocalLightClusterCookieResources(
   const textureSamplerDiagnostics: WebGpuAppTextureSamplerPreparationDiagnostic[] =
     [];
   const arrayCandidates = collectCookieArrayCandidates(options);
-  const atlasCandidates = collectCookieAtlasCandidates(options);
+  const baseAtlasCandidates = collectCookieAtlasCandidates(options);
+  const shadowAlignedAtlasCandidates = collectShadowAlignedCookieAtlasCandidates(
+    baseAtlasCandidates,
+    options.shadowReceiverResources,
+  );
+  const atlasCandidates =
+    shadowAlignedAtlasCandidates.length > 1
+      ? shadowAlignedAtlasCandidates
+      : baseAtlasCandidates;
 
   if (
     atlasCandidates.length > 1 &&
@@ -205,6 +218,10 @@ export function prepareLocalLightClusterCookieResources(
         textureResource: texture.resource,
         samplerResource: sampler.resource,
         textureViewDimension: "2d",
+        textureLayout: "atlas",
+        shadowMatrixCompatible: atlasCandidates.every(
+          (candidate) => candidate.shadowMatrixCompatible === true,
+        ),
         textureKey: texture.cacheKey,
         samplerKey: sampler.cacheKey,
         supportedResources: atlasCandidates.map((candidate) => ({
@@ -282,6 +299,8 @@ export function prepareLocalLightClusterCookieResources(
         textureResource: texture.resource,
         samplerResource: sampler.resource,
         textureViewDimension: "2d-array",
+        textureLayout: "array",
+        shadowMatrixCompatible: false,
         textureKey: texture.cacheKey,
         samplerKey: sampler.cacheKey,
         supportedResources: arrayCandidates.map((candidate) => ({
@@ -391,6 +410,8 @@ export function prepareLocalLightClusterCookieResources(
         textureResource: texture.resource,
         samplerResource: sampler.resource,
         textureViewDimension,
+        textureLayout: "single",
+        shadowMatrixCompatible: false,
         textureKey: texture.cacheKey,
         samplerKey: sampler.cacheKey,
         supportedResources: [
@@ -525,7 +546,14 @@ function collectCookieAtlasCandidates(
 ): readonly CookieAtlasCandidate[] {
   const pending: Omit<
     CookieAtlasCandidate,
-    "originX" | "originY" | "atlasWidth" | "atlasHeight" | "matrixBaseIndex"
+    | "originX"
+    | "originY"
+    | "atlasWidth"
+    | "atlasHeight"
+    | "atlasTileWidth"
+    | "atlasTileHeight"
+    | "matrixBaseIndex"
+    | "shadowMatrixCompatible"
   >[] = [];
   let base: {
     readonly format: string;
@@ -626,12 +654,92 @@ function collectCookieAtlasCandidates(
       originY: 0,
       atlasWidth,
       atlasHeight,
+      atlasTileWidth: candidate.texture.width,
+      atlasTileHeight: candidate.texture.height,
       matrixBaseIndex: candidates.length,
     });
     originX += candidate.texture.width;
   }
 
   return candidates;
+}
+
+function collectShadowAlignedCookieAtlasCandidates(
+  candidates: readonly CookieAtlasCandidate[],
+  shadowReceiverResources: StandardFrameShadowReceiverResources | undefined,
+): readonly CookieAtlasCandidate[] {
+  if (candidates.length <= 1 || shadowReceiverResources === undefined) {
+    return [];
+  }
+
+  const spotResources =
+    shadowReceiverResources.shadowKind !== undefined &&
+    shadowReceiverResources.shadowKind.startsWith("multi")
+      ? shadowReceiverResources.spotShadowReceiverResources
+      : shadowReceiverResources.shadowKind === "spot" ||
+          shadowReceiverResources.shadowKind === "spot-array"
+        ? shadowReceiverResources
+        : undefined;
+
+  if (
+    spotResources === undefined ||
+    spotResources.matrixBufferResource.resource === null ||
+    spotResources.samplerResource.resource === null
+  ) {
+    return [];
+  }
+
+  const spotDepthResources = spotResources.depthTextureResources.resources;
+  const aligned: CookieAtlasCandidate[] = [];
+  let atlasWidth: number | null = null;
+  let atlasHeight: number | null = null;
+
+  for (const candidate of candidates) {
+    const shadowResource = spotDepthResources.find(
+      (resource) =>
+        resource.lightId === candidate.light.lightId &&
+        resource.viewDimension === "2d" &&
+        resource.allocation.resource !== null &&
+        resource.atlasRegion !== undefined,
+    );
+    const shadowTextureSize =
+      shadowResource?.allocation.resource?.descriptor.size;
+
+    if (
+      shadowResource === undefined ||
+      shadowResource.atlasRegion === undefined ||
+      shadowTextureSize === undefined
+    ) {
+      return [];
+    }
+
+    const shadowAtlasWidth = shadowTextureSize[0];
+    const shadowAtlasHeight = shadowTextureSize[1];
+
+    if (
+      atlasWidth !== null &&
+      (atlasWidth !== shadowAtlasWidth || atlasHeight !== shadowAtlasHeight)
+    ) {
+      return [];
+    }
+
+    atlasWidth = shadowAtlasWidth;
+    atlasHeight = shadowAtlasHeight;
+
+    aligned.push({
+      ...candidate,
+      originX: shadowResource.atlasRegion.originX,
+      originY: shadowResource.atlasRegion.originY,
+      atlasWidth: shadowAtlasWidth,
+      atlasHeight: shadowAtlasHeight,
+      atlasTileWidth: shadowResource.atlasRegion.width,
+      atlasTileHeight: shadowResource.atlasRegion.height,
+      matrixBaseIndex: aligned.length,
+      shadowMatrixCompatible: true,
+    });
+  }
+
+  return aligned;
 }
 
 function cookieSamplerCandidate(
@@ -837,7 +945,7 @@ function prepareCookieTextureAtlasResource(
   const cacheKey = `local-light-cookie-atlas:v1:${first.atlasWidth}x${first.atlasHeight}:${options.candidates
     .map(
       (candidate) =>
-        `${candidate.light.kind}:${candidate.light.lightId}@${candidate.originX},${candidate.originY}+${candidate.texture.width}x${candidate.texture.height}:${candidate.textureCacheKey}`,
+        `${candidate.light.kind}:${candidate.light.lightId}@${candidate.originX},${candidate.originY}+${candidate.atlasTileWidth}x${candidate.atlasTileHeight}:${candidate.textureCacheKey}`,
     )
     .join("|")}`;
   const cached = options.cache.textures.get(cacheKey);
@@ -906,21 +1014,29 @@ function prepareCookieTextureAtlasResource(
       return null;
     }
 
+    const upload = atlasTileUploadData(candidate);
+
+    if (upload === null) {
+      options.diagnostics.push({
+        code: "localLightClusterCookie.textureAtlasIncompatible",
+        resourceKey: cacheKey,
+        message: `Clustered local-light cookie atlas '${cacheKey}' has incompatible source data for texture '${candidate.textureKey}'.`,
+      });
+      return null;
+    }
+
     try {
       queue.writeTexture(
         {
           texture: result.resource.texture,
           origin: { x: candidate.originX, y: candidate.originY, z: 0 },
         },
-        candidate.texture.sourceData.bytes.subarray(
-          0,
-          candidate.layerByteLength,
-        ),
+        upload.bytes,
         {
-          bytesPerRow: candidate.texture.sourceData.bytesPerRow,
-          rowsPerImage: candidate.rowsPerImage,
+          bytesPerRow: upload.bytesPerRow,
+          rowsPerImage: upload.rowsPerImage,
         },
-        [candidate.texture.width, candidate.texture.height, 1],
+        [candidate.atlasTileWidth, candidate.atlasTileHeight, 1],
       );
     } catch (error) {
       options.diagnostics.push({
@@ -938,6 +1054,74 @@ function prepareCookieTextureAtlasResource(
   options.reuse.textureResourcesCreated += 1;
 
   return { cacheKey, resource: result.resource };
+}
+
+function atlasTileUploadData(candidate: CookieAtlasCandidate): {
+  readonly bytes: Uint8Array;
+  readonly bytesPerRow: number;
+  readonly rowsPerImage: number;
+} | null {
+  const source = candidate.texture.sourceData;
+
+  if (source === undefined) {
+    return null;
+  }
+
+  if (
+    candidate.atlasTileWidth === candidate.texture.width &&
+    candidate.atlasTileHeight === candidate.texture.height
+  ) {
+    return {
+      bytes: source.bytes.subarray(0, candidate.layerByteLength),
+      bytesPerRow: source.bytesPerRow,
+      rowsPerImage: candidate.rowsPerImage,
+    };
+  }
+
+  const bytesPerPixel = source.bytesPerRow / candidate.texture.width;
+
+  if (
+    !Number.isInteger(bytesPerPixel) ||
+    bytesPerPixel <= 0 ||
+    candidate.atlasTileWidth <= 0 ||
+    candidate.atlasTileHeight <= 0
+  ) {
+    return null;
+  }
+
+  const bytesPerRow = candidate.atlasTileWidth * bytesPerPixel;
+  const bytes = new Uint8Array(bytesPerRow * candidate.atlasTileHeight);
+
+  for (let y = 0; y < candidate.atlasTileHeight; y += 1) {
+    const sourceY = Math.min(
+      candidate.texture.height - 1,
+      Math.floor(((y + 0.5) * candidate.texture.height) / candidate.atlasTileHeight),
+    );
+
+    for (let x = 0; x < candidate.atlasTileWidth; x += 1) {
+      const sourceX = Math.min(
+        candidate.texture.width - 1,
+        Math.floor(((x + 0.5) * candidate.texture.width) / candidate.atlasTileWidth),
+      );
+      const sourceOffset = sourceY * source.bytesPerRow + sourceX * bytesPerPixel;
+      const targetOffset = y * bytesPerRow + x * bytesPerPixel;
+
+      if (sourceOffset + bytesPerPixel > source.bytes.byteLength) {
+        return null;
+      }
+
+      bytes.set(
+        source.bytes.subarray(sourceOffset, sourceOffset + bytesPerPixel),
+        targetOffset,
+      );
+    }
+  }
+
+  return {
+    bytes,
+    bytesPerRow,
+    rowsPerImage: candidate.atlasTileHeight,
+  };
 }
 
 function cookieTextureViewDimensionForLight(
@@ -1147,8 +1331,8 @@ function prepareCookieAtlasMatrixResource(options: {
       atlasAdjustedCookieMatrix(matrix.data, {
         x: candidate.originX / candidate.atlasWidth,
         y: candidate.originY / candidate.atlasHeight,
-        width: candidate.texture.width / candidate.atlasWidth,
-        height: candidate.texture.height / candidate.atlasHeight,
+        width: candidate.atlasTileWidth / candidate.atlasWidth,
+        height: candidate.atlasTileHeight / candidate.atlasHeight,
       }),
       candidate.matrixBaseIndex * 16,
     );
@@ -1282,7 +1466,7 @@ function cookieAtlasMatrixResourceKey(
   return `local-light-cookie-matrix-atlas:v${SPOT_COOKIE_MATRIX_VERSION}:${candidates
     .map(
       (candidate) =>
-        `${candidate.light.kind}:${candidate.light.lightId}@${candidate.matrixBaseIndex}:${candidate.originX},${candidate.originY}+${candidate.texture.width}x${candidate.texture.height}`,
+        `${candidate.light.kind}:${candidate.light.lightId}@${candidate.matrixBaseIndex}:${candidate.originX},${candidate.originY}+${candidate.atlasTileWidth}x${candidate.atlasTileHeight}`,
     )
     .join(",")}`;
 }

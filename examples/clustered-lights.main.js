@@ -1151,6 +1151,16 @@ function createClusterStatus(
     routeMixedPackedSpotShadowAtlasSamplingOk;
   const routePackedShadowCookieAtlasCookieReady =
     shadowCookieAtlasEnabled === true && routeCookieAtlasSamplingOk;
+  const routePackedShadowCookieAtlasShadowAligned =
+    shadowCookieAtlasEnabled === true &&
+    routePackedShadowCookieAtlasCookieReady &&
+    pipelineKeys.some(
+      (pipelineKey) =>
+        pipelineKey.includes("clusteredLocalLightShadowCookies") &&
+        pipelineKey.includes("pointShadowMap") &&
+        pipelineKey.includes("shadowMap") &&
+        !pipelineKey.includes("clusteredLocalLightArrayShadows"),
+    );
   const routePackedShadowCookieSamplingOk =
     shadowCookieEnabled !== true ||
     (routePackedShadowCookieShadowReady &&
@@ -1169,6 +1179,7 @@ function createClusterStatus(
     shadowCookieAtlasEnabled !== true ||
     (routePackedShadowCookieAtlasShadowReady &&
       routePackedShadowCookieAtlasCookieReady &&
+      routePackedShadowCookieAtlasShadowAligned &&
       routePackedShadowCookieSamplingOk);
 
   return {
@@ -1231,6 +1242,7 @@ function createClusterStatus(
     routePackedShadowCookiePointArraySamplingOk,
     routePackedShadowCookieAtlasShadowReady,
     routePackedShadowCookieAtlasCookieReady,
+    routePackedShadowCookieAtlasShadowAligned,
     routePackedShadowCookieAtlasSamplingOk,
     routeShadowHardFilterReady,
     routeShadowSoftFilterReady,
@@ -1846,6 +1858,16 @@ async function createClusteredSpotShadowReceiverResources(
         ? {
             textureWidth: atlasTiles[0]?.atlasWidth,
             textureHeight: atlasTiles[0]?.atlasHeight,
+            atlasRegion: {
+              originX: atlasTiles[index]?.x ?? 0,
+              originY: atlasTiles[index]?.y ?? 0,
+              width:
+                atlasTiles[index]?.mapSize ??
+                clusteredSpotShadowIntent.mapSize,
+              height:
+                atlasTiles[index]?.mapSize ??
+                clusteredSpotShadowIntent.mapSize,
+            },
           }
         : {}),
       ...(spotArrayEnabled

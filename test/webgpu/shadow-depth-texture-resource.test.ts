@@ -320,6 +320,12 @@ describe("shadow depth texture resource", () => {
               depthBias: 0.002,
               resourceKey: "shadow-map:clustered-spot-atlas",
               viewDimension: "2d",
+              atlasRegion: {
+                originX: 0,
+                originY: 0,
+                width: 256,
+                height: 256,
+              },
             },
             {
               shadowId: 14,
@@ -330,6 +336,12 @@ describe("shadow depth texture resource", () => {
               depthBias: 0.002,
               resourceKey: "shadow-map:clustered-spot-atlas",
               viewDimension: "2d",
+              atlasRegion: {
+                originX: 256,
+                originY: 0,
+                width: 128,
+                height: 128,
+              },
             },
           ],
         }),
@@ -346,6 +358,7 @@ describe("shadow depth texture resource", () => {
         viewDimension: "2d",
         layerCount: 1,
         layerBaseIndex: 0,
+        atlasRegion: { originX: 0, originY: 0, width: 256, height: 256 },
         attachmentViews: [{ viewKey: "shadow-map:clustered-spot-atlas:view" }],
       },
       {
@@ -355,6 +368,7 @@ describe("shadow depth texture resource", () => {
         viewDimension: "2d",
         layerCount: 1,
         layerBaseIndex: 0,
+        atlasRegion: { originX: 256, originY: 0, width: 128, height: 128 },
         attachmentViews: [{ viewKey: "shadow-map:clustered-spot-atlas:view" }],
       },
     ]);
