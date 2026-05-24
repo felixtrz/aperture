@@ -393,13 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 15:56 UTC</dd>
+            <dd>2026-05-24 17:03 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest render-pipeline slice:
-              <code>docs/RENDER_PIPELINE_SOTA_AUDIT.md</code> now records the
+              Latest render-pipeline tooling slice:
+              <code>examples/persistent-render-shell.html</code> now keeps one
+              canvas and one <code>createWebGpuApp(...)</code> instance alive
+              while swapping fresh ECS/extraction scenario producers. The shell
+              runs transparent pressure and clustered pressure-history proofs in
+              one Playwright page with stable renderer identity, JSON-safe
+              per-scenario status, readback evidence, elapsed-time telemetry,
+              and per-scenario WebGPU warning capture. The covered audit remains
+              recorded in <code>docs/RENDER_PIPELINE_SOTA_AUDIT.md</code> as the
               final covered-pipeline audit against three.js and PlayCanvas.
               Within Aperture's implemented scope, the audited render pipeline
               can now be considered SOTA, backed by focused browser proofs,
@@ -2476,6 +2483,12 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3160</span> Added a persistent
+                render shell that keeps one WebGPU renderer alive while fresh
+                ECS/extraction workers run transparent pressure and clustered
+                pressure-history scenarios in one Playwright page.
+              </li>
               <li>
                 <span class="badge green">task-3159</span> Recorded the final
                 covered render-pipeline SOTA audit with an evidence table,
@@ -4918,9 +4931,15 @@
                 <code>docs/RENDER_PIPELINE_SOTA_AUDIT.md</code>.
               </li>
               <li>
-                Future work should focus on cross-device benchmark automation,
-                broader unsupported feature coverage, and production-scale
-                examples rather than remaining blockers to the covered claim.
+                <span class="badge">task-3161</span> Next: add cross-device
+                benchmark automation that runs the key SOTA proof routes and
+                writes comparable JSON summaries without turning local numbers
+                into release promises.
+              </li>
+              <li>
+                Use <code>docs/PERSISTENT_RENDER_SHELL.md</code> to choose
+                between standalone cold-start route tests and persistent shell
+                reset/stress proofs.
               </li>
             </ul>
           </article>
@@ -4933,6 +4952,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3160</div>
+            <div>
+              <strong>Persistent render shell shipped.</strong>
+              <span>
+                <code>examples/persistent-render-shell.html</code> keeps one
+                WebGPU app alive while scenario workers reset underneath it; the
+                focused Playwright proof runs transparent pressure and clustered
+                pressure-history scenarios with stable renderer id, readback
+                evidence, and zero relevant WebGPU warnings.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3159</div>
             <div>

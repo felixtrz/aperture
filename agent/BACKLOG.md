@@ -59,9 +59,10 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3160`: add cross-device benchmark automation for post-SOTA
-hardening. The covered render-pipeline SOTA claim is now supported in
-`docs/RENDER_PIPELINE_SOTA_AUDIT.md`.
+Start `task-3161`: add cross-device benchmark automation for post-SOTA
+hardening. The covered render-pipeline SOTA claim is supported in
+`docs/RENDER_PIPELINE_SOTA_AUDIT.md`, and `task-3160` now adds the persistent
+render shell needed to reduce page/device churn during follow-up stress runs.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -1388,7 +1389,37 @@ unit suites, pressure status fields, and validation commands, and concludes the
 implemented WebGPU render-pipeline scope has no remaining blocker to the SOTA
 claim.
 
-### task-3160 — Add cross-device benchmark automation for post-SOTA hardening
+### task-3160 — Add persistent render shell for scenario-swap proofs
+
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `examples/`, `test/e2e/`, `docs/`, `agent/`.
+Reference anchor: `test/e2e/persistent-route-harness.ts`,
+`references/engine/src/scene/renderer/frame-pass-update-clustered.js`.
+
+Acceptance criteria:
+
+- Add one persistent shell page that keeps a canvas and WebGPU renderer app
+  alive while fresh ECS/extraction scenario producers reset underneath it.
+- Run at least two proof lanes through that shell in one Playwright page:
+  clustered pressure history and one queue/profiler/transparent pressure lane.
+- Publish JSON-safe per-scenario status with scenario id/run id, frame count,
+  readback evidence, elapsed time, renderer identity, and WebGPU warning list.
+- Keep standalone route tests as cold-start coverage for boot, first-frame asset
+  registration, and route-specific status.
+
+Completed: 2026-05-24.
+`examples/persistent-render-shell.html` and
+`examples/persistent-render-shell.main.js` now keep one `createWebGpuApp(...)`
+instance alive while `transparent-pressure` and `clustered-pressure-history`
+workers reset the ECS/extraction layer. `test/e2e/persistent-render-shell.spec.ts`
+proves both scenarios in one page with stable renderer id, `appCreatedCount: 1`,
+JSON-safe status, readback evidence, elapsed-time telemetry, and zero relevant
+WebGPU warnings. `docs/PERSISTENT_RENDER_SHELL.md` documents shell mode versus
+standalone route mode.
+
+### task-3161 — Add cross-device benchmark automation for post-SOTA hardening
 
 Status: ready
 

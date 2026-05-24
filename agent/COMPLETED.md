@@ -1,5 +1,49 @@
 # Completed Tasks
 
+## task-3160 — Add persistent render shell for scenario-swap proofs
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added `examples/persistent-render-shell.html` and
+  `examples/persistent-render-shell.main.js`.
+- The shell creates one canvas-backed `createWebGpuApp(...)` instance and keeps
+  it alive while fresh ECS/extraction workers produce snapshots for each
+  scenario.
+- Added `transparent-pressure` and `clustered-pressure-history` shell scenarios,
+  each publishing JSON-safe scenario id/run id, frame count, elapsed time,
+  renderer identity, readback evidence, worker transport evidence, and a
+  WebGPU-warning list.
+- Added `test/e2e/persistent-render-shell.spec.ts`, which runs both scenarios
+  in one Playwright page, asserts stable renderer identity with
+  `appCreatedCount: 1`, checks per-scenario proof telemetry, and requires zero
+  relevant WebGPU validation warnings.
+- Added `docs/PERSISTENT_RENDER_SHELL.md` to document shell mode versus
+  standalone route mode, and linked the shell from the examples index and
+  progress trackers.
+
+Validation:
+
+- `node --check examples/persistent-render-shell.main.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/persistent-render-shell.spec.ts --timeout=120000 --reporter=line`
+- `pnpm exec playwright test test/e2e/standard-queue-phases.spec.ts -g "transparent pressure" --timeout=45000 --reporter=line --trace=off`
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts -g "cache pressure history" --timeout=120000 --reporter=line --trace=off`
+- Direct Playwright probe for
+  `examples/clustered-lights.html?enable-cluster-pressure-history=1&proof=debug-status`
+  returned ready pressure-history status with diagnostics `0`, readback `ok`,
+  and zero relevant WebGPU warnings.
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run build`
+
+Known follow-up:
+
+- `task-3161` should add cross-device benchmark automation and can use shell
+  mode for reset/stress runs while keeping standalone routes for cold-start
+  coverage.
+
 ## task-3159 — Final covered render-pipeline SOTA audit
 
 Completed: 2026-05-24
@@ -31,7 +75,7 @@ Validation:
 
 Known follow-up:
 
-- `task-3160` should add cross-device benchmark automation for post-SOTA
+- `task-3161` should add cross-device benchmark automation for post-SOTA
   hardening, but it is not a blocker for the covered SOTA claim.
 
 ## task-3158 — Add persistent Playwright render proof harness

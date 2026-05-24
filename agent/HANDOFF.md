@@ -1,6 +1,63 @@
 # Agent Handoff
 
-Updated: 2026-05-24T15:56:20Z
+Updated: 2026-05-24T17:03:21Z
+
+## Current Run Update — 2026-05-24T17:03:21Z — Persistent render shell
+
+Completed `task-3160`, adding a persistent render shell for scenario-swap
+proofs.
+
+### What changed
+
+- Added `examples/persistent-render-shell.html` and
+  `examples/persistent-render-shell.main.js`.
+- The shell creates one canvas-backed `createWebGpuApp(...)` instance and keeps
+  it alive while fresh ECS/extraction workers produce snapshots for each
+  scenario.
+- Added `transparent-pressure` and `clustered-pressure-history` scenarios. Each
+  publishes JSON-safe scenario id/run id, frame count, elapsed time, renderer
+  identity, readback evidence, worker transport evidence, and a WebGPU-warning
+  list.
+- Added `test/e2e/persistent-render-shell.spec.ts`, which runs both scenarios
+  in one Playwright page, asserts the URL and renderer instance stay stable,
+  checks `appCreatedCount: 1`, and verifies zero relevant WebGPU validation
+  warnings.
+- Added `docs/PERSISTENT_RENDER_SHELL.md` to document when to use shell mode
+  versus standalone route mode. Standalone route tests remain the cold-start
+  coverage for boot, first-frame assets, and route-specific status.
+- Linked the shell from `examples/index.html`, added it to `check:examples`,
+  and updated public tracker pages and agent task records. The recommended next
+  task is now `task-3161`, cross-device benchmark automation.
+
+### Validation
+
+- `node --check examples/persistent-render-shell.main.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/persistent-render-shell.spec.ts --timeout=120000 --reporter=line`
+- `pnpm exec playwright test test/e2e/standard-queue-phases.spec.ts -g "transparent pressure" --timeout=45000 --reporter=line --trace=off`
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts -g "cache pressure history" --timeout=120000 --reporter=line --trace=off`
+- Direct Playwright probe for
+  `examples/clustered-lights.html?enable-cluster-pressure-history=1&proof=debug-status`
+  returned `ok: true`, `clusterPressureHistoryStatus.ready: true`, 30 observed
+  frames, diagnostics `0`, readback `ok`, and zero relevant WebGPU warnings.
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run build`
+
+### Known issues
+
+- An earlier clustered pressure-history Playwright attempt was killed after it
+  appeared idle locally. A rerun with `--trace=off` passed, and the direct route
+  probe also returned the expected pressure-history ready status.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3161`: add cross-device benchmark automation for post-SOTA
+hardening, using shell mode where it reduces page/device churn and standalone
+routes where cold-start coverage matters.
 
 ## Current Run Update — 2026-05-24T15:56:20Z — Final covered SOTA audit
 
@@ -18,7 +75,8 @@ Completed `task-3159`, the final covered render-pipeline SOTA audit.
 - Updated `docs/index.html` and `docs/render-pipeline-comparison.html` to link
   the audit and state that the covered SOTA claim is supported.
 - Updated backlog/current/completed/status records. The recommended future task
-  is `task-3160`, cross-device benchmark automation for post-SOTA hardening.
+  is now `task-3161`, cross-device benchmark automation for post-SOTA
+  hardening, after the persistent render shell follow-up.
 
 ### Validation
 
@@ -49,7 +107,7 @@ Completed `task-3159`, the final covered render-pipeline SOTA audit.
 
 ### Recommended next task
 
-Start `task-3160`: add cross-device benchmark automation for post-SOTA
+Start `task-3161`: add cross-device benchmark automation for post-SOTA
 hardening. This is not a blocker for the completed covered-pipeline SOTA claim.
 
 ## Current Run Update — 2026-05-24T15:49:57Z — Persistent clustered route harness
