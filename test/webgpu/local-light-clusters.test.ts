@@ -50,6 +50,17 @@ describe("local light cluster preparation", () => {
     expect(descriptor.populatedCells).toBeGreaterThan(0);
     expect(descriptor.maxLightsPerPopulatedCell).toBeLessThan(16);
     expect(descriptor.totalAssignedLightReferences).toBeLessThan(16 * 16);
+    expect(descriptor.buildPressure).toMatchObject({
+      assignmentStrategy: "light-range",
+      naiveCellLightPairTests: descriptor.cellCount *
+        descriptor.clusteredLocalLights,
+      lightCellRangeTests: 16,
+      storedLightReferences: descriptor.totalAssignedLightReferences,
+      skippedOverflowReferences: 0,
+    });
+    expect(descriptor.buildPressure.lightCellWriteAttempts).toBeLessThan(
+      descriptor.buildPressure.naiveCellLightPairTests,
+    );
     expect(descriptor.params[8]).toBe(4);
     expect(descriptor.params[9]).toBe(1);
     expect(descriptor.params[10]).toBe(4);

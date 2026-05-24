@@ -22,6 +22,14 @@ interface LocalLightClusterRouteStatus {
   readonly averageLightsPerPopulatedCell: number;
   readonly totalAssignedLightReferences: number;
   readonly occupancyHash: number;
+  readonly buildPressure?: {
+    readonly assignmentStrategy: "none" | "light-range";
+    readonly naiveCellLightPairTests: number;
+    readonly lightCellRangeTests: number;
+    readonly lightCellWriteAttempts: number;
+    readonly storedLightReferences: number;
+    readonly skippedOverflowReferences: number;
+  };
   readonly resourceKey: string;
 }
 
@@ -143,6 +151,14 @@ test("browser renders StandardMaterial through clustered local lights", async ({
     expect(route.clusteredLocalLights).toBe(64);
     expect(route.maxLightsPerPopulatedCell).toBeLessThan(64);
     expect(route.averageLightsPerPopulatedCell).toBeLessThan(64);
+    expect(route.buildPressure).toMatchObject({
+      assignmentStrategy: "light-range",
+      lightCellRangeTests: 64,
+      storedLightReferences: route.totalAssignedLightReferences,
+    });
+    expect(route.buildPressure?.lightCellWriteAttempts ?? 0).toBeLessThan(
+      route.buildPressure?.naiveCellLightPairTests ?? 0,
+    );
   }
   expect(status.readbackStatus?.ok).toBe(true);
   expect(status.readbackStatus?.maxClearDistance ?? 0).toBeGreaterThan(24);

@@ -3,31 +3,34 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3128.
+Current task: task-3129.
 
-Status: `task-3127` completed the post-LTC render-pipeline parity audit.
+Status: `task-3128` completed the light-driven clustered local-light fill
+slice.
 
 Key finding:
 
-- The previous StandardMaterial many-light shader blocker is closed: Aperture
-  now prepares per-view/light-set clustered local-light resources and shades
-  point/spot lights from per-cluster index lists instead of scanning every
-  packed light per fragment.
-- The next SOTA efficiency blocker is CPU-side cluster construction.
-  `packages/webgpu/src/webgpu/local-light-clusters.ts` currently loops over
-  every cluster cell and scans the full local-light list for each cell.
-- PlayCanvas' `WorldClusters` reference computes each local light's affected
-  cell min/max range, then writes that light only into those cells. That is the
-  better build shape for large grids and many lights.
-- The next feature-combination blocker after cluster-build efficiency is
-  StandardMaterial CSM plus IBL in one group-3 route. The current route can
-  prove CSM and IBL separately, but its layout selection does not yet bind a
-  2D-array cascaded shadow map together with diffuse/specular IBL textures.
+- The previous CPU-side cluster-build efficiency blocker is closed for the
+  covered StandardMaterial route. Cluster descriptor generation now iterates
+  each local light, computes its touched cluster cell min/max range, and writes
+  only those candidate cells after precise sphere-vs-cell rejection.
+- JSON-safe local-light cluster reports now publish build-pressure telemetry:
+  assignment strategy, naive cell/light pair tests, per-light range tests,
+  light-cell write attempts, stored references, and skipped overflow
+  references.
+- `examples/clustered-lights.html` proves two active 64-light view/light-set
+  routes still render through clustered StandardMaterial, with route pressure
+  lower than the old `cellCount * clusteredLocalLights` scan shape.
+- The next SOTA feature-combination blocker is StandardMaterial CSM plus IBL in
+  one group-3 route. Current coverage proves CSM and IBL separately, but the
+  route selection still needs to bind a cascaded 2D-array shadow map together
+  with diffuse/specular IBL textures and sampler.
 
-Next step: run `task-3128` from `agent/BACKLOG.md`, replacing clustered
-local-light cell scans with a light-driven fill and browser-visible
-build-pressure telemetry.
+Next step: run `task-3129` from `agent/BACKLOG.md`, combining cascaded
+directional shadows with diffuse/specular IBL in one browser-proven
+StandardMaterial route.
 
-Reference anchor for the next task:
+Reference anchors for the next task:
 
-- `references/engine/src/scene/lighting/world-clusters.js`.
+- `references/three.js/src/renderers/WebGLRenderer.js`.
+- `references/engine/src/scene/renderer/forward-renderer.js`.

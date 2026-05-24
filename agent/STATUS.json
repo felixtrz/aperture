@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-3128",
+  "currentTaskId": "task-3129",
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
   "lastCommit": "f3d5750",
   "activePid": null,
-  "notes": "Completed task-3127 post-LTC render-pipeline parity audit; next task is task-3128 light-driven clustered local-light fill.",
-  "lastRunFinishedAt": "2026-05-24T01:06:09Z"
+  "notes": "Completed task-3128 light-driven clustered local-light fill; next task is task-3129 CSM plus IBL combined StandardMaterial route.",
+  "lastRunFinishedAt": "2026-05-24T01:24:04Z"
 }

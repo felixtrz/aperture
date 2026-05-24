@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-24T01:06:09Z
+Updated: 2026-05-24T01:24:04Z
+
+## Current Run Update — 2026-05-24T01:24:04Z — Light-driven clustered-light fill
+
+Completed `task-3128`, replacing the clustered local-light CPU builder's
+cell-driven full-light scans with light-driven range fill.
+
+### What changed
+
+- Cluster descriptor generation now iterates each clustered point/spot light,
+  computes the light's affected cluster cell min/max range, and writes only
+  candidate cells in that range.
+- Preserved precise sphere-vs-cell rejection inside each candidate range so the
+  StandardMaterial shader still receives tight per-cell local-light lists.
+- Added JSON-safe `buildPressure` telemetry to descriptors and reports:
+  assignment strategy, naive cell/light pair tests, per-light range tests,
+  light-cell write attempts, stored references, and skipped overflow
+  references.
+- `examples/clustered-lights.html` now publishes route build pressure and
+  requires both active 64-light routes to report `light-range` assignment with
+  lower pressure than the old `cellCount * clusteredLocalLights` scan.
+- Increased the example's warmup window to avoid publishing failure on transient
+  headed Chrome zeroed current-texture readbacks.
+- Updated backlog, current-task pointer, completed log, public tracker pages,
+  and render-pipeline comparison. Recommended next task is `task-3129`, CSM
+  plus IBL in one StandardMaterial route.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/local-light-clusters.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/standard-shader.test.ts --reporter=dot`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts --project=chrome-webgpu-headed --reporter=line --timeout=60000 --trace=off`
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3129`, combining cascaded directional shadows with diffuse/specular
+IBL in one StandardMaterial route.
 
 ## Current Run Update — 2026-05-24T01:06:09Z — Post-LTC render-pipeline parity audit
 

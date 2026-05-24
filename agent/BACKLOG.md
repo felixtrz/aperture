@@ -59,9 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3128`: replace clustered local-light cell building with a
-PlayCanvas-style light-driven range fill and publish cluster build-pressure
-telemetry.
+Start `task-3129`: combine cascaded directional shadows and diffuse/specular
+IBL in one StandardMaterial route.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -188,9 +187,10 @@ roughness/view-angle response for rect, disk, and sphere area lights in
 after those slices and found the next SOTA blocker is CPU-side clustered-light
 build efficiency: Aperture now shades from per-view clusters, but the cluster
 builder still scans every local light for every cell, while PlayCanvas fills
-only the cell range touched by each light. The next visible slice is
-`task-3128`, replacing that build shape and exposing browser-visible pressure
-telemetry.
+only the cell range touched by each light. `task-3128` now replaces that build
+shape with light-driven cell-range fill and browser-visible pressure telemetry.
+The next visible slice is `task-3129`, combining CSM plus IBL in one
+StandardMaterial route.
 
 Reference anchors for the next task (read before writing):
 
@@ -666,6 +666,8 @@ Acceptance criteria:
   concrete reference anchors and browser-verifiable acceptance criteria.
 
 ### task-3128 — Replace clustered local-light cell scans with light-driven fill
+
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/local-light-clusters.ts`, `examples/clustered-lights.*`, `test/webgpu/local-light-clusters.test.ts`, `test/e2e/clustered-lights.spec.ts`, tracker/docs.

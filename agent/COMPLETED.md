@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## task-3128 — Replace clustered local-light cell scans with light-driven fill
+
+Completed: 2026-05-24
+
+Summary:
+
+- Replaced the clustered local-light descriptor builder's cell-driven
+  `cellCount * clusteredLocalLights` scan with a light-driven cell-range fill
+  patterned after the PlayCanvas `WorldClusters` build shape.
+- Preserved precise sphere-vs-cell membership inside each light's touched
+  min/max range, so the shader sees the same kind of per-cell light set without
+  scanning every light for every cell.
+- Added JSON-safe cluster build-pressure telemetry for assignment strategy,
+  naive pair tests, per-light range tests, light-cell write attempts, stored
+  references, and overflow skips.
+- Published the pressure telemetry through app cluster reports and
+  `examples/clustered-lights.html`, where each active route now proves
+  `light-range` assignment and lower write pressure than the old naive scan.
+- Increased the clustered-lights example warmup window so headed Chrome can
+  retry transient zeroed current-texture readbacks before publishing failure.
+- Updated public tracker pages, backlog, current-task pointer, and handoff.
+  Recommended next task is `task-3129`, combining CSM plus IBL in one
+  StandardMaterial route.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/local-light-clusters.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/standard-shader.test.ts --reporter=dot`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts --project=chrome-webgpu-headed --reporter=line --timeout=60000 --trace=off`
+
 ## task-3127 — Re-audit post-cluster render pipeline parity
 
 Completed: 2026-05-24

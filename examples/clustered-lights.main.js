@@ -5,7 +5,7 @@ const canvas = document.querySelector("#aperture-canvas");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
 const clearColor = [0.012, 0.016, 0.022, 1];
-const maxStatusWarmupFrames = 8;
+const maxStatusWarmupFrames = 24;
 const readbackSamples = [
   { id: "left-bank", x: 0.26, y: 0.5 },
   { id: "center", x: 0.5, y: 0.5 },
@@ -282,6 +282,12 @@ function createClusterStatus(localLightClusters, pipelineKeys, loop) {
     clusterRoutes.length > 0 &&
     clusterRoutes.every((route) => {
       const routeTotalLocalLights = route.totalLocalLights ?? 0;
+      const buildPressure = route.buildPressure ?? {};
+      const naiveCellLightPairTests =
+        buildPressure.naiveCellLightPairTests ?? 0;
+      const lightCellRangeTests = buildPressure.lightCellRangeTests ?? 0;
+      const lightCellWriteAttempts =
+        buildPressure.lightCellWriteAttempts ?? naiveCellLightPairTests;
 
       return (
         route.enabled === true &&
@@ -290,7 +296,10 @@ function createClusterStatus(localLightClusters, pipelineKeys, loop) {
         (route.maxLightsPerPopulatedCell ?? routeTotalLocalLights) <
           routeTotalLocalLights &&
         (route.averageLightsPerPopulatedCell ?? routeTotalLocalLights) <
-          routeTotalLocalLights
+          routeTotalLocalLights &&
+        buildPressure.assignmentStrategy === "light-range" &&
+        lightCellRangeTests === route.clusteredLocalLights &&
+        lightCellWriteAttempts < naiveCellLightPairTests
       );
     });
 
@@ -336,6 +345,7 @@ function createClusterStatus(localLightClusters, pipelineKeys, loop) {
       totalAssignedLightReferences:
         route.totalAssignedLightReferences ?? null,
       occupancyHash: route.occupancyHash ?? null,
+      buildPressure: route.buildPressure ?? null,
       resourceKey: route.resourceKey ?? null,
     })),
     buffersCreated: localLightClusters?.resourceReuse?.buffersCreated ?? 0,
