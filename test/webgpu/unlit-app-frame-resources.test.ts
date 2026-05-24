@@ -480,6 +480,81 @@ describe("unlit app frame-resource fallback diagnostics", () => {
     expect(createdBindGroups).toHaveLength(4);
   });
 
+  it("skips unchanged clustered local-light buffer writes on cache hits", () => {
+    const registry = new AssetRegistry();
+    const material = createMaterialHandle("standard-clustered-cache");
+    const mesh = createMeshHandle("standard-clustered-cache-box");
+    const device = deviceWithShadowResources({});
+    const cache = { current: null };
+    const preparedMeshes = createPreparedMeshGpuResourceCache();
+    const preparedMaterials = createPreparedScalarStandardMaterialCache();
+
+    registry.register(material);
+    registry.register(mesh);
+    const materialEntry = registry.markReady(
+      material,
+      createStandardMaterialAsset(),
+    );
+    const common = {
+      device,
+      cache,
+      mesh: createBoxMeshAsset({ label: "ClusteredCacheBox" }),
+      meshHandle: mesh,
+      meshKey: `${assetHandleKey(mesh)}@1`,
+      material: required(materialEntry.asset),
+      materialHandle: material,
+      materialKey: `${assetHandleKey(material)}@${materialEntry.version}`,
+      sourceMaterialKey: assetHandleKey(material),
+      pipelineKey: "standard|clusteredLocalLights|opaque|back|less|none",
+      assets: registry,
+      textureSamplerDependencies: emptyTextureSamplerDependencies(),
+      viewUniforms: validViewUniforms(),
+      worldTransforms: validTransforms(),
+      sharedLayouts: [sharedLayout(0), sharedLayout(1)],
+      materialLayout: standardMaterialLayout(),
+      lightLayout: standardClusteredLightLayout(),
+      preparedMeshes,
+      preparedScalarMaterials: preparedMaterials,
+    };
+
+    const firstReuse = standardReuseCounters();
+    const first = createOrReuseStandardAppFrameResources({
+      ...common,
+      snapshot: clusteredLocalLightSnapshot(),
+      reuse: firstReuse,
+    });
+
+    expect(first.valid).toBe(true);
+    expect(first.resources?.localLightClusters).toBeDefined();
+    expect(firstReuse.localLightClusterBuffersCreated).toBe(4);
+
+    const secondReuse = standardReuseCounters();
+    const second = createOrReuseStandardAppFrameResources({
+      ...common,
+      snapshot: clusteredLocalLightSnapshot(),
+      reuse: secondReuse,
+    });
+
+    expect(second.valid).toBe(true);
+    expect(secondReuse.localLightClusterBuffersReused).toBe(4);
+    expect(secondReuse.localLightClusterBufferWrites).toBe(0);
+    expect(secondReuse.localLightClusterBufferWritesSkipped).toBe(4);
+    expect(secondReuse.dynamicBufferWrites).toBe(4);
+
+    const changedReuse = standardReuseCounters();
+    const changed = createOrReuseStandardAppFrameResources({
+      ...common,
+      snapshot: clusteredLocalLightSnapshot({ range: 2 }),
+      reuse: changedReuse,
+    });
+
+    expect(changed.valid).toBe(true);
+    expect(changedReuse.localLightClusterBuffersReused).toBe(4);
+    expect(changedReuse.localLightClusterBufferWrites).toBe(4);
+    expect(changedReuse.localLightClusterBufferWritesSkipped).toBe(0);
+    expect(changedReuse.dynamicBufferWrites).toBe(8);
+  });
+
   it("does not reuse cached Standard frame resources across pipeline keys", () => {
     const registry = new AssetRegistry();
     const material = createMaterialHandle("standard-live-route");
@@ -644,6 +719,23 @@ function snapshotWithLight(): RenderSnapshot {
   return emptySnapshot({ lights: [light()] });
 }
 
+function clusteredLocalLightSnapshot(
+  input: {
+    readonly range?: number;
+  } = {},
+): RenderSnapshot {
+  const transforms = new Float32Array(16 * 16);
+  const lights = Array.from({ length: 16 }, (_, index) => {
+    transforms.set(localLightTransform(index), index * 16);
+    return pointLight(index + 1, { ...input, worldTransformOffset: index * 16 });
+  });
+
+  return {
+    ...emptySnapshot({ lights }),
+    transforms,
+  };
+}
+
 function reuseCounters() {
   return {
     meshBuffersCreated: 0,
@@ -669,6 +761,8 @@ function standardReuseCounters() {
     lightBuffersReused: 0,
     localLightClusterBuffersCreated: 0,
     localLightClusterBuffersReused: 0,
+    localLightClusterBufferWrites: 0,
+    localLightClusterBufferWritesSkipped: 0,
   };
 }
 
@@ -723,6 +817,19 @@ function standardLightLayout(): LightBindGroupLayoutResource {
     descriptor: createLightBindGroupLayoutDescriptor({
       group: 3,
       label: "webgpu-app/standard/group-3",
+    }),
+  };
+}
+
+function standardClusteredLightLayout(): LightBindGroupLayoutResource {
+  return {
+    group: 3,
+    layoutKey: "webgpu-app/standard/clustered/group-3",
+    layout: { group: 3 },
+    descriptor: createLightBindGroupLayoutDescriptor({
+      group: 3,
+      label: "webgpu-app/standard/clustered/group-3",
+      clusteredLocalLights: true,
     }),
   };
 }
@@ -820,6 +927,50 @@ function light(): LightPacket {
     worldTransformOffset: 0,
     layerMask: 1,
   };
+}
+
+function pointLight(
+  lightId: number,
+  input: {
+    readonly range?: number;
+    readonly worldTransformOffset?: number;
+  } = {},
+): LightPacket {
+  return {
+    lightId,
+    entity: { index: lightId, generation: 0 },
+    kind: "point",
+    color: [1, 0.9, 0.7, 1],
+    intensity: 1,
+    range: input.range ?? 8,
+    innerConeAngle: 0,
+    outerConeAngle: 0,
+    worldTransformOffset: input.worldTransformOffset ?? 0,
+    layerMask: 1,
+  };
+}
+
+function localLightTransform(index: number): Float32Array {
+  const column = index % 4;
+  const row = Math.floor(index / 4);
+  return new Float32Array([
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    column * 2 - 3,
+    row * 2 - 3,
+    -4,
+    1,
+  ]);
 }
 
 function identityTransform(): Float32Array {

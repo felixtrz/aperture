@@ -230,6 +230,8 @@ export interface LocalLightClusterReport {
   readonly resourceReuse: {
     readonly buffersCreated: number;
     readonly buffersReused: number;
+    readonly bufferWrites: number;
+    readonly bufferWritesSkipped: number;
   };
   readonly routes?: readonly LocalLightClusterReport[];
 }
@@ -559,6 +561,8 @@ export function localLightClusterReportFromDescriptor(
     readonly resource?: LocalLightClusterGpuResource | null;
     readonly buffersCreated?: number;
     readonly buffersReused?: number;
+    readonly bufferWrites?: number;
+    readonly bufferWritesSkipped?: number;
   } = {},
 ): LocalLightClusterReport {
   const resource = options.resource ?? null;
@@ -600,6 +604,8 @@ export function localLightClusterReportFromDescriptor(
     resourceReuse: {
       buffersCreated: options.buffersCreated ?? 0,
       buffersReused: options.buffersReused ?? 0,
+      bufferWrites: options.bufferWrites ?? 0,
+      bufferWritesSkipped: options.bufferWritesSkipped ?? 0,
     },
   };
 }

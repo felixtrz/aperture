@@ -27,6 +27,7 @@ import type { LightBindGroupResource } from "./light-bind-group.js";
 import {
   CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
   createLocalLightClusterDescriptor,
+  type LocalLightClusterDescriptor,
   type LocalLightClusterSupportedPointShadowResource,
   type LocalLightClusterSupportedSpotShadowResource,
 } from "./local-light-clusters.js";
@@ -120,6 +121,7 @@ export interface CachedStandardAppFrameResources {
   readonly localLightClusterCellsByteLength: number;
   readonly localLightClusterIndicesByteLength: number;
   readonly localLightClusterMetadataByteLength: number;
+  readonly localLightClusterContentKeys: LocalLightClusterContentKeys | null;
   readonly localLightClusterResourceKey: string | null;
   readonly localLightCookieTextureKey: string | null;
   readonly localLightCookieSamplerKey: string | null;
@@ -157,7 +159,16 @@ export interface StandardAppFrameResourceReuseReport {
   lightBuffersReused: number;
   localLightClusterBuffersCreated: number;
   localLightClusterBuffersReused: number;
+  localLightClusterBufferWrites: number;
+  localLightClusterBufferWritesSkipped: number;
   dynamicBufferWrites: number;
+}
+
+interface LocalLightClusterContentKeys {
+  readonly params: string;
+  readonly cells: string;
+  readonly indices: string;
+  readonly metadata: string;
 }
 
 export type CreateStandardAppFrameResourcesDiagnostic =
@@ -247,6 +258,10 @@ export function createOrReuseStandardAppFrameResources(options: {
     : null;
   const localLightClusterResourceKey =
     localLightClusterDescriptor?.resourceKey ?? null;
+  const localLightClusterContentKeys =
+    localLightClusterDescriptor === null
+      ? null
+      : createLocalLightClusterContentKeys(localLightClusterDescriptor);
   const localLightCookieTextureKey =
     options.localLightCookieResources?.textureKey ?? null;
   const localLightCookieSamplerKey =
@@ -304,6 +319,58 @@ export function createOrReuseStandardAppFrameResources(options: {
   );
   const cachedLocalLightClusters =
     cached?.result.resources?.localLightClusters ?? null;
+  const localLightClusterContentUnchanged =
+    localLightClusterContentKeys !== null &&
+    cached?.localLightClusterContentKeys !== null &&
+    cached?.localLightClusterContentKeys !== undefined &&
+    sameLocalLightClusterContentKeys(
+      cached.localLightClusterContentKeys,
+      localLightClusterContentKeys,
+    );
+  let localLightClusterBufferWrites = 0;
+  let localLightClusterBufferWritesSkipped = 0;
+  const writeCachedLocalLightClusterBuffers = (): boolean => {
+    if (localLightClusterDescriptor === null) {
+      return true;
+    }
+
+    if (cachedLocalLightClusters === null) {
+      return false;
+    }
+
+    if (localLightClusterContentUnchanged) {
+      localLightClusterBufferWritesSkipped = 4;
+      return true;
+    }
+
+    const written =
+      writeBufferData(
+        options.device,
+        cachedLocalLightClusters.paramsBuffer,
+        localLightClusterDescriptor.params,
+      ) &&
+      writeBufferData(
+        options.device,
+        cachedLocalLightClusters.cellsBuffer,
+        localLightClusterDescriptor.cells,
+      ) &&
+      writeBufferData(
+        options.device,
+        cachedLocalLightClusters.indicesBuffer,
+        localLightClusterDescriptor.indices,
+      ) &&
+      writeBufferData(
+        options.device,
+        cachedLocalLightClusters.metadataBuffer,
+        localLightClusterDescriptor.metadata,
+      );
+
+    if (written) {
+      localLightClusterBufferWrites = 4;
+    }
+
+    return written;
+  };
 
   if (
     cached !== null &&
@@ -377,28 +444,7 @@ export function createOrReuseStandardAppFrameResources(options: {
       cached.result.resources.lightGpuBuffers.resource.metadataBuffer,
       lightDescriptor.plan.source.metadata,
     ) &&
-    (localLightClusterDescriptor === null ||
-      (cachedLocalLightClusters !== null &&
-        writeBufferData(
-          options.device,
-          cachedLocalLightClusters.paramsBuffer,
-          localLightClusterDescriptor.params,
-        ) &&
-        writeBufferData(
-          options.device,
-          cachedLocalLightClusters.cellsBuffer,
-          localLightClusterDescriptor.cells,
-        ) &&
-        writeBufferData(
-          options.device,
-          cachedLocalLightClusters.indicesBuffer,
-          localLightClusterDescriptor.indices,
-        ) &&
-        writeBufferData(
-          options.device,
-          cachedLocalLightClusters.metadataBuffer,
-          localLightClusterDescriptor.metadata,
-        )))
+    writeCachedLocalLightClusterBuffers()
   ) {
     options.reuse.meshBuffersReused += 1;
     options.reuse.materialBuffersReused += 1;
@@ -411,7 +457,16 @@ export function createOrReuseStandardAppFrameResources(options: {
     ) {
       cachedLocalLightClusters.descriptor = localLightClusterDescriptor;
       options.reuse.localLightClusterBuffersReused += 4;
-      options.reuse.dynamicBufferWrites += 4;
+      options.reuse.localLightClusterBufferWrites +=
+        localLightClusterBufferWrites;
+      options.reuse.localLightClusterBufferWritesSkipped +=
+        localLightClusterBufferWritesSkipped;
+      options.reuse.dynamicBufferWrites += localLightClusterBufferWrites;
+      (
+        cached as {
+          localLightClusterContentKeys: LocalLightClusterContentKeys | null;
+        }
+      ).localLightClusterContentKeys = localLightClusterContentKeys;
     }
 
     const resources = cached.result.resources;
@@ -571,6 +626,7 @@ export function createOrReuseStandardAppFrameResources(options: {
       localLightClusterMetadataByteLength:
         result.resources.localLightClusters?.descriptor.metadata.byteLength ??
         0,
+      localLightClusterContentKeys,
       localLightClusterResourceKey,
       localLightCookieTextureKey,
       localLightCookieSamplerKey,
@@ -711,6 +767,41 @@ function requiresClusteredLocalLights(pipelineKey: string): boolean {
   return pipelineKey
     .split("|")
     .includes(CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE);
+}
+
+function createLocalLightClusterContentKeys(
+  descriptor: LocalLightClusterDescriptor,
+): LocalLightClusterContentKeys {
+  return {
+    params: typedArrayContentKey(descriptor.params),
+    cells: typedArrayContentKey(descriptor.cells),
+    indices: typedArrayContentKey(descriptor.indices),
+    metadata: typedArrayContentKey(descriptor.metadata),
+  };
+}
+
+function sameLocalLightClusterContentKeys(
+  a: LocalLightClusterContentKeys,
+  b: LocalLightClusterContentKeys,
+): boolean {
+  return (
+    a.params === b.params &&
+    a.cells === b.cells &&
+    a.indices === b.indices &&
+    a.metadata === b.metadata
+  );
+}
+
+function typedArrayContentKey(view: ArrayBufferView): string {
+  const bytes = new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+  let hash = 2166136261;
+
+  for (const byte of bytes) {
+    hash ^= byte;
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return `${view.byteLength}:${(hash >>> 0).toString(16)}`;
 }
 
 function createStandardAppFrameResourceCacheKey(input: {

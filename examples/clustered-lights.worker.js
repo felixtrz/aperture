@@ -59,6 +59,7 @@ async function handleMessage(data) {
         data.clusteredShadowCookieAtlasEnabled === true,
         data.clusteredDynamicShadowCookieAtlasEnabled === true,
         data.clusteredShadowCacheEnabled === true,
+        data.clusteredBufferCacheEnabled === true,
         data.clusteredShadowCookiePointArrayEnabled === true,
         data.clusteredCookieOnlyEnabled === true,
         data.clusteredSpotShadowAtlasEnabled === true,
@@ -177,6 +178,7 @@ function createWorkerScene(
   clusteredShadowCookieAtlasEnabled,
   clusteredDynamicShadowCookieAtlasEnabled,
   clusteredShadowCacheEnabled,
+  clusteredBufferCacheEnabled,
   clusteredShadowCookiePointArrayEnabled,
   clusteredCookieOnlyEnabled,
   clusteredSpotShadowAtlasEnabled,
@@ -515,6 +517,7 @@ function createWorkerScene(
     clusteredShadowCookieAtlasEnabled,
     clusteredDynamicShadowCookieAtlasEnabled,
     clusteredShadowCacheEnabled,
+    clusteredBufferCacheEnabled,
     clusteredShadowCookiePointArrayEnabled,
     clusteredCookieOnlyEnabled,
     clusteredSpotShadowAtlasEnabled,
@@ -532,7 +535,12 @@ function createWorkerScene(
 
 function updateClusterCamera(aperture, scene, frame) {
   const cameraFrame = frame + scene.cameraFrameOffset;
-  const cameraX = cameraFrame % 2 === 0 ? 0.52 : -0.52;
+  const cameraX =
+    scene.clusteredBufferCacheEnabled === true && frame >= 4
+      ? 0.52
+      : cameraFrame % 2 === 0
+        ? 0.52
+        : -0.52;
 
   scene.primaryCamera
     .getVectorView(aperture.LocalTransform, "translation")

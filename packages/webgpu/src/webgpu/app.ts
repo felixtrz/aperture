@@ -523,6 +523,8 @@ export interface WebGpuAppResourceReuseReport {
   lightBuffersReused: number;
   localLightClusterBuffersCreated: number;
   localLightClusterBuffersReused: number;
+  localLightClusterBufferWrites: number;
+  localLightClusterBufferWritesSkipped: number;
   dynamicBufferWrites: number;
 }
 
@@ -8330,6 +8332,8 @@ function createWebGpuAppLocalLightClusterReport(
       resource,
       buffersCreated: reuse.localLightClusterBuffersCreated,
       buffersReused: reuse.localLightClusterBuffersReused,
+      bufferWrites: reuse.localLightClusterBufferWrites,
+      bufferWritesSkipped: reuse.localLightClusterBufferWritesSkipped,
     });
 
     if (clusterResources.length <= 1) {
@@ -8355,6 +8359,8 @@ function createWebGpuAppLocalLightClusterReport(
     {
       buffersCreated: reuse.localLightClusterBuffersCreated,
       buffersReused: reuse.localLightClusterBuffersReused,
+      bufferWrites: reuse.localLightClusterBufferWrites,
+      bufferWritesSkipped: reuse.localLightClusterBufferWritesSkipped,
     },
   );
 }
@@ -8478,6 +8484,8 @@ function createWebGpuAppResourceReuseReport(): WebGpuAppResourceReuseReport {
     lightBuffersReused: 0,
     localLightClusterBuffersCreated: 0,
     localLightClusterBuffersReused: 0,
+    localLightClusterBufferWrites: 0,
+    localLightClusterBufferWritesSkipped: 0,
     dynamicBufferWrites: 0,
   };
 }

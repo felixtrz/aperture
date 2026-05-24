@@ -22,6 +22,9 @@ const clusteredShadowCacheEnabled =
   !exampleParams.has("disable-cluster-cookie") &&
   !exampleParams.has("disable-cluster-point-shadow") &&
   !exampleParams.has("disable-cluster-spot-shadow");
+const clusteredBufferCacheEnabled =
+  exampleParams.has("enable-cluster-buffer-cache") &&
+  !exampleParams.has("disable-cluster-cookie");
 const clusteredDynamicShadowCookieAtlasEnabled =
   (exampleParams.has("enable-cluster-dynamic-shadow-cookie-atlas") ||
     clusteredGpuCookieAtlasUpdateEnabled ||
@@ -371,6 +374,7 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     clusteredDynamicShadowCookieAtlasEnabled,
     clusteredGpuCookieAtlasUpdateEnabled,
     clusteredShadowCacheEnabled,
+    clusteredBufferCacheEnabled,
     clusteredShadowCookiePointArrayEnabled,
     clusteredCookieOnlyEnabled,
     clusteredMixedShadowEnabled,
@@ -631,6 +635,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     pointShadowRenderCache: null,
     spotShadowRenderCache: null,
     clusteredShadowCacheStatus: null,
+    clusterBufferCacheStatus: null,
     shadowStatus: null,
     dynamicSpotShadowAtlasState: null,
     dynamicSpotShadowAtlasStatus: null,
@@ -664,6 +669,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     clusteredGpuCookieAtlasUpdateEnabled:
       scene.clusteredGpuCookieAtlasUpdateEnabled,
     clusteredShadowCacheEnabled: scene.clusteredShadowCacheEnabled,
+    clusteredBufferCacheEnabled: scene.clusteredBufferCacheEnabled,
     clusteredShadowCookiePointArrayEnabled:
       scene.clusteredShadowCookiePointArrayEnabled,
     clusteredCookieOnlyEnabled: scene.clusteredCookieOnlyEnabled,
@@ -813,6 +819,12 @@ function statusFromReport(
     readbackStatus,
     report.snapshot.frame,
   );
+  const clusterBufferCacheStatus = createClusterBufferCacheStatus(
+    loop,
+    scene.clusteredBufferCacheEnabled,
+    reportJson.resourceReuse,
+    report.snapshot.frame,
+  );
   const clusterStatus = createClusterStatus(
     localLightClusters,
     pipelineKeys,
@@ -836,6 +848,8 @@ function statusFromReport(
     scene.clusteredGpuCookieAtlasUpdateEnabled,
     gpuCookieAtlasUpdateStatus,
     scene.clusteredShadowCacheEnabled,
+    scene.clusteredBufferCacheEnabled,
+    clusterBufferCacheStatus,
     scene.clusteredShadowSoftnessEnabled ||
       scene.clusteredShadowSoftnessAtlasEnabled,
   );
@@ -873,6 +887,7 @@ function statusFromReport(
     clusterStatus,
     shadowStatus: loop.shadowStatus,
     gpuCookieAtlasUpdateStatus,
+    clusterBufferCacheStatus,
     shadowSoftnessReadbackStatus,
     readbackStatus,
     readback: reportJson.readback ?? null,
@@ -905,6 +920,8 @@ function createClusterStatus(
   gpuCookieAtlasUpdateEnabled,
   gpuCookieAtlasUpdateStatus,
   shadowCacheEnabled,
+  bufferCacheEnabled,
+  clusterBufferCacheStatus,
   shadowSoftnessEnabled,
 ) {
   const clusterPipelineUsed = pipelineKeys.some((pipelineKey) =>
@@ -921,6 +938,10 @@ function createClusterStatus(
     occupancyHash !== null &&
     previousOccupancyHash !== null &&
     occupancyHash !== previousOccupancyHash;
+  const occupancyRequirementOk =
+    bufferCacheEnabled === true
+      ? clusterBufferCacheStatus.observedClusterInvalidation === true
+      : occupancyChanged;
   const routeViewIds = clusterRoutes.map((route) => route.viewId ?? null);
   const routeOccupancyHashes = clusterRoutes.map(
     (route) => route.occupancyHash ?? null,
@@ -1373,6 +1394,14 @@ function createClusterStatus(
       spotShadowCacheStatus.observedCasterTransformInvalidation === true &&
       spotShadowCacheStatus.cachedShadowCount >=
         requiredSpotShadowSupportedCount);
+  const routeClusteredBufferCacheReady =
+    bufferCacheEnabled !== true ||
+    (clusterBufferCacheStatus.ready === true &&
+      clusterBufferCacheStatus.observedClusterInvalidation === true &&
+      clusterBufferCacheStatus.observedBufferWrites === true &&
+      clusterBufferCacheStatus.observedSkippedWrites === true &&
+      clusterBufferCacheStatus.latestWrites === 0 &&
+      clusterBufferCacheStatus.latestSkippedWrites >= 4);
 
   return {
     ok:
@@ -1398,9 +1427,10 @@ function createClusterStatus(
       routeDynamicShadowCookieAtlasReady &&
       routeGpuCookieAtlasUpdateReady &&
       routeClusteredShadowCacheReady &&
+      routeClusteredBufferCacheReady &&
       routeShadowSoftnessSamplingOk &&
       (cookieEnabled !== true || routeCookieSamplingOk) &&
-      occupancyChanged &&
+      occupancyRequirementOk &&
       (localLightClusters?.resourceReuse?.buffersReused ?? 0) >= 8,
     clusterPipelineUsed,
     coordinateSpace: primaryRoute?.coordinateSpace ?? null,
@@ -1414,6 +1444,7 @@ function createClusterStatus(
     occupancyHash,
     previousOccupancyHash,
     occupancyChanged,
+    occupancyRequirementOk,
     routeCount: clusterRoutes.length,
     routeViewIds,
     routeOccupancyHashes,
@@ -1446,6 +1477,8 @@ function createClusterStatus(
     gpuCookieAtlasUpdateStatus,
     routeClusteredShadowCacheReady,
     shadowCacheStatus: spotShadowCacheStatus,
+    routeClusteredBufferCacheReady,
+    clusterBufferCacheStatus,
     routeShadowHardFilterReady,
     routeShadowSoftFilterReady,
     routePointShadowSoftnessReady,
@@ -1637,6 +1670,62 @@ function createGpuCookieAtlasUpdateStatus(
   };
 
   loop.gpuCookieAtlasUpdateStatus = status;
+
+  return status;
+}
+
+function createClusterBufferCacheStatus(loop, enabled, resourceReuse, frame) {
+  if (enabled !== true) {
+    return {
+      enabled: false,
+      ready: true,
+      observedClusterInvalidation: false,
+      observedBufferWrites: false,
+      observedSkippedWrites: false,
+      latestWrites: 0,
+      latestSkippedWrites: 0,
+      maxWrites: 0,
+      maxSkippedWrites: 0,
+    };
+  }
+
+  const previous = loop.clusterBufferCacheStatus ?? null;
+  const latestWrites = resourceReuse?.localLightClusterBufferWrites ?? 0;
+  const latestSkippedWrites =
+    resourceReuse?.localLightClusterBufferWritesSkipped ?? 0;
+  const observedClusterInvalidation =
+    previous?.observedClusterInvalidation === true || frame >= 3;
+  const observedBufferWrites =
+    previous?.observedBufferWrites === true || latestWrites >= 4;
+  const observedSkippedWrites =
+    previous?.observedSkippedWrites === true || latestSkippedWrites >= 4;
+  const maxWrites = Math.max(previous?.maxWrites ?? 0, latestWrites);
+  const maxSkippedWrites = Math.max(
+    previous?.maxSkippedWrites ?? 0,
+    latestSkippedWrites,
+  );
+  const status = {
+    enabled: true,
+    ready:
+      observedClusterInvalidation &&
+      observedBufferWrites &&
+      observedSkippedWrites &&
+      latestWrites === 0 &&
+      latestSkippedWrites >= 4,
+    frame,
+    observedClusterInvalidation,
+    observedBufferWrites,
+    observedSkippedWrites,
+    latestWrites,
+    latestSkippedWrites,
+    maxWrites,
+    maxSkippedWrites,
+    localLightClusterBuffersReused:
+      resourceReuse?.localLightClusterBuffersReused ?? 0,
+    dynamicBufferWrites: resourceReuse?.dynamicBufferWrites ?? 0,
+  };
+
+  loop.clusterBufferCacheStatus = status;
 
   return status;
 }
