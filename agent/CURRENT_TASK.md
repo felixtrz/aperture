@@ -3,11 +3,10 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: `task-3153` — cache unchanged clustered local shadow maps across
-frames.
+Current task: `task-3154` — skip unchanged clustered local-light buffer writes
+across frames.
 
-Status: `task-3152` completed GPU-updated clustered cookie atlas blits for
-changed atlas-backed spot-cookie sources.
+Status: `task-3153` completed clustered local shadow-map caching across frames.
 
 Key findings:
 
@@ -26,17 +25,17 @@ Key findings:
   reusing spot-shadow matrices, and allocates stable dynamic atlas slots across
   a changing four-spot shadow-cookie light set.
 - Changed atlas-backed spot-cookie sources now update through a renderer-owned
-  GPU blit pass when source textures are already GPU-owned, and the proof route
-  reports changed-tile GPU blits, cached unchanged tiles, and zero CPU atlas
-  uploads.
-- The next gap is local-shadow lifetime behavior: unchanged clustered local
-  shadow maps should be cached across frames instead of being recreated or
-  redrawn every proof frame.
+  GPU blit pass when source textures are already GPU-owned, and unchanged
+  clustered local shadow maps now reuse depth allocations and skip redundant
+  spot-shadow submissions once caster/light/layout inputs are stable.
+- The next gap is clustered-light upload behavior: unchanged clustered
+  local-light params/cells/indices/metadata buffers should be reused without
+  rewriting every proof frame when the view/light set and metadata are stable.
 
-Next step: implement `task-3153`.
+Next step: implement `task-3154`.
 
-Reference anchors for `task-3153`:
+Reference anchors for `task-3154`:
 
-- `references/engine/src/scene/renderer/shadow-map-cache.js`.
-- `references/engine/src/scene/renderer/shadow-renderer-local.js`.
-- `references/engine/src/scene/renderer/render-pass-shadow-local-clustered.js`.
+- `references/engine/src/scene/lighting/world-clusters.js`.
+- `references/engine/src/scene/lighting/lights-buffer.js`.
+- `references/engine/src/scene/renderer/frame-pass-update-clustered.js`.

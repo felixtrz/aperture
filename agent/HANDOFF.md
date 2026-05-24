@@ -1,6 +1,68 @@
 # Agent Handoff
 
-Updated: 2026-05-24T12:27:54Z
+Updated: 2026-05-24T12:51:45Z
+
+## Current Run Update — 2026-05-24T12:51:45Z — Clustered shadow-map cache
+
+Completed `task-3153`, caching unchanged clustered local shadow maps across
+frames.
+
+### What changed
+
+- Added an optional shadow depth texture allocation cache to
+  `createShadowDepthTextureResourceReport()`.
+- The allocation cache key now tracks the GPU texture descriptor shape rather
+  than per-light atlas regions, so stable atlas textures can be reused while
+  texture size/layout changes still invalidate correctly.
+- Added `reusedTextureCount` to shadow depth resource reports and JSON output.
+- Added `examples/clustered-lights.html?enable-cluster-shadow-cache=1`, which
+  runs the dynamic clustered shadow-cookie atlas route, pulses one spot-shadow
+  caster transform to force a cache miss, then observes a stable later-frame
+  cache hit.
+- The proof route reports submitted vs skipped shadow-pass counts, reused depth
+  texture count, cached shadow count, and
+  `observedCasterTransformInvalidation`.
+- Public progress pages, backlog, current task, and completed-task records now
+  point to `task-3154`.
+
+### Validation
+
+- `node --check examples/clustered-lights.main.js`
+- `node --check examples/clustered-lights.worker.js`
+- `pnpm exec vitest run test/webgpu/shadow-depth-texture-resource.test.ts`
+- `pnpm exec vitest run test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-resource-summary.test.ts test/webgpu/shadow-pass-attachment-descriptor.test.ts test/webgpu/shadow-pass-command-buffer-submission-report.test.ts test/webgpu/standard-material-shadow-receiver-binding-readiness.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run build`
+- Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-shadow-cache=1&proof=task3153c`:
+  `ok: true`, `readbackStatus.ok: true`,
+  `routeClusteredShadowCacheReady`,
+  `routeDynamicShadowCookieAtlasReady`, and
+  `routePackedShadowCookieAtlasSamplingOk` true, with `missCount: 4`,
+  `hitCount: 1`, `submittedShadowPassCount: 4`,
+  `skippedShadowPassCount: 1`, `currentReusedTextureCount: 1`,
+  `cachedShadowCount: 4`, `observedCasterTransformInvalidation: true`,
+  diagnostics `0`, and zero relevant WebGPU validation warnings/errors. The
+  only console error was the existing favicon `403`.
+
+### Known issues
+
+- Clustered local-light params/cells/indices/metadata buffers are reused as GPU
+  resources, but unchanged routes still need a focused no-rewrite proof.
+  `task-3154` should close that upload-efficiency gap.
+- The broad multi-page `test/e2e/clustered-lights.spec.ts` remains locally
+  unreliable from pre-existing headed timing/transparent readback issues; this
+  run used the focused shadow-cache route proof instead.
+- The pre-existing working-tree deletion of `.codex/hooks.json`, untracked
+  `.playwright-mcp/` scratch directory, and untracked
+  `shadow-cookie-console-errors.txt` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3154`: skip unchanged clustered local-light buffer writes across
+frames so stable clustered routes can reuse renderer-owned params/cells/indices/
+metadata buffers without rewriting unchanged data.
 
 ## Current Run Update — 2026-05-24T12:27:54Z — GPU cookie atlas blits
 

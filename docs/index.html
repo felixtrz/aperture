@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 12:27 UTC</dd>
+            <dd>2026-05-24 12:51 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -2431,12 +2431,15 @@
               through browser status. The GPU atlas update proof now swaps an
               atlas-backed spot cookie after atlas placement stabilizes and
               reports changed-tile GPU blits, cached unchanged tiles, zero CPU
-              atlas uploads, and a visible luminance delta.
+              atlas uploads, and a visible luminance delta. The shadow-cache
+              proof now reuses the unchanged atlas-backed spot-shadow depth
+              allocation, observes a deliberate caster-transform invalidation,
+              and skips the later redundant spot-shadow submission.
             </p>
             <ul>
               <li>
-                Next step: cache unchanged clustered local shadow maps across
-                frames.
+                Next step: skip unchanged clustered local-light buffer writes
+                across stable clustered routes.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2457,6 +2460,13 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3153</span> Added clustered
+                local shadow-map caching across frames, with depth allocation
+                reuse, a caster-transform invalidation proof, and a browser
+                route that reports one later-frame cache hit skipping four
+                unchanged atlas-backed spot-shadow passes.
+              </li>
               <li>
                 <span class="badge green">task-3152</span> Added GPU-updated
                 clustered cookie-atlas blits and a browser proof route that
@@ -2483,13 +2493,6 @@
                 array and point-array compact routes are current, and the audit
                 isolated the atlas matrix-reuse invariant now closed by
                 task-3150.
-              </li>
-              <li>
-                <span class="badge green">task-3148</span> Combined nonuniform
-                clustered spot-shadow atlases with nonuniform clustered
-                spot-cookie atlases in one StandardMaterial frame, reusing
-                spot-shadow matrices and keeping the compact WebGPU-minimum
-                route.
               </li>
               <li>
                 <span class="badge green">task-3147</span> Combined two
@@ -4856,13 +4859,14 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Cache unchanged clustered
-                local shadow maps across frames so stable point/spot shadows can
-                reuse renderer-owned shadow resources.
+                <span class="badge amber">next</span> Skip unchanged clustered
+                local-light buffer writes so stable views can reuse
+                renderer-owned params, cells, indices, and metadata buffers
+                without rewriting unchanged data.
               </li>
               <li>
-                Then run another clustered shadow/cookie pressure audit against
-                three.js and PlayCanvas.
+                Then run another clustered light/shadow/cache pressure audit
+                against three.js and PlayCanvas.
               </li>
             </ul>
           </article>
@@ -4875,6 +4879,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3153</div>
+            <div>
+              <strong>Clustered shadow-map cache shipped.</strong>
+              <span>
+                Unchanged clustered spot-shadow atlas maps now reuse the
+                renderer-owned depth allocation and skip redundant shadow
+                submission after a conservative content-key check, with a
+                browser proof covering deliberate caster-transform
+                invalidation and a later cache hit.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3152</div>
             <div>

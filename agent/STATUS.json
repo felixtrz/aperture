@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "40c8614",
+  "lastCommit": "56b5db6",
   "activePid": null,
-  "notes": "Completed task-3152 GPU-updated clustered cookie atlas blits with changed-tile GPU updates, cached unchanged tiles, and browser proof; next task-3153 caches unchanged clustered local shadow maps.",
-  "lastRunFinishedAt": "2026-05-24T12:27:54Z"
+  "notes": "Completed task-3153 clustered local shadow-map caching with depth allocation reuse, caster-transform invalidation, skipped unchanged spot-shadow submissions, and browser proof; next task-3154 skips unchanged clustered local-light buffer writes.",
+  "lastRunFinishedAt": "2026-05-24T12:51:45Z"
 }

@@ -1,5 +1,49 @@
 # Completed Tasks
 
+## task-3153 — Cache unchanged clustered local shadow maps across frames
+
+Completed: 2026-05-24
+
+- Added an optional renderer-owned shadow depth allocation cache keyed by the
+  actual GPU texture allocation descriptor, so stable shadow resources can
+  reuse existing depth textures while still invalidating on texture-size/layout
+  changes.
+- Added depth-cache report fields and tests proving cross-frame allocation
+  reuse, descriptor-size invalidation, and atlas allocation reuse when only
+  per-light atlas tile regions move.
+- Added `examples/clustered-lights.html?enable-cluster-shadow-cache=1`, which
+  drives the dynamic clustered shadow-cookie atlas route, pulses a spot-shadow
+  caster transform to force one cache miss, then reports a later cache hit that
+  reuses four atlas-backed spot shadow maps and skips the redundant spot-shadow
+  submission.
+- The proof route reports `routeClusteredShadowCacheReady`, submitted vs
+  skipped shadow-pass counts, reused depth texture count, cached shadow count,
+  and the explicit caster-transform invalidation observation.
+
+Validation:
+
+- `node --check examples/clustered-lights.main.js`
+- `node --check examples/clustered-lights.worker.js`
+- `pnpm exec vitest run test/webgpu/shadow-depth-texture-resource.test.ts`
+- `pnpm exec vitest run test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-resource-summary.test.ts test/webgpu/shadow-pass-attachment-descriptor.test.ts test/webgpu/shadow-pass-command-buffer-submission-report.test.ts test/webgpu/standard-material-shadow-receiver-binding-readiness.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run build`
+- Browser proof:
+  `examples/clustered-lights.html?enable-cluster-shadow-cache=1&proof=task3153c`
+  returned `ok: true`, `routeClusteredShadowCacheReady: true`,
+  `routeDynamicShadowCookieAtlasReady: true`,
+  `routePackedShadowCookieAtlasSamplingOk: true`, `readbackOk: true`,
+  `diagnostics: 0`, `missCount: 4`, `hitCount: 1`,
+  `submittedShadowPassCount: 4`, `skippedShadowPassCount: 1`,
+  `currentReusedTextureCount: 1`, `cachedShadowCount: 4`, and
+  `observedCasterTransformInvalidation: true`. The only console error was the
+  existing favicon `403`.
+
+Known follow-up:
+
+- `task-3154` should skip unchanged clustered local-light buffer writes so
+  stable clustered routes avoid rewriting params/cells/indices/metadata data.
+
 ## task-3152 — Add GPU-updated clustered cookie atlas blits
 
 Completed: 2026-05-24

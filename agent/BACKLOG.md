@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3153`: cache unchanged clustered local shadow maps across frames so
-stable clustered point/spot shadows can reuse renderer-owned shadow resources
-instead of recreating or redrawing unchanged maps.
+Start `task-3154`: skip unchanged clustered local-light buffer writes across
+frames so stable clustered views can reuse renderer-owned params/cell/index/
+metadata buffers without rewriting unchanged data.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -238,14 +238,15 @@ closes the remaining static atlas invariant by making clustered spot-cookie
 atlas preparation shadow-aligned before the compact route reuses spot-shadow
 matrices. `task-3151` now adds dynamic, stable local-shadow/cookie atlas slot
 allocation, and `task-3152` now updates changed clustered cookie-atlas tiles via
-renderer-owned GPU blits while caching unchanged atlas tiles. The next SOTA gap
-is clustered local-shadow cache reuse across frames.
+renderer-owned GPU blits while caching unchanged atlas tiles. `task-3153` now
+caches unchanged clustered local shadow maps across frames. The next SOTA gap
+is unchanged clustered local-light buffer write skipping.
 
 Reference anchors for the next visible slice (read before writing):
 
-- `references/engine/src/scene/renderer/shadow-map-cache.js`.
-- `references/engine/src/scene/renderer/shadow-renderer-local.js`.
-- `references/engine/src/scene/renderer/render-pass-shadow-local-clustered.js`.
+- `references/engine/src/scene/lighting/world-clusters.js`.
+- `references/engine/src/scene/lighting/lights-buffer.js`.
+- `references/engine/src/scene/renderer/frame-pass-update-clustered.js`.
 - `docs/render-pipeline-comparison.html`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
@@ -1189,7 +1190,7 @@ Acceptance criteria:
 
 ### task-3153 — Cache unchanged clustered local shadow maps across frames
 
-Status: ready
+Status: completed 2026-05-24
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/app.ts`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
@@ -1204,6 +1205,28 @@ Acceptance criteria:
   later-frame cache hits while preserving visible point/spot shadow results.
 - Cache invalidation is covered for at least one changed light transform or
   changed caster transform.
+- Browser readback remains non-clear and relevant WebGPU validation warnings
+  stay at zero.
+
+### task-3154 — Skip unchanged clustered local-light buffer writes across frames
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/light-*`, `packages/webgpu/src/webgpu/app.ts`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
+Reference anchor: `references/engine/src/scene/lighting/world-clusters.js`, `references/engine/src/scene/lighting/lights-buffer.js`, `references/engine/src/scene/renderer/frame-pass-update-clustered.js`.
+
+Acceptance criteria:
+
+- Clustered local-light GPU resources track a stable content key for params,
+  cells, indices, and shadow/cookie metadata so unchanged routes can keep the
+  existing GPU buffers without rewriting them.
+- A clustered-lights proof route reports at least one first-frame clustered
+  buffer upload followed by a later-frame cache hit with zero unchanged-route
+  buffer writes while keeping visible clustered lighting and shadow-cookie
+  sampling.
+- Cache invalidation is covered for at least one changed camera/cluster bounds
+  input or changed local-light metadata input.
 - Browser readback remains non-clear and relevant WebGPU validation warnings
   stay at zero.
 
