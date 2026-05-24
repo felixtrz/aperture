@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "9048d92",
+  "lastCommit": "0a71fc9",
   "activePid": null,
-  "notes": "Completed task-3146 packed clustered shadows plus cookies; next task-3147 combines flattened point-shadow arrays with clustered cookies.",
-  "lastRunFinishedAt": "2026-05-24T10:31:33Z"
+  "notes": "Completed task-3147 flattened point-shadow arrays plus clustered cookies; next task-3148 combines nonuniform shadow atlases with cookie atlases.",
+  "lastRunFinishedAt": "2026-05-24T10:46:49Z"
 }
