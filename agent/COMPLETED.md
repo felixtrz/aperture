@@ -1,5 +1,51 @@
 # Completed Tasks
 
+## task-3154 — Skip unchanged clustered local-light buffer writes across frames
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added clustered local-light content keys for params, cells, indices, and
+  shadow/cookie metadata in the StandardMaterial app-frame resource cache.
+- Stable clustered frame-resource cache hits now reuse the existing
+  renderer-owned local-light cluster buffers without rewriting unchanged data.
+- Changed clustered content with the same resource shape rewrites the four
+  params/cells/indices/metadata buffers in place instead of reallocating them.
+- WebGPU app resource reuse reports now expose
+  `localLightClusterBufferWrites` and
+  `localLightClusterBufferWritesSkipped`, and local-light cluster reports carry
+  the same write/skip counters.
+- Added
+  `examples/clustered-lights.html?enable-cluster-buffer-cache=1`, which moves
+  the clustered camera to force cluster invalidation, then freezes it so a
+  later stable frame proves skipped clustered buffer writes.
+
+Validation:
+
+- `node --check examples/clustered-lights.main.js`
+- `node --check examples/clustered-lights.worker.js`
+- `git diff --check`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/unlit-app-frame-resources.test.ts`
+- `pnpm exec vitest run test/webgpu/unlit-app-frame-resources.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm run build`
+- Browser proof:
+  `examples/clustered-lights.html?enable-cluster-buffer-cache=1&proof=task3154b`
+  returned `ok: true`, `routeClusteredBufferCacheReady: true`,
+  `clusterStatusOk: true`, `readbackOk: true`, `diagnostics: 0`,
+  `localLightClusterBuffersReused: 16`,
+  `localLightClusterBufferWrites: 0`,
+  `localLightClusterBufferWritesSkipped: 16`,
+  `dynamicBufferWrites: 16`, `maxWrites: 16`, and `maxSkippedWrites: 16`.
+  The only console error was the existing favicon `403`.
+
+Known follow-up:
+
+- `task-3155` should add render-pipeline phase timing history to the GPU
+  profiler so remaining SOTA work is guided by phase pressure data rather than
+  another status-only audit.
+
 ## task-3153 — Cache unchanged clustered local shadow maps across frames
 
 Completed: 2026-05-24

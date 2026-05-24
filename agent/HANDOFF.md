@@ -1,6 +1,70 @@
 # Agent Handoff
 
-Updated: 2026-05-24T12:51:45Z
+Updated: 2026-05-24T13:13:13Z
+
+## Current Run Update — 2026-05-24T13:13:13Z — Clustered buffer-write cache
+
+Completed `task-3154`, skipping unchanged clustered local-light buffer writes
+across frames.
+
+### What changed
+
+- Added stable byte-content keys for clustered local-light params, cells,
+  indices, and shadow/cookie metadata in the StandardMaterial app-frame
+  resource cache.
+- Stable clustered frame-resource cache hits now reuse the existing
+  renderer-owned params/cells/indices/metadata buffers and skip the four
+  clustered buffer writes when content is unchanged.
+- Changed clustered content with the same resource shape rewrites the four
+  buffers in place and updates the cached descriptor.
+- Added `localLightClusterBufferWrites` and
+  `localLightClusterBufferWritesSkipped` to WebGPU app resource-reuse reports
+  and local-light cluster reports.
+- Added `examples/clustered-lights.html?enable-cluster-buffer-cache=1`, which
+  forces one cluster invalidation by moving the clustered camera, then freezes
+  the camera so a later stable frame proves zero unchanged clustered buffer
+  writes.
+- Added a focused frame-resource regression covering clustered buffer creation,
+  unchanged-content skip, and changed-content rewrite.
+- Public progress pages, backlog, current task, and completed-task records now
+  point to `task-3155`.
+
+### Validation
+
+- `node --check examples/clustered-lights.main.js`
+- `node --check examples/clustered-lights.worker.js`
+- `git diff --check`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/unlit-app-frame-resources.test.ts`
+- `pnpm exec vitest run test/webgpu/unlit-app-frame-resources.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm run build`
+- Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-buffer-cache=1&proof=task3154b`:
+  `ok: true`, `routeClusteredBufferCacheReady: true`, `clusterStatusOk: true`,
+  `readbackOk: true`, diagnostics `0`,
+  `localLightClusterBuffersReused: 16`,
+  `localLightClusterBufferWrites: 0`,
+  `localLightClusterBufferWritesSkipped: 16`, `dynamicBufferWrites: 16`,
+  `maxWrites: 16`, and `maxSkippedWrites: 16`. The only console error was the
+  existing favicon `403`.
+
+### Known issues
+
+- The focused clustered StandardMaterial pressure lane is close, but the public
+  tracker should not claim full SOTA yet. Sort remains at 90% because phase
+  duration telemetry and broader batching/pressure history are still missing.
+- The broad multi-page `test/e2e/clustered-lights.spec.ts` remains locally
+  unreliable from pre-existing headed timing/transparent readback issues; this
+  run used the focused buffer-cache route proof instead.
+- The pre-existing working-tree deletion of `.codex/hooks.json`, untracked
+  `.playwright-mcp/` scratch directory, and untracked
+  `shadow-cookie-console-errors.txt` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3155`: add render-pipeline phase timing history to the GPU profiler
+so remaining SOTA work is guided by visible phase pressure data.
 
 ## Current Run Update — 2026-05-24T12:51:45Z — Clustered shadow-map cache
 

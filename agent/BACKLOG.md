@@ -239,14 +239,14 @@ atlas preparation shadow-aligned before the compact route reuses spot-shadow
 matrices. `task-3151` now adds dynamic, stable local-shadow/cookie atlas slot
 allocation, and `task-3152` now updates changed clustered cookie-atlas tiles via
 renderer-owned GPU blits while caching unchanged atlas tiles. `task-3153` now
-caches unchanged clustered local shadow maps across frames. The next SOTA gap
-is unchanged clustered local-light buffer write skipping.
+caches unchanged clustered local shadow maps across frames, and `task-3154` now
+skips unchanged clustered local-light buffer writes across stable frames. The
+next SOTA gap is visible render-pipeline phase timing and pressure history.
 
 Reference anchors for the next visible slice (read before writing):
 
-- `references/engine/src/scene/lighting/world-clusters.js`.
-- `references/engine/src/scene/lighting/lights-buffer.js`.
-- `references/engine/src/scene/renderer/frame-pass-update-clustered.js`.
+- `references/engine/src/extras/mini-stats/gpu-timer.js`.
+- `references/engine/src/framework/stats.js`.
 - `docs/render-pipeline-comparison.html`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
@@ -1210,7 +1210,7 @@ Acceptance criteria:
 
 ### task-3154 — Skip unchanged clustered local-light buffer writes across frames
 
-Status: ready
+Status: completed 2026-05-24
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/light-*`, `packages/webgpu/src/webgpu/app.ts`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
@@ -1229,6 +1229,78 @@ Acceptance criteria:
   input or changed local-light metadata input.
 - Browser readback remains non-clear and relevant WebGPU validation warnings
   stay at zero.
+
+Completion note 2026-05-24: clustered local-light params/cells/indices/metadata
+resources now track stable byte-content keys across frame-resource cache hits.
+Stable clustered routes reuse the existing renderer-owned buffers and skip the
+four clustered buffer writes, while changed content with the same resource shape
+rewrites the four buffers in place. `examples/clustered-lights.html?enable-cluster-buffer-cache=1`
+proves a changed cluster phase followed by a stable frame with
+`localLightClusterBufferWrites: 0`, `localLightClusterBufferWritesSkipped: 16`,
+`routeClusteredBufferCacheReady: true`, non-clear readback, diagnostics `0`,
+and only the existing favicon `403` console error.
+
+### task-3155 — Add render-pipeline phase timing history to the GPU profiler
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*timing*`, `packages/webgpu/src/webgpu/app.ts`, `examples/gpu-profiler.*`, `test/webgpu/`, `test/e2e/`.
+Reference anchor: `references/engine/src/extras/mini-stats/gpu-timer.js`, `references/engine/src/framework/stats.js`.
+
+Acceptance criteria:
+
+- `WebGpuApp` reports a rolling CPU phase history for extract, collect,
+  prepare, queue, sort, and submit around the existing render-frame boundary.
+- `examples/gpu-profiler.html?phase-history=1` renders a visible six-row phase
+  table with latest and rolling-average timings while preserving the existing
+  GPU timestamp query overlay.
+- Browser proof sees all six named phase rows, a nonzero sample count, and
+  changing frame samples while rendering non-clear pixels.
+- Existing GPU timestamp query tests and profiler route validation remain green.
+
+### task-3156 — Add a transparent sort pressure proof route
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/*queue*`, `packages/webgpu/src/webgpu/*queue*`, `examples/standard-queue-phases.*`, `test/webgpu/`, `test/e2e/`.
+Reference anchor: `references/three.js/manual/en/transparency.html`, `references/engine/src/scene/layer.js`.
+
+Acceptance criteria:
+
+- `examples/standard-queue-phases.html?transparent-pressure=1` renders a dense
+  overlapping alpha-blend StandardMaterial scene whose visible result depends
+  on back-to-front transparent ordering.
+- The route reports transparent record count, depth-order inversions, render
+  order tie-break count, and stable-id tie-break count without relying on
+  diagnostic-count-only success criteria.
+- Browser proof samples at least three overlap regions before and after a small
+  camera move and verifies stable visible ordering with zero depth-order
+  inversions.
+- Existing opaque/alpha-test state-sort pressure proof remains valid.
+
+### task-3157 — Add clustered-light cache pressure history to clustered-lights
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/*shadow*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.
+Reference anchor: `references/engine/src/scene/lighting/world-clusters.js`, `references/engine/src/scene/renderer/frame-pass-update-clustered.js`.
+
+Acceptance criteria:
+
+- `examples/clustered-lights.html?enable-cluster-pressure-history=1` runs a
+  stable multi-view clustered scene for at least 30 frames and reports rolling
+  totals for avoided clustered-buffer writes, skipped cookie-atlas tile updates,
+  and skipped local-shadow submissions.
+- The route compares the stable cached path against a no-cache baseline in the
+  same browser session and reports a measurable reduction in dynamic buffer
+  writes or submitted shadow/cookie update work.
+- Browser proof keeps visible clustered lighting/shadow-cookie pixels stable
+  while the pressure history accumulates saved work.
+- The route remains within WebGPU minimum storage-buffer limits and preserves
+  zero relevant WebGPU validation warnings.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

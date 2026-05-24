@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "56b5db6",
+  "lastCommit": "3cecb43",
   "activePid": null,
-  "notes": "Completed task-3153 clustered local shadow-map caching with depth allocation reuse, caster-transform invalidation, skipped unchanged spot-shadow submissions, and browser proof; next task-3154 skips unchanged clustered local-light buffer writes.",
-  "lastRunFinishedAt": "2026-05-24T12:51:45Z"
+  "notes": "Completed task-3154 clustered local-light buffer-write skipping with stable content keys, changed-content rewrite coverage, skipped unchanged writes, and browser proof; next task-3155 adds render-pipeline phase timing history to the GPU profiler.",
+  "lastRunFinishedAt": "2026-05-24T13:13:13Z"
 }
