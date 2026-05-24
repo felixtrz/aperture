@@ -228,10 +228,7 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   const cookieOnly =
     await waitForExampleStatus<ClusteredLightsStatus>(cookieOnlyPage);
 
-  await attachExampleStatus(
-    "clustered-lights-cookie-only-status",
-    cookieOnly,
-  );
+  await attachExampleStatus("clustered-lights-cookie-only-status", cookieOnly);
   expect(
     cookieOnly,
     "clustered lights cookie-only status should publish",
@@ -243,6 +240,34 @@ test("browser renders StandardMaterial through clustered local lights", async ({
 
   skipIfUnsupportedWebGpu(cookieOnly);
   expectStatusJsonSafeForGpu(cookieOnly);
+
+  const pointCookiePage = await page.context().newPage();
+  const pointCookieWebGpuValidation =
+    attachWebGpuValidationConsoleGuard(pointCookiePage);
+
+  await pointCookiePage.goto(
+    "/examples/clustered-lights.html?enable-cluster-point-cookie=1",
+  );
+  await pointCookiePage.bringToFront();
+
+  const pointCookie =
+    await waitForExampleStatus<ClusteredLightsStatus>(pointCookiePage);
+
+  await attachExampleStatus(
+    "clustered-lights-point-cookie-status",
+    pointCookie,
+  );
+  expect(
+    pointCookie,
+    "clustered lights point-cookie status should publish",
+  ).toBeDefined();
+
+  if (pointCookie === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(pointCookie);
+  expectStatusJsonSafeForGpu(pointCookie);
 
   const shadowPage = await page.context().newPage();
   const shadowWebGpuValidation = attachWebGpuValidationConsoleGuard(shadowPage);
@@ -465,8 +490,48 @@ test("browser renders StandardMaterial through clustered local lights", async ({
         route.shadowCookieMetadata.shadow.samplingSupported === true,
     ),
   ).toBe(false);
+  expect(pointCookie.clusterStatus).toMatchObject({
+    ok: true,
+    routeMetadataOk: true,
+    routePointShadowSamplingOk: false,
+    routeSpotShadowSamplingOk: false,
+    routeCookieSamplingOk: true,
+  });
+  expect(pointCookie.shadowStatus).toMatchObject({
+    enabled: false,
+    supported: false,
+    mode: "clustered-shadow-unavailable",
+    point: {
+      enabled: false,
+      supported: false,
+    },
+    spot: {
+      enabled: false,
+      supported: false,
+    },
+  });
+  expect(pointCookie.pipelineKeys ?? []).toContain(
+    "standard|clusteredLocalLights|clusteredLocalLightCookies|clusteredLocalLightCubeCookies|opaque|back|less|none",
+  );
+  expect(pointCookie.pipelineKeys ?? []).not.toContain(
+    "standard|clusteredLocalLights|clusteredLocalLightCookies|clusteredLocalLightCubeCookies|pointShadowMap|opaque|back|less|none",
+  );
+  expect(pointCookie.pipelineKeys ?? []).not.toContain(
+    "standard|clusteredLocalLights|clusteredLocalLightCookies|clusteredLocalLightCubeCookies|shadowMap|opaque|back|less|none",
+  );
+  expect(
+    (pointCookie.localLightClusters?.routes ?? []).some(
+      (route) =>
+        route.shadowCookieMetadata?.cookie.status === "sampling-ready" &&
+        route.shadowCookieMetadata.cookie.samplingSupported === true &&
+        route.shadowCookieMetadata.cookie.localRequestCount >= 1 &&
+        route.shadowCookieMetadata.cookie.clusteredLightCount >= 1 &&
+        route.shadowCookieMetadata.cookie.supportedLightCount >= 1,
+    ),
+  ).toBe(true);
   expect(maxSampleLuminanceDarkening(baseline, spotOnly)).toBeGreaterThan(2);
   expect(maxSampleLuminanceDelta(spotOnly, cookie)).toBeGreaterThan(12);
+  expect(maxSampleLuminanceDelta(baseline, pointCookie)).toBeGreaterThan(2);
   expect(maxSampleLuminanceDarkening(baseline, status)).toBeGreaterThan(3);
   expect(status.readbackStatus?.ok).toBe(true);
   expect(status.readbackStatus?.maxClearDistance ?? 0).toBeGreaterThan(24);
@@ -474,6 +539,7 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   spotWebGpuValidation.expectNoWarnings();
   cookieWebGpuValidation.expectNoWarnings();
   cookieOnlyWebGpuValidation.expectNoWarnings();
+  pointCookieWebGpuValidation.expectNoWarnings();
   shadowWebGpuValidation.expectNoWarnings();
 });
 

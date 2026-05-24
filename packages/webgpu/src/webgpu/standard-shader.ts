@@ -97,6 +97,7 @@ export interface StandardTextureShaderFeatures {
   readonly fogExp2?: boolean;
   readonly clusteredLocalLights?: boolean;
   readonly clusteredLocalLightCookies?: boolean;
+  readonly clusteredLocalLightCubeCookies?: boolean;
 }
 
 export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
@@ -1405,7 +1406,9 @@ export function createStandardTextureShaderVariantKey(
     names.push("clustered-local-lights");
   }
 
-  if (features.clusteredLocalLightCookies === true) {
+  if (features.clusteredLocalLightCubeCookies === true) {
+    names.push("clustered-local-light-cube-cookies");
+  } else if (features.clusteredLocalLightCookies === true) {
     names.push("clustered-local-light-cookies");
   }
 
@@ -1895,6 +1898,7 @@ ${emissive}
       spotShadowMap:
         features.shadowMap === true && features.cascadedShadowMap !== true,
       localLightCookies: features.clusteredLocalLightCookies === true,
+      localLightCubeCookies: features.clusteredLocalLightCubeCookies === true,
       removeGlobalPointShadowReceiverFactor:
         features.pointShadowMap === true && features.shadowMap !== true,
       removeGlobalSpotShadowReceiverFactor:
@@ -2114,8 +2118,13 @@ function standardTextureVariantDeclaration(
     );
 
     if (features.clusteredLocalLightCookies === true) {
+      const cookieTextureType =
+        features.clusteredLocalLightCubeCookies === true
+          ? "texture_cube<f32>"
+          : "texture_2d<f32>";
+
       declarations.push(
-        `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING}) var localLightClusterCookieTexture: texture_2d<f32>;`,
+        `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING}) var localLightClusterCookieTexture: ${cookieTextureType};`,
         `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING}) var localLightClusterCookieSampler: sampler;`,
         `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING}) var<storage, read> localLightClusterCookieMatrices: array<mat4x4f>;`,
       );
@@ -3710,6 +3719,7 @@ function applyStandardClusteredLocalLightSampling(
     readonly pointShadowMap: boolean;
     readonly spotShadowMap: boolean;
     readonly localLightCookies: boolean;
+    readonly localLightCubeCookies: boolean;
     readonly removeGlobalPointShadowReceiverFactor: boolean;
     readonly removeGlobalSpotShadowReceiverFactor: boolean;
   },
@@ -3758,8 +3768,46 @@ function applyStandardClusteredLocalLightSampling(
   _ = position;
   return localLightClusterUnsupportedShadowFactor(lightIndex);
 }`;
+  const pointCookieColorFunction =
+    options.localLightCookies && options.localLightCubeCookies
+      ? `fn localLightClusterPointCookieColor(position: vec3f, lightIndex: u32, lightPosition: vec3f) -> vec3f {
+  let metadataFlags = localLightClusterMetadataFlags(lightIndex);
+
+  if ((metadataFlags & ${LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_REQUEST}u) == 0u) {
+    return vec3f(1.0);
+  }
+
+  if ((metadataFlags & ${LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_SUPPORTED}u) == 0u) {
+    return localLightClusterUnsupportedCookieColor(lightIndex);
+  }
+
+  let matrixBaseIndex = localLightClusterCookieMatrixBase(lightIndex);
+
+  if (matrixBaseIndex >= arrayLength(&localLightClusterCookieMatrices)) {
+    return localLightClusterUnsupportedCookieColor(lightIndex);
+  }
+
+  let toReceiver = position - lightPosition;
+
+  if (length(toReceiver) <= 0.0001) {
+    return vec3f(1.0);
+  }
+
+  let cookieTexel = textureSampleLevel(
+    localLightClusterCookieTexture,
+    localLightClusterCookieSampler,
+    normalize(toReceiver),
+    0.0,
+  ).rgb;
+  return mix(vec3f(1.0), cookieTexel, saturate(localLightClusterCookieIntensity(lightIndex)));
+}`
+      : `fn localLightClusterPointCookieColor(position: vec3f, lightIndex: u32, lightPosition: vec3f) -> vec3f {
+  _ = position;
+  _ = lightPosition;
+  return localLightClusterUnsupportedCookieColor(lightIndex);
+}`;
   const spotCookieColorFunction =
-    options.localLightCookies
+    options.localLightCookies && !options.localLightCubeCookies
       ? `fn localLightClusterSpotCookieColor(position: vec3f, lightIndex: u32) -> vec3f {
   let metadataFlags = localLightClusterMetadataFlags(lightIndex);
 
@@ -3932,6 +3980,8 @@ ${pointShadowFactorFunction}
 
 ${spotShadowFactorFunction}
 
+${pointCookieColorFunction}
+
 ${spotCookieColorFunction}
 
 fn localLightClusterViewMatrix() -> mat4x4f {
@@ -4050,11 +4100,12 @@ fn evaluateClusteredLocalLights(
 
         if (attenuation > 0.0 && lightDistance > 0.0001) {
           let shadowFactor = localLightClusterPointShadowFactor(position, lightIndex, lightPosition);
+          let cookieColor = localLightClusterPointCookieColor(position, lightIndex, lightPosition);
           clusteredDirect = clusteredDirect + evaluateDirectLight(
             normal,
             viewDir,
             toLight / lightDistance,
-            lightRadiance(lightIndex) * attenuation * shadowFactor,
+            lightRadiance(lightIndex) * attenuation * shadowFactor * cookieColor,
             baseColor,
             metallic,
             roughness,
@@ -4171,7 +4222,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {`,
       clusteredLightLoop,
     )
     .replace(
-      /(  var ambient = vec3f\(0\.0\);\n  var direct = vec3f\(0\.0\);\n\n)  for \(var lightIndex = 0u; lightIndex < lightCount\(\); lightIndex = lightIndex \+ 1u\) \{[\s\S]*?\n  \}(?=\n\n  (?:let|var) )/,
+      /([ ]{2}var ambient = vec3f\(0\.0\);\n[ ]{2}var direct = vec3f\(0\.0\);\n\n)[ ]{2}for \(var lightIndex = 0u; lightIndex < lightCount\(\); lightIndex = lightIndex \+ 1u\) \{[\s\S]*?\n[ ]{2}\}(?=\n\n[ ]{2}(?:let|var) )/,
       `$1${clusteredLightLoop}`,
     );
 

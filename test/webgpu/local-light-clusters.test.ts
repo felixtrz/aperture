@@ -237,6 +237,7 @@ describe("local light cluster preparation", () => {
             lightId: 100,
             textureKey: "texture:cluster-cookie",
             samplerKey: "sampler:cluster-cookie",
+            textureViewDimension: "2d",
             matrixBaseIndex: 3,
           },
         ],

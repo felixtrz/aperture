@@ -18,6 +18,7 @@ describe("clustered local-light cookie resources", () => {
     const texture = createTextureHandle("spot-cookie");
     const sampler = createSamplerHandle("spot-cookie-linear");
     const createdTextures: unknown[] = [];
+    const createdViews: unknown[] = [];
     const createdSamplers: unknown[] = [];
     const createdBuffers: unknown[] = [];
     const textureWrites: unknown[] = [];
@@ -62,7 +63,12 @@ describe("clustered local-light cookie resources", () => {
       device: {
         createTexture: (descriptor: unknown) => {
           createdTextures.push(descriptor);
-          return { createView: () => ({ label: "spot-cookie-view" }) };
+          return {
+            createView: (viewDescriptor: unknown) => {
+              createdViews.push(viewDescriptor);
+              return { label: "spot-cookie-view" };
+            },
+          };
         },
         createSampler: (descriptor: unknown) => {
           createdSamplers.push(descriptor);
@@ -107,11 +113,13 @@ describe("clustered local-light cookie resources", () => {
       },
       textureKey: "texture:spot-cookie@1",
       samplerKey: "sampler:spot-cookie-linear@1",
+      textureViewDimension: "2d",
       supportedResources: [
         {
           lightId: 100,
           textureKey: "texture:spot-cookie@1",
           samplerKey: "sampler:spot-cookie-linear@1",
+          textureViewDimension: "2d",
           matrixBaseIndex: 0,
         },
       ],
@@ -130,6 +138,7 @@ describe("clustered local-light cookie resources", () => {
         usage: 6,
       },
     ]);
+    expect(createdViews).toEqual([undefined]);
     expect(createdSamplers).toMatchObject([
       {
         label: "SpotCookieLinear",
@@ -139,6 +148,114 @@ describe("clustered local-light cookie resources", () => {
     ]);
     expect(textureWrites).toHaveLength(1);
     expect(bufferWrites).toHaveLength(1);
+    expect(reuse).toMatchObject({
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+    });
+  });
+
+  it("prepares the first point cookie with a renderer-owned cube texture view", () => {
+    const registry = new AssetRegistry();
+    const texture = createTextureHandle("point-cookie");
+    const sampler = createSamplerHandle("point-cookie-nearest");
+    const createdTextures: unknown[] = [];
+    const createdViews: unknown[] = [];
+    const createdSamplers: unknown[] = [];
+    const reuse = createReuseReport();
+
+    registry.register(texture);
+    registry.register(sampler);
+    registry.markReady(
+      texture,
+      createTextureAsset({
+        label: "PointCookieCube",
+        dimension: "cube",
+        width: 2,
+        height: 2,
+        depthOrLayers: 6,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "data",
+        usage: ["sampled", "copy-dst"],
+      }),
+    );
+    registry.markReady(
+      sampler,
+      createSamplerAsset({
+        label: "PointCookieNearest",
+        addressModeU: "clamp-to-edge",
+        addressModeV: "clamp-to-edge",
+        addressModeW: "clamp-to-edge",
+        magFilter: "nearest",
+        minFilter: "nearest",
+      }),
+    );
+
+    const result = prepareLocalLightClusterCookieResources({
+      assets: registry,
+      cache: createCache(),
+      device: {
+        createTexture: (descriptor: unknown) => {
+          createdTextures.push(descriptor);
+          return {
+            createView: (viewDescriptor: unknown) => {
+              createdViews.push(viewDescriptor);
+              return { label: "point-cookie-cube-view" };
+            },
+          };
+        },
+        createSampler: (descriptor: unknown) => {
+          createdSamplers.push(descriptor);
+          return { label: "point-cookie-sampler" };
+        },
+        createBuffer: () => ({ label: "point-cookie-matrix-buffer" }),
+        queue: {
+          writeTexture: () => undefined,
+          writeBuffer: () => undefined,
+        },
+      },
+      reuse,
+      snapshot: snapshotWithPointCookie(texture, sampler),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.resources).toMatchObject({
+      matrixResource: {
+        resourceKey: "local-light-cookie-matrix:v1:point:100",
+        matrixCount: 1,
+        entryLightIds: [100],
+      },
+      textureKey: "texture:point-cookie@1:cube",
+      samplerKey: "sampler:point-cookie-nearest@1",
+      textureViewDimension: "cube",
+      supportedResources: [
+        {
+          lightId: 100,
+          textureKey: "texture:point-cookie@1:cube",
+          samplerKey: "sampler:point-cookie-nearest@1",
+          textureViewDimension: "cube",
+          matrixBaseIndex: 0,
+        },
+      ],
+    });
+    expect(createdTextures).toMatchObject([
+      {
+        label: "PointCookieCube",
+        size: [2, 2, 6],
+        format: "rgba8unorm",
+        usage: 6,
+      },
+    ]);
+    expect(createdViews).toEqual([{ dimension: "cube" }]);
+    expect(createdSamplers).toMatchObject([
+      {
+        label: "PointCookieNearest",
+        addressModeW: "clamp-to-edge",
+        magFilter: "nearest",
+        minFilter: "nearest",
+      },
+    ]);
     expect(reuse).toMatchObject({
       textureResourcesCreated: 1,
       samplerResourcesCreated: 1,
@@ -190,6 +307,7 @@ describe("clustered local-light cookie resources", () => {
         supportedResources: [
           {
             lightId: 100,
+            textureViewDimension: "2d",
             matrixBaseIndex: 0,
           },
         ],
@@ -246,6 +364,49 @@ describe("clustered local-light cookie resources", () => {
   });
 });
 
+function snapshotWithPointCookie(
+  texture: ReturnType<typeof createTextureHandle>,
+  sampler: ReturnType<typeof createSamplerHandle> | null,
+): RenderSnapshot {
+  return {
+    frame: 1,
+    views: [],
+    meshDraws: [],
+    lights: [
+      {
+        lightId: 100,
+        entity: { index: 1, generation: 0 },
+        kind: "point",
+        color: [1, 1, 1, 1],
+        intensity: 10,
+        range: 4,
+        innerConeAngle: 0,
+        outerConeAngle: 0,
+        worldTransformOffset: 0,
+        layerMask: 1,
+        cookieTexture: texture,
+        cookieSampler: sampler,
+        cookieIntensity: 1,
+      },
+    ],
+    environments: [],
+    shadowRequests: [],
+    bounds: [],
+    transforms: identityTransform(),
+    viewMatrices: new Float32Array(0),
+    diagnostics: [],
+    report: {
+      views: 0,
+      meshDraws: 0,
+      lights: 1,
+      environments: 0,
+      shadowRequests: 0,
+      bounds: 0,
+      diagnostics: 0,
+    },
+  };
+}
+
 function snapshotWithSpotCookie(
   texture: ReturnType<typeof createTextureHandle>,
   sampler: ReturnType<typeof createSamplerHandle> | null,
@@ -291,15 +452,11 @@ function snapshotWithSpotCookie(
 }
 
 function identityTransform(): Float32Array {
-  return new Float32Array([
-    1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
-  ]);
+  return new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
 }
 
 function parallelUpTransform(): Float32Array {
-  return new Float32Array([
-    1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1,
-  ]);
+  return new Float32Array([1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
 }
 
 function spotShadowReceiverResources(lightId: number, matrixBaseIndex: number) {

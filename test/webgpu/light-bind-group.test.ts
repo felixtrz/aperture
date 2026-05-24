@@ -659,6 +659,7 @@ function localLightCookieResources(): LocalLightClusterCookieResources {
         maxAnisotropy: 1,
       },
     },
+    textureViewDimension: "2d",
     textureKey: "local-light-cookie:texture",
     samplerKey: "local-light-cookie:sampler",
     supportedResources: [
@@ -666,6 +667,7 @@ function localLightCookieResources(): LocalLightClusterCookieResources {
         lightId: 100,
         textureKey: "local-light-cookie:texture",
         samplerKey: "local-light-cookie:sampler",
+        textureViewDimension: "2d",
         matrixBaseIndex: 0,
       },
     ],

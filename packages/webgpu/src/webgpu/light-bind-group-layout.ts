@@ -33,6 +33,7 @@ export interface CreateLightBindGroupLayoutDescriptorOptions {
   readonly transmissionSceneColor?: boolean;
   readonly clusteredLocalLights?: boolean;
   readonly clusteredLocalLightCookies?: boolean;
+  readonly clusteredLocalLightCookieTextureViewDimension?: "2d" | "cube";
 }
 
 export interface CreateLightBindGroupLayoutResourceOptions extends CreateLightBindGroupLayoutDescriptorOptions {
@@ -98,6 +99,7 @@ export function createLightBindGroupLayoutDescriptor(
     visibility,
     options.clusteredLocalLights === true,
     options.clusteredLocalLightCookies === true,
+    options.clusteredLocalLightCookieTextureViewDimension,
   );
 
   return {
@@ -111,6 +113,7 @@ export function appendClusteredLocalLightLayoutEntries(
   visibility: number,
   enabled: boolean,
   cookiesEnabled = false,
+  cookieTextureViewDimension: "2d" | "cube" = "2d",
 ): void {
   if (!enabled) {
     return;
@@ -144,7 +147,10 @@ export function appendClusteredLocalLightLayoutEntries(
       {
         binding: LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
         visibility,
-        texture: { sampleType: "float" },
+        texture: {
+          sampleType: "float",
+          viewDimension: cookieTextureViewDimension,
+        },
       },
       {
         binding: LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,

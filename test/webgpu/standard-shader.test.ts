@@ -38,6 +38,9 @@ import {
   STANDARD_SHEEN_SHADER_VARIANT,
   STANDARD_IRIDESCENCE_SHADER_VARIANT,
   LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
+  LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING,
+  LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,
+  LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
   LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
   LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
   LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
@@ -1503,9 +1506,7 @@ describe("built-in standard material WGSL shader metadata", () => {
       "@group(3) @binding(3) var pointShadowMap: texture_depth_cube;",
     );
     expect(shader.code).toContain("fn localLightClusterPointShadowFactor");
-    expect(shader.code).toContain(
-      "samplePointShadowFactorWithMatrixBase(",
-    );
+    expect(shader.code).toContain("samplePointShadowFactorWithMatrixBase(");
     expect(shader.code).toContain(
       "localLightClusterPointShadowMatrixBase(lightIndex)",
     );
@@ -1543,9 +1544,7 @@ describe("built-in standard material WGSL shader metadata", () => {
       "@group(3) @binding(3) var directionalShadowMap: texture_depth_2d;",
     );
     expect(shader.code).toContain("fn localLightClusterSpotShadowFactor");
-    expect(shader.code).toContain(
-      "sampleSpotShadowFactorWithMatrixBase(",
-    );
+    expect(shader.code).toContain("sampleSpotShadowFactorWithMatrixBase(");
     expect(shader.code).toContain(
       "localLightClusterPointShadowMatrixBase(lightIndex)",
     );
@@ -1590,6 +1589,77 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).not.toContain("var directionalShadowMap");
     expect(shader.code).not.toContain("var spotShadowMap");
     expect(shader.code).not.toContain("sampler_comparison");
+  });
+
+  it("samples clustered point cookies from cube textures without spot-cookie projection", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      clusteredLocalLights: true,
+      clusteredLocalLightCookies: true,
+      clusteredLocalLightCubeCookies: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: false,
+        clusteredLocalLights: true,
+        clusteredLocalLightCookies: true,
+        clusteredLocalLightCubeCookies: true,
+      }),
+    ).toBe(
+      "direct-lit-metallic-roughness-clustered-local-lights-clustered-local-light-cube-cookies-texture",
+    );
+    expect(shader.bindings).toEqual(
+      expect.arrayContaining([
+        {
+          id: "localLightClusterCookieTexture",
+          label: "Standard material local-light cookie texture",
+          group: 3,
+          binding: LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
+          resource: "texture",
+        },
+        {
+          id: "localLightClusterCookieSampler",
+          label: "Standard material local-light cookie sampler",
+          group: 3,
+          binding: LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,
+          resource: "sampler",
+        },
+        {
+          id: "localLightClusterCookieMatrices",
+          label: "Standard material local-light cookie matrices",
+          group: 3,
+          binding: LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING,
+          resource: "read-only-storage-buffer",
+        },
+      ]),
+    );
+    expect(shader.code).toContain(
+      `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING}) var localLightClusterCookieTexture: texture_cube<f32>;`,
+    );
+    expect(shader.code).toContain("fn localLightClusterPointCookieColor");
+    expect(shader.code).toContain("normalize(toReceiver)");
+    expect(shader.code).toContain(
+      "lightRadiance(lightIndex) * attenuation * shadowFactor * cookieColor",
+    );
+    expect(shader.code).toContain(
+      "fn localLightClusterSpotCookieColor(position: vec3f, lightIndex: u32) -> vec3f {\n  _ = position;\n  return localLightClusterUnsupportedCookieColor(lightIndex);",
+    );
+    expect(shader.code).not.toContain(
+      "let cookiePosition = localLightClusterCookieMatrices[matrixBaseIndex] * vec4f(position, 1.0);",
+    );
   });
 
   it("declares browser-safe group 3 bindings for the diffuse IBL shader variant", () => {

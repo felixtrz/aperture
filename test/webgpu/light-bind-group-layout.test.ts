@@ -104,7 +104,7 @@ describe("light bind group layout resources", () => {
       {
         binding: LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
         visibility: DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
-        texture: { sampleType: "float" },
+        texture: { sampleType: "float", viewDimension: "2d" },
       },
       {
         binding: LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,
@@ -115,6 +115,22 @@ describe("light bind group layout resources", () => {
         binding: LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING,
         visibility: DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
         buffer: { type: "read-only-storage" },
+      },
+    ]);
+  });
+
+  it("specializes clustered local-light cookie texture layouts for cube views", () => {
+    expect(
+      createLightBindGroupLayoutDescriptor({
+        clusteredLocalLights: true,
+        clusteredLocalLightCookies: true,
+        clusteredLocalLightCookieTextureViewDimension: "cube",
+      }).entries.slice(6, 7),
+    ).toEqual([
+      {
+        binding: LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
+        visibility: DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
+        texture: { sampleType: "float", viewDimension: "cube" },
       },
     ]);
   });

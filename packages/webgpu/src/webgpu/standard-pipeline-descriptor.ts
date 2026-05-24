@@ -35,6 +35,7 @@ import {
   STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY,
 } from "./standard-light-shadow-bind-group.js";
 import {
+  CLUSTERED_LOCAL_LIGHT_CUBE_COOKIE_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
 } from "./local-light-clusters.js";
@@ -361,9 +362,16 @@ function standardClusteredLocalLightGroupLayoutKey(
 
   const clusterKey = `${lightGroupKey},cluster-params@16,cluster-cells@17,cluster-indices@18,cluster-metadata@19`;
 
-  return features.clusteredLocalLightCookies === true
-    ? `${clusterKey},cluster-cookie-texture@20,cluster-cookie-sampler@21,cluster-cookie-matrix@22`
-    : clusterKey;
+  if (features.clusteredLocalLightCookies !== true) {
+    return clusterKey;
+  }
+
+  const cookieTextureKey =
+    features.clusteredLocalLightCubeCookies === true
+      ? "cluster-cookie-cube-texture@20"
+      : "cluster-cookie-texture@20";
+
+  return `${clusterKey},${cookieTextureKey},cluster-cookie-sampler@21,cluster-cookie-matrix@22`;
 }
 
 export function resolveStandardShaderForBatchKey(
@@ -387,6 +395,10 @@ function standardTextureFeatures(
     batchKey.pipelineKey.trim().length > 0
       ? batchKey.pipelineKey.split("|")
       : [];
+
+  const clusteredLocalLightCubeCookies = tokens.includes(
+    CLUSTERED_LOCAL_LIGHT_CUBE_COOKIE_PIPELINE_FEATURE,
+  );
 
   return {
     baseColorTexture: tokens.includes("baseColorTexture"),
@@ -418,9 +430,10 @@ function standardTextureFeatures(
     clusteredLocalLights: tokens.includes(
       CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
     ),
-    clusteredLocalLightCookies: tokens.includes(
-      CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE,
-    ),
+    clusteredLocalLightCookies:
+      tokens.includes(CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE) ||
+      clusteredLocalLightCubeCookies,
+    clusteredLocalLightCubeCookies,
     skinned: standardSkinningEnabledFromBatchKey(batchKey),
     morphed: standardMorphTargetsEnabledFromBatchKey(batchKey),
     vertexColor:

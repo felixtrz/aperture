@@ -1,6 +1,5 @@
 import {
   assetHandleKey,
-  type AssetRegistry,
   makePerspective,
   multiplyMat4,
   type Mat4Like,
@@ -39,6 +38,8 @@ const DEFAULT_COOKIE_SAMPLER_RESOURCE_KEY =
 const SPOT_COOKIE_MATRIX_VERSION = 1;
 const EPSILON = 1e-6;
 
+export type LocalLightClusterCookieTextureViewDimension = "2d" | "cube";
+
 export interface LocalLightClusterCookieMatrixResource {
   readonly resourceKey: string;
   readonly label: string;
@@ -51,6 +52,7 @@ export interface LocalLightClusterCookieResources {
   readonly matrixResource: LocalLightClusterCookieMatrixResource;
   readonly textureResource: TextureGpuResource;
   readonly samplerResource: SamplerGpuResource;
+  readonly textureViewDimension: LocalLightClusterCookieTextureViewDimension;
   readonly textureKey: string;
   readonly samplerKey: string;
   readonly supportedResources: readonly LocalLightClusterSupportedCookieResource[];
@@ -59,7 +61,9 @@ export interface LocalLightClusterCookieResources {
 export type LocalLightClusterCookieResourceDiagnostic =
   | WebGpuAppTextureSamplerPreparationDiagnostic
   | {
-      readonly code: "localLightClusterCookie.textureNot2d";
+      readonly code:
+        | "localLightClusterCookie.textureNot2d"
+        | "localLightClusterCookie.textureNotCube";
       readonly message: string;
       readonly resourceKey: string;
     }
@@ -92,14 +96,15 @@ export function prepareLocalLightClusterCookieResources(
 
   for (const light of options.snapshot.lights) {
     if (
-      light.kind !== "spot" ||
+      (light.kind !== "point" && light.kind !== "spot") ||
       light.cookieTexture === undefined ||
       light.cookieTexture === null
     ) {
       continue;
     }
 
-    const matrixResource = prepareSpotCookieMatrixResource({
+    const textureViewDimension = cookieTextureViewDimensionForLight(light);
+    const matrixResource = prepareCookieMatrixResource({
       device: options.device as WebGpuBufferDeviceLike,
       snapshot: options.snapshot,
       light,
@@ -122,15 +127,17 @@ export function prepareLocalLightClusterCookieResources(
     );
     const textureKey = assetHandleKey(light.cookieTexture);
 
-    if (
-      textureEntry?.status === "ready" &&
-      textureEntry.asset !== null &&
-      textureEntry.asset.dimension !== "2d"
-    ) {
+    const textureDiagnostic = validateCookieTextureAsset(
+      textureKey,
+      textureEntry?.status === "ready" ? textureEntry.asset : null,
+      textureViewDimension,
+    );
+
+    if (textureDiagnostic !== null) {
       diagnostics.push({
-        code: "localLightClusterCookie.textureNot2d",
+        code: textureDiagnostic.code,
         resourceKey: textureKey,
-        message: `Clustered local-light cookie '${textureKey}' must be a 2D texture.`,
+        message: textureDiagnostic.message,
       });
       return { valid: false, resources: null, diagnostics };
     }
@@ -142,6 +149,12 @@ export function prepareLocalLightClusterCookieResources(
       handle: light.cookieTexture,
       reuse: options.reuse,
       diagnostics: textureSamplerDiagnostics,
+      ...(textureViewDimension === "cube"
+        ? {
+            viewDescriptor: { dimension: "cube" },
+            viewDescriptorKey: "cube",
+          }
+        : {}),
     });
     diagnostics.push(...textureSamplerDiagnostics.splice(0));
 
@@ -175,6 +188,7 @@ export function prepareLocalLightClusterCookieResources(
         matrixResource,
         textureResource: texture.resource,
         samplerResource: sampler.resource,
+        textureViewDimension,
         textureKey: texture.cacheKey,
         samplerKey: sampler.cacheKey,
         supportedResources: [
@@ -182,6 +196,7 @@ export function prepareLocalLightClusterCookieResources(
             lightId: light.lightId,
             textureKey: texture.cacheKey,
             samplerKey: sampler.cacheKey,
+            textureViewDimension,
             matrixBaseIndex: 0,
           },
         ],
@@ -193,21 +208,64 @@ export function prepareLocalLightClusterCookieResources(
   return { valid: diagnostics.length === 0, resources: null, diagnostics };
 }
 
-function prepareSpotCookieMatrixResource(options: {
+function cookieTextureViewDimensionForLight(
+  light: LightPacket,
+): LocalLightClusterCookieTextureViewDimension {
+  return light.kind === "point" ? "cube" : "2d";
+}
+
+function validateCookieTextureAsset(
+  textureKey: string,
+  texture: TextureAsset | null | undefined,
+  dimension: LocalLightClusterCookieTextureViewDimension,
+): {
+  readonly code:
+    | "localLightClusterCookie.textureNot2d"
+    | "localLightClusterCookie.textureNotCube";
+  readonly message: string;
+} | null {
+  if (texture === null || texture === undefined) {
+    return null;
+  }
+
+  if (dimension === "2d" && texture.dimension !== "2d") {
+    return {
+      code: "localLightClusterCookie.textureNot2d",
+      message: `Clustered spot-light cookie '${textureKey}' must be a 2D texture.`,
+    };
+  }
+
+  if (
+    dimension === "cube" &&
+    (texture.dimension !== "cube" || texture.depthOrLayers !== 6)
+  ) {
+    return {
+      code: "localLightClusterCookie.textureNotCube",
+      message: `Clustered point-light cookie '${textureKey}' must be a cube texture with six layers.`,
+    };
+  }
+
+  return null;
+}
+
+function prepareCookieMatrixResource(options: {
   readonly device: WebGpuBufferDeviceLike;
   readonly snapshot: RenderSnapshot;
   readonly light: LightPacket;
   readonly cache?: Map<string, LocalLightClusterCookieMatrixResource>;
   readonly diagnostics: LocalLightClusterCookieResourceDiagnostic[];
 }): LocalLightClusterCookieMatrixResource | null {
-  const matrix = computeSpotCookieMatrix(options.snapshot, options.light);
+  const matrix =
+    options.light.kind === "spot"
+      ? computeSpotCookieMatrix(options.snapshot, options.light)
+      : { data: new Float32Array(identityMat4()) };
 
   if ("diagnostic" in matrix) {
     options.diagnostics.push(matrix.diagnostic);
     return null;
   }
 
-  const resourceKey = spotCookieMatrixResourceKey(options.light);
+  const resourceKey = cookieMatrixResourceKey(options.light);
   const cached = options.cache?.get(resourceKey);
 
   if (
@@ -223,7 +281,8 @@ function prepareSpotCookieMatrixResource(options: {
     descriptor: {
       label: resourceKey,
       size: matrix.data.byteLength,
-      usage: WEBGPU_BUFFER_USAGE_FLAGS.STORAGE | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
+      usage:
+        WEBGPU_BUFFER_USAGE_FLAGS.STORAGE | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
       initialData: matrix.data,
     },
   });
@@ -312,10 +371,8 @@ function computeSpotCookieMatrix(
   return { data: new Float32Array(viewProjectionMatrix) };
 }
 
-function spotCookieMatrixResourceKey(
-  light: LightPacket,
-): string {
-  return `local-light-cookie-matrix:v${SPOT_COOKIE_MATRIX_VERSION}:spot:${light.lightId}`;
+function cookieMatrixResourceKey(light: LightPacket): string {
+  return `local-light-cookie-matrix:v${SPOT_COOKIE_MATRIX_VERSION}:${light.kind}:${light.lightId}`;
 }
 
 function makeLookAt(

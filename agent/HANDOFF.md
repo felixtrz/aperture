@@ -1,6 +1,63 @@
 # Agent Handoff
 
-Updated: 2026-05-24T04:18:37Z
+Updated: 2026-05-24T04:50:24Z
+
+## Current Run Update — 2026-05-24T04:50:24Z — Clustered point-light cube cookies
+
+Completed `task-3135`, adding supported clustered point-light cube-cookie
+sampling through the StandardMaterial clustered local-light path.
+
+### What changed
+
+- Point lights can now attach ECS-authored cube-cookie texture handles while
+  keeping renderer texture/view resources out of ECS and snapshots.
+- WebGPU clustered cookie resource preparation accepts point-light cube
+  textures, creates cube texture views, validates six-layer cube assets, and
+  creates renderer-owned placeholder matrix resources for the shared cookie
+  metadata binding.
+- Clustered StandardMaterial pipeline keys, group-3 layout descriptors, and
+  app layout cache keys now distinguish 2D spot-cookie resources from cube
+  point-cookie resources at binding 20.
+- StandardMaterial WGSL samples cube-cookie color for supported clustered point
+  lights, multiplies only that point-light contribution, and keeps direct
+  lighting plus honest unsupported-cookie fallback for metadata-only requests.
+- `examples/clustered-lights.html?enable-cluster-point-cookie=1` registers a
+  cube cookie texture/sampler, attaches it to one worker-authored point light,
+  reports supported cookie readiness, and disables clustered shadow resources
+  for the proof route.
+- Public trackers and agent task pointers now recommend `task-3136`, supporting
+  multiple clustered local-light cookies per frame.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/local-light-cookie-resources.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run lint`
+- `node --check examples/clustered-lights.main.js && node --check examples/clustered-lights.worker.js`
+- `git diff --check`
+- Narrow Chrome/WebGPU proof for
+  `examples/clustered-lights.html?enable-cluster-point-cookie=1`: point-cookie
+  route `ok`, cube-cookie pipeline key present, route cookie metadata
+  `sampling-ready`, shadow resources disabled, readback OK, diagnostics `0`,
+  max baseline-vs-point-cookie sample luminance delta `255`, and relevant
+  WebGPU validation warnings `0`.
+
+### Known issues
+
+- The headed multi-page clustered-lights Playwright e2e runner still hits the
+  existing local hang/teardown flake, so the reliable browser proof for this
+  slice is the narrow fresh Chrome/WebGPU probe above plus focused unit/build
+  validation.
+- An accidental `pnpm test -- ...` invocation ran the broader Vitest suite and
+  surfaced pre-existing render-frame fixture expectation failures unrelated to
+  this slice. The focused `pnpm exec vitest run ...` command passed.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3136`, supporting multiple clustered local-light cookies per frame.
 
 ## Current Run Update — 2026-05-24T04:18:37Z — Cookie-only clustered spot cookies
 

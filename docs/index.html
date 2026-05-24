@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 04:16 UTC</dd>
+            <dd>2026-05-24 04:50 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1528,14 +1528,17 @@
               cookie texture/sampler handles through the clustered
               StandardMaterial route, and cookie-only clustered spot lights now
               use a renderer-owned projection matrix buffer without requiring a
-              shadow depth texture or caster pass.
+              shadow depth texture or caster pass. Supported clustered point
+              lights can now sample ECS-authored cube-cookie textures through a
+              cube-view StandardMaterial route.
               <code>examples/clustered-lights.html</code> now exposes point
               shadow, spot shadow, spot-cookie, and cookie-only spot-cookie
-              proof routes. The next SOTA blocker is clustered point-light cube
-              cookies.
+              proof routes plus a point cube-cookie proof route. The next SOTA
+              blocker is multiple ready clustered local-light cookies in one
+              frame.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3135 clustered point-light cube cookies</dd>
+            <dd>task-3136 multiple clustered local-light cookies</dd>
           </dl>
         </aside>
       </header>
@@ -2352,12 +2355,15 @@
               clustered StandardMaterial route. Cookie-only clustered spot
               cookies now bind a separate renderer-owned projection matrix
               buffer, so the non-shadow clustered StandardMaterial route can
-              render the cookie without shadow comparison resources.
+              render the cookie without shadow comparison resources. Supported
+              clustered point cookies now bind cube texture views and sample
+              point-light cube-cookie color through the clustered
+              StandardMaterial route.
             </p>
             <ul>
               <li>
-                Next visible SOTA gap: clustered point-light cube cookie
-                sampling.
+                Next visible SOTA gap: multiple ready clustered local-light
+                cookies in one frame.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2378,6 +2384,12 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3135</span> Added clustered
+                point-light cube cookie sampling, with a point-cookie proof
+                route that reports supported cookie readiness and a cube-cookie
+                StandardMaterial pipeline.
+              </li>
               <li>
                 <span class="badge green">task-3134</span> Added cookie-only
                 clustered spot-cookie projection matrices, with a new
@@ -4682,12 +4694,12 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Run
-                <code>task-3135</code>: add clustered point-light cube cookie
-                sampling.
+                <code>task-3136</code>: support multiple clustered local-light
+                cookies per frame.
               </li>
               <li>
-                Then continue into point/cube cookies and multi-cookie support
-                before the next covered-pipeline re-audit.
+                Then run the next covered-pipeline re-audit before selecting the
+                next SOTA lighting or material slice.
               </li>
             </ul>
           </article>
@@ -4700,6 +4712,20 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3135</div>
+            <div>
+              <strong>Clustered point-light cube cookies shipped.</strong>
+              <span>
+                Supported clustered point lights now bind cube cookie texture
+                views, sample cube-cookie color in the clustered
+                StandardMaterial path, and
+                <code>enable-cluster-point-cookie=1</code> reports supported
+                cookie readiness with zero validation warnings in the narrow
+                Chrome proof.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3134</div>
             <div>

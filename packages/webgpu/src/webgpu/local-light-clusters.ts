@@ -9,6 +9,8 @@ import { WEBGPU_BUFFER_USAGE_FLAGS } from "./mesh-buffer-descriptors.js";
 export const CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE = "clusteredLocalLights";
 export const CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE =
   "clusteredLocalLightCookies";
+export const CLUSTERED_LOCAL_LIGHT_CUBE_COOKIE_PIPELINE_FEATURE =
+  "clusteredLocalLightCubeCookies";
 export const LOCAL_LIGHT_CLUSTER_MIN_LIGHTS = 16;
 export const LOCAL_LIGHT_CLUSTER_PARAMS_BINDING = 16;
 export const LOCAL_LIGHT_CLUSTER_CELLS_BINDING = 17;
@@ -83,6 +85,7 @@ export interface LocalLightClusterSupportedCookieResource {
   readonly lightId: number;
   readonly textureKey: string;
   readonly samplerKey: string;
+  readonly textureViewDimension: "2d" | "cube";
   readonly matrixBaseIndex?: number;
 }
 

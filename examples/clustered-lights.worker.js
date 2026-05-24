@@ -1,6 +1,7 @@
 const clearColor = [0.012, 0.016, 0.022, 1];
 const localLightGrid = { columns: 8, rows: 8 };
 const shadowMetadataLightIndices = new Set([28, 29, 36, 37]);
+const pointCookieLightIndex = 36;
 const primaryShadowCasterPosition = [-0.755, -0.074, 0.52];
 const spotShadowCasterPosition = [1.12, -0.18, 0.54];
 
@@ -44,6 +45,8 @@ async function handleMessage(data) {
         data.canvas ?? { width: 960, height: 540 },
         finiteInteger(data.cameraFrameOffset, 0),
         data.clusteredCookieEnabled === true,
+        data.clusteredSpotCookieEnabled === true,
+        data.clusteredPointCookieEnabled === true,
         data.clusteredCookieOnlyEnabled === true,
       );
       self.postMessage({
@@ -62,10 +65,18 @@ async function handleMessage(data) {
           ),
           cookieTextureKey: aperture.assetHandleKey(scene.cookieTexture),
           cookieSamplerKey: aperture.assetHandleKey(scene.cookieSampler),
+          pointCookieTextureKey: aperture.assetHandleKey(
+            scene.pointCookieTexture,
+          ),
+          pointCookieSamplerKey: aperture.assetHandleKey(
+            scene.pointCookieSampler,
+          ),
           localLights: scene.localLightCount,
           routeLocalLights: scene.routeLocalLightCount,
           routeShadowMetadataLights: scene.routeShadowMetadataLightCount,
           clusteredCookieEnabled: scene.clusteredCookieEnabled,
+          clusteredSpotCookieEnabled: scene.clusteredSpotCookieEnabled,
+          clusteredPointCookieEnabled: scene.clusteredPointCookieEnabled,
           clusteredCookieOnlyEnabled: scene.clusteredCookieOnlyEnabled,
         },
       });
@@ -118,6 +129,8 @@ function createWorkerScene(
   canvasSize,
   cameraFrameOffset,
   clusteredCookieEnabled,
+  clusteredSpotCookieEnabled,
+  clusteredPointCookieEnabled,
   clusteredCookieOnlyEnabled,
 ) {
   const app = aperture.createExtractionApp({
@@ -203,13 +216,18 @@ function createWorkerScene(
     layerMask: 2,
     xOffset: 1.1,
     intensity: clusteredCookieEnabled ? 0.35 : 16,
+    cookieLightIndex: clusteredPointCookieEnabled ? pointCookieLightIndex : -1,
+    cookieTexture: assets.pointCookieTexture,
+    cookieSampler: assets.pointCookieSampler,
+    cookieIntensity: 1,
+    cookieLightIntensity: 34,
   });
   const spotLightComponents = [
     aperture.withTransform({ translation: [1.12, -0.18, 1.92] }),
     aperture.withLight({
       kind: aperture.LightKind.Spot,
       color: [0.88, 0.96, 1, 1],
-      intensity: clusteredCookieEnabled ? 260 : 68,
+      intensity: clusteredSpotCookieEnabled ? 260 : 68,
       range: 4.2,
       innerConeAngle: 0.18,
       outerConeAngle: 0.54,
@@ -217,7 +235,7 @@ function createWorkerScene(
     }),
   ];
 
-  if (!clusteredCookieOnlyEnabled) {
+  if (!clusteredCookieOnlyEnabled && !clusteredPointCookieEnabled) {
     spotLightComponents.push(
       aperture.withLightShadowSettings({
         enabled: true,
@@ -230,7 +248,7 @@ function createWorkerScene(
     );
   }
 
-  if (clusteredCookieEnabled) {
+  if (clusteredSpotCookieEnabled) {
     spotLightComponents.push(
       aperture.withLightCookie(assets.cookieTexture, {
         sampler: assets.cookieSampler,
@@ -254,8 +272,12 @@ function createWorkerScene(
     spotCasterMaterial: assets.spotCasterMaterial,
     cookieTexture: assets.cookieTexture,
     cookieSampler: assets.cookieSampler,
+    pointCookieTexture: assets.pointCookieTexture,
+    pointCookieSampler: assets.pointCookieSampler,
     cameraFrameOffset,
     clusteredCookieEnabled,
+    clusteredSpotCookieEnabled,
+    clusteredPointCookieEnabled,
     clusteredCookieOnlyEnabled,
     localLightCount: localLightGrid.columns * localLightGrid.rows * 2 + 1,
     routeLocalLightCount: localLightGrid.columns * localLightGrid.rows,
@@ -351,11 +373,27 @@ function registerClusteredLightAssets(aperture, registry) {
   const cookieSampler = aperture.createSamplerHandle(
     "clustered-lights-spot-cookie-linear",
   );
+  const pointCookieTexture = aperture.createTextureHandle(
+    "clustered-lights-point-cookie-cube",
+  );
+  const pointCookieSampler = aperture.createSamplerHandle(
+    "clustered-lights-point-cookie-linear",
+  );
 
   registry.register(cookieTexture);
   registry.register(cookieSampler);
+  registry.register(pointCookieTexture);
+  registry.register(pointCookieSampler);
   registry.markReady(cookieTexture, createSpotCookieTextureAsset(aperture));
   registry.markReady(cookieSampler, createSpotCookieSamplerAsset(aperture));
+  registry.markReady(
+    pointCookieTexture,
+    createPointCookieTextureAsset(aperture),
+  );
+  registry.markReady(
+    pointCookieSampler,
+    createSpotCookieSamplerAsset(aperture),
+  );
 
   return {
     panelMesh,
@@ -367,6 +405,8 @@ function registerClusteredLightAssets(aperture, registry) {
     spotCasterMaterial,
     cookieTexture,
     cookieSampler,
+    pointCookieTexture,
+    pointCookieSampler,
   };
 }
 
@@ -406,6 +446,51 @@ function createSpotCookieTextureAsset(aperture) {
   });
 }
 
+function createPointCookieTextureAsset(aperture) {
+  const faceSize = 8;
+  const faceBytes = faceSize * faceSize * 4;
+  const bytes = new Uint8Array(faceBytes * 6);
+
+  for (let face = 0; face < 6; face += 1) {
+    for (let y = 0; y < faceSize; y += 1) {
+      for (let x = 0; x < faceSize; x += 1) {
+        const index = face * faceBytes + (y * faceSize + x) * 4;
+        const checker = (Math.floor(x / 2) + Math.floor(y / 2) + face) % 2;
+        const negativeZFace = face === 5;
+        const value = negativeZFace
+          ? checker === 0
+            ? 18
+            : 255
+          : checker === 0
+            ? 160
+            : 230;
+
+        bytes[index + 0] = value;
+        bytes[index + 1] = negativeZFace ? value : Math.round(value * 0.82);
+        bytes[index + 2] = negativeZFace ? value : 255;
+        bytes[index + 3] = 255;
+      }
+    }
+  }
+
+  return aperture.createTextureAsset({
+    label: "ClusteredPointCookieCube",
+    dimension: "cube",
+    width: faceSize,
+    height: faceSize,
+    depthOrLayers: 6,
+    format: "rgba8unorm",
+    colorSpace: "linear",
+    semantic: "data",
+    usage: ["sampled", "copy-dst"],
+    sourceData: {
+      bytes,
+      bytesPerRow: faceSize * 4,
+      rowsPerImage: faceSize,
+    },
+  });
+}
+
 function createSpotCookieSamplerAsset(aperture) {
   return aperture.createSamplerAsset({
     label: "ClusteredSpotCookieLinearClamp",
@@ -431,6 +516,7 @@ function spawnPointLightGrid(aperture, app, options) {
       const index = y * localLightGrid.columns + x;
       const color = palette[index % palette.length] ?? [1, 1, 1, 1];
       const hasShadowMetadata = shadowMetadataLightIndices.has(index);
+      const hasCookie = options.cookieLightIndex === index;
       const components = [
         aperture.withTransform({
           translation: [
@@ -445,7 +531,10 @@ function spawnPointLightGrid(aperture, app, options) {
         aperture.withLight({
           kind: aperture.LightKind.Point,
           color,
-          intensity: options.intensity ?? 16,
+          intensity:
+            hasCookie && options.cookieLightIntensity !== undefined
+              ? options.cookieLightIntensity
+              : (options.intensity ?? 16),
           range: 1.08,
           layerMask: options.layerMask,
         }),
@@ -458,6 +547,15 @@ function spawnPointLightGrid(aperture, app, options) {
             mapSize: 256,
             casterLayerMask: options.layerMask,
             receiverLayerMask: options.layerMask,
+          }),
+        );
+      }
+
+      if (hasCookie) {
+        components.push(
+          aperture.withLightCookie(options.cookieTexture, {
+            sampler: options.cookieSampler,
+            intensity: options.cookieIntensity ?? 1,
           }),
         );
       }

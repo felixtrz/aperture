@@ -1,5 +1,43 @@
 # Completed Tasks
 
+## task-3135 — Add clustered point-light cube cookie sampling
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added clustered point-light cookie resource preparation for cube texture
+  handles, including cube view creation, cube texture validation, and
+  renderer-owned placeholder matrix resources for the shared cookie metadata
+  binding.
+- Specialized clustered StandardMaterial cookie pipelines and light bind-group
+  layouts so binding 20 is a 2D texture for spot cookies and a cube texture for
+  point cookies.
+- Updated StandardMaterial clustered point-light WGSL to sample cube-cookie
+  color for supported local point lights while preserving direct lighting and
+  honest metadata fallback for unsupported cookie requests.
+- Expanded `examples/clustered-lights.html` with
+  `enable-cluster-point-cookie=1`, an asset-backed cube-cookie texture, worker
+  ECS point-light cookie authoring, point-cookie status, and e2e route checks.
+- Added focused resource, layout, bind-group, cluster metadata, shader,
+  pipeline, and browser-status coverage. Recommended next task is `task-3136`,
+  supporting multiple clustered local-light cookies per frame.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/local-light-cookie-resources.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run lint`
+- `node --check examples/clustered-lights.main.js && node --check examples/clustered-lights.worker.js`
+- `git diff --check`
+- Narrow Chrome/WebGPU proof for
+  `examples/clustered-lights.html?enable-cluster-point-cookie=1`: point-cookie
+  route `ok`, cube-cookie pipeline key present, cookie metadata
+  `sampling-ready`, shadow resources disabled for the proof route, readback OK,
+  diagnostics `0`, max baseline-vs-point-cookie sample luminance delta `255`,
+  and relevant WebGPU validation warnings `0`.
+
 ## task-3134 — Add cookie-only clustered spot-light projection matrices
 
 Completed: 2026-05-24
