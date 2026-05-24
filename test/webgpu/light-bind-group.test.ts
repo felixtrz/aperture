@@ -10,6 +10,9 @@ import {
   lightBindGroupDescriptorPlanToJsonValue,
   lightBindGroupResourceKey,
   LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
+  LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING,
+  LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,
+  LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
   LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
   LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
   LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
@@ -17,6 +20,7 @@ import {
   type LightBindGroupLayoutResource,
   type LightBindGroupResource,
   type LightGpuBufferResource,
+  type LocalLightClusterCookieResources,
   type LocalLightClusterGpuResource,
 } from "@aperture-engine/webgpu";
 
@@ -196,6 +200,51 @@ describe("light bind group descriptor planning", () => {
         {
           binding: LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
           resourceKey: "local-light-cluster:test/metadata",
+        },
+      ],
+    });
+  });
+
+  it("plans clustered local-light cookie resources for StandardMaterial variants", () => {
+    const plan = createLightBindGroupDescriptorPlan({
+      lightGpuBufferResource: lightGpuBufferResource(),
+      layoutKey: "bind-group-layout:lights/group-3/clustered-cookie",
+      localLightClusterResources: localLightClusterResource(),
+      localLightCookieResources: localLightCookieResources(),
+    });
+
+    expect(plan).toMatchObject({
+      valid: true,
+      entries: [
+        { binding: 0, resourceKey: "light-buffer:main/floats" },
+        { binding: 1, resourceKey: "light-buffer:main/metadata" },
+        {
+          binding: LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
+          resourceKey: "local-light-cluster:test/params",
+        },
+        {
+          binding: LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
+          resourceKey: "local-light-cluster:test/cells",
+        },
+        {
+          binding: LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+          resourceKey: "local-light-cluster:test/indices",
+        },
+        {
+          binding: LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
+          resourceKey: "local-light-cluster:test/metadata",
+        },
+        {
+          binding: LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
+          resourceKey: "local-light-cookie:texture",
+        },
+        {
+          binding: LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,
+          resourceKey: "local-light-cookie:sampler",
+        },
+        {
+          binding: LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING,
+          resourceKey: "local-light-cookie:matrix",
         },
       ],
     });
@@ -573,6 +622,53 @@ function localLightClusterResource(): LocalLightClusterGpuResource {
       indices: new Uint32Array([0]),
       metadata: new Uint32Array(64),
     },
+  };
+}
+
+function localLightCookieResources(): LocalLightClusterCookieResources {
+  return {
+    matrixResource: {
+      resourceKey: "local-light-cookie:matrix",
+      label: "LocalLightCookieMatrices",
+      buffer: { handle: "raw-local-light-cookie-matrix-buffer" },
+      matrixCount: 1,
+      entryLightIds: [100],
+    },
+    textureResource: {
+      resourceKey: "local-light-cookie:texture",
+      texture: { handle: "raw-local-light-cookie-texture" },
+      view: { handle: "raw-local-light-cookie-texture-view" },
+      descriptor: {
+        size: [1, 1, 1],
+        format: "rgba8unorm",
+        usage: 0,
+      },
+    },
+    samplerResource: {
+      resourceKey: "local-light-cookie:sampler",
+      sampler: { handle: "raw-local-light-cookie-sampler" },
+      descriptor: {
+        addressModeU: "clamp-to-edge",
+        addressModeV: "clamp-to-edge",
+        addressModeW: "clamp-to-edge",
+        magFilter: "linear",
+        minFilter: "linear",
+        mipmapFilter: "linear",
+        lodMinClamp: 0,
+        lodMaxClamp: 32,
+        maxAnisotropy: 1,
+      },
+    },
+    textureKey: "local-light-cookie:texture",
+    samplerKey: "local-light-cookie:sampler",
+    supportedResources: [
+      {
+        lightId: 100,
+        textureKey: "local-light-cookie:texture",
+        samplerKey: "local-light-cookie:sampler",
+        matrixBaseIndex: 0,
+      },
+    ],
   };
 }
 

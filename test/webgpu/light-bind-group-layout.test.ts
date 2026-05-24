@@ -4,6 +4,9 @@ import {
   DEFAULT_LIGHT_BIND_GROUP,
   DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
   LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
+  LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING,
+  LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,
+  LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
   LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
   LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
   LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
@@ -85,6 +88,31 @@ describe("light bind group layout resources", () => {
       },
       {
         binding: LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
+        visibility: DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
+        buffer: { type: "read-only-storage" },
+      },
+    ]);
+  });
+
+  it("adds clustered local-light cookie bindings when requested", () => {
+    expect(
+      createLightBindGroupLayoutDescriptor({
+        clusteredLocalLights: true,
+        clusteredLocalLightCookies: true,
+      }).entries.slice(6),
+    ).toEqual([
+      {
+        binding: LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
+        visibility: DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
+        texture: { sampleType: "float" },
+      },
+      {
+        binding: LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,
+        visibility: DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
+        sampler: { type: "filtering" },
+      },
+      {
+        binding: LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING,
         visibility: DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
         buffer: { type: "read-only-storage" },
       },

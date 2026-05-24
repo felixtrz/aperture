@@ -5,6 +5,7 @@ import type {
 } from "./bind-group-layout-cache.js";
 import {
   LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
+  LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING,
   LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,
   LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
   LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
@@ -149,6 +150,11 @@ export function appendClusteredLocalLightLayoutEntries(
         binding: LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,
         visibility,
         sampler: { type: "filtering" },
+      },
+      {
+        binding: LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING,
+        visibility,
+        buffer: { type: "read-only-storage" },
       },
     );
   }

@@ -6,13 +6,17 @@ const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
 const clearColor = [0.012, 0.016, 0.022, 1];
 const exampleParams = new URLSearchParams(globalThis.location.search);
+const clusteredCookieOnlyEnabled =
+  exampleParams.has("enable-cluster-cookie-only") &&
+  !exampleParams.has("disable-cluster-cookie");
 const clusteredPointShadowEnabled = !exampleParams.has(
   "disable-cluster-point-shadow",
-);
+) && !clusteredCookieOnlyEnabled;
 const clusteredCookieEnabled =
-  exampleParams.has("enable-cluster-cookie") &&
+  (exampleParams.has("enable-cluster-cookie") || clusteredCookieOnlyEnabled) &&
   !exampleParams.has("disable-cluster-cookie");
 const clusteredSpotShadowEnabled =
+  !clusteredCookieOnlyEnabled &&
   (exampleParams.has("enable-cluster-spot-shadow") || clusteredCookieEnabled) &&
   !exampleParams.has("disable-cluster-spot-shadow");
 const clusteredPointShadowIntent = {
@@ -171,6 +175,7 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     clusteredPointShadowEnabled,
     clusteredSpotShadowEnabled,
     clusteredCookieEnabled,
+    clusteredCookieOnlyEnabled,
     cameraFrameOffset:
       clusteredPointShadowEnabled || clusteredSpotShadowEnabled ? 0 : 1,
   };
@@ -260,6 +265,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     type: "init",
     cameraFrameOffset: scene.cameraFrameOffset,
     clusteredCookieEnabled: scene.clusteredCookieEnabled,
+    clusteredCookieOnlyEnabled: scene.clusteredCookieOnlyEnabled,
     canvas: {
       width: canvas?.width ?? 960,
       height: canvas?.height ?? 540,
@@ -542,10 +548,14 @@ function createClusterStatus(
             shadow.samplingSupported === false &&
             shadow.fallbackReason ===
               "clustered-local-shadow-sampling-not-implemented")
-        : shadow?.status === "metadata-only" &&
-          shadow.samplingSupported === false &&
-          shadow.fallbackReason ===
-            "clustered-local-shadow-sampling-not-implemented";
+        : (shadow?.status === "metadata-only" &&
+            shadow.samplingSupported === false &&
+            shadow.fallbackReason ===
+              "clustered-local-shadow-sampling-not-implemented") ||
+          (shadow?.status === "not-requested" &&
+            shadow.samplingSupported === false &&
+            (shadow.localRequestCount ?? 0) === 0 &&
+            (shadow.clusteredLightCount ?? 0) === 0);
 
       const shadowCountsReady =
         expectedShadowRequestCount === 0 ||

@@ -123,6 +123,7 @@ export interface CachedStandardAppFrameResources {
   readonly localLightClusterResourceKey: string | null;
   readonly localLightCookieTextureKey: string | null;
   readonly localLightCookieSamplerKey: string | null;
+  readonly localLightCookieMatrixKey: string | null;
   readonly viewDescriptorScratch: ViewUniformBufferDescriptorScratch;
   readonly worldTransformDescriptorScratch: WorldTransformBufferDescriptorScratch;
   readonly lightBufferDescriptorScratch: LightBufferDescriptorScratch;
@@ -250,6 +251,8 @@ export function createOrReuseStandardAppFrameResources(options: {
     options.localLightCookieResources?.textureKey ?? null;
   const localLightCookieSamplerKey =
     options.localLightCookieResources?.samplerKey ?? null;
+  const localLightCookieMatrixKey =
+    options.localLightCookieResources?.matrixResource.resourceKey ?? null;
   const routeCacheKey = createStandardAppFrameResourceCacheKey({
     meshKey: options.meshKey,
     materialKey: options.materialKey,
@@ -264,6 +267,7 @@ export function createOrReuseStandardAppFrameResources(options: {
     localLightClusterResourceKey,
     localLightCookieTextureKey,
     localLightCookieSamplerKey,
+    localLightCookieMatrixKey,
     textureKeys: options.textureSamplerDependencies.textureKeys,
     samplerKeys: options.textureSamplerDependencies.samplerKeys,
   });
@@ -317,6 +321,7 @@ export function createOrReuseStandardAppFrameResources(options: {
     cached.localLightClusterResourceKey === localLightClusterResourceKey &&
     cached.localLightCookieTextureKey === localLightCookieTextureKey &&
     cached.localLightCookieSamplerKey === localLightCookieSamplerKey &&
+    cached.localLightCookieMatrixKey === localLightCookieMatrixKey &&
     cached.previousWorldTransformResourceKey ===
       (options.previousWorldTransforms?.resourceKey ?? null) &&
     sameStringList(
@@ -569,6 +574,7 @@ export function createOrReuseStandardAppFrameResources(options: {
       localLightClusterResourceKey,
       localLightCookieTextureKey,
       localLightCookieSamplerKey,
+      localLightCookieMatrixKey,
       viewDescriptorScratch,
       worldTransformDescriptorScratch,
       lightBufferDescriptorScratch,
@@ -690,6 +696,7 @@ function createStandardAppFrameResourceCacheKey(input: {
   readonly localLightClusterResourceKey: string | null;
   readonly localLightCookieTextureKey: string | null;
   readonly localLightCookieSamplerKey: string | null;
+  readonly localLightCookieMatrixKey: string | null;
   readonly textureKeys: readonly string[];
   readonly samplerKeys: readonly string[];
 }): string {
@@ -706,6 +713,7 @@ function createStandardAppFrameResourceCacheKey(input: {
     input.localLightClusterResourceKey ?? "local-light-cluster:none",
     input.localLightCookieTextureKey ?? "local-light-cookie-texture:none",
     input.localLightCookieSamplerKey ?? "local-light-cookie-sampler:none",
+    input.localLightCookieMatrixKey ?? "local-light-cookie-matrix:none",
     `textures:${input.textureKeys.join(",")}`,
     `samplers:${input.samplerKeys.join(",")}`,
   ].join("|");

@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 04:05 UTC</dd>
+            <dd>2026-05-24 04:16 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1526,13 +1526,16 @@
               while metadata-only lights keep direct clustered lighting.
               Supported clustered spot lights can now also sample ECS-authored
               cookie texture/sampler handles through the clustered
-              StandardMaterial route.
+              StandardMaterial route, and cookie-only clustered spot lights now
+              use a renderer-owned projection matrix buffer without requiring a
+              shadow depth texture or caster pass.
               <code>examples/clustered-lights.html</code> now exposes point
-              shadow, spot shadow, and spot-cookie proof routes. The next SOTA
-              blocker is cookie-only clustered spot-light projection matrices.
+              shadow, spot shadow, spot-cookie, and cookie-only spot-cookie
+              proof routes. The next SOTA blocker is clustered point-light cube
+              cookies.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3134 cookie-only clustered spot-cookie matrices</dd>
+            <dd>task-3135 clustered point-light cube cookies</dd>
           </dl>
         </aside>
       </header>
@@ -2346,12 +2349,15 @@
               resources and sample spot-shadow visibility from clustered
               metadata. Supported clustered spot cookies now bind asset-backed
               cookie textures/samplers and sample cookie color through the
-              clustered StandardMaterial route.
+              clustered StandardMaterial route. Cookie-only clustered spot
+              cookies now bind a separate renderer-owned projection matrix
+              buffer, so the non-shadow clustered StandardMaterial route can
+              render the cookie without shadow comparison resources.
             </p>
             <ul>
               <li>
-                Next visible SOTA gap: cookie-only clustered spot-cookie
-                projection matrices.
+                Next visible SOTA gap: clustered point-light cube cookie
+                sampling.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2372,6 +2378,12 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3134</span> Added cookie-only
+                clustered spot-cookie projection matrices, with a new
+                clustered-lights proof route that renders the cookie without
+                shadow-map bindings.
+              </li>
               <li>
                 <span class="badge green">task-3133</span> Added clustered
                 local-light cookie sampling through ECS-authored texture and
@@ -4670,8 +4682,8 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Run
-                <code>task-3134</code>: add cookie-only clustered spot-light
-                projection matrices.
+                <code>task-3135</code>: add clustered point-light cube cookie
+                sampling.
               </li>
               <li>
                 Then continue into point/cube cookies and multi-cookie support
@@ -4688,6 +4700,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3134</div>
+            <div>
+              <strong>Cookie-only clustered spot cookies shipped.</strong>
+              <span>
+                Clustered spot cookies now bind a renderer-owned projection
+                matrix buffer at group 3 without enabling shadow comparison
+                sampling, so <code>enable-cluster-cookie-only=1</code> renders
+                the cookie through a non-shadow StandardMaterial route.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3133</div>
             <div>

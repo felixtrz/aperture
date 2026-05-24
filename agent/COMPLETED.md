@@ -1,5 +1,39 @@
 # Completed Tasks
 
+## task-3134 — Add cookie-only clustered spot-light projection matrices
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added renderer-owned clustered spot-cookie projection matrix resources so
+  cookie sampling no longer depends on spot-shadow depth resources.
+- Bound cookie texture, sampler, and matrix resources through cookie-enabled
+  clustered StandardMaterial group-3 routes, including the non-shadow path.
+- Updated clustered spot-cookie WGSL to sample the cookie matrix buffer instead
+  of reusing spot-shadow matrices.
+- Added `examples/clustered-lights.html?enable-cluster-cookie-only=1`, which
+  renders the projected cookie through a non-shadow clustered route while
+  reporting no clustered local shadow sampling support for the cookie light.
+- Added focused layout, bind-group, shader, cookie-resource, and e2e status
+  coverage. Recommended next task is `task-3135`, adding clustered point-light
+  cube cookie sampling.
+
+Validation:
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/local-light-cookie-resources.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- Fresh Playwright status probe for
+  `examples/clustered-lights.html?enable-cluster-cookie-only=1`: cookie route
+  sampling ready, non-shadow clustered pipeline keys, diagnostics `0`, no
+  WebGPU validation warnings, and no point/spot clustered shadow sampling
+  support in the cookie-only route.
+- Screenshot proof at `/tmp/aperture-cookie-only.png` showed the projected
+  cookie checker pattern. The full headed clustered-lights e2e run still hit
+  the existing local browser close/current-texture readback flake.
+
 ## task-3133 — Add clustered local-light cookie sampling
 
 Completed: 2026-05-24

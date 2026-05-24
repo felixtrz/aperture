@@ -1,6 +1,57 @@
 # Agent Handoff
 
-Updated: 2026-05-24T03:49:46Z
+Updated: 2026-05-24T04:18:37Z
+
+## Current Run Update — 2026-05-24T04:18:37Z — Cookie-only clustered spot cookies
+
+Completed `task-3134`, removing the shadow-resource dependency from supported
+clustered spot-cookie projection.
+
+### What changed
+
+- Added renderer-owned clustered spot-cookie projection matrix resources and a
+  dedicated group-3 matrix binding for cookie-enabled clustered routes.
+- WebGPU cookie resource preparation now derives spot-cookie projection
+  matrices from the extracted light transform and spot-light parameters, even
+  when the light does not request a shadow map.
+- Clustered StandardMaterial bind-group layouts and descriptor plans bind the
+  cookie texture, sampler, and matrix buffer without requiring shadow depth or
+  comparison-sampler resources.
+- StandardMaterial WGSL now samples clustered spot cookies through the
+  cookie-matrix buffer instead of the spot-shadow matrix buffer.
+- `examples/clustered-lights.html?enable-cluster-cookie-only=1` renders the
+  projected cookie pattern through a non-shadow clustered pipeline and reports
+  no clustered local shadow sampling support for that cookie-only route.
+- Public trackers and agent task pointers now recommend `task-3135`, adding
+  clustered point-light cube cookie sampling.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/local-light-cookie-resources.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- Fresh Playwright status probe for
+  `examples/clustered-lights.html?enable-cluster-cookie-only=1`: cookie route
+  sampling ready, non-shadow clustered pipeline keys, diagnostics `0`, no
+  WebGPU validation warnings, and no point/spot clustered shadow sampling
+  support in the cookie-only route.
+- Screenshot proof saved at `/tmp/aperture-cookie-only.png` showed the
+  projected cookie checker pattern.
+
+### Known issues
+
+- The headed clustered-lights Playwright e2e run still hits the existing local
+  browser close/focus/current-texture readback flake. The cookie-only route can
+  render visibly while the app's current-texture readback sometimes reports
+  transparent zero; the reliable proof for this slice is the fresh-page status
+  probe plus screenshot and focused unit/build validation.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3135`, adding clustered point-light cube cookie sampling.
 
 ## Current Run Update — 2026-05-24T03:49:46Z — Clustered local-light cookies
 

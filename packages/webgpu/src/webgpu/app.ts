@@ -254,6 +254,7 @@ import {
 } from "./local-light-clusters.js";
 import {
   prepareLocalLightClusterCookieResources,
+  type LocalLightClusterCookieMatrixResource,
   type LocalLightClusterCookieResources,
 } from "./local-light-cookie-resources.js";
 import { createStandardMaterialBindGroupLayoutPlan } from "./standard-bind-group-layout.js";
@@ -774,6 +775,10 @@ interface WebGpuAppResourceCache {
   readonly layouts: Map<string, WebGpuAppPipelineLayouts>;
   readonly textures: Map<string, TextureGpuResource>;
   readonly samplers: Map<string, SamplerGpuResource>;
+  readonly localLightCookieMatrices: Map<
+    string,
+    LocalLightClusterCookieMatrixResource
+  >;
   readonly environmentResources: WebGpuEnvironmentResourceCache;
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
   readonly preparedMeshFacade: PreparedMeshStore;
@@ -1219,6 +1224,7 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     layouts: new Map(),
     textures: new Map(),
     samplers: new Map(),
+    localLightCookieMatrices: new Map(),
     environmentResources: createWebGpuEnvironmentResourceCache(),
     preparedMeshes: createPreparedMeshGpuResourceCache(),
     preparedMeshFacade: createPreparedMeshStore(),
@@ -6115,6 +6121,7 @@ async function renderWebGpuAppFrame(
     device: app.initialization.device,
     cache: resourceCache,
     reuse,
+    matrixCache: resourceCache.localLightCookieMatrices,
     ...(options.standardMaterialShadowReceiverResources === undefined
       ? {}
       : {
@@ -7670,9 +7677,7 @@ function standardClusteredLocalLightPipelineKey(
         token !== CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE,
     );
   const cookieSamplingSupportedForDraw =
-    cookieSamplingReady &&
-    rest.includes("shadowMap") &&
-    !rest.includes("cascadedShadowMap");
+    cookieSamplingReady && !rest.includes("cascadedShadowMap");
   const features = [
     CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
     ...(cookieSamplingSupportedForDraw

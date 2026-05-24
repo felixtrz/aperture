@@ -216,6 +216,34 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   skipIfUnsupportedWebGpu(cookie);
   expectStatusJsonSafeForGpu(cookie);
 
+  const cookieOnlyPage = await page.context().newPage();
+  const cookieOnlyWebGpuValidation =
+    attachWebGpuValidationConsoleGuard(cookieOnlyPage);
+
+  await cookieOnlyPage.goto(
+    "/examples/clustered-lights.html?enable-cluster-cookie-only=1",
+  );
+  await cookieOnlyPage.bringToFront();
+
+  const cookieOnly =
+    await waitForExampleStatus<ClusteredLightsStatus>(cookieOnlyPage);
+
+  await attachExampleStatus(
+    "clustered-lights-cookie-only-status",
+    cookieOnly,
+  );
+  expect(
+    cookieOnly,
+    "clustered lights cookie-only status should publish",
+  ).toBeDefined();
+
+  if (cookieOnly === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(cookieOnly);
+  expectStatusJsonSafeForGpu(cookieOnly);
+
   const shadowPage = await page.context().newPage();
   const shadowWebGpuValidation = attachWebGpuValidationConsoleGuard(shadowPage);
 
@@ -394,6 +422,49 @@ test("browser renders StandardMaterial through clustered local lights", async ({
         route.shadowCookieMetadata.cookie.supportedLightCount >= 1,
     ),
   ).toBe(true);
+  expect(cookieOnly.clusterStatus).toMatchObject({
+    ok: true,
+    routeMetadataOk: true,
+    routePointShadowSamplingOk: false,
+    routeSpotShadowSamplingOk: false,
+    routeCookieSamplingOk: true,
+  });
+  expect(cookieOnly.shadowStatus).toMatchObject({
+    enabled: false,
+    supported: false,
+    mode: "clustered-shadow-unavailable",
+    point: {
+      enabled: false,
+      supported: false,
+    },
+    spot: {
+      enabled: false,
+      supported: false,
+    },
+  });
+  expect(cookieOnly.pipelineKeys ?? []).toContain(
+    "standard|clusteredLocalLights|clusteredLocalLightCookies|opaque|back|less|none",
+  );
+  expect(cookieOnly.pipelineKeys ?? []).not.toContain(
+    "standard|clusteredLocalLights|clusteredLocalLightCookies|shadowMap|opaque|back|less|none",
+  );
+  expect(
+    (cookieOnly.localLightClusters?.routes ?? []).some(
+      (route) =>
+        route.shadowCookieMetadata?.cookie.status === "sampling-ready" &&
+        route.shadowCookieMetadata.cookie.samplingSupported === true &&
+        route.shadowCookieMetadata.cookie.localRequestCount >= 1 &&
+        route.shadowCookieMetadata.cookie.clusteredLightCount >= 1 &&
+        route.shadowCookieMetadata.cookie.supportedLightCount >= 1,
+    ),
+  ).toBe(true);
+  expect(
+    (cookieOnly.localLightClusters?.routes ?? []).some(
+      (route) =>
+        route.shadowCookieMetadata?.shadow.status === "sampling-ready" &&
+        route.shadowCookieMetadata.shadow.samplingSupported === true,
+    ),
+  ).toBe(false);
   expect(maxSampleLuminanceDarkening(baseline, spotOnly)).toBeGreaterThan(2);
   expect(maxSampleLuminanceDelta(spotOnly, cookie)).toBeGreaterThan(12);
   expect(maxSampleLuminanceDarkening(baseline, status)).toBeGreaterThan(3);
@@ -402,6 +473,7 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   webGpuValidation.expectNoWarnings();
   spotWebGpuValidation.expectNoWarnings();
   cookieWebGpuValidation.expectNoWarnings();
+  cookieOnlyWebGpuValidation.expectNoWarnings();
   shadowWebGpuValidation.expectNoWarnings();
 });
 

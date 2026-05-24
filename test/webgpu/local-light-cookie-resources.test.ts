@@ -13,13 +13,15 @@ import {
 } from "@aperture-engine/webgpu";
 
 describe("clustered local-light cookie resources", () => {
-  it("prepares the first spot cookie backed by a supported spot matrix", () => {
+  it("prepares the first spot cookie with a renderer-owned projection matrix", () => {
     const registry = new AssetRegistry();
     const texture = createTextureHandle("spot-cookie");
     const sampler = createSamplerHandle("spot-cookie-linear");
     const createdTextures: unknown[] = [];
     const createdSamplers: unknown[] = [];
-    const writes: unknown[] = [];
+    const createdBuffers: unknown[] = [];
+    const textureWrites: unknown[] = [];
+    const bufferWrites: unknown[] = [];
     const reuse = createReuseReport();
 
     registry.register(texture);
@@ -66,6 +68,10 @@ describe("clustered local-light cookie resources", () => {
           createdSamplers.push(descriptor);
           return { label: "spot-cookie-sampler" };
         },
+        createBuffer: (descriptor: unknown) => {
+          createdBuffers.push(descriptor);
+          return { label: "spot-cookie-matrix-buffer" };
+        },
         queue: {
           writeTexture: (
             destination: unknown,
@@ -73,7 +79,16 @@ describe("clustered local-light cookie resources", () => {
             layout: unknown,
             size: unknown,
           ) => {
-            writes.push({ destination, data, layout, size });
+            textureWrites.push({ destination, data, layout, size });
+          },
+          writeBuffer: (
+            buffer: unknown,
+            bufferOffset: number,
+            data: unknown,
+            dataOffset?: number,
+            size?: number,
+          ) => {
+            bufferWrites.push({ buffer, bufferOffset, data, dataOffset, size });
           },
         },
       },
@@ -85,6 +100,11 @@ describe("clustered local-light cookie resources", () => {
     expect(result.valid).toBe(true);
     expect(result.diagnostics).toEqual([]);
     expect(result.resources).toMatchObject({
+      matrixResource: {
+        resourceKey: "local-light-cookie-matrix:v1:spot:100",
+        matrixCount: 1,
+        entryLightIds: [100],
+      },
       textureKey: "texture:spot-cookie@1",
       samplerKey: "sampler:spot-cookie-linear@1",
       supportedResources: [
@@ -92,10 +112,16 @@ describe("clustered local-light cookie resources", () => {
           lightId: 100,
           textureKey: "texture:spot-cookie@1",
           samplerKey: "sampler:spot-cookie-linear@1",
-          matrixBaseIndex: 4,
+          matrixBaseIndex: 0,
         },
       ],
     });
+    expect(createdBuffers).toMatchObject([
+      {
+        label: "local-light-cookie-matrix:v1:spot:100",
+        size: 64,
+      },
+    ]);
     expect(createdTextures).toMatchObject([
       {
         label: "SpotCookie",
@@ -111,14 +137,15 @@ describe("clustered local-light cookie resources", () => {
         addressModeV: "clamp-to-edge",
       },
     ]);
-    expect(writes).toHaveLength(1);
+    expect(textureWrites).toHaveLength(1);
+    expect(bufferWrites).toHaveLength(1);
     expect(reuse).toMatchObject({
       textureResourcesCreated: 1,
       samplerResourcesCreated: 1,
     });
   });
 
-  it("leaves cookie metadata unsupported until a spot matrix resource is available", () => {
+  it("prepares cookie-only resources without a shadow receiver", () => {
     const registry = new AssetRegistry();
     const texture = createTextureHandle("spot-cookie");
     const reuse = createReuseReport();
@@ -143,20 +170,78 @@ describe("clustered local-light cookie resources", () => {
       device: {
         createTexture: () => ({ createView: () => ({}) }),
         createSampler: () => ({}),
-        queue: { writeTexture: () => undefined },
+        createBuffer: () => ({}),
+        queue: {
+          writeTexture: () => undefined,
+          writeBuffer: () => undefined,
+        },
       },
       reuse,
       snapshot: snapshotWithSpotCookie(texture, null),
     });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       valid: true,
-      resources: null,
+      resources: {
+        matrixResource: {
+          resourceKey: "local-light-cookie-matrix:v1:spot:100",
+          matrixCount: 1,
+        },
+        supportedResources: [
+          {
+            lightId: 100,
+            matrixBaseIndex: 0,
+          },
+        ],
+      },
       diagnostics: [],
     });
     expect(reuse).toMatchObject({
-      textureResourcesCreated: 0,
-      samplerResourcesCreated: 0,
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+    });
+  });
+
+  it("prepares a spot cookie when the authored up axis is parallel to the light direction", () => {
+    const registry = new AssetRegistry();
+    const texture = createTextureHandle("parallel-up-cookie");
+    const reuse = createReuseReport();
+
+    registry.register(texture);
+    registry.markReady(
+      texture,
+      createTextureAsset({
+        label: "ParallelUpCookie",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "data",
+      }),
+    );
+
+    const result = prepareLocalLightClusterCookieResources({
+      assets: registry,
+      cache: createCache(),
+      device: {
+        createTexture: () => ({ createView: () => ({}) }),
+        createSampler: () => ({}),
+        createBuffer: () => ({}),
+        queue: {
+          writeTexture: () => undefined,
+          writeBuffer: () => undefined,
+        },
+      },
+      reuse,
+      snapshot: snapshotWithSpotCookie(texture, null, parallelUpTransform()),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.resources?.matrixResource).toMatchObject({
+      resourceKey: "local-light-cookie-matrix:v1:spot:100",
+      matrixCount: 1,
     });
   });
 });
@@ -164,6 +249,7 @@ describe("clustered local-light cookie resources", () => {
 function snapshotWithSpotCookie(
   texture: ReturnType<typeof createTextureHandle>,
   sampler: ReturnType<typeof createSamplerHandle> | null,
+  transform: Float32Array = identityTransform(),
 ): RenderSnapshot {
   return {
     frame: 1,
@@ -189,7 +275,7 @@ function snapshotWithSpotCookie(
     environments: [],
     shadowRequests: [],
     bounds: [],
-    transforms: new Float32Array(16),
+    transforms: transform,
     viewMatrices: new Float32Array(0),
     diagnostics: [],
     report: {
@@ -202,6 +288,18 @@ function snapshotWithSpotCookie(
       diagnostics: 0,
     },
   };
+}
+
+function identityTransform(): Float32Array {
+  return new Float32Array([
+    1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+  ]);
+}
+
+function parallelUpTransform(): Float32Array {
+  return new Float32Array([
+    1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+  ]);
 }
 
 function spotShadowReceiverResources(lightId: number, matrixBaseIndex: number) {

@@ -362,7 +362,7 @@ function standardClusteredLocalLightGroupLayoutKey(
   const clusterKey = `${lightGroupKey},cluster-params@16,cluster-cells@17,cluster-indices@18,cluster-metadata@19`;
 
   return features.clusteredLocalLightCookies === true
-    ? `${clusterKey},cluster-cookie-texture@20,cluster-cookie-sampler@21`
+    ? `${clusterKey},cluster-cookie-texture@20,cluster-cookie-sampler@21,cluster-cookie-matrix@22`
     : clusterKey;
 }
 

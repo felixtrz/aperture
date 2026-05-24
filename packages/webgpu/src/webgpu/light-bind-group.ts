@@ -14,7 +14,12 @@ import {
   STANDARD_AREA_LIGHT_LTC_SAMPLER_BINDING,
   type StandardAreaLightLtcResources,
 } from "./standard-area-light-ltc-resource.js";
-import type { LocalLightClusterGpuResource } from "./local-light-clusters.js";
+import {
+  LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING,
+  LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,
+  LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
+  type LocalLightClusterGpuResource,
+} from "./local-light-clusters.js";
 import type { LocalLightClusterCookieResources } from "./local-light-cookie-resources.js";
 
 export const STANDARD_TRANSMISSION_SCENE_COLOR_TEXTURE_BINDING = 14;
@@ -529,14 +534,19 @@ function appendLocalLightCookieEntries(
 
   entries.push(
     {
-      binding: 20,
+      binding: LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
       resourceKey: resources.textureResource.resourceKey,
       resource: { textureView: resources.textureResource.view },
     },
     {
-      binding: 21,
+      binding: LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,
       resourceKey: resources.samplerResource.resourceKey,
       resource: { sampler: resources.samplerResource.sampler },
+    },
+    {
+      binding: LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING,
+      resourceKey: resources.matrixResource.resourceKey,
+      resource: { buffer: resources.matrixResource.buffer },
     },
   );
 }

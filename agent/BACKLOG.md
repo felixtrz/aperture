@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3134`: add cookie-only clustered spot-light projection matrices.
+Start `task-3135`: add clustered point-light cube cookie sampling.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -199,13 +199,14 @@ clustered lighting for unsupported metadata-only lights. `task-3132` now
 renders supported clustered local spot-light shadows from renderer-owned 2D
 depth resources. `task-3133` now renders supported clustered spot-light cookies
 through ECS-authored texture/sampler handles and StandardMaterial clustered
-resources. The next visible slice is `task-3134`, adding cookie-only clustered
-spot-light projection matrices so cookies no longer require shadow resources.
+resources. `task-3134` now gives clustered spot cookies renderer-owned
+projection matrices that do not depend on shadow depth resources. The next
+visible slice is `task-3135`, adding clustered point-light cube cookie sampling.
 
 Reference anchors for the next task (read before writing):
 
 - `references/engine/src/scene/lighting/lights-buffer.js`.
-- `references/engine/src/scene/renderer/forward-renderer.js`.
+- `references/engine/src/scene/shader-lib/chunks/lit/frag/light.js`.
 - `references/three.js/src/renderers/WebGLRenderer.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
@@ -775,6 +776,8 @@ Acceptance criteria:
   validation warnings.
 
 ### task-3134 — Add cookie-only clustered spot-light projection matrices
+
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/render`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.

@@ -44,6 +44,7 @@ async function handleMessage(data) {
         data.canvas ?? { width: 960, height: 540 },
         finiteInteger(data.cameraFrameOffset, 0),
         data.clusteredCookieEnabled === true,
+        data.clusteredCookieOnlyEnabled === true,
       );
       self.postMessage({
         type: "ready",
@@ -65,6 +66,7 @@ async function handleMessage(data) {
           routeLocalLights: scene.routeLocalLightCount,
           routeShadowMetadataLights: scene.routeShadowMetadataLightCount,
           clusteredCookieEnabled: scene.clusteredCookieEnabled,
+          clusteredCookieOnlyEnabled: scene.clusteredCookieOnlyEnabled,
         },
       });
       return;
@@ -116,6 +118,7 @@ function createWorkerScene(
   canvasSize,
   cameraFrameOffset,
   clusteredCookieEnabled,
+  clusteredCookieOnlyEnabled,
 ) {
   const app = aperture.createExtractionApp({
     worldOptions: { entityCapacity: 180 },
@@ -212,15 +215,20 @@ function createWorkerScene(
       outerConeAngle: 0.54,
       layerMask: 2,
     }),
-    aperture.withLightShadowSettings({
-      enabled: true,
-      mapSize: 256,
-      bias: 0.002,
-      normalBias: 0.01,
-      casterLayerMask: 2,
-      receiverLayerMask: 2,
-    }),
   ];
+
+  if (!clusteredCookieOnlyEnabled) {
+    spotLightComponents.push(
+      aperture.withLightShadowSettings({
+        enabled: true,
+        mapSize: 256,
+        bias: 0.002,
+        normalBias: 0.01,
+        casterLayerMask: 2,
+        receiverLayerMask: 2,
+      }),
+    );
+  }
 
   if (clusteredCookieEnabled) {
     spotLightComponents.push(
@@ -248,6 +256,7 @@ function createWorkerScene(
     cookieSampler: assets.cookieSampler,
     cameraFrameOffset,
     clusteredCookieEnabled,
+    clusteredCookieOnlyEnabled,
     localLightCount: localLightGrid.columns * localLightGrid.rows * 2 + 1,
     routeLocalLightCount: localLightGrid.columns * localLightGrid.rows,
     routeShadowMetadataLightCount: 4,

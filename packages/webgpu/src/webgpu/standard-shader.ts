@@ -6,6 +6,7 @@ import {
 } from "./light-packing.js";
 import {
   LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
+  LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING,
   LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,
   LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
   LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
@@ -2116,6 +2117,7 @@ function standardTextureVariantDeclaration(
       declarations.push(
         `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING}) var localLightClusterCookieTexture: texture_2d<f32>;`,
         `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING}) var localLightClusterCookieSampler: sampler;`,
+        `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING}) var<storage, read> localLightClusterCookieMatrices: array<mat4x4f>;`,
       );
     }
   }
@@ -2537,6 +2539,13 @@ function standardTextureVariantBindings(
           group: 3,
           binding: LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,
           resource: "sampler",
+        },
+        {
+          id: "localLightClusterCookieMatrices",
+          label: "Standard material local-light cookie matrices",
+          group: 3,
+          binding: LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING,
+          resource: "read-only-storage-buffer",
         },
       );
     }
@@ -3750,7 +3759,7 @@ function applyStandardClusteredLocalLightSampling(
   return localLightClusterUnsupportedShadowFactor(lightIndex);
 }`;
   const spotCookieColorFunction =
-    options.localLightCookies && options.spotShadowMap
+    options.localLightCookies
       ? `fn localLightClusterSpotCookieColor(position: vec3f, lightIndex: u32) -> vec3f {
   let metadataFlags = localLightClusterMetadataFlags(lightIndex);
 
@@ -3764,15 +3773,11 @@ function applyStandardClusteredLocalLightSampling(
 
   let matrixBaseIndex = localLightClusterCookieMatrixBase(lightIndex);
 
-  if (matrixBaseIndex >= arrayLength(&${
-    options.pointShadowMap ? "spotShadowMatrices" : "directionalShadowMatrices"
-  })) {
+  if (matrixBaseIndex >= arrayLength(&localLightClusterCookieMatrices)) {
     return localLightClusterUnsupportedCookieColor(lightIndex);
   }
 
-  let cookiePosition = ${
-    options.pointShadowMap ? "spotShadowMatrices" : "directionalShadowMatrices"
-  }[matrixBaseIndex] * vec4f(position, 1.0);
+  let cookiePosition = localLightClusterCookieMatrices[matrixBaseIndex] * vec4f(position, 1.0);
 
   if (abs(cookiePosition.w) <= 0.00001) {
     return vec3f(1.0);

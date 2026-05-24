@@ -1563,6 +1563,35 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
   });
 
+  it("samples clustered spot cookies without requiring shadow-map bindings", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      clusteredLocalLights: true,
+      clusteredLocalLightCookies: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.code).toContain(
+      "@group(3) @binding(22) var<storage, read> localLightClusterCookieMatrices: array<mat4x4f>;",
+    );
+    expect(shader.code).toContain(
+      "let cookiePosition = localLightClusterCookieMatrices[matrixBaseIndex] * vec4f(position, 1.0);",
+    );
+    expect(shader.code).toContain(
+      "textureSampleLevel(\n    localLightClusterCookieTexture,",
+    );
+    expect(shader.code).not.toContain("var directionalShadowMap");
+    expect(shader.code).not.toContain("var spotShadowMap");
+    expect(shader.code).not.toContain("sampler_comparison");
+  });
+
   it("declares browser-safe group 3 bindings for the diffuse IBL shader variant", () => {
     const shader = createStandardTextureVariantShader({
       baseColorTexture: false,
