@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "3ecb325",
+  "lastCommit": "ee52e32",
   "activePid": null,
-  "notes": "Completed task-3155 GPU profiler phase timing history with WebGpuApp rolling CPU phase reports, six visible phase rows, browser proof, and updated tracker; next task-3156 adds a transparent sort pressure proof route.",
-  "lastRunFinishedAt": "2026-05-24T13:39:00Z"
+  "notes": "Completed task-3156 transparent sort pressure proof with 32 dense alpha-blend records, zero reported depth inversions across a camera move, transparent no-coalescing coverage, render-bundle pipeline resource-key scoping, browser proof, and updated tracker; next task-3157 adds clustered-light cache pressure history.",
+  "lastRunFinishedAt": "2026-05-24T14:45:43Z"
 }
