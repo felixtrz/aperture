@@ -217,6 +217,27 @@ describe("StandardMaterial light/shadow bind group", () => {
     );
   });
 
+  it("uses a depth-array binding for flattened clustered point-shadow receivers", () => {
+    const descriptor = createStandardLightMultiShadowBindGroupLayoutDescriptor({
+      clusteredLocalLights: true,
+      clusteredLocalLightArrayShadows: true,
+      clusteredLocalLightPointArrayShadows: true,
+    });
+
+    expect(descriptor.entries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          binding: 3,
+          texture: expect.objectContaining({ viewDimension: "2d-array" }),
+        }),
+        expect.objectContaining({
+          binding: 9,
+          texture: expect.objectContaining({ viewDimension: "2d-array" }),
+        }),
+      ]),
+    );
+  });
+
   it("creates a multi-shadow light bind group resource", () => {
     const createdBindGroups: unknown[] = [];
     const directional = resourceInputs("directional", "2d");

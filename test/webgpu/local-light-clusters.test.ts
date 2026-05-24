@@ -554,6 +554,35 @@ describe("local light cluster preparation", () => {
     });
   });
 
+  it("records multiple point-shadow matrix bases for flattened cube-face resources", () => {
+    const descriptor = createLocalLightClusterDescriptor(
+      snapshotWithPointLights(16, { shadowedLightCount: 2 }),
+      {
+        dimensions: { x: 4, y: 1, z: 4 },
+        maxLightsPerCell: 8,
+        supportedPointShadowResources: [
+          { shadowId: 1000, lightId: 100, matrixBaseIndex: 0 },
+          { shadowId: 1001, lightId: 101, matrixBaseIndex: 6 },
+        ],
+      },
+    );
+    const secondOffset = LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE;
+
+    expect(descriptor.metadata[2]).toBe(0);
+    expect(descriptor.metadata[secondOffset + 2]).toBe(6);
+    expect(descriptor.shadowCookieMetadata.shadow).toMatchObject({
+      status: "sampling-ready",
+      samplingSupported: true,
+      localRequestCount: 2,
+      clusteredLightCount: 2,
+      supportedLightCount: 2,
+      hardFilterLightCount: 2,
+      softFilterLightCount: 0,
+      maxFilterRadiusTexels: 0,
+      fallbackReason: null,
+    });
+  });
+
   it("surfaces missing light transforms instead of clustering invalid data", () => {
     const descriptor = createLocalLightClusterDescriptor({
       ...snapshotWithPointLights(16),

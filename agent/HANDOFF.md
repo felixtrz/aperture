@@ -1,6 +1,56 @@
 # Agent Handoff
 
-Updated: 2026-05-24T09:27:44Z
+Updated: 2026-05-24T09:57:35Z
+
+## Current Run Update — 2026-05-24T09:57:35Z — Flattened clustered point-shadow arrays
+
+Completed `task-3145`, packing multiple clustered point shadows through
+flattened cube-face metadata.
+
+### What changed
+
+- Added a `clusteredLocalLightPointArrayShadows` StandardMaterial pipeline
+  feature and layout planning for point-shadow depth-array resources.
+- Clustered point-shadow setup can now allocate one renderer-owned
+  `texture_depth_2d_array` with six consecutive layers per point light and
+  per-light metadata selecting the base layer/matrix index.
+- StandardMaterial WGSL samples the flattened point-shadow array route through
+  metadata-derived face layers while preserving the existing cube-shadow path.
+- Multi-shadow group-3 planning now distinguishes packed point depth arrays
+  from point cube views, so packed point shadows can coexist with packed
+  spot-shadow arrays in one compact clustered StandardMaterial frame.
+- The clustered-lights status logic is layer-aware for mixed point/spot shadow
+  metadata and now reports the multi-point route separately.
+- Public trackers and agent task pointers now recommend `task-3146`, combining
+  packed local shadows with clustered local cookies.
+
+### Validation
+
+- `node --check examples/clustered-lights.main.js && node --check examples/clustered-lights.worker.js`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/light-bind-group.test.ts`
+- `pnpm run build`
+- In-app Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-multi-point-shadow=1`:
+  `ok: true`, `routeMultiPointShadowSamplingOk: true`,
+  `routeMixedPackedSpotShadowSamplingOk: true`,
+  `clustered-point-array-spot-array-depth-compare`, two supported point shadows,
+  12 point-shadow layers, two supported packed spot shadows, readback luminance
+  range about `247.10`, zero diagnostics, and relevant WebGPU validation
+  warnings `0`.
+
+### Known issues
+
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts --project=chrome-webgpu-headed`
+  was attempted after broad spec updates but went idle locally and was
+  terminated. The focused in-app browser route proof passed.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3146`: combine packed local shadows with clustered local cookies.
 
 ## Current Run Update — 2026-05-24T09:27:44Z — Metadata-indexed clustered shadow softness
 

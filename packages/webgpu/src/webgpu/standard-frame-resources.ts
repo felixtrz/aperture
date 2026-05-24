@@ -245,10 +245,13 @@ export interface StandardFrameShadowReceiverResources extends StandardFrameShado
     | "directional"
     | "directional-cascaded"
     | "point"
+    | "point-array"
     | "spot"
     | "spot-array"
     | "multi"
-    | "multi-spot-array";
+    | "multi-spot-array"
+    | "multi-point-array"
+    | "multi-spot-array-point-array";
   readonly spotShadowReceiverResources?: StandardFrameShadowReceiverResourceSet;
   readonly pointShadowReceiverResources?: StandardFrameShadowReceiverResourceSet;
 }
@@ -474,8 +477,12 @@ function supportedPointShadowResourcesFromReceiver(
     resources !== undefined && isMultiShadowKind(resources.shadowKind)
       ? resources.pointShadowReceiverResources
       : resources?.shadowKind === "point" ||
+          resources?.shadowKind === "point-array" ||
           resources?.depthTextureResources.resources.some(
-            (resource) => resource.viewDimension === "cube",
+            (resource) =>
+              resource.viewDimension === "cube" ||
+              (resource.viewDimension === "2d-array" &&
+                resource.faceCount === 6),
           ) === true
         ? resources
         : undefined;
@@ -487,26 +494,30 @@ function supportedPointShadowResourcesFromReceiver(
     return [];
   }
 
-  const firstPointDepth = pointResources?.depthTextureResources.resources.find(
-    (resource) =>
-      resource.viewDimension === "cube" &&
-      resource.allocation.resource !== null,
-  );
+  const pointDepthResources =
+    pointResources?.depthTextureResources.resources.filter(
+      (resource) =>
+        (resource.viewDimension === "cube" ||
+          (resource.viewDimension === "2d-array" &&
+            resource.faceCount === 6)) &&
+        resource.allocation.resource !== null,
+    ) ?? [];
 
-  if (firstPointDepth === undefined) {
+  if (pointDepthResources.length === 0) {
     return [];
   }
 
-  return [
-    {
-      shadowId: firstPointDepth.shadowId,
-      lightId: firstPointDepth.lightId,
-      matrixBaseIndex: 0,
-      ...(firstPointDepth.filterRadiusTexels === undefined
+  return pointDepthResources.map((resource, index) => ({
+    shadowId: resource.shadowId,
+    lightId: resource.lightId,
+    matrixBaseIndex:
+      resource.viewDimension === "2d-array"
+        ? (resource.layerBaseIndex ?? index * 6)
+        : index * 6,
+    ...(resource.filterRadiusTexels === undefined
         ? {}
-        : { filterRadiusTexels: firstPointDepth.filterRadiusTexels }),
-    },
-  ];
+        : { filterRadiusTexels: resource.filterRadiusTexels }),
+  }));
 }
 
 function supportedSpotShadowResourcesFromReceiver(
@@ -555,7 +566,12 @@ function supportedSpotShadowResourcesFromReceiver(
 function isMultiShadowKind(
   shadowKind: StandardFrameShadowReceiverResources["shadowKind"] | undefined,
 ): boolean {
-  return shadowKind === "multi" || shadowKind === "multi-spot-array";
+  return (
+    shadowKind === "multi" ||
+    shadowKind === "multi-spot-array" ||
+    shadowKind === "multi-point-array" ||
+    shadowKind === "multi-spot-array-point-array"
+  );
 }
 
 function resolveStandardMaterialIblBindGroupResource(

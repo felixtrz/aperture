@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 09:23 UTC</dd>
+            <dd>2026-05-24 09:57 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1556,17 +1556,20 @@
               point cube shadow with multiple metadata-indexed spot shadows in
               the same WebGPU-minimum StandardMaterial route, for both
               compatible 2D-array spot shadows and nonuniform atlas-backed spot
-              shadows. <code>examples/clustered-lights.html</code> now exposes
+              shadows. Multiple clustered point shadows now pack through one
+              renderer-owned 2D depth array with six flattened cube-face layers
+              per light, while preserving packed spot-shadow arrays in the same
+              clustered route. <code>examples/clustered-lights.html</code> now exposes
               point shadow, spot shadow, spot-cookie, and cookie-only
               spot-cookie proof routes plus point cube-cookie, multi-cookie, and
               mixed point/spot cookie proof routes, plus the mixed point/spot
               local-shadow proof route, a nonuniform spot-cookie atlas proof
-              route, a multi-spot local-shadow array proof route, and a
-              nonuniform spot-shadow atlas proof route, plus packed point and
-              spot shadow array/atlas proof routes.
+              route, a multi-spot local-shadow array proof route, a nonuniform
+              spot-shadow atlas proof route, packed point and spot shadow
+              array/atlas proof routes, and the multi-point shadow-array route.
             </dd>
             <dt>Next focus</dt>
-            <dd>Clustered local shadow quality and broader tuning</dd>
+            <dd>Combined packed local shadows plus clustered cookies</dd>
           </dl>
         </aside>
       </header>
@@ -2171,14 +2174,15 @@
               <li>
                 Remaining local-light work is broader clustered-light
                 permutations beyond the active-view StandardMaterial many-light
-                path; per-view/per-light-set resource splitting and compatible
-                mixed point/spot cookie resources plus the mixed point/spot
-                local-shadow proof are now covered.
+                path; per-view/per-light-set resource splitting, compatible
+                mixed point/spot cookie resources, mixed point/spot local
+                shadows, and flattened multi-point shadow arrays are now
+                covered.
               </li>
               <li>
                 Production-fidelity LTC table payloads are now covered; broader
-                CSM/IBL/multi-shadow permutations and WebGPU-minimum clustered
-                local-shadow packing remain open.
+                CSM/IBL/multi-shadow permutations and combined packed
+                shadow-plus-cookie pressure remain open.
               </li>
             </ul>
           </article>
@@ -2412,8 +2416,8 @@
             </p>
             <ul>
               <li>
-                Next step: combine clustered point shadows with packed
-                spot-shadow metadata in one WebGPU-minimum route.
+                Next step: combine packed local shadows with clustered local
+                cookies in one WebGPU-minimum route.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2434,6 +2438,12 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3145</span> Packed two
+                clustered point shadows through one renderer-owned 2D
+                depth-array resource with six flattened cube-face layers per
+                light, while preserving the packed spot-shadow-array route.
+              </li>
               <li>
                 <span class="badge green">task-3144</span> Added
                 metadata-indexed clustered local shadow softness, with
@@ -4780,14 +4790,13 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Pack multiple clustered
-                point shadows through flattened cube-face metadata so more than
-                one local point shadow can render in one StandardMaterial route.
+                <span class="badge amber">next</span> Combine packed local
+                shadows with clustered local cookies in one StandardMaterial
+                route without exceeding WebGPU minimum bind/storage limits.
               </li>
               <li>
-                Then combine packed local shadows with clustered local cookies
-                and re-audit the clustered-light route for remaining SOTA
-                efficiency gaps.
+                Then re-audit the clustered-light route for remaining SOTA
+                efficiency gaps and broader tuning work.
               </li>
             </ul>
           </article>
@@ -4800,6 +4809,17 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3145</div>
+            <div>
+              <strong>Multiple clustered point shadows shipped.</strong>
+              <span>
+                Two point shadows now pack through flattened cube-face
+                depth-array layers in one clustered StandardMaterial route, and
+                the multi-point proof preserves packed spot-shadow arrays.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3144</div>
             <div>

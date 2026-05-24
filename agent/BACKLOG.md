@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3145`: pack multiple clustered point shadows through flattened
-face metadata so more than one local point shadow can render in one
-StandardMaterial route.
+Start `task-3146`: combine packed local shadows with clustered local cookies so
+the same clustered StandardMaterial frame can prove shadow and cookie pressure
+without exceeding WebGPU minimum limits.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -223,15 +223,17 @@ renderer-owned 2D atlas with atlas-adjusted matrix metadata. `task-3143` now
 combines one supported point cube shadow with packed spot-shadow array and
 atlas metadata routes in one WebGPU-minimum StandardMaterial frame.
 `task-3144` now adds metadata-indexed hard/soft local-shadow filter radii with
-array and atlas browser proof. The next SOTA gap is multiple clustered point
-shadows, combined shadow-plus-cookie pressure, and broader clustered-light
-tuning.
+array and atlas browser proof. `task-3145` now packs two clustered point
+shadows through flattened cube-face layers in one renderer-owned 2D depth array
+while preserving the packed spot-shadow-array route. The next SOTA gap is
+combined packed local shadows plus clustered cookies and broader
+clustered-light tuning.
 
 Reference anchors for the next visible slice (read before writing):
 
-- `references/engine/src/scene/lighting/light-texture-atlas.js`.
 - `references/engine/src/scene/lighting/lights-buffer.js`.
-- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightCookies.js`.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`.
 - `docs/render-pipeline-comparison.html`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
@@ -1014,7 +1016,7 @@ Acceptance criteria:
 
 ### task-3145 — Pack multiple clustered point shadows through flattened face metadata
 
-Status: ready
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.

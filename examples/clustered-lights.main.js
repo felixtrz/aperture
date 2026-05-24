@@ -38,9 +38,17 @@ const clusteredShadowSoftnessAtlasEnabled =
   !clusteredCookieOnlyEnabled &&
   !clusteredMultiCookieEnabled &&
   !clusteredPointCookieEnabled;
+const clusteredMultiPointShadowEnabled =
+  exampleParams.has("enable-cluster-multi-point-shadow") &&
+  !exampleParams.has("disable-cluster-point-shadow") &&
+  !exampleParams.has("disable-cluster-spot-shadow") &&
+  !clusteredCookieOnlyEnabled &&
+  !clusteredMultiCookieEnabled &&
+  !clusteredPointCookieEnabled;
 const clusteredPackedSpotShadowArrayEnabled =
   (exampleParams.has("enable-cluster-packed-shadow") ||
-    clusteredShadowSoftnessEnabled) &&
+    clusteredShadowSoftnessEnabled ||
+    clusteredMultiPointShadowEnabled) &&
   !exampleParams.has("disable-cluster-point-shadow") &&
   !exampleParams.has("disable-cluster-spot-shadow") &&
   !clusteredCookieOnlyEnabled &&
@@ -313,6 +321,7 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     clusteredMixedShadowEnabled,
     clusteredPackedSpotShadowArrayEnabled,
     clusteredPackedSpotShadowAtlasEnabled,
+    clusteredMultiPointShadowEnabled,
     clusteredShadowSoftnessEnabled,
     clusteredShadowSoftnessAtlasEnabled,
     clusteredSpotShadowAtlasEnabled,
@@ -534,6 +543,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
       scene.clusteredPackedSpotShadowArrayEnabled,
     clusteredPackedSpotShadowAtlasEnabled:
       scene.clusteredPackedSpotShadowAtlasEnabled,
+    clusteredMultiPointShadowEnabled: scene.clusteredMultiPointShadowEnabled,
     canvas: {
       width: canvas?.width ?? 960,
       height: canvas?.height ?? 540,
@@ -666,6 +676,7 @@ function statusFromReport(
     scene.clusteredMultiSpotShadowEnabled,
     scene.clusteredPackedSpotShadowArrayEnabled,
     scene.clusteredPackedSpotShadowAtlasEnabled,
+    scene.clusteredMultiPointShadowEnabled,
     scene.clusteredShadowSoftnessEnabled ||
       scene.clusteredShadowSoftnessAtlasEnabled,
   );
@@ -726,6 +737,7 @@ function createClusterStatus(
   multiSpotShadowEnabled,
   packedSpotShadowArrayEnabled,
   packedSpotShadowAtlasEnabled,
+  multiPointShadowEnabled,
   shadowSoftnessEnabled,
 ) {
   const clusterPipelineUsed = pipelineKeys.some((pipelineKey) =>
@@ -812,6 +824,8 @@ function createClusterStatus(
       : 0);
   const requiredSpotShadowSupportedCount =
     spotShadowEnabled === true ? (multiSpotShadowEnabled === true ? 2 : 1) : 0;
+  const requiredPointShadowSupportedCount =
+    pointShadowEnabled === true ? (multiPointShadowEnabled === true ? 2 : 1) : 0;
   const routePointShadowSamplingOk =
     pointShadowEnabled === true &&
     routeShadowStates.some(
@@ -820,7 +834,7 @@ function createClusterStatus(
         shadow.samplingSupported === true &&
         shadow.localRequestCount >= 4 &&
         shadow.clusteredLightCount >= 4 &&
-        shadow.supportedLightCount >= 1,
+        shadow.supportedLightCount >= requiredPointShadowSupportedCount,
     );
   const routeSpotShadowSamplingOk =
     spotShadowEnabled === true &&
@@ -850,7 +864,10 @@ function createClusterStatus(
   const mixedShadowModeOk =
     mixedShadowMode === "clustered-point-spot-depth-compare" ||
     mixedShadowMode === "clustered-point-spot-array-depth-compare" ||
-    mixedShadowMode === "clustered-point-spot-atlas-depth-compare";
+    mixedShadowMode === "clustered-point-spot-atlas-depth-compare" ||
+    mixedShadowMode === "clustered-point-array-spot-depth-compare" ||
+    mixedShadowMode === "clustered-point-array-spot-array-depth-compare" ||
+    mixedShadowMode === "clustered-point-array-spot-atlas-depth-compare";
   const routeMixedShadowSamplingOk =
     mixedShadowEnabled === true &&
     routePointShadowSamplingOk &&
@@ -863,7 +880,8 @@ function createClusterStatus(
     packedSpotShadowArrayEnabled === true &&
     routeMixedShadowSamplingOk &&
     shadowStatus?.spot?.mode === "clustered-spot-array-depth-compare" &&
-    mixedShadowMode === "clustered-point-spot-array-depth-compare" &&
+    (mixedShadowMode === "clustered-point-spot-array-depth-compare" ||
+      mixedShadowMode === "clustered-point-array-spot-array-depth-compare") &&
     pipelineKeys.some(
       (pipelineKey) =>
         pipelineKey.includes("clusteredLocalLights") &&
@@ -882,6 +900,19 @@ function createClusterStatus(
         pipelineKey.includes("pointShadowMap") &&
         pipelineKey.includes("shadowMap") &&
         !pipelineKey.includes("clusteredLocalLightArrayShadows"),
+    );
+  const routeMultiPointShadowSamplingOk =
+    multiPointShadowEnabled === true &&
+    routePointShadowSamplingOk &&
+    shadowStatus?.point?.supported === true &&
+    (shadowStatus.point.supportedLightCount ?? 0) >=
+      requiredPointShadowSupportedCount &&
+    shadowStatus.point.mode === "clustered-point-depth-2d-array-compare" &&
+    pipelineKeys.some(
+      (pipelineKey) =>
+        pipelineKey.includes("clusteredLocalLights") &&
+        pipelineKey.includes("clusteredLocalLightPointArrayShadows") &&
+        pipelineKey.includes("pointShadowMap"),
     );
   const routeShadowHardFilterReady = routeShadowStates.some(
     (shadow) =>
@@ -952,9 +983,29 @@ function createClusterStatus(
       const cookie = route.shadowCookieMetadata?.cookie ?? null;
       const shadowSamplingEnabled =
         pointShadowEnabled === true || spotShadowEnabled === true;
+      const routeLayerMask = route.layerMask ?? 0;
+      const routeExpectedPointShadowSupportedCount =
+        pointShadowEnabled === true &&
+        (routeLayerMask & clusteredPointShadowIntent.receiverLayerMask) !== 0
+          ? requiredPointShadowSupportedCount
+          : 0;
+      const routeExpectedSpotShadowSupportedCount =
+        spotShadowEnabled === true &&
+        (routeLayerMask & clusteredSpotShadowIntent.receiverLayerMask) !== 0
+          ? requiredSpotShadowSupportedCount
+          : 0;
+      const routeLayerShadowExpectedCount =
+        routeExpectedPointShadowSupportedCount +
+        routeExpectedSpotShadowSupportedCount;
       const routeExpectedShadowSupportedCount =
-        (shadow?.localRequestCount ?? 0) >= expectedShadowRequestCount
-          ? Math.max(1, requiredSpotShadowSupportedCount)
+        routeLayerShadowExpectedCount > 0
+          ? routeLayerShadowExpectedCount
+          : (shadow?.localRequestCount ?? 0) >= expectedShadowRequestCount
+            ? Math.max(
+                1,
+              requiredPointShadowSupportedCount +
+                requiredSpotShadowSupportedCount,
+            )
           : 1;
       const shadowReady = shadowSamplingEnabled
         ? (shadow?.status === "sampling-ready" &&
@@ -1015,6 +1066,7 @@ function createClusterStatus(
         routeMixedPackedSpotShadowSamplingOk) &&
       (packedSpotShadowAtlasEnabled !== true ||
         routeMixedPackedSpotShadowAtlasSamplingOk) &&
+      (multiPointShadowEnabled !== true || routeMultiPointShadowSamplingOk) &&
       routeShadowSoftnessSamplingOk &&
       (cookieEnabled !== true || routeCookieSamplingOk) &&
       occupancyChanged &&
@@ -1045,6 +1097,7 @@ function createClusterStatus(
     routeMixedShadowSamplingOk,
     routeMixedPackedSpotShadowSamplingOk,
     routeMixedPackedSpotShadowAtlasSamplingOk,
+    routeMultiPointShadowSamplingOk,
     routeShadowHardFilterReady,
     routeShadowSoftFilterReady,
     routePointShadowSoftnessReady,
@@ -1054,6 +1107,7 @@ function createClusterStatus(
     routeCookieSamplingOk,
     routeCookieAtlasSamplingOk,
     requiredSpotShadowSupportedCount,
+    requiredPointShadowSupportedCount,
     requiredCookieSupportedCount,
     routeShadowStates,
     routeCookieStates,
@@ -1213,40 +1267,54 @@ async function createClusteredPointShadowReceiverResources(
   loop,
   report,
 ) {
-  const request = report.snapshot.shadowRequests.find(
+  const requests = report.snapshot.shadowRequests.filter(
     (candidate) =>
       candidate.lightKind === "point" &&
       (candidate.receiverLayerMask &
         clusteredPointShadowIntent.receiverLayerMask) !==
         0,
   );
+  const requiredPointShadowCount =
+    scene.clusteredMultiPointShadowEnabled === true ? 2 : 1;
+  const shadowRequests = requests.slice(0, requiredPointShadowCount);
 
-  if (request === undefined) {
+  if (shadowRequests.length < requiredPointShadowCount) {
     return {
       standardMaterialShadowReceiverResources: null,
       shadowStatus: {
         enabled: true,
         supported: false,
         reason: "point-shadow-request-unavailable",
+        requiredPointShadowCount,
+        requestCount: requests.length,
       },
     };
   }
 
-  const shadowRequests = [request];
+  const pointArrayEnabled = requiredPointShadowCount > 1;
+  const pointResourceKey = pointArrayEnabled
+    ? "shadow-map:clustered-point-array"
+    : undefined;
+  const pointLayerCount = shadowRequests.length * 6;
   const shadowDescriptor = aperture.createShadowMapDescriptorReport({
     shadowRequests,
-    descriptors: [
-      {
-        shadowId: request.shadowId,
-        lightId: request.lightId,
-        mapSize: clusteredPointShadowIntent.mapSize,
-        depthBias: clusteredPointShadowIntent.depthBias,
-        normalBias: clusteredPointShadowIntent.normalBias,
-        filterRadiusTexels: clusteredPointShadowFilterRadiusTexels(scene),
-        faceCount: 6,
-        viewDimension: "cube",
-      },
-    ],
+    descriptors: shadowRequests.map((request, index) => ({
+      shadowId: request.shadowId,
+      lightId: request.lightId,
+      mapSize: clusteredPointShadowIntent.mapSize,
+      depthBias: clusteredPointShadowIntent.depthBias,
+      normalBias: clusteredPointShadowIntent.normalBias,
+      filterRadiusTexels: clusteredPointShadowFilterRadiusTexels(scene),
+      faceCount: 6,
+      viewDimension: pointArrayEnabled ? "2d-array" : "cube",
+      ...(pointResourceKey === undefined
+        ? {}
+        : {
+            resourceKey: pointResourceKey,
+            layerCount: pointLayerCount,
+            layerBaseIndex: index * 6,
+          }),
+    })),
   });
   const shadowTextures = aperture.createShadowTextureResourceReport({
     descriptors: shadowDescriptor,
@@ -1291,7 +1359,9 @@ async function createClusteredPointShadowReceiverResources(
   const shadowMatrixBuffer = aperture.createShadowMatrixBufferDescriptorReport({
     viewProjection: shadowViewProjection,
     upload: "ready",
-    resourceKey: "shadow-matrix-buffer:clustered-point",
+    resourceKey: pointArrayEnabled
+      ? "shadow-matrix-buffer:clustered-point-array"
+      : "shadow-matrix-buffer:clustered-point",
     label: "ClusteredPointShadowMatrices/storage",
   });
   const shadowMatrixBufferResourceReport =
@@ -1396,7 +1466,9 @@ async function createClusteredPointShadowReceiverResources(
   const shadowPassCommandEncoderResource =
     aperture.createCommandEncoderResource({
       device: app.initialization.device,
-      label: "shadow-pass:clustered-point",
+      label: pointArrayEnabled
+        ? "shadow-pass:clustered-point-array"
+        : "shadow-pass:clustered-point",
     });
   const shadowPassEncoderAssemblyReport =
     aperture.createShadowPassEncoderAssemblyReport({
@@ -1423,25 +1495,32 @@ async function createClusteredPointShadowReceiverResources(
       assembly: shadowPassEncoderAssemblyReport,
       encoder: shadowPassCommandEncoderResource.resource?.encoder,
       queue: app.initialization.device.queue,
-      label: "shadow-pass:clustered-point",
+      label: pointArrayEnabled
+        ? "shadow-pass:clustered-point-array"
+        : "shadow-pass:clustered-point",
       submit: true,
     });
   const supported =
     shadowPassCommandBufferSubmissionReport.status === "submitted" &&
     shadowMatrixBufferResourceReport.resource !== null &&
-    loop.pointShadowDepthTextureResourceReport.resources.some(
-      (resource) =>
-        resource.shadowId === request.shadowId &&
-        resource.lightId === request.lightId &&
-        resource.viewDimension === "cube" &&
-        resource.allocation.resource !== null,
+    shadowRequests.every((request, index) =>
+      loop.pointShadowDepthTextureResourceReport.resources.some(
+        (resource) =>
+          resource.shadowId === request.shadowId &&
+          resource.lightId === request.lightId &&
+          resource.viewDimension === (pointArrayEnabled ? "2d-array" : "cube") &&
+          resource.allocation.resource !== null &&
+          (!pointArrayEnabled ||
+            ((resource.layerCount ?? 0) >= pointLayerCount &&
+              resource.layerBaseIndex === index * 6)),
+      ),
     ) &&
     shadowSamplerResourceReport.resource !== null;
 
   return {
     standardMaterialShadowReceiverResources: supported
       ? {
-          shadowKind: "point",
+          shadowKind: pointArrayEnabled ? "point-array" : "point",
           matrixBufferResource: shadowMatrixBufferResourceReport,
           depthTextureResources: loop.pointShadowDepthTextureResourceReport,
           samplerResource: shadowSamplerResourceReport,
@@ -1450,10 +1529,17 @@ async function createClusteredPointShadowReceiverResources(
     shadowStatus: {
       enabled: true,
       supported,
-      mode: "clustered-point-depth-cube-compare",
-      shadowId: request.shadowId,
-      lightId: request.lightId,
+      mode: pointArrayEnabled
+        ? "clustered-point-depth-2d-array-compare"
+        : "clustered-point-depth-cube-compare",
+      shadowId: shadowRequests[0]?.shadowId ?? null,
+      lightId: shadowRequests[0]?.lightId ?? null,
+      shadowIds: shadowRequests.map((request) => request.shadowId),
+      lightIds: shadowRequests.map((request) => request.lightId),
+      requiredPointShadowCount,
+      supportedLightCount: supported ? shadowRequests.length : 0,
       filterRadiusTexels: clusteredPointShadowFilterRadiusTexels(scene),
+      layerCount: pointArrayEnabled ? pointLayerCount : 6,
       casterDraws: shadowCasterMeshDraws.length,
       faceCount: shadowPassPlan.passCount,
       submission: shadowPassCommandBufferSubmissionReport.status,
@@ -1502,25 +1588,40 @@ async function createClusteredShadowReceiverResources(
       };
   const pointResources = pointResult.standardMaterialShadowReceiverResources;
   const spotResources = spotResult.standardMaterialShadowReceiverResources;
+  const combinedShadowKind =
+    pointResources?.shadowKind === "point-array" &&
+    spotResources?.shadowKind === "spot-array"
+      ? "multi-spot-array-point-array"
+      : pointResources?.shadowKind === "point-array"
+        ? "multi-point-array"
+        : spotResources?.shadowKind === "spot-array"
+          ? "multi-spot-array"
+          : "multi";
   const standardMaterialShadowReceiverResources =
     pointResources !== null && spotResources !== null
       ? {
           ...spotResources,
-          shadowKind:
-            spotResources.shadowKind === "spot-array"
-              ? "multi-spot-array"
-              : "multi",
+          shadowKind: combinedShadowKind,
           spotShadowReceiverResources: spotResources,
           pointShadowReceiverResources: pointResources,
         }
       : (spotResources ?? pointResources);
   const mixedMode =
     pointResources !== null && spotResources !== null
-      ? spotResult.shadowStatus.mode === "clustered-spot-array-depth-compare"
-        ? "clustered-point-spot-array-depth-compare"
-        : spotResult.shadowStatus.mode === "clustered-spot-atlas-depth-compare"
-          ? "clustered-point-spot-atlas-depth-compare"
-          : "clustered-point-spot-depth-compare"
+      ? pointResult.shadowStatus.mode ===
+          "clustered-point-depth-2d-array-compare"
+        ? spotResult.shadowStatus.mode === "clustered-spot-array-depth-compare"
+          ? "clustered-point-array-spot-array-depth-compare"
+          : spotResult.shadowStatus.mode ===
+              "clustered-spot-atlas-depth-compare"
+            ? "clustered-point-array-spot-atlas-depth-compare"
+            : "clustered-point-array-spot-depth-compare"
+        : spotResult.shadowStatus.mode === "clustered-spot-array-depth-compare"
+          ? "clustered-point-spot-array-depth-compare"
+          : spotResult.shadowStatus.mode ===
+              "clustered-spot-atlas-depth-compare"
+            ? "clustered-point-spot-atlas-depth-compare"
+            : "clustered-point-spot-depth-compare"
       : null;
 
   return {
@@ -1541,7 +1642,7 @@ async function createClusteredShadowReceiverResources(
           : spotResources !== null
             ? spotResult.shadowStatus.mode
             : pointResources !== null
-              ? "clustered-point-depth-cube-compare"
+              ? pointResult.shadowStatus.mode
               : "clustered-shadow-unavailable",
       point: pointResult.shadowStatus,
       spot: spotResult.shadowStatus,

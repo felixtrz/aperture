@@ -108,8 +108,10 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
     readonly routeMixedShadowSamplingOk: boolean;
     readonly routeMixedPackedSpotShadowSamplingOk?: boolean;
     readonly routeMixedPackedSpotShadowAtlasSamplingOk?: boolean;
+    readonly routeMultiPointShadowSamplingOk?: boolean;
     readonly routeCookieSamplingOk: boolean;
     readonly routeCookieAtlasSamplingOk?: boolean;
+    readonly requiredPointShadowSupportedCount?: number;
     readonly requiredSpotShadowSupportedCount?: number;
     readonly requiredCookieSupportedCount?: number;
     readonly routes: readonly LocalLightClusterRouteStatus[];
@@ -145,6 +147,10 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
       readonly casterDraws?: number;
       readonly faceCount?: number;
       readonly submission?: string;
+      readonly supportedLightCount?: number;
+      readonly layerCount?: number;
+      readonly shadowIds?: readonly number[];
+      readonly lightIds?: readonly number[];
     };
     readonly spot?: {
       readonly enabled: boolean;
@@ -481,6 +487,34 @@ test("browser renders StandardMaterial through clustered local lights", async ({
 
   skipIfUnsupportedWebGpu(packedShadow);
   expectStatusJsonSafeForGpu(packedShadow);
+
+  const multiPointShadowPage = await page.context().newPage();
+  const multiPointShadowWebGpuValidation =
+    attachWebGpuValidationConsoleGuard(multiPointShadowPage);
+
+  await multiPointShadowPage.goto(
+    "/examples/clustered-lights.html?enable-cluster-multi-point-shadow=1",
+  );
+  await multiPointShadowPage.bringToFront();
+
+  const multiPointShadow =
+    await waitForExampleStatus<ClusteredLightsStatus>(multiPointShadowPage);
+
+  await attachExampleStatus(
+    "clustered-lights-multi-point-shadow-status",
+    multiPointShadow,
+  );
+  expect(
+    multiPointShadow,
+    "clustered lights multi-point-shadow status should publish",
+  ).toBeDefined();
+
+  if (multiPointShadow === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(multiPointShadow);
+  expectStatusJsonSafeForGpu(multiPointShadow);
 
   const packedShadowAtlasPage = await page.context().newPage();
   const packedShadowAtlasWebGpuValidation = attachWebGpuValidationConsoleGuard(
@@ -1035,6 +1069,65 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   expect(packedShadow.readbackStatus?.maxClearDistance ?? 0).toBeGreaterThan(
     24,
   );
+  expect(multiPointShadow.clusterStatus).toMatchObject({
+    ok: true,
+    routeMetadataOk: true,
+    routePointShadowSamplingOk: true,
+    routeSpotShadowSamplingOk: true,
+    routeMultiSpotShadowSamplingOk: true,
+    routeMixedShadowSamplingOk: true,
+    routeMixedPackedSpotShadowSamplingOk: true,
+    routeMultiPointShadowSamplingOk: true,
+    routeCookieSamplingOk: false,
+    requiredPointShadowSupportedCount: 2,
+    requiredSpotShadowSupportedCount: 2,
+  });
+  expect(multiPointShadow.shadowStatus).toMatchObject({
+    enabled: true,
+    supported: true,
+    mode: "clustered-point-array-spot-array-depth-compare",
+    point: {
+      enabled: true,
+      supported: true,
+      mode: "clustered-point-depth-2d-array-compare",
+      supportedLightCount: 2,
+      layerCount: 12,
+    },
+    spot: {
+      enabled: true,
+      supported: true,
+      mode: "clustered-spot-array-depth-compare",
+      supportedLightCount: 2,
+      layerCount: 2,
+    },
+  });
+  expect(multiPointShadow.shadowStatus?.point?.shadowIds ?? []).toHaveLength(2);
+  expect(multiPointShadow.shadowStatus?.point?.lightIds ?? []).toHaveLength(2);
+  expect(
+    (multiPointShadow.pipelineKeys ?? []).some(
+      (pipelineKey) =>
+        pipelineKey.startsWith("standard|") &&
+        pipelineKey.includes("clusteredLocalLights") &&
+        pipelineKey.includes("clusteredLocalLightArrayShadows") &&
+        pipelineKey.includes("clusteredLocalLightPointArrayShadows") &&
+        pipelineKey.includes("pointShadowMap") &&
+        pipelineKey.includes("shadowMap"),
+    ),
+  ).toBe(true);
+  expect(
+    (multiPointShadow.localLightClusters?.routes ?? []).some(
+      (route) =>
+        route.shadowCookieMetadata?.shadow.status === "sampling-ready" &&
+        route.shadowCookieMetadata.shadow.samplingSupported === true &&
+        route.shadowCookieMetadata.shadow.localRequestCount >= 5 &&
+        route.shadowCookieMetadata.shadow.clusteredLightCount >= 5 &&
+        route.shadowCookieMetadata.shadow.supportedLightCount >= 2,
+    ),
+  ).toBe(true);
+  expect(multiPointShadow.readbackStatus?.ok).toBe(true);
+  expect(
+    multiPointShadow.readbackStatus?.maxClearDistance ?? 0,
+  ).toBeGreaterThan(24);
   expect(packedShadowAtlas.clusterStatus).toMatchObject({
     ok: true,
     routeMetadataOk: true,
@@ -1106,6 +1199,7 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   mixedCookieWebGpuValidation.expectNoWarnings();
   mixedShadowWebGpuValidation.expectNoWarnings();
   packedShadowWebGpuValidation.expectNoWarnings();
+  multiPointShadowWebGpuValidation.expectNoWarnings();
   packedShadowAtlasWebGpuValidation.expectNoWarnings();
   shadowWebGpuValidation.expectNoWarnings();
 });

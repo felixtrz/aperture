@@ -53,6 +53,7 @@ async function handleMessage(data) {
         data.clusteredCookieOnlyEnabled === true,
         data.clusteredSpotShadowAtlasEnabled === true,
         data.clusteredMultiSpotShadowEnabled === true,
+        data.clusteredMultiPointShadowEnabled === true,
       );
       self.postMessage({
         type: "ready",
@@ -92,6 +93,8 @@ async function handleMessage(data) {
             scene.clusteredSpotShadowAtlasEnabled,
           clusteredMultiSpotShadowEnabled:
             scene.clusteredMultiSpotShadowEnabled,
+          clusteredMultiPointShadowEnabled:
+            scene.clusteredMultiPointShadowEnabled,
         },
       });
       return;
@@ -150,6 +153,7 @@ function createWorkerScene(
   clusteredCookieOnlyEnabled,
   clusteredSpotShadowAtlasEnabled,
   clusteredMultiSpotShadowEnabled,
+  clusteredMultiPointShadowEnabled,
 ) {
   const app = aperture.createExtractionApp({
     worldOptions: { entityCapacity: 180 },
@@ -379,6 +383,7 @@ function createWorkerScene(
     clusteredCookieOnlyEnabled,
     clusteredSpotShadowAtlasEnabled,
     clusteredMultiSpotShadowEnabled,
+    clusteredMultiPointShadowEnabled,
     localLightCount:
       localLightGrid.columns * localLightGrid.rows * 2 +
       1 +

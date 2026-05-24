@@ -1,5 +1,51 @@
 # Completed Tasks
 
+## task-3145 — Pack multiple clustered point shadows through flattened face metadata
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added the `clusteredLocalLightPointArrayShadows` StandardMaterial pipeline
+  feature so clustered point shadows can bind a renderer-owned
+  `texture_depth_2d_array` instead of a single cube view.
+- Packed two clustered point shadows into one flattened depth array with six
+  consecutive layers per light and per-light metadata selecting each base face
+  and matrix index.
+- Extended multi-shadow group-3 layout and pipeline-key planning so packed
+  point-shadow arrays can coexist with packed spot-shadow arrays in one compact
+  clustered StandardMaterial route.
+- Updated StandardMaterial WGSL to sample the flattened point-shadow array
+  through metadata-derived face layers while preserving the existing cube route.
+- `examples/clustered-lights.html?enable-cluster-multi-point-shadow=1` now
+  reports `clustered-point-array-spot-array-depth-compare`, two supported point
+  shadows, 12 point-shadow layers, two supported packed spot shadows, non-clear
+  readback, and `ok: true`.
+- Public trackers and agent task pointers now recommend `task-3146`, combining
+  packed local shadows with clustered local cookies.
+
+Validation:
+
+- `node --check examples/clustered-lights.main.js && node --check examples/clustered-lights.worker.js`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/light-bind-group.test.ts`
+- `pnpm run build`
+- In-app Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-multi-point-shadow=1`: route
+  `ok`, `routeMultiPointShadowSamplingOk` true,
+  `routeMixedPackedSpotShadowSamplingOk` true,
+  `clustered-point-array-spot-array-depth-compare`, two point shadows through
+  12 flattened layers, two packed spot shadows, readback luminance range about
+  `247.10`, zero diagnostics, and relevant WebGPU validation warnings `0`.
+
+Known follow-up:
+
+- `task-3146` should combine the packed local-shadow routes with clustered
+  local cookies in one StandardMaterial frame.
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts --project=chrome-webgpu-headed`
+  was attempted after updating the broad spec, but the local headed run went
+  idle and was terminated; the focused in-app browser route proof passed.
+
 ## task-3144 — Add metadata-indexed clustered local shadow softness
 
 Completed: 2026-05-24

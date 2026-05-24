@@ -320,6 +320,38 @@ describe("standard material pipeline descriptor planning", () => {
     expect(lightGroupKey).not.toContain("spot-depth@6");
   });
 
+  it("specializes compact clustered point-shadow array pipelines with flattened point depth layers", () => {
+    const batchKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey:
+        "standard|clusteredLocalLights|clusteredLocalLightArrayShadows|clusteredLocalLightPointArrayShadows|pointShadowMap|shadowMap|opaque|back|less|none",
+    };
+    const featurePlan = createStandardPipelineShaderFeaturePlan(batchKey);
+    const descriptor = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey,
+    });
+    const cacheKey = JSON.parse(required(descriptor.plan).cacheKey) as {
+      readonly layouts: { readonly bindGroups: readonly string[] };
+    };
+    const lightGroupKey = cacheKey.layouts.bindGroups.find((key) =>
+      key.startsWith("standard/lights-multi-shadow/group-3"),
+    );
+
+    expect(featurePlan.features).toMatchObject({
+      shadowMap: true,
+      pointShadowMap: true,
+      clusteredLocalLights: true,
+      clusteredLocalLightArrayShadows: true,
+      clusteredLocalLightPointArrayShadows: true,
+    });
+    expect(lightGroupKey).toContain("directional-depth-array@3");
+    expect(lightGroupKey).toContain("point-depth-array@9");
+    expect(lightGroupKey).not.toContain("point-depth-cube@9");
+    expect(lightGroupKey).not.toContain("spot-depth@6");
+  });
+
   it("recognizes the morphed StandardMaterial pipeline feature", () => {
     const featurePlan = createStandardPipelineShaderFeaturePlan({
       ...STANDARD_BATCH_KEY,
