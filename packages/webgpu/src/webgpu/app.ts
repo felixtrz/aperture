@@ -250,6 +250,7 @@ import {
   CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_POINT_ARRAY_SHADOW_PIPELINE_FEATURE,
+  CLUSTERED_LOCAL_LIGHT_SHADOW_COOKIE_PIPELINE_FEATURE,
   createLocalLightClusterDescriptor,
   localLightClusterReportFromDescriptor,
   snapshotShouldUseClusteredLocalLights,
@@ -1474,6 +1475,9 @@ function createStandardAppPipelineLayouts(
     pipelineResourceKey.includes("cluster-params@16");
   const usesClusteredLocalLightCookies =
     pipelineResourceKey.includes("cluster-cookie");
+  const usesClusteredLocalLightShadowCookies =
+    pipelineResourceKey.includes("clusteredLocalLightShadowCookies") ||
+    pipelineResourceKey.includes("cluster-cookie-shadow-matrix@2");
   const usesClusteredLocalLightCubeCookies = pipelineResourceKey.includes(
     "cluster-cookie-cube-texture@20",
   );
@@ -1486,7 +1490,8 @@ function createStandardAppPipelineLayouts(
   const usesClusteredLocalLightPointArrayShadows =
     pipelineResourceKey.includes("clusteredLocalLightPointArrayShadows") ||
     pipelineResourceKey.includes("point-depth-array@9") ||
-    (usesLightPointShadowGroup && pipelineResourceKey.includes("depth-array@3"));
+    (usesLightPointShadowGroup &&
+      pipelineResourceKey.includes("depth-array@3"));
   const autoLayoutKeySuffix =
     (usesLightShadowGroup ||
       usesLightShadowIblGroup ||
@@ -1559,6 +1564,8 @@ function createStandardAppPipelineLayouts(
               specularProof: usesSpecularIblProof,
               clusteredLocalLights: usesClusteredLocalLights,
               clusteredLocalLightCookies: usesClusteredLocalLightCookies,
+              clusteredLocalLightShadowCookies:
+                usesClusteredLocalLightShadowCookies,
               clusteredLocalLightCookieTextureViewDimension:
                 usesClusteredLocalLightCubeCookies
                   ? "cube"
@@ -1574,6 +1581,8 @@ function createStandardAppPipelineLayouts(
                 clusteredLocalLightPointArrayShadows:
                   usesClusteredLocalLightPointArrayShadows,
                 clusteredLocalLightCookies: usesClusteredLocalLightCookies,
+                clusteredLocalLightShadowCookies:
+                  usesClusteredLocalLightShadowCookies,
                 clusteredLocalLightCookieTextureViewDimension:
                   usesClusteredLocalLightCubeCookies
                     ? "cube"
@@ -1585,6 +1594,8 @@ function createStandardAppPipelineLayouts(
               ? createStandardLightCascadedShadowBindGroupLayoutDescriptor({
                   clusteredLocalLights: usesClusteredLocalLights,
                   clusteredLocalLightCookies: usesClusteredLocalLightCookies,
+                  clusteredLocalLightShadowCookies:
+                    usesClusteredLocalLightShadowCookies,
                   clusteredLocalLightCookieTextureViewDimension:
                     usesClusteredLocalLightCubeCookies
                       ? "cube"
@@ -1596,6 +1607,8 @@ function createStandardAppPipelineLayouts(
                 ? createStandardLightShadowBindGroupLayoutDescriptor({
                     clusteredLocalLights: usesClusteredLocalLights,
                     clusteredLocalLightCookies: usesClusteredLocalLightCookies,
+                    clusteredLocalLightShadowCookies:
+                      usesClusteredLocalLightShadowCookies,
                     clusteredLocalLightCookieTextureViewDimension:
                       usesClusteredLocalLightCubeCookies
                         ? "cube"
@@ -1610,6 +1623,8 @@ function createStandardAppPipelineLayouts(
                         usesClusteredLocalLightPointArrayShadows,
                       clusteredLocalLightCookies:
                         usesClusteredLocalLightCookies,
+                      clusteredLocalLightShadowCookies:
+                        usesClusteredLocalLightShadowCookies,
                       clusteredLocalLightCookieTextureViewDimension:
                         usesClusteredLocalLightCubeCookies
                           ? "cube"
@@ -6210,6 +6225,11 @@ async function renderWebGpuAppFrame(
       localLightCookieResources.resources?.supportedResources ?? [],
     cookieTextureViewDimension:
       localLightCookieResources.resources?.textureViewDimension ?? null,
+    reuseShadowMatricesForCookies:
+      canReuseClusteredLocalLightShadowMatricesForCookies(
+        options.standardMaterialShadowReceiverResources,
+        localLightCookieResources.resources,
+      ),
   });
   const updateMetadata = createWebGpuAppSnapshotUpdateMetadata(
     snapshot,
@@ -7648,6 +7668,52 @@ function standardShadowPipelineKind(
     : "directional";
 }
 
+function canReuseClusteredLocalLightShadowMatricesForCookies(
+  shadowResources: StandardFrameShadowReceiverResources | undefined,
+  cookieResources: LocalLightClusterCookieResources | null,
+): boolean {
+  if (
+    shadowResources === undefined ||
+    cookieResources === null ||
+    cookieResources.textureViewDimension !== "2d" ||
+    cookieResources.supportedResources.length === 0
+  ) {
+    return false;
+  }
+
+  const spotResources = isMultiShadowKind(shadowResources.shadowKind)
+    ? shadowResources.spotShadowReceiverResources
+    : shadowResources.shadowKind === "spot" ||
+        shadowResources.shadowKind === "spot-array"
+      ? shadowResources
+      : undefined;
+
+  if (
+    spotResources === undefined ||
+    spotResources.matrixBufferResource.resource === null ||
+    spotResources.samplerResource.resource === null
+  ) {
+    return false;
+  }
+
+  const supportedSpotLightIds = new Set(
+    spotResources.depthTextureResources.resources
+      .filter(
+        (resource) =>
+          (resource.viewDimension === "2d" ||
+            resource.viewDimension === "2d-array") &&
+          resource.allocation.resource !== null,
+      )
+      .map((resource) => resource.lightId),
+  );
+
+  return cookieResources.supportedResources.every(
+    (resource) =>
+      resource.textureViewDimension === "2d" &&
+      supportedSpotLightIds.has(resource.lightId),
+  );
+}
+
 function isMultiShadowKind(
   shadowKind: StandardFrameShadowReceiverResources["shadowKind"] | undefined,
 ): boolean {
@@ -7703,6 +7769,7 @@ function withStandardClusteredLocalLightPipelineKeys(
       readonly matrixBaseIndex?: number;
     }[];
     readonly cookieTextureViewDimension?: "2d" | "2d-array" | "cube" | null;
+    readonly reuseShadowMatricesForCookies?: boolean;
   } = {},
 ): RenderSnapshot {
   const descriptor = createLocalLightClusterDescriptor(snapshot, {
@@ -7727,6 +7794,7 @@ function withStandardClusteredLocalLightPipelineKeys(
       pipelineKey,
       cookieSamplingReady,
       options.cookieTextureViewDimension ?? null,
+      options.reuseShadowMatricesForCookies === true,
     );
 
     if (clusteredPipelineKey === pipelineKey) {
@@ -7749,6 +7817,7 @@ function standardClusteredLocalLightPipelineKey(
   pipelineKey: string,
   cookieSamplingReady: boolean,
   cookieTextureViewDimension: "2d" | "2d-array" | "cube" | null = null,
+  reuseShadowMatricesForCookies = false,
 ): string {
   const tokens = pipelineKey.split("|");
   const family = tokens[0];
@@ -7763,16 +7832,25 @@ function standardClusteredLocalLightPipelineKey(
       (token) =>
         token !== CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE &&
         token !== CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE &&
+        token !== CLUSTERED_LOCAL_LIGHT_SHADOW_COOKIE_PIPELINE_FEATURE &&
         token !== CLUSTERED_LOCAL_LIGHT_ARRAY_COOKIE_PIPELINE_FEATURE &&
         token !== CLUSTERED_LOCAL_LIGHT_CUBE_COOKIE_PIPELINE_FEATURE,
     );
   const cookieSamplingSupportedForDraw =
     cookieSamplingReady && !rest.includes("cascadedShadowMap");
+  const reuseShadowMatricesForCookiesForDraw =
+    reuseShadowMatricesForCookies &&
+    cookieTextureViewDimension === "2d" &&
+    rest.includes("shadowMap") &&
+    !rest.includes("cascadedShadowMap");
   const features = [
     CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
     ...(cookieSamplingSupportedForDraw
       ? [
           CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE,
+          ...(reuseShadowMatricesForCookiesForDraw
+            ? [CLUSTERED_LOCAL_LIGHT_SHADOW_COOKIE_PIPELINE_FEATURE]
+            : []),
           ...(cookieTextureViewDimension === "cube"
             ? [CLUSTERED_LOCAL_LIGHT_CUBE_COOKIE_PIPELINE_FEATURE]
             : cookieTextureViewDimension === "2d-array"

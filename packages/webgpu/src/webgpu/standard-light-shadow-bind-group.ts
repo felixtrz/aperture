@@ -106,6 +106,7 @@ export interface CreateStandardLightShadowBindGroupDescriptorPlanOptions {
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
   readonly localLightCookieResources?: LocalLightClusterCookieResources | null;
+  readonly reuseShadowMatricesForLocalLightCookies?: boolean;
   readonly layoutKey?: string | null;
   readonly label?: string;
 }
@@ -118,6 +119,7 @@ export interface CreateStandardLightMultiShadowBindGroupDescriptorPlanOptions {
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
   readonly localLightCookieResources?: LocalLightClusterCookieResources | null;
+  readonly reuseShadowMatricesForLocalLightCookies?: boolean;
   readonly layoutKey?: string | null;
   readonly label?: string;
 }
@@ -133,6 +135,7 @@ export interface CreateStandardLightIblBindGroupDescriptorPlanOptions {
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
   readonly localLightCookieResources?: LocalLightClusterCookieResources | null;
+  readonly reuseShadowMatricesForLocalLightCookies?: boolean;
   readonly layoutKey?: string | null;
   readonly label?: string;
 }
@@ -166,6 +169,7 @@ type ClusteredLocalLightCookieTextureViewDimension = "2d" | "2d-array" | "cube";
 export function createStandardLightShadowBindGroupLayoutDescriptor(options?: {
   readonly clusteredLocalLights?: boolean;
   readonly clusteredLocalLightCookies?: boolean;
+  readonly clusteredLocalLightShadowCookies?: boolean;
   readonly clusteredLocalLightCookieTextureViewDimension?: ClusteredLocalLightCookieTextureViewDimension;
 }): WebGpuBindGroupLayoutDescriptor {
   return createStandardLightShadowBindGroupLayoutDescriptorForView(
@@ -177,6 +181,7 @@ export function createStandardLightShadowBindGroupLayoutDescriptor(options?: {
 export function createStandardLightCascadedShadowBindGroupLayoutDescriptor(options?: {
   readonly clusteredLocalLights?: boolean;
   readonly clusteredLocalLightCookies?: boolean;
+  readonly clusteredLocalLightShadowCookies?: boolean;
   readonly clusteredLocalLightCookieTextureViewDimension?: ClusteredLocalLightCookieTextureViewDimension;
 }): WebGpuBindGroupLayoutDescriptor {
   return createStandardLightShadowBindGroupLayoutDescriptorForView(
@@ -189,6 +194,7 @@ export function createStandardLightPointShadowBindGroupLayoutDescriptor(options?
   readonly clusteredLocalLights?: boolean;
   readonly clusteredLocalLightPointArrayShadows?: boolean;
   readonly clusteredLocalLightCookies?: boolean;
+  readonly clusteredLocalLightShadowCookies?: boolean;
   readonly clusteredLocalLightCookieTextureViewDimension?: ClusteredLocalLightCookieTextureViewDimension;
 }): WebGpuBindGroupLayoutDescriptor {
   return createStandardLightShadowBindGroupLayoutDescriptorForView(
@@ -204,6 +210,7 @@ export function createStandardLightMultiShadowBindGroupLayoutDescriptor(options?
   readonly clusteredLocalLightArrayShadows?: boolean;
   readonly clusteredLocalLightPointArrayShadows?: boolean;
   readonly clusteredLocalLightCookies?: boolean;
+  readonly clusteredLocalLightShadowCookies?: boolean;
   readonly clusteredLocalLightCookieTextureViewDimension?: ClusteredLocalLightCookieTextureViewDimension;
 }): WebGpuBindGroupLayoutDescriptor {
   const compactClusteredLocalShadows = options?.clusteredLocalLights === true;
@@ -264,6 +271,7 @@ export function createStandardLightMultiShadowBindGroupLayoutDescriptor(options?
     options?.clusteredLocalLights === true,
     options?.clusteredLocalLightCookies === true,
     options?.clusteredLocalLightCookieTextureViewDimension,
+    options?.clusteredLocalLightShadowCookies !== true,
   );
 
   return {
@@ -277,6 +285,7 @@ function createStandardLightShadowBindGroupLayoutDescriptorForView(
   options?: {
     readonly clusteredLocalLights?: boolean;
     readonly clusteredLocalLightCookies?: boolean;
+    readonly clusteredLocalLightShadowCookies?: boolean;
     readonly clusteredLocalLightCookieTextureViewDimension?: ClusteredLocalLightCookieTextureViewDimension;
   },
 ): WebGpuBindGroupLayoutDescriptor {
@@ -302,6 +311,7 @@ function createStandardLightShadowBindGroupLayoutDescriptorForView(
     options?.clusteredLocalLights === true,
     options?.clusteredLocalLightCookies === true,
     options?.clusteredLocalLightCookieTextureViewDimension,
+    options?.clusteredLocalLightShadowCookies !== true,
   );
 
   return {
@@ -321,6 +331,7 @@ export function createStandardLightIblBindGroupLayoutDescriptor(options?: {
   readonly specularProof?: boolean;
   readonly clusteredLocalLights?: boolean;
   readonly clusteredLocalLightCookies?: boolean;
+  readonly clusteredLocalLightShadowCookies?: boolean;
   readonly clusteredLocalLightCookieTextureViewDimension?: ClusteredLocalLightCookieTextureViewDimension;
 }): WebGpuBindGroupLayoutDescriptor {
   const entries: WebGpuBindGroupLayoutEntryDescriptor[] = [
@@ -378,6 +389,7 @@ export function createStandardLightIblBindGroupLayoutDescriptor(options?: {
     options?.clusteredLocalLights === true,
     options?.clusteredLocalLightCookies === true,
     options?.clusteredLocalLightCookieTextureViewDimension,
+    options?.clusteredLocalLightShadowCookies !== true,
   );
 
   return {
@@ -502,6 +514,7 @@ export function createStandardLightShadowBindGroupDescriptorPlan(
   appendLocalLightCookieEntries(
     entries,
     options.localLightCookieResources ?? null,
+    options.reuseShadowMatricesForLocalLightCookies !== true,
   );
 
   return {
@@ -588,6 +601,7 @@ export function createStandardLightMultiShadowBindGroupDescriptorPlan(
   appendLocalLightCookieEntries(
     entries,
     options.localLightCookieResources ?? null,
+    options.reuseShadowMatricesForLocalLightCookies !== true,
   );
 
   return {
@@ -747,6 +761,7 @@ export function createStandardLightIblBindGroupDescriptorPlan(
   appendLocalLightCookieEntries(
     entries,
     options.localLightCookieResources ?? null,
+    options.reuseShadowMatricesForLocalLightCookies !== true,
   );
 
   return {
@@ -1108,28 +1123,30 @@ function appendLocalLightClusterEntries(
 function appendLocalLightCookieEntries(
   entries: StandardLightShadowBindGroupDescriptorEntry[],
   resources: LocalLightClusterCookieResources | null,
+  matrixEntryEnabled = true,
 ): void {
   if (resources === null) {
     return;
   }
 
-  entries.push(
-    {
-      binding: LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
-      resourceKey: resources.textureResource.resourceKey,
-      resourceKind: "texture-view",
-    },
-    {
-      binding: LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,
-      resourceKey: resources.samplerResource.resourceKey,
-      resourceKind: "sampler",
-    },
-    {
+  entries.push({
+    binding: LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
+    resourceKey: resources.textureResource.resourceKey,
+    resourceKind: "texture-view",
+  });
+  entries.push({
+    binding: LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,
+    resourceKey: resources.samplerResource.resourceKey,
+    resourceKind: "sampler",
+  });
+
+  if (matrixEntryEnabled) {
+    entries.push({
       binding: LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING,
       resourceKey: resources.matrixResource.resourceKey,
       resourceKind: "buffer",
-    },
-  );
+    });
+  }
 }
 
 function appendShadowEntries(

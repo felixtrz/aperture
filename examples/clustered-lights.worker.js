@@ -3,6 +3,7 @@ const localLightGrid = { columns: 8, rows: 8 };
 const shadowMetadataLightIndices = new Set([28, 29, 36, 37]);
 const pointCookieLightIndex = 36;
 const primaryShadowCasterPosition = [-0.755, -0.074, 0.52];
+const shadowCookiePointCasterPosition = [1.22, -0.16, 0.54];
 const spotShadowCasterPosition = [1.12, -0.18, 0.54];
 const secondSpotShadowCasterPosition = [1.72, 0.34, 0.5];
 
@@ -50,6 +51,7 @@ async function handleMessage(data) {
         data.clusteredPointCookieEnabled === true,
         data.clusteredMultiCookieEnabled === true,
         data.clusteredAtlasCookieEnabled === true,
+        data.clusteredShadowCookieEnabled === true,
         data.clusteredCookieOnlyEnabled === true,
         data.clusteredSpotShadowAtlasEnabled === true,
         data.clusteredMultiSpotShadowEnabled === true,
@@ -88,6 +90,7 @@ async function handleMessage(data) {
           clusteredPointCookieEnabled: scene.clusteredPointCookieEnabled,
           clusteredMultiCookieEnabled: scene.clusteredMultiCookieEnabled,
           clusteredAtlasCookieEnabled: scene.clusteredAtlasCookieEnabled,
+          clusteredShadowCookieEnabled: scene.clusteredShadowCookieEnabled,
           clusteredCookieOnlyEnabled: scene.clusteredCookieOnlyEnabled,
           clusteredSpotShadowAtlasEnabled:
             scene.clusteredSpotShadowAtlasEnabled,
@@ -150,6 +153,7 @@ function createWorkerScene(
   clusteredPointCookieEnabled,
   clusteredMultiCookieEnabled,
   clusteredAtlasCookieEnabled,
+  clusteredShadowCookieEnabled,
   clusteredCookieOnlyEnabled,
   clusteredSpotShadowAtlasEnabled,
   clusteredMultiSpotShadowEnabled,
@@ -207,12 +211,25 @@ function createWorkerScene(
     aperture.withShadowReceiver(false),
     aperture.withVisibility(true),
   );
+  if (clusteredShadowCookieEnabled) {
+    app.spawn(
+      aperture.withTransform({ translation: shadowCookiePointCasterPosition }),
+      aperture.withMesh(assets.casterMesh),
+      aperture.withMaterial(assets.casterMaterial),
+      aperture.withRenderLayer(2),
+      aperture.withShadowCaster(true),
+      aperture.withShadowReceiver(false),
+      aperture.withVisibility(true),
+    );
+  }
   app.spawn(
     aperture.withTransform({ translation: spotShadowCasterPosition }),
     aperture.withMesh(assets.spotCasterMesh),
     aperture.withMaterial(assets.spotCasterMaterial),
     aperture.withRenderLayer(2),
-    aperture.withShadowCaster(!clusteredCookieEnabled),
+    aperture.withShadowCaster(
+      !clusteredCookieEnabled || clusteredShadowCookieEnabled,
+    ),
     aperture.withShadowReceiver(false),
     aperture.withVisibility(true),
   );
@@ -380,6 +397,7 @@ function createWorkerScene(
     clusteredPointCookieEnabled,
     clusteredMultiCookieEnabled,
     clusteredAtlasCookieEnabled,
+    clusteredShadowCookieEnabled,
     clusteredCookieOnlyEnabled,
     clusteredSpotShadowAtlasEnabled,
     clusteredMultiSpotShadowEnabled,

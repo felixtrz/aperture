@@ -1,5 +1,51 @@
 # Completed Tasks
 
+## task-3146 — Combine packed local shadows with clustered local cookies
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added a `clusteredLocalLightShadowCookies` StandardMaterial feature for the
+  compact route where clustered spot cookies reuse the matching spot-shadow
+  projection matrix instead of binding a separate cookie-matrix storage buffer.
+- Updated group-3 light/shadow layout planning and descriptor plans so the
+  combined route binds light buffers, packed spot depth-array shadows, point
+  shadow resources, clustered local-light buffers, and cookie texture/sampler
+  resources while omitting cookie matrix binding 22.
+- Updated StandardMaterial WGSL to sample the spot cookie from the shadow
+  matrix path when the shadow-cookie feature is active, keeping the route within
+  the WebGPU minimum fragment storage-buffer limit.
+- `examples/clustered-lights.html?enable-cluster-shadow-cookie=1` now reports
+  separate packed-shadow readiness, cookie readiness, pipeline readiness, and
+  combined sampling readiness for one point shadow, two packed spot shadows,
+  and one clustered local cookie in the same frame.
+- Public trackers and agent task pointers now recommend `task-3147`, combining
+  flattened multi-point shadow arrays with clustered local cookies.
+
+Validation:
+
+- `node --check examples/clustered-lights.main.js && node --check examples/clustered-lights.worker.js`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/local-light-clusters.test.ts`
+- `pnpm run build`
+- Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-shadow-cookie=1&proof=3`:
+  `ok: true`, `readbackStatus.ok: true`, luminance range about `68.36`,
+  `routePackedShadowCookieShadowReady`, `routePackedShadowCookieCookieReady`,
+  `routePackedShadowCookiePipelineOk`, and
+  `routePackedShadowCookieSamplingOk` all true, three supported shadowed
+  lights, one supported cookie, diagnostics `0`, and relevant WebGPU validation
+  warnings `0`.
+
+Known follow-up:
+
+- `task-3147` should carry the same shadow/cookie pressure through the
+  flattened multi-point shadow-array route.
+- The broad clustered-lights Playwright spec was updated but not run end to
+  end in this slice because previous multi-page headed runs went idle locally;
+  the focused Chrome/WebGPU route proof passed.
+
 ## task-3145 — Pack multiple clustered point shadows through flattened face metadata
 
 Completed: 2026-05-24

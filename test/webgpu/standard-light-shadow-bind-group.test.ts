@@ -238,6 +238,47 @@ describe("StandardMaterial light/shadow bind group", () => {
     );
   });
 
+  it("keeps packed local shadows plus cookies within a WebGPU-minimum group layout", () => {
+    const descriptor = createStandardLightMultiShadowBindGroupLayoutDescriptor({
+      clusteredLocalLights: true,
+      clusteredLocalLightArrayShadows: true,
+      clusteredLocalLightCookies: true,
+      clusteredLocalLightShadowCookies: true,
+      clusteredLocalLightCookieTextureViewDimension: "2d",
+    });
+
+    expect(descriptor.entries).toHaveLength(14);
+    expect(descriptor.entries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          binding: 3,
+          texture: expect.objectContaining({ viewDimension: "2d-array" }),
+        }),
+        expect.objectContaining({
+          binding: 9,
+          texture: expect.objectContaining({ viewDimension: "cube" }),
+        }),
+        expect.objectContaining({
+          binding: 20,
+          texture: expect.objectContaining({ viewDimension: "2d" }),
+        }),
+        expect.objectContaining({ binding: 21 }),
+      ]),
+    );
+    expect(descriptor.entries).not.toContainEqual(
+      expect.objectContaining({ binding: 22 }),
+    );
+    expect(descriptor.entries).not.toContainEqual(
+      expect.objectContaining({ binding: 5 }),
+    );
+    expect(descriptor.entries).not.toContainEqual(
+      expect.objectContaining({ binding: 6 }),
+    );
+    expect(descriptor.entries).not.toContainEqual(
+      expect.objectContaining({ binding: 7 }),
+    );
+  });
+
   it("creates a multi-shadow light bind group resource", () => {
     const createdBindGroups: unknown[] = [];
     const directional = resourceInputs("directional", "2d");
@@ -386,6 +427,60 @@ describe("StandardMaterial light/shadow bind group", () => {
     expect(plan.entries).not.toContainEqual(
       expect.objectContaining({ binding: 5 }),
     );
+  });
+
+  it("plans compact clustered local shadows and cookie resources together", () => {
+    const directional = resourceInputs("directional", "2d");
+    const spot = resourceInputs("spot", "2d");
+    const point = resourceInputs("point", "cube");
+    const plan = createStandardLightMultiShadowBindGroupDescriptorPlan({
+      lightGpuBufferResource: directional.lightGpuBufferResource,
+      directionalShadowReceiverResources: spot,
+      spotShadowReceiverResources: spot,
+      pointShadowReceiverResources: point,
+      localLightClusterResources: {
+        resourceKey: "cluster",
+        paramsResourceKey: "cluster-params",
+        cellsResourceKey: "cluster-cells",
+        indicesResourceKey: "cluster-indices",
+        metadataResourceKey: "cluster-metadata",
+        paramsBuffer: "cluster-params-buffer",
+        cellsBuffer: "cluster-cells-buffer",
+        indicesBuffer: "cluster-indices-buffer",
+        metadataBuffer: "cluster-metadata-buffer",
+        descriptor: null,
+      } as never,
+      localLightCookieResources: {
+        matrixResource: {
+          resourceKey: "cluster-cookie-matrices",
+          label: "cluster-cookie-matrices",
+          buffer: "cluster-cookie-matrix-buffer",
+          matrixCount: 1,
+          entryLightIds: [37],
+        },
+        textureResource: {
+          resourceKey: "cluster-cookie-texture",
+          texture: "cluster-cookie-texture-resource",
+          view: "cluster-cookie-texture-view",
+          descriptor: {},
+        },
+        samplerResource: {
+          resourceKey: "cluster-cookie-sampler",
+          sampler: "cluster-cookie-sampler-resource",
+          descriptor: {},
+        },
+        textureViewDimension: "2d",
+        textureKey: "texture:cluster-cookie",
+        samplerKey: "sampler:cluster-cookie",
+        supportedResources: [],
+      } as never,
+      reuseShadowMatricesForLocalLightCookies: true,
+    });
+
+    expect(plan.valid).toBe(true);
+    expect(plan.entries.map((entry) => entry.binding)).toEqual([
+      0, 1, 2, 3, 4, 8, 9, 10, 16, 17, 18, 19, 20, 21,
+    ]);
   });
 
   it("creates a combined light and shadow bind group resource", () => {

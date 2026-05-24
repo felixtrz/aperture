@@ -41,6 +41,7 @@ import {
   CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_POINT_ARRAY_SHADOW_PIPELINE_FEATURE,
+  CLUSTERED_LOCAL_LIGHT_SHADOW_COOKIE_PIPELINE_FEATURE,
 } from "./local-light-clusters.js";
 import type { BuiltInShaderSourceModule } from "./unlit-shader.js";
 
@@ -401,8 +402,12 @@ function standardClusteredLocalLightGroupLayoutKey(
       : features.clusteredLocalLightArrayCookies === true
         ? "cluster-cookie-array-texture@20"
         : "cluster-cookie-texture@20";
+  const cookieMatrixKey =
+    features.clusteredLocalLightShadowCookies === true
+      ? "cluster-cookie-shadow-matrix@2"
+      : "cluster-cookie-matrix@22";
 
-  return `${clusterKey},${cookieTextureKey},cluster-cookie-sampler@21,cluster-cookie-matrix@22`;
+  return `${clusterKey},${cookieTextureKey},cluster-cookie-sampler@21,${cookieMatrixKey}`;
 }
 
 export function resolveStandardShaderForBatchKey(
@@ -439,6 +444,9 @@ function standardTextureFeatures(
   const clusteredLocalLightPointArrayShadows = tokens.includes(
     CLUSTERED_LOCAL_LIGHT_POINT_ARRAY_SHADOW_PIPELINE_FEATURE,
   );
+  const clusteredLocalLightShadowCookies = tokens.includes(
+    CLUSTERED_LOCAL_LIGHT_SHADOW_COOKIE_PIPELINE_FEATURE,
+  );
 
   return {
     baseColorTexture: tokens.includes("baseColorTexture"),
@@ -472,8 +480,10 @@ function standardTextureFeatures(
     ),
     clusteredLocalLightCookies:
       tokens.includes(CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE) ||
+      clusteredLocalLightShadowCookies ||
       clusteredLocalLightCubeCookies ||
       clusteredLocalLightArrayCookies,
+    clusteredLocalLightShadowCookies,
     clusteredLocalLightArrayCookies,
     clusteredLocalLightCubeCookies,
     clusteredLocalLightArrayShadows,

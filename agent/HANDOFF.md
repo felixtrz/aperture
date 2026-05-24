@@ -1,6 +1,61 @@
 # Agent Handoff
 
-Updated: 2026-05-24T09:57:35Z
+Updated: 2026-05-24T10:31:33Z
+
+## Current Run Update — 2026-05-24T10:31:33Z — Packed clustered shadows plus cookies
+
+Completed `task-3146`, combining packed clustered local shadows with clustered
+local cookies in one WebGPU-minimum StandardMaterial route.
+
+### What changed
+
+- Added a `clusteredLocalLightShadowCookies` pipeline feature for the compact
+  route where clustered spot cookies reuse the matching spot-shadow matrix
+  instead of binding a separate cookie-matrix storage buffer.
+- Group-3 light/shadow layout planning now omits binding 22 for that route,
+  keeping light buffers, packed spot depth-array shadows, point shadow
+  resources, clustered local-light buffers, and cookie texture/sampler resources
+  within WebGPU minimum fragment storage-buffer limits.
+- StandardMaterial WGSL samples the spot cookie from the reused shadow-matrix
+  path when the shadow-cookie feature is active, while preserving the existing
+  standalone spot-cookie and point-cookie routes.
+- `examples/clustered-lights.html?enable-cluster-shadow-cookie=1` now authors
+  one point shadow, two packed spot-array shadows, and one local spot cookie in
+  the same clustered StandardMaterial frame.
+- Cluster status reports packed-shadow readiness, cookie readiness,
+  shadow-cookie pipeline readiness, and combined sampling readiness separately.
+- Public trackers and agent task pointers now recommend `task-3147`, combining
+  flattened point-shadow arrays with clustered local cookies.
+
+### Validation
+
+- `node --check examples/clustered-lights.main.js && node --check examples/clustered-lights.worker.js`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/local-light-clusters.test.ts`
+- `pnpm run build`
+- Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-shadow-cookie=1&proof=3`:
+  `ok: true`, `readbackStatus.ok: true`, luminance range about `68.36`,
+  `routePackedShadowCookieShadowReady`, `routePackedShadowCookieCookieReady`,
+  `routePackedShadowCookiePipelineOk`, and
+  `routePackedShadowCookieSamplingOk` all true, three supported shadowed
+  lights, one supported cookie, diagnostics `0`, and relevant WebGPU validation
+  warnings `0`. The only console error was the existing favicon `403`.
+
+### Known issues
+
+- The broad clustered-lights e2e spec was updated for the packed shadow-cookie
+  route but was not run end to end because previous multi-page headed runs went
+  idle locally; the focused Chrome/WebGPU route proof passed.
+- The pre-existing working-tree deletion of `.codex/hooks.json`, untracked
+  `.playwright-mcp/` scratch directory, and untracked
+  `shadow-cookie-console-errors.txt` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3147`: combine flattened point-shadow arrays with clustered local
+cookies so the most compact point-shadow route also proves cookie pressure.
 
 ## Current Run Update — 2026-05-24T09:57:35Z — Flattened clustered point-shadow arrays
 

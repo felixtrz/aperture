@@ -1693,13 +1693,64 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain(
       "@group(3) @binding(9) var pointShadowMap: texture_depth_2d_array;",
     );
-    expect(shader.code).toContain("let layerIndex = matrixBaseIndex + faceIndex;");
-    expect(shader.code).toContain("clampedShadowUv,\n    i32(layerIndex),");
     expect(shader.code).toContain(
-      "sampleUv,\n          i32(layerIndex),",
+      "let layerIndex = matrixBaseIndex + faceIndex;",
     );
+    expect(shader.code).toContain("clampedShadowUv,\n    i32(layerIndex),");
+    expect(shader.code).toContain("sampleUv,\n          i32(layerIndex),");
     expect(shader.code).not.toContain("var pointShadowMap: texture_depth_cube");
     expect(shader.code).toContain("fn localLightClusterPointShadowFactor");
+  });
+
+  it("samples packed clustered local shadows and cookies in the same light loop", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      shadowMap: true,
+      pointShadowMap: true,
+      clusteredLocalLights: true,
+      clusteredLocalLightCookies: true,
+      clusteredLocalLightShadowCookies: true,
+      clusteredLocalLightArrayShadows: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.code).toContain(
+      "@group(3) @binding(3) var directionalShadowMap: texture_depth_2d_array;",
+    );
+    expect(shader.code).toContain(
+      "@group(3) @binding(9) var pointShadowMap: texture_depth_cube;",
+    );
+    expect(shader.code).toContain(
+      `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING}) var localLightClusterCookieTexture: texture_2d<f32>;`,
+    );
+    expect(shader.code).toContain(
+      `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING}) var localLightClusterCookieSampler: sampler;`,
+    );
+    expect(shader.code).not.toContain(
+      `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING}) var<storage, read> localLightClusterCookieMatrices: array<mat4x4f>;`,
+    );
+    expect(shader.bindings).not.toContainEqual(
+      expect.objectContaining({ id: "localLightClusterCookieMatrices" }),
+    );
+    expect(shader.code).toContain(
+      "let cookiePosition = directionalShadowMatrices[matrixBaseIndex] * vec4f(position, 1.0);",
+    );
+    expect(shader.code).toContain(
+      "lightRadiance(lightIndex) * attenuation * shadowFactor * cookieColor",
+    );
+    expect(shader.code).toContain(
+      "lightRadiance(lightIndex) * rangeAttenuation * coneAttenuation * shadowFactor * cookieColor",
+    );
+    expect(shader.code).not.toContain(
+      "@group(3) @binding(6) var spotShadowMap",
+    );
   });
 
   it("samples clustered spot cookies without requiring shadow-map bindings", () => {

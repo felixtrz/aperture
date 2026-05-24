@@ -23,6 +23,7 @@ import {
 import {
   CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
+  CLUSTERED_LOCAL_LIGHT_SHADOW_COOKIE_PIPELINE_FEATURE,
   createLocalLightClusterDescriptor,
   createLocalLightClusterGpuResource,
   type LocalLightClusterDescriptor,
@@ -427,6 +428,14 @@ function requiresClusteredLocalLightCookies(pipelineKey: string): boolean {
     .includes(CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE);
 }
 
+function reusesShadowMatricesForClusteredLocalLightCookies(
+  pipelineKey: string,
+): boolean {
+  return pipelineKey
+    .split("|")
+    .includes(CLUSTERED_LOCAL_LIGHT_SHADOW_COOKIE_PIPELINE_FEATURE);
+}
+
 function createLocalLightClusterResource(
   options: Pick<
     CreateStandardFrameGpuResourcesOptions,
@@ -515,8 +524,8 @@ function supportedPointShadowResourcesFromReceiver(
         ? (resource.layerBaseIndex ?? index * 6)
         : index * 6,
     ...(resource.filterRadiusTexels === undefined
-        ? {}
-        : { filterRadiusTexels: resource.filterRadiusTexels }),
+      ? {}
+      : { filterRadiusTexels: resource.filterRadiusTexels }),
   }));
 }
 
@@ -1067,6 +1076,8 @@ function createLightIblBindGroup(
     )
       ? (options.localLightCookieResources ?? null)
       : null,
+    reuseShadowMatricesForLocalLightCookies:
+      reusesShadowMatricesForClusteredLocalLightCookies(options.pipelineKey),
     ...(shadowReceiverResources === undefined
       ? {}
       : { shadowReceiverResources }),
@@ -1144,6 +1155,8 @@ function createLightShadowBindGroup(
       )
         ? (options.localLightCookieResources ?? null)
         : null,
+      reuseShadowMatricesForLocalLightCookies:
+        reusesShadowMatricesForClusteredLocalLightCookies(options.pipelineKey),
     });
 
     diagnostics.push(...plan.diagnostics);
@@ -1190,6 +1203,8 @@ function createLightShadowBindGroup(
     )
       ? (options.localLightCookieResources ?? null)
       : null,
+    reuseShadowMatricesForLocalLightCookies:
+      reusesShadowMatricesForClusteredLocalLightCookies(options.pipelineKey),
   });
 
   diagnostics.push(...plan.diagnostics);

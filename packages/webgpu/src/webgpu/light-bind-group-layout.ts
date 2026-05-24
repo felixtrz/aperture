@@ -103,6 +103,7 @@ export function createLightBindGroupLayoutDescriptor(
     options.clusteredLocalLights === true,
     options.clusteredLocalLightCookies === true,
     options.clusteredLocalLightCookieTextureViewDimension,
+    true,
   );
 
   return {
@@ -117,6 +118,7 @@ export function appendClusteredLocalLightLayoutEntries(
   enabled: boolean,
   cookiesEnabled = false,
   cookieTextureViewDimension: "2d" | "2d-array" | "cube" = "2d",
+  cookieMatrixBufferEnabled = true,
 ): void {
   if (!enabled) {
     return;
@@ -160,11 +162,15 @@ export function appendClusteredLocalLightLayoutEntries(
         visibility,
         sampler: { type: "filtering" },
       },
-      {
-        binding: LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING,
-        visibility,
-        buffer: { type: "read-only-storage" },
-      },
+      ...(cookieMatrixBufferEnabled
+        ? [
+            {
+              binding: LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING,
+              visibility,
+              buffer: { type: "read-only-storage" },
+            },
+          ]
+        : []),
     );
   }
 }

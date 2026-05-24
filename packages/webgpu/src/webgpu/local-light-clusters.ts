@@ -9,6 +9,8 @@ import { WEBGPU_BUFFER_USAGE_FLAGS } from "./mesh-buffer-descriptors.js";
 export const CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE = "clusteredLocalLights";
 export const CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE =
   "clusteredLocalLightCookies";
+export const CLUSTERED_LOCAL_LIGHT_SHADOW_COOKIE_PIPELINE_FEATURE =
+  "clusteredLocalLightShadowCookies";
 export const CLUSTERED_LOCAL_LIGHT_ARRAY_COOKIE_PIPELINE_FEATURE =
   "clusteredLocalLightArrayCookies";
 export const CLUSTERED_LOCAL_LIGHT_CUBE_COOKIE_PIPELINE_FEATURE =
@@ -978,10 +980,7 @@ function createLocalLightClusterShadowCookieMetadata(
       softFilterLightCount += 1;
     }
 
-    maxFilterRadiusTexels = Math.max(
-      maxFilterRadiusTexels,
-      filterRadiusTexels,
-    );
+    maxFilterRadiusTexels = Math.max(maxFilterRadiusTexels, filterRadiusTexels);
   }
 
   const shadowStatus: LocalLightClusterFeatureStatus =
