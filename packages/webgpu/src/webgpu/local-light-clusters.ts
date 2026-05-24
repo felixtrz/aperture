@@ -11,7 +11,13 @@ export const LOCAL_LIGHT_CLUSTER_MIN_LIGHTS = 16;
 export const LOCAL_LIGHT_CLUSTER_PARAMS_BINDING = 16;
 export const LOCAL_LIGHT_CLUSTER_CELLS_BINDING = 17;
 export const LOCAL_LIGHT_CLUSTER_INDICES_BINDING = 18;
+export const LOCAL_LIGHT_CLUSTER_METADATA_BINDING = 19;
 export const LOCAL_LIGHT_CLUSTER_PARAM_FLOATS = 28;
+export const LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE = 4;
+export const LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST = 1 << 0;
+export const LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_REQUEST = 1 << 1;
+export const LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED =
+  1 << 2;
 export const DEFAULT_LOCAL_LIGHT_CLUSTER_RESOURCE_KEY =
   "local-light-cluster:main";
 
@@ -42,6 +48,30 @@ export interface LocalLightClusterBuildPressure {
   readonly lightCellWriteAttempts: number;
   readonly storedLightReferences: number;
   readonly skippedOverflowReferences: number;
+}
+
+export type LocalLightClusterFeatureStatus =
+  | "not-requested"
+  | "metadata-only"
+  | "not-supported";
+
+export interface LocalLightClusterShadowCookieMetadata {
+  readonly wordsPerLight: typeof LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE;
+  readonly totalMetadataLights: number;
+  readonly shadow: {
+    readonly status: LocalLightClusterFeatureStatus;
+    readonly samplingSupported: boolean;
+    readonly localRequestCount: number;
+    readonly clusteredLightCount: number;
+    readonly fallbackReason: string | null;
+  };
+  readonly cookie: {
+    readonly status: LocalLightClusterFeatureStatus;
+    readonly samplingSupported: boolean;
+    readonly localRequestCount: number;
+    readonly clusteredLightCount: number;
+    readonly fallbackReason: string | null;
+  };
 }
 
 export interface LocalLightClusterDescriptorOptions {
@@ -82,9 +112,11 @@ export interface LocalLightClusterDescriptor {
   readonly overflowedCells: number;
   readonly maxLightsPerCell: number;
   readonly buildPressure: LocalLightClusterBuildPressure;
+  readonly shadowCookieMetadata: LocalLightClusterShadowCookieMetadata;
   readonly params: Float32Array;
   readonly cells: Uint32Array;
   readonly indices: Uint32Array;
+  readonly metadata: Uint32Array;
 }
 
 export type LocalLightClusterGpuResourceDiagnosticCode =
@@ -102,9 +134,11 @@ export interface LocalLightClusterGpuResource {
   readonly paramsResourceKey: string;
   readonly cellsResourceKey: string;
   readonly indicesResourceKey: string;
+  readonly metadataResourceKey: string;
   readonly paramsBuffer: unknown;
   readonly cellsBuffer: unknown;
   readonly indicesBuffer: unknown;
+  readonly metadataBuffer: unknown;
   descriptor: LocalLightClusterDescriptor;
 }
 
@@ -136,10 +170,12 @@ export interface LocalLightClusterReport {
   readonly overflowedCells: number;
   readonly maxLightsPerCell: number;
   readonly buildPressure: LocalLightClusterBuildPressure;
+  readonly shadowCookieMetadata: LocalLightClusterShadowCookieMetadata;
   readonly resourceKey: string;
   readonly paramsResourceKey: string;
   readonly cellsResourceKey: string;
   readonly indicesResourceKey: string;
+  readonly metadataResourceKey: string;
   readonly resourceReuse: {
     readonly buffersCreated: number;
     readonly buffersReused: number;
@@ -180,6 +216,11 @@ interface SelectedLocalLightClusterSpace {
   readonly projectionMatrix: ArrayLike<number> | null;
 }
 
+interface LocalLightClusterShadowCookieMetadataResult {
+  readonly metadata: Uint32Array;
+  readonly summary: LocalLightClusterShadowCookieMetadata;
+}
+
 const IDENTITY_VIEW_MATRIX = Object.freeze([
   1, 0, 0, 0,
   0, 1, 0, 0,
@@ -214,6 +255,11 @@ export function createLocalLightClusterDescriptor(
   const layerMask = normalizeLayerMask(options.layerMask);
   const totalLocalLights = countLocalLights(snapshot.lights, layerMask);
   const localLights = localLightSpheres(snapshot, layerMask);
+  const shadowCookieMetadata = createLocalLightClusterShadowCookieMetadata(
+    snapshot,
+    localLights.spheres,
+    layerMask,
+  );
   const clusterSpace = selectLocalLightClusterSpace(snapshot, {
     ...(options.coordinateSpace === undefined
       ? {}
@@ -242,6 +288,7 @@ export function createLocalLightClusterDescriptor(
         : localLights.spheres.length === 0
           ? "no-local-lights"
           : "below-threshold",
+      shadowCookieMetadata,
     });
 
   if (localLights.missingTransform || localLights.spheres.length === 0) {
@@ -381,9 +428,11 @@ export function createLocalLightClusterDescriptor(
       storedLightReferences: pressure.totalAssignedLightReferences,
       skippedOverflowReferences,
     },
+    shadowCookieMetadata: shadowCookieMetadata.summary,
     params,
     cells,
     indices,
+    metadata: shadowCookieMetadata.metadata,
   };
 }
 
@@ -394,6 +443,7 @@ export function createLocalLightClusterGpuResource(options: {
   const paramsResourceKey = `${options.descriptor.resourceKey}/params`;
   const cellsResourceKey = `${options.descriptor.resourceKey}/cells`;
   const indicesResourceKey = `${options.descriptor.resourceKey}/indices`;
+  const metadataResourceKey = `${options.descriptor.resourceKey}/metadata`;
   const usage =
     WEBGPU_BUFFER_USAGE_FLAGS.STORAGE | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST;
   const params = createWebGpuBuffer({
@@ -423,13 +473,23 @@ export function createLocalLightClusterGpuResource(options: {
       initialData: options.descriptor.indices,
     },
   });
+  const metadata = createWebGpuBuffer({
+    device: options.device,
+    descriptor: {
+      label: metadataResourceKey,
+      size: options.descriptor.metadata.byteLength,
+      usage,
+      initialData: options.descriptor.metadata,
+    },
+  });
   const diagnostics: LocalLightClusterGpuResourceDiagnostic[] = [];
 
   pushCreationDiagnostic(diagnostics, params, paramsResourceKey);
   pushCreationDiagnostic(diagnostics, cells, cellsResourceKey);
   pushCreationDiagnostic(diagnostics, indices, indicesResourceKey);
+  pushCreationDiagnostic(diagnostics, metadata, metadataResourceKey);
 
-  if (!params.ok || !cells.ok || !indices.ok) {
+  if (!params.ok || !cells.ok || !indices.ok || !metadata.ok) {
     return { valid: false, resource: null, diagnostics };
   }
 
@@ -440,9 +500,11 @@ export function createLocalLightClusterGpuResource(options: {
       paramsResourceKey,
       cellsResourceKey,
       indicesResourceKey,
+      metadataResourceKey,
       paramsBuffer: params.buffer,
       cellsBuffer: cells.buffer,
       indicesBuffer: indices.buffer,
+      metadataBuffer: metadata.buffer,
       descriptor: options.descriptor,
     },
     diagnostics,
@@ -481,6 +543,9 @@ export function localLightClusterReportFromDescriptor(
     overflowedCells: descriptor.overflowedCells,
     maxLightsPerCell: descriptor.maxLightsPerCell,
     buildPressure: { ...descriptor.buildPressure },
+    shadowCookieMetadata: cloneShadowCookieMetadata(
+      descriptor.shadowCookieMetadata,
+    ),
     resourceKey: descriptor.resourceKey,
     paramsResourceKey:
       resource?.paramsResourceKey ?? `${descriptor.resourceKey}/params`,
@@ -488,6 +553,8 @@ export function localLightClusterReportFromDescriptor(
       resource?.cellsResourceKey ?? `${descriptor.resourceKey}/cells`,
     indicesResourceKey:
       resource?.indicesResourceKey ?? `${descriptor.resourceKey}/indices`,
+    metadataResourceKey:
+      resource?.metadataResourceKey ?? `${descriptor.resourceKey}/metadata`,
     resourceReuse: {
       buffersCreated: options.buffersCreated ?? 0,
       buffersReused: options.buffersReused ?? 0,
@@ -506,6 +573,7 @@ function emptyLocalLightClusterDescriptor(input: {
   readonly totalLocalLights: number;
   readonly clusterSpace: SelectedLocalLightClusterSpace;
   readonly fallbackReason: LocalLightClusterFallbackReason;
+  readonly shadowCookieMetadata: LocalLightClusterShadowCookieMetadataResult;
 }): LocalLightClusterDescriptor {
   const params = new Float32Array(LOCAL_LIGHT_CLUSTER_PARAM_FLOATS);
 
@@ -558,9 +626,11 @@ function emptyLocalLightClusterDescriptor(input: {
       storedLightReferences: 0,
       skippedOverflowReferences: 0,
     },
+    shadowCookieMetadata: input.shadowCookieMetadata.summary,
     params,
     cells: new Uint32Array(Math.max(input.cellCount * 2, 2)),
     indices: new Uint32Array([0]),
+    metadata: input.shadowCookieMetadata.metadata,
   };
 }
 
@@ -682,6 +752,112 @@ function localLightSpheres(
   }
 
   return { spheres, missingTransform };
+}
+
+function createLocalLightClusterShadowCookieMetadata(
+  snapshot: RenderSnapshot,
+  clusteredLights: readonly LocalLightSphere[],
+  layerMask: number | null,
+): LocalLightClusterShadowCookieMetadataResult {
+  const metadata = new Uint32Array(
+    Math.max(
+      snapshot.lights.length * LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE,
+      LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE,
+    ),
+  );
+  const clusteredLightIndices = new Set(
+    clusteredLights.map((light) => light.lightIndex),
+  );
+  const localLightIndexById = new Map<number, number>();
+
+  for (let index = 0; index < snapshot.lights.length; index += 1) {
+    const light = snapshot.lights[index];
+
+    if (
+      light !== undefined &&
+      (light.kind === "point" || light.kind === "spot") &&
+      lightMatchesLayer(light, layerMask)
+    ) {
+      localLightIndexById.set(light.lightId, index);
+    }
+  }
+
+  const localShadowLightIndices = new Set<number>();
+  const clusteredShadowLightIndices = new Set<number>();
+
+  for (const request of snapshot.shadowRequests) {
+    const lightIndex = localLightIndexById.get(request.lightId);
+
+    if (lightIndex === undefined) {
+      continue;
+    }
+
+    const light = snapshot.lights[lightIndex];
+
+    if (
+      light === undefined ||
+      (request.lightKind !== undefined &&
+        request.lightKind !== "point" &&
+        request.lightKind !== "spot")
+    ) {
+      continue;
+    }
+
+    localShadowLightIndices.add(lightIndex);
+
+    const metadataOffset =
+      lightIndex * LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE;
+    metadata[metadataOffset] =
+      (metadata[metadataOffset] ?? 0) |
+      LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST |
+      LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED;
+    metadata[metadataOffset + 1] = request.shadowId >>> 0;
+
+    if (clusteredLightIndices.has(lightIndex)) {
+      clusteredShadowLightIndices.add(lightIndex);
+    }
+  }
+
+  const localShadowRequestCount = localShadowLightIndices.size;
+  const clusteredShadowLightCount = clusteredShadowLightIndices.size;
+  const shadowStatus: LocalLightClusterFeatureStatus =
+    clusteredShadowLightCount > 0 ? "metadata-only" : "not-requested";
+
+  return {
+    metadata,
+    summary: {
+      wordsPerLight: LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE,
+      totalMetadataLights: snapshot.lights.length,
+      shadow: {
+        status: shadowStatus,
+        samplingSupported: false,
+        localRequestCount: localShadowRequestCount,
+        clusteredLightCount: clusteredShadowLightCount,
+        fallbackReason:
+          shadowStatus === "metadata-only"
+            ? "clustered-local-shadow-sampling-not-implemented"
+            : null,
+      },
+      cookie: {
+        status: "not-supported",
+        samplingSupported: false,
+        localRequestCount: 0,
+        clusteredLightCount: 0,
+        fallbackReason: "light-cookie-authoring-not-implemented",
+      },
+    },
+  };
+}
+
+function cloneShadowCookieMetadata(
+  metadata: LocalLightClusterShadowCookieMetadata,
+): LocalLightClusterShadowCookieMetadata {
+  return {
+    wordsPerLight: metadata.wordsPerLight,
+    totalMetadataLights: metadata.totalMetadataLights,
+    shadow: { ...metadata.shadow },
+    cookie: { ...metadata.cookie },
+  };
 }
 
 function selectLocalLightClusterSpace(

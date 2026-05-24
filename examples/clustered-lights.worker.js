@@ -50,6 +50,7 @@ async function handleMessage(data) {
           ),
           localLights: scene.localLightCount,
           routeLocalLights: scene.routeLocalLightCount,
+          routeShadowMetadataLights: scene.routeShadowMetadataLightCount,
         },
       });
       return;
@@ -169,6 +170,7 @@ function createWorkerScene(aperture, canvasSize) {
     secondaryPanelMaterial: assets.secondaryPanelMaterial,
     localLightCount: localLightGrid.columns * localLightGrid.rows * 2,
     routeLocalLightCount: localLightGrid.columns * localLightGrid.rows,
+    routeShadowMetadataLightCount: 4,
   };
 }
 
@@ -231,11 +233,11 @@ function spawnPointLightGrid(aperture, app, options) {
     for (let x = 0; x < localLightGrid.columns; x += 1) {
       const index = y * localLightGrid.columns + x;
       const color = palette[index % palette.length] ?? [1, 1, 1, 1];
+      const hasShadowMetadata = index % 17 === 0;
       const u =
         localLightGrid.columns <= 1 ? 0 : x / (localLightGrid.columns - 1);
       const v = localLightGrid.rows <= 1 ? 0 : y / (localLightGrid.rows - 1);
-
-      app.spawn(
+      const components = [
         aperture.withTransform({
           translation: [
             options.xOffset - 2.25 + u * 4.5,
@@ -250,7 +252,20 @@ function spawnPointLightGrid(aperture, app, options) {
           range: 1.08,
           layerMask: options.layerMask,
         }),
-      );
+      ];
+
+      if (hasShadowMetadata) {
+        components.push(
+          aperture.withLightShadowSettings({
+            enabled: true,
+            mapSize: 256,
+            casterLayerMask: options.layerMask,
+            receiverLayerMask: options.layerMask,
+          }),
+        );
+      }
+
+      app.spawn(...components);
     }
   }
 }

@@ -5,6 +5,7 @@ import {
   DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
   LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
   LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+  LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
   LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
   createLightBindGroupLayoutDescriptor,
   createLightBindGroupLayoutResource,
@@ -79,6 +80,11 @@ describe("light bind group layout resources", () => {
       },
       {
         binding: LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+        visibility: DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
+        buffer: { type: "read-only-storage" },
+      },
+      {
+        binding: LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
         visibility: DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
         buffer: { type: "read-only-storage" },
       },

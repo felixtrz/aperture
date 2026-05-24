@@ -116,6 +116,7 @@ export interface CachedStandardAppFrameResources {
   readonly localLightClusterParamsByteLength: number;
   readonly localLightClusterCellsByteLength: number;
   readonly localLightClusterIndicesByteLength: number;
+  readonly localLightClusterMetadataByteLength: number;
   readonly localLightClusterResourceKey: string | null;
   readonly viewDescriptorScratch: ViewUniformBufferDescriptorScratch;
   readonly worldTransformDescriptorScratch: WorldTransformBufferDescriptorScratch;
@@ -322,7 +323,9 @@ export function createOrReuseStandardAppFrameResources(options: {
         cached.localLightClusterCellsByteLength ===
           localLightClusterDescriptor.cells.byteLength &&
         cached.localLightClusterIndicesByteLength ===
-          localLightClusterDescriptor.indices.byteLength)) &&
+          localLightClusterDescriptor.indices.byteLength &&
+        cached.localLightClusterMetadataByteLength ===
+          localLightClusterDescriptor.metadata.byteLength)) &&
     !requiresInstanceTintBuffer(options.pipelineKey) &&
     !requiresSkinningJointBuffer(options.pipelineKey) &&
     !requiresMorphTargetWeightBuffer(options.pipelineKey) &&
@@ -362,6 +365,11 @@ export function createOrReuseStandardAppFrameResources(options: {
           options.device,
           cachedLocalLightClusters.indicesBuffer,
           localLightClusterDescriptor.indices,
+        ) &&
+        writeBufferData(
+          options.device,
+          cachedLocalLightClusters.metadataBuffer,
+          localLightClusterDescriptor.metadata,
         )))
   ) {
     options.reuse.meshBuffersReused += 1;
@@ -374,8 +382,8 @@ export function createOrReuseStandardAppFrameResources(options: {
       cachedLocalLightClusters !== null
     ) {
       cachedLocalLightClusters.descriptor = localLightClusterDescriptor;
-      options.reuse.localLightClusterBuffersReused += 3;
-      options.reuse.dynamicBufferWrites += 3;
+      options.reuse.localLightClusterBuffersReused += 4;
+      options.reuse.dynamicBufferWrites += 4;
     }
 
     const resources = cached.result.resources;
@@ -495,7 +503,7 @@ export function createOrReuseStandardAppFrameResources(options: {
 
     options.reuse.lightBuffersCreated += 1;
     if (result.resources.localLightClusters !== undefined) {
-      options.reuse.localLightClusterBuffersCreated += 3;
+      options.reuse.localLightClusterBuffersCreated += 4;
     }
     const cacheEntry = {
       meshKey: options.meshKey,
@@ -528,6 +536,9 @@ export function createOrReuseStandardAppFrameResources(options: {
         result.resources.localLightClusters?.descriptor.cells.byteLength ?? 0,
       localLightClusterIndicesByteLength:
         result.resources.localLightClusters?.descriptor.indices.byteLength ?? 0,
+      localLightClusterMetadataByteLength:
+        result.resources.localLightClusters?.descriptor.metadata.byteLength ??
+        0,
       localLightClusterResourceKey,
       viewDescriptorScratch,
       worldTransformDescriptorScratch,

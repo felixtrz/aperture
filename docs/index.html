@@ -1518,11 +1518,15 @@
               directional shadows and diffuse/specular IBL now bind in one
               StandardMaterial route, and
               <code>examples/outdoor-scene.html</code> proves the combined
-              route. The next SOTA blocker is cluster-aware local-light
-              shadow/cookie metadata.
+              route. Clustered local-light resources now also carry JSON-safe
+              shadow/cookie metadata through binding 19, with
+              <code>examples/clustered-lights.html</code> proving honest
+              metadata-only local-shadow fallback while direct clustered
+              lighting remains visible. The next SOTA blocker is clustered
+              local point-light shadow sampling.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3130 cluster-aware local-light metadata</dd>
+            <dd>task-3131 clustered local point-light shadows</dd>
           </dl>
         </aside>
       </header>
@@ -4646,12 +4650,12 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Run
-                <code>task-3130</code>: add cluster-aware local-light
-                shadow/cookie metadata.
+                <code>task-3131</code>: render clustered local point-light
+                shadows.
               </li>
               <li>
-                Then re-audit the covered render pipeline against three.js and
-                PlayCanvas before selecting the next visible SOTA slice.
+                Then continue into clustered spot shadows and local-light
+                cookie sampling before the next covered-pipeline re-audit.
               </li>
             </ul>
           </article>
@@ -4664,6 +4668,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3130</div>
+            <div>
+              <strong>Clustered local-light metadata shipped.</strong>
+              <span>
+                Clustered StandardMaterial routes now bind per-light metadata
+                at binding 19, report local shadow/cookie readiness honestly,
+                and <code>examples/clustered-lights.html</code> proves
+                metadata-only local-shadow fallback while direct clustered
+                lighting remains visible.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3129</div>
             <div>

@@ -353,7 +353,7 @@ function standardClusteredLocalLightGroupLayoutKey(
   features: StandardTextureShaderFeatures,
 ): string {
   return features.clusteredLocalLights === true
-    ? `${lightGroupKey},cluster-params@16,cluster-cells@17,cluster-indices@18`
+    ? `${lightGroupKey},cluster-params@16,cluster-cells@17,cluster-indices@18,cluster-metadata@19`
     : lightGroupKey;
 }
 

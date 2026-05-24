@@ -7,6 +7,8 @@ import {
 import {
   LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
   LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+  LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
+  LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED,
   LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
 } from "./local-light-clusters.js";
 import {
@@ -2086,6 +2088,7 @@ function standardTextureVariantDeclaration(
       `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_PARAMS_BINDING}) var<storage, read> localLightClusterParams: array<f32>;`,
       `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_CELLS_BINDING}) var<storage, read> localLightClusterCells: array<u32>;`,
       `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_INDICES_BINDING}) var<storage, read> localLightClusterIndices: array<u32>;`,
+      `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_METADATA_BINDING}) var<storage, read> localLightClusterMetadata: array<u32>;`,
     );
   }
 
@@ -2480,6 +2483,13 @@ function standardTextureVariantBindings(
         label: "Standard material local-light cluster indices",
         group: 3,
         binding: LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+        resource: "read-only-storage-buffer",
+      },
+      {
+        id: "localLightClusterMetadata",
+        label: "Standard material local-light cluster metadata",
+        group: 3,
+        binding: LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
         resource: "read-only-storage-buffer",
       },
     );
@@ -3660,6 +3670,26 @@ fn localLightClusterInvalidCell() -> u32 {
   return 4294967295u;
 }
 
+fn localLightClusterMetadataFlags(lightIndex: u32) -> u32 {
+  let metadataOffset = lightIndex * 4u;
+
+  if (metadataOffset >= arrayLength(&localLightClusterMetadata)) {
+    return 0u;
+  }
+
+  return localLightClusterMetadata[metadataOffset];
+}
+
+fn localLightClusterUnsupportedShadowFactor(lightIndex: u32) -> f32 {
+  let metadataFlags = localLightClusterMetadataFlags(lightIndex);
+
+  if ((metadataFlags & ${LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED}u) != 0u) {
+    return 0.99999994;
+  }
+
+  return 1.0;
+}
+
 fn localLightClusterViewMatrix() -> mat4x4f {
   return mat4x4f(
     vec4f(
@@ -3766,6 +3796,7 @@ fn evaluateClusteredLocalLights(
 
     if (lightIndex < lightCount()) {
       let kind = lightKind(lightIndex);
+      let unsupportedShadowFactor = localLightClusterUnsupportedShadowFactor(lightIndex);
 
       if (kind == LIGHT_KIND_POINT) {
         let lightPosition = pointLightPosition(lightIndex);
@@ -3779,7 +3810,7 @@ fn evaluateClusteredLocalLights(
             normal,
             viewDir,
             toLight / lightDistance,
-            lightRadiance(lightIndex) * attenuation,
+            lightRadiance(lightIndex) * attenuation * unsupportedShadowFactor,
             baseColor,
             metallic,
             roughness,
@@ -3801,7 +3832,7 @@ fn evaluateClusteredLocalLights(
             normal,
             viewDir,
             lightDir,
-            lightRadiance(lightIndex) * rangeAttenuation * coneAttenuation,
+            lightRadiance(lightIndex) * rangeAttenuation * coneAttenuation * unsupportedShadowFactor,
             baseColor,
             metallic,
             roughness,

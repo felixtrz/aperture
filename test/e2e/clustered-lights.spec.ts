@@ -30,6 +30,24 @@ interface LocalLightClusterRouteStatus {
     readonly storedLightReferences: number;
     readonly skippedOverflowReferences: number;
   };
+  readonly shadowCookieMetadata?: {
+    readonly wordsPerLight: number;
+    readonly totalMetadataLights: number;
+    readonly shadow: {
+      readonly status: "not-requested" | "metadata-only" | "not-supported";
+      readonly samplingSupported: boolean;
+      readonly localRequestCount: number;
+      readonly clusteredLightCount: number;
+      readonly fallbackReason: string | null;
+    };
+    readonly cookie: {
+      readonly status: "not-requested" | "metadata-only" | "not-supported";
+      readonly samplingSupported: boolean;
+      readonly localRequestCount: number;
+      readonly clusteredLightCount: number;
+      readonly fallbackReason: string | null;
+    };
+  };
   readonly resourceKey: string;
 }
 
@@ -67,6 +85,7 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
     readonly distinctViewIds: number;
     readonly distinctOccupancyHashes: number;
     readonly routePressureOk: boolean;
+    readonly routeMetadataOk: boolean;
     readonly routes: readonly LocalLightClusterRouteStatus[];
     readonly buffersCreated: number;
     readonly buffersReused: number;
@@ -89,6 +108,7 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
   await page.goto("/examples/clustered-lights.html");
+  await page.bringToFront();
 
   const status = await waitForExampleStatus<ClusteredLightsStatus>(page);
 
@@ -116,7 +136,8 @@ test("browser renders StandardMaterial through clustered local lights", async ({
       distinctViewIds: 2,
       distinctOccupancyHashes: 2,
       routePressureOk: true,
-      buffersReused: 6,
+      routeMetadataOk: true,
+      buffersReused: 8,
     },
     counts: {
       meshDraws: 2,
@@ -159,6 +180,24 @@ test("browser renders StandardMaterial through clustered local lights", async ({
     expect(route.buildPressure?.lightCellWriteAttempts ?? 0).toBeLessThan(
       route.buildPressure?.naiveCellLightPairTests ?? 0,
     );
+    expect(route.shadowCookieMetadata).toMatchObject({
+      wordsPerLight: 4,
+      totalMetadataLights: 130,
+      shadow: {
+        status: "metadata-only",
+        samplingSupported: false,
+        localRequestCount: 4,
+        clusteredLightCount: 4,
+        fallbackReason: "clustered-local-shadow-sampling-not-implemented",
+      },
+      cookie: {
+        status: "not-supported",
+        samplingSupported: false,
+        localRequestCount: 0,
+        clusteredLightCount: 0,
+        fallbackReason: "light-cookie-authoring-not-implemented",
+      },
+    });
   }
   expect(status.readbackStatus?.ok).toBe(true);
   expect(status.readbackStatus?.maxClearDistance ?? 0).toBeGreaterThan(24);

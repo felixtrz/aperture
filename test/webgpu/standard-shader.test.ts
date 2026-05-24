@@ -39,6 +39,7 @@ import {
   STANDARD_IRIDESCENCE_SHADER_VARIANT,
   LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
   LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+  LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
   LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
   createStandardMeshShaderModuleDescriptor,
   createStandardTextureShaderVariantKey,
@@ -241,10 +242,25 @@ describe("built-in standard material WGSL shader metadata", () => {
           binding: LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
           resource: "read-only-storage-buffer",
         },
+        {
+          id: "localLightClusterMetadata",
+          label: "Standard material local-light cluster metadata",
+          group: 3,
+          binding: LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
+          resource: "read-only-storage-buffer",
+        },
       ]),
     );
     expect(shader.code).toContain("fn localLightClusterCellIndex");
     expect(shader.code).toContain("fn localLightClusterSamplePosition");
+    expect(shader.code).toContain("fn localLightClusterMetadataFlags");
+    expect(shader.code).toContain(
+      "fn localLightClusterUnsupportedShadowFactor",
+    );
+    expect(shader.code).toContain("return 0.99999994;");
+    expect(shader.code).toContain(
+      "lightRadiance(lightIndex) * attenuation * unsupportedShadowFactor",
+    );
     expect(shader.code).toContain("localLightClusterViewMatrix()");
     expect(shader.code).toContain("fn evaluateClusteredLocalLights");
     expect(shader.code).toContain(

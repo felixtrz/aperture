@@ -505,6 +505,11 @@ function appendLocalLightClusterEntries(
       resourceKey: resources.indicesResourceKey,
       resource: { buffer: resources.indicesBuffer },
     },
+    {
+      binding: 19,
+      resourceKey: resources.metadataResourceKey,
+      resource: { buffer: resources.metadataBuffer },
+    },
   );
 }
 

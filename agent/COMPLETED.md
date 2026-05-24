@@ -1,5 +1,38 @@
 # Completed Tasks
 
+## task-3130 — Add cluster-aware local-light shadow/cookie metadata
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added a fourth clustered local-light GPU buffer for per-light metadata,
+  preserving local point/spot shadow requests and future cookie readiness
+  alongside params, cells, and indices.
+- Extended clustered StandardMaterial group-3 layouts, bind groups, pipeline
+  layout keys, shader binding metadata, and frame-resource reuse accounting for
+  metadata binding 19.
+- Published JSON-safe `shadowCookieMetadata` reports with honest
+  `metadata-only` local-shadow fallback and `not-supported` cookie fallback
+  state instead of claiming shader sampling exists.
+- Updated `examples/clustered-lights.html` so each active route marks four
+  local point lights with shadow metadata, proves the metadata reports, keeps
+  clustered direct lighting visible, and brings the headed browser page to the
+  front before readback to avoid backgrounded swapchain zero frames.
+- Added shader coverage for the static metadata-buffer use needed by WebGPU
+  auto-layout, plus focused cluster/layout/bind-group/pipeline tests.
+- Updated public tracker pages, backlog, current-task pointer, and handoff.
+  Recommended next task is `task-3131`, rendering clustered local point-light
+  shadows.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/local-light-clusters.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts --reporter=dot`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `DEBUG=pw:api pnpm exec playwright test test/e2e/clustered-lights.spec.ts --project=chrome-webgpu-headed --reporter=line --timeout=15000 --trace=off`
+
 ## task-3129 — Combine cascaded directional shadows with IBL
 
 Completed: 2026-05-24

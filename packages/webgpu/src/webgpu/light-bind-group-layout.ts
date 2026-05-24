@@ -6,6 +6,7 @@ import type {
 import {
   LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
   LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+  LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
   LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
 } from "./local-light-clusters.js";
 
@@ -122,6 +123,11 @@ export function appendClusteredLocalLightLayoutEntries(
     },
     {
       binding: LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+      visibility,
+      buffer: { type: "read-only-storage" },
+    },
+    {
+      binding: LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
       visibility,
       buffer: { type: "read-only-storage" },
     },

@@ -1,6 +1,52 @@
 # Agent Handoff
 
-Updated: 2026-05-24T01:36:48Z
+Updated: 2026-05-24T02:06:00Z
+
+## Current Run Update — 2026-05-24T02:06:00Z — Clustered local-light metadata
+
+Completed `task-3130`, carrying cluster-aware local-light shadow/cookie
+metadata through the StandardMaterial clustered-light route.
+
+### What changed
+
+- Added a fourth renderer-owned clustered local-light GPU buffer for metadata,
+  alongside params, cells, and indices.
+- Preserved local point/spot shadow requests in the metadata buffer and
+  published JSON-safe `shadowCookieMetadata` readiness reports with honest
+  `metadata-only` local-shadow fallback and `not-supported` cookie fallback
+  state.
+- Extended clustered StandardMaterial group-3 layouts, bind groups, frame
+  resource caching/reuse accounting, pipeline layout keys, shader declarations,
+  and shader binding metadata for binding 19.
+- Kept the metadata buffer statically used in WGSL with an imperceptible
+  deferred-shadow compatibility factor so WebGPU auto-layout retains binding 19
+  before clustered shadow sampling ships.
+- Updated `examples/clustered-lights.html` so each active route marks four
+  local point lights with shadow metadata, proves route metadata state, and
+  brings the headed browser page to the front before readback to avoid
+  backgrounded swapchain zero frames.
+- Refilled the ready queue with visible follow-ups. Recommended next task is
+  `task-3131`, rendering clustered local point-light shadows.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/local-light-clusters.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts --reporter=dot`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `DEBUG=pw:api pnpm exec playwright test test/e2e/clustered-lights.spec.ts --project=chrome-webgpu-headed --reporter=line --timeout=15000 --trace=off`
+
+### Known issues
+
+- The same Playwright spec passes with `DEBUG=pw:api`; in this local headed
+  setup, the plain reporter command can hang after launch/teardown. The
+  clustered page itself reports `ok: true` after `page.bringToFront()`.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3131`, rendering clustered local point-light shadows.
 
 ## Current Run Update — 2026-05-24T01:36:48Z — CSM plus IBL route
 

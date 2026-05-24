@@ -5,7 +5,7 @@ const canvas = document.querySelector("#aperture-canvas");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
 const clearColor = [0.012, 0.016, 0.022, 1];
-const maxStatusWarmupFrames = 24;
+const maxStatusWarmupFrames = 90;
 const readbackSamples = [
   { id: "left-bank", x: 0.26, y: 0.5 },
   { id: "center", x: 0.5, y: 0.5 },
@@ -302,6 +302,24 @@ function createClusterStatus(localLightClusters, pipelineKeys, loop) {
         lightCellWriteAttempts < naiveCellLightPairTests
       );
     });
+  const routeMetadataOk =
+    clusterRoutes.length > 0 &&
+    clusterRoutes.every((route) => {
+      const shadow = route.shadowCookieMetadata?.shadow ?? null;
+      const cookie = route.shadowCookieMetadata?.cookie ?? null;
+
+      return (
+        shadow?.status === "metadata-only" &&
+        shadow.samplingSupported === false &&
+        (shadow.localRequestCount ?? 0) >= 4 &&
+        (shadow.clusteredLightCount ?? 0) >= 4 &&
+        shadow.fallbackReason ===
+          "clustered-local-shadow-sampling-not-implemented" &&
+        cookie?.status === "not-supported" &&
+        cookie.samplingSupported === false &&
+        cookie.fallbackReason === "light-cookie-authoring-not-implemented"
+      );
+    });
 
   return {
     ok:
@@ -310,8 +328,9 @@ function createClusterStatus(localLightClusters, pipelineKeys, loop) {
       distinctViewIds >= 2 &&
       distinctOccupancyHashes >= 2 &&
       routePressureOk &&
+      routeMetadataOk &&
       occupancyChanged &&
-      (localLightClusters?.resourceReuse?.buffersReused ?? 0) >= 6,
+      (localLightClusters?.resourceReuse?.buffersReused ?? 0) >= 8,
     clusterPipelineUsed,
     coordinateSpace: primaryRoute?.coordinateSpace ?? null,
     viewId: primaryRoute?.viewId ?? null,
@@ -330,6 +349,7 @@ function createClusterStatus(localLightClusters, pipelineKeys, loop) {
     distinctViewIds,
     distinctOccupancyHashes,
     routePressureOk,
+    routeMetadataOk,
     routes: clusterRoutes.map((route) => ({
       enabled: route.enabled,
       layerMask: route.layerMask ?? null,
@@ -346,6 +366,7 @@ function createClusterStatus(localLightClusters, pipelineKeys, loop) {
         route.totalAssignedLightReferences ?? null,
       occupancyHash: route.occupancyHash ?? null,
       buildPressure: route.buildPressure ?? null,
+      shadowCookieMetadata: route.shadowCookieMetadata ?? null,
       resourceKey: route.resourceKey ?? null,
     })),
     buffersCreated: localLightClusters?.resourceReuse?.buffersCreated ?? 0,

@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3130`: add cluster-aware local-light shadow/cookie metadata.
+Start `task-3131`: render clustered local point-light shadows.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -190,13 +190,17 @@ only the cell range touched by each light. `task-3128` now replaces that build
 shape with light-driven cell-range fill and browser-visible pressure telemetry.
 `task-3129` now combines CSM plus IBL in one StandardMaterial route and proves
 the outdoor scene can bind a cascaded 2D-array shadow map alongside
-diffuse/specular IBL resources. The next visible slice is `task-3130`,
-cluster-aware local-light shadow/cookie metadata.
+diffuse/specular IBL resources. `task-3130` now carries clustered local-light
+shadow/cookie metadata through renderer-owned cluster resources and proves the
+metadata-only local-shadow fallback honestly while keeping clustered direct
+lighting visible. The next visible slice is `task-3131`, rendering clustered
+local point-light shadows.
 
 Reference anchors for the next task (read before writing):
 
 - `references/engine/src/scene/lighting/world-clusters.js`.
-- `references/engine/src/scene/renderer/forward-renderer.js`.
+- `references/engine/src/scene/lighting/lights-buffer.js`.
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -708,6 +712,8 @@ Acceptance criteria:
 
 ### task-3130 — Add cluster-aware local-light shadow/cookie metadata
 
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.
 Reference anchor: `references/engine/src/scene/lighting/world-clusters.js`, `references/engine/src/scene/renderer/forward-renderer.js`.
@@ -721,6 +727,59 @@ Acceptance criteria:
   fallback diagnostics for local shadow/cookie metadata in many-light scenes.
 - A browser proof keeps clustered direct lighting visible while reporting the
   cluster-local metadata state and zero WebGPU validation warnings.
+
+### task-3131 — Render clustered local point-light shadows
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
+Reference anchor: `references/engine/src/scene/lighting/world-clusters.js`, `references/engine/src/scene/lighting/lights-buffer.js`, `references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
+
+Acceptance criteria:
+
+- Clustered StandardMaterial point lights that already carry shadow metadata can
+  bind the needed renderer-owned point-shadow resources through the clustered
+  route without exposing GPU state through ECS.
+- The clustered local-light shader applies a point-shadow visibility factor only
+  for lights with supported shadow resources, while preserving direct clustered
+  lighting for unsupported or metadata-only lights.
+- `examples/clustered-lights.html` proves at least one clustered point-light
+  receiver darkens from local-shadow sampling, reports supported shadow sampling
+  readiness for that route, and keeps zero WebGPU validation warnings.
+
+### task-3132 — Render clustered local spot-light shadows
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.
+Reference anchor: `references/engine/src/scene/lighting/world-clusters.js`, `references/engine/src/scene/lighting/lights-buffer.js`, `references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
+
+Acceptance criteria:
+
+- Clustered StandardMaterial spot lights with shadow metadata can bind the
+  renderer-owned spot-shadow matrix/depth/sampler resources needed by the
+  clustered local-light route.
+- The clustered local-light shader applies spot-shadow visibility only to the
+  matching clustered spot lights and reports JSON-safe fallback reasons for
+  unsupported combinations.
+- A browser proof shows clustered spot-light direct lighting remains visible
+  while a shadowed receiver reports a measurable local spot-shadow darkening.
+
+### task-3133 — Add clustered local-light cookie sampling
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render`, `packages/runtime`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.
+Reference anchor: `references/engine/src/scene/lighting/lights-buffer.js`, `references/engine/src/scene/renderer/forward-renderer.js`, `references/three.js/src/renderers/WebGLRenderer.js`.
+
+Acceptance criteria:
+
+- ECS/runtime light authoring can attach a renderer-independent cookie texture
+  handle for a supported local light without adding a renderer-owned scene
+  graph.
+- Clustered local-light resources preserve cookie metadata and bind prepared
+  cookie texture/sampler resources through the StandardMaterial clustered route
+  when supported.
+- A browser proof shows a clustered local light with a cookie pattern visibly
+  modulates a receiver and reports supported cookie readiness with zero WebGPU
+  validation warnings.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

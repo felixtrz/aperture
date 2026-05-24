@@ -11,6 +11,7 @@ import {
   lightBindGroupResourceKey,
   LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
   LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
+  LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
   LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
   type LightBindGroupCreationDescriptor,
   type LightBindGroupLayoutResource,
@@ -191,6 +192,10 @@ describe("light bind group descriptor planning", () => {
         {
           binding: LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
           resourceKey: "local-light-cluster:test/indices",
+        },
+        {
+          binding: LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
+          resourceKey: "local-light-cluster:test/metadata",
         },
       ],
     });
@@ -508,9 +513,11 @@ function localLightClusterResource(): LocalLightClusterGpuResource {
     paramsResourceKey: "local-light-cluster:test/params",
     cellsResourceKey: "local-light-cluster:test/cells",
     indicesResourceKey: "local-light-cluster:test/indices",
+    metadataResourceKey: "local-light-cluster:test/metadata",
     paramsBuffer: { handle: "raw-local-light-cluster-params" },
     cellsBuffer: { handle: "raw-local-light-cluster-cells" },
     indicesBuffer: { handle: "raw-local-light-cluster-indices" },
+    metadataBuffer: { handle: "raw-local-light-cluster-metadata" },
     descriptor: {
       resourceKey: "local-light-cluster:test",
       enabled: true,
@@ -541,9 +548,28 @@ function localLightClusterResource(): LocalLightClusterGpuResource {
         storedLightReferences: 8,
         skippedOverflowReferences: 0,
       },
+      shadowCookieMetadata: {
+        wordsPerLight: 4,
+        totalMetadataLights: 16,
+        shadow: {
+          status: "not-requested",
+          samplingSupported: false,
+          localRequestCount: 0,
+          clusteredLightCount: 0,
+          fallbackReason: null,
+        },
+        cookie: {
+          status: "not-supported",
+          samplingSupported: false,
+          localRequestCount: 0,
+          clusteredLightCount: 0,
+          fallbackReason: "light-cookie-authoring-not-implemented",
+        },
+      },
       params: new Float32Array(28),
       cells: new Uint32Array(512),
       indices: new Uint32Array([0]),
+      metadata: new Uint32Array(64),
     },
   };
 }

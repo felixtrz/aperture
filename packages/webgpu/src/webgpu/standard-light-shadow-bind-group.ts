@@ -934,6 +934,10 @@ function createCreationEntries(
       resources.localLightClusterResources.indicesResourceKey,
       resources.localLightClusterResources.indicesBuffer,
     );
+    buffers.set(
+      resources.localLightClusterResources.metadataResourceKey,
+      resources.localLightClusterResources.metadataBuffer,
+    );
   }
 
   return plan.entries.flatMap((entry) => {
@@ -1007,6 +1011,11 @@ function appendLocalLightClusterEntries(
     {
       binding: 18,
       resourceKey: resources.indicesResourceKey,
+      resourceKind: "buffer",
+    },
+    {
+      binding: 19,
+      resourceKey: resources.metadataResourceKey,
       resourceKind: "buffer",
     },
   );

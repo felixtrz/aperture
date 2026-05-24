@@ -3,28 +3,32 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3130.
+Current task: task-3131.
 
-Status: `task-3129` completed the combined cascaded directional shadow plus IBL
-StandardMaterial route.
+Status: `task-3130` completed cluster-aware local-light shadow/cookie
+metadata.
 
 Key finding:
 
-- StandardMaterial now has a distinct group-3 light/shadow/IBL route for
-  `shadowMap|cascadedShadowMap|iblDiffuse` pipeline keys, so cascaded
-  directional shadows bind their 2D-array depth texture alongside diffuse and
-  specular IBL cube textures plus the IBL sampler.
-- The shader now keeps diffuse/specular IBL in the cascaded receiver final
-  color expression instead of falling back to the shadow-only color path.
-- `examples/outdoor-scene.html` registers a renderer-owned environment map,
-  enables IBL by default, and proves the same worker-authored scene reports
-  `cascadedShadowMap`, `iblDiffuse`, and `iblSpecularProof` while preserving
-  CSM receiver darkening.
+- Clustered local-light descriptors now carry a renderer-owned metadata buffer
+  alongside params/cells/indices so assigned point/spot lights can preserve
+  local shadow/cookie readiness without exposing GPU handles through ECS.
+- StandardMaterial clustered layouts, bind groups, pipeline layout keys, and
+  shader metadata now include binding 19 for cluster metadata.
+- The clustered shader keeps the metadata buffer statically used through an
+  imperceptible deferred-shadow compatibility factor, preventing WebGPU
+  auto-layout from dropping the binding before future local-shadow sampling is
+  implemented.
+- `examples/clustered-lights.html` now publishes JSON-safe
+  `shadowCookieMetadata` for both active cluster routes, including honest
+  `metadata-only` shadow fallback and `not-supported` cookie fallback state
+  while keeping direct clustered lighting visible.
 
-Next step: run `task-3130` from `agent/BACKLOG.md`, adding cluster-aware
-local-light shadow/cookie metadata.
+Next step: run `task-3131` from `agent/BACKLOG.md`, rendering clustered local
+point-light shadows from the metadata route.
 
 Reference anchors for the next task:
 
 - `references/engine/src/scene/lighting/world-clusters.js`.
-- `references/engine/src/scene/renderer/forward-renderer.js`.
+- `references/engine/src/scene/lighting/lights-buffer.js`.
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`.

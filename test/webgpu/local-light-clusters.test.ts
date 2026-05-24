@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST,
+  LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED,
+  LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE,
   createLocalLightClusterDescriptor,
   createLocalLightClusterGpuResource,
   localLightClusterReportFromDescriptor,
@@ -149,6 +152,48 @@ describe("local light cluster preparation", () => {
     expect(firstView.occupancyHash).not.toBe(secondView.occupancyHash);
   });
 
+  it("preserves cluster-local shadow metadata without claiming shader sampling", () => {
+    const descriptor = createLocalLightClusterDescriptor(
+      snapshotWithPointLights(16, { shadowedLightCount: 3 }),
+      {
+        dimensions: { x: 4, y: 1, z: 4 },
+        maxLightsPerCell: 8,
+      },
+    );
+    const firstMetadataOffset = 0;
+    const firstFlags = descriptor.metadata[firstMetadataOffset] ?? 0;
+
+    expect(descriptor.enabled).toBe(true);
+    expect(descriptor.metadata).toHaveLength(
+      descriptor.totalLights * LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE,
+    );
+    expect(
+      firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST,
+    ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST);
+    expect(
+      firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED,
+    ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED);
+    expect(descriptor.metadata[firstMetadataOffset + 1]).toBe(1000);
+    expect(descriptor.shadowCookieMetadata).toMatchObject({
+      wordsPerLight: LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE,
+      totalMetadataLights: 16,
+      shadow: {
+        status: "metadata-only",
+        samplingSupported: false,
+        localRequestCount: 3,
+        clusteredLightCount: 3,
+        fallbackReason: "clustered-local-shadow-sampling-not-implemented",
+      },
+      cookie: {
+        status: "not-supported",
+        samplingSupported: false,
+        localRequestCount: 0,
+        clusteredLightCount: 0,
+        fallbackReason: "light-cookie-authoring-not-implemented",
+      },
+    });
+  });
+
   it("surfaces missing light transforms instead of clustering invalid data", () => {
     const descriptor = createLocalLightClusterDescriptor({
       ...snapshotWithPointLights(16),
@@ -183,18 +228,20 @@ describe("local light cluster preparation", () => {
       paramsResourceKey: "local-light-cluster:test/params",
       cellsResourceKey: "local-light-cluster:test/cells",
       indicesResourceKey: "local-light-cluster:test/indices",
+      metadataResourceKey: "local-light-cluster:test/metadata",
     });
     expect(created.map((entry) => entry.label)).toEqual([
       "local-light-cluster:test/params",
       "local-light-cluster:test/cells",
       "local-light-cluster:test/indices",
+      "local-light-cluster:test/metadata",
     ]);
-    expect(writes).toHaveLength(3);
+    expect(writes).toHaveLength(4);
 
     expect(
       localLightClusterReportFromDescriptor(descriptor, {
         resource: result.resource,
-        buffersCreated: 3,
+        buffersCreated: 4,
       }),
     ).toMatchObject({
       enabled: true,
@@ -202,8 +249,9 @@ describe("local light cluster preparation", () => {
       paramsResourceKey: "local-light-cluster:test/params",
       cellsResourceKey: "local-light-cluster:test/cells",
       indicesResourceKey: "local-light-cluster:test/indices",
+      metadataResourceKey: "local-light-cluster:test/metadata",
       resourceReuse: {
-        buffersCreated: 3,
+        buffersCreated: 4,
         buffersReused: 0,
       },
     });
@@ -216,10 +264,12 @@ function snapshotWithPointLights(
     readonly viewId?: number;
     readonly viewMatrix?: readonly number[];
     readonly projectionMatrix?: readonly number[];
+    readonly shadowedLightCount?: number;
   } = {},
 ): RenderSnapshot {
   const transforms = new Float32Array(count * 16);
   const lights: LightPacket[] = [];
+  const shadowRequests: Array<RenderSnapshot["shadowRequests"][number]> = [];
   const width = Math.ceil(Math.sqrt(count));
   const viewMatrix = options.viewMatrix ?? null;
   const projectionMatrix = options.projectionMatrix ?? defaultProjectionMatrix();
@@ -241,6 +291,16 @@ function snapshotWithPointLights(
     transforms[offset + 14] = z;
     transforms[offset + 15] = 1;
     lights.push(pointLight(index, offset));
+
+    if (index < (options.shadowedLightCount ?? 0)) {
+      shadowRequests.push({
+        shadowId: 1000 + index,
+        lightId: 100 + index,
+        lightKind: "point",
+        casterLayerMask: 1,
+        receiverLayerMask: 1,
+      });
+    }
   }
 
   return {
@@ -268,7 +328,7 @@ function snapshotWithPointLights(
     meshDraws: [],
     lights,
     environments: [],
-    shadowRequests: [],
+    shadowRequests,
     bounds: [],
     transforms,
     viewMatrices,
