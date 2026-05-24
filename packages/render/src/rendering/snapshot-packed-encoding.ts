@@ -20,12 +20,12 @@ import type {
 } from "./snapshot.js";
 
 export const SNAPSHOT_PACKET_ENCODING_MAGIC = 0x4150_5350; // "APSP"
-export const SNAPSHOT_PACKET_ENCODING_VERSION = 4;
+export const SNAPSHOT_PACKET_ENCODING_VERSION = 5;
 
 export const SNAPSHOT_PACKET_HEADER_WORDS = 8;
 export const VIEW_PACKET_WORDS = 36;
 export const MESH_DRAW_PACKET_WORDS = 34;
-export const LIGHT_PACKET_WORDS = 27;
+export const LIGHT_PACKET_WORDS = 31;
 export const ENVIRONMENT_PACKET_WORDS = 13;
 export const SHADOW_REQUEST_PACKET_WORDS = 6;
 export const BOUNDS_PACKET_WORDS = 43;
@@ -285,7 +285,7 @@ export function encodeSnapshotPackets(
   }
 
   for (const packet of packets.lights) {
-    writeLightPacket(words, offset, packet);
+    writeLightPacket(words, offset, packet, registry);
     offset += LIGHT_PACKET_WORDS;
   }
 
@@ -366,7 +366,7 @@ export function decodeSnapshotPackets(
   }
 
   for (let index = 0; index < lightCount; index += 1) {
-    lights.push(readLightPacket(words, offset));
+    lights.push(readLightPacket(words, offset, registry));
     offset += LIGHT_PACKET_WORDS;
   }
 
@@ -566,6 +566,7 @@ function writeLightPacket(
   words: Uint32Array,
   offset: number,
   packet: LightPacket,
+  registry: SnapshotPacketEncodingRegistry,
 ): void {
   words[offset] = packet.lightId >>> 0;
   writeEntity(words, offset + 1, packet.entity);
@@ -580,10 +581,23 @@ function writeLightPacket(
   words[offset + 24] = areaLightShapeId(packet.shape);
   words[offset + 25] = packet.worldTransformOffset >>> 0;
   words[offset + 26] = packet.layerMask >>> 0;
+  words[offset + 27] = registry.handleId(packet.cookieTexture ?? null) >>> 0;
+  words[offset + 28] = registry.handleId(packet.cookieSampler ?? null) >>> 0;
+  writeFloat64(words, offset + 29, packet.cookieIntensity ?? 1);
 }
 
-function readLightPacket(words: Uint32Array, offset: number): LightPacket {
-  return {
+function readLightPacket(
+  words: Uint32Array,
+  offset: number,
+  registry: SnapshotPacketEncodingRegistry,
+): LightPacket {
+  const cookieTexture = readNullableHandle(registry, words[offset + 27] ?? 0, [
+    "texture",
+  ]);
+  const cookieSampler = readNullableHandle(registry, words[offset + 28] ?? 0, [
+    "sampler",
+  ]);
+  const packet: LightPacket = {
     lightId: words[offset] ?? 0,
     entity: readEntity(words, offset + 1),
     kind: lightKindValue(words[offset + 3] ?? 0),
@@ -598,6 +612,15 @@ function readLightPacket(words: Uint32Array, offset: number): LightPacket {
     worldTransformOffset: words[offset + 25] ?? 0,
     layerMask: words[offset + 26] ?? 0,
   };
+
+  return cookieTexture === null
+    ? packet
+    : {
+        ...packet,
+        cookieTexture,
+        cookieSampler,
+        cookieIntensity: readFloat64(words, offset + 29),
+      };
 }
 
 function writeEnvironmentPacket(

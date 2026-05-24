@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_REQUEST,
+  LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_DEFERRED,
+  LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_SUPPORTED,
   LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST,
   LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED,
   LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED,
@@ -13,6 +16,8 @@ import {
   type RenderSnapshot,
   type WebGpuBufferCreateDescriptor,
   type WebGpuBufferDeviceLike,
+  createSamplerHandle,
+  createTextureHandle,
 } from "@aperture-engine/webgpu";
 
 describe("local light cluster preparation", () => {
@@ -56,8 +61,8 @@ describe("local light cluster preparation", () => {
     expect(descriptor.totalAssignedLightReferences).toBeLessThan(16 * 16);
     expect(descriptor.buildPressure).toMatchObject({
       assignmentStrategy: "light-range",
-      naiveCellLightPairTests: descriptor.cellCount *
-        descriptor.clusteredLocalLights,
+      naiveCellLightPairTests:
+        descriptor.cellCount * descriptor.clusteredLocalLights,
       lightCellRangeTests: 16,
       storedLightReferences: descriptor.totalAssignedLightReferences,
       skippedOverflowReferences: 0,
@@ -70,10 +75,7 @@ describe("local light cluster preparation", () => {
     expect(descriptor.params[10]).toBe(4);
     expect(descriptor.params[11]).toBe(1);
     expect(Array.from(descriptor.params.slice(12, 28))).toEqual([
-      1, 0, 0, 0,
-      0, 1, 0, 0,
-      0, 0, 1, 0,
-      0, 0, 0, 1,
+      1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
     ]);
   });
 
@@ -168,9 +170,9 @@ describe("local light cluster preparation", () => {
     expect(descriptor.metadata).toHaveLength(
       descriptor.totalLights * LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE,
     );
-    expect(
-      firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST,
-    ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST);
+    expect(firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST).toBe(
+      LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST,
+    );
     expect(
       firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED,
     ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED);
@@ -187,13 +189,80 @@ describe("local light cluster preparation", () => {
         fallbackReason: "clustered-local-shadow-sampling-not-implemented",
       },
       cookie: {
-        status: "not-supported",
+        status: "not-requested",
         samplingSupported: false,
         localRequestCount: 0,
         clusteredLightCount: 0,
         supportedLightCount: 0,
-        fallbackReason: "light-cookie-authoring-not-implemented",
+        fallbackReason: null,
       },
+    });
+  });
+
+  it("preserves unsupported local-light cookie metadata without shader sampling", () => {
+    const descriptor = createLocalLightClusterDescriptor(
+      snapshotWithPointLights(16, { cookieLightCount: 2 }),
+      {
+        dimensions: { x: 4, y: 1, z: 4 },
+        maxLightsPerCell: 8,
+      },
+    );
+    const firstFlags = descriptor.metadata[0] ?? 0;
+
+    expect(firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_REQUEST).toBe(
+      LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_REQUEST,
+    );
+    expect(
+      firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_DEFERRED,
+    ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_DEFERRED);
+    expect(descriptor.metadata[3]).toBe(0);
+    expect(descriptor.shadowCookieMetadata.cookie).toMatchObject({
+      status: "metadata-only",
+      samplingSupported: false,
+      localRequestCount: 2,
+      clusteredLightCount: 2,
+      supportedLightCount: 0,
+      fallbackReason: "clustered-local-cookie-sampling-not-implemented",
+    });
+  });
+
+  it("marks supported local-light cookie resources as sampling-ready metadata", () => {
+    const descriptor = createLocalLightClusterDescriptor(
+      snapshotWithPointLights(16, { cookieLightCount: 2 }),
+      {
+        dimensions: { x: 4, y: 1, z: 4 },
+        maxLightsPerCell: 8,
+        supportedCookieResources: [
+          {
+            lightId: 100,
+            textureKey: "texture:cluster-cookie",
+            samplerKey: "sampler:cluster-cookie",
+            matrixBaseIndex: 3,
+          },
+        ],
+      },
+    );
+    const firstFlags = descriptor.metadata[0] ?? 0;
+    const secondFlags =
+      descriptor.metadata[LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE] ?? 0;
+
+    expect(
+      firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_SUPPORTED,
+    ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_SUPPORTED);
+    expect(
+      firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_DEFERRED,
+    ).toBe(0);
+    expect(descriptor.metadata[3]).toBe(3);
+    expect(
+      secondFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_DEFERRED,
+    ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_DEFERRED);
+    expect(descriptor.shadowCookieMetadata.cookie).toMatchObject({
+      status: "sampling-ready",
+      samplingSupported: true,
+      localRequestCount: 2,
+      clusteredLightCount: 2,
+      supportedLightCount: 1,
+      fallbackReason: "clustered-local-cookie-sampling-partial",
     });
   });
 
@@ -212,9 +281,9 @@ describe("local light cluster preparation", () => {
     const secondFlags =
       descriptor.metadata[LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE] ?? 0;
 
-    expect(
-      firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST,
-    ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST);
+    expect(firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST).toBe(
+      LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST,
+    );
     expect(
       firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED,
     ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED);
@@ -351,6 +420,7 @@ function snapshotWithPointLights(
     readonly viewMatrix?: readonly number[];
     readonly projectionMatrix?: readonly number[];
     readonly shadowedLightCount?: number;
+    readonly cookieLightCount?: number;
   } = {},
 ): RenderSnapshot {
   const transforms = new Float32Array(count * 16);
@@ -358,11 +428,16 @@ function snapshotWithPointLights(
   const shadowRequests: Array<RenderSnapshot["shadowRequests"][number]> = [];
   const width = Math.ceil(Math.sqrt(count));
   const viewMatrix = options.viewMatrix ?? null;
-  const projectionMatrix = options.projectionMatrix ?? defaultProjectionMatrix();
+  const projectionMatrix =
+    options.projectionMatrix ?? defaultProjectionMatrix();
   const viewMatrices =
     viewMatrix === null
       ? new Float32Array(0)
-      : new Float32Array([...viewMatrix, ...projectionMatrix, ...projectionMatrix]);
+      : new Float32Array([
+          ...viewMatrix,
+          ...projectionMatrix,
+          ...projectionMatrix,
+        ]);
 
   for (let index = 0; index < count; index += 1) {
     const offset = index * 16;
@@ -376,7 +451,9 @@ function snapshotWithPointLights(
     transforms[offset + 13] = 0;
     transforms[offset + 14] = z;
     transforms[offset + 15] = 1;
-    lights.push(pointLight(index, offset));
+    lights.push(
+      pointLight(index, offset, index < (options.cookieLightCount ?? 0)),
+    );
 
     if (index < (options.shadowedLightCount ?? 0)) {
       shadowRequests.push({
@@ -499,24 +576,18 @@ function matrixWithTranslation(
   y: number,
   z: number,
 ): readonly number[] {
-  return [
-    1, 0, 0, 0,
-    0, 1, 0, 0,
-    0, 0, 1, 0,
-    x, y, z, 1,
-  ];
+  return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1];
 }
 
 function defaultProjectionMatrix(): readonly number[] {
-  return [
-    1.6, 0, 0, 0,
-    0, 1.6, 0, 0,
-    0, 0, -1, -1,
-    0, 0, -0.2, 0,
-  ];
+  return [1.6, 0, 0, 0, 0, 1.6, 0, 0, 0, 0, -1, -1, 0, 0, -0.2, 0];
 }
 
-function pointLight(seed: number, worldTransformOffset: number): LightPacket {
+function pointLight(
+  seed: number,
+  worldTransformOffset: number,
+  cookie = false,
+): LightPacket {
   return {
     lightId: 100 + seed,
     entity: { index: seed, generation: 0 },
@@ -528,6 +599,13 @@ function pointLight(seed: number, worldTransformOffset: number): LightPacket {
     outerConeAngle: 0,
     worldTransformOffset,
     layerMask: 1,
+    ...(cookie
+      ? {
+          cookieTexture: createTextureHandle("cluster-cookie"),
+          cookieSampler: createSamplerHandle("cluster-cookie"),
+          cookieIntensity: 1,
+        }
+      : {}),
   };
 }
 

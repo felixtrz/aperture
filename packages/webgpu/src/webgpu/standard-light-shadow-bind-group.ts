@@ -23,6 +23,7 @@ import {
 } from "./standard-area-light-ltc-resource.js";
 import { appendClusteredLocalLightLayoutEntries } from "./light-bind-group-layout.js";
 import type { LocalLightClusterGpuResource } from "./local-light-clusters.js";
+import type { LocalLightClusterCookieResources } from "./local-light-cookie-resources.js";
 import type { ShadowSamplerResourceReport } from "./standard-material-shadow-bind-group.js";
 
 export const STANDARD_LIGHT_SHADOW_BIND_GROUP = 3;
@@ -99,6 +100,7 @@ export interface CreateStandardLightShadowBindGroupDescriptorPlanOptions {
   readonly samplerResource: ShadowSamplerResourceReport;
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
+  readonly localLightCookieResources?: LocalLightClusterCookieResources | null;
   readonly layoutKey?: string | null;
   readonly label?: string;
 }
@@ -110,6 +112,7 @@ export interface CreateStandardLightMultiShadowBindGroupDescriptorPlanOptions {
   readonly pointShadowReceiverResources: StandardLightIblShadowReceiverResources;
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
+  readonly localLightCookieResources?: LocalLightClusterCookieResources | null;
   readonly layoutKey?: string | null;
   readonly label?: string;
 }
@@ -124,6 +127,7 @@ export interface CreateStandardLightIblBindGroupDescriptorPlanOptions {
   readonly cascadedShadowMap?: boolean;
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
+  readonly localLightCookieResources?: LocalLightClusterCookieResources | null;
   readonly layoutKey?: string | null;
   readonly label?: string;
 }
@@ -154,6 +158,7 @@ export interface StandardLightShadowBindGroupDeviceLike {
 
 export function createStandardLightShadowBindGroupLayoutDescriptor(options?: {
   readonly clusteredLocalLights?: boolean;
+  readonly clusteredLocalLightCookies?: boolean;
 }): WebGpuBindGroupLayoutDescriptor {
   return createStandardLightShadowBindGroupLayoutDescriptorForView(
     "2d",
@@ -163,6 +168,7 @@ export function createStandardLightShadowBindGroupLayoutDescriptor(options?: {
 
 export function createStandardLightCascadedShadowBindGroupLayoutDescriptor(options?: {
   readonly clusteredLocalLights?: boolean;
+  readonly clusteredLocalLightCookies?: boolean;
 }): WebGpuBindGroupLayoutDescriptor {
   return createStandardLightShadowBindGroupLayoutDescriptorForView(
     "2d-array",
@@ -172,6 +178,7 @@ export function createStandardLightCascadedShadowBindGroupLayoutDescriptor(optio
 
 export function createStandardLightPointShadowBindGroupLayoutDescriptor(options?: {
   readonly clusteredLocalLights?: boolean;
+  readonly clusteredLocalLightCookies?: boolean;
 }): WebGpuBindGroupLayoutDescriptor {
   return createStandardLightShadowBindGroupLayoutDescriptorForView(
     "cube",
@@ -181,6 +188,7 @@ export function createStandardLightPointShadowBindGroupLayoutDescriptor(options?
 
 export function createStandardLightMultiShadowBindGroupLayoutDescriptor(options?: {
   readonly clusteredLocalLights?: boolean;
+  readonly clusteredLocalLightCookies?: boolean;
 }): WebGpuBindGroupLayoutDescriptor {
   const entries: WebGpuBindGroupLayoutEntryDescriptor[] = [
     { binding: 0, visibility: 0x2, buffer: { type: "read-only-storage" } },
@@ -224,6 +232,7 @@ export function createStandardLightMultiShadowBindGroupLayoutDescriptor(options?
     entries,
     0x2,
     options?.clusteredLocalLights === true,
+    options?.clusteredLocalLightCookies === true,
   );
 
   return {
@@ -236,6 +245,7 @@ function createStandardLightShadowBindGroupLayoutDescriptorForView(
   viewDimension: "2d" | "2d-array" | "cube",
   options?: {
     readonly clusteredLocalLights?: boolean;
+    readonly clusteredLocalLightCookies?: boolean;
   },
 ): WebGpuBindGroupLayoutDescriptor {
   const entries: WebGpuBindGroupLayoutEntryDescriptor[] = [
@@ -258,6 +268,7 @@ function createStandardLightShadowBindGroupLayoutDescriptorForView(
     entries,
     0x2,
     options?.clusteredLocalLights === true,
+    options?.clusteredLocalLightCookies === true,
   );
 
   return {
@@ -276,6 +287,7 @@ export function createStandardLightIblBindGroupLayoutDescriptor(options?: {
   readonly cascadedShadowMap?: boolean;
   readonly specularProof?: boolean;
   readonly clusteredLocalLights?: boolean;
+  readonly clusteredLocalLightCookies?: boolean;
 }): WebGpuBindGroupLayoutDescriptor {
   const entries: WebGpuBindGroupLayoutEntryDescriptor[] = [
     { binding: 0, visibility: 0x2, buffer: { type: "read-only-storage" } },
@@ -330,6 +342,7 @@ export function createStandardLightIblBindGroupLayoutDescriptor(options?: {
     entries,
     0x2,
     options?.clusteredLocalLights === true,
+    options?.clusteredLocalLightCookies === true,
   );
 
   return {
@@ -337,8 +350,8 @@ export function createStandardLightIblBindGroupLayoutDescriptor(options?: {
       options?.shadowMap === true && options.cascadedShadowMap === true
         ? STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY
         : options?.shadowMap === true
-        ? STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY
-        : STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY,
+          ? STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY
+          : STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY,
     entries,
   };
 }
@@ -451,6 +464,10 @@ export function createStandardLightShadowBindGroupDescriptorPlan(
     entries,
     options.localLightClusterResources ?? null,
   );
+  appendLocalLightCookieEntries(
+    entries,
+    options.localLightCookieResources ?? null,
+  );
 
   return {
     valid: diagnostics.length === 0,
@@ -527,6 +544,10 @@ export function createStandardLightMultiShadowBindGroupDescriptorPlan(
   appendLocalLightClusterEntries(
     entries,
     options.localLightClusterResources ?? null,
+  );
+  appendLocalLightCookieEntries(
+    entries,
+    options.localLightCookieResources ?? null,
   );
 
   return {
@@ -683,6 +704,10 @@ export function createStandardLightIblBindGroupDescriptorPlan(
     entries,
     options.localLightClusterResources ?? null,
   );
+  appendLocalLightCookieEntries(
+    entries,
+    options.localLightCookieResources ?? null,
+  );
 
   return {
     valid: diagnostics.length === 0,
@@ -715,6 +740,7 @@ export function createStandardLightShadowBindGroupResource(options: {
   readonly iblSamplerResource?: IblSamplerResourceReport;
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
+  readonly localLightCookieResources?: LocalLightClusterCookieResources | null;
 }): CreateStandardLightShadowBindGroupResourceResult {
   if (options.plan === null) {
     return resourceResult(
@@ -940,6 +966,20 @@ function createCreationEntries(
     );
   }
 
+  if (
+    resources.localLightCookieResources !== undefined &&
+    resources.localLightCookieResources !== null
+  ) {
+    textures.set(
+      resources.localLightCookieResources.textureResource.resourceKey,
+      resources.localLightCookieResources.textureResource.view,
+    );
+    samplers.set(
+      resources.localLightCookieResources.samplerResource.resourceKey,
+      resources.localLightCookieResources.samplerResource.sampler,
+    );
+  }
+
   return plan.entries.flatMap((entry) => {
     if (entry.resourceKind === "texture-view") {
       const texture = textures.get(entry.resourceKey);
@@ -1017,6 +1057,28 @@ function appendLocalLightClusterEntries(
       binding: 19,
       resourceKey: resources.metadataResourceKey,
       resourceKind: "buffer",
+    },
+  );
+}
+
+function appendLocalLightCookieEntries(
+  entries: StandardLightShadowBindGroupDescriptorEntry[],
+  resources: LocalLightClusterCookieResources | null,
+): void {
+  if (resources === null) {
+    return;
+  }
+
+  entries.push(
+    {
+      binding: 20,
+      resourceKey: resources.textureResource.resourceKey,
+      resourceKind: "texture-view",
+    },
+    {
+      binding: 21,
+      resourceKey: resources.samplerResource.resourceKey,
+      resourceKind: "sampler",
     },
   );
 }

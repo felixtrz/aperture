@@ -46,7 +46,11 @@ interface LocalLightClusterRouteStatus {
       readonly fallbackReason: string | null;
     };
     readonly cookie: {
-      readonly status: "not-requested" | "metadata-only" | "not-supported";
+      readonly status:
+        | "not-requested"
+        | "sampling-ready"
+        | "metadata-only"
+        | "not-supported";
       readonly samplingSupported: boolean;
       readonly localRequestCount: number;
       readonly clusteredLightCount: number;
@@ -59,19 +63,21 @@ interface LocalLightClusterRouteStatus {
 
 interface ClusteredLightsStatus extends ExampleStatusBase {
   readonly pipelineKeys?: readonly string[];
-  readonly localLightClusters?: LocalLightClusterRouteStatus & {
-    readonly enabled: boolean;
-    readonly clusterDimensions: {
-      readonly x: number;
-      readonly y: number;
-      readonly z: number;
-    };
-    readonly resourceReuse: {
-      readonly buffersCreated: number;
-      readonly buffersReused: number;
-    };
-    readonly routes?: readonly LocalLightClusterRouteStatus[];
-  } | null;
+  readonly localLightClusters?:
+    | (LocalLightClusterRouteStatus & {
+        readonly enabled: boolean;
+        readonly clusterDimensions: {
+          readonly x: number;
+          readonly y: number;
+          readonly z: number;
+        };
+        readonly resourceReuse: {
+          readonly buffersCreated: number;
+          readonly buffersReused: number;
+        };
+        readonly routes?: readonly LocalLightClusterRouteStatus[];
+      })
+    | null;
   readonly clusterStatus?: {
     readonly ok: boolean;
     readonly clusterPipelineUsed: boolean;
@@ -94,6 +100,7 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
     readonly routeMetadataOk: boolean;
     readonly routePointShadowSamplingOk: boolean;
     readonly routeSpotShadowSamplingOk: boolean;
+    readonly routeCookieSamplingOk: boolean;
     readonly routes: readonly LocalLightClusterRouteStatus[];
     readonly buffersCreated: number;
     readonly buffersReused: number;
@@ -106,7 +113,11 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
   readonly readback?: {
     readonly samples?: readonly {
       readonly id: string;
-      readonly pixel: { readonly r: number; readonly g: number; readonly b: number };
+      readonly pixel: {
+        readonly r: number;
+        readonly g: number;
+        readonly b: number;
+      };
     }[];
   };
   readonly shadowStatus?: {
@@ -153,8 +164,10 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   const baseline = await waitForExampleStatus<ClusteredLightsStatus>(page);
 
   await attachExampleStatus("clustered-lights-baseline-status", baseline);
-  expect(baseline, "clustered lights baseline status should publish")
-    .toBeDefined();
+  expect(
+    baseline,
+    "clustered lights baseline status should publish",
+  ).toBeDefined();
 
   if (baseline === undefined) {
     return;
@@ -174,8 +187,7 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   const spotOnly = await waitForExampleStatus<ClusteredLightsStatus>(spotPage);
 
   await attachExampleStatus("clustered-lights-spot-status", spotOnly);
-  expect(spotOnly, "clustered lights spot status should publish")
-    .toBeDefined();
+  expect(spotOnly, "clustered lights spot status should publish").toBeDefined();
 
   if (spotOnly === undefined) {
     return;
@@ -184,9 +196,28 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   skipIfUnsupportedWebGpu(spotOnly);
   expectStatusJsonSafeForGpu(spotOnly);
 
+  const cookiePage = await page.context().newPage();
+  const cookieWebGpuValidation = attachWebGpuValidationConsoleGuard(cookiePage);
+
+  await cookiePage.goto(
+    "/examples/clustered-lights.html?disable-cluster-point-shadow=1&enable-cluster-cookie=1",
+  );
+  await cookiePage.bringToFront();
+
+  const cookie = await waitForExampleStatus<ClusteredLightsStatus>(cookiePage);
+
+  await attachExampleStatus("clustered-lights-cookie-status", cookie);
+  expect(cookie, "clustered lights cookie status should publish").toBeDefined();
+
+  if (cookie === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(cookie);
+  expectStatusJsonSafeForGpu(cookie);
+
   const shadowPage = await page.context().newPage();
-  const shadowWebGpuValidation =
-    attachWebGpuValidationConsoleGuard(shadowPage);
+  const shadowWebGpuValidation = attachWebGpuValidationConsoleGuard(shadowPage);
 
   await shadowPage.goto("/examples/clustered-lights.html");
   await shadowPage.bringToFront();
@@ -297,12 +328,12 @@ test("browser renders StandardMaterial through clustered local lights", async ({
       route.shadowCookieMetadata?.shadow.clusteredLightCount ?? 0,
     ).toBeGreaterThanOrEqual(4);
     expect(route.shadowCookieMetadata?.cookie).toMatchObject({
-      status: "not-supported",
+      status: "not-requested",
       samplingSupported: false,
       localRequestCount: 0,
       clusteredLightCount: 0,
       supportedLightCount: 0,
-      fallbackReason: "light-cookie-authoring-not-implemented",
+      fallbackReason: null,
     });
     expect(route.shadowCookieMetadata).toMatchObject({
       wordsPerLight: 4,
@@ -313,6 +344,7 @@ test("browser renders StandardMaterial through clustered local lights", async ({
     ok: true,
     routeMetadataOk: true,
     routeSpotShadowSamplingOk: true,
+    routeCookieSamplingOk: false,
   });
   expect(spotOnly.shadowStatus).toMatchObject({
     enabled: true,
@@ -330,12 +362,46 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   expect(spotOnly.pipelineKeys ?? []).toContain(
     "standard|clusteredLocalLights|shadowMap|opaque|back|less|none",
   );
+  expect(cookie.clusterStatus).toMatchObject({
+    ok: true,
+    routeMetadataOk: true,
+    routeSpotShadowSamplingOk: true,
+    routeCookieSamplingOk: true,
+  });
+  expect(cookie.shadowStatus).toMatchObject({
+    enabled: true,
+    supported: true,
+    mode: "clustered-spot-depth-compare",
+    spot: {
+      enabled: true,
+      supported: true,
+      mode: "clustered-spot-depth-compare",
+      casterDraws: 1,
+      faceCount: 1,
+      submission: "submitted",
+    },
+  });
+  expect(cookie.pipelineKeys ?? []).toContain(
+    "standard|clusteredLocalLights|clusteredLocalLightCookies|shadowMap|opaque|back|less|none",
+  );
+  expect(
+    (cookie.localLightClusters?.routes ?? []).some(
+      (route) =>
+        route.shadowCookieMetadata?.cookie.status === "sampling-ready" &&
+        route.shadowCookieMetadata.cookie.samplingSupported === true &&
+        route.shadowCookieMetadata.cookie.localRequestCount >= 1 &&
+        route.shadowCookieMetadata.cookie.clusteredLightCount >= 1 &&
+        route.shadowCookieMetadata.cookie.supportedLightCount >= 1,
+    ),
+  ).toBe(true);
   expect(maxSampleLuminanceDarkening(baseline, spotOnly)).toBeGreaterThan(2);
+  expect(maxSampleLuminanceDelta(spotOnly, cookie)).toBeGreaterThan(12);
   expect(maxSampleLuminanceDarkening(baseline, status)).toBeGreaterThan(3);
   expect(status.readbackStatus?.ok).toBe(true);
   expect(status.readbackStatus?.maxClearDistance ?? 0).toBeGreaterThan(24);
   webGpuValidation.expectNoWarnings();
   spotWebGpuValidation.expectNoWarnings();
+  cookieWebGpuValidation.expectNoWarnings();
   shadowWebGpuValidation.expectNoWarnings();
 });
 
@@ -365,8 +431,37 @@ function maxSampleLuminanceDarkening(
   return maxDarkening;
 }
 
+function maxSampleLuminanceDelta(
+  a: ClusteredLightsStatus,
+  b: ClusteredLightsStatus,
+): number {
+  const aSamples = new Map(
+    (a.readback?.samples ?? []).map((sample) => [sample.id, sample]),
+  );
+  let maxDelta = 0;
+
+  for (const bSample of b.readback?.samples ?? []) {
+    const aSample = aSamples.get(bSample.id);
+
+    if (aSample === undefined) {
+      continue;
+    }
+
+    maxDelta = Math.max(
+      maxDelta,
+      Math.abs(sampleLuminance(aSample) - sampleLuminance(bSample)),
+    );
+  }
+
+  return maxDelta;
+}
+
 function sampleLuminance(sample: {
-  readonly pixel: { readonly r: number; readonly g: number; readonly b: number };
+  readonly pixel: {
+    readonly r: number;
+    readonly g: number;
+    readonly b: number;
+  };
 }): number {
   const pixel = sample.pixel;
   return pixel.r * 0.2126 + pixel.g * 0.7152 + pixel.b * 0.0722;

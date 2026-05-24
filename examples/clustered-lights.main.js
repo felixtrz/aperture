@@ -9,8 +9,11 @@ const exampleParams = new URLSearchParams(globalThis.location.search);
 const clusteredPointShadowEnabled = !exampleParams.has(
   "disable-cluster-point-shadow",
 );
+const clusteredCookieEnabled =
+  exampleParams.has("enable-cluster-cookie") &&
+  !exampleParams.has("disable-cluster-cookie");
 const clusteredSpotShadowEnabled =
-  exampleParams.has("enable-cluster-spot-shadow") &&
+  (exampleParams.has("enable-cluster-spot-shadow") || clusteredCookieEnabled) &&
   !exampleParams.has("disable-cluster-spot-shadow");
 const clusteredPointShadowIntent = {
   mapSize: 256,
@@ -31,6 +34,8 @@ const readbackSamples = [
   { id: "left-bank", x: 0.26, y: 0.5 },
   { id: "center", x: 0.5, y: 0.5 },
   { id: "right-bank", x: 0.74, y: 0.5 },
+  { id: "right-cookie-upper", x: 0.72, y: 0.43 },
+  { id: "right-cookie-lower", x: 0.82, y: 0.57 },
 ];
 
 try {
@@ -141,6 +146,17 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     }),
     { id: "clustered-lights-spot-shadow-caster-standard" },
   );
+  const cookieTexture = aperture.createTextureHandle(
+    "clustered-lights-spot-cookie",
+  );
+  const cookieSampler = aperture.createSamplerHandle(
+    "clustered-lights-spot-cookie-linear",
+  );
+
+  sourceAssets.register(cookieTexture);
+  sourceAssets.register(cookieSampler);
+  sourceAssets.markReady(cookieTexture, createSpotCookieTextureAsset(aperture));
+  sourceAssets.markReady(cookieSampler, createSpotCookieSamplerAsset(aperture));
 
   return {
     meshKey: aperture.assetHandleKey(panelMesh),
@@ -150,11 +166,62 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     casterMaterialKey: aperture.assetHandleKey(casterMaterial),
     spotCasterMeshKey: aperture.assetHandleKey(spotCasterMesh),
     spotCasterMaterialKey: aperture.assetHandleKey(spotCasterMaterial),
+    cookieTextureKey: aperture.assetHandleKey(cookieTexture),
+    cookieSamplerKey: aperture.assetHandleKey(cookieSampler),
     clusteredPointShadowEnabled,
     clusteredSpotShadowEnabled,
+    clusteredCookieEnabled,
     cameraFrameOffset:
       clusteredPointShadowEnabled || clusteredSpotShadowEnabled ? 0 : 1,
   };
+}
+
+function createSpotCookieTextureAsset(aperture) {
+  const width = 8;
+  const height = 8;
+  const bytes = new Uint8Array(width * height * 4);
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const index = (y * width + x) * 4;
+      const checker = (Math.floor(x / 2) + Math.floor(y / 2)) % 2;
+      const stripe = x === y || x + y === width - 1;
+      const value = stripe ? 255 : checker === 0 ? 24 : 230;
+
+      bytes[index + 0] = value;
+      bytes[index + 1] = value;
+      bytes[index + 2] = value;
+      bytes[index + 3] = 255;
+    }
+  }
+
+  return aperture.createTextureAsset({
+    label: "ClusteredSpotCookie",
+    dimension: "2d",
+    width,
+    height,
+    format: "rgba8unorm",
+    colorSpace: "linear",
+    semantic: "data",
+    usage: ["sampled", "copy-dst"],
+    sourceData: {
+      bytes,
+      bytesPerRow: width * 4,
+      rowsPerImage: height,
+    },
+  });
+}
+
+function createSpotCookieSamplerAsset(aperture) {
+  return aperture.createSamplerAsset({
+    label: "ClusteredSpotCookieLinearClamp",
+    addressModeU: "clamp-to-edge",
+    addressModeV: "clamp-to-edge",
+    addressModeW: "clamp-to-edge",
+    magFilter: "nearest",
+    minFilter: "nearest",
+    mipmapFilter: "nearest",
+  });
 }
 
 function startWorkerSnapshotLoop(aperture, app, scene) {
@@ -192,6 +259,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
   worker.postMessage({
     type: "init",
     cameraFrameOffset: scene.cameraFrameOffset,
+    clusteredCookieEnabled: scene.clusteredCookieEnabled,
     canvas: {
       width: canvas?.width ?? 960,
       height: canvas?.height ?? 540,
@@ -310,6 +378,7 @@ function statusFromReport(
     loop,
     scene.clusteredPointShadowEnabled,
     scene.clusteredSpotShadowEnabled,
+    scene.clusteredCookieEnabled,
   );
   const readbackStatus = createReadbackStatus(reportJson.readback);
   recordClusterOccupancy(loop, localLightClusters);
@@ -351,6 +420,7 @@ function createClusterStatus(
   loop,
   pointShadowEnabled,
   spotShadowEnabled,
+  cookieEnabled,
 ) {
   const clusterPipelineUsed = pipelineKeys.some((pipelineKey) =>
     pipelineKey.includes("clusteredLocalLights"),
@@ -412,7 +482,23 @@ function createClusterStatus(
       fallbackReason: shadow?.fallbackReason ?? null,
     };
   });
+  const routeCookieStates = clusterRoutes.map((route) => {
+    const cookie = route.shadowCookieMetadata?.cookie ?? null;
+
+    return {
+      status: cookie?.status ?? null,
+      samplingSupported: cookie?.samplingSupported === true,
+      localRequestCount: cookie?.localRequestCount ?? 0,
+      clusteredLightCount: cookie?.clusteredLightCount ?? 0,
+      supportedLightCount: cookie?.supportedLightCount ?? 0,
+      fallbackReason: cookie?.fallbackReason ?? null,
+    };
+  });
+  const expectedShadowRequestCount =
+    (pointShadowEnabled === true ? 4 : 0) +
+    (spotShadowEnabled === true ? 1 : 0);
   const routePointShadowSamplingOk =
+    pointShadowEnabled === true &&
     routeShadowStates.some(
       (shadow) =>
         shadow.status === "sampling-ready" &&
@@ -422,7 +508,25 @@ function createClusterStatus(
         shadow.supportedLightCount >= 1,
     );
   const routeSpotShadowSamplingOk =
-    spotShadowEnabled === true && routePointShadowSamplingOk;
+    spotShadowEnabled === true &&
+    routeShadowStates.some(
+      (shadow) =>
+        shadow.status === "sampling-ready" &&
+        shadow.samplingSupported === true &&
+        shadow.localRequestCount >= expectedShadowRequestCount &&
+        shadow.clusteredLightCount >= expectedShadowRequestCount &&
+        shadow.supportedLightCount >= 1,
+    );
+  const routeCookieSamplingOk =
+    cookieEnabled === true &&
+    routeCookieStates.some(
+      (cookie) =>
+        cookie.status === "sampling-ready" &&
+        cookie.samplingSupported === true &&
+        cookie.localRequestCount >= 1 &&
+        cookie.clusteredLightCount >= 1 &&
+        cookie.supportedLightCount >= 1,
+    );
   const routeMetadataOk =
     clusterRoutes.length > 0 &&
     clusterRoutes.every((route) => {
@@ -430,28 +534,38 @@ function createClusterStatus(
       const cookie = route.shadowCookieMetadata?.cookie ?? null;
       const shadowSamplingEnabled =
         pointShadowEnabled === true || spotShadowEnabled === true;
-      const shadowReady =
-        shadowSamplingEnabled
-          ? (shadow?.status === "sampling-ready" &&
-              shadow.samplingSupported === true &&
-              (shadow.supportedLightCount ?? 0) >= 1) ||
-            (shadow?.status === "metadata-only" &&
-              shadow.samplingSupported === false &&
-              shadow.fallbackReason ===
-                "clustered-local-shadow-sampling-not-implemented")
-          : shadow?.status === "metadata-only" &&
+      const shadowReady = shadowSamplingEnabled
+        ? (shadow?.status === "sampling-ready" &&
+            shadow.samplingSupported === true &&
+            (shadow.supportedLightCount ?? 0) >= 1) ||
+          (shadow?.status === "metadata-only" &&
             shadow.samplingSupported === false &&
             shadow.fallbackReason ===
-              "clustered-local-shadow-sampling-not-implemented";
+              "clustered-local-shadow-sampling-not-implemented")
+        : shadow?.status === "metadata-only" &&
+          shadow.samplingSupported === false &&
+          shadow.fallbackReason ===
+            "clustered-local-shadow-sampling-not-implemented";
 
-      return (
-        shadowReady &&
-        (shadow.localRequestCount ?? 0) >= 4 &&
-        (shadow.clusteredLightCount ?? 0) >= 4 &&
-        cookie?.status === "not-supported" &&
-        cookie.samplingSupported === false &&
-        cookie.fallbackReason === "light-cookie-authoring-not-implemented"
-      );
+      const shadowCountsReady =
+        expectedShadowRequestCount === 0 ||
+        ((shadow?.localRequestCount ?? 0) >= expectedShadowRequestCount &&
+          (shadow?.clusteredLightCount ?? 0) >= expectedShadowRequestCount);
+      const cookieReady =
+        cookieEnabled === true
+          ? (cookie?.status === "sampling-ready" &&
+              cookie.samplingSupported === true &&
+              (cookie.supportedLightCount ?? 0) >= 1) ||
+            (cookie?.status === "not-requested" &&
+              cookie.samplingSupported === false &&
+              (cookie.localRequestCount ?? 0) === 0 &&
+              (cookie.clusteredLightCount ?? 0) === 0)
+          : cookie?.status === "not-requested" &&
+            cookie.samplingSupported === false &&
+            (cookie.localRequestCount ?? 0) === 0 &&
+            (cookie.clusteredLightCount ?? 0) === 0;
+
+      return shadowReady && shadowCountsReady && cookieReady;
     });
 
   return {
@@ -464,6 +578,7 @@ function createClusterStatus(
       routeMetadataOk &&
       (pointShadowEnabled !== true || routePointShadowSamplingOk) &&
       (spotShadowEnabled !== true || routeSpotShadowSamplingOk) &&
+      (cookieEnabled !== true || routeCookieSamplingOk) &&
       occupancyChanged &&
       (localLightClusters?.resourceReuse?.buffersReused ?? 0) >= 8,
     clusterPipelineUsed,
@@ -473,8 +588,8 @@ function createClusterStatus(
     populatedCells: primaryRoute?.populatedCells ?? null,
     averageLightsPerPopulatedCell: averageLights,
     maxLightsPerPopulatedCell: primaryRoute?.maxLightsPerPopulatedCell ?? null,
-    totalAssignedLightReferences: primaryRoute?.totalAssignedLightReferences ??
-      null,
+    totalAssignedLightReferences:
+      primaryRoute?.totalAssignedLightReferences ?? null,
     occupancyHash,
     previousOccupancyHash,
     occupancyChanged,
@@ -487,7 +602,9 @@ function createClusterStatus(
     routeMetadataOk,
     routePointShadowSamplingOk,
     routeSpotShadowSamplingOk,
+    routeCookieSamplingOk,
     routeShadowStates,
+    routeCookieStates,
     routes: clusterRoutes.map((route) => ({
       enabled: route.enabled,
       layerMask: route.layerMask ?? null,
@@ -500,8 +617,7 @@ function createClusterStatus(
       averageLightsPerPopulatedCell:
         route.averageLightsPerPopulatedCell ?? null,
       maxLightsPerPopulatedCell: route.maxLightsPerPopulatedCell ?? null,
-      totalAssignedLightReferences:
-        route.totalAssignedLightReferences ?? null,
+      totalAssignedLightReferences: route.totalAssignedLightReferences ?? null,
       occupancyHash: route.occupancyHash ?? null,
       buildPressure: route.buildPressure ?? null,
       shadowCookieMetadata: route.shadowCookieMetadata ?? null,
@@ -522,8 +638,8 @@ function recordClusterOccupancy(loop, localLightClusters) {
   loop.previousClusterOccupancy = {
     hash: primaryRoute.occupancyHash ?? null,
     populatedCells: primaryRoute.populatedCells ?? null,
-    totalAssignedLightReferences: primaryRoute.totalAssignedLightReferences ??
-      null,
+    totalAssignedLightReferences:
+      primaryRoute.totalAssignedLightReferences ?? null,
   };
 }
 
@@ -601,7 +717,8 @@ async function createClusteredPointShadowReceiverResources(
   const request = report.snapshot.shadowRequests.find(
     (candidate) =>
       candidate.lightKind === "point" &&
-      (candidate.receiverLayerMask & clusteredPointShadowIntent.receiverLayerMask) !==
+      (candidate.receiverLayerMask &
+        clusteredPointShadowIntent.receiverLayerMask) !==
         0,
   );
 
@@ -685,7 +802,8 @@ async function createClusteredPointShadowReceiverResources(
     });
   const shadowCasterMeshDraws = report.snapshot.meshDraws.filter(
     (draw) =>
-      draw.sortKey.meshKey === scene.casterMeshKey && draw.castsShadow !== false,
+      draw.sortKey.meshKey === scene.casterMeshKey &&
+      draw.castsShadow !== false,
   );
   const shadowCasterDrawList = aperture.createShadowCasterDrawListPlanReport({
     shadowRequests,
@@ -737,12 +855,14 @@ async function createClusteredPointShadowReceiverResources(
     });
   const shadowCasterCommandRecordPlan =
     aperture.createShadowCasterCommandRecordPlanReport({
-      frameResources: aperture.shadowCasterFrameResourceReadinessReportToJsonValue(
-        shadowCasterFrameResources,
-      ),
-      commandPlan: aperture.shadowCasterCommandPlanReadinessReportToJsonValue(
-        shadowCommandPlan,
-      ),
+      frameResources:
+        aperture.shadowCasterFrameResourceReadinessReportToJsonValue(
+          shadowCasterFrameResources,
+        ),
+      commandPlan:
+        aperture.shadowCasterCommandPlanReadinessReportToJsonValue(
+          shadowCommandPlan,
+        ),
       pipelines:
         shadowCasterPipelineResourceReport.resource === null
           ? []
@@ -783,9 +903,10 @@ async function createClusteredPointShadowReceiverResources(
       attachments: aperture.shadowPassAttachmentDescriptorReportToJsonValue(
         shadowPassAttachments,
       ),
-      frameResources: aperture.shadowCasterFrameResourceReadinessReportToJsonValue(
-        shadowCasterFrameResources,
-      ),
+      frameResources:
+        aperture.shadowCasterFrameResourceReadinessReportToJsonValue(
+          shadowCasterFrameResources,
+        ),
       commandEncoding: aperture.shadowPassCommandEncodingReportToJsonValue(
         shadowPassCommandEncoding,
       ),
@@ -888,7 +1009,7 @@ async function createClusteredShadowReceiverResources(
           spotShadowReceiverResources: spotResources,
           pointShadowReceiverResources: pointResources,
         }
-      : spotResources ?? pointResources;
+      : (spotResources ?? pointResources);
 
   return {
     standardMaterialShadowReceiverResources,
@@ -896,7 +1017,8 @@ async function createClusteredShadowReceiverResources(
       enabled:
         scene.clusteredPointShadowEnabled || scene.clusteredSpotShadowEnabled,
       supported:
-        (scene.clusteredPointShadowEnabled || scene.clusteredSpotShadowEnabled) &&
+        (scene.clusteredPointShadowEnabled ||
+          scene.clusteredSpotShadowEnabled) &&
         (scene.clusteredPointShadowEnabled !== true ||
           pointResult.shadowStatus.supported === true) &&
         (scene.clusteredSpotShadowEnabled !== true ||
@@ -925,7 +1047,8 @@ async function createClusteredSpotShadowReceiverResources(
   const request = report.snapshot.shadowRequests.find(
     (candidate) =>
       candidate.lightKind === "spot" &&
-      (candidate.receiverLayerMask & clusteredSpotShadowIntent.receiverLayerMask) !==
+      (candidate.receiverLayerMask &
+        clusteredSpotShadowIntent.receiverLayerMask) !==
         0,
   );
 
@@ -1062,12 +1185,14 @@ async function createClusteredSpotShadowReceiverResources(
     });
   const shadowCasterCommandRecordPlan =
     aperture.createShadowCasterCommandRecordPlanReport({
-      frameResources: aperture.shadowCasterFrameResourceReadinessReportToJsonValue(
-        shadowCasterFrameResources,
-      ),
-      commandPlan: aperture.shadowCasterCommandPlanReadinessReportToJsonValue(
-        shadowCommandPlan,
-      ),
+      frameResources:
+        aperture.shadowCasterFrameResourceReadinessReportToJsonValue(
+          shadowCasterFrameResources,
+        ),
+      commandPlan:
+        aperture.shadowCasterCommandPlanReadinessReportToJsonValue(
+          shadowCommandPlan,
+        ),
       pipelines:
         shadowCasterPipelineResourceReport.resource === null
           ? []
@@ -1108,9 +1233,10 @@ async function createClusteredSpotShadowReceiverResources(
       attachments: aperture.shadowPassAttachmentDescriptorReportToJsonValue(
         shadowPassAttachments,
       ),
-      frameResources: aperture.shadowCasterFrameResourceReadinessReportToJsonValue(
-        shadowCasterFrameResources,
-      ),
+      frameResources:
+        aperture.shadowCasterFrameResourceReadinessReportToJsonValue(
+          shadowCasterFrameResources,
+        ),
       commandEncoding: aperture.shadowPassCommandEncodingReportToJsonValue(
         shadowPassCommandEncoding,
       ),

@@ -244,6 +244,7 @@ import {
   directLightReadinessResourceStateFromStandardFrameResources,
 } from "./direct-light-readiness.js";
 import {
+  CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
   createLocalLightClusterDescriptor,
   localLightClusterReportFromDescriptor,
@@ -251,6 +252,10 @@ import {
   type LocalLightClusterGpuResource,
   type LocalLightClusterReport,
 } from "./local-light-clusters.js";
+import {
+  prepareLocalLightClusterCookieResources,
+  type LocalLightClusterCookieResources,
+} from "./local-light-cookie-resources.js";
 import { createStandardMaterialBindGroupLayoutPlan } from "./standard-bind-group-layout.js";
 import type { StandardMaterialBindGroupLayoutResource } from "./standard-bind-group.js";
 import {
@@ -908,6 +913,10 @@ interface QueuedBuiltInFrameResourcePreparationOptions {
     | StandardAreaLightLtcResources
     | null
     | undefined;
+  readonly localLightCookieResources?:
+    | LocalLightClusterCookieResources
+    | null
+    | undefined;
   readonly transmissionSceneColorResources?:
     | StandardFrameTransmissionSceneColorResources
     | null
@@ -1454,6 +1463,9 @@ function createStandardAppPipelineLayouts(
   );
   const usesClusteredLocalLights =
     pipelineResourceKey.includes("cluster-params@16");
+  const usesClusteredLocalLightCookies = pipelineResourceKey.includes(
+    "cluster-cookie-texture@20",
+  );
   const autoLayoutKeySuffix =
     (usesLightShadowGroup ||
       usesLightPointShadowGroup ||
@@ -1477,7 +1489,11 @@ function createStandardAppPipelineLayouts(
                 ? "webgpu-app/standard/lights-shadow/group-3"
                 : "webgpu-app/standard/group-3";
   const lightLayoutKey = usesClusteredLocalLights
-    ? `${baseLightLayoutKey}/clustered-local-lights`
+    ? `${baseLightLayoutKey}/${
+        usesClusteredLocalLightCookies
+          ? "clustered-local-light-cookies"
+          : "clustered-local-lights"
+      }`
     : baseLightLayoutKey;
 
   return {
@@ -1514,27 +1530,35 @@ function createStandardAppPipelineLayouts(
               cascadedShadowMap: usesLightCascadedShadowIblGroup,
               specularProof: usesSpecularIblProof,
               clusteredLocalLights: usesClusteredLocalLights,
+              clusteredLocalLightCookies: usesClusteredLocalLightCookies,
             })
           : usesLightMultiShadowGroup
             ? createStandardLightMultiShadowBindGroupLayoutDescriptor({
                 clusteredLocalLights: usesClusteredLocalLights,
+                clusteredLocalLightCookies: usesClusteredLocalLightCookies,
               })
             : usesLightCascadedShadowGroup
               ? createStandardLightCascadedShadowBindGroupLayoutDescriptor({
                   clusteredLocalLights: usesClusteredLocalLights,
+                  clusteredLocalLightCookies: usesClusteredLocalLightCookies,
                 })
               : usesLightShadowGroup
                 ? createStandardLightShadowBindGroupLayoutDescriptor({
                     clusteredLocalLights: usesClusteredLocalLights,
+                    clusteredLocalLightCookies: usesClusteredLocalLightCookies,
                   })
                 : usesLightPointShadowGroup
                   ? createStandardLightPointShadowBindGroupLayoutDescriptor({
                       clusteredLocalLights: usesClusteredLocalLights,
+                      clusteredLocalLightCookies:
+                        usesClusteredLocalLightCookies,
                     })
                   : createLightBindGroupLayoutDescriptor({
                       group: 3,
                       label: "webgpu-app/standard/group-3",
                       clusteredLocalLights: usesClusteredLocalLights,
+                      clusteredLocalLightCookies:
+                        usesClusteredLocalLightCookies,
                     }),
     },
   };
@@ -1835,6 +1859,12 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
                 standardAreaLightLtcResources:
                   options.standardAreaLightLtcResources,
               }),
+          ...(options.localLightCookieResources === undefined ||
+          options.localLightCookieResources === null
+            ? {}
+            : {
+                localLightCookieResources: options.localLightCookieResources,
+              }),
           ...(options.transmissionSceneColorResources === undefined ||
           options.transmissionSceneColorResources === null
             ? {}
@@ -1974,6 +2004,10 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     | StandardFrameShadowReceiverResources
     | undefined;
   readonly standardMaterialIblResources?: StandardFrameIblResources | undefined;
+  readonly localLightCookieResources?:
+    | LocalLightClusterCookieResources
+    | null
+    | undefined;
 }): Promise<WebGpuAppRenderReport> {
   const sceneMotionVectors = createWebGpuAppSceneMotionVectorPlan({
     app: options.app,
@@ -2049,6 +2083,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       : { previousWorldTransforms: previousObjectTransforms.resource }),
     instanceTints: packedInstanceTints,
     standardAreaLightLtcResources: standardAreaLightLtc.resources,
+    localLightCookieResources: options.localLightCookieResources,
     transmissionSceneColorResources: transmissionGrabResources.resources,
     ...(options.standardMaterialShadowReceiverResources === undefined
       ? {}
@@ -2396,10 +2431,7 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       frame: options.snapshot.frame,
       candidateRenderIds: occlusionCandidateRenderIds,
     });
-    appendWebGpuAppOcclusionCullingPlan(
-      occlusionCulling,
-      occlusionCullingPlan,
-    );
+    appendWebGpuAppOcclusionCullingPlan(occlusionCulling, occlusionCullingPlan);
     const commands = commandsWithoutSkippedOcclusionDraws(
       commandsForView,
       occlusionCullingPlan.skippedRenderIds,
@@ -2426,10 +2458,7 @@ async function assembleWebGpuAppFrameBoundaries(options: {
         : commands;
 
     if (occlusionRenderIds.length > 0 && occlusionQueries?.resources === null) {
-      recordWebGpuAppOcclusionCullingFallback(
-        occlusionCulling,
-        "unsupported",
-      );
+      recordWebGpuAppOcclusionCullingFallback(occlusionCulling, "unsupported");
     }
     occlusionQueryCount += occlusionRenderIds.length;
     occlusionQueryDiagnostics.push(...(occlusionQueries?.diagnostics ?? []));
@@ -5777,6 +5806,10 @@ async function prepareQueuedBuiltInFrameResources(options: {
     | StandardAreaLightLtcResources
     | null
     | undefined;
+  readonly localLightCookieResources?:
+    | LocalLightClusterCookieResources
+    | null
+    | undefined;
   readonly transmissionSceneColorResources?:
     | StandardFrameTransmissionSceneColorResources
     | null
@@ -5878,6 +5911,12 @@ async function prepareQueuedBuiltInFrameResources(options: {
                 standardAreaLightLtcResources:
                   options.standardAreaLightLtcResources,
               }),
+          ...(options.localLightCookieResources === undefined ||
+          options.localLightCookieResources === null
+            ? {}
+            : {
+                localLightCookieResources: options.localLightCookieResources,
+              }),
           ...(options.transmissionSceneColorResources === undefined
             ? {}
             : {
@@ -5922,6 +5961,10 @@ function createQueuedBuiltInFrameResourceOptions(input: {
     | StandardAreaLightLtcResources
     | null
     | undefined;
+  readonly localLightCookieResources?:
+    | LocalLightClusterCookieResources
+    | null
+    | undefined;
   readonly transmissionSceneColorResources?:
     | StandardFrameTransmissionSceneColorResources
     | null
@@ -5963,6 +6006,12 @@ function createQueuedBuiltInFrameResourceOptions(input: {
       ? {}
       : {
           standardAreaLightLtcResources: input.standardAreaLightLtcResources,
+        }),
+    ...(input.localLightCookieResources === undefined ||
+    input.localLightCookieResources === null
+      ? {}
+      : {
+          localLightCookieResources: input.localLightCookieResources,
         }),
     ...(input.transmissionSceneColorResources === undefined
       ? {}
@@ -6060,7 +6109,36 @@ async function renderWebGpuAppFrame(
         ),
       )
     : shadowSnapshot;
-  const snapshot = withStandardClusteredLocalLightPipelineKeys(iblSnapshot);
+  const localLightCookieResources = prepareLocalLightClusterCookieResources({
+    snapshot: iblSnapshot,
+    assets: sourceAssets,
+    device: app.initialization.device,
+    cache: resourceCache,
+    reuse,
+    ...(options.standardMaterialShadowReceiverResources === undefined
+      ? {}
+      : {
+          shadowReceiverResources:
+            options.standardMaterialShadowReceiverResources,
+        }),
+  });
+
+  if (!localLightCookieResources.valid) {
+    return renderReport({
+      ok: false,
+      snapshot: iblSnapshot,
+      resourceReuse: reuse,
+      diagnostics: [
+        ...iblSnapshot.diagnostics,
+        ...localLightCookieResources.diagnostics,
+      ],
+    });
+  }
+
+  const snapshot = withStandardClusteredLocalLightPipelineKeys(iblSnapshot, {
+    supportedCookieResources:
+      localLightCookieResources.resources?.supportedResources ?? [],
+  });
   const updateMetadata = createWebGpuAppSnapshotUpdateMetadata(
     snapshot,
     options,
@@ -6256,6 +6334,7 @@ async function renderWebGpuAppFrame(
         : {
             standardMaterialIblResources: options.standardMaterialIblResources,
           }),
+      localLightCookieResources: localLightCookieResources.resources,
     });
   }
 
@@ -6451,6 +6530,7 @@ async function renderWebGpuAppFrame(
       instanceTints: packedInstanceTints,
       layouts,
       standardAreaLightLtcResources: standardAreaLightLtc.resources,
+      localLightCookieResources: localLightCookieResources.resources,
       ...(options.standardMaterialShadowReceiverResources === undefined
         ? {}
         : {
@@ -7523,29 +7603,43 @@ function withStandardIblPipelineKeys(
 
 function withStandardClusteredLocalLightPipelineKeys(
   snapshot: RenderSnapshot,
+  options: {
+    readonly supportedCookieResources?: readonly {
+      readonly lightId: number;
+      readonly textureKey: string;
+      readonly samplerKey: string;
+      readonly matrixBaseIndex?: number;
+    }[];
+  } = {},
 ): RenderSnapshot {
-  const descriptor = createLocalLightClusterDescriptor(snapshot);
+  const descriptor = createLocalLightClusterDescriptor(snapshot, {
+    supportedCookieResources: options.supportedCookieResources ?? [],
+  });
 
   if (!descriptor.enabled) {
     return snapshot;
   }
 
+  const cookieSamplingReady =
+    descriptor.shadowCookieMetadata.cookie.samplingSupported;
   let changed = false;
   const meshDraws = snapshot.meshDraws.map((draw) => {
     const pipelineKey = draw.batchKey.pipelineKey;
 
-    if (
-      !pipelineKey.startsWith("standard|") ||
-      pipelineKey.split("|").includes(CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE)
-    ) {
+    if (!pipelineKey.startsWith("standard|")) {
+      return draw;
+    }
+
+    const clusteredPipelineKey = standardClusteredLocalLightPipelineKey(
+      pipelineKey,
+      cookieSamplingReady,
+    );
+
+    if (clusteredPipelineKey === pipelineKey) {
       return draw;
     }
 
     changed = true;
-    const clusteredPipelineKey = pipelineKey.replace(
-      /^standard\|/,
-      `standard|${CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE}|`,
-    );
 
     return {
       ...draw,
@@ -7555,6 +7649,38 @@ function withStandardClusteredLocalLightPipelineKeys(
   });
 
   return changed ? { ...snapshot, meshDraws } : snapshot;
+}
+
+function standardClusteredLocalLightPipelineKey(
+  pipelineKey: string,
+  cookieSamplingReady: boolean,
+): string {
+  const tokens = pipelineKey.split("|");
+  const family = tokens[0];
+
+  if (family !== "standard") {
+    return pipelineKey;
+  }
+
+  const rest = tokens
+    .slice(1)
+    .filter(
+      (token) =>
+        token !== CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE &&
+        token !== CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE,
+    );
+  const cookieSamplingSupportedForDraw =
+    cookieSamplingReady &&
+    rest.includes("shadowMap") &&
+    !rest.includes("cascadedShadowMap");
+  const features = [
+    CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
+    ...(cookieSamplingSupportedForDraw
+      ? [CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE]
+      : []),
+  ];
+
+  return [family, ...features, ...rest].join("|");
 }
 
 export function createWebGpuAppDrawResourceSetPlan(
@@ -7958,7 +8084,8 @@ function createWebGpuAppLocalLightClusterReport(
   resources: WebGpuAppFrameResourcesResult | null,
   reuse: WebGpuAppResourceReuseReport,
 ): LocalLightClusterReport | undefined {
-  const clusterResources = collectWebGpuAppLocalLightClusterResources(resources);
+  const clusterResources =
+    collectWebGpuAppLocalLightClusterResources(resources);
   const resource = clusterResources[0] ?? null;
 
   if (resource !== null) {

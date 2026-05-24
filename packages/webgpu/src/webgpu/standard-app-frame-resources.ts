@@ -30,6 +30,7 @@ import {
   type LocalLightClusterSupportedPointShadowResource,
   type LocalLightClusterSupportedSpotShadowResource,
 } from "./local-light-clusters.js";
+import type { LocalLightClusterCookieResources } from "./local-light-cookie-resources.js";
 import type {
   StandardLightShadowBindGroupLayoutResource,
   StandardLightShadowBindGroupResource,
@@ -120,6 +121,8 @@ export interface CachedStandardAppFrameResources {
   readonly localLightClusterIndicesByteLength: number;
   readonly localLightClusterMetadataByteLength: number;
   readonly localLightClusterResourceKey: string | null;
+  readonly localLightCookieTextureKey: string | null;
+  readonly localLightCookieSamplerKey: string | null;
   readonly viewDescriptorScratch: ViewUniformBufferDescriptorScratch;
   readonly worldTransformDescriptorScratch: WorldTransformBufferDescriptorScratch;
   readonly lightBufferDescriptorScratch: LightBufferDescriptorScratch;
@@ -204,6 +207,7 @@ export function createOrReuseStandardAppFrameResources(options: {
   readonly standardMaterialIblResources?: StandardFrameIblResources;
   readonly standardAreaLightLtcResources?: CreateStandardFrameGpuResourcesOptions["standardAreaLightLtcResources"];
   readonly transmissionSceneColorResources?: StandardFrameTransmissionSceneColorResources | null;
+  readonly localLightCookieResources?: LocalLightClusterCookieResources | null;
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
   readonly preparedScalarMaterials: PreparedScalarStandardMaterialCache;
   readonly reuse: StandardAppFrameResourceReuseReport;
@@ -236,10 +240,16 @@ export function createOrReuseStandardAppFrameResources(options: {
         supportedSpotShadowResources: supportedSpotShadowResourcesFromReceiver(
           options.shadowReceiverResources,
         ),
+        supportedCookieResources:
+          options.localLightCookieResources?.supportedResources ?? [],
       })
     : null;
   const localLightClusterResourceKey =
     localLightClusterDescriptor?.resourceKey ?? null;
+  const localLightCookieTextureKey =
+    options.localLightCookieResources?.textureKey ?? null;
+  const localLightCookieSamplerKey =
+    options.localLightCookieResources?.samplerKey ?? null;
   const routeCacheKey = createStandardAppFrameResourceCacheKey({
     meshKey: options.meshKey,
     materialKey: options.materialKey,
@@ -252,6 +262,8 @@ export function createOrReuseStandardAppFrameResources(options: {
     previousWorldTransformResourceKey:
       options.previousWorldTransforms?.resourceKey ?? null,
     localLightClusterResourceKey,
+    localLightCookieTextureKey,
+    localLightCookieSamplerKey,
     textureKeys: options.textureSamplerDependencies.textureKeys,
     samplerKeys: options.textureSamplerDependencies.samplerKeys,
   });
@@ -303,6 +315,8 @@ export function createOrReuseStandardAppFrameResources(options: {
     cached.transmissionSceneColorResourceKey ===
       transmissionSceneColorResourceKey &&
     cached.localLightClusterResourceKey === localLightClusterResourceKey &&
+    cached.localLightCookieTextureKey === localLightCookieTextureKey &&
+    cached.localLightCookieSamplerKey === localLightCookieSamplerKey &&
     cached.previousWorldTransformResourceKey ===
       (options.previousWorldTransforms?.resourceKey ?? null) &&
     sameStringList(
@@ -473,6 +487,10 @@ export function createOrReuseStandardAppFrameResources(options: {
     ...(localLightClusterDescriptor === null
       ? {}
       : { localLightClusterDescriptor }),
+    ...(options.localLightCookieResources === undefined ||
+    options.localLightCookieResources === null
+      ? {}
+      : { localLightCookieResources: options.localLightCookieResources }),
     ...(options.transmissionSceneColorResources === undefined ||
     options.transmissionSceneColorResources === null
       ? {}
@@ -549,6 +567,8 @@ export function createOrReuseStandardAppFrameResources(options: {
         result.resources.localLightClusters?.descriptor.metadata.byteLength ??
         0,
       localLightClusterResourceKey,
+      localLightCookieTextureKey,
+      localLightCookieSamplerKey,
       viewDescriptorScratch,
       worldTransformDescriptorScratch,
       lightBufferDescriptorScratch,
@@ -635,8 +655,7 @@ function supportedSpotShadowResourcesFromReceiver(
 
   const firstSpotDepth = spotResources?.depthTextureResources.resources.find(
     (resource) =>
-      resource.viewDimension === "2d" &&
-      resource.allocation.resource !== null,
+      resource.viewDimension === "2d" && resource.allocation.resource !== null,
   );
 
   if (firstSpotDepth === undefined) {
@@ -669,6 +688,8 @@ function createStandardAppFrameResourceCacheKey(input: {
   readonly transmissionSceneColorResourceKey: string | null;
   readonly previousWorldTransformResourceKey: string | null;
   readonly localLightClusterResourceKey: string | null;
+  readonly localLightCookieTextureKey: string | null;
+  readonly localLightCookieSamplerKey: string | null;
   readonly textureKeys: readonly string[];
   readonly samplerKeys: readonly string[];
 }): string {
@@ -683,6 +704,8 @@ function createStandardAppFrameResourceCacheKey(input: {
     input.transmissionSceneColorResourceKey ?? "transmission:none",
     input.previousWorldTransformResourceKey ?? "previous-world:none",
     input.localLightClusterResourceKey ?? "local-light-cluster:none",
+    input.localLightCookieTextureKey ?? "local-light-cookie-texture:none",
+    input.localLightCookieSamplerKey ?? "local-light-cookie-sampler:none",
     `textures:${input.textureKeys.join(",")}`,
     `samplers:${input.samplerKeys.join(",")}`,
   ].join("|");

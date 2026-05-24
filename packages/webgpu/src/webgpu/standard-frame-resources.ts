@@ -21,6 +21,7 @@ import {
   type StandardTransmissionSceneColorResources,
 } from "./light-bind-group.js";
 import {
+  CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
   createLocalLightClusterDescriptor,
   createLocalLightClusterGpuResource,
@@ -30,6 +31,7 @@ import {
   type LocalLightClusterSupportedPointShadowResource,
   type LocalLightClusterSupportedSpotShadowResource,
 } from "./local-light-clusters.js";
+import type { LocalLightClusterCookieResources } from "./local-light-cookie-resources.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
 import {
   createSnapshotLightGpuBuffers,
@@ -217,6 +219,7 @@ export interface CreateStandardFrameGpuResourcesOptions {
   readonly standardAreaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly localLightClusterDescriptor?: LocalLightClusterDescriptor | null;
   readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
+  readonly localLightCookieResources?: LocalLightClusterCookieResources | null;
   readonly transmissionSceneColorResources?: StandardFrameTransmissionSceneColorResources | null;
   readonly textures?: readonly TextureGpuResource[];
   readonly samplers?: readonly SamplerGpuResource[];
@@ -413,6 +416,12 @@ function requiresClusteredLocalLightBuffer(pipelineKey: string): boolean {
     .includes(CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE);
 }
 
+function requiresClusteredLocalLightCookies(pipelineKey: string): boolean {
+  return pipelineKey
+    .split("|")
+    .includes(CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE);
+}
+
 function createLocalLightClusterResource(
   options: Pick<
     CreateStandardFrameGpuResourcesOptions,
@@ -421,6 +430,7 @@ function createLocalLightClusterResource(
     | "pipelineKey"
     | "localLightClusterDescriptor"
     | "localLightClusterResources"
+    | "localLightCookieResources"
     | "shadowReceiverResources"
   >,
   diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
@@ -442,6 +452,8 @@ function createLocalLightClusterResource(
       supportedSpotShadowResources: supportedSpotShadowResourcesFromReceiver(
         options.shadowReceiverResources,
       ),
+      supportedCookieResources:
+        options.localLightCookieResources?.supportedResources ?? [],
     });
   const result = createLocalLightClusterGpuResource({
     device: options.device,
@@ -511,8 +523,7 @@ function supportedSpotShadowResourcesFromReceiver(
 
   const firstSpotDepth = spotResources?.depthTextureResources.resources.find(
     (resource) =>
-      resource.viewDimension === "2d" &&
-      resource.allocation.resource !== null,
+      resource.viewDimension === "2d" && resource.allocation.resource !== null,
   );
 
   if (firstSpotDepth === undefined) {
@@ -944,6 +955,11 @@ function createLightBindGroup(
     label: "standard/lights",
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
     localLightClusterResources: localLightClusters,
+    localLightCookieResources: requiresClusteredLocalLightCookies(
+      options.pipelineKey,
+    )
+      ? (options.localLightCookieResources ?? null)
+      : null,
     ...(options.transmissionSceneColorResources === undefined ||
     options.transmissionSceneColorResources === null ||
     !options.pipelineKey.split("|").includes("transmission")
@@ -994,9 +1010,7 @@ function createLightIblBindGroup(
   const shadowReceiverResources = shadowRequired
     ? options.shadowReceiverResources
     : undefined;
-  const cascadedShadowMap = options.pipelineKey.includes(
-    "cascadedShadowMap",
-  );
+  const cascadedShadowMap = options.pipelineKey.includes("cascadedShadowMap");
   const plan = createStandardLightIblBindGroupDescriptorPlan({
     lightGpuBufferResource: lightGpuBuffers.resource,
     layoutKey: options.lightLayout?.layoutKey ?? null,
@@ -1013,6 +1027,11 @@ function createLightIblBindGroup(
     cascadedShadowMap,
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
     localLightClusterResources: localLightClusters,
+    localLightCookieResources: requiresClusteredLocalLightCookies(
+      options.pipelineKey,
+    )
+      ? (options.localLightCookieResources ?? null)
+      : null,
     ...(shadowReceiverResources === undefined
       ? {}
       : { shadowReceiverResources }),
@@ -1044,6 +1063,11 @@ function createLightIblBindGroup(
     iblSamplerResource: iblResources.samplerResource,
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
     localLightClusterResources: localLightClusters,
+    localLightCookieResources: requiresClusteredLocalLightCookies(
+      options.pipelineKey,
+    )
+      ? (options.localLightCookieResources ?? null)
+      : null,
   });
 
   diagnostics.push(...result.diagnostics);
@@ -1080,6 +1104,11 @@ function createLightShadowBindGroup(
         shadowReceiverResources.pointShadowReceiverResources,
       areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
       localLightClusterResources: localLightClusters,
+      localLightCookieResources: requiresClusteredLocalLightCookies(
+        options.pipelineKey,
+      )
+        ? (options.localLightCookieResources ?? null)
+        : null,
     });
 
     diagnostics.push(...plan.diagnostics);
@@ -1100,6 +1129,11 @@ function createLightShadowBindGroup(
       ],
       areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
       localLightClusterResources: localLightClusters,
+      localLightCookieResources: requiresClusteredLocalLightCookies(
+        options.pipelineKey,
+      )
+        ? (options.localLightCookieResources ?? null)
+        : null,
     });
 
     diagnostics.push(...result.diagnostics);
@@ -1116,6 +1150,11 @@ function createLightShadowBindGroup(
     samplerResource: shadowReceiverResources.samplerResource,
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
     localLightClusterResources: localLightClusters,
+    localLightCookieResources: requiresClusteredLocalLightCookies(
+      options.pipelineKey,
+    )
+      ? (options.localLightCookieResources ?? null)
+      : null,
   });
 
   diagnostics.push(...plan.diagnostics);
@@ -1132,6 +1171,11 @@ function createLightShadowBindGroup(
     samplerResource: shadowReceiverResources.samplerResource,
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
     localLightClusterResources: localLightClusters,
+    localLightCookieResources: requiresClusteredLocalLightCookies(
+      options.pipelineKey,
+    )
+      ? (options.localLightCookieResources ?? null)
+      : null,
   });
 
   diagnostics.push(...result.diagnostics);

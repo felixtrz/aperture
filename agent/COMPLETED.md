@@ -1,5 +1,39 @@
 # Completed Tasks
 
+## task-3133 — Add clustered local-light cookie sampling
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added ECS/runtime light-cookie authoring with renderer-independent texture
+  and sampler handles, plus validation diagnostics for bad handles/intensity.
+- Extended render extraction and packed snapshot encoding so ready local-light
+  cookie texture/sampler handles and intensity travel through `LightPacket`s.
+- Added WebGPU clustered local-light cookie resource preparation, metadata
+  readiness, bind-group layout entries, StandardMaterial pipeline keys, and
+  WGSL spot-cookie sampling for supported clustered spot lights.
+- Scoped cookie bind-group entries to cookie-enabled StandardMaterial pipeline
+  variants so non-cookie clustered draws do not get incompatible WebGPU layouts.
+- Updated `examples/clustered-lights.html` with an opt-in
+  `enable-cluster-cookie` proof route, asset-backed cookie texture/sampler,
+  cookie status reporting, and readback samples that change under cookie mode.
+- Added focused unit coverage for clustered cookie metadata and resource
+  preparation. Recommended next task is `task-3134`, adding cookie-only
+  clustered spot-light projection matrices.
+
+Validation:
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/local-light-clusters.test.ts test/webgpu/local-light-cookie-resources.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/rendering/snapshot-packed-encoding.test.ts test/webgpu/light-packing.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- Browser proof:
+  `examples/clustered-lights.html?disable-cluster-point-shadow=1&enable-cluster-cookie=1`
+  reported `routeCookieSamplingOk: true`, `clusteredLocalLightCookies` pipeline
+  keys, diagnostics `0`, nonzero readback, and zero WebGPU validation warnings
+  apart from the unrelated favicon 403.
+
 ## task-3132 — Render clustered local spot-light shadows
 
 Completed: 2026-05-24

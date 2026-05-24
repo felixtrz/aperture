@@ -288,7 +288,9 @@ export function writePackedLightPackets(
         directionalFarBounds?.[3] ?? light.height ?? 0,
         directionalShadow?.matrixBaseIndex ??
           packedAreaLightShapeId(light.shape),
-        0,
+        light.cookieTexture === undefined || light.cookieTexture === null
+          ? 0
+          : Math.max(light.cookieIntensity ?? 1, 0),
       ],
       floatOffset,
     );

@@ -36,6 +36,7 @@ import {
   InstanceData,
   InstanceTint,
   Light,
+  LightCookie,
   LightKind,
   LightShadowSettings,
   Material,
@@ -56,6 +57,7 @@ import {
   createInstanceData,
   createInstanceTint,
   createLight,
+  createLightCookie,
   createLightShadowSettings,
   createMaterialSlots,
   createMorphTargetWeights,
@@ -71,6 +73,7 @@ import {
   type GltfEcsAuthoringCommandPlan,
   type GltfEcsCommandReplayReport,
   type InstanceDataValues,
+  type LightCookieInput,
   type LightInput,
   type LightShadowSettingsInput,
   type MaterialSlotsInput,
@@ -341,6 +344,22 @@ export function withLight(input: LightInput = {}): SpawnEntityInitializer {
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(Light, createLight(input));
+  };
+}
+
+export function withLightCookie(
+  texture: TextureHandle,
+  input: Omit<LightCookieInput, "texture"> = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(
+      LightCookie,
+      createLightCookie({
+        ...input,
+        texture,
+      }),
+    );
   };
 }
 

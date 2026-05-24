@@ -1492,27 +1492,27 @@
               <code>examples/occlusion-feedback.html</code> proves the worker
               still authors three mesh draws and two query opt-ins while the
               renderer submits two draw calls after skipping the hidden queried
-              cube. One ECS mesh can now render
-              multiple material-slot primitive ranges through separate
-              extraction, queue, draw-command, and WebGPU indexed draw records;
+              cube. One ECS mesh can now render multiple material-slot primitive
+              ranges through separate extraction, queue, draw-command, and
+              WebGPU indexed draw records;
               <code>examples/multi-material-groups.html</code> proves two
               visibly distinct material groups from one source mesh. Clustered
               StandardMaterial local lights now derive view/depth-space bins
               from the active camera, and
-              <code>examples/clustered-lights.html</code> proves camera
-              movement changes reported cluster occupancy. Clustered local
-              lights now also split renderer-owned resources per active
-              view/light-set route, carry view-filtered render state correctly,
-              reuse fixed-capacity cluster buffers across moving-camera updates,
-              and prove two distinct active cluster routes in the same browser
+              <code>examples/clustered-lights.html</code> proves camera movement
+              changes reported cluster occupancy. Clustered local lights now
+              also split renderer-owned resources per active view/light-set
+              route, carry view-filtered render state correctly, reuse
+              fixed-capacity cluster buffers across moving-camera updates, and
+              prove two distinct active cluster routes in the same browser
               example. RectAreaLight LTC resources now use production RGBA16F
               matrix/fresnel table payloads, and
-              <code>examples/area-light-shapes.html</code> proves glossy,
-              rough, and oblique-view response for rect, disk, and sphere area
-              lights with zero validation warnings. Clustered local-light
-              building now uses PlayCanvas-style light-driven cell-range fill
-              with precise sphere-vs-cell rejection inside each touched range,
-              and <code>examples/clustered-lights.html</code> publishes
+              <code>examples/area-light-shapes.html</code> proves glossy, rough,
+              and oblique-view response for rect, disk, and sphere area lights
+              with zero validation warnings. Clustered local-light building now
+              uses PlayCanvas-style light-driven cell-range fill with precise
+              sphere-vs-cell rejection inside each touched range, and
+              <code>examples/clustered-lights.html</code> publishes
               build-pressure telemetry showing lower pressure than the old
               <code>cellCount * clusteredLocalLights</code> scan. Cascaded
               directional shadows and diffuse/specular IBL now bind in one
@@ -1524,12 +1524,15 @@
               opt-in clustered spot lights can bind renderer-owned 2D spot
               shadow resources and sample the matching per-light matrix route
               while metadata-only lights keep direct clustered lighting.
-              <code>examples/clustered-lights.html</code> now exposes both
-              clustered point-shadow and spot-shadow proof routes.
-              The next SOTA blocker is clustered local-light cookie sampling.
+              Supported clustered spot lights can now also sample ECS-authored
+              cookie texture/sampler handles through the clustered
+              StandardMaterial route.
+              <code>examples/clustered-lights.html</code> now exposes point
+              shadow, spot shadow, and spot-cookie proof routes. The next SOTA
+              blocker is cookie-only clustered spot-light projection matrices.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3133 clustered local-light cookie sampling</dd>
+            <dd>task-3134 cookie-only clustered spot-cookie matrices</dd>
           </dl>
         </aside>
       </header>
@@ -2332,7 +2335,8 @@
               through draw packages, draw-command descriptors, draw lists,
               resource resolution, render-pass command emission, and render
               bundles, so one prepared mesh can submit distinct material groups
-              with the correct <code>firstIndex</code> / <code>firstVertex</code>
+              with the correct <code>firstIndex</code> /
+              <code>firstVertex</code>
               offsets. Clustered local-light lookup now uses active-view
               view/depth coordinates and reports occupancy hashes for
               camera-dependent bins. Supported clustered point lights now bind
@@ -2340,11 +2344,14 @@
               visibility in the clustered StandardMaterial local-light loop.
               Clustered spot lights can also opt into renderer-owned 2D shadow
               resources and sample spot-shadow visibility from clustered
-              metadata.
+              metadata. Supported clustered spot cookies now bind asset-backed
+              cookie textures/samplers and sample cookie color through the
+              clustered StandardMaterial route.
             </p>
             <ul>
               <li>
-                Next visible SOTA gap: clustered local-light cookie sampling.
+                Next visible SOTA gap: cookie-only clustered spot-cookie
+                projection matrices.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2366,16 +2373,16 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">task-3131</span> Added clustered
-                local point-light shadow sampling through renderer-owned cube
-                depth resources, with a clustered-lights browser proof that
-                reports supported readiness and visible darkening.
+                <span class="badge green">task-3133</span> Added clustered
+                local-light cookie sampling through ECS-authored texture and
+                sampler handles, with a clustered-lights browser proof that
+                reports supported cookie readiness.
               </li>
               <li>
-                <span class="badge green">task-3122</span> Added
-                multi-material primitive/group queueing from ECS material-slot
-                authoring through extraction, material/render queue records,
-                draw descriptors, and WebGPU range-aware indexed submission.
+                <span class="badge green">task-3122</span> Added multi-material
+                primitive/group queueing from ECS material-slot authoring
+                through extraction, material/render queue records, draw
+                descriptors, and WebGPU range-aware indexed submission.
                 <code>examples/multi-material-groups.html</code> proves one
                 source mesh rendering as two visibly distinct material groups.
               </li>
@@ -4663,12 +4670,12 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Run
-                <code>task-3133</code>: add clustered local-light cookie
-                sampling.
+                <code>task-3134</code>: add cookie-only clustered spot-light
+                projection matrices.
               </li>
               <li>
-                Then continue into clustered local-light cookie sampling before
-                the next covered-pipeline re-audit.
+                Then continue into point/cube cookies and multi-cookie support
+                before the next covered-pipeline re-audit.
               </li>
             </ul>
           </article>
@@ -4681,6 +4688,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3133</div>
+            <div>
+              <strong>Clustered local-light cookies shipped.</strong>
+              <span>
+                Supported clustered spot lights now bind asset-backed cookie
+                texture/sampler resources, report cookie metadata as
+                <code>sampling-ready</code>, and sample cookie color in the
+                StandardMaterial clustered-light route.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3132</div>
             <div>
@@ -4712,11 +4731,11 @@
             <div>
               <strong>Clustered local-light metadata shipped.</strong>
               <span>
-                Clustered StandardMaterial routes now bind per-light metadata
-                at binding 19, report local shadow/cookie readiness honestly,
-                and <code>examples/clustered-lights.html</code> proves
-                metadata-only local-shadow fallback while direct clustered
-                lighting remains visible.
+                Clustered StandardMaterial routes now bind per-light metadata at
+                binding 19, report local shadow/cookie readiness honestly, and
+                <code>examples/clustered-lights.html</code> proves metadata-only
+                local-shadow fallback while direct clustered lighting remains
+                visible.
               </span>
             </div>
           </div>

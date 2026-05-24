@@ -116,6 +116,9 @@ export interface LightPacket {
   readonly outerConeAngle: number;
   readonly width?: number;
   readonly height?: number;
+  readonly cookieTexture?: TextureHandle | null;
+  readonly cookieSampler?: SamplerHandle | null;
+  readonly cookieIntensity?: number;
   readonly worldTransformOffset: number;
   readonly layerMask: number;
 }

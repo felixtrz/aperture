@@ -84,6 +84,12 @@ export interface LightInput {
   readonly environmentMap?: EnvironmentMapHandle | null;
 }
 
+export interface LightCookieInput {
+  readonly texture: TextureHandle;
+  readonly sampler?: SamplerHandle | null;
+  readonly intensity?: number;
+}
+
 export interface LightShadowSettingsInput {
   readonly enabled?: boolean;
   readonly mapSize?: number;
@@ -156,6 +162,8 @@ export type RenderAuthoringDiagnosticCode =
   | "light.invalidSpotCone"
   | "light.invalidAreaSize"
   | "light.zeroLayerMask"
+  | "lightCookie.invalidTexture"
+  | "lightCookie.invalidIntensity"
   | "sprite.invalidTexture"
   | "sprite.invalidSize"
   | "skybox.invalidTexture"
@@ -364,6 +372,16 @@ export const Light = defineComponent(
   "Renderer-independent light authoring component.",
 );
 
+export const LightCookie = defineComponent(
+  "aperture.render.lightCookie",
+  {
+    textureId: { type: EcsType.String, default: "" },
+    samplerId: { type: EcsType.String, default: "" },
+    intensity: { type: EcsType.Float32, default: 1 },
+  },
+  "Renderer-independent local-light cookie request component.",
+);
+
 export const ShadowCaster = defineComponent(
   "aperture.render.shadowCaster",
   {
@@ -411,6 +429,7 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(Skin);
   world.registerComponent(MorphTargetWeights);
   world.registerComponent(Light);
+  world.registerComponent(LightCookie);
   world.registerComponent(ShadowCaster);
   world.registerComponent(ShadowReceiver);
   world.registerComponent(LightShadowSettings);
@@ -460,6 +479,19 @@ export function createLight(
       input.environmentMap === undefined || input.environmentMap === null
         ? ""
         : assetHandleKey(input.environmentMap),
+  };
+}
+
+export function createLightCookie(
+  input: LightCookieInput,
+): ComponentInitialData<typeof LightCookie> {
+  return {
+    textureId: assetHandleKey(input.texture),
+    samplerId:
+      input.sampler === undefined || input.sampler === null
+        ? ""
+        : assetHandleKey(input.sampler),
+    intensity: input.intensity ?? 1,
   };
 }
 
@@ -710,6 +742,32 @@ export function validateLightInput(
       code: "light.zeroLayerMask",
       field: "layerMask",
       message: "Light layerMask must not be zero.",
+    });
+  }
+
+  return { valid: diagnostics.length === 0, diagnostics };
+}
+
+export function validateLightCookieInput(
+  input: LightCookieInput,
+): RenderAuthoringValidationReport {
+  const diagnostics: RenderAuthoringDiagnostic[] = [];
+  const textureKey = assetHandleKey(input.texture);
+  const intensity = input.intensity ?? 1;
+
+  if (!textureKey.startsWith("texture:")) {
+    diagnostics.push({
+      code: "lightCookie.invalidTexture",
+      field: "texture",
+      message: "Light cookie texture must be a texture asset handle.",
+    });
+  }
+
+  if (!Number.isFinite(intensity) || intensity < 0) {
+    diagnostics.push({
+      code: "lightCookie.invalidIntensity",
+      field: "intensity",
+      message: "Light cookie intensity must be a finite non-negative number.",
     });
   }
 

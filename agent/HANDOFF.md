@@ -1,6 +1,60 @@
 # Agent Handoff
 
-Updated: 2026-05-24T03:08:45Z
+Updated: 2026-05-24T03:49:46Z
+
+## Current Run Update — 2026-05-24T03:49:46Z — Clustered local-light cookies
+
+Completed `task-3133`, rendering supported clustered local-light cookies
+through the StandardMaterial clustered-light route.
+
+### What changed
+
+- Added `LightCookie` ECS authoring and runtime `withLightCookie()` so a local
+  light can reference cookie texture/sampler asset handles without renderer GPU
+  state in ECS.
+- Render extraction validates ready cookie texture/sampler assets and carries
+  cookie handles plus intensity through `LightPacket`; packed snapshot encoding
+  now preserves those handles across transport.
+- WebGPU prepares the first supported clustered spot-cookie texture/sampler
+  resource from app assets, reports matching metadata as `sampling-ready`, and
+  binds cookie resources through clustered StandardMaterial group-3 layouts.
+- StandardMaterial clustered spot lights sample cookie color from the same
+  renderer-owned spot projection matrix used by the supported spot-shadow route.
+  Cookie bindings are scoped to cookie-enabled pipeline variants to avoid
+  incompatible WebGPU auto-layout reuse on non-cookie clustered draws.
+- `examples/clustered-lights.html?enable-cluster-cookie=1` registers an
+  asset-backed cookie texture/sampler, reports cookie readiness, and keeps
+  readback/status proof for the supported cookie route.
+- Public trackers and agent task pointers now recommend `task-3134`, adding
+  cookie-only clustered spot-light projection matrices.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/local-light-clusters.test.ts test/webgpu/local-light-cookie-resources.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/rendering/snapshot-packed-encoding.test.ts test/webgpu/light-packing.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- Fresh headed browser probe for
+  `examples/clustered-lights.html?disable-cluster-point-shadow=1&enable-cluster-cookie=1`:
+  `routeCookieSamplingOk: true`, layer-2 cookie metadata `sampling-ready`,
+  `clusteredLocalLightCookies` pipeline keys, diagnostics `0`, nonzero readback,
+  and zero WebGPU validation warnings apart from the unrelated favicon 403.
+
+### Known issues
+
+- The first cookie slice intentionally reuses spot shadow projection resources.
+  `task-3134` should add cookie-only spot projection matrices so cookies do not
+  require shadow-map resources.
+- Local headed Playwright multi-page runs still exhibit the existing browser
+  close/focus/readback flake documented in earlier handoffs. The reliable proof
+  for this slice is the fresh-page browser probe plus focused unit/build
+  validation.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3134`, adding cookie-only clustered spot-light projection matrices.
 
 ## Current Run Update — 2026-05-24T03:08:45Z — Clustered local spot shadows
 

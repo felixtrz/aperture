@@ -34,7 +34,10 @@ import {
   STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY,
 } from "./standard-light-shadow-bind-group.js";
-import { CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE } from "./local-light-clusters.js";
+import {
+  CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE,
+  CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
+} from "./local-light-clusters.js";
 import type { BuiltInShaderSourceModule } from "./unlit-shader.js";
 
 export const STANDARD_DEFERRED_PIPELINE_FEATURES = [] as const;
@@ -312,13 +315,13 @@ function standardBindGroupLayoutKeys(
         ? "standard/lights-point-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth-cube@3,sampler@4"
         : features.shadowMap === true
           ? features.iblDiffuse === true
-              ? features.iblSpecularProof === true
-                ? features.cascadedShadowMap === true
-                  ? `${STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY}:light-floats@0,light-metadata@1,matrix@2,depth-array@3,sampler@4,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7`
-                  : "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7"
-                : features.cascadedShadowMap === true
-                  ? `${STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY}:light-floats@0,light-metadata@1,matrix@2,depth-array@3,sampler@4,diffuse-ibl@5,ibl-sampler@6`
-                  : "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6"
+            ? features.iblSpecularProof === true
+              ? features.cascadedShadowMap === true
+                ? `${STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY}:light-floats@0,light-metadata@1,matrix@2,depth-array@3,sampler@4,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7`
+                : "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7"
+              : features.cascadedShadowMap === true
+                ? `${STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY}:light-floats@0,light-metadata@1,matrix@2,depth-array@3,sampler@4,diffuse-ibl@5,ibl-sampler@6`
+                : "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6"
             : features.cascadedShadowMap === true
               ? `${STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY}:light-floats@0,light-metadata@1,matrix@2,depth-array@3,sampler@4`
               : "standard/lights-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4"
@@ -352,9 +355,15 @@ function standardClusteredLocalLightGroupLayoutKey(
   lightGroupKey: string,
   features: StandardTextureShaderFeatures,
 ): string {
-  return features.clusteredLocalLights === true
-    ? `${lightGroupKey},cluster-params@16,cluster-cells@17,cluster-indices@18,cluster-metadata@19`
-    : lightGroupKey;
+  if (features.clusteredLocalLights !== true) {
+    return lightGroupKey;
+  }
+
+  const clusterKey = `${lightGroupKey},cluster-params@16,cluster-cells@17,cluster-indices@18,cluster-metadata@19`;
+
+  return features.clusteredLocalLightCookies === true
+    ? `${clusterKey},cluster-cookie-texture@20,cluster-cookie-sampler@21`
+    : clusterKey;
 }
 
 export function resolveStandardShaderForBatchKey(
@@ -408,6 +417,9 @@ function standardTextureFeatures(
     fogExp2: tokens.includes("fogExp2"),
     clusteredLocalLights: tokens.includes(
       CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
+    ),
+    clusteredLocalLightCookies: tokens.includes(
+      CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE,
     ),
     skinned: standardSkinningEnabledFromBatchKey(batchKey),
     morphed: standardMorphTargetsEnabledFromBatchKey(batchKey),

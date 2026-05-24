@@ -21,6 +21,8 @@ export type BuiltInShaderBindingId =
   | "localLightClusterCells"
   | "localLightClusterIndices"
   | "localLightClusterMetadata"
+  | "localLightClusterCookieTexture"
+  | "localLightClusterCookieSampler"
   | "baseColorTexture"
   | "baseColorSampler"
   | "metallicRoughnessTexture"

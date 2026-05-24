@@ -7,11 +7,15 @@ import {
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "./mesh-buffer-descriptors.js";
 
 export const CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE = "clusteredLocalLights";
+export const CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE =
+  "clusteredLocalLightCookies";
 export const LOCAL_LIGHT_CLUSTER_MIN_LIGHTS = 16;
 export const LOCAL_LIGHT_CLUSTER_PARAMS_BINDING = 16;
 export const LOCAL_LIGHT_CLUSTER_CELLS_BINDING = 17;
 export const LOCAL_LIGHT_CLUSTER_INDICES_BINDING = 18;
 export const LOCAL_LIGHT_CLUSTER_METADATA_BINDING = 19;
+export const LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING = 20;
+export const LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING = 21;
 export const LOCAL_LIGHT_CLUSTER_PARAM_FLOATS = 28;
 export const LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE = 4;
 export const LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST = 1 << 0;
@@ -20,6 +24,10 @@ export const LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED =
   1 << 2;
 export const LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED =
   1 << 3;
+export const LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_DEFERRED =
+  1 << 4;
+export const LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_SUPPORTED =
+  1 << 5;
 export const DEFAULT_LOCAL_LIGHT_CLUSTER_RESOURCE_KEY =
   "local-light-cluster:main";
 
@@ -70,6 +78,13 @@ export type LocalLightClusterSupportedPointShadowResource =
 export type LocalLightClusterSupportedSpotShadowResource =
   LocalLightClusterSupportedShadowResource;
 
+export interface LocalLightClusterSupportedCookieResource {
+  readonly lightId: number;
+  readonly textureKey: string;
+  readonly samplerKey: string;
+  readonly matrixBaseIndex?: number;
+}
+
 export interface LocalLightClusterShadowCookieMetadata {
   readonly wordsPerLight: typeof LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE;
   readonly totalMetadataLights: number;
@@ -101,6 +116,7 @@ export interface LocalLightClusterDescriptorOptions {
   readonly layerMask?: number;
   readonly supportedPointShadowResources?: readonly LocalLightClusterSupportedPointShadowResource[];
   readonly supportedSpotShadowResources?: readonly LocalLightClusterSupportedSpotShadowResource[];
+  readonly supportedCookieResources?: readonly LocalLightClusterSupportedCookieResource[];
 }
 
 export type LocalLightClusterFallbackReason =
@@ -241,10 +257,7 @@ interface LocalLightClusterShadowCookieMetadataResult {
 }
 
 const IDENTITY_VIEW_MATRIX = Object.freeze([
-  1, 0, 0, 0,
-  0, 1, 0, 0,
-  0, 0, 1, 0,
-  0, 0, 0, 1,
+  1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
 ] as const);
 
 export function snapshotShouldUseClusteredLocalLights(
@@ -280,6 +293,7 @@ export function createLocalLightClusterDescriptor(
     layerMask,
     options.supportedPointShadowResources ?? [],
     options.supportedSpotShadowResources ?? [],
+    options.supportedCookieResources ?? [],
   );
   const clusterSpace = selectLocalLightClusterSpace(snapshot, {
     ...(options.coordinateSpace === undefined
@@ -382,16 +396,7 @@ export function createLocalLightClusterDescriptor(
 
           lightCellWriteAttempts += 1;
 
-          if (
-            !sphereIntersectsClusterCell(
-              light,
-              x,
-              y,
-              z,
-              bounds,
-              cellSize,
-            )
-          ) {
+          if (!sphereIntersectsClusterCell(light, x, y, z, bounds, cellSize)) {
             continue;
           }
 
@@ -781,6 +786,7 @@ function createLocalLightClusterShadowCookieMetadata(
   layerMask: number | null,
   supportedPointShadowResources: readonly LocalLightClusterSupportedPointShadowResource[],
   supportedSpotShadowResources: readonly LocalLightClusterSupportedSpotShadowResource[],
+  supportedCookieResources: readonly LocalLightClusterSupportedCookieResource[],
 ): LocalLightClusterShadowCookieMetadataResult {
   const metadata = new Uint32Array(
     Math.max(
@@ -808,6 +814,9 @@ function createLocalLightClusterShadowCookieMetadata(
   const localShadowLightIndices = new Set<number>();
   const clusteredShadowLightIndices = new Set<number>();
   const supportedShadowLightIndices = new Set<number>();
+  const localCookieLightIndices = new Set<number>();
+  const clusteredCookieLightIndices = new Set<number>();
+  const supportedCookieLightIndices = new Set<number>();
   const supportedPointShadowByKey = new Map(
     supportedPointShadowResources.map((resource, index) => [
       `${resource.shadowId}:${resource.lightId}`,
@@ -820,6 +829,54 @@ function createLocalLightClusterShadowCookieMetadata(
       Math.max(resource.matrixBaseIndex ?? index, 0),
     ]),
   );
+  const supportedCookieByLightId = new Map(
+    supportedCookieResources.map((resource, index) => [
+      resource.lightId,
+      Math.max(resource.matrixBaseIndex ?? index, 0),
+    ]),
+  );
+
+  for (
+    let lightIndex = 0;
+    lightIndex < snapshot.lights.length;
+    lightIndex += 1
+  ) {
+    const light = snapshot.lights[lightIndex];
+
+    if (
+      light === undefined ||
+      (light.kind !== "point" && light.kind !== "spot") ||
+      !lightMatchesLayer(light, layerMask) ||
+      light.cookieTexture === undefined ||
+      light.cookieTexture === null
+    ) {
+      continue;
+    }
+
+    localCookieLightIndices.add(lightIndex);
+
+    const metadataOffset =
+      lightIndex * LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE;
+    const supportedMatrixBaseIndex = supportedCookieByLightId.get(
+      light.lightId,
+    );
+    const cookieFlags =
+      LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_REQUEST |
+      (supportedMatrixBaseIndex === undefined
+        ? LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_DEFERRED
+        : LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_SUPPORTED);
+
+    metadata[metadataOffset] = (metadata[metadataOffset] ?? 0) | cookieFlags;
+    metadata[metadataOffset + 3] = supportedMatrixBaseIndex ?? 0;
+
+    if (clusteredLightIndices.has(lightIndex)) {
+      clusteredCookieLightIndices.add(lightIndex);
+
+      if (supportedMatrixBaseIndex !== undefined) {
+        supportedCookieLightIndices.add(lightIndex);
+      }
+    }
+  }
 
   for (const request of snapshot.shadowRequests) {
     const lightIndex = localLightIndexById.get(request.lightId);
@@ -843,10 +900,14 @@ function createLocalLightClusterShadowCookieMetadata(
 
     const supportedMatrixBaseIndex =
       request.lightKind === "point"
-        ? supportedPointShadowByKey.get(`${request.shadowId}:${request.lightId}`)
+        ? supportedPointShadowByKey.get(
+            `${request.shadowId}:${request.lightId}`,
+          )
         : request.lightKind === "spot"
-          ? supportedSpotShadowByKey.get(`${request.shadowId}:${request.lightId}`)
-        : undefined;
+          ? supportedSpotShadowByKey.get(
+              `${request.shadowId}:${request.lightId}`,
+            )
+          : undefined;
     const metadataOffset =
       lightIndex * LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE;
     const shadowFlags =
@@ -855,8 +916,7 @@ function createLocalLightClusterShadowCookieMetadata(
         ? LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED
         : LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED);
 
-    metadata[metadataOffset] =
-      (metadata[metadataOffset] ?? 0) | shadowFlags;
+    metadata[metadataOffset] = (metadata[metadataOffset] ?? 0) | shadowFlags;
     metadata[metadataOffset + 1] = request.shadowId >>> 0;
     metadata[metadataOffset + 2] = supportedMatrixBaseIndex ?? 0;
 
@@ -878,6 +938,15 @@ function createLocalLightClusterShadowCookieMetadata(
       : clusteredShadowLightCount > 0
         ? "metadata-only"
         : "not-requested";
+  const localCookieRequestCount = localCookieLightIndices.size;
+  const clusteredCookieLightCount = clusteredCookieLightIndices.size;
+  const supportedCookieLightCount = supportedCookieLightIndices.size;
+  const cookieStatus: LocalLightClusterFeatureStatus =
+    supportedCookieLightCount > 0
+      ? "sampling-ready"
+      : clusteredCookieLightCount > 0
+        ? "metadata-only"
+        : "not-requested";
 
   return {
     metadata,
@@ -895,16 +964,22 @@ function createLocalLightClusterShadowCookieMetadata(
           supportedShadowLightCount < clusteredShadowLightCount
             ? "clustered-local-shadow-sampling-partial"
             : shadowStatus === "metadata-only"
-            ? "clustered-local-shadow-sampling-not-implemented"
-            : null,
+              ? "clustered-local-shadow-sampling-not-implemented"
+              : null,
       },
       cookie: {
-        status: "not-supported",
-        samplingSupported: false,
-        localRequestCount: 0,
-        clusteredLightCount: 0,
-        supportedLightCount: 0,
-        fallbackReason: "light-cookie-authoring-not-implemented",
+        status: cookieStatus,
+        samplingSupported: supportedCookieLightCount > 0,
+        localRequestCount: localCookieRequestCount,
+        clusteredLightCount: clusteredCookieLightCount,
+        supportedLightCount: supportedCookieLightCount,
+        fallbackReason:
+          cookieStatus === "sampling-ready" &&
+          supportedCookieLightCount < clusteredCookieLightCount
+            ? "clustered-local-cookie-sampling-partial"
+            : cookieStatus === "metadata-only"
+              ? "clustered-local-cookie-sampling-not-implemented"
+              : null,
       },
     },
   };
@@ -1191,10 +1266,7 @@ function summarizeClusterCells(cells: Uint32Array): {
 
     if (count > 0) {
       populatedCells += 1;
-      maxLightsPerPopulatedCell = Math.max(
-        maxLightsPerPopulatedCell,
-        count,
-      );
+      maxLightsPerPopulatedCell = Math.max(maxLightsPerPopulatedCell, count);
       totalAssignedLightReferences += count;
     }
   }
@@ -1231,7 +1303,9 @@ function transformPoint(
   };
 }
 
-function projectionLooksPerspective(projectionMatrix: ArrayLike<number>): boolean {
+function projectionLooksPerspective(
+  projectionMatrix: ArrayLike<number>,
+): boolean {
   return (
     Math.abs(projectionMatrix[11] ?? 0) > 0.5 ||
     Math.abs(projectionMatrix[15] ?? 1) < 0.5
@@ -1240,9 +1314,7 @@ function projectionLooksPerspective(projectionMatrix: ArrayLike<number>): boolea
 
 function hasMatrixRange(values: Float32Array, offset: number): boolean {
   return (
-    Number.isInteger(offset) &&
-    offset >= 0 &&
-    offset + 16 <= values.length
+    Number.isInteger(offset) && offset >= 0 && offset + 16 <= values.length
   );
 }
 

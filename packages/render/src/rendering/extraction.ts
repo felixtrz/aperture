@@ -53,6 +53,7 @@ import {
   InstanceData,
   InstanceTint,
   Light,
+  LightCookie,
   LightShadowSettings,
   Material,
   MaterialSlots,
@@ -71,9 +72,11 @@ import {
   type CameraInput,
   type FogInput,
   type LightInput,
+  type LightCookieInput,
   type LightShadowSettingsInput,
   validateCameraInput,
   validateFogInput,
+  validateLightCookieInput,
   validateLightInput,
   validateLightShadowSettingsInput,
   validateSpriteInput,
@@ -422,6 +425,7 @@ function extractLights(
     const kind = (entity.getValue(Light, "kind") ??
       "directional") as LightPacket["kind"];
     const shadowSettings = readShadowSettings(entity, diagnostics);
+    const cookie = readLightCookie(entity, assets, kind, diagnostics);
 
     if (kind === "environment") {
       diagnoseUnsupportedShadowRequest(
@@ -492,6 +496,13 @@ function extractLights(
       outerConeAngle: entity.getValue(Light, "outerConeAngle") ?? Math.PI / 6,
       width: entity.getValue(Light, "width") ?? 2,
       height: entity.getValue(Light, "height") ?? 2,
+      ...(cookie === null
+        ? {}
+        : {
+            cookieTexture: cookie.texture,
+            cookieSampler: cookie.sampler,
+            cookieIntensity: cookie.intensity,
+          }),
       worldTransformOffset,
       layerMask: entity.getValue(Light, "layerMask") ?? 1,
     });
@@ -541,6 +552,63 @@ function readShadowSettings(
   }
 
   return settings;
+}
+
+function readLightCookie(
+  entity: Entity,
+  assets: AssetRegistry,
+  kind: LightPacket["kind"],
+  diagnostics: RenderDiagnostic[],
+): LightCookieInput | null {
+  if (!entity.hasComponent(LightCookie)) {
+    return null;
+  }
+
+  if (kind !== "point" && kind !== "spot") {
+    diagnostics.push(
+      diagnostic(`render.lightCookieUnsupportedKind.${kind}`, entity),
+    );
+    return null;
+  }
+
+  const texture = parseTextureHandle(
+    entity.getValue(LightCookie, "textureId") ?? "",
+  );
+  const samplerId = entity.getValue(LightCookie, "samplerId") ?? "";
+  const sampler = samplerId.length === 0 ? null : parseSamplerHandle(samplerId);
+  const intensity = entity.getValue(LightCookie, "intensity") ?? 1;
+
+  if (texture === null) {
+    diagnostics.push(diagnostic("render.lightCookie.missingTexture", entity));
+    return null;
+  }
+
+  const input: LightCookieInput = {
+    texture,
+    sampler,
+    intensity,
+  };
+  const validation = validateLightCookieInput(input);
+
+  if (!validation.valid) {
+    for (const cookieDiagnostic of validation.diagnostics) {
+      diagnostics.push(diagnostic(`render.${cookieDiagnostic.code}`, entity));
+    }
+    return null;
+  }
+
+  if (!validateTextureAssetState(texture, assets, entity, diagnostics)) {
+    return null;
+  }
+
+  if (
+    sampler !== null &&
+    !validateSamplerAssetState(sampler, assets, entity, diagnostics)
+  ) {
+    return null;
+  }
+
+  return input;
 }
 
 function appendShadowRequest(

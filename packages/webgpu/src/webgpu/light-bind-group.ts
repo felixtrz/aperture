@@ -15,6 +15,7 @@ import {
   type StandardAreaLightLtcResources,
 } from "./standard-area-light-ltc-resource.js";
 import type { LocalLightClusterGpuResource } from "./local-light-clusters.js";
+import type { LocalLightClusterCookieResources } from "./local-light-cookie-resources.js";
 
 export const STANDARD_TRANSMISSION_SCENE_COLOR_TEXTURE_BINDING = 14;
 export const STANDARD_TRANSMISSION_SCENE_COLOR_SAMPLER_BINDING = 15;
@@ -33,6 +34,7 @@ export interface CreateLightBindGroupDescriptorPlanOptions {
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly transmissionSceneColorResources?: StandardTransmissionSceneColorResources | null;
   readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
+  readonly localLightCookieResources?: LocalLightClusterCookieResources | null;
   readonly pipelineKey?: string | null;
   readonly layoutKey: string | null;
   readonly group?: number;
@@ -213,6 +215,10 @@ export function createLightBindGroupDescriptorPlan(
   appendLocalLightClusterEntries(
     entries,
     options.localLightClusterResources ?? null,
+  );
+  appendLocalLightCookieEntries(
+    entries,
+    options.localLightCookieResources ?? null,
   );
 
   const pipelineKey =
@@ -509,6 +515,28 @@ function appendLocalLightClusterEntries(
       binding: 19,
       resourceKey: resources.metadataResourceKey,
       resource: { buffer: resources.metadataBuffer },
+    },
+  );
+}
+
+function appendLocalLightCookieEntries(
+  entries: LightBindGroupDescriptorEntry[],
+  resources: LocalLightClusterCookieResources | null,
+): void {
+  if (resources === null) {
+    return;
+  }
+
+  entries.push(
+    {
+      binding: 20,
+      resourceKey: resources.textureResource.resourceKey,
+      resource: { textureView: resources.textureResource.view },
+    },
+    {
+      binding: 21,
+      resourceKey: resources.samplerResource.resourceKey,
+      resource: { sampler: resources.samplerResource.sampler },
     },
   );
 }

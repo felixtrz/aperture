@@ -5,6 +5,8 @@ import type {
 } from "./bind-group-layout-cache.js";
 import {
   LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
+  LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,
+  LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
   LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
   LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
   LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
@@ -29,6 +31,7 @@ export interface CreateLightBindGroupLayoutDescriptorOptions {
   readonly visibility?: number;
   readonly transmissionSceneColor?: boolean;
   readonly clusteredLocalLights?: boolean;
+  readonly clusteredLocalLightCookies?: boolean;
 }
 
 export interface CreateLightBindGroupLayoutResourceOptions extends CreateLightBindGroupLayoutDescriptorOptions {
@@ -93,6 +96,7 @@ export function createLightBindGroupLayoutDescriptor(
     entries,
     visibility,
     options.clusteredLocalLights === true,
+    options.clusteredLocalLightCookies === true,
   );
 
   return {
@@ -105,6 +109,7 @@ export function appendClusteredLocalLightLayoutEntries(
   entries: WebGpuBindGroupLayoutEntryDescriptor[],
   visibility: number,
   enabled: boolean,
+  cookiesEnabled = false,
 ): void {
   if (!enabled) {
     return;
@@ -132,6 +137,21 @@ export function appendClusteredLocalLightLayoutEntries(
       buffer: { type: "read-only-storage" },
     },
   );
+
+  if (cookiesEnabled) {
+    entries.push(
+      {
+        binding: LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
+        visibility,
+        texture: { sampleType: "float" },
+      },
+      {
+        binding: LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,
+        visibility,
+        sampler: { type: "filtering" },
+      },
+    );
+  }
 }
 
 export function createLightBindGroupLayoutResource(

@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3133`: add clustered local-light cookie sampling.
+Start `task-3134`: add cookie-only clustered spot-light projection matrices.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -197,8 +197,10 @@ lighting visible. `task-3131` now renders supported clustered local point-light
 shadows from renderer-owned cube depth resources while preserving direct
 clustered lighting for unsupported metadata-only lights. `task-3132` now
 renders supported clustered local spot-light shadows from renderer-owned 2D
-depth resources. The next visible slice is `task-3133`, adding clustered
-local-light cookie sampling.
+depth resources. `task-3133` now renders supported clustered spot-light cookies
+through ECS-authored texture/sampler handles and StandardMaterial clustered
+resources. The next visible slice is `task-3134`, adding cookie-only clustered
+spot-light projection matrices so cookies no longer require shadow resources.
 
 Reference anchors for the next task (read before writing):
 
@@ -754,6 +756,8 @@ Acceptance criteria:
 
 ### task-3133 — Add clustered local-light cookie sampling
 
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/render`, `packages/runtime`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.
 Reference anchor: `references/engine/src/scene/lighting/lights-buffer.js`, `references/engine/src/scene/renderer/forward-renderer.js`, `references/three.js/src/renderers/WebGLRenderer.js`.
@@ -768,6 +772,57 @@ Acceptance criteria:
   when supported.
 - A browser proof shows a clustered local light with a cookie pattern visibly
   modulates a receiver and reports supported cookie readiness with zero WebGPU
+  validation warnings.
+
+### task-3134 — Add cookie-only clustered spot-light projection matrices
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.
+Reference anchor: `references/engine/src/scene/lighting/light-camera.js`, `references/engine/src/scene/lighting/lights-buffer.js`, `references/three.js/src/renderers/webgl/WebGLLights.js`.
+
+Acceptance criteria:
+
+- Clustered spot-light cookies can be sampled from a renderer-owned projection
+  matrix even when the light does not request or bind a shadow depth texture.
+- Cookie-only clustered StandardMaterial pipelines bind the matrix/texture/
+  sampler resources needed for spot-cookie projection without enabling shadow
+  comparison sampling or requiring a caster pass.
+- `examples/clustered-lights.html?enable-cluster-cookie-only=1` visibly renders
+  a cookie pattern on the receiver, reports cookie readiness with zero WebGPU
+  validation warnings, and has no clustered local shadow sampling support for
+  the cookie light.
+
+### task-3135 — Add clustered point-light cube cookie sampling
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render`, `packages/runtime`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.
+Reference anchor: `references/engine/src/scene/lighting/lights-buffer.js`, `references/engine/src/scene/shader-lib/chunks/lit/frag/light.js`, `references/three.js/src/renderers/WebGLRenderer.js`.
+
+Acceptance criteria:
+
+- ECS/runtime point lights can attach a cube-cookie texture handle while
+  keeping renderer texture resources out of ECS state.
+- Clustered point-light WGSL samples cube-cookie color for supported local
+  point lights and preserves direct lighting plus honest metadata fallback for
+  unsupported requests.
+- A browser proof shows a point-light cube cookie changing receiver pixels,
+  reports supported cookie readiness, and keeps zero WebGPU validation warnings.
+
+### task-3136 — Support multiple clustered local-light cookies per frame
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.
+Reference anchor: `references/engine/src/scene/lighting/lights-buffer.js`, `references/engine/src/scene/renderer/forward-renderer.js`, `references/three.js/src/renderers/webgl/WebGLLights.js`.
+
+Acceptance criteria:
+
+- The clustered local-light route supports more than one ready local-light
+  cookie in a frame, using a renderer-owned texture-array/atlas strategy or an
+  equivalent binding model that remains WebGPU-layout compatible.
+- Cluster metadata records per-light cookie resource indices without exposing
+  GPU resources through ECS or a hidden renderer-owned scene graph.
+- A browser proof renders at least two differently patterned local-light
+  cookies in one clustered scene and reports both as supported with zero WebGPU
   validation warnings.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
