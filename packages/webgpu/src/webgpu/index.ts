@@ -82,6 +82,7 @@ export * from "./light-bind-group-layout.js";
 export * from "./light-packing.js";
 export * from "./light-shader-metadata.js";
 export * from "./lighting-resource-plan.js";
+export * from "./local-light-atlas-slot-allocator.js";
 export * from "./local-light-cookie-resources.js";
 export * from "./local-light-clusters.js";
 export * from "./mesh-buffer-descriptors.js";

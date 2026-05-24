@@ -1,6 +1,71 @@
 # Agent Handoff
 
-Updated: 2026-05-24T11:37:07Z
+Updated: 2026-05-24T12:04:07Z
+
+## Current Run Update — 2026-05-24T12:04:07Z — Dynamic clustered atlas slots
+
+Completed `task-3151`, adding dynamic clustered shadow/cookie atlas slot
+allocation for changing spot shadow-cookie light sets.
+
+### What changed
+
+- Added `createLocalLightAtlasSlotAllocatorState()` and
+  `allocateLocalLightAtlasSlots()` in `@aperture-engine/webgpu`.
+- The allocator uses stable per-light allocation keys, reuses unchanged slots,
+  retains stale slots for a bounded generation window, and reports reassigned,
+  stale, and evicted slot counts.
+- Added
+  `examples/clustered-lights.html?enable-cluster-dynamic-shadow-cookie-atlas=1`
+  as a dynamic atlas proof route with four atlas-backed clustered spot
+  shadow-cookie lights.
+- The proof route toggles one light out for a frame, brings it back, resizes
+  one light, and reports four assigned slots, three reused slots, max stale
+  slot count `1`, max evicted slot count `1`, and shadow-aligned compact cookie
+  sampling.
+- The dynamic route disables the point-shadow half of the mixed pressure route
+  so the first warmup frame stays within WebGPU minimum fragment storage-buffer
+  limits; the static point-plus-spot atlas shadow-cookie route remains covered
+  by `task-3150`.
+- Public progress pages, backlog, current task, and completed-task records now
+  point to `task-3152`.
+
+### Validation
+
+- `node --check examples/clustered-lights.main.js`
+- `node --check examples/clustered-lights.worker.js`
+- `pnpm exec vitest run test/webgpu/local-light-atlas-slot-allocator.test.ts test/webgpu/local-light-cookie-resources.test.ts test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run build`
+- Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-dynamic-shadow-cookie-atlas=1&proof=task3151d`:
+  `ok: true`, `readbackStatus.ok: true`,
+  `routeDynamicShadowCookieAtlasReady`,
+  `routePackedSpotShadowAtlasSamplingOk`,
+  `routePackedShadowCookieAtlasShadowReady`,
+  `routePackedShadowCookieAtlasCookieReady`,
+  `routePackedShadowCookieAtlasShadowAligned`,
+  `routePackedShadowCookieAtlasSamplingOk`, and
+  `routePackedShadowCookiePipelineOk` true, with diagnostics `0` and zero
+  relevant WebGPU validation warnings/errors. The only console error was the
+  existing favicon `403`.
+
+### Known issues
+
+- The broad multi-page `test/e2e/clustered-lights.spec.ts` remains locally
+  unreliable from pre-existing headed timing/transparent readback issues; this
+  run updated its status types and used the focused dynamic route proof instead.
+- Dynamic atlas shadow resources are recreated each proof frame. `task-3153`
+  should cache unchanged clustered local shadow maps across frames.
+- The pre-existing working-tree deletion of `.codex/hooks.json`, untracked
+  `.playwright-mcp/` scratch directory, and untracked
+  `shadow-cookie-console-errors.txt` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3152`: add GPU-updated clustered cookie atlas blits so changed
+cookie atlas tiles can update through renderer-owned GPU copy/blit work instead
+of rebuilding CPU-packed atlas bytes.
 
 ## Current Run Update — 2026-05-24T11:37:07Z — Shadow-aligned cookie atlas
 

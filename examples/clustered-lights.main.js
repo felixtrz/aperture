@@ -12,8 +12,14 @@ const clusteredCookieOnlyEnabled =
 const clusteredMixedCookieEnabled =
   exampleParams.has("enable-cluster-mixed-cookie") &&
   !exampleParams.has("disable-cluster-cookie");
+const clusteredDynamicShadowCookieAtlasEnabled =
+  exampleParams.has("enable-cluster-dynamic-shadow-cookie-atlas") &&
+  !exampleParams.has("disable-cluster-cookie") &&
+  !exampleParams.has("disable-cluster-point-shadow") &&
+  !exampleParams.has("disable-cluster-spot-shadow");
 const clusteredShadowCookieAtlasEnabled =
-  exampleParams.has("enable-cluster-shadow-cookie-atlas") &&
+  (exampleParams.has("enable-cluster-shadow-cookie-atlas") ||
+    clusteredDynamicShadowCookieAtlasEnabled) &&
   !exampleParams.has("disable-cluster-cookie") &&
   !exampleParams.has("disable-cluster-point-shadow") &&
   !exampleParams.has("disable-cluster-spot-shadow");
@@ -111,6 +117,7 @@ const clusteredMultiSpotShadowEnabled =
   !clusteredPointCookieEnabled;
 const clusteredPointShadowEnabled =
   !exampleParams.has("disable-cluster-point-shadow") &&
+  !clusteredDynamicShadowCookieAtlasEnabled &&
   (!clusteredMultiSpotShadowEnabled || clusteredPackedSpotShadowEnabled) &&
   !clusteredCookieOnlyEnabled &&
   !clusteredMultiCookieEnabled &&
@@ -152,6 +159,13 @@ const clusteredSpotShadowIntent = {
   receiverLayerMask: 2,
 };
 const clusteredSpotShadowAtlasMapSizes = [256, 128];
+const clusteredDynamicSpotShadowAtlas = {
+  width: 512,
+  height: 256,
+  staleGenerations: 1,
+  mapSizes: [256, 128, 128, 64],
+  resizedMapSizes: [128, 128, 128, 64],
+};
 const clusteredShadowSoftnessPointFilterRadiusTexels = 3;
 const clusteredShadowSoftnessSpotFilterRadiiTexels = [0, 5];
 const maxStatusWarmupFrames = 90;
@@ -341,6 +355,7 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     clusteredAtlasCookieEnabled,
     clusteredShadowCookieEnabled,
     clusteredShadowCookieAtlasEnabled,
+    clusteredDynamicShadowCookieAtlasEnabled,
     clusteredShadowCookiePointArrayEnabled,
     clusteredCookieOnlyEnabled,
     clusteredMixedShadowEnabled,
@@ -539,6 +554,8 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     pointShadowDepthTextureResourceReport: null,
     spotShadowDepthTextureResourceReport: null,
     shadowStatus: null,
+    dynamicSpotShadowAtlasState: null,
+    dynamicSpotShadowAtlasStatus: null,
   };
 
   worker.addEventListener("message", (event) => {
@@ -563,6 +580,8 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     clusteredAtlasCookieEnabled: scene.clusteredAtlasCookieEnabled,
     clusteredShadowCookieEnabled: scene.clusteredShadowCookieEnabled,
     clusteredShadowCookieAtlasEnabled: scene.clusteredShadowCookieAtlasEnabled,
+    clusteredDynamicShadowCookieAtlasEnabled:
+      scene.clusteredDynamicShadowCookieAtlasEnabled,
     clusteredShadowCookiePointArrayEnabled:
       scene.clusteredShadowCookiePointArrayEnabled,
     clusteredCookieOnlyEnabled: scene.clusteredCookieOnlyEnabled,
@@ -612,9 +631,10 @@ async function handleWorkerMessage(
 
   loop.receivedSnapshots += 1;
 
+  const frame = message.frame ?? loop.frame;
   const typedSnapshot = inspectStructuredCloneSnapshot(message.snapshot);
   const report = await app.renderSnapshot(message.snapshot, {
-    frame: message.frame ?? loop.frame,
+    frame,
     clearColor,
     label: "clustered-lights",
     readbackSamples,
@@ -639,13 +659,13 @@ async function handleWorkerMessage(
     scene,
     loop,
     report,
+    frame,
   );
 
   loop.standardMaterialShadowReceiverResources =
     nextShadowResources?.standardMaterialShadowReceiverResources ?? null;
   loop.shadowStatus = nextShadowResources?.shadowStatus ?? null;
 
-  const frame = message.frame ?? loop.frame;
   const transparentReadbackWarmup =
     status.readbackStatus?.reason === "transparent-zero-readback" &&
     frame < maxTransparentReadbackWarmupFrames;
@@ -709,6 +729,7 @@ function statusFromReport(
     scene.clusteredShadowCookieEnabled,
     scene.clusteredShadowCookiePointArrayEnabled,
     scene.clusteredShadowCookieAtlasEnabled,
+    scene.clusteredDynamicShadowCookieAtlasEnabled,
     scene.clusteredShadowSoftnessEnabled ||
       scene.clusteredShadowSoftnessAtlasEnabled,
   );
@@ -773,6 +794,7 @@ function createClusterStatus(
   shadowCookieEnabled,
   shadowCookiePointArrayEnabled,
   shadowCookieAtlasEnabled,
+  dynamicShadowCookieAtlasEnabled,
   shadowSoftnessEnabled,
 ) {
   const clusterPipelineUsed = pipelineKeys.some((pipelineKey) =>
@@ -853,12 +875,20 @@ function createClusterStatus(
   const expectedShadowRequestCount =
     (pointShadowEnabled === true ? 4 : 0) +
     (spotShadowEnabled === true
-      ? multiSpotShadowEnabled === true
-        ? 2
-        : 1
+      ? dynamicShadowCookieAtlasEnabled === true
+        ? 4
+        : multiSpotShadowEnabled === true
+          ? 2
+          : 1
       : 0);
   const requiredSpotShadowSupportedCount =
-    spotShadowEnabled === true ? (multiSpotShadowEnabled === true ? 2 : 1) : 0;
+    spotShadowEnabled === true
+      ? dynamicShadowCookieAtlasEnabled === true
+        ? 4
+        : multiSpotShadowEnabled === true
+          ? 2
+          : 1
+      : 0;
   const requiredPointShadowSupportedCount =
     pointShadowEnabled === true
       ? multiPointShadowEnabled === true
@@ -940,6 +970,18 @@ function createClusterStatus(
         pipelineKey.includes("shadowMap") &&
         !pipelineKey.includes("clusteredLocalLightArrayShadows"),
     );
+  const routePackedSpotShadowAtlasSamplingOk =
+    packedSpotShadowAtlasEnabled === true &&
+    shadowStatus?.spot?.mode === "clustered-spot-atlas-depth-compare" &&
+    (mixedShadowEnabled === true
+      ? routeMixedPackedSpotShadowAtlasSamplingOk
+      : routeSpotShadowAtlasSamplingOk) &&
+    pipelineKeys.some(
+      (pipelineKey) =>
+        pipelineKey.includes("clusteredLocalLights") &&
+        pipelineKey.includes("shadowMap") &&
+        !pipelineKey.includes("clusteredLocalLightArrayShadows"),
+    );
   const routeMultiPointShadowSamplingOk =
     multiPointShadowEnabled === true &&
     routePointShadowSamplingOk &&
@@ -993,8 +1035,11 @@ function createClusterStatus(
         ? routeSpotShadowAtlasSoftnessReady
         : routeSpotShadowArraySoftnessReady));
   const requiredCookieSupportedCount =
-    (multiCookieEnabled === true ? 2 : 0) +
-      (pointCookieEnabled === true ? 1 : 0) || (cookieEnabled === true ? 1 : 0);
+    dynamicShadowCookieAtlasEnabled === true
+      ? 4
+      : (multiCookieEnabled === true ? 2 : 0) +
+          (pointCookieEnabled === true ? 1 : 0) ||
+        (cookieEnabled === true ? 1 : 0);
   const routeCookieSamplingOk =
     cookieEnabled === true &&
     routeCookieStates.some(
@@ -1130,7 +1175,8 @@ function createClusterStatus(
         pipelineKey.includes("clusteredLocalLightShadowCookies") &&
         (packedSpotShadowAtlasEnabled === true ||
           pipelineKey.includes("clusteredLocalLightArrayShadows")) &&
-        pipelineKey.includes("pointShadowMap") &&
+        (pointShadowEnabled !== true ||
+          pipelineKey.includes("pointShadowMap")) &&
         pipelineKey.includes("shadowMap"),
     );
   const routePackedShadowCookiePointArrayReady =
@@ -1148,7 +1194,7 @@ function createClusterStatus(
   const routePackedShadowCookieAtlasShadowReady =
     shadowCookieAtlasEnabled === true &&
     routePackedShadowCookieShadowReady &&
-    routeMixedPackedSpotShadowAtlasSamplingOk;
+    routePackedSpotShadowAtlasSamplingOk;
   const routePackedShadowCookieAtlasCookieReady =
     shadowCookieAtlasEnabled === true && routeCookieAtlasSamplingOk;
   const routePackedShadowCookieAtlasShadowAligned =
@@ -1157,7 +1203,8 @@ function createClusterStatus(
     pipelineKeys.some(
       (pipelineKey) =>
         pipelineKey.includes("clusteredLocalLightShadowCookies") &&
-        pipelineKey.includes("pointShadowMap") &&
+        (pointShadowEnabled !== true ||
+          pipelineKey.includes("pointShadowMap")) &&
         pipelineKey.includes("shadowMap") &&
         !pipelineKey.includes("clusteredLocalLightArrayShadows"),
     );
@@ -1167,7 +1214,7 @@ function createClusterStatus(
       routePackedShadowCookieCookieReady &&
       routePackedShadowCookiePipelineOk &&
       (packedSpotShadowAtlasEnabled === true
-        ? routeMixedPackedSpotShadowAtlasSamplingOk
+        ? routePackedSpotShadowAtlasSamplingOk
         : routeMixedPackedSpotShadowSamplingOk) &&
       routeCookieSamplingOk);
   const routePackedShadowCookiePointArraySamplingOk =
@@ -1181,6 +1228,18 @@ function createClusterStatus(
       routePackedShadowCookieAtlasCookieReady &&
       routePackedShadowCookieAtlasShadowAligned &&
       routePackedShadowCookieSamplingOk);
+  const dynamicShadowCookieAtlasStatus =
+    createDynamicShadowCookieAtlasStatus(loop, dynamicShadowCookieAtlasEnabled);
+  const routeDynamicShadowCookieAtlasReady =
+    dynamicShadowCookieAtlasEnabled !== true ||
+    (dynamicShadowCookieAtlasStatus.ready === true &&
+      dynamicShadowCookieAtlasStatus.assignedSlotCount >=
+        requiredSpotShadowSupportedCount &&
+      dynamicShadowCookieAtlasStatus.maxReusedSlotCount >= 3 &&
+      dynamicShadowCookieAtlasStatus.maxStaleSlotCount >= 1 &&
+      dynamicShadowCookieAtlasStatus.maxEvictedSlotCount >= 1 &&
+      dynamicShadowCookieAtlasStatus.shadowAligned === true &&
+      dynamicShadowCookieAtlasStatus.diagnosticsCount === 0);
 
   return {
     ok:
@@ -1198,11 +1257,12 @@ function createClusterStatus(
       (packedSpotShadowArrayEnabled !== true ||
         routeMixedPackedSpotShadowSamplingOk) &&
       (packedSpotShadowAtlasEnabled !== true ||
-        routeMixedPackedSpotShadowAtlasSamplingOk) &&
+        routePackedSpotShadowAtlasSamplingOk) &&
       (multiPointShadowEnabled !== true || routeMultiPointShadowSamplingOk) &&
       routePackedShadowCookieSamplingOk &&
       routePackedShadowCookiePointArraySamplingOk &&
       routePackedShadowCookieAtlasSamplingOk &&
+      routeDynamicShadowCookieAtlasReady &&
       routeShadowSoftnessSamplingOk &&
       (cookieEnabled !== true || routeCookieSamplingOk) &&
       occupancyChanged &&
@@ -1233,6 +1293,7 @@ function createClusterStatus(
     routeMixedShadowSamplingOk,
     routeMixedPackedSpotShadowSamplingOk,
     routeMixedPackedSpotShadowAtlasSamplingOk,
+    routePackedSpotShadowAtlasSamplingOk,
     routeMultiPointShadowSamplingOk,
     routePackedShadowCookieShadowReady,
     routePackedShadowCookieCookieReady,
@@ -1244,6 +1305,8 @@ function createClusterStatus(
     routePackedShadowCookieAtlasCookieReady,
     routePackedShadowCookieAtlasShadowAligned,
     routePackedShadowCookieAtlasSamplingOk,
+    routeDynamicShadowCookieAtlasReady,
+    dynamicShadowCookieAtlasStatus,
     routeShadowHardFilterReady,
     routeShadowSoftFilterReady,
     routePointShadowSoftnessReady,
@@ -1293,6 +1356,58 @@ function recordClusterOccupancy(loop, localLightClusters) {
     totalAssignedLightReferences:
       primaryRoute.totalAssignedLightReferences ?? null,
   };
+}
+
+function createDynamicShadowCookieAtlasStatus(loop, enabled) {
+  if (enabled !== true) {
+    return {
+      enabled: false,
+      ready: true,
+      shadowAligned: false,
+      atlasWidth: 0,
+      atlasHeight: 0,
+      generation: 0,
+      requestedSlotCount: 0,
+      assignedSlotCount: 0,
+      storedSlotCount: 0,
+      reusedSlotCount: 0,
+      reassignedSlotCount: 0,
+      staleSlotCount: 0,
+      evictedSlotCount: 0,
+      maxReusedSlotCount: 0,
+      maxStaleSlotCount: 0,
+      maxEvictedSlotCount: 0,
+      diagnosticsCount: 0,
+      diagnostics: [],
+      slotKeys: [],
+      tiles: [],
+    };
+  }
+
+  return (
+    loop.dynamicSpotShadowAtlasStatus ?? {
+      enabled: true,
+      ready: false,
+      shadowAligned: false,
+      atlasWidth: clusteredDynamicSpotShadowAtlas.width,
+      atlasHeight: clusteredDynamicSpotShadowAtlas.height,
+      generation: 0,
+      requestedSlotCount: 0,
+      assignedSlotCount: 0,
+      storedSlotCount: 0,
+      reusedSlotCount: 0,
+      reassignedSlotCount: 0,
+      staleSlotCount: 0,
+      evictedSlotCount: 0,
+      maxReusedSlotCount: 0,
+      maxStaleSlotCount: 0,
+      maxEvictedSlotCount: 0,
+      diagnosticsCount: 0,
+      diagnostics: [],
+      slotKeys: [],
+      tiles: [],
+    }
+  );
 }
 
 function clusterRoutesFromReport(localLightClusters) {
@@ -1700,6 +1815,7 @@ async function createClusteredShadowReceiverResources(
   scene,
   loop,
   report,
+  frame,
 ) {
   const pointResult = scene.clusteredPointShadowEnabled
     ? await createClusteredPointShadowReceiverResources(
@@ -1724,6 +1840,7 @@ async function createClusteredShadowReceiverResources(
         scene,
         loop,
         report,
+        frame,
       )
     : {
         standardMaterialShadowReceiverResources: null,
@@ -1803,6 +1920,7 @@ async function createClusteredSpotShadowReceiverResources(
   scene,
   loop,
   report,
+  frame,
 ) {
   const requests = report.snapshot.shadowRequests.filter(
     (candidate) =>
@@ -1811,11 +1929,17 @@ async function createClusteredSpotShadowReceiverResources(
         clusteredSpotShadowIntent.receiverLayerMask) !==
         0,
   );
-  const requiredSpotShadowCount =
-    scene.clusteredMultiSpotShadowEnabled === true ? 2 : 1;
-  const shadowRequests = requests.slice(0, requiredSpotShadowCount);
+  const requiredSpotShadowCount = requiredClusteredSpotShadowCount(scene);
+  const requiredShadowRequests = requests.slice(0, requiredSpotShadowCount);
+  const shadowRequests =
+    scene.clusteredDynamicShadowCookieAtlasEnabled === true
+      ? selectDynamicClusteredSpotShadowRequests(
+          requiredShadowRequests,
+          frame,
+        )
+      : requiredShadowRequests;
 
-  if (shadowRequests.length < requiredSpotShadowCount) {
+  if (requests.length < requiredSpotShadowCount) {
     return {
       standardMaterialShadowReceiverResources: null,
       shadowStatus: {
@@ -1832,9 +1956,18 @@ async function createClusteredSpotShadowReceiverResources(
     scene.clusteredSpotShadowAtlasEnabled === true &&
     requiredSpotShadowCount > 1;
   const spotArrayEnabled = requiredSpotShadowCount > 1 && !spotAtlasEnabled;
-  const atlasTiles = spotAtlasEnabled
-    ? createClusteredSpotShadowAtlasTiles(shadowRequests)
-    : [];
+  const atlasTiles =
+    spotAtlasEnabled && scene.clusteredDynamicShadowCookieAtlasEnabled === true
+      ? createDynamicClusteredSpotShadowAtlasTiles(
+          aperture,
+          loop,
+          shadowRequests,
+          requiredShadowRequests,
+          frame,
+        )
+      : spotAtlasEnabled
+        ? createClusteredSpotShadowAtlasTiles(shadowRequests)
+        : [];
   const spotResourceKey = spotAtlasEnabled
     ? "shadow-map:clustered-spot-atlas"
     : spotArrayEnabled
@@ -1882,11 +2015,19 @@ async function createClusteredSpotShadowReceiverResources(
     descriptors: shadowDescriptor,
   });
 
-  loop.spotShadowDepthTextureResourceReport ??=
+  const spotShadowDepthTextureResourceReport =
     aperture.createShadowDepthTextureResourceReport({
       device: app.initialization.device,
       textures: shadowTextures,
     });
+
+  if (scene.clusteredDynamicShadowCookieAtlasEnabled === true) {
+    loop.spotShadowDepthTextureResourceReport =
+      spotShadowDepthTextureResourceReport;
+  } else {
+    loop.spotShadowDepthTextureResourceReport ??=
+      spotShadowDepthTextureResourceReport;
+  }
 
   const appEnvironmentResourceCache =
     aperture.getOrCreateWebGpuAppEnvironmentResourceCache(app);
@@ -2135,7 +2276,9 @@ async function createClusteredSpotShadowReceiverResources(
               x: tile.x,
               y: tile.y,
               width: tile.mapSize,
-              height: tile.mapSize,
+              height: tile.height ?? tile.mapSize,
+              allocationKey: tile.allocationKey ?? null,
+              reused: tile.reused === true,
             })),
           }
         : {}),
@@ -2165,6 +2308,151 @@ function clusteredSpotShadowFilterRadiusTexels(scene, index) {
   }
 
   return clusteredSpotShadowIntent.filterRadiusTexels;
+}
+
+function requiredClusteredSpotShadowCount(scene) {
+  if (scene.clusteredDynamicShadowCookieAtlasEnabled === true) {
+    return 4;
+  }
+
+  return scene.clusteredMultiSpotShadowEnabled === true ? 2 : 1;
+}
+
+function selectDynamicClusteredSpotShadowRequests(shadowRequests, frame) {
+  if (frame === 2) {
+    return shadowRequests.filter((_request, index) => index !== 2);
+  }
+
+  return shadowRequests;
+}
+
+function createDynamicClusteredSpotShadowAtlasTiles(
+  aperture,
+  loop,
+  shadowRequests,
+  requiredShadowRequests,
+  frame,
+) {
+  loop.dynamicSpotShadowAtlasState ??=
+    aperture.createLocalLightAtlasSlotAllocatorState({
+      atlasWidth: clusteredDynamicSpotShadowAtlas.width,
+      atlasHeight: clusteredDynamicSpotShadowAtlas.height,
+      maxStaleGenerations: clusteredDynamicSpotShadowAtlas.staleGenerations,
+    });
+
+  const allocation = aperture.allocateLocalLightAtlasSlots({
+    state: loop.dynamicSpotShadowAtlasState,
+    requests: shadowRequests.map((request, index) => {
+      const stableIndex = requiredShadowRequests.findIndex(
+        (candidate) =>
+          candidate.lightId === request.lightId &&
+          candidate.shadowId === request.shadowId,
+      );
+      const mapSize = dynamicClusteredSpotShadowMapSize(
+        stableIndex >= 0 ? stableIndex : index,
+        frame,
+      );
+
+      return {
+        allocationKey: `spot-shadow:${request.lightId}`,
+        lightId: request.lightId,
+        shadowId: request.shadowId,
+        width: mapSize,
+        height: mapSize,
+        priority: mapSize,
+      };
+    }),
+  });
+  const tiles = allocation.tiles.map((tile) => ({
+    shadowId: tile.shadowId,
+    lightId: tile.lightId,
+    mapSize: tile.width,
+    atlasWidth: allocation.atlasWidth,
+    atlasHeight: allocation.atlasHeight,
+    x: tile.originX,
+    y: tile.originY,
+    width: tile.width,
+    height: tile.height,
+    allocationKey: tile.allocationKey,
+    reused: tile.reused,
+  }));
+
+  updateDynamicSpotShadowAtlasStatus(loop, allocation, tiles);
+
+  return tiles;
+}
+
+function dynamicClusteredSpotShadowMapSize(index, frame) {
+  const mapSizes =
+    frame >= 3
+      ? clusteredDynamicSpotShadowAtlas.resizedMapSizes
+      : clusteredDynamicSpotShadowAtlas.mapSizes;
+
+  return (
+    mapSizes[index] ??
+    clusteredDynamicSpotShadowAtlas.mapSizes[index] ??
+    clusteredSpotShadowIntent.mapSize
+  );
+}
+
+function updateDynamicSpotShadowAtlasStatus(loop, allocation, tiles) {
+  const previous = loop.dynamicSpotShadowAtlasStatus ?? null;
+  const diagnostics = allocation.diagnostics.map((diagnostic) => ({
+    code: diagnostic.code,
+    allocationKey: diagnostic.allocationKey,
+    message: diagnostic.message,
+  }));
+  const shadowAligned =
+    allocation.ready === true &&
+    tiles.length === allocation.assignedSlotCount &&
+    tiles.every(
+      (tile) =>
+        tile.atlasWidth === allocation.atlasWidth &&
+        tile.atlasHeight === allocation.atlasHeight &&
+        tile.width === tile.mapSize &&
+        tile.height === tile.mapSize,
+    );
+
+  loop.dynamicSpotShadowAtlasStatus = {
+    enabled: true,
+    ready: allocation.ready === true && shadowAligned,
+    shadowAligned,
+    atlasWidth: allocation.atlasWidth,
+    atlasHeight: allocation.atlasHeight,
+    generation: allocation.generation,
+    requestedSlotCount: allocation.requestedSlotCount,
+    assignedSlotCount: allocation.assignedSlotCount,
+    storedSlotCount: allocation.storedSlotCount,
+    reusedSlotCount: allocation.reusedSlotCount,
+    reassignedSlotCount: allocation.reassignedSlotCount,
+    staleSlotCount: allocation.staleSlotCount,
+    evictedSlotCount: allocation.evictedSlotCount,
+    maxReusedSlotCount: Math.max(
+      previous?.maxReusedSlotCount ?? 0,
+      allocation.reusedSlotCount,
+    ),
+    maxStaleSlotCount: Math.max(
+      previous?.maxStaleSlotCount ?? 0,
+      allocation.staleSlotCount,
+    ),
+    maxEvictedSlotCount: Math.max(
+      previous?.maxEvictedSlotCount ?? 0,
+      allocation.evictedSlotCount,
+    ),
+    diagnosticsCount: diagnostics.length,
+    diagnostics,
+    slotKeys: tiles.map((tile) => tile.allocationKey),
+    tiles: tiles.map((tile) => ({
+      shadowId: tile.shadowId,
+      lightId: tile.lightId,
+      allocationKey: tile.allocationKey,
+      x: tile.x,
+      y: tile.y,
+      width: tile.width,
+      height: tile.height,
+      reused: tile.reused,
+    })),
+  };
 }
 
 function createClusteredSpotShadowAtlasTiles(shadowRequests) {

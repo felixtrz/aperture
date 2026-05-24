@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 11:37 UTC</dd>
+            <dd>2026-05-24 12:04 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1568,12 +1568,14 @@
               spot-shadow atlas proof route, packed point and spot shadow
               array/atlas proof routes, the multi-point shadow-array route,
               packed shadow-cookie array and flattened point-array shadow-cookie
-              routes, and a shadow-aligned atlas shadow-cookie route.
+              routes, a shadow-aligned atlas shadow-cookie route, and a dynamic
+              atlas shadow-cookie route with stable per-light slot reuse,
+              one-frame stale-slot retention, and resize eviction proof status.
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Dynamic clustered shadow/cookie atlas allocation and cache/update
-              behavior
+              GPU-updated clustered cookie-atlas blits and clustered local
+              shadow-map cache reuse
             </dd>
           </dl>
         </aside>
@@ -2421,12 +2423,15 @@
               The atlas shadow-cookie route now builds a shadow-aligned cookie
               atlas before reusing spot-shadow matrices, so the static proof
               route matches the PlayCanvas one-slot-per-light atlas invariant.
+              The dynamic atlas proof now allocates stable per-light
+              shadow/cookie slots across changing spot-light sets, records stale
+              slot reuse windows and resize eviction, and reports the aligned
+              compact route through browser status.
             </p>
             <ul>
               <li>
-                Next step: replace static proof-route atlas placement with
-                dynamic, stable shadow/cookie atlas allocation and update
-                behavior.
+                Next step: move clustered cookie-atlas updates from CPU-side
+                byte packing toward GPU-side copy/blit work for changed tiles.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2447,6 +2452,13 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3151</span> Added dynamic
+                clustered shadow/cookie atlas slot allocation and a browser
+                proof route that reports four assigned spot atlas slots, three
+                reused slots after resize, stale-slot retention, resize
+                eviction, and shadow-aligned compact sampling.
+              </li>
               <li>
                 <span class="badge green">task-3150</span> Added
                 shadow-aligned clustered cookie atlas packing/resampling so the
@@ -4833,14 +4845,14 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add dynamic clustered
-                shadow/cookie atlas slot allocation so the aligned atlas path
-                survives changing light sets without fixed proof-route tiles.
+                <span class="badge amber">next</span> Add GPU-updated clustered
+                cookie atlas blits so changed cookie tiles update through
+                renderer-owned GPU work instead of rebuilding CPU-packed atlas
+                bytes.
               </li>
               <li>
-                Then add GPU-updated cookie atlas blits and clustered local
-                shadow-map caching for the remaining atlas/cache efficiency
-                gaps.
+                Then add clustered local shadow-map caching for unchanged
+                dynamic atlas lights and run another pressure audit.
               </li>
             </ul>
           </article>
@@ -4853,6 +4865,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3151</div>
+            <div>
+              <strong>Dynamic clustered atlas slots shipped.</strong>
+              <span>
+                The dynamic shadow-cookie atlas route now allocates stable
+                per-light spot atlas slots, preserves stale slots across a
+                one-frame light toggle, evicts resized slots explicitly, and
+                keeps shadow-aligned compact cookie sampling browser-proven.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3150</div>
             <div>

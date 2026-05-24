@@ -108,6 +108,7 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
     readonly routeMixedShadowSamplingOk: boolean;
     readonly routeMixedPackedSpotShadowSamplingOk?: boolean;
     readonly routeMixedPackedSpotShadowAtlasSamplingOk?: boolean;
+    readonly routePackedSpotShadowAtlasSamplingOk?: boolean;
     readonly routeMultiPointShadowSamplingOk?: boolean;
     readonly routePackedShadowCookieShadowReady?: boolean;
     readonly routePackedShadowCookieCookieReady?: boolean;
@@ -119,6 +120,22 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
     readonly routePackedShadowCookieAtlasCookieReady?: boolean;
     readonly routePackedShadowCookieAtlasShadowAligned?: boolean;
     readonly routePackedShadowCookieAtlasSamplingOk?: boolean;
+    readonly routeDynamicShadowCookieAtlasReady?: boolean;
+    readonly dynamicShadowCookieAtlasStatus?: {
+      readonly enabled: boolean;
+      readonly ready: boolean;
+      readonly shadowAligned: boolean;
+      readonly atlasWidth: number;
+      readonly atlasHeight: number;
+      readonly assignedSlotCount: number;
+      readonly reusedSlotCount: number;
+      readonly staleSlotCount: number;
+      readonly evictedSlotCount: number;
+      readonly maxReusedSlotCount: number;
+      readonly maxStaleSlotCount: number;
+      readonly maxEvictedSlotCount: number;
+      readonly diagnosticsCount: number;
+    };
     readonly routeCookieSamplingOk: boolean;
     readonly routeCookieAtlasSamplingOk?: boolean;
     readonly requiredPointShadowSupportedCount?: number;
@@ -180,6 +197,8 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
         readonly y: number;
         readonly width: number;
         readonly height: number;
+        readonly allocationKey?: string | null;
+        readonly reused?: boolean;
       }[];
     };
   };

@@ -1,5 +1,54 @@
 # Completed Tasks
 
+## task-3151 — Add dynamic clustered shadow/cookie atlas slot allocation
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added a reusable local-light atlas slot allocator that preserves stable
+  per-light allocation keys, retains stale slots for a bounded generation
+  window, reuses unchanged slots, and reports resize eviction diagnostics.
+- Added
+  `examples/clustered-lights.html?enable-cluster-dynamic-shadow-cookie-atlas=1`
+  as a dynamic atlas proof route with four atlas-backed clustered spot
+  shadow-cookie lights.
+- The route toggles one light out for a frame, brings it back, resizes one
+  light, and reports assigned, reused, stale, and evicted slot counts while
+  keeping the shadow-aligned compact cookie route active.
+- Dynamic atlas status now reports the 512x256 atlas, per-light slot keys and
+  tiles, shadow/cookie alignment, and readiness gates for four supported spot
+  shadows and four supported cookies.
+- The dynamic proof route stays within WebGPU minimum storage-buffer pressure
+  without requesting higher adapter limits.
+
+Validation:
+
+- `node --check examples/clustered-lights.main.js`
+- `node --check examples/clustered-lights.worker.js`
+- `pnpm exec vitest run test/webgpu/local-light-atlas-slot-allocator.test.ts test/webgpu/local-light-cookie-resources.test.ts test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run build`
+- Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-dynamic-shadow-cookie-atlas=1&proof=task3151d`:
+  `ok: true`, `readbackStatus.ok: true`,
+  `routeDynamicShadowCookieAtlasReady`,
+  `routePackedSpotShadowAtlasSamplingOk`,
+  `routePackedShadowCookieAtlasShadowReady`,
+  `routePackedShadowCookieAtlasCookieReady`,
+  `routePackedShadowCookieAtlasShadowAligned`,
+  `routePackedShadowCookieAtlasSamplingOk`, and
+  `routePackedShadowCookiePipelineOk` true, four assigned dynamic spot atlas
+  slots, three reused slots after resize, max stale slot count `1`, max evicted
+  slot count `1`, diagnostics `0`, and zero relevant WebGPU validation
+  warnings/errors. The only console error was the existing favicon `403`.
+
+Known follow-up:
+
+- `task-3152` should move changed clustered cookie-atlas tile updates toward
+  GPU-side copy/blit work instead of CPU-side atlas byte rebuilds.
+- `task-3153` should cache unchanged clustered local shadow maps across frames.
+
 ## task-3150 — Add shadow-aligned clustered cookie atlas for compact matrix reuse
 
 Completed: 2026-05-24

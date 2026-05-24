@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3151`: add a dynamic clustered shadow/cookie atlas allocator proof
-so the compact atlas path that now uses shadow-aligned cookie tiles can also
-survive changing light sets without static proof-route assumptions.
+Start `task-3152`: add GPU-updated clustered cookie atlas blits so changed
+cookie atlas tiles can update through renderer-owned GPU copy/blit work instead
+of rebuilding CPU-packed atlas bytes.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -1147,7 +1147,7 @@ Acceptance criteria:
 
 ### task-3151 — Add dynamic clustered shadow/cookie atlas slot allocation
 
-Status: ready
+Status: completed 2026-05-24
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cookie*`, `packages/webgpu/src/webgpu/*cluster*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.

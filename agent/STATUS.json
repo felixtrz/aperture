@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "b683f22",
   "activePid": null,
-  "notes": "Completed task-3150 shadow-aligned clustered cookie atlas packing/resampling for compact atlas matrix reuse; next task-3151 adds dynamic stable shadow/cookie atlas slot allocation.",
-  "lastRunFinishedAt": "2026-05-24T11:37:07Z"
+  "notes": "Completed task-3151 dynamic clustered shadow/cookie atlas slot allocation with stable per-light reuse, stale-slot retention, and resize eviction proof; next task-3152 adds GPU-updated clustered cookie atlas blits.",
+  "lastRunFinishedAt": "2026-05-24T12:04:07Z"
 }
