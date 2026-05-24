@@ -1591,6 +1591,46 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).not.toContain("sampler_comparison");
   });
 
+  it("samples clustered spot cookie arrays with metadata layer indices", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      clusteredLocalLights: true,
+      clusteredLocalLightCookies: true,
+      clusteredLocalLightArrayCookies: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: false,
+        clusteredLocalLights: true,
+        clusteredLocalLightCookies: true,
+        clusteredLocalLightArrayCookies: true,
+      }),
+    ).toBe(
+      "direct-lit-metallic-roughness-clustered-local-lights-clustered-local-light-array-cookies-texture",
+    );
+    expect(shader.code).toContain(
+      `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING}) var localLightClusterCookieTexture: texture_2d_array<f32>;`,
+    );
+    expect(shader.code).toContain("i32(matrixBaseIndex),");
+    expect(shader.code).toContain(
+      "let cookiePosition = localLightClusterCookieMatrices[matrixBaseIndex] * vec4f(position, 1.0);",
+    );
+    expect(shader.code).not.toContain("texture_cube<f32>");
+  });
+
   it("samples clustered point cookies from cube textures without spot-cookie projection", () => {
     const shader = createStandardTextureVariantShader({
       baseColorTexture: false,

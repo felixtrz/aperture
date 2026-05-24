@@ -1,6 +1,59 @@
 # Agent Handoff
 
-Updated: 2026-05-24T04:50:24Z
+Updated: 2026-05-24T05:10:00Z
+
+## Current Run Update — 2026-05-24T05:10:00Z — Multiple clustered local-light cookies
+
+Completed `task-3136`, adding multiple ready clustered local-light cookies per
+frame through a WebGPU-layout-compatible texture-array route.
+
+### What changed
+
+- Compatible clustered spot-cookie textures now pack into a renderer-owned
+  `2d-array` texture resource with one sampler binding and one matrix buffer.
+- Clustered local-light metadata keeps GPU resources out of ECS/snapshots while
+  recording each supported cookie light's matrix/array-layer index in word 3.
+- StandardMaterial clustered pipeline keys, shader variants, and group-3
+  bind-group layouts now specialize `clusteredLocalLightArrayCookies` at
+  binding 20.
+- WGSL spot-cookie sampling uses the metadata index for both projection matrix
+  lookup and `texture_2d_array` layer selection.
+- `examples/clustered-lights.html?enable-cluster-multi-cookie=1` authors two
+  differently patterned spot cookies in the worker scene and reports both as
+  supported in one clustered frame.
+- Public trackers and agent task pointers now recommend a post-cookie covered
+  render-pipeline audit before selecting the next visible SOTA slice.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/local-light-cookie-resources.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- Narrow Chrome/WebGPU proof for
+  `examples/clustered-lights.html?enable-cluster-multi-cookie=1`: route `ok`,
+  array-cookie pipeline key present, cookie metadata `sampling-ready` with two
+  supported clustered cookie lights, diagnostics `0`, readback luminance range
+  about `251`, cluster buffer reuse `16`, and relevant WebGPU validation
+  warnings `0`.
+
+### Known issues
+
+- The headed multi-page clustered-lights Playwright e2e runner has an existing
+  local hang/teardown/readback flake; the reliable browser proof for this slice
+  is the narrow fresh Chrome/WebGPU probe above plus focused unit/build
+  validation.
+- Mixed 2D-array spot cookies and cube point cookies in the same clustered
+  frame still require a future atlas/bindless-style design. The new route
+  supports multiple compatible spot cookies and keeps other cookie requests as
+  honest metadata fallback.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Re-audit the covered render pipeline against the local PlayCanvas and three.js
+references, then choose the next visible SOTA slice.
 
 ## Current Run Update — 2026-05-24T04:50:24Z — Clustered point-light cube cookies
 

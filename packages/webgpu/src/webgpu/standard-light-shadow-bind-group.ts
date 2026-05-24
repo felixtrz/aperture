@@ -161,10 +161,12 @@ export interface StandardLightShadowBindGroupDeviceLike {
   }) => unknown;
 }
 
+type ClusteredLocalLightCookieTextureViewDimension = "2d" | "2d-array" | "cube";
+
 export function createStandardLightShadowBindGroupLayoutDescriptor(options?: {
   readonly clusteredLocalLights?: boolean;
   readonly clusteredLocalLightCookies?: boolean;
-  readonly clusteredLocalLightCookieTextureViewDimension?: "2d" | "cube";
+  readonly clusteredLocalLightCookieTextureViewDimension?: ClusteredLocalLightCookieTextureViewDimension;
 }): WebGpuBindGroupLayoutDescriptor {
   return createStandardLightShadowBindGroupLayoutDescriptorForView(
     "2d",
@@ -175,7 +177,7 @@ export function createStandardLightShadowBindGroupLayoutDescriptor(options?: {
 export function createStandardLightCascadedShadowBindGroupLayoutDescriptor(options?: {
   readonly clusteredLocalLights?: boolean;
   readonly clusteredLocalLightCookies?: boolean;
-  readonly clusteredLocalLightCookieTextureViewDimension?: "2d" | "cube";
+  readonly clusteredLocalLightCookieTextureViewDimension?: ClusteredLocalLightCookieTextureViewDimension;
 }): WebGpuBindGroupLayoutDescriptor {
   return createStandardLightShadowBindGroupLayoutDescriptorForView(
     "2d-array",
@@ -186,7 +188,7 @@ export function createStandardLightCascadedShadowBindGroupLayoutDescriptor(optio
 export function createStandardLightPointShadowBindGroupLayoutDescriptor(options?: {
   readonly clusteredLocalLights?: boolean;
   readonly clusteredLocalLightCookies?: boolean;
-  readonly clusteredLocalLightCookieTextureViewDimension?: "2d" | "cube";
+  readonly clusteredLocalLightCookieTextureViewDimension?: ClusteredLocalLightCookieTextureViewDimension;
 }): WebGpuBindGroupLayoutDescriptor {
   return createStandardLightShadowBindGroupLayoutDescriptorForView(
     "cube",
@@ -197,7 +199,7 @@ export function createStandardLightPointShadowBindGroupLayoutDescriptor(options?
 export function createStandardLightMultiShadowBindGroupLayoutDescriptor(options?: {
   readonly clusteredLocalLights?: boolean;
   readonly clusteredLocalLightCookies?: boolean;
-  readonly clusteredLocalLightCookieTextureViewDimension?: "2d" | "cube";
+  readonly clusteredLocalLightCookieTextureViewDimension?: ClusteredLocalLightCookieTextureViewDimension;
 }): WebGpuBindGroupLayoutDescriptor {
   const entries: WebGpuBindGroupLayoutEntryDescriptor[] = [
     { binding: 0, visibility: 0x2, buffer: { type: "read-only-storage" } },
@@ -256,7 +258,7 @@ function createStandardLightShadowBindGroupLayoutDescriptorForView(
   options?: {
     readonly clusteredLocalLights?: boolean;
     readonly clusteredLocalLightCookies?: boolean;
-    readonly clusteredLocalLightCookieTextureViewDimension?: "2d" | "cube";
+    readonly clusteredLocalLightCookieTextureViewDimension?: ClusteredLocalLightCookieTextureViewDimension;
   },
 ): WebGpuBindGroupLayoutDescriptor {
   const entries: WebGpuBindGroupLayoutEntryDescriptor[] = [
@@ -300,7 +302,7 @@ export function createStandardLightIblBindGroupLayoutDescriptor(options?: {
   readonly specularProof?: boolean;
   readonly clusteredLocalLights?: boolean;
   readonly clusteredLocalLightCookies?: boolean;
-  readonly clusteredLocalLightCookieTextureViewDimension?: "2d" | "cube";
+  readonly clusteredLocalLightCookieTextureViewDimension?: ClusteredLocalLightCookieTextureViewDimension;
 }): WebGpuBindGroupLayoutDescriptor {
   const entries: WebGpuBindGroupLayoutEntryDescriptor[] = [
     { binding: 0, visibility: 0x2, buffer: { type: "read-only-storage" } },

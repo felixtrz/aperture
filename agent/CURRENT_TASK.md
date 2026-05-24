@@ -3,29 +3,28 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3136.
+Current task: post-task-3136 render-pipeline audit.
 
-Status: `task-3135` completed clustered point-light cube cookie sampling.
+Status: `task-3136` completed multiple clustered local-light cookies per frame.
 
 Key finding:
 
-- Point lights can now carry ECS-authored cube-cookie texture handles without
-  renderer GPU resources leaking into ECS state.
-- Cookie-enabled clustered StandardMaterial layouts specialize the binding-20
-  texture view dimension for 2D spot cookies versus cube point cookies.
-- Clustered point-light WGSL samples cube-cookie color through the supported
-  local-light cookie metadata path while preserving direct lighting for
-  unsupported cookie requests.
-- `examples/clustered-lights.html?enable-cluster-point-cookie=1` renders the
-  point cube-cookie route, reports supported cookie readiness, disables
-  clustered shadow resources for the proof route, and keeps WebGPU validation
-  warnings at zero in the narrow Chrome proof.
+- Compatible clustered spot-cookie texture handles now pack into a
+  renderer-owned `2d-array` texture resource with a matching matrix buffer.
+- Cluster metadata word 3 records the per-light matrix/array-layer index used
+  by the StandardMaterial clustered shader.
+- `examples/clustered-lights.html?enable-cluster-multi-cookie=1` renders two
+  differently patterned local spot cookies in one clustered frame, reports two
+  supported cookie lights, and kept WebGPU validation warnings at zero in the
+  narrow Chrome proof.
 
-Next step: run `task-3136` from `agent/BACKLOG.md`, supporting multiple
-clustered local-light cookies per frame.
+Next step: re-audit the covered render pipeline against the local PlayCanvas
+and three.js references, then select the next visible SOTA slice.
 
-Reference anchors for the next task:
+Reference anchors for the next audit:
 
+- `docs/render-pipeline-comparison.html`.
 - `references/engine/src/scene/lighting/lights-buffer.js`.
+- `references/engine/src/scene/lighting/light-texture-atlas.js`.
 - `references/engine/src/scene/renderer/forward-renderer.js`.
 - `references/three.js/src/renderers/webgl/WebGLLights.js`.

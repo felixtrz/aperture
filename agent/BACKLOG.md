@@ -59,7 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3136`: support multiple clustered local-light cookies per frame.
+Re-audit the covered render pipeline against PlayCanvas and three.js after
+`task-3136`, then select the next visible SOTA slice.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -202,14 +203,17 @@ through ECS-authored texture/sampler handles and StandardMaterial clustered
 resources. `task-3134` now gives clustered spot cookies renderer-owned
 projection matrices that do not depend on shadow depth resources. `task-3135`
 now adds clustered point-light cube cookie sampling through cube texture views.
-The next visible slice is `task-3136`, supporting multiple clustered
-local-light cookies per frame.
+`task-3136` now supports multiple ready clustered spot cookies in one frame
+through a renderer-owned 2D texture array and per-light metadata indices. The
+next step is a covered-pipeline re-audit before selecting the next visible SOTA
+slice.
 
-Reference anchors for the next task (read before writing):
+Reference anchors for the next audit (read before writing):
 
 - `references/engine/src/scene/lighting/lights-buffer.js`.
 - `references/engine/src/scene/renderer/forward-renderer.js`.
 - `references/three.js/src/renderers/webgl/WebGLLights.js`.
+- `docs/render-pipeline-comparison.html`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
@@ -816,6 +820,8 @@ Acceptance criteria:
   reports supported cookie readiness, and keeps zero WebGPU validation warnings.
 
 ### task-3136 — Support multiple clustered local-light cookies per frame
+
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.

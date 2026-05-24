@@ -225,6 +225,38 @@ describe("standard material pipeline descriptor planning", () => {
     });
   });
 
+  it("specializes clustered multi-cookie pipelines with a 2d-array light layout", () => {
+    const batchKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey:
+        "standard|clusteredLocalLights|clusteredLocalLightCookies|clusteredLocalLightArrayCookies|opaque|back|less|none",
+    };
+    const featurePlan = createStandardPipelineShaderFeaturePlan(batchKey);
+    const descriptor = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey,
+    });
+
+    expect(featurePlan.features).toMatchObject({
+      clusteredLocalLights: true,
+      clusteredLocalLightCookies: true,
+      clusteredLocalLightArrayCookies: true,
+    });
+    expect(featurePlan.variantKey).toBe(
+      "direct-lit-metallic-roughness-clustered-local-lights-clustered-local-light-array-cookies-texture",
+    );
+    expect(
+      JSON.parse(required(descriptor.plan).cacheKey) as unknown,
+    ).toMatchObject({
+      layouts: {
+        bindGroups: expect.arrayContaining([
+          "lights/group-3:light-floats@0,light-metadata@1,cluster-params@16,cluster-cells@17,cluster-indices@18,cluster-metadata@19,cluster-cookie-array-texture@20,cluster-cookie-sampler@21,cluster-cookie-matrix@22",
+        ]),
+      },
+    });
+  });
+
   it("recognizes the morphed StandardMaterial pipeline feature", () => {
     const featurePlan = createStandardPipelineShaderFeaturePlan({
       ...STANDARD_BATCH_KEY,

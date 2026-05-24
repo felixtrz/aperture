@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-3136",
+  "currentTaskId": null,
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
   "lastCommit": "2e675c6",
   "activePid": null,
-  "notes": "Completed task-3135 clustered point-light cube cookie sampling; next task is task-3136 multiple clustered local-light cookies per frame.",
-  "lastRunFinishedAt": "2026-05-24T04:50:24Z"
+  "notes": "Completed task-3136 multiple clustered local-light cookies via renderer-owned 2D array resources; next step is post-cookie render-pipeline audit.",
+  "lastRunFinishedAt": "2026-05-24T05:17:14Z"
 }

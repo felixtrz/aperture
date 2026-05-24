@@ -9,20 +9,30 @@ const exampleParams = new URLSearchParams(globalThis.location.search);
 const clusteredCookieOnlyEnabled =
   exampleParams.has("enable-cluster-cookie-only") &&
   !exampleParams.has("disable-cluster-cookie");
+const clusteredMultiCookieEnabled =
+  exampleParams.has("enable-cluster-multi-cookie") &&
+  !exampleParams.has("disable-cluster-cookie");
 const clusteredPointCookieEnabled =
   exampleParams.has("enable-cluster-point-cookie") &&
+  !clusteredMultiCookieEnabled &&
   !exampleParams.has("disable-cluster-cookie");
 const clusteredPointShadowEnabled =
   !exampleParams.has("disable-cluster-point-shadow") &&
   !clusteredCookieOnlyEnabled &&
+  !clusteredMultiCookieEnabled &&
   !clusteredPointCookieEnabled;
 const clusteredSpotCookieEnabled =
-  (exampleParams.has("enable-cluster-cookie") || clusteredCookieOnlyEnabled) &&
+  (exampleParams.has("enable-cluster-cookie") ||
+    clusteredCookieOnlyEnabled ||
+    clusteredMultiCookieEnabled) &&
   !exampleParams.has("disable-cluster-cookie");
 const clusteredCookieEnabled =
-  clusteredSpotCookieEnabled || clusteredPointCookieEnabled;
+  clusteredSpotCookieEnabled ||
+  clusteredPointCookieEnabled ||
+  clusteredMultiCookieEnabled;
 const clusteredSpotShadowEnabled =
   !clusteredCookieOnlyEnabled &&
+  !clusteredMultiCookieEnabled &&
   !clusteredPointCookieEnabled &&
   (exampleParams.has("enable-cluster-spot-shadow") ||
     clusteredSpotCookieEnabled) &&
@@ -48,6 +58,8 @@ const readbackSamples = [
   { id: "right-bank", x: 0.74, y: 0.5 },
   { id: "right-cookie-upper", x: 0.72, y: 0.43 },
   { id: "right-cookie-lower", x: 0.82, y: 0.57 },
+  { id: "right-cookie-second-upper", x: 0.58, y: 0.38 },
+  { id: "right-cookie-second-lower", x: 0.66, y: 0.62 },
 ];
 
 try {
@@ -161,6 +173,9 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
   const cookieTexture = aperture.createTextureHandle(
     "clustered-lights-spot-cookie",
   );
+  const secondCookieTexture = aperture.createTextureHandle(
+    "clustered-lights-spot-cookie-alt",
+  );
   const cookieSampler = aperture.createSamplerHandle(
     "clustered-lights-spot-cookie-linear",
   );
@@ -172,10 +187,15 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
   );
 
   sourceAssets.register(cookieTexture);
+  sourceAssets.register(secondCookieTexture);
   sourceAssets.register(cookieSampler);
   sourceAssets.register(pointCookieTexture);
   sourceAssets.register(pointCookieSampler);
   sourceAssets.markReady(cookieTexture, createSpotCookieTextureAsset(aperture));
+  sourceAssets.markReady(
+    secondCookieTexture,
+    createSecondSpotCookieTextureAsset(aperture),
+  );
   sourceAssets.markReady(cookieSampler, createSpotCookieSamplerAsset(aperture));
   sourceAssets.markReady(
     pointCookieTexture,
@@ -195,6 +215,7 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     spotCasterMeshKey: aperture.assetHandleKey(spotCasterMesh),
     spotCasterMaterialKey: aperture.assetHandleKey(spotCasterMaterial),
     cookieTextureKey: aperture.assetHandleKey(cookieTexture),
+    secondCookieTextureKey: aperture.assetHandleKey(secondCookieTexture),
     cookieSamplerKey: aperture.assetHandleKey(cookieSampler),
     pointCookieTextureKey: aperture.assetHandleKey(pointCookieTexture),
     pointCookieSamplerKey: aperture.assetHandleKey(pointCookieSampler),
@@ -203,6 +224,7 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     clusteredCookieEnabled,
     clusteredSpotCookieEnabled,
     clusteredPointCookieEnabled,
+    clusteredMultiCookieEnabled,
     clusteredCookieOnlyEnabled,
     cameraFrameOffset:
       clusteredPointShadowEnabled || clusteredSpotShadowEnabled ? 0 : 1,
@@ -230,6 +252,42 @@ function createSpotCookieTextureAsset(aperture) {
 
   return aperture.createTextureAsset({
     label: "ClusteredSpotCookie",
+    dimension: "2d",
+    width,
+    height,
+    format: "rgba8unorm",
+    colorSpace: "linear",
+    semantic: "data",
+    usage: ["sampled", "copy-dst"],
+    sourceData: {
+      bytes,
+      bytesPerRow: width * 4,
+      rowsPerImage: height,
+    },
+  });
+}
+
+function createSecondSpotCookieTextureAsset(aperture) {
+  const width = 8;
+  const height = 8;
+  const bytes = new Uint8Array(width * height * 4);
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const index = (y * width + x) * 4;
+      const ring = x === 0 || y === 0 || x === width - 1 || y === height - 1;
+      const verticalStripe = x === 2 || x === 5;
+      const value = ring ? 255 : verticalStripe ? 42 : 210;
+
+      bytes[index + 0] = value;
+      bytes[index + 1] = Math.max(24, Math.round(value * 0.86));
+      bytes[index + 2] = Math.max(24, Math.round(value * 0.62));
+      bytes[index + 3] = 255;
+    }
+  }
+
+  return aperture.createTextureAsset({
+    label: "ClusteredSpotCookieAlt",
     dimension: "2d",
     width,
     height,
@@ -340,6 +398,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     clusteredCookieEnabled: scene.clusteredCookieEnabled,
     clusteredSpotCookieEnabled: scene.clusteredSpotCookieEnabled,
     clusteredPointCookieEnabled: scene.clusteredPointCookieEnabled,
+    clusteredMultiCookieEnabled: scene.clusteredMultiCookieEnabled,
     clusteredCookieOnlyEnabled: scene.clusteredCookieOnlyEnabled,
     canvas: {
       width: canvas?.width ?? 960,
@@ -460,6 +519,7 @@ function statusFromReport(
     scene.clusteredPointShadowEnabled,
     scene.clusteredSpotShadowEnabled,
     scene.clusteredCookieEnabled,
+    scene.clusteredMultiCookieEnabled,
   );
   const readbackStatus = createReadbackStatus(reportJson.readback);
   recordClusterOccupancy(loop, localLightClusters);
@@ -502,6 +562,7 @@ function createClusterStatus(
   pointShadowEnabled,
   spotShadowEnabled,
   cookieEnabled,
+  multiCookieEnabled,
 ) {
   const clusterPipelineUsed = pipelineKeys.some((pipelineKey) =>
     pipelineKey.includes("clusteredLocalLights"),
@@ -598,15 +659,16 @@ function createClusterStatus(
         shadow.clusteredLightCount >= expectedShadowRequestCount &&
         shadow.supportedLightCount >= 1,
     );
+  const requiredCookieSupportedCount = multiCookieEnabled === true ? 2 : 1;
   const routeCookieSamplingOk =
     cookieEnabled === true &&
     routeCookieStates.some(
       (cookie) =>
         cookie.status === "sampling-ready" &&
         cookie.samplingSupported === true &&
-        cookie.localRequestCount >= 1 &&
-        cookie.clusteredLightCount >= 1 &&
-        cookie.supportedLightCount >= 1,
+        cookie.localRequestCount >= requiredCookieSupportedCount &&
+        cookie.clusteredLightCount >= requiredCookieSupportedCount &&
+        cookie.supportedLightCount >= requiredCookieSupportedCount,
     );
   const routeMetadataOk =
     clusterRoutes.length > 0 &&
@@ -640,7 +702,8 @@ function createClusterStatus(
         cookieEnabled === true
           ? (cookie?.status === "sampling-ready" &&
               cookie.samplingSupported === true &&
-              (cookie.supportedLightCount ?? 0) >= 1) ||
+              (cookie.supportedLightCount ?? 0) >=
+                requiredCookieSupportedCount) ||
             (cookie?.status === "not-requested" &&
               cookie.samplingSupported === false &&
               (cookie.localRequestCount ?? 0) === 0 &&
@@ -688,6 +751,7 @@ function createClusterStatus(
     routePointShadowSamplingOk,
     routeSpotShadowSamplingOk,
     routeCookieSamplingOk,
+    requiredCookieSupportedCount,
     routeShadowStates,
     routeCookieStates,
     routes: clusterRoutes.map((route) => ({

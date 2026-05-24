@@ -244,6 +244,7 @@ import {
   directLightReadinessResourceStateFromStandardFrameResources,
 } from "./direct-light-readiness.js";
 import {
+  CLUSTERED_LOCAL_LIGHT_ARRAY_COOKIE_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_CUBE_COOKIE_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
@@ -1474,6 +1475,9 @@ function createStandardAppPipelineLayouts(
   const usesClusteredLocalLightCubeCookies = pipelineResourceKey.includes(
     "cluster-cookie-cube-texture@20",
   );
+  const usesClusteredLocalLightArrayCookies = pipelineResourceKey.includes(
+    "cluster-cookie-array-texture@20",
+  );
   const autoLayoutKeySuffix =
     (usesLightShadowGroup ||
       usesLightPointShadowGroup ||
@@ -1500,9 +1504,11 @@ function createStandardAppPipelineLayouts(
     ? `${baseLightLayoutKey}/${
         usesClusteredLocalLightCubeCookies
           ? "clustered-local-light-cube-cookies"
-          : usesClusteredLocalLightCookies
-            ? "clustered-local-light-cookies"
-            : "clustered-local-lights"
+          : usesClusteredLocalLightArrayCookies
+            ? "clustered-local-light-array-cookies"
+            : usesClusteredLocalLightCookies
+              ? "clustered-local-light-cookies"
+              : "clustered-local-lights"
       }`
     : baseLightLayoutKey;
 
@@ -1542,28 +1548,44 @@ function createStandardAppPipelineLayouts(
               clusteredLocalLights: usesClusteredLocalLights,
               clusteredLocalLightCookies: usesClusteredLocalLightCookies,
               clusteredLocalLightCookieTextureViewDimension:
-                usesClusteredLocalLightCubeCookies ? "cube" : "2d",
+                usesClusteredLocalLightCubeCookies
+                  ? "cube"
+                  : usesClusteredLocalLightArrayCookies
+                    ? "2d-array"
+                    : "2d",
             })
           : usesLightMultiShadowGroup
             ? createStandardLightMultiShadowBindGroupLayoutDescriptor({
                 clusteredLocalLights: usesClusteredLocalLights,
                 clusteredLocalLightCookies: usesClusteredLocalLightCookies,
                 clusteredLocalLightCookieTextureViewDimension:
-                  usesClusteredLocalLightCubeCookies ? "cube" : "2d",
+                  usesClusteredLocalLightCubeCookies
+                    ? "cube"
+                    : usesClusteredLocalLightArrayCookies
+                      ? "2d-array"
+                      : "2d",
               })
             : usesLightCascadedShadowGroup
               ? createStandardLightCascadedShadowBindGroupLayoutDescriptor({
                   clusteredLocalLights: usesClusteredLocalLights,
                   clusteredLocalLightCookies: usesClusteredLocalLightCookies,
                   clusteredLocalLightCookieTextureViewDimension:
-                    usesClusteredLocalLightCubeCookies ? "cube" : "2d",
+                    usesClusteredLocalLightCubeCookies
+                      ? "cube"
+                      : usesClusteredLocalLightArrayCookies
+                        ? "2d-array"
+                        : "2d",
                 })
               : usesLightShadowGroup
                 ? createStandardLightShadowBindGroupLayoutDescriptor({
                     clusteredLocalLights: usesClusteredLocalLights,
                     clusteredLocalLightCookies: usesClusteredLocalLightCookies,
                     clusteredLocalLightCookieTextureViewDimension:
-                      usesClusteredLocalLightCubeCookies ? "cube" : "2d",
+                      usesClusteredLocalLightCubeCookies
+                        ? "cube"
+                        : usesClusteredLocalLightArrayCookies
+                          ? "2d-array"
+                          : "2d",
                   })
                 : usesLightPointShadowGroup
                   ? createStandardLightPointShadowBindGroupLayoutDescriptor({
@@ -1571,7 +1593,11 @@ function createStandardAppPipelineLayouts(
                       clusteredLocalLightCookies:
                         usesClusteredLocalLightCookies,
                       clusteredLocalLightCookieTextureViewDimension:
-                        usesClusteredLocalLightCubeCookies ? "cube" : "2d",
+                        usesClusteredLocalLightCubeCookies
+                          ? "cube"
+                          : usesClusteredLocalLightArrayCookies
+                            ? "2d-array"
+                            : "2d",
                     })
                   : createLightBindGroupLayoutDescriptor({
                       group: 3,
@@ -1580,7 +1606,11 @@ function createStandardAppPipelineLayouts(
                       clusteredLocalLightCookies:
                         usesClusteredLocalLightCookies,
                       clusteredLocalLightCookieTextureViewDimension:
-                        usesClusteredLocalLightCubeCookies ? "cube" : "2d",
+                        usesClusteredLocalLightCubeCookies
+                          ? "cube"
+                          : usesClusteredLocalLightArrayCookies
+                            ? "2d-array"
+                            : "2d",
                     }),
     },
   };
@@ -7633,10 +7663,10 @@ function withStandardClusteredLocalLightPipelineKeys(
       readonly lightId: number;
       readonly textureKey: string;
       readonly samplerKey: string;
-      readonly textureViewDimension: "2d" | "cube";
+      readonly textureViewDimension: "2d" | "2d-array" | "cube";
       readonly matrixBaseIndex?: number;
     }[];
-    readonly cookieTextureViewDimension?: "2d" | "cube" | null;
+    readonly cookieTextureViewDimension?: "2d" | "2d-array" | "cube" | null;
   } = {},
 ): RenderSnapshot {
   const descriptor = createLocalLightClusterDescriptor(snapshot, {
@@ -7682,7 +7712,7 @@ function withStandardClusteredLocalLightPipelineKeys(
 function standardClusteredLocalLightPipelineKey(
   pipelineKey: string,
   cookieSamplingReady: boolean,
-  cookieTextureViewDimension: "2d" | "cube" | null = null,
+  cookieTextureViewDimension: "2d" | "2d-array" | "cube" | null = null,
 ): string {
   const tokens = pipelineKey.split("|");
   const family = tokens[0];
@@ -7697,6 +7727,7 @@ function standardClusteredLocalLightPipelineKey(
       (token) =>
         token !== CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE &&
         token !== CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE &&
+        token !== CLUSTERED_LOCAL_LIGHT_ARRAY_COOKIE_PIPELINE_FEATURE &&
         token !== CLUSTERED_LOCAL_LIGHT_CUBE_COOKIE_PIPELINE_FEATURE,
     );
   const cookieSamplingSupportedForDraw =
@@ -7708,7 +7739,9 @@ function standardClusteredLocalLightPipelineKey(
           CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE,
           ...(cookieTextureViewDimension === "cube"
             ? [CLUSTERED_LOCAL_LIGHT_CUBE_COOKIE_PIPELINE_FEATURE]
-            : []),
+            : cookieTextureViewDimension === "2d-array"
+              ? [CLUSTERED_LOCAL_LIGHT_ARRAY_COOKIE_PIPELINE_FEATURE]
+              : []),
         ]
       : []),
   ];

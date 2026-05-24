@@ -135,6 +135,22 @@ describe("light bind group layout resources", () => {
     ]);
   });
 
+  it("specializes clustered local-light cookie texture layouts for 2d-array views", () => {
+    expect(
+      createLightBindGroupLayoutDescriptor({
+        clusteredLocalLights: true,
+        clusteredLocalLightCookies: true,
+        clusteredLocalLightCookieTextureViewDimension: "2d-array",
+      }).entries.slice(6, 7),
+    ).toEqual([
+      {
+        binding: LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING,
+        visibility: DEFAULT_LIGHT_BIND_GROUP_LAYOUT_VISIBILITY,
+        texture: { sampleType: "float", viewDimension: "2d-array" },
+      },
+    ]);
+  });
+
   it("creates renderer-owned light bind group layout resources", () => {
     const descriptors: WebGpuBindGroupLayoutDescriptor[] = [];
     const result = createLightBindGroupLayoutResource({

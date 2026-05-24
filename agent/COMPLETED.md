@@ -1,5 +1,39 @@
 # Completed Tasks
 
+## task-3136 — Support multiple clustered local-light cookies per frame
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added a renderer-owned clustered spot-cookie texture-array path so compatible
+  ECS-authored spot-cookie texture handles can be packed into one WebGPU
+  `2d-array` binding without putting GPU resources into ECS or snapshots.
+- Extended clustered local-light cookie metadata so each supported light records
+  the matrix/array-layer index used by the shader.
+- Added StandardMaterial pipeline, shader, and group-3 layout specialization for
+  `clusteredLocalLightArrayCookies`, with WGSL sampling `texture_2d_array`
+  layers from metadata.
+- Expanded `examples/clustered-lights.html` with
+  `enable-cluster-multi-cookie=1`, two differently patterned spot-cookie
+  textures, worker ECS authoring for two cookie lights, and status/readback
+  proof that both are supported in one clustered frame.
+- Added focused resource, metadata, layout, shader, pipeline, and e2e status
+  coverage. Next work should re-audit the covered render pipeline against
+  PlayCanvas/three.js before selecting the next visible SOTA slice.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/local-light-cookie-resources.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- Narrow Chrome/WebGPU proof for
+  `examples/clustered-lights.html?enable-cluster-multi-cookie=1`: route `ok`,
+  array-cookie pipeline key present, cookie metadata `sampling-ready` with two
+  supported clustered cookie lights, diagnostics `0`, readback luminance range
+  about `251`, and relevant WebGPU validation warnings `0`.
+
 ## task-3135 — Add clustered point-light cube cookie sampling
 
 Completed: 2026-05-24

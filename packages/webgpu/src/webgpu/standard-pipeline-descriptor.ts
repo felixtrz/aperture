@@ -35,6 +35,7 @@ import {
   STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY,
 } from "./standard-light-shadow-bind-group.js";
 import {
+  CLUSTERED_LOCAL_LIGHT_ARRAY_COOKIE_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_CUBE_COOKIE_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
@@ -369,7 +370,9 @@ function standardClusteredLocalLightGroupLayoutKey(
   const cookieTextureKey =
     features.clusteredLocalLightCubeCookies === true
       ? "cluster-cookie-cube-texture@20"
-      : "cluster-cookie-texture@20";
+      : features.clusteredLocalLightArrayCookies === true
+        ? "cluster-cookie-array-texture@20"
+        : "cluster-cookie-texture@20";
 
   return `${clusterKey},${cookieTextureKey},cluster-cookie-sampler@21,cluster-cookie-matrix@22`;
 }
@@ -398,6 +401,9 @@ function standardTextureFeatures(
 
   const clusteredLocalLightCubeCookies = tokens.includes(
     CLUSTERED_LOCAL_LIGHT_CUBE_COOKIE_PIPELINE_FEATURE,
+  );
+  const clusteredLocalLightArrayCookies = tokens.includes(
+    CLUSTERED_LOCAL_LIGHT_ARRAY_COOKIE_PIPELINE_FEATURE,
   );
 
   return {
@@ -432,7 +438,9 @@ function standardTextureFeatures(
     ),
     clusteredLocalLightCookies:
       tokens.includes(CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE) ||
-      clusteredLocalLightCubeCookies,
+      clusteredLocalLightCubeCookies ||
+      clusteredLocalLightArrayCookies,
+    clusteredLocalLightArrayCookies,
     clusteredLocalLightCubeCookies,
     skinned: standardSkinningEnabledFromBatchKey(batchKey),
     morphed: standardMorphTargetsEnabledFromBatchKey(batchKey),
