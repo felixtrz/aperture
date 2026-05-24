@@ -1,5 +1,47 @@
 # Completed Tasks
 
+## task-3152 — Add GPU-updated clustered cookie atlas blits
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added a renderer-owned GPU blit path for clustered spot-cookie atlases when
+  compatible source textures are already prepared as GPU texture resources.
+- The GPU atlas path creates render-attachment-capable atlas textures, caches
+  per-tile source texture keys, skips unchanged tiles, and falls back to the
+  existing CPU upload path when the device lacks the needed render-pass APIs.
+- WebGPU app reports now expose `localLightCookies.atlasUpdate` with update
+  mode, GPU/CPU/cached tile counts, atlas size, and source texture keys.
+- Added
+  `examples/clustered-lights.html?enable-cluster-gpu-cookie-atlas-update=1`
+  as a proof route that waits for stable dynamic atlas placement, swaps an
+  atlas-backed spot-cookie source, and reports changed-tile GPU blits plus
+  cached unchanged tiles.
+
+Validation:
+
+- `node --check examples/clustered-lights.main.js`
+- `node --check examples/clustered-lights.worker.js`
+- `pnpm exec vitest run test/webgpu/local-light-cookie-resources.test.ts`
+- `pnpm exec vitest run test/webgpu/local-light-cookie-resources.test.ts test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run build`
+- Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-gpu-cookie-atlas-update=1&proof=task3152c`:
+  `ok: true`, `readbackStatus.ok: true`,
+  `routeGpuCookieAtlasUpdateReady`,
+  `routeDynamicShadowCookieAtlasReady`, and
+  `routePackedShadowCookieAtlasSamplingOk` true, with atlas update mode
+  `gpu-blit`, `updatedTileCount: 2`, `cachedTileCount: 2`,
+  `gpuBlitTileCount: 2`, `cpuUploadTileCount: 0`, sample luminance delta about
+  `96.85`, diagnostics `0`, and zero relevant WebGPU validation
+  warnings/errors. The only console error was the existing favicon `403`.
+
+Known follow-up:
+
+- `task-3153` should cache unchanged clustered local shadow maps across frames.
+
 ## task-3151 — Add dynamic clustered shadow/cookie atlas slot allocation
 
 Completed: 2026-05-24
@@ -45,8 +87,6 @@ Validation:
 
 Known follow-up:
 
-- `task-3152` should move changed clustered cookie-atlas tile updates toward
-  GPU-side copy/blit work instead of CPU-side atlas byte rebuilds.
 - `task-3153` should cache unchanged clustered local shadow maps across frames.
 
 ## task-3150 — Add shadow-aligned clustered cookie atlas for compact matrix reuse

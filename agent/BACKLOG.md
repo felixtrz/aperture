@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3152`: add GPU-updated clustered cookie atlas blits so changed
-cookie atlas tiles can update through renderer-owned GPU copy/blit work instead
-of rebuilding CPU-packed atlas bytes.
+Start `task-3153`: cache unchanged clustered local shadow maps across frames so
+stable clustered point/spot shadows can reuse renderer-owned shadow resources
+instead of recreating or redrawing unchanged maps.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -236,14 +236,16 @@ with nonuniform atlas-backed spot cookies in one route, and `task-3149`
 re-audited that pressure lane against PlayCanvas and three.js. `task-3150` now
 closes the remaining static atlas invariant by making clustered spot-cookie
 atlas preparation shadow-aligned before the compact route reuses spot-shadow
-matrices. The next SOTA gap is moving from static proof-route atlas placement
-to dynamic, stable local-shadow/cookie atlas allocation and update behavior.
+matrices. `task-3151` now adds dynamic, stable local-shadow/cookie atlas slot
+allocation, and `task-3152` now updates changed clustered cookie-atlas tiles via
+renderer-owned GPU blits while caching unchanged atlas tiles. The next SOTA gap
+is clustered local-shadow cache reuse across frames.
 
 Reference anchors for the next visible slice (read before writing):
 
-- `references/engine/src/scene/lighting/light-texture-atlas.js`.
 - `references/engine/src/scene/renderer/shadow-map-cache.js`.
-- `references/engine/src/scene/lighting/lights-buffer.js`.
+- `references/engine/src/scene/renderer/shadow-renderer-local.js`.
+- `references/engine/src/scene/renderer/render-pass-shadow-local-clustered.js`.
 - `docs/render-pipeline-comparison.html`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
@@ -1168,7 +1170,7 @@ Acceptance criteria:
 
 ### task-3152 — Add GPU-updated clustered cookie atlas blits
 
-Status: ready
+Status: completed 2026-05-24
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*cookie*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.

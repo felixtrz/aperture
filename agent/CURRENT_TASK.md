@@ -3,10 +3,11 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: `task-3152` — add GPU-updated clustered cookie atlas blits.
+Current task: `task-3153` — cache unchanged clustered local shadow maps across
+frames.
 
-Status: `task-3151` completed dynamic clustered shadow/cookie atlas slot
-allocation for changing spot shadow-cookie light sets.
+Status: `task-3152` completed GPU-updated clustered cookie atlas blits for
+changed atlas-backed spot-cookie sources.
 
 Key findings:
 
@@ -24,14 +25,18 @@ Key findings:
   per-light shadow atlas regions, builds a shadow-aligned cookie atlas before
   reusing spot-shadow matrices, and allocates stable dynamic atlas slots across
   a changing four-spot shadow-cookie light set.
-- The next gap is update behavior: changed cookie atlas tiles should be updated
-  through renderer-owned GPU copy/blit work instead of rebuilding CPU-packed
-  atlas bytes for every changed source.
+- Changed atlas-backed spot-cookie sources now update through a renderer-owned
+  GPU blit pass when source textures are already GPU-owned, and the proof route
+  reports changed-tile GPU blits, cached unchanged tiles, and zero CPU atlas
+  uploads.
+- The next gap is local-shadow lifetime behavior: unchanged clustered local
+  shadow maps should be cached across frames instead of being recreated or
+  redrawn every proof frame.
 
-Next step: implement `task-3152`.
+Next step: implement `task-3153`.
 
-Reference anchors for `task-3152`:
+Reference anchors for `task-3153`:
 
-- `references/engine/src/scene/renderer/render-pass-cookie-renderer.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/internal/frag/cookie-blit-2d.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/internal/vert/cookie-blit.js`.
+- `references/engine/src/scene/renderer/shadow-map-cache.js`.
+- `references/engine/src/scene/renderer/shadow-renderer-local.js`.
+- `references/engine/src/scene/renderer/render-pass-shadow-local-clustered.js`.

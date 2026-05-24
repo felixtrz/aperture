@@ -1,6 +1,67 @@
 # Agent Handoff
 
-Updated: 2026-05-24T12:04:07Z
+Updated: 2026-05-24T12:27:54Z
+
+## Current Run Update — 2026-05-24T12:27:54Z — GPU cookie atlas blits
+
+Completed `task-3152`, adding renderer-owned GPU blits for changed clustered
+spot-cookie atlas tiles.
+
+### What changed
+
+- Added a GPU blit path for clustered spot-cookie atlases when compatible
+  source textures are already renderer-owned GPU textures.
+- The GPU path creates render-attachment-capable atlas textures, caches
+  per-tile source texture keys, skips unchanged tiles, and falls back to the
+  existing CPU atlas upload path on devices without the required render-pass
+  APIs.
+- WebGPU app reports now expose `localLightCookies.atlasUpdate`, including
+  update mode, atlas size, requested/updated/cached tile counts, GPU vs CPU
+  update counts, and source texture keys.
+- Added
+  `examples/clustered-lights.html?enable-cluster-gpu-cookie-atlas-update=1`
+  as a proof route that waits for stable dynamic atlas placement, swaps an
+  atlas-backed spot-cookie source, and reports changed-tile GPU blits plus
+  cached unchanged tiles.
+- Public progress pages, backlog, current task, and completed-task records now
+  point to `task-3153`.
+
+### Validation
+
+- `node --check examples/clustered-lights.main.js`
+- `node --check examples/clustered-lights.worker.js`
+- `pnpm exec vitest run test/webgpu/local-light-cookie-resources.test.ts`
+- `pnpm exec vitest run test/webgpu/local-light-cookie-resources.test.ts test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run build`
+- Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-gpu-cookie-atlas-update=1&proof=task3152c`:
+  `ok: true`, `readbackStatus.ok: true`,
+  `routeGpuCookieAtlasUpdateReady`,
+  `routeDynamicShadowCookieAtlasReady`, and
+  `routePackedShadowCookieAtlasSamplingOk` true, with atlas update mode
+  `gpu-blit`, `updatedTileCount: 2`, `cachedTileCount: 2`,
+  `gpuBlitTileCount: 2`, `cpuUploadTileCount: 0`, sample luminance delta about
+  `96.85`, diagnostics `0`, and zero relevant WebGPU validation
+  warnings/errors. The only console error was the existing favicon `403`.
+
+### Known issues
+
+- Dynamic atlas shadow resources are still recreated each proof frame.
+  `task-3153` should cache unchanged clustered local shadow maps across frames.
+- The broad multi-page `test/e2e/clustered-lights.spec.ts` remains locally
+  unreliable from pre-existing headed timing/transparent readback issues; this
+  run used the focused GPU atlas update route proof instead.
+- The pre-existing working-tree deletion of `.codex/hooks.json`, untracked
+  `.playwright-mcp/` scratch directory, and untracked
+  `shadow-cookie-console-errors.txt` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3153`: cache unchanged clustered local shadow maps across frames so
+stable clustered point/spot shadows can reuse renderer-owned shadow resources
+instead of recreating or redrawing unchanged maps.
 
 ## Current Run Update — 2026-05-24T12:04:07Z — Dynamic clustered atlas slots
 

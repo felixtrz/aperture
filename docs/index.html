@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 12:04 UTC</dd>
+            <dd>2026-05-24 12:27 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1559,8 +1559,8 @@
               shadows. Multiple clustered point shadows now pack through one
               renderer-owned 2D depth array with six flattened cube-face layers
               per light, while preserving packed spot-shadow arrays in the same
-              clustered route. <code>examples/clustered-lights.html</code> now exposes
-              point shadow, spot shadow, spot-cookie, and cookie-only
+              clustered route. <code>examples/clustered-lights.html</code> now
+              exposes point shadow, spot shadow, spot-cookie, and cookie-only
               spot-cookie proof routes plus point cube-cookie, multi-cookie, and
               mixed point/spot cookie proof routes, plus the mixed point/spot
               local-shadow proof route, a nonuniform spot-cookie atlas proof
@@ -1568,14 +1568,16 @@
               spot-shadow atlas proof route, packed point and spot shadow
               array/atlas proof routes, the multi-point shadow-array route,
               packed shadow-cookie array and flattened point-array shadow-cookie
-              routes, a shadow-aligned atlas shadow-cookie route, and a dynamic
+              routes, a shadow-aligned atlas shadow-cookie route, a dynamic
               atlas shadow-cookie route with stable per-light slot reuse,
-              one-frame stale-slot retention, and resize eviction proof status.
+              one-frame stale-slot retention, and resize eviction proof status,
+              and a GPU cookie-atlas update route that blits changed tiles while
+              preserving cached unchanged tiles.
             </dd>
             <dt>Next focus</dt>
             <dd>
-              GPU-updated clustered cookie-atlas blits and clustered local
-              shadow-map cache reuse
+              Clustered local shadow-map cache reuse and broader clustered-light
+              tuning
             </dd>
           </dl>
         </aside>
@@ -2419,19 +2421,22 @@
               renderer-owned 2D depth array with metadata-indexed matrix/layer
               selection. Nonuniform clustered spot-shadow maps now bind through
               one renderer-owned 2D atlas with atlas-adjusted per-light matrices
-              and sequential metadata indices for non-array atlas resources.
-              The atlas shadow-cookie route now builds a shadow-aligned cookie
-              atlas before reusing spot-shadow matrices, so the static proof
-              route matches the PlayCanvas one-slot-per-light atlas invariant.
-              The dynamic atlas proof now allocates stable per-light
-              shadow/cookie slots across changing spot-light sets, records stale
-              slot reuse windows and resize eviction, and reports the aligned
-              compact route through browser status.
+              and sequential metadata indices for non-array atlas resources. The
+              atlas shadow-cookie route now builds a shadow-aligned cookie atlas
+              before reusing spot-shadow matrices, so the static proof route
+              matches the PlayCanvas one-slot-per-light atlas invariant. The
+              dynamic atlas proof now allocates stable per-light shadow/cookie
+              slots across changing spot-light sets, records stale slot reuse
+              windows and resize eviction, and reports the aligned compact route
+              through browser status. The GPU atlas update proof now swaps an
+              atlas-backed spot cookie after atlas placement stabilizes and
+              reports changed-tile GPU blits, cached unchanged tiles, zero CPU
+              atlas uploads, and a visible luminance delta.
             </p>
             <ul>
               <li>
-                Next step: move clustered cookie-atlas updates from CPU-side
-                byte packing toward GPU-side copy/blit work for changed tiles.
+                Next step: cache unchanged clustered local shadow maps across
+                frames.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2453,6 +2458,13 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">task-3152</span> Added GPU-updated
+                clustered cookie-atlas blits and a browser proof route that
+                reports two changed-tile GPU blits, two cached unchanged tiles,
+                zero CPU atlas uploads, and visible readback change after the
+                atlas layout is stable.
+              </li>
+              <li>
                 <span class="badge green">task-3151</span> Added dynamic
                 clustered shadow/cookie atlas slot allocation and a browser
                 proof route that reports four assigned spot atlas slots, three
@@ -2460,25 +2472,24 @@
                 eviction, and shadow-aligned compact sampling.
               </li>
               <li>
-                <span class="badge green">task-3150</span> Added
-                shadow-aligned clustered cookie atlas packing/resampling so the
-                compact nonuniform atlas shadow-cookie route only reuses
-                spot-shadow matrices when every cookie tile matches the shadow
-                atlas layout.
+                <span class="badge green">task-3150</span> Added shadow-aligned
+                clustered cookie atlas packing/resampling so the compact
+                nonuniform atlas shadow-cookie route only reuses spot-shadow
+                matrices when every cookie tile matches the shadow atlas layout.
               </li>
               <li>
-                <span class="badge green">task-3149</span> Re-audited
-                clustered shadow/cookie pressure against PlayCanvas and
-                three.js; the array and point-array compact routes are current,
-                and the audit isolated the atlas matrix-reuse invariant now
-                closed by task-3150.
+                <span class="badge green">task-3149</span> Re-audited clustered
+                shadow/cookie pressure against PlayCanvas and three.js; the
+                array and point-array compact routes are current, and the audit
+                isolated the atlas matrix-reuse invariant now closed by
+                task-3150.
               </li>
               <li>
-                <span class="badge green">task-3148</span> Combined
-                nonuniform clustered spot-shadow atlases with nonuniform
-                clustered spot-cookie atlases in one StandardMaterial frame,
-                reusing spot-shadow matrices and keeping the compact
-                WebGPU-minimum route.
+                <span class="badge green">task-3148</span> Combined nonuniform
+                clustered spot-shadow atlases with nonuniform clustered
+                spot-cookie atlases in one StandardMaterial frame, reusing
+                spot-shadow matrices and keeping the compact WebGPU-minimum
+                route.
               </li>
               <li>
                 <span class="badge green">task-3147</span> Combined two
@@ -2494,10 +2505,10 @@
                 projection and omitting the extra cookie-matrix storage buffer.
               </li>
               <li>
-                <span class="badge green">task-3145</span> Packed two
-                clustered point shadows through one renderer-owned 2D
-                depth-array resource with six flattened cube-face layers per
-                light, while preserving the packed spot-shadow-array route.
+                <span class="badge green">task-3145</span> Packed two clustered
+                point shadows through one renderer-owned 2D depth-array resource
+                with six flattened cube-face layers per light, while preserving
+                the packed spot-shadow-array route.
               </li>
               <li>
                 <span class="badge green">task-3144</span> Added
@@ -2509,8 +2520,8 @@
               <li>
                 <span class="badge green">task-3143</span> Combined one
                 clustered point shadow with multiple packed spot shadows in one
-                StandardMaterial route, covering both spot arrays and
-                nonuniform spot atlases.
+                StandardMaterial route, covering both spot arrays and nonuniform
+                spot atlases.
               </li>
               <li>
                 <span class="badge green">task-3142</span> Added a
@@ -4845,14 +4856,13 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add GPU-updated clustered
-                cookie atlas blits so changed cookie tiles update through
-                renderer-owned GPU work instead of rebuilding CPU-packed atlas
-                bytes.
+                <span class="badge amber">next</span> Cache unchanged clustered
+                local shadow maps across frames so stable point/spot shadows can
+                reuse renderer-owned shadow resources.
               </li>
               <li>
-                Then add clustered local shadow-map caching for unchanged
-                dynamic atlas lights and run another pressure audit.
+                Then run another clustered shadow/cookie pressure audit against
+                three.js and PlayCanvas.
               </li>
             </ul>
           </article>
@@ -4865,6 +4875,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3152</div>
+            <div>
+              <strong>GPU cookie atlas updates shipped.</strong>
+              <span>
+                Changed clustered spot-cookie atlas tiles now update through a
+                renderer-owned WebGPU blit pass, unchanged tiles remain cached,
+                and the clustered-lights proof route reports GPU update counts
+                plus visible readback change.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3151</div>
             <div>
@@ -4906,17 +4928,19 @@
             <div>
               <strong>Atlas shadows plus atlas cookies shipped.</strong>
               <span>
-                The clustered route now renders one point shadow, two
-                nonuniform atlas-backed spot shadows, and two nonuniform
-                atlas-backed spot cookies together while avoiding the extra
-                cookie-matrix storage buffer.
+                The clustered route now renders one point shadow, two nonuniform
+                atlas-backed spot shadows, and two nonuniform atlas-backed spot
+                cookies together while avoiding the extra cookie-matrix storage
+                buffer.
               </span>
             </div>
           </div>
           <div class="timeline-item">
             <div class="task-id">task-3147</div>
             <div>
-              <strong>Flattened point-shadow arrays plus cookies shipped.</strong>
+              <strong
+                >Flattened point-shadow arrays plus cookies shipped.</strong
+              >
               <span>
                 The clustered route now renders two point shadows through 12
                 flattened cube-face layers, two packed spot shadows, and one

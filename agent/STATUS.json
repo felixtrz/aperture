@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "752a153",
+  "lastCommit": "40c8614",
   "activePid": null,
-  "notes": "Completed task-3151 dynamic clustered shadow/cookie atlas slot allocation with stable per-light reuse, stale-slot retention, and resize eviction proof; next task-3152 adds GPU-updated clustered cookie atlas blits.",
-  "lastRunFinishedAt": "2026-05-24T12:04:07Z"
+  "notes": "Completed task-3152 GPU-updated clustered cookie atlas blits with changed-tile GPU updates, cached unchanged tiles, and browser proof; next task-3153 caches unchanged clustered local shadow maps.",
+  "lastRunFinishedAt": "2026-05-24T12:27:54Z"
 }
