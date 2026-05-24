@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 06:40 UTC</dd>
+            <dd>2026-05-24 07:12 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1543,16 +1543,20 @@
               renderer-derived light positions, directions, and area-light axes,
               so the StandardMaterial fragment stage no longer reads
               <code>worldTransforms</code> for lighting and the mixed route fits
-              WebGPU-minimum per-stage storage-buffer limits.
+              WebGPU-minimum per-stage storage-buffer limits. Nonuniform
+              clustered spot cookies now use a renderer-owned 2D atlas with
+              per-light atlas-space projection matrices when the compatible
+              2D-array path cannot cover the same lights.
               <code>examples/clustered-lights.html</code> now exposes point
               shadow, spot shadow, spot-cookie, and cookie-only spot-cookie
               proof routes plus point cube-cookie, multi-cookie, and mixed
               point/spot cookie proof routes, plus the mixed point/spot
-              local-shadow proof route. The next step is broader nonuniform
-              local cookie atlas/resource metadata.
+              local-shadow proof route and a nonuniform spot-cookie atlas proof
+              route. The next step is broader local shadow atlas/resource
+              packing.
             </dd>
             <dt>Next focus</dt>
-            <dd>Nonuniform clustered local cookie atlas metadata</dd>
+            <dd>Multiple clustered local spot shadows per frame</dd>
           </dl>
         </aside>
       </header>
@@ -1587,9 +1591,9 @@
           </article>
           <article class="card metric">
             <div class="label">render pipeline</div>
-            <div class="value">95%</div>
-            <div class="bar" aria-label="95 percent complete">
-              <span style="width: 95%"></span>
+            <div class="value">96%</div>
+            <div class="bar" aria-label="96 percent complete">
+              <span style="width: 96%"></span>
             </div>
             <p>
               The ECS-to-WebGPU spine is usable, app route reporting runs
@@ -1776,9 +1780,9 @@
                 <div class="label">webgpu-render</div>
                 <h3>backend resources</h3>
               </div>
-              <span class="percent">72%</span>
+              <span class="percent">73%</span>
             </div>
-            <div class="bar"><span style="width: 72%"></span></div>
+            <div class="bar"><span style="width: 73%"></span></div>
             <p>
               Backend buffers, pipelines, bind groups, queues, and app facade
               exist; directional shadow pass submission and 3x3 PCF sampling are
@@ -1795,7 +1799,9 @@
               public <code>app.pick(x, y)</code> now performs a pick-only ID
               pass/readback against the latest snapshot, and StandardMaterial
               fog variants now blend linear, exp, and exp2 distance fog from
-              per-view uniforms. Profiling remains deferred.
+              per-view uniforms, and nonuniform clustered spot cookies now
+              sample through a renderer-owned 2D atlas. Profiling remains
+              deferred.
             </p>
           </article>
           <article class="card track">
@@ -2386,12 +2392,13 @@
               and area axes, removing the extra <code>worldTransforms</code>
               storage-buffer read from lighting and keeping the mixed
               local-shadow route within WebGPU minimum per-stage storage-buffer
-              limits.
+              limits. Nonuniform clustered spot cookies now bind through a
+              renderer-owned 2D atlas with atlas-adjusted per-light matrices.
             </p>
             <ul>
               <li>
-                Next step: broaden nonuniform clustered local cookie
-                atlas/resource metadata.
+                Next step: support multiple clustered local spot shadows through
+                packed renderer-owned resources.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2413,6 +2420,12 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">task-3140</span> Added a
+                renderer-owned 2D atlas path for nonuniform clustered spot
+                cookies, with per-light atlas-space projection matrices and an
+                atlas-cookie browser proof route.
+              </li>
+              <li>
                 <span class="badge green">task-3139</span> Packed fragment-stage
                 light transform data into StandardMaterial light buffers so
                 mixed clustered point/spot local shadows validate within WebGPU
@@ -2423,12 +2436,6 @@
                 clustered point/spot local-shadow proof route, with browser
                 status reporting supported point and spot shadow sampling in one
                 clustered StandardMaterial frame.
-              </li>
-              <li>
-                <span class="badge green">task-3137</span> Added mixed clustered
-                point and spot cookies through one renderer-owned 2D-array
-                cookie resource, with a clustered-lights proof route reporting
-                three supported cookie lights.
               </li>
               <li>
                 <span class="badge green">task-3136</span> Added multiple
@@ -4745,12 +4752,13 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add atlas-space clustered
-                cookie metadata for nonuniform local cookies.
+                <span class="badge amber">next</span> Support multiple clustered
+                local spot shadows per frame through a packed renderer-owned
+                shadow resource.
               </li>
               <li>
-                Then continue broadening clustered local shadow/cookie atlas
-                coverage from the PlayCanvas reference shape.
+                Then add atlas-space spot-shadow metadata for nonuniform maps
+                and combine packed spot shadows with point-shadow readiness.
               </li>
             </ul>
           </article>
@@ -4763,6 +4771,17 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3140</div>
+            <div>
+              <strong>Nonuniform clustered cookie atlas shipped.</strong>
+              <span>
+                Differently sized clustered spot cookies now share a
+                renderer-owned 2D atlas with atlas-adjusted per-light matrices
+                and a dedicated browser proof route.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3139</div>
             <div>

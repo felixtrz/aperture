@@ -12,9 +12,13 @@ const clusteredCookieOnlyEnabled =
 const clusteredMixedCookieEnabled =
   exampleParams.has("enable-cluster-mixed-cookie") &&
   !exampleParams.has("disable-cluster-cookie");
+const clusteredAtlasCookieEnabled =
+  exampleParams.has("enable-cluster-cookie-atlas") &&
+  !exampleParams.has("disable-cluster-cookie");
 const clusteredMultiCookieEnabled =
   (exampleParams.has("enable-cluster-multi-cookie") ||
-    clusteredMixedCookieEnabled) &&
+    clusteredMixedCookieEnabled ||
+    clusteredAtlasCookieEnabled) &&
   !exampleParams.has("disable-cluster-cookie");
 const clusteredPointCookieEnabled =
   (exampleParams.has("enable-cluster-point-cookie") ||
@@ -35,7 +39,8 @@ const clusteredPointShadowEnabled =
 const clusteredSpotCookieEnabled =
   (exampleParams.has("enable-cluster-cookie") ||
     clusteredCookieOnlyEnabled ||
-    clusteredMultiCookieEnabled) &&
+    clusteredMultiCookieEnabled ||
+    clusteredAtlasCookieEnabled) &&
   !exampleParams.has("disable-cluster-cookie");
 const clusteredCookieEnabled =
   clusteredSpotCookieEnabled ||
@@ -188,6 +193,9 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
   const secondCookieTexture = aperture.createTextureHandle(
     "clustered-lights-spot-cookie-alt",
   );
+  const atlasCookieTexture = aperture.createTextureHandle(
+    "clustered-lights-spot-cookie-atlas-wide",
+  );
   const cookieSampler = aperture.createSamplerHandle(
     "clustered-lights-spot-cookie-linear",
   );
@@ -200,6 +208,7 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
 
   sourceAssets.register(cookieTexture);
   sourceAssets.register(secondCookieTexture);
+  sourceAssets.register(atlasCookieTexture);
   sourceAssets.register(cookieSampler);
   sourceAssets.register(pointCookieTexture);
   sourceAssets.register(pointCookieSampler);
@@ -207,6 +216,10 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
   sourceAssets.markReady(
     secondCookieTexture,
     createSecondSpotCookieTextureAsset(aperture),
+  );
+  sourceAssets.markReady(
+    atlasCookieTexture,
+    createAtlasSpotCookieTextureAsset(aperture),
   );
   sourceAssets.markReady(cookieSampler, createSpotCookieSamplerAsset(aperture));
   sourceAssets.markReady(
@@ -228,6 +241,7 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     spotCasterMaterialKey: aperture.assetHandleKey(spotCasterMaterial),
     cookieTextureKey: aperture.assetHandleKey(cookieTexture),
     secondCookieTextureKey: aperture.assetHandleKey(secondCookieTexture),
+    atlasCookieTextureKey: aperture.assetHandleKey(atlasCookieTexture),
     cookieSamplerKey: aperture.assetHandleKey(cookieSampler),
     pointCookieTextureKey: aperture.assetHandleKey(pointCookieTexture),
     pointCookieSamplerKey: aperture.assetHandleKey(pointCookieSampler),
@@ -237,6 +251,7 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     clusteredSpotCookieEnabled,
     clusteredPointCookieEnabled,
     clusteredMultiCookieEnabled,
+    clusteredAtlasCookieEnabled,
     clusteredCookieOnlyEnabled,
     clusteredMixedShadowEnabled,
     cameraFrameOffset:
@@ -301,6 +316,42 @@ function createSecondSpotCookieTextureAsset(aperture) {
 
   return aperture.createTextureAsset({
     label: "ClusteredSpotCookieAlt",
+    dimension: "2d",
+    width,
+    height,
+    format: "rgba8unorm",
+    colorSpace: "linear",
+    semantic: "data",
+    usage: ["sampled", "copy-dst"],
+    sourceData: {
+      bytes,
+      bytesPerRow: width * 4,
+      rowsPerImage: height,
+    },
+  });
+}
+
+function createAtlasSpotCookieTextureAsset(aperture) {
+  const width = 12;
+  const height = 4;
+  const bytes = new Uint8Array(width * height * 4);
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const index = (y * width + x) * 4;
+      const brightBand = x >= 3 && x <= 8;
+      const edge = y === 0 || y === height - 1;
+      const value = edge ? 255 : brightBand ? 44 : 220;
+
+      bytes[index + 0] = Math.max(24, Math.round(value * 0.74));
+      bytes[index + 1] = value;
+      bytes[index + 2] = Math.max(24, Math.round(value * 0.9));
+      bytes[index + 3] = 255;
+    }
+  }
+
+  return aperture.createTextureAsset({
+    label: "ClusteredSpotCookieAtlasWide",
     dimension: "2d",
     width,
     height,
@@ -412,6 +463,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     clusteredSpotCookieEnabled: scene.clusteredSpotCookieEnabled,
     clusteredPointCookieEnabled: scene.clusteredPointCookieEnabled,
     clusteredMultiCookieEnabled: scene.clusteredMultiCookieEnabled,
+    clusteredAtlasCookieEnabled: scene.clusteredAtlasCookieEnabled,
     clusteredCookieOnlyEnabled: scene.clusteredCookieOnlyEnabled,
     canvas: {
       width: canvas?.width ?? 960,
@@ -535,6 +587,7 @@ function statusFromReport(
     scene.clusteredCookieEnabled,
     scene.clusteredMultiCookieEnabled,
     scene.clusteredPointCookieEnabled,
+    scene.clusteredAtlasCookieEnabled,
   );
   const readbackStatus = createReadbackStatus(reportJson.readback);
   recordClusterOccupancy(loop, localLightClusters);
@@ -580,6 +633,7 @@ function createClusterStatus(
   cookieEnabled,
   multiCookieEnabled,
   pointCookieEnabled,
+  atlasCookieEnabled,
 ) {
   const clusterPipelineUsed = pipelineKeys.some((pipelineKey) =>
     pipelineKey.includes("clusteredLocalLights"),
@@ -699,6 +753,15 @@ function createClusterStatus(
         cookie.clusteredLightCount >= requiredCookieSupportedCount &&
         cookie.supportedLightCount >= requiredCookieSupportedCount,
     );
+  const routeCookieAtlasSamplingOk =
+    atlasCookieEnabled === true &&
+    routeCookieSamplingOk &&
+    pipelineKeys.some(
+      (pipelineKey) =>
+        pipelineKey.includes("clusteredLocalLightCookies") &&
+        !pipelineKey.includes("clusteredLocalLightArrayCookies") &&
+        !pipelineKey.includes("clusteredLocalLightCubeCookies"),
+    );
   const routeMetadataOk =
     clusterRoutes.length > 0 &&
     clusterRoutes.every((route) => {
@@ -784,6 +847,7 @@ function createClusterStatus(
     routeSpotShadowSamplingOk,
     routeMixedShadowSamplingOk,
     routeCookieSamplingOk,
+    routeCookieAtlasSamplingOk,
     requiredCookieSupportedCount,
     routeShadowStates,
     routeCookieStates,

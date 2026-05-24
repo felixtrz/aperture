@@ -3,30 +3,29 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: `task-3140` — add atlas-space clustered cookie metadata for
-nonuniform local cookies.
+Current task: `task-3141` — support multiple clustered local spot shadows per
+frame.
 
-Status: `task-3139` completed minimum-limit mixed clustered local-shadow
+Status: `task-3140` completed nonuniform clustered spot-cookie atlas metadata
 coverage.
 
 Key findings:
 
-- Packed StandardMaterial light buffers now carry transform-derived light
-  positions, directions, and area axes for fragment-stage lighting.
-- The mixed clustered point/spot local-shadow route no longer reads
-  `worldTransforms` from the fragment stage and no longer requests
-  `maxStorageBuffersPerShaderStage: 10`.
-- The narrow Chrome/WebGPU proof for
-  `examples/clustered-lights.html?enable-cluster-mixed-shadow=1` still reports
-  supported point, spot, and mixed shadow sampling with zero relevant validation
-  warnings.
-- The remaining visible SOTA gap is atlas-space metadata for clustered local
-  cookies that cannot share the current compatible-size 2D-array path.
+- Nonuniform clustered spot cookies now use a renderer-owned 2D atlas when the
+  compatible-size 2D-array path cannot cover the same lights.
+- The cookie atlas path uploads each source texture into its tile and adjusts
+  each spot light's projected cookie matrix into atlas UV space.
+- `examples/clustered-lights.html?enable-cluster-cookie-atlas=1` reports two
+  supported clustered cookie lights through the non-array 2D cookie pipeline and
+  rendered non-clear cookie-modulated pixels in the narrow Chrome/WebGPU proof.
+- The remaining visible SOTA gap is broader local shadow atlas/resource
+  packing, starting with multiple clustered spot shadows sharing a
+  renderer-owned array resource.
 
-Next step: implement `task-3140`.
+Next step: implement `task-3141`.
 
-Reference anchors for `task-3140`:
+Reference anchors for `task-3141`:
 
 - `references/engine/src/scene/lighting/light-texture-atlas.js`.
 - `references/engine/src/scene/lighting/lights-buffer.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightCookies.js`.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`.

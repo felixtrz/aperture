@@ -1,6 +1,60 @@
 # Agent Handoff
 
-Updated: 2026-05-24T06:40:30Z
+Updated: 2026-05-24T07:12:25Z
+
+## Current Run Update — 2026-05-24T07:12:25Z — Nonuniform clustered cookie atlas
+
+Completed `task-3140`, adding atlas-space clustered cookie metadata for
+nonuniform local cookies.
+
+### What changed
+
+- Clustered spot-cookie resource preparation now chooses a renderer-owned 2D
+  atlas when multiple ready spot cookies cannot share the compatible-size
+  2D-array path.
+- The atlas path uploads each source texture into a horizontal tile, caches the
+  atlas by source version/dimensions, and keeps GPU resources renderer-owned.
+- Per-light cookie matrices are adjusted into atlas UV space, and cluster
+  metadata records the matrix index for each supported cookie light.
+- `examples/clustered-lights.html?enable-cluster-cookie-atlas=1` now authors two
+  differently sized spot-cookie textures and reports the non-array 2D clustered
+  cookie route as supported.
+- Public trackers and agent task pointers now recommend `task-3141`, supporting
+  multiple clustered local spot shadows through packed metadata-indexed
+  resources.
+
+### Validation
+
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/local-light-cookie-resources.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm run examples:build`
+- `pnpm run lint`
+- `pnpm run check:examples`
+- `pnpm exec prettier --check examples/clustered-lights.main.js examples/clustered-lights.worker.js packages/webgpu/src/webgpu/local-light-cookie-resources.ts test/e2e/clustered-lights.spec.ts test/webgpu/local-light-clusters.test.ts test/webgpu/local-light-cookie-resources.test.ts`
+- `git diff --check`
+- Narrow headed Chrome/WebGPU proof for
+  `examples/clustered-lights.html?enable-cluster-cookie-atlas=1`: route `ok`,
+  `routeCookieAtlasSamplingOk` true, required supported cookie count `2`,
+  non-array 2D cookie pipeline key present, array-cookie pipeline key absent,
+  luminance range about `251`, and relevant WebGPU validation warnings `0`.
+
+### Known issues
+
+- A broad `pnpm exec playwright test test/e2e/clustered-lights.spec.ts` attempt
+  hit an unrelated baseline transparent-zero readback before reaching the new
+  atlas route and was stopped; the narrow atlas route proof passed.
+- The next visible SOTA gap is broader local shadow atlas/resource packing,
+  starting with multiple clustered local spot shadows sharing a renderer-owned
+  resource.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3141`: support multiple clustered local spot shadows per frame
+through a renderer-owned 2D-array shadow resource with per-light metadata
+indices.
 
 ## Current Run Update — 2026-05-24T06:40:30Z — Minimum-limit clustered local shadows
 

@@ -48,6 +48,7 @@ async function handleMessage(data) {
         data.clusteredSpotCookieEnabled === true,
         data.clusteredPointCookieEnabled === true,
         data.clusteredMultiCookieEnabled === true,
+        data.clusteredAtlasCookieEnabled === true,
         data.clusteredCookieOnlyEnabled === true,
       );
       self.postMessage({
@@ -82,6 +83,7 @@ async function handleMessage(data) {
           clusteredSpotCookieEnabled: scene.clusteredSpotCookieEnabled,
           clusteredPointCookieEnabled: scene.clusteredPointCookieEnabled,
           clusteredMultiCookieEnabled: scene.clusteredMultiCookieEnabled,
+          clusteredAtlasCookieEnabled: scene.clusteredAtlasCookieEnabled,
           clusteredCookieOnlyEnabled: scene.clusteredCookieOnlyEnabled,
         },
       });
@@ -137,6 +139,7 @@ function createWorkerScene(
   clusteredSpotCookieEnabled,
   clusteredPointCookieEnabled,
   clusteredMultiCookieEnabled,
+  clusteredAtlasCookieEnabled,
   clusteredCookieOnlyEnabled,
 ) {
   const app = aperture.createExtractionApp({
@@ -269,7 +272,7 @@ function createWorkerScene(
 
   app.spawn(...spotLightComponents);
 
-  if (clusteredMultiCookieEnabled) {
+  if (clusteredMultiCookieEnabled && !clusteredAtlasCookieEnabled) {
     app.spawn(
       aperture.withTransform({ translation: [1.78, 0.44, 1.92] }),
       aperture.withLight({
@@ -282,6 +285,25 @@ function createWorkerScene(
         layerMask: 2,
       }),
       aperture.withLightCookie(assets.secondCookieTexture, {
+        sampler: assets.cookieSampler,
+        intensity: 1,
+      }),
+    );
+  }
+
+  if (clusteredAtlasCookieEnabled) {
+    app.spawn(
+      aperture.withTransform({ translation: [1.78, 0.44, 1.92] }),
+      aperture.withLight({
+        kind: aperture.LightKind.Spot,
+        color: [1, 0.88, 0.72, 1],
+        intensity: 230,
+        range: 4.2,
+        innerConeAngle: 0.16,
+        outerConeAngle: 0.5,
+        layerMask: 2,
+      }),
+      aperture.withLightCookie(assets.atlasCookieTexture, {
         sampler: assets.cookieSampler,
         intensity: 1,
       }),
@@ -301,6 +323,7 @@ function createWorkerScene(
     spotCasterMaterial: assets.spotCasterMaterial,
     cookieTexture: assets.cookieTexture,
     secondCookieTexture: assets.secondCookieTexture,
+    atlasCookieTexture: assets.atlasCookieTexture,
     cookieSampler: assets.cookieSampler,
     pointCookieTexture: assets.pointCookieTexture,
     pointCookieSampler: assets.pointCookieSampler,
@@ -309,6 +332,7 @@ function createWorkerScene(
     clusteredSpotCookieEnabled,
     clusteredPointCookieEnabled,
     clusteredMultiCookieEnabled,
+    clusteredAtlasCookieEnabled,
     clusteredCookieOnlyEnabled,
     localLightCount:
       localLightGrid.columns * localLightGrid.rows * 2 +
@@ -407,6 +431,9 @@ function registerClusteredLightAssets(aperture, registry) {
   const secondCookieTexture = aperture.createTextureHandle(
     "clustered-lights-spot-cookie-alt",
   );
+  const atlasCookieTexture = aperture.createTextureHandle(
+    "clustered-lights-spot-cookie-atlas-wide",
+  );
   const cookieSampler = aperture.createSamplerHandle(
     "clustered-lights-spot-cookie-linear",
   );
@@ -419,6 +446,7 @@ function registerClusteredLightAssets(aperture, registry) {
 
   registry.register(cookieTexture);
   registry.register(secondCookieTexture);
+  registry.register(atlasCookieTexture);
   registry.register(cookieSampler);
   registry.register(pointCookieTexture);
   registry.register(pointCookieSampler);
@@ -426,6 +454,10 @@ function registerClusteredLightAssets(aperture, registry) {
   registry.markReady(
     secondCookieTexture,
     createSecondSpotCookieTextureAsset(aperture),
+  );
+  registry.markReady(
+    atlasCookieTexture,
+    createAtlasSpotCookieTextureAsset(aperture),
   );
   registry.markReady(cookieSampler, createSpotCookieSamplerAsset(aperture));
   registry.markReady(
@@ -447,6 +479,7 @@ function registerClusteredLightAssets(aperture, registry) {
     spotCasterMaterial,
     cookieTexture,
     secondCookieTexture,
+    atlasCookieTexture,
     cookieSampler,
     pointCookieTexture,
     pointCookieSampler,
@@ -510,6 +543,42 @@ function createSecondSpotCookieTextureAsset(aperture) {
 
   return aperture.createTextureAsset({
     label: "ClusteredSpotCookieAlt",
+    dimension: "2d",
+    width,
+    height,
+    format: "rgba8unorm",
+    colorSpace: "linear",
+    semantic: "data",
+    usage: ["sampled", "copy-dst"],
+    sourceData: {
+      bytes,
+      bytesPerRow: width * 4,
+      rowsPerImage: height,
+    },
+  });
+}
+
+function createAtlasSpotCookieTextureAsset(aperture) {
+  const width = 12;
+  const height = 4;
+  const bytes = new Uint8Array(width * height * 4);
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const index = (y * width + x) * 4;
+      const brightBand = x >= 3 && x <= 8;
+      const edge = y === 0 || y === height - 1;
+      const value = edge ? 255 : brightBand ? 44 : 220;
+
+      bytes[index + 0] = Math.max(24, Math.round(value * 0.74));
+      bytes[index + 1] = value;
+      bytes[index + 2] = Math.max(24, Math.round(value * 0.9));
+      bytes[index + 3] = 255;
+    }
+  }
+
+  return aperture.createTextureAsset({
+    label: "ClusteredSpotCookieAtlasWide",
     dimension: "2d",
     width,
     height,

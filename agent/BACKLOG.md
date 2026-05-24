@@ -59,10 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3140`: add atlas-space clustered cookie metadata for nonuniform
-local cookies so cookie requests that cannot share the current compatible-size
-array path have a supported atlas route or an explicit browser-visible
-fallback.
+Start `task-3141`: support multiple clustered local spot shadows per frame
+through a renderer-owned 2D-array shadow resource, with metadata selecting each
+spot light's matrix/layer entry.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -214,17 +213,20 @@ StandardMaterial clustered route with compact duplicate spot-shadow bindings
 and a browser proof. `task-3139` now packs transform-derived light positions,
 directions, and area axes into the StandardMaterial light buffer so the mixed
 point/spot local-shadow fragment path no longer reads `worldTransforms` and no
-longer requests a higher-than-minimum WebGPU storage-buffer limit. The next
-SOTA gap is nonuniform local cookie atlas metadata: PlayCanvas allocates
-clustered local shadow/cookie atlas slots across mixed point/spot lights, while
-Aperture still needs atlas-space metadata for cookie requests that cannot share
-the current compatible-size array path.
+longer requests a higher-than-minimum WebGPU storage-buffer limit. `task-3140`
+now adds a renderer-owned 2D cookie atlas for nonuniform clustered spot cookies,
+uploads each source texture into an atlas tile, and adjusts each light's cookie
+projection matrix into atlas UV space. The next SOTA gap is broader local
+shadow atlas packing: PlayCanvas allocates clustered local shadow/cookie atlas
+slots across mixed point/spot lights, while Aperture still needs multiple local
+spot shadows and nonuniform local shadow maps to share renderer-owned resources
+through metadata indices instead of one-off bindings.
 
 Reference anchors for the next visible slice (read before writing):
 
 - `references/engine/src/scene/lighting/light-texture-atlas.js`.
 - `references/engine/src/scene/lighting/lights-buffer.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightCookies.js`.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`.
 - `docs/render-pipeline-comparison.html`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
@@ -912,7 +914,7 @@ Acceptance criteria:
 
 ### task-3140 — Add atlas-space clustered cookie metadata for nonuniform local cookies
 
-Status: ready
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*cookie*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
@@ -928,6 +930,62 @@ Acceptance criteria:
   resources.
 - Targeted resource/shader tests and a browser proof pass with zero relevant
   WebGPU validation warnings.
+
+### task-3141 — Support multiple clustered local spot shadows per frame
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
+Reference anchor: `references/engine/src/scene/lighting/light-texture-atlas.js`, `references/engine/src/scene/lighting/lights-buffer.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`.
+
+Acceptance criteria:
+
+- Compatible clustered local spot-shadow maps can share one renderer-owned 2D
+  shadow array resource, with metadata selecting the per-light matrix/layer
+  entry.
+- An opt-in clustered-lights route renders at least two supported local spot
+  shadows in one StandardMaterial clustered frame without exposing renderer GPU
+  resources through ECS or snapshots.
+- Focused resource/shader tests and a browser proof pass with zero relevant
+  WebGPU validation warnings.
+
+### task-3142 — Add atlas-space clustered spot-shadow metadata for nonuniform maps
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
+Reference anchor: `references/engine/src/scene/lighting/light-texture-atlas.js`, `references/engine/src/scene/lighting/lights-buffer.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`.
+
+Acceptance criteria:
+
+- Clustered local spot-shadow maps that cannot share the compatible-size array
+  path have an atlas-space metadata route or an explicit browser-visible
+  unsupported fallback.
+- The atlas path adjusts each supported spot light's shadow matrix into the
+  correct atlas viewport while preserving renderer-owned depth resources.
+- A browser proof renders at least two spot shadows with non-identical atlas
+  footprints and reports both as supported with zero relevant WebGPU validation
+  warnings.
+
+### task-3143 — Combine clustered point shadows with packed spot-shadow metadata
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
+Reference anchor: `references/engine/src/scene/lighting/light-texture-atlas.js`, `references/engine/src/scene/lighting/lights-buffer.js`, `references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
+
+Acceptance criteria:
+
+- A clustered StandardMaterial route can render one supported point shadow plus
+  multiple metadata-indexed spot shadows in the same frame while staying within
+  WebGPU minimum bind/storage limits.
+- Cluster status distinguishes point-shadow, spot-shadow-array, and
+  spot-shadow-atlas readiness without hiding unsupported local shadow requests.
+- Browser readbacks show visible shadow contribution from both local shadow
+  families with zero relevant WebGPU validation warnings.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

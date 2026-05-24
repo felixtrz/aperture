@@ -102,6 +102,8 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
     readonly routeSpotShadowSamplingOk: boolean;
     readonly routeMixedShadowSamplingOk: boolean;
     readonly routeCookieSamplingOk: boolean;
+    readonly routeCookieAtlasSamplingOk?: boolean;
+    readonly requiredCookieSupportedCount?: number;
     readonly routes: readonly LocalLightClusterRouteStatus[];
     readonly buffersCreated: number;
     readonly buffersReused: number;
@@ -297,6 +299,34 @@ test("browser renders StandardMaterial through clustered local lights", async ({
 
   skipIfUnsupportedWebGpu(multiCookie);
   expectStatusJsonSafeForGpu(multiCookie);
+
+  const atlasCookiePage = await page.context().newPage();
+  const atlasCookieWebGpuValidation =
+    attachWebGpuValidationConsoleGuard(atlasCookiePage);
+
+  await atlasCookiePage.goto(
+    "/examples/clustered-lights.html?enable-cluster-cookie-atlas=1",
+  );
+  await atlasCookiePage.bringToFront();
+
+  const atlasCookie =
+    await waitForExampleStatus<ClusteredLightsStatus>(atlasCookiePage);
+
+  await attachExampleStatus(
+    "clustered-lights-atlas-cookie-status",
+    atlasCookie,
+  );
+  expect(
+    atlasCookie,
+    "clustered lights atlas-cookie status should publish",
+  ).toBeDefined();
+
+  if (atlasCookie === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(atlasCookie);
+  expectStatusJsonSafeForGpu(atlasCookie);
 
   const mixedCookiePage = await page.context().newPage();
   const mixedCookieWebGpuValidation =
@@ -648,6 +678,38 @@ test("browser renders StandardMaterial through clustered local lights", async ({
     ),
   ).toBe(true);
   expect(multiCookie.readbackStatus?.luminanceRange ?? 0).toBeGreaterThan(12);
+  expect(atlasCookie.clusterStatus).toMatchObject({
+    ok: true,
+    routeMetadataOk: true,
+    routePointShadowSamplingOk: false,
+    routeSpotShadowSamplingOk: false,
+    routeMixedShadowSamplingOk: false,
+    routeCookieSamplingOk: true,
+    routeCookieAtlasSamplingOk: true,
+    requiredCookieSupportedCount: 2,
+  });
+  expect(atlasCookie.shadowStatus).toMatchObject({
+    enabled: false,
+    supported: false,
+    mode: "clustered-shadow-unavailable",
+  });
+  expect(atlasCookie.pipelineKeys ?? []).toContain(
+    "standard|clusteredLocalLights|clusteredLocalLightCookies|opaque|back|less|none",
+  );
+  expect(atlasCookie.pipelineKeys ?? []).not.toContain(
+    "standard|clusteredLocalLights|clusteredLocalLightCookies|clusteredLocalLightArrayCookies|opaque|back|less|none",
+  );
+  expect(
+    (atlasCookie.localLightClusters?.routes ?? []).some(
+      (route) =>
+        route.shadowCookieMetadata?.cookie.status === "sampling-ready" &&
+        route.shadowCookieMetadata.cookie.samplingSupported === true &&
+        route.shadowCookieMetadata.cookie.localRequestCount >= 2 &&
+        route.shadowCookieMetadata.cookie.clusteredLightCount >= 2 &&
+        route.shadowCookieMetadata.cookie.supportedLightCount >= 2,
+    ),
+  ).toBe(true);
+  expect(atlasCookie.readbackStatus?.luminanceRange ?? 0).toBeGreaterThan(12);
   expect(mixedCookie.clusterStatus).toMatchObject({
     ok: true,
     routeMetadataOk: true,
@@ -723,6 +785,7 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   expect(maxSampleLuminanceDarkening(baseline, spotOnly)).toBeGreaterThan(2);
   expect(maxSampleLuminanceDelta(spotOnly, cookie)).toBeGreaterThan(12);
   expect(maxSampleLuminanceDelta(baseline, pointCookie)).toBeGreaterThan(2);
+  expect(maxSampleLuminanceDelta(baseline, atlasCookie)).toBeGreaterThan(2);
   expect(maxSampleLuminanceDelta(baseline, mixedCookie)).toBeGreaterThan(2);
   expect(maxSampleLuminanceDarkening(baseline, status)).toBeGreaterThan(3);
   expect(maxSampleLuminanceDelta(spotOnly, mixedShadow)).toBeGreaterThan(2);
@@ -735,6 +798,7 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   cookieOnlyWebGpuValidation.expectNoWarnings();
   pointCookieWebGpuValidation.expectNoWarnings();
   multiCookieWebGpuValidation.expectNoWarnings();
+  atlasCookieWebGpuValidation.expectNoWarnings();
   mixedCookieWebGpuValidation.expectNoWarnings();
   mixedShadowWebGpuValidation.expectNoWarnings();
   shadowWebGpuValidation.expectNoWarnings();

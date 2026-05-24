@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "2e675c6",
   "activePid": null,
-  "notes": "Completed task-3139 minimum-limit mixed clustered point/spot local-shadow packing; next task-3140 adds atlas-space cookie metadata for nonuniform clustered local cookies.",
-  "lastRunFinishedAt": "2026-05-24T06:40:30Z"
+  "notes": "Completed task-3140 nonuniform clustered spot-cookie atlas metadata; next task-3141 supports multiple clustered local spot shadows per frame.",
+  "lastRunFinishedAt": "2026-05-24T07:12:25Z"
 }

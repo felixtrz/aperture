@@ -71,7 +71,11 @@ export type LocalLightClusterCookieResourceDiagnostic =
         | "localLightClusterCookie.textureNot2d"
         | "localLightClusterCookie.textureNotCube"
         | "localLightClusterCookie.textureArrayIncompatible"
-        | "localLightClusterCookie.textureArrayMissingSourceData";
+        | "localLightClusterCookie.textureArrayMissingSourceData"
+        | "localLightClusterCookie.textureAtlasIncompatible"
+        | "localLightClusterCookie.textureAtlasMissingSourceData"
+        | "localLightClusterCookie.textureAtlasUploadUnavailable"
+        | "localLightClusterCookie.textureAtlasUploadFailed";
       readonly message: string;
       readonly resourceKey: string;
     }
@@ -105,6 +109,23 @@ interface CookieArrayCandidate {
   readonly layerBaseIndex: number;
 }
 
+interface CookieAtlasCandidate {
+  readonly light: LightPacket;
+  readonly texture: TextureAsset & {
+    readonly sourceData: NonNullable<TextureAsset["sourceData"]>;
+  };
+  readonly textureKey: string;
+  readonly textureCacheKey: string;
+  readonly samplerSignature: string;
+  readonly rowsPerImage: number;
+  readonly layerByteLength: number;
+  readonly originX: number;
+  readonly originY: number;
+  readonly atlasWidth: number;
+  readonly atlasHeight: number;
+  readonly matrixBaseIndex: number;
+}
+
 export function prepareLocalLightClusterCookieResources(
   options: AppTextureSamplerPreparationOptions & {
     readonly snapshot: RenderSnapshot;
@@ -116,6 +137,87 @@ export function prepareLocalLightClusterCookieResources(
   const textureSamplerDiagnostics: WebGpuAppTextureSamplerPreparationDiagnostic[] =
     [];
   const arrayCandidates = collectCookieArrayCandidates(options);
+  const atlasCandidates = collectCookieAtlasCandidates(options);
+
+  if (
+    atlasCandidates.length > 1 &&
+    atlasCandidates.length > arrayCandidates.length
+  ) {
+    const matrixResource = prepareCookieAtlasMatrixResource({
+      device: options.device as WebGpuBufferDeviceLike,
+      candidates: atlasCandidates,
+      snapshot: options.snapshot,
+      ...(options.matrixCache === undefined
+        ? {}
+        : { cache: options.matrixCache }),
+      diagnostics,
+    });
+
+    if (matrixResource === null) {
+      return {
+        valid: diagnostics.length === 0,
+        resources: null,
+        diagnostics,
+      };
+    }
+
+    const texture = prepareCookieTextureAtlasResource({
+      ...options,
+      candidates: atlasCandidates,
+      diagnostics,
+    });
+
+    if (texture === null) {
+      return { valid: false, resources: null, diagnostics };
+    }
+
+    const firstCandidate = atlasCandidates[0];
+
+    if (firstCandidate === undefined) {
+      return { valid: false, resources: null, diagnostics };
+    }
+
+    const sampler =
+      firstCandidate.light.cookieSampler === undefined ||
+      firstCandidate.light.cookieSampler === null
+        ? prepareDefaultCookieSamplerResource({
+            ...options,
+            diagnostics,
+          })
+        : prepareAppSamplerResource({
+            assets: options.assets,
+            device: options.device,
+            cache: options.cache,
+            handle: firstCandidate.light.cookieSampler,
+            reuse: options.reuse,
+            diagnostics: textureSamplerDiagnostics,
+          });
+    diagnostics.push(...textureSamplerDiagnostics.splice(0));
+
+    if (sampler === null) {
+      return { valid: false, resources: null, diagnostics };
+    }
+
+    return {
+      valid: diagnostics.length === 0,
+      resources: {
+        matrixResource,
+        textureResource: texture.resource,
+        samplerResource: sampler.resource,
+        textureViewDimension: "2d",
+        textureKey: texture.cacheKey,
+        samplerKey: sampler.cacheKey,
+        supportedResources: atlasCandidates.map((candidate) => ({
+          lightId: candidate.light.lightId,
+          textureKey: texture.cacheKey,
+          samplerKey: sampler.cacheKey,
+          textureViewDimension: "2d",
+          matrixBaseIndex: candidate.matrixBaseIndex,
+        })),
+      },
+      diagnostics,
+    };
+  }
 
   if (arrayCandidates.length > 1) {
     const matrixResource = prepareCookieMatrixArrayResource({
@@ -416,6 +518,122 @@ function collectCookieArrayCandidates(
   return candidates;
 }
 
+function collectCookieAtlasCandidates(
+  options: Pick<AppTextureSamplerPreparationOptions, "assets"> & {
+    readonly snapshot: RenderSnapshot;
+  },
+): readonly CookieAtlasCandidate[] {
+  const pending: Omit<
+    CookieAtlasCandidate,
+    "originX" | "originY" | "atlasWidth" | "atlasHeight" | "matrixBaseIndex"
+  >[] = [];
+  let base: {
+    readonly format: string;
+    readonly colorSpace: TextureAsset["colorSpace"];
+    readonly semantic: TextureAsset["semantic"];
+    readonly mipLevelCount: number;
+    readonly samplerSignature: string;
+  } | null = null;
+
+  for (const light of options.snapshot.lights) {
+    if (
+      light.kind !== "spot" ||
+      light.cookieTexture === undefined ||
+      light.cookieTexture === null
+    ) {
+      continue;
+    }
+
+    const textureEntry = options.assets.get<"texture", TextureAsset>(
+      light.cookieTexture,
+    );
+
+    if (
+      textureEntry === undefined ||
+      textureEntry.status !== "ready" ||
+      textureEntry.asset === null ||
+      textureEntry.asset.sourceData === undefined ||
+      textureEntry.asset.dimension !== "2d" ||
+      textureEntry.asset.width <= 0 ||
+      textureEntry.asset.height <= 0
+    ) {
+      continue;
+    }
+
+    const sampler = cookieSamplerCandidate(options, light);
+
+    if (sampler === null) {
+      continue;
+    }
+
+    const texture = textureEntry.asset as TextureAsset & {
+      readonly sourceData: NonNullable<TextureAsset["sourceData"]>;
+    };
+    const rowsPerImage = texture.sourceData.rowsPerImage ?? texture.height;
+    const layerByteLength = rowsPerImage * texture.sourceData.bytesPerRow;
+
+    if (texture.sourceData.bytes.byteLength < layerByteLength) {
+      continue;
+    }
+
+    const candidateBase = {
+      format: texture.format,
+      colorSpace: texture.colorSpace,
+      semantic: texture.semantic,
+      mipLevelCount: texture.mipLevelCount,
+      samplerSignature: sampler.signature,
+    };
+
+    if (base === null) {
+      base = candidateBase;
+    } else if (!cookieAtlasBaseMatches(base, candidateBase)) {
+      continue;
+    }
+
+    pending.push({
+      light,
+      texture,
+      textureKey: assetHandleKey(light.cookieTexture),
+      textureCacheKey: sourceAssetCacheKey(
+        light.cookieTexture,
+        textureEntry.version,
+      ),
+      samplerSignature: sampler.signature,
+      rowsPerImage,
+      layerByteLength,
+    });
+  }
+
+  if (pending.length <= 1) {
+    return [];
+  }
+
+  const atlasWidth = pending.reduce(
+    (width, candidate) => width + candidate.texture.width,
+    0,
+  );
+  const atlasHeight = pending.reduce(
+    (height, candidate) => Math.max(height, candidate.texture.height),
+    1,
+  );
+  const candidates: CookieAtlasCandidate[] = [];
+  let originX = 0;
+
+  for (const candidate of pending) {
+    candidates.push({
+      ...candidate,
+      originX,
+      originY: 0,
+      atlasWidth,
+      atlasHeight,
+      matrixBaseIndex: candidates.length,
+    });
+    originX += candidate.texture.width;
+  }
+
+  return candidates;
+}
+
 function cookieSamplerCandidate(
   options: Pick<AppTextureSamplerPreparationOptions, "assets">,
   light: LightPacket,
@@ -472,6 +690,25 @@ function cookieArrayBaseMatches(
     candidate.mipLevelCount === base.mipLevelCount &&
     candidate.bytesPerRow === base.bytesPerRow &&
     candidate.rowsPerImage === base.rowsPerImage &&
+    candidate.samplerSignature === base.samplerSignature
+  );
+}
+
+function cookieAtlasBaseMatches(
+  base: {
+    readonly format: string;
+    readonly colorSpace: TextureAsset["colorSpace"];
+    readonly semantic: TextureAsset["semantic"];
+    readonly mipLevelCount: number;
+    readonly samplerSignature: string;
+  },
+  candidate: typeof base,
+): boolean {
+  return (
+    candidate.format === base.format &&
+    candidate.colorSpace === base.colorSpace &&
+    candidate.semantic === base.semantic &&
+    candidate.mipLevelCount === base.mipLevelCount &&
     candidate.samplerSignature === base.samplerSignature
   );
 }
@@ -574,6 +811,127 @@ function prepareCookieTextureArrayResource(
 
   if (!result.valid || result.resource === null) {
     return null;
+  }
+
+  options.cache.textures.set(cacheKey, result.resource);
+  options.reuse.textureResourcesCreated += 1;
+
+  return { cacheKey, resource: result.resource };
+}
+
+function prepareCookieTextureAtlasResource(
+  options: AppTextureSamplerPreparationOptions & {
+    readonly candidates: readonly CookieAtlasCandidate[];
+    readonly diagnostics: LocalLightClusterCookieResourceDiagnostic[];
+  },
+): {
+  readonly cacheKey: string;
+  readonly resource: TextureGpuResource;
+} | null {
+  const first = options.candidates[0];
+
+  if (first === undefined) {
+    return null;
+  }
+
+  const cacheKey = `local-light-cookie-atlas:v1:${first.atlasWidth}x${first.atlasHeight}:${options.candidates
+    .map(
+      (candidate) =>
+        `${candidate.light.kind}:${candidate.light.lightId}@${candidate.originX},${candidate.originY}+${candidate.texture.width}x${candidate.texture.height}:${candidate.textureCacheKey}`,
+    )
+    .join("|")}`;
+  const cached = options.cache.textures.get(cacheKey);
+
+  if (cached !== undefined) {
+    options.reuse.textureResourcesReused += 1;
+    return { cacheKey, resource: cached };
+  }
+
+  const result = createTextureGpuResource({
+    device: options.device as Parameters<
+      typeof createTextureGpuResource
+    >[0]["device"],
+    resourceKey: cacheKey,
+    descriptor: {
+      label: cacheKey,
+      size: [first.atlasWidth, first.atlasHeight, 1],
+      format: first.texture.format,
+      colorSpace: first.texture.colorSpace,
+      semantic: first.texture.semantic,
+      mipLevelCount: first.texture.mipLevelCount,
+      usage:
+        WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING |
+        WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST,
+    },
+  });
+
+  options.diagnostics.push(...result.diagnostics);
+
+  if (!result.valid || result.resource === null) {
+    return null;
+  }
+
+  const textureDevice = options.device as Parameters<
+    typeof createTextureGpuResource
+  >[0]["device"];
+  const queue = textureDevice.queue;
+
+  if (queue === undefined || queue.writeTexture === undefined) {
+    options.diagnostics.push({
+      code: "localLightClusterCookie.textureAtlasUploadUnavailable",
+      resourceKey: cacheKey,
+      message: `Clustered local-light cookie atlas '${cacheKey}' cannot upload source texture tiles because WebGPU queue.writeTexture is unavailable.`,
+    });
+    return null;
+  }
+
+  for (const candidate of options.candidates) {
+    if (candidate.texture.sourceData === undefined) {
+      options.diagnostics.push({
+        code: "localLightClusterCookie.textureAtlasMissingSourceData",
+        resourceKey: cacheKey,
+        message: `Clustered local-light cookie atlas '${cacheKey}' requires source texture bytes for '${candidate.textureKey}'.`,
+      });
+      return null;
+    }
+
+    if (
+      candidate.texture.sourceData.bytes.byteLength < candidate.layerByteLength
+    ) {
+      options.diagnostics.push({
+        code: "localLightClusterCookie.textureAtlasIncompatible",
+        resourceKey: cacheKey,
+        message: `Clustered local-light cookie atlas '${cacheKey}' has incompatible source data for texture '${candidate.textureKey}'.`,
+      });
+      return null;
+    }
+
+    try {
+      queue.writeTexture(
+        {
+          texture: result.resource.texture,
+          origin: { x: candidate.originX, y: candidate.originY, z: 0 },
+        },
+        candidate.texture.sourceData.bytes.subarray(
+          0,
+          candidate.layerByteLength,
+        ),
+        {
+          bytesPerRow: candidate.texture.sourceData.bytesPerRow,
+          rowsPerImage: candidate.rowsPerImage,
+        },
+        [candidate.texture.width, candidate.texture.height, 1],
+      );
+    } catch (error) {
+      options.diagnostics.push({
+        code: "localLightClusterCookie.textureAtlasUploadFailed",
+        resourceKey: cacheKey,
+        message: `Clustered local-light cookie atlas '${cacheKey}' upload failed for texture '${candidate.textureKey}': ${
+          error instanceof Error ? error.message : "Texture upload failed."
+        }`,
+      });
+      return null;
+    }
   }
 
   options.cache.textures.set(cacheKey, result.resource);
@@ -766,6 +1124,82 @@ function prepareCookieMatrixArrayResource(options: {
   return resource;
 }
 
+function prepareCookieAtlasMatrixResource(options: {
+  readonly device: WebGpuBufferDeviceLike;
+  readonly snapshot: RenderSnapshot;
+  readonly candidates: readonly CookieAtlasCandidate[];
+  readonly cache?: Map<string, LocalLightClusterCookieMatrixResource>;
+  readonly diagnostics: LocalLightClusterCookieResourceDiagnostic[];
+}): LocalLightClusterCookieMatrixResource | null {
+  const matrixCount = Math.max(options.candidates.length, 1);
+  const matrices = new Float32Array(matrixCount * 16);
+  const entryLightIds: number[] = [];
+
+  for (const candidate of options.candidates) {
+    const matrix = computeSpotCookieMatrix(options.snapshot, candidate.light);
+
+    if ("diagnostic" in matrix) {
+      options.diagnostics.push(matrix.diagnostic);
+      return null;
+    }
+
+    matrices.set(
+      atlasAdjustedCookieMatrix(matrix.data, {
+        x: candidate.originX / candidate.atlasWidth,
+        y: candidate.originY / candidate.atlasHeight,
+        width: candidate.texture.width / candidate.atlasWidth,
+        height: candidate.texture.height / candidate.atlasHeight,
+      }),
+      candidate.matrixBaseIndex * 16,
+    );
+    entryLightIds.push(candidate.light.lightId);
+  }
+
+  const resourceKey = cookieAtlasMatrixResourceKey(options.candidates);
+  const cached = options.cache?.get(resourceKey);
+
+  if (
+    cached !== undefined &&
+    cached.matrixCount === matrixCount &&
+    writeBufferData(options.device, cached.buffer, matrices)
+  ) {
+    return cached;
+  }
+
+  const buffer = createWebGpuBuffer({
+    device: options.device,
+    descriptor: {
+      label: resourceKey,
+      size: matrices.byteLength,
+      usage:
+        WEBGPU_BUFFER_USAGE_FLAGS.STORAGE | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
+      initialData: matrices,
+    },
+  });
+
+  if (!buffer.ok) {
+    options.diagnostics.push({
+      code: "localLightClusterCookie.bufferCreationFailed",
+      lightId: entryLightIds[0] ?? -1,
+      reason: buffer.reason,
+      message: `Clustered local-light cookie matrix buffer '${resourceKey}' could not be created: ${buffer.message}`,
+    });
+    return null;
+  }
+
+  const resource: LocalLightClusterCookieMatrixResource = {
+    resourceKey,
+    label: resourceKey,
+    buffer: buffer.buffer,
+    matrixCount,
+    entryLightIds,
+  };
+
+  options.cache?.set(resourceKey, resource);
+
+  return resource;
+}
+
 function computeSpotCookieMatrix(
   snapshot: RenderSnapshot,
   light: LightPacket,
@@ -840,6 +1274,45 @@ function cookieMatrixArrayResourceKey(
         `${candidate.light.kind}:${candidate.light.lightId}@${candidate.layerBaseIndex}+${candidate.layerCount}`,
     )
     .join(",")}`;
+}
+
+function cookieAtlasMatrixResourceKey(
+  candidates: readonly CookieAtlasCandidate[],
+): string {
+  return `local-light-cookie-matrix-atlas:v${SPOT_COOKIE_MATRIX_VERSION}:${candidates
+    .map(
+      (candidate) =>
+        `${candidate.light.kind}:${candidate.light.lightId}@${candidate.matrixBaseIndex}:${candidate.originX},${candidate.originY}+${candidate.texture.width}x${candidate.texture.height}`,
+    )
+    .join(",")}`;
+}
+
+function atlasAdjustedCookieMatrix(
+  matrix: Float32Array,
+  rect: {
+    readonly x: number;
+    readonly y: number;
+    readonly width: number;
+    readonly height: number;
+  },
+): Float32Array {
+  const result = new Float32Array(matrix);
+  const xScale = rect.width;
+  const xOffset = 2 * rect.x + rect.width - 1;
+  const yScale = rect.height;
+  const yOffset = 1 - 2 * rect.y - rect.height;
+
+  for (let column = 0; column < 4; column += 1) {
+    const offset = column * 4;
+    const row0 = matrix[offset] ?? 0;
+    const row1 = matrix[offset + 1] ?? 0;
+    const row3 = matrix[offset + 3] ?? 0;
+
+    result[offset] = xScale * row0 + xOffset * row3;
+    result[offset + 1] = yScale * row1 + yOffset * row3;
+  }
+
+  return result;
 }
 
 function makeLookAt(

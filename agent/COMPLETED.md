@@ -1,5 +1,47 @@
 # Completed Tasks
 
+## task-3140 — Add atlas-space clustered cookie metadata for nonuniform local cookies
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added a renderer-owned 2D cookie atlas path for nonuniform clustered spot
+  cookies that cannot share the compatible-size 2D-array resource path.
+- Atlas preparation now uploads each ready source texture into a tile with
+  `queue.writeTexture()` and caches the atlas by dimensions/source versions.
+- Per-light cookie projection matrices are adjusted into atlas UV space, and
+  cluster metadata records the matching matrix index for each supported light.
+- Added `examples/clustered-lights.html?enable-cluster-cookie-atlas=1`, proving
+  two differently sized spot-cookie textures through the non-array 2D clustered
+  cookie pipeline.
+- Public trackers and agent task pointers now recommend `task-3141`, broadening
+  local shadow resource packing to multiple clustered spot shadows.
+
+Validation:
+
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/local-light-cookie-resources.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm run examples:build`
+- `pnpm run lint`
+- `pnpm run check:examples`
+- `pnpm exec prettier --check examples/clustered-lights.main.js examples/clustered-lights.worker.js packages/webgpu/src/webgpu/local-light-cookie-resources.ts test/e2e/clustered-lights.spec.ts test/webgpu/local-light-clusters.test.ts test/webgpu/local-light-cookie-resources.test.ts`
+- `git diff --check`
+- Narrow Chrome/WebGPU proof for
+  `examples/clustered-lights.html?enable-cluster-cookie-atlas=1`: route `ok`,
+  cookie atlas sampling true, required supported cookie count `2`, non-array 2D
+  cookie pipeline key present, array-cookie pipeline key absent, luminance range
+  about `251`, and relevant WebGPU validation warnings `0`.
+
+Known follow-up:
+
+- `task-3141` should support multiple clustered local spot shadows in one frame
+  through a renderer-owned array resource and per-light metadata indices.
+- A broad `pnpm exec playwright test test/e2e/clustered-lights.spec.ts` attempt
+  hit an unrelated baseline transparent-zero readback before reaching the new
+  atlas route and was stopped; the narrow atlas route proof above passed.
+
 ## task-3139 — Fit mixed clustered local shadows to WebGPU minimum limits
 
 Completed: 2026-05-24

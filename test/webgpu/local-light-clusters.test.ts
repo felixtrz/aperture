@@ -313,6 +313,52 @@ describe("local light cluster preparation", () => {
     });
   });
 
+  it("records per-light cookie atlas matrix indices in cluster metadata", () => {
+    const descriptor = createLocalLightClusterDescriptor(
+      snapshotWithPointLights(16, { cookieLightCount: 2 }),
+      {
+        dimensions: { x: 4, y: 1, z: 4 },
+        maxLightsPerCell: 8,
+        supportedCookieResources: [
+          {
+            lightId: 100,
+            textureKey: "texture:cluster-cookie-atlas",
+            samplerKey: "sampler:cluster-cookie",
+            textureViewDimension: "2d",
+            matrixBaseIndex: 0,
+          },
+          {
+            lightId: 101,
+            textureKey: "texture:cluster-cookie-atlas",
+            samplerKey: "sampler:cluster-cookie",
+            textureViewDimension: "2d",
+            matrixBaseIndex: 1,
+          },
+        ],
+      },
+    );
+    const firstFlags = descriptor.metadata[0] ?? 0;
+    const secondOffset = LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE;
+    const secondFlags = descriptor.metadata[secondOffset] ?? 0;
+
+    expect(
+      firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_SUPPORTED,
+    ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_SUPPORTED);
+    expect(
+      secondFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_SUPPORTED,
+    ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_SUPPORTED);
+    expect(descriptor.metadata[3]).toBe(0);
+    expect(descriptor.metadata[secondOffset + 3]).toBe(1);
+    expect(descriptor.shadowCookieMetadata.cookie).toMatchObject({
+      status: "sampling-ready",
+      samplingSupported: true,
+      localRequestCount: 2,
+      clusteredLightCount: 2,
+      supportedLightCount: 2,
+      fallbackReason: null,
+    });
+  });
+
   it("marks supported point-shadow resources as sampling-ready metadata", () => {
     const descriptor = createLocalLightClusterDescriptor(
       snapshotWithPointLights(16, { shadowedLightCount: 3 }),
