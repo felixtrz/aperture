@@ -59,8 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3138`: add a mixed clustered point/spot local-shadow proof route
-and close the next PlayCanvas-style local shadow resource packing gap.
+Start `task-3139`: pack clustered local shadow resources by metadata index so
+the mixed point/spot local-shadow route fits WebGPU-minimum storage-buffer
+limits without depending on a higher requested adapter limit.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -207,10 +208,13 @@ now adds clustered point-light cube cookie sampling through cube texture views.
 through a renderer-owned 2D texture array and per-light metadata indices.
 `task-3137` now supports mixed clustered spot cookies and point cube cookies in
 one frame by flattening point cube faces into the same renderer-owned 2D-array
-path. The next SOTA gap is broader local shadow resource packing: PlayCanvas
-allocates clustered local shadow/cookie atlas slots across mixed point/spot
-lights, while Aperture still proves those permutations through narrower fixed
-resource shapes.
+path. `task-3138` now proves mixed clustered point and spot local shadows in one
+StandardMaterial clustered route with compact duplicate spot-shadow bindings
+and a browser proof, while requesting a higher per-stage storage-buffer limit
+when available. The next SOTA gap is minimum-limit local shadow resource
+packing: PlayCanvas allocates clustered local shadow/cookie atlas slots across
+mixed point/spot lights, while Aperture still needs metadata-indexed packing to
+avoid relying on a higher-than-minimum WebGPU storage-buffer limit.
 
 Reference anchors for the next visible slice (read before writing):
 
@@ -864,7 +868,7 @@ Acceptance criteria:
 
 ### task-3138 — Add mixed clustered point and spot local-shadow proof
 
-Status: ready
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
@@ -894,6 +898,9 @@ Acceptance criteria:
 - Compatible clustered local shadow maps can be packed into a renderer-owned
   array or atlas resource, with metadata selecting the per-light shadow layer or
   atlas viewport.
+- The clustered local point+spot shadow shader/resource path fits the WebGPU
+  minimum per-stage storage-buffer limit without requiring
+  `maxStorageBuffersPerShaderStage: 10`.
 - A clustered-lights proof route renders more than one supported local shadow
   of the same broad resource family in one frame without adding new ECS-owned
   renderer state.

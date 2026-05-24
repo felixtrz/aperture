@@ -1,6 +1,65 @@
 # Agent Handoff
 
-Updated: 2026-05-24T05:44:18Z
+Updated: 2026-05-24T06:24:09Z
+
+## Current Run Update — 2026-05-24T06:24:09Z — Mixed clustered local-light shadows
+
+Completed `task-3138`, adding a mixed clustered point and spot local-shadow
+proof route.
+
+### What changed
+
+- `examples/clustered-lights.html?enable-cluster-mixed-shadow=1` now enables
+  supported local point and spot shadow sampling in the same clustered
+  StandardMaterial frame.
+- Cluster status now reports `routeMixedShadowSamplingOk` only when the point
+  route, spot route, and top-level `clustered-point-spot-depth-compare` shadow
+  mode are all supported.
+- The mixed route found a real Chrome/WebGPU validation issue: the clustered
+  point+spot shadow route exceeded the default fragment-stage storage-buffer
+  limit once the normal transform storage buffer was counted.
+- The StandardMaterial mixed clustered local-shadow path now compacts duplicate
+  group-3 spot-shadow bindings by using the existing 2D shadow bindings for
+  clustered spot shadows while keeping point cube shadows on the cube resource
+  path.
+- `initializeWebGpu()` now requests
+  `maxStorageBuffersPerShaderStage: 10` only when the adapter exposes at least
+  that limit, preserving the old descriptor when unsupported.
+- Public trackers and agent task pointers now recommend `task-3139`, reducing
+  this mixed local-shadow route to WebGPU-minimum storage-buffer limits through
+  metadata-indexed resource packing.
+
+### Validation
+
+- `node --check examples/clustered-lights.main.js`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/index.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/local-light-clusters.test.ts`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm run lint`
+- Narrow headed Chrome/WebGPU proof for
+  `examples/clustered-lights.html?enable-cluster-mixed-shadow=1`: route `ok`,
+  `routePointShadowSamplingOk`, `routeSpotShadowSamplingOk`, and
+  `routeMixedShadowSamplingOk` all true, `clustered-point-spot-depth-compare`
+  shadow mode, pipeline key
+  `standard|clusteredLocalLights|pointShadowMap|shadowMap|opaque|back|less|none`,
+  readback `ok` with max clear distance above `405`, luminance range about
+  `247`, and relevant WebGPU validation warnings `0`.
+
+### Known issues
+
+- The fix is intentionally narrow and honest: it validates on adapters that can
+  expose `maxStorageBuffersPerShaderStage >= 10`, but the next SOTA slice
+  should remove that higher-limit dependency and fit the WebGPU minimum.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3139`: pack clustered local shadow resources by metadata index so
+the mixed point/spot local-shadow route fits WebGPU-minimum storage-buffer
+limits while preserving renderer-owned GPU resources and ECS/snapshot purity.
 
 ## Current Run Update — 2026-05-24T05:44:18Z — Mixed clustered local-light cookies
 

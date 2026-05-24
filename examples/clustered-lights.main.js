@@ -20,6 +20,13 @@ const clusteredPointCookieEnabled =
   (exampleParams.has("enable-cluster-point-cookie") ||
     clusteredMixedCookieEnabled) &&
   !exampleParams.has("disable-cluster-cookie");
+const clusteredMixedShadowEnabled =
+  exampleParams.has("enable-cluster-mixed-shadow") &&
+  !exampleParams.has("disable-cluster-point-shadow") &&
+  !exampleParams.has("disable-cluster-spot-shadow") &&
+  !clusteredCookieOnlyEnabled &&
+  !clusteredMultiCookieEnabled &&
+  !clusteredPointCookieEnabled;
 const clusteredPointShadowEnabled =
   !exampleParams.has("disable-cluster-point-shadow") &&
   !clusteredCookieOnlyEnabled &&
@@ -38,7 +45,8 @@ const clusteredSpotShadowEnabled =
   !clusteredCookieOnlyEnabled &&
   !clusteredMultiCookieEnabled &&
   !clusteredPointCookieEnabled &&
-  (exampleParams.has("enable-cluster-spot-shadow") ||
+  (clusteredMixedShadowEnabled ||
+    exampleParams.has("enable-cluster-spot-shadow") ||
     clusteredSpotCookieEnabled) &&
   !exampleParams.has("disable-cluster-spot-shadow");
 const clusteredPointShadowIntent = {
@@ -230,6 +238,7 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     clusteredPointCookieEnabled,
     clusteredMultiCookieEnabled,
     clusteredCookieOnlyEnabled,
+    clusteredMixedShadowEnabled,
     cameraFrameOffset:
       clusteredPointShadowEnabled || clusteredSpotShadowEnabled ? 0 : 1,
   };
@@ -520,6 +529,7 @@ function statusFromReport(
     localLightClusters,
     pipelineKeys,
     loop,
+    loop.shadowStatus,
     scene.clusteredPointShadowEnabled,
     scene.clusteredSpotShadowEnabled,
     scene.clusteredCookieEnabled,
@@ -564,6 +574,7 @@ function createClusterStatus(
   localLightClusters,
   pipelineKeys,
   loop,
+  shadowStatus,
   pointShadowEnabled,
   spotShadowEnabled,
   cookieEnabled,
@@ -665,6 +676,16 @@ function createClusterStatus(
         shadow.clusteredLightCount >= expectedShadowRequestCount &&
         shadow.supportedLightCount >= 1,
     );
+  const mixedShadowEnabled =
+    pointShadowEnabled === true && spotShadowEnabled === true;
+  const routeMixedShadowSamplingOk =
+    mixedShadowEnabled === true &&
+    routePointShadowSamplingOk &&
+    routeSpotShadowSamplingOk &&
+    shadowStatus?.supported === true &&
+    shadowStatus?.mode === "clustered-point-spot-depth-compare" &&
+    shadowStatus?.point?.supported === true &&
+    shadowStatus?.spot?.supported === true;
   const requiredCookieSupportedCount =
     (multiCookieEnabled === true ? 2 : 0) +
       (pointCookieEnabled === true ? 1 : 0) || (cookieEnabled === true ? 1 : 0);
@@ -702,10 +723,12 @@ function createClusterStatus(
             (shadow.localRequestCount ?? 0) === 0 &&
             (shadow.clusteredLightCount ?? 0) === 0);
 
+      const minimumRouteShadowRequestCount =
+        mixedShadowEnabled === true ? 4 : expectedShadowRequestCount;
       const shadowCountsReady =
         expectedShadowRequestCount === 0 ||
-        ((shadow?.localRequestCount ?? 0) >= expectedShadowRequestCount &&
-          (shadow?.clusteredLightCount ?? 0) >= expectedShadowRequestCount);
+        ((shadow?.localRequestCount ?? 0) >= minimumRouteShadowRequestCount &&
+          (shadow?.clusteredLightCount ?? 0) >= minimumRouteShadowRequestCount);
       const cookieReady =
         cookieEnabled === true
           ? (cookie?.status === "sampling-ready" &&
@@ -734,6 +757,7 @@ function createClusterStatus(
       routeMetadataOk &&
       (pointShadowEnabled !== true || routePointShadowSamplingOk) &&
       (spotShadowEnabled !== true || routeSpotShadowSamplingOk) &&
+      (mixedShadowEnabled !== true || routeMixedShadowSamplingOk) &&
       (cookieEnabled !== true || routeCookieSamplingOk) &&
       occupancyChanged &&
       (localLightClusters?.resourceReuse?.buffersReused ?? 0) >= 8,
@@ -758,6 +782,7 @@ function createClusterStatus(
     routeMetadataOk,
     routePointShadowSamplingOk,
     routeSpotShadowSamplingOk,
+    routeMixedShadowSamplingOk,
     routeCookieSamplingOk,
     requiredCookieSupportedCount,
     routeShadowStates,

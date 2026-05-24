@@ -201,6 +201,7 @@ export function createStandardLightMultiShadowBindGroupLayoutDescriptor(options?
   readonly clusteredLocalLightCookies?: boolean;
   readonly clusteredLocalLightCookieTextureViewDimension?: ClusteredLocalLightCookieTextureViewDimension;
 }): WebGpuBindGroupLayoutDescriptor {
+  const compactClusteredLocalShadows = options?.clusteredLocalLights === true;
   const entries: WebGpuBindGroupLayoutEntryDescriptor[] = [
     { binding: 0, visibility: 0x2, buffer: { type: "read-only-storage" } },
     { binding: 1, visibility: 0x2, buffer: { type: "read-only-storage" } },
@@ -215,17 +216,6 @@ export function createStandardLightMultiShadowBindGroupLayoutDescriptor(options?
       },
     },
     { binding: 4, visibility: 0x2, sampler: { type: "comparison" } },
-    { binding: 5, visibility: 0x3, buffer: { type: "read-only-storage" } },
-    {
-      binding: 6,
-      visibility: 0x2,
-      texture: {
-        sampleType: "depth",
-        viewDimension: "2d",
-        multisampled: false,
-      },
-    },
-    { binding: 7, visibility: 0x2, sampler: { type: "comparison" } },
     { binding: 8, visibility: 0x3, buffer: { type: "read-only-storage" } },
     {
       binding: 9,
@@ -238,6 +228,24 @@ export function createStandardLightMultiShadowBindGroupLayoutDescriptor(options?
     },
     { binding: 10, visibility: 0x2, sampler: { type: "comparison" } },
   ];
+
+  if (!compactClusteredLocalShadows) {
+    entries.splice(
+      5,
+      0,
+      { binding: 5, visibility: 0x3, buffer: { type: "read-only-storage" } },
+      {
+        binding: 6,
+        visibility: 0x2,
+        texture: {
+          sampleType: "depth",
+          viewDimension: "2d",
+          multisampled: false,
+        },
+      },
+      { binding: 7, visibility: 0x2, sampler: { type: "comparison" } },
+    );
+  }
 
   appendClusteredLocalLightLayoutEntries(
     entries,
@@ -544,12 +552,17 @@ export function createStandardLightMultiShadowBindGroupDescriptorPlan(
     diagnostics,
     { matrix: 2, depth: 3, sampler: 4 },
   );
-  appendShadowEntries(
-    options.spotShadowReceiverResources,
-    entries,
-    diagnostics,
-    { matrix: 5, depth: 6, sampler: 7 },
-  );
+  if (
+    options.localLightClusterResources === undefined ||
+    options.localLightClusterResources === null
+  ) {
+    appendShadowEntries(
+      options.spotShadowReceiverResources,
+      entries,
+      diagnostics,
+      { matrix: 5, depth: 6, sampler: 7 },
+    );
+  }
   appendShadowEntries(
     options.pointShadowReceiverResources,
     entries,

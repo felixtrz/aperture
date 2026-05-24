@@ -3,33 +3,31 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: `task-3138` — add mixed clustered point and spot local-shadow
-proof.
+Current task: `task-3139` — pack multiple clustered local shadow resources by
+metadata index.
 
-Status: `task-3137` completed mixed clustered local-light cookies per frame.
+Status: `task-3138` completed mixed clustered point and spot local-shadow proof
+coverage.
 
 Key findings:
 
-- Compatible clustered spot-cookie 2D textures and point cube-cookie textures
-  now pack into one renderer-owned `texture_2d_array` path when their source
-  dimensions/format/sampler descriptors are compatible.
-- Point cube-cookie faces flatten into six consecutive array layers, and the
-  clustered metadata word stores each light's base layer so the
-  StandardMaterial shader can derive the cube face layer at sample time.
-- `examples/clustered-lights.html?enable-cluster-mixed-cookie=1` reports three
-  supported cookie lights, the array-cookie pipeline key, non-clear readback
-  pixels, and zero relevant WebGPU validation warnings in the narrow headed
-  Chrome proof.
-- The post-task-3137 audit still finds a PlayCanvas-style gap around clustered
-  local shadow/cookie atlas breadth. Aperture now has strong fixed-resource
-  proofs, but it still needs broader mixed local-shadow permutations and
-  metadata-driven resource packing.
+- `examples/clustered-lights.html?enable-cluster-mixed-shadow=1` now reports
+  supported point and spot shadow sampling in one clustered StandardMaterial
+  frame, with the combined `clustered-point-spot-depth-compare` mode.
+- The first mixed-shadow proof exposed a real browser limit issue: clustered
+  local point+spot shadows plus the normal transform storage buffer exceeded
+  the default per-stage storage-buffer limit on Chrome/WebGPU.
+- The completed slice compacted duplicate spot-shadow group-3 bindings and
+  requests `maxStorageBuffersPerShaderStage: 10` when the adapter exposes it,
+  which makes the route validate on the local Chrome/WebGPU adapter.
+- The remaining SOTA gap is stricter: pack or merge clustered local shadow
+  resources so the same mixed route fits WebGPU minimum limits without needing
+  the higher requested storage-buffer limit.
 
-Next step: implement `task-3138`.
+Next step: implement `task-3139`.
 
-Reference anchors for `task-3138`:
+Reference anchors for `task-3139`:
 
 - `references/engine/src/scene/lighting/light-texture-atlas.js`.
 - `references/engine/src/scene/lighting/lights-buffer.js`.
-- `references/engine/src/scene/renderer/forward-renderer.js`.
-- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`.

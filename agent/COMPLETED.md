@@ -1,5 +1,48 @@
 # Completed Tasks
 
+## task-3138 — Add mixed clustered point and spot local-shadow proof
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added `examples/clustered-lights.html?enable-cluster-mixed-shadow=1`, proving
+  supported clustered point and spot local shadows in one StandardMaterial
+  clustered frame.
+- Added `routeMixedShadowSamplingOk` status that requires the point-shadow
+  route, spot-shadow route, and top-level
+  `clustered-point-spot-depth-compare` mode to be supported together.
+- Compact clustered local point+spot shadow group-3 bindings now omit duplicate
+  spot-shadow storage/texture/sampler entries and reuse the existing 2D shadow
+  bindings for clustered spot shadows while preserving point cube bindings.
+- `initializeWebGpu()` now requests
+  `maxStorageBuffersPerShaderStage: 10` only when the adapter exposes that
+  higher limit, which fixes the mixed-shadow browser validation failure on the
+  local Chrome/WebGPU adapter.
+- Added focused unit and e2e status coverage for compact shadow binding layout,
+  shader metadata, device-limit request behavior, and mixed-shadow browser
+  status/readback assertions.
+
+Validation:
+
+- `node --check examples/clustered-lights.main.js`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/index.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/local-light-clusters.test.ts`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm run lint`
+- Narrow Chrome/WebGPU proof for
+  `examples/clustered-lights.html?enable-cluster-mixed-shadow=1`: route `ok`,
+  point, spot, and mixed shadow sampling all true, non-clear readback, and
+  relevant WebGPU validation warnings `0`.
+
+Known follow-up:
+
+- `task-3139` should remove the higher-limit dependency by packing clustered
+  local shadow resources so the mixed route fits WebGPU-minimum per-stage
+  storage-buffer limits.
+
 ## task-3137 — Support mixed clustered point and spot cookies per frame
 
 Completed: 2026-05-24

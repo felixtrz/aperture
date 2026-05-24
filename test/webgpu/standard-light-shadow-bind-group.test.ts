@@ -148,6 +148,46 @@ describe("StandardMaterial light/shadow bind group", () => {
     });
   });
 
+  it("uses compact group 3 bindings for clustered local spot and point shadow receivers", () => {
+    expect(
+      createStandardLightMultiShadowBindGroupLayoutDescriptor({
+        clusteredLocalLights: true,
+      }),
+    ).toMatchObject({
+      label: STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY,
+      entries: [
+        { binding: 0, visibility: 2, buffer: { type: "read-only-storage" } },
+        { binding: 1, visibility: 2, buffer: { type: "read-only-storage" } },
+        { binding: 2, visibility: 3, buffer: { type: "read-only-storage" } },
+        {
+          binding: 3,
+          visibility: 2,
+          texture: {
+            sampleType: "depth",
+            viewDimension: "2d",
+            multisampled: false,
+          },
+        },
+        { binding: 4, visibility: 2, sampler: { type: "comparison" } },
+        { binding: 8, visibility: 3, buffer: { type: "read-only-storage" } },
+        {
+          binding: 9,
+          visibility: 2,
+          texture: {
+            sampleType: "depth",
+            viewDimension: "cube",
+            multisampled: false,
+          },
+        },
+        { binding: 10, visibility: 2, sampler: { type: "comparison" } },
+        { binding: 16, visibility: 2, buffer: { type: "read-only-storage" } },
+        { binding: 17, visibility: 2, buffer: { type: "read-only-storage" } },
+        { binding: 18, visibility: 2, buffer: { type: "read-only-storage" } },
+        { binding: 19, visibility: 2, buffer: { type: "read-only-storage" } },
+      ],
+    });
+  });
+
   it("creates a multi-shadow light bind group resource", () => {
     const createdBindGroups: unknown[] = [];
     const directional = resourceInputs("directional", "2d");
@@ -264,6 +304,38 @@ describe("StandardMaterial light/shadow bind group", () => {
         ],
       },
     ]);
+  });
+
+  it("plans compact clustered local multi-shadow entries without duplicate spot storage", () => {
+    const directional = resourceInputs("directional", "2d");
+    const spot = resourceInputs("spot", "2d");
+    const point = resourceInputs("point", "cube");
+    const plan = createStandardLightMultiShadowBindGroupDescriptorPlan({
+      lightGpuBufferResource: directional.lightGpuBufferResource,
+      directionalShadowReceiverResources: spot,
+      spotShadowReceiverResources: spot,
+      pointShadowReceiverResources: point,
+      localLightClusterResources: {
+        resourceKey: "cluster",
+        paramsResourceKey: "cluster-params",
+        cellsResourceKey: "cluster-cells",
+        indicesResourceKey: "cluster-indices",
+        metadataResourceKey: "cluster-metadata",
+        paramsBuffer: "cluster-params-buffer",
+        cellsBuffer: "cluster-cells-buffer",
+        indicesBuffer: "cluster-indices-buffer",
+        metadataBuffer: "cluster-metadata-buffer",
+        descriptor: null,
+      } as never,
+    });
+
+    expect(plan.valid).toBe(true);
+    expect(plan.entries.map((entry) => entry.binding)).toEqual([
+      0, 1, 2, 3, 4, 8, 9, 10, 16, 17, 18, 19,
+    ]);
+    expect(plan.entries).not.toContainEqual(
+      expect.objectContaining({ binding: 5 }),
+    );
   });
 
   it("creates a combined light and shadow bind group resource", () => {

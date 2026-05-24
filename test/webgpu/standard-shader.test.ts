@@ -1487,6 +1487,46 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
   });
 
+  it("keeps clustered local point and spot shadow receivers within the browser storage-buffer limit", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      shadowMap: true,
+      pointShadowMap: true,
+      clusteredLocalLights: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.code).toContain(
+      "@group(3) @binding(3) var directionalShadowMap: texture_depth_2d;",
+    );
+    expect(shader.code).not.toContain(
+      "@group(3) @binding(5) var<storage, read> spotShadowMatrices",
+    );
+    expect(shader.code).not.toContain(
+      "@group(3) @binding(6) var spotShadowMap",
+    );
+    expect(shader.code).toContain(
+      "@group(3) @binding(9) var pointShadowMap: texture_depth_cube;",
+    );
+    expect(shader.code).toContain("directionalShadowMatrices[matrixBaseIndex]");
+    const fragmentStorageBindings = shader.bindings
+      .filter(
+        (binding) =>
+          binding.group === 3 &&
+          binding.resource === "read-only-storage-buffer",
+      )
+      .map((binding) => binding.binding);
+
+    expect(fragmentStorageBindings).toEqual([0, 1, 2, 8, 16, 17, 18, 19]);
+  });
+
   it("samples supported point shadows from clustered local-light metadata", () => {
     const shader = createStandardTextureVariantShader({
       baseColorTexture: false,

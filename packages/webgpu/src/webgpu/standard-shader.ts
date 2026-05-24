@@ -983,6 +983,17 @@ export function createStandardTextureVariantShader(
   };
 }
 
+function usesCompactClusteredLocalMultiShadow(
+  features: StandardTextureShaderFeatures,
+): boolean {
+  return (
+    features.clusteredLocalLights === true &&
+    features.shadowMap === true &&
+    features.pointShadowMap === true &&
+    features.cascadedShadowMap !== true
+  );
+}
+
 export function createStandardTextureShaderVariantKey(
   features: StandardTextureShaderFeatures,
 ): string {
@@ -1826,7 +1837,10 @@ ${emissive}
   }
 
   if (features.shadowMap === true && features.pointShadowMap === true) {
-    code = applyStandardMultiShadowMapSampling(code);
+    code = applyStandardMultiShadowMapSampling(code, {
+      compactClusteredLocalShadows:
+        usesCompactClusteredLocalMultiShadow(features),
+    });
   } else if (features.shadowMap === true) {
     code = applyStandardShadowMapSampling(code, {
       cascaded: features.cascadedShadowMap === true,
@@ -1972,6 +1986,8 @@ function standardTextureUvExpression(
 function standardTextureVariantDeclaration(
   features: StandardTextureShaderFeatures,
 ): string {
+  const compactClusteredLocalMultiShadow =
+    usesCompactClusteredLocalMultiShadow(features);
   const declarations = [
     "@group(2) @binding(0) var<uniform> material: StandardMaterialUniform;",
   ];
@@ -2072,7 +2088,7 @@ function standardTextureVariantDeclaration(
       "@group(3) @binding(4) var directionalShadowSampler: sampler_comparison;",
     );
 
-    if (features.pointShadowMap === true) {
+    if (features.pointShadowMap === true && !compactClusteredLocalMultiShadow) {
       declarations.push(
         "@group(3) @binding(5) var<storage, read> spotShadowMatrices: array<mat4x4f>;",
         "@group(3) @binding(6) var spotShadowMap: texture_depth_2d;",
@@ -2147,6 +2163,8 @@ function standardTextureVariantDeclaration(
 function standardTextureVariantBindings(
   features: StandardTextureShaderFeatures,
 ): BuiltInShaderBindingMetadata[] {
+  const compactClusteredLocalMultiShadow =
+    usesCompactClusteredLocalMultiShadow(features);
   const bindings: BuiltInShaderBindingMetadata[] = [];
 
   if (features.baseColorTexture) {
@@ -2402,7 +2420,7 @@ function standardTextureVariantBindings(
       },
     );
 
-    if (features.pointShadowMap === true) {
+    if (features.pointShadowMap === true && !compactClusteredLocalMultiShadow) {
       bindings.push(
         {
           id: "directionalShadowMatrices",
@@ -4766,8 +4784,11 @@ fn evaluateDirectLight(
     );
 }
 
-function applyStandardMultiShadowMapSampling(code: string): string {
-  return code
+function applyStandardMultiShadowMapSampling(
+  code: string,
+  options: { readonly compactClusteredLocalShadows?: boolean } = {},
+): string {
+  let result = code
     .replace(
       `fn evaluateDirectLight(
   normal: vec3f,`,
@@ -5086,6 +5107,15 @@ fn evaluateDirectLight(
   );
   let color = (ambientDiffuse + direct) * receiverShadowFactor + material.emissiveFactor;`,
     );
+
+  if (options.compactClusteredLocalShadows === true) {
+    result = result
+      .replaceAll("spotShadowMatrices", "directionalShadowMatrices")
+      .replaceAll("spotShadowMap", "directionalShadowMap")
+      .replaceAll("spotShadowSampler", "directionalShadowSampler");
+  }
+
+  return result;
 }
 
 function applyStandardDiffuseIblSampling(code: string): string {

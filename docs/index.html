@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 04:50 UTC</dd>
+            <dd>2026-05-24 06:24 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1534,15 +1534,23 @@
               cookies can now share a renderer-owned 2D texture array with
               per-light metadata layer indices, and compatible spot cookies plus
               point cube cookies can now share the same array route by
-              flattening point cube faces into six consecutive layers.
+              flattening point cube faces into six consecutive layers. The mixed
+              clustered point/spot local-shadow route now samples supported cube
+              point shadows and 2D spot shadows in the same clustered
+              StandardMaterial frame, reports the combined
+              <code>clustered-point-spot-depth-compare</code> mode, and uses a
+              compact group-3 binding layout while requesting a higher per-stage
+              storage-buffer limit when the adapter exposes it.
               <code>examples/clustered-lights.html</code> now exposes point
               shadow, spot shadow, spot-cookie, and cookie-only spot-cookie
               proof routes plus point cube-cookie, multi-cookie, and mixed
-              point/spot cookie proof routes. The next step is a mixed
-              local-shadow proof and broader atlas-style packing.
+              point/spot cookie proof routes, plus the mixed point/spot
+              local-shadow proof route. The next step is reducing the mixed
+              local-shadow route to WebGPU-minimum storage-buffer limits with
+              broader atlas-style packing.
             </dd>
             <dt>Next focus</dt>
-            <dd>Mixed clustered local shadows</dd>
+            <dd>Minimum-limit clustered local shadow packing</dd>
           </dl>
         </aside>
       </header>
@@ -2146,11 +2154,13 @@
                 Remaining local-light work is broader clustered-light
                 permutations beyond the active-view StandardMaterial many-light
                 path; per-view/per-light-set resource splitting and compatible
-                mixed point/spot cookie resources are now covered.
+                mixed point/spot cookie resources plus the mixed point/spot
+                local-shadow proof are now covered.
               </li>
               <li>
                 Production-fidelity LTC table payloads are now covered; broader
-                CSM/IBL/multi-shadow permutations remain open.
+                CSM/IBL/multi-shadow permutations and WebGPU-minimum clustered
+                local-shadow packing remain open.
               </li>
             </ul>
           </article>
@@ -2245,9 +2255,9 @@
           <article class="phase">
             <div class="topline">
               <h3>6. submit</h3>
-              <span class="percent">97%</span>
+              <span class="percent">98%</span>
             </div>
-            <div class="bar"><span style="width: 97%"></span></div>
+            <div class="bar"><span style="width: 98%"></span></div>
             <p>
               WebGPU command submission renders the current proof paths with
               pipeline, bind group, transform, light, mesh, and material
@@ -2365,12 +2375,17 @@
               point-light cube-cookie color through the clustered
               StandardMaterial route. Multiple compatible clustered spot cookies
               now bind through one renderer-owned 2D texture array, and
-              per-light metadata selects the matching matrix/array layer.
+              per-light metadata selects the matching matrix/array layer. The
+              mixed clustered point/spot local-shadow route now reuses the
+              existing 2D shadow bindings for spot shadows, keeps point cube
+              shadows on the cube binding path, and proves both supported shadow
+              families in one clustered StandardMaterial frame.
             </p>
             <ul>
               <li>
-                Next step: re-audit the covered pipeline against PlayCanvas and
-                three.js before selecting the next visible SOTA gap.
+                Next step: pack clustered local shadow resources tightly enough
+                to preserve the mixed route without relying on a higher
+                per-stage storage-buffer limit.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2391,6 +2406,12 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3138</span> Added the mixed
+                clustered point/spot local-shadow proof route, with browser
+                status reporting supported point and spot shadow sampling in one
+                clustered StandardMaterial frame.
+              </li>
               <li>
                 <span class="badge green">task-3137</span> Added mixed clustered
                 point and spot cookies through one renderer-owned 2D-array
@@ -4712,12 +4733,13 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add a mixed clustered
-                point/spot local-shadow proof route.
+                <span class="badge amber">next</span> Pack clustered local
+                shadow resources so the mixed point/spot shadow route fits
+                WebGPU-minimum storage-buffer limits.
               </li>
               <li>
-                Then broaden clustered local shadow and cookie atlas/resource
-                packing from the PlayCanvas reference shape.
+                Then broaden nonuniform clustered local cookie atlas/resource
+                metadata from the PlayCanvas reference shape.
               </li>
             </ul>
           </article>
@@ -4730,6 +4752,20 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3138</div>
+            <div>
+              <strong
+                >Mixed clustered point and spot local shadows shipped.</strong
+              >
+              <span>
+                <code>enable-cluster-mixed-shadow=1</code> now reports the
+                combined <code>clustered-point-spot-depth-compare</code> route,
+                supported point and spot shadow resources, non-clear
+                Chrome/WebGPU readback, and zero relevant validation warnings.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3137</div>
             <div>

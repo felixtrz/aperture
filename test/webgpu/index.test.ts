@@ -175,6 +175,62 @@ describe("WebGPU support boundary", () => {
     ]);
   });
 
+  it("requests a higher storage-buffer shader-stage limit when the adapter exposes it", async () => {
+    const descriptors: unknown[] = [];
+    const device: WebGpuDeviceLike = {};
+    const gpu = fakeGpu({
+      limits: {
+        maxStorageBuffersPerShaderStage: 10,
+      },
+      requestDevice: async (descriptor) => {
+        descriptors.push(descriptor);
+        return device;
+      },
+    });
+
+    const result = await initializeWebGpu({
+      environment: { navigator: { gpu } },
+      context: fakeContext(),
+      deviceDescriptor: {
+        label: "clustered-shadow-device",
+        requiredLimits: { maxBindGroups: 4 },
+      },
+    });
+
+    expect(result).toMatchObject({ ok: true });
+    expect(descriptors).toEqual([
+      {
+        label: "clustered-shadow-device",
+        requiredLimits: {
+          maxBindGroups: 4,
+          maxStorageBuffersPerShaderStage: 10,
+        },
+      },
+    ]);
+  });
+
+  it("does not request unsupported storage-buffer shader-stage limits", async () => {
+    const descriptors: unknown[] = [];
+    const device: WebGpuDeviceLike = {};
+    const gpu = fakeGpu({
+      limits: {
+        maxStorageBuffersPerShaderStage: 8,
+      },
+      requestDevice: async (descriptor) => {
+        descriptors.push(descriptor);
+        return device;
+      },
+    });
+
+    const result = await initializeWebGpu({
+      environment: { navigator: { gpu } },
+      context: fakeContext(),
+    });
+
+    expect(result).toMatchObject({ ok: true });
+    expect(descriptors).toEqual([undefined]);
+  });
+
   it("does not request timestamp-query when disabled", async () => {
     const descriptors: unknown[] = [];
     const device: WebGpuDeviceLike = {};
