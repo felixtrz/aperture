@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3143`: combine clustered point shadows with packed spot-shadow
-metadata while staying within WebGPU minimum bind/storage limits.
+Start `task-3144`: add metadata-indexed clustered local shadow softness so hard
+and soft local shadows can coexist in one StandardMaterial route.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -218,9 +218,10 @@ uploads each source texture into an atlas tile, and adjusts each light's cookie
 projection matrix into atlas UV space. `task-3141` now supports multiple
 compatible clustered spot shadows through one renderer-owned 2D depth array,
 and `task-3142` now supports nonuniform clustered spot shadows through one
-renderer-owned 2D atlas with atlas-adjusted matrix metadata. The next SOTA gap
-is combining clustered point shadows with the packed spot-shadow metadata
-routes in one WebGPU-minimum StandardMaterial frame.
+renderer-owned 2D atlas with atlas-adjusted matrix metadata. `task-3143` now
+combines one supported point cube shadow with packed spot-shadow array and
+atlas metadata routes in one WebGPU-minimum StandardMaterial frame. The next
+SOTA gap is local-shadow quality and broader clustered-light tuning.
 
 Reference anchors for the next visible slice (read before writing):
 
@@ -971,7 +972,7 @@ Acceptance criteria:
 
 ### task-3143 — Combine clustered point shadows with packed spot-shadow metadata
 
-Status: ready
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
@@ -986,6 +987,64 @@ Acceptance criteria:
   spot-shadow-atlas readiness without hiding unsupported local shadow requests.
 - Browser readbacks show visible shadow contribution from both local shadow
   families with zero relevant WebGPU validation warnings.
+
+### task-3144 — Add metadata-indexed clustered local shadow softness
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
+Reference anchor: `references/engine/src/scene/lighting/lights-buffer.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`, `references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
+
+Acceptance criteria:
+
+- Clustered local point and spot shadow metadata carries a renderer-owned
+  per-light softness/filter-radius value without adding ECS-owned GPU state.
+- `examples/clustered-lights.html?enable-cluster-shadow-softness=1` renders at
+  least one hard and one soft local shadow in the same clustered
+  StandardMaterial frame, with readback samples showing a measurable penumbra
+  difference.
+- Cluster status distinguishes hard/soft shadow readiness for point-shadow,
+  spot-shadow-array, and spot-shadow-atlas routes with zero relevant WebGPU
+  validation warnings.
+
+### task-3145 — Pack multiple clustered point shadows through flattened face metadata
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
+Reference anchor: `references/engine/src/scene/lighting/light-texture-atlas.js`, `references/engine/src/scene/lighting/lights-buffer.js`, `references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
+
+Acceptance criteria:
+
+- At least two clustered point-shadow requests can render through
+  metadata-indexed renderer-owned resources in one StandardMaterial frame,
+  using flattened cube-face metadata or an explicit browser-visible unsupported
+  fallback when a device cannot support the chosen packing route.
+- The clustered-lights proof reports both point shadows as supported, preserves
+  the existing packed spot-shadow routes, and keeps direct clustered lighting
+  visible for unsupported requests.
+- Focused resource/shader tests and a browser proof pass with zero relevant
+  WebGPU validation warnings.
+
+### task-3146 — Combine packed local shadows with clustered local cookies
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cookie*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
+Reference anchor: `references/engine/src/scene/lighting/lights-buffer.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightCookies.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`.
+
+Acceptance criteria:
+
+- A clustered StandardMaterial route can render one supported point shadow,
+  multiple packed spot shadows, and at least one clustered local cookie in the
+  same frame without exceeding WebGPU minimum bind/storage limits.
+- Cluster status separately reports packed shadow readiness and cookie readiness
+  instead of collapsing either family into a generic mixed-route boolean.
+- Browser readbacks show visible contribution from shadows and cookies with
+  zero relevant WebGPU validation warnings.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

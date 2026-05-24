@@ -1906,6 +1906,7 @@ ${emissive}
     code = applyStandardMultiShadowMapSampling(code, {
       compactClusteredLocalShadows:
         usesCompactClusteredLocalMultiShadow(features),
+      arrayShadows: features.clusteredLocalLightArrayShadows === true,
     });
   } else if (features.shadowMap === true) {
     code = applyStandardShadowMapSampling(code, {
@@ -4861,7 +4862,10 @@ fn evaluateDirectLight(
 
 function applyStandardMultiShadowMapSampling(
   code: string,
-  options: { readonly compactClusteredLocalShadows?: boolean } = {},
+  options: {
+    readonly compactClusteredLocalShadows?: boolean;
+    readonly arrayShadows?: boolean;
+  } = {},
 ): string {
   let result = code
     .replace(
@@ -4872,7 +4876,7 @@ const STANDARD_SHADOW_DEPTH_BIAS: f32 = 0.002;
 const STANDARD_POINT_SHADOW_MIN_VISIBILITY: f32 = 0.5;
 const STANDARD_POINT_SHADOW_DEPTH_BIAS: f32 = 0.0001;
 
-fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32) -> f32 {
+fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32${options.arrayShadows === true ? ", layerIndex: u32" : ""}) -> f32 {
   let shadowDimensions = textureDimensions(directionalShadowMap);
   let shadowMapSize = vec2f(f32(shadowDimensions.x), f32(shadowDimensions.y));
   let texelSize = 1.0 / max(shadowMapSize, vec2f(1.0));
@@ -4890,7 +4894,7 @@ fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32) -> f32 {
         directionalShadowMap,
         directionalShadowSampler,
         sampleUv,
-        receiverDepth,
+        ${options.arrayShadows === true ? "i32(layerIndex),\n        " : ""}receiverDepth,
       );
     }
   }
@@ -4898,7 +4902,7 @@ fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32) -> f32 {
   return visibility * (1.0 / 9.0);
 }
 
-fn sampleSpotShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32) -> f32 {
+fn sampleSpotShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32${options.arrayShadows === true ? ", layerIndex: u32" : ""}) -> f32 {
   let shadowDimensions = textureDimensions(spotShadowMap);
   let shadowMapSize = vec2f(f32(shadowDimensions.x), f32(shadowDimensions.y));
   let texelSize = 1.0 / max(shadowMapSize, vec2f(1.0));
@@ -4916,7 +4920,7 @@ fn sampleSpotShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32) -> f32 {
         spotShadowMap,
         spotShadowSampler,
         sampleUv,
-        receiverDepth,
+        ${options.arrayShadows === true ? "i32(layerIndex),\n        " : ""}receiverDepth,
       );
     }
   }
@@ -4961,7 +4965,7 @@ fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32 {
   let rawVisibility = sampleDirectionalShadowPcf3x3(
     clampedShadowUv,
     receiverDepth,
-  );
+    ${options.arrayShadows === true ? "0u,\n  " : ""});
   let visibility = select(
     clamp(rawVisibility, 0.0, 1.0),
     1.0,
@@ -5008,7 +5012,7 @@ fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u
   let rawVisibility = sampleSpotShadowPcf3x3(
     clampedShadowUv,
     receiverDepth,
-  );
+    ${options.arrayShadows === true ? "matrixBaseIndex,\n  " : ""});
   let visibility = select(
     clamp(rawVisibility, 0.0, 1.0),
     1.0,

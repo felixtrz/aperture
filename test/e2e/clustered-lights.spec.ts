@@ -103,6 +103,8 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
     readonly routeMultiSpotShadowSamplingOk?: boolean;
     readonly routeSpotShadowAtlasSamplingOk?: boolean;
     readonly routeMixedShadowSamplingOk: boolean;
+    readonly routeMixedPackedSpotShadowSamplingOk?: boolean;
+    readonly routeMixedPackedSpotShadowAtlasSamplingOk?: boolean;
     readonly routeCookieSamplingOk: boolean;
     readonly routeCookieAtlasSamplingOk?: boolean;
     readonly requiredSpotShadowSupportedCount?: number;
@@ -448,6 +450,64 @@ test("browser renders StandardMaterial through clustered local lights", async ({
 
   skipIfUnsupportedWebGpu(mixedShadow);
   expectStatusJsonSafeForGpu(mixedShadow);
+
+  const packedShadowPage = await page.context().newPage();
+  const packedShadowWebGpuValidation =
+    attachWebGpuValidationConsoleGuard(packedShadowPage);
+
+  await packedShadowPage.goto(
+    "/examples/clustered-lights.html?enable-cluster-packed-shadow=1",
+  );
+  await packedShadowPage.bringToFront();
+
+  const packedShadow =
+    await waitForExampleStatus<ClusteredLightsStatus>(packedShadowPage);
+
+  await attachExampleStatus(
+    "clustered-lights-packed-shadow-status",
+    packedShadow,
+  );
+  expect(
+    packedShadow,
+    "clustered lights packed-shadow status should publish",
+  ).toBeDefined();
+
+  if (packedShadow === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(packedShadow);
+  expectStatusJsonSafeForGpu(packedShadow);
+
+  const packedShadowAtlasPage = await page.context().newPage();
+  const packedShadowAtlasWebGpuValidation = attachWebGpuValidationConsoleGuard(
+    packedShadowAtlasPage,
+  );
+
+  await packedShadowAtlasPage.goto(
+    "/examples/clustered-lights.html?enable-cluster-packed-shadow-atlas=1",
+  );
+  await packedShadowAtlasPage.bringToFront();
+
+  const packedShadowAtlas = await waitForExampleStatus<ClusteredLightsStatus>(
+    packedShadowAtlasPage,
+  );
+
+  await attachExampleStatus(
+    "clustered-lights-packed-shadow-atlas-status",
+    packedShadowAtlas,
+  );
+  expect(
+    packedShadowAtlas,
+    "clustered lights packed-shadow-atlas status should publish",
+  ).toBeDefined();
+
+  if (packedShadowAtlas === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(packedShadowAtlas);
+  expectStatusJsonSafeForGpu(packedShadowAtlas);
 
   const shadowPage = await page.context().newPage();
   const shadowWebGpuValidation = attachWebGpuValidationConsoleGuard(shadowPage);
@@ -931,6 +991,90 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   ).toBe(true);
   expect(mixedShadow.readbackStatus?.ok).toBe(true);
   expect(mixedShadow.readbackStatus?.maxClearDistance ?? 0).toBeGreaterThan(24);
+  expect(packedShadow.clusterStatus).toMatchObject({
+    ok: true,
+    routeMetadataOk: true,
+    routePointShadowSamplingOk: true,
+    routeSpotShadowSamplingOk: true,
+    routeMultiSpotShadowSamplingOk: true,
+    routeMixedShadowSamplingOk: true,
+    routeMixedPackedSpotShadowSamplingOk: true,
+    routeCookieSamplingOk: false,
+  });
+  expect(packedShadow.shadowStatus).toMatchObject({
+    enabled: true,
+    supported: true,
+    mode: "clustered-point-spot-array-depth-compare",
+    point: {
+      enabled: true,
+      supported: true,
+      mode: "clustered-point-depth-cube-compare",
+    },
+    spot: {
+      enabled: true,
+      supported: true,
+      mode: "clustered-spot-array-depth-compare",
+      supportedLightCount: 2,
+      layerCount: 2,
+    },
+  });
+  expect(
+    (packedShadow.pipelineKeys ?? []).some(
+      (pipelineKey) =>
+        pipelineKey.startsWith("standard|") &&
+        pipelineKey.includes("clusteredLocalLights") &&
+        pipelineKey.includes("clusteredLocalLightArrayShadows") &&
+        pipelineKey.includes("pointShadowMap") &&
+        pipelineKey.includes("shadowMap"),
+    ),
+  ).toBe(true);
+  expect(packedShadow.readbackStatus?.ok).toBe(true);
+  expect(packedShadow.readbackStatus?.maxClearDistance ?? 0).toBeGreaterThan(
+    24,
+  );
+  expect(packedShadowAtlas.clusterStatus).toMatchObject({
+    ok: true,
+    routeMetadataOk: true,
+    routePointShadowSamplingOk: true,
+    routeSpotShadowSamplingOk: true,
+    routeMultiSpotShadowSamplingOk: true,
+    routeSpotShadowAtlasSamplingOk: true,
+    routeMixedShadowSamplingOk: true,
+    routeMixedPackedSpotShadowAtlasSamplingOk: true,
+    routeCookieSamplingOk: false,
+  });
+  expect(packedShadowAtlas.shadowStatus).toMatchObject({
+    enabled: true,
+    supported: true,
+    mode: "clustered-point-spot-atlas-depth-compare",
+    point: {
+      enabled: true,
+      supported: true,
+      mode: "clustered-point-depth-cube-compare",
+    },
+    spot: {
+      enabled: true,
+      supported: true,
+      mode: "clustered-spot-atlas-depth-compare",
+      supportedLightCount: 2,
+      atlasWidth: 384,
+      atlasHeight: 256,
+    },
+  });
+  expect(
+    (packedShadowAtlas.pipelineKeys ?? []).some(
+      (pipelineKey) =>
+        pipelineKey.startsWith("standard|") &&
+        pipelineKey.includes("clusteredLocalLights") &&
+        pipelineKey.includes("pointShadowMap") &&
+        pipelineKey.includes("shadowMap") &&
+        !pipelineKey.includes("clusteredLocalLightArrayShadows"),
+    ),
+  ).toBe(true);
+  expect(packedShadowAtlas.readbackStatus?.ok).toBe(true);
+  expect(
+    packedShadowAtlas.readbackStatus?.maxClearDistance ?? 0,
+  ).toBeGreaterThan(24);
   expect(maxSampleLuminanceDarkening(baseline, spotOnly)).toBeGreaterThan(2);
   expect(maxSampleLuminanceDarkening(baseline, multiSpot)).toBeGreaterThan(2);
   expect(maxSampleLuminanceDelta(spotOnly, cookie)).toBeGreaterThan(12);
@@ -940,6 +1084,10 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   expect(maxSampleLuminanceDarkening(baseline, status)).toBeGreaterThan(3);
   expect(maxSampleLuminanceDelta(spotOnly, mixedShadow)).toBeGreaterThan(2);
   expect(maxSampleLuminanceDelta(status, mixedShadow)).toBeGreaterThan(2);
+  expect(maxSampleLuminanceDelta(multiSpot, packedShadow)).toBeGreaterThan(1);
+  expect(maxSampleLuminanceDelta(atlasSpot, packedShadowAtlas)).toBeGreaterThan(
+    1,
+  );
   expect(status.readbackStatus?.ok).toBe(true);
   expect(status.readbackStatus?.maxClearDistance ?? 0).toBeGreaterThan(24);
   expect(maxSampleLuminanceDarkening(baseline, atlasSpot)).toBeGreaterThan(2);
@@ -954,6 +1102,8 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   atlasCookieWebGpuValidation.expectNoWarnings();
   mixedCookieWebGpuValidation.expectNoWarnings();
   mixedShadowWebGpuValidation.expectNoWarnings();
+  packedShadowWebGpuValidation.expectNoWarnings();
+  packedShadowAtlasWebGpuValidation.expectNoWarnings();
   shadowWebGpuValidation.expectNoWarnings();
 });
 

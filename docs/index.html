@@ -1552,18 +1552,21 @@
               matrix/layer entry. Nonuniform clustered spot-shadow maps now
               share one renderer-owned 2D atlas with atlas-adjusted per-light
               matrices and distinct metadata indices for 256 and 128 footprints.
-              <code>examples/clustered-lights.html</code> now exposes point
-              shadow, spot shadow, spot-cookie, and cookie-only spot-cookie
-              proof routes plus point cube-cookie, multi-cookie, and mixed
-              point/spot cookie proof routes, plus the mixed point/spot
+              Packed point plus spot clustered shadows now combine one supported
+              point cube shadow with multiple metadata-indexed spot shadows in
+              the same WebGPU-minimum StandardMaterial route, for both
+              compatible 2D-array spot shadows and nonuniform atlas-backed spot
+              shadows. <code>examples/clustered-lights.html</code> now exposes
+              point shadow, spot shadow, spot-cookie, and cookie-only
+              spot-cookie proof routes plus point cube-cookie, multi-cookie, and
+              mixed point/spot cookie proof routes, plus the mixed point/spot
               local-shadow proof route, a nonuniform spot-cookie atlas proof
               route, a multi-spot local-shadow array proof route, and a
-              nonuniform spot-shadow atlas proof route. The next step is
-              combining point shadows with the packed spot-shadow metadata
-              routes.
+              nonuniform spot-shadow atlas proof route, plus packed point and
+              spot shadow array/atlas proof routes.
             </dd>
             <dt>Next focus</dt>
-            <dd>Packed point plus spot clustered shadows</dd>
+            <dd>Clustered local shadow quality and broader tuning</dd>
           </dl>
         </aside>
       </header>
@@ -4776,13 +4779,13 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Combine clustered point
-                shadows with packed spot-shadow metadata in one StandardMaterial
-                route.
+                <span class="badge amber">next</span> Add metadata-indexed
+                clustered local shadow softness so hard and soft local shadows
+                can coexist in one StandardMaterial route.
               </li>
               <li>
-                Then continue broader local shadow/cookie atlas packing and
-                mixed-family readiness coverage.
+                Then continue multi-point local shadow packing and mixed
+                packed-shadow plus cookie route coverage.
               </li>
             </ul>
           </article>
@@ -4795,6 +4798,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3143</div>
+            <div>
+              <strong>Packed point plus spot clustered shadows shipped.</strong>
+              <span>
+                One supported point cube shadow can now render with multiple
+                metadata-indexed spot shadows in the same clustered
+                StandardMaterial route, including packed spot-shadow arrays and
+                nonuniform spot-shadow atlases.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3142</div>
             <div>

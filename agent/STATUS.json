@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "91a07de",
   "activePid": null,
-  "notes": "Completed task-3142 atlas-space clustered spot-shadow metadata for nonuniform maps; next task-3143 combines clustered point shadows with packed spot-shadow metadata.",
-  "lastRunFinishedAt": "2026-05-24T08:32:24Z"
+  "notes": "Completed task-3143 packed clustered point plus spot local shadows; next task-3144 adds metadata-indexed local shadow softness.",
+  "lastRunFinishedAt": "2026-05-24T09:03:17Z"
 }

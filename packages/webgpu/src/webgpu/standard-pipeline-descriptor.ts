@@ -313,7 +313,7 @@ function standardBindGroupLayoutKeys(
   const features = standardTextureFeatures(batchKey);
   const lightGroupKey =
     features.shadowMap === true && features.pointShadowMap === true
-      ? "standard/lights-multi-shadow/group-3:light-floats@0,light-metadata@1,directional-matrix@2,directional-depth@3,directional-sampler@4,spot-matrix@5,spot-depth@6,spot-sampler@7,point-matrix@8,point-depth-cube@9,point-sampler@10"
+      ? standardMultiShadowLightGroupLayoutKey(features)
       : features.pointShadowMap === true
         ? "standard/lights-point-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth-cube@3,sampler@4"
         : features.shadowMap === true
@@ -346,6 +346,21 @@ function standardBindGroupLayoutKeys(
       features,
     ),
   ];
+}
+
+function standardMultiShadowLightGroupLayoutKey(
+  features: StandardTextureShaderFeatures,
+): string {
+  const directionalDepthKey =
+    features.clusteredLocalLightArrayShadows === true
+      ? "directional-depth-array@3"
+      : "directional-depth@3";
+  const spotBindings =
+    features.clusteredLocalLights === true
+      ? ""
+      : ",spot-matrix@5,spot-depth@6,spot-sampler@7";
+
+  return `standard/lights-multi-shadow/group-3:light-floats@0,light-metadata@1,directional-matrix@2,${directionalDepthKey},directional-sampler@4${spotBindings},point-matrix@8,point-depth-cube@9,point-sampler@10`;
 }
 
 function standardTransmissionLightGroupLayoutKey(

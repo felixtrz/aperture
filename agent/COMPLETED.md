@@ -1,5 +1,60 @@
 # Completed Tasks
 
+## task-3143 — Combine clustered point shadows with packed spot-shadow metadata
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added a `multi-spot-array` clustered shadow receiver kind so one point cube
+  shadow can be combined with packed spot-shadow-array metadata while using the
+  correct depth-array group-3 binding.
+- StandardMaterial multi-shadow pipeline/layout planning now switches binding 3
+  to `texture_depth_2d_array` for compact point plus spot-array routes, while
+  preserving the compact point cube binding at 9 and omitting duplicate spot
+  bindings 5/6/7.
+- The compact multi-shadow WGSL path now samples spot-shadow arrays by metadata
+  matrix/layer index instead of declaring a depth array but using the 2D helper.
+- `examples/clustered-lights.html?enable-cluster-packed-shadow=1` now reports
+  one supported point cube shadow plus two supported packed spot-array shadows
+  in one clustered StandardMaterial route.
+- `examples/clustered-lights.html?enable-cluster-packed-shadow-atlas=1` now
+  reports one supported point cube shadow plus two nonuniform atlas-backed spot
+  shadows in one clustered StandardMaterial route.
+- Cluster status now distinguishes packed point plus spot-array readiness from
+  packed point plus spot-atlas readiness while keeping point-only and spot-only
+  route metadata honest.
+- Public trackers and agent task pointers now recommend `task-3144`, adding
+  metadata-indexed clustered local shadow softness.
+
+Validation:
+
+- `node --check examples/clustered-lights.main.js && node --check examples/clustered-lights.worker.js`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-shader.test.ts test/webgpu/local-light-clusters.test.ts`
+- `pnpm exec vitest run test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/shadow-pass-plan.test.ts test/webgpu/shadow-pass-attachment-descriptor.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm run examples:build`
+- In-app Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-packed-shadow=1`: route `ok`,
+  `routeMixedPackedSpotShadowSamplingOk` true,
+  `clustered-point-spot-array-depth-compare` mode, spot-array mode, two
+  supported spot shadows, visible non-clear readback with luminance range about
+  `247`, and relevant WebGPU validation warnings `0`.
+- In-app Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-packed-shadow-atlas=1`: route
+  `ok`, `routeMixedPackedSpotShadowAtlasSamplingOk` true,
+  `clustered-point-spot-atlas-depth-compare` mode, atlas spot mode, atlas size
+  `384x256`, visible non-clear readback with luminance range about `247`, and
+  relevant WebGPU validation warnings `0`.
+
+Known follow-up:
+
+- `task-3144` should add metadata-indexed clustered local shadow softness so
+  hard and soft point/spot local shadows can coexist in one clustered route.
+- The broad clustered-lights e2e spec was updated for the packed routes but not
+  run end to end because previous multi-page headed runs went idle locally; the
+  focused browser route proofs above passed.
+
 ## task-3142 — Add atlas-space clustered spot-shadow metadata for nonuniform maps
 
 Completed: 2026-05-24

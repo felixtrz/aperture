@@ -1639,6 +1639,36 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
   });
 
+  it("samples compact clustered point plus spot-shadow arrays without duplicate spot bindings", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      shadowMap: true,
+      pointShadowMap: true,
+      clusteredLocalLights: true,
+      clusteredLocalLightArrayShadows: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.code).toContain(
+      "@group(3) @binding(3) var directionalShadowMap: texture_depth_2d_array;",
+    );
+    expect(shader.code).toContain(
+      "@group(3) @binding(9) var pointShadowMap: texture_depth_cube;",
+    );
+    expect(shader.code).not.toContain(
+      "@group(3) @binding(6) var spotShadowMap",
+    );
+    expect(shader.code).toContain("receiverDepth,\n    matrixBaseIndex,");
+    expect(shader.code).toContain("fn localLightClusterPointShadowFactor");
+  });
+
   it("samples clustered spot cookies without requiring shadow-map bindings", () => {
     const shader = createStandardTextureVariantShader({
       baseColorTexture: false,

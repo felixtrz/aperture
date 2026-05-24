@@ -1479,6 +1479,9 @@ function createStandardAppPipelineLayouts(
   const usesClusteredLocalLightArrayCookies = pipelineResourceKey.includes(
     "cluster-cookie-array-texture@20",
   );
+  const usesClusteredLocalLightArrayShadows =
+    pipelineResourceKey.includes("clusteredLocalLightArrayShadows") ||
+    pipelineResourceKey.includes("directional-depth-array@3");
   const autoLayoutKeySuffix =
     (usesLightShadowGroup ||
       usesLightShadowIblGroup ||
@@ -1561,6 +1564,8 @@ function createStandardAppPipelineLayouts(
           : usesLightMultiShadowGroup
             ? createStandardLightMultiShadowBindGroupLayoutDescriptor({
                 clusteredLocalLights: usesClusteredLocalLights,
+                clusteredLocalLightArrayShadows:
+                  usesClusteredLocalLightArrayShadows,
                 clusteredLocalLightCookies: usesClusteredLocalLightCookies,
                 clusteredLocalLightCookieTextureViewDimension:
                   usesClusteredLocalLightCubeCookies
@@ -7501,7 +7506,7 @@ function createWebGpuAppPickReport(input: {
 function hasReadyStandardShadowReceiverResources(
   resources: StandardFrameShadowReceiverResources | undefined,
 ): resources is StandardFrameShadowReceiverResources {
-  if (resources?.shadowKind === "multi") {
+  if (resources !== undefined && isMultiShadowKind(resources.shadowKind)) {
     return (
       hasReadyStandardShadowReceiverResourceSet(resources) &&
       hasReadyStandardShadowReceiverResourceSet(
@@ -7569,19 +7574,29 @@ function withStandardShadowPipelineKeys(
     | "point"
     | "spot"
     | "spot-array"
-    | "multi" = "directional",
+    | "multi"
+    | "multi-spot-array" = "directional",
 ): RenderSnapshot {
   let changed = false;
   const shadowFeatures =
-    shadowKind === "multi"
-      ? ["shadowMap", "pointShadowMap"]
-      : shadowKind === "point"
-        ? ["pointShadowMap"]
-        : shadowKind === "directional-cascaded"
-          ? ["shadowMap", "cascadedShadowMap"]
-          : shadowKind === "spot-array"
-            ? ["shadowMap", CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE]
-            : ["shadowMap"];
+    shadowKind === "multi-spot-array"
+      ? [
+          "shadowMap",
+          "pointShadowMap",
+          CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE,
+        ]
+      : shadowKind === "multi"
+        ? ["shadowMap", "pointShadowMap"]
+        : shadowKind === "point"
+          ? ["pointShadowMap"]
+          : shadowKind === "directional-cascaded"
+            ? ["shadowMap", "cascadedShadowMap"]
+            : shadowKind === "spot-array"
+              ? [
+                  "shadowMap",
+                  CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE,
+                ]
+              : ["shadowMap"];
   const meshDraws = snapshot.meshDraws.map((draw) => {
     let pipelineKey = draw.batchKey.pipelineKey;
 
@@ -7622,7 +7637,8 @@ function standardShadowPipelineKind(
   | "point"
   | "spot"
   | "spot-array"
-  | "multi" {
+  | "multi"
+  | "multi-spot-array" {
   if (resources.shadowKind !== undefined) {
     return resources.shadowKind;
   }
@@ -7634,6 +7650,12 @@ function standardShadowPipelineKind(
   )
     ? "directional-cascaded"
     : "directional";
+}
+
+function isMultiShadowKind(
+  shadowKind: StandardFrameShadowReceiverResources["shadowKind"] | undefined,
+): boolean {
+  return shadowKind === "multi" || shadowKind === "multi-spot-array";
 }
 
 function withStandardIblPipelineKeys(

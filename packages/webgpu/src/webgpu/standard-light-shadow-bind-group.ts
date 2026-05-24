@@ -198,10 +198,13 @@ export function createStandardLightPointShadowBindGroupLayoutDescriptor(options?
 
 export function createStandardLightMultiShadowBindGroupLayoutDescriptor(options?: {
   readonly clusteredLocalLights?: boolean;
+  readonly clusteredLocalLightArrayShadows?: boolean;
   readonly clusteredLocalLightCookies?: boolean;
   readonly clusteredLocalLightCookieTextureViewDimension?: ClusteredLocalLightCookieTextureViewDimension;
 }): WebGpuBindGroupLayoutDescriptor {
   const compactClusteredLocalShadows = options?.clusteredLocalLights === true;
+  const spotShadowViewDimension =
+    options?.clusteredLocalLightArrayShadows === true ? "2d-array" : "2d";
   const entries: WebGpuBindGroupLayoutEntryDescriptor[] = [
     { binding: 0, visibility: 0x2, buffer: { type: "read-only-storage" } },
     { binding: 1, visibility: 0x2, buffer: { type: "read-only-storage" } },
@@ -211,7 +214,7 @@ export function createStandardLightMultiShadowBindGroupLayoutDescriptor(options?
       visibility: 0x2,
       texture: {
         sampleType: "depth",
-        viewDimension: "2d",
+        viewDimension: spotShadowViewDimension,
         multisampled: false,
       },
     },

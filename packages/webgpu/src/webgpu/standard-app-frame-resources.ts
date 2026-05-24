@@ -607,7 +607,7 @@ function supportedPointShadowResourcesFromReceiver(
   resources: StandardFrameShadowReceiverResources | undefined,
 ): readonly LocalLightClusterSupportedPointShadowResource[] {
   const pointResources =
-    resources?.shadowKind === "multi"
+    resources !== undefined && isMultiShadowKind(resources.shadowKind)
       ? resources.pointShadowReceiverResources
       : resources?.shadowKind === "point" ||
           resources?.depthTextureResources.resources.some(
@@ -646,7 +646,7 @@ function supportedSpotShadowResourcesFromReceiver(
   resources: StandardFrameShadowReceiverResources | undefined,
 ): readonly LocalLightClusterSupportedSpotShadowResource[] {
   const spotResources =
-    resources?.shadowKind === "multi"
+    resources !== undefined && isMultiShadowKind(resources.shadowKind)
       ? resources.spotShadowReceiverResources
       : resources?.shadowKind === "spot" ||
           resources?.shadowKind === "spot-array"
@@ -680,6 +680,12 @@ function supportedSpotShadowResourcesFromReceiver(
         ? (resource.layerBaseIndex ?? index)
         : index,
   }));
+}
+
+function isMultiShadowKind(
+  shadowKind: StandardFrameShadowReceiverResources["shadowKind"] | undefined,
+): boolean {
+  return shadowKind === "multi" || shadowKind === "multi-spot-array";
 }
 
 function requiresClusteredLocalLights(pipelineKey: string): boolean {

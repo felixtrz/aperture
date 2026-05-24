@@ -188,6 +188,35 @@ describe("StandardMaterial light/shadow bind group", () => {
     });
   });
 
+  it("uses a depth-array binding for compact clustered local multi-spot shadow receivers", () => {
+    const descriptor = createStandardLightMultiShadowBindGroupLayoutDescriptor({
+      clusteredLocalLights: true,
+      clusteredLocalLightArrayShadows: true,
+    });
+
+    expect(descriptor.entries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          binding: 3,
+          texture: expect.objectContaining({ viewDimension: "2d-array" }),
+        }),
+        expect.objectContaining({
+          binding: 9,
+          texture: expect.objectContaining({ viewDimension: "cube" }),
+        }),
+      ]),
+    );
+    expect(descriptor.entries).not.toContainEqual(
+      expect.objectContaining({ binding: 5 }),
+    );
+    expect(descriptor.entries).not.toContainEqual(
+      expect.objectContaining({ binding: 6 }),
+    );
+    expect(descriptor.entries).not.toContainEqual(
+      expect.objectContaining({ binding: 7 }),
+    );
+  });
+
   it("creates a multi-shadow light bind group resource", () => {
     const createdBindGroups: unknown[] = [];
     const directional = resourceInputs("directional", "2d");
