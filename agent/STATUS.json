@@ -4,7 +4,7 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "23a5e8f",
+  "lastCommit": "2e675c6",
   "activePid": null,
   "notes": "Completed task-3133 clustered local-light cookie sampling; next task is task-3134 cookie-only clustered spot-light projection matrices.",
   "lastRunFinishedAt": "2026-05-24T03:49:46Z"
