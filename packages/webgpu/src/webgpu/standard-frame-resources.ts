@@ -1349,6 +1349,7 @@ function emptyShadowDepthTextureResourceReport(): ShadowDepthTextureResourceRepo
     status: "missing",
     textureDescriptorCount: 0,
     createdTextureCount: 0,
+    reusedTextureCount: 0,
     sections: {
       textureDescriptors: false,
       depthTextureResource: false,

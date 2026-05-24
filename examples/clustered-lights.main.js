@@ -17,9 +17,15 @@ const clusteredGpuCookieAtlasUpdateEnabled =
   !exampleParams.has("disable-cluster-cookie") &&
   !exampleParams.has("disable-cluster-point-shadow") &&
   !exampleParams.has("disable-cluster-spot-shadow");
+const clusteredShadowCacheEnabled =
+  exampleParams.has("enable-cluster-shadow-cache") &&
+  !exampleParams.has("disable-cluster-cookie") &&
+  !exampleParams.has("disable-cluster-point-shadow") &&
+  !exampleParams.has("disable-cluster-spot-shadow");
 const clusteredDynamicShadowCookieAtlasEnabled =
   (exampleParams.has("enable-cluster-dynamic-shadow-cookie-atlas") ||
-    clusteredGpuCookieAtlasUpdateEnabled) &&
+    clusteredGpuCookieAtlasUpdateEnabled ||
+    clusteredShadowCacheEnabled) &&
   !exampleParams.has("disable-cluster-cookie") &&
   !exampleParams.has("disable-cluster-point-shadow") &&
   !exampleParams.has("disable-cluster-spot-shadow");
@@ -172,6 +178,7 @@ const clusteredDynamicSpotShadowAtlas = {
   mapSizes: [256, 128, 128, 64],
   resizedMapSizes: [128, 128, 128, 64],
 };
+const clusteredShadowCacheTransformInvalidationFrame = 4;
 const clusteredShadowSoftnessPointFilterRadiusTexels = 3;
 const clusteredShadowSoftnessSpotFilterRadiiTexels = [0, 5];
 const maxStatusWarmupFrames = 90;
@@ -363,6 +370,7 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     clusteredShadowCookieAtlasEnabled,
     clusteredDynamicShadowCookieAtlasEnabled,
     clusteredGpuCookieAtlasUpdateEnabled,
+    clusteredShadowCacheEnabled,
     clusteredShadowCookiePointArrayEnabled,
     clusteredCookieOnlyEnabled,
     clusteredMixedShadowEnabled,
@@ -616,8 +624,13 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     workerScene: null,
     previousClusterOccupancy: null,
     standardMaterialShadowReceiverResources: null,
+    pointShadowDepthTextureResourceCache: new Map(),
+    spotShadowDepthTextureResourceCache: new Map(),
     pointShadowDepthTextureResourceReport: null,
     spotShadowDepthTextureResourceReport: null,
+    pointShadowRenderCache: null,
+    spotShadowRenderCache: null,
+    clusteredShadowCacheStatus: null,
     shadowStatus: null,
     dynamicSpotShadowAtlasState: null,
     dynamicSpotShadowAtlasStatus: null,
@@ -650,6 +663,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
       scene.clusteredDynamicShadowCookieAtlasEnabled,
     clusteredGpuCookieAtlasUpdateEnabled:
       scene.clusteredGpuCookieAtlasUpdateEnabled,
+    clusteredShadowCacheEnabled: scene.clusteredShadowCacheEnabled,
     clusteredShadowCookiePointArrayEnabled:
       scene.clusteredShadowCookiePointArrayEnabled,
     clusteredCookieOnlyEnabled: scene.clusteredCookieOnlyEnabled,
@@ -821,6 +835,7 @@ function statusFromReport(
     scene.clusteredDynamicShadowCookieAtlasEnabled,
     scene.clusteredGpuCookieAtlasUpdateEnabled,
     gpuCookieAtlasUpdateStatus,
+    scene.clusteredShadowCacheEnabled,
     scene.clusteredShadowSoftnessEnabled ||
       scene.clusteredShadowSoftnessAtlasEnabled,
   );
@@ -889,6 +904,7 @@ function createClusterStatus(
   dynamicShadowCookieAtlasEnabled,
   gpuCookieAtlasUpdateEnabled,
   gpuCookieAtlasUpdateStatus,
+  shadowCacheEnabled,
   shadowSoftnessEnabled,
 ) {
   const clusterPipelineUsed = pipelineKeys.some((pipelineKey) =>
@@ -1344,6 +1360,19 @@ function createClusterStatus(
       gpuCookieAtlasUpdateStatus.observedChangedTileGpuBlit === true &&
       gpuCookieAtlasUpdateStatus.maxGpuBlitTileCount >= 1 &&
       gpuCookieAtlasUpdateStatus.maxCpuUploadTileCount === 0);
+  const spotShadowCacheStatus = shadowStatus?.spot?.cache ?? null;
+  const routeClusteredShadowCacheReady =
+    shadowCacheEnabled !== true ||
+    (spotShadowCacheStatus?.enabled === true &&
+      spotShadowCacheStatus.lastAction === "hit" &&
+      spotShadowCacheStatus.hitCount >= 1 &&
+      spotShadowCacheStatus.missCount >= 1 &&
+      spotShadowCacheStatus.skippedShadowPassCount >= 1 &&
+      spotShadowCacheStatus.submittedShadowPassCount >= 1 &&
+      spotShadowCacheStatus.maxReusedTextureCount >= 1 &&
+      spotShadowCacheStatus.observedCasterTransformInvalidation === true &&
+      spotShadowCacheStatus.cachedShadowCount >=
+        requiredSpotShadowSupportedCount);
 
   return {
     ok:
@@ -1368,6 +1397,7 @@ function createClusterStatus(
       routePackedShadowCookieAtlasSamplingOk &&
       routeDynamicShadowCookieAtlasReady &&
       routeGpuCookieAtlasUpdateReady &&
+      routeClusteredShadowCacheReady &&
       routeShadowSoftnessSamplingOk &&
       (cookieEnabled !== true || routeCookieSamplingOk) &&
       occupancyChanged &&
@@ -1414,6 +1444,8 @@ function createClusterStatus(
     dynamicShadowCookieAtlasStatus,
     routeGpuCookieAtlasUpdateReady,
     gpuCookieAtlasUpdateStatus,
+    routeClusteredShadowCacheReady,
+    shadowCacheStatus: spotShadowCacheStatus,
     routeShadowHardFilterReady,
     routeShadowSoftFilterReady,
     routePointShadowSoftnessReady,
@@ -1805,11 +1837,20 @@ async function createClusteredPointShadowReceiverResources(
     descriptors: shadowDescriptor,
   });
 
-  loop.pointShadowDepthTextureResourceReport ??=
+  const pointShadowDepthTextureResourceReport =
     aperture.createShadowDepthTextureResourceReport({
       device: app.initialization.device,
       textures: shadowTextures,
+      cache: loop.pointShadowDepthTextureResourceCache,
     });
+
+  if (scene.clusteredShadowCacheEnabled === true) {
+    loop.pointShadowDepthTextureResourceReport =
+      pointShadowDepthTextureResourceReport;
+  } else {
+    loop.pointShadowDepthTextureResourceReport ??=
+      pointShadowDepthTextureResourceReport;
+  }
 
   const appEnvironmentResourceCache =
     aperture.getOrCreateWebGpuAppEnvironmentResourceCache(app);
@@ -1841,6 +1882,78 @@ async function createClusteredPointShadowReceiverResources(
       viewProjection: shadowViewProjection,
       transforms: report.snapshot.transforms,
     });
+  const shadowCasterMeshDraws = report.snapshot.meshDraws.filter(
+    (draw) =>
+      draw.sortKey.meshKey === scene.casterMeshKey &&
+      draw.castsShadow !== false,
+  );
+  const shadowCasterDrawList = aperture.createShadowCasterDrawListPlanReport({
+    shadowRequests,
+    meshDraws: shadowCasterMeshDraws,
+    shadowPassPlan,
+    commandEncoding: "ready",
+  });
+  const shadowRenderCacheKey = createClusteredShadowRenderCacheKey({
+    shadowRequests,
+    shadowTextures,
+    shadowMatrixComputation,
+    shadowCasterDrawList,
+    shadowCasterMeshDraws,
+    transforms: report.snapshot.transforms,
+    atlasTiles: [],
+  });
+  const cachedPointShadow =
+    scene.clusteredShadowCacheEnabled === true &&
+    loop.pointShadowRenderCache?.cacheKey === shadowRenderCacheKey
+      ? loop.pointShadowRenderCache
+      : null;
+
+  if (
+    cachedPointShadow !== null &&
+    cachedPointShadow.standardMaterialShadowReceiverResources !== null &&
+    shadowSamplerResourceReport.resource !== null &&
+    loop.pointShadowDepthTextureResourceReport.ready === true
+  ) {
+    const standardMaterialShadowReceiverResources = {
+      ...cachedPointShadow.standardMaterialShadowReceiverResources,
+      depthTextureResources: loop.pointShadowDepthTextureResourceReport,
+      samplerResource: shadowSamplerResourceReport,
+    };
+    const cacheStatus = recordClusteredShadowCacheStatus(loop, "point", {
+      action: "hit",
+      frame: report.snapshot.frame,
+      cacheKey: shadowRenderCacheKey,
+      shadowCount: shadowRequests.length,
+      depthTextureResources: loop.pointShadowDepthTextureResourceReport,
+      submission: "cached",
+      submittedCommandBuffers: 0,
+      skippedCommandBuffers: shadowPassPlan.passCount,
+    });
+
+    return {
+      standardMaterialShadowReceiverResources,
+      shadowStatus: {
+        enabled: true,
+        supported: true,
+        mode: pointArrayEnabled
+          ? "clustered-point-depth-2d-array-compare"
+          : "clustered-point-depth-cube-compare",
+        shadowId: shadowRequests[0]?.shadowId ?? null,
+        lightId: shadowRequests[0]?.lightId ?? null,
+        shadowIds: shadowRequests.map((request) => request.shadowId),
+        lightIds: shadowRequests.map((request) => request.lightId),
+        requiredPointShadowCount,
+        supportedLightCount: shadowRequests.length,
+        filterRadiusTexels: clusteredPointShadowFilterRadiusTexels(scene),
+        layerCount: pointArrayEnabled ? pointLayerCount : 6,
+        casterDraws: shadowCasterMeshDraws.length,
+        faceCount: shadowPassPlan.passCount,
+        submission: "cached",
+        cache: cacheStatus,
+      },
+    };
+  }
+
   const shadowMatrixBuffer = aperture.createShadowMatrixBufferDescriptorReport({
     viewProjection: shadowViewProjection,
     upload: "ready",
@@ -1855,17 +1968,6 @@ async function createClusteredPointShadowReceiverResources(
       descriptor: shadowMatrixBuffer,
       matrices: shadowMatrixComputation,
     });
-  const shadowCasterMeshDraws = report.snapshot.meshDraws.filter(
-    (draw) =>
-      draw.sortKey.meshKey === scene.casterMeshKey &&
-      draw.castsShadow !== false,
-  );
-  const shadowCasterDrawList = aperture.createShadowCasterDrawListPlanReport({
-    shadowRequests,
-    meshDraws: shadowCasterMeshDraws,
-    shadowPassPlan,
-    commandEncoding: "ready",
-  });
   const shadowCommandPlan =
     aperture.createShadowCasterCommandPlanReadinessReport({
       shadowPassPlan,
@@ -2002,16 +2104,44 @@ async function createClusteredPointShadowReceiverResources(
       ),
     ) &&
     shadowSamplerResourceReport.resource !== null;
+  const standardMaterialShadowReceiverResources = supported
+    ? {
+        shadowKind: pointArrayEnabled ? "point-array" : "point",
+        matrixBufferResource: shadowMatrixBufferResourceReport,
+        depthTextureResources: loop.pointShadowDepthTextureResourceReport,
+        samplerResource: shadowSamplerResourceReport,
+      }
+    : null;
+  const cacheStatus =
+    scene.clusteredShadowCacheEnabled === true
+      ? recordClusteredShadowCacheStatus(loop, "point", {
+          action: "miss",
+          frame: report.snapshot.frame,
+          cacheKey: shadowRenderCacheKey,
+          shadowCount: shadowRequests.length,
+          depthTextureResources: loop.pointShadowDepthTextureResourceReport,
+          submission: shadowPassCommandBufferSubmissionReport.status,
+          submittedCommandBuffers:
+            shadowPassCommandBufferSubmissionReport.counts
+              .submittedCommandBuffers,
+          skippedCommandBuffers:
+            shadowPassCommandBufferSubmissionReport.counts.skippedSubmissions,
+        })
+      : null;
+
+  if (
+    scene.clusteredShadowCacheEnabled === true &&
+    supported &&
+    standardMaterialShadowReceiverResources !== null
+  ) {
+    loop.pointShadowRenderCache = {
+      cacheKey: shadowRenderCacheKey,
+      standardMaterialShadowReceiverResources,
+    };
+  }
 
   return {
-    standardMaterialShadowReceiverResources: supported
-      ? {
-          shadowKind: pointArrayEnabled ? "point-array" : "point",
-          matrixBufferResource: shadowMatrixBufferResourceReport,
-          depthTextureResources: loop.pointShadowDepthTextureResourceReport,
-          samplerResource: shadowSamplerResourceReport,
-        }
-      : null,
+    standardMaterialShadowReceiverResources,
     shadowStatus: {
       enabled: true,
       supported,
@@ -2029,6 +2159,7 @@ async function createClusteredPointShadowReceiverResources(
       casterDraws: shadowCasterMeshDraws.length,
       faceCount: shadowPassPlan.passCount,
       submission: shadowPassCommandBufferSubmissionReport.status,
+      ...(cacheStatus === null ? {} : { cache: cacheStatus }),
     },
   };
 }
@@ -2238,6 +2369,7 @@ async function createClusteredSpotShadowReceiverResources(
     aperture.createShadowDepthTextureResourceReport({
       device: app.initialization.device,
       textures: shadowTextures,
+      cache: loop.spotShadowDepthTextureResourceCache,
     });
 
   if (scene.clusteredDynamicShadowCookieAtlasEnabled === true) {
@@ -2284,6 +2416,100 @@ async function createClusteredSpotShadowReceiverResources(
         atlasTiles,
       )
     : shadowMatrixComputation;
+  const shadowCasterMeshDraws = report.snapshot.meshDraws.filter(
+    (draw) =>
+      draw.sortKey.meshKey === scene.spotCasterMeshKey &&
+      draw.castsShadow !== false,
+  );
+  const shadowCasterDrawList = aperture.createShadowCasterDrawListPlanReport({
+    shadowRequests,
+    meshDraws: shadowCasterMeshDraws,
+    shadowPassPlan,
+    commandEncoding: "ready",
+  });
+  const shadowRenderCacheKey = createClusteredShadowRenderCacheKey({
+    shadowRequests,
+    shadowTextures,
+    shadowMatrixComputation: shadowMatrixComputationForUpload,
+    shadowCasterDrawList,
+    shadowCasterMeshDraws,
+    transforms: report.snapshot.transforms,
+    atlasTiles,
+  });
+  const cachedSpotShadow =
+    scene.clusteredShadowCacheEnabled === true &&
+    loop.spotShadowRenderCache?.cacheKey === shadowRenderCacheKey
+      ? loop.spotShadowRenderCache
+      : null;
+
+  if (
+    cachedSpotShadow !== null &&
+    cachedSpotShadow.standardMaterialShadowReceiverResources !== null &&
+    shadowSamplerResourceReport.resource !== null &&
+    loop.spotShadowDepthTextureResourceReport.ready === true
+  ) {
+    const atlasWidth = atlasTiles[0]?.atlasWidth ?? 0;
+    const atlasHeight = atlasTiles[0]?.atlasHeight ?? 0;
+    const standardMaterialShadowReceiverResources = {
+      ...cachedSpotShadow.standardMaterialShadowReceiverResources,
+      depthTextureResources: loop.spotShadowDepthTextureResourceReport,
+      samplerResource: shadowSamplerResourceReport,
+    };
+    const cacheStatus = recordClusteredShadowCacheStatus(loop, "spot", {
+      action: "hit",
+      frame,
+      cacheKey: shadowRenderCacheKey,
+      shadowCount: shadowRequests.length,
+      depthTextureResources: loop.spotShadowDepthTextureResourceReport,
+      submission: "cached",
+      submittedCommandBuffers: 0,
+      skippedCommandBuffers: shadowPassPlan.passCount,
+    });
+
+    return {
+      standardMaterialShadowReceiverResources,
+      shadowStatus: {
+        enabled: true,
+        supported: true,
+        mode: spotAtlasEnabled
+          ? "clustered-spot-atlas-depth-compare"
+          : spotArrayEnabled
+            ? "clustered-spot-array-depth-compare"
+            : "clustered-spot-depth-compare",
+        shadowId: shadowRequests[0]?.shadowId ?? null,
+        lightId: shadowRequests[0]?.lightId ?? null,
+        shadowIds: shadowRequests.map((request) => request.shadowId),
+        lightIds: shadowRequests.map((request) => request.lightId),
+        requiredSpotShadowCount,
+        supportedLightCount: shadowRequests.length,
+        filterRadiusTexels: shadowRequests.map((_request, index) =>
+          clusteredSpotShadowFilterRadiusTexels(scene, index),
+        ),
+        layerCount: spotArrayEnabled ? shadowRequests.length : 1,
+        ...(spotAtlasEnabled
+          ? {
+              atlasWidth,
+              atlasHeight,
+              atlasTiles: atlasTiles.map((tile) => ({
+                shadowId: tile.shadowId,
+                lightId: tile.lightId,
+                x: tile.x,
+                y: tile.y,
+                width: tile.mapSize,
+                height: tile.height ?? tile.mapSize,
+                allocationKey: tile.allocationKey ?? null,
+                reused: tile.reused === true,
+              })),
+            }
+          : {}),
+        casterDraws: shadowCasterMeshDraws.length,
+        faceCount: shadowPassPlan.passCount,
+        submission: "cached",
+        cache: cacheStatus,
+      },
+    };
+  }
+
   const shadowMatrixBuffer = aperture.createShadowMatrixBufferDescriptorReport({
     viewProjection: shadowViewProjection,
     upload: "ready",
@@ -2300,17 +2526,6 @@ async function createClusteredSpotShadowReceiverResources(
       descriptor: shadowMatrixBuffer,
       matrices: shadowMatrixComputationForUpload,
     });
-  const shadowCasterMeshDraws = report.snapshot.meshDraws.filter(
-    (draw) =>
-      draw.sortKey.meshKey === scene.spotCasterMeshKey &&
-      draw.castsShadow !== false,
-  );
-  const shadowCasterDrawList = aperture.createShadowCasterDrawListPlanReport({
-    shadowRequests,
-    meshDraws: shadowCasterMeshDraws,
-    shadowPassPlan,
-    commandEncoding: "ready",
-  });
   const shadowCommandPlan =
     aperture.createShadowCasterCommandPlanReadinessReport({
       shadowPassPlan,
@@ -2457,16 +2672,44 @@ async function createClusteredSpotShadowReceiverResources(
       ),
     ) &&
     shadowSamplerResourceReport.resource !== null;
+  const standardMaterialShadowReceiverResources = supported
+    ? {
+        shadowKind: spotArrayEnabled ? "spot-array" : "spot",
+        matrixBufferResource: shadowMatrixBufferResourceReport,
+        depthTextureResources: loop.spotShadowDepthTextureResourceReport,
+        samplerResource: shadowSamplerResourceReport,
+      }
+    : null;
+  const cacheStatus =
+    scene.clusteredShadowCacheEnabled === true
+      ? recordClusteredShadowCacheStatus(loop, "spot", {
+          action: "miss",
+          frame,
+          cacheKey: shadowRenderCacheKey,
+          shadowCount: shadowRequests.length,
+          depthTextureResources: loop.spotShadowDepthTextureResourceReport,
+          submission: shadowPassCommandBufferSubmissionReport.status,
+          submittedCommandBuffers:
+            shadowPassCommandBufferSubmissionReport.counts
+              .submittedCommandBuffers,
+          skippedCommandBuffers:
+            shadowPassCommandBufferSubmissionReport.counts.skippedSubmissions,
+        })
+      : null;
+
+  if (
+    scene.clusteredShadowCacheEnabled === true &&
+    supported &&
+    standardMaterialShadowReceiverResources !== null
+  ) {
+    loop.spotShadowRenderCache = {
+      cacheKey: shadowRenderCacheKey,
+      standardMaterialShadowReceiverResources,
+    };
+  }
 
   return {
-    standardMaterialShadowReceiverResources: supported
-      ? {
-          shadowKind: spotArrayEnabled ? "spot-array" : "spot",
-          matrixBufferResource: shadowMatrixBufferResourceReport,
-          depthTextureResources: loop.spotShadowDepthTextureResourceReport,
-          samplerResource: shadowSamplerResourceReport,
-        }
-      : null,
+    standardMaterialShadowReceiverResources,
     shadowStatus: {
       enabled: true,
       supported,
@@ -2504,6 +2747,7 @@ async function createClusteredSpotShadowReceiverResources(
       casterDraws: shadowCasterMeshDraws.length,
       faceCount: shadowPassPlan.passCount,
       submission: shadowPassCommandBufferSubmissionReport.status,
+      ...(cacheStatus === null ? {} : { cache: cacheStatus }),
     },
   };
 }
@@ -2543,6 +2787,162 @@ function selectDynamicClusteredSpotShadowRequests(shadowRequests, frame) {
   }
 
   return shadowRequests;
+}
+
+function createClusteredShadowRenderCacheKey({
+  shadowRequests,
+  shadowTextures,
+  shadowMatrixComputation,
+  shadowCasterDrawList,
+  shadowCasterMeshDraws,
+  transforms,
+  atlasTiles,
+}) {
+  return JSON.stringify({
+    requests: shadowRequests.map((request) => ({
+      shadowId: request.shadowId,
+      lightId: request.lightId,
+      lightKind: request.lightKind ?? null,
+      casterLayerMask: request.casterLayerMask,
+      receiverLayerMask: request.receiverLayerMask,
+      cascadeCount: request.cascadeCount ?? 1,
+    })),
+    textures: shadowTextures.textures.map((texture) => ({
+      shadowId: texture.shadowId,
+      lightId: texture.lightId,
+      resourceKey: texture.resourceKey,
+      textureKey: texture.textureKey,
+      viewKey: texture.viewKey,
+      width: texture.width,
+      height: texture.height,
+      depthFormat: texture.depthFormat,
+      filterRadiusTexels: texture.filterRadiusTexels ?? null,
+      layerCount: texture.layerCount ?? texture.faceCount,
+      layerBaseIndex: texture.layerBaseIndex ?? 0,
+      atlasRegion: texture.atlasRegion ?? null,
+      faceCount: texture.faceCount,
+      viewDimension: texture.viewDimension,
+      attachmentViewKeys: [...texture.attachmentViewKeys],
+    })),
+    matrices: shadowMatrixComputation.matrices.map((matrix) => ({
+      shadowId: matrix.shadowId,
+      lightId: matrix.lightId,
+      faceIndex: matrix.faceIndex ?? 0,
+      matrixKey: matrix.matrixKey,
+      lightTransformOffset: matrix.lightTransformOffset,
+      viewProjectionMatrix: roundedNumbers(matrix.viewProjectionMatrix),
+    })),
+    drawLists: shadowCasterDrawList.lists.map((list) => ({
+      shadowId: list.shadowId,
+      lightId: list.lightId,
+      passKey: list.passKey,
+      casterLayerMask: list.casterLayerMask,
+      receiverLayerMask: list.receiverLayerMask,
+      includedDrawCount: list.includedDrawCount,
+      skippedDrawCount: list.skippedDrawCount,
+      draws: list.draws.map((draw) => ({
+        renderId: draw.renderId,
+        meshKey: draw.meshKey,
+        materialKey: draw.materialKey,
+        meshLayoutKey: draw.meshLayoutKey,
+        submesh: draw.submesh,
+        layerMask: draw.layerMask,
+      })),
+    })),
+    casters: shadowCasterMeshDraws.map((draw) => ({
+      renderId: draw.renderId,
+      meshKey: draw.sortKey.meshKey,
+      materialKey: draw.sortKey.materialKey,
+      submesh: draw.submesh,
+      materialSlot: draw.materialSlot,
+      vertexStart: draw.vertexStart ?? null,
+      vertexCount: draw.vertexCount ?? null,
+      indexStart: draw.indexStart ?? null,
+      indexCount: draw.indexCount ?? null,
+      layerMask: draw.layerMask,
+      worldTransformOffset: draw.worldTransformOffset,
+      worldTransform: roundedNumbers(
+        transforms.subarray(
+          draw.worldTransformOffset,
+          draw.worldTransformOffset + 16,
+        ),
+      ),
+    })),
+    atlasTiles: atlasTiles.map((tile) => ({
+      shadowId: tile.shadowId,
+      lightId: tile.lightId,
+      mapSize: tile.mapSize,
+      atlasWidth: tile.atlasWidth,
+      atlasHeight: tile.atlasHeight,
+      x: tile.x,
+      y: tile.y,
+      width: tile.width ?? tile.mapSize,
+      height: tile.height ?? tile.mapSize,
+      allocationKey: tile.allocationKey ?? null,
+    })),
+  });
+}
+
+function recordClusteredShadowCacheStatus(loop, kind, input) {
+  const previous = loop.clusteredShadowCacheStatus?.[kind] ?? null;
+  const hit = input.action === "hit";
+  const miss = input.action === "miss";
+  const reusedTextureCount = input.depthTextureResources.reusedTextureCount ?? 0;
+  const status = {
+    enabled: true,
+    kind,
+    frame: input.frame,
+    lastAction: input.action,
+    cacheKeyHash: hashString(input.cacheKey),
+    hitCount: (previous?.hitCount ?? 0) + (hit ? 1 : 0),
+    missCount: (previous?.missCount ?? 0) + (miss ? 1 : 0),
+    submittedShadowPassCount:
+      (previous?.submittedShadowPassCount ?? 0) +
+      (input.submittedCommandBuffers > 0 ? 1 : 0),
+    skippedShadowPassCount:
+      (previous?.skippedShadowPassCount ?? 0) + (hit ? 1 : 0),
+    submittedCommandBuffers: input.submittedCommandBuffers,
+    skippedCommandBuffers: input.skippedCommandBuffers,
+    submission: input.submission,
+    observedCasterTransformInvalidation:
+      previous?.observedCasterTransformInvalidation === true ||
+      (kind === "spot" &&
+        miss &&
+        input.frame === clusteredShadowCacheTransformInvalidationFrame),
+    renderedShadowCount: miss ? input.shadowCount : 0,
+    cachedShadowCount: hit ? input.shadowCount : 0,
+    currentReusedTextureCount: reusedTextureCount,
+    maxReusedTextureCount: Math.max(
+      previous?.maxReusedTextureCount ?? 0,
+      reusedTextureCount,
+    ),
+    textureDescriptorCount: input.depthTextureResources.textureDescriptorCount,
+    createdTextureCount: input.depthTextureResources.createdTextureCount,
+  };
+
+  loop.clusteredShadowCacheStatus = {
+    ...(loop.clusteredShadowCacheStatus ?? {}),
+    [kind]: status,
+  };
+
+  return status;
+}
+
+function roundedNumbers(values) {
+  return Array.from(values, (value) =>
+    Number.isFinite(value) ? Math.round(value * 1_000_000) / 1_000_000 : null,
+  );
+}
+
+function hashString(value) {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
 function createDynamicClusteredSpotShadowAtlasTiles(

@@ -8,6 +8,8 @@ const spotShadowCasterPosition = [1.12, -0.18, 0.54];
 const secondSpotShadowCasterPosition = [1.72, 0.34, 0.5];
 const thirdSpotShadowCasterPosition = [1.38, -0.54, 0.52];
 const fourthSpotShadowCasterPosition = [2.08, -0.04, 0.5];
+const spotShadowCacheCasterMovedPosition = [1.28, -0.08, 0.54];
+const clusteredShadowCacheTransformInvalidationFrame = 4;
 
 let apertureModulePromise = null;
 let scene = null;
@@ -56,6 +58,7 @@ async function handleMessage(data) {
         data.clusteredShadowCookieEnabled === true,
         data.clusteredShadowCookieAtlasEnabled === true,
         data.clusteredDynamicShadowCookieAtlasEnabled === true,
+        data.clusteredShadowCacheEnabled === true,
         data.clusteredShadowCookiePointArrayEnabled === true,
         data.clusteredCookieOnlyEnabled === true,
         data.clusteredSpotShadowAtlasEnabled === true,
@@ -121,6 +124,11 @@ async function handleMessage(data) {
 
       const frame = finiteInteger(data.frame, 0);
       const cameraX = updateClusterCamera(aperture, scene, frame);
+      const shadowCacheCasterPulse = updateClusteredShadowCacheCaster(
+        aperture,
+        scene,
+        frame,
+      );
       const snapshot = scene.app.stepAndExtract(0, frame / 60, frame);
 
       self.postMessage(
@@ -135,6 +143,7 @@ async function handleMessage(data) {
             localLights: scene.localLightCount,
             routeLocalLights: scene.routeLocalLightCount,
             cameraX,
+            shadowCacheCasterPulse,
             diagnostics: snapshot.diagnostics.length,
           },
         },
@@ -167,6 +176,7 @@ function createWorkerScene(
   clusteredShadowCookieEnabled,
   clusteredShadowCookieAtlasEnabled,
   clusteredDynamicShadowCookieAtlasEnabled,
+  clusteredShadowCacheEnabled,
   clusteredShadowCookiePointArrayEnabled,
   clusteredCookieOnlyEnabled,
   clusteredSpotShadowAtlasEnabled,
@@ -236,7 +246,7 @@ function createWorkerScene(
       aperture.withVisibility(true),
     );
   }
-  app.spawn(
+  const shadowCacheCasterPulseEntity = app.spawn(
     aperture.withTransform({ translation: spotShadowCasterPosition }),
     aperture.withMesh(assets.spotCasterMesh),
     aperture.withMaterial(assets.spotCasterMaterial),
@@ -494,6 +504,7 @@ function createWorkerScene(
     cookieSampler: assets.cookieSampler,
     pointCookieTexture: assets.pointCookieTexture,
     pointCookieSampler: assets.pointCookieSampler,
+    shadowCacheCasterPulseEntity,
     cameraFrameOffset,
     clusteredCookieEnabled,
     clusteredSpotCookieEnabled,
@@ -503,6 +514,7 @@ function createWorkerScene(
     clusteredShadowCookieEnabled,
     clusteredShadowCookieAtlasEnabled,
     clusteredDynamicShadowCookieAtlasEnabled,
+    clusteredShadowCacheEnabled,
     clusteredShadowCookiePointArrayEnabled,
     clusteredCookieOnlyEnabled,
     clusteredSpotShadowAtlasEnabled,
@@ -530,6 +542,30 @@ function updateClusterCamera(aperture, scene, frame) {
     .set([0.4 - cameraX, 0, 4.8]);
 
   return cameraX;
+}
+
+function updateClusteredShadowCacheCaster(aperture, scene, frame) {
+  if (scene.clusteredShadowCacheEnabled !== true) {
+    return { enabled: false };
+  }
+
+  const moved = frame >= clusteredShadowCacheTransformInvalidationFrame;
+  const translation = moved
+    ? spotShadowCacheCasterMovedPosition
+    : spotShadowCasterPosition;
+
+  scene.shadowCacheCasterPulseEntity
+    .getVectorView(aperture.LocalTransform, "translation")
+    .set(translation);
+  scene.app.world.markEntityChanged(scene.shadowCacheCasterPulseEntity);
+
+  return {
+    enabled: true,
+    frame,
+    moved,
+    invalidationFrame: clusteredShadowCacheTransformInvalidationFrame,
+    translation,
+  };
 }
 
 function registerClusteredLightAssets(aperture, registry) {

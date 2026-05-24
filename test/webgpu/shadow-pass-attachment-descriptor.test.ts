@@ -284,6 +284,7 @@ function atlasDepthResources(): ShadowDepthTextureResourceReport {
     status: "available",
     textureDescriptorCount: 2,
     createdTextureCount: 1,
+    reusedTextureCount: 0,
     sections: {
       textureDescriptors: true,
       depthTextureResource: true,
@@ -332,6 +333,7 @@ function depthResources(
     status,
     textureDescriptorCount: status === "not-required" ? 0 : 1,
     createdTextureCount: status === "available" ? 1 : 0,
+    reusedTextureCount: 0,
     sections: {
       textureDescriptors: status !== "missing",
       depthTextureResource: status === "available",

@@ -918,6 +918,7 @@ interface GltfSceneStatus extends ExampleStatusBase {
       readonly status: string;
       readonly textureDescriptorCount: number;
       readonly createdTextureCount: number;
+      readonly reusedTextureCount: number;
       readonly sections: {
         readonly textureDescriptors: boolean;
         readonly depthTextureResource: boolean;
@@ -2286,6 +2287,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         status: "available",
         textureDescriptorCount: 1,
         createdTextureCount: 1,
+        reusedTextureCount: 0,
         sections: {
           textureDescriptors: true,
           depthTextureResource: true,

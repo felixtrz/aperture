@@ -155,6 +155,7 @@ function depthTextureResources(): ShadowDepthTextureResourceReport {
     status: "available",
     textureDescriptorCount: 1,
     createdTextureCount: 1,
+    reusedTextureCount: 0,
     sections: {
       textureDescriptors: true,
       depthTextureResource: true,

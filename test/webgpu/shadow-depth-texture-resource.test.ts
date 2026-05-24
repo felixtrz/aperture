@@ -7,6 +7,7 @@ import {
   resolveShadowDepthTextureAttachmentView,
   shadowDepthTextureResourceReportToJson,
   shadowDepthTextureResourceReportToJsonValue,
+  type ShadowDepthTextureResourceCache,
   type ShadowRequestPacket,
   type TextureGpuDeviceLike,
 } from "@aperture-engine/webgpu";
@@ -25,6 +26,7 @@ describe("shadow depth texture resource", () => {
       status: "available",
       textureDescriptorCount: 1,
       createdTextureCount: 1,
+      reusedTextureCount: 0,
       sections: {
         textureDescriptors: true,
         depthTextureResource: true,
@@ -390,9 +392,86 @@ describe("shadow depth texture resource", () => {
       }),
     ).toEqual({ descriptor: undefined });
   });
+
+  it("reuses cached renderer-owned shadow depth allocations across matching frames", () => {
+    const createdTextures: unknown[] = [];
+    const cache: ShadowDepthTextureResourceCache = new Map();
+    const first = createShadowDepthTextureResourceReport({
+      device: deviceWithTextures(createdTextures),
+      textures: textures(),
+      cache,
+    });
+    const second = createShadowDepthTextureResourceReport({
+      device: deviceWithTextures(createdTextures),
+      textures: textures(),
+      cache,
+    });
+
+    expect(first.ready).toBe(true);
+    expect(first.reusedTextureCount).toBe(0);
+    expect(second.ready).toBe(true);
+    expect(second.createdTextureCount).toBe(1);
+    expect(second.reusedTextureCount).toBe(1);
+    expect(second.resources[0]?.allocation).toBe(
+      first.resources[0]?.allocation,
+    );
+    expect(createdTextures).toHaveLength(1);
+  });
+
+  it("reuses the same atlas allocation when only per-light atlas regions change", () => {
+    const createdTextures: unknown[] = [];
+    const cache: ShadowDepthTextureResourceCache = new Map();
+    const first = createShadowDepthTextureResourceReport({
+      device: deviceWithTextures(createdTextures),
+      textures: atlasTextures([
+        { shadowId: 13, lightId: 21, originX: 0, mapSize: 256 },
+        { shadowId: 14, lightId: 22, originX: 256, mapSize: 128 },
+      ]),
+      cache,
+    });
+    const moved = createShadowDepthTextureResourceReport({
+      device: deviceWithTextures(createdTextures),
+      textures: atlasTextures([
+        { shadowId: 13, lightId: 21, originX: 128, mapSize: 256 },
+        { shadowId: 14, lightId: 22, originX: 0, mapSize: 128 },
+      ]),
+      cache,
+    });
+
+    expect(first.ready).toBe(true);
+    expect(moved.ready).toBe(true);
+    expect(moved.reusedTextureCount).toBe(1);
+    expect(moved.resources[0]?.allocation).toBe(
+      first.resources[0]?.allocation,
+    );
+    expect(createdTextures).toHaveLength(1);
+  });
+
+  it("invalidates cached shadow depth allocations when texture dimensions change", () => {
+    const createdTextures: unknown[] = [];
+    const cache: ShadowDepthTextureResourceCache = new Map();
+    const first = createShadowDepthTextureResourceReport({
+      device: deviceWithTextures(createdTextures),
+      textures: textures(512),
+      cache,
+    });
+    const resized = createShadowDepthTextureResourceReport({
+      device: deviceWithTextures(createdTextures),
+      textures: textures(1024),
+      cache,
+    });
+
+    expect(first.ready).toBe(true);
+    expect(resized.ready).toBe(true);
+    expect(resized.reusedTextureCount).toBe(0);
+    expect(resized.resources[0]?.allocation).not.toBe(
+      first.resources[0]?.allocation,
+    );
+    expect(createdTextures).toHaveLength(2);
+  });
 });
 
-function textures() {
+function textures(mapSize = 1024) {
   return createShadowTextureResourceReport({
     descriptors: createShadowMapDescriptorReport({
       shadowRequests: [shadowRequest(7, 11)],
@@ -400,10 +479,44 @@ function textures() {
         {
           shadowId: 7,
           lightId: 11,
-          mapSize: 1024,
+          mapSize,
           depthBias: 0.001,
         },
       ],
+    }),
+  });
+}
+
+function atlasTextures(
+  tiles: readonly {
+    readonly shadowId: number;
+    readonly lightId: number;
+    readonly originX: number;
+    readonly mapSize: number;
+  }[],
+) {
+  return createShadowTextureResourceReport({
+    descriptors: createShadowMapDescriptorReport({
+      shadowRequests: tiles.map((tile) => ({
+        ...shadowRequest(tile.shadowId, tile.lightId),
+        lightKind: "spot",
+      })),
+      descriptors: tiles.map((tile) => ({
+        shadowId: tile.shadowId,
+        lightId: tile.lightId,
+        mapSize: tile.mapSize,
+        textureWidth: 384,
+        textureHeight: 256,
+        depthBias: 0.002,
+        resourceKey: "shadow-map:clustered-spot-atlas",
+        viewDimension: "2d",
+        atlasRegion: {
+          originX: tile.originX,
+          originY: 0,
+          width: tile.mapSize,
+          height: tile.mapSize,
+        },
+      })),
     }),
   });
 }

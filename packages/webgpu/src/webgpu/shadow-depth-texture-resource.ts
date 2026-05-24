@@ -34,6 +34,17 @@ export type ShadowDepthTextureResourceDiagnostic =
 export interface CreateShadowDepthTextureResourceOptions {
   readonly device: TextureGpuDeviceLike;
   readonly textures: ShadowTextureResourceReport;
+  readonly cache?: ShadowDepthTextureResourceCache;
+}
+
+export type ShadowDepthTextureResourceCache = Map<
+  string,
+  ShadowDepthTextureResourceCacheEntry
+>;
+
+export interface ShadowDepthTextureResourceCacheEntry {
+  readonly descriptorKey: string;
+  readonly allocation: CreateTextureGpuResourceResult;
 }
 
 export interface ShadowDepthTextureResource {
@@ -64,6 +75,7 @@ export interface ShadowDepthTextureResourceReport {
   readonly status: ShadowDepthTextureResourceStatus;
   readonly textureDescriptorCount: number;
   readonly createdTextureCount: number;
+  readonly reusedTextureCount: number;
   readonly sections: {
     readonly textureDescriptors: boolean;
     readonly depthTextureResource: boolean;
@@ -81,6 +93,7 @@ export interface ShadowDepthTextureResourceReportJsonValue {
   readonly status: ShadowDepthTextureResourceStatus;
   readonly textureDescriptorCount: number;
   readonly createdTextureCount: number;
+  readonly reusedTextureCount: number;
   readonly sections: ShadowDepthTextureResourceReport["sections"];
   readonly resources: readonly {
     readonly valid: boolean;
@@ -148,10 +161,27 @@ export function createShadowDepthTextureResourceReport(
     string,
     CreateTextureGpuResourceResult
   >();
+  let reusedTextureCount = 0;
   const resources = options.textures.textures.map((texture) => {
-    const allocation =
-      allocationsByTextureKey.get(texture.textureKey) ??
-      createShadowDepthTextureAllocation(options.device, texture);
+    let allocation = allocationsByTextureKey.get(texture.textureKey);
+
+    if (allocation === undefined) {
+      const cached = reuseShadowDepthTextureAllocation(
+        texture,
+        options.cache,
+      );
+
+      if (cached === null) {
+        allocation = createShadowDepthTextureAllocation(
+          options.device,
+          texture,
+        );
+        rememberShadowDepthTextureAllocation(texture, allocation, options.cache);
+      } else {
+        allocation = cached;
+        reusedTextureCount += 1;
+      }
+    }
 
     allocationsByTextureKey.set(texture.textureKey, allocation);
 
@@ -192,6 +222,7 @@ export function createShadowDepthTextureResourceReport(
     textureDescriptorCount: options.textures.textureCount,
     textureDescriptorsAvailable: true,
     resources,
+    reusedTextureCount,
     diagnostics,
   });
 }
@@ -204,6 +235,7 @@ export function shadowDepthTextureResourceReportToJsonValue(
     status: report.status,
     textureDescriptorCount: report.textureDescriptorCount,
     createdTextureCount: report.createdTextureCount,
+    reusedTextureCount: report.reusedTextureCount,
     sections: { ...report.sections },
     resources: report.resources.map((resource) => ({
       valid: resource.allocation.valid,
@@ -298,6 +330,51 @@ function createShadowDepthTextureAllocation(
             }
           : undefined,
   });
+}
+
+function reuseShadowDepthTextureAllocation(
+  texture: ShadowTextureResourceDescriptor,
+  cache: ShadowDepthTextureResourceCache | undefined,
+): CreateTextureGpuResourceResult | null {
+  const cached = cache?.get(texture.textureKey);
+
+  if (cached === undefined) {
+    return null;
+  }
+
+  return cached.descriptorKey === shadowDepthTextureDescriptorKey(texture)
+    ? cached.allocation
+    : null;
+}
+
+function rememberShadowDepthTextureAllocation(
+  texture: ShadowTextureResourceDescriptor,
+  allocation: CreateTextureGpuResourceResult,
+  cache: ShadowDepthTextureResourceCache | undefined,
+): void {
+  if (cache === undefined || !allocation.valid || allocation.resource === null) {
+    return;
+  }
+
+  cache.set(texture.textureKey, {
+    descriptorKey: shadowDepthTextureDescriptorKey(texture),
+    allocation,
+  });
+}
+
+function shadowDepthTextureDescriptorKey(
+  texture: ShadowTextureResourceDescriptor,
+): string {
+  return [
+    texture.textureKey,
+    texture.width,
+    texture.height,
+    shadowTextureLayerCount(texture),
+    texture.depthFormat,
+    texture.viewDimension,
+    texture.faceCount,
+    texture.layerCount ?? texture.faceCount,
+  ].join(":");
 }
 
 function createShadowDepthTextureResource(
@@ -410,6 +487,7 @@ function report(input: {
   readonly textureDescriptorCount: number;
   readonly textureDescriptorsAvailable: boolean;
   readonly resources: readonly ShadowDepthTextureResource[];
+  readonly reusedTextureCount?: number;
   readonly diagnostics: readonly ShadowDepthTextureResourceDiagnostic[];
 }): ShadowDepthTextureResourceReport {
   const createdTextureCount = new Set(
@@ -423,6 +501,7 @@ function report(input: {
     status: input.status,
     textureDescriptorCount: input.textureDescriptorCount,
     createdTextureCount,
+    reusedTextureCount: input.reusedTextureCount ?? 0,
     sections: {
       textureDescriptors: input.textureDescriptorsAvailable,
       depthTextureResource: input.status === "available",

@@ -699,6 +699,7 @@ function resourceInputs(prefix = "", viewDimension: "2d" | "cube" = "2d") {
       status: "available",
       textureDescriptorCount: 1,
       createdTextureCount: 1,
+      reusedTextureCount: 0,
       sections: {
         textureDescriptors: true,
         depthTextureResource: true,
