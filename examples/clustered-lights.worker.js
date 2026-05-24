@@ -52,6 +52,7 @@ async function handleMessage(data) {
         data.clusteredMultiCookieEnabled === true,
         data.clusteredAtlasCookieEnabled === true,
         data.clusteredShadowCookieEnabled === true,
+        data.clusteredShadowCookieAtlasEnabled === true,
         data.clusteredShadowCookiePointArrayEnabled === true,
         data.clusteredCookieOnlyEnabled === true,
         data.clusteredSpotShadowAtlasEnabled === true,
@@ -92,6 +93,8 @@ async function handleMessage(data) {
           clusteredMultiCookieEnabled: scene.clusteredMultiCookieEnabled,
           clusteredAtlasCookieEnabled: scene.clusteredAtlasCookieEnabled,
           clusteredShadowCookieEnabled: scene.clusteredShadowCookieEnabled,
+          clusteredShadowCookieAtlasEnabled:
+            scene.clusteredShadowCookieAtlasEnabled,
           clusteredShadowCookiePointArrayEnabled:
             scene.clusteredShadowCookiePointArrayEnabled,
           clusteredCookieOnlyEnabled: scene.clusteredCookieOnlyEnabled,
@@ -157,6 +160,7 @@ function createWorkerScene(
   clusteredMultiCookieEnabled,
   clusteredAtlasCookieEnabled,
   clusteredShadowCookieEnabled,
+  clusteredShadowCookieAtlasEnabled,
   clusteredShadowCookiePointArrayEnabled,
   clusteredCookieOnlyEnabled,
   clusteredSpotShadowAtlasEnabled,
@@ -336,7 +340,7 @@ function createWorkerScene(
     );
   }
 
-  if (clusteredAtlasCookieEnabled) {
+  if (clusteredAtlasCookieEnabled && !clusteredShadowCookieAtlasEnabled) {
     app.spawn(
       aperture.withTransform({ translation: [1.78, 0.44, 1.92] }),
       aperture.withLight({
@@ -356,7 +360,7 @@ function createWorkerScene(
   }
 
   if (clusteredMultiSpotShadowEnabled) {
-    app.spawn(
+    const secondSpotShadowComponents = [
       aperture.withTransform({ translation: [1.76, 0.36, 1.96] }),
       aperture.withLight({
         kind: aperture.LightKind.Spot,
@@ -375,7 +379,18 @@ function createWorkerScene(
         casterLayerMask: 2,
         receiverLayerMask: 2,
       }),
-    );
+    ];
+
+    if (clusteredShadowCookieAtlasEnabled) {
+      secondSpotShadowComponents.push(
+        aperture.withLightCookie(assets.atlasCookieTexture, {
+          sampler: assets.cookieSampler,
+          intensity: 1,
+        }),
+      );
+    }
+
+    app.spawn(...secondSpotShadowComponents);
   }
 
   return {
@@ -402,6 +417,7 @@ function createWorkerScene(
     clusteredMultiCookieEnabled,
     clusteredAtlasCookieEnabled,
     clusteredShadowCookieEnabled,
+    clusteredShadowCookieAtlasEnabled,
     clusteredShadowCookiePointArrayEnabled,
     clusteredCookieOnlyEnabled,
     clusteredSpotShadowAtlasEnabled,

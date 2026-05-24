@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 10:46 UTC</dd>
+            <dd>2026-05-24 10:59 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1566,10 +1566,15 @@
               local-shadow proof route, a nonuniform spot-cookie atlas proof
               route, a multi-spot local-shadow array proof route, a nonuniform
               spot-shadow atlas proof route, packed point and spot shadow
-              array/atlas proof routes, and the multi-point shadow-array route.
+              array/atlas proof routes, the multi-point shadow-array route,
+              packed shadow-cookie array and flattened point-array shadow-cookie
+              routes, and the atlas shadow-cookie route.
             </dd>
             <dt>Next focus</dt>
-            <dd>Combined packed local shadows plus clustered cookies</dd>
+            <dd>
+              Re-audit clustered shadow/cookie route pressure against
+              PlayCanvas and three.js
+            </dd>
           </dl>
         </aside>
       </header>
@@ -2413,11 +2418,16 @@
               selection. Nonuniform clustered spot-shadow maps now bind through
               one renderer-owned 2D atlas with atlas-adjusted per-light matrices
               and sequential metadata indices for non-array atlas resources.
+              Nonuniform atlas-backed clustered spot shadows now combine with
+              nonuniform atlas-backed clustered spot cookies by reusing the
+              matching spot-shadow matrices instead of adding a dedicated
+              cookie-matrix storage buffer.
             </p>
             <ul>
               <li>
-                Next step: combine nonuniform clustered shadow atlases with
-                clustered cookie atlases in one WebGPU-minimum route.
+                Next step: re-audit clustered shadow/cookie route pressure
+                against PlayCanvas and three.js, then choose the next visible
+                SOTA gap.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2438,6 +2448,13 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3148</span> Combined
+                nonuniform clustered spot-shadow atlases with nonuniform
+                clustered spot-cookie atlases in one StandardMaterial frame,
+                reusing spot-shadow matrices and keeping the compact
+                WebGPU-minimum route.
+              </li>
               <li>
                 <span class="badge green">task-3147</span> Combined two
                 flattened point-shadow-array lights, two packed spot shadows,
@@ -4803,14 +4820,14 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Combine nonuniform
-                clustered shadow atlases with clustered cookie atlases in one
-                StandardMaterial route without exceeding WebGPU minimum
-                bind/storage limits.
+                <span class="badge amber">next</span> Re-audit clustered
+                shadow/cookie route pressure against PlayCanvas and three.js,
+                now that array, point-array, and atlas shadow-cookie routes are
+                browser-proven.
               </li>
               <li>
-                Then re-audit the clustered-light route for remaining SOTA
-                efficiency gaps and broader tuning work.
+                Then pick the next visible clustered-light or broader
+                render-pipeline SOTA gap from that audit.
               </li>
             </ul>
           </article>
@@ -4823,6 +4840,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3148</div>
+            <div>
+              <strong>Atlas shadows plus atlas cookies shipped.</strong>
+              <span>
+                The clustered route now renders one point shadow, two
+                nonuniform atlas-backed spot shadows, and two nonuniform
+                atlas-backed spot cookies together while avoiding the extra
+                cookie-matrix storage buffer.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3147</div>
             <div>

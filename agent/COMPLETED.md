@@ -1,5 +1,53 @@
 # Completed Tasks
 
+## task-3148 — Combine nonuniform local shadow atlases with clustered cookie atlases
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added the named
+  `examples/clustered-lights.html?enable-cluster-shadow-cookie-atlas=1` proof
+  route for atlas-backed clustered shadow/cookie pressure.
+- The route renders one point shadow, two nonuniform atlas-backed spot shadows,
+  and two nonuniform atlas-backed clustered spot cookies in the same
+  StandardMaterial frame.
+- The second atlas cookie now belongs to the second shadowed spot light in this
+  route, allowing cookie projection to reuse spot-shadow matrices and omit the
+  dedicated cookie-matrix storage buffer.
+- Cluster status now reports `routePackedShadowCookieAtlasShadowReady`,
+  `routePackedShadowCookieAtlasCookieReady`, and
+  `routePackedShadowCookieAtlasSamplingOk` separately.
+- Public trackers and agent task pointers now recommend `task-3149`, a focused
+  re-audit of clustered shadow/cookie route pressure against PlayCanvas and
+  three.js.
+
+Validation:
+
+- `node --check examples/clustered-lights.main.js && node --check examples/clustered-lights.worker.js`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/local-light-clusters.test.ts`
+- `pnpm run build`
+- Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-shadow-cookie-atlas=1&proof=task3148b`:
+  `ok: true`, `readbackStatus.ok: true`,
+  `routeMixedPackedSpotShadowAtlasSamplingOk`,
+  `routeCookieAtlasSamplingOk`,
+  `routePackedShadowCookieAtlasShadowReady`,
+  `routePackedShadowCookieAtlasCookieReady`, and
+  `routePackedShadowCookieAtlasSamplingOk` true, spot-shadow atlas size
+  `384x256`, two supported atlas spot shadows, two supported cookies, three
+  supported shadowed lights, diagnostics `0`, and relevant WebGPU validation
+  warnings `0`.
+
+Known follow-up:
+
+- `task-3149` should re-audit the clustered local shadow/cookie scope against
+  PlayCanvas and three.js before selecting the next implementation slice.
+- The broad clustered-lights Playwright spec was updated but not run end to
+  end in this slice because previous multi-page headed runs went idle locally;
+  the focused Chrome/WebGPU route proof passed.
+
 ## task-3147 — Combine flattened point-shadow arrays with clustered local cookies
 
 Completed: 2026-05-24

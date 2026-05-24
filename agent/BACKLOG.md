@@ -59,9 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3148`: combine nonuniform clustered local shadow atlases with
-clustered local cookie atlases so the atlas-backed routes also prove
-shadow/cookie pressure without exceeding WebGPU minimum limits.
+Start `task-3149`: re-audit the clustered local-light shadow/cookie routes
+against PlayCanvas and three.js before selecting the next visible SOTA gap.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -233,7 +232,12 @@ that same shadow/cookie pressure through the flattened multi-point-shadow array
 route. `task-3147` now proves that route with two point shadows through 12
 flattened layers, two packed spot shadows, and one clustered cookie. The next
 SOTA gap is combining atlas-backed local shadows and atlas-backed local cookies,
-followed by broader clustered-light tuning.
+followed by broader clustered-light tuning. `task-3148` now combines
+nonuniform atlas-backed spot shadows with nonuniform atlas-backed spot cookies
+by making both cookie lights shadowed spot lights and reusing the spot-shadow
+matrices for cookie projection. The next step is a focused re-audit of the
+clustered shadow/cookie routes against the references before adding the next
+implementation slice.
 
 Reference anchors for the next visible slice (read before writing):
 
@@ -1079,7 +1083,7 @@ Acceptance criteria:
 
 ### task-3148 — Combine nonuniform local shadow atlases with clustered cookie atlases
 
-Status: ready
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cookie*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
@@ -1095,6 +1099,25 @@ Acceptance criteria:
   readiness for that combined route.
 - Browser readbacks show visible contribution from shadows and cookies with
   zero relevant WebGPU validation warnings.
+
+### task-3149 — Re-audit clustered shadow/cookie route pressure
+
+Status: ready
+
+Category: `audit-refactor`
+Package/write-scope: `docs/render-pipeline-comparison.html`, `agent/BACKLOG.md`, `agent/HANDOFF.md`, and narrowly scoped renderer/example/test files only if the audit finds a small corrective gap that can be closed immediately.
+Reference anchor: `references/engine/src/scene/lighting/lights-buffer.js`, `references/engine/src/scene/lighting/light-texture-atlas.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightCookies.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`, `references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
+
+Acceptance criteria:
+
+- Compare Aperture's clustered local-light shadow/cookie resource layout,
+  metadata, atlas/array packing, and shader sampling routes against the cited
+  PlayCanvas and three.js references.
+- Update the public render-pipeline comparison with the remaining concrete SOTA
+  gaps, or state that the covered clustered shadow/cookie scope is current.
+- If the audit finds a small correctness or efficiency gap that can be closed
+  in the same slice, implement and validate it; otherwise add the next visible
+  backlog task with a reference anchor and browser-testable acceptance criteria.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

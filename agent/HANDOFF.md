@@ -1,6 +1,63 @@
 # Agent Handoff
 
-Updated: 2026-05-24T10:46:49Z
+Updated: 2026-05-24T10:56:47Z
+
+## Current Run Update — 2026-05-24T10:56:47Z — Atlas shadows plus atlas cookies
+
+Completed `task-3148`, combining nonuniform clustered local shadow atlases with
+clustered cookie atlases.
+
+### What changed
+
+- Added the named
+  `examples/clustered-lights.html?enable-cluster-shadow-cookie-atlas=1` proof
+  route.
+- The route renders one point shadow, two nonuniform atlas-backed spot shadows,
+  and two nonuniform atlas-backed clustered spot cookies in the same
+  StandardMaterial frame.
+- The atlas route keeps the array-shadow route disabled and uses the compact
+  `clusteredLocalLightShadowCookies|pointShadowMap|shadowMap` pipeline.
+- The second atlas cookie is now attached to the second shadowed spot light for
+  this route, so all supported spot-cookie projections can reuse spot-shadow
+  matrices and avoid binding the dedicated cookie-matrix storage buffer.
+- Cluster status now reports atlas shadow readiness, atlas cookie readiness,
+  and combined atlas shadow-cookie sampling readiness separately.
+- Public trackers and agent task pointers now recommend `task-3149`, a focused
+  re-audit of clustered shadow/cookie route pressure against PlayCanvas and
+  three.js.
+
+### Validation
+
+- `node --check examples/clustered-lights.main.js && node --check examples/clustered-lights.worker.js`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/local-light-clusters.test.ts`
+- `pnpm run build`
+- Playwright/Chrome proof for
+  `examples/clustered-lights.html?enable-cluster-shadow-cookie-atlas=1&proof=task3148b`:
+  `ok: true`, `readbackStatus.ok: true`,
+  `routeMixedPackedSpotShadowAtlasSamplingOk`,
+  `routeCookieAtlasSamplingOk`,
+  `routePackedShadowCookieAtlasShadowReady`,
+  `routePackedShadowCookieAtlasCookieReady`, and
+  `routePackedShadowCookieAtlasSamplingOk` true, spot-shadow atlas size
+  `384x256`, two supported atlas spot shadows, two supported cookies, three
+  supported shadowed lights, diagnostics `0`, and relevant WebGPU validation
+  warnings `0`. The only console error was the existing favicon `403`.
+
+### Known issues
+
+- The broad clustered-lights e2e spec was updated for the atlas shadow-cookie
+  route but was not run end to end because previous multi-page headed runs went
+  idle locally; the focused Chrome/WebGPU route proof passed.
+- The pre-existing working-tree deletion of `.codex/hooks.json`, untracked
+  `.playwright-mcp/` scratch directory, and untracked
+  `shadow-cookie-console-errors.txt` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3149`: re-audit clustered shadow/cookie route pressure against
+PlayCanvas and three.js, then select the next visible SOTA gap.
 
 ## Current Run Update — 2026-05-24T10:46:49Z — Flattened point-shadow arrays plus cookies
 

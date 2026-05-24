@@ -1797,6 +1797,44 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).not.toContain("texture_depth_cube");
   });
 
+  it("samples atlas local shadows and cookies in the same light loop", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      shadowMap: true,
+      pointShadowMap: true,
+      clusteredLocalLights: true,
+      clusteredLocalLightCookies: true,
+      clusteredLocalLightShadowCookies: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.code).toContain(
+      "@group(3) @binding(3) var directionalShadowMap: texture_depth_2d;",
+    );
+    expect(shader.code).toContain(
+      "@group(3) @binding(9) var pointShadowMap: texture_depth_cube;",
+    );
+    expect(shader.code).toContain(
+      `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING}) var localLightClusterCookieTexture: texture_2d<f32>;`,
+    );
+    expect(shader.code).not.toContain(
+      `@group(3) @binding(${LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING}) var<storage, read> localLightClusterCookieMatrices: array<mat4x4f>;`,
+    );
+    expect(shader.code).toContain(
+      "let cookiePosition = directionalShadowMatrices[matrixBaseIndex] * vec4f(position, 1.0);",
+    );
+    expect(shader.code).not.toContain(
+      "@group(3) @binding(6) var spotShadowMap",
+    );
+  });
+
   it("samples clustered spot cookies without requiring shadow-map bindings", () => {
     const shader = createStandardTextureVariantShader({
       baseColorTexture: false,

@@ -397,6 +397,43 @@ describe("standard material pipeline descriptor planning", () => {
     expect(lightGroupKey).not.toContain("spot-depth@6");
   });
 
+  it("specializes atlas local shadows plus clustered cookies in one light layout", () => {
+    const batchKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey:
+        "standard|clusteredLocalLights|clusteredLocalLightCookies|clusteredLocalLightShadowCookies|pointShadowMap|shadowMap|opaque|back|less|none",
+    };
+    const featurePlan = createStandardPipelineShaderFeaturePlan(batchKey);
+    const descriptor = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey,
+    });
+    const cacheKey = JSON.parse(required(descriptor.plan).cacheKey) as {
+      readonly layouts: { readonly bindGroups: readonly string[] };
+    };
+    const lightGroupKey = required(
+      cacheKey.layouts.bindGroups.find((key) =>
+        key.startsWith("standard/lights-multi-shadow/group-3"),
+      ),
+    );
+
+    expect(featurePlan.features).toMatchObject({
+      shadowMap: true,
+      pointShadowMap: true,
+      clusteredLocalLights: true,
+      clusteredLocalLightCookies: true,
+      clusteredLocalLightShadowCookies: true,
+    });
+    expect(lightGroupKey).toContain("directional-depth@3");
+    expect(lightGroupKey).toContain("point-depth-cube@9");
+    expect(lightGroupKey).toContain("cluster-cookie-texture@20");
+    expect(lightGroupKey).toContain("cluster-cookie-sampler@21");
+    expect(lightGroupKey).toContain("cluster-cookie-shadow-matrix@2");
+    expect(lightGroupKey).not.toContain("cluster-cookie-matrix@22");
+    expect(lightGroupKey).not.toContain("spot-depth@6");
+  });
+
   it("specializes compact clustered point-shadow array pipelines with flattened point depth layers", () => {
     const batchKey = {
       ...STANDARD_BATCH_KEY,
