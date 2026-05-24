@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 01:24 UTC</dd>
+            <dd>2026-05-24 01:36 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1514,12 +1514,15 @@
               with precise sphere-vs-cell rejection inside each touched range,
               and <code>examples/clustered-lights.html</code> publishes
               build-pressure telemetry showing lower pressure than the old
-              <code>cellCount * clusteredLocalLights</code> scan. The next SOTA
-              blocker is combining cascaded directional shadows and
-              diffuse/specular IBL in one StandardMaterial route.
+              <code>cellCount * clusteredLocalLights</code> scan. Cascaded
+              directional shadows and diffuse/specular IBL now bind in one
+              StandardMaterial route, and
+              <code>examples/outdoor-scene.html</code> proves the combined
+              route. The next SOTA blocker is cluster-aware local-light
+              shadow/cookie metadata.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3129 CSM plus IBL StandardMaterial route</dd>
+            <dd>task-3130 cluster-aware local-light metadata</dd>
           </dl>
         </aside>
       </header>
@@ -4643,12 +4646,12 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Run
-                <code>task-3129</code>: combine cascaded directional shadows
-                and diffuse/specular IBL in one StandardMaterial route.
+                <code>task-3130</code>: add cluster-aware local-light
+                shadow/cookie metadata.
               </li>
               <li>
-                Then run <code>task-3130</code> for cluster-aware local-light
-                shadow/cookie metadata.
+                Then re-audit the covered render pipeline against three.js and
+                PlayCanvas before selecting the next visible SOTA slice.
               </li>
             </ul>
           </article>
@@ -4661,6 +4664,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3129</div>
+            <div>
+              <strong>CSM plus IBL route shipped.</strong>
+              <span>
+                StandardMaterial now routes cascaded directional shadow depth
+                arrays and diffuse/specular IBL resources through one group-3
+                bind group, and
+                <code>examples/outdoor-scene.html</code> proves the combined
+                route with environment readiness and zero validation warnings.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3128</div>
             <div>

@@ -7,6 +7,7 @@ import {
   STANDARD_DIFFUSE_IBL_SHADER_VARIANT,
   STANDARD_DIRECT_LIGHT_SHADER_VARIANT,
   STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY,
+  STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY,
   STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT,
   STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT,
   createStandardPipelineDescriptorPlan,
@@ -458,6 +459,37 @@ describe("standard material pipeline descriptor planning", () => {
             "standard/group-2:material@0",
             "standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7",
           ],
+        },
+      },
+    );
+  });
+
+  it("selects a cascaded shadow plus IBL group 3 executable layout key", () => {
+    const batchKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey:
+        "standard|shadowMap|cascadedShadowMap|iblDiffuse|iblSpecularProof|opaque|back|less|none",
+    };
+    const featurePlan = createStandardPipelineShaderFeaturePlan(batchKey);
+    const result = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey,
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(featurePlan.features).toMatchObject({
+      shadowMap: true,
+      cascadedShadowMap: true,
+      iblDiffuse: true,
+      iblSpecularProof: true,
+    });
+    expect(JSON.parse(required(result.plan).cacheKey) as unknown).toMatchObject(
+      {
+        layouts: {
+          bindGroups: expect.arrayContaining([
+            `${STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY}:light-floats@0,light-metadata@1,matrix@2,depth-array@3,sampler@4,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7`,
+          ]),
         },
       },
     );

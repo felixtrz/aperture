@@ -109,6 +109,18 @@ export function registerOutdoorSceneAssets(aperture, registry) {
     }),
     { id: "outdoor-window-area-matte" },
   );
+  const environmentMap = aperture.createEnvironmentMapHandle(
+    "outdoor-scene-sky-ibl",
+  );
+
+  registry.register(environmentMap, {
+    label: "Outdoor scene sky IBL",
+  });
+  registry.markReady(environmentMap, {
+    label: "Outdoor scene sky IBL",
+    diffuseResourceKey: "outdoor-scene-sky-ibl/diffuse",
+    specularResourceKey: "outdoor-scene-sky-ibl/specular",
+  });
 
   return {
     nearReceiverMesh,
@@ -121,6 +133,7 @@ export function registerOutdoorSceneAssets(aperture, registry) {
     nearCasterMaterial,
     farCasterMaterial,
     windowReceiverMaterial,
+    environmentMap,
     receiverMeshKeys: [
       aperture.assetHandleKey(nearReceiverMesh),
       aperture.assetHandleKey(farReceiverMesh),

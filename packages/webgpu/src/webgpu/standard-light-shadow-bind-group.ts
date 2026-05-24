@@ -30,6 +30,8 @@ export const STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY =
   "standard/lights-shadow/group-3";
 export const STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY =
   "standard/lights-cascaded-shadow/group-3";
+export const STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY =
+  "standard/lights-cascaded-shadow-ibl/group-3";
 export const STANDARD_LIGHT_POINT_SHADOW_BIND_GROUP_LAYOUT_KEY =
   "standard/lights-point-shadow/group-3";
 export const STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY =
@@ -119,6 +121,7 @@ export interface CreateStandardLightIblBindGroupDescriptorPlanOptions {
   readonly samplerResource: IblSamplerResourceReport;
   readonly shadowReceiverResources?: StandardLightIblShadowReceiverResources;
   readonly shadowRequired?: boolean;
+  readonly cascadedShadowMap?: boolean;
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
   readonly layoutKey?: string | null;
@@ -270,6 +273,7 @@ function createStandardLightShadowBindGroupLayoutDescriptorForView(
 
 export function createStandardLightIblBindGroupLayoutDescriptor(options?: {
   readonly shadowMap?: boolean;
+  readonly cascadedShadowMap?: boolean;
   readonly specularProof?: boolean;
   readonly clusteredLocalLights?: boolean;
 }): WebGpuBindGroupLayoutDescriptor {
@@ -279,6 +283,9 @@ export function createStandardLightIblBindGroupLayoutDescriptor(options?: {
   ];
 
   if (options?.shadowMap === true) {
+    const viewDimension =
+      options.cascadedShadowMap === true ? "2d-array" : "2d";
+
     entries.push(
       { binding: 2, visibility: 0x3, buffer: { type: "read-only-storage" } },
       {
@@ -286,7 +293,7 @@ export function createStandardLightIblBindGroupLayoutDescriptor(options?: {
         visibility: 0x2,
         texture: {
           sampleType: "depth",
-          viewDimension: "2d",
+          viewDimension,
           multisampled: false,
         },
       },
@@ -327,7 +334,9 @@ export function createStandardLightIblBindGroupLayoutDescriptor(options?: {
 
   return {
     label:
-      options?.shadowMap === true
+      options?.shadowMap === true && options.cascadedShadowMap === true
+        ? STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY
+        : options?.shadowMap === true
         ? STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY
         : STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY,
     entries,
@@ -541,12 +550,16 @@ export function createStandardLightIblBindGroupDescriptorPlan(
   const layoutKey =
     options.layoutKey ??
     (shadowMap
-      ? STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY
+      ? options.cascadedShadowMap === true
+        ? STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY
+        : STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY
       : STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY);
   const label =
     options.label ??
     (shadowMap
-      ? STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY
+      ? options.cascadedShadowMap === true
+        ? STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY
+        : STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY
       : STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY);
   const diagnostics: StandardLightShadowBindGroupDiagnostic[] = [];
   const entries: StandardLightShadowBindGroupDescriptorEntry[] = [];

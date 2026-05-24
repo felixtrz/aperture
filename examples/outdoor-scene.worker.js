@@ -156,6 +156,13 @@ function createWorkerScene(aperture, options) {
     }),
   );
   app.spawn(
+    aperture.withEnvironmentMap(assets.environmentMap, {
+      color: [1, 1, 1, 1],
+      intensity: 0.95,
+      layerMask: 1,
+    }),
+  );
+  app.spawn(
     aperture.withTransform({
       rotation: createOutdoorDirectionalLightRotation(),
     }),

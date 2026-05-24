@@ -3,34 +3,28 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3129.
+Current task: task-3130.
 
-Status: `task-3128` completed the light-driven clustered local-light fill
-slice.
+Status: `task-3129` completed the combined cascaded directional shadow plus IBL
+StandardMaterial route.
 
 Key finding:
 
-- The previous CPU-side cluster-build efficiency blocker is closed for the
-  covered StandardMaterial route. Cluster descriptor generation now iterates
-  each local light, computes its touched cluster cell min/max range, and writes
-  only those candidate cells after precise sphere-vs-cell rejection.
-- JSON-safe local-light cluster reports now publish build-pressure telemetry:
-  assignment strategy, naive cell/light pair tests, per-light range tests,
-  light-cell write attempts, stored references, and skipped overflow
-  references.
-- `examples/clustered-lights.html` proves two active 64-light view/light-set
-  routes still render through clustered StandardMaterial, with route pressure
-  lower than the old `cellCount * clusteredLocalLights` scan shape.
-- The next SOTA feature-combination blocker is StandardMaterial CSM plus IBL in
-  one group-3 route. Current coverage proves CSM and IBL separately, but the
-  route selection still needs to bind a cascaded 2D-array shadow map together
-  with diffuse/specular IBL textures and sampler.
+- StandardMaterial now has a distinct group-3 light/shadow/IBL route for
+  `shadowMap|cascadedShadowMap|iblDiffuse` pipeline keys, so cascaded
+  directional shadows bind their 2D-array depth texture alongside diffuse and
+  specular IBL cube textures plus the IBL sampler.
+- The shader now keeps diffuse/specular IBL in the cascaded receiver final
+  color expression instead of falling back to the shadow-only color path.
+- `examples/outdoor-scene.html` registers a renderer-owned environment map,
+  enables IBL by default, and proves the same worker-authored scene reports
+  `cascadedShadowMap`, `iblDiffuse`, and `iblSpecularProof` while preserving
+  CSM receiver darkening.
 
-Next step: run `task-3129` from `agent/BACKLOG.md`, combining cascaded
-directional shadows with diffuse/specular IBL in one browser-proven
-StandardMaterial route.
+Next step: run `task-3130` from `agent/BACKLOG.md`, adding cluster-aware
+local-light shadow/cookie metadata.
 
 Reference anchors for the next task:
 
-- `references/three.js/src/renderers/WebGLRenderer.js`.
+- `references/engine/src/scene/lighting/world-clusters.js`.
 - `references/engine/src/scene/renderer/forward-renderer.js`.

@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-24T01:24:04Z
+Updated: 2026-05-24T01:36:48Z
+
+## Current Run Update — 2026-05-24T01:36:48Z — CSM plus IBL route
+
+Completed `task-3129`, combining cascaded directional shadows with
+diffuse/specular IBL in one StandardMaterial draw route.
+
+### What changed
+
+- Added a distinct cascaded-shadow-plus-IBL group-3 layout key so StandardMaterial
+  can bind light buffers, cascaded 2D-array shadow depth, comparison sampler,
+  diffuse IBL cube texture, IBL sampler, and specular IBL cube texture together.
+- Routed `shadowMap|cascadedShadowMap|iblDiffuse` pipeline keys through that
+  layout in app pipeline-layout creation, frame-resource bind-group planning,
+  and executable layout-key reporting.
+- Fixed the StandardMaterial shader injection so diffuse/specular IBL remains
+  in the final shadowed color expression for cascaded directional receivers.
+- Updated `examples/outdoor-scene.html` to register and prepare an environment
+  map, enable IBL by default, publish environment readiness in status, and prove
+  the combined `cascadedShadowMap|iblDiffuse|iblSpecularProof` route.
+- Updated focused bind-group, pipeline-descriptor, shader, and outdoor browser
+  tests plus the public progress tracker pages. Recommended next task is
+  `task-3130`, cluster-aware local-light shadow/cookie metadata.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-shader.test.ts --reporter=dot`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/outdoor-scene.spec.ts --project=chrome-webgpu-headed --reporter=line --timeout=60000 --trace=off`
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3130`, adding cluster-aware local-light shadow/cookie metadata.
 
 ## Current Run Update — 2026-05-24T01:24:04Z — Light-driven clustered-light fill
 

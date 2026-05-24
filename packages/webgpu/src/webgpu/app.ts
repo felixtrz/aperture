@@ -159,6 +159,7 @@ import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js"
 import type { LightBindGroupResource } from "./light-bind-group.js";
 import {
   STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY,
+  STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_POINT_SHADOW_BIND_GROUP_LAYOUT_KEY,
@@ -1430,6 +1431,9 @@ function createStandardAppPipelineLayouts(
   const usesLightShadowIblGroup = pipelineResourceKey.includes(
     STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY,
   );
+  const usesLightCascadedShadowIblGroup = pipelineResourceKey.includes(
+    STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY,
+  );
   const usesLightIblGroup = pipelineResourceKey.includes(
     STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY,
   );
@@ -1452,17 +1456,19 @@ function createStandardAppPipelineLayouts(
     pipelineResourceKey.includes("cluster-params@16");
   const baseLightLayoutKey = usesLightShadowIblGroup
     ? "webgpu-app/standard/lights-shadow-ibl/group-3"
-    : usesLightIblGroup
-      ? "webgpu-app/standard/lights-ibl/group-3"
-      : usesLightMultiShadowGroup
-        ? "webgpu-app/standard/lights-multi-shadow/group-3"
-        : usesLightCascadedShadowGroup
-          ? "webgpu-app/standard/lights-cascaded-shadow/group-3"
-          : usesLightPointShadowGroup
-            ? "webgpu-app/standard/lights-point-shadow/group-3"
-            : usesLightShadowGroup
-              ? "webgpu-app/standard/lights-shadow/group-3"
-              : "webgpu-app/standard/group-3";
+    : usesLightCascadedShadowIblGroup
+      ? "webgpu-app/standard/lights-cascaded-shadow-ibl/group-3"
+      : usesLightIblGroup
+        ? "webgpu-app/standard/lights-ibl/group-3"
+        : usesLightMultiShadowGroup
+          ? "webgpu-app/standard/lights-multi-shadow/group-3"
+          : usesLightCascadedShadowGroup
+            ? "webgpu-app/standard/lights-cascaded-shadow/group-3"
+            : usesLightPointShadowGroup
+              ? "webgpu-app/standard/lights-point-shadow/group-3"
+              : usesLightShadowGroup
+                ? "webgpu-app/standard/lights-shadow/group-3"
+                : "webgpu-app/standard/group-3";
   const lightLayoutKey = usesClusteredLocalLights
     ? `${baseLightLayoutKey}/clustered-local-lights`
     : baseLightLayoutKey;
@@ -1492,9 +1498,13 @@ function createStandardAppPipelineLayouts(
       layoutKey: lightLayoutKey,
       layout: getBindGroupLayout(3),
       descriptor:
-        usesLightShadowIblGroup || usesLightIblGroup
+        usesLightShadowIblGroup ||
+        usesLightCascadedShadowIblGroup ||
+        usesLightIblGroup
           ? createStandardLightIblBindGroupLayoutDescriptor({
-              shadowMap: usesLightShadowIblGroup,
+              shadowMap:
+                usesLightShadowIblGroup || usesLightCascadedShadowIblGroup,
+              cascadedShadowMap: usesLightCascadedShadowIblGroup,
               specularProof: usesSpecularIblProof,
               clusteredLocalLights: usesClusteredLocalLights,
             })

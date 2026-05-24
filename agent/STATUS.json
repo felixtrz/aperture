@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-3129",
+  "currentTaskId": "task-3130",
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "f3d5750",
+  "lastCommit": "486815c",
   "activePid": null,
-  "notes": "Completed task-3128 light-driven clustered local-light fill; next task is task-3129 CSM plus IBL combined StandardMaterial route.",
-  "lastRunFinishedAt": "2026-05-24T01:24:04Z"
+  "notes": "Completed task-3129 CSM plus IBL combined StandardMaterial route; next task is task-3130 cluster-aware local-light shadow/cookie metadata.",
+  "lastRunFinishedAt": "2026-05-24T01:36:48Z"
 }

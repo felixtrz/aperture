@@ -18,6 +18,7 @@ const sceneControls = {
   receiverEnabled: !exampleParams.has("disable-shadow-receiver"),
   casterEnabled: !exampleParams.has("disable-shadow-caster"),
   areaLightEnabled: !exampleParams.has("disable-area-light"),
+  iblEnabled: !exampleParams.has("disable-ibl"),
 };
 const stopAfterReady = exampleParams.has("stop-after-ready");
 
@@ -47,7 +48,12 @@ try {
         }),
       );
     } else {
-      const scene = createPresentationScene(aperture, sourceAssets, canvas);
+      const scene = createPresentationScene(
+        aperture,
+        created.app,
+        sourceAssets,
+        canvas,
+      );
 
       startWorkerSnapshotLoop(aperture, created.app, scene);
     }
@@ -61,8 +67,16 @@ try {
   );
 }
 
-function createPresentationScene(aperture, sourceAssets, targetCanvas) {
+function createPresentationScene(aperture, app, sourceAssets, targetCanvas) {
   const assets = registerOutdoorSceneAssets(aperture, sourceAssets);
+  const environmentAssetInputs = createOutdoorEnvironmentAssetInputs(
+    assets.environmentMap,
+  );
+  const environmentAssets = aperture.prepareWebGpuAppEnvironmentAssets({
+    app,
+    assets: environmentAssetInputs,
+    activeHandle: assets.environmentMap,
+  });
 
   setupControls(sceneControls);
 
@@ -72,6 +86,9 @@ function createPresentationScene(aperture, sourceAssets, targetCanvas) {
     casterMeshKeys: assets.casterMeshKeys,
     controls: sceneControls,
     areaLight: outdoorAreaLight,
+    environmentMap: assets.environmentMap,
+    environmentAssetInputs,
+    environmentAssets,
   };
 }
 
@@ -154,6 +171,12 @@ async function handleWorkerMessage(
     frame: message.frame,
     clearColor,
     label: "outdoor-scene-app",
+    ...(scene.controls.iblEnabled && scene.environmentAssets.active !== null
+      ? {
+          standardMaterialIblResources:
+            scene.environmentAssets.active.standardMaterialIblResources,
+        }
+      : {}),
     ...(!scene.controls.receiverEnabled ||
     loop.standardMaterialShadowReceiverResources === null
       ? {}
@@ -264,6 +287,19 @@ async function publishFrameStatus(
       lightGpuBuffers:
         standardResources?.lightGpuBuffers?.lightBuffer.count ?? 0,
     },
+    environment: {
+      enabled: scene.controls.iblEnabled,
+      activeKey: scene.environmentAssets.activeEnvironmentMapResourceKey,
+      ready: scene.environmentAssets.active?.ready ?? false,
+      diffuseTextureStatus:
+        scene.environmentAssets.active?.diffuseTextureResource.status ?? null,
+      specularTextureStatus:
+        scene.environmentAssets.active?.specularTextureResource.status ?? null,
+      samplerStatus:
+        scene.environmentAssets.active?.samplerResources.status ?? null,
+      bindGroupStatus:
+        scene.environmentAssets.active?.bindGroupResource.status ?? null,
+    },
     shadow: {
       controls: {
         receiverEnabled: scene.controls.receiverEnabled,
@@ -303,7 +339,9 @@ async function publishFrameStatus(
       commandBufferSubmission: shadowFrame.commandBufferSubmission,
       rendering: {
         supported: renderingSupported,
-        mode: "directional-csm-depth-array-compare",
+        mode: scene.controls.iblEnabled
+          ? "directional-csm-depth-array-plus-ibl"
+          : "directional-csm-depth-array-compare",
         cascadeCount: outdoorShadowIntent.cascadeCount,
         pipelineKey: shadowFrame.route?.pipelineKey ?? null,
       },
@@ -339,6 +377,61 @@ async function publishFrameStatus(
         ? shadowFrame.receiverResources
         : null,
   };
+}
+
+function createOutdoorEnvironmentAssetInputs(environmentMap) {
+  return [
+    {
+      handle: environmentMap,
+      label: "outdoor-scene-sky-ibl",
+      version: "outdoor-v1",
+      diffuseResourceKey: "texture:outdoor-scene-sky-ibl:diffuse",
+      specularResourceKey: "texture:outdoor-scene-sky-ibl:specular",
+      diffuseSource: {
+        faceSize: 4,
+        faces: cubeFaces(4, [
+          [120, 174, 236, 255],
+          [82, 132, 210, 255],
+          [226, 244, 255, 255],
+          [34, 58, 92, 255],
+          [156, 206, 246, 255],
+          [68, 108, 178, 255],
+        ]),
+        format: "rgba8unorm",
+      },
+      specularPmremSource: {
+        faceSize: 4,
+        faces: cubeFaces(4, [
+          [150, 198, 255, 255],
+          [94, 148, 232, 255],
+          [244, 252, 255, 255],
+          [44, 70, 108, 255],
+          [176, 222, 255, 255],
+          [82, 126, 198, 255],
+        ]),
+        format: "rgba8unorm",
+        mipLevelCount: 3,
+      },
+      standardMaterialCount: 1,
+    },
+  ];
+}
+
+function cubeFaces(faceSize, colors) {
+  return colors.map((color, face) => {
+    const data = new Uint8Array(faceSize * faceSize * 4);
+
+    for (let index = 0; index < data.length; index += 4) {
+      const shade = 1 - face * 0.025;
+
+      data[index] = Math.round(color[0] * shade);
+      data[index + 1] = Math.round(color[1] * shade);
+      data[index + 2] = Math.round(color[2] * shade);
+      data[index + 3] = color[3];
+    }
+
+    return data;
+  });
 }
 
 async function createOutdoorShadowFrame(input) {

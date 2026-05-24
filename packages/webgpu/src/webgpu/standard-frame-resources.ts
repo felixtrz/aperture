@@ -909,6 +909,9 @@ function createLightIblBindGroup(
   const shadowReceiverResources = shadowRequired
     ? options.shadowReceiverResources
     : undefined;
+  const cascadedShadowMap = options.pipelineKey.includes(
+    "cascadedShadowMap",
+  );
   const plan = createStandardLightIblBindGroupDescriptorPlan({
     lightGpuBufferResource: lightGpuBuffers.resource,
     layoutKey: options.lightLayout?.layoutKey ?? null,
@@ -922,6 +925,7 @@ function createLightIblBindGroup(
       : {}),
     samplerResource: iblResources.samplerResource,
     shadowRequired,
+    cascadedShadowMap,
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
     localLightClusterResources: localLightClusters,
     ...(shadowReceiverResources === undefined

@@ -1,5 +1,35 @@
 # Completed Tasks
 
+## task-3129 — Combine cascaded directional shadows with IBL
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added a distinct StandardMaterial group-3 layout for cascaded directional
+  shadows plus IBL, binding light buffers, cascaded 2D-array depth, comparison
+  sampler, diffuse IBL cube texture, IBL sampler, and specular IBL cube texture
+  in one draw route.
+- Routed combined `shadowMap|cascadedShadowMap|iblDiffuse` pipeline keys
+  through the new app pipeline layout and frame-resource bind-group planning.
+- Fixed the shader injection path so cascaded shadow receivers keep diffuse and
+  specular IBL in the final shadowed color expression.
+- Updated `examples/outdoor-scene.html` to register a renderer-owned
+  environment map, enable IBL by default, publish environment readiness, and
+  prove the combined CSM plus diffuse/specular IBL route with zero validation
+  warnings.
+- Updated public tracker pages, backlog, current-task pointer, and handoff.
+  Recommended next task is `task-3130`, cluster-aware local-light shadow/cookie
+  metadata.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-shader.test.ts --reporter=dot`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/outdoor-scene.spec.ts --project=chrome-webgpu-headed --reporter=line --timeout=60000 --trace=off`
+
 ## task-3128 — Replace clustered local-light cell scans with light-driven fill
 
 Completed: 2026-05-24

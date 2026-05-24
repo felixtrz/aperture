@@ -1,8 +1,10 @@
 import {
   STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY,
+  STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
   createStandardLightCascadedShadowBindGroupLayoutDescriptor,
+  createStandardLightIblBindGroupLayoutDescriptor,
   createStandardLightMultiShadowBindGroupDescriptorPlan,
   createStandardLightMultiShadowBindGroupLayoutDescriptor,
   createStandardLightShadowBindGroupDescriptorPlan,
@@ -53,6 +55,52 @@ describe("StandardMaterial light/shadow bind group", () => {
           },
         },
         { binding: 4, visibility: 2, sampler: { type: "comparison" } },
+      ],
+    });
+  });
+
+  it("plans a combined cascaded shadow and IBL group 3 layout", () => {
+    expect(
+      createStandardLightIblBindGroupLayoutDescriptor({
+        shadowMap: true,
+        cascadedShadowMap: true,
+        specularProof: true,
+      }),
+    ).toEqual({
+      label: STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY,
+      entries: [
+        { binding: 0, visibility: 2, buffer: { type: "read-only-storage" } },
+        { binding: 1, visibility: 2, buffer: { type: "read-only-storage" } },
+        { binding: 2, visibility: 3, buffer: { type: "read-only-storage" } },
+        {
+          binding: 3,
+          visibility: 2,
+          texture: {
+            sampleType: "depth",
+            viewDimension: "2d-array",
+            multisampled: false,
+          },
+        },
+        { binding: 4, visibility: 2, sampler: { type: "comparison" } },
+        {
+          binding: 5,
+          visibility: 2,
+          texture: {
+            sampleType: "float",
+            viewDimension: "cube",
+            multisampled: false,
+          },
+        },
+        { binding: 6, visibility: 2, sampler: { type: "filtering" } },
+        {
+          binding: 7,
+          visibility: 2,
+          texture: {
+            sampleType: "float",
+            viewDimension: "cube",
+            multisampled: false,
+          },
+        },
       ],
     });
   });

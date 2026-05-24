@@ -34,6 +34,14 @@ interface OutdoorSceneStatus extends ExampleStatusBase {
     readonly submitted: boolean;
     readonly lightGpuBuffers: number;
   };
+  readonly environment?: {
+    readonly enabled: boolean;
+    readonly ready: boolean;
+    readonly diffuseTextureStatus: string | null;
+    readonly specularTextureStatus: string | null;
+    readonly samplerStatus: string | null;
+    readonly bindGroupStatus: string | null;
+  };
   readonly shadow?: {
     readonly controls: {
       readonly receiverEnabled: boolean;
@@ -130,6 +138,19 @@ test("Playwright renders an outdoor scene with CSM and RectAreaLight", async ({
   await waitForOutdoorSceneFrame(page, 3, true);
   const noAreaScreenshot = await page.locator("#aperture-canvas").screenshot();
 
+  await page.goto("/examples/outdoor-scene.html?disable-ibl=1");
+  status = await waitForExampleStatus<OutdoorSceneStatus>(page);
+
+  expect(status, "outdoor no-IBL status should publish").toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  await waitForOutdoorSceneFrame(page, 3, true);
+  const noIblScreenshot = await page.locator("#aperture-canvas").screenshot();
+
   await page.goto("/examples/outdoor-scene.html?stop-after-ready=1");
   status = await waitForExampleStatus<OutdoorSceneStatus>(page);
 
@@ -162,6 +183,14 @@ test("Playwright renders an outdoor scene with CSM and RectAreaLight", async ({
       width: 1.65,
       height: 1.05,
       submitted: true,
+    },
+    environment: {
+      enabled: true,
+      ready: true,
+      diffuseTextureStatus: "available",
+      specularTextureStatus: "available",
+      samplerStatus: "available",
+      bindGroupStatus: "available",
     },
     shadow: {
       controls: {
@@ -207,7 +236,7 @@ test("Playwright renders an outdoor scene with CSM and RectAreaLight", async ({
       },
       rendering: {
         supported: true,
-        mode: "directional-csm-depth-array-compare",
+        mode: "directional-csm-depth-array-plus-ibl",
         cascadeCount: 4,
       },
     },
@@ -218,6 +247,8 @@ test("Playwright renders an outdoor scene with CSM and RectAreaLight", async ({
   });
   expect(status.areaLight?.lightGpuBuffers).toBeGreaterThanOrEqual(3);
   expect(status.shadow?.rendering.pipelineKey).toContain("cascadedShadowMap");
+  expect(status.shadow?.rendering.pipelineKey).toContain("iblDiffuse");
+  expect(status.shadow?.rendering.pipelineKey).toContain("iblSpecularProof");
   expect(
     status.shadow?.depthTextureResources.resources[0]?.attachmentViewKeys,
   ).toHaveLength(4);
@@ -234,6 +265,7 @@ test("Playwright renders an outdoor scene with CSM and RectAreaLight", async ({
   expectVisibleOutdoorScene(screenshot, status);
   expectCsmShadowActivation(noShadowScreenshot, screenshot, status);
   expectAreaLightActivation(noAreaScreenshot, screenshot, status);
+  expectIblActivation(noIblScreenshot, screenshot, status);
   webGpuValidation.expectNoWarnings();
   await page.goto("about:blank");
 });
@@ -373,6 +405,26 @@ function expectAreaLightActivation(
     maxDelta,
     `RectAreaLight should visibly change the left receiver; maxDelta=${maxDelta}`,
   ).toBeGreaterThan(8);
+}
+
+function expectIblActivation(
+  baseline: Buffer,
+  ibl: Buffer,
+  status: OutdoorSceneStatus,
+): void {
+  const clear = clearPixel(status);
+  const receiverRegion = { x0: 0.24, y0: 0.34, x1: 0.82, y1: 0.74 };
+  const maxDelta = maxRegionLuminanceDelta(
+    baseline,
+    ibl,
+    clear,
+    receiverRegion,
+  );
+
+  expect(
+    maxDelta,
+    `IBL should visibly change the CSM receiver route; maxDelta=${maxDelta}`,
+  ).toBeGreaterThan(5);
 }
 
 function clearPixel(status: OutdoorSceneStatus) {

@@ -59,8 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3129`: combine cascaded directional shadows and diffuse/specular
-IBL in one StandardMaterial route.
+Start `task-3130`: add cluster-aware local-light shadow/cookie metadata.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -189,12 +188,14 @@ build efficiency: Aperture now shades from per-view clusters, but the cluster
 builder still scans every local light for every cell, while PlayCanvas fills
 only the cell range touched by each light. `task-3128` now replaces that build
 shape with light-driven cell-range fill and browser-visible pressure telemetry.
-The next visible slice is `task-3129`, combining CSM plus IBL in one
-StandardMaterial route.
+`task-3129` now combines CSM plus IBL in one StandardMaterial route and proves
+the outdoor scene can bind a cascaded 2D-array shadow map alongside
+diffuse/specular IBL resources. The next visible slice is `task-3130`,
+cluster-aware local-light shadow/cookie metadata.
 
 Reference anchors for the next task (read before writing):
 
-- `references/three.js/src/renderers/WebGLRenderer.js`.
+- `references/engine/src/scene/lighting/world-clusters.js`.
 - `references/engine/src/scene/renderer/forward-renderer.js`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
@@ -687,6 +688,8 @@ Acceptance criteria:
   scan shape.
 
 ### task-3129 — Combine cascaded directional shadows with IBL
+
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/standard-*`, `packages/webgpu/src/webgpu/app.ts`, `examples/outdoor-scene.*`, `test/webgpu/`, `test/e2e/outdoor-scene.spec.ts`, tracker/docs.

@@ -1395,6 +1395,37 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
   });
 
+  it("declares cascaded directional shadows and IBL in one group 3 route", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      shadowMap: true,
+      cascadedShadowMap: true,
+      iblDiffuse: true,
+      iblSpecularProof: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.code).toContain(
+      "@group(3) @binding(3) var directionalShadowMap: texture_depth_2d_array;",
+    );
+    expect(shader.code).toContain(
+      "@group(3) @binding(5) var standardDiffuseIblTexture: texture_cube<f32>;",
+    );
+    expect(shader.code).toContain(
+      "@group(3) @binding(7) var standardSpecularIblTexture: texture_cube<f32>;",
+    );
+    expect(shader.code).toContain(
+      "let color = (ambientDiffuse + diffuseIbl + specularIblProof + direct) * receiverShadowFactor + material.emissiveFactor;",
+    );
+  });
+
   it("declares non-overlapping bindings for combined 2D and cube shadow receivers", () => {
     const shader = createStandardTextureVariantShader({
       baseColorTexture: false,

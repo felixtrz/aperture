@@ -30,7 +30,10 @@ import {
   STANDARD_SKINNED_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY,
   standardMorphTargetsEnabledFromBatchKey,
 } from "./standard-morph-target-shader.js";
-import { STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY } from "./standard-light-shadow-bind-group.js";
+import {
+  STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY,
+  STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY,
+} from "./standard-light-shadow-bind-group.js";
 import { CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE } from "./local-light-clusters.js";
 import type { BuiltInShaderSourceModule } from "./unlit-shader.js";
 
@@ -308,12 +311,16 @@ function standardBindGroupLayoutKeys(
       : features.pointShadowMap === true
         ? "standard/lights-point-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth-cube@3,sampler@4"
         : features.shadowMap === true
-          ? features.cascadedShadowMap === true && features.iblDiffuse !== true
-            ? `${STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY}:light-floats@0,light-metadata@1,matrix@2,depth-array@3,sampler@4`
-            : features.iblDiffuse === true
+          ? features.iblDiffuse === true
               ? features.iblSpecularProof === true
-                ? "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7"
-                : "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6"
+                ? features.cascadedShadowMap === true
+                  ? `${STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY}:light-floats@0,light-metadata@1,matrix@2,depth-array@3,sampler@4,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7`
+                  : "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7"
+                : features.cascadedShadowMap === true
+                  ? `${STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY}:light-floats@0,light-metadata@1,matrix@2,depth-array@3,sampler@4,diffuse-ibl@5,ibl-sampler@6`
+                  : "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6"
+            : features.cascadedShadowMap === true
+              ? `${STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY}:light-floats@0,light-metadata@1,matrix@2,depth-array@3,sampler@4`
               : "standard/lights-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4"
           : features.iblDiffuse === true
             ? features.iblSpecularProof === true

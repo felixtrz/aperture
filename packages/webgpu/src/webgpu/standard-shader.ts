@@ -4664,6 +4664,13 @@ function applyStandardDiffuseIblSampling(code: string): string {
       `${sample}
   let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
   let color = (ambientDiffuse + diffuseIbl + direct) * receiverShadowFactor + material.emissiveFactor;`,
+    )
+    .replace(
+      `  let receiverShadowFactor = sampleDirectionalShadowReceiverFactor(input.worldPosition);
+  let color = (ambientDiffuse + direct) * receiverShadowFactor + material.emissiveFactor;`,
+      `${sample}
+  let receiverShadowFactor = sampleDirectionalShadowReceiverFactor(input.worldPosition);
+  let color = (ambientDiffuse + diffuseIbl + direct) * receiverShadowFactor + material.emissiveFactor;`,
     );
 }
 
