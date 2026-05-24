@@ -1,6 +1,53 @@
 # Agent Handoff
 
-Updated: 2026-05-24T02:47:25Z
+Updated: 2026-05-24T03:08:45Z
+
+## Current Run Update — 2026-05-24T03:08:45Z — Clustered local spot shadows
+
+Completed `task-3132`, rendering supported clustered local spot-light shadows
+through the StandardMaterial clustered-light route.
+
+### What changed
+
+- Clustered local-light metadata now accepts supported spot-shadow resources in
+  addition to supported point-shadow resources, marking only matching
+  shadow/light pairs as `sampling-ready`.
+- App and frame resource preparation derives supported spot-shadow identities
+  from renderer-owned spot or multi-shadow receiver resources without putting
+  GPU handles into ECS snapshots.
+- StandardMaterial clustered spot lights now sample spot-shadow visibility from
+  the metadata matrix base and multiply only the matching clustered spot-light
+  contribution; unsupported metadata-only lights keep direct lighting and
+  report JSON-safe fallback state.
+- `examples/clustered-lights.html` now includes a second-layer spot light,
+  caster, opt-in `enable-cluster-spot-shadow` route, renderer-owned spot shadow
+  pass, and status for point/spot clustered shadow readiness.
+- Public progress pages and agent task trackers now point at `task-3133`,
+  clustered local-light cookie sampling, as the next visible SOTA slice.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/light-bind-group.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- Browser spot route probe: `clustered-lights.html?disable-cluster-point-shadow=1&enable-cluster-spot-shadow=1` reported supported spot shadow resources, route metadata `sampling-ready` for layer 2, diagnostics `0`, and a nonzero rendered readback when loaded in a fresh headed Chrome page.
+
+### Known issues
+
+- The local headed Playwright `clustered-lights` spec still hits the existing
+  browser teardown/focus flake. In multi-navigation runs, Chrome can return
+  transparent-zero current-texture readback for a later page even though the
+  same route reports supported resources and renders when loaded as the first
+  fresh page. The spec was updated for the spot route, but the reliable proof
+  for this run is the bounded fresh-page browser probe above plus focused unit
+  coverage.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3133`, adding clustered local-light cookie sampling.
 
 ## Current Run Update — 2026-05-24T02:40:17Z — Clustered local point shadows
 

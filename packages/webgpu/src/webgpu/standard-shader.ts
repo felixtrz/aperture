@@ -1881,8 +1881,12 @@ ${emissive}
   if (features.clusteredLocalLights === true) {
     code = applyStandardClusteredLocalLightSampling(code, {
       pointShadowMap: features.pointShadowMap === true,
+      spotShadowMap:
+        features.shadowMap === true && features.cascadedShadowMap !== true,
       removeGlobalPointShadowReceiverFactor:
         features.pointShadowMap === true && features.shadowMap !== true,
+      removeGlobalSpotShadowReceiverFactor:
+        features.shadowMap === true && features.cascadedShadowMap !== true,
     });
   }
 
@@ -3656,7 +3660,9 @@ function applyStandardClusteredLocalLightSampling(
   code: string,
   options: {
     readonly pointShadowMap: boolean;
+    readonly spotShadowMap: boolean;
     readonly removeGlobalPointShadowReceiverFactor: boolean;
+    readonly removeGlobalSpotShadowReceiverFactor: boolean;
   },
 ): string {
   const pointShadowFactorFunction = options.pointShadowMap
@@ -3680,6 +3686,27 @@ function applyStandardClusteredLocalLightSampling(
     : `fn localLightClusterPointShadowFactor(position: vec3f, lightIndex: u32, lightPosition: vec3f) -> f32 {
   _ = position;
   _ = lightPosition;
+  return localLightClusterUnsupportedShadowFactor(lightIndex);
+}`;
+  const spotShadowFactorFunction = options.spotShadowMap
+    ? `fn localLightClusterSpotShadowFactor(position: vec3f, lightIndex: u32) -> f32 {
+  let metadataFlags = localLightClusterMetadataFlags(lightIndex);
+
+  if ((metadataFlags & ${LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST}u) == 0u) {
+    return 1.0;
+  }
+
+  if ((metadataFlags & ${LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED}u) == 0u) {
+    return localLightClusterUnsupportedShadowFactor(lightIndex);
+  }
+
+  return sampleSpotShadowFactorWithMatrixBase(
+    position,
+    localLightClusterPointShadowMatrixBase(lightIndex),
+  );
+}`
+    : `fn localLightClusterSpotShadowFactor(position: vec3f, lightIndex: u32) -> f32 {
+  _ = position;
   return localLightClusterUnsupportedShadowFactor(lightIndex);
 }`;
   const clusteredLightLoop = `  for (var lightIndex = 0u; lightIndex < lightCount(); lightIndex = lightIndex + 1u) {
@@ -3777,6 +3804,8 @@ fn localLightClusterUnsupportedShadowFactor(lightIndex: u32) -> f32 {
 }
 
 ${pointShadowFactorFunction}
+
+${spotShadowFactorFunction}
 
 fn localLightClusterViewMatrix() -> mat4x4f {
   return mat4x4f(
@@ -3916,12 +3945,12 @@ fn evaluateClusteredLocalLights(
         if (rangeAttenuation > 0.0 && lightDistance > 0.0001) {
           let lightDir = toLight / lightDistance;
           let coneAttenuation = spotLightConeAttenuation(lightIndex, -lightDir);
-          let unsupportedShadowFactor = localLightClusterUnsupportedShadowFactor(lightIndex);
+          let shadowFactor = localLightClusterSpotShadowFactor(position, lightIndex);
           clusteredDirect = clusteredDirect + evaluateDirectLight(
             normal,
             viewDir,
             lightDir,
-            lightRadiance(lightIndex) * rangeAttenuation * coneAttenuation * unsupportedShadowFactor,
+            lightRadiance(lightIndex) * rangeAttenuation * coneAttenuation * shadowFactor,
             baseColor,
             metallic,
             roughness,
@@ -4028,6 +4057,42 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {`,
       .replace(
         `  let receiverPointShadowFactor = samplePointShadowReceiverFactor(input.worldPosition);
   let color = (ambientDiffuse + direct) * receiverPointShadowFactor + emissive;`,
+        `  let color = ambientDiffuse + direct + emissive;`,
+      );
+  }
+
+  if (options.removeGlobalSpotShadowReceiverFactor === true) {
+    result = result
+      .replace(
+        `  let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
+  let color = (ambientDiffuse + direct) * receiverShadowFactor + material.emissiveFactor;`,
+        `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
+      )
+      .replace(
+        `  let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
+  let color = (ambientDiffuse + direct) * receiverShadowFactor + emissive;`,
+        `  let color = ambientDiffuse + direct + emissive;`,
+      )
+      .replace(
+        `  let receiverShadowFactor = min(
+    min(
+      sampleDirectionalShadowFactor(input.worldPosition),
+      sampleSpotShadowFactor(input.worldPosition),
+    ),
+    samplePointShadowReceiverFactor(input.worldPosition),
+  );
+  let color = (ambientDiffuse + direct) * receiverShadowFactor + material.emissiveFactor;`,
+        `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
+      )
+      .replace(
+        `  let receiverShadowFactor = min(
+    min(
+      sampleDirectionalShadowFactor(input.worldPosition),
+      sampleSpotShadowFactor(input.worldPosition),
+    ),
+    samplePointShadowReceiverFactor(input.worldPosition),
+  );
+  let color = (ambientDiffuse + direct) * receiverShadowFactor + emissive;`,
         `  let color = ambientDiffuse + direct + emissive;`,
       );
   }
@@ -4209,7 +4274,15 @@ fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32 {
     return 1.0;
   }
 
-  let shadowPosition = directionalShadowMatrices[0] * vec4f(worldPosition, 1.0);
+  return sampleSpotShadowFactorWithMatrixBase(worldPosition, 0u);
+}
+
+fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u32) -> f32 {
+  if (matrixBaseIndex >= arrayLength(&directionalShadowMatrices)) {
+    return 1.0;
+  }
+
+  let shadowPosition = directionalShadowMatrices[matrixBaseIndex] * vec4f(worldPosition, 1.0);
 
   if (abs(shadowPosition.w) <= 0.00001) {
     return 1.0;
@@ -4536,12 +4609,12 @@ fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32 {
   return mix(STANDARD_SHADOW_MIN_VISIBILITY, 1.0, visibility);
 }
 
-fn sampleSpotShadowFactor(worldPosition: vec3f) -> f32 {
-  if (arrayLength(&spotShadowMatrices) == 0u) {
+fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u32) -> f32 {
+  if (matrixBaseIndex >= arrayLength(&spotShadowMatrices)) {
     return 1.0;
   }
 
-  let shadowPosition = spotShadowMatrices[0] * vec4f(worldPosition, 1.0);
+  let shadowPosition = spotShadowMatrices[matrixBaseIndex] * vec4f(worldPosition, 1.0);
 
   if (abs(shadowPosition.w) <= 0.00001) {
     return 1.0;
@@ -4581,6 +4654,10 @@ fn sampleSpotShadowFactor(worldPosition: vec3f) -> f32 {
   );
 
   return mix(STANDARD_SHADOW_MIN_VISIBILITY, 1.0, visibility);
+}
+
+fn sampleSpotShadowFactor(worldPosition: vec3f) -> f32 {
+  return sampleSpotShadowFactorWithMatrixBase(worldPosition, 0u);
 }
 
 fn pointShadowFaceIndex(toReceiver: vec3f) -> u32 {

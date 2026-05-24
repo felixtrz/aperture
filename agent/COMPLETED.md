@@ -1,5 +1,38 @@
 # Completed Tasks
 
+## task-3132 — Render clustered local spot-light shadows
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added supported spot-shadow resource identity to clustered local-light
+  metadata so matching spot shadow/light pairs report `sampling-ready` while
+  unsupported metadata-only lights preserve direct clustered lighting.
+- Routed renderer-owned spot-shadow matrix, 2D depth, and comparison sampler
+  resources into clustered StandardMaterial frame resources without exposing GPU
+  handles through ECS or snapshots.
+- Updated StandardMaterial clustered spot-light WGSL so supported local spot
+  lights multiply direct lighting by spot-shadow visibility from the metadata
+  matrix base.
+- Expanded `examples/clustered-lights.html` with a second-layer spot light,
+  spot caster, renderer-owned spot shadow pass, and opt-in
+  `enable-cluster-spot-shadow` status/proof route.
+- Updated focused cluster metadata, shader, browser status, and progress
+  tracker coverage. Recommended next task is `task-3133`, adding clustered
+  local-light cookie sampling.
+
+Validation:
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/light-bind-group.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- Fresh-page headed Chrome probe for
+  `examples/clustered-lights.html?disable-cluster-point-shadow=1&enable-cluster-spot-shadow=1`:
+  route metadata `sampling-ready` for the spot route, supported spot resources,
+  nonzero readback, diagnostics `0`.
+
 ## task-3131 — Render clustered local point-light shadows
 
 Completed: 2026-05-24

@@ -28,6 +28,7 @@ import {
   CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
   createLocalLightClusterDescriptor,
   type LocalLightClusterSupportedPointShadowResource,
+  type LocalLightClusterSupportedSpotShadowResource,
 } from "./local-light-clusters.js";
 import type {
   StandardLightShadowBindGroupLayoutResource,
@@ -232,6 +233,9 @@ export function createOrReuseStandardAppFrameResources(options: {
           supportedPointShadowResourcesFromReceiver(
             options.shadowReceiverResources,
           ),
+        supportedSpotShadowResources: supportedSpotShadowResourcesFromReceiver(
+          options.shadowReceiverResources,
+        ),
       })
     : null;
   const localLightClusterResourceKey =
@@ -607,6 +611,42 @@ function supportedPointShadowResourcesFromReceiver(
     {
       shadowId: firstPointDepth.shadowId,
       lightId: firstPointDepth.lightId,
+      matrixBaseIndex: 0,
+    },
+  ];
+}
+
+function supportedSpotShadowResourcesFromReceiver(
+  resources: StandardFrameShadowReceiverResources | undefined,
+): readonly LocalLightClusterSupportedSpotShadowResource[] {
+  const spotResources =
+    resources?.shadowKind === "multi"
+      ? resources.spotShadowReceiverResources
+      : resources?.shadowKind === "spot"
+        ? resources
+        : undefined;
+
+  if (
+    spotResources?.matrixBufferResource.resource === null ||
+    spotResources?.samplerResource.resource === null
+  ) {
+    return [];
+  }
+
+  const firstSpotDepth = spotResources?.depthTextureResources.resources.find(
+    (resource) =>
+      resource.viewDimension === "2d" &&
+      resource.allocation.resource !== null,
+  );
+
+  if (firstSpotDepth === undefined) {
+    return [];
+  }
+
+  return [
+    {
+      shadowId: firstSpotDepth.shadowId,
+      lightId: firstSpotDepth.lightId,
       matrixBaseIndex: 0,
     },
   ];

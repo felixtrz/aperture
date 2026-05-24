@@ -1477,6 +1477,9 @@ describe("built-in standard material WGSL shader metadata", () => {
       "fn sampleSpotShadowFactor(worldPosition: vec3f) -> f32",
     );
     expect(shader.code).toContain(
+      "fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u32) -> f32",
+    );
+    expect(shader.code).toContain(
       "fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32",
     );
   });
@@ -1517,6 +1520,45 @@ describe("built-in standard material WGSL shader metadata", () => {
       "direct = direct + evaluateClusteredLocalLights",
     );
     expect(shader.code.match(/if \(kind == LIGHT_KIND_POINT\)/g)).toHaveLength(
+      1,
+    );
+  });
+
+  it("samples supported spot shadows from clustered local-light metadata", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      shadowMap: true,
+      clusteredLocalLights: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.code).toContain(
+      "@group(3) @binding(3) var directionalShadowMap: texture_depth_2d;",
+    );
+    expect(shader.code).toContain("fn localLightClusterSpotShadowFactor");
+    expect(shader.code).toContain(
+      "sampleSpotShadowFactorWithMatrixBase(",
+    );
+    expect(shader.code).toContain(
+      "localLightClusterPointShadowMatrixBase(lightIndex)",
+    );
+    expect(shader.code).toContain(
+      "let shadowFactor = localLightClusterSpotShadowFactor(position, lightIndex);",
+    );
+    expect(shader.code).toContain(
+      "lightRadiance(lightIndex) * rangeAttenuation * coneAttenuation * shadowFactor",
+    );
+    expect(shader.code).not.toContain(
+      "let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);",
+    );
+    expect(shader.code.match(/if \(kind == LIGHT_KIND_SPOT\)/g)).toHaveLength(
       1,
     );
   });

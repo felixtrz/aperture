@@ -58,11 +58,17 @@ export type LocalLightClusterFeatureStatus =
   | "metadata-only"
   | "not-supported";
 
-export interface LocalLightClusterSupportedPointShadowResource {
+export interface LocalLightClusterSupportedShadowResource {
   readonly shadowId: number;
   readonly lightId: number;
   readonly matrixBaseIndex?: number;
 }
+
+export type LocalLightClusterSupportedPointShadowResource =
+  LocalLightClusterSupportedShadowResource;
+
+export type LocalLightClusterSupportedSpotShadowResource =
+  LocalLightClusterSupportedShadowResource;
 
 export interface LocalLightClusterShadowCookieMetadata {
   readonly wordsPerLight: typeof LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE;
@@ -94,6 +100,7 @@ export interface LocalLightClusterDescriptorOptions {
   readonly viewId?: number;
   readonly layerMask?: number;
   readonly supportedPointShadowResources?: readonly LocalLightClusterSupportedPointShadowResource[];
+  readonly supportedSpotShadowResources?: readonly LocalLightClusterSupportedSpotShadowResource[];
 }
 
 export type LocalLightClusterFallbackReason =
@@ -272,6 +279,7 @@ export function createLocalLightClusterDescriptor(
     localLights.spheres,
     layerMask,
     options.supportedPointShadowResources ?? [],
+    options.supportedSpotShadowResources ?? [],
   );
   const clusterSpace = selectLocalLightClusterSpace(snapshot, {
     ...(options.coordinateSpace === undefined
@@ -772,6 +780,7 @@ function createLocalLightClusterShadowCookieMetadata(
   clusteredLights: readonly LocalLightSphere[],
   layerMask: number | null,
   supportedPointShadowResources: readonly LocalLightClusterSupportedPointShadowResource[],
+  supportedSpotShadowResources: readonly LocalLightClusterSupportedSpotShadowResource[],
 ): LocalLightClusterShadowCookieMetadataResult {
   const metadata = new Uint32Array(
     Math.max(
@@ -805,6 +814,12 @@ function createLocalLightClusterShadowCookieMetadata(
       Math.max(resource.matrixBaseIndex ?? index * 6, 0),
     ]),
   );
+  const supportedSpotShadowByKey = new Map(
+    supportedSpotShadowResources.map((resource, index) => [
+      `${resource.shadowId}:${resource.lightId}`,
+      Math.max(resource.matrixBaseIndex ?? index, 0),
+    ]),
+  );
 
   for (const request of snapshot.shadowRequests) {
     const lightIndex = localLightIndexById.get(request.lightId);
@@ -829,6 +844,8 @@ function createLocalLightClusterShadowCookieMetadata(
     const supportedMatrixBaseIndex =
       request.lightKind === "point"
         ? supportedPointShadowByKey.get(`${request.shadowId}:${request.lightId}`)
+        : request.lightKind === "spot"
+          ? supportedSpotShadowByKey.get(`${request.shadowId}:${request.lightId}`)
         : undefined;
     const metadataOffset =
       lightIndex * LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE;

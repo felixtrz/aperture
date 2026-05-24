@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 02:40 UTC</dd>
+            <dd>2026-05-24 04:05 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1519,16 +1519,17 @@
               StandardMaterial route, and
               <code>examples/outdoor-scene.html</code> proves the combined
               route. Clustered local-light resources now also carry JSON-safe
-              shadow/cookie metadata through binding 19, and supported
-              clustered point lights can sample renderer-owned cube shadow maps
+              shadow/cookie metadata through binding 19. Supported clustered
+              point lights can sample renderer-owned cube shadow maps, and
+              opt-in clustered spot lights can bind renderer-owned 2D spot
+              shadow resources and sample the matching per-light matrix route
               while metadata-only lights keep direct clustered lighting.
-              <code>examples/clustered-lights.html</code> proves one clustered
-              point-shadow receiver darkens against a no-point-shadow baseline.
-              The next SOTA blocker is clustered local spot-light shadow
-              sampling.
+              <code>examples/clustered-lights.html</code> now exposes both
+              clustered point-shadow and spot-shadow proof routes.
+              The next SOTA blocker is clustered local-light cookie sampling.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3132 clustered local spot-light shadows</dd>
+            <dd>task-3133 clustered local-light cookie sampling</dd>
           </dl>
         </aside>
       </header>
@@ -2337,11 +2338,13 @@
               camera-dependent bins. Supported clustered point lights now bind
               renderer-owned cube shadow resources and apply point-shadow
               visibility in the clustered StandardMaterial local-light loop.
+              Clustered spot lights can also opt into renderer-owned 2D shadow
+              resources and sample spot-shadow visibility from clustered
+              metadata.
             </p>
             <ul>
               <li>
-                Next visible SOTA gap: clustered local spot-light shadow
-                sampling.
+                Next visible SOTA gap: clustered local-light cookie sampling.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -4660,8 +4663,8 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Run
-                <code>task-3132</code>: render clustered local spot-light
-                shadows.
+                <code>task-3133</code>: add clustered local-light cookie
+                sampling.
               </li>
               <li>
                 Then continue into clustered local-light cookie sampling before
@@ -4678,6 +4681,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3132</div>
+            <div>
+              <strong>Clustered local spot shadows shipped.</strong>
+              <span>
+                Supported clustered spot lights now bind renderer-owned 2D
+                shadow resources, sample spot-shadow visibility through the
+                clustered StandardMaterial metadata path, and
+                <code>examples/clustered-lights.html</code> exposes an opt-in
+                spot-shadow proof route.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3131</div>
             <div>

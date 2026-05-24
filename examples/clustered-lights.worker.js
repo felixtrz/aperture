@@ -2,6 +2,7 @@ const clearColor = [0.012, 0.016, 0.022, 1];
 const localLightGrid = { columns: 8, rows: 8 };
 const shadowMetadataLightIndices = new Set([28, 29, 36, 37]);
 const primaryShadowCasterPosition = [-0.755, -0.074, 0.52];
+const spotShadowCasterPosition = [1.12, -0.18, 0.54];
 
 let apertureModulePromise = null;
 let scene = null;
@@ -53,6 +54,10 @@ async function handleMessage(data) {
           ),
           casterMeshKey: aperture.assetHandleKey(scene.casterMesh),
           casterMaterialKey: aperture.assetHandleKey(scene.casterMaterial),
+          spotCasterMeshKey: aperture.assetHandleKey(scene.spotCasterMesh),
+          spotCasterMaterialKey: aperture.assetHandleKey(
+            scene.spotCasterMaterial,
+          ),
           localLights: scene.localLightCount,
           routeLocalLights: scene.routeLocalLightCount,
           routeShadowMetadataLights: scene.routeShadowMetadataLightCount,
@@ -156,6 +161,15 @@ function createWorkerScene(aperture, canvasSize, cameraFrameOffset) {
     aperture.withVisibility(true),
   );
   app.spawn(
+    aperture.withTransform({ translation: spotShadowCasterPosition }),
+    aperture.withMesh(assets.spotCasterMesh),
+    aperture.withMaterial(assets.spotCasterMaterial),
+    aperture.withRenderLayer(2),
+    aperture.withShadowCaster(true),
+    aperture.withShadowReceiver(false),
+    aperture.withVisibility(true),
+  );
+  app.spawn(
     aperture.withLight({
       kind: aperture.LightKind.Ambient,
       color: [0.35, 0.39, 0.46, 1],
@@ -174,6 +188,26 @@ function createWorkerScene(aperture, canvasSize, cameraFrameOffset) {
 
   spawnPointLightGrid(aperture, app, { layerMask: 1, xOffset: -1.1 });
   spawnPointLightGrid(aperture, app, { layerMask: 2, xOffset: 1.1 });
+  app.spawn(
+    aperture.withTransform({ translation: [1.12, -0.18, 1.92] }),
+    aperture.withLight({
+      kind: aperture.LightKind.Spot,
+      color: [0.88, 0.96, 1, 1],
+      intensity: 34,
+      range: 4.2,
+      innerConeAngle: 0.18,
+      outerConeAngle: 0.54,
+      layerMask: 2,
+    }),
+    aperture.withLightShadowSettings({
+      enabled: true,
+      mapSize: 256,
+      bias: 0.002,
+      normalBias: 0.01,
+      casterLayerMask: 2,
+      receiverLayerMask: 2,
+    }),
+  );
 
   return {
     app,
@@ -184,8 +218,10 @@ function createWorkerScene(aperture, canvasSize, cameraFrameOffset) {
     secondaryPanelMaterial: assets.secondaryPanelMaterial,
     casterMesh: assets.casterMesh,
     casterMaterial: assets.casterMaterial,
+    spotCasterMesh: assets.spotCasterMesh,
+    spotCasterMaterial: assets.spotCasterMaterial,
     cameraFrameOffset,
-    localLightCount: localLightGrid.columns * localLightGrid.rows * 2,
+    localLightCount: localLightGrid.columns * localLightGrid.rows * 2 + 1,
     routeLocalLightCount: localLightGrid.columns * localLightGrid.rows,
     routeShadowMetadataLightCount: 4,
   };
@@ -254,6 +290,25 @@ function registerClusteredLightAssets(aperture, registry) {
     }),
     { id: "clustered-lights-point-shadow-caster-standard" },
   );
+  const spotCasterMesh = assets.meshes.add(
+    aperture.createBoxMeshAsset({
+      label: "ClusteredSpotShadowCaster",
+      width: 0.48,
+      height: 0.48,
+      depth: 0.48,
+    }),
+    { id: "clustered-lights-spot-shadow-caster" },
+  );
+  const spotCasterMaterial = assets.materials.standard.add(
+    aperture.createStandardMaterialAsset({
+      label: "ClusteredSpotShadowCasterStandard",
+      baseColorFactor: new Float32Array([0.36, 0.86, 0.92, 1]),
+      metallicFactor: 0.04,
+      roughnessFactor: 0.56,
+      emissiveFactor: [0, 0, 0],
+    }),
+    { id: "clustered-lights-spot-shadow-caster-standard" },
+  );
 
   return {
     panelMesh,
@@ -261,6 +316,8 @@ function registerClusteredLightAssets(aperture, registry) {
     secondaryPanelMaterial,
     casterMesh,
     casterMaterial,
+    spotCasterMesh,
+    spotCasterMaterial,
   };
 }
 

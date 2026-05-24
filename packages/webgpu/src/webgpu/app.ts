@@ -1455,7 +1455,10 @@ function createStandardAppPipelineLayouts(
   const usesClusteredLocalLights =
     pipelineResourceKey.includes("cluster-params@16");
   const autoLayoutKeySuffix =
-    usesLightPointShadowGroup && usesClusteredLocalLights
+    (usesLightShadowGroup ||
+      usesLightPointShadowGroup ||
+      usesLightMultiShadowGroup) &&
+    usesClusteredLocalLights
       ? `/pipeline:${pipelineResourceKey}`
       : "";
   const baseLightLayoutKey = usesLightShadowIblGroup

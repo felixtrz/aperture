@@ -3,30 +3,30 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: task-3132.
+Current task: task-3133.
 
-Status: `task-3131` completed clustered local point-light shadow sampling.
+Status: `task-3132` completed clustered local spot-light shadow sampling.
 
 Key finding:
 
-- Clustered local-light metadata can now mark point-shadow resources as
-  `sampling-ready` only when renderer-owned cube depth, matrix, and sampler
-  resources exist for the matching shadow/light pair.
-- StandardMaterial clustered point lights now multiply direct local lighting by
-  a point-shadow visibility factor for supported metadata while preserving
+- Clustered local-light metadata can now mark spot-shadow resources as
+  `sampling-ready` when renderer-owned 2D depth, matrix, and sampler resources
+  exist for the matching shadow/light pair.
+- StandardMaterial clustered spot lights now multiply direct local lighting by
+  a spot-shadow visibility factor for supported metadata while preserving
   direct lighting for unsupported metadata-only lights.
-- `examples/clustered-lights.html` now prepares a renderer-owned point-shadow
-  cube pass for the clustered route, proves a readback sample darkens relative
-  to the no-point-shadow baseline, and reports zero WebGPU validation warnings.
+- `examples/clustered-lights.html` now exposes an opt-in clustered spot-shadow
+  route with a renderer-owned spot shadow pass and JSON-safe supported-route
+  status, while the default clustered point-shadow route remains intact.
 - The WebGPU app uses pipeline-scoped bind-group layout keys for clustered
-  point-shadow StandardMaterial routes to avoid incompatible auto-layout bind
+  2D/cube shadow StandardMaterial routes to avoid incompatible auto-layout bind
   group reuse between shadowed and non-shadowed clustered pipelines.
 
-Next step: run `task-3132` from `agent/BACKLOG.md`, rendering clustered local
-spot-light shadows from the metadata route.
+Next step: run `task-3133` from `agent/BACKLOG.md`, adding clustered local-light
+cookie sampling.
 
 Reference anchors for the next task:
 
-- `references/engine/src/scene/lighting/world-clusters.js`.
 - `references/engine/src/scene/lighting/lights-buffer.js`.
-- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
+- `references/engine/src/scene/renderer/forward-renderer.js`.
+- `references/three.js/src/renderers/WebGLRenderer.js`.
