@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "ee52e32",
+  "lastCommit": "60162d8",
   "activePid": null,
-  "notes": "Completed task-3157 clustered-light cache pressure history with 30-frame rolling avoided clustered-buffer writes, skipped cookie-atlas tile updates, skipped local-shadow submissions, stable clustered pixels, focused browser proof, and updated tracker; next task-3158 adds a persistent Playwright render proof harness.",
-  "lastRunFinishedAt": "2026-05-24T15:42:23Z"
+  "notes": "Completed task-3158 persistent Playwright clustered route harness with one-page route reset, JSON-safe status/readback/frame/timing attachments, per-route WebGPU warning slices, focused browser proof, and updated tracker; next task-3159 runs the final covered render-pipeline SOTA audit.",
+  "lastRunFinishedAt": "2026-05-24T15:49:57Z"
 }

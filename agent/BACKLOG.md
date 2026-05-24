@@ -59,10 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3158`: add a persistent Playwright render proof harness for the
-clustered-light routes so the remaining SOTA audits can reuse one browser
-session, reset route state deterministically, and avoid the current headed
-runner churn.
+Start `task-3159`: perform the final covered render-pipeline SOTA audit against
+three.js and PlayCanvas using the pressure-history, profiler, queue, and
+clustered-light proofs now in the tree.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -1327,7 +1326,7 @@ safety, zero diagnostics, and zero relevant WebGPU validation warnings.
 
 ### task-3158 — Add persistent Playwright render proof harness
 
-Status: ready
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `docs-tooling`
 Package/write-scope: `test/e2e/`, `test/helpers/`, `scripts/`, `docs/`, `agent/`.
@@ -1348,6 +1347,39 @@ Acceptance criteria:
 - The old focused pressure-history proof remains valid, and the harness records
   whether it avoids the broad all-in-one clustered-lights spec hang observed in
   local headed runs.
+
+Completed: 2026-05-24.
+`test/e2e/persistent-route-harness.ts` now runs multiple example routes through
+one Playwright page with `about:blank` resets, JSON-safe status attachments,
+readback evidence, frame count, elapsed time, final URL, and per-route WebGPU
+validation warning slices. `test/e2e/clustered-lights.spec.ts` proves the
+default clustered route and `?enable-cluster-pressure-history=1` through the
+persistent harness in one browser session.
+
+### task-3159 — Final covered render-pipeline SOTA audit
+
+Status: ready
+
+Category: `audit-refactor`
+Package/write-scope: `docs/`, `agent/`, targeted tests if the audit exposes a
+small corrective issue.
+Reference anchor: `docs/render-pipeline-comparison.html`,
+`references/three.js/src/renderers/common/Renderer.js`,
+`references/engine/src/scene/renderer/frame-pass-update-clustered.js`.
+
+Acceptance criteria:
+
+- Re-audit the covered Aperture render pipeline phases against the current
+  comparison page and the cited three.js/PlayCanvas reference anchors, without
+  broadening the claim beyond Aperture's implemented scope.
+- Produce an evidence table that maps each claimed SOTA/efficiency lane to
+  concrete proof routes, tests, status fields, or command outputs.
+- Identify any remaining blockers as explicit backlog tasks with reference
+  anchors, or mark the covered pipeline SOTA claim as supported if evidence is
+  strong enough.
+- Run focused proof commands for the pressure-history route, persistent
+  clustered harness, GPU profiler phase history, transparent sort pressure, and
+  at least one queue/submit unit suite needed to support the claim.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

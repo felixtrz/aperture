@@ -1,6 +1,52 @@
 # Agent Handoff
 
-Updated: 2026-05-24T15:42:23Z
+Updated: 2026-05-24T15:49:57Z
+
+## Current Run Update — 2026-05-24T15:49:57Z — Persistent clustered route harness
+
+Completed `task-3158`, adding a reusable persistent Playwright route harness
+and proving it on clustered-light routes.
+
+### What changed
+
+- Added `test/e2e/persistent-route-harness.ts`.
+- The harness reuses one Playwright page, resets route state with
+  `about:blank`, and captures route URL, final URL, elapsed time, frame count,
+  example status, readback evidence, and route-local WebGPU validation warning
+  messages.
+- Added clustered-lights coverage that runs the default clustered route and
+  `?enable-cluster-pressure-history=1` through the same page.
+- The persistent proof keeps the standalone pressure-history route intact while
+  showing that clustered route proofs can be run without opening a page per
+  route.
+- Updated backlog, current task, completed-task records, status, and public
+  tracker pages to point to `task-3159`.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec prettier --check test/e2e/persistent-route-harness.ts test/e2e/clustered-lights.spec.ts`
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts -g "persistent route harness" --timeout=60000 --reporter=line`
+  passed.
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts -g "cache pressure history|persistent route harness" --timeout=60000 --reporter=line`
+  passed.
+
+### Known issues
+
+- The broad headed
+  `pnpm exec playwright test test/e2e/clustered-lights.spec.ts --timeout=45000`
+  run remains a known local wedge point in the older all-in-one route test.
+  Prefer focused route proofs and the persistent harness during the final audit.
+- The pre-existing working-tree deletion of `.codex/hooks.json`, untracked
+  `.playwright-mcp/` scratch directory, and untracked
+  `shadow-cookie-console-errors.txt` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3159`: perform the final covered render-pipeline SOTA audit against
+three.js and PlayCanvas using the committed profiler, queue, pressure-history,
+and clustered-light proof routes.
 
 ## Current Run Update — 2026-05-24T15:42:23Z — Clustered cache pressure history
 

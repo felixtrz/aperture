@@ -8,6 +8,7 @@ import {
   waitForExampleStatus,
 } from "./webgpu-status.js";
 import type { ExampleStatusBase } from "./example-status-types.js";
+import { createPersistentExampleRouteHarness } from "./persistent-route-harness.js";
 
 interface LocalLightClusterRouteStatus {
   readonly enabled: boolean;
@@ -1691,6 +1692,95 @@ test("clustered lights reports rolling cache pressure history", async ({
   expect(status.readbackStatus?.ok).toBe(true);
   expect(status.readbackStatus?.maxClearDistance ?? 0).toBeGreaterThan(24);
   webGpuValidation.expectNoWarnings();
+});
+
+test("clustered lights persistent route harness reuses one page", async ({
+  page,
+}) => {
+  const harness = createPersistentExampleRouteHarness(page);
+
+  const defaultProof = await harness.run<ClusteredLightsStatus>({
+    url: "/examples/clustered-lights.html?proof=persistent-harness-default",
+    attachmentName: "clustered-lights-persistent-default-proof",
+  });
+  const defaultStatus = defaultProof.status;
+
+  if (defaultStatus === undefined) {
+    return;
+  }
+
+  expect(defaultProof.routeIndex).toBe(1);
+  expect(defaultProof.finalUrl).toContain(
+    "/examples/clustered-lights.html?proof=persistent-harness-default",
+  );
+  expect(defaultProof.elapsedMs).toBeGreaterThan(0);
+  expect(defaultProof.frame ?? 0).toBeGreaterThan(0);
+  expect(defaultProof.readbackStatus).toMatchObject({ ok: true });
+  expect(defaultStatus).toMatchObject({
+    example: "clustered-lights",
+    ok: true,
+    phase: "submit",
+    clusterStatus: {
+      ok: true,
+      routePackedShadowCookieAtlasSamplingOk: true,
+    },
+    counts: {
+      diagnostics: 0,
+    },
+  });
+
+  const pressureProof = await harness.run<ClusteredLightsStatus>({
+    url: "/examples/clustered-lights.html?enable-cluster-pressure-history=1&proof=persistent-harness-pressure",
+    attachmentName: "clustered-lights-persistent-pressure-proof",
+  });
+  const pressureStatus = pressureProof.status;
+
+  if (pressureStatus === undefined) {
+    return;
+  }
+
+  expect(pressureProof.routeIndex).toBe(2);
+  expect(pressureProof.finalUrl).toContain(
+    "/examples/clustered-lights.html?enable-cluster-pressure-history=1&proof=persistent-harness-pressure",
+  );
+  expect(pressureProof.elapsedMs).toBeGreaterThan(0);
+  expect(pressureProof.frame ?? 0).toBeGreaterThanOrEqual(30);
+  expect(pressureProof.readbackStatus).toMatchObject({ ok: true });
+  expect(pressureStatus).toMatchObject({
+    example: "clustered-lights",
+    ok: true,
+    phase: "submit",
+    clusterStatus: {
+      ok: true,
+      routeClusteredShadowCacheReady: true,
+      routeClusteredBufferCacheReady: true,
+      routePackedShadowCookieAtlasSamplingOk: true,
+    },
+    clusterPressureHistoryStatus: {
+      enabled: true,
+      ready: true,
+      observedFrames: 30,
+      stablePixels: {
+        ready: true,
+      },
+    },
+    counts: {
+      diagnostics: 0,
+    },
+  });
+  expect(
+    pressureStatus.clusterPressureHistoryStatus?.avoided.clusterBufferWrites ??
+      0,
+  ).toBeGreaterThan(0);
+  expect(
+    pressureStatus.clusterPressureHistoryStatus?.avoided
+      .cookieAtlasTileUpdates ?? 0,
+  ).toBeGreaterThan(0);
+  expect(
+    pressureStatus.clusterPressureHistoryStatus?.avoided
+      .localShadowSubmissions ?? 0,
+  ).toBeGreaterThan(0);
+  expect(harness.messages).toEqual([]);
 });
 
 function maxSampleLuminanceDarkening(

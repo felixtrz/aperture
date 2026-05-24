@@ -1,5 +1,36 @@
 # Completed Tasks
 
+## task-3158 — Add persistent Playwright render proof harness
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added `test/e2e/persistent-route-harness.ts`, a reusable Playwright helper
+  that runs multiple example routes through one page.
+- The harness resets route state with `about:blank`, then captures route URL,
+  final URL, elapsed time, frame count, JSON-safe example status,
+  readback/readbackStatus evidence, and per-route WebGPU validation warning
+  messages.
+- Added focused clustered-lights coverage that runs the default clustered route
+  and `?enable-cluster-pressure-history=1` through one persistent page.
+- The harness keeps warning capture scoped per route, so a route proof can
+  fail with the exact validation messages emitted for that route without
+  opening a fresh page.
+
+Validation:
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec prettier --check test/e2e/persistent-route-harness.ts test/e2e/clustered-lights.spec.ts`
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts -g "persistent route harness" --timeout=60000 --reporter=line`
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts -g "cache pressure history|persistent route harness" --timeout=60000 --reporter=line`
+
+Known follow-up:
+
+- `task-3159` should run the final covered render-pipeline SOTA audit using
+  the accumulated profiler, queue, pressure-history, and clustered-light proof
+  routes.
+
 ## task-3157 — Add clustered-light cache pressure history to clustered-lights
 
 Completed: 2026-05-24
