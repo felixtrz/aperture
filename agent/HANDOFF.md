@@ -1,6 +1,52 @@
 # Agent Handoff
 
-Updated: 2026-05-24T10:56:47Z
+Updated: 2026-05-24T11:06:34Z
+
+## Current Run Update — 2026-05-24T11:06:34Z — Clustered shadow-cookie audit
+
+Completed `task-3149`, re-auditing clustered local shadow/cookie route pressure
+against PlayCanvas and three.js.
+
+### What changed
+
+- Compared Aperture's clustered shadow/cookie metadata, bind-group layout,
+  array packing, atlas packing, and shader sampling routes against the cited
+  PlayCanvas and three.js references.
+- Confirmed the compact array and flattened point-array shadow-cookie routes are
+  current for the covered StandardMaterial scope: they reuse spot-shadow
+  matrices, avoid the extra cookie-matrix storage buffer, and fit WebGPU minimum
+  storage-buffer pressure.
+- Confirmed three.js is behind this pressure lane because its
+  `WebGLShadowMap` path allocates per-light render targets or cube render
+  targets and renders per shadow face without clustered cookie packing.
+- Found the remaining PlayCanvas-parity gap: PlayCanvas keeps shadow and cookie
+  atlas sampling tied to the same per-light atlas slot/projection layout, while
+  Aperture's nonuniform cookie atlas is still packed independently by cookie
+  source texture dimensions. The compact atlas route needs a shadow-aligned
+  cookie atlas invariant before spot-shadow matrix reuse is generally correct.
+- Public trackers and agent task pointers now recommend `task-3150`, adding
+  shadow-aligned clustered cookie atlas packing/resampling for the compact
+  atlas shadow-cookie route.
+
+### Validation
+
+- `pnpm run check:progress`
+- `git diff --check`
+
+### Known issues
+
+- The task-3148 browser proof remains useful, but task-3149 found that the
+  generic atlas matrix-reuse invariant is not yet strong enough for arbitrary
+  nonuniform cookie dimensions.
+- The pre-existing working-tree deletion of `.codex/hooks.json`, untracked
+  `.playwright-mcp/` scratch directory, and untracked
+  `shadow-cookie-console-errors.txt` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3150`: add shadow-aligned clustered cookie atlas
+packing/resampling, then rerun the compact atlas shadow-cookie browser proof.
 
 ## Current Run Update — 2026-05-24T10:56:47Z — Atlas shadows plus atlas cookies
 

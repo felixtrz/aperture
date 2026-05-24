@@ -1,5 +1,42 @@
 # Completed Tasks
 
+## task-3149 — Re-audit clustered shadow/cookie route pressure
+
+Completed: 2026-05-24
+
+Summary:
+
+- Compared Aperture's clustered local shadow/cookie layout against the cited
+  PlayCanvas `LightsBuffer`, `LightTextureAtlas`, clustered cookie/shadow WGSL
+  chunks, and three.js `WebGLShadowMap`.
+- Confirmed Aperture is ahead of three.js in this specific pressure lane:
+  three.js uses per-light shadow render targets/cube render targets and
+  per-face shadow rendering without clustered cookie packing.
+- Confirmed Aperture's compact array and flattened point-array shadow-cookie
+  routes match the relevant PlayCanvas-style pressure goal: clustered metadata
+  selects packed resources, spot cookies can reuse spot-shadow matrices, and the
+  WebGPU-minimum layout avoids the extra cookie-matrix storage buffer.
+- Found one remaining concrete SOTA gap: PlayCanvas keeps a consistent atlas
+  slot/projection layout for shadow and cookie atlas sampling, while Aperture's
+  nonuniform cookie atlas is still independently packed from cookie source
+  dimensions. The compact atlas route therefore needs a shadow-aligned cookie
+  atlas invariant before matrix reuse is generally correct.
+- Public tracker pages now recommend `task-3150`, adding shadow-aligned
+  clustered cookie atlas packing/resampling for the compact atlas
+  shadow-cookie route.
+
+Validation:
+
+- `pnpm run check:progress`
+- `git diff --check`
+
+Known follow-up:
+
+- `task-3150` should expose per-light shadow atlas tile regions, build a
+  shadow-aligned cookie atlas for matching shadowed spot-cookie lights, and
+  select `clusteredLocalLightShadowCookies` for atlas routes only when that
+  invariant is satisfied.
+
 ## task-3148 — Combine nonuniform local shadow atlases with clustered cookie atlases
 
 Completed: 2026-05-24

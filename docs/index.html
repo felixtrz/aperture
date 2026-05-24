@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 10:59 UTC</dd>
+            <dd>2026-05-24 11:06 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1572,8 +1572,8 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Re-audit clustered shadow/cookie route pressure against
-              PlayCanvas and three.js
+              Add shadow-aligned clustered cookie atlases for compact
+              shadow-matrix reuse
             </dd>
           </dl>
         </aside>
@@ -2282,9 +2282,9 @@
           <article class="phase">
             <div class="topline">
               <h3>6. submit</h3>
-              <span class="percent">99%</span>
+              <span class="percent">98%</span>
             </div>
-            <div class="bar"><span style="width: 99%"></span></div>
+            <div class="bar"><span style="width: 98%"></span></div>
             <p>
               WebGPU command submission renders the current proof paths with
               pipeline, bind group, transform, light, mesh, and material
@@ -2418,16 +2418,16 @@
               selection. Nonuniform clustered spot-shadow maps now bind through
               one renderer-owned 2D atlas with atlas-adjusted per-light matrices
               and sequential metadata indices for non-array atlas resources.
-              Nonuniform atlas-backed clustered spot shadows now combine with
-              nonuniform atlas-backed clustered spot cookies by reusing the
-              matching spot-shadow matrices instead of adding a dedicated
-              cookie-matrix storage buffer.
+              The audit found that the browser-proven atlas shadow-cookie route
+              needs one more generic invariant before the covered scope can be
+              considered current with PlayCanvas: atlas cookie tiles must be
+              shadow-aligned before reusing spot-shadow matrices.
             </p>
             <ul>
               <li>
-                Next step: re-audit clustered shadow/cookie route pressure
-                against PlayCanvas and three.js, then choose the next visible
-                SOTA gap.
+                Next step: add a shadow-aligned clustered cookie atlas path so
+                nonuniform spot-shadow atlases and spot-cookie atlases share the
+                same per-light projection layout.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2448,6 +2448,13 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3149</span> Re-audited
+                clustered shadow/cookie pressure against PlayCanvas and
+                three.js; the array and point-array compact routes are current,
+                while atlas matrix reuse still needs a shadow-aligned cookie
+                atlas invariant.
+              </li>
               <li>
                 <span class="badge green">task-3148</span> Combined
                 nonuniform clustered spot-shadow atlases with nonuniform
@@ -4820,14 +4827,14 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Re-audit clustered
-                shadow/cookie route pressure against PlayCanvas and three.js,
-                now that array, point-array, and atlas shadow-cookie routes are
-                browser-proven.
+                <span class="badge amber">next</span> Add shadow-aligned
+                clustered cookie atlas packing/resampling so atlas
+                shadow-cookie matrix reuse is valid beyond the current proof
+                route.
               </li>
               <li>
-                Then pick the next visible clustered-light or broader
-                render-pipeline SOTA gap from that audit.
+                Then rerun the compact atlas route proof and update the
+                clustered-light SOTA status.
               </li>
             </ul>
           </article>
@@ -4840,6 +4847,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3149</div>
+            <div>
+              <strong>Clustered shadow-cookie audit completed.</strong>
+              <span>
+                The array and flattened point-array compact routes are current
+                for the covered scope; the remaining PlayCanvas-parity gap is a
+                shadow-aligned cookie atlas invariant for generic atlas
+                matrix reuse.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3148</div>
             <div>

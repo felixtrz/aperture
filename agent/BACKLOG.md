@@ -59,8 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3149`: re-audit the clustered local-light shadow/cookie routes
-against PlayCanvas and three.js before selecting the next visible SOTA gap.
+Start `task-3150`: add shadow-aligned clustered cookie atlas packing/resampling
+so the compact nonuniform atlas shadow-cookie route can reuse spot-shadow
+matrices with the same per-light atlas layout that PlayCanvas relies on.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -1102,7 +1103,7 @@ Acceptance criteria:
 
 ### task-3149 — Re-audit clustered shadow/cookie route pressure
 
-Status: ready
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `audit-refactor`
 Package/write-scope: `docs/render-pipeline-comparison.html`, `agent/BACKLOG.md`, `agent/HANDOFF.md`, and narrowly scoped renderer/example/test files only if the audit finds a small corrective gap that can be closed immediately.
@@ -1118,6 +1119,32 @@ Acceptance criteria:
 - If the audit finds a small correctness or efficiency gap that can be closed
   in the same slice, implement and validate it; otherwise add the next visible
   backlog task with a reference anchor and browser-testable acceptance criteria.
+
+### task-3150 — Add shadow-aligned clustered cookie atlas for compact matrix reuse
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cookie*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
+Reference anchor: `references/engine/src/scene/lighting/light-texture-atlas.js`, `references/engine/src/scene/lighting/lights-buffer.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightCookies.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`.
+
+Acceptance criteria:
+
+- Nonuniform clustered spot-shadow atlas descriptors/resources expose a
+  per-light atlas tile region that cookie preparation can compare against.
+- Clustered spot-cookie atlas preparation can build a shadow-aligned cookie
+  atlas for shadowed spot-cookie lights by placing or resampling each cookie
+  into the matching shadow atlas tile region.
+- `clusteredLocalLightShadowCookies` is selected for the nonuniform atlas route
+  only when every supported atlas-cookie light has a matching shadow atlas tile;
+  otherwise the route avoids claiming compact matrix reuse and reports an
+  actionable diagnostic/status.
+- `examples/clustered-lights.html?enable-cluster-shadow-cookie-atlas=1` reports
+  explicit shadow-aligned cookie atlas readiness, keeps the compact
+  WebGPU-minimum layout without binding the cookie-matrix storage buffer, and
+  still passes browser readback with zero relevant WebGPU validation warnings.
+- Focused tests cover the aligned atlas path and a mismatched atlas/cookie case
+  that must not enable shadow-matrix reuse.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
