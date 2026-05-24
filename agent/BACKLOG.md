@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3154`: skip unchanged clustered local-light buffer writes across
-frames so stable clustered views can reuse renderer-owned params/cell/index/
-metadata buffers without rewriting unchanged data.
+Start `task-3157`: add clustered-light cache pressure history to
+`examples/clustered-lights.html` so stable cached work savings are visible over
+time against a no-cache baseline.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -1266,7 +1266,7 @@ phase rows with changing samples, non-clear pixels, and zero app diagnostics.
 
 ### task-3156 — Add a transparent sort pressure proof route
 
-Status: ready
+Status: completed
 
 Category: `webgpu-render`
 Package/write-scope: `packages/render/src/*queue*`, `packages/webgpu/src/webgpu/*queue*`, `examples/standard-queue-phases.*`, `test/webgpu/`, `test/e2e/`.
@@ -1284,6 +1284,14 @@ Acceptance criteria:
   camera move and verifies stable visible ordering with zero depth-order
   inversions.
 - Existing opaque/alpha-test state-sort pressure proof remains valid.
+
+Completed: 2026-05-24. `examples/standard-queue-phases.html?transparent-pressure=1`
+now renders 32 dense alpha-blend records with zero reported depth-order
+inversions across a small camera move, reports render-order and stable-id
+tie-break pressure, and keeps compatible transparent records separate for
+per-object sorting. The render-bundle path now resolves actual renderer
+pipeline resource keys per render id so default-layout bind groups are scoped
+to the pipeline object that encodes the draw.
 
 ### task-3157 — Add clustered-light cache pressure history to clustered-lights
 

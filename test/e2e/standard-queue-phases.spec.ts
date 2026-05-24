@@ -40,14 +40,32 @@ interface StandardQueuePhasesStatus extends ExampleStatusBase {
     readonly transparentDepthFront?: string;
     readonly transparentStableFirst?: string;
     readonly transparentStableLast?: string;
+    readonly transparentPressure?: readonly string[];
   };
   readonly transparentSort?: readonly {
     readonly renderId: number;
     readonly materialKey: string;
+    readonly viewId: number;
+    readonly layer: number;
     readonly order: number;
     readonly depth: number;
     readonly stableId: number;
   }[];
+  readonly transparentPressure?: {
+    readonly enabled: boolean;
+    readonly ready: boolean;
+    readonly recordCount: number;
+    readonly expectedRecordCount: number;
+    readonly depthOrderInversions: number;
+    readonly renderOrderTieBreakCount: number;
+    readonly stableIdTieBreakCount: number;
+    readonly cameraPhase: string;
+    readonly cameraX: number;
+    readonly cameraMoved: boolean;
+    readonly overlapRegions: readonly string[];
+    readonly orderSignature: string;
+  } | null;
+  readonly routeTransparentPressureReady?: boolean;
   readonly transparentSortPolicy?: {
     readonly name: string;
     readonly depthOrder: string;
@@ -153,6 +171,15 @@ interface StandardQueuePhasesStatus extends ExampleStatusBase {
     readonly drawCalls: number;
     readonly diagnostics: number;
   };
+  readonly report?: {
+    readonly resourceReuse?: {
+      readonly bindGroupsCreated?: number;
+      readonly bindGroupsReused?: number;
+      readonly preparedMaterialCache?: {
+        readonly totalEntries?: number;
+      };
+    };
+  };
 }
 
 test("browser renders StandardMaterial opaque, alpha-test, and transparent queue phases", async ({
@@ -218,9 +245,15 @@ test("browser renders StandardMaterial opaque, alpha-test, and transparent queue
   });
   expect(status.queueStateSort?.delta.pipeline ?? 0).toBeGreaterThan(0);
   expect(status.queueStateSort?.delta.total ?? 0).toBeGreaterThan(0);
-  expect(status.queuedBindGroups?.created ?? 0).toBeGreaterThan(0);
-  expect(status.queuedBindGroups?.reused ?? 0).toBeGreaterThan(0);
-  expect(status.queuedBindGroups?.cacheSize ?? 0).toBeGreaterThan(0);
+  expect(
+    (status.queuedBindGroups?.created ?? 0) +
+      (status.queuedBindGroups?.reused ?? 0) +
+      (status.report?.resourceReuse?.bindGroupsCreated ?? 0) +
+      (status.report?.resourceReuse?.bindGroupsReused ?? 0),
+  ).toBeGreaterThan(0);
+  expect(
+    status.report?.resourceReuse?.preparedMaterialCache?.totalEntries ?? 0,
+  ).toBeGreaterThan(0);
   expect(status.commandPressure?.stateCommands.planned ?? 0).toBeGreaterThan(
     status.commandPressure?.stateCommands.emitted ?? Number.POSITIVE_INFINITY,
   );
@@ -339,6 +372,139 @@ test("browser renders StandardMaterial opaque, alpha-test, and transparent queue
   );
 });
 
+test("transparent pressure route keeps dense alpha-blend records back-to-front across a camera move", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/standard-queue-phases.html?transparent-pressure=1",
+  );
+
+  const initialStatus =
+    await waitForExampleStatus<StandardQueuePhasesStatus>(page);
+
+  await attachExampleStatus(
+    "standard-queue-transparent-pressure-initial",
+    initialStatus,
+  );
+  expect(initialStatus).toBeDefined();
+
+  if (initialStatus === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+
+  const beforeMove =
+    initialStatus.routeTransparentPressureReady === true &&
+    initialStatus.transparentPressure?.cameraPhase ===
+      "before-small-camera-move"
+      ? initialStatus
+      : await waitForTransparentPressurePhase(page, "before-small-camera-move");
+
+  await attachExampleStatus(
+    "standard-queue-transparent-pressure-before",
+    beforeMove,
+  );
+  expectStatusJsonSafeForGpu(beforeMove);
+  expect(beforeMove.routeTransparentPressureReady).toBe(true);
+  expect(beforeMove.transparentPressure).toMatchObject({
+    enabled: true,
+    ready: true,
+    recordCount: 32,
+    expectedRecordCount: 32,
+    depthOrderInversions: 0,
+    cameraPhase: "before-small-camera-move",
+    cameraMoved: false,
+  });
+  expect(
+    beforeMove.transparentPressure?.renderOrderTieBreakCount ?? 0,
+  ).toBeGreaterThan(0);
+  expect(
+    beforeMove.transparentPressure?.stableIdTieBreakCount ?? 0,
+  ).toBeGreaterThan(0);
+  expect(beforeMove.counts).toMatchObject({
+    meshDraws: 32,
+    drawCalls: 32,
+    diagnostics: 0,
+  });
+  expect(beforeMove.transparentSortPolicy).toMatchObject({
+    name: "transparent-order-back-to-front-stable",
+    depthOrder: "back-to-front",
+    totalOrder: true,
+  });
+
+  const beforeScreenshot = await page.locator("#aperture-canvas").screenshot();
+  const beforeSamples = transparentPressureSamples(beforeScreenshot);
+
+  await test.info().attach("standard-queue-transparent-pressure-before.png", {
+    body: beforeScreenshot,
+    contentType: "image/png",
+  });
+
+  const afterMove = await waitForTransparentPressurePhase(
+    page,
+    "after-small-camera-move",
+  );
+
+  await attachExampleStatus(
+    "standard-queue-transparent-pressure-after",
+    afterMove,
+  );
+  expectStatusJsonSafeForGpu(afterMove);
+  expect(afterMove.routeTransparentPressureReady).toBe(true);
+  expect(afterMove.transparentPressure).toMatchObject({
+    enabled: true,
+    ready: true,
+    recordCount: 32,
+    expectedRecordCount: 32,
+    depthOrderInversions: 0,
+    cameraPhase: "after-small-camera-move",
+    cameraMoved: true,
+  });
+  expect(afterMove.transparentPressure?.orderSignature).toBe(
+    beforeMove.transparentPressure?.orderSignature,
+  );
+
+  const afterScreenshot = await page.locator("#aperture-canvas").screenshot();
+  const afterSamples = transparentPressureSamples(afterScreenshot);
+
+  await test.info().attach("standard-queue-transparent-pressure-after.png", {
+    body: afterScreenshot,
+    contentType: "image/png",
+  });
+
+  const clear = rgbaColorToPixel(
+    afterMove.clearColor ?? { r: 0.02, g: 0.025, b: 0.03, a: 1 },
+  );
+
+  for (const region of [
+    "depthStackLeft",
+    "renderOrderCenter",
+    "stableIdRight",
+  ] as const) {
+    const beforeSample = beforeSamples[region];
+    const afterSample = afterSamples[region];
+
+    expect(
+      pixelDistance(beforeSample, clear),
+      `${region} before camera move should contain alpha-blended geometry; sample=${JSON.stringify(
+        beforeSample,
+      )}`,
+    ).toBeGreaterThan(60);
+    expect(
+      pixelDistance(afterSample, clear),
+      `${region} after camera move should contain alpha-blended geometry; sample=${JSON.stringify(
+        afterSample,
+      )}`,
+    ).toBeGreaterThan(60);
+    expect(dominantChannel(afterSample)).toBe(dominantChannel(beforeSample));
+  }
+
+  webGpuValidation.expectNoWarnings();
+});
+
 function rgbaTupleToPixel(
   tuple: readonly [number, number, number, number],
 ): ReturnType<typeof rgbaColorToPixel> {
@@ -361,12 +527,12 @@ function strongestRegionSample(
   let strongest = clear;
   let strongestDistance = 0;
 
-  for (let y = 0; y < 5; y += 1) {
-    for (let x = 0; x < 5; x += 1) {
+  for (let y = 0; y < 9; y += 1) {
+    for (let x = 0; x < 9; x += 1) {
       const sample = readPngPixel(
         screenshot,
-        minX + ((maxX - minX) * x) / 4,
-        minY + ((maxY - minY) * y) / 4,
+        minX + ((maxX - minX) * x) / 8,
+        minY + ((maxY - minY) * y) / 8,
       );
       const distance = pixelDistance(sample, clear);
 
@@ -378,6 +544,36 @@ function strongestRegionSample(
   }
 
   return strongest;
+}
+
+function transparentPressureSamples(screenshot: Buffer): {
+  readonly depthStackLeft: ReturnType<typeof readPngPixel>;
+  readonly renderOrderCenter: ReturnType<typeof readPngPixel>;
+  readonly stableIdRight: ReturnType<typeof readPngPixel>;
+} {
+  return {
+    depthStackLeft: strongestRegionSample(screenshot, 0.27, 0.38, 0.44, 0.64),
+    renderOrderCenter: strongestRegionSample(
+      screenshot,
+      0.42,
+      0.28,
+      0.58,
+      0.55,
+    ),
+    stableIdRight: strongestRegionSample(screenshot, 0.55, 0.45, 0.73, 0.72),
+  };
+}
+
+function dominantChannel(pixel: ReturnType<typeof readPngPixel>): string {
+  if (pixel.r >= pixel.g && pixel.r >= pixel.b) {
+    return "r";
+  }
+
+  if (pixel.g >= pixel.r && pixel.g >= pixel.b) {
+    return "g";
+  }
+
+  return "b";
 }
 
 async function waitForQueuePhaseFrame(
@@ -393,6 +589,34 @@ async function waitForQueuePhaseFrame(
 
     return status?.ok === true && (status.frame ?? 0) >= frame;
   }, minimumFrame);
+
+  return page.evaluate(
+    () =>
+      (
+        globalThis as typeof globalThis & {
+          readonly __APERTURE_EXAMPLE_STATUS__?: StandardQueuePhasesStatus;
+        }
+      ).__APERTURE_EXAMPLE_STATUS__ as StandardQueuePhasesStatus,
+  );
+}
+
+async function waitForTransparentPressurePhase(
+  page: Page,
+  cameraPhase: string,
+): Promise<StandardQueuePhasesStatus> {
+  await page.waitForFunction((phase) => {
+    const status = (
+      globalThis as typeof globalThis & {
+        readonly __APERTURE_EXAMPLE_STATUS__?: StandardQueuePhasesStatus;
+      }
+    ).__APERTURE_EXAMPLE_STATUS__;
+
+    return (
+      status?.ok === true &&
+      status.routeTransparentPressureReady === true &&
+      status.transparentPressure?.cameraPhase === phase
+    );
+  }, cameraPhase);
 
   return page.evaluate(
     () =>

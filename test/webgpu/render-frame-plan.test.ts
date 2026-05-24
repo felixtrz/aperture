@@ -28,6 +28,10 @@ const TEXTURED_BATCH: BatchCompatibilityKey = {
   pipelineKey: "pipeline:unlit/baseColorTexture",
   materialKey: "material:textured",
 };
+const STANDARD_BATCH: BatchCompatibilityKey = {
+  ...BATCH,
+  pipelineKey: "standard|opaque|back|less|none",
+};
 
 describe("render frame snapshot planning helper", () => {
   it("plans from snapshot through render pass commands", () => {
@@ -115,6 +119,10 @@ describe("render frame snapshot planning helper", () => {
       packageSlotsReused: 0,
       packageSlotsCreated: 0,
       missingPackedTransformCount: 0,
+      stateSort: expect.objectContaining({
+        phase: "opaque",
+        recordCount: 0,
+      }),
       diagnostics: {
         total: 1,
         byCode: {
@@ -141,6 +149,10 @@ describe("render frame snapshot planning helper", () => {
       packageSlotsReused: 2,
       packageSlotsCreated: 0,
       missingPackedTransformCount: 0,
+      stateSort: expect.objectContaining({
+        phase: "opaque",
+        recordCount: 2,
+      }),
       diagnostics: {
         total: 0,
         byCode: {},
@@ -360,6 +372,55 @@ describe("render frame snapshot planning helper", () => {
     ]);
   });
 
+  it("resolves default-layout bind groups against renderer pipeline resource keys", () => {
+    const result = planRenderFrameFromSnapshot({
+      snapshot: sharedStandardPipelineSnapshot(),
+      renderWorld: new RenderWorld(),
+      transforms: sharedStandardPipelineTransforms(),
+      resolveMeshResourceKey: () => "mesh:triangle",
+      resolveMaterialResourceKey: (draw) => draw.batchKey.materialKey,
+      meshResources: [mesh()],
+      pipelineKeysByRenderId: new Map([
+        [17, "gpu-pipeline:standard:red"],
+        [19, "gpu-pipeline:standard:blue"],
+      ]),
+      pipelines: [
+        pipelineWithKey("gpu-pipeline:standard:red"),
+        pipelineWithKey("gpu-pipeline:standard:blue"),
+      ],
+      bindGroups: standardResourceKeyScopedBindGroups(),
+    });
+
+    expect(result.summary.ready).toBe(true);
+    expect(result.drawList.draws.map(drawPipelineAndBindGroups)).toEqual([
+      {
+        renderId: 19,
+        pipelineKey: "gpu-pipeline:standard:blue",
+        bindGroupKeys: [
+          "bind:0:gpu-pipeline:standard:blue",
+          "bind:1:gpu-pipeline:standard:blue",
+          "bind:2:material:blue:gpu-pipeline:standard:blue",
+          "bind:3:gpu-pipeline:standard:blue",
+        ],
+      },
+      {
+        renderId: 17,
+        pipelineKey: "gpu-pipeline:standard:red",
+        bindGroupKeys: [
+          "bind:0:gpu-pipeline:standard:red",
+          "bind:1:gpu-pipeline:standard:red",
+          "bind:2:material:red:gpu-pipeline:standard:red",
+          "bind:3:gpu-pipeline:standard:red",
+        ],
+      },
+    ]);
+    expect(
+      result.commandPlan.commands
+        .filter((command) => command.kind === "setPipeline")
+        .map((command) => command.pipelineKey),
+    ).toEqual(["gpu-pipeline:standard:blue", "gpu-pipeline:standard:red"]);
+  });
+
   it("diagnoses missing pipeline-scoped shared bind groups in mixed frames", () => {
     const result = planRenderFrameFromSnapshot({
       snapshot: mixedPipelineSnapshot(),
@@ -566,12 +627,59 @@ function mixedPipelineSnapshot(): RenderSnapshot {
   } as unknown as RenderSnapshot;
 }
 
+function sharedStandardPipelineSnapshot(): RenderSnapshot {
+  return {
+    frame: 1,
+    views: [],
+    meshDraws: [
+      standardPacket(17, 0, "material:red"),
+      standardPacket(19, 16, "material:blue"),
+    ],
+    lights: [],
+    environments: [],
+    shadowRequests: [],
+    bounds: [],
+    transforms: new Float32Array(32),
+    viewMatrices: new Float32Array(),
+    diagnostics: [],
+    report: {
+      views: 0,
+      meshDraws: 2,
+      lights: 0,
+      environments: 0,
+      shadowRequests: 0,
+      bounds: 0,
+      diagnostics: 0,
+    },
+  } as unknown as RenderSnapshot;
+}
+
 function texturedPacket(worldTransformOffset = 0) {
   return {
     ...packet(11, worldTransformOffset),
     material: { kind: "material", id: "textured" },
     batchKey: TEXTURED_BATCH,
     sortKey: texturedSortKey(),
+  };
+}
+
+function standardPacket(
+  renderId: number,
+  worldTransformOffset: number,
+  materialKey: "material:red" | "material:blue",
+) {
+  return {
+    ...packet(renderId, worldTransformOffset),
+    material: {
+      kind: "material",
+      id: materialKey === "material:red" ? "red" : "blue",
+    },
+    batchKey: { ...STANDARD_BATCH, materialKey },
+    sortKey: {
+      ...sortKey(renderId),
+      pipelineKey: STANDARD_BATCH.pipelineKey,
+      materialKey,
+    },
   };
 }
 
@@ -643,6 +751,17 @@ function mixedPipelineTransforms() {
   };
 }
 
+function sharedStandardPipelineTransforms() {
+  return {
+    data: new Float32Array(32),
+    offsets: [
+      { renderId: 17, sourceOffset: 0, packedOffset: 0 },
+      { renderId: 19, sourceOffset: 16, packedOffset: 16 },
+    ],
+    diagnostics: [],
+  };
+}
+
 function pipeline(): GetOrCreateRenderPipelineResult {
   return {
     ok: true,
@@ -659,6 +778,16 @@ function texturedPipeline(): GetOrCreateRenderPipelineResult {
     status: "miss",
     key: "pipeline:unlit/baseColorTexture",
     pipeline: "pipeline-handle:textured",
+    diagnostics: [],
+  };
+}
+
+function pipelineWithKey(key: string): GetOrCreateRenderPipelineResult {
+  return {
+    ok: true,
+    status: "miss",
+    key,
+    pipeline: `pipeline-handle:${key}`,
     diagnostics: [],
   };
 }
@@ -714,6 +843,19 @@ function multiPipelineBindGroups(): readonly UnlitBindGroupResource[] {
   ];
 }
 
+function standardResourceKeyScopedBindGroups(): readonly UnlitBindGroupResource[] {
+  return [
+    standardPipelineScopedBindGroup(0, "gpu-pipeline:standard:red"),
+    standardPipelineScopedBindGroup(1, "gpu-pipeline:standard:red"),
+    standardPipelineScopedBindGroup(3, "gpu-pipeline:standard:red"),
+    standardMaterialBindGroup("material:red", "gpu-pipeline:standard:red"),
+    standardPipelineScopedBindGroup(0, "gpu-pipeline:standard:blue"),
+    standardPipelineScopedBindGroup(1, "gpu-pipeline:standard:blue"),
+    standardPipelineScopedBindGroup(3, "gpu-pipeline:standard:blue"),
+    standardMaterialBindGroup("material:blue", "gpu-pipeline:standard:blue"),
+  ];
+}
+
 function pipelineScopedBindGroup(
   group: 0 | 1,
   pipelineKey: string,
@@ -724,6 +866,32 @@ function pipelineScopedBindGroup(
     layoutKey: `layout:${group}:${pipelineKey}`,
     bindGroup: `bind-group:${group}:${pipelineKey}`,
     entryResourceKeys: [`resource:${group}`, pipelineKey],
+  };
+}
+
+function standardPipelineScopedBindGroup(
+  group: 0 | 1 | 3,
+  pipelineKey: string,
+): UnlitBindGroupResource {
+  return {
+    group,
+    resourceKey: `bind:${group}:${pipelineKey}`,
+    layoutKey: `layout:${group}:${pipelineKey}`,
+    bindGroup: `bind-group:${group}:${pipelineKey}`,
+    entryResourceKeys: [`resource:${group}`, pipelineKey],
+  };
+}
+
+function standardMaterialBindGroup(
+  materialResourceKey: string,
+  pipelineKey: string,
+): UnlitBindGroupResource {
+  return {
+    group: 2,
+    resourceKey: `bind:2:${materialResourceKey}:${pipelineKey}`,
+    layoutKey: `layout:2:${pipelineKey}`,
+    bindGroup: `bind-group:2:${materialResourceKey}:${pipelineKey}`,
+    entryResourceKeys: [materialResourceKey, pipelineKey],
   };
 }
 

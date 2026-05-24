@@ -1,6 +1,7 @@
 import type { RenderWorldDrawPackage } from "@aperture-engine/render";
 import type { InstanceAttributeGpuBufferResource } from "./instance-attribute-buffer.js";
 import type { InstanceTintGpuBufferResource } from "./instance-tint-buffer.js";
+import { requiredBindGroupGroupsForPipelineKey } from "./material-pipeline-selection.js";
 import type { MeshGpuBufferResource } from "./mesh-buffer-resources.js";
 
 export type DrawCommandDescriptorDiagnosticCode =
@@ -20,6 +21,7 @@ export interface DrawCommandDescriptorDiagnostic {
 export interface DrawCommandDescriptor {
   readonly renderId: number;
   readonly pipelineKey: string;
+  readonly requiredBindGroupGroups?: readonly number[];
   readonly topology: RenderWorldDrawPackage["batchKey"]["topology"];
   readonly meshResourceKey: string;
   readonly materialResourceKey: string;
@@ -41,6 +43,7 @@ export interface DrawCommandDescriptorPlan {
 export interface CreateDrawCommandDescriptorOptions {
   readonly instanceTintResources?: readonly InstanceTintGpuBufferResource[];
   readonly instanceAttributeResources?: readonly InstanceAttributeGpuBufferResource[];
+  readonly pipelineKeysByRenderId?: ReadonlyMap<number, string>;
 }
 
 export interface DrawCommandDescriptorScratch {
@@ -54,6 +57,7 @@ export interface DrawCommandDescriptorScratch {
 interface MutableDrawCommandDescriptor {
   renderId: number;
   pipelineKey: string;
+  requiredBindGroupGroups?: readonly number[];
   topology: RenderWorldDrawPackage["batchKey"]["topology"];
   meshResourceKey: string;
   materialResourceKey: string;
@@ -127,9 +131,19 @@ export function writeDrawCommandDescriptors(
     }
 
     const descriptor = descriptorAt(scratch, scratch.descriptors.length);
+    const authoredPipelineKey = drawPackage.batchKey.pipelineKey;
+    const resolvedPipelineKey =
+      options.pipelineKeysByRenderId?.get(drawPackage.renderId) ??
+      authoredPipelineKey;
 
     descriptor.renderId = drawPackage.renderId;
-    descriptor.pipelineKey = drawPackage.batchKey.pipelineKey;
+    descriptor.pipelineKey = resolvedPipelineKey;
+    if (resolvedPipelineKey === authoredPipelineKey) {
+      delete descriptor.requiredBindGroupGroups;
+    } else {
+      descriptor.requiredBindGroupGroups =
+        requiredBindGroupGroupsForPipelineKey(authoredPipelineKey);
+    }
     descriptor.topology = drawPackage.batchKey.topology;
     descriptor.meshResourceKey = drawPackage.meshResourceKey;
     descriptor.materialResourceKey = drawPackage.materialResourceKey;
@@ -140,7 +154,7 @@ export function writeDrawCommandDescriptors(
     }
 
     if (
-      hasPipelineFeature(drawPackage.batchKey.pipelineKey, "instance-tint") &&
+      hasPipelineFeature(authoredPipelineKey, "instance-tint") &&
       appendInstanceTintBufferKey(drawPackage, descriptor, options, scratch) ===
         false
     ) {
@@ -148,10 +162,7 @@ export function writeDrawCommandDescriptors(
     }
 
     if (
-      hasPipelineFeaturePrefix(
-        drawPackage.batchKey.pipelineKey,
-        "instance-attributes:",
-      ) &&
+      hasPipelineFeaturePrefix(authoredPipelineKey, "instance-attributes:") &&
       appendInstanceAttributeBufferKey(
         drawPackage,
         descriptor,

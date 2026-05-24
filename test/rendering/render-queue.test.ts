@@ -108,6 +108,50 @@ describe("render queue records", () => {
     expect(plan.sortPhases).toEqual([sortPhase("opaque", 1)]);
   });
 
+  it("keeps compatible transparent records separate for per-object sorting", () => {
+    const plan = planRenderQueueRecords(
+      {
+        ready: [
+          readyDraw(1, {
+            queue: "transparent",
+            order: 0,
+            depth: 9,
+            meshResourceKey: "mesh:shared-transparent",
+          }),
+          readyDraw(2, {
+            queue: "transparent",
+            order: 0,
+            depth: 6,
+            meshResourceKey: "mesh:shared-transparent",
+          }),
+          readyDraw(3, {
+            queue: "transparent",
+            order: 0,
+            depth: 3,
+            meshResourceKey: "mesh:shared-transparent",
+          }),
+        ],
+        blocked: [],
+        diagnostics: [],
+      },
+      transforms([1, 2, 3]),
+    );
+
+    expect(plan.records.map((record) => record.renderId)).toEqual([1, 2, 3]);
+    expect(plan.records.map((record) => record.instanceCount)).toEqual([
+      1, 1, 1,
+    ]);
+    expect(plan.records.map((record) => record.drawKind)).toEqual([
+      "single",
+      "single",
+      "single",
+    ]);
+    expect(plan.records.map((record) => record.sourceRecordCount)).toEqual([
+      1, 1, 1,
+    ]);
+    expect(plan.sortPhases).toEqual([sortPhase("transparent", 3)]);
+  });
+
   it("does not coalesce compatible records with non-contiguous transform slots", () => {
     const plan = planRenderQueueRecords(
       {

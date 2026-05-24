@@ -130,6 +130,7 @@ export function writeRenderPassDrawList(
     let ready = true;
     const requiredGroups =
       options.requiredBindGroupGroups ??
+      command.requiredBindGroupGroups ??
       requiredBindGroupGroupsForPipelineKey(command.pipelineKey);
 
     if (!scratch.pipelineKeys.has(command.pipelineKey)) {

@@ -1,5 +1,51 @@
 # Completed Tasks
 
+## task-3156 — Add a transparent sort pressure proof route
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added `examples/standard-queue-phases.html?transparent-pressure=1`, a dense
+  32-record alpha-blend StandardMaterial route with depth stacks,
+  render-order ties, stable-id ties, and a small camera move.
+- The route reports transparent record count, expected record count,
+  depth-order inversions, render-order tie-break count, stable-id tie-break
+  count, camera phase, overlap regions, and order signature.
+- Kept compatible transparent records separate through render-queue/draw-list
+  planning so transparent sorting remains per-object instead of being
+  accidentally coalesced.
+- Fixed a WebGPU render-bundle validation issue by propagating actual renderer
+  pipeline resource keys per render id through frame-resource preparation and
+  draw planning while preserving authored pipeline keys for feature detection
+  and required bind-group groups.
+- Hardened the default queue-phase screenshot sampler so the visible panel proof
+  is less sensitive to canvas sizing.
+
+Validation:
+
+- `node --check examples/standard-queue-phases.main.js`
+- `node --check examples/standard-queue-phases.worker.js`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/draw-command.test.ts test/webgpu/render-frame-plan.test.ts test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/rendering/render-queue.test.ts`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/standard-queue-phases.spec.ts -g "transparent pressure" --timeout=45000 --reporter=line`
+- Direct Playwright browser probe for
+  `examples/standard-queue-phases.html` returned `ok: true`, frame `60`,
+  draw calls `8`, diagnostics `0`, render-bundle reuse with failed count `0`,
+  and zero relevant WebGPU validation warnings. The only console error was the
+  existing favicon `403`.
+
+Known follow-up:
+
+- `task-3157` should add clustered-light cache pressure history so the next
+  SOTA gap is measured over time against a no-cache baseline.
+- The full headed
+  `pnpm exec playwright test test/e2e/standard-queue-phases.spec.ts --timeout=45000`
+  run remains locally prone to Playwright worker hangs after or between route
+  proofs. The focused transparent-pressure route passed, and the default route
+  was verified with a direct Playwright browser probe.
+
 ## task-3155 — Add render-pipeline phase timing history to the GPU profiler
 
 Completed: 2026-05-24

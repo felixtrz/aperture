@@ -1,6 +1,67 @@
 # Agent Handoff
 
-Updated: 2026-05-24T13:39:00Z
+Updated: 2026-05-24T14:41:55Z
+
+## Current Run Update — 2026-05-24T14:41:55Z — Transparent sort pressure proof
+
+Completed `task-3156`, adding a dense transparent StandardMaterial pressure
+route and fixing the render-bundle pipeline identity issue it exposed.
+
+### What changed
+
+- Added `examples/standard-queue-phases.html?transparent-pressure=1`, which
+  renders 32 overlapping alpha-blend surfaces and reports record count,
+  expected count, depth-order inversions, render-order tie-breaks, stable-id
+  tie-breaks, overlap regions, camera phase, and order signature.
+- Added before/after camera-move browser proof coverage for three overlap
+  regions in `test/e2e/standard-queue-phases.spec.ts`.
+- Prevented compatible transparent queue records from coalescing before
+  per-object sort proofing.
+- Propagated actual renderer pipeline resource keys per render id through
+  queued frame-resource prep and draw planning so default-layout bind groups are
+  scoped to the exact pipeline object used by render bundles.
+- Preserved authored pipeline keys for feature detection and required bind-group
+  selection when draw descriptors use renderer pipeline resource keys.
+- Hardened the existing default-route screenshot sampler to avoid missing the
+  visible panel on square canvas screenshots.
+- Updated public progress pages, backlog, current task, and completed-task
+  records to point to `task-3157`.
+
+### Validation
+
+- `node --check examples/standard-queue-phases.main.js`
+- `node --check examples/standard-queue-phases.worker.js`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/draw-command.test.ts test/webgpu/render-frame-plan.test.ts test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/rendering/render-queue.test.ts`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/standard-queue-phases.spec.ts -g "transparent pressure" --timeout=45000 --reporter=line`
+  passed.
+- Direct Playwright browser probe for
+  `examples/standard-queue-phases.html` returned `ok: true`, frame `60`,
+  draw calls `8`, diagnostics `0`, render-bundle reuse with failed count `0`,
+  transparent sort order as expected, and zero relevant WebGPU validation
+  warnings. The only console error was the existing favicon `403`.
+
+### Known issues
+
+- The full headed
+  `pnpm exec playwright test test/e2e/standard-queue-phases.spec.ts --timeout=45000`
+  run still intermittently wedges in the Playwright worker after or between
+  route proofs. Focused route proof and direct browser probing were used to
+  avoid leaving the runner active.
+- Full SOTA is still not done. The covered render-pipeline lane is very close,
+  but clustered-light cache pressure history and broader profiling polish remain
+  before making a hard SOTA claim.
+- The pre-existing working-tree deletion of `.codex/hooks.json`, untracked
+  `.playwright-mcp/` scratch directory, and untracked
+  `shadow-cookie-console-errors.txt` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3157`: add clustered-light cache pressure history to
+`examples/clustered-lights.html` so stable cached work savings are visible over
+time against a no-cache baseline.
 
 ## Current Run Update — 2026-05-24T13:39:00Z — GPU profiler phase history
 

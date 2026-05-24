@@ -6,6 +6,7 @@ const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
 
 const clearColor = [0.02, 0.025, 0.03, 1];
+const routeOptions = readRouteOptions();
 
 try {
   const [core, webgpu] = await Promise.all([
@@ -27,9 +28,13 @@ try {
     if (!created.ok) {
       publishStatus(failure(created.reason, created.message));
     } else {
-      const scene = registerQueuePhaseAssets(aperture, sourceAssets);
+      const scene = registerQueuePhaseAssets(
+        aperture,
+        sourceAssets,
+        routeOptions,
+      );
 
-      startWorkerSnapshotLoop(aperture, created.app, scene);
+      startWorkerSnapshotLoop(aperture, created.app, scene, routeOptions);
     }
   }
 } catch (error) {
@@ -43,7 +48,7 @@ try {
   );
 }
 
-function registerQueuePhaseAssets(aperture, sourceAssets) {
+function registerQueuePhaseAssets(aperture, sourceAssets, options) {
   const assets = aperture.createRenderAssetCollections({
     registry: sourceAssets,
   });
@@ -102,9 +107,25 @@ function registerQueuePhaseAssets(aperture, sourceAssets) {
     ),
     { id: "phase-transparent-stable-last" },
   );
+  const pressureMesh = assets.meshes.add(
+    aperture.createPlaneMeshAsset({
+      label: "StandardQueueTransparentPressurePlane",
+      width: 0.68,
+      height: 0.82,
+    }),
+    { id: "standard-queue-transparent-pressure-plane" },
+  );
+  const pressureSpecs = createTransparentPressureSpecs();
+  const pressureMaterials = pressureSpecs.map((spec) =>
+    assets.materials.standard.add(
+      transparentMaterial(aperture, spec.label, spec.color),
+      { id: spec.materialId },
+    ),
+  );
 
   return {
     mesh,
+    pressureMesh,
     materialKeys: {
       leftOpaque: aperture.assetHandleKey(leftOpaque),
       alphaCutout: aperture.assetHandleKey(alphaCutout),
@@ -113,16 +134,33 @@ function registerQueuePhaseAssets(aperture, sourceAssets) {
       transparentDepthFront: aperture.assetHandleKey(transparentDepthFront),
       transparentStableFirst: aperture.assetHandleKey(transparentStableFirst),
       transparentStableLast: aperture.assetHandleKey(transparentStableLast),
+      transparentPressure: pressureMaterials.map((material) =>
+        aperture.assetHandleKey(material),
+      ),
     },
     expectedSamples: {
       alphaCutout: [0.95, 0.08, 0.04, 1],
       transparentDepthTieBreak: [0.56, 0.28, 0.2, 1],
       transparentStableTieBreak: [0.56, 0.28, 0.2, 1],
     },
+    route: {
+      transparentPressure: options.transparentPressure,
+    },
+    transparentPressure: {
+      expectedRecordCount: pressureSpecs.length,
+      materialKeys: pressureMaterials.map((material) =>
+        aperture.assetHandleKey(material),
+      ),
+      overlapRegions: [
+        "depth-stack-left",
+        "render-order-center",
+        "stable-id-right",
+      ],
+    },
   };
 }
 
-function startWorkerSnapshotLoop(aperture, app, scene) {
+function startWorkerSnapshotLoop(aperture, app, scene, options) {
   const worker = new Worker(
     "/worker-modules/examples/standard-queue-phases.worker.js",
     {
@@ -135,6 +173,9 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     receivedSnapshots: 0,
     workerReady: false,
     workerScene: null,
+    route: {
+      transparentPressure: options.transparentPressure,
+    },
     renderBundleHistory: {
       created: 0,
       reused: 0,
@@ -162,6 +203,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
   });
   worker.postMessage({
     type: "init",
+    transparentPressure: options.transparentPressure,
     canvas: {
       width: canvas?.width ?? 960,
       height: canvas?.height ?? 540,
@@ -259,6 +301,14 @@ function transparentMaterial(aperture, label, color) {
   });
 }
 
+function readRouteOptions() {
+  const params = new URLSearchParams(window.location.search);
+
+  return {
+    transparentPressure: params.get("transparent-pressure") === "1",
+  };
+}
+
 function statusFromReport(
   aperture,
   report,
@@ -284,10 +334,24 @@ function statusFromReport(
     .map((draw) => ({
       renderId: draw.renderId,
       materialKey: draw.sortKey.materialKey,
+      viewId: draw.sortKey.viewId,
+      layer: draw.sortKey.layer,
       order: draw.sortKey.order,
       depth: draw.sortKey.depth,
       stableId: draw.sortKey.stableId,
     }));
+  const transparentPressure = scene.route.transparentPressure
+    ? createTransparentPressureReport({
+        transparentSort,
+        transparentRecordCount:
+          reportJson.diagnosticsSummary?.renderQueueSortPhases?.find(
+            (phase) => phase.phase === "transparent",
+          )?.recordCount ?? transparentSort.length,
+        expectedRecordCount: scene.transparentPressure.expectedRecordCount,
+        workerStep: message.workerStep?.transparentPressure ?? null,
+        overlapRegions: scene.transparentPressure.overlapRegions,
+      })
+    : null;
 
   return {
     example: "standard-queue-phases",
@@ -296,6 +360,8 @@ function statusFromReport(
     phase: report.ok ? "submit" : "failed",
     renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
     clearColor: toRgbaObject(clearColor),
+    route: loop.route,
+    routeTransparentPressureReady: transparentPressure?.ready ?? false,
     workerModel: "ecs-extraction-worker-postmessage-snapshot",
     materialKeys: scene.materialKeys,
     expectedSamples: scene.expectedSamples,
@@ -311,6 +377,7 @@ function statusFromReport(
       (draw) => draw.batchKey.pipelineKey,
     ),
     transparentSort,
+    transparentPressure,
     transparentSortPolicy:
       reportJson.diagnosticsSummary?.renderQueueSortPhases?.find(
         (phase) => phase.phase === "transparent",
@@ -363,6 +430,157 @@ function updateRenderBundleHistory(loop, renderBundles) {
   };
 }
 
+function createTransparentPressureReport(input) {
+  const records = input.transparentSort;
+  const depthEpsilon = 0.0001;
+  let depthOrderInversions = 0;
+  let renderOrderTieBreakCount = 0;
+  let stableIdTieBreakCount = 0;
+
+  for (let leftIndex = 0; leftIndex < records.length; leftIndex += 1) {
+    const left = records[leftIndex];
+
+    for (
+      let rightIndex = leftIndex + 1;
+      rightIndex < records.length;
+      rightIndex += 1
+    ) {
+      const right = records[rightIndex];
+
+      if (left.viewId !== right.viewId || left.layer !== right.layer) {
+        continue;
+      }
+
+      const sameDepth = Math.abs(left.depth - right.depth) <= depthEpsilon;
+      const sameOrder = left.order === right.order;
+
+      if (sameDepth && left.order !== right.order) {
+        renderOrderTieBreakCount += 1;
+      }
+
+      if (sameDepth && sameOrder && left.stableId !== right.stableId) {
+        stableIdTieBreakCount += 1;
+      }
+
+      if (sameOrder && left.depth + depthEpsilon < right.depth) {
+        depthOrderInversions += 1;
+      }
+    }
+  }
+
+  const orderSignature = records
+    .map(
+      (record) =>
+        `${record.order}:${record.depth.toFixed(4)}:${record.stableId}`,
+    )
+    .join("|");
+
+  return {
+    enabled: true,
+    ready:
+      input.transparentRecordCount >= input.expectedRecordCount &&
+      depthOrderInversions === 0,
+    recordCount: input.transparentRecordCount,
+    expectedRecordCount: input.expectedRecordCount,
+    depthOrderInversions,
+    renderOrderTieBreakCount,
+    stableIdTieBreakCount,
+    cameraPhase: input.workerStep?.cameraPhase ?? "unknown",
+    cameraX: input.workerStep?.cameraX ?? 0,
+    cameraMoved: input.workerStep?.cameraMoved ?? false,
+    overlapRegions: input.overlapRegions,
+    orderSignature,
+  };
+}
+
+function createTransparentPressureSpecs() {
+  const specs = [];
+  const columns = [
+    {
+      x: -0.56,
+      y: 0,
+      nearColor: [1, 0.08, 0.04],
+      farColor: [0.04, 0.22, 1],
+    },
+    {
+      x: 0,
+      y: 0,
+      nearColor: [0.08, 1, 0.16],
+      farColor: [1, 0.1, 0.75],
+    },
+    {
+      x: 0.56,
+      y: 0,
+      nearColor: [0.1, 0.24, 1],
+      farColor: [1, 0.78, 0.06],
+    },
+  ];
+
+  for (let column = 0; column < columns.length; column += 1) {
+    const columnSpec = columns[column];
+
+    for (let layer = 0; layer < 8; layer += 1) {
+      const t = layer / 7;
+
+      specs.push({
+        label: `PressureDepth${column}${layer}`,
+        materialId: `pressure-depth-${column}-${layer}`,
+        color: [
+          mix(columnSpec.farColor[0], columnSpec.nearColor[0], t),
+          mix(columnSpec.farColor[1], columnSpec.nearColor[1], t),
+          mix(columnSpec.farColor[2], columnSpec.nearColor[2], t),
+          0.38,
+        ],
+        translation: [
+          columnSpec.x + (layer % 2 === 0 ? -0.018 : 0.018),
+          columnSpec.y + (layer % 3 === 0 ? 0.025 : -0.015),
+          layer * 0.08,
+        ],
+        order: 10,
+      });
+    }
+  }
+
+  const renderOrderTieColors = [
+    [0.04, 0.95, 0.95, 0.42],
+    [1, 0.08, 0.04, 0.42],
+    [0.95, 0.92, 0.08, 0.42],
+    [0.92, 0.12, 1, 0.42],
+  ];
+  const stableTieColors = [
+    [0.06, 1, 0.2, 0.42],
+    [0.08, 0.3, 1, 0.42],
+    [1, 0.78, 0.05, 0.42],
+    [1, 0.08, 0.04, 0.42],
+  ];
+
+  for (let index = 0; index < renderOrderTieColors.length; index += 1) {
+    specs.push({
+      label: `PressureRenderOrderTie${index}`,
+      materialId: `pressure-render-order-tie-${index}`,
+      color: renderOrderTieColors[index],
+      translation: [0, 0.24 + (index % 2) * 0.018, 0.76],
+      order: index < 2 ? 20 : 21,
+    });
+  }
+
+  for (let index = 0; index < stableTieColors.length; index += 1) {
+    specs.push({
+      label: `PressureStableTie${index}`,
+      materialId: `pressure-stable-tie-${index}`,
+      color: stableTieColors[index],
+      translation: [0.56, -0.24 + (index % 2) * 0.018, 0.9],
+      order: 30,
+    });
+  }
+
+  return specs;
+}
+
+function mix(a, b, t) {
+  return a + (b - a) * t;
+}
+
 function failure(reason, message) {
   return {
     example: "standard-queue-phases",
@@ -371,6 +589,7 @@ function failure(reason, message) {
     reason,
     message,
     clearColor: toRgbaObject(clearColor),
+    route: routeOptions,
   };
 }
 

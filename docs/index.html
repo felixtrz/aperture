@@ -393,15 +393,19 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 13:39 UTC</dd>
+            <dd>2026-05-24 14:41 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest render-pipeline slice: the GPU profiler now shows rolling
-              CPU phase history for extract, collect, prepare, queue, sort, and
-              submit while preserving the existing GPU timestamp overlay. The
-              recommended next task is a transparent sort pressure proof route.
+              Latest render-pipeline slice:
+              <code>standard-queue-phases.html?transparent-pressure=1</code>
+              now proves dense alpha-blend back-to-front ordering across a
+              small camera move, reports zero depth-order inversions plus
+              render-order and stable-id tie-break pressure, and the render
+              bundle path now scopes default-layout bind groups to the exact
+              renderer pipeline resource key used by each draw. The recommended
+              next task is clustered-light cache pressure history.
               The Tier 10 output-stage track is complete:
               <code>createWebGpuApp({ tonemap })</code> selects Linear,
               Reinhard, ACES, AgX, Neutral, or None; StandardMaterial output now
@@ -2270,9 +2274,9 @@
           <article class="phase">
             <div class="topline">
               <h3>5. sort</h3>
-              <span class="percent">92%</span>
+              <span class="percent">96%</span>
             </div>
-            <div class="bar"><span style="width: 92%"></span></div>
+            <div class="bar"><span style="width: 96%"></span></div>
             <p>
               Opaque queue sorting is stable and deterministic; alpha-test and
               transparent phase placement exists; transparent records now sort
@@ -2282,12 +2286,15 @@
               against state-aware opaque order so browser status can prove lower
               pipeline switch pressure. The GPU profiler now exposes rolling CPU
               phase timing for the named sort boundary alongside extract,
-              collect, prepare, queue, and submit timings.
+              collect, prepare, queue, and submit timings. The transparent
+              pressure route now proves 32 dense alpha-blend records before and
+              after a small camera move with zero reported depth-order
+              inversions.
             </p>
             <ul>
-              <li>Missing a transparent sort pressure proof route.</li>
               <li>
-                Missing broader phase pressure history beyond the profiler.
+                Missing broader batching and sort-pressure summaries beyond the
+                focused queue-phase and profiler routes.
               </li>
             </ul>
           </article>
@@ -2446,8 +2453,10 @@
             </p>
             <ul>
               <li>
-                Next step: add a transparent sort pressure proof route with
-                visible alpha-blend ordering and reported inversion pressure.
+                Next step: add clustered-light cache pressure history so
+                skipped clustered-buffer writes, cookie-atlas tile updates, and
+                local-shadow submissions are tracked over time against a
+                no-cache baseline.
               </li>
               <li>
                 Missing deeper profiler controls beyond the current rolling

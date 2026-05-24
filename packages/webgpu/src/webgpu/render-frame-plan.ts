@@ -69,6 +69,7 @@ export interface PlanRenderFrameFromSnapshotInput {
   readonly resolveMaterialResourceKey: (draw: MeshDrawPacket) => string | null;
   readonly meshResources: readonly MeshGpuBufferResource[];
   readonly instanceTintResources?: readonly InstanceTintGpuBufferResource[];
+  readonly pipelineKeysByRenderId?: ReadonlyMap<number, string>;
   readonly pipelines: readonly GetOrCreateRenderPipelineResult[];
   readonly bindGroups: readonly UnlitBindGroupResource[];
   readonly requiredBindGroupGroups?: readonly number[];
@@ -253,9 +254,14 @@ export function writeRenderFramePlanFromSnapshot(
     packages.packages,
     input.meshResources,
     input.scratch.drawCommandScratch,
-    input.instanceTintResources === undefined
-      ? {}
-      : { instanceTintResources: input.instanceTintResources },
+    {
+      ...(input.instanceTintResources === undefined
+        ? {}
+        : { instanceTintResources: input.instanceTintResources }),
+      ...(input.pipelineKeysByRenderId === undefined
+        ? {}
+        : { pipelineKeysByRenderId: input.pipelineKeysByRenderId }),
+    },
   );
   const drawList = writeRenderPassDrawList(
     {

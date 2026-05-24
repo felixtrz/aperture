@@ -136,6 +136,41 @@ describe("draw command descriptor planning", () => {
     ]);
   });
 
+  it("uses renderer pipeline resource keys without losing authored feature requirements", () => {
+    const pipelineResourceKey =
+      '{"material":{"pipelineKey":"standard|instance-tint|opaque|back|less|none"}}';
+    const result = createDrawCommandDescriptors(
+      [
+        drawPackage(
+          1,
+          "mesh:a",
+          "standard|instance-tint|opaque|back|less|none",
+        ),
+      ],
+      [meshResource("mesh:a", true)],
+      {
+        pipelineKeysByRenderId: new Map([[1, pipelineResourceKey]]),
+        instanceTintResources: [
+          {
+            streamId: "instanceTint",
+            resourceKey: "instance-tint-buffer:frame",
+            buffer: {},
+            vertexCount: 2,
+            offsets: [{ renderId: 1, sourceOffset: 0, packedOffset: 0 }],
+          },
+        ],
+      },
+    );
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.descriptors[0]).toMatchObject({
+      renderId: 1,
+      pipelineKey: pipelineResourceKey,
+      requiredBindGroupGroups: [0, 1, 2, 3],
+      vertexBufferKeys: ["mesh:a/vertex", "instance-tint-buffer:frame"],
+    });
+  });
+
   it("does not treat substring matches as an instance-tint feature", () => {
     const result = createDrawCommandDescriptors(
       [drawPackage(1, "mesh:a", "standard|not-instance-tint|opaque")],

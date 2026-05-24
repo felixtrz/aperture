@@ -1520,16 +1520,7 @@ function createStandardAppPipelineLayouts(
     pipelineResourceKey.includes("point-depth-array@9") ||
     (usesLightPointShadowGroup &&
       pipelineResourceKey.includes("depth-array@3"));
-  const autoLayoutKeySuffix =
-    (usesLightShadowGroup ||
-      usesLightShadowIblGroup ||
-      usesLightCascadedShadowGroup ||
-      usesLightCascadedShadowIblGroup ||
-      usesLightPointShadowGroup ||
-      usesLightMultiShadowGroup) &&
-    usesClusteredLocalLights
-      ? `/pipeline:${pipelineResourceKey}`
-      : "";
+  const autoLayoutKeySuffix = `/pipeline:${pipelineResourceKey}`;
   const baseLightLayoutKey = usesLightShadowIblGroup
     ? "webgpu-app/standard/lights-shadow-ibl/group-3"
     : usesLightCascadedShadowIblGroup
@@ -2293,6 +2284,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       prepared.materialResourceKeys.get(assetHandleKey(draw.material)) ?? null,
     meshResources: prepared.resources.meshResources,
     instanceTintResources: collectInstanceTintResources(prepared.resources),
+    pipelineKeysByRenderId: prepared.pipelineKeysByRenderId,
     pipelines: prepared.pipelineResults,
     bindGroups: prepared.resources.bindGroups,
     scratch: options.cache.frameScratch.framePlan,
@@ -5965,6 +5957,7 @@ async function prepareQueuedBuiltInFrameResources(options: {
   readonly diagnostics: readonly unknown[];
   readonly pipelineResults: readonly WebGpuAppPipelinePlanResult[];
   readonly firstPipeline: WebGpuAppPipelineResourceResult | null;
+  readonly pipelineKeysByRenderId: ReadonlyMap<number, string>;
   readonly meshResourceKeys: ReadonlyMap<string, string>;
   readonly materialResourceKeys: ReadonlyMap<string, string>;
 }> {
@@ -5990,6 +5983,8 @@ async function prepareQueuedBuiltInFrameResources(options: {
             : { motionVectorColorFormat: options.motionVectorColorFormat }),
         }),
       getPipelineView: (pipeline) => pipeline,
+      getPipelineResourceKey: ({ item, pipeline }) =>
+        pipeline.resource?.cacheKey ?? item.draw.batchKey.pipelineKey,
       createPipelinePlanResult: ({ item, pipeline }) =>
         createWebGpuAppPipelinePlanResult(item.draw, pipeline),
       getPipelineLayouts: ({ item, pipeline, getBindGroupLayout }) =>
@@ -6180,7 +6175,7 @@ function createWebGpuAppPipelinePlanResult(
   return {
     ok: true as const,
     status: "miss" as const,
-    key: draw.batchKey.pipelineKey,
+    key: pipeline.resource.cacheKey,
     pipeline: pipeline.resource.pipeline,
     diagnostics: [],
   };
@@ -7532,6 +7527,7 @@ async function prepareWebGpuAppPickFrameResources(
       prepared.materialResourceKeys.get(assetHandleKey(draw.material)) ?? null,
     meshResources: prepared.resources.meshResources,
     instanceTintResources: collectInstanceTintResources(prepared.resources),
+    pipelineKeysByRenderId: prepared.pipelineKeysByRenderId,
     pipelines: prepared.pipelineResults,
     bindGroups: prepared.resources.bindGroups,
     scratch: resourceCache.frameScratch.framePlan,

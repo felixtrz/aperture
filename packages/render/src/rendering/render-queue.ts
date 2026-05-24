@@ -424,6 +424,8 @@ function canCoalesceRenderQueueRecord(
   record: RenderQueueRecord,
 ): boolean {
   return (
+    previous.queueKind !== "transparent" &&
+    record.queueKind !== "transparent" &&
     previous.viewId === record.viewId &&
     previous.passId === record.passId &&
     previous.queueKind === record.queueKind &&

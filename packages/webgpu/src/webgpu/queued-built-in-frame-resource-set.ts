@@ -116,6 +116,10 @@ export interface PrepareQueuedBuiltInFrameResourceSetCallbacks<
     item: QueuedBuiltInAppResourceItem,
   ): Promise<TPipelineResult> | TPipelineResult;
   getPipelineView(pipeline: TPipelineResult): QueuedBuiltInPipelineResourceView;
+  getPipelineResourceKey?(input: {
+    readonly item: QueuedBuiltInAppResourceItem;
+    readonly pipeline: TPipelineResult;
+  }): string;
   createPipelinePlanResult(input: {
     readonly item: QueuedBuiltInAppResourceItem;
     readonly pipeline: TPipelineResult;
@@ -170,6 +174,7 @@ export interface PrepareQueuedBuiltInFrameResourceSetResult<
   readonly diagnostics: readonly unknown[];
   readonly pipelineResults: readonly TPipelinePlanResult[];
   readonly firstPipeline: TPipelineResult | null;
+  readonly pipelineKeysByRenderId: ReadonlyMap<number, string>;
   readonly meshResourceKeys: ReadonlyMap<string, string>;
   readonly materialResourceKeys: ReadonlyMap<string, string>;
 }
@@ -235,6 +240,12 @@ export async function prepareQueuedBuiltInFrameResourceSet<
     scratch,
     callbacks: {
       getPipelineKey: (item) => item.draw.batchKey.pipelineKey,
+      ...(options.callbacks.getPipelineResourceKey === undefined
+        ? {}
+        : {
+            getPipelineResourceKey: options.callbacks.getPipelineResourceKey,
+          }),
+      getRenderId: (item) => item.draw.renderId,
       getSourceMeshKey: (item) => item.sourceMeshKey,
       getSourceMaterialKey: (item) => item.sourceMaterialKey,
       getPipeline: options.callbacks.getPipeline,
@@ -326,6 +337,7 @@ export async function prepareQueuedBuiltInFrameResourceSet<
     diagnostics: prepared.diagnostics,
     pipelineResults: prepared.pipelineResults,
     firstPipeline: prepared.firstPipeline,
+    pipelineKeysByRenderId: prepared.pipelineKeysByRenderId,
     meshResourceKeys: prepared.meshResourceKeys,
     materialResourceKeys: prepared.materialResourceKeys,
   };

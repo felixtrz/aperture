@@ -30,6 +30,7 @@ export interface QueuedMaterialFrameResourceScratch<
 > {
   readonly pipelineResults: Map<string, TPipelinePlanResult>;
   readonly pipelineResultList: TPipelinePlanResult[];
+  readonly pipelineKeysByRenderId: Map<number, string>;
   readonly meshResources: Map<string, TMeshResource>;
   readonly meshResourceList: TMeshResource[];
   readonly meshResourceKeys: Map<string, string>;
@@ -53,6 +54,11 @@ export interface QueuedMaterialFrameResourceSetCallbacks<
   TBindGroup extends PipelineScopedBindGroupResource,
 > {
   getPipelineKey(item: TItem): string;
+  getPipelineResourceKey?(input: {
+    readonly item: TItem;
+    readonly pipeline: TPipelineResult;
+  }): string;
+  getRenderId?(item: TItem): number | null;
   getSourceMeshKey(item: TItem): string;
   getSourceMaterialKey(item: TItem): string;
   getPipeline(item: TItem): Promise<TPipelineResult> | TPipelineResult;
@@ -143,6 +149,7 @@ export interface PrepareQueuedMaterialFrameResourceSetResult<
   readonly firstResources: TFrameResources | null;
   readonly meshResources: readonly TMeshResource[];
   readonly bindGroups: readonly TBindGroup[];
+  readonly pipelineKeysByRenderId: ReadonlyMap<number, string>;
   readonly meshResourceKeys: ReadonlyMap<string, string>;
   readonly materialResourceKeys: ReadonlyMap<string, string>;
 }
@@ -159,6 +166,7 @@ export function createQueuedMaterialFrameResourceScratch<
   return {
     pipelineResults: new Map(),
     pipelineResultList: [],
+    pipelineKeysByRenderId: new Map(),
     meshResources: new Map(),
     meshResourceList: [],
     meshResourceKeys: new Map(),
@@ -232,13 +240,22 @@ export async function prepareQueuedMaterialFrameResourceSet<
       continue;
     }
 
-    if (!scratch.pipelineResults.has(pipelineKey)) {
+    const pipelineResourceKey =
+      options.callbacks.getPipelineResourceKey?.({ item, pipeline }) ??
+      pipelineKey;
+    const renderId = options.callbacks.getRenderId?.(item);
+
+    if (renderId !== undefined && renderId !== null) {
+      scratch.pipelineKeysByRenderId.set(renderId, pipelineResourceKey);
+    }
+
+    if (!scratch.pipelineResults.has(pipelineResourceKey)) {
       const pipelineResult = options.callbacks.createPipelinePlanResult({
         item,
         pipeline,
       });
 
-      scratch.pipelineResults.set(pipelineKey, pipelineResult);
+      scratch.pipelineResults.set(pipelineResourceKey, pipelineResult);
       scratch.pipelineResultList.push(pipelineResult);
     }
 
@@ -307,7 +324,7 @@ export async function prepareQueuedMaterialFrameResourceSet<
     );
     appendPipelineScopedBindGroups(
       options.callbacks.getBindGroups(resources),
-      pipelineKey,
+      pipelineResourceKey,
       scratch.bindGroups,
       scratch.pipelineScopedBindGroups,
     );
@@ -325,6 +342,7 @@ export async function prepareQueuedMaterialFrameResourceSet<
     firstResources,
     meshResources: scratch.meshResourceList,
     bindGroups: scratch.bindGroups,
+    pipelineKeysByRenderId: scratch.pipelineKeysByRenderId,
     meshResourceKeys: scratch.meshResourceKeys,
     materialResourceKeys: scratch.materialResourceKeys,
   };
@@ -347,6 +365,7 @@ export function resetQueuedMaterialFrameResourceScratch<
 > {
   scratch.pipelineResults.clear();
   scratch.pipelineResultList.length = 0;
+  scratch.pipelineKeysByRenderId.clear();
   scratch.meshResources.clear();
   scratch.meshResourceList.length = 0;
   scratch.meshResourceKeys.clear();
