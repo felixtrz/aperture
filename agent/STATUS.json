@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-3127",
+  "currentTaskId": "task-3128",
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "3a52db0",
+  "lastCommit": "f3d5750",
   "activePid": null,
-  "notes": "Completed task-3126 production-fidelity area-light LTC tables; next task is task-3127 post-LTC render-pipeline parity audit.",
-  "lastRunFinishedAt": "2026-05-24T00:52:00Z"
+  "notes": "Completed task-3127 post-LTC render-pipeline parity audit; next task is task-3128 light-driven clustered local-light fill.",
+  "lastRunFinishedAt": "2026-05-24T01:06:09Z"
 }

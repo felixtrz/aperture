@@ -1,5 +1,32 @@
 # Completed Tasks
 
+## task-3127 — Re-audit post-cluster render pipeline parity
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added `docs/research/POST_LTC_RENDER_PIPELINE_PARITY_AUDIT_2026_05_24.md`,
+  comparing the covered Aperture render pipeline against three.js
+  `WebGLRenderer` and PlayCanvas `ForwardRenderer`/`WorldClusters` after the
+  occlusion, multi-view clustered-light, multi-material group, and production
+  LTC table slices.
+- Found the previous per-fragment many-light blocker is closed, but the next
+  SOTA efficiency blocker is CPU-side cluster building: Aperture still scans
+  all local lights for each cell, while PlayCanvas writes each light only into
+  its affected cell range.
+- Identified the next feature-combination blocker as StandardMaterial CSM plus
+  IBL in one group-3 route, followed by broader cluster-aware local-light
+  shadow/cookie metadata.
+- Refilled the ready queue with visible tasks `task-3128`, `task-3129`, and
+  `task-3130`. Recommended next task is `task-3128`, light-driven clustered
+  local-light fill with browser-visible pressure telemetry.
+
+Validation:
+
+- Audit evidence inspection only; implementation validation starts with
+  `task-3128`.
+
 ## task-3126 — Replace placeholder area-light LTC payloads with production tables
 
 Completed: 2026-05-24

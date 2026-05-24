@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3127`: re-audit post-cluster render pipeline parity against
-three.js and PlayCanvas after the occlusion, multi-view clustered-light, and
-production LTC table slices.
+Start `task-3128`: replace clustered local-light cell building with a
+PlayCanvas-style light-driven range fill and publish cluster build-pressure
+telemetry.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -184,8 +184,13 @@ buffers, and proves two active cluster routes in
 RectAreaLight LTC data with production RGBA16F table payloads, samples the
 matrix/fresnel terms through the existing group-3 route, and proves
 roughness/view-angle response for rect, disk, and sphere area lights in
-`examples/area-light-shapes.html`. The next SOTA step is a fresh parity audit
-before selecting the next visible render-pipeline slice.
+`examples/area-light-shapes.html`. `task-3127` re-audited the covered pipeline
+after those slices and found the next SOTA blocker is CPU-side clustered-light
+build efficiency: Aperture now shades from per-view clusters, but the cluster
+builder still scans every local light for every cell, while PlayCanvas fills
+only the cell range touched by each light. The next visible slice is
+`task-3128`, replacing that build shape and exposing browser-visible pressure
+telemetry.
 
 Reference anchors for the next task (read before writing):
 
@@ -645,6 +650,8 @@ Acceptance criteria:
 
 ### task-3127 — Re-audit post-cluster render pipeline parity
 
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research/`, `docs/render-pipeline-comparison.html`, `docs/index.html`, `agent/BACKLOG.md`.
 Reference anchor: `references/three.js/src/renderers/WebGLRenderer.js`, `references/engine/src/scene/renderer/forward-renderer.js`.
@@ -657,6 +664,58 @@ Acceptance criteria:
   from broad feature-parity work.
 - The ready queue is refilled with at least three visible-feature tasks with
   concrete reference anchors and browser-verifiable acceptance criteria.
+
+### task-3128 — Replace clustered local-light cell scans with light-driven fill
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/local-light-clusters.ts`, `examples/clustered-lights.*`, `test/webgpu/local-light-clusters.test.ts`, `test/e2e/clustered-lights.spec.ts`, tracker/docs.
+Reference anchor: `references/engine/src/scene/lighting/world-clusters.js`.
+
+Acceptance criteria:
+
+- Cluster descriptor generation assigns each clustered local light only to the
+  cell min/max range touched by that light instead of scanning all lights for
+  every cell.
+- JSON-safe cluster reports include build-pressure telemetry such as assignment
+  strategy, cell-range tests, light-cell write attempts, stored references, and
+  overflowed cells.
+- `examples/clustered-lights.html` proves the route still renders the two
+  active 64-light cluster views with zero WebGPU validation warnings and reports
+  lower build-test pressure than the old `cellCount * clusteredLocalLights`
+  scan shape.
+
+### task-3129 — Combine cascaded directional shadows with IBL
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/standard-*`, `packages/webgpu/src/webgpu/app.ts`, `examples/outdoor-scene.*`, `test/webgpu/`, `test/e2e/outdoor-scene.spec.ts`, tracker/docs.
+Reference anchor: `references/three.js/src/renderers/WebGLRenderer.js`, `references/engine/src/scene/renderer/forward-renderer.js`.
+
+Acceptance criteria:
+
+- StandardMaterial can select a group-3 layout that binds cascaded directional
+  shadow depth arrays plus diffuse and specular IBL textures/sampler in the same
+  draw route.
+- `examples/outdoor-scene.html` or a focused variant renders one worker-authored
+  scene where the same receiver reports both `cascadedShadowMap` and
+  `iblDiffuse`/specular IBL pipeline features.
+- Browser readbacks prove both CSM receiver darkening and IBL response in that
+  combined route with zero WebGPU validation warnings.
+
+### task-3130 — Add cluster-aware local-light shadow/cookie metadata
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.
+Reference anchor: `references/engine/src/scene/lighting/world-clusters.js`, `references/engine/src/scene/renderer/forward-renderer.js`.
+
+Acceptance criteria:
+
+- Clustered local-light resources preserve whether assigned point/spot lights
+  have shadow/cookie metadata needed by future clustered shadow/cookie sampling,
+  without exposing GPU state through ECS.
+- StandardMaterial clustered-light route reports honest JSON-safe readiness or
+  fallback diagnostics for local shadow/cookie metadata in many-light scenes.
+- A browser proof keeps clustered direct lighting visible while reporting the
+  cluster-local metadata state and zero WebGPU validation warnings.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

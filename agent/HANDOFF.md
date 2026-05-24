@@ -1,6 +1,40 @@
 # Agent Handoff
 
-Updated: 2026-05-24T00:52:00Z
+Updated: 2026-05-24T01:06:09Z
+
+## Current Run Update — 2026-05-24T01:06:09Z — Post-LTC render-pipeline parity audit
+
+Completed `task-3127`, re-auditing the covered render pipeline after the
+occlusion-query feedback, multi-view clustered-light, multi-material group, and
+production LTC table slices.
+
+### What changed
+
+- Added `docs/research/POST_LTC_RENDER_PIPELINE_PARITY_AUDIT_2026_05_24.md`.
+- Compared Aperture against three.js `WebGLRenderer` and PlayCanvas
+  `ForwardRenderer`/`WorldClusters`.
+- Found the prior per-fragment many-light SOTA blocker is closed, but
+  CPU-side cluster building is still less efficient than the PlayCanvas
+  light-driven range-fill shape.
+- Identified CSM plus IBL in one StandardMaterial route as the next
+  feature-combination blocker after cluster-build efficiency.
+- Refilled the ready queue with `task-3128`, `task-3129`, and `task-3130`, all
+  visible or browser-verifiable render-pipeline slices.
+
+### Validation
+
+- Audit evidence inspection only; implementation validation starts with
+  `task-3128`.
+
+### Known issues
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3128`, replacing clustered local-light cell scans with
+light-driven range fill and build-pressure telemetry.
 
 ## Current Run Update — 2026-05-24T00:52:00Z — Production area-light LTC tables
 
