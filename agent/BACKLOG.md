@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3159`: perform the final covered render-pipeline SOTA audit against
-three.js and PlayCanvas using the pressure-history, profiler, queue, and
-clustered-light proofs now in the tree.
+Start `task-3160`: add cross-device benchmark automation for post-SOTA
+hardening. The covered render-pipeline SOTA claim is now supported in
+`docs/RENDER_PIPELINE_SOTA_AUDIT.md`.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -1358,7 +1358,7 @@ persistent harness in one browser session.
 
 ### task-3159 — Final covered render-pipeline SOTA audit
 
-Status: ready
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `audit-refactor`
 Package/write-scope: `docs/`, `agent/`, targeted tests if the audit exposes a
@@ -1380,6 +1380,34 @@ Acceptance criteria:
 - Run focused proof commands for the pressure-history route, persistent
   clustered harness, GPU profiler phase history, transparent sort pressure, and
   at least one queue/submit unit suite needed to support the claim.
+
+Completed: 2026-05-24.
+`docs/RENDER_PIPELINE_SOTA_AUDIT.md` now records the final scoped audit against
+three.js and PlayCanvas. The audit maps each covered SOTA lane to proof routes,
+unit suites, pressure status fields, and validation commands, and concludes the
+implemented WebGPU render-pipeline scope has no remaining blocker to the SOTA
+claim.
+
+### task-3160 — Add cross-device benchmark automation for post-SOTA hardening
+
+Status: ready
+
+Category: `docs-tooling`
+Package/write-scope: `test/e2e/`, `scripts/`, `docs/`, `agent/`.
+Reference anchor: `docs/RENDER_PIPELINE_SOTA_AUDIT.md`,
+`references/three.js/src/renderers/common/Renderer.js`,
+`references/engine/src/framework/stats.js`.
+
+Acceptance criteria:
+
+- Add a benchmark runner that can execute the key SOTA proof routes on a fixed
+  viewport/device profile and write JSON summaries for phase timings, draw
+  pressure, clustered pressure, and WebGPU warning counts.
+- Include at least clustered pressure history, transparent pressure, GPU
+  profiler phase history, and one queue/submit route in the benchmark set.
+- Document how to compare benchmark summaries across machines/browsers without
+  treating the current numbers as release promises.
+- Keep the existing final SOTA audit decision scoped to implemented features.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

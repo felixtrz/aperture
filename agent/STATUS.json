@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "60162d8",
+  "lastCommit": "bce9c70",
   "activePid": null,
-  "notes": "Completed task-3158 persistent Playwright clustered route harness with one-page route reset, JSON-safe status/readback/frame/timing attachments, per-route WebGPU warning slices, focused browser proof, and updated tracker; next task-3159 runs the final covered render-pipeline SOTA audit.",
-  "lastRunFinishedAt": "2026-05-24T15:49:57Z"
+  "notes": "Completed task-3159 final covered render-pipeline SOTA audit. docs/RENDER_PIPELINE_SOTA_AUDIT.md maps covered lanes to proof routes, unit suites, pressure telemetry, and reference comparisons, and supports the scoped SOTA claim against three.js and PlayCanvas; future task-3160 is cross-device benchmark automation.",
+  "lastRunFinishedAt": "2026-05-24T15:56:20Z"
 }

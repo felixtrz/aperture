@@ -1,6 +1,56 @@
 # Agent Handoff
 
-Updated: 2026-05-24T15:49:57Z
+Updated: 2026-05-24T15:56:20Z
+
+## Current Run Update — 2026-05-24T15:56:20Z — Final covered SOTA audit
+
+Completed `task-3159`, the final covered render-pipeline SOTA audit.
+
+### What changed
+
+- Added `docs/RENDER_PIPELINE_SOTA_AUDIT.md`.
+- The audit maps each covered render-pipeline lane to concrete proof evidence:
+  browser routes, route/status telemetry, unit suites, validation commands, and
+  comparison notes against three.js and PlayCanvas.
+- The decision is deliberately scoped to Aperture's implemented WebGPU
+  render-pipeline features. Unsupported features and broad benchmark automation
+  are future work, not part of the completed claim.
+- Updated `docs/index.html` and `docs/render-pipeline-comparison.html` to link
+  the audit and state that the covered SOTA claim is supported.
+- Updated backlog/current/completed/status records. The recommended future task
+  is `task-3160`, cross-device benchmark automation for post-SOTA hardening.
+
+### Validation
+
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts -g "cache pressure history|persistent route harness" --timeout=60000 --reporter=line`
+  passed.
+- `pnpm exec playwright test test/e2e/standard-queue-phases.spec.ts -g "transparent pressure" --timeout=60000 --reporter=line`
+  passed.
+- Direct Playwright probe for
+  `examples/gpu-profiler.html?phase-history=1&proof=direct-final-audit`
+  returned `ok: true`, `routePhaseHistoryReady: true`, six phase rows, sample
+  counts of `2`, diagnostics `0`, and zero relevant WebGPU warnings.
+- `pnpm exec vitest run test/webgpu/draw-command.test.ts test/webgpu/render-frame-plan.test.ts test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/rendering/render-queue.test.ts`
+  passed with 114 tests.
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run build`
+- `pnpm run check:progress`
+
+### Known issues
+
+- The broad headed clustered-lights and gpu-profiler Playwright wrappers remain
+  local runner reliability concerns. Focused route proofs, the persistent
+  clustered harness, and direct route probes were used for authoritative
+  runtime evidence.
+- The pre-existing working-tree deletion of `.codex/hooks.json`, untracked
+  `.playwright-mcp/` scratch directory, and untracked
+  `shadow-cookie-console-errors.txt` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3160`: add cross-device benchmark automation for post-SOTA
+hardening. This is not a blocker for the completed covered-pipeline SOTA claim.
 
 ## Current Run Update — 2026-05-24T15:49:57Z — Persistent clustered route harness
 

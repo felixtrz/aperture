@@ -393,23 +393,22 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 15:49 UTC</dd>
+            <dd>2026-05-24 15:56 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest render-pipeline slice:
-              <code>test/e2e/persistent-route-harness.ts</code> now runs
-              multiple example routes through one Playwright page with
-              deterministic route reset, JSON-safe status/readback/frame/timing
-              attachments, and per-route WebGPU validation warning slices. The
-              recommended next task is the final covered render-pipeline SOTA
-              audit against three.js and PlayCanvas. The Tier 10 output-stage
-              track is complete:
-              <code>createWebGpuApp({ tonemap })</code> selects Linear,
-              Reinhard, ACES, AgX, Neutral, or None; StandardMaterial output now
-              encodes through explicit sRGB display color space; texture
-              descriptors carry color-space/semantic metadata; native
+              <code>docs/RENDER_PIPELINE_SOTA_AUDIT.md</code> now records the
+              final covered-pipeline audit against three.js and PlayCanvas.
+              Within Aperture's implemented scope, the audited render pipeline
+              can now be considered SOTA, backed by focused browser proofs,
+              queue/submit unit coverage, pressure telemetry, and the persistent
+              clustered route harness. The Tier 10 output-stage track is
+              complete: <code>createWebGpuApp({ tonemap })</code> selects
+              Linear, Reinhard, ACES, AgX, Neutral, or None; StandardMaterial
+              output now encodes through explicit sRGB display color space;
+              texture descriptors carry color-space/semantic metadata; native
               <code>loadHdrFromUri()</code> parses Radiance RGBE
               <code>.hdr</code> assets; and
               <code>examples/tonemap-showcase.html</code> compares four
@@ -1583,7 +1582,9 @@
               that tracks stable cache-hit savings over 30 frames.
             </dd>
             <dt>Next focus</dt>
-            <dd>Final covered render-pipeline SOTA audit</dd>
+            <dd>
+              Post-SOTA benchmark automation and unsupported feature expansion
+            </dd>
           </dl>
         </aside>
       </header>
@@ -2475,6 +2476,12 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3159</span> Recorded the final
+                covered render-pipeline SOTA audit with an evidence table,
+                validation commands, scoped exclusions, and a bounded supported
+                decision against the audited three.js and PlayCanvas lanes.
+              </li>
               <li>
                 <span class="badge green">task-3158</span> Added a persistent
                 Playwright route-proof harness that resets one page between
@@ -4906,14 +4913,14 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Run the final covered
-                render-pipeline SOTA audit against three.js and PlayCanvas using
-                the committed profiler, queue, pressure-history, and
-                clustered-light proof routes.
+                <span class="badge green">done</span> The covered
+                render-pipeline SOTA audit is supported in
+                <code>docs/RENDER_PIPELINE_SOTA_AUDIT.md</code>.
               </li>
               <li>
-                Use the persistent clustered route harness for any repeated
-                browser proofs instead of the older multi-page clustered spec.
+                Future work should focus on cross-device benchmark automation,
+                broader unsupported feature coverage, and production-scale
+                examples rather than remaining blockers to the covered claim.
               </li>
             </ul>
           </article>
@@ -4926,6 +4933,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3159</div>
+            <div>
+              <strong>Covered render-pipeline SOTA audit supported.</strong>
+              <span>
+                <code>docs/RENDER_PIPELINE_SOTA_AUDIT.md</code> maps each
+                claimed lane to proof routes, unit coverage, pressure reports,
+                and reference comparisons, with no remaining blocker inside the
+                implemented scope.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3158</div>
             <div>

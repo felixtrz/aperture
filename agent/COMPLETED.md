@@ -1,5 +1,39 @@
 # Completed Tasks
 
+## task-3159 — Final covered render-pipeline SOTA audit
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added `docs/RENDER_PIPELINE_SOTA_AUDIT.md` with the scoped final audit
+  decision for Aperture's implemented WebGPU render-pipeline lanes.
+- Mapped each covered SOTA lane to concrete evidence: browser proof routes,
+  route/status telemetry, queue/submit unit coverage, and reference comparison
+  notes against three.js and PlayCanvas.
+- Kept the claim bounded to implemented features and explicitly excluded
+  unsupported/future areas such as WebXR, public app-owned material adapter
+  rendering, and production-scale cross-device benchmark automation.
+- Updated public progress pages and agent bookkeeping to treat the covered
+  render-pipeline SOTA claim as supported.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts -g "cache pressure history|persistent route harness" --timeout=60000 --reporter=line`
+- `pnpm exec playwright test test/e2e/standard-queue-phases.spec.ts -g "transparent pressure" --timeout=60000 --reporter=line`
+- Direct Playwright probe for
+  `examples/gpu-profiler.html?phase-history=1&proof=direct-final-audit`
+  returned six phase rows, diagnostics `0`, and zero relevant WebGPU warnings.
+- `pnpm exec vitest run test/webgpu/draw-command.test.ts test/webgpu/render-frame-plan.test.ts test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/rendering/render-queue.test.ts`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run build`
+- `pnpm run check:progress`
+
+Known follow-up:
+
+- `task-3160` should add cross-device benchmark automation for post-SOTA
+  hardening, but it is not a blocker for the covered SOTA claim.
+
 ## task-3158 — Add persistent Playwright render proof harness
 
 Completed: 2026-05-24
