@@ -4,7 +4,7 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "3cecb43",
+  "lastCommit": "3ecb325",
   "activePid": null,
   "notes": "Completed task-3155 GPU profiler phase timing history with WebGpuApp rolling CPU phase reports, six visible phase rows, browser proof, and updated tracker; next task-3156 adds a transparent sort pressure proof route.",
   "lastRunFinishedAt": "2026-05-24T13:39:00Z"
