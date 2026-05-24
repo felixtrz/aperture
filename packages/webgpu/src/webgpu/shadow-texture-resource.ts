@@ -23,6 +23,7 @@ export interface ShadowTextureResourceDescriptor {
   readonly depthFormat: "depth24plus";
   readonly cascadeCount?: number;
   readonly layerCount?: number;
+  readonly layerBaseIndex?: number;
   readonly faceCount: 1 | 6;
   readonly viewDimension: "2d" | "2d-array" | "cube";
   readonly usageIntent: "render-attachment";
@@ -70,40 +71,49 @@ export function createShadowTextureResourceReport(
 
   const textures = input.descriptors.descriptors
     .filter((descriptor) => descriptor.ready)
-    .map((descriptor) => ({
-      shadowId: descriptor.shadowId,
-      lightId: descriptor.lightId,
-      lightKind: descriptor.lightKind,
-      resourceKey: descriptor.resourceKey,
-      textureKey: `${descriptor.resourceKey}:texture`,
-      viewKey: `${descriptor.resourceKey}:view`,
-      attachmentViewKeys: Array.from(
-        {
-          length:
-            descriptor.lightKind === "directional"
-              ? descriptor.cascadeCount
-              : descriptor.faceCount,
-        },
-        (_, index) =>
-          descriptor.faceCount === 1 && descriptor.cascadeCount === 1
-            ? `${descriptor.resourceKey}:view`
-            : descriptor.lightKind === "directional"
-              ? `${descriptor.resourceKey}:cascade-${index}:view`
-              : `${descriptor.resourceKey}:face-${index}:view`,
-      ),
-      width: descriptor.mapSize,
-      height: descriptor.mapSize,
-      depthFormat: descriptor.depthFormat,
-      cascadeCount: descriptor.cascadeCount,
-      layerCount:
+    .map((descriptor) => {
+      const layerCount =
+        descriptor.layerCount ??
+        (descriptor.lightKind === "directional"
+          ? descriptor.cascadeCount
+          : descriptor.faceCount);
+      const layerBaseIndex = descriptor.layerBaseIndex ?? 0;
+      const attachmentCount =
         descriptor.lightKind === "directional"
           ? descriptor.cascadeCount
-          : descriptor.faceCount,
-      faceCount: descriptor.faceCount,
-      viewDimension: descriptor.viewDimension,
-      usageIntent: "render-attachment" as const,
-      allocation: "deferred" as const,
-    }));
+          : descriptor.faceCount;
+
+      return {
+        shadowId: descriptor.shadowId,
+        lightId: descriptor.lightId,
+        lightKind: descriptor.lightKind,
+        resourceKey: descriptor.resourceKey,
+        textureKey: `${descriptor.resourceKey}:texture`,
+        viewKey: `${descriptor.resourceKey}:view`,
+        attachmentViewKeys: Array.from(
+          { length: attachmentCount },
+          (_, index) =>
+            descriptor.viewDimension === "2d-array" &&
+            descriptor.lightKind !== "directional"
+              ? `${descriptor.resourceKey}:layer-${layerBaseIndex + index}:view`
+              : descriptor.faceCount === 1 && descriptor.cascadeCount === 1
+                ? `${descriptor.resourceKey}:view`
+                : descriptor.lightKind === "directional"
+                  ? `${descriptor.resourceKey}:cascade-${index}:view`
+                  : `${descriptor.resourceKey}:face-${index}:view`,
+        ),
+        width: descriptor.mapSize,
+        height: descriptor.mapSize,
+        depthFormat: descriptor.depthFormat,
+        cascadeCount: descriptor.cascadeCount,
+        layerCount,
+        layerBaseIndex,
+        faceCount: descriptor.faceCount,
+        viewDimension: descriptor.viewDimension,
+        usageIntent: "render-attachment" as const,
+        allocation: "deferred" as const,
+      };
+    });
 
   if (textures.length > 0) {
     diagnostics.push({

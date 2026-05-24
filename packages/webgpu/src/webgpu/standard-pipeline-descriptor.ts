@@ -36,6 +36,7 @@ import {
 } from "./standard-light-shadow-bind-group.js";
 import {
   CLUSTERED_LOCAL_LIGHT_ARRAY_COOKIE_PIPELINE_FEATURE,
+  CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_CUBE_COOKIE_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
@@ -318,13 +319,16 @@ function standardBindGroupLayoutKeys(
         : features.shadowMap === true
           ? features.iblDiffuse === true
             ? features.iblSpecularProof === true
-              ? features.cascadedShadowMap === true
+              ? features.cascadedShadowMap === true ||
+                features.clusteredLocalLightArrayShadows === true
                 ? `${STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY}:light-floats@0,light-metadata@1,matrix@2,depth-array@3,sampler@4,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7`
                 : "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7"
-              : features.cascadedShadowMap === true
+              : features.cascadedShadowMap === true ||
+                  features.clusteredLocalLightArrayShadows === true
                 ? `${STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY}:light-floats@0,light-metadata@1,matrix@2,depth-array@3,sampler@4,diffuse-ibl@5,ibl-sampler@6`
                 : "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6"
-            : features.cascadedShadowMap === true
+            : features.cascadedShadowMap === true ||
+                features.clusteredLocalLightArrayShadows === true
               ? `${STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY}:light-floats@0,light-metadata@1,matrix@2,depth-array@3,sampler@4`
               : "standard/lights-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4"
           : features.iblDiffuse === true
@@ -405,6 +409,9 @@ function standardTextureFeatures(
   const clusteredLocalLightArrayCookies = tokens.includes(
     CLUSTERED_LOCAL_LIGHT_ARRAY_COOKIE_PIPELINE_FEATURE,
   );
+  const clusteredLocalLightArrayShadows = tokens.includes(
+    CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE,
+  );
 
   return {
     baseColorTexture: tokens.includes("baseColorTexture"),
@@ -442,6 +449,7 @@ function standardTextureFeatures(
       clusteredLocalLightArrayCookies,
     clusteredLocalLightArrayCookies,
     clusteredLocalLightCubeCookies,
+    clusteredLocalLightArrayShadows,
     skinned: standardSkinningEnabledFromBatchKey(batchKey),
     morphed: standardMorphTargetsEnabledFromBatchKey(batchKey),
     vertexColor:

@@ -442,6 +442,53 @@ describe("local light cluster preparation", () => {
     });
   });
 
+  it("records per-light spot-shadow array matrix indices in cluster metadata", () => {
+    const base = snapshotWithPointLights(16, { shadowedLightCount: 2 });
+    const descriptor = createLocalLightClusterDescriptor(
+      {
+        ...base,
+        lights: base.lights.map((light) => ({
+          ...light,
+          kind: "spot",
+          innerConeAngle: 0.2,
+          outerConeAngle: 0.6,
+        })),
+        shadowRequests: base.shadowRequests.map((request) => ({
+          ...request,
+          lightKind: "spot",
+        })),
+      },
+      {
+        dimensions: { x: 4, y: 1, z: 4 },
+        maxLightsPerCell: 8,
+        supportedSpotShadowResources: [
+          { shadowId: 1000, lightId: 100, matrixBaseIndex: 0 },
+          { shadowId: 1001, lightId: 101, matrixBaseIndex: 1 },
+        ],
+      },
+    );
+    const firstFlags = descriptor.metadata[0] ?? 0;
+    const secondOffset = LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE;
+    const secondFlags = descriptor.metadata[secondOffset] ?? 0;
+
+    expect(
+      firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED,
+    ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED);
+    expect(
+      secondFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED,
+    ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED);
+    expect(descriptor.metadata[2]).toBe(0);
+    expect(descriptor.metadata[secondOffset + 2]).toBe(1);
+    expect(descriptor.shadowCookieMetadata.shadow).toMatchObject({
+      status: "sampling-ready",
+      samplingSupported: true,
+      localRequestCount: 2,
+      clusteredLightCount: 2,
+      supportedLightCount: 2,
+      fallbackReason: null,
+    });
+  });
+
   it("surfaces missing light transforms instead of clustering invalid data", () => {
     const descriptor = createLocalLightClusterDescriptor({
       ...snapshotWithPointLights(16),

@@ -245,6 +245,7 @@ import {
 } from "./direct-light-readiness.js";
 import {
   CLUSTERED_LOCAL_LIGHT_ARRAY_COOKIE_PIPELINE_FEATURE,
+  CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_CUBE_COOKIE_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE,
   CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
@@ -1480,6 +1481,9 @@ function createStandardAppPipelineLayouts(
   );
   const autoLayoutKeySuffix =
     (usesLightShadowGroup ||
+      usesLightShadowIblGroup ||
+      usesLightCascadedShadowGroup ||
+      usesLightCascadedShadowIblGroup ||
       usesLightPointShadowGroup ||
       usesLightMultiShadowGroup) &&
     usesClusteredLocalLights
@@ -7564,6 +7568,7 @@ function withStandardShadowPipelineKeys(
     | "directional-cascaded"
     | "point"
     | "spot"
+    | "spot-array"
     | "multi" = "directional",
 ): RenderSnapshot {
   let changed = false;
@@ -7574,7 +7579,9 @@ function withStandardShadowPipelineKeys(
         ? ["pointShadowMap"]
         : shadowKind === "directional-cascaded"
           ? ["shadowMap", "cascadedShadowMap"]
-          : ["shadowMap"];
+          : shadowKind === "spot-array"
+            ? ["shadowMap", CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE]
+            : ["shadowMap"];
   const meshDraws = snapshot.meshDraws.map((draw) => {
     let pipelineKey = draw.batchKey.pipelineKey;
 
@@ -7609,7 +7616,13 @@ function withStandardShadowPipelineKeys(
 
 function standardShadowPipelineKind(
   resources: StandardFrameShadowReceiverResources,
-): "directional" | "directional-cascaded" | "point" | "spot" | "multi" {
+):
+  | "directional"
+  | "directional-cascaded"
+  | "point"
+  | "spot"
+  | "spot-array"
+  | "multi" {
   if (resources.shadowKind !== undefined) {
     return resources.shadowKind;
   }

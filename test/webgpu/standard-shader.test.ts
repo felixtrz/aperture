@@ -1606,6 +1606,39 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
   });
 
+  it("samples clustered spot-shadow arrays by metadata matrix and layer index", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      shadowMap: true,
+      clusteredLocalLights: true,
+      clusteredLocalLightArrayShadows: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.code).toContain(
+      "@group(3) @binding(3) var directionalShadowMap: texture_depth_2d_array;",
+    );
+    expect(shader.code).toContain(
+      "fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32, layerIndex: u32) -> f32",
+    );
+    expect(shader.code).toContain("i32(layerIndex),\n        receiverDepth");
+    expect(shader.code).toContain("receiverDepth,\n    matrixBaseIndex,");
+    expect(shader.code).toContain("fn localLightClusterSpotShadowFactor");
+    expect(shader.code).toContain(
+      "localLightClusterPointShadowMatrixBase(lightIndex)",
+    );
+    expect(shader.code).not.toContain(
+      "let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);",
+    );
+  });
+
   it("samples clustered spot cookies without requiring shadow-map bindings", () => {
     const shader = createStandardTextureVariantShader({
       baseColorTexture: false,

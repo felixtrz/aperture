@@ -191,6 +191,112 @@ describe("shadow depth texture resource", () => {
       },
     });
   });
+
+  it("shares one 2d-array depth allocation across compatible local spot shadows", () => {
+    const createdTextures: unknown[] = [];
+    const createdViews: unknown[] = [];
+    const report = createShadowDepthTextureResourceReport({
+      device: deviceWithTextures(createdTextures, createdViews),
+      textures: createShadowTextureResourceReport({
+        descriptors: createShadowMapDescriptorReport({
+          shadowRequests: [
+            { ...shadowRequest(13, 21), lightKind: "spot" },
+            { ...shadowRequest(14, 22), lightKind: "spot" },
+          ],
+          descriptors: [
+            {
+              shadowId: 13,
+              lightId: 21,
+              mapSize: 512,
+              depthBias: 0.002,
+              resourceKey: "shadow-map:clustered-spot-array",
+              viewDimension: "2d-array",
+              layerCount: 2,
+              layerBaseIndex: 0,
+            },
+            {
+              shadowId: 14,
+              lightId: 22,
+              mapSize: 512,
+              depthBias: 0.002,
+              resourceKey: "shadow-map:clustered-spot-array",
+              viewDimension: "2d-array",
+              layerCount: 2,
+              layerBaseIndex: 1,
+            },
+          ],
+        }),
+      }),
+    });
+
+    expect(report.ready).toBe(true);
+    expect(report.createdTextureCount).toBe(1);
+    expect(report.resources).toMatchObject([
+      {
+        shadowId: 13,
+        lightId: 21,
+        textureKey: "shadow-map:clustered-spot-array:texture",
+        viewDimension: "2d-array",
+        layerCount: 2,
+        layerBaseIndex: 0,
+        attachmentViews: [
+          { viewKey: "shadow-map:clustered-spot-array:layer-0:view" },
+        ],
+      },
+      {
+        shadowId: 14,
+        lightId: 22,
+        textureKey: "shadow-map:clustered-spot-array:texture",
+        viewDimension: "2d-array",
+        layerCount: 2,
+        layerBaseIndex: 1,
+        attachmentViews: [
+          { viewKey: "shadow-map:clustered-spot-array:layer-1:view" },
+        ],
+      },
+    ]);
+    expect(createdTextures).toEqual([
+      {
+        label: "shadow-map:clustered-spot-array:depth",
+        size: [512, 512, 2],
+        format: "depth24plus",
+        usage: 20,
+        mipLevelCount: 1,
+      },
+    ]);
+    expect(createdViews).toEqual([
+      {
+        dimension: "2d-array",
+        arrayLayerCount: 2,
+      },
+      {
+        dimension: "2d",
+        baseArrayLayer: 0,
+        arrayLayerCount: 1,
+        mipLevelCount: 1,
+      },
+      {
+        dimension: "2d",
+        baseArrayLayer: 1,
+        arrayLayerCount: 1,
+        mipLevelCount: 1,
+      },
+    ]);
+    expect(
+      resolveShadowDepthTextureAttachmentView(report, {
+        shadowId: 14,
+        lightId: 22,
+        viewKey: "shadow-map:clustered-spot-array:layer-1:view",
+      }),
+    ).toEqual({
+      descriptor: {
+        dimension: "2d",
+        baseArrayLayer: 1,
+        arrayLayerCount: 1,
+        mipLevelCount: 1,
+      },
+    });
+  });
 });
 
 function textures() {

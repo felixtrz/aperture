@@ -1,6 +1,60 @@
 # Agent Handoff
 
-Updated: 2026-05-24T07:12:25Z
+Updated: 2026-05-24T08:05:45Z
+
+## Current Run Update — 2026-05-24T08:05:45Z — Multiple clustered spot shadows
+
+Completed `task-3141`, supporting multiple clustered local spot shadows per
+frame.
+
+### What changed
+
+- Compatible clustered spot-shadow descriptors can now share a renderer-owned
+  2D-array depth resource, with each descriptor carrying `layerCount` and
+  `layerBaseIndex` metadata.
+- Shadow depth resources allocate one GPU texture per shared resource key and
+  create per-layer attachment views for each spot shadow pass.
+- StandardMaterial clustered shadow pipeline routing gained a
+  `clusteredLocalLightArrayShadows` feature so 2D-array spot shadows use the
+  depth-array bind-group layout and shader sampling path.
+- Clustered local-light metadata now maps every supported spot shadow to the
+  correct light id and matrix/layer base index.
+- `examples/clustered-lights.html?enable-cluster-multi-spot-shadow=1` now
+  authors two spot shadow casters/lights and reports two supported local spot
+  shadows through the `clustered-spot-array-depth-compare` route.
+- Public trackers and agent task pointers now recommend `task-3142`, adding
+  atlas-space metadata for nonuniform clustered spot-shadow maps.
+
+### Validation
+
+- `node --check examples/clustered-lights.main.js && node --check examples/clustered-lights.worker.js`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/shadow-pass-plan.test.ts test/webgpu/shadow-pass-attachment-descriptor.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm run examples:build`
+- `pnpm exec prettier --write examples/clustered-lights.main.js examples/clustered-lights.worker.js packages/webgpu/src/webgpu/app.ts packages/webgpu/src/webgpu/local-light-clusters.ts packages/webgpu/src/webgpu/shadow-depth-texture-resource.ts packages/webgpu/src/webgpu/shadow-map-descriptor.ts packages/webgpu/src/webgpu/shadow-texture-resource.ts packages/webgpu/src/webgpu/standard-app-frame-resources.ts packages/webgpu/src/webgpu/standard-frame-resources.ts packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts packages/webgpu/src/webgpu/standard-shader.ts test/e2e/clustered-lights.spec.ts test/webgpu/local-light-clusters.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-shader.test.ts`
+- `git diff --check`
+- Narrow headed Chrome/WebGPU proof for
+  `examples/clustered-lights.html?enable-cluster-multi-spot-shadow=1`: route
+  `ok`, `routeMultiSpotShadowSamplingOk` true, required supported spot-shadow
+  count `2`, `clustered-spot-array-depth-compare` mode, two supported light
+  ids, non-clear readback, and relevant WebGPU validation warnings `0`.
+
+### Known issues
+
+- A broad
+  `pnpm exec playwright test test/e2e/clustered-lights.spec.ts --project=chrome-webgpu-headed`
+  run went idle locally with the worker at 0% CPU and was killed; the focused
+  fresh Chrome/WebGPU proof above passed after the implementation fix.
+- The next visible SOTA gap is atlas-space local spot-shadow metadata for
+  nonuniform maps, with explicit browser-visible fallback for unsupported
+  combinations.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3142`: add atlas-space clustered spot-shadow metadata for
+nonuniform maps.
 
 ## Current Run Update — 2026-05-24T07:12:25Z — Nonuniform clustered cookie atlas
 

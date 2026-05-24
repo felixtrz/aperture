@@ -5,6 +5,7 @@ import {
   PackedLightKindId,
 } from "./light-packing.js";
 import {
+  CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE,
   LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
   LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING,
   LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING,
@@ -99,6 +100,7 @@ export interface StandardTextureShaderFeatures {
   readonly clusteredLocalLightCookies?: boolean;
   readonly clusteredLocalLightArrayCookies?: boolean;
   readonly clusteredLocalLightCubeCookies?: boolean;
+  readonly clusteredLocalLightArrayShadows?: boolean;
 }
 
 export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
@@ -1438,6 +1440,10 @@ export function createStandardTextureShaderVariantKey(
     names.push("point-shadow-map");
   }
 
+  if (features.clusteredLocalLightArrayShadows === true) {
+    names.push("clustered-local-light-array-shadows");
+  }
+
   if (features.iblDiffuse === true) {
     names.push("diffuse-ibl");
   }
@@ -1904,6 +1910,7 @@ ${emissive}
   } else if (features.shadowMap === true) {
     code = applyStandardShadowMapSampling(code, {
       cascaded: features.cascadedShadowMap === true,
+      arrayShadows: features.clusteredLocalLightArrayShadows === true,
     });
   } else if (features.pointShadowMap === true) {
     code = applyStandardPointShadowMapSampling(code);
@@ -1973,14 +1980,18 @@ ${emissive}
     code = applyStandardClusteredLocalLightSampling(code, {
       pointShadowMap: features.pointShadowMap === true,
       spotShadowMap:
-        features.shadowMap === true && features.cascadedShadowMap !== true,
+        features.shadowMap === true &&
+        (features.cascadedShadowMap !== true ||
+          features.clusteredLocalLightArrayShadows === true),
       localLightCookies: features.clusteredLocalLightCookies === true,
       localLightArrayCookies: features.clusteredLocalLightArrayCookies === true,
       localLightCubeCookies: features.clusteredLocalLightCubeCookies === true,
       removeGlobalPointShadowReceiverFactor:
         features.pointShadowMap === true && features.shadowMap !== true,
       removeGlobalSpotShadowReceiverFactor:
-        features.shadowMap === true && features.cascadedShadowMap !== true,
+        features.shadowMap === true &&
+        (features.cascadedShadowMap !== true ||
+          features.clusteredLocalLightArrayShadows === true),
     });
   }
 
@@ -2138,7 +2149,8 @@ function standardTextureVariantDeclaration(
 
   if (features.shadowMap === true) {
     const directionalShadowMapType =
-      features.cascadedShadowMap === true
+      features.cascadedShadowMap === true ||
+      features.clusteredLocalLightArrayShadows === true
         ? "texture_depth_2d_array"
         : "texture_depth_2d";
 
@@ -4446,7 +4458,10 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {`,
 
 function applyStandardShadowMapSampling(
   code: string,
-  options: { readonly cascaded?: boolean } = {},
+  options: {
+    readonly cascaded?: boolean;
+    readonly arrayShadows?: boolean;
+  } = {},
 ): string {
   const helpers =
     options.cascaded === true
@@ -4587,7 +4602,7 @@ fn sampleDirectionalShadowReceiverFactor(worldPosition: vec3f) -> f32 {
       : `const STANDARD_SHADOW_MIN_VISIBILITY: f32 = 0.45;
 const STANDARD_SHADOW_DEPTH_BIAS: f32 = 0.002;
 
-fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32) -> f32 {
+fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32${options.arrayShadows === true ? ", layerIndex: u32" : ""}) -> f32 {
   let shadowDimensions = textureDimensions(directionalShadowMap);
   let shadowMapSize = vec2f(f32(shadowDimensions.x), f32(shadowDimensions.y));
   let texelSize = 1.0 / max(shadowMapSize, vec2f(1.0));
@@ -4605,7 +4620,7 @@ fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32) -> f32 {
         directionalShadowMap,
         directionalShadowSampler,
         sampleUv,
-        receiverDepth,
+        ${options.arrayShadows === true ? "i32(layerIndex),\n        " : ""}receiverDepth,
       );
     }
   }
@@ -4658,7 +4673,7 @@ fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u
   let rawVisibility = sampleDirectionalShadowPcf3x3(
     clampedShadowUv,
     receiverDepth,
-  );
+    ${options.arrayShadows === true ? "matrixBaseIndex,\n  " : ""});
   let visibility = select(
     clamp(rawVisibility, 0.0, 1.0),
     1.0,

@@ -48,6 +48,7 @@ describe("shadow texture resources", () => {
           depthFormat: "depth24plus",
           cascadeCount: 1,
           layerCount: 1,
+          layerBaseIndex: 0,
           faceCount: 1,
           viewDimension: "2d",
           usageIntent: "render-attachment",
@@ -94,6 +95,63 @@ describe("shadow texture resources", () => {
         "shadow-map:7:light:11:cascade-2:view",
       ],
     });
+  });
+
+  it("plans shared 2d-array descriptors for compatible local spot shadows", () => {
+    const report = createShadowTextureResourceReport({
+      descriptors: createShadowMapDescriptorReport({
+        shadowRequests: [
+          { ...shadowRequest(13, 21), lightKind: "spot" },
+          { ...shadowRequest(14, 22), lightKind: "spot" },
+        ],
+        descriptors: [
+          {
+            shadowId: 13,
+            lightId: 21,
+            mapSize: 512,
+            depthBias: 0.002,
+            resourceKey: "shadow-map:clustered-spot-array",
+            viewDimension: "2d-array",
+            layerCount: 2,
+            layerBaseIndex: 0,
+          },
+          {
+            shadowId: 14,
+            lightId: 22,
+            mapSize: 512,
+            depthBias: 0.002,
+            resourceKey: "shadow-map:clustered-spot-array",
+            viewDimension: "2d-array",
+            layerCount: 2,
+            layerBaseIndex: 1,
+          },
+        ],
+      }),
+    });
+
+    expect(report.textureCount).toBe(2);
+    expect(report.textures.map((texture) => texture.textureKey)).toEqual([
+      "shadow-map:clustered-spot-array:texture",
+      "shadow-map:clustered-spot-array:texture",
+    ]);
+    expect(report.textures).toMatchObject([
+      {
+        shadowId: 13,
+        lightId: 21,
+        viewDimension: "2d-array",
+        layerCount: 2,
+        layerBaseIndex: 0,
+        attachmentViewKeys: ["shadow-map:clustered-spot-array:layer-0:view"],
+      },
+      {
+        shadowId: 14,
+        lightId: 22,
+        viewDimension: "2d-array",
+        layerCount: 2,
+        layerBaseIndex: 1,
+        attachmentViewKeys: ["shadow-map:clustered-spot-array:layer-1:view"],
+      },
+    ]);
   });
 
   it("reports missing shadow-map descriptors", () => {

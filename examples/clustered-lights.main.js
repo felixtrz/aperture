@@ -31,8 +31,15 @@ const clusteredMixedShadowEnabled =
   !clusteredCookieOnlyEnabled &&
   !clusteredMultiCookieEnabled &&
   !clusteredPointCookieEnabled;
+const clusteredMultiSpotShadowEnabled =
+  exampleParams.has("enable-cluster-multi-spot-shadow") &&
+  !exampleParams.has("disable-cluster-spot-shadow") &&
+  !clusteredCookieOnlyEnabled &&
+  !clusteredMultiCookieEnabled &&
+  !clusteredPointCookieEnabled;
 const clusteredPointShadowEnabled =
   !exampleParams.has("disable-cluster-point-shadow") &&
+  !clusteredMultiSpotShadowEnabled &&
   !clusteredCookieOnlyEnabled &&
   !clusteredMultiCookieEnabled &&
   !clusteredPointCookieEnabled;
@@ -51,6 +58,7 @@ const clusteredSpotShadowEnabled =
   !clusteredMultiCookieEnabled &&
   !clusteredPointCookieEnabled &&
   (clusteredMixedShadowEnabled ||
+    clusteredMultiSpotShadowEnabled ||
     exampleParams.has("enable-cluster-spot-shadow") ||
     clusteredSpotCookieEnabled) &&
   !exampleParams.has("disable-cluster-spot-shadow");
@@ -69,6 +77,7 @@ const clusteredSpotShadowIntent = {
   receiverLayerMask: 2,
 };
 const maxStatusWarmupFrames = 90;
+const maxTransparentReadbackWarmupFrames = 150;
 const readbackSamples = [
   { id: "left-bank", x: 0.26, y: 0.5 },
   { id: "center", x: 0.5, y: 0.5 },
@@ -254,6 +263,7 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     clusteredAtlasCookieEnabled,
     clusteredCookieOnlyEnabled,
     clusteredMixedShadowEnabled,
+    clusteredMultiSpotShadowEnabled,
     cameraFrameOffset:
       clusteredPointShadowEnabled || clusteredSpotShadowEnabled ? 0 : 1,
   };
@@ -465,6 +475,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     clusteredMultiCookieEnabled: scene.clusteredMultiCookieEnabled,
     clusteredAtlasCookieEnabled: scene.clusteredAtlasCookieEnabled,
     clusteredCookieOnlyEnabled: scene.clusteredCookieOnlyEnabled,
+    clusteredMultiSpotShadowEnabled: scene.clusteredMultiSpotShadowEnabled,
     canvas: {
       width: canvas?.width ?? 960,
       height: canvas?.height ?? 540,
@@ -537,9 +548,14 @@ async function handleWorkerMessage(
     nextShadowResources?.standardMaterialShadowReceiverResources ?? null;
   loop.shadowStatus = nextShadowResources?.shadowStatus ?? null;
 
+  const frame = message.frame ?? loop.frame;
+  const transparentReadbackWarmup =
+    status.readbackStatus?.reason === "transparent-zero-readback" &&
+    frame < maxTransparentReadbackWarmupFrames;
+
   if (
-    (message.frame ?? loop.frame) < maxStatusWarmupFrames &&
-    status.ok !== true
+    status.ok !== true &&
+    (frame < maxStatusWarmupFrames || transparentReadbackWarmup)
   ) {
     requestWorkerFrame(worker, loop);
     return;
@@ -588,6 +604,7 @@ function statusFromReport(
     scene.clusteredMultiCookieEnabled,
     scene.clusteredPointCookieEnabled,
     scene.clusteredAtlasCookieEnabled,
+    scene.clusteredMultiSpotShadowEnabled,
   );
   const readbackStatus = createReadbackStatus(reportJson.readback);
   recordClusterOccupancy(loop, localLightClusters);
@@ -634,6 +651,7 @@ function createClusterStatus(
   multiCookieEnabled,
   pointCookieEnabled,
   atlasCookieEnabled,
+  multiSpotShadowEnabled,
 ) {
   const clusterPipelineUsed = pipelineKeys.some((pipelineKey) =>
     pipelineKey.includes("clusteredLocalLights"),
@@ -709,7 +727,13 @@ function createClusterStatus(
   });
   const expectedShadowRequestCount =
     (pointShadowEnabled === true ? 4 : 0) +
-    (spotShadowEnabled === true ? 1 : 0);
+    (spotShadowEnabled === true
+      ? multiSpotShadowEnabled === true
+        ? 2
+        : 1
+      : 0);
+  const requiredSpotShadowSupportedCount =
+    spotShadowEnabled === true ? (multiSpotShadowEnabled === true ? 2 : 1) : 0;
   const routePointShadowSamplingOk =
     pointShadowEnabled === true &&
     routeShadowStates.some(
@@ -728,8 +752,10 @@ function createClusterStatus(
         shadow.samplingSupported === true &&
         shadow.localRequestCount >= expectedShadowRequestCount &&
         shadow.clusteredLightCount >= expectedShadowRequestCount &&
-        shadow.supportedLightCount >= 1,
+        shadow.supportedLightCount >= requiredSpotShadowSupportedCount,
     );
+  const routeMultiSpotShadowSamplingOk =
+    multiSpotShadowEnabled === true && routeSpotShadowSamplingOk;
   const mixedShadowEnabled =
     pointShadowEnabled === true && spotShadowEnabled === true;
   const routeMixedShadowSamplingOk =
@@ -772,7 +798,8 @@ function createClusterStatus(
       const shadowReady = shadowSamplingEnabled
         ? (shadow?.status === "sampling-ready" &&
             shadow.samplingSupported === true &&
-            (shadow.supportedLightCount ?? 0) >= 1) ||
+            (shadow.supportedLightCount ?? 0) >=
+              Math.max(1, requiredSpotShadowSupportedCount)) ||
           (shadow?.status === "metadata-only" &&
             shadow.samplingSupported === false &&
             shadow.fallbackReason ===
@@ -820,6 +847,7 @@ function createClusterStatus(
       routeMetadataOk &&
       (pointShadowEnabled !== true || routePointShadowSamplingOk) &&
       (spotShadowEnabled !== true || routeSpotShadowSamplingOk) &&
+      (multiSpotShadowEnabled !== true || routeMultiSpotShadowSamplingOk) &&
       (mixedShadowEnabled !== true || routeMixedShadowSamplingOk) &&
       (cookieEnabled !== true || routeCookieSamplingOk) &&
       occupancyChanged &&
@@ -845,9 +873,11 @@ function createClusterStatus(
     routeMetadataOk,
     routePointShadowSamplingOk,
     routeSpotShadowSamplingOk,
+    routeMultiSpotShadowSamplingOk,
     routeMixedShadowSamplingOk,
     routeCookieSamplingOk,
     routeCookieAtlasSamplingOk,
+    requiredSpotShadowSupportedCount,
     requiredCookieSupportedCount,
     routeShadowStates,
     routeCookieStates,
@@ -1273,7 +1303,7 @@ async function createClusteredShadowReceiverResources(
         pointResources !== null && spotResources !== null
           ? "clustered-point-spot-depth-compare"
           : spotResources !== null
-            ? "clustered-spot-depth-compare"
+            ? spotResult.shadowStatus.mode
             : pointResources !== null
               ? "clustered-point-depth-cube-compare"
               : "clustered-shadow-unavailable",
@@ -1290,39 +1320,54 @@ async function createClusteredSpotShadowReceiverResources(
   loop,
   report,
 ) {
-  const request = report.snapshot.shadowRequests.find(
+  const requests = report.snapshot.shadowRequests.filter(
     (candidate) =>
       candidate.lightKind === "spot" &&
       (candidate.receiverLayerMask &
         clusteredSpotShadowIntent.receiverLayerMask) !==
         0,
   );
+  const requiredSpotShadowCount =
+    scene.clusteredMultiSpotShadowEnabled === true ? 2 : 1;
+  const shadowRequests = requests.slice(0, requiredSpotShadowCount);
 
-  if (request === undefined) {
+  if (shadowRequests.length < requiredSpotShadowCount) {
     return {
       standardMaterialShadowReceiverResources: null,
       shadowStatus: {
         enabled: true,
         supported: false,
         reason: "spot-shadow-request-unavailable",
+        requiredSpotShadowCount,
+        requestCount: requests.length,
       },
     };
   }
 
-  const shadowRequests = [request];
+  const spotArrayEnabled = requiredSpotShadowCount > 1;
+  const spotResourceKey = spotArrayEnabled
+    ? "shadow-map:clustered-spot-array"
+    : undefined;
   const shadowDescriptor = aperture.createShadowMapDescriptorReport({
     shadowRequests,
-    descriptors: [
-      {
-        shadowId: request.shadowId,
-        lightId: request.lightId,
-        mapSize: clusteredSpotShadowIntent.mapSize,
-        depthBias: clusteredSpotShadowIntent.depthBias,
-        normalBias: clusteredSpotShadowIntent.normalBias,
-        faceCount: 1,
-        viewDimension: "2d",
-      },
-    ],
+    descriptors: shadowRequests.map((request, index) => ({
+      shadowId: request.shadowId,
+      lightId: request.lightId,
+      mapSize: clusteredSpotShadowIntent.mapSize,
+      depthBias: clusteredSpotShadowIntent.depthBias,
+      normalBias: clusteredSpotShadowIntent.normalBias,
+      faceCount: 1,
+      viewDimension: spotArrayEnabled ? "2d-array" : "2d",
+      ...(spotResourceKey === undefined
+        ? {}
+        : { resourceKey: spotResourceKey }),
+      ...(spotArrayEnabled
+        ? {
+            layerCount: shadowRequests.length,
+            layerBaseIndex: index,
+          }
+        : {}),
+    })),
   });
   const shadowTextures = aperture.createShadowTextureResourceReport({
     descriptors: shadowDescriptor,
@@ -1367,7 +1412,9 @@ async function createClusteredSpotShadowReceiverResources(
   const shadowMatrixBuffer = aperture.createShadowMatrixBufferDescriptorReport({
     viewProjection: shadowViewProjection,
     upload: "ready",
-    resourceKey: "shadow-matrix-buffer:clustered-spot",
+    resourceKey: spotArrayEnabled
+      ? "shadow-matrix-buffer:clustered-spot-array"
+      : "shadow-matrix-buffer:clustered-spot",
     label: "ClusteredSpotShadowMatrices/storage",
   });
   const shadowMatrixBufferResourceReport =
@@ -1472,7 +1519,9 @@ async function createClusteredSpotShadowReceiverResources(
   const shadowPassCommandEncoderResource =
     aperture.createCommandEncoderResource({
       device: app.initialization.device,
-      label: "shadow-pass:clustered-spot",
+      label: spotArrayEnabled
+        ? "shadow-pass:clustered-spot-array"
+        : "shadow-pass:clustered-spot",
     });
   const shadowPassEncoderAssemblyReport =
     aperture.createShadowPassEncoderAssemblyReport({
@@ -1499,25 +1548,32 @@ async function createClusteredSpotShadowReceiverResources(
       assembly: shadowPassEncoderAssemblyReport,
       encoder: shadowPassCommandEncoderResource.resource?.encoder,
       queue: app.initialization.device.queue,
-      label: "shadow-pass:clustered-spot",
+      label: spotArrayEnabled
+        ? "shadow-pass:clustered-spot-array"
+        : "shadow-pass:clustered-spot",
       submit: true,
     });
   const supported =
     shadowPassCommandBufferSubmissionReport.status === "submitted" &&
     shadowMatrixBufferResourceReport.resource !== null &&
-    loop.spotShadowDepthTextureResourceReport.resources.some(
-      (resource) =>
-        resource.shadowId === request.shadowId &&
-        resource.lightId === request.lightId &&
-        resource.viewDimension === "2d" &&
-        resource.allocation.resource !== null,
+    shadowRequests.every((request, index) =>
+      loop.spotShadowDepthTextureResourceReport.resources.some(
+        (resource) =>
+          resource.shadowId === request.shadowId &&
+          resource.lightId === request.lightId &&
+          resource.viewDimension === (spotArrayEnabled ? "2d-array" : "2d") &&
+          resource.allocation.resource !== null &&
+          (!spotArrayEnabled ||
+            ((resource.layerCount ?? 0) >= shadowRequests.length &&
+              resource.layerBaseIndex === index)),
+      ),
     ) &&
     shadowSamplerResourceReport.resource !== null;
 
   return {
     standardMaterialShadowReceiverResources: supported
       ? {
-          shadowKind: "spot",
+          shadowKind: spotArrayEnabled ? "spot-array" : "spot",
           matrixBufferResource: shadowMatrixBufferResourceReport,
           depthTextureResources: loop.spotShadowDepthTextureResourceReport,
           samplerResource: shadowSamplerResourceReport,
@@ -1526,9 +1582,16 @@ async function createClusteredSpotShadowReceiverResources(
     shadowStatus: {
       enabled: true,
       supported,
-      mode: "clustered-spot-depth-compare",
-      shadowId: request.shadowId,
-      lightId: request.lightId,
+      mode: spotArrayEnabled
+        ? "clustered-spot-array-depth-compare"
+        : "clustered-spot-depth-compare",
+      shadowId: shadowRequests[0]?.shadowId ?? null,
+      lightId: shadowRequests[0]?.lightId ?? null,
+      shadowIds: shadowRequests.map((request) => request.shadowId),
+      lightIds: shadowRequests.map((request) => request.lightId),
+      requiredSpotShadowCount,
+      supportedLightCount: supported ? shadowRequests.length : 0,
+      layerCount: spotArrayEnabled ? shadowRequests.length : 1,
       casterDraws: shadowCasterMeshDraws.length,
       faceCount: shadowPassPlan.passCount,
       submission: shadowPassCommandBufferSubmissionReport.status,

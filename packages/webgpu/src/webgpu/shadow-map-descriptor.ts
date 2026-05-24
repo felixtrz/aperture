@@ -14,6 +14,8 @@ export interface ShadowMapDescriptorSource {
   readonly depthFormat?: "depth24plus";
   readonly faceCount?: 1 | 6;
   readonly viewDimension?: "2d" | "2d-array" | "cube";
+  readonly layerCount?: number;
+  readonly layerBaseIndex?: number;
   readonly resourceKey?: string;
 }
 
@@ -29,6 +31,8 @@ export interface ShadowMapDescriptor {
   readonly cascadeCount: number;
   readonly faceCount: 1 | 6;
   readonly viewDimension: "2d" | "2d-array" | "cube";
+  readonly layerCount: number;
+  readonly layerBaseIndex: number;
   readonly casterLayerMask: number;
   readonly receiverLayerMask: number;
   readonly ready: boolean;
@@ -96,6 +100,25 @@ export function createShadowMapDescriptorReport(
       });
     }
 
+    const cascadeCount =
+      lightKind === "directional"
+        ? clampCascadeCount(source?.cascadeCount ?? request.cascadeCount ?? 1)
+        : 1;
+    const faceCount = source?.faceCount ?? (lightKind === "point" ? 6 : 1);
+    const viewDimension =
+      source?.viewDimension ??
+      (lightKind === "point"
+        ? "cube"
+        : lightKind === "directional" &&
+            (source?.cascadeCount ?? request.cascadeCount ?? 1) > 1
+          ? "2d-array"
+          : "2d");
+    const layerCount = Math.max(
+      1,
+      source?.layerCount ??
+        (lightKind === "directional" ? cascadeCount : faceCount),
+    );
+
     return {
       shadowId: request.shadowId,
       lightId: request.lightId,
@@ -107,19 +130,11 @@ export function createShadowMapDescriptorReport(
       mapSize: source?.mapSize ?? 0,
       depthBias: source?.depthBias ?? 0,
       normalBias: source?.normalBias ?? 0,
-      cascadeCount:
-        lightKind === "directional"
-          ? clampCascadeCount(source?.cascadeCount ?? request.cascadeCount ?? 1)
-          : 1,
-      faceCount: source?.faceCount ?? (lightKind === "point" ? 6 : 1),
-      viewDimension:
-        source?.viewDimension ??
-        (lightKind === "point"
-          ? "cube"
-          : lightKind === "directional" &&
-              (source?.cascadeCount ?? request.cascadeCount ?? 1) > 1
-            ? "2d-array"
-            : "2d"),
+      cascadeCount,
+      faceCount,
+      viewDimension,
+      layerCount,
+      layerBaseIndex: Math.max(0, source?.layerBaseIndex ?? 0),
       casterLayerMask: request.casterLayerMask,
       receiverLayerMask: request.receiverLayerMask,
       ready: source !== undefined && source.mapSize > 0,

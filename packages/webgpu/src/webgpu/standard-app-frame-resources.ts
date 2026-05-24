@@ -648,7 +648,8 @@ function supportedSpotShadowResourcesFromReceiver(
   const spotResources =
     resources?.shadowKind === "multi"
       ? resources.spotShadowReceiverResources
-      : resources?.shadowKind === "spot"
+      : resources?.shadowKind === "spot" ||
+          resources?.shadowKind === "spot-array"
         ? resources
         : undefined;
 
@@ -659,22 +660,23 @@ function supportedSpotShadowResourcesFromReceiver(
     return [];
   }
 
-  const firstSpotDepth = spotResources?.depthTextureResources.resources.find(
-    (resource) =>
-      resource.viewDimension === "2d" && resource.allocation.resource !== null,
-  );
+  const spotDepthResources =
+    spotResources?.depthTextureResources.resources.filter(
+      (resource) =>
+        (resource.viewDimension === "2d" ||
+          resource.viewDimension === "2d-array") &&
+        resource.allocation.resource !== null,
+    ) ?? [];
 
-  if (firstSpotDepth === undefined) {
+  if (spotDepthResources.length === 0) {
     return [];
   }
 
-  return [
-    {
-      shadowId: firstSpotDepth.shadowId,
-      lightId: firstSpotDepth.lightId,
-      matrixBaseIndex: 0,
-    },
-  ];
+  return spotDepthResources.map((resource, index) => ({
+    shadowId: resource.shadowId,
+    lightId: resource.lightId,
+    matrixBaseIndex: resource.layerBaseIndex ?? index,
+  }));
 }
 
 function requiresClusteredLocalLights(pipelineKey: string): boolean {

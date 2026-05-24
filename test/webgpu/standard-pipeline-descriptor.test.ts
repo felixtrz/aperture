@@ -257,6 +257,39 @@ describe("standard material pipeline descriptor planning", () => {
     });
   });
 
+  it("specializes clustered local spot-shadow array pipelines with a depth-array light layout", () => {
+    const batchKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey:
+        "standard|clusteredLocalLights|clusteredLocalLightArrayShadows|shadowMap|opaque|back|less|none",
+    };
+    const featurePlan = createStandardPipelineShaderFeaturePlan(batchKey);
+    const descriptor = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey,
+    });
+
+    expect(featurePlan.features).toMatchObject({
+      shadowMap: true,
+      clusteredLocalLights: true,
+      clusteredLocalLightArrayShadows: true,
+      cascadedShadowMap: false,
+    });
+    expect(featurePlan.variantKey).toBe(
+      "direct-lit-metallic-roughness-shadow-map-clustered-local-light-array-shadows-clustered-local-lights-texture",
+    );
+    expect(
+      JSON.parse(required(descriptor.plan).cacheKey) as unknown,
+    ).toMatchObject({
+      layouts: {
+        bindGroups: expect.arrayContaining([
+          "standard/lights-cascaded-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth-array@3,sampler@4,cluster-params@16,cluster-cells@17,cluster-indices@18,cluster-metadata@19",
+        ]),
+      },
+    });
+  });
+
   it("recognizes the morphed StandardMaterial pipeline feature", () => {
     const featurePlan = createStandardPipelineShaderFeaturePlan({
       ...STANDARD_BATCH_KEY,

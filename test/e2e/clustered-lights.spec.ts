@@ -100,9 +100,11 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
     readonly routeMetadataOk: boolean;
     readonly routePointShadowSamplingOk: boolean;
     readonly routeSpotShadowSamplingOk: boolean;
+    readonly routeMultiSpotShadowSamplingOk?: boolean;
     readonly routeMixedShadowSamplingOk: boolean;
     readonly routeCookieSamplingOk: boolean;
     readonly routeCookieAtlasSamplingOk?: boolean;
+    readonly requiredSpotShadowSupportedCount?: number;
     readonly requiredCookieSupportedCount?: number;
     readonly routes: readonly LocalLightClusterRouteStatus[];
     readonly buffersCreated: number;
@@ -145,6 +147,8 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
       readonly casterDraws?: number;
       readonly faceCount?: number;
       readonly submission?: string;
+      readonly supportedLightCount?: number;
+      readonly layerCount?: number;
     };
   };
   readonly counts?: {
@@ -198,6 +202,31 @@ test("browser renders StandardMaterial through clustered local lights", async ({
 
   skipIfUnsupportedWebGpu(spotOnly);
   expectStatusJsonSafeForGpu(spotOnly);
+
+  const multiSpotPage = await page.context().newPage();
+  const multiSpotWebGpuValidation =
+    attachWebGpuValidationConsoleGuard(multiSpotPage);
+
+  await multiSpotPage.goto(
+    "/examples/clustered-lights.html?enable-cluster-multi-spot-shadow=1",
+  );
+  await multiSpotPage.bringToFront();
+
+  const multiSpot =
+    await waitForExampleStatus<ClusteredLightsStatus>(multiSpotPage);
+
+  await attachExampleStatus("clustered-lights-multi-spot-status", multiSpot);
+  expect(
+    multiSpot,
+    "clustered lights multi-spot status should publish",
+  ).toBeDefined();
+
+  if (multiSpot === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(multiSpot);
+  expectStatusJsonSafeForGpu(multiSpot);
 
   const cookiePage = await page.context().newPage();
   const cookieWebGpuValidation = attachWebGpuValidationConsoleGuard(cookiePage);
@@ -534,6 +563,43 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   expect(spotOnly.pipelineKeys ?? []).toContain(
     "standard|clusteredLocalLights|shadowMap|opaque|back|less|none",
   );
+  expect(multiSpot.clusterStatus).toMatchObject({
+    ok: true,
+    routeMetadataOk: true,
+    routeSpotShadowSamplingOk: true,
+    routeMultiSpotShadowSamplingOk: true,
+    routeMixedShadowSamplingOk: false,
+    routeCookieSamplingOk: false,
+    requiredSpotShadowSupportedCount: 2,
+  });
+  expect(multiSpot.shadowStatus).toMatchObject({
+    enabled: true,
+    supported: true,
+    mode: "clustered-spot-array-depth-compare",
+    spot: {
+      enabled: true,
+      supported: true,
+      mode: "clustered-spot-array-depth-compare",
+      casterDraws: 2,
+      faceCount: 2,
+      supportedLightCount: 2,
+      layerCount: 2,
+      submission: "submitted",
+    },
+  });
+  expect(multiSpot.pipelineKeys ?? []).toContain(
+    "standard|clusteredLocalLights|clusteredLocalLightArrayShadows|shadowMap|opaque|back|less|none",
+  );
+  expect(
+    (multiSpot.localLightClusters?.routes ?? []).some(
+      (route) =>
+        route.shadowCookieMetadata?.shadow.status === "sampling-ready" &&
+        route.shadowCookieMetadata.shadow.samplingSupported === true &&
+        route.shadowCookieMetadata.shadow.localRequestCount >= 2 &&
+        route.shadowCookieMetadata.shadow.clusteredLightCount >= 2 &&
+        route.shadowCookieMetadata.shadow.supportedLightCount >= 2,
+    ),
+  ).toBe(true);
   expect(cookie.clusterStatus).toMatchObject({
     ok: true,
     routeMetadataOk: true,
@@ -783,6 +849,7 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   expect(mixedShadow.readbackStatus?.ok).toBe(true);
   expect(mixedShadow.readbackStatus?.maxClearDistance ?? 0).toBeGreaterThan(24);
   expect(maxSampleLuminanceDarkening(baseline, spotOnly)).toBeGreaterThan(2);
+  expect(maxSampleLuminanceDarkening(baseline, multiSpot)).toBeGreaterThan(2);
   expect(maxSampleLuminanceDelta(spotOnly, cookie)).toBeGreaterThan(12);
   expect(maxSampleLuminanceDelta(baseline, pointCookie)).toBeGreaterThan(2);
   expect(maxSampleLuminanceDelta(baseline, atlasCookie)).toBeGreaterThan(2);
@@ -794,6 +861,7 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   expect(status.readbackStatus?.maxClearDistance ?? 0).toBeGreaterThan(24);
   webGpuValidation.expectNoWarnings();
   spotWebGpuValidation.expectNoWarnings();
+  multiSpotWebGpuValidation.expectNoWarnings();
   cookieWebGpuValidation.expectNoWarnings();
   cookieOnlyWebGpuValidation.expectNoWarnings();
   pointCookieWebGpuValidation.expectNoWarnings();

@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 07:12 UTC</dd>
+            <dd>2026-05-24 08:05 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1546,17 +1546,21 @@
               WebGPU-minimum per-stage storage-buffer limits. Nonuniform
               clustered spot cookies now use a renderer-owned 2D atlas with
               per-light atlas-space projection matrices when the compatible
-              2D-array path cannot cover the same lights.
+              2D-array path cannot cover the same lights. Compatible clustered
+              spot-shadow maps now share one renderer-owned 2D depth array, and
+              per-light clustered metadata selects the matching shadow
+              matrix/layer entry.
               <code>examples/clustered-lights.html</code> now exposes point
               shadow, spot shadow, spot-cookie, and cookie-only spot-cookie
               proof routes plus point cube-cookie, multi-cookie, and mixed
               point/spot cookie proof routes, plus the mixed point/spot
-              local-shadow proof route and a nonuniform spot-cookie atlas proof
-              route. The next step is broader local shadow atlas/resource
-              packing.
+              local-shadow proof route, a nonuniform spot-cookie atlas proof
+              route, and a multi-spot local-shadow array proof route. The next
+              step is atlas-space spot-shadow metadata for nonuniform local
+              shadow maps.
             </dd>
             <dt>Next focus</dt>
-            <dd>Multiple clustered local spot shadows per frame</dd>
+            <dd>Nonuniform clustered spot-shadow atlas metadata</dd>
           </dl>
         </aside>
       </header>
@@ -2394,11 +2398,14 @@
               local-shadow route within WebGPU minimum per-stage storage-buffer
               limits. Nonuniform clustered spot cookies now bind through a
               renderer-owned 2D atlas with atlas-adjusted per-light matrices.
+              Compatible clustered spot-shadow maps now bind through one
+              renderer-owned 2D depth array with metadata-indexed matrix/layer
+              selection.
             </p>
             <ul>
               <li>
-                Next step: support multiple clustered local spot shadows through
-                packed renderer-owned resources.
+                Next step: add atlas-space clustered spot-shadow metadata for
+                nonuniform local shadow maps.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2419,6 +2426,12 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3141</span> Added a
+                renderer-owned 2D depth-array path for multiple clustered local
+                spot shadows, with per-light matrix/layer metadata and a
+                multi-spot browser proof route.
+              </li>
               <li>
                 <span class="badge green">task-3140</span> Added a
                 renderer-owned 2D atlas path for nonuniform clustered spot
@@ -4771,6 +4784,17 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3141</div>
+            <div>
+              <strong>Multiple clustered spot shadows shipped.</strong>
+              <span>
+                Compatible clustered spot-shadow maps now share a renderer-owned
+                2D depth array, with per-light metadata selecting the matrix and
+                array layer for two supported local spot shadows.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3140</div>
             <div>

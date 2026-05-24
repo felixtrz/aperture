@@ -1,5 +1,46 @@
 # Completed Tasks
 
+## task-3141 — Support multiple clustered local spot shadows per frame
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added shared 2D-array shadow descriptor metadata for compatible clustered
+  local spot-shadow maps, including `layerCount` and `layerBaseIndex`.
+- Updated shadow depth resource preparation so compatible descriptors share one
+  renderer-owned GPU texture allocation while each spot shadow pass receives a
+  layer-specific attachment view.
+- Added the `clusteredLocalLightArrayShadows` StandardMaterial feature, pipeline
+  layout routing, and WGSL depth-array sampling path for clustered spot shadows.
+- Clustered local-light shadow metadata now records each supported spot light's
+  matrix/layer base index.
+- Added `examples/clustered-lights.html?enable-cluster-multi-spot-shadow=1`,
+  proving two local spot shadows in one clustered StandardMaterial frame.
+- Public trackers and agent task pointers now recommend `task-3142`, adding
+  atlas-space clustered spot-shadow metadata for nonuniform maps.
+
+Validation:
+
+- `node --check examples/clustered-lights.main.js && node --check examples/clustered-lights.worker.js`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/shadow-pass-plan.test.ts test/webgpu/shadow-pass-attachment-descriptor.test.ts test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm run examples:build`
+- `git diff --check`
+- Narrow Chrome/WebGPU proof for
+  `examples/clustered-lights.html?enable-cluster-multi-spot-shadow=1`: route
+  `ok`, multi-spot shadow sampling true, two supported spot shadow lights,
+  non-clear readback, and relevant WebGPU validation warnings `0`.
+
+Known follow-up:
+
+- `task-3142` should add atlas-space clustered spot-shadow metadata for
+  nonuniform local maps or publish an explicit browser-visible unsupported
+  fallback.
+- The broad clustered-lights e2e spec went idle locally and was killed after the
+  focused proof passed; keep using fresh narrow Chrome/WebGPU proofs until that
+  multi-page spec hang is isolated.
+
 ## task-3140 — Add atlas-space clustered cookie metadata for nonuniform local cookies
 
 Completed: 2026-05-24

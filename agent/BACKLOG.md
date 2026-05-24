@@ -59,9 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3141`: support multiple clustered local spot shadows per frame
-through a renderer-owned 2D-array shadow resource, with metadata selecting each
-spot light's matrix/layer entry.
+Start `task-3142`: add atlas-space clustered spot-shadow metadata for
+nonuniform maps, with browser-visible fallback for unsupported combinations.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -933,7 +932,7 @@ Acceptance criteria:
 
 ### task-3141 — Support multiple clustered local spot shadows per frame
 
-Status: ready
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.

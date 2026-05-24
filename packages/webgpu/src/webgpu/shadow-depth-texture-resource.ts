@@ -42,6 +42,8 @@ export interface ShadowDepthTextureResource {
   readonly textureKey: string;
   readonly viewKey: string;
   readonly layerCount?: number;
+  readonly layerBaseIndex?: number;
+  readonly attachmentLayerCount?: number;
   readonly faceCount: 1 | 6;
   readonly viewDimension: "2d" | "2d-array" | "cube";
   readonly attachmentViews: readonly ShadowDepthTextureAttachmentView[];
@@ -85,6 +87,7 @@ export interface ShadowDepthTextureResourceReportJsonValue {
     readonly textureKey: string;
     readonly viewKey: string;
     readonly layerCount?: number;
+    readonly layerBaseIndex?: number;
     readonly faceCount: 1 | 6;
     readonly viewDimension: "2d" | "2d-array" | "cube";
     readonly attachmentViewKeys: readonly string[];
@@ -136,9 +139,19 @@ export function createShadowDepthTextureResourceReport(
     });
   }
 
-  const resources = options.textures.textures.map((texture) =>
-    createShadowDepthTextureResource(options.device, texture),
-  );
+  const allocationsByTextureKey = new Map<
+    string,
+    CreateTextureGpuResourceResult
+  >();
+  const resources = options.textures.textures.map((texture) => {
+    const allocation =
+      allocationsByTextureKey.get(texture.textureKey) ??
+      createShadowDepthTextureAllocation(options.device, texture);
+
+    allocationsByTextureKey.set(texture.textureKey, allocation);
+
+    return createShadowDepthTextureResource(texture, allocation);
+  });
 
   for (const resource of resources) {
     diagnostics.push(
@@ -150,14 +163,14 @@ export function createShadowDepthTextureResourceReport(
 
     if (
       resource.allocation.valid &&
-      resource.attachmentViews.length !== shadowLayerCount(resource)
+      resource.attachmentViews.length !== shadowAttachmentLayerCount(resource)
     ) {
       diagnostics.push({
         code: "shadowDepthTextureResource.faceViewCreationFailed",
         severity: "warning",
         resourceKey: resource.resourceKey,
         faceIndex: resource.attachmentViews.length,
-        message: `Shadow depth texture '${resource.resourceKey}' could not create all ${shadowLayerCount(resource)} render attachment view(s).`,
+        message: `Shadow depth texture '${resource.resourceKey}' could not create all ${shadowAttachmentLayerCount(resource)} render attachment view(s).`,
       });
     }
   }
@@ -166,7 +179,8 @@ export function createShadowDepthTextureResourceReport(
     status: resources.every(
       (resource) =>
         resource.allocation.valid &&
-        resource.attachmentViews.length === shadowLayerCount(resource),
+        resource.attachmentViews.length ===
+          shadowAttachmentLayerCount(resource),
     )
       ? "available"
       : "missing",
@@ -194,6 +208,9 @@ export function shadowDepthTextureResourceReportToJsonValue(
       textureKey: resource.textureKey,
       viewKey: resource.viewKey,
       layerCount: shadowLayerCount(resource),
+      ...(resource.layerBaseIndex === undefined || resource.layerBaseIndex === 0
+        ? {}
+        : { layerBaseIndex: resource.layerBaseIndex }),
       faceCount: resource.faceCount,
       viewDimension: resource.viewDimension,
       attachmentViewKeys: resource.attachmentViews.map((view) => view.viewKey),
@@ -246,11 +263,11 @@ export function resolveShadowDepthTextureAttachmentView(
   return attachmentView?.view ?? null;
 }
 
-function createShadowDepthTextureResource(
+function createShadowDepthTextureAllocation(
   device: TextureGpuDeviceLike,
   texture: ShadowTextureResourceDescriptor,
-): ShadowDepthTextureResource {
-  const allocation = createTextureGpuResource({
+): CreateTextureGpuResourceResult {
+  return createTextureGpuResource({
     device,
     resourceKey: texture.textureKey,
     descriptor: {
@@ -272,7 +289,12 @@ function createShadowDepthTextureResource(
             }
           : undefined,
   });
+}
 
+function createShadowDepthTextureResource(
+  texture: ShadowTextureResourceDescriptor,
+  allocation: CreateTextureGpuResourceResult,
+): ShadowDepthTextureResource {
   return {
     shadowId: texture.shadowId,
     lightId: texture.lightId,
@@ -280,6 +302,8 @@ function createShadowDepthTextureResource(
     textureKey: texture.textureKey,
     viewKey: texture.viewKey,
     layerCount: shadowTextureLayerCount(texture),
+    layerBaseIndex: texture.layerBaseIndex ?? 0,
+    attachmentLayerCount: texture.attachmentViewKeys.length,
     faceCount: texture.faceCount,
     viewDimension: texture.viewDimension,
     attachmentViews: createAttachmentViews(texture, allocation),
@@ -312,6 +336,8 @@ function createAttachmentViews(
   }
 
   return texture.attachmentViewKeys.flatMap((viewKey, faceIndex) => {
+    const baseArrayLayer = (texture.layerBaseIndex ?? 0) + faceIndex;
+
     try {
       return [
         {
@@ -319,7 +345,7 @@ function createAttachmentViews(
           viewKey,
           view: createView.call(textureLike, {
             dimension: "2d",
-            baseArrayLayer: faceIndex,
+            baseArrayLayer,
             arrayLayerCount: 1,
             mipLevelCount: 1,
           }),
@@ -341,6 +367,12 @@ function shadowLayerCount(resource: ShadowDepthTextureResource): number {
   return resource.layerCount ?? resource.faceCount;
 }
 
+function shadowAttachmentLayerCount(
+  resource: ShadowDepthTextureResource,
+): number {
+  return resource.attachmentLayerCount ?? shadowLayerCount(resource);
+}
+
 function report(input: {
   readonly status: ShadowDepthTextureResourceStatus;
   readonly textureDescriptorCount: number;
@@ -348,9 +380,11 @@ function report(input: {
   readonly resources: readonly ShadowDepthTextureResource[];
   readonly diagnostics: readonly ShadowDepthTextureResourceDiagnostic[];
 }): ShadowDepthTextureResourceReport {
-  const createdTextureCount = input.resources.filter(
-    (resource) => resource.allocation.valid,
-  ).length;
+  const createdTextureCount = new Set(
+    input.resources
+      .filter((resource) => resource.allocation.valid)
+      .map((resource) => resource.textureKey),
+  ).size;
 
   return {
     ready: input.status === "available" || input.status === "not-required",

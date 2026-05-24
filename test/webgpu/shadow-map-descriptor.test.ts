@@ -45,6 +45,8 @@ describe("shadow-map descriptors", () => {
           cascadeCount: 1,
           faceCount: 1,
           viewDimension: "2d",
+          layerCount: 1,
+          layerBaseIndex: 0,
           casterLayerMask: 1,
           receiverLayerMask: 2,
           ready: true,
@@ -76,6 +78,59 @@ describe("shadow-map descriptors", () => {
       faceCount: 1,
       viewDimension: "2d-array",
     });
+  });
+
+  it("carries compatible local spot-shadow array layer metadata", () => {
+    const report = createShadowMapDescriptorReport({
+      shadowRequests: [
+        { ...shadowRequest(13, 21), lightKind: "spot" },
+        { ...shadowRequest(14, 22), lightKind: "spot" },
+      ],
+      descriptors: [
+        {
+          shadowId: 13,
+          lightId: 21,
+          mapSize: 512,
+          depthBias: 0.002,
+          resourceKey: "shadow-map:clustered-spot-array",
+          viewDimension: "2d-array",
+          layerCount: 2,
+          layerBaseIndex: 0,
+        },
+        {
+          shadowId: 14,
+          lightId: 22,
+          mapSize: 512,
+          depthBias: 0.002,
+          resourceKey: "shadow-map:clustered-spot-array",
+          viewDimension: "2d-array",
+          layerCount: 2,
+          layerBaseIndex: 1,
+        },
+      ],
+    });
+
+    expect(report.ready).toBe(true);
+    expect(report.descriptors).toMatchObject([
+      {
+        shadowId: 13,
+        lightId: 21,
+        lightKind: "spot",
+        resourceKey: "shadow-map:clustered-spot-array",
+        viewDimension: "2d-array",
+        layerCount: 2,
+        layerBaseIndex: 0,
+      },
+      {
+        shadowId: 14,
+        lightId: 22,
+        lightKind: "spot",
+        resourceKey: "shadow-map:clustered-spot-array",
+        viewDimension: "2d-array",
+        layerCount: 2,
+        layerBaseIndex: 1,
+      },
+    ]);
   });
 
   it("diagnoses missing descriptors without creating renderer state", () => {

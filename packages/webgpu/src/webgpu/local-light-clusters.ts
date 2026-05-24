@@ -13,6 +13,8 @@ export const CLUSTERED_LOCAL_LIGHT_ARRAY_COOKIE_PIPELINE_FEATURE =
   "clusteredLocalLightArrayCookies";
 export const CLUSTERED_LOCAL_LIGHT_CUBE_COOKIE_PIPELINE_FEATURE =
   "clusteredLocalLightCubeCookies";
+export const CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE =
+  "clusteredLocalLightArrayShadows";
 export const LOCAL_LIGHT_CLUSTER_MIN_LIGHTS = 16;
 export const LOCAL_LIGHT_CLUSTER_PARAMS_BINDING = 16;
 export const LOCAL_LIGHT_CLUSTER_CELLS_BINDING = 17;
