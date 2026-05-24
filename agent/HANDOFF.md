@@ -1,6 +1,59 @@
 # Agent Handoff
 
-Updated: 2026-05-24T14:41:55Z
+Updated: 2026-05-24T15:42:23Z
+
+## Current Run Update — 2026-05-24T15:42:23Z — Clustered cache pressure history
+
+Completed `task-3157`, adding rolling clustered-light cache pressure history to
+the clustered-lights proof route.
+
+### What changed
+
+- Added `examples/clustered-lights.html?enable-cluster-pressure-history=1`,
+  which enables clustered shadow-map caching, clustered local-light buffer
+  caching, and packed shadow-cookie atlas sampling in one stable multi-view
+  scene.
+- Added `clusterPressureHistoryStatus`, a 30-frame rolling report that compares
+  cached-path work against a derived no-cache baseline.
+- The pressure report tracks avoided clustered-buffer writes, skipped
+  cookie-atlas tile updates, skipped local-shadow command submissions, total
+  cached/baseline work, latest sample data, and stable readback luminance.
+- Stabilized the worker camera and shadow-cache caster for the pressure route
+  so it proves steady-state cache hits instead of forcing the older invalidation
+  route.
+- Adjusted cache readiness checks so the stable pressure-history route can be
+  marked ready from skipped work while the older mutation/invalidation proofs
+  remain strict.
+- Added focused E2E coverage for route readiness, JSON-safe status, stable
+  visible clustered pixels, avoided-work reductions, and WebGPU warning guards.
+- Updated public progress pages, backlog, current task, and completed-task
+  records to point to `task-3158`.
+
+### Validation
+
+- `node --check examples/clustered-lights.main.js`
+- `node --check examples/clustered-lights.worker.js`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts -g "cache pressure history" --timeout=45000 --reporter=line`
+  passed.
+
+### Known issues
+
+- The broad headed
+  `pnpm exec playwright test test/e2e/clustered-lights.spec.ts --timeout=45000`
+  run still wedged in the older all-in-one baseline clustered-lights test and
+  was killed. The focused pressure-history route passed, so this is being
+  tracked as test-harness debt rather than a pressure-history failure.
+- The pre-existing working-tree deletion of `.codex/hooks.json`, untracked
+  `.playwright-mcp/` scratch directory, and untracked
+  `shadow-cookie-console-errors.txt` were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3158`: add a persistent Playwright render proof harness for the
+clustered-light routes so the next SOTA audit can run multiple route proofs in
+one browser session with deterministic reset and warning capture.
 
 ## Current Run Update — 2026-05-24T14:41:55Z — Transparent sort pressure proof
 

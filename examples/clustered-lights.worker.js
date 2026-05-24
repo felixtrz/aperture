@@ -60,6 +60,7 @@ async function handleMessage(data) {
         data.clusteredDynamicShadowCookieAtlasEnabled === true,
         data.clusteredShadowCacheEnabled === true,
         data.clusteredBufferCacheEnabled === true,
+        data.clusteredPressureHistoryEnabled === true,
         data.clusteredShadowCookiePointArrayEnabled === true,
         data.clusteredCookieOnlyEnabled === true,
         data.clusteredSpotShadowAtlasEnabled === true,
@@ -104,6 +105,8 @@ async function handleMessage(data) {
             scene.clusteredShadowCookieAtlasEnabled,
           clusteredDynamicShadowCookieAtlasEnabled:
             scene.clusteredDynamicShadowCookieAtlasEnabled,
+          clusteredPressureHistoryEnabled:
+            scene.clusteredPressureHistoryEnabled,
           clusteredShadowCookiePointArrayEnabled:
             scene.clusteredShadowCookiePointArrayEnabled,
           clusteredCookieOnlyEnabled: scene.clusteredCookieOnlyEnabled,
@@ -179,6 +182,7 @@ function createWorkerScene(
   clusteredDynamicShadowCookieAtlasEnabled,
   clusteredShadowCacheEnabled,
   clusteredBufferCacheEnabled,
+  clusteredPressureHistoryEnabled,
   clusteredShadowCookiePointArrayEnabled,
   clusteredCookieOnlyEnabled,
   clusteredSpotShadowAtlasEnabled,
@@ -518,6 +522,7 @@ function createWorkerScene(
     clusteredDynamicShadowCookieAtlasEnabled,
     clusteredShadowCacheEnabled,
     clusteredBufferCacheEnabled,
+    clusteredPressureHistoryEnabled,
     clusteredShadowCookiePointArrayEnabled,
     clusteredCookieOnlyEnabled,
     clusteredSpotShadowAtlasEnabled,
@@ -536,11 +541,13 @@ function createWorkerScene(
 function updateClusterCamera(aperture, scene, frame) {
   const cameraFrame = frame + scene.cameraFrameOffset;
   const cameraX =
-    scene.clusteredBufferCacheEnabled === true && frame >= 4
+    scene.clusteredPressureHistoryEnabled === true
       ? 0.52
-      : cameraFrame % 2 === 0
+      : scene.clusteredBufferCacheEnabled === true && frame >= 4
         ? 0.52
-        : -0.52;
+        : cameraFrame % 2 === 0
+          ? 0.52
+          : -0.52;
 
   scene.primaryCamera
     .getVectorView(aperture.LocalTransform, "translation")
@@ -555,6 +562,17 @@ function updateClusterCamera(aperture, scene, frame) {
 function updateClusteredShadowCacheCaster(aperture, scene, frame) {
   if (scene.clusteredShadowCacheEnabled !== true) {
     return { enabled: false };
+  }
+
+  if (scene.clusteredPressureHistoryEnabled === true) {
+    return {
+      enabled: true,
+      frame,
+      moved: false,
+      stable: true,
+      invalidationFrame: null,
+      translation: spotShadowCasterPosition,
+    };
   }
 
   const moved = frame >= clusteredShadowCacheTransformInvalidationFrame;

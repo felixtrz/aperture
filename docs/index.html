@@ -393,19 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 14:41 UTC</dd>
+            <dd>2026-05-24 15:42 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest render-pipeline slice:
-              <code>standard-queue-phases.html?transparent-pressure=1</code>
-              now proves dense alpha-blend back-to-front ordering across a
-              small camera move, reports zero depth-order inversions plus
-              render-order and stable-id tie-break pressure, and the render
-              bundle path now scopes default-layout bind groups to the exact
-              renderer pipeline resource key used by each draw. The recommended
-              next task is clustered-light cache pressure history.
+              <code
+                >clustered-lights.html?enable-cluster-pressure-history=1</code
+              >
+              now keeps a stable multi-view clustered scene alive for a 30-frame
+              rolling window and reports cached work versus a derived no-cache
+              baseline for clustered-buffer writes, cookie-atlas tile updates,
+              and local-shadow submissions. The recommended next task is a
+              persistent Playwright route-proof harness for clustered routes.
               The Tier 10 output-stage track is complete:
               <code>createWebGpuApp({ tonemap })</code> selects Linear,
               Reinhard, ACES, AgX, Neutral, or None; StandardMaterial output now
@@ -1579,13 +1580,14 @@
               routes, a shadow-aligned atlas shadow-cookie route, a dynamic
               atlas shadow-cookie route with stable per-light slot reuse,
               one-frame stale-slot retention, and resize eviction proof status,
-              and a GPU cookie-atlas update route that blits changed tiles while
-              preserving cached unchanged tiles.
+              a GPU cookie-atlas update route that blits changed tiles while
+              preserving cached unchanged tiles, and a pressure-history route
+              that tracks stable cache-hit savings over 30 frames.
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Clustered local shadow-map cache reuse and broader clustered-light
-              tuning
+              Persistent clustered-light route proof harness and final SOTA
+              audit
             </dd>
           </dl>
         </aside>
@@ -2453,9 +2455,9 @@
             </p>
             <ul>
               <li>
-                Next step: add clustered-light cache pressure history so
+                Completed: clustered-light cache pressure history now tracks
                 skipped clustered-buffer writes, cookie-atlas tile updates, and
-                local-shadow submissions are tracked over time against a
+                local-shadow submissions over 30 stable frames against a
                 no-cache baseline.
               </li>
               <li>
@@ -2478,6 +2480,18 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3157</span> Added clustered cache
+                pressure history. The pressure route now reports a 30-frame
+                cached path versus no-cache baseline for skipped
+                clustered-buffer writes, cookie-atlas tile updates, and
+                local-shadow submissions with stable visible pixels.
+              </li>
+              <li>
+                <span class="badge green">task-3156</span> Added dense
+                transparent sort pressure proofing and fixed render-bundle
+                pipeline resource-key scoping for default-layout bind groups.
+              </li>
               <li>
                 <span class="badge green">task-3155</span> Added rolling CPU
                 render-phase timing history to <code>WebGpuApp</code> and the
@@ -4891,13 +4905,15 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add a transparent sort
-                pressure proof route so alpha-blend ordering and inversion
-                pressure are visible in browser status and pixels.
+                <span class="badge amber">next</span> Add a persistent
+                Playwright route-proof harness for clustered-light routes so the
+                remaining SOTA audit can reuse one browser session with
+                deterministic route reset and warning capture.
               </li>
               <li>
-                Then add clustered cache pressure history so the remaining SOTA
-                claims are backed by visible pixels and measured savings.
+                Then run the final render-pipeline audit against three.js and
+                PlayCanvas using the pressure-history, profiler, queue, and
+                clustered-light proofs.
               </li>
             </ul>
           </article>
@@ -4910,6 +4926,31 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3157</div>
+            <div>
+              <strong>Clustered cache pressure history shipped.</strong>
+              <span>
+                <code
+                  >clustered-lights.html?enable-cluster-pressure-history=1</code
+                >
+                reports rolling cached-path, no-cache baseline, avoided-work,
+                and stable-pixel status for clustered-buffer writes,
+                cookie-atlas tile updates, and local-shadow submissions.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3156</div>
+            <div>
+              <strong>Transparent sort pressure proof shipped.</strong>
+              <span>
+                The queue-phase proof route now renders 32 dense alpha-blend
+                records across a camera move with zero reported depth-order
+                inversions and preserved per-object transparent sorting.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3155</div>
             <div>

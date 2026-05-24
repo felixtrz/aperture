@@ -64,6 +64,56 @@ interface LocalLightClusterRouteStatus {
   readonly resourceKey: string;
 }
 
+interface ClusterPressureWorkStatus {
+  readonly clusterBufferWrites: number;
+  readonly cookieAtlasTileUpdates: number;
+  readonly localShadowSubmissions: number;
+}
+
+interface ClusterPressureHistoryStatus {
+  readonly enabled: boolean;
+  readonly ready: boolean;
+  readonly requiredFrames: number;
+  readonly observedFrames: number;
+  readonly rollingWindowSize: number;
+  readonly baselineMode: "disabled" | "derived-no-cache";
+  readonly firstFrame?: number;
+  readonly lastFrame?: number;
+  readonly cachedPath: ClusterPressureWorkStatus;
+  readonly noCacheBaseline: ClusterPressureWorkStatus;
+  readonly avoided: ClusterPressureWorkStatus;
+  readonly reduction: {
+    readonly cachedWork: number;
+    readonly baselineWork: number;
+    readonly avoidedWork: number;
+  };
+  readonly stablePixels: {
+    readonly ready: boolean;
+    readonly baselineFrame: number | null;
+    readonly baselineLuminance: number | null;
+    readonly latestLuminance: number | null;
+    readonly maxLuminanceDelta: number;
+    readonly sampleCount: number;
+  };
+  readonly samples: readonly {
+    readonly frame: number;
+    readonly cachedPath: ClusterPressureWorkStatus;
+    readonly noCacheBaseline: ClusterPressureWorkStatus;
+    readonly avoided: ClusterPressureWorkStatus;
+  }[];
+}
+
+interface ClusteredShadowCacheStatus {
+  readonly enabled: boolean;
+  readonly lastAction: "hit" | "miss";
+  readonly hitCount: number;
+  readonly missCount: number;
+  readonly submittedShadowPassCount: number;
+  readonly skippedShadowPassCount: number;
+  readonly submittedCommandBuffers: number;
+  readonly skippedCommandBuffers: number;
+}
+
 interface ClusteredLightsStatus extends ExampleStatusBase {
   readonly pipelineKeys?: readonly string[];
   readonly localLightClusters?:
@@ -121,6 +171,8 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
     readonly routePackedShadowCookieAtlasShadowAligned?: boolean;
     readonly routePackedShadowCookieAtlasSamplingOk?: boolean;
     readonly routeDynamicShadowCookieAtlasReady?: boolean;
+    readonly routeClusteredShadowCacheReady?: boolean;
+    readonly routeClusteredBufferCacheReady?: boolean;
     readonly dynamicShadowCookieAtlasStatus?: {
       readonly enabled: boolean;
       readonly ready: boolean;
@@ -145,6 +197,7 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
     readonly buffersCreated: number;
     readonly buffersReused: number;
   };
+  readonly clusterPressureHistoryStatus?: ClusterPressureHistoryStatus;
   readonly readbackStatus?: {
     readonly ok: boolean;
     readonly maxClearDistance?: number;
@@ -178,6 +231,7 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
       readonly layerCount?: number;
       readonly shadowIds?: readonly number[];
       readonly lightIds?: readonly number[];
+      readonly cache?: ClusteredShadowCacheStatus;
     };
     readonly spot?: {
       readonly enabled: boolean;
@@ -200,6 +254,7 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
         readonly allocationKey?: string | null;
         readonly reused?: boolean;
       }[];
+      readonly cache?: ClusteredShadowCacheStatus;
     };
   };
   readonly counts?: {
@@ -1555,6 +1610,87 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   multiPointShadowWebGpuValidation.expectNoWarnings();
   packedShadowAtlasWebGpuValidation.expectNoWarnings();
   shadowWebGpuValidation.expectNoWarnings();
+});
+
+test("clustered lights reports rolling cache pressure history", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/clustered-lights.html?enable-cluster-pressure-history=1",
+  );
+  await page.bringToFront();
+
+  const status = await waitForExampleStatus<ClusteredLightsStatus>(page);
+
+  await attachExampleStatus("clustered-lights-pressure-history-status", status);
+  expect(
+    status,
+    "clustered lights pressure history status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "clustered-lights",
+    ok: true,
+    phase: "submit",
+    clusterStatus: {
+      ok: true,
+      routeClusteredShadowCacheReady: true,
+      routeClusteredBufferCacheReady: true,
+      routePackedShadowCookieAtlasSamplingOk: true,
+    },
+    clusterPressureHistoryStatus: {
+      enabled: true,
+      ready: true,
+      requiredFrames: 30,
+      observedFrames: 30,
+      rollingWindowSize: 30,
+      baselineMode: "derived-no-cache",
+      stablePixels: {
+        ready: true,
+      },
+    },
+    counts: {
+      diagnostics: 0,
+    },
+  });
+
+  const history = status.clusterPressureHistoryStatus;
+
+  expect(history).toBeDefined();
+  if (history === undefined) {
+    return;
+  }
+
+  expect(history.lastFrame ?? 0).toBeGreaterThanOrEqual(30);
+  expect(history.samples).toHaveLength(30);
+  expect(history.avoided.clusterBufferWrites).toBeGreaterThan(0);
+  expect(history.avoided.cookieAtlasTileUpdates).toBeGreaterThan(0);
+  expect(history.avoided.localShadowSubmissions).toBeGreaterThan(0);
+  expect(history.cachedPath.clusterBufferWrites).toBeLessThan(
+    history.noCacheBaseline.clusterBufferWrites,
+  );
+  expect(history.cachedPath.cookieAtlasTileUpdates).toBeLessThan(
+    history.noCacheBaseline.cookieAtlasTileUpdates,
+  );
+  expect(history.cachedPath.localShadowSubmissions).toBeLessThan(
+    history.noCacheBaseline.localShadowSubmissions,
+  );
+  expect(history.reduction.avoidedWork).toBeGreaterThan(0);
+  expect(history.reduction.baselineWork).toBeGreaterThan(
+    history.reduction.cachedWork,
+  );
+  expect(history.stablePixels.maxLuminanceDelta).toBeLessThanOrEqual(6);
+  expect(status.readbackStatus?.ok).toBe(true);
+  expect(status.readbackStatus?.maxClearDistance ?? 0).toBeGreaterThan(24);
+  webGpuValidation.expectNoWarnings();
 });
 
 function maxSampleLuminanceDarkening(

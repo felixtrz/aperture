@@ -59,9 +59,10 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3157`: add clustered-light cache pressure history to
-`examples/clustered-lights.html` so stable cached work savings are visible over
-time against a no-cache baseline.
+Start `task-3158`: add a persistent Playwright render proof harness for the
+clustered-light routes so the remaining SOTA audits can reuse one browser
+session, reset route state deterministically, and avoid the current headed
+runner churn.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -1295,7 +1296,7 @@ to the pipeline object that encodes the draw.
 
 ### task-3157 — Add clustered-light cache pressure history to clustered-lights
 
-Status: ready
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/*shadow*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/`.
@@ -1314,6 +1315,39 @@ Acceptance criteria:
   while the pressure history accumulates saved work.
 - The route remains within WebGPU minimum storage-buffer limits and preserves
   zero relevant WebGPU validation warnings.
+
+Completed: 2026-05-24.
+`examples/clustered-lights.html?enable-cluster-pressure-history=1` now runs a
+stable multi-view clustered scene with clustered shadow/cache routes enabled,
+keeps a 30-frame rolling cache-pressure history, and reports cached-path work
+against a derived no-cache baseline for clustered-buffer writes, cookie-atlas
+tile updates, and local-shadow submissions. The focused browser proof verifies
+stable clustered lighting/shadow-cookie pixels, measurable avoided work, JSON
+safety, zero diagnostics, and zero relevant WebGPU validation warnings.
+
+### task-3158 — Add persistent Playwright render proof harness
+
+Status: ready
+
+Category: `docs-tooling`
+Package/write-scope: `test/e2e/`, `test/helpers/`, `scripts/`, `docs/`, `agent/`.
+Reference anchor: `test/e2e/clustered-lights.spec.ts`, `playwright.config.ts`, `references/engine/src/scene/renderer/frame-pass-update-clustered.js`.
+
+Acceptance criteria:
+
+- A reusable test helper can run multiple `examples/clustered-lights.html`
+  route proofs in one browser context/page without opening a fresh page per
+  route, while still resetting route URL/state and WebGPU warning capture
+  between proofs.
+- The helper captures JSON-safe example status, canvas/readback evidence, route
+  URL, frame count, elapsed time, and relevant console/WebGPU validation
+  warnings for each route.
+- At least the default clustered route and
+  `?enable-cluster-pressure-history=1` run through the persistent helper in one
+  focused Playwright test with stable pass/fail output.
+- The old focused pressure-history proof remains valid, and the harness records
+  whether it avoids the broad all-in-one clustered-lights spec hang observed in
+  local headed runs.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 

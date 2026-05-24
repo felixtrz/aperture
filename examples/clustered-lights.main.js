@@ -6,6 +6,9 @@ const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
 const clearColor = [0.012, 0.016, 0.022, 1];
 const exampleParams = new URLSearchParams(globalThis.location.search);
+const clusteredPressureHistoryEnabled = exampleParams.has(
+  "enable-cluster-pressure-history",
+);
 const clusteredCookieOnlyEnabled =
   exampleParams.has("enable-cluster-cookie-only") &&
   !exampleParams.has("disable-cluster-cookie");
@@ -18,22 +21,25 @@ const clusteredGpuCookieAtlasUpdateEnabled =
   !exampleParams.has("disable-cluster-point-shadow") &&
   !exampleParams.has("disable-cluster-spot-shadow");
 const clusteredShadowCacheEnabled =
-  exampleParams.has("enable-cluster-shadow-cache") &&
+  (exampleParams.has("enable-cluster-shadow-cache") ||
+    clusteredPressureHistoryEnabled) &&
   !exampleParams.has("disable-cluster-cookie") &&
   !exampleParams.has("disable-cluster-point-shadow") &&
   !exampleParams.has("disable-cluster-spot-shadow");
 const clusteredBufferCacheEnabled =
-  exampleParams.has("enable-cluster-buffer-cache") &&
+  (exampleParams.has("enable-cluster-buffer-cache") ||
+    clusteredPressureHistoryEnabled) &&
   !exampleParams.has("disable-cluster-cookie");
 const clusteredDynamicShadowCookieAtlasEnabled =
   (exampleParams.has("enable-cluster-dynamic-shadow-cookie-atlas") ||
     clusteredGpuCookieAtlasUpdateEnabled ||
-    clusteredShadowCacheEnabled) &&
+    (clusteredShadowCacheEnabled && !clusteredPressureHistoryEnabled)) &&
   !exampleParams.has("disable-cluster-cookie") &&
   !exampleParams.has("disable-cluster-point-shadow") &&
   !exampleParams.has("disable-cluster-spot-shadow");
 const clusteredShadowCookieAtlasEnabled =
   (exampleParams.has("enable-cluster-shadow-cookie-atlas") ||
+    clusteredPressureHistoryEnabled ||
     clusteredDynamicShadowCookieAtlasEnabled) &&
   !exampleParams.has("disable-cluster-cookie") &&
   !exampleParams.has("disable-cluster-point-shadow") &&
@@ -184,6 +190,8 @@ const clusteredDynamicSpotShadowAtlas = {
 const clusteredShadowCacheTransformInvalidationFrame = 4;
 const clusteredShadowSoftnessPointFilterRadiusTexels = 3;
 const clusteredShadowSoftnessSpotFilterRadiiTexels = [0, 5];
+const clusterPressureHistoryFrameCount = 30;
+const clusterPressureStableFrameStart = 6;
 const maxStatusWarmupFrames = 90;
 const maxTransparentReadbackWarmupFrames = 150;
 const readbackSamples = [
@@ -375,6 +383,7 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     clusteredGpuCookieAtlasUpdateEnabled,
     clusteredShadowCacheEnabled,
     clusteredBufferCacheEnabled,
+    clusteredPressureHistoryEnabled,
     clusteredShadowCookiePointArrayEnabled,
     clusteredCookieOnlyEnabled,
     clusteredMixedShadowEnabled,
@@ -640,6 +649,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     dynamicSpotShadowAtlasState: null,
     dynamicSpotShadowAtlasStatus: null,
     gpuCookieAtlasUpdateStatus: null,
+    clusterPressureHistoryStatus: null,
   };
 
   worker.addEventListener("message", (event) => {
@@ -670,6 +680,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
       scene.clusteredGpuCookieAtlasUpdateEnabled,
     clusteredShadowCacheEnabled: scene.clusteredShadowCacheEnabled,
     clusteredBufferCacheEnabled: scene.clusteredBufferCacheEnabled,
+    clusteredPressureHistoryEnabled: scene.clusteredPressureHistoryEnabled,
     clusteredShadowCookiePointArrayEnabled:
       scene.clusteredShadowCookiePointArrayEnabled,
     clusteredCookieOnlyEnabled: scene.clusteredCookieOnlyEnabled,
@@ -824,7 +835,17 @@ function statusFromReport(
     scene.clusteredBufferCacheEnabled,
     reportJson.resourceReuse,
     report.snapshot.frame,
+    scene.clusteredPressureHistoryEnabled,
   );
+  const clusterPressureHistoryStatus = createClusterPressureHistoryStatus({
+    loop,
+    enabled: scene.clusteredPressureHistoryEnabled,
+    frame: report.snapshot.frame,
+    resourceReuse: reportJson.resourceReuse,
+    localLightCookies,
+    shadowStatus: loop.shadowStatus,
+    readbackStatus,
+  });
   const clusterStatus = createClusterStatus(
     localLightClusters,
     pipelineKeys,
@@ -850,6 +871,7 @@ function statusFromReport(
     scene.clusteredShadowCacheEnabled,
     scene.clusteredBufferCacheEnabled,
     clusterBufferCacheStatus,
+    scene.clusteredPressureHistoryEnabled,
     scene.clusteredShadowSoftnessEnabled ||
       scene.clusteredShadowSoftnessAtlasEnabled,
   );
@@ -867,6 +889,7 @@ function statusFromReport(
       report.ok &&
       reportJson.counts.diagnostics === 0 &&
       clusterStatus.ok &&
+      clusterPressureHistoryStatus.ready &&
       shadowSoftnessReadbackStatus.ok &&
       readbackStatus.ok,
     phase: report.ok ? "submit" : "failed",
@@ -885,6 +908,7 @@ function statusFromReport(
     localLightClusters,
     localLightCookies,
     clusterStatus,
+    clusterPressureHistoryStatus,
     shadowStatus: loop.shadowStatus,
     gpuCookieAtlasUpdateStatus,
     clusterBufferCacheStatus,
@@ -895,6 +919,202 @@ function statusFromReport(
     counts: reportJson.counts,
     diagnostics: reportJson.diagnostics,
   };
+}
+
+function createClusterPressureHistoryStatus({
+  loop,
+  enabled,
+  frame,
+  resourceReuse,
+  localLightCookies,
+  shadowStatus,
+  readbackStatus,
+}) {
+  if (enabled !== true) {
+    return {
+      enabled: false,
+      ready: true,
+      requiredFrames: 0,
+      observedFrames: 0,
+      rollingWindowSize: 0,
+      baselineMode: "disabled",
+      cachedPath: emptyClusterPressureWork(),
+      noCacheBaseline: emptyClusterPressureWork(),
+      avoided: emptyClusterPressureWork(),
+      reduction: {
+        cachedWork: 0,
+        baselineWork: 0,
+        avoidedWork: 0,
+      },
+      stablePixels: {
+        ready: true,
+        baselineFrame: null,
+        baselineLuminance: null,
+        latestLuminance: null,
+        maxLuminanceDelta: 0,
+        sampleCount: 0,
+      },
+      samples: [],
+    };
+  }
+
+  const previous = loop.clusterPressureHistoryStatus ?? null;
+  const atlasUpdate = localLightCookies?.atlasUpdate ?? null;
+  const actualClusterBufferWrites =
+    resourceReuse?.localLightClusterBufferWrites ?? 0;
+  const avoidedClusterBufferWrites =
+    resourceReuse?.localLightClusterBufferWritesSkipped ?? 0;
+  const actualCookieAtlasTileUpdates = atlasUpdate?.updatedTileCount ?? 0;
+  const avoidedCookieAtlasTileUpdates = atlasUpdate?.cachedTileCount ?? 0;
+  const shadowWork = clusteredShadowFrameWork(shadowStatus);
+  const sample = {
+    frame,
+    cachedPath: {
+      clusterBufferWrites: actualClusterBufferWrites,
+      cookieAtlasTileUpdates: actualCookieAtlasTileUpdates,
+      localShadowSubmissions: shadowWork.submittedCommandBuffers,
+    },
+    noCacheBaseline: {
+      clusterBufferWrites:
+        actualClusterBufferWrites + avoidedClusterBufferWrites,
+      cookieAtlasTileUpdates:
+        actualCookieAtlasTileUpdates + avoidedCookieAtlasTileUpdates,
+      localShadowSubmissions:
+        shadowWork.submittedCommandBuffers + shadowWork.skippedCommandBuffers,
+    },
+    avoided: {
+      clusterBufferWrites: avoidedClusterBufferWrites,
+      cookieAtlasTileUpdates: avoidedCookieAtlasTileUpdates,
+      localShadowSubmissions: shadowWork.skippedCommandBuffers,
+    },
+  };
+  const samples = [...(previous?.samples ?? []), sample].slice(
+    -clusterPressureHistoryFrameCount,
+  );
+  const cachedPath = sumClusterPressureWork(samples, "cachedPath");
+  const noCacheBaseline = sumClusterPressureWork(samples, "noCacheBaseline");
+  const avoided = sumClusterPressureWork(samples, "avoided");
+  const latestLuminance = averageReadbackLuminance(readbackStatus, [
+    "left-bank",
+    "center",
+    "right-bank",
+    "right-cookie-upper",
+    "right-cookie-lower",
+  ]);
+  const previousStable = previous?.stablePixels ?? null;
+  const baselineLuminance =
+    previousStable?.baselineLuminance ??
+    (frame >= clusterPressureStableFrameStart ? latestLuminance : null);
+  const baselineFrame =
+    previousStable?.baselineFrame ??
+    (baselineLuminance === null ? null : frame);
+  const currentDelta =
+    baselineLuminance === null || latestLuminance === null
+      ? 0
+      : Math.abs(latestLuminance - baselineLuminance);
+  const stableSampleCount =
+    (previousStable?.sampleCount ?? 0) +
+    (frame >= clusterPressureStableFrameStart && latestLuminance !== null
+      ? 1
+      : 0);
+  const maxLuminanceDelta = Math.max(
+    previousStable?.maxLuminanceDelta ?? 0,
+    currentDelta,
+  );
+  const stablePixels = {
+    ready:
+      stableSampleCount >=
+        clusterPressureHistoryFrameCount - clusterPressureStableFrameStart &&
+      baselineLuminance !== null &&
+      latestLuminance !== null &&
+      maxLuminanceDelta <= 6,
+    baselineFrame,
+    baselineLuminance,
+    latestLuminance,
+    maxLuminanceDelta,
+    sampleCount: stableSampleCount,
+  };
+  const cachedWork = totalClusterPressureWork(cachedPath);
+  const baselineWork = totalClusterPressureWork(noCacheBaseline);
+  const avoidedWork = totalClusterPressureWork(avoided);
+  const status = {
+    enabled: true,
+    ready:
+      samples.length >= clusterPressureHistoryFrameCount &&
+      avoided.clusterBufferWrites > 0 &&
+      avoided.cookieAtlasTileUpdates > 0 &&
+      avoided.localShadowSubmissions > 0 &&
+      baselineWork > cachedWork &&
+      stablePixels.ready,
+    requiredFrames: clusterPressureHistoryFrameCount,
+    observedFrames: samples.length,
+    rollingWindowSize: clusterPressureHistoryFrameCount,
+    baselineMode: "derived-no-cache",
+    firstFrame: samples[0]?.frame ?? frame,
+    lastFrame: samples[samples.length - 1]?.frame ?? frame,
+    cachedPath,
+    noCacheBaseline,
+    avoided,
+    reduction: {
+      cachedWork,
+      baselineWork,
+      avoidedWork,
+    },
+    latest: sample,
+    stablePixels,
+    samples,
+  };
+
+  loop.clusterPressureHistoryStatus = status;
+
+  return status;
+}
+
+function emptyClusterPressureWork() {
+  return {
+    clusterBufferWrites: 0,
+    cookieAtlasTileUpdates: 0,
+    localShadowSubmissions: 0,
+  };
+}
+
+function sumClusterPressureWork(samples, field) {
+  return samples.reduce((total, sample) => {
+    const work = sample[field] ?? {};
+
+    return {
+      clusterBufferWrites:
+        total.clusterBufferWrites + (work.clusterBufferWrites ?? 0),
+      cookieAtlasTileUpdates:
+        total.cookieAtlasTileUpdates + (work.cookieAtlasTileUpdates ?? 0),
+      localShadowSubmissions:
+        total.localShadowSubmissions + (work.localShadowSubmissions ?? 0),
+    };
+  }, emptyClusterPressureWork());
+}
+
+function totalClusterPressureWork(work) {
+  return (
+    (work.clusterBufferWrites ?? 0) +
+    (work.cookieAtlasTileUpdates ?? 0) +
+    (work.localShadowSubmissions ?? 0)
+  );
+}
+
+function clusteredShadowFrameWork(shadowStatus) {
+  const caches = [shadowStatus?.point?.cache, shadowStatus?.spot?.cache].filter(
+    (cache) => cache?.enabled === true,
+  );
+
+  return caches.reduce(
+    (total, cache) => ({
+      submittedCommandBuffers:
+        total.submittedCommandBuffers + (cache.submittedCommandBuffers ?? 0),
+      skippedCommandBuffers:
+        total.skippedCommandBuffers + (cache.skippedCommandBuffers ?? 0),
+    }),
+    { submittedCommandBuffers: 0, skippedCommandBuffers: 0 },
+  );
 }
 
 function createClusterStatus(
@@ -922,6 +1142,7 @@ function createClusterStatus(
   shadowCacheEnabled,
   bufferCacheEnabled,
   clusterBufferCacheStatus,
+  pressureHistoryEnabled,
   shadowSoftnessEnabled,
 ) {
   const clusterPipelineUsed = pipelineKeys.some((pipelineKey) =>
@@ -1390,15 +1611,18 @@ function createClusterStatus(
       spotShadowCacheStatus.missCount >= 1 &&
       spotShadowCacheStatus.skippedShadowPassCount >= 1 &&
       spotShadowCacheStatus.submittedShadowPassCount >= 1 &&
-      spotShadowCacheStatus.maxReusedTextureCount >= 1 &&
-      spotShadowCacheStatus.observedCasterTransformInvalidation === true &&
+      (pressureHistoryEnabled === true ||
+        spotShadowCacheStatus.maxReusedTextureCount >= 1) &&
+      (pressureHistoryEnabled === true ||
+        spotShadowCacheStatus.observedCasterTransformInvalidation === true) &&
       spotShadowCacheStatus.cachedShadowCount >=
         requiredSpotShadowSupportedCount);
   const routeClusteredBufferCacheReady =
     bufferCacheEnabled !== true ||
     (clusterBufferCacheStatus.ready === true &&
       clusterBufferCacheStatus.observedClusterInvalidation === true &&
-      clusterBufferCacheStatus.observedBufferWrites === true &&
+      (pressureHistoryEnabled === true ||
+        clusterBufferCacheStatus.observedBufferWrites === true) &&
       clusterBufferCacheStatus.observedSkippedWrites === true &&
       clusterBufferCacheStatus.latestWrites === 0 &&
       clusterBufferCacheStatus.latestSkippedWrites >= 4);
@@ -1674,7 +1898,13 @@ function createGpuCookieAtlasUpdateStatus(
   return status;
 }
 
-function createClusterBufferCacheStatus(loop, enabled, resourceReuse, frame) {
+function createClusterBufferCacheStatus(
+  loop,
+  enabled,
+  resourceReuse,
+  frame,
+  pressureHistoryEnabled,
+) {
   if (enabled !== true) {
     return {
       enabled: false,
@@ -1704,15 +1934,24 @@ function createClusterBufferCacheStatus(loop, enabled, resourceReuse, frame) {
     previous?.maxSkippedWrites ?? 0,
     latestSkippedWrites,
   );
+  const stablePressureHistoryReady =
+    pressureHistoryEnabled === true &&
+    observedClusterInvalidation &&
+    observedSkippedWrites &&
+    latestWrites === 0 &&
+    latestSkippedWrites >= 4;
   const status = {
     enabled: true,
     ready:
-      observedClusterInvalidation &&
-      observedBufferWrites &&
-      observedSkippedWrites &&
-      latestWrites === 0 &&
-      latestSkippedWrites >= 4,
+      stablePressureHistoryReady ||
+      (observedClusterInvalidation &&
+        observedBufferWrites &&
+        observedSkippedWrites &&
+        latestWrites === 0 &&
+        latestSkippedWrites >= 4),
     frame,
+    baselineMode:
+      pressureHistoryEnabled === true ? "stable-cache-hit" : "invalidation",
     observedClusterInvalidation,
     observedBufferWrites,
     observedSkippedWrites,
@@ -2976,7 +3215,8 @@ function recordClusteredShadowCacheStatus(loop, kind, input) {
   const previous = loop.clusteredShadowCacheStatus?.[kind] ?? null;
   const hit = input.action === "hit";
   const miss = input.action === "miss";
-  const reusedTextureCount = input.depthTextureResources.reusedTextureCount ?? 0;
+  const reusedTextureCount =
+    input.depthTextureResources.reusedTextureCount ?? 0;
   const status = {
     enabled: true,
     kind,

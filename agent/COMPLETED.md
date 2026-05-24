@@ -1,5 +1,43 @@
 # Completed Tasks
 
+## task-3157 — Add clustered-light cache pressure history to clustered-lights
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added `examples/clustered-lights.html?enable-cluster-pressure-history=1`, a
+  stable multi-view clustered StandardMaterial route that enables clustered
+  shadow-map caching, clustered local-light buffer caching, and packed
+  shadow-cookie atlas sampling together.
+- Added a 30-frame rolling `clusterPressureHistoryStatus` report with
+  cached-path totals, a derived no-cache baseline, avoided work totals, latest
+  sample data, and stable-pixel luminance tracking.
+- The report tracks avoided clustered-buffer writes, skipped cookie-atlas tile
+  updates, and skipped local-shadow command submissions while keeping
+  visible clustered lighting and shadow-cookie pixels stable.
+- Adjusted clustered cache readiness so the new stable pressure-history route
+  can prove cache-hit savings without forcing the older mutate-then-invalidate
+  proof path.
+- Added focused E2E coverage for the pressure-history route, including JSON
+  safety, route readiness, stable readback pixels, avoided-work reductions, and
+  zero relevant WebGPU validation warnings.
+
+Validation:
+
+- `node --check examples/clustered-lights.main.js`
+- `node --check examples/clustered-lights.worker.js`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts -g "cache pressure history" --timeout=45000 --reporter=line`
+
+Known follow-up:
+
+- The broad headed
+  `pnpm exec playwright test test/e2e/clustered-lights.spec.ts --timeout=45000`
+  run still wedged in the older all-in-one clustered-lights baseline route and
+  was killed. The next slice should add a persistent browser/session route
+  harness so clustered proofs can reset state without repeatedly opening pages.
+
 ## task-3156 — Add a transparent sort pressure proof route
 
 Completed: 2026-05-24
