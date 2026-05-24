@@ -259,6 +259,7 @@ import {
 } from "./local-light-clusters.js";
 import {
   prepareLocalLightClusterCookieResources,
+  type LocalLightClusterCookieAtlasUpdateReport,
   type LocalLightClusterCookieMatrixResource,
   type LocalLightClusterCookieResources,
 } from "./local-light-cookie-resources.js";
@@ -639,6 +640,7 @@ export interface WebGpuAppRenderReport {
   readonly indirectDraws?: IndirectDrawCommandReport;
   readonly motionVectors?: WebGpuAppMotionVectorReport;
   readonly localLightClusters?: LocalLightClusterReport;
+  readonly localLightCookies?: WebGpuAppLocalLightCookieReport;
   readonly occlusionQueries?: WebGpuAppOcclusionQueryReport;
 }
 
@@ -720,8 +722,19 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly indirectDraws?: IndirectDrawCommandReport;
   readonly motionVectors?: WebGpuAppMotionVectorReport;
   readonly localLightClusters?: LocalLightClusterReport;
+  readonly localLightCookies?: WebGpuAppLocalLightCookieReport;
   readonly occlusionQueries?: WebGpuAppOcclusionQueryReport;
   readonly materialDependencyReadiness?: readonly MaterialAssetDependencyReadinessReportJsonValue[];
+}
+
+export interface WebGpuAppLocalLightCookieReport {
+  readonly textureLayout?: "single" | "array" | "atlas";
+  readonly textureViewDimension: "2d" | "2d-array" | "cube";
+  readonly shadowMatrixCompatible?: boolean;
+  readonly textureKey: string;
+  readonly samplerKey: string;
+  readonly supportedLightCount: number;
+  readonly atlasUpdate?: LocalLightClusterCookieAtlasUpdateReport;
 }
 
 export interface WebGpuAppRenderBundleReport {
@@ -2399,6 +2412,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     ...(indirectDraws.report.status === "skipped"
       ? {}
       : { indirectDraws: indirectDraws.report }),
+    localLightCookieResources: options.localLightCookieResources,
     resourceReuse: options.reuse,
     diagnosticsSummary: finalDiagnosticsSummary,
     drawPackages: framePlan.packages.packages.length,
@@ -6810,6 +6824,7 @@ async function renderWebGpuAppFrame(
     ...(indirectDraws.report.status === "skipped"
       ? {}
       : { indirectDraws: indirectDraws.report }),
+    localLightCookieResources: localLightCookieResources.resources,
     resourceReuse: reuse,
     drawPackages: framePlan.packages.packages.length,
     drawCommands: boundaries.plannedCommands,
@@ -8083,6 +8098,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.localLightClusters === undefined
       ? {}
       : { localLightClusters: report.localLightClusters }),
+    ...(report.localLightCookies === undefined
+      ? {}
+      : { localLightCookies: report.localLightCookies }),
     ...(report.occlusionQueries === undefined
       ? {}
       : { occlusionQueries: report.occlusionQueries }),
@@ -8189,6 +8207,10 @@ function renderReport(input: {
   readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly indirectDraws?: IndirectDrawCommandReport;
   readonly motionVectors?: WebGpuAppMotionVectorReport;
+  readonly localLightCookieResources?:
+    | LocalLightClusterCookieResources
+    | null
+    | undefined;
   readonly occlusionQueries?: WebGpuAppOcclusionQueryReport;
   readonly drawPackages?: number;
   readonly drawCommands?: number;
@@ -8200,6 +8222,9 @@ function renderReport(input: {
     input.snapshot,
     input.resources ?? null,
     resourceReuse,
+  );
+  const localLightCookies = createWebGpuAppLocalLightCookieReport(
+    input.localLightCookieResources ?? null,
   );
 
   return {
@@ -8260,9 +8285,34 @@ function renderReport(input: {
       ? {}
       : { motionVectors: input.motionVectors }),
     ...(localLightClusters === undefined ? {} : { localLightClusters }),
+    ...(localLightCookies === undefined ? {} : { localLightCookies }),
     ...(input.occlusionQueries === undefined
       ? {}
       : { occlusionQueries: input.occlusionQueries }),
+  };
+}
+
+function createWebGpuAppLocalLightCookieReport(
+  resources: LocalLightClusterCookieResources | null,
+): WebGpuAppLocalLightCookieReport | undefined {
+  if (resources === null) {
+    return undefined;
+  }
+
+  return {
+    ...(resources.textureLayout === undefined
+      ? {}
+      : { textureLayout: resources.textureLayout }),
+    textureViewDimension: resources.textureViewDimension,
+    ...(resources.shadowMatrixCompatible === undefined
+      ? {}
+      : { shadowMatrixCompatible: resources.shadowMatrixCompatible }),
+    textureKey: resources.textureKey,
+    samplerKey: resources.samplerKey,
+    supportedLightCount: resources.supportedResources.length,
+    ...(resources.atlasUpdate === undefined
+      ? {}
+      : { atlasUpdate: resources.atlasUpdate }),
   };
 }
 

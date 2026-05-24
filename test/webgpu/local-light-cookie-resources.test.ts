@@ -597,6 +597,132 @@ describe("clustered local-light cookie resources", () => {
     });
   });
 
+  it("updates nonuniform spot-cookie atlas tiles with GPU blits when source textures are cached", () => {
+    const registry = new AssetRegistry();
+    const firstTexture = createTextureHandle("gpu-atlas-cookie-small");
+    const secondTexture = createTextureHandle("gpu-atlas-cookie-wide");
+    const sampler = createSamplerHandle("gpu-atlas-cookie-linear");
+    const cache = createCache();
+    const createdTextures: unknown[] = [];
+    const textureWrites: unknown[] = [];
+    const events: Array<Record<string, unknown>> = [];
+    const reuse = createReuseReport();
+
+    registry.register(firstTexture);
+    registry.register(secondTexture);
+    registry.register(sampler);
+    registry.markReady(
+      firstTexture,
+      createTestCookieTextureAsset(
+        "GpuAtlasCookieSmall",
+        [
+          255, 255, 255, 255, 24, 24, 24, 255, 24, 24, 24, 255, 255, 255, 255,
+          255,
+        ],
+      ),
+    );
+    registry.markReady(
+      secondTexture,
+      createWideTestCookieTextureAsset("GpuAtlasCookieWide"),
+    );
+    registry.markReady(sampler, createLinearCookieSamplerAsset());
+    cache.textures.set(
+      "texture:gpu-atlas-cookie-small@1",
+      cachedTextureResource("texture:gpu-atlas-cookie-small", 2, 2),
+    );
+    cache.textures.set(
+      "texture:gpu-atlas-cookie-wide@1",
+      cachedTextureResource("texture:gpu-atlas-cookie-wide", 4, 2),
+    );
+
+    const device = createCookieAtlasGpuBlitDevice({
+      createdTextures,
+      textureWrites,
+      events,
+    });
+    const result = prepareLocalLightClusterCookieResources({
+      assets: registry,
+      cache,
+      device,
+      reuse,
+      snapshot: snapshotWithTwoSpotCookies(
+        firstTexture,
+        secondTexture,
+        sampler,
+      ),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.resources).toMatchObject({
+      textureLayout: "atlas",
+      textureViewDimension: "2d",
+      atlasUpdate: {
+        updateMode: "gpu-blit",
+        atlasWidth: 6,
+        atlasHeight: 2,
+        requestedTileCount: 2,
+        updatedTileCount: 2,
+        gpuBlitTileCount: 2,
+        cpuUploadTileCount: 0,
+        cachedTileCount: 0,
+        sourceTextureKeys: [
+          "texture:gpu-atlas-cookie-small@1",
+          "texture:gpu-atlas-cookie-wide@1",
+        ],
+      },
+    });
+    expect(result.resources?.textureKey).toContain(
+      "local-light-cookie-atlas-gpu:v1:6x2:",
+    );
+    expect(createdTextures).toMatchObject([
+      {
+        size: [6, 2, 1],
+        format: "rgba8unorm",
+        usage: 22,
+      },
+    ]);
+    expect(textureWrites).toHaveLength(0);
+    expect(
+      events.filter((event) => event.type === "setViewport"),
+    ).toMatchObject([
+      { x: 0, y: 0, width: 2, height: 2 },
+      { x: 2, y: 0, width: 4, height: 2 },
+    ]);
+    expect(events.filter((event) => event.type === "draw")).toHaveLength(2);
+    expect(events.filter((event) => event.type === "submit")).toHaveLength(1);
+    expect(reuse).toMatchObject({
+      textureResourcesCreated: 1,
+      textureResourcesReused: 2,
+      samplerResourcesCreated: 1,
+      samplerResourcesReused: 2,
+    });
+
+    const eventCountAfterFirstPrepare = events.length;
+    const secondResult = prepareLocalLightClusterCookieResources({
+      assets: registry,
+      cache,
+      device,
+      reuse: createReuseReport(),
+      snapshot: snapshotWithTwoSpotCookies(
+        firstTexture,
+        secondTexture,
+        sampler,
+      ),
+    });
+
+    expect(secondResult.valid).toBe(true);
+    expect(secondResult.resources?.atlasUpdate).toMatchObject({
+      updateMode: "cache-hit",
+      requestedTileCount: 2,
+      updatedTileCount: 0,
+      gpuBlitTileCount: 0,
+      cpuUploadTileCount: 0,
+      cachedTileCount: 2,
+    });
+    expect(events).toHaveLength(eventCountAfterFirstPrepare);
+  });
+
   it("packs nonuniform spot cookies into a shadow-aligned atlas when spot atlas regions match", () => {
     const registry = new AssetRegistry();
     const firstTexture = createTextureHandle("spot-cookie-small");
@@ -1280,6 +1406,144 @@ function shadowAlignedSpotShadowResources() {
       ],
     },
   } as never;
+}
+
+function cachedTextureResource(
+  resourceKey: string,
+  width: number,
+  height: number,
+) {
+  return {
+    resourceKey,
+    texture: { label: `${resourceKey}-texture` },
+    view: { label: `${resourceKey}-view` },
+    descriptor: {
+      size: [width, height, 1],
+      format: "rgba8unorm",
+      colorSpace: "linear",
+      semantic: "data",
+      mipLevelCount: 1,
+      usage: 6,
+    },
+  } as never;
+}
+
+function createCookieAtlasGpuBlitDevice(options: {
+  readonly createdTextures: unknown[];
+  readonly textureWrites: unknown[];
+  readonly events: Array<Record<string, unknown>>;
+}) {
+  return {
+    createTexture: (descriptor: unknown) => {
+      options.createdTextures.push(descriptor);
+      return {
+        createView: (viewDescriptor: unknown) => ({
+          label: "gpu-cookie-atlas-view",
+          viewDescriptor,
+        }),
+      };
+    },
+    createSampler: (descriptor: unknown) => ({
+      label: "gpu-cookie-atlas-sampler",
+      descriptor,
+    }),
+    createBuffer: (descriptor: unknown) => ({
+      label: "gpu-cookie-atlas-buffer",
+      descriptor,
+    }),
+    createShaderModule: (descriptor: unknown) => {
+      options.events.push({ type: "createShaderModule", descriptor });
+      return { label: "gpu-cookie-atlas-blit-shader" };
+    },
+    createBindGroupLayout: (descriptor: unknown) => {
+      options.events.push({ type: "createBindGroupLayout", descriptor });
+      return { label: "gpu-cookie-atlas-blit-bind-group-layout" };
+    },
+    createPipelineLayout: (descriptor: unknown) => {
+      options.events.push({ type: "createPipelineLayout", descriptor });
+      return { label: "gpu-cookie-atlas-blit-pipeline-layout" };
+    },
+    createRenderPipeline: (descriptor: unknown) => {
+      options.events.push({ type: "createRenderPipeline", descriptor });
+      return { label: "gpu-cookie-atlas-blit-pipeline" };
+    },
+    createBindGroup: (descriptor: unknown) => {
+      options.events.push({ type: "createBindGroup", descriptor });
+      return { label: "gpu-cookie-atlas-blit-bind-group" };
+    },
+    createCommandEncoder: (descriptor: unknown) => {
+      options.events.push({ type: "createCommandEncoder", descriptor });
+      return {
+        beginRenderPass: (renderPassDescriptor: unknown) => {
+          options.events.push({
+            type: "beginRenderPass",
+            descriptor: renderPassDescriptor,
+          });
+          return {
+            setPipeline: (pipeline: unknown) => {
+              options.events.push({ type: "setPipeline", pipeline });
+            },
+            setBindGroup: (index: number, bindGroup: unknown) => {
+              options.events.push({ type: "setBindGroup", index, bindGroup });
+            },
+            setViewport: (
+              x: number,
+              y: number,
+              width: number,
+              height: number,
+              minDepth: number,
+              maxDepth: number,
+            ) => {
+              options.events.push({
+                type: "setViewport",
+                x,
+                y,
+                width,
+                height,
+                minDepth,
+                maxDepth,
+              });
+            },
+            draw: (
+              vertexCount: number,
+              instanceCount?: number,
+              firstVertex?: number,
+              firstInstance?: number,
+            ) => {
+              options.events.push({
+                type: "draw",
+                vertexCount,
+                instanceCount,
+                firstVertex,
+                firstInstance,
+              });
+            },
+            end: () => {
+              options.events.push({ type: "endRenderPass" });
+            },
+          };
+        },
+        finish: () => {
+          options.events.push({ type: "finishCommandEncoder" });
+          return { label: "gpu-cookie-atlas-blit-commands" };
+        },
+      };
+    },
+    queue: {
+      writeTexture: (
+        destination: unknown,
+        data: Uint8Array,
+        layout: unknown,
+        size: unknown,
+      ) => {
+        options.textureWrites.push({ destination, data, layout, size });
+      },
+      writeBuffer: () => undefined,
+      submit: (commands: readonly unknown[]) => {
+        options.events.push({ type: "submit", commands });
+      },
+    },
+  };
 }
 
 function createCache(): AppTextureSamplerResourceCache {
