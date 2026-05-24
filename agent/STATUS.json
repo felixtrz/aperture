@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "0a71fc9",
+  "lastCommit": "725a179",
   "activePid": null,
-  "notes": "Completed task-3147 flattened point-shadow arrays plus clustered cookies; next task-3148 combines nonuniform shadow atlases with cookie atlases.",
-  "lastRunFinishedAt": "2026-05-24T10:46:49Z"
+  "notes": "Completed task-3148 nonuniform atlas-backed clustered shadows plus clustered cookies; next task-3149 re-audits clustered shadow/cookie route pressure against PlayCanvas and three.js.",
+  "lastRunFinishedAt": "2026-05-24T10:59:10Z"
 }
