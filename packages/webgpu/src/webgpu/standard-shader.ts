@@ -327,6 +327,73 @@ fn lightRadiance(lightIndex: u32) -> vec3f {
   return color * intensity;
 }
 
+fn packedLightPosition(lightIndex: u32) -> vec3f {
+  let offset = lightFloatOffset(lightIndex);
+
+  if (offset + 14u >= arrayLength(&lightFloats)) {
+    return vec3f(0.0);
+  }
+
+  return vec3f(
+    lightFloats[offset + 12u],
+    lightFloats[offset + 13u],
+    lightFloats[offset + 14u],
+  );
+}
+
+fn packedLightDirection(lightIndex: u32) -> vec3f {
+  let offset = lightFloatOffset(lightIndex);
+
+  if (offset + 17u >= arrayLength(&lightFloats)) {
+    return vec3f(0.0, 0.0, -1.0);
+  }
+
+  return safeNormalize(
+    vec3f(
+      lightFloats[offset + 15u],
+      lightFloats[offset + 16u],
+      lightFloats[offset + 17u],
+    ),
+    vec3f(0.0, 0.0, -1.0),
+  );
+}
+
+fn packedAreaLightHalfWidth(lightIndex: u32) -> vec3f {
+  let offset = lightFloatOffset(lightIndex);
+
+  if (offset + 20u >= arrayLength(&lightFloats)) {
+    if (offset + 8u >= arrayLength(&lightFloats)) {
+      return vec3f(0.5, 0.0, 0.0);
+    }
+
+    return vec3f(max(lightFloats[offset + 8u], 0.0001) * 0.5, 0.0, 0.0);
+  }
+
+  return vec3f(
+    lightFloats[offset + 18u],
+    lightFloats[offset + 19u],
+    lightFloats[offset + 20u],
+  );
+}
+
+fn packedAreaLightHalfHeight(lightIndex: u32) -> vec3f {
+  let offset = lightFloatOffset(lightIndex);
+
+  if (offset + 23u >= arrayLength(&lightFloats)) {
+    if (offset + 9u >= arrayLength(&lightFloats)) {
+      return vec3f(0.0, 0.5, 0.0);
+    }
+
+    return vec3f(0.0, max(lightFloats[offset + 9u], 0.0001) * 0.5, 0.0);
+  }
+
+  return vec3f(
+    lightFloats[offset + 21u],
+    lightFloats[offset + 22u],
+    lightFloats[offset + 23u],
+  );
+}
+
 fn lightTransformIndex(lightIndex: u32) -> u32 {
   let sourceOffset = lightMetadata[lightMetadataOffset(lightIndex) + 1u];
 
@@ -338,13 +405,11 @@ fn lightTransformIndex(lightIndex: u32) -> u32 {
 }
 
 fn directionalLightDirection(lightIndex: u32) -> vec3f {
-  let world = worldTransforms[lightTransformIndex(lightIndex)];
-  return normalize(-world[2].xyz);
+  return packedLightDirection(lightIndex);
 }
 
 fn pointLightPosition(lightIndex: u32) -> vec3f {
-  let world = worldTransforms[lightTransformIndex(lightIndex)];
-  return world[3].xyz;
+  return packedLightPosition(lightIndex);
 }
 
 fn pointLightRange(lightIndex: u32) -> f32 {
@@ -353,8 +418,7 @@ fn pointLightRange(lightIndex: u32) -> f32 {
 }
 
 fn spotLightDirection(lightIndex: u32) -> vec3f {
-  let world = worldTransforms[lightTransformIndex(lightIndex)];
-  return normalize(-world[2].xyz);
+  return packedLightDirection(lightIndex);
 }
 
 fn spotLightConeAttenuation(lightIndex: u32, lightToReceiver: vec3f) -> f32 {
@@ -388,23 +452,19 @@ fn areaLightShape(lightIndex: u32) -> i32 {
 }
 
 fn rectAreaLightCenter(lightIndex: u32) -> vec3f {
-  let world = worldTransforms[lightTransformIndex(lightIndex)];
-  return world[3].xyz;
+  return packedLightPosition(lightIndex);
 }
 
 fn rectAreaLightHalfWidth(lightIndex: u32) -> vec3f {
-  let world = worldTransforms[lightTransformIndex(lightIndex)];
-  return safeNormalize(world[0].xyz, vec3f(1.0, 0.0, 0.0)) * rectAreaLightSize(lightIndex).x * 0.5;
+  return packedAreaLightHalfWidth(lightIndex);
 }
 
 fn rectAreaLightHalfHeight(lightIndex: u32) -> vec3f {
-  let world = worldTransforms[lightTransformIndex(lightIndex)];
-  return safeNormalize(world[1].xyz, vec3f(0.0, 1.0, 0.0)) * rectAreaLightSize(lightIndex).y * 0.5;
+  return packedAreaLightHalfHeight(lightIndex);
 }
 
 fn rectAreaLightNormal(lightIndex: u32) -> vec3f {
-  let world = worldTransforms[lightTransformIndex(lightIndex)];
-  return safeNormalize(-world[2].xyz, vec3f(0.0, 0.0, -1.0));
+  return packedLightDirection(lightIndex);
 }
 
 fn areaLightLtcUv(normal: vec3f, viewDir: vec3f, roughness: f32) -> vec2f {

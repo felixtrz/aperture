@@ -52,6 +52,9 @@ describe("light packet packing", () => {
       PackedAreaLightShapeId.Rect,
       0,
     ]);
+    expect(Array.from(packed.floats.slice(12, 24))).toEqual([
+      0, 0, 0, 0, 0, -1, 1.25, 0, 0, 0, 0.75, 0,
+    ]);
     expect(metadataColumn(packed.metadata, 0)).toEqual([
       PackedLightKindId.Ambient,
       PackedLightKindId.Directional,
@@ -66,7 +69,7 @@ describe("light packet packing", () => {
     ]);
   });
 
-  it("packs snapshot lights without reading ECS state", () => {
+  it("packs snapshot lights without retaining ECS state", () => {
     const packed = packLightPackets(
       snapshot([light("rect-area", 5, "sphere")]),
     );
@@ -81,6 +84,58 @@ describe("light packet packing", () => {
       5,
       0,
     ]);
+  });
+
+  it("packs light positions, directions, and area axes from snapshot transforms", () => {
+    const packed = packLightPackets(
+      snapshot(
+        [light("directional", 1), light("point", 2), light("spot", 3)],
+        [],
+        transformsWithEntries([
+          {
+            offset: 16,
+            position: [10, 11, 12],
+            forward: [0, -1, 0],
+            xAxis: [0, 1, 0],
+            yAxis: [1, 0, 0],
+          },
+          {
+            offset: 32,
+            position: [20, 21, 22],
+            forward: [0, 0, 1],
+            xAxis: [1, 0, 0],
+            yAxis: [0, 1, 0],
+          },
+          {
+            offset: 48,
+            position: [30, 31, 32],
+            forward: [1, 0, 0],
+            xAxis: [0, 1, 0],
+            yAxis: [0, 0, 1],
+          },
+        ]),
+      ),
+    );
+
+    expect(Array.from(packed.floats.slice(12, 18))).toEqual([
+      10, 11, 12, 0, 1, 0,
+    ]);
+    expect(
+      Array.from(
+        packed.floats.slice(
+          PACKED_LIGHT_FLOAT_STRIDE + 12,
+          PACKED_LIGHT_FLOAT_STRIDE + 18,
+        ),
+      ),
+    ).toEqual([20, 21, 22, 0, 0, -1]);
+    expect(
+      Array.from(
+        packed.floats.slice(
+          PACKED_LIGHT_FLOAT_STRIDE * 2 + 12,
+          PACKED_LIGHT_FLOAT_STRIDE * 2 + 24,
+        ),
+      ),
+    ).toEqual([30, 31, 32, -1, 0, 0, 0, 1.25, 0, 0, 0, 0.75]);
   });
 
   it("packs directional cascade counts, far bounds, and matrix base indices from shadow requests", () => {
@@ -386,8 +441,79 @@ function required<T>(value: T | null | undefined): T {
 function snapshot(
   lights: readonly LightPacket[],
   shadowRequests: RenderSnapshot["shadowRequests"] = [],
-): Pick<RenderSnapshot, "lights" | "shadowRequests"> {
-  return { lights, shadowRequests };
+  transforms = transformsForLights(lights),
+): Pick<RenderSnapshot, "lights" | "shadowRequests" | "transforms"> {
+  return { lights, shadowRequests, transforms };
+}
+
+function transformsForLights(lights: readonly LightPacket[]): Float32Array {
+  const maxOffset = lights.reduce(
+    (result, next) => Math.max(result, next.worldTransformOffset),
+    0,
+  );
+  const transforms = new Float32Array(maxOffset + 16);
+
+  for (const current of lights) {
+    writeTransform(transforms, {
+      offset: current.worldTransformOffset,
+      position: [0, 0, 0],
+      forward: [0, 0, 1],
+      xAxis: [1, 0, 0],
+      yAxis: [0, 1, 0],
+    });
+  }
+
+  return transforms;
+}
+
+interface TransformEntry {
+  readonly offset: number;
+  readonly position: readonly [number, number, number];
+  readonly forward: readonly [number, number, number];
+  readonly xAxis: readonly [number, number, number];
+  readonly yAxis: readonly [number, number, number];
+}
+
+function transformsWithEntries(
+  entries: readonly TransformEntry[],
+): Float32Array {
+  const maxOffset = entries.reduce(
+    (result, next) => Math.max(result, next.offset),
+    0,
+  );
+  const transforms = new Float32Array(maxOffset + 16);
+
+  for (const entry of entries) {
+    writeTransform(transforms, entry);
+  }
+
+  return transforms;
+}
+
+function writeTransform(transforms: Float32Array, entry: TransformEntry): void {
+  const offset = entry.offset;
+
+  transforms.set(
+    [
+      entry.xAxis[0],
+      entry.xAxis[1],
+      entry.xAxis[2],
+      0,
+      entry.yAxis[0],
+      entry.yAxis[1],
+      entry.yAxis[2],
+      0,
+      entry.forward[0],
+      entry.forward[1],
+      entry.forward[2],
+      0,
+      entry.position[0],
+      entry.position[1],
+      entry.position[2],
+      1,
+    ],
+    offset,
+  );
 }
 
 function shadowRequest(

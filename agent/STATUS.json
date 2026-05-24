@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "2e675c6",
   "activePid": null,
-  "notes": "Completed task-3138 mixed clustered point/spot local-shadow proof; next task-3139 packs local shadow resources to fit WebGPU-minimum storage-buffer limits.",
-  "lastRunFinishedAt": "2026-05-24T06:24:09Z"
+  "notes": "Completed task-3139 minimum-limit mixed clustered point/spot local-shadow packing; next task-3140 adds atlas-space cookie metadata for nonuniform clustered local cookies.",
+  "lastRunFinishedAt": "2026-05-24T06:40:30Z"
 }

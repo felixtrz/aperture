@@ -1,5 +1,43 @@
 # Completed Tasks
 
+## task-3139 — Fit mixed clustered local shadows to WebGPU minimum limits
+
+Completed: 2026-05-24
+
+Summary:
+
+- Packed StandardMaterial light buffers now include transform-derived light
+  positions, directions, and area-light axes for fragment-stage lighting.
+- StandardMaterial clustered point/spot shadow shading no longer reads the
+  transform storage buffer from the fragment stage.
+- Removed the temporary
+  `maxStorageBuffersPerShaderStage: 10` device-limit request from
+  `initializeWebGpu()`.
+- The mixed clustered point/spot local-shadow proof still reports supported
+  point, spot, and mixed shadow sampling with zero relevant WebGPU validation
+  warnings.
+- Public trackers and agent task pointers now recommend `task-3140`, adding
+  atlas-space clustered cookie metadata for nonuniform local cookies.
+
+Validation:
+
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/light-packing.test.ts test/webgpu/light-shader-metadata.test.ts test/webgpu/direct-light-readiness.test.ts test/webgpu/lighting-resource-plan.test.ts test/webgpu/index.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm run examples:build`
+- `node --check examples/clustered-lights.main.js`
+- `pnpm run lint`
+- Narrow Chrome/WebGPU proof for
+  `examples/clustered-lights.html?enable-cluster-mixed-shadow=1`: route `ok`,
+  point, spot, and mixed shadow sampling all true, non-clear readback, and
+  relevant WebGPU validation warnings `0`.
+
+Known follow-up:
+
+- `task-3140` should add atlas-space clustered cookie metadata for nonuniform
+  local cookies and explicit browser-visible fallback status for unsupported
+  combinations.
+
 ## task-3138 — Add mixed clustered point and spot local-shadow proof
 
 Completed: 2026-05-24

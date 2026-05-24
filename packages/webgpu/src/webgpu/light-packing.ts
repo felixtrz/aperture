@@ -13,7 +13,7 @@ import {
 } from "./buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "./mesh-buffer-descriptors.js";
 
-export const PACKED_LIGHT_FLOAT_STRIDE = 12;
+export const PACKED_LIGHT_FLOAT_STRIDE = 24;
 export const PACKED_LIGHT_METADATA_STRIDE = 6;
 
 export const PackedLightKindId = {
@@ -207,7 +207,7 @@ export interface CreateLightGpuBuffersResultJsonValue {
 
 export type PackLightPacketsInput =
   | readonly LightPacket[]
-  | (Pick<RenderSnapshot, "lights"> &
+  | (Pick<RenderSnapshot, "lights" | "transforms"> &
       Partial<Pick<RenderSnapshot, "shadowRequests">>);
 
 export type CreateLightBufferDescriptorInput =
@@ -247,6 +247,7 @@ export function writePackedLightPackets(
   scratch: LightPacketPackingScratch,
 ): PackedLightPackets {
   const lights = isLightPacketArray(input) ? input : input.lights;
+  const transforms = isLightPacketArray(input) ? null : input.transforms;
   const directionalShadows = isLightPacketArray(input)
     ? null
     : directionalShadowMetadata(input.shadowRequests ?? []);
@@ -273,6 +274,7 @@ export function writePackedLightPackets(
             directionalShadow.cascadeCount,
             light.range,
           );
+    const transformData = packedLightTransformData(light, transforms);
 
     scratch.floats.set(
       [
@@ -291,6 +293,18 @@ export function writePackedLightPackets(
         light.cookieTexture === undefined || light.cookieTexture === null
           ? 0
           : Math.max(light.cookieIntensity ?? 1, 0),
+        transformData.position[0],
+        transformData.position[1],
+        transformData.position[2],
+        transformData.direction[0],
+        transformData.direction[1],
+        transformData.direction[2],
+        transformData.areaHalfWidth[0],
+        transformData.areaHalfWidth[1],
+        transformData.areaHalfWidth[2],
+        transformData.areaHalfHeight[0],
+        transformData.areaHalfHeight[1],
+        transformData.areaHalfHeight[2],
       ],
       floatOffset,
     );
@@ -312,6 +326,114 @@ export function writePackedLightPackets(
   scratch.packed.metadata = lightMetadataView(scratch, lights.length);
 
   return scratch.packed;
+}
+
+interface PackedLightTransformData {
+  readonly position: readonly [number, number, number];
+  readonly direction: readonly [number, number, number];
+  readonly areaHalfWidth: readonly [number, number, number];
+  readonly areaHalfHeight: readonly [number, number, number];
+}
+
+function packedLightTransformData(
+  light: LightPacket,
+  transforms: Float32Array | null,
+): PackedLightTransformData {
+  if (
+    transforms === null ||
+    !Number.isInteger(light.worldTransformOffset) ||
+    light.worldTransformOffset < 0 ||
+    light.worldTransformOffset + 15 >= transforms.length
+  ) {
+    return fallbackLightTransformData(light);
+  }
+
+  const offset = light.worldTransformOffset;
+  const width = light.width ?? 1;
+  const height = light.height ?? 1;
+  const position = [
+    transforms[offset + 12] ?? 0,
+    transforms[offset + 13] ?? 0,
+    transforms[offset + 14] ?? 0,
+  ] as const;
+  const direction = normalizeVec3(
+    [
+      -(transforms[offset + 8] ?? 0),
+      -(transforms[offset + 9] ?? 0),
+      -(transforms[offset + 10] ?? 1),
+    ],
+    [0, 0, -1],
+  );
+  const areaHalfWidth = scaleVec3(
+    normalizeVec3(
+      [
+        transforms[offset] ?? 1,
+        transforms[offset + 1] ?? 0,
+        transforms[offset + 2] ?? 0,
+      ],
+      [1, 0, 0],
+    ),
+    width * 0.5,
+  );
+  const areaHalfHeight = scaleVec3(
+    normalizeVec3(
+      [
+        transforms[offset + 4] ?? 0,
+        transforms[offset + 5] ?? 1,
+        transforms[offset + 6] ?? 0,
+      ],
+      [0, 1, 0],
+    ),
+    height * 0.5,
+  );
+
+  return { position, direction, areaHalfWidth, areaHalfHeight };
+}
+
+function fallbackLightTransformData(
+  light: LightPacket,
+): PackedLightTransformData {
+  const halfWidth = (light.width ?? 1) * 0.5;
+  const halfHeight = (light.height ?? 1) * 0.5;
+
+  return {
+    position: [0, 0, 0],
+    direction: [0, 0, -1],
+    areaHalfWidth: [halfWidth, 0, 0],
+    areaHalfHeight: [0, halfHeight, 0],
+  };
+}
+
+function normalizeVec3(
+  value: readonly [number, number, number],
+  fallback: readonly [number, number, number],
+): readonly [number, number, number] {
+  const length = Math.hypot(value[0], value[1], value[2]);
+
+  if (length <= 0.0001) {
+    return fallback;
+  }
+
+  return [
+    cleanSignedZero(value[0] / length),
+    cleanSignedZero(value[1] / length),
+    cleanSignedZero(value[2] / length),
+  ];
+}
+
+function scaleVec3(
+  value: readonly [number, number, number],
+  scale: number,
+): readonly [number, number, number] {
+  return [
+    cleanSignedZero(value[0] * scale),
+    cleanSignedZero(value[1] * scale),
+    cleanSignedZero(value[2] * scale),
+  ];
+}
+
+function cleanSignedZero(value: number): number {
+  return Object.is(value, -0) ? 0 : value;
 }
 
 export function createLightBufferDescriptor(

@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 06:24 UTC</dd>
+            <dd>2026-05-24 06:40 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1539,18 +1539,20 @@
               point shadows and 2D spot shadows in the same clustered
               StandardMaterial frame, reports the combined
               <code>clustered-point-spot-depth-compare</code> mode, and uses a
-              compact group-3 binding layout while requesting a higher per-stage
-              storage-buffer limit when the adapter exposes it.
+              compact group-3 binding layout. Packed light buffers now carry
+              renderer-derived light positions, directions, and area-light axes,
+              so the StandardMaterial fragment stage no longer reads
+              <code>worldTransforms</code> for lighting and the mixed route fits
+              WebGPU-minimum per-stage storage-buffer limits.
               <code>examples/clustered-lights.html</code> now exposes point
               shadow, spot shadow, spot-cookie, and cookie-only spot-cookie
               proof routes plus point cube-cookie, multi-cookie, and mixed
               point/spot cookie proof routes, plus the mixed point/spot
-              local-shadow proof route. The next step is reducing the mixed
-              local-shadow route to WebGPU-minimum storage-buffer limits with
-              broader atlas-style packing.
+              local-shadow proof route. The next step is broader nonuniform
+              local cookie atlas/resource metadata.
             </dd>
             <dt>Next focus</dt>
-            <dd>Minimum-limit clustered local shadow packing</dd>
+            <dd>Nonuniform clustered local cookie atlas metadata</dd>
           </dl>
         </aside>
       </header>
@@ -2255,9 +2257,9 @@
           <article class="phase">
             <div class="topline">
               <h3>6. submit</h3>
-              <span class="percent">98%</span>
+              <span class="percent">99%</span>
             </div>
-            <div class="bar"><span style="width: 98%"></span></div>
+            <div class="bar"><span style="width: 99%"></span></div>
             <p>
               WebGPU command submission renders the current proof paths with
               pipeline, bind group, transform, light, mesh, and material
@@ -2379,13 +2381,17 @@
               mixed clustered point/spot local-shadow route now reuses the
               existing 2D shadow bindings for spot shadows, keeps point cube
               shadows on the cube binding path, and proves both supported shadow
-              families in one clustered StandardMaterial frame.
+              families in one clustered StandardMaterial frame. Packed light
+              buffers now provide fragment-stage light positions, directions,
+              and area axes, removing the extra <code>worldTransforms</code>
+              storage-buffer read from lighting and keeping the mixed
+              local-shadow route within WebGPU minimum per-stage storage-buffer
+              limits.
             </p>
             <ul>
               <li>
-                Next step: pack clustered local shadow resources tightly enough
-                to preserve the mixed route without relying on a higher
-                per-stage storage-buffer limit.
+                Next step: broaden nonuniform clustered local cookie
+                atlas/resource metadata.
               </li>
               <li>
                 Missing deeper profiler controls and historical timing charts.
@@ -2406,6 +2412,12 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3139</span> Packed fragment-stage
+                light transform data into StandardMaterial light buffers so
+                mixed clustered point/spot local shadows validate within WebGPU
+                minimum storage-buffer limits.
+              </li>
               <li>
                 <span class="badge green">task-3138</span> Added the mixed
                 clustered point/spot local-shadow proof route, with browser
@@ -4733,13 +4745,12 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Pack clustered local
-                shadow resources so the mixed point/spot shadow route fits
-                WebGPU-minimum storage-buffer limits.
+                <span class="badge amber">next</span> Add atlas-space clustered
+                cookie metadata for nonuniform local cookies.
               </li>
               <li>
-                Then broaden nonuniform clustered local cookie atlas/resource
-                metadata from the PlayCanvas reference shape.
+                Then continue broadening clustered local shadow/cookie atlas
+                coverage from the PlayCanvas reference shape.
               </li>
             </ul>
           </article>
@@ -4752,6 +4763,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3139</div>
+            <div>
+              <strong>Minimum-limit clustered local shadows shipped.</strong>
+              <span>
+                StandardMaterial light buffers now pack light positions,
+                directions, and area axes, so the mixed clustered point/spot
+                shadow route no longer needs a higher
+                <code>maxStorageBuffersPerShaderStage</code> request.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3138</div>
             <div>

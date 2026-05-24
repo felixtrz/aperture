@@ -262,9 +262,6 @@ export interface WebGpuAdapterLike {
   readonly features?: {
     readonly has?: (feature: string) => boolean;
   };
-  readonly limits?: {
-    readonly maxStorageBuffersPerShaderStage?: number;
-  };
   requestDevice(descriptor?: unknown): Promise<WebGpuDeviceLike>;
 }
 
@@ -448,22 +445,7 @@ function deviceDescriptorWithOptionalFeatures(
     }
   }
 
-  const withFeatures = deviceDescriptorWithRequiredFeatures(
-    descriptor,
-    features,
-  );
-  const requiredLimits: Record<string, number> = {};
-  const maxStorageBuffersPerShaderStage =
-    adapter.limits?.maxStorageBuffersPerShaderStage;
-
-  if (
-    maxStorageBuffersPerShaderStage !== undefined &&
-    maxStorageBuffersPerShaderStage >= 10
-  ) {
-    requiredLimits.maxStorageBuffersPerShaderStage = 10;
-  }
-
-  return deviceDescriptorWithRequiredLimits(withFeatures, requiredLimits);
+  return deviceDescriptorWithRequiredFeatures(descriptor, features);
 }
 
 function deviceDescriptorWithRequiredFeatures(
@@ -516,46 +498,6 @@ function requiredFeatureList(descriptor: object): string[] {
   }
 
   return [];
-}
-
-function deviceDescriptorWithRequiredLimits(
-  descriptor: unknown,
-  limits: Readonly<Record<string, number>>,
-): unknown {
-  const limitEntries = Object.entries(limits);
-
-  if (limitEntries.length === 0) {
-    return descriptor;
-  }
-
-  const source =
-    typeof descriptor === "object" && descriptor !== null ? descriptor : {};
-  const existingLimits =
-    "requiredLimits" in source &&
-    typeof source.requiredLimits === "object" &&
-    source.requiredLimits !== null
-      ? (source.requiredLimits as Record<string, unknown>)
-      : {};
-  const mergedLimits: Record<string, unknown> = { ...existingLimits };
-  let changed = false;
-
-  for (const [key, value] of limitEntries) {
-    const existing = mergedLimits[key];
-
-    if (typeof existing !== "number" || existing < value) {
-      mergedLimits[key] = value;
-      changed = true;
-    }
-  }
-
-  if (!changed) {
-    return descriptor;
-  }
-
-  return {
-    ...source,
-    requiredLimits: mergedLimits,
-  };
 }
 
 function failure(

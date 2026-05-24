@@ -1487,7 +1487,7 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
   });
 
-  it("keeps clustered local point and spot shadow receivers within the browser storage-buffer limit", () => {
+  it("keeps clustered local point and spot shadow receivers within the minimum fragment storage-buffer limit", () => {
     const shader = createStandardTextureVariantShader({
       baseColorTexture: false,
       metallicRoughnessTexture: false,
@@ -1516,6 +1516,10 @@ describe("built-in standard material WGSL shader metadata", () => {
       "@group(3) @binding(9) var pointShadowMap: texture_depth_cube;",
     );
     expect(shader.code).toContain("directionalShadowMatrices[matrixBaseIndex]");
+    expect(shader.code).toContain("fn packedLightPosition");
+    expect(shader.code.match(/worldTransforms\[/g)).toHaveLength(1);
+    expect(shader.code).toContain("return packedLightPosition(lightIndex);");
+    expect(shader.code).toContain("return packedLightDirection(lightIndex);");
     const fragmentStorageBindings = shader.bindings
       .filter(
         (binding) =>

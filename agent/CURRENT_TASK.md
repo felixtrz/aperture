@@ -3,31 +3,30 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: `task-3139` — pack multiple clustered local shadow resources by
-metadata index.
+Current task: `task-3140` — add atlas-space clustered cookie metadata for
+nonuniform local cookies.
 
-Status: `task-3138` completed mixed clustered point and spot local-shadow proof
+Status: `task-3139` completed minimum-limit mixed clustered local-shadow
 coverage.
 
 Key findings:
 
-- `examples/clustered-lights.html?enable-cluster-mixed-shadow=1` now reports
-  supported point and spot shadow sampling in one clustered StandardMaterial
-  frame, with the combined `clustered-point-spot-depth-compare` mode.
-- The first mixed-shadow proof exposed a real browser limit issue: clustered
-  local point+spot shadows plus the normal transform storage buffer exceeded
-  the default per-stage storage-buffer limit on Chrome/WebGPU.
-- The completed slice compacted duplicate spot-shadow group-3 bindings and
-  requests `maxStorageBuffersPerShaderStage: 10` when the adapter exposes it,
-  which makes the route validate on the local Chrome/WebGPU adapter.
-- The remaining SOTA gap is stricter: pack or merge clustered local shadow
-  resources so the same mixed route fits WebGPU minimum limits without needing
-  the higher requested storage-buffer limit.
+- Packed StandardMaterial light buffers now carry transform-derived light
+  positions, directions, and area axes for fragment-stage lighting.
+- The mixed clustered point/spot local-shadow route no longer reads
+  `worldTransforms` from the fragment stage and no longer requests
+  `maxStorageBuffersPerShaderStage: 10`.
+- The narrow Chrome/WebGPU proof for
+  `examples/clustered-lights.html?enable-cluster-mixed-shadow=1` still reports
+  supported point, spot, and mixed shadow sampling with zero relevant validation
+  warnings.
+- The remaining visible SOTA gap is atlas-space metadata for clustered local
+  cookies that cannot share the current compatible-size 2D-array path.
 
-Next step: implement `task-3139`.
+Next step: implement `task-3140`.
 
-Reference anchors for `task-3139`:
+Reference anchors for `task-3140`:
 
 - `references/engine/src/scene/lighting/light-texture-atlas.js`.
 - `references/engine/src/scene/lighting/lights-buffer.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightCookies.js`.

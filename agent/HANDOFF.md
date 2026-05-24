@@ -1,6 +1,58 @@
 # Agent Handoff
 
-Updated: 2026-05-24T06:24:09Z
+Updated: 2026-05-24T06:40:30Z
+
+## Current Run Update — 2026-05-24T06:40:30Z — Minimum-limit clustered local shadows
+
+Completed `task-3139`, removing the higher storage-buffer-limit dependency
+from the mixed clustered point and spot local-shadow route.
+
+### What changed
+
+- Packed StandardMaterial light buffers now carry transform-derived light
+  positions, directions, and area axes in addition to the existing light
+  parameters.
+- StandardMaterial fragment lighting now reads point positions, spot
+  directions, and RectAreaLight axes from the packed light buffer instead of
+  reading `worldTransforms` in the fragment stage.
+- `initializeWebGpu()` no longer requests
+  `maxStorageBuffersPerShaderStage: 10`; caller device descriptors are
+  preserved without the temporary clustered-shadow storage limit.
+- The mixed clustered point/spot local-shadow proof still validates and renders
+  non-clear receiver pixels through the same
+  `clustered-point-spot-depth-compare` route.
+- Public trackers and agent task pointers now recommend `task-3140`, adding
+  atlas-space metadata for nonuniform clustered local cookies.
+
+### Validation
+
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/light-packing.test.ts test/webgpu/light-shader-metadata.test.ts test/webgpu/direct-light-readiness.test.ts test/webgpu/lighting-resource-plan.test.ts test/webgpu/index.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm run examples:build`
+- `node --check examples/clustered-lights.main.js`
+- `pnpm run lint`
+- Narrow headed Chrome/WebGPU proof for
+  `examples/clustered-lights.html?enable-cluster-mixed-shadow=1`: route `ok`,
+  `clusterOk`, `routePointShadowSamplingOk`, `routeSpotShadowSamplingOk`, and
+  `routeMixedShadowSamplingOk` all true, `clustered-point-spot-depth-compare`
+  shadow mode, non-clear readback with max clear distance about `405`,
+  luminance range about `247`, and relevant WebGPU validation warnings `0`.
+
+### Known issues
+
+- No known issue remains for the WebGPU-minimum mixed local-shadow storage
+  limit.
+- The next visible SOTA gap is nonuniform local cookie atlas metadata and
+  broader atlas-style local shadow/cookie resource packing.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3140`: add atlas-space clustered cookie metadata for nonuniform
+local cookies, preserving renderer-owned GPU resources and explicit
+browser-visible fallback status for unsupported combinations.
 
 ## Current Run Update — 2026-05-24T06:24:09Z — Mixed clustered local-light shadows
 

@@ -59,9 +59,10 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3139`: pack clustered local shadow resources by metadata index so
-the mixed point/spot local-shadow route fits WebGPU-minimum storage-buffer
-limits without depending on a higher requested adapter limit.
+Start `task-3140`: add atlas-space clustered cookie metadata for nonuniform
+local cookies so cookie requests that cannot share the current compatible-size
+array path have a supported atlas route or an explicit browser-visible
+fallback.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -210,18 +211,20 @@ through a renderer-owned 2D texture array and per-light metadata indices.
 one frame by flattening point cube faces into the same renderer-owned 2D-array
 path. `task-3138` now proves mixed clustered point and spot local shadows in one
 StandardMaterial clustered route with compact duplicate spot-shadow bindings
-and a browser proof, while requesting a higher per-stage storage-buffer limit
-when available. The next SOTA gap is minimum-limit local shadow resource
-packing: PlayCanvas allocates clustered local shadow/cookie atlas slots across
-mixed point/spot lights, while Aperture still needs metadata-indexed packing to
-avoid relying on a higher-than-minimum WebGPU storage-buffer limit.
+and a browser proof. `task-3139` now packs transform-derived light positions,
+directions, and area axes into the StandardMaterial light buffer so the mixed
+point/spot local-shadow fragment path no longer reads `worldTransforms` and no
+longer requests a higher-than-minimum WebGPU storage-buffer limit. The next
+SOTA gap is nonuniform local cookie atlas metadata: PlayCanvas allocates
+clustered local shadow/cookie atlas slots across mixed point/spot lights, while
+Aperture still needs atlas-space metadata for cookie requests that cannot share
+the current compatible-size array path.
 
 Reference anchors for the next visible slice (read before writing):
 
-- `references/engine/src/scene/lighting/lights-buffer.js`.
 - `references/engine/src/scene/lighting/light-texture-atlas.js`.
-- `references/engine/src/scene/renderer/forward-renderer.js`.
-- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
+- `references/engine/src/scene/lighting/lights-buffer.js`.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightCookies.js`.
 - `docs/render-pipeline-comparison.html`.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
@@ -887,7 +890,7 @@ Acceptance criteria:
 
 ### task-3139 — Pack multiple clustered local shadow resources by metadata index
 
-Status: ready
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.
