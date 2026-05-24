@@ -1,5 +1,7 @@
 const clearColor = [0.012, 0.016, 0.022, 1];
 const localLightGrid = { columns: 8, rows: 8 };
+const shadowMetadataLightIndices = new Set([28, 29, 36, 37]);
+const primaryShadowCasterPosition = [-0.755, -0.074, 0.52];
 
 let apertureModulePromise = null;
 let scene = null;
@@ -39,6 +41,7 @@ async function handleMessage(data) {
       scene = createWorkerScene(
         aperture,
         data.canvas ?? { width: 960, height: 540 },
+        finiteInteger(data.cameraFrameOffset, 0),
       );
       self.postMessage({
         type: "ready",
@@ -48,6 +51,8 @@ async function handleMessage(data) {
           secondaryMaterialKey: aperture.assetHandleKey(
             scene.secondaryPanelMaterial,
           ),
+          casterMeshKey: aperture.assetHandleKey(scene.casterMesh),
+          casterMaterialKey: aperture.assetHandleKey(scene.casterMaterial),
           localLights: scene.localLightCount,
           routeLocalLights: scene.routeLocalLightCount,
           routeShadowMetadataLights: scene.routeShadowMetadataLightCount,
@@ -97,7 +102,7 @@ function loadAperture() {
   return apertureModulePromise;
 }
 
-function createWorkerScene(aperture, canvasSize) {
+function createWorkerScene(aperture, canvasSize, cameraFrameOffset) {
   const app = aperture.createExtractionApp({
     worldOptions: { entityCapacity: 180 },
   });
@@ -142,6 +147,15 @@ function createWorkerScene(aperture, canvasSize) {
     aperture.withVisibility(true),
   );
   app.spawn(
+    aperture.withTransform({ translation: primaryShadowCasterPosition }),
+    aperture.withMesh(assets.casterMesh),
+    aperture.withMaterial(assets.casterMaterial),
+    aperture.withRenderLayer(1),
+    aperture.withShadowCaster(true),
+    aperture.withShadowReceiver(false),
+    aperture.withVisibility(true),
+  );
+  app.spawn(
     aperture.withLight({
       kind: aperture.LightKind.Ambient,
       color: [0.35, 0.39, 0.46, 1],
@@ -168,6 +182,9 @@ function createWorkerScene(aperture, canvasSize) {
     panelMesh: assets.panelMesh,
     panelMaterial: assets.primaryPanelMaterial,
     secondaryPanelMaterial: assets.secondaryPanelMaterial,
+    casterMesh: assets.casterMesh,
+    casterMaterial: assets.casterMaterial,
+    cameraFrameOffset,
     localLightCount: localLightGrid.columns * localLightGrid.rows * 2,
     routeLocalLightCount: localLightGrid.columns * localLightGrid.rows,
     routeShadowMetadataLightCount: 4,
@@ -175,7 +192,8 @@ function createWorkerScene(aperture, canvasSize) {
 }
 
 function updateClusterCamera(aperture, scene, frame) {
-  const cameraX = frame % 2 === 0 ? 0.52 : -0.52;
+  const cameraFrame = frame + scene.cameraFrameOffset;
+  const cameraX = cameraFrame % 2 === 0 ? 0.52 : -0.52;
 
   scene.primaryCamera
     .getVectorView(aperture.LocalTransform, "translation")
@@ -217,8 +235,33 @@ function registerClusteredLightAssets(aperture, registry) {
     }),
     { id: "clustered-lights-standard-secondary" },
   );
+  const casterMesh = assets.meshes.add(
+    aperture.createBoxMeshAsset({
+      label: "ClusteredPointShadowCaster",
+      width: 0.52,
+      height: 0.52,
+      depth: 0.52,
+    }),
+    { id: "clustered-lights-point-shadow-caster" },
+  );
+  const casterMaterial = assets.materials.standard.add(
+    aperture.createStandardMaterialAsset({
+      label: "ClusteredPointShadowCasterStandard",
+      baseColorFactor: new Float32Array([0.95, 0.58, 0.24, 1]),
+      metallicFactor: 0.04,
+      roughnessFactor: 0.58,
+      emissiveFactor: [0, 0, 0],
+    }),
+    { id: "clustered-lights-point-shadow-caster-standard" },
+  );
 
-  return { panelMesh, primaryPanelMaterial, secondaryPanelMaterial };
+  return {
+    panelMesh,
+    primaryPanelMaterial,
+    secondaryPanelMaterial,
+    casterMesh,
+    casterMaterial,
+  };
 }
 
 function spawnPointLightGrid(aperture, app, options) {
@@ -233,16 +276,16 @@ function spawnPointLightGrid(aperture, app, options) {
     for (let x = 0; x < localLightGrid.columns; x += 1) {
       const index = y * localLightGrid.columns + x;
       const color = palette[index % palette.length] ?? [1, 1, 1, 1];
-      const hasShadowMetadata = index % 17 === 0;
-      const u =
-        localLightGrid.columns <= 1 ? 0 : x / (localLightGrid.columns - 1);
-      const v = localLightGrid.rows <= 1 ? 0 : y / (localLightGrid.rows - 1);
+      const hasShadowMetadata = shadowMetadataLightIndices.has(index);
       const components = [
         aperture.withTransform({
           translation: [
-            options.xOffset - 2.25 + u * 4.5,
-            -1.15 + v * 2.3,
-            1.15 + ((x + y) % 2) * 0.18,
+            ...pointLightGridPosition({
+              layerMask: options.layerMask,
+              xOffset: options.xOffset,
+              index,
+              z: 1.15 + ((x + y) % 2) * 0.18,
+            }),
           ],
         }),
         aperture.withLight({
@@ -268,6 +311,20 @@ function spawnPointLightGrid(aperture, app, options) {
       app.spawn(...components);
     }
   }
+}
+
+function pointLightGridPosition(options) {
+  const x = options.index % localLightGrid.columns;
+  const y = Math.floor(options.index / localLightGrid.columns);
+  const u =
+    localLightGrid.columns <= 1 ? 0 : x / (localLightGrid.columns - 1);
+  const v = localLightGrid.rows <= 1 ? 0 : y / (localLightGrid.rows - 1);
+
+  return [
+    options.xOffset - 2.25 + u * 4.5,
+    -1.15 + v * 2.3,
+    options.z,
+  ];
 }
 
 function finiteInteger(value, fallback) {

@@ -1,6 +1,58 @@
 # Agent Handoff
 
-Updated: 2026-05-24T02:06:00Z
+Updated: 2026-05-24T02:47:25Z
+
+## Current Run Update — 2026-05-24T02:40:17Z — Clustered local point shadows
+
+Completed `task-3131`, rendering supported clustered local point-light shadows
+through the StandardMaterial clustered-light route.
+
+### What changed
+
+- Clustered local-light metadata now distinguishes point-shadow requests that
+  are backed by renderer-owned cube depth, matrix, and sampler resources as
+  `sampling-ready`; metadata-only lights keep direct clustered lighting and
+  report honest fallback state.
+- StandardMaterial clustered point lights now sample the point-shadow cube
+  route with a per-light matrix base and multiply local direct lighting by the
+  resulting visibility factor only for supported shadow resources.
+- App frame-resource preparation passes supported point-shadow resource identity
+  into clustered descriptor creation without putting GPU state into ECS or the
+  render snapshot.
+- The clustered-lights example now prepares a renderer-owned point-shadow cube
+  pass for one clustered point light, adds a caster, compares against a
+  no-point-shadow baseline, and reports supported-route readiness plus zero
+  WebGPU validation warnings.
+- StandardMaterial clustered point-shadow pipeline layout cache keys are scoped
+  by pipeline to avoid reusing auto-layout bind groups across incompatible
+  clustered shadowed/non-shadowed pipelines.
+- Recommended next task is `task-3132`, rendering clustered local spot-light
+  shadows.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/light-bind-group.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts --project=chrome-webgpu-headed --reporter=line --timeout=30000 --trace=off`
+- Current-code browser status probe: baseline and shadow pages `ok`, point
+  shadow pipeline active, supported-route readiness true, max readback
+  darkening `3.61`, diagnostics `0`, WebGPU validation warnings `0`.
+
+### Known issues
+
+- The clustered-lights Playwright spec passed once with the normal reporter.
+  Later reruns after the final shader scoping change reached headed Chrome
+  teardown and then hung in local browser close; the current-code browser status
+  probe above verifies the same feature criteria without relying on the flaky
+  close path.
+- The pre-existing working-tree deletion of `.codex/hooks.json` was not made by
+  this run and was left untouched.
+
+### Recommended next task
+
+Start `task-3132`, rendering clustered local spot-light shadows.
 
 ## Current Run Update — 2026-05-24T02:06:00Z — Clustered local-light metadata
 

@@ -27,6 +27,7 @@ import type { LightBindGroupResource } from "./light-bind-group.js";
 import {
   CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
   createLocalLightClusterDescriptor,
+  type LocalLightClusterSupportedPointShadowResource,
 } from "./local-light-clusters.js";
 import type {
   StandardLightShadowBindGroupLayoutResource,
@@ -227,6 +228,10 @@ export function createOrReuseStandardAppFrameResources(options: {
         ...(options.draw === undefined
           ? {}
           : { layerMask: options.draw.layerMask }),
+        supportedPointShadowResources:
+          supportedPointShadowResourcesFromReceiver(
+            options.shadowReceiverResources,
+          ),
       })
     : null;
   const localLightClusterResourceKey =
@@ -566,6 +571,45 @@ function requiresSkinningJointBuffer(pipelineKey: string): boolean {
 
 function requiresMorphTargetWeightBuffer(pipelineKey: string): boolean {
   return pipelineKey.split("|").includes("morphed");
+}
+
+function supportedPointShadowResourcesFromReceiver(
+  resources: StandardFrameShadowReceiverResources | undefined,
+): readonly LocalLightClusterSupportedPointShadowResource[] {
+  const pointResources =
+    resources?.shadowKind === "multi"
+      ? resources.pointShadowReceiverResources
+      : resources?.shadowKind === "point" ||
+          resources?.depthTextureResources.resources.some(
+            (resource) => resource.viewDimension === "cube",
+          ) === true
+        ? resources
+        : undefined;
+
+  if (
+    pointResources?.matrixBufferResource.resource === null ||
+    pointResources?.samplerResource.resource === null
+  ) {
+    return [];
+  }
+
+  const firstPointDepth = pointResources?.depthTextureResources.resources.find(
+    (resource) =>
+      resource.viewDimension === "cube" &&
+      resource.allocation.resource !== null,
+  );
+
+  if (firstPointDepth === undefined) {
+    return [];
+  }
+
+  return [
+    {
+      shadowId: firstPointDepth.shadowId,
+      lightId: firstPointDepth.lightId,
+      matrixBaseIndex: 0,
+    },
+  ];
 }
 
 function requiresClusteredLocalLights(pipelineKey: string): boolean {

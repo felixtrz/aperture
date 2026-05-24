@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3131`: render clustered local point-light shadows.
+Start `task-3132`: render clustered local spot-light shadows.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -193,8 +193,10 @@ the outdoor scene can bind a cascaded 2D-array shadow map alongside
 diffuse/specular IBL resources. `task-3130` now carries clustered local-light
 shadow/cookie metadata through renderer-owned cluster resources and proves the
 metadata-only local-shadow fallback honestly while keeping clustered direct
-lighting visible. The next visible slice is `task-3131`, rendering clustered
-local point-light shadows.
+lighting visible. `task-3131` now renders supported clustered local point-light
+shadows from renderer-owned cube depth resources while preserving direct
+clustered lighting for unsupported metadata-only lights. The next visible slice
+is `task-3132`, rendering clustered local spot-light shadows.
 
 Reference anchors for the next task (read before writing):
 
@@ -729,6 +731,8 @@ Acceptance criteria:
   cluster-local metadata state and zero WebGPU validation warnings.
 
 ### task-3131 — Render clustered local point-light shadows
+
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/*shadow*`, `packages/webgpu/src/webgpu/*cluster*`, `packages/webgpu/src/webgpu/standard-*`, `examples/clustered-lights.*`, `test/webgpu/`, `test/e2e/clustered-lights.spec.ts`.

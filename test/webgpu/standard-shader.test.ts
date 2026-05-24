@@ -259,7 +259,7 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
     expect(shader.code).toContain("return 0.99999994;");
     expect(shader.code).toContain(
-      "lightRadiance(lightIndex) * attenuation * unsupportedShadowFactor",
+      "lightRadiance(lightIndex) * attenuation * shadowFactor",
     );
     expect(shader.code).toContain("localLightClusterViewMatrix()");
     expect(shader.code).toContain("fn evaluateClusteredLocalLights");
@@ -1361,6 +1361,9 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain(
       "fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32",
     );
+    expect(shader.code).toContain(
+      "fn samplePointShadowFactorWithMatrixBase(worldPosition: vec3f, lightPosition: vec3f, matrixBaseIndex: u32) -> f32",
+    );
     expect(shader.code).toContain("let clampedShadowDepth = clamp(");
     expect(shader.code).toContain(
       "clampedShadowDepth - STANDARD_POINT_SHADOW_DEPTH_BIAS",
@@ -1475,6 +1478,46 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
     expect(shader.code).toContain(
       "fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32",
+    );
+  });
+
+  it("samples supported point shadows from clustered local-light metadata", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      pointShadowMap: true,
+      clusteredLocalLights: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.code).toContain(
+      "@group(3) @binding(3) var pointShadowMap: texture_depth_cube;",
+    );
+    expect(shader.code).toContain("fn localLightClusterPointShadowFactor");
+    expect(shader.code).toContain(
+      "samplePointShadowFactorWithMatrixBase(",
+    );
+    expect(shader.code).toContain(
+      "localLightClusterPointShadowMatrixBase(lightIndex)",
+    );
+    expect(shader.code).toContain(
+      "let shadowFactor = localLightClusterPointShadowFactor(position, lightIndex, lightPosition);",
+    );
+    expect(shader.code).toContain(
+      "lightRadiance(lightIndex) * attenuation * shadowFactor",
+    );
+    expect(shader.code).not.toContain("receiverPointShadowFactor");
+    expect(shader.code).toContain(
+      "direct = direct + evaluateClusteredLocalLights",
+    );
+    expect(shader.code.match(/if \(kind == LIGHT_KIND_POINT\)/g)).toHaveLength(
+      1,
     );
   });
 

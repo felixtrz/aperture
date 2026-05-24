@@ -5,6 +5,17 @@ const canvas = document.querySelector("#aperture-canvas");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
 const clearColor = [0.012, 0.016, 0.022, 1];
+const exampleParams = new URLSearchParams(globalThis.location.search);
+const clusteredPointShadowEnabled = !exampleParams.has(
+  "disable-cluster-point-shadow",
+);
+const clusteredPointShadowIntent = {
+  mapSize: 256,
+  depthBias: 0.0001,
+  normalBias: 0.01,
+  casterLayerMask: 1,
+  receiverLayerMask: 1,
+};
 const maxStatusWarmupFrames = 90;
 const readbackSamples = [
   { id: "left-bank", x: 0.26, y: 0.5 },
@@ -82,11 +93,34 @@ function registerClusteredLightAssets(aperture, sourceAssets) {
     }),
     { id: "clustered-lights-standard-secondary" },
   );
+  const casterMesh = assets.meshes.add(
+    aperture.createBoxMeshAsset({
+      label: "ClusteredPointShadowCaster",
+      width: 0.52,
+      height: 0.52,
+      depth: 0.52,
+    }),
+    { id: "clustered-lights-point-shadow-caster" },
+  );
+  const casterMaterial = assets.materials.standard.add(
+    aperture.createStandardMaterialAsset({
+      label: "ClusteredPointShadowCasterStandard",
+      baseColorFactor: new Float32Array([0.95, 0.58, 0.24, 1]),
+      metallicFactor: 0.04,
+      roughnessFactor: 0.58,
+      emissiveFactor: [0, 0, 0],
+    }),
+    { id: "clustered-lights-point-shadow-caster-standard" },
+  );
 
   return {
     meshKey: aperture.assetHandleKey(panelMesh),
     materialKey: aperture.assetHandleKey(panelMaterial),
     secondaryMaterialKey: aperture.assetHandleKey(secondaryPanelMaterial),
+    casterMeshKey: aperture.assetHandleKey(casterMesh),
+    casterMaterialKey: aperture.assetHandleKey(casterMaterial),
+    clusteredPointShadowEnabled,
+    cameraFrameOffset: clusteredPointShadowEnabled ? 0 : 1,
   };
 }
 
@@ -104,6 +138,9 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     workerReady: false,
     workerScene: null,
     previousClusterOccupancy: null,
+    standardMaterialShadowReceiverResources: null,
+    shadowDepthTextureResourceReport: null,
+    shadowStatus: null,
   };
 
   worker.addEventListener("message", (event) => {
@@ -120,6 +157,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
   });
   worker.postMessage({
     type: "init",
+    cameraFrameOffset: scene.cameraFrameOffset,
     canvas: {
       width: canvas?.width ?? 960,
       height: canvas?.height ?? 540,
@@ -165,6 +203,13 @@ async function handleWorkerMessage(
     clearColor,
     label: "clustered-lights",
     readbackSamples,
+    ...(!scene.clusteredPointShadowEnabled ||
+    loop.standardMaterialShadowReceiverResources === null
+      ? {}
+      : {
+          standardMaterialShadowReceiverResources:
+            loop.standardMaterialShadowReceiverResources,
+        }),
   });
   const status = statusFromReport(
     aperture,
@@ -174,6 +219,25 @@ async function handleWorkerMessage(
     message,
     typedSnapshot,
   );
+  const nextShadowResources = scene.clusteredPointShadowEnabled
+    ? await createClusteredPointShadowReceiverResources(
+        aperture,
+        app,
+        scene,
+        loop,
+        report,
+      )
+    : null;
+
+  loop.standardMaterialShadowReceiverResources =
+    nextShadowResources?.standardMaterialShadowReceiverResources ?? null;
+  loop.shadowStatus = nextShadowResources?.shadowStatus ?? {
+    enabled: scene.clusteredPointShadowEnabled,
+    supported: false,
+    reason: scene.clusteredPointShadowEnabled
+      ? "shadow-resources-unavailable"
+      : "disabled",
+  };
 
   if (
     (message.frame ?? loop.frame) < maxStatusWarmupFrames &&
@@ -219,6 +283,7 @@ function statusFromReport(
     localLightClusters,
     pipelineKeys,
     loop,
+    scene.clusteredPointShadowEnabled,
   );
   const readbackStatus = createReadbackStatus(reportJson.readback);
   recordClusterOccupancy(loop, localLightClusters);
@@ -245,6 +310,7 @@ function statusFromReport(
     pipelineKeys,
     localLightClusters,
     clusterStatus,
+    shadowStatus: loop.shadowStatus,
     readbackStatus,
     readback: reportJson.readback ?? null,
     resourceReuse: reportJson.resourceReuse,
@@ -253,7 +319,12 @@ function statusFromReport(
   };
 }
 
-function createClusterStatus(localLightClusters, pipelineKeys, loop) {
+function createClusterStatus(
+  localLightClusters,
+  pipelineKeys,
+  loop,
+  pointShadowEnabled,
+) {
   const clusterPipelineUsed = pipelineKeys.some((pipelineKey) =>
     pipelineKey.includes("clusteredLocalLights"),
   );
@@ -302,19 +373,50 @@ function createClusterStatus(localLightClusters, pipelineKeys, loop) {
         lightCellWriteAttempts < naiveCellLightPairTests
       );
     });
+  const routeShadowStates = clusterRoutes.map((route) => {
+    const shadow = route.shadowCookieMetadata?.shadow ?? null;
+
+    return {
+      status: shadow?.status ?? null,
+      samplingSupported: shadow?.samplingSupported === true,
+      localRequestCount: shadow?.localRequestCount ?? 0,
+      clusteredLightCount: shadow?.clusteredLightCount ?? 0,
+      supportedLightCount: shadow?.supportedLightCount ?? 0,
+      fallbackReason: shadow?.fallbackReason ?? null,
+    };
+  });
+  const routePointShadowSamplingOk =
+    routeShadowStates.some(
+      (shadow) =>
+        shadow.status === "sampling-ready" &&
+        shadow.samplingSupported === true &&
+        shadow.localRequestCount >= 4 &&
+        shadow.clusteredLightCount >= 4 &&
+        shadow.supportedLightCount >= 1,
+    );
   const routeMetadataOk =
     clusterRoutes.length > 0 &&
     clusterRoutes.every((route) => {
       const shadow = route.shadowCookieMetadata?.shadow ?? null;
       const cookie = route.shadowCookieMetadata?.cookie ?? null;
+      const shadowReady =
+        pointShadowEnabled === true
+          ? (shadow?.status === "sampling-ready" &&
+              shadow.samplingSupported === true &&
+              (shadow.supportedLightCount ?? 0) >= 1) ||
+            (shadow?.status === "metadata-only" &&
+              shadow.samplingSupported === false &&
+              shadow.fallbackReason ===
+                "clustered-local-shadow-sampling-not-implemented")
+          : shadow?.status === "metadata-only" &&
+            shadow.samplingSupported === false &&
+            shadow.fallbackReason ===
+              "clustered-local-shadow-sampling-not-implemented";
 
       return (
-        shadow?.status === "metadata-only" &&
-        shadow.samplingSupported === false &&
+        shadowReady &&
         (shadow.localRequestCount ?? 0) >= 4 &&
         (shadow.clusteredLightCount ?? 0) >= 4 &&
-        shadow.fallbackReason ===
-          "clustered-local-shadow-sampling-not-implemented" &&
         cookie?.status === "not-supported" &&
         cookie.samplingSupported === false &&
         cookie.fallbackReason === "light-cookie-authoring-not-implemented"
@@ -329,6 +431,7 @@ function createClusterStatus(localLightClusters, pipelineKeys, loop) {
       distinctOccupancyHashes >= 2 &&
       routePressureOk &&
       routeMetadataOk &&
+      (pointShadowEnabled !== true || routePointShadowSamplingOk) &&
       occupancyChanged &&
       (localLightClusters?.resourceReuse?.buffersReused ?? 0) >= 8,
     clusterPipelineUsed,
@@ -350,6 +453,8 @@ function createClusterStatus(localLightClusters, pipelineKeys, loop) {
     distinctOccupancyHashes,
     routePressureOk,
     routeMetadataOk,
+    routePointShadowSamplingOk,
+    routeShadowStates,
     routes: clusterRoutes.map((route) => ({
       enabled: route.enabled,
       layerMask: route.layerMask ?? null,
@@ -451,6 +556,322 @@ function createReadbackStatus(readback) {
       pixel: sample.pixel,
     })),
   };
+}
+
+async function createClusteredPointShadowReceiverResources(
+  aperture,
+  app,
+  scene,
+  loop,
+  report,
+) {
+  const request = report.snapshot.shadowRequests.find(
+    (candidate) =>
+      candidate.lightKind === "point" &&
+      (candidate.receiverLayerMask & clusteredPointShadowIntent.receiverLayerMask) !==
+        0,
+  );
+
+  if (request === undefined) {
+    return {
+      standardMaterialShadowReceiverResources: null,
+      shadowStatus: {
+        enabled: true,
+        supported: false,
+        reason: "point-shadow-request-unavailable",
+      },
+    };
+  }
+
+  const shadowRequests = [request];
+  const shadowDescriptor = aperture.createShadowMapDescriptorReport({
+    shadowRequests,
+    descriptors: [
+      {
+        shadowId: request.shadowId,
+        lightId: request.lightId,
+        mapSize: clusteredPointShadowIntent.mapSize,
+        depthBias: clusteredPointShadowIntent.depthBias,
+        normalBias: clusteredPointShadowIntent.normalBias,
+        faceCount: 6,
+        viewDimension: "cube",
+      },
+    ],
+  });
+  const shadowTextures = aperture.createShadowTextureResourceReport({
+    descriptors: shadowDescriptor,
+  });
+
+  loop.shadowDepthTextureResourceReport ??=
+    aperture.createShadowDepthTextureResourceReport({
+      device: app.initialization.device,
+      textures: shadowTextures,
+    });
+
+  const appEnvironmentResourceCache =
+    aperture.getOrCreateWebGpuAppEnvironmentResourceCache(app);
+  const shadowSamplerResourceReport =
+    aperture.createShadowSamplerResourceReport({
+      device: app.initialization.device,
+      resourceKey: "shadow-sampler:clustered-point",
+      cache: appEnvironmentResourceCache.shadowSamplers,
+    });
+  const shadowPassPlan = aperture.createShadowPassPlanReport({
+    shadowRequests,
+    textures: shadowTextures,
+    submission: "ready",
+  });
+  const shadowPassAttachments =
+    aperture.createShadowPassAttachmentDescriptorReport({
+      shadowPassPlan,
+      depthTextureResources: loop.shadowDepthTextureResourceReport,
+    });
+  const shadowViewProjection =
+    aperture.createPointShadowViewProjectionPlanReport({
+      shadowRequests,
+      lights: report.snapshot.lights,
+      shadowPassPlan,
+      computation: "ready",
+    });
+  const shadowMatrixComputation =
+    aperture.createPointShadowMatrixComputationReport({
+      viewProjection: shadowViewProjection,
+      transforms: report.snapshot.transforms,
+    });
+  const shadowMatrixBuffer = aperture.createShadowMatrixBufferDescriptorReport({
+    viewProjection: shadowViewProjection,
+    upload: "ready",
+    resourceKey: "shadow-matrix-buffer:clustered-point",
+    label: "ClusteredPointShadowMatrices/storage",
+  });
+  const shadowMatrixBufferResourceReport =
+    aperture.createShadowMatrixBufferResourceReport({
+      device: app.initialization.device,
+      descriptor: shadowMatrixBuffer,
+      matrices: shadowMatrixComputation,
+    });
+  const shadowCasterMeshDraws = report.snapshot.meshDraws.filter(
+    (draw) =>
+      draw.sortKey.meshKey === scene.casterMeshKey && draw.castsShadow !== false,
+  );
+  const shadowCasterDrawList = aperture.createShadowCasterDrawListPlanReport({
+    shadowRequests,
+    meshDraws: shadowCasterMeshDraws,
+    shadowPassPlan,
+    commandEncoding: "ready",
+  });
+  const shadowCommandPlan =
+    aperture.createShadowCasterCommandPlanReadinessReport({
+      shadowPassPlan,
+      viewProjection: shadowViewProjection,
+      matrixBuffer: shadowMatrixBuffer,
+      casterDrawList: shadowCasterDrawList,
+      commandEncoding: "ready",
+    });
+  const shadowPassCommandEncoding =
+    aperture.createShadowPassCommandEncodingReport({
+      shadowPassPlan,
+      depthTextureResources: loop.shadowDepthTextureResourceReport,
+      matrixBufferResource: shadowMatrixBufferResourceReport,
+      casterDrawList: shadowCasterDrawList,
+      commandPlan: shadowCommandPlan,
+      commandEncoding: "ready",
+    });
+  const shadowCasterPipelineDescriptor =
+    aperture.createShadowCasterPipelineDescriptorReport({
+      commandEncoding: shadowPassCommandEncoding,
+    });
+  const shadowCasterPipelineResourceReport =
+    aperture.createShadowCasterPipelineResourceReport({
+      device: app.initialization.device,
+      descriptor: shadowCasterPipelineDescriptor,
+      cache: appEnvironmentResourceCache.shadowCasterPipelines,
+    });
+  const shadowCasterMatrixBindGroupResourceReport =
+    aperture.createShadowCasterMatrixBindGroupResourceReport({
+      device: app.initialization.device,
+      matrixBufferResource: shadowMatrixBufferResourceReport,
+      layout:
+        shadowCasterPipelineResourceReport.resource?.matrixBindGroupLayout,
+      cache: appEnvironmentResourceCache.shadowCasterMatrixBindGroups,
+    });
+  const shadowCasterFrameResources =
+    aperture.createShadowCasterFrameResourceReadinessReport({
+      casterDrawList: shadowCasterDrawList,
+      preparedMeshes: createShadowCasterPreparedMeshViews(report),
+      matrixBufferResource: shadowMatrixBufferResourceReport,
+      pipelineDescriptor: shadowCasterPipelineDescriptor,
+    });
+  const shadowCasterCommandRecordPlan =
+    aperture.createShadowCasterCommandRecordPlanReport({
+      frameResources: aperture.shadowCasterFrameResourceReadinessReportToJsonValue(
+        shadowCasterFrameResources,
+      ),
+      commandPlan: aperture.shadowCasterCommandPlanReadinessReportToJsonValue(
+        shadowCommandPlan,
+      ),
+      pipelines:
+        shadowCasterPipelineResourceReport.resource === null
+          ? []
+          : [
+              {
+                pipelineKey:
+                  shadowCasterPipelineResourceReport.resource.pipelineKey,
+                resourceKey:
+                  shadowCasterPipelineResourceReport.resource.resourceKey,
+                pipeline: shadowCasterPipelineResourceReport.resource.pipeline,
+              },
+            ],
+      matrixBindGroups:
+        shadowCasterMatrixBindGroupResourceReport.resource === null
+          ? []
+          : [
+              {
+                matrixResourceKey:
+                  shadowCasterMatrixBindGroupResourceReport.resource
+                    .matrixResourceKey,
+                resourceKey:
+                  shadowCasterMatrixBindGroupResourceReport.resource
+                    .resourceKey,
+                group: shadowCasterMatrixBindGroupResourceReport.resource.group,
+                bindGroup:
+                  shadowCasterMatrixBindGroupResourceReport.resource.bindGroup,
+              },
+            ],
+      meshes: createShadowCasterExecutableMeshViews(report),
+    });
+  const shadowPassCommandEncoderResource =
+    aperture.createCommandEncoderResource({
+      device: app.initialization.device,
+      label: "shadow-pass:clustered-point",
+    });
+  const shadowPassEncoderAssemblyReport =
+    aperture.createShadowPassEncoderAssemblyReport({
+      attachments: aperture.shadowPassAttachmentDescriptorReportToJsonValue(
+        shadowPassAttachments,
+      ),
+      frameResources: aperture.shadowCasterFrameResourceReadinessReportToJsonValue(
+        shadowCasterFrameResources,
+      ),
+      commandEncoding: aperture.shadowPassCommandEncodingReportToJsonValue(
+        shadowPassCommandEncoding,
+      ),
+      commands: shadowCasterCommandRecordPlan.commandRecords,
+      encoder: shadowPassCommandEncoderResource.resource?.encoder,
+      resolveDepthView: (attachment) =>
+        aperture.resolveShadowDepthTextureAttachmentView(
+          loop.shadowDepthTextureResourceReport,
+          attachment,
+        ),
+    });
+  const shadowPassCommandBufferSubmissionReport =
+    aperture.createShadowPassCommandBufferSubmissionReport({
+      assembly: shadowPassEncoderAssemblyReport,
+      encoder: shadowPassCommandEncoderResource.resource?.encoder,
+      queue: app.initialization.device.queue,
+      label: "shadow-pass:clustered-point",
+      submit: true,
+    });
+  const supported =
+    shadowPassCommandBufferSubmissionReport.status === "submitted" &&
+    shadowMatrixBufferResourceReport.resource !== null &&
+    loop.shadowDepthTextureResourceReport.resources.some(
+      (resource) =>
+        resource.shadowId === request.shadowId &&
+        resource.lightId === request.lightId &&
+        resource.viewDimension === "cube" &&
+        resource.allocation.resource !== null,
+    ) &&
+    shadowSamplerResourceReport.resource !== null;
+
+  return {
+    standardMaterialShadowReceiverResources: supported
+      ? {
+          shadowKind: "point",
+          matrixBufferResource: shadowMatrixBufferResourceReport,
+          depthTextureResources: loop.shadowDepthTextureResourceReport,
+          samplerResource: shadowSamplerResourceReport,
+        }
+      : null,
+    shadowStatus: {
+      enabled: true,
+      supported,
+      mode: "clustered-point-depth-cube-compare",
+      shadowId: request.shadowId,
+      lightId: request.lightId,
+      casterDraws: shadowCasterMeshDraws.length,
+      faceCount: shadowPassPlan.passCount,
+      submission: shadowPassCommandBufferSubmissionReport.status,
+    },
+  };
+}
+
+function createShadowCasterPreparedMeshViews(report) {
+  const meshResources = report.resources?.resources?.meshResources ?? [];
+  const preparedMeshEntries =
+    report.resourceReuse?.preparedMeshFacade?.entries ?? [];
+  const meshResourceByLabel = new Map(
+    meshResources.map((resource) => [resource.resourceKey, resource]),
+  );
+  const meshResourceByKey = new Map();
+
+  for (const entry of preparedMeshEntries) {
+    const resource = meshResourceByLabel.get(`mesh-buffer:${entry.label}`);
+
+    if (resource === undefined) {
+      continue;
+    }
+
+    meshResourceByKey.set(entry.assetKey, {
+      meshKey: entry.assetKey,
+      meshResourceKey: resource.resourceKey,
+      vertexBufferResourceKeys: resource.vertexBuffers.map(
+        (buffer) => buffer.resourceKey,
+      ),
+      indexBufferResourceKey: resource.indexBuffer?.resourceKey ?? null,
+    });
+  }
+
+  return [...meshResourceByKey.values()];
+}
+
+function createShadowCasterExecutableMeshViews(report) {
+  const meshResources = report.resources?.resources?.meshResources ?? [];
+  const preparedMeshEntries =
+    report.resourceReuse?.preparedMeshFacade?.entries ?? [];
+  const meshResourceByLabel = new Map(
+    meshResources.map((resource) => [resource.resourceKey, resource]),
+  );
+  const meshResourceByKey = new Map();
+
+  for (const entry of preparedMeshEntries) {
+    const resource = meshResourceByLabel.get(`mesh-buffer:${entry.label}`);
+
+    if (resource === undefined) {
+      continue;
+    }
+
+    meshResourceByKey.set(entry.assetKey, {
+      meshKey: entry.assetKey,
+      meshResourceKey: resource.resourceKey,
+      vertexBuffers: resource.vertexBuffers.map((buffer) => ({
+        resourceKey: buffer.resourceKey,
+        buffer: buffer.buffer,
+        vertexCount: buffer.vertexCount,
+      })),
+      indexBuffer:
+        resource.indexBuffer === undefined
+          ? null
+          : {
+              resourceKey: resource.indexBuffer.resourceKey,
+              buffer: resource.indexBuffer.buffer,
+              format: resource.indexBuffer.format,
+              indexCount: resource.indexBuffer.indexCount,
+            },
+    });
+  }
+
+  return [...meshResourceByKey.values()];
 }
 
 function pixelDistance(a, b) {

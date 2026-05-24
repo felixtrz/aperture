@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST,
   LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED,
+  LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED,
   LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE,
   createLocalLightClusterDescriptor,
   createLocalLightClusterGpuResource,
@@ -182,6 +183,7 @@ describe("local light cluster preparation", () => {
         samplingSupported: false,
         localRequestCount: 3,
         clusteredLightCount: 3,
+        supportedLightCount: 0,
         fallbackReason: "clustered-local-shadow-sampling-not-implemented",
       },
       cookie: {
@@ -189,8 +191,47 @@ describe("local light cluster preparation", () => {
         samplingSupported: false,
         localRequestCount: 0,
         clusteredLightCount: 0,
+        supportedLightCount: 0,
         fallbackReason: "light-cookie-authoring-not-implemented",
       },
+    });
+  });
+
+  it("marks supported point-shadow resources as sampling-ready metadata", () => {
+    const descriptor = createLocalLightClusterDescriptor(
+      snapshotWithPointLights(16, { shadowedLightCount: 3 }),
+      {
+        dimensions: { x: 4, y: 1, z: 4 },
+        maxLightsPerCell: 8,
+        supportedPointShadowResources: [
+          { shadowId: 1000, lightId: 100, matrixBaseIndex: 0 },
+        ],
+      },
+    );
+    const firstFlags = descriptor.metadata[0] ?? 0;
+    const secondFlags =
+      descriptor.metadata[LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE] ?? 0;
+
+    expect(
+      firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST,
+    ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST);
+    expect(
+      firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED,
+    ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED);
+    expect(
+      firstFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED,
+    ).toBe(0);
+    expect(descriptor.metadata[2]).toBe(0);
+    expect(
+      secondFlags & LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED,
+    ).toBe(LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED);
+    expect(descriptor.shadowCookieMetadata.shadow).toMatchObject({
+      status: "sampling-ready",
+      samplingSupported: true,
+      localRequestCount: 3,
+      clusteredLightCount: 3,
+      supportedLightCount: 1,
+      fallbackReason: "clustered-local-shadow-sampling-partial",
     });
   });
 

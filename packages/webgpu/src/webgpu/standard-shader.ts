@@ -8,7 +8,9 @@ import {
   LOCAL_LIGHT_CLUSTER_CELLS_BINDING,
   LOCAL_LIGHT_CLUSTER_INDICES_BINDING,
   LOCAL_LIGHT_CLUSTER_METADATA_BINDING,
+  LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST,
   LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED,
+  LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED,
   LOCAL_LIGHT_CLUSTER_PARAMS_BINDING,
 } from "./local-light-clusters.js";
 import {
@@ -1877,7 +1879,11 @@ ${emissive}
   }
 
   if (features.clusteredLocalLights === true) {
-    code = applyStandardClusteredLocalLightSampling(code);
+    code = applyStandardClusteredLocalLightSampling(code, {
+      pointShadowMap: features.pointShadowMap === true,
+      removeGlobalPointShadowReceiverFactor:
+        features.pointShadowMap === true && features.shadowMap !== true,
+    });
   }
 
   return applyStandardMorphTargetsToWgsl(
@@ -3646,8 +3652,78 @@ fn evaluateDirectLight(
     );
 }
 
-function applyStandardClusteredLocalLightSampling(code: string): string {
-  return code
+function applyStandardClusteredLocalLightSampling(
+  code: string,
+  options: {
+    readonly pointShadowMap: boolean;
+    readonly removeGlobalPointShadowReceiverFactor: boolean;
+  },
+): string {
+  const pointShadowFactorFunction = options.pointShadowMap
+    ? `fn localLightClusterPointShadowFactor(position: vec3f, lightIndex: u32, lightPosition: vec3f) -> f32 {
+  let metadataFlags = localLightClusterMetadataFlags(lightIndex);
+
+  if ((metadataFlags & ${LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST}u) == 0u) {
+    return 1.0;
+  }
+
+  if ((metadataFlags & ${LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED}u) == 0u) {
+    return localLightClusterUnsupportedShadowFactor(lightIndex);
+  }
+
+  return samplePointShadowFactorWithMatrixBase(
+    position,
+    lightPosition,
+    localLightClusterPointShadowMatrixBase(lightIndex),
+  );
+}`
+    : `fn localLightClusterPointShadowFactor(position: vec3f, lightIndex: u32, lightPosition: vec3f) -> f32 {
+  _ = position;
+  _ = lightPosition;
+  return localLightClusterUnsupportedShadowFactor(lightIndex);
+}`;
+  const clusteredLightLoop = `  for (var lightIndex = 0u; lightIndex < lightCount(); lightIndex = lightIndex + 1u) {
+    let kind = lightKind(lightIndex);
+
+    if (kind == LIGHT_KIND_AMBIENT) {
+      ambient = ambient + lightRadiance(lightIndex);
+    }
+
+    if (kind == LIGHT_KIND_DIRECTIONAL) {
+      direct = direct + evaluateDirectLight(
+        normal,
+        viewDir,
+        directionalLightDirection(lightIndex),
+        lightRadiance(lightIndex),
+        baseColor,
+        metallic,
+        roughness,
+      );
+    }
+
+    if (kind == LIGHT_KIND_RECT_AREA) {
+      direct = direct + evaluateAreaLight(
+        lightIndex,
+        input.worldPosition,
+        normal,
+        viewDir,
+        baseColor,
+        metallic,
+        roughness,
+      );
+    }
+  }
+
+  direct = direct + evaluateClusteredLocalLights(
+    input.worldPosition,
+    normal,
+    viewDir,
+    baseColor,
+    metallic,
+    roughness,
+  );`;
+
+  let result = code
     .replace(
       `@fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4f {`,
@@ -3680,6 +3756,16 @@ fn localLightClusterMetadataFlags(lightIndex: u32) -> u32 {
   return localLightClusterMetadata[metadataOffset];
 }
 
+fn localLightClusterPointShadowMatrixBase(lightIndex: u32) -> u32 {
+  let metadataOffset = lightIndex * 4u + 2u;
+
+  if (metadataOffset >= arrayLength(&localLightClusterMetadata)) {
+    return 0u;
+  }
+
+  return localLightClusterMetadata[metadataOffset];
+}
+
 fn localLightClusterUnsupportedShadowFactor(lightIndex: u32) -> f32 {
   let metadataFlags = localLightClusterMetadataFlags(lightIndex);
 
@@ -3689,6 +3775,8 @@ fn localLightClusterUnsupportedShadowFactor(lightIndex: u32) -> f32 {
 
   return 1.0;
 }
+
+${pointShadowFactorFunction}
 
 fn localLightClusterViewMatrix() -> mat4x4f {
   return mat4x4f(
@@ -3796,7 +3884,6 @@ fn evaluateClusteredLocalLights(
 
     if (lightIndex < lightCount()) {
       let kind = lightKind(lightIndex);
-      let unsupportedShadowFactor = localLightClusterUnsupportedShadowFactor(lightIndex);
 
       if (kind == LIGHT_KIND_POINT) {
         let lightPosition = pointLightPosition(lightIndex);
@@ -3806,11 +3893,12 @@ fn evaluateClusteredLocalLights(
         let attenuation = pow(saturate(1.0 - lightDistance / lightRange), 2.0);
 
         if (attenuation > 0.0 && lightDistance > 0.0001) {
+          let shadowFactor = localLightClusterPointShadowFactor(position, lightIndex, lightPosition);
           clusteredDirect = clusteredDirect + evaluateDirectLight(
             normal,
             viewDir,
             toLight / lightDistance,
-            lightRadiance(lightIndex) * attenuation * unsupportedShadowFactor,
+            lightRadiance(lightIndex) * attenuation * shadowFactor,
             baseColor,
             metallic,
             roughness,
@@ -3828,6 +3916,7 @@ fn evaluateClusteredLocalLights(
         if (rangeAttenuation > 0.0 && lightDistance > 0.0001) {
           let lightDir = toLight / lightDistance;
           let coneAttenuation = spotLightConeAttenuation(lightIndex, -lightDir);
+          let unsupportedShadowFactor = localLightClusterUnsupportedShadowFactor(lightIndex);
           clusteredDirect = clusteredDirect + evaluateDirectLight(
             normal,
             viewDir,
@@ -3922,47 +4011,28 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {`,
       );
     }
   }`,
-      `  for (var lightIndex = 0u; lightIndex < lightCount(); lightIndex = lightIndex + 1u) {
-    let kind = lightKind(lightIndex);
+      clusteredLightLoop,
+    )
+    .replace(
+      /(  var ambient = vec3f\(0\.0\);\n  var direct = vec3f\(0\.0\);\n\n)  for \(var lightIndex = 0u; lightIndex < lightCount\(\); lightIndex = lightIndex \+ 1u\) \{[\s\S]*?\n  \}(?=\n\n  (?:let|var) )/,
+      `$1${clusteredLightLoop}`,
+    );
 
-    if (kind == LIGHT_KIND_AMBIENT) {
-      ambient = ambient + lightRadiance(lightIndex);
-    }
-
-    if (kind == LIGHT_KIND_DIRECTIONAL) {
-      direct = direct + evaluateDirectLight(
-        normal,
-        viewDir,
-        directionalLightDirection(lightIndex),
-        lightRadiance(lightIndex),
-        baseColor,
-        metallic,
-        roughness,
+  if (options.removeGlobalPointShadowReceiverFactor === true) {
+    result = result
+      .replace(
+        `  let receiverPointShadowFactor = samplePointShadowReceiverFactor(input.worldPosition);
+  let color = (ambientDiffuse + direct) * receiverPointShadowFactor + material.emissiveFactor;`,
+        `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
+      )
+      .replace(
+        `  let receiverPointShadowFactor = samplePointShadowReceiverFactor(input.worldPosition);
+  let color = (ambientDiffuse + direct) * receiverPointShadowFactor + emissive;`,
+        `  let color = ambientDiffuse + direct + emissive;`,
       );
-    }
-
-    if (kind == LIGHT_KIND_RECT_AREA) {
-      direct = direct + evaluateAreaLight(
-        lightIndex,
-        input.worldPosition,
-        normal,
-        viewDir,
-        baseColor,
-        metallic,
-        roughness,
-      );
-    }
   }
 
-  direct = direct + evaluateClusteredLocalLights(
-    input.worldPosition,
-    normal,
-    viewDir,
-    baseColor,
-    metallic,
-    roughness,
-  );`,
-    );
+  return result;
 }
 
 function applyStandardShadowMapSampling(
@@ -4256,8 +4326,8 @@ fn pointShadowFaceIndex(toReceiver: vec3f) -> u32 {
   return select(5u, 4u, toReceiver.z >= 0.0);
 }
 
-fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32 {
-  if (arrayLength(&pointShadowMatrices) < 6u) {
+fn samplePointShadowFactorWithMatrixBase(worldPosition: vec3f, lightPosition: vec3f, matrixBaseIndex: u32) -> f32 {
+  if (arrayLength(&pointShadowMatrices) < matrixBaseIndex + 6u) {
     return 1.0;
   }
 
@@ -4269,7 +4339,7 @@ fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32 {
   }
 
   let faceIndex = pointShadowFaceIndex(toReceiver);
-  let shadowPosition = pointShadowMatrices[faceIndex] * vec4f(worldPosition, 1.0);
+  let shadowPosition = pointShadowMatrices[matrixBaseIndex + faceIndex] * vec4f(worldPosition, 1.0);
 
   if (abs(shadowPosition.w) <= 0.00001) {
     return 1.0;
@@ -4305,6 +4375,10 @@ fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32 {
   );
 
   return mix(STANDARD_POINT_SHADOW_MIN_VISIBILITY, 1.0, visibility);
+}
+
+fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32 {
+  return samplePointShadowFactorWithMatrixBase(worldPosition, lightPosition, 0u);
 }
 
 fn samplePointShadowReceiverFactor(worldPosition: vec3f) -> f32 {
@@ -4523,8 +4597,8 @@ fn pointShadowFaceIndex(toReceiver: vec3f) -> u32 {
   return select(5u, 4u, toReceiver.z >= 0.0);
 }
 
-fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32 {
-  if (arrayLength(&pointShadowMatrices) < 6u) {
+fn samplePointShadowFactorWithMatrixBase(worldPosition: vec3f, lightPosition: vec3f, matrixBaseIndex: u32) -> f32 {
+  if (arrayLength(&pointShadowMatrices) < matrixBaseIndex + 6u) {
     return 1.0;
   }
 
@@ -4536,7 +4610,7 @@ fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32 {
   }
 
   let faceIndex = pointShadowFaceIndex(toReceiver);
-  let shadowPosition = pointShadowMatrices[faceIndex] * vec4f(worldPosition, 1.0);
+  let shadowPosition = pointShadowMatrices[matrixBaseIndex + faceIndex] * vec4f(worldPosition, 1.0);
 
   if (abs(shadowPosition.w) <= 0.00001) {
     return 1.0;
@@ -4571,6 +4645,10 @@ fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32 {
   );
 
   return mix(STANDARD_POINT_SHADOW_MIN_VISIBILITY, 1.0, visibility);
+}
+
+fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32 {
+  return samplePointShadowFactorWithMatrixBase(worldPosition, lightPosition, 0u);
 }
 
 fn samplePointShadowReceiverFactor(worldPosition: vec3f) -> f32 {

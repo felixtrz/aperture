@@ -27,6 +27,7 @@ import {
   type LocalLightClusterDescriptor,
   type LocalLightClusterGpuResource,
   type LocalLightClusterGpuResourceDiagnostic,
+  type LocalLightClusterSupportedPointShadowResource,
 } from "./local-light-clusters.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
 import {
@@ -419,6 +420,7 @@ function createLocalLightClusterResource(
     | "pipelineKey"
     | "localLightClusterDescriptor"
     | "localLightClusterResources"
+    | "shadowReceiverResources"
   >,
   diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
 ): LocalLightClusterGpuResource | null {
@@ -432,7 +434,11 @@ function createLocalLightClusterResource(
 
   const descriptor =
     options.localLightClusterDescriptor ??
-    createLocalLightClusterDescriptor(options.snapshot);
+    createLocalLightClusterDescriptor(options.snapshot, {
+      supportedPointShadowResources: supportedPointShadowResourcesFromReceiver(
+        options.shadowReceiverResources,
+      ),
+    });
   const result = createLocalLightClusterGpuResource({
     device: options.device,
     descriptor,
@@ -441,6 +447,45 @@ function createLocalLightClusterResource(
   diagnostics.push(...result.diagnostics);
 
   return result.valid ? result.resource : null;
+}
+
+function supportedPointShadowResourcesFromReceiver(
+  resources: StandardFrameShadowReceiverResources | undefined,
+): readonly LocalLightClusterSupportedPointShadowResource[] {
+  const pointResources =
+    resources?.shadowKind === "multi"
+      ? resources.pointShadowReceiverResources
+      : resources?.shadowKind === "point" ||
+          resources?.depthTextureResources.resources.some(
+            (resource) => resource.viewDimension === "cube",
+          ) === true
+        ? resources
+        : undefined;
+
+  if (
+    pointResources?.matrixBufferResource.resource === null ||
+    pointResources?.samplerResource.resource === null
+  ) {
+    return [];
+  }
+
+  const firstPointDepth = pointResources?.depthTextureResources.resources.find(
+    (resource) =>
+      resource.viewDimension === "cube" &&
+      resource.allocation.resource !== null,
+  );
+
+  if (firstPointDepth === undefined) {
+    return [];
+  }
+
+  return [
+    {
+      shadowId: firstPointDepth.shadowId,
+      lightId: firstPointDepth.lightId,
+      matrixBaseIndex: 0,
+    },
+  ];
 }
 
 function resolveStandardMaterialIblBindGroupResource(

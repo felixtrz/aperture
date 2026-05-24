@@ -1,5 +1,42 @@
 # Completed Tasks
 
+## task-3131 — Render clustered local point-light shadows
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added clustered local-light metadata support for `sampling-ready` point
+  shadows backed by renderer-owned cube depth, matrix, and comparison sampler
+  resources, while leaving unsupported local-shadow requests as honest
+  metadata-only fallbacks.
+- Routed supported point-shadow resources into clustered StandardMaterial frame
+  resources without exposing GPU handles through ECS or snapshots.
+- Updated StandardMaterial clustered point-light WGSL so supported local point
+  lights multiply direct lighting by point-shadow visibility, while unsupported
+  local shadow metadata preserves direct clustered lighting.
+- Scoped clustered point-shadow StandardMaterial bind-group layout cache keys by
+  pipeline to avoid WebGPU auto-layout bind-group reuse across incompatible
+  shadowed and non-shadowed clustered pipelines.
+- Expanded `examples/clustered-lights.html` with a renderer-owned point-shadow
+  cube pass, a shadow caster, supported-route readiness reports, and a
+  no-point-shadow baseline comparison proving at least one readback sample
+  darkens.
+- Updated focused cluster metadata, shader, bind-group, and browser tests.
+  Recommended next task is `task-3132`, rendering clustered local spot-light
+  shadows.
+
+Validation:
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/webgpu/local-light-clusters.test.ts test/webgpu/standard-shader.test.ts test/webgpu/light-bind-group.test.ts --reporter=dot`
+- `pnpm run examples:build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/clustered-lights.spec.ts --project=chrome-webgpu-headed --reporter=line --timeout=30000 --trace=off`
+- Current-code browser status probe: baseline and shadow pages `ok`, point
+  shadow pipeline active, supported-route readiness true, max readback
+  darkening `3.61`, diagnostics `0`, WebGPU validation warnings `0`.
+
 ## task-3130 — Add cluster-aware local-light shadow/cookie metadata
 
 Completed: 2026-05-24

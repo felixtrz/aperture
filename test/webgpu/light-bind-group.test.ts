@@ -556,6 +556,7 @@ function localLightClusterResource(): LocalLightClusterGpuResource {
           samplingSupported: false,
           localRequestCount: 0,
           clusteredLightCount: 0,
+          supportedLightCount: 0,
           fallbackReason: null,
         },
         cookie: {
@@ -563,6 +564,7 @@ function localLightClusterResource(): LocalLightClusterGpuResource {
           samplingSupported: false,
           localRequestCount: 0,
           clusteredLightCount: 0,
+          supportedLightCount: 0,
           fallbackReason: "light-cookie-authoring-not-implemented",
         },
       },

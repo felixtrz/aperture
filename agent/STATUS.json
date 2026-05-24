@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-3131",
+  "currentTaskId": "task-3132",
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "c6ba2aa",
+  "lastCommit": "d20e0cb",
   "activePid": null,
-  "notes": "Completed task-3130 cluster-aware local-light shadow/cookie metadata; next task is task-3131 clustered local point-light shadows.",
-  "lastRunFinishedAt": "2026-05-24T02:06:00Z"
+  "notes": "Completed task-3131 clustered local point-light shadow sampling; next task is task-3132 clustered local spot-light shadows.",
+  "lastRunFinishedAt": "2026-05-24T02:47:25Z"
 }

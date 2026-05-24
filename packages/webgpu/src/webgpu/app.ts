@@ -1454,6 +1454,10 @@ function createStandardAppPipelineLayouts(
   );
   const usesClusteredLocalLights =
     pipelineResourceKey.includes("cluster-params@16");
+  const autoLayoutKeySuffix =
+    usesLightPointShadowGroup && usesClusteredLocalLights
+      ? `/pipeline:${pipelineResourceKey}`
+      : "";
   const baseLightLayoutKey = usesLightShadowIblGroup
     ? "webgpu-app/standard/lights-shadow-ibl/group-3"
     : usesLightCascadedShadowIblGroup
@@ -1478,24 +1482,24 @@ function createStandardAppPipelineLayouts(
     pipelineResourceKey,
     sharedLayouts: [0, 1].map((group) => ({
       group,
-      layoutKey: `webgpu-app/standard/group-${group}`,
+      layoutKey: `webgpu-app/standard/group-${group}${autoLayoutKeySuffix}`,
       layout: getBindGroupLayout(group),
       metadata: createUnlitBindGroupLayoutMetadata(
         group,
-        `webgpu-app/standard/group-${group}`,
+        `webgpu-app/standard/group-${group}${autoLayoutKeySuffix}`,
       ),
     })),
     materialLayout: {
       group: 2,
-      layoutKey: "webgpu-app/standard/group-2",
+      layoutKey: `webgpu-app/standard/group-2${autoLayoutKeySuffix}`,
       layout: getBindGroupLayout(2),
       descriptor: createStandardMaterialBindGroupLayoutPlan(
-        "webgpu-app/standard/group-2",
+        `webgpu-app/standard/group-2${autoLayoutKeySuffix}`,
       ).layout,
     },
     lightLayout: {
       group: 3,
-      layoutKey: lightLayoutKey,
+      layoutKey: `${lightLayoutKey}${autoLayoutKeySuffix}`,
       layout: getBindGroupLayout(3),
       descriptor:
         usesLightShadowIblGroup ||

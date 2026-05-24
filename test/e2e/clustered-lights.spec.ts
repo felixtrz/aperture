@@ -34,10 +34,15 @@ interface LocalLightClusterRouteStatus {
     readonly wordsPerLight: number;
     readonly totalMetadataLights: number;
     readonly shadow: {
-      readonly status: "not-requested" | "metadata-only" | "not-supported";
+      readonly status:
+        | "not-requested"
+        | "sampling-ready"
+        | "metadata-only"
+        | "not-supported";
       readonly samplingSupported: boolean;
       readonly localRequestCount: number;
       readonly clusteredLightCount: number;
+      readonly supportedLightCount: number;
       readonly fallbackReason: string | null;
     };
     readonly cookie: {
@@ -45,6 +50,7 @@ interface LocalLightClusterRouteStatus {
       readonly samplingSupported: boolean;
       readonly localRequestCount: number;
       readonly clusteredLightCount: number;
+      readonly supportedLightCount: number;
       readonly fallbackReason: string | null;
     };
   };
@@ -86,6 +92,7 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
     readonly distinctOccupancyHashes: number;
     readonly routePressureOk: boolean;
     readonly routeMetadataOk: boolean;
+    readonly routePointShadowSamplingOk: boolean;
     readonly routes: readonly LocalLightClusterRouteStatus[];
     readonly buffersCreated: number;
     readonly buffersReused: number;
@@ -94,6 +101,20 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
     readonly ok: boolean;
     readonly maxClearDistance?: number;
     readonly luminanceRange?: number;
+  };
+  readonly readback?: {
+    readonly samples?: readonly {
+      readonly id: string;
+      readonly pixel: { readonly r: number; readonly g: number; readonly b: number };
+    }[];
+  };
+  readonly shadowStatus?: {
+    readonly enabled: boolean;
+    readonly supported: boolean;
+    readonly mode?: string;
+    readonly casterDraws?: number;
+    readonly faceCount?: number;
+    readonly submission?: string;
   };
   readonly counts?: {
     readonly meshDraws: number;
@@ -106,6 +127,22 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   page,
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/clustered-lights.html?disable-cluster-point-shadow=1");
+  await page.bringToFront();
+
+  const baseline = await waitForExampleStatus<ClusteredLightsStatus>(page);
+
+  await attachExampleStatus("clustered-lights-baseline-status", baseline);
+  expect(baseline, "clustered lights baseline status should publish")
+    .toBeDefined();
+
+  if (baseline === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(baseline);
+  expectStatusJsonSafeForGpu(baseline);
 
   await page.goto("/examples/clustered-lights.html");
   await page.bringToFront();
@@ -137,15 +174,23 @@ test("browser renders StandardMaterial through clustered local lights", async ({
       distinctOccupancyHashes: 2,
       routePressureOk: true,
       routeMetadataOk: true,
-      buffersReused: 8,
+      routePointShadowSamplingOk: true,
     },
     counts: {
-      meshDraws: 2,
+      meshDraws: 3,
       diagnostics: 0,
+    },
+    shadowStatus: {
+      enabled: true,
+      supported: true,
+      mode: "clustered-point-depth-cube-compare",
+      casterDraws: 1,
+      faceCount: 6,
+      submission: "submitted",
     },
   });
   expect(status.pipelineKeys ?? []).toContain(
-    "standard|clusteredLocalLights|opaque|back|less|none",
+    "standard|clusteredLocalLights|pointShadowMap|opaque|back|less|none",
   );
   expect(status.localLightClusters).toMatchObject({
     enabled: true,
@@ -154,6 +199,7 @@ test("browser renders StandardMaterial through clustered local lights", async ({
     coordinateSpace: "view-depth",
     clusterDimensions: { x: 8, y: 4, z: 8 },
   });
+  expect(status.clusterStatus?.buffersReused ?? 0).toBeGreaterThanOrEqual(12);
   const routes = status.localLightClusters?.routes ?? [];
 
   expect(routes).toHaveLength(2);
@@ -162,6 +208,14 @@ test("browser renders StandardMaterial through clustered local lights", async ({
   expect(new Set(routes.map((route) => route.layerMask))).toEqual(
     new Set([1, 2]),
   );
+  expect(
+    routes.some(
+      (route) =>
+        route.shadowCookieMetadata?.shadow.status === "sampling-ready" &&
+        route.shadowCookieMetadata.shadow.samplingSupported === true &&
+        route.shadowCookieMetadata.shadow.supportedLightCount >= 1,
+    ),
+  ).toBe(true);
   expect(status.localLightClusters?.viewId).not.toBeNull();
   expect(status.localLightClusters?.occupancyHash ?? 0).toBeGreaterThan(0);
   expect(status.clusterStatus?.previousOccupancyHash).not.toBe(
@@ -180,26 +234,56 @@ test("browser renders StandardMaterial through clustered local lights", async ({
     expect(route.buildPressure?.lightCellWriteAttempts ?? 0).toBeLessThan(
       route.buildPressure?.naiveCellLightPairTests ?? 0,
     );
+    expect(route.shadowCookieMetadata?.shadow.localRequestCount).toBe(4);
+    expect(route.shadowCookieMetadata?.shadow.clusteredLightCount).toBe(4);
+    expect(route.shadowCookieMetadata?.cookie).toMatchObject({
+      status: "not-supported",
+      samplingSupported: false,
+      localRequestCount: 0,
+      clusteredLightCount: 0,
+      supportedLightCount: 0,
+      fallbackReason: "light-cookie-authoring-not-implemented",
+    });
     expect(route.shadowCookieMetadata).toMatchObject({
       wordsPerLight: 4,
       totalMetadataLights: 130,
-      shadow: {
-        status: "metadata-only",
-        samplingSupported: false,
-        localRequestCount: 4,
-        clusteredLightCount: 4,
-        fallbackReason: "clustered-local-shadow-sampling-not-implemented",
-      },
-      cookie: {
-        status: "not-supported",
-        samplingSupported: false,
-        localRequestCount: 0,
-        clusteredLightCount: 0,
-        fallbackReason: "light-cookie-authoring-not-implemented",
-      },
     });
   }
+  expect(maxSampleLuminanceDarkening(baseline, status)).toBeGreaterThan(3);
   expect(status.readbackStatus?.ok).toBe(true);
   expect(status.readbackStatus?.maxClearDistance ?? 0).toBeGreaterThan(24);
   webGpuValidation.expectNoWarnings();
 });
+
+function maxSampleLuminanceDarkening(
+  baseline: ClusteredLightsStatus,
+  status: ClusteredLightsStatus,
+): number {
+  const shadowSamples = status.readback?.samples ?? [];
+  const baselineSamples = new Map(
+    (baseline.readback?.samples ?? []).map((sample) => [sample.id, sample]),
+  );
+  let maxDarkening = 0;
+
+  for (const shadowSample of shadowSamples) {
+    const baselineSample = baselineSamples.get(shadowSample.id);
+
+    if (baselineSample === undefined) {
+      continue;
+    }
+
+    maxDarkening = Math.max(
+      maxDarkening,
+      sampleLuminance(baselineSample) - sampleLuminance(shadowSample),
+    );
+  }
+
+  return maxDarkening;
+}
+
+function sampleLuminance(sample: {
+  readonly pixel: { readonly r: number; readonly g: number; readonly b: number };
+}): number {
+  const pixel = sample.pixel;
+  return pixel.r * 0.2126 + pixel.g * 0.7152 + pixel.b * 0.0722;
+}
