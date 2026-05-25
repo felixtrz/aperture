@@ -5,6 +5,7 @@ import {
 } from "@aperture-engine/runtime";
 import type { ApertureConfig } from "./config.js";
 import { createApertureApp, type ApertureSystemModule } from "./advanced.js";
+import { serializeSourceAssetRegistry } from "./asset-mirror.js";
 
 export interface StartGeneratedSimulationWorkerOptions {
   readonly config: ApertureConfig;
@@ -80,6 +81,7 @@ async function runLoop(options: {
       options.port.postMessage({
         type: SIMULATION_WORKER_PROTOCOL.snapshot,
         snapshot,
+        sourceAssets: serializeSourceAssetRegistry(app.lowLevel.assets),
         frame,
       });
       frame += 1;

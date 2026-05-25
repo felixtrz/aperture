@@ -1,13 +1,17 @@
 import {
   createSimulationWorker,
   type SimulationWorker,
+  type SimulationWorkerErrorEvent,
+  type SimulationWorkerSnapshotEvent,
   type SimulationWorkerEntry,
 } from "@aperture-engine/runtime";
+import { AssetRegistry } from "@aperture-engine/simulation";
 import {
   createWebGpuApp,
   type CreateWebGpuAppResult,
   type WebGpuCanvasLike,
 } from "@aperture-engine/webgpu";
+import { mirrorSourceAssetRegistryFromMessage } from "./asset-mirror.js";
 import { defineApertureConfig, type ApertureConfig } from "./config.js";
 
 export interface GeneratedBrowserSystemManifestEntry {
@@ -33,29 +37,124 @@ export interface GeneratedBrowserApp {
   readonly webgpu: CreateWebGpuAppResult;
 }
 
+export interface GeneratedBrowserAppStatus {
+  status: "starting" | "running" | "webgpu-failed" | "worker-error";
+  webgpuOk: boolean | null;
+  snapshots: number;
+  mirroredSourceAssets: number;
+  skippedSourceAssets: number;
+  lastFrame: number | null;
+  lastError: unknown;
+  lastWorkerSummary: unknown;
+  diagnostics: unknown;
+}
+
 export async function startGeneratedBrowserApp(
   options: StartGeneratedBrowserAppOptions,
 ): Promise<GeneratedBrowserApp> {
   const config = defineApertureConfig(options.config);
   const canvas = resolveCanvas(config);
+  const sourceAssets = new AssetRegistry();
+  const status = installGeneratedStatus();
   const worker = createSimulationWorker(options.workerEntry, {
     workerOptions: { type: "module" },
     ...(options.workerFactory === undefined
       ? {}
       : { workerFactory: options.workerFactory }),
   });
+  const mirroredWorker = mirrorSimulationWorkerSourceAssets(
+    worker,
+    sourceAssets,
+    status,
+  );
   const webgpu = await createWebGpuApp({
     canvas: canvas as unknown as WebGpuCanvasLike,
-    simulationWorker: worker,
+    simulationWorker: mirroredWorker,
+    sourceAssets,
     autoStart: true,
   });
 
+  status.webgpuOk = webgpu.ok;
+  status.status = webgpu.ok ? "running" : "webgpu-failed";
+  status.diagnostics = webgpu.ok ? webgpu.app.getDiagnostics() : webgpu;
+  if (webgpu.ok) {
+    syncGeneratedDiagnostics(webgpu.app.getDiagnostics, status);
+  }
   installResizeObserver(canvas);
 
   return {
     worker,
     webgpu,
   };
+}
+
+function syncGeneratedDiagnostics(
+  getDiagnostics: () => unknown,
+  status: GeneratedBrowserAppStatus,
+): void {
+  const sync = () => {
+    status.diagnostics = getDiagnostics();
+    requestAnimationFrame(sync);
+  };
+
+  requestAnimationFrame(sync);
+}
+
+function mirrorSimulationWorkerSourceAssets(
+  worker: SimulationWorker,
+  sourceAssets: AssetRegistry,
+  status: GeneratedBrowserAppStatus,
+): SimulationWorker {
+  return {
+    ...worker,
+    onSnapshot(callback) {
+      return worker.onSnapshot((event: SimulationWorkerSnapshotEvent) => {
+        const mirror = mirrorSourceAssetRegistryFromMessage(
+          sourceAssets,
+          event.message,
+        );
+        status.snapshots += 1;
+        status.lastFrame = event.frame;
+        status.mirroredSourceAssets += mirror.mirrored;
+        status.skippedSourceAssets += mirror.skipped;
+        status.lastWorkerSummary =
+          typeof event.message === "object" && event.message !== null
+            ? (event.message as { readonly workerSummary?: unknown })
+                .workerSummary ?? null
+            : null;
+        callback(event);
+      });
+    },
+    onError(callback) {
+      return worker.onError((event: SimulationWorkerErrorEvent) => {
+        status.status = "worker-error";
+        status.lastError = event;
+        callback(event);
+      });
+    },
+  };
+}
+
+function installGeneratedStatus(): GeneratedBrowserAppStatus {
+  const status: GeneratedBrowserAppStatus = {
+    status: "starting",
+    webgpuOk: null,
+    snapshots: 0,
+    mirroredSourceAssets: 0,
+    skippedSourceAssets: 0,
+    lastFrame: null,
+    lastError: null,
+    lastWorkerSummary: null,
+    diagnostics: null,
+  };
+
+  (
+    globalThis as {
+      __APERTURE_GENERATED_APP__?: GeneratedBrowserAppStatus;
+    }
+  ).__APERTURE_GENERATED_APP__ = status;
+
+  return status;
 }
 
 function resolveCanvas(config: ApertureConfig): HTMLCanvasElement {

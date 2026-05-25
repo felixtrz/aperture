@@ -10,7 +10,12 @@ export interface ApertureVitePlugin {
   configResolved?(config: { readonly root: string }): void;
   resolveId?(id: string): string | null;
   load?(id: string): Promise<string | null> | string | null;
-  transformIndexHtml?(html: string): string;
+  transformIndexHtml?:
+    | ((html: string) => string)
+    | {
+        readonly order: "pre";
+        handler(html: string): string;
+      };
 }
 
 export interface DiscoveredApertureSystem {
@@ -54,14 +59,15 @@ export function aperture(
       root = config.root;
     },
     resolveId(id) {
-      if (isVirtualId(id)) {
+      if (isVirtualId(virtualBaseId(id))) {
         return `${RESOLVED_PREFIX}${id}`;
       }
 
       return null;
     },
     async load(id) {
-      const virtualId = id.startsWith(RESOLVED_PREFIX) ? id.slice(1) : id;
+      const rawVirtualId = id.startsWith(RESOLVED_PREFIX) ? id.slice(1) : id;
+      const virtualId = virtualBaseId(rawVirtualId);
       const configFile = resolveConfigFile(root, options.configFile);
 
       if (virtualId === VIRTUAL_CONFIG) {
@@ -97,11 +103,13 @@ export function aperture(
       }
 
       if (virtualId === VIRTUAL_BROWSER_ENTRY) {
+        const workerEntryPath = `/@id/__x00__${VIRTUAL_WORKER_ENTRY}`;
+
         return [
           `import config from ${JSON.stringify(VIRTUAL_CONFIG)};`,
           `import systemManifest from ${JSON.stringify(VIRTUAL_SYSTEM_MANIFEST)};`,
           `import { startGeneratedBrowserApp } from "@aperture-engine/app/browser";`,
-          `const worker = new Worker(new URL(${JSON.stringify(VIRTUAL_WORKER_ENTRY)}, import.meta.url), { type: "module" });`,
+          `const worker = new Worker(${JSON.stringify(workerEntryPath)}, { type: "module" });`,
           `startGeneratedBrowserApp({`,
           `  config,`,
           `  systemManifest,`,
@@ -113,20 +121,21 @@ export function aperture(
 
       return null;
     },
-    transformIndexHtml(html) {
-      if (html.includes(VIRTUAL_BROWSER_ENTRY)) {
-        return html;
-      }
+    transformIndexHtml: {
+      order: "pre",
+      handler(html) {
+        if (html.includes(VIRTUAL_BROWSER_ENTRY)) {
+          return html;
+        }
 
-      const script = `<script type="module" src="/@id/${encodeURIComponent(
-        VIRTUAL_BROWSER_ENTRY,
-      )}"></script>`;
+        const script = `<script type="module">import ${JSON.stringify(VIRTUAL_BROWSER_ENTRY)};</script>`;
 
-      if (html.includes("</body>")) {
-        return html.replace("</body>", `  ${script}\n</body>`);
-      }
+        if (html.includes("</body>")) {
+          return html.replace("</body>", `  ${script}\n</body>`);
+        }
 
-      return `${html}\n${script}\n`;
+        return `${html}\n${script}\n`;
+      },
     },
   };
 
@@ -246,6 +255,11 @@ function isVirtualId(id: string): boolean {
     id === VIRTUAL_WORKER_ENTRY ||
     id === VIRTUAL_BROWSER_ENTRY
   );
+}
+
+function virtualBaseId(id: string): string {
+  const queryIndex = id.indexOf("?");
+  return queryIndex === -1 ? id : id.slice(0, queryIndex);
 }
 
 async function readOptionalText(file: string): Promise<string | null> {
