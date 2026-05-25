@@ -1,5 +1,45 @@
 # Completed Tasks
 
+## task-3174 — Forward generated commands into worker-owned queues
+
+Completed: 2026-05-25
+
+Summary:
+
+- Added a typed generated command protocol with the
+  `aperture:command` browser event and worker message forwarding.
+- Generated browser status now reports forwarded command counts and the last
+  command event in JSON-safe form.
+- Generated worker status now includes `this.commands.summary()` with queued,
+  drained, and requested-asset status.
+- Extended worker startup to queue command messages before app readiness and
+  apply them to worker-owned `this.commands` once the app exists.
+- Added a developer API `AssetCommandSystem` that drains the `asset.request`
+  command channel and requests the manual `decal` config asset through
+  `this.commands.requestAsset(...)`.
+- Added a manual `decal` texture asset to browser/headless developer API
+  configs and proved it stays unloaded until command request.
+- Browser E2E now dispatches `aperture:command`, waits for the worker system to
+  drain it, observes the manual asset request as ready, and verifies the
+  command/request result through generated status.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts`
+- `pnpm run check:progress`
+
+Known follow-up:
+
+- `task-3175` should unify generated diagnostics for config, system-manifest,
+  worker, and asset-load failure cases.
+
 ## task-3173 — Publish developer API entity lookup summaries
 
 Completed: 2026-05-25

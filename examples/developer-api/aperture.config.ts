@@ -13,6 +13,9 @@ export default defineApertureConfig({
     floorColor: asset.texture("/assets/aperture-base-color-checker.png", {
       preload: "background",
     }),
+    decal: asset.texture("/assets/aperture-base-color-checker.png", {
+      preload: "manual",
+    }),
   },
   signals: {
     selectedEntity: signal.ref(null),

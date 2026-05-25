@@ -17,6 +17,12 @@ import {
   createGeneratedInputEventMessage,
   type ApertureGeneratedInputEvent,
 } from "./input.js";
+import {
+  APERTURE_GENERATED_COMMAND_EVENT,
+  createGeneratedCommandMessage,
+  parseGeneratedCommand,
+  type ApertureGeneratedCommand,
+} from "./commands.js";
 
 export interface GeneratedBrowserSystemManifestEntry {
   readonly moduleUrl: string;
@@ -49,6 +55,8 @@ export interface GeneratedBrowserAppStatus {
   skippedSourceAssets: number;
   forwardedInputEvents: number;
   lastInputEvent: unknown;
+  forwardedCommandEvents: number;
+  lastCommandEvent: unknown;
   lastFrame: number | null;
   lastError: unknown;
   lastWorkerSummary: unknown;
@@ -69,6 +77,7 @@ export async function startGeneratedBrowserApp(
       : { workerFactory: options.workerFactory }),
   });
   installGeneratedInputForwarding(canvas, worker, status);
+  installGeneratedCommandForwarding(worker, status);
   const mirroredWorker = mirrorSimulationWorkerSourceAssets(
     worker,
     sourceAssets,
@@ -151,6 +160,8 @@ function installGeneratedStatus(): GeneratedBrowserAppStatus {
     skippedSourceAssets: 0,
     forwardedInputEvents: 0,
     lastInputEvent: null,
+    forwardedCommandEvents: 0,
+    lastCommandEvent: null,
     lastFrame: null,
     lastError: null,
     lastWorkerSummary: null,
@@ -164,6 +175,36 @@ function installGeneratedStatus(): GeneratedBrowserAppStatus {
   ).__APERTURE_GENERATED_APP__ = status;
 
   return status;
+}
+
+function installGeneratedCommandForwarding(
+  worker: SimulationWorker,
+  status: GeneratedBrowserAppStatus,
+): void {
+  window.addEventListener(APERTURE_GENERATED_COMMAND_EVENT, (event) => {
+    const command = parseGeneratedCommand((event as CustomEvent).detail);
+
+    if (command === null) {
+      status.lastCommandEvent = {
+        error: "aperture.command.invalid",
+        suggestedFix:
+          "Dispatch aperture:command with detail { channel, payload? }.",
+      };
+      return;
+    }
+
+    forwardCommand(worker, status, command);
+  });
+}
+
+function forwardCommand(
+  worker: SimulationWorker,
+  status: GeneratedBrowserAppStatus,
+  command: ApertureGeneratedCommand,
+): void {
+  worker.postMessage(createGeneratedCommandMessage(command));
+  status.forwardedCommandEvents += 1;
+  status.lastCommandEvent = command;
 }
 
 function installGeneratedInputForwarding(

@@ -1,6 +1,64 @@
 # Agent Handoff
 
-Updated: 2026-05-25T05:01:17Z
+Updated: 2026-05-25T05:08:33Z
+
+## Current Run Update — 2026-05-25T05:08:33Z — Developer API generated command forwarding
+
+Continued the active goal to implement
+`docs/DEVELOPER_API_PROPOSAL.md`. The goal is **not complete** yet; this slice
+completes `task-3174` and moves the recommended next work to unified generated
+diagnostics.
+
+### What changed
+
+- Added a typed generated command protocol in `@aperture-engine/app/commands`.
+- Generated browser code now forwards `aperture:command` custom events to the
+  simulation worker and records forwarded command counts plus the last command
+  event in JSON-safe status.
+- Generated worker startup queues command messages before app readiness and
+  applies them to worker-owned `this.commands` once `createApertureApp(...)`
+  resolves.
+- Extended `this.commands` with JSON-safe summaries for enqueued/drained
+  command counts, queued channels, last queued/drained payloads, and requested
+  asset readiness/error status.
+- Added `examples/developer-api/src/systems/asset-command.system.ts`, which
+  drains the `asset.request` command channel and requests the manual `decal`
+  config asset through `this.commands.requestAsset(...)`.
+- Added the manual `decal` texture asset to browser and headless developer API
+  configs.
+- Updated focused headless tests and browser E2E so the manual asset stays
+  unloaded until the command path requests it, and generated status reports the
+  command/request result.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts`
+- `pnpm run check:progress`
+
+### Known issues / remaining proposal work
+
+- Unified generated diagnostics for config, manifest, worker, and asset-load
+  failures should still be tightened (`task-3175`).
+- Beginner docs still need to lead with config plus worker-discovered systems
+  and move imperative orchestration lower (`task-3176`).
+- Optional `@aperture-engine/app/vite` convenience re-export remains queued
+  after diagnostics/docs work (`task-3177`).
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Start `task-3175`: surface generated app diagnostics for config,
+system-manifest, worker, and asset-load failures through one JSON-safe
+browser/headless status shape.
 
 ## Current Run Update — 2026-05-25T05:01:17Z — Developer API entity lookup summaries
 

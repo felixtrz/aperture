@@ -393,23 +393,31 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-25 05:01 UTC</dd>
+            <dd>2026-05-25 05:08 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the developer-facing API now exposes
-              JSON-safe ECS entity lookup summaries through
-              <code>@aperture-engine/app/entity-lookup</code>, the headless
-              runner, and generated worker/browser status. Summaries return
-              canonical <code>{ index, generation }</code> refs, optional
-              app-authored key/name/tags, component ids, and GLB source asset
-              plus glTF node metadata without reading renderer-owned state.
-              Focused headless tests use the real developer API
-              setup/select/spin system files plus a data-URL GLB to prove exact
-              key lookup, regex name lookup, component and tag filters, GLB
-              source filters, JSON-safe status, and stale generation
-              diagnostics. The previous headless runner slice remains in place:
+              Latest update: the generated developer API now forwards
+              browser/UI commands into worker-owned
+              <code>this.commands</code> queues. Browser code listens for
+              <code>aperture:command</code>, forwards typed command messages to
+              the simulation worker, and reports forwarded command counts plus
+              the last command event. The generated worker queues commands
+              before app readiness, applies them to <code>this.commands</code>,
+              and publishes JSON-safe command summaries with enqueued/drained
+              counts and requested asset readiness. The developer API example
+              now includes an <code>AssetCommandSystem</code> that drains
+              <code>asset.request</code> and requests the manual
+              <code>decal</code> config asset through
+              <code>this.commands.requestAsset(...)</code>; Playwright
+              dispatches the command and verifies the worker system drains it
+              and reports the manual asset as ready. The entity lookup slice
+              remains in place: <code>@aperture-engine/app/entity-lookup</code>
+              returns canonical <code>{ index, generation }</code> refs,
+              optional app-authored key/name/tags, component ids, and GLB source
+              metadata without reading renderer-owned state. The headless runner
+              slice also remains in place:
               <code>@aperture-engine/app/headless</code> runs the same
               config/system path as the generated browser app, rejects
               non-headless configs, steps and extracts snapshots, and reports
@@ -5015,14 +5023,19 @@
                 entity lookup summaries for config/system-spawned entities.
               </li>
               <li>
-                <span class="badge">task-3174</span> Next: forward generated
-                browser/UI commands into worker-owned
+                <span class="badge green">task-3174</span> Done: forward
+                generated browser/UI commands into worker-owned
                 <code>this.commands</code> queues.
               </li>
               <li>
-                <span class="badge">task-3175</span> Then: surface generated
+                <span class="badge">task-3175</span> Next: surface generated
                 app diagnostics for config, system-manifest, worker, and
                 asset-load failures in one JSON-safe status shape.
+              </li>
+              <li>
+                <span class="badge">task-3176</span> Then: restructure the
+                beginner authoring docs around config plus worker-discovered
+                systems.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5041,6 +5054,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3174</div>
+            <div>
+              <strong>Developer API command forwarding shipped.</strong>
+              <span>
+                Generated browser <code>aperture:command</code> events now
+                reach worker-owned <code>this.commands</code>; the developer
+                API example drains <code>asset.request</code>, requests the
+                manual <code>decal</code> asset, and browser/headless tests
+                verify JSON-safe command and requested-asset status.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3173</div>
             <div>

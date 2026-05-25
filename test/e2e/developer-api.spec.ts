@@ -18,6 +18,8 @@ interface GeneratedBrowserAppStatus {
   readonly mirroredSourceAssets: number;
   readonly forwardedInputEvents?: number;
   readonly lastInputEvent?: unknown;
+  readonly forwardedCommandEvents?: number;
+  readonly lastCommandEvent?: unknown;
   readonly lastWorkerSummary?: {
     readonly input?: {
       readonly actions?: Record<
@@ -33,6 +35,15 @@ interface GeneratedBrowserAppStatus {
       readonly severity?: string;
       readonly data?: Record<string, unknown>;
     }[];
+    readonly commands?: {
+      readonly enqueued?: number;
+      readonly drained?: number;
+      readonly requestedAssets?: readonly {
+        readonly id?: string;
+        readonly status?: string;
+        readonly ready?: boolean;
+      }[];
+    };
     readonly entities?: {
       readonly total?: number;
       readonly summaries?: readonly {
@@ -212,6 +223,68 @@ test("generated Vite browser bootstrap renders a config/system-authored scene", 
       }),
     ]),
   );
+
+  await page.evaluate(() => {
+    window.dispatchEvent(
+      new CustomEvent("aperture:command", {
+        detail: {
+          channel: "asset.request",
+          payload: { assetId: "decal" },
+        },
+      }),
+    );
+  });
+  await page.waitForFunction(
+    () => {
+      const status = (globalThis as GeneratedStatusGlobal)
+        .__APERTURE_GENERATED_APP__;
+      const commands = status?.lastWorkerSummary?.commands;
+      const diagnostics = status?.lastWorkerSummary?.diagnostics ?? [];
+
+      return (
+        (status?.forwardedCommandEvents ?? 0) > 0 &&
+        (commands?.drained ?? 0) > 0 &&
+        (commands?.requestedAssets ?? []).some(
+          (asset) => asset.id === "decal" && asset.status === "ready",
+        ) &&
+        diagnostics.some(
+          (diagnostic) =>
+            diagnostic.code === "command.assetRequest.ready" &&
+            diagnostic.data?.asset === "decal" &&
+            diagnostic.data?.ready === true,
+        )
+      );
+    },
+    undefined,
+    { timeout: 10000 },
+  );
+
+  const commandStatus = await page.evaluate(
+    () =>
+      (globalThis as GeneratedStatusGlobal).__APERTURE_GENERATED_APP__ ?? null,
+  );
+
+  await test.info().attach("developer-api-command-status", {
+    body: JSON.stringify(commandStatus?.lastWorkerSummary ?? null, null, 2),
+    contentType: "application/json",
+  });
+
+  expect(commandStatus?.forwardedCommandEvents ?? 0).toBeGreaterThan(0);
+  expect(commandStatus?.lastCommandEvent).toMatchObject({
+    channel: "asset.request",
+    payload: { assetId: "decal" },
+  });
+  expect(commandStatus?.lastWorkerSummary?.commands).toMatchObject({
+    enqueued: expect.any(Number),
+    drained: expect.any(Number),
+    requestedAssets: expect.arrayContaining([
+      expect.objectContaining({
+        id: "decal",
+        status: "ready",
+        ready: true,
+      }),
+    ]),
+  });
 
   const screenshot = await page.locator("#aperture").screenshot();
   await page.mouse.up();

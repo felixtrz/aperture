@@ -60,23 +60,15 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 Active goal override is in effect for
-`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3174`: forward generated
-browser/UI commands into worker-owned `this.commands` queues and prove a system
-can request a manual config asset without importing loader reports or renderer
-registration code. This is the next visible slice because `task-3173` now
-publishes JSON-safe ECS entity lookup summaries for generated/headless apps,
-while the proposal's runtime command/request path is still missing.
+`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3175`: surface generated app
+diagnostics for config, system-manifest, worker, and asset-load failures
+through one JSON-safe browser/headless status shape. This is the next visible
+slice because `task-3174` now forwards generated browser/UI commands into
+worker-owned `this.commands` queues and proves manual config asset requests,
+while the proposal's failure-reporting contract still needs tightening.
 
 The next ready visible-feature queue is:
 
-- `task-3174` — forward generated browser/UI commands into worker-owned
-  `this.commands` queues and prove a system can request a manual config asset
-  without importing loader reports or renderer registration code.
-  Reference anchor: `references/engine/src/framework/app-base.js`.
-  Done when the developer API browser example exposes a command proof, the
-  command is drained in a worker system, a `preload: "manual"` asset request is
-  observed through `this.assets` readiness/error signals, and browser status
-  reports the command/request result in JSON-safe form.
 - `task-3175` — surface generated app diagnostics for config, system-manifest,
   worker, and asset-load failures through one JSON-safe browser/headless status
   shape.
@@ -94,6 +86,14 @@ The next ready visible-feature queue is:
   command examples, and links programmatic runtime/WebGPU orchestration as an
   advanced section without requiring first-time readers to understand
   renderer-side registration or snapshot posting.
+- `task-3177` — add an optional `@aperture-engine/app/vite` convenience
+  subpath that re-exports the Vite plugin without exposing plugin/build-time
+  code from the root `@aperture-engine/app` entry.
+  Reference anchor: `references/engine/src/framework/application.js`.
+  Done when `@aperture-engine/app/vite` type-checks, `vite.config.ts` can import
+  `aperture` from that subpath in a focused fixture, the root app export still
+  does not expose `aperture`, and docs keep `@aperture-engine/vite-plugin` as
+  the canonical default import.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

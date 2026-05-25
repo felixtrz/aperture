@@ -32,6 +32,9 @@ import developerHeadlessConfig from "../../examples/developer-api/aperture.headl
 import SetupSystem, {
   schedule as setupSchedule,
 } from "../../examples/developer-api/src/systems/setup.system.js";
+import AssetCommandSystem, {
+  schedule as assetCommandSchedule,
+} from "../../examples/developer-api/src/systems/asset-command.system.js";
 import SelectSystem, {
   schedule as selectSchedule,
 } from "../../examples/developer-api/src/systems/select.system.js";
@@ -334,6 +337,7 @@ describe("developer-facing app API", () => {
       config: developerHeadlessConfig,
       systems: [
         { default: SetupSystem, schedule: setupSchedule },
+        { default: AssetCommandSystem, schedule: assetCommandSchedule },
         { default: SelectSystem, schedule: selectSchedule },
         { default: SpinCrateSystem, schedule: spinSchedule },
       ],
@@ -350,7 +354,7 @@ describe("developer-facing app API", () => {
       preload: {
         blocking: ["robot"],
         background: ["floorColor"],
-        manual: [],
+        manual: ["decal"],
       },
       lastSnapshot: null,
     });
@@ -405,6 +409,7 @@ describe("developer-facing app API", () => {
       config,
       systems: [
         { default: SetupSystem, schedule: setupSchedule },
+        { default: AssetCommandSystem, schedule: assetCommandSchedule },
         { default: SelectSystem, schedule: selectSchedule },
         { default: SpinCrateSystem, schedule: spinSchedule },
       ],
@@ -507,6 +512,58 @@ describe("developer-facing app API", () => {
     );
   });
 
+  it("drains generated command queues in systems and requests manual config assets", async () => {
+    const loadedAssets: string[] = [];
+    const runner = await createApertureHeadlessRunner({
+      config: developerHeadlessConfig,
+      systems: [
+        { default: SetupSystem, schedule: setupSchedule },
+        { default: AssetCommandSystem, schedule: assetCommandSchedule },
+        { default: SelectSystem, schedule: selectSchedule },
+        { default: SpinCrateSystem, schedule: spinSchedule },
+      ],
+      assetLoader: {
+        async load(assetHandle) {
+          loadedAssets.push(assetHandle.id);
+        },
+      },
+    });
+
+    expect(loadedAssets).toContain("robot");
+    expect(loadedAssets).not.toContain("decal");
+    expect(runner.app.context.assets.texture("decal").ready.value).toBe(false);
+
+    runner.app.context.commands.queue("asset.request", { assetId: "decal" });
+    runner.step(1 / 60, 0.5);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(loadedAssets).toContain("decal");
+    expect(runner.app.context.assets.texture("decal").ready.value).toBe(true);
+    expect(runner.getStatus().diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "command.assetRequest.ready",
+          data: expect.objectContaining({
+            channel: "asset.request",
+            asset: "decal",
+            ready: true,
+          }),
+        }),
+      ]),
+    );
+    expect(runner.app.context.commands.summary()).toMatchObject({
+      enqueued: 1,
+      drained: 1,
+      requestedAssets: expect.arrayContaining([
+        expect.objectContaining({
+          id: "decal",
+          status: "ready",
+          ready: true,
+        }),
+      ]),
+    });
+  });
+
   it("discovers worker system globs and records schedule metadata without exposing classes to the main manifest", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "aperture-plugin-"));
 
@@ -584,12 +641,16 @@ describe("developer-facing app API", () => {
   it("keeps config and system helpers headless-safe", async () => {
     const configSource = await readFile("packages/app/src/config.ts", "utf8");
     const systemsSource = await readFile("packages/app/src/systems.ts", "utf8");
+    const commandsSource = await readFile(
+      "packages/app/src/commands.ts",
+      "utf8",
+    );
     const entityLookupSource = await readFile(
       "packages/app/src/entity-lookup.ts",
       "utf8",
     );
     const rootSource = await readFile("packages/app/src/index.ts", "utf8");
-    const headlessSafeSource = `${configSource}\n${systemsSource}\n${entityLookupSource}\n${rootSource}`;
+    const headlessSafeSource = `${configSource}\n${systemsSource}\n${commandsSource}\n${entityLookupSource}\n${rootSource}`;
 
     expect(headlessSafeSource).not.toMatch(
       /@aperture-engine\/webgpu|navigator\.gpu|HTMLCanvasElement|createWebGpuApp|from "\.\/browser\.js"/,

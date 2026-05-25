@@ -6,6 +6,10 @@ import {
 import type { ApertureConfig } from "./config.js";
 import { createApertureApp, type ApertureSystemModule } from "./advanced.js";
 import { serializeSourceAssetRegistry } from "./asset-mirror.js";
+import {
+  isGeneratedCommandMessage,
+  type ApertureGeneratedCommandMessage,
+} from "./commands.js";
 import { createApertureEntityLookupSnapshot } from "./entity-lookup.js";
 import {
   applyGeneratedInputEvent,
@@ -41,6 +45,7 @@ function attachWorkerPort(
 ): void {
   const port = options.port;
   const pendingInput: ApertureGeneratedInputEventMessage[] = [];
+  const pendingCommands: ApertureGeneratedCommandMessage[] = [];
   let app: ApertureApp | null = null;
 
   port.addEventListener("message", (event: MessageEvent<unknown>) => {
@@ -55,6 +60,15 @@ function attachWorkerPort(
           config: options.config,
           event: message.event,
         });
+      }
+      return;
+    }
+
+    if (isGeneratedCommandMessage(message)) {
+      if (app === null) {
+        pendingCommands.push(message);
+      } else {
+        applyGeneratedCommand(app, message);
       }
       return;
     }
@@ -77,6 +91,9 @@ function attachWorkerPort(
             config: options.config,
             event: pending.event,
           });
+        }
+        for (const pending of pendingCommands.splice(0)) {
+          applyGeneratedCommand(nextApp, pending);
         }
       },
     });
@@ -121,6 +138,7 @@ async function runLoop(options: {
         sourceAssets: serializeSourceAssetRegistry(app.lowLevel.assets),
         workerSummary: {
           input: createInputSummary(app.context.input),
+          commands: app.context.commands.summary(),
           diagnostics: app.context.diagnostics.list(),
           entities: createApertureEntityLookupSnapshot(app.lowLevel.world, {
             label: "generated-worker",
@@ -148,6 +166,13 @@ async function runLoop(options: {
           : "Generated Aperture simulation worker failed.",
     });
   }
+}
+
+function applyGeneratedCommand(
+  app: ApertureApp,
+  message: ApertureGeneratedCommandMessage,
+): void {
+  app.context.commands.queue(message.command.channel, message.command.payload);
 }
 
 function waitForWorkerPort(

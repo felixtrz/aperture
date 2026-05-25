@@ -2,23 +2,24 @@
 
 No active task is currently checked out.
 
-Status: `task-3173` completed the Developer API entity lookup summary slice.
-Generated/headless apps now expose JSON-safe ECS entity summaries for
-agent/tool discovery without reading renderer-owned state.
+Status: `task-3174` completed the Developer API generated command forwarding
+slice. Browser/UI commands now flow into worker-owned `this.commands` queues,
+and a worker system can request a manual config asset without loader or renderer
+registration code.
 
 Key findings:
 
-- `@aperture-engine/app/entity-lookup` exports helper functions and a lookup
-  facade for exact key, regex name, component, tag, and GLB source filters.
-- Summaries return canonical `{ index, generation }`, optional key/name/tags,
-  component ids, and source asset/node metadata.
-- Stale generation follow-up references return actionable diagnostics that
-  suggest rerunning `aperture_entity_find`.
-- Headless runner status and generated browser worker summaries include
-  JSON-safe entity lookup snapshots.
+- Generated browser code forwards `aperture:command` custom events to the
+  simulation worker.
+- Generated worker startup queues command messages before the app is ready and
+  applies them to `this.commands` afterward.
+- The developer API example now declares a manual `decal` texture asset and an
+  `AssetCommandSystem` that drains `asset.request`.
+- Browser status reports forwarded command counts, the last command, command
+  drain counts, and requested asset readiness in JSON-safe form.
 
 Recommended next task:
 
-- `task-3174` — forward generated browser/UI commands into worker-owned
-  `this.commands` queues and prove a system can request a manual config asset
-  without importing loader reports or renderer registration code.
+- `task-3175` — surface generated app diagnostics for config, system-manifest,
+  worker, and asset-load failures through one JSON-safe browser/headless status
+  shape.

@@ -31,6 +31,10 @@
       "types": "./dist/entity-lookup.d.ts",
       "import": "./dist/entity-lookup.js"
     },
+    "./commands": {
+      "types": "./dist/commands.d.ts",
+      "import": "./dist/commands.js"
+    },
     "./browser": {
       "types": "./dist/browser.d.ts",
       "import": "./dist/browser.js"
