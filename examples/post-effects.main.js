@@ -1,3 +1,5 @@
+import { configureApertureExampleControl } from "./example-control.js";
+
 const canvas = document.querySelector("#aperture-canvas");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
@@ -16,6 +18,33 @@ const baseStatus = {
     height: canvas?.height ?? 0,
   },
 };
+
+configureApertureExampleControl({
+  capabilities: {
+    scenario: true,
+    readback: true,
+  },
+  async setScenario(id) {
+    const config = postEffectsScenarioConfig(id);
+
+    await withTimeout(
+      startConfig(config, { updateUrl: true }),
+      8000,
+      "post-effects-scenario-start-timeout",
+    );
+    return waitForPostEffectsStatus(config);
+  },
+  getFrameState() {
+    const status = globalThis.__APERTURE_EXAMPLE_STATUS__ ?? null;
+
+    return {
+      status,
+      frame: status?.extraction?.frame ?? null,
+      effects: status?.effects ?? null,
+      readback: status?.readback ?? null,
+    };
+  },
+});
 
 window.__APERTURE_POST_EFFECTS_STOP__ = disposeActiveRuntime;
 
@@ -455,6 +484,71 @@ function readConfigFromLocation() {
   };
 }
 
+function postEffectsScenarioConfig(id) {
+  if (id === "raw" || id === "none") {
+    return { fxaa: false, bloom: false };
+  }
+
+  if (id === "fxaa") {
+    return { fxaa: true, bloom: false };
+  }
+
+  if (id === "bloom") {
+    return { fxaa: false, bloom: true };
+  }
+
+  if (id === "fxaa-bloom" || id === "default") {
+    return { fxaa: true, bloom: true };
+  }
+
+  throw new Error(`Unknown post-effects scenario '${id}'.`);
+}
+
+async function waitForPostEffectsStatus(config) {
+  const deadline = performance.now() + 8000;
+
+  while (performance.now() < deadline) {
+    const status = globalThis.__APERTURE_EXAMPLE_STATUS__;
+
+    if (
+      status?.ok === true &&
+      status.effects?.fxaa === config.fxaa &&
+      status.effects?.bloom === config.bloom
+    ) {
+      return status;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+
+  return {
+    ok: false,
+    reason: "post-effects-scenario-timeout",
+    message: "Post effects scenario did not reach a ready status.",
+    expected: config,
+    status: globalThis.__APERTURE_EXAMPLE_STATUS__ ?? null,
+  };
+}
+
+async function withTimeout(promise, timeoutMs, reason) {
+  let timeoutId = null;
+
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(new Error(reason));
+        }, timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+    }
+  }
+}
+
 function updateButtons(config) {
   effectButtons.forEach((button) => {
     const effect = button.getAttribute("data-effect");
@@ -467,9 +561,14 @@ function updateButtons(config) {
 }
 
 function disposeActiveRuntime() {
-  activeRuntime?.app?.stop();
-  activeRuntime?.worker?.terminate?.();
+  const runtime = activeRuntime;
+
   activeRuntime = null;
+
+  runtime?.app?.stop();
+  runtime?.app?.initialization.context?.unconfigure?.();
+  runtime?.app?.initialization.device?.destroy?.();
+  runtime?.worker?.terminate?.();
 }
 
 function createGridReadbackSamples(columns, rows) {

@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+import { configureApertureExampleControl } from "./example-control.js";
 import {
   findSampleAssetById,
   getDefaultSampleAsset,
@@ -179,6 +180,42 @@ const shadowIntent = {
   depthBias: 0.0015,
   normalBias: 0.01,
 };
+
+configureApertureExampleControl({
+  getFrameState() {
+    const status = globalThis.__APERTURE_EXAMPLE_STATUS__ ?? null;
+
+    return {
+      status,
+      frame: status?.worker?.step?.frame ?? status?.frame ?? null,
+      selectedAsset: status?.selectedAsset ?? null,
+      animation: status?.animation ?? null,
+      controls: {
+        asset:
+          assetSelect instanceof HTMLSelectElement ? assetSelect.value : null,
+        scene:
+          sceneSelect instanceof HTMLSelectElement ? sceneSelect.value : null,
+        importedCamera:
+          importedCameraToggle instanceof HTMLInputElement
+            ? importedCameraToggle.checked
+            : null,
+        shadowReceiver:
+          shadowReceiverToggle instanceof HTMLInputElement
+            ? shadowReceiverToggle.checked
+            : null,
+        shadowCaster:
+          shadowCasterToggle instanceof HTMLInputElement
+            ? shadowCasterToggle.checked
+            : null,
+        ibl: iblToggle instanceof HTMLInputElement ? iblToggle.checked : null,
+        importedLight:
+          importedLightToggle instanceof HTMLInputElement
+            ? importedLightToggle.checked
+            : null,
+      },
+    };
+  },
+});
 const supportedMetadataExtensions = new Set([
   "KHR_materials_unlit",
   "KHR_texture_transform",
@@ -844,6 +881,7 @@ function startGlbViewerMain(aperture, app, sourceAssets, textureCompression) {
     standardMaterialShadowReceiverResources: null,
   };
 
+  globalThis.__APERTURE_GLB_VIEWER_STOP__ = () => disposeGlbViewerMain(state);
   populateMainAssetSelect();
   bindMainControls(aperture, state);
 
@@ -1311,6 +1349,20 @@ function unregisterMainActiveAssets(aperture, state) {
   }
 
   state.activeRegisteredAssetKeys = [];
+}
+
+function disposeGlbViewerMain(state) {
+  state.worker.terminate();
+  state.app.stop();
+  state.app.initialization.context?.unconfigure?.();
+  state.app.initialization.device?.destroy?.();
+  publishStatus({
+    example: "glb-viewer",
+    ok: true,
+    phase: "stopped",
+    selectedAsset: state.latestStatus?.selectedAsset ?? null,
+    animation: state.latestStatus?.animation ?? null,
+  });
 }
 
 async function handleGlbWorkerMessage(aperture, state, message) {

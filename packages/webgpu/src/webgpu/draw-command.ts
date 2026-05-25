@@ -162,7 +162,7 @@ export function writeDrawCommandDescriptors(
     }
 
     if (
-      hasPipelineFeaturePrefix(authoredPipelineKey, "instance-attributes:") &&
+      pipelineUsesInstanceAttributes(authoredPipelineKey) &&
       appendInstanceAttributeBufferKey(
         drawPackage,
         descriptor,
@@ -271,6 +271,14 @@ function hasPipelineFeaturePrefix(
   return pipelineKey
     .split("|")
     .some((feature) => feature.startsWith(featurePrefix));
+}
+
+function pipelineUsesInstanceAttributes(pipelineKey: string): boolean {
+  const prefix = "instance-attributes:";
+
+  return pipelineKey
+    .split("|")
+    .some((feature) => feature.startsWith(prefix) && feature !== `${prefix}none`);
 }
 
 function descriptorAt(

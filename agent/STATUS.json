@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "12cf70d",
   "activePid": null,
-  "notes": "Completed task-3160 persistent render shell. examples/persistent-render-shell.html keeps one WebGPU app alive while transparent-pressure and clustered-pressure-history ECS/extraction workers reset underneath it; future task-3161 is cross-device benchmark automation.",
-  "lastRunFinishedAt": "2026-05-24T17:03:21Z"
+  "notes": "Unified example render-control acceptance complete; final proofs/smoke/type/static/focused Playwright validation passed",
+  "lastRunFinishedAt": "2026-05-25T01:29:24Z"
 }

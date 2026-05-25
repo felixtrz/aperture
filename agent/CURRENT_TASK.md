@@ -1,26 +1,28 @@
 # Current Task
 
-No active task is required for the persistent render shell goal.
+No active task is currently checked out.
 
-Status: `task-3160` completed the persistent render shell for scenario-swap
-proofs.
+Status: `task-3162` completed the unified example render-control testing
+infrastructure slice and the follow-up route-restoration fixes completed
+`task-3163`, `task-3164`, and `task-3165`.
 
 Key findings:
 
-- `examples/persistent-render-shell.html` creates one canvas-backed
-  `createWebGpuApp(...)` instance and keeps it alive while fresh ECS/extraction
-  workers reset underneath it.
-- The focused shell proof runs `transparent-pressure` and
-  `clustered-pressure-history` in one Playwright page without navigation or
-  renderer recreation.
-- Per-scenario status includes scenario id/run id, frame count, elapsed time,
-  renderer identity, readback evidence, worker transport evidence, and a
-  WebGPU-warning list.
-- Standalone route tests remain necessary for cold-start coverage; shell mode
-  is for renderer-lifetime reset/stress coverage.
+- All renderer-backed example HTML files except `examples/index.html` now load
+  the shared `examples/example-control.js` browser protocol helper.
+- The reusable Playwright controller can drive standalone routes and persistent
+  shell scenarios, capture scoped WebGPU warnings, pause/step supported routes,
+  write snapshots/screenshots, and generate status/pixel diffs.
+- The CLI frontend can run proof scripts and an all-route smoke that records
+  status and warning artifacts for 49 renderer-backed routes.
+- The final all-route smoke now visits 49 renderer-backed routes with empty
+  `routeStatusFailures` and empty `warningRoutes`.
+- The focused controller/persistent/custom-material/transmission/DOF Playwright
+  run passes. The full legacy `gltf-scene.spec.ts` browser wrapper remains too
+  heavy for this acceptance gate; `gltf-scene.html` is covered by the final
+  controller smoke with `ok:true` and zero scoped warnings.
 
-Recommended future task:
+Recommended next task:
 
-- `task-3161` — add cross-device benchmark automation for post-SOTA hardening,
-  using shell mode where it reduces page/device churn and standalone routes for
-  first-frame boot coverage.
+- `task-3166` — add a split-screen multi-camera route with two ECS-authored
+  camera views and render-control pixel/status proof.

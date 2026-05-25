@@ -3,6 +3,9 @@
 The persistent render shell is an E2E proof harness for renderer reuse across
 scenario resets.
 
+For the broader example control workflow, CLI, and Playwright controller API,
+see [`RENDER_CONTROL.md`](./RENDER_CONTROL.md).
+
 Use `examples/persistent-render-shell.html` when the test needs one browser
 page, one canvas, and one `createWebGpuApp(...)` instance to stay alive while
 fresh ECS/extraction scenario producers are swapped underneath it. The renderer

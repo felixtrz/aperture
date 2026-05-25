@@ -211,6 +211,16 @@ describe("draw command descriptor planning", () => {
     ]);
   });
 
+  it("does not require instance attribute packets for explicit none pipeline tokens", () => {
+    const result = createDrawCommandDescriptors(
+      [drawPackage(1, "mesh:a", "custom|instance-attributes:none|opaque")],
+      [meshResource("mesh:a", true)],
+    );
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.descriptors[0]?.vertexBufferKeys).toEqual(["mesh:a/vertex"]);
+  });
+
   it("diagnoses instance-tint pipelines without a tint buffer", () => {
     const result = createDrawCommandDescriptors(
       [

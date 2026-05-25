@@ -393,19 +393,18 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-24 17:03 UTC</dd>
+            <dd>2026-05-25 01:25 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest render-pipeline tooling slice:
-              <code>examples/persistent-render-shell.html</code> now keeps one
-              canvas and one <code>createWebGpuApp(...)</code> instance alive
-              while swapping fresh ECS/extraction scenario producers. The shell
-              runs transparent pressure and clustered pressure-history proofs in
-              one Playwright page with stable renderer identity, JSON-safe
-              per-scenario status, readback evidence, elapsed-time telemetry,
-              and per-scenario WebGPU warning capture. The covered audit remains
+              Latest update: the unified render-control infrastructure is now
+              accepted. A shared browser protocol helper, Playwright controller,
+              CLI frontend, proof commands, all-route smoke command, and
+              <code>docs/RENDER_CONTROL.md</code> are in place. The final
+              <code>pnpm render-control:smoke-all</code> pass visits 49
+              renderer-backed routes with no route status failures and no
+              scoped WebGPU warning routes. The covered audit remains
               recorded in <code>docs/RENDER_PIPELINE_SOTA_AUDIT.md</code> as the
               final covered-pipeline audit against three.js and PlayCanvas.
               Within Aperture's implemented scope, the audited render pipeline
@@ -2483,6 +2482,19 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">tooling</span> Added the unified
+                render-control protocol/helper, controller, CLI, focused pilot
+                suite, and <code>docs/RENDER_CONTROL.md</code> workflow guide
+                for example development; the final smoke visits 49 routes with
+                no status failures or scoped warning routes.
+              </li>
+              <li>
+                <span class="badge green">routes</span> Restored
+                <code>custom-material</code>, <code>transmission</code>, and
+                <code>clustered-lights</code> after the smoke surfaced route
+                regressions during controller acceptance.
+              </li>
               <li>
                 <span class="badge green">task-3160</span> Added a persistent
                 render shell that keeps one WebGPU renderer alive while fresh
@@ -4931,15 +4943,24 @@
                 <code>docs/RENDER_PIPELINE_SOTA_AUDIT.md</code>.
               </li>
               <li>
-                <span class="badge">task-3161</span> Next: add cross-device
-                benchmark automation that runs the key SOTA proof routes and
-                writes comparable JSON summaries without turning local numbers
-                into release promises.
+                <span class="badge">task-3166</span> Next: add a split-screen
+                multi-camera route with two ECS-authored camera views and
+                render-control pixel/status proof.
               </li>
               <li>
-                Use <code>docs/PERSISTENT_RENDER_SHELL.md</code> to choose
-                between standalone cold-start route tests and persistent shell
-                reset/stress proofs.
+                <span class="badge">task-3167</span> Then: add an orthographic
+                camera projection route with perspective-vs-orthographic visual
+                proof.
+              </li>
+              <li>
+                <span class="badge">task-3168</span> Then: add a line/wire
+                primitive rendering route through typed ECS assets.
+              </li>
+              <li>
+                Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
+                workflows, and <code>docs/PERSISTENT_RENDER_SHELL.md</code> to
+                choose between standalone cold-start route tests and persistent
+                shell reset/stress proofs.
               </li>
             </ul>
           </article>
@@ -4952,6 +4973,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3162</div>
+            <div>
+              <strong>Unified render-control infrastructure accepted.</strong>
+              <span>
+                All renderer-backed examples expose the shared control protocol,
+                the CLI proof and smoke commands are documented, and the final
+                all-route smoke visits 49 routes with zero status failures and
+                zero scoped warning routes.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3160</div>
             <div>

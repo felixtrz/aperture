@@ -1,3 +1,4 @@
+import { configureApertureExampleControl } from "./example-control.js";
 import { createNoopSimulationWorker } from "./noop-simulation-worker.js";
 import { inspectStructuredCloneSnapshot } from "./snapshot-transport-status.js";
 
@@ -25,6 +26,55 @@ const baseStatus = {
     height: canvas?.height ?? 0,
   },
 };
+const frameControl = {
+  paused: false,
+  pendingSteps: 0,
+  scheduled: false,
+  active: null,
+  waiters: [],
+};
+
+globalThis.__APERTURE_SPINNING_CUBE_STOP__ = disposeFrameControl;
+
+configureApertureExampleControl({
+  capabilities: {
+    pause: true,
+    resume: true,
+    step: true,
+    readback: requestedTonemap !== null,
+  },
+  pause() {
+    frameControl.paused = true;
+    return createFrameControlSnapshot("paused");
+  },
+  resume() {
+    frameControl.paused = false;
+    scheduleActiveWorkerFrame();
+    return createFrameControlSnapshot("resumed");
+  },
+  async step(frames = 1) {
+    const count = finitePositiveInteger(frames, 1);
+    const active = frameControl.active;
+
+    frameControl.paused = true;
+    frameControl.pendingSteps += count;
+
+    if (active === null) {
+      return createFrameControlSnapshot("step-pending");
+    }
+
+    const targetFrame = active.loop.receivedSnapshots + count;
+    const result = new Promise((resolve) => {
+      frameControl.waiters.push({ targetFrame, resolve });
+    });
+
+    scheduleActiveWorkerFrame();
+    return result;
+  },
+  getFrameState() {
+    return createFrameControlSnapshot("frame-state");
+  },
+});
 
 try {
   const [core, webgpu] = await Promise.all([
@@ -192,6 +242,7 @@ function startWorkerSnapshotLoop(
     workerScene: null,
   };
 
+  frameControl.active = { app, worker, loop };
   worker.addEventListener("message", (event) => {
     void handleWorkerMessage(
       aperture,
@@ -236,7 +287,7 @@ async function handleWorkerMessage(
   if (message?.type === "ready") {
     loop.workerReady = true;
     loop.workerScene = message.scene ?? null;
-    requestWorkerFrame(worker, loop);
+    scheduleWorkerFrame(worker, loop);
     return;
   }
 
@@ -279,27 +330,110 @@ async function handleWorkerMessage(
   );
 
   publishStatus(status);
+  resolveFrameControlWaiters(loop);
 
   if (status.ok) {
-    requestWorkerFrame(worker, loop);
+    scheduleWorkerFrame(worker, loop);
   } else {
     worker.terminate();
   }
 }
 
-function requestWorkerFrame(worker, loop) {
-  requestAnimationFrame((timestamp) => {
-    if (!loop.workerReady) {
-      return;
-    }
+function scheduleWorkerFrame(worker, loop) {
+  if (frameControl.scheduled) {
+    return;
+  }
 
-    loop.frame += 1;
-    worker.postMessage({
-      type: "frame",
-      frame: loop.frame,
-      timestamp,
+  if (frameControl.paused && frameControl.pendingSteps <= 0) {
+    return;
+  }
+
+  frameControl.scheduled = true;
+  const scheduleFrame = () =>
+    requestAnimationFrame((timestamp) => {
+      frameControl.scheduled = false;
+
+      if (!loop.workerReady) {
+        return;
+      }
+
+      if (frameControl.paused) {
+        if (frameControl.pendingSteps <= 0) {
+          return;
+        }
+
+        frameControl.pendingSteps -= 1;
+      }
+
+      loop.frame += 1;
+      worker.postMessage({
+        type: "frame",
+        frame: loop.frame,
+        timestamp,
+      });
     });
-  });
+
+  if (frameControl.paused && frameControl.pendingSteps > 0) {
+    setTimeout(scheduleFrame, 32);
+  } else {
+    scheduleFrame();
+  }
+}
+
+function scheduleActiveWorkerFrame() {
+  const active = frameControl.active;
+
+  if (active !== null) {
+    scheduleWorkerFrame(active.worker, active.loop);
+  }
+}
+
+function disposeFrameControl() {
+  frameControl.paused = true;
+  frameControl.pendingSteps = 0;
+  frameControl.scheduled = false;
+  frameControl.active = null;
+
+  for (const waiter of frameControl.waiters) {
+    waiter.resolve(createFrameControlSnapshot("stopped"));
+  }
+
+  frameControl.waiters = [];
+
+  return createFrameControlSnapshot("stopped");
+}
+
+function resolveFrameControlWaiters(loop) {
+  if (frameControl.waiters.length === 0) {
+    return;
+  }
+
+  const pending = [];
+
+  for (const waiter of frameControl.waiters) {
+    if (loop.receivedSnapshots >= waiter.targetFrame) {
+      waiter.resolve(createFrameControlSnapshot("stepped"));
+    } else {
+      pending.push(waiter);
+    }
+  }
+
+  frameControl.waiters = pending;
+}
+
+function createFrameControlSnapshot(phase) {
+  const status = globalThis.__APERTURE_EXAMPLE_STATUS__ ?? null;
+
+  return {
+    ok: true,
+    phase,
+    paused: frameControl.paused,
+    pendingSteps: frameControl.pendingSteps,
+    scheduled: frameControl.scheduled,
+    frame: status?.animation?.frames ?? null,
+    snapshotsReceived: status?.worker?.snapshotsReceived ?? null,
+    status,
+  };
 }
 
 function createFrameStatus(
@@ -881,6 +1015,12 @@ function environmentFailure(error) {
 
 function failure(phase, reason, message) {
   return { ...baseStatus, ok: false, phase, reason, message };
+}
+
+function finitePositiveInteger(value, fallback) {
+  const integer = Number.isFinite(value) ? Math.trunc(value) : fallback;
+
+  return Math.max(1, integer);
 }
 
 function publishStatus(status) {

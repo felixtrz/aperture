@@ -237,14 +237,20 @@ function frameStatus(report) {
 }
 
 function disposeCreatedRuntime(created) {
-  created.app?.stop?.();
+  disposeDofApp(created.app);
 }
 
 function disposeActiveRuntime() {
-  activeRuntime?.raw?.stop?.();
-  activeRuntime?.dof?.stop?.();
+  disposeDofApp(activeRuntime?.raw);
+  disposeDofApp(activeRuntime?.dof);
   activeRuntime?.worker?.terminate?.();
   activeRuntime = null;
+}
+
+function disposeDofApp(app) {
+  app?.stop?.();
+  app?.initialization?.context?.unconfigure?.();
+  app?.initialization?.device?.destroy?.();
 }
 
 function failure(reason, message, extra = {}) {

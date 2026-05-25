@@ -1,6 +1,124 @@
 # Agent Handoff
 
-Updated: 2026-05-24T17:03:21Z
+Updated: 2026-05-25T01:25:43Z
+
+## Current Run Update — 2026-05-25T01:25:43Z — Unified render-control acceptance closed
+
+Completed the active goal to implement
+`docs/UNIFIED_EXAMPLE_TESTING_INFRA_PLAN.md` and satisfy its explicitly listed
+acceptance criteria.
+
+### What changed after the initial controller slice
+
+- Restored `custom-material.html` by allowing explicit
+  `instance-attributes:none` pipeline keys to render without requiring an
+  instance-attribute packet.
+- Restored `transmission.html` by filtering only actual transmission material
+  draws from the scene-color grab pass while keeping opaque scene draws.
+- Scoped auto-derived WebGPU pipeline-layout cache keys by pipeline resource key
+  so unlit/matcap/debug-normal paths do not reuse stale bind groups.
+- Fixed all-route clustered-light readback by sampling the last swapchain target
+  in multi-target app frames instead of the first swapchain target.
+- Made persistent shell scenario driving deterministic in Playwright by
+  foregrounding scenario pages and adding bounded page-side scenario timeouts.
+- Moved the DOF Playwright spec onto the controller-owned browser lifecycle and
+  bounded `BrowserServer.kill()` so Chrome shutdown hangs do not strand the
+  runner.
+
+### Validation
+
+- `pnpm run check:examples`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm --filter @aperture-engine/webgpu build`
+- `pnpm exec vitest run test/webgpu/draw-command.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec playwright test test/e2e/render-control.spec.ts test/e2e/persistent-render-shell.spec.ts test/e2e/custom-material.spec.ts test/e2e/transmission.spec.ts test/e2e/dof.spec.ts --timeout=180000 --reporter=line --trace=off`
+- `pnpm render-control:proofs`
+- `pnpm render-control:smoke-all`
+
+Final `pnpm render-control:smoke-all` visited 49 renderer-backed routes with
+empty `routeStatusFailures` and empty `warningRoutes`.
+
+### Known issues
+
+- The broad legacy `test/e2e/gltf-scene.spec.ts` browser wrapper was not used as
+  a final gate because it remained a local long-run/hang risk. The migrated
+  `gltf-scene.html` route is covered by the all-route controller smoke with
+  `ok:true` and zero scoped WebGPU warnings.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Start `task-3166`: add a split-screen multi-camera route with two ECS-authored
+camera views and render-control pixel/status proof.
+
+## Current Run Update — 2026-05-24T21:18:57Z — Unified example render control
+
+Completed `task-3162`, adding the unified example render-control testing
+infrastructure described in `docs/UNIFIED_EXAMPLE_TESTING_INFRA_PLAN.md`.
+
+### What changed
+
+- Added `examples/example-control.js`, a shared browser-side protocol helper for
+  JSON-safe status, warnings, snapshots, frame state, pause/resume/step, and
+  scenarios.
+- Loaded that helper from every renderer-backed example HTML file except
+  `examples/index.html`.
+- Added `test/e2e/render-control/` with the reusable Playwright controller,
+  scoped warning capture, snapshot/screenshot/pixel artifact helpers, status
+  and pixel diff helpers, and a controller-owned browser lifecycle for the
+  multi-route pilot.
+- Added focused controller E2E coverage for `triangle.html`,
+  `spinning-cube.html`, `post-effects.html`, `glb-viewer.html`, and
+  `persistent-render-shell.html`.
+- Bridged `test/e2e/persistent-route-harness.ts` and
+  `test/e2e/persistent-render-shell.spec.ts` onto the shared controller.
+- Added `scripts/render-control.mjs` plus `pnpm render-control`,
+  `pnpm render-control:proofs`, and `pnpm render-control:smoke-all`.
+- Added `scripts/check-example-control.mjs` to verify example HTML helper
+  onboarding, and included it in `pnpm run check:examples`.
+- Added `docs/RENDER_CONTROL.md`, linked it from
+  `docs/PERSISTENT_RENDER_SHELL.md`, and updated `docs/index.html`.
+
+### Validation
+
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/render-control.spec.ts --timeout=120000 --reporter=line --trace=off`
+- `pnpm exec playwright test test/e2e/persistent-render-shell.spec.ts --timeout=120000 --reporter=line --trace=off`
+- `APERTURE_RENDER_CONTROL_CHANNEL=chromium pnpm render-control pilot`
+- `APERTURE_RENDER_CONTROL_CHANNEL=chromium pnpm render-control:proofs`
+- `APERTURE_RENDER_CONTROL_CHANNEL=chromium pnpm render-control:smoke-all`
+
+The all-route smoke visited 49 renderer-backed routes and wrote status/warning
+artifacts under `test-results/render-control-cli`.
+
+### Known issues
+
+- The smoke records `routeStatusFailures` for `clustered-lights.html`,
+  `custom-material.html`, and `transmission.html`.
+- Scoped smoke warning artifacts list WebGPU validation warnings for
+  `dof.html`, `gltf-scene.html`, and `transmission.html`.
+- `pnpm exec playwright test test/e2e/custom-material.spec.ts --timeout=120000 --reporter=line --trace=off`
+  failed because the visible WaterMaterial proof timed out waiting for
+  `ok:true`; status stayed at `custom-draw-plan-unavailable`.
+- `pnpm exec playwright test test/e2e/transmission.spec.ts --timeout=120000 --reporter=line --trace=off`
+  failed because the default transmission route reported `ok:false` with
+  failing roughness and texture contrast checks.
+- A focused GLB viewer route proof was not rerun after the controller slice
+  because the existing GLB viewer spec has an unrelated stale asset-count
+  expectation discovered earlier in this work.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and were left
+  untouched.
+
+### Recommended next task
+
+Start `task-3163`: restore the visible `custom-material.html` WaterMaterial
+draw-plan output so the focused route proof and all-route controller smoke can
+return to `ok:true`.
 
 ## Current Run Update — 2026-05-24T17:03:21Z — Persistent render shell
 

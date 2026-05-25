@@ -1,5 +1,98 @@
 # Completed Tasks
 
+## task-3165 — Restore clustered-lights default readback status in smoke
+
+Completed: 2026-05-25
+
+Summary:
+
+- Changed app-frame readback selection to use the last swapchain target so
+  multi-view/routes with intermediate swapchain targets do not report stale
+  transparent-zero pixels.
+- Verified `clustered-lights.html` in the unified all-route smoke with
+  `ok:true` and zero scoped warning count.
+
+Validation:
+
+- `pnpm render-control:smoke-all`
+- Direct controller probe for `/examples/clustered-lights.html`
+
+## task-3164 — Restore transmission roughness and texture contrast proof
+
+Completed: 2026-05-25
+
+Summary:
+
+- Scoped scene-color grab-pass filtering so only transmission material draws are
+  excluded from the source scene color while opaque scene draws remain.
+- Fixed default-layout cache scoping so pipeline-specific resources do not reuse
+  stale bind groups across unlit/matcap/debug-normal paths.
+- Restored `transmission.html` route status and removed the scoped validation
+  warning from all-route smoke.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/transmission.spec.ts --timeout=180000 --reporter=line --trace=off`
+- `pnpm render-control:smoke-all`
+
+## task-3163 — Restore custom-material WaterMaterial draw-plan output
+
+Completed: 2026-05-25
+
+Summary:
+
+- Allowed explicit `instance-attributes:none` pipeline keys to render without
+  requiring an instance-attribute packet.
+- Restored `custom-material.html` to `ok:true` and kept the typed source
+  validation failure proof intact.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/draw-command.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec playwright test test/e2e/custom-material.spec.ts --timeout=180000 --reporter=line --trace=off`
+- `pnpm render-control:smoke-all`
+
+## task-3162 — Add unified example render-control testing infrastructure
+
+Completed: 2026-05-24
+
+Summary:
+
+- Added `examples/example-control.js`, a shared browser-side protocol helper
+  that exposes JSON-safe status, warning, snapshot, frame-state, pause/resume,
+  step, and scenario hooks while preserving existing
+  `__APERTURE_EXAMPLE_STATUS__` compatibility.
+- Loaded the helper from every renderer-backed example HTML file except
+  `examples/index.html`.
+- Added `test/e2e/render-control/` with the reusable Playwright controller,
+  status/pixel diff helpers, artifact writers, scoped WebGPU warning capture,
+  and force-closeable controller-owned browser lifecycle.
+- Added focused controller coverage for the five pilot routes:
+  `triangle.html`, `spinning-cube.html`, `post-effects.html`,
+  `glb-viewer.html`, and `persistent-render-shell.html`.
+- Bridged the persistent route harness and persistent shell spec onto the shared
+  controller.
+- Added `scripts/render-control.mjs`, `pnpm render-control:*` scripts, a
+  helper-onboarding verifier, and `docs/RENDER_CONTROL.md`.
+
+Validation:
+
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/render-control.spec.ts --timeout=120000 --reporter=line --trace=off`
+- `pnpm exec playwright test test/e2e/persistent-render-shell.spec.ts --timeout=120000 --reporter=line --trace=off`
+- `APERTURE_RENDER_CONTROL_CHANNEL=chromium pnpm render-control pilot`
+- `APERTURE_RENDER_CONTROL_CHANNEL=chromium pnpm render-control:proofs`
+- `APERTURE_RENDER_CONTROL_CHANNEL=chromium pnpm render-control:smoke-all`
+
+Follow-up resolved:
+
+- The route failures and warning routes found by the initial controller smoke
+  were fixed in `task-3163`, `task-3164`, and `task-3165`; the final
+  `pnpm render-control:smoke-all` visits 49 routes with empty
+  `routeStatusFailures` and `warningRoutes`.
+
 ## task-3160 — Add persistent render shell for scenario-swap proofs
 
 Completed: 2026-05-24

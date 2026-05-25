@@ -3781,7 +3781,7 @@ function applyStandardTransmissionSampling(
   let refractionOffset = clamp(normal.xy * transmission * (0.045 + roughness * 0.02), vec2f(-0.08), vec2f(0.08));
   let transmissionUv = clamp(sceneColorUv + refractionOffset, vec2f(0.0), vec2f(1.0));
   let transmissionRoughness = clamp(roughness, 0.0, 1.0);
-  let transmissionBlurRadiusPixels = transmissionRoughness * transmissionRoughness * 42.0;
+  let transmissionBlurRadiusPixels = transmissionRoughness * transmissionRoughness * 96.0;
   let transmissionBlurTexel = transmissionBlurRadiusPixels / max(sceneColorSize, vec2f(1.0));
   let transmissionSharpColor = textureSampleLevel(
     standardTransmissionSceneColorTexture,
@@ -3805,7 +3805,8 @@ function applyStandardTransmissionSampling(
     transmissionBlurColor,
     smoothstep(0.08, 0.85, transmissionRoughness),
   );
-  color = mix(color, transmittedSceneColor * max(baseColor, vec3f(0.04)), transmission);
+  let transmissionTint = mix(vec3f(1.0), max(baseColor, vec3f(0.04)), 0.35);
+  color = mix(color, transmittedSceneColor * transmissionTint, transmission);
   alpha = alpha * max(1.0 - transmission * 0.25, 0.72);
   return vec4f(color, alpha);`,
   );

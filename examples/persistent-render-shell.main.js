@@ -1,3 +1,4 @@
+import { configureApertureExampleControl } from "./example-control.js";
 import { createNoopSimulationWorker } from "./noop-simulation-worker.js";
 import { inspectStructuredCloneSnapshot } from "./snapshot-transport-status.js";
 
@@ -42,9 +43,32 @@ const shellApi = {
   async runScenario(id, options = {}) {
     return runScenario(id, options);
   },
+  dispose() {
+    return disposeShell();
+  },
 };
 
 globalThis.__APERTURE_RENDER_PROOF_SHELL__ = shellApi;
+configureApertureExampleControl({
+  capabilities: {
+    scenario: true,
+    readback: true,
+  },
+  getStatus() {
+    return currentStatus;
+  },
+  setScenario(id, options = {}) {
+    return runScenario(id, options);
+  },
+  getFrameState() {
+    return {
+      status: currentStatus,
+      scenario: currentStatus.scenario,
+      renderer: currentStatus.renderer,
+      completedRuns: currentStatus.completedRuns,
+    };
+  },
+});
 publishStatus(currentStatus);
 
 shellApi.ready = initializeShell();
@@ -210,6 +234,29 @@ async function runScenario(id, options) {
   }
 }
 
+function disposeShell() {
+  const app = webGpuApp;
+
+  webGpuApp = null;
+  activeScenario = null;
+
+  if (app !== null) {
+    app.stop();
+    app.initialization.context?.unconfigure?.();
+    app.initialization.device?.destroy?.();
+  }
+
+  publishStatus(
+    createBaseStatus({
+      ok: true,
+      phase: "stopped",
+      message: "Persistent render shell has been stopped.",
+    }),
+  );
+
+  return currentStatus;
+}
+
 async function runTransparentPressureScenario(aperture, app, run, options) {
   const loop = {
     frame: 0,
@@ -222,6 +269,11 @@ async function runTransparentPressureScenario(aperture, app, run, options) {
     "aperture-persistent-shell-transparent-pressure",
   );
   const maxFrames = finiteInteger(options.maxFrames, 18);
+  const timeoutMs = finiteInteger(
+    options.timeoutMs,
+    Math.max(30000, maxFrames * 1000),
+  );
+  const requireReadback = options.requireReadback !== false;
 
   return runWorkerScenario({
     aperture,
@@ -236,6 +288,7 @@ async function runTransparentPressureScenario(aperture, app, run, options) {
     },
     label: "persistent-render-shell:transparent-pressure",
     maxFrames,
+    timeoutMs,
     createStatus({ report, reportJson, message, typedSnapshot }) {
       return createTransparentPressureStatus({
         aperture,
@@ -245,6 +298,7 @@ async function runTransparentPressureScenario(aperture, app, run, options) {
         typedSnapshot,
         run,
         loop,
+        requireReadback,
       });
     },
     isComplete(status) {
@@ -275,6 +329,11 @@ async function runClusteredPressureHistoryScenario(
     "aperture-persistent-shell-clustered-pressure",
   );
   const maxFrames = finiteInteger(options.maxFrames, 50);
+  const timeoutMs = finiteInteger(
+    options.timeoutMs,
+    Math.max(30000, maxFrames * 1000),
+  );
+  const requireReadback = options.requireReadback !== false;
 
   return runWorkerScenario({
     aperture,
@@ -308,6 +367,7 @@ async function runClusteredPressureHistoryScenario(
     },
     label: "persistent-render-shell:clustered-pressure-history",
     maxFrames,
+    timeoutMs,
     createStatus({ report, reportJson, message, typedSnapshot }) {
       return createClusteredPressureHistoryStatus({
         aperture,
@@ -317,6 +377,7 @@ async function runClusteredPressureHistoryScenario(
         typedSnapshot,
         run,
         loop,
+        requireReadback,
       });
     },
     isComplete(status) {
@@ -334,11 +395,31 @@ function runWorkerScenario({
   initMessage,
   label,
   maxFrames,
+  timeoutMs,
   createStatus,
   isComplete,
 }) {
   return new Promise((resolve) => {
     let settled = false;
+    const timeoutId = setTimeout(() => {
+      finish(
+        createBaseStatus({
+          ok: false,
+          phase: "scenario-failed",
+          reason: "scenario-timeout",
+          message: `Scenario '${run.id}' did not settle within ${timeoutMs} ms.`,
+          scenario: {
+            ...createScenarioPendingStatus(run),
+            ok: false,
+            phase: "timeout",
+            reason: "scenario-timeout",
+            message: `Scenario '${run.id}' did not settle within ${timeoutMs} ms.`,
+            elapsedMs: Math.round(performance.now() - run.startedAt),
+            frameCount: loop.frame,
+          },
+        }),
+      );
+    }, timeoutMs);
 
     const finish = (status) => {
       if (settled) {
@@ -346,6 +427,7 @@ function runWorkerScenario({
       }
 
       settled = true;
+      clearTimeout(timeoutId);
       worker.terminate();
       resolve(status);
     };
@@ -475,7 +557,7 @@ function runWorkerScenario({
 }
 
 function requestWorkerFrame(worker, loop) {
-  requestAnimationFrame((timestamp) => {
+  setTimeout(() => {
     if (!loop.workerReady) {
       return;
     }
@@ -484,9 +566,9 @@ function requestWorkerFrame(worker, loop) {
     worker.postMessage({
       type: "frame",
       frame: loop.frame,
-      timestamp,
+      timestamp: performance.now(),
     });
-  });
+  }, 0);
 }
 
 function createTransparentPressureStatus({
@@ -497,6 +579,7 @@ function createTransparentPressureStatus({
   typedSnapshot,
   run,
   loop,
+  requireReadback,
 }) {
   const transparentSort = report.snapshot.meshDraws
     .filter((draw) => draw.sortKey.queue === "transparent")
@@ -523,7 +606,7 @@ function createTransparentPressureStatus({
   const ok =
     report.ok === true &&
     (counts.diagnostics ?? 0) === 0 &&
-    readbackStatus.ok === true &&
+    (requireReadback ? readbackStatus.ok === true : true) &&
     transparentPressure.ready === true &&
     transparentPressure.cameraMoved === true;
   const scenario = createScenarioStatus({
@@ -577,6 +660,7 @@ function createClusteredPressureHistoryStatus({
   typedSnapshot,
   run,
   loop,
+  requireReadback,
 }) {
   const readbackStatus = createReadbackStatus(reportJson.readback);
   const pressureHistory = updateClusterPressureHistory({
@@ -585,12 +669,13 @@ function createClusteredPressureHistoryStatus({
     resourceReuse: reportJson.resourceReuse,
     localLightCookies: reportJson.localLightCookies ?? null,
     readbackStatus,
+    requireReadback,
   });
   const counts = reportJson.counts ?? {};
   const ok =
     report.ok === true &&
     (counts.diagnostics ?? 0) === 0 &&
-    readbackStatus.ok === true &&
+    (requireReadback ? readbackStatus.ok === true : true) &&
     pressureHistory.ready === true;
   const scenario = createScenarioStatus({
     run,
@@ -818,6 +903,7 @@ function updateClusterPressureHistory({
   resourceReuse,
   localLightCookies,
   readbackStatus,
+  requireReadback,
 }) {
   const previous = loop.clusterPressureHistoryStatus ?? null;
   const atlasUpdate = localLightCookies?.atlasUpdate ?? null;
@@ -877,11 +963,12 @@ function updateClusterPressureHistory({
   );
   const stablePixels = {
     ready:
-      stableSampleCount >=
+      requireReadback === false ||
+      (stableSampleCount >=
         clusterPressureHistoryFrameCount - clusterPressureStableFrameStart &&
-      baselineLuminance !== null &&
-      latestLuminance !== null &&
-      maxLuminanceDelta <= 8,
+        baselineLuminance !== null &&
+        latestLuminance !== null &&
+        maxLuminanceDelta <= 8),
     baselineFrame,
     baselineLuminance,
     latestLuminance,
@@ -897,7 +984,7 @@ function updateClusterPressureHistory({
       samples.length >= clusterPressureHistoryFrameCount &&
       avoided.clusterBufferWrites > 0 &&
       baselineWork > cachedWork &&
-      stablePixels.ready,
+      (requireReadback === false || stablePixels.ready),
     requiredFrames: clusterPressureHistoryFrameCount,
     observedFrames: samples.length,
     rollingWindowSize: clusterPressureHistoryFrameCount,

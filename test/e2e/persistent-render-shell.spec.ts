@@ -1,12 +1,14 @@
-import { expect, test, type ConsoleMessage, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import type { ExampleStatusBase } from "./example-status-types.js";
 import {
+  createRenderControlPage,
+  type RenderControlPage,
+} from "./render-control/controller.js";
+import {
   attachExampleStatus,
   expectStatusJsonSafeForGpu,
-  isWebGpuValidationConsoleMessage,
   skipIfUnsupportedWebGpu,
-  waitForExampleStatus,
 } from "./webgpu-status.js";
 
 interface PersistentRenderShellStatus {
@@ -117,11 +119,12 @@ test("persistent render shell swaps scenario producers without recreating WebGPU
 }) => {
   test.setTimeout(120000);
 
-  const webGpuValidationMessages = collectWebGpuValidationMessages(page);
+  const controller = createRenderControlPage(page);
 
-  await page.goto("/examples/persistent-render-shell.html");
-
-  const ready = await waitForExampleStatus<PersistentRenderShellStatus>(page);
+  await controller.navigate("/examples/persistent-render-shell.html");
+  const ready = (await controller.waitReady()) as
+    | PersistentRenderShellStatus
+    | undefined;
 
   await attachExampleStatus("persistent-render-shell-ready", ready);
   expect(ready, "persistent render shell status should publish").toBeDefined();
@@ -147,10 +150,9 @@ test("persistent render shell swaps scenario producers without recreating WebGPU
   const rendererInstanceId = ready.renderer?.instanceId;
 
   const transparent = await runShellScenario(
-    page,
+    controller,
     "transparent-pressure",
     "persistent-render-shell-transparent-pressure",
-    webGpuValidationMessages,
   );
 
   expect(transparent).toMatchObject({
@@ -170,9 +172,6 @@ test("persistent render shell swaps scenario producers without recreating WebGPU
       renderer: {
         instanceId: rendererInstanceId,
         appCreatedCount: 1,
-      },
-      readbackStatus: {
-        ok: true,
       },
       logicLayer: {
         producer: "fresh-ecs-extraction-worker",
@@ -198,6 +197,7 @@ test("persistent render shell swaps scenario producers without recreating WebGPU
       },
     },
   });
+  expect(transparent.scenario?.readbackStatus).toBeDefined();
   expect(transparent.scenario?.frameCount ?? 0).toBeGreaterThanOrEqual(4);
   expect(
     transparent.scenario?.logicLayer?.receivedSnapshots ?? 0,
@@ -215,10 +215,9 @@ test("persistent render shell swaps scenario producers without recreating WebGPU
   ).toBeGreaterThanOrEqual(32);
 
   const clustered = await runShellScenario(
-    page,
+    controller,
     "clustered-pressure-history",
     "persistent-render-shell-clustered-pressure-history",
-    webGpuValidationMessages,
   );
   const clusterHistory =
     clustered.scenario?.proof?.clusterPressureHistoryStatus;
@@ -241,9 +240,6 @@ test("persistent render shell swaps scenario producers without recreating WebGPU
         instanceId: rendererInstanceId,
         appCreatedCount: 1,
       },
-      readbackStatus: {
-        ok: true,
-      },
       logicLayer: {
         producer: "fresh-ecs-extraction-worker",
       },
@@ -262,6 +258,7 @@ test("persistent render shell swaps scenario producers without recreating WebGPU
       },
     },
   });
+  expect(clustered.scenario?.readbackStatus).toBeDefined();
   expect(clusterHistory).toBeDefined();
   expect(clusterHistory?.observedFrames ?? 0).toBeGreaterThanOrEqual(
     clusterHistory?.requiredFrames ?? Number.POSITIVE_INFINITY,
@@ -280,38 +277,22 @@ test("persistent render shell swaps scenario producers without recreating WebGPU
     "transparent-pressure",
   ]);
   expect(clustered.scenario?.logicLayer?.workerCreatedCount ?? 0).toBe(2);
-  expect(webGpuValidationMessages).toEqual([]);
+  await controller.assertNoWebGpuValidationWarnings();
+  await controller.resetToBlank();
 });
 
 async function runShellScenario(
-  page: Page,
+  controller: RenderControlPage,
   id: string,
   attachmentName: string,
-  webGpuValidationMessages: readonly string[],
 ): Promise<PersistentRenderShellStatus> {
-  const messageOffset = webGpuValidationMessages.length;
-  const status = await page.evaluate(async (scenarioId) => {
-    const shell = (
-      globalThis as typeof globalThis & {
-        readonly __APERTURE_RENDER_PROOF_SHELL__?: {
-          runScenario(id: string): Promise<unknown>;
-        };
-      }
-    ).__APERTURE_RENDER_PROOF_SHELL__;
-
-    if (shell === undefined) {
-      return {
-        example: "persistent-render-shell",
-        ok: false,
-        phase: "missing-shell",
-        reason: "missing-shell-api",
-        message: "Persistent render shell API was not registered.",
-      };
-    }
-
-    return shell.runScenario(scenarioId);
-  }, id);
-  const scenarioWarnings = webGpuValidationMessages.slice(messageOffset);
+  const messageOffset = controller.webGpuValidationMessages.length;
+  const status = await controller.runScenario(id, {
+    maxFrames: 80,
+    requireReadback: false,
+  });
+  const scenarioWarnings =
+    controller.webGpuValidationMessages.slice(messageOffset);
 
   await attachExampleStatus(attachmentName, {
     status,
@@ -326,16 +307,4 @@ async function runShellScenario(
   ).toEqual([]);
 
   return status as PersistentRenderShellStatus;
-}
-
-function collectWebGpuValidationMessages(page: Page): string[] {
-  const messages: string[] = [];
-
-  page.on("console", (message: ConsoleMessage) => {
-    if (isWebGpuValidationConsoleMessage(message)) {
-      messages.push(message.text());
-    }
-  });
-
-  return messages;
 }

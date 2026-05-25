@@ -59,10 +59,19 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3161`: add cross-device benchmark automation for post-SOTA
-hardening. The covered render-pipeline SOTA claim is supported in
-`docs/RENDER_PIPELINE_SOTA_AUDIT.md`, and `task-3160` now adds the persistent
-render shell needed to reduce page/device churn during follow-up stress runs.
+Start `task-3166`: add a split-screen multi-camera route. The unified
+render-control infrastructure is now clean across all renderer-backed examples,
+so the next visible slice should expand user-facing camera/view behavior while
+keeping ECS as the source of truth.
+
+The next ready visible-feature queue is:
+
+- `task-3166` — add a split-screen multi-camera route.
+- `task-3167` — add an orthographic camera projection route.
+- `task-3168` — add a line/wire primitive rendering route.
+
+Keep `task-3161` as later post-SOTA hardening work after the visible-feature
+queue above.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity
@@ -1418,6 +1427,156 @@ proves both scenarios in one page with stable renderer id, `appCreatedCount: 1`,
 JSON-safe status, readback evidence, elapsed-time telemetry, and zero relevant
 WebGPU warnings. `docs/PERSISTENT_RENDER_SHELL.md` documents shell mode versus
 standalone route mode.
+
+### task-3162 — Add unified example render-control testing infrastructure
+
+Status: completed 2026-05-24. See `agent/COMPLETED.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `examples/`, `test/e2e/render-control/`, `scripts/`,
+`docs/`, `agent/`.
+Reference anchor: `test/e2e/persistent-route-harness.ts`,
+`references/engine/src/app-base.js`.
+
+Acceptance criteria:
+
+- Add a shared browser-side control protocol exposed by renderer-backed
+  examples.
+- Add a reusable Playwright-backed controller with status, warning, scenario,
+  pause/step, snapshot, screenshot, pixel, diff, and artifact helpers.
+- Add a CLI frontend that can run route-refresh, pause/step, scenario-swap, and
+  all-route smoke checks.
+- Keep existing `__APERTURE_EXAMPLE_STATUS__` compatibility.
+- Document standalone route mode, persistent page mode, and persistent shell
+  mode.
+
+Completed: 2026-05-24.
+All renderer-backed example HTML files except `examples/index.html` now load the
+shared control helper. The five pilot routes (`triangle`, `spinning-cube`,
+`post-effects`, `glb-viewer`, and `persistent-render-shell`) have focused
+controller coverage, and the CLI can write proof and all-route smoke artifacts.
+
+### task-3163 — Restore custom-material WaterMaterial draw-plan output
+
+Status: completed 2026-05-25. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope: `examples/custom-material.*`, `packages/render/`,
+`packages/webgpu/`, `test/e2e/custom-material.spec.ts`.
+Reference anchor: `references/three.js/examples/jsm/objects/Water.js`,
+`references/engine/src/scene/materials/material.js`.
+
+Acceptance criteria:
+
+- `examples/custom-material.html` reaches `ok: true` for the default animated
+  WaterMaterial route.
+- The route no longer reports `custom-draw-plan-unavailable` or
+  `drawCommand.missingInstanceAttributePacket` for the default path.
+- `test/e2e/custom-material.spec.ts` passes, including the visible animation
+  proof and typed source validation failure proof.
+- The unified render-control smoke no longer lists `custom-material.html` in
+  `routeStatusFailures`.
+
+### task-3164 — Restore transmission roughness and texture contrast proof
+
+Status: completed 2026-05-25. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope: `examples/transmission.*`, `packages/webgpu/src/webgpu/`,
+`test/e2e/transmission.spec.ts`.
+Reference anchor: `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/transmission.js`,
+`references/three.js/examples/webgpu_loader_gltf_transmission.html`.
+
+Acceptance criteria:
+
+- `examples/transmission.html` reaches `ok: true` on the default route.
+- `roughnessContrast.ok` and `textureContrast.ok` are true with stable margins
+  across the headed WebGPU browser proof.
+- `test/e2e/transmission.spec.ts` passes.
+- The unified render-control smoke no longer lists `transmission.html` in
+  `routeStatusFailures`.
+
+### task-3165 — Restore clustered-lights default readback status in smoke
+
+Status: completed 2026-05-25. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope: `examples/clustered-lights.*`, `packages/webgpu/src/webgpu/`,
+`test/e2e/clustered-lights.spec.ts`.
+Reference anchor: `references/engine/src/scene/lighting/world-clusters.js`,
+`references/engine/examples/src/examples/graphics/clustered-lighting.example.mjs`.
+
+Acceptance criteria:
+
+- `examples/clustered-lights.html` default route reaches `ok: true` in the
+  all-route controller smoke.
+- The default readback status no longer reports `transparent-zero-readback`
+  when the submitted clustered route has rendered visible pixels.
+- Existing clustered-light focused E2E coverage still passes.
+- The smoke artifact records scoped zero warning count for this route.
+
+### task-3166 — Add a split-screen multi-camera route
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `examples/`, `packages/core/`, `packages/webgpu/`,
+`test/e2e/`.
+Reference anchor: `references/bevy/examples/3d/split_screen.rs`,
+`references/three.js/examples/webgpu_multiple_elements.html`.
+
+Acceptance criteria:
+
+- A renderer-backed example shows two simultaneous camera views of the same ECS
+  world without introducing a scene graph.
+- Status reports two extracted views, two viewports or canvas regions, zero
+  diagnostics, and truthful render-control capabilities.
+- Playwright or render-control proof samples pixels from both views and shows
+  that the views differ because of camera placement/projection.
+- The route is included in the all-route controller smoke with zero scoped
+  WebGPU validation warnings.
+
+### task-3167 — Add an orthographic camera projection route
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `examples/`, `packages/core/`, `packages/webgpu/`,
+`test/e2e/`.
+Reference anchor: `references/bevy/examples/3d/orthographic.rs`,
+`references/three.js/examples/webgl_camera.html`.
+
+Acceptance criteria:
+
+- A public camera/projection path can render an orthographic view through the
+  ECS extraction boundary.
+- A visible example contrasts perspective and orthographic projection with
+  stable pixel/readback proof.
+- Status reports the active projection mode, view count, draw counts, and zero
+  diagnostics in JSON-safe form.
+- Focused E2E coverage and the all-route controller smoke pass with zero scoped
+  WebGPU validation warnings.
+
+### task-3168 — Add a line/wire primitive rendering route
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `examples/`, `packages/core/`, `packages/webgpu/`,
+`test/e2e/`.
+Reference anchor: `references/bevy/examples/3d/lines.rs`,
+`references/three.js/examples/webgl_buffergeometry_lines_indexed.html`.
+
+Acceptance criteria:
+
+- ECS-authored line or wire primitives render through a typed asset/material
+  path instead of ad hoc debug canvas drawing.
+- A visible example shows at least two colored line sets with stable ordering
+  and non-clear pixels.
+- Status reports line primitive counts, draw counts, diagnostics, and
+  render-control capabilities.
+- Focused E2E coverage and the all-route controller smoke pass with zero scoped
+  WebGPU validation warnings.
 
 ### task-3161 — Add cross-device benchmark automation for post-SOTA hardening
 

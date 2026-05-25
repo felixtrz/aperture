@@ -686,7 +686,10 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
     expect(shader.code).toContain("transmissionBlurRadiusPixels");
     expect(shader.code).toContain(
-      "transmissionRoughness * transmissionRoughness * 42.0",
+      "transmissionRoughness * transmissionRoughness * 96.0",
+    );
+    expect(shader.code).toContain(
+      "let transmissionTint = mix(vec3f(1.0), max(baseColor, vec3f(0.04)), 0.35);",
     );
     expect(shader.code).toContain(
       "smoothstep(0.08, 0.85, transmissionRoughness)",

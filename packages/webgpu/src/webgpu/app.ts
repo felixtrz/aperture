@@ -1458,12 +1458,14 @@ function createUnlitAppPipelineLayouts(
   pipelineResourceKey: string,
   getBindGroupLayout: (group: number) => unknown,
 ): WebGpuAppPipelineLayouts {
+  const autoLayoutKeySuffix = `/pipeline:${pipelineResourceKey}`;
+
   return {
     kind: "unlit",
     pipelineResourceKey,
     sharedLayouts: [0, 1, 2].map((group) => ({
       group,
-      layoutKey: `webgpu-app/unlit/group-${group}`,
+      layoutKey: `webgpu-app/unlit/group-${group}${autoLayoutKeySuffix}`,
       layout: getBindGroupLayout(group),
     })),
     materialLayout: null,
@@ -1672,24 +1674,26 @@ function createMatcapAppPipelineLayouts(
   pipelineResourceKey: string,
   getBindGroupLayout: (group: number) => unknown,
 ): WebGpuAppPipelineLayouts {
+  const autoLayoutKeySuffix = `/pipeline:${pipelineResourceKey}`;
+
   return {
     kind: "matcap",
     pipelineResourceKey,
     sharedLayouts: [0, 1].map((group) => ({
       group,
-      layoutKey: `webgpu-app/matcap/group-${group}`,
+      layoutKey: `webgpu-app/matcap/group-${group}${autoLayoutKeySuffix}`,
       layout: getBindGroupLayout(group),
       metadata: createUnlitBindGroupLayoutMetadata(
         group,
-        `webgpu-app/matcap/group-${group}`,
+        `webgpu-app/matcap/group-${group}${autoLayoutKeySuffix}`,
       ),
     })),
     materialLayout: {
       group: 2,
-      layoutKey: "webgpu-app/matcap/group-2",
+      layoutKey: `webgpu-app/matcap/group-2${autoLayoutKeySuffix}`,
       layout: getBindGroupLayout(2),
       descriptor: createMatcapMaterialBindGroupLayoutPlan(
-        "webgpu-app/matcap/group-2",
+        `webgpu-app/matcap/group-2${autoLayoutKeySuffix}`,
       ).layout,
     },
     lightLayout: null,
@@ -1700,24 +1704,26 @@ function createDebugNormalAppPipelineLayouts(
   pipelineResourceKey: string,
   getBindGroupLayout: (group: number) => unknown,
 ): WebGpuAppPipelineLayouts {
+  const autoLayoutKeySuffix = `/pipeline:${pipelineResourceKey}`;
+
   return {
     kind: "debug-normal",
     pipelineResourceKey,
     sharedLayouts: [0, 1].map((group) => ({
       group,
-      layoutKey: `webgpu-app/debug-normal/group-${group}`,
+      layoutKey: `webgpu-app/debug-normal/group-${group}${autoLayoutKeySuffix}`,
       layout: getBindGroupLayout(group),
       metadata: createUnlitBindGroupLayoutMetadata(
         group,
-        `webgpu-app/debug-normal/group-${group}`,
+        `webgpu-app/debug-normal/group-${group}${autoLayoutKeySuffix}`,
       ),
     })),
     materialLayout: {
       group: 2,
-      layoutKey: "webgpu-app/debug-normal/group-2",
+      layoutKey: `webgpu-app/debug-normal/group-2${autoLayoutKeySuffix}`,
       layout: getBindGroupLayout(2),
       descriptor: createDebugNormalMaterialBindGroupLayoutPlan(
-        "webgpu-app/debug-normal/group-2",
+        `webgpu-app/debug-normal/group-2${autoLayoutKeySuffix}`,
       ).layout,
     },
     lightLayout: null,
@@ -2541,8 +2547,21 @@ async function assembleWebGpuAppFrameBoundaries(options: {
   let msaaColorTexturesCreated = 0;
   let msaaColorTexturesReused = 0;
   let allTargetsValid = true;
+  const lastSwapchainTargetIndex = findLastSwapchainTargetIndex(
+    targetPlan.targets,
+  );
 
-  for (const target of targetPlan.targets) {
+  for (
+    let targetIndex = 0;
+    targetIndex < targetPlan.targets.length;
+    targetIndex += 1
+  ) {
+    const target = targetPlan.targets[targetIndex];
+
+    if (target === undefined) {
+      continue;
+    }
+
     const skybox = await writeSkyboxCommandsForView({
       app: options.app,
       assets: options.assets,
@@ -2628,7 +2647,8 @@ async function assembleWebGpuAppFrameBoundaries(options: {
     const includeReadback =
       options.readbackSamples !== undefined &&
       readbackBoundary === null &&
-      target.source === "swapchain";
+      target.source === "swapchain" &&
+      targetIndex === lastSwapchainTargetIndex;
     const gpuTiming = await createWebGpuAppGpuTimingForTarget(
       options.app,
       options.cache,
@@ -3158,11 +3178,16 @@ function commandsWithoutTransmissionDraws(
   commands: readonly RenderPassCommand[],
 ): readonly RenderPassCommand[] {
   const transmissionRenderIds = new Set<number>();
+  let activePipelineKey = "";
 
   for (const command of commands) {
+    if (command.kind === "setPipeline") {
+      activePipelineKey = command.pipelineKey;
+    }
+
     if (
-      command.kind === "setPipeline" &&
-      command.pipelineKey.split("|").includes("transmission")
+      isDrawCommand(command) &&
+      pipelineKeyUsesTransmission(activePipelineKey)
     ) {
       transmissionRenderIds.add(command.renderId);
     }
@@ -3175,6 +3200,40 @@ function commandsWithoutTransmissionDraws(
   return commands.filter(
     (command) => !transmissionRenderIds.has(command.renderId),
   );
+}
+
+function pipelineKeyUsesTransmission(pipelineKey: string): boolean {
+  return materialPipelineKeyFromRenderPipelineKey(pipelineKey)
+    .split("|")
+    .includes("transmission");
+}
+
+function materialPipelineKeyFromRenderPipelineKey(pipelineKey: string): string {
+  const cacheKey = pipelineKey.startsWith("render-pipeline:")
+    ? pipelineKey.slice("render-pipeline:".length)
+    : pipelineKey;
+
+  try {
+    const parsed = JSON.parse(cacheKey) as {
+      readonly material?: { readonly pipelineKey?: unknown };
+      readonly batch?: { readonly pipelineKey?: unknown };
+    };
+    const materialPipelineKey = parsed.material?.pipelineKey;
+
+    if (typeof materialPipelineKey === "string") {
+      return materialPipelineKey;
+    }
+
+    const batchPipelineKey = parsed.batch?.pipelineKey;
+
+    if (typeof batchPipelineKey === "string") {
+      return batchPipelineKey;
+    }
+  } catch {
+    // Non-cache pipeline keys are already authored material keys.
+  }
+
+  return pipelineKey;
 }
 
 function createWebGpuAppOcclusionCullingReport(): WebGpuAppOcclusionCullingReport {
@@ -5368,6 +5427,18 @@ function createWebGpuAppFrameBoundaryTargets(
   }
 
   return { targets, diagnostics };
+}
+
+function findLastSwapchainTargetIndex(
+  targets: readonly WebGpuAppFrameBoundaryTarget[],
+): number {
+  for (let index = targets.length - 1; index >= 0; index -= 1) {
+    if (targets[index]?.source === "swapchain") {
+      return index;
+    }
+  }
+
+  return -1;
 }
 
 function createWebGpuAppRenderTargetDiagnostic(input: {

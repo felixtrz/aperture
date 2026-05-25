@@ -4,10 +4,9 @@ import type { ExampleStatusBase } from "./example-status-types.js";
 import {
   attachExampleStatus,
   expectStatusJsonSafeForGpu,
-  isWebGpuValidationConsoleMessage,
   skipIfUnsupportedWebGpu,
-  waitForExampleStatus,
 } from "./webgpu-status.js";
+import { createRenderControlPage } from "./render-control/controller.js";
 
 export interface PersistentExampleRouteProof<T extends ExampleStatusBase> {
   readonly routeIndex: number;
@@ -37,14 +36,9 @@ export interface PersistentExampleRouteHarness {
 export function createPersistentExampleRouteHarness(
   page: Page,
 ): PersistentExampleRouteHarness {
-  const messages: string[] = [];
+  const controller = createRenderControlPage(page);
+  const messages = controller.webGpuValidationMessages;
   let routeIndex = 0;
-
-  page.on("console", (message) => {
-    if (isWebGpuValidationConsoleMessage(message)) {
-      messages.push(message.text());
-    }
-  });
 
   return {
     messages,
@@ -54,15 +48,15 @@ export function createPersistentExampleRouteHarness(
     }: PersistentExampleRouteOptions): Promise<
       PersistentExampleRouteProof<T>
     > => {
-      await page.goto("about:blank");
+      await controller.resetToBlank();
 
       routeIndex += 1;
       const messageOffset = messages.length;
       const startedAt = Date.now();
 
-      await page.goto(url);
+      await controller.navigate(url);
 
-      const status = await waitForExampleStatus<T>(page);
+      const status = (await controller.getStatus()) as T | undefined;
       const elapsedMs = Date.now() - startedAt;
       const routeMessages = messages.slice(messageOffset);
       const proof: PersistentExampleRouteProof<T> = {
