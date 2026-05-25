@@ -393,28 +393,37 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-25 01:25 UTC</dd>
+            <dd>2026-05-25 03:27 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the unified render-control infrastructure is now
-              accepted. A shared browser protocol helper, Playwright controller,
-              CLI frontend, proof commands, all-route smoke command, and
+              Latest update: the first developer-facing Vite app API slice is
+              now in place: <code>@aperture-engine/app/config</code>,
+              <code>@aperture-engine/app/systems</code>,
+              <code>@aperture-engine/app/advanced</code>, and
+              <code>@aperture-engine/vite-plugin</code> compile, the
+              <code>examples/developer-api</code> app uses config plus worker
+              systems without low-level renderer calls, and focused unit tests
+              cover config assets, headless stepping, preload policy, system
+              priority, lifecycle effects, and Vite system-manifest discovery.
+              The unified render-control infrastructure is now accepted. A
+              shared browser protocol helper, Playwright controller, CLI
+              frontend, proof commands, all-route smoke command, and
               <code>docs/RENDER_CONTROL.md</code> are in place. The final
               <code>pnpm render-control:smoke-all</code> pass visits 49
-              renderer-backed routes with no route status failures and no
-              scoped WebGPU warning routes. The covered audit remains
-              recorded in <code>docs/RENDER_PIPELINE_SOTA_AUDIT.md</code> as the
-              final covered-pipeline audit against three.js and PlayCanvas.
-              Within Aperture's implemented scope, the audited render pipeline
-              can now be considered SOTA, backed by focused browser proofs,
-              queue/submit unit coverage, pressure telemetry, and the persistent
-              clustered route harness. The Tier 10 output-stage track is
-              complete: <code>createWebGpuApp({ tonemap })</code> selects
-              Linear, Reinhard, ACES, AgX, Neutral, or None; StandardMaterial
-              output now encodes through explicit sRGB display color space;
-              texture descriptors carry color-space/semantic metadata; native
+              renderer-backed routes with no route status failures and no scoped
+              WebGPU warning routes. The covered audit remains recorded in
+              <code>docs/RENDER_PIPELINE_SOTA_AUDIT.md</code> as the final
+              covered-pipeline audit against three.js and PlayCanvas. Within
+              Aperture's implemented scope, the audited render pipeline can now
+              be considered SOTA, backed by focused browser proofs, queue/submit
+              unit coverage, pressure telemetry, and the persistent clustered
+              route harness. The Tier 10 output-stage track is complete:
+              <code>createWebGpuApp({ tonemap })</code> selects Linear,
+              Reinhard, ACES, AgX, Neutral, or None; StandardMaterial output now
+              encodes through explicit sRGB display color space; texture
+              descriptors carry color-space/semantic metadata; native
               <code>loadHdrFromUri()</code> parses Radiance RGBE
               <code>.hdr</code> assets; and
               <code>examples/tonemap-showcase.html</code> compares four
@@ -1589,7 +1598,8 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Post-SOTA benchmark automation and unsupported feature expansion
+              Complete the developer API proposal with browser bootstrap asset
+              mirroring, generated worker diagnostics, and docs acceptance audit
             </dd>
           </dl>
         </aside>
@@ -2482,6 +2492,15 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">developer-api</span> Added
+                <code>@aperture-engine/app</code> config/system/advanced
+                entrypoints, <code>@aperture-engine/vite-plugin</code>, and a
+                config-plus-systems example that hides
+                <code>createWebGpuApp</code>, <code>createExtractionApp</code>,
+                <code>stepAndExtract</code>, snapshot posting, and renderer
+                registration from user code.
+              </li>
               <li>
                 <span class="badge green">tooling</span> Added the unified
                 render-control protocol/helper, controller, CLI, focused pilot
@@ -4943,9 +4962,10 @@
                 <code>docs/RENDER_PIPELINE_SOTA_AUDIT.md</code>.
               </li>
               <li>
-                <span class="badge">task-3166</span> Next: add a split-screen
-                multi-camera route with two ECS-authored camera views and
-                render-control pixel/status proof.
+                <span class="badge">developer-api</span> Next: finish browser
+                generated-bootstrap asset mirroring and worker diagnostics for
+                the Vite app path, then prove the developer API example through
+                the browser renderer.
               </li>
               <li>
                 <span class="badge">task-3167</span> Then: add an orthographic

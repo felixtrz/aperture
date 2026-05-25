@@ -1,0 +1,24 @@
+{
+  "name": "@aperture-engine/vite-plugin",
+  "version": "0.0.0",
+  "description": "Vite integration for Aperture config, worker system discovery, and generated browser bootstrap.",
+  "type": "module",
+  "license": "UNLICENSED",
+  "private": true,
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aperture-engine/app": "workspace:*"
+  }
+}

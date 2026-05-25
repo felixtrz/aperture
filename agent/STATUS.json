@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "12cf70d",
   "activePid": null,
-  "notes": "Unified example render-control acceptance complete; final proofs/smoke/type/static/focused Playwright validation passed",
-  "lastRunFinishedAt": "2026-05-25T01:29:24Z"
+  "notes": "Developer API proposal skeleton in progress; app/config/systems/vite-plugin/headless slice validated, browser proof and glTF mirroring remain",
+  "lastRunFinishedAt": "2026-05-25T03:30:00Z"
 }

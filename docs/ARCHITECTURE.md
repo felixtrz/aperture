@@ -34,6 +34,14 @@ the runtime architecture:
 - `@aperture-engine/webgpu`: the explicit WebGPU backend and browser app
   facade. It consumes render snapshots/render-world data and owns GPU resources,
   render passes, pipelines, bind groups, command encoding, and submission.
+- `@aperture-engine/app`: the default developer-facing app facade. Its
+  `config`, `systems`, and `advanced` entry points are headless-safe app
+  ergonomics over the lower layers. Browser-specific generated bootstrap lives
+  behind the `browser` and `worker` entry points, not the root export.
+- `@aperture-engine/vite-plugin`: the default Vite integration. It discovers
+  `aperture.config.ts`, system globs, schedule metadata, and generated
+  browser/worker virtual modules. It is build-time code and is intentionally not
+  exported by `@aperture-engine/app`.
 - `@aperture-engine/runtime`: headless simulation and extraction app facades.
   It composes simulation and render only; WebGPU app orchestration belongs in
   `@aperture-engine/webgpu`.
@@ -41,19 +49,24 @@ the runtime architecture:
   re-exports simulation, render, and runtime, but intentionally does not export
   WebGPU backend APIs.
 
-Users who need GPU presentation should import `@aperture-engine/webgpu`
+Normal app authors start with `@aperture-engine/app/config`,
+`@aperture-engine/app/systems`, and `@aperture-engine/vite-plugin`. Users who
+need custom GPU presentation should import `@aperture-engine/webgpu`
 explicitly alongside `@aperture-engine/core` or focused package imports.
 
-The default browser application shape is worker-by-default:
+The default browser application shape is now a Vite metaframework path:
 
-- Main thread imports `createWebGpuApp` from `@aperture-engine/webgpu`, owns the
-  canvas, registers renderer-side source assets, and consumes worker snapshots.
-- Worker thread imports `createExtractionApp` from `@aperture-engine/core`,
-  authors ECS entities/components/assets, runs systems, resolves transforms, and
-  extracts `RenderSnapshot` data.
+- `aperture.config.ts` declares browser/headless mode, canvas, system globs,
+  assets, render defaults, input, signals, and diagnostics.
+- `vite.config.ts` installs `aperture()` from
+  `@aperture-engine/vite-plugin`.
+- The generated main-thread bootstrap owns presentation, input forwarding,
+  diagnostics, worker startup, WebGPU submission, and resize.
+- The generated worker registers discovered system modules in priority order,
+  owns ECS state, resolves transforms, and extracts `RenderSnapshot` data.
 - The boundary is structured-clone/transferable snapshot data plus explicit
-  command messages. `createWebGpuApp()` no longer exposes main-thread
-  `spawn`, `world`, or `assets` APIs.
+  command messages. Main-thread code does not receive live system classes and
+  does not own authoritative simulation state.
 
 The WebGPU facade is convenience orchestration over the same
 ECS/render-extraction/WebGPU boundary; it must not become a hidden scene graph or

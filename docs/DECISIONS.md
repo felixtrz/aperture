@@ -444,3 +444,38 @@ Consequences:
 - A future high-limit device path can add a separate fifth-bind-group variant
   only if it is explicitly gated and tested; it is not the default browser
   target.
+
+## 0014 — Vite App Metaframework Is The Default Developer API
+
+Status: accepted
+
+Context:
+
+The low-level worker/main split is architecturally correct, but it made the
+first app experience start with `createWebGpuApp()`, `createExtractionApp()`,
+manual asset mirroring, `stepAndExtract()`, and snapshot transport. That exposed
+bootstrap wiring before ECS authoring and made Aperture look like a rendering
+library rather than an ECS-first runtime.
+
+Decision:
+
+The default developer API is an Aperture Vite app:
+
+- `aperture.config.ts` is the product-level declaration for mode, canvas,
+  system globs, assets, render defaults, signals, input, and diagnostics.
+- `@aperture-engine/vite-plugin` is the documented Vite integration.
+- `@aperture-engine/app/config` owns config helpers.
+- `@aperture-engine/app/systems` owns worker-safe system authoring helpers.
+- `@aperture-engine/app/advanced` keeps programmatic `createApertureApp()` and
+  manual stepping for tests, tools, headless mode, and generated bootstrap.
+- The root `@aperture-engine/app` entry must not export the Vite plugin.
+
+Consequences:
+
+- First-app docs should show config plus systems, not manual worker/main wiring.
+- System modules run in the simulation worker by default in browser builds.
+- Main-thread generated bootstrap receives serializable system manifest
+  metadata, not live system classes.
+- Lower-layer runtime/render/webgpu APIs remain public advanced paths.
+- The metaframework hides wiring only; ECS remains authoritative and rendering
+  remains derived from extracted ECS state.

@@ -1,241 +1,166 @@
 # Authoring Aperture Apps
 
-Aperture browser apps use a worker-by-default shape. The main thread owns the
-canvas and WebGPU renderer. A module Worker owns ECS authoring, systems,
-transforms, and render extraction. The boundary between them is a typed
-`RenderSnapshot`.
+The default Aperture app is a Vite app with an `aperture.config.ts` file and
+worker-discovered ECS systems. The Vite plugin owns browser bootstrap, worker
+bundling, asset preload, render extraction, snapshot transport, WebGPU
+submission, resize, input forwarding, and diagnostics.
 
 ## File Shape
 
-A normal app has two JavaScript entry points:
+Normal browser apps use this shape:
 
-- `app.main.js`: creates `createWebGpuApp()`, registers renderer-side source
-  assets, collects input, and starts a `SimulationWorker`.
-- `app.worker.js`: creates `createExtractionApp()`, registers the same source
-  assets by stable handle ID, spawns ECS entities, runs systems, and posts
-  snapshots.
+- `vite.config.ts`: installs the Aperture Vite plugin.
+- `aperture.config.ts`: declares mode, canvas, systems, assets, render defaults,
+  input, signals, and diagnostics.
+- `src/systems/*.system.ts`: default-export ECS system classes that run in the
+  simulation worker.
 
-The main thread must not call `app.spawn(...)`, mutate ECS components, or keep a
-renderer-owned scene graph. GPU resources are prepared from source assets and
-worker snapshots.
+`index.ts` is not required for the first scene. User code should not call
+`createWebGpuApp()`, `createExtractionApp()`, `stepAndExtract()`, post render
+snapshots, or register renderer-side source assets before it can see a cube or
+GLB.
 
-## Renderer Main
+## Vite Config
 
-Use stable asset IDs on the main thread so renderer-side source assets match the
-handles extracted by the worker:
+```ts
+import { defineConfig } from "vite";
+import { aperture } from "@aperture-engine/vite-plugin";
 
-```js
-import {
-  AssetRegistry,
-  createBoxMeshAsset,
-  createDebugNormalMaterialAsset,
-  createRenderAssetCollections,
-  createSimulationWorker,
-} from "@aperture-engine/core";
-import { createWebGpuApp } from "@aperture-engine/webgpu";
-
-const canvas = document.querySelector("#aperture-canvas");
-const sourceAssets = new AssetRegistry();
-const assets = createRenderAssetCollections({ registry: sourceAssets });
-
-assets.meshes.add(createBoxMeshAsset({ label: "Cube" }), { id: "cube" });
-assets.materials.debugNormal.add(
-  createDebugNormalMaterialAsset({ label: "CubeNormals" }),
-  { id: "cube-normal" },
-);
-
-const simulationWorker = createSimulationWorker(
-  new Worker(new URL("./app.worker.js", import.meta.url), { type: "module" }),
-  { entityCapacity: 16 },
-);
-const created = await createWebGpuApp({
-  canvas,
-  sourceAssets,
-  simulationWorker,
-  autoStart: true,
+export default defineConfig({
+  plugins: [aperture()],
 });
+```
 
-if (!created.ok) {
-  throw new Error(created.message);
+`@aperture-engine/vite-plugin` is the canonical plugin import. The root
+`@aperture-engine/app` entry does not export the plugin because Vite plugin code
+is Node/build-time code.
+
+## Aperture Config
+
+```ts
+import { asset, defineApertureConfig } from "@aperture-engine/app/config";
+
+export default defineApertureConfig({
+  mode: "browser",
+  canvas: "#aperture",
+  systems: ["src/systems/**/*.system.ts"],
+  assets: {
+    robot: asset.gltf("/assets/robot.glb", { preload: "blocking" }),
+    floorColor: asset.texture("/assets/floor.png", { preload: "background" }),
+  },
+  render: {
+    clearColor: [0.03, 0.035, 0.04, 1],
+    defaultCamera: true,
+    defaultLight: true,
+  },
+});
+```
+
+Asset preload policies:
+
+- `blocking`: loaded before the first simulation tick.
+- `background`: starts immediately and exposes readiness signals to systems.
+- `manual`: registered in the manifest and loaded when a system or command
+  requests it.
+
+Headless apps use the same config shape with `mode: "headless"` and no canvas.
+
+## Setup System
+
+Scene setup is ECS startup work in a system, not mutation of a main-thread app
+object.
+
+```ts
+import { createSystem, material, mesh } from "@aperture-engine/app/systems";
+
+export const schedule = { priority: 0 };
+
+export default class SetupSystem extends createSystem() {
+  override init(): void {
+    this.spawn.mesh({
+      key: "level.crate.primary",
+      name: "crate",
+      mesh: mesh.box({ size: [1, 1, 1] }),
+      material: material.standard({ baseColor: [1, 0.4, 0.2, 1] }),
+      transform: { translation: [-1, 0.5, 0] },
+    });
+
+    this.spawn.gltf(this.assets.gltf("robot"), {
+      key: "level.robot",
+      name: "robot",
+      transform: { translation: [1, 0, 0] },
+    });
+  }
 }
 ```
 
-`createWebGpuApp()` subscribes to the worker and renders incoming snapshots.
-Examples that need custom manual render paths can still call
-`app.renderSnapshot(snapshot, options)`, but ECS authoring should stay in the
-worker.
+`name` is a debugging label. `key` is optional app-authored identity when a
+globally unique stable lookup is useful. The canonical runtime identity remains
+`{ index, generation }`.
 
-## Simulation Worker
+## Runtime System
 
-The public worker helper connects a `MessagePort` and sends a start message.
-The worker should listen for `SIMULATION_WORKER_PROTOCOL.connect`, then respond
-to `SIMULATION_WORKER_PROTOCOL.start` by creating an extraction app:
+Systems map to EliCS systems and can query ECS components directly.
 
-```js
+```ts
 import {
-  SIMULATION_WORKER_PROTOCOL,
-  SpinSystem,
-  createBoxMeshAsset,
-  createDebugNormalMaterialAsset,
-  createExtractionApp,
-  createRenderAssetCollections,
-  renderSnapshotTransferList,
-  withCamera,
-  withMaterial,
-  withMesh,
-  withRenderLayer,
-  withSpin,
-  withTransform,
-  withVisibility,
-} from "@aperture-engine/core";
+  LocalTransform,
+  Name,
+  createSystem,
+  quatFromAxisAngle,
+} from "@aperture-engine/app/systems";
 
-let port = null;
-let app = null;
-let frame = 0;
+export const schedule = { priority: 100 };
 
-self.onmessage = (event) => {
-  if (event.data?.type !== SIMULATION_WORKER_PROTOCOL.connect) {
-    return;
-  }
+const SpinCrateSystemBase = createSystem({
+  crates: {
+    required: [Name, LocalTransform],
+    where: [{ component: Name, key: "value", op: "eq", value: "crate" }],
+  },
+});
 
-  port = event.data.port;
-  port.onmessage = (message) => {
-    if (message.data?.type === SIMULATION_WORKER_PROTOCOL.start) {
-      startSimulation(message.data.options ?? {});
+export default class SpinCrateSystem extends SpinCrateSystemBase {
+  override update(_delta: number, time: number): void {
+    for (const entity of this.queries.crates.entities) {
+      entity
+        .getVectorView(LocalTransform, "rotation")
+        .set(quatFromAxisAngle([0, 1, 0], time));
     }
-  };
-  port.start?.();
-};
-
-function startSimulation(options) {
-  app = createExtractionApp({
-    worldOptions: { entityCapacity: options.entityCapacity ?? 16 },
-  });
-  const assets = createRenderAssetCollections({ registry: app.assets });
-  const mesh = assets.meshes.add(createBoxMeshAsset({ label: "Cube" }), {
-    id: "cube",
-  });
-  const material = assets.materials.debugNormal.add(
-    createDebugNormalMaterialAsset({ label: "CubeNormals" }),
-    { id: "cube-normal" },
-  );
-
-  app.registerSystem(SpinSystem);
-  app.spawn(
-    withTransform({ translation: [0, 0, 3] }),
-    withCamera({ aspect: 16 / 9, near: 0.1, far: 100, layerMask: 1 }),
-  );
-  app.spawn(
-    withTransform(),
-    withMesh(mesh),
-    withMaterial(material),
-    withRenderLayer(1),
-    withVisibility(true),
-    withSpin({ radiansPerSecond: 1.8, axis: [0.4, 1, 0.2] }),
-  );
-
-  setInterval(postSnapshot, 16);
-}
-
-function postSnapshot() {
-  frame += 1;
-  const snapshot = app.stepAndExtract(1 / 60, frame / 60, frame);
-
-  port.postMessage(
-    { type: SIMULATION_WORKER_PROTOCOL.snapshot, frame, snapshot },
-    renderSnapshotTransferList(snapshot),
-  );
-}
-```
-
-`renderSnapshotTransferList(snapshot)` transfers the hot typed-array buffers so
-the main thread receives `Float32Array` data without JSON serialization.
-
-## Optional SharedArrayBuffer Transport
-
-Large scenes can opt into
-`createWebGpuApp({ transport: "shared-array-buffer" })`. In that mode,
-`app.start()` passes shared snapshot
-buffers to the worker. The worker attaches with
-`createSharedSnapshotTransportViews()`, writes transforms, view matrices,
-optional instance tints, and `encodeSnapshotPackets()` output, then posts a
-small frame message containing the packet registry snapshot.
-
-This mode requires `Cross-Origin-Opener-Policy: same-origin` and
-`Cross-Origin-Embedder-Policy: require-corp`; otherwise `createWebGpuApp()`
-reports a typed fallback diagnostic and uses the default transferable transport.
-See [`SHARED_ARRAY_BUFFER_TRANSPORT.md`](./SHARED_ARRAY_BUFFER_TRANSPORT.md)
-and `examples/sab-cube.html` for the complete pattern.
-
-## Common Patterns
-
-One-off scene:
-
-- Worker builds the ECS scene on start.
-- Worker posts one snapshot.
-- Main calls `createWebGpuApp({ autoStart: true })` or manually renders the
-  received snapshot.
-
-Animated scene:
-
-- Worker registers systems such as `SpinSystem`.
-- Worker calls `app.stepAndExtract(deltaSeconds, elapsedSeconds, frame)` every
-  tick.
-- Main renders each snapshot and publishes UI/diagnostic status from render
-  reports.
-
-Renderer-side controls:
-
-- Main owns DOM inputs, pointer state, and UI.
-- Main sends commands to the worker.
-- Worker applies commands to ECS state before the next extraction.
-
-## Commands From Main To Worker
-
-Keep commands small and serializable. Prefer app-specific messages over sharing
-live objects:
-
-```js
-// main
-simulationWorker.worker.postMessage({
-  type: "set-spin-speed",
-  radiansPerSecond: 3,
-});
-```
-
-```js
-// worker
-self.onmessage = (event) => {
-  if (event.data?.type === "set-spin-speed") {
-    pendingSpinSpeed = Number(event.data.radiansPerSecond);
-    return;
   }
-
-  // Also handle SIMULATION_WORKER_PROTOCOL.connect here.
-};
+}
 ```
 
-Apply pending commands inside the worker before `stepAndExtract()`. Do not pass
-`Entity`, `World`, `AssetRegistry`, WebGPU resources, DOM nodes, or functions
-through `postMessage`.
+Lower numeric `schedule.priority` runs earlier. System modules default-export
+the class; the generated worker registers discovered systems in priority order.
+The main-thread generated bootstrap receives only serializable manifest
+metadata, not live system classes.
 
-## Migrating Old Main-Thread Apps
+## Reactive Effects
 
-The old WebGPU app authoring surface exposed main-thread `app.spawn`,
-`app.world`, and `app.assets`. That surface has been removed from
-`createWebGpuApp()`.
+Use lifecycle-owned effects for ECS mutation driven by signals. Do not use raw
+Preact `effect()` for arbitrary microtask-time ECS writes.
 
-Migration steps:
+```ts
+import { createSystem } from "@aperture-engine/app/systems";
 
-1. Move ECS setup, systems, and `app.spawn(...)` calls into a module Worker.
-2. Mirror source asset registration on the main thread and worker with stable
-   IDs such as `{ id: "cube" }`.
-3. Replace main-thread `stepAndRender()` calls with worker
-   `stepAndExtract()` plus posted snapshots.
-4. Let `createWebGpuApp()` render worker snapshots, or call
-   `app.renderSnapshot(snapshot, options)` for manual render examples.
-5. Keep diagnostics JSON-safe by reporting handles, counts, and diagnostic
-   codes instead of raw WebGPU or ECS objects.
+export default class SelectSystem extends createSystem() {
+  override init(): void {
+    this.effects.watch(this.input.actions.select.pressed, (pressed) => {
+      if (pressed) {
+        this.diagnostics.info("select.pressed");
+      }
+    });
+  }
+}
+```
 
-The renderer may prepare GPU resources and summarize render reports, but ECS
-state remains authoritative in the worker.
+Effects registered in `init()` are disposed on system destroy and flushed in
+explicit simulation phases.
+
+## Advanced APIs
+
+Programmatic app creation, manual stepping, manual worker transport, direct
+render snapshot inspection, source asset transfer packages, renderer-side
+registration, and custom render hosts remain available as advanced paths.
+Start with [`ADVANCED_ORCHESTRATION.md`](./ADVANCED_ORCHESTRATION.md) when you
+need generated bootstrap internals, tests, tools, or nonstandard loops.

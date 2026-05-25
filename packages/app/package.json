@@ -1,0 +1,49 @@
+{
+  "name": "@aperture-engine/app",
+  "version": "0.0.0",
+  "description": "Aperture metaframework app facade, config helpers, and worker-safe system authoring API.",
+  "type": "module",
+  "license": "UNLICENSED",
+  "private": true,
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "import": "./dist/config.js"
+    },
+    "./systems": {
+      "types": "./dist/systems.d.ts",
+      "import": "./dist/systems.js"
+    },
+    "./advanced": {
+      "types": "./dist/advanced.d.ts",
+      "import": "./dist/advanced.js"
+    },
+    "./browser": {
+      "types": "./dist/browser.d.ts",
+      "import": "./dist/browser.js"
+    },
+    "./worker": {
+      "types": "./dist/worker.d.ts",
+      "import": "./dist/worker.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aperture-engine/render": "workspace:*",
+    "@aperture-engine/runtime": "workspace:*",
+    "@aperture-engine/simulation": "workspace:*",
+    "@aperture-engine/webgpu": "workspace:*",
+    "@preact/signals-core": "^1.8.0",
+    "elics": "^3.4.2"
+  }
+}

@@ -7,9 +7,16 @@
     "types": ["vitest", "node"],
     "paths": {
       "@aperture-engine/core": ["packages/core/src/index.ts"],
+      "@aperture-engine/app": ["packages/app/src/index.ts"],
+      "@aperture-engine/app/config": ["packages/app/src/config.ts"],
+      "@aperture-engine/app/systems": ["packages/app/src/systems.ts"],
+      "@aperture-engine/app/advanced": ["packages/app/src/advanced.ts"],
+      "@aperture-engine/app/browser": ["packages/app/src/browser.ts"],
+      "@aperture-engine/app/worker": ["packages/app/src/worker.ts"],
       "@aperture-engine/render": ["packages/render/src/index.ts"],
       "@aperture-engine/runtime": ["packages/runtime/src/index.ts"],
       "@aperture-engine/simulation": ["packages/simulation/src/index.ts"],
+      "@aperture-engine/vite-plugin": ["packages/vite-plugin/src/index.ts"],
       "@aperture-engine/webgpu": ["packages/webgpu/src/index.ts"]
     }
   },

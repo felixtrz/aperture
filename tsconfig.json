@@ -5,6 +5,8 @@
     { "path": "./packages/render" },
     { "path": "./packages/runtime" },
     { "path": "./packages/core" },
-    { "path": "./packages/webgpu" }
+    { "path": "./packages/webgpu" },
+    { "path": "./packages/app" },
+    { "path": "./packages/vite-plugin" }
   ]
 }

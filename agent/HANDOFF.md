@@ -1,6 +1,75 @@
 # Agent Handoff
 
-Updated: 2026-05-25T01:25:43Z
+Updated: 2026-05-25T03:30:00Z
+
+## Current Run Update — 2026-05-25T03:30:00Z — Developer API proposal skeleton
+
+Continued the active goal to implement
+`docs/DEVELOPER_API_PROPOSAL.md`. The goal is **not complete** yet; this slice
+lands the config/system/plugin/headless foundation and documents the remaining
+browser-generated proof work.
+
+### What changed
+
+- Added `@aperture-engine/app` with `config`, `systems`, `advanced`,
+  `browser`, and `worker` entry points. The root app export stays headless-safe
+  and does not export Vite/plugin code.
+- Added `defineApertureConfig`, `asset.gltf/texture/hdr`, config signal
+  helpers, and typed browser/headless config shape.
+- Added worker-safe system helpers: `createSystem`, config-backed
+  `this.assets`, `this.input`, `this.commands`, `this.spawn`,
+  `this.spatial`, `this.cameras`, `this.diagnostics`, lifecycle-owned
+  `this.effects`, primitive descriptors, and `material.standard`.
+- Added `createApertureApp()` in `@aperture-engine/app/advanced` for
+  config-driven headless stepping, blocking/background/manual asset policy,
+  discovered system registration, and priority ordering.
+- Added `@aperture-engine/vite-plugin` with config discovery, system glob
+  discovery, schedule metadata parsing, serializable main-thread manifest,
+  generated worker-system module, generated worker entry, and generated browser
+  entry.
+- Added `examples/developer-api` with minimal `vite.config.ts`,
+  `aperture.config.ts`, `aperture.headless.config.ts`, and setup/spin/reactive
+  systems that do not call low-level renderer/runtime APIs.
+- Reworked `docs/AUTHORING.md` so the main learning path is config plus
+  systems, moved manual worker/main wiring to `docs/ADVANCED_ORCHESTRATION.md`,
+  and recorded decision 0014.
+- Updated `docs/ARCHITECTURE.md`, `docs/index.html`, test/build config, and
+  backlog next tasks for the active developer API goal.
+
+### Validation
+
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `pnpm run check:boundaries`
+- `pnpm run check:progress`
+
+`pnpm run lint` still fails on pre-existing unrelated files:
+`packages/webgpu/src/webgpu/draw-command.ts`,
+`packages/webgpu/src/webgpu/standard-shader.ts`, and
+`scripts/render-control.mjs`.
+
+`pnpm run format:check` still fails on pre-existing unrelated formatting in
+`.playwright-mcp/` scratch files and several older WebGPU/test files. The new
+and touched files were formatted with Prettier.
+
+### Known issues / remaining proposal work
+
+- The generated Vite browser path is implemented as virtual modules but has not
+  yet been proven by Playwright rendering pixels from `examples/developer-api`.
+- Config-declared glTF currently becomes a system-visible scene handle and
+  spawn metadata in the headless slice; the browser path still needs actual GLB
+  asset mirroring/replay hidden behind generated runtime.
+- Browser input forwarding into worker `this.input` signals needs a visible
+  browser proof.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Start `task-3169`: render `examples/developer-api` through the generated Vite
+browser/worker bootstrap and add a Playwright pixel/status proof.
 
 ## Current Run Update — 2026-05-25T01:25:43Z — Unified render-control acceptance closed
 
