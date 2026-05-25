@@ -26,6 +26,7 @@ import {
   AppEntityKey,
   AppEntitySource,
   AppEntityTags,
+  DebugMetadata,
   LocalTransform,
   Name,
   createSystem,
@@ -509,6 +510,38 @@ describe("developer-facing app API", () => {
       "level.crate.primary",
     );
 
+    const beforeSelect = runner.entities.snapshot({
+      label: "before-select",
+      key: "level.crate.primary",
+    });
+    runner.app.context.input.pointer.primary.position.value = [0.25, 0.5];
+    runner.app.context.input.actions.select!.pressed.value = true;
+    runner.step(1 / 60, 1);
+    const afterSelect = runner.entities.snapshot({
+      label: "after-select",
+      key: "level.crate.primary",
+    });
+    const selectDiff = runner.entities.diff(beforeSelect, afterSelect);
+
+    expect(selectDiff).toMatchObject({
+      fromLabel: "before-select",
+      toLabel: "after-select",
+      counts: {
+        added: 0,
+        removed: 0,
+        changed: 1,
+        unchanged: 0,
+      },
+      diagnostics: [],
+    });
+    expect(selectDiff.changed[0]).toMatchObject({
+      entity: beforeSelect.summaries[0]!.entity,
+      fields: expect.arrayContaining(["componentIds"]),
+      after: {
+        componentIds: expect.arrayContaining([DebugMetadata.id]),
+      },
+    });
+
     const resolved = getApertureEntitySummary(
       runner.app.lowLevel.world,
       robot.summaries[0]!.entity,
@@ -518,6 +551,27 @@ describe("developer-facing app API", () => {
       summary: {
         key: "level.robot",
       },
+    });
+
+    const staleSnapshot = runner.entities.snapshot({
+      label: "stale-ref",
+      entities: [
+        {
+          index: robot.summaries[0]!.entity.index,
+          generation: robot.summaries[0]!.entity.generation + 1,
+        },
+      ],
+    });
+    expect(staleSnapshot).toMatchObject({
+      label: "stale-ref",
+      summaries: [],
+      total: 1,
+      diagnostics: [
+        expect.objectContaining({
+          code: "aperture.entityLookup.generationMismatch",
+          suggestedFix: expect.stringContaining("aperture_entity_find"),
+        }),
+      ],
     });
 
     const stale = runner.entities.get({

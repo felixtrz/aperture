@@ -1,5 +1,33 @@
 # Completed Tasks
 
+## task-3180 — Add JSON-safe entity snapshot/diff helpers
+
+Completed: 2026-05-25
+
+Summary:
+
+- Extended `@aperture-engine/app/entity-lookup` with explicit snapshot options,
+  reference snapshots, snapshot diff reports, and
+  `diffApertureEntityLookupSnapshots(...)`.
+- Snapshot diffs key entities by the full `{ index, generation }` pair and
+  report added, removed, changed, and unchanged summaries plus changed fields.
+- Explicit ref snapshots reuse the existing invalid-ref, not-found, and
+  generation-mismatch diagnostics.
+- Extended the developer API headless test to capture before/after snapshots
+  around the select system mutation and verify that `DebugMetadata` appears in
+  the changed entity summary.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `pnpm run check:progress`
+
+Known follow-up:
+
+- `task-3181` should add a constrained entity component mutation helper.
+
 ## task-3179 — Prove worker-side spatial selection
 
 Completed: 2026-05-25

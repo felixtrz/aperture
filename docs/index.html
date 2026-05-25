@@ -393,12 +393,21 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-25 05:50 UTC</dd>
+            <dd>2026-05-25 05:54 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the developer API example now proves worker-side
+              Latest update: developer API entity lookup now has JSON-safe
+              snapshot/diff helpers. Snapshots can be taken from a query or from
+              explicit <code>{ index, generation }</code> refs; diffs key by the
+              full ref and report added, removed, changed, and unchanged
+              summaries plus changed fields; stale refs reuse the
+              generation-mismatch diagnostic that tells agents to rerun entity
+              find. The developer API headless test captures before/after
+              snapshots around a select-system mutation and sees
+              <code>DebugMetadata</code> appear in the changed entity summary.
+              The developer API example also proves worker-side
               camera/spatial selection. <code>SetupSystem</code> seeds
               ECS-owned raycast bounds for the interactive crate;
               <code>SelectSystem</code> derives a ray from
@@ -5106,12 +5115,12 @@
                 camera/spatial selection in the developer API example.
               </li>
               <li>
-                <span class="badge">task-3180</span> Next: add JSON-safe entity
+                <span class="badge green">task-3180</span> Done: add JSON-safe entity
                 snapshot/diff helpers for generated and headless developer
                 tooling.
               </li>
               <li>
-                <span class="badge">task-3181</span> Then: add a constrained
+                <span class="badge">task-3181</span> Next: add a constrained
                 entity component mutation helper for generated/headless
                 developer tooling.
               </li>
@@ -5136,6 +5145,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3180</div>
+            <div>
+              <strong>Developer API entity snapshot diff shipped.</strong>
+              <span>
+                <code>@aperture-engine/app/entity-lookup</code> now supports
+                query and explicit-ref entity snapshots plus full-ref keyed
+                diffs that report added, removed, changed, and unchanged entity
+                summaries for generated and headless developer tooling.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3179</div>
             <div>

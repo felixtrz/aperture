@@ -60,21 +60,13 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 Active goal override is in effect for
-`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3180`: add JSON-safe entity
-snapshot/diff helpers for generated and headless developer tooling. This is the
-next visible slice because `task-3179` now proves the beginner-documented
-worker-side camera/spatial selection path in the developer API example and
-surfaces the selected entity ref through generated status.
+`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3181`: add a constrained entity
+component mutation helper for generated/headless developer tooling. This is the
+next visible slice because `task-3180` now adds JSON-safe entity snapshot/diff
+helpers keyed by full `{ index, generation }` refs.
 
 The next ready visible-feature queue is:
 
-- `task-3180` — add JSON-safe entity snapshot/diff helpers for generated and
-  headless developer tooling without introducing a scene graph identity model.
-  Reference anchor: `references/engine/src/framework/entity.js`.
-  Done when `@aperture-engine/app/entity-lookup` exposes snapshot and diff
-  helpers keyed by `{ index, generation }`, a headless test captures before/after
-  summaries around a system mutation, and generation-mismatched entities return
-  actionable diagnostics that tell agents to rerun entity find.
 - `task-3181` — add a constrained entity component mutation helper for
   generated/headless developer tooling without broad arbitrary object mutation.
   Reference anchor: `references/engine/src/framework/entity.js`.
@@ -90,6 +82,12 @@ The next ready visible-feature queue is:
   instead of directly reading `globalThis.__APERTURE_GENERATED_APP__`, and
   Playwright still observes input, command, entity, signal, and diagnostic
   summaries through the panel.
+- `task-3183` — add developer API panel snapshot/diff controls backed by the
+  worker command/status bridge rather than main-thread ECS access.
+  Reference anchor: `references/engine/src/framework/app-base.js`.
+  Done when the panel can request a labeled entity snapshot, request a diff
+  against the previous snapshot, and display JSON-safe added/removed/changed
+  counts returned from worker-owned ECS state.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

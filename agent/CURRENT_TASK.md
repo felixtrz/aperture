@@ -2,25 +2,24 @@
 
 No active task is currently checked out.
 
-Status: `task-3179` completed the developer API spatial selection proof. The
-example now uses worker-side camera and spatial helpers to select the crate and
-surfaces the selected entity reference through generated/headless status.
+Status: `task-3180` completed JSON-safe entity snapshot/diff helpers for
+developer tooling.
 
 Key findings:
 
-- `SetupSystem` seeds an ECS-owned raycast bounds entry for the interactive
-  crate.
-- `SelectSystem` now derives a ray from `this.cameras.main` and forwarded
-  pointer input, calls `this.spatial.raycast(...)`, writes the selected
-  `{ index, generation }` ref to the config signal, and emits the ref in a
-  JSON-safe diagnostic.
-- Generated worker and headless status now include a JSON-safe `signals`
-  summary via `createSignalSummary(...)`.
-- The developer API panel displays signals, so `selectedEntity` is visible
-  without exposing live systems or renderer state.
-- Browser and headless tests now prove the selected entity ref is published.
+- `@aperture-engine/app/entity-lookup` now exposes
+  `ApertureEntityLookupSnapshotOptions`, `ApertureEntitySnapshotDiff`, and
+  `diffApertureEntityLookupSnapshots(...)`.
+- Entity snapshots can be produced from either a find query or explicit
+  `{ index, generation }` refs.
+- Snapshot diffs key entities by the full `{ index, generation }` pair and
+  report added, removed, changed, and unchanged summaries plus changed fields.
+- Explicit ref snapshots reuse the existing generation-mismatch diagnostics, so
+  stale refs tell agents to rerun entity find.
+- Focused headless coverage captures before/after snapshots around the select
+  system mutation and sees the `DebugMetadata` component appear in the diff.
 
 Recommended next task:
 
-- `task-3180` — add JSON-safe entity snapshot/diff helpers for generated and
-  headless developer tooling.
+- `task-3181` — add a constrained entity component mutation helper for
+  generated/headless developer tooling without broad arbitrary object mutation.

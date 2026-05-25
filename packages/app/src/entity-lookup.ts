@@ -70,12 +70,47 @@ export interface ApertureEntityLookupSnapshot {
   readonly diagnostics: readonly ApertureEntityLookupDiagnostic[];
 }
 
+export interface ApertureEntityLookupSnapshotOptions
+  extends ApertureEntityFindQuery {
+  readonly label?: string;
+  readonly entities?: readonly EcsEntityRef[];
+}
+
+export interface ApertureEntitySnapshotChange {
+  readonly entity: EcsEntityRef;
+  readonly fields: readonly string[];
+  readonly before: ApertureEntitySummary;
+  readonly after: ApertureEntitySummary;
+}
+
+export interface ApertureEntitySnapshotDiffCounts {
+  readonly added: number;
+  readonly removed: number;
+  readonly changed: number;
+  readonly unchanged: number;
+}
+
+export interface ApertureEntitySnapshotDiff {
+  readonly fromLabel?: string;
+  readonly toLabel?: string;
+  readonly counts: ApertureEntitySnapshotDiffCounts;
+  readonly added: readonly ApertureEntitySummary[];
+  readonly removed: readonly ApertureEntitySummary[];
+  readonly changed: readonly ApertureEntitySnapshotChange[];
+  readonly unchanged: readonly ApertureEntitySummary[];
+  readonly diagnostics: readonly ApertureEntityLookupDiagnostic[];
+}
+
 export interface ApertureEntityLookup {
   find(query?: ApertureEntityFindQuery): ApertureEntityFindReport;
   get(entity: EcsEntityRef): ApertureEntityGetReport;
   snapshot(
-    options?: ApertureEntityFindQuery & { readonly label?: string },
+    options?: ApertureEntityLookupSnapshotOptions,
   ): ApertureEntityLookupSnapshot;
+  diff(
+    previous: ApertureEntityLookupSnapshot,
+    next: ApertureEntityLookupSnapshot,
+  ): ApertureEntitySnapshotDiff;
 }
 
 export function createApertureEntityLookup(world: EcsWorld): ApertureEntityLookup {
@@ -87,11 +122,10 @@ export function createApertureEntityLookup(world: EcsWorld): ApertureEntityLooku
       return getApertureEntitySummary(world, entity);
     },
     snapshot(options = {}) {
-      const { label, ...query } = options;
-      return createApertureEntityLookupSnapshot(
-        world,
-        label === undefined ? query : { ...query, label },
-      );
+      return createApertureEntityLookupSnapshot(world, options);
+    },
+    diff(previous, next) {
+      return diffApertureEntityLookupSnapshots(previous, next);
     },
   };
 }
@@ -198,8 +232,12 @@ export function getApertureEntitySummary(
 
 export function createApertureEntityLookupSnapshot(
   world: EcsWorld,
-  options: ApertureEntityFindQuery & { readonly label?: string } = {},
+  options: ApertureEntityLookupSnapshotOptions = {},
 ): ApertureEntityLookupSnapshot {
+  if (options.entities !== undefined) {
+    return createApertureEntityReferenceSnapshot(world, options);
+  }
+
   const report = findApertureEntities(world, {
     ...options,
     limit: options.limit ?? 50,
@@ -212,6 +250,124 @@ export function createApertureEntityLookupSnapshot(
     truncated: report.truncated,
     diagnostics: report.diagnostics,
   };
+}
+
+export function diffApertureEntityLookupSnapshots(
+  previous: ApertureEntityLookupSnapshot,
+  next: ApertureEntityLookupSnapshot,
+): ApertureEntitySnapshotDiff {
+  const previousByRef = new Map(
+    previous.summaries.map((summary) => [entityRefKey(summary.entity), summary]),
+  );
+  const nextByRef = new Map(
+    next.summaries.map((summary) => [entityRefKey(summary.entity), summary]),
+  );
+  const added: ApertureEntitySummary[] = [];
+  const removed: ApertureEntitySummary[] = [];
+  const changed: ApertureEntitySnapshotChange[] = [];
+  const unchanged: ApertureEntitySummary[] = [];
+
+  for (const summary of next.summaries) {
+    const before = previousByRef.get(entityRefKey(summary.entity));
+
+    if (before === undefined) {
+      added.push(summary);
+      continue;
+    }
+
+    const fields = changedSummaryFields(before, summary);
+
+    if (fields.length === 0) {
+      unchanged.push(summary);
+      continue;
+    }
+
+    changed.push({
+      entity: summary.entity,
+      fields,
+      before,
+      after: summary,
+    });
+  }
+
+  for (const summary of previous.summaries) {
+    if (!nextByRef.has(entityRefKey(summary.entity))) {
+      removed.push(summary);
+    }
+  }
+
+  return {
+    ...(previous.label === undefined ? {} : { fromLabel: previous.label }),
+    ...(next.label === undefined ? {} : { toLabel: next.label }),
+    counts: {
+      added: added.length,
+      removed: removed.length,
+      changed: changed.length,
+      unchanged: unchanged.length,
+    },
+    added,
+    removed,
+    changed,
+    unchanged,
+    diagnostics: [...previous.diagnostics, ...next.diagnostics],
+  };
+}
+
+function createApertureEntityReferenceSnapshot(
+  world: EcsWorld,
+  options: ApertureEntityLookupSnapshotOptions,
+): ApertureEntityLookupSnapshot {
+  const summaries: ApertureEntitySummary[] = [];
+  const diagnostics: ApertureEntityLookupDiagnostic[] = [];
+
+  for (const ref of options.entities ?? []) {
+    const report = getApertureEntitySummary(world, ref);
+
+    if (report.ok) {
+      summaries.push(report.summary);
+    } else {
+      diagnostics.push(report.diagnostic);
+    }
+  }
+
+  summaries.sort(compareEntitySummaries);
+
+  return {
+    ...(options.label === undefined ? {} : { label: options.label }),
+    summaries,
+    total: options.entities?.length ?? 0,
+    truncated: false,
+    diagnostics,
+  };
+}
+
+function changedSummaryFields(
+  before: ApertureEntitySummary,
+  after: ApertureEntitySummary,
+): readonly string[] {
+  const fields: string[] = [];
+
+  for (const field of [
+    "key",
+    "name",
+    "componentIds",
+    "tags",
+    "source",
+  ] as const) {
+    if (stableJson(before[field]) !== stableJson(after[field])) {
+      fields.push(field);
+    }
+  }
+
+  return fields;
+}
+
+function entityRefKey(ref: EcsEntityRef): string {
+  return `${ref.index}:${ref.generation}`;
+}
+
+function stableJson(value: unknown): string {
+  return JSON.stringify(value ?? null);
 }
 
 function entitySummary(entity: Entity): ApertureEntitySummary {

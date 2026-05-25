@@ -1,6 +1,53 @@
 # Agent Handoff
 
-Updated: 2026-05-25T05:50:19Z
+Updated: 2026-05-25T05:54:25Z
+
+## Current Run Update — 2026-05-25T05:54:25Z — Developer API entity snapshot diff
+
+Continued the active goal to implement
+`docs/DEVELOPER_API_PROPOSAL.md`. The goal is **not complete** yet; this slice
+completes `task-3180` and moves the recommended next work to a constrained
+entity component mutation helper.
+
+### What changed
+
+- Extended `@aperture-engine/app/entity-lookup` with
+  `ApertureEntityLookupSnapshotOptions`, `ApertureEntitySnapshotDiff`, and
+  `diffApertureEntityLookupSnapshots(...)`.
+- Entity snapshots can now be taken from either a find query or explicit
+  `{ index, generation }` refs.
+- Snapshot diffs key entities by the full `{ index, generation }` pair and
+  report added, removed, changed, and unchanged summaries plus changed fields.
+- Explicit ref snapshots reuse invalid-ref, not-found, and
+  generation-mismatch diagnostics, preserving the instruction to rerun entity
+  find when a ref is stale.
+- The developer API headless test now captures before/after snapshots around
+  the select system mutation and verifies that `DebugMetadata` appears in the
+  changed entity summary.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `pnpm run check:progress`
+
+### Known issues / remaining proposal work
+
+- A constrained entity component mutation helper remains queued for
+  generated/headless developer tooling (`task-3181`).
+- A typed browser status reader helper remains queued so examples do not need
+  to hard-code the generated status global (`task-3182`).
+- Developer API panel snapshot/diff controls remain queued behind the worker
+  command/status bridge (`task-3183`).
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Start `task-3181`: add a constrained entity component mutation helper for
+generated/headless developer tooling.
 
 ## Current Run Update — 2026-05-25T05:50:19Z — Developer API spatial selection
 
