@@ -393,12 +393,24 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-25 05:40 UTC</dd>
+            <dd>2026-05-25 05:50 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the generated developer API example now has a
+              Latest update: the developer API example now proves worker-side
+              camera/spatial selection. <code>SetupSystem</code> seeds
+              ECS-owned raycast bounds for the interactive crate;
+              <code>SelectSystem</code> derives a ray from
+              <code>this.cameras.main</code> and forwarded pointer input, calls
+              <code>this.spatial.raycast(...)</code>, writes the selected
+              <code>{ index, generation }</code> ref to
+              <code>this.signals.selectedEntity</code>, and emits the selected
+              ref in JSON-safe diagnostics. Generated worker and headless
+              status now include JSON-safe config signal summaries, and the
+              browser panel displays <code>signals.selectedEntity</code> without
+              exposing live systems or renderer state. The generated developer
+              API example also has a
               browser control/status panel beside the WebGPU canvas. The panel
               reads only <code>globalThis.__APERTURE_GENERATED_APP__</code>,
               renders JSON-safe app/input/command/entity/frame/diagnostic
@@ -5090,13 +5102,22 @@
                 command, entity, and diagnostic summaries.
               </li>
               <li>
-                <span class="badge">task-3179</span> Next: prove worker-side
+                <span class="badge green">task-3179</span> Done: prove worker-side
                 camera/spatial selection in the developer API example.
               </li>
               <li>
-                <span class="badge">task-3180</span> Then: add JSON-safe entity
+                <span class="badge">task-3180</span> Next: add JSON-safe entity
                 snapshot/diff helpers for generated and headless developer
                 tooling.
+              </li>
+              <li>
+                <span class="badge">task-3181</span> Then: add a constrained
+                entity component mutation helper for generated/headless
+                developer tooling.
+              </li>
+              <li>
+                <span class="badge">task-3182</span> Then: expose a typed
+                generated browser status reader helper for browser tooling.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5115,6 +5136,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3179</div>
+            <div>
+              <strong>Developer API spatial selection shipped.</strong>
+              <span>
+                The developer API example now seeds worker-owned raycast bounds,
+                selects the crate through <code>this.cameras.main</code> and
+                <code>this.spatial.raycast(...)</code>, writes the selected
+                entity ref to a config signal, and exposes that signal through
+                generated/headless JSON status.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3178</div>
             <div>

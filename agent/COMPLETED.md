@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## task-3179 — Prove worker-side spatial selection
+
+Completed: 2026-05-25
+
+Summary:
+
+- Seeded ECS-owned raycast bounds for the developer API crate in `SetupSystem`.
+- Updated `SelectSystem` to derive a ray from `this.cameras.main` and forwarded
+  pointer input, call `this.spatial.raycast(...)`, write the selected
+  `{ index, generation }` ref to `this.signals.selectedEntity`, and emit the ref
+  in the `select.pressed` diagnostic.
+- Added JSON-safe config signal summaries to generated worker status and
+  headless runner status through `createSignalSummary(...)`.
+- Updated the developer API panel to display signal summaries and to seed the
+  pointer position before dispatching the select action.
+- Updated headless and browser tests to prove selected entity refs are visible
+  through generated/headless status.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `./node_modules/.bin/playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+- `pnpm run check:progress`
+
+Known follow-up:
+
+- `task-3180` should add JSON-safe entity snapshot/diff helpers.
+
 ## task-3178 — Add developer API browser control/status panel
 
 Completed: 2026-05-25

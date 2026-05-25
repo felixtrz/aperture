@@ -12,6 +12,7 @@ import {
   type ApertureEntityLookup,
   type ApertureEntityLookupSnapshot,
 } from "./entity-lookup.js";
+import { createSignalSummary, type SignalSummary } from "./systems.js";
 import {
   createApertureGeneratedFailureStatus,
   type ApertureGeneratedDiagnosticsStatus,
@@ -41,6 +42,7 @@ export interface ApertureHeadlessStatus {
     ApertureApp["lowLevel"]["assets"]["createManifestReport"]
   >;
   readonly input: ApertureInputSummary;
+  readonly signals: SignalSummary;
   readonly diagnostics: ReturnType<
     ApertureApp["context"]["diagnostics"]["list"]
   >;
@@ -148,6 +150,7 @@ function createHeadlessStatus(
     preload: app.preload,
     assets: app.lowLevel.assets.createManifestReport(),
     input: createInputSummary(app.context.input),
+    signals: createSignalSummary(app.context.signals),
     diagnostics: app.context.diagnostics.list(),
     entities: createApertureEntityLookupSnapshot(app.lowLevel.world, {
       label: "headless",

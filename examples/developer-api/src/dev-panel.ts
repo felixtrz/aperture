@@ -4,6 +4,7 @@ type JsonRecord = Record<string, unknown>;
 
 const SELECT_KEY = "Enter";
 const ASSET_REQUEST_CHANNEL = "asset.request";
+const SELECT_POINTER = [0.25, 0.5] as const;
 
 const selectButton = document.querySelector<HTMLButtonElement>(
   "[data-aperture-action='select']",
@@ -16,13 +17,9 @@ const statusOutput = document.querySelector<HTMLElement>(
 );
 
 selectButton?.addEventListener("click", () => {
-  window.dispatchEvent(
-    new KeyboardEvent("keydown", {
-      bubbles: true,
-      code: SELECT_KEY,
-      key: SELECT_KEY,
-    }),
-  );
+  dispatchPointerMove(SELECT_POINTER);
+  dispatchSelectKey("keydown");
+  window.setTimeout(() => dispatchSelectKey("keyup"), 80);
 });
 
 requestDecalButton?.addEventListener("click", () => {
@@ -64,6 +61,7 @@ function readPanelStatus(): JsonRecord {
       lastFrame: status?.lastFrame ?? null,
       frameCounts: readRecord(lastFrame?.counts),
     },
+    signals: readRecord(worker?.signals),
     input: readRecord(worker?.input),
     commands: readRecord(worker?.commands),
     entities: {
@@ -74,6 +72,35 @@ function readPanelStatus(): JsonRecord {
       ? worker.diagnostics
       : [],
   };
+}
+
+function dispatchPointerMove(position: readonly [number, number]): void {
+  const canvas = document.querySelector<HTMLCanvasElement>("#aperture");
+  const rect = canvas?.getBoundingClientRect();
+
+  if (canvas === null || rect === undefined) {
+    return;
+  }
+
+  canvas.dispatchEvent(
+    new PointerEvent("pointermove", {
+      bubbles: true,
+      clientX: rect.left + rect.width * position[0],
+      clientY: rect.top + rect.height * position[1],
+      pointerId: 1,
+      pointerType: "mouse",
+    }),
+  );
+}
+
+function dispatchSelectKey(type: "keydown" | "keyup"): void {
+  window.dispatchEvent(
+    new KeyboardEvent(type, {
+      bubbles: true,
+      code: SELECT_KEY,
+      key: SELECT_KEY,
+    }),
+  );
 }
 
 function readEntitySummaries(value: unknown): readonly unknown[] {

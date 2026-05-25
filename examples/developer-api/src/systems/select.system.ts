@@ -27,23 +27,40 @@ export default class SelectSystem extends SelectSystemBase {
       }
 
       const [crate] = this.queries.crates.entities;
-      if (crate === undefined) {
+      const ray = this.cameras.main.rayFromPointer(
+        this.input.pointer.primary.position.value,
+      );
+      const hit = this.spatial.raycast(ray, {
+        query: this.queries.crates,
+        maxDistance: 5,
+      });
+
+      if (crate === undefined || hit === null) {
         this.diagnostics.warn("select.noTarget");
         return;
       }
 
-      if (crate.hasComponent(DebugMetadata)) {
-        crate.setValue(DebugMetadata, "tag", "input");
-        crate.setValue(DebugMetadata, "note", "select.pressed");
+      const selected = hit.entity.entity;
+      const selectedSignal = this.signals.selectedEntity;
+      if (selectedSignal !== undefined) {
+        selectedSignal.value = hit.entity.ref;
+      }
+
+      if (selected.hasComponent(DebugMetadata)) {
+        selected.setValue(DebugMetadata, "tag", "input");
+        selected.setValue(DebugMetadata, "note", "select.pressed");
       } else {
-        crate.addComponent(DebugMetadata, {
+        selected.addComponent(DebugMetadata, {
           tag: "input",
           note: "select.pressed",
         });
       }
 
       this.diagnostics.info("select.pressed", {
-        entity: crate.index,
+        entity: selected.index,
+        selectedEntity: hit.entity.ref,
+        hitDistance: hit.distance,
+        hitPoint: hit.point,
         mutatedComponent: DebugMetadata.id,
       });
     });

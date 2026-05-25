@@ -2,29 +2,25 @@
 
 No active task is currently checked out.
 
-Status: `task-3178` completed the developer API browser control/status panel.
-The example now has a DOM panel outside the canvas that exercises generated
-input and command forwarding and displays JSON-safe worker summaries.
+Status: `task-3179` completed the developer API spatial selection proof. The
+example now uses worker-side camera and spatial helpers to select the crate and
+surfaces the selected entity reference through generated/headless status.
 
 Key findings:
 
-- `examples/developer-api/index.html` now lays out the WebGPU canvas beside a
-  compact developer panel with `Select` and `Request decal` controls.
-- `examples/developer-api/src/dev-panel.ts` reads only
-  `globalThis.__APERTURE_GENERATED_APP__` and renders app, input, command,
-  entity, frame, and diagnostic summaries as JSON.
-- The `Select` control dispatches the configured `Enter` keyboard action
-  through the generated browser input forwarder; the `Request decal` control
-  dispatches the existing `aperture:command` asset request.
-- Browser/headless developer API configs now bind `select` to both primary
-  pointer and `Enter`, keeping the original canvas pointer path intact.
-- Playwright now clicks panel controls instead of dispatching raw custom events
-  from the test body and asserts that the panel displays entity, input,
-  command, and requested-asset status.
+- `SetupSystem` seeds an ECS-owned raycast bounds entry for the interactive
+  crate.
+- `SelectSystem` now derives a ray from `this.cameras.main` and forwarded
+  pointer input, calls `this.spatial.raycast(...)`, writes the selected
+  `{ index, generation }` ref to the config signal, and emits the ref in a
+  JSON-safe diagnostic.
+- Generated worker and headless status now include a JSON-safe `signals`
+  summary via `createSignalSummary(...)`.
+- The developer API panel displays signals, so `selectedEntity` is visible
+  without exposing live systems or renderer state.
+- Browser and headless tests now prove the selected entity ref is published.
 
 Recommended next task:
 
-- `task-3179` — prove worker-side camera/spatial selection in the developer API
-  example by deriving a ray from forwarded input through `this.cameras.main`,
-  using `this.spatial.raycast(...)`, and surfacing the selected
-  `{ index, generation }` summary through generated status.
+- `task-3180` — add JSON-safe entity snapshot/diff helpers for generated and
+  headless developer tooling.

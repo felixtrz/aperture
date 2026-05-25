@@ -1,4 +1,8 @@
-import { asset, defineApertureConfig } from "@aperture-engine/app/config";
+import {
+  asset,
+  defineApertureConfig,
+  signal,
+} from "@aperture-engine/app/config";
 
 export default defineApertureConfig({
   mode: "headless",
@@ -17,6 +21,10 @@ export default defineApertureConfig({
       select: [{ pointer: "primary" }, { keyboard: "Enter" }],
       jump: [{ keyboard: "Space" }],
     },
+  },
+  signals: {
+    selectedEntity: signal.ref(null),
+    gameplayMode: signal.string("edit"),
   },
   render: {
     defaultCamera: false,

@@ -1,6 +1,56 @@
 # Agent Handoff
 
-Updated: 2026-05-25T05:40:46Z
+Updated: 2026-05-25T05:50:19Z
+
+## Current Run Update — 2026-05-25T05:50:19Z — Developer API spatial selection
+
+Continued the active goal to implement
+`docs/DEVELOPER_API_PROPOSAL.md`. The goal is **not complete** yet; this slice
+completes `task-3179` and moves the recommended next work to JSON-safe entity
+snapshot/diff helpers.
+
+### What changed
+
+- `SetupSystem` now seeds an ECS-owned raycast bounds entry for the interactive
+  crate.
+- `SelectSystem` now derives a ray from `this.cameras.main` and forwarded
+  pointer input, calls `this.spatial.raycast(...)`, writes the selected
+  `{ index, generation }` ref to `this.signals.selectedEntity`, and emits the
+  selected ref plus hit information in the `select.pressed` diagnostic.
+- Added `createSignalSummary(...)` and included JSON-safe config signal
+  summaries in generated worker status and headless runner status.
+- Updated the developer API panel so the `Select` control seeds pointer
+  position before dispatching the select input action, and the panel now shows
+  `signals.selectedEntity`.
+- Updated headless and browser tests to assert that selected entity refs are
+  visible through generated/headless status.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `./node_modules/.bin/playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+- `pnpm run check:progress`
+
+### Known issues / remaining proposal work
+
+- JSON-safe entity snapshot/diff helpers for generated/headless tooling remain
+  queued (`task-3180`).
+- A constrained entity component mutation helper remains queued for
+  generated/headless developer tooling (`task-3181`).
+- A typed browser status reader helper remains queued so examples do not need
+  to hard-code the generated status global (`task-3182`).
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Start `task-3180`: add JSON-safe entity snapshot/diff helpers for generated and
+headless developer tooling.
 
 ## Current Run Update — 2026-05-25T05:40:46Z — Developer API browser panel
 

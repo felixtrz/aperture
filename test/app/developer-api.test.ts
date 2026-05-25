@@ -394,6 +394,7 @@ describe("developer-facing app API", () => {
       },
     });
 
+    runner.app.context.input.pointer.primary.position.value = [0.25, 0.5];
     runner.app.context.input.actions.select!.pressed.value = true;
     const selected = runner.step(1 / 60, 1);
 
@@ -401,11 +402,19 @@ describe("developer-facing app API", () => {
       pressed: true,
       value: 0,
     });
+    expect(selected.status.signals.selectedEntity).toMatchObject({
+      index: expect.any(Number),
+      generation: expect.any(Number),
+    });
     expect(selected.status.diagnostics).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           code: "select.pressed",
           data: expect.objectContaining({
+            selectedEntity: expect.objectContaining({
+              index: expect.any(Number),
+              generation: expect.any(Number),
+            }),
             mutatedComponent: "aperture.metadata.debug",
           }),
         }),

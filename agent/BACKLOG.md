@@ -60,23 +60,14 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 Active goal override is in effect for
-`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3179`: prove the
-beginner-documented worker-side camera/spatial selection path in the developer
-API example. This is the next visible slice because `task-3178` now adds a
-browser control/status panel that dispatches generated input and command paths
-without exposing live system classes or renderer state.
+`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3180`: add JSON-safe entity
+snapshot/diff helpers for generated and headless developer tooling. This is the
+next visible slice because `task-3179` now proves the beginner-documented
+worker-side camera/spatial selection path in the developer API example and
+surfaces the selected entity ref through generated status.
 
 The next ready visible-feature queue is:
 
-- `task-3179` — prove the beginner-documented worker-side camera/spatial
-  selection path in the developer API example without making renderer picking
-  authoritative.
-  Reference anchor: `references/three.js/src/core/Raycaster.js`.
-  Done when `examples/developer-api` seeds ECS-owned bounds for the interactive
-  crate, a worker system derives a ray from forwarded pointer input through
-  `this.cameras.main`, writes the selected entity ref to a config signal via
-  `this.spatial.raycast(...)`, and Playwright observes the selected
-  `{ index, generation }` summary through generated status.
 - `task-3180` — add JSON-safe entity snapshot/diff helpers for generated and
   headless developer tooling without introducing a scene graph identity model.
   Reference anchor: `references/engine/src/framework/entity.js`.
@@ -91,6 +82,14 @@ The next ready visible-feature queue is:
   component field by `{ index, generation }`, rejects unknown components,
   unknown fields, and stale generations with actionable diagnostics, and a
   headless developer API test mutates `DebugMetadata.note` through the helper.
+- `task-3182` — expose a typed generated browser status reader helper for
+  browser tooling so examples do not need to hard-code the status global name.
+  Reference anchor: `references/engine/src/framework/app-base.js`.
+  Done when `@aperture-engine/app/browser` exports a JSON-safe
+  `readGeneratedBrowserAppStatus()` helper, the developer API panel uses it
+  instead of directly reading `globalThis.__APERTURE_GENERATED_APP__`, and
+  Playwright still observes input, command, entity, signal, and diagnostic
+  summaries through the panel.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

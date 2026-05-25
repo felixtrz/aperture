@@ -18,6 +18,7 @@ import {
   isGeneratedInputEventMessage,
   type ApertureGeneratedInputEventMessage,
 } from "./input.js";
+import { createSignalSummary } from "./systems.js";
 import type { ApertureApp } from "./advanced.js";
 
 export interface StartGeneratedSimulationWorkerOptions {
@@ -138,6 +139,7 @@ async function runLoop(options: {
         snapshot,
         sourceAssets: serializeSourceAssetRegistry(app.lowLevel.assets),
         workerSummary: {
+          signals: createSignalSummary(app.context.signals),
           input: createInputSummary(app.context.input),
           commands: app.context.commands.summary(),
           diagnostics: app.context.diagnostics.list(),

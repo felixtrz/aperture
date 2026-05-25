@@ -132,6 +132,17 @@ export interface ApertureQuery {
 }
 
 export type SignalStore = Record<string, Signal<unknown>>;
+export type SignalSummary = Readonly<Record<string, unknown>>;
+
+export function createSignalSummary(signals: SignalStore): SignalSummary {
+  const summary: Record<string, unknown> = {};
+
+  for (const [key, signal] of Object.entries(signals)) {
+    summary[key] = jsonSafeValue(signal.value);
+  }
+
+  return summary;
+}
 
 export interface InputActionSignals {
   readonly pressed: Signal<boolean>;

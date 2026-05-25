@@ -34,7 +34,7 @@ export default class SetupSystem extends createSystem() {
       intensity: 0.75,
     });
 
-    this.spawn.mesh({
+    const crate = this.spawn.mesh({
       key: "level.crate.primary",
       name: "crate",
       tags: ["interactive", "crate"],
@@ -46,6 +46,15 @@ export default class SetupSystem extends createSystem() {
       }),
       transform: { translation: [-1, 0.5, 0] },
     });
+    this.spatial.setBounds([
+      {
+        entity: crate,
+        worldAabb: {
+          min: [0.2, 0.45, -1],
+          max: [0.3, 0.55, 1],
+        },
+      },
+    ]);
 
     this.spawn.gltf(this.assets.gltf("robot"), {
       key: "level.robot",

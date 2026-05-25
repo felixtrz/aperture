@@ -21,6 +21,12 @@ interface GeneratedBrowserAppStatus {
   readonly forwardedCommandEvents?: number;
   readonly lastCommandEvent?: unknown;
   readonly lastWorkerSummary?: {
+    readonly signals?: {
+      readonly selectedEntity?: {
+        readonly index?: number;
+        readonly generation?: number;
+      } | null;
+    };
     readonly input?: {
       readonly actions?: Record<
         string,
@@ -178,15 +184,17 @@ test("generated Vite browser bootstrap renders a config/system-authored scene", 
     () => {
       const status = (globalThis as GeneratedStatusGlobal)
         .__APERTURE_GENERATED_APP__;
-      const select = status?.lastWorkerSummary?.input?.actions?.select;
+      const selectedEntity = status?.lastWorkerSummary?.signals?.selectedEntity;
       const diagnostics = status?.lastWorkerSummary?.diagnostics ?? [];
 
       return (
         (status?.forwardedInputEvents ?? 0) > 0 &&
-        select?.pressed === true &&
+        typeof selectedEntity?.index === "number" &&
+        typeof selectedEntity?.generation === "number" &&
         diagnostics.some(
           (diagnostic) =>
             diagnostic.code === "select.pressed" &&
+            typeof diagnostic.data?.selectedEntity === "object" &&
             diagnostic.data?.mutatedComponent === "aperture.metadata.debug",
         )
       );
@@ -206,14 +214,24 @@ test("generated Vite browser bootstrap renders a config/system-authored scene", 
   });
 
   expect(inputStatus?.forwardedInputEvents ?? 0).toBeGreaterThan(0);
-  expect(inputStatus?.lastWorkerSummary?.input?.actions?.select?.pressed).toBe(
-    true,
+  expect(inputStatus?.lastWorkerSummary?.input?.actions?.select).toMatchObject({
+    value: expect.any(Number),
+  });
+  expect(inputStatus?.lastWorkerSummary?.signals?.selectedEntity).toMatchObject(
+    {
+      index: expect.any(Number),
+      generation: expect.any(Number),
+    },
   );
   expect(inputStatus?.lastWorkerSummary?.diagnostics ?? []).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
         code: "select.pressed",
         data: expect.objectContaining({
+          selectedEntity: expect.objectContaining({
+            index: expect.any(Number),
+            generation: expect.any(Number),
+          }),
           mutatedComponent: "aperture.metadata.debug",
         }),
       }),
@@ -221,6 +239,9 @@ test("generated Vite browser bootstrap renders a config/system-authored scene", 
   );
   await expect(page.locator("#aperture-dev-status")).toContainText(
     "select.pressed",
+  );
+  await expect(page.locator("#aperture-dev-status")).toContainText(
+    "selectedEntity",
   );
 
   await page.locator("[data-aperture-action='request-decal']").click();
