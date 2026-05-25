@@ -27,6 +27,10 @@
       "types": "./dist/headless.d.ts",
       "import": "./dist/headless.js"
     },
+    "./entity-lookup": {
+      "types": "./dist/entity-lookup.d.ts",
+      "import": "./dist/entity-lookup.js"
+    },
     "./browser": {
       "types": "./dist/browser.d.ts",
       "import": "./dist/browser.js"

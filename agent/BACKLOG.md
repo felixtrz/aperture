@@ -60,25 +60,15 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 Active goal override is in effect for
-`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3173`: publish a developer API
-entity-summary lookup surface for generated/headless apps so agents can
-discover config/system-spawned entities without relying on renderer state. This
-is the next visible slice because `task-3172` now exposes a config-driven
-headless runner for the same developer API system files, while the proposal's
-MCP-style entity lookup contract is still missing.
+`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3174`: forward generated
+browser/UI commands into worker-owned `this.commands` queues and prove a system
+can request a manual config asset without importing loader reports or renderer
+registration code. This is the next visible slice because `task-3173` now
+publishes JSON-safe ECS entity lookup summaries for generated/headless apps,
+while the proposal's runtime command/request path is still missing.
 
 The next ready visible-feature queue is:
 
-- `task-3173` — publish a developer API entity-summary lookup surface for
-  generated/headless apps so agents can discover config/system-spawned
-  entities by key, name pattern, component set, and GLB source metadata without
-  relying on renderer state.
-  Reference anchor: `references/engine/src/framework/entity.js`.
-  Done when a JSON-safe lookup helper returns `{ index, generation }`,
-  optional key/name/tags, component ids, and GLB source fields for the
-  developer API scene, rejects generation mismatches with actionable
-  diagnostics, and is covered by headless tests using the same setup system
-  shape.
 - `task-3174` — forward generated browser/UI commands into worker-owned
   `this.commands` queues and prove a system can request a manual config asset
   without importing loader reports or renderer registration code.
@@ -95,6 +85,15 @@ The next ready visible-feature queue is:
   schedule metadata, invalid GLB URLs, and worker startup failure; each status
   includes stable code, message, source file/module/asset context, and suggested
   fix without requiring users to inspect console-only errors.
+- `task-3176` — restructure the beginner authoring docs so config plus
+  worker-discovered systems are the first path and imperative
+  `createApertureApp(...)`/snapshot transport wiring is clearly advanced.
+  Reference anchor: `references/bevy/examples/3d/3d_scene.rs`.
+  Done when `docs/AUTHORING.md` leads with `aperture.config.ts`,
+  `vite.config.ts`, setup systems, primitive spawning, GLB spawning, input and
+  command examples, and links programmatic runtime/WebGPU orchestration as an
+  advanced section without requiring first-time readers to understand
+  renderer-side registration or snapshot posting.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

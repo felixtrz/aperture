@@ -33,6 +33,20 @@ interface GeneratedBrowserAppStatus {
       readonly severity?: string;
       readonly data?: Record<string, unknown>;
     }[];
+    readonly entities?: {
+      readonly total?: number;
+      readonly summaries?: readonly {
+        readonly key?: string;
+        readonly name?: string;
+        readonly componentIds?: readonly string[];
+        readonly tags?: readonly string[];
+        readonly source?: {
+          readonly assetId?: string;
+          readonly gltfNodeIndex?: number;
+          readonly gltfNodePath?: string;
+        };
+      }[];
+    };
   };
   readonly diagnostics?: {
     readonly lastFrame?: {
@@ -129,6 +143,21 @@ test("generated Vite browser bootstrap renders a config/system-authored scene", 
   ).toBeGreaterThan(1);
   expect(status?.diagnostics?.lastFrame?.counts?.diagnostics).toBe(0);
   expect(status?.diagnostics?.lastFrame?.diagnostics ?? []).toEqual([]);
+  expect(status?.lastWorkerSummary?.entities?.total ?? 0).toBeGreaterThan(0);
+  expect(status?.lastWorkerSummary?.entities?.summaries ?? []).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        key: "level.crate.primary",
+        tags: expect.arrayContaining(["interactive", "crate"]),
+      }),
+      expect.objectContaining({
+        key: "level.robot",
+        source: expect.objectContaining({
+          assetId: "robot",
+        }),
+      }),
+    ]),
+  );
 
   const canvasBox = await page.locator("#aperture").boundingBox();
   expect(canvasBox).not.toBeNull();
@@ -213,8 +242,10 @@ async function waitForDeveloperApiServer(): Promise<void> {
     try {
       const response = await fetch(DEVELOPER_API_URL);
       if (response.ok) {
+        await response.body?.cancel();
         return;
       }
+      await response.body?.cancel();
     } catch (error: unknown) {
       lastError = error;
     }

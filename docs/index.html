@@ -393,30 +393,38 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-25 04:49 UTC</dd>
+            <dd>2026-05-25 05:01 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update: the developer-facing API now exposes
-              <code>@aperture-engine/app/headless</code> with
-              <code>createApertureHeadlessRunner(...)</code>. The runner uses
-              the same config/system path as the generated browser app, rejects
+              JSON-safe ECS entity lookup summaries through
+              <code>@aperture-engine/app/entity-lookup</code>, the headless
+              runner, and generated worker/browser status. Summaries return
+              canonical <code>{ index, generation }</code> refs, optional
+              app-authored key/name/tags, component ids, and GLB source asset
+              plus glTF node metadata without reading renderer-owned state.
+              Focused headless tests use the real developer API
+              setup/select/spin system files plus a data-URL GLB to prove exact
+              key lookup, regex name lookup, component and tag filters, GLB
+              source filters, JSON-safe status, and stale generation
+              diagnostics. The previous headless runner slice remains in place:
+              <code>@aperture-engine/app/headless</code> runs the same
+              config/system path as the generated browser app, rejects
               non-headless configs, steps and extracts snapshots, and reports
-              JSON-safe preload, asset, input, diagnostic, and snapshot-count
-              status without DOM, canvas, <code>navigator.gpu</code>, or WebGPU
-              presentation imports. Focused tests import the real developer API
-              setup/select/spin system files, verify one extracted view and mesh
-              draw, then drive the select signal and observe the worker-system
-              mutation diagnostic. The generated browser proof remains in
-              place: pointer/keyboard input reaches worker-owned
-              <code>this.input</code> signals; the setup system authors camera,
-              lights, a primitive crate, and
+              JSON-safe preload, asset, input, diagnostic, entity, and
+              snapshot-count status without DOM, canvas,
+              <code>navigator.gpu</code>, or WebGPU presentation imports. The
+              generated browser proof also remains in place: pointer/keyboard
+              input reaches worker-owned <code>this.input</code> signals; the
+              setup system authors camera, lights, a primitive crate, and
               <code>this.spawn.gltf(this.assets.gltf("robot"))</code> from
               <code>init()</code>; blocking GLB preload registers source mesh
               and material assets before startup; and Playwright verifies two
-              mesh draws, two WebGPU draw calls, forwarded input status, zero
-              frame diagnostics, and non-clear canvas pixels. The first
+              mesh draws, two WebGPU draw calls, forwarded input status,
+              generated entity summaries, zero frame diagnostics, and non-clear
+              canvas pixels. The first
               developer-facing app API
               slice remains in place: <code>@aperture-engine/app/config</code>,
               <code>@aperture-engine/app/systems</code>,
@@ -5002,13 +5010,19 @@
                 using the same system files as the browser example.
               </li>
               <li>
-                <span class="badge">task-3173</span> Next: publish JSON-safe
+                <span class="badge green">task-3173</span> Done: publish
+                JSON-safe
                 entity lookup summaries for config/system-spawned entities.
               </li>
               <li>
-                <span class="badge">task-3174</span> Then: forward generated
+                <span class="badge">task-3174</span> Next: forward generated
                 browser/UI commands into worker-owned
                 <code>this.commands</code> queues.
+              </li>
+              <li>
+                <span class="badge">task-3175</span> Then: surface generated
+                app diagnostics for config, system-manifest, worker, and
+                asset-load failures in one JSON-safe status shape.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5027,6 +5041,20 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3173</div>
+            <div>
+              <strong>Developer API entity lookup shipped.</strong>
+              <span>
+                <code>@aperture-engine/app/entity-lookup</code> now returns
+                JSON-safe ECS entity summaries with
+                <code>{ index, generation }</code>, key/name/tags, component
+                ids, and GLB source metadata; headless and generated browser
+                status expose lookup snapshots, and tests reject stale
+                generation refs with actionable diagnostics.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3172</div>
             <div>

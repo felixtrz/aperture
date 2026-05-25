@@ -1,6 +1,63 @@
 # Agent Handoff
 
-Updated: 2026-05-25T04:46:44Z
+Updated: 2026-05-25T05:01:17Z
+
+## Current Run Update — 2026-05-25T05:01:17Z — Developer API entity lookup summaries
+
+Continued the active goal to implement
+`docs/DEVELOPER_API_PROPOSAL.md`. The goal is **not complete** yet; this slice
+completes `task-3173` and moves the recommended next work to generated
+browser/UI command forwarding.
+
+### What changed
+
+- Added `@aperture-engine/app/entity-lookup` with JSON-safe
+  `findApertureEntities(...)`, `getApertureEntitySummary(...)`, entity lookup
+  snapshots, and a small lookup facade.
+- Entity summaries now return canonical `{ index, generation }` refs,
+  optional app-authored key/name/tags, component ids, and GLB source metadata.
+- Added `AppEntitySource` and annotate replayed GLB ECS entities with source
+  asset id, glTF node index, and glTF node path during `this.spawn.gltf(...)`.
+- Exposed lookup through `createApertureHeadlessRunner(...).entities`,
+  headless status, and generated worker/browser status summaries.
+- Updated the developer API setup system with crate/robot tags so lookup tests
+  and generated status can disambiguate entities without relying on name
+  uniqueness.
+- Added focused headless coverage using the real developer API setup/select/spin
+  system files plus a data-URL GLB, proving exact key lookup, tag filters, regex
+  name lookup, component filters, GLB source filters, JSON-safe status, and
+  stale generation diagnostics.
+- Updated the browser Playwright proof to assert generated worker entity
+  summaries and cancel readiness-probe fetch bodies so the test exits cleanly.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+
+### Known issues / remaining proposal work
+
+- Browser/UI command forwarding into `this.commands` queues is not implemented
+  yet (`task-3174`).
+- Unified generated diagnostics for config, manifest, worker, and asset-load
+  failures should still be tightened (`task-3175`).
+- Beginner docs still need to lead with config plus worker-discovered systems
+  and move imperative orchestration lower (`task-3176`).
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Start `task-3174`: forward generated browser/UI commands into worker-owned
+`this.commands` queues and prove manual config asset requests through the
+generated runtime.
 
 ## Current Run Update — 2026-05-25T04:46:44Z — Developer API headless runner
 

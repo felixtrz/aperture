@@ -9,7 +9,13 @@ import {
 } from "@aperture-engine/app/advanced";
 import { createApertureHeadlessRunner } from "@aperture-engine/app/headless";
 import {
+  findApertureEntities,
+  getApertureEntitySummary,
+} from "@aperture-engine/app/entity-lookup";
+import {
   AppEntityKey,
+  AppEntitySource,
+  AppEntityTags,
   LocalTransform,
   Name,
   createSystem,
@@ -383,6 +389,124 @@ describe("developer-facing app API", () => {
     );
   });
 
+  it("publishes JSON-safe entity lookup summaries for developer API headless systems", async () => {
+    const cubeBytes = await readFile("examples/assets/cube.glb");
+    const cubeDataUrl = `data:model/gltf-binary;base64,${cubeBytes.toString(
+      "base64",
+    )}`;
+    const config = defineApertureConfig({
+      ...developerHeadlessConfig,
+      assets: {
+        ...developerHeadlessConfig.assets,
+        robot: asset.gltf(cubeDataUrl, { preload: "blocking" }),
+      },
+    });
+    const runner = await createApertureHeadlessRunner({
+      config,
+      systems: [
+        { default: SetupSystem, schedule: setupSchedule },
+        { default: SelectSystem, schedule: selectSchedule },
+        { default: SpinCrateSystem, schedule: spinSchedule },
+      ],
+    });
+
+    runner.step(1 / 60, 0.5);
+
+    const crate = runner.entities.find({
+      key: "level.crate.primary",
+      tags: ["interactive"],
+      withComponents: [AppEntityTags.id],
+    });
+    expect(crate.diagnostics).toEqual([]);
+    expect(crate.summaries).toHaveLength(1);
+    expect(crate.summaries[0]).toMatchObject({
+      key: "level.crate.primary",
+      name: "crate",
+      tags: expect.arrayContaining(["interactive", "crate"]),
+      componentIds: expect.arrayContaining([
+        "aperture.app.entityKey",
+        "aperture.app.entityTags",
+      ]),
+    });
+
+    const robot = runner.entities.find({
+      key: "level.robot",
+      withComponents: [AppEntitySource.id],
+    });
+    expect(robot.diagnostics).toEqual([]);
+    expect(robot.summaries).toHaveLength(1);
+    expect(robot.summaries[0]).toMatchObject({
+      entity: {
+        index: expect.any(Number),
+        generation: expect.any(Number),
+      },
+      key: "level.robot",
+      name: "robot",
+      tags: expect.arrayContaining(["asset", "robot"]),
+      source: {
+        assetId: "robot",
+        gltfNodePath: expect.stringMatching(/^scene:/),
+      },
+    });
+
+    const robotPrimitives = findApertureEntities(runner.app.lowLevel.world, {
+      source: { assetId: "robot" },
+      withComponents: ["aperture.render.mesh", "aperture.render.material"],
+    });
+    expect(robotPrimitives.diagnostics).toEqual([]);
+    expect(robotPrimitives.summaries.length).toBeGreaterThan(0);
+    expect(robotPrimitives.summaries[0]).toMatchObject({
+      componentIds: expect.arrayContaining([
+        "aperture.render.mesh",
+        "aperture.render.material",
+      ]),
+      source: {
+        assetId: "robot",
+        gltfNodeIndex: expect.any(Number),
+        gltfNodePath: expect.stringContaining("nodes["),
+      },
+    });
+
+    const byName = runner.entities.find({ namePattern: "^crate$" });
+    expect(byName.summaries.map((summary) => summary.key)).toContain(
+      "level.crate.primary",
+    );
+
+    const resolved = getApertureEntitySummary(
+      runner.app.lowLevel.world,
+      robot.summaries[0]!.entity,
+    );
+    expect(resolved).toMatchObject({
+      ok: true,
+      summary: {
+        key: "level.robot",
+      },
+    });
+
+    const stale = runner.entities.get({
+      index: robot.summaries[0]!.entity.index,
+      generation: robot.summaries[0]!.entity.generation + 1,
+    });
+    expect(stale).toMatchObject({
+      ok: false,
+      diagnostic: {
+        code: "aperture.entityLookup.generationMismatch",
+        suggestedFix: expect.stringContaining("aperture_entity_find"),
+      },
+    });
+
+    expect(runner.getStatus().entities).toMatchObject({
+      label: "headless",
+      total: expect.any(Number),
+      summaries: expect.arrayContaining([
+        expect.objectContaining({ key: "level.robot" }),
+      ]),
+    });
+    expect(JSON.stringify(runner.getStatus().entities)).not.toMatch(
+      /navigator\.gpu|HTMLCanvasElement|createWebGpuApp/,
+    );
+  });
+
   it("discovers worker system globs and records schedule metadata without exposing classes to the main manifest", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "aperture-plugin-"));
 
@@ -460,8 +584,12 @@ describe("developer-facing app API", () => {
   it("keeps config and system helpers headless-safe", async () => {
     const configSource = await readFile("packages/app/src/config.ts", "utf8");
     const systemsSource = await readFile("packages/app/src/systems.ts", "utf8");
+    const entityLookupSource = await readFile(
+      "packages/app/src/entity-lookup.ts",
+      "utf8",
+    );
     const rootSource = await readFile("packages/app/src/index.ts", "utf8");
-    const headlessSafeSource = `${configSource}\n${systemsSource}\n${rootSource}`;
+    const headlessSafeSource = `${configSource}\n${systemsSource}\n${entityLookupSource}\n${rootSource}`;
 
     expect(headlessSafeSource).not.toMatch(
       /@aperture-engine\/webgpu|navigator\.gpu|HTMLCanvasElement|createWebGpuApp|from "\.\/browser\.js"/,

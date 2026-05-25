@@ -1,5 +1,44 @@
 # Completed Tasks
 
+## task-3173 — Publish developer API entity lookup summaries
+
+Completed: 2026-05-25
+
+Summary:
+
+- Added `@aperture-engine/app/entity-lookup` with JSON-safe
+  `findApertureEntities(...)`, `getApertureEntitySummary(...)`, lookup
+  snapshots, and a small `createApertureEntityLookup(...)` facade.
+- Entity summaries now return canonical `{ index, generation }` refs,
+  optional app keys, names, tags, component ids, and GLB source metadata without
+  relying on renderer state.
+- Added `AppEntitySource` metadata and annotate replayed GLB ECS entities with
+  source asset id, glTF node index, and glTF node path during
+  `this.spawn.gltf(...)`.
+- Exposed entity lookup through `createApertureHeadlessRunner(...).entities`,
+  headless status, and generated worker/browser status summaries.
+- Updated the developer API setup system to tag the crate and robot so lookup
+  examples can disambiguate by metadata.
+- Fixed the developer API Playwright readiness probe to cancel fetch bodies so
+  the browser proof exits cleanly after server teardown.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+
+Known follow-up:
+
+- `task-3174` should forward generated browser/UI commands into worker-owned
+  `this.commands` queues and prove manual asset requests through the generated
+  runtime.
+
 ## task-3172 — Add a config-driven headless runner for developer API systems
 
 Completed: 2026-05-25

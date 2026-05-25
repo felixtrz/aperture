@@ -6,6 +6,12 @@ import {
   type CreateApertureAppOptions,
 } from "./advanced.js";
 import { defineApertureConfig, type ApertureConfig } from "./config.js";
+import {
+  createApertureEntityLookup,
+  createApertureEntityLookupSnapshot,
+  type ApertureEntityLookup,
+  type ApertureEntityLookupSnapshot,
+} from "./entity-lookup.js";
 import { createInputSummary, type ApertureInputSummary } from "./input.js";
 
 export interface CreateApertureHeadlessRunnerOptions extends Omit<
@@ -34,6 +40,7 @@ export interface ApertureHeadlessStatus {
   readonly diagnostics: ReturnType<
     ApertureApp["context"]["diagnostics"]["list"]
   >;
+  readonly entities: ApertureEntityLookupSnapshot;
   readonly lastSnapshot: {
     readonly frame: number;
     readonly counts: ApertureHeadlessSnapshotCounts;
@@ -47,6 +54,7 @@ export interface ApertureHeadlessStepReport {
 
 export interface ApertureHeadlessRunner {
   readonly app: ApertureApp;
+  readonly entities: ApertureEntityLookup;
   getStatus(): ApertureHeadlessStatus;
   step(delta?: number, time?: number): ApertureHeadlessStepReport;
   extract(frame?: number): ApertureHeadlessStepReport;
@@ -73,9 +81,11 @@ export async function createApertureHeadlessRunner(
   });
   let nextFrame = 0;
   let lastSnapshot: RenderSnapshot | null = null;
+  const entities = createApertureEntityLookup(app.lowLevel.world);
 
   return {
     app,
+    entities,
     getStatus() {
       return createHeadlessStatus(app, nextFrame, lastSnapshot);
     },
@@ -112,6 +122,9 @@ function createHeadlessStatus(
     assets: app.lowLevel.assets.createManifestReport(),
     input: createInputSummary(app.context.input),
     diagnostics: app.context.diagnostics.list(),
+    entities: createApertureEntityLookupSnapshot(app.lowLevel.world, {
+      label: "headless",
+    }),
     lastSnapshot:
       lastSnapshot === null
         ? null

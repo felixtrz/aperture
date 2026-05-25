@@ -12,6 +12,7 @@
       "@aperture-engine/app/systems": ["packages/app/src/systems.ts"],
       "@aperture-engine/app/advanced": ["packages/app/src/advanced.ts"],
       "@aperture-engine/app/headless": ["packages/app/src/headless.ts"],
+      "@aperture-engine/app/entity-lookup": ["packages/app/src/entity-lookup.ts"],
       "@aperture-engine/app/browser": ["packages/app/src/browser.ts"],
       "@aperture-engine/app/worker": ["packages/app/src/worker.ts"],
       "@aperture-engine/render": ["packages/render/src/index.ts"],

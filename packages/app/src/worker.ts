@@ -6,6 +6,7 @@ import {
 import type { ApertureConfig } from "./config.js";
 import { createApertureApp, type ApertureSystemModule } from "./advanced.js";
 import { serializeSourceAssetRegistry } from "./asset-mirror.js";
+import { createApertureEntityLookupSnapshot } from "./entity-lookup.js";
 import {
   applyGeneratedInputEvent,
   createInputSummary,
@@ -121,6 +122,9 @@ async function runLoop(options: {
         workerSummary: {
           input: createInputSummary(app.context.input),
           diagnostics: app.context.diagnostics.list(),
+          entities: createApertureEntityLookupSnapshot(app.lowLevel.world, {
+            label: "generated-worker",
+          }),
         },
         frame,
       });

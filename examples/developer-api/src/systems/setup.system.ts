@@ -37,6 +37,7 @@ export default class SetupSystem extends createSystem() {
     this.spawn.mesh({
       key: "level.crate.primary",
       name: "crate",
+      tags: ["interactive", "crate"],
       mesh: mesh.box({ size: [1, 1, 1] }),
       material: material.standard({
         baseColor: [1, 0.55, 0.25, 1],
@@ -49,6 +50,7 @@ export default class SetupSystem extends createSystem() {
     this.spawn.gltf(this.assets.gltf("robot"), {
       key: "level.robot",
       name: "robot",
+      tags: ["asset", "robot"],
       transform: { translation: [1, 0, 0] },
     });
   }

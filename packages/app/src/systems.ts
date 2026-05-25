@@ -171,6 +171,7 @@ export type SystemGltfAssetHandle = SystemAssetHandle<"gltf"> & {
 };
 
 export interface SystemGltfLoadedScene {
+  readonly assetId: string;
   readonly url: string;
   readonly sourceKind: "glb" | "gltf";
   readonly byteLength: number | null;
@@ -387,6 +388,17 @@ export const AppEntityTags = defineComponent(
   "Optional app-authored entity tags serialized for tooling and diagnostics.",
 );
 
+export const AppEntitySource = defineComponent(
+  "aperture.app.entitySource",
+  {
+    kind: { type: EcsType.String, default: "" },
+    assetId: { type: EcsType.String, default: "" },
+    gltfNodeIndex: { type: EcsType.Int32, default: -1 },
+    gltfNodePath: { type: EcsType.String, default: "" },
+  },
+  "Optional app-authored or loader-authored source metadata for tooling and diagnostics.",
+);
+
 export const mesh = Object.freeze({
   box(
     options: {
@@ -576,6 +588,7 @@ export function registerApertureAppComponents(world: EcsWorld): EcsWorld {
   registerRenderAuthoringComponents(world);
   world.registerComponent(AppEntityKey);
   world.registerComponent(AppEntityTags);
+  world.registerComponent(AppEntitySource);
   return world;
 }
 
@@ -1076,12 +1089,18 @@ function createSpawnCommands(options: {
           tag: "gltf",
           note: handle.url,
         });
+        entity.addComponent(AppEntitySource, {
+          kind: "gltf",
+          assetId: handle.id,
+          gltfNodePath: "placeholder",
+        });
         return entity;
       }
 
       const replay = replayGltfLoadedScene(options.world, loadedScene);
       const root = firstReplayRootEntity(loadedScene, replay);
 
+      applyGltfSourceMetadata(options.world, loadedScene, replay);
       applySpawnMetadata(options.world, root, input, "gltf");
       writeTransform(root, input.transform);
       upsertDebugMetadata(root, {
@@ -1224,6 +1243,7 @@ async function loadSystemGltfAsset(input: {
   }
 
   return {
+    assetId: input.handle.id,
     url: loaded.url,
     sourceKind,
     byteLength: loaded.byteLength,
@@ -1234,6 +1254,89 @@ async function loadSystemGltfAsset(input: {
     commandPlan,
     defaultMaterialHandleKey,
   };
+}
+
+function applyGltfSourceMetadata(
+  world: EcsWorld,
+  scene: SystemGltfLoadedScene,
+  replay: GltfEcsCommandReplayReport,
+): void {
+  registerApertureAppComponents(world);
+
+  for (const [entityKey, entity] of replay.entitiesByKey) {
+    upsertAppEntitySource(entity, sourceFromGltfEntityKey(scene, entityKey));
+  }
+}
+
+function sourceFromGltfEntityKey(
+  scene: SystemGltfLoadedScene,
+  entityKey: string,
+): {
+  readonly kind: string;
+  readonly assetId: string;
+  readonly gltfNodeIndex: number;
+  readonly gltfNodePath: string;
+} {
+  const prefix = `${scene.assetId}:`;
+  const localKey = entityKey.startsWith(prefix)
+    ? entityKey.slice(prefix.length)
+    : entityKey;
+
+  if (localKey.startsWith("scene:")) {
+    return {
+      kind: "gltf",
+      assetId: scene.assetId,
+      gltfNodeIndex: -1,
+      gltfNodePath: localKey,
+    };
+  }
+
+  const match = /^node:(\d+)(?::mesh:(\d+):primitive:(\d+))?$/u.exec(
+    localKey,
+  );
+
+  if (match !== null) {
+    const nodeIndex = Number(match[1]);
+    const meshIndex = match[2] === undefined ? null : Number(match[2]);
+    const primitiveIndex = match[3] === undefined ? null : Number(match[3]);
+
+    return {
+      kind: "gltf",
+      assetId: scene.assetId,
+      gltfNodeIndex: nodeIndex,
+      gltfNodePath:
+        meshIndex === null || primitiveIndex === null
+          ? `nodes[${nodeIndex}]`
+          : `nodes[${nodeIndex}].mesh[${meshIndex}].primitives[${primitiveIndex}]`,
+    };
+  }
+
+  return {
+    kind: "gltf",
+    assetId: scene.assetId,
+    gltfNodeIndex: -1,
+    gltfNodePath: localKey,
+  };
+}
+
+function upsertAppEntitySource(
+  entity: Entity,
+  value: {
+    readonly kind: string;
+    readonly assetId: string;
+    readonly gltfNodeIndex: number;
+    readonly gltfNodePath: string;
+  },
+): void {
+  if (entity.hasComponent(AppEntitySource)) {
+    entity.setValue(AppEntitySource, "kind", value.kind);
+    entity.setValue(AppEntitySource, "assetId", value.assetId);
+    entity.setValue(AppEntitySource, "gltfNodeIndex", value.gltfNodeIndex);
+    entity.setValue(AppEntitySource, "gltfNodePath", value.gltfNodePath);
+    return;
+  }
+
+  entity.addComponent(AppEntitySource, value);
 }
 
 function sceneReadyMetadata(

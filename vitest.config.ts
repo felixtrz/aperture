@@ -24,6 +24,13 @@ export default defineConfig({
           .pathname,
       },
       {
+        find: "@aperture-engine/app/entity-lookup",
+        replacement: new URL(
+          "./packages/app/src/entity-lookup.ts",
+          import.meta.url,
+        ).pathname,
+      },
+      {
         find: "@aperture-engine/app/browser",
         replacement: new URL("./packages/app/src/browser.ts", import.meta.url)
           .pathname,
