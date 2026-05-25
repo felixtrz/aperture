@@ -1,6 +1,68 @@
 # Agent Handoff
 
-Updated: 2026-05-25T04:04:37Z
+Updated: 2026-05-25T04:27:50Z
+
+## Current Run Update — 2026-05-25T04:27:50Z — Developer API GLB replay
+
+Continued the active goal to implement
+`docs/DEVELOPER_API_PROPOSAL.md`. The goal is **not complete** yet; this slice
+completes `task-3170` and moves the recommended next work to generated browser
+input forwarding.
+
+### What changed
+
+- Added default config-declared GLB/glTF loading to
+  `@aperture-engine/app/systems`. Blocking `asset.gltf(...)` requests now use
+  the existing URI loaders, source asset registration, primitive material
+  resolution, ECS command planning, and ECS command replay path behind the app
+  asset handle.
+- Changed loaded `this.spawn.gltf(this.assets.gltf("robot"))` calls to replay
+  renderable ECS entities, apply the app-authored root key/name/transform, and
+  keep user code away from loader reports, transfer packages, and renderer-side
+  registration.
+- Preserved the custom-loader/headless fake path by keeping placeholder GLB
+  metadata behavior when a custom test loader marks an asset ready without a
+  loaded scene report.
+- Added public static GLB/checker fixtures under
+  `examples/developer-api/public/assets/` so the browser config's
+  `/assets/...` URLs resolve through dev and production Vite builds.
+- Added headless data-URL GLB coverage and tightened the browser E2E proof so
+  the generated app must report two mesh draws and two draw calls: the setup
+  primitive plus the loaded config-declared GLB primitive.
+- Updated backlog/completed/current-task/public tracker records so `task-3171`
+  is the next visible slice.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+
+The same browser spec also passed once with `DEBUG=pw:api` and list reporter,
+showing `meshDraws: 2`, `drawCalls: 2`, zero frame diagnostics, and GLB source
+asset mirroring. The local `--reporter=line` run hung after the test body in
+this environment; the list reporter run is the recorded validation.
+
+### Known issues / remaining proposal work
+
+- Browser input forwarding into worker `this.input` signals still needs a
+  visible browser proof (`task-3171`).
+- A config-driven headless runner/helper is still a useful public API follow-up
+  for tests and agents (`task-3172`).
+- MCP-style entity lookup/summary helpers are not implemented yet; `task-3173`
+  keeps that proposal surface visible after the input/headless slices.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Start `task-3171`: forward generated browser input events into worker-owned
+`this.input` signals and prove a reactive system can mutate ECS through
+`this.effects.watch(...)`.
 
 ## Current Run Update — 2026-05-25T04:04:37Z — Developer API generated browser proof
 

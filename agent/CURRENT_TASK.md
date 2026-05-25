@@ -2,27 +2,25 @@
 
 No active task is currently checked out.
 
-Status: `task-3162` completed the unified example render-control testing
-infrastructure slice and the follow-up route-restoration fixes completed
-`task-3163`, `task-3164`, and `task-3165`.
+Status: `task-3170` completed the Developer API GLB replay slice. Configured
+`asset.gltf(...)` handles now load/register source GLB assets during preload,
+and `this.spawn.gltf(this.assets.gltf("robot"))` replays loaded GLB primitives
+through ECS without user-authored loader, transfer-package, or renderer
+registration code.
 
 Key findings:
 
-- All renderer-backed example HTML files except `examples/index.html` now load
-  the shared `examples/example-control.js` browser protocol helper.
-- The reusable Playwright controller can drive standalone routes and persistent
-  shell scenarios, capture scoped WebGPU warnings, pause/step supported routes,
-  write snapshots/screenshots, and generate status/pixel diffs.
-- The CLI frontend can run proof scripts and an all-route smoke that records
-  status and warning artifacts for 49 renderer-backed routes.
-- The final all-route smoke now visits 49 renderer-backed routes with empty
-  `routeStatusFailures` and empty `warningRoutes`.
-- The focused controller/persistent/custom-material/transmission/DOF Playwright
-  run passes. The full legacy `gltf-scene.spec.ts` browser wrapper remains too
-  heavy for this acceptance gate; `gltf-scene.html` is covered by the final
-  controller smoke with `ok:true` and zero scoped warnings.
+- The generated browser example now renders two mesh draws: the setup-system
+  crate and the config-declared GLB cube.
+- Blocking GLB preload completes before system startup in the default app path.
+- Background/manual asset readiness remains observable through the existing
+  `this.assets` signals and command request path.
+- The browser Playwright proof passes with the list reporter. The local line
+  reporter hung after the test body in this environment, so use the list
+  reporter for this focused spec unless that reporter issue is investigated.
 
 Recommended next task:
 
-- `task-3166` — add a split-screen multi-camera route with two ECS-authored
-  camera views and render-control pixel/status proof.
+- `task-3171` — forward generated browser input events into worker-owned
+  `this.input` signals and prove a reactive system can mutate ECS through
+  `this.effects.watch(...)`.

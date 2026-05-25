@@ -60,26 +60,15 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 Active goal override is in effect for
-`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3170`: mirror
-config-declared GLB assets through the generated app runtime so
-`this.spawn.gltf(this.assets.gltf("robot"))` produces loaded GLB renderables.
-This is the next visible slice because `task-3169` now proves the generated
-Vite browser/worker bootstrap renders the config/system-authored primitive
-scene with Playwright status and pixel evidence, but GLB spawning still creates
-placeholder metadata instead of replaying loaded scene primitives.
+`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3171`: forward generated
+browser input events into worker-owned `this.input` signals and prove a
+reactive system can mutate ECS through `this.effects.watch(...)`. This is the
+next visible slice because `task-3170` now proves config-declared GLB assets
+load, register, mirror, and replay through `this.spawn.gltf(...)`, while
+browser input forwarding remains the largest missing Phase 3 acceptance gap.
 
 The next ready visible-feature queue is:
 
-- `task-3170` — mirror config-declared glTF assets through the generated app
-  runtime so `this.spawn.gltf(this.assets.gltf("robot"))` renders loaded GLB
-  content rather than only placeholder metadata.
-  Reference anchor:
-  `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
-  Done when the developer API setup system renders a config-declared
-  `cube.glb`/`robot.glb` primitive, blocking preload completes before the first
-  tick, background asset readiness remains observable from systems, and user
-  code does not touch source loader reports, transfer packages, or renderer
-  registration.
 - `task-3171` — forward generated browser input events into worker-owned
   `this.input` signals and prove a reactive system can mutate ECS through
   `this.effects.watch(...)`.
@@ -94,6 +83,16 @@ The next ready visible-feature queue is:
   can run from a headless config through an app-provided runner/helper without
   DOM, canvas, `navigator.gpu`, or WebGPU presentation imports, and the runner
   publishes JSON-safe step/snapshot/status evidence for tests and agents.
+- `task-3173` — publish a developer API entity-summary lookup surface for
+  generated/headless apps so agents can discover config/system-spawned
+  entities by key, name pattern, component set, and GLB source metadata without
+  relying on renderer state.
+  Reference anchor: `references/engine/src/framework/entity.js`.
+  Done when a JSON-safe lookup helper returns `{ index, generation }`,
+  optional key/name/tags, component ids, and GLB source fields for the
+  developer API scene, rejects generation mismatches with actionable
+  diagnostics, and is covered by headless tests using the same setup system
+  shape.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

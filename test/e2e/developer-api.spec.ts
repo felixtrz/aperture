@@ -79,8 +79,8 @@ test("generated Vite browser bootstrap renders a config/system-authored scene", 
         status?.webgpuOk === true &&
         (status.snapshots ?? 0) > 2 &&
         (counts?.views ?? 0) >= 1 &&
-        (counts?.meshDraws ?? 0) >= 1 &&
-        (counts?.drawCalls ?? 0) >= 1
+        (counts?.meshDraws ?? 0) >= 2 &&
+        (counts?.drawCalls ?? 0) >= 2
       );
     },
     undefined,
@@ -102,12 +102,14 @@ test("generated Vite browser bootstrap renders a config/system-authored scene", 
   expect(status?.status).toBe("running");
   expect(status?.webgpuOk).toBe(true);
   expect(status?.mirroredSourceAssets ?? 0).toBeGreaterThan(0);
-  expect(status?.diagnostics?.lastFrame?.counts).toMatchObject({
-    views: 1,
-    meshDraws: 1,
-    drawCalls: 1,
-    diagnostics: 0,
-  });
+  expect(status?.diagnostics?.lastFrame?.counts?.views).toBe(1);
+  expect(
+    status?.diagnostics?.lastFrame?.counts?.meshDraws ?? 0,
+  ).toBeGreaterThan(1);
+  expect(
+    status?.diagnostics?.lastFrame?.counts?.drawCalls ?? 0,
+  ).toBeGreaterThan(1);
+  expect(status?.diagnostics?.lastFrame?.counts?.diagnostics).toBe(0);
   expect(status?.diagnostics?.lastFrame?.diagnostics ?? []).toEqual([]);
 
   const screenshot = await page.locator("#aperture").screenshot();

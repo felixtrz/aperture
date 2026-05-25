@@ -229,6 +229,88 @@ describe("developer-facing app API", () => {
     expect(app.context.assets.texture("decal").ready.value).toBe(true);
   });
 
+  it("loads and replays config-declared GLB assets through the system spawn helper", async () => {
+    const cubeBytes = await readFile("examples/assets/cube.glb");
+    const cubeDataUrl = `data:model/gltf-binary;base64,${cubeBytes.toString(
+      "base64",
+    )}`;
+    const config = defineApertureConfig({
+      mode: "headless",
+      systems: ["src/systems/**/*.system.ts"],
+      assets: {
+        robot: asset.gltf(cubeDataUrl, { preload: "blocking" }),
+      },
+      render: {
+        defaultCamera: false,
+        defaultLight: false,
+      },
+    });
+    const SetupSystemModule: ApertureSystemModule = {
+      default: class SetupSystem extends createSystem() {
+        override init(): void {
+          this.spawn.camera({
+            key: "camera.main",
+            name: "main-camera",
+            transform: { translation: [0, 1.5, 5], lookAt: [0, 0.5, 0] },
+          });
+          this.spawn.light({
+            key: "light.key",
+            name: "key-light",
+            kind: "directional",
+            illuminance: 4,
+            transform: { rotationEulerDegrees: [-45, 35, 0] },
+          });
+          this.spawn.light({
+            key: "light.fill",
+            name: "fill-light",
+            kind: "ambient",
+            intensity: 0.75,
+          });
+          this.spawn.gltf(this.assets.gltf("robot"), {
+            key: "level.robot",
+            name: "robot",
+            transform: { translation: [0, 0, 0] },
+          });
+        }
+      },
+      schedule: { priority: 0 },
+    };
+
+    const app = await createApertureApp({
+      config,
+      systems: [SetupSystemModule],
+    });
+    const robot = app.context.assets.gltf("robot");
+    const loadedScene = robot.scene.value;
+
+    expect(robot.ready.value).toBe(true);
+    expect(loadedScene).not.toBeNull();
+    expect(loadedScene?.meshRegistration.written.length ?? 0).toBeGreaterThan(
+      0,
+    );
+    expect(loadedScene?.commandPlan.commands.length ?? 0).toBeGreaterThan(0);
+    expect(
+      app.lowLevel.assets.list({ kind: "mesh", status: "ready" }).length,
+    ).toBeGreaterThan(0);
+
+    const keys = app.lowLevel.world.queryManager.registerQuery({
+      required: [AppEntityKey],
+    });
+    const keyValues = [...keys.entities].map((entity) =>
+      entity.getValue(AppEntityKey, "value"),
+    );
+    expect(keyValues).toContain("level.robot");
+
+    const snapshot = app.stepAndExtract(1 / 60, 0.5, 0);
+    expect(snapshot.views).toHaveLength(1);
+    expect(snapshot.meshDraws.length).toBeGreaterThan(0);
+    expect(snapshot.report.cullStats?.[0]).toMatchObject({
+      tested: expect.any(Number),
+      culled: 0,
+      included: expect.any(Number),
+    });
+  });
+
   it("discovers worker system globs and records schedule metadata without exposing classes to the main manifest", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "aperture-plugin-"));
 

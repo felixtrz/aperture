@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "12cf70d",
+  "lastCommit": "792b37b",
   "activePid": null,
-  "notes": "Developer API generated browser proof complete; config-declared GLB replay and input forwarding remain",
-  "lastRunFinishedAt": "2026-05-25T03:30:00Z"
+  "notes": "Developer API GLB replay complete; input forwarding and config-driven headless runner remain",
+  "lastRunFinishedAt": "2026-05-25T04:27:50Z"
 }

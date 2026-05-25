@@ -11,17 +11,31 @@ import {
   LightKind,
   Material,
   Mesh,
+  createGlbUriLoadCache,
   createBoxMeshAsset,
   createCamera,
   createCapsuleMeshAsset,
   createConeMeshAsset,
   createCylinderMeshAsset,
+  createGltfEcsAuthoringCommandPlan,
+  createGltfPrimitiveMaterialResolutionReport,
+  createGltfUriLoadCache,
   createLight,
   createPlaneMeshAsset,
   createSphereMeshAsset,
   createStandardMaterialAsset,
+  loadGlbFromUri,
+  loadGltfFromUri,
+  registerGltfSourceAssetsFromReports,
   registerRenderAuthoringComponents,
+  replayGltfEcsAuthoringCommands,
   type CameraInput,
+  type GltfEcsAuthoringCommandPlan,
+  type GltfEcsCommandReplayReport,
+  type GltfMeshSourceAssetRegistrationReport,
+  type GltfPrimitiveMaterialResolutionReport,
+  type GltfReportDrivenImportReport,
+  type GltfSourceAssetRegistrationReport,
   type LightInput,
   type MaterialAsset,
   type MeshAsset,
@@ -153,7 +167,20 @@ export interface SystemAssetHandle<TKind extends SystemAssetKind> {
 
 export type SystemGltfAssetHandle = SystemAssetHandle<"gltf"> & {
   readonly renderHandle: SceneHandle;
+  readonly scene: Signal<SystemGltfLoadedScene | null>;
 };
+
+export interface SystemGltfLoadedScene {
+  readonly url: string;
+  readonly sourceKind: "glb" | "gltf";
+  readonly byteLength: number | null;
+  readonly importReport: GltfReportDrivenImportReport;
+  readonly sourceRegistration: GltfSourceAssetRegistrationReport;
+  readonly meshRegistration: GltfMeshSourceAssetRegistrationReport;
+  readonly primitiveMaterials: GltfPrimitiveMaterialResolutionReport;
+  readonly commandPlan: GltfEcsAuthoringCommandPlan;
+  readonly defaultMaterialHandleKey: string;
+}
 
 export interface SystemAssetAccess {
   gltf(id: string): SystemGltfAssetHandle;
@@ -649,6 +676,8 @@ function createSystemAssetAccess(options: {
   readonly loader: ApertureAssetLoader | undefined;
 }): SystemAssetAccess {
   const assets = new Map<string, SystemAssetHandle<SystemAssetKind>>();
+  const glbCache = createGlbUriLoadCache();
+  const gltfCache = createGltfUriLoadCache();
 
   for (const [id, descriptor] of Object.entries(options.config?.assets ?? {})) {
     const handle = createSystemAssetHandle(id, descriptor);
@@ -678,11 +707,23 @@ function createSystemAssetAccess(options: {
     }
 
     try {
-      await options.loader?.load(handle);
+      if (options.loader !== undefined) {
+        await options.loader.load(handle);
+      } else if (handle.kind === "gltf") {
+        const scene = await loadSystemGltfAsset({
+          handle: handle as SystemGltfAssetHandle,
+          registry: options.registry,
+          glbCache,
+          gltfCache,
+        });
+        (handle as SystemGltfAssetHandle).scene.value = scene;
+      }
+
       options.registry.markReady(registryHandle, {
         id: handle.id,
         kind: handle.kind,
         url: handle.url,
+        ...sceneReadyMetadata(handle),
       });
       handle.ready.value = true;
       handle.error.value = null;
@@ -785,6 +826,19 @@ function createSystemAssetHandle(
   id: string,
   descriptor: ApertureConfigAssetDescriptor,
 ): SystemAssetHandle<SystemAssetKind> {
+  if (descriptor.kind === "gltf") {
+    return {
+      id,
+      kind: descriptor.kind,
+      url: descriptor.url,
+      preload: descriptor.preload,
+      ready: createSignal(false),
+      error: createSignal<ApertureSystemDiagnostic | null>(null),
+      renderHandle: createSceneHandle(id),
+      scene: createSignal<SystemGltfLoadedScene | null>(null),
+    } as SystemGltfAssetHandle;
+  }
+
   return {
     id,
     kind: descriptor.kind,
@@ -1013,15 +1067,295 @@ function createSpawnCommands(options: {
         );
       }
 
-      const entity = createEntityWithMetadata(options.world, input, "gltf");
-      addTransform(entity, input.transform);
-      entity.addComponent(DebugMetadata, {
+      const loadedScene = handle.scene.value;
+
+      if (loadedScene === null) {
+        const entity = createEntityWithMetadata(options.world, input, "gltf");
+        addTransform(entity, input.transform);
+        entity.addComponent(DebugMetadata, {
+          tag: "gltf",
+          note: handle.url,
+        });
+        return entity;
+      }
+
+      const replay = replayGltfLoadedScene(options.world, loadedScene);
+      const root = firstReplayRootEntity(loadedScene, replay);
+
+      applySpawnMetadata(options.world, root, input, "gltf");
+      writeTransform(root, input.transform);
+      upsertDebugMetadata(root, {
         tag: "gltf",
         note: handle.url,
       });
-      return entity;
+      return root;
     },
   };
+}
+
+async function loadSystemGltfAsset(input: {
+  readonly handle: SystemGltfAssetHandle;
+  readonly registry: AssetRegistry;
+  readonly glbCache: ReturnType<typeof createGlbUriLoadCache>;
+  readonly gltfCache: ReturnType<typeof createGltfUriLoadCache>;
+}): Promise<SystemGltfLoadedScene> {
+  const resolvedUrl = resolveAssetUrl(input.handle.url);
+
+  if (resolvedUrl === null) {
+    throw new ApertureSystemError(
+      "aperture.asset.invalidUrl",
+      `GLTF asset '${input.handle.id}' URL '${input.handle.url}' could not be resolved.`,
+      "Use an absolute URL, a root-relative Vite public asset URL, or a data URL in aperture.config.ts.",
+    );
+  }
+
+  const sourceKind = gltfSourceKindFromUrl(resolvedUrl);
+  const loaded =
+    sourceKind === "gltf"
+      ? await loadGltfFromUri(resolvedUrl, {
+          cache: input.gltfCache,
+          keyPrefix: input.handle.id,
+          createAssetMapping: true,
+          createMeshAssets: true,
+        })
+      : await loadGlbFromUri(resolvedUrl, {
+          cache: input.glbCache,
+          keyPrefix: input.handle.id,
+          createAssetMapping: true,
+          createMeshAssets: true,
+        });
+  const importReport =
+    loaded.loader === null
+      ? null
+      : "gltfImportReport" in loaded.loader
+        ? loaded.loader.gltfImportReport
+        : loaded.loader.glbImportReport.importReport;
+
+  if (!loaded.ok || importReport === null) {
+    throw new ApertureSystemError(
+      "aperture.asset.gltfLoadFailed",
+      `GLTF asset '${input.handle.id}' failed to load. ${formatReportDiagnostics(
+        loaded.diagnostics,
+      )}`,
+      "Check the asset URL in aperture.config.ts and use a supported glTF/GLB file.",
+    );
+  }
+
+  if (
+    importReport.assetMapping === null ||
+    importReport.meshConstruction === null ||
+    importReport.meshPrimitive === null
+  ) {
+    throw new ApertureSystemError(
+      "aperture.asset.gltfNotRenderable",
+      `GLTF asset '${input.handle.id}' did not produce renderable mesh/material reports.`,
+      "Use a glTF/GLB with triangle mesh primitives and supported material inputs.",
+    );
+  }
+
+  const defaultMaterialHandle = createMaterialHandle(
+    `${input.handle.id}.default-material`,
+  );
+  const defaultMaterialHandleKey = assetHandleKey(defaultMaterialHandle);
+  if (!input.registry.has(defaultMaterialHandle)) {
+    input.registry.register(defaultMaterialHandle, {
+      label: `${input.handle.id} default GLTF material`,
+    });
+    input.registry.markReady(
+      defaultMaterialHandle,
+      createStandardMaterialAsset({
+        label: `${input.handle.id} default GLTF material`,
+      }),
+    );
+  }
+
+  const registration = registerGltfSourceAssetsFromReports({
+    registry: input.registry,
+    assetMapping: importReport.assetMapping,
+    meshConstruction: importReport.meshConstruction,
+  });
+
+  if (
+    !registration.valid ||
+    registration.sourceRegistration === null ||
+    registration.meshRegistration === null
+  ) {
+    throw new ApertureSystemError(
+      "aperture.asset.gltfRegistrationFailed",
+      `GLTF asset '${input.handle.id}' source assets could not be registered. ${formatReportDiagnostics(
+        registration.diagnostics,
+      )}`,
+      "Check for duplicate generated asset keys or unsupported glTF source assets.",
+    );
+  }
+
+  const primitiveMaterials = createGltfPrimitiveMaterialResolutionReport({
+    primitiveReport: importReport.meshPrimitive,
+    registrationReport: registration.sourceRegistration,
+    availableMaterialHandleKeys: [defaultMaterialHandleKey],
+    defaultMaterialHandleKey,
+    keyPrefix: input.handle.id,
+  });
+
+  if (!primitiveMaterials.valid) {
+    throw new ApertureSystemError(
+      "aperture.asset.gltfMaterialResolutionFailed",
+      `GLTF asset '${input.handle.id}' primitive materials could not be resolved. ${formatReportDiagnostics(
+        primitiveMaterials.diagnostics,
+      )}`,
+      "Use supported glTF materials or provide material data for all primitives.",
+    );
+  }
+
+  const commandPlan = createGltfEcsAuthoringCommandPlan({
+    traversalReport: importReport.sceneTraversal,
+    meshRegistrationReport: registration.meshRegistration,
+    primitiveMaterialReport: primitiveMaterials,
+  });
+
+  if (!commandPlan.valid) {
+    throw new ApertureSystemError(
+      "aperture.asset.gltfCommandPlanFailed",
+      `GLTF asset '${input.handle.id}' could not be converted to ECS spawn commands. ${formatReportDiagnostics(
+        commandPlan.diagnostics,
+      )}`,
+      "Check the glTF scene hierarchy and mesh primitive data.",
+    );
+  }
+
+  return {
+    url: loaded.url,
+    sourceKind,
+    byteLength: loaded.byteLength,
+    importReport,
+    sourceRegistration: registration.sourceRegistration,
+    meshRegistration: registration.meshRegistration,
+    primitiveMaterials,
+    commandPlan,
+    defaultMaterialHandleKey,
+  };
+}
+
+function sceneReadyMetadata(
+  handle: SystemAssetHandle<SystemAssetKind>,
+): Record<string, unknown> {
+  if (handle.kind !== "gltf") {
+    return {};
+  }
+
+  const scene = (handle as SystemGltfAssetHandle).scene.value;
+
+  if (scene === null) {
+    return {};
+  }
+
+  return {
+    sourceKind: scene.sourceKind,
+    byteLength: scene.byteLength,
+    sceneIndex: scene.importReport.sceneTraversal.sceneIndex,
+    rootEntityKeys: scene.commandPlan.rootEntityKeys,
+    commandCount: scene.commandPlan.commands.length,
+    meshPrimitiveCount: scene.importReport.meshPrimitive?.meshes.length ?? 0,
+    meshAssetCount: scene.meshRegistration.written.length,
+    materialAssetCount: scene.sourceRegistration.written.filter(
+      (entry) => entry.kind === "material",
+    ).length,
+  };
+}
+
+function replayGltfLoadedScene(
+  world: EcsWorld,
+  scene: SystemGltfLoadedScene,
+): GltfEcsCommandReplayReport {
+  const replay = replayGltfEcsAuthoringCommands({
+    world,
+    plan: scene.commandPlan,
+  });
+
+  if (!replay.valid) {
+    throw new ApertureSystemError(
+      "aperture.spawn.gltfReplayFailed",
+      `GLTF ECS commands could not be replayed. ${formatReportDiagnostics(
+        replay.diagnostics,
+      )}`,
+      "Check the loaded glTF scene command plan diagnostics.",
+    );
+  }
+
+  return replay;
+}
+
+function firstReplayRootEntity(
+  scene: SystemGltfLoadedScene,
+  replay: GltfEcsCommandReplayReport,
+): Entity {
+  const rootKey = scene.commandPlan.rootEntityKeys[0];
+  const root =
+    rootKey === undefined
+      ? undefined
+      : (replay.entitiesByKey.get(rootKey) ??
+        replay.entitiesByKey.values().next().value);
+
+  if (root === undefined) {
+    throw new ApertureSystemError(
+      "aperture.spawn.gltfRootMissing",
+      "GLTF scene replay did not create a root entity.",
+      "Check the loaded glTF scene traversal report.",
+    );
+  }
+
+  return root;
+}
+
+function resolveAssetUrl(url: string): string | null {
+  try {
+    return new URL(url).href;
+  } catch {
+    const href = (
+      globalThis as { readonly location?: { readonly href?: string } }
+    ).location?.href;
+
+    if (href === undefined) {
+      return null;
+    }
+
+    try {
+      return new URL(url, href).href;
+    } catch {
+      return null;
+    }
+  }
+}
+
+function gltfSourceKindFromUrl(url: string): "glb" | "gltf" {
+  if (url.startsWith("data:")) {
+    return "glb";
+  }
+
+  try {
+    return new URL(url).pathname.toLowerCase().endsWith(".gltf")
+      ? "gltf"
+      : "glb";
+  } catch {
+    return url.toLowerCase().endsWith(".gltf") ? "gltf" : "glb";
+  }
+}
+
+function formatReportDiagnostics(
+  diagnostics: readonly { readonly code?: string; readonly message?: string }[],
+): string {
+  if (diagnostics.length === 0) {
+    return "No detailed diagnostics were produced.";
+  }
+
+  return diagnostics
+    .slice(0, 3)
+    .map((diagnostic) =>
+      diagnostic.code === undefined
+        ? (diagnostic.message ?? "Unknown diagnostic.")
+        : `${diagnostic.code}: ${diagnostic.message ?? "Unknown diagnostic."}`,
+    )
+    .join(" ");
 }
 
 function createEntityWithMetadata(
@@ -1029,25 +1363,69 @@ function createEntityWithMetadata(
   metadata: SpawnMetadata,
   fallbackName: string,
 ): Entity {
-  registerApertureAppComponents(world);
   const entity = world.createEntity();
-  const name = metadata.name ?? fallbackName;
 
-  entity.addComponent(Enabled, { value: true });
-  entity.addComponent(Name, { value: name });
+  applySpawnMetadata(world, entity, metadata, fallbackName);
+  return entity;
+}
+
+function applySpawnMetadata(
+  world: EcsWorld,
+  entity: Entity,
+  metadata: SpawnMetadata,
+  fallbackName: string,
+): void {
+  registerApertureAppComponents(world);
+
+  if (!entity.hasComponent(Enabled)) {
+    entity.addComponent(Enabled, { value: true });
+  }
+
+  if (metadata.name !== undefined) {
+    upsertName(entity, metadata.name);
+  } else if (!entity.hasComponent(Name)) {
+    entity.addComponent(Name, { value: fallbackName });
+  }
 
   if (metadata.key !== undefined) {
     assertUniqueKey(world, metadata.key);
-    entity.addComponent(AppEntityKey, { value: metadata.key });
+    if (entity.hasComponent(AppEntityKey)) {
+      entity.setValue(AppEntityKey, "value", metadata.key);
+    } else {
+      entity.addComponent(AppEntityKey, { value: metadata.key });
+    }
   }
 
   if (metadata.tags !== undefined) {
-    entity.addComponent(AppEntityTags, {
-      valuesJson: JSON.stringify([...metadata.tags]),
-    });
+    const valuesJson = JSON.stringify([...metadata.tags]);
+    if (entity.hasComponent(AppEntityTags)) {
+      entity.setValue(AppEntityTags, "valuesJson", valuesJson);
+    } else {
+      entity.addComponent(AppEntityTags, { valuesJson });
+    }
+  }
+}
+
+function upsertName(entity: Entity, value: string): void {
+  if (entity.hasComponent(Name)) {
+    entity.setValue(Name, "value", value);
+    return;
   }
 
-  return entity;
+  entity.addComponent(Name, { value });
+}
+
+function upsertDebugMetadata(
+  entity: Entity,
+  value: { readonly tag: string; readonly note: string },
+): void {
+  if (entity.hasComponent(DebugMetadata)) {
+    entity.setValue(DebugMetadata, "tag", value.tag);
+    entity.setValue(DebugMetadata, "note", value.note);
+    return;
+  }
+
+  entity.addComponent(DebugMetadata, value);
 }
 
 function assertUniqueKey(world: EcsWorld, key: string): void {
@@ -1066,16 +1444,54 @@ function assertUniqueKey(world: EcsWorld, key: string): void {
 }
 
 function addTransform(entity: Entity, input: SystemTransformInput = {}): void {
+  writeTransform(entity, input);
+}
+
+function writeTransform(
+  entity: Entity,
+  input: SystemTransformInput = {},
+): void {
   const localInput: LocalTransformInput = {
     translation: input.translation,
     rotation: input.rotation ?? rotationFromTransformInput(input),
     scale: input.scale,
   };
   const root = createRootTransform(localInput);
+  const parent = createParentInput(input.parent ?? null);
+  const local = {
+    translation: root.local.translation ?? [0, 0, 0],
+    rotation: root.local.rotation ?? [0, 0, 0, 1],
+    scale: root.local.scale ?? [1, 1, 1],
+  } as const;
+  const world = {
+    col0: root.world.col0 ?? [1, 0, 0, 0],
+    col1: root.world.col1 ?? [0, 1, 0, 0],
+    col2: root.world.col2 ?? [0, 0, 1, 0],
+    col3: root.world.col3 ?? [0, 0, 0, 1],
+  } as const;
 
-  entity.addComponent(LocalTransform, root.local);
-  entity.addComponent(Parent, createParentInput(input.parent ?? null));
-  entity.addComponent(WorldTransform, root.world);
+  if (entity.hasComponent(LocalTransform)) {
+    entity.getVectorView(LocalTransform, "translation").set(local.translation);
+    entity.getVectorView(LocalTransform, "rotation").set(local.rotation);
+    entity.getVectorView(LocalTransform, "scale").set(local.scale);
+  } else {
+    entity.addComponent(LocalTransform, local);
+  }
+
+  if (entity.hasComponent(Parent)) {
+    entity.setValue(Parent, "entity", parent.entity);
+  } else {
+    entity.addComponent(Parent, parent);
+  }
+
+  if (entity.hasComponent(WorldTransform)) {
+    entity.getVectorView(WorldTransform, "col0").set(world.col0);
+    entity.getVectorView(WorldTransform, "col1").set(world.col1);
+    entity.getVectorView(WorldTransform, "col2").set(world.col2);
+    entity.getVectorView(WorldTransform, "col3").set(world.col3);
+  } else {
+    entity.addComponent(WorldTransform, world);
+  }
 }
 
 function createParentInput(parent: Entity | null): {

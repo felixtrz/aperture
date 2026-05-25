@@ -1,5 +1,42 @@
 # Completed Tasks
 
+## task-3170 — Replay config-declared GLB assets through the generated app runtime
+
+Completed: 2026-05-25
+
+Summary:
+
+- Added default `asset.gltf(...)` loading inside
+  `@aperture-engine/app/systems`, using the existing GLB/glTF URI loaders,
+  source asset registration, primitive material resolution, ECS command
+  planning, and ECS replay helpers behind the config asset handle.
+- Changed `this.spawn.gltf(this.assets.gltf("robot"))` so loaded GLB assets
+  replay renderable ECS entities instead of placeholder metadata, while the
+  custom-loader/headless test path still supports placeholder metadata for
+  non-rendering loader fakes.
+- Added developer API public static fixtures served at `/assets/cube.glb` and
+  `/assets/aperture-base-color-checker.png`.
+- Added headless coverage proving a config-declared data-URL GLB blocks
+  preload, registers ready mesh assets, attaches the app-authored key, and
+  extracts visible mesh draws without user code touching loader reports,
+  transfer packages, or renderer registration.
+- Updated the generated browser Playwright proof to require two mesh draws and
+  two draw calls: the setup-system crate plus the config-declared GLB primitive.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+
+Known follow-up:
+
+- `task-3171` should forward generated browser input events into worker-owned
+  `this.input` signals and prove the reactive mutation path in the browser.
+
 ## task-3169 — Render developer API Vite app through generated browser bootstrap
 
 Completed: 2026-05-25
