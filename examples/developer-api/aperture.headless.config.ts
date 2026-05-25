@@ -14,7 +14,7 @@ export default defineApertureConfig({
   },
   input: {
     actions: {
-      select: [{ pointer: "primary" }],
+      select: [{ pointer: "primary" }, { keyboard: "Enter" }],
       jump: [{ keyboard: "Space" }],
     },
   },

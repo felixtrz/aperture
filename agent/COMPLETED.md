@@ -1,5 +1,40 @@
 # Completed Tasks
 
+## task-3178 — Add developer API browser control/status panel
+
+Completed: 2026-05-25
+
+Summary:
+
+- Added a compact DOM developer panel to `examples/developer-api` alongside the
+  WebGPU canvas.
+- Added `examples/developer-api/src/dev-panel.ts`, which renders JSON-safe app,
+  input, command, entity, frame, and diagnostic summaries from
+  `globalThis.__APERTURE_GENERATED_APP__`.
+- Wired the panel's `Select` button through the generated browser input
+  forwarder by adding an `Enter` binding to the config-declared `select`
+  action.
+- Wired the panel's `Request decal` button through the existing
+  `aperture:command` path for the manual `decal` asset request.
+- Updated Playwright to click the panel controls instead of dispatching a raw
+  custom event from the test body, and to assert that the panel shows entity,
+  input, command, and requested-asset summaries.
+
+Validation:
+
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+- `pnpm run check:progress`
+
+Known follow-up:
+
+- `task-3179` should prove worker-side camera/spatial selection in the
+  developer API example.
+
 ## task-3177 — Add optional app/vite plugin re-export
 
 Completed: 2026-05-25

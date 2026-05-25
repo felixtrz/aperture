@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "e30a538",
+  "lastCommit": "a1344b8",
   "activePid": null,
-  "notes": "Developer API app/vite convenience complete; browser control/status panel remains",
-  "lastRunFinishedAt": "2026-05-25T05:35:36Z"
+  "notes": "Developer API browser status panel complete; spatial selection proof remains",
+  "lastRunFinishedAt": "2026-05-25T05:40:46Z"
 }

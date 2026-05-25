@@ -1,6 +1,56 @@
 # Agent Handoff
 
-Updated: 2026-05-25T05:35:36Z
+Updated: 2026-05-25T05:40:46Z
+
+## Current Run Update — 2026-05-25T05:40:46Z — Developer API browser panel
+
+Continued the active goal to implement
+`docs/DEVELOPER_API_PROPOSAL.md`. The goal is **not complete** yet; this slice
+completes `task-3178` and moves the recommended next work to proving
+worker-side camera/spatial selection in the developer API example.
+
+### What changed
+
+- Added a compact DOM developer panel to `examples/developer-api/index.html`
+  beside the WebGPU canvas.
+- Added `examples/developer-api/src/dev-panel.ts`, which polls
+  `globalThis.__APERTURE_GENERATED_APP__` and renders JSON-safe app, input,
+  command, entity, frame, and diagnostic summaries.
+- Wired the panel's `Select` button through generated browser input forwarding
+  by adding an `Enter` binding to the config-declared `select` action while
+  preserving the original primary-pointer binding.
+- Wired the panel's `Request decal` button through the existing
+  `aperture:command` channel for manual asset requests.
+- Updated the Playwright browser proof to click panel controls instead of
+  dispatching a raw custom event from the test body, and to assert that the
+  panel displays entity, input, command, and requested-asset status.
+
+### Validation
+
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+- `pnpm run check:progress`
+
+### Known issues / remaining proposal work
+
+- Worker-side camera/spatial selection should still be proven in the developer
+  API example (`task-3179`).
+- JSON-safe entity snapshot/diff helpers for generated/headless tooling remain
+  queued (`task-3180`).
+- A constrained entity component mutation helper remains queued for
+  generated/headless developer tooling (`task-3181`).
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Start `task-3179`: prove worker-side camera/spatial selection in the developer
+API example.
 
 ## Current Run Update — 2026-05-25T05:35:36Z — Developer API app/vite convenience
 

@@ -60,23 +60,14 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 Active goal override is in effect for
-`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3178`: add the small developer
-API browser control/status panel for generated input, commands, entity
-summaries, and diagnostics. This is the next visible slice because `task-3177`
-now adds the optional `@aperture-engine/app/vite` convenience subpath while
-keeping the root app export plugin-free and `@aperture-engine/vite-plugin` the
-canonical documented plugin import.
+`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3179`: prove the
+beginner-documented worker-side camera/spatial selection path in the developer
+API example. This is the next visible slice because `task-3178` now adds a
+browser control/status panel that dispatches generated input and command paths
+without exposing live system classes or renderer state.
 
 The next ready visible-feature queue is:
 
-- `task-3178` — add a small developer API browser control/status panel that
-  dispatches the select and manual asset-request command paths and displays the
-  latest JSON-safe worker input, command, entity, and diagnostic summaries.
-  Reference anchor: `references/engine/src/framework/app-base.js`.
-  Done when `examples/developer-api` has a minimal DOM panel outside the canvas
-  for command/status inspection, Playwright can dispatch the panel control
-  instead of a raw custom event, and the panel shows worker-owned summaries
-  without exposing live system classes or renderer state.
 - `task-3179` — prove the beginner-documented worker-side camera/spatial
   selection path in the developer API example without making renderer picking
   authoritative.
@@ -93,6 +84,13 @@ The next ready visible-feature queue is:
   helpers keyed by `{ index, generation }`, a headless test captures before/after
   summaries around a system mutation, and generation-mismatched entities return
   actionable diagnostics that tell agents to rerun entity find.
+- `task-3181` — add a constrained entity component mutation helper for
+  generated/headless developer tooling without broad arbitrary object mutation.
+  Reference anchor: `references/engine/src/framework/entity.js`.
+  Done when `@aperture-engine/app/entity-lookup` can set a JSON-safe whitelisted
+  component field by `{ index, generation }`, rejects unknown components,
+  unknown fields, and stale generations with actionable diagnostics, and a
+  headless developer API test mutates `DebugMetadata.note` through the helper.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

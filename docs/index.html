@@ -393,12 +393,22 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-25 05:35 UTC</dd>
+            <dd>2026-05-25 05:40 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the optional
+              Latest update: the generated developer API example now has a
+              browser control/status panel beside the WebGPU canvas. The panel
+              reads only <code>globalThis.__APERTURE_GENERATED_APP__</code>,
+              renders JSON-safe app/input/command/entity/frame/diagnostic
+              summaries, dispatches the config-declared <code>select</code>
+              action through generated keyboard input forwarding, and dispatches
+              the manual <code>decal</code> asset request through the existing
+              <code>aperture:command</code> bridge. Playwright now clicks panel
+              controls instead of sending a raw custom event from the test body,
+              and verifies that worker-owned summaries are visible without
+              exposing live system classes or renderer state. The optional
               <code>@aperture-engine/app/vite</code> convenience subpath now
               re-exports the Aperture Vite plugin without changing the
               plugin-free root <code>@aperture-engine/app</code> export.
@@ -5075,12 +5085,12 @@
                 without changing the plugin-free root app export.
               </li>
               <li>
-                <span class="badge">task-3178</span> Next: add a small
+                <span class="badge green">task-3178</span> Done: add a small
                 developer API browser control/status panel for generated input,
                 command, entity, and diagnostic summaries.
               </li>
               <li>
-                <span class="badge">task-3179</span> Then: prove worker-side
+                <span class="badge">task-3179</span> Next: prove worker-side
                 camera/spatial selection in the developer API example.
               </li>
               <li>
@@ -5105,6 +5115,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3178</div>
+            <div>
+              <strong>Developer API browser panel shipped.</strong>
+              <span>
+                <code>examples/developer-api</code> now has a DOM panel that
+                dispatches generated input and command paths and displays
+                JSON-safe worker input, command, entity, frame, and diagnostic
+                summaries from the generated app status global.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3177</div>
             <div>

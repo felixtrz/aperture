@@ -169,15 +169,11 @@ test("generated Vite browser bootstrap renders a config/system-authored scene", 
       }),
     ]),
   );
-
-  const canvasBox = await page.locator("#aperture").boundingBox();
-  expect(canvasBox).not.toBeNull();
-
-  await page.mouse.move(
-    canvasBox!.x + canvasBox!.width * 0.5,
-    canvasBox!.y + canvasBox!.height * 0.5,
+  await expect(page.locator("#aperture-dev-status")).toContainText(
+    "level.crate.primary",
   );
-  await page.mouse.down();
+
+  await page.locator("[data-aperture-action='select']").click();
   await page.waitForFunction(
     () => {
       const status = (globalThis as GeneratedStatusGlobal)
@@ -223,17 +219,11 @@ test("generated Vite browser bootstrap renders a config/system-authored scene", 
       }),
     ]),
   );
+  await expect(page.locator("#aperture-dev-status")).toContainText(
+    "select.pressed",
+  );
 
-  await page.evaluate(() => {
-    window.dispatchEvent(
-      new CustomEvent("aperture:command", {
-        detail: {
-          channel: "asset.request",
-          payload: { assetId: "decal" },
-        },
-      }),
-    );
-  });
+  await page.locator("[data-aperture-action='request-decal']").click();
   await page.waitForFunction(
     () => {
       const status = (globalThis as GeneratedStatusGlobal)
@@ -285,9 +275,12 @@ test("generated Vite browser bootstrap renders a config/system-authored scene", 
       }),
     ]),
   });
+  await expect(page.locator("#aperture-dev-status")).toContainText(
+    "asset.request",
+  );
+  await expect(page.locator("#aperture-dev-status")).toContainText("decal");
 
   const screenshot = await page.locator("#aperture").screenshot();
-  await page.mouse.up();
   const image = readPngImage(screenshot);
   const clear = rgba(8, 9, 10, 255);
   const proof = countNonClearPixels(image, clear);
