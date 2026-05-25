@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "e363088",
+  "lastCommit": "7437bcd",
   "activePid": null,
-  "notes": "Developer API generated input forwarding complete; config-driven headless runner remains",
-  "lastRunFinishedAt": "2026-05-25T04:39:57Z"
+  "notes": "Developer API config-driven headless runner complete; entity lookup and command forwarding remain",
+  "lastRunFinishedAt": "2026-05-25T04:49:36Z"
 }

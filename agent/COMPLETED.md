@@ -1,5 +1,43 @@
 # Completed Tasks
 
+## task-3172 — Add a config-driven headless runner for developer API systems
+
+Completed: 2026-05-25
+
+Summary:
+
+- Added `@aperture-engine/app/headless` with
+  `createApertureHeadlessRunner(...)`, a headless-only helper over the
+  config/system app path.
+- The runner rejects non-headless configs, creates the app from config plus
+  discovered/imported system modules, steps/extracts snapshots, and returns
+  JSON-safe status containing preload policy, asset manifest, input summary,
+  diagnostics, and snapshot counts.
+- Exported the headless entry from the app package and test/build aliases
+  without importing DOM, canvas, `navigator.gpu`, or WebGPU presentation code.
+- Updated the developer API headless config to declare the same input actions as
+  the browser config.
+- Added test coverage that runs the real
+  `examples/developer-api/src/systems/**/*.system.ts` setup/select/spin system
+  files through the headless runner, verifies one extracted view and mesh draw,
+  then drives the select signal and observes the worker-system mutation
+  diagnostic through runner status.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+- `pnpm run check:progress`
+
+Known follow-up:
+
+- `task-3173` should publish developer API entity lookup summaries for
+  generated/headless apps.
+
 ## task-3171 — Forward generated browser input into worker-owned signals
 
 Completed: 2026-05-25

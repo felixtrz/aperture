@@ -1,6 +1,57 @@
 # Agent Handoff
 
-Updated: 2026-05-25T04:39:57Z
+Updated: 2026-05-25T04:46:44Z
+
+## Current Run Update — 2026-05-25T04:46:44Z — Developer API headless runner
+
+Continued the active goal to implement
+`docs/DEVELOPER_API_PROPOSAL.md`. The goal is **not complete** yet; this slice
+completes `task-3172` and moves the recommended next work to entity lookup
+summaries.
+
+### What changed
+
+- Added `@aperture-engine/app/headless` with
+  `createApertureHeadlessRunner(...)`.
+- The headless runner accepts a headless config plus system modules, creates the
+  app through the same config/system path, exposes `step(...)` and `extract(...)`,
+  and returns JSON-safe status with preload policy, asset manifest, input
+  summary, system diagnostics, and snapshot counts.
+- The runner rejects non-headless configs with an `ApertureAppError` and does
+  not import browser, canvas, `navigator.gpu`, or WebGPU presentation code.
+- Exported the headless entry from the app package and test/build aliases.
+- Updated `examples/developer-api/aperture.headless.config.ts` to declare the
+  same input actions as the browser config.
+- Added `test/app/developer-api.test.ts` coverage that imports the real
+  developer API setup/select/spin system files, runs them through the headless
+  runner with the headless config, verifies extracted view/draw status, then
+  drives the select signal and observes the worker-system mutation diagnostic.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+- `pnpm run check:progress`
+
+### Known issues / remaining proposal work
+
+- MCP-style entity lookup/summary helpers are not implemented yet (`task-3173`).
+- Browser/UI command forwarding into `this.commands` queues is not implemented
+  yet (`task-3174`).
+- Unified generated diagnostics for failure cases should still be tightened
+  (`task-3175`).
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Start `task-3173`: publish a developer API entity-summary lookup surface for
+generated/headless apps.
 
 ## Current Run Update — 2026-05-25T04:39:57Z — Developer API generated input forwarding
 

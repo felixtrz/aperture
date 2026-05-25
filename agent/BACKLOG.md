@@ -60,22 +60,15 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 Active goal override is in effect for
-`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3172`: expose a config-driven
-headless runner for developer API systems. This is the next visible slice
-because `task-3171` now proves generated browser input reaches worker-owned
-`this.input` signals and drives deterministic `this.effects.watch(...)` ECS
-mutation, while headless execution still depends on the advanced
-`createApertureApp(...)` API instead of a dedicated config-driven runner.
+`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3173`: publish a developer API
+entity-summary lookup surface for generated/headless apps so agents can
+discover config/system-spawned entities without relying on renderer state. This
+is the next visible slice because `task-3172` now exposes a config-driven
+headless runner for the same developer API system files, while the proposal's
+MCP-style entity lookup contract is still missing.
 
 The next ready visible-feature queue is:
 
-- `task-3172` — expose a config-driven headless runner for developer API
-  systems.
-  Reference anchor: `references/bevy/examples/app/headless.rs`.
-  Done when the same `examples/developer-api/src/systems/**/*.system.ts` files
-  can run from a headless config through an app-provided runner/helper without
-  DOM, canvas, `navigator.gpu`, or WebGPU presentation imports, and the runner
-  publishes JSON-safe step/snapshot/status evidence for tests and agents.
 - `task-3173` — publish a developer API entity-summary lookup surface for
   generated/headless apps so agents can discover config/system-spawned
   entities by key, name pattern, component set, and GLB source metadata without
@@ -94,6 +87,14 @@ The next ready visible-feature queue is:
   command is drained in a worker system, a `preload: "manual"` asset request is
   observed through `this.assets` readiness/error signals, and browser status
   reports the command/request result in JSON-safe form.
+- `task-3175` — surface generated app diagnostics for config, system-manifest,
+  worker, and asset-load failures through one JSON-safe browser/headless status
+  shape.
+  Reference anchor: `references/engine/src/framework/app-base.js`.
+  Done when focused failing fixtures cover missing system exports, invalid
+  schedule metadata, invalid GLB URLs, and worker startup failure; each status
+  includes stable code, message, source file/module/asset context, and suggested
+  fix without requiring users to inspect console-only errors.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

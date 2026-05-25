@@ -9,6 +9,12 @@ export default defineApertureConfig({
       preload: "background",
     }),
   },
+  input: {
+    actions: {
+      select: [{ pointer: "primary" }],
+      jump: [{ keyboard: "Space" }],
+    },
+  },
   render: {
     defaultCamera: false,
     defaultLight: false,

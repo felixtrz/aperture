@@ -15,7 +15,13 @@ const SelectSystemBase = createSystem({
 
 export default class SelectSystem extends SelectSystemBase {
   override init(): void {
-    this.effects.watch(this.input.actions.select.pressed, (pressed) => {
+    const select = this.input.actions.select;
+    if (select === undefined) {
+      this.diagnostics.warn("select.actionMissing");
+      return;
+    }
+
+    this.effects.watch(select.pressed, (pressed) => {
       if (!pressed) {
         return;
       }

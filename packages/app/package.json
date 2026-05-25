@@ -23,6 +23,10 @@
       "types": "./dist/advanced.d.ts",
       "import": "./dist/advanced.js"
     },
+    "./headless": {
+      "types": "./dist/headless.d.ts",
+      "import": "./dist/headless.js"
+    },
     "./browser": {
       "types": "./dist/browser.d.ts",
       "import": "./dist/browser.js"

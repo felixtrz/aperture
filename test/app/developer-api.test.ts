@@ -7,6 +7,7 @@ import {
   createApertureApp,
   type ApertureSystemModule,
 } from "@aperture-engine/app/advanced";
+import { createApertureHeadlessRunner } from "@aperture-engine/app/headless";
 import {
   AppEntityKey,
   LocalTransform,
@@ -21,6 +22,16 @@ import {
   signal,
 } from "@aperture-engine/app/config";
 import { createApertureSystemManifest } from "@aperture-engine/vite-plugin";
+import developerHeadlessConfig from "../../examples/developer-api/aperture.headless.config.js";
+import SetupSystem, {
+  schedule as setupSchedule,
+} from "../../examples/developer-api/src/systems/setup.system.js";
+import SelectSystem, {
+  schedule as selectSchedule,
+} from "../../examples/developer-api/src/systems/select.system.js";
+import SpinCrateSystem, {
+  schedule as spinSchedule,
+} from "../../examples/developer-api/src/systems/spin-crate.system.js";
 
 describe("developer-facing app API", () => {
   it("defines config assets and keeps the app root free of Vite plugin exports", () => {
@@ -309,6 +320,67 @@ describe("developer-facing app API", () => {
       culled: 0,
       included: expect.any(Number),
     });
+  });
+
+  it("runs the developer API example systems through a config-driven headless runner", async () => {
+    const loadedAssets: string[] = [];
+    const runner = await createApertureHeadlessRunner({
+      config: developerHeadlessConfig,
+      systems: [
+        { default: SetupSystem, schedule: setupSchedule },
+        { default: SelectSystem, schedule: selectSchedule },
+        { default: SpinCrateSystem, schedule: spinSchedule },
+      ],
+      assetLoader: {
+        async load(assetHandle) {
+          loadedAssets.push(assetHandle.id);
+        },
+      },
+    });
+
+    expect(loadedAssets).toContain("robot");
+    expect(runner.getStatus()).toMatchObject({
+      mode: "headless",
+      preload: {
+        blocking: ["robot"],
+        background: ["floorColor"],
+        manual: [],
+      },
+      lastSnapshot: null,
+    });
+
+    const first = runner.step(1 / 60, 0.5);
+    expect(first.snapshot.views).toHaveLength(1);
+    expect(first.snapshot.meshDraws).toHaveLength(1);
+    expect(first.status.lastSnapshot).toMatchObject({
+      frame: 0,
+      counts: {
+        views: 1,
+        meshDraws: 1,
+        diagnostics: 0,
+      },
+    });
+
+    runner.app.context.input.actions.select!.pressed.value = true;
+    const selected = runner.step(1 / 60, 1);
+
+    expect(selected.status.input.actions.select).toMatchObject({
+      pressed: true,
+      value: 0,
+    });
+    expect(selected.status.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "select.pressed",
+          data: expect.objectContaining({
+            mutatedComponent: "aperture.metadata.debug",
+          }),
+        }),
+      ]),
+    );
+    expect(JSON.stringify(selected.status)).not.toMatch(
+      /navigator\.gpu|HTMLCanvasElement|createWebGpuApp/,
+    );
   });
 
   it("discovers worker system globs and records schedule metadata without exposing classes to the main manifest", async () => {
