@@ -479,3 +479,38 @@ Consequences:
 - Lower-layer runtime/render/webgpu APIs remain public advanced paths.
 - The metaframework hides wiring only; ECS remains authoritative and rendering
   remains derived from extracted ECS state.
+
+## 0015 — CPU Spatial Queries Use Native Typed-Array BVHs
+
+Status: accepted
+
+Context:
+
+Aperture had bounds-only worker raycasts in simulation and renderer-owned
+ID-buffer picking in WebGPU. Bounds were too coarse for GLB meshes, while
+ID-buffer picking is screen-space and cannot serve authoritative gameplay,
+editor tools, snapping, shapecasts, closest-point queries, or volume queries.
+Importing `three-mesh-bvh` directly would couple Aperture's query layer to
+three.js `BufferGeometry`/`Object3D` assumptions.
+
+Decision:
+
+Aperture CPU spatial queries use native, renderer-independent typed-array BVHs
+owned by `@aperture-engine/simulation`. The core accepts plain CPU mesh and
+bounds data, supports exact triangle raycasts, mesh BVH traversal, shapecast
+callbacks, derived shape/closest-point/BVH-overlap queries, versioned cache
+reports, refit, serialization, and an entity-bounds BVH. `@aperture-engine/render`
+may provide thin adapters from source `MeshAsset` buffers to the spatial data
+contract, but WebGPU resources, render worlds, draw queues, and browser globals
+must not be query inputs.
+
+Consequences:
+
+- Worker-side systems can call `this.spatial.raycast(..., { mode: "mesh" })`
+  without making renderer state authoritative.
+- WebGPU ID-buffer picking remains a visual/editor convenience, separate from
+  CPU gameplay/tooling queries.
+- Source mesh assets can opt into `Pickable` and `MeshQueryAcceleration`
+  authoring policy without storing GPU handles in ECS components.
+- Future worker/SAB BVH build paths should preserve the same serialized BVH and
+  diagnostics contracts rather than introducing renderer-owned scene graphs.

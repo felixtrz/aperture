@@ -32,6 +32,12 @@ import {
   getApertureEntitySummary,
 } from "@aperture-engine/app/entity-lookup";
 import {
+  composeTrsMatrix,
+  createMeshBvh,
+  createPlaneMeshAsset,
+  createSpatialTriangleMeshFromMeshAsset,
+} from "@aperture-engine/core";
+import {
   SIMULATION_WORKER_PROTOCOL,
   type SimulationMessagePort,
 } from "@aperture-engine/runtime";
@@ -446,6 +452,162 @@ describe("developer-facing app API", () => {
     await app.context.commands.requestAsset("decal");
     expect(events).toContain("load:decal");
     expect(app.context.assets.texture("decal").ready.value).toBe(true);
+  });
+
+  it("lets worker-safe systems raycast triangle-accurate mesh queries", async () => {
+    const queryMeshReport = createSpatialTriangleMeshFromMeshAsset(
+      createPlaneMeshAsset({ width: 2, height: 2 }),
+    );
+    const queryMesh = queryMeshReport.mesh;
+    const hits: unknown[] = [];
+
+    expect(queryMeshReport.diagnostics).toEqual([]);
+    expect(queryMesh).not.toBeNull();
+
+    const SpatialSystemModule: ApertureSystemModule = {
+      default: class SpatialSystem extends createSystem() {
+        override init(): void {
+          if (queryMesh === null) {
+            return;
+          }
+
+          const entity = this.spawn.mesh({
+            key: "level.pick-plane",
+            name: "pick-plane",
+            mesh: mesh.plane({ size: [2, 2] }),
+            material: material.standard(),
+          });
+
+          this.spatial.setBounds([
+            {
+              entity,
+              worldAabb: { min: [-1, -1, 0], max: [1, 1, 0] },
+              layerMask: 0b0010,
+              pickable: { enabled: true, layerMask: 0b0010 },
+            },
+          ]);
+          this.spatial.setMeshes([
+            {
+              entity,
+              mesh: queryMesh,
+              bvh: createMeshBvh(queryMesh),
+              layerMask: 0b0010,
+              pickable: { enabled: true, mode: "mesh", layerMask: 0b0010 },
+            },
+            {
+              entity,
+              mesh: queryMesh,
+              bvh: createMeshBvh(queryMesh),
+              worldFromMesh: composeTrsMatrix(
+                [0, 0, 0],
+                [0, 0, 0, 1],
+                [0.1, 0.1, 0.1],
+              ),
+              layerMask: 0b1000,
+              pickable: { enabled: true, mode: "mesh", layerMask: 0b1000 },
+            },
+            {
+              entity,
+              mesh: queryMesh,
+              bvh: createMeshBvh(queryMesh),
+              worldFromMesh: new Float32Array(16),
+              layerMask: 0b10000,
+              pickable: { enabled: true, mode: "mesh", layerMask: 0b10000 },
+            },
+            {
+              entity,
+              mesh: queryMesh,
+              bvh: createMeshBvh(queryMesh),
+              meshFromWorld: composeTrsMatrix(
+                [0, 0, 0],
+                [0, 0, 0, 1],
+                [10, 10, 10],
+              ),
+              layerMask: 0b100000,
+              pickable: { enabled: true, mode: "mesh", layerMask: 0b100000 },
+            },
+          ]);
+          hits.push(
+            this.spatial.raycast(
+              { origin: [0.25, 0.1, 1], direction: [0, 0, -1] },
+              { mode: "mesh", layerMask: 0b0010 },
+            ),
+          );
+          hits.push(
+            this.spatial.raycast(
+              { origin: [0.25, 0.1, 1], direction: [0, 0, -1] },
+              { mode: "bounds", layerMask: 0b0010 },
+            ),
+          );
+          hits.push(
+            this.spatial.raycast(
+              { origin: [0.25, 0.1, 1], direction: [0, 0, -1] },
+              { mode: "mesh", layerMask: 0b0100 },
+            ),
+          );
+          hits.push(
+            this.spatial.raycast(
+              { origin: [0.25, 0.1, 1], direction: [0, 0, -1] },
+              { mode: "mesh", layerMask: 0b0010, filter: () => false },
+            ),
+          );
+          hits.push(
+            this.spatial.raycast(
+              { origin: [0.025, 0.01, 1], direction: [0, 0, -1] },
+              { mode: "mesh", layerMask: 0b1000, maxDistance: 2 },
+            ),
+          );
+          hits.push(
+            this.spatial.raycast(
+              { origin: [0.025, 0.01, 1], direction: [0, 0, -1] },
+              { mode: "mesh", layerMask: 0b10000 },
+            ),
+          );
+          hits.push(
+            this.spatial.raycast(
+              { origin: [0.025, 0.01, 1], direction: [0, 0, -1] },
+              { mode: "mesh", layerMask: 0b100000, maxDistance: 2 },
+            ),
+          );
+        }
+      },
+      schedule: { priority: 0 },
+    };
+
+    await createApertureApp({
+      config: defineApertureConfig({
+        mode: "headless",
+        systems: ["src/systems/**/*.system.ts"],
+      }),
+      systems: [SpatialSystemModule],
+    });
+
+    expect(hits[0]).toMatchObject({
+      source: "mesh-bvh",
+      distance: 1,
+      faceIndex: 0,
+      materialSlot: 0,
+      entity: {
+        ref: expect.objectContaining({ index: expect.any(Number) }),
+      },
+    });
+    expect(hits[1]).toMatchObject({
+      source: "bounds",
+      distance: 1,
+    });
+    expect(hits[2]).toBeNull();
+    expect(hits[3]).toBeNull();
+    expect(hits[4]).toMatchObject({
+      source: "mesh-bvh",
+      distance: 1,
+      faceIndex: 0,
+    });
+    expect(hits[5]).toBeNull();
+    expect(hits[6]).toMatchObject({
+      source: "mesh-bvh",
+      distance: 1,
+      faceIndex: 0,
+    });
   });
 
   it("loads and replays config-declared GLB assets through the system spawn helper", async () => {

@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-The active `docs/DEVELOPER_API_PROPOSAL.md` implementation goal is complete.
-Resume the post-SOTA visible-feature queue at `task-3166`: add a split-screen
-multi-camera route.
+The active `docs/RAYCASTING_BVH_FEATURE_PROPOSAL.md` implementation goal is
+complete. Resume the post-SOTA visible-feature queue at `task-3166`: add a
+split-screen multi-camera route.
 
 The next ready visible-feature queue is:
 

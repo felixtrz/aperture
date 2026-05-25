@@ -393,14 +393,27 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-25 06:47 UTC</dd>
+            <dd>2026-05-25 19:42 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the developer API proposal implementation is
-              complete against the explicitly listed acceptance criteria. The
-              generated worker command bridge now handles entity find, get, safe
+              Latest update: the raycasting/BVH proposal has a
+              renderer-independent CPU spatial query implementation. Simulation
+              now exposes exact triangle raycasts, typed-array mesh BVHs,
+              shapecast callbacks, sphere/box/capsule/frustum/closest-point
+              queries, BVH-vs-BVH candidate pairs, serialized BVH payloads,
+              versioned cache/refit diagnostics, and an entity-bounds BVH for
+              large-scene broad phase, plus a worker-like serialized build
+              handoff for off-thread BVH generation. Render adds a thin
+              <code>MeshAsset</code>-to-spatial adapter, and
+              <code>@aperture-engine/app/systems</code> exposes
+              <code>this.spatial.raycast(..., { mode: "mesh" })</code> plus
+              <code>this.spatial.setMeshes(...)</code> without involving WebGPU
+              resources or a renderer-owned scene graph. Previous update: the
+              developer API proposal implementation is complete against the
+              explicitly listed acceptance criteria. The generated worker
+              command bridge now handles entity find, get, safe
               <code>DebugMetadata.note</code> mutation, snapshot, and diff
               commands against worker-owned ECS state, while the browser panel
               displays JSON-safe <code>entityTools</code> status and never
@@ -5192,6 +5205,13 @@
                 command/status bridge.
               </li>
               <li>
+                <span class="badge green">raycast-bvh</span> Done: implement
+                renderer-independent exact mesh raycasts, mesh BVH traversal,
+                shapecast-derived queries, cache/refit diagnostics, worker-build
+                handoff, entity bounds BVH, and worker-side
+                <code>mode: "mesh"</code> spatial raycasts.
+              </li>
+              <li>
                 <span class="badge">task-3166</span> Next: resume the render
                 pipeline queue with a split-screen multi-camera route.
               </li>
@@ -5212,6 +5232,20 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">raycast-bvh</div>
+            <div>
+              <strong>Raycasting and BVH spatial queries shipped.</strong>
+              <span>
+                <code>@aperture-engine/simulation</code> now owns exact mesh
+                raycasts, typed-array mesh BVHs, shapecast-derived shape and
+                closest-point queries, cache/refit diagnostics, worker-build
+                handoff, and entity bounds BVHs. Render provides only a CPU
+                mesh-data adapter, and app systems can raycast with
+                <code>mode: "mesh"</code> from worker-owned state.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3184-3186</div>
             <div>

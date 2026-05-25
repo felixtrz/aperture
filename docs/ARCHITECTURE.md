@@ -206,6 +206,16 @@ Suggested component split:
 
 The renderer should never compute gameplay hierarchy itself.
 
+## Spatial Queries
+
+CPU spatial queries belong below the WebGPU backend. Exact mesh raycasts,
+mesh BVHs, shapecast traversal, closest-point queries, and entity-bounds BVHs
+run over renderer-independent CPU mesh/bounds data in
+`@aperture-engine/simulation`, with a thin `@aperture-engine/render` adapter for
+source `MeshAsset` buffers. WebGPU ID-buffer picking remains a visual/editor
+convenience derived from render snapshots; it is not the authoritative gameplay
+query path.
+
 ## Render Authoring Components
 
 Initial ECS-facing render components may include:

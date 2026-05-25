@@ -11,6 +11,12 @@ import {
   FogMode,
   Material,
   Mesh,
+  MeshQueryAcceleration,
+  MeshQueryAccelerationMode,
+  MeshQueryAccelerationStrategy,
+  MeshQueryDynamicPolicy,
+  Pickable,
+  PickableMode,
   RenderLayer,
   RenderOrder,
   ShadowCaster,
@@ -22,6 +28,8 @@ import {
   createEnvironmentMapHandle,
   createLight,
   createLightShadowSettings,
+  createMeshQueryAcceleration,
+  createPickable,
   createSkybox,
   createTextureHandle,
   createWorld,
@@ -68,6 +76,57 @@ describe("render authoring ECS components", () => {
 
     expect(entity.getValue(Visibility, "visible")).toBe(false);
     expect(query.entities.has(entity)).toBe(false);
+  });
+
+  it("attaches and reads spatial pickability and mesh acceleration policy", () => {
+    const world = createWorld({ entityCapacity: 4 });
+    registerRenderAuthoringComponents(world);
+    const query = world.queryManager.registerQuery({
+      required: [Pickable, MeshQueryAcceleration],
+    });
+    const entity = world.createEntity();
+
+    entity.addComponent(
+      Pickable,
+      createPickable({
+        enabled: true,
+        layerMask: 0b0101,
+        mode: PickableMode.Mesh,
+        blocksLower: true,
+        priority: 7,
+      }),
+    );
+    entity.addComponent(
+      MeshQueryAcceleration,
+      createMeshQueryAcceleration({
+        mode: MeshQueryAccelerationMode.Bvh,
+        strategy: MeshQueryAccelerationStrategy.Sah,
+        maxLeafSize: 4,
+        maxDepth: 32,
+        dynamicPolicy: MeshQueryDynamicPolicy.Refit,
+        simplifiedMeshId: "mesh:proxy",
+      }),
+    );
+
+    expect(query.entities.has(entity)).toBe(true);
+    expect(entity.getValue(Pickable, "layerMask")).toBe(0b0101);
+    expect(entity.getValue(Pickable, "mode")).toBe(PickableMode.Mesh);
+    expect(entity.getValue(Pickable, "blocksLower")).toBe(true);
+    expect(entity.getValue(Pickable, "priority")).toBe(7);
+    expect(entity.getValue(MeshQueryAcceleration, "mode")).toBe(
+      MeshQueryAccelerationMode.Bvh,
+    );
+    expect(entity.getValue(MeshQueryAcceleration, "strategy")).toBe(
+      MeshQueryAccelerationStrategy.Sah,
+    );
+    expect(entity.getValue(MeshQueryAcceleration, "maxLeafSize")).toBe(4);
+    expect(entity.getValue(MeshQueryAcceleration, "maxDepth")).toBe(32);
+    expect(entity.getValue(MeshQueryAcceleration, "dynamicPolicy")).toBe(
+      MeshQueryDynamicPolicy.Refit,
+    );
+    expect(entity.getValue(MeshQueryAcceleration, "simplifiedMeshId")).toBe(
+      "mesh:proxy",
+    );
   });
 
   it("attaches and reads camera and light component data", () => {

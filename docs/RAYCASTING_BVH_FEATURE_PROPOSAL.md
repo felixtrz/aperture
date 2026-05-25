@@ -2,7 +2,18 @@
 
 Date: 2026-05-25
 
-Status: proposal
+Status: implemented 2026-05-25
+
+Implementation note:
+
+- The renderer-independent core lives in `@aperture-engine/simulation` under
+  `spatial/`.
+- `@aperture-engine/render` provides a thin `MeshAsset` CPU-buffer adapter.
+- `@aperture-engine/app/systems` exposes worker-side mesh queries through
+  `this.spatial.setMeshes(...)` and
+  `this.spatial.raycast(ray, { mode: "mesh" })`.
+- `mesh-bvh-worker` defines a worker-like build message contract for async
+  off-thread BVH generation and serialized BVH handoff.
 
 ## Summary
 

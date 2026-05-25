@@ -261,16 +261,20 @@ browser bootstrap into worker-owned signals before system effects run.
 
 ## Spatial Queries
 
-Spatial queries are worker-side helpers over ECS-owned data. Today, raycasts use
-bounds provided to `this.spatial.setBounds(...)` and return canonical entity
-references.
+Spatial queries are worker-side helpers over ECS-owned data. Bounds raycasts use
+`this.spatial.setBounds(...)`; exact mesh raycasts use
+`this.spatial.setMeshes(...)` with renderer-independent CPU mesh data and an
+optional mesh BVH. Both paths return canonical entity references.
 
 ```ts
 const ray = this.cameras.main.rayFromPointer(
   this.input.pointer.primary.position.value,
 );
 
-const hit = this.spatial.raycast(ray, { maxDistance: 20 });
+const hit = this.spatial.raycast(ray, {
+  mode: "mesh",
+  maxDistance: 20,
+});
 
 this.signals.selectedEntity.value = hit?.entity.ref ?? null;
 ```

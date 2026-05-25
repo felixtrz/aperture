@@ -1144,7 +1144,9 @@ async function decodeImageBytesWithBrowserCanvas(
 
   try {
     const canvas = createImageDecodeCanvas(bitmap.width, bitmap.height);
-    const context = canvas.getContext("2d", { willReadFrequently: true });
+    const context = canvas.getContext("2d", {
+      willReadFrequently: true,
+    }) as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
 
     if (context === null) {
       throw new Error("Could not create a 2D canvas context for image decode.");

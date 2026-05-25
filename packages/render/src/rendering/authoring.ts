@@ -50,6 +50,41 @@ export const FogMode = {
 
 export type FogMode = (typeof FogMode)[keyof typeof FogMode];
 
+export const PickableMode = {
+  Bounds: "bounds",
+  Mesh: "mesh",
+  Collider: "collider",
+} as const;
+
+export type PickableMode = (typeof PickableMode)[keyof typeof PickableMode];
+
+export const MeshQueryAccelerationMode = {
+  None: "none",
+  AutoBvh: "auto-bvh",
+  Bvh: "bvh",
+} as const;
+
+export type MeshQueryAccelerationMode =
+  (typeof MeshQueryAccelerationMode)[keyof typeof MeshQueryAccelerationMode];
+
+export const MeshQueryAccelerationStrategy = {
+  Center: "center",
+  Average: "average",
+  Sah: "sah",
+} as const;
+
+export type MeshQueryAccelerationStrategy =
+  (typeof MeshQueryAccelerationStrategy)[keyof typeof MeshQueryAccelerationStrategy];
+
+export const MeshQueryDynamicPolicy = {
+  Static: "static",
+  Refit: "refit",
+  Rebuild: "rebuild",
+} as const;
+
+export type MeshQueryDynamicPolicy =
+  (typeof MeshQueryDynamicPolicy)[keyof typeof MeshQueryDynamicPolicy];
+
 export interface CameraInput {
   readonly projection?: CameraProjection;
   readonly fovYRadians?: number;
@@ -119,6 +154,23 @@ export interface FogInput {
   readonly density?: number;
   readonly start?: number;
   readonly end?: number;
+}
+
+export interface PickableInput {
+  readonly enabled?: boolean;
+  readonly layerMask?: number;
+  readonly mode?: PickableMode;
+  readonly blocksLower?: boolean;
+  readonly priority?: number;
+}
+
+export interface MeshQueryAccelerationInput {
+  readonly mode?: MeshQueryAccelerationMode;
+  readonly strategy?: MeshQueryAccelerationStrategy;
+  readonly maxLeafSize?: number;
+  readonly maxDepth?: number;
+  readonly dynamicPolicy?: MeshQueryDynamicPolicy;
+  readonly simplifiedMeshId?: string;
 }
 
 export interface OcclusionQueryInput {
@@ -274,6 +326,47 @@ export const RenderLayer = defineComponent(
   "Render layer mask used for camera and light filtering.",
 );
 
+export const Pickable = defineComponent(
+  "aperture.spatial.pickable",
+  {
+    enabled: { type: EcsType.Boolean, default: true },
+    layerMask: { type: EcsType.Int32, default: 1 },
+    mode: {
+      type: EcsType.Enum,
+      enum: PickableMode,
+      default: PickableMode.Bounds,
+    },
+    blocksLower: { type: EcsType.Boolean, default: false },
+    priority: { type: EcsType.Int32, default: 0 },
+  },
+  "Renderer-independent pickability component consumed by worker-side spatial query systems.",
+);
+
+export const MeshQueryAcceleration = defineComponent(
+  "aperture.spatial.meshQueryAcceleration",
+  {
+    mode: {
+      type: EcsType.Enum,
+      enum: MeshQueryAccelerationMode,
+      default: MeshQueryAccelerationMode.AutoBvh,
+    },
+    strategy: {
+      type: EcsType.Enum,
+      enum: MeshQueryAccelerationStrategy,
+      default: MeshQueryAccelerationStrategy.Center,
+    },
+    maxLeafSize: { type: EcsType.Int32, default: 8 },
+    maxDepth: { type: EcsType.Int32, default: 40 },
+    dynamicPolicy: {
+      type: EcsType.Enum,
+      enum: MeshQueryDynamicPolicy,
+      default: MeshQueryDynamicPolicy.Static,
+    },
+    simplifiedMeshId: { type: EcsType.String, default: "" },
+  },
+  "Renderer-independent mesh query acceleration policy for exact CPU spatial queries.",
+);
+
 export const RenderOrder = defineComponent(
   "aperture.render.order",
   {
@@ -423,6 +516,8 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(Visibility);
   world.registerComponent(OcclusionQuery);
   world.registerComponent(RenderLayer);
+  world.registerComponent(Pickable);
+  world.registerComponent(MeshQueryAcceleration);
   world.registerComponent(RenderOrder);
   world.registerComponent(InstanceTint);
   world.registerComponent(InstanceData);
@@ -434,6 +529,31 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(ShadowReceiver);
   world.registerComponent(LightShadowSettings);
   return world;
+}
+
+export function createPickable(
+  input: PickableInput = {},
+): ComponentInitialData<typeof Pickable> {
+  return {
+    enabled: input.enabled ?? true,
+    layerMask: input.layerMask ?? 1,
+    mode: input.mode ?? PickableMode.Bounds,
+    blocksLower: input.blocksLower ?? false,
+    priority: input.priority ?? 0,
+  };
+}
+
+export function createMeshQueryAcceleration(
+  input: MeshQueryAccelerationInput = {},
+): ComponentInitialData<typeof MeshQueryAcceleration> {
+  return {
+    mode: input.mode ?? MeshQueryAccelerationMode.AutoBvh,
+    strategy: input.strategy ?? MeshQueryAccelerationStrategy.Center,
+    maxLeafSize: input.maxLeafSize ?? 8,
+    maxDepth: input.maxDepth ?? 40,
+    dynamicPolicy: input.dynamicPolicy ?? MeshQueryDynamicPolicy.Static,
+    simplifiedMeshId: input.simplifiedMeshId ?? "",
+  };
 }
 
 export function createCamera(

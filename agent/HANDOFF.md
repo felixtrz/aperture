@@ -1,6 +1,119 @@
 # Agent Handoff
 
-Updated: 2026-05-25T06:47:14Z
+Updated: 2026-05-25T20:24:41Z
+
+## Current Run Update — 2026-05-25T20:24:41Z — Raycasting/BVH review and commit prep
+
+Reviewed the raycasting/BVH implementation before commit and tightened the
+change set.
+
+### Review fixes
+
+- Fixed worker-side mesh raycasts so world-space `maxDistance` is not applied
+  prematurely to transformed local-space rays. The query now filters by
+  computed world distance after the local hit.
+- Fixed `MeshBvh.raycast(..., { firstHitOnly: true })` so the internal
+  unbounded max distance remains valid instead of being rejected as explicit
+  `Infinity`.
+- Fixed `SpatialRaycastableMesh` transform handling so either `worldFromMesh`
+  or `meshFromWorld` may be supplied; the missing inverse is derived when
+  possible, and non-invertible transforms are skipped.
+- Fixed `MeshBvhCache.invalidate(meshKey)` so it removes all versioned cache
+  entries for the mesh, not only the latest key.
+- Removed dead stack-pop guard branches in spatial BVH traversals.
+- Expanded tests for adapter diagnostics, worker handoff failures/fallbacks,
+  cache invalidation/rebuild/failure paths, transformed mesh raycasts,
+  first-hit BVH traversal, invalid query inputs, empty BVHs, and extra
+  shapecast/closest-point/BVH-cast cases.
+
+### Validation
+
+- `pnpm exec vitest run test/spatial/mesh-bvh.test.ts test/rendering/components.test.ts test/app/developer-api.test.ts`
+  — 42 passed.
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:boundaries`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check <touched files>`
+- Focused coverage command:
+  `pnpm exec vitest run test/spatial/mesh-bvh.test.ts --coverage.enabled --coverage.provider=v8 --coverage.reporter=text --coverage.include='packages/simulation/src/spatial/**' --coverage.include='packages/render/src/mesh/spatial-adapter.ts'`
+  reported 94.89% statements, 82.8% branches, 97.82% functions, and 94.77%
+  lines across the new spatial files. `spatial-adapter.ts` and
+  `mesh-bvh-worker.ts` have 100% line coverage in that focused report.
+- `pnpm test` still fails in the unrelated WebGPU draw-package/resource-key
+  expectations already noted below: 9 failed files, 29 failed tests.
+
+### Known issues / remaining work
+
+- Literal 100% line/branch coverage was not achieved for the full BVH internals;
+  remaining misses are mostly private defensive geometry/traversal branches.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+## Current Run Update — 2026-05-25T19:57:06Z — Raycasting/BVH proposal completion
+
+Continued the active goal to implement
+`docs/RAYCASTING_BVH_FEATURE_PROPOSAL.md`. The goal is **complete** against the
+proposal's listed acceptance criteria.
+
+### What changed
+
+- Added exact renderer-independent triangle mesh raycasts in
+  `@aperture-engine/simulation`, including nearest/all hits, indexed and
+  non-indexed meshes, normals, UVs, barycentric coordinates, face/submesh and
+  material-slot metadata, backface policy, and max-distance filtering.
+- Added typed-array mesh BVHs with center, average, and SAH split strategies,
+  first/all ray hit traversal, indirect primitive order, serialized stats,
+  shapecast callbacks, sphere/box/capsule/frustum queries, closest point to
+  point/segment, BVH-vs-BVH candidate pairs, and refit.
+- Added versioned BVH cache/refit reports with stable JSON-safe diagnostics for
+  stale BVHs, unsupported topology, unsupported skinned/morphed exact queries,
+  and build failures.
+- Added a worker-like BVH build message contract for async off-thread builds
+  and serialized BVH handoff.
+- Added an entity-bounds BVH broad phase with dirty-bound refit so many-entity
+  raycasts do not linearly test every bound.
+- Added `Pickable` and `MeshQueryAcceleration` ECS authoring components.
+- Added a thin render-side `MeshAsset` CPU buffer adapter and extended
+  `this.spatial` with `setMeshes(...)` plus mesh/best raycast modes, keeping
+  WebGPU and render-world state out of authoritative CPU spatial queries.
+- Worker-side spatial entries now honor layer masks, optional pickable state,
+  visibility flags, query membership, and caller filter callbacks.
+- Updated architecture, decision, authoring, public tracker, and agent docs.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/simulation typecheck`
+- `pnpm --filter @aperture-engine/render typecheck`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/spatial/mesh-bvh.test.ts`
+- `pnpm exec vitest run test/rendering/components.test.ts`
+- `pnpm exec vitest run test/app/developer-api.test.ts --testNamePattern "triangle-accurate mesh queries"`
+- `pnpm exec vitest run test/spatial/mesh-bvh.test.ts test/rendering/components.test.ts test/app/developer-api.test.ts`
+- `pnpm run build`
+- `pnpm run check:boundaries`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check <touched files>`
+
+`pnpm test` was also run and is **not clean**. The failing tests are existing
+WebGPU frame/package command-count and resource-key expectations outside this
+spatial change set; targeted spatial/render/app tests and the full TypeScript
+build pass.
+
+### Known issues / remaining work
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+- This proposal implementation is CPU-side. WebGPU ID-buffer picking remains a
+  separate visual convenience and was not changed.
+
+### Recommended next task
+
+Resume the render-pipeline visible-feature queue at `task-3166`: add a
+split-screen multi-camera route.
 
 ## Current Run Update — 2026-05-25T06:47:14Z — Developer API proposal completion
 

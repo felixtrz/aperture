@@ -57,19 +57,27 @@ import {
   createSystem as createElicsSystem,
   createTextureHandle,
   defineComponent,
+  invertMat4,
   quatFromAxisAngle,
   raycast as raycastBounds,
   registerMetadataComponents,
   registerTransformComponents,
+  transformPoint,
+  transformVector,
+  raycastFirstMeshTriangle,
   type AssetDiagnostic,
   type AssetRegistry,
   type EcsWorld,
   type Entity,
   type LocalTransformInput,
+  type Mat4Like,
   type MaterialHandle,
+  type MeshBvh,
   type MeshHandle,
   type RaycastableBounds,
   type SceneHandle,
+  type SpatialTriangleMesh,
+  type Vec2Like,
   type Vec3Like,
   type Vec4Like,
 } from "@aperture-engine/simulation";
@@ -246,6 +254,11 @@ export interface SpatialRaycastOptions {
   readonly query?: ApertureQuery;
   readonly maxDistance?: number;
   readonly layerMask?: number;
+  readonly mode?: "bounds" | "mesh" | "best";
+  readonly includeBackfaces?: boolean;
+  readonly includeUv?: boolean;
+  readonly includeNormal?: boolean;
+  readonly filter?: (entity: Entity) => boolean;
 }
 
 export interface SpatialRaycastHit {
@@ -255,6 +268,37 @@ export interface SpatialRaycastHit {
   };
   readonly distance: number;
   readonly point: readonly [number, number, number];
+  readonly normal?: readonly [number, number, number];
+  readonly uv?: readonly [number, number];
+  readonly barycentric?: readonly [number, number, number];
+  readonly faceIndex?: number;
+  readonly submeshIndex?: number;
+  readonly materialSlot?: number;
+  readonly source: "bounds" | "mesh-linear" | "mesh-bvh" | "collider";
+}
+
+export interface SpatialPickableState {
+  readonly enabled?: boolean;
+  readonly layerMask?: number;
+  readonly mode?: "bounds" | "mesh" | "collider";
+  readonly blocksLower?: boolean;
+  readonly priority?: number;
+}
+
+export interface SpatialRaycastableBounds extends RaycastableBounds<Entity> {
+  readonly visible?: boolean;
+  readonly pickable?: SpatialPickableState;
+}
+
+export interface SpatialRaycastableMesh {
+  readonly entity: Entity;
+  readonly mesh: SpatialTriangleMesh;
+  readonly bvh?: MeshBvh;
+  readonly worldFromMesh?: Mat4Like;
+  readonly meshFromWorld?: Mat4Like;
+  readonly layerMask?: number;
+  readonly visible?: boolean;
+  readonly pickable?: SpatialPickableState;
 }
 
 export interface SpatialQueries {
@@ -262,7 +306,8 @@ export interface SpatialQueries {
     ray: RayInput,
     options?: SpatialRaycastOptions,
   ): SpatialRaycastHit | null;
-  setBounds(bounds: readonly RaycastableBounds<Entity>[]): void;
+  setBounds(bounds: readonly SpatialRaycastableBounds[]): void;
+  setMeshes(meshes: readonly SpatialRaycastableMesh[]): void;
 }
 
 export interface CameraHandle {
@@ -1014,41 +1059,237 @@ function jsonSafeValue(value: unknown): unknown {
 }
 
 function createSpatialQueries(): SpatialQueries {
-  let bounds: readonly RaycastableBounds<Entity>[] = [];
+  let bounds: readonly SpatialRaycastableBounds[] = [];
+  let meshes: readonly SpatialRaycastableMesh[] = [];
 
   return {
     raycast(ray, options = {}) {
-      const queryEntities = options.query?.entities;
-      const candidates =
-        queryEntities === undefined
-          ? bounds
-          : bounds.filter((candidate) => queryEntities.has(candidate.entity));
-      const [hit] = raycastBounds(candidates, ray.origin, ray.direction, {
-        ...(options.maxDistance === undefined
-          ? {}
-          : { maxDistance: options.maxDistance }),
-        ...(options.layerMask === undefined
-          ? {}
-          : { layerMask: options.layerMask }),
-      });
+      const mode = options.mode ?? "bounds";
+      const boundsHit =
+        mode === "mesh" ? null : raycastBoundsHit(bounds, ray, options);
+      const meshHit =
+        mode === "bounds" ? null : raycastMeshHit(meshes, ray, options);
+      const hit =
+        mode === "best"
+          ? nearestSpatialHit(boundsHit, meshHit)
+          : mode === "mesh"
+            ? meshHit
+            : boundsHit;
 
-      if (hit === undefined) {
-        return null;
-      }
-
-      return {
-        entity: {
-          entity: hit.entity,
-          ref: entityRef(hit.entity),
-        },
-        distance: hit.distance,
-        point: tuple3(hit.point),
-      };
+      return hit;
     },
     setBounds(nextBounds) {
       bounds = [...nextBounds];
     },
+    setMeshes(nextMeshes) {
+      meshes = [...nextMeshes];
+    },
   };
+}
+
+function raycastBoundsHit(
+  bounds: readonly SpatialRaycastableBounds[],
+  ray: RayInput,
+  options: SpatialRaycastOptions,
+): SpatialRaycastHit | null {
+  const queryEntities = options.query?.entities;
+  const candidates =
+    queryEntities === undefined
+      ? bounds
+      : bounds.filter((candidate) => queryEntities.has(candidate.entity));
+  const filteredCandidates = candidates.filter((candidate) =>
+    spatialEntryMatches(candidate, candidate.entity, options, "bounds"),
+  );
+  const [hit] = raycastBounds(filteredCandidates, ray.origin, ray.direction, {
+    ...(options.maxDistance === undefined
+      ? {}
+      : { maxDistance: options.maxDistance }),
+    ...(options.layerMask === undefined
+      ? {}
+      : { layerMask: options.layerMask }),
+  });
+
+  if (hit === undefined) {
+    return null;
+  }
+
+  return {
+    entity: {
+      entity: hit.entity,
+      ref: entityRef(hit.entity),
+    },
+    distance: hit.distance,
+    point: tuple3(hit.point),
+    source: "bounds",
+  };
+}
+
+function raycastMeshHit(
+  meshes: readonly SpatialRaycastableMesh[],
+  ray: RayInput,
+  options: SpatialRaycastOptions,
+): SpatialRaycastHit | null {
+  const queryEntities = options.query?.entities;
+  let closest: SpatialRaycastHit | null = null;
+
+  for (const entry of meshes) {
+    if (queryEntities !== undefined && !queryEntities.has(entry.entity)) {
+      continue;
+    }
+
+    if (!spatialEntryMatches(entry, entry.entity, options, "mesh")) {
+      continue;
+    }
+
+    const meshFromWorld =
+      entry.meshFromWorld ??
+      (entry.worldFromMesh === undefined
+        ? undefined
+        : invertMat4(entry.worldFromMesh));
+    const worldFromMesh =
+      entry.worldFromMesh ??
+      (entry.meshFromWorld === undefined
+        ? undefined
+        : invertMat4(entry.meshFromWorld));
+
+    if (
+      (entry.worldFromMesh !== undefined ||
+        entry.meshFromWorld !== undefined) &&
+      (meshFromWorld === null || worldFromMesh === null)
+    ) {
+      continue;
+    }
+
+    const hasMeshTransform = meshFromWorld !== undefined;
+    const localRay =
+      meshFromWorld === undefined
+        ? ray
+        : {
+            origin: transformPoint(meshFromWorld, ray.origin),
+            direction: transformVector(meshFromWorld, ray.direction),
+          };
+    const meshRaycastOptions = {
+      ...(options.maxDistance === undefined || hasMeshTransform
+        ? {}
+        : { maxDistance: options.maxDistance }),
+      ...(options.includeBackfaces === undefined
+        ? {}
+        : { includeBackfaces: options.includeBackfaces }),
+      ...(options.includeUv === undefined
+        ? {}
+        : { includeUv: options.includeUv }),
+      ...(options.includeNormal === undefined
+        ? {}
+        : { includeNormal: options.includeNormal }),
+    };
+    const localHit =
+      entry.bvh === undefined
+        ? raycastFirstMeshTriangle(entry.mesh, localRay, meshRaycastOptions)
+        : entry.bvh.raycastFirst(localRay, meshRaycastOptions);
+
+    if (localHit === null) {
+      continue;
+    }
+
+    const worldPoint =
+      worldFromMesh === undefined
+        ? localHit.point
+        : transformPoint(worldFromMesh, localHit.point);
+    const worldNormal =
+      worldFromMesh === undefined
+        ? localHit.normal
+        : normalizeTuple3(transformVector(worldFromMesh, localHit.normal));
+    const distance = distanceBetween(ray.origin, worldPoint);
+
+    if (options.maxDistance !== undefined && distance > options.maxDistance) {
+      continue;
+    }
+
+    const hit: SpatialRaycastHit = {
+      entity: {
+        entity: entry.entity,
+        ref: entityRef(entry.entity),
+      },
+      distance,
+      point: tuple3(worldPoint),
+      normal: tuple3(worldNormal),
+      ...(localHit.uv === undefined ? {} : { uv: tuple2(localHit.uv) }),
+      barycentric: tuple3(localHit.barycentric),
+      faceIndex: localHit.faceIndex,
+      submeshIndex: localHit.submeshIndex,
+      materialSlot: localHit.materialSlot,
+      source: localHit.source,
+    };
+
+    if (
+      closest === null ||
+      hit.distance < closest.distance ||
+      (hit.distance === closest.distance &&
+        hit.entity.ref.index < closest.entity.ref.index)
+    ) {
+      closest = hit;
+    }
+  }
+
+  return closest;
+}
+
+function nearestSpatialHit(
+  a: SpatialRaycastHit | null,
+  b: SpatialRaycastHit | null,
+): SpatialRaycastHit | null {
+  if (a === null) {
+    return b;
+  }
+
+  if (b === null) {
+    return a;
+  }
+
+  return a.distance <= b.distance ? a : b;
+}
+
+function spatialEntryMatches(
+  entry: {
+    readonly layerMask?: number;
+    readonly visible?: boolean;
+    readonly pickable?: SpatialPickableState;
+  },
+  entity: Entity,
+  options: SpatialRaycastOptions,
+  mode: "bounds" | "mesh",
+): boolean {
+  if (entry.visible === false || options.filter?.(entity) === false) {
+    return false;
+  }
+
+  if (entry.pickable?.enabled === false) {
+    return false;
+  }
+
+  if (
+    mode === "mesh" &&
+    entry.pickable?.mode !== undefined &&
+    entry.pickable.mode !== "mesh"
+  ) {
+    return false;
+  }
+
+  return (
+    spatialLayerMatches(entry.layerMask, options.layerMask) &&
+    spatialLayerMatches(entry.pickable?.layerMask, options.layerMask)
+  );
+}
+
+function spatialLayerMatches(
+  objectLayerMask: number | undefined,
+  queryLayerMask: number | undefined,
+): boolean {
+  return (
+    (((objectLayerMask ?? 0x00000001) >>> 0) &
+      ((queryLayerMask ?? 0xffffffff) >>> 0)) !==
+    0
+  );
 }
 
 function createCameraAccess(world: EcsWorld): CameraAccess {
@@ -1424,9 +1665,7 @@ function sourceFromGltfEntityKey(
     };
   }
 
-  const match = /^node:(\d+)(?::mesh:(\d+):primitive:(\d+))?$/u.exec(
-    localKey,
-  );
+  const match = /^node:(\d+)(?::mesh:(\d+):primitive:(\d+))?$/u.exec(localKey);
 
   if (match !== null) {
     const nodeIndex = Number(match[1]);
@@ -2131,6 +2370,31 @@ function entityRef(entity: Entity): EcsEntityRef {
 
 function tuple3(values: ArrayLike<number>): [number, number, number] {
   return [read3(values, 0), read3(values, 1), read3(values, 2)];
+}
+
+function tuple2(values: Vec2Like): [number, number] {
+  return [read2(values, 0), read2(values, 1)];
+}
+
+function normalizeTuple3(values: ArrayLike<number>): [number, number, number] {
+  const x = read3(values, 0);
+  const y = read3(values, 1);
+  const z = read3(values, 2);
+  const length = Math.hypot(x, y, z);
+
+  if (!Number.isFinite(length) || length <= 1e-8) {
+    return [0, 0, 0];
+  }
+
+  return [x / length, y / length, z / length];
+}
+
+function distanceBetween(a: Vec3Like, b: Vec3Like): number {
+  return Math.hypot(
+    read3(a, 0) - read3(b, 0),
+    read3(a, 1) - read3(b, 1),
+    read3(a, 2) - read3(b, 2),
+  );
 }
 
 function read2(values: ArrayLike<number>, index: number): number {

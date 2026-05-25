@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "223f2d5",
   "activePid": null,
-  "notes": "Completed docs/DEVELOPER_API_PROPOSAL.md implementation acceptance criteria; generated panel now covers diagnostics plus entity find/get/mutation/snapshot/diff.",
-  "lastRunFinishedAt": "2026-05-25T06:51:10Z"
+  "notes": "Reviewed and tightened docs/RAYCASTING_BVH_FEATURE_PROPOSAL.md implementation before commit. Fixed transformed mesh max-distance handling, BVH firstHitOnly Infinity handling, bidirectional mesh transform inversion, and MeshBvhCache invalidation across all versioned keys. Expanded focused tests to 42 passing changed-area tests; build, test typecheck, boundary/progress, formatting, and focused coverage run pass. Focused coverage over new spatial files is 94.89% statements / 94.77% lines; full pnpm test still fails unrelated WebGPU expectations.",
+  "lastRunFinishedAt": "2026-05-25T20:25:09Z"
 }

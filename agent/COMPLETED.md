@@ -1,5 +1,42 @@
 # Completed Tasks
 
+## raycast-bvh — Implement raycasting and BVH spatial query proposal
+
+Completed: 2026-05-25
+
+Summary:
+
+- Added renderer-independent exact triangle mesh raycasts in
+  `@aperture-engine/simulation`, including nearest/all hits, normals, UVs,
+  barycentric coordinates, face/submesh/material-slot metadata, backface policy,
+  and max-distance filtering.
+- Added typed-array mesh BVH build/traversal with center, average, and SAH
+  strategies, indirect primitive order, first/all ray hits, serialization,
+  shapecast callbacks, sphere/box/capsule/frustum queries, closest-point
+  queries, BVH-vs-BVH candidate pairs, and refit.
+- Added versioned BVH cache/refit reports with stable spatial diagnostics for
+  stale BVHs, unsupported topology, unsupported skinned/morphed exact queries,
+  and build failures.
+- Added a worker-like BVH build message contract for async off-thread builds
+  and serialized BVH handoff.
+- Added an entity-bounds BVH broad phase with dirty-bound refit so many-entity
+  raycasts do not test every entity bound.
+- Added render-side `MeshAsset` CPU buffer adapter and public
+  `Pickable`/`MeshQueryAcceleration` ECS authoring components.
+- Extended `this.spatial` in `@aperture-engine/app/systems` with
+  `mode: "mesh" | "best"` and `setMeshes(...)` while keeping WebGPU out of the
+  authoritative spatial query path.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/simulation typecheck`
+- `pnpm --filter @aperture-engine/render typecheck`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/spatial/mesh-bvh.test.ts`
+- `pnpm exec vitest run test/rendering/components.test.ts`
+- `pnpm exec vitest run test/app/developer-api.test.ts --testNamePattern "triangle-accurate mesh queries"`
+
 ## task-3186 — Add developer API panel entity find/get controls
 
 Completed: 2026-05-25

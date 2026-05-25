@@ -2,25 +2,22 @@
 
 No active task is currently checked out.
 
-Status: active `docs/DEVELOPER_API_PROPOSAL.md` implementation goal completed.
-`task-3184`, `task-3185`, and `task-3186` are complete.
+Status: active `docs/RAYCASTING_BVH_FEATURE_PROPOSAL.md` implementation goal
+completed.
 
 Key findings:
 
-- `@aperture-engine/app/commands` now names generated entity find, get,
-  set-component, snapshot, and diff command channels.
-- Generated simulation workers intercept those devtool commands before system
-  command queues, read/mutate only worker-owned ECS state, and publish
-  JSON-safe `entityTools` status with find/get/mutation/snapshot/diff results
-  and diagnostics.
-- The developer API panel now has Find crate, Get, Set note, Snapshot, Diff,
-  Request decal, and Invalid command controls. It dispatches generated commands
-  and displays returned status/failure diagnostics without main-thread ECS
-  access.
-- Browser coverage triggers invalid command diagnostics through the panel and
-  sees the stable `aperture.command.invalid` code plus suggested fix.
-- Focused unit and browser coverage prove pending generated commands return
-  entity tool status from a worker-owned world.
+- `@aperture-engine/simulation` now owns exact CPU mesh raycasts, typed-array
+  mesh BVHs, shapecast-derived spatial queries, closest-point queries,
+  BVH-vs-BVH candidate pairs, versioned cache/refit diagnostics, and
+  entity-bounds BVH broad-phase raycasts.
+- `@aperture-engine/render` only adapts source `MeshAsset` CPU buffers into the
+  simulation spatial mesh contract; no WebGPU resources are query inputs.
+- `@aperture-engine/app/systems` now exposes worker-side mesh spatial queries
+  through `this.spatial.setMeshes(...)` and
+  `this.spatial.raycast(ray, { mode: "mesh" })`.
+- `Pickable` and `MeshQueryAcceleration` are registered ECS authoring
+  components for spatial query policy.
 
 Recommended next task:
 
