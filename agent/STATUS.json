@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "12cf70d",
   "activePid": null,
-  "notes": "Developer API proposal skeleton in progress; app/config/systems/vite-plugin/headless slice validated, browser proof and glTF mirroring remain",
+  "notes": "Developer API generated browser proof complete; config-declared GLB replay and input forwarding remain",
   "lastRunFinishedAt": "2026-05-25T03:30:00Z"
 }

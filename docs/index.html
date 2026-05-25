@@ -393,23 +393,29 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-25 03:27 UTC</dd>
+            <dd>2026-05-25 04:04 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the first developer-facing Vite app API slice is
-              now in place: <code>@aperture-engine/app/config</code>,
+              Latest update: the developer-facing Vite app now renders through
+              the generated browser/worker bootstrap. The setup system authors
+              camera, lights, a primitive crate, and a config-declared GLB spawn
+              from <code>init()</code>; the generated runtime mirrors worker
+              source assets to the renderer; and
+              <code>test/e2e/developer-api.spec.ts</code> proves one generated
+              view, one mesh draw, one WebGPU draw call, zero frame diagnostics,
+              and non-clear canvas pixels without user-authored main-thread
+              renderer wiring. The first developer-facing app API slice remains
+              in place: <code>@aperture-engine/app/config</code>,
               <code>@aperture-engine/app/systems</code>,
               <code>@aperture-engine/app/advanced</code>, and
-              <code>@aperture-engine/vite-plugin</code> compile, the
-              <code>examples/developer-api</code> app uses config plus worker
-              systems without low-level renderer calls, and focused unit tests
-              cover config assets, headless stepping, preload policy, system
-              priority, lifecycle effects, and Vite system-manifest discovery.
-              The unified render-control infrastructure is now accepted. A
-              shared browser protocol helper, Playwright controller, CLI
-              frontend, proof commands, all-route smoke command, and
+              <code>@aperture-engine/vite-plugin</code> compile, and focused
+              unit tests cover config assets, headless stepping, preload policy,
+              system priority, lifecycle effects, and Vite system-manifest
+              discovery. The unified render-control infrastructure is now
+              accepted. A shared browser protocol helper, Playwright controller,
+              CLI frontend, proof commands, all-route smoke command, and
               <code>docs/RENDER_CONTROL.md</code> are in place. The final
               <code>pnpm render-control:smoke-all</code> pass visits 49
               renderer-backed routes with no route status failures and no scoped
@@ -4962,19 +4968,21 @@
                 <code>docs/RENDER_PIPELINE_SOTA_AUDIT.md</code>.
               </li>
               <li>
-                <span class="badge">developer-api</span> Next: finish browser
-                generated-bootstrap asset mirroring and worker diagnostics for
-                the Vite app path, then prove the developer API example through
-                the browser renderer.
+                <span class="badge green">task-3169</span> Done: the developer
+                API Vite example renders through the generated browser bootstrap
+                with Playwright status and pixel proof.
               </li>
               <li>
-                <span class="badge">task-3167</span> Then: add an orthographic
-                camera projection route with perspective-vs-orthographic visual
-                proof.
+                <span class="badge">task-3170</span> Next: mirror
+                config-declared GLB assets through the generated app runtime so
+                <code>this.spawn.gltf(this.assets.gltf("robot"))</code>
+                produces loaded GLB renderables instead of placeholder metadata.
               </li>
               <li>
-                <span class="badge">task-3168</span> Then: add a line/wire
-                primitive rendering route through typed ECS assets.
+                <span class="badge">task-3171</span> Then: forward generated
+                browser input into worker-owned <code>this.input</code> signals
+                and prove a reactive <code>this.effects.watch(...)</code>
+                mutation path.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -4993,6 +5001,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3169</div>
+            <div>
+              <strong>Developer API generated browser proof shipped.</strong>
+              <span>
+                <code>examples/developer-api</code> now renders through
+                <code>aperture()</code> without user-authored main-thread
+                renderer calls; Playwright verifies generated app status,
+                worker-mirrored source assets, one mesh draw, one draw call,
+                zero frame diagnostics, and non-clear crate pixels.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3162</div>
             <div>

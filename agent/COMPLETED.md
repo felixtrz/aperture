@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## task-3169 — Render developer API Vite app through generated browser bootstrap
+
+Completed: 2026-05-25
+
+Summary:
+
+- Fixed the app system `lookAt` transform helper so cameras authored from a
+  target point face the scene instead of culling renderables behind the
+  frustum.
+- Updated `examples/developer-api` so the setup system authors the camera,
+  directional/fill lights, primitive crate, and config-declared GLB spawn from
+  `init()`, while browser/headless configs stay on the Vite/config path without
+  user-authored main-thread renderer wiring.
+- Added a Playwright proof for the generated Vite browser bootstrap. The proof
+  starts the developer API Vite app, waits for generated app status to report
+  WebGPU readiness, worker-mirrored source assets, one view, one mesh draw, one
+  draw call, zero frame diagnostics, and verifies non-clear crate pixels.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm vitest run test/app/developer-api.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts --timeout=120000 --reporter=line --trace=off`
+
+Known follow-up:
+
+- `task-3170` should make config-declared GLB spawning replay loaded GLB
+  primitives instead of producing placeholder metadata only.
+
 ## task-3165 — Restore clustered-lights default readback status in smoke
 
 Completed: 2026-05-25

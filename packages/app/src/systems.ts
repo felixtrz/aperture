@@ -1132,13 +1132,85 @@ function quatLookAt(
     return [0, 0, 0, 1];
   }
 
-  const yaw = Math.atan2(dx, dz);
-  const pitch = -Math.asin(dy / length);
-  return quatFromEulerDegrees([
-    (pitch * 180) / Math.PI,
-    (yaw * 180) / Math.PI,
-    0,
-  ]);
+  const forward: [number, number, number] = [
+    dx / length,
+    dy / length,
+    dz / length,
+  ];
+  let right = normalize3(cross3([0, 1, 0], negate3(forward)));
+
+  if (right === null) {
+    right = [1, 0, 0];
+  }
+
+  const up = cross3(negate3(forward), right);
+  const back = negate3(forward);
+
+  return quatFromBasis(right, up, back);
+}
+
+function negate3(
+  value: readonly [number, number, number],
+): [number, number, number] {
+  return [-value[0], -value[1], -value[2]];
+}
+
+function cross3(
+  a: readonly [number, number, number],
+  b: readonly [number, number, number],
+): [number, number, number] {
+  return [
+    a[1] * b[2] - a[2] * b[1],
+    a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0],
+  ];
+}
+
+function normalize3(
+  value: readonly [number, number, number],
+): [number, number, number] | null {
+  const length = Math.hypot(value[0], value[1], value[2]);
+
+  if (length <= 1e-6) {
+    return null;
+  }
+
+  return [value[0] / length, value[1] / length, value[2] / length];
+}
+
+function quatFromBasis(
+  right: readonly [number, number, number],
+  up: readonly [number, number, number],
+  back: readonly [number, number, number],
+): readonly [number, number, number, number] {
+  const m00 = right[0];
+  const m01 = up[0];
+  const m02 = back[0];
+  const m10 = right[1];
+  const m11 = up[1];
+  const m12 = back[1];
+  const m20 = right[2];
+  const m21 = up[2];
+  const m22 = back[2];
+  const trace = m00 + m11 + m22;
+
+  if (trace > 0) {
+    const s = Math.sqrt(trace + 1) * 2;
+    return [(m21 - m12) / s, (m02 - m20) / s, (m10 - m01) / s, 0.25 * s];
+  }
+
+  if (m00 > m11 && m00 > m22) {
+    const s = Math.sqrt(1 + m00 - m11 - m22) * 2;
+    return [0.25 * s, (m01 + m10) / s, (m02 + m20) / s, (m21 - m12) / s];
+  }
+
+  if (m11 > m22) {
+    const s = Math.sqrt(1 + m11 - m00 - m22) * 2;
+    return [(m01 + m10) / s, 0.25 * s, (m12 + m21) / s, (m02 - m20) / s];
+  }
+
+  const s = Math.sqrt(1 + m22 - m00 - m11) * 2;
+  return [(m02 + m20) / s, (m12 + m21) / s, 0.25 * s, (m10 - m01) / s];
 }
 
 function resolveMeshHandle(

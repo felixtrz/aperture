@@ -10,7 +10,7 @@ export default defineApertureConfig({
     }),
   },
   render: {
-    defaultCamera: true,
-    defaultLight: true,
+    defaultCamera: false,
+    defaultLight: false,
   },
 });

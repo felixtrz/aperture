@@ -97,6 +97,12 @@ describe("developer-facing app API", () => {
             illuminance: 4,
             transform: { rotationEulerDegrees: [-45, 35, 0] },
           });
+          this.spawn.light({
+            key: "light.fill",
+            name: "fill-light",
+            kind: "ambient",
+            intensity: 0.75,
+          });
           this.spawn.mesh({
             key: "level.crate.primary",
             name: "crate",
@@ -185,10 +191,21 @@ describe("developer-facing app API", () => {
       expect.arrayContaining([
         "camera.main",
         "light.key",
+        "light.fill",
         "level.crate.primary",
         "level.robot",
       ]),
     );
+
+    const snapshot = app.stepAndExtract(1 / 60, 0.5, 0);
+    expect(snapshot.views).toHaveLength(1);
+    expect(snapshot.meshDraws).toHaveLength(1);
+    expect(snapshot.report.cullStats ?? []).toHaveLength(1);
+    expect(snapshot.report.cullStats?.[0]).toMatchObject({
+      tested: 1,
+      culled: 0,
+      included: 1,
+    });
 
     app.context.input.actions.select!.pressed.value = true;
     app.step(1 / 60, 1);

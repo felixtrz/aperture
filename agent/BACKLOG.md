@@ -60,23 +60,16 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 Active goal override is in effect for
-`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3169`: render the
-`examples/developer-api` Vite app through the generated browser/worker
-bootstrap with a Playwright pixel/status proof. This is the next visible slice
-because the config/system/plugin skeleton now compiles and passes focused
-headless/plugin tests, but the browser-generated path still needs a rendered
-proof before the proposal can be considered complete.
+`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3170`: mirror
+config-declared GLB assets through the generated app runtime so
+`this.spawn.gltf(this.assets.gltf("robot"))` produces loaded GLB renderables.
+This is the next visible slice because `task-3169` now proves the generated
+Vite browser/worker bootstrap renders the config/system-authored primitive
+scene with Playwright status and pixel evidence, but GLB spawning still creates
+placeholder metadata instead of replaying loaded scene primitives.
 
 The next ready visible-feature queue is:
 
-- `task-3169` — render the developer API Vite example through generated
-  browser bootstrap.
-  Reference anchor: `references/engine/src/framework/application.js`.
-  Done when `examples/developer-api` runs through `aperture()` without a
-  user-authored `index.ts`, Playwright sees at least one non-clear pixel from a
-  config/system-authored scene, and main-thread user code still contains no
-  direct `createWebGpuApp`, `createExtractionApp`, `stepAndExtract`, snapshot
-  posting, loader-report, or renderer-registration calls.
 - `task-3170` — mirror config-declared glTF assets through the generated app
   runtime so `this.spawn.gltf(this.assets.gltf("robot"))` renders loaded GLB
   content rather than only placeholder metadata.
@@ -94,6 +87,13 @@ The next ready visible-feature queue is:
   Done when the developer API browser example exposes a pointer/keyboard action
   proof, the mutation happens in the worker simulation phase, effects dispose on
   system destroy, and no raw Preact `effect()` appears in docs or examples.
+- `task-3172` — expose a config-driven headless runner for developer API
+  systems.
+  Reference anchor: `references/bevy/examples/app/headless.rs`.
+  Done when the same `examples/developer-api/src/systems/**/*.system.ts` files
+  can run from a headless config through an app-provided runner/helper without
+  DOM, canvas, `navigator.gpu`, or WebGPU presentation imports, and the runner
+  publishes JSON-safe step/snapshot/status evidence for tests and agents.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

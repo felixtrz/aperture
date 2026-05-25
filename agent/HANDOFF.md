@@ -1,6 +1,60 @@
 # Agent Handoff
 
-Updated: 2026-05-25T03:30:00Z
+Updated: 2026-05-25T04:04:37Z
+
+## Current Run Update — 2026-05-25T04:04:37Z — Developer API generated browser proof
+
+Continued the active goal to implement
+`docs/DEVELOPER_API_PROPOSAL.md`. The goal is **not complete** yet; this slice
+completes `task-3169` and moves the recommended next work to GLB asset replay
+through the generated runtime.
+
+### What changed
+
+- Fixed app-level `lookAt` camera rotation in `@aperture-engine/app/systems` so
+  camera transforms authored from a target point face the scene and no longer
+  frustum-cull the generated developer API crate.
+- Updated `examples/developer-api` so `setup.system.ts` spawns the camera,
+  directional light, ambient fill light, primitive crate, and config-declared
+  GLB placeholder from `init()`. The browser and headless configs now keep
+  default camera/light installation disabled so the setup system is the
+  proposal-visible source of scene authoring.
+- Extended `test/app/developer-api.test.ts` to prove the headless app extracts
+  one visible mesh draw from the config/system-authored scene.
+- Added `test/e2e/developer-api.spec.ts`, which starts the Developer API Vite
+  app and proves the generated browser/worker bootstrap publishes WebGPU-ready
+  status, mirrors worker source assets, reports one view, one mesh draw, one
+  draw call, zero frame diagnostics, and renders non-clear crate pixels.
+- Updated public tracker and agent backlog/completed records so `task-3170` is
+  the next active developer API slice.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm vitest run test/app/developer-api.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts --timeout=120000 --reporter=line --trace=off`
+
+### Known issues / remaining proposal work
+
+- `this.spawn.gltf(this.assets.gltf("robot"))` still creates placeholder GLB
+  metadata only. `task-3170` should mirror/replay config-declared GLB assets so
+  loaded GLB primitives render through the generated runtime.
+- Browser input forwarding into worker `this.input` signals still needs a
+  visible browser proof (`task-3171`).
+- A config-driven headless runner/helper is still a useful public API follow-up
+  for tests and agents (`task-3172`).
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Start `task-3170`: mirror config-declared glTF assets through the generated app
+runtime so `this.spawn.gltf(this.assets.gltf("robot"))` renders loaded GLB
+content rather than only placeholder metadata.
 
 ## Current Run Update — 2026-05-25T03:30:00Z — Developer API proposal skeleton
 

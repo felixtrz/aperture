@@ -26,8 +26,8 @@ export default defineApertureConfig({
   },
   render: {
     clearColor: [0.03, 0.035, 0.04, 1],
-    defaultCamera: true,
-    defaultLight: true,
+    defaultCamera: false,
+    defaultLight: false,
   },
   diagnostics: {
     level: "warn",
