@@ -1,5 +1,35 @@
 # Completed Tasks
 
+## task-3181 — Add constrained entity component mutation helper
+
+Completed: 2026-05-25
+
+Summary:
+
+- Added `ApertureEntitySetComponentFieldRequest`,
+  `ApertureEntitySetComponentFieldReport`, and
+  `setApertureEntityComponentField(...)` to
+  `@aperture-engine/app/entity-lookup`.
+- Added `setComponentField(...)` to the lookup facade.
+- Kept mutation whitelisted and JSON-safe; the initial supported fields are
+  `DebugMetadata.tag` and `DebugMetadata.note` string values.
+- Added diagnostics for unsupported components, unsupported fields, missing
+  components, invalid value types, invalid refs, and generation mismatches.
+- Extended the developer API headless test to mutate `DebugMetadata.note`
+  through the helper and verify unsupported component, unsupported field, and
+  stale-generation failures.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `pnpm run check:progress`
+
+Known follow-up:
+
+- `task-3182` should expose a typed generated browser status reader helper.
+
 ## task-3180 — Add JSON-safe entity snapshot/diff helpers
 
 Completed: 2026-05-25

@@ -393,12 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-25 05:54 UTC</dd>
+            <dd>2026-05-25 05:58 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: developer API entity lookup now has JSON-safe
+              Latest update: developer API entity lookup now has a constrained
+              mutation helper for generated/headless tooling. The helper can
+              set whitelisted JSON-safe component fields by full
+              <code>{ index, generation }</code> ref, starting with
+              <code>DebugMetadata.tag</code> and
+              <code>DebugMetadata.note</code>, while unsupported components,
+              unsupported fields, missing components, invalid value types, and
+              stale generations return actionable diagnostics. Developer API
+              entity lookup also has JSON-safe
               snapshot/diff helpers. Snapshots can be taken from a query or from
               explicit <code>{ index, generation }</code> refs; diffs key by the
               full ref and report added, removed, changed, and unchanged
@@ -5120,12 +5128,12 @@
                 tooling.
               </li>
               <li>
-                <span class="badge">task-3181</span> Next: add a constrained
+                <span class="badge green">task-3181</span> Done: add a constrained
                 entity component mutation helper for generated/headless
                 developer tooling.
               </li>
               <li>
-                <span class="badge">task-3182</span> Then: expose a typed
+                <span class="badge">task-3182</span> Next: expose a typed
                 generated browser status reader helper for browser tooling.
               </li>
               <li>
@@ -5145,6 +5153,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3181</div>
+            <div>
+              <strong>Developer API entity mutation helper shipped.</strong>
+              <span>
+                <code>@aperture-engine/app/entity-lookup</code> now includes a
+                constrained component-field mutation helper for whitelisted
+                JSON-safe fields, starting with <code>DebugMetadata</code>, and
+                returns actionable diagnostics for unsupported or stale
+                mutations.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3180</div>
             <div>

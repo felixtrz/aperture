@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "31f8c42",
+  "lastCommit": "26abaa3",
   "activePid": null,
-  "notes": "Developer API entity snapshot/diff helpers complete; constrained mutation helper remains",
-  "lastRunFinishedAt": "2026-05-25T05:54:25Z"
+  "notes": "Developer API constrained entity mutation helper complete; browser status reader remains",
+  "lastRunFinishedAt": "2026-05-25T05:58:26Z"
 }

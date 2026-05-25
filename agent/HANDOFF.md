@@ -1,6 +1,53 @@
 # Agent Handoff
 
-Updated: 2026-05-25T05:54:25Z
+Updated: 2026-05-25T05:58:26Z
+
+## Current Run Update — 2026-05-25T05:58:26Z — Developer API entity mutation helper
+
+Continued the active goal to implement
+`docs/DEVELOPER_API_PROPOSAL.md`. The goal is **not complete** yet; this slice
+completes `task-3181` and moves the recommended next work to a typed generated
+browser status reader helper.
+
+### What changed
+
+- Added `ApertureEntitySetComponentFieldRequest`,
+  `ApertureEntitySetComponentFieldReport`, and
+  `setApertureEntityComponentField(...)` to
+  `@aperture-engine/app/entity-lookup`.
+- Added `setComponentField(...)` to the lookup facade.
+- Kept mutation constrained to whitelisted JSON-safe fields. The initial
+  supported fields are `DebugMetadata.tag` and `DebugMetadata.note` string
+  values.
+- Added actionable diagnostics for unsupported components, unsupported fields,
+  missing components, invalid value types, invalid refs, and generation
+  mismatches.
+- Extended the developer API headless test to mutate `DebugMetadata.note`
+  through the helper and verify unsupported component, unsupported field, and
+  stale-generation failures.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `pnpm run check:progress`
+
+### Known issues / remaining proposal work
+
+- A typed browser status reader helper remains queued so examples do not need
+  to hard-code the generated status global (`task-3182`).
+- Developer API panel snapshot/diff controls remain queued behind the worker
+  command/status bridge (`task-3183`).
+- Developer API panel failure/diagnostic display remains queued (`task-3184`).
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Start `task-3182`: expose a typed generated browser status reader helper for
+browser tooling.
 
 ## Current Run Update — 2026-05-25T05:54:25Z — Developer API entity snapshot diff
 

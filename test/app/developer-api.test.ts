@@ -541,6 +541,70 @@ describe("developer-facing app API", () => {
         componentIds: expect.arrayContaining([DebugMetadata.id]),
       },
     });
+    const selectedCrate = afterSelect.summaries[0]!.entity;
+    const mutation = runner.entities.setComponentField({
+      entity: selectedCrate,
+      component: DebugMetadata.id,
+      field: "note",
+      value: "tool.mutated",
+    });
+    expect(mutation).toMatchObject({
+      ok: true,
+      summary: {
+        entity: selectedCrate,
+        componentIds: expect.arrayContaining([DebugMetadata.id]),
+      },
+    });
+    const mutatedEntity = runner.app.lowLevel.world.entityManager.getEntityByIndex(
+      selectedCrate.index,
+    );
+    expect(mutatedEntity?.getValue(DebugMetadata, "note")).toBe(
+      "tool.mutated",
+    );
+    expect(
+      runner.entities.setComponentField({
+        entity: selectedCrate,
+        component: "aperture.render.mesh",
+        field: "handle",
+        value: "unsafe",
+      }),
+    ).toMatchObject({
+      ok: false,
+      diagnostic: {
+        code: "aperture.entityLookup.componentMutationUnsupported",
+        suggestedFix: expect.stringContaining("whitelist"),
+      },
+    });
+    expect(
+      runner.entities.setComponentField({
+        entity: selectedCrate,
+        component: DebugMetadata.id,
+        field: "missing",
+        value: "unsafe",
+      }),
+    ).toMatchObject({
+      ok: false,
+      diagnostic: {
+        code: "aperture.entityLookup.componentFieldUnsupported",
+      },
+    });
+    expect(
+      runner.entities.setComponentField({
+        entity: {
+          index: selectedCrate.index,
+          generation: selectedCrate.generation + 1,
+        },
+        component: DebugMetadata.id,
+        field: "note",
+        value: "stale",
+      }),
+    ).toMatchObject({
+      ok: false,
+      diagnostic: {
+        code: "aperture.entityLookup.generationMismatch",
+        suggestedFix: expect.stringContaining("aperture_entity_find"),
+      },
+    });
 
     const resolved = getApertureEntitySummary(
       runner.app.lowLevel.world,

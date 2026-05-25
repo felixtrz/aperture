@@ -60,20 +60,13 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 Active goal override is in effect for
-`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3181`: add a constrained entity
-component mutation helper for generated/headless developer tooling. This is the
-next visible slice because `task-3180` now adds JSON-safe entity snapshot/diff
-helpers keyed by full `{ index, generation }` refs.
+`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3182`: expose a typed generated
+browser status reader helper for browser tooling. This is the next visible slice
+because `task-3181` now adds a constrained entity component mutation helper for
+generated/headless developer tooling.
 
 The next ready visible-feature queue is:
 
-- `task-3181` — add a constrained entity component mutation helper for
-  generated/headless developer tooling without broad arbitrary object mutation.
-  Reference anchor: `references/engine/src/framework/entity.js`.
-  Done when `@aperture-engine/app/entity-lookup` can set a JSON-safe whitelisted
-  component field by `{ index, generation }`, rejects unknown components,
-  unknown fields, and stale generations with actionable diagnostics, and a
-  headless developer API test mutates `DebugMetadata.note` through the helper.
 - `task-3182` — expose a typed generated browser status reader helper for
   browser tooling so examples do not need to hard-code the status global name.
   Reference anchor: `references/engine/src/framework/app-base.js`.
@@ -88,6 +81,12 @@ The next ready visible-feature queue is:
   Done when the panel can request a labeled entity snapshot, request a diff
   against the previous snapshot, and display JSON-safe added/removed/changed
   counts returned from worker-owned ECS state.
+- `task-3184` — make the developer API browser panel show generated command and
+  worker failure diagnostics with stable codes and suggested fixes.
+  Reference anchor: `references/engine/src/framework/app-base.js`.
+  Done when the panel displays `lastFailure` and invalid command diagnostics in
+  JSON-safe form, and Playwright triggers an invalid command through the panel
+  and sees the actionable diagnostic text without reading console output.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.
