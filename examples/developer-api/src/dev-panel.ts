@@ -1,4 +1,5 @@
 import { APERTURE_GENERATED_COMMAND_EVENT } from "@aperture-engine/app/commands";
+import { readGeneratedBrowserAppStatus } from "@aperture-engine/app/browser";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -42,10 +43,7 @@ function renderStatus(): void {
 }
 
 function readPanelStatus(): JsonRecord {
-  const status = readRecord(
-    (globalThis as { readonly __APERTURE_GENERATED_APP__?: unknown })
-      .__APERTURE_GENERATED_APP__,
-  );
+  const status = readRecord(readGeneratedBrowserAppStatus());
   const worker = readRecord(status?.lastWorkerSummary);
   const entities = readRecord(worker?.entities);
   const diagnostics = readRecord(status?.diagnostics);

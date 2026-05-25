@@ -313,6 +313,8 @@ test("generated Vite browser bootstrap renders a config/system-authored scene", 
 
   expect(proof.nonClearSamples).toBeGreaterThan(3);
   expect(proof.maxDistance).toBeGreaterThan(20);
+
+  await page.close();
 });
 
 async function waitForDeveloperApiServer(): Promise<void> {
@@ -355,32 +357,32 @@ async function stopDeveloperApiServer(): Promise<void> {
     return;
   }
 
-  const stopped = new Promise<void>((resolve) => {
-    current.once("exit", () => resolve());
-  });
-  current.kill("SIGTERM");
+  await new Promise<void>((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) {
+        return;
+      }
 
-  let timeout: ReturnType<typeof setTimeout> | null = null;
-
-  try {
-    await Promise.race([
-      stopped,
-      new Promise<void>((resolve) => {
-        timeout = setTimeout(() => {
-          current.kill("SIGKILL");
-          resolve();
-        }, 3000);
-      }),
-    ]);
-  } finally {
-    if (timeout !== null) {
+      settled = true;
       clearTimeout(timeout);
-    }
+      current.stdout?.destroy();
+      current.stderr?.destroy();
+      current.unref();
+      resolve();
+    };
+    const timeout = setTimeout(() => {
+      current.kill("SIGKILL");
+      finish();
+    }, 3000);
 
-    current.stdout?.destroy();
-    current.stderr?.destroy();
-    current.unref();
-  }
+    current.once("exit", finish);
+    current.once("close", finish);
+
+    if (!current.kill("SIGTERM")) {
+      finish();
+    }
+  });
 }
 
 function countNonClearPixels(

@@ -68,6 +68,18 @@ export interface GeneratedBrowserAppStatus {
   diagnostics: unknown;
 }
 
+export const APERTURE_GENERATED_STATUS_GLOBAL = "__APERTURE_GENERATED_APP__";
+
+export function readGeneratedBrowserAppStatus(
+  scope: object = globalThis,
+): GeneratedBrowserAppStatus | null {
+  const value = (scope as Record<string, unknown>)[
+    APERTURE_GENERATED_STATUS_GLOBAL
+  ];
+
+  return isGeneratedBrowserAppStatus(value) ? value : null;
+}
+
 export async function startGeneratedBrowserApp(
   options: StartGeneratedBrowserAppOptions,
 ): Promise<GeneratedBrowserApp> {
@@ -189,13 +201,21 @@ function installGeneratedStatus(): GeneratedBrowserAppStatus {
     diagnostics: null,
   };
 
-  (
-    globalThis as {
-      __APERTURE_GENERATED_APP__?: GeneratedBrowserAppStatus;
-    }
-  ).__APERTURE_GENERATED_APP__ = status;
+  (globalThis as Record<string, unknown>)[APERTURE_GENERATED_STATUS_GLOBAL] =
+    status;
 
   return status;
+}
+
+function isGeneratedBrowserAppStatus(
+  value: unknown,
+): value is GeneratedBrowserAppStatus {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as { readonly status?: unknown }).status === "string" &&
+    "snapshots" in value
+  );
 }
 
 function installGeneratedCommandForwarding(

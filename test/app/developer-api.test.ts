@@ -12,6 +12,11 @@ import {
   createApertureHeadlessRunner,
 } from "@aperture-engine/app/headless";
 import { createApertureGeneratedDiagnosticsStatus } from "@aperture-engine/app/diagnostics";
+import {
+  APERTURE_GENERATED_STATUS_GLOBAL,
+  readGeneratedBrowserAppStatus,
+  type GeneratedBrowserAppStatus,
+} from "@aperture-engine/app/browser";
 import { startGeneratedSimulationWorker } from "@aperture-engine/app/worker";
 import { aperture as apertureFromAppVite } from "@aperture-engine/app/vite";
 import {
@@ -96,6 +101,29 @@ describe("developer-facing app API", () => {
     expect(appVitePlugin).toHaveProperty("resolveId");
     expect(appVitePlugin).toHaveProperty("load");
     expect("aperture" in appRoot).toBe(false);
+  });
+
+  it("reads generated browser status through the typed browser helper", () => {
+    const status = {
+      status: "running",
+      webgpuOk: true,
+      snapshots: 2,
+      mirroredSourceAssets: 1,
+      skippedSourceAssets: 0,
+      forwardedInputEvents: 1,
+      lastInputEvent: null,
+      forwardedCommandEvents: 1,
+      lastCommandEvent: null,
+      lastFrame: 1,
+      lastError: null,
+      lastFailure: null,
+      lastWorkerSummary: null,
+      diagnostics: null,
+    } satisfies GeneratedBrowserAppStatus;
+    const scope = { [APERTURE_GENERATED_STATUS_GLOBAL]: status };
+
+    expect(readGeneratedBrowserAppStatus(scope)).toBe(status);
+    expect(readGeneratedBrowserAppStatus({})).toBeNull();
   });
 
   it("runs config-declared systems through the headless app facade with priority and lifecycle effects", async () => {

@@ -1,5 +1,34 @@
 # Completed Tasks
 
+## task-3182 — Add typed generated browser status reader
+
+Completed: 2026-05-25
+
+Summary:
+
+- Added `APERTURE_GENERATED_STATUS_GLOBAL` and
+  `readGeneratedBrowserAppStatus(scope?)` to `@aperture-engine/app/browser`.
+- Changed generated browser bootstrap status installation to use the exported
+  global name.
+- Updated the developer API panel to use `readGeneratedBrowserAppStatus()`
+  instead of directly reading `globalThis.__APERTURE_GENERATED_APP__`.
+- Added focused unit coverage for the helper against a supplied status scope.
+- Hardened the developer API Playwright server teardown to resolve on child
+  `exit` or `close`, keeping direct browser validation clean.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `./node_modules/.bin/playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+
+Known follow-up:
+
+- `task-3183` should add developer API panel snapshot/diff controls.
+
 ## task-3181 — Add constrained entity component mutation helper
 
 Completed: 2026-05-25

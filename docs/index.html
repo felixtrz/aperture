@@ -393,14 +393,25 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-25 05:58 UTC</dd>
+            <dd>2026-05-25 06:06 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: developer API entity lookup now has a constrained
-              mutation helper for generated/headless tooling. The helper can
-              set whitelisted JSON-safe component fields by full
+              Latest update: developer API browser tooling now reads generated
+              app status through a typed
+              <code>readGeneratedBrowserAppStatus()</code> helper exported from
+              <code>@aperture-engine/app/browser</code>. The generated browser
+              bootstrap writes status through the exported
+              <code>APERTURE_GENERATED_STATUS_GLOBAL</code> name, and the
+              developer API panel no longer hard-codes
+              <code>globalThis.__APERTURE_GENERATED_APP__</code>. Browser
+              validation still observes input, command, entity, signal, and
+              diagnostic summaries through the panel, and the Playwright server
+              teardown now closes cleanly after direct route proof runs.
+              Developer API entity lookup also has a constrained mutation helper
+              for generated/headless tooling. The helper can set whitelisted
+              JSON-safe component fields by full
               <code>{ index, generation }</code> ref, starting with
               <code>DebugMetadata.tag</code> and
               <code>DebugMetadata.note</code>, while unsupported components,
@@ -429,7 +440,7 @@
               exposing live systems or renderer state. The generated developer
               API example also has a
               browser control/status panel beside the WebGPU canvas. The panel
-              reads only <code>globalThis.__APERTURE_GENERATED_APP__</code>,
+              reads the generated status through the typed browser helper,
               renders JSON-safe app/input/command/entity/frame/diagnostic
               summaries, dispatches the config-declared <code>select</code>
               action through generated keyboard input forwarding, and dispatches
@@ -2596,6 +2607,15 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3182</span> Added
+                <code>readGeneratedBrowserAppStatus()</code> and
+                <code>APERTURE_GENERATED_STATUS_GLOBAL</code> to
+                <code>@aperture-engine/app/browser</code>. The developer API
+                panel now uses the typed helper instead of hard-coding the
+                generated status global, with unit coverage and a clean direct
+                Playwright browser proof.
+              </li>
               <li>
                 <span class="badge green">developer-api</span> Added
                 <code>@aperture-engine/app</code> config/system/advanced
@@ -5133,8 +5153,24 @@
                 developer tooling.
               </li>
               <li>
-                <span class="badge">task-3182</span> Next: expose a typed
+                <span class="badge green">task-3182</span> Done: expose a typed
                 generated browser status reader helper for browser tooling.
+              </li>
+              <li>
+                <span class="badge">task-3183</span> Next: add developer API
+                panel snapshot/diff controls backed by the worker command/status
+                bridge.
+              </li>
+              <li>
+                <span class="badge">task-3184</span> Next: show generated
+                command and worker failure diagnostics in the developer API
+                panel with stable codes and suggested fixes.
+              </li>
+              <li>
+                <span class="badge">task-3185</span> Next: add a developer API
+                panel mutation control that routes a safe
+                <code>DebugMetadata.note</code> edit through worker-owned ECS
+                tooling.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5153,6 +5189,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3182</div>
+            <div>
+              <strong>Developer API browser status reader shipped.</strong>
+              <span>
+                <code>@aperture-engine/app/browser</code> now exports a typed
+                generated status global name and reader helper, and the
+                developer API panel consumes generated status through that
+                helper instead of hard-coding the browser global.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3181</div>
             <div>

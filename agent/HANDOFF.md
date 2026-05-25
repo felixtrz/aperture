@@ -1,6 +1,52 @@
 # Agent Handoff
 
-Updated: 2026-05-25T05:58:26Z
+Updated: 2026-05-25T06:06:34Z
+
+## Current Run Update — 2026-05-25T06:06:34Z — Developer API browser status reader
+
+Continued the active goal to implement
+`docs/DEVELOPER_API_PROPOSAL.md`. The goal is **not complete** yet; this slice
+completes `task-3182` and moves the recommended next work to developer API
+panel snapshot/diff controls.
+
+### What changed
+
+- Added `APERTURE_GENERATED_STATUS_GLOBAL` and
+  `readGeneratedBrowserAppStatus(scope?)` to `@aperture-engine/app/browser`.
+- Changed generated browser bootstrap status installation to use the exported
+  global name.
+- Updated the developer API panel to use `readGeneratedBrowserAppStatus()`
+  instead of directly reading `globalThis.__APERTURE_GENERATED_APP__`.
+- Added focused unit coverage proving the helper reads a supplied status scope
+  and returns `null` when status is absent.
+- Hardened the developer API Playwright server teardown to resolve on child
+  `exit` or `close`, which keeps the direct browser validation command exiting
+  cleanly.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `./node_modules/.bin/playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+
+### Known issues / remaining proposal work
+
+- Developer API panel snapshot/diff controls remain queued behind the worker
+  command/status bridge (`task-3183`).
+- Developer API panel failure/diagnostic display remains queued (`task-3184`).
+- Developer API panel mutation controls remain queued behind the constrained
+  mutation helper (`task-3185`).
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Start `task-3183`: add developer API panel snapshot/diff controls backed by the
+worker command/status bridge.
 
 ## Current Run Update — 2026-05-25T05:58:26Z — Developer API entity mutation helper
 

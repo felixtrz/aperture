@@ -60,21 +60,14 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 Active goal override is in effect for
-`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3182`: expose a typed generated
-browser status reader helper for browser tooling. This is the next visible slice
-because `task-3181` now adds a constrained entity component mutation helper for
-generated/headless developer tooling.
+`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3183`: add developer API panel
+snapshot/diff controls backed by the worker command/status bridge. This is the
+next visible slice because `task-3182` now exposes a typed generated browser
+status reader helper and the panel no longer hard-codes the generated status
+global.
 
 The next ready visible-feature queue is:
 
-- `task-3182` — expose a typed generated browser status reader helper for
-  browser tooling so examples do not need to hard-code the status global name.
-  Reference anchor: `references/engine/src/framework/app-base.js`.
-  Done when `@aperture-engine/app/browser` exports a JSON-safe
-  `readGeneratedBrowserAppStatus()` helper, the developer API panel uses it
-  instead of directly reading `globalThis.__APERTURE_GENERATED_APP__`, and
-  Playwright still observes input, command, entity, signal, and diagnostic
-  summaries through the panel.
 - `task-3183` — add developer API panel snapshot/diff controls backed by the
   worker command/status bridge rather than main-thread ECS access.
   Reference anchor: `references/engine/src/framework/app-base.js`.
@@ -87,6 +80,13 @@ The next ready visible-feature queue is:
   Done when the panel displays `lastFailure` and invalid command diagnostics in
   JSON-safe form, and Playwright triggers an invalid command through the panel
   and sees the actionable diagnostic text without reading console output.
+- `task-3185` — add a developer API panel mutation control that routes a safe
+  `DebugMetadata.note` edit through worker-owned ECS tooling.
+  Reference anchor: `references/engine/src/framework/entity.js`.
+  Done when the panel can request a whitelisted entity component mutation,
+  worker-owned ECS applies it through the constrained mutation helper, and
+  Playwright observes the updated note through a JSON-safe status or diff
+  report.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.
