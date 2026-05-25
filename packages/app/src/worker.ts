@@ -10,6 +10,7 @@ import {
   isGeneratedCommandMessage,
   type ApertureGeneratedCommandMessage,
 } from "./commands.js";
+import { errorToApertureDiagnostic } from "./diagnostics.js";
 import { createApertureEntityLookupSnapshot } from "./entity-lookup.js";
 import {
   applyGeneratedInputEvent,
@@ -157,13 +158,20 @@ async function runLoop(options: {
       running = false;
     }
   } catch (error: unknown) {
+    const diagnostic = errorToApertureDiagnostic(error, {
+      code: "aperture.generatedWorker.failed",
+      severity: "error",
+      message: "Generated Aperture simulation worker failed during startup.",
+      suggestedFix:
+        "Inspect aperture.config.ts and discovered system modules, then restart the generated app.",
+      source: { worker: "generated-simulation" },
+    });
+
     options.port.postMessage({
       type: SIMULATION_WORKER_PROTOCOL.error,
-      reason: "aperture.generatedWorker.failed",
-      message:
-        error instanceof Error
-          ? error.message
-          : "Generated Aperture simulation worker failed.",
+      reason: diagnostic.code,
+      message: diagnostic.message,
+      diagnostics: [diagnostic],
     });
   }
 }

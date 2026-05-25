@@ -60,23 +60,15 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 Active goal override is in effect for
-`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3175`: surface generated app
-diagnostics for config, system-manifest, worker, and asset-load failures
-through one JSON-safe browser/headless status shape. This is the next visible
-slice because `task-3174` now forwards generated browser/UI commands into
-worker-owned `this.commands` queues and proves manual config asset requests,
-while the proposal's failure-reporting contract still needs tightening.
+`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3176`: restructure the beginner
+authoring docs so config plus worker-discovered systems are the first path and
+imperative `createApertureApp(...)`/snapshot transport wiring is clearly
+advanced. This is the next visible slice because `task-3175` now normalizes
+generated diagnostics for manifest, asset, and worker startup failures, while
+the proposal's documentation restructure is still not complete.
 
 The next ready visible-feature queue is:
 
-- `task-3175` — surface generated app diagnostics for config, system-manifest,
-  worker, and asset-load failures through one JSON-safe browser/headless status
-  shape.
-  Reference anchor: `references/engine/src/framework/app-base.js`.
-  Done when focused failing fixtures cover missing system exports, invalid
-  schedule metadata, invalid GLB URLs, and worker startup failure; each status
-  includes stable code, message, source file/module/asset context, and suggested
-  fix without requiring users to inspect console-only errors.
 - `task-3176` — restructure the beginner authoring docs so config plus
   worker-discovered systems are the first path and imperative
   `createApertureApp(...)`/snapshot transport wiring is clearly advanced.
@@ -94,6 +86,14 @@ The next ready visible-feature queue is:
   `aperture` from that subpath in a focused fixture, the root app export still
   does not expose `aperture`, and docs keep `@aperture-engine/vite-plugin` as
   the canonical default import.
+- `task-3178` — add a small developer API browser control/status panel that
+  dispatches the select and manual asset-request command paths and displays the
+  latest JSON-safe worker input, command, entity, and diagnostic summaries.
+  Reference anchor: `references/engine/src/framework/app-base.js`.
+  Done when `examples/developer-api` has a minimal DOM panel outside the canvas
+  for command/status inspection, Playwright can dispatch the panel control
+  instead of a raw custom event, and the panel shows worker-owned summaries
+  without exposing live system classes or renderer state.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

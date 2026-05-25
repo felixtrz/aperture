@@ -49,6 +49,7 @@ export interface SimulationWorkerErrorEvent {
   readonly reason: string;
   readonly message: string;
   readonly source: "worker" | "protocol";
+  readonly diagnostics?: readonly unknown[];
   readonly raw?: unknown;
 }
 
@@ -160,6 +161,9 @@ export function createSimulationWorker(
     }
 
     if (message.type === SIMULATION_WORKER_PROTOCOL.error) {
+      const diagnostics = Array.isArray(message.diagnostics)
+        ? message.diagnostics
+        : undefined;
       dispatchError({
         reason: readString(message.reason, "simulation-worker.error"),
         message: readString(
@@ -167,6 +171,7 @@ export function createSimulationWorker(
           "The simulation worker reported an error.",
         ),
         source: "worker",
+        ...(diagnostics === undefined ? {} : { diagnostics }),
         raw: message,
       });
     }

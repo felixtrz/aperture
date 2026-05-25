@@ -12,6 +12,10 @@ import {
   type ApertureEntityLookup,
   type ApertureEntityLookupSnapshot,
 } from "./entity-lookup.js";
+import {
+  createApertureGeneratedFailureStatus,
+  type ApertureGeneratedDiagnosticsStatus,
+} from "./diagnostics.js";
 import { createInputSummary, type ApertureInputSummary } from "./input.js";
 
 export interface CreateApertureHeadlessRunnerOptions extends Omit<
@@ -50,6 +54,11 @@ export interface ApertureHeadlessStatus {
 export interface ApertureHeadlessStepReport {
   readonly snapshot: RenderSnapshot;
   readonly status: ApertureHeadlessStatus;
+}
+
+export interface ApertureHeadlessFailureStatus
+  extends ApertureGeneratedDiagnosticsStatus {
+  readonly mode: "headless";
 }
 
 export interface ApertureHeadlessRunner {
@@ -107,6 +116,24 @@ export async function createApertureHeadlessRunner(
         status: createHeadlessStatus(app, nextFrame, lastSnapshot),
       };
     },
+  };
+}
+
+export function createApertureHeadlessFailureStatus(
+  error: unknown,
+): ApertureHeadlessFailureStatus {
+  return {
+    mode: "headless",
+    ...createApertureGeneratedFailureStatus({
+      error,
+      fallback: {
+        code: "aperture.headless.failed",
+        severity: "error",
+        message: "Aperture headless app failed.",
+        suggestedFix:
+          "Inspect aperture.config.ts, system modules, and asset URLs before rerunning headless mode.",
+      },
+    }),
   };
 }
 

@@ -7,11 +7,20 @@ import {
   createApertureApp,
   type ApertureSystemModule,
 } from "@aperture-engine/app/advanced";
-import { createApertureHeadlessRunner } from "@aperture-engine/app/headless";
+import {
+  createApertureHeadlessFailureStatus,
+  createApertureHeadlessRunner,
+} from "@aperture-engine/app/headless";
+import { createApertureGeneratedDiagnosticsStatus } from "@aperture-engine/app/diagnostics";
+import { startGeneratedSimulationWorker } from "@aperture-engine/app/worker";
 import {
   findApertureEntities,
   getApertureEntitySummary,
 } from "@aperture-engine/app/entity-lookup";
+import {
+  SIMULATION_WORKER_PROTOCOL,
+  type SimulationMessagePort,
+} from "@aperture-engine/runtime";
 import {
   AppEntityKey,
   AppEntitySource,
@@ -604,6 +613,126 @@ describe("developer-facing app API", () => {
     }
   });
 
+  it("normalizes generated diagnostics for manifest, asset, and worker startup failures", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "aperture-plugin-"));
+
+    try {
+      await mkdir(path.join(root, "src/systems"), { recursive: true });
+      await writeFile(
+        path.join(root, "aperture.config.ts"),
+        [
+          `import { defineApertureConfig } from "@aperture-engine/app/config";`,
+          `export default defineApertureConfig({`,
+          `  mode: "headless",`,
+          `  systems: ["src/systems/**/*.system.ts"],`,
+          `});`,
+          "",
+        ].join("\n"),
+      );
+      await writeFile(
+        path.join(root, "src/systems/missing-export.system.ts"),
+        [`export const schedule = { priority: 0 };`, ""].join("\n"),
+      );
+      await writeFile(
+        path.join(root, "src/systems/bad-schedule.system.ts"),
+        [
+          `import { createSystem } from "@aperture-engine/app/systems";`,
+          `export const schedule = { priority: "late" };`,
+          `export default class BadScheduleSystem extends createSystem() {}`,
+          "",
+        ].join("\n"),
+      );
+
+      const manifest = await createApertureSystemManifest({ root });
+      const manifestStatus = createApertureGeneratedDiagnosticsStatus({
+        status: "failed",
+        diagnostics: manifest.diagnostics,
+      });
+
+      expect(manifestStatus).toMatchObject({
+        status: "failed",
+        diagnostics: expect.arrayContaining([
+          expect.objectContaining({
+            code: "aperture.system.missingDefaultExport",
+            source: expect.objectContaining({
+              file: expect.stringContaining("missing-export.system.ts"),
+            }),
+            suggestedFix: expect.stringContaining("Default-export"),
+          }),
+          expect.objectContaining({
+            code: "aperture.system.invalidSchedule",
+            source: expect.objectContaining({
+              file: expect.stringContaining("bad-schedule.system.ts"),
+            }),
+            suggestedFix: expect.stringContaining("schedule"),
+          }),
+        ]),
+      });
+    } finally {
+      await rm(root, { force: true, recursive: true });
+    }
+
+    const invalidAssetConfig = defineApertureConfig({
+      mode: "headless",
+      systems: [],
+      assets: {
+        robot: asset.gltf("/missing.glb", { preload: "blocking" }),
+      },
+    });
+
+    let assetStatus = createApertureHeadlessFailureStatus(
+      new Error("expected failure"),
+    );
+    try {
+      await createApertureHeadlessRunner({ config: invalidAssetConfig });
+    } catch (error: unknown) {
+      assetStatus = createApertureHeadlessFailureStatus(error);
+    }
+
+    expect(assetStatus).toMatchObject({
+      mode: "headless",
+      status: "failed",
+      diagnostics: [
+        expect.objectContaining({
+          code: "aperture.asset.invalidUrl",
+          source: { asset: "robot" },
+          data: expect.objectContaining({
+            url: "/missing.glb",
+            blocksStartup: true,
+          }),
+          suggestedFix: expect.stringContaining("absolute URL"),
+        }),
+      ],
+    });
+
+    const port = new InlineGeneratedWorkerPort();
+    startGeneratedSimulationWorker({
+      config: defineApertureConfig({ mode: "headless", systems: [] }),
+      systems: [{ schedule: { priority: 0 } }],
+      port,
+    });
+    port.dispatch({ type: SIMULATION_WORKER_PROTOCOL.start });
+
+    const workerError = await port.nextPostedMessage((message) =>
+      isSimulationWorkerErrorMessage(message),
+    );
+
+    expect(workerError).toMatchObject({
+      type: SIMULATION_WORKER_PROTOCOL.error,
+      reason: "aperture.system.missingDefaultExport",
+      diagnostics: [
+        expect.objectContaining({
+          code: "aperture.system.missingDefaultExport",
+          source: expect.objectContaining({
+            worker: "generated-simulation",
+            module: "systems[0]",
+          }),
+          suggestedFix: expect.stringContaining("Default-export"),
+        }),
+      ],
+    });
+  });
+
   it("keeps the developer API example on the config-plus-systems path", async () => {
     const exampleRoot = path.resolve("examples/developer-api");
     const viteConfig = await readFile(
@@ -645,15 +774,101 @@ describe("developer-facing app API", () => {
       "packages/app/src/commands.ts",
       "utf8",
     );
+    const diagnosticsSource = await readFile(
+      "packages/app/src/diagnostics.ts",
+      "utf8",
+    );
     const entityLookupSource = await readFile(
       "packages/app/src/entity-lookup.ts",
       "utf8",
     );
     const rootSource = await readFile("packages/app/src/index.ts", "utf8");
-    const headlessSafeSource = `${configSource}\n${systemsSource}\n${commandsSource}\n${entityLookupSource}\n${rootSource}`;
+    const headlessSafeSource = `${configSource}\n${systemsSource}\n${commandsSource}\n${diagnosticsSource}\n${entityLookupSource}\n${rootSource}`;
 
     expect(headlessSafeSource).not.toMatch(
       /@aperture-engine\/webgpu|navigator\.gpu|HTMLCanvasElement|createWebGpuApp|from "\.\/browser\.js"/,
     );
   });
 });
+
+class InlineGeneratedWorkerPort implements SimulationMessagePort {
+  private listeners = new Set<(event: MessageEvent<unknown>) => void>();
+  private posted: unknown[] = [];
+  private waiters: {
+    readonly predicate: (message: unknown) => boolean;
+    readonly resolve: (message: unknown) => void;
+  }[] = [];
+
+  postMessage(message: unknown): void {
+    this.posted.push(message);
+
+    for (const waiter of [...this.waiters]) {
+      if (waiter.predicate(message)) {
+        this.waiters = this.waiters.filter((entry) => entry !== waiter);
+        waiter.resolve(message);
+      }
+    }
+  }
+
+  addEventListener(
+    _type: "message",
+    listener: (event: MessageEvent<unknown>) => void,
+  ): void {
+    this.listeners.add(listener);
+  }
+
+  removeEventListener(
+    _type: "message",
+    listener: (event: MessageEvent<unknown>) => void,
+  ): void {
+    this.listeners.delete(listener);
+  }
+
+  start(): void {}
+
+  dispatch(message: unknown): void {
+    for (const listener of this.listeners) {
+      listener({ data: message } as MessageEvent<unknown>);
+    }
+  }
+
+  nextPostedMessage(
+    predicate: (message: unknown) => boolean,
+  ): Promise<unknown> {
+    const existing = this.posted.find(predicate);
+
+    if (existing !== undefined) {
+      return Promise.resolve(existing);
+    }
+
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        this.waiters = this.waiters.filter(
+          (waiter) => waiter.resolve !== resolve,
+        );
+        reject(new Error("Timed out waiting for generated worker message."));
+      }, 1000);
+
+      this.waiters.push({
+        predicate,
+        resolve(message) {
+          clearTimeout(timeout);
+          resolve(message);
+        },
+      });
+    });
+  }
+}
+
+function isSimulationWorkerErrorMessage(value: unknown): value is {
+  readonly type: typeof SIMULATION_WORKER_PROTOCOL.error;
+  readonly reason: string;
+  readonly diagnostics?: readonly unknown[];
+} {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as { readonly type?: unknown }).type ===
+      SIMULATION_WORKER_PROTOCOL.error
+  );
+}

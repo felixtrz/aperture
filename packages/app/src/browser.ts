@@ -23,6 +23,10 @@ import {
   parseGeneratedCommand,
   type ApertureGeneratedCommand,
 } from "./commands.js";
+import {
+  createApertureGeneratedDiagnosticsStatus,
+  type ApertureGeneratedDiagnosticsStatus,
+} from "./diagnostics.js";
 
 export interface GeneratedBrowserSystemManifestEntry {
   readonly moduleUrl: string;
@@ -59,6 +63,7 @@ export interface GeneratedBrowserAppStatus {
   lastCommandEvent: unknown;
   lastFrame: number | null;
   lastError: unknown;
+  lastFailure: ApertureGeneratedDiagnosticsStatus | null;
   lastWorkerSummary: unknown;
   diagnostics: unknown;
 }
@@ -144,7 +149,22 @@ function mirrorSimulationWorkerSourceAssets(
     onError(callback) {
       return worker.onError((event: SimulationWorkerErrorEvent) => {
         status.status = "worker-error";
-        status.lastError = event;
+        status.lastFailure = createApertureGeneratedDiagnosticsStatus({
+          status: "failed",
+          diagnostics:
+            event.diagnostics ??
+            [
+              {
+                code: event.reason,
+                severity: "error",
+                message: event.message,
+                worker: event.source,
+                suggestedFix:
+                  "Inspect generated worker diagnostics and restart the app after fixing the reported issue.",
+              },
+            ],
+        });
+        status.lastError = status.lastFailure;
         callback(event);
       });
     },
@@ -164,6 +184,7 @@ function installGeneratedStatus(): GeneratedBrowserAppStatus {
     lastCommandEvent: null,
     lastFrame: null,
     lastError: null,
+    lastFailure: null,
     lastWorkerSummary: null,
     diagnostics: null,
   };

@@ -14,6 +14,7 @@
       "@aperture-engine/app/headless": ["packages/app/src/headless.ts"],
       "@aperture-engine/app/entity-lookup": ["packages/app/src/entity-lookup.ts"],
       "@aperture-engine/app/commands": ["packages/app/src/commands.ts"],
+      "@aperture-engine/app/diagnostics": ["packages/app/src/diagnostics.ts"],
       "@aperture-engine/app/browser": ["packages/app/src/browser.ts"],
       "@aperture-engine/app/worker": ["packages/app/src/worker.ts"],
       "@aperture-engine/render": ["packages/render/src/index.ts"],

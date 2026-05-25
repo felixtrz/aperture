@@ -2,24 +2,26 @@
 
 No active task is currently checked out.
 
-Status: `task-3174` completed the Developer API generated command forwarding
-slice. Browser/UI commands now flow into worker-owned `this.commands` queues,
-and a worker system can request a manual config asset without loader or renderer
-registration code.
+Status: `task-3175` completed the Developer API generated diagnostics slice.
+Generated/headless failure status can now report config/system-manifest,
+worker-startup, and blocking asset-load failures with stable codes, messages,
+source context, and suggested fixes.
 
 Key findings:
 
-- Generated browser code forwards `aperture:command` custom events to the
-  simulation worker.
-- Generated worker startup queues command messages before the app is ready and
-  applies them to `this.commands` afterward.
-- The developer API example now declares a manual `decal` texture asset and an
-  `AssetCommandSystem` that drains `asset.request`.
-- Browser status reports forwarded command counts, the last command, command
-  drain counts, and requested asset readiness in JSON-safe form.
+- `@aperture-engine/app/diagnostics` normalizes thrown app errors and plugin
+  diagnostics into JSON-safe status entries.
+- Generated worker startup errors post normalized diagnostics to the main
+  thread.
+- Browser status records normalized worker failures instead of console-only
+  error objects.
+- Headless mode exposes `createApertureHeadlessFailureStatus(...)` for the same
+  failure shape.
+- Focused fixtures cover missing default exports, invalid schedule metadata,
+  invalid GLB URLs, and generated worker startup failure.
 
 Recommended next task:
 
-- `task-3175` — surface generated app diagnostics for config, system-manifest,
-  worker, and asset-load failures through one JSON-safe browser/headless status
-  shape.
+- `task-3176` — restructure the beginner authoring docs so config plus
+  worker-discovered systems are the first path and imperative
+  `createApertureApp(...)`/snapshot transport wiring is clearly advanced.

@@ -658,12 +658,19 @@ function isApertureSystemContext(
 class ApertureSystemError extends Error {
   readonly code: string;
   readonly suggestedFix: string;
+  readonly detail: Readonly<Record<string, unknown>> | undefined;
 
-  constructor(code: string, message: string, suggestedFix: string) {
+  constructor(
+    code: string,
+    message: string,
+    suggestedFix: string,
+    detail?: Readonly<Record<string, unknown>>,
+  ) {
     super(`${message} Suggested fix: ${suggestedFix}`);
     this.name = "ApertureSystemError";
     this.code = code;
     this.suggestedFix = suggestedFix;
+    this.detail = detail;
   }
 }
 
@@ -1232,6 +1239,14 @@ async function loadSystemGltfAsset(input: {
       "aperture.asset.invalidUrl",
       `GLTF asset '${input.handle.id}' URL '${input.handle.url}' could not be resolved.`,
       "Use an absolute URL, a root-relative Vite public asset URL, or a data URL in aperture.config.ts.",
+      {
+        asset: input.handle.id,
+        url: input.handle.url,
+        kind: input.handle.kind,
+        preload: input.handle.preload,
+        phase: "load",
+        blocksStartup: input.handle.preload === "blocking",
+      },
     );
   }
 

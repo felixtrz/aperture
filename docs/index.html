@@ -393,27 +393,32 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-25 05:08 UTC</dd>
+            <dd>2026-05-25 05:18 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the generated developer API now forwards
-              browser/UI commands into worker-owned
-              <code>this.commands</code> queues. Browser code listens for
-              <code>aperture:command</code>, forwards typed command messages to
-              the simulation worker, and reports forwarded command counts plus
-              the last command event. The generated worker queues commands
-              before app readiness, applies them to <code>this.commands</code>,
-              and publishes JSON-safe command summaries with enqueued/drained
-              counts and requested asset readiness. The developer API example
-              now includes an <code>AssetCommandSystem</code> that drains
+              Latest update: generated developer API failures now normalize
+              into JSON-safe diagnostics for humans and agents.
+              <code>@aperture-engine/app/diagnostics</code> converts app
+              errors and plugin diagnostics into stable code, message, source,
+              data, and suggested-fix entries; generated worker startup
+              failures post those diagnostics to the main thread; browser
+              status records them in <code>lastFailure</code>; and headless
+              mode exposes <code>createApertureHeadlessFailureStatus(...)</code>
+              for the same shape. Focused fixtures cover missing system default
+              exports, invalid schedule metadata, invalid blocking GLB URLs
+              with asset/url/preload context, and generated worker startup
+              failure. The generated command slice remains in place: browser
+              code listens for <code>aperture:command</code>, forwards typed
+              command messages to the simulation worker, and reports forwarded
+              command counts plus requested asset readiness. The developer API
+              example includes an <code>AssetCommandSystem</code> that drains
               <code>asset.request</code> and requests the manual
               <code>decal</code> config asset through
-              <code>this.commands.requestAsset(...)</code>; Playwright
-              dispatches the command and verifies the worker system drains it
-              and reports the manual asset as ready. The entity lookup slice
-              remains in place: <code>@aperture-engine/app/entity-lookup</code>
+              <code>this.commands.requestAsset(...)</code>. The entity lookup
+              slice remains in place:
+              <code>@aperture-engine/app/entity-lookup</code>
               returns canonical <code>{ index, generation }</code> refs,
               optional app-authored key/name/tags, component ids, and GLB source
               metadata without reading renderer-owned state. The headless runner
@@ -5028,14 +5033,19 @@
                 <code>this.commands</code> queues.
               </li>
               <li>
-                <span class="badge">task-3175</span> Next: surface generated
-                app diagnostics for config, system-manifest, worker, and
+                <span class="badge green">task-3175</span> Done: surface
+                generated app diagnostics for config, system-manifest, worker, and
                 asset-load failures in one JSON-safe status shape.
               </li>
               <li>
-                <span class="badge">task-3176</span> Then: restructure the
+                <span class="badge">task-3176</span> Next: restructure the
                 beginner authoring docs around config plus worker-discovered
                 systems.
+              </li>
+              <li>
+                <span class="badge">task-3177</span> Then: add the optional
+                <code>@aperture-engine/app/vite</code> convenience subpath
+                without changing the plugin-free root app export.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5054,6 +5064,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3175</div>
+            <div>
+              <strong>Developer API diagnostics normalized.</strong>
+              <span>
+                Generated browser and headless failure status now carries
+                stable diagnostic codes, messages, source context, data, and
+                suggested fixes for manifest, worker startup, and blocking GLB
+                asset failures.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3174</div>
             <div>

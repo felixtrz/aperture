@@ -35,6 +35,10 @@
       "types": "./dist/commands.d.ts",
       "import": "./dist/commands.js"
     },
+    "./diagnostics": {
+      "types": "./dist/diagnostics.d.ts",
+      "import": "./dist/diagnostics.js"
+    },
     "./browser": {
       "types": "./dist/browser.d.ts",
       "import": "./dist/browser.js"

@@ -1,6 +1,63 @@
 # Agent Handoff
 
-Updated: 2026-05-25T05:08:33Z
+Updated: 2026-05-25T05:18:16Z
+
+## Current Run Update — 2026-05-25T05:18:16Z — Developer API generated diagnostics
+
+Continued the active goal to implement
+`docs/DEVELOPER_API_PROPOSAL.md`. The goal is **not complete** yet; this slice
+completes `task-3175` and moves the recommended next work to the beginner docs
+restructure.
+
+### What changed
+
+- Added `@aperture-engine/app/diagnostics` with JSON-safe generated diagnostic
+  normalization and failure status helpers.
+- Generated worker startup failures now post normalized diagnostics with stable
+  code, message, suggested fix, and worker/module context.
+- Generated browser status records normalized worker failure status in
+  `lastFailure`/`lastError` rather than exposing only console-side objects.
+- Headless mode exposes `createApertureHeadlessFailureStatus(...)` for the same
+  status shape.
+- GLB asset URL failures now carry asset id, URL, kind, preload policy, phase,
+  and startup-blocking context through `ApertureSystemError.detail`.
+- Focused fixtures cover missing default system exports, invalid schedule
+  metadata, invalid blocking GLB URLs, and generated worker startup failure.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `pnpm --filter @aperture-engine/runtime build`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts`
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+- `pnpm run check:progress`
+
+One parallel validation attempt that ran Vitest and Playwright at the same time
+passed the browser test body but left the Playwright process waiting after the
+Vite port had closed; the standalone Playwright command above exited cleanly
+and is the recorded browser validation.
+
+### Known issues / remaining proposal work
+
+- Beginner docs still need to lead with config plus worker-discovered systems
+  and move imperative orchestration lower (`task-3176`).
+- Optional `@aperture-engine/app/vite` convenience re-export remains queued
+  after docs work (`task-3177`).
+- A small browser control/status panel for the generated example is queued as a
+  visible inspection follow-up (`task-3178`).
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Start `task-3176`: restructure the beginner authoring docs around
+`aperture.config.ts`, the Vite plugin, and worker-discovered systems.
 
 ## Current Run Update — 2026-05-25T05:08:33Z — Developer API generated command forwarding
 

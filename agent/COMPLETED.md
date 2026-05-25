@@ -1,5 +1,42 @@
 # Completed Tasks
 
+## task-3175 — Normalize generated app diagnostics
+
+Completed: 2026-05-25
+
+Summary:
+
+- Added `@aperture-engine/app/diagnostics` with JSON-safe generated diagnostic
+  normalization and failure status helpers.
+- Generated worker startup failures now post normalized diagnostics with stable
+  code, message, suggested fix, and worker/module context.
+- Generated browser status now records normalized worker failure status instead
+  of console-only error objects.
+- Headless mode exposes `createApertureHeadlessFailureStatus(...)` for the same
+  JSON-safe failure shape.
+- GLB asset URL failures now carry asset/url/preload/load-phase context through
+  the app system error detail.
+- Focused fixtures cover missing system exports, invalid schedule metadata,
+  invalid blocking GLB URLs, and generated worker startup failure.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `pnpm --filter @aperture-engine/runtime build`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts`
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+- `pnpm run check:progress`
+
+Known follow-up:
+
+- `task-3176` should restructure the beginner authoring docs around the
+  config-plus-systems path.
+
 ## task-3174 — Forward generated commands into worker-owned queues
 
 Completed: 2026-05-25
