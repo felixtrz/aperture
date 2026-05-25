@@ -1,5 +1,41 @@
 # Completed Tasks
 
+## task-3177 — Add optional app/vite plugin re-export
+
+Completed: 2026-05-25
+
+Summary:
+
+- Added `@aperture-engine/app/vite` as an optional convenience subpath that
+  re-exports `aperture`, `createApertureSystemManifest`, and public Vite plugin
+  types from `@aperture-engine/vite-plugin`.
+- Published the `./vite` subpath from `packages/app/package.json` while leaving
+  the root `@aperture-engine/app` export plugin-free.
+- Removed the Vite plugin package's TypeScript project reference to the app
+  package so the app package can type-check its convenience re-export without a
+  project-reference cycle.
+- Added a focused Vite config fixture importing `aperture` from
+  `@aperture-engine/app/vite` and a unit assertion that the root app export
+  still does not expose `aperture`.
+- Kept `docs/AUTHORING.md` canonical on `@aperture-engine/vite-plugin`, with
+  `@aperture-engine/app/vite` documented only as an optional convenience.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `pnpm install --frozen-lockfile --ignore-scripts`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+
+Known follow-up:
+
+- `task-3178` should add the developer API browser control/status panel.
+
 ## task-3176 — Restructure beginner authoring docs
 
 Completed: 2026-05-25

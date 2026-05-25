@@ -13,6 +13,7 @@ import {
 } from "@aperture-engine/app/headless";
 import { createApertureGeneratedDiagnosticsStatus } from "@aperture-engine/app/diagnostics";
 import { startGeneratedSimulationWorker } from "@aperture-engine/app/worker";
+import { aperture as apertureFromAppVite } from "@aperture-engine/app/vite";
 import {
   findApertureEntities,
   getApertureEntitySummary,
@@ -36,7 +37,10 @@ import {
   defineApertureConfig,
   signal,
 } from "@aperture-engine/app/config";
-import { createApertureSystemManifest } from "@aperture-engine/vite-plugin";
+import {
+  aperture as apertureFromVitePlugin,
+  createApertureSystemManifest,
+} from "@aperture-engine/vite-plugin";
 import developerHeadlessConfig from "../../examples/developer-api/aperture.headless.config.js";
 import SetupSystem, {
   schedule as setupSchedule,
@@ -80,6 +84,16 @@ describe("developer-facing app API", () => {
       url: "/assets/robot.glb",
       preload: "blocking",
     });
+    expect("aperture" in appRoot).toBe(false);
+  });
+
+  it("exposes the optional app/vite convenience subpath without changing the root app export", () => {
+    const canonicalPlugin = apertureFromVitePlugin();
+    const appVitePlugin = apertureFromAppVite();
+
+    expect(appVitePlugin.name).toBe(canonicalPlugin.name);
+    expect(appVitePlugin).toHaveProperty("resolveId");
+    expect(appVitePlugin).toHaveProperty("load");
     expect("aperture" in appRoot).toBe(false);
   });
 

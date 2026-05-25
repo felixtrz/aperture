@@ -393,13 +393,25 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-25 05:27 UTC</dd>
+            <dd>2026-05-25 05:35 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the developer API authoring guide now leads with
-              the config-plus-systems path proposed for normal Aperture apps.
+              Latest update: the optional
+              <code>@aperture-engine/app/vite</code> convenience subpath now
+              re-exports the Aperture Vite plugin without changing the
+              plugin-free root <code>@aperture-engine/app</code> export.
+              <code>packages/app/src/vite.ts</code> re-exports
+              <code>aperture</code>,
+              <code>createApertureSystemManifest</code>, and public plugin
+              types from <code>@aperture-engine/vite-plugin</code>; the
+              developer API unit fixture proves a <code>vite.config.ts</code>
+              can import <code>aperture</code> from the convenience subpath;
+              and docs still use <code>@aperture-engine/vite-plugin</code> as
+              the canonical default import. The developer API authoring guide
+              remains aligned with the config-plus-systems path proposed for
+              normal Aperture apps.
               <code>docs/AUTHORING.md</code> starts with
               <code>vite.config.ts</code>, <code>aperture.config.ts</code>,
               worker-discovered system files, config-declared assets, preload
@@ -5058,18 +5070,23 @@
                 systems.
               </li>
               <li>
-                <span class="badge">task-3177</span> Next: add the optional
+                <span class="badge green">task-3177</span> Done: add the optional
                 <code>@aperture-engine/app/vite</code> convenience subpath
                 without changing the plugin-free root app export.
               </li>
               <li>
-                <span class="badge">task-3178</span> Then: add a small
+                <span class="badge">task-3178</span> Next: add a small
                 developer API browser control/status panel for generated input,
                 command, entity, and diagnostic summaries.
               </li>
               <li>
                 <span class="badge">task-3179</span> Then: prove worker-side
                 camera/spatial selection in the developer API example.
+              </li>
+              <li>
+                <span class="badge">task-3180</span> Then: add JSON-safe entity
+                snapshot/diff helpers for generated and headless developer
+                tooling.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5088,6 +5105,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3177</div>
+            <div>
+              <strong>Developer API app/vite convenience shipped.</strong>
+              <span>
+                <code>@aperture-engine/app/vite</code> now re-exports the
+                Aperture Vite plugin API for projects that prefer the app
+                namespace, while the root app export remains plugin-free and
+                docs keep <code>@aperture-engine/vite-plugin</code> as the
+                canonical default import.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3176</div>
             <div>

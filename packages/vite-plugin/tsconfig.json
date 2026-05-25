@@ -7,7 +7,7 @@
     "types": ["node"],
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
   },
-  "references": [{ "path": "../app" }],
+  "references": [],
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "node_modules"]
 }

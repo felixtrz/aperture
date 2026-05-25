@@ -60,23 +60,15 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 Active goal override is in effect for
-`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3177`: add the optional
-`@aperture-engine/app/vite` convenience subpath while keeping
-`@aperture-engine/vite-plugin` the canonical documented plugin import. This is
-the next visible slice because `task-3176` now restructures the beginner
-authoring docs around config plus worker-discovered systems and moves
-imperative app/runtime/WebGPU orchestration to the advanced path.
+`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3178`: add the small developer
+API browser control/status panel for generated input, commands, entity
+summaries, and diagnostics. This is the next visible slice because `task-3177`
+now adds the optional `@aperture-engine/app/vite` convenience subpath while
+keeping the root app export plugin-free and `@aperture-engine/vite-plugin` the
+canonical documented plugin import.
 
 The next ready visible-feature queue is:
 
-- `task-3177` — add an optional `@aperture-engine/app/vite` convenience
-  subpath that re-exports the Vite plugin without exposing plugin/build-time
-  code from the root `@aperture-engine/app` entry.
-  Reference anchor: `references/engine/src/framework/application.js`.
-  Done when `@aperture-engine/app/vite` type-checks, `vite.config.ts` can import
-  `aperture` from that subpath in a focused fixture, the root app export still
-  does not expose `aperture`, and docs keep `@aperture-engine/vite-plugin` as
-  the canonical default import.
 - `task-3178` — add a small developer API browser control/status panel that
   dispatches the select and manual asset-request command paths and displays the
   latest JSON-safe worker input, command, entity, and diagnostic summaries.
@@ -94,6 +86,13 @@ The next ready visible-feature queue is:
   `this.cameras.main`, writes the selected entity ref to a config signal via
   `this.spatial.raycast(...)`, and Playwright observes the selected
   `{ index, generation }` summary through generated status.
+- `task-3180` — add JSON-safe entity snapshot/diff helpers for generated and
+  headless developer tooling without introducing a scene graph identity model.
+  Reference anchor: `references/engine/src/framework/entity.js`.
+  Done when `@aperture-engine/app/entity-lookup` exposes snapshot and diff
+  helpers keyed by `{ index, generation }`, a headless test captures before/after
+  summaries around a system mutation, and generation-mismatched entities return
+  actionable diagnostics that tell agents to rerun entity find.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

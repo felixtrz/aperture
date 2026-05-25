@@ -1,6 +1,63 @@
 # Agent Handoff
 
-Updated: 2026-05-25T05:27:15Z
+Updated: 2026-05-25T05:35:36Z
+
+## Current Run Update — 2026-05-25T05:35:36Z — Developer API app/vite convenience
+
+Continued the active goal to implement
+`docs/DEVELOPER_API_PROPOSAL.md`. The goal is **not complete** yet; this slice
+completes `task-3177` and moves the recommended next work to the browser
+control/status panel.
+
+### What changed
+
+- Added `packages/app/src/vite.ts`, which re-exports `aperture`,
+  `createApertureSystemManifest`, and public Vite plugin types from
+  `@aperture-engine/vite-plugin`.
+- Published `@aperture-engine/app/vite` from `packages/app/package.json` while
+  leaving the root `@aperture-engine/app` export plugin-free.
+- Removed the Vite plugin package's TypeScript project reference to the app
+  package so `@aperture-engine/app/vite` can type-check without a
+  project-reference cycle. The Vite plugin still emits generated virtual module
+  imports for `@aperture-engine/app/browser` and
+  `@aperture-engine/app/worker`.
+- Added `test/fixtures/app-vite/vite.config.ts`, which imports `aperture` from
+  `@aperture-engine/app/vite`, and extended the developer API unit test to
+  assert the subpath returns the same plugin shape while the root app export
+  still does not expose `aperture`.
+- Updated `docs/AUTHORING.md` and `docs/ARCHITECTURE.md` so the canonical Vite
+  import remains `@aperture-engine/vite-plugin`, with
+  `@aperture-engine/app/vite` documented only as an optional convenience
+  subpath.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `pnpm install --frozen-lockfile --ignore-scripts`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+
+### Known issues / remaining proposal work
+
+- A small browser control/status panel for the generated example is queued as a
+  visible inspection follow-up (`task-3178`).
+- Worker-side camera/spatial selection should still be proven in the developer
+  API example (`task-3179`).
+- JSON-safe entity snapshot/diff helpers for generated/headless tooling are
+  queued as the third visible follow-up (`task-3180`).
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Start `task-3178`: add the small developer API browser control/status panel for
+generated input, command, entity, and diagnostic summaries.
 
 ## Current Run Update — 2026-05-25T05:27:15Z — Developer API authoring docs
 

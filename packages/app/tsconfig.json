@@ -10,7 +10,8 @@
     { "path": "../simulation" },
     { "path": "../render" },
     { "path": "../runtime" },
-    { "path": "../webgpu" }
+    { "path": "../webgpu" },
+    { "path": "../vite-plugin" }
   ],
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "node_modules"]

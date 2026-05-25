@@ -41,7 +41,9 @@ the runtime architecture:
 - `@aperture-engine/vite-plugin`: the default Vite integration. It discovers
   `aperture.config.ts`, system globs, schedule metadata, and generated
   browser/worker virtual modules. It is build-time code and is intentionally not
-  exported by `@aperture-engine/app`.
+  exported by the root `@aperture-engine/app` entry; the optional
+  `@aperture-engine/app/vite` subpath re-exports it for projects that prefer the
+  app namespace.
 - `@aperture-engine/runtime`: headless simulation and extraction app facades.
   It composes simulation and render only; WebGPU app orchestration belongs in
   `@aperture-engine/webgpu`.

@@ -40,7 +40,8 @@ export default defineConfig({
 
 `@aperture-engine/vite-plugin` is the canonical plugin import. The root
 `@aperture-engine/app` entry does not export the plugin because Vite plugin code
-is Node/build-time code.
+is Node/build-time code. `@aperture-engine/app/vite` re-exports the same plugin
+as an optional convenience subpath, but this guide uses the canonical package.
 
 ## Aperture Config
 
