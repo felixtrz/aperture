@@ -2,22 +2,23 @@
 
 No active task is currently checked out.
 
-Status: active `docs/RAYCASTING_BVH_FEATURE_PROPOSAL.md` implementation goal
-completed.
+Status: active spatial-query reshape goal completed.
 
 Key findings:
 
-- `@aperture-engine/simulation` now owns exact CPU mesh raycasts, typed-array
-  mesh BVHs, shapecast-derived spatial queries, closest-point queries,
-  BVH-vs-BVH candidate pairs, versioned cache/refit diagnostics, and
-  entity-bounds BVH broad-phase raycasts.
-- `@aperture-engine/render` only adapts source `MeshAsset` CPU buffers into the
-  simulation spatial mesh contract; no WebGPU resources are query inputs.
-- `@aperture-engine/app/systems` now exposes worker-side mesh spatial queries
-  through `this.spatial.setMeshes(...)` and
-  `this.spatial.raycast(ray, { mode: "mesh" })`.
-- `Pickable` and `MeshQueryAcceleration` are registered ECS authoring
-  components for spatial query policy.
+- `docs/SPATIAL_QUERY_RESHAPE_PROPOSAL.md` records the no-separate-BVH-worker
+  direction and the optimal from-scratch shape for synchronous gameplay spatial
+  queries.
+- `@aperture-engine/simulation` no longer exports the `mesh-bvh-worker` module,
+  async BVH build/cache APIs, or `useSharedArrayBuffer` BVH build option.
+- `MeshBvh.shapecast(...)` has been renamed to `visitMeshBvh(...)` so public
+  "shape cast" vocabulary remains available for future swept-shape gameplay
+  queries.
+- `@aperture-engine/app` exposes `this.spatial.raycastFirst(...)` and
+  `this.spatial.raycastAll(...)` with explicit `source` and `fallback` policy
+  instead of the worker-era `raycast(..., { mode: "best" })` shape.
+- Focused coverage for the extracted spatial query facade is 100% statements,
+  branches, functions, and lines.
 
 Recommended next task:
 

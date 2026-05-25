@@ -87,7 +87,6 @@ export interface MeshBvhBuildOptions {
   readonly maxDepth?: number;
   readonly maxLeafSize?: number;
   readonly indirect?: boolean;
-  readonly useSharedArrayBuffer?: boolean;
 }
 
 export interface MeshBvhBuildStats {
@@ -154,7 +153,7 @@ export interface TriangleHitScratch {
   barycentric: Vec3;
 }
 
-export interface MeshBvhShapecastCallbacks {
+export interface MeshBvhVisitCallbacks {
   intersectsBounds(
     bounds: Aabb,
     info: {
@@ -230,7 +229,7 @@ export interface SpatialDiagnostic {
 export interface SpatialQueryReport {
   readonly queryId: string;
   readonly source: "bounds" | "mesh-bvh" | "id-buffer" | "physics";
-  readonly mode: "bounds" | "mesh" | "best";
+  readonly fallback: "none" | "bounds";
   readonly candidateEntityCount: number;
   readonly testedEntityCount: number;
   readonly testedPrimitiveCount: number;
@@ -331,9 +330,10 @@ export function raycastMeshTriangles(
   const triangles = collectMeshTriangles(mesh);
 
   for (const triangle of triangles) {
-    options.stats !== undefined
-      ? (options.stats.testedPrimitiveCount += 1)
-      : undefined;
+    if (options.stats !== undefined) {
+      options.stats.testedPrimitiveCount += 1;
+    }
+
     const hit = intersectTriangle(mesh, triangle, normalizedRay, maxDistance, {
       ...options,
       source: "mesh-linear",
@@ -370,9 +370,10 @@ export function raycastFirstMeshTriangle(
   let closestDistance = maxDistance;
 
   for (const triangle of collectMeshTriangles(mesh)) {
-    options.stats !== undefined
-      ? (options.stats.testedPrimitiveCount += 1)
-      : undefined;
+    if (options.stats !== undefined) {
+      options.stats.testedPrimitiveCount += 1;
+    }
+
     const hit = intersectTriangle(
       mesh,
       triangle,
@@ -419,13 +420,6 @@ export function deserializeMeshBvh(
   );
 }
 
-export function buildMeshBvhAsync(
-  mesh: SpatialTriangleMesh,
-  options: MeshBvhBuildOptions = {},
-): Promise<MeshBvh> {
-  return Promise.resolve().then(() => createMeshBvh(mesh, options));
-}
-
 export function createMeshTriangleQueryStats(): MeshTriangleQueryStats {
   return { testedPrimitiveCount: 0 };
 }
@@ -467,16 +461,6 @@ export class MeshBvhCache {
     );
   }
 
-  async getOrBuildAsync(
-    input: MeshBvhCacheBuildInput,
-    builder: (
-      mesh: SpatialTriangleMesh,
-      options?: MeshBvhBuildOptions,
-    ) => Promise<MeshBvh> = buildMeshBvhAsync,
-  ): Promise<MeshBvhCacheReport> {
-    return this.finishGetOrBuild(input, builder);
-  }
-
   invalidate(meshKey: string): void {
     const keys = this.keysByMesh.get(meshKey);
 
@@ -496,21 +480,7 @@ export class MeshBvhCache {
       mesh: SpatialTriangleMesh,
       options?: MeshBvhBuildOptions,
     ) => MeshBvh,
-  ): MeshBvhCacheReport;
-  private finishGetOrBuild(
-    input: MeshBvhCacheBuildInput,
-    builder: (
-      mesh: SpatialTriangleMesh,
-      options?: MeshBvhBuildOptions,
-    ) => Promise<MeshBvh>,
-  ): Promise<MeshBvhCacheReport>;
-  private finishGetOrBuild(
-    input: MeshBvhCacheBuildInput,
-    builder: (
-      mesh: SpatialTriangleMesh,
-      options?: MeshBvhBuildOptions,
-    ) => MeshBvh | Promise<MeshBvh>,
-  ): MeshBvhCacheReport | Promise<MeshBvhCacheReport> {
+  ): MeshBvhCacheReport {
     const diagnostics = unsupportedInputDiagnostics(input);
     const cacheKey = createMeshBvhCacheKey(input);
     const existing = this.entries.get(cacheKey);
@@ -585,17 +555,13 @@ export class MeshBvhCache {
     const start = performanceNow();
 
     try {
-      const result = builder(input.mesh, input.options);
-
-      if (isPromiseLike(result)) {
-        return result.then(
-          (bvh) => this.storeBuiltBvh(input, cacheKey, bvh, start, diagnostics),
-          (error: unknown) =>
-            this.buildFailedReport(cacheKey, start, diagnostics, error),
-        );
-      }
-
-      return this.storeBuiltBvh(input, cacheKey, result, start, diagnostics);
+      return this.storeBuiltBvh(
+        input,
+        cacheKey,
+        builder(input.mesh, input.options),
+        start,
+        diagnostics,
+      );
     } catch (error) {
       return this.buildFailedReport(cacheKey, start, diagnostics, error);
     }
@@ -909,7 +875,7 @@ export class MeshBvh {
     return closest;
   }
 
-  shapecast(callbacks: MeshBvhShapecastCallbacks): boolean {
+  visitMeshBvh(callbacks: MeshBvhVisitCallbacks): boolean {
     if (this.stats.nodeCount === 0) {
       return false;
     }
@@ -1009,7 +975,7 @@ export class MeshBvh {
   }
 
   intersectsSphere(sphere: BoundingSphere): boolean {
-    return this.shapecast({
+    return this.visitMeshBvh({
       intersectsBounds: (bounds) => {
         if (!aabbIntersectsSphere(bounds, sphere)) {
           return "not-intersected";
@@ -1033,7 +999,7 @@ export class MeshBvh {
     const meshBox =
       boxToMesh === undefined ? box : transformAabb(box, boxToMesh);
 
-    return this.shapecast({
+    return this.visitMeshBvh({
       intersectsBounds: (bounds) => {
         if (!aabbIntersectsAabb(bounds, meshBox)) {
           return "not-intersected";
@@ -1054,7 +1020,7 @@ export class MeshBvh {
     const radius = Math.max(0, capsule.radius);
     const radiusSq = radius * radius;
 
-    return this.shapecast({
+    return this.visitMeshBvh({
       intersectsBounds: (bounds) =>
         segmentIntersectsAabb(
           capsule.start,
@@ -1074,7 +1040,7 @@ export class MeshBvh {
   }
 
   intersectsFrustum(frustum: Frustum): boolean {
-    return this.shapecast({
+    return this.visitMeshBvh({
       intersectsBounds: (bounds) => {
         const result = classifyAabbAgainstFrustum(bounds, frustum);
 
@@ -2585,17 +2551,6 @@ function unsupportedInputDiagnostics(
 
 function performanceNow(): number {
   return globalThis.performance?.now() ?? Date.now();
-}
-
-function isPromiseLike<TValue>(
-  value: TValue | Promise<TValue>,
-): value is Promise<TValue> {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "then" in value &&
-    typeof (value as { readonly then?: unknown }).then === "function"
-  );
 }
 
 function createTriangleView(

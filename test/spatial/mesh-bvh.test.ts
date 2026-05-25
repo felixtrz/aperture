@@ -1,30 +1,23 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  collectMeshBvhBuildTransferables,
   createBoxMeshAsset,
   createEntityBoundsBvh,
   createEntityBoundsBvhQueryStats,
   createMeshBvh,
   createMeshBvhCache,
   createMeshBvhCacheKey,
-  createMeshBvhWorkerBuildMessage,
   createMeshBvhTraversalStats,
   createMeshTriangleQuery,
   createMeshTriangleQueryStats,
   createPlaneMeshAsset,
   createSpatialQueryReport,
   createSpatialTriangleMeshFromMeshAsset,
-  buildMeshBvhWithWorker,
-  createMeshBvhWorkerBuiltMessage,
   deserializeMeshBvh,
-  MESH_BVH_WORKER_BUILD,
   raycastFirstMeshTriangle,
   raycastMeshTriangles,
   type Frustum,
   type MeshAsset,
-  type MeshBvhWorkerBuildMessage,
-  type MeshBvhWorkerLike,
   type MeshVertexFormat,
   type MeshVertexSemantic,
   type SpatialTriangleMesh,
@@ -258,7 +251,7 @@ describe("mesh BVH spatial queries", () => {
     expect(
       emptyBvh.raycastFirst({ origin: [0, 0, 1], direction: [0, 0, -1] }),
     ).toBeNull();
-    expect(emptyBvh.shapecast({ intersectsBounds: () => true })).toBe(false);
+    expect(emptyBvh.visitMeshBvh({ intersectsBounds: () => true })).toBe(false);
     expect(emptyBvh.closestPointToPoint([0, 0, 0])).toBeNull();
     expect(emptyBvh.closestPointToSegment([0, 0, 0], [1, 0, 0])).toBeNull();
     expect(emptyBvh.bvhcast(emptyBvh)).toEqual([]);
@@ -314,13 +307,13 @@ describe("mesh BVH spatial queries", () => {
     );
   });
 
-  it("supports shapecast, derived shape queries, closest points, BVH casts, and refit", () => {
+  it("supports BVH traversal, derived shape queries, closest points, BVH casts, and refit", () => {
     const mesh = spatialMesh(createPlaneMeshAsset({ width: 2, height: 2 }));
     const bvh = createMeshBvh(mesh, { maxLeafSize: 1 });
     let triangleTests = 0;
 
     expect(
-      bvh.shapecast({
+      bvh.visitMeshBvh({
         intersectsBounds: () => "contained",
         intersectsRange: () => true,
         intersectsTriangle: () => {
@@ -401,13 +394,13 @@ describe("mesh BVH spatial queries", () => {
     );
   });
 
-  it("covers boolean shapecast callbacks, transformed boxes, and capped BVH casts", () => {
+  it("covers boolean BVH traversal callbacks, transformed boxes, and capped BVH casts", () => {
     const mesh = spatialMesh(createPlaneMeshAsset({ width: 2, height: 2 }));
     const bvh = createMeshBvh(mesh, { maxLeafSize: 1 });
     let triangleVisits = 0;
 
     expect(
-      bvh.shapecast({
+      bvh.visitMeshBvh({
         intersectsBounds: () => true,
         boundsTraverseOrder: (bounds) => bounds.min[0],
         intersectsRange: () => false,
@@ -419,19 +412,19 @@ describe("mesh BVH spatial queries", () => {
     ).toBe(false);
     expect(triangleVisits).toBeGreaterThan(0);
     expect(
-      bvh.shapecast({
+      bvh.visitMeshBvh({
         intersectsBounds: () => true,
       }),
     ).toBe(true);
     expect(
-      bvh.shapecast({
+      bvh.visitMeshBvh({
         intersectsBounds: () => true,
         boundsTraverseOrder: (bounds) => -bounds.min[0],
         intersectsTriangle: () => false,
       }),
     ).toBe(false);
     expect(
-      bvh.shapecast({
+      bvh.visitMeshBvh({
         intersectsBounds: () => true,
         intersectsTriangle: () => {
           triangleVisits += 1;
@@ -450,7 +443,7 @@ describe("mesh BVH spatial queries", () => {
     expect(bvh.bvhcast(createMeshBvh(mesh), { maxPairs: 1 })).toHaveLength(1);
   });
 
-  it("caches versioned BVHs, refits changed vertices, and reports diagnostics", async () => {
+  it("caches versioned BVHs, refits changed vertices, and reports diagnostics", () => {
     const mesh = createGridMesh(4);
     const cache = createMeshBvhCache();
     const cacheKey = createMeshBvhCacheKey({
@@ -481,11 +474,6 @@ describe("mesh BVH spatial queries", () => {
       mesh,
       options: { strategy: "center", maxLeafSize: 2 },
       dynamicPolicy: "refit",
-    });
-    const asyncBuilt = await cache.getOrBuildAsync({
-      meshKey: "mesh://fixture/async",
-      version: 1,
-      mesh,
     });
     const unsupported = cache.getOrBuild({
       meshKey: "mesh://fixture/lines",
@@ -523,17 +511,6 @@ describe("mesh BVH spatial queries", () => {
       version: 1,
       mesh: brokenMesh(),
     });
-    const asyncFailed = await cache.getOrBuildAsync(
-      {
-        meshKey: "mesh://fixture/async-broken",
-        version: 1,
-        mesh,
-      },
-      async () => {
-        throw new Error("async denied");
-      },
-    );
-
     expect(first).toMatchObject({
       cacheKey,
       built: true,
@@ -554,10 +531,6 @@ describe("mesh BVH spatial queries", () => {
       diagnostics: [
         expect.objectContaining({ code: "spatial.mesh-bvh.stale" }),
       ],
-    });
-    expect(asyncBuilt).toMatchObject({
-      built: true,
-      stats: expect.objectContaining({ primitiveCount: 4 * 4 * 2 }),
     });
     expect(unsupported).toMatchObject({
       bvh: null,
@@ -600,77 +573,6 @@ describe("mesh BVH spatial queries", () => {
       diagnostics: [
         expect.objectContaining({ code: "spatial.mesh-bvh.build-failed" }),
       ],
-    });
-    expect(asyncFailed).toMatchObject({
-      bvh: null,
-      diagnostics: [
-        expect.objectContaining({ code: "spatial.mesh-bvh.build-failed" }),
-      ],
-    });
-  });
-
-  it("builds serialized BVHs through a worker-like message boundary", async () => {
-    const mesh = createGridMesh(6);
-    const worker = new InlineMeshBvhWorker();
-    const bvh = await buildMeshBvhWithWorker(worker, mesh, {
-      strategy: "center",
-      maxLeafSize: 2,
-      useSharedArrayBuffer: true,
-    });
-
-    expect(worker.lastRequest).toMatchObject({
-      type: MESH_BVH_WORKER_BUILD,
-      options: expect.objectContaining({ useSharedArrayBuffer: true }),
-    });
-    expect(
-      bvh.raycastFirst({ origin: [2.25, 2.25, 1], direction: [0, 0, -1] })
-        ?.source,
-    ).toBe("mesh-bvh");
-  });
-
-  it("handles worker rejection, onmessage fallback, and transferable collection", async () => {
-    const mesh = createGridMesh(2);
-    const transferables = collectMeshBvhBuildTransferables({
-      ...mesh,
-      normals: { data: new Float32Array(12), stride: 3 },
-      uvs: { data: new Float32Array(8), stride: 2 },
-    });
-    const noTransferables = collectMeshBvhBuildTransferables({
-      positions: { data: [0, 0, 0], stride: 3 },
-      vertexCount: 1,
-    });
-    const fallbackWorker = new OnMessageMeshBvhWorker();
-    const bvh = await buildMeshBvhWithWorker(fallbackWorker, mesh);
-    const failedMessage = createMeshBvhWorkerBuiltMessage(
-      createMeshBvhWorkerBuildMessage(brokenMesh(), {}, "broken"),
-    );
-    const rejectingWorker = new RejectingMeshBvhWorker();
-    const ignoredWorker = new IgnoringMeshBvhWorker();
-
-    expect(transferables).toHaveLength(4);
-    expect(noTransferables).toEqual([]);
-    expect(bvh.stats.primitiveCount).toBe(8);
-    expect(fallbackWorker.onmessage).toBeNull();
-    expect(failedMessage).toMatchObject({
-      id: "broken",
-      serialized: null,
-      diagnostics: [
-        expect.objectContaining({ code: "spatial.mesh-bvh.build-failed" }),
-      ],
-    });
-    await expect(buildMeshBvhWithWorker(rejectingWorker, mesh)).rejects.toThrow(
-      "denied",
-    );
-
-    const pending = buildMeshBvhWithWorker(ignoredWorker, mesh);
-    ignoredWorker.onmessage?.({ data: { type: "other", id: "ignored" } });
-    ignoredWorker.onmessage?.({
-      data: { type: "aperture.mesh-bvh.built", id: "wrong" },
-    });
-    ignoredWorker.resolve();
-
-    await expect(pending).resolves.toMatchObject({
-      stats: expect.objectContaining({ primitiveCount: 8 }),
     });
   });
 });
@@ -833,7 +735,7 @@ describe("spatial query reports", () => {
     const report = createSpatialQueryReport({
       queryId: "query-1",
       source: "mesh-bvh",
-      mode: "mesh",
+      fallback: "none",
       candidateEntityCount: 3,
       testedEntityCount: 2,
       testedPrimitiveCount: 1,
@@ -1059,94 +961,4 @@ function expectVec3(actual: Vec3Like | undefined, expected: Vec3Like): void {
   expect(actual[0]).toBeCloseTo(expected[0], CLOSE_TO);
   expect(actual[1]).toBeCloseTo(expected[1], CLOSE_TO);
   expect(actual[2]).toBeCloseTo(expected[2], CLOSE_TO);
-}
-
-class InlineMeshBvhWorker implements MeshBvhWorkerLike {
-  lastRequest: MeshBvhWorkerBuildMessage | null = null;
-  private listener: ((event: { readonly data: unknown }) => void) | null = null;
-
-  postMessage(message: MeshBvhWorkerBuildMessage): void {
-    this.lastRequest = message;
-    queueMicrotask(() => {
-      this.listener?.({ data: createMeshBvhWorkerBuiltMessage(message) });
-    });
-  }
-
-  addEventListener(
-    _type: "message",
-    listener: (event: { readonly data: unknown }) => void,
-  ): void {
-    this.listener = listener;
-  }
-
-  removeEventListener(
-    _type: "message",
-    listener: (event: { readonly data: unknown }) => void,
-  ): void {
-    if (this.listener === listener) {
-      this.listener = null;
-    }
-  }
-}
-
-class OnMessageMeshBvhWorker implements MeshBvhWorkerLike {
-  lastRequest: MeshBvhWorkerBuildMessage | null = null;
-  onmessage: ((event: { readonly data: unknown }) => void) | null = null;
-
-  postMessage(message: MeshBvhWorkerBuildMessage): void {
-    this.lastRequest = message;
-    queueMicrotask(() => {
-      this.onmessage?.({ data: createMeshBvhWorkerBuiltMessage(message) });
-    });
-  }
-}
-
-class RejectingMeshBvhWorker implements MeshBvhWorkerLike {
-  private listener: ((event: { readonly data: unknown }) => void) | null = null;
-
-  postMessage(message: MeshBvhWorkerBuildMessage): void {
-    queueMicrotask(() => {
-      this.listener?.({
-        data: {
-          type: "aperture.mesh-bvh.built",
-          id: message.id,
-          serialized: null,
-          diagnostics: [{ message: "denied" }],
-        },
-      });
-    });
-  }
-
-  addEventListener(
-    _type: "message",
-    listener: (event: { readonly data: unknown }) => void,
-  ): void {
-    this.listener = listener;
-  }
-
-  removeEventListener(
-    _type: "message",
-    listener: (event: { readonly data: unknown }) => void,
-  ): void {
-    if (this.listener === listener) {
-      this.listener = null;
-    }
-  }
-}
-
-class IgnoringMeshBvhWorker implements MeshBvhWorkerLike {
-  private request: MeshBvhWorkerBuildMessage | null = null;
-  onmessage: ((event: { readonly data: unknown }) => void) | null = null;
-
-  postMessage(message: MeshBvhWorkerBuildMessage): void {
-    this.request = message;
-  }
-
-  resolve(): void {
-    if (this.request !== null) {
-      this.onmessage?.({
-        data: createMeshBvhWorkerBuiltMessage(this.request),
-      });
-    }
-  }
 }

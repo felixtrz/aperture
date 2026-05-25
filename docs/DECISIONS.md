@@ -486,31 +486,43 @@ Status: accepted
 
 Context:
 
-Aperture had bounds-only worker raycasts in simulation and renderer-owned
-ID-buffer picking in WebGPU. Bounds were too coarse for GLB meshes, while
-ID-buffer picking is screen-space and cannot serve authoritative gameplay,
-editor tools, snapping, shapecasts, closest-point queries, or volume queries.
-Importing `three-mesh-bvh` directly would couple Aperture's query layer to
-three.js `BufferGeometry`/`Object3D` assumptions.
+Aperture had bounds-only raycasts in simulation and renderer-owned ID-buffer
+picking in WebGPU. Bounds were too coarse for GLB meshes, while ID-buffer
+picking is screen-space and cannot serve authoritative gameplay, editor tools,
+snapping, swept shape casts, closest-point queries, or volume queries. Importing
+`three-mesh-bvh` directly would couple Aperture's query layer to three.js
+`BufferGeometry`/`Object3D` assumptions.
+
+The initial BVH slice considered a separate worker-like BVH build protocol. That
+was the wrong default for gameplay. Game systems need synchronous raycasts and
+shape queries in the same logic context as the ECS state they are querying.
 
 Decision:
 
-Aperture CPU spatial queries use native, renderer-independent typed-array BVHs
-owned by `@aperture-engine/simulation`. The core accepts plain CPU mesh and
-bounds data, supports exact triangle raycasts, mesh BVH traversal, shapecast
-callbacks, derived shape/closest-point/BVH-overlap queries, versioned cache
-reports, refit, serialization, and an entity-bounds BVH. `@aperture-engine/render`
-may provide thin adapters from source `MeshAsset` buffers to the spatial data
-contract, but WebGPU resources, render worlds, draw queues, and browser globals
-must not be query inputs.
+Aperture CPU spatial queries use native, renderer-independent typed-array
+acceleration structures owned by the logic/simulation layer. Raycasts, shape
+overlaps, swept shape casts, closest-point queries, mesh BVH traversal, refit,
+and entity-bounds broad phase queries execute synchronously inside that logic
+context. BVH build/update work is part of simulation asset preparation and never
+creates a separate runtime BVH worker. Query APIs do not return promises.
+
+The core accepts plain CPU mesh and bounds data. `@aperture-engine/render` may
+provide thin adapters from source `MeshAsset` buffers to the spatial data
+contract, but WebGPU resources, render worlds, draw queues, workers,
+transferable buffers, SAB-specific BVH handoff, and browser globals must not be
+query inputs.
 
 Consequences:
 
-- Worker-side systems can call `this.spatial.raycast(..., { mode: "mesh" })`
+- Systems can call synchronous `this.spatial.raycastFirst(...)` and
+  `this.spatial.raycastAll(...)` with explicit `source`/`fallback` policy
   without making renderer state authoritative.
 - WebGPU ID-buffer picking remains a visual/editor convenience, separate from
   CPU gameplay/tooling queries.
 - Source mesh assets can opt into `Pickable` and `MeshQueryAcceleration`
   authoring policy without storing GPU handles in ECS components.
-- Future worker/SAB BVH build paths should preserve the same serialized BVH and
-  diagnostics contracts rather than introducing renderer-owned scene graphs.
+- Large mesh acceleration must be handled with same-thread preparation,
+  readiness diagnostics, simplification, refit/rebuild policy, or explicit
+  bounds/collider fallback, not with an extra BVH worker.
+- Serialized BVH payloads, if retained, are cache/debug snapshots rather than a
+  worker handoff contract.

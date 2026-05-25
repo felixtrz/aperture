@@ -393,22 +393,22 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-25 19:42 UTC</dd>
+            <dd>2026-05-25 22:15 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the raycasting/BVH proposal has a
-              renderer-independent CPU spatial query implementation. Simulation
-              now exposes exact triangle raycasts, typed-array mesh BVHs,
-              shapecast callbacks, sphere/box/capsule/frustum/closest-point
-              queries, BVH-vs-BVH candidate pairs, serialized BVH payloads,
-              versioned cache/refit diagnostics, and an entity-bounds BVH for
-              large-scene broad phase, plus a worker-like serialized build
-              handoff for off-thread BVH generation. Render adds a thin
-              <code>MeshAsset</code>-to-spatial adapter, and
-              <code>@aperture-engine/app/systems</code> exposes
-              <code>this.spatial.raycast(..., { mode: "mesh" })</code> plus
+              Latest update: the raycasting/BVH proposal has been reshaped
+              around synchronous simulation-thread spatial queries. Simulation
+              exposes exact triangle raycasts, typed-array mesh BVHs, BVH
+              traversal callbacks, sphere/box/capsule/frustum/closest-point
+              queries, BVH-vs-BVH candidate pairs, versioned cache/refit
+              diagnostics, and an entity-bounds BVH for large-scene broad phase.
+              The separate BVH worker/SAB/transferable handoff surface has been
+              removed. Render adds a thin <code>MeshAsset</code>-to-spatial
+              adapter, and <code>@aperture-engine/app/systems</code> exposes
+              synchronous <code>this.spatial.raycastFirst(...)</code>,
+              <code>this.spatial.raycastAll(...)</code>, and
               <code>this.spatial.setMeshes(...)</code> without involving WebGPU
               resources or a renderer-owned scene graph. Previous update: the
               developer API proposal implementation is complete against the
@@ -453,7 +453,7 @@
               <code>SetupSystem</code> seeds ECS-owned raycast bounds for the
               interactive crate; <code>SelectSystem</code> derives a ray from
               <code>this.cameras.main</code> and forwarded pointer input, calls
-              <code>this.spatial.raycast(...)</code>, writes the selected
+              <code>this.spatial.raycastFirst(...)</code>, writes the selected
               <code>{ index, generation }</code> ref to
               <code>this.signals.selectedEntity</code>, and emits the selected
               ref in JSON-safe diagnostics. Generated worker and headless status
@@ -5207,9 +5207,11 @@
               <li>
                 <span class="badge green">raycast-bvh</span> Done: implement
                 renderer-independent exact mesh raycasts, mesh BVH traversal,
-                shapecast-derived queries, cache/refit diagnostics, worker-build
-                handoff, entity bounds BVH, and worker-side
-                <code>mode: "mesh"</code> spatial raycasts.
+                derived shape queries, cache/refit diagnostics, entity bounds
+                BVH, and synchronous <code>raycastFirst</code>/<code
+                  >raycastAll</code
+                >
+                spatial query APIs with explicit source/fallback policy.
               </li>
               <li>
                 <span class="badge">task-3166</span> Next: resume the render
@@ -5238,11 +5240,12 @@
               <strong>Raycasting and BVH spatial queries shipped.</strong>
               <span>
                 <code>@aperture-engine/simulation</code> now owns exact mesh
-                raycasts, typed-array mesh BVHs, shapecast-derived shape and
-                closest-point queries, cache/refit diagnostics, worker-build
-                handoff, and entity bounds BVHs. Render provides only a CPU
-                mesh-data adapter, and app systems can raycast with
-                <code>mode: "mesh"</code> from worker-owned state.
+                raycasts, typed-array mesh BVHs, BVH-traversal-derived shape and
+                closest-point queries, cache/refit diagnostics, and entity
+                bounds BVHs. Render provides only a CPU mesh-data adapter, and
+                app systems can raycast synchronously with explicit
+                <code>source</code>/<code>fallback</code> policy from
+                worker-owned state.
               </span>
             </div>
           </div>
@@ -5316,7 +5319,7 @@
               <span>
                 The developer API example now seeds worker-owned raycast bounds,
                 selects the crate through <code>this.cameras.main</code> and
-                <code>this.spatial.raycast(...)</code>, writes the selected
+                <code>this.spatial.raycastFirst(...)</code>, writes the selected
                 entity ref to a config signal, and exposes that signal through
                 generated/headless JSON status.
               </span>

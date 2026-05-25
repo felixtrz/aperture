@@ -497,8 +497,9 @@ Recommended rules:
   `this.cameras.byKey(key)` over a singular `this.camera`, because Aperture
   needs to support multiple cameras, XR views, render targets, editor cameras,
   and headless mode.
-- Prefer `this.spatial.raycast(...)` over `this.raycast(...)`, because raycast
-  is one spatial query among several.
+- Prefer `this.spatial.raycastFirst(...)` over `this.raycast(...)`, because
+  raycast is one synchronous spatial query among several and should declare its
+  query source/fallback policy.
 
 Reactive systems should be first-class:
 
@@ -517,8 +518,9 @@ export default class SelectSystem extends createSystem({
       const ray = this.cameras.main.rayFromPointer(
         this.input.pointer.primary.position.value,
       );
-      const hit = this.spatial.raycast(ray, {
+      const hit = this.spatial.raycastFirst(ray, {
         query: this.queries.selectable,
+        source: "bounds",
       });
 
       this.signals.selectedEntity.value = hit?.entity.ref ?? null;
@@ -957,7 +959,8 @@ The proposed beginner-facing surface is intentionally small:
 - `this.spawn.light(options)`.
 - `this.spawn.mesh(options)`.
 - `this.spawn.gltf(handle, options?)`.
-- `this.spatial.raycast(ray, options?)`.
+- `this.spatial.raycastFirst(ray, options?)`.
+- `this.spatial.raycastAll(ray, options?)`.
 - `this.cameras.main`, `this.cameras.active`, `this.cameras.byKey(key)`.
 - `this.effects.watch(signal, callback, options?)`.
 - `this.effects.onQueryEnter(query, callback, options?)`.

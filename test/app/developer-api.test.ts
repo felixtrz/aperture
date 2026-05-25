@@ -460,6 +460,7 @@ describe("developer-facing app API", () => {
     );
     const queryMesh = queryMeshReport.mesh;
     const hits: unknown[] = [];
+    const allHits: unknown[][] = [];
 
     expect(queryMeshReport.diagnostics).toEqual([]);
     expect(queryMesh).not.toBeNull();
@@ -485,6 +486,12 @@ describe("developer-facing app API", () => {
               layerMask: 0b0010,
               pickable: { enabled: true, layerMask: 0b0010 },
             },
+            {
+              entity,
+              worldAabb: { min: [-1, -1, 0], max: [1, 1, 0] },
+              layerMask: 0b0100,
+              pickable: { enabled: true, layerMask: 0b0100 },
+            },
           ]);
           this.spatial.setMeshes([
             {
@@ -492,7 +499,11 @@ describe("developer-facing app API", () => {
               mesh: queryMesh,
               bvh: createMeshBvh(queryMesh),
               layerMask: 0b0010,
-              pickable: { enabled: true, mode: "mesh", layerMask: 0b0010 },
+              pickable: {
+                enabled: true,
+                precision: "visual-mesh",
+                layerMask: 0b0010,
+              },
             },
             {
               entity,
@@ -504,7 +515,11 @@ describe("developer-facing app API", () => {
                 [0.1, 0.1, 0.1],
               ),
               layerMask: 0b1000,
-              pickable: { enabled: true, mode: "mesh", layerMask: 0b1000 },
+              pickable: {
+                enabled: true,
+                precision: "visual-mesh",
+                layerMask: 0b1000,
+              },
             },
             {
               entity,
@@ -512,7 +527,11 @@ describe("developer-facing app API", () => {
               bvh: createMeshBvh(queryMesh),
               worldFromMesh: new Float32Array(16),
               layerMask: 0b10000,
-              pickable: { enabled: true, mode: "mesh", layerMask: 0b10000 },
+              pickable: {
+                enabled: true,
+                precision: "visual-mesh",
+                layerMask: 0b10000,
+              },
             },
             {
               entity,
@@ -524,51 +543,77 @@ describe("developer-facing app API", () => {
                 [10, 10, 10],
               ),
               layerMask: 0b100000,
-              pickable: { enabled: true, mode: "mesh", layerMask: 0b100000 },
+              pickable: {
+                enabled: true,
+                precision: "visual-mesh",
+                layerMask: 0b100000,
+              },
             },
           ]);
           hits.push(
-            this.spatial.raycast(
+            this.spatial.raycastFirst(
               { origin: [0.25, 0.1, 1], direction: [0, 0, -1] },
-              { mode: "mesh", layerMask: 0b0010 },
+              { source: "visual-mesh", layerMask: 0b0010 },
             ),
           );
           hits.push(
-            this.spatial.raycast(
+            this.spatial.raycastFirst(
               { origin: [0.25, 0.1, 1], direction: [0, 0, -1] },
-              { mode: "bounds", layerMask: 0b0010 },
+              { source: "bounds", layerMask: 0b0010 },
             ),
           );
           hits.push(
-            this.spatial.raycast(
+            this.spatial.raycastFirst(
               { origin: [0.25, 0.1, 1], direction: [0, 0, -1] },
-              { mode: "mesh", layerMask: 0b0100 },
+              { source: "visual-mesh", layerMask: 0b0100 },
             ),
           );
           hits.push(
-            this.spatial.raycast(
+            this.spatial.raycastFirst(
               { origin: [0.25, 0.1, 1], direction: [0, 0, -1] },
-              { mode: "mesh", layerMask: 0b0010, filter: () => false },
+              { source: "visual-mesh", fallback: "bounds", layerMask: 0b0100 },
             ),
           );
           hits.push(
-            this.spatial.raycast(
+            this.spatial.raycastFirst(
+              { origin: [0.25, 0.1, 1], direction: [0, 0, -1] },
+              { source: "visual-mesh", layerMask: 0b0010, filter: () => false },
+            ),
+          );
+          hits.push(
+            this.spatial.raycastFirst(
               { origin: [0.025, 0.01, 1], direction: [0, 0, -1] },
-              { mode: "mesh", layerMask: 0b1000, maxDistance: 2 },
+              { source: "visual-mesh", layerMask: 0b1000, maxDistance: 2 },
             ),
           );
           hits.push(
-            this.spatial.raycast(
+            this.spatial.raycastFirst(
               { origin: [0.025, 0.01, 1], direction: [0, 0, -1] },
-              { mode: "mesh", layerMask: 0b10000 },
+              { source: "visual-mesh", layerMask: 0b10000 },
             ),
           );
           hits.push(
-            this.spatial.raycast(
+            this.spatial.raycastFirst(
               { origin: [0.025, 0.01, 1], direction: [0, 0, -1] },
-              { mode: "mesh", layerMask: 0b100000, maxDistance: 2 },
+              { source: "visual-mesh", layerMask: 0b100000, maxDistance: 2 },
             ),
           );
+          allHits.push([
+            ...this.spatial.raycastAll(
+              { origin: [0.25, 0.1, 1], direction: [0, 0, -1] },
+              { source: "visual-mesh", layerMask: 0b0010 },
+            ),
+          ]);
+          allHits.push([
+            ...this.spatial.raycastAll(
+              { origin: [0.25, 0.1, 1], direction: [0, 0, -1] },
+              {
+                source: "visual-mesh",
+                fallback: "bounds",
+                layerMask: 0b0100,
+              },
+            ),
+          ]);
         }
       },
       schedule: { priority: 0 },
@@ -596,18 +641,35 @@ describe("developer-facing app API", () => {
       distance: 1,
     });
     expect(hits[2]).toBeNull();
-    expect(hits[3]).toBeNull();
-    expect(hits[4]).toMatchObject({
+    expect(hits[3]).toMatchObject({
+      source: "bounds",
+      distance: 1,
+    });
+    expect(hits[4]).toBeNull();
+    expect(hits[5]).toMatchObject({
       source: "mesh-bvh",
       distance: 1,
       faceIndex: 0,
     });
-    expect(hits[5]).toBeNull();
-    expect(hits[6]).toMatchObject({
+    expect(hits[6]).toBeNull();
+    expect(hits[7]).toMatchObject({
       source: "mesh-bvh",
       distance: 1,
       faceIndex: 0,
     });
+    expect(allHits[0]).toEqual([
+      expect.objectContaining({
+        source: "mesh-bvh",
+        distance: 1,
+        faceIndex: 0,
+      }),
+    ]);
+    expect(allHits[1]).toEqual([
+      expect.objectContaining({
+        source: "bounds",
+        distance: 1,
+      }),
+    ]);
   });
 
   it("loads and replays config-declared GLB assets through the system spawn helper", async () => {

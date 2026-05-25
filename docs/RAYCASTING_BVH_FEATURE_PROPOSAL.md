@@ -9,11 +9,12 @@ Implementation note:
 - The renderer-independent core lives in `@aperture-engine/simulation` under
   `spatial/`.
 - `@aperture-engine/render` provides a thin `MeshAsset` CPU-buffer adapter.
-- `@aperture-engine/app/systems` exposes worker-side mesh queries through
+- `@aperture-engine/app/systems` exposes synchronous logic-side mesh queries through
   `this.spatial.setMeshes(...)` and
-  `this.spatial.raycast(ray, { mode: "mesh" })`.
-- `mesh-bvh-worker` defines a worker-like build message contract for async
-  off-thread BVH generation and serialized BVH handoff.
+  `this.spatial.raycastFirst(ray, { source: "visual-mesh" })`.
+- A separate BVH worker path was intentionally removed. BVH build/update work is
+  same-thread simulation asset preparation, and gameplay query APIs do not return
+  promises.
 
 ## Summary
 
@@ -34,12 +35,12 @@ three.js's built-in `Raycaster`.
 The recommended feature is a data-oriented Aperture BVH system that supports:
 
 - exact mesh raycasts and first-hit raycasts;
-- shapecast traversal over custom volumes;
+- BVH traversal over custom volumes;
 - sphere, box, capsule/segment, frustum, and triangle/mesh queries;
 - closest point to point, segment, and mesh;
 - BVH-vs-BVH overlap queries;
 - object/entity-level scene BVH over ECS entities;
-- static mesh BVHs with versioned cache and optional worker/SAB build;
+- static mesh BVHs with versioned same-thread cache and refit/rebuild policy;
 - refit for limited vertex deformation and rebuild for larger topology changes;
 - JSON-safe diagnostics and stats;
 - no renderer-owned scene graph and no dependence on three.js classes.
@@ -185,17 +186,18 @@ Findings:
 - Mesh BVH supports `raycast`, `raycastFirst`, `intersectsSphere`,
   `intersectsBox`, `intersectsGeometry`, `closestPointToPoint`,
   `closestPointToGeometry`, `shapecast`, `bvhcast`, `refit`, traversal,
-  serialization, and deserialization.
+  serialization, and deserialization in the reference library.
 - `raycastFirst` traverses the near child first based on split axis and ray
   direction, then skips the far child when the first hit proves it cannot
   contain a closer result.
-- `shapecast` is the central abstraction. Callbacks decide whether node bounds
-  are not intersected, intersected, or contained; leaf/range callbacks can stop
-  traversal; optional ordering callbacks improve nearest/closest queries.
+- `three-mesh-bvh` uses `shapecast` as its central traversal abstraction.
+  Aperture maps that idea to `visitMeshBvh` so public `shape cast` terminology
+  can mean swept shape queries.
 - Specialized BVHs exist for triangle meshes, points, line segments, line loops,
   lines, skinned meshes, and object hierarchies.
-- Worker builders support asynchronous generation. Parallel generation uses
-  `SharedArrayBuffer` when available and falls back to a single-worker builder.
+- Worker builders exist in `three-mesh-bvh`, but Aperture intentionally does not
+  copy that runtime shape because its gameplay queries stay in the simulation
+  context.
 - There are WebGPU shader query helpers, but the CPU BVH is the more immediate
   fit for Aperture's ECS simulation and tooling needs.
 
@@ -220,8 +222,9 @@ Aperture-native, typed-array BVH with comparable query coverage.
 
 ## Package Boundary Requirement
 
-Raycasting, shapecasting, closest-point, overlap, BVH build, serialization, and
-refit logic must not depend on the render world or WebGPU package.
+Raycasting, BVH traversal, closest-point, overlap, swept shape cast, BVH build,
+serialization/debug snapshots, and refit logic must not depend on the render
+world or WebGPU package.
 
 The core implementation should live in `@aperture-engine/simulation` or a new
 renderer-independent `@aperture-engine/spatial` package. It may depend on the
@@ -245,7 +248,8 @@ screen-space coordinates. The generated browser bootstrap should forward those
 inputs as commands/signals to the simulation worker, where systems derive rays
 from ECS-authored cameras and run spatial queries. Main-thread
 `WebGpuApp.pick(x, y)` remains a separate visual ID-buffer convenience derived
-from render snapshots; it must not be the authoritative raycast/shapecast path.
+from render snapshots; it must not be the authoritative raycast/shape-query
+path.
 
 ## Proposed Public Concepts
 
@@ -255,7 +259,7 @@ from render snapshots; it must not be the authoritative raycast/shapecast path.
 interface Pickable {
   enabled?: boolean;
   layerMask?: number;
-  mode?: "bounds" | "mesh" | "collider";
+  precision?: "bounds" | "visual-mesh" | "collider";
   blocksLower?: boolean;
   priority?: number;
 }
@@ -278,8 +282,8 @@ policy. Neither contains WebGPU state.
 interface SpatialRaycastOptions {
   maxDistance?: number;
   layerMask?: number;
-  mode?: "bounds" | "mesh" | "best";
-  firstHitOnly?: boolean;
+  source?: "bounds" | "visual-mesh" | "collider";
+  fallback?: "none" | "bounds";
   includeBackfaces?: boolean;
   includeUv?: boolean;
   includeNormal?: boolean;
@@ -301,8 +305,10 @@ interface SpatialRaycastHit {
 }
 ```
 
-The existing `this.spatial.raycast(...)` should remain, but it should gain
-`mode: "mesh" | "best"` and return richer mesh hits when BVHs are available.
+Systems call `this.spatial.raycastFirst(...)` for the common immediate gameplay
+query and `this.spatial.raycastAll(...)` when they need all sorted hits. Query
+options use explicit `source` and `fallback` fields rather than a vague
+"best available" mode switch.
 
 ### BVH Asset API
 
@@ -312,13 +318,12 @@ interface MeshBvhBuildOptions {
   maxDepth?: number;
   maxLeafSize?: number;
   indirect?: boolean;
-  useSharedArrayBuffer?: boolean;
 }
 
 interface MeshBvhQuery {
   raycast(ray: Ray, options?: MeshBvhRaycastOptions): MeshBvhHit[];
   raycastFirst(ray: Ray, options?: MeshBvhRaycastOptions): MeshBvhHit | null;
-  shapecast(callbacks: MeshBvhShapecastCallbacks): boolean;
+  visitMeshBvh(callbacks: MeshBvhVisitCallbacks): boolean;
   intersectsSphere(sphere: BoundingSphere): boolean;
   intersectsBox(box: Aabb, boxToMesh?: Mat4Like): boolean;
   closestPointToPoint(
@@ -335,15 +340,17 @@ This should live in a renderer-independent package, likely
 if the module grows. The BVH consumes source mesh CPU buffers and transform
 data, not GPU buffers.
 
-### Shapecast API
+### BVH Traversal API
 
-`shapecast` should be explicit from the first BVH slice. It is the feature that
-turns raycasting into a general spatial query system.
+BVH callback traversal should be explicit from the first BVH slice. It is the
+low-level feature that turns raycasting into a general spatial query system. The
+public gameplay term `shape cast` is reserved for swept shape queries, so the
+advanced callback API uses `visitMeshBvh`.
 
 ```ts
 type BvhShapeIntersection = "not-intersected" | "intersected" | "contained";
 
-interface MeshBvhShapecastCallbacks {
+interface MeshBvhVisitCallbacks {
   intersectsBounds(
     bounds: Aabb,
     info: { isLeaf: boolean; depth: number; nodeIndex: number; score?: number },
@@ -415,18 +422,21 @@ Default policy:
 - Skinned/morphed meshes: initially use bounds or simplified query meshes; add
   skinned/refit support later.
 
-### Worker And Shared Memory
+### Build And Readiness
 
-BVH build should be worker-capable:
+BVH build should be simulation-thread work:
 
-- synchronous builder for tests and small meshes;
-- async worker builder for large assets;
-- SAB option where available to avoid buffer copies;
-- serialized BVH handoff through the existing worker/snapshot discipline;
-- progress and cancellation for large GLB imports.
+- synchronous builder for tests, small meshes, and deterministic systems;
+- scheduled same-thread asset preparation for larger assets;
+- optional budgeted preparation across simulation ticks if startup cost becomes a
+  problem;
+- explicit readiness diagnostics and bounds/collider fallback policy when exact
+  visual mesh data is unavailable;
+- no separate BVH worker, transferable buffer protocol, SAB-specific handoff, or
+  Promise-returning gameplay queries.
 
-This matches Aperture's worker-by-default direction and avoids blocking the
-main thread during model load.
+This matches Aperture's worker-by-default app direction while keeping BVH
+queries with the ECS logic that uses them.
 
 ### Query Ownership
 
@@ -478,14 +488,14 @@ Acceptance:
 - SAH tree reports lower or equal traversal pressure than center split on an
   uneven fixture.
 
-### Slice 4: Shapecast And Derived Shape Queries
+### Slice 4: BVH Traversal And Derived Shape Queries
 
-Add shapecast callbacks and derive sphere, AABB/OBB, capsule/segment, frustum,
-and closest-point queries.
+Add BVH traversal callbacks and derive sphere, AABB/OBB, capsule/segment,
+frustum, and closest-point queries.
 
 Acceptance:
 
-- shapecast can early-out on contained bounds;
+- BVH traversal can early-out on contained bounds;
 - sphere and box overlap match brute-force triangle fixtures;
 - closest point queries match brute-force results within epsilon;
 - line/capsule selection fixture demonstrates non-ray query value.
@@ -496,22 +506,24 @@ Wire BVH queries into `this.spatial`.
 
 Acceptance:
 
-- systems can call `this.spatial.raycast(ray, { mode: "mesh" })`;
+- systems can call
+  `this.spatial.raycastFirst(ray, { source: "visual-mesh" })`;
+- systems can call `this.spatial.raycastAll(...)` for all sorted hits;
 - entities still filter by `Pickable`, layers, visibility, and optional
   callbacks;
 - worker-side developer API selection can hit triangle-accurate geometry;
 - current bounds-only behavior remains available and tested.
 
-### Slice 6: Worker Build, Cache, Refit, And Diagnostics
+### Slice 6: Cache, Refit, Readiness, And Diagnostics
 
-Add async build path, per-asset cache, mesh-version invalidation, optional
-`refit`, and JSON-safe diagnostics.
+Add per-asset cache, mesh-version invalidation, optional `refit`, same-thread
+readiness policy, and JSON-safe diagnostics.
 
 Acceptance:
 
-- large GLB mesh BVH builds off the main thread;
 - cache key includes mesh handle, version, primitive ranges, and build options;
 - changed vertex data can refit or trigger rebuild according to policy;
+- no worker/SAB/transferable BVH build API is exposed;
 - diagnostics report missing BVH, stale BVH, unsupported topology, unsupported
   skinned/morphed exact query, build time, memory estimate, and traversal stats.
 
@@ -533,7 +545,7 @@ Minimum JSON-safe report fields:
 interface SpatialQueryReport {
   queryId: string;
   source: "bounds" | "mesh-bvh" | "id-buffer" | "physics";
-  mode: "bounds" | "mesh" | "best";
+  fallback: "none" | "bounds";
   candidateEntityCount: number;
   testedEntityCount: number;
   testedPrimitiveCount: number;
@@ -561,8 +573,9 @@ Diagnostics should use stable codes:
 - Do not use renderer WebGPU buffers as CPU query input.
 - Do not make GPU ID picking the only picking implementation.
 - Do not require a physics engine for exact visual mesh queries.
-- Do not block GLB loading or startup on large synchronous BVH builds when a
-  worker path is available.
+- Do not introduce a separate BVH worker or async gameplay query path.
+- Do not hide unavailable exact mesh data; report readiness and use explicit
+  fallback policy.
 - Do not add full CSG or physics collision response as part of this proposal.
 
 ## Recommendation
@@ -577,5 +590,5 @@ Aperture-native architecture":
 
 - Bevy for ECS/backend/pointer-ray architecture.
 - PlayCanvas for keeping visual ID picking separate from physics queries.
-- three-mesh-bvh for acceleration, shapecast, closest-point, serialization,
-  worker build, and refit capability.
+- three-mesh-bvh for acceleration, BVH traversal, closest-point, debug/cache
+  serialization, and refit capability.

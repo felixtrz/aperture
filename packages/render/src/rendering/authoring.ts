@@ -50,13 +50,14 @@ export const FogMode = {
 
 export type FogMode = (typeof FogMode)[keyof typeof FogMode];
 
-export const PickableMode = {
+export const PickablePrecision = {
   Bounds: "bounds",
-  Mesh: "mesh",
+  VisualMesh: "visual-mesh",
   Collider: "collider",
 } as const;
 
-export type PickableMode = (typeof PickableMode)[keyof typeof PickableMode];
+export type PickablePrecision =
+  (typeof PickablePrecision)[keyof typeof PickablePrecision];
 
 export const MeshQueryAccelerationMode = {
   None: "none",
@@ -159,7 +160,7 @@ export interface FogInput {
 export interface PickableInput {
   readonly enabled?: boolean;
   readonly layerMask?: number;
-  readonly mode?: PickableMode;
+  readonly precision?: PickablePrecision;
   readonly blocksLower?: boolean;
   readonly priority?: number;
 }
@@ -331,10 +332,10 @@ export const Pickable = defineComponent(
   {
     enabled: { type: EcsType.Boolean, default: true },
     layerMask: { type: EcsType.Int32, default: 1 },
-    mode: {
+    precision: {
       type: EcsType.Enum,
-      enum: PickableMode,
-      default: PickableMode.Bounds,
+      enum: PickablePrecision,
+      default: PickablePrecision.Bounds,
     },
     blocksLower: { type: EcsType.Boolean, default: false },
     priority: { type: EcsType.Int32, default: 0 },
@@ -537,7 +538,7 @@ export function createPickable(
   return {
     enabled: input.enabled ?? true,
     layerMask: input.layerMask ?? 1,
-    mode: input.mode ?? PickableMode.Bounds,
+    precision: input.precision ?? PickablePrecision.Bounds,
     blocksLower: input.blocksLower ?? false,
     priority: input.priority ?? 0,
   };

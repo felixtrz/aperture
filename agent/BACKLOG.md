@@ -59,9 +59,11 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-The active `docs/RAYCASTING_BVH_FEATURE_PROPOSAL.md` implementation goal is
-complete. Resume the post-SOTA visible-feature queue at `task-3166`: add a
-split-screen multi-camera route.
+The active spatial-query reshape goal is complete. The BVH worker surface and
+async cache/build path are gone; spatial gameplay queries now use synchronous
+`raycastFirst`/`raycastAll` with explicit `source`/`fallback` policy. Resume the
+post-SOTA visible-feature queue at `task-3166`: add a split-screen multi-camera
+route.
 
 The next ready visible-feature queue is:
 

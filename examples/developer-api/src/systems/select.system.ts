@@ -30,8 +30,9 @@ export default class SelectSystem extends SelectSystemBase {
       const ray = this.cameras.main.rayFromPointer(
         this.input.pointer.primary.position.value,
       );
-      const hit = this.spatial.raycast(ray, {
+      const hit = this.spatial.raycastFirst(ray, {
         query: this.queries.crates,
+        source: "bounds",
         maxDistance: 5,
       });
 

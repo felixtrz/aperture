@@ -16,7 +16,7 @@ import {
   MeshQueryAccelerationStrategy,
   MeshQueryDynamicPolicy,
   Pickable,
-  PickableMode,
+  PickablePrecision,
   RenderLayer,
   RenderOrder,
   ShadowCaster,
@@ -91,7 +91,7 @@ describe("render authoring ECS components", () => {
       createPickable({
         enabled: true,
         layerMask: 0b0101,
-        mode: PickableMode.Mesh,
+        precision: PickablePrecision.VisualMesh,
         blocksLower: true,
         priority: 7,
       }),
@@ -110,7 +110,9 @@ describe("render authoring ECS components", () => {
 
     expect(query.entities.has(entity)).toBe(true);
     expect(entity.getValue(Pickable, "layerMask")).toBe(0b0101);
-    expect(entity.getValue(Pickable, "mode")).toBe(PickableMode.Mesh);
+    expect(entity.getValue(Pickable, "precision")).toBe(
+      PickablePrecision.VisualMesh,
+    );
     expect(entity.getValue(Pickable, "blocksLower")).toBe(true);
     expect(entity.getValue(Pickable, "priority")).toBe(7);
     expect(entity.getValue(MeshQueryAcceleration, "mode")).toBe(

@@ -1,6 +1,69 @@
 # Agent Handoff
 
-Updated: 2026-05-25T20:24:41Z
+Updated: 2026-05-25T22:11:05Z
+
+## Current Run Update — 2026-05-25T22:11:05Z — Spatial query reshape
+
+Completed the no-separate-BVH-worker reshape requested after the original
+raycasting/BVH slice.
+
+### What changed
+
+- Added `docs/SPATIAL_QUERY_RESHAPE_PROPOSAL.md` with the deliberate
+  from-scratch direction: CPU spatial queries are synchronous logic/simulation
+  subsystem calls, not async query promises or a separate BVH worker protocol.
+- Deleted the runtime BVH worker module and removed its public export, worker
+  message helpers, transfer-list helpers, async build function, async cache
+  method, and `useSharedArrayBuffer` BVH build option.
+- Renamed the public low-level BVH callback traversal API from `shapecast` to
+  `visitMeshBvh`, leaving "shape cast" terminology available for future swept
+  sphere/capsule/box gameplay queries.
+- Extracted the app spatial query facade into
+  `packages/app/src/spatial-queries.ts` and changed system access to
+  `this.spatial.raycastFirst(...)` / `this.spatial.raycastAll(...)` with
+  explicit `source: "bounds" | "visual-mesh" | "collider"` and
+  `fallback: "none" | "bounds"` policy.
+- Renamed render authoring `Pickable.mode` to `Pickable.precision` and the mesh
+  pick option to `"visual-mesh"` so the public API describes query precision
+  instead of a hidden "best" mode.
+- Updated architecture, decision, authoring, developer API, raycasting proposal,
+  public tracker, current task, backlog, and tests to reflect the synchronous
+  no-worker shape.
+
+### Validation
+
+- `pnpm exec vitest run test/app/spatial-queries.test.ts test/app/developer-api.test.ts --coverage.enabled --coverage.provider=v8 --coverage.reporter=text --coverage.include='packages/app/src/spatial-queries.ts'`
+  — 100% statements, branches, functions, and lines for the extracted spatial
+  query facade.
+- `pnpm exec vitest run test/app/spatial-queries.test.ts test/app/developer-api.test.ts test/spatial/mesh-bvh.test.ts test/rendering/components.test.ts --reporter=verbose`
+  — 45 passed.
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run build`
+- `pnpm run check:boundaries`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check <touched files>`
+- `pnpm exec eslint packages/simulation/src/spatial/mesh-bvh.ts packages/app/src/spatial-queries.ts packages/app/src/systems.ts packages/render/src/rendering/authoring.ts test/app/spatial-queries.test.ts test/app/developer-api.test.ts test/rendering/components.test.ts test/spatial/mesh-bvh.test.ts examples/developer-api/src/systems/select.system.ts`
+  — passed for lintable touched files; ESLint warns that the example system is
+  ignored by the current config.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` was rerun and still fails in the unrelated WebGPU
+  draw-package/resource-key expectation area noted in the previous handoff: 9
+  failed files, 29 failed tests. The focused spatial/app/render tests pass.
+- Full-repo `pnpm run lint` was rerun and still fails outside this slice in
+  `packages/app/src/asset-mirror.ts`, `packages/webgpu/src/webgpu/draw-command.ts`,
+  `packages/webgpu/src/webgpu/standard-shader.ts`, and
+  `scripts/render-control.mjs`. Touched-file lint is clean after replacing two
+  expression-only stats increments in `mesh-bvh.ts`.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Resume the render-pipeline visible-feature queue at `task-3166`: add a
+split-screen multi-camera route.
 
 ## Current Run Update — 2026-05-25T20:24:41Z — Raycasting/BVH review and commit prep
 

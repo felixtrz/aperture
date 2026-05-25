@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "223f2d5",
   "activePid": null,
-  "notes": "Reviewed and tightened docs/RAYCASTING_BVH_FEATURE_PROPOSAL.md implementation before commit. Fixed transformed mesh max-distance handling, BVH firstHitOnly Infinity handling, bidirectional mesh transform inversion, and MeshBvhCache invalidation across all versioned keys. Expanded focused tests to 42 passing changed-area tests; build, test typecheck, boundary/progress, formatting, and focused coverage run pass. Focused coverage over new spatial files is 94.89% statements / 94.77% lines; full pnpm test still fails unrelated WebGPU expectations.",
-  "lastRunFinishedAt": "2026-05-25T20:25:09Z"
+  "notes": "Completed spatial-query reshape: removed separate BVH worker and async cache/build path, renamed BVH traversal to visitMeshBvh, extracted synchronous app spatial query facade with raycastFirst/raycastAll source/fallback policy, and documented the no-worker architecture. Focused spatial query facade coverage is 100%; targeted tests, typecheck, build, package boundaries, progress, formatting, and touched-file lint pass. Full pnpm test and full lint still fail in unrelated pre-existing WebGPU/lint areas documented in handoff.",
+  "lastRunFinishedAt": "2026-05-25T22:15:40Z"
 }

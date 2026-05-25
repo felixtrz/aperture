@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## spatial-query-reshape — Remove separate BVH worker path
+
+Completed: 2026-05-25
+
+Summary:
+
+- Added `docs/SPATIAL_QUERY_RESHAPE_PROPOSAL.md` documenting the deliberate
+  no-separate-BVH-worker direction and the optimal synchronous spatial-query
+  architecture from scratch.
+- Removed `packages/simulation/src/spatial/mesh-bvh-worker.ts`, its package
+  export, worker message helpers, transfer-list helpers, async BVH build/cache
+  APIs, and the `useSharedArrayBuffer` BVH build option.
+- Renamed public low-level BVH callback traversal from `shapecast` to
+  `visitMeshBvh`.
+- Extracted `packages/app/src/spatial-queries.ts` and exposed synchronous
+  `raycastFirst`/`raycastAll` with explicit `source` and `fallback` options.
+- Renamed `Pickable.mode` to `Pickable.precision` and changed exact visual mesh
+  participation to `"visual-mesh"`.
+
+Validation:
+
+- `pnpm exec vitest run test/app/spatial-queries.test.ts test/app/developer-api.test.ts --coverage.enabled --coverage.provider=v8 --coverage.reporter=text --coverage.include='packages/app/src/spatial-queries.ts'`
+  — 100% statements, branches, functions, and lines for the extracted spatial
+  query facade.
+- `pnpm exec vitest run test/app/spatial-queries.test.ts test/app/developer-api.test.ts test/spatial/mesh-bvh.test.ts test/rendering/components.test.ts --reporter=verbose`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run build`
+- `pnpm run check:boundaries`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check <touched files>`
+- `pnpm exec eslint <touched lintable files>`
+
 ## raycast-bvh — Implement raycasting and BVH spatial query proposal
 
 Completed: 2026-05-25
