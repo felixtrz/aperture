@@ -6,6 +6,13 @@ import {
 import type { ApertureConfig } from "./config.js";
 import { createApertureApp, type ApertureSystemModule } from "./advanced.js";
 import { serializeSourceAssetRegistry } from "./asset-mirror.js";
+import {
+  applyGeneratedInputEvent,
+  createInputSummary,
+  isGeneratedInputEventMessage,
+  type ApertureGeneratedInputEventMessage,
+} from "./input.js";
+import type { ApertureApp } from "./advanced.js";
 
 export interface StartGeneratedSimulationWorkerOptions {
   readonly config: ApertureConfig;
@@ -32,8 +39,24 @@ function attachWorkerPort(
   },
 ): void {
   const port = options.port;
+  const pendingInput: ApertureGeneratedInputEventMessage[] = [];
+  let app: ApertureApp | null = null;
+
   port.addEventListener("message", (event: MessageEvent<unknown>) => {
     const message = event.data;
+
+    if (isGeneratedInputEventMessage(message)) {
+      if (app === null) {
+        pendingInput.push(message);
+      } else {
+        applyGeneratedInputEvent({
+          signals: app.context.input,
+          config: options.config,
+          event: message.event,
+        });
+      }
+      return;
+    }
 
     if (!isStartMessage(message)) {
       return;
@@ -44,6 +67,17 @@ function attachWorkerPort(
       config: options.config,
       systems: options.systems,
       start: message,
+      setApp(nextApp) {
+        app = nextApp;
+
+        for (const pending of pendingInput.splice(0)) {
+          applyGeneratedInputEvent({
+            signals: nextApp.context.input,
+            config: options.config,
+            event: pending.event,
+          });
+        }
+      },
     });
   });
   port.start?.();
@@ -54,6 +88,7 @@ async function runLoop(options: {
   readonly config: ApertureConfig;
   readonly systems: readonly ApertureSystemModule[];
   readonly start: SimulationWorkerStartOptions;
+  readonly setApp: (app: ApertureApp) => void;
 }): Promise<void> {
   try {
     const app = await createApertureApp({
@@ -64,6 +99,7 @@ async function runLoop(options: {
           ? undefined
           : { entityCapacity: options.start.entityCapacity },
     });
+    options.setApp(app);
     let frame = 0;
     let running = true;
     let previousTime = performance.now();
@@ -82,6 +118,10 @@ async function runLoop(options: {
         type: SIMULATION_WORKER_PROTOCOL.snapshot,
         snapshot,
         sourceAssets: serializeSourceAssetRegistry(app.lowLevel.assets),
+        workerSummary: {
+          input: createInputSummary(app.context.input),
+          diagnostics: app.context.diagnostics.list(),
+        },
         frame,
       });
       frame += 1;

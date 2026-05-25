@@ -60,22 +60,15 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 Active goal override is in effect for
-`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3171`: forward generated
-browser input events into worker-owned `this.input` signals and prove a
-reactive system can mutate ECS through `this.effects.watch(...)`. This is the
-next visible slice because `task-3170` now proves config-declared GLB assets
-load, register, mirror, and replay through `this.spawn.gltf(...)`, while
-browser input forwarding remains the largest missing Phase 3 acceptance gap.
+`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3172`: expose a config-driven
+headless runner for developer API systems. This is the next visible slice
+because `task-3171` now proves generated browser input reaches worker-owned
+`this.input` signals and drives deterministic `this.effects.watch(...)` ECS
+mutation, while headless execution still depends on the advanced
+`createApertureApp(...)` API instead of a dedicated config-driven runner.
 
 The next ready visible-feature queue is:
 
-- `task-3171` — forward generated browser input events into worker-owned
-  `this.input` signals and prove a reactive system can mutate ECS through
-  `this.effects.watch(...)`.
-  Reference anchor: `references/engine/src/framework/app-base.js`.
-  Done when the developer API browser example exposes a pointer/keyboard action
-  proof, the mutation happens in the worker simulation phase, effects dispose on
-  system destroy, and no raw Preact `effect()` appears in docs or examples.
 - `task-3172` — expose a config-driven headless runner for developer API
   systems.
   Reference anchor: `references/bevy/examples/app/headless.rs`.
@@ -93,6 +86,14 @@ The next ready visible-feature queue is:
   developer API scene, rejects generation mismatches with actionable
   diagnostics, and is covered by headless tests using the same setup system
   shape.
+- `task-3174` — forward generated browser/UI commands into worker-owned
+  `this.commands` queues and prove a system can request a manual config asset
+  without importing loader reports or renderer registration code.
+  Reference anchor: `references/engine/src/framework/app-base.js`.
+  Done when the developer API browser example exposes a command proof, the
+  command is drained in a worker system, a `preload: "manual"` asset request is
+  observed through `this.assets` readiness/error signals, and browser status
+  reports the command/request result in JSON-safe form.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

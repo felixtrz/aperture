@@ -13,6 +13,10 @@ import {
 } from "@aperture-engine/webgpu";
 import { mirrorSourceAssetRegistryFromMessage } from "./asset-mirror.js";
 import { defineApertureConfig, type ApertureConfig } from "./config.js";
+import {
+  createGeneratedInputEventMessage,
+  type ApertureGeneratedInputEvent,
+} from "./input.js";
 
 export interface GeneratedBrowserSystemManifestEntry {
   readonly moduleUrl: string;
@@ -43,6 +47,8 @@ export interface GeneratedBrowserAppStatus {
   snapshots: number;
   mirroredSourceAssets: number;
   skippedSourceAssets: number;
+  forwardedInputEvents: number;
+  lastInputEvent: unknown;
   lastFrame: number | null;
   lastError: unknown;
   lastWorkerSummary: unknown;
@@ -62,6 +68,7 @@ export async function startGeneratedBrowserApp(
       ? {}
       : { workerFactory: options.workerFactory }),
   });
+  installGeneratedInputForwarding(canvas, worker, status);
   const mirroredWorker = mirrorSimulationWorkerSourceAssets(
     worker,
     sourceAssets,
@@ -119,8 +126,8 @@ function mirrorSimulationWorkerSourceAssets(
         status.skippedSourceAssets += mirror.skipped;
         status.lastWorkerSummary =
           typeof event.message === "object" && event.message !== null
-            ? (event.message as { readonly workerSummary?: unknown })
-                .workerSummary ?? null
+            ? ((event.message as { readonly workerSummary?: unknown })
+                .workerSummary ?? null)
             : null;
         callback(event);
       });
@@ -142,6 +149,8 @@ function installGeneratedStatus(): GeneratedBrowserAppStatus {
     snapshots: 0,
     mirroredSourceAssets: 0,
     skippedSourceAssets: 0,
+    forwardedInputEvents: 0,
+    lastInputEvent: null,
     lastFrame: null,
     lastError: null,
     lastWorkerSummary: null,
@@ -155,6 +164,90 @@ function installGeneratedStatus(): GeneratedBrowserAppStatus {
   ).__APERTURE_GENERATED_APP__ = status;
 
   return status;
+}
+
+function installGeneratedInputForwarding(
+  canvas: HTMLCanvasElement,
+  worker: SimulationWorker,
+  status: GeneratedBrowserAppStatus,
+): void {
+  if (!canvas.hasAttribute("tabindex")) {
+    canvas.tabIndex = 0;
+  }
+
+  canvas.addEventListener("pointermove", (event) => {
+    forwardInput(worker, status, {
+      kind: "pointer",
+      pointer: "primary",
+      position: pointerPosition(canvas, event),
+    });
+  });
+
+  canvas.addEventListener("pointerdown", (event) => {
+    canvas.focus();
+    canvas.setPointerCapture?.(event.pointerId);
+    forwardInput(worker, status, {
+      kind: "pointer",
+      pointer: "primary",
+      position: pointerPosition(canvas, event),
+      pressed: true,
+    });
+  });
+
+  canvas.addEventListener("pointerup", (event) => {
+    canvas.releasePointerCapture?.(event.pointerId);
+    forwardInput(worker, status, {
+      kind: "pointer",
+      pointer: "primary",
+      position: pointerPosition(canvas, event),
+      pressed: false,
+    });
+  });
+
+  window.addEventListener("keydown", (event) => {
+    if (event.repeat) {
+      return;
+    }
+
+    forwardInput(worker, status, {
+      kind: "keyboard",
+      key: event.code || event.key,
+      pressed: true,
+    });
+  });
+
+  window.addEventListener("keyup", (event) => {
+    forwardInput(worker, status, {
+      kind: "keyboard",
+      key: event.code || event.key,
+      pressed: false,
+    });
+  });
+}
+
+function forwardInput(
+  worker: SimulationWorker,
+  status: GeneratedBrowserAppStatus,
+  event: ApertureGeneratedInputEvent,
+): void {
+  worker.postMessage(createGeneratedInputEventMessage(event));
+  status.forwardedInputEvents += 1;
+  status.lastInputEvent = event;
+}
+
+function pointerPosition(
+  canvas: HTMLCanvasElement,
+  event: PointerEvent,
+): readonly [number, number] {
+  const rect = canvas.getBoundingClientRect();
+  const x = rect.width <= 0 ? 0 : (event.clientX - rect.left) / rect.width;
+  const y = rect.height <= 0 ? 0 : (event.clientY - rect.top) / rect.height;
+
+  return [clamp01(x), clamp01(y)];
+}
+
+function clamp01(value: number): number {
+  return Math.min(1, Math.max(0, value));
 }
 
 function resolveCanvas(config: ApertureConfig): HTMLCanvasElement {

@@ -393,23 +393,27 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-25 04:27 UTC</dd>
+            <dd>2026-05-25 04:39 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the developer-facing Vite app now replays
-              config-declared GLB assets through the generated runtime. The
-              setup system authors camera, lights, a primitive crate, and
+              Latest update: the developer-facing Vite app now forwards
+              generated browser input into worker-owned
+              <code>this.input</code> signals. The setup system authors camera,
+              lights, a primitive crate, and
               <code>this.spawn.gltf(this.assets.gltf("robot"))</code> from
               <code>init()</code>; blocking GLB preload registers source mesh
               and material assets before startup; the generated runtime mirrors
-              worker source assets to the renderer; and
-              <code>test/e2e/developer-api.spec.ts</code> proves one generated
-              view, two mesh draws, two WebGPU draw calls, zero frame
-              diagnostics, and non-clear canvas pixels without user-authored
-              loader reports, transfer packages, renderer registration, or
-              main-thread renderer wiring. The first developer-facing app API
+              worker source assets to the renderer; and the reactive select
+              system mutates ECS <code>DebugMetadata</code> through
+              <code>this.effects.watch(...)</code>. The focused Playwright
+              proof presses the generated canvas and verifies one generated
+              view, two mesh draws, two WebGPU draw calls, forwarded input
+              status, the worker mutation diagnostic, zero frame diagnostics,
+              and non-clear canvas pixels without user-authored loader reports,
+              transfer packages, renderer registration, or main-thread renderer
+              wiring. The first developer-facing app API
               slice remains in place: <code>@aperture-engine/app/config</code>,
               <code>@aperture-engine/app/systems</code>,
               <code>@aperture-engine/app/advanced</code>, and
@@ -4983,15 +4987,19 @@
                 produces loaded GLB renderables instead of placeholder metadata.
               </li>
               <li>
-                <span class="badge">task-3171</span> Next: forward generated
+                <span class="badge green">task-3171</span> Done: generated
                 browser input into worker-owned <code>this.input</code> signals
-                and prove a reactive <code>this.effects.watch(...)</code>
+                now drives a reactive <code>this.effects.watch(...)</code> ECS
                 mutation path.
               </li>
               <li>
-                <span class="badge">task-3172</span> Then: expose a
+                <span class="badge">task-3172</span> Next: expose a
                 config-driven headless runner/helper for developer API systems
                 using the same system files as the browser example.
+              </li>
+              <li>
+                <span class="badge">task-3173</span> Then: publish JSON-safe
+                entity lookup summaries for config/system-spawned entities.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5010,6 +5018,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3171</div>
+            <div>
+              <strong>Developer API input forwarding shipped.</strong>
+              <span>
+                Generated browser pointer/keyboard events now reach worker
+                <code>this.input</code> signals; the select system mutates ECS
+                metadata through <code>this.effects.watch(...)</code>, and
+                Playwright verifies forwarded input plus the worker mutation
+                diagnostic.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3170</div>
             <div>

@@ -1,6 +1,65 @@
 # Agent Handoff
 
-Updated: 2026-05-25T04:27:50Z
+Updated: 2026-05-25T04:39:57Z
+
+## Current Run Update — 2026-05-25T04:39:57Z — Developer API generated input forwarding
+
+Continued the active goal to implement
+`docs/DEVELOPER_API_PROPOSAL.md`. The goal is **not complete** yet; this slice
+completes `task-3171` and moves the recommended next work to a config-driven
+headless runner/helper.
+
+### What changed
+
+- Added a typed generated input event protocol in `@aperture-engine/app` for
+  browser pointer and keyboard events.
+- Extended `SimulationWorker` with `postMessage(...)` over the existing private
+  MessageChannel, so generated browser code can send input events to the worker
+  without receiving live system classes.
+- Installed generated browser listeners for canvas pointer events and window
+  keyboard events. Forwarded event counts and the last input event now appear in
+  generated app status.
+- Applied generated input events in the worker to `this.input.pointer`,
+  `this.input.keyboard`, and config-declared `this.input.actions[...]` signals
+  before the existing input-phase `this.effects.watch(...)` flush.
+- Added JSON-safe worker input/diagnostic summaries to snapshot messages for
+  browser/dev proof.
+- Updated `examples/developer-api/src/systems/select.system.ts` so a
+  lifecycle-owned `this.effects.watch(...)` reacts to `select.pressed`, mutates
+  ECS `DebugMetadata` on the crate, and emits a diagnostic proving the mutation
+  happened in the worker.
+- Tightened `test/e2e/developer-api.spec.ts` so it presses the generated app
+  canvas and asserts forwarded input, selected-action state, the mutation
+  diagnostic, loaded GLB rendering, zero frame diagnostics, and non-clear
+  pixels.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/runtime build`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+- `pnpm run check:progress`
+
+### Known issues / remaining proposal work
+
+- A config-driven headless runner/helper is still needed so tests/agents can run
+  the same discovered system files without manually composing
+  `createApertureApp(...)` (`task-3172`).
+- MCP-style entity lookup/summary helpers are not implemented yet (`task-3173`).
+- Browser/UI command forwarding into `this.commands` queues is not implemented
+  yet (`task-3174`).
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Start `task-3172`: expose a config-driven headless runner for developer API
+systems.
 
 ## Current Run Update — 2026-05-25T04:27:50Z — Developer API GLB replay
 

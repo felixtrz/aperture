@@ -16,6 +16,24 @@ interface GeneratedBrowserAppStatus {
   readonly webgpuOk: boolean | null;
   readonly snapshots: number;
   readonly mirroredSourceAssets: number;
+  readonly forwardedInputEvents?: number;
+  readonly lastInputEvent?: unknown;
+  readonly lastWorkerSummary?: {
+    readonly input?: {
+      readonly actions?: Record<
+        string,
+        {
+          readonly pressed?: boolean;
+          readonly value?: number;
+        }
+      >;
+    };
+    readonly diagnostics?: readonly {
+      readonly code?: string;
+      readonly severity?: string;
+      readonly data?: Record<string, unknown>;
+    }[];
+  };
   readonly diagnostics?: {
     readonly lastFrame?: {
       readonly counts?: {
@@ -112,7 +130,62 @@ test("generated Vite browser bootstrap renders a config/system-authored scene", 
   expect(status?.diagnostics?.lastFrame?.counts?.diagnostics).toBe(0);
   expect(status?.diagnostics?.lastFrame?.diagnostics ?? []).toEqual([]);
 
+  const canvasBox = await page.locator("#aperture").boundingBox();
+  expect(canvasBox).not.toBeNull();
+
+  await page.mouse.move(
+    canvasBox!.x + canvasBox!.width * 0.5,
+    canvasBox!.y + canvasBox!.height * 0.5,
+  );
+  await page.mouse.down();
+  await page.waitForFunction(
+    () => {
+      const status = (globalThis as GeneratedStatusGlobal)
+        .__APERTURE_GENERATED_APP__;
+      const select = status?.lastWorkerSummary?.input?.actions?.select;
+      const diagnostics = status?.lastWorkerSummary?.diagnostics ?? [];
+
+      return (
+        (status?.forwardedInputEvents ?? 0) > 0 &&
+        select?.pressed === true &&
+        diagnostics.some(
+          (diagnostic) =>
+            diagnostic.code === "select.pressed" &&
+            diagnostic.data?.mutatedComponent === "aperture.metadata.debug",
+        )
+      );
+    },
+    undefined,
+    { timeout: 10000 },
+  );
+
+  const inputStatus = await page.evaluate(
+    () =>
+      (globalThis as GeneratedStatusGlobal).__APERTURE_GENERATED_APP__ ?? null,
+  );
+
+  await test.info().attach("developer-api-input-status", {
+    body: JSON.stringify(inputStatus?.lastWorkerSummary ?? null, null, 2),
+    contentType: "application/json",
+  });
+
+  expect(inputStatus?.forwardedInputEvents ?? 0).toBeGreaterThan(0);
+  expect(inputStatus?.lastWorkerSummary?.input?.actions?.select?.pressed).toBe(
+    true,
+  );
+  expect(inputStatus?.lastWorkerSummary?.diagnostics ?? []).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        code: "select.pressed",
+        data: expect.objectContaining({
+          mutatedComponent: "aperture.metadata.debug",
+        }),
+      }),
+    ]),
+  );
+
   const screenshot = await page.locator("#aperture").screenshot();
+  await page.mouse.up();
   const image = readPngImage(screenshot);
   const clear = rgba(8, 9, 10, 255);
   const proof = countNonClearPixels(image, clear);
@@ -169,15 +242,27 @@ async function stopDeveloperApiServer(): Promise<void> {
   });
   current.kill("SIGTERM");
 
-  await Promise.race([
-    stopped,
-    new Promise<void>((resolve) => {
-      setTimeout(() => {
-        current.kill("SIGKILL");
-        resolve();
-      }, 3000);
-    }),
-  ]);
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+
+  try {
+    await Promise.race([
+      stopped,
+      new Promise<void>((resolve) => {
+        timeout = setTimeout(() => {
+          current.kill("SIGKILL");
+          resolve();
+        }, 3000);
+      }),
+    ]);
+  } finally {
+    if (timeout !== null) {
+      clearTimeout(timeout);
+    }
+
+    current.stdout?.destroy();
+    current.stderr?.destroy();
+    current.unref();
+  }
 }
 
 function countNonClearPixels(

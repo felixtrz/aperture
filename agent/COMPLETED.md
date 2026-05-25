@@ -1,5 +1,47 @@
 # Completed Tasks
 
+## task-3171 — Forward generated browser input into worker-owned signals
+
+Completed: 2026-05-25
+
+Summary:
+
+- Added a typed generated input event protocol for browser-to-worker pointer
+  and keyboard events.
+- Exposed `SimulationWorker.postMessage(...)` over the existing
+  MessageChannel so generated browser code can send input events without direct
+  access to live system classes.
+- Installed generated browser canvas/window listeners that forward pointer and
+  keyboard state, update generated app status, and keep canvas focusable for
+  input.
+- Applied input events inside the generated worker to worker-owned
+  `this.input` signals and config-declared action bindings before the existing
+  input-phase effect flush.
+- Published JSON-safe worker input and diagnostic summaries on snapshot
+  messages for browser/dev proof.
+- Updated the developer API `SelectSystem` so
+  `this.effects.watch(this.input.actions.select.pressed, ...)` mutates ECS
+  `DebugMetadata` in the worker simulation phase.
+- Tightened the browser Playwright proof to press the generated app canvas and
+  assert forwarded input, selected-action state, the mutation diagnostic, two
+  mesh draws, zero frame diagnostics, and non-clear pixels.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/runtime build`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+- `pnpm run check:progress`
+
+Known follow-up:
+
+- `task-3172` should expose a config-driven headless runner/helper for
+  developer API systems.
+
 ## task-3170 — Replay config-declared GLB assets through the generated app runtime
 
 Completed: 2026-05-25

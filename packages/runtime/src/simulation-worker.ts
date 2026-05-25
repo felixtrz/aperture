@@ -63,6 +63,7 @@ export type SimulationWorkerErrorCallback = (
 export interface SimulationWorker {
   readonly worker: SimulationWorkerTransport;
   start(options?: SimulationWorkerStartOptions): void;
+  postMessage(message: unknown, transfer?: Transferable[]): void;
   onSnapshot(callback: SimulationWorkerSnapshotCallback): () => void;
   onError(callback: SimulationWorkerErrorCallback): () => void;
   terminate(): void;
@@ -208,6 +209,13 @@ export function createSimulationWorker(
         type: SIMULATION_WORKER_PROTOCOL.start,
         options: mergeStartOptions(options, startOptions),
       });
+    },
+    postMessage(message, transfer = []) {
+      if (terminated) {
+        throw new Error("Cannot post to a terminated SimulationWorker.");
+      }
+
+      channel.port1.postMessage(message, transfer);
     },
     onSnapshot(callback) {
       snapshotCallbacks.add(callback);
