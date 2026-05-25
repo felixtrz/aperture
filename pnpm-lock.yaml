@@ -17,6 +17,12 @@ importers:
         specifier: ^3.4.2
         version: 3.4.2
     devDependencies:
+      "@aperture-engine/app":
+        specifier: workspace:*
+        version: link:packages/app
+      "@aperture-engine/vite-plugin":
+        specifier: workspace:*
+        version: link:packages/vite-plugin
       "@eslint/js":
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.4.0)
@@ -41,6 +47,9 @@ importers:
       typescript-eslint:
         specifier: ^8.59.3
         version: 8.59.3(eslint@10.4.0)(typescript@6.0.3)
+      vite:
+        specifier: ^8.0.13
+        version: 8.0.13(@types/node@25.8.0)
       vitest:
         specifier: ^4.1.6
         version: 4.1.6(@types/node@25.8.0)(vite@8.0.13(@types/node@25.8.0))

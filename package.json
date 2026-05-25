@@ -38,6 +38,8 @@
     "wgpu-matrix": "^3.4.2"
   },
   "devDependencies": {
+    "@aperture-engine/app": "workspace:*",
+    "@aperture-engine/vite-plugin": "workspace:*",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.60.0",
     "@types/node": "^25.8.0",
@@ -46,6 +48,7 @@
     "prettier": "^3.8.3",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.3",
+    "vite": "^8.0.13",
     "vitest": "^4.1.6"
   }
 }
