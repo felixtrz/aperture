@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "d9d190b",
+  "lastCommit": "223f2d5",
   "activePid": null,
-  "notes": "Developer API generated browser status reader complete; panel snapshot/diff controls remain",
-  "lastRunFinishedAt": "2026-05-25T06:06:34Z"
+  "notes": "Completed docs/DEVELOPER_API_PROPOSAL.md implementation acceptance criteria; generated panel now covers diagnostics plus entity find/get/mutation/snapshot/diff.",
+  "lastRunFinishedAt": "2026-05-25T06:51:10Z"
 }

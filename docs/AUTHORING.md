@@ -361,6 +361,20 @@ Tools should use `{ index, generation }` for follow-up operations and rerun
 entity lookup when a generation-mismatch diagnostic says the reference is
 stale.
 
+The generated browser bridge exposes the same inspection path through
+JSON-safe command channels for developer panels and MCP-style tools:
+
+- `aperture.devtools.entity.find`
+- `aperture.devtools.entity.get`
+- `aperture.devtools.entity.setComponent`
+- `aperture.devtools.entity.snapshot`
+- `aperture.devtools.entity.diff`
+
+Those commands are handled inside the generated simulation worker before normal
+system command queues. They read or mutate only worker-owned ECS state, and the
+browser observes the result through generated status such as `entityTools` and
+`lastFailure`.
+
 ## Headless Mode
 
 Headless mode uses the same system authoring shape:

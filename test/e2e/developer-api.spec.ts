@@ -20,6 +20,14 @@ interface GeneratedBrowserAppStatus {
   readonly lastInputEvent?: unknown;
   readonly forwardedCommandEvents?: number;
   readonly lastCommandEvent?: unknown;
+  readonly lastFailure?: {
+    readonly status?: string;
+    readonly diagnostics?: readonly {
+      readonly code?: string;
+      readonly message?: string;
+      readonly suggestedFix?: string;
+    }[];
+  } | null;
   readonly lastWorkerSummary?: {
     readonly signals?: {
       readonly selectedEntity?: {
@@ -63,6 +71,54 @@ interface GeneratedBrowserAppStatus {
           readonly gltfNodePath?: string;
         };
       }[];
+    };
+    readonly entityTools?: {
+      readonly finds?: number;
+      readonly gets?: number;
+      readonly mutations?: number;
+      readonly snapshots?: number;
+      readonly diffs?: number;
+      readonly lastFind?: {
+        readonly total?: number;
+        readonly summaries?: readonly {
+          readonly entity?: {
+            readonly index?: number;
+            readonly generation?: number;
+          };
+          readonly key?: string;
+        }[];
+      };
+      readonly lastGet?: {
+        readonly ok?: boolean;
+        readonly summary?: {
+          readonly entity?: {
+            readonly index?: number;
+            readonly generation?: number;
+          };
+          readonly key?: string;
+        };
+      };
+      readonly lastMutation?: {
+        readonly ok?: boolean;
+        readonly component?: string;
+        readonly field?: string;
+        readonly value?: unknown;
+      };
+      readonly lastSnapshot?: {
+        readonly label?: string;
+        readonly total?: number;
+      };
+      readonly lastDiff?: {
+        readonly fromLabel?: string;
+        readonly toLabel?: string;
+        readonly counts?: {
+          readonly added?: number;
+          readonly removed?: number;
+          readonly changed?: number;
+          readonly unchanged?: number;
+        };
+      };
+      readonly diagnostics?: readonly unknown[];
     };
   };
   readonly diagnostics?: {
@@ -115,6 +171,7 @@ test.afterAll(async () => {
 });
 
 test("generated Vite browser bootstrap renders a config/system-authored scene", async ({
+  context,
   page,
 }) => {
   await page.goto(DEVELOPER_API_URL, { waitUntil: "domcontentloaded" });
@@ -177,6 +234,50 @@ test("generated Vite browser bootstrap renders a config/system-authored scene", 
   );
   await expect(page.locator("#aperture-dev-status")).toContainText(
     "level.crate.primary",
+  );
+
+  await page.locator("[data-aperture-action='snapshot']").click();
+  await page.waitForFunction(
+    () => {
+      const status = (globalThis as GeneratedStatusGlobal)
+        .__APERTURE_GENERATED_APP__;
+      const entityTools = status?.lastWorkerSummary?.entityTools;
+      const snapshot = entityTools?.lastSnapshot;
+
+      return (
+        (status?.forwardedCommandEvents ?? 0) > 0 &&
+        (entityTools?.snapshots ?? 0) > 0 &&
+        snapshot?.label?.startsWith("panel.snapshot.") === true &&
+        (snapshot?.total ?? 0) > 0
+      );
+    },
+    undefined,
+    { timeout: 10000 },
+  );
+
+  const snapshotStatus = await page.evaluate(
+    () =>
+      (globalThis as GeneratedStatusGlobal).__APERTURE_GENERATED_APP__ ?? null,
+  );
+
+  await test.info().attach("developer-api-entity-snapshot-status", {
+    body: JSON.stringify(
+      snapshotStatus?.lastWorkerSummary?.entityTools ?? null,
+      null,
+      2,
+    ),
+    contentType: "application/json",
+  });
+
+  expect(snapshotStatus?.lastWorkerSummary?.entityTools).toMatchObject({
+    snapshots: expect.any(Number),
+    lastSnapshot: {
+      label: expect.stringMatching(/^panel\.snapshot\./),
+      total: expect.any(Number),
+    },
+  });
+  await expect(page.locator("#aperture-dev-status")).toContainText(
+    "panel.snapshot.",
   );
 
   await page.locator("[data-aperture-action='select']").click();
@@ -242,6 +343,175 @@ test("generated Vite browser bootstrap renders a config/system-authored scene", 
   );
   await expect(page.locator("#aperture-dev-status")).toContainText(
     "selectedEntity",
+  );
+
+  await page.locator("[data-aperture-action='diff']").click();
+  await page.waitForFunction(
+    () => {
+      const status = (globalThis as GeneratedStatusGlobal)
+        .__APERTURE_GENERATED_APP__;
+      const entityTools = status?.lastWorkerSummary?.entityTools;
+      const counts = entityTools?.lastDiff?.counts;
+
+      return (
+        (entityTools?.diffs ?? 0) > 0 &&
+        entityTools?.lastDiff?.toLabel?.startsWith("panel.diff.") === true &&
+        (counts?.changed ?? 0) > 0 &&
+        (counts?.added ?? -1) >= 0 &&
+        (counts?.removed ?? -1) >= 0 &&
+        (counts?.unchanged ?? -1) >= 0
+      );
+    },
+    undefined,
+    { timeout: 10000 },
+  );
+
+  const diffStatus = await page.evaluate(
+    () =>
+      (globalThis as GeneratedStatusGlobal).__APERTURE_GENERATED_APP__ ?? null,
+  );
+
+  await test.info().attach("developer-api-entity-diff-status", {
+    body: JSON.stringify(
+      diffStatus?.lastWorkerSummary?.entityTools ?? null,
+      null,
+      2,
+    ),
+    contentType: "application/json",
+  });
+
+  expect(diffStatus?.lastWorkerSummary?.entityTools?.lastDiff).toMatchObject({
+    fromLabel: expect.stringMatching(/^panel\.snapshot\./),
+    toLabel: expect.stringMatching(/^panel\.diff\./),
+    counts: {
+      added: expect.any(Number),
+      removed: expect.any(Number),
+      changed: expect.any(Number),
+      unchanged: expect.any(Number),
+    },
+  });
+  expect(
+    diffStatus?.lastWorkerSummary?.entityTools?.lastDiff?.counts?.changed ?? 0,
+  ).toBeGreaterThan(0);
+  await expect(page.locator("#aperture-dev-status")).toContainText(
+    "panel.diff.",
+  );
+  await expect(page.locator("#aperture-dev-status")).toContainText("changed");
+
+  await page.locator("[data-aperture-action='find-crate']").click();
+  await page.waitForFunction(
+    () => {
+      const status = (globalThis as GeneratedStatusGlobal)
+        .__APERTURE_GENERATED_APP__;
+      const entityTools = status?.lastWorkerSummary?.entityTools;
+      const first = entityTools?.lastFind?.summaries?.[0];
+
+      return (
+        (entityTools?.finds ?? 0) > 0 &&
+        entityTools?.lastFind?.total === 1 &&
+        first?.key === "level.crate.primary" &&
+        typeof first?.entity?.index === "number"
+      );
+    },
+    undefined,
+    { timeout: 10000 },
+  );
+
+  await page.locator("[data-aperture-action='get-entity']").click();
+  await page.waitForFunction(
+    () => {
+      const status = (globalThis as GeneratedStatusGlobal)
+        .__APERTURE_GENERATED_APP__;
+      const entityTools = status?.lastWorkerSummary?.entityTools;
+
+      return (
+        (entityTools?.gets ?? 0) > 0 &&
+        entityTools?.lastGet?.ok === true &&
+        entityTools.lastGet.summary?.key === "level.crate.primary"
+      );
+    },
+    undefined,
+    { timeout: 10000 },
+  );
+
+  await page.locator("[data-aperture-note-input]").fill("panel.note.e2e");
+  await page.locator("[data-aperture-action='set-note']").click();
+  await page.waitForFunction(
+    () => {
+      const status = (globalThis as GeneratedStatusGlobal)
+        .__APERTURE_GENERATED_APP__;
+      const entityTools = status?.lastWorkerSummary?.entityTools;
+
+      return (
+        (entityTools?.mutations ?? 0) > 0 &&
+        entityTools?.lastMutation?.ok === true &&
+        entityTools.lastMutation.component === "aperture.metadata.debug" &&
+        entityTools.lastMutation.field === "note" &&
+        entityTools.lastMutation.value === "panel.note.e2e"
+      );
+    },
+    undefined,
+    { timeout: 10000 },
+  );
+
+  const entityToolStatus = await page.evaluate(
+    () =>
+      (globalThis as GeneratedStatusGlobal).__APERTURE_GENERATED_APP__
+        ?.lastWorkerSummary?.entityTools ?? null,
+  );
+
+  await test.info().attach("developer-api-entity-tool-status", {
+    body: JSON.stringify(entityToolStatus, null, 2),
+    contentType: "application/json",
+  });
+
+  expect(entityToolStatus).toMatchObject({
+    lastFind: {
+      total: 1,
+      summaries: [
+        expect.objectContaining({
+          key: "level.crate.primary",
+        }),
+      ],
+    },
+    lastGet: {
+      ok: true,
+      summary: {
+        key: "level.crate.primary",
+      },
+    },
+    lastMutation: {
+      ok: true,
+      component: "aperture.metadata.debug",
+      field: "note",
+      value: "panel.note.e2e",
+    },
+  });
+  await expect(page.locator("#aperture-dev-status")).toContainText(
+    "panel.note.e2e",
+  );
+
+  await page.locator("[data-aperture-action='invalid-command']").click();
+  await page.waitForFunction(
+    () => {
+      const status = (globalThis as GeneratedStatusGlobal)
+        .__APERTURE_GENERATED_APP__;
+      const diagnostic = status?.lastFailure?.diagnostics?.[0];
+
+      return (
+        status?.lastFailure?.status === "failed" &&
+        diagnostic?.code === "aperture.command.invalid" &&
+        diagnostic?.suggestedFix?.includes("aperture:command") === true
+      );
+    },
+    undefined,
+    { timeout: 10000 },
+  );
+  await expect(page.locator("#aperture-dev-status")).toContainText(
+    "aperture.command.invalid",
+  );
+  await expect(page.locator("#aperture-dev-status")).toContainText(
+    "Dispatch aperture:command",
   );
 
   await page.locator("[data-aperture-action='request-decal']").click();
@@ -314,7 +584,7 @@ test("generated Vite browser bootstrap renders a config/system-authored scene", 
   expect(proof.nonClearSamples).toBeGreaterThan(3);
   expect(proof.maxDistance).toBeGreaterThan(20);
 
-  await page.close();
+  await context.close();
 });
 
 async function waitForDeveloperApiServer(): Promise<void> {
@@ -353,7 +623,21 @@ async function stopDeveloperApiServer(): Promise<void> {
   const current = server;
   server = null;
 
-  if (current === null || current.exitCode !== null) {
+  if (current === null) {
+    return;
+  }
+
+  const cleanup = () => {
+    current.stdout?.removeAllListeners();
+    current.stderr?.removeAllListeners();
+    current.removeAllListeners();
+    current.stdout?.destroy();
+    current.stderr?.destroy();
+    current.unref();
+  };
+
+  if (current.exitCode !== null) {
+    cleanup();
     return;
   }
 
@@ -366,9 +650,7 @@ async function stopDeveloperApiServer(): Promise<void> {
 
       settled = true;
       clearTimeout(timeout);
-      current.stdout?.destroy();
-      current.stderr?.destroy();
-      current.unref();
+      cleanup();
       resolve();
     };
     const timeout = setTimeout(() => {

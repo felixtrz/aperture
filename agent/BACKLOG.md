@@ -59,34 +59,27 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Active goal override is in effect for
-`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3183`: add developer API panel
-snapshot/diff controls backed by the worker command/status bridge. This is the
-next visible slice because `task-3182` now exposes a typed generated browser
-status reader helper and the panel no longer hard-codes the generated status
-global.
+The active `docs/DEVELOPER_API_PROPOSAL.md` implementation goal is complete.
+Resume the post-SOTA visible-feature queue at `task-3166`: add a split-screen
+multi-camera route.
 
 The next ready visible-feature queue is:
 
-- `task-3183` — add developer API panel snapshot/diff controls backed by the
-  worker command/status bridge rather than main-thread ECS access.
-  Reference anchor: `references/engine/src/framework/app-base.js`.
-  Done when the panel can request a labeled entity snapshot, request a diff
-  against the previous snapshot, and display JSON-safe added/removed/changed
-  counts returned from worker-owned ECS state.
-- `task-3184` — make the developer API browser panel show generated command and
-  worker failure diagnostics with stable codes and suggested fixes.
-  Reference anchor: `references/engine/src/framework/app-base.js`.
-  Done when the panel displays `lastFailure` and invalid command diagnostics in
-  JSON-safe form, and Playwright triggers an invalid command through the panel
-  and sees the actionable diagnostic text without reading console output.
-- `task-3185` — add a developer API panel mutation control that routes a safe
-  `DebugMetadata.note` edit through worker-owned ECS tooling.
-  Reference anchor: `references/engine/src/framework/entity.js`.
-  Done when the panel can request a whitelisted entity component mutation,
-  worker-owned ECS applies it through the constrained mutation helper, and
-  Playwright observes the updated note through a JSON-safe status or diff
-  report.
+- `task-3166` — add a split-screen multi-camera route.
+  Reference anchor: `references/engine/src/framework/components/camera/component.js`.
+  Done when a browser route renders two active cameras with distinct viewports,
+  reports two view packets and two render pass/view records, and Playwright
+  verifies both halves contain non-clear pixels from worker-authored ECS state.
+- `task-3167` — add an orthographic camera projection route.
+  Reference anchor: `references/three.js/src/cameras/OrthographicCamera.js`.
+  Done when a browser route renders the same ECS object through orthographic
+  projection, reports orthographic view metadata, and Playwright verifies size
+  stability across camera distance changes.
+- `task-3168` — add a line/wire primitive rendering route.
+  Reference anchor: `references/three.js/src/objects/LineSegments.js`.
+  Done when a browser route renders ECS-authored line/wire primitives through
+  WebGPU, reports line draw records, and Playwright verifies visible non-clear
+  line pixels.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

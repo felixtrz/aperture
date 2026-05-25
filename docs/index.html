@@ -393,13 +393,23 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-25 06:06 UTC</dd>
+            <dd>2026-05-25 06:47 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: developer API browser tooling now reads generated
-              app status through a typed
+              Latest update: the developer API proposal implementation is
+              complete against the explicitly listed acceptance criteria. The
+              generated worker command bridge now handles entity find, get, safe
+              <code>DebugMetadata.note</code> mutation, snapshot, and diff
+              commands against worker-owned ECS state, while the browser panel
+              displays JSON-safe <code>entityTools</code> status and never
+              receives live system classes. The panel also shows generated
+              <code>lastFailure</code> diagnostics; Playwright triggers an
+              invalid command through the panel and sees the stable
+              <code>aperture.command.invalid</code> code plus suggested fix
+              without reading console output. Developer API browser tooling also
+              reads generated app status through a typed
               <code>readGeneratedBrowserAppStatus()</code> helper exported from
               <code>@aperture-engine/app/browser</code>. The generated browser
               bootstrap writes status through the exported
@@ -417,34 +427,33 @@
               <code>DebugMetadata.note</code>, while unsupported components,
               unsupported fields, missing components, invalid value types, and
               stale generations return actionable diagnostics. Developer API
-              entity lookup also has JSON-safe
-              snapshot/diff helpers. Snapshots can be taken from a query or from
-              explicit <code>{ index, generation }</code> refs; diffs key by the
-              full ref and report added, removed, changed, and unchanged
-              summaries plus changed fields; stale refs reuse the
-              generation-mismatch diagnostic that tells agents to rerun entity
-              find. The developer API headless test captures before/after
-              snapshots around a select-system mutation and sees
-              <code>DebugMetadata</code> appear in the changed entity summary.
-              The developer API example also proves worker-side
-              camera/spatial selection. <code>SetupSystem</code> seeds
-              ECS-owned raycast bounds for the interactive crate;
-              <code>SelectSystem</code> derives a ray from
+              entity lookup also has JSON-safe snapshot/diff helpers. Snapshots
+              can be taken from a query or from explicit
+              <code>{ index, generation }</code> refs; diffs key by the full ref
+              and report added, removed, changed, and unchanged summaries plus
+              changed fields; stale refs reuse the generation-mismatch
+              diagnostic that tells agents to rerun entity find. The developer
+              API headless test captures before/after snapshots around a
+              select-system mutation and sees <code>DebugMetadata</code> appear
+              in the changed entity summary. The developer API example also
+              proves worker-side camera/spatial selection.
+              <code>SetupSystem</code> seeds ECS-owned raycast bounds for the
+              interactive crate; <code>SelectSystem</code> derives a ray from
               <code>this.cameras.main</code> and forwarded pointer input, calls
               <code>this.spatial.raycast(...)</code>, writes the selected
               <code>{ index, generation }</code> ref to
               <code>this.signals.selectedEntity</code>, and emits the selected
-              ref in JSON-safe diagnostics. Generated worker and headless
-              status now include JSON-safe config signal summaries, and the
-              browser panel displays <code>signals.selectedEntity</code> without
+              ref in JSON-safe diagnostics. Generated worker and headless status
+              now include JSON-safe config signal summaries, and the browser
+              panel displays <code>signals.selectedEntity</code> without
               exposing live systems or renderer state. The generated developer
-              API example also has a
-              browser control/status panel beside the WebGPU canvas. The panel
-              reads the generated status through the typed browser helper,
-              renders JSON-safe app/input/command/entity/frame/diagnostic
-              summaries, dispatches the config-declared <code>select</code>
-              action through generated keyboard input forwarding, and dispatches
-              the manual <code>decal</code> asset request through the existing
+              API example also has a browser control/status panel beside the
+              WebGPU canvas. The panel reads the generated status through the
+              typed browser helper, renders JSON-safe
+              app/input/command/entity/frame/diagnostic summaries, dispatches
+              the config-declared <code>select</code> action through generated
+              keyboard input forwarding, and dispatches the manual
+              <code>decal</code> asset request through the existing
               <code>aperture:command</code> bridge. Playwright now clicks panel
               controls instead of sending a raw custom event from the test body,
               and verifies that worker-owned summaries are visible without
@@ -453,16 +462,15 @@
               re-exports the Aperture Vite plugin without changing the
               plugin-free root <code>@aperture-engine/app</code> export.
               <code>packages/app/src/vite.ts</code> re-exports
-              <code>aperture</code>,
-              <code>createApertureSystemManifest</code>, and public plugin
-              types from <code>@aperture-engine/vite-plugin</code>; the
-              developer API unit fixture proves a <code>vite.config.ts</code>
-              can import <code>aperture</code> from the convenience subpath;
-              and docs still use <code>@aperture-engine/vite-plugin</code> as
-              the canonical default import. The developer API authoring guide
-              remains aligned with the config-plus-systems path proposed for
-              normal Aperture apps.
-              <code>docs/AUTHORING.md</code> starts with
+              <code>aperture</code>, <code>createApertureSystemManifest</code>,
+              and public plugin types from
+              <code>@aperture-engine/vite-plugin</code>; the developer API unit
+              fixture proves a <code>vite.config.ts</code> can import
+              <code>aperture</code> from the convenience subpath; and docs still
+              use <code>@aperture-engine/vite-plugin</code> as the canonical
+              default import. The developer API authoring guide remains aligned
+              with the config-plus-systems path proposed for normal Aperture
+              apps. <code>docs/AUTHORING.md</code> starts with
               <code>vite.config.ts</code>, <code>aperture.config.ts</code>,
               worker-discovered system files, config-declared assets, preload
               policies, input actions, signals, render defaults, diagnostics,
@@ -472,25 +480,24 @@
               spatial raycast usage, forwarded command draining, and manual
               asset requests. Programmatic app/runtime/WebGPU orchestration is
               clearly an advanced path linked through
-              <code>docs/ADVANCED_ORCHESTRATION.md</code>, so first-time
-              readers no longer need to understand snapshot posting, source
-              asset transfer packages, or renderer-side registration before
-              seeing a primitive or GLB. The generated diagnostics slice remains
-              in place:
-              <code>@aperture-engine/app/diagnostics</code> converts app
+              <code>docs/ADVANCED_ORCHESTRATION.md</code>, so first-time readers
+              no longer need to understand snapshot posting, source asset
+              transfer packages, or renderer-side registration before seeing a
+              primitive or GLB. The generated diagnostics slice remains in
+              place: <code>@aperture-engine/app/diagnostics</code> converts app
               errors and plugin diagnostics into stable code, message, source,
-              data, and suggested-fix entries; generated worker startup
-              failures post those diagnostics to the main thread; browser
-              status records them in <code>lastFailure</code>; and headless
-              mode exposes <code>createApertureHeadlessFailureStatus(...)</code>
-              for the same shape. Focused fixtures cover missing system default
-              exports, invalid schedule metadata, invalid blocking GLB URLs
-              with asset/url/preload context, and generated worker startup
-              failure. The generated command slice remains in place: browser
-              code listens for <code>aperture:command</code>, forwards typed
-              command messages to the simulation worker, and reports forwarded
-              command counts plus requested asset readiness. The developer API
-              example includes an <code>AssetCommandSystem</code> that drains
+              data, and suggested-fix entries; generated worker startup failures
+              post those diagnostics to the main thread; browser status records
+              them in <code>lastFailure</code>; and headless mode exposes
+              <code>createApertureHeadlessFailureStatus(...)</code> for the same
+              shape. Focused fixtures cover missing system default exports,
+              invalid schedule metadata, invalid blocking GLB URLs with
+              asset/url/preload context, and generated worker startup failure.
+              The generated command slice remains in place: browser code listens
+              for <code>aperture:command</code>, forwards typed command messages
+              to the simulation worker, and reports forwarded command counts
+              plus requested asset readiness. The developer API example includes
+              an <code>AssetCommandSystem</code> that drains
               <code>asset.request</code> and requests the manual
               <code>decal</code> config asset through
               <code>this.commands.requestAsset(...)</code>. The entity lookup
@@ -514,9 +521,8 @@
               and material assets before startup; and Playwright verifies two
               mesh draws, two WebGPU draw calls, forwarded input status,
               generated entity summaries, zero frame diagnostics, and non-clear
-              canvas pixels. The first
-              developer-facing app API
-              slice remains in place: <code>@aperture-engine/app/config</code>,
+              canvas pixels. The first developer-facing app API slice remains in
+              place: <code>@aperture-engine/app/config</code>,
               <code>@aperture-engine/app/systems</code>,
               <code>@aperture-engine/app/advanced</code>, and
               <code>@aperture-engine/vite-plugin</code> compile, and focused
@@ -2607,6 +2613,13 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3183</span> Added Snapshot and
+                Diff controls to the developer API panel. The generated worker
+                now handles entity snapshot/diff command channels against
+                worker-owned ECS state and returns JSON-safe counts through
+                <code>entityTools</code> status.
+              </li>
               <li>
                 <span class="badge green">task-3182</span> Added
                 <code>readGeneratedBrowserAppStatus()</code> and
@@ -5091,9 +5104,9 @@
                 with Playwright status and pixel proof.
               </li>
               <li>
-                <span class="badge green">task-3170</span> Done:
-                config-declared GLB assets now load and replay through the
-                generated app runtime so
+                <span class="badge green">task-3170</span> Done: config-declared
+                GLB assets now load and replay through the generated app runtime
+                so
                 <code>this.spawn.gltf(this.assets.gltf("robot"))</code>
                 produces loaded GLB renderables instead of placeholder metadata.
               </li>
@@ -5110,8 +5123,8 @@
               </li>
               <li>
                 <span class="badge green">task-3173</span> Done: publish
-                JSON-safe
-                entity lookup summaries for config/system-spawned entities.
+                JSON-safe entity lookup summaries for config/system-spawned
+                entities.
               </li>
               <li>
                 <span class="badge green">task-3174</span> Done: forward
@@ -5120,8 +5133,8 @@
               </li>
               <li>
                 <span class="badge green">task-3175</span> Done: surface
-                generated app diagnostics for config, system-manifest, worker, and
-                asset-load failures in one JSON-safe status shape.
+                generated app diagnostics for config, system-manifest, worker,
+                and asset-load failures in one JSON-safe status shape.
               </li>
               <li>
                 <span class="badge green">task-3176</span> Done: restructure the
@@ -5129,9 +5142,9 @@
                 systems.
               </li>
               <li>
-                <span class="badge green">task-3177</span> Done: add the optional
-                <code>@aperture-engine/app/vite</code> convenience subpath
-                without changing the plugin-free root app export.
+                <span class="badge green">task-3177</span> Done: add the
+                optional <code>@aperture-engine/app/vite</code> convenience
+                subpath without changing the plugin-free root app export.
               </li>
               <li>
                 <span class="badge green">task-3178</span> Done: add a small
@@ -5139,38 +5152,48 @@
                 command, entity, and diagnostic summaries.
               </li>
               <li>
-                <span class="badge green">task-3179</span> Done: prove worker-side
-                camera/spatial selection in the developer API example.
+                <span class="badge green">task-3179</span> Done: prove
+                worker-side camera/spatial selection in the developer API
+                example.
               </li>
               <li>
-                <span class="badge green">task-3180</span> Done: add JSON-safe entity
-                snapshot/diff helpers for generated and headless developer
-                tooling.
-              </li>
-              <li>
-                <span class="badge green">task-3181</span> Done: add a constrained
-                entity component mutation helper for generated/headless
+                <span class="badge green">task-3180</span> Done: add JSON-safe
+                entity snapshot/diff helpers for generated and headless
                 developer tooling.
+              </li>
+              <li>
+                <span class="badge green">task-3181</span> Done: add a
+                constrained entity component mutation helper for
+                generated/headless developer tooling.
               </li>
               <li>
                 <span class="badge green">task-3182</span> Done: expose a typed
                 generated browser status reader helper for browser tooling.
               </li>
               <li>
-                <span class="badge">task-3183</span> Next: add developer API
-                panel snapshot/diff controls backed by the worker command/status
-                bridge.
+                <span class="badge green">task-3183</span> Done: add developer
+                API panel snapshot/diff controls backed by the worker
+                command/status bridge.
               </li>
               <li>
-                <span class="badge">task-3184</span> Next: show generated
+                <span class="badge green">task-3184</span> Done: show generated
                 command and worker failure diagnostics in the developer API
                 panel with stable codes and suggested fixes.
               </li>
               <li>
-                <span class="badge">task-3185</span> Next: add a developer API
-                panel mutation control that routes a safe
+                <span class="badge green">task-3185</span> Done: add a developer
+                API panel mutation control that routes a safe
                 <code>DebugMetadata.note</code> edit through worker-owned ECS
                 tooling.
+              </li>
+              <li>
+                <span class="badge green">task-3186</span> Done: add developer
+                API panel entity find/get controls backed by the worker
+                command/status bridge.
+              </li>
+              <li>
+                <span class="badge">task-3166</span> Next: resume the render
+                pipeline queue with a split-screen multi-camera route.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5189,6 +5212,32 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3184-3186</div>
+            <div>
+              <strong>Developer API proposal command tooling completed.</strong>
+              <span>
+                The panel now exercises generated worker entity find/get, safe
+                <code>DebugMetadata.note</code> mutation, snapshot, diff, and
+                invalid-command diagnostics. Worker-owned ECS remains
+                authoritative and the panel reads JSON-safe status only.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3183</div>
+            <div>
+              <strong
+                >Developer API panel snapshot/diff controls shipped.</strong
+              >
+              <span>
+                Generated workers now answer entity snapshot and diff commands
+                from worker-owned ECS state, and the browser panel displays the
+                returned <code>entityTools</code> snapshot labels and diff
+                counts.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3182</div>
             <div>
@@ -5285,10 +5334,10 @@
             <div>
               <strong>Developer API diagnostics normalized.</strong>
               <span>
-                Generated browser and headless failure status now carries
-                stable diagnostic codes, messages, source context, data, and
-                suggested fixes for manifest, worker startup, and blocking GLB
-                asset failures.
+                Generated browser and headless failure status now carries stable
+                diagnostic codes, messages, source context, data, and suggested
+                fixes for manifest, worker startup, and blocking GLB asset
+                failures.
               </span>
             </div>
           </div>
@@ -5297,11 +5346,11 @@
             <div>
               <strong>Developer API command forwarding shipped.</strong>
               <span>
-                Generated browser <code>aperture:command</code> events now
-                reach worker-owned <code>this.commands</code>; the developer
-                API example drains <code>asset.request</code>, requests the
-                manual <code>decal</code> asset, and browser/headless tests
-                verify JSON-safe command and requested-asset status.
+                Generated browser <code>aperture:command</code> events now reach
+                worker-owned <code>this.commands</code>; the developer API
+                example drains <code>asset.request</code>, requests the manual
+                <code>decal</code> asset, and browser/headless tests verify
+                JSON-safe command and requested-asset status.
               </span>
             </div>
           </div>

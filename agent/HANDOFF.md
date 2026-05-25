@@ -1,6 +1,106 @@
 # Agent Handoff
 
-Updated: 2026-05-25T06:06:34Z
+Updated: 2026-05-25T06:47:14Z
+
+## Current Run Update — 2026-05-25T06:47:14Z — Developer API proposal completion
+
+Continued the active goal to implement
+`docs/DEVELOPER_API_PROPOSAL.md`. The goal is **complete**: the explicitly
+listed proposal acceptance criteria are covered, and the remaining visible
+developer-tooling slices (`task-3184`, `task-3185`, `task-3186`) are done.
+
+### What changed
+
+- Added generated entity find, get, and set-component command channel constants
+  alongside snapshot/diff constants.
+- Extended generated simulation workers with a worker-owned entity tool bridge
+  that handles find/get/safe mutation/snapshot/diff commands before falling
+  through to app system command queues.
+- Safe panel mutation routes through the constrained
+  `setApertureEntityComponentField(...)` helper and reports the mutated
+  component, field, and JSON-safe value.
+- Invalid generated browser command events now publish JSON-safe `lastFailure`
+  diagnostics with stable code `aperture.command.invalid` and a suggested fix.
+- The developer API panel now has Find crate, Get, Set note, Snapshot, Diff,
+  Request decal, and Invalid command controls while only reading generated
+  status and dispatching generated commands.
+- Updated public tracker and agent task records to mark `task-3184` through
+  `task-3186` complete and recommend returning to `task-3166`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `./node_modules/.bin/playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+- `pnpm run build`
+- `pnpm run check:boundaries`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check packages/app/src/browser.ts packages/app/src/commands.ts packages/app/src/entity-lookup.ts packages/app/src/worker.ts examples/developer-api/index.html examples/developer-api/src/dev-panel.ts test/app/developer-api.test.ts test/e2e/developer-api.spec.ts docs/AUTHORING.md docs/index.html agent/BACKLOG.md agent/CURRENT_TASK.md agent/COMPLETED.md agent/HANDOFF.md agent/STATUS.json`
+
+### Known issues / remaining work
+
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+- Full `pnpm run format:check` still fails on pre-existing unrelated files,
+  including `.playwright-mcp/*.yml`, `packages/app/src/systems.ts`, and several
+  WebGPU/test files. The files touched in this run pass targeted Prettier
+  check.
+- No proposal acceptance criteria remain open based on the current audit.
+
+### Recommended next task
+
+Resume the render-pipeline visible-feature queue at `task-3166`: add a
+split-screen multi-camera route.
+
+## Current Run Update — 2026-05-25T06:18:39Z — Developer API panel snapshot/diff controls
+
+Continued the active goal to implement
+`docs/DEVELOPER_API_PROPOSAL.md`. The goal is **not complete** yet; this slice
+completes `task-3183` and moves the recommended next work to generated command
+and worker failure diagnostics in the developer API panel.
+
+### What changed
+
+- Added `APERTURE_ENTITY_SNAPSHOT_COMMAND_CHANNEL` and
+  `APERTURE_ENTITY_DIFF_COMMAND_CHANNEL` to
+  `@aperture-engine/app/commands`.
+- Generated simulation workers now handle those command channels against the
+  worker-owned ECS world before falling through to system command queues.
+- Worker summaries now include `entityTools` with snapshot count, diff count,
+  last request, last snapshot, last diff, and diagnostics.
+- The developer API panel now has Snapshot and Diff controls. It dispatches
+  generated commands and displays worker-returned entity tool status without
+  main-thread ECS access.
+- Browser coverage now clicks Snapshot, Select, then Diff and observes changed
+  counts through the panel/status.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `./node_modules/.bin/playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+
+### Known issues / remaining proposal work
+
+- Developer API panel failure/diagnostic display remains queued (`task-3184`).
+- Developer API panel mutation controls remain queued behind the constrained
+  mutation helper (`task-3185`).
+- Developer API panel find/get controls remain queued (`task-3186`).
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Start `task-3184`: make the developer API browser panel show generated command
+and worker failure diagnostics with stable codes and suggested fixes.
 
 ## Current Run Update — 2026-05-25T06:06:34Z — Developer API browser status reader
 

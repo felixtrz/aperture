@@ -17,6 +17,14 @@ import {
   readGeneratedBrowserAppStatus,
   type GeneratedBrowserAppStatus,
 } from "@aperture-engine/app/browser";
+import {
+  APERTURE_ENTITY_DIFF_COMMAND_CHANNEL,
+  APERTURE_ENTITY_FIND_COMMAND_CHANNEL,
+  APERTURE_ENTITY_GET_COMMAND_CHANNEL,
+  APERTURE_ENTITY_SET_COMPONENT_COMMAND_CHANNEL,
+  APERTURE_ENTITY_SNAPSHOT_COMMAND_CHANNEL,
+  createGeneratedCommandMessage,
+} from "@aperture-engine/app/commands";
 import { startGeneratedSimulationWorker } from "@aperture-engine/app/worker";
 import { aperture as apertureFromAppVite } from "@aperture-engine/app/vite";
 import {
@@ -124,6 +132,145 @@ describe("developer-facing app API", () => {
 
     expect(readGeneratedBrowserAppStatus(scope)).toBe(status);
     expect(readGeneratedBrowserAppStatus({})).toBeNull();
+  });
+
+  it("returns worker-owned entity snapshot and diff reports through generated commands", async () => {
+    const port = new InlineGeneratedWorkerPort();
+    const config = defineApertureConfig({
+      mode: "headless",
+      systems: ["src/systems/**/*.system.ts"],
+    });
+    const SetupSystemModule: ApertureSystemModule = {
+      default: class SnapshotSetupSystem extends createSystem() {
+        override init(): void {
+          const entity = this.spawn.mesh({
+            key: "level.crate.primary",
+            name: "crate",
+            tags: ["interactive", "crate"],
+            mesh: mesh.box({ size: [1, 1, 1] }),
+            material: material.standard({
+              baseColor: [1, 0.55, 0.25, 1],
+            }),
+          });
+          entity.addComponent(DebugMetadata, {
+            tag: "tool",
+            note: "before",
+          });
+        }
+      },
+      schedule: { priority: 0 },
+    };
+
+    startGeneratedSimulationWorker({
+      config,
+      systems: [SetupSystemModule],
+      port,
+    });
+    port.dispatch(
+      createGeneratedCommandMessage({
+        channel: APERTURE_ENTITY_FIND_COMMAND_CHANNEL,
+        payload: {
+          key: "level.crate.primary",
+          limit: 5,
+        },
+      }),
+    );
+    port.dispatch(
+      createGeneratedCommandMessage({
+        channel: APERTURE_ENTITY_GET_COMMAND_CHANNEL,
+        payload: {},
+      }),
+    );
+    port.dispatch(
+      createGeneratedCommandMessage({
+        channel: APERTURE_ENTITY_SET_COMPONENT_COMMAND_CHANNEL,
+        payload: {
+          component: DebugMetadata.id,
+          field: "note",
+          value: "generated-worker.mutated",
+        },
+      }),
+    );
+    port.dispatch(
+      createGeneratedCommandMessage({
+        channel: APERTURE_ENTITY_SNAPSHOT_COMMAND_CHANNEL,
+        payload: {
+          label: "before",
+          query: { key: "level.crate.primary" },
+        },
+      }),
+    );
+    port.dispatch(
+      createGeneratedCommandMessage({
+        channel: APERTURE_ENTITY_DIFF_COMMAND_CHANNEL,
+        payload: {
+          label: "after",
+          query: { key: "level.crate.primary" },
+        },
+      }),
+    );
+    port.dispatch({ type: SIMULATION_WORKER_PROTOCOL.start, stop: true });
+
+    const snapshotMessage = await port.nextPostedMessage(
+      isSimulationWorkerSnapshotMessage,
+    );
+    const workerSummary = readRecord(
+      (snapshotMessage as { readonly workerSummary?: unknown }).workerSummary,
+    );
+    const entityTools = readRecord(workerSummary?.entityTools);
+
+    expect(entityTools).toMatchObject({
+      finds: 1,
+      gets: 1,
+      mutations: 1,
+      snapshots: 2,
+      diffs: 1,
+      lastFind: {
+        total: 1,
+        summaries: [
+          expect.objectContaining({
+            key: "level.crate.primary",
+          }),
+        ],
+      },
+      lastGet: {
+        ok: true,
+        summary: {
+          key: "level.crate.primary",
+        },
+      },
+      lastMutation: {
+        ok: true,
+        component: DebugMetadata.id,
+        field: "note",
+        value: "generated-worker.mutated",
+      },
+      lastSnapshot: {
+        label: "after",
+        total: 1,
+        summaries: [
+          expect.objectContaining({
+            key: "level.crate.primary",
+            tags: expect.arrayContaining(["interactive", "crate"]),
+          }),
+        ],
+      },
+      lastDiff: {
+        fromLabel: "before",
+        toLabel: "after",
+        counts: {
+          added: 0,
+          removed: 0,
+          changed: 0,
+          unchanged: 1,
+        },
+        diagnostics: [],
+      },
+      diagnostics: [],
+    });
+    expect(JSON.stringify(entityTools)).not.toMatch(
+      /navigator\.gpu|HTMLCanvasElement|createWebGpuApp/,
+    );
   });
 
   it("runs config-declared systems through the headless app facade with priority and lifecycle effects", async () => {
@@ -583,12 +730,11 @@ describe("developer-facing app API", () => {
         componentIds: expect.arrayContaining([DebugMetadata.id]),
       },
     });
-    const mutatedEntity = runner.app.lowLevel.world.entityManager.getEntityByIndex(
-      selectedCrate.index,
-    );
-    expect(mutatedEntity?.getValue(DebugMetadata, "note")).toBe(
-      "tool.mutated",
-    );
+    const mutatedEntity =
+      runner.app.lowLevel.world.entityManager.getEntityByIndex(
+        selectedCrate.index,
+      );
+    expect(mutatedEntity?.getValue(DebugMetadata, "note")).toBe("tool.mutated");
     expect(
       runner.entities.setComponentField({
         entity: selectedCrate,
@@ -1040,4 +1186,22 @@ function isSimulationWorkerErrorMessage(value: unknown): value is {
     (value as { readonly type?: unknown }).type ===
       SIMULATION_WORKER_PROTOCOL.error
   );
+}
+
+function isSimulationWorkerSnapshotMessage(value: unknown): value is {
+  readonly type: typeof SIMULATION_WORKER_PROTOCOL.snapshot;
+  readonly workerSummary?: unknown;
+} {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as { readonly type?: unknown }).type ===
+      SIMULATION_WORKER_PROTOCOL.snapshot
+  );
+}
+
+function readRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>)
+    : null;
 }

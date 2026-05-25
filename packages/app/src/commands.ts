@@ -1,6 +1,15 @@
-export const APERTURE_GENERATED_COMMAND_MESSAGE =
-  "aperture.generated.command";
+export const APERTURE_GENERATED_COMMAND_MESSAGE = "aperture.generated.command";
 export const APERTURE_GENERATED_COMMAND_EVENT = "aperture:command";
+export const APERTURE_ENTITY_FIND_COMMAND_CHANNEL =
+  "aperture.devtools.entity.find";
+export const APERTURE_ENTITY_GET_COMMAND_CHANNEL =
+  "aperture.devtools.entity.get";
+export const APERTURE_ENTITY_SET_COMPONENT_COMMAND_CHANNEL =
+  "aperture.devtools.entity.setComponent";
+export const APERTURE_ENTITY_SNAPSHOT_COMMAND_CHANNEL =
+  "aperture.devtools.entity.snapshot";
+export const APERTURE_ENTITY_DIFF_COMMAND_CHANNEL =
+  "aperture.devtools.entity.diff";
 
 export interface ApertureGeneratedCommand {
   readonly channel: string;

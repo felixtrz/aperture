@@ -163,18 +163,16 @@ function mirrorSimulationWorkerSourceAssets(
         status.status = "worker-error";
         status.lastFailure = createApertureGeneratedDiagnosticsStatus({
           status: "failed",
-          diagnostics:
-            event.diagnostics ??
-            [
-              {
-                code: event.reason,
-                severity: "error",
-                message: event.message,
-                worker: event.source,
-                suggestedFix:
-                  "Inspect generated worker diagnostics and restart the app after fixing the reported issue.",
-              },
-            ],
+          diagnostics: event.diagnostics ?? [
+            {
+              code: event.reason,
+              severity: "error",
+              message: event.message,
+              worker: event.source,
+              suggestedFix:
+                "Inspect generated worker diagnostics and restart the app after fixing the reported issue.",
+            },
+          ],
         });
         status.lastError = status.lastFailure;
         callback(event);
@@ -226,11 +224,14 @@ function installGeneratedCommandForwarding(
     const command = parseGeneratedCommand((event as CustomEvent).detail);
 
     if (command === null) {
-      status.lastCommandEvent = {
-        error: "aperture.command.invalid",
-        suggestedFix:
-          "Dispatch aperture:command with detail { channel, payload? }.",
-      };
+      status.lastCommandEvent = invalidGeneratedCommandDiagnostic(
+        (event as CustomEvent).detail,
+      );
+      status.lastFailure = createApertureGeneratedDiagnosticsStatus({
+        status: "failed",
+        diagnostics: [status.lastCommandEvent],
+      });
+      status.lastError = status.lastFailure;
       return;
     }
 
@@ -246,6 +247,26 @@ function forwardCommand(
   worker.postMessage(createGeneratedCommandMessage(command));
   status.forwardedCommandEvents += 1;
   status.lastCommandEvent = command;
+}
+
+function invalidGeneratedCommandDiagnostic(detail: unknown): {
+  readonly code: string;
+  readonly severity: "error";
+  readonly message: string;
+  readonly data: Readonly<Record<string, unknown>>;
+  readonly suggestedFix: string;
+} {
+  return {
+    code: "aperture.command.invalid",
+    severity: "error",
+    message: "Generated Aperture command events require a non-empty channel.",
+    data: {
+      event: APERTURE_GENERATED_COMMAND_EVENT,
+      detail: jsonSafeValue(detail),
+    },
+    suggestedFix:
+      "Dispatch aperture:command with detail { channel: 'your.channel', payload: { ... } }.",
+  };
 }
 
 function installGeneratedInputForwarding(
@@ -326,6 +347,18 @@ function pointerPosition(
   const y = rect.height <= 0 ? 0 : (event.clientY - rect.top) / rect.height;
 
   return [clamp01(x), clamp01(y)];
+}
+
+function jsonSafeValue(value: unknown): unknown {
+  if (value === undefined) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(JSON.stringify(value)) as unknown;
+  } catch {
+    return String(value);
+  }
 }
 
 function clamp01(value: number): number {

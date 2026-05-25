@@ -1,5 +1,114 @@
 # Completed Tasks
 
+## task-3186 — Add developer API panel entity find/get controls
+
+Completed: 2026-05-25
+
+Summary:
+
+- Added generated entity find and get command channel constants to
+  `@aperture-engine/app/commands`.
+- Extended the generated simulation worker's entity tool bridge to handle
+  find/get commands against worker-owned ECS state before falling through to
+  normal system command queues.
+- Added Find crate and Get controls to the developer API panel. The panel
+  resolves selected/last-found entity refs from JSON-safe generated status and
+  dispatches generated commands only.
+- Browser coverage now requests an exact-key find, requests a get for the
+  returned `{ index, generation }` ref, and observes component/source metadata
+  through worker-returned `entityTools` status.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `./node_modules/.bin/playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+
+## task-3185 — Add developer API panel mutation control
+
+Completed: 2026-05-25
+
+Summary:
+
+- Added the generated entity set-component command channel constant.
+- Extended the generated simulation worker entity tool bridge to route safe
+  component edits through the constrained
+  `setApertureEntityComponentField(...)` helper.
+- Included the mutated component, field, and JSON-safe value in successful
+  mutation reports so tooling can observe the updated `DebugMetadata.note`.
+- Added a Set note panel control that mutates only worker-owned ECS state.
+- Browser coverage selects the crate, sends a `DebugMetadata.note` edit through
+  the panel, and observes the updated note in JSON-safe status.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `./node_modules/.bin/playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+
+## task-3184 — Show generated command and worker failure diagnostics in panel
+
+Completed: 2026-05-25
+
+Summary:
+
+- Invalid generated browser command events now produce a JSON-safe
+  `lastFailure` status with stable code `aperture.command.invalid` and an
+  actionable suggested fix.
+- The developer API panel now displays generated `lastCommandEvent` and
+  `lastFailure` diagnostics from the typed browser status helper.
+- Added an Invalid command panel control so browser proof can trigger the
+  diagnostic path without reading console output.
+- Browser coverage clicks the invalid command control and observes the stable
+  diagnostic code and suggested fix in the panel.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `./node_modules/.bin/playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+
+## task-3183 — Add developer API panel snapshot/diff controls
+
+Completed: 2026-05-25
+
+Summary:
+
+- Added generated entity snapshot and diff command channel constants to
+  `@aperture-engine/app/commands`.
+- Added a worker-owned entity tool bridge in the generated simulation worker.
+  It handles snapshot/diff commands against the authoritative ECS world and
+  publishes JSON-safe `entityTools` status.
+- Added Snapshot and Diff controls to the developer API panel. The panel only
+  dispatches generated commands and reads returned status.
+- Extended browser coverage to request a snapshot, trigger selection, request a
+  diff, and observe added/removed/changed/unchanged counts from worker state.
+- Tightened the single-route Playwright cleanup by closing the test context and
+  browser explicitly after the proof.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/vite-plugin build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/app/developer-api.test.ts`
+- `cd examples/developer-api && ../../node_modules/.bin/vite build --config vite.config.ts --outDir ../../dist/developer-api --emptyOutDir`
+- `./node_modules/.bin/playwright test test/e2e/developer-api.spec.ts --timeout=45000 --reporter=list --trace=off`
+
+Known follow-up:
+
+- `task-3184` should make generated command and worker failure diagnostics more
+  visible in the developer API panel.
+
 ## task-3182 — Add typed generated browser status reader
 
 Completed: 2026-05-25

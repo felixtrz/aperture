@@ -2,23 +2,27 @@
 
 No active task is currently checked out.
 
-Status: `task-3182` completed the typed generated browser status reader helper.
+Status: active `docs/DEVELOPER_API_PROPOSAL.md` implementation goal completed.
+`task-3184`, `task-3185`, and `task-3186` are complete.
 
 Key findings:
 
-- `@aperture-engine/app/browser` now exports
-  `APERTURE_GENERATED_STATUS_GLOBAL` and
-  `readGeneratedBrowserAppStatus(scope?)`.
-- Generated browser bootstrap writes status through the exported global name.
-- The developer API panel now uses `readGeneratedBrowserAppStatus()` instead of
-  directly reading `globalThis.__APERTURE_GENERATED_APP__`.
-- Focused unit coverage proves the helper reads a supplied status scope and
-  returns `null` for missing status.
-- The developer API Playwright teardown now listens for both `exit` and `close`
-  from the Vite child process, which keeps the direct browser validation command
-  exiting cleanly.
+- `@aperture-engine/app/commands` now names generated entity find, get,
+  set-component, snapshot, and diff command channels.
+- Generated simulation workers intercept those devtool commands before system
+  command queues, read/mutate only worker-owned ECS state, and publish
+  JSON-safe `entityTools` status with find/get/mutation/snapshot/diff results
+  and diagnostics.
+- The developer API panel now has Find crate, Get, Set note, Snapshot, Diff,
+  Request decal, and Invalid command controls. It dispatches generated commands
+  and displays returned status/failure diagnostics without main-thread ECS
+  access.
+- Browser coverage triggers invalid command diagnostics through the panel and
+  sees the stable `aperture.command.invalid` code plus suggested fix.
+- Focused unit and browser coverage prove pending generated commands return
+  entity tool status from a worker-owned world.
 
 Recommended next task:
 
-- `task-3183` — add developer API panel snapshot/diff controls backed by the
-  worker command/status bridge rather than main-thread ECS access.
+- `task-3166` — resume the render-pipeline queue with a split-screen
+  multi-camera route.

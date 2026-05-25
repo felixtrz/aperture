@@ -71,8 +71,7 @@ export interface ApertureEntityLookupSnapshot {
   readonly diagnostics: readonly ApertureEntityLookupDiagnostic[];
 }
 
-export interface ApertureEntityLookupSnapshotOptions
-  extends ApertureEntityFindQuery {
+export interface ApertureEntityLookupSnapshotOptions extends ApertureEntityFindQuery {
   readonly label?: string;
   readonly entities?: readonly EcsEntityRef[];
 }
@@ -112,6 +111,9 @@ export interface ApertureEntitySetComponentFieldRequest {
 export type ApertureEntitySetComponentFieldReport =
   | {
       readonly ok: true;
+      readonly component: string;
+      readonly field: string;
+      readonly value: unknown;
       readonly summary: ApertureEntitySummary;
     }
   | {
@@ -134,7 +136,9 @@ export interface ApertureEntityLookup {
   ): ApertureEntitySetComponentFieldReport;
 }
 
-export function createApertureEntityLookup(world: EcsWorld): ApertureEntityLookup {
+export function createApertureEntityLookup(
+  world: EcsWorld,
+): ApertureEntityLookup {
   return {
     find(query = {}) {
       return findApertureEntities(world, query);
@@ -281,7 +285,10 @@ export function diffApertureEntityLookupSnapshots(
   next: ApertureEntityLookupSnapshot,
 ): ApertureEntitySnapshotDiff {
   const previousByRef = new Map(
-    previous.summaries.map((summary) => [entityRefKey(summary.entity), summary]),
+    previous.summaries.map((summary) => [
+      entityRefKey(summary.entity),
+      summary,
+    ]),
   );
   const nextByRef = new Map(
     next.summaries.map((summary) => [entityRefKey(summary.entity), summary]),
@@ -391,6 +398,9 @@ export function setApertureEntityComponentField(
 
   return {
     ok: true,
+    component: request.component,
+    field: request.field,
+    value: jsonSafeValue(request.value),
     summary: entitySummary(resolved.entity),
   };
 }
@@ -453,7 +463,10 @@ function resolveActiveEntity(
   ref: EcsEntityRef,
 ):
   | { readonly ok: true; readonly entity: Entity }
-  | { readonly ok: false; readonly diagnostic: ApertureEntityLookupDiagnostic } {
+  | {
+      readonly ok: false;
+      readonly diagnostic: ApertureEntityLookupDiagnostic;
+    } {
   if (!validEntityRef(ref)) {
     return {
       ok: false,
@@ -562,6 +575,18 @@ function stableJson(value: unknown): string {
   return JSON.stringify(value ?? null);
 }
 
+function jsonSafeValue(value: unknown): unknown {
+  if (value === undefined) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(JSON.stringify(value)) as unknown;
+  } catch {
+    return String(value);
+  }
+}
+
 function entitySummary(entity: Entity): ApertureEntitySummary {
   const key = entity.hasComponent(AppEntityKey)
     ? entity.getValue(AppEntityKey, "value")
@@ -627,9 +652,9 @@ function collectActiveEntities(world: EcsWorld): Entity[] {
     );
   }
 
-  return [...world.queryManager.registerQuery({ required: [] }).entities].filter(
-    (entity) => entity.active,
-  );
+  return [
+    ...world.queryManager.registerQuery({ required: [] }).entities,
+  ].filter((entity) => entity.active);
 }
 
 function matchesEntityQuery(
