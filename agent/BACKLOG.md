@@ -60,24 +60,15 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 Active goal override is in effect for
-`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3176`: restructure the beginner
-authoring docs so config plus worker-discovered systems are the first path and
-imperative `createApertureApp(...)`/snapshot transport wiring is clearly
-advanced. This is the next visible slice because `task-3175` now normalizes
-generated diagnostics for manifest, asset, and worker startup failures, while
-the proposal's documentation restructure is still not complete.
+`docs/DEVELOPER_API_PROPOSAL.md`. Start `task-3177`: add the optional
+`@aperture-engine/app/vite` convenience subpath while keeping
+`@aperture-engine/vite-plugin` the canonical documented plugin import. This is
+the next visible slice because `task-3176` now restructures the beginner
+authoring docs around config plus worker-discovered systems and moves
+imperative app/runtime/WebGPU orchestration to the advanced path.
 
 The next ready visible-feature queue is:
 
-- `task-3176` — restructure the beginner authoring docs so config plus
-  worker-discovered systems are the first path and imperative
-  `createApertureApp(...)`/snapshot transport wiring is clearly advanced.
-  Reference anchor: `references/bevy/examples/3d/3d_scene.rs`.
-  Done when `docs/AUTHORING.md` leads with `aperture.config.ts`,
-  `vite.config.ts`, setup systems, primitive spawning, GLB spawning, input and
-  command examples, and links programmatic runtime/WebGPU orchestration as an
-  advanced section without requiring first-time readers to understand
-  renderer-side registration or snapshot posting.
 - `task-3177` — add an optional `@aperture-engine/app/vite` convenience
   subpath that re-exports the Vite plugin without exposing plugin/build-time
   code from the root `@aperture-engine/app` entry.
@@ -94,6 +85,15 @@ The next ready visible-feature queue is:
   for command/status inspection, Playwright can dispatch the panel control
   instead of a raw custom event, and the panel shows worker-owned summaries
   without exposing live system classes or renderer state.
+- `task-3179` — prove the beginner-documented worker-side camera/spatial
+  selection path in the developer API example without making renderer picking
+  authoritative.
+  Reference anchor: `references/three.js/src/core/Raycaster.js`.
+  Done when `examples/developer-api` seeds ECS-owned bounds for the interactive
+  crate, a worker system derives a ray from forwarded pointer input through
+  `this.cameras.main`, writes the selected entity ref to a config signal via
+  `this.spatial.raycast(...)`, and Playwright observes the selected
+  `{ index, generation }` summary through generated status.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

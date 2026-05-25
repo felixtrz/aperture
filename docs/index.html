@@ -393,13 +393,28 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-25 05:18 UTC</dd>
+            <dd>2026-05-25 05:27 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: generated developer API failures now normalize
-              into JSON-safe diagnostics for humans and agents.
+              Latest update: the developer API authoring guide now leads with
+              the config-plus-systems path proposed for normal Aperture apps.
+              <code>docs/AUTHORING.md</code> starts with
+              <code>vite.config.ts</code>, <code>aperture.config.ts</code>,
+              worker-discovered system files, config-declared assets, preload
+              policies, input actions, signals, render defaults, diagnostics,
+              and headless mode. Setup and runtime examples now show worker-side
+              camera/light/primitive/GLB spawning, EliCS queries, schedule
+              priority, lifecycle-owned <code>this.effects.watch(...)</code>,
+              spatial raycast usage, forwarded command draining, and manual
+              asset requests. Programmatic app/runtime/WebGPU orchestration is
+              clearly an advanced path linked through
+              <code>docs/ADVANCED_ORCHESTRATION.md</code>, so first-time
+              readers no longer need to understand snapshot posting, source
+              asset transfer packages, or renderer-side registration before
+              seeing a primitive or GLB. The generated diagnostics slice remains
+              in place:
               <code>@aperture-engine/app/diagnostics</code> converts app
               errors and plugin diagnostics into stable code, message, source,
               data, and suggested-fix entries; generated worker startup
@@ -5038,14 +5053,23 @@
                 asset-load failures in one JSON-safe status shape.
               </li>
               <li>
-                <span class="badge">task-3176</span> Next: restructure the
+                <span class="badge green">task-3176</span> Done: restructure the
                 beginner authoring docs around config plus worker-discovered
                 systems.
               </li>
               <li>
-                <span class="badge">task-3177</span> Then: add the optional
+                <span class="badge">task-3177</span> Next: add the optional
                 <code>@aperture-engine/app/vite</code> convenience subpath
                 without changing the plugin-free root app export.
+              </li>
+              <li>
+                <span class="badge">task-3178</span> Then: add a small
+                developer API browser control/status panel for generated input,
+                command, entity, and diagnostic summaries.
+              </li>
+              <li>
+                <span class="badge">task-3179</span> Then: prove worker-side
+                camera/spatial selection in the developer API example.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5064,6 +5088,22 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3176</div>
+            <div>
+              <strong>Developer API authoring docs restructured.</strong>
+              <span>
+                <code>docs/AUTHORING.md</code> now starts with
+                <code>vite.config.ts</code>, <code>aperture.config.ts</code>,
+                and worker-discovered systems; examples cover config assets,
+                setup spawning, primitive and GLB spawning, input/effects,
+                spatial raycast usage, commands, manual asset requests,
+                diagnostics, entity lookup, and headless mode while moving
+                programmatic app/runtime/WebGPU orchestration to the advanced
+                guide.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3175</div>
             <div>

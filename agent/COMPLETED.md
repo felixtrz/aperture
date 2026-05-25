@@ -1,5 +1,34 @@
 # Completed Tasks
 
+## task-3176 — Restructure beginner authoring docs
+
+Completed: 2026-05-25
+
+Summary:
+
+- Reworked `docs/AUTHORING.md` so the first app path is
+  `vite.config.ts`, `aperture.config.ts`, and worker-discovered
+  `src/systems/*.system.ts` files.
+- Added beginner-facing config coverage for system globs, config-declared GLB
+  and texture assets, blocking/background/manual preload policy, input actions,
+  signals, render defaults, diagnostics, and headless mode.
+- Expanded setup and runtime examples to show worker-side camera/light/mesh/GLB
+  spawning, primitive descriptors, EliCS queries, schedule priority, forwarded
+  input, lifecycle-owned effects, spatial raycast usage, command draining, and
+  manual asset requests.
+- Moved programmatic app/runtime/WebGPU orchestration to the advanced section
+  and linked `docs/ADVANCED_ORCHESTRATION.md` for manual snapshot posting,
+  source asset transfer packages, renderer-side registration, and custom hosts.
+
+Validation:
+
+- `pnpm run check:progress`
+
+Known follow-up:
+
+- `task-3177` should add the optional `@aperture-engine/app/vite` convenience
+  subpath while keeping `@aperture-engine/vite-plugin` canonical.
+
 ## task-3175 — Normalize generated app diagnostics
 
 Completed: 2026-05-25

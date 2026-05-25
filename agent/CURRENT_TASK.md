@@ -2,26 +2,25 @@
 
 No active task is currently checked out.
 
-Status: `task-3175` completed the Developer API generated diagnostics slice.
-Generated/headless failure status can now report config/system-manifest,
-worker-startup, and blocking asset-load failures with stable codes, messages,
-source context, and suggested fixes.
+Status: `task-3176` completed the Developer API beginner authoring docs
+restructure. `docs/AUTHORING.md` now leads with the Vite/config/system app
+shape and treats programmatic app/runtime/WebGPU orchestration as advanced.
 
 Key findings:
 
-- `@aperture-engine/app/diagnostics` normalizes thrown app errors and plugin
-  diagnostics into JSON-safe status entries.
-- Generated worker startup errors post normalized diagnostics to the main
-  thread.
-- Browser status records normalized worker failures instead of console-only
-  error objects.
-- Headless mode exposes `createApertureHeadlessFailureStatus(...)` for the same
-  failure shape.
-- Focused fixtures cover missing default exports, invalid schedule metadata,
-  invalid GLB URLs, and generated worker startup failure.
+- The authoring guide now starts with `vite.config.ts`, `aperture.config.ts`,
+  system globs, config-declared assets, input actions, signals, and diagnostics.
+- Setup examples use worker-side `this.spawn.camera`, `this.spawn.light`,
+  `this.spawn.mesh`, and `this.spawn.gltf(this.assets.gltf(...))`.
+- Runtime examples cover EliCS queries, schedule priority, lifecycle-owned
+  `this.effects.watch(...)`, forwarded input, spatial raycast usage, command
+  draining, and manual asset requests.
+- The advanced section points readers to `ADVANCED_ORCHESTRATION.md` for
+  `createApertureApp`, manual stepping, snapshot posting, source asset transfer
+  packages, and direct WebGPU presentation.
 
 Recommended next task:
 
-- `task-3176` — restructure the beginner authoring docs so config plus
-  worker-discovered systems are the first path and imperative
-  `createApertureApp(...)`/snapshot transport wiring is clearly advanced.
+- `task-3177` — add the optional `@aperture-engine/app/vite` convenience
+  subpath while keeping the root app export plugin-free and keeping
+  `@aperture-engine/vite-plugin` as the canonical documented default import.

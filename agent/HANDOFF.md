@@ -1,6 +1,54 @@
 # Agent Handoff
 
-Updated: 2026-05-25T05:18:16Z
+Updated: 2026-05-25T05:27:15Z
+
+## Current Run Update — 2026-05-25T05:27:15Z — Developer API authoring docs
+
+Continued the active goal to implement
+`docs/DEVELOPER_API_PROPOSAL.md`. The goal is **not complete** yet; this slice
+completes `task-3176` and moves the recommended next work to the optional
+`@aperture-engine/app/vite` convenience subpath.
+
+### What changed
+
+- Reworked `docs/AUTHORING.md` so the beginner path starts with
+  `vite.config.ts`, `aperture.config.ts`, and worker-discovered
+  `src/systems/*.system.ts` files.
+- Added config examples for GLB/texture assets, blocking/background/manual
+  preload policy, input actions, signals, render defaults, diagnostics, and
+  headless mode.
+- Expanded system examples to cover worker-side camera/light/primitive/GLB
+  spawning, primitive descriptors, schedule priority, EliCS queries, forwarded
+  input, lifecycle-owned effects, spatial raycast usage, command draining, and
+  manual asset requests.
+- Clarified that first-time readers do not need `createApertureApp(...)`,
+  `createWebGpuApp(...)`, `createExtractionApp(...)`, `stepAndExtract(...)`,
+  source asset transfer packages, renderer-side registration, or snapshot
+  posting before seeing a primitive or GLB.
+- Kept programmatic app/runtime/WebGPU orchestration as an advanced path and
+  linked `docs/ADVANCED_ORCHESTRATION.md`.
+
+### Validation
+
+- `pnpm run check:progress`
+
+### Known issues / remaining proposal work
+
+- Optional `@aperture-engine/app/vite` convenience re-export remains queued
+  (`task-3177`).
+- A small browser control/status panel for the generated example is queued as a
+  visible inspection follow-up (`task-3178`).
+- Worker-side camera/spatial selection should still be proven in the developer
+  API example (`task-3179`).
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Start `task-3177`: add the optional `@aperture-engine/app/vite` convenience
+subpath while keeping the root app export plugin-free and
+`@aperture-engine/vite-plugin` canonical.
 
 ## Current Run Update — 2026-05-25T05:18:16Z — Developer API generated diagnostics
 
