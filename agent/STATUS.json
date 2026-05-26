@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "ecf6d161",
+  "lastCommit": "43b17c60",
   "activePid": null,
-  "notes": "Completed task-3182: added same off-screen render-target clear/load route, wired repeated non-MSAA target submissions to load existing color/depth after the first clear, expanded render-to-texture Playwright coverage, updated trackers/backlog/handoff, and validated focused specs, build, typecheck, progress, navigation, check:examples, lint, and all-route render-control smoke.",
-  "lastRunFinishedAt": "2026-05-26T05:47:29Z"
+  "notes": "Completed task-3183: added mixed current-texture plus two off-screen render-target route, expanded render-to-texture status and Playwright coverage for all three target families, updated trackers/backlog/handoff, and validated focused specs, build, typecheck, progress, navigation, check:examples, lint, and all-route render-control smoke.",
+  "lastRunFinishedAt": "2026-05-26T05:58:08Z"
 }
