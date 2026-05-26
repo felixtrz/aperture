@@ -1,6 +1,73 @@
 # Agent Handoff
 
-Updated: 2026-05-26T10:06:36Z
+Updated: 2026-05-26T10:23:11Z
+
+## Current Run Update — 2026-05-26T10:23:11Z — MSAA render-target viewport crop route
+
+Completed `task-3196`.
+
+### What changed
+
+- Added `examples/render-target-msaa-viewport-crop.html` to the
+  render-to-texture route family and linked it from related example pages.
+- `examples/render-to-texture.main.js` now recognizes the MSAA viewport-crop
+  route, labels the pass as `render-to-texture/msaa-cropped-target`, creates an
+  MSAA-enabled app, renders one ECS camera into a renderer-owned off-screen
+  `ViewPacket.renderTarget` handle with a non-full viewport/scissor rectangle,
+  and resolves the cropped target texture into the visible preview.
+- The route status now reports requested/resolved sample counts, supported
+  sample counts, clamp status, crop rectangle and target-space pixels, target
+  key, dimensions, draw count, MSAA sample count, color-target pressure, and
+  resolve attachment behavior.
+- Added Playwright coverage proving the inside-crop resolved pixels render while
+  the outside target-space sample remains the off-screen clear color.
+- Updated public tracker pages, `agent/BACKLOG.md`, `agent/CURRENT_TASK.md`,
+  and `agent/COMPLETED.md`. The ready queue now continues with `task-3197`,
+  `task-3198`, and `task-3199`.
+
+### References inspected
+
+- `references/engine/src/extras/render-passes/camera-frame.js`
+- `references/bevy/examples/3d/render_to_texture.rs`
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `pnpm exec eslint examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "MSAA render-target viewport crop" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "render-target viewport crop route|MSAA render-target viewport crop|MSAA render-target route" --reporter=list`
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm run check:progress`
+- Targeted `pnpm exec prettier --check ...` for touched files
+- `git diff --check`
+- Browser route check for `examples/render-target-msaa-viewport-crop.html`
+  reported `ok: true`, requested 8/effective 4 MSAA, a clear/discard
+  resolve-to-render-target attachment, target-space crop pixels
+  `{ x: 77, y: 64, width: 102, height: 128 }`, and distinct inside/outside
+  samples.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- Full-repo `pnpm run format:check` still has pre-existing unrelated formatting
+  debt from earlier handoff notes, including untracked `.playwright-mcp/`
+  scratch files. This slice uses targeted Prettier checks for touched files.
+- A broad `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/webgpu-app.test.ts`
+  run still fails 11 pre-existing `webgpu-app.test.ts` expectations around
+  verbose pipeline descriptor resource keys. This task did not modify that
+  area.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3197`: add a mixed current-texture
+plus MSAA resized off-screen target route.
 
 ## Current Run Update — 2026-05-26T10:06:36Z — MSAA same-target clear/load route
 

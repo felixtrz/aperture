@@ -2,24 +2,23 @@
 
 No active task is currently checked out.
 
-Status: task-3195 MSAA same-target clear/load route completed.
+Status: task-3196 MSAA render-target viewport crop route completed.
 
 Key findings:
 
-- Added `examples/render-target-msaa-clear-load.html` to the render-to-texture
+- Added `examples/render-target-msaa-viewport-crop.html` to the render-to-texture
   route family.
-- The WebGPU frame boundary now supports storing an MSAA color attachment when a
-  later pass in the same frame must load the same target.
-- The route creates an MSAA-enabled WebGPU app, extracts two ECS cameras
-  targeting the same renderer-owned off-screen `ViewPacket.renderTarget` handle,
-  clears the first resolved boundary, then loads existing color/depth for the
-  second resolved boundary.
+- The route creates an MSAA-enabled WebGPU app, extracts one ECS camera
+  targeting a renderer-owned off-screen `ViewPacket.renderTarget` handle with a
+  non-full viewport/scissor rectangle, and resolves the cropped target texture
+  into the visible preview.
 - `examples/render-to-texture.main.js` reports requested/resolved sample count,
-  target-key reuse, pass-order load ops, per-pass MSAA sample count, and resolve
-  attachment behavior.
-- Playwright verified the resolved clear-only, base-preserved, and overlay
-  regions.
+  crop rectangle and target-space pixels, target key, dimensions, draw count,
+  MSAA sample count, color-target pressure, and resolve attachment behavior.
+- Playwright verified the inside-crop resolved pixels render while the outside
+  target-space sample remains the off-screen clear color.
 
 Recommended next task:
 
-- `task-3196` — add an MSAA render-target viewport crop route.
+- `task-3197` — add a mixed current-texture plus MSAA resized off-screen target
+  route.

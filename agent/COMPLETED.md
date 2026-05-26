@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## task-3196 — Add an MSAA render-target viewport crop route
+
+Completed: 2026-05-26
+
+### Summary
+
+- Added `examples/render-target-msaa-viewport-crop.html` to the
+  render-to-texture route family and linked it from related example pages.
+- `examples/render-to-texture.main.js` now recognizes the MSAA viewport-crop
+  route, creates an MSAA-enabled app, renders one ECS camera into a
+  renderer-owned off-screen `ViewPacket.renderTarget` handle with a non-full
+  viewport/scissor rectangle, resolves the cropped target texture, and reports
+  requested/resolved sample counts, crop rectangle and target-space pixels,
+  target key, dimensions, draw count, MSAA sample count, color-target pressure,
+  and resolve attachment behavior.
+- Added Playwright coverage proving the inside-crop resolved pixels render while
+  the outside target-space sample remains the off-screen clear color.
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `pnpm exec eslint examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "MSAA render-target viewport crop" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "render-target viewport crop route|MSAA render-target viewport crop|MSAA render-target route" --reporter=list`
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm run check:progress`
+- Targeted `pnpm exec prettier --check ...` for touched files
+- `git diff --check`
+
 ## task-3195 — Add an MSAA same-target clear/load matrix route
 
 Completed: 2026-05-26

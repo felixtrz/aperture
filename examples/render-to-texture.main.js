@@ -330,13 +330,15 @@ async function handleWorkerMessage(
                   ? "render-to-texture/msaa-resized-target"
                   : routeConfig.targetClearLoad && routeConfig.targetMsaa
                     ? "render-to-texture/msaa-clear-load-target"
-                    : routeConfig.reuseStress && routeConfig.targetMsaa
-                      ? "render-to-texture/msaa-reuse-target"
-                      : routeConfig.mixedMultiRenderTargets
-                        ? "render-to-texture/mixed-multi-targets"
-                        : routeConfig.mixedTargets
-                          ? "render-to-texture/mixed-targets"
-                          : "render-to-texture/offscreen",
+                    : routeConfig.targetCrop && routeConfig.targetMsaa
+                      ? "render-to-texture/msaa-cropped-target"
+                      : routeConfig.reuseStress && routeConfig.targetMsaa
+                        ? "render-to-texture/msaa-reuse-target"
+                        : routeConfig.mixedMultiRenderTargets
+                          ? "render-to-texture/mixed-multi-targets"
+                          : routeConfig.mixedTargets
+                            ? "render-to-texture/mixed-targets"
+                            : "render-to-texture/offscreen",
   });
 
   if (!offscreenReport.ok) {
@@ -1182,6 +1184,7 @@ function createStatus(
             aperture,
             scene,
             message,
+            offscreenReport,
             report,
             screenPass,
           ),
@@ -1725,6 +1728,31 @@ function routeConfigForPath(pathname) {
       targetCrop: true,
       targetClearLoad: false,
       targetMsaa: false,
+      requiredFrames: 1,
+    };
+  }
+
+  if (pathname.endsWith("/render-target-msaa-viewport-crop.html")) {
+    return {
+      example: "render-target-msaa-viewport-crop",
+      initialOffscreenSize: defaultOffscreenSize,
+      offscreenSize: defaultOffscreenSize,
+      resizeTarget: false,
+      reuseStress: false,
+      mixedTargets: false,
+      multiRenderTargets: false,
+      mixedMultiRenderTargets: false,
+      dualSizeRenderTargets: false,
+      mixedDualSizeRenderTargets: false,
+      mixedCroppedSecondaryRenderTargets: false,
+      mixedMsaaMultiRenderTargets: false,
+      mixedMsaaCroppedSecondaryRenderTargets: false,
+      msaaMultiRenderTargets: false,
+      msaaCroppedSecondaryRenderTargets: false,
+      croppedSecondaryRenderTargets: false,
+      targetCrop: true,
+      targetClearLoad: false,
+      targetMsaa: true,
       requiredFrames: 1,
     };
   }
@@ -3673,10 +3701,12 @@ function createOffscreenTargetCropStatus(
   aperture,
   scene,
   message,
+  offscreenReport,
   report,
   screenPass,
 ) {
   const renderTargetKey = aperture.assetHandleKey(scene.renderTarget);
+  const msaa = createMsaaStatusFromReport(report);
   const target =
     (report.renderTargets ?? []).find(
       (entry) => entry.renderTargetKey === renderTargetKey,
@@ -3713,8 +3743,26 @@ function createOffscreenTargetCropStatus(
       height: targetSize.height,
       format: target?.format ?? null,
       drawCalls: target?.drawCalls ?? 0,
+      ...(routeConfig.targetMsaa
+        ? { msaaSampleCount: target?.msaaSampleCount ?? msaa.sampleCount }
+        : {}),
       ok: target?.ok ?? false,
     },
+    ...(routeConfig.targetMsaa
+      ? {
+          requestedSampleCount: msaa.requestedSampleCount,
+          sampleCount: msaa.sampleCount,
+          enabled: msaa.enabled,
+          clamped: msaa.clamped,
+          supportedSampleCounts: msaa.supportedSampleCounts,
+          colorTargets: msaa.colorTargets,
+          colorTexturesCreated: msaa.colorTexturesCreated,
+          colorTexturesReused: msaa.colorTexturesReused,
+          attachment: createMsaaAttachmentStatus(
+            offscreenReport.boundaries?.[0],
+          ),
+        }
+      : {}),
     view:
       view === null
         ? null
