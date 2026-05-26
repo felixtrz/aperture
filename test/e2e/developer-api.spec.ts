@@ -170,7 +170,7 @@ test.afterAll(async () => {
   await stopDeveloperApiServer();
 });
 
-test("generated Vite browser bootstrap renders a config/system-authored scene", async ({
+test("generated developer API Vite browser bootstrap renders a config/system-authored scene", async ({
   context,
   page,
 }) => {

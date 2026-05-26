@@ -790,7 +790,7 @@
               worker-discovered system files, config-declared assets, preload
               policies, input actions, signals, render defaults, diagnostics,
               and headless mode. Setup and runtime examples now show worker-side
-              camera/light/primitive/GLB spawning, EliCS queries, schedule
+              camera/light/primitive/GLB spawning, EliCS queries, descriptor
               priority, lifecycle-owned <code>this.effects.watch(...)</code>,
               spatial raycast usage, forwarded command draining, and manual
               asset requests. Programmatic app/runtime/WebGPU orchestration is
@@ -806,7 +806,7 @@
               them in <code>lastFailure</code>; and headless mode exposes
               <code>createApertureHeadlessFailureStatus(...)</code> for the same
               shape. Focused fixtures cover missing system default exports,
-              invalid schedule metadata, invalid blocking GLB URLs with
+              invalid system priority metadata, invalid blocking GLB URLs with
               asset/url/preload context, and generated worker startup failure.
               The generated command slice remains in place: browser code listens
               for <code>aperture:command</code>, forwards typed command messages

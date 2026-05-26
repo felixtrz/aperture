@@ -100,9 +100,9 @@ main-thread app object.
 ```ts
 import { createSystem, material, mesh } from "@aperture-engine/app/systems";
 
-export const schedule = { priority: 0 };
-
-export default class SetupSystem extends createSystem() {
+export default class SetupSystem extends createSystem({
+  priority: 0,
+}) {
   override init(): void {
     this.spawn.camera({
       key: "camera.main",
@@ -194,36 +194,44 @@ Systems map to EliCS systems and can query ECS components directly.
 
 ```ts
 import {
+  EcsType,
   LocalTransform,
   Name,
   createSystem,
   quatFromAxisAngle,
 } from "@aperture-engine/app/systems";
 
-export const schedule = { priority: 100 };
-
-const SpinCrateSystemBase = createSystem({
-  crates: {
-    required: [Name, LocalTransform],
-    where: [{ component: Name, key: "value", op: "eq", value: "crate" }],
+export default class SpinCrateSystem extends createSystem({
+  priority: 100,
+  queries: {
+    crates: {
+      required: [Name, LocalTransform],
+      where: [{ component: Name, key: "value", op: "eq", value: "crate" }],
+    },
   },
-});
-
-export default class SpinCrateSystem extends SpinCrateSystemBase {
+  config: {
+    speed: { type: EcsType.Float32, default: 1 },
+  },
+}) {
   override update(_delta: number, time: number): void {
+    const speed = this.config.speed.value;
+
     for (const entity of this.queries.crates.entities) {
       entity
         .getVectorView(LocalTransform, "rotation")
-        .set(quatFromAxisAngle([0, 1, 0], time));
+        .set(quatFromAxisAngle([0, 1, 0], time * speed));
     }
   }
 }
 ```
 
-Lower numeric `schedule.priority` runs earlier. System modules default-export
-the class; the generated worker registers discovered systems in priority order.
-The main-thread generated bootstrap receives serializable manifest metadata, not
-live system classes.
+Lower numeric `priority` runs earlier. Omit it to default to `0`. `priority` is
+static registration metadata from the `createSystem({ ... })` descriptor; it is
+not a runtime signal and does not appear in `this.config`. Fields declared under
+`config` become runtime signals such as `this.config.speed.value`. System
+modules default-export the class; the generated worker registers discovered
+systems in priority order. The main-thread generated bootstrap receives
+serializable manifest metadata, not live system classes.
 
 ## Input, Signals, And Effects
 
@@ -233,9 +241,9 @@ Preact `effect()` for arbitrary microtask-time ECS writes.
 ```ts
 import { createSystem } from "@aperture-engine/app/systems";
 
-export const schedule = { priority: 50 };
-
-export default class SelectSystem extends createSystem() {
+export default class SelectSystem extends createSystem({
+  priority: 50,
+}) {
   override init(): void {
     this.effects.watch(
       this.input.actions.select.pressed,
@@ -306,9 +314,9 @@ A system drains the channel and requests the manual asset:
 ```ts
 import { createSystem } from "@aperture-engine/app/systems";
 
-export const schedule = { priority: 75 };
-
-export default class AssetCommandSystem extends createSystem() {
+export default class AssetCommandSystem extends createSystem({
+  priority: 75,
+}) {
   override update(): void {
     for (const command of this.commands.drain<{ assetId?: unknown }>(
       "asset.request",

@@ -1,5 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import * as ts from "typescript";
 
 export interface ApertureVitePluginOptions {
   readonly configFile?: string;
@@ -183,7 +184,7 @@ export async function createApertureSystemManifest(options: {
       const source = await fs.readFile(file, "utf8");
       const systemDiagnostics: ApertureVitePluginDiagnostic[] = [];
       const hasDefaultExport = /\bexport\s+default\b/.test(source);
-      const priority = parseSchedulePriority(source);
+      const priority = parseSystemDescriptorPriority(source, file);
 
       if (!hasDefaultExport) {
         systemDiagnostics.push({
@@ -197,10 +198,10 @@ export async function createApertureSystemManifest(options: {
 
       if (priority === null) {
         systemDiagnostics.push({
-          code: "aperture.system.invalidSchedule",
+          code: "aperture.system.invalidPriority",
           file,
-          message: `System module '${file}' has invalid schedule metadata.`,
-          suggestedFix: "Use export const schedule = { priority: 0 }.",
+          message: `System module '${file}' has invalid createSystem descriptor priority metadata.`,
+          suggestedFix: "Use createSystem({ priority: 0 }) or omit priority.",
         });
       }
 
@@ -216,7 +217,11 @@ export async function createApertureSystemManifest(options: {
   }
 
   return {
-    systems: systems.sort((a, b) => a.schedule.priority - b.schedule.priority),
+    systems: systems.sort(
+      (a, b) =>
+        a.schedule.priority - b.schedule.priority ||
+        a.moduleUrl.localeCompare(b.moduleUrl),
+    ),
     diagnostics,
   };
 }
@@ -229,10 +234,7 @@ function workerSystemsModule(manifest: ApertureSystemManifest): string {
     )
     .join("\n");
   const systems = manifest.systems
-    .map(
-      (system, index) =>
-        `{ default: SystemModule${index}.default, schedule: SystemModule${index}.schedule ?? ${JSON.stringify(system.schedule)} }`,
-    )
+    .map((_system, index) => `{ default: SystemModule${index}.default }`)
     .join(",\n  ");
 
   return [imports, `export const systems = [`, `  ${systems}`, `];`, ""].join(
@@ -303,18 +305,124 @@ function parseSystemGlobs(source: string | null): string[] {
   return globs;
 }
 
-function parseSchedulePriority(source: string): number | null {
-  if (!/\bexport\s+const\s+schedule\b/.test(source)) {
+function parseSystemDescriptorPriority(
+  source: string,
+  fileName: string,
+): number | null {
+  const sourceFile = ts.createSourceFile(
+    fileName,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    scriptKindForPath(fileName),
+  );
+  let priority: number | null | undefined;
+
+  const visit = (node: ts.Node): void => {
+    if (priority !== undefined) {
+      return;
+    }
+
+    if (ts.isCallExpression(node) && isCreateSystemCall(node)) {
+      priority = readCreateSystemPriority(node);
+      return;
+    }
+
+    ts.forEachChild(node, visit);
+  };
+
+  visit(sourceFile);
+
+  return priority === undefined ? 0 : priority;
+}
+
+function isCreateSystemCall(node: ts.CallExpression): boolean {
+  const expression = node.expression;
+
+  return (
+    (ts.isIdentifier(expression) && expression.text === "createSystem") ||
+    (ts.isPropertyAccessExpression(expression) &&
+      expression.name.text === "createSystem")
+  );
+}
+
+function readCreateSystemPriority(node: ts.CallExpression): number | null {
+  const descriptor = node.arguments[0];
+
+  if (descriptor === undefined || !ts.isObjectLiteralExpression(descriptor)) {
     return 0;
   }
 
-  const priorityMatch = /\bpriority\s*:\s*(-?\d+(?:\.\d+)?)/m.exec(source);
+  const priorityProperty = descriptor.properties.find((property) =>
+    isNamedPropertyAssignment(property, "priority"),
+  );
 
-  if (priorityMatch === null || priorityMatch[1] === undefined) {
-    return null;
+  if (priorityProperty === undefined) {
+    return 0;
   }
 
-  return Number(priorityMatch[1]);
+  const priority = numericLiteralValue(priorityProperty.initializer);
+
+  return priority === null || !Number.isFinite(priority) ? null : priority;
+}
+
+function isNamedPropertyAssignment(
+  property: ts.ObjectLiteralElementLike,
+  name: string,
+): property is ts.PropertyAssignment {
+  if (!ts.isPropertyAssignment(property)) {
+    return false;
+  }
+
+  return propertyNameText(property.name) === name;
+}
+
+function propertyNameText(name: ts.PropertyName): string | null {
+  if (ts.isIdentifier(name) || ts.isStringLiteral(name)) {
+    return name.text;
+  }
+
+  if (ts.isNumericLiteral(name)) {
+    return name.text;
+  }
+
+  return null;
+}
+
+function numericLiteralValue(node: ts.Expression): number | null {
+  if (ts.isNumericLiteral(node)) {
+    return Number(node.text.replace(/_/g, ""));
+  }
+
+  if (
+    ts.isPrefixUnaryExpression(node) &&
+    (node.operator === ts.SyntaxKind.MinusToken ||
+      node.operator === ts.SyntaxKind.PlusToken) &&
+    ts.isNumericLiteral(node.operand)
+  ) {
+    const value = Number(node.operand.text.replace(/_/g, ""));
+
+    return node.operator === ts.SyntaxKind.MinusToken ? -value : value;
+  }
+
+  return null;
+}
+
+function scriptKindForPath(fileName: string): ts.ScriptKind {
+  switch (path.extname(fileName)) {
+    case ".tsx":
+      return ts.ScriptKind.TSX;
+    case ".jsx":
+      return ts.ScriptKind.JSX;
+    case ".js":
+    case ".mjs":
+    case ".cjs":
+      return ts.ScriptKind.JS;
+    case ".json":
+      return ts.ScriptKind.JSON;
+    default:
+      return ts.ScriptKind.TS;
+  }
 }
 
 async function discoverGlob(root: string, glob: string): Promise<string[]> {

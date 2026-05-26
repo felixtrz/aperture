@@ -39,7 +39,7 @@ the runtime architecture:
   ergonomics over the lower layers. Browser-specific generated bootstrap lives
   behind the `browser` and `worker` entry points, not the root export.
 - `@aperture-engine/vite-plugin`: the default Vite integration. It discovers
-  `aperture.config.ts`, system globs, schedule metadata, and generated
+  `aperture.config.ts`, system globs, system descriptor metadata, and generated
   browser/worker virtual modules. It is build-time code and is intentionally not
   exported by the root `@aperture-engine/app` entry; the optional
   `@aperture-engine/app/vite` subpath re-exports it for projects that prefer the

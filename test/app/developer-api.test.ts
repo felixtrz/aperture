@@ -46,6 +46,7 @@ import {
   AppEntitySource,
   AppEntityTags,
   DebugMetadata,
+  EcsType,
   LocalTransform,
   Name,
   createSystem,
@@ -62,18 +63,10 @@ import {
   createApertureSystemManifest,
 } from "@aperture-engine/vite-plugin";
 import developerHeadlessConfig from "../../examples/developer-api/aperture.headless.config.js";
-import SetupSystem, {
-  schedule as setupSchedule,
-} from "../../examples/developer-api/src/systems/setup.system.js";
-import AssetCommandSystem, {
-  schedule as assetCommandSchedule,
-} from "../../examples/developer-api/src/systems/asset-command.system.js";
-import SelectSystem, {
-  schedule as selectSchedule,
-} from "../../examples/developer-api/src/systems/select.system.js";
-import SpinCrateSystem, {
-  schedule as spinSchedule,
-} from "../../examples/developer-api/src/systems/spin-crate.system.js";
+import SetupSystem from "../../examples/developer-api/src/systems/setup.system.js";
+import AssetCommandSystem from "../../examples/developer-api/src/systems/asset-command.system.js";
+import SelectSystem from "../../examples/developer-api/src/systems/select.system.js";
+import SpinCrateSystem from "../../examples/developer-api/src/systems/spin-crate.system.js";
 
 describe("developer-facing app API", () => {
   it("defines config assets and keeps the app root free of Vite plugin exports", () => {
@@ -140,6 +133,158 @@ describe("developer-facing app API", () => {
     expect(readGeneratedBrowserAppStatus({})).toBeNull();
   });
 
+  it("keeps descriptor priority static while preserving runtime config signals", async () => {
+    const events: string[] = [];
+    const SpeedConfigSystemModule: ApertureSystemModule = {
+      default: class SpeedConfigSystem extends createSystem({
+        priority: 20,
+        config: {
+          speed: { type: EcsType.Float32, default: 2 },
+        },
+      }) {
+        override init(): void {
+          const speed: number = this.config.speed.value;
+          events.push(
+            `speed:${this.priority}:${speed}:${String(
+              "priority" in this.config,
+            )}`,
+          );
+          this.config.speed.value = 3;
+        }
+      },
+    };
+    const RuntimePriorityConfigSystemModule: ApertureSystemModule = {
+      default: class RuntimePriorityConfigSystem extends createSystem({
+        priority: 30,
+        config: {
+          priority: { type: EcsType.Float32, default: 7 },
+        },
+      }) {
+        override init(): void {
+          const runtimePriority: number = this.config.priority.value;
+          events.push(`runtime-priority:${this.priority}:${runtimePriority}`);
+        }
+      },
+    };
+    const EmptySystemModule: ApertureSystemModule = {
+      default: class EmptySystem extends createSystem() {
+        override init(): void {
+          events.push(
+            `empty:${this.priority}:${Object.keys(this.config).length}`,
+          );
+        }
+      },
+    };
+
+    const app = await createApertureApp({
+      config: defineApertureConfig({ mode: "headless", systems: [] }),
+      systems: [
+        RuntimePriorityConfigSystemModule,
+        SpeedConfigSystemModule,
+        EmptySystemModule,
+      ],
+    });
+
+    expect(
+      app.lowLevel.world.getSystems().map((system) => system.constructor.name),
+    ).toEqual([
+      "EmptySystem",
+      "SpeedConfigSystem",
+      "RuntimePriorityConfigSystem",
+    ]);
+    expect(events).toEqual([
+      "empty:0:0",
+      "speed:20:2:false",
+      "runtime-priority:30:7",
+    ]);
+  });
+
+  it("defaults query-only and config-only descriptors to priority zero", async () => {
+    const events: string[] = [];
+    const QueryOnlySystemModule: ApertureSystemModule = {
+      default: class QueryOnlySystem extends createSystem({
+        queries: {
+          named: { required: [Name] },
+        },
+      }) {
+        override init(): void {
+          this.createEntity().addComponent(Name, { value: "crate" });
+          events.push(
+            `query:${this.priority}:${this.queries.named.entities.size}`,
+          );
+        }
+      },
+    };
+    const ConfigOnlySystemModule: ApertureSystemModule = {
+      default: class ConfigOnlySystem extends createSystem({
+        config: {
+          speed: { type: EcsType.Float32, default: 4 },
+        },
+      }) {
+        override init(): void {
+          const speed: number = this.config.speed.value;
+          events.push(`config:${this.priority}:${speed}`);
+        }
+      },
+    };
+    const PriorityOnlySystemModule: ApertureSystemModule = {
+      default: class PriorityOnlySystem extends createSystem({
+        priority: 100,
+      }) {
+        override init(): void {
+          events.push(`priority:${this.priority}`);
+        }
+      },
+    };
+
+    await createApertureApp({
+      config: defineApertureConfig({ mode: "headless", systems: [] }),
+      systems: [
+        PriorityOnlySystemModule,
+        QueryOnlySystemModule,
+        ConfigOnlySystemModule,
+      ],
+    });
+
+    expect(events).toEqual(["config:0:4", "query:0:1", "priority:100"]);
+  });
+
+  it("orders equal-priority descriptor systems deterministically", async () => {
+    const events: string[] = [];
+    const AlphaSystemModule: ApertureSystemModule = {
+      default: class AlphaSystem extends createSystem({ priority: 10 }) {
+        override init(): void {
+          events.push("alpha");
+        }
+      },
+    };
+    const ZetaSystemModule: ApertureSystemModule = {
+      default: class ZetaSystem extends createSystem({ priority: 10 }) {
+        override init(): void {
+          events.push("zeta");
+        }
+      },
+    };
+
+    const app = await createApertureApp({
+      config: defineApertureConfig({ mode: "headless", systems: [] }),
+      systems: [ZetaSystemModule, AlphaSystemModule],
+    });
+
+    expect(
+      app.lowLevel.world.getSystems().map((system) => system.constructor.name),
+    ).toEqual(["AlphaSystem", "ZetaSystem"]);
+    expect(events).toEqual(["alpha", "zeta"]);
+  });
+
+  it("rejects non-finite descriptor priority before registration", () => {
+    expect(() =>
+      createSystem({
+        priority: Number.POSITIVE_INFINITY,
+      }),
+    ).toThrow(/priority must be a finite number/);
+  });
+
   it("returns worker-owned entity snapshot and diff reports through generated commands", async () => {
     const port = new InlineGeneratedWorkerPort();
     const config = defineApertureConfig({
@@ -147,7 +292,9 @@ describe("developer-facing app API", () => {
       systems: ["src/systems/**/*.system.ts"],
     });
     const SetupSystemModule: ApertureSystemModule = {
-      default: class SnapshotSetupSystem extends createSystem() {
+      default: class SnapshotSetupSystem extends createSystem({
+        priority: 0,
+      }) {
         override init(): void {
           const entity = this.spawn.mesh({
             key: "level.crate.primary",
@@ -164,7 +311,6 @@ describe("developer-facing app API", () => {
           });
         }
       },
-      schedule: { priority: 0 },
     };
 
     startGeneratedSimulationWorker({
@@ -279,6 +425,40 @@ describe("developer-facing app API", () => {
     );
   });
 
+  it("registers generated worker systems using descriptor priority metadata", async () => {
+    const events: string[] = [];
+    const port = new InlineGeneratedWorkerPort();
+    const EarlySystemModule: ApertureSystemModule = {
+      default: class EarlySystem extends createSystem({
+        priority: -10,
+      }) {
+        override init(): void {
+          events.push("early");
+        }
+      },
+    };
+    const LateSystemModule: ApertureSystemModule = {
+      default: class LateSystem extends createSystem({
+        priority: 50,
+      }) {
+        override init(): void {
+          events.push("late");
+        }
+      },
+    };
+
+    startGeneratedSimulationWorker({
+      config: defineApertureConfig({ mode: "headless", systems: [] }),
+      systems: [LateSystemModule, EarlySystemModule],
+      port,
+    });
+    port.dispatch({ type: SIMULATION_WORKER_PROTOCOL.start, stop: true });
+
+    await port.nextPostedMessage(isSimulationWorkerSnapshotMessage);
+
+    expect(events).toEqual(["early", "late"]);
+  });
+
   it("runs config-declared systems through the headless app facade with priority and lifecycle effects", async () => {
     const events: string[] = [];
     let resolveBackground!: () => void;
@@ -308,7 +488,9 @@ describe("developer-facing app API", () => {
     });
 
     const SetupSystemModule: ApertureSystemModule = {
-      default: class SetupSystem extends createSystem() {
+      default: class SetupSystem extends createSystem({
+        priority: 0,
+      }) {
         override init(): void {
           this.spawn.camera({
             key: "camera.main",
@@ -346,11 +528,12 @@ describe("developer-facing app API", () => {
           });
         }
       },
-      schedule: { priority: 0 },
     };
 
     const ReactiveSystemModule: ApertureSystemModule = {
-      default: class ReactiveSystem extends createSystem() {
+      default: class ReactiveSystem extends createSystem({
+        priority: 50,
+      }) {
         override init(): void {
           this.effects.watch(this.input.actions.select!.pressed, (pressed) => {
             if (pressed) {
@@ -359,14 +542,18 @@ describe("developer-facing app API", () => {
           });
         }
       },
-      schedule: { priority: 50 },
     };
 
     const SpinSystemModule: ApertureSystemModule = {
       default: class SpinSystem extends createSystem({
-        crates: {
-          required: [Name, LocalTransform],
-          where: [{ component: Name, key: "value", op: "eq", value: "crate" }],
+        priority: 100,
+        queries: {
+          crates: {
+            required: [Name, LocalTransform],
+            where: [
+              { component: Name, key: "value", op: "eq", value: "crate" },
+            ],
+          },
         },
       }) {
         override update(_delta: number, time: number): void {
@@ -376,7 +563,6 @@ describe("developer-facing app API", () => {
           }
         }
       },
-      schedule: { priority: 100 },
     };
 
     const app = await createApertureApp({
@@ -466,7 +652,9 @@ describe("developer-facing app API", () => {
     expect(queryMesh).not.toBeNull();
 
     const SpatialSystemModule: ApertureSystemModule = {
-      default: class SpatialSystem extends createSystem() {
+      default: class SpatialSystem extends createSystem({
+        priority: 0,
+      }) {
         override init(): void {
           if (queryMesh === null) {
             return;
@@ -616,7 +804,6 @@ describe("developer-facing app API", () => {
           ]);
         }
       },
-      schedule: { priority: 0 },
     };
 
     await createApertureApp({
@@ -689,7 +876,9 @@ describe("developer-facing app API", () => {
       },
     });
     const SetupSystemModule: ApertureSystemModule = {
-      default: class SetupSystem extends createSystem() {
+      default: class SetupSystem extends createSystem({
+        priority: 0,
+      }) {
         override init(): void {
           this.spawn.camera({
             key: "camera.main",
@@ -716,7 +905,6 @@ describe("developer-facing app API", () => {
           });
         }
       },
-      schedule: { priority: 0 },
     };
 
     const app = await createApertureApp({
@@ -759,10 +947,10 @@ describe("developer-facing app API", () => {
     const runner = await createApertureHeadlessRunner({
       config: developerHeadlessConfig,
       systems: [
-        { default: SetupSystem, schedule: setupSchedule },
-        { default: AssetCommandSystem, schedule: assetCommandSchedule },
-        { default: SelectSystem, schedule: selectSchedule },
-        { default: SpinCrateSystem, schedule: spinSchedule },
+        { default: SetupSystem },
+        { default: AssetCommandSystem },
+        { default: SelectSystem },
+        { default: SpinCrateSystem },
       ],
       assetLoader: {
         async load(assetHandle) {
@@ -840,10 +1028,10 @@ describe("developer-facing app API", () => {
     const runner = await createApertureHeadlessRunner({
       config,
       systems: [
-        { default: SetupSystem, schedule: setupSchedule },
-        { default: AssetCommandSystem, schedule: assetCommandSchedule },
-        { default: SelectSystem, schedule: selectSchedule },
-        { default: SpinCrateSystem, schedule: spinSchedule },
+        { default: SetupSystem },
+        { default: AssetCommandSystem },
+        { default: SelectSystem },
+        { default: SpinCrateSystem },
       ],
     });
 
@@ -1065,10 +1253,10 @@ describe("developer-facing app API", () => {
     const runner = await createApertureHeadlessRunner({
       config: developerHeadlessConfig,
       systems: [
-        { default: SetupSystem, schedule: setupSchedule },
-        { default: AssetCommandSystem, schedule: assetCommandSchedule },
-        { default: SelectSystem, schedule: selectSchedule },
-        { default: SpinCrateSystem, schedule: spinSchedule },
+        { default: SetupSystem },
+        { default: AssetCommandSystem },
+        { default: SelectSystem },
+        { default: SpinCrateSystem },
       ],
       assetLoader: {
         async load(assetHandle) {
@@ -1112,7 +1300,7 @@ describe("developer-facing app API", () => {
     });
   });
 
-  it("discovers worker system globs and records schedule metadata without exposing classes to the main manifest", async () => {
+  it("discovers worker system globs and records descriptor priority metadata without exposing classes to the main manifest", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "aperture-plugin-"));
 
     try {
@@ -1132,21 +1320,76 @@ describe("developer-facing app API", () => {
         path.join(root, "src/systems/spin-crate.system.ts"),
         [
           `import { createSystem } from "@aperture-engine/app/systems";`,
-          `export const schedule = { priority: 100 };`,
-          `export default class SpinCrateSystem extends createSystem() {}`,
+          `export default class SpinCrateSystem extends createSystem({ priority: 100 }) {}`,
+          "",
+        ].join("\n"),
+      );
+      await writeFile(
+        path.join(root, "src/systems/default-priority.system.ts"),
+        [
+          `import { createSystem } from "@aperture-engine/app/systems";`,
+          `export default class DefaultPrioritySystem extends createSystem() {}`,
+          "",
+        ].join("\n"),
+      );
+      await writeFile(
+        path.join(root, "src/systems/nested-config-priority.system.ts"),
+        [
+          `import { EcsType, createSystem } from "@aperture-engine/app/systems";`,
+          `export default class NestedConfigPrioritySystem extends createSystem({`,
+          `  config: {`,
+          `    priority: { type: EcsType.Float32, default: 12 },`,
+          `  },`,
+          `}) {}`,
+          "",
+        ].join("\n"),
+      );
+      await writeFile(
+        path.join(root, "src/systems/early-priority.system.ts"),
+        [
+          `import { createSystem } from "@aperture-engine/app/systems";`,
+          `export default class EarlyPrioritySystem extends createSystem({ priority: -1.5 }) {}`,
           "",
         ].join("\n"),
       );
 
       const manifest = await createApertureSystemManifest({ root });
+      const plugin = apertureFromVitePlugin();
+      plugin.configResolved?.({ root });
+      const workerSystemsId = plugin.resolveId?.(
+        "virtual:aperture/worker-systems",
+      );
+      const workerSystemsModule =
+        workerSystemsId === null || workerSystemsId === undefined
+          ? null
+          : await plugin.load?.(workerSystemsId);
 
       expect(manifest.diagnostics).toEqual([]);
-      expect(manifest.systems).toHaveLength(1);
-      expect(manifest.systems[0]).toMatchObject({
-        hasDefaultExport: true,
-        schedule: { priority: 100 },
-      });
+      expect(
+        manifest.systems.map((system) => path.basename(system.file)),
+      ).toEqual([
+        "early-priority.system.ts",
+        "default-priority.system.ts",
+        "nested-config-priority.system.ts",
+        "spin-crate.system.ts",
+      ]);
+      expect(
+        manifest.systems.map((system) => system.schedule.priority),
+      ).toEqual([-1.5, 0, 0, 100]);
+      expect(manifest.systems).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hasDefaultExport: true,
+            schedule: { priority: 100 },
+          }),
+        ]),
+      );
       expect(JSON.stringify(manifest.systems)).not.toContain("SpinCrateSystem");
+      expect(workerSystemsModule).not.toBeNull();
+      expect(workerSystemsModule).not.toContain("schedule");
+      expect(workerSystemsModule).toContain(
+        "{ default: SystemModule0.default }",
+      );
     } finally {
       await rm(root, { force: true, recursive: true });
     }
@@ -1170,14 +1413,13 @@ describe("developer-facing app API", () => {
       );
       await writeFile(
         path.join(root, "src/systems/missing-export.system.ts"),
-        [`export const schedule = { priority: 0 };`, ""].join("\n"),
+        [`export const notASystem = true;`, ""].join("\n"),
       );
       await writeFile(
-        path.join(root, "src/systems/bad-schedule.system.ts"),
+        path.join(root, "src/systems/bad-priority.system.ts"),
         [
           `import { createSystem } from "@aperture-engine/app/systems";`,
-          `export const schedule = { priority: "late" };`,
-          `export default class BadScheduleSystem extends createSystem() {}`,
+          `export default class BadPrioritySystem extends createSystem({ priority: "late" }) {}`,
           "",
         ].join("\n"),
       );
@@ -1199,11 +1441,11 @@ describe("developer-facing app API", () => {
             suggestedFix: expect.stringContaining("Default-export"),
           }),
           expect.objectContaining({
-            code: "aperture.system.invalidSchedule",
+            code: "aperture.system.invalidPriority",
             source: expect.objectContaining({
-              file: expect.stringContaining("bad-schedule.system.ts"),
+              file: expect.stringContaining("bad-priority.system.ts"),
             }),
-            suggestedFix: expect.stringContaining("schedule"),
+            suggestedFix: expect.stringContaining("createSystem"),
           }),
         ]),
       });
@@ -1247,7 +1489,7 @@ describe("developer-facing app API", () => {
     const port = new InlineGeneratedWorkerPort();
     startGeneratedSimulationWorker({
       config: defineApertureConfig({ mode: "headless", systems: [] }),
-      systems: [{ schedule: { priority: 0 } }],
+      systems: [{}],
       port,
     });
     port.dispatch({ type: SIMULATION_WORKER_PROTOCOL.start });

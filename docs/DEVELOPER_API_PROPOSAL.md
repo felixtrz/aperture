@@ -245,15 +245,16 @@ the real EliCS surface:
   `getVectorView`, `getComponents`, and `destroy`.
 - Serializable entity references should use `{ index, generation }`, matching
   Aperture's current `RenderEntityRef`.
-- Systems are classes created by extending `createSystem(queries, schema)`.
+- Systems are classes created by extending
+  `createSystem({ priority, queries, config })`.
 - A system instance has `init()`, `update(delta, time)`, `destroy()`, `play()`,
   `stop()`, `isPaused`, `priority`, `config`, `queries`, `globals`, and
   `createEntity()`.
 - Aperture's worker-safe system wrapper should prefer typed `this.signals`
   over raw `globals`. `globals` may remain as a lower-level EliCS/IWSDK-style
   escape hatch, but it should not be the recommended app state model.
-- `world.registerSystem(SystemClass, { priority, configData })` is the known
-  registration API. Lower numeric priority runs earlier.
+- App system priority is static metadata declared in the `createSystem`
+  descriptor. Lower numeric priority runs earlier.
 - EliCS does not currently provide `fixedUpdate`, `postUpdate`, `before`,
   `after`, or app-level callback scheduling. Those would require an Aperture
   wrapper/scheduler and should not appear in examples as if EliCS already
@@ -304,9 +305,9 @@ export default defineConfig({
 // src/systems/setup.system.ts
 import { createSystem, material, mesh } from "@aperture-engine/app/systems";
 
-export const schedule = { priority: 0 };
-
-export default class SetupSystem extends createSystem() {
+export default class SetupSystem extends createSystem({
+  priority: 0,
+}) {
   override init(): void {
     this.spawn.mesh({
       key: "level.crate.primary",
@@ -332,27 +333,32 @@ export default class SetupSystem extends createSystem() {
 ```ts
 // src/systems/spin-crate.system.ts
 import {
+  EcsType,
   LocalTransform,
   Name,
   createSystem,
   quatFromAxisAngle,
 } from "@aperture-engine/app/systems";
 
-export const schedule = { priority: 100 };
-
-const SpinCrateSystemBase = createSystem({
-  crates: {
-    required: [Name, LocalTransform],
-    where: [{ component: Name, key: "value", op: "eq", value: "crate" }],
+export default class SpinCrateSystem extends createSystem({
+  priority: 100,
+  queries: {
+    crates: {
+      required: [Name, LocalTransform],
+      where: [{ component: Name, key: "value", op: "eq", value: "crate" }],
+    },
   },
-});
-
-export default class SpinCrateSystem extends SpinCrateSystemBase {
+  config: {
+    speed: { type: EcsType.Float32, default: 1 },
+  },
+}) {
   override update(_delta: number, time: number): void {
+    const speed = this.config.speed.value;
+
     for (const entity of this.queries.crates.entities) {
       entity
         .getVectorView(LocalTransform, "rotation")
-        .set(quatFromAxisAngle([0, 1, 0], time));
+        .set(quatFromAxisAngle([0, 1, 0], time * speed));
     }
   }
 }
@@ -437,7 +443,7 @@ The plugin should:
 
 - discover configured system globs;
 - generate a system manifest with module URLs, default/named exports, and
-  schedule metadata;
+  descriptor priority metadata;
 - build the simulation worker bundle;
 - generate or inject the browser bootstrap;
 - load config-defined asset manifests;
@@ -507,7 +513,10 @@ Reactive systems should be first-class:
 import { createSystem } from "@aperture-engine/app/systems";
 
 export default class SelectSystem extends createSystem({
-  selectable: { required: [Selectable, WorldBounds] },
+  priority: 50,
+  queries: {
+    selectable: { required: [Selectable, WorldBounds] },
+  },
 }) {
   override init(): void {
     this.effects.watch(this.input.actions.select.pressed, (pressed) => {
@@ -566,9 +575,9 @@ Scene setup should be an ECS startup system, not app-level mutation:
 ```ts
 import { createSystem, material, mesh } from "@aperture-engine/app/systems";
 
-export const schedule = { priority: 0 };
-
-export default class SetupSceneSystem extends createSystem() {
+export default class SetupSceneSystem extends createSystem({
+  priority: 0,
+}) {
   override init(): void {
     this.spawn.camera({
       key: "camera.main",
@@ -845,16 +854,16 @@ Add:
 - configured system glob discovery;
 - generated system manifest;
 - support for default exported system classes;
-- schedule metadata such as `export const schedule = { priority }`;
+- descriptor priority metadata such as `createSystem({ priority })`;
 - worker-side registration of discovered systems;
-- actionable diagnostics for missing exports, invalid schedules, or
+- actionable diagnostics for missing exports, invalid priorities, or
   non-worker-safe imports.
 
 Acceptance criteria:
 
 - A `src/systems/spin-crate.system.ts` file runs in the simulation worker
   without manual worker setup.
-- System priority is applied from module metadata.
+- System priority is applied from `createSystem({ priority })` metadata.
 - The main-thread generated bootstrap never receives live system classes.
 
 ### Phase 3: Worker-Safe System Interface
@@ -948,9 +957,8 @@ The proposed beginner-facing surface is intentionally small:
 - `asset.texture(url, options?)`.
 - `asset.hdr(url, options?)`.
 - `aperture()` Vite plugin from `@aperture-engine/vite-plugin`.
-- `createSystem(queries?, schema?)`.
+- `createSystem({ priority?, queries?, config? })`.
 - system files discovered by `systems: ["src/systems/**/*.system.ts"]`.
-- `export const schedule = { priority }`.
 - `this.signals`.
 - `this.input`.
 - `this.assets`.
@@ -998,7 +1006,9 @@ export default defineApertureConfig({
 // src/systems/setup.system.ts
 import { createSystem, material, mesh } from "@aperture-engine/app/systems";
 
-export default class SetupSystem extends createSystem() {
+export default class SetupSystem extends createSystem({
+  priority: 0,
+}) {
   override init(): void {
     this.spawn.mesh({
       key: "level.crate.primary",

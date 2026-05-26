@@ -5,16 +5,15 @@ import {
   quatFromAxisAngle,
 } from "@aperture-engine/app/systems";
 
-export const schedule = { priority: 100 };
-
-const SpinCrateSystemBase = createSystem({
-  crates: {
-    required: [Name, LocalTransform],
-    where: [{ component: Name, key: "value", op: "eq", value: "crate" }],
+export default class SpinCrateSystem extends createSystem({
+  priority: 100,
+  queries: {
+    crates: {
+      required: [Name, LocalTransform],
+      where: [{ component: Name, key: "value", op: "eq", value: "crate" }],
+    },
   },
-});
-
-export default class SpinCrateSystem extends SpinCrateSystemBase {
+}) {
   override update(_delta: number, time: number): void {
     for (const entity of this.queries.crates.entities) {
       entity

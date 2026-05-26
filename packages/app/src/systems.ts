@@ -4,7 +4,12 @@ import {
   type ReadonlySignal,
   type Signal,
 } from "@preact/signals-core";
-import type { Query, SystemQueries, SystemSchema } from "elics";
+import type {
+  Query,
+  SystemQueries,
+  SystemSchema,
+  TypeValueToType,
+} from "elics";
 import {
   Camera,
   Light,
@@ -361,6 +366,7 @@ export type ScheduledEffects = ApertureEffects;
 export interface ApertureSystemInstance {
   readonly world: unknown;
   readonly queries: Record<string, Query>;
+  readonly config: Record<string, Signal<unknown>>;
   readonly priority: number;
   readonly signals: SignalStore;
   readonly input: InputSignals;
@@ -371,9 +377,31 @@ export interface ApertureSystemInstance {
   readonly cameras: CameraAccess;
   readonly diagnostics: SystemDiagnostics;
   readonly effects: ScheduledEffects;
+  createEntity(): Entity;
   init(): void;
   update(delta: number, time: number): void;
   destroy(): void;
+}
+
+export type ApertureSystemConfigSignals<TSchema extends SystemSchema> = {
+  [K in keyof TSchema]: Signal<TypeValueToType<TSchema[K]["type"]>>;
+};
+
+export interface ApertureSystemScheduleMetadata {
+  readonly priority: number;
+}
+
+export interface ApertureSystemMetadata {
+  readonly schedule: ApertureSystemScheduleMetadata;
+}
+
+export interface ApertureSystemDescriptor<
+  TQueries extends SystemQueries = Record<string, never>,
+  TSchema extends SystemSchema = Record<string, never>,
+> {
+  readonly priority?: number;
+  readonly queries?: TQueries;
+  readonly config?: TSchema;
 }
 
 export type ApertureSystemConstructor<
@@ -383,12 +411,14 @@ export type ApertureSystemConstructor<
   readonly schema: TSchema;
   readonly isSystem: boolean;
   readonly queries: TQueries;
+  readonly aperture?: ApertureSystemMetadata;
   new (
     world: EcsWorld,
     queryManager: unknown,
     priority: number,
   ): ApertureSystemInstance & {
     readonly queries: Record<keyof TQueries, Query>;
+    readonly config: ApertureSystemConfigSignals<TSchema>;
   };
 };
 
@@ -485,12 +515,19 @@ export function createSystem<
   TQueries extends SystemQueries = Record<string, never>,
   TSchema extends SystemSchema = Record<string, never>,
 >(
-  queries?: TQueries,
-  schema?: TSchema,
+  descriptor: ApertureSystemDescriptor<TQueries, TSchema> = {},
 ): ApertureSystemConstructor<TSchema, TQueries> {
+  const priority = normalizeSystemPriority(descriptor.priority);
+  const queries = descriptor.queries ?? ({} as TQueries);
+  const schema = descriptor.config ?? ({} as TSchema);
+  const aperture = Object.freeze({
+    schedule: Object.freeze({ priority }),
+  }) satisfies ApertureSystemMetadata;
   const Base = createElicsSystem(queries, schema);
 
   class ApertureSystemBase extends Base implements ApertureSystemInstance {
+    static readonly aperture = aperture;
+
     readonly #context: ApertureSystemContext;
     readonly #effects: ScheduledEffects;
 
@@ -546,6 +583,21 @@ export function createSystem<
     TSchema,
     TQueries
   >;
+}
+
+function normalizeSystemPriority(priority: number | undefined): number {
+  const normalized = priority ?? 0;
+
+  if (!Number.isFinite(normalized)) {
+    throw new ApertureSystemError(
+      "aperture.system.invalidPriority",
+      "System descriptor priority must be a finite number.",
+      "Use createSystem({ priority: 0 }) or omit priority.",
+      { priority: normalized },
+    );
+  }
+
+  return normalized;
 }
 
 export function installApertureSystemContext(

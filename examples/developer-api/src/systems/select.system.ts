@@ -4,16 +4,15 @@ import {
   createSystem,
 } from "@aperture-engine/app/systems";
 
-export const schedule = { priority: 50 };
-
-const SelectSystemBase = createSystem({
-  crates: {
-    required: [Name],
-    where: [{ component: Name, key: "value", op: "eq", value: "crate" }],
+export default class SelectSystem extends createSystem({
+  priority: 50,
+  queries: {
+    crates: {
+      required: [Name],
+      where: [{ component: Name, key: "value", op: "eq", value: "crate" }],
+    },
   },
-});
-
-export default class SelectSystem extends SelectSystemBase {
+}) {
   override init(): void {
     const select = this.input.actions.select;
     if (select === undefined) {

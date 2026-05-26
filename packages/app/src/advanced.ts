@@ -17,14 +17,9 @@ import {
   type AssetPreloadPolicy,
 } from "./config.js";
 
-export interface ApertureSystemSchedule {
-  readonly priority?: number;
-  readonly configData?: Record<string, unknown>;
-}
-
 export interface ApertureSystemModule {
   readonly default?: ApertureSystemConstructor;
-  readonly schedule?: ApertureSystemSchedule;
+  readonly configData?: Record<string, unknown>;
 }
 
 export interface ApertureResolvedSystemModule {
@@ -187,14 +182,13 @@ function resolveSystemModule(
     });
   }
 
-  const schedule = moduleValue.schedule ?? {};
-  const priority = schedule.priority ?? 0;
+  const priority = moduleValue.default.aperture?.schedule.priority ?? 0;
 
   if (!Number.isFinite(priority)) {
     throw new ApertureAppError({
-      code: "aperture.system.invalidSchedule",
-      message: `Discovered system module at index ${index} has an invalid schedule.priority.`,
-      suggestedFix: "Export schedule as { priority: 0 } or omit it.",
+      code: "aperture.system.invalidPriority",
+      message: `Discovered system module at index ${index} has an invalid createSystem descriptor priority.`,
+      suggestedFix: "Use createSystem({ priority: 0 }) or omit priority.",
       detail: { index, priority },
     });
   }
@@ -203,9 +197,9 @@ function resolveSystemModule(
     moduleId: moduleValue.default.name || `system:${index}`,
     System: moduleValue.default,
     priority,
-    ...(schedule.configData === undefined
+    ...(moduleValue.configData === undefined
       ? {}
-      : { configData: schedule.configData }),
+      : { configData: moduleValue.configData }),
   };
 }
 

@@ -1,8 +1,8 @@
 import { createSystem, material, mesh } from "@aperture-engine/app/systems";
 
-export const schedule = { priority: 0 };
-
-export default class SetupSystem extends createSystem() {
+export default class SetupSystem extends createSystem({
+  priority: 0,
+}) {
   override init(): void {
     this.spawn.camera({
       key: "camera.main",
