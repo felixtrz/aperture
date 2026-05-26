@@ -59,39 +59,23 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3203` is complete: `examples/mixed-msaa-reuse-crop.html` now proves one
-MSAA-enabled WebGPU app can render two worker snapshots through the same
-renderer-owned off-screen `ViewPacket.renderTarget` handle while also extracting
-a current-texture ECS camera, apply a non-full viewport/scissor rectangle to the
-off-screen target, and display the second resolved cropped preview plus
-current-texture readback. The route reports current/off-screen classifications,
-stable target key, crop rectangle and pixels, per-frame dimensions and draw
-counts, requested/resolved sample count, per-pass MSAA sample count, resolve
-attachment behavior, and display samples. Playwright verifies the
-current-texture sample, inside-crop preview, outside-clear region, and
-screen-clear region are non-conflicting without stale first-frame pixels.
-Continue the
-post-SOTA visible-feature queue at `task-3204`: add a mixed current-texture plus
-MSAA resized dual-size off-screen target route.
+`task-3204` is complete: `examples/mixed-msaa-resized-dual-size.html` now proves
+one MSAA-enabled WebGPU app can replace the primary renderer-owned off-screen
+`ViewPacket.renderTarget` texture under the same ECS handle while also
+extracting a current-texture ECS camera and a differently sized secondary
+off-screen target. The route displays the resolved resized primary preview and
+wide secondary preview with aspect-preserving mapping plus current-texture
+readback, and reports current/off-screen classifications, before/after
+dimensions, stable primary target key, secondary target dimensions,
+requested/resolved sample count, per-pass MSAA sample count, resolve attachment
+behavior, display quads, and aspect mapping. Playwright verifies the
+current-texture sample plus both resolved previews are non-clear and visually
+distinct without stale-size sampling. Continue the post-SOTA visible-feature
+queue at `task-3205`: add a mixed current-texture plus MSAA resized same-target
+clear/load off-screen target route.
 
 The next ready visible-feature queue is:
 
-- `task-3204` — add a mixed current-texture plus MSAA resized dual-size
-  off-screen target route.
-  Reference anchor:
-  `references/engine/src/extras/render-passes/camera-frame.js`,
-  `references/bevy/examples/3d/render_to_texture.rs`.
-  Done when one browser route creates an MSAA-enabled WebGPU app, replaces the
-  primary renderer-owned off-screen `ViewPacket.renderTarget` texture under the
-  same ECS handle while also extracting a current-texture ECS camera and a
-  differently sized secondary off-screen target, displays the resolved resized
-  primary preview and wide secondary preview with aspect-preserving mapping,
-  reports current/off-screen classifications, before/after dimensions, stable
-  primary target key, secondary target dimensions, requested/resolved sample
-  count, per-pass MSAA sample count, resolve attachment behavior, display quads,
-  and aspect mapping, and Playwright verifies the current-texture sample plus
-  both resolved previews are non-clear and visually distinct without stale-size
-  sampling.
 - `task-3205` — add a mixed current-texture plus MSAA resized same-target
   clear/load off-screen target route.
   Reference anchor:
@@ -125,6 +109,23 @@ The next ready visible-feature queue is:
   attachment behavior, display quads, and aspect mapping, and Playwright
   verifies the current-texture sample plus both resolved previews are non-clear
   and visually distinct without stale first-frame pixels.
+- `task-3207` — add a mixed current-texture plus MSAA resized reused
+  viewport-cropped off-screen target route.
+  Reference anchor:
+  `references/engine/src/extras/render-passes/camera-frame.js`,
+  `references/bevy/examples/3d/render_to_texture.rs`.
+  Done when one browser route creates an MSAA-enabled WebGPU app, replaces the
+  renderer-owned off-screen `ViewPacket.renderTarget` texture under the same
+  ECS handle, renders two worker snapshots through the resized handle while also
+  extracting a current-texture ECS camera, applies a non-full viewport/scissor
+  rectangle to the off-screen target, displays the second resolved cropped
+  preview plus current-texture readback, reports current/off-screen
+  classifications, before/after dimensions, stable target key, crop rectangle
+  and pixels, per-frame dimensions and draw counts, requested/resolved sample
+  count, per-pass MSAA sample count, resolve attachment behavior, and display
+  samples, and Playwright verifies the current-texture sample, inside-crop
+  preview, and outside-clear region are distinct without stale-size or stale
+  first-frame pixels.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.
