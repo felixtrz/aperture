@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "de0c0eaf",
+  "lastCommit": "20f29169",
   "activePid": null,
-  "notes": "Completed task-3175 camera clear/load matrix route after task-3174: added examples/camera-clear-load-matrix.html and worker, supports intentional expected-zero-draw clear passes in the shared multi-view example path, reports pass roles and clear/load behavior, and proves clear-only, base-preserved, and overlay samples. Focused route Playwright, check:examples, navigation tests, shared multi-view Playwright regression set, touched-file ESLint, build, and test typecheck pass. render-control smoke-all was attempted but did not pass due to a TAA timeout/hung rerun unrelated to the new route.",
-  "lastRunFinishedAt": "2026-05-26T03:13:50Z"
+  "notes": "Completed task-3176 and task-3177: added camera picture-in-picture and render-target reuse routes, expanded Playwright coverage, updated trackers/backlog/handoff, and validated focused specs, build, typecheck, progress, navigation, check:examples, lint, and all-route render-control smoke.",
+  "lastRunFinishedAt": "2026-05-26T04:44:07Z"
 }
