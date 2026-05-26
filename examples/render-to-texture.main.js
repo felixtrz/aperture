@@ -329,39 +329,41 @@ async function handleWorkerMessage(
               ? "render-to-texture/mixed-msaa-dual-size-targets"
               : routeConfig.mixedDualSizeRenderTargets
                 ? "render-to-texture/mixed-dual-size-targets"
-                : routeConfig.mixedMsaaClearLoadTarget
-                  ? "render-to-texture/mixed-msaa-clear-load-target"
-                  : isMixedMsaaResizedTargetCropRoute()
-                    ? "render-to-texture/mixed-msaa-resized-cropped-target"
-                    : isMixedMsaaTargetCropRoute()
-                      ? "render-to-texture/mixed-msaa-cropped-target"
-                      : isMixedMsaaReuseTargetCropRoute()
-                        ? "render-to-texture/mixed-msaa-reused-cropped-target"
-                        : isMixedMsaaReuseRoute()
-                          ? "render-to-texture/mixed-msaa-reuse-target"
-                          : isMixedMsaaResizeRoute()
-                            ? "render-to-texture/mixed-msaa-resized-target"
-                            : routeConfig.msaaMultiRenderTargets
-                              ? "render-to-texture/msaa-two-targets"
-                              : routeConfig.msaaCroppedSecondaryRenderTargets
-                                ? "render-to-texture/msaa-cropped-secondary-target"
-                                : routeConfig.resizeTarget &&
-                                    routeConfig.targetMsaa
-                                  ? "render-to-texture/msaa-resized-target"
-                                  : routeConfig.targetClearLoad &&
+                : isMixedMsaaResizedClearLoadRoute()
+                  ? "render-to-texture/mixed-msaa-resized-clear-load-target"
+                  : routeConfig.mixedMsaaClearLoadTarget
+                    ? "render-to-texture/mixed-msaa-clear-load-target"
+                    : isMixedMsaaResizedTargetCropRoute()
+                      ? "render-to-texture/mixed-msaa-resized-cropped-target"
+                      : isMixedMsaaTargetCropRoute()
+                        ? "render-to-texture/mixed-msaa-cropped-target"
+                        : isMixedMsaaReuseTargetCropRoute()
+                          ? "render-to-texture/mixed-msaa-reused-cropped-target"
+                          : isMixedMsaaReuseRoute()
+                            ? "render-to-texture/mixed-msaa-reuse-target"
+                            : isMixedMsaaResizeRoute()
+                              ? "render-to-texture/mixed-msaa-resized-target"
+                              : routeConfig.msaaMultiRenderTargets
+                                ? "render-to-texture/msaa-two-targets"
+                                : routeConfig.msaaCroppedSecondaryRenderTargets
+                                  ? "render-to-texture/msaa-cropped-secondary-target"
+                                  : routeConfig.resizeTarget &&
                                       routeConfig.targetMsaa
-                                    ? "render-to-texture/msaa-clear-load-target"
-                                    : routeConfig.targetCrop &&
+                                    ? "render-to-texture/msaa-resized-target"
+                                    : routeConfig.targetClearLoad &&
                                         routeConfig.targetMsaa
-                                      ? "render-to-texture/msaa-cropped-target"
-                                      : routeConfig.reuseStress &&
+                                      ? "render-to-texture/msaa-clear-load-target"
+                                      : routeConfig.targetCrop &&
                                           routeConfig.targetMsaa
-                                        ? "render-to-texture/msaa-reuse-target"
-                                        : routeConfig.mixedMultiRenderTargets
-                                          ? "render-to-texture/mixed-multi-targets"
-                                          : routeConfig.mixedTargets
-                                            ? "render-to-texture/mixed-targets"
-                                            : "render-to-texture/offscreen",
+                                        ? "render-to-texture/msaa-cropped-target"
+                                        : routeConfig.reuseStress &&
+                                            routeConfig.targetMsaa
+                                          ? "render-to-texture/msaa-reuse-target"
+                                          : routeConfig.mixedMultiRenderTargets
+                                            ? "render-to-texture/mixed-multi-targets"
+                                            : routeConfig.mixedTargets
+                                              ? "render-to-texture/mixed-targets"
+                                              : "render-to-texture/offscreen",
   });
 
   if (!offscreenReport.ok) {
@@ -571,6 +573,14 @@ function isMixedMsaaDualSizeRoute() {
 function isMixedMsaaResizedDualSizeRoute() {
   return (
     routeConfig.mixedDualSizeRenderTargets &&
+    routeConfig.resizeTarget &&
+    routeConfig.targetMsaa
+  );
+}
+
+function isMixedMsaaResizedClearLoadRoute() {
+  return (
+    routeConfig.mixedMsaaClearLoadTarget &&
     routeConfig.resizeTarget &&
     routeConfig.targetMsaa
   );
@@ -1185,7 +1195,21 @@ function createStatus(
             ),
         }
       : {}),
-    ...(routeConfig.mixedMsaaClearLoadTarget
+    ...(isMixedMsaaResizedClearLoadRoute()
+      ? {
+          mixedMsaaResizedSameTargetClearLoad:
+            createMixedMsaaResizedSameTargetClearLoadStatus(
+              aperture,
+              scene,
+              message,
+              offscreenReport,
+              report,
+              screenPass,
+            ),
+        }
+      : {}),
+    ...(routeConfig.mixedMsaaClearLoadTarget &&
+    !isMixedMsaaResizedClearLoadRoute()
       ? {
           mixedMsaaSameTargetClearLoad:
             createMixedMsaaSameTargetClearLoadStatus(
@@ -2158,6 +2182,32 @@ function routeConfigForPath(pathname) {
       initialOffscreenSize: defaultOffscreenSize,
       offscreenSize: defaultOffscreenSize,
       resizeTarget: false,
+      reuseStress: false,
+      mixedTargets: false,
+      multiRenderTargets: false,
+      mixedMultiRenderTargets: false,
+      dualSizeRenderTargets: false,
+      mixedDualSizeRenderTargets: false,
+      mixedCroppedSecondaryRenderTargets: false,
+      mixedMsaaMultiRenderTargets: false,
+      mixedMsaaCroppedSecondaryRenderTargets: false,
+      mixedMsaaClearLoadTarget: true,
+      msaaMultiRenderTargets: false,
+      msaaCroppedSecondaryRenderTargets: false,
+      croppedSecondaryRenderTargets: false,
+      targetCrop: false,
+      targetClearLoad: true,
+      targetMsaa: true,
+      requiredFrames: 1,
+    };
+  }
+
+  if (pathname.endsWith("/mixed-msaa-resized-clear-load.html")) {
+    return {
+      example: "mixed-msaa-resized-clear-load",
+      initialOffscreenSize: 128,
+      offscreenSize: 384,
+      resizeTarget: true,
       reuseStress: false,
       mixedTargets: false,
       multiRenderTargets: false,
@@ -4797,6 +4847,33 @@ function createMixedMsaaSameTargetClearLoadStatus(
         expectedColor: { ...screenClearColor },
       },
     },
+  };
+}
+
+function createMixedMsaaResizedSameTargetClearLoadStatus(
+  aperture,
+  scene,
+  message,
+  offscreenReport,
+  report,
+  screenPass,
+) {
+  return {
+    ...createMixedMsaaSameTargetClearLoadStatus(
+      aperture,
+      scene,
+      message,
+      offscreenReport,
+      report,
+      screenPass,
+    ),
+    mode: "current-texture-plus-msaa-resized-same-offscreen-render-target-clear-load",
+    resize: createRenderTargetResizeStatus(
+      aperture,
+      scene,
+      offscreenReport,
+      report,
+    ),
   };
 }
 
