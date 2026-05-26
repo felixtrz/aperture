@@ -1,5 +1,41 @@
 # Completed Tasks
 
+## task-3203 — Add a mixed current-texture plus MSAA reused viewport-cropped off-screen target route
+
+Completed: 2026-05-26
+
+### Summary
+
+- Added `examples/mixed-msaa-reuse-crop.html` to the render-to-texture route
+  family and linked it from related example pages.
+- `examples/render-to-texture.main.js` now recognizes the mixed MSAA reuse crop
+  route, creates an MSAA-enabled app, renders two worker snapshots through the
+  same renderer-owned off-screen `ViewPacket.renderTarget` handle while also
+  extracting a current-texture ECS camera, applies a non-full viewport/scissor
+  rectangle to the off-screen target, resolves the second cropped off-screen
+  texture into the visible preview, and reports current/off-screen
+  classifications, stable target key, crop rectangle and target-space pixels,
+  per-frame dimensions and draw counts, requested/resolved sample count,
+  per-pass MSAA sample count, resolve attachment behavior, display samples, and
+  current-texture readback.
+- Added Playwright coverage proving the current-texture sample, inside-crop
+  preview, outside-clear region, and screen-clear region are non-conflicting
+  without stale first-frame pixels.
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `pnpm exec eslint examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA reuse crop" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA reuse crop|mixed MSAA reuse|mixed MSAA target crop|mixed MSAA resized crop" --reporter=list`
+- Browser route check: `examples/mixed-msaa-reuse-crop.html` published
+  `ok: true`, two MSAA target submissions, current/off-screen target
+  classifications, a stable off-screen render-target key across two worker
+  snapshots, target-space crop pixels, requested 8/effective 4 MSAA, resolve
+  attachments, current-texture readback, and distinct current, inside-crop,
+  outside-clear, and screen-clear samples.
+
 ## task-3202 — Add a mixed current-texture plus MSAA resized viewport-cropped off-screen target route
 
 Completed: 2026-05-26
