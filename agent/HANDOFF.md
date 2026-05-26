@@ -1,6 +1,53 @@
 # Agent Handoff
 
-Updated: 2026-05-26T02:54:38Z
+Updated: 2026-05-26T03:01:03Z
+
+## Current Run Update — 2026-05-26T03:01:03Z — Render-target resize preview route
+
+Completed `task-3174` after `task-3173`.
+
+### What changed
+
+- Added `examples/render-target-resize.html` using the existing
+  render-to-texture main path and worker-owned ECS snapshot.
+- The route allocates a small renderer-owned off-screen render target, replaces
+  the same ECS `ViewPacket.renderTarget` handle with a larger 384x384 GPU
+  texture before rendering, and destroys the previous texture.
+- Status now reports `renderTargetResize` with before/after dimensions, reused
+  handle, texture recreation, previous texture destruction, and the stale-size
+  guard used before rendering.
+- The existing `examples/render-to-texture.html` route remains at 256x256 and
+  continues to report source view, target usage, display pass, and readback
+  samples.
+- Expanded Playwright coverage to verify the resize route reports the new
+  384x384 target in both route status and app render report, then reads back a
+  non-clear displayed preview.
+
+### Validation
+
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --reporter=list`
+  — 2 passed; covers the original route and new resize route.
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs` — 7 passed.
+- `pnpm exec eslint examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run render-control:smoke-all` — visited 57 routes, including
+  `/examples/render-target-resize.html`, with zero route status failures and
+  zero warning routes.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3175`: add a camera clear/load
+behavior matrix route.
 
 ## Current Run Update — 2026-05-26T02:54:38Z — Camera viewport grid route
 

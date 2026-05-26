@@ -35,6 +35,23 @@ interface RenderToTextureStatus extends ExampleStatusBase {
       readonly copySource?: boolean;
     };
   };
+  readonly renderTargetResize?: {
+    readonly mode?: string;
+    readonly reason?: string;
+    readonly renderTargetKey?: string;
+    readonly before?: {
+      readonly width?: number;
+      readonly height?: number;
+    };
+    readonly after?: {
+      readonly width?: number;
+      readonly height?: number;
+    };
+    readonly reusedHandle?: boolean;
+    readonly textureRecreated?: boolean;
+    readonly previousTextureDestroyed?: boolean;
+    readonly staleSizeGuard?: string;
+  };
   readonly sourceView?: {
     readonly ok?: boolean;
     readonly viewId?: number;
@@ -293,5 +310,123 @@ test("render-to-texture example displays the off-screen pass on the canvas", asy
     `canvas quad preview should differ from the off-screen render target clear color; preview=${JSON.stringify(
       sample.pixel,
     )} clear=${JSON.stringify(expectedOffscreenClear)}`,
+  ).toBeGreaterThan(40);
+});
+
+test("render-target resize route displays the resized off-screen pass", async ({
+  page,
+}) => {
+  const guard = attachWebGpuValidationConsoleGuard(page);
+  const status = await loadExampleStatus<RenderToTextureStatus>(
+    page,
+    "/examples/render-target-resize.html",
+    "render-target-resize-status",
+  );
+
+  if (status === undefined) {
+    return;
+  }
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "render-target-resize",
+    ok: true,
+    phase: "display",
+    renderingBackend: "webgpu-explicit",
+    renderTarget: {
+      width: 384,
+      height: 384,
+      source: "ViewPacket.renderTarget",
+      textureUsage: {
+        renderAttachment: true,
+        textureBinding: true,
+        copySource: true,
+      },
+    },
+    renderTargetResize: {
+      mode: "renderer-owned-render-target-resize",
+      reason: "route-config-canvas-resize-simulation",
+      renderTargetKey: status.renderTarget?.key,
+      before: { width: 128, height: 128 },
+      after: { width: 384, height: 384 },
+      reusedHandle: true,
+      textureRecreated: true,
+      previousTextureDestroyed: true,
+      staleSizeGuard: "source-assets-markReady-before-render",
+    },
+    sourceView: {
+      ok: true,
+      renderTargetKey: status.renderTarget?.key,
+      expectedRenderTargetKey: status.renderTarget?.key,
+      renderTargetMatches: true,
+    },
+    counts: {
+      views: 1,
+      meshDraws: 1,
+      drawCalls: 1,
+      diagnostics: 0,
+    },
+    screenPass: {
+      phase: "screen-pass",
+      drawCalls: 1,
+      samples: {
+        preview: "quad-center",
+        screenClear: "screen-clear-corner",
+      },
+    },
+  });
+  expect(status.report?.renderTargets).toMatchObject([
+    {
+      source: "offscreen",
+      renderTargetKey: status.renderTarget?.key,
+      width: 384,
+      height: 384,
+      ok: true,
+      drawCalls: 1,
+    },
+  ]);
+  guard.expectNoWarnings();
+
+  await attachExampleStatus("render-target-resize-rendered-status", status);
+
+  if (!status.readback?.ok) {
+    test.skip(true, "Render-target resize pixel assertion requires readback.");
+    return;
+  }
+
+  const sample = status.readback.samples?.find(
+    (entry) => entry.id === "quad-center",
+  );
+  const screenClearSample = status.readback.samples?.find(
+    (entry) => entry.id === "screen-clear-corner",
+  );
+
+  expect(sample, "expected resized render-target preview sample").toBeDefined();
+  expect(
+    screenClearSample,
+    "expected resized route screen clear sample",
+  ).toBeDefined();
+
+  if (sample === undefined || screenClearSample === undefined) {
+    return;
+  }
+
+  expect(
+    pixelDistance(
+      sample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCenterColor ?? {
+          r: 0.06,
+          g: 0.88,
+          b: 0.22,
+          a: 1,
+        },
+      ),
+    ),
+    "resized target preview should retain the rendered plane color",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(sample.pixel, screenClearSample.pixel),
+    "resized target preview should differ from the main-canvas clear region",
   ).toBeGreaterThan(40);
 });

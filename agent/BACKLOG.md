@@ -59,23 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3173` is complete: `examples/camera-viewport-grid.html` now proves four
-ECS cameras rendering into a normalized 2x2 viewport grid over one world,
-reports per-cell viewport/scissor pixels, material keys, and included/skipped
-draw counts, and verifies four distinct grid-cell samples. Continue the
-post-SOTA visible-feature queue at `task-3174`: add a render-target resize
-preview route.
+`task-3174` is complete: `examples/render-target-resize.html` now proves a
+renderer-owned camera render target can be replaced with a larger texture under
+the same ECS `ViewPacket.renderTarget` handle before rendering, reports
+before/after dimensions and stale-size guard metadata, and verifies the
+displayed preview remains non-clear. Continue the post-SOTA visible-feature
+queue at `task-3175`: add a camera clear/load behavior matrix route.
 
 The next ready visible-feature queue is:
 
-- `task-3174` — add a render-target resize preview route.
-  Reference anchor:
-  `references/engine/examples/src/examples/graphics/render-to-texture.example.mjs`,
-  `references/three.js/examples/webgpu_rtt.html`.
-  Done when a browser route resizes a renderer-owned camera render target after
-  a canvas/device-pixel-ratio change, reports old/new target dimensions and
-  resource reuse/disposal status, and Playwright verifies the displayed preview
-  remains non-clear after resize without stale-size readback failures.
 - `task-3175` — add a camera clear/load behavior matrix route.
   Reference anchor: `references/bevy/examples/ui/ui_target_camera.rs`,
   `references/engine/src/extras/render-passes/camera-frame.js`.
@@ -91,6 +83,15 @@ The next ready visible-feature queue is:
   pixels and clear/load behavior, and Playwright verifies base pixels remain
   visible around the inset while the inset shows distinct layer/material
   evidence.
+- `task-3177` — add a render-target reuse stress preview route.
+  Reference anchor:
+  `references/engine/examples/src/examples/graphics/render-to-texture.example.mjs`,
+  `references/three.js/examples/webgpu_rtt.html`.
+  Done when a browser route renders two consecutive worker snapshots through
+  the same renderer-owned off-screen target handle without resizing, reports
+  target handle/resource reuse pressure and frame-to-frame dimensions, and
+  Playwright verifies the second displayed preview remains non-clear with no
+  stale first-frame status.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

@@ -2,24 +2,24 @@
 
 No active task is currently checked out.
 
-Status: task-3173 camera viewport grid route completed.
+Status: task-3174 render-target resize preview route completed.
 
 Key findings:
 
-- Added `examples/camera-viewport-grid.html` and
-  `examples/camera-viewport-grid.worker.js`.
-- The worker authors four ECS cameras with normalized viewport/scissor
-  quadrants over one world and four layer-masked colored planes sharing one
-  prepared mesh resource.
-- The shared multi-view main path now passes through route-level
-  `viewportGrid` status with cell metadata, resolved viewport/scissor pixels,
-  shared mesh key, material keys, expected draw counts, and sample ids.
-- Playwright verifies all four grid-cell samples match distinct material colors
-  while each camera reports one included draw and three skipped draws.
-- The latest all-route render-control smoke visited 56 routes, including
-  `/examples/camera-viewport-grid.html`, with zero route status failures and
+- Added `examples/render-target-resize.html` using the existing
+  render-to-texture main path.
+- The route allocates a small renderer-owned off-screen target, replaces the
+  same ECS `ViewPacket.renderTarget` handle with a larger GPU texture before
+  rendering, and destroys the previous texture.
+- Status now reports `renderTargetResize` with before/after dimensions, reused
+  handle, texture recreation, previous texture destruction, and the
+  stale-size guard used before rendering.
+- Playwright verifies the resized target reports 384x384, the app render
+  report uses the new dimensions, and the displayed preview remains non-clear.
+- The latest all-route render-control smoke visited 57 routes, including
+  `/examples/render-target-resize.html`, with zero route status failures and
   zero warning routes.
 
 Recommended next task:
 
-- `task-3174` — add a render-target resize preview route.
+- `task-3175` — add a camera clear/load behavior matrix route.

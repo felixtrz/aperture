@@ -1,5 +1,35 @@
 # Completed Tasks
 
+## task-3174 — Add a render-target resize preview route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/render-target-resize.html` using the existing
+  render-to-texture main path and worker-owned ECS snapshot.
+- The route allocates a small renderer-owned off-screen render target, replaces
+  the same ECS `ViewPacket.renderTarget` handle with a larger 384x384 GPU
+  texture before rendering, and destroys the previous texture.
+- Status reports `renderTargetResize` with before/after dimensions, reused
+  handle, texture recreation, previous texture destruction, and the stale-size
+  guard used before rendering.
+- The existing render-to-texture route remains at 256x256 and continues to
+  report the source view, target usage, display pass, and readback samples.
+- Playwright verifies the resize route reports the new 384x384 target in both
+  route status and the app render report, then reads back a non-clear displayed
+  preview.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --reporter=list`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm exec eslint examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run render-control:smoke-all`
+
 ## task-3173 — Add a camera viewport grid route
 
 Completed: 2026-05-26

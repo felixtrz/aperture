@@ -2,7 +2,7 @@ import { createNoopSimulationWorker } from "./noop-simulation-worker.js";
 import {
   renderToTextureCenterSample as centerSample,
   renderToTextureOffscreenClearColor as offscreenClearColor,
-  renderToTextureOffscreenSize as offscreenSize,
+  renderToTextureOffscreenSize as defaultOffscreenSize,
   renderToTexturePlaneColor as planeColor,
   renderToTextureScreenClearColor as screenClearColor,
   renderToTextureScreenClearSample as screenClearSample,
@@ -18,17 +18,18 @@ import {
 const canvas = document.querySelector("#aperture-canvas");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
+const routeConfig = routeConfigForPath(window.location.pathname);
 
 const baseStatus = {
-  example: "render-to-texture",
+  example: routeConfig.example,
   workerModel: "ecs-extraction-worker-postmessage-snapshot",
   canvas: {
     width: canvas?.width ?? 0,
     height: canvas?.height ?? 0,
   },
   renderTarget: {
-    width: offscreenSize,
-    height: offscreenSize,
+    width: routeConfig.offscreenSize,
+    height: routeConfig.offscreenSize,
     source: "ViewPacket.renderTarget",
   },
 };
@@ -82,34 +83,60 @@ function createMainScene(aperture, app, sourceAssets) {
   const device = app.initialization.device;
   const format = app.initialization.format;
   const textureUsage = resolveTextureUsage(aperture);
-  const offscreenTexture = device.createTexture({
-    label: "aperture-render-to-texture-target",
-    size: { width: offscreenSize, height: offscreenSize },
+  const initialTarget = createOffscreenTarget({
+    aperture,
+    device,
     format,
-    usage:
-      textureUsage.RENDER_ATTACHMENT |
-      textureUsage.TEXTURE_BINDING |
-      textureUsage.COPY_SRC,
+    textureUsage,
+    size: routeConfig.initialOffscreenSize,
+    label: "aperture-render-to-texture-target/initial",
   });
 
   sourceAssets.register(scene.renderTarget, {
     label: "Render-to-texture target",
   });
-  sourceAssets.markReady(
-    scene.renderTarget,
-    aperture.createWebGpuAppRenderTargetAsset({
-      label: "Render-to-texture target",
-      texture: offscreenTexture,
-      width: offscreenSize,
-      height: offscreenSize,
+  sourceAssets.markReady(scene.renderTarget, initialTarget.asset);
+
+  let offscreenTexture = initialTarget.texture;
+  let renderTargetResize = null;
+
+  if (routeConfig.resizeTarget) {
+    const resizedTarget = createOffscreenTarget({
+      aperture,
+      device,
       format,
-    }),
-  );
+      textureUsage,
+      size: routeConfig.offscreenSize,
+      label: "aperture-render-to-texture-target/resized",
+    });
+    const previousTextureDestroyed = destroyTexture(offscreenTexture);
+
+    sourceAssets.markReady(scene.renderTarget, resizedTarget.asset);
+    offscreenTexture = resizedTarget.texture;
+    renderTargetResize = {
+      mode: "renderer-owned-render-target-resize",
+      reason: "route-config-canvas-resize-simulation",
+      renderTargetKey: aperture.assetHandleKey(scene.renderTarget),
+      before: {
+        width: routeConfig.initialOffscreenSize,
+        height: routeConfig.initialOffscreenSize,
+      },
+      after: {
+        width: routeConfig.offscreenSize,
+        height: routeConfig.offscreenSize,
+      },
+      reusedHandle: true,
+      textureRecreated: true,
+      previousTextureDestroyed,
+      staleSizeGuard: "source-assets-markReady-before-render",
+    };
+  }
 
   return {
     ...scene,
     format,
     offscreenTexture,
+    renderTargetResize,
     textureUsage: {
       renderAttachment: true,
       textureBinding: true,
@@ -445,6 +472,9 @@ function createStatus(
       key: aperture.assetHandleKey(scene.renderTarget),
       textureUsage: scene.textureUsage,
     },
+    ...(scene.renderTargetResize === null
+      ? {}
+      : { renderTargetResize: scene.renderTargetResize }),
     sourceView: createSourceViewStatus(aperture, message.snapshot, scene),
     scene: {
       meshKey: aperture.assetHandleKey(scene.mesh),
@@ -484,6 +514,63 @@ function createStatus(
       width: app.canvas.width,
       height: app.canvas.height,
     },
+  };
+}
+
+function createOffscreenTarget({
+  aperture,
+  device,
+  format,
+  textureUsage,
+  size,
+  label,
+}) {
+  const texture = device.createTexture({
+    label,
+    size: { width: size, height: size },
+    format,
+    usage:
+      textureUsage.RENDER_ATTACHMENT |
+      textureUsage.TEXTURE_BINDING |
+      textureUsage.COPY_SRC,
+  });
+
+  return {
+    texture,
+    asset: aperture.createWebGpuAppRenderTargetAsset({
+      label,
+      texture,
+      width: size,
+      height: size,
+      format,
+    }),
+  };
+}
+
+function destroyTexture(texture) {
+  if (typeof texture.destroy !== "function") {
+    return false;
+  }
+
+  texture.destroy();
+  return true;
+}
+
+function routeConfigForPath(pathname) {
+  if (pathname.endsWith("/render-target-resize.html")) {
+    return {
+      example: "render-target-resize",
+      initialOffscreenSize: 128,
+      offscreenSize: 384,
+      resizeTarget: true,
+    };
+  }
+
+  return {
+    example: "render-to-texture",
+    initialOffscreenSize: defaultOffscreenSize,
+    offscreenSize: defaultOffscreenSize,
+    resizeTarget: false,
   };
 }
 

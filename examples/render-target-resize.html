@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Aperture GPU Profiler</title>
+    <title>Aperture Render Target Resize</title>
     <link rel="stylesheet" href="./styles.css" />
     <script type="importmap">
       {
@@ -23,34 +23,21 @@
   </head>
   <body>
     <main class="runtime-shell">
-      <section class="viewport-panel" aria-label="Aperture GPU profiler scene">
+      <section
+        class="viewport-panel"
+        aria-label="Aperture render-target resize runtime"
+      >
         <canvas
           id="aperture-canvas"
-          width="1280"
-          height="720"
-          aria-label="Aperture WebGPU GPU profiler canvas"
+          width="960"
+          height="540"
+          aria-label="Aperture WebGPU render-target resize canvas"
         ></canvas>
-        <div
-          id="gpu-profiler-overlay"
-          class="gpu-profiler-overlay"
-          aria-label="GPU pass timings"
-        >
-          <div class="gpu-profiler-header">
-            <span>GPU timings</span>
-            <strong id="gpu-profiler-frame">frame 0</strong>
-          </div>
-          <ol id="gpu-profiler-pass-list" class="gpu-profiler-pass-list"></ol>
-          <div class="gpu-profiler-header">
-            <span>CPU phases</span>
-            <strong id="gpu-profiler-phase-frame">frame 0</strong>
-          </div>
-          <ol id="gpu-profiler-phase-list" class="gpu-profiler-pass-list"></ol>
-        </div>
       </section>
       <aside class="status-panel" aria-label="Runtime status">
         <div class="status-row">
           <span>example</span>
-          <strong id="example-name">gpu profiler</strong>
+          <strong id="example-name">render target resize</strong>
         </div>
         <div class="status-row">
           <span>state</span>
@@ -63,7 +50,7 @@
           <a href="/examples/spinning-cube.html">spinning cube</a>
           <a href="/examples/render-to-texture.html">render texture</a>
           <a href="/examples/render-target-resize.html">target resize</a>
-          <a href="/examples/gpu-profiler.html">gpu profiler</a>
+          <a href="/examples/worker-cube.html">worker cube</a>
           <a href="/examples/matcap-app.html">matcap app</a>
           <a href="/examples/materials-showcase.html">materials</a>
           <a href="/examples/gltf-scene.html">gltf scene</a>
@@ -74,6 +61,6 @@
         <pre id="example-json">{}</pre>
       </aside>
     </main>
-    <script type="module" src="./gpu-profiler.main.js"></script>
+    <script type="module" src="./render-to-texture.main.js"></script>
   </body>
 </html>

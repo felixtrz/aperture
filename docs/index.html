@@ -393,12 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 02:54 UTC</dd>
+            <dd>2026-05-26 03:01 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/render-target-resize.html</code> now proves a
+              renderer-owned camera render target can be replaced with a larger
+              GPU texture under the same ECS
+              <code>ViewPacket.renderTarget</code> handle before rendering. The
+              route reports before/after target dimensions, handle reuse,
+              texture recreation, previous texture destruction, and the
+              stale-size guard, then Playwright verifies the displayed preview
+              remains non-clear after resize. Previous update:
               <code>examples/camera-viewport-grid.html</code> now proves four
               ECS cameras rendering into a stable normalized 2x2 viewport grid.
               The route reports per-cell viewport/scissor pixels, material
@@ -2691,6 +2699,15 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3174</span> Added
+                <code>examples/render-target-resize.html</code>. The existing
+                render-to-texture path now proves replacing a renderer-owned
+                off-screen target under the same ECS render-target handle before
+                rendering, reports before/after dimensions and stale-size guard
+                metadata, and Playwright verifies the displayed preview remains
+                non-clear.
+              </li>
               <li>
                 <span class="badge green">task-3173</span> Added
                 <code>examples/camera-viewport-grid.html</code>. The shared
@@ -5349,16 +5366,22 @@
                 proof.
               </li>
               <li>
-                <span class="badge">task-3174</span> Next: add a render-target
-                resize preview route.
+                <span class="badge green">task-3174</span> Done: add a
+                render-target resize preview route with same-handle
+                target replacement, before/after dimensions, and non-clear
+                preview proof.
               </li>
               <li>
-                <span class="badge">task-3175</span> Then: add a camera
+                <span class="badge">task-3175</span> Next: add a camera
                 clear/load behavior matrix route.
               </li>
               <li>
                 <span class="badge">task-3176</span> Then: add a
                 picture-in-picture camera inset route.
+              </li>
+              <li>
+                <span class="badge">task-3177</span> Then: add a render-target
+                reuse stress preview route.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5377,6 +5400,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3174</div>
+            <div>
+              <strong>Render-target resize preview route shipped.</strong>
+              <span>
+                <code>examples/render-target-resize.html</code> replaces a
+                renderer-owned off-screen target under the same ECS
+                <code>ViewPacket.renderTarget</code> handle before rendering,
+                reports before/after dimensions and stale-size guard metadata,
+                and proves the resized preview remains non-clear.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3173</div>
             <div>
