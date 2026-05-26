@@ -46,6 +46,7 @@ async function handleMessage(data) {
         data.reuseStress === true,
         data.mixedTargets === true,
         data.multiRenderTargets === true,
+        data.mixedMultiRenderTargets === true,
         data.targetCrop === true,
         data.targetClearLoad === true,
       );
@@ -55,8 +56,9 @@ async function handleMessage(data) {
           meshKey: aperture.assetHandleKey(scene.mesh),
           materialKey: aperture.assetHandleKey(scene.material),
           canvasMaterialKey: aperture.assetHandleKey(scene.canvasMaterial),
+          currentMaterialKey: aperture.assetHandleKey(scene.currentMaterial),
           renderTargetKey: aperture.assetHandleKey(scene.renderTarget),
-          ...(scene.multiRenderTargets
+          ...(scene.multiRenderTargets || scene.mixedMultiRenderTargets
             ? {
                 secondaryRenderTargetKey: aperture.assetHandleKey(
                   scene.secondaryRenderTarget,
@@ -65,6 +67,7 @@ async function handleMessage(data) {
             : {}),
           mixedTargets: scene.mixedTargets,
           multiRenderTargets: scene.multiRenderTargets,
+          mixedMultiRenderTargets: scene.mixedMultiRenderTargets,
           targetCrop: scene.targetCrop,
           targetClearLoad: scene.targetClearLoad,
           ...(scene.targetCrop
@@ -108,6 +111,7 @@ function createWorkerScene(
   reuseStress,
   mixedTargets,
   multiRenderTargets,
+  mixedMultiRenderTargets,
   targetCrop,
   targetClearLoad,
 ) {
@@ -115,6 +119,9 @@ function createWorkerScene(
     worldOptions: { entityCapacity: 8 },
   });
   const assets = registerRenderToTextureAssets(aperture, app.assets);
+  const usesSecondaryRenderTarget =
+    multiRenderTargets || mixedMultiRenderTargets;
+  const usesCurrentTextureTarget = mixedTargets || mixedMultiRenderTargets;
 
   app.spawn(
     aperture.withTransform({ translation: [0, 0, 3] }),
@@ -150,26 +157,7 @@ function createWorkerScene(
     );
   }
 
-  if (mixedTargets) {
-    app.spawn(
-      aperture.withTransform({ translation: [0, 0, 3] }),
-      aperture.withCamera({
-        aspect: canvasSize.width / canvasSize.height,
-        near: 0.1,
-        far: 100,
-        priority: 1,
-        layerMask: 2,
-        clearColor: [
-          screenClearColor.r,
-          screenClearColor.g,
-          screenClearColor.b,
-          screenClearColor.a,
-        ],
-      }),
-    );
-  }
-
-  if (multiRenderTargets) {
+  if (usesSecondaryRenderTarget) {
     app.spawn(
       aperture.withTransform({ translation: [0, 0, 3] }),
       aperture.withCamera({
@@ -184,6 +172,25 @@ function createWorkerScene(
     );
   }
 
+  if (usesCurrentTextureTarget) {
+    app.spawn(
+      aperture.withTransform({ translation: [0, 0, 3] }),
+      aperture.withCamera({
+        aspect: canvasSize.width / canvasSize.height,
+        near: 0.1,
+        far: 100,
+        priority: mixedMultiRenderTargets ? 2 : 1,
+        layerMask: mixedMultiRenderTargets ? 4 : 2,
+        clearColor: [
+          screenClearColor.r,
+          screenClearColor.g,
+          screenClearColor.b,
+          screenClearColor.a,
+        ],
+      }),
+    );
+  }
+
   const meshEntity = app.spawn(
     aperture.withTransform(
       targetClearLoad ? { scale: [0.9, 0.65, 1] } : {},
@@ -193,7 +200,7 @@ function createWorkerScene(
     aperture.withRenderLayer(1),
     aperture.withVisibility(true),
   );
-  const canvasMeshEntity = mixedTargets || multiRenderTargets || targetClearLoad
+  const canvasMeshEntity = usesSecondaryRenderTarget || targetClearLoad
     ? app.spawn(
         aperture.withTransform(
           targetClearLoad
@@ -206,20 +213,36 @@ function createWorkerScene(
         aperture.withVisibility(true),
       )
     : null;
+  const currentMeshEntity = usesCurrentTextureTarget
+    ? app.spawn(
+        aperture.withTransform({}),
+        aperture.withMesh(assets.mesh),
+        aperture.withMaterial(
+          mixedMultiRenderTargets
+            ? assets.currentMaterial
+            : assets.canvasMaterial,
+        ),
+        aperture.withRenderLayer(mixedMultiRenderTargets ? 4 : 2),
+        aperture.withVisibility(true),
+      )
+    : null;
 
   return {
     app,
     mesh: assets.mesh,
     material: assets.material,
     canvasMaterial: assets.canvasMaterial,
+    currentMaterial: assets.currentMaterial,
     renderTarget: assets.renderTarget,
     secondaryRenderTarget: assets.secondaryRenderTarget,
     canvas: canvasSize,
     meshEntity,
     canvasMeshEntity,
+    currentMeshEntity,
     reuseStress,
     mixedTargets,
     multiRenderTargets,
+    mixedMultiRenderTargets,
     targetCrop,
     targetClearLoad,
     localTransformComponent: aperture.LocalTransform,
@@ -245,6 +268,8 @@ function createSnapshotMessage(workerScene, data) {
       diagnostics: snapshot.diagnostics.length,
       frameVariant: workerScene.mixedTargets
         ? "mixed-current-and-offscreen-targets"
+        : workerScene.mixedMultiRenderTargets
+          ? "current-texture-plus-two-offscreen-targets"
         : workerScene.multiRenderTargets
           ? "two-offscreen-render-targets"
         : workerScene.targetClearLoad
@@ -257,6 +282,8 @@ function createSnapshotMessage(workerScene, data) {
       centerExpectation:
         workerScene.mixedTargets
           ? "canvas-plane-plus-offscreen-preview"
+          : workerScene.mixedMultiRenderTargets
+            ? "current-texture-plus-two-offscreen-previews"
           : workerScene.multiRenderTargets
             ? "two-offscreen-previews"
           : workerScene.targetClearLoad

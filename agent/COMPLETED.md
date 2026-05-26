@@ -1,5 +1,42 @@
 # Completed Tasks
 
+## task-3183 — Add a mixed current-texture plus two off-screen render-target route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/mixed-multi-render-targets.html` on the existing
+  render-to-texture route family.
+- `examples/render-to-texture-assets.js` now defines a third unlit material and
+  stable current-texture readback sample for the mixed multi-target route.
+- `examples/render-to-texture.worker.js` now supports a mode that extracts one
+  current-texture camera plus two cameras targeting distinct renderer-owned
+  off-screen `ViewPacket.renderTarget` handles from one worker-owned ECS world.
+- `examples/render-to-texture.main.js` displays both off-screen target textures
+  side by side and reports target classifications, keys, pass order, draw
+  counts, display samples, and current-texture readback.
+- Added Playwright coverage proving the current-texture sample, primary
+  off-screen preview, and secondary off-screen preview are all non-clear and
+  visually distinct.
+- Updated example links, public tracker pages, backlog, current task, and
+  handoff.
+
+Validation:
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `node --check examples/render-to-texture-assets.js`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js examples/render-to-texture-assets.js test/e2e/render-to-texture.spec.ts`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed multi render-target" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed multi render-target|multiple render targets route|mixed camera targets route|render-target viewport crop route|same render-target clear/load route|render-to-texture example" --reporter=list`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm run check:progress`
+- `pnpm run render-control:smoke-all`
+
 ## task-3182 — Add a same off-screen target clear/load matrix route
 
 Completed: 2026-05-26

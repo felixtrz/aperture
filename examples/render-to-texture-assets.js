@@ -8,6 +8,7 @@ export const renderToTextureScreenClearColor = {
 };
 export const renderToTexturePlaneColor = [0.06, 0.88, 0.22, 1];
 export const renderToTextureCanvasPlaneColor = [0.1, 0.42, 0.95, 1];
+export const renderToTextureCurrentPlaneColor = [0.95, 0.28, 0.08, 1];
 export const renderToTextureCropRect = [0.3, 0.25, 0.4, 0.5];
 export const renderToTextureCenterSample = {
   id: "quad-center",
@@ -21,6 +22,11 @@ export const renderToTextureScreenClearSample = {
 };
 export const renderToTextureCanvasSample = {
   id: "canvas-direct-left",
+  x: 0.25,
+  y: 0.5,
+};
+export const renderToTextureMixedMultiCurrentSample = {
+  id: "current-texture-direct-left",
   x: 0.25,
   y: 0.5,
 };
@@ -95,11 +101,19 @@ export function registerRenderToTextureAssets(aperture, registry) {
     }),
     { id: "render-to-texture-canvas-blue" },
   );
+  const currentMaterial = assets.materials.unlit.add(
+    aperture.createUnlitMaterialAsset({
+      label: "RenderToTextureCurrentOrange",
+      baseColorFactor: new Float32Array(renderToTextureCurrentPlaneColor),
+    }),
+    { id: "render-to-texture-current-orange" },
+  );
 
   return {
     mesh,
     material,
     canvasMaterial,
+    currentMaterial,
     renderTarget,
     secondaryRenderTarget,
   };

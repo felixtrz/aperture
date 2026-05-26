@@ -393,12 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 05:43 UTC</dd>
+            <dd>2026-05-26 05:53 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/mixed-multi-render-targets.html</code> now proves
+              one worker-authored ECS snapshot can contain a current-texture
+              camera plus two distinct renderer-owned off-screen
+              render-target cameras. The route reports all target
+              classifications, keys, pass order, draw counts, display samples,
+              and current-texture readback, then Playwright verifies all three
+              target families are non-clear and visually distinct. Previous
+              update:
               <code>examples/render-target-clear-load.html</code> now proves
               two worker-authored ECS cameras can target the same
               renderer-owned off-screen render target in one snapshot while the
@@ -2754,6 +2762,17 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3183</span> Added
+                <code>examples/mixed-multi-render-targets.html</code>. The
+                render-to-texture route family now extracts three ECS cameras
+                from one worker-authored world: one current-texture camera and
+                two cameras targeting distinct renderer-owned off-screen target
+                handles. The route reports target classifications, keys, pass
+                order, draw counts, display samples, and current-texture
+                readback, and Playwright proves all three target samples are
+                non-clear and visually distinct.
+              </li>
               <li>
                 <span class="badge green">task-3182</span> Added
                 <code>examples/render-target-clear-load.html</code>. The
@@ -5539,11 +5558,12 @@
                 ops and clear/base/overlay pixel proof.
               </li>
               <li>
-                <span class="badge">task-3183</span> Next: add a mixed
-                current-texture plus two off-screen render-target route.
+                <span class="badge green">task-3183</span> Done: add a mixed
+                current-texture plus two off-screen render-target route with
+                target classification, display, and readback proof.
               </li>
               <li>
-                <span class="badge">task-3184</span> Then: add a dual-size
+                <span class="badge">task-3184</span> Next: add a dual-size
                 off-screen render-target preview route.
               </li>
               <li>
@@ -5571,6 +5591,21 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3183</div>
+            <div>
+              <strong>Mixed current plus two off-screen targets shipped.</strong>
+              <span>
+                <code>examples/mixed-multi-render-targets.html</code> extracts
+                one current-texture camera and two distinct off-screen
+                render-target cameras from one worker-authored ECS snapshot,
+                reports target classifications, keys, pass order, draw counts,
+                display samples, and current-texture readback, and proves all
+                three target-family samples are non-clear and visually
+                distinct.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3182</div>
             <div>
