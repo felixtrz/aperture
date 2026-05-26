@@ -4,7 +4,7 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "76c96423",
+  "lastCommit": "64a2f1b6",
   "activePid": null,
   "notes": "Completed task-3170 camera render-layer isolation route after task-3169: added examples/camera-render-layers.html and worker, added opt-in per-view layer filtering to the shared multi-view main path, reports per-camera included/skipped draws and material keys, and proves red/blue layer isolation with Playwright. Focused route Playwright, check:examples, navigation tests, shared multi-view Playwright regression set, touched-file ESLint, build, test typecheck, check:progress, and render-control smoke-all pass.",
   "lastRunFinishedAt": "2026-05-26T02:28:44Z"
