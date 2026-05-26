@@ -1,5 +1,36 @@
 # Completed Tasks
 
+## task-3166 — Add a split-screen multi-camera route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/split-screen-multi-camera.html` with a renderer-only main
+  thread and worker-owned ECS setup.
+- The worker authors two cameras with normalized viewport/scissor rectangles
+  over the same world and two colored mesh entities; extraction produces two
+  view packets and two mesh draws without a scene graph.
+- The WebGPU route resolves per-view viewport/scissor rectangles, creates one
+  view-uniform bind group per camera, and encodes the same command plan into
+  each region with direct pass viewport/scissor calls.
+- Added `resolveNormalizedViewRectangle(...)` in `@aperture-engine/webgpu` with
+  unit coverage for split rectangles, clamping, invalid targets, invalid
+  rectangles, and empty resolved regions.
+- Added Playwright coverage that asserts two views, two viewport regions, two
+  per-view records, truthful render-control capabilities, four submitted
+  indexed draws, distinct non-clear readback pixels, and zero WebGPU validation
+  warnings.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/view-rectangle.test.ts test/examples/navigation.test.mjs test/examples/worker-split-examples.test.mjs`
+- `pnpm run check:examples`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts --reporter=list`
+- `pnpm run render-control:smoke-all`
+
 ## spatial-query-reshape — Remove separate BVH worker path
 
 Completed: 2026-05-25

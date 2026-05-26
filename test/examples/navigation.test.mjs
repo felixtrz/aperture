@@ -33,6 +33,13 @@ const examplePages = [
     exampleName: "ecs multi entity",
   },
   {
+    file: "examples/split-screen-multi-camera.html",
+    script: "./split-screen-multi-camera.main.js",
+    title: "Aperture Split-Screen Multi-Camera",
+    canvasLabel: "Aperture WebGPU split-screen multi-camera canvas",
+    exampleName: "split-screen multi-camera",
+  },
+  {
     file: "examples/spinning-cube.html",
     script: "./spinning-cube.main.js",
     title: "Aperture ECS Spinning Cube",
@@ -44,6 +51,7 @@ const expectedHrefs = [
   'href="/"',
   'href="/examples/triangle.html"',
   'href="/examples/multi-entity.html"',
+  'href="/examples/split-screen-multi-camera.html"',
   'href="/examples/spinning-cube.html"',
 ];
 const readbackHelperImport = 'from "./webgpu-readback.js"';

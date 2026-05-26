@@ -60,6 +60,14 @@ const workerSplitExamples = [
     requestSnapshot: "requestMultiEntityWorkerScenario",
   },
   {
+    html: "examples/split-screen-multi-camera.html",
+    main: "examples/split-screen-multi-camera.main.js",
+    worker: "examples/split-screen-multi-camera.worker.js",
+    legacy: "examples/split-screen-multi-camera.js",
+    mode: "manual-render",
+    requestSnapshot: "requestSplitScreenSnapshot",
+  },
+  {
     html: "examples/multi-light-shadow.html",
     main: "examples/multi-light-shadow.main.js",
     worker: "examples/multi-light-shadow.worker.js",

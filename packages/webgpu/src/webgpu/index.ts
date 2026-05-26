@@ -208,6 +208,7 @@ export * from "./unlit-pipeline-descriptor.js";
 export * from "./unlit-shader.js";
 export * from "./view-uniform-buffer.js";
 export * from "./view-uniform-buffer-resource.js";
+export * from "./view-rectangle.js";
 export * from "./world-transform-buffer.js";
 
 export type WebGpuFailureReason =

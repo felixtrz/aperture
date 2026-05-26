@@ -1,6 +1,59 @@
 # Agent Handoff
 
-Updated: 2026-05-25T22:11:05Z
+Updated: 2026-05-26T01:46:22Z
+
+## Current Run Update — 2026-05-26T01:46:22Z — Split-screen multi-camera route
+
+Completed `task-3166`.
+
+### What changed
+
+- Added `examples/split-screen-multi-camera.html` plus renderer-only
+  `*.main.js`, worker-owned `*.worker.js`, and a legacy thin import entry.
+- The worker authors one ECS world with two cameras using normalized
+  viewport/scissor rectangles and two colored mesh entities. Extraction reports
+  two views and two mesh draws without introducing a scene graph.
+- The main WebGPU path creates shared mesh/material/transform resources and one
+  view-uniform bind group per extracted camera, then encodes each per-view
+  command plan into its canvas region with `setViewport`/`setScissorRect`.
+- Added `resolveNormalizedViewRectangle(...)` to `@aperture-engine/webgpu` for
+  deterministic normalized-to-target rectangle resolution, with unit coverage
+  for split halves, clamping, invalid inputs, and empty rectangles.
+- Updated example navigation, worker-split checks, `check:examples`, public
+  tracker pages, backlog, current task, and completed-task records.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/view-rectangle.test.ts test/examples/navigation.test.mjs test/examples/worker-split-examples.test.mjs`
+  — 18 passed.
+- `pnpm run check:examples`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts --reporter=list`
+  — 1 passed; asserts two views, two viewport/scissor regions, two per-view
+  records, four submitted indexed draws, distinct non-clear readback pixels,
+  truthful render-control capabilities, and zero scoped WebGPU warnings.
+- `pnpm run render-control:smoke-all` — visited 50 routes, including
+  `/examples/split-screen-multi-camera.html`; zero route status failures and
+  zero warning routes.
+- `pnpm run check:progress`
+- `pnpm exec eslint packages/webgpu/src/webgpu/view-rectangle.ts packages/webgpu/src/webgpu/index.ts test/webgpu/view-rectangle.test.ts test/e2e/split-screen-multi-camera.spec.ts test/examples/navigation.test.mjs test/examples/worker-split-examples.test.mjs examples/split-screen-multi-camera.main.js examples/split-screen-multi-camera.worker.js examples/split-screen-multi-camera.js`
+
+### Known issues / remaining work
+
+- The in-app Browser connector was unavailable in this session (`iab` browser
+  was not available), so the browser-level check used Playwright and the
+  repository render-control CLI instead.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; the previous handoff documents unrelated existing failures in both.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3167`: add an orthographic camera
+projection route.
 
 ## Current Run Update — 2026-05-25T22:11:05Z — Spatial query reshape
 

@@ -393,24 +393,34 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-25 22:15 UTC</dd>
+            <dd>2026-05-26 01:46 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the raycasting/BVH proposal has been reshaped
-              around synchronous simulation-thread spatial queries. Simulation
-              exposes exact triangle raycasts, typed-array mesh BVHs, BVH
-              traversal callbacks, sphere/box/capsule/frustum/closest-point
-              queries, BVH-vs-BVH candidate pairs, versioned cache/refit
-              diagnostics, and an entity-bounds BVH for large-scene broad phase.
-              The separate BVH worker/SAB/transferable handoff surface has been
-              removed. Render adds a thin <code>MeshAsset</code>-to-spatial
-              adapter, and <code>@aperture-engine/app/systems</code> exposes
-              synchronous <code>this.spatial.raycastFirst(...)</code>,
+              Latest update:
+              <code>examples/split-screen-multi-camera.html</code> now proves
+              two ECS-authored cameras over one worker-owned world. The WebGPU
+              route resolves two viewport/scissor canvas regions, creates one
+              view-uniform bind group per camera, submits two per-view command
+              streams in one pass, and reports two extracted views, two regions,
+              truthful render-control capabilities, four indexed draw calls, and
+              zero diagnostics. Playwright samples both halves and verifies
+              distinct non-clear pixels, and the all-route render-control smoke
+              includes the route with zero warning routes. Previous update: the
+              raycasting/BVH proposal was reshaped around synchronous
+              simulation-thread spatial queries. Simulation exposes exact
+              triangle raycasts, typed-array mesh BVHs, BVH traversal callbacks,
+              sphere/box/capsule/frustum/closest-point queries, BVH-vs-BVH
+              candidate pairs, versioned cache/refit diagnostics, and an
+              entity-bounds BVH for large-scene broad phase. The separate BVH
+              worker/SAB/transferable handoff surface was removed. Render adds a
+              thin <code>MeshAsset</code>-to-spatial adapter, and
+              <code>@aperture-engine/app/systems</code> exposes synchronous
+              <code>this.spatial.raycastFirst(...)</code>,
               <code>this.spatial.raycastAll(...)</code>, and
               <code>this.spatial.setMeshes(...)</code> without involving WebGPU
-              resources or a renderer-owned scene graph. Previous update: the
+              resources or a renderer-owned scene graph. Earlier update: the
               developer API proposal implementation is complete against the
               explicitly listed acceptance criteria. The generated worker
               command bridge now handles entity find, get, safe
@@ -2112,6 +2122,8 @@
               rendered and skipped entities with stable diagnostic reasons.
               Per-camera frustum planes now skip outside-view mesh draws during
               extraction and publish per-view <code>cullStats</code>. ECS
+              multi-camera viewport/scissor extraction is now browser-proven by
+              the split-screen route with two simultaneous camera views. ECS
               <code>OcclusionQuery</code> now extracts an opt-in mesh-draw flag
               for renderer-owned GPU visibility feedback. ECS
               <code>Fog</code> components now extract snapshot fog packets for
@@ -2126,8 +2138,8 @@
                 culling and occlusion-feedback skip decisions.
               </li>
               <li>
-                Missing multi-view render-target coverage beyond current
-                foundations.
+                Missing camera render-target preview coverage beyond current
+                multi-view viewport/scissor proof.
               </li>
             </ul>
           </article>
@@ -5214,8 +5226,14 @@
                 spatial query APIs with explicit source/fallback policy.
               </li>
               <li>
-                <span class="badge">task-3166</span> Next: resume the render
-                pipeline queue with a split-screen multi-camera route.
+                <span class="badge green">task-3166</span> Done: add a
+                split-screen multi-camera route with two ECS-authored cameras,
+                two WebGPU viewport/scissor regions, per-view command streams,
+                Playwright pixel proof, and all-route render-control coverage.
+              </li>
+              <li>
+                <span class="badge">task-3167</span> Next: add an orthographic
+                camera projection route.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5234,6 +5252,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3166</div>
+            <div>
+              <strong>Split-screen multi-camera route shipped.</strong>
+              <span>
+                <code>examples/split-screen-multi-camera.html</code> renders two
+                ECS-authored cameras over one worker-owned world, resolves two
+                viewport/scissor canvas regions, creates one view-uniform bind
+                group per camera, and proves distinct non-clear pixels from both
+                halves with Playwright plus all-route render-control coverage.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">raycast-bvh</div>
             <div>

@@ -59,19 +59,14 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-The active spatial-query reshape goal is complete. The BVH worker surface and
-async cache/build path are gone; spatial gameplay queries now use synchronous
-`raycastFirst`/`raycastAll` with explicit `source`/`fallback` policy. Resume the
-post-SOTA visible-feature queue at `task-3166`: add a split-screen multi-camera
-route.
+`task-3166` is complete: `examples/split-screen-multi-camera.html` now renders
+two ECS-authored cameras into two WebGPU viewport/scissor regions from one
+worker-authored world, with Playwright pixel proof and all-route render-control
+coverage. Continue the post-SOTA visible-feature queue at `task-3167`: add an
+orthographic camera projection route.
 
 The next ready visible-feature queue is:
 
-- `task-3166` — add a split-screen multi-camera route.
-  Reference anchor: `references/engine/src/framework/components/camera/component.js`.
-  Done when a browser route renders two active cameras with distinct viewports,
-  reports two view packets and two render pass/view records, and Playwright
-  verifies both halves contain non-clear pixels from worker-authored ECS state.
 - `task-3167` — add an orthographic camera projection route.
   Reference anchor: `references/three.js/src/cameras/OrthographicCamera.js`.
   Done when a browser route renders the same ECS object through orthographic
@@ -82,6 +77,12 @@ The next ready visible-feature queue is:
   Done when a browser route renders ECS-authored line/wire primitives through
   WebGPU, reports line draw records, and Playwright verifies visible non-clear
   line pixels.
+- `task-3169` — add a camera render-target preview route.
+  Reference anchor: `references/bevy/examples/3d/render_to_texture.rs`,
+  `references/three.js/examples/webgpu_rtt.html`.
+  Done when a browser route renders one ECS camera into an off-screen
+  renderer-owned target and displays that texture in the main canvas with
+  JSON-safe source/target view status plus Playwright pixel proof.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.
@@ -1528,27 +1529,6 @@ Acceptance criteria:
 - Existing clustered-light focused E2E coverage still passes.
 - The smoke artifact records scoped zero warning count for this route.
 
-### task-3166 — Add a split-screen multi-camera route
-
-Status: ready
-
-Category: `webgpu-render`
-Package/write-scope: `examples/`, `packages/core/`, `packages/webgpu/`,
-`test/e2e/`.
-Reference anchor: `references/bevy/examples/3d/split_screen.rs`,
-`references/three.js/examples/webgpu_multiple_elements.html`.
-
-Acceptance criteria:
-
-- A renderer-backed example shows two simultaneous camera views of the same ECS
-  world without introducing a scene graph.
-- Status reports two extracted views, two viewports or canvas regions, zero
-  diagnostics, and truthful render-control capabilities.
-- Playwright or render-control proof samples pixels from both views and shows
-  that the views differ because of camera placement/projection.
-- The route is included in the all-route controller smoke with zero scoped
-  WebGPU validation warnings.
-
 ### task-3167 — Add an orthographic camera projection route
 
 Status: ready
@@ -1588,6 +1568,29 @@ Acceptance criteria:
   and non-clear pixels.
 - Status reports line primitive counts, draw counts, diagnostics, and
   render-control capabilities.
+- Focused E2E coverage and the all-route controller smoke pass with zero scoped
+  WebGPU validation warnings.
+
+### task-3169 — Add a camera render-target preview route
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `examples/`, `packages/core/`, `packages/webgpu/`,
+`test/e2e/`.
+Reference anchor: `references/bevy/examples/3d/render_to_texture.rs`,
+`references/three.js/examples/webgpu_rtt.html`.
+
+Acceptance criteria:
+
+- A public browser route renders one ECS-authored camera into a renderer-owned
+  off-screen color target and displays that texture in a second visible pass.
+- Status reports the source camera view, target texture size/format, display
+  pass draw counts, diagnostics, and render-control capabilities in JSON-safe
+  form.
+- Playwright or render-control proof samples the displayed preview pixels and
+  verifies they differ from both clear color and the direct main-canvas camera
+  region.
 - Focused E2E coverage and the all-route controller smoke pass with zero scoped
   WebGPU validation warnings.
 
