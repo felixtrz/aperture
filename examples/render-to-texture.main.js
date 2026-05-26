@@ -2,6 +2,7 @@ import { createNoopSimulationWorker } from "./noop-simulation-worker.js";
 import {
   renderToTextureCanvasPlaneColor as canvasPlaneColor,
   renderToTextureCanvasSample as canvasSample,
+  renderToTextureClearMaterialColor as clearMaterialColor,
   renderToTextureCenterSample as centerSample,
   renderToTextureClearLoadBaseSample as clearLoadBaseSample,
   renderToTextureClearLoadClearSample as clearLoadClearSample,
@@ -325,11 +326,13 @@ async function handleWorkerMessage(
               ? "render-to-texture/msaa-two-targets"
               : routeConfig.msaaCroppedSecondaryRenderTargets
                 ? "render-to-texture/msaa-cropped-secondary-target"
-                : routeConfig.mixedMultiRenderTargets
-                  ? "render-to-texture/mixed-multi-targets"
-                  : routeConfig.mixedTargets
-                    ? "render-to-texture/mixed-targets"
-                    : "render-to-texture/offscreen",
+                : routeConfig.reuseStress && routeConfig.targetMsaa
+                  ? "render-to-texture/msaa-reuse-target"
+                  : routeConfig.mixedMultiRenderTargets
+                    ? "render-to-texture/mixed-multi-targets"
+                    : routeConfig.mixedTargets
+                      ? "render-to-texture/mixed-targets"
+                      : "render-to-texture/offscreen",
   });
 
   if (!offscreenReport.ok) {
@@ -1189,6 +1192,7 @@ function createStatus(
     scene: {
       meshKey: aperture.assetHandleKey(scene.mesh),
       materialKey: aperture.assetHandleKey(scene.material),
+      clearMaterialKey: aperture.assetHandleKey(scene.clearMaterial),
       canvasMaterialKey: aperture.assetHandleKey(scene.canvasMaterial),
       currentMaterialKey: aperture.assetHandleKey(scene.currentMaterial),
       ...(routeConfig.multiRenderTargets ||
@@ -1209,6 +1213,7 @@ function createStatus(
         : {}),
       materialKind: "unlit",
       expectedCenterColor: rgbaToStatusColor(planeColor),
+      expectedClearMaterialColor: rgbaToStatusColor(clearMaterialColor),
       expectedCanvasColor: rgbaToStatusColor(canvasPlaneColor),
       expectedCurrentColor: rgbaToStatusColor(currentPlaneColor),
     },
@@ -1334,6 +1339,31 @@ function routeConfigForPath(pathname) {
       targetCrop: false,
       targetClearLoad: false,
       targetMsaa: false,
+      requiredFrames: 2,
+    };
+  }
+
+  if (pathname.endsWith("/render-target-msaa-reuse.html")) {
+    return {
+      example: "render-target-msaa-reuse",
+      initialOffscreenSize: defaultOffscreenSize,
+      offscreenSize: defaultOffscreenSize,
+      resizeTarget: false,
+      reuseStress: true,
+      mixedTargets: false,
+      multiRenderTargets: false,
+      mixedMultiRenderTargets: false,
+      dualSizeRenderTargets: false,
+      mixedDualSizeRenderTargets: false,
+      mixedCroppedSecondaryRenderTargets: false,
+      mixedMsaaMultiRenderTargets: false,
+      mixedMsaaCroppedSecondaryRenderTargets: false,
+      msaaMultiRenderTargets: false,
+      msaaCroppedSecondaryRenderTargets: false,
+      croppedSecondaryRenderTargets: false,
+      targetCrop: false,
+      targetClearLoad: false,
+      targetMsaa: true,
       requiredFrames: 2,
     };
   }
@@ -1712,6 +1742,7 @@ function routeConfigForPath(pathname) {
 function createOffscreenFrameStatus(aperture, scene, message, offscreenReport) {
   const report = aperture.webGpuAppRenderReportToJsonValue(offscreenReport);
   const renderTarget = report.renderTargets?.[0] ?? null;
+  const msaa = createMsaaStatusFromReport(report);
 
   return {
     frame: message.frame ?? offscreenReport.frame,
@@ -1723,8 +1754,47 @@ function createOffscreenFrameStatus(aperture, scene, message, offscreenReport) {
     width: renderTarget?.width ?? routeConfig.offscreenSize,
     height: renderTarget?.height ?? routeConfig.offscreenSize,
     drawCalls: renderTarget?.drawCalls ?? offscreenReport.counts.drawCalls,
+    worldTranslation: snapshotPrimaryWorldTranslation(message.snapshot),
+    ...(routeConfig.targetMsaa
+      ? {
+          msaaSampleCount: renderTarget?.msaaSampleCount ?? msaa.sampleCount,
+          attachment: createMsaaAttachmentStatus(
+            offscreenReport.boundaries?.[0],
+          ),
+          msaa: {
+            requestedSampleCount: msaa.requestedSampleCount,
+            sampleCount: msaa.sampleCount,
+            enabled: msaa.enabled,
+            clamped: msaa.clamped,
+            supportedSampleCounts: msaa.supportedSampleCounts,
+            colorTargets: msaa.colorTargets,
+            colorTexturesCreated: msaa.colorTexturesCreated,
+            colorTexturesReused: msaa.colorTexturesReused,
+          },
+        }
+      : {}),
     diagnostics: offscreenReport.counts.diagnostics,
   };
+}
+
+function snapshotPrimaryWorldTranslation(snapshot) {
+  const draw = snapshot?.meshDraws?.[0];
+  const transforms = snapshot?.transforms;
+  const offset = draw?.worldTransformOffset;
+
+  if (
+    transforms === undefined ||
+    offset === undefined ||
+    offset + 15 >= transforms.length
+  ) {
+    return null;
+  }
+
+  return [
+    transforms[offset + 12] ?? 0,
+    transforms[offset + 13] ?? 0,
+    transforms[offset + 14] ?? 0,
+  ];
 }
 
 function createRenderTargetReuseStressStatus(aperture, scene, loop, message) {
@@ -1735,10 +1805,14 @@ function createRenderTargetReuseStressStatus(aperture, scene, loop, message) {
       frame.width === routeConfig.offscreenSize &&
       frame.height === routeConfig.offscreenSize,
   );
+  const stableRenderTargetKey = frames.every(
+    (frame) => frame.renderTargetKey === renderTargetKey,
+  );
 
   return {
     mode: "same-render-target-two-worker-snapshots",
     renderTargetKey,
+    stableRenderTargetKey,
     framesRequested: routeConfig.requiredFrames,
     framesRendered: frames.length,
     displayedFrame: message.frame ?? null,
@@ -1749,9 +1823,59 @@ function createRenderTargetReuseStressStatus(aperture, scene, loop, message) {
       reusedTextures: Math.max(0, frames.length - 1),
       stableDimensions,
     },
+    ...(routeConfig.targetMsaa
+      ? {
+          msaa: createRenderTargetReuseStressMsaaStatus(frames),
+        }
+      : {}),
     frames,
     staleFirstFrameStatus:
       frames.length > 1 && frames[0]?.frame === (message.frame ?? null),
+  };
+}
+
+function createRenderTargetReuseStressMsaaStatus(frames) {
+  const latest =
+    frames.findLast((frame) => frame.msaa !== undefined)?.msaa ??
+    createMsaaStatusFromReport({});
+  const colorTargets = frames.reduce(
+    (total, frame) => total + (frame.msaa?.colorTargets ?? 0),
+    0,
+  );
+  const colorTexturesCreated = frames.reduce(
+    (total, frame) => total + (frame.msaa?.colorTexturesCreated ?? 0),
+    0,
+  );
+  const colorTexturesReused = frames.reduce(
+    (total, frame) => total + (frame.msaa?.colorTexturesReused ?? 0),
+    0,
+  );
+  const sampleCount = latest.sampleCount ?? 1;
+
+  return {
+    mode: "msaa-offscreen-render-target-reuse",
+    requestedSampleCount: latest.requestedSampleCount ?? 8,
+    sampleCount,
+    enabled: latest.enabled ?? sampleCount > 1,
+    clamped: latest.clamped ?? false,
+    supportedSampleCounts: latest.supportedSampleCounts ?? [1, 4],
+    stableSampleCount: frames.every(
+      (frame) => (frame.msaaSampleCount ?? sampleCount) === sampleCount,
+    ),
+    colorTargets: latest.colorTargets ?? 0,
+    colorTexturesCreated,
+    colorTexturesReused,
+    resourcePressure: {
+      framesRendered: frames.length,
+      colorTargets,
+      colorTexturesCreated,
+      colorTexturesReused,
+    },
+    resolveAttachments: frames.map((frame) => ({
+      frame: frame.frame,
+      msaaSampleCount: frame.msaaSampleCount ?? sampleCount,
+      ...(frame.attachment ?? createMsaaAttachmentStatus(undefined)),
+    })),
   };
 }
 

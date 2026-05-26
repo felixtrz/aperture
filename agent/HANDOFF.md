@@ -1,6 +1,78 @@
 # Agent Handoff
 
-Updated: 2026-05-26T07:34:21Z
+Updated: 2026-05-26T08:52:27Z
+
+## Current Run Update — 2026-05-26T08:52:27Z — MSAA render-target reuse stress route
+
+Completed `task-3193`.
+
+### What changed
+
+- Added `examples/render-target-msaa-reuse.html` to the render-to-texture route
+  family and linked it from related example pages.
+- `examples/render-to-texture-assets.js` now registers a clear-colored unlit
+  material for reuse-stress first frames.
+- `examples/render-to-texture.worker.js` now keeps the reuse-stress mesh
+  centered and swaps from the clear material on frame 1 to the green material on
+  frame 2. This makes stale first-frame pixels visible without depending on a
+  transform update to move the sample point.
+- `examples/render-to-texture.main.js` now reports stable render-target key,
+  target texture reuse/recreation status, requested/resolved sample counts,
+  per-frame dimensions, draw counts, MSAA sample counts, MSAA color texture
+  created/reused pressure, per-frame world translation, and resolve attachment
+  behavior for reuse-stress frames.
+- Added Playwright coverage proving the second resolved preview is non-clear,
+  uses the same renderer-owned `ViewPacket.renderTarget` key, reuses the MSAA
+  color texture on the second frame, and does not expose stale first-frame
+  pixels.
+- Updated public tracker pages, `agent/BACKLOG.md`, `agent/CURRENT_TASK.md`,
+  and `agent/COMPLETED.md`. The ready queue now continues with `task-3194`,
+  `task-3195`, and `task-3196`.
+
+### References inspected
+
+- `references/engine/src/extras/render-passes/camera-frame.js`
+- `references/bevy/examples/3d/render_to_texture.rs`
+
+### Validation
+
+- `node --check examples/render-to-texture-assets.js`
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `pnpm exec eslint examples/render-to-texture-assets.js examples/render-to-texture.main.js examples/render-to-texture.worker.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm run build`
+- `pnpm exec prettier --check examples/render-to-texture-assets.js examples/render-to-texture.main.js examples/render-to-texture.worker.js test/e2e/render-to-texture.spec.ts examples/render-target-msaa-reuse.html examples/index.html examples/render-to-texture.html examples/render-target-resize.html examples/render-target-reuse.html examples/mixed-camera-targets.html examples/multi-render-targets.html examples/mixed-multi-render-targets.html examples/render-target-dual-size.html examples/mixed-dual-size-render-targets.html examples/mixed-secondary-crop-render-targets.html examples/mixed-msaa-two-targets.html examples/mixed-msaa-secondary-crop.html examples/render-target-msaa.html examples/render-target-msaa-two-targets.html examples/render-target-msaa-secondary-crop.html examples/render-target-secondary-crop.html examples/render-target-viewport-crop.html examples/render-target-clear-load.html`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "MSAA render-target reuse" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "render-target reuse route" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "MSAA render-target route|MSAA two-target|MSAA cropped secondary|mixed MSAA two-target|mixed MSAA cropped secondary" --reporter=list`
+  — 5 passed.
+- Browser route check for `examples/render-target-msaa-reuse.html` reported
+  `ok: true`, a green resolved preview sample, and MSAA reuse pressure of one
+  created and one reused color texture.
+
+### Known issues / remaining work
+
+- A single combined 7-test Playwright command covering the reuse pair plus the
+  five adjacent MSAA routes stalled after six tests and was interrupted. The
+  same coverage was rerun as focused groups above.
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- Full-repo `pnpm run format:check` still has pre-existing unrelated formatting
+  debt from earlier handoff notes, including untracked `.playwright-mcp/`
+  scratch files. This slice uses targeted Prettier checks for touched files.
+- A broad `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/webgpu-app.test.ts`
+  run still fails 11 pre-existing `webgpu-app.test.ts` expectations around
+  verbose pipeline descriptor resource keys. This task did not modify that
+  area.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3194`: add an MSAA render-target
+resize preview route.
 
 ## Current Run Update — 2026-05-26T07:34:21Z — Mixed current plus MSAA cropped secondary off-screen target
 

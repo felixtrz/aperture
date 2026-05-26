@@ -60,10 +60,37 @@ interface RenderToTextureStatus extends ExampleStatusBase {
     readonly displayedFrame?: number;
     readonly reusedHandle?: boolean;
     readonly textureRecreated?: boolean;
+    readonly stableRenderTargetKey?: boolean;
     readonly targetResourcePressure?: {
       readonly createdTextures?: number;
       readonly reusedTextures?: number;
       readonly stableDimensions?: boolean;
+    };
+    readonly msaa?: {
+      readonly mode?: string;
+      readonly requestedSampleCount?: number;
+      readonly sampleCount?: number;
+      readonly enabled?: boolean;
+      readonly clamped?: boolean;
+      readonly supportedSampleCounts?: readonly number[];
+      readonly stableSampleCount?: boolean;
+      readonly colorTargets?: number;
+      readonly colorTexturesCreated?: number;
+      readonly colorTexturesReused?: number;
+      readonly resourcePressure?: {
+        readonly framesRendered?: number;
+        readonly colorTargets?: number;
+        readonly colorTexturesCreated?: number;
+        readonly colorTexturesReused?: number;
+      };
+      readonly resolveAttachments?: readonly {
+        readonly frame?: number;
+        readonly msaaSampleCount?: number;
+        readonly colorLoadOp?: string | null;
+        readonly colorStoreOp?: string | null;
+        readonly resolveTarget?: boolean;
+        readonly behavior?: string;
+      }[];
     };
     readonly frames?: readonly {
       readonly frame?: number;
@@ -73,6 +100,24 @@ interface RenderToTextureStatus extends ExampleStatusBase {
       readonly width?: number;
       readonly height?: number;
       readonly drawCalls?: number;
+      readonly worldTranslation?: readonly number[];
+      readonly msaaSampleCount?: number;
+      readonly attachment?: {
+        readonly colorLoadOp?: string | null;
+        readonly colorStoreOp?: string | null;
+        readonly resolveTarget?: boolean;
+        readonly behavior?: string;
+      };
+      readonly msaa?: {
+        readonly requestedSampleCount?: number;
+        readonly sampleCount?: number;
+        readonly enabled?: boolean;
+        readonly clamped?: boolean;
+        readonly supportedSampleCounts?: readonly number[];
+        readonly colorTargets?: number;
+        readonly colorTexturesCreated?: number;
+        readonly colorTexturesReused?: number;
+      };
       readonly diagnostics?: number;
     }[];
     readonly staleFirstFrameStatus?: boolean;
@@ -1094,11 +1139,18 @@ interface RenderToTextureStatus extends ExampleStatusBase {
   };
   readonly scene?: {
     readonly materialKey?: string;
+    readonly clearMaterialKey?: string;
     readonly canvasMaterialKey?: string;
     readonly currentMaterialKey?: string;
     readonly secondaryRenderTargetKey?: string;
     readonly materialKind?: string;
     readonly expectedCenterColor?: {
+      readonly r: number;
+      readonly g: number;
+      readonly b: number;
+      readonly a: number;
+    };
+    readonly expectedClearMaterialColor?: {
       readonly r: number;
       readonly g: number;
       readonly b: number;
@@ -5903,7 +5955,7 @@ test("render-target reuse route displays the second snapshot through one off-scr
       frames: [
         {
           frame: 1,
-          workerVariant: "left-clear-center",
+          workerVariant: "clear-material-center",
           centerExpectation: "offscreen-clear",
           renderTargetKey: status.renderTarget?.key,
           width: 256,
@@ -5998,6 +6050,278 @@ test("render-target reuse route displays the second snapshot through one off-scr
   expect(
     pixelDistance(sample.pixel, screenClearSample.pixel),
     "reused target preview should differ from the main-canvas clear region",
+  ).toBeGreaterThan(40);
+});
+
+test("MSAA render-target reuse route resolves the second snapshot through one stable off-screen target", async ({
+  page,
+}) => {
+  const guard = attachWebGpuValidationConsoleGuard(page);
+  const status = await loadExampleStatus<RenderToTextureStatus>(
+    page,
+    "/examples/render-target-msaa-reuse.html",
+    "render-target-msaa-reuse-status",
+  );
+
+  if (status === undefined) {
+    return;
+  }
+
+  const renderTargetKey = status.renderTarget?.key;
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "render-target-msaa-reuse",
+    ok: true,
+    phase: "display",
+    renderingBackend: "webgpu-explicit",
+    renderTarget: {
+      width: 256,
+      height: 256,
+      source: "ViewPacket.renderTarget",
+      textureUsage: {
+        renderAttachment: true,
+        textureBinding: true,
+        copySource: true,
+      },
+    },
+    renderTargetReuseStress: {
+      mode: "same-render-target-two-worker-snapshots",
+      renderTargetKey,
+      stableRenderTargetKey: true,
+      framesRequested: 2,
+      framesRendered: 2,
+      displayedFrame: 2,
+      reusedHandle: true,
+      textureRecreated: false,
+      targetResourcePressure: {
+        createdTextures: 1,
+        reusedTextures: 1,
+        stableDimensions: true,
+      },
+      msaa: {
+        mode: "msaa-offscreen-render-target-reuse",
+        requestedSampleCount: 8,
+        sampleCount: 4,
+        enabled: true,
+        clamped: true,
+        supportedSampleCounts: [1, 4],
+        stableSampleCount: true,
+        colorTargets: 1,
+        colorTexturesCreated: 1,
+        colorTexturesReused: 1,
+        resourcePressure: {
+          framesRendered: 2,
+          colorTargets: 2,
+          colorTexturesCreated: 1,
+          colorTexturesReused: 1,
+        },
+        resolveAttachments: [
+          {
+            frame: 1,
+            msaaSampleCount: 4,
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+          {
+            frame: 2,
+            msaaSampleCount: 4,
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+        ],
+      },
+      frames: [
+        {
+          frame: 1,
+          workerVariant: "msaa-clear-material-center",
+          centerExpectation: "msaa-resolved-offscreen-clear",
+          renderTargetKey,
+          width: 256,
+          height: 256,
+          drawCalls: 1,
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+          msaa: {
+            requestedSampleCount: 8,
+            sampleCount: 4,
+            enabled: true,
+            clamped: true,
+            supportedSampleCounts: [1, 4],
+            colorTargets: 1,
+            colorTexturesCreated: 1,
+            colorTexturesReused: 0,
+          },
+          diagnostics: 0,
+        },
+        {
+          frame: 2,
+          workerVariant: "msaa-center-plane",
+          centerExpectation: "msaa-resolved-plane",
+          renderTargetKey,
+          width: 256,
+          height: 256,
+          drawCalls: 1,
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+          msaa: {
+            requestedSampleCount: 8,
+            sampleCount: 4,
+            enabled: true,
+            clamped: true,
+            supportedSampleCounts: [1, 4],
+            colorTargets: 1,
+            colorTexturesCreated: 0,
+            colorTexturesReused: 1,
+          },
+          diagnostics: 0,
+        },
+      ],
+      staleFirstFrameStatus: false,
+    },
+    sourceView: {
+      ok: true,
+      renderTargetKey,
+      expectedRenderTargetKey: renderTargetKey,
+      renderTargetMatches: true,
+    },
+    msaaRenderTarget: {
+      mode: "msaa-offscreen-render-target-preview",
+      source: "ViewPacket.renderTarget",
+      renderTargetKey,
+      requestedSampleCount: 8,
+      sampleCount: 4,
+      enabled: true,
+      clamped: true,
+      supportedSampleCounts: [1, 4],
+      colorTargets: 1,
+      colorTexturesCreated: 0,
+      colorTexturesReused: 1,
+      target: {
+        source: "offscreen",
+        width: 256,
+        height: 256,
+        drawCalls: 1,
+        msaaSampleCount: 4,
+        ok: true,
+      },
+      attachment: {
+        colorLoadOp: "clear",
+        colorStoreOp: "discard",
+        resolveTarget: true,
+      },
+      displayPass: {
+        loadOp: "clear",
+        drawCalls: 1,
+        samples: {
+          preview: "quad-center",
+          screenClear: "screen-clear-corner",
+        },
+      },
+    },
+    counts: {
+      views: 1,
+      meshDraws: 1,
+      drawCalls: 1,
+      diagnostics: 0,
+    },
+    screenPass: {
+      phase: "screen-pass",
+      drawCalls: 1,
+      samples: {
+        preview: "quad-center",
+        screenClear: "screen-clear-corner",
+      },
+    },
+  });
+  expect(status.report?.renderTargets).toMatchObject([
+    {
+      source: "offscreen",
+      renderTargetKey,
+      width: 256,
+      height: 256,
+      ok: true,
+      drawCalls: 1,
+      msaaSampleCount: 4,
+    },
+  ]);
+  guard.expectNoWarnings();
+
+  await attachExampleStatus("render-target-msaa-reuse-rendered-status", status);
+
+  if (!status.readback?.ok) {
+    test.skip(
+      true,
+      "MSAA render-target reuse pixel assertion requires readback.",
+    );
+    return;
+  }
+
+  const sample = status.readback.samples?.find(
+    (entry) => entry.id === "quad-center",
+  );
+  const screenClearSample = status.readback.samples?.find(
+    (entry) => entry.id === "screen-clear-corner",
+  );
+
+  expect(
+    sample,
+    "expected resolved reused render-target preview sample",
+  ).toBeDefined();
+  expect(
+    screenClearSample,
+    "expected MSAA reuse route screen clear sample",
+  ).toBeDefined();
+
+  if (sample === undefined || screenClearSample === undefined) {
+    return;
+  }
+
+  expect(
+    pixelDistance(
+      sample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCenterColor ?? {
+          r: 0.06,
+          g: 0.88,
+          b: 0.22,
+          a: 1,
+        },
+      ),
+    ),
+    "resolved reused target preview should show the second centered snapshot",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(
+      sample.pixel,
+      rgbaColorToPixel(
+        status.clearColors?.offscreen ?? {
+          r: 1,
+          g: 1,
+          b: 1,
+          a: 1,
+        },
+      ),
+    ),
+    "resolved reused target preview should not expose the stale first-frame clear pixel",
+  ).toBeGreaterThan(80);
+  expect(
+    pixelDistance(sample.pixel, screenClearSample.pixel),
+    "resolved reused target preview should differ from the main-canvas clear region",
   ).toBeGreaterThan(40);
 });
 

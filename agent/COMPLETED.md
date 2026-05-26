@@ -1,5 +1,43 @@
 # Completed Tasks
 
+## task-3193 — Add an MSAA render-target reuse stress preview route
+
+Completed: 2026-05-26
+
+### Summary
+
+- Added `examples/render-target-msaa-reuse.html` to the render-to-texture route
+  family and linked it from related example pages.
+- `examples/render-to-texture-assets.js` now registers a clear-colored unlit
+  material used by reuse-stress first frames so stale first-frame pixels are
+  detectable while the mesh remains centered.
+- `examples/render-to-texture.worker.js` now drives reuse stress by swapping the
+  first-frame clear material to the second-frame green material across
+  consecutive snapshots, and reports an MSAA-specific reuse worker variant.
+- `examples/render-to-texture.main.js` now reports stable render-target key,
+  target texture reuse/recreation status, requested/resolved sample counts,
+  per-frame dimensions, draw counts, MSAA sample counts, MSAA color texture
+  creation/reuse pressure, and per-frame resolve attachment behavior.
+- Added Playwright coverage proving the second resolved preview is non-clear,
+  uses the same renderer-owned `ViewPacket.renderTarget` key, reuses the MSAA
+  color texture on the second frame, and does not expose stale first-frame
+  pixels.
+
+### Validation
+
+- `node --check examples/render-to-texture-assets.js`
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `pnpm exec eslint examples/render-to-texture-assets.js examples/render-to-texture.main.js examples/render-to-texture.worker.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "MSAA render-target reuse" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "render-target reuse route" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "MSAA render-target route|MSAA two-target|MSAA cropped secondary|mixed MSAA two-target|mixed MSAA cropped secondary" --reporter=list`
+- Browser route check: `examples/render-target-msaa-reuse.html` published
+  `ok: true`, a green resolved preview sample, and MSAA reuse pressure of one
+  created and one reused color texture.
+
 ## task-3192 — Add an MSAA mixed current-texture plus cropped secondary route
 
 Completed: 2026-05-26

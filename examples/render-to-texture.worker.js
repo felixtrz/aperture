@@ -63,6 +63,7 @@ async function handleMessage(data) {
         scene: {
           meshKey: aperture.assetHandleKey(scene.mesh),
           materialKey: aperture.assetHandleKey(scene.material),
+          clearMaterialKey: aperture.assetHandleKey(scene.clearMaterial),
           canvasMaterialKey: aperture.assetHandleKey(scene.canvasMaterial),
           currentMaterialKey: aperture.assetHandleKey(scene.currentMaterial),
           renderTargetKey: aperture.assetHandleKey(scene.renderTarget),
@@ -317,10 +318,13 @@ function createWorkerScene(
     app,
     mesh: assets.mesh,
     material: assets.material,
+    clearMaterial: assets.clearMaterial,
     canvasMaterial: assets.canvasMaterial,
     currentMaterial: assets.currentMaterial,
     renderTarget: assets.renderTarget,
     secondaryRenderTarget: assets.secondaryRenderTarget,
+    materialId: aperture.assetHandleKey(assets.material),
+    clearMaterialId: aperture.assetHandleKey(assets.clearMaterial),
     canvas: canvasSize,
     meshEntity,
     canvasMeshEntity,
@@ -339,6 +343,7 @@ function createWorkerScene(
     targetClearLoad,
     targetMsaa,
     localTransformComponent: aperture.LocalTransform,
+    materialComponent: aperture.Material,
   };
 }
 
@@ -348,7 +353,7 @@ function createSnapshotMessage(workerScene, data) {
   applyReuseStressFrame(workerScene, frame);
   workerScene.app.step(0, 0);
   const snapshot = workerScene.app.extract(frame);
-  const frameVariant = frame <= 1 ? "left-clear-center" : "center-plane";
+  const frameVariant = frame <= 1 ? "clear-material-center" : "center-plane";
 
   return {
     type: "snapshot",
@@ -373,24 +378,26 @@ function createSnapshotMessage(workerScene, data) {
                   ? "current-texture-plus-dual-size-offscreen-targets"
                   : workerScene.dualSizeRenderTargets
                     ? "dual-size-offscreen-render-targets"
-                    : workerScene.targetMsaa && workerScene.multiRenderTargets
-                      ? "msaa-two-offscreen-render-targets"
-                      : workerScene.targetMsaa &&
-                          workerScene.croppedSecondaryRenderTargets
-                        ? "msaa-cropped-secondary-offscreen-render-target"
-                        : workerScene.targetMsaa
-                          ? "msaa-offscreen-render-target"
-                          : workerScene.croppedSecondaryRenderTargets
-                            ? "cropped-secondary-offscreen-render-target"
-                            : workerScene.multiRenderTargets
-                              ? "two-offscreen-render-targets"
-                              : workerScene.targetClearLoad
-                                ? "same-offscreen-target-clear-load"
-                                : workerScene.targetCrop
-                                  ? "offscreen-render-target-crop"
-                                  : workerScene.reuseStress
-                                    ? frameVariant
-                                    : "single-frame",
+                    : workerScene.reuseStress && workerScene.targetMsaa
+                      ? `msaa-${frameVariant}`
+                      : workerScene.targetMsaa && workerScene.multiRenderTargets
+                        ? "msaa-two-offscreen-render-targets"
+                        : workerScene.targetMsaa &&
+                            workerScene.croppedSecondaryRenderTargets
+                          ? "msaa-cropped-secondary-offscreen-render-target"
+                          : workerScene.targetMsaa
+                            ? "msaa-offscreen-render-target"
+                            : workerScene.croppedSecondaryRenderTargets
+                              ? "cropped-secondary-offscreen-render-target"
+                              : workerScene.multiRenderTargets
+                                ? "two-offscreen-render-targets"
+                                : workerScene.targetClearLoad
+                                  ? "same-offscreen-target-clear-load"
+                                  : workerScene.targetCrop
+                                    ? "offscreen-render-target-crop"
+                                    : workerScene.reuseStress
+                                      ? frameVariant
+                                      : "single-frame",
       centerExpectation: workerScene.mixedTargets
         ? "canvas-plane-plus-offscreen-preview"
         : workerScene.mixedCroppedSecondaryRenderTargets
@@ -405,24 +412,28 @@ function createSnapshotMessage(workerScene, data) {
                   ? "current-texture-plus-dual-size-offscreen-previews"
                   : workerScene.dualSizeRenderTargets
                     ? "dual-size-offscreen-previews"
-                    : workerScene.targetMsaa && workerScene.multiRenderTargets
-                      ? "msaa-resolved-two-offscreen-previews"
-                      : workerScene.targetMsaa &&
-                          workerScene.croppedSecondaryRenderTargets
-                        ? "msaa-primary-preview-plus-secondary-crop"
-                        : workerScene.targetMsaa
-                          ? "msaa-resolved-offscreen-preview"
-                          : workerScene.croppedSecondaryRenderTargets
-                            ? "primary-preview-plus-secondary-crop"
-                            : workerScene.multiRenderTargets
-                              ? "two-offscreen-previews"
-                              : workerScene.targetClearLoad
-                                ? "base-preserved-plus-overlay"
-                                : workerScene.targetCrop
-                                  ? "cropped-offscreen-target"
-                                  : workerScene.reuseStress && frame <= 1
-                                    ? "offscreen-clear"
-                                    : "plane",
+                    : workerScene.reuseStress && workerScene.targetMsaa
+                      ? frame <= 1
+                        ? "msaa-resolved-offscreen-clear"
+                        : "msaa-resolved-plane"
+                      : workerScene.targetMsaa && workerScene.multiRenderTargets
+                        ? "msaa-resolved-two-offscreen-previews"
+                        : workerScene.targetMsaa &&
+                            workerScene.croppedSecondaryRenderTargets
+                          ? "msaa-primary-preview-plus-secondary-crop"
+                          : workerScene.targetMsaa
+                            ? "msaa-resolved-offscreen-preview"
+                            : workerScene.croppedSecondaryRenderTargets
+                              ? "primary-preview-plus-secondary-crop"
+                              : workerScene.multiRenderTargets
+                                ? "two-offscreen-previews"
+                                : workerScene.targetClearLoad
+                                  ? "base-preserved-plus-overlay"
+                                  : workerScene.targetCrop
+                                    ? "cropped-offscreen-target"
+                                    : workerScene.reuseStress && frame <= 1
+                                      ? "offscreen-clear"
+                                      : "plane",
     },
   };
 }
@@ -437,7 +448,12 @@ function applyReuseStressFrame(workerScene, frame) {
     "translation",
   );
 
-  translation.set(frame <= 1 ? [-1.35, 0, 0] : [0, 0, 0]);
+  translation.set([0, 0, 0]);
+  workerScene.meshEntity.setValue(
+    workerScene.materialComponent,
+    "materialId",
+    frame <= 1 ? workerScene.clearMaterialId : workerScene.materialId,
+  );
 }
 
 function finiteInteger(value, fallback) {

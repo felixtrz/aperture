@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Aperture Render Target Dual Size</title>
+    <title>Aperture Render Target MSAA Reuse</title>
     <link rel="stylesheet" href="./styles.css" />
     <script type="importmap">
       {
@@ -25,19 +25,19 @@
     <main class="runtime-shell">
       <section
         class="viewport-panel"
-        aria-label="Aperture render-target dual-size runtime"
+        aria-label="Aperture render-target MSAA reuse runtime"
       >
         <canvas
           id="aperture-canvas"
           width="960"
           height="540"
-          aria-label="Aperture WebGPU render-target dual-size canvas"
+          aria-label="Aperture WebGPU render-target MSAA reuse canvas"
         ></canvas>
       </section>
       <aside class="status-panel" aria-label="Runtime status">
         <div class="status-row">
           <span>example</span>
-          <strong id="example-name">render target dual size</strong>
+          <strong id="example-name">render target msaa reuse</strong>
         </div>
         <div class="status-row">
           <span>state</span>
