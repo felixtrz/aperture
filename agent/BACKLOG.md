@@ -59,22 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3170` is complete: `examples/camera-render-layers.html` now proves two
-ECS cameras with distinct layer masks over one worker-authored world, reports
-per-camera included/skipped draw counts and material keys, and verifies each
-viewport excludes the other layer with Playwright readback. Continue the
-post-SOTA visible-feature queue at `task-3171`: add a camera priority overlay
-route.
+`task-3171` is complete: `examples/camera-priority-overlay.html` now proves two
+full-canvas ECS cameras submitted in priority order into the same target,
+reports ordered camera pass and clear/load behavior, and verifies the
+higher-priority overlay appears while the lower-priority base remains visible.
+Continue the post-SOTA visible-feature queue at `task-3172`: add a camera
+sub-view/crop route.
 
 The next ready visible-feature queue is:
 
-- `task-3171` — add a camera priority overlay route.
-  Reference anchor: `references/bevy/examples/ui/ui_target_camera.rs`,
-  `references/engine/src/extras/render-passes/camera-frame.js`.
-  Done when a browser route renders two active cameras into the same canvas
-  target with different priorities, reports the ordered camera pass sequence and
-  clear behavior, and Playwright verifies the higher-priority overlay appears
-  over the lower-priority base while both remain visible.
 - `task-3172` — add a camera sub-view/crop route.
   Reference anchor: `references/bevy/examples/3d/camera_sub_view.rs`,
   `references/three.js/manual/examples/cameras-perspective-2-scenes.html`.
@@ -90,6 +83,14 @@ The next ready visible-feature queue is:
   grid over one world, reports per-camera viewport/scissor and draw counts, and
   Playwright verifies all four grid cells show distinct camera/material
   evidence while sharing prepared mesh/material resources.
+- `task-3174` — add a render-target resize preview route.
+  Reference anchor:
+  `references/engine/examples/src/examples/graphics/render-to-texture.example.mjs`,
+  `references/three.js/examples/webgpu_rtt.html`.
+  Done when a browser route resizes a renderer-owned camera render target after
+  a canvas/device-pixel-ratio change, reports old/new target dimensions and
+  resource reuse/disposal status, and Playwright verifies the displayed preview
+  remains non-clear after resize without stale-size readback failures.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

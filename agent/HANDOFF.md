@@ -1,6 +1,55 @@
 # Agent Handoff
 
-Updated: 2026-05-26T02:28:44Z
+Updated: 2026-05-26T02:36:27Z
+
+## Current Run Update — 2026-05-26T02:36:27Z — Camera priority overlay route
+
+Completed `task-3171` after `task-3170`.
+
+### What changed
+
+- Added `examples/camera-priority-overlay.html` and
+  `examples/camera-priority-overlay.worker.js`.
+- The worker authors two full-canvas ECS cameras sorted by priority into the
+  same target: a lower-priority base camera and a higher-priority overlay
+  camera.
+- Extended the shared multi-view main status with ordered `cameraPassOrder`,
+  per-view priority, and clear behavior. The first camera pass reports
+  `target-cleared-before-view`; later passes report `load-existing-target`.
+- The route uses opt-in per-view layer filtering so the base and overlay
+  cameras each submit one draw from the same extracted snapshot.
+- Added Playwright coverage proving a base-only sample remains visible while
+  the center sample shows the higher-priority overlay.
+
+### Validation
+
+- `pnpm exec playwright test test/e2e/camera-priority-overlay.spec.ts --reporter=list`
+  — first run failed because the base-only sample was outside the base plane;
+  after increasing only the base plane scale, 1 passed.
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs` — 7 passed.
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts test/e2e/orthographic-camera.spec.ts test/e2e/line-primitives.spec.ts test/e2e/camera-render-layers.spec.ts test/e2e/camera-priority-overlay.spec.ts --reporter=list`
+  — 6 passed; covers the new route plus shared-main regressions.
+- `pnpm exec eslint examples/split-screen-multi-camera.main.js examples/camera-priority-overlay.worker.js test/e2e/camera-priority-overlay.spec.ts test/examples/navigation.test.mjs`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm run render-control:smoke-all` — visited 54 routes, including
+  `/examples/camera-priority-overlay.html`, with zero route status failures and
+  zero warning routes.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3172`: add a camera sub-view/crop
+route.
 
 ## Current Run Update — 2026-05-26T02:28:44Z — Camera render-layer route
 

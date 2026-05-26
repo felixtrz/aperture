@@ -1,5 +1,34 @@
 # Completed Tasks
 
+## task-3171 — Add a camera priority overlay route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/camera-priority-overlay.html` and
+  `examples/camera-priority-overlay.worker.js`.
+- The worker authors two full-canvas ECS cameras sorted by priority over one
+  world: a lower-priority base camera and a higher-priority overlay camera.
+- The shared multi-view main path now reports ordered `cameraPassOrder`,
+  per-view priority, and clear behavior for the same-target pass sequence.
+- The route keeps the lower-priority base visible by clearing only before the
+  first camera pass and loading the existing target for the overlay pass.
+- Playwright verifies a base-only sample and an overlay-center sample have
+  distinct expected colors.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/camera-priority-overlay.spec.ts --reporter=list`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts test/e2e/orthographic-camera.spec.ts test/e2e/line-primitives.spec.ts test/e2e/camera-render-layers.spec.ts test/e2e/camera-priority-overlay.spec.ts --reporter=list`
+- `pnpm exec eslint examples/split-screen-multi-camera.main.js examples/camera-priority-overlay.worker.js test/e2e/camera-priority-overlay.spec.ts test/examples/navigation.test.mjs`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm run render-control:smoke-all`
+
 ## task-3170 — Add a camera render-layer isolation route
 
 Completed: 2026-05-26

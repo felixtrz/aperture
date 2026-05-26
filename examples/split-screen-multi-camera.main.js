@@ -316,6 +316,7 @@ async function renderSplitScreenScene(
     command: commandCounts,
     viewports: viewPlansResult.viewPlans.map((plan) => ({
       viewId: plan.view.viewId,
+      priority: plan.view.priority,
       layerMask: plan.view.layerMask,
       viewport: Array.from(plan.view.viewport),
       scissor: Array.from(plan.view.scissor),
@@ -324,7 +325,9 @@ async function renderSplitScreenScene(
     })),
     viewPasses: viewPlansResult.viewPlans.map((plan) => ({
       viewId: plan.view.viewId,
+      priority: plan.view.priority,
       layerMask: plan.view.layerMask,
+      clearBehavior: plan.clearBehavior,
       commands: plan.framePlan.commandPlan.commands.length,
       drawCalls: plan.framePlan.commandPlan.drawCount,
       indexedDrawCalls: plan.framePlan.commandPlan.indexedDrawCount,
@@ -334,6 +337,13 @@ async function renderSplitScreenScene(
       skippedMaterialKeys: plan.skippedMaterialKeys,
       viewportPixels: plan.viewport,
       scissorPixels: plan.scissor,
+    })),
+    cameraPassOrder: viewPlansResult.viewPlans.map((plan) => ({
+      viewId: plan.view.viewId,
+      priority: plan.view.priority,
+      layerMask: plan.view.layerMask,
+      clearBehavior: plan.clearBehavior,
+      drawCalls: plan.framePlan.commandPlan.drawCount,
     })),
     submission: submitted.summary,
     readback: submitted.readback,
@@ -357,6 +367,9 @@ async function renderSplitScreenScene(
     ...(scene.layerIsolation === undefined
       ? {}
       : { layerIsolation: scene.layerIsolation }),
+    ...(scene.priorityOverlay === undefined
+      ? {}
+      : { priorityOverlay: scene.priorityOverlay }),
     ...(scene.proof === undefined ? {} : { proof: scene.proof }),
     diagnostics: framePlanDiagnostics,
     diagnosticCounts: diagnosticCounts({
@@ -500,6 +513,10 @@ function createViewPlans({
       scissor: scissor.rect,
       framePlan,
       viewBindGroups: viewUniform.bindGroups,
+      clearBehavior:
+        viewPlans.length === 0
+          ? "target-cleared-before-view"
+          : "load-existing-target",
       includedDraws: viewSnapshot.meshDraws.length,
       skippedDraws: snapshot.meshDraws.length - viewSnapshot.meshDraws.length,
       includedMaterialKeys,
@@ -850,6 +867,15 @@ function routeConfigForPath(pathname) {
       label: "The camera render-layer isolation route",
       workerUrl: "/worker-modules/examples/camera-render-layers.worker.js",
       workerName: "aperture-camera-render-layers-simulation",
+    };
+  }
+
+  if (pathname.endsWith("/camera-priority-overlay.html")) {
+    return {
+      example: "camera-priority-overlay",
+      label: "The camera priority overlay route",
+      workerUrl: "/worker-modules/examples/camera-priority-overlay.worker.js",
+      workerName: "aperture-camera-priority-overlay-simulation",
     };
   }
 

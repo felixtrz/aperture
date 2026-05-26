@@ -393,19 +393,25 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 02:28 UTC</dd>
+            <dd>2026-05-26 02:36 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/camera-priority-overlay.html</code> now proves
+              two full-canvas ECS cameras submitted in priority order into the
+              same target. The route reports ordered camera pass sequence and
+              clear/load behavior, then Playwright verifies the higher-priority
+              overlay appears while a lower-priority base-only region remains
+              visible. Previous update:
               <code>examples/camera-render-layers.html</code> now proves two
               active ECS cameras with distinct layer masks over one
               worker-authored world. The shared multi-view path filters each
               view command plan by camera layer mask, status reports per-camera
               included/skipped draw counts and material keys, and Playwright
               verifies red and blue viewport samples while each camera excludes
-              the other layer. Previous update:
+              the other layer. Earlier update:
               <code>examples/render-to-texture.html</code> now
               reports the ECS source camera view, off-screen render-target key,
               target usage, display pass draw count, clear colors, and
@@ -2671,6 +2677,13 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3171</span> Added
+                <code>examples/camera-priority-overlay.html</code>. The shared
+                multi-view route now reports ordered camera pass sequence and
+                clear/load behavior, and Playwright proves the higher-priority
+                overlay appears while the lower-priority base remains visible.
+              </li>
               <li>
                 <span class="badge green">task-3170</span> Added
                 <code>examples/camera-render-layers.html</code>. The shared
@@ -5291,8 +5304,13 @@
                 reporting and red/blue Playwright proof.
               </li>
               <li>
-                <span class="badge">task-3171</span> Next: add a camera
-                priority overlay route.
+                <span class="badge green">task-3171</span> Done: add a camera
+                priority overlay route with ordered pass/clear behavior status
+                and base-plus-overlay Playwright proof.
+              </li>
+              <li>
+                <span class="badge">task-3172</span> Next: add a camera
+                sub-view/crop route.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5311,6 +5329,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3171</div>
+            <div>
+              <strong>Camera priority overlay route shipped.</strong>
+              <span>
+                <code>examples/camera-priority-overlay.html</code> renders two
+                full-canvas ECS cameras into one target by priority, reports
+                camera pass order and clear/load behavior, and proves a
+                higher-priority overlay while the lower-priority base remains
+                visible.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3170</div>
             <div>

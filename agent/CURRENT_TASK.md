@@ -2,23 +2,21 @@
 
 No active task is currently checked out.
 
-Status: task-3170 camera render-layer isolation route completed.
+Status: task-3171 camera priority overlay route completed.
 
 Key findings:
 
-- Added `examples/camera-render-layers.html` and
-  `examples/camera-render-layers.worker.js`.
-- The worker authors two ECS cameras with distinct layer masks over two
-  overlaid mesh entities with distinct `RenderLayer` masks.
-- The shared multi-view main path now supports opt-in per-view draw filtering,
-  so each view command plan includes only mesh draws whose layer mask intersects
-  that camera's layer mask.
-- Status reports per-camera included/skipped draw counts and material keys,
-  plus the layer-isolation scene contract.
-- Playwright verifies red and blue viewport samples, one draw per camera, and
-  one skipped draw per camera while preserving split-screen, orthographic, and
-  line-route regressions.
+- Added `examples/camera-priority-overlay.html` and
+  `examples/camera-priority-overlay.worker.js`.
+- The worker authors two full-canvas ECS cameras sorted by priority: a base
+  camera that draws a large layer and a higher-priority overlay camera that
+  draws a smaller layer into the same target.
+- The shared multi-view main path now reports ordered `cameraPassOrder`,
+  per-view priority, and clear behavior (`target-cleared-before-view` for the
+  first pass, `load-existing-target` for later passes).
+- Playwright verifies the base-only sample remains visible while the center
+  sample shows the higher-priority overlay.
 
 Recommended next task:
 
-- `task-3171` — add a camera priority overlay route.
+- `task-3172` — add a camera sub-view/crop route.
