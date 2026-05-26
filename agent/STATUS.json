@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "20f29169",
+  "lastCommit": "3cdff48c",
   "activePid": null,
-  "notes": "Completed task-3176 and task-3177: added camera picture-in-picture and render-target reuse routes, expanded Playwright coverage, updated trackers/backlog/handoff, and validated focused specs, build, typecheck, progress, navigation, check:examples, lint, and all-route render-control smoke.",
-  "lastRunFinishedAt": "2026-05-26T04:44:07Z"
+  "notes": "Completed task-3178: added camera viewport resize route, expanded shared split-screen two-frame coverage, updated trackers/backlog/handoff, and validated focused specs, shared camera Playwright set, build, typecheck, progress, navigation, check:examples, lint, and all-route render-control smoke.",
+  "lastRunFinishedAt": "2026-05-26T04:55:58Z"
 }
