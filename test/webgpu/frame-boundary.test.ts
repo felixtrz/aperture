@@ -118,6 +118,36 @@ describe("frame boundary assembly helper", () => {
     ]);
   });
 
+  it("applies viewport and scissor rectangles before draw commands", () => {
+    const events: string[] = [];
+    const report = assembleFrameBoundary({
+      context: contextWithView({ label: "view" }),
+      device: device(events),
+      queue: { submit: (buffers) => events.push(`submit:${buffers.length}`) },
+      commands: [drawCommand()],
+      label: "viewport-frame",
+      viewport: { x: 10, y: 20, width: 300, height: 200 },
+      scissor: { x: 12, y: 22, width: 280, height: 180 },
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.rectangle).toMatchObject({
+      valid: true,
+      viewport: { x: 10, y: 20, width: 300, height: 200 },
+      scissor: { x: 12, y: 22, width: 280, height: 180 },
+      diagnostics: [],
+    });
+    expect(events).toEqual([
+      "begin",
+      "viewport:10,20,300,200,0,1",
+      "scissor:12,22,280,180",
+      "draw",
+      "end",
+      "finish",
+      "submit:1",
+    ]);
+  });
+
   it("attaches, executes, and resolves occlusion query resources", () => {
     const events: string[] = [];
     const passDescriptors: unknown[] = [];
@@ -395,6 +425,23 @@ function device(
         options.passDescriptors?.push(descriptor);
         events.push("begin");
         return {
+          setViewport: (
+            x: number,
+            y: number,
+            width: number,
+            height: number,
+            minDepth: number,
+            maxDepth: number,
+          ) =>
+            events.push(
+              `viewport:${x},${y},${width},${height},${minDepth},${maxDepth}`,
+            ),
+          setScissorRect: (
+            x: number,
+            y: number,
+            width: number,
+            height: number,
+          ) => events.push(`scissor:${x},${y},${width},${height}`),
           ...(options.omitDraw ? {} : { draw: () => events.push("draw") }),
           beginOcclusionQuery: (queryIndex: number) =>
             events.push(`beginOcclusionQuery:${queryIndex}`),

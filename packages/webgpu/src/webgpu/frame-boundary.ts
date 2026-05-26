@@ -183,6 +183,30 @@ export interface FrameBoundaryMsaaColorTarget {
   readonly sampleCount: number;
 }
 
+export interface FrameBoundaryViewRectangle {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+export type FrameBoundaryPassRectangleDiagnosticCode =
+  | "frameBoundaryPassRectangle.invalidRectangle"
+  | "frameBoundaryPassRectangle.missingSetViewport"
+  | "frameBoundaryPassRectangle.missingSetScissorRect";
+
+export interface FrameBoundaryPassRectangleDiagnostic {
+  readonly code: FrameBoundaryPassRectangleDiagnosticCode;
+  readonly message: string;
+}
+
+export interface FrameBoundaryPassRectangleReport {
+  readonly valid: boolean;
+  readonly viewport: FrameBoundaryViewRectangle | null;
+  readonly scissor: FrameBoundaryViewRectangle | null;
+  readonly diagnostics: readonly FrameBoundaryPassRectangleDiagnostic[];
+}
+
 type TextureByteOrder = "rgba" | "bgra";
 
 const readbackBytesPerRow = 256;
@@ -196,6 +220,8 @@ export interface AssembleFrameBoundaryOptions {
   readonly colorTarget?: FrameBoundaryColorTarget;
   readonly additionalColorTargets?: readonly RenderPassColorAttachmentInput[];
   readonly msaaColorTarget?: FrameBoundaryMsaaColorTarget | null;
+  readonly viewport?: FrameBoundaryViewRectangle | null;
+  readonly scissor?: FrameBoundaryViewRectangle | null;
   readonly clearColor?: readonly number[];
   readonly depthTarget?: RenderPassDepthAttachmentInput | null;
   readonly readback?: FrameBoundaryReadbackOptions;
@@ -240,6 +266,7 @@ export interface FrameBoundaryAssemblyReport {
   readonly attachments: CreateRenderPassAttachmentPlanResult | null;
   readonly encoder: CreateCommandEncoderResult | null;
   readonly begin: BeginRenderPassResult | null;
+  readonly rectangle?: FrameBoundaryPassRectangleReport | null;
   readonly execution: RenderPassCommandExecutionReport | null;
   readonly renderBundle?: RenderBundleExecutionReport | null;
   readonly end: EndRenderPassResult | null;
@@ -322,8 +349,16 @@ export function assembleFrameBoundary(
           plan: attachments.plan,
         });
   const pass = begin?.pass ?? null;
-  const commandExecution =
+  const rectangle =
     pass === null
+      ? null
+      : applyFrameBoundaryPassRectangles({
+          pass: pass as FrameBoundaryPassRectangleLike,
+          viewport: options.viewport ?? null,
+          scissor: options.scissor ?? null,
+        });
+  const commandExecution =
+    pass === null || rectangle?.valid === false
       ? null
       : executeFrameBoundaryCommands({
           pass,
@@ -383,6 +418,7 @@ export function assembleFrameBoundary(
       attachments?.valid === true &&
       encoder?.valid === true &&
       begin?.valid === true &&
+      (rectangle === null || rectangle.valid) &&
       execution?.valid === true &&
       end?.valid === true &&
       (occlusionQueries === null || occlusionQueries.valid) &&
@@ -392,6 +428,7 @@ export function assembleFrameBoundary(
     attachments,
     encoder,
     begin,
+    rectangle,
     execution,
     renderBundle,
     end,
@@ -478,6 +515,109 @@ function executeFrameBoundaryCommands(options: {
       ? {}
       : { enabled: options.renderBundle.enabled }),
   });
+}
+
+interface FrameBoundaryPassRectangleLike {
+  setViewport?: (
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    minDepth: number,
+    maxDepth: number,
+  ) => void;
+  setScissorRect?: (
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ) => void;
+}
+
+function applyFrameBoundaryPassRectangles(options: {
+  readonly pass: FrameBoundaryPassRectangleLike;
+  readonly viewport: FrameBoundaryViewRectangle | null;
+  readonly scissor: FrameBoundaryViewRectangle | null;
+}): FrameBoundaryPassRectangleReport | null {
+  if (options.viewport === null && options.scissor === null) {
+    return null;
+  }
+
+  const diagnostics: FrameBoundaryPassRectangleDiagnostic[] = [];
+
+  if (options.viewport !== null) {
+    if (!validFrameBoundaryViewRectangle(options.viewport)) {
+      diagnostics.push({
+        code: "frameBoundaryPassRectangle.invalidRectangle",
+        message: `Render pass viewport must have finite positive dimensions; received ${viewRectangleLabel(
+          options.viewport,
+        )}.`,
+      });
+    } else if (options.pass.setViewport === undefined) {
+      diagnostics.push({
+        code: "frameBoundaryPassRectangle.missingSetViewport",
+        message:
+          "Render pass encoder cannot apply a viewport rectangle for this view.",
+      });
+    } else {
+      options.pass.setViewport(
+        options.viewport.x,
+        options.viewport.y,
+        options.viewport.width,
+        options.viewport.height,
+        0,
+        1,
+      );
+    }
+  }
+
+  if (options.scissor !== null) {
+    if (!validFrameBoundaryViewRectangle(options.scissor)) {
+      diagnostics.push({
+        code: "frameBoundaryPassRectangle.invalidRectangle",
+        message: `Render pass scissor must have finite positive dimensions; received ${viewRectangleLabel(
+          options.scissor,
+        )}.`,
+      });
+    } else if (options.pass.setScissorRect === undefined) {
+      diagnostics.push({
+        code: "frameBoundaryPassRectangle.missingSetScissorRect",
+        message:
+          "Render pass encoder cannot apply a scissor rectangle for this view.",
+      });
+    } else {
+      options.pass.setScissorRect(
+        Math.round(options.scissor.x),
+        Math.round(options.scissor.y),
+        Math.round(options.scissor.width),
+        Math.round(options.scissor.height),
+      );
+    }
+  }
+
+  return {
+    valid: diagnostics.length === 0,
+    viewport: options.viewport,
+    scissor: options.scissor,
+    diagnostics,
+  };
+}
+
+function validFrameBoundaryViewRectangle(
+  rect: FrameBoundaryViewRectangle,
+): boolean {
+  return (
+    Number.isFinite(rect.x) &&
+    Number.isFinite(rect.y) &&
+    Number.isFinite(rect.width) &&
+    Number.isFinite(rect.height) &&
+    rect.width > 0 &&
+    rect.height > 0
+  );
+}
+
+function viewRectangleLabel(rect: FrameBoundaryViewRectangle): string {
+  return `${rect.x},${rect.y},${rect.width},${rect.height}`;
 }
 
 function writeFrameBoundaryGpuTimingStart(

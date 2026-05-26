@@ -98,9 +98,11 @@ import {
   assembleFrameBoundary,
   mapFrameBoundaryReadbackSamples,
   type FrameBoundaryAssemblyReport,
+  type FrameBoundaryViewRectangle,
   type FrameBoundaryReadbackResult,
   type FrameBoundaryReadbackSampleRequest,
 } from "./frame-boundary.js";
+import { resolveNormalizedViewRectangle } from "./view-rectangle.js";
 import {
   createRenderBundleCache,
   createRenderBundleCommandKey,
@@ -2562,6 +2564,11 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       continue;
     }
 
+    const viewRectangles = resolveWebGpuAppTargetViewRectangles(target);
+
+    diagnostics.push(...viewRectangles.diagnostics);
+    allTargetsValid &&= viewRectangles.valid;
+
     const skybox = await writeSkyboxCommandsForView({
       app: options.app,
       assets: options.assets,
@@ -2794,6 +2801,8 @@ async function assembleWebGpuAppFrameBoundaries(options: {
         .queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
       commands: commandsForBoundary,
       label: `${options.label}:${target.renderTargetKey ?? "swapchain"}`,
+      viewport: viewRectangles.viewport,
+      scissor: viewRectangles.scissor,
       ...(target.source === "offscreen"
         ? {
             colorTarget: {
@@ -2910,6 +2919,7 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       ...(boundary.renderBundle?.diagnostics ?? []),
       ...(boundary.end?.diagnostics ?? []),
       ...(boundary.occlusionQueries?.diagnostics ?? []),
+      ...(boundary.rectangle?.diagnostics ?? []),
       ...(boundary.finish?.diagnostics ?? []),
       ...(boundary.submit?.diagnostics ?? []),
     );
@@ -3151,6 +3161,7 @@ function assembleWebGpuAppTransmissionGrabPass(options: {
     ...(boundary.attachments?.diagnostics ?? []),
     ...(boundary.encoder?.diagnostics ?? []),
     ...(boundary.begin?.diagnostics ?? []),
+    ...(boundary.rectangle?.diagnostics ?? []),
     ...(boundary.execution?.diagnostics ?? []),
     ...(boundary.end?.diagnostics ?? []),
     ...(boundary.finish?.diagnostics ?? []),
@@ -5439,6 +5450,33 @@ function findLastSwapchainTargetIndex(
   }
 
   return -1;
+}
+
+function resolveWebGpuAppTargetViewRectangles(
+  target: WebGpuAppFrameBoundaryTarget,
+): {
+  readonly valid: boolean;
+  readonly viewport: FrameBoundaryViewRectangle | null;
+  readonly scissor: FrameBoundaryViewRectangle | null;
+  readonly diagnostics: readonly unknown[];
+} {
+  const viewport = resolveNormalizedViewRectangle({
+    rect: target.view.viewport,
+    target,
+    label: `view ${target.view.viewId} viewport`,
+  });
+  const scissor = resolveNormalizedViewRectangle({
+    rect: target.view.scissor,
+    target,
+    label: `view ${target.view.viewId} scissor`,
+  });
+
+  return {
+    valid: viewport.valid && scissor.valid,
+    viewport: viewport.rect,
+    scissor: scissor.rect,
+    diagnostics: [...viewport.diagnostics, ...scissor.diagnostics],
+  };
 }
 
 function createWebGpuAppRenderTargetDiagnostic(input: {

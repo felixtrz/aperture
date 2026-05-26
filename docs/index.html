@@ -393,12 +393,19 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 05:22 UTC</dd>
+            <dd>2026-05-26 05:31 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/render-target-viewport-crop.html</code> now proves
+              a worker-authored ECS camera can render into a renderer-owned
+              off-screen target through a non-full normalized viewport/scissor
+              crop. The route reports resolved off-screen target pixels and
+              display-pass samples, then Playwright verifies the inside sample
+              is rendered while the outside-crop target sample remains clear.
+              Previous update:
               <code>examples/multi-render-targets.html</code> now proves two
               worker-authored ECS cameras can target two distinct
               renderer-owned off-screen render-target handles from the same
@@ -2739,6 +2746,26 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3181</span> Added
+                <code>examples/render-target-viewport-crop.html</code>. The
+                render-to-texture route family now extracts one ECS camera with
+                a non-full normalized viewport/scissor rectangle into a
+                renderer-owned off-screen target, reports resolved target-space
+                viewport/scissor pixels and display samples, and Playwright
+                proves the inside sample renders while the outside-crop target
+                sample stays clear.
+              </li>
+              <li>
+                <span class="badge green">task-3180</span> Added
+                <code>examples/multi-render-targets.html</code>. The
+                render-to-texture route family now extracts two off-screen
+                cameras from one worker-authored world, targets two distinct
+                renderer-owned render-target handles, reports per-target
+                dimensions, keys, draw counts, pass order, and display samples,
+                and Playwright proves both side-by-side previews are non-clear
+                and visually distinct.
+              </li>
               <li>
                 <span class="badge green">task-3179</span> Added
                 <code>examples/mixed-camera-targets.html</code>. The
@@ -5484,16 +5511,21 @@
                 renderer-owned target handles and distinct preview samples.
               </li>
               <li>
-                <span class="badge">task-3181</span> Next: add an off-screen
-                render-target viewport crop route.
+                <span class="badge green">task-3181</span> Done: add an
+                off-screen render-target viewport crop route with target-space
+                viewport/scissor status and inside/outside crop pixel proof.
               </li>
               <li>
-                <span class="badge">task-3182</span> Then: add a same
+                <span class="badge">task-3182</span> Next: add a same
                 off-screen target clear/load matrix route.
               </li>
               <li>
                 <span class="badge">task-3183</span> Then: add a mixed
                 current-texture plus two off-screen render-target route.
+              </li>
+              <li>
+                <span class="badge">task-3184</span> Then: add a dual-size
+                off-screen render-target preview route.
               </li>
               <li>
                 <span class="badge dim">task-3161</span> Later: add
@@ -5516,6 +5548,21 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3181</div>
+            <div>
+              <strong>Render-target viewport crop route shipped.</strong>
+              <span>
+                <code>examples/render-target-viewport-crop.html</code> extracts
+                one off-screen camera from a worker-authored ECS snapshot,
+                applies matching non-full normalized viewport/scissor
+                rectangles to the renderer-owned render target, reports
+                resolved target-space pixels and display samples, and proves
+                the inside sample renders while the outside-crop target sample
+                remains clear.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3180</div>
             <div>

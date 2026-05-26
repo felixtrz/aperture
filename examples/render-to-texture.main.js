@@ -3,6 +3,9 @@ import {
   renderToTextureCanvasPlaneColor as canvasPlaneColor,
   renderToTextureCanvasSample as canvasSample,
   renderToTextureCenterSample as centerSample,
+  renderToTextureCropInsideSample as cropInsideSample,
+  renderToTextureCropOutsideSample as cropOutsideSample,
+  renderToTextureCropRect as targetCropRect,
   renderToTextureLeftPreviewSample as leftPreviewSample,
   renderToTextureOffscreenClearColor as offscreenClearColor,
   renderToTextureOffscreenSize as defaultOffscreenSize,
@@ -211,6 +214,7 @@ function startWorkerSnapshotLoop(aperture, app, scene, readbackUsage) {
     reuseStress: routeConfig.reuseStress,
     mixedTargets: routeConfig.mixedTargets,
     multiRenderTargets: routeConfig.multiRenderTargets,
+    targetCrop: routeConfig.targetCrop,
     canvas: {
       width: canvas?.width ?? 960,
       height: canvas?.height ?? 540,
@@ -309,6 +313,20 @@ async function handleWorkerMessage(
         app,
         texture: scene.offscreenTexture,
         readbackUsage,
+        ...(routeConfig.targetCrop
+          ? {
+              samples: [
+                cropInsideSample,
+                cropOutsideSample,
+                screenClearSample,
+              ],
+              sampleLabels: {
+                insideTarget: cropInsideSample.id,
+                outsideTarget: cropOutsideSample.id,
+                screenClear: screenClearSample.id,
+              },
+            }
+          : {}),
         ...(routeConfig.mixedTargets
           ? {
               quad: mixedPreviewQuad(),
@@ -756,6 +774,17 @@ function createStatus(
           ),
         }
       : {}),
+    ...(routeConfig.targetCrop
+      ? {
+          offscreenTargetCrop: createOffscreenTargetCropStatus(
+            aperture,
+            scene,
+            message,
+            report,
+            screenPass,
+          ),
+        }
+      : {}),
     sourceView: createSourceViewStatus(aperture, message.snapshot, scene),
     scene: {
       meshKey: aperture.assetHandleKey(scene.mesh),
@@ -855,6 +884,7 @@ function routeConfigForPath(pathname) {
       reuseStress: false,
       mixedTargets: false,
       multiRenderTargets: false,
+      targetCrop: false,
       requiredFrames: 1,
     };
   }
@@ -868,6 +898,7 @@ function routeConfigForPath(pathname) {
       reuseStress: true,
       mixedTargets: false,
       multiRenderTargets: false,
+      targetCrop: false,
       requiredFrames: 2,
     };
   }
@@ -881,6 +912,7 @@ function routeConfigForPath(pathname) {
       reuseStress: false,
       mixedTargets: true,
       multiRenderTargets: false,
+      targetCrop: false,
       requiredFrames: 1,
     };
   }
@@ -894,6 +926,21 @@ function routeConfigForPath(pathname) {
       reuseStress: false,
       mixedTargets: false,
       multiRenderTargets: true,
+      targetCrop: false,
+      requiredFrames: 1,
+    };
+  }
+
+  if (pathname.endsWith("/render-target-viewport-crop.html")) {
+    return {
+      example: "render-target-viewport-crop",
+      initialOffscreenSize: defaultOffscreenSize,
+      offscreenSize: defaultOffscreenSize,
+      resizeTarget: false,
+      reuseStress: false,
+      mixedTargets: false,
+      multiRenderTargets: false,
+      targetCrop: true,
       requiredFrames: 1,
     };
   }
@@ -906,6 +953,7 @@ function routeConfigForPath(pathname) {
     reuseStress: false,
     mixedTargets: false,
     multiRenderTargets: false,
+    targetCrop: false,
     requiredFrames: 1,
   };
 }
@@ -1116,6 +1164,95 @@ function createMultiRenderTargetStatusEntry({
     expectedColor,
     displaySample: sampleId,
     displayQuad: displayQuad ?? null,
+  };
+}
+
+function createOffscreenTargetCropStatus(
+  aperture,
+  scene,
+  message,
+  report,
+  screenPass,
+) {
+  const renderTargetKey = aperture.assetHandleKey(scene.renderTarget);
+  const target =
+    (report.renderTargets ?? []).find(
+      (entry) => entry.renderTargetKey === renderTargetKey,
+    ) ?? null;
+  const targetSize = {
+    width: target?.width ?? routeConfig.offscreenSize,
+    height: target?.height ?? routeConfig.offscreenSize,
+  };
+  const view = message.snapshot?.views?.[0] ?? null;
+  const viewport =
+    view === null
+      ? null
+      : aperture.resolveNormalizedViewRectangle({
+          rect: view.viewport,
+          target: targetSize,
+          label: "offscreen target crop viewport",
+        });
+  const scissor =
+    view === null
+      ? null
+      : aperture.resolveNormalizedViewRectangle({
+          rect: view.scissor,
+          target: targetSize,
+          label: "offscreen target crop scissor",
+        });
+
+  return {
+    mode: "offscreen-render-target-viewport-crop",
+    source: "ViewPacket.renderTarget",
+    renderTargetKey,
+    target: {
+      source: target?.source ?? "offscreen",
+      width: targetSize.width,
+      height: targetSize.height,
+      format: target?.format ?? null,
+      drawCalls: target?.drawCalls ?? 0,
+      ok: target?.ok ?? false,
+    },
+    view:
+      view === null
+        ? null
+        : {
+            viewId: view.viewId,
+            camera: view.camera,
+            priority: view.priority,
+            layerMask: view.layerMask,
+            viewport: Array.from(view.viewport),
+            scissor: Array.from(view.scissor),
+            expectedNormalizedRect: targetCropRect,
+            clearColor: rgbaToStatusColor(view.clearColor),
+          },
+    viewportPixels: viewport?.rect ?? null,
+    scissorPixels: scissor?.rect ?? null,
+    diagnostics: [
+      ...(viewport?.diagnostics ?? []),
+      ...(scissor?.diagnostics ?? []),
+    ],
+    displayPass: {
+      loadOp: screenPass.loadOp,
+      drawCalls: screenPass.drawCalls,
+      quad: screenPass.quad,
+      samples: screenPass.samples,
+    },
+    expectedSamples: {
+      insideTarget: {
+        sampleId: cropInsideSample.id,
+        materialKey: aperture.assetHandleKey(scene.material),
+        expectedColor: rgbaToStatusColor(planeColor),
+      },
+      outsideTarget: {
+        sampleId: cropOutsideSample.id,
+        expectedColor: rgbaToStatusColor(offscreenClearColor),
+      },
+      screenClear: {
+        sampleId: screenClearSample.id,
+        expectedColor: { ...screenClearColor },
+      },
+    },
   };
 }
 

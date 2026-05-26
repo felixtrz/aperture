@@ -1,5 +1,45 @@
 # Completed Tasks
 
+## task-3181 — Add an off-screen render-target viewport crop route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/render-target-viewport-crop.html` on the existing
+  render-to-texture route family.
+- `examples/render-to-texture.worker.js` now supports a target-crop mode that
+  extracts one ECS camera targeting a renderer-owned off-screen
+  `ViewPacket.renderTarget` handle with matching non-full normalized
+  viewport/scissor rectangles.
+- `examples/render-to-texture.main.js` registers the renderer-owned target,
+  submits the cropped off-screen pass through `createWebGpuApp()`, displays the
+  target texture on the canvas, and reports resolved target-space
+  viewport/scissor pixels plus display-pass samples.
+- `assembleFrameBoundary()` now applies resolved viewport and scissor
+  rectangles to WebGPU render-pass encoders before draw commands, with
+  diagnostics surfaced through frame-boundary summaries.
+- Added Playwright coverage proving the inside cropped-target sample renders
+  and the outside-crop target sample remains the off-screen clear color.
+- Updated example links, public tracker pages, backlog, current task, and
+  handoff.
+
+Validation:
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `node --check examples/render-to-texture-assets.js`
+- `pnpm exec eslint packages/webgpu/src/webgpu/frame-boundary.ts packages/webgpu/src/webgpu/app.ts packages/webgpu/src/webgpu/frame-boundary-diagnostics.ts test/webgpu/frame-boundary.test.ts examples/render-to-texture.main.js examples/render-to-texture.worker.js test/e2e/render-to-texture.spec.ts`
+- `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/view-rectangle.test.ts`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "render-target viewport crop route" --reporter=list`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "render-target viewport crop route|multiple render targets route|render-to-texture example" --reporter=list`
+- `pnpm run render-control:smoke-all`
+
 ## task-3180 — Add a multiple off-screen render-target preview route
 
 Completed: 2026-05-26

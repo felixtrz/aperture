@@ -59,26 +59,17 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3180` is complete: `examples/multi-render-targets.html` now proves one
-worker-authored snapshot can submit two ECS cameras into two distinct
-renderer-owned off-screen `ViewPacket.renderTarget` handles, display both
-target textures side by side, report per-target dimensions, keys, draw counts,
-pass order, and display samples, and verify both previews are non-clear and
-visually distinct without making ECS own GPU state. Continue the post-SOTA
-visible-feature queue at `task-3181`: add an off-screen render-target viewport
-crop route.
+`task-3181` is complete: `examples/render-target-viewport-crop.html` now
+proves one worker-authored ECS camera can render into a renderer-owned
+off-screen `ViewPacket.renderTarget` through a non-full normalized
+viewport/scissor rectangle, display that target on canvas, report resolved
+target-space viewport/scissor pixels plus display-pass samples, and verify the
+inside target sample renders while the outside-crop target sample remains clear
+without making ECS own GPU state. Continue the post-SOTA visible-feature queue
+at `task-3182`: add a same off-screen target clear/load matrix route.
 
 The next ready visible-feature queue is:
 
-- `task-3181` — add an off-screen render-target viewport crop route.
-  Reference anchor: `references/bevy/examples/3d/render_to_texture.rs`,
-  `references/three.js/examples/webgpu_rtt.html`.
-  Done when a browser route extracts one ECS camera targeting a renderer-owned
-  off-screen target with a non-full normalized viewport/scissor rectangle,
-  displays that target on the canvas, reports resolved off-screen viewport and
-  scissor pixels plus display-pass samples, and Playwright verifies an inside
-  target sample is non-clear while an outside-crop target sample remains clear
-  without ECS owning GPU state.
 - `task-3182` — add a same off-screen target clear/load matrix route.
   Reference anchor: `references/bevy/examples/3d/render_to_texture.rs`,
   `references/engine/src/extras/render-passes/camera-frame.js`.
@@ -100,6 +91,16 @@ The next ready visible-feature queue is:
   samples, display both off-screen targets on the canvas, and Playwright must
   verify the current-texture sample plus both off-screen previews are non-clear
   and visually distinct.
+- `task-3184` — add a dual-size off-screen render-target preview route.
+  Reference anchor:
+  `references/engine/examples/src/examples/graphics/multi-render-targets.example.mjs`,
+  `references/three.js/examples/webgpu_rtt.html`.
+  Done when one browser route extracts two ECS cameras targeting two distinct
+  renderer-owned off-screen render-target handles with different dimensions,
+  displays both textures side by side with stable sample points, reports
+  per-target dimensions, keys, draw counts, display samples, and aspect
+  mapping, and Playwright verifies both previews are non-clear, visually
+  distinct, and not stretched into each other.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

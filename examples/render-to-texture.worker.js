@@ -1,5 +1,6 @@
 import {
   renderToTextureScreenClearColor as screenClearColor,
+  renderToTextureCropRect as targetCropRect,
   renderToTextureOffscreenClearColor as offscreenClearColor,
   registerRenderToTextureAssets,
 } from "./render-to-texture-assets.js";
@@ -45,6 +46,7 @@ async function handleMessage(data) {
         data.reuseStress === true,
         data.mixedTargets === true,
         data.multiRenderTargets === true,
+        data.targetCrop === true,
       );
       self.postMessage({
         type: "ready",
@@ -62,6 +64,12 @@ async function handleMessage(data) {
             : {}),
           mixedTargets: scene.mixedTargets,
           multiRenderTargets: scene.multiRenderTargets,
+          targetCrop: scene.targetCrop,
+          ...(scene.targetCrop
+            ? {
+                cropRect: targetCropRect,
+              }
+            : {}),
         },
       });
       return;
@@ -98,6 +106,7 @@ function createWorkerScene(
   reuseStress,
   mixedTargets,
   multiRenderTargets,
+  targetCrop,
 ) {
   const app = aperture.createExtractionApp({
     worldOptions: { entityCapacity: 8 },
@@ -114,6 +123,12 @@ function createWorkerScene(
       layerMask: 1,
       clearColor: offscreenClearColor,
       renderTargetId: aperture.assetHandleKey(assets.renderTarget),
+      ...(targetCrop
+        ? {
+            viewport: targetCropRect,
+            scissor: targetCropRect,
+          }
+        : {}),
     }),
   );
 
@@ -181,6 +196,7 @@ function createWorkerScene(
     reuseStress,
     mixedTargets,
     multiRenderTargets,
+    targetCrop,
     localTransformComponent: aperture.LocalTransform,
   };
 }
@@ -206,6 +222,8 @@ function createSnapshotMessage(workerScene, data) {
         ? "mixed-current-and-offscreen-targets"
         : workerScene.multiRenderTargets
           ? "two-offscreen-render-targets"
+        : workerScene.targetCrop
+          ? "offscreen-render-target-crop"
         : workerScene.reuseStress
           ? frameVariant
           : "single-frame",
@@ -214,6 +232,8 @@ function createSnapshotMessage(workerScene, data) {
           ? "canvas-plane-plus-offscreen-preview"
           : workerScene.multiRenderTargets
             ? "two-offscreen-previews"
+          : workerScene.targetCrop
+            ? "cropped-offscreen-target"
           : workerScene.reuseStress && frame <= 1
             ? "offscreen-clear"
             : "plane",

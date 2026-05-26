@@ -1,6 +1,78 @@
 # Agent Handoff
 
-Updated: 2026-05-26T05:22:44Z
+Updated: 2026-05-26T05:31:32Z
+
+## Current Run Update — 2026-05-26T05:31:32Z — Render-target viewport crop route
+
+Completed `task-3181` after `task-3180`.
+
+### What changed
+
+- Added `examples/render-target-viewport-crop.html` to the render-to-texture
+  route family.
+- `examples/render-to-texture-assets.js` now defines the stable normalized crop
+  rectangle and inside/outside target sample points.
+- `examples/render-to-texture.worker.js` now supports target-crop mode with one
+  ECS camera targeting a renderer-owned off-screen `ViewPacket.renderTarget`
+  handle and matching non-full normalized viewport/scissor rectangles.
+- `packages/webgpu/src/webgpu/app.ts` now resolves a target view's
+  viewport/scissor rectangles against the actual target dimensions before frame
+  boundary assembly.
+- `packages/webgpu/src/webgpu/frame-boundary.ts` now applies viewport and
+  scissor rectangles to the WebGPU render pass before draw commands, and
+  reports typed rectangle diagnostics for invalid rectangles or missing pass
+  methods.
+- `examples/render-to-texture.main.js` registers the renderer-owned target,
+  displays the cropped target texture on the canvas, and publishes
+  `offscreenTargetCrop` status with target classification, draw counts,
+  resolved target-space pixels, display samples, and expected colors.
+- Added Playwright coverage proving the inside cropped-target sample renders
+  and the outside-crop target sample remains the off-screen clear color.
+- Updated example navigation, public tracker pages, `agent/BACKLOG.md`,
+  `agent/CURRENT_TASK.md`, and `agent/COMPLETED.md`.
+
+### References inspected
+
+- `references/bevy/examples/3d/render_to_texture.rs`
+- `references/three.js/examples/webgpu_rtt.html`
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `node --check examples/render-to-texture-assets.js`
+- `pnpm exec eslint packages/webgpu/src/webgpu/frame-boundary.ts packages/webgpu/src/webgpu/app.ts packages/webgpu/src/webgpu/frame-boundary-diagnostics.ts test/webgpu/frame-boundary.test.ts examples/render-to-texture.main.js examples/render-to-texture.worker.js test/e2e/render-to-texture.spec.ts`
+- `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/view-rectangle.test.ts`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "render-target viewport crop route" --reporter=list`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec vitest run test/examples/navigation.test.mjs` — 7 passed.
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "render-target viewport crop route|multiple render targets route|render-to-texture example" --reporter=list`
+  — 3 passed, covering the base render-to-texture route, the previous
+  multi-target route, and the new viewport-crop route.
+- `pnpm run render-control:smoke-all` — after starting
+  `pnpm run examples:serve`, the smoke visited 64 routes including
+  `/examples/render-target-viewport-crop.html`, with zero route status failures
+  and zero warning routes. The examples server was stopped afterward.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- The viewport/scissor application added in this slice covers the main
+  `assembleFrameBoundary()` path used by off-screen and swapchain forward
+  targets. Post-effect scene boundaries and transmission grab passes still need
+  a follow-up if those routes start authoring cropped views.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3182`: add a same off-screen target
+clear/load matrix route.
 
 ## Current Run Update — 2026-05-26T05:22:44Z — Multiple render targets route
 

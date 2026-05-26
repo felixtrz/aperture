@@ -196,6 +196,48 @@ interface RenderToTextureStatus extends ExampleStatusBase {
       };
     };
   };
+  readonly offscreenTargetCrop?: {
+    readonly mode?: string;
+    readonly source?: string;
+    readonly renderTargetKey?: string;
+    readonly target?: {
+      readonly source?: string;
+      readonly width?: number;
+      readonly height?: number;
+      readonly drawCalls?: number;
+      readonly ok?: boolean;
+    };
+    readonly view?: {
+      readonly viewId?: number;
+      readonly priority?: number;
+      readonly layerMask?: number;
+      readonly viewport?: readonly number[];
+      readonly scissor?: readonly number[];
+      readonly expectedNormalizedRect?: readonly number[];
+    } | null;
+    readonly viewportPixels?: {
+      readonly x?: number;
+      readonly y?: number;
+      readonly width?: number;
+      readonly height?: number;
+    } | null;
+    readonly scissorPixels?: {
+      readonly x?: number;
+      readonly y?: number;
+      readonly width?: number;
+      readonly height?: number;
+    } | null;
+    readonly diagnostics?: readonly unknown[];
+    readonly displayPass?: {
+      readonly loadOp?: string;
+      readonly drawCalls?: number;
+      readonly samples?: {
+        readonly insideTarget?: string;
+        readonly outsideTarget?: string;
+        readonly screenClear?: string;
+      };
+    };
+  };
   readonly sourceView?: {
     readonly ok?: boolean;
     readonly viewId?: number;
@@ -270,6 +312,8 @@ interface RenderToTextureStatus extends ExampleStatusBase {
       readonly preview?: string;
       readonly leftPreview?: string;
       readonly rightPreview?: string;
+      readonly insideTarget?: string;
+      readonly outsideTarget?: string;
       readonly screenClear?: string;
     };
   };
@@ -933,6 +977,210 @@ test("multiple render targets route displays two distinct off-screen previews", 
   ).toBeGreaterThan(40);
 });
 
+test("render-target viewport crop route keeps outside target pixels clear", async ({
+  page,
+}) => {
+  const guard = attachWebGpuValidationConsoleGuard(page);
+  const status = await loadExampleStatus<RenderToTextureStatus>(
+    page,
+    "/examples/render-target-viewport-crop.html",
+    "render-target-viewport-crop-status",
+  );
+
+  if (status === undefined) {
+    return;
+  }
+
+  const renderTargetKey = status.renderTarget?.key;
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "render-target-viewport-crop",
+    ok: true,
+    phase: "display",
+    renderingBackend: "webgpu-explicit",
+    renderTarget: {
+      width: 256,
+      height: 256,
+      source: "ViewPacket.renderTarget",
+      textureUsage: {
+        renderAttachment: true,
+        textureBinding: true,
+        copySource: true,
+      },
+    },
+    sourceView: {
+      ok: true,
+      viewId: 0,
+      priority: 0,
+      layerMask: 1,
+      renderTargetKey,
+      expectedRenderTargetKey: renderTargetKey,
+      renderTargetMatches: true,
+    },
+    offscreenTargetCrop: {
+      mode: "offscreen-render-target-viewport-crop",
+      source: "ViewPacket.renderTarget",
+      renderTargetKey,
+      target: {
+        source: "offscreen",
+        width: 256,
+        height: 256,
+        drawCalls: 1,
+        ok: true,
+      },
+      view: {
+        viewId: 0,
+        priority: 0,
+        layerMask: 1,
+        expectedNormalizedRect: [0.3, 0.25, 0.4, 0.5],
+      },
+      viewportPixels: {
+        x: 77,
+        y: 64,
+        width: 102,
+        height: 128,
+      },
+      scissorPixels: {
+        x: 77,
+        y: 64,
+        width: 102,
+        height: 128,
+      },
+      diagnostics: [],
+      displayPass: {
+        loadOp: "clear",
+        drawCalls: 1,
+        samples: {
+          insideTarget: "offscreen-crop-inside",
+          outsideTarget: "offscreen-crop-outside",
+          screenClear: "screen-clear-corner",
+        },
+      },
+    },
+    counts: {
+      views: 1,
+      meshDraws: 1,
+      drawCalls: 1,
+      diagnostics: 0,
+    },
+    screenPass: {
+      phase: "screen-pass",
+      drawCalls: 1,
+      loadOp: "clear",
+      samples: {
+        insideTarget: "offscreen-crop-inside",
+        outsideTarget: "offscreen-crop-outside",
+        screenClear: "screen-clear-corner",
+      },
+    },
+  });
+  expect(status.report?.renderTargets).toMatchObject([
+    {
+      source: "offscreen",
+      renderTargetKey,
+      width: 256,
+      height: 256,
+      ok: true,
+      drawCalls: 1,
+    },
+  ]);
+  expectNormalizedRect(status.sourceView?.viewport, [0.3, 0.25, 0.4, 0.5]);
+  expectNormalizedRect(status.sourceView?.scissor, [0.3, 0.25, 0.4, 0.5]);
+  expectNormalizedRect(status.offscreenTargetCrop?.view?.viewport, [
+    0.3,
+    0.25,
+    0.4,
+    0.5,
+  ]);
+  expectNormalizedRect(status.offscreenTargetCrop?.view?.scissor, [
+    0.3,
+    0.25,
+    0.4,
+    0.5,
+  ]);
+  guard.expectNoWarnings();
+
+  await attachExampleStatus("render-target-viewport-crop-rendered-status", status);
+
+  if (!status.readback?.ok) {
+    test.skip(
+      true,
+      "Render-target viewport crop pixel assertion requires readback.",
+    );
+    return;
+  }
+
+  const insideSample = status.readback.samples?.find(
+    (entry) => entry.id === "offscreen-crop-inside",
+  );
+  const outsideSample = status.readback.samples?.find(
+    (entry) => entry.id === "offscreen-crop-outside",
+  );
+  const screenClearSample = status.readback.samples?.find(
+    (entry) => entry.id === "screen-clear-corner",
+  );
+
+  expect(insideSample, "expected inside cropped-target sample").toBeDefined();
+  expect(outsideSample, "expected outside cropped-target sample").toBeDefined();
+  expect(screenClearSample, "expected screen clear sample").toBeDefined();
+
+  if (
+    insideSample === undefined ||
+    outsideSample === undefined ||
+    screenClearSample === undefined
+  ) {
+    return;
+  }
+
+  expect(
+    pixelDistance(
+      insideSample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCenterColor ?? {
+          r: 0.06,
+          g: 0.88,
+          b: 0.22,
+          a: 1,
+        },
+      ),
+    ),
+    "inside crop sample should come from the rendered off-screen viewport",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(
+      outsideSample.pixel,
+      rgbaColorToPixel(
+        status.clearColors?.offscreen ?? {
+          r: 0.02,
+          g: 0.035,
+          b: 0.07,
+          a: 1,
+        },
+      ),
+    ),
+    "outside crop sample should remain the off-screen target clear color",
+  ).toBeLessThan(12);
+  expect(
+    pixelDistance(
+      screenClearSample.pixel,
+      rgbaColorToPixel(
+        status.clearColors?.screen ?? {
+          r: 0.015,
+          g: 0.018,
+          b: 0.023,
+          a: 1,
+        },
+      ),
+    ),
+    "screen clear sample should stay outside the displayed preview quad",
+  ).toBeLessThan(12);
+  expect(
+    pixelDistance(insideSample.pixel, outsideSample.pixel),
+    "cropped render target should differ inside and outside the viewport",
+  ).toBeGreaterThan(40);
+});
+
 test("render-target resize route displays the resized off-screen pass", async ({
   page,
 }) => {
@@ -1194,3 +1442,20 @@ test("render-target reuse route displays the second snapshot through one off-scr
     "reused target preview should differ from the main-canvas clear region",
   ).toBeGreaterThan(40);
 });
+
+function expectNormalizedRect(
+  actual: readonly number[] | null | undefined,
+  expected: readonly [number, number, number, number],
+): void {
+  expect(actual).toBeDefined();
+
+  if (actual === null || actual === undefined) {
+    return;
+  }
+
+  expect(actual).toHaveLength(4);
+
+  for (const [index, value] of expected.entries()) {
+    expect(actual[index]).toBeCloseTo(value, 5);
+  }
+}

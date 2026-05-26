@@ -8,6 +8,7 @@ export const renderToTextureScreenClearColor = {
 };
 export const renderToTexturePlaneColor = [0.06, 0.88, 0.22, 1];
 export const renderToTextureCanvasPlaneColor = [0.1, 0.42, 0.95, 1];
+export const renderToTextureCropRect = [0.3, 0.25, 0.4, 0.5];
 export const renderToTextureCenterSample = {
   id: "quad-center",
   x: 0.5,
@@ -36,6 +37,16 @@ export const renderToTextureLeftPreviewSample = {
 export const renderToTextureRightPreviewSample = {
   id: "right-target-preview-center",
   x: 0.74,
+  y: 0.5,
+};
+export const renderToTextureCropInsideSample = {
+  id: "offscreen-crop-inside",
+  x: 0.5,
+  y: 0.5,
+};
+export const renderToTextureCropOutsideSample = {
+  id: "offscreen-crop-outside",
+  x: 0.31,
   y: 0.5,
 };
 
