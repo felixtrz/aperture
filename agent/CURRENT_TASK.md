@@ -2,25 +2,23 @@
 
 No active task is currently checked out.
 
-Status: task-3187 mixed current-texture plus dual-size off-screen render-target route completed.
+Status: task-3188 MSAA two-target off-screen preview route completed.
 
 Key findings:
 
-- Added `examples/mixed-dual-size-render-targets.html` to the render-to-texture
+- Added `examples/render-target-msaa-two-targets.html` to the render-to-texture
   route family.
-- The worker now extracts one current-texture ECS camera plus two off-screen ECS
-  cameras targeting square and wide renderer-owned `ViewPacket.renderTarget`
-  handles from one snapshot.
-- `examples/render-to-texture.main.js` displays the square and wide off-screen
-  textures with aspect-preserving preview quads and reports
-  `mixedDualSizeRenderTargets` status with target classifications, keys,
-  dimensions, pass order, draw counts, display samples, aspect mapping, and
-  current-texture readback.
-- The official Chrome-channel Playwright project is currently blocked because
-  Chrome hangs at `browser.newPage()` even for `about:blank`; a bundled
-  Chromium Playwright assertion script verified the mixed-dual route status and
-  target-family pixel samples.
+- The route creates an MSAA-enabled WebGPU app and extracts two worker-authored
+  ECS cameras targeting distinct renderer-owned `ViewPacket.renderTarget`
+  handles.
+- `examples/render-to-texture.main.js` displays both resolved off-screen target
+  textures side by side and reports requested/resolved sample counts,
+  per-target keys, dimensions, draw counts, MSAA sample counts, and per-pass
+  resolve attachment behavior.
+- Playwright verified both resolved target previews are non-clear and visually
+  distinct.
 
 Recommended next task:
 
-- `task-3188` — add an MSAA two-target off-screen preview route.
+- `task-3189` — add an MSAA cropped secondary off-screen render-target preview
+  route.

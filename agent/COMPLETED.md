@@ -1,5 +1,41 @@
 # Completed Tasks
 
+## task-3188 — Add an MSAA two-target off-screen preview route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/render-target-msaa-two-targets.html` on the existing
+  render-to-texture route family.
+- The route creates an MSAA-enabled `createWebGpuApp({ msaa: 8 })`, which
+  resolves to the supported 4x path for the off-screen passes.
+- `examples/render-to-texture.worker.js` now reports the combined
+  MSAA-plus-two-target worker variant while extracting two ECS cameras that
+  target distinct renderer-owned `ViewPacket.renderTarget` handles.
+- `examples/render-to-texture.main.js` creates both renderer-owned targets,
+  displays both resolved target textures side by side, and reports requested
+  and resolved sample counts, per-target keys, dimensions, draw counts, MSAA
+  sample counts, and per-pass resolve attachment behavior.
+- Added Playwright coverage proving both resolved previews are non-clear and
+  visually distinct.
+- Updated example links, public tracker pages, backlog, current task, and
+  handoff.
+
+Validation:
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "MSAA two-target" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "MSAA two-target|MSAA render-target|dual-size render-target|mixed dual-size render-target|cropped secondary render-target|multiple render targets route" --reporter=list`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check examples/render-to-texture.main.js examples/render-to-texture.worker.js examples/render-target-msaa-two-targets.html test/e2e/render-to-texture.spec.ts agent/BACKLOG.md agent/COMPLETED.md agent/CURRENT_TASK.md agent/HANDOFF.md docs/index.html docs/render-pipeline-comparison.html`
+
 ## task-3187 — Add a mixed current-texture plus dual-size off-screen render-target route
 
 Completed: 2026-05-26

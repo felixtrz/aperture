@@ -76,6 +76,7 @@ async function handleMessage(data) {
             : {}),
           mixedTargets: scene.mixedTargets,
           multiRenderTargets: scene.multiRenderTargets,
+          msaaMultiRenderTargets: scene.targetMsaa && scene.multiRenderTargets,
           mixedMultiRenderTargets: scene.mixedMultiRenderTargets,
           dualSizeRenderTargets: scene.dualSizeRenderTargets,
           mixedDualSizeRenderTargets: scene.mixedDualSizeRenderTargets,
@@ -313,19 +314,21 @@ function createSnapshotMessage(workerScene, data) {
             ? "current-texture-plus-dual-size-offscreen-targets"
             : workerScene.dualSizeRenderTargets
               ? "dual-size-offscreen-render-targets"
-              : workerScene.targetMsaa
-                ? "msaa-offscreen-render-target"
-                : workerScene.croppedSecondaryRenderTargets
-                  ? "cropped-secondary-offscreen-render-target"
-                  : workerScene.multiRenderTargets
-                    ? "two-offscreen-render-targets"
-                    : workerScene.targetClearLoad
-                      ? "same-offscreen-target-clear-load"
-                      : workerScene.targetCrop
-                        ? "offscreen-render-target-crop"
-                        : workerScene.reuseStress
-                          ? frameVariant
-                          : "single-frame",
+              : workerScene.targetMsaa && workerScene.multiRenderTargets
+                ? "msaa-two-offscreen-render-targets"
+                : workerScene.targetMsaa
+                  ? "msaa-offscreen-render-target"
+                  : workerScene.croppedSecondaryRenderTargets
+                    ? "cropped-secondary-offscreen-render-target"
+                    : workerScene.multiRenderTargets
+                      ? "two-offscreen-render-targets"
+                      : workerScene.targetClearLoad
+                        ? "same-offscreen-target-clear-load"
+                        : workerScene.targetCrop
+                          ? "offscreen-render-target-crop"
+                          : workerScene.reuseStress
+                            ? frameVariant
+                            : "single-frame",
       centerExpectation: workerScene.mixedTargets
         ? "canvas-plane-plus-offscreen-preview"
         : workerScene.mixedMultiRenderTargets
@@ -334,19 +337,21 @@ function createSnapshotMessage(workerScene, data) {
             ? "current-texture-plus-dual-size-offscreen-previews"
             : workerScene.dualSizeRenderTargets
               ? "dual-size-offscreen-previews"
-              : workerScene.targetMsaa
-                ? "msaa-resolved-offscreen-preview"
-                : workerScene.croppedSecondaryRenderTargets
-                  ? "primary-preview-plus-secondary-crop"
-                  : workerScene.multiRenderTargets
-                    ? "two-offscreen-previews"
-                    : workerScene.targetClearLoad
-                      ? "base-preserved-plus-overlay"
-                      : workerScene.targetCrop
-                        ? "cropped-offscreen-target"
-                        : workerScene.reuseStress && frame <= 1
-                          ? "offscreen-clear"
-                          : "plane",
+              : workerScene.targetMsaa && workerScene.multiRenderTargets
+                ? "msaa-resolved-two-offscreen-previews"
+                : workerScene.targetMsaa
+                  ? "msaa-resolved-offscreen-preview"
+                  : workerScene.croppedSecondaryRenderTargets
+                    ? "primary-preview-plus-secondary-crop"
+                    : workerScene.multiRenderTargets
+                      ? "two-offscreen-previews"
+                      : workerScene.targetClearLoad
+                        ? "base-preserved-plus-overlay"
+                        : workerScene.targetCrop
+                          ? "cropped-offscreen-target"
+                          : workerScene.reuseStress && frame <= 1
+                            ? "offscreen-clear"
+                            : "plane",
     },
   };
 }

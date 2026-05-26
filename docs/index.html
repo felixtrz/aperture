@@ -393,28 +393,38 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 06:46 UTC</dd>
+            <dd>2026-05-26 07:01 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/render-target-msaa-two-targets.html</code> now
+              proves an MSAA-enabled WebGPU app can extract two ECS cameras
+              targeting distinct renderer-owned off-screen textures from one
+              worker-authored snapshot, render both through MSAA color
+              attachments, resolve both target textures, and display both
+              previews side by side. The route reports requested/resolved sample
+              counts, per-target keys, dimensions, draw counts, MSAA sample
+              counts, and per-pass resolve attachment behavior, then Playwright
+              verifies both resolved previews are non-clear and visually
+              distinct. Previous update:
               <code>examples/mixed-dual-size-render-targets.html</code> now
               proves one current-texture ECS camera plus two off-screen ECS
               cameras targeting differently sized renderer-owned textures from
               one worker-authored snapshot. The route displays the square and
               wide off-screen textures with aspect-preserving preview quads,
-              reports target classifications, keys, dimensions, pass order,
-              draw counts, display samples, aspect mapping, and
-              current-texture readback, then automated Playwright verification
-              checks all three target-family colors are non-clear and visually
-              distinct. Previous update:
-              <code>examples/render-target-secondary-crop.html</code> now
-              proves two ECS cameras can target distinct renderer-owned
-              off-screen textures while only the secondary target applies a
-              normalized viewport/scissor crop. The route displays both target
-              textures side by side, reports per-target keys, dimensions, draw
-              counts, display samples, and resolved secondary crop pixels, then
+              reports target classifications, keys, dimensions, pass order, draw
+              counts, display samples, aspect mapping, and current-texture
+              readback, then automated Playwright verification checks all three
+              target-family colors are non-clear and visually distinct. Previous
+              update:
+              <code>examples/render-target-secondary-crop.html</code> now proves
+              two ECS cameras can target distinct renderer-owned off-screen
+              textures while only the secondary target applies a normalized
+              viewport/scissor crop. The route displays both target textures
+              side by side, reports per-target keys, dimensions, draw counts,
+              display samples, and resolved secondary crop pixels, then
               Playwright verifies the primary preview is non-clear, the
               secondary inside-crop sample renders, and the secondary
               outside-crop sample remains clear. Previous update:
@@ -435,20 +445,18 @@
               stretched into each other. Previous update:
               <code>examples/mixed-multi-render-targets.html</code> now proves
               one worker-authored ECS snapshot can contain a current-texture
-              camera plus two distinct renderer-owned off-screen
-              render-target cameras. The route reports all target
-              classifications, keys, pass order, draw counts, display samples,
-              and current-texture readback, then Playwright verifies all three
-              target families are non-clear and visually distinct. Previous
-              update:
-              <code>examples/render-target-clear-load.html</code> now proves
-              two worker-authored ECS cameras can target the same
-              renderer-owned off-screen render target in one snapshot while the
-              first pass clears and the second pass loads existing color/depth.
-              The route reports per-camera pass order, target-key reuse,
-              resolved load behavior, and display samples, then Playwright
-              verifies clear-only, base-preserved, and overlay regions.
-              Previous update:
+              camera plus two distinct renderer-owned off-screen render-target
+              cameras. The route reports all target classifications, keys, pass
+              order, draw counts, display samples, and current-texture readback,
+              then Playwright verifies all three target families are non-clear
+              and visually distinct. Previous update:
+              <code>examples/render-target-clear-load.html</code> now proves two
+              worker-authored ECS cameras can target the same renderer-owned
+              off-screen render target in one snapshot while the first pass
+              clears and the second pass loads existing color/depth. The route
+              reports per-camera pass order, target-key reuse, resolved load
+              behavior, and display samples, then Playwright verifies
+              clear-only, base-preserved, and overlay regions. Previous update:
               <code>examples/render-target-viewport-crop.html</code> now proves
               a worker-authored ECS camera can render into a renderer-owned
               off-screen target through a non-full normalized viewport/scissor
@@ -457,26 +465,24 @@
               is rendered while the outside-crop target sample remains clear.
               Previous update:
               <code>examples/multi-render-targets.html</code> now proves two
-              worker-authored ECS cameras can target two distinct
-              renderer-owned off-screen render-target handles from the same
-              snapshot. The route reports per-target dimensions, keys, draw
-              counts, pass order, and display samples, then Playwright verifies
-              both side-by-side previews are non-clear and visually distinct.
-              Previous update:
+              worker-authored ECS cameras can target two distinct renderer-owned
+              off-screen render-target handles from the same snapshot. The route
+              reports per-target dimensions, keys, draw counts, pass order, and
+              display samples, then Playwright verifies both side-by-side
+              previews are non-clear and visually distinct. Previous update:
               <code>examples/mixed-camera-targets.html</code> now proves one
               worker-authored snapshot can contain both a current-texture camera
               and an off-screen render-target camera. The route reports
               per-target pass order, target keys, current-texture readback, and
               display-pass samples, then Playwright verifies distinct non-clear
               pixels for the canvas camera and the off-screen preview. Previous
-              update:
-              <code>examples/camera-viewport-resize.html</code> now proves the
-              same ECS camera handle can change normalized viewport/scissor
-              rectangles across consecutive extracted frames. The route reports
-              old/new resolved viewport pixels, per-frame pass order, stable
-              mesh authoring, and readback samples showing the visible material
-              moves from the old sample position to the new one. Previous
-              update:
+              update: <code>examples/camera-viewport-resize.html</code> now
+              proves the same ECS camera handle can change normalized
+              viewport/scissor rectangles across consecutive extracted frames.
+              The route reports old/new resolved viewport pixels, per-frame pass
+              order, stable mesh authoring, and readback samples showing the
+              visible material moves from the old sample position to the new
+              one. Previous update:
               <code>examples/render-target-reuse.html</code> now proves two
               consecutive worker snapshots rendered through the same
               renderer-owned off-screen target handle without resizing. The
@@ -506,19 +512,18 @@
               remains non-clear after resize. Previous update:
               <code>examples/camera-viewport-grid.html</code> now proves four
               ECS cameras rendering into a stable normalized 2x2 viewport grid.
-              The route reports per-cell viewport/scissor pixels, material
-              keys, shared mesh identity, and included/skipped draw counts,
-              then Playwright verifies four distinct grid-cell samples. Previous
-              update:
-              <code>examples/camera-sub-view-crop.html</code> now proves one
-              ECS camera rendering through a normalized viewport/scissor crop.
-              The route reports the crop rectangle, resolved viewport/scissor
-              pixels, and expected inside/outside samples, then Playwright
-              verifies the crop-center material while top-left and bottom-right
-              outside samples remain clear. Previous update:
-              <code>examples/camera-priority-overlay.html</code> now proves
-              two full-canvas ECS cameras submitted in priority order into the
-              same target. The route reports ordered camera pass sequence and
+              The route reports per-cell viewport/scissor pixels, material keys,
+              shared mesh identity, and included/skipped draw counts, then
+              Playwright verifies four distinct grid-cell samples. Previous
+              update: <code>examples/camera-sub-view-crop.html</code> now proves
+              one ECS camera rendering through a normalized viewport/scissor
+              crop. The route reports the crop rectangle, resolved
+              viewport/scissor pixels, and expected inside/outside samples, then
+              Playwright verifies the crop-center material while top-left and
+              bottom-right outside samples remain clear. Previous update:
+              <code>examples/camera-priority-overlay.html</code> now proves two
+              full-canvas ECS cameras submitted in priority order into the same
+              target. The route reports ordered camera pass sequence and
               clear/load behavior, then Playwright verifies the higher-priority
               overlay appears while a lower-priority base-only region remains
               visible. Previous update:
@@ -529,20 +534,20 @@
               included/skipped draw counts and material keys, and Playwright
               verifies red and blue viewport samples while each camera excludes
               the other layer. Earlier update:
-              <code>examples/render-to-texture.html</code> now
-              reports the ECS source camera view, off-screen render-target key,
-              target usage, display pass draw count, clear colors, and
-              render-control capabilities for the camera render-target preview
-              path. Playwright samples the displayed preview plus an untouched
-              main-canvas clear region and verifies the preview differs from
-              both that clear region and the off-screen clear color. Earlier
-              update: <code>examples/line-primitives.html</code> now
-              renders two indexed ECS-authored colored line sets through the
-              typed <code>createLineListMeshAsset(...)</code> path and the
-              native WebGPU <code>line-list</code> unlit pipeline. Playwright
-              verifies cyan and amber line samples are non-clear while a center
-              sample remains clear, and the all-route render-control smoke now
-              includes 52 routes with zero warning routes. Earlier update:
+              <code>examples/render-to-texture.html</code> now reports the ECS
+              source camera view, off-screen render-target key, target usage,
+              display pass draw count, clear colors, and render-control
+              capabilities for the camera render-target preview path. Playwright
+              samples the displayed preview plus an untouched main-canvas clear
+              region and verifies the preview differs from both that clear
+              region and the off-screen clear color. Earlier update:
+              <code>examples/line-primitives.html</code> now renders two indexed
+              ECS-authored colored line sets through the typed
+              <code>createLineListMeshAsset(...)</code> path and the native
+              WebGPU <code>line-list</code> unlit pipeline. Playwright verifies
+              cyan and amber line samples are non-clear while a center sample
+              remains clear, and the all-route render-control smoke now includes
+              52 routes with zero warning routes. Earlier update:
               <code>examples/orthographic-camera.html</code> now proves
               orthographic projection through the same multi-view WebGPU
               submission path as the split-screen route. The worker authors one
@@ -1896,8 +1901,9 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Complete the developer API proposal with browser bootstrap asset
-              mirroring, generated worker diagnostics, and docs acceptance audit
+              Continue the render-target MSAA route family with
+              <code>task-3189</code>: an MSAA cropped secondary off-screen
+              render-target preview route.
             </dd>
           </dl>
         </aside>
@@ -2797,6 +2803,18 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">task-3188</span> Added
+                <code>examples/render-target-msaa-two-targets.html</code>. The
+                render-to-texture route family now creates an MSAA-enabled app,
+                extracts two off-screen ECS cameras targeting distinct
+                renderer-owned render-target handles, displays both resolved
+                target textures side by side, reports requested/resolved sample
+                counts, per-target keys, dimensions, draw counts, MSAA sample
+                counts, and per-pass resolve attachment behavior, and Playwright
+                proves both resolved previews are non-clear and visually
+                distinct.
+              </li>
+              <li>
                 <span class="badge green">task-3187</span> Added
                 <code>examples/mixed-dual-size-render-targets.html</code>. The
                 render-to-texture route family now extracts one current-texture
@@ -2816,16 +2834,16 @@
                 cameras targeting distinct renderer-owned textures while only
                 the secondary camera applies a non-full normalized
                 viewport/scissor crop. The route reports per-target keys,
-                dimensions, draw counts, display samples, and resolved
-                secondary target-space crop pixels, and Playwright proves the
-                primary preview is non-clear, the secondary inside-crop sample
-                renders, and the secondary outside-crop sample stays clear.
+                dimensions, draw counts, display samples, and resolved secondary
+                target-space crop pixels, and Playwright proves the primary
+                preview is non-clear, the secondary inside-crop sample renders,
+                and the secondary outside-crop sample stays clear.
               </li>
               <li>
                 <span class="badge green">task-3185</span> Added
                 <code>examples/render-target-msaa.html</code>. The
-                render-to-texture route family now requests 8x MSAA, resolves
-                to the supported 4x sample count, renders an ECS camera into a
+                render-to-texture route family now requests 8x MSAA, resolves to
+                the supported 4x sample count, renders an ECS camera into a
                 renderer-owned off-screen target through an MSAA color
                 attachment, reports sample counts, clamp status, target
                 dimensions, draw counts, and resolve attachment behavior, and
@@ -5582,8 +5600,8 @@
               </li>
               <li>
                 <span class="badge green">task-3172</span> Done: add a camera
-                sub-view/crop route with normalized viewport/scissor crop
-                status and inside/outside Playwright readback proof.
+                sub-view/crop route with normalized viewport/scissor crop status
+                and inside/outside Playwright readback proof.
               </li>
               <li>
                 <span class="badge green">task-3173</span> Done: add a camera
@@ -5593,9 +5611,9 @@
               </li>
               <li>
                 <span class="badge green">task-3174</span> Done: add a
-                render-target resize preview route with same-handle
-                target replacement, before/after dimensions, and non-clear
-                preview proof.
+                render-target resize preview route with same-handle target
+                replacement, before/after dimensions, and non-clear preview
+                proof.
               </li>
               <li>
                 <span class="badge green">task-3175</span> Done: add a camera
@@ -5604,8 +5622,9 @@
               </li>
               <li>
                 <span class="badge green">task-3176</span> Done: add a
-                picture-in-picture camera inset route with preserved base pixels,
-                distinct inset pixels, and per-view layer filtering status.
+                picture-in-picture camera inset route with preserved base
+                pixels, distinct inset pixels, and per-view layer filtering
+                status.
               </li>
               <li>
                 <span class="badge green">task-3177</span> Done: add a
@@ -5623,9 +5642,9 @@
                 order and distinct readback proof.
               </li>
               <li>
-                <span class="badge green">task-3180</span> Done: add a
-                multiple off-screen render-target preview route with two
-                renderer-owned target handles and distinct preview samples.
+                <span class="badge green">task-3180</span> Done: add a multiple
+                off-screen render-target preview route with two renderer-owned
+                target handles and distinct preview samples.
               </li>
               <li>
                 <span class="badge green">task-3181</span> Done: add an
@@ -5643,9 +5662,9 @@
                 target classification, display, and readback proof.
               </li>
               <li>
-                <span class="badge green">task-3184</span> Done: add a
-                dual-size off-screen render-target preview route with aspect
-                mapping status and pixel proof.
+                <span class="badge green">task-3184</span> Done: add a dual-size
+                off-screen render-target preview route with aspect mapping
+                status and pixel proof.
               </li>
               <li>
                 <span class="badge green">task-3185</span> Done: add an MSAA
@@ -5664,21 +5683,26 @@
                 with aspect mapping and current-texture readback proof.
               </li>
               <li>
-                <span class="badge">task-3188</span> Next: add an MSAA
-                two-target off-screen preview route.
+                <span class="badge green">task-3188</span> Done: add an MSAA
+                two-target off-screen preview route with per-pass resolve
+                attachment status and distinct resolved-preview pixel proof.
               </li>
               <li>
-                <span class="badge">task-3189</span> Then: add an MSAA cropped
+                <span class="badge">task-3189</span> Next: add an MSAA cropped
                 secondary off-screen render-target preview route.
               </li>
               <li>
                 <span class="badge">task-3190</span> Then: add a mixed
-                current-texture plus cropped secondary off-screen
-                render-target route.
+                current-texture plus cropped secondary off-screen render-target
+                route.
               </li>
               <li>
-                <span class="badge dim">task-3161</span> Later: add
-                cross-device benchmark automation after the visible route queue.
+                <span class="badge">task-3191</span> Then: add a mixed
+                current-texture plus MSAA two-target off-screen preview route.
+              </li>
+              <li>
+                <span class="badge dim">task-3161</span> Later: add cross-device
+                benchmark automation after the visible route queue.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5697,6 +5721,21 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3188</div>
+            <div>
+              <strong>MSAA two-target preview route shipped.</strong>
+              <span>
+                <code>examples/render-target-msaa-two-targets.html</code>
+                extracts two off-screen cameras from one ECS snapshot, targets
+                distinct renderer-owned textures in an MSAA-enabled app, reports
+                requested/resolved sample counts, per-target keys, dimensions,
+                draw counts, MSAA sample counts, and resolve attachment
+                behavior, and proves both resolved previews are non-clear and
+                visually distinct.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3187</div>
             <div>
@@ -5759,15 +5798,16 @@
           <div class="timeline-item">
             <div class="task-id">task-3183</div>
             <div>
-              <strong>Mixed current plus two off-screen targets shipped.</strong>
+              <strong
+                >Mixed current plus two off-screen targets shipped.</strong
+              >
               <span>
                 <code>examples/mixed-multi-render-targets.html</code> extracts
                 one current-texture camera and two distinct off-screen
                 render-target cameras from one worker-authored ECS snapshot,
                 reports target classifications, keys, pass order, draw counts,
                 display samples, and current-texture readback, and proves all
-                three target-family samples are non-clear and visually
-                distinct.
+                three target-family samples are non-clear and visually distinct.
               </span>
             </div>
           </div>
@@ -5776,12 +5816,12 @@
             <div>
               <strong>Same render-target clear/load route shipped.</strong>
               <span>
-                <code>examples/render-target-clear-load.html</code> extracts
-                two off-screen cameras from one worker-authored ECS snapshot,
+                <code>examples/render-target-clear-load.html</code> extracts two
+                off-screen cameras from one worker-authored ECS snapshot,
                 targets the same renderer-owned render-target handle, reports
-                clear-first/load-second color and depth attachment behavior,
-                and proves clear-only, base-preserved, and overlay samples in
-                the displayed target texture.
+                clear-first/load-second color and depth attachment behavior, and
+                proves clear-only, base-preserved, and overlay samples in the
+                displayed target texture.
               </span>
             </div>
           </div>
@@ -5792,11 +5832,11 @@
               <span>
                 <code>examples/render-target-viewport-crop.html</code> extracts
                 one off-screen camera from a worker-authored ECS snapshot,
-                applies matching non-full normalized viewport/scissor
-                rectangles to the renderer-owned render target, reports
-                resolved target-space pixels and display samples, and proves
-                the inside sample renders while the outside-crop target sample
-                remains clear.
+                applies matching non-full normalized viewport/scissor rectangles
+                to the renderer-owned render target, reports resolved
+                target-space pixels and display samples, and proves the inside
+                sample renders while the outside-crop target sample remains
+                clear.
               </span>
             </div>
           </div>
@@ -5835,10 +5875,10 @@
               <span>
                 <code>examples/camera-viewport-resize.html</code> renders two
                 consecutive frames from one ECS camera handle with different
-                normalized viewport/scissor rectangles, reports old/new
-                resolved pixels plus pass order, and proves the material sample
-                moves from the old viewport center to the new one while mesh
-                authoring stays stable.
+                normalized viewport/scissor rectangles, reports old/new resolved
+                pixels plus pass order, and proves the material sample moves
+                from the old viewport center to the new one while mesh authoring
+                stays stable.
               </span>
             </div>
           </div>
@@ -5862,9 +5902,9 @@
               <span>
                 <code>examples/camera-picture-in-picture.html</code> renders a
                 full-canvas base camera plus a small inset camera into the same
-                target, reports inset viewport/scissor pixels, pass order,
-                layer filtering, and clear/load behavior, and proves preserved
-                base pixels plus distinct inset pixels.
+                target, reports inset viewport/scissor pixels, pass order, layer
+                filtering, and clear/load behavior, and proves preserved base
+                pixels plus distinct inset pixels.
               </span>
             </div>
           </div>
@@ -5898,11 +5938,11 @@
             <div>
               <strong>Camera viewport grid route shipped.</strong>
               <span>
-                <code>examples/camera-viewport-grid.html</code> renders four
-                ECS cameras into a normalized 2x2 viewport grid, reports
-                per-cell viewport/scissor pixels and per-camera draw filtering,
-                and proves four distinct grid-cell material samples while
-                sharing one mesh resource.
+                <code>examples/camera-viewport-grid.html</code> renders four ECS
+                cameras into a normalized 2x2 viewport grid, reports per-cell
+                viewport/scissor pixels and per-camera draw filtering, and
+                proves four distinct grid-cell material samples while sharing
+                one mesh resource.
               </span>
             </div>
           </div>
@@ -5938,10 +5978,10 @@
               <strong>Camera render-layer route shipped.</strong>
               <span>
                 <code>examples/camera-render-layers.html</code> renders two
-                ECS-authored cameras with distinct layer masks over two
-                overlaid render-layered entities, reports per-camera
-                included/skipped draw counts and material keys, and proves each
-                viewport excludes the other layer.
+                ECS-authored cameras with distinct layer masks over two overlaid
+                render-layered entities, reports per-camera included/skipped
+                draw counts and material keys, and proves each viewport excludes
+                the other layer.
               </span>
             </div>
           </div>
