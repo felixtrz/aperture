@@ -393,22 +393,30 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 07:01 UTC</dd>
+            <dd>2026-05-26 07:11 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/render-target-msaa-secondary-crop.html</code> now
+              proves an MSAA-enabled WebGPU app can extract two ECS cameras
+              targeting distinct renderer-owned off-screen textures while only
+              the secondary target uses a non-full viewport/scissor rectangle,
+              resolve both target textures, and display primary plus
+              inside/outside secondary crop samples. The route reports
+              requested/resolved sample counts, per-target keys, dimensions,
+              draw counts, MSAA sample counts, secondary crop pixels, and
+              per-pass resolve attachment behavior, then Playwright verifies the
+              primary resolved preview is non-clear while the secondary resolved
+              preview has distinct inside-rendered and outside-clear regions.
+              Previous update:
               <code>examples/render-target-msaa-two-targets.html</code> now
               proves an MSAA-enabled WebGPU app can extract two ECS cameras
               targeting distinct renderer-owned off-screen textures from one
               worker-authored snapshot, render both through MSAA color
               attachments, resolve both target textures, and display both
-              previews side by side. The route reports requested/resolved sample
-              counts, per-target keys, dimensions, draw counts, MSAA sample
-              counts, and per-pass resolve attachment behavior, then Playwright
-              verifies both resolved previews are non-clear and visually
-              distinct. Previous update:
+              previews side by side. Earlier update:
               <code>examples/mixed-dual-size-render-targets.html</code> now
               proves one current-texture ECS camera plus two off-screen ECS
               cameras targeting differently sized renderer-owned textures from
@@ -1902,8 +1910,8 @@
             <dt>Next focus</dt>
             <dd>
               Continue the render-target MSAA route family with
-              <code>task-3189</code>: an MSAA cropped secondary off-screen
-              render-target preview route.
+              <code>task-3190</code>: a mixed current-texture plus cropped
+              secondary off-screen render-target route.
             </dd>
           </dl>
         </aside>
@@ -2802,6 +2810,20 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3189</span> Added
+                <code>examples/render-target-msaa-secondary-crop.html</code>.
+                The render-to-texture route family now creates an MSAA-enabled
+                app, extracts two off-screen ECS cameras targeting distinct
+                renderer-owned render-target handles, applies a non-full
+                viewport/scissor crop only to the secondary target, displays the
+                resolved primary preview plus inside/outside secondary crop
+                samples, reports requested/resolved sample counts, per-target
+                keys, dimensions, draw counts, MSAA sample counts, secondary
+                target-space crop pixels, and per-pass resolve attachment
+                behavior, and Playwright proves the resolved crop regions stay
+                distinct.
+              </li>
               <li>
                 <span class="badge green">task-3188</span> Added
                 <code>examples/render-target-msaa-two-targets.html</code>. The
@@ -5688,17 +5710,24 @@
                 attachment status and distinct resolved-preview pixel proof.
               </li>
               <li>
-                <span class="badge">task-3189</span> Next: add an MSAA cropped
-                secondary off-screen render-target preview route.
+                <span class="badge green">task-3189</span> Done: add an MSAA
+                cropped secondary off-screen render-target preview route with
+                target-space crop status, per-pass resolve attachment status,
+                and inside/outside secondary pixel proof.
               </li>
               <li>
-                <span class="badge">task-3190</span> Then: add a mixed
+                <span class="badge">task-3190</span> Next: add a mixed
                 current-texture plus cropped secondary off-screen render-target
                 route.
               </li>
               <li>
                 <span class="badge">task-3191</span> Then: add a mixed
                 current-texture plus MSAA two-target off-screen preview route.
+              </li>
+              <li>
+                <span class="badge">task-3192</span> Then: add an MSAA mixed
+                current-texture plus cropped secondary off-screen render-target
+                route.
               </li>
               <li>
                 <span class="badge dim">task-3161</span> Later: add cross-device
@@ -5721,6 +5750,23 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3189</div>
+            <div>
+              <strong>MSAA cropped secondary target route shipped.</strong>
+              <span>
+                <code>examples/render-target-msaa-secondary-crop.html</code>
+                extracts two off-screen cameras from one ECS snapshot, targets
+                distinct renderer-owned textures in an MSAA-enabled app, applies
+                a non-full viewport/scissor crop only to the secondary target,
+                reports requested/resolved sample counts, per-target keys,
+                dimensions, draw counts, MSAA sample counts, secondary
+                target-space crop pixels, and resolve attachment behavior, and
+                proves the resolved primary preview plus secondary
+                inside/outside crop regions behave distinctly.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3188</div>
             <div>

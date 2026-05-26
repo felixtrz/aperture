@@ -59,33 +59,21 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3188` is complete: `examples/render-target-msaa-two-targets.html` now
+`task-3189` is complete: `examples/render-target-msaa-secondary-crop.html` now
 proves an MSAA-enabled WebGPU app can extract two ECS cameras targeting
 distinct renderer-owned off-screen `ViewPacket.renderTarget` handles from one
-worker-authored snapshot, render both through MSAA color attachments, resolve
-both target textures, display both previews side by side, and report
-requested/resolved sample counts, per-target keys, dimensions, draw counts,
-MSAA sample counts, and per-pass resolve attachment behavior. Playwright
-verifies both resolved previews are non-clear and visually distinct. Continue
-the post-SOTA visible-feature queue at `task-3189`: add an MSAA cropped
-secondary off-screen render-target preview route.
+worker-authored snapshot, apply a non-full viewport/scissor crop only to the
+secondary target, resolve both target textures, display the primary preview plus
+inside/outside secondary crop samples, and report requested/resolved sample
+counts, per-target keys, dimensions, draw counts, MSAA sample counts, secondary
+target-space crop pixels, and per-pass resolve attachment behavior. Playwright
+verifies the primary resolved preview is non-clear while the secondary resolved
+preview has distinct inside-rendered and outside-clear regions. Continue the
+post-SOTA visible-feature queue at `task-3190`: add a mixed current-texture plus
+cropped secondary off-screen render-target route.
 
 The next ready visible-feature queue is:
 
-- `task-3189` — add an MSAA cropped secondary off-screen render-target preview
-  route.
-  Reference anchor:
-  `references/engine/src/extras/render-passes/camera-frame.js`,
-  `references/bevy/examples/3d/render_to_texture.rs`.
-  Done when one browser route creates an MSAA-enabled WebGPU app, extracts two
-  ECS cameras targeting distinct renderer-owned off-screen render-target
-  handles, applies a non-full viewport/scissor rectangle to the secondary
-  target only, displays both resolved target textures side by side, reports
-  requested/resolved sample count, per-target keys, dimensions, draw counts,
-  MSAA sample count, secondary target-space viewport/scissor pixels, and resolve
-  attachment behavior for each pass, and Playwright verifies the primary preview
-  is non-clear while the secondary preview has distinct inside-rendered and
-  outside-clear regions.
 - `task-3190` — add a mixed current-texture plus cropped secondary off-screen
   render-target route.
   Reference anchor:
@@ -113,6 +101,22 @@ The next ready visible-feature queue is:
   each off-screen pass, display samples, and current-texture readback, and
   Playwright verifies the current-texture sample plus both resolved previews are
   non-clear and visually distinct.
+- `task-3192` — add an MSAA mixed current-texture plus cropped secondary
+  off-screen render-target route.
+  Reference anchor:
+  `references/engine/src/extras/render-passes/camera-frame.js`,
+  `references/bevy/examples/3d/render_to_texture.rs`.
+  Done when one browser route creates an MSAA-enabled WebGPU app, extracts one
+  current-texture camera plus two ECS cameras targeting distinct renderer-owned
+  off-screen render-target handles, applies a non-full viewport/scissor
+  rectangle to the secondary off-screen target only, displays both resolved
+  off-screen textures side by side, reports current/off-screen target
+  classifications, requested/resolved sample count, per-target keys,
+  dimensions, draw counts, MSAA sample count, secondary target-space crop
+  pixels, resolve attachment behavior for each off-screen pass, display samples,
+  and current-texture readback, and Playwright verifies the current-texture
+  sample, primary resolved preview, secondary inside-crop preview, and secondary
+  outside-crop preview behave distinctly.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

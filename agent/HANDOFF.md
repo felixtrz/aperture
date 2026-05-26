@@ -1,6 +1,73 @@
 # Agent Handoff
 
-Updated: 2026-05-26T07:01:18Z
+Updated: 2026-05-26T07:11:05Z
+
+## Current Run Update — 2026-05-26T07:11:05Z — MSAA cropped secondary off-screen target
+
+Completed `task-3189`.
+
+### What changed
+
+- Added `examples/render-target-msaa-secondary-crop.html` to the
+  render-to-texture route family and linked it from related example pages.
+- `examples/render-to-texture.worker.js` now reports the combined
+  MSAA-plus-cropped-secondary worker variant while extracting two ECS cameras
+  targeting distinct renderer-owned off-screen `ViewPacket.renderTarget`
+  handles and applying a non-full viewport/scissor rectangle only to the
+  secondary target.
+- `examples/render-to-texture.main.js` now creates both renderer-owned targets
+  in an MSAA-enabled app, displays the resolved primary preview plus secondary
+  inside/outside crop samples, and reports `msaaCroppedSecondaryRenderTargets`
+  status with requested/resolved sample counts, per-target keys, dimensions,
+  draw counts, MSAA sample counts, secondary target-space crop pixels, and
+  per-pass resolve attachment behavior.
+- Added Playwright coverage proving the primary resolved preview is non-clear
+  while the resolved secondary preview has distinct inside-rendered and
+  outside-clear regions.
+- Updated public tracker pages, `agent/BACKLOG.md`, `agent/CURRENT_TASK.md`,
+  and `agent/COMPLETED.md`. The ready queue now continues with `task-3190`,
+  `task-3191`, and `task-3192`.
+
+### References inspected
+
+- `references/engine/src/extras/render-passes/camera-frame.js`
+- `references/bevy/examples/3d/render_to_texture.rs`
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "MSAA cropped secondary" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "MSAA cropped secondary|MSAA two-target|MSAA render-target|cropped secondary render-target|multiple render targets route" --reporter=list`
+  — 5 passed.
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs` — 7 passed.
+- `pnpm run check:progress`
+- `pnpm exec prettier --check examples/render-to-texture.main.js examples/render-to-texture.worker.js examples/index.html examples/render-to-texture.html examples/render-target-resize.html examples/render-target-reuse.html examples/mixed-camera-targets.html examples/multi-render-targets.html examples/mixed-multi-render-targets.html examples/render-target-dual-size.html examples/mixed-dual-size-render-targets.html examples/render-target-msaa.html examples/render-target-msaa-two-targets.html examples/render-target-msaa-secondary-crop.html examples/render-target-secondary-crop.html examples/render-target-viewport-crop.html examples/render-target-clear-load.html test/e2e/render-to-texture.spec.ts docs/index.html docs/render-pipeline-comparison.html agent/BACKLOG.md agent/COMPLETED.md agent/CURRENT_TASK.md agent/HANDOFF.md`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- Full-repo `pnpm run format:check` still has pre-existing unrelated formatting
+  debt from earlier handoff notes, including untracked `.playwright-mcp/`
+  scratch files. This slice uses targeted Prettier checks for touched files.
+- A broad `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/webgpu-app.test.ts`
+  run still fails 11 pre-existing `webgpu-app.test.ts` expectations around
+  verbose pipeline descriptor resource keys. This task did not modify that
+  area.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3190`: add a mixed current-texture
+plus cropped secondary off-screen render-target route.
 
 ## Current Run Update — 2026-05-26T07:01:18Z — MSAA two-target off-screen targets
 

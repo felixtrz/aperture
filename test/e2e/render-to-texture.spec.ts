@@ -526,6 +526,102 @@ interface RenderToTextureStatus extends ExampleStatusBase {
       };
     };
   };
+  readonly msaaCroppedSecondaryRenderTargets?: {
+    readonly mode?: string;
+    readonly source?: string;
+    readonly requestedSampleCount?: number;
+    readonly sampleCount?: number;
+    readonly enabled?: boolean;
+    readonly clamped?: boolean;
+    readonly supportedSampleCounts?: readonly number[];
+    readonly colorTargets?: number;
+    readonly colorTexturesCreated?: number;
+    readonly colorTexturesReused?: number;
+    readonly renderTargets?: readonly {
+      readonly role?: string;
+      readonly key?: string;
+      readonly source?: string;
+      readonly viewId?: number | null;
+      readonly width?: number;
+      readonly height?: number;
+      readonly ok?: boolean;
+      readonly drawCalls?: number;
+      readonly materialKey?: string;
+      readonly displaySample?: string;
+      readonly msaaSampleCount?: number;
+      readonly attachment?: {
+        readonly colorLoadOp?: string | null;
+        readonly colorStoreOp?: string | null;
+        readonly resolveTarget?: boolean;
+        readonly behavior?: string;
+      };
+      readonly displayQuad?: {
+        readonly role?: string;
+        readonly source?: string;
+        readonly renderTargetKey?: string | null;
+        readonly sampleId?: string | null;
+        readonly vertexCount?: number;
+        readonly widthNdc?: number;
+        readonly heightNdc?: number;
+      } | null;
+    }[];
+    readonly views?: readonly {
+      readonly role?: string;
+      readonly viewId?: number;
+      readonly priority?: number;
+      readonly layerMask?: number;
+      readonly target?: string;
+      readonly renderTargetKey?: string | null;
+      readonly viewport?: readonly number[];
+      readonly scissor?: readonly number[];
+    }[];
+    readonly secondaryCrop?: {
+      readonly renderTargetKey?: string;
+      readonly expectedNormalizedRect?: readonly number[];
+      readonly viewportPixels?: {
+        readonly x?: number;
+        readonly y?: number;
+        readonly width?: number;
+        readonly height?: number;
+      } | null;
+      readonly scissorPixels?: {
+        readonly x?: number;
+        readonly y?: number;
+        readonly width?: number;
+        readonly height?: number;
+      } | null;
+      readonly diagnostics?: readonly unknown[];
+      readonly insideSample?: string;
+      readonly outsideSample?: string;
+    };
+    readonly passOrder?: readonly {
+      readonly index?: number;
+      readonly viewId?: number;
+      readonly source?: string;
+      readonly renderTargetKey?: string | null;
+      readonly width?: number;
+      readonly height?: number;
+      readonly drawCalls?: number;
+      readonly ok?: boolean;
+      readonly msaaSampleCount?: number;
+      readonly attachment?: {
+        readonly colorLoadOp?: string | null;
+        readonly colorStoreOp?: string | null;
+        readonly resolveTarget?: boolean;
+        readonly behavior?: string;
+      };
+    }[];
+    readonly displayPass?: {
+      readonly loadOp?: string;
+      readonly drawCalls?: number;
+      readonly samples?: {
+        readonly leftPreview?: string;
+        readonly secondaryInside?: string;
+        readonly secondaryOutside?: string;
+        readonly screenClear?: string;
+      };
+    };
+  };
   readonly croppedSecondaryRenderTargets?: {
     readonly mode?: string;
     readonly source?: string;
@@ -2952,6 +3048,372 @@ test("MSAA two-target render-target route resolves both off-screen previews", as
   expect(
     pixelDistance(rightSample.pixel, screenClearSample.pixel),
     "secondary resolved preview should differ from the main-canvas clear region",
+  ).toBeGreaterThan(40);
+});
+
+test("MSAA cropped secondary render-target route resolves primary and cropped secondary regions", async ({
+  page,
+}) => {
+  const guard = attachWebGpuValidationConsoleGuard(page);
+  const status = await loadExampleStatus<RenderToTextureStatus>(
+    page,
+    "/examples/render-target-msaa-secondary-crop.html",
+    "render-target-msaa-secondary-crop-status",
+  );
+
+  if (status === undefined) {
+    return;
+  }
+
+  const primaryKey = status.renderTarget?.key ?? "__missing-primary__";
+  const secondaryKey =
+    status.scene?.secondaryRenderTargetKey ?? "__missing-secondary__";
+
+  expect(primaryKey).not.toBe("__missing-primary__");
+  expect(secondaryKey).not.toBe("__missing-secondary__");
+  expect(primaryKey).not.toBe(secondaryKey);
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "render-target-msaa-secondary-crop",
+    ok: true,
+    phase: "display",
+    renderingBackend: "webgpu-explicit",
+    renderTarget: {
+      width: 256,
+      height: 256,
+      source: "ViewPacket.renderTarget",
+      key: primaryKey,
+      textureUsage: {
+        renderAttachment: true,
+        textureBinding: true,
+        copySource: true,
+      },
+    },
+    sourceView: {
+      ok: true,
+      viewId: 0,
+      priority: 0,
+      layerMask: 1,
+      renderTargetKey: primaryKey,
+      expectedRenderTargetKey: primaryKey,
+      renderTargetMatches: true,
+    },
+    msaaCroppedSecondaryRenderTargets: {
+      mode: "msaa-cropped-secondary-offscreen-render-target-previews",
+      source: "ViewPacket.renderTarget",
+      requestedSampleCount: 8,
+      sampleCount: 4,
+      enabled: true,
+      clamped: true,
+      supportedSampleCounts: [1, 4],
+      colorTargets: 2,
+      colorTexturesCreated: 2,
+      colorTexturesReused: 0,
+      renderTargets: [
+        {
+          role: "primary",
+          key: primaryKey,
+          source: "offscreen",
+          viewId: 0,
+          width: 256,
+          height: 256,
+          ok: true,
+          drawCalls: 1,
+          displaySample: "left-target-preview-center",
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+          displayQuad: {
+            role: "primary",
+            renderTargetKey: primaryKey,
+            sampleId: "left-target-preview-center",
+            vertexCount: 6,
+            widthNdc: 0.7,
+            heightNdc: 1.16,
+          },
+        },
+        {
+          role: "secondary",
+          key: secondaryKey,
+          source: "offscreen",
+          viewId: 1,
+          width: 256,
+          height: 256,
+          ok: true,
+          drawCalls: 1,
+          displaySample: "secondary-crop-inside",
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+          displayQuad: {
+            role: "secondary",
+            renderTargetKey: secondaryKey,
+            sampleId: "secondary-crop-inside",
+            vertexCount: 6,
+            widthNdc: 0.7,
+            heightNdc: 1.16,
+          },
+        },
+      ],
+      views: [
+        {
+          role: "primary",
+          viewId: 0,
+          priority: 0,
+          layerMask: 1,
+          target: "offscreen",
+          renderTargetKey: primaryKey,
+          viewport: [0, 0, 1, 1],
+          scissor: [0, 0, 1, 1],
+        },
+        {
+          role: "secondary",
+          viewId: 1,
+          priority: 1,
+          layerMask: 2,
+          target: "offscreen",
+          renderTargetKey: secondaryKey,
+        },
+      ],
+      secondaryCrop: {
+        renderTargetKey: secondaryKey,
+        expectedNormalizedRect: [0.3, 0.25, 0.4, 0.5],
+        viewportPixels: {
+          x: 77,
+          y: 64,
+          width: 102,
+          height: 128,
+        },
+        scissorPixels: {
+          x: 77,
+          y: 64,
+          width: 102,
+          height: 128,
+        },
+        diagnostics: [],
+        insideSample: "secondary-crop-inside",
+        outsideSample: "secondary-crop-outside",
+      },
+      passOrder: [
+        {
+          index: 0,
+          viewId: 0,
+          source: "offscreen",
+          renderTargetKey: primaryKey,
+          width: 256,
+          height: 256,
+          drawCalls: 1,
+          ok: true,
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+        },
+        {
+          index: 1,
+          viewId: 1,
+          source: "offscreen",
+          renderTargetKey: secondaryKey,
+          width: 256,
+          height: 256,
+          drawCalls: 1,
+          ok: true,
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+        },
+      ],
+      displayPass: {
+        loadOp: "clear",
+        drawCalls: 2,
+        samples: {
+          leftPreview: "left-target-preview-center",
+          secondaryInside: "secondary-crop-inside",
+          secondaryOutside: "secondary-crop-outside",
+          screenClear: "screen-clear-corner",
+        },
+      },
+    },
+    counts: {
+      views: 2,
+      meshDraws: 2,
+      drawCalls: 2,
+      diagnostics: 0,
+    },
+    screenPass: {
+      phase: "screen-pass",
+      drawCalls: 2,
+      loadOp: "clear",
+      samples: {
+        leftPreview: "left-target-preview-center",
+        secondaryInside: "secondary-crop-inside",
+        secondaryOutside: "secondary-crop-outside",
+        screenClear: "screen-clear-corner",
+      },
+    },
+  });
+  expect(status.report?.renderTargets).toMatchObject([
+    {
+      source: "offscreen",
+      renderTargetKey: primaryKey,
+      width: 256,
+      height: 256,
+      ok: true,
+      drawCalls: 1,
+      msaaSampleCount: 4,
+    },
+    {
+      source: "offscreen",
+      renderTargetKey: secondaryKey,
+      width: 256,
+      height: 256,
+      ok: true,
+      drawCalls: 1,
+      msaaSampleCount: 4,
+    },
+  ]);
+  const secondaryView =
+    status.msaaCroppedSecondaryRenderTargets?.views?.find(
+      (view) => view.role === "secondary",
+    ) ?? null;
+
+  expectNormalizedRect(secondaryView?.viewport, [0.3, 0.25, 0.4, 0.5]);
+  expectNormalizedRect(secondaryView?.scissor, [0.3, 0.25, 0.4, 0.5]);
+  expectNormalizedRect(
+    status.msaaCroppedSecondaryRenderTargets?.secondaryCrop
+      ?.expectedNormalizedRect,
+    [0.3, 0.25, 0.4, 0.5],
+  );
+  guard.expectNoWarnings();
+
+  await attachExampleStatus(
+    "render-target-msaa-secondary-crop-rendered-status",
+    status,
+  );
+
+  if (!status.readback?.ok) {
+    test.skip(
+      true,
+      "MSAA cropped secondary render-target pixel assertion requires readback.",
+    );
+    return;
+  }
+
+  const leftSample = status.readback.samples?.find(
+    (entry) => entry.id === "left-target-preview-center",
+  );
+  const secondaryInsideSample = status.readback.samples?.find(
+    (entry) => entry.id === "secondary-crop-inside",
+  );
+  const secondaryOutsideSample = status.readback.samples?.find(
+    (entry) => entry.id === "secondary-crop-outside",
+  );
+  const screenClearSample = status.readback.samples?.find(
+    (entry) => entry.id === "screen-clear-corner",
+  );
+
+  expect(
+    leftSample,
+    "expected primary resolved render-target preview sample",
+  ).toBeDefined();
+  expect(
+    secondaryInsideSample,
+    "expected resolved secondary inside-crop preview sample",
+  ).toBeDefined();
+  expect(
+    secondaryOutsideSample,
+    "expected resolved secondary outside-crop preview sample",
+  ).toBeDefined();
+  expect(screenClearSample, "expected screen clear sample").toBeDefined();
+
+  if (
+    leftSample === undefined ||
+    secondaryInsideSample === undefined ||
+    secondaryOutsideSample === undefined ||
+    screenClearSample === undefined
+  ) {
+    return;
+  }
+
+  expect(
+    pixelDistance(
+      leftSample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCenterColor ?? {
+          r: 0.06,
+          g: 0.88,
+          b: 0.22,
+          a: 1,
+        },
+      ),
+    ),
+    "primary preview should sample the resolved full off-screen MSAA target",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(
+      secondaryInsideSample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCanvasColor ?? {
+          r: 0.1,
+          g: 0.42,
+          b: 0.95,
+          a: 1,
+        },
+      ),
+    ),
+    "secondary inside-crop sample should come from the resolved secondary MSAA target",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(
+      secondaryOutsideSample.pixel,
+      rgbaColorToPixel(
+        status.clearColors?.offscreen ?? {
+          r: 0.02,
+          g: 0.035,
+          b: 0.07,
+          a: 1,
+        },
+      ),
+    ),
+    "secondary outside-crop sample should remain the resolved target clear color",
+  ).toBeLessThan(12);
+  expect(
+    pixelDistance(
+      screenClearSample.pixel,
+      rgbaColorToPixel(
+        status.clearColors?.screen ?? {
+          r: 0.015,
+          g: 0.018,
+          b: 0.023,
+          a: 1,
+        },
+      ),
+    ),
+    "screen clear sample should stay outside both resolved preview quads",
+  ).toBeLessThan(12);
+  expect(
+    pixelDistance(leftSample.pixel, secondaryInsideSample.pixel),
+    "resolved primary and secondary cropped previews should be visually distinct",
+  ).toBeGreaterThan(80);
+  expect(
+    pixelDistance(secondaryInsideSample.pixel, secondaryOutsideSample.pixel),
+    "resolved secondary cropped render target should differ inside and outside the viewport",
   ).toBeGreaterThan(40);
 });
 

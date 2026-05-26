@@ -1,5 +1,45 @@
 # Completed Tasks
 
+## task-3189 — Add an MSAA cropped secondary off-screen preview route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/render-target-msaa-secondary-crop.html` on the existing
+  render-to-texture route family.
+- The route creates an MSAA-enabled `createWebGpuApp({ msaa: 8 })`, which
+  resolves to the supported 4x path for both off-screen passes.
+- `examples/render-to-texture.worker.js` now reports the combined
+  MSAA-plus-cropped-secondary worker variant while extracting two ECS cameras
+  that target distinct renderer-owned `ViewPacket.renderTarget` handles and
+  applying a non-full viewport/scissor rectangle only to the secondary target.
+- `examples/render-to-texture.main.js` creates both renderer-owned targets,
+  displays the resolved primary preview plus secondary inside/outside crop
+  samples, and reports requested/resolved sample counts, per-target keys,
+  dimensions, draw counts, MSAA sample counts, secondary target-space crop
+  pixels, and per-pass resolve attachment behavior.
+- Added Playwright coverage proving the primary resolved preview is non-clear
+  while the resolved secondary preview has distinct inside-rendered and
+  outside-clear regions.
+- Updated example links, public tracker pages, backlog, current task, and
+  handoff.
+
+Validation:
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "MSAA cropped secondary" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "MSAA cropped secondary|MSAA two-target|MSAA render-target|cropped secondary render-target|multiple render targets route" --reporter=list`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check examples/render-to-texture.main.js examples/render-to-texture.worker.js examples/index.html examples/render-to-texture.html examples/render-target-resize.html examples/render-target-reuse.html examples/mixed-camera-targets.html examples/multi-render-targets.html examples/mixed-multi-render-targets.html examples/render-target-dual-size.html examples/mixed-dual-size-render-targets.html examples/render-target-msaa.html examples/render-target-msaa-two-targets.html examples/render-target-msaa-secondary-crop.html examples/render-target-secondary-crop.html examples/render-target-viewport-crop.html examples/render-target-clear-load.html test/e2e/render-to-texture.spec.ts docs/index.html docs/render-pipeline-comparison.html agent/BACKLOG.md agent/COMPLETED.md agent/CURRENT_TASK.md agent/HANDOFF.md`
+- `git diff --check`
+
 ## task-3188 — Add an MSAA two-target off-screen preview route
 
 Completed: 2026-05-26
