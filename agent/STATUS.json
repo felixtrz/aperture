@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "44ab58ad",
+  "lastCommit": "ecf6d161",
   "activePid": null,
-  "notes": "Completed task-3181: added off-screen render-target viewport crop route, wired resolved viewport/scissor rectangles into WebGPU frame boundaries, expanded render-to-texture Playwright coverage, updated trackers/backlog/handoff, and validated focused specs, build, typecheck, progress, navigation, check:examples, lint, and all-route render-control smoke.",
-  "lastRunFinishedAt": "2026-05-26T05:34:41Z"
+  "notes": "Completed task-3182: added same off-screen render-target clear/load route, wired repeated non-MSAA target submissions to load existing color/depth after the first clear, expanded render-to-texture Playwright coverage, updated trackers/backlog/handoff, and validated focused specs, build, typecheck, progress, navigation, check:examples, lint, and all-route render-control smoke.",
+  "lastRunFinishedAt": "2026-05-26T05:47:29Z"
 }
