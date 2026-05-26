@@ -19,9 +19,11 @@ import {
 } from "./input.js";
 import {
   APERTURE_GENERATED_COMMAND_EVENT,
+  APERTURE_VIEWPORT_RESIZE_COMMAND_CHANNEL,
   createGeneratedCommandMessage,
   parseGeneratedCommand,
   type ApertureGeneratedCommand,
+  type ApertureViewportResizeCommandPayload,
 } from "./commands.js";
 import {
   createApertureGeneratedDiagnosticsStatus,
@@ -66,6 +68,7 @@ export interface GeneratedBrowserAppStatus {
   lastFailure: ApertureGeneratedDiagnosticsStatus | null;
   lastWorkerSummary: unknown;
   diagnostics: unknown;
+  canvas: ApertureViewportResizeCommandPayload | null;
 }
 
 export const APERTURE_GENERATED_STATUS_GLOBAL = "__APERTURE_GENERATED_APP__";
@@ -95,6 +98,7 @@ export async function startGeneratedBrowserApp(
   });
   installGeneratedInputForwarding(canvas, worker, status);
   installGeneratedCommandForwarding(worker, status);
+  installCanvasResizeSync(canvas, worker, status);
   const mirroredWorker = mirrorSimulationWorkerSourceAssets(
     worker,
     sourceAssets,
@@ -113,7 +117,6 @@ export async function startGeneratedBrowserApp(
   if (webgpu.ok) {
     syncGeneratedDiagnostics(webgpu.app.getDiagnostics, status);
   }
-  installResizeObserver(canvas);
 
   return {
     worker,
@@ -197,6 +200,7 @@ function installGeneratedStatus(): GeneratedBrowserAppStatus {
     lastFailure: null,
     lastWorkerSummary: null,
     diagnostics: null,
+    canvas: null,
   };
 
   (globalThis as Record<string, unknown>)[APERTURE_GENERATED_STATUS_GLOBAL] =
@@ -387,21 +391,41 @@ function resolveCanvas(config: ApertureConfig): HTMLCanvasElement {
   return element;
 }
 
-function installResizeObserver(canvas: HTMLCanvasElement): void {
-  const resize = () => {
-    const rect = canvas.getBoundingClientRect();
-    const width = Math.max(1, Math.floor(rect.width * window.devicePixelRatio));
-    const height = Math.max(
-      1,
-      Math.floor(rect.height * window.devicePixelRatio),
-    );
+function installCanvasResizeSync(
+  canvas: HTMLCanvasElement,
+  worker: SimulationWorker,
+  status: GeneratedBrowserAppStatus,
+): void {
+  let lastSignature = "";
 
-    if (canvas.width !== width) {
-      canvas.width = width;
+  const resize = () => {
+    const resizeStatus = measureCanvasResize(canvas);
+    const signature = [
+      resizeStatus.width,
+      resizeStatus.height,
+      resizeStatus.displayWidth,
+      resizeStatus.displayHeight,
+      resizeStatus.pixelRatio,
+    ].join(":");
+
+    if (canvas.width !== resizeStatus.width) {
+      canvas.width = resizeStatus.width;
     }
 
-    if (canvas.height !== height) {
-      canvas.height = height;
+    if (canvas.height !== resizeStatus.height) {
+      canvas.height = resizeStatus.height;
+    }
+
+    status.canvas = resizeStatus;
+
+    if (signature !== lastSignature) {
+      worker.postMessage(
+        createGeneratedCommandMessage({
+          channel: APERTURE_VIEWPORT_RESIZE_COMMAND_CHANNEL,
+          payload: resizeStatus,
+        }),
+      );
+      lastSignature = signature;
     }
   };
 
@@ -414,4 +438,30 @@ function installResizeObserver(canvas: HTMLCanvasElement): void {
   }
 
   window.addEventListener("resize", resize);
+}
+
+function measureCanvasResize(
+  canvas: HTMLCanvasElement,
+): ApertureViewportResizeCommandPayload {
+  const rect = canvas.getBoundingClientRect();
+  const displayWidth = Math.max(
+    1,
+    rect.width > 0 ? rect.width : canvas.clientWidth,
+  );
+  const displayHeight = Math.max(
+    1,
+    rect.height > 0 ? rect.height : canvas.clientHeight,
+  );
+  const pixelRatio = Math.max(1, window.devicePixelRatio || 1);
+  const width = Math.max(1, Math.floor(displayWidth * pixelRatio));
+  const height = Math.max(1, Math.floor(displayHeight * pixelRatio));
+
+  return {
+    width,
+    height,
+    displayWidth,
+    displayHeight,
+    pixelRatio,
+    aspect: displayWidth / displayHeight,
+  };
 }

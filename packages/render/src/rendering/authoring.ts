@@ -90,6 +90,7 @@ export interface CameraInput {
   readonly projection?: CameraProjection;
   readonly fovYRadians?: number;
   readonly aspect?: number;
+  readonly autoAspect?: boolean;
   readonly near?: number;
   readonly far?: number;
   readonly orthographicHeight?: number;
@@ -421,6 +422,7 @@ export const Camera = defineComponent(
     },
     fovYRadians: { type: EcsType.Float32, default: Math.PI / 3 },
     aspect: { type: EcsType.Float32, default: 1 },
+    autoAspect: { type: EcsType.Boolean, default: true },
     near: { type: EcsType.Float32, default: 0.1 },
     far: { type: EcsType.Float32, default: 1000 },
     orthographicHeight: { type: EcsType.Float32, default: 10 },
@@ -564,6 +566,7 @@ export function createCamera(
     projection: input.projection ?? CameraProjection.Perspective,
     fovYRadians: input.fovYRadians ?? Math.PI / 3,
     aspect: input.aspect ?? 1,
+    autoAspect: input.autoAspect ?? input.aspect === undefined,
     near: input.near ?? 0.1,
     far: input.far ?? 1000,
     orthographicHeight: input.orthographicHeight ?? 10,

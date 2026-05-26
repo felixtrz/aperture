@@ -4,10 +4,12 @@ import {
   type SimulationWorkerStartOptions,
 } from "@aperture-engine/runtime";
 import type { EcsWorld } from "@aperture-engine/simulation";
+import { Camera } from "@aperture-engine/render";
 import type { ApertureConfig } from "./config.js";
 import { createApertureApp, type ApertureSystemModule } from "./advanced.js";
 import { serializeSourceAssetRegistry } from "./asset-mirror.js";
 import {
+  APERTURE_VIEWPORT_RESIZE_COMMAND_CHANNEL,
   APERTURE_ENTITY_DIFF_COMMAND_CHANNEL,
   APERTURE_ENTITY_FIND_COMMAND_CHANNEL,
   APERTURE_ENTITY_GET_COMMAND_CHANNEL,
@@ -16,6 +18,7 @@ import {
   isGeneratedCommandMessage,
   type ApertureGeneratedCommand,
   type ApertureGeneratedCommandMessage,
+  type ApertureViewportResizeCommandPayload,
 } from "./commands.js";
 import { errorToApertureDiagnostic } from "./diagnostics.js";
 import {
@@ -213,11 +216,102 @@ function applyGeneratedCommand(
   entityTools: GeneratedEntityToolBridge,
   message: ApertureGeneratedCommandMessage,
 ): void {
+  if (applyViewportResizeCommand(app, message.command)) {
+    return;
+  }
+
   if (entityTools.handle(message.command)) {
     return;
   }
 
   app.context.commands.queue(message.command.channel, message.command.payload);
+}
+
+function applyViewportResizeCommand(
+  app: ApertureApp,
+  command: ApertureGeneratedCommand,
+): boolean {
+  if (command.channel !== APERTURE_VIEWPORT_RESIZE_COMMAND_CHANNEL) {
+    return false;
+  }
+
+  const resize = viewportResizePayloadFromValue(command.payload);
+
+  if (resize === null) {
+    app.context.diagnostics.warn("aperture.viewportResize.invalidPayload", {
+      channel: command.channel,
+    });
+    return true;
+  }
+
+  const query = app.lowLevel.world.queryManager.registerQuery({
+    required: [Camera],
+  });
+
+  for (const entity of query.entities) {
+    if (entity.getValue(Camera, "autoAspect") === false) {
+      continue;
+    }
+
+    const renderTargetId = entity.getValue(Camera, "renderTargetId") ?? "";
+    if (renderTargetId.length > 0) {
+      continue;
+    }
+
+    const viewport = entity.getVectorView(Camera, "viewport");
+    const viewportWidth = finitePositiveNumber(viewport[2]) ?? 1;
+    const viewportHeight = finitePositiveNumber(viewport[3]) ?? 1;
+    entity.setValue(
+      Camera,
+      "aspect",
+      resize.aspect * (viewportWidth / viewportHeight),
+    );
+  }
+
+  return true;
+}
+
+function viewportResizePayloadFromValue(
+  value: unknown,
+): ApertureViewportResizeCommandPayload | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const width = finitePositiveNumber(value["width"]);
+  const height = finitePositiveNumber(value["height"]);
+  const displayWidth = finitePositiveNumber(value["displayWidth"]);
+  const displayHeight = finitePositiveNumber(value["displayHeight"]);
+  const pixelRatio = finitePositiveNumber(value["pixelRatio"]);
+  const aspect = finitePositiveNumber(value["aspect"]);
+
+  if (
+    width === null ||
+    height === null ||
+    displayWidth === null ||
+    displayHeight === null ||
+    pixelRatio === null ||
+    aspect === null
+  ) {
+    return null;
+  }
+
+  return {
+    width,
+    height,
+    displayWidth,
+    displayHeight,
+    pixelRatio,
+    aspect,
+  };
+}
+
+function finitePositiveNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return value;
+  }
+
+  return null;
 }
 
 interface GeneratedEntityToolRequest {

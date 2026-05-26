@@ -120,6 +120,22 @@ importers:
         specifier: workspace:*
         version: link:../simulation
 
+  playground:
+    dependencies:
+      "@aperture-engine/app":
+        specifier: workspace:*
+        version: link:../packages/app
+      "@aperture-engine/vite-plugin":
+        specifier: workspace:*
+        version: link:../packages/vite-plugin
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vite:
+        specifier: ^8.0.13
+        version: 8.0.13(@types/node@25.8.0)
+
 packages:
   "@emnapi/core@1.10.0":
     resolution:

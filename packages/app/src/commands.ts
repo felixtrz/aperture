@@ -10,10 +10,21 @@ export const APERTURE_ENTITY_SNAPSHOT_COMMAND_CHANNEL =
   "aperture.devtools.entity.snapshot";
 export const APERTURE_ENTITY_DIFF_COMMAND_CHANNEL =
   "aperture.devtools.entity.diff";
+export const APERTURE_VIEWPORT_RESIZE_COMMAND_CHANNEL =
+  "aperture.viewport.resize";
 
 export interface ApertureGeneratedCommand {
   readonly channel: string;
   readonly payload?: unknown;
+}
+
+export interface ApertureViewportResizeCommandPayload {
+  readonly width: number;
+  readonly height: number;
+  readonly displayWidth: number;
+  readonly displayHeight: number;
+  readonly pixelRatio: number;
+  readonly aspect: number;
 }
 
 export interface ApertureGeneratedCommandMessage {

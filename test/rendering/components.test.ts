@@ -173,6 +173,7 @@ describe("render authoring ECS components", () => {
       CameraProjection.Orthographic,
     );
     expect(camera.getValue(Camera, "priority")).toBe(3);
+    expect(camera.getValue(Camera, "autoAspect")).toBe(true);
     expectVector(camera.getVectorView(Camera, "viewport"), [0, 0, 0.5, 1]);
     expectVector(
       camera.getVectorView(Camera, "clearColor"),
@@ -186,6 +187,14 @@ describe("render authoring ECS components", () => {
     expectVector(light.getVectorView(Light, "color"), [1, 0.8, 0.5, 1]);
     expect(environment.getValue(Light, "environmentMapId")).toBe(
       "environment-map:studio",
+    );
+  });
+
+  it("marks explicitly-aspected cameras as fixed aspect", () => {
+    expect(createCamera().autoAspect).toBe(true);
+    expect(createCamera({ aspect: 16 / 9 }).autoAspect).toBe(false);
+    expect(createCamera({ aspect: 16 / 9, autoAspect: true }).autoAspect).toBe(
+      true,
     );
   });
 

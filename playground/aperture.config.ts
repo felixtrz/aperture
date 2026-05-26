@@ -1,0 +1,74 @@
+import {
+  asset,
+  defineApertureConfig,
+  signal,
+} from "@aperture-engine/app/config";
+import { TOTAL_GEMS } from "./src/level";
+
+export default defineApertureConfig({
+  mode: "browser",
+  canvas: "#aperture",
+  systems: ["src/systems/**/*.system.ts"],
+  assets: {
+    hero: asset.gltf("/assets/kenney/character-ooli.glb", {
+      preload: "blocking",
+    }),
+    block: asset.gltf("/assets/kenney/block-grass.glb", {
+      preload: "blocking",
+    }),
+    blockLong: asset.gltf("/assets/kenney/block-grass-long.glb", {
+      preload: "blocking",
+    }),
+    platform: asset.gltf("/assets/kenney/platform.glb", {
+      preload: "blocking",
+    }),
+    coin: asset.gltf("/assets/kenney/coin-gold.glb", {
+      preload: "blocking",
+    }),
+    jewel: asset.gltf("/assets/kenney/jewel.glb", {
+      preload: "blocking",
+    }),
+    tree: asset.gltf("/assets/kenney/tree-pine.glb", {
+      preload: "blocking",
+    }),
+    crate: asset.gltf("/assets/kenney/crate.glb", {
+      preload: "blocking",
+    }),
+    flag: asset.gltf("/assets/kenney/flag.glb", {
+      preload: "blocking",
+    }),
+    spikes: asset.gltf("/assets/kenney/trap-spikes.glb", {
+      preload: "blocking",
+    }),
+    heart: asset.gltf("/assets/kenney/heart.glb", {
+      preload: "blocking",
+    }),
+  },
+  signals: {
+    gems: signal.number(0),
+    totalGems: signal.number(TOTAL_GEMS),
+    runState: signal.string("run"),
+    time: signal.number(0),
+    playerX: signal.number(0),
+  },
+  input: {
+    actions: {
+      moveLeft: [{ keyboard: "ArrowLeft" }, { keyboard: "KeyA" }],
+      moveRight: [{ keyboard: "ArrowRight" }, { keyboard: "KeyD" }],
+      jump: [
+        { keyboard: "Space" },
+        { keyboard: "ArrowUp" },
+        { keyboard: "KeyW" },
+      ],
+      reset: [{ keyboard: "KeyR" }],
+    },
+  },
+  render: {
+    clearColor: [0.55, 0.76, 0.92, 1],
+    defaultCamera: false,
+    defaultLight: false,
+  },
+  diagnostics: {
+    level: "warn",
+  },
+});

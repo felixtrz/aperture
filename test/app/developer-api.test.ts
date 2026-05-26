@@ -23,6 +23,7 @@ import {
   APERTURE_ENTITY_GET_COMMAND_CHANNEL,
   APERTURE_ENTITY_SET_COMPONENT_COMMAND_CHANNEL,
   APERTURE_ENTITY_SNAPSHOT_COMMAND_CHANNEL,
+  APERTURE_VIEWPORT_RESIZE_COMMAND_CHANNEL,
   createGeneratedCommandMessage,
 } from "@aperture-engine/app/commands";
 import { startGeneratedSimulationWorker } from "@aperture-engine/app/worker";
@@ -125,6 +126,7 @@ describe("developer-facing app API", () => {
       lastFailure: null,
       lastWorkerSummary: null,
       diagnostics: null,
+      canvas: null,
     } satisfies GeneratedBrowserAppStatus;
     const scope = { [APERTURE_GENERATED_STATUS_GLOBAL]: status };
 
@@ -421,6 +423,65 @@ describe("developer-facing app API", () => {
     });
     expect(JSON.stringify(entityTools)).not.toMatch(
       /navigator\.gpu|HTMLCanvasElement|createWebGpuApp/,
+    );
+  });
+
+  it("applies generated viewport resize commands before the first camera snapshot", async () => {
+    const port = new InlineGeneratedWorkerPort();
+    const SetupSystemModule: ApertureSystemModule = {
+      default: class ViewportResizeSetupSystem extends createSystem({
+        priority: 0,
+      }) {
+        override init(): void {
+          this.spawn.camera({
+            key: "camera.main",
+            name: "main-camera",
+          });
+        }
+      },
+    };
+
+    startGeneratedSimulationWorker({
+      config: defineApertureConfig({ mode: "headless", systems: [] }),
+      systems: [SetupSystemModule],
+      port,
+    });
+    port.dispatch(
+      createGeneratedCommandMessage({
+        channel: APERTURE_VIEWPORT_RESIZE_COMMAND_CHANNEL,
+        payload: {
+          width: 1600,
+          height: 800,
+          displayWidth: 800,
+          displayHeight: 400,
+          pixelRatio: 2,
+          aspect: 2,
+        },
+      }),
+    );
+    port.dispatch({ type: SIMULATION_WORKER_PROTOCOL.start, stop: true });
+
+    const snapshotMessage = await port.nextPostedMessage(
+      isSimulationWorkerSnapshotMessage,
+    );
+    const snapshot = (
+      snapshotMessage as {
+        readonly snapshot: {
+          readonly views: readonly {
+            readonly projectionMatrixOffset: number;
+          }[];
+          readonly viewMatrices: Float32Array;
+        };
+      }
+    ).snapshot;
+    const projectionOffset = snapshot.views[0]?.projectionMatrixOffset ?? -1;
+    const expectedHorizontalScale = 1 / Math.tan(Math.PI / 6) / 2;
+
+    expect(snapshot.views).toHaveLength(1);
+    expect(projectionOffset).toBeGreaterThanOrEqual(0);
+    expect(snapshot.viewMatrices[projectionOffset]).toBeCloseTo(
+      expectedHorizontalScale,
+      5,
     );
   });
 

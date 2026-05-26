@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aperture Playground</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        background: #0c1116;
+        color: #f6fbff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        overflow: hidden;
+        background: #0c1116;
+      }
+
+      #aperture {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        background: #8bc2eb;
+      }
+
+      .hud {
+        position: fixed;
+        top: 14px;
+        left: 14px;
+        right: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        pointer-events: none;
+      }
+
+      .hud__group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        padding: 9px 12px;
+        border: 1px solid rgb(255 255 255 / 28%);
+        border-radius: 8px;
+        background: rgb(9 18 26 / 62%);
+        box-shadow: 0 10px 28px rgb(0 0 0 / 18%);
+        backdrop-filter: blur(12px);
+      }
+
+      .hud__title {
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 750;
+        letter-spacing: 0;
+        white-space: nowrap;
+      }
+
+      .hud__metric {
+        color: #eaf6ff;
+        font-size: 13px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      .hud__state {
+        max-width: 32vw;
+        overflow: hidden;
+        color: #9df2b1;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .controls {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        display: grid;
+        grid-template-columns: repeat(4, 48px);
+        gap: 10px;
+      }
+
+      .controls button {
+        width: 48px;
+        height: 48px;
+        border: 1px solid rgb(255 255 255 / 28%);
+        border-radius: 8px;
+        background: rgb(9 18 26 / 60%);
+        color: #ffffff;
+        font:
+          700 18px/1 system-ui,
+          sans-serif;
+        cursor: pointer;
+        touch-action: none;
+        backdrop-filter: blur(12px);
+      }
+
+      .controls button:active {
+        transform: translateY(1px);
+        background: rgb(39 114 82 / 74%);
+      }
+
+      @media (max-width: 720px) {
+        .hud {
+          align-items: flex-start;
+        }
+
+        .hud__group {
+          padding: 8px 10px;
+        }
+
+        .hud__title,
+        .hud__metric {
+          font-size: 12px;
+        }
+
+        .controls {
+          left: 14px;
+          right: 14px;
+          grid-template-columns: repeat(4, minmax(44px, 1fr));
+        }
+
+        .controls button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="aperture"></canvas>
+    <div class="hud" aria-live="polite">
+      <div class="hud__group">
+        <span class="hud__title">Skyline Run</span>
+      </div>
+      <div class="hud__group">
+        <span class="hud__metric">Gems</span>
+        <span class="hud__metric" id="gems">0</span>
+        <span class="hud__metric">/</span>
+        <span class="hud__metric" id="total-gems">0</span>
+      </div>
+      <div class="hud__group">
+        <span class="hud__metric" id="run-time">0.0</span>
+        <span class="hud__metric" id="run-state">Run</span>
+      </div>
+    </div>
+    <div class="controls" aria-label="Game controls">
+      <button type="button" data-key="ArrowLeft" aria-label="Left">
+        &larr;
+      </button>
+      <button type="button" data-key="Space" aria-label="Jump">&uarr;</button>
+      <button type="button" data-key="ArrowRight" aria-label="Right">
+        &rarr;
+      </button>
+      <button type="button" data-key="KeyR" aria-label="Reset">R</button>
+    </div>
+    <script type="module" src="/src/hud.ts"></script>
+  </body>
+</html>
