@@ -1,5 +1,38 @@
 # Completed Tasks
 
+## task-3199 — Add a mixed current-texture plus MSAA viewport-cropped off-screen target route
+
+Completed: 2026-05-26
+
+### Summary
+
+- Added `examples/mixed-msaa-target-crop.html` to the render-to-texture route
+  family and linked it from related example pages.
+- `examples/render-to-texture.main.js` now recognizes the mixed MSAA target
+  crop route, creates an MSAA-enabled app, extracts one current-texture camera
+  plus one off-screen camera targeting a renderer-owned
+  `ViewPacket.renderTarget` handle with a non-full viewport/scissor rectangle,
+  resolves the cropped off-screen target texture into the visible preview, and
+  reports current/off-screen classifications, crop rectangle and target-space
+  pixels, target key, dimensions, draw count, requested/resolved sample count,
+  per-pass MSAA sample count, resolve attachment behavior, display samples, and
+  current-texture readback.
+- Added Playwright coverage proving the current-texture sample, inside-crop
+  preview, outside-clear region, and screen clear region are non-conflicting.
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `pnpm exec eslint examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA target crop" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA target crop|MSAA render-target viewport crop|mixed MSAA resize|mixed MSAA same render-target clear/load" --reporter=list`
+- Browser route check: `examples/mixed-msaa-target-crop.html` published
+  `ok: true`, two MSAA target submissions, current/off-screen target
+  classifications, target-space crop pixels, requested 8/effective 4 MSAA,
+  resolve attachments, current-texture readback, and distinct current,
+  inside-crop, outside-clear, and screen-clear samples.
+
 ## task-3198 — Add a mixed current-texture plus MSAA same-target clear/load route
 
 Completed: 2026-05-26
