@@ -1,6 +1,57 @@
 # Agent Handoff
 
-Updated: 2026-05-26T02:36:27Z
+Updated: 2026-05-26T02:45:24Z
+
+## Current Run Update — 2026-05-26T02:45:24Z — Camera sub-view/crop route
+
+Completed `task-3172` after `task-3171`.
+
+### What changed
+
+- Added `examples/camera-sub-view-crop.html` and
+  `examples/camera-sub-view-crop.worker.js`.
+- The worker authors one ECS camera with matching normalized
+  `Camera.viewport` and `Camera.scissor` values of
+  `[0.25, 0.25, 0.5, 0.5]`, plus one render-layered unlit plane.
+- The route publishes `subViewCrop` status with the normalized crop rectangle,
+  resolved viewport/scissor pixels, full canvas size, and expected
+  inside/outside readback samples.
+- The shared multi-view main path now passes through route-level crop status
+  while continuing to report extraction, binding, render-world, draw, command,
+  per-view pass, and submission counts.
+- Added Playwright coverage proving the crop-center sample shows the authored
+  green material while top-left and bottom-right outside samples remain at the
+  camera clear color.
+
+### Validation
+
+- `pnpm exec playwright test test/e2e/camera-sub-view-crop.spec.ts --reporter=list`
+  — first run failed only because the test expected two binding plans instead
+  of the single per-view binding this one-camera route creates; after aligning
+  the assertion, 1 passed.
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs` — 7 passed.
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts test/e2e/orthographic-camera.spec.ts test/e2e/line-primitives.spec.ts test/e2e/camera-render-layers.spec.ts test/e2e/camera-priority-overlay.spec.ts test/e2e/camera-sub-view-crop.spec.ts --reporter=list`
+  — 7 passed; covers the new route plus shared-main regressions.
+- `pnpm exec eslint examples/split-screen-multi-camera.main.js examples/camera-sub-view-crop.worker.js test/e2e/camera-sub-view-crop.spec.ts test/examples/navigation.test.mjs`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run render-control:smoke-all` — visited 55 routes, including
+  `/examples/camera-sub-view-crop.html`, with zero route status failures and
+  zero warning routes.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3173`: add a camera viewport grid
+route.
 
 ## Current Run Update — 2026-05-26T02:36:27Z — Camera priority overlay route
 

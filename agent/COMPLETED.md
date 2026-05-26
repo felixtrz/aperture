@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## task-3172 — Add a camera sub-view/crop route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/camera-sub-view-crop.html` and
+  `examples/camera-sub-view-crop.worker.js`.
+- The worker authors one ECS camera with matching normalized
+  `Camera.viewport` and `Camera.scissor` values of
+  `[0.25, 0.25, 0.5, 0.5]`.
+- The route reports `subViewCrop` status with the normalized crop, resolved
+  viewport/scissor pixel rectangle, and expected inside/outside readback
+  samples.
+- The shared multi-view main route publishes that crop status while still
+  reporting extraction, binding, render-world, draw, command, per-view pass,
+  and submission counts.
+- Playwright verifies the crop-center sample shows the authored green material
+  while top-left and bottom-right outside samples remain at the camera clear
+  color.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/camera-sub-view-crop.spec.ts --reporter=list`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts test/e2e/orthographic-camera.spec.ts test/e2e/line-primitives.spec.ts test/e2e/camera-render-layers.spec.ts test/e2e/camera-priority-overlay.spec.ts test/e2e/camera-sub-view-crop.spec.ts --reporter=list`
+- `pnpm exec eslint examples/split-screen-multi-camera.main.js examples/camera-sub-view-crop.worker.js test/e2e/camera-sub-view-crop.spec.ts test/examples/navigation.test.mjs`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run render-control:smoke-all`
+
 ## task-3171 — Add a camera priority overlay route
 
 Completed: 2026-05-26

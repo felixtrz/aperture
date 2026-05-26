@@ -2,21 +2,25 @@
 
 No active task is currently checked out.
 
-Status: task-3171 camera priority overlay route completed.
+Status: task-3172 camera sub-view/crop route completed.
 
 Key findings:
 
-- Added `examples/camera-priority-overlay.html` and
-  `examples/camera-priority-overlay.worker.js`.
-- The worker authors two full-canvas ECS cameras sorted by priority: a base
-  camera that draws a large layer and a higher-priority overlay camera that
-  draws a smaller layer into the same target.
-- The shared multi-view main path now reports ordered `cameraPassOrder`,
-  per-view priority, and clear behavior (`target-cleared-before-view` for the
-  first pass, `load-existing-target` for later passes).
-- Playwright verifies the base-only sample remains visible while the center
-  sample shows the higher-priority overlay.
+- Added `examples/camera-sub-view-crop.html` and
+  `examples/camera-sub-view-crop.worker.js`.
+- The worker authors one ECS camera with matching normalized
+  `Camera.viewport` and `Camera.scissor` values of
+  `[0.25, 0.25, 0.5, 0.5]`.
+- The shared multi-view main path now passes through route-level
+  `subViewCrop` status so the resolved viewport/scissor pixel rectangle and
+  expected readback samples are visible in browser status.
+- Playwright verifies the crop-center sample renders the authored green
+  material while top-left and bottom-right outside samples remain at the
+  camera clear color.
+- The all-route render-control smoke visited 55 routes, including
+  `/examples/camera-sub-view-crop.html`, with zero route status failures and
+  zero warning routes.
 
 Recommended next task:
 
-- `task-3172` — add a camera sub-view/crop route.
+- `task-3173` — add a camera viewport grid route.

@@ -370,6 +370,9 @@ async function renderSplitScreenScene(
     ...(scene.priorityOverlay === undefined
       ? {}
       : { priorityOverlay: scene.priorityOverlay }),
+    ...(scene.subViewCrop === undefined
+      ? {}
+      : { subViewCrop: scene.subViewCrop }),
     ...(scene.proof === undefined ? {} : { proof: scene.proof }),
     diagnostics: framePlanDiagnostics,
     diagnosticCounts: diagnosticCounts({
@@ -876,6 +879,15 @@ function routeConfigForPath(pathname) {
       label: "The camera priority overlay route",
       workerUrl: "/worker-modules/examples/camera-priority-overlay.worker.js",
       workerName: "aperture-camera-priority-overlay-simulation",
+    };
+  }
+
+  if (pathname.endsWith("/camera-sub-view-crop.html")) {
+    return {
+      example: "camera-sub-view-crop",
+      label: "The camera sub-view crop route",
+      workerUrl: "/worker-modules/examples/camera-sub-view-crop.worker.js",
+      workerName: "aperture-camera-sub-view-crop-simulation",
     };
   }
 

@@ -68,6 +68,13 @@ const examplePages = [
     exampleName: "camera priority overlay",
   },
   {
+    file: "examples/camera-sub-view-crop.html",
+    script: "./split-screen-multi-camera.main.js",
+    title: "Aperture Camera Sub-View Crop",
+    canvasLabel: "Aperture WebGPU camera sub-view crop canvas",
+    exampleName: "camera sub-view crop",
+  },
+  {
     file: "examples/spinning-cube.html",
     script: "./spinning-cube.main.js",
     title: "Aperture ECS Spinning Cube",
@@ -84,6 +91,7 @@ const expectedHrefs = [
   'href="/examples/line-primitives.html"',
   'href="/examples/camera-render-layers.html"',
   'href="/examples/camera-priority-overlay.html"',
+  'href="/examples/camera-sub-view-crop.html"',
   'href="/examples/spinning-cube.html"',
 ];
 const readbackHelperImport = 'from "./webgpu-readback.js"';

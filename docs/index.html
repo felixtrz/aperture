@@ -393,12 +393,18 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 02:36 UTC</dd>
+            <dd>2026-05-26 02:45 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/camera-sub-view-crop.html</code> now proves one
+              ECS camera rendering through a normalized viewport/scissor crop.
+              The route reports the crop rectangle, resolved viewport/scissor
+              pixels, and expected inside/outside samples, then Playwright
+              verifies the crop-center material while top-left and bottom-right
+              outside samples remain clear. Previous update:
               <code>examples/camera-priority-overlay.html</code> now proves
               two full-canvas ECS cameras submitted in priority order into the
               same target. The route reports ordered camera pass sequence and
@@ -2160,11 +2166,13 @@
               Per-camera frustum planes now skip outside-view mesh draws during
               extraction and publish per-view <code>cullStats</code>. ECS
               multi-camera viewport/scissor extraction is now browser-proven by
-              the split-screen and orthographic routes with simultaneous camera
-              views. ECS-authored <code>line-list</code> mesh assets now extract
-              through the normal mesh-draw path and render through the unlit
-              WebGPU pipeline. ECS <code>OcclusionQuery</code> now extracts an
-              opt-in mesh-draw flag for renderer-owned GPU visibility feedback.
+              the split-screen, orthographic, and camera sub-view crop routes,
+              including a cropped viewport/scissor proof with clear outside
+              samples. ECS-authored <code>line-list</code> mesh assets now
+              extract through the normal mesh-draw path and render through the
+              unlit WebGPU pipeline. ECS <code>OcclusionQuery</code> now
+              extracts an opt-in mesh-draw flag for renderer-owned GPU
+              visibility feedback.
               ECS <code>Fog</code> components now extract snapshot fog packets
               for linear, exponential, and exponential-squared view fog.
               Snapshot change sets now carry stable packet keys and produce
@@ -2177,8 +2185,8 @@
                 culling and occlusion-feedback skip decisions.
               </li>
               <li>
-                Missing camera render-target preview coverage beyond current
-                multi-view viewport/scissor proof.
+                Missing broader public camera sub-view helper ergonomics beyond
+                the current explicit viewport/scissor authoring proof.
               </li>
             </ul>
           </article>
@@ -2677,6 +2685,13 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3172</span> Added
+                <code>examples/camera-sub-view-crop.html</code>. The shared
+                multi-view route now reports normalized viewport/scissor crop
+                metadata and resolved crop pixels, and Playwright proves the
+                crop-center material while outside-crop samples remain clear.
+              </li>
               <li>
                 <span class="badge green">task-3171</span> Added
                 <code>examples/camera-priority-overlay.html</code>. The shared
@@ -5309,8 +5324,21 @@
                 and base-plus-overlay Playwright proof.
               </li>
               <li>
-                <span class="badge">task-3172</span> Next: add a camera
-                sub-view/crop route.
+                <span class="badge green">task-3172</span> Done: add a camera
+                sub-view/crop route with normalized viewport/scissor crop
+                status and inside/outside Playwright readback proof.
+              </li>
+              <li>
+                <span class="badge">task-3173</span> Next: add a camera
+                viewport grid route.
+              </li>
+              <li>
+                <span class="badge">task-3174</span> Then: add a render-target
+                resize preview route.
+              </li>
+              <li>
+                <span class="badge">task-3175</span> Then: add a camera
+                clear/load behavior matrix route.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5329,6 +5357,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3172</div>
+            <div>
+              <strong>Camera sub-view/crop route shipped.</strong>
+              <span>
+                <code>examples/camera-sub-view-crop.html</code> renders one ECS
+                camera through a normalized viewport/scissor crop, reports the
+                resolved crop pixels and expected readback samples, and proves
+                the crop-center material while outside-crop samples remain
+                clear.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3171</div>
             <div>

@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "b9414f9a",
   "activePid": null,
-  "notes": "Completed task-3171 camera priority overlay route after task-3170: added examples/camera-priority-overlay.html and worker, reports ordered camera pass sequence and clear/load behavior in the shared multi-view path, and proves the higher-priority overlay appears while the lower-priority base remains visible. Focused route Playwright, check:examples, navigation tests, shared multi-view Playwright regression set, touched-file ESLint, build, test typecheck, check:progress, and render-control smoke-all pass.",
-  "lastRunFinishedAt": "2026-05-26T02:36:27Z"
+  "notes": "Completed task-3172 camera sub-view/crop route after task-3171: added examples/camera-sub-view-crop.html and worker, reports normalized viewport/scissor crop mapping and resolved crop pixels in the shared multi-view path, and proves the crop-center material appears while outside-crop samples remain clear. Focused route Playwright, check:examples, navigation tests, shared multi-view Playwright regression set, touched-file ESLint, build, test typecheck, and render-control smoke-all pass.",
+  "lastRunFinishedAt": "2026-05-26T02:45:24Z"
 }

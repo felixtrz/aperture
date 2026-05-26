@@ -59,23 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3171` is complete: `examples/camera-priority-overlay.html` now proves two
-full-canvas ECS cameras submitted in priority order into the same target,
-reports ordered camera pass and clear/load behavior, and verifies the
-higher-priority overlay appears while the lower-priority base remains visible.
-Continue the post-SOTA visible-feature queue at `task-3172`: add a camera
-sub-view/crop route.
+`task-3172` is complete: `examples/camera-sub-view-crop.html` now proves one
+ECS camera can render through a normalized viewport/scissor crop, reports the
+resolved crop rectangle and expected inside/outside samples, and verifies the
+crop-center material appears while outside-crop samples remain clear. Continue
+the post-SOTA visible-feature queue at `task-3173`: add a camera viewport grid
+route.
 
 The next ready visible-feature queue is:
 
-- `task-3172` — add a camera sub-view/crop route.
-  Reference anchor: `references/bevy/examples/3d/camera_sub_view.rs`,
-  `references/three.js/manual/examples/cameras-perspective-2-scenes.html`.
-  Done when a browser route renders one ECS camera through a cropped sub-view
-  or equivalent projection/viewport crop, reports the crop/projection mapping
-  and skipped outside-region samples, and Playwright verifies the visible
-  object moves/scales according to the cropped camera view without changing ECS
-  mesh authoring.
 - `task-3173` — add a camera viewport grid route.
   Reference anchor: `references/three.js/examples/webgpu_camera_array.html`,
   `references/bevy/examples/stress_tests/many_cameras_lights.rs`.
@@ -91,6 +83,13 @@ The next ready visible-feature queue is:
   a canvas/device-pixel-ratio change, reports old/new target dimensions and
   resource reuse/disposal status, and Playwright verifies the displayed preview
   remains non-clear after resize without stale-size readback failures.
+- `task-3175` — add a camera clear/load behavior matrix route.
+  Reference anchor: `references/bevy/examples/ui/ui_target_camera.rs`,
+  `references/engine/src/extras/render-passes/camera-frame.js`.
+  Done when a browser route renders three ECS cameras with explicit clear/load
+  behavior over one target, reports the clear source/order/load behavior for
+  each pass, and Playwright verifies clear-only, base-preserved, and overlay
+  regions.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.
