@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "43b17c60",
+  "lastCommit": "2644eb69",
   "activePid": null,
-  "notes": "Completed task-3183: added mixed current-texture plus two off-screen render-target route, expanded render-to-texture status and Playwright coverage for all three target families, updated trackers/backlog/handoff, and validated focused specs, build, typecheck, progress, navigation, check:examples, lint, and all-route render-control smoke.",
-  "lastRunFinishedAt": "2026-05-26T05:58:08Z"
+  "notes": "Completed task-3184: added dual-size off-screen render-target preview route, reported aspect-preserving preview mapping for square and wide targets, expanded render-to-texture Playwright coverage, updated trackers/backlog/handoff, and validated focused specs, build, typecheck, progress, navigation, check:examples, lint, and all-route render-control smoke.",
+  "lastRunFinishedAt": "2026-05-26T06:05:52Z"
 }
