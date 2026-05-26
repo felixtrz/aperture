@@ -379,6 +379,9 @@ async function renderSplitScreenScene(
     ...(scene.clearLoadMatrix === undefined
       ? {}
       : { clearLoadMatrix: scene.clearLoadMatrix }),
+    ...(scene.pictureInPicture === undefined
+      ? {}
+      : { pictureInPicture: scene.pictureInPicture }),
     ...(scene.proof === undefined ? {} : { proof: scene.proof }),
     diagnostics: framePlanDiagnostics,
     diagnosticCounts: diagnosticCounts({
@@ -918,6 +921,15 @@ function routeConfigForPath(pathname) {
       label: "The camera clear/load matrix route",
       workerUrl: "/worker-modules/examples/camera-clear-load-matrix.worker.js",
       workerName: "aperture-camera-clear-load-matrix-simulation",
+    };
+  }
+
+  if (pathname.endsWith("/camera-picture-in-picture.html")) {
+    return {
+      example: "camera-picture-in-picture",
+      label: "The camera picture-in-picture route",
+      workerUrl: "/worker-modules/examples/camera-picture-in-picture.worker.js",
+      workerName: "aperture-camera-picture-in-picture-simulation",
     };
   }
 

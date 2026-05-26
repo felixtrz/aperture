@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## task-3176 — Add a picture-in-picture camera inset route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/camera-picture-in-picture.html` and
+  `examples/camera-picture-in-picture.worker.js`.
+- The worker authors two ECS cameras over the same target: a full-canvas base
+  camera and a higher-priority inset camera with a normalized viewport/scissor
+  rectangle.
+- The shared multi-view main path now publishes `pictureInPicture` status while
+  continuing to report per-view viewport/scissor pixels, pass order,
+  clear/load behavior, command counts, and included/skipped layer-filtered
+  draws.
+- The route uses render layers so each camera draws only its intended material
+  from one extracted ECS snapshot.
+- Playwright verifies base pixels remain visible outside the inset while the
+  inset center shows a distinct material.
+
+Validation:
+
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm exec eslint examples/split-screen-multi-camera.main.js examples/camera-picture-in-picture.worker.js test/e2e/camera-picture-in-picture.spec.ts test/examples/navigation.test.mjs`
+- `pnpm exec playwright test test/e2e/camera-picture-in-picture.spec.ts --reporter=list`
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts test/e2e/orthographic-camera.spec.ts test/e2e/line-primitives.spec.ts test/e2e/camera-render-layers.spec.ts test/e2e/camera-priority-overlay.spec.ts test/e2e/camera-sub-view-crop.spec.ts test/e2e/camera-viewport-grid.spec.ts test/e2e/camera-clear-load-matrix.spec.ts test/e2e/camera-picture-in-picture.spec.ts --reporter=list`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm run render-control:smoke-all`
+
 ## task-3175 — Add a camera clear/load behavior matrix route
 
 Completed: 2026-05-26

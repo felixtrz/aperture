@@ -2,25 +2,22 @@
 
 No active task is currently checked out.
 
-Status: task-3175 camera clear/load behavior matrix route completed.
+Status: task-3176 picture-in-picture camera inset route completed.
 
 Key findings:
 
-- Added `examples/camera-clear-load-matrix.html` and
-  `examples/camera-clear-load-matrix.worker.js`.
-- The worker authors three full-canvas ECS cameras over one target: an
-  intentional zero-draw clear pass, a base pass, and an overlay pass.
-- The shared multi-view main path now allows intentional expected-zero-draw
-  views by suppressing only the `renderWorld.empty` diagnostic for those views.
-- Status reports `clearLoadMatrix` with pass roles, priorities, layer masks,
-  expected draw counts, clear/load behavior, material keys, and sample ids.
-- Playwright verifies the clear-only sample stays at clear color, the
-  base-preserved sample remains red, and the overlay sample is blue.
-- The all-route render-control smoke was attempted after this slice but did
-  not complete cleanly: one run timed out on `/examples/taa.html`, and a rerun
-  hung until the validation process was killed. Focused Playwright and static
-  validation for this slice passed.
+- Added `examples/camera-picture-in-picture.html` and
+  `examples/camera-picture-in-picture.worker.js`.
+- The worker authors a full-canvas base ECS camera plus a higher-priority inset
+  ECS camera over the same target, with binary-exact normalized inset
+  viewport/scissor values.
+- The shared multi-view main path now publishes route-level
+  `pictureInPicture` status while reporting pass order, clear/load behavior,
+  per-view viewport/scissor pixels, and layer-filtered included/skipped draws.
+- Playwright verifies the base remains visible outside the inset while the
+  inset center shows a distinct material color.
+- Focused and shared multi-camera browser coverage passed for this slice.
 
 Recommended next task:
 
-- `task-3176` — add a picture-in-picture camera inset route.
+- `task-3177` — add a render-target reuse stress preview route.

@@ -59,23 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3175` is complete: `examples/camera-clear-load-matrix.html` now proves a
-three-camera same-target clear/load sequence with an intentional zero-draw
-clear pass, a base pass, and an overlay pass, reports pass roles and
-clear/load behavior, and verifies clear-only, base-preserved, and overlay
-regions. Continue the post-SOTA visible-feature queue at `task-3176`: add a
-picture-in-picture camera inset route.
+`task-3176` is complete: `examples/camera-picture-in-picture.html` now proves a
+full-canvas base camera plus a small inset camera over the same target, reports
+inset viewport/scissor pixels, per-view layer filtering, pass order, and
+clear/load behavior, and verifies preserved base plus distinct inset samples.
+Continue the post-SOTA visible-feature queue at `task-3177`: add a
+render-target reuse stress preview route.
 
 The next ready visible-feature queue is:
 
-- `task-3176` — add a picture-in-picture camera inset route.
-  Reference anchor: `references/bevy/examples/ui/ui_target_camera.rs`,
-  `references/three.js/examples/webgpu_camera_array.html`.
-  Done when a browser route renders a full-canvas base camera plus a small
-  inset camera viewport over the same target, reports inset viewport/scissor
-  pixels and clear/load behavior, and Playwright verifies base pixels remain
-  visible around the inset while the inset shows distinct layer/material
-  evidence.
 - `task-3177` — add a render-target reuse stress preview route.
   Reference anchor:
   `references/engine/examples/src/examples/graphics/render-to-texture.example.mjs`,
@@ -92,6 +84,14 @@ The next ready visible-feature queue is:
   viewport/scissor rectangles for the same ECS camera handle, reports old/new
   resolved viewport pixels and pass order, and Playwright verifies the updated
   sample positions move without changing mesh authoring.
+- `task-3179` — add a mixed canvas plus off-screen camera target route.
+  Reference anchor: `references/bevy/examples/3d/render_to_texture.rs`,
+  `references/engine/src/extras/render-passes/camera-frame.js`.
+  Done when a browser route extracts one current-texture camera and one
+  `ViewPacket.renderTarget` camera from the same worker-authored world, submits
+  both targets through renderer-owned resources without making ECS own GPU
+  state, reports per-target pass order and target keys, and Playwright verifies
+  the canvas and displayed off-screen preview show distinct non-clear pixels.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

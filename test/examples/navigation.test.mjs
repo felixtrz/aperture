@@ -89,6 +89,13 @@ const examplePages = [
     exampleName: "camera clear load matrix",
   },
   {
+    file: "examples/camera-picture-in-picture.html",
+    script: "./split-screen-multi-camera.main.js",
+    title: "Aperture Camera Picture In Picture",
+    canvasLabel: "Aperture WebGPU camera picture in picture canvas",
+    exampleName: "camera picture in picture",
+  },
+  {
     file: "examples/spinning-cube.html",
     script: "./spinning-cube.main.js",
     title: "Aperture ECS Spinning Cube",
@@ -108,6 +115,7 @@ const expectedHrefs = [
   'href="/examples/camera-sub-view-crop.html"',
   'href="/examples/camera-viewport-grid.html"',
   'href="/examples/camera-clear-load-matrix.html"',
+  'href="/examples/camera-picture-in-picture.html"',
   'href="/examples/spinning-cube.html"',
 ];
 const readbackHelperImport = 'from "./webgpu-readback.js"';

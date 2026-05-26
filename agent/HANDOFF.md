@@ -1,6 +1,67 @@
 # Agent Handoff
 
-Updated: 2026-05-26T03:13:50Z
+Updated: 2026-05-26T04:36:01Z
+
+## Current Run Update — 2026-05-26T04:36:01Z — Camera picture-in-picture route
+
+Completed `task-3176` after `task-3175`.
+
+### What changed
+
+- Added `examples/camera-picture-in-picture.html` and
+  `examples/camera-picture-in-picture.worker.js`.
+- The worker authors two ECS cameras over one current-texture target: a
+  full-canvas base camera and a higher-priority inset camera with a normalized
+  viewport/scissor rectangle.
+- The inset route uses render-layer filtering so each camera plans one included
+  draw and one skipped draw from the same extracted ECS snapshot.
+- The shared multi-view main path now passes through route-level
+  `pictureInPicture` status while continuing to report per-view viewport and
+  scissor pixels, pass order, clear/load behavior, material keys, command
+  counts, and submission counts.
+- The inset viewport was changed to binary-exact normalized values
+  `[0.625, 0.125, 0.25, 0.25]` after the first Playwright run exposed
+  Float32 precision noise in exact viewport-array assertions.
+- Added Playwright coverage proving preserved base samples outside the inset
+  and a distinct inset-center material sample.
+
+### References inspected
+
+- `references/bevy/examples/ui/ui_target_camera.rs`
+- `references/three.js/examples/webgpu_camera_array.html`
+
+### Validation
+
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm exec eslint examples/split-screen-multi-camera.main.js examples/camera-picture-in-picture.worker.js test/e2e/camera-picture-in-picture.spec.ts test/examples/navigation.test.mjs`
+- `pnpm exec playwright test test/e2e/camera-picture-in-picture.spec.ts --reporter=list`
+  — first run failed only because exact test equality compared Float32-backed
+  extracted viewport arrays against non-binary decimals; after switching the
+  inset viewport to binary-exact normalized values, 1 passed.
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts test/e2e/orthographic-camera.spec.ts test/e2e/line-primitives.spec.ts test/e2e/camera-render-layers.spec.ts test/e2e/camera-priority-overlay.spec.ts test/e2e/camera-sub-view-crop.spec.ts test/e2e/camera-viewport-grid.spec.ts test/e2e/camera-clear-load-matrix.spec.ts test/e2e/camera-picture-in-picture.spec.ts --reporter=list`
+  — 10 passed.
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm run render-control:smoke-all` — first attempt failed with
+  `ERR_CONNECTION_REFUSED` because no example server was running; after
+  starting `pnpm run examples:serve`, the smoke visited 59 routes including
+  `/examples/camera-picture-in-picture.html`, with zero route status failures
+  and zero warning routes.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3177`: add a render-target reuse
+stress preview route.
 
 ## Current Run Update — 2026-05-26T03:13:50Z — Camera clear/load matrix route
 
