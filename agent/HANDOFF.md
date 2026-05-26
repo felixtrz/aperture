@@ -1,6 +1,80 @@
 # Agent Handoff
 
-Updated: 2026-05-26T05:04:42Z
+Updated: 2026-05-26T05:22:44Z
+
+## Current Run Update — 2026-05-26T05:22:44Z — Multiple render targets route
+
+Completed `task-3180` after `task-3179`.
+
+### What changed
+
+- Added `examples/multi-render-targets.html` to the render-to-texture route
+  family.
+- `examples/render-to-texture-assets.js` now defines a second stable
+  render-target handle plus left/right display readback sample points.
+- `examples/render-to-texture.worker.js` now supports a multi-target mode with
+  two ECS cameras from one worker-authored world. Both cameras target distinct
+  off-screen `ViewPacket.renderTarget` handles and use layer masks to draw
+  distinct materials.
+- `examples/render-to-texture.main.js` registers both renderer-owned off-screen
+  targets, submits both extracted views through `createWebGpuApp()`, and uses a
+  single follow-up display pass to draw both target textures side by side on the
+  canvas.
+- Status now includes `multiRenderTargets` with per-target dimensions, keys,
+  draw counts, pass order, view target classification, display quads, sample
+  ids, and material/color expectations.
+- Added Playwright coverage proving both displayed off-screen previews are
+  non-clear and visually distinct.
+- Updated example navigation, public tracker pages, `agent/BACKLOG.md`,
+  `agent/CURRENT_TASK.md`, and `agent/COMPLETED.md`.
+
+### References inspected
+
+- `references/engine/examples/src/examples/graphics/multi-render-targets.example.mjs`
+- `references/three.js/examples/webgpu_multiple_rendertargets.html`
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `node --check examples/render-to-texture-assets.js`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js examples/render-to-texture-assets.js test/e2e/render-to-texture.spec.ts`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --reporter=list`
+  — 5 passed, including `/examples/multi-render-targets.html`.
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "multiple render targets route" --reporter=list`
+  — 1 passed after the final status-payload scoping change.
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "render-target reuse route" --reporter=list`
+  — 1 passed after a later full-suite rerun stopped producing output before
+  that existing reuse test completed.
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec vitest run test/examples/navigation.test.mjs` — 7 passed.
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run render-control:smoke-all` — after starting
+  `pnpm run examples:serve`, the smoke visited 63 routes including
+  `/examples/multi-render-targets.html`, with zero route status failures and
+  zero warning routes. The examples server was stopped afterward.
+- Attempted in-app Browser verification, but the Browser connector reported no
+  available `iab` browser in this session.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- A later full `test/e2e/render-to-texture.spec.ts` rerun twice reached the
+  first four tests, including the new multi-target route, and then stopped
+  producing output before the existing render-target reuse test completed. The
+  reuse test passed when isolated, and the earlier full focused suite plus the
+  all-route smoke both passed the reuse route.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3181`: add an off-screen
+render-target viewport crop route.
 
 ## Current Run Update — 2026-05-26T05:04:42Z — Mixed camera targets route
 

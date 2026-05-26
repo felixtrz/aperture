@@ -44,6 +44,7 @@ async function handleMessage(data) {
         data.canvas ?? { width: 960, height: 540 },
         data.reuseStress === true,
         data.mixedTargets === true,
+        data.multiRenderTargets === true,
       );
       self.postMessage({
         type: "ready",
@@ -52,7 +53,15 @@ async function handleMessage(data) {
           materialKey: aperture.assetHandleKey(scene.material),
           canvasMaterialKey: aperture.assetHandleKey(scene.canvasMaterial),
           renderTargetKey: aperture.assetHandleKey(scene.renderTarget),
+          ...(scene.multiRenderTargets
+            ? {
+                secondaryRenderTargetKey: aperture.assetHandleKey(
+                  scene.secondaryRenderTarget,
+                ),
+              }
+            : {}),
           mixedTargets: scene.mixedTargets,
+          multiRenderTargets: scene.multiRenderTargets,
         },
       });
       return;
@@ -83,7 +92,13 @@ function loadAperture() {
   return apertureModulePromise;
 }
 
-function createWorkerScene(aperture, canvasSize, reuseStress, mixedTargets) {
+function createWorkerScene(
+  aperture,
+  canvasSize,
+  reuseStress,
+  mixedTargets,
+  multiRenderTargets,
+) {
   const app = aperture.createExtractionApp({
     worldOptions: { entityCapacity: 8 },
   });
@@ -121,6 +136,21 @@ function createWorkerScene(aperture, canvasSize, reuseStress, mixedTargets) {
     );
   }
 
+  if (multiRenderTargets) {
+    app.spawn(
+      aperture.withTransform({ translation: [0, 0, 3] }),
+      aperture.withCamera({
+        aspect: 1,
+        near: 0.1,
+        far: 100,
+        priority: 1,
+        layerMask: 2,
+        clearColor: offscreenClearColor,
+        renderTargetId: aperture.assetHandleKey(assets.secondaryRenderTarget),
+      }),
+    );
+  }
+
   const meshEntity = app.spawn(
     aperture.withTransform(),
     aperture.withMesh(assets.mesh),
@@ -128,7 +158,7 @@ function createWorkerScene(aperture, canvasSize, reuseStress, mixedTargets) {
     aperture.withRenderLayer(1),
     aperture.withVisibility(true),
   );
-  const canvasMeshEntity = mixedTargets
+  const canvasMeshEntity = mixedTargets || multiRenderTargets
     ? app.spawn(
         aperture.withTransform(),
         aperture.withMesh(assets.mesh),
@@ -144,11 +174,13 @@ function createWorkerScene(aperture, canvasSize, reuseStress, mixedTargets) {
     material: assets.material,
     canvasMaterial: assets.canvasMaterial,
     renderTarget: assets.renderTarget,
+    secondaryRenderTarget: assets.secondaryRenderTarget,
     canvas: canvasSize,
     meshEntity,
     canvasMeshEntity,
     reuseStress,
     mixedTargets,
+    multiRenderTargets,
     localTransformComponent: aperture.LocalTransform,
   };
 }
@@ -172,12 +204,16 @@ function createSnapshotMessage(workerScene, data) {
       diagnostics: snapshot.diagnostics.length,
       frameVariant: workerScene.mixedTargets
         ? "mixed-current-and-offscreen-targets"
+        : workerScene.multiRenderTargets
+          ? "two-offscreen-render-targets"
         : workerScene.reuseStress
           ? frameVariant
           : "single-frame",
       centerExpectation:
         workerScene.mixedTargets
           ? "canvas-plane-plus-offscreen-preview"
+          : workerScene.multiRenderTargets
+            ? "two-offscreen-previews"
           : workerScene.reuseStress && frame <= 1
             ? "offscreen-clear"
             : "plane",

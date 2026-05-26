@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "313c2c39",
   "activePid": null,
-  "notes": "Completed task-3179: added mixed current-texture plus off-screen camera target route, expanded render-to-texture Playwright coverage, updated trackers/backlog/handoff, and validated focused specs, build, typecheck, progress, navigation, check:examples, lint, and all-route render-control smoke.",
-  "lastRunFinishedAt": "2026-05-26T05:04:42Z"
+  "notes": "Completed task-3180: added multiple off-screen render-target preview route, expanded render-to-texture Playwright coverage, updated trackers/backlog/handoff, and validated focused specs, build, typecheck, progress, navigation, check:examples, lint, and all-route render-control smoke.",
+  "lastRunFinishedAt": "2026-05-26T05:22:44Z"
 }

@@ -3,10 +3,12 @@ import {
   renderToTextureCanvasPlaneColor as canvasPlaneColor,
   renderToTextureCanvasSample as canvasSample,
   renderToTextureCenterSample as centerSample,
+  renderToTextureLeftPreviewSample as leftPreviewSample,
   renderToTextureOffscreenClearColor as offscreenClearColor,
   renderToTextureOffscreenSize as defaultOffscreenSize,
   renderToTexturePlaneColor as planeColor,
   renderToTexturePreviewSample as previewSample,
+  renderToTextureRightPreviewSample as rightPreviewSample,
   renderToTextureScreenClearColor as screenClearColor,
   renderToTextureScreenClearSample as screenClearSample,
   registerRenderToTextureAssets,
@@ -101,6 +103,7 @@ function createMainScene(aperture, app, sourceAssets) {
   sourceAssets.markReady(scene.renderTarget, initialTarget.asset);
 
   let offscreenTexture = initialTarget.texture;
+  let secondaryOffscreenTexture = null;
   let renderTargetResize = null;
 
   if (routeConfig.resizeTarget) {
@@ -135,10 +138,28 @@ function createMainScene(aperture, app, sourceAssets) {
     };
   }
 
+  if (routeConfig.multiRenderTargets) {
+    const secondaryTarget = createOffscreenTarget({
+      aperture,
+      device,
+      format,
+      textureUsage,
+      size: routeConfig.offscreenSize,
+      label: "aperture-render-to-texture-target/secondary",
+    });
+
+    sourceAssets.register(scene.secondaryRenderTarget, {
+      label: "Secondary render-to-texture target",
+    });
+    sourceAssets.markReady(scene.secondaryRenderTarget, secondaryTarget.asset);
+    secondaryOffscreenTexture = secondaryTarget.texture;
+  }
+
   return {
     ...scene,
     format,
     offscreenTexture,
+    secondaryOffscreenTexture,
     renderTargetResize,
     textureUsage: {
       renderAttachment: true,
@@ -189,6 +210,7 @@ function startWorkerSnapshotLoop(aperture, app, scene, readbackUsage) {
     type: "init",
     reuseStress: routeConfig.reuseStress,
     mixedTargets: routeConfig.mixedTargets,
+    multiRenderTargets: routeConfig.multiRenderTargets,
     canvas: {
       width: canvas?.width ?? 960,
       height: canvas?.height ?? 540,
@@ -275,22 +297,29 @@ async function handleWorkerMessage(
     return;
   }
 
-  const screenPass = await drawRenderTargetTextureToCanvas({
-    aperture,
-    app,
-    texture: scene.offscreenTexture,
-    readbackUsage,
-    ...(routeConfig.mixedTargets
-      ? {
-          quad: mixedPreviewQuad(),
-          samples: [previewSample, screenClearSample],
-          sampleLabels: {
-            preview: previewSample.id,
-            screenClear: screenClearSample.id,
-          },
-        }
-      : {}),
-  });
+  const screenPass = routeConfig.multiRenderTargets
+    ? await drawMultipleRenderTargetTexturesToCanvas({
+        aperture,
+        app,
+        scene,
+        readbackUsage,
+      })
+    : await drawRenderTargetTextureToCanvas({
+        aperture,
+        app,
+        texture: scene.offscreenTexture,
+        readbackUsage,
+        ...(routeConfig.mixedTargets
+          ? {
+              quad: mixedPreviewQuad(),
+              samples: [previewSample, screenClearSample],
+              sampleLabels: {
+                preview: previewSample.id,
+                screenClear: screenClearSample.id,
+              },
+            }
+          : {}),
+      });
 
   publishStatus(
     screenPass.ok
@@ -350,6 +379,90 @@ async function drawRenderTargetTextureToCanvas({
     screenClear: screenClearSample.id,
   },
 }) {
+  const result = await drawRenderTargetTexturesToCanvas({
+    aperture,
+    app,
+    readbackUsage,
+    previews: [
+      {
+        id: "offscreen-preview",
+        source: "off-screen render target",
+        texture,
+        quad,
+      },
+    ],
+    samples,
+    sampleLabels,
+  });
+
+  if (!result.ok) {
+    return result;
+  }
+
+  return {
+    ...result,
+    quad: result.quads[0] ?? null,
+  };
+}
+
+async function drawMultipleRenderTargetTexturesToCanvas({
+  aperture,
+  app,
+  scene,
+  readbackUsage,
+}) {
+  if (scene.secondaryOffscreenTexture === null) {
+    return {
+      ok: false,
+      phase: "screen-pass",
+      reason: "secondary-render-target-unavailable",
+      message: "The secondary off-screen render target was not created.",
+    };
+  }
+
+  const [leftQuad, rightQuad] = multiPreviewQuads();
+
+  return drawRenderTargetTexturesToCanvas({
+    aperture,
+    app,
+    readbackUsage,
+    previews: [
+      {
+        id: "primary-offscreen-preview",
+        role: "primary",
+        source: "primary off-screen render target",
+        renderTargetKey: aperture.assetHandleKey(scene.renderTarget),
+        texture: scene.offscreenTexture,
+        quad: leftQuad,
+        sampleId: leftPreviewSample.id,
+      },
+      {
+        id: "secondary-offscreen-preview",
+        role: "secondary",
+        source: "secondary off-screen render target",
+        renderTargetKey: aperture.assetHandleKey(scene.secondaryRenderTarget),
+        texture: scene.secondaryOffscreenTexture,
+        quad: rightQuad,
+        sampleId: rightPreviewSample.id,
+      },
+    ],
+    samples: [leftPreviewSample, rightPreviewSample, screenClearSample],
+    sampleLabels: {
+      leftPreview: leftPreviewSample.id,
+      rightPreview: rightPreviewSample.id,
+      screenClear: screenClearSample.id,
+    },
+  });
+}
+
+async function drawRenderTargetTexturesToCanvas({
+  aperture,
+  app,
+  readbackUsage,
+  previews,
+  samples,
+  sampleLabels,
+}) {
   const device = app.initialization.device;
   const context = app.initialization.context;
   const format = app.initialization.format;
@@ -362,7 +475,6 @@ async function drawRenderTargetTextureToCanvas({
     return current;
   }
 
-  const textureView = texture.createView();
   const sampler = device.createSampler({
     label: "aperture-render-to-texture-sampler",
     addressModeU: "clamp-to-edge",
@@ -370,63 +482,71 @@ async function drawRenderTargetTextureToCanvas({
     magFilter: "nearest",
     minFilter: "nearest",
   });
-  const shader = device.createShaderModule({
-    label: "aperture-render-to-texture-screen-shader",
-    code: `
-      struct VertexOutput {
-        @builtin(position) position: vec4f,
-        @location(0) uv: vec2f,
-      }
+  const previewDraws = previews.map((preview) => {
+    const shader = device.createShaderModule({
+      label: `aperture-render-to-texture-screen-shader/${preview.id}`,
+      code: `
+        struct VertexOutput {
+          @builtin(position) position: vec4f,
+          @location(0) uv: vec2f,
+        }
 
-      @group(0) @binding(0) var rttSampler: sampler;
-      @group(0) @binding(1) var rttTexture: texture_2d<f32>;
+        @group(0) @binding(0) var rttSampler: sampler;
+        @group(0) @binding(1) var rttTexture: texture_2d<f32>;
 
-      @vertex
-      fn vs(@builtin(vertex_index) vertexIndex: u32) -> VertexOutput {
-        var positions = array<vec2f, 6>(
-          ${quad.positions
-            .map((position) => `vec2f(${position[0]}, ${position[1]})`)
-            .join(",\n          ")},
-        );
-        var uvs = array<vec2f, 6>(
-          vec2f(0.0, 1.0),
-          vec2f(1.0, 1.0),
-          vec2f(1.0, 0.0),
-          vec2f(0.0, 1.0),
-          vec2f(1.0, 0.0),
-          vec2f(0.0, 0.0),
-        );
+        @vertex
+        fn vs(@builtin(vertex_index) vertexIndex: u32) -> VertexOutput {
+          var positions = array<vec2f, 6>(
+            ${preview.quad.positions
+              .map((position) => `vec2f(${position[0]}, ${position[1]})`)
+              .join(",\n            ")},
+          );
+          var uvs = array<vec2f, 6>(
+            vec2f(0.0, 1.0),
+            vec2f(1.0, 1.0),
+            vec2f(1.0, 0.0),
+            vec2f(0.0, 1.0),
+            vec2f(1.0, 0.0),
+            vec2f(0.0, 0.0),
+          );
 
-        var output: VertexOutput;
-        output.position = vec4f(positions[vertexIndex], 0.0, 1.0);
-        output.uv = uvs[vertexIndex];
-        return output;
-      }
+          var output: VertexOutput;
+          output.position = vec4f(positions[vertexIndex], 0.0, 1.0);
+          output.uv = uvs[vertexIndex];
+          return output;
+        }
 
-      @fragment
-      fn fs(input: VertexOutput) -> @location(0) vec4f {
-        return textureSample(rttTexture, rttSampler, input.uv);
-      }
-    `,
-  });
-  const pipeline = device.createRenderPipeline({
-    label: "aperture-render-to-texture-screen-pipeline",
-    layout: "auto",
-    vertex: { module: shader, entryPoint: "vs" },
-    fragment: {
-      module: shader,
-      entryPoint: "fs",
-      targets: [{ format }],
-    },
-    primitive: { topology: "triangle-list" },
-  });
-  const bindGroup = device.createBindGroup({
-    label: "aperture-render-to-texture-screen-bind-group",
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: sampler },
-      { binding: 1, resource: textureView },
-    ],
+        @fragment
+        fn fs(input: VertexOutput) -> @location(0) vec4f {
+          return textureSample(rttTexture, rttSampler, input.uv);
+        }
+      `,
+    });
+    const pipeline = device.createRenderPipeline({
+      label: `aperture-render-to-texture-screen-pipeline/${preview.id}`,
+      layout: "auto",
+      vertex: { module: shader, entryPoint: "vs" },
+      fragment: {
+        module: shader,
+        entryPoint: "fs",
+        targets: [{ format }],
+      },
+      primitive: { topology: "triangle-list" },
+    });
+    const bindGroup = device.createBindGroup({
+      label: `aperture-render-to-texture-screen-bind-group/${preview.id}`,
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: sampler },
+        { binding: 1, resource: preview.texture.createView() },
+      ],
+    });
+
+    return {
+      ...preview,
+      pipeline,
+      bindGroup,
+    };
   });
   const encoder = device.createCommandEncoder({
     label: "aperture-render-to-texture-screen-encoder",
@@ -443,9 +563,12 @@ async function drawRenderTargetTextureToCanvas({
     ],
   });
 
-  pass.setPipeline(pipeline);
-  pass.setBindGroup(0, bindGroup);
-  pass.draw(6);
+  for (const preview of previewDraws) {
+    pass.setPipeline(preview.pipeline);
+    pass.setBindGroup(0, preview.bindGroup);
+    pass.draw(6);
+  }
+
   pass.end();
 
   const readbackPlan = readbackUsage.ok
@@ -469,15 +592,19 @@ async function drawRenderTargetTextureToCanvas({
     ok: true,
     phase: "screen-pass",
     format,
-    quad: {
-      source: "off-screen render target",
+    quads: previewDraws.map((preview) => ({
+      id: preview.id,
+      role: preview.role ?? "preview",
+      source: preview.source,
+      renderTargetKey: preview.renderTargetKey ?? null,
+      sampleId: preview.sampleId ?? null,
       vertexCount: 6,
-      widthNdc: quad.widthNdc,
-      heightNdc: quad.heightNdc,
-      normalizedRect: quad.normalizedRect,
-    },
+      widthNdc: preview.quad.widthNdc,
+      heightNdc: preview.quad.heightNdc,
+      normalizedRect: preview.quad.normalizedRect,
+    })),
     loadOp: current.target.loadOp,
-    drawCalls: 1,
+    drawCalls: previewDraws.length,
     samples: sampleLabels,
     readback: aperture.markReadbackClearOk?.(readback, true) ?? readback,
   };
@@ -523,6 +650,47 @@ function mixedPreviewQuad() {
       height: 0.6,
     },
   };
+}
+
+function multiPreviewQuads() {
+  return [
+    {
+      positions: [
+        [-0.82, -0.58],
+        [-0.12, -0.58],
+        [-0.12, 0.58],
+        [-0.82, -0.58],
+        [-0.12, 0.58],
+        [-0.82, 0.58],
+      ],
+      widthNdc: 0.7,
+      heightNdc: 1.16,
+      normalizedRect: {
+        x: 0.09,
+        y: 0.21,
+        width: 0.35,
+        height: 0.58,
+      },
+    },
+    {
+      positions: [
+        [0.12, -0.58],
+        [0.82, -0.58],
+        [0.82, 0.58],
+        [0.12, -0.58],
+        [0.82, 0.58],
+        [0.12, 0.58],
+      ],
+      widthNdc: 0.7,
+      heightNdc: 1.16,
+      normalizedRect: {
+        x: 0.56,
+        y: 0.21,
+        width: 0.35,
+        height: 0.58,
+      },
+    },
+  ];
 }
 
 function createStatus(
@@ -577,11 +745,29 @@ function createStatus(
           ),
         }
       : {}),
+    ...(routeConfig.multiRenderTargets
+      ? {
+          multiRenderTargets: createMultiRenderTargetsStatus(
+            aperture,
+            scene,
+            message,
+            report,
+            screenPass,
+          ),
+        }
+      : {}),
     sourceView: createSourceViewStatus(aperture, message.snapshot, scene),
     scene: {
       meshKey: aperture.assetHandleKey(scene.mesh),
       materialKey: aperture.assetHandleKey(scene.material),
       canvasMaterialKey: aperture.assetHandleKey(scene.canvasMaterial),
+      ...(routeConfig.multiRenderTargets
+        ? {
+            secondaryRenderTargetKey: aperture.assetHandleKey(
+              scene.secondaryRenderTarget,
+            ),
+          }
+        : {}),
       materialKind: "unlit",
       expectedCenterColor: rgbaToStatusColor(planeColor),
       expectedCanvasColor: rgbaToStatusColor(canvasPlaneColor),
@@ -605,6 +791,7 @@ function createStatus(
       format: screenPass.format,
       drawCalls: screenPass.drawCalls,
       quad: screenPass.quad,
+      quads: screenPass.quads,
       loadOp: screenPass.loadOp,
       samples: screenPass.samples,
     },
@@ -667,6 +854,7 @@ function routeConfigForPath(pathname) {
       resizeTarget: true,
       reuseStress: false,
       mixedTargets: false,
+      multiRenderTargets: false,
       requiredFrames: 1,
     };
   }
@@ -679,6 +867,7 @@ function routeConfigForPath(pathname) {
       resizeTarget: false,
       reuseStress: true,
       mixedTargets: false,
+      multiRenderTargets: false,
       requiredFrames: 2,
     };
   }
@@ -691,6 +880,20 @@ function routeConfigForPath(pathname) {
       resizeTarget: false,
       reuseStress: false,
       mixedTargets: true,
+      multiRenderTargets: false,
+      requiredFrames: 1,
+    };
+  }
+
+  if (pathname.endsWith("/multi-render-targets.html")) {
+    return {
+      example: "multi-render-targets",
+      initialOffscreenSize: defaultOffscreenSize,
+      offscreenSize: defaultOffscreenSize,
+      resizeTarget: false,
+      reuseStress: false,
+      mixedTargets: false,
+      multiRenderTargets: true,
       requiredFrames: 1,
     };
   }
@@ -702,6 +905,7 @@ function routeConfigForPath(pathname) {
     resizeTarget: false,
     reuseStress: false,
     mixedTargets: false,
+    multiRenderTargets: false,
     requiredFrames: 1,
   };
 }
@@ -809,6 +1013,109 @@ function createMixedCameraTargetsStatus(
         expectedColor: rgbaToStatusColor(planeColor),
       },
     },
+  };
+}
+
+function createMultiRenderTargetsStatus(
+  aperture,
+  scene,
+  message,
+  report,
+  screenPass,
+) {
+  const primaryKey = aperture.assetHandleKey(scene.renderTarget);
+  const secondaryKey = aperture.assetHandleKey(scene.secondaryRenderTarget);
+  const reportByKey = new Map(
+    (report.renderTargets ?? []).map((target) => [
+      target.renderTargetKey,
+      target,
+    ]),
+  );
+  const quadsByRole = new Map(
+    (screenPass.quads ?? []).map((quad) => [quad.role, quad]),
+  );
+  const views = (message.snapshot?.views ?? []).map((view) => {
+    const renderTargetKey = assetKeyOrNull(aperture, view.renderTarget);
+
+    return {
+      viewId: view.viewId,
+      camera: view.camera,
+      priority: view.priority,
+      layerMask: view.layerMask,
+      target: renderTargetKey === null ? "current-texture" : "offscreen",
+      renderTargetKey,
+      viewport: Array.from(view.viewport),
+      scissor: Array.from(view.scissor),
+      clearColor: rgbaToStatusColor(view.clearColor),
+    };
+  });
+
+  return {
+    mode: "two-offscreen-render-target-previews",
+    source: "ViewPacket.renderTarget",
+    renderTargets: [
+      createMultiRenderTargetStatusEntry({
+        role: "primary",
+        key: primaryKey,
+        materialKey: aperture.assetHandleKey(scene.material),
+        expectedColor: rgbaToStatusColor(planeColor),
+        sampleId: leftPreviewSample.id,
+        target: reportByKey.get(primaryKey),
+        displayQuad: quadsByRole.get("primary"),
+      }),
+      createMultiRenderTargetStatusEntry({
+        role: "secondary",
+        key: secondaryKey,
+        materialKey: aperture.assetHandleKey(scene.canvasMaterial),
+        expectedColor: rgbaToStatusColor(canvasPlaneColor),
+        sampleId: rightPreviewSample.id,
+        target: reportByKey.get(secondaryKey),
+        displayQuad: quadsByRole.get("secondary"),
+      }),
+    ],
+    views,
+    passOrder: (report.renderTargets ?? []).map((target, index) => ({
+      index,
+      viewId: target.viewId,
+      source: target.source,
+      renderTargetKey: target.renderTargetKey,
+      width: target.width,
+      height: target.height,
+      drawCalls: target.drawCalls,
+      ok: target.ok,
+    })),
+    displayPass: {
+      loadOp: screenPass.loadOp,
+      drawCalls: screenPass.drawCalls,
+      quads: screenPass.quads,
+      samples: screenPass.samples,
+    },
+  };
+}
+
+function createMultiRenderTargetStatusEntry({
+  role,
+  key,
+  materialKey,
+  expectedColor,
+  sampleId,
+  target,
+  displayQuad,
+}) {
+  return {
+    role,
+    key,
+    source: target?.source ?? "offscreen",
+    viewId: target?.viewId ?? null,
+    width: target?.width ?? routeConfig.offscreenSize,
+    height: target?.height ?? routeConfig.offscreenSize,
+    format: target?.format ?? null,
+    ok: target?.ok ?? false,
+    drawCalls: target?.drawCalls ?? 0,
+    materialKey,
+    expectedColor,
+    displaySample: sampleId,
+    displayQuad: displayQuad ?? null,
   };
 }
 

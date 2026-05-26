@@ -143,6 +143,59 @@ interface RenderToTextureStatus extends ExampleStatusBase {
       };
     };
   };
+  readonly multiRenderTargets?: {
+    readonly mode?: string;
+    readonly source?: string;
+    readonly renderTargets?: readonly {
+      readonly role?: string;
+      readonly key?: string;
+      readonly source?: string;
+      readonly viewId?: number | null;
+      readonly width?: number;
+      readonly height?: number;
+      readonly ok?: boolean;
+      readonly drawCalls?: number;
+      readonly materialKey?: string;
+      readonly displaySample?: string;
+      readonly displayQuad?: {
+        readonly role?: string;
+        readonly source?: string;
+        readonly renderTargetKey?: string | null;
+        readonly sampleId?: string | null;
+        readonly vertexCount?: number;
+        readonly widthNdc?: number;
+        readonly heightNdc?: number;
+      } | null;
+    }[];
+    readonly views?: readonly {
+      readonly viewId?: number;
+      readonly priority?: number;
+      readonly layerMask?: number;
+      readonly target?: string;
+      readonly renderTargetKey?: string | null;
+      readonly viewport?: readonly number[];
+      readonly scissor?: readonly number[];
+    }[];
+    readonly passOrder?: readonly {
+      readonly index?: number;
+      readonly viewId?: number;
+      readonly source?: string;
+      readonly renderTargetKey?: string | null;
+      readonly width?: number;
+      readonly height?: number;
+      readonly drawCalls?: number;
+      readonly ok?: boolean;
+    }[];
+    readonly displayPass?: {
+      readonly loadOp?: string;
+      readonly drawCalls?: number;
+      readonly samples?: {
+        readonly leftPreview?: string;
+        readonly rightPreview?: string;
+        readonly screenClear?: string;
+      };
+    };
+  };
   readonly sourceView?: {
     readonly ok?: boolean;
     readonly viewId?: number;
@@ -161,7 +214,9 @@ interface RenderToTextureStatus extends ExampleStatusBase {
     readonly renderTargetMatches?: boolean;
   };
   readonly scene?: {
+    readonly materialKey?: string;
     readonly canvasMaterialKey?: string;
+    readonly secondaryRenderTargetKey?: string;
     readonly materialKind?: string;
     readonly expectedCenterColor?: {
       readonly r: number;
@@ -201,8 +256,20 @@ interface RenderToTextureStatus extends ExampleStatusBase {
       readonly widthNdc?: number;
       readonly heightNdc?: number;
     };
+    readonly quads?: readonly {
+      readonly id?: string;
+      readonly role?: string;
+      readonly source?: string;
+      readonly renderTargetKey?: string | null;
+      readonly sampleId?: string | null;
+      readonly vertexCount?: number;
+      readonly widthNdc?: number;
+      readonly heightNdc?: number;
+    }[];
     readonly samples?: {
       readonly preview?: string;
+      readonly leftPreview?: string;
+      readonly rightPreview?: string;
       readonly screenClear?: string;
     };
   };
@@ -596,6 +663,274 @@ test("mixed camera targets route keeps canvas and off-screen target passes disti
     pixelDistance(canvasSample.pixel, previewSample.pixel),
     "mixed route should show distinct canvas and off-screen pixels",
   ).toBeGreaterThan(80);
+});
+
+test("multiple render targets route displays two distinct off-screen previews", async ({
+  page,
+}) => {
+  const guard = attachWebGpuValidationConsoleGuard(page);
+  const status = await loadExampleStatus<RenderToTextureStatus>(
+    page,
+    "/examples/multi-render-targets.html",
+    "multi-render-targets-status",
+  );
+
+  if (status === undefined) {
+    return;
+  }
+
+  const primaryKey = status.renderTarget?.key ?? "__missing-primary__";
+  const secondaryKey =
+    status.scene?.secondaryRenderTargetKey ?? "__missing-secondary__";
+
+  expect(primaryKey).not.toBe("__missing-primary__");
+  expect(secondaryKey).not.toBe("__missing-secondary__");
+  expect(primaryKey).not.toBe(secondaryKey);
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "multi-render-targets",
+    ok: true,
+    phase: "display",
+    renderingBackend: "webgpu-explicit",
+    renderTarget: {
+      width: 256,
+      height: 256,
+      source: "ViewPacket.renderTarget",
+      key: primaryKey,
+      textureUsage: {
+        renderAttachment: true,
+        textureBinding: true,
+        copySource: true,
+      },
+    },
+    sourceView: {
+      ok: true,
+      viewId: 0,
+      priority: 0,
+      layerMask: 1,
+      renderTargetKey: primaryKey,
+      expectedRenderTargetKey: primaryKey,
+      renderTargetMatches: true,
+    },
+    multiRenderTargets: {
+      mode: "two-offscreen-render-target-previews",
+      source: "ViewPacket.renderTarget",
+      renderTargets: [
+        {
+          role: "primary",
+          key: primaryKey,
+          source: "offscreen",
+          viewId: 0,
+          width: 256,
+          height: 256,
+          ok: true,
+          drawCalls: 1,
+          displaySample: "left-target-preview-center",
+          displayQuad: {
+            role: "primary",
+            renderTargetKey: primaryKey,
+            sampleId: "left-target-preview-center",
+            vertexCount: 6,
+            widthNdc: 0.7,
+            heightNdc: 1.16,
+          },
+        },
+        {
+          role: "secondary",
+          key: secondaryKey,
+          source: "offscreen",
+          viewId: 1,
+          width: 256,
+          height: 256,
+          ok: true,
+          drawCalls: 1,
+          displaySample: "right-target-preview-center",
+          displayQuad: {
+            role: "secondary",
+            renderTargetKey: secondaryKey,
+            sampleId: "right-target-preview-center",
+            vertexCount: 6,
+            widthNdc: 0.7,
+            heightNdc: 1.16,
+          },
+        },
+      ],
+      views: [
+        {
+          viewId: 0,
+          priority: 0,
+          layerMask: 1,
+          target: "offscreen",
+          renderTargetKey: primaryKey,
+          viewport: [0, 0, 1, 1],
+          scissor: [0, 0, 1, 1],
+        },
+        {
+          viewId: 1,
+          priority: 1,
+          layerMask: 2,
+          target: "offscreen",
+          renderTargetKey: secondaryKey,
+          viewport: [0, 0, 1, 1],
+          scissor: [0, 0, 1, 1],
+        },
+      ],
+      passOrder: [
+        {
+          index: 0,
+          viewId: 0,
+          source: "offscreen",
+          renderTargetKey: primaryKey,
+          width: 256,
+          height: 256,
+          drawCalls: 1,
+          ok: true,
+        },
+        {
+          index: 1,
+          viewId: 1,
+          source: "offscreen",
+          renderTargetKey: secondaryKey,
+          width: 256,
+          height: 256,
+          drawCalls: 1,
+          ok: true,
+        },
+      ],
+      displayPass: {
+        loadOp: "clear",
+        drawCalls: 2,
+        samples: {
+          leftPreview: "left-target-preview-center",
+          rightPreview: "right-target-preview-center",
+          screenClear: "screen-clear-corner",
+        },
+      },
+    },
+    counts: {
+      views: 2,
+      meshDraws: 2,
+      drawCalls: 2,
+      diagnostics: 0,
+    },
+    screenPass: {
+      phase: "screen-pass",
+      drawCalls: 2,
+      loadOp: "clear",
+      samples: {
+        leftPreview: "left-target-preview-center",
+        rightPreview: "right-target-preview-center",
+        screenClear: "screen-clear-corner",
+      },
+    },
+  });
+  expect(status.report?.renderTargets).toMatchObject([
+    {
+      source: "offscreen",
+      renderTargetKey: primaryKey,
+      width: 256,
+      height: 256,
+      ok: true,
+      drawCalls: 1,
+    },
+    {
+      source: "offscreen",
+      renderTargetKey: secondaryKey,
+      width: 256,
+      height: 256,
+      ok: true,
+      drawCalls: 1,
+    },
+  ]);
+  guard.expectNoWarnings();
+
+  await attachExampleStatus("multi-render-targets-rendered-status", status);
+
+  if (!status.readback?.ok) {
+    test.skip(true, "Multiple render-target pixel assertion requires readback.");
+    return;
+  }
+
+  const leftSample = status.readback.samples?.find(
+    (entry) => entry.id === "left-target-preview-center",
+  );
+  const rightSample = status.readback.samples?.find(
+    (entry) => entry.id === "right-target-preview-center",
+  );
+  const screenClearSample = status.readback.samples?.find(
+    (entry) => entry.id === "screen-clear-corner",
+  );
+
+  expect(leftSample, "expected primary render-target preview sample").toBeDefined();
+  expect(
+    rightSample,
+    "expected secondary render-target preview sample",
+  ).toBeDefined();
+  expect(screenClearSample, "expected screen clear sample").toBeDefined();
+
+  if (
+    leftSample === undefined ||
+    rightSample === undefined ||
+    screenClearSample === undefined
+  ) {
+    return;
+  }
+
+  expect(
+    pixelDistance(
+      leftSample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCenterColor ?? {
+          r: 0.06,
+          g: 0.88,
+          b: 0.22,
+          a: 1,
+        },
+      ),
+    ),
+    "left preview should sample the primary off-screen render target",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(
+      rightSample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCanvasColor ?? {
+          r: 0.1,
+          g: 0.42,
+          b: 0.95,
+          a: 1,
+        },
+      ),
+    ),
+    "right preview should sample the secondary off-screen render target",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(
+      screenClearSample.pixel,
+      rgbaColorToPixel(
+        status.clearColors?.screen ?? {
+          r: 0.015,
+          g: 0.018,
+          b: 0.023,
+          a: 1,
+        },
+      ),
+    ),
+    "screen clear sample should stay outside both preview quads",
+  ).toBeLessThan(12);
+  expect(
+    pixelDistance(leftSample.pixel, rightSample.pixel),
+    "two displayed off-screen render targets should be visually distinct",
+  ).toBeGreaterThan(80);
+  expect(
+    pixelDistance(leftSample.pixel, screenClearSample.pixel),
+    "left preview should differ from the main-canvas clear region",
+  ).toBeGreaterThan(40);
+  expect(
+    pixelDistance(rightSample.pixel, screenClearSample.pixel),
+    "right preview should differ from the main-canvas clear region",
+  ).toBeGreaterThan(40);
 });
 
 test("render-target resize route displays the resized off-screen pass", async ({

@@ -59,25 +59,17 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3179` is complete: `examples/mixed-camera-targets.html` now proves one
-worker-authored snapshot can submit a current-texture camera and an off-screen
-`ViewPacket.renderTarget` camera through renderer-owned resources, reports
-per-target pass order and target keys, and verifies distinct current-camera and
-off-screen-preview samples without making ECS own GPU state. Continue the
-post-SOTA visible-feature queue at `task-3180`: add a multiple off-screen
-render-target preview route.
+`task-3180` is complete: `examples/multi-render-targets.html` now proves one
+worker-authored snapshot can submit two ECS cameras into two distinct
+renderer-owned off-screen `ViewPacket.renderTarget` handles, display both
+target textures side by side, report per-target dimensions, keys, draw counts,
+pass order, and display samples, and verify both previews are non-clear and
+visually distinct without making ECS own GPU state. Continue the post-SOTA
+visible-feature queue at `task-3181`: add an off-screen render-target viewport
+crop route.
 
 The next ready visible-feature queue is:
 
-- `task-3180` — add a multiple off-screen render-target preview route.
-  Reference anchor:
-  `references/engine/examples/src/examples/graphics/multi-render-targets.example.mjs`,
-  `references/three.js/examples/webgpu_multiple_rendertargets.html`.
-  Done when a browser route extracts two ECS cameras targeting two distinct
-  renderer-owned off-screen render-target handles, displays both target
-  textures on the canvas, reports per-target dimensions, keys, draw counts, and
-  display samples, and Playwright verifies both previews are non-clear and
-  visually distinct.
 - `task-3181` — add an off-screen render-target viewport crop route.
   Reference anchor: `references/bevy/examples/3d/render_to_texture.rs`,
   `references/three.js/examples/webgpu_rtt.html`.
@@ -96,6 +88,18 @@ The next ready visible-feature queue is:
   clear/load behavior, target key reuse, and display samples, and Playwright
   verifies clear-only, base-preserved, and overlay regions in the displayed
   off-screen preview.
+- `task-3183` — add a mixed current-texture plus two off-screen render-target
+  route.
+  Reference anchor:
+  `references/engine/examples/src/examples/graphics/multi-render-targets.example.mjs`,
+  `references/bevy/examples/3d/render_to_texture.rs`.
+  Done when one browser route extracts three ECS cameras from one worker-owned
+  world: one current-texture camera and two cameras targeting distinct
+  renderer-owned off-screen render-target handles. The route must report all
+  target classifications, keys, pass order, draw counts, and display/readback
+  samples, display both off-screen targets on the canvas, and Playwright must
+  verify the current-texture sample plus both off-screen previews are non-clear
+  and visually distinct.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

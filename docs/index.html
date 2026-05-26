@@ -393,12 +393,19 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 05:02 UTC</dd>
+            <dd>2026-05-26 05:22 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/multi-render-targets.html</code> now proves two
+              worker-authored ECS cameras can target two distinct
+              renderer-owned off-screen render-target handles from the same
+              snapshot. The route reports per-target dimensions, keys, draw
+              counts, pass order, and display samples, then Playwright verifies
+              both side-by-side previews are non-clear and visually distinct.
+              Previous update:
               <code>examples/mixed-camera-targets.html</code> now proves one
               worker-authored snapshot can contain both a current-texture camera
               and an off-screen render-target camera. The route reports
@@ -5472,16 +5479,21 @@
                 order and distinct readback proof.
               </li>
               <li>
-                <span class="badge">task-3180</span> Next: add a multiple
-                off-screen render-target preview route.
+                <span class="badge green">task-3180</span> Done: add a
+                multiple off-screen render-target preview route with two
+                renderer-owned target handles and distinct preview samples.
               </li>
               <li>
-                <span class="badge">task-3181</span> Then: add an off-screen
+                <span class="badge">task-3181</span> Next: add an off-screen
                 render-target viewport crop route.
               </li>
               <li>
                 <span class="badge">task-3182</span> Then: add a same
                 off-screen target clear/load matrix route.
+              </li>
+              <li>
+                <span class="badge">task-3183</span> Then: add a mixed
+                current-texture plus two off-screen render-target route.
               </li>
               <li>
                 <span class="badge dim">task-3161</span> Later: add
@@ -5504,6 +5516,20 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3180</div>
+            <div>
+              <strong>Multiple render-target preview route shipped.</strong>
+              <span>
+                <code>examples/multi-render-targets.html</code> extracts two
+                off-screen cameras from one worker-authored ECS snapshot,
+                targets two distinct renderer-owned render-target handles,
+                reports per-target dimensions, keys, draw counts, pass order,
+                and display samples, and proves the side-by-side previews are
+                non-clear and visually distinct.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3179</div>
             <div>

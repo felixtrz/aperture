@@ -28,11 +28,24 @@ export const renderToTexturePreviewSample = {
   x: 0.75,
   y: 0.5,
 };
+export const renderToTextureLeftPreviewSample = {
+  id: "left-target-preview-center",
+  x: 0.26,
+  y: 0.5,
+};
+export const renderToTextureRightPreviewSample = {
+  id: "right-target-preview-center",
+  x: 0.74,
+  y: 0.5,
+};
 
 export function registerRenderToTextureAssets(aperture, registry) {
   const assets = aperture.createRenderAssetCollections({ registry });
   const renderTarget = aperture.createRenderTargetHandle(
     "render-to-texture-offscreen",
+  );
+  const secondaryRenderTarget = aperture.createRenderTargetHandle(
+    "render-to-texture-offscreen-secondary",
   );
   const mesh = assets.meshes.add(
     aperture.createPlaneMeshAsset({
@@ -62,5 +75,6 @@ export function registerRenderToTextureAssets(aperture, registry) {
     material,
     canvasMaterial,
     renderTarget,
+    secondaryRenderTarget,
   };
 }

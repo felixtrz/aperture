@@ -1,5 +1,45 @@
 # Completed Tasks
 
+## task-3180 — Add a multiple off-screen render-target preview route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/multi-render-targets.html` on the existing
+  render-to-texture route family.
+- `examples/render-to-texture.worker.js` now supports a multi-target mode that
+  extracts two ECS cameras from one worker-owned world. Each camera targets a
+  distinct renderer-owned off-screen `ViewPacket.renderTarget` handle and uses
+  layer masks to draw a different material.
+- `examples/render-to-texture.main.js` registers both target handles in the
+  renderer-side asset registry, submits both off-screen passes through
+  `createWebGpuApp()`, and displays both target textures side by side in one
+  screen pass.
+- Status includes `multiRenderTargets` with per-target dimensions, keys, draw
+  counts, material/sample expectations, pass order, per-view target
+  classification, and display-pass samples.
+- Added Playwright coverage proving both displayed off-screen previews are
+  non-clear and visually distinct.
+- Updated example links, public tracker pages, backlog, current task, and
+  handoff.
+
+Validation:
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `node --check examples/render-to-texture-assets.js`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js examples/render-to-texture-assets.js test/e2e/render-to-texture.spec.ts`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "multiple render targets route" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "render-target reuse route" --reporter=list`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run render-control:smoke-all`
+
 ## task-3179 — Add a mixed canvas plus off-screen camera target route
 
 Completed: 2026-05-26

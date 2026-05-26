@@ -2,25 +2,28 @@
 
 No active task is currently checked out.
 
-Status: task-3179 mixed canvas plus off-screen camera target route completed.
+Status: task-3180 multiple off-screen render-target preview route completed.
 
 Key findings:
 
-- Added `examples/mixed-camera-targets.html` to the render-to-texture route
+- Added `examples/multi-render-targets.html` to the render-to-texture route
   family.
-- The worker extracts one current-texture camera and one off-screen
-  `ViewPacket.renderTarget` camera from the same worker-authored ECS world.
-- The main route submits both targets through renderer-owned resources, reports
-  pass order and target keys, and displays the off-screen target in a follow-up
-  preview pass.
-- Status includes the app render readback for the current-texture camera and
-  the display-pass readback for the off-screen preview.
-- Playwright verifies the current-texture camera sample and displayed
-  off-screen preview sample are distinct non-clear pixels.
+- The worker extracts two ECS cameras from one worker-authored world. Each
+  camera targets a distinct renderer-owned off-screen
+  `ViewPacket.renderTarget` handle and filters a different render layer.
+- The main route registers both target handles in renderer-owned assets,
+  submits both off-screen passes through `createWebGpuApp()`, and displays both
+  target textures side by side in one follow-up screen pass.
+- Status includes `multiRenderTargets` with per-target dimensions, keys, draw
+  counts, material/sample expectations, pass order, per-view target
+  classification, and display-pass samples.
+- Playwright verifies both displayed off-screen previews are non-clear and
+  visually distinct.
 - Focused render-to-texture coverage, static validation, build, typecheck,
   progress check, navigation, and all-route render-control smoke passed for
-  this slice.
+  this slice. The in-app Browser connector did not expose an `iab` browser in
+  this session, so manual Browser verification was unavailable.
 
 Recommended next task:
 
-- `task-3180` — add a multiple off-screen render-target preview route.
+- `task-3181` — add an off-screen render-target viewport crop route.
