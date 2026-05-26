@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "b07c40c9",
+  "lastCommit": "45b52783",
   "activePid": null,
-  "notes": "Completed task-3186: added cropped secondary off-screen render-target preview route, reported per-target keys/dimensions/draw counts/display samples and resolved secondary crop pixels, expanded render-to-texture Playwright coverage, updated trackers/backlog/handoff, and validated focused/group specs, build, typecheck, progress, navigation, check:examples, and lint. render-control smoke-all was attempted but hit unrelated TAA readiness timeout and later browser hangs.",
-  "lastRunFinishedAt": "2026-05-26T06:34:56Z"
+  "notes": "Completed task-3187: added mixed current-texture plus dual-size off-screen render-target route, reported target classifications, dimensions, aspect mapping, pass order, display samples, and current-texture readback, updated trackers/backlog/handoff, and validated syntax, lint, build, typecheck, progress, navigation, check:examples, and a bundled Chromium Playwright assertion script. Chrome-channel Playwright is currently blocked at browser.newPage().",
+  "lastRunFinishedAt": "2026-05-26T06:48:53Z"
 }
