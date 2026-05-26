@@ -1,21 +1,22 @@
 import { describe, expect, it } from "vitest";
-
 import {
   AssetRegistry,
   assetHandleKey,
-  createBoxMeshAsset,
-  createMatcapMaterialAsset,
   createMeshHandle,
-  createRenderAssetCollections,
   createSamplerHandle,
-  createStandardMaterialAsset,
-  createTextureAsset,
   createTextureHandle,
   createTypedAssetCollection,
-  createUnlitMaterialAsset,
   type AssetDiagnostic,
+} from "@aperture-engine/simulation";
+import {
+  createBoxMeshAsset,
+  createMatcapMaterialAsset,
+  createRenderAssetCollections,
+  createStandardMaterialAsset,
+  createTextureAsset,
+  createUnlitMaterialAsset,
   type TextureAsset,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("typed asset collections", () => {
   it("adds mesh and material assets through typed collections", () => {

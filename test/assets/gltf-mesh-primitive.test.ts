@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-
-import { createGltfMeshPrimitiveMappingReport } from "@aperture-engine/core";
+import { createGltfMeshPrimitiveMappingReport } from "@aperture-engine/render";
 
 describe("glTF mesh primitive mapping report", () => {
   it("plans deterministic mesh handles for a valid triangle primitive", () => {

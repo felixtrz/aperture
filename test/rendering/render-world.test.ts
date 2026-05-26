@@ -1,18 +1,19 @@
 import { describe, expect, it } from "vitest";
-
 import {
   RenderWorld,
   createBatchCompatibilityKey,
-  createMaterialHandle,
   createMaterialPipelineKeyInput,
-  createMeshHandle,
   createRenderSnapshotChangeSet,
   createRenderSortKey,
   createStableRenderId,
   createUnlitMaterialAsset,
   type MeshDrawPacket,
   type RenderSnapshot,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import {
+  createMaterialHandle,
+  createMeshHandle,
+} from "@aperture-engine/simulation";
 
 describe("render world lifecycle", () => {
   it("creates, updates, and removes render objects by stable render id", () => {

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { mat4 as wgpuMat4 } from "wgpu-matrix";
-
 import {
   mat4,
   makeOrthographic,
@@ -8,7 +7,7 @@ import {
   transformPoint,
   type Mat4Like,
   type Vec3Like,
-} from "@aperture-engine/core";
+} from "@aperture-engine/simulation";
 
 const CLOSE_TO = 5;
 

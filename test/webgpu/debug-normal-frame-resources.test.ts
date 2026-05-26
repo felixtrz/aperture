@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-
-import { PACKED_VIEW_UNIFORM_FLOAT_STRIDE } from "@aperture-engine/core";
+import { PACKED_VIEW_UNIFORM_FLOAT_STRIDE } from "@aperture-engine/render";
 import {
   createDebugNormalFrameGpuResources,
   createDebugNormalMaterialAsset,

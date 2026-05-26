@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createBoxMeshAsset,
   createCapsuleMeshAsset,
@@ -10,7 +9,7 @@ import {
   createTorusMeshAsset,
   validateMeshAsset,
   type MeshAsset,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("mesh asset schema and primitive builders", () => {
   it("builds box mesh data with interleaved attributes, indices, submesh, and bounds", () => {

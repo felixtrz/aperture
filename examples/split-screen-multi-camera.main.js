@@ -23,7 +23,15 @@ const baseStatus = {
 
 try {
   const [core, webgpu] = await Promise.all([
-    import("@aperture-engine/core"),
+    Promise.all([
+      import("@aperture-engine/simulation"),
+      import("@aperture-engine/render"),
+      import("@aperture-engine/runtime"),
+    ]).then(([simulation, render, runtime]) => ({
+      ...simulation,
+      ...render,
+      ...runtime,
+    })),
     import("@aperture-engine/webgpu"),
   ]);
   const aperture = { ...core, ...webgpu };
@@ -44,8 +52,8 @@ try {
           initialized.reason,
           initialized.message,
         ),
-        apertureVersion: aperture.APERTURE_VERSION,
-        renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+        apertureVersion: "0.0.0",
+        renderingBackend: "webgpu-explicit",
       });
     } else {
       publishStatus(
@@ -300,8 +308,8 @@ async function renderSplitScreenScene(
     ...baseStatus,
     ok: true,
     phase: "submit",
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    apertureVersion: "0.0.0",
+    renderingBackend: "webgpu-explicit",
     format: initialized.format,
     clearColor,
     worker: workerSnapshot.worker,
@@ -472,7 +480,10 @@ async function renderViewportResizeMatrixScene(
         "viewport-resize-draw-unavailable",
         "The camera viewport resize route did not extract a drawable mesh.",
       ),
-      extraction: { frames: frames.length, ...snapshotCounts(firstFrame.snapshot) },
+      extraction: {
+        frames: frames.length,
+        ...snapshotCounts(firstFrame.snapshot),
+      },
       diagnostics: firstFrame.snapshot.diagnostics,
       diagnosticCounts: diagnosticCounts({
         extraction: Math.max(1, firstFrame.snapshot.diagnostics.length),
@@ -493,7 +504,10 @@ async function renderViewportResizeMatrixScene(
         "pipeline-unavailable",
         "The viewport resize unlit render pipeline could not be created.",
       ),
-      extraction: { frames: frames.length, ...snapshotCounts(firstFrame.snapshot) },
+      extraction: {
+        frames: frames.length,
+        ...snapshotCounts(firstFrame.snapshot),
+      },
       diagnostics: pipelineResource.diagnostics,
       diagnosticCounts: diagnosticCounts({
         resources: pipelineResource.diagnostics.length,
@@ -511,7 +525,10 @@ async function renderViewportResizeMatrixScene(
         "pipeline-layouts-unavailable",
         "The viewport resize unlit pipeline does not expose bind group layouts.",
       ),
-      extraction: { frames: frames.length, ...snapshotCounts(firstFrame.snapshot) },
+      extraction: {
+        frames: frames.length,
+        ...snapshotCounts(firstFrame.snapshot),
+      },
       diagnosticCounts: diagnosticCounts({ resources: 1 }),
     };
   }
@@ -539,7 +556,10 @@ async function renderViewportResizeMatrixScene(
         "frame-resources-unavailable",
         "The viewport resize frame resources could not be uploaded.",
       ),
-      extraction: { frames: frames.length, ...snapshotCounts(firstFrame.snapshot) },
+      extraction: {
+        frames: frames.length,
+        ...snapshotCounts(firstFrame.snapshot),
+      },
       diagnostics: frameResources.diagnostics,
       diagnosticCounts: diagnosticCounts({
         resources: frameResources.diagnostics.length,
@@ -588,7 +608,10 @@ async function renderViewportResizeMatrixScene(
           viewPlansResult.reason,
           viewPlansResult.message,
         ),
-        extraction: { frames: frames.length, ...snapshotCounts(frameEntry.snapshot) },
+        extraction: {
+          frames: frames.length,
+          ...snapshotCounts(frameEntry.snapshot),
+        },
         diagnostics: viewPlansResult.diagnostics,
         diagnosticCounts: diagnosticCounts({
           resources: viewPlansResult.resourcesDiagnostics,
@@ -609,7 +632,10 @@ async function renderViewportResizeMatrixScene(
     if (!submitted.ok) {
       return {
         ...failure("submit", submitted.reason, submitted.message),
-        extraction: { frames: frames.length, ...snapshotCounts(frameEntry.snapshot) },
+        extraction: {
+          frames: frames.length,
+          ...snapshotCounts(frameEntry.snapshot),
+        },
         diagnostics: submitted.diagnostics,
         diagnosticCounts: diagnosticCounts({
           submission: submitted.diagnostics.length,
@@ -635,8 +661,8 @@ async function renderViewportResizeMatrixScene(
     ...baseStatus,
     ok: true,
     phase: "submit",
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    apertureVersion: "0.0.0",
+    renderingBackend: "webgpu-explicit",
     format: initialized.format,
     clearColor,
     worker: workerSnapshots.worker,
@@ -1016,8 +1042,7 @@ function aggregateViewportResizeFrameResults(frameResults) {
       },
       draw: {
         packages: totals.draw.packages + result.metrics.draw.packages,
-        descriptors:
-          totals.draw.descriptors + result.metrics.draw.descriptors,
+        descriptors: totals.draw.descriptors + result.metrics.draw.descriptors,
         drawList: totals.draw.drawList + result.metrics.draw.drawList,
         resolved: totals.draw.resolved + result.metrics.draw.resolved,
       },
@@ -1116,7 +1141,8 @@ function viewportResizeMatrixStatus(scene, frameResults) {
       scissor: plan === undefined ? [] : Array.from(plan.view.scissor),
       viewportPixels: plan?.viewport ?? null,
       scissorPixels: plan?.scissor ?? null,
-      passOrder: plan === undefined ? [] : [cameraPassOrderStatus(result.frame, plan)],
+      passOrder:
+        plan === undefined ? [] : [cameraPassOrderStatus(result.frame, plan)],
       sampleIds: result.samples.map((sample) => sample.id),
       readback: result.submitted.readback,
     };
@@ -1132,11 +1158,7 @@ function viewportResizeMatrixStatus(scene, frameResults) {
 }
 
 function samplePointsForFrame(scene, frame) {
-  return (
-    scene.samplePointsByFrame?.[frame] ??
-    scene.samplePoints ??
-    []
-  );
+  return scene.samplePointsByFrame?.[frame] ?? scene.samplePoints ?? [];
 }
 
 async function submitSplitScreenFrame(

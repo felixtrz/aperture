@@ -1,26 +1,27 @@
 import { describe, expect, it } from "vitest";
-
 import {
   Camera,
   Material,
   Mesh,
   RenderLayer,
   Visibility,
-  WorldTransform,
-  assetHandleKey,
   createBoxMeshAsset,
   createCamera,
   createRenderAssetCollections,
-  createRootTransform,
   createStandardMaterialAsset,
-  createTextureHandle,
   createUnlitMaterialAsset,
-  createWorld,
   extractRenderSnapshot,
   registerRenderAuthoringComponents,
-  registerTransformComponents,
   validateStandardMaterialProofPoint,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import {
+  WorldTransform,
+  assetHandleKey,
+  createRootTransform,
+  createTextureHandle,
+  createWorld,
+  registerTransformComponents,
+} from "@aperture-engine/simulation";
 
 describe("StandardMaterial proof-point contract", () => {
   it("accepts the direct-lit scalar proof-point fields", () => {

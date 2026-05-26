@@ -519,8 +519,8 @@ export function createStandardTextureControlStatus(
           expectedDiagnostic: scene.expectedFailure.diagnostic,
           expectedTextureStatus: scene.expectedFailure.status,
         }),
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    apertureVersion: "0.0.0",
+    renderingBackend: "webgpu-explicit",
     format: app.initialization.format,
     ...(transportStatus === null ? {} : transportStatus),
     clearColor: {

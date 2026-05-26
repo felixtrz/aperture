@@ -19,13 +19,13 @@ consumers. It is not the recommended first-app path.
 ## Manual Renderer Main
 
 ```js
+import { createSimulationWorker } from "@aperture-engine/runtime";
 import {
-  AssetRegistry,
   createBoxMeshAsset,
   createDebugNormalMaterialAsset,
   createRenderAssetCollections,
-  createSimulationWorker,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import { AssetRegistry } from "@aperture-engine/simulation";
 import { createWebGpuApp } from "@aperture-engine/webgpu";
 
 const canvas = document.querySelector("#aperture-canvas");
@@ -60,10 +60,7 @@ if (!created.ok) {
 import {
   SIMULATION_WORKER_PROTOCOL,
   SpinSystem,
-  createBoxMeshAsset,
-  createDebugNormalMaterialAsset,
   createExtractionApp,
-  createRenderAssetCollections,
   renderSnapshotTransferList,
   withCamera,
   withMaterial,
@@ -72,7 +69,12 @@ import {
   withSpin,
   withTransform,
   withVisibility,
-} from "@aperture-engine/core";
+} from "@aperture-engine/runtime";
+import {
+  createBoxMeshAsset,
+  createDebugNormalMaterialAsset,
+  createRenderAssetCollections,
+} from "@aperture-engine/render";
 
 let port = null;
 let app = null;

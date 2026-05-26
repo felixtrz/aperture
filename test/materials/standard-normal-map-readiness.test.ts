@@ -1,15 +1,16 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createBoxMeshAsset,
-  createSamplerHandle,
   createStandardMaterialAsset,
-  createTextureHandle,
   standardMaterialNormalMapTangentReadinessReportToJson,
   standardMaterialNormalMapTangentReadinessReportToJsonValue,
   createStandardMaterialNormalMapTangentReadinessReport,
   type MeshAsset,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import {
+  createSamplerHandle,
+  createTextureHandle,
+} from "@aperture-engine/simulation";
 
 describe("StandardMaterial normal-map tangent readiness", () => {
   it("does not require tangents when no normal map is authored", () => {

@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createBatchCompatibilityKey,
-  createMaterialHandle,
   createMaterialPipelineKeyInput,
-  createMeshHandle,
   createRenderSortKey,
   createUnlitMaterialAsset,
   defineInstanceAttributes,
@@ -22,7 +19,11 @@ import {
   type InstanceAttributePacket,
   type MeshDrawPacket,
   type RenderSnapshot,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import {
+  createMaterialHandle,
+  createMeshHandle,
+} from "@aperture-engine/simulation";
 
 describe("render snapshot transform packing", () => {
   it("packs mesh draw transforms in stable draw order", () => {

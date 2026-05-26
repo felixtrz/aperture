@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { vec3 as wgpuVec3 } from "wgpu-matrix";
-
 import {
   composeTrsMatrix,
   intersectRayAabb,
@@ -13,7 +12,7 @@ import {
   type BoundingSphere,
   type Ray,
   type Vec3Like,
-} from "@aperture-engine/core";
+} from "@aperture-engine/simulation";
 
 const CLOSE_TO = 5;
 

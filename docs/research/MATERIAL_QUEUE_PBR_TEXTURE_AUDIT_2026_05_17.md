@@ -50,7 +50,7 @@ than in ECS or renderer-independent source assets.
   the common StandardMaterial/glTF pattern.
 - Package-boundary validation passed. A scan for WebGPU imports/globals and
   scene-graph terminology in `packages/simulation`, `packages/render`,
-  `packages/runtime`, and `packages/core` found no WebGPU leakage or mutable
+  `packages/runtime`, and `retired umbrella package directory` found no WebGPU leakage or mutable
   scene graph. The only `Scene` hits are typed `SceneHandle` asset helpers.
 
 ## Result

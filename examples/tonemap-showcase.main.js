@@ -102,8 +102,8 @@ async function startOperator(operator, options = {}) {
           created.message,
           operator,
         ),
-        apertureVersion: aperture.APERTURE_VERSION,
-        renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+        apertureVersion: "0.0.0",
+        renderingBackend: "webgpu-explicit",
       });
       return;
     }
@@ -145,7 +145,15 @@ async function startOperator(operator, options = {}) {
 
 function loadAperture() {
   aperturePromise ??= Promise.all([
-    import("@aperture-engine/core"),
+    Promise.all([
+      import("@aperture-engine/simulation"),
+      import("@aperture-engine/render"),
+      import("@aperture-engine/runtime"),
+    ]).then(([simulation, render, runtime]) => ({
+      ...simulation,
+      ...render,
+      ...runtime,
+    })),
     import("@aperture-engine/webgpu"),
   ]).then(([core, webgpu]) => ({ ...core, ...webgpu }));
 
@@ -404,8 +412,8 @@ function createFrameStatus(
     phase: report.ok ? "animate" : "render",
     selectedOperator: app.tonemap,
     ...(reason === null ? {} : reason),
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    apertureVersion: "0.0.0",
+    renderingBackend: "webgpu-explicit",
     format: app.initialization.format,
     tonemap: {
       operator: app.tonemap,

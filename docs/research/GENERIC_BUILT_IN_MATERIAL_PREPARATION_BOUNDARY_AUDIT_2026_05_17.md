@@ -31,7 +31,7 @@ No boundary drift found.
   segments.
 - WebGPU buffers and bind groups are owned only by `@aperture-engine/webgpu`.
   The `@aperture-engine/render`, `@aperture-engine/simulation`, and
-  `@aperture-engine/core` packages still do not import WebGPU resources.
+  the retired umbrella package still do not import WebGPU resources.
 - Texture and sampler GPU resources remain separate app-prepared dependencies
   passed into material preparation; prepared material caches do not create or
   own texture/sampler GPU resources.

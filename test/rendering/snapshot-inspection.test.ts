@@ -1,13 +1,8 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createBatchCompatibilityKey,
-  createEnvironmentMapHandle,
-  createMaterialHandle,
   createMaterialPipelineKeyInput,
-  createMeshHandle,
   createRenderSortKey,
-  createRenderTargetHandle,
   createStableRenderId,
   createUnlitMaterialAsset,
   explainRenderSnapshotEntity,
@@ -15,7 +10,13 @@ import {
   type EnvironmentPacket,
   type MeshDrawPacket,
   type RenderSnapshot,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import {
+  createEnvironmentMapHandle,
+  createMaterialHandle,
+  createMeshHandle,
+  createRenderTargetHandle,
+} from "@aperture-engine/simulation";
 
 describe("render snapshot inspection report", () => {
   it("summarizes populated snapshot packet counts and unique handles", () => {

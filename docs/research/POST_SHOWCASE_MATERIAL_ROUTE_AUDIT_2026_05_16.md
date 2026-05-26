@@ -42,7 +42,7 @@ mesh, and material data before command encoding.
   only source handles/assets and serializable packets.
 - Package-boundary search found no forbidden `@aperture-engine/webgpu` imports
   or browser WebGPU globals in `packages/simulation`, `packages/render`,
-  `packages/runtime`, or `packages/core`. The only `Scene` search hits in those
+  `packages/runtime`, or `retired umbrella package directory`. The only `Scene` search hits in those
   packages are renderer-independent `SceneHandle` asset types.
 - Pipeline-scoped bind group routing remains the key safety correction for
   mixed-family app frames. `pipelineScopedBindGroups()` namespaces shared group

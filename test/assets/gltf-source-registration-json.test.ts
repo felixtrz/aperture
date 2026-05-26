@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
-
 import {
   AssetRegistry,
-  createGltfAssetMappingReport,
   createTextureHandle,
+} from "@aperture-engine/simulation";
+import {
+  createGltfAssetMappingReport,
   gltfSourceAssetRegistrationReportToJson,
   gltfSourceAssetRegistrationReportToJsonValue,
   registerGltfSourceAssetsFromMappingReport,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 const decodedImage = {
   width: 1,

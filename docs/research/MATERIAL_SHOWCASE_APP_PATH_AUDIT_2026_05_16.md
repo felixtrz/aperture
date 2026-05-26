@@ -28,9 +28,9 @@ MatcapMaterial.
   created as renderer-independent source assets. WebGPU buffers, textures,
   samplers, bind groups, pipelines, command encoding, and submission remain
   inside `@aperture-engine/webgpu`.
-- The example imports `@aperture-engine/webgpu` explicitly alongside
-  `@aperture-engine/core`, matching the architecture rule that `core` remains
-  headless-safe and does not re-export WebGPU backend APIs.
+- The example imports `@aperture-engine/webgpu` explicitly alongside the
+  retired umbrella package, matching the then-current architecture rule that
+  the package remained headless-safe and did not re-export WebGPU backend APIs.
 - The promoted path follows the same broad pattern as Bevy's source asset to
   render asset split: app-facing assets/components are authored outside the GPU
   backend, then prepared into renderer-owned resources after extraction.

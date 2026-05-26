@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
-
+import { AssetRegistry, createMeshHandle } from "@aperture-engine/simulation";
 import {
-  AssetRegistry,
   createGltfAssetMappingReport,
-  createMeshHandle,
   GLTF_SAMPLER_FILTER,
   GLTF_SAMPLER_WRAP,
   gltfSourceRegistrationOrchestrationReportToJson,
@@ -11,7 +9,7 @@ import {
   registerGltfSourceAssetsFromReports,
   type GltfMeshAssetConstructionReport,
   type MeshAsset,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 const decodedImage = {
   width: 1,

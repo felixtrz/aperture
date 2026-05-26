@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-
 import {
   SharedSnapshotTransportUnsupportedError,
   createSharedSnapshotTransport,
   createSharedSnapshotTransportViews,
-} from "@aperture-engine/core";
+} from "@aperture-engine/runtime";
 
 describe("createSharedSnapshotTransport", () => {
   it("allocates double-buffered shared snapshot views", () => {

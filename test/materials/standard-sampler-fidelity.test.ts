@@ -1,16 +1,17 @@
 import { describe, expect, it } from "vitest";
-
 import {
   AssetRegistry,
   createMaterialHandle,
-  createSamplerAsset,
   createSamplerHandle,
+  createTextureHandle,
+} from "@aperture-engine/simulation";
+import {
+  createSamplerAsset,
   createStandardMaterialAsset,
   createStandardMaterialSamplerFidelityReport,
   createTextureAsset,
-  createTextureHandle,
   standardMaterialSamplerFidelityReportToJsonValue,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("StandardMaterial sampler fidelity report", () => {
   it("warns when mip filtering and LOD exceed a single-mip texture", () => {

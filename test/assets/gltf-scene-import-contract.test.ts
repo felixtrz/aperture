@@ -1,13 +1,12 @@
 import { describe, expect, it } from "vitest";
-
+import { AssetRegistry } from "@aperture-engine/simulation";
 import {
-  AssetRegistry,
   createGltfSceneImportContractReport,
   gltfSceneImportContractReportToJsonValue,
   registerGltfSourceAssetsFromReports,
   type GltfMeshAssetConstructionReport,
   type MeshAsset,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF scene import contract", () => {
   it("summarizes a multi-primitive multi-material scene contract", () => {

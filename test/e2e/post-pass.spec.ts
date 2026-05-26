@@ -20,7 +20,15 @@ test("no-op post effect preserves rendered output through the app path", async (
       return { ok: false, reason: "adapter-unavailable" };
     }
 
-    const core = await import("@aperture-engine/core");
+    const core = await Promise.all([
+      import("@aperture-engine/simulation"),
+      import("@aperture-engine/render"),
+      import("@aperture-engine/runtime"),
+    ]).then(([simulation, render, runtime]) => ({
+      ...simulation,
+      ...render,
+      ...runtime,
+    }));
     const webgpu = await import("@aperture-engine/webgpu");
 
     async function renderSample(postEffects: readonly WebGpuPostEffect[] = []) {

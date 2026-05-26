@@ -1,17 +1,18 @@
 import { describe, expect, it } from "vitest";
-
 import {
   AssetRegistry,
-  createMaterialDependencyReadinessReport,
   createMaterialHandle,
-  createMatcapMaterialAsset,
   createSamplerHandle,
-  createStandardMaterialAsset,
   createTextureHandle,
+} from "@aperture-engine/simulation";
+import {
+  createMaterialDependencyReadinessReport,
+  createMatcapMaterialAsset,
+  createStandardMaterialAsset,
   createUnlitMaterialAsset,
   materialDependencyReadinessReportToJson,
   materialDependencyReadinessReportToJsonValue,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("material dependency readiness reports", () => {
   it("reports ready unlit texture and sampler dependencies", () => {

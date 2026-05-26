@@ -16,8 +16,9 @@ ECS World
 
 This repository is currently an early engine foundation with working ECS
 authoring, render extraction, WebGPU submission, and browser examples. The
-public headless entrypoint is `@aperture-engine/core`; GPU presentation is
-available explicitly through `@aperture-engine/webgpu`.
+default app surface is `@aperture-engine/app` plus the Aperture Vite plugin.
+Lower-level simulation, render extraction, runtime transport, and WebGPU
+presentation live in focused packages.
 
 For browser rendering, the default shape is worker-by-default:
 
@@ -33,13 +34,13 @@ For browser rendering, the default shape is worker-by-default:
 Create a renderer main module:
 
 ```js
+import { createSimulationWorker } from "@aperture-engine/runtime";
 import {
-  AssetRegistry,
   createBoxMeshAsset,
   createDebugNormalMaterialAsset,
   createRenderAssetCollections,
-  createSimulationWorker,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import { AssetRegistry } from "@aperture-engine/simulation";
 import { createWebGpuApp } from "@aperture-engine/webgpu";
 
 const canvas = document.querySelector("#aperture-canvas");
@@ -85,10 +86,7 @@ Create the matching simulation worker:
 import {
   SIMULATION_WORKER_PROTOCOL,
   SpinSystem,
-  createBoxMeshAsset,
-  createDebugNormalMaterialAsset,
   createExtractionApp,
-  createRenderAssetCollections,
   renderSnapshotTransferList,
   withCamera,
   withMaterial,
@@ -97,7 +95,12 @@ import {
   withSpin,
   withTransform,
   withVisibility,
-} from "@aperture-engine/core";
+} from "@aperture-engine/runtime";
+import {
+  createBoxMeshAsset,
+  createDebugNormalMaterialAsset,
+  createRenderAssetCollections,
+} from "@aperture-engine/render";
 
 let port = null;
 let app = null;

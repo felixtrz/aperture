@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-
 import {
   gltfPrimitiveMaterialResolutionReportToJson,
   gltfPrimitiveMaterialResolutionReportToJsonValue,
   type GltfPrimitiveMaterialResolutionReport,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF primitive material resolution report JSON", () => {
   it("serializes resolved and unresolved primitive material entries", () => {

@@ -75,18 +75,6 @@ importers:
         specifier: ^3.4.2
         version: 3.4.2
 
-  packages/core:
-    dependencies:
-      "@aperture-engine/render":
-        specifier: workspace:*
-        version: link:../render
-      "@aperture-engine/runtime":
-        specifier: workspace:*
-        version: link:../runtime
-      "@aperture-engine/simulation":
-        specifier: workspace:*
-        version: link:../simulation
-
   packages/render:
     dependencies:
       "@aperture-engine/simulation":

@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createGltfMeshPrimitiveMappingReport,
   decodeGltfPrimitiveAccessors,
   validateGltfPrimitiveAccessorReferences,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF accessor typed-array decoding", () => {
   it("decodes tightly packed float attributes and canonicalizes uint8 indices", () => {

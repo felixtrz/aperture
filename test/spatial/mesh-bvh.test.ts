@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createBoxMeshAsset,
+  createPlaneMeshAsset,
+  createSpatialTriangleMeshFromMeshAsset,
+  type MeshAsset,
+  type MeshVertexFormat,
+  type MeshVertexSemantic,
+} from "@aperture-engine/render";
+import {
   createEntityBoundsBvh,
   createEntityBoundsBvhQueryStats,
   createMeshBvh,
@@ -10,19 +16,14 @@ import {
   createMeshBvhTraversalStats,
   createMeshTriangleQuery,
   createMeshTriangleQueryStats,
-  createPlaneMeshAsset,
   createSpatialQueryReport,
-  createSpatialTriangleMeshFromMeshAsset,
   deserializeMeshBvh,
   raycastFirstMeshTriangle,
   raycastMeshTriangles,
   type Frustum,
-  type MeshAsset,
-  type MeshVertexFormat,
-  type MeshVertexSemantic,
   type SpatialTriangleMesh,
   type Vec3Like,
-} from "@aperture-engine/core";
+} from "@aperture-engine/simulation";
 
 const CLOSE_TO = 5;
 

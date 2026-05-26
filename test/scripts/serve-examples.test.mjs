@@ -28,8 +28,8 @@ describe("examples static server helpers", () => {
     expect(resolveStaticPath("/examples/triangle.html")).toBe(
       path.resolve(projectRoot, "examples/triangle.html"),
     );
-    expect(resolveStaticPath("/packages/core/dist/index.js")).toBe(
-      path.resolve(projectRoot, "packages/core/dist/index.js"),
+    expect(resolveStaticPath("/packages/runtime/dist/index.js")).toBe(
+      path.resolve(projectRoot, "packages/runtime/dist/index.js"),
     );
     expect(resolveStaticPath("/node_modules/elics/lib/index.js")).toBe(
       path.resolve(projectRoot, "node_modules/elics/lib/index.js"),
@@ -38,8 +38,8 @@ describe("examples static server helpers", () => {
       resolveWorkerModulePath("/worker-modules/examples/triangle.js"),
     ).toBe(path.resolve(projectRoot, "examples/triangle.js"));
     expect(
-      resolveWorkerModulePath("/worker-modules/packages/core/dist/index.js"),
-    ).toBe(path.resolve(projectRoot, "packages/core/dist/index.js"));
+      resolveWorkerModulePath("/worker-modules/packages/runtime/dist/index.js"),
+    ).toBe(path.resolve(projectRoot, "packages/runtime/dist/index.js"));
     expect(
       resolveStaticPath(
         "/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
@@ -85,7 +85,7 @@ describe("examples static server helpers", () => {
 
   it("rewrites known bare imports for module worker entrypoints", () => {
     const source = [
-      'import * as core from "@aperture-engine/core";',
+      'import * as render from "@aperture-engine/render";',
       'export * from "@aperture-engine/render";',
       'const runtime = await import("@aperture-engine/runtime");',
       'import "elics";',
@@ -93,7 +93,7 @@ describe("examples static server helpers", () => {
 
     expect(rewriteWorkerModuleImports(source)).toBe(
       [
-        'import * as core from "/worker-modules/packages/core/dist/index.js";',
+        'import * as render from "/worker-modules/packages/render/dist/index.js";',
         'export * from "/worker-modules/packages/render/dist/index.js";',
         'const runtime = await import("/worker-modules/packages/runtime/dist/index.js");',
         'import "/worker-modules/node_modules/elics/lib/index.js";',
@@ -156,16 +156,9 @@ describe("examples static server request handler", () => {
       path.join(tempRoot, "examples/webgpu-readback.js"),
       "export const readback = true;",
     );
-    await mkdir(path.join(tempRoot, "packages/core/dist"), {
-      recursive: true,
-    });
     await mkdir(path.join(tempRoot, "packages/runtime/dist"), {
       recursive: true,
     });
-    await writeFile(
-      path.join(tempRoot, "packages/core/dist/index.js"),
-      "export {};",
-    );
     await writeFile(
       path.join(tempRoot, "packages/runtime/dist/index.js"),
       'import { createWorld } from "@aperture-engine/simulation";\nimport "wgpu-matrix";\nexport { createWorld };',
@@ -214,14 +207,14 @@ describe("examples static server request handler", () => {
     const response = await requestExample({
       root: tempRoot,
       method: "HEAD",
-      url: "/packages/core/dist/index.js",
+      url: "/packages/runtime/dist/index.js",
     });
 
     expect(response.statusCode).toBe(200);
     expect(response.headers["content-type"]).toBe(
       "text/javascript; charset=utf-8",
     );
-    expect(response.headers["content-length"]).toBe(10);
+    expect(response.headers["content-length"]).toBe(104);
     expect(response.text()).toBe("");
   });
 

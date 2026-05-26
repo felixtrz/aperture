@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createMatcapMaterialAsset,
   createMatcapMaterialPreparationPlan,
   createRenderAssetCollections,
+  createUnlitMaterialAsset,
+} from "@aperture-engine/render";
+import {
   createSamplerHandle,
   createTextureHandle,
-  createUnlitMaterialAsset,
-} from "@aperture-engine/core";
+} from "@aperture-engine/simulation";
 
 describe("matcap material preparation metadata", () => {
   it("creates a renderer-independent preparation plan for ready matcap dependencies", () => {

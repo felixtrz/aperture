@@ -1,27 +1,34 @@
 import { describe, expect, it } from "vitest";
-
 import {
   assetHandleKey,
+  createRenderTargetHandle,
+  createSamplerHandle,
+  createTextureHandle,
+  LocalTransform,
+  type Entity,
+} from "@aperture-engine/simulation";
+import {
   createBoxMeshAsset,
   createDebugNormalMaterialAsset,
   createMatcapMaterialAsset,
   createRenderAssetCollections,
-  createRenderTargetHandle,
-  createSamplerHandle,
   createSamplerAsset,
   createStandardMaterialAsset,
   createTextureAsset,
-  createTextureHandle,
   createUnlitMaterialAsset,
-  createSharedSnapshotTransportViews,
   createSnapshotPacketRegistry,
-  createExtractionApp,
   encodeSnapshotPackets,
   Light,
   LightKind,
-  LocalTransform,
   Material,
   Visibility,
+  type MeshAsset,
+  type MeshDrawPacket,
+  type RenderSnapshot,
+} from "@aperture-engine/render";
+import {
+  createSharedSnapshotTransportViews,
+  createExtractionApp,
   withCamera,
   withLight,
   withMaterial,
@@ -31,14 +38,10 @@ import {
   withSprite,
   withTransform,
   withVisibility,
-  type MeshAsset,
-  type MeshDrawPacket,
-  type RenderSnapshot,
   type SharedSnapshotTransportBuffers,
   type SpawnEntityInitializer,
   type CreateExtractionAppOptions,
-  type Entity,
-} from "@aperture-engine/core";
+} from "@aperture-engine/runtime";
 import {
   createQueuedMaterialAdapterRegistry,
   createWebGpuCopyPostEffect,

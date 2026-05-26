@@ -1,11 +1,9 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createMaterialHandle,
   createMeshHandle,
-  type MeshDrawPacket,
-  type RenderSnapshot,
-} from "@aperture-engine/core";
+} from "@aperture-engine/simulation";
+import type { MeshDrawPacket, RenderSnapshot } from "@aperture-engine/render";
 import {
   DEFAULT_SKINNING_JOINT_BUFFER_USAGE,
   createSkinningJointBufferDescriptor,

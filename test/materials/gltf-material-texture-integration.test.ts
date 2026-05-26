@@ -1,17 +1,18 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createMaterialAssetFromGltfMaterial,
-  createSamplerHandle,
   createTextureAssetFromGltfTexture,
-  createTextureHandle,
   GLTF_SAMPLER_FILTER,
   GLTF_SAMPLER_WRAP,
   type GltfMaterialTextureBindingResolver,
   type GltfMaterialTextureBindingResolverDiagnostic,
   type GltfTextureMappingDiagnostic,
   type GltfTextureMappingReport,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import {
+  createSamplerHandle,
+  createTextureHandle,
+} from "@aperture-engine/simulation";
 
 const decodedImage = {
   width: 2,

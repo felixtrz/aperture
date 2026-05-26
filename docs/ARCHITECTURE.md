@@ -47,14 +47,12 @@ the runtime architecture:
 - `@aperture-engine/runtime`: headless simulation and extraction app facades.
   It composes simulation and render only; WebGPU app orchestration belongs in
   `@aperture-engine/webgpu`.
-- `@aperture-engine/core`: headless-safe umbrella API for common user code. It
-  re-exports simulation, render, and runtime, but intentionally does not export
-  WebGPU backend APIs.
 
 Normal app authors start with `@aperture-engine/app/config`,
 `@aperture-engine/app/systems`, and `@aperture-engine/vite-plugin`. Users who
 need custom GPU presentation should import `@aperture-engine/webgpu`
-explicitly alongside `@aperture-engine/core` or focused package imports.
+explicitly alongside the focused simulation, render, and runtime packages they
+need.
 
 The default browser application shape is now a Vite metaframework path:
 

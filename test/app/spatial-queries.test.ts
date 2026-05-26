@@ -3,12 +3,14 @@ import { describe, expect, it } from "vitest";
 import { createSpatialQueries } from "@aperture-engine/app/systems";
 import {
   createMeshBvh,
-  createPlaneMeshAsset,
-  createSpatialTriangleMeshFromMeshAsset,
   createWorld,
   type Entity,
   type Mat4Like,
-} from "@aperture-engine/core";
+} from "@aperture-engine/simulation";
+import {
+  createPlaneMeshAsset,
+  createSpatialTriangleMeshFromMeshAsset,
+} from "@aperture-engine/render";
 
 function entityPair(): readonly [Entity, Entity] {
   const world = createWorld({ entityCapacity: 4 });

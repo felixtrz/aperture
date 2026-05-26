@@ -15,7 +15,7 @@ import {
   type UnlitBindGroupLayoutResource,
   type UnlitFrameGpuResourceDeviceLike,
 } from "@aperture-engine/webgpu";
-import { PACKED_VIEW_UNIFORM_FLOAT_STRIDE } from "@aperture-engine/core";
+import { PACKED_VIEW_UNIFORM_FLOAT_STRIDE } from "@aperture-engine/render";
 
 describe("unlit frame GPU resource upload", () => {
   it("uploads mesh, frame buffers, material buffers, and actual bind groups", () => {

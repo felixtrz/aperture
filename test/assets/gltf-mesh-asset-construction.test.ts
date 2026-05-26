@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createGltfMeshPrimitiveMappingReport,
   createMeshAssetsFromGltfDecodedAccessors,
   decodeGltfPrimitiveAccessors,
   validateGltfPrimitiveAccessorReferences,
   type GltfAccessorDecodingReport,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF mesh source asset construction", () => {
   it("constructs a MeshAsset from decoded primitive arrays", () => {

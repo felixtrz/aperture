@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createBoxMeshAsset,
   createGltfMeshPrimitiveMappingReport,
   gltfMeshPrimitiveMappingReportToJson,
   gltfMeshPrimitiveMappingReportToJsonValue,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF mesh primitive mapping report JSON", () => {
   it("preserves planned handle keys, references, and diagnostics", () => {

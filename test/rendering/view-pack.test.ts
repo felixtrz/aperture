@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import {
   PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
   FogMode,
@@ -8,7 +7,7 @@ import {
   writePackedSnapshotViewUniforms,
   type RenderSnapshot,
   type ViewPacket,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("snapshot view uniform packing", () => {
   it("packs one view-projection matrix", () => {

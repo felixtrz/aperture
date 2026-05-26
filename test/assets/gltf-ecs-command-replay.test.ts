@@ -1,21 +1,22 @@
 import { describe, expect, it } from "vitest";
-
 import {
   LocalTransform,
-  Material,
-  Mesh,
   Name,
   Parent,
-  Visibility,
   WorldTransform,
+  createWorld,
+} from "@aperture-engine/simulation";
+import {
+  Material,
+  Mesh,
+  Visibility,
   createGltfEcsAuthoringCommandPlan,
   createGltfSceneTraversalReport,
-  createWorld,
   replayGltfEcsAuthoringCommands,
   type GltfEcsAuthoringCommandPlan,
   type GltfMeshSourceAssetRegistrationReport,
   type GltfPrimitiveMaterialResolutionReport,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF ECS command replay", () => {
   it("replays scene, node, and primitive commands into an ECS world", () => {

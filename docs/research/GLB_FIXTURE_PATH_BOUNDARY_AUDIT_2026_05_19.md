@@ -29,7 +29,7 @@ ECS-authoritative, renderer-independent asset/import boundary.
   while later ECS/render stages remain separate.
 - Invalid container input stops before import stages and preserves structured
   GLB diagnostics from `parseGlbContainer`.
-- Package boundary validation passes, and `@aperture-engine/core` receives the
+- Package boundary validation passes, and the retired umbrella package receives the
   helper only through the existing headless-safe render re-export.
 
 ## Deferred Work

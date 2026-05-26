@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-
+import { createEnvironmentMapHandle } from "@aperture-engine/simulation";
 import {
-  createEnvironmentMapHandle,
   validateRenderSnapshotCloneability,
   type RenderSnapshot,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("render snapshot cloneability validation", () => {
   it("accepts structured-clone-friendly snapshots", () => {

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-
-import { type MaterialQueueItem } from "@aperture-engine/core";
+import type { MaterialQueueItem } from "@aperture-engine/render";
 import {
   createQueuedMaterialFrameResourceRouteShell,
   createQueuedMaterialPrepareRouteResult,

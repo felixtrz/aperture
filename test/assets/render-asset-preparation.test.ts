@@ -1,23 +1,26 @@
 import { describe, expect, it } from "vitest";
-
 import {
   AssetRegistry,
+  createMaterialHandle,
+  createMeshHandle,
+  createSamplerHandle,
+  createTextureHandle,
+  type MaterialHandle,
+  type MeshHandle,
+} from "@aperture-engine/simulation";
+import {
   PreparedRenderAssetStore,
   createBoxMeshAsset,
   createCustomWgslMaterialRenderAssetAdapter,
   createDefaultRenderState,
   defineInstanceAttributes,
   createMatcapMaterialAsset,
-  createMaterialHandle,
   createMaterialMetadataRenderAssetAdapter,
-  createMeshHandle,
   createPreparedMeshStore,
   createPreparedMaterialStore,
   createPreparedMaterialAssetStore,
   createRenderAssetCollections,
-  createSamplerHandle,
   createStandardMaterialAsset,
-  createTextureHandle,
   createUnlitMaterialAsset,
   preparedMeshStoreSummaryToJsonValue,
   preparedMaterialStoreSummaryToJsonValue,
@@ -25,14 +28,12 @@ import {
   prepareRenderAsset,
   unloadPreparedRenderAsset,
   validateCustomMaterialSource,
-  type MaterialHandle,
   type MeshAsset,
-  type MeshHandle,
   type CustomWgslMaterialSource,
   type PreparedCustomWgslMaterial,
   type RenderAssetAdapter,
   type RenderSnapshot,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("render asset preparation contract", () => {
   it("prepares, updates, skips unchanged sources, and unloads deterministically", () => {

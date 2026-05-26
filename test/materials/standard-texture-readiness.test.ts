@@ -1,17 +1,18 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createMaterialHandle,
-  createSamplerAsset,
   createSamplerHandle,
+  createTextureHandle,
+  AssetRegistry,
+} from "@aperture-engine/simulation";
+import {
+  createSamplerAsset,
   createStandardMaterialAsset,
   createStandardMaterialTextureReadinessReport,
   createTextureAsset,
-  createTextureHandle,
   standardMaterialTextureReadinessReportToJson,
   standardMaterialTextureReadinessReportToJsonValue,
-  AssetRegistry,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("StandardMaterial texture semantic and color-space readiness", () => {
   it("accepts glTF-aligned StandardMaterial texture metadata", () => {

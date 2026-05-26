@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createDebugNormalMaterialAsset,
   createDebugNormalMaterialPreparationPlan,
   createRenderAssetCollections,
   createUnlitMaterialAsset,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("DebugNormalMaterial preparation metadata", () => {
   it("creates a renderer-independent preparation plan without dependencies", () => {

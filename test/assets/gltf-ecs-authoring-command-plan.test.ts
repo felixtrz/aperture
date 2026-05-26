@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createGltfEcsAuthoringCommandPlan,
   createGltfSceneTraversalReport,
   type GltfMeshSourceAssetRegistrationReport,
   type GltfPrimitiveMaterialResolutionReport,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF ECS authoring command plan", () => {
   it("plans scene root and TRS node commands with serializable parent keys", () => {

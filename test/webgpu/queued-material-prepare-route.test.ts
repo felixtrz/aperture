@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createMatcapMaterialAsset,
   createStandardMaterialAsset,
   createUnlitMaterialAsset,
   type MaterialQueueItem,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 import {
   createBuiltInMaterialQueueRouteAdapterRegistry,
   routeQueuedMaterialPrepare,

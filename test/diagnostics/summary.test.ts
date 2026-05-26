@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-
-import { summarizeDiagnostics } from "@aperture-engine/core";
+import { summarizeDiagnostics } from "@aperture-engine/simulation";
 
 describe("diagnostic summary helpers", () => {
   it("summarizes empty diagnostics", () => {

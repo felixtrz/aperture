@@ -1,6 +1,62 @@
 # Agent Handoff
 
-Updated: 2026-05-26T15:32:43Z
+Updated: 2026-05-26T17:38:24Z
+
+## Current Run Update — 2026-05-26T17:38:24Z — Removed retired umbrella package
+
+Completed the user-directed package-boundary migration from
+`docs/CORE_PACKAGE_REMOVAL_PLAN.md`.
+
+### What changed
+
+- Deleted the retired umbrella workspace package and removed it from the root
+  build graph, TypeScript project references, test path aliases, Vitest aliases,
+  lockfile workspace importers, WebGPU package references, package-boundary
+  checks, and example-server worker import rewrites.
+- Migrated tests and examples to focused imports from
+  `@aperture-engine/simulation`, `@aperture-engine/render`,
+  `@aperture-engine/runtime`, and `@aperture-engine/webgpu`.
+- Removed example HTML import-map entries for the retired package.
+- Replaced the old public-entrypoint identity test with package-entrypoint
+  tests for the app root, app subpaths, and focused lower layers.
+- Updated README, architecture/authoring-adjacent docs, historical package-plan
+  docs, and the public tracker so current guidance points at
+  `aperture.config.ts`, `@aperture-engine/app/config`,
+  `@aperture-engine/app/systems`, `@aperture-engine/vite-plugin`, and focused
+  lower-layer packages.
+
+### Validation
+
+- `pnpm install --frozen-lockfile --ignore-scripts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec vitest run test/index.test.ts test/scripts/serve-examples.test.mjs test/examples/navigation.test.mjs`
+- `pnpm exec playwright test test/e2e/basic-status.spec.ts test/e2e/worker-cube.spec.ts test/e2e/render-to-texture.spec.ts test/e2e/developer-api.spec.ts --grep "ECS triangle example publishes|worker cube renders|render-to-texture example displays|generated developer API" --project=chrome-webgpu-headed`
+- `git diff --check -- ':(exclude).codex/hooks.json' ':(exclude).playwright-mcp/**'`
+- `git diff --name-only --diff-filter=ACMRT -- ':(exclude).codex/hooks.json' ':(exclude).playwright-mcp/**' | xargs pnpm exec prettier --check`
+
+### Known issues / remaining work
+
+- `pnpm run lint` still fails on the same unrelated existing lint issues in
+  `packages/app/src/asset-mirror.ts`,
+  `packages/webgpu/src/webgpu/draw-command.ts`,
+  `packages/webgpu/src/webgpu/standard-shader.ts`, and
+  `scripts/render-control.mjs`.
+- `pnpm test` still fails on the same unrelated existing 30 mesh/WebGPU
+  failures around primitive topology diagnostics, injected render frame command
+  counts/draw-package packet shape, and verbose pipeline resource-key
+  expectations.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Resume the visible-feature queue at `task-3210`: add a mixed current-texture
+plus MSAA resized reused same-target clear/load off-screen target route.
 
 ## Current Run Update — 2026-05-26T15:32:43Z — Mixed MSAA reused clear/load render-target route
 

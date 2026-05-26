@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
-
 import {
   AssetRegistry,
+  createMaterialHandle,
+  createMeshHandle,
+  type MaterialHandle,
+  type MeshHandle,
+} from "@aperture-engine/simulation";
+import {
   createBatchCompatibilityKey,
   createBoxMeshAsset,
-  createMaterialHandle,
   createMaterialPipelineKeyInput,
-  createMeshHandle,
   createPreparedMeshStore,
   createPreparedMaterialStore,
   createRenderAssetCollections,
@@ -15,11 +18,9 @@ import {
   createUnlitMaterialAsset,
   prepareSnapshotMeshes,
   prepareSnapshotMaterials,
-  type MaterialHandle,
-  type MeshHandle,
   type MeshDrawPacket,
   type RenderSnapshot,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("snapshot prepared material facade preparation", () => {
   it("prepares each unique snapshot material once and leaves snapshots immutable", () => {

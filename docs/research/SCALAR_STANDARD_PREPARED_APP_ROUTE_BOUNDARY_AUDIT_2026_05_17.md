@@ -47,7 +47,7 @@ dependency keys.
   creation/reuse counts. They do not expose cache maps, raw GPU buffers, raw
   bind groups, descriptors, or mutable backend objects.
 - Public WebGPU exports include the prepared helper for direct focused testing,
-  but `@aperture-engine/core`, `@aperture-engine/render`, and
+  but the retired umbrella package, `@aperture-engine/render`, and
   `@aperture-engine/simulation` remain free of WebGPU imports.
 
 ## Follow-Up Guardrails

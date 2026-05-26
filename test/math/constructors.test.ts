@@ -6,7 +6,6 @@ import {
   vec3 as wgpuVec3,
   vec4 as wgpuVec4,
 } from "wgpu-matrix";
-
 import {
   color,
   identityMat4,
@@ -17,7 +16,7 @@ import {
   vec3,
   vec4,
   type Mat4Like,
-} from "@aperture-engine/core";
+} from "@aperture-engine/simulation";
 
 describe("Aperture math constructors", () => {
   it("wraps wgpu-matrix vector, quaternion, and color constructors", () => {

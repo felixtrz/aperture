@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
-
 import {
   UNLIT_MATERIAL_UNIFORM_LAYOUT,
-  createSamplerHandle,
   createStandardMaterialAsset,
-  createTextureHandle,
   createUnlitMaterialAsset,
   packUnlitMaterial,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import {
+  createSamplerHandle,
+  createTextureHandle,
+} from "@aperture-engine/simulation";
 
 describe("unlit material uniform packing", () => {
   it("packs default unlit color into the documented uniform layout", () => {

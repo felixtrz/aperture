@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createRenderSnapshotUpdateSchedule,
   type RenderSnapshotChangeSet,
   type RenderSnapshotFamilyChangeCounts,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("render snapshot update scheduler", () => {
   it("turns changed, unchanged, and removed packet families into renderer work", () => {

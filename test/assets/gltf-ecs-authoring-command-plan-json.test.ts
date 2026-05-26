@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createGltfEcsAuthoringCommandPlan,
   createGltfSceneTraversalReport,
@@ -7,7 +6,7 @@ import {
   gltfEcsAuthoringCommandPlanToJsonValue,
   type GltfMeshSourceAssetRegistrationReport,
   type GltfPrimitiveMaterialResolutionReport,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF ECS authoring command plan JSON", () => {
   it("serializes commands and dependencies without embedding runtime state", () => {

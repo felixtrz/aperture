@@ -12,7 +12,15 @@ const rows = 25;
 
 try {
   const [core, webgpu] = await Promise.all([
-    import("@aperture-engine/core"),
+    Promise.all([
+      import("@aperture-engine/simulation"),
+      import("@aperture-engine/render"),
+      import("@aperture-engine/runtime"),
+    ]).then(([simulation, render, runtime]) => ({
+      ...simulation,
+      ...render,
+      ...runtime,
+    })),
     import("@aperture-engine/webgpu"),
   ]);
   const aperture = { ...core, ...webgpu };
@@ -156,7 +164,7 @@ function statusFromReport(aperture, report, loop, message, typedSnapshot) {
     example: "instancing",
     ok: report.ok,
     phase: report.ok ? "submit" : "failed",
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    renderingBackend: "webgpu-explicit",
     workerModel: "ecs-extraction-worker-postmessage-snapshot",
     instanceCount,
     grid: { columns, rows },

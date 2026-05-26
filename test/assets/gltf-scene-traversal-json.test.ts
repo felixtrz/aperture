@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createGltfSceneTraversalReport,
   gltfSceneTraversalReportToJson,
   gltfSceneTraversalReportToJsonValue,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF scene traversal report JSON", () => {
   it("preserves scene keys, node keys, transforms, and diagnostics", () => {

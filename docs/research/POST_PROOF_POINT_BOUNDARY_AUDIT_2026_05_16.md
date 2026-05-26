@@ -26,14 +26,14 @@ Reference anchors:
 
 ### Package Boundaries
 
-`@aperture-engine/core`, `@aperture-engine/runtime`,
+the retired umbrella package, `@aperture-engine/runtime`,
 `@aperture-engine/render`, and `@aperture-engine/simulation` remain headless
 with respect to backend ownership. Their package manifests do not depend on
 `@aperture-engine/webgpu`, and source search found no WebGPU package imports in
 those packages.
 
 The only headless reference to WebGPU is the identity string
-`renderingBackend: "webgpu-explicit"` in `@aperture-engine/core`, which records
+`renderingBackend: "webgpu-explicit"` in the retired umbrella package, which records
 the architecture contract rather than importing the backend.
 
 ### App Resource Reuse

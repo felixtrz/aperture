@@ -1,13 +1,11 @@
 import { describe, expect, it } from "vitest";
-
+import { AssetRegistry, createMeshHandle } from "@aperture-engine/simulation";
 import {
-  AssetRegistry,
-  createMeshHandle,
   gltfMeshSourceAssetRegistrationReportToJsonValue,
   registerGltfMeshSourceAssetsFromConstructionReport,
   type GltfMeshAssetConstructionReport,
   type MeshAsset,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF mesh source asset registration", () => {
   it("registers successful constructed mesh source assets", () => {

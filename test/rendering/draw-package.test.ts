@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createBatchCompatibilityKey,
-  createMaterialHandle,
   createMaterialPipelineKeyInput,
-  createMeshHandle,
   createRenderWorldDrawPackageScratch,
   createRenderSortKey,
   createStableRenderId,
@@ -15,7 +12,11 @@ import {
   type PackedSnapshotTransforms,
   type RenderWorldDrawReadinessReport,
   type RenderWorldReadyDraw,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import {
+  createMaterialHandle,
+  createMeshHandle,
+} from "@aperture-engine/simulation";
 
 describe("render-world draw package planning", () => {
   it("creates packages for ready draws and preserves resource keys", () => {

@@ -1,19 +1,20 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createMaterialPipelineKeyInput,
-  createMaterialHandle,
   createMatcapMaterialAsset,
   createSamplerAsset,
-  createSamplerHandle,
   createStandardMaterialAsset,
   createTextureAsset,
-  createTextureHandle,
   createUnlitMaterialAsset,
   samplerPipelineKey,
   validateMaterialAsset,
   validateTextureAsset,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import {
+  createMaterialHandle,
+  createSamplerHandle,
+  createTextureHandle,
+} from "@aperture-engine/simulation";
 
 describe("material, texture, sampler, and render-state schemas", () => {
   it("validates a simple unlit material", () => {

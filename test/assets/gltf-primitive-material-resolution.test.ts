@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createGltfMeshPrimitiveMappingReport,
   createGltfPrimitiveMaterialResolutionReport,
   type GltfSourceAssetRegistrationReport,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF primitive material resolution", () => {
   it("resolves primitive material indices from written registration entries", () => {

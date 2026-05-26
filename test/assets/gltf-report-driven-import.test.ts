@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createGltfReportDrivenImportReport,
   type GltfMeshSourceAssetRegistrationReport,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF report-driven import facade", () => {
   it("creates root, scene traversal, and orchestration reports from glTF JSON", () => {

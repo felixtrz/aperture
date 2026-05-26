@@ -1,5 +1,10 @@
 # pnpm Monorepo Refactor Plan
 
+Status: superseded. This document is retained as historical context for the
+workspace split. The current package model removes the old umbrella package and
+uses focused package imports plus the app/Vite entrypoints documented in
+`docs/ARCHITECTURE.md` and `docs/AUTHORING.md`.
+
 ## Goal
 
 Move Aperture from a single-package TypeScript project into a small
@@ -10,8 +15,9 @@ Implementation status as of 2026-05-16:
 
 - The workspace split is implemented with `@aperture-engine/simulation`,
   `@aperture-engine/render`, `@aperture-engine/webgpu`,
-  `@aperture-engine/runtime`, and `@aperture-engine/core`.
-- `@aperture-engine/core` is headless-safe and does not re-export WebGPU APIs.
+  `@aperture-engine/runtime`, and the now-retired umbrella package.
+- The retired umbrella package was headless-safe and did not re-export WebGPU
+  APIs.
 - `@aperture-engine/webgpu` is the explicit backend import and depends only on
   the simulation/render contracts it consumes.
 - The first runtime facade covers headless simulation and render extraction;
@@ -164,7 +170,7 @@ extraction mode: simulation + RenderSnapshot production, no GPU
 webgpu mode: simulation + extraction + WebGPU presentation
 ```
 
-### `@aperture-engine/core`
+### Retired Umbrella Package
 
 Convenience umbrella package for users who want one import path.
 
@@ -191,8 +197,8 @@ The intended dependency graph is:
   depends on simulation + render
   depends on webgpu only for WebGPU app creation
 
-@aperture-engine/core
-  re-exports public APIs
+retired umbrella package
+  re-exported public APIs
 ```
 
 Forbidden dependency directions:
@@ -244,7 +250,8 @@ test/e2e/
 ```
 
 Root `package.json` should become private workspace orchestration only. The
-published entrypoint package should be `@aperture-engine/core`, not `aperture`.
+published entrypoint package was originally planned as the umbrella package, not
+`aperture`.
 
 ## Migration Phases
 
@@ -357,17 +364,17 @@ Acceptance criteria:
 
 Tasks:
 
-- Add `@aperture-engine/core`.
+- Add the umbrella package.
 - Re-export curated APIs from simulation, render, webgpu, and runtime.
 - Preserve familiar import ergonomics for examples.
 - Document package-specific import paths for headless and backend-specific use.
 
 Acceptance criteria:
 
-- `@aperture-engine/core` is the main user entrypoint.
+- The umbrella package is the main user entrypoint.
 - Headless users can import from `@aperture-engine/simulation` or runtime
   simulation APIs without loading WebGPU.
-- Examples use either `@aperture-engine/core` or focused package imports
+- Examples use either the umbrella package or focused package imports
   intentionally.
 
 ### Phase 8 — Remove Legacy Single-Package Source
@@ -423,8 +430,8 @@ app.step(1 / 60);
   relative imports.
 - Examples may temporarily become more complex if moved before the runtime layer
   exists.
-- `@aperture-engine/core` may become too broad if it starts owning logic instead
-  of re-exporting stable APIs.
+- The umbrella package may become too broad if it starts owning logic instead of
+  re-exporting stable APIs.
 - Keeping mesh/material contracts in `render` means simulation-only users who
   author renderable scenes may still depend on render; this is acceptable for
   extraction-mode apps but should remain optional for pure simulation apps.

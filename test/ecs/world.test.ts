@@ -1,11 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-
 import {
   EcsType,
   createWorld,
   defineComponent,
   type Entity,
-} from "@aperture-engine/core";
+} from "@aperture-engine/simulation";
 
 let nextComponentId = 0;
 

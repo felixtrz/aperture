@@ -36,9 +36,9 @@ Reference anchors:
 - Assets remain handle-based. The example registers a box mesh and
   StandardMaterial through typed asset collections, then stores handles on ECS
   components.
-- WebGPU remains isolated to `@aperture-engine/webgpu`. `@aperture-engine/core`
-  and `@aperture-engine/runtime` do not import the WebGPU package, and package
-  manifests preserve the intended dependency direction.
+- WebGPU remains isolated to `@aperture-engine/webgpu`. The retired umbrella
+  package and `@aperture-engine/runtime` do not import the WebGPU package, and
+  package manifests preserve the intended dependency direction.
 - No WebGL fallback or three.js-style `Object3D` / scene graph API was added.
 
 ### StandardMaterial Scope

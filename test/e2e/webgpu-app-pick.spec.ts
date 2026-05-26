@@ -21,7 +21,15 @@ test("public app.pick returns an ECS entity ref from the ID buffer", async ({
     canvas.height = 240;
 
     const [core, webgpu] = await Promise.all([
-      import("@aperture-engine/core"),
+      Promise.all([
+        import("@aperture-engine/simulation"),
+        import("@aperture-engine/render"),
+        import("@aperture-engine/runtime"),
+      ]).then(([simulation, render, runtime]) => ({
+        ...simulation,
+        ...render,
+        ...runtime,
+      })),
       import("@aperture-engine/webgpu"),
     ]);
     const assets = new core.AssetRegistry();

@@ -1,40 +1,44 @@
 import { describe, expect, it } from "vitest";
-
 import {
   Camera,
   Fog,
   FogMode,
   InstanceTint,
   Light,
-  LocalTransform,
   Material,
   Mesh,
-  Name,
-  Parent,
   RenderLayer,
   ShadowCaster,
   ShadowReceiver,
   Skybox,
-  Spin,
-  SpinSystem,
   Visibility,
-  WorldTransform,
-  assetHandleKey,
-  applyGltfEcsCommandPlanToApp,
   createBoxMeshAsset,
   createGltfEcsAuthoringCommandPlan,
   createGltfSceneTraversalReport,
   createCamera,
-  createExtractionApp,
+  createRenderAssetCollections,
+  createTextureAsset,
+  createUnlitMaterialAsset,
+  type GltfEcsAuthoringCommandPlan,
+} from "@aperture-engine/render";
+import {
+  LocalTransform,
+  Name,
+  Parent,
+  WorldTransform,
+  assetHandleKey,
   createEnvironmentMapHandle,
   createMaterialHandle,
   createMeshHandle,
-  createRenderAssetCollections,
   createRootTransform,
-  createSimulationApp,
-  createTextureAsset,
   createTextureHandle,
-  createUnlitMaterialAsset,
+} from "@aperture-engine/simulation";
+import {
+  Spin,
+  SpinSystem,
+  applyGltfEcsCommandPlanToApp,
+  createExtractionApp,
+  createSimulationApp,
   withCamera,
   withEnvironmentMap,
   withFog,
@@ -48,8 +52,7 @@ import {
   withSkybox,
   withTransform,
   withVisibility,
-  type GltfEcsAuthoringCommandPlan,
-} from "@aperture-engine/core";
+} from "@aperture-engine/runtime";
 
 describe("runtime facade", () => {
   it("steps a headless simulation app and resolves transforms", () => {

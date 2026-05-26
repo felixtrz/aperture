@@ -1,16 +1,17 @@
 import { describe, expect, it } from "vitest";
-
 import {
   AssetRegistry,
-  createBoxMeshAsset,
   createMaterialHandle,
   createMeshHandle,
+} from "@aperture-engine/simulation";
+import {
+  createBoxMeshAsset,
   createRenderSortKey,
   createUnlitMaterialAsset,
   type BatchCompatibilityKey,
   type MeshDrawPacket,
   type RenderSnapshot,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 import {
   indexQueuedSourceAssets,
   type QueuedSourceMaterialAsset,

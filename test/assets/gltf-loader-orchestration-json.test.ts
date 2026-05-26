@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createGltfLoaderOrchestrationReport,
   gltfLoaderOrchestrationReportToJson,
   gltfLoaderOrchestrationReportToJsonValue,
   type GltfEcsCommandReplayReport,
   type GltfSourceAssetRegistrationReport,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF loader orchestration report JSON", () => {
   it("serializes stage summaries and diagnostics without nested raw state", () => {

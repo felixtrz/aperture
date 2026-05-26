@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import {
   LocalTransform,
   Name,
@@ -11,7 +10,7 @@ import {
   registerMetadataComponents,
   registerTransformComponents,
   resolveWorldTransforms,
-} from "@aperture-engine/core";
+} from "@aperture-engine/simulation";
 
 describe("ECS entity version tracking", () => {
   it("increments a monotonic entity version for component writes", () => {

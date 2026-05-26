@@ -4,7 +4,6 @@ import {
   quat as wgpuQuat,
   vec3 as wgpuVec3,
 } from "wgpu-matrix";
-
 import {
   composeTrsMatrix,
   decomposeTrsMatrix,
@@ -18,7 +17,7 @@ import {
   type QuatLike,
   type Mat4Like,
   type Vec3Like,
-} from "@aperture-engine/core";
+} from "@aperture-engine/simulation";
 
 const CLOSE_TO = 5;
 

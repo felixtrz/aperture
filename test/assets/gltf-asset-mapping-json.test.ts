@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createGltfAssetMappingReport,
   gltfAssetMappingReportToJson,
   gltfAssetMappingReportToJsonValue,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 const decodedImage = {
   width: 1,

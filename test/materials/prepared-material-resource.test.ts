@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createDebugNormalMaterialAsset,
   createDebugNormalPreparedMaterialResourceDescriptor,
@@ -7,13 +6,15 @@ import {
   createMatcapPreparedMaterialResourceDescriptor,
   createPreparedMaterialResourceDescriptor,
   createRenderAssetCollections,
-  createSamplerHandle,
   createStandardMaterialAsset,
   createStandardPreparedMaterialResourceDescriptor,
-  createTextureHandle,
   createUnlitMaterialAsset,
   createUnlitPreparedMaterialResourceDescriptor,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import {
+  createSamplerHandle,
+  createTextureHandle,
+} from "@aperture-engine/simulation";
 
 describe("prepared material resource descriptors", () => {
   it("creates JSON-safe descriptors for all built-in material families", () => {

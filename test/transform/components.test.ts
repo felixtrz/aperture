@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import {
   DebugMetadata,
   Enabled,
@@ -14,7 +13,7 @@ import {
   quatFromAxisAngle,
   registerMetadataComponents,
   registerTransformComponents,
-} from "@aperture-engine/core";
+} from "@aperture-engine/simulation";
 
 describe("transform and metadata ECS components", () => {
   it("attaches, reads, updates, removes, and queries transform components", () => {

@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createBoxMeshAsset,
   type MaterialQueueItem,
   type MeshDrawPacket,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 import {
   createQueuedMaterialAppRouteReportDiagnostic,
   createQueuedMaterialAdapterRegistry,

@@ -23,7 +23,7 @@ Reference files inspected:
 - The selected follow-up is concrete enough for one focused run: a test-only
   local helper and assertions in `test/materials`.
 - The helper must stay inside the test file and must not be exported from
-  `@aperture-engine/core`, `@aperture-engine/render`, or any package entrypoint.
+  the retired umbrella package, `@aperture-engine/render`, or any package entrypoint.
 - The plan preserves Decision 0012 because it locks expected diagnostic shape
   without adding public source material APIs, runtime validators, app-owned
   adapter facades, prepared-resource adapters, or rendered custom families.

@@ -76,7 +76,15 @@ shellApi.ready = initializeShell();
 async function initializeShell() {
   try {
     const [core, webgpu] = await Promise.all([
-      import("@aperture-engine/core"),
+      Promise.all([
+        import("@aperture-engine/simulation"),
+        import("@aperture-engine/render"),
+        import("@aperture-engine/runtime"),
+      ]).then(([simulation, render, runtime]) => ({
+        ...simulation,
+        ...render,
+        ...runtime,
+      })),
       import("@aperture-engine/webgpu"),
     ]);
     const aperture = { ...core, ...webgpu };
@@ -572,7 +580,6 @@ function requestWorkerFrame(worker, loop) {
 }
 
 function createTransparentPressureStatus({
-  aperture,
   report,
   reportJson,
   message,
@@ -648,12 +655,11 @@ function createTransparentPressureStatus({
     ok,
     phase: ok ? "scenario-complete" : "scenario-running",
     scenario,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    renderingBackend: "webgpu-explicit",
   });
 }
 
 function createClusteredPressureHistoryStatus({
-  aperture,
   report,
   reportJson,
   message,
@@ -715,7 +721,7 @@ function createClusteredPressureHistoryStatus({
     ok,
     phase: ok ? "scenario-complete" : "scenario-running",
     scenario,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    renderingBackend: "webgpu-explicit",
   });
 }
 
@@ -791,7 +797,7 @@ function createBaseStatus({
   reason,
   message,
   scenario = null,
-  renderingBackend = apertureApi?.APERTURE_IDENTITY?.renderingBackend,
+  renderingBackend = "webgpu-explicit",
 }) {
   return {
     example: "persistent-render-shell",

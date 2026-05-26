@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import {
   LocalTransform,
   Parent,
@@ -14,7 +13,7 @@ import {
   resolveWorldTransforms,
   type Entity,
   type TransformResolutionReport,
-} from "@aperture-engine/core";
+} from "@aperture-engine/simulation";
 
 describe("transform resolution", () => {
   it("resolves root world transforms from local transforms on system update", () => {

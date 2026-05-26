@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createMaterialPipelineKeyInput,
-  createSamplerHandle,
   createStandardMaterialAsset,
-  createTextureHandle,
   materialPipelineKeyInputToKey,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import {
+  createSamplerHandle,
+  createTextureHandle,
+} from "@aperture-engine/simulation";
 import {
   STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_SHADER,
   STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL,

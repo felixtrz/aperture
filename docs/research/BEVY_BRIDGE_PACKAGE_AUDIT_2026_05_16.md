@@ -22,7 +22,7 @@ and the first `createWebGpuApp` facade.
   - `@aperture-engine/simulation` imports no Aperture packages.
   - `@aperture-engine/render` imports simulation only.
   - `@aperture-engine/runtime` imports simulation and render only.
-  - `@aperture-engine/core` re-exports simulation, render, and runtime.
+  - the retired umbrella package re-exports simulation, render, and runtime.
   - `@aperture-engine/webgpu` imports simulation and render only; it does not
     import runtime or core.
 - Render authoring still uses ECS `Mesh` and `Material` components with stable

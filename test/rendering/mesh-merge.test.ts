@@ -1,14 +1,13 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createBoxMeshAsset,
   createConeMeshAsset,
   createCylinderMeshAsset,
-  createMeshHandle,
   createPlaneMeshAsset,
   mergeMeshAssetsForBatch,
   type MeshAsset,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import { createMeshHandle } from "@aperture-engine/simulation";
 
 describe("mesh merge batching primitive", () => {
   it("merges four distinct mesh handles sharing a vertex layout", () => {

@@ -934,7 +934,15 @@ async function handleGlbWorkerMessage(data) {
 }
 
 function loadAperture() {
-  apertureModulePromise ??= import("@aperture-engine/core");
+  apertureModulePromise ??= Promise.all([
+    import("@aperture-engine/simulation"),
+    import("@aperture-engine/render"),
+    import("@aperture-engine/runtime"),
+  ]).then(([simulation, render, runtime]) => ({
+    ...simulation,
+    ...render,
+    ...runtime,
+  }));
   return apertureModulePromise;
 }
 

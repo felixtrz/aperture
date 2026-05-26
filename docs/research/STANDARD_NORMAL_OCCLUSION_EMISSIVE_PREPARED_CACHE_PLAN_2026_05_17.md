@@ -104,7 +104,7 @@ After that refactor:
   helpers as dependencies.
 - The WebGPU package may expose direct helper functions for tests, but
   `@aperture-engine/render`, `@aperture-engine/simulation`, and
-  `@aperture-engine/core` must stay free of WebGPU resources.
+  the retired umbrella package must stay free of WebGPU resources.
 
 ## Backlog Shape
 

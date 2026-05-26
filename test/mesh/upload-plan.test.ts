@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createBoxMeshAsset,
   createMeshGpuUploadPlan,
   createPlaneMeshAsset,
   type MeshAsset,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("mesh GPU upload planning descriptors", () => {
   it("plans box mesh vertex and index uploads with stable labels", () => {

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import {
   AssetRegistry,
   assetHandleKey,
@@ -18,7 +17,7 @@ import {
   deserializeAssetHandle,
   serializeAssetHandle,
   type AssetDiagnostic,
-} from "@aperture-engine/core";
+} from "@aperture-engine/simulation";
 
 describe("asset handles and registry", () => {
   it("creates branded handles for every MVP asset kind", () => {

@@ -26,7 +26,15 @@ const baseStatus = {
 
 try {
   const [core, webgpu] = await Promise.all([
-    import("@aperture-engine/core"),
+    Promise.all([
+      import("@aperture-engine/simulation"),
+      import("@aperture-engine/render"),
+      import("@aperture-engine/runtime"),
+    ]).then(([simulation, render, runtime]) => ({
+      ...simulation,
+      ...render,
+      ...runtime,
+    })),
     import("@aperture-engine/webgpu"),
   ]);
   const aperture = { ...core, ...webgpu };
@@ -47,8 +55,8 @@ try {
           initialized.reason,
           initialized.message,
         ),
-        apertureVersion: aperture.APERTURE_VERSION,
-        renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+        apertureVersion: "0.0.0",
+        renderingBackend: "webgpu-explicit",
       });
     } else {
       const scene = await createInstanceAttributeScene(aperture, initialized, {
@@ -647,7 +655,6 @@ async function submitCustomWindFrame(
 }
 
 function publishAnimatedStatus({
-  aperture,
   initialized,
   scene,
   submitted,
@@ -675,8 +682,8 @@ function publishAnimatedStatus({
     ...baseStatus,
     ok: true,
     phase: "animate",
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    apertureVersion: "0.0.0",
+    renderingBackend: "webgpu-explicit",
     format: initialized.format,
     clearColor,
     customMaterial: {

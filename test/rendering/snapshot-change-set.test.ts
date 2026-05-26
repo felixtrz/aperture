@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createEnvironmentMapHandle,
   createMaterialHandle,
   createMeshHandle,
+} from "@aperture-engine/simulation";
+import {
   createRenderSnapshotChangeSet,
   createRenderSortKey,
   createStableRenderId,
@@ -15,7 +16,7 @@ import {
   type RenderSnapshot,
   type ShadowRequestPacket,
   type ViewPacket,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("render snapshot change set", () => {
   it("reports unchanged packet families for repeated snapshots", () => {

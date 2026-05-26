@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import {
   compareRenderSortKeys,
   createBatchCompatibilityKey,
@@ -8,7 +7,7 @@ import {
   createStableRenderId,
   createUnlitMaterialAsset,
   type RenderSnapshot,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 type HasNoGpuKeys<T> =
   Extract<

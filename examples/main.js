@@ -15,7 +15,15 @@ const baseStatus = {
 
 try {
   const [core, webgpu] = await Promise.all([
-    import("@aperture-engine/core"),
+    Promise.all([
+      import("@aperture-engine/simulation"),
+      import("@aperture-engine/render"),
+      import("@aperture-engine/runtime"),
+    ]).then(([simulation, render, runtime]) => ({
+      ...simulation,
+      ...render,
+      ...runtime,
+    })),
     import("@aperture-engine/webgpu"),
   ]);
   const aperture = { ...core, ...webgpu };
@@ -40,8 +48,8 @@ try {
         ...baseStatus,
         ok: false,
         phase: "initialize-webgpu",
-        apertureVersion: aperture.APERTURE_VERSION,
-        renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+        apertureVersion: "0.0.0",
+        renderingBackend: "webgpu-explicit",
         reason: initialized.reason,
         message: initialized.message,
       });
@@ -63,8 +71,8 @@ try {
               ...baseStatus,
               ok: true,
               phase: "clear",
-              apertureVersion: aperture.APERTURE_VERSION,
-              renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+              apertureVersion: "0.0.0",
+              renderingBackend: "webgpu-explicit",
               format: initialized.format,
               clearColor,
               readback: clearReport.readback,
@@ -73,8 +81,8 @@ try {
               ...baseStatus,
               ok: false,
               phase: "clear",
-              apertureVersion: aperture.APERTURE_VERSION,
-              renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+              apertureVersion: "0.0.0",
+              renderingBackend: "webgpu-explicit",
               format: initialized.format,
               reason: cleared.reason,
               message: cleared.message,

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import {
   BOUNDS_PACKET_WORDS,
   ENVIRONMENT_PACKET_WORDS,
@@ -11,10 +10,6 @@ import {
   SNAPSHOT_PACKET_HEADER_WORDS,
   SNAPSHOT_PACKET_WORD_STRIDES,
   VIEW_PACKET_WORDS,
-  createEnvironmentMapHandle,
-  createMaterialHandle,
-  createMeshHandle,
-  createRenderTargetHandle,
   createSnapshotPacketRegistry,
   decodePackets,
   decodeSnapshotPackets,
@@ -22,7 +17,13 @@ import {
   encodeSnapshotPackets,
   snapshotPacketWordLength,
   type SnapshotPacketBundle,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import {
+  createEnvironmentMapHandle,
+  createMaterialHandle,
+  createMeshHandle,
+  createRenderTargetHandle,
+} from "@aperture-engine/simulation";
 
 describe("snapshot packed packet encoding", () => {
   it("round-trips a deterministic random snapshot packet bundle", () => {

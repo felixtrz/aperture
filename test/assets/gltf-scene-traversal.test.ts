@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-
-import { createGltfSceneTraversalReport } from "@aperture-engine/core";
+import { createGltfSceneTraversalReport } from "@aperture-engine/render";
 
 describe("glTF scene traversal report", () => {
   it("plans deterministic scene and node entity keys without ECS mutation", () => {

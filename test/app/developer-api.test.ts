@@ -31,12 +31,11 @@ import {
   findApertureEntities,
   getApertureEntitySummary,
 } from "@aperture-engine/app/entity-lookup";
+import { composeTrsMatrix, createMeshBvh } from "@aperture-engine/simulation";
 import {
-  composeTrsMatrix,
-  createMeshBvh,
   createPlaneMeshAsset,
   createSpatialTriangleMeshFromMeshAsset,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 import {
   SIMULATION_WORKER_PROTOCOL,
   type SimulationMessagePort,

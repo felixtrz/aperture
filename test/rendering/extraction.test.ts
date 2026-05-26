@@ -1,7 +1,19 @@
 import { describe, expect, it } from "vitest";
-
 import {
   AssetRegistry,
+  WorldTransform,
+  createEnvironmentMapHandle,
+  createMaterialHandle,
+  createMeshHandle,
+  createRenderTargetHandle,
+  createSamplerHandle,
+  createTextureHandle,
+  createRootTransform,
+  createWorld,
+  registerMetadataComponents,
+  registerTransformComponents,
+} from "@aperture-engine/simulation";
+import {
   AreaLightShape,
   Camera,
   Fog,
@@ -22,41 +34,30 @@ import {
   Sprite,
   Skybox,
   Visibility,
-  WorldTransform,
   createBoxMeshAsset,
   createCamera,
   createFog,
-  createEnvironmentMapHandle,
   createInstanceData,
   createLight,
   createLightShadowSettings,
   createMaterialSlots,
-  createMaterialHandle,
-  createMeshHandle,
   createOcclusionQuery,
-  createRenderTargetHandle,
   createSamplerAsset,
-  createSamplerHandle,
   createStandardMaterialAsset,
   createTextureAsset,
-  createTextureHandle,
-  createRootTransform,
   createRenderExtractionCache,
   createSkin,
   createStableRenderId,
   createSprite,
   createSkybox,
   createUnlitMaterialAsset,
-  createWorld,
   extractRenderSnapshot,
   packSnapshotInstanceTints,
-  registerMetadataComponents,
   registerRenderAuthoringComponents,
-  registerTransformComponents,
   type LightInput,
   type MaterialAsset,
   type MeshAsset,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("render extraction", () => {
   it("extracts sorted views, mesh draws, bounds, and report counts", () => {

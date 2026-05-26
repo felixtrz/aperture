@@ -17,7 +17,7 @@ facade report-only, and preserve rendering as a derived snapshot.
 - `packages/render/src/assets/gltf-ecs-command-replay.ts`
 - `packages/render/src/assets/gltf-ecs-command-replay-readiness.ts`
 - `packages/runtime/src/index.ts`
-- `packages/core/src/index.ts`
+- `retired umbrella package directory/src/index.ts`
 - `test/assets/gltf-ecs-command-replay.test.ts`
 - `test/assets/gltf-combined-import-fixture.test.ts`
 - `references/bevy/crates/bevy_gltf/src/loader/mod.rs`

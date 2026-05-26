@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import {
   Camera,
   CameraProjection,
@@ -25,21 +24,23 @@ import {
   Visibility,
   createCamera,
   createFog,
-  createEnvironmentMapHandle,
   createLight,
   createLightShadowSettings,
   createMeshQueryAcceleration,
   createPickable,
   createSkybox,
-  createTextureHandle,
-  createWorld,
   registerRenderAuthoringComponents,
   validateCameraInput,
   validateFogInput,
   validateLightShadowSettingsInput,
   validateLightInput,
   validateSkyboxInput,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import {
+  createEnvironmentMapHandle,
+  createTextureHandle,
+  createWorld,
+} from "@aperture-engine/simulation";
 
 describe("render authoring ECS components", () => {
   it("attaches, reads, updates, removes, and queries mesh render authoring data", () => {

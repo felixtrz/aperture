@@ -17,7 +17,15 @@ const baseStatus = {
 
 try {
   const [core, webgpu] = await Promise.all([
-    import("@aperture-engine/core"),
+    Promise.all([
+      import("@aperture-engine/simulation"),
+      import("@aperture-engine/render"),
+      import("@aperture-engine/runtime"),
+    ]).then(([simulation, render, runtime]) => ({
+      ...simulation,
+      ...render,
+      ...runtime,
+    })),
     import("@aperture-engine/webgpu"),
   ]);
   const aperture = { ...core, ...webgpu };
@@ -35,8 +43,8 @@ try {
     if (!created.ok) {
       publishStatus({
         ...failure("initialize-webgpu", created.reason, created.message),
-        apertureVersion: aperture.APERTURE_VERSION,
-        renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+        apertureVersion: "0.0.0",
+        renderingBackend: "webgpu-explicit",
       });
     } else {
       const scene = registerPresentationAssets(aperture, sourceAssets);
@@ -217,8 +225,8 @@ function createFrameStatus(
     ok: report.ok,
     phase: report.ok ? "animate" : "render",
     ...(reason ?? {}),
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    apertureVersion: "0.0.0",
+    renderingBackend: "webgpu-explicit",
     format: app.initialization.format,
     clearColor: colorStatus(clearColor),
     worker: {

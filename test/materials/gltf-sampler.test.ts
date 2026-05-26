@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createSamplerAssetFromGltfSampler,
   GLTF_SAMPLER_FILTER,
   GLTF_SAMPLER_WRAP,
   gltfSamplerMappingReportToJson,
   gltfSamplerMappingReportToJsonValue,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF sampler mapping", () => {
   it("uses Aperture's documented glTF sampler defaults when sampler data is missing", () => {

@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createGltfMeshPrimitiveMappingReport,
   gltfAccessorValidationReportToJson,
   gltfAccessorValidationReportToJsonValue,
   validateGltfPrimitiveAccessorReferences,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF accessor validation report JSON", () => {
   it("preserves byte-range and expected-format metadata", () => {

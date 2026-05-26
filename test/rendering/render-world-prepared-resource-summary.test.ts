@@ -1,15 +1,11 @@
 import { describe, expect, it } from "vitest";
-
 import {
   RenderWorld,
-  assetHandleKey,
   createBatchCompatibilityKey,
   createBoxMeshAsset,
   createDebugNormalMaterialAsset,
-  createMaterialHandle,
   createMaterialPipelineKeyInput,
   createMatcapMaterialAsset,
-  createMeshHandle,
   createPreparedMaterialStore,
   createPreparedMeshStore,
   createRenderAssetCollections,
@@ -21,11 +17,16 @@ import {
   createUnlitMaterialAsset,
   prepareAndBindSnapshotPreparedResourcesToRenderWorld,
   renderWorldPreparedResourceSummaryToJsonValue,
-  type MaterialHandle,
   type MeshDrawPacket,
-  type MeshHandle,
   type RenderSnapshot,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import {
+  assetHandleKey,
+  createMaterialHandle,
+  createMeshHandle,
+  type MaterialHandle,
+  type MeshHandle,
+} from "@aperture-engine/simulation";
 
 describe("render world prepared resource summary", () => {
   it("summarizes prepared facade entries without backend cache details", () => {

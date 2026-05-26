@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createGltfMeshPrimitiveMappingReport,
   validateGltfPrimitiveAccessorReferences,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF accessor and buffer reference validation", () => {
   it("plans byte ranges and expected formats for a valid primitive", () => {

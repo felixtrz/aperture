@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-
 import {
   gltfRootValidationReportToJson,
   gltfRootValidationReportToJsonValue,
   validateGltfRootForAssetMapping,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF root validation for asset mapping", () => {
   it("accepts a minimal glTF 2.0 root with mapper arrays", () => {

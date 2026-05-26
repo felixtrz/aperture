@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-
 import {
   gltfMeshAssetConstructionReportToJson,
   gltfMeshAssetConstructionReportToJsonValue,
   type GltfMeshAssetConstructionReport,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF mesh source asset construction report JSON", () => {
   it("summarizes mesh buffers without embedding raw typed-array contents", () => {

@@ -1,23 +1,24 @@
 import { describe, expect, it } from "vitest";
-
 import {
   RenderWorld,
   bindPreparedMaterialResourcesToRenderWorld,
   createBatchCompatibilityKey,
-  createMaterialHandle,
   createMaterialPipelineKeyInput,
-  createMeshHandle,
   createRenderAssetCollections,
   createRenderSortKey,
   createStableRenderId,
   createStandardMaterialAsset,
   createPreparedMaterialStore,
   prepareAndBindSnapshotMaterialsToRenderWorld,
-  type MaterialHandle,
   type MeshDrawPacket,
-  type MeshHandle,
   type RenderSnapshot,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import {
+  createMaterialHandle,
+  createMeshHandle,
+  type MaterialHandle,
+  type MeshHandle,
+} from "@aperture-engine/simulation";
 
 describe("render world prepared material bindings", () => {
   it("prepares snapshot materials and binds render-world material keys", () => {

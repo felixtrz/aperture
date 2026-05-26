@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createMaterialAssetFromGltfMaterial,
   createSamplerAssetFromGltfSampler,
@@ -9,7 +8,7 @@ import {
   gltfTextureMappingReportToJsonValue,
   GLTF_SAMPLER_FILTER,
   GLTF_SAMPLER_WRAP,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF helper report JSON fixtures", () => {
   it("summarizes texture source data without raw bytes", () => {

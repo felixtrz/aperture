@@ -393,12 +393,23 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 15:32 UTC</dd>
+            <dd>2026-05-26 17:33 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update:
+              Latest update: The obsolete umbrella package has been removed from
+              the workspace. Examples, tests, import maps, build scripts,
+              TypeScript references, Vitest aliases, and example-server worker
+              rewrites now use the focused
+              <code>@aperture-engine/simulation</code>,
+              <code>@aperture-engine/render</code>,
+              <code>@aperture-engine/runtime</code>, and
+              <code>@aperture-engine/webgpu</code> package boundaries, while the
+              default developer path remains <code>aperture.config.ts</code>,
+              <code>@aperture-engine/app/config</code>,
+              <code>@aperture-engine/app/systems</code>, and
+              <code>@aperture-engine/vite-plugin</code>. Previous update:
               <code>examples/mixed-msaa-reuse-clear-load.html</code> now proves
               one MSAA-enabled WebGPU app can render two worker snapshots
               through the same renderer-owned off-screen

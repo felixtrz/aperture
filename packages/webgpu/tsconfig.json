@@ -9,8 +9,7 @@
   "references": [
     { "path": "../simulation" },
     { "path": "../render" },
-    { "path": "../runtime" },
-    { "path": "../core" }
+    { "path": "../runtime" }
   ],
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "node_modules"]

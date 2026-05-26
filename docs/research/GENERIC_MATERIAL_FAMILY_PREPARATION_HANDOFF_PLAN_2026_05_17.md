@@ -132,7 +132,7 @@ instead of `unknown`, but the important boundary is the same:
 ## Guardrails
 
 - `@aperture-engine/render`, `@aperture-engine/simulation`, and
-  `@aperture-engine/core` must not import WebGPU resources.
+  the retired umbrella package must not import WebGPU resources.
 - `RenderSnapshot` remains the frame boundary. Material preparation may consume
   source asset versions and prepared texture/sampler resources, but not mutate
   ECS or snapshot data.

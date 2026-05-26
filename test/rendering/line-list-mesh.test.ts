@@ -1,29 +1,30 @@
 import { describe, expect, it } from "vitest";
-
 import {
   AssetRegistry,
+  WorldTransform,
+  assetHandleKey,
+  createMaterialHandle,
+  createMeshHandle,
+  createRootTransform,
+  createWorld,
+  registerMetadataComponents,
+  registerTransformComponents,
+} from "@aperture-engine/simulation";
+import {
   Camera,
   Material,
   MaterialSlots,
   Mesh,
   RenderLayer,
   Visibility,
-  WorldTransform,
-  assetHandleKey,
   createCamera,
   createLineListMeshAsset,
-  createMaterialHandle,
   createMaterialSlots,
-  createMeshHandle,
-  createRootTransform,
   createUnlitMaterialAsset,
-  createWorld,
   extractRenderSnapshot,
-  registerMetadataComponents,
   registerRenderAuthoringComponents,
-  registerTransformComponents,
   validateMeshAsset,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("line-list mesh assets", () => {
   it("creates an indexed line-list mesh with bounds and material slots", () => {

@@ -4,7 +4,6 @@
     { "path": "./packages/simulation" },
     { "path": "./packages/render" },
     { "path": "./packages/runtime" },
-    { "path": "./packages/core" },
     { "path": "./packages/webgpu" },
     { "path": "./packages/vite-plugin" },
     { "path": "./packages/app" }

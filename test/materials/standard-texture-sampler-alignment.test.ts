@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createStandardMaterialTextureSamplerAlignmentSummary,
   standardMaterialTextureSamplerAlignmentSummaryToJsonValue,
   type StandardMaterialSamplerFidelityReportJsonValue,
   type StandardMaterialTextureReadinessReportJsonValue,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("StandardMaterial texture/sampler alignment summary", () => {
   it("keeps blocking texture readiness separate from sampler fidelity warnings", () => {

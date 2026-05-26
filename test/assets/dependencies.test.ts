@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
-
 import {
   AssetRegistry,
   createMaterialHandle,
   createMeshHandle,
   createTextureHandle,
-} from "@aperture-engine/core";
+} from "@aperture-engine/simulation";
 
 describe("asset dependency diagnostics and manifests", () => {
   it("reports ready dependency chains without diagnostics", () => {

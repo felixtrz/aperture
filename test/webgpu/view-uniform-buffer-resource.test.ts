@@ -7,7 +7,7 @@ import {
   type ViewUniformBufferDescriptorPlan,
   type WebGpuBufferDeviceLike,
 } from "@aperture-engine/webgpu";
-import { PACKED_VIEW_UNIFORM_FLOAT_STRIDE } from "@aperture-engine/core";
+import { PACKED_VIEW_UNIFORM_FLOAT_STRIDE } from "@aperture-engine/render";
 
 describe("view uniform GPU buffer resource creation", () => {
   it("creates view uniform buffer resources", () => {

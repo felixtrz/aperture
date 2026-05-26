@@ -21,7 +21,15 @@ const baseStatus = {
 
 try {
   const [core, webgpu] = await Promise.all([
-    import("@aperture-engine/core"),
+    Promise.all([
+      import("@aperture-engine/simulation"),
+      import("@aperture-engine/render"),
+      import("@aperture-engine/runtime"),
+    ]).then(([simulation, render, runtime]) => ({
+      ...simulation,
+      ...render,
+      ...runtime,
+    })),
     import("@aperture-engine/webgpu"),
   ]);
   const aperture = { ...core, ...webgpu };
@@ -165,7 +173,7 @@ function statusFromReport(
     ...baseStatus,
     ok: report.ok,
     phase: report.ok ? "submit" : "failed",
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    renderingBackend: "webgpu-explicit",
     sourceShapeCount: scene.sourceShapeCount,
     shapesPerBatch: scene.shapesPerBatch,
     mergedMeshCount: scene.mergedMeshCount,

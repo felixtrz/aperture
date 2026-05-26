@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
-
 import {
   AssetRegistry,
+  createMaterialHandle,
+  createMeshHandle,
+} from "@aperture-engine/simulation";
+import {
   buildMaterialQueueFromSnapshot,
   createBoxMeshAsset,
-  createMaterialHandle,
   createMaterialQueuePhaseSummary,
   createMaterialQueueScratch,
-  createMeshHandle,
   createPreparedMeshQueueResourceKeyResolver,
   createPreparedMeshStore,
   createPreparedMaterialQueueResourceKeyResolver,
@@ -21,7 +22,7 @@ import {
   type MeshDrawPacket,
   type RenderQueue,
   type RenderSnapshot,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("material family render queue", () => {
   it("builds JSON-safe queue items for mixed built-in material families", () => {

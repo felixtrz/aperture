@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createDebugNormalMaterialAsset,
   createMatcapMaterialAsset,
@@ -7,7 +6,7 @@ import {
   createUnlitMaterialAsset,
   type MaterialAsset,
   type MaterialQueueItem,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 import {
   createBuiltInMaterialQueueRouteAdapterRegistry,
   queuedMaterialAdapterRegistryToJsonValue,

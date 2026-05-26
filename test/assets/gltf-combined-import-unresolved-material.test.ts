@@ -1,17 +1,15 @@
 import { describe, expect, it } from "vitest";
-
+import { AssetRegistry, createWorld } from "@aperture-engine/simulation";
 import {
-  AssetRegistry,
   GLTF_SAMPLER_FILTER,
   GLTF_SAMPLER_WRAP,
   createGltfEcsAuthoringCommandPlan,
   createGltfLoaderOrchestrationReport,
   createGltfPrimitiveMaterialResolutionReport,
   createGltfReportDrivenImportReport,
-  createWorld,
   registerGltfSourceAssetsFromReports,
   replayGltfEcsAuthoringCommands,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 const decodedImage = {
   width: 1,

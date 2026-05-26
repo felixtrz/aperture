@@ -63,11 +63,6 @@ export default defineConfig({
           .pathname,
       },
       {
-        find: "@aperture-engine/core",
-        replacement: new URL("./packages/core/src/index.ts", import.meta.url)
-          .pathname,
-      },
-      {
         find: "@aperture-engine/render",
         replacement: new URL("./packages/render/src/index.ts", import.meta.url)
           .pathname,

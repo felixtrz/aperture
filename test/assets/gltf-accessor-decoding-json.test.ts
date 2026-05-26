@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createGltfMeshPrimitiveMappingReport,
   decodeGltfPrimitiveAccessors,
   gltfAccessorDecodingReportToJson,
   gltfAccessorDecodingReportToJsonValue,
   validateGltfPrimitiveAccessorReferences,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF accessor decoding report JSON", () => {
   it("summarizes decoded arrays without embedding contents", () => {

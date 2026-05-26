@@ -293,8 +293,8 @@ export function webGpuFailure(aperture, baseStatus, created) {
       created.reason,
       created.message,
     ),
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    apertureVersion: "0.0.0",
+    renderingBackend: "webgpu-explicit",
   };
 }
 

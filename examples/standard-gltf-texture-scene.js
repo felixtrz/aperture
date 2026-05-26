@@ -1580,8 +1580,8 @@ export function createStandardGltfTextureStatus(
           expectedDiagnostic: expectedFailure.renderDiagnostic,
           expectedTextureStatus: expectedFailure.status,
         }),
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    apertureVersion: "0.0.0",
+    renderingBackend: "webgpu-explicit",
     format: app.initialization.format,
     ...(transportStatus === null ? {} : transportStatus),
     clearColor: {

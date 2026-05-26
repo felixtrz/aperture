@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createMaterialHandle,
   createMeshHandle,
+} from "@aperture-engine/simulation";
+import {
   createRenderQueueScratch,
   createRenderSortKey,
   planRenderQueueRecords,
@@ -11,7 +12,7 @@ import {
   type BatchCompatibilityKey,
   type PackedSnapshotTransforms,
   type RenderWorldDrawReadinessReport,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 const BATCH_KEY: BatchCompatibilityKey = {
   pipelineKey: "pipeline:unlit",

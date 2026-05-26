@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createMaterialAssetFromGltfMaterial,
-  createSamplerHandle,
-  createTextureHandle,
   gltfMaterialMappingReportToJson,
   gltfMaterialMappingReportToJsonValue,
   type GltfMaterialTextureBindingResolver,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
+import {
+  createSamplerHandle,
+  createTextureHandle,
+} from "@aperture-engine/simulation";
 
 const resolveTextureBinding: GltfMaterialTextureBindingResolver = (input) => ({
   texture: createTextureHandle(`texture-${input.textureIndex}`),

@@ -252,7 +252,15 @@ const scenarioRenderers = {
 
 try {
   const [core, webgpu] = await Promise.all([
-    import("@aperture-engine/core"),
+    Promise.all([
+      import("@aperture-engine/simulation"),
+      import("@aperture-engine/render"),
+      import("@aperture-engine/runtime"),
+    ]).then(([simulation, render, runtime]) => ({
+      ...simulation,
+      ...render,
+      ...runtime,
+    })),
     import("@aperture-engine/webgpu"),
   ]);
   const aperture = { ...core, ...webgpu };
@@ -273,8 +281,8 @@ try {
           initialized.reason,
           initialized.message,
         ),
-        apertureVersion: aperture.APERTURE_VERSION,
-        renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+        apertureVersion: "0.0.0",
+        renderingBackend: "webgpu-explicit",
       });
     } else {
       const canvasSize = { width: canvas.width, height: canvas.height };
@@ -750,8 +758,8 @@ async function renderMultiEntityScene(
     ...baseStatus,
     ok: true,
     phase: "submit",
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    apertureVersion: "0.0.0",
+    renderingBackend: "webgpu-explicit",
     format: initialized.format,
     clearColor,
     ...(workerMetadata?.worker === undefined
@@ -1316,8 +1324,8 @@ function unknownScenarioStatus(aperture, initialized) {
     phase: "scenario",
     reason: "unknown-scenario",
     message: `Unknown multi-entity browser scenario '${scenario}'.`,
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    apertureVersion: "0.0.0",
+    renderingBackend: "webgpu-explicit",
     format: initialized.format,
     availableScenarios: knownScenarioIds,
     extraction: { frame: 0, views: 0, meshDraws: 0, diagnostics: 0 },
@@ -1563,8 +1571,8 @@ function resourceBindingFailureStatus(
 
 function runtimeStatus(aperture, initialized) {
   return {
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    apertureVersion: "0.0.0",
+    renderingBackend: "webgpu-explicit",
     format: initialized.format,
   };
 }

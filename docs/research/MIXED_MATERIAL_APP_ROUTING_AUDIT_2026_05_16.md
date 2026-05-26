@@ -37,7 +37,7 @@ prepared material/pipeline resources rather than a renderer-owned scene graph.
 ## Findings
 
 - `packages/simulation`, `packages/render`, `packages/runtime`, and
-  `packages/core` do not import `@aperture-engine/webgpu` or browser/WebGPU
+  `retired umbrella package directory` do not import `@aperture-engine/webgpu` or browser/WebGPU
   globals for this work. The only search hit outside `webgpu` is render-phase
   documentation text that names WebGPU submission.
 - Mixed app rendering still starts from `RenderSnapshot` mesh/material handles

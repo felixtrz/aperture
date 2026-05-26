@@ -81,7 +81,8 @@ async function handleMessage(data) {
           index: scene.camera.index,
         },
         viewId: view?.viewId ?? null,
-        viewport: view === undefined ? spec.viewport : Array.from(view.viewport),
+        viewport:
+          view === undefined ? spec.viewport : Array.from(view.viewport),
         scissor: view === undefined ? spec.scissor : Array.from(view.scissor),
         viewportPixels: resolveViewportPixels(canvasSize, spec.viewport),
         scissorPixels: resolveViewportPixels(canvasSize, spec.scissor),
@@ -173,7 +174,15 @@ async function handleMessage(data) {
 }
 
 function loadAperture() {
-  apertureModulePromise ??= import("@aperture-engine/core");
+  apertureModulePromise ??= Promise.all([
+    import("@aperture-engine/simulation"),
+    import("@aperture-engine/render"),
+    import("@aperture-engine/runtime"),
+  ]).then(([simulation, render, runtime]) => ({
+    ...simulation,
+    ...render,
+    ...runtime,
+  }));
   return apertureModulePromise;
 }
 

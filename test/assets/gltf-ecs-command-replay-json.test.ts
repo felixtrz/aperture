@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
-
+import { createWorld } from "@aperture-engine/simulation";
 import {
-  createWorld,
   gltfEcsCommandReplayReportToJson,
   gltfEcsCommandReplayReportToJsonValue,
   replayGltfEcsAuthoringCommands,
   type GltfEcsAuthoringCommandPlan,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF ECS command replay report JSON", () => {
   it("summarizes created entities without embedding raw ECS objects", () => {

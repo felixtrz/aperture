@@ -77,10 +77,7 @@ Reference files:
 
 - `/Users/felixz/Projects/immersive-web-sdk/README.md`
 - `/Users/felixz/Projects/immersive-web-sdk/docs/index.md`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/core/README.md`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/core/src/ecs/world.ts`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/core/src/init/world-initializer.ts`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/core/src/asset/asset-manager.ts`
+- Immersive Web SDK core package README and ECS/world initializer files.
 - `/Users/felixz/Projects/immersive-web-sdk/docs/guides/04-external-assets.md`
 - `/Users/felixz/Projects/immersive-web-sdk/docs/concepts/ecs/world.md`
 
@@ -195,11 +192,9 @@ bootstrap infrastructure and an advanced programmatic API for tests,
 nonstandard hosts, and lower-level tooling. It should not be the default
 authoring path in docs.
 
-Current `@aperture-engine/core` is a headless-safe umbrella over simulation,
-render, and runtime packages. It is not the default app facade because it does
-not own browser/WebGPU/worker orchestration. With no backward compatibility
-constraint, the proposal should not expose both `core` and `app` as competing
-first-touch concepts. The least-friction direction is:
+The former headless-safe umbrella package has been removed so `app` and the
+focused lower-layer packages do not compete as first-touch concepts. The
+least-friction direction is:
 
 - `@aperture-engine/app/config`: config helpers such as
   `defineApertureConfig` and `asset`.
@@ -209,8 +204,8 @@ first-touch concepts. The least-friction direction is:
 - `@aperture-engine/vite-plugin`: required default build/runtime integration.
 - Headless mode lives in `aperture.config.ts` as `mode: "headless"`, not as an
   imperative switch in `index.ts`.
-- The current `core` role is folded under `app`, renamed to an internal
-  package, or kept only as a lower-layer workspace detail.
+- Advanced users can import focused lower layers directly instead of an
+  umbrella namespace.
 - Advanced users can still import focused lower layers when they need custom
   orchestration.
 

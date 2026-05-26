@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-
 import {
   raycast,
   type RaycastableBounds,
   type Vec3Like,
-} from "@aperture-engine/core";
+} from "@aperture-engine/simulation";
 
 const CLOSE_TO = 5;
 

@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createGltfReportDrivenImportReport,
   gltfReportDrivenImportReportToJson,
   gltfReportDrivenImportReportToJsonValue,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF report-driven import JSON", () => {
   it("serializes root, traversal, orchestration, and facade diagnostics", () => {

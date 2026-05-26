@@ -14,7 +14,15 @@ const baseStatus = {
 
 try {
   const [core, webgpu] = await Promise.all([
-    import("@aperture-engine/core"),
+    Promise.all([
+      import("@aperture-engine/simulation"),
+      import("@aperture-engine/render"),
+      import("@aperture-engine/runtime"),
+    ]).then(([simulation, render, runtime]) => ({
+      ...simulation,
+      ...render,
+      ...runtime,
+    })),
     import("@aperture-engine/webgpu"),
   ]);
   const aperture = { ...core, ...webgpu };
@@ -40,8 +48,8 @@ try {
     if (!created.ok) {
       publishStatus({
         ...failure("initialize-webgpu", created.reason, created.message),
-        apertureVersion: aperture.APERTURE_VERSION,
-        renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+        apertureVersion: "0.0.0",
+        renderingBackend: "webgpu-explicit",
       });
     } else {
       const transport = created.app.getDiagnostics().transport;
@@ -56,8 +64,8 @@ try {
             diagnostic?.message ??
               "SharedArrayBuffer transport is unavailable for this page.",
           ),
-          apertureVersion: aperture.APERTURE_VERSION,
-          renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+          apertureVersion: "0.0.0",
+          renderingBackend: "webgpu-explicit",
           transport,
         });
       } else {
@@ -213,8 +221,8 @@ function createFrameStatus(aperture, app, scene, diagnostics, workerMessage) {
     ...baseStatus,
     ok: frame?.ok === true,
     phase: frame?.ok === true ? "animate" : "render",
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    apertureVersion: "0.0.0",
+    renderingBackend: "webgpu-explicit",
     format: app.initialization.format,
     clearColor: colorStatus(clearColor),
     crossOriginIsolated: globalThis.crossOriginIsolated === true,

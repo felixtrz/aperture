@@ -1,14 +1,12 @@
 import { describe, expect, it } from "vitest";
-
+import { AssetRegistry, createMeshHandle } from "@aperture-engine/simulation";
 import {
-  AssetRegistry,
-  createMeshHandle,
   gltfMeshSourceAssetRegistrationReportToJson,
   gltfMeshSourceAssetRegistrationReportToJsonValue,
   registerGltfMeshSourceAssetsFromConstructionReport,
   type GltfMeshAssetConstructionReport,
   type MeshAsset,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF mesh source asset registration report JSON", () => {
   it("serializes written mesh handle keys without embedding mesh assets", () => {

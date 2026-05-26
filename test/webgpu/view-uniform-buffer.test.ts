@@ -7,7 +7,7 @@ import {
   writeViewUniformBufferDescriptor,
   type PackedSnapshotViewUniforms,
 } from "@aperture-engine/webgpu";
-import { PACKED_VIEW_UNIFORM_FLOAT_STRIDE } from "@aperture-engine/core";
+import { PACKED_VIEW_UNIFORM_FLOAT_STRIDE } from "@aperture-engine/render";
 
 describe("view uniform buffer descriptor planning", () => {
   it("maps one packed view to a uniform buffer descriptor", () => {

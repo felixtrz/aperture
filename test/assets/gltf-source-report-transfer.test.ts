@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createGltfSourceAssetTransferPackage,
   validateMeshAsset,
   type GltfAssetMappingReport,
   type GltfMeshAssetConstructionReport,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF source asset report transfer packaging", () => {
   it("moves upload bytes to main while keeping extraction metadata usable", () => {

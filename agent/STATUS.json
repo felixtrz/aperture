@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "c8bf5c64",
   "activePid": null,
-  "notes": "Completed task-3209 mixed MSAA reused same-target clear/load render-target route, updated public trackers and agent handoff, and validated syntax, lint, typecheck, build, examples, navigation, progress tracker, formatting, and diff checks.",
-  "lastRunFinishedAt": "2026-05-26T15:42:16Z"
+  "notes": "Removed the retired umbrella package, migrated examples/tests/docs/build wiring to focused package imports, and validated build, typecheck, boundaries, examples, progress, package-entrypoint/navigation tests, and representative Playwright routes.",
+  "lastRunFinishedAt": "2026-05-26T17:39:03Z"
 }

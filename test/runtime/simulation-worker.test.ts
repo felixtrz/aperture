@@ -1,13 +1,9 @@
 import { describe, expect, it } from "vitest";
-
 import {
   SIMULATION_WORKER_PROTOCOL,
-  createBoxMeshAsset,
   createExtractionApp,
-  createRenderAssetCollections,
   createRenderSnapshotBufferPool,
   createSimulationWorker,
-  createUnlitMaterialAsset,
   estimateRenderSnapshotTransportCost,
   withCamera,
   withMaterial,
@@ -15,12 +11,17 @@ import {
   withRenderLayer,
   withTransform,
   withVisibility,
-  type RenderSnapshot,
   type SimulationMessagePort,
   type SimulationWorker,
   type SimulationWorkerSnapshotEvent,
   type SimulationWorkerTransport,
-} from "@aperture-engine/core";
+} from "@aperture-engine/runtime";
+import {
+  createBoxMeshAsset,
+  createRenderAssetCollections,
+  createUnlitMaterialAsset,
+  type RenderSnapshot,
+} from "@aperture-engine/render";
 
 describe("createSimulationWorker", () => {
   it("receives a structurally valid snapshot from a worker entry", async () => {

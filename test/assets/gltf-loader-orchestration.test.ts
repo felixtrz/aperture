@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createGltfLoaderOrchestrationReport,
   type GltfAssetMappingReport,
@@ -11,7 +10,7 @@ import {
   type GltfRootValidationReport,
   type GltfSceneTraversalReport,
   type GltfSourceAssetRegistrationReport,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 describe("glTF loader orchestration report", () => {
   it("summarizes a provided happy-path stage set", () => {

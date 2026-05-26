@@ -128,7 +128,6 @@ const expectedHrefs = [
 ];
 const readbackHelperImport = 'from "./webgpu-readback.js"';
 const expectedImports = {
-  "@aperture-engine/core": "/packages/core/dist/index.js",
   "@aperture-engine/render": "/packages/render/dist/index.js",
   "@aperture-engine/runtime": "/packages/runtime/dist/index.js",
   "@aperture-engine/simulation": "/packages/simulation/dist/index.js",

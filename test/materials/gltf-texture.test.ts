@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import {
   createTextureAssetFromGltfTextureAsync,
   createTextureAssetFromGltfTexture,
@@ -9,7 +8,7 @@ import {
   gltfTextureMappingReportToJsonValue,
   loadGltfTextureAsync,
   type GltfImageDataResolver,
-} from "@aperture-engine/core";
+} from "@aperture-engine/render";
 
 const onePixelPngBase64 =
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
