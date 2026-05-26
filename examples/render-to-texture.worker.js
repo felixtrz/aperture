@@ -50,6 +50,7 @@ async function handleMessage(data) {
         data.mixedMultiRenderTargets === true,
         data.dualSizeRenderTargets === true,
         data.mixedDualSizeRenderTargets === true,
+        data.mixedCroppedSecondaryRenderTargets === true,
         data.croppedSecondaryRenderTargets === true,
         data.targetCrop === true,
         data.targetClearLoad === true,
@@ -67,6 +68,7 @@ async function handleMessage(data) {
           scene.mixedMultiRenderTargets ||
           scene.dualSizeRenderTargets ||
           scene.mixedDualSizeRenderTargets ||
+          scene.mixedCroppedSecondaryRenderTargets ||
           scene.croppedSecondaryRenderTargets
             ? {
                 secondaryRenderTargetKey: aperture.assetHandleKey(
@@ -82,6 +84,8 @@ async function handleMessage(data) {
           mixedMultiRenderTargets: scene.mixedMultiRenderTargets,
           dualSizeRenderTargets: scene.dualSizeRenderTargets,
           mixedDualSizeRenderTargets: scene.mixedDualSizeRenderTargets,
+          mixedCroppedSecondaryRenderTargets:
+            scene.mixedCroppedSecondaryRenderTargets,
           croppedSecondaryRenderTargets: scene.croppedSecondaryRenderTargets,
           targetCrop: scene.targetCrop,
           targetClearLoad: scene.targetClearLoad,
@@ -130,6 +134,7 @@ function createWorkerScene(
   mixedMultiRenderTargets,
   dualSizeRenderTargets,
   mixedDualSizeRenderTargets,
+  mixedCroppedSecondaryRenderTargets,
   croppedSecondaryRenderTargets,
   targetCrop,
   targetClearLoad,
@@ -143,12 +148,17 @@ function createWorkerScene(
     multiRenderTargets ||
     mixedMultiRenderTargets ||
     dualSizeRenderTargets ||
-    mixedDualSizeRenderTargets;
-  const usesCroppedSecondaryRenderTarget = croppedSecondaryRenderTargets;
+    mixedDualSizeRenderTargets ||
+    mixedCroppedSecondaryRenderTargets;
+  const usesCroppedSecondaryRenderTarget =
+    croppedSecondaryRenderTargets || mixedCroppedSecondaryRenderTargets;
   const usesAnySecondaryRenderTarget =
     usesSecondaryRenderTarget || usesCroppedSecondaryRenderTarget;
   const usesCurrentTextureTarget =
-    mixedTargets || mixedMultiRenderTargets || mixedDualSizeRenderTargets;
+    mixedTargets ||
+    mixedMultiRenderTargets ||
+    mixedDualSizeRenderTargets ||
+    mixedCroppedSecondaryRenderTargets;
 
   app.spawn(
     aperture.withTransform({ translation: [0, 0, 3] }),
@@ -198,7 +208,7 @@ function createWorkerScene(
         layerMask: 2,
         clearColor: offscreenClearColor,
         renderTargetId: aperture.assetHandleKey(assets.secondaryRenderTarget),
-        ...(croppedSecondaryRenderTargets
+        ...(usesCroppedSecondaryRenderTarget
           ? {
               viewport: targetCropRect,
               scissor: targetCropRect,
@@ -215,9 +225,18 @@ function createWorkerScene(
         aspect: canvasSize.width / canvasSize.height,
         near: 0.1,
         far: 100,
-        priority: mixedMultiRenderTargets || mixedDualSizeRenderTargets ? 2 : 1,
+        priority:
+          mixedMultiRenderTargets ||
+          mixedDualSizeRenderTargets ||
+          mixedCroppedSecondaryRenderTargets
+            ? 2
+            : 1,
         layerMask:
-          mixedMultiRenderTargets || mixedDualSizeRenderTargets ? 4 : 2,
+          mixedMultiRenderTargets ||
+          mixedDualSizeRenderTargets ||
+          mixedCroppedSecondaryRenderTargets
+            ? 4
+            : 2,
         clearColor: [
           screenClearColor.r,
           screenClearColor.g,
@@ -254,12 +273,18 @@ function createWorkerScene(
         aperture.withTransform({}),
         aperture.withMesh(assets.mesh),
         aperture.withMaterial(
-          mixedMultiRenderTargets || mixedDualSizeRenderTargets
+          mixedMultiRenderTargets ||
+            mixedDualSizeRenderTargets ||
+            mixedCroppedSecondaryRenderTargets
             ? assets.currentMaterial
             : assets.canvasMaterial,
         ),
         aperture.withRenderLayer(
-          mixedMultiRenderTargets || mixedDualSizeRenderTargets ? 4 : 2,
+          mixedMultiRenderTargets ||
+            mixedDualSizeRenderTargets ||
+            mixedCroppedSecondaryRenderTargets
+            ? 4
+            : 2,
         ),
         aperture.withVisibility(true),
       )
@@ -283,6 +308,7 @@ function createWorkerScene(
     mixedMultiRenderTargets,
     dualSizeRenderTargets,
     mixedDualSizeRenderTargets,
+    mixedCroppedSecondaryRenderTargets,
     croppedSecondaryRenderTargets,
     targetCrop,
     targetClearLoad,
@@ -310,56 +336,60 @@ function createSnapshotMessage(workerScene, data) {
       diagnostics: snapshot.diagnostics.length,
       frameVariant: workerScene.mixedTargets
         ? "mixed-current-and-offscreen-targets"
-        : workerScene.mixedMultiRenderTargets
-          ? "current-texture-plus-two-offscreen-targets"
-          : workerScene.mixedDualSizeRenderTargets
-            ? "current-texture-plus-dual-size-offscreen-targets"
-            : workerScene.dualSizeRenderTargets
-              ? "dual-size-offscreen-render-targets"
-              : workerScene.targetMsaa && workerScene.multiRenderTargets
-                ? "msaa-two-offscreen-render-targets"
-                : workerScene.targetMsaa &&
-                    workerScene.croppedSecondaryRenderTargets
-                  ? "msaa-cropped-secondary-offscreen-render-target"
-                  : workerScene.targetMsaa
-                    ? "msaa-offscreen-render-target"
-                    : workerScene.croppedSecondaryRenderTargets
-                      ? "cropped-secondary-offscreen-render-target"
-                      : workerScene.multiRenderTargets
-                        ? "two-offscreen-render-targets"
-                        : workerScene.targetClearLoad
-                          ? "same-offscreen-target-clear-load"
-                          : workerScene.targetCrop
-                            ? "offscreen-render-target-crop"
-                            : workerScene.reuseStress
-                              ? frameVariant
-                              : "single-frame",
+        : workerScene.mixedCroppedSecondaryRenderTargets
+          ? "current-texture-plus-cropped-secondary-offscreen-target"
+          : workerScene.mixedMultiRenderTargets
+            ? "current-texture-plus-two-offscreen-targets"
+            : workerScene.mixedDualSizeRenderTargets
+              ? "current-texture-plus-dual-size-offscreen-targets"
+              : workerScene.dualSizeRenderTargets
+                ? "dual-size-offscreen-render-targets"
+                : workerScene.targetMsaa && workerScene.multiRenderTargets
+                  ? "msaa-two-offscreen-render-targets"
+                  : workerScene.targetMsaa &&
+                      workerScene.croppedSecondaryRenderTargets
+                    ? "msaa-cropped-secondary-offscreen-render-target"
+                    : workerScene.targetMsaa
+                      ? "msaa-offscreen-render-target"
+                      : workerScene.croppedSecondaryRenderTargets
+                        ? "cropped-secondary-offscreen-render-target"
+                        : workerScene.multiRenderTargets
+                          ? "two-offscreen-render-targets"
+                          : workerScene.targetClearLoad
+                            ? "same-offscreen-target-clear-load"
+                            : workerScene.targetCrop
+                              ? "offscreen-render-target-crop"
+                              : workerScene.reuseStress
+                                ? frameVariant
+                                : "single-frame",
       centerExpectation: workerScene.mixedTargets
         ? "canvas-plane-plus-offscreen-preview"
-        : workerScene.mixedMultiRenderTargets
-          ? "current-texture-plus-two-offscreen-previews"
-          : workerScene.mixedDualSizeRenderTargets
-            ? "current-texture-plus-dual-size-offscreen-previews"
-            : workerScene.dualSizeRenderTargets
-              ? "dual-size-offscreen-previews"
-              : workerScene.targetMsaa && workerScene.multiRenderTargets
-                ? "msaa-resolved-two-offscreen-previews"
-                : workerScene.targetMsaa &&
-                    workerScene.croppedSecondaryRenderTargets
-                  ? "msaa-primary-preview-plus-secondary-crop"
-                  : workerScene.targetMsaa
-                    ? "msaa-resolved-offscreen-preview"
-                    : workerScene.croppedSecondaryRenderTargets
-                      ? "primary-preview-plus-secondary-crop"
-                      : workerScene.multiRenderTargets
-                        ? "two-offscreen-previews"
-                        : workerScene.targetClearLoad
-                          ? "base-preserved-plus-overlay"
-                          : workerScene.targetCrop
-                            ? "cropped-offscreen-target"
-                            : workerScene.reuseStress && frame <= 1
-                              ? "offscreen-clear"
-                              : "plane",
+        : workerScene.mixedCroppedSecondaryRenderTargets
+          ? "current-texture-plus-primary-preview-secondary-crop"
+          : workerScene.mixedMultiRenderTargets
+            ? "current-texture-plus-two-offscreen-previews"
+            : workerScene.mixedDualSizeRenderTargets
+              ? "current-texture-plus-dual-size-offscreen-previews"
+              : workerScene.dualSizeRenderTargets
+                ? "dual-size-offscreen-previews"
+                : workerScene.targetMsaa && workerScene.multiRenderTargets
+                  ? "msaa-resolved-two-offscreen-previews"
+                  : workerScene.targetMsaa &&
+                      workerScene.croppedSecondaryRenderTargets
+                    ? "msaa-primary-preview-plus-secondary-crop"
+                    : workerScene.targetMsaa
+                      ? "msaa-resolved-offscreen-preview"
+                      : workerScene.croppedSecondaryRenderTargets
+                        ? "primary-preview-plus-secondary-crop"
+                        : workerScene.multiRenderTargets
+                          ? "two-offscreen-previews"
+                          : workerScene.targetClearLoad
+                            ? "base-preserved-plus-overlay"
+                            : workerScene.targetCrop
+                              ? "cropped-offscreen-target"
+                              : workerScene.reuseStress && frame <= 1
+                                ? "offscreen-clear"
+                                : "plane",
     },
   };
 }

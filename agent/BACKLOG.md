@@ -59,34 +59,21 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3189` is complete: `examples/render-target-msaa-secondary-crop.html` now
-proves an MSAA-enabled WebGPU app can extract two ECS cameras targeting
-distinct renderer-owned off-screen `ViewPacket.renderTarget` handles from one
-worker-authored snapshot, apply a non-full viewport/scissor crop only to the
-secondary target, resolve both target textures, display the primary preview plus
-inside/outside secondary crop samples, and report requested/resolved sample
-counts, per-target keys, dimensions, draw counts, MSAA sample counts, secondary
-target-space crop pixels, and per-pass resolve attachment behavior. Playwright
-verifies the primary resolved preview is non-clear while the secondary resolved
-preview has distinct inside-rendered and outside-clear regions. Continue the
-post-SOTA visible-feature queue at `task-3190`: add a mixed current-texture plus
-cropped secondary off-screen render-target route.
+`task-3190` is complete: `examples/mixed-secondary-crop-render-targets.html`
+now proves one worker-authored snapshot can extract one current-texture camera
+plus two ECS cameras targeting distinct renderer-owned off-screen
+`ViewPacket.renderTarget` handles, apply a non-full viewport/scissor crop only
+to the secondary off-screen target, display the primary preview plus
+inside/outside secondary crop samples, and report target classifications, pass
+order, per-target keys, dimensions, draw counts, display samples,
+current-texture readback, and secondary target-space crop pixels. Playwright
+verifies the current-texture sample, primary preview, secondary inside preview,
+and secondary outside-clear region behave distinctly. Continue the post-SOTA
+visible-feature queue at `task-3191`: add a mixed current-texture plus MSAA
+two-target off-screen preview route.
 
 The next ready visible-feature queue is:
 
-- `task-3190` — add a mixed current-texture plus cropped secondary off-screen
-  render-target route.
-  Reference anchor:
-  `references/engine/examples/src/examples/graphics/multi-render-targets.example.mjs`,
-  `references/bevy/examples/3d/render_to_texture.rs`.
-  Done when one browser route extracts one current-texture camera plus two ECS
-  cameras targeting distinct renderer-owned off-screen render-target handles,
-  applies a non-full viewport/scissor rectangle to the secondary off-screen
-  target only, displays both off-screen textures side by side, reports all
-  target classifications, keys, dimensions, pass order, draw counts, display
-  samples, current-texture readback, and secondary target-space crop pixels, and
-  Playwright verifies the current-texture sample, primary preview,
-  secondary-inside preview, and secondary-outside preview behave distinctly.
 - `task-3191` — add a mixed current-texture plus MSAA two-target off-screen
   preview route.
   Reference anchor:
@@ -117,6 +104,18 @@ The next ready visible-feature queue is:
   and current-texture readback, and Playwright verifies the current-texture
   sample, primary resolved preview, secondary inside-crop preview, and secondary
   outside-crop preview behave distinctly.
+- `task-3193` — add an MSAA render-target reuse stress preview route.
+  Reference anchor:
+  `references/engine/src/extras/render-passes/camera-frame.js`,
+  `references/bevy/examples/3d/render_to_texture.rs`.
+  Done when one browser route creates an MSAA-enabled WebGPU app, reuses the
+  same renderer-owned off-screen `ViewPacket.renderTarget` handle across two
+  consecutive worker snapshots, resolves the displayed target texture each
+  frame, reports requested/resolved sample count, stable render-target key,
+  target texture reuse/recreation status, MSAA color texture creation/reuse
+  pressure, per-frame dimensions, draw counts, MSAA sample count, and resolve
+  attachment behavior, and Playwright verifies the second resolved preview is
+  non-clear and does not expose stale first-frame pixels.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.
