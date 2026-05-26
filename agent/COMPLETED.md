@@ -1,5 +1,44 @@
 # Completed Tasks
 
+## task-3198 — Add a mixed current-texture plus MSAA same-target clear/load route
+
+Completed: 2026-05-26
+
+### Summary
+
+- Added `examples/mixed-msaa-clear-load.html` to the render-to-texture route
+  family and linked it from related example pages.
+- `examples/render-to-texture.worker.js` now supports a mixed MSAA clear/load
+  worker variant that keeps the off-screen base/overlay cameras on layers 1/2
+  while routing the current-texture camera through a separate layer 4 pass.
+- `examples/render-to-texture.main.js` now recognizes the mixed MSAA clear/load
+  route, creates an MSAA-enabled app, extracts one current-texture camera plus
+  two off-screen cameras targeting the same renderer-owned
+  `ViewPacket.renderTarget` handle, stores the first off-screen MSAA boundary,
+  loads existing color/depth for the second same-target boundary, and reports
+  current/off-screen classifications, target-key reuse, pass-order load ops,
+  requested/resolved sample count, per-pass MSAA sample count, resolve
+  attachment behavior, display samples, and current-texture readback.
+- Added Playwright coverage proving the current-texture sample, clear-only
+  region, base-preserved region, and overlay region are non-conflicting.
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js && node --check examples/render-to-texture.worker.js`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA same render-target clear/load" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA same render-target clear/load|MSAA same render-target clear/load|mixed MSAA resize|mixed MSAA two-target route" --reporter=list`
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm run check:progress`
+- Browser route check: `examples/mixed-msaa-clear-load.html` published
+  `ok: true`, three MSAA target submissions, current/off-screen target
+  classifications, first-pass clear/store, second-pass load/discard,
+  current-texture resolve behavior, target-key reuse, current-texture readback,
+  and distinct current/clear/base/overlay samples.
+
 ## task-3197 — Add a mixed current-texture plus MSAA resized off-screen target route
 
 Completed: 2026-05-26
