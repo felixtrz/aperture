@@ -20,6 +20,8 @@ import {
   renderToTextureRightPreviewSample as rightPreviewSample,
   renderToTextureScreenClearColor as screenClearColor,
   renderToTextureScreenClearSample as screenClearSample,
+  renderToTextureSecondaryCropInsideSample as secondaryCropInsideSample,
+  renderToTextureSecondaryCropOutsideSample as secondaryCropOutsideSample,
   registerRenderToTextureAssets,
 } from "./render-to-texture-assets.js";
 import { inspectStructuredCloneSnapshot } from "./snapshot-transport-status.js";
@@ -151,7 +153,8 @@ function createMainScene(aperture, app, sourceAssets) {
   if (
     routeConfig.multiRenderTargets ||
     routeConfig.mixedMultiRenderTargets ||
-    routeConfig.dualSizeRenderTargets
+    routeConfig.dualSizeRenderTargets ||
+    routeConfig.croppedSecondaryRenderTargets
   ) {
     const secondaryTarget = createOffscreenTarget({
       aperture,
@@ -229,6 +232,7 @@ function startWorkerSnapshotLoop(aperture, app, scene, readbackUsage) {
     multiRenderTargets: routeConfig.multiRenderTargets,
     mixedMultiRenderTargets: routeConfig.mixedMultiRenderTargets,
     dualSizeRenderTargets: routeConfig.dualSizeRenderTargets,
+    croppedSecondaryRenderTargets: routeConfig.croppedSecondaryRenderTargets,
     targetCrop: routeConfig.targetCrop,
     targetClearLoad: routeConfig.targetClearLoad,
     targetMsaa: routeConfig.targetMsaa,
@@ -325,8 +329,14 @@ async function handleWorkerMessage(
     return;
   }
 
-  const screenPass =
-    routeConfig.dualSizeRenderTargets
+  const screenPass = routeConfig.croppedSecondaryRenderTargets
+    ? await drawCroppedSecondaryRenderTargetTexturesToCanvas({
+        aperture,
+        app,
+        scene,
+        readbackUsage,
+      })
+    : routeConfig.dualSizeRenderTargets
       ? await drawDualSizeRenderTargetTexturesToCanvas({
           aperture,
           app,
@@ -334,58 +344,58 @@ async function handleWorkerMessage(
           readbackUsage,
         })
       : routeConfig.multiRenderTargets || routeConfig.mixedMultiRenderTargets
-    ? await drawMultipleRenderTargetTexturesToCanvas({
-        aperture,
-        app,
-        scene,
-        readbackUsage,
-      })
-    : await drawRenderTargetTextureToCanvas({
-        aperture,
-        app,
-        texture: scene.offscreenTexture,
-        readbackUsage,
-        ...(routeConfig.targetClearLoad
-          ? {
-              samples: [
-                clearLoadClearSample,
-                clearLoadBaseSample,
-                clearLoadOverlaySample,
-                screenClearSample,
-              ],
-              sampleLabels: {
-                clearOnly: clearLoadClearSample.id,
-                basePreserved: clearLoadBaseSample.id,
-                overlay: clearLoadOverlaySample.id,
-                screenClear: screenClearSample.id,
-              },
-            }
-          : {}),
-        ...(routeConfig.targetCrop
-          ? {
-              samples: [
-                cropInsideSample,
-                cropOutsideSample,
-                screenClearSample,
-              ],
-              sampleLabels: {
-                insideTarget: cropInsideSample.id,
-                outsideTarget: cropOutsideSample.id,
-                screenClear: screenClearSample.id,
-              },
-            }
-          : {}),
-        ...(routeConfig.mixedTargets
-          ? {
-              quad: mixedPreviewQuad(),
-              samples: [previewSample, screenClearSample],
-              sampleLabels: {
-                preview: previewSample.id,
-                screenClear: screenClearSample.id,
-              },
-            }
-          : {}),
-      });
+        ? await drawMultipleRenderTargetTexturesToCanvas({
+            aperture,
+            app,
+            scene,
+            readbackUsage,
+          })
+        : await drawRenderTargetTextureToCanvas({
+            aperture,
+            app,
+            texture: scene.offscreenTexture,
+            readbackUsage,
+            ...(routeConfig.targetClearLoad
+              ? {
+                  samples: [
+                    clearLoadClearSample,
+                    clearLoadBaseSample,
+                    clearLoadOverlaySample,
+                    screenClearSample,
+                  ],
+                  sampleLabels: {
+                    clearOnly: clearLoadClearSample.id,
+                    basePreserved: clearLoadBaseSample.id,
+                    overlay: clearLoadOverlaySample.id,
+                    screenClear: screenClearSample.id,
+                  },
+                }
+              : {}),
+            ...(routeConfig.targetCrop
+              ? {
+                  samples: [
+                    cropInsideSample,
+                    cropOutsideSample,
+                    screenClearSample,
+                  ],
+                  sampleLabels: {
+                    insideTarget: cropInsideSample.id,
+                    outsideTarget: cropOutsideSample.id,
+                    screenClear: screenClearSample.id,
+                  },
+                }
+              : {}),
+            ...(routeConfig.mixedTargets
+              ? {
+                  quad: mixedPreviewQuad(),
+                  samples: [previewSample, screenClearSample],
+                  sampleLabels: {
+                    preview: previewSample.id,
+                    screenClear: screenClearSample.id,
+                  },
+                }
+              : {}),
+          });
 
   publishStatus(
     screenPass.ok
@@ -582,6 +592,62 @@ async function drawDualSizeRenderTargetTexturesToCanvas({
     sampleLabels: {
       leftPreview: leftPreviewSample.id,
       rightPreview: rightPreviewSample.id,
+      screenClear: screenClearSample.id,
+    },
+  });
+}
+
+async function drawCroppedSecondaryRenderTargetTexturesToCanvas({
+  aperture,
+  app,
+  scene,
+  readbackUsage,
+}) {
+  if (scene.secondaryOffscreenTexture === null) {
+    return {
+      ok: false,
+      phase: "screen-pass",
+      reason: "secondary-render-target-unavailable",
+      message: "The secondary off-screen render target was not created.",
+    };
+  }
+
+  const [leftQuad, rightQuad] = multiPreviewQuads();
+
+  return drawRenderTargetTexturesToCanvas({
+    aperture,
+    app,
+    readbackUsage,
+    previews: [
+      {
+        id: "primary-secondary-crop-preview",
+        role: "primary",
+        source: "primary full off-screen render target",
+        renderTargetKey: aperture.assetHandleKey(scene.renderTarget),
+        texture: scene.offscreenTexture,
+        quad: leftQuad,
+        sampleId: leftPreviewSample.id,
+      },
+      {
+        id: "secondary-cropped-preview",
+        role: "secondary",
+        source: "secondary cropped off-screen render target",
+        renderTargetKey: aperture.assetHandleKey(scene.secondaryRenderTarget),
+        texture: scene.secondaryOffscreenTexture,
+        quad: rightQuad,
+        sampleId: secondaryCropInsideSample.id,
+      },
+    ],
+    samples: [
+      leftPreviewSample,
+      secondaryCropInsideSample,
+      secondaryCropOutsideSample,
+      screenClearSample,
+    ],
+    sampleLabels: {
+      leftPreview: leftPreviewSample.id,
+      secondaryInside: secondaryCropInsideSample.id,
+      secondaryOutside: secondaryCropOutsideSample.id,
       screenClear: screenClearSample.id,
     },
   });
@@ -963,6 +1029,18 @@ function createStatus(
           ),
         }
       : {}),
+    ...(routeConfig.croppedSecondaryRenderTargets
+      ? {
+          croppedSecondaryRenderTargets:
+            createCroppedSecondaryRenderTargetsStatus(
+              aperture,
+              scene,
+              message,
+              report,
+              screenPass,
+            ),
+        }
+      : {}),
     ...(routeConfig.targetCrop
       ? {
           offscreenTargetCrop: createOffscreenTargetCropStatus(
@@ -976,15 +1054,14 @@ function createStatus(
       : {}),
     ...(routeConfig.targetClearLoad
       ? {
-          sameRenderTargetClearLoad:
-            createSameRenderTargetClearLoadStatus(
-              aperture,
-              scene,
-              message,
-              offscreenReport,
-              report,
-              screenPass,
-            ),
+          sameRenderTargetClearLoad: createSameRenderTargetClearLoadStatus(
+            aperture,
+            scene,
+            message,
+            offscreenReport,
+            report,
+            screenPass,
+          ),
         }
       : {}),
     sourceView: createSourceViewStatus(aperture, message.snapshot, scene),
@@ -995,7 +1072,8 @@ function createStatus(
       currentMaterialKey: aperture.assetHandleKey(scene.currentMaterial),
       ...(routeConfig.multiRenderTargets ||
       routeConfig.mixedMultiRenderTargets ||
-      routeConfig.dualSizeRenderTargets
+      routeConfig.dualSizeRenderTargets ||
+      routeConfig.croppedSecondaryRenderTargets
         ? {
             secondaryRenderTargetKey: aperture.assetHandleKey(
               scene.secondaryRenderTarget,
@@ -1094,6 +1172,7 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: false,
       mixedMultiRenderTargets: false,
       dualSizeRenderTargets: false,
+      croppedSecondaryRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
       targetMsaa: false,
@@ -1112,6 +1191,7 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: false,
       mixedMultiRenderTargets: false,
       dualSizeRenderTargets: false,
+      croppedSecondaryRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
       targetMsaa: false,
@@ -1130,6 +1210,7 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: false,
       mixedMultiRenderTargets: false,
       dualSizeRenderTargets: false,
+      croppedSecondaryRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
       targetMsaa: false,
@@ -1148,6 +1229,7 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: true,
       mixedMultiRenderTargets: false,
       dualSizeRenderTargets: false,
+      croppedSecondaryRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
       targetMsaa: false,
@@ -1166,6 +1248,7 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: false,
       mixedMultiRenderTargets: true,
       dualSizeRenderTargets: false,
+      croppedSecondaryRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
       targetMsaa: false,
@@ -1184,6 +1267,7 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: false,
       mixedMultiRenderTargets: false,
       dualSizeRenderTargets: true,
+      croppedSecondaryRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
       targetMsaa: false,
@@ -1202,9 +1286,29 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: false,
       mixedMultiRenderTargets: false,
       dualSizeRenderTargets: false,
+      croppedSecondaryRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
       targetMsaa: true,
+      requiredFrames: 1,
+    };
+  }
+
+  if (pathname.endsWith("/render-target-secondary-crop.html")) {
+    return {
+      example: "render-target-secondary-crop",
+      initialOffscreenSize: defaultOffscreenSize,
+      offscreenSize: defaultOffscreenSize,
+      resizeTarget: false,
+      reuseStress: false,
+      mixedTargets: false,
+      multiRenderTargets: false,
+      mixedMultiRenderTargets: false,
+      dualSizeRenderTargets: false,
+      croppedSecondaryRenderTargets: true,
+      targetCrop: false,
+      targetClearLoad: false,
+      targetMsaa: false,
       requiredFrames: 1,
     };
   }
@@ -1220,6 +1324,7 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: false,
       mixedMultiRenderTargets: false,
       dualSizeRenderTargets: false,
+      croppedSecondaryRenderTargets: false,
       targetCrop: true,
       targetClearLoad: false,
       targetMsaa: false,
@@ -1238,6 +1343,7 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: false,
       mixedMultiRenderTargets: false,
       dualSizeRenderTargets: false,
+      croppedSecondaryRenderTargets: false,
       targetCrop: false,
       targetClearLoad: true,
       targetMsaa: false,
@@ -1255,6 +1361,7 @@ function routeConfigForPath(pathname) {
     multiRenderTargets: false,
     mixedMultiRenderTargets: false,
     dualSizeRenderTargets: false,
+    croppedSecondaryRenderTargets: false,
     targetCrop: false,
     targetClearLoad: false,
     targetMsaa: false,
@@ -1271,7 +1378,8 @@ function createOffscreenFrameStatus(aperture, scene, message, offscreenReport) {
     workerVariant: message.workerStep?.frameVariant ?? "single-frame",
     centerExpectation: message.workerStep?.centerExpectation ?? "plane",
     renderTargetKey:
-      renderTarget?.renderTargetKey ?? aperture.assetHandleKey(scene.renderTarget),
+      renderTarget?.renderTargetKey ??
+      aperture.assetHandleKey(scene.renderTarget),
     width: renderTarget?.width ?? routeConfig.offscreenSize,
     height: renderTarget?.height ?? routeConfig.offscreenSize,
     drawCalls: renderTarget?.drawCalls ?? offscreenReport.counts.drawCalls,
@@ -1461,8 +1569,9 @@ function createMixedMultiRenderTargetsStatus(
     ]),
   );
   const currentTarget =
-    (report.renderTargets ?? []).find((target) => target.source === "swapchain") ??
-    null;
+    (report.renderTargets ?? []).find(
+      (target) => target.source === "swapchain",
+    ) ?? null;
   const quadsByRole = new Map(
     (screenPass.quads ?? []).map((quad) => [quad.role, quad]),
   );
@@ -1531,8 +1640,7 @@ function createMixedMultiRenderTargetsStatus(
       index,
       viewId: target.viewId,
       source: target.source,
-      target:
-        target.source === "swapchain" ? "current-texture" : "offscreen",
+      target: target.source === "swapchain" ? "current-texture" : "offscreen",
       renderTargetKey: target.renderTargetKey,
       width: target.width,
       height: target.height,
@@ -1670,6 +1778,145 @@ function createDualSizeRenderTargetStatusEntry({
   };
 }
 
+function createCroppedSecondaryRenderTargetsStatus(
+  aperture,
+  scene,
+  message,
+  report,
+  screenPass,
+) {
+  const primaryKey = aperture.assetHandleKey(scene.renderTarget);
+  const secondaryKey = aperture.assetHandleKey(scene.secondaryRenderTarget);
+  const reportByKey = new Map(
+    (report.renderTargets ?? []).map((target) => [
+      target.renderTargetKey,
+      target,
+    ]),
+  );
+  const quadsByRole = new Map(
+    (screenPass.quads ?? []).map((quad) => [quad.role, quad]),
+  );
+  const views = (message.snapshot?.views ?? []).map((view) => {
+    const renderTargetKey = assetKeyOrNull(aperture, view.renderTarget);
+    const role =
+      renderTargetKey === primaryKey
+        ? "primary"
+        : renderTargetKey === secondaryKey
+          ? "secondary"
+          : "current";
+
+    return {
+      role,
+      viewId: view.viewId,
+      camera: view.camera,
+      priority: view.priority,
+      layerMask: view.layerMask,
+      target: renderTargetKey === null ? "current-texture" : "offscreen",
+      renderTargetKey,
+      viewport: Array.from(view.viewport),
+      scissor: Array.from(view.scissor),
+      clearColor: rgbaToStatusColor(view.clearColor),
+    };
+  });
+  const secondaryView =
+    views.find((view) => view.renderTargetKey === secondaryKey) ?? null;
+  const secondaryTarget = reportByKey.get(secondaryKey);
+  const secondaryTargetSize = {
+    width: secondaryTarget?.width ?? routeConfig.offscreenSize,
+    height: secondaryTarget?.height ?? routeConfig.offscreenSize,
+  };
+  const secondaryViewport =
+    secondaryView === null
+      ? null
+      : aperture.resolveNormalizedViewRectangle({
+          rect: secondaryView.viewport,
+          target: secondaryTargetSize,
+          label: "secondary offscreen target crop viewport",
+        });
+  const secondaryScissor =
+    secondaryView === null
+      ? null
+      : aperture.resolveNormalizedViewRectangle({
+          rect: secondaryView.scissor,
+          target: secondaryTargetSize,
+          label: "secondary offscreen target crop scissor",
+        });
+
+  return {
+    mode: "cropped-secondary-offscreen-render-target-previews",
+    source: "ViewPacket.renderTarget",
+    renderTargets: [
+      createMultiRenderTargetStatusEntry({
+        role: "primary",
+        key: primaryKey,
+        materialKey: aperture.assetHandleKey(scene.material),
+        expectedColor: rgbaToStatusColor(planeColor),
+        sampleId: leftPreviewSample.id,
+        target: reportByKey.get(primaryKey),
+        displayQuad: quadsByRole.get("primary"),
+      }),
+      createMultiRenderTargetStatusEntry({
+        role: "secondary",
+        key: secondaryKey,
+        materialKey: aperture.assetHandleKey(scene.canvasMaterial),
+        expectedColor: rgbaToStatusColor(canvasPlaneColor),
+        sampleId: secondaryCropInsideSample.id,
+        target: secondaryTarget,
+        displayQuad: quadsByRole.get("secondary"),
+      }),
+    ],
+    views,
+    secondaryCrop: {
+      renderTargetKey: secondaryKey,
+      expectedNormalizedRect: targetCropRect,
+      viewportPixels: secondaryViewport?.rect ?? null,
+      scissorPixels: secondaryScissor?.rect ?? null,
+      diagnostics: [
+        ...(secondaryViewport?.diagnostics ?? []),
+        ...(secondaryScissor?.diagnostics ?? []),
+      ],
+      insideSample: secondaryCropInsideSample.id,
+      outsideSample: secondaryCropOutsideSample.id,
+    },
+    passOrder: (report.renderTargets ?? []).map((target, index) => ({
+      index,
+      viewId: target.viewId,
+      source: target.source,
+      renderTargetKey: target.renderTargetKey,
+      width: target.width,
+      height: target.height,
+      drawCalls: target.drawCalls,
+      ok: target.ok,
+    })),
+    displayPass: {
+      loadOp: screenPass.loadOp,
+      drawCalls: screenPass.drawCalls,
+      quads: screenPass.quads,
+      samples: screenPass.samples,
+    },
+    expectedSamples: {
+      primaryPreview: {
+        sampleId: leftPreviewSample.id,
+        materialKey: aperture.assetHandleKey(scene.material),
+        expectedColor: rgbaToStatusColor(planeColor),
+      },
+      secondaryInside: {
+        sampleId: secondaryCropInsideSample.id,
+        materialKey: aperture.assetHandleKey(scene.canvasMaterial),
+        expectedColor: rgbaToStatusColor(canvasPlaneColor),
+      },
+      secondaryOutside: {
+        sampleId: secondaryCropOutsideSample.id,
+        expectedColor: rgbaToStatusColor(offscreenClearColor),
+      },
+      screenClear: {
+        sampleId: screenClearSample.id,
+        expectedColor: { ...screenClearColor },
+      },
+    },
+  };
+}
+
 function createMsaaRenderTargetStatus(
   aperture,
   scene,
@@ -1683,8 +1930,7 @@ function createMsaaRenderTargetStatus(
       (entry) => entry.renderTargetKey === renderTargetKey,
     ) ?? null;
   const boundary = offscreenReport.boundaries?.[0] ?? null;
-  const attachment =
-    boundary?.attachments?.plan?.colorAttachments?.[0] ?? null;
+  const attachment = boundary?.attachments?.plan?.colorAttachments?.[0] ?? null;
   const msaa = report.msaa ?? {
     requestedSampleCount: 1,
     sampleCount: 1,
@@ -1833,7 +2079,8 @@ function createSameRenderTargetClearLoadStatus(
       expectedRenderTargetKey: renderTargetKey,
       uniqueTargetKeys,
       allPassesShareTargetKey:
-        uniqueTargetKeys.length === 1 && uniqueTargetKeys[0] === renderTargetKey,
+        uniqueTargetKeys.length === 1 &&
+        uniqueTargetKeys[0] === renderTargetKey,
       passCount: passOrder.length,
     },
     displayPass: {

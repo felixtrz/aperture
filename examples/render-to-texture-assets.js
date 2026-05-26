@@ -74,6 +74,16 @@ export const renderToTextureClearLoadOverlaySample = {
   x: 0.5,
   y: 0.5,
 };
+export const renderToTextureSecondaryCropInsideSample = {
+  id: "secondary-crop-inside",
+  x: 0.74,
+  y: 0.5,
+};
+export const renderToTextureSecondaryCropOutsideSample = {
+  id: "secondary-crop-outside",
+  x: 0.602,
+  y: 0.5,
+};
 
 export function registerRenderToTextureAssets(aperture, registry) {
   const assets = aperture.createRenderAssetCollections({ registry });

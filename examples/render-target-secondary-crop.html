@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Aperture Render Target Viewport Crop</title>
+    <title>Aperture Render Target Secondary Crop</title>
     <link rel="stylesheet" href="./styles.css" />
     <script type="importmap">
       {
@@ -25,19 +25,19 @@
     <main class="runtime-shell">
       <section
         class="viewport-panel"
-        aria-label="Aperture render-target viewport crop runtime"
+        aria-label="Aperture render-target secondary crop runtime"
       >
         <canvas
           id="aperture-canvas"
           width="960"
           height="540"
-          aria-label="Aperture WebGPU render-target viewport crop canvas"
+          aria-label="Aperture WebGPU render-target secondary crop canvas"
         ></canvas>
       </section>
       <aside class="status-panel" aria-label="Runtime status">
         <div class="status-row">
           <span>example</span>
-          <strong id="example-name">render target crop</strong>
+          <strong id="example-name">render target secondary crop</strong>
         </div>
         <div class="status-row">
           <span>state</span>
@@ -56,9 +56,13 @@
           <a href="/examples/mixed-multi-render-targets.html">mixed multi</a>
           <a href="/examples/render-target-dual-size.html">dual size</a>
           <a href="/examples/render-target-msaa.html">target msaa</a>
-          <a href="/examples/render-target-secondary-crop.html">secondary crop</a>
+          <a href="/examples/render-target-secondary-crop.html"
+            >secondary crop</a
+          >
           <a href="/examples/render-target-viewport-crop.html">target crop</a>
-          <a href="/examples/render-target-clear-load.html">target clear load</a>
+          <a href="/examples/render-target-clear-load.html"
+            >target clear load</a
+          >
           <a href="/examples/worker-cube.html">worker cube</a>
           <a href="/examples/matcap-app.html">matcap app</a>
           <a href="/examples/materials-showcase.html">materials</a>

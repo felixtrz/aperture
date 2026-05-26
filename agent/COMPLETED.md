@@ -1,5 +1,40 @@
 # Completed Tasks
 
+## task-3186 — Add a cropped secondary off-screen render-target preview route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/render-target-secondary-crop.html` on the existing
+  render-to-texture route family.
+- `examples/render-to-texture-assets.js` now defines stable screen readback
+  samples for the secondary target inside-crop and outside-crop regions.
+- `examples/render-to-texture.worker.js` now supports a cropped-secondary mode
+  that extracts two ECS cameras targeting distinct renderer-owned off-screen
+  `ViewPacket.renderTarget` handles while only the secondary target receives
+  the non-full normalized viewport/scissor crop.
+- `examples/render-to-texture.main.js` creates both renderer-owned targets,
+  displays both textures side by side, and reports per-target keys,
+  dimensions, draw counts, display samples, and resolved secondary target-space
+  crop pixels.
+- Added Playwright coverage proving the primary preview is non-clear, the
+  secondary inside-crop sample renders, and the secondary outside-crop sample
+  remains the off-screen clear color.
+- Updated example links, public tracker pages, backlog, current task, and
+  handoff.
+
+Validation:
+
+- `node --check examples/render-to-texture-assets.js && node --check examples/render-to-texture.main.js && node --check examples/render-to-texture.worker.js`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js examples/render-to-texture-assets.js test/e2e/render-to-texture.spec.ts`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "cropped secondary render-target" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "cropped secondary render-target|MSAA render-target|dual-size render-target|mixed multi render-target|multiple render targets route|mixed camera targets route|render-target viewport crop route|same render-target clear/load route|render-to-texture example" --reporter=list`
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+
 ## task-3185 — Add an MSAA off-screen render-target preview route
 
 Completed: 2026-05-26
