@@ -1,5 +1,46 @@
 # Completed Tasks
 
+## task-3192 — Add an MSAA mixed current-texture plus cropped secondary route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/mixed-msaa-secondary-crop.html` on the existing
+  render-to-texture route family.
+- The route creates an MSAA-enabled `createWebGpuApp({ msaa: 8 })`, which
+  resolves to the supported 4x path for the current-texture and off-screen
+  passes.
+- `examples/render-to-texture.worker.js` now supports a mixed-MSAA-cropped
+  worker variant that extracts one current-texture camera plus two ECS cameras
+  targeting distinct renderer-owned `ViewPacket.renderTarget` handles while
+  only the secondary off-screen target receives the non-full normalized
+  viewport/scissor crop.
+- `examples/render-to-texture.main.js` creates both renderer-owned targets,
+  displays the resolved primary preview plus secondary inside/outside crop
+  samples, and reports current/off-screen target classifications,
+  requested/resolved sample counts, per-target keys, dimensions, draw counts,
+  MSAA sample counts, secondary target-space crop pixels, per-pass resolve
+  attachment behavior, display samples, and current-texture readback.
+- Added Playwright coverage proving the current-texture sample, primary
+  resolved preview, secondary inside-crop preview, and secondary outside-clear
+  region behave distinctly.
+- Updated example links, public tracker pages, backlog, current task, and
+  handoff.
+
+Validation:
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA cropped secondary" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA cropped secondary|mixed MSAA two-target|MSAA cropped secondary|mixed cropped secondary|MSAA two-target|MSAA render-target" --reporter=list`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm run check:progress`
+
 ## task-3191 — Add a mixed current-texture plus MSAA two-target route
 
 Completed: 2026-05-26

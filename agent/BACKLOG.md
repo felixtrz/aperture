@@ -59,36 +59,22 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3191` is complete: `examples/mixed-msaa-two-targets.html` now proves one
-MSAA-enabled WebGPU app can extract one current-texture camera plus two ECS
+`task-3192` is complete: `examples/mixed-msaa-secondary-crop.html` now proves
+one MSAA-enabled WebGPU app can extract one current-texture camera plus two ECS
 cameras targeting distinct renderer-owned off-screen `ViewPacket.renderTarget`
-handles, resolve both off-screen target textures, display both resolved previews
-side by side, and report current/off-screen target classifications,
-requested/resolved sample count, per-target keys, dimensions, draw counts, MSAA
-sample count, per-pass resolve attachment behavior, display samples, and
-current-texture readback. Playwright verifies the current-texture sample plus
-both resolved previews are non-clear and visually distinct. Continue the
-post-SOTA visible-feature queue at `task-3192`: add an MSAA mixed
-current-texture plus cropped secondary off-screen render-target route.
+handles, apply a non-full viewport/scissor crop only to the secondary
+off-screen target, resolve both off-screen target textures, display the primary
+preview plus secondary inside/outside crop samples, and report current/off-screen
+target classifications, requested/resolved sample count, per-target keys,
+dimensions, draw counts, MSAA sample count, secondary target-space crop pixels,
+resolve attachment behavior, display samples, and current-texture readback.
+Playwright verifies the current-texture sample, primary resolved preview,
+secondary inside-crop preview, and secondary outside-crop preview behave
+distinctly. Continue the post-SOTA visible-feature queue at `task-3193`: add an
+MSAA render-target reuse stress preview route.
 
 The next ready visible-feature queue is:
 
-- `task-3192` — add an MSAA mixed current-texture plus cropped secondary
-  off-screen render-target route.
-  Reference anchor:
-  `references/engine/src/extras/render-passes/camera-frame.js`,
-  `references/bevy/examples/3d/render_to_texture.rs`.
-  Done when one browser route creates an MSAA-enabled WebGPU app, extracts one
-  current-texture camera plus two ECS cameras targeting distinct renderer-owned
-  off-screen render-target handles, applies a non-full viewport/scissor
-  rectangle to the secondary off-screen target only, displays both resolved
-  off-screen textures side by side, reports current/off-screen target
-  classifications, requested/resolved sample count, per-target keys,
-  dimensions, draw counts, MSAA sample count, secondary target-space crop
-  pixels, resolve attachment behavior for each off-screen pass, display samples,
-  and current-texture readback, and Playwright verifies the current-texture
-  sample, primary resolved preview, secondary inside-crop preview, and secondary
-  outside-crop preview behave distinctly.
 - `task-3193` — add an MSAA render-target reuse stress preview route.
   Reference anchor:
   `references/engine/src/extras/render-passes/camera-frame.js`,
@@ -112,6 +98,18 @@ The next ready visible-feature queue is:
   stable target key, texture recreation/destroy status, MSAA sample count, and
   resolve attachment behavior, and Playwright verifies the resized resolved
   preview is non-clear without stale-size sampling.
+- `task-3195` — add an MSAA same-target clear/load matrix route.
+  Reference anchor:
+  `references/engine/src/extras/render-passes/camera-frame.js`,
+  `references/bevy/examples/3d/render_to_texture.rs`.
+  Done when one browser route creates an MSAA-enabled WebGPU app, extracts two
+  ECS cameras targeting the same renderer-owned off-screen
+  `ViewPacket.renderTarget` handle in one snapshot, clears the first resolved
+  boundary and loads existing color/depth for the second resolved boundary,
+  reports requested/resolved sample count, target-key reuse, pass-order load
+  ops, per-pass MSAA sample count, resolve attachment behavior, and
+  clear/base/overlay display samples, and Playwright verifies the resolved
+  clear-only, base-preserved, and overlay regions.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

@@ -393,23 +393,29 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 07:27 UTC</dd>
+            <dd>2026-05-26 07:34 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/mixed-msaa-secondary-crop.html</code> now proves
+              one MSAA-enabled WebGPU app can extract one current-texture camera
+              plus two ECS cameras targeting distinct renderer-owned off-screen
+              textures while only the secondary target uses a non-full
+              viewport/scissor rectangle, resolve both off-screen target
+              textures, and display primary plus inside/outside secondary crop
+              samples. The route reports current/off-screen target
+              classifications, requested/resolved sample counts, per-target
+              keys, dimensions, draw counts, MSAA sample counts, secondary crop
+              pixels, per-pass resolve attachment behavior, display samples, and
+              current-texture readback, then Playwright verifies all target
+              family samples behave distinctly. Previous update:
               <code>examples/mixed-msaa-two-targets.html</code> now proves one
               MSAA-enabled WebGPU app can extract one current-texture camera
               plus two ECS cameras targeting distinct renderer-owned off-screen
               textures, resolve both off-screen target textures, and display the
-              resolved previews side by side. The route reports
-              current/off-screen target classifications, requested/resolved
-              sample counts, per-target keys, dimensions, draw counts, MSAA
-              sample counts, per-pass resolve attachment behavior, display
-              samples, and current-texture readback, then Playwright verifies
-              the current-texture sample plus both resolved previews are
-              non-clear and visually distinct. Previous update:
+              resolved previews side by side. Earlier update:
               <code>examples/mixed-secondary-crop-render-targets.html</code>
               now proves one worker-authored snapshot can extract one
               current-texture camera plus two ECS cameras targeting distinct
@@ -1919,8 +1925,8 @@
             <dt>Next focus</dt>
             <dd>
               Continue the render-target MSAA route family with
-              <code>task-3192</code>: an MSAA mixed current-texture plus cropped
-              secondary off-screen render-target route.
+              <code>task-3193</code>: an MSAA render-target reuse stress preview
+              route.
             </dd>
           </dl>
         </aside>
@@ -2819,6 +2825,21 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3192</span> Added
+                <code>examples/mixed-msaa-secondary-crop.html</code>. The
+                render-to-texture route family now creates an MSAA-enabled app,
+                extracts one current-texture camera plus two off-screen ECS
+                cameras targeting distinct renderer-owned render-target handles,
+                applies a non-full viewport/scissor crop only to the secondary
+                target, displays the resolved primary preview plus secondary
+                inside/outside crop samples, reports current/off-screen target
+                classifications, requested/resolved sample counts, per-target
+                keys, dimensions, draw counts, MSAA sample counts, secondary
+                crop pixels, per-pass resolve attachment behavior, display
+                samples, and current-texture readback, and Playwright proves all
+                target-family samples behave distinctly.
+              </li>
               <li>
                 <span class="badge green">task-3191</span> Added
                 <code>examples/mixed-msaa-two-targets.html</code>. The
@@ -5764,17 +5785,23 @@
                 readback proof.
               </li>
               <li>
-                <span class="badge">task-3192</span> Next: add an MSAA mixed
-                current-texture plus cropped secondary off-screen render-target
-                route.
+                <span class="badge green">task-3192</span> Done: add an MSAA
+                mixed current-texture plus cropped secondary off-screen
+                render-target route with per-pass resolve attachment status,
+                current-texture readback, and inside/outside secondary pixel
+                proof.
               </li>
               <li>
-                <span class="badge">task-3193</span> Then: add an MSAA
+                <span class="badge">task-3193</span> Next: add an MSAA
                 render-target reuse stress preview route.
               </li>
               <li>
                 <span class="badge">task-3194</span> Then: add an MSAA
                 render-target resize preview route.
+              </li>
+              <li>
+                <span class="badge">task-3195</span> Then: add an MSAA
+                same-target clear/load matrix route.
               </li>
               <li>
                 <span class="badge dim">task-3161</span> Later: add cross-device
@@ -5784,7 +5811,7 @@
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
                 workflows, and <code>docs/PERSISTENT_RENDER_SHELL.md</code> to
                 choose between standalone cold-start route tests and persistent
-                shell reset/stress proofs.
+                shell suites.
               </li>
             </ul>
           </article>
@@ -5797,6 +5824,27 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3192</div>
+            <div>
+              <strong
+                >Mixed current plus MSAA cropped-secondary route
+                shipped.</strong
+              >
+              <span>
+                <code>examples/mixed-msaa-secondary-crop.html</code> extracts
+                one current-texture camera plus two off-screen cameras from one
+                ECS snapshot in an MSAA-enabled app, applies a non-full
+                viewport/scissor crop only to the secondary off-screen target,
+                reports current/off-screen target classifications,
+                requested/resolved sample counts, per-target keys, dimensions,
+                draw counts, MSAA sample counts, secondary crop pixels, per-pass
+                resolve attachment behavior, display samples, and
+                current-texture readback, and proves all target-family samples
+                behave distinctly.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3191</div>
             <div>
