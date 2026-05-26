@@ -1,5 +1,38 @@
 # Completed Tasks
 
+## task-3200 — Add a mixed current-texture plus MSAA reused off-screen target route
+
+Completed: 2026-05-26
+
+### Summary
+
+- Added `examples/mixed-msaa-reuse.html` to the render-to-texture route family
+  and linked it from related example pages.
+- `examples/render-to-texture.main.js` now recognizes the mixed MSAA reuse
+  route, creates an MSAA-enabled app, renders two worker snapshots through the
+  same renderer-owned off-screen `ViewPacket.renderTarget` handle while also
+  extracting a current-texture ECS camera, resolves the second off-screen target
+  texture into the visible preview, and reports current/off-screen
+  classifications, stable target key, per-frame dimensions and draw counts,
+  requested/resolved sample count, MSAA color texture creation/reuse pressure,
+  per-frame resolve attachment behavior, display samples, and current-texture
+  readback.
+- Added Playwright coverage proving the current-texture sample and second
+  resolved preview are non-clear and distinct without stale first-frame pixels.
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `pnpm exec eslint examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA reuse" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA reuse|mixed MSAA resize|mixed MSAA target crop" --reporter=list`
+- Browser route check: `examples/mixed-msaa-reuse.html` published `ok: true`,
+  two MSAA target submissions, current/off-screen target classifications, a
+  stable off-screen render-target key across two worker snapshots, requested
+  8/effective 4 MSAA, resolve attachments, current-texture readback, and
+  distinct current, second-frame preview, and screen-clear samples.
+
 ## task-3199 — Add a mixed current-texture plus MSAA viewport-cropped off-screen target route
 
 Completed: 2026-05-26

@@ -1,6 +1,77 @@
 # Agent Handoff
 
-Updated: 2026-05-26T11:37:34Z
+Updated: 2026-05-26T11:54:59Z
+
+## Current Run Update — 2026-05-26T11:54:59Z — Mixed MSAA reused render-target route
+
+Completed `task-3200`.
+
+### What changed
+
+- Added `examples/mixed-msaa-reuse.html` to the render-to-texture route family
+  and linked it from related example pages.
+- `examples/render-to-texture.main.js` now recognizes the mixed MSAA reuse
+  route, labels it as `render-to-texture/mixed-msaa-reuse-target`, creates an
+  MSAA-enabled app, renders two worker snapshots through the same
+  renderer-owned off-screen `ViewPacket.renderTarget` handle, and extracts a
+  current-texture ECS camera in the same snapshots.
+- Added `mixedMsaaRenderTargetReuse` status with current/off-screen
+  classifications, stable target key, per-frame dimensions and draw counts,
+  requested/resolved sample count, MSAA color texture creation/reuse pressure,
+  per-frame resolve attachment behavior, display samples, and current-texture
+  readback.
+- Added Playwright coverage proving the current-texture sample and second
+  resolved preview are non-clear and distinct without stale first-frame pixels.
+- Updated public tracker pages, `agent/BACKLOG.md`, `agent/CURRENT_TASK.md`,
+  and `agent/COMPLETED.md`. The ready queue now continues with `task-3201`,
+  `task-3202`, and `task-3203`.
+
+### References inspected
+
+- `references/engine/src/extras/render-passes/camera-frame.js`
+- `references/bevy/examples/3d/render_to_texture.rs`
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `pnpm exec eslint examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA reuse" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA reuse|mixed MSAA resize|mixed MSAA target crop" --reporter=list`
+- Browser route check for `examples/mixed-msaa-reuse.html` reported `ok: true`,
+  two MSAA target submissions, current/off-screen target classifications, a
+  stable off-screen render-target key across two worker snapshots, requested
+  8/effective 4 MSAA, resolve attachments, current-texture readback, and
+  distinct current, second-frame preview, and screen-clear samples.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- Full-repo `pnpm run format:check` still has pre-existing unrelated formatting
+  debt from earlier handoff notes, including untracked `.playwright-mcp/`
+  scratch files. This slice uses targeted Prettier checks for touched files.
+- The existing standalone
+  `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "MSAA render-target reuse route" --reporter=list`
+  run hung independently after this slice's focused mixed-route checks passed;
+  a manual headed-Chrome route probe still reached published status. This task
+  did not modify the standalone route's config path, but the instability should
+  be revisited before relying on that adjacent test as a gate.
+- A broad `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/webgpu-app.test.ts`
+  run still fails 11 pre-existing `webgpu-app.test.ts` expectations around
+  verbose pipeline descriptor resource keys. This task did not modify that
+  area.
+- The in-app browser `iab` surface was unavailable in this session, so local
+  browser verification used Playwright route checks and headed-Chrome probes
+  instead.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3201`: add a mixed current-texture
+plus MSAA dual-size off-screen target route.
 
 ## Current Run Update — 2026-05-26T11:37:34Z — Mixed MSAA viewport-cropped target route
 
