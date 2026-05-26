@@ -1,5 +1,39 @@
 # Completed Tasks
 
+## task-3201 — Add a mixed current-texture plus MSAA dual-size off-screen target route
+
+Completed: 2026-05-26
+
+### Summary
+
+- Added `examples/mixed-msaa-dual-size.html` to the render-to-texture route
+  family and linked it from related example pages.
+- `examples/render-to-texture.main.js` now recognizes the mixed MSAA dual-size
+  route, creates an MSAA-enabled app, extracts one current-texture camera plus
+  two off-screen cameras targeting distinct renderer-owned
+  `ViewPacket.renderTarget` handles with different dimensions, resolves the
+  square and wide off-screen target textures into aspect-preserved visible
+  previews, and reports current/off-screen classifications, per-target keys,
+  dimensions, draw counts, requested/resolved sample count, per-pass MSAA sample
+  count, resolve attachment behavior, display quads, aspect mapping, and
+  current-texture readback.
+- Added Playwright coverage proving the current-texture sample plus both
+  resolved previews are non-clear and visually distinct.
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `pnpm exec eslint examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA dual-size" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA dual-size|mixed dual-size render-target|mixed MSAA two-target" --reporter=list`
+- Browser route check: `examples/mixed-msaa-dual-size.html` published
+  `ok: true`, three MSAA target submissions, current/off-screen target
+  classifications, distinct square and wide render-target keys, requested
+  8/effective 4 MSAA, resolve attachments, aspect-preserving display quads,
+  current-texture readback, and distinct current, square-preview, wide-preview,
+  and screen-clear samples.
+
 ## task-3200 — Add a mixed current-texture plus MSAA reused off-screen target route
 
 Completed: 2026-05-26

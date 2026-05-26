@@ -393,12 +393,22 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 11:54 UTC</dd>
+            <dd>2026-05-26 12:09 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/mixed-msaa-dual-size.html</code> now proves one
+              MSAA-enabled WebGPU app can extract one current-texture camera
+              plus two off-screen cameras targeting distinct renderer-owned
+              <code>ViewPacket.renderTarget</code> handles with different
+              dimensions. The route displays the resolved square and wide
+              previews with aspect-preserving mapping plus current-texture
+              readback, and reports current/off-screen classifications,
+              per-target keys, dimensions, draw counts, requested/resolved
+              sample counts, per-pass MSAA sample count, resolve attachment
+              behavior, display quads, and aspect mapping. Previous update:
               <code>examples/mixed-msaa-reuse.html</code> now proves one
               MSAA-enabled WebGPU app can render two worker snapshots through
               the same renderer-owned off-screen
@@ -409,18 +419,7 @@
               per-frame dimensions and draw counts, requested/resolved sample
               counts, MSAA color texture creation/reuse pressure, per-frame
               resolve attachment behavior, display samples, and current-texture
-              readback. Previous update:
-              <code>examples/mixed-msaa-target-crop.html</code> now proves one
-              MSAA-enabled WebGPU app can extract one current-texture camera
-              plus one off-screen camera targeting a renderer-owned
-              <code>ViewPacket.renderTarget</code> handle with a non-full
-              viewport/scissor rectangle, resolve the cropped off-screen target
-              texture into the visible preview, and read back the independent
-              current-texture pass. The route reports current/off-screen
-              classifications, crop rectangle and target-space pixels, target
-              key, dimensions, draw count, requested/resolved sample counts,
-              per-pass MSAA sample count, resolve attachment behavior, display
-              samples, and current-texture readback. Earlier update:
+              readback. Earlier update:
               <code>examples/render-target-msaa-viewport-crop.html</code> now
               proves one MSAA-enabled WebGPU app can render an ECS camera into a
               renderer-owned off-screen target with a non-full viewport/scissor
@@ -1978,8 +1977,8 @@
             <dt>Next focus</dt>
             <dd>
               Continue the render-target MSAA route family with
-              <code>task-3201</code>: a mixed current-texture plus MSAA
-              dual-size off-screen target route.
+              <code>task-3202</code>: a mixed current-texture plus MSAA resized
+              viewport-cropped off-screen target route.
             </dd>
           </dl>
         </aside>
@@ -2878,6 +2877,22 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3201</span> Added
+                <code>examples/mixed-msaa-dual-size.html</code>. The
+                render-to-texture route family now creates an MSAA-enabled app,
+                extracts one current-texture camera plus two off-screen cameras
+                targeting distinct renderer-owned
+                <code>ViewPacket.renderTarget</code> handles with different
+                dimensions, resolves the square and wide off-screen textures
+                into aspect-preserved visible previews, reports
+                current/off-screen classifications, per-target keys, dimensions,
+                draw counts, requested/resolved sample count, per-pass MSAA
+                sample count, resolve attachment behavior, display quads, aspect
+                mapping, and current-texture readback, and Playwright proves the
+                current-texture sample plus both resolved previews are non-clear
+                and visually distinct.
+              </li>
               <li>
                 <span class="badge green">task-3200</span> Added
                 <code>examples/mixed-msaa-reuse.html</code>. The
@@ -5993,11 +6008,12 @@
                 second-frame preview and current-texture proof.
               </li>
               <li>
-                <span class="badge">task-3201</span> Next: add a mixed
-                current-texture plus MSAA dual-size off-screen target route.
+                <span class="badge green">task-3201</span> Done: add a mixed
+                current-texture plus MSAA dual-size off-screen target route with
+                aspect-preserved square/wide preview proof.
               </li>
               <li>
-                <span class="badge">task-3202</span> Then: add a mixed
+                <span class="badge">task-3202</span> Next: add a mixed
                 current-texture plus MSAA resized viewport-cropped off-screen
                 target route.
               </li>
@@ -6005,6 +6021,11 @@
                 <span class="badge">task-3203</span> Then: add a mixed
                 current-texture plus MSAA reused viewport-cropped off-screen
                 target route.
+              </li>
+              <li>
+                <span class="badge">task-3204</span> Then: add a mixed
+                current-texture plus MSAA resized dual-size off-screen target
+                route.
               </li>
               <li>
                 <span class="badge dim">task-3161</span> Later: add cross-device
@@ -6027,6 +6048,25 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3201</div>
+            <div>
+              <strong>Mixed MSAA dual-size route shipped.</strong>
+              <span>
+                <code>examples/mixed-msaa-dual-size.html</code> extracts one
+                current-texture camera plus two off-screen cameras targeting
+                distinct renderer-owned <code>ViewPacket.renderTarget</code>
+                handles with different dimensions, resolves the square and wide
+                off-screen textures into aspect-preserved visible previews,
+                reports current/off-screen classifications, per-target keys,
+                dimensions, draw counts, requested/resolved sample count,
+                per-pass MSAA sample count, resolve attachment behavior, display
+                quads, aspect mapping, and current-texture readback, and proves
+                the current-texture sample plus both resolved previews are
+                non-clear and visually distinct.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3200</div>
             <div>
