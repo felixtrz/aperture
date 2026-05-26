@@ -77,6 +77,72 @@ interface RenderToTextureStatus extends ExampleStatusBase {
     }[];
     readonly staleFirstFrameStatus?: boolean;
   };
+  readonly mixedCameraTargets?: {
+    readonly mode?: string;
+    readonly renderTargetKey?: string;
+    readonly source?: string;
+    readonly views?: readonly {
+      readonly viewId?: number;
+      readonly priority?: number;
+      readonly layerMask?: number;
+      readonly target?: string;
+      readonly renderTargetKey?: string | null;
+      readonly viewport?: readonly number[];
+      readonly scissor?: readonly number[];
+    }[];
+    readonly passOrder?: readonly {
+      readonly index?: number;
+      readonly viewId?: number;
+      readonly source?: string;
+      readonly renderTargetKey?: string | null;
+      readonly width?: number;
+      readonly height?: number;
+      readonly drawCalls?: number;
+      readonly ok?: boolean;
+    }[];
+    readonly displayPass?: {
+      readonly loadOp?: string;
+      readonly drawCalls?: number;
+      readonly samples?: {
+        readonly preview?: string;
+        readonly screenClear?: string;
+      };
+    };
+    readonly canvasReadback?: {
+      readonly ok: boolean;
+      readonly samples?: readonly {
+        readonly id: string;
+        readonly pixel: {
+          readonly r: number;
+          readonly g: number;
+          readonly b: number;
+          readonly a: number;
+        };
+      }[];
+    } | null;
+    readonly expectedSamples?: {
+      readonly canvas?: {
+        readonly sampleId?: string;
+        readonly materialKey?: string;
+        readonly expectedColor?: {
+          readonly r: number;
+          readonly g: number;
+          readonly b: number;
+          readonly a: number;
+        };
+      };
+      readonly offscreenPreview?: {
+        readonly sampleId?: string;
+        readonly materialKey?: string;
+        readonly expectedColor?: {
+          readonly r: number;
+          readonly g: number;
+          readonly b: number;
+          readonly a: number;
+        };
+      };
+    };
+  };
   readonly sourceView?: {
     readonly ok?: boolean;
     readonly viewId?: number;
@@ -95,8 +161,15 @@ interface RenderToTextureStatus extends ExampleStatusBase {
     readonly renderTargetMatches?: boolean;
   };
   readonly scene?: {
+    readonly canvasMaterialKey?: string;
     readonly materialKind?: string;
     readonly expectedCenterColor?: {
+      readonly r: number;
+      readonly g: number;
+      readonly b: number;
+      readonly a: number;
+    };
+    readonly expectedCanvasColor?: {
       readonly r: number;
       readonly g: number;
       readonly b: number;
@@ -336,6 +409,193 @@ test("render-to-texture example displays the off-screen pass on the canvas", asy
       sample.pixel,
     )} clear=${JSON.stringify(expectedOffscreenClear)}`,
   ).toBeGreaterThan(40);
+});
+
+test("mixed camera targets route keeps canvas and off-screen target passes distinct", async ({
+  page,
+}) => {
+  const guard = attachWebGpuValidationConsoleGuard(page);
+  const status = await loadExampleStatus<RenderToTextureStatus>(
+    page,
+    "/examples/mixed-camera-targets.html",
+    "mixed-camera-targets-status",
+  );
+
+  if (status === undefined) {
+    return;
+  }
+
+  const renderTargetKey = status.renderTarget?.key;
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "mixed-camera-targets",
+    ok: true,
+    phase: "display",
+    renderingBackend: "webgpu-explicit",
+    renderTarget: {
+      width: 256,
+      height: 256,
+      source: "ViewPacket.renderTarget",
+      textureUsage: {
+        renderAttachment: true,
+        textureBinding: true,
+        copySource: true,
+      },
+    },
+    sourceView: {
+      ok: true,
+      viewId: 0,
+      priority: 0,
+      layerMask: 1,
+      renderTargetKey,
+      expectedRenderTargetKey: renderTargetKey,
+      renderTargetMatches: true,
+    },
+    mixedCameraTargets: {
+      mode: "current-texture-plus-offscreen-render-target",
+      renderTargetKey,
+      source: "ViewPacket.renderTarget",
+      views: [
+        {
+          viewId: 0,
+          priority: 0,
+          layerMask: 1,
+          target: "offscreen",
+          renderTargetKey,
+          viewport: [0, 0, 1, 1],
+          scissor: [0, 0, 1, 1],
+        },
+        {
+          viewId: 1,
+          priority: 1,
+          layerMask: 2,
+          target: "current-texture",
+          renderTargetKey: null,
+          viewport: [0, 0, 1, 1],
+          scissor: [0, 0, 1, 1],
+        },
+      ],
+      passOrder: [
+        {
+          index: 0,
+          viewId: 0,
+          source: "offscreen",
+          renderTargetKey,
+          width: 256,
+          height: 256,
+          drawCalls: 1,
+          ok: true,
+        },
+        {
+          index: 1,
+          viewId: 1,
+          source: "swapchain",
+          renderTargetKey: null,
+          width: 960,
+          height: 540,
+          drawCalls: 1,
+          ok: true,
+        },
+      ],
+      displayPass: {
+        loadOp: "clear",
+        drawCalls: 1,
+        samples: {
+          preview: "offscreen-preview-center",
+          screenClear: "screen-clear-corner",
+        },
+      },
+    },
+    counts: {
+      views: 2,
+      meshDraws: 2,
+      drawCalls: 2,
+      diagnostics: 0,
+    },
+    screenPass: {
+      phase: "screen-pass",
+      drawCalls: 1,
+      loadOp: "clear",
+      samples: {
+        preview: "offscreen-preview-center",
+        screenClear: "screen-clear-corner",
+      },
+    },
+  });
+  expect(status.report?.renderTargets).toMatchObject([
+    {
+      source: "offscreen",
+      renderTargetKey,
+      width: 256,
+      height: 256,
+      ok: true,
+      drawCalls: 1,
+    },
+    {
+      source: "swapchain",
+      renderTargetKey: null,
+      width: 960,
+      height: 540,
+      ok: true,
+      drawCalls: 1,
+    },
+  ]);
+  guard.expectNoWarnings();
+
+  await attachExampleStatus("mixed-camera-targets-rendered-status", status);
+
+  if (!status.readback?.ok || !status.mixedCameraTargets?.canvasReadback?.ok) {
+    test.skip(true, "Mixed camera target pixel assertion requires readback.");
+    return;
+  }
+
+  const canvasSample = status.mixedCameraTargets.canvasReadback.samples?.find(
+    (entry) => entry.id === "canvas-direct-left",
+  );
+  const previewSample = status.readback.samples?.find(
+    (entry) => entry.id === "offscreen-preview-center",
+  );
+
+  expect(canvasSample, "expected direct canvas sample").toBeDefined();
+  expect(previewSample, "expected off-screen preview sample").toBeDefined();
+
+  if (canvasSample === undefined || previewSample === undefined) {
+    return;
+  }
+
+  expect(
+    pixelDistance(
+      canvasSample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCanvasColor ?? {
+          r: 0.1,
+          g: 0.42,
+          b: 0.95,
+          a: 1,
+        },
+      ),
+    ),
+    "left canvas sample should come from the current-texture camera",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(
+      previewSample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCenterColor ?? {
+          r: 0.06,
+          g: 0.88,
+          b: 0.22,
+          a: 1,
+        },
+      ),
+    ),
+    "right preview sample should come from the off-screen render target",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(canvasSample.pixel, previewSample.pixel),
+    "mixed route should show distinct canvas and off-screen pixels",
+  ).toBeGreaterThan(80);
 });
 
 test("render-target resize route displays the resized off-screen pass", async ({

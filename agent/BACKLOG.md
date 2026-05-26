@@ -59,23 +59,16 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3178` is complete: `examples/camera-viewport-resize.html` now proves the
-same ECS camera handle can move and resize its normalized viewport/scissor
-rectangle across two extracted frames, reports old/new resolved viewport pixels
-and pass order, and verifies the material sample moves without changing mesh
-authoring. Continue the post-SOTA visible-feature queue at `task-3179`: add a
-mixed canvas plus off-screen camera target route.
+`task-3179` is complete: `examples/mixed-camera-targets.html` now proves one
+worker-authored snapshot can submit a current-texture camera and an off-screen
+`ViewPacket.renderTarget` camera through renderer-owned resources, reports
+per-target pass order and target keys, and verifies distinct current-camera and
+off-screen-preview samples without making ECS own GPU state. Continue the
+post-SOTA visible-feature queue at `task-3180`: add a multiple off-screen
+render-target preview route.
 
 The next ready visible-feature queue is:
 
-- `task-3179` — add a mixed canvas plus off-screen camera target route.
-  Reference anchor: `references/bevy/examples/3d/render_to_texture.rs`,
-  `references/engine/src/extras/render-passes/camera-frame.js`.
-  Done when a browser route extracts one current-texture camera and one
-  `ViewPacket.renderTarget` camera from the same worker-authored world, submits
-  both targets through renderer-owned resources without making ECS own GPU
-  state, reports per-target pass order and target keys, and Playwright verifies
-  the canvas and displayed off-screen preview show distinct non-clear pixels.
 - `task-3180` — add a multiple off-screen render-target preview route.
   Reference anchor:
   `references/engine/examples/src/examples/graphics/multi-render-targets.example.mjs`,
@@ -94,6 +87,15 @@ The next ready visible-feature queue is:
   scissor pixels plus display-pass samples, and Playwright verifies an inside
   target sample is non-clear while an outside-crop target sample remains clear
   without ECS owning GPU state.
+- `task-3182` — add a same off-screen target clear/load matrix route.
+  Reference anchor: `references/bevy/examples/3d/render_to_texture.rs`,
+  `references/engine/src/extras/render-passes/camera-frame.js`.
+  Done when a browser route extracts two ECS cameras targeting the same
+  renderer-owned off-screen render target with clear/load sequencing, displays
+  the final target on the canvas, reports per-camera off-screen pass order,
+  clear/load behavior, target key reuse, and display samples, and Playwright
+  verifies clear-only, base-preserved, and overlay regions in the displayed
+  off-screen preview.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

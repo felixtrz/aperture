@@ -393,12 +393,19 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 04:53 UTC</dd>
+            <dd>2026-05-26 05:02 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/mixed-camera-targets.html</code> now proves one
+              worker-authored snapshot can contain both a current-texture camera
+              and an off-screen render-target camera. The route reports
+              per-target pass order, target keys, current-texture readback, and
+              display-pass samples, then Playwright verifies distinct non-clear
+              pixels for the canvas camera and the off-screen preview. Previous
+              update:
               <code>examples/camera-viewport-resize.html</code> now proves the
               same ECS camera handle can change normalized viewport/scissor
               rectangles across consecutive extracted frames. The route reports
@@ -2725,6 +2732,15 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3179</span> Added
+                <code>examples/mixed-camera-targets.html</code>. The
+                render-to-texture route family now extracts one current-texture
+                camera and one off-screen render-target camera from the same
+                worker-authored world, reports per-target pass order and target
+                keys, and Playwright proves distinct non-clear canvas and
+                off-screen preview samples.
+              </li>
               <li>
                 <span class="badge green">task-3178</span> Added
                 <code>examples/camera-viewport-resize.html</code>. The shared
@@ -5451,16 +5467,21 @@
                 status and moved-sample Playwright proof.
               </li>
               <li>
-                <span class="badge">task-3179</span> Next: add a mixed canvas
-                plus off-screen camera target route.
+                <span class="badge green">task-3179</span> Done: add a mixed
+                canvas plus off-screen camera target route with per-target pass
+                order and distinct readback proof.
               </li>
               <li>
-                <span class="badge">task-3180</span> Then: add a multiple
+                <span class="badge">task-3180</span> Next: add a multiple
                 off-screen render-target preview route.
               </li>
               <li>
                 <span class="badge">task-3181</span> Then: add an off-screen
                 render-target viewport crop route.
+              </li>
+              <li>
+                <span class="badge">task-3182</span> Then: add a same
+                off-screen target clear/load matrix route.
               </li>
               <li>
                 <span class="badge dim">task-3161</span> Later: add
@@ -5483,6 +5504,20 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3179</div>
+            <div>
+              <strong>Mixed camera target route shipped.</strong>
+              <span>
+                <code>examples/mixed-camera-targets.html</code> extracts one
+                current-texture camera and one off-screen render-target camera
+                from the same worker-authored world, reports target keys and
+                pass order for both, and proves the current-texture camera
+                sample and displayed off-screen preview sample are distinct
+                non-clear pixels.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3178</div>
             <div>

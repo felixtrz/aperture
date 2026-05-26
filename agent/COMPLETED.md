@@ -1,5 +1,39 @@
 # Completed Tasks
 
+## task-3179 — Add a mixed canvas plus off-screen camera target route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/mixed-camera-targets.html` on the existing
+  render-to-texture route family.
+- The worker now supports a mixed-target mode that extracts one ECS camera
+  targeting `ViewPacket.renderTarget` and one ECS camera targeting the current
+  texture from the same worker-owned world.
+- The route submits both extracted views through `createWebGpuApp()` so target
+  resources remain renderer-owned, reports per-target pass order and target
+  keys, and displays the off-screen target in a follow-up preview pass.
+- Status includes the renderer readback for the current-texture camera plus the
+  display-pass readback for the off-screen preview, and Playwright verifies the
+  two samples are distinct non-clear pixels.
+- Updated example links, public tracker pages, backlog, current task, and
+  handoff.
+
+Validation:
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `node --check examples/render-to-texture-assets.js`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js examples/render-to-texture-assets.js test/e2e/render-to-texture.spec.ts`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --reporter=list`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run render-control:smoke-all`
+
 ## task-3178 — Add a camera viewport resize matrix route
 
 Completed: 2026-05-26

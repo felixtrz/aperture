@@ -1,6 +1,71 @@
 # Agent Handoff
 
-Updated: 2026-05-26T04:55:58Z
+Updated: 2026-05-26T05:04:42Z
+
+## Current Run Update — 2026-05-26T05:04:42Z — Mixed camera targets route
+
+Completed `task-3179` after `task-3178`.
+
+### What changed
+
+- Added `examples/mixed-camera-targets.html` to the render-to-texture route
+  family.
+- `examples/render-to-texture.worker.js` now supports a mixed-target mode with
+  one ECS camera targeting the renderer-owned off-screen
+  `ViewPacket.renderTarget` and one ECS camera targeting the current texture
+  from the same worker-authored world.
+- `examples/render-to-texture.main.js` renders that mixed snapshot through
+  `createWebGpuApp()`, reports the off-screen and swapchain target records, and
+  displays the off-screen target in a follow-up preview pass.
+- Status now includes `mixedCameraTargets` with target keys, pass order,
+  per-view target classification, the current-texture camera readback from the
+  app render report, and the displayed off-screen preview readback.
+- The first focused browser attempt showed that preserving a submitted
+  swapchain texture with a later `load` pass is not reliable; the route now uses
+  the app render report readback for the current-texture camera and a separate
+  display pass for the off-screen preview.
+- Added Playwright coverage proving the current-texture camera sample and
+  displayed off-screen preview sample are distinct non-clear pixels.
+- Updated example navigation, public tracker pages, `agent/BACKLOG.md`,
+  `agent/CURRENT_TASK.md`, and `agent/COMPLETED.md`.
+
+### References inspected
+
+- `references/bevy/examples/3d/render_to_texture.rs`
+- `references/engine/src/extras/render-passes/camera-frame.js`
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `node --check examples/render-to-texture-assets.js`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js examples/render-to-texture-assets.js test/e2e/render-to-texture.spec.ts`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --reporter=list`
+  — first run failed only because the display pass tried to preserve a
+  previously submitted swapchain texture; after switching the proof to app
+  render readback for the current-texture camera, 4 passed.
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec vitest run test/examples/navigation.test.mjs` — 7 passed.
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run render-control:smoke-all` — after starting
+  `pnpm run examples:serve`, the smoke visited 62 routes including
+  `/examples/mixed-camera-targets.html`, with zero route status failures and
+  zero warning routes. The examples server was stopped afterward.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3180`: add a multiple off-screen
+render-target preview route.
 
 ## Current Run Update — 2026-05-26T04:55:58Z — Camera viewport resize route
 

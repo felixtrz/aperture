@@ -1,4 +1,5 @@
 import {
+  renderToTextureScreenClearColor as screenClearColor,
   renderToTextureOffscreenClearColor as offscreenClearColor,
   registerRenderToTextureAssets,
 } from "./render-to-texture-assets.js";
@@ -42,13 +43,16 @@ async function handleMessage(data) {
         aperture,
         data.canvas ?? { width: 960, height: 540 },
         data.reuseStress === true,
+        data.mixedTargets === true,
       );
       self.postMessage({
         type: "ready",
         scene: {
           meshKey: aperture.assetHandleKey(scene.mesh),
           materialKey: aperture.assetHandleKey(scene.material),
+          canvasMaterialKey: aperture.assetHandleKey(scene.canvasMaterial),
           renderTargetKey: aperture.assetHandleKey(scene.renderTarget),
+          mixedTargets: scene.mixedTargets,
         },
       });
       return;
@@ -79,7 +83,7 @@ function loadAperture() {
   return apertureModulePromise;
 }
 
-function createWorkerScene(aperture, canvasSize, reuseStress) {
+function createWorkerScene(aperture, canvasSize, reuseStress, mixedTargets) {
   const app = aperture.createExtractionApp({
     worldOptions: { entityCapacity: 8 },
   });
@@ -97,6 +101,26 @@ function createWorkerScene(aperture, canvasSize, reuseStress) {
       renderTargetId: aperture.assetHandleKey(assets.renderTarget),
     }),
   );
+
+  if (mixedTargets) {
+    app.spawn(
+      aperture.withTransform({ translation: [0, 0, 3] }),
+      aperture.withCamera({
+        aspect: canvasSize.width / canvasSize.height,
+        near: 0.1,
+        far: 100,
+        priority: 1,
+        layerMask: 2,
+        clearColor: [
+          screenClearColor.r,
+          screenClearColor.g,
+          screenClearColor.b,
+          screenClearColor.a,
+        ],
+      }),
+    );
+  }
+
   const meshEntity = app.spawn(
     aperture.withTransform(),
     aperture.withMesh(assets.mesh),
@@ -104,15 +128,27 @@ function createWorkerScene(aperture, canvasSize, reuseStress) {
     aperture.withRenderLayer(1),
     aperture.withVisibility(true),
   );
+  const canvasMeshEntity = mixedTargets
+    ? app.spawn(
+        aperture.withTransform(),
+        aperture.withMesh(assets.mesh),
+        aperture.withMaterial(assets.canvasMaterial),
+        aperture.withRenderLayer(2),
+        aperture.withVisibility(true),
+      )
+    : null;
 
   return {
     app,
     mesh: assets.mesh,
     material: assets.material,
+    canvasMaterial: assets.canvasMaterial,
     renderTarget: assets.renderTarget,
     canvas: canvasSize,
     meshEntity,
+    canvasMeshEntity,
     reuseStress,
+    mixedTargets,
     localTransformComponent: aperture.LocalTransform,
   };
 }
@@ -134,9 +170,17 @@ function createSnapshotMessage(workerScene, data) {
       viewMatrices: snapshot.viewMatrices.length / 16,
       meshDraws: snapshot.meshDraws.length,
       diagnostics: snapshot.diagnostics.length,
-      frameVariant: workerScene.reuseStress ? frameVariant : "single-frame",
+      frameVariant: workerScene.mixedTargets
+        ? "mixed-current-and-offscreen-targets"
+        : workerScene.reuseStress
+          ? frameVariant
+          : "single-frame",
       centerExpectation:
-        workerScene.reuseStress && frame <= 1 ? "offscreen-clear" : "plane",
+        workerScene.mixedTargets
+          ? "canvas-plane-plus-offscreen-preview"
+          : workerScene.reuseStress && frame <= 1
+            ? "offscreen-clear"
+            : "plane",
     },
   };
 }

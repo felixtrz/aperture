@@ -7,6 +7,7 @@ export const renderToTextureScreenClearColor = {
   a: 1,
 };
 export const renderToTexturePlaneColor = [0.06, 0.88, 0.22, 1];
+export const renderToTextureCanvasPlaneColor = [0.1, 0.42, 0.95, 1];
 export const renderToTextureCenterSample = {
   id: "quad-center",
   x: 0.5,
@@ -16,6 +17,16 @@ export const renderToTextureScreenClearSample = {
   id: "screen-clear-corner",
   x: 0.12,
   y: 0.12,
+};
+export const renderToTextureCanvasSample = {
+  id: "canvas-direct-left",
+  x: 0.25,
+  y: 0.5,
+};
+export const renderToTexturePreviewSample = {
+  id: "offscreen-preview-center",
+  x: 0.75,
+  y: 0.5,
 };
 
 export function registerRenderToTextureAssets(aperture, registry) {
@@ -38,10 +49,18 @@ export function registerRenderToTextureAssets(aperture, registry) {
     }),
     { id: "render-to-texture-green" },
   );
+  const canvasMaterial = assets.materials.unlit.add(
+    aperture.createUnlitMaterialAsset({
+      label: "RenderToTextureCanvasBlue",
+      baseColorFactor: new Float32Array(renderToTextureCanvasPlaneColor),
+    }),
+    { id: "render-to-texture-canvas-blue" },
+  );
 
   return {
     mesh,
     material,
+    canvasMaterial,
     renderTarget,
   };
 }
