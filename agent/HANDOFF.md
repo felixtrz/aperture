@@ -1,6 +1,65 @@
 # Agent Handoff
 
-Updated: 2026-05-26T04:43:08Z
+Updated: 2026-05-26T04:55:58Z
+
+## Current Run Update — 2026-05-26T04:55:58Z — Camera viewport resize route
+
+Completed `task-3178` after `task-3177`.
+
+### What changed
+
+- Added `examples/camera-viewport-resize.html` and
+  `examples/camera-viewport-resize.worker.js`.
+- The worker authors one ECS camera and one mesh, extracts frame 1 with an old
+  normalized viewport/scissor rectangle, mutates the same camera component
+  vectors, then extracts frame 2 with a larger moved rectangle.
+- The shared split-screen main path now has a focused two-frame route branch
+  that renders and reads back both snapshots, reports old/new resolved
+  viewport/scissor pixels, pass order, stable mesh authoring, and per-frame
+  samples, while leaving the normal one-snapshot route behavior unchanged.
+- Added Playwright coverage proving the material sample is visible at the old
+  viewport center before resize, visible at the new viewport center after
+  resize, and clear at the opposite sample point in each frame.
+- Updated example navigation, `package.json` example syntax checks, public
+  tracker pages, `agent/BACKLOG.md`, and `agent/COMPLETED.md`.
+
+### References inspected
+
+- `references/bevy/examples/3d/camera_sub_view.rs`
+- `references/three.js/manual/examples/cameras-perspective-2-scenes.html`
+
+### Validation
+
+- `node --check examples/split-screen-multi-camera.main.js`
+- `node --check examples/camera-viewport-resize.worker.js`
+- `pnpm exec eslint examples/split-screen-multi-camera.main.js examples/camera-viewport-resize.worker.js test/e2e/camera-viewport-resize.spec.ts test/examples/navigation.test.mjs`
+- `pnpm exec playwright test test/e2e/camera-viewport-resize.spec.ts --reporter=list`
+  — first run exposed a missing `layerMask` field in the route-specific
+  per-frame status; after adding it, 1 passed.
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs` — 7 passed.
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts test/e2e/orthographic-camera.spec.ts test/e2e/line-primitives.spec.ts test/e2e/camera-render-layers.spec.ts test/e2e/camera-priority-overlay.spec.ts test/e2e/camera-sub-view-crop.spec.ts test/e2e/camera-viewport-grid.spec.ts test/e2e/camera-clear-load-matrix.spec.ts test/e2e/camera-picture-in-picture.spec.ts test/e2e/camera-viewport-resize.spec.ts --reporter=list`
+  — 11 passed.
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run render-control:smoke-all` — after starting
+  `pnpm run examples:serve`, the smoke visited 61 routes including
+  `/examples/camera-viewport-resize.html`, with zero route status failures and
+  zero warning routes. The examples server was stopped afterward.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3179`: add a mixed canvas plus
+off-screen camera target route.
 
 ## Current Run Update — 2026-05-26T04:43:08Z — Render-target reuse stress route
 

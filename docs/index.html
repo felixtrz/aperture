@@ -393,12 +393,19 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 04:40 UTC</dd>
+            <dd>2026-05-26 04:53 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/camera-viewport-resize.html</code> now proves the
+              same ECS camera handle can change normalized viewport/scissor
+              rectangles across consecutive extracted frames. The route reports
+              old/new resolved viewport pixels, per-frame pass order, stable
+              mesh authoring, and readback samples showing the visible material
+              moves from the old sample position to the new one. Previous
+              update:
               <code>examples/render-target-reuse.html</code> now proves two
               consecutive worker snapshots rendered through the same
               renderer-owned off-screen target handle without resizing. The
@@ -2718,6 +2725,15 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3178</span> Added
+                <code>examples/camera-viewport-resize.html</code>. The shared
+                multi-view route now renders two extracted frames from one ECS
+                camera handle with different normalized viewport/scissor
+                rectangles, reports old/new resolved pixels and pass order, and
+                Playwright proves the material sample moves without changing
+                mesh authoring.
+              </li>
               <li>
                 <span class="badge green">task-3177</span> Added
                 <code>examples/render-target-reuse.html</code>. The
@@ -5430,16 +5446,21 @@
                 snapshots, stable dimensions, and second-frame preview proof.
               </li>
               <li>
-                <span class="badge">task-3178</span> Next: add a camera
-                viewport resize matrix route.
+                <span class="badge green">task-3178</span> Done: add a camera
+                viewport resize matrix route with same-camera old/new rectangle
+                status and moved-sample Playwright proof.
               </li>
               <li>
-                <span class="badge">task-3179</span> Then: add a mixed canvas
+                <span class="badge">task-3179</span> Next: add a mixed canvas
                 plus off-screen camera target route.
               </li>
               <li>
                 <span class="badge">task-3180</span> Then: add a multiple
                 off-screen render-target preview route.
+              </li>
+              <li>
+                <span class="badge">task-3181</span> Then: add an off-screen
+                render-target viewport crop route.
               </li>
               <li>
                 <span class="badge dim">task-3161</span> Later: add
@@ -5462,6 +5483,20 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3178</div>
+            <div>
+              <strong>Camera viewport resize route shipped.</strong>
+              <span>
+                <code>examples/camera-viewport-resize.html</code> renders two
+                consecutive frames from one ECS camera handle with different
+                normalized viewport/scissor rectangles, reports old/new
+                resolved pixels plus pass order, and proves the material sample
+                moves from the old viewport center to the new one while mesh
+                authoring stays stable.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3177</div>
             <div>

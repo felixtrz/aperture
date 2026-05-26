@@ -79,6 +79,15 @@ async function renderSplitScreenScene(
   canvasSize,
   readbackUsage,
 ) {
+  if (routeConfig.viewportResizeMatrix === true) {
+    return renderViewportResizeMatrixScene(
+      aperture,
+      initialized,
+      canvasSize,
+      readbackUsage,
+    );
+  }
+
   const workerSnapshot = await requestSplitScreenSnapshot(aperture, canvasSize);
 
   if (!workerSnapshot.ok) {
@@ -394,6 +403,314 @@ async function renderSplitScreenScene(
   };
 }
 
+async function renderViewportResizeMatrixScene(
+  aperture,
+  initialized,
+  canvasSize,
+  readbackUsage,
+) {
+  const workerSnapshots = await requestViewportResizeSnapshots(
+    aperture,
+    canvasSize,
+  );
+
+  if (!workerSnapshots.ok) {
+    return {
+      ...failure("worker", workerSnapshots.reason, workerSnapshots.message),
+      ...(workerSnapshots.diagnostics === undefined
+        ? {}
+        : { diagnostics: workerSnapshots.diagnostics }),
+      diagnosticCounts: diagnosticCounts({}),
+    };
+  }
+
+  const frames = workerSnapshots.frames;
+  const firstFrame = frames[0];
+  const finalFrame = frames[frames.length - 1];
+  const scene = workerSnapshots.scene;
+
+  if (
+    firstFrame === undefined ||
+    finalFrame === undefined ||
+    frames.length !== (scene.expectedFrameCount ?? 2) ||
+    frames.some(
+      (entry) =>
+        entry.snapshot.views.length !== (scene.expectedViewCount ?? 1) ||
+        entry.snapshot.meshDraws.length !==
+          expectedExtractedDrawCountForScene(scene),
+    )
+  ) {
+    return {
+      ...failure(
+        "extract",
+        "viewport-resize-snapshot-unavailable",
+        "The camera viewport resize route did not extract the expected two camera frames.",
+      ),
+      extraction:
+        finalFrame === undefined
+          ? { frames: frames.length }
+          : { frames: frames.length, ...snapshotCounts(finalFrame.snapshot) },
+      diagnostics: frames.flatMap((entry) => entry.snapshot.diagnostics),
+      diagnosticCounts: diagnosticCounts({
+        extraction: Math.max(
+          1,
+          frames.reduce(
+            (sum, entry) => sum + entry.snapshot.diagnostics.length,
+            0,
+          ),
+        ),
+      }),
+    };
+  }
+
+  const firstDraw = firstFrame.snapshot.meshDraws[0];
+
+  if (firstDraw === undefined) {
+    return {
+      ...failure(
+        "extract",
+        "viewport-resize-draw-unavailable",
+        "The camera viewport resize route did not extract a drawable mesh.",
+      ),
+      extraction: { frames: frames.length, ...snapshotCounts(firstFrame.snapshot) },
+      diagnostics: firstFrame.snapshot.diagnostics,
+      diagnosticCounts: diagnosticCounts({
+        extraction: Math.max(1, firstFrame.snapshot.diagnostics.length),
+      }),
+    };
+  }
+
+  const pipelineResource = await aperture.createUnlitRenderPipelineResource({
+    device: initialized.device,
+    colorFormat: initialized.format,
+    batchKey: firstDraw.batchKey,
+  });
+
+  if (!pipelineResource.valid || pipelineResource.resource === null) {
+    return {
+      ...failure(
+        "pipeline",
+        "pipeline-unavailable",
+        "The viewport resize unlit render pipeline could not be created.",
+      ),
+      extraction: { frames: frames.length, ...snapshotCounts(firstFrame.snapshot) },
+      diagnostics: pipelineResource.diagnostics,
+      diagnosticCounts: diagnosticCounts({
+        resources: pipelineResource.diagnostics.length,
+      }),
+    };
+  }
+
+  const pipeline = pipelineResource.resource.pipeline;
+  const layouts = unlitPipelineLayouts(pipeline);
+
+  if (layouts === null) {
+    return {
+      ...failure(
+        "pipeline-layouts",
+        "pipeline-layouts-unavailable",
+        "The viewport resize unlit pipeline does not expose bind group layouts.",
+      ),
+      extraction: { frames: frames.length, ...snapshotCounts(firstFrame.snapshot) },
+      diagnosticCounts: diagnosticCounts({ resources: 1 }),
+    };
+  }
+
+  const firstPackedTransforms = aperture.packSnapshotTransforms(
+    firstFrame.snapshot,
+  );
+  const packedFirstView = aperture.packSnapshotViewUniforms(
+    snapshotForView(firstFrame.snapshot, firstFrame.snapshot.views[0]),
+  );
+  const frameResources = aperture.createMultiMaterialUnlitFrameGpuResources({
+    device: initialized.device,
+    mesh: scene.mesh,
+    viewUniforms: packedFirstView,
+    worldTransforms: firstPackedTransforms,
+    materials: scene.materials.map((entry) => entry.asset),
+    layouts,
+    materialLayouts: scene.materials.map(() => layouts),
+  });
+
+  if (!frameResources.valid || frameResources.resources === null) {
+    return {
+      ...failure(
+        "resources",
+        "frame-resources-unavailable",
+        "The viewport resize frame resources could not be uploaded.",
+      ),
+      extraction: { frames: frames.length, ...snapshotCounts(firstFrame.snapshot) },
+      diagnostics: frameResources.diagnostics,
+      diagnosticCounts: diagnosticCounts({
+        resources: frameResources.diagnostics.length,
+      }),
+    };
+  }
+
+  const pipelineResult = {
+    ok: true,
+    status: "miss",
+    key: firstDraw.batchKey.pipelineKey,
+    pipeline,
+    diagnostics: [],
+  };
+  const meshResourceKey = frameResources.resources.mesh.resourceKey;
+  const materialResourceKeys = new Map(
+    scene.materials.map((entry, index) => [
+      entry.key,
+      frameResources.resources.materials[index]?.resourceKey ?? null,
+    ]),
+  );
+  const frameResults = [];
+
+  for (const frameEntry of frames) {
+    const packedTransforms = aperture.packSnapshotTransforms(
+      frameEntry.snapshot,
+    );
+    const viewPlansResult = createViewPlans({
+      aperture,
+      device: initialized.device,
+      layouts,
+      snapshot: frameEntry.snapshot,
+      scene,
+      frameResources: frameResources.resources,
+      packedTransforms,
+      pipelineResult,
+      meshResourceKey,
+      materialResourceKeys,
+      canvasSize,
+    });
+
+    if (!viewPlansResult.ok) {
+      return {
+        ...failure(
+          "draw-plan",
+          viewPlansResult.reason,
+          viewPlansResult.message,
+        ),
+        extraction: { frames: frames.length, ...snapshotCounts(frameEntry.snapshot) },
+        diagnostics: viewPlansResult.diagnostics,
+        diagnosticCounts: diagnosticCounts({
+          resources: viewPlansResult.resourcesDiagnostics,
+          draw: viewPlansResult.drawDiagnostics,
+        }),
+      };
+    }
+
+    const submitted = await submitSplitScreenFrame(
+      aperture,
+      initialized,
+      viewPlansResult.viewPlans,
+      canvasSize,
+      readbackUsage,
+      samplePointsForFrame(scene, frameEntry.frame),
+    );
+
+    if (!submitted.ok) {
+      return {
+        ...failure("submit", submitted.reason, submitted.message),
+        extraction: { frames: frames.length, ...snapshotCounts(frameEntry.snapshot) },
+        diagnostics: submitted.diagnostics,
+        diagnosticCounts: diagnosticCounts({
+          submission: submitted.diagnostics.length,
+        }),
+      };
+    }
+
+    frameResults.push({
+      frame: frameEntry.frame,
+      role: frameEntry.role ?? `frame-${frameEntry.frame}`,
+      snapshot: frameEntry.snapshot,
+      viewPlansResult,
+      metrics: summarizeViewPlanMetrics(viewPlansResult.viewPlans),
+      submitted,
+      samples: samplePointsForFrame(scene, frameEntry.frame),
+    });
+  }
+
+  const aggregate = aggregateViewportResizeFrameResults(frameResults);
+  const finalResult = frameResults[frameResults.length - 1];
+
+  return {
+    ...baseStatus,
+    ok: true,
+    phase: "submit",
+    apertureVersion: aperture.APERTURE_VERSION,
+    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    format: initialized.format,
+    clearColor,
+    worker: workerSnapshots.worker,
+    transport: workerSnapshots.transport,
+    extraction: {
+      frames: frames.length,
+      ...snapshotCounts(finalFrame.snapshot),
+    },
+    resources: {
+      materials: frameResources.resources.materials.length,
+      bindGroups: frameResources.resources.bindGroups.length,
+      perViewBindGroups: aggregate.perViewBindGroups,
+    },
+    binding: {
+      planned: aggregate.binding.planned,
+      applied: aggregate.binding.applied,
+      diagnostics: aggregate.binding.diagnostics,
+    },
+    renderWorld: aggregate.renderWorld,
+    draw: aggregate.draw,
+    command: aggregate.command,
+    viewports: finalResult.viewPlansResult.viewPlans.map((plan) => ({
+      viewId: plan.view.viewId,
+      priority: plan.view.priority,
+      layerMask: plan.view.layerMask,
+      viewport: Array.from(plan.view.viewport),
+      scissor: Array.from(plan.view.scissor),
+      viewportPixels: plan.viewport,
+      scissorPixels: plan.scissor,
+    })),
+    viewPasses: frameResults.flatMap((result) =>
+      result.viewPlansResult.viewPlans.map((plan) =>
+        viewPassStatus(result.frame, plan),
+      ),
+    ),
+    cameraPassOrder: frameResults.flatMap((result) =>
+      result.viewPlansResult.viewPlans.map((plan) =>
+        cameraPassOrderStatus(result.frame, plan),
+      ),
+    ),
+    submission: aggregate.submission,
+    readback: finalResult.submitted.readback,
+    viewportResizeMatrix: viewportResizeMatrixStatus(scene, frameResults),
+    renderControl: {
+      capabilities: globalThis.__APERTURE_EXAMPLE_CONTROL__?.capabilities ?? {
+        status: true,
+        warnings: true,
+        screenshot: true,
+        pause: false,
+        resume: false,
+        step: false,
+        scenario: false,
+        snapshot: true,
+        readback: false,
+      },
+    },
+    ...(scene.proof === undefined ? {} : { proof: scene.proof }),
+    diagnostics: aggregate.diagnostics,
+    diagnosticCounts: diagnosticCounts({
+      extraction: frames.reduce(
+        (sum, entry) => sum + entry.snapshot.diagnostics.length,
+        0,
+      ),
+      binding: aggregate.binding.diagnostics,
+      draw: aggregate.diagnostics.length,
+      submission: aggregate.submissionDiagnostics,
+      readback: frameResults.reduce(
+        (sum, result) => sum + (result.submitted.readback.ok ? 0 : 1),
+        0,
+      ),
+    }),
+  };
+}
+
 function createViewPlans({
   aperture,
   device,
@@ -623,6 +940,205 @@ function createViewUniformResources({
   };
 }
 
+function summarizeViewPlanMetrics(viewPlans) {
+  const diagnostics = viewPlans.flatMap((plan) => plan.summaryDiagnostics);
+  const binding = viewPlans.reduce(
+    (totals, plan) => ({
+      planned: totals.planned + plan.framePlan.bindingPlan.bindings.length,
+      applied:
+        totals.applied +
+        plan.framePlan.bindingResults.filter((result) => result.ok).length,
+      diagnostics:
+        totals.diagnostics + plan.framePlan.bindingPlan.diagnostics.length,
+    }),
+    { planned: 0, applied: 0, diagnostics: 0 },
+  );
+  const renderWorld = viewPlans.reduce(
+    (totals, plan) => ({
+      active: totals.active + plan.framePlan.apply.active,
+      ready: totals.ready + plan.framePlan.readiness.ready.length,
+      blocked: totals.blocked + plan.framePlan.readiness.blocked.length,
+    }),
+    { active: 0, ready: 0, blocked: 0 },
+  );
+  const draw = viewPlans.reduce(
+    (totals, plan) => ({
+      packages: totals.packages + plan.framePlan.packages.packages.length,
+      descriptors:
+        totals.descriptors + plan.framePlan.drawCommands.descriptors.length,
+      drawList: totals.drawList + plan.framePlan.drawList.draws.length,
+      resolved: totals.resolved + plan.framePlan.resources.draws.length,
+    }),
+    { packages: 0, descriptors: 0, drawList: 0, resolved: 0 },
+  );
+  const command = viewPlans.reduce(
+    (totals, plan) => ({
+      commands: totals.commands + plan.framePlan.commandPlan.commands.length,
+      drawCount: totals.drawCount + plan.framePlan.commandPlan.drawCount,
+      indexedDrawCount:
+        totals.indexedDrawCount + plan.framePlan.commandPlan.indexedDrawCount,
+      nonIndexedDrawCount:
+        totals.nonIndexedDrawCount +
+        plan.framePlan.commandPlan.nonIndexedDrawCount,
+    }),
+    {
+      commands: 0,
+      drawCount: 0,
+      indexedDrawCount: 0,
+      nonIndexedDrawCount: 0,
+    },
+  );
+
+  return { diagnostics, binding, renderWorld, draw, command };
+}
+
+function aggregateViewportResizeFrameResults(frameResults) {
+  return frameResults.reduce(
+    (totals, result) => ({
+      diagnostics: [...totals.diagnostics, ...result.metrics.diagnostics],
+      perViewBindGroups:
+        totals.perViewBindGroups +
+        result.viewPlansResult.viewPlans.reduce(
+          (sum, plan) => sum + plan.viewBindGroups.length,
+          0,
+        ),
+      binding: {
+        planned: totals.binding.planned + result.metrics.binding.planned,
+        applied: totals.binding.applied + result.metrics.binding.applied,
+        diagnostics:
+          totals.binding.diagnostics + result.metrics.binding.diagnostics,
+      },
+      renderWorld: {
+        active: totals.renderWorld.active + result.metrics.renderWorld.active,
+        ready: totals.renderWorld.ready + result.metrics.renderWorld.ready,
+        blocked:
+          totals.renderWorld.blocked + result.metrics.renderWorld.blocked,
+      },
+      draw: {
+        packages: totals.draw.packages + result.metrics.draw.packages,
+        descriptors:
+          totals.draw.descriptors + result.metrics.draw.descriptors,
+        drawList: totals.draw.drawList + result.metrics.draw.drawList,
+        resolved: totals.draw.resolved + result.metrics.draw.resolved,
+      },
+      command: {
+        commands: totals.command.commands + result.metrics.command.commands,
+        drawCount: totals.command.drawCount + result.metrics.command.drawCount,
+        indexedDrawCount:
+          totals.command.indexedDrawCount +
+          result.metrics.command.indexedDrawCount,
+        nonIndexedDrawCount:
+          totals.command.nonIndexedDrawCount +
+          result.metrics.command.nonIndexedDrawCount,
+      },
+      submission: {
+        commandBuffers:
+          totals.submission.commandBuffers +
+          result.submitted.summary.commandBuffers,
+        viewPasses:
+          totals.submission.viewPasses + result.submitted.summary.viewPasses,
+        commands:
+          totals.submission.commands + result.submitted.summary.commands,
+        drawCalls:
+          totals.submission.drawCalls + result.submitted.summary.drawCalls,
+        indexedDrawCalls:
+          totals.submission.indexedDrawCalls +
+          result.submitted.summary.indexedDrawCalls,
+      },
+      submissionDiagnostics:
+        totals.submissionDiagnostics + result.submitted.diagnosticCount,
+    }),
+    {
+      diagnostics: [],
+      perViewBindGroups: 0,
+      binding: { planned: 0, applied: 0, diagnostics: 0 },
+      renderWorld: { active: 0, ready: 0, blocked: 0 },
+      draw: { packages: 0, descriptors: 0, drawList: 0, resolved: 0 },
+      command: {
+        commands: 0,
+        drawCount: 0,
+        indexedDrawCount: 0,
+        nonIndexedDrawCount: 0,
+      },
+      submission: {
+        commandBuffers: 0,
+        viewPasses: 0,
+        commands: 0,
+        drawCalls: 0,
+        indexedDrawCalls: 0,
+      },
+      submissionDiagnostics: 0,
+    },
+  );
+}
+
+function viewPassStatus(frame, plan) {
+  return {
+    frame,
+    viewId: plan.view.viewId,
+    priority: plan.view.priority,
+    layerMask: plan.view.layerMask,
+    clearBehavior: plan.clearBehavior,
+    drawCalls: plan.framePlan.commandPlan.drawCount,
+    indexedDrawCalls: plan.framePlan.commandPlan.indexedDrawCount,
+    includedDraws: plan.includedDraws,
+    skippedDraws: plan.skippedDraws,
+    includedMaterialKeys: plan.includedMaterialKeys,
+    skippedMaterialKeys: plan.skippedMaterialKeys,
+    viewportPixels: plan.viewport,
+    scissorPixels: plan.scissor,
+  };
+}
+
+function cameraPassOrderStatus(frame, plan) {
+  return {
+    frame,
+    viewId: plan.view.viewId,
+    priority: plan.view.priority,
+    layerMask: plan.view.layerMask,
+    clearBehavior: plan.clearBehavior,
+    drawCalls: plan.framePlan.commandPlan.drawCount,
+  };
+}
+
+function viewportResizeMatrixStatus(scene, frameResults) {
+  const frames = frameResults.map((result) => {
+    const plan = result.viewPlansResult.viewPlans[0];
+
+    return {
+      frame: result.frame,
+      role: result.role,
+      cameraHandle: scene.viewportResizeMatrix?.cameraHandle ?? null,
+      viewId: plan?.view.viewId ?? null,
+      priority: plan?.view.priority ?? null,
+      layerMask: plan?.view.layerMask ?? null,
+      viewport: plan === undefined ? [] : Array.from(plan.view.viewport),
+      scissor: plan === undefined ? [] : Array.from(plan.view.scissor),
+      viewportPixels: plan?.viewport ?? null,
+      scissorPixels: plan?.scissor ?? null,
+      passOrder: plan === undefined ? [] : [cameraPassOrderStatus(result.frame, plan)],
+      sampleIds: result.samples.map((sample) => sample.id),
+      readback: result.submitted.readback,
+    };
+  });
+
+  return {
+    ...(scene.viewportResizeMatrix ?? {}),
+    framesRendered: frameResults.length,
+    before: frames[0] ?? null,
+    after: frames[frames.length - 1] ?? null,
+    frames,
+  };
+}
+
+function samplePointsForFrame(scene, frame) {
+  return (
+    scene.samplePointsByFrame?.[frame] ??
+    scene.samplePoints ??
+    []
+  );
+}
+
 async function submitSplitScreenFrame(
   aperture,
   initialized,
@@ -790,6 +1306,79 @@ function applyPassRectangle(pass, viewport, scissor) {
   pass.setScissorRect?.(scissor.x, scissor.y, scissor.width, scissor.height);
 }
 
+function requestViewportResizeSnapshots(aperture, canvasSize) {
+  return new Promise((resolve) => {
+    const worker = new Worker(routeConfig.workerUrl, {
+      name: routeConfig.workerName,
+      type: "module",
+    });
+
+    worker.addEventListener("message", (event) => {
+      const message = event.data;
+
+      if (message?.type === "error") {
+        worker.terminate();
+        resolve({
+          ok: false,
+          reason: message.reason ?? "worker-error",
+          message: message.message ?? `${routeConfig.label} worker failed.`,
+        });
+        return;
+      }
+
+      if (message?.type !== "snapshots") {
+        return;
+      }
+
+      const frames = Array.isArray(message.frames) ? message.frames : [];
+
+      worker.terminate();
+      resolve({
+        ok: true,
+        frames,
+        scene: message.scene,
+        worker: {
+          running: false,
+          scene: {
+            meshKey: message.scene?.meshKey ?? null,
+            materialKeys:
+              message.scene?.materials?.map((entry) => entry.key) ?? [],
+          },
+          frames: frames.map((entry) => entry.frame),
+        },
+        transport: {
+          mode: "structured-clone-postMessage",
+          jsonRoundTrip: false,
+          snapshotsReceived: frames.length,
+          typedArraysPreserved: frames.map((entry) => ({
+            frame: entry.frame,
+            ...inspectStructuredCloneSnapshot(entry.snapshot),
+          })),
+        },
+      });
+    });
+    worker.addEventListener(
+      "error",
+      (event) => {
+        worker.terminate();
+        resolve({
+          ok: false,
+          reason: "worker-error",
+          message:
+            event.message ||
+            `${routeConfig.label} simulation worker reported an error.`,
+        });
+      },
+      { once: true },
+    );
+    worker.postMessage({
+      type: "snapshot",
+      frame: 1,
+      canvas: canvasSize,
+    });
+  });
+}
+
 function requestSplitScreenSnapshot(aperture, canvasSize) {
   return new Promise((resolve) => {
     const worker = new Worker(routeConfig.workerUrl, {
@@ -930,6 +1519,16 @@ function routeConfigForPath(pathname) {
       label: "The camera picture-in-picture route",
       workerUrl: "/worker-modules/examples/camera-picture-in-picture.worker.js",
       workerName: "aperture-camera-picture-in-picture-simulation",
+    };
+  }
+
+  if (pathname.endsWith("/camera-viewport-resize.html")) {
+    return {
+      example: "camera-viewport-resize",
+      label: "The camera viewport resize route",
+      workerUrl: "/worker-modules/examples/camera-viewport-resize.worker.js",
+      workerName: "aperture-camera-viewport-resize-simulation",
+      viewportResizeMatrix: true,
     };
   }
 

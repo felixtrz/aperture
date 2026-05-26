@@ -1,5 +1,40 @@
 # Completed Tasks
 
+## task-3178 — Add a camera viewport resize matrix route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/camera-viewport-resize.html` and
+  `examples/camera-viewport-resize.worker.js`.
+- The worker creates one ECS camera, mutates its `Camera.viewport` and
+  `Camera.scissor` vectors across two extracted frames, and keeps the mesh
+  authoring stable across both frames.
+- The shared split-screen main route now has a focused two-frame path for this
+  route that submits and reads back both snapshots, then reports old/new
+  normalized rectangles, resolved viewport/scissor pixels, per-frame pass
+  order, stable mesh authoring, and per-frame readback samples.
+- Added Playwright coverage proving the material sample moves from the old
+  viewport center to the new viewport center while the opposite sample is clear
+  in each frame.
+- Updated example navigation, the public progress tracker, render-pipeline
+  comparison, and the ready backlog queue.
+
+Validation:
+
+- `node --check examples/split-screen-multi-camera.main.js`
+- `node --check examples/camera-viewport-resize.worker.js`
+- `pnpm exec eslint examples/split-screen-multi-camera.main.js examples/camera-viewport-resize.worker.js test/e2e/camera-viewport-resize.spec.ts test/examples/navigation.test.mjs`
+- `pnpm exec playwright test test/e2e/camera-viewport-resize.spec.ts --reporter=list`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts test/e2e/orthographic-camera.spec.ts test/e2e/line-primitives.spec.ts test/e2e/camera-render-layers.spec.ts test/e2e/camera-priority-overlay.spec.ts test/e2e/camera-sub-view-crop.spec.ts test/e2e/camera-viewport-grid.spec.ts test/e2e/camera-clear-load-matrix.spec.ts test/e2e/camera-picture-in-picture.spec.ts test/e2e/camera-viewport-resize.spec.ts --reporter=list`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run render-control:smoke-all`
+
 ## task-3177 — Add a render-target reuse stress preview route
 
 Completed: 2026-05-26

@@ -59,22 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3177` is complete: `examples/render-target-reuse.html` now proves two
-consecutive worker snapshots through the same renderer-owned off-screen target
-handle without resizing, reports stable dimensions and target reuse pressure,
-and verifies the displayed preview comes from the second snapshot without stale
-first-frame status. Continue the post-SOTA visible-feature queue at
-`task-3178`: add a camera viewport resize matrix route.
+`task-3178` is complete: `examples/camera-viewport-resize.html` now proves the
+same ECS camera handle can move and resize its normalized viewport/scissor
+rectangle across two extracted frames, reports old/new resolved viewport pixels
+and pass order, and verifies the material sample moves without changing mesh
+authoring. Continue the post-SOTA visible-feature queue at `task-3179`: add a
+mixed canvas plus off-screen camera target route.
 
 The next ready visible-feature queue is:
 
-- `task-3178` — add a camera viewport resize matrix route.
-  Reference anchor: `references/bevy/examples/3d/camera_sub_view.rs`,
-  `references/three.js/manual/examples/cameras-perspective-2-scenes.html`.
-  Done when a browser route renders two frames with different normalized
-  viewport/scissor rectangles for the same ECS camera handle, reports old/new
-  resolved viewport pixels and pass order, and Playwright verifies the updated
-  sample positions move without changing mesh authoring.
 - `task-3179` — add a mixed canvas plus off-screen camera target route.
   Reference anchor: `references/bevy/examples/3d/render_to_texture.rs`,
   `references/engine/src/extras/render-passes/camera-frame.js`.
@@ -92,6 +85,15 @@ The next ready visible-feature queue is:
   textures on the canvas, reports per-target dimensions, keys, draw counts, and
   display samples, and Playwright verifies both previews are non-clear and
   visually distinct.
+- `task-3181` — add an off-screen render-target viewport crop route.
+  Reference anchor: `references/bevy/examples/3d/render_to_texture.rs`,
+  `references/three.js/examples/webgpu_rtt.html`.
+  Done when a browser route extracts one ECS camera targeting a renderer-owned
+  off-screen target with a non-full normalized viewport/scissor rectangle,
+  displays that target on the canvas, reports resolved off-screen viewport and
+  scissor pixels plus display-pass samples, and Playwright verifies an inside
+  target sample is non-clear while an outside-crop target sample remains clear
+  without ECS owning GPU state.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.
