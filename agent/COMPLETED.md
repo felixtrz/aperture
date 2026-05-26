@@ -1,5 +1,40 @@
 # Completed Tasks
 
+## task-3197 — Add a mixed current-texture plus MSAA resized off-screen target route
+
+Completed: 2026-05-26
+
+### Summary
+
+- Added `examples/mixed-msaa-resize.html` to the render-to-texture route family
+  and linked it from related example pages.
+- `examples/render-to-texture.main.js` now recognizes the mixed MSAA resize
+  route, creates an MSAA-enabled app, replaces the renderer-owned off-screen
+  `ViewPacket.renderTarget` texture under the same ECS handle before rendering,
+  extracts one current-texture camera plus one off-screen camera targeting the
+  resized handle, and reports current/off-screen classifications, before/after
+  dimensions, stable target key, texture recreation/destroy status,
+  requested/resolved sample count, MSAA sample count, resolve attachment
+  behavior, display samples, and current-texture readback.
+- Added Playwright coverage proving the current-texture sample and resized
+  resolved preview are non-clear and distinct without stale-size sampling.
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `pnpm exec eslint examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA resize" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed camera targets route|mixed MSAA resize|mixed MSAA two-target route|MSAA render-target resize" --reporter=list`
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm run check:progress`
+- Browser route check: `examples/mixed-msaa-resize.html` published `ok: true`,
+  current/off-screen target classifications, a 128x128 to 384x384 resize under
+  the same target key, requested 8/effective 4 MSAA, two resolve attachments,
+  current-texture readback, and distinct current/resolved-preview samples.
+
 ## task-3196 — Add an MSAA render-target viewport crop route
 
 Completed: 2026-05-26

@@ -393,12 +393,22 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 10:23 UTC</dd>
+            <dd>2026-05-26 10:47 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/mixed-msaa-resize.html</code> now proves one
+              MSAA-enabled WebGPU app can extract one current-texture camera
+              plus one off-screen camera targeting a renderer-owned
+              <code>ViewPacket.renderTarget</code> handle that is resized under
+              the same ECS handle before rendering. The route reports
+              current/off-screen classifications, before/after dimensions,
+              stable target key, texture recreation/destroy status,
+              requested/resolved sample counts, MSAA sample count, resolve
+              attachment behavior, display samples, and current-texture
+              readback. Previous update:
               <code>examples/render-target-msaa-viewport-crop.html</code> now
               proves one MSAA-enabled WebGPU app can render an ECS camera into a
               renderer-owned off-screen target with a non-full viewport/scissor
@@ -406,8 +416,8 @@
               preview, and keep outside-crop target pixels clear. The route
               reports requested/resolved sample counts, crop pixels, target key,
               dimensions, draw count, MSAA sample count, color-target pressure,
-              resolve attachment behavior, and inside/outside readbacks.
-              Previous update:
+              resolve attachment behavior, and inside/outside readbacks. Earlier
+              update:
               <code>examples/render-target-msaa-clear-load.html</code> now
               proves one MSAA-enabled WebGPU app can clear the first
               renderer-owned off-screen target boundary, store the multisampled
@@ -1956,8 +1966,8 @@
             <dt>Next focus</dt>
             <dd>
               Continue the render-target MSAA route family with
-              <code>task-3197</code>: a mixed current-texture plus MSAA resized
-              off-screen target route.
+              <code>task-3198</code>: a mixed current-texture plus MSAA
+              same-target clear/load route.
             </dd>
           </dl>
         </aside>
@@ -2856,6 +2866,21 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3197</span> Added
+                <code>examples/mixed-msaa-resize.html</code>. The
+                render-to-texture route family now creates an MSAA-enabled app,
+                replaces the renderer-owned off-screen
+                <code>ViewPacket.renderTarget</code> texture under the same ECS
+                handle before rendering, extracts one current-texture camera
+                plus one off-screen camera targeting the resized handle, reports
+                current/off-screen classifications, before/after dimensions,
+                stable target key, texture recreation/destroy status,
+                requested/resolved sample count, MSAA sample count, resolve
+                attachment behavior, display samples, and current-texture
+                readback, and Playwright proves the current-texture sample and
+                resized resolved preview are non-clear and distinct.
+              </li>
               <li>
                 <span class="badge green">task-3196</span> Added
                 <code>examples/render-target-msaa-viewport-crop.html</code>. The
@@ -5902,17 +5927,22 @@
                 resolve attachment status, and inside/outside pixel proof.
               </li>
               <li>
-                <span class="badge">task-3197</span> Next: add a mixed
-                current-texture plus MSAA resized off-screen target route.
+                <span class="badge green">task-3197</span> Done: add a mixed
+                current-texture plus MSAA resized off-screen target route with
+                stable resize status and current/resolved-preview proof.
               </li>
               <li>
-                <span class="badge">task-3198</span> Then: add a mixed
+                <span class="badge">task-3198</span> Next: add a mixed
                 current-texture plus MSAA same-target clear/load route.
               </li>
               <li>
                 <span class="badge">task-3199</span> Then: add a mixed
                 current-texture plus MSAA viewport-cropped off-screen target
                 route.
+              </li>
+              <li>
+                <span class="badge">task-3200</span> Then: add a mixed
+                current-texture plus MSAA reused off-screen target route.
               </li>
               <li>
                 <span class="badge dim">task-3161</span> Later: add cross-device
@@ -5935,6 +5965,25 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3197</div>
+            <div>
+              <strong>Mixed MSAA render-target resize route shipped.</strong>
+              <span>
+                <code>examples/mixed-msaa-resize.html</code> extracts one
+                current-texture camera plus one off-screen camera targeting a
+                renderer-owned <code>ViewPacket.renderTarget</code> handle that
+                is resized under the same ECS handle before rendering, resolves
+                the resized target texture into the visible preview, reports
+                current/off-screen classifications, before/after dimensions,
+                stable target key, texture recreation/destroy status,
+                requested/resolved sample count, MSAA sample count, resolve
+                attachment behavior, display samples, and current-texture
+                readback, and proves the current-texture sample and resized
+                resolved preview are non-clear and distinct.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3196</div>
             <div>

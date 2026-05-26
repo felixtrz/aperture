@@ -59,34 +59,21 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3196` is complete: `examples/render-target-msaa-viewport-crop.html` now
-proves one MSAA-enabled WebGPU app can extract one ECS camera targeting a
-renderer-owned off-screen `ViewPacket.renderTarget` handle with a non-full
-viewport/scissor rectangle, resolve the cropped target texture into the visible
-preview, and report requested/resolved sample count, crop rectangle, target key,
-dimensions, draw count, MSAA sample count, color-target pressure, and resolve
-attachment behavior. Playwright verifies inside-crop pixels render while
-outside-crop pixels remain the off-screen clear color. Continue the post-SOTA
-visible-feature queue at `task-3197`: add a mixed current-texture plus MSAA
-resized off-screen target route.
+`task-3197` is complete: `examples/mixed-msaa-resize.html` now proves one
+MSAA-enabled WebGPU app can extract one current-texture ECS camera plus one
+off-screen ECS camera targeting a renderer-owned `ViewPacket.renderTarget`
+handle that is resized under the same ECS handle before rendering. The route
+displays the resolved resized preview, reports current/off-screen
+classification, before/after dimensions, stable target key, texture
+recreation/destroy status, requested/resolved sample count, MSAA sample count,
+resolve attachment behavior, display samples, and current-texture readback.
+Playwright verifies the current-texture sample and resized resolved preview are
+non-clear and distinct without stale-size sampling. Continue the post-SOTA
+visible-feature queue at `task-3198`: add a mixed current-texture plus MSAA
+same-target clear/load route.
 
 The next ready visible-feature queue is:
 
-- `task-3197` — add a mixed current-texture plus MSAA resized off-screen target
-  route.
-  Reference anchor:
-  `references/engine/src/extras/render-passes/camera-frame.js`,
-  `references/bevy/examples/3d/render_to_texture.rs`.
-  Done when one browser route creates an MSAA-enabled WebGPU app, replaces a
-  renderer-owned off-screen `ViewPacket.renderTarget` texture under the same ECS
-  handle before rendering, extracts one current-texture camera plus one
-  off-screen ECS camera targeting the resized handle from one snapshot, displays
-  the resolved resized preview, reports current/off-screen target
-  classification, before/after dimensions, stable target key, texture
-  recreation/destroy status, requested/resolved sample count, MSAA sample count,
-  resolve attachment behavior, display samples, and current-texture readback,
-  and Playwright verifies the current-texture sample and resized resolved
-  preview are non-clear and distinct without stale-size sampling.
 - `task-3198` — add a mixed current-texture plus MSAA same-target clear/load
   route.
   Reference anchor:
@@ -116,6 +103,20 @@ The next ready visible-feature queue is:
   requested/resolved sample count, MSAA sample count, resolve attachment
   behavior, and display samples, and Playwright verifies the current-texture
   sample, inside-crop preview, and outside-clear region are distinct.
+- `task-3200` — add a mixed current-texture plus MSAA reused off-screen target
+  route.
+  Reference anchor:
+  `references/engine/src/extras/render-passes/camera-frame.js`,
+  `references/bevy/examples/3d/render_to_texture.rs`.
+  Done when one browser route creates an MSAA-enabled WebGPU app, renders two
+  worker snapshots through the same renderer-owned off-screen
+  `ViewPacket.renderTarget` handle while also extracting a current-texture ECS
+  camera, displays the second resolved preview plus current-texture readback,
+  reports current/off-screen classifications, stable target key, per-frame
+  dimensions and draw counts, requested/resolved sample count, MSAA color
+  texture creation/reuse pressure, per-frame resolve attachment behavior, and
+  display samples, and Playwright verifies the current-texture sample and second
+  resolved preview are non-clear and distinct without stale first-frame pixels.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.
