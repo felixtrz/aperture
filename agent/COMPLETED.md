@@ -1,5 +1,42 @@
 # Completed Tasks
 
+## task-3191 — Add a mixed current-texture plus MSAA two-target route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/mixed-msaa-two-targets.html` on the existing
+  render-to-texture route family.
+- The route creates an MSAA-enabled `createWebGpuApp({ msaa: 8 })`, which
+  resolves to the supported 4x path for the current-texture and off-screen
+  passes.
+- `examples/render-to-texture.worker.js` now supports a mixed-MSAA worker
+  variant that extracts one current-texture camera plus two ECS cameras
+  targeting distinct renderer-owned `ViewPacket.renderTarget` handles.
+- `examples/render-to-texture.main.js` creates both renderer-owned targets,
+  displays both resolved off-screen target textures side by side, and reports
+  current/off-screen target classifications, requested/resolved sample counts,
+  per-target keys, dimensions, draw counts, MSAA sample counts, per-pass resolve
+  attachment behavior, display samples, and current-texture readback.
+- Added Playwright coverage proving the current-texture sample plus both
+  resolved previews are non-clear and visually distinct.
+- Updated example links, public tracker pages, backlog, current task, and
+  handoff.
+
+Validation:
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA two-target" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA two-target|MSAA two-target|MSAA render-target|mixed cropped secondary|mixed multi render-target|multiple render targets route" --reporter=list`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm run check:progress`
+
 ## task-3190 — Add a mixed current-texture plus cropped secondary off-screen route
 
 Completed: 2026-05-26

@@ -156,6 +156,7 @@ function createMainScene(aperture, app, sourceAssets) {
     routeConfig.dualSizeRenderTargets ||
     routeConfig.mixedDualSizeRenderTargets ||
     routeConfig.mixedCroppedSecondaryRenderTargets ||
+    routeConfig.mixedMsaaMultiRenderTargets ||
     routeConfig.msaaMultiRenderTargets ||
     routeConfig.msaaCroppedSecondaryRenderTargets ||
     routeConfig.croppedSecondaryRenderTargets
@@ -241,6 +242,7 @@ function startWorkerSnapshotLoop(aperture, app, scene, readbackUsage) {
     mixedDualSizeRenderTargets: routeConfig.mixedDualSizeRenderTargets,
     mixedCroppedSecondaryRenderTargets:
       routeConfig.mixedCroppedSecondaryRenderTargets,
+    mixedMsaaMultiRenderTargets: routeConfig.mixedMsaaMultiRenderTargets,
     croppedSecondaryRenderTargets: routeConfig.croppedSecondaryRenderTargets,
     targetCrop: routeConfig.targetCrop,
     targetClearLoad: routeConfig.targetClearLoad,
@@ -292,7 +294,8 @@ async function handleWorkerMessage(
     ...(routeConfig.mixedTargets ||
     routeConfig.mixedMultiRenderTargets ||
     routeConfig.mixedDualSizeRenderTargets ||
-    routeConfig.mixedCroppedSecondaryRenderTargets
+    routeConfig.mixedCroppedSecondaryRenderTargets ||
+    routeConfig.mixedMsaaMultiRenderTargets
       ? {}
       : { clearColor: offscreenClearColor }),
     ...(routeConfig.mixedTargets && readbackUsage.ok
@@ -300,23 +303,26 @@ async function handleWorkerMessage(
       : {}),
     ...((routeConfig.mixedMultiRenderTargets ||
       routeConfig.mixedDualSizeRenderTargets ||
-      routeConfig.mixedCroppedSecondaryRenderTargets) &&
+      routeConfig.mixedCroppedSecondaryRenderTargets ||
+      routeConfig.mixedMsaaMultiRenderTargets) &&
     readbackUsage.ok
       ? { readbackSamples: [mixedMultiCurrentSample] }
       : {}),
     label: routeConfig.mixedCroppedSecondaryRenderTargets
       ? "render-to-texture/mixed-secondary-crop-targets"
-      : routeConfig.mixedDualSizeRenderTargets
-        ? "render-to-texture/mixed-dual-size-targets"
-        : routeConfig.msaaMultiRenderTargets
-          ? "render-to-texture/msaa-two-targets"
-          : routeConfig.msaaCroppedSecondaryRenderTargets
-            ? "render-to-texture/msaa-cropped-secondary-target"
-            : routeConfig.mixedMultiRenderTargets
-              ? "render-to-texture/mixed-multi-targets"
-              : routeConfig.mixedTargets
-                ? "render-to-texture/mixed-targets"
-                : "render-to-texture/offscreen",
+      : routeConfig.mixedMsaaMultiRenderTargets
+        ? "render-to-texture/mixed-msaa-two-targets"
+        : routeConfig.mixedDualSizeRenderTargets
+          ? "render-to-texture/mixed-dual-size-targets"
+          : routeConfig.msaaMultiRenderTargets
+            ? "render-to-texture/msaa-two-targets"
+            : routeConfig.msaaCroppedSecondaryRenderTargets
+              ? "render-to-texture/msaa-cropped-secondary-target"
+              : routeConfig.mixedMultiRenderTargets
+                ? "render-to-texture/mixed-multi-targets"
+                : routeConfig.mixedTargets
+                  ? "render-to-texture/mixed-targets"
+                  : "render-to-texture/offscreen",
   });
 
   if (!offscreenReport.ok) {
@@ -369,6 +375,7 @@ async function handleWorkerMessage(
         })
       : routeConfig.multiRenderTargets ||
           routeConfig.mixedMultiRenderTargets ||
+          routeConfig.mixedMsaaMultiRenderTargets ||
           routeConfig.msaaMultiRenderTargets
         ? await drawMultipleRenderTargetTexturesToCanvas({
             aperture,
@@ -1034,6 +1041,18 @@ function createStatus(
           ),
         }
       : {}),
+    ...(routeConfig.mixedMsaaMultiRenderTargets
+      ? {
+          mixedMsaaMultiRenderTargets: createMixedMsaaMultiRenderTargetsStatus(
+            aperture,
+            scene,
+            message,
+            offscreenReport,
+            report,
+            screenPass,
+          ),
+        }
+      : {}),
     ...(routeConfig.mixedCroppedSecondaryRenderTargets
       ? {
           mixedCroppedSecondaryRenderTargets:
@@ -1082,7 +1101,8 @@ function createStatus(
       : {}),
     ...(routeConfig.targetMsaa &&
     !routeConfig.msaaMultiRenderTargets &&
-    !routeConfig.msaaCroppedSecondaryRenderTargets
+    !routeConfig.msaaCroppedSecondaryRenderTargets &&
+    !routeConfig.mixedMsaaMultiRenderTargets
       ? {
           msaaRenderTarget: createMsaaRenderTargetStatus(
             aperture,
@@ -1154,6 +1174,7 @@ function createStatus(
       routeConfig.dualSizeRenderTargets ||
       routeConfig.mixedDualSizeRenderTargets ||
       routeConfig.mixedCroppedSecondaryRenderTargets ||
+      routeConfig.mixedMsaaMultiRenderTargets ||
       routeConfig.msaaMultiRenderTargets ||
       routeConfig.msaaCroppedSecondaryRenderTargets ||
       routeConfig.croppedSecondaryRenderTargets
@@ -1257,6 +1278,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       mixedDualSizeRenderTargets: false,
       mixedCroppedSecondaryRenderTargets: false,
+      mixedMsaaMultiRenderTargets: false,
       msaaMultiRenderTargets: false,
       msaaCroppedSecondaryRenderTargets: false,
       croppedSecondaryRenderTargets: false,
@@ -1280,6 +1302,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       mixedDualSizeRenderTargets: false,
       mixedCroppedSecondaryRenderTargets: false,
+      mixedMsaaMultiRenderTargets: false,
       msaaMultiRenderTargets: false,
       msaaCroppedSecondaryRenderTargets: false,
       croppedSecondaryRenderTargets: false,
@@ -1303,6 +1326,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       mixedDualSizeRenderTargets: false,
       mixedCroppedSecondaryRenderTargets: false,
+      mixedMsaaMultiRenderTargets: false,
       msaaMultiRenderTargets: false,
       msaaCroppedSecondaryRenderTargets: false,
       croppedSecondaryRenderTargets: false,
@@ -1326,6 +1350,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       mixedDualSizeRenderTargets: false,
       mixedCroppedSecondaryRenderTargets: false,
+      mixedMsaaMultiRenderTargets: false,
       msaaMultiRenderTargets: false,
       msaaCroppedSecondaryRenderTargets: false,
       croppedSecondaryRenderTargets: false,
@@ -1349,6 +1374,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       mixedDualSizeRenderTargets: false,
       mixedCroppedSecondaryRenderTargets: false,
+      mixedMsaaMultiRenderTargets: false,
       msaaMultiRenderTargets: false,
       msaaCroppedSecondaryRenderTargets: false,
       croppedSecondaryRenderTargets: false,
@@ -1372,6 +1398,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: true,
       mixedDualSizeRenderTargets: false,
       mixedCroppedSecondaryRenderTargets: false,
+      mixedMsaaMultiRenderTargets: false,
       msaaMultiRenderTargets: false,
       msaaCroppedSecondaryRenderTargets: false,
       croppedSecondaryRenderTargets: false,
@@ -1395,6 +1422,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       mixedDualSizeRenderTargets: true,
       mixedCroppedSecondaryRenderTargets: false,
+      mixedMsaaMultiRenderTargets: false,
       msaaMultiRenderTargets: false,
       msaaCroppedSecondaryRenderTargets: false,
       croppedSecondaryRenderTargets: false,
@@ -1418,12 +1446,37 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       mixedDualSizeRenderTargets: false,
       mixedCroppedSecondaryRenderTargets: true,
+      mixedMsaaMultiRenderTargets: false,
       msaaMultiRenderTargets: false,
       msaaCroppedSecondaryRenderTargets: false,
       croppedSecondaryRenderTargets: true,
       targetCrop: false,
       targetClearLoad: false,
       targetMsaa: false,
+      requiredFrames: 1,
+    };
+  }
+
+  if (pathname.endsWith("/mixed-msaa-two-targets.html")) {
+    return {
+      example: "mixed-msaa-two-targets",
+      initialOffscreenSize: defaultOffscreenSize,
+      offscreenSize: defaultOffscreenSize,
+      resizeTarget: false,
+      reuseStress: false,
+      mixedTargets: false,
+      multiRenderTargets: false,
+      mixedMultiRenderTargets: false,
+      dualSizeRenderTargets: false,
+      mixedDualSizeRenderTargets: false,
+      mixedCroppedSecondaryRenderTargets: false,
+      mixedMsaaMultiRenderTargets: true,
+      msaaMultiRenderTargets: false,
+      msaaCroppedSecondaryRenderTargets: false,
+      croppedSecondaryRenderTargets: false,
+      targetCrop: false,
+      targetClearLoad: false,
+      targetMsaa: true,
       requiredFrames: 1,
     };
   }
@@ -1441,6 +1494,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       mixedDualSizeRenderTargets: false,
       mixedCroppedSecondaryRenderTargets: false,
+      mixedMsaaMultiRenderTargets: false,
       msaaMultiRenderTargets: false,
       msaaCroppedSecondaryRenderTargets: false,
       croppedSecondaryRenderTargets: false,
@@ -1464,6 +1518,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       mixedDualSizeRenderTargets: false,
       mixedCroppedSecondaryRenderTargets: false,
+      mixedMsaaMultiRenderTargets: false,
       msaaMultiRenderTargets: true,
       msaaCroppedSecondaryRenderTargets: false,
       croppedSecondaryRenderTargets: false,
@@ -1487,6 +1542,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       mixedDualSizeRenderTargets: false,
       mixedCroppedSecondaryRenderTargets: false,
+      mixedMsaaMultiRenderTargets: false,
       msaaMultiRenderTargets: false,
       msaaCroppedSecondaryRenderTargets: true,
       croppedSecondaryRenderTargets: true,
@@ -1510,6 +1566,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       mixedDualSizeRenderTargets: false,
       mixedCroppedSecondaryRenderTargets: false,
+      mixedMsaaMultiRenderTargets: false,
       msaaMultiRenderTargets: false,
       msaaCroppedSecondaryRenderTargets: false,
       croppedSecondaryRenderTargets: true,
@@ -1533,6 +1590,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       mixedDualSizeRenderTargets: false,
       mixedCroppedSecondaryRenderTargets: false,
+      mixedMsaaMultiRenderTargets: false,
       msaaMultiRenderTargets: false,
       msaaCroppedSecondaryRenderTargets: false,
       croppedSecondaryRenderTargets: false,
@@ -1556,6 +1614,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       mixedDualSizeRenderTargets: false,
       mixedCroppedSecondaryRenderTargets: false,
+      mixedMsaaMultiRenderTargets: false,
       msaaMultiRenderTargets: false,
       msaaCroppedSecondaryRenderTargets: false,
       croppedSecondaryRenderTargets: false,
@@ -2183,6 +2242,159 @@ function createMixedCroppedSecondaryRenderTargetsStatus(
       secondaryOutside: {
         sampleId: secondaryCropOutsideSample.id,
         expectedColor: rgbaToStatusColor(offscreenClearColor),
+      },
+      screenClear: {
+        sampleId: screenClearSample.id,
+        expectedColor: { ...screenClearColor },
+      },
+    },
+  };
+}
+
+function createMixedMsaaMultiRenderTargetsStatus(
+  aperture,
+  scene,
+  message,
+  offscreenReport,
+  report,
+  screenPass,
+) {
+  const primaryKey = aperture.assetHandleKey(scene.renderTarget);
+  const secondaryKey = aperture.assetHandleKey(scene.secondaryRenderTarget);
+  const reportTargets = report.renderTargets ?? [];
+  const reportByKey = new Map(
+    reportTargets.map((target) => [target.renderTargetKey, target]),
+  );
+  const currentTargetIndex = reportTargets.findIndex(
+    (target) => target.source === "swapchain",
+  );
+  const currentTarget =
+    currentTargetIndex === -1 ? null : reportTargets[currentTargetIndex];
+  const quadsByRole = new Map(
+    (screenPass.quads ?? []).map((quad) => [quad.role, quad]),
+  );
+  const views = (message.snapshot?.views ?? []).map((view) => {
+    const renderTargetKey = assetKeyOrNull(aperture, view.renderTarget);
+    const role =
+      renderTargetKey === primaryKey
+        ? "primary"
+        : renderTargetKey === secondaryKey
+          ? "secondary"
+          : "current";
+
+    return {
+      role,
+      viewId: view.viewId,
+      camera: view.camera,
+      priority: view.priority,
+      layerMask: view.layerMask,
+      target: renderTargetKey === null ? "current-texture" : "offscreen",
+      renderTargetKey,
+      viewport: Array.from(view.viewport),
+      scissor: Array.from(view.scissor),
+      clearColor: rgbaToStatusColor(view.clearColor),
+    };
+  });
+  const msaa = createMsaaStatusFromReport(report);
+
+  return {
+    mode: "current-texture-plus-msaa-two-offscreen-render-targets",
+    source: "ViewPacket.renderTarget",
+    requestedSampleCount: msaa.requestedSampleCount,
+    sampleCount: msaa.sampleCount,
+    enabled: msaa.enabled,
+    clamped: msaa.clamped,
+    supportedSampleCounts: msaa.supportedSampleCounts,
+    colorTargets: msaa.colorTargets,
+    colorTexturesCreated: msaa.colorTexturesCreated,
+    colorTexturesReused: msaa.colorTexturesReused,
+    renderTargets: [
+      {
+        target: "offscreen",
+        ...createMsaaMultiRenderTargetStatusEntry({
+          role: "primary",
+          key: primaryKey,
+          materialKey: aperture.assetHandleKey(scene.material),
+          expectedColor: rgbaToStatusColor(planeColor),
+          sampleId: leftPreviewSample.id,
+          target: reportByKey.get(primaryKey),
+          boundary: offscreenReport.boundaries?.[0],
+          displayQuad: quadsByRole.get("primary"),
+        }),
+      },
+      {
+        target: "offscreen",
+        ...createMsaaMultiRenderTargetStatusEntry({
+          role: "secondary",
+          key: secondaryKey,
+          materialKey: aperture.assetHandleKey(scene.canvasMaterial),
+          expectedColor: rgbaToStatusColor(canvasPlaneColor),
+          sampleId: rightPreviewSample.id,
+          target: reportByKey.get(secondaryKey),
+          boundary: offscreenReport.boundaries?.[1],
+          displayQuad: quadsByRole.get("secondary"),
+        }),
+      },
+      {
+        role: "current",
+        target: "current-texture",
+        key: null,
+        source: currentTarget?.source ?? "swapchain",
+        viewId: currentTarget?.viewId ?? null,
+        width: currentTarget?.width ?? scene.canvas.width,
+        height: currentTarget?.height ?? scene.canvas.height,
+        format: currentTarget?.format ?? null,
+        ok: currentTarget?.ok ?? false,
+        drawCalls: currentTarget?.drawCalls ?? 0,
+        materialKey: aperture.assetHandleKey(scene.currentMaterial),
+        expectedColor: rgbaToStatusColor(currentPlaneColor),
+        readbackSample: mixedMultiCurrentSample.id,
+        msaaSampleCount: currentTarget?.msaaSampleCount ?? 1,
+        attachment: createMsaaAttachmentStatus(
+          currentTargetIndex === -1
+            ? undefined
+            : offscreenReport.boundaries?.[currentTargetIndex],
+        ),
+      },
+    ],
+    views,
+    passOrder: reportTargets.map((target, index) => ({
+      index,
+      viewId: target.viewId,
+      source: target.source,
+      target: target.source === "swapchain" ? "current-texture" : "offscreen",
+      renderTargetKey: target.renderTargetKey,
+      width: target.width,
+      height: target.height,
+      drawCalls: target.drawCalls,
+      ok: target.ok,
+      msaaSampleCount: target.msaaSampleCount ?? 1,
+      attachment: createMsaaAttachmentStatus(
+        offscreenReport.boundaries?.[index],
+      ),
+    })),
+    displayPass: {
+      loadOp: screenPass.loadOp,
+      drawCalls: screenPass.drawCalls,
+      quads: screenPass.quads,
+      samples: screenPass.samples,
+    },
+    currentTextureReadback: report.readback ?? null,
+    expectedSamples: {
+      currentTexture: {
+        sampleId: mixedMultiCurrentSample.id,
+        materialKey: aperture.assetHandleKey(scene.currentMaterial),
+        expectedColor: rgbaToStatusColor(currentPlaneColor),
+      },
+      primaryPreview: {
+        sampleId: leftPreviewSample.id,
+        materialKey: aperture.assetHandleKey(scene.material),
+        expectedColor: rgbaToStatusColor(planeColor),
+      },
+      secondaryPreview: {
+        sampleId: rightPreviewSample.id,
+        materialKey: aperture.assetHandleKey(scene.canvasMaterial),
+        expectedColor: rgbaToStatusColor(canvasPlaneColor),
       },
       screenClear: {
         sampleId: screenClearSample.id,

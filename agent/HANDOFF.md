@@ -1,6 +1,69 @@
 # Agent Handoff
 
-Updated: 2026-05-26T07:19:36Z
+Updated: 2026-05-26T07:27:00Z
+
+## Current Run Update — 2026-05-26T07:27:00Z — Mixed current plus MSAA two-target off-screen targets
+
+Completed `task-3191`.
+
+### What changed
+
+- Added `examples/mixed-msaa-two-targets.html` to the render-to-texture route
+  family and linked it from related example pages.
+- `examples/render-to-texture.worker.js` now supports a mixed-MSAA worker
+  variant that extracts one current-texture camera plus two ECS cameras
+  targeting distinct renderer-owned off-screen `ViewPacket.renderTarget`
+  handles.
+- `examples/render-to-texture.main.js` now creates both renderer-owned targets
+  in an MSAA-enabled app, displays both resolved off-screen target textures side
+  by side, and reports `mixedMsaaMultiRenderTargets` status with
+  current/off-screen target classifications, requested/resolved sample counts,
+  per-target keys, dimensions, draw counts, MSAA sample counts, per-pass resolve
+  attachment behavior, display samples, and current-texture readback.
+- Added Playwright coverage proving the current-texture sample plus both
+  resolved previews are non-clear and visually distinct.
+- Updated public tracker pages, `agent/BACKLOG.md`, `agent/CURRENT_TASK.md`,
+  and `agent/COMPLETED.md`. The ready queue now continues with `task-3192`,
+  `task-3193`, and `task-3194`.
+
+### References inspected
+
+- `references/engine/src/extras/render-passes/camera-frame.js`
+- `references/engine/examples/src/examples/graphics/multi-render-targets.example.mjs`
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA two-target" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA two-target|MSAA two-target|MSAA render-target|mixed cropped secondary|mixed multi render-target|multiple render targets route" --reporter=list`
+  — 6 passed.
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs` — 7 passed.
+- `pnpm run check:progress`
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- Full-repo `pnpm run format:check` still has pre-existing unrelated formatting
+  debt from earlier handoff notes, including untracked `.playwright-mcp/`
+  scratch files. This slice uses targeted Prettier checks for touched files.
+- A broad `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/webgpu-app.test.ts`
+  run still fails 11 pre-existing `webgpu-app.test.ts` expectations around
+  verbose pipeline descriptor resource keys. This task did not modify that
+  area.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3192`: add an MSAA mixed
+current-texture plus cropped secondary off-screen render-target route.
 
 ## Current Run Update — 2026-05-26T07:19:36Z — Mixed current plus cropped secondary off-screen target
 
