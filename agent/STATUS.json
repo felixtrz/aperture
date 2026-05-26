@@ -4,7 +4,7 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "ed882bb3",
+  "lastCommit": "e4120a11",
   "activePid": null,
   "notes": "Completed task-3166 split-screen multi-camera route: added worker-authored two-camera ECS example, per-view WebGPU viewport/scissor submission with separate view-uniform bind groups, normalized view-rectangle helper and unit tests, Playwright pixel proof, and all-route render-control smoke coverage. Targeted unit/example tests, check:examples, build, test typecheck, focused Playwright, render-control smoke-all, progress check, and touched-file lint pass. Full pnpm test and full lint were not rerun; prior handoff documents unrelated existing failures.",
   "lastRunFinishedAt": "2026-05-26T01:46:22Z"
