@@ -40,6 +40,13 @@ const examplePages = [
     exampleName: "split-screen multi-camera",
   },
   {
+    file: "examples/orthographic-camera.html",
+    script: "./split-screen-multi-camera.main.js",
+    title: "Aperture Orthographic Camera",
+    canvasLabel: "Aperture WebGPU orthographic camera canvas",
+    exampleName: "orthographic camera",
+  },
+  {
     file: "examples/spinning-cube.html",
     script: "./spinning-cube.main.js",
     title: "Aperture ECS Spinning Cube",
@@ -52,6 +59,7 @@ const expectedHrefs = [
   'href="/examples/triangle.html"',
   'href="/examples/multi-entity.html"',
   'href="/examples/split-screen-multi-camera.html"',
+  'href="/examples/orthographic-camera.html"',
   'href="/examples/spinning-cube.html"',
 ];
 const readbackHelperImport = 'from "./webgpu-readback.js"';

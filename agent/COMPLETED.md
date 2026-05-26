@@ -1,5 +1,35 @@
 # Completed Tasks
 
+## task-3167 — Add an orthographic camera projection route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/orthographic-camera.html` and
+  `examples/orthographic-camera.worker.js`.
+- The worker authors one perspective reference camera plus two orthographic
+  cameras at different distances over the same ECS plane.
+- Generalized the split-screen multi-view main path by route so the
+  orthographic page reuses the same per-view WebGPU viewport/scissor submission
+  and one-view-uniform-bind-group-per-camera flow.
+- The route reports three extracted views, orthographic projection metadata,
+  three viewport regions, three per-view records, truthful render-control
+  capabilities, and zero diagnostics.
+- Expanded Playwright coverage to prove the existing single-view orthographic
+  scenario still renders and the new standalone route keeps the object footprint
+  stable between near and far orthographic cameras.
+
+Validation:
+
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs test/webgpu/view-rectangle.test.ts`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts test/e2e/orthographic-camera.spec.ts --reporter=list`
+- `pnpm run render-control:smoke-all`
+- `pnpm exec eslint examples/split-screen-multi-camera.main.js examples/split-screen-multi-camera.worker.js examples/orthographic-camera.worker.js test/e2e/orthographic-camera.spec.ts test/examples/navigation.test.mjs`
+
 ## task-3166 — Add a split-screen multi-camera route
 
 Completed: 2026-05-26

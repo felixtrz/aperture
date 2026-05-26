@@ -52,6 +52,7 @@ async function handleMessage(data) {
             key: aperture.assetHandleKey(entry.handle),
             asset: entry.asset,
           })),
+          expectedViewCount: 2,
           expectedDrawCount: 2,
           samplePoints: [
             { id: "left-center", x: 0.25, y: 0.5 },

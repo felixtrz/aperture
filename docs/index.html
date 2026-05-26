@@ -393,12 +393,21 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 01:46 UTC</dd>
+            <dd>2026-05-26 01:55 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update:
+              Latest update: <code>examples/orthographic-camera.html</code> now
+              proves orthographic projection through the same multi-view WebGPU
+              submission path as the split-screen route. The worker authors one
+              perspective reference plus near and far orthographic cameras over
+              the same ECS plane; Playwright verifies that the orthographic
+              object footprint stays stable across camera distance while
+              outside-edge samples remain clear. The route reports three
+              extracted views, projection metadata, three viewport records,
+              three per-view command records, truthful render-control
+              capabilities, and zero diagnostics. Previous update:
               <code>examples/split-screen-multi-camera.html</code> now proves
               two ECS-authored cameras over one worker-owned world. The WebGPU
               route resolves two viewport/scissor canvas regions, creates one
@@ -407,7 +416,7 @@
               truthful render-control capabilities, four indexed draw calls, and
               zero diagnostics. Playwright samples both halves and verifies
               distinct non-clear pixels, and the all-route render-control smoke
-              includes the route with zero warning routes. Previous update: the
+              includes the route with zero warning routes. Earlier update: the
               raycasting/BVH proposal was reshaped around synchronous
               simulation-thread spatial queries. Simulation exposes exact
               triangle raycasts, typed-array mesh BVHs, BVH traversal callbacks,
@@ -2123,9 +2132,9 @@
               Per-camera frustum planes now skip outside-view mesh draws during
               extraction and publish per-view <code>cullStats</code>. ECS
               multi-camera viewport/scissor extraction is now browser-proven by
-              the split-screen route with two simultaneous camera views. ECS
-              <code>OcclusionQuery</code> now extracts an opt-in mesh-draw flag
-              for renderer-owned GPU visibility feedback. ECS
+              the split-screen and orthographic routes with simultaneous camera
+              views. ECS <code>OcclusionQuery</code> now extracts an opt-in
+              mesh-draw flag for renderer-owned GPU visibility feedback. ECS
               <code>Fog</code> components now extract snapshot fog packets for
               linear, exponential, and exponential-squared view fog. Snapshot
               change sets now carry stable packet keys and produce renderer
@@ -5226,14 +5235,14 @@
                 spatial query APIs with explicit source/fallback policy.
               </li>
               <li>
-                <span class="badge green">task-3166</span> Done: add a
-                split-screen multi-camera route with two ECS-authored cameras,
-                two WebGPU viewport/scissor regions, per-view command streams,
-                Playwright pixel proof, and all-route render-control coverage.
+                <span class="badge green">task-3167</span> Done: add an
+                orthographic camera route with perspective, near orthographic,
+                and far orthographic views plus Playwright size-stability
+                readback proof.
               </li>
               <li>
-                <span class="badge">task-3167</span> Next: add an orthographic
-                camera projection route.
+                <span class="badge">task-3168</span> Next: add a line/wire
+                primitive rendering route.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5252,6 +5261,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3167</div>
+            <div>
+              <strong>Orthographic camera route shipped.</strong>
+              <span>
+                <code>examples/orthographic-camera.html</code> renders one
+                perspective reference and two orthographic cameras at different
+                distances over the same ECS plane, then uses Playwright readback
+                to prove the orthographic object footprint stays stable.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3166</div>
             <div>

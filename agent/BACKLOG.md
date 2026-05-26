@@ -59,19 +59,14 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3166` is complete: `examples/split-screen-multi-camera.html` now renders
-two ECS-authored cameras into two WebGPU viewport/scissor regions from one
-worker-authored world, with Playwright pixel proof and all-route render-control
-coverage. Continue the post-SOTA visible-feature queue at `task-3167`: add an
-orthographic camera projection route.
+`task-3167` is complete: `examples/orthographic-camera.html` now renders one
+perspective reference and two orthographic cameras at different distances over
+the same worker-authored ECS plane, with Playwright proof that the orthographic
+object footprint stays stable. Continue the post-SOTA visible-feature queue at
+`task-3168`: add a line/wire primitive rendering route.
 
 The next ready visible-feature queue is:
 
-- `task-3167` — add an orthographic camera projection route.
-  Reference anchor: `references/three.js/src/cameras/OrthographicCamera.js`.
-  Done when a browser route renders the same ECS object through orthographic
-  projection, reports orthographic view metadata, and Playwright verifies size
-  stability across camera distance changes.
 - `task-3168` — add a line/wire primitive rendering route.
   Reference anchor: `references/three.js/src/objects/LineSegments.js`.
   Done when a browser route renders ECS-authored line/wire primitives through
@@ -83,6 +78,11 @@ The next ready visible-feature queue is:
   Done when a browser route renders one ECS camera into an off-screen
   renderer-owned target and displays that texture in the main canvas with
   JSON-safe source/target view status plus Playwright pixel proof.
+- `task-3170` — add a camera render-layer isolation route.
+  Reference anchor: `references/three.js/examples/webgpu_layers.html`.
+  Done when a browser route renders two active cameras with distinct layer
+  masks over the same ECS world, reports per-camera included/skipped draw
+  counts, and Playwright verifies each viewport excludes the other layer.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.
@@ -1529,27 +1529,6 @@ Acceptance criteria:
 - Existing clustered-light focused E2E coverage still passes.
 - The smoke artifact records scoped zero warning count for this route.
 
-### task-3167 — Add an orthographic camera projection route
-
-Status: ready
-
-Category: `webgpu-render`
-Package/write-scope: `examples/`, `packages/core/`, `packages/webgpu/`,
-`test/e2e/`.
-Reference anchor: `references/bevy/examples/3d/orthographic.rs`,
-`references/three.js/examples/webgl_camera.html`.
-
-Acceptance criteria:
-
-- A public camera/projection path can render an orthographic view through the
-  ECS extraction boundary.
-- A visible example contrasts perspective and orthographic projection with
-  stable pixel/readback proof.
-- Status reports the active projection mode, view count, draw counts, and zero
-  diagnostics in JSON-safe form.
-- Focused E2E coverage and the all-route controller smoke pass with zero scoped
-  WebGPU validation warnings.
-
 ### task-3168 — Add a line/wire primitive rendering route
 
 Status: ready
@@ -1591,6 +1570,26 @@ Acceptance criteria:
 - Playwright or render-control proof samples the displayed preview pixels and
   verifies they differ from both clear color and the direct main-canvas camera
   region.
+- Focused E2E coverage and the all-route controller smoke pass with zero scoped
+  WebGPU validation warnings.
+
+### task-3170 — Add a camera render-layer isolation route
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `examples/`, `packages/core/`, `packages/webgpu/`,
+`test/e2e/`.
+Reference anchor: `references/three.js/examples/webgpu_layers.html`.
+
+Acceptance criteria:
+
+- A public browser route renders two simultaneous cameras over one worker-owned
+  ECS world with distinct `Camera.layerMask` values.
+- Each camera viewport shows only the mesh entities assigned to its matching
+  render layer while shared background/clear state remains stable.
+- Status reports per-view layer masks, included/skipped draw counts, viewport
+  rectangles, diagnostics, and render-control capabilities in JSON-safe form.
 - Focused E2E coverage and the all-route controller smoke pass with zero scoped
   WebGPU validation warnings.
 

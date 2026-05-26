@@ -2,20 +2,22 @@
 
 No active task is currently checked out.
 
-Status: task-3166 split-screen multi-camera route completed.
+Status: task-3167 orthographic camera route completed.
 
 Key findings:
 
-- `examples/split-screen-multi-camera.html` now renders two ECS-authored
-  cameras over one worker-owned world using WebGPU viewport/scissor regions.
-- The route reports two extracted views, two viewport/scissor pixel regions,
-  two per-view command plans, truthful render-control capabilities, and zero
-  diagnostics in the browser proof.
-- Playwright samples both halves and verifies the two camera views produce
-  distinct non-clear pixels.
-- `pnpm run render-control:smoke-all` includes the route and reports zero
-  route status failures and zero warning routes across 50 example pages.
+- `examples/orthographic-camera.html` now renders one perspective reference and
+  two orthographic cameras at different distances over the same worker-owned ECS
+  plane.
+- The shared multi-view WebGPU path now routes by page, so split-screen and
+  orthographic proofs both use the same per-view viewport/scissor submission
+  logic.
+- Playwright verifies the near and far orthographic views keep the same sampled
+  object footprint while outside-edge samples remain clear.
+- `pnpm run render-control:smoke-all` includes both multi-view routes and
+  reports zero route status failures and zero warning routes across 51 example
+  pages.
 
 Recommended next task:
 
-- `task-3167` — add an orthographic camera projection route.
+- `task-3168` — add a line/wire primitive rendering route.

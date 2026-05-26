@@ -1,6 +1,56 @@
 # Agent Handoff
 
-Updated: 2026-05-26T01:46:22Z
+Updated: 2026-05-26T01:55:36Z
+
+## Current Run Update — 2026-05-26T01:55:36Z — Orthographic camera route
+
+Completed `task-3167` after `task-3166`.
+
+### What changed
+
+- Added `examples/orthographic-camera.html` and
+  `examples/orthographic-camera.worker.js`.
+- The orthographic worker authors one perspective reference camera plus two
+  orthographic cameras at different distances over the same ECS plane, using
+  normalized viewport/scissor thirds.
+- Generalized the split-screen multi-view main module by route, so both
+  `split-screen-multi-camera.html` and `orthographic-camera.html` use the same
+  per-view WebGPU viewport/scissor submission path and one view-uniform bind
+  group per extracted camera.
+- The orthographic route reports three extracted views, three viewport records,
+  orthographic projection metadata, three per-view command records, truthful
+  render-control capabilities, and zero diagnostics.
+- Updated example navigation, example checks, public tracker pages, backlog,
+  current task, and completed-task records.
+
+### Validation
+
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs test/webgpu/view-rectangle.test.ts`
+  — 11 passed.
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts test/e2e/orthographic-camera.spec.ts --reporter=list`
+  — 3 passed; covers the existing single-view orthographic scenario, the new
+  three-view orthographic route, and the split-screen regression path.
+- `pnpm run render-control:smoke-all` — visited 51 routes, including
+  `/examples/orthographic-camera.html` and
+  `/examples/split-screen-multi-camera.html`; zero route status failures and
+  zero warning routes.
+- `pnpm exec eslint examples/split-screen-multi-camera.main.js examples/split-screen-multi-camera.worker.js examples/orthographic-camera.worker.js test/e2e/orthographic-camera.spec.ts test/examples/navigation.test.mjs`
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3168`: add a line/wire primitive
+rendering route.
 
 ## Current Run Update — 2026-05-26T01:46:22Z — Split-screen multi-camera route
 

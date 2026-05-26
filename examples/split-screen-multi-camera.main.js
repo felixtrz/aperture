@@ -11,9 +11,10 @@ const canvas = document.querySelector("#aperture-canvas");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
 const clearColor = { r: 0.015, g: 0.025, b: 0.035, a: 1 };
+const routeConfig = routeConfigForPath(window.location.pathname);
 
 const baseStatus = {
-  example: "split-screen-multi-camera",
+  example: routeConfig.example,
   canvas: {
     width: canvas?.width ?? 0,
     height: canvas?.height ?? 0,
@@ -95,14 +96,14 @@ async function renderSplitScreenScene(
 
   if (
     firstDraw === undefined ||
-    snapshot.views.length !== 2 ||
+    snapshot.views.length !== (scene.expectedViewCount ?? 2) ||
     snapshot.meshDraws.length !== scene.expectedDrawCount
   ) {
     return {
       ...failure(
         "extract",
-        "split-screen-snapshot-unavailable",
-        "The split-screen scene did not extract two views and two mesh draws.",
+        "multi-view-snapshot-unavailable",
+        `${routeConfig.label} did not extract the expected views and mesh draws.`,
       ),
       extraction: snapshotCounts(snapshot),
       diagnostics: snapshot.diagnostics,
@@ -342,6 +343,8 @@ async function renderSplitScreenScene(
         readback: false,
       },
     },
+    ...(scene.camera === undefined ? {} : { camera: scene.camera }),
+    ...(scene.proof === undefined ? {} : { proof: scene.proof }),
     diagnostics: framePlanDiagnostics,
     diagnosticCounts: diagnosticCounts({
       extraction: snapshot.diagnostics.length,
@@ -729,13 +732,10 @@ function applyPassRectangle(pass, viewport, scissor) {
 
 function requestSplitScreenSnapshot(aperture, canvasSize) {
   return new Promise((resolve) => {
-    const worker = new Worker(
-      "/worker-modules/examples/split-screen-multi-camera.worker.js",
-      {
-        name: "aperture-split-screen-multi-camera-simulation",
-        type: "module",
-      },
-    );
+    const worker = new Worker(routeConfig.workerUrl, {
+      name: routeConfig.workerName,
+      type: "module",
+    });
 
     worker.addEventListener("message", (event) => {
       const message = event.data;
@@ -745,7 +745,7 @@ function requestSplitScreenSnapshot(aperture, canvasSize) {
         resolve({
           ok: false,
           reason: message.reason ?? "worker-error",
-          message: message.message ?? "The split-screen worker failed.",
+          message: message.message ?? `${routeConfig.label} worker failed.`,
         });
         return;
       }
@@ -787,7 +787,7 @@ function requestSplitScreenSnapshot(aperture, canvasSize) {
           reason: "worker-error",
           message:
             event.message ||
-            "The split-screen simulation worker reported an error.",
+            `${routeConfig.label} simulation worker reported an error.`,
         });
       },
       { once: true },
@@ -798,6 +798,24 @@ function requestSplitScreenSnapshot(aperture, canvasSize) {
       canvas: canvasSize,
     });
   });
+}
+
+function routeConfigForPath(pathname) {
+  if (pathname.endsWith("/orthographic-camera.html")) {
+    return {
+      example: "orthographic-camera",
+      label: "The orthographic camera route",
+      workerUrl: "/worker-modules/examples/orthographic-camera.worker.js",
+      workerName: "aperture-orthographic-camera-simulation",
+    };
+  }
+
+  return {
+    example: "split-screen-multi-camera",
+    label: "The split-screen multi-camera route",
+    workerUrl: "/worker-modules/examples/split-screen-multi-camera.worker.js",
+    workerName: "aperture-split-screen-multi-camera-simulation",
+  };
 }
 
 function snapshotForView(snapshot, view) {
