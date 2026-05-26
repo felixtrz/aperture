@@ -240,7 +240,7 @@ async function renderSplitScreenScene(
   }
 
   const framePlanDiagnostics = viewPlansResult.viewPlans.flatMap(
-    (plan) => plan.framePlan.summary.diagnostics,
+    (plan) => plan.summaryDiagnostics,
   );
   const bindingPlanCount = viewPlansResult.viewPlans.reduce(
     (sum, plan) => sum + plan.framePlan.bindingPlan.bindings.length,
@@ -376,6 +376,9 @@ async function renderSplitScreenScene(
     ...(scene.viewportGrid === undefined
       ? {}
       : { viewportGrid: scene.viewportGrid }),
+    ...(scene.clearLoadMatrix === undefined
+      ? {}
+      : { clearLoadMatrix: scene.clearLoadMatrix }),
     ...(scene.proof === undefined ? {} : { proof: scene.proof }),
     diagnostics: framePlanDiagnostics,
     diagnosticCounts: diagnosticCounts({
@@ -495,14 +498,19 @@ function createViewPlans({
       bindGroups,
     });
 
+    const summaryDiagnostics = diagnosticsForExpectedDrawCount(
+      framePlan.summary.diagnostics,
+      expectedDrawCount,
+    );
+
     bindingDiagnostics += framePlan.bindingPlan.diagnostics.length;
-    drawDiagnostics += framePlan.summary.diagnostics.length;
+    drawDiagnostics += summaryDiagnostics.length;
 
     if (
-      !framePlan.summary.ready ||
+      (!framePlan.summary.ready && summaryDiagnostics.length > 0) ||
       framePlan.commandPlan.drawCount !== expectedDrawCount
     ) {
-      diagnostics.push(...framePlan.summary.diagnostics);
+      diagnostics.push(...summaryDiagnostics);
       return {
         ok: false,
         reason: "draw-plan-unavailable",
@@ -518,6 +526,7 @@ function createViewPlans({
       viewport: viewport.rect,
       scissor: scissor.rect,
       framePlan,
+      summaryDiagnostics,
       viewBindGroups: viewUniform.bindGroups,
       clearBehavior:
         viewPlans.length === 0
@@ -903,12 +912,31 @@ function routeConfigForPath(pathname) {
     };
   }
 
+  if (pathname.endsWith("/camera-clear-load-matrix.html")) {
+    return {
+      example: "camera-clear-load-matrix",
+      label: "The camera clear/load matrix route",
+      workerUrl: "/worker-modules/examples/camera-clear-load-matrix.worker.js",
+      workerName: "aperture-camera-clear-load-matrix-simulation",
+    };
+  }
+
   return {
     example: "split-screen-multi-camera",
     label: "The split-screen multi-camera route",
     workerUrl: "/worker-modules/examples/split-screen-multi-camera.worker.js",
     workerName: "aperture-split-screen-multi-camera-simulation",
   };
+}
+
+function diagnosticsForExpectedDrawCount(diagnostics, expectedDrawCount) {
+  if (expectedDrawCount !== 0) {
+    return diagnostics;
+  }
+
+  return diagnostics.filter(
+    (diagnostic) => diagnostic.code !== "renderWorld.empty",
+  );
 }
 
 function snapshotForView(snapshot, view, scene = null) {

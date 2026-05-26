@@ -393,12 +393,18 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 03:01 UTC</dd>
+            <dd>2026-05-26 03:13 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/camera-clear-load-matrix.html</code> now proves a
+              three-camera same-target sequence with an intentional zero-draw
+              clear pass, a base pass, and an overlay pass. The route reports
+              pass roles, priorities, layer masks, expected draw counts,
+              material keys, and clear/load behavior, then Playwright verifies
+              clear-only, base-preserved, and overlay samples. Previous update:
               <code>examples/render-target-resize.html</code> now proves a
               renderer-owned camera render target can be replaced with a larger
               GPU texture under the same ECS
@@ -2699,6 +2705,14 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3175</span> Added
+                <code>examples/camera-clear-load-matrix.html</code>. The shared
+                multi-view route now supports intentional expected-zero-draw
+                clear passes, reports clear/load pass roles and draw counts, and
+                Playwright proves clear-only, base-preserved, and overlay
+                samples.
+              </li>
               <li>
                 <span class="badge green">task-3174</span> Added
                 <code>examples/render-target-resize.html</code>. The existing
@@ -5372,16 +5386,21 @@
                 preview proof.
               </li>
               <li>
-                <span class="badge">task-3175</span> Next: add a camera
-                clear/load behavior matrix route.
+                <span class="badge green">task-3175</span> Done: add a camera
+                clear/load behavior matrix route with a zero-draw clear pass,
+                base and overlay load passes, and three-region Playwright proof.
               </li>
               <li>
-                <span class="badge">task-3176</span> Then: add a
+                <span class="badge">task-3176</span> Next: add a
                 picture-in-picture camera inset route.
               </li>
               <li>
                 <span class="badge">task-3177</span> Then: add a render-target
                 reuse stress preview route.
+              </li>
+              <li>
+                <span class="badge">task-3178</span> Then: add a camera
+                viewport resize matrix route.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5400,6 +5419,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3175</div>
+            <div>
+              <strong>Camera clear/load matrix route shipped.</strong>
+              <span>
+                <code>examples/camera-clear-load-matrix.html</code> renders a
+                zero-draw clear pass, then base and overlay load passes into the
+                same target, reports pass roles and clear/load behavior, and
+                proves clear-only, base-preserved, and overlay samples.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3174</div>
             <div>

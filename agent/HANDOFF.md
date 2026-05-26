@@ -1,6 +1,56 @@
 # Agent Handoff
 
-Updated: 2026-05-26T03:01:03Z
+Updated: 2026-05-26T03:13:50Z
+
+## Current Run Update — 2026-05-26T03:13:50Z — Camera clear/load matrix route
+
+Completed `task-3175` after `task-3174`.
+
+### What changed
+
+- Added `examples/camera-clear-load-matrix.html` and
+  `examples/camera-clear-load-matrix.worker.js`.
+- The worker authors three full-canvas ECS cameras over one target: an
+  intentional zero-draw clear pass, a base pass, and an overlay pass.
+- The shared multi-view main path now allows intentional expected-zero-draw
+  views by suppressing only the `renderWorld.empty` diagnostic for those views.
+- Status reports `clearLoadMatrix` with pass roles, priorities, layer masks,
+  expected draw counts, clear/load behavior, material keys, and sample ids.
+- Added Playwright coverage proving the clear-only sample stays at clear color,
+  the base-preserved sample remains red, and the overlay sample is blue.
+
+### Validation
+
+- `pnpm exec playwright test test/e2e/camera-clear-load-matrix.spec.ts --reporter=list`
+  — first run failed because the shared route treated an intentional zero-draw
+  clear pass as a draw-plan failure; after narrowing the zero-draw diagnostic
+  handling, 1 passed.
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs` — 7 passed.
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts test/e2e/orthographic-camera.spec.ts test/e2e/line-primitives.spec.ts test/e2e/camera-render-layers.spec.ts test/e2e/camera-priority-overlay.spec.ts test/e2e/camera-sub-view-crop.spec.ts test/e2e/camera-viewport-grid.spec.ts test/e2e/camera-clear-load-matrix.spec.ts --reporter=list`
+  — 9 passed; covers the new route plus shared-main regressions.
+- `pnpm exec eslint examples/split-screen-multi-camera.main.js examples/camera-clear-load-matrix.worker.js test/e2e/camera-clear-load-matrix.spec.ts test/examples/navigation.test.mjs`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run render-control:smoke-all` — attempted after this slice but did not
+  pass: one run timed out waiting for `/examples/taa.html`; a rerun hung until
+  the validation process was killed. No WebGPU warnings were reported in the
+  timed-out TAA result. Focused route coverage and static validation passed.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- The all-route render-control smoke needs a rerun; the failure observed here
+  was on `/examples/taa.html`, not the new clear/load route.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3176`: add a picture-in-picture
+camera inset route.
 
 ## Current Run Update — 2026-05-26T03:01:03Z — Render-target resize preview route
 

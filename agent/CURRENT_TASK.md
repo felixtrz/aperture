@@ -2,24 +2,25 @@
 
 No active task is currently checked out.
 
-Status: task-3174 render-target resize preview route completed.
+Status: task-3175 camera clear/load behavior matrix route completed.
 
 Key findings:
 
-- Added `examples/render-target-resize.html` using the existing
-  render-to-texture main path.
-- The route allocates a small renderer-owned off-screen target, replaces the
-  same ECS `ViewPacket.renderTarget` handle with a larger GPU texture before
-  rendering, and destroys the previous texture.
-- Status now reports `renderTargetResize` with before/after dimensions, reused
-  handle, texture recreation, previous texture destruction, and the
-  stale-size guard used before rendering.
-- Playwright verifies the resized target reports 384x384, the app render
-  report uses the new dimensions, and the displayed preview remains non-clear.
-- The latest all-route render-control smoke visited 57 routes, including
-  `/examples/render-target-resize.html`, with zero route status failures and
-  zero warning routes.
+- Added `examples/camera-clear-load-matrix.html` and
+  `examples/camera-clear-load-matrix.worker.js`.
+- The worker authors three full-canvas ECS cameras over one target: an
+  intentional zero-draw clear pass, a base pass, and an overlay pass.
+- The shared multi-view main path now allows intentional expected-zero-draw
+  views by suppressing only the `renderWorld.empty` diagnostic for those views.
+- Status reports `clearLoadMatrix` with pass roles, priorities, layer masks,
+  expected draw counts, clear/load behavior, material keys, and sample ids.
+- Playwright verifies the clear-only sample stays at clear color, the
+  base-preserved sample remains red, and the overlay sample is blue.
+- The all-route render-control smoke was attempted after this slice but did
+  not complete cleanly: one run timed out on `/examples/taa.html`, and a rerun
+  hung until the validation process was killed. Focused Playwright and static
+  validation for this slice passed.
 
 Recommended next task:
 
-- `task-3175` — add a camera clear/load behavior matrix route.
+- `task-3176` — add a picture-in-picture camera inset route.

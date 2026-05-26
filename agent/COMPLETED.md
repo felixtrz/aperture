@@ -1,5 +1,32 @@
 # Completed Tasks
 
+## task-3175 — Add a camera clear/load behavior matrix route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/camera-clear-load-matrix.html` and
+  `examples/camera-clear-load-matrix.worker.js`.
+- The worker authors three full-canvas ECS cameras over one target: an
+  intentional zero-draw clear pass, a base pass, and an overlay pass.
+- The shared multi-view main path now allows intentional expected-zero-draw
+  views by suppressing only the `renderWorld.empty` diagnostic for those views.
+- Status reports `clearLoadMatrix` with pass roles, priorities, layer masks,
+  expected draw counts, clear/load behavior, material keys, and sample ids.
+- Playwright verifies the clear-only sample stays at clear color, the
+  base-preserved sample remains red, and the overlay sample is blue.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/camera-clear-load-matrix.spec.ts --reporter=list`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts test/e2e/orthographic-camera.spec.ts test/e2e/line-primitives.spec.ts test/e2e/camera-render-layers.spec.ts test/e2e/camera-priority-overlay.spec.ts test/e2e/camera-sub-view-crop.spec.ts test/e2e/camera-viewport-grid.spec.ts test/e2e/camera-clear-load-matrix.spec.ts --reporter=list`
+- `pnpm exec eslint examples/split-screen-multi-camera.main.js examples/camera-clear-load-matrix.worker.js test/e2e/camera-clear-load-matrix.spec.ts test/examples/navigation.test.mjs`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
 ## task-3174 — Add a render-target resize preview route
 
 Completed: 2026-05-26

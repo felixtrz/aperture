@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "56b39526",
   "activePid": null,
-  "notes": "Completed task-3174 render-target resize preview route after task-3173: added examples/render-target-resize.html, replaces the same ECS ViewPacket.renderTarget handle with a larger renderer-owned GPU texture before rendering, reports before/after dimensions and stale-size guard metadata, and proves the displayed preview remains non-clear. Focused Playwright, check:examples, navigation tests, touched-file ESLint, build, test typecheck, and render-control smoke-all pass.",
-  "lastRunFinishedAt": "2026-05-26T03:01:03Z"
+  "notes": "Completed task-3175 camera clear/load matrix route after task-3174: added examples/camera-clear-load-matrix.html and worker, supports intentional expected-zero-draw clear passes in the shared multi-view example path, reports pass roles and clear/load behavior, and proves clear-only, base-preserved, and overlay samples. Focused route Playwright, check:examples, navigation tests, shared multi-view Playwright regression set, touched-file ESLint, build, and test typecheck pass. render-control smoke-all was attempted but did not pass due to a TAA timeout/hung rerun unrelated to the new route.",
+  "lastRunFinishedAt": "2026-05-26T03:13:50Z"
 }

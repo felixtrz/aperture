@@ -59,22 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3174` is complete: `examples/render-target-resize.html` now proves a
-renderer-owned camera render target can be replaced with a larger texture under
-the same ECS `ViewPacket.renderTarget` handle before rendering, reports
-before/after dimensions and stale-size guard metadata, and verifies the
-displayed preview remains non-clear. Continue the post-SOTA visible-feature
-queue at `task-3175`: add a camera clear/load behavior matrix route.
+`task-3175` is complete: `examples/camera-clear-load-matrix.html` now proves a
+three-camera same-target clear/load sequence with an intentional zero-draw
+clear pass, a base pass, and an overlay pass, reports pass roles and
+clear/load behavior, and verifies clear-only, base-preserved, and overlay
+regions. Continue the post-SOTA visible-feature queue at `task-3176`: add a
+picture-in-picture camera inset route.
 
 The next ready visible-feature queue is:
 
-- `task-3175` — add a camera clear/load behavior matrix route.
-  Reference anchor: `references/bevy/examples/ui/ui_target_camera.rs`,
-  `references/engine/src/extras/render-passes/camera-frame.js`.
-  Done when a browser route renders three ECS cameras with explicit clear/load
-  behavior over one target, reports the clear source/order/load behavior for
-  each pass, and Playwright verifies clear-only, base-preserved, and overlay
-  regions.
 - `task-3176` — add a picture-in-picture camera inset route.
   Reference anchor: `references/bevy/examples/ui/ui_target_camera.rs`,
   `references/three.js/examples/webgpu_camera_array.html`.
@@ -92,6 +85,13 @@ The next ready visible-feature queue is:
   target handle/resource reuse pressure and frame-to-frame dimensions, and
   Playwright verifies the second displayed preview remains non-clear with no
   stale first-frame status.
+- `task-3178` — add a camera viewport resize matrix route.
+  Reference anchor: `references/bevy/examples/3d/camera_sub_view.rs`,
+  `references/three.js/manual/examples/cameras-perspective-2-scenes.html`.
+  Done when a browser route renders two frames with different normalized
+  viewport/scissor rectangles for the same ECS camera handle, reports old/new
+  resolved viewport pixels and pass order, and Playwright verifies the updated
+  sample positions move without changing mesh authoring.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.
