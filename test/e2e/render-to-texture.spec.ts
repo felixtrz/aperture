@@ -468,6 +468,9 @@ interface RenderToTextureStatus extends ExampleStatusBase {
       }[];
     } | null;
   };
+  readonly mixedMsaaResizedTargetCrop?: RenderToTextureStatus["mixedMsaaTargetCrop"] & {
+    readonly resize?: RenderToTextureStatus["renderTargetResize"];
+  };
   readonly multiRenderTargets?: {
     readonly mode?: string;
     readonly source?: string;
@@ -5430,6 +5433,452 @@ test("mixed MSAA target crop route displays current and cropped resolved off-scr
   expect(
     pixelDistance(currentSample.pixel, outsideSample.pixel),
     "current-texture sample should differ from the off-screen target clear color",
+  ).toBeGreaterThan(40);
+});
+
+test("mixed MSAA resized crop route displays current and resized cropped resolved off-screen target", async ({
+  page,
+}) => {
+  const guard = attachWebGpuValidationConsoleGuard(page);
+  const status = await loadExampleStatus<RenderToTextureStatus>(
+    page,
+    "/examples/mixed-msaa-resized-crop.html",
+    "mixed-msaa-resized-crop-status",
+  );
+
+  if (status === undefined) {
+    return;
+  }
+
+  const renderTargetKey = status.renderTarget?.key;
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "mixed-msaa-resized-crop",
+    ok: true,
+    phase: "display",
+    renderingBackend: "webgpu-explicit",
+    renderTarget: {
+      width: 384,
+      height: 384,
+      source: "ViewPacket.renderTarget",
+      key: renderTargetKey,
+      textureUsage: {
+        renderAttachment: true,
+        textureBinding: true,
+        copySource: true,
+      },
+    },
+    sourceView: {
+      ok: true,
+      viewId: 0,
+      priority: 0,
+      layerMask: 1,
+      renderTargetKey,
+      expectedRenderTargetKey: renderTargetKey,
+      renderTargetMatches: true,
+    },
+    renderTargetResize: {
+      mode: "renderer-owned-render-target-resize",
+      reason: "route-config-canvas-resize-simulation",
+      renderTargetKey,
+      before: {
+        width: 128,
+        height: 128,
+      },
+      after: {
+        width: 384,
+        height: 384,
+      },
+      reusedHandle: true,
+      textureRecreated: true,
+      previousTextureDestroyed: true,
+      staleSizeGuard: "source-assets-markReady-before-render",
+      stableRenderTargetKey: true,
+      msaaSampleCount: 4,
+      attachment: {
+        colorLoadOp: "clear",
+        colorStoreOp: "discard",
+        resolveTarget: true,
+        behavior: "resolve-to-render-target-texture",
+      },
+      msaa: {
+        mode: "msaa-resized-offscreen-render-target",
+        requestedSampleCount: 8,
+        sampleCount: 4,
+        enabled: true,
+        clamped: true,
+        supportedSampleCounts: [1, 4],
+        colorTargets: 2,
+        colorTexturesCreated: 2,
+        colorTexturesReused: 0,
+        target: {
+          source: "offscreen",
+          width: 384,
+          height: 384,
+          drawCalls: 1,
+          msaaSampleCount: 4,
+          ok: true,
+        },
+      },
+    },
+    mixedMsaaResizedTargetCrop: {
+      mode: "current-texture-plus-msaa-resized-cropped-offscreen-render-target",
+      source: "ViewPacket.renderTarget",
+      renderTargetKey,
+      requestedSampleCount: 8,
+      sampleCount: 4,
+      enabled: true,
+      clamped: true,
+      supportedSampleCounts: [1, 4],
+      colorTargets: 2,
+      colorTexturesCreated: 2,
+      colorTexturesReused: 0,
+      resize: {
+        renderTargetKey,
+        before: {
+          width: 128,
+          height: 128,
+        },
+        after: {
+          width: 384,
+          height: 384,
+        },
+        stableRenderTargetKey: true,
+        msaaSampleCount: 4,
+      },
+      targetCrop: {
+        mode: "offscreen-render-target-viewport-crop",
+        source: "ViewPacket.renderTarget",
+        renderTargetKey,
+        target: {
+          source: "offscreen",
+          width: 384,
+          height: 384,
+          drawCalls: 1,
+          msaaSampleCount: 4,
+          ok: true,
+        },
+        requestedSampleCount: 8,
+        sampleCount: 4,
+        enabled: true,
+        clamped: true,
+        supportedSampleCounts: [1, 4],
+        colorTargets: 2,
+        colorTexturesCreated: 2,
+        colorTexturesReused: 0,
+        attachment: {
+          colorLoadOp: "clear",
+          colorStoreOp: "discard",
+          resolveTarget: true,
+          behavior: "resolve-to-render-target-texture",
+        },
+        view: {
+          viewId: 0,
+          priority: 0,
+          layerMask: 1,
+          expectedNormalizedRect: [0.3, 0.25, 0.4, 0.5],
+        },
+        viewportPixels: {
+          x: 115,
+          y: 96,
+          width: 154,
+          height: 192,
+        },
+        scissorPixels: {
+          x: 115,
+          y: 96,
+          width: 154,
+          height: 192,
+        },
+        diagnostics: [],
+      },
+      renderTargets: [
+        {
+          role: "offscreen",
+          target: "offscreen",
+          key: renderTargetKey,
+          source: "offscreen",
+          viewId: 0,
+          width: 384,
+          height: 384,
+          ok: true,
+          drawCalls: 1,
+          displaySample: "offscreen-crop-inside",
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+        },
+        {
+          role: "current",
+          target: "current-texture",
+          key: null,
+          source: "swapchain",
+          viewId: 1,
+          width: 960,
+          height: 540,
+          ok: true,
+          drawCalls: 1,
+          readbackSample: "canvas-direct-left",
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+        },
+      ],
+      views: [
+        {
+          role: "offscreen",
+          viewId: 0,
+          priority: 0,
+          layerMask: 1,
+          target: "offscreen",
+          renderTargetKey,
+        },
+        {
+          role: "current",
+          viewId: 1,
+          priority: 1,
+          layerMask: 2,
+          target: "current-texture",
+          renderTargetKey: null,
+          viewport: [0, 0, 1, 1],
+          scissor: [0, 0, 1, 1],
+        },
+      ],
+      passOrder: [
+        {
+          index: 0,
+          viewId: 0,
+          source: "offscreen",
+          target: "offscreen",
+          renderTargetKey,
+          width: 384,
+          height: 384,
+          drawCalls: 1,
+          ok: true,
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+        },
+        {
+          index: 1,
+          viewId: 1,
+          source: "swapchain",
+          target: "current-texture",
+          renderTargetKey: null,
+          width: 960,
+          height: 540,
+          drawCalls: 1,
+          ok: true,
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+        },
+      ],
+      displayPass: {
+        loadOp: "clear",
+        drawCalls: 1,
+        samples: {
+          insideTarget: "offscreen-crop-inside",
+          outsideTarget: "offscreen-crop-outside",
+          screenClear: "screen-clear-corner",
+        },
+      },
+      currentTextureReadback: {
+        ok: true,
+      },
+    },
+    counts: {
+      views: 2,
+      meshDraws: 2,
+      drawCalls: 2,
+      diagnostics: 0,
+    },
+    screenPass: {
+      phase: "screen-pass",
+      drawCalls: 1,
+      loadOp: "clear",
+      samples: {
+        insideTarget: "offscreen-crop-inside",
+        outsideTarget: "offscreen-crop-outside",
+        screenClear: "screen-clear-corner",
+      },
+    },
+  });
+  expect(status.report?.renderTargets).toMatchObject([
+    {
+      source: "offscreen",
+      renderTargetKey,
+      width: 384,
+      height: 384,
+      ok: true,
+      drawCalls: 1,
+      msaaSampleCount: 4,
+    },
+    {
+      source: "swapchain",
+      renderTargetKey: null,
+      width: 960,
+      height: 540,
+      ok: true,
+      drawCalls: 1,
+      msaaSampleCount: 4,
+    },
+  ]);
+  expectNormalizedRect(status.sourceView?.viewport, [0.3, 0.25, 0.4, 0.5]);
+  expectNormalizedRect(status.sourceView?.scissor, [0.3, 0.25, 0.4, 0.5]);
+  expectNormalizedRect(
+    status.mixedMsaaResizedTargetCrop?.targetCrop?.view?.viewport,
+    [0.3, 0.25, 0.4, 0.5],
+  );
+  expectNormalizedRect(
+    status.mixedMsaaResizedTargetCrop?.targetCrop?.view?.scissor,
+    [0.3, 0.25, 0.4, 0.5],
+  );
+  expectNormalizedRect(
+    status.mixedMsaaResizedTargetCrop?.views?.find(
+      (view) => view.role === "offscreen",
+    )?.viewport,
+    [0.3, 0.25, 0.4, 0.5],
+  );
+  expectNormalizedRect(
+    status.mixedMsaaResizedTargetCrop?.views?.find(
+      (view) => view.role === "offscreen",
+    )?.scissor,
+    [0.3, 0.25, 0.4, 0.5],
+  );
+  guard.expectNoWarnings();
+
+  await attachExampleStatus("mixed-msaa-resized-crop-rendered-status", status);
+
+  if (
+    !status.readback?.ok ||
+    !status.mixedMsaaResizedTargetCrop?.currentTextureReadback?.ok
+  ) {
+    test.skip(
+      true,
+      "Mixed MSAA resized crop pixel assertion requires readback.",
+    );
+    return;
+  }
+
+  const currentSample =
+    status.mixedMsaaResizedTargetCrop.currentTextureReadback.samples?.find(
+      (entry) => entry.id === "canvas-direct-left",
+    );
+  const insideSample = status.readback.samples?.find(
+    (entry) => entry.id === "offscreen-crop-inside",
+  );
+  const outsideSample = status.readback.samples?.find(
+    (entry) => entry.id === "offscreen-crop-outside",
+  );
+  const screenClearSample = status.readback.samples?.find(
+    (entry) => entry.id === "screen-clear-corner",
+  );
+
+  expect(currentSample, "expected current-texture sample").toBeDefined();
+  expect(
+    insideSample,
+    "expected resized resolved inside-crop sample",
+  ).toBeDefined();
+  expect(
+    outsideSample,
+    "expected resized resolved outside-crop sample",
+  ).toBeDefined();
+  expect(screenClearSample, "expected screen clear sample").toBeDefined();
+
+  if (
+    currentSample === undefined ||
+    insideSample === undefined ||
+    outsideSample === undefined ||
+    screenClearSample === undefined
+  ) {
+    return;
+  }
+
+  expect(
+    pixelDistance(
+      currentSample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCanvasColor ?? {
+          r: 0.1,
+          g: 0.42,
+          b: 0.95,
+          a: 1,
+        },
+      ),
+    ),
+    "current-texture camera sample should come from the direct MSAA swapchain pass",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(
+      insideSample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCenterColor ?? {
+          r: 0.06,
+          g: 0.88,
+          b: 0.22,
+          a: 1,
+        },
+      ),
+    ),
+    "inside crop sample should come from the resized resolved off-screen viewport",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(
+      outsideSample.pixel,
+      rgbaColorToPixel(
+        status.clearColors?.offscreen ?? {
+          r: 0.02,
+          g: 0.035,
+          b: 0.07,
+          a: 1,
+        },
+      ),
+    ),
+    "outside crop sample should remain the resized off-screen target clear color",
+  ).toBeLessThan(12);
+  expect(
+    pixelDistance(
+      screenClearSample.pixel,
+      rgbaColorToPixel(
+        status.clearColors?.screen ?? {
+          r: 0.015,
+          g: 0.018,
+          b: 0.023,
+          a: 1,
+        },
+      ),
+    ),
+    "screen clear sample should stay outside the resized crop preview quad",
+  ).toBeLessThan(12);
+  expect(
+    pixelDistance(currentSample.pixel, insideSample.pixel),
+    "current-texture sample and resized resolved inside-crop sample should be visually distinct",
+  ).toBeGreaterThan(80);
+  expect(
+    pixelDistance(insideSample.pixel, outsideSample.pixel),
+    "resized resolved crop should differ inside and outside the viewport",
+  ).toBeGreaterThan(40);
+  expect(
+    pixelDistance(currentSample.pixel, outsideSample.pixel),
+    "current-texture sample should differ from the resized off-screen target clear color",
   ).toBeGreaterThan(40);
 });
 
