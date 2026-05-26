@@ -1,5 +1,39 @@
 # Completed Tasks
 
+## task-3207 — Add a mixed current-texture plus MSAA resized reused viewport-cropped off-screen target route
+
+Completed: 2026-05-26
+
+### Summary
+
+- Added `examples/mixed-msaa-resized-reuse-crop.html` to the render-to-texture
+  route family and linked it from related example pages.
+- `examples/render-to-texture.main.js` now recognizes the mixed MSAA resized
+  reuse crop route, creates an MSAA-enabled app, replaces a renderer-owned
+  off-screen `ViewPacket.renderTarget` texture under the same ECS handle,
+  renders two worker snapshots through the resized handle while also extracting
+  a current-texture ECS camera, applies a non-full viewport/scissor rectangle to
+  the off-screen target, and displays the second resolved cropped preview plus
+  current-texture readback.
+- Added Playwright coverage proving the current-texture sample, inside-crop
+  preview, outside-clear region, and screen-clear region are distinct without
+  stale-size or stale first-frame pixels.
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `pnpm exec eslint examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA resized reuse crop" --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA resized reuse crop|mixed MSAA reuse crop|mixed MSAA resized crop|mixed MSAA reuse route" --project=chrome-webgpu-headed`
+- Browser route check: `examples/mixed-msaa-resized-reuse-crop.html`
+  published `ok: true`, two MSAA target submissions, current/off-screen target
+  classifications, a stable 128x128 to 384x384 render-target key resize, a
+  stable off-screen target key across two worker snapshots, target-space crop
+  pixels, requested 8/effective 4 MSAA, resolve attachments, resize pressure,
+  reuse pressure, current-texture readback, and distinct current, inside-crop,
+  outside-clear, and screen-clear samples.
+
 ## task-3206 — Add a mixed current-texture plus MSAA reused dual-size off-screen target route
 
 Completed: 2026-05-26
