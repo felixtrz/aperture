@@ -1,5 +1,36 @@
 # Completed Tasks
 
+## task-3173 — Add a camera viewport grid route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/camera-viewport-grid.html` and
+  `examples/camera-viewport-grid.worker.js`.
+- The worker authors four ECS cameras with normalized viewport/scissor
+  quadrants over one world and four layer-masked colored planes sharing one
+  prepared mesh resource.
+- The route reports `viewportGrid` status with a 2x2 cell list, resolved
+  viewport/scissor pixels, shared mesh key, material keys, sample ids, and
+  expected per-camera included/skipped draw counts.
+- The shared multi-view main route publishes that grid status while continuing
+  to report per-view priority, clear behavior, viewport/scissor pixels, command
+  counts, pass order, and submission counts.
+- Playwright verifies all four grid-cell samples match distinct material colors
+  and each camera reports one included draw and three skipped draws.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/camera-viewport-grid.spec.ts --reporter=list`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts test/e2e/orthographic-camera.spec.ts test/e2e/line-primitives.spec.ts test/e2e/camera-render-layers.spec.ts test/e2e/camera-priority-overlay.spec.ts test/e2e/camera-sub-view-crop.spec.ts test/e2e/camera-viewport-grid.spec.ts --reporter=list`
+- `pnpm exec eslint examples/split-screen-multi-camera.main.js examples/camera-viewport-grid.worker.js test/e2e/camera-viewport-grid.spec.ts test/examples/navigation.test.mjs`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run render-control:smoke-all`
+
 ## task-3172 — Add a camera sub-view/crop route
 
 Completed: 2026-05-26

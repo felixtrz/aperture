@@ -393,12 +393,18 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 02:45 UTC</dd>
+            <dd>2026-05-26 02:54 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/camera-viewport-grid.html</code> now proves four
+              ECS cameras rendering into a stable normalized 2x2 viewport grid.
+              The route reports per-cell viewport/scissor pixels, material
+              keys, shared mesh identity, and included/skipped draw counts,
+              then Playwright verifies four distinct grid-cell samples. Previous
+              update:
               <code>examples/camera-sub-view-crop.html</code> now proves one
               ECS camera rendering through a normalized viewport/scissor crop.
               The route reports the crop rectangle, resolved viewport/scissor
@@ -2166,13 +2172,13 @@
               Per-camera frustum planes now skip outside-view mesh draws during
               extraction and publish per-view <code>cullStats</code>. ECS
               multi-camera viewport/scissor extraction is now browser-proven by
-              the split-screen, orthographic, and camera sub-view crop routes,
-              including a cropped viewport/scissor proof with clear outside
-              samples. ECS-authored <code>line-list</code> mesh assets now
-              extract through the normal mesh-draw path and render through the
-              unlit WebGPU pipeline. ECS <code>OcclusionQuery</code> now
-              extracts an opt-in mesh-draw flag for renderer-owned GPU
-              visibility feedback.
+              the split-screen, orthographic, camera sub-view crop, and camera
+              viewport grid routes, including cropped and 2x2 grid
+              viewport/scissor proofs with per-view draw accounting.
+              ECS-authored <code>line-list</code> mesh assets now extract
+              through the normal mesh-draw path and render through the unlit
+              WebGPU pipeline. ECS <code>OcclusionQuery</code> now extracts an
+              opt-in mesh-draw flag for renderer-owned GPU visibility feedback.
               ECS <code>Fog</code> components now extract snapshot fog packets
               for linear, exponential, and exponential-squared view fog.
               Snapshot change sets now carry stable packet keys and produce
@@ -2685,6 +2691,14 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3173</span> Added
+                <code>examples/camera-viewport-grid.html</code>. The shared
+                multi-view route now reports four normalized viewport/scissor
+                cells with shared mesh identity, material keys, and per-camera
+                included/skipped draw counts, and Playwright proves four
+                distinct grid-cell samples.
+              </li>
               <li>
                 <span class="badge green">task-3172</span> Added
                 <code>examples/camera-sub-view-crop.html</code>. The shared
@@ -5329,16 +5343,22 @@
                 status and inside/outside Playwright readback proof.
               </li>
               <li>
-                <span class="badge">task-3173</span> Next: add a camera
-                viewport grid route.
+                <span class="badge green">task-3173</span> Done: add a camera
+                viewport grid route with four viewport/scissor cells,
+                included/skipped draw accounting, and distinct-cell Playwright
+                proof.
               </li>
               <li>
-                <span class="badge">task-3174</span> Then: add a render-target
+                <span class="badge">task-3174</span> Next: add a render-target
                 resize preview route.
               </li>
               <li>
                 <span class="badge">task-3175</span> Then: add a camera
                 clear/load behavior matrix route.
+              </li>
+              <li>
+                <span class="badge">task-3176</span> Then: add a
+                picture-in-picture camera inset route.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5357,6 +5377,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3173</div>
+            <div>
+              <strong>Camera viewport grid route shipped.</strong>
+              <span>
+                <code>examples/camera-viewport-grid.html</code> renders four
+                ECS cameras into a normalized 2x2 viewport grid, reports
+                per-cell viewport/scissor pixels and per-camera draw filtering,
+                and proves four distinct grid-cell material samples while
+                sharing one mesh resource.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3172</div>
             <div>

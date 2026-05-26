@@ -59,22 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3172` is complete: `examples/camera-sub-view-crop.html` now proves one
-ECS camera can render through a normalized viewport/scissor crop, reports the
-resolved crop rectangle and expected inside/outside samples, and verifies the
-crop-center material appears while outside-crop samples remain clear. Continue
-the post-SOTA visible-feature queue at `task-3173`: add a camera viewport grid
-route.
+`task-3173` is complete: `examples/camera-viewport-grid.html` now proves four
+ECS cameras rendering into a normalized 2x2 viewport grid over one world,
+reports per-cell viewport/scissor pixels, material keys, and included/skipped
+draw counts, and verifies four distinct grid-cell samples. Continue the
+post-SOTA visible-feature queue at `task-3174`: add a render-target resize
+preview route.
 
 The next ready visible-feature queue is:
 
-- `task-3173` — add a camera viewport grid route.
-  Reference anchor: `references/three.js/examples/webgpu_camera_array.html`,
-  `references/bevy/examples/stress_tests/many_cameras_lights.rs`.
-  Done when a browser route renders four ECS cameras into a stable viewport
-  grid over one world, reports per-camera viewport/scissor and draw counts, and
-  Playwright verifies all four grid cells show distinct camera/material
-  evidence while sharing prepared mesh/material resources.
 - `task-3174` — add a render-target resize preview route.
   Reference anchor:
   `references/engine/examples/src/examples/graphics/render-to-texture.example.mjs`,
@@ -90,6 +83,14 @@ The next ready visible-feature queue is:
   behavior over one target, reports the clear source/order/load behavior for
   each pass, and Playwright verifies clear-only, base-preserved, and overlay
   regions.
+- `task-3176` — add a picture-in-picture camera inset route.
+  Reference anchor: `references/bevy/examples/ui/ui_target_camera.rs`,
+  `references/three.js/examples/webgpu_camera_array.html`.
+  Done when a browser route renders a full-canvas base camera plus a small
+  inset camera viewport over the same target, reports inset viewport/scissor
+  pixels and clear/load behavior, and Playwright verifies base pixels remain
+  visible around the inset while the inset shows distinct layer/material
+  evidence.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

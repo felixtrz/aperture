@@ -373,6 +373,9 @@ async function renderSplitScreenScene(
     ...(scene.subViewCrop === undefined
       ? {}
       : { subViewCrop: scene.subViewCrop }),
+    ...(scene.viewportGrid === undefined
+      ? {}
+      : { viewportGrid: scene.viewportGrid }),
     ...(scene.proof === undefined ? {} : { proof: scene.proof }),
     diagnostics: framePlanDiagnostics,
     diagnosticCounts: diagnosticCounts({
@@ -888,6 +891,15 @@ function routeConfigForPath(pathname) {
       label: "The camera sub-view crop route",
       workerUrl: "/worker-modules/examples/camera-sub-view-crop.worker.js",
       workerName: "aperture-camera-sub-view-crop-simulation",
+    };
+  }
+
+  if (pathname.endsWith("/camera-viewport-grid.html")) {
+    return {
+      example: "camera-viewport-grid",
+      label: "The camera viewport grid route",
+      workerUrl: "/worker-modules/examples/camera-viewport-grid.worker.js",
+      workerName: "aperture-camera-viewport-grid-simulation",
     };
   }
 

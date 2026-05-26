@@ -75,6 +75,13 @@ const examplePages = [
     exampleName: "camera sub-view crop",
   },
   {
+    file: "examples/camera-viewport-grid.html",
+    script: "./split-screen-multi-camera.main.js",
+    title: "Aperture Camera Viewport Grid",
+    canvasLabel: "Aperture WebGPU camera viewport grid canvas",
+    exampleName: "camera viewport grid",
+  },
+  {
     file: "examples/spinning-cube.html",
     script: "./spinning-cube.main.js",
     title: "Aperture ECS Spinning Cube",
@@ -92,6 +99,7 @@ const expectedHrefs = [
   'href="/examples/camera-render-layers.html"',
   'href="/examples/camera-priority-overlay.html"',
   'href="/examples/camera-sub-view-crop.html"',
+  'href="/examples/camera-viewport-grid.html"',
   'href="/examples/spinning-cube.html"',
 ];
 const readbackHelperImport = 'from "./webgpu-readback.js"';

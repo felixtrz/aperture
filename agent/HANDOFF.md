@@ -1,6 +1,60 @@
 # Agent Handoff
 
-Updated: 2026-05-26T02:45:24Z
+Updated: 2026-05-26T02:54:38Z
+
+## Current Run Update — 2026-05-26T02:54:38Z — Camera viewport grid route
+
+Completed `task-3173` after `task-3172`.
+
+### What changed
+
+- Added `examples/camera-viewport-grid.html` and
+  `examples/camera-viewport-grid.worker.js`.
+- The worker authors four ECS cameras with normalized viewport/scissor
+  quadrants over one world and four layer-masked colored planes sharing one
+  prepared mesh resource.
+- The route publishes `viewportGrid` status with a 2x2 cell list, resolved
+  viewport/scissor pixels, shared mesh key, material keys, sample ids, and
+  expected per-camera included/skipped draw counts.
+- The shared multi-view main path now passes through route-level grid status
+  while continuing to report per-view priority, clear behavior, pass order,
+  viewport/scissor pixels, command counts, and submission counts.
+- Added Playwright coverage proving all four grid-cell samples match distinct
+  material colors while each camera reports one included draw and three skipped
+  draws.
+
+### Validation
+
+- `pnpm exec playwright test test/e2e/camera-viewport-grid.spec.ts --reporter=list`
+  — first run failed because camera and plane entities were interleaved,
+  producing non-compact view ids (`0,2,4,6`); after spawning all cameras before
+  renderables, 1 passed. After a strict test type-check fix, this focused test
+  was rerun and passed again.
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs` — 7 passed.
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts test/e2e/orthographic-camera.spec.ts test/e2e/line-primitives.spec.ts test/e2e/camera-render-layers.spec.ts test/e2e/camera-priority-overlay.spec.ts test/e2e/camera-sub-view-crop.spec.ts test/e2e/camera-viewport-grid.spec.ts --reporter=list`
+  — 8 passed; covers the new route plus shared-main regressions.
+- `pnpm exec eslint examples/split-screen-multi-camera.main.js examples/camera-viewport-grid.worker.js test/e2e/camera-viewport-grid.spec.ts test/examples/navigation.test.mjs`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json` — first run failed on a
+  strict indexed-access guard in the new E2E test; after the guard fix, it
+  passed.
+- `pnpm run render-control:smoke-all` — visited 56 routes, including
+  `/examples/camera-viewport-grid.html`, with zero route status failures and
+  zero warning routes.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3174`: add a render-target resize
+preview route.
 
 ## Current Run Update — 2026-05-26T02:45:24Z — Camera sub-view/crop route
 
