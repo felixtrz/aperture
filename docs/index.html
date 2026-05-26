@@ -393,18 +393,26 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 02:20 UTC</dd>
+            <dd>2026-05-26 02:28 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: <code>examples/render-to-texture.html</code> now
+              Latest update:
+              <code>examples/camera-render-layers.html</code> now proves two
+              active ECS cameras with distinct layer masks over one
+              worker-authored world. The shared multi-view path filters each
+              view command plan by camera layer mask, status reports per-camera
+              included/skipped draw counts and material keys, and Playwright
+              verifies red and blue viewport samples while each camera excludes
+              the other layer. Previous update:
+              <code>examples/render-to-texture.html</code> now
               reports the ECS source camera view, off-screen render-target key,
               target usage, display pass draw count, clear colors, and
               render-control capabilities for the camera render-target preview
               path. Playwright samples the displayed preview plus an untouched
               main-canvas clear region and verifies the preview differs from
-              both that clear region and the off-screen clear color. Previous
+              both that clear region and the off-screen clear color. Earlier
               update: <code>examples/line-primitives.html</code> now
               renders two indexed ECS-authored colored line sets through the
               typed <code>createLineListMeshAsset(...)</code> path and the
@@ -2663,6 +2671,14 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3170</span> Added
+                <code>examples/camera-render-layers.html</code>. The shared
+                multi-view route now supports opt-in per-view layer filtering,
+                reports included/skipped draw counts and material keys for each
+                camera, and Playwright proves red and blue cameras exclude the
+                other layer.
+              </li>
               <li>
                 <span class="badge green">task-3169</span> Strengthened the
                 render-to-texture route as the camera render-target preview
@@ -5270,8 +5286,13 @@
                 target, display-pass, clear-color, and readback proof.
               </li>
               <li>
-                <span class="badge">task-3170</span> Next: add a camera
-                render-layer isolation route.
+                <span class="badge green">task-3170</span> Done: add a camera
+                render-layer isolation route with per-view included/skipped draw
+                reporting and red/blue Playwright proof.
+              </li>
+              <li>
+                <span class="badge">task-3171</span> Next: add a camera
+                priority overlay route.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5290,6 +5311,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3170</div>
+            <div>
+              <strong>Camera render-layer route shipped.</strong>
+              <span>
+                <code>examples/camera-render-layers.html</code> renders two
+                ECS-authored cameras with distinct layer masks over two
+                overlaid render-layered entities, reports per-camera
+                included/skipped draw counts and material keys, and proves each
+                viewport excludes the other layer.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3169</div>
             <div>

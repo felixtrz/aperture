@@ -93,11 +93,12 @@ async function renderSplitScreenScene(
 
   const { snapshot, scene } = workerSnapshot;
   const firstDraw = snapshot.meshDraws[0];
+  const expectedExtractedDrawCount = expectedExtractedDrawCountForScene(scene);
 
   if (
     firstDraw === undefined ||
     snapshot.views.length !== (scene.expectedViewCount ?? 2) ||
-    snapshot.meshDraws.length !== scene.expectedDrawCount
+    snapshot.meshDraws.length !== expectedExtractedDrawCount
   ) {
     return {
       ...failure(
@@ -315,6 +316,7 @@ async function renderSplitScreenScene(
     command: commandCounts,
     viewports: viewPlansResult.viewPlans.map((plan) => ({
       viewId: plan.view.viewId,
+      layerMask: plan.view.layerMask,
       viewport: Array.from(plan.view.viewport),
       scissor: Array.from(plan.view.scissor),
       viewportPixels: plan.viewport,
@@ -322,9 +324,14 @@ async function renderSplitScreenScene(
     })),
     viewPasses: viewPlansResult.viewPlans.map((plan) => ({
       viewId: plan.view.viewId,
+      layerMask: plan.view.layerMask,
       commands: plan.framePlan.commandPlan.commands.length,
       drawCalls: plan.framePlan.commandPlan.drawCount,
       indexedDrawCalls: plan.framePlan.commandPlan.indexedDrawCount,
+      includedDraws: plan.includedDraws,
+      skippedDraws: plan.skippedDraws,
+      includedMaterialKeys: plan.includedMaterialKeys,
+      skippedMaterialKeys: plan.skippedMaterialKeys,
       viewportPixels: plan.viewport,
       scissorPixels: plan.scissor,
     })),
@@ -347,6 +354,9 @@ async function renderSplitScreenScene(
     ...(scene.linePrimitives === undefined
       ? {}
       : { linePrimitives: scene.linePrimitives }),
+    ...(scene.layerIsolation === undefined
+      ? {}
+      : { layerIsolation: scene.layerIsolation }),
     ...(scene.proof === undefined ? {} : { proof: scene.proof }),
     diagnostics: framePlanDiagnostics,
     diagnosticCounts: diagnosticCounts({
@@ -437,13 +447,21 @@ function createViewPlans({
       };
     }
 
+    const viewSnapshot = snapshotForView(snapshot, view, scene);
+    const expectedDrawCount = expectedDrawCountForView(scene, view);
+    const includedMaterialKeys = viewSnapshot.meshDraws.map((draw) =>
+      aperture.assetHandleKey(draw.material),
+    );
+    const skippedMaterialKeys = snapshot.meshDraws
+      .filter((draw) => !viewSnapshot.meshDraws.includes(draw))
+      .map((draw) => aperture.assetHandleKey(draw.material));
     const bindGroups = [
       ...viewUniform.bindGroups,
       ...frameResources.bindGroups.filter((bindGroup) => bindGroup.group !== 0),
     ];
     const renderWorld = new aperture.RenderWorld();
     const framePlan = aperture.planRenderFrameFromSnapshot({
-      snapshot,
+      snapshot: viewSnapshot,
       renderWorld,
       transforms: packedTransforms,
       resolveMeshResourceKey: (draw) =>
@@ -463,13 +481,13 @@ function createViewPlans({
 
     if (
       !framePlan.summary.ready ||
-      framePlan.commandPlan.drawCount !== scene.expectedDrawCount
+      framePlan.commandPlan.drawCount !== expectedDrawCount
     ) {
       diagnostics.push(...framePlan.summary.diagnostics);
       return {
         ok: false,
         reason: "draw-plan-unavailable",
-        message: `View ${view.viewId} did not produce ${scene.expectedDrawCount} drawable command(s).`,
+        message: `View ${view.viewId} did not produce ${expectedDrawCount} drawable command(s).`,
         diagnostics,
         resourcesDiagnostics,
         drawDiagnostics,
@@ -482,6 +500,10 @@ function createViewPlans({
       scissor: scissor.rect,
       framePlan,
       viewBindGroups: viewUniform.bindGroups,
+      includedDraws: viewSnapshot.meshDraws.length,
+      skippedDraws: snapshot.meshDraws.length - viewSnapshot.meshDraws.length,
+      includedMaterialKeys,
+      skippedMaterialKeys,
     });
   }
 
@@ -822,6 +844,15 @@ function routeConfigForPath(pathname) {
     };
   }
 
+  if (pathname.endsWith("/camera-render-layers.html")) {
+    return {
+      example: "camera-render-layers",
+      label: "The camera render-layer isolation route",
+      workerUrl: "/worker-modules/examples/camera-render-layers.worker.js",
+      workerName: "aperture-camera-render-layers-simulation",
+    };
+  }
+
   return {
     example: "split-screen-multi-camera",
     label: "The split-screen multi-camera route",
@@ -830,8 +861,27 @@ function routeConfigForPath(pathname) {
   };
 }
 
-function snapshotForView(snapshot, view) {
-  return { ...snapshot, views: [view] };
+function snapshotForView(snapshot, view, scene = null) {
+  const meshDraws =
+    scene?.filterDrawsByViewLayer === true
+      ? snapshot.meshDraws.filter(
+          (draw) => (draw.layerMask & view.layerMask) !== 0,
+        )
+      : snapshot.meshDraws;
+
+  return { ...snapshot, views: [view], meshDraws };
+}
+
+function expectedExtractedDrawCountForScene(scene) {
+  return scene.expectedExtractedDrawCount ?? scene.expectedDrawCount;
+}
+
+function expectedDrawCountForView(scene, view) {
+  return (
+    scene.expectedDrawCountsByViewId?.[view.viewId] ??
+    scene.expectedViewDrawCount ??
+    scene.expectedDrawCount
+  );
 }
 
 function unlitPipelineLayouts(pipeline) {

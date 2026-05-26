@@ -1,6 +1,56 @@
 # Agent Handoff
 
-Updated: 2026-05-26T02:20:10Z
+Updated: 2026-05-26T02:28:44Z
+
+## Current Run Update — 2026-05-26T02:28:44Z — Camera render-layer route
+
+Completed `task-3170` after `task-3169`.
+
+### What changed
+
+- Added `examples/camera-render-layers.html` and
+  `examples/camera-render-layers.worker.js`.
+- The worker authors two active ECS cameras with distinct layer masks over two
+  overlaid mesh entities with distinct `RenderLayer` masks.
+- Extended the shared multi-view main path with opt-in per-view draw filtering:
+  routes can keep the full extracted snapshot but plan each camera view with
+  only the mesh draws whose layer mask intersects that view's layer mask.
+- Status now reports per-view layer masks, included/skipped draw counts,
+  included/skipped material keys, and the route-level layer-isolation contract.
+- Updated example navigation and `check:examples` coverage for the new worker.
+- Added Playwright coverage that verifies the red-layer camera and blue-layer
+  camera see different colors, while each camera reports one included draw and
+  one skipped draw.
+
+### Validation
+
+- `pnpm exec playwright test test/e2e/camera-render-layers.spec.ts --reporter=list`
+  — first run only failed on the expected binding count; after correcting the
+  test expectation to the filtered per-view binding count, 1 passed.
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs` — 7 passed.
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts test/e2e/orthographic-camera.spec.ts test/e2e/line-primitives.spec.ts test/e2e/camera-render-layers.spec.ts --reporter=list`
+  — 5 passed; covers the new route plus shared-main regressions.
+- `pnpm exec eslint examples/split-screen-multi-camera.main.js examples/camera-render-layers.worker.js test/e2e/camera-render-layers.spec.ts test/examples/navigation.test.mjs`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm run render-control:smoke-all` — visited 53 routes, including
+  `/examples/camera-render-layers.html`, with zero route status failures and
+  zero warning routes.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3171`: add a camera priority
+overlay route.
 
 ## Current Run Update — 2026-05-26T02:20:10Z — Render-target preview route
 

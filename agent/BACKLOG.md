@@ -59,20 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3169` is complete: `examples/render-to-texture.html` now reports the ECS
-source camera view, off-screen render target, display pass, render-control
-capabilities, and readback proof that the displayed preview differs from both
-the main-canvas clear region and the off-screen clear color. Continue the
-post-SOTA visible-feature queue at `task-3170`: add a camera render-layer
-isolation route.
+`task-3170` is complete: `examples/camera-render-layers.html` now proves two
+ECS cameras with distinct layer masks over one worker-authored world, reports
+per-camera included/skipped draw counts and material keys, and verifies each
+viewport excludes the other layer with Playwright readback. Continue the
+post-SOTA visible-feature queue at `task-3171`: add a camera priority overlay
+route.
 
 The next ready visible-feature queue is:
 
-- `task-3170` — add a camera render-layer isolation route.
-  Reference anchor: `references/three.js/examples/webgpu_layers.html`.
-  Done when a browser route renders two active cameras with distinct layer
-  masks over the same ECS world, reports per-camera included/skipped draw
-  counts, and Playwright verifies each viewport excludes the other layer.
 - `task-3171` — add a camera priority overlay route.
   Reference anchor: `references/bevy/examples/ui/ui_target_camera.rs`,
   `references/engine/src/extras/render-passes/camera-frame.js`.
@@ -88,6 +83,13 @@ The next ready visible-feature queue is:
   and skipped outside-region samples, and Playwright verifies the visible
   object moves/scales according to the cropped camera view without changing ECS
   mesh authoring.
+- `task-3173` — add a camera viewport grid route.
+  Reference anchor: `references/three.js/examples/webgpu_camera_array.html`,
+  `references/bevy/examples/stress_tests/many_cameras_lights.rs`.
+  Done when a browser route renders four ECS cameras into a stable viewport
+  grid over one world, reports per-camera viewport/scissor and draw counts, and
+  Playwright verifies all four grid cells show distinct camera/material
+  evidence while sharing prepared mesh/material resources.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

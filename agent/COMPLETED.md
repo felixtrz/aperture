@@ -1,5 +1,35 @@
 # Completed Tasks
 
+## task-3170 — Add a camera render-layer isolation route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/camera-render-layers.html` and
+  `examples/camera-render-layers.worker.js`.
+- The worker authors two active ECS cameras with distinct layer masks over two
+  overlaid mesh entities with distinct `RenderLayer` masks.
+- The shared multi-view main path now supports opt-in per-view draw filtering,
+  preserving the full extracted snapshot while planning each camera view with
+  only intersecting layer-mask draws.
+- Status reports per-view layer masks, included/skipped draw counts,
+  included/skipped material keys, and the JSON-safe layer-isolation contract.
+- Playwright verifies one red camera viewport, one blue camera viewport, one
+  draw per camera, and one skipped draw per camera.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/camera-render-layers.spec.ts --reporter=list`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts test/e2e/orthographic-camera.spec.ts test/e2e/line-primitives.spec.ts test/e2e/camera-render-layers.spec.ts --reporter=list`
+- `pnpm exec eslint examples/split-screen-multi-camera.main.js examples/camera-render-layers.worker.js test/e2e/camera-render-layers.spec.ts test/examples/navigation.test.mjs`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm run render-control:smoke-all`
+
 ## task-3169 — Add a camera render-target preview route
 
 Completed: 2026-05-26

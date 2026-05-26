@@ -54,6 +54,13 @@ const examplePages = [
     exampleName: "line primitives",
   },
   {
+    file: "examples/camera-render-layers.html",
+    script: "./split-screen-multi-camera.main.js",
+    title: "Aperture Camera Render Layers",
+    canvasLabel: "Aperture WebGPU camera render-layer canvas",
+    exampleName: "camera render layers",
+  },
+  {
     file: "examples/spinning-cube.html",
     script: "./spinning-cube.main.js",
     title: "Aperture ECS Spinning Cube",
@@ -68,6 +75,7 @@ const expectedHrefs = [
   'href="/examples/split-screen-multi-camera.html"',
   'href="/examples/orthographic-camera.html"',
   'href="/examples/line-primitives.html"',
+  'href="/examples/camera-render-layers.html"',
   'href="/examples/spinning-cube.html"',
 ];
 const readbackHelperImport = 'from "./webgpu-readback.js"';
