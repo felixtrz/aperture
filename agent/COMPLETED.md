@@ -1,5 +1,38 @@
 # Completed Tasks
 
+## task-3177 — Add a render-target reuse stress preview route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/render-target-reuse.html` on the existing
+  render-to-texture main/worker route family.
+- The route requests two consecutive worker snapshots and renders both through
+  the same renderer-owned off-screen WebGPU texture and ECS
+  `ViewPacket.renderTarget` handle without resizing.
+- Worker frame 1 moves the plane off the center sample while keeping it inside
+  extraction; worker frame 2 recenters it so the displayed preview can prove the
+  second snapshot is the one shown on the canvas.
+- Status reports `renderTargetReuseStress` with requested/rendered frames,
+  displayed frame, stable dimensions, target key, created-vs-reused texture
+  pressure, and stale-first-frame status.
+- Playwright verifies the original render-to-texture route, the resize route,
+  and the new reuse route, including a non-clear second-frame preview.
+
+Validation:
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --reporter=list`
+- `pnpm run check:examples`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm run render-control:smoke-all`
+
 ## task-3176 — Add a picture-in-picture camera inset route
 
 Completed: 2026-05-26

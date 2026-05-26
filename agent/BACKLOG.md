@@ -59,24 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3176` is complete: `examples/camera-picture-in-picture.html` now proves a
-full-canvas base camera plus a small inset camera over the same target, reports
-inset viewport/scissor pixels, per-view layer filtering, pass order, and
-clear/load behavior, and verifies preserved base plus distinct inset samples.
-Continue the post-SOTA visible-feature queue at `task-3177`: add a
-render-target reuse stress preview route.
+`task-3177` is complete: `examples/render-target-reuse.html` now proves two
+consecutive worker snapshots through the same renderer-owned off-screen target
+handle without resizing, reports stable dimensions and target reuse pressure,
+and verifies the displayed preview comes from the second snapshot without stale
+first-frame status. Continue the post-SOTA visible-feature queue at
+`task-3178`: add a camera viewport resize matrix route.
 
 The next ready visible-feature queue is:
 
-- `task-3177` — add a render-target reuse stress preview route.
-  Reference anchor:
-  `references/engine/examples/src/examples/graphics/render-to-texture.example.mjs`,
-  `references/three.js/examples/webgpu_rtt.html`.
-  Done when a browser route renders two consecutive worker snapshots through
-  the same renderer-owned off-screen target handle without resizing, reports
-  target handle/resource reuse pressure and frame-to-frame dimensions, and
-  Playwright verifies the second displayed preview remains non-clear with no
-  stale first-frame status.
 - `task-3178` — add a camera viewport resize matrix route.
   Reference anchor: `references/bevy/examples/3d/camera_sub_view.rs`,
   `references/three.js/manual/examples/cameras-perspective-2-scenes.html`.
@@ -92,6 +83,15 @@ The next ready visible-feature queue is:
   both targets through renderer-owned resources without making ECS own GPU
   state, reports per-target pass order and target keys, and Playwright verifies
   the canvas and displayed off-screen preview show distinct non-clear pixels.
+- `task-3180` — add a multiple off-screen render-target preview route.
+  Reference anchor:
+  `references/engine/examples/src/examples/graphics/multi-render-targets.example.mjs`,
+  `references/three.js/examples/webgpu_multiple_rendertargets.html`.
+  Done when a browser route extracts two ECS cameras targeting two distinct
+  renderer-owned off-screen render-target handles, displays both target
+  textures on the canvas, reports per-target dimensions, keys, draw counts, and
+  display samples, and Playwright verifies both previews are non-clear and
+  visually distinct.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

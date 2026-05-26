@@ -158,6 +158,7 @@ function startWorkerSnapshotLoop(aperture, app, scene, readbackUsage) {
     receivedSnapshots: 0,
     workerReady: false,
     workerScene: null,
+    offscreenFrames: [],
   };
 
   worker.addEventListener("message", (event) => {
@@ -183,6 +184,7 @@ function startWorkerSnapshotLoop(aperture, app, scene, readbackUsage) {
   });
   worker.postMessage({
     type: "init",
+    reuseStress: routeConfig.reuseStress,
     canvas: {
       width: canvas?.width ?? 960,
       height: canvas?.height ?? 540,
@@ -249,6 +251,18 @@ async function handleWorkerMessage(
       ),
     );
     worker.terminate();
+    return;
+  }
+
+  loop.offscreenFrames.push(
+    createOffscreenFrameStatus(aperture, scene, message, offscreenReport),
+  );
+
+  if (
+    routeConfig.reuseStress &&
+    loop.offscreenFrames.length < routeConfig.requiredFrames
+  ) {
+    requestWorkerFrame(worker, loop);
     return;
   }
 
@@ -475,6 +489,16 @@ function createStatus(
     ...(scene.renderTargetResize === null
       ? {}
       : { renderTargetResize: scene.renderTargetResize }),
+    ...(routeConfig.reuseStress
+      ? {
+          renderTargetReuseStress: createRenderTargetReuseStressStatus(
+            aperture,
+            scene,
+            loop,
+            message,
+          ),
+        }
+      : {}),
     sourceView: createSourceViewStatus(aperture, message.snapshot, scene),
     scene: {
       meshKey: aperture.assetHandleKey(scene.mesh),
@@ -563,6 +587,19 @@ function routeConfigForPath(pathname) {
       initialOffscreenSize: 128,
       offscreenSize: 384,
       resizeTarget: true,
+      reuseStress: false,
+      requiredFrames: 1,
+    };
+  }
+
+  if (pathname.endsWith("/render-target-reuse.html")) {
+    return {
+      example: "render-target-reuse",
+      initialOffscreenSize: defaultOffscreenSize,
+      offscreenSize: defaultOffscreenSize,
+      resizeTarget: false,
+      reuseStress: true,
+      requiredFrames: 2,
     };
   }
 
@@ -571,6 +608,53 @@ function routeConfigForPath(pathname) {
     initialOffscreenSize: defaultOffscreenSize,
     offscreenSize: defaultOffscreenSize,
     resizeTarget: false,
+    reuseStress: false,
+    requiredFrames: 1,
+  };
+}
+
+function createOffscreenFrameStatus(aperture, scene, message, offscreenReport) {
+  const report = aperture.webGpuAppRenderReportToJsonValue(offscreenReport);
+  const renderTarget = report.renderTargets?.[0] ?? null;
+
+  return {
+    frame: message.frame ?? offscreenReport.frame,
+    workerVariant: message.workerStep?.frameVariant ?? "single-frame",
+    centerExpectation: message.workerStep?.centerExpectation ?? "plane",
+    renderTargetKey:
+      renderTarget?.renderTargetKey ?? aperture.assetHandleKey(scene.renderTarget),
+    width: renderTarget?.width ?? routeConfig.offscreenSize,
+    height: renderTarget?.height ?? routeConfig.offscreenSize,
+    drawCalls: renderTarget?.drawCalls ?? offscreenReport.counts.drawCalls,
+    diagnostics: offscreenReport.counts.diagnostics,
+  };
+}
+
+function createRenderTargetReuseStressStatus(aperture, scene, loop, message) {
+  const frames = loop.offscreenFrames;
+  const renderTargetKey = aperture.assetHandleKey(scene.renderTarget);
+  const stableDimensions = frames.every(
+    (frame) =>
+      frame.width === routeConfig.offscreenSize &&
+      frame.height === routeConfig.offscreenSize,
+  );
+
+  return {
+    mode: "same-render-target-two-worker-snapshots",
+    renderTargetKey,
+    framesRequested: routeConfig.requiredFrames,
+    framesRendered: frames.length,
+    displayedFrame: message.frame ?? null,
+    reusedHandle: true,
+    textureRecreated: false,
+    targetResourcePressure: {
+      createdTextures: 1,
+      reusedTextures: Math.max(0, frames.length - 1),
+      stableDimensions,
+    },
+    frames,
+    staleFirstFrameStatus:
+      frames.length > 1 && frames[0]?.frame === (message.frame ?? null),
   };
 }
 

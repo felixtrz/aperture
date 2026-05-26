@@ -41,6 +41,7 @@ async function handleMessage(data) {
       scene = createWorkerScene(
         aperture,
         data.canvas ?? { width: 960, height: 540 },
+        data.reuseStress === true,
       );
       self.postMessage({
         type: "ready",
@@ -78,7 +79,7 @@ function loadAperture() {
   return apertureModulePromise;
 }
 
-function createWorkerScene(aperture, canvasSize) {
+function createWorkerScene(aperture, canvasSize, reuseStress) {
   const app = aperture.createExtractionApp({
     worldOptions: { entityCapacity: 8 },
   });
@@ -96,7 +97,7 @@ function createWorkerScene(aperture, canvasSize) {
       renderTargetId: aperture.assetHandleKey(assets.renderTarget),
     }),
   );
-  app.spawn(
+  const meshEntity = app.spawn(
     aperture.withTransform(),
     aperture.withMesh(assets.mesh),
     aperture.withMaterial(assets.material),
@@ -110,14 +111,19 @@ function createWorkerScene(aperture, canvasSize) {
     material: assets.material,
     renderTarget: assets.renderTarget,
     canvas: canvasSize,
+    meshEntity,
+    reuseStress,
+    localTransformComponent: aperture.LocalTransform,
   };
 }
 
 function createSnapshotMessage(workerScene, data) {
   const frame = finiteInteger(data.frame, 1);
 
+  applyReuseStressFrame(workerScene, frame);
   workerScene.app.step(0, 0);
   const snapshot = workerScene.app.extract(frame);
+  const frameVariant = frame <= 1 ? "left-clear-center" : "center-plane";
 
   return {
     type: "snapshot",
@@ -128,8 +134,24 @@ function createSnapshotMessage(workerScene, data) {
       viewMatrices: snapshot.viewMatrices.length / 16,
       meshDraws: snapshot.meshDraws.length,
       diagnostics: snapshot.diagnostics.length,
+      frameVariant: workerScene.reuseStress ? frameVariant : "single-frame",
+      centerExpectation:
+        workerScene.reuseStress && frame <= 1 ? "offscreen-clear" : "plane",
     },
   };
+}
+
+function applyReuseStressFrame(workerScene, frame) {
+  if (!workerScene.reuseStress) {
+    return;
+  }
+
+  const translation = workerScene.meshEntity.getVectorView(
+    workerScene.localTransformComponent,
+    "translation",
+  );
+
+  translation.set(frame <= 1 ? [-1.35, 0, 0] : [0, 0, 0]);
 }
 
 function finiteInteger(value, fallback) {

@@ -393,12 +393,19 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 04:33 UTC</dd>
+            <dd>2026-05-26 04:40 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/render-target-reuse.html</code> now proves two
+              consecutive worker snapshots rendered through the same
+              renderer-owned off-screen target handle without resizing. The
+              route reports per-frame target dimensions, handle/resource reuse
+              pressure, and displayed-frame status, then Playwright verifies the
+              second preview is non-clear and not stale first-frame status.
+              Previous update:
               <code>examples/camera-picture-in-picture.html</code> now proves a
               full-canvas base camera plus a small inset camera over the same
               target. The route reports inset viewport/scissor pixels,
@@ -2711,6 +2718,14 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3177</span> Added
+                <code>examples/render-target-reuse.html</code>. The
+                render-to-texture route family now renders two consecutive
+                worker snapshots through one renderer-owned off-screen target,
+                reports stable dimensions and reuse pressure, and Playwright
+                proves the displayed preview comes from the second snapshot.
+              </li>
               <li>
                 <span class="badge green">task-3176</span> Added
                 <code>examples/camera-picture-in-picture.html</code>. The shared
@@ -5410,16 +5425,25 @@
                 distinct inset pixels, and per-view layer filtering status.
               </li>
               <li>
-                <span class="badge">task-3177</span> Next: add a render-target
-                reuse stress preview route.
+                <span class="badge green">task-3177</span> Done: add a
+                render-target reuse stress preview route with two worker
+                snapshots, stable dimensions, and second-frame preview proof.
               </li>
               <li>
-                <span class="badge">task-3178</span> Then: add a camera
+                <span class="badge">task-3178</span> Next: add a camera
                 viewport resize matrix route.
               </li>
               <li>
                 <span class="badge">task-3179</span> Then: add a mixed canvas
                 plus off-screen camera target route.
+              </li>
+              <li>
+                <span class="badge">task-3180</span> Then: add a multiple
+                off-screen render-target preview route.
+              </li>
+              <li>
+                <span class="badge dim">task-3161</span> Later: add
+                cross-device benchmark automation after the visible route queue.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5438,6 +5462,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3177</div>
+            <div>
+              <strong>Render-target reuse stress route shipped.</strong>
+              <span>
+                <code>examples/render-target-reuse.html</code> renders two
+                consecutive worker snapshots through one renderer-owned
+                off-screen target handle, reports per-frame dimensions and
+                target reuse pressure, and proves the displayed canvas preview
+                comes from the second snapshot.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3176</div>
             <div>

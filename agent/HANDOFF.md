@@ -1,6 +1,65 @@
 # Agent Handoff
 
-Updated: 2026-05-26T04:36:01Z
+Updated: 2026-05-26T04:43:08Z
+
+## Current Run Update — 2026-05-26T04:43:08Z — Render-target reuse stress route
+
+Completed `task-3177` after `task-3176`.
+
+### What changed
+
+- Added `examples/render-target-reuse.html` to the existing
+  render-to-texture route family.
+- The route requests two consecutive worker snapshots and renders both through
+  the same renderer-owned off-screen WebGPU texture and ECS
+  `ViewPacket.renderTarget` handle without resizing.
+- The worker stores the mesh entity and, only in reuse-stress mode, moves it
+  left for frame 1 and back to center for frame 2. The first translation keeps
+  the draw inside extraction while making the center sample expected-clear; the
+  second frame recenters the plane for the displayed preview.
+- Status now reports `renderTargetReuseStress` with requested/rendered frames,
+  displayed frame, target key, stable per-frame dimensions, created-vs-reused
+  texture pressure, and `staleFirstFrameStatus`.
+- Added Playwright coverage for `/examples/render-target-reuse.html` while
+  keeping the existing render-to-texture and render-target-resize checks in the
+  same spec.
+
+### References inspected
+
+- `references/engine/examples/src/examples/graphics/render-to-texture.example.mjs`
+- `references/three.js/examples/webgpu_rtt.html`
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --reporter=list`
+  — first run failed because the frame-1 mesh was translated far enough for
+  frustum culling to extract zero mesh draws; after moving it inside the view
+  while keeping the center sample clear, 3 passed.
+- `pnpm run check:examples`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm exec vitest run test/examples/navigation.test.mjs` — 7 passed.
+- `pnpm run render-control:smoke-all` — after starting
+  `pnpm run examples:serve`, the smoke visited 60 routes including
+  `/examples/render-target-reuse.html`, with zero route status failures and
+  zero warning routes.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3178`: add a camera viewport resize
+matrix route.
 
 ## Current Run Update — 2026-05-26T04:36:01Z — Camera picture-in-picture route
 

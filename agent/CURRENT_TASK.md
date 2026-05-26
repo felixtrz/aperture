@@ -2,22 +2,23 @@
 
 No active task is currently checked out.
 
-Status: task-3176 picture-in-picture camera inset route completed.
+Status: task-3177 render-target reuse stress preview route completed.
 
 Key findings:
 
-- Added `examples/camera-picture-in-picture.html` and
-  `examples/camera-picture-in-picture.worker.js`.
-- The worker authors a full-canvas base ECS camera plus a higher-priority inset
-  ECS camera over the same target, with binary-exact normalized inset
-  viewport/scissor values.
-- The shared multi-view main path now publishes route-level
-  `pictureInPicture` status while reporting pass order, clear/load behavior,
-  per-view viewport/scissor pixels, and layer-filtered included/skipped draws.
-- Playwright verifies the base remains visible outside the inset while the
-  inset center shows a distinct material color.
-- Focused and shared multi-camera browser coverage passed for this slice.
+- Added `examples/render-target-reuse.html` using the existing
+  render-to-texture main/worker route family.
+- The route renders two consecutive worker snapshots through the same
+  renderer-owned off-screen WebGPU texture and ECS `ViewPacket.renderTarget`
+  handle without resizing.
+- Status reports requested/rendered frames, displayed frame, stable dimensions,
+  target key, created-vs-reused texture pressure, and stale-first-frame status.
+- Playwright verifies the second displayed preview is non-clear and comes from
+  the centered second snapshot while the first snapshot had a different
+  center-sample expectation.
+- Focused render-to-texture browser coverage and static validation passed for
+  this slice.
 
 Recommended next task:
 
-- `task-3177` — add a render-target reuse stress preview route.
+- `task-3178` — add a camera viewport resize matrix route.

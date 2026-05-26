@@ -52,6 +52,31 @@ interface RenderToTextureStatus extends ExampleStatusBase {
     readonly previousTextureDestroyed?: boolean;
     readonly staleSizeGuard?: string;
   };
+  readonly renderTargetReuseStress?: {
+    readonly mode?: string;
+    readonly renderTargetKey?: string;
+    readonly framesRequested?: number;
+    readonly framesRendered?: number;
+    readonly displayedFrame?: number;
+    readonly reusedHandle?: boolean;
+    readonly textureRecreated?: boolean;
+    readonly targetResourcePressure?: {
+      readonly createdTextures?: number;
+      readonly reusedTextures?: number;
+      readonly stableDimensions?: boolean;
+    };
+    readonly frames?: readonly {
+      readonly frame?: number;
+      readonly workerVariant?: string;
+      readonly centerExpectation?: string;
+      readonly renderTargetKey?: string;
+      readonly width?: number;
+      readonly height?: number;
+      readonly drawCalls?: number;
+      readonly diagnostics?: number;
+    }[];
+    readonly staleFirstFrameStatus?: boolean;
+  };
   readonly sourceView?: {
     readonly ok?: boolean;
     readonly viewId?: number;
@@ -428,5 +453,149 @@ test("render-target resize route displays the resized off-screen pass", async ({
   expect(
     pixelDistance(sample.pixel, screenClearSample.pixel),
     "resized target preview should differ from the main-canvas clear region",
+  ).toBeGreaterThan(40);
+});
+
+test("render-target reuse route displays the second snapshot through one off-screen target", async ({
+  page,
+}) => {
+  const guard = attachWebGpuValidationConsoleGuard(page);
+  const status = await loadExampleStatus<RenderToTextureStatus>(
+    page,
+    "/examples/render-target-reuse.html",
+    "render-target-reuse-status",
+  );
+
+  if (status === undefined) {
+    return;
+  }
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "render-target-reuse",
+    ok: true,
+    phase: "display",
+    renderingBackend: "webgpu-explicit",
+    renderTarget: {
+      width: 256,
+      height: 256,
+      source: "ViewPacket.renderTarget",
+      textureUsage: {
+        renderAttachment: true,
+        textureBinding: true,
+        copySource: true,
+      },
+    },
+    renderTargetReuseStress: {
+      mode: "same-render-target-two-worker-snapshots",
+      renderTargetKey: status.renderTarget?.key,
+      framesRequested: 2,
+      framesRendered: 2,
+      displayedFrame: 2,
+      reusedHandle: true,
+      textureRecreated: false,
+      targetResourcePressure: {
+        createdTextures: 1,
+        reusedTextures: 1,
+        stableDimensions: true,
+      },
+      frames: [
+        {
+          frame: 1,
+          workerVariant: "left-clear-center",
+          centerExpectation: "offscreen-clear",
+          renderTargetKey: status.renderTarget?.key,
+          width: 256,
+          height: 256,
+          drawCalls: 1,
+          diagnostics: 0,
+        },
+        {
+          frame: 2,
+          workerVariant: "center-plane",
+          centerExpectation: "plane",
+          renderTargetKey: status.renderTarget?.key,
+          width: 256,
+          height: 256,
+          drawCalls: 1,
+          diagnostics: 0,
+        },
+      ],
+      staleFirstFrameStatus: false,
+    },
+    sourceView: {
+      ok: true,
+      renderTargetKey: status.renderTarget?.key,
+      expectedRenderTargetKey: status.renderTarget?.key,
+      renderTargetMatches: true,
+    },
+    counts: {
+      views: 1,
+      meshDraws: 1,
+      drawCalls: 1,
+      diagnostics: 0,
+    },
+    screenPass: {
+      phase: "screen-pass",
+      drawCalls: 1,
+      samples: {
+        preview: "quad-center",
+        screenClear: "screen-clear-corner",
+      },
+    },
+  });
+  expect(status.report?.renderTargets).toMatchObject([
+    {
+      source: "offscreen",
+      renderTargetKey: status.renderTarget?.key,
+      width: 256,
+      height: 256,
+      ok: true,
+      drawCalls: 1,
+    },
+  ]);
+  guard.expectNoWarnings();
+
+  await attachExampleStatus("render-target-reuse-rendered-status", status);
+
+  if (!status.readback?.ok) {
+    test.skip(true, "Render-target reuse pixel assertion requires readback.");
+    return;
+  }
+
+  const sample = status.readback.samples?.find(
+    (entry) => entry.id === "quad-center",
+  );
+  const screenClearSample = status.readback.samples?.find(
+    (entry) => entry.id === "screen-clear-corner",
+  );
+
+  expect(sample, "expected reused render-target preview sample").toBeDefined();
+  expect(
+    screenClearSample,
+    "expected reuse route screen clear sample",
+  ).toBeDefined();
+
+  if (sample === undefined || screenClearSample === undefined) {
+    return;
+  }
+
+  expect(
+    pixelDistance(
+      sample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCenterColor ?? {
+          r: 0.06,
+          g: 0.88,
+          b: 0.22,
+          a: 1,
+        },
+      ),
+    ),
+    "reused target preview should show the second centered snapshot",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(sample.pixel, screenClearSample.pixel),
+    "reused target preview should differ from the main-canvas clear region",
   ).toBeGreaterThan(40);
 });
