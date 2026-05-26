@@ -1,5 +1,41 @@
 # Completed Tasks
 
+## task-3208 — Add a mixed current-texture plus MSAA resized reused dual-size off-screen target route
+
+Completed: 2026-05-26
+
+### Summary
+
+- Added `examples/mixed-msaa-resized-reuse-dual-size.html` to the
+  render-to-texture route family and linked it from related example pages.
+- `examples/render-to-texture.main.js` now recognizes the mixed MSAA resized
+  reuse dual-size route, creates an MSAA-enabled app, replaces the primary
+  renderer-owned off-screen `ViewPacket.renderTarget` texture under the same ECS
+  handle, renders two worker snapshots through the resized primary handle while
+  also extracting a current-texture ECS camera and a differently sized secondary
+  off-screen target, and displays the second resolved resized primary preview
+  plus wide secondary preview with aspect-preserving mapping.
+- Added Playwright coverage proving the current-texture sample plus both
+  resolved previews are non-clear and visually distinct without stale-size or
+  stale first-frame pixels.
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `pnpm exec eslint examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA resized reuse dual-size" --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA resized reuse dual-size|mixed MSAA reuse dual-size|mixed MSAA resized dual-size|mixed MSAA dual-size" --project=chrome-webgpu-headed`
+- Browser route check:
+  `examples/mixed-msaa-resized-reuse-dual-size.html` published `ok: true`,
+  three MSAA target submissions, current/off-screen target classifications, a
+  stable 128x128 to 384x384 primary render-target key resize, a stable primary
+  off-screen render-target key across two worker snapshots, secondary 384x192
+  target dimensions, requested 8/effective 4 MSAA, resolve attachments,
+  aspect-preserving display quads, resize pressure, reuse pressure,
+  current-texture readback, and distinct current, primary-preview,
+  secondary-preview, and screen-clear samples.
+
 ## task-3207 — Add a mixed current-texture plus MSAA resized reused viewport-cropped off-screen target route
 
 Completed: 2026-05-26

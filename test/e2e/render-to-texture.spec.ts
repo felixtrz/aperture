@@ -795,6 +795,9 @@ interface RenderToTextureStatus extends ExampleStatusBase {
   readonly mixedMsaaReusedDualSizeRenderTargets?: RenderToTextureStatus["mixedMsaaDualSizeRenderTargets"] & {
     readonly reuse?: RenderToTextureStatus["renderTargetReuseStress"];
   };
+  readonly mixedMsaaResizedReusedDualSizeRenderTargets?: RenderToTextureStatus["mixedMsaaReusedDualSizeRenderTargets"] & {
+    readonly resize?: RenderToTextureStatus["renderTargetResize"];
+  };
   readonly mixedCroppedSecondaryRenderTargets?: {
     readonly mode?: string;
     readonly source?: string;
@@ -4558,6 +4561,632 @@ test("mixed MSAA reuse dual-size route displays current and second resolved aspe
   expect(
     pixelDistance(leftSample.pixel, screenClearSample.pixel),
     "second-frame primary preview should not display first-frame clear pixels",
+  ).toBeGreaterThan(40);
+});
+
+test("mixed MSAA resized reuse dual-size route displays current and second resized aspect-preserved off-screen targets", async ({
+  page,
+}) => {
+  const guard = attachWebGpuValidationConsoleGuard(page);
+  const status = await loadExampleStatus<RenderToTextureStatus>(
+    page,
+    "/examples/mixed-msaa-resized-reuse-dual-size.html",
+    "mixed-msaa-resized-reuse-dual-size-status",
+  );
+
+  if (status === undefined) {
+    return;
+  }
+
+  const primaryKey = status.renderTarget?.key ?? "__missing-primary__";
+  const secondaryKey =
+    status.scene?.secondaryRenderTargetKey ?? "__missing-secondary__";
+
+  expect(primaryKey).not.toBe("__missing-primary__");
+  expect(secondaryKey).not.toBe("__missing-secondary__");
+  expect(primaryKey).not.toBe(secondaryKey);
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "mixed-msaa-resized-reuse-dual-size",
+    ok: true,
+    phase: "display",
+    renderingBackend: "webgpu-explicit",
+    renderTarget: {
+      width: 384,
+      height: 384,
+      source: "ViewPacket.renderTarget",
+      key: primaryKey,
+      textureUsage: {
+        renderAttachment: true,
+        textureBinding: true,
+        copySource: true,
+      },
+    },
+    sourceView: {
+      ok: true,
+      viewId: 0,
+      priority: 0,
+      layerMask: 1,
+      renderTargetKey: primaryKey,
+      expectedRenderTargetKey: primaryKey,
+      renderTargetMatches: true,
+    },
+    renderTargetResize: {
+      mode: "renderer-owned-render-target-resize",
+      reason: "route-config-canvas-resize-simulation",
+      renderTargetKey: primaryKey,
+      before: {
+        width: 128,
+        height: 128,
+      },
+      after: {
+        width: 384,
+        height: 384,
+      },
+      reusedHandle: true,
+      textureRecreated: true,
+      previousTextureDestroyed: true,
+      staleSizeGuard: "source-assets-markReady-before-render",
+      stableRenderTargetKey: true,
+      msaaSampleCount: 4,
+      attachment: {
+        colorLoadOp: "clear",
+        colorStoreOp: "discard",
+        resolveTarget: true,
+        behavior: "resolve-to-render-target-texture",
+      },
+      msaa: {
+        mode: "msaa-resized-offscreen-render-target",
+        requestedSampleCount: 8,
+        sampleCount: 4,
+        enabled: true,
+        clamped: true,
+        supportedSampleCounts: [1, 4],
+        colorTargets: 3,
+        colorTexturesCreated: 3,
+        colorTexturesReused: 0,
+        target: {
+          source: "offscreen",
+          width: 384,
+          height: 384,
+          drawCalls: 1,
+          msaaSampleCount: 4,
+          ok: true,
+        },
+      },
+    },
+    renderTargetReuseStress: {
+      mode: "same-render-target-two-worker-snapshots",
+      renderTargetKey: primaryKey,
+      stableRenderTargetKey: true,
+      framesRequested: 2,
+      framesRendered: 2,
+      displayedFrame: 2,
+      reusedHandle: true,
+      textureRecreated: false,
+      targetResourcePressure: {
+        createdTextures: 1,
+        reusedTextures: 1,
+        stableDimensions: true,
+      },
+      msaa: {
+        mode: "msaa-offscreen-render-target-reuse",
+        requestedSampleCount: 8,
+        sampleCount: 4,
+        enabled: true,
+        clamped: true,
+        supportedSampleCounts: [1, 4],
+        stableSampleCount: true,
+        colorTargets: 3,
+        colorTexturesCreated: 6,
+        colorTexturesReused: 0,
+        resourcePressure: {
+          framesRendered: 2,
+          colorTargets: 6,
+          colorTexturesCreated: 6,
+          colorTexturesReused: 0,
+        },
+        resolveAttachments: [
+          {
+            frame: 1,
+            msaaSampleCount: 4,
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+          {
+            frame: 2,
+            msaaSampleCount: 4,
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+        ],
+      },
+      frames: [
+        {
+          frame: 1,
+          workerVariant: "current-texture-plus-dual-size-offscreen-targets",
+          centerExpectation:
+            "current-texture-plus-dual-size-offscreen-previews",
+          renderTargetKey: primaryKey,
+          width: 384,
+          height: 384,
+          drawCalls: 1,
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+          msaa: {
+            requestedSampleCount: 8,
+            sampleCount: 4,
+            enabled: true,
+            clamped: true,
+            supportedSampleCounts: [1, 4],
+            colorTargets: 3,
+            colorTexturesCreated: 3,
+            colorTexturesReused: 0,
+          },
+          diagnostics: 0,
+        },
+        {
+          frame: 2,
+          workerVariant: "current-texture-plus-dual-size-offscreen-targets",
+          centerExpectation:
+            "current-texture-plus-dual-size-offscreen-previews",
+          renderTargetKey: primaryKey,
+          width: 384,
+          height: 384,
+          drawCalls: 1,
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+          msaa: {
+            requestedSampleCount: 8,
+            sampleCount: 4,
+            enabled: true,
+            clamped: true,
+            supportedSampleCounts: [1, 4],
+            colorTargets: 3,
+            colorTexturesCreated: 3,
+            colorTexturesReused: 0,
+          },
+          diagnostics: 0,
+        },
+      ],
+      staleFirstFrameStatus: false,
+    },
+    mixedMsaaResizedReusedDualSizeRenderTargets: {
+      mode: "current-texture-plus-msaa-resized-reused-dual-size-offscreen-render-targets",
+      source: "ViewPacket.renderTarget",
+      requestedSampleCount: 8,
+      sampleCount: 4,
+      enabled: true,
+      clamped: true,
+      supportedSampleCounts: [1, 4],
+      colorTargets: 3,
+      colorTexturesCreated: 3,
+      colorTexturesReused: 0,
+      resize: {
+        renderTargetKey: primaryKey,
+        before: {
+          width: 128,
+          height: 128,
+        },
+        after: {
+          width: 384,
+          height: 384,
+        },
+        stableRenderTargetKey: true,
+        msaaSampleCount: 4,
+      },
+      reuse: {
+        renderTargetKey: primaryKey,
+        stableRenderTargetKey: true,
+        framesRequested: 2,
+        framesRendered: 2,
+        displayedFrame: 2,
+        reusedHandle: true,
+        staleFirstFrameStatus: false,
+      },
+      renderTargets: [
+        {
+          role: "primary",
+          target: "offscreen",
+          key: primaryKey,
+          source: "offscreen",
+          viewId: 0,
+          width: 384,
+          height: 384,
+          ok: true,
+          drawCalls: 1,
+          displaySample: "left-target-preview-center",
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+          displayQuad: {
+            role: "primary",
+            renderTargetKey: primaryKey,
+            sampleId: "left-target-preview-center",
+            vertexCount: 6,
+            aspect: {
+              targetWidth: 384,
+              targetHeight: 384,
+              targetAspectRatio: 1,
+              displayAspectRatio: 1,
+              preservesAspect: true,
+              mapping: "preserve-target-aspect",
+            },
+          },
+          aspect: {
+            targetWidth: 384,
+            targetHeight: 384,
+            targetAspectRatio: 1,
+            displayAspectRatio: 1,
+            preservesAspect: true,
+            mapping: "preserve-target-aspect",
+          },
+        },
+        {
+          role: "secondary",
+          target: "offscreen",
+          key: secondaryKey,
+          source: "offscreen",
+          viewId: 1,
+          width: 384,
+          height: 192,
+          ok: true,
+          drawCalls: 1,
+          displaySample: "right-target-preview-center",
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+          displayQuad: {
+            role: "secondary",
+            renderTargetKey: secondaryKey,
+            sampleId: "right-target-preview-center",
+            vertexCount: 6,
+            aspect: {
+              targetWidth: 384,
+              targetHeight: 192,
+              targetAspectRatio: 2,
+              displayAspectRatio: 2,
+              preservesAspect: true,
+              mapping: "preserve-target-aspect",
+            },
+          },
+          aspect: {
+            targetWidth: 384,
+            targetHeight: 192,
+            targetAspectRatio: 2,
+            displayAspectRatio: 2,
+            preservesAspect: true,
+            mapping: "preserve-target-aspect",
+          },
+        },
+        {
+          role: "current",
+          target: "current-texture",
+          key: null,
+          source: "swapchain",
+          viewId: 2,
+          width: 960,
+          height: 540,
+          ok: true,
+          drawCalls: 1,
+          readbackSample: "current-texture-direct-left",
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+        },
+      ],
+      views: [
+        {
+          role: "primary",
+          viewId: 0,
+          priority: 0,
+          layerMask: 1,
+          target: "offscreen",
+          renderTargetKey: primaryKey,
+          viewport: [0, 0, 1, 1],
+          scissor: [0, 0, 1, 1],
+        },
+        {
+          role: "secondary",
+          viewId: 1,
+          priority: 1,
+          layerMask: 2,
+          target: "offscreen",
+          renderTargetKey: secondaryKey,
+          viewport: [0, 0, 1, 1],
+          scissor: [0, 0, 1, 1],
+        },
+        {
+          role: "current",
+          viewId: 2,
+          priority: 2,
+          layerMask: 4,
+          target: "current-texture",
+          renderTargetKey: null,
+          viewport: [0, 0, 1, 1],
+          scissor: [0, 0, 1, 1],
+        },
+      ],
+      passOrder: [
+        {
+          index: 0,
+          viewId: 0,
+          source: "offscreen",
+          target: "offscreen",
+          renderTargetKey: primaryKey,
+          width: 384,
+          height: 384,
+          drawCalls: 1,
+          ok: true,
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+        },
+        {
+          index: 1,
+          viewId: 1,
+          source: "offscreen",
+          target: "offscreen",
+          renderTargetKey: secondaryKey,
+          width: 384,
+          height: 192,
+          drawCalls: 1,
+          ok: true,
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+        },
+        {
+          index: 2,
+          viewId: 2,
+          source: "swapchain",
+          target: "current-texture",
+          renderTargetKey: null,
+          width: 960,
+          height: 540,
+          drawCalls: 1,
+          ok: true,
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+        },
+      ],
+      displayPass: {
+        loadOp: "clear",
+        drawCalls: 2,
+        samples: {
+          leftPreview: "left-target-preview-center",
+          rightPreview: "right-target-preview-center",
+          screenClear: "screen-clear-corner",
+        },
+      },
+      currentTextureReadback: {
+        ok: true,
+      },
+    },
+    counts: {
+      views: 3,
+      meshDraws: 3,
+      drawCalls: 3,
+      diagnostics: 0,
+    },
+    screenPass: {
+      phase: "screen-pass",
+      drawCalls: 2,
+      loadOp: "clear",
+      samples: {
+        leftPreview: "left-target-preview-center",
+        rightPreview: "right-target-preview-center",
+        screenClear: "screen-clear-corner",
+      },
+    },
+  });
+  expect(status.report?.renderTargets).toMatchObject([
+    {
+      source: "offscreen",
+      renderTargetKey: primaryKey,
+      width: 384,
+      height: 384,
+      ok: true,
+      drawCalls: 1,
+      msaaSampleCount: 4,
+    },
+    {
+      source: "offscreen",
+      renderTargetKey: secondaryKey,
+      width: 384,
+      height: 192,
+      ok: true,
+      drawCalls: 1,
+      msaaSampleCount: 4,
+    },
+    {
+      source: "swapchain",
+      renderTargetKey: null,
+      width: 960,
+      height: 540,
+      ok: true,
+      drawCalls: 1,
+      msaaSampleCount: 4,
+    },
+  ]);
+  guard.expectNoWarnings();
+
+  const primaryAspect =
+    status.mixedMsaaResizedReusedDualSizeRenderTargets?.renderTargets?.find(
+      (target) => target.role === "primary",
+    )?.aspect ?? null;
+  const secondaryAspect =
+    status.mixedMsaaResizedReusedDualSizeRenderTargets?.renderTargets?.find(
+      (target) => target.role === "secondary",
+    )?.aspect ?? null;
+
+  expect(primaryAspect?.displayAspectRatio).toBeCloseTo(1, 2);
+  expect(secondaryAspect?.displayAspectRatio).toBeCloseTo(2, 2);
+  expect(primaryAspect?.preservesAspect).toBe(true);
+  expect(secondaryAspect?.preservesAspect).toBe(true);
+
+  await attachExampleStatus(
+    "mixed-msaa-resized-reuse-dual-size-rendered-status",
+    status,
+  );
+
+  if (
+    !status.readback?.ok ||
+    !status.mixedMsaaResizedReusedDualSizeRenderTargets?.currentTextureReadback
+      ?.ok
+  ) {
+    test.skip(
+      true,
+      "Mixed MSAA resized reuse dual-size pixel assertion requires readback.",
+    );
+    return;
+  }
+
+  const currentSample =
+    status.mixedMsaaResizedReusedDualSizeRenderTargets.currentTextureReadback.samples?.find(
+      (entry) => entry.id === "current-texture-direct-left",
+    );
+  const leftSample = status.readback.samples?.find(
+    (entry) => entry.id === "left-target-preview-center",
+  );
+  const rightSample = status.readback.samples?.find(
+    (entry) => entry.id === "right-target-preview-center",
+  );
+  const screenClearSample = status.readback.samples?.find(
+    (entry) => entry.id === "screen-clear-corner",
+  );
+
+  expect(currentSample, "expected current-texture sample").toBeDefined();
+  expect(
+    leftSample,
+    "expected resized second-frame primary resolved render-target preview sample",
+  ).toBeDefined();
+  expect(
+    rightSample,
+    "expected secondary resolved render-target preview sample",
+  ).toBeDefined();
+  expect(screenClearSample, "expected screen clear sample").toBeDefined();
+
+  if (
+    currentSample === undefined ||
+    leftSample === undefined ||
+    rightSample === undefined ||
+    screenClearSample === undefined
+  ) {
+    return;
+  }
+
+  expect(
+    pixelDistance(
+      currentSample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCurrentColor ?? {
+          r: 0.95,
+          g: 0.28,
+          b: 0.08,
+          a: 1,
+        },
+      ),
+    ),
+    "current-texture camera sample should come from the direct MSAA swapchain pass",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(
+      leftSample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCenterColor ?? {
+          r: 0.06,
+          g: 0.88,
+          b: 0.22,
+          a: 1,
+        },
+      ),
+    ),
+    "left preview should sample the resized second resolved square MSAA target frame",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(
+      rightSample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCanvasColor ?? {
+          r: 0.1,
+          g: 0.42,
+          b: 0.95,
+          a: 1,
+        },
+      ),
+    ),
+    "right preview should sample the resolved wide MSAA target",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(
+      screenClearSample.pixel,
+      rgbaColorToPixel(
+        status.clearColors?.screen ?? {
+          r: 0.015,
+          g: 0.018,
+          b: 0.023,
+          a: 1,
+        },
+      ),
+    ),
+    "screen clear sample should stay outside both resized resolved preview quads",
+  ).toBeLessThan(12);
+  expect(
+    pixelDistance(currentSample.pixel, leftSample.pixel),
+    "current-texture sample and resized reused square resolved preview should be visually distinct",
+  ).toBeGreaterThan(80);
+  expect(
+    pixelDistance(currentSample.pixel, rightSample.pixel),
+    "current-texture sample and wide resolved preview should be visually distinct",
+  ).toBeGreaterThan(80);
+  expect(
+    pixelDistance(leftSample.pixel, rightSample.pixel),
+    "resized reused dual-size resolved off-screen previews should be visually distinct",
+  ).toBeGreaterThan(80);
+  expect(
+    pixelDistance(leftSample.pixel, screenClearSample.pixel),
+    "resized reused primary preview should not display stale-size or first-frame clear pixels",
   ).toBeGreaterThan(40);
 });
 
