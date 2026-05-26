@@ -1,6 +1,69 @@
 # Agent Handoff
 
-Updated: 2026-05-26T05:57:14Z
+Updated: 2026-05-26T06:05:19Z
+
+## Current Run Update — 2026-05-26T06:05:19Z — Dual-size off-screen targets
+
+Completed `task-3184` after `task-3183`.
+
+### What changed
+
+- Added `examples/render-target-dual-size.html` to the render-to-texture route
+  family.
+- `examples/render-to-texture-assets.js` now defines a stable wide secondary
+  off-screen target size.
+- `examples/render-to-texture.worker.js` now supports a dual-size mode that
+  extracts two ECS cameras targeting distinct renderer-owned off-screen
+  `ViewPacket.renderTarget` handles with square and wide target dimensions.
+- `examples/render-to-texture.main.js` now creates both renderer-owned targets,
+  displays them side by side with aspect-preserving preview quads, and reports
+  `dualSizeRenderTargets` status with per-target dimensions, keys, draw counts,
+  display samples, and aspect mapping.
+- Added Playwright coverage proving both previews are non-clear, visually
+  distinct, and not stretched into each other.
+- Updated example navigation, public tracker pages, `agent/BACKLOG.md`,
+  `agent/CURRENT_TASK.md`, and `agent/COMPLETED.md`.
+
+### References inspected
+
+- `references/engine/examples/src/examples/graphics/multi-render-targets.example.mjs`
+- `references/three.js/examples/webgpu_rtt.html`
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `node --check examples/render-to-texture-assets.js`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js examples/render-to-texture-assets.js test/e2e/render-to-texture.spec.ts`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "dual-size render-target" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "dual-size render-target|mixed multi render-target|multiple render targets route|mixed camera targets route|render-target viewport crop route|same render-target clear/load route|render-to-texture example" --reporter=list`
+  — 7 passed.
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs` — 7 passed.
+- `pnpm run check:progress`
+- `pnpm run render-control:smoke-all` — after starting
+  `pnpm run examples:serve`, the smoke visited 67 routes including
+  `/examples/render-target-dual-size.html`, with zero route status failures and
+  zero warning routes. The examples server was stopped afterward.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- A broad `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/webgpu-app.test.ts`
+  run still fails 11 pre-existing `webgpu-app.test.ts` expectations around
+  verbose pipeline descriptor resource keys. This task did not modify that
+  area.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3185`: add an MSAA off-screen
+render-target preview route.
 
 ## Current Run Update — 2026-05-26T05:57:14Z — Mixed current plus two off-screen targets
 

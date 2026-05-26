@@ -393,12 +393,19 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 05:53 UTC</dd>
+            <dd>2026-05-26 06:02 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/render-target-dual-size.html</code> now proves two
+              ECS cameras can render into distinct renderer-owned off-screen
+              targets with different dimensions. The route preserves square and
+              wide preview aspect mapping, reports per-target dimensions, keys,
+              draw counts, display samples, and aspect ratios, then Playwright
+              verifies both previews are non-clear, visually distinct, and not
+              stretched into each other. Previous update:
               <code>examples/mixed-multi-render-targets.html</code> now proves
               one worker-authored ECS snapshot can contain a current-texture
               camera plus two distinct renderer-owned off-screen
@@ -2762,6 +2769,17 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3184</span> Added
+                <code>examples/render-target-dual-size.html</code>. The
+                render-to-texture route family now extracts two off-screen
+                cameras targeting renderer-owned textures with different
+                dimensions, displays a square preview and a wide preview with
+                preserved aspect mapping, reports per-target dimensions, keys,
+                draw counts, display samples, and aspect ratios, and Playwright
+                proves both previews are non-clear, visually distinct, and not
+                stretched into each other.
+              </li>
               <li>
                 <span class="badge green">task-3183</span> Added
                 <code>examples/mixed-multi-render-targets.html</code>. The
@@ -5563,12 +5581,17 @@
                 target classification, display, and readback proof.
               </li>
               <li>
-                <span class="badge">task-3184</span> Next: add a dual-size
+                <span class="badge green">task-3184</span> Done: add a
+                dual-size off-screen render-target preview route with aspect
+                mapping status and pixel proof.
+              </li>
+              <li>
+                <span class="badge">task-3185</span> Next: add an MSAA
                 off-screen render-target preview route.
               </li>
               <li>
-                <span class="badge">task-3185</span> Then: add an MSAA
-                off-screen render-target preview route.
+                <span class="badge">task-3186</span> Then: add a cropped
+                secondary off-screen render-target preview route.
               </li>
               <li>
                 <span class="badge dim">task-3161</span> Later: add
@@ -5591,6 +5614,20 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3184</div>
+            <div>
+              <strong>Dual-size render-target preview route shipped.</strong>
+              <span>
+                <code>examples/render-target-dual-size.html</code> extracts two
+                off-screen cameras from one worker-authored ECS snapshot,
+                targets distinct renderer-owned textures with square and wide
+                dimensions, reports dimensions, keys, draw counts, display
+                samples, and aspect mapping, and proves both previews are
+                non-clear, visually distinct, and not stretched into each other.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3183</div>
             <div>

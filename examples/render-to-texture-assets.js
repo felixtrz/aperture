@@ -1,4 +1,8 @@
 export const renderToTextureOffscreenSize = 256;
+export const renderToTextureDualSizeSecondarySize = {
+  width: 384,
+  height: 192,
+};
 export const renderToTextureOffscreenClearColor = [0.02, 0.035, 0.07, 1];
 export const renderToTextureScreenClearColor = {
   r: 0.015,

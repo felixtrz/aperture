@@ -1,6 +1,7 @@
 import {
   renderToTextureScreenClearColor as screenClearColor,
   renderToTextureCropRect as targetCropRect,
+  renderToTextureDualSizeSecondarySize as dualSizeSecondarySize,
   renderToTextureOffscreenClearColor as offscreenClearColor,
   registerRenderToTextureAssets,
 } from "./render-to-texture-assets.js";
@@ -47,6 +48,7 @@ async function handleMessage(data) {
         data.mixedTargets === true,
         data.multiRenderTargets === true,
         data.mixedMultiRenderTargets === true,
+        data.dualSizeRenderTargets === true,
         data.targetCrop === true,
         data.targetClearLoad === true,
       );
@@ -68,6 +70,7 @@ async function handleMessage(data) {
           mixedTargets: scene.mixedTargets,
           multiRenderTargets: scene.multiRenderTargets,
           mixedMultiRenderTargets: scene.mixedMultiRenderTargets,
+          dualSizeRenderTargets: scene.dualSizeRenderTargets,
           targetCrop: scene.targetCrop,
           targetClearLoad: scene.targetClearLoad,
           ...(scene.targetCrop
@@ -112,6 +115,7 @@ function createWorkerScene(
   mixedTargets,
   multiRenderTargets,
   mixedMultiRenderTargets,
+  dualSizeRenderTargets,
   targetCrop,
   targetClearLoad,
 ) {
@@ -120,7 +124,7 @@ function createWorkerScene(
   });
   const assets = registerRenderToTextureAssets(aperture, app.assets);
   const usesSecondaryRenderTarget =
-    multiRenderTargets || mixedMultiRenderTargets;
+    multiRenderTargets || mixedMultiRenderTargets || dualSizeRenderTargets;
   const usesCurrentTextureTarget = mixedTargets || mixedMultiRenderTargets;
 
   app.spawn(
@@ -161,7 +165,9 @@ function createWorkerScene(
     app.spawn(
       aperture.withTransform({ translation: [0, 0, 3] }),
       aperture.withCamera({
-        aspect: 1,
+        aspect: dualSizeRenderTargets
+          ? dualSizeSecondarySize.width / dualSizeSecondarySize.height
+          : 1,
         near: 0.1,
         far: 100,
         priority: 1,
@@ -243,6 +249,7 @@ function createWorkerScene(
     mixedTargets,
     multiRenderTargets,
     mixedMultiRenderTargets,
+    dualSizeRenderTargets,
     targetCrop,
     targetClearLoad,
     localTransformComponent: aperture.LocalTransform,
@@ -270,6 +277,8 @@ function createSnapshotMessage(workerScene, data) {
         ? "mixed-current-and-offscreen-targets"
         : workerScene.mixedMultiRenderTargets
           ? "current-texture-plus-two-offscreen-targets"
+        : workerScene.dualSizeRenderTargets
+          ? "dual-size-offscreen-render-targets"
         : workerScene.multiRenderTargets
           ? "two-offscreen-render-targets"
         : workerScene.targetClearLoad
@@ -284,6 +293,8 @@ function createSnapshotMessage(workerScene, data) {
           ? "canvas-plane-plus-offscreen-preview"
           : workerScene.mixedMultiRenderTargets
             ? "current-texture-plus-two-offscreen-previews"
+          : workerScene.dualSizeRenderTargets
+            ? "dual-size-offscreen-previews"
           : workerScene.multiRenderTargets
             ? "two-offscreen-previews"
           : workerScene.targetClearLoad

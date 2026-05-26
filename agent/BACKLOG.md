@@ -59,27 +59,17 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3183` is complete: `examples/mixed-multi-render-targets.html` now proves
-one worker-authored ECS snapshot can contain one current-texture camera plus two
-distinct renderer-owned off-screen `ViewPacket.renderTarget` cameras. The route
-reports target classifications, keys, pass order, draw counts, display samples,
-and current-texture readback, and Playwright verifies all three target-family
-samples are non-clear and visually distinct without making ECS own GPU state.
-Continue the post-SOTA visible-feature queue at `task-3184`: add a dual-size
-off-screen render-target preview route.
+`task-3184` is complete: `examples/render-target-dual-size.html` now proves
+two worker-authored ECS cameras can target distinct renderer-owned off-screen
+`ViewPacket.renderTarget` handles with different dimensions. The route reports
+per-target dimensions, keys, draw counts, display samples, and aspect mapping,
+and Playwright verifies both previews are non-clear, visually distinct, and not
+stretched into each other without making ECS own GPU state. Continue the
+post-SOTA visible-feature queue at `task-3185`: add an MSAA off-screen
+render-target preview route.
 
 The next ready visible-feature queue is:
 
-- `task-3184` — add a dual-size off-screen render-target preview route.
-  Reference anchor:
-  `references/engine/examples/src/examples/graphics/multi-render-targets.example.mjs`,
-  `references/three.js/examples/webgpu_rtt.html`.
-  Done when one browser route extracts two ECS cameras targeting two distinct
-  renderer-owned off-screen render-target handles with different dimensions,
-  displays both textures side by side with stable sample points, reports
-  per-target dimensions, keys, draw counts, display samples, and aspect
-  mapping, and Playwright verifies both previews are non-clear, visually
-  distinct, and not stretched into each other.
 - `task-3185` — add an MSAA off-screen render-target preview route.
   Reference anchor:
   `references/engine/src/extras/render-passes/camera-frame.js`,
@@ -102,6 +92,18 @@ The next ready visible-feature queue is:
   pixels plus per-target keys, dimensions, draw counts, and display samples,
   and Playwright verifies the primary preview is non-clear while the secondary
   preview has distinct inside-rendered and outside-clear regions.
+- `task-3187` — add a mixed current-texture plus dual-size off-screen
+  render-target route.
+  Reference anchor:
+  `references/engine/examples/src/examples/graphics/multi-render-targets.example.mjs`,
+  `references/three.js/examples/webgpu_rtt.html`.
+  Done when one browser route extracts one current-texture camera plus two ECS
+  cameras targeting distinct renderer-owned off-screen render-target handles
+  with different dimensions, displays both off-screen textures with
+  aspect-preserving preview quads, reports all target classifications, keys,
+  dimensions, pass order, draw counts, display samples, aspect mapping, and
+  current-texture readback, and Playwright verifies all three target-family
+  samples are non-clear and visually distinct.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

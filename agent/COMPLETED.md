@@ -1,5 +1,42 @@
 # Completed Tasks
 
+## task-3184 — Add a dual-size off-screen render-target preview route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/render-target-dual-size.html` on the existing
+  render-to-texture route family.
+- `examples/render-to-texture-assets.js` now defines a stable wide secondary
+  off-screen target size for dual-size route coverage.
+- `examples/render-to-texture.worker.js` now supports a mode that extracts two
+  ECS cameras targeting distinct renderer-owned off-screen
+  `ViewPacket.renderTarget` handles with square and wide target dimensions.
+- `examples/render-to-texture.main.js` creates both renderer-owned targets,
+  displays them side by side with aspect-preserving preview quads, and reports
+  per-target dimensions, keys, draw counts, display samples, and aspect
+  mapping.
+- Added Playwright coverage proving both previews are non-clear, visually
+  distinct, and not stretched into each other.
+- Updated example links, public tracker pages, backlog, current task, and
+  handoff.
+
+Validation:
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `node --check examples/render-to-texture-assets.js`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js examples/render-to-texture-assets.js test/e2e/render-to-texture.spec.ts`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "dual-size render-target" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "dual-size render-target|mixed multi render-target|multiple render targets route|mixed camera targets route|render-target viewport crop route|same render-target clear/load route|render-to-texture example" --reporter=list`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm run check:progress`
+- `pnpm run render-control:smoke-all`
+
 ## task-3183 — Add a mixed current-texture plus two off-screen render-target route
 
 Completed: 2026-05-26
