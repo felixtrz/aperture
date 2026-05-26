@@ -393,12 +393,21 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 09:30 UTC</dd>
+            <dd>2026-05-26 10:06 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/render-target-msaa-clear-load.html</code> now
+              proves one MSAA-enabled WebGPU app can clear the first
+              renderer-owned off-screen target boundary, store the multisampled
+              color attachment, load existing color/depth for the second
+              same-target boundary, and resolve distinct clear/base/overlay
+              regions. The route reports target-key reuse, requested/resolved
+              sample counts, pass-order load ops, per-pass MSAA sample count,
+              resolve attachment behavior, and clear/base/overlay readbacks.
+              Previous update:
               <code>examples/render-target-msaa-resize.html</code> now proves
               one MSAA-enabled WebGPU app can replace a renderer-owned
               off-screen target texture under the same ECS handle before
@@ -407,7 +416,7 @@
               before/after dimensions, stable target-key status, texture
               recreation/destroy status, requested/resolved sample counts, MSAA
               sample count, MSAA color target pressure, resolve attachment
-              behavior, and a green preview readback. Previous update:
+              behavior, and a green preview readback. Earlier update:
               <code>examples/render-target-msaa-reuse.html</code> now proves one
               MSAA-enabled WebGPU app can reuse the same renderer-owned
               off-screen target handle across two worker snapshots, reuse the
@@ -1938,8 +1947,7 @@
             <dt>Next focus</dt>
             <dd>
               Continue the render-target MSAA route family with
-              <code>task-3195</code>: an MSAA same-target clear/load matrix
-              route.
+              <code>task-3196</code>: an MSAA render-target viewport crop route.
             </dd>
           </dl>
         </aside>
@@ -2838,6 +2846,20 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3195</span> Added
+                <code>examples/render-target-msaa-clear-load.html</code>. The
+                render-to-texture route family now creates an MSAA-enabled app,
+                extracts two ECS cameras targeting the same renderer-owned
+                off-screen <code>ViewPacket.renderTarget</code> handle, clears
+                the first resolved boundary, stores the multisampled color
+                attachment for a later load, loads existing color/depth for the
+                second resolved boundary, reports target-key reuse,
+                requested/resolved sample counts, pass-order load ops, per-pass
+                MSAA sample count, and resolve attachment behavior, and
+                Playwright proves the resolved clear-only, base-preserved, and
+                overlay regions.
+              </li>
               <li>
                 <span class="badge green">task-3194</span> Added
                 <code>examples/render-target-msaa-resize.html</code>. The
@@ -5846,16 +5868,21 @@
                 resolved-preview proof.
               </li>
               <li>
-                <span class="badge">task-3195</span> Next: add an MSAA
-                same-target clear/load matrix route.
+                <span class="badge green">task-3195</span> Done: add an MSAA
+                same-target clear/load matrix route with first-pass MSAA store,
+                second-pass color/depth load, and clear/base/overlay proof.
               </li>
               <li>
-                <span class="badge">task-3196</span> Then: add an MSAA
+                <span class="badge">task-3196</span> Next: add an MSAA
                 render-target viewport crop route.
               </li>
               <li>
                 <span class="badge">task-3197</span> Then: add a mixed
                 current-texture plus MSAA resized off-screen target route.
+              </li>
+              <li>
+                <span class="badge">task-3198</span> Then: add a mixed
+                current-texture plus MSAA same-target clear/load route.
               </li>
               <li>
                 <span class="badge dim">task-3161</span> Later: add cross-device
@@ -5878,6 +5905,22 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3195</div>
+            <div>
+              <strong>MSAA same-target clear/load route shipped.</strong>
+              <span>
+                <code>examples/render-target-msaa-clear-load.html</code> clears
+                the first resolved off-screen target boundary, stores the
+                multisampled color attachment for a later load, loads existing
+                color/depth for the second same-target boundary, reports
+                target-key reuse, requested/resolved sample counts, pass-order
+                load ops, per-pass MSAA sample count, and resolve attachment
+                behavior, and proves the resolved clear-only, base-preserved,
+                and overlay regions are distinct.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3194</div>
             <div>

@@ -88,6 +88,33 @@ describe("frame boundary assembly helper", () => {
     expect(passDescriptors[0]).toBe(report.attachments?.plan);
   });
 
+  it("can store a multisampled color attachment for a later load", () => {
+    const events: string[] = [];
+    const resolvedView = { label: "resolved-view" };
+    const msaaView = { label: "msaa-view" };
+    const report = assembleFrameBoundary({
+      context: contextWithView(resolvedView),
+      device: device(events),
+      queue: { submit: (buffers) => events.push(`submit:${buffers.length}`) },
+      commands: [drawCommand()],
+      label: "msaa-store-frame",
+      colorLoadOp: "load",
+      msaaColorStoreOp: "store",
+      msaaColorTarget: {
+        view: msaaView,
+        sampleCount: 4,
+      },
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.attachments?.plan?.colorAttachments[0]).toMatchObject({
+      view: msaaView,
+      resolveTarget: resolvedView,
+      loadOp: "load",
+      storeOp: "store",
+    });
+  });
+
   it("can load an existing color attachment instead of clearing it", () => {
     const events: string[] = [];
     const report = assembleFrameBoundary({

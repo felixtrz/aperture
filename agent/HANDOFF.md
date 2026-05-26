@@ -1,6 +1,68 @@
 # Agent Handoff
 
-Updated: 2026-05-26T09:30:47Z
+Updated: 2026-05-26T10:06:36Z
+
+## Current Run Update — 2026-05-26T10:06:36Z — MSAA same-target clear/load route
+
+Completed `task-3195`.
+
+### What changed
+
+- Added `examples/render-target-msaa-clear-load.html` to the render-to-texture
+  route family and linked it from related example pages.
+- `packages/webgpu/src/webgpu/frame-boundary.ts` now accepts an explicit MSAA
+  color store op, allowing an MSAA color attachment to be stored when a later
+  pass in the same frame must load the same target.
+- `packages/webgpu/src/webgpu/app.ts` now counts per-frame target submissions,
+  stores MSAA color for repeated same-target passes before a later load, and
+  loads existing color/depth for subsequent same-target MSAA boundaries.
+- `examples/render-to-texture.main.js` now recognizes the MSAA clear/load route,
+  labels the pass as `render-to-texture/msaa-clear-load-target`, and reports
+  requested/resolved sample counts, target-key reuse, pass-order load ops,
+  per-pass MSAA sample count, and resolve attachment behavior.
+- Added unit and Playwright coverage proving the first MSAA pass clears and
+  stores, the second pass loads color/depth and resolves, and the resolved
+  clear-only, base-preserved, and overlay regions are distinct.
+- Updated public tracker pages, `agent/BACKLOG.md`, `agent/CURRENT_TASK.md`,
+  and `agent/COMPLETED.md`. The ready queue now continues with `task-3196`,
+  `task-3197`, and `task-3198`.
+
+### References inspected
+
+- `references/engine/src/extras/render-passes/camera-frame.js`
+- `references/bevy/examples/3d/render_to_texture.rs`
+
+### Validation
+
+- `pnpm run build`
+- `pnpm exec eslint packages/webgpu/src/webgpu/frame-boundary.ts packages/webgpu/src/webgpu/app.ts examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts test/webgpu/frame-boundary.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/webgpu-app.test.ts --testNamePattern "multisampled color attachment|repeated MSAA ViewPacket"`
+  — 3 passed, 71 skipped by test-name filter.
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "MSAA same render-target clear/load" --reporter=list`
+- Browser route check for `examples/render-target-msaa-clear-load.html` reported
+  `ok: true`, first-pass clear/store, second-pass load/discard, requested
+  8/effective 4 MSAA, and distinct clear/base/overlay samples.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- Full-repo `pnpm run format:check` still has pre-existing unrelated formatting
+  debt from earlier handoff notes, including untracked `.playwright-mcp/`
+  scratch files. This slice uses targeted Prettier checks for touched files.
+- A broad `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/webgpu-app.test.ts`
+  run still fails 11 pre-existing `webgpu-app.test.ts` expectations around
+  verbose pipeline descriptor resource keys. This task added focused
+  same-target MSAA coverage without changing those unrelated expectations.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3196`: add an MSAA render-target
+viewport crop route.
 
 ## Current Run Update — 2026-05-26T09:30:47Z — MSAA render-target resize route
 

@@ -1206,6 +1206,133 @@ describe("WebGPU app facade", () => {
     ]);
   });
 
+  it("loads repeated MSAA ViewPacket render-target submissions after storing the first pass", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      msaa: 8,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "SameMsaaTargetCube" }),
+    );
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "SameMsaaTargetWhite" }),
+    );
+    const renderTarget = createRenderTargetHandle("same-msaa-offscreen");
+    const offscreenTexture = {
+      createView: () => {
+        events.push("same-msaa-offscreen:view");
+        return { label: "same-msaa-offscreen-view" };
+      },
+    };
+
+    app.assets.register(renderTarget);
+    app.assets.markReady(
+      renderTarget,
+      createWebGpuAppRenderTargetAsset({
+        texture: offscreenTexture,
+        width: 1,
+        height: 1,
+        format: "bgra8unorm",
+        label: "Same MSAA offscreen",
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({
+        priority: 0,
+        layerMask: 1,
+        renderTargetId: assetHandleKey(renderTarget),
+      }),
+    );
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({
+        priority: 1,
+        layerMask: 1,
+        renderTargetId: assetHandleKey(renderTarget),
+      }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 17);
+    const colorAttachments = (frame.boundaries ?? []).map(
+      (boundary) => boundary.attachments?.plan?.colorAttachments[0] ?? null,
+    );
+    const depthLoadOps = (frame.boundaries ?? []).map(
+      (boundary) =>
+        boundary.attachments?.plan?.depthStencilAttachment?.depthLoadOp ?? null,
+    );
+
+    expect(frame.ok).toBe(true);
+    expect(frame.boundaries).toHaveLength(2);
+    expect(colorAttachments.map((attachment) => attachment?.loadOp)).toEqual([
+      "clear",
+      "load",
+    ]);
+    expect(colorAttachments.map((attachment) => attachment?.storeOp)).toEqual([
+      "store",
+      "discard",
+    ]);
+    expect(
+      colorAttachments.map((attachment) => attachment?.resolveTarget),
+    ).toEqual([expect.anything(), expect.anything()]);
+    expect(depthLoadOps).toEqual(["clear", "load"]);
+    expect(frame.msaa).toMatchObject({
+      requestedSampleCount: 8,
+      sampleCount: 4,
+      enabled: true,
+      clamped: true,
+      supportedSampleCounts: [1, 4],
+      colorTargets: 2,
+      colorTexturesCreated: 1,
+      colorTexturesReused: 1,
+    });
+    expect(frame.renderTargets).toEqual([
+      {
+        viewId: frame.snapshot.views[0]?.viewId,
+        source: "offscreen",
+        renderTargetKey: assetHandleKey(renderTarget),
+        width: 1,
+        height: 1,
+        format: "bgra8unorm",
+        ok: true,
+        drawCalls: 1,
+        msaaSampleCount: 4,
+      },
+      {
+        viewId: frame.snapshot.views[1]?.viewId,
+        source: "offscreen",
+        renderTargetKey: assetHandleKey(renderTarget),
+        width: 1,
+        height: 1,
+        format: "bgra8unorm",
+        ok: true,
+        drawCalls: 1,
+        msaaSampleCount: 4,
+      },
+    ]);
+  });
+
   it("renders swapchain frames through cached MSAA color and depth attachments", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);

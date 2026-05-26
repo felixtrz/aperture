@@ -59,30 +59,19 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3194` is complete: `examples/render-target-msaa-resize.html` now proves
-one MSAA-enabled WebGPU app can replace a renderer-owned off-screen
-`ViewPacket.renderTarget` texture under the same ECS handle before rendering,
-resolve the resized target texture into the visible preview, and report
-requested/resolved sample count, before/after dimensions, stable target key,
-texture recreation/destroy status, MSAA sample count, and resolve attachment
-behavior. Playwright verifies the resized resolved preview is non-clear without
-stale-size sampling. Continue the post-SOTA visible-feature queue at
-`task-3195`: add an MSAA same-target clear/load matrix route.
+`task-3195` is complete: `examples/render-target-msaa-clear-load.html` now
+proves one MSAA-enabled WebGPU app can extract two ECS cameras targeting the
+same renderer-owned off-screen `ViewPacket.renderTarget` handle in one snapshot,
+clear the first resolved boundary, store the multisampled color attachment, load
+existing color/depth for the second resolved boundary, and report
+requested/resolved sample count, target-key reuse, pass-order load ops, per-pass
+MSAA sample count, resolve attachment behavior, and clear/base/overlay display
+samples. Playwright verifies the resolved clear-only, base-preserved, and
+overlay regions. Continue the post-SOTA visible-feature queue at `task-3196`:
+add an MSAA render-target viewport crop route.
 
 The next ready visible-feature queue is:
 
-- `task-3195` — add an MSAA same-target clear/load matrix route.
-  Reference anchor:
-  `references/engine/src/extras/render-passes/camera-frame.js`,
-  `references/bevy/examples/3d/render_to_texture.rs`.
-  Done when one browser route creates an MSAA-enabled WebGPU app, extracts two
-  ECS cameras targeting the same renderer-owned off-screen
-  `ViewPacket.renderTarget` handle in one snapshot, clears the first resolved
-  boundary and loads existing color/depth for the second resolved boundary,
-  reports requested/resolved sample count, target-key reuse, pass-order load
-  ops, per-pass MSAA sample count, resolve attachment behavior, and
-  clear/base/overlay display samples, and Playwright verifies the resolved
-  clear-only, base-preserved, and overlay regions.
 - `task-3196` — add an MSAA render-target viewport crop route.
   Reference anchor:
   `references/engine/src/extras/render-passes/camera-frame.js`,
@@ -109,6 +98,21 @@ The next ready visible-feature queue is:
   resolve attachment behavior, display samples, and current-texture readback,
   and Playwright verifies the current-texture sample and resized resolved
   preview are non-clear and distinct without stale-size sampling.
+- `task-3198` — add a mixed current-texture plus MSAA same-target clear/load
+  route.
+  Reference anchor:
+  `references/engine/src/extras/render-passes/camera-frame.js`,
+  `references/bevy/examples/3d/render_to_texture.rs`.
+  Done when one browser route creates an MSAA-enabled WebGPU app, extracts one
+  current-texture camera plus two off-screen ECS cameras targeting the same
+  renderer-owned `ViewPacket.renderTarget` handle in one snapshot, clears the
+  first resolved off-screen boundary and loads existing color/depth for the
+  second resolved off-screen boundary, displays the resolved clear/base/overlay
+  regions plus current-texture readback, reports current/off-screen target
+  classifications, target-key reuse, pass-order load ops, requested/resolved
+  sample count, per-pass MSAA sample count, and resolve attachment behavior, and
+  Playwright verifies the current-texture sample, clear-only region,
+  base-preserved region, and overlay region are non-conflicting.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

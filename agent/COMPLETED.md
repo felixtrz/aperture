@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## task-3195 — Add an MSAA same-target clear/load matrix route
+
+Completed: 2026-05-26
+
+### Summary
+
+- Added `examples/render-target-msaa-clear-load.html` to the render-to-texture
+  route family and linked it from related example pages.
+- `packages/webgpu/src/webgpu/frame-boundary.ts` now accepts an explicit MSAA
+  color store op so a repeated same-target MSAA pass can store the first
+  multisampled attachment for a later load.
+- `packages/webgpu/src/webgpu/app.ts` now counts per-frame target submissions,
+  stores MSAA color for repeated targets before later passes, and loads existing
+  color/depth for subsequent same-target MSAA boundaries.
+- `examples/render-to-texture.main.js` now reports requested/resolved sample
+  counts, target-key reuse, pass-order load ops, per-pass MSAA sample count, and
+  resolve attachment behavior for same-target clear/load routes.
+- Added unit and Playwright coverage proving the first MSAA pass clears and
+  stores, the second pass loads color/depth and resolves, and the resolved
+  clear-only, base-preserved, and overlay regions are distinct.
+
+### Validation
+
+- `pnpm run build`
+- `pnpm exec eslint packages/webgpu/src/webgpu/frame-boundary.ts packages/webgpu/src/webgpu/app.ts examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts test/webgpu/frame-boundary.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/webgpu-app.test.ts --testNamePattern "multisampled color attachment|repeated MSAA ViewPacket"`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "MSAA same render-target clear/load" --reporter=list`
+- Browser route check: `examples/render-target-msaa-clear-load.html` published
+  `ok: true`, first-pass clear/store, second-pass load/discard, requested
+  8/effective 4 MSAA, and distinct clear/base/overlay samples.
+
 ## task-3194 — Add an MSAA render-target resize preview route
 
 Completed: 2026-05-26

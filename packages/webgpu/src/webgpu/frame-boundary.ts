@@ -22,6 +22,7 @@ import {
   createRenderPassAttachmentPlan,
   type CreateRenderPassAttachmentPlanResult,
   type RenderPassAttachmentLoadOp,
+  type RenderPassAttachmentStoreOp,
   type RenderPassColorAttachmentInput,
   type RenderPassDepthAttachmentInput,
 } from "./render-pass-attachments.js";
@@ -222,6 +223,7 @@ export interface AssembleFrameBoundaryOptions {
   readonly additionalColorTargets?: readonly RenderPassColorAttachmentInput[];
   readonly msaaColorTarget?: FrameBoundaryMsaaColorTarget | null;
   readonly colorLoadOp?: RenderPassAttachmentLoadOp;
+  readonly msaaColorStoreOp?: RenderPassAttachmentStoreOp;
   readonly viewport?: FrameBoundaryViewRectangle | null;
   readonly scissor?: FrameBoundaryViewRectangle | null;
   readonly clearColor?: readonly number[];
@@ -312,7 +314,7 @@ export function assembleFrameBoundary(
                   ...texture.target,
                   view: options.msaaColorTarget.view,
                   resolveTarget: texture.target.view,
-                  storeOp: "discard",
+                  storeOp: options.msaaColorStoreOp ?? "discard",
                 },
             ...(options.additionalColorTargets ?? []),
           ],

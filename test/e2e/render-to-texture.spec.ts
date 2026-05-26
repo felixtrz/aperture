@@ -1111,6 +1111,14 @@ interface RenderToTextureStatus extends ExampleStatusBase {
     readonly mode?: string;
     readonly source?: string;
     readonly renderTargetKey?: string;
+    readonly requestedSampleCount?: number;
+    readonly sampleCount?: number;
+    readonly enabled?: boolean;
+    readonly clamped?: boolean;
+    readonly supportedSampleCounts?: readonly number[];
+    readonly colorTargets?: number;
+    readonly colorTexturesCreated?: number;
+    readonly colorTexturesReused?: number;
     readonly views?: readonly {
       readonly index?: number;
       readonly role?: string;
@@ -1134,6 +1142,13 @@ interface RenderToTextureStatus extends ExampleStatusBase {
       readonly ok?: boolean;
       readonly colorLoadOp?: string | null;
       readonly depthLoadOp?: string | null;
+      readonly msaaSampleCount?: number;
+      readonly attachment?: {
+        readonly colorLoadOp?: string | null;
+        readonly colorStoreOp?: string | null;
+        readonly resolveTarget?: boolean;
+        readonly behavior?: string;
+      };
       readonly clearBehavior?: string;
     }[];
     readonly targetKeyReuse?: {
@@ -5821,6 +5836,292 @@ test("same render-target clear/load route preserves base and overlay regions", a
   expect(
     pixelDistance(overlaySample.pixel, clearSample.pixel),
     "overlay sample should differ from target clear",
+  ).toBeGreaterThan(40);
+});
+
+test("MSAA same render-target clear/load route preserves resolved base and overlay regions", async ({
+  page,
+}) => {
+  const guard = attachWebGpuValidationConsoleGuard(page);
+  const status = await loadExampleStatus<RenderToTextureStatus>(
+    page,
+    "/examples/render-target-msaa-clear-load.html",
+    "render-target-msaa-clear-load-status",
+  );
+
+  if (status === undefined) {
+    return;
+  }
+
+  const renderTargetKey = status.renderTarget?.key;
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "render-target-msaa-clear-load",
+    ok: true,
+    phase: "display",
+    renderingBackend: "webgpu-explicit",
+    renderTarget: {
+      width: 256,
+      height: 256,
+      source: "ViewPacket.renderTarget",
+      textureUsage: {
+        renderAttachment: true,
+        textureBinding: true,
+        copySource: true,
+      },
+    },
+    sourceView: {
+      ok: true,
+      viewId: 0,
+      priority: 0,
+      layerMask: 1,
+      renderTargetKey,
+      expectedRenderTargetKey: renderTargetKey,
+      renderTargetMatches: true,
+    },
+    sameRenderTargetClearLoad: {
+      mode: "same-offscreen-render-target-clear-load",
+      source: "ViewPacket.renderTarget",
+      renderTargetKey,
+      requestedSampleCount: 8,
+      sampleCount: 4,
+      enabled: true,
+      clamped: true,
+      supportedSampleCounts: [1, 4],
+      colorTargets: 2,
+      views: [
+        {
+          index: 0,
+          role: "base",
+          viewId: 0,
+          priority: 0,
+          layerMask: 1,
+          target: "offscreen",
+          renderTargetKey,
+          viewport: [0, 0, 1, 1],
+          scissor: [0, 0, 1, 1],
+        },
+        {
+          index: 1,
+          role: "overlay",
+          viewId: 1,
+          priority: 1,
+          layerMask: 2,
+          target: "offscreen",
+          renderTargetKey,
+          viewport: [0, 0, 1, 1],
+          scissor: [0, 0, 1, 1],
+        },
+      ],
+      passOrder: [
+        {
+          index: 0,
+          role: "base",
+          viewId: 0,
+          source: "offscreen",
+          renderTargetKey,
+          width: 256,
+          height: 256,
+          drawCalls: 1,
+          ok: true,
+          colorLoadOp: "clear",
+          depthLoadOp: "clear",
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "clear",
+            colorStoreOp: "store",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+          clearBehavior: "target-cleared-before-view",
+        },
+        {
+          index: 1,
+          role: "overlay",
+          viewId: 1,
+          source: "offscreen",
+          renderTargetKey,
+          width: 256,
+          height: 256,
+          drawCalls: 1,
+          ok: true,
+          colorLoadOp: "load",
+          depthLoadOp: "load",
+          msaaSampleCount: 4,
+          attachment: {
+            colorLoadOp: "load",
+            colorStoreOp: "discard",
+            resolveTarget: true,
+            behavior: "resolve-to-render-target-texture",
+          },
+          clearBehavior: "load-existing-target",
+        },
+      ],
+      targetKeyReuse: {
+        expectedRenderTargetKey: renderTargetKey,
+        uniqueTargetKeys: [renderTargetKey],
+        allPassesShareTargetKey: true,
+        passCount: 2,
+      },
+      displayPass: {
+        loadOp: "clear",
+        drawCalls: 1,
+        samples: {
+          clearOnly: "offscreen-clear-only",
+          basePreserved: "offscreen-base-preserved",
+          overlay: "offscreen-overlay-center",
+          screenClear: "screen-clear-corner",
+        },
+      },
+    },
+    counts: {
+      views: 2,
+      meshDraws: 2,
+      drawCalls: 2,
+      diagnostics: 0,
+    },
+    screenPass: {
+      phase: "screen-pass",
+      drawCalls: 1,
+      loadOp: "clear",
+      samples: {
+        clearOnly: "offscreen-clear-only",
+        basePreserved: "offscreen-base-preserved",
+        overlay: "offscreen-overlay-center",
+        screenClear: "screen-clear-corner",
+      },
+    },
+  });
+  expect(status.report?.renderTargets).toMatchObject([
+    {
+      source: "offscreen",
+      renderTargetKey,
+      width: 256,
+      height: 256,
+      ok: true,
+      drawCalls: 1,
+      msaaSampleCount: 4,
+    },
+    {
+      source: "offscreen",
+      renderTargetKey,
+      width: 256,
+      height: 256,
+      ok: true,
+      drawCalls: 1,
+      msaaSampleCount: 4,
+    },
+  ]);
+  guard.expectNoWarnings();
+
+  await attachExampleStatus(
+    "render-target-msaa-clear-load-rendered-status",
+    status,
+  );
+
+  if (!status.readback?.ok) {
+    test.skip(
+      true,
+      "MSAA render-target clear/load pixel assertion requires readback.",
+    );
+    return;
+  }
+
+  const clearSample = status.readback.samples?.find(
+    (entry) => entry.id === "offscreen-clear-only",
+  );
+  const baseSample = status.readback.samples?.find(
+    (entry) => entry.id === "offscreen-base-preserved",
+  );
+  const overlaySample = status.readback.samples?.find(
+    (entry) => entry.id === "offscreen-overlay-center",
+  );
+  const screenClearSample = status.readback.samples?.find(
+    (entry) => entry.id === "screen-clear-corner",
+  );
+
+  expect(clearSample, "expected MSAA target clear-only sample").toBeDefined();
+  expect(baseSample, "expected MSAA preserved base sample").toBeDefined();
+  expect(overlaySample, "expected MSAA overlay sample").toBeDefined();
+  expect(screenClearSample, "expected MSAA screen clear sample").toBeDefined();
+
+  if (
+    clearSample === undefined ||
+    baseSample === undefined ||
+    overlaySample === undefined ||
+    screenClearSample === undefined
+  ) {
+    return;
+  }
+
+  expect(
+    pixelDistance(
+      clearSample.pixel,
+      rgbaColorToPixel(
+        status.clearColors?.offscreen ?? {
+          r: 0.02,
+          g: 0.035,
+          b: 0.07,
+          a: 1,
+        },
+      ),
+    ),
+    "MSAA clear-only sample should remain the off-screen target clear color",
+  ).toBeLessThan(12);
+  expect(
+    pixelDistance(
+      baseSample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCenterColor ?? {
+          r: 0.06,
+          g: 0.88,
+          b: 0.22,
+          a: 1,
+        },
+      ),
+    ),
+    "MSAA base sample should survive the overlay camera load pass",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(
+      overlaySample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCanvasColor ?? {
+          r: 0.1,
+          g: 0.42,
+          b: 0.95,
+          a: 1,
+        },
+      ),
+    ),
+    "MSAA overlay sample should come from the second same-target camera",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(
+      screenClearSample.pixel,
+      rgbaColorToPixel(
+        status.clearColors?.screen ?? {
+          r: 0.015,
+          g: 0.018,
+          b: 0.023,
+          a: 1,
+        },
+      ),
+    ),
+    "MSAA screen clear sample should stay outside the displayed preview quad",
+  ).toBeLessThan(12);
+  expect(
+    pixelDistance(baseSample.pixel, overlaySample.pixel),
+    "MSAA base and overlay samples should be visually distinct",
+  ).toBeGreaterThan(80);
+  expect(
+    pixelDistance(baseSample.pixel, clearSample.pixel),
+    "MSAA base sample should differ from target clear",
+  ).toBeGreaterThan(40);
+  expect(
+    pixelDistance(overlaySample.pixel, clearSample.pixel),
+    "MSAA overlay sample should differ from target clear",
   ).toBeGreaterThan(40);
 });
 

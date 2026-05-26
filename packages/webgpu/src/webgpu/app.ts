@@ -2551,6 +2551,9 @@ async function assembleWebGpuAppFrameBoundaries(options: {
   let msaaColorTexturesReused = 0;
   let allTargetsValid = true;
   const submittedTargetCounts = new Map<string, number>();
+  const targetSubmissionTotals = countWebGpuAppFrameBoundaryTargetSubmissions(
+    targetPlan.targets,
+  );
   const lastSwapchainTargetIndex = findLastSwapchainTargetIndex(
     targetPlan.targets,
   );
@@ -2657,8 +2660,12 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       webGpuAppFrameBoundaryTargetSubmissionKey(target);
     const previousTargetSubmissions =
       submittedTargetCounts.get(targetSubmissionKey) ?? 0;
-    const loadExistingTarget =
-      previousTargetSubmissions > 0 && msaaColorTarget.resource === null;
+    const targetSubmissionTotal =
+      targetSubmissionTotals.get(targetSubmissionKey) ?? 0;
+    const loadExistingTarget = previousTargetSubmissions > 0;
+    const storeMsaaColorForLaterLoad =
+      msaaColorTarget.resource !== null &&
+      previousTargetSubmissions + 1 < targetSubmissionTotal;
     const colorLoadOp: RenderPassAttachmentLoadOp = loadExistingTarget
       ? "load"
       : "clear";
@@ -2862,6 +2869,9 @@ async function assembleWebGpuAppFrameBoundaries(options: {
               view: msaaColorTarget.resource.view,
               sampleCount: msaaColorTarget.resource.sampleCount,
             },
+            ...(storeMsaaColorForLaterLoad
+              ? { msaaColorStoreOp: "store" as const }
+              : {}),
           }),
       ...(gpuTiming.resources === null
         ? {}
@@ -5482,6 +5492,20 @@ function findLastSwapchainTargetIndex(
   }
 
   return -1;
+}
+
+function countWebGpuAppFrameBoundaryTargetSubmissions(
+  targets: readonly WebGpuAppFrameBoundaryTarget[],
+): Map<string, number> {
+  const counts = new Map<string, number>();
+
+  for (const target of targets) {
+    const key = webGpuAppFrameBoundaryTargetSubmissionKey(target);
+
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+
+  return counts;
 }
 
 function webGpuAppFrameBoundaryTargetSubmissionKey(
