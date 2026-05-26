@@ -1,6 +1,71 @@
 # Agent Handoff
 
-Updated: 2026-05-26T06:30:15Z
+Updated: 2026-05-26T06:46:17Z
+
+## Current Run Update — 2026-05-26T06:46:17Z — Mixed current plus dual-size off-screen targets
+
+Completed `task-3187` after `task-3186`.
+
+### What changed
+
+- Added `examples/mixed-dual-size-render-targets.html` to the render-to-texture
+  route family and linked it from related example pages.
+- `examples/render-to-texture.worker.js` now supports a mixed-dual-size mode
+  that extracts one current-texture camera plus two off-screen cameras targeting
+  square and wide renderer-owned `ViewPacket.renderTarget` handles from one
+  worker-authored ECS snapshot.
+- `examples/render-to-texture.main.js` now creates the square and wide
+  renderer-owned targets, displays both off-screen textures with
+  aspect-preserving preview quads, and reports `mixedDualSizeRenderTargets`
+  status with target classifications, keys, dimensions, pass order, draw
+  counts, display samples, aspect mapping, and current-texture readback.
+- Added Playwright spec coverage for the route. The official Chrome-channel
+  Playwright project is currently blocked in this environment because
+  `browser.newPage()` hangs even for `about:blank`; a bundled Chromium
+  Playwright assertion script verified the route status, aspect mapping,
+  current-texture readback, and current/primary/secondary/screen pixel colors.
+- Updated public tracker pages, `agent/BACKLOG.md`, `agent/CURRENT_TASK.md`,
+  and `agent/COMPLETED.md`. The ready queue now continues with `task-3188`,
+  `task-3189`, and `task-3190`.
+
+### References inspected
+
+- `references/engine/examples/src/examples/graphics/multi-render-targets.example.mjs`
+- `references/three.js/examples/webgpu_rtt.html`
+
+### Validation
+
+- `node --check examples/render-to-texture-assets.js && node --check examples/render-to-texture.main.js && node --check examples/render-to-texture.worker.js`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js examples/render-to-texture-assets.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- Bundled Chromium Playwright assertion script for
+  `/examples/mixed-dual-size-render-targets.html` — passed status, aspect, and
+  pixel-color assertions.
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs` — 7 passed.
+- `pnpm run check:progress`
+
+### Known issues / remaining work
+
+- Official Chrome-channel Playwright and render-control remain blocked in this
+  environment: minimal `chromium.launch({ channel: "chrome" })` reaches
+  `launched` but hangs at `browser.newPage()` for both headed and headless
+  modes. Bundled Chromium can create pages and verified the new route.
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- A broad `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/webgpu-app.test.ts`
+  run still fails 11 pre-existing `webgpu-app.test.ts` expectations around
+  verbose pipeline descriptor resource keys. This task did not modify that
+  area.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3188`: add an MSAA two-target
+off-screen preview route.
 
 ## Current Run Update — 2026-05-26T06:30:15Z — Cropped secondary off-screen target
 

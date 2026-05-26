@@ -154,6 +154,7 @@ function createMainScene(aperture, app, sourceAssets) {
     routeConfig.multiRenderTargets ||
     routeConfig.mixedMultiRenderTargets ||
     routeConfig.dualSizeRenderTargets ||
+    routeConfig.mixedDualSizeRenderTargets ||
     routeConfig.croppedSecondaryRenderTargets
   ) {
     const secondaryTarget = createOffscreenTarget({
@@ -161,9 +162,11 @@ function createMainScene(aperture, app, sourceAssets) {
       device,
       format,
       textureUsage,
-      size: routeConfig.dualSizeRenderTargets
-        ? dualSizeSecondarySize
-        : routeConfig.offscreenSize,
+      size:
+        routeConfig.dualSizeRenderTargets ||
+        routeConfig.mixedDualSizeRenderTargets
+          ? dualSizeSecondarySize
+          : routeConfig.offscreenSize,
       label: "aperture-render-to-texture-target/secondary",
     });
 
@@ -232,6 +235,7 @@ function startWorkerSnapshotLoop(aperture, app, scene, readbackUsage) {
     multiRenderTargets: routeConfig.multiRenderTargets,
     mixedMultiRenderTargets: routeConfig.mixedMultiRenderTargets,
     dualSizeRenderTargets: routeConfig.dualSizeRenderTargets,
+    mixedDualSizeRenderTargets: routeConfig.mixedDualSizeRenderTargets,
     croppedSecondaryRenderTargets: routeConfig.croppedSecondaryRenderTargets,
     targetCrop: routeConfig.targetCrop,
     targetClearLoad: routeConfig.targetClearLoad,
@@ -280,20 +284,26 @@ async function handleWorkerMessage(
   const typedSnapshot = inspectStructuredCloneSnapshot(message.snapshot);
   const offscreenReport = await app.renderSnapshot(message.snapshot, {
     frame: message.frame ?? 1,
-    ...(routeConfig.mixedTargets || routeConfig.mixedMultiRenderTargets
+    ...(routeConfig.mixedTargets ||
+    routeConfig.mixedMultiRenderTargets ||
+    routeConfig.mixedDualSizeRenderTargets
       ? {}
       : { clearColor: offscreenClearColor }),
     ...(routeConfig.mixedTargets && readbackUsage.ok
       ? { readbackSamples: [canvasSample] }
       : {}),
-    ...(routeConfig.mixedMultiRenderTargets && readbackUsage.ok
+    ...((routeConfig.mixedMultiRenderTargets ||
+      routeConfig.mixedDualSizeRenderTargets) &&
+    readbackUsage.ok
       ? { readbackSamples: [mixedMultiCurrentSample] }
       : {}),
-    label: routeConfig.mixedMultiRenderTargets
-      ? "render-to-texture/mixed-multi-targets"
-      : routeConfig.mixedTargets
-        ? "render-to-texture/mixed-targets"
-        : "render-to-texture/offscreen",
+    label: routeConfig.mixedDualSizeRenderTargets
+      ? "render-to-texture/mixed-dual-size-targets"
+      : routeConfig.mixedMultiRenderTargets
+        ? "render-to-texture/mixed-multi-targets"
+        : routeConfig.mixedTargets
+          ? "render-to-texture/mixed-targets"
+          : "render-to-texture/offscreen",
   });
 
   if (!offscreenReport.ok) {
@@ -336,7 +346,8 @@ async function handleWorkerMessage(
         scene,
         readbackUsage,
       })
-    : routeConfig.dualSizeRenderTargets
+    : routeConfig.dualSizeRenderTargets ||
+        routeConfig.mixedDualSizeRenderTargets
       ? await drawDualSizeRenderTargetTexturesToCanvas({
           aperture,
           app,
@@ -1007,6 +1018,17 @@ function createStatus(
           ),
         }
       : {}),
+    ...(routeConfig.mixedDualSizeRenderTargets
+      ? {
+          mixedDualSizeRenderTargets: createMixedDualSizeRenderTargetsStatus(
+            aperture,
+            scene,
+            message,
+            report,
+            screenPass,
+          ),
+        }
+      : {}),
     ...(routeConfig.dualSizeRenderTargets
       ? {
           dualSizeRenderTargets: createDualSizeRenderTargetsStatus(
@@ -1073,6 +1095,7 @@ function createStatus(
       ...(routeConfig.multiRenderTargets ||
       routeConfig.mixedMultiRenderTargets ||
       routeConfig.dualSizeRenderTargets ||
+      routeConfig.mixedDualSizeRenderTargets ||
       routeConfig.croppedSecondaryRenderTargets
         ? {
             secondaryRenderTargetKey: aperture.assetHandleKey(
@@ -1172,6 +1195,7 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: false,
       mixedMultiRenderTargets: false,
       dualSizeRenderTargets: false,
+      mixedDualSizeRenderTargets: false,
       croppedSecondaryRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
@@ -1191,6 +1215,7 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: false,
       mixedMultiRenderTargets: false,
       dualSizeRenderTargets: false,
+      mixedDualSizeRenderTargets: false,
       croppedSecondaryRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
@@ -1210,6 +1235,7 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: false,
       mixedMultiRenderTargets: false,
       dualSizeRenderTargets: false,
+      mixedDualSizeRenderTargets: false,
       croppedSecondaryRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
@@ -1229,6 +1255,7 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: true,
       mixedMultiRenderTargets: false,
       dualSizeRenderTargets: false,
+      mixedDualSizeRenderTargets: false,
       croppedSecondaryRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
@@ -1248,6 +1275,7 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: false,
       mixedMultiRenderTargets: true,
       dualSizeRenderTargets: false,
+      mixedDualSizeRenderTargets: false,
       croppedSecondaryRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
@@ -1267,6 +1295,27 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: false,
       mixedMultiRenderTargets: false,
       dualSizeRenderTargets: true,
+      mixedDualSizeRenderTargets: false,
+      croppedSecondaryRenderTargets: false,
+      targetCrop: false,
+      targetClearLoad: false,
+      targetMsaa: false,
+      requiredFrames: 1,
+    };
+  }
+
+  if (pathname.endsWith("/mixed-dual-size-render-targets.html")) {
+    return {
+      example: "mixed-dual-size-render-targets",
+      initialOffscreenSize: defaultOffscreenSize,
+      offscreenSize: defaultOffscreenSize,
+      resizeTarget: false,
+      reuseStress: false,
+      mixedTargets: false,
+      multiRenderTargets: false,
+      mixedMultiRenderTargets: false,
+      dualSizeRenderTargets: false,
+      mixedDualSizeRenderTargets: true,
       croppedSecondaryRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
@@ -1286,6 +1335,7 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: false,
       mixedMultiRenderTargets: false,
       dualSizeRenderTargets: false,
+      mixedDualSizeRenderTargets: false,
       croppedSecondaryRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
@@ -1305,6 +1355,7 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: false,
       mixedMultiRenderTargets: false,
       dualSizeRenderTargets: false,
+      mixedDualSizeRenderTargets: false,
       croppedSecondaryRenderTargets: true,
       targetCrop: false,
       targetClearLoad: false,
@@ -1324,6 +1375,7 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: false,
       mixedMultiRenderTargets: false,
       dualSizeRenderTargets: false,
+      mixedDualSizeRenderTargets: false,
       croppedSecondaryRenderTargets: false,
       targetCrop: true,
       targetClearLoad: false,
@@ -1343,6 +1395,7 @@ function routeConfigForPath(pathname) {
       multiRenderTargets: false,
       mixedMultiRenderTargets: false,
       dualSizeRenderTargets: false,
+      mixedDualSizeRenderTargets: false,
       croppedSecondaryRenderTargets: false,
       targetCrop: false,
       targetClearLoad: true,
@@ -1610,6 +1663,131 @@ function createMixedMultiRenderTargetsStatus(
       {
         target: "offscreen",
         ...createMultiRenderTargetStatusEntry({
+          role: "secondary",
+          key: secondaryKey,
+          materialKey: aperture.assetHandleKey(scene.canvasMaterial),
+          expectedColor: rgbaToStatusColor(canvasPlaneColor),
+          sampleId: rightPreviewSample.id,
+          target: reportByKey.get(secondaryKey),
+          displayQuad: quadsByRole.get("secondary"),
+        }),
+      },
+      {
+        role: "current",
+        target: "current-texture",
+        key: null,
+        source: currentTarget?.source ?? "swapchain",
+        viewId: currentTarget?.viewId ?? null,
+        width: currentTarget?.width ?? scene.canvas.width,
+        height: currentTarget?.height ?? scene.canvas.height,
+        format: currentTarget?.format ?? null,
+        ok: currentTarget?.ok ?? false,
+        drawCalls: currentTarget?.drawCalls ?? 0,
+        materialKey: aperture.assetHandleKey(scene.currentMaterial),
+        expectedColor: rgbaToStatusColor(currentPlaneColor),
+        readbackSample: mixedMultiCurrentSample.id,
+      },
+    ],
+    views,
+    passOrder: (report.renderTargets ?? []).map((target, index) => ({
+      index,
+      viewId: target.viewId,
+      source: target.source,
+      target: target.source === "swapchain" ? "current-texture" : "offscreen",
+      renderTargetKey: target.renderTargetKey,
+      width: target.width,
+      height: target.height,
+      drawCalls: target.drawCalls,
+      ok: target.ok,
+    })),
+    displayPass: {
+      loadOp: screenPass.loadOp,
+      drawCalls: screenPass.drawCalls,
+      quads: screenPass.quads,
+      samples: screenPass.samples,
+    },
+    currentTextureReadback: report.readback ?? null,
+    expectedSamples: {
+      currentTexture: {
+        sampleId: mixedMultiCurrentSample.id,
+        materialKey: aperture.assetHandleKey(scene.currentMaterial),
+        expectedColor: rgbaToStatusColor(currentPlaneColor),
+      },
+      primaryPreview: {
+        sampleId: leftPreviewSample.id,
+        materialKey: aperture.assetHandleKey(scene.material),
+        expectedColor: rgbaToStatusColor(planeColor),
+      },
+      secondaryPreview: {
+        sampleId: rightPreviewSample.id,
+        materialKey: aperture.assetHandleKey(scene.canvasMaterial),
+        expectedColor: rgbaToStatusColor(canvasPlaneColor),
+      },
+      screenClear: {
+        sampleId: screenClearSample.id,
+        expectedColor: { ...screenClearColor },
+      },
+    },
+  };
+}
+
+function createMixedDualSizeRenderTargetsStatus(
+  aperture,
+  scene,
+  message,
+  report,
+  screenPass,
+) {
+  const primaryKey = aperture.assetHandleKey(scene.renderTarget);
+  const secondaryKey = aperture.assetHandleKey(scene.secondaryRenderTarget);
+  const reportByKey = new Map(
+    (report.renderTargets ?? []).map((target) => [
+      target.renderTargetKey,
+      target,
+    ]),
+  );
+  const currentTarget =
+    (report.renderTargets ?? []).find(
+      (target) => target.source === "swapchain",
+    ) ?? null;
+  const quadsByRole = new Map(
+    (screenPass.quads ?? []).map((quad) => [quad.role, quad]),
+  );
+  const views = (message.snapshot?.views ?? []).map((view) => {
+    const renderTargetKey = assetKeyOrNull(aperture, view.renderTarget);
+
+    return {
+      viewId: view.viewId,
+      camera: view.camera,
+      priority: view.priority,
+      layerMask: view.layerMask,
+      target: renderTargetKey === null ? "current-texture" : "offscreen",
+      renderTargetKey,
+      viewport: Array.from(view.viewport),
+      scissor: Array.from(view.scissor),
+      clearColor: rgbaToStatusColor(view.clearColor),
+    };
+  });
+
+  return {
+    mode: "current-texture-plus-dual-size-offscreen-render-targets",
+    source: "ViewPacket.renderTarget",
+    renderTargets: [
+      {
+        target: "offscreen",
+        ...createDualSizeRenderTargetStatusEntry({
+          role: "primary",
+          key: primaryKey,
+          materialKey: aperture.assetHandleKey(scene.material),
+          expectedColor: rgbaToStatusColor(planeColor),
+          sampleId: leftPreviewSample.id,
+          target: reportByKey.get(primaryKey),
+          displayQuad: quadsByRole.get("primary"),
+        }),
+      },
+      {
+        target: "offscreen",
+        ...createDualSizeRenderTargetStatusEntry({
           role: "secondary",
           key: secondaryKey,
           materialKey: aperture.assetHandleKey(scene.canvasMaterial),

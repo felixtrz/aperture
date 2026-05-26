@@ -393,12 +393,22 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 06:30 UTC</dd>
+            <dd>2026-05-26 06:46 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/mixed-dual-size-render-targets.html</code> now
+              proves one current-texture ECS camera plus two off-screen ECS
+              cameras targeting differently sized renderer-owned textures from
+              one worker-authored snapshot. The route displays the square and
+              wide off-screen textures with aspect-preserving preview quads,
+              reports target classifications, keys, dimensions, pass order,
+              draw counts, display samples, aspect mapping, and
+              current-texture readback, then automated Playwright verification
+              checks all three target-family colors are non-clear and visually
+              distinct. Previous update:
               <code>examples/render-target-secondary-crop.html</code> now
               proves two ECS cameras can target distinct renderer-owned
               off-screen textures while only the secondary target applies a
@@ -2786,6 +2796,19 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3187</span> Added
+                <code>examples/mixed-dual-size-render-targets.html</code>. The
+                render-to-texture route family now extracts one current-texture
+                camera plus square and wide off-screen render-target cameras
+                from one worker-authored snapshot, displays the off-screen
+                textures with aspect-preserving preview quads, reports target
+                classifications, keys, dimensions, pass order, draw counts,
+                display samples, aspect mapping, and current-texture readback,
+                and automated Playwright verification proves the current,
+                primary, and secondary target-family samples are non-clear and
+                visually distinct.
+              </li>
               <li>
                 <span class="badge green">task-3186</span> Added
                 <code>examples/render-target-secondary-crop.html</code>. The
@@ -5636,16 +5659,22 @@
                 proof.
               </li>
               <li>
-                <span class="badge">task-3187</span> Next: add a mixed
-                current-texture plus dual-size off-screen render-target route.
+                <span class="badge green">task-3187</span> Done: add a mixed
+                current-texture plus dual-size off-screen render-target route
+                with aspect mapping and current-texture readback proof.
               </li>
               <li>
-                <span class="badge">task-3188</span> Then: add an MSAA
+                <span class="badge">task-3188</span> Next: add an MSAA
                 two-target off-screen preview route.
               </li>
               <li>
                 <span class="badge">task-3189</span> Then: add an MSAA cropped
                 secondary off-screen render-target preview route.
+              </li>
+              <li>
+                <span class="badge">task-3190</span> Then: add a mixed
+                current-texture plus cropped secondary off-screen
+                render-target route.
               </li>
               <li>
                 <span class="badge dim">task-3161</span> Later: add
@@ -5668,6 +5697,21 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3187</div>
+            <div>
+              <strong>Mixed current plus dual-size targets shipped.</strong>
+              <span>
+                <code>examples/mixed-dual-size-render-targets.html</code>
+                extracts one current-texture camera plus square and wide
+                off-screen render-target cameras from one ECS snapshot, reports
+                target classifications, keys, dimensions, pass order, draw
+                counts, display samples, aspect mapping, and current-texture
+                readback, and proves all three target-family samples are
+                non-clear and visually distinct.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3186</div>
             <div>

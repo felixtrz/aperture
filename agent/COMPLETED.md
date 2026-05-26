@@ -1,5 +1,39 @@
 # Completed Tasks
 
+## task-3187 — Add a mixed current-texture plus dual-size off-screen render-target route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/mixed-dual-size-render-targets.html` on the existing
+  render-to-texture route family.
+- `examples/render-to-texture.worker.js` now supports a mixed-dual-size mode
+  that extracts one current-texture camera plus two off-screen cameras targeting
+  square and wide renderer-owned `ViewPacket.renderTarget` handles.
+- `examples/render-to-texture.main.js` creates the square and wide targets,
+  displays both off-screen textures with aspect-preserving preview quads, and
+  reports target classifications, keys, dimensions, pass order, draw counts,
+  display samples, aspect mapping, and current-texture readback.
+- Added Playwright spec coverage for the route. The official Chrome-channel
+  project could not complete in this environment because Chrome hangs at
+  `browser.newPage()`; a bundled Chromium Playwright assertion script verified
+  route status, aspect mapping, current-texture readback, and all three
+  target-family pixel colors.
+- Updated example links, public tracker pages, backlog, current task, and
+  handoff.
+
+Validation:
+
+- `node --check examples/render-to-texture-assets.js && node --check examples/render-to-texture.main.js && node --check examples/render-to-texture.worker.js`
+- `pnpm exec eslint examples/render-to-texture.main.js examples/render-to-texture.worker.js examples/render-to-texture-assets.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- Bundled Chromium Playwright assertion script for `/examples/mixed-dual-size-render-targets.html`
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm run check:progress`
+
 ## task-3186 — Add a cropped secondary off-screen render-target preview route
 
 Completed: 2026-05-26

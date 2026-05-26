@@ -2,24 +2,25 @@
 
 No active task is currently checked out.
 
-Status: task-3186 cropped secondary off-screen render-target preview route completed.
+Status: task-3187 mixed current-texture plus dual-size off-screen render-target route completed.
 
 Key findings:
 
-- Added `examples/render-target-secondary-crop.html` to the render-to-texture
+- Added `examples/mixed-dual-size-render-targets.html` to the render-to-texture
   route family.
-- The worker now extracts two ECS cameras targeting distinct renderer-owned
-  off-screen `ViewPacket.renderTarget` handles while only the secondary target
-  applies the non-full normalized viewport/scissor crop.
-- `examples/render-to-texture.main.js` displays both textures side by side and
-  reports `croppedSecondaryRenderTargets` status with per-target keys,
-  dimensions, draw counts, display samples, and resolved secondary target-space
-  crop pixels.
-- Playwright verifies the primary preview is non-clear, the secondary
-  inside-crop sample renders, and the secondary outside-crop sample remains the
-  off-screen clear color.
+- The worker now extracts one current-texture ECS camera plus two off-screen ECS
+  cameras targeting square and wide renderer-owned `ViewPacket.renderTarget`
+  handles from one snapshot.
+- `examples/render-to-texture.main.js` displays the square and wide off-screen
+  textures with aspect-preserving preview quads and reports
+  `mixedDualSizeRenderTargets` status with target classifications, keys,
+  dimensions, pass order, draw counts, display samples, aspect mapping, and
+  current-texture readback.
+- The official Chrome-channel Playwright project is currently blocked because
+  Chrome hangs at `browser.newPage()` even for `about:blank`; a bundled
+  Chromium Playwright assertion script verified the mixed-dual route status and
+  target-family pixel samples.
 
 Recommended next task:
 
-- `task-3187` — add a mixed current-texture plus dual-size off-screen
-  render-target route.
+- `task-3188` — add an MSAA two-target off-screen preview route.
