@@ -4,7 +4,10 @@ import type {
   CapsuleMeshOptions,
   ConeMeshOptions,
   CylinderMeshOptions,
+  LineListMeshOptions,
+  LineListMeshSubmeshOptions,
   MeshAsset,
+  MeshIndexBufferDescriptor,
   PlaneMeshOptions,
   SphereMeshOptions,
   TorusMeshOptions,
@@ -131,6 +134,58 @@ export function createPlaneMeshAsset(
     localAabb: { min: [-hx, -hy, 0], max: [hx, hy, 0] },
     localSphere: { center: [0, 0, 0], radius: Math.hypot(hx, hy) },
   });
+}
+
+export function createLineListMeshAsset(
+  options: LineListMeshOptions,
+): MeshAsset {
+  const label = options.label ?? "LineList";
+  const vertices = interleavePrimitiveVertexList(
+    options.positions.map((position) => ({
+      position,
+      normal: [0, 0, 1] as const,
+      uv: [0, 0] as const,
+    })),
+  );
+  const indexBuffer = createLineListIndexBuffer(options.indices);
+  const submeshes = createLineListSubmeshes({
+    submeshes: options.submeshes,
+    vertexCount: options.positions.length,
+    indexCount: indexBuffer?.data.length ?? 0,
+    indexed: indexBuffer !== undefined,
+  });
+  const materialSlotCount = Math.max(
+    1,
+    options.materialSlots?.length ?? 0,
+    ...submeshes.map((submesh) => submesh.materialSlot + 1),
+  );
+  const bounds = boundsFromPositions(options.positions);
+
+  return {
+    kind: "mesh",
+    label,
+    vertexStreams: [
+      {
+        id: "line-list-interleaved",
+        arrayStride: PRIMITIVE_VERTEX_STRIDE_BYTES,
+        vertexCount: options.positions.length,
+        attributes: [
+          { semantic: "POSITION", format: "float32x3", offset: 0 },
+          { semantic: "NORMAL", format: "float32x3", offset: 12 },
+          { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
+        ],
+        data: vertices,
+      },
+    ],
+    ...(indexBuffer === undefined ? {} : { indexBuffer }),
+    submeshes,
+    materialSlots: Array.from({ length: materialSlotCount }, (_, index) => ({
+      index,
+      label: options.materialSlots?.[index] ?? `slot-${index}`,
+    })),
+    localAabb: bounds.aabb,
+    localSphere: bounds.sphere,
+  };
 }
 
 export function createSphereMeshAsset(
@@ -605,11 +660,126 @@ interface PrimitiveMeshAssetInput {
 
 type PrimitivePosition = readonly [number, number, number];
 type PrimitiveFace = readonly PrimitiveVertex[];
+type PrimitiveBounds = {
+  readonly aabb: Aabb;
+  readonly sphere: BoundingSphere;
+};
 
 interface PrimitiveVertex {
   readonly position: PrimitivePosition;
   readonly normal: PrimitivePosition;
   readonly uv: readonly [number, number];
+}
+
+function createLineListIndexBuffer(
+  indices: LineListMeshOptions["indices"],
+): MeshIndexBufferDescriptor | undefined {
+  if (indices === undefined) {
+    return undefined;
+  }
+
+  if (indices instanceof Uint16Array) {
+    return { format: "uint16", data: indices, indexCount: indices.length };
+  }
+
+  if (indices instanceof Uint32Array) {
+    return { format: "uint32", data: indices, indexCount: indices.length };
+  }
+
+  const maxIndex = indices.reduce((max, index) => Math.max(max, index), 0);
+  const data =
+    maxIndex > 0xffff ? new Uint32Array(indices) : new Uint16Array(indices);
+
+  return {
+    format: data instanceof Uint32Array ? "uint32" : "uint16",
+    data,
+    indexCount: data.length,
+  };
+}
+
+function createLineListSubmeshes(input: {
+  readonly submeshes?: readonly LineListMeshSubmeshOptions[] | undefined;
+  readonly vertexCount: number;
+  readonly indexCount: number;
+  readonly indexed: boolean;
+}): MeshAsset["submeshes"] {
+  const source =
+    input.submeshes === undefined || input.submeshes.length === 0
+      ? [
+          {
+            label: "default",
+            materialSlot: 0,
+            vertexStart: 0,
+            vertexCount: input.vertexCount,
+            indexStart: 0,
+            indexCount: input.indexed ? input.indexCount : 0,
+          },
+        ]
+      : input.submeshes;
+
+  return source.map((submesh, index) => ({
+    label: submesh.label ?? `line-list-${index}`,
+    topology: "line-list",
+    materialSlot: submesh.materialSlot ?? 0,
+    vertexStart: submesh.vertexStart ?? 0,
+    vertexCount: submesh.vertexCount ?? input.vertexCount,
+    indexStart: submesh.indexStart ?? 0,
+    indexCount: submesh.indexCount ?? (input.indexed ? input.indexCount : 0),
+  }));
+}
+
+function boundsFromPositions(
+  positions: readonly PrimitivePosition[],
+): PrimitiveBounds {
+  if (positions.length === 0) {
+    return {
+      aabb: { min: [0, 0, 0], max: [0, 0, 0] },
+      sphere: { center: [0, 0, 0], radius: 0 },
+    };
+  }
+
+  const min: [number, number, number] = [
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+  ];
+  const max: [number, number, number] = [
+    Number.NEGATIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+  ];
+
+  for (const position of positions) {
+    min[0] = Math.min(min[0], position[0]);
+    min[1] = Math.min(min[1], position[1]);
+    min[2] = Math.min(min[2], position[2]);
+    max[0] = Math.max(max[0], position[0]);
+    max[1] = Math.max(max[1], position[1]);
+    max[2] = Math.max(max[2], position[2]);
+  }
+
+  const center: [number, number, number] = [
+    (min[0] + max[0]) * 0.5,
+    (min[1] + max[1]) * 0.5,
+    (min[2] + max[2]) * 0.5,
+  ];
+  const radius = positions.reduce(
+    (current, position) =>
+      Math.max(
+        current,
+        Math.hypot(
+          position[0] - center[0],
+          position[1] - center[1],
+          position[2] - center[2],
+        ),
+      ),
+    0,
+  );
+
+  return {
+    aabb: { min, max },
+    sphere: { center, radius },
+  };
 }
 
 function createPrimitiveMeshAsset(input: PrimitiveMeshAssetInput): MeshAsset {

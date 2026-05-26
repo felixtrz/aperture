@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "7f960ce3",
+  "lastCommit": "93da3d83",
   "activePid": null,
-  "notes": "Completed task-3167 orthographic camera route after task-3166: added worker-authored perspective plus near/far orthographic cameras, reused the multi-view WebGPU viewport/scissor submission path, and proved orthographic size stability with Playwright readback. check:examples, targeted unit/example tests, build, test typecheck, focused Playwright, render-control smoke-all, and touched-file lint pass. Full pnpm test and full lint were not rerun; prior handoff documents unrelated existing failures.",
-  "lastRunFinishedAt": "2026-05-26T01:55:36Z"
+  "notes": "Completed task-3168 line primitive route after task-3167: added createLineListMeshAsset, accepted line-list mesh validation, preserved line-list topology in unlit WebGPU descriptors, and proved two indexed colored ECS line sets with Playwright readback. check:examples, focused unit/example tests, build, test typecheck, focused Playwright, render-control smoke-all, check:progress, and touched-file lint pass. Full pnpm test and full lint were not rerun; prior handoff documents unrelated existing failures.",
+  "lastRunFinishedAt": "2026-05-26T02:10:39Z"
 }

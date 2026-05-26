@@ -2,22 +2,23 @@
 
 No active task is currently checked out.
 
-Status: task-3167 orthographic camera route completed.
+Status: task-3168 line primitive route completed.
 
 Key findings:
 
-- `examples/orthographic-camera.html` now renders one perspective reference and
-  two orthographic cameras at different distances over the same worker-owned ECS
-  plane.
-- The shared multi-view WebGPU path now routes by page, so split-screen and
-  orthographic proofs both use the same per-view viewport/scissor submission
-  logic.
-- Playwright verifies the near and far orthographic views keep the same sampled
-  object footprint while outside-edge samples remain clear.
-- `pnpm run render-control:smoke-all` includes both multi-view routes and
-  reports zero route status failures and zero warning routes across 51 example
-  pages.
+- `createLineListMeshAsset(...)` is now exported through
+  `@aperture-engine/core`, producing typed indexed `line-list` mesh assets with
+  bounds and material slots.
+- The unlit WebGPU pipeline descriptor and browser bridge now preserve
+  `line-list` topology instead of hard-coding triangle-list.
+- `examples/line-primitives.html` renders two indexed ECS-authored colored line
+  sets through the same extraction, prepared-resource, render-world, draw-list,
+  and WebGPU command path as mesh examples.
+- Playwright verifies cyan and amber line samples are non-clear while a center
+  clear sample remains clear.
+- `pnpm run render-control:smoke-all` includes the line route and reports zero
+  route status failures and zero warning routes across 52 example pages.
 
 Recommended next task:
 
-- `task-3168` — add a line/wire primitive rendering route.
+- `task-3169` — add a camera render-target preview route.

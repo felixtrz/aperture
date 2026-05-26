@@ -127,6 +127,25 @@ export interface PlaneMeshOptions {
   readonly height?: number;
 }
 
+export type LineListPosition = readonly [number, number, number];
+
+export interface LineListMeshSubmeshOptions {
+  readonly label?: string;
+  readonly materialSlot?: number;
+  readonly vertexStart?: number;
+  readonly vertexCount?: number;
+  readonly indexStart?: number;
+  readonly indexCount?: number;
+}
+
+export interface LineListMeshOptions {
+  readonly label?: string;
+  readonly positions: readonly LineListPosition[];
+  readonly indices?: readonly number[] | Uint16Array | Uint32Array;
+  readonly materialSlots?: readonly string[];
+  readonly submeshes?: readonly LineListMeshSubmeshOptions[];
+}
+
 export interface SphereMeshOptions {
   readonly label?: string;
   readonly radius?: number;

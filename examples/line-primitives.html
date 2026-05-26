@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Aperture ECS Multi-Entity Scene</title>
+    <title>Aperture Line Primitives</title>
     <link rel="stylesheet" href="./styles.css" />
     <script type="importmap">
       {
@@ -25,19 +25,19 @@
     <main class="runtime-shell">
       <section
         class="viewport-panel"
-        aria-label="Aperture ECS multi-entity runtime"
+        aria-label="Aperture line primitives runtime"
       >
         <canvas
           id="aperture-canvas"
           width="960"
           height="540"
-          aria-label="Aperture WebGPU multi-entity canvas"
+          aria-label="Aperture WebGPU line primitives canvas"
         ></canvas>
       </section>
       <aside class="status-panel" aria-label="Runtime status">
         <div class="status-row">
           <span>example</span>
-          <strong id="example-name">ecs multi entity</strong>
+          <strong id="example-name">line primitives</strong>
         </div>
         <div class="status-row">
           <span>state</span>
@@ -51,13 +51,14 @@
           <a href="/examples/orthographic-camera.html">orthographic</a>
           <a href="/examples/line-primitives.html">lines</a>
           <a href="/examples/spinning-cube.html">spinning cube</a>
-          <a href="/examples/matcap-app.html">matcap app</a>
+          <a href="/examples/render-packet-inspector.html">packet inspector</a>
           <a href="/examples/materials-showcase.html">materials</a>
+          <a href="/examples/glb-viewer.html">glb viewer</a>
           <a href="/examples/app-diagnostics.html">diagnostics</a>
         </nav>
         <pre id="example-json">{}</pre>
       </aside>
     </main>
-    <script type="module" src="./multi-entity.main.js"></script>
+    <script type="module" src="./split-screen-multi-camera.main.js"></script>
   </body>
 </html>

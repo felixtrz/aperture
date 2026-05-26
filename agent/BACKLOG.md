@@ -59,19 +59,14 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3167` is complete: `examples/orthographic-camera.html` now renders one
-perspective reference and two orthographic cameras at different distances over
-the same worker-authored ECS plane, with Playwright proof that the orthographic
-object footprint stays stable. Continue the post-SOTA visible-feature queue at
-`task-3168`: add a line/wire primitive rendering route.
+`task-3168` is complete: `examples/line-primitives.html` now renders two
+indexed ECS-authored colored line sets through a typed line-list mesh asset and
+the unlit WebGPU pipeline, with Playwright proof for cyan/amber non-clear line
+pixels. Continue the post-SOTA visible-feature queue at `task-3169`: add a
+camera render-target preview route.
 
 The next ready visible-feature queue is:
 
-- `task-3168` — add a line/wire primitive rendering route.
-  Reference anchor: `references/three.js/src/objects/LineSegments.js`.
-  Done when a browser route renders ECS-authored line/wire primitives through
-  WebGPU, reports line draw records, and Playwright verifies visible non-clear
-  line pixels.
 - `task-3169` — add a camera render-target preview route.
   Reference anchor: `references/bevy/examples/3d/render_to_texture.rs`,
   `references/three.js/examples/webgpu_rtt.html`.
@@ -83,6 +78,13 @@ The next ready visible-feature queue is:
   Done when a browser route renders two active cameras with distinct layer
   masks over the same ECS world, reports per-camera included/skipped draw
   counts, and Playwright verifies each viewport excludes the other layer.
+- `task-3171` — add a camera priority overlay route.
+  Reference anchor: `references/bevy/examples/ui/ui_target_camera.rs`,
+  `references/engine/src/extras/render-passes/camera-frame.js`.
+  Done when a browser route renders two active cameras into the same canvas
+  target with different priorities, reports the ordered camera pass sequence and
+  clear behavior, and Playwright verifies the higher-priority overlay appears
+  over the lower-priority base while both remain visible.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.
@@ -1529,27 +1531,6 @@ Acceptance criteria:
 - Existing clustered-light focused E2E coverage still passes.
 - The smoke artifact records scoped zero warning count for this route.
 
-### task-3168 — Add a line/wire primitive rendering route
-
-Status: ready
-
-Category: `webgpu-render`
-Package/write-scope: `examples/`, `packages/core/`, `packages/webgpu/`,
-`test/e2e/`.
-Reference anchor: `references/bevy/examples/3d/lines.rs`,
-`references/three.js/examples/webgl_buffergeometry_lines_indexed.html`.
-
-Acceptance criteria:
-
-- ECS-authored line or wire primitives render through a typed asset/material
-  path instead of ad hoc debug canvas drawing.
-- A visible example shows at least two colored line sets with stable ordering
-  and non-clear pixels.
-- Status reports line primitive counts, draw counts, diagnostics, and
-  render-control capabilities.
-- Focused E2E coverage and the all-route controller smoke pass with zero scoped
-  WebGPU validation warnings.
-
 ### task-3169 — Add a camera render-target preview route
 
 Status: ready
@@ -1590,6 +1571,27 @@ Acceptance criteria:
   render layer while shared background/clear state remains stable.
 - Status reports per-view layer masks, included/skipped draw counts, viewport
   rectangles, diagnostics, and render-control capabilities in JSON-safe form.
+- Focused E2E coverage and the all-route controller smoke pass with zero scoped
+  WebGPU validation warnings.
+
+### task-3171 — Add a camera priority overlay route
+
+Status: ready
+
+Category: `webgpu-render`
+Package/write-scope: `examples/`, `packages/core/`, `packages/webgpu/`,
+`test/e2e/`.
+Reference anchor: `references/bevy/examples/ui/ui_target_camera.rs`,
+`references/engine/src/extras/render-passes/camera-frame.js`.
+
+Acceptance criteria:
+
+- A public browser route renders two ECS-authored cameras into the same canvas
+  target with different `Camera.priority` values and overlapping view regions.
+- The lower-priority camera draws a base object/background and the
+  higher-priority camera draws an overlay object without losing the base pass.
+- Status reports camera priorities, ordered view/pass execution, clear behavior,
+  draw counts, diagnostics, and render-control capabilities in JSON-safe form.
 - Focused E2E coverage and the all-route controller smoke pass with zero scoped
   WebGPU validation warnings.
 

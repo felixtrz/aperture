@@ -1,6 +1,61 @@
 # Agent Handoff
 
-Updated: 2026-05-26T01:55:36Z
+Updated: 2026-05-26T02:10:39Z
+
+## Current Run Update — 2026-05-26T02:10:39Z — Line primitive route
+
+Completed `task-3168` after `task-3167`.
+
+### What changed
+
+- Added `createLineListMeshAsset(...)` to the public render/core mesh API.
+- Mesh validation now accepts `line-list` submeshes as renderable, while keeping
+  unsupported topologies diagnostic.
+- The unlit WebGPU pipeline descriptor and browser descriptor now preserve
+  `line-list` topology instead of hard-coding `triangle-list`.
+- Added `examples/line-primitives.html` and
+  `examples/line-primitives.worker.js`.
+- The line worker authors one ECS mesh with two indexed `line-list` submeshes,
+  two unlit material slots, and one orthographic camera. The route reuses the
+  shared multi-view main module, so it still goes through extraction,
+  prepared GPU resources, render-world binding, draw-list resolution, command
+  planning, and WebGPU submission.
+- The route reports line primitive counts, material slots, indexed draw counts,
+  render-control capabilities, readback samples, and zero diagnostics.
+- Updated example navigation, `check:examples`, focused unit/browser tests,
+  public tracker pages, backlog, current task, and completed-task records.
+
+### Validation
+
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/rendering/line-list-mesh.test.ts test/webgpu/unlit-pipeline-descriptor.test.ts test/webgpu/unlit-pipeline.test.ts test/examples/navigation.test.mjs`
+  — 26 passed after fixing the fixture material ids to match the renderer's
+  deterministic material-key sort.
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/line-primitives.spec.ts --reporter=list`
+  — 1 passed.
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts test/e2e/orthographic-camera.spec.ts test/e2e/line-primitives.spec.ts --reporter=list`
+  — 4 passed; covers the new route plus shared-main regressions.
+- `pnpm run render-control:smoke-all` — first attempt failed because the
+  example server was not running; after starting `pnpm run examples:serve`, the
+  smoke visited 52 routes, including `/examples/line-primitives.html`, with
+  zero route status failures and zero warning routes.
+- `pnpm run check:progress`
+- `pnpm exec eslint packages/render/src/mesh/types.ts packages/render/src/mesh/primitives.ts packages/render/src/mesh/validation.ts packages/webgpu/src/webgpu/unlit-pipeline-descriptor.ts packages/webgpu/src/webgpu/unlit-pipeline.ts test/rendering/line-list-mesh.test.ts test/webgpu/unlit-pipeline-descriptor.test.ts test/webgpu/unlit-pipeline.test.ts test/e2e/line-primitives.spec.ts test/examples/navigation.test.mjs examples/split-screen-multi-camera.main.js examples/line-primitives.worker.js`
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3169`: add a camera render-target
+preview route.
 
 ## Current Run Update — 2026-05-26T01:55:36Z — Orthographic camera route
 

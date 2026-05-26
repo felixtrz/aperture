@@ -275,6 +275,7 @@ export function createBrowserUnlitRenderPipelineDescriptor(
   input: BrowserUnlitRenderPipelineDescriptorInput,
 ): WebGpuRenderPipelineCreateDescriptor {
   const shader = input.shader ?? UNLIT_MESH_SHADER;
+  const topology = input.batchKey?.topology ?? "triangle-list";
   const renderState = resolveWebGpuPipelineRenderState(
     input.batchKey?.pipelineKey,
     input.depthFormat,
@@ -289,7 +290,7 @@ export function createBrowserUnlitRenderPipelineDescriptor(
       ? [colorTarget]
       : [colorTarget, { format: input.motionVectorColorFormat }];
   const descriptor: WebGpuRenderPipelineCreateDescriptor = {
-    label: `${shader.label}:${input.colorFormat}:triangle-list`,
+    label: `${shader.label}:${input.colorFormat}:${topology}`,
     layout: "auto",
     vertex: {
       module: input.shaderModule,
@@ -302,7 +303,7 @@ export function createBrowserUnlitRenderPipelineDescriptor(
       targets,
     },
     primitive: {
-      topology: "triangle-list",
+      topology,
       frontFace: "ccw",
       cullMode: renderState.cullMode,
     },

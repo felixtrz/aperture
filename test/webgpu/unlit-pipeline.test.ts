@@ -132,6 +132,50 @@ describe("browser unlit pipeline bridge", () => {
     });
   });
 
+  it("preserves line-list topology in browser unlit descriptors", async () => {
+    const shaderModule = {
+      compilationInfo: async () => ({ messages: [] }),
+    };
+    const lineBatch: BatchCompatibilityKey = {
+      ...BATCH_KEY,
+      topology: "line-list",
+    };
+    const direct = createBrowserUnlitRenderPipelineDescriptor({
+      shaderModule,
+      colorFormat: "bgra8unorm",
+      batchKey: lineBatch,
+    });
+    const pipelineDescriptors: WebGpuRenderPipelineCreateDescriptor[] = [];
+    const result = await createUnlitRenderPipelineResource({
+      device: {
+        createShaderModule() {
+          return shaderModule;
+        },
+        createRenderPipeline(descriptor: WebGpuRenderPipelineCreateDescriptor) {
+          pipelineDescriptors.push(descriptor);
+          return { kind: "line-render-pipeline" };
+        },
+      },
+      colorFormat: "bgra8unorm",
+      batchKey: lineBatch,
+    });
+
+    expect(direct).toMatchObject({
+      label: "aperture/unlit-mesh:bgra8unorm:line-list",
+      primitive: { topology: "line-list" },
+    });
+    expect(result.diagnostics).toEqual([]);
+    expect(result.resource).toMatchObject({
+      descriptor: {
+        label: "aperture/unlit-mesh:bgra8unorm:line-list",
+        primitive: { topology: "line-list" },
+      },
+    });
+    expect(pipelineDescriptors[0]).toMatchObject({
+      primitive: { topology: "line-list" },
+    });
+  });
+
   it("creates the textured WGSL shader module when the batch key requires it", async () => {
     const shaderDescriptors: WebGpuShaderCreateDescriptor[] = [];
     const pipelineDescriptors: WebGpuRenderPipelineCreateDescriptor[] = [];

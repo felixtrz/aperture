@@ -29,11 +29,11 @@ export function validateMeshAsset(mesh: MeshAsset): MeshValidationReport {
   }
 
   mesh.submeshes.forEach((submesh, submeshIndex) => {
-    if (submesh.topology !== "triangle-list") {
+    if (!isRenderableMeshTopology(submesh.topology)) {
       diagnostics.push({
         code: "mesh.unsupportedTopology",
         submesh: submeshIndex,
-        message: `MVP mesh rendering supports triangle-list topology, not '${submesh.topology}'.`,
+        message: `Mesh rendering supports triangle-list and line-list topology, not '${submesh.topology}'.`,
       });
     }
 
@@ -65,6 +65,10 @@ export function validateMeshAsset(mesh: MeshAsset): MeshValidationReport {
     valid: diagnostics.length === 0,
     diagnostics,
   };
+}
+
+function isRenderableMeshTopology(topology: string): boolean {
+  return topology === "triangle-list" || topology === "line-list";
 }
 
 function hasPositionAttribute(mesh: MeshAsset): boolean {

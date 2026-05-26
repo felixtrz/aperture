@@ -84,11 +84,11 @@ export function createUnlitPipelineDescriptorPlan(
     });
   }
 
-  if (topology !== "triangle-list") {
+  if (!isSupportedUnlitTopology(topology)) {
     diagnostics.push({
       code: "unlitPipeline.unsupportedTopology",
       field: "topology",
-      message: `Unlit MVP pipeline supports triangle-list topology, not '${String(topology)}'.`,
+      message: `Unlit pipeline supports triangle-list and line-list topology, not '${String(topology)}'.`,
     });
   }
 
@@ -204,6 +204,12 @@ export function createUnlitPipelineDescriptorPlan(
   }
 
   return { valid: true, plan: { descriptor, keyInput, cacheKey }, diagnostics };
+}
+
+function isSupportedUnlitTopology(
+  topology: MeshTopology | undefined,
+): topology is "triangle-list" | "line-list" {
+  return topology === "triangle-list" || topology === "line-list";
 }
 
 function unlitBindGroupLayoutKeys(

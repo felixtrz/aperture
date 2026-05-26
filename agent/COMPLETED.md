@@ -1,5 +1,35 @@
 # Completed Tasks
 
+## task-3168 — Add a line/wire primitive rendering route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `createLineListMeshAsset(...)`, a typed line-list mesh factory that
+  creates indexed or non-indexed line meshes with bounds, material slots, and
+  renderable `line-list` submeshes.
+- Updated mesh validation and the unlit WebGPU pipeline descriptor/browser
+  bridge so `line-list` topology reaches native WebGPU pipeline creation.
+- Added `examples/line-primitives.html` and
+  `examples/line-primitives.worker.js`.
+- The worker authors two indexed colored line sets through one ECS mesh with
+  two material slots and reports line primitive counts, draw counts, and
+  render-control capabilities in JSON-safe status.
+- Added Playwright coverage proving cyan and amber line samples are non-clear
+  while a center sample remains clear, with no WebGPU validation warnings.
+
+Validation:
+
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/rendering/line-list-mesh.test.ts test/webgpu/unlit-pipeline-descriptor.test.ts test/webgpu/unlit-pipeline.test.ts test/examples/navigation.test.mjs`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/split-screen-multi-camera.spec.ts test/e2e/orthographic-camera.spec.ts test/e2e/line-primitives.spec.ts --reporter=list`
+- `pnpm run render-control:smoke-all`
+- `pnpm run check:progress`
+- `pnpm exec eslint packages/render/src/mesh/types.ts packages/render/src/mesh/primitives.ts packages/render/src/mesh/validation.ts packages/webgpu/src/webgpu/unlit-pipeline-descriptor.ts packages/webgpu/src/webgpu/unlit-pipeline.ts test/rendering/line-list-mesh.test.ts test/webgpu/unlit-pipeline-descriptor.test.ts test/webgpu/unlit-pipeline.test.ts test/e2e/line-primitives.spec.ts test/examples/navigation.test.mjs examples/split-screen-multi-camera.main.js examples/line-primitives.worker.js`
+
 ## task-3167 — Add an orthographic camera projection route
 
 Completed: 2026-05-26

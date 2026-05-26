@@ -344,6 +344,9 @@ async function renderSplitScreenScene(
       },
     },
     ...(scene.camera === undefined ? {} : { camera: scene.camera }),
+    ...(scene.linePrimitives === undefined
+      ? {}
+      : { linePrimitives: scene.linePrimitives }),
     ...(scene.proof === undefined ? {} : { proof: scene.proof }),
     diagnostics: framePlanDiagnostics,
     diagnosticCounts: diagnosticCounts({
@@ -801,6 +804,15 @@ function requestSplitScreenSnapshot(aperture, canvasSize) {
 }
 
 function routeConfigForPath(pathname) {
+  if (pathname.endsWith("/line-primitives.html")) {
+    return {
+      example: "line-primitives",
+      label: "The line primitives route",
+      workerUrl: "/worker-modules/examples/line-primitives.worker.js",
+      workerName: "aperture-line-primitives-simulation",
+    };
+  }
+
   if (pathname.endsWith("/orthographic-camera.html")) {
     return {
       example: "orthographic-camera",

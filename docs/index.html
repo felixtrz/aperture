@@ -393,13 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 01:55 UTC</dd>
+            <dd>2026-05-26 02:10 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: <code>examples/orthographic-camera.html</code> now
-              proves orthographic projection through the same multi-view WebGPU
+              Latest update: <code>examples/line-primitives.html</code> now
+              renders two indexed ECS-authored colored line sets through the
+              typed <code>createLineListMeshAsset(...)</code> path and the
+              native WebGPU <code>line-list</code> unlit pipeline. Playwright
+              verifies cyan and amber line samples are non-clear while a center
+              sample remains clear, and the all-route render-control smoke now
+              includes 52 routes with zero warning routes. Previous update:
+              <code>examples/orthographic-camera.html</code> now proves
+              orthographic projection through the same multi-view WebGPU
               submission path as the split-screen route. The worker authors one
               perspective reference plus near and far orthographic cameras over
               the same ECS plane; Playwright verifies that the orthographic
@@ -407,7 +414,7 @@
               outside-edge samples remain clear. The route reports three
               extracted views, projection metadata, three viewport records,
               three per-view command records, truthful render-control
-              capabilities, and zero diagnostics. Previous update:
+              capabilities, and zero diagnostics. Earlier update:
               <code>examples/split-screen-multi-camera.html</code> now proves
               two ECS-authored cameras over one worker-owned world. The WebGPU
               route resolves two viewport/scissor canvas regions, creates one
@@ -2133,13 +2140,15 @@
               extraction and publish per-view <code>cullStats</code>. ECS
               multi-camera viewport/scissor extraction is now browser-proven by
               the split-screen and orthographic routes with simultaneous camera
-              views. ECS <code>OcclusionQuery</code> now extracts an opt-in
-              mesh-draw flag for renderer-owned GPU visibility feedback. ECS
-              <code>Fog</code> components now extract snapshot fog packets for
-              linear, exponential, and exponential-squared view fog. Snapshot
-              change sets now carry stable packet keys and produce renderer
-              update schedules that classify refresh, reuse, removal, mixed, and
-              skipped packet-family work.
+              views. ECS-authored <code>line-list</code> mesh assets now extract
+              through the normal mesh-draw path and render through the unlit
+              WebGPU pipeline. ECS <code>OcclusionQuery</code> now extracts an
+              opt-in mesh-draw flag for renderer-owned GPU visibility feedback.
+              ECS <code>Fog</code> components now extract snapshot fog packets
+              for linear, exponential, and exponential-squared view fog.
+              Snapshot change sets now carry stable packet keys and produce
+              renderer update schedules that classify refresh, reuse, removal,
+              mixed, and skipped packet-family work.
             </p>
             <ul>
               <li>
@@ -5235,14 +5244,14 @@
                 spatial query APIs with explicit source/fallback policy.
               </li>
               <li>
-                <span class="badge green">task-3167</span> Done: add an
-                orthographic camera route with perspective, near orthographic,
-                and far orthographic views plus Playwright size-stability
-                readback proof.
+                <span class="badge green">task-3168</span> Done: add a line/wire
+                primitive rendering route with typed line-list mesh assets,
+                native WebGPU line-list topology, and Playwright readback proof
+                for two colored indexed line sets.
               </li>
               <li>
-                <span class="badge">task-3168</span> Next: add a line/wire
-                primitive rendering route.
+                <span class="badge">task-3169</span> Next: add a camera
+                render-target preview route.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5261,6 +5270,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3168</div>
+            <div>
+              <strong>Line primitive route shipped.</strong>
+              <span>
+                <code>examples/line-primitives.html</code> renders two indexed
+                ECS-authored colored line sets through
+                <code>createLineListMeshAsset(...)</code> and the native WebGPU
+                <code>line-list</code> unlit pipeline, then proves both line
+                colors with Playwright readback.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3167</div>
             <div>

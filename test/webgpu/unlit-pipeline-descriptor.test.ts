@@ -244,13 +244,35 @@ describe("unlit pipeline descriptor planning", () => {
       ...BATCH_KEY,
       topology: "line-list",
     };
+    const line = createUnlitPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      topology: "line-list",
+      batchKey: lineBatch,
+    });
 
     expect(bgra).not.toBe(rgba);
+    expect(line.diagnostics).toEqual([]);
+    expect(required(line.plan).descriptor).toMatchObject({
+      label: "aperture/unlit-mesh:bgra8unorm:line-list",
+      primitive: { topology: "line-list" },
+    });
+    expect(JSON.parse(required(line.plan).cacheKey) as unknown).toMatchObject({
+      primitive: { topology: "line-list" },
+      batch: lineBatch,
+    });
+  });
+
+  it("rejects unsupported point-list topology", () => {
+    const pointBatch: BatchCompatibilityKey = {
+      ...BATCH_KEY,
+      topology: "point-list",
+    };
+
     expect(
       createUnlitPipelineDescriptorPlan({
         colorFormat: "bgra8unorm",
-        topology: "line-list",
-        batchKey: lineBatch,
+        topology: "point-list",
+        batchKey: pointBatch,
       }).diagnostics.map((diagnostic) => diagnostic.code),
     ).toEqual(["unlitPipeline.unsupportedTopology"]);
   });
