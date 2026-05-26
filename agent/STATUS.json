@@ -4,7 +4,7 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "313c2c39",
+  "lastCommit": "c45f22a7",
   "activePid": null,
   "notes": "Completed task-3180: added multiple off-screen render-target preview route, expanded render-to-texture Playwright coverage, updated trackers/backlog/handoff, and validated focused specs, build, typecheck, progress, navigation, check:examples, lint, and all-route render-control smoke.",
   "lastRunFinishedAt": "2026-05-26T05:22:44Z"
