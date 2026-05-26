@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Aperture Render Target MSAA Reuse</title>
+    <title>Aperture Mixed MSAA Reuse Clear Load</title>
     <link rel="stylesheet" href="./styles.css" />
     <script type="importmap">
       {
@@ -25,19 +25,19 @@
     <main class="runtime-shell">
       <section
         class="viewport-panel"
-        aria-label="Aperture render-target MSAA reuse runtime"
+        aria-label="Aperture mixed MSAA reuse clear-load runtime"
       >
         <canvas
           id="aperture-canvas"
           width="960"
           height="540"
-          aria-label="Aperture WebGPU render-target MSAA reuse canvas"
+          aria-label="Aperture WebGPU mixed MSAA reuse clear-load canvas"
         ></canvas>
       </section>
       <aside class="status-panel" aria-label="Runtime status">
         <div class="status-row">
           <span>example</span>
-          <strong id="example-name">render target msaa reuse</strong>
+          <strong id="example-name">mixed msaa reuse clear load</strong>
         </div>
         <div class="status-row">
           <span>state</span>
@@ -72,7 +72,6 @@
           <a href="/examples/mixed-msaa-resized-reuse-dual-size.html"
             >mixed msaa resized reuse dual size</a
           >
-
           <a href="/examples/mixed-msaa-secondary-crop.html">mixed msaa crop</a>
           <a href="/examples/mixed-msaa-resize.html">mixed msaa resize</a>
           <a href="/examples/mixed-msaa-resized-crop.html"

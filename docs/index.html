@@ -393,12 +393,26 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 15:03 UTC</dd>
+            <dd>2026-05-26 15:32 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/mixed-msaa-reuse-clear-load.html</code> now proves
+              one MSAA-enabled WebGPU app can render two worker snapshots
+              through the same renderer-owned off-screen
+              <code>ViewPacket.renderTarget</code> handle while each snapshot
+              extracts one current-texture ECS camera plus two off-screen ECS
+              cameras targeting the same handle. The route clears/stores the
+              first off-screen MSAA boundary, loads existing color/depth for the
+              second boundary, displays the second-frame resolved
+              clear/base/overlay regions plus current-texture readback, and
+              reports current/off-screen classifications, stable target key,
+              target-key reuse, per-frame dimensions and draw counts, pass-order
+              load ops, requested/resolved sample count, per-pass MSAA sample
+              count, resolve attachment behavior, display samples, reuse
+              pressure, and current-texture readback. Previous update:
               <code>examples/mixed-msaa-resized-reuse-dual-size.html</code> now
               proves one MSAA-enabled WebGPU app can replace the primary
               renderer-owned off-screen <code>ViewPacket.renderTarget</code>
@@ -2021,8 +2035,8 @@
             <dt>Next focus</dt>
             <dd>
               Continue the render-target MSAA route family with
-              <code>task-3209</code>: a mixed current-texture plus MSAA reused
-              same-target clear/load off-screen target route.
+              <code>task-3210</code>: a mixed current-texture plus MSAA resized
+              reused same-target clear/load off-screen target route.
             </dd>
           </dl>
         </aside>
@@ -2922,24 +2936,23 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">task-3208</span> Added
-                <code>examples/mixed-msaa-resized-reuse-dual-size.html</code>.
-                The render-to-texture route family now creates an MSAA-enabled
-                app, replaces the primary renderer-owned off-screen
-                <code>ViewPacket.renderTarget</code> texture under the same ECS
-                handle, renders two worker snapshots through the resized primary
-                handle while also extracting a current-texture camera and a
-                differently sized secondary off-screen target, resolves the
-                second primary and wide secondary off-screen textures into
-                aspect-preserved visible previews, reports current/off-screen
-                classifications, before/after dimensions, stable primary target
-                key, secondary target dimensions, per-frame dimensions and draw
-                counts, requested/resolved sample count, per-pass MSAA sample
-                count, resolve attachment behavior, display quads, aspect
-                mapping, resize pressure, reuse pressure, and current-texture
-                readback, and Playwright proves the current-texture sample plus
-                both resolved previews are non-clear and visually distinct
-                without stale-size or stale first-frame pixels.
+                <span class="badge green">task-3209</span> Added
+                <code>examples/mixed-msaa-reuse-clear-load.html</code>. The
+                render-to-texture route family now creates an MSAA-enabled app,
+                renders two worker snapshots through the same renderer-owned
+                off-screen <code>ViewPacket.renderTarget</code> handle while
+                each snapshot extracts one current-texture camera plus two
+                off-screen cameras targeting the same handle, clears/stores the
+                first off-screen MSAA boundary, loads existing color/depth for
+                the second boundary, displays the second-frame resolved
+                clear/base/overlay regions plus current-texture readback,
+                reports current/off-screen classifications, stable target key,
+                target-key reuse, per-frame dimensions and draw counts,
+                pass-order load ops, requested/resolved sample count, per-pass
+                MSAA sample count, resolve attachment behavior, display samples,
+                reuse pressure, and current-texture readback, and Playwright
+                proves the current, clear-only, base-preserved, and overlay
+                samples are distinct without stale first-frame pixels.
               </li>
               <li>
                 <span class="badge green">task-3203</span> Added
@@ -6103,12 +6116,13 @@
                 preview proof.
               </li>
               <li>
-                <span class="badge">task-3209</span> Next: add a mixed
+                <span class="badge green">task-3209</span> Done: add a mixed
                 current-texture plus MSAA reused same-target clear/load
-                off-screen target route.
+                off-screen target route with stable second-frame
+                clear/base/overlay proof.
               </li>
               <li>
-                <span class="badge">task-3210</span> Then: add a mixed
+                <span class="badge">task-3210</span> Next: add a mixed
                 current-texture plus MSAA resized reused same-target clear/load
                 off-screen target route.
               </li>
@@ -6116,6 +6130,11 @@
                 <span class="badge">task-3211</span> Then: add a mixed
                 current-texture plus MSAA resized reused cropped secondary
                 off-screen target route.
+              </li>
+              <li>
+                <span class="badge">task-3212</span> Then: add a mixed
+                current-texture plus MSAA reused cropped secondary off-screen
+                target route.
               </li>
               <li>
                 <span class="badge dim">task-3161</span> Later: add cross-device
@@ -6138,6 +6157,25 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3209</div>
+            <div>
+              <strong>Mixed MSAA reused clear/load route shipped.</strong>
+              <span>
+                <code>examples/mixed-msaa-reuse-clear-load.html</code> renders
+                two worker snapshots through the same renderer-owned off-screen
+                <code>ViewPacket.renderTarget</code> handle while each snapshot
+                extracts one current-texture ECS camera plus two off-screen ECS
+                cameras targeting the same handle, clears/stores the first
+                off-screen MSAA boundary, loads existing color/depth for the
+                second boundary, displays second-frame clear/base/overlay
+                regions plus current-texture readback, reports pass-order load
+                ops, target-key reuse, requested/resolved sample count, resolve
+                attachment behavior, and reuse pressure, and proves the current,
+                clear-only, base-preserved, and overlay samples are distinct.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3208</div>
             <div>

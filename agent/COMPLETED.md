@@ -1,5 +1,46 @@
 # Completed Tasks
 
+## task-3209 — Add a mixed current-texture plus MSAA reused same-target clear/load off-screen target route
+
+Completed: 2026-05-26
+
+### Summary
+
+- Added `examples/mixed-msaa-reuse-clear-load.html` to the render-to-texture
+  route family and linked it from related example pages.
+- `examples/render-to-texture.main.js` now recognizes the mixed MSAA reused
+  clear/load route, creates an MSAA-enabled app, renders two worker snapshots
+  through the same renderer-owned off-screen `ViewPacket.renderTarget` handle
+  while each snapshot extracts one current-texture ECS camera plus two
+  off-screen ECS cameras targeting the same handle, clears/stores the first
+  off-screen MSAA boundary, loads existing color/depth for the second
+  same-target boundary, and displays the second-frame resolved clear/base/overlay
+  regions plus current-texture readback.
+- Added Playwright coverage proving the current-texture sample, clear-only
+  region, base-preserved region, and overlay region are distinct without stale
+  first-frame pixels.
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `pnpm exec eslint examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA reused same render-target clear/load" --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "mixed MSAA reused same render-target clear/load|mixed MSAA same render-target clear/load|mixed MSAA resized same render-target clear/load|MSAA same render-target clear/load" --project=chrome-webgpu-headed`
+- Browser route check: `examples/mixed-msaa-reuse-clear-load.html` published
+  `ok: true`, three MSAA target submissions, current/off-screen target
+  classifications, a stable render-target key across two worker snapshots,
+  target-key reuse across the two off-screen passes, pass-order clear/load ops,
+  requested 8/effective 4 MSAA, resolve attachments, reuse pressure,
+  current-texture readback, and distinct current, clear-only, base-preserved,
+  overlay, and screen-clear samples.
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm run check:progress`
+- Targeted Prettier check for touched files.
+- `git diff --check`
+
 ## task-3208 — Add a mixed current-texture plus MSAA resized reused dual-size off-screen target route
 
 Completed: 2026-05-26
