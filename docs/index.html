@@ -393,12 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 06:02 UTC</dd>
+            <dd>2026-05-26 06:08 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/render-target-msaa.html</code> now proves an
+              MSAA-enabled WebGPU app can render an ECS camera into a
+              renderer-owned off-screen target, resolve the multisampled color
+              attachment into the target texture, and display that resolved
+              texture in a second pass. The route reports requested/resolved
+              sample counts, clamp status, target dimensions, draw counts, and
+              resolve attachment behavior, then Playwright verifies the preview
+              is non-clear. Previous update:
               <code>examples/render-target-dual-size.html</code> now proves two
               ECS cameras can render into distinct renderer-owned off-screen
               targets with different dimensions. The route preserves square and
@@ -2769,6 +2777,16 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3185</span> Added
+                <code>examples/render-target-msaa.html</code>. The
+                render-to-texture route family now requests 8x MSAA, resolves
+                to the supported 4x sample count, renders an ECS camera into a
+                renderer-owned off-screen target through an MSAA color
+                attachment, reports sample counts, clamp status, target
+                dimensions, draw counts, and resolve attachment behavior, and
+                Playwright proves the displayed resolved preview is non-clear.
+              </li>
               <li>
                 <span class="badge green">task-3184</span> Added
                 <code>examples/render-target-dual-size.html</code>. The
@@ -5586,12 +5604,17 @@
                 mapping status and pixel proof.
               </li>
               <li>
-                <span class="badge">task-3185</span> Next: add an MSAA
-                off-screen render-target preview route.
+                <span class="badge green">task-3185</span> Done: add an MSAA
+                off-screen render-target preview route with resolve attachment
+                status and pixel proof.
               </li>
               <li>
-                <span class="badge">task-3186</span> Then: add a cropped
+                <span class="badge">task-3186</span> Next: add a cropped
                 secondary off-screen render-target preview route.
+              </li>
+              <li>
+                <span class="badge">task-3187</span> Then: add a mixed
+                current-texture plus dual-size off-screen render-target route.
               </li>
               <li>
                 <span class="badge dim">task-3161</span> Later: add
@@ -5614,6 +5637,20 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3185</div>
+            <div>
+              <strong>MSAA render-target preview route shipped.</strong>
+              <span>
+                <code>examples/render-target-msaa.html</code> requests 8x MSAA,
+                resolves to the supported 4x path, renders an ECS camera into a
+                renderer-owned off-screen target through an MSAA color
+                attachment, reports sample counts, clamp status, target
+                dimensions, draw counts, and resolve attachment behavior, and
+                proves the displayed resolved texture is non-clear.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3184</div>
             <div>

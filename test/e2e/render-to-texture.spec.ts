@@ -333,6 +333,40 @@ interface RenderToTextureStatus extends ExampleStatusBase {
       };
     };
   };
+  readonly msaaRenderTarget?: {
+    readonly mode?: string;
+    readonly source?: string;
+    readonly renderTargetKey?: string;
+    readonly requestedSampleCount?: number;
+    readonly sampleCount?: number;
+    readonly enabled?: boolean;
+    readonly clamped?: boolean;
+    readonly supportedSampleCounts?: readonly number[];
+    readonly colorTargets?: number;
+    readonly colorTexturesCreated?: number;
+    readonly colorTexturesReused?: number;
+    readonly target?: {
+      readonly source?: string;
+      readonly width?: number;
+      readonly height?: number;
+      readonly drawCalls?: number;
+      readonly msaaSampleCount?: number;
+      readonly ok?: boolean;
+    };
+    readonly attachment?: {
+      readonly colorLoadOp?: string | null;
+      readonly colorStoreOp?: string | null;
+      readonly resolveTarget?: boolean;
+    };
+    readonly displayPass?: {
+      readonly loadOp?: string;
+      readonly drawCalls?: number;
+      readonly samples?: {
+        readonly preview?: string;
+        readonly screenClear?: string;
+      };
+    };
+  };
   readonly offscreenTargetCrop?: {
     readonly mode?: string;
     readonly source?: string;
@@ -1825,6 +1859,165 @@ test("dual-size render-target route preserves distinct preview aspect", async ({
   expect(
     pixelDistance(rightSample.pixel, screenClearSample.pixel),
     "wide preview should differ from the main-canvas clear region",
+  ).toBeGreaterThan(40);
+});
+
+test("MSAA render-target route resolves the off-screen preview texture", async ({
+  page,
+}) => {
+  const guard = attachWebGpuValidationConsoleGuard(page);
+  const status = await loadExampleStatus<RenderToTextureStatus>(
+    page,
+    "/examples/render-target-msaa.html",
+    "render-target-msaa-status",
+  );
+
+  if (status === undefined) {
+    return;
+  }
+
+  const renderTargetKey = status.renderTarget?.key;
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "render-target-msaa",
+    ok: true,
+    phase: "display",
+    renderingBackend: "webgpu-explicit",
+    renderTarget: {
+      width: 256,
+      height: 256,
+      source: "ViewPacket.renderTarget",
+      textureUsage: {
+        renderAttachment: true,
+        textureBinding: true,
+        copySource: true,
+      },
+    },
+    sourceView: {
+      ok: true,
+      viewId: 0,
+      priority: 0,
+      layerMask: 1,
+      renderTargetKey,
+      expectedRenderTargetKey: renderTargetKey,
+      renderTargetMatches: true,
+    },
+    msaaRenderTarget: {
+      mode: "msaa-offscreen-render-target-preview",
+      source: "ViewPacket.renderTarget",
+      renderTargetKey,
+      requestedSampleCount: 8,
+      sampleCount: 4,
+      enabled: true,
+      clamped: true,
+      supportedSampleCounts: [1, 4],
+      colorTargets: 1,
+      colorTexturesCreated: 1,
+      colorTexturesReused: 0,
+      target: {
+        source: "offscreen",
+        width: 256,
+        height: 256,
+        drawCalls: 1,
+        msaaSampleCount: 4,
+        ok: true,
+      },
+      attachment: {
+        colorLoadOp: "clear",
+        colorStoreOp: "discard",
+        resolveTarget: true,
+      },
+      displayPass: {
+        loadOp: "clear",
+        drawCalls: 1,
+        samples: {
+          preview: "quad-center",
+          screenClear: "screen-clear-corner",
+        },
+      },
+    },
+    counts: {
+      views: 1,
+      meshDraws: 1,
+      drawCalls: 1,
+      diagnostics: 0,
+    },
+    screenPass: {
+      phase: "screen-pass",
+      drawCalls: 1,
+      loadOp: "clear",
+      samples: {
+        preview: "quad-center",
+        screenClear: "screen-clear-corner",
+      },
+    },
+  });
+  expect(status.report?.renderTargets).toMatchObject([
+    {
+      source: "offscreen",
+      renderTargetKey,
+      width: 256,
+      height: 256,
+      ok: true,
+      drawCalls: 1,
+      msaaSampleCount: 4,
+    },
+  ]);
+  guard.expectNoWarnings();
+
+  await attachExampleStatus("render-target-msaa-rendered-status", status);
+
+  if (!status.readback?.ok) {
+    test.skip(true, "MSAA render-target pixel assertion requires readback.");
+    return;
+  }
+
+  const previewSample = status.readback.samples?.find(
+    (entry) => entry.id === "quad-center",
+  );
+  const screenClearSample = status.readback.samples?.find(
+    (entry) => entry.id === "screen-clear-corner",
+  );
+
+  expect(previewSample, "expected resolved render-target preview sample").toBeDefined();
+  expect(screenClearSample, "expected screen clear sample").toBeDefined();
+
+  if (previewSample === undefined || screenClearSample === undefined) {
+    return;
+  }
+
+  expect(
+    pixelDistance(
+      previewSample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCenterColor ?? {
+          r: 0.06,
+          g: 0.88,
+          b: 0.22,
+          a: 1,
+        },
+      ),
+    ),
+    "MSAA preview should sample the resolved off-screen render target",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(
+      screenClearSample.pixel,
+      rgbaColorToPixel(
+        status.clearColors?.screen ?? {
+          r: 0.015,
+          g: 0.018,
+          b: 0.023,
+          a: 1,
+        },
+      ),
+    ),
+    "screen clear sample should stay outside the displayed preview quad",
+  ).toBeLessThan(12);
+  expect(
+    pixelDistance(previewSample.pixel, screenClearSample.pixel),
+    "resolved MSAA preview should differ from the main-canvas clear region",
   ).toBeGreaterThan(40);
 });
 

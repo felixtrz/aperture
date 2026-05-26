@@ -64,6 +64,7 @@ try {
       canvas,
       simulationWorker: createNoopSimulationWorker(),
       sourceAssets,
+      ...(routeConfig.targetMsaa ? { msaa: 8 } : {}),
       ...(readbackUsage.ok ? { textureUsage: readbackUsage.usage } : {}),
     });
 
@@ -230,6 +231,7 @@ function startWorkerSnapshotLoop(aperture, app, scene, readbackUsage) {
     dualSizeRenderTargets: routeConfig.dualSizeRenderTargets,
     targetCrop: routeConfig.targetCrop,
     targetClearLoad: routeConfig.targetClearLoad,
+    targetMsaa: routeConfig.targetMsaa,
     canvas: {
       width: canvas?.width ?? 960,
       height: canvas?.height ?? 540,
@@ -950,6 +952,17 @@ function createStatus(
           ),
         }
       : {}),
+    ...(routeConfig.targetMsaa
+      ? {
+          msaaRenderTarget: createMsaaRenderTargetStatus(
+            aperture,
+            scene,
+            offscreenReport,
+            report,
+            screenPass,
+          ),
+        }
+      : {}),
     ...(routeConfig.targetCrop
       ? {
           offscreenTargetCrop: createOffscreenTargetCropStatus(
@@ -1083,6 +1096,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
+      targetMsaa: false,
       requiredFrames: 1,
     };
   }
@@ -1100,6 +1114,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
+      targetMsaa: false,
       requiredFrames: 2,
     };
   }
@@ -1117,6 +1132,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
+      targetMsaa: false,
       requiredFrames: 1,
     };
   }
@@ -1134,6 +1150,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
+      targetMsaa: false,
       requiredFrames: 1,
     };
   }
@@ -1151,6 +1168,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       targetCrop: false,
       targetClearLoad: false,
+      targetMsaa: false,
       requiredFrames: 1,
     };
   }
@@ -1168,6 +1186,25 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: true,
       targetCrop: false,
       targetClearLoad: false,
+      targetMsaa: false,
+      requiredFrames: 1,
+    };
+  }
+
+  if (pathname.endsWith("/render-target-msaa.html")) {
+    return {
+      example: "render-target-msaa",
+      initialOffscreenSize: defaultOffscreenSize,
+      offscreenSize: defaultOffscreenSize,
+      resizeTarget: false,
+      reuseStress: false,
+      mixedTargets: false,
+      multiRenderTargets: false,
+      mixedMultiRenderTargets: false,
+      dualSizeRenderTargets: false,
+      targetCrop: false,
+      targetClearLoad: false,
+      targetMsaa: true,
       requiredFrames: 1,
     };
   }
@@ -1185,6 +1222,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       targetCrop: true,
       targetClearLoad: false,
+      targetMsaa: false,
       requiredFrames: 1,
     };
   }
@@ -1202,6 +1240,7 @@ function routeConfigForPath(pathname) {
       dualSizeRenderTargets: false,
       targetCrop: false,
       targetClearLoad: true,
+      targetMsaa: false,
       requiredFrames: 1,
     };
   }
@@ -1218,6 +1257,7 @@ function routeConfigForPath(pathname) {
     dualSizeRenderTargets: false,
     targetCrop: false,
     targetClearLoad: false,
+    targetMsaa: false,
     requiredFrames: 1,
   };
 }
@@ -1627,6 +1667,78 @@ function createDualSizeRenderTargetStatusEntry({
       displayQuad,
     }),
     aspect: displayQuad?.aspect ?? null,
+  };
+}
+
+function createMsaaRenderTargetStatus(
+  aperture,
+  scene,
+  offscreenReport,
+  report,
+  screenPass,
+) {
+  const renderTargetKey = aperture.assetHandleKey(scene.renderTarget);
+  const target =
+    (report.renderTargets ?? []).find(
+      (entry) => entry.renderTargetKey === renderTargetKey,
+    ) ?? null;
+  const boundary = offscreenReport.boundaries?.[0] ?? null;
+  const attachment =
+    boundary?.attachments?.plan?.colorAttachments?.[0] ?? null;
+  const msaa = report.msaa ?? {
+    requestedSampleCount: 1,
+    sampleCount: 1,
+    enabled: false,
+    clamped: false,
+    supportedSampleCounts: [1, 4],
+    colorTargets: 0,
+    colorTexturesCreated: 0,
+    colorTexturesReused: 0,
+  };
+
+  return {
+    mode: "msaa-offscreen-render-target-preview",
+    source: "ViewPacket.renderTarget",
+    renderTargetKey,
+    requestedSampleCount: msaa.requestedSampleCount,
+    sampleCount: msaa.sampleCount,
+    enabled: msaa.enabled,
+    clamped: msaa.clamped,
+    supportedSampleCounts: msaa.supportedSampleCounts,
+    colorTargets: msaa.colorTargets,
+    colorTexturesCreated: msaa.colorTexturesCreated,
+    colorTexturesReused: msaa.colorTexturesReused,
+    target: {
+      source: target?.source ?? "offscreen",
+      width: target?.width ?? routeConfig.offscreenSize,
+      height: target?.height ?? routeConfig.offscreenSize,
+      format: target?.format ?? null,
+      drawCalls: target?.drawCalls ?? 0,
+      msaaSampleCount: target?.msaaSampleCount ?? 1,
+      ok: target?.ok ?? false,
+    },
+    attachment: {
+      colorLoadOp: attachment?.loadOp ?? null,
+      colorStoreOp: attachment?.storeOp ?? null,
+      resolveTarget: attachment?.resolveTarget !== undefined,
+    },
+    displayPass: {
+      loadOp: screenPass.loadOp,
+      drawCalls: screenPass.drawCalls,
+      quad: screenPass.quad,
+      samples: screenPass.samples,
+    },
+    expectedSamples: {
+      preview: {
+        sampleId: centerSample.id,
+        materialKey: aperture.assetHandleKey(scene.material),
+        expectedColor: rgbaToStatusColor(planeColor),
+      },
+      screenClear: {
+        sampleId: screenClearSample.id,
+        expectedColor: { ...screenClearColor },
+      },
+    },
   };
 }
 

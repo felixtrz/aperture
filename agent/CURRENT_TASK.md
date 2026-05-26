@@ -2,23 +2,22 @@
 
 No active task is currently checked out.
 
-Status: task-3184 dual-size off-screen render-target preview route completed.
+Status: task-3185 MSAA off-screen render-target preview route completed.
 
 Key findings:
 
-- Added `examples/render-target-dual-size.html` to the render-to-texture
+- Added `examples/render-target-msaa.html` to the render-to-texture
   route family.
-- `examples/render-to-texture-assets.js` now defines a stable wide secondary
-  off-screen target size for dual-size route coverage.
-- The worker extracts two ECS cameras targeting two distinct renderer-owned
-  off-screen `ViewPacket.renderTarget` handles with different target dimensions.
-- `examples/render-to-texture.main.js` creates a square primary target and a
-  wide secondary target, displays both textures side by side with
-  aspect-preserving preview quads, and reports per-target dimensions, keys,
-  draw counts, display samples, and aspect mapping.
-- Playwright verifies both previews are non-clear, visually distinct, and not
-  stretched into each other.
+- The route creates `createWebGpuApp({ msaa: 8 })`, which resolves to the
+  supported 4x MSAA path.
+- The worker extracts one ECS camera targeting a renderer-owned off-screen
+  `ViewPacket.renderTarget` handle.
+- `examples/render-to-texture.main.js` reports requested/resolved sample counts,
+  clamp status, target dimensions, draw counts, target MSAA sample count, and
+  color attachment resolve behavior.
+- Playwright verifies the displayed preview samples the resolved off-screen
+  texture and differs from the main-canvas clear region.
 
 Recommended next task:
 
-- `task-3185` — add an MSAA off-screen render-target preview route.
+- `task-3186` — add a cropped secondary off-screen render-target preview route.

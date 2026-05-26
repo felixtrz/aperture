@@ -51,6 +51,7 @@ async function handleMessage(data) {
         data.dualSizeRenderTargets === true,
         data.targetCrop === true,
         data.targetClearLoad === true,
+        data.targetMsaa === true,
       );
       self.postMessage({
         type: "ready",
@@ -73,6 +74,7 @@ async function handleMessage(data) {
           dualSizeRenderTargets: scene.dualSizeRenderTargets,
           targetCrop: scene.targetCrop,
           targetClearLoad: scene.targetClearLoad,
+          targetMsaa: scene.targetMsaa,
           ...(scene.targetCrop
             ? {
                 cropRect: targetCropRect,
@@ -118,6 +120,7 @@ function createWorkerScene(
   dualSizeRenderTargets,
   targetCrop,
   targetClearLoad,
+  targetMsaa,
 ) {
   const app = aperture.createExtractionApp({
     worldOptions: { entityCapacity: 8 },
@@ -252,6 +255,7 @@ function createWorkerScene(
     dualSizeRenderTargets,
     targetCrop,
     targetClearLoad,
+    targetMsaa,
     localTransformComponent: aperture.LocalTransform,
   };
 }
@@ -279,6 +283,8 @@ function createSnapshotMessage(workerScene, data) {
           ? "current-texture-plus-two-offscreen-targets"
         : workerScene.dualSizeRenderTargets
           ? "dual-size-offscreen-render-targets"
+        : workerScene.targetMsaa
+          ? "msaa-offscreen-render-target"
         : workerScene.multiRenderTargets
           ? "two-offscreen-render-targets"
         : workerScene.targetClearLoad
@@ -295,6 +301,8 @@ function createSnapshotMessage(workerScene, data) {
             ? "current-texture-plus-two-offscreen-previews"
           : workerScene.dualSizeRenderTargets
             ? "dual-size-offscreen-previews"
+          : workerScene.targetMsaa
+            ? "msaa-resolved-offscreen-preview"
           : workerScene.multiRenderTargets
             ? "two-offscreen-previews"
           : workerScene.targetClearLoad
