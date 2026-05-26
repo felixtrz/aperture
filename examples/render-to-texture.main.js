@@ -326,13 +326,15 @@ async function handleWorkerMessage(
               ? "render-to-texture/msaa-two-targets"
               : routeConfig.msaaCroppedSecondaryRenderTargets
                 ? "render-to-texture/msaa-cropped-secondary-target"
-                : routeConfig.reuseStress && routeConfig.targetMsaa
-                  ? "render-to-texture/msaa-reuse-target"
-                  : routeConfig.mixedMultiRenderTargets
-                    ? "render-to-texture/mixed-multi-targets"
-                    : routeConfig.mixedTargets
-                      ? "render-to-texture/mixed-targets"
-                      : "render-to-texture/offscreen",
+                : routeConfig.resizeTarget && routeConfig.targetMsaa
+                  ? "render-to-texture/msaa-resized-target"
+                  : routeConfig.reuseStress && routeConfig.targetMsaa
+                    ? "render-to-texture/msaa-reuse-target"
+                    : routeConfig.mixedMultiRenderTargets
+                      ? "render-to-texture/mixed-multi-targets"
+                      : routeConfig.mixedTargets
+                        ? "render-to-texture/mixed-targets"
+                        : "render-to-texture/offscreen",
   });
 
   if (!offscreenReport.ok) {
@@ -1006,7 +1008,14 @@ function createStatus(
     },
     ...(scene.renderTargetResize === null
       ? {}
-      : { renderTargetResize: scene.renderTargetResize }),
+      : {
+          renderTargetResize: createRenderTargetResizeStatus(
+            aperture,
+            scene,
+            offscreenReport,
+            report,
+          ),
+        }),
     ...(routeConfig.reuseStress
       ? {
           renderTargetReuseStress: createRenderTargetReuseStressStatus(
@@ -1314,6 +1323,31 @@ function routeConfigForPath(pathname) {
       targetCrop: false,
       targetClearLoad: false,
       targetMsaa: false,
+      requiredFrames: 1,
+    };
+  }
+
+  if (pathname.endsWith("/render-target-msaa-resize.html")) {
+    return {
+      example: "render-target-msaa-resize",
+      initialOffscreenSize: 128,
+      offscreenSize: 384,
+      resizeTarget: true,
+      reuseStress: false,
+      mixedTargets: false,
+      multiRenderTargets: false,
+      mixedMultiRenderTargets: false,
+      dualSizeRenderTargets: false,
+      mixedDualSizeRenderTargets: false,
+      mixedCroppedSecondaryRenderTargets: false,
+      mixedMsaaMultiRenderTargets: false,
+      mixedMsaaCroppedSecondaryRenderTargets: false,
+      msaaMultiRenderTargets: false,
+      msaaCroppedSecondaryRenderTargets: false,
+      croppedSecondaryRenderTargets: false,
+      targetCrop: false,
+      targetClearLoad: false,
+      targetMsaa: true,
       requiredFrames: 1,
     };
   }
@@ -1736,6 +1770,61 @@ function routeConfigForPath(pathname) {
     targetClearLoad: false,
     targetMsaa: false,
     requiredFrames: 1,
+  };
+}
+
+function createRenderTargetResizeStatus(
+  aperture,
+  scene,
+  offscreenReport,
+  report,
+) {
+  const renderTargetKey = aperture.assetHandleKey(scene.renderTarget);
+  const target =
+    (report.renderTargets ?? []).find(
+      (entry) => entry.renderTargetKey === renderTargetKey,
+    ) ?? null;
+
+  return {
+    ...scene.renderTargetResize,
+    stableRenderTargetKey:
+      scene.renderTargetResize?.renderTargetKey === renderTargetKey &&
+      target?.renderTargetKey === renderTargetKey,
+    ...(routeConfig.targetMsaa
+      ? createRenderTargetResizeMsaaStatus(offscreenReport, report, target)
+      : {}),
+  };
+}
+
+function createRenderTargetResizeMsaaStatus(offscreenReport, report, target) {
+  const msaa = createMsaaStatusFromReport(report);
+  const attachment = createMsaaAttachmentStatus(
+    offscreenReport.boundaries?.[0],
+  );
+
+  return {
+    msaaSampleCount: target?.msaaSampleCount ?? msaa.sampleCount,
+    attachment,
+    msaa: {
+      mode: "msaa-resized-offscreen-render-target",
+      requestedSampleCount: msaa.requestedSampleCount,
+      sampleCount: msaa.sampleCount,
+      enabled: msaa.enabled,
+      clamped: msaa.clamped,
+      supportedSampleCounts: msaa.supportedSampleCounts,
+      colorTargets: msaa.colorTargets,
+      colorTexturesCreated: msaa.colorTexturesCreated,
+      colorTexturesReused: msaa.colorTexturesReused,
+      target: {
+        source: target?.source ?? "offscreen",
+        width: target?.width ?? routeConfig.offscreenSize,
+        height: target?.height ?? routeConfig.offscreenSize,
+        drawCalls: target?.drawCalls ?? 0,
+        msaaSampleCount: target?.msaaSampleCount ?? msaa.sampleCount,
+        ok: target?.ok ?? false,
+      },
+      attachment,
+    },
   };
 }
 

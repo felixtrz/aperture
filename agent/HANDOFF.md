@@ -1,6 +1,70 @@
 # Agent Handoff
 
-Updated: 2026-05-26T08:52:27Z
+Updated: 2026-05-26T09:30:47Z
+
+## Current Run Update — 2026-05-26T09:30:47Z — MSAA render-target resize route
+
+Completed `task-3194`.
+
+### What changed
+
+- Added `examples/render-target-msaa-resize.html` to the render-to-texture route
+  family and linked it from related example pages.
+- `examples/render-to-texture.main.js` now recognizes the MSAA resize route,
+  creates an MSAA-enabled `createWebGpuApp({ msaa: 8 })`, replaces the
+  renderer-owned off-screen `ViewPacket.renderTarget` texture under the same ECS
+  handle before rendering, and labels the pass as
+  `render-to-texture/msaa-resized-target`.
+- Resize status now includes stable target-key reporting, requested/resolved
+  sample counts, before/after dimensions, texture recreation/destroy status,
+  MSAA sample count, MSAA color target pressure, and resolve attachment
+  behavior.
+- Added Playwright coverage proving the resized resolved preview renders through
+  the 384x384 target, resolves with the expected attachment behavior, and stays
+  non-clear without stale-size sampling.
+- Updated public tracker pages, `agent/BACKLOG.md`, `agent/CURRENT_TASK.md`,
+  and `agent/COMPLETED.md`. The ready queue now continues with `task-3195`,
+  `task-3196`, and `task-3197`.
+
+### References inspected
+
+- `references/engine/src/extras/render-passes/camera-frame.js`
+- `references/bevy/examples/3d/render_to_texture.rs`
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `node --check examples/render-to-texture-assets.js`
+- `pnpm exec eslint examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "MSAA render-target resize" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "render-target resize route|MSAA render-target resize|MSAA render-target route" --reporter=list`
+  — 3 passed.
+- Browser route check for `examples/render-target-msaa-resize.html` reported
+  `ok: true`, a 384x384 resized target, requested 8/effective 4 MSAA, a resolve
+  attachment, and a green resolved preview sample.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- Full-repo `pnpm run format:check` still has pre-existing unrelated formatting
+  debt from earlier handoff notes, including untracked `.playwright-mcp/`
+  scratch files. This slice uses targeted Prettier checks for touched files.
+- A broad `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/webgpu-app.test.ts`
+  run still fails 11 pre-existing `webgpu-app.test.ts` expectations around
+  verbose pipeline descriptor resource keys. This task did not modify that
+  area.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3195`: add an MSAA same-target
+clear/load matrix route.
 
 ## Current Run Update — 2026-05-26T08:52:27Z — MSAA render-target reuse stress route
 

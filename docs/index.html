@@ -393,12 +393,21 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 08:54 UTC</dd>
+            <dd>2026-05-26 09:30 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update:
+              <code>examples/render-target-msaa-resize.html</code> now proves
+              one MSAA-enabled WebGPU app can replace a renderer-owned
+              off-screen target texture under the same ECS handle before
+              rendering, resolve the resized 384x384 target texture into the
+              visible preview, and avoid stale-size sampling. The route reports
+              before/after dimensions, stable target-key status, texture
+              recreation/destroy status, requested/resolved sample counts, MSAA
+              sample count, MSAA color target pressure, resolve attachment
+              behavior, and a green preview readback. Previous update:
               <code>examples/render-target-msaa-reuse.html</code> now proves one
               MSAA-enabled WebGPU app can reuse the same renderer-owned
               off-screen target handle across two worker snapshots, reuse the
@@ -407,7 +416,7 @@
               reports stable render-target key status, per-frame dimensions,
               draw counts, requested/resolved sample counts, MSAA color texture
               created/reused pressure, resolve attachment behavior, and a green
-              second-frame readback. Previous update:
+              second-frame readback. Earlier update:
               <code>examples/mixed-msaa-secondary-crop.html</code> now proves
               one MSAA-enabled WebGPU app can extract one current-texture camera
               plus two ECS cameras targeting distinct renderer-owned off-screen
@@ -1929,7 +1938,7 @@
             <dt>Next focus</dt>
             <dd>
               Continue the render-target MSAA route family with
-              <code>task-3194</code>: an MSAA render-target resize preview
+              <code>task-3195</code>: an MSAA same-target clear/load matrix
               route.
             </dd>
           </dl>
@@ -2829,6 +2838,20 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3194</span> Added
+                <code>examples/render-target-msaa-resize.html</code>. The
+                render-to-texture route family now creates an MSAA-enabled app,
+                replaces one renderer-owned off-screen
+                <code>ViewPacket.renderTarget</code> texture under the same ECS
+                handle before rendering, resolves the resized 384x384 target
+                texture into the visible preview, reports before/after
+                dimensions, stable target-key status, texture recreation/destroy
+                status, requested/resolved sample counts, MSAA sample count,
+                MSAA color target pressure, and resolve attachment behavior, and
+                Playwright proves the resized preview is non-clear without
+                stale-size sampling.
+              </li>
               <li>
                 <span class="badge green">task-3193</span> Added
                 <code>examples/render-target-msaa-reuse.html</code>. The
@@ -5817,16 +5840,22 @@
                 resolved-preview proof.
               </li>
               <li>
-                <span class="badge">task-3194</span> Next: add an MSAA
-                render-target resize preview route.
+                <span class="badge green">task-3194</span> Done: add an MSAA
+                render-target resize preview route with stable target-key
+                reporting, texture recreation/destroy status, and resized
+                resolved-preview proof.
               </li>
               <li>
-                <span class="badge">task-3195</span> Then: add an MSAA
+                <span class="badge">task-3195</span> Next: add an MSAA
                 same-target clear/load matrix route.
               </li>
               <li>
                 <span class="badge">task-3196</span> Then: add an MSAA
                 render-target viewport crop route.
+              </li>
+              <li>
+                <span class="badge">task-3197</span> Then: add a mixed
+                current-texture plus MSAA resized off-screen target route.
               </li>
               <li>
                 <span class="badge dim">task-3161</span> Later: add cross-device
@@ -5849,6 +5878,23 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3194</div>
+            <div>
+              <strong>MSAA render-target resize route shipped.</strong>
+              <span>
+                <code>examples/render-target-msaa-resize.html</code> replaces a
+                renderer-owned off-screen target texture under the same ECS
+                handle before rendering in an MSAA-enabled app, resolves the
+                resized 384x384 target texture into the visible preview, reports
+                before/after dimensions, stable target-key status, texture
+                recreation/destroy status, requested/resolved sample counts,
+                MSAA sample count, MSAA color target pressure, and resolve
+                attachment behavior, and proves the resized preview is non-clear
+                without stale-size sampling.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3193</div>
             <div>

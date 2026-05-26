@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## task-3194 — Add an MSAA render-target resize preview route
+
+Completed: 2026-05-26
+
+### Summary
+
+- Added `examples/render-target-msaa-resize.html` to the render-to-texture route
+  family and linked it from related example pages.
+- `examples/render-to-texture.main.js` now creates an MSAA-enabled app for the
+  resize route, replaces the renderer-owned off-screen
+  `ViewPacket.renderTarget` texture under the same ECS handle before rendering,
+  and reports stable target key, before/after dimensions, texture
+  recreation/destroy status, requested/resolved sample counts, MSAA sample
+  count, MSAA color target pressure, and resolve attachment behavior.
+- Added Playwright coverage proving the resized resolved preview renders through
+  the 384x384 target, resolves with the expected MSAA attachment behavior, and
+  stays non-clear without stale-size sampling.
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `node --check examples/render-to-texture-assets.js`
+- `pnpm exec eslint examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "MSAA render-target resize" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "render-target resize route|MSAA render-target resize|MSAA render-target route" --reporter=list`
+- Browser route check: `examples/render-target-msaa-resize.html` published
+  `ok: true`, a 384x384 resized target, requested 8/effective 4 MSAA, a resolve
+  attachment, and a green resolved preview sample.
+
 ## task-3193 — Add an MSAA render-target reuse stress preview route
 
 Completed: 2026-05-26

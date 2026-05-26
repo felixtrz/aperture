@@ -51,6 +51,39 @@ interface RenderToTextureStatus extends ExampleStatusBase {
     readonly textureRecreated?: boolean;
     readonly previousTextureDestroyed?: boolean;
     readonly staleSizeGuard?: string;
+    readonly stableRenderTargetKey?: boolean;
+    readonly msaaSampleCount?: number;
+    readonly attachment?: {
+      readonly colorLoadOp?: string | null;
+      readonly colorStoreOp?: string | null;
+      readonly resolveTarget?: boolean;
+      readonly behavior?: string;
+    };
+    readonly msaa?: {
+      readonly mode?: string;
+      readonly requestedSampleCount?: number;
+      readonly sampleCount?: number;
+      readonly enabled?: boolean;
+      readonly clamped?: boolean;
+      readonly supportedSampleCounts?: readonly number[];
+      readonly colorTargets?: number;
+      readonly colorTexturesCreated?: number;
+      readonly colorTexturesReused?: number;
+      readonly target?: {
+        readonly source?: string;
+        readonly width?: number;
+        readonly height?: number;
+        readonly drawCalls?: number;
+        readonly msaaSampleCount?: number;
+        readonly ok?: boolean;
+      };
+      readonly attachment?: {
+        readonly colorLoadOp?: string | null;
+        readonly colorStoreOp?: string | null;
+        readonly resolveTarget?: boolean;
+        readonly behavior?: string;
+      };
+    };
   };
   readonly renderTargetReuseStress?: {
     readonly mode?: string;
@@ -5906,6 +5939,203 @@ test("render-target resize route displays the resized off-screen pass", async ({
   expect(
     pixelDistance(sample.pixel, screenClearSample.pixel),
     "resized target preview should differ from the main-canvas clear region",
+  ).toBeGreaterThan(40);
+});
+
+test("MSAA render-target resize route resolves the resized off-screen pass", async ({
+  page,
+}) => {
+  const guard = attachWebGpuValidationConsoleGuard(page);
+  const status = await loadExampleStatus<RenderToTextureStatus>(
+    page,
+    "/examples/render-target-msaa-resize.html",
+    "render-target-msaa-resize-status",
+  );
+
+  if (status === undefined) {
+    return;
+  }
+
+  const renderTargetKey = status.renderTarget?.key;
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "render-target-msaa-resize",
+    ok: true,
+    phase: "display",
+    renderingBackend: "webgpu-explicit",
+    renderTarget: {
+      width: 384,
+      height: 384,
+      source: "ViewPacket.renderTarget",
+      textureUsage: {
+        renderAttachment: true,
+        textureBinding: true,
+        copySource: true,
+      },
+    },
+    renderTargetResize: {
+      mode: "renderer-owned-render-target-resize",
+      reason: "route-config-canvas-resize-simulation",
+      renderTargetKey,
+      before: { width: 128, height: 128 },
+      after: { width: 384, height: 384 },
+      reusedHandle: true,
+      textureRecreated: true,
+      previousTextureDestroyed: true,
+      staleSizeGuard: "source-assets-markReady-before-render",
+      stableRenderTargetKey: true,
+      msaaSampleCount: 4,
+      attachment: {
+        colorLoadOp: "clear",
+        colorStoreOp: "discard",
+        resolveTarget: true,
+        behavior: "resolve-to-render-target-texture",
+      },
+      msaa: {
+        mode: "msaa-resized-offscreen-render-target",
+        requestedSampleCount: 8,
+        sampleCount: 4,
+        enabled: true,
+        clamped: true,
+        supportedSampleCounts: [1, 4],
+        colorTargets: 1,
+        colorTexturesCreated: 1,
+        colorTexturesReused: 0,
+        target: {
+          source: "offscreen",
+          width: 384,
+          height: 384,
+          drawCalls: 1,
+          msaaSampleCount: 4,
+          ok: true,
+        },
+        attachment: {
+          colorLoadOp: "clear",
+          colorStoreOp: "discard",
+          resolveTarget: true,
+          behavior: "resolve-to-render-target-texture",
+        },
+      },
+    },
+    sourceView: {
+      ok: true,
+      renderTargetKey,
+      expectedRenderTargetKey: renderTargetKey,
+      renderTargetMatches: true,
+    },
+    msaaRenderTarget: {
+      mode: "msaa-offscreen-render-target-preview",
+      source: "ViewPacket.renderTarget",
+      renderTargetKey,
+      requestedSampleCount: 8,
+      sampleCount: 4,
+      enabled: true,
+      clamped: true,
+      supportedSampleCounts: [1, 4],
+      colorTargets: 1,
+      colorTexturesCreated: 1,
+      colorTexturesReused: 0,
+      target: {
+        source: "offscreen",
+        width: 384,
+        height: 384,
+        drawCalls: 1,
+        msaaSampleCount: 4,
+        ok: true,
+      },
+      attachment: {
+        colorLoadOp: "clear",
+        colorStoreOp: "discard",
+        resolveTarget: true,
+      },
+      displayPass: {
+        loadOp: "clear",
+        drawCalls: 1,
+        samples: {
+          preview: "quad-center",
+          screenClear: "screen-clear-corner",
+        },
+      },
+    },
+    counts: {
+      views: 1,
+      meshDraws: 1,
+      drawCalls: 1,
+      diagnostics: 0,
+    },
+    screenPass: {
+      phase: "screen-pass",
+      drawCalls: 1,
+      samples: {
+        preview: "quad-center",
+        screenClear: "screen-clear-corner",
+      },
+    },
+  });
+  expect(status.report?.renderTargets).toMatchObject([
+    {
+      source: "offscreen",
+      renderTargetKey,
+      width: 384,
+      height: 384,
+      ok: true,
+      drawCalls: 1,
+      msaaSampleCount: 4,
+    },
+  ]);
+  guard.expectNoWarnings();
+
+  await attachExampleStatus(
+    "render-target-msaa-resize-rendered-status",
+    status,
+  );
+
+  if (!status.readback?.ok) {
+    test.skip(
+      true,
+      "MSAA render-target resize pixel assertion requires readback.",
+    );
+    return;
+  }
+
+  const sample = status.readback.samples?.find(
+    (entry) => entry.id === "quad-center",
+  );
+  const screenClearSample = status.readback.samples?.find(
+    (entry) => entry.id === "screen-clear-corner",
+  );
+
+  expect(
+    sample,
+    "expected resolved resized render-target preview sample",
+  ).toBeDefined();
+  expect(
+    screenClearSample,
+    "expected MSAA resized route screen clear sample",
+  ).toBeDefined();
+
+  if (sample === undefined || screenClearSample === undefined) {
+    return;
+  }
+
+  expect(
+    pixelDistance(
+      sample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCenterColor ?? {
+          r: 0.06,
+          g: 0.88,
+          b: 0.22,
+          a: 1,
+        },
+      ),
+    ),
+    "resolved resized target preview should retain the rendered plane color",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(sample.pixel, screenClearSample.pixel),
+    "resolved resized target preview should differ from the main-canvas clear region",
   ).toBeGreaterThan(40);
 });
 
