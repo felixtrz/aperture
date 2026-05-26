@@ -2,23 +2,23 @@
 
 No active task is currently checked out.
 
-Status: task-3168 line primitive route completed.
+Status: task-3169 camera render-target preview route completed.
 
 Key findings:
 
-- `createLineListMeshAsset(...)` is now exported through
-  `@aperture-engine/core`, producing typed indexed `line-list` mesh assets with
-  bounds and material slots.
-- The unlit WebGPU pipeline descriptor and browser bridge now preserve
-  `line-list` topology instead of hard-coding triangle-list.
-- `examples/line-primitives.html` renders two indexed ECS-authored colored line
-  sets through the same extraction, prepared-resource, render-world, draw-list,
-  and WebGPU command path as mesh examples.
-- Playwright verifies cyan and amber line samples are non-clear while a center
-  clear sample remains clear.
-- `pnpm run render-control:smoke-all` includes the line route and reports zero
-  route status failures and zero warning routes across 52 example pages.
+- `examples/render-to-texture.html` now explicitly reports the ECS source
+  camera view, normalized viewport/scissor, off-screen render target key,
+  target usage, display pass draw count, render-control capabilities, and clear
+  colors.
+- The route still renders a worker-authored ECS camera into a renderer-owned
+  off-screen WebGPU texture via `ViewPacket.renderTarget`, then displays that
+  texture in a second visible WebGPU pass.
+- Playwright now samples the displayed preview and an untouched main-canvas
+  clear region, proving the preview differs from both the main-canvas clear
+  region and the off-screen clear color.
+- Source-view color status is normalized to stable JSON values instead of
+  leaking float32 precision noise from snapshot transport.
 
 Recommended next task:
 
-- `task-3169` — add a camera render-target preview route.
+- `task-3170` — add a camera render-layer isolation route.

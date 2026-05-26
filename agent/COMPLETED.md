@@ -1,5 +1,35 @@
 # Completed Tasks
 
+## task-3169 — Add a camera render-target preview route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Strengthened `examples/render-to-texture.html` as the camera render-target
+  preview proof instead of duplicating an already-correct route.
+- The route now reports the ECS source camera view, off-screen render-target
+  key/usage, source-to-target match, display pass draw count, clear colors,
+  render-control capabilities, and JSON-safe readback sample ids.
+- The visible pass still samples the renderer-owned off-screen WebGPU texture
+  into the main canvas after the worker-authored ECS camera renders through
+  `ViewPacket.renderTarget`.
+- Added a second readback sample from the untouched main-canvas clear region.
+  Playwright now proves the displayed preview differs from both the main-canvas
+  clear region and the off-screen clear color.
+- Normalized status color channels so float32 snapshot transport does not
+  publish noisy JSON values.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --reporter=list`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec eslint examples/render-to-texture-assets.js examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run render-control:smoke-all`
+
 ## task-3168 — Add a line/wire primitive rendering route
 
 Completed: 2026-05-26

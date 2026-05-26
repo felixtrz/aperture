@@ -1,6 +1,54 @@
 # Agent Handoff
 
-Updated: 2026-05-26T02:10:39Z
+Updated: 2026-05-26T02:20:10Z
+
+## Current Run Update — 2026-05-26T02:20:10Z — Render-target preview route
+
+Completed `task-3169` after `task-3168`.
+
+### What changed
+
+- Strengthened the existing `examples/render-to-texture.html` route as the
+  camera render-target preview proof instead of adding a duplicate route.
+- The route still renders a worker-authored ECS camera into a renderer-owned
+  off-screen WebGPU texture via `ViewPacket.renderTarget`, then samples that
+  texture into the main canvas in a second pass.
+- Status now reports clear colors, the ECS source view, normalized
+  viewport/scissor, source render-target key, expected render-target key,
+  source/target match, display pass draw count, display sample ids, and
+  render-control capabilities.
+- Added a second readback sample from an untouched main-canvas clear region.
+- Normalized status color channels so float32 snapshot transport does not leak
+  precision noise into JSON status.
+- Expanded Playwright coverage to prove the displayed preview differs from
+  both the main-canvas clear region and the off-screen clear color.
+
+### Validation
+
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --reporter=list`
+  — first run failed because source-view clear color exposed float32 precision
+  noise; after status-channel normalization, 1 passed.
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec eslint examples/render-to-texture-assets.js examples/render-to-texture.main.js test/e2e/render-to-texture.spec.ts`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run render-control:smoke-all` — visited 52 routes, including
+  `/examples/render-to-texture.html`, with zero route status failures and zero
+  warning routes.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3170`: add a camera render-layer
+isolation route.
 
 ## Current Run Update — 2026-05-26T02:10:39Z — Line primitive route
 

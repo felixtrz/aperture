@@ -59,20 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3168` is complete: `examples/line-primitives.html` now renders two
-indexed ECS-authored colored line sets through a typed line-list mesh asset and
-the unlit WebGPU pipeline, with Playwright proof for cyan/amber non-clear line
-pixels. Continue the post-SOTA visible-feature queue at `task-3169`: add a
-camera render-target preview route.
+`task-3169` is complete: `examples/render-to-texture.html` now reports the ECS
+source camera view, off-screen render target, display pass, render-control
+capabilities, and readback proof that the displayed preview differs from both
+the main-canvas clear region and the off-screen clear color. Continue the
+post-SOTA visible-feature queue at `task-3170`: add a camera render-layer
+isolation route.
 
 The next ready visible-feature queue is:
 
-- `task-3169` — add a camera render-target preview route.
-  Reference anchor: `references/bevy/examples/3d/render_to_texture.rs`,
-  `references/three.js/examples/webgpu_rtt.html`.
-  Done when a browser route renders one ECS camera into an off-screen
-  renderer-owned target and displays that texture in the main canvas with
-  JSON-safe source/target view status plus Playwright pixel proof.
 - `task-3170` — add a camera render-layer isolation route.
   Reference anchor: `references/three.js/examples/webgpu_layers.html`.
   Done when a browser route renders two active cameras with distinct layer
@@ -85,6 +80,14 @@ The next ready visible-feature queue is:
   target with different priorities, reports the ordered camera pass sequence and
   clear behavior, and Playwright verifies the higher-priority overlay appears
   over the lower-priority base while both remain visible.
+- `task-3172` — add a camera sub-view/crop route.
+  Reference anchor: `references/bevy/examples/3d/camera_sub_view.rs`,
+  `references/three.js/manual/examples/cameras-perspective-2-scenes.html`.
+  Done when a browser route renders one ECS camera through a cropped sub-view
+  or equivalent projection/viewport crop, reports the crop/projection mapping
+  and skipped outside-region samples, and Playwright verifies the visible
+  object moves/scales according to the cropped camera view without changing ECS
+  mesh authoring.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.

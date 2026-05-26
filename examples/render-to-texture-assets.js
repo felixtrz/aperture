@@ -12,6 +12,11 @@ export const renderToTextureCenterSample = {
   x: 0.5,
   y: 0.5,
 };
+export const renderToTextureScreenClearSample = {
+  id: "screen-clear-corner",
+  x: 0.12,
+  y: 0.12,
+};
 
 export function registerRenderToTextureAssets(aperture, registry) {
   const assets = aperture.createRenderAssetCollections({ registry });

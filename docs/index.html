@@ -393,18 +393,25 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-26 02:10 UTC</dd>
+            <dd>2026-05-26 02:20 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: <code>examples/line-primitives.html</code> now
+              Latest update: <code>examples/render-to-texture.html</code> now
+              reports the ECS source camera view, off-screen render-target key,
+              target usage, display pass draw count, clear colors, and
+              render-control capabilities for the camera render-target preview
+              path. Playwright samples the displayed preview plus an untouched
+              main-canvas clear region and verifies the preview differs from
+              both that clear region and the off-screen clear color. Previous
+              update: <code>examples/line-primitives.html</code> now
               renders two indexed ECS-authored colored line sets through the
               typed <code>createLineListMeshAsset(...)</code> path and the
               native WebGPU <code>line-list</code> unlit pipeline. Playwright
               verifies cyan and amber line samples are non-clear while a center
               sample remains clear, and the all-route render-control smoke now
-              includes 52 routes with zero warning routes. Previous update:
+              includes 52 routes with zero warning routes. Earlier update:
               <code>examples/orthographic-camera.html</code> now proves
               orthographic projection through the same multi-view WebGPU
               submission path as the split-screen route. The worker authors one
@@ -2656,6 +2663,14 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3169</span> Strengthened the
+                render-to-texture route as the camera render-target preview
+                proof. The route now reports source-view, target, display-pass,
+                clear-color, and render-control status, while Playwright proves
+                the sampled preview differs from both the main-canvas clear
+                region and the off-screen clear color.
+              </li>
               <li>
                 <span class="badge green">task-3183</span> Added Snapshot and
                 Diff controls to the developer API panel. The generated worker
@@ -5250,8 +5265,13 @@
                 for two colored indexed line sets.
               </li>
               <li>
-                <span class="badge">task-3169</span> Next: add a camera
-                render-target preview route.
+                <span class="badge green">task-3169</span> Done: strengthen the
+                camera render-target preview route with JSON-safe source-view,
+                target, display-pass, clear-color, and readback proof.
+              </li>
+              <li>
+                <span class="badge">task-3170</span> Next: add a camera
+                render-layer isolation route.
               </li>
               <li>
                 Use <code>docs/RENDER_CONTROL.md</code> for controller and CLI
@@ -5270,6 +5290,20 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3169</div>
+            <div>
+              <strong>Camera render-target preview proof shipped.</strong>
+              <span>
+                <code>examples/render-to-texture.html</code> renders a
+                worker-authored ECS camera into a renderer-owned off-screen
+                texture, displays that texture in a second WebGPU pass, reports
+                source-view and target status, and proves the preview differs
+                from both the main-canvas clear region and the off-screen clear
+                color.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3168</div>
             <div>

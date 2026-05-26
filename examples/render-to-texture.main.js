@@ -5,6 +5,7 @@ import {
   renderToTextureOffscreenSize as offscreenSize,
   renderToTexturePlaneColor as planeColor,
   renderToTextureScreenClearColor as screenClearColor,
+  renderToTextureScreenClearSample as screenClearSample,
   registerRenderToTextureAssets,
 } from "./render-to-texture-assets.js";
 import { inspectStructuredCloneSnapshot } from "./snapshot-transport-status.js";
@@ -392,7 +393,7 @@ async function drawRenderTargetTextureToCanvas({
         format,
         width: app.canvas.width,
         height: app.canvas.height,
-        samples: [centerSample],
+        samples: [centerSample, screenClearSample],
       })
     : readbackUsage;
 
@@ -411,6 +412,7 @@ async function drawRenderTargetTextureToCanvas({
       widthNdc: 1.24,
       heightNdc: 1.24,
     },
+    drawCalls: 1,
     readback: aperture.markReadbackClearOk?.(readback, true) ?? readback,
   };
 }
@@ -434,11 +436,16 @@ function createStatus(
     apertureVersion: aperture.APERTURE_VERSION,
     renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
     format: scene.format,
+    clearColors: {
+      offscreen: rgbaToStatusColor(offscreenClearColor),
+      screen: { ...screenClearColor },
+    },
     renderTarget: {
       ...baseStatus.renderTarget,
       key: aperture.assetHandleKey(scene.renderTarget),
       textureUsage: scene.textureUsage,
     },
+    sourceView: createSourceViewStatus(aperture, message.snapshot, scene),
     scene: {
       meshKey: aperture.assetHandleKey(scene.mesh),
       materialKey: aperture.assetHandleKey(scene.material),
@@ -462,9 +469,17 @@ function createStatus(
     screenPass: {
       phase: screenPass.phase,
       format: screenPass.format,
+      drawCalls: screenPass.drawCalls,
       quad: screenPass.quad,
+      samples: {
+        preview: centerSample.id,
+        screenClear: screenClearSample.id,
+      },
     },
     readback: screenPass.readback,
+    renderControl: {
+      capabilities: exampleControlCapabilities(),
+    },
     canvas: {
       width: app.canvas.width,
       height: app.canvas.height,
@@ -486,6 +501,10 @@ function createFailureDetails(
     apertureVersion: aperture.APERTURE_VERSION,
     renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
     format: scene?.format ?? app.initialization.format,
+    clearColors: {
+      offscreen: rgbaToStatusColor(offscreenClearColor),
+      screen: { ...screenClearColor },
+    },
     worker: {
       ready: loop.workerReady,
       receivedSnapshots: loop.receivedSnapshots,
@@ -499,7 +518,63 @@ function createFailureDetails(
         ? null
         : aperture.webGpuAppRenderReportToJsonValue(offscreenReport),
     screenPass,
+    renderControl: {
+      capabilities: exampleControlCapabilities(),
+    },
   };
+}
+
+function createSourceViewStatus(aperture, snapshot, scene) {
+  const expectedRenderTargetKey = aperture.assetHandleKey(scene.renderTarget);
+  const view = snapshot?.views?.[0];
+
+  if (view === undefined) {
+    return {
+      ok: false,
+      reason: "source-view-missing",
+      expectedRenderTargetKey,
+    };
+  }
+
+  const renderTargetKey = assetKeyOrNull(aperture, view.renderTarget);
+
+  return {
+    ok: true,
+    viewId: view.viewId,
+    camera: view.camera,
+    priority: view.priority,
+    layerMask: view.layerMask,
+    viewport: Array.from(view.viewport),
+    scissor: Array.from(view.scissor),
+    clearColor: rgbaToStatusColor(view.clearColor),
+    clearDepth: view.clearDepth,
+    clearStencil: view.clearStencil,
+    renderTargetKey,
+    expectedRenderTargetKey,
+    renderTargetMatches: renderTargetKey === expectedRenderTargetKey,
+  };
+}
+
+function assetKeyOrNull(aperture, handle) {
+  return handle === null || handle === undefined
+    ? null
+    : aperture.assetHandleKey(handle);
+}
+
+function exampleControlCapabilities() {
+  return (
+    globalThis.__APERTURE_EXAMPLE_CONTROL__?.capabilities ?? {
+      status: true,
+      warnings: true,
+      screenshot: true,
+      pause: false,
+      resume: false,
+      step: false,
+      scenario: false,
+      snapshot: true,
+      readback: false,
+    }
+  );
 }
 
 function resolveTextureUsage(aperture) {
@@ -508,11 +583,15 @@ function resolveTextureUsage(aperture) {
 
 function rgbaToStatusColor(color) {
   return {
-    r: color[0],
-    g: color[1],
-    b: color[2],
-    a: color[3],
+    r: statusColorChannel(color[0]),
+    g: statusColorChannel(color[1]),
+    b: statusColorChannel(color[2]),
+    a: statusColorChannel(color[3]),
   };
+}
+
+function statusColorChannel(value) {
+  return Number(value.toFixed(6));
 }
 
 async function waitForSubmittedWork(device) {
