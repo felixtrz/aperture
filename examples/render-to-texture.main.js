@@ -3,6 +3,9 @@ import {
   renderToTextureCanvasPlaneColor as canvasPlaneColor,
   renderToTextureCanvasSample as canvasSample,
   renderToTextureCenterSample as centerSample,
+  renderToTextureClearLoadBaseSample as clearLoadBaseSample,
+  renderToTextureClearLoadClearSample as clearLoadClearSample,
+  renderToTextureClearLoadOverlaySample as clearLoadOverlaySample,
   renderToTextureCropInsideSample as cropInsideSample,
   renderToTextureCropOutsideSample as cropOutsideSample,
   renderToTextureCropRect as targetCropRect,
@@ -215,6 +218,7 @@ function startWorkerSnapshotLoop(aperture, app, scene, readbackUsage) {
     mixedTargets: routeConfig.mixedTargets,
     multiRenderTargets: routeConfig.multiRenderTargets,
     targetCrop: routeConfig.targetCrop,
+    targetClearLoad: routeConfig.targetClearLoad,
     canvas: {
       width: canvas?.width ?? 960,
       height: canvas?.height ?? 540,
@@ -313,6 +317,22 @@ async function handleWorkerMessage(
         app,
         texture: scene.offscreenTexture,
         readbackUsage,
+        ...(routeConfig.targetClearLoad
+          ? {
+              samples: [
+                clearLoadClearSample,
+                clearLoadBaseSample,
+                clearLoadOverlaySample,
+                screenClearSample,
+              ],
+              sampleLabels: {
+                clearOnly: clearLoadClearSample.id,
+                basePreserved: clearLoadBaseSample.id,
+                overlay: clearLoadOverlaySample.id,
+                screenClear: screenClearSample.id,
+              },
+            }
+          : {}),
         ...(routeConfig.targetCrop
           ? {
               samples: [
@@ -785,6 +805,19 @@ function createStatus(
           ),
         }
       : {}),
+    ...(routeConfig.targetClearLoad
+      ? {
+          sameRenderTargetClearLoad:
+            createSameRenderTargetClearLoadStatus(
+              aperture,
+              scene,
+              message,
+              offscreenReport,
+              report,
+              screenPass,
+            ),
+        }
+      : {}),
     sourceView: createSourceViewStatus(aperture, message.snapshot, scene),
     scene: {
       meshKey: aperture.assetHandleKey(scene.mesh),
@@ -885,6 +918,7 @@ function routeConfigForPath(pathname) {
       mixedTargets: false,
       multiRenderTargets: false,
       targetCrop: false,
+      targetClearLoad: false,
       requiredFrames: 1,
     };
   }
@@ -899,6 +933,7 @@ function routeConfigForPath(pathname) {
       mixedTargets: false,
       multiRenderTargets: false,
       targetCrop: false,
+      targetClearLoad: false,
       requiredFrames: 2,
     };
   }
@@ -913,6 +948,7 @@ function routeConfigForPath(pathname) {
       mixedTargets: true,
       multiRenderTargets: false,
       targetCrop: false,
+      targetClearLoad: false,
       requiredFrames: 1,
     };
   }
@@ -927,6 +963,7 @@ function routeConfigForPath(pathname) {
       mixedTargets: false,
       multiRenderTargets: true,
       targetCrop: false,
+      targetClearLoad: false,
       requiredFrames: 1,
     };
   }
@@ -941,6 +978,22 @@ function routeConfigForPath(pathname) {
       mixedTargets: false,
       multiRenderTargets: false,
       targetCrop: true,
+      targetClearLoad: false,
+      requiredFrames: 1,
+    };
+  }
+
+  if (pathname.endsWith("/render-target-clear-load.html")) {
+    return {
+      example: "render-target-clear-load",
+      initialOffscreenSize: defaultOffscreenSize,
+      offscreenSize: defaultOffscreenSize,
+      resizeTarget: false,
+      reuseStress: false,
+      mixedTargets: false,
+      multiRenderTargets: false,
+      targetCrop: false,
+      targetClearLoad: true,
       requiredFrames: 1,
     };
   }
@@ -954,6 +1007,7 @@ function routeConfigForPath(pathname) {
     mixedTargets: false,
     multiRenderTargets: false,
     targetCrop: false,
+    targetClearLoad: false,
     requiredFrames: 1,
   };
 }
@@ -1164,6 +1218,103 @@ function createMultiRenderTargetStatusEntry({
     expectedColor,
     displaySample: sampleId,
     displayQuad: displayQuad ?? null,
+  };
+}
+
+function createSameRenderTargetClearLoadStatus(
+  aperture,
+  scene,
+  message,
+  offscreenReport,
+  report,
+  screenPass,
+) {
+  const renderTargetKey = aperture.assetHandleKey(scene.renderTarget);
+  const views = (message.snapshot?.views ?? []).map((view, index) => {
+    const viewRenderTargetKey = assetKeyOrNull(aperture, view.renderTarget);
+
+    return {
+      index,
+      role: index === 0 ? "base" : "overlay",
+      viewId: view.viewId,
+      camera: view.camera,
+      priority: view.priority,
+      layerMask: view.layerMask,
+      target: viewRenderTargetKey === null ? "current-texture" : "offscreen",
+      renderTargetKey: viewRenderTargetKey,
+      viewport: Array.from(view.viewport),
+      scissor: Array.from(view.scissor),
+      clearColor: rgbaToStatusColor(view.clearColor),
+    };
+  });
+  const passOrder = (report.renderTargets ?? []).map((target, index) => {
+    const boundary = offscreenReport.boundaries?.[index] ?? null;
+    const colorLoadOp =
+      boundary?.attachments?.plan?.colorAttachments?.[0]?.loadOp ?? null;
+    const depthLoadOp =
+      boundary?.attachments?.plan?.depthStencilAttachment?.depthLoadOp ?? null;
+
+    return {
+      index,
+      role: index === 0 ? "base" : "overlay",
+      viewId: target.viewId,
+      source: target.source,
+      renderTargetKey: target.renderTargetKey,
+      width: target.width,
+      height: target.height,
+      drawCalls: target.drawCalls,
+      ok: target.ok,
+      colorLoadOp,
+      depthLoadOp,
+      clearBehavior:
+        colorLoadOp === "load"
+          ? "load-existing-target"
+          : "target-cleared-before-view",
+    };
+  });
+  const uniqueTargetKeys = [
+    ...new Set(passOrder.map((pass) => pass.renderTargetKey)),
+  ];
+
+  return {
+    mode: "same-offscreen-render-target-clear-load",
+    source: "ViewPacket.renderTarget",
+    renderTargetKey,
+    views,
+    passOrder,
+    targetKeyReuse: {
+      expectedRenderTargetKey: renderTargetKey,
+      uniqueTargetKeys,
+      allPassesShareTargetKey:
+        uniqueTargetKeys.length === 1 && uniqueTargetKeys[0] === renderTargetKey,
+      passCount: passOrder.length,
+    },
+    displayPass: {
+      loadOp: screenPass.loadOp,
+      drawCalls: screenPass.drawCalls,
+      quad: screenPass.quad,
+      samples: screenPass.samples,
+    },
+    expectedSamples: {
+      clearOnly: {
+        sampleId: clearLoadClearSample.id,
+        expectedColor: rgbaToStatusColor(offscreenClearColor),
+      },
+      basePreserved: {
+        sampleId: clearLoadBaseSample.id,
+        materialKey: aperture.assetHandleKey(scene.material),
+        expectedColor: rgbaToStatusColor(planeColor),
+      },
+      overlay: {
+        sampleId: clearLoadOverlaySample.id,
+        materialKey: aperture.assetHandleKey(scene.canvasMaterial),
+        expectedColor: rgbaToStatusColor(canvasPlaneColor),
+      },
+      screenClear: {
+        sampleId: screenClearSample.id,
+        expectedColor: { ...screenClearColor },
+      },
+    },
   };
 }
 

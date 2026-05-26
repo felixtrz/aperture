@@ -21,6 +21,7 @@ import type { SubmitCommandBuffersReport } from "./queue-submit.js";
 import {
   createRenderPassAttachmentPlan,
   type CreateRenderPassAttachmentPlanResult,
+  type RenderPassAttachmentLoadOp,
   type RenderPassColorAttachmentInput,
   type RenderPassDepthAttachmentInput,
 } from "./render-pass-attachments.js";
@@ -220,6 +221,7 @@ export interface AssembleFrameBoundaryOptions {
   readonly colorTarget?: FrameBoundaryColorTarget;
   readonly additionalColorTargets?: readonly RenderPassColorAttachmentInput[];
   readonly msaaColorTarget?: FrameBoundaryMsaaColorTarget | null;
+  readonly colorLoadOp?: RenderPassAttachmentLoadOp;
   readonly viewport?: FrameBoundaryViewRectangle | null;
   readonly scissor?: FrameBoundaryViewRectangle | null;
   readonly clearColor?: readonly number[];
@@ -285,14 +287,14 @@ export function assembleFrameBoundary(
     colorTarget.source === "offscreen-target"
       ? createOffscreenColorTarget({
           texture: colorTarget.texture,
-          loadOp: "clear",
+          loadOp: options.colorLoadOp ?? "clear",
           ...(options.clearColor === undefined
             ? {}
             : { clearColor: options.clearColor }),
         })
       : createCurrentTextureColorTarget({
           context: options.context,
-          loadOp: "clear",
+          loadOp: options.colorLoadOp ?? "clear",
           ...(options.clearColor === undefined
             ? {}
             : { clearColor: options.clearColor }),

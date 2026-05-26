@@ -47,6 +47,7 @@ async function handleMessage(data) {
         data.mixedTargets === true,
         data.multiRenderTargets === true,
         data.targetCrop === true,
+        data.targetClearLoad === true,
       );
       self.postMessage({
         type: "ready",
@@ -65,6 +66,7 @@ async function handleMessage(data) {
           mixedTargets: scene.mixedTargets,
           multiRenderTargets: scene.multiRenderTargets,
           targetCrop: scene.targetCrop,
+          targetClearLoad: scene.targetClearLoad,
           ...(scene.targetCrop
             ? {
                 cropRect: targetCropRect,
@@ -107,6 +109,7 @@ function createWorkerScene(
   mixedTargets,
   multiRenderTargets,
   targetCrop,
+  targetClearLoad,
 ) {
   const app = aperture.createExtractionApp({
     worldOptions: { entityCapacity: 8 },
@@ -131,6 +134,21 @@ function createWorkerScene(
         : {}),
     }),
   );
+
+  if (targetClearLoad) {
+    app.spawn(
+      aperture.withTransform({ translation: [0, 0, 3] }),
+      aperture.withCamera({
+        aspect: 1,
+        near: 0.1,
+        far: 100,
+        priority: 1,
+        layerMask: 2,
+        clearColor: offscreenClearColor,
+        renderTargetId: aperture.assetHandleKey(assets.renderTarget),
+      }),
+    );
+  }
 
   if (mixedTargets) {
     app.spawn(
@@ -167,15 +185,21 @@ function createWorkerScene(
   }
 
   const meshEntity = app.spawn(
-    aperture.withTransform(),
+    aperture.withTransform(
+      targetClearLoad ? { scale: [0.9, 0.65, 1] } : {},
+    ),
     aperture.withMesh(assets.mesh),
     aperture.withMaterial(assets.material),
     aperture.withRenderLayer(1),
     aperture.withVisibility(true),
   );
-  const canvasMeshEntity = mixedTargets || multiRenderTargets
+  const canvasMeshEntity = mixedTargets || multiRenderTargets || targetClearLoad
     ? app.spawn(
-        aperture.withTransform(),
+        aperture.withTransform(
+          targetClearLoad
+            ? { translation: [0, 0, 0.05], scale: [0.28, 0.28, 1] }
+            : {},
+        ),
         aperture.withMesh(assets.mesh),
         aperture.withMaterial(assets.canvasMaterial),
         aperture.withRenderLayer(2),
@@ -197,6 +221,7 @@ function createWorkerScene(
     mixedTargets,
     multiRenderTargets,
     targetCrop,
+    targetClearLoad,
     localTransformComponent: aperture.LocalTransform,
   };
 }
@@ -222,6 +247,8 @@ function createSnapshotMessage(workerScene, data) {
         ? "mixed-current-and-offscreen-targets"
         : workerScene.multiRenderTargets
           ? "two-offscreen-render-targets"
+        : workerScene.targetClearLoad
+          ? "same-offscreen-target-clear-load"
         : workerScene.targetCrop
           ? "offscreen-render-target-crop"
         : workerScene.reuseStress
@@ -232,6 +259,8 @@ function createSnapshotMessage(workerScene, data) {
           ? "canvas-plane-plus-offscreen-preview"
           : workerScene.multiRenderTargets
             ? "two-offscreen-previews"
+          : workerScene.targetClearLoad
+            ? "base-preserved-plus-overlay"
           : workerScene.targetCrop
             ? "cropped-offscreen-target"
           : workerScene.reuseStress && frame <= 1

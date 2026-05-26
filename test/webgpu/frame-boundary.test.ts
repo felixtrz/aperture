@@ -88,6 +88,27 @@ describe("frame boundary assembly helper", () => {
     expect(passDescriptors[0]).toBe(report.attachments?.plan);
   });
 
+  it("can load an existing color attachment instead of clearing it", () => {
+    const events: string[] = [];
+    const report = assembleFrameBoundary({
+      context: contextWithView({ label: "view" }),
+      device: device(events),
+      queue: { submit: (buffers) => events.push(`submit:${buffers.length}`) },
+      commands: [drawCommand()],
+      label: "load-frame",
+      colorLoadOp: "load",
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.attachments?.plan?.colorAttachments[0]).toMatchObject({
+      loadOp: "load",
+      storeOp: "store",
+    });
+    expect(report.attachments?.plan?.colorAttachments[0]).not.toHaveProperty(
+      "clearValue",
+    );
+  });
+
   it("assembles an additional color target for MRT scene outputs", () => {
     const events: string[] = [];
     const motionView = { label: "motion-view" };

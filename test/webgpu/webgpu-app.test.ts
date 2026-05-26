@@ -1101,6 +1101,111 @@ describe("WebGPU app facade", () => {
     ).toHaveLength(2);
   });
 
+  it("loads repeated ViewPacket render-target submissions after the first clear", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "SameTargetCube" }),
+    );
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "SameTargetWhite" }),
+    );
+    const renderTarget = createRenderTargetHandle("same-offscreen");
+    const offscreenTexture = {
+      createView: () => {
+        events.push("same-offscreen:view");
+        return { label: "same-offscreen-view" };
+      },
+    };
+
+    app.assets.register(renderTarget);
+    app.assets.markReady(
+      renderTarget,
+      createWebGpuAppRenderTargetAsset({
+        texture: offscreenTexture,
+        width: 1,
+        height: 1,
+        format: "bgra8unorm",
+        label: "Same offscreen",
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({
+        priority: 0,
+        layerMask: 1,
+        renderTargetId: assetHandleKey(renderTarget),
+      }),
+    );
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({
+        priority: 1,
+        layerMask: 1,
+        renderTargetId: assetHandleKey(renderTarget),
+      }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 17);
+    const colorLoadOps = (frame.boundaries ?? []).map(
+      (boundary) =>
+        boundary.attachments?.plan?.colorAttachments[0]?.loadOp ?? null,
+    );
+    const depthLoadOps = (frame.boundaries ?? []).map(
+      (boundary) =>
+        boundary.attachments?.plan?.depthStencilAttachment?.depthLoadOp ?? null,
+    );
+
+    expect(frame.ok).toBe(true);
+    expect(frame.boundaries).toHaveLength(2);
+    expect(colorLoadOps).toEqual(["clear", "load"]);
+    expect(depthLoadOps).toEqual(["clear", "load"]);
+    expect(frame.renderTargets).toEqual([
+      {
+        viewId: frame.snapshot.views[0]?.viewId,
+        source: "offscreen",
+        renderTargetKey: assetHandleKey(renderTarget),
+        width: 1,
+        height: 1,
+        format: "bgra8unorm",
+        ok: true,
+        drawCalls: 1,
+      },
+      {
+        viewId: frame.snapshot.views[1]?.viewId,
+        source: "offscreen",
+        renderTargetKey: assetHandleKey(renderTarget),
+        width: 1,
+        height: 1,
+        format: "bgra8unorm",
+        ok: true,
+        drawCalls: 1,
+      },
+    ]);
+  });
+
   it("renders swapchain frames through cached MSAA color and depth attachments", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
@@ -8109,6 +8214,8 @@ function webGpuHarness(
         beginRenderPass: () => {
           events.push("encoder:begin");
           return {
+            setViewport: () => {},
+            setScissorRect: () => {},
             setPipeline: () => events.push("pass:pipeline"),
             setBindGroup: (group: number) => events.push(`pass:bind:${group}`),
             setVertexBuffer: (slot: number) =>

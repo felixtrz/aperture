@@ -238,6 +238,52 @@ interface RenderToTextureStatus extends ExampleStatusBase {
       };
     };
   };
+  readonly sameRenderTargetClearLoad?: {
+    readonly mode?: string;
+    readonly source?: string;
+    readonly renderTargetKey?: string;
+    readonly views?: readonly {
+      readonly index?: number;
+      readonly role?: string;
+      readonly viewId?: number;
+      readonly priority?: number;
+      readonly layerMask?: number;
+      readonly target?: string;
+      readonly renderTargetKey?: string | null;
+      readonly viewport?: readonly number[];
+      readonly scissor?: readonly number[];
+    }[];
+    readonly passOrder?: readonly {
+      readonly index?: number;
+      readonly role?: string;
+      readonly viewId?: number;
+      readonly source?: string;
+      readonly renderTargetKey?: string | null;
+      readonly width?: number;
+      readonly height?: number;
+      readonly drawCalls?: number;
+      readonly ok?: boolean;
+      readonly colorLoadOp?: string | null;
+      readonly depthLoadOp?: string | null;
+      readonly clearBehavior?: string;
+    }[];
+    readonly targetKeyReuse?: {
+      readonly expectedRenderTargetKey?: string;
+      readonly uniqueTargetKeys?: readonly (string | null)[];
+      readonly allPassesShareTargetKey?: boolean;
+      readonly passCount?: number;
+    };
+    readonly displayPass?: {
+      readonly loadOp?: string;
+      readonly drawCalls?: number;
+      readonly samples?: {
+        readonly clearOnly?: string;
+        readonly basePreserved?: string;
+        readonly overlay?: string;
+        readonly screenClear?: string;
+      };
+    };
+  };
   readonly sourceView?: {
     readonly ok?: boolean;
     readonly viewId?: number;
@@ -314,6 +360,9 @@ interface RenderToTextureStatus extends ExampleStatusBase {
       readonly rightPreview?: string;
       readonly insideTarget?: string;
       readonly outsideTarget?: string;
+      readonly clearOnly?: string;
+      readonly basePreserved?: string;
+      readonly overlay?: string;
       readonly screenClear?: string;
     };
   };
@@ -1178,6 +1227,267 @@ test("render-target viewport crop route keeps outside target pixels clear", asyn
   expect(
     pixelDistance(insideSample.pixel, outsideSample.pixel),
     "cropped render target should differ inside and outside the viewport",
+  ).toBeGreaterThan(40);
+});
+
+test("same render-target clear/load route preserves base and overlay regions", async ({
+  page,
+}) => {
+  const guard = attachWebGpuValidationConsoleGuard(page);
+  const status = await loadExampleStatus<RenderToTextureStatus>(
+    page,
+    "/examples/render-target-clear-load.html",
+    "render-target-clear-load-status",
+  );
+
+  if (status === undefined) {
+    return;
+  }
+
+  const renderTargetKey = status.renderTarget?.key;
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "render-target-clear-load",
+    ok: true,
+    phase: "display",
+    renderingBackend: "webgpu-explicit",
+    renderTarget: {
+      width: 256,
+      height: 256,
+      source: "ViewPacket.renderTarget",
+      textureUsage: {
+        renderAttachment: true,
+        textureBinding: true,
+        copySource: true,
+      },
+    },
+    sourceView: {
+      ok: true,
+      viewId: 0,
+      priority: 0,
+      layerMask: 1,
+      renderTargetKey,
+      expectedRenderTargetKey: renderTargetKey,
+      renderTargetMatches: true,
+    },
+    sameRenderTargetClearLoad: {
+      mode: "same-offscreen-render-target-clear-load",
+      source: "ViewPacket.renderTarget",
+      renderTargetKey,
+      views: [
+        {
+          index: 0,
+          role: "base",
+          viewId: 0,
+          priority: 0,
+          layerMask: 1,
+          target: "offscreen",
+          renderTargetKey,
+          viewport: [0, 0, 1, 1],
+          scissor: [0, 0, 1, 1],
+        },
+        {
+          index: 1,
+          role: "overlay",
+          viewId: 1,
+          priority: 1,
+          layerMask: 2,
+          target: "offscreen",
+          renderTargetKey,
+          viewport: [0, 0, 1, 1],
+          scissor: [0, 0, 1, 1],
+        },
+      ],
+      passOrder: [
+        {
+          index: 0,
+          role: "base",
+          viewId: 0,
+          source: "offscreen",
+          renderTargetKey,
+          width: 256,
+          height: 256,
+          drawCalls: 1,
+          ok: true,
+          colorLoadOp: "clear",
+          depthLoadOp: "clear",
+          clearBehavior: "target-cleared-before-view",
+        },
+        {
+          index: 1,
+          role: "overlay",
+          viewId: 1,
+          source: "offscreen",
+          renderTargetKey,
+          width: 256,
+          height: 256,
+          drawCalls: 1,
+          ok: true,
+          colorLoadOp: "load",
+          depthLoadOp: "load",
+          clearBehavior: "load-existing-target",
+        },
+      ],
+      targetKeyReuse: {
+        expectedRenderTargetKey: renderTargetKey,
+        uniqueTargetKeys: [renderTargetKey],
+        allPassesShareTargetKey: true,
+        passCount: 2,
+      },
+      displayPass: {
+        loadOp: "clear",
+        drawCalls: 1,
+        samples: {
+          clearOnly: "offscreen-clear-only",
+          basePreserved: "offscreen-base-preserved",
+          overlay: "offscreen-overlay-center",
+          screenClear: "screen-clear-corner",
+        },
+      },
+    },
+    counts: {
+      views: 2,
+      meshDraws: 2,
+      drawCalls: 2,
+      diagnostics: 0,
+    },
+    screenPass: {
+      phase: "screen-pass",
+      drawCalls: 1,
+      loadOp: "clear",
+      samples: {
+        clearOnly: "offscreen-clear-only",
+        basePreserved: "offscreen-base-preserved",
+        overlay: "offscreen-overlay-center",
+        screenClear: "screen-clear-corner",
+      },
+    },
+  });
+  expect(status.report?.renderTargets).toMatchObject([
+    {
+      source: "offscreen",
+      renderTargetKey,
+      width: 256,
+      height: 256,
+      ok: true,
+      drawCalls: 1,
+    },
+    {
+      source: "offscreen",
+      renderTargetKey,
+      width: 256,
+      height: 256,
+      ok: true,
+      drawCalls: 1,
+    },
+  ]);
+  guard.expectNoWarnings();
+
+  await attachExampleStatus("render-target-clear-load-rendered-status", status);
+
+  if (!status.readback?.ok) {
+    test.skip(
+      true,
+      "Render-target clear/load pixel assertion requires readback.",
+    );
+    return;
+  }
+
+  const clearSample = status.readback.samples?.find(
+    (entry) => entry.id === "offscreen-clear-only",
+  );
+  const baseSample = status.readback.samples?.find(
+    (entry) => entry.id === "offscreen-base-preserved",
+  );
+  const overlaySample = status.readback.samples?.find(
+    (entry) => entry.id === "offscreen-overlay-center",
+  );
+  const screenClearSample = status.readback.samples?.find(
+    (entry) => entry.id === "screen-clear-corner",
+  );
+
+  expect(clearSample, "expected target clear-only sample").toBeDefined();
+  expect(baseSample, "expected preserved base sample").toBeDefined();
+  expect(overlaySample, "expected overlay sample").toBeDefined();
+  expect(screenClearSample, "expected screen clear sample").toBeDefined();
+
+  if (
+    clearSample === undefined ||
+    baseSample === undefined ||
+    overlaySample === undefined ||
+    screenClearSample === undefined
+  ) {
+    return;
+  }
+
+  expect(
+    pixelDistance(
+      clearSample.pixel,
+      rgbaColorToPixel(
+        status.clearColors?.offscreen ?? {
+          r: 0.02,
+          g: 0.035,
+          b: 0.07,
+          a: 1,
+        },
+      ),
+    ),
+    "clear-only sample should remain the off-screen target clear color",
+  ).toBeLessThan(12);
+  expect(
+    pixelDistance(
+      baseSample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCenterColor ?? {
+          r: 0.06,
+          g: 0.88,
+          b: 0.22,
+          a: 1,
+        },
+      ),
+    ),
+    "base sample should survive the overlay camera load pass",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(
+      overlaySample.pixel,
+      rgbaColorToPixel(
+        status.scene?.expectedCanvasColor ?? {
+          r: 0.1,
+          g: 0.42,
+          b: 0.95,
+          a: 1,
+        },
+      ),
+    ),
+    "overlay sample should come from the second same-target camera",
+  ).toBeLessThan(80);
+  expect(
+    pixelDistance(
+      screenClearSample.pixel,
+      rgbaColorToPixel(
+        status.clearColors?.screen ?? {
+          r: 0.015,
+          g: 0.018,
+          b: 0.023,
+          a: 1,
+        },
+      ),
+    ),
+    "screen clear sample should stay outside the displayed preview quad",
+  ).toBeLessThan(12);
+  expect(
+    pixelDistance(baseSample.pixel, overlaySample.pixel),
+    "base and overlay samples should be visually distinct",
+  ).toBeGreaterThan(80);
+  expect(
+    pixelDistance(baseSample.pixel, clearSample.pixel),
+    "base sample should differ from target clear",
+  ).toBeGreaterThan(40);
+  expect(
+    pixelDistance(overlaySample.pixel, clearSample.pixel),
+    "overlay sample should differ from target clear",
   ).toBeGreaterThan(40);
 });
 

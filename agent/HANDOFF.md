@@ -1,6 +1,79 @@
 # Agent Handoff
 
-Updated: 2026-05-26T05:31:32Z
+Updated: 2026-05-26T05:43:11Z
+
+## Current Run Update — 2026-05-26T05:43:11Z — Same render-target clear/load route
+
+Completed `task-3182` after `task-3181`.
+
+### What changed
+
+- Added `examples/render-target-clear-load.html` to the render-to-texture route
+  family.
+- `examples/render-to-texture-assets.js` now defines clear-only,
+  base-preserved, and overlay sample points for the displayed off-screen target.
+- `examples/render-to-texture.worker.js` now supports a target clear/load mode
+  with two ECS cameras targeting the same renderer-owned off-screen
+  `ViewPacket.renderTarget` handle from one worker-owned world. The first
+  camera draws the base layer; the second draws a smaller overlay layer.
+- `packages/webgpu/src/webgpu/frame-boundary.ts` now accepts an explicit
+  `colorLoadOp`.
+- `packages/webgpu/src/webgpu/app.ts` now tracks target submissions within a
+  frame and, for repeated non-MSAA target submissions, clears the first boundary
+  and loads existing color/depth for later boundaries.
+- `examples/render-to-texture.main.js` reports `sameRenderTargetClearLoad`
+  status with per-camera pass order, actual color/depth attachment load ops,
+  target-key reuse, display samples, and expected clear/base/overlay colors.
+- Added Playwright coverage proving the displayed target texture contains a
+  clear-only region, a preserved base region, and a distinct overlay region.
+- Updated example navigation, public tracker pages, `agent/BACKLOG.md`,
+  `agent/CURRENT_TASK.md`, and `agent/COMPLETED.md`.
+
+### References inspected
+
+- `references/bevy/examples/3d/render_to_texture.rs`
+- `references/engine/src/extras/render-passes/camera-frame.js`
+
+### Validation
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `node --check examples/render-to-texture-assets.js`
+- `pnpm exec eslint packages/webgpu/src/webgpu/frame-boundary.ts packages/webgpu/src/webgpu/app.ts test/webgpu/frame-boundary.test.ts test/webgpu/webgpu-app.test.ts examples/render-to-texture.main.js examples/render-to-texture.worker.js examples/render-to-texture-assets.js test/e2e/render-to-texture.spec.ts`
+- `pnpm exec vitest run test/webgpu/frame-boundary.test.ts --testNamePattern "load an existing color attachment|viewport and scissor"` — 2 passed.
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "loads repeated ViewPacket render-target submissions"` — 1 passed.
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "same render-target clear/load route" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "same render-target clear/load route|render-target viewport crop route|multiple render targets route|render-to-texture example" --reporter=list`
+  — 4 passed.
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs` — 7 passed.
+- `pnpm run check:progress`
+- `pnpm run render-control:smoke-all` — after starting
+  `pnpm run examples:serve`, the smoke visited 65 routes including
+  `/examples/render-target-clear-load.html`, with zero route status failures
+  and zero warning routes. The examples server was stopped afterward.
+
+### Known issues / remaining work
+
+- Full-repo `pnpm test` and full-repo `pnpm run lint` were not rerun in this
+  slice; earlier handoff notes document unrelated existing failures in both.
+- A broad `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/webgpu-app.test.ts`
+  run still fails 11 pre-existing `webgpu-app.test.ts` expectations around
+  verbose pipeline descriptor resource keys. The new same-target unit test
+  passed when isolated.
+- Same-target color-load preservation currently applies to repeated non-MSAA
+  target submissions. MSAA repeated-target preservation still needs a dedicated
+  route/design before claiming that path.
+- The pre-existing working-tree deletion of `.codex/hooks.json` and untracked
+  `.playwright-mcp/` scratch directory were not made by this run and remain
+  untouched.
+
+### Recommended next task
+
+Continue the visible-feature queue at `task-3183`: add a mixed current-texture
+plus two off-screen render-target route.
 
 ## Current Run Update — 2026-05-26T05:31:32Z — Render-target viewport crop route
 

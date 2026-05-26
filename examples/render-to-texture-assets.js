@@ -49,6 +49,21 @@ export const renderToTextureCropOutsideSample = {
   x: 0.31,
   y: 0.5,
 };
+export const renderToTextureClearLoadClearSample = {
+  id: "offscreen-clear-only",
+  x: 0.21,
+  y: 0.32,
+};
+export const renderToTextureClearLoadBaseSample = {
+  id: "offscreen-base-preserved",
+  x: 0.36,
+  y: 0.5,
+};
+export const renderToTextureClearLoadOverlaySample = {
+  id: "offscreen-overlay-center",
+  x: 0.5,
+  y: 0.5,
+};
 
 export function registerRenderToTextureAssets(aperture, registry) {
   const assets = aperture.createRenderAssetCollections({ registry });

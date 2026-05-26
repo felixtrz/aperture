@@ -1,5 +1,45 @@
 # Completed Tasks
 
+## task-3182 — Add a same off-screen target clear/load matrix route
+
+Completed: 2026-05-26
+
+Summary:
+
+- Added `examples/render-target-clear-load.html` on the existing
+  render-to-texture route family.
+- `examples/render-to-texture.worker.js` now supports a clear/load mode that
+  extracts two ECS cameras targeting the same renderer-owned off-screen
+  `ViewPacket.renderTarget` handle with distinct render layers.
+- `assembleFrameBoundary()` now accepts a `colorLoadOp`, and
+  `createWebGpuApp()` clears the first non-MSAA submission for a target while
+  loading existing color/depth for later submissions to that same target.
+- `examples/render-to-texture.main.js` reports same-target pass order, actual
+  color/depth attachment load ops, target-key reuse, display-pass samples, and
+  expected clear/base/overlay colors.
+- Added Playwright coverage proving the displayed target texture contains a
+  clear-only region, a preserved base region from the first camera, and a
+  distinct overlay region from the second camera.
+- Updated example links, public tracker pages, backlog, current task, and
+  handoff.
+
+Validation:
+
+- `node --check examples/render-to-texture.main.js`
+- `node --check examples/render-to-texture.worker.js`
+- `node --check examples/render-to-texture-assets.js`
+- `pnpm exec eslint packages/webgpu/src/webgpu/frame-boundary.ts packages/webgpu/src/webgpu/app.ts test/webgpu/frame-boundary.test.ts test/webgpu/webgpu-app.test.ts examples/render-to-texture.main.js examples/render-to-texture.worker.js examples/render-to-texture-assets.js test/e2e/render-to-texture.spec.ts`
+- `pnpm exec vitest run test/webgpu/frame-boundary.test.ts --testNamePattern "load an existing color attachment|viewport and scissor"`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "loads repeated ViewPacket render-target submissions"`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "same render-target clear/load route" --reporter=list`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts --grep "same render-target clear/load route|render-target viewport crop route|multiple render targets route|render-to-texture example" --reporter=list`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm run check:progress`
+- `pnpm run render-control:smoke-all`
+
 ## task-3181 — Add an off-screen render-target viewport crop route
 
 Completed: 2026-05-26

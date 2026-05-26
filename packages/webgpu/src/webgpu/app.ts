@@ -350,6 +350,7 @@ import type {
   RenderPassCommand,
   RenderPassCommandPressureReport,
 } from "./render-pass-commands.js";
+import type { RenderPassAttachmentLoadOp } from "./render-pass-attachments.js";
 import {
   createWebGpuIdBufferEntries,
   findWebGpuIdBufferEntry,
@@ -2549,6 +2550,7 @@ async function assembleWebGpuAppFrameBoundaries(options: {
   let msaaColorTexturesCreated = 0;
   let msaaColorTexturesReused = 0;
   let allTargetsValid = true;
+  const submittedTargetCounts = new Map<string, number>();
   const lastSwapchainTargetIndex = findLastSwapchainTargetIndex(
     targetPlan.targets,
   );
@@ -2651,6 +2653,19 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       }
     }
 
+    const targetSubmissionKey =
+      webGpuAppFrameBoundaryTargetSubmissionKey(target);
+    const previousTargetSubmissions =
+      submittedTargetCounts.get(targetSubmissionKey) ?? 0;
+    const loadExistingTarget =
+      previousTargetSubmissions > 0 && msaaColorTarget.resource === null;
+    const colorLoadOp: RenderPassAttachmentLoadOp = loadExistingTarget
+      ? "load"
+      : "clear";
+    const depthLoadOp: RenderPassAttachmentLoadOp = loadExistingTarget
+      ? "load"
+      : "clear";
+
     const includeReadback =
       options.readbackSamples !== undefined &&
       readbackBoundary === null &&
@@ -2748,6 +2763,12 @@ async function assembleWebGpuAppFrameBoundaries(options: {
       plannedCommands += postTarget.plannedCommands;
       drawCalls += postTarget.drawCalls;
       allTargetsValid &&= postTarget.valid;
+      if (postTarget.valid) {
+        submittedTargetCounts.set(
+          targetSubmissionKey,
+          previousTargetSubmissions + 1,
+        );
+      }
       diagnostics.push(...postTarget.diagnostics);
       continue;
     }
@@ -2801,6 +2822,7 @@ async function assembleWebGpuAppFrameBoundaries(options: {
         .queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
       commands: commandsForBoundary,
       label: `${options.label}:${target.renderTargetKey ?? "swapchain"}`,
+      colorLoadOp,
       viewport: viewRectangles.viewport,
       scissor: viewRectangles.scissor,
       ...(target.source === "offscreen"
@@ -2811,11 +2833,15 @@ async function assembleWebGpuAppFrameBoundaries(options: {
             },
           }
         : {}),
-      clearColor: options.clearColor ?? target.view.clearColor,
+      ...(colorLoadOp === "clear"
+        ? { clearColor: options.clearColor ?? target.view.clearColor }
+        : {}),
       depthTarget: {
         view: depthAttachment.view,
-        depthClearValue: target.view.clearDepth,
-        depthLoadOp: "clear",
+        ...(depthLoadOp === "clear"
+          ? { depthClearValue: target.view.clearDepth }
+          : {}),
+        depthLoadOp,
         depthStoreOp: "store",
       },
       ...(commandsForBoundary.length === 0 ||
@@ -2878,6 +2904,12 @@ async function assembleWebGpuAppFrameBoundaries(options: {
 
     boundaries.push(boundary);
     allTargetsValid &&= boundary.valid;
+    if (boundary.valid) {
+      submittedTargetCounts.set(
+        targetSubmissionKey,
+        previousTargetSubmissions + 1,
+      );
+    }
     occlusionQueryDiagnostics.push(
       ...(boundary.occlusionQueries?.diagnostics ?? []),
     );
@@ -5450,6 +5482,14 @@ function findLastSwapchainTargetIndex(
   }
 
   return -1;
+}
+
+function webGpuAppFrameBoundaryTargetSubmissionKey(
+  target: WebGpuAppFrameBoundaryTarget,
+): string {
+  return target.source === "swapchain"
+    ? "swapchain"
+    : `offscreen:${target.renderTargetKey}`;
 }
 
 function resolveWebGpuAppTargetViewRectangles(

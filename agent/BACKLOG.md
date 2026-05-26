@@ -59,26 +59,18 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3181` is complete: `examples/render-target-viewport-crop.html` now
-proves one worker-authored ECS camera can render into a renderer-owned
-off-screen `ViewPacket.renderTarget` through a non-full normalized
-viewport/scissor rectangle, display that target on canvas, report resolved
-target-space viewport/scissor pixels plus display-pass samples, and verify the
-inside target sample renders while the outside-crop target sample remains clear
-without making ECS own GPU state. Continue the post-SOTA visible-feature queue
-at `task-3182`: add a same off-screen target clear/load matrix route.
+`task-3182` is complete: `examples/render-target-clear-load.html` now proves
+two worker-authored ECS cameras can target the same renderer-owned off-screen
+`ViewPacket.renderTarget` in one snapshot while the first non-MSAA boundary
+clears and the second loads existing color/depth. The route reports per-camera
+pass order, actual attachment load ops, target-key reuse, and display samples,
+and Playwright verifies clear-only, base-preserved, and overlay regions without
+making ECS own GPU state. Continue the post-SOTA visible-feature queue at
+`task-3183`: add a mixed current-texture plus two off-screen render-target
+route.
 
 The next ready visible-feature queue is:
 
-- `task-3182` — add a same off-screen target clear/load matrix route.
-  Reference anchor: `references/bevy/examples/3d/render_to_texture.rs`,
-  `references/engine/src/extras/render-passes/camera-frame.js`.
-  Done when a browser route extracts two ECS cameras targeting the same
-  renderer-owned off-screen render target with clear/load sequencing, displays
-  the final target on the canvas, reports per-camera off-screen pass order,
-  clear/load behavior, target key reuse, and display samples, and Playwright
-  verifies clear-only, base-preserved, and overlay regions in the displayed
-  off-screen preview.
 - `task-3183` — add a mixed current-texture plus two off-screen render-target
   route.
   Reference anchor:
@@ -101,6 +93,16 @@ The next ready visible-feature queue is:
   per-target dimensions, keys, draw counts, display samples, and aspect
   mapping, and Playwright verifies both previews are non-clear, visually
   distinct, and not stretched into each other.
+- `task-3185` — add an MSAA off-screen render-target preview route.
+  Reference anchor:
+  `references/engine/src/extras/render-passes/camera-frame.js`,
+  `references/three.js/examples/webgpu_rtt.html`.
+  Done when one browser route creates a WebGPU app with MSAA enabled, extracts
+  one ECS camera targeting a renderer-owned off-screen render-target handle,
+  resolves the multisampled color target into the renderer-owned texture,
+  displays that texture on canvas, reports requested/resolved sample count,
+  target dimensions, draw counts, and display samples, and Playwright verifies
+  the preview is non-clear without ECS owning GPU state.
 
 Keep `task-3161` as later post-SOTA hardening work after the visible-feature
 queue above.
