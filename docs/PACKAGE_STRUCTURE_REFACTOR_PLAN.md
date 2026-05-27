@@ -158,6 +158,10 @@ Status: in progress
   `standard-shader-shadow-sampling.ts` for directional, point, and multi-shadow
   WGSL patching, and `standard-shader-ibl-sampling.ts` for diffuse/specular IBL
   WGSL patching.
+- StandardMaterial base WGSL source now lives in
+  `packages/webgpu/src/materials/standard/standard-shader-source.ts`, while
+  `standard-shader.ts` re-exports the source and focuses on metadata, variant
+  WGSL assembly, and shader module descriptors.
 - StandardMaterial shader variant helpers now live in
   `packages/webgpu/src/materials/standard/standard-shader-variant.ts`,
   covering texture variant comments, UV routing, WGSL declaration assembly,

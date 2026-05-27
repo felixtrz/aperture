@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-27T22:59:28Z
+Updated: 2026-05-27T23:01:38Z
+
+## Current Run Update — 2026-05-27T23:01:38Z — Standard shader source split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 3.
+
+### What changed
+
+- Extracted the base StandardMaterial WGSL template from
+  `packages/webgpu/src/materials/standard/standard-shader.ts` into
+  `packages/webgpu/src/materials/standard/standard-shader-source.ts`.
+- `standard-shader.ts` re-exports `STANDARD_MESH_WGSL` and is now roughly 778
+  lines, focused on shader metadata, texture-variant WGSL assembly, and shader
+  module descriptors.
+- Light-packing constants used by the WGSL template now stay with the source
+  module instead of the shader assembly module.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/materials/standard/standard-shader.ts packages/webgpu/src/materials/standard/standard-shader-source.ts`
+- `pnpm exec prettier --check packages/webgpu/src/materials/standard/standard-shader.ts packages/webgpu/src/materials/standard/standard-shader-source.ts`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/output-stage-tonemap.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 3 still has large StandardMaterial files to split, especially
+  `standard-app-frame-resources.ts`, `standard-shader-variant.ts`,
+  `prepared-standard-material-cache.ts`, `standard-pipeline.ts`, and
+  `standard-material-shadow-bind-group.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 3 by splitting app-frame resource helpers from
+`standard-app-frame-resources.ts` or vertex layout parsing from
+`standard-pipeline.ts`.
 
 ## Current Run Update — 2026-05-27T22:59:28Z — Standard shader sampling family split
 
