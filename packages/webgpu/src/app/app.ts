@@ -49,6 +49,10 @@ import {
   type WebGpuAppFrameBoundaryTarget,
 } from "./frame-target.js";
 import {
+  createWebGpuAppDrawResourceSetPlan,
+  type WebGpuAppDrawResourceSetPlan,
+} from "./draw-resource-set.js";
+import {
   prepareAppTextureResource,
   prepareMatcapAppTextureSamplerResources,
   prepareStandardAppTextureSamplerResources,
@@ -359,6 +363,11 @@ export {
   type WebGpuAppRenderTargetAssetInput,
 } from "./render-target.js";
 export {
+  createWebGpuAppDrawResourceSetPlan,
+  type WebGpuAppDrawResourceSet,
+  type WebGpuAppDrawResourceSetPlan,
+} from "./draw-resource-set.js";
+export {
   webGpuAppPickReportToJsonValue,
   webGpuAppRenderReportToJson,
   webGpuAppRenderReportToJsonValue,
@@ -486,19 +495,6 @@ export interface WebGpuAppMaterialDependencyDiagnostic {
   readonly code: "webGpuApp.materialDependenciesNotReady";
   readonly message: string;
   readonly materialDependencyReadiness: MaterialAssetDependencyReadinessReportJsonValue;
-}
-
-export interface WebGpuAppDrawResourceSet {
-  readonly index: number;
-  readonly meshKey: string;
-  readonly materialKey: string;
-  readonly drawIndices: readonly number[];
-  readonly renderIds: readonly number[];
-}
-
-export interface WebGpuAppDrawResourceSetPlan {
-  readonly sets: readonly WebGpuAppDrawResourceSet[];
-  readonly drawCount: number;
 }
 
 export interface WebGpuAppSimulationWorkerSnapshotEvent {
@@ -7067,60 +7063,4 @@ function standardClusteredLocalLightPipelineKey(
   ];
 
   return [family, ...features, ...rest].join("|");
-}
-
-export function createWebGpuAppDrawResourceSetPlan(
-  snapshot: RenderSnapshot,
-): WebGpuAppDrawResourceSetPlan {
-  const mutableSets: {
-    readonly index: number;
-    readonly meshKey: string;
-    readonly materialKey: string;
-    readonly drawIndices: number[];
-    readonly renderIds: number[];
-  }[] = [];
-  const setByKey = new Map<string, (typeof mutableSets)[number]>();
-
-  for (
-    let drawIndex = 0;
-    drawIndex < snapshot.meshDraws.length;
-    drawIndex += 1
-  ) {
-    const draw = snapshot.meshDraws[drawIndex];
-
-    if (draw === undefined) {
-      continue;
-    }
-
-    const meshKey = assetHandleKey(draw.mesh);
-    const materialKey = assetHandleKey(draw.material);
-    const setKey = `${meshKey}|${materialKey}`;
-    let set = setByKey.get(setKey);
-
-    if (set === undefined) {
-      set = {
-        index: mutableSets.length,
-        meshKey,
-        materialKey,
-        drawIndices: [],
-        renderIds: [],
-      };
-      mutableSets.push(set);
-      setByKey.set(setKey, set);
-    }
-
-    set.drawIndices.push(drawIndex);
-    set.renderIds.push(draw.renderId);
-  }
-
-  return {
-    drawCount: snapshot.meshDraws.length,
-    sets: mutableSets.map((set) => ({
-      index: set.index,
-      meshKey: set.meshKey,
-      materialKey: set.materialKey,
-      drawIndices: [...set.drawIndices],
-      renderIds: [...set.renderIds],
-    })),
-  };
 }

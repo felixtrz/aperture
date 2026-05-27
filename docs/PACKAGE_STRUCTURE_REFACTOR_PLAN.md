@@ -42,6 +42,9 @@ Status: in progress
 - Snapshot defaults and frame update metadata now live in
   `packages/webgpu/src/app/snapshot.ts`, covering empty render snapshots and
   render snapshot change-set/update-schedule creation.
+- Draw resource set planning now lives in
+  `packages/webgpu/src/app/draw-resource-set.ts`, while the existing public
+  root export remains available through `app.ts`.
 
 ## Purpose
 
