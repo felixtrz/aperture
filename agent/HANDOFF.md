@@ -1,6 +1,44 @@
 # Agent Handoff
 
-Updated: 2026-05-27T21:34:03Z
+Updated: 2026-05-27T21:40:01Z
+
+## Current Run Update — 2026-05-27T21:40:01Z — WebGPU post-processing assembly split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted app post-processing assembly from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/post-processing.ts`.
+- The new module owns swapchain scene offscreen capture, post-effect pass and
+  graph assembly, post readbacks, and post-effect submission reports.
+- `app.ts` still decides when a swapchain target should run active post effects
+  and delegates the detailed assembly.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/post-processing.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/post-processing.ts`
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "runs a no-op post effect chain|passes the renderer-owned scene depth texture|passes multisampled scene depth|initializes WebGPU|creates a renderer-only app"`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs full picking orchestration, frame-loop orchestration, and
+  diagnostics orchestration splits.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by extracting picking orchestration or app pipeline creation
+helpers, whichever yields the smaller callback surface first.
 
 ## Current Run Update — 2026-05-27T21:34:03Z — WebGPU motion-vector helpers split
 

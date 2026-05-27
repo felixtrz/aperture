@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "36177987",
+  "lastCommit": "eb207152",
   "activePid": null,
-  "notes": "Continued PACKAGE_STRUCTURE_REFACTOR_PLAN Track 2/3: split app frame-target, report/resource-reuse, source asset, picking, material dependency, pipeline layout, resource-cache, snapshot, draw-resource-set, standard app pipeline-key, app attachment, GPU readback, transmission-grab resources/pass, frame-boundary support, occlusion-culling, view-command, queued built-in support, skybox, sprite, multi-unlit, queued frame-resource preparation, and motion-vector helpers out of app.ts.",
-  "lastRunFinishedAt": "2026-05-27T21:34:03Z"
+  "notes": "Continued PACKAGE_STRUCTURE_REFACTOR_PLAN Track 2/3: split app frame-target, report/resource-reuse, source asset, picking, material dependency, pipeline layout, resource-cache, snapshot, draw-resource-set, standard app pipeline-key, app attachment, GPU readback, transmission-grab resources/pass, frame-boundary support, occlusion-culling, view-command, queued built-in support, skybox, sprite, multi-unlit, queued frame-resource preparation, motion-vector, and post-processing assembly helpers out of app.ts.",
+  "lastRunFinishedAt": "2026-05-27T21:40:01Z"
 }

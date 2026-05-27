@@ -97,6 +97,10 @@ Status: in progress
   `packages/webgpu/src/app/motion-vectors.ts`, covering scene motion-vector
   eligibility, previous object-transform GPU resources, motion-vector reports,
   and view-projection history for post passes.
+- App post-processing assembly now lives in
+  `packages/webgpu/src/app/post-processing.ts`, covering swapchain scene
+  offscreen capture, post-effect pass/graph assembly, post readbacks, and
+  post-effect submission reports.
 
 ## Purpose
 
