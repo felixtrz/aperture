@@ -64,6 +64,10 @@ Status: in progress
   `packages/webgpu/src/app/frame-boundary-support.ts`, covering indirect draw
   preparation, occlusion-query resource allocation, render-bundle command keys,
   render-bundle report assembly, and static-snapshot render-bundle heuristics.
+- Occlusion command filtering and culling report helpers now live in
+  `packages/webgpu/src/app/occlusion-culling.ts`, covering culling report
+  accumulation, skipped-draw filtering, occlusion-query command stripping, and
+  query-index normalization.
 
 ## Purpose
 

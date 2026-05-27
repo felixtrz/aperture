@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-27T20:51:50Z
+Updated: 2026-05-27T20:54:54Z
+
+## Current Run Update — 2026-05-27T20:54:54Z — WebGPU occlusion culling helpers split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted occlusion command filtering and culling report helpers from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/occlusion-culling.ts`.
+- The new module owns culling report accumulation, skipped render-id filtering,
+  occlusion-query command stripping, query-index normalization, and the shared
+  render-pass draw-command predicate used by transmission filtering.
+- `app.ts` now keeps frame assembly and transmission orchestration while
+  delegating occlusion command mutation/reporting helpers.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/occlusion-culling.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/occlusion-culling.ts`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/render-pass-commands.test.ts test/webgpu/render-pass-command-executor.test.ts --testNamePattern "occlusion query"`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|surfaces per-pass GPU timings|creates a renderer-only app"`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs full picking orchestration, queued built-in frame resource
+  preparation, frame-loop orchestration, and diagnostics orchestration splits.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by starting the queued built-in frame-resource split, now that
+the smaller frame-boundary support and occlusion helper clusters are out of
+`app.ts`.
 
 ## Current Run Update — 2026-05-27T20:51:50Z — WebGPU frame-boundary support helpers split
 
