@@ -12,6 +12,7 @@ const CLI = path.resolve("packages/cli/dist/bin/aperture.js");
 const APP_ROOT = path.resolve("examples/developer-api");
 const PORT = 5187;
 const CREATED_APP_PORT = 5193;
+const WEBGPU_UNAVAILABLE_PORT = 5197;
 const MCP_TOOL_TIMEOUT_MS = 60_000;
 
 test.setTimeout(420_000);
@@ -1260,6 +1261,48 @@ test("aperture create produces an installable app that works with CLI AI tools",
         }),
       ]),
     });
+
+    await runCli(["dev", "down"], { cwd: appRoot, allowFailure: true });
+    await disableWebGpuInIndexHtml(appRoot);
+    const webgpuUnavailableUp = await runCli(
+      ["dev", "up", "--port", String(WEBGPU_UNAVAILABLE_PORT), "--headless"],
+      { cwd: appRoot },
+    );
+    expect(webgpuUnavailableUp.stdout).toContain(
+      "Started Aperture dev session",
+    );
+
+    const webgpuUnavailable = await callMcpTool(
+      "browser_wait_for_webgpu",
+      { timeoutMs: 5_000 },
+      { cwd: appRoot },
+    );
+    expect(webgpuUnavailable.structuredContent).toMatchObject({
+      ok: false,
+      diagnostic: {
+        code: "aperture.mcp.webgpuUnavailable",
+      },
+      page: {
+        status: {
+          status: "webgpu-failed",
+          webgpuOk: false,
+        },
+      },
+    });
+
+    const unavailableDiagnostics = await callMcpTool(
+      "render_get_diagnostics",
+      {},
+      { cwd: appRoot },
+    );
+    expect(unavailableDiagnostics.structuredContent).toMatchObject({
+      ok: true,
+      diagnostics: {
+        app: {
+          reason: "navigator-gpu-unavailable",
+        },
+      },
+    });
   } finally {
     await runCli(["dev", "down"], { cwd: appRoot, allowFailure: true });
     await rm(root, { force: true, recursive: true });
@@ -1323,6 +1366,32 @@ function portFromDevUpOutput(stdout: string): number {
   }
 
   return Number(match[1]);
+}
+
+async function disableWebGpuInIndexHtml(appRoot: string): Promise<void> {
+  const indexPath = path.join(appRoot, "index.html");
+  const html = await readFile(indexPath, "utf8");
+  const disableScript = [
+    "<script>",
+    "(() => {",
+    "  const disable = (target) => {",
+    "    try {",
+    "      Object.defineProperty(target, 'gpu', { configurable: true, get: () => undefined });",
+    "      return true;",
+    "    } catch {",
+    "      return false;",
+    "    }",
+    "  };",
+    "  disable(navigator) || disable(Navigator.prototype);",
+    "})();",
+    "</script>",
+  ].join("\n");
+
+  await writeFile(
+    indexPath,
+    html.replace("</body>", `  ${disableScript}\n</body>`),
+    "utf8",
+  );
 }
 
 async function runCli(

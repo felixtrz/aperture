@@ -38,11 +38,6 @@ interface AperturePage {
     readonly waitUntil?: "domcontentloaded";
   }): Promise<unknown>;
   screenshot(options?: { readonly type?: "png" }): Promise<Buffer>;
-  waitForFunction(
-    expression: string,
-    arg?: unknown,
-    options?: { readonly timeout?: number },
-  ): Promise<unknown>;
   evaluate<R, A = unknown>(
     pageFunction: string | ((arg: A) => R | Promise<R>),
     arg?: A,
@@ -315,16 +310,87 @@ async function waitForWebGpu(
   page: AperturePage,
   timeoutMs: number,
 ): Promise<unknown> {
-  await page.waitForFunction(
-    `(() => {
-      const status = globalThis.${STATUS_GLOBAL};
-      return status?.webgpuOk === true && status?.status === "running";
-    })()`,
-    undefined,
-    { timeout: timeoutMs },
-  );
+  const deadline = Date.now() + Math.max(0, timeoutMs);
+  let pageStatus = await readGeneratedStatus(page);
 
-  return { ok: true, page: await readGeneratedStatus(page) };
+  for (;;) {
+    const status = generatedAppStatus(pageStatus);
+
+    if (status?.webgpuOk === true && status.status === "running") {
+      return { ok: true, page: pageStatus };
+    }
+
+    if (status?.status === "webgpu-failed" || status?.webgpuOk === false) {
+      return {
+        ok: false,
+        diagnostic: {
+          code: "aperture.mcp.webgpuUnavailable",
+          message:
+            "The generated Aperture app reported WebGPU initialization failure.",
+          suggestedFix:
+            "Inspect render diagnostics and verify the managed browser exposes navigator.gpu.",
+        },
+        page: pageStatus,
+      };
+    }
+
+    if (status?.status === "worker-error") {
+      return {
+        ok: false,
+        diagnostic: {
+          code: "aperture.mcp.workerError",
+          message:
+            "The generated Aperture app reported a worker error before WebGPU became ready.",
+          suggestedFix:
+            "Inspect render diagnostics and generated worker diagnostics before retrying.",
+        },
+        page: pageStatus,
+      };
+    }
+
+    if (Date.now() >= deadline) {
+      return {
+        ok: false,
+        diagnostic: {
+          code: "aperture.mcp.webgpuTimeout",
+          message: `Timed out waiting ${timeoutMs}ms for the generated Aperture app to report WebGPU readiness.`,
+          suggestedFix:
+            "Use browser_status and render_get_diagnostics to inspect startup state.",
+        },
+        page: pageStatus,
+      };
+    }
+
+    await delay(100);
+    pageStatus = await readGeneratedStatus(page);
+  }
+}
+
+function generatedAppStatus(value: unknown): {
+  readonly status?: string;
+  readonly webgpuOk?: boolean | null;
+} | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const status = value["status"];
+
+  if (!isRecord(status)) {
+    return null;
+  }
+
+  const statusValue =
+    typeof status["status"] === "string" ? status["status"] : undefined;
+  const webgpuOkValue =
+    typeof status["webgpuOk"] === "boolean" || status["webgpuOk"] === null
+      ? status["webgpuOk"]
+      : undefined;
+
+  return {
+    ...(statusValue === undefined ? {} : { status: statusValue }),
+    ...(webgpuOkValue === undefined ? {} : { webgpuOk: webgpuOkValue }),
+  };
 }
 
 async function screenshot(page: AperturePage): Promise<unknown> {
@@ -788,6 +854,16 @@ function nestedRecord(
   return typeof value === "object" && value !== null
     ? (value as Record<string, unknown>)
     : null;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+async function delay(ms: number): Promise<void> {
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 function renderPacketFamiliesArg(
