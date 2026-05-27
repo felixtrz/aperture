@@ -244,6 +244,9 @@ Status: in progress
   validation, and shared diagnostic helpers now live in
   `packages/render/src/rendering/extraction-asset-validation.ts` and
   `packages/render/src/rendering/extraction-diagnostics.ts`.
+- Render extraction authoring input readers and asset-handle parsing now live
+  in `packages/render/src/rendering/extraction-inputs.ts`, keeping
+  `extraction.ts` focused on snapshot orchestration and packet assembly.
 
 ## Purpose
 
