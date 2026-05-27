@@ -122,6 +122,12 @@ Status: in progress
   `packages/webgpu/src/app/sprite-frame.ts`, covering sprite-only view packing,
   sprite pipeline/resource preparation, frame-boundary delegation, submitted
   work waiting, readback mapping, and sprite-only render report assembly.
+- Queued built-in app frame rendering now lives in
+  `packages/webgpu/src/app/queued-built-in-frame.ts`, covering built-in
+  material frame preparation, material queue rewriting, render-frame planning,
+  sprite overlay preparation, indirect draw preparation, frame-boundary
+  delegation, motion-vector history, GPU timing and occlusion readback, and
+  queued render report assembly.
 
 ## Purpose
 

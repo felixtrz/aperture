@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-27T22:05:09Z
+Updated: 2026-05-27T22:09:50Z
+
+## Current Run Update — 2026-05-27T22:09:50Z — WebGPU queued built-in frame split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted queued built-in app frame rendering from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/queued-built-in-frame.ts`.
+- The new module owns built-in material frame preparation, material queue
+  rewriting, render-frame planning, sprite overlay preparation, indirect draw
+  preparation, frame-boundary delegation, motion-vector history, GPU timing and
+  occlusion readback, and queued render report assembly.
+- `renderWebGpuAppFrame` still owns route selection and delegates to the queued
+  frame module after collecting a valid queued built-in resource set.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/queued-built-in-frame.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/queued-built-in-frame.ts`
+- `pnpm exec vitest run test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts test/webgpu/queued-material-frame-resource-set.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|creates a renderer-only app|renders multiple unlit app resource sets|renders mixed standard and matcap app resource sets|routes DebugNormalMaterial|supports indirect draw command preparation|reports occlusion query feedback"`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs app startup/presentation cleanup and diagnostics
+  orchestration splits. The non-queued fallback frame path still lives in
+  `app.ts` and should either be extracted or removed once confirmed obsolete.
+- `packages/webgpu/src/app/app.ts` is now near 1,500 lines, with the remaining
+  large chunks concentrated around `renderWebGpuAppFrame`, app creation/startup,
+  and the fallback frame path.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Audit the remaining fallback frame path in `app.ts`; if it is still required,
+extract it, otherwise remove it as dead code with targeted coverage.
 
 ## Current Run Update — 2026-05-27T22:05:09Z — WebGPU sprite-only frame split
 
