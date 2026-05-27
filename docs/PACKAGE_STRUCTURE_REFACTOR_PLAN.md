@@ -255,6 +255,10 @@ Status: in progress
   `packages/render/src/rendering/extraction-sprites.ts`,
   `packages/render/src/rendering/extraction-skyboxes.ts`, and
   `packages/render/src/rendering/extraction-fogs.ts`.
+- Render extraction mesh draw assembly, mesh extraction cache state, mesh layout
+  key helpers, skin/morph/instance extraction helpers, and material-slot
+  resolution now live in `packages/render/src/rendering/extraction-meshes.ts`,
+  leaving `extraction.ts` as the snapshot/view orchestration entry point.
 
 ## Purpose
 
