@@ -1,5 +1,4 @@
 import {
-  createMeshGpuUploadPlan,
   type MeshAsset,
   type MeshDrawPacket,
   type MeshUploadPlanDiagnostic,
@@ -34,40 +33,42 @@ import {
 } from "./standard-frame-local-light-resources.js";
 import type { LightBindGroupLayoutResource } from "../../lighting/light-bind-group-layout.js";
 import {
+  createInstanceTintResource,
+  createMaterialResource,
+  createMeshResource,
+  createMorphTargetWeightResource,
+  createSkinningJointResource,
+  createViewUniformResource,
+  createWorldTransformResource,
+  requiresInstanceTintBuffer,
+  requiresMorphTargetWeightBuffer,
+  requiresSkinningJointBuffer,
+} from "./standard-frame-base-resources.js";
+import {
   createSnapshotLightGpuBuffers,
   type CreateSnapshotLightGpuBuffersDiagnostic,
   type CreateSnapshotLightGpuBuffersResult,
 } from "../../lighting/lighting-resource-plan.js";
-import {
-  createInstanceTintBufferDescriptor,
-  createInstanceTintGpuBuffer,
-  type InstanceTintBufferDescriptorDiagnostic,
-  type InstanceTintGpuBufferDiagnostic,
-  type InstanceTintGpuBufferResource,
+import type {
+  InstanceTintBufferDescriptorDiagnostic,
+  InstanceTintGpuBufferDiagnostic,
+  InstanceTintGpuBufferResource,
 } from "../../resources/attributes/instance-tint-buffer.js";
-import {
-  createSkinningJointBufferDescriptor,
-  createSkinningJointGpuBuffer,
-  type SkinningJointBufferDescriptorDiagnostic,
-  type SkinningJointGpuBufferDiagnostic,
-  type SkinningJointGpuBufferResource,
+import type {
+  SkinningJointBufferDescriptorDiagnostic,
+  SkinningJointGpuBufferDiagnostic,
+  SkinningJointGpuBufferResource,
 } from "../../resources/attributes/skinning-joint-buffer.js";
-import {
-  createMorphTargetWeightBufferDescriptor,
-  createMorphTargetWeightGpuBuffer,
-  type MorphTargetWeightBufferDescriptorDiagnostic,
-  type MorphTargetWeightGpuBufferDiagnostic,
-  type MorphTargetWeightGpuBufferResource,
+import type {
+  MorphTargetWeightBufferDescriptorDiagnostic,
+  MorphTargetWeightGpuBufferDiagnostic,
+  MorphTargetWeightGpuBufferResource,
 } from "../../resources/attributes/morph-target-weight-buffer.js";
-import {
-  createMeshGpuBuffers,
-  type MeshGpuBufferCreationDiagnostic,
-  type MeshGpuBufferResource,
+import type {
+  MeshGpuBufferCreationDiagnostic,
+  MeshGpuBufferResource,
 } from "../../resources/meshes/mesh-buffer-resources.js";
-import {
-  createMeshUploadBufferDescriptors,
-  type MeshUploadBufferDescriptorDiagnostic,
-} from "../../resources/meshes/mesh-buffer-descriptors.js";
+import type { MeshUploadBufferDescriptorDiagnostic } from "../../resources/meshes/mesh-buffer-descriptors.js";
 import {
   createStandardMaterialBindGroupDescriptorPlan,
   createStandardMaterialBindGroupResource,
@@ -95,18 +96,16 @@ import {
   type StandardLightShadowBindGroupResource,
 } from "./standard-light-shadow-bind-group.js";
 import type { StandardAreaLightLtcResources } from "./standard-area-light-ltc-resource.js";
-import {
-  createStandardMaterialGpuBuffer,
-  type StandardMaterialGpuBufferDiagnostic,
-  type StandardMaterialGpuBufferResource,
+import type {
+  StandardMaterialGpuBufferDiagnostic,
+  StandardMaterialGpuBufferResource,
 } from "./standard-material-buffer-resource.js";
 import type { ShadowDepthTextureResourceReport } from "../../shadows/shadow-depth-texture-resource.js";
 import type { ShadowMatrixBufferResourceReport } from "../../shadows/shadow-matrix-buffer-resource.js";
 import type { ShadowSamplerResourceReport } from "./standard-material-shadow-bind-group.js";
-import {
-  createStandardMaterialPreparationPlan,
-  type StandardMaterialBufferDescriptorDiagnostic,
-  type StandardMaterialPackingDiagnostic,
+import type {
+  StandardMaterialBufferDescriptorDiagnostic,
+  StandardMaterialPackingDiagnostic,
 } from "./standard-material-buffer.js";
 import type {
   SamplerGpuResource,
@@ -122,21 +121,15 @@ import {
   type UnlitBindGroupResource,
   type UnlitBindGroupResourceDiagnostic,
 } from "../unlit/unlit-bind-group.js";
-import {
-  createViewUniformBufferDescriptor,
-  type ViewUniformBufferDescriptorDiagnostic,
-} from "../../resources/views/view-uniform-buffer.js";
-import {
-  createViewUniformGpuBuffer,
-  type ViewUniformGpuBufferDiagnostic,
-  type ViewUniformGpuBufferResource,
+import type { ViewUniformBufferDescriptorDiagnostic } from "../../resources/views/view-uniform-buffer.js";
+import type {
+  ViewUniformGpuBufferDiagnostic,
+  ViewUniformGpuBufferResource,
 } from "../../resources/views/view-uniform-buffer-resource.js";
-import {
-  createWorldTransformBufferDescriptor,
-  createWorldTransformGpuBuffer,
-  type WorldTransformBufferDescriptorDiagnostic,
-  type WorldTransformGpuBufferDiagnostic,
-  type WorldTransformGpuBufferResource,
+import type {
+  WorldTransformBufferDescriptorDiagnostic,
+  WorldTransformGpuBufferDiagnostic,
+  WorldTransformGpuBufferResource,
 } from "../../resources/transforms/world-transform-buffer.js";
 
 export type StandardFrameGpuResourceDiagnosticCode =
@@ -403,18 +396,6 @@ export function createStandardFrameGpuResources(
   };
 }
 
-function requiresInstanceTintBuffer(pipelineKey: string): boolean {
-  return pipelineKey.split("|").includes("instance-tint");
-}
-
-function requiresSkinningJointBuffer(pipelineKey: string): boolean {
-  return pipelineKey.split("|").includes("skinned");
-}
-
-function requiresMorphTargetWeightBuffer(pipelineKey: string): boolean {
-  return pipelineKey.split("|").includes("morphed");
-}
-
 function resolveStandardMaterialIblBindGroupResource(
   options: Pick<
     CreateStandardFrameGpuResourcesOptions,
@@ -426,246 +407,6 @@ function resolveStandardMaterialIblBindGroupResource(
   return report?.status === "available" && report.resource !== null
     ? report.resource
     : null;
-}
-
-function createMeshResource(
-  options: Pick<
-    CreateStandardFrameGpuResourcesOptions,
-    "device" | "mesh" | "preparedMesh"
-  >,
-  diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
-): MeshGpuBufferResource | null {
-  if (options.preparedMesh !== undefined) {
-    return options.preparedMesh;
-  }
-
-  if (options.mesh === null) {
-    diagnostics.push({
-      code: "standardFrameResources.missingMesh",
-      message: "Standard frame GPU resource creation requires a mesh asset.",
-    });
-    return null;
-  }
-
-  const upload = createMeshGpuUploadPlan(options.mesh);
-
-  diagnostics.push(...upload.diagnostics);
-
-  const descriptors = createMeshUploadBufferDescriptors(upload.plan);
-
-  diagnostics.push(...descriptors.diagnostics);
-
-  const resource = createMeshGpuBuffers({
-    device: options.device,
-    plan: descriptors.plan,
-  });
-
-  diagnostics.push(...resource.diagnostics);
-
-  return resource.valid ? resource.resource : null;
-}
-
-function createViewUniformResource(
-  options: Pick<
-    CreateStandardFrameGpuResourcesOptions,
-    "device" | "viewUniforms"
-  >,
-  diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
-): ViewUniformGpuBufferResource | null {
-  if (options.viewUniforms === null) {
-    diagnostics.push({
-      code: "standardFrameResources.missingViewUniforms",
-      message:
-        "Standard frame GPU resource creation requires packed view uniforms.",
-    });
-    return null;
-  }
-
-  const descriptor = createViewUniformBufferDescriptor(options.viewUniforms);
-
-  diagnostics.push(...descriptor.diagnostics);
-
-  const resource = createViewUniformGpuBuffer({
-    device: options.device,
-    plan: descriptor.plan,
-  });
-
-  diagnostics.push(...resource.diagnostics);
-
-  return resource.valid ? resource.resource : null;
-}
-
-function createWorldTransformResource(
-  options: Pick<
-    CreateStandardFrameGpuResourcesOptions,
-    "device" | "worldTransforms"
-  >,
-  diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
-): WorldTransformGpuBufferResource | null {
-  if (options.worldTransforms === null) {
-    diagnostics.push({
-      code: "standardFrameResources.missingWorldTransforms",
-      message:
-        "Standard frame GPU resource creation requires packed world transforms.",
-    });
-    return null;
-  }
-
-  const descriptor = createWorldTransformBufferDescriptor(
-    options.worldTransforms,
-  );
-
-  diagnostics.push(...descriptor.diagnostics);
-
-  const resource = createWorldTransformGpuBuffer({
-    device: options.device,
-    plan: descriptor.plan,
-  });
-
-  diagnostics.push(...resource.diagnostics);
-
-  return resource.valid ? resource.resource : null;
-}
-
-function createInstanceTintResource(
-  options: Pick<
-    CreateStandardFrameGpuResourcesOptions,
-    "device" | "instanceTints" | "pipelineKey"
-  >,
-  diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
-): InstanceTintGpuBufferResource | null {
-  if (!requiresInstanceTintBuffer(options.pipelineKey)) {
-    return null;
-  }
-
-  if (options.instanceTints === undefined || options.instanceTints === null) {
-    diagnostics.push({
-      code: "standardFrameResources.missingInstanceTints",
-      message:
-        "Standard frame GPU resource creation requires packed instance tints for an instance-tint pipeline.",
-    });
-    return null;
-  }
-
-  const descriptor = createInstanceTintBufferDescriptor(options.instanceTints);
-
-  diagnostics.push(...descriptor.diagnostics);
-
-  const resource = createInstanceTintGpuBuffer({
-    device: options.device,
-    plan: descriptor.plan,
-  });
-
-  diagnostics.push(...resource.diagnostics);
-
-  return resource.valid ? resource.resource : null;
-}
-
-function createSkinningJointResource(
-  options: Pick<
-    CreateStandardFrameGpuResourcesOptions,
-    "device" | "snapshot" | "draw" | "pipelineKey"
-  >,
-  diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
-): SkinningJointGpuBufferResource | null {
-  if (!requiresSkinningJointBuffer(options.pipelineKey)) {
-    return null;
-  }
-
-  if (options.draw === undefined) {
-    diagnostics.push({
-      code: "skinningJointBuffer.missingOffset",
-      renderId: 0,
-      field: "draw",
-      message:
-        "Standard frame GPU resource creation requires a draw packet for a skinned pipeline.",
-    });
-    return null;
-  }
-
-  const descriptor = createSkinningJointBufferDescriptor(
-    options.snapshot,
-    options.draw,
-  );
-
-  diagnostics.push(...descriptor.diagnostics);
-
-  const resource = createSkinningJointGpuBuffer({
-    device: options.device,
-    plan: descriptor.plan,
-  });
-
-  diagnostics.push(...resource.diagnostics);
-
-  return resource.valid ? resource.resource : null;
-}
-
-function createMorphTargetWeightResource(
-  options: Pick<
-    CreateStandardFrameGpuResourcesOptions,
-    "device" | "snapshot" | "draw" | "pipelineKey"
-  >,
-  diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
-): MorphTargetWeightGpuBufferResource | null {
-  if (!requiresMorphTargetWeightBuffer(options.pipelineKey)) {
-    return null;
-  }
-
-  if (options.draw === undefined) {
-    diagnostics.push({
-      code: "morphTargetWeightBuffer.missingData",
-      renderId: 0,
-      field: "draw",
-      message:
-        "Standard frame GPU resource creation requires a draw packet for a morphed pipeline.",
-    });
-    return null;
-  }
-
-  const descriptor = createMorphTargetWeightBufferDescriptor(
-    options.snapshot,
-    options.draw,
-  );
-
-  diagnostics.push(...descriptor.diagnostics);
-
-  const resource = createMorphTargetWeightGpuBuffer({
-    device: options.device,
-    plan: descriptor.plan,
-  });
-
-  diagnostics.push(...resource.diagnostics);
-
-  return resource.valid ? resource.resource : null;
-}
-
-function createMaterialResource(
-  options: Pick<CreateStandardFrameGpuResourcesOptions, "device" | "material">,
-  diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
-): StandardMaterialGpuBufferResource | null {
-  if (options.material === null) {
-    diagnostics.push({
-      code: "standardFrameResources.missingMaterial",
-      message:
-        "Standard frame GPU resource creation requires a standard material asset.",
-    });
-    return null;
-  }
-
-  const preparation = createStandardMaterialPreparationPlan(options.material, {
-    label: `${options.material.label}/uniform`,
-  });
-
-  diagnostics.push(...preparation.diagnostics);
-
-  const resource = createStandardMaterialGpuBuffer({
-    device: options.device,
-    plan: preparation.plan?.materialBuffer ?? null,
-  });
-
-  diagnostics.push(...resource.diagnostics);
-
-  return resource.valid ? resource.resource : null;
 }
 
 function createSharedBindGroups(
