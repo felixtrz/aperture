@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-27T22:09:50Z
+Updated: 2026-05-27T22:16:05Z
+
+## Current Run Update — 2026-05-27T22:16:05Z — WebGPU app frame-loop split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted app frame-loop routing from `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/frame-loop.ts`.
+- The new module owns snapshot validation, standard-material route key
+  rewriting, local-light cookie preparation, material dependency checks,
+  sprite-only routing, queued built-in routing, and the remaining non-queued
+  fallback frame path.
+- `app.ts` now delegates `renderSnapshot` to the frame-loop module and is down
+  to roughly 690 lines.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/frame-loop.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/frame-loop.ts`
+- `pnpm exec vitest run test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts test/webgpu/queued-material-frame-resource-set.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|creates a renderer-only app|renders multiple unlit app resource sets|renders mixed standard and matcap app resource sets|routes DebugNormalMaterial|supports indirect draw command preparation|reports occlusion query feedback|renders mixed unlit and standard app resource sets"`
+- `pnpm exec vitest run test/webgpu/sprite-pipeline.test.ts test/webgpu/post-pass.test.ts test/webgpu/index.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs app startup/presentation and diagnostics surface cleanup.
+- `packages/webgpu/src/app/app.ts` is now mostly public app types plus
+  `createWebGpuApp`; the largest remaining implementation block is app
+  creation/start/stop/snapshot transport wiring.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by extracting app creation/startup and diagnostics snapshot
+helpers from `app.ts`, or start Track 3 if the app facade split is sufficient.
 
 ## Current Run Update — 2026-05-27T22:09:50Z — WebGPU queued built-in frame split
 

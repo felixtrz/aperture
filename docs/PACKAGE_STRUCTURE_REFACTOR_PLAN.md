@@ -128,6 +128,11 @@ Status: in progress
   sprite overlay preparation, indirect draw preparation, frame-boundary
   delegation, motion-vector history, GPU timing and occlusion readback, and
   queued render report assembly.
+- App frame-loop routing now lives in
+  `packages/webgpu/src/app/frame-loop.ts`, covering snapshot validation,
+  standard-material route key rewriting, local-light cookie preparation,
+  material dependency checks, sprite-only routing, queued built-in routing, and
+  the remaining non-queued fallback frame path.
 
 ## Purpose
 
