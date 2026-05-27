@@ -5,11 +5,13 @@ export {
   applyStandardSheenSampling,
   applyStandardTransmissionSampling,
 } from "./standard-shader-extension-sampling.js";
+export { applyStandardClusteredLocalLightSampling } from "./standard-shader-light-sampling.js";
 export {
-  applyStandardClusteredLocalLightSampling,
-  applyStandardDiffuseIblSampling,
   applyStandardMultiShadowMapSampling,
   applyStandardPointShadowMapSampling,
   applyStandardShadowMapSampling,
+} from "./standard-shader-shadow-sampling.js";
+export {
+  applyStandardDiffuseIblSampling,
   applyStandardSpecularIblProofSampling,
-} from "./standard-shader-light-sampling.js";
+} from "./standard-shader-ibl-sampling.js";
