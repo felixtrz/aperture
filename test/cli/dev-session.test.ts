@@ -28,12 +28,15 @@ describe("Aperture CLI dev session and MCP command surface", () => {
     const root = await tempRoot();
     const status = await runCli(["dev", "status"], root);
     const logs = await runCli(["dev", "logs"], root);
+    const open = await runCli(["dev", "open"], root);
     const down = await runCli(["dev", "down"], root);
 
     expect(status.exitCode).toBe(0);
     expect(status.stdout).toContain("No Aperture dev session found");
     expect(logs.exitCode).toBe(0);
     expect(logs.stdout).toContain("No Aperture dev session found");
+    expect(open.exitCode).toBe(1);
+    expect(open.stderr).toContain("No Aperture dev session exists");
     expect(down.exitCode).toBe(0);
     expect(down.stdout).toContain("No Aperture dev session was active");
   });
