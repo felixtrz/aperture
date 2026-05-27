@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "cdf1e668",
+  "lastCommit": "89e67837",
   "activePid": null,
-  "notes": "Continued PACKAGE_STRUCTURE_REFACTOR_PLAN Track 2: split WebGPU app frame-target helpers, report/resource-reuse helpers, source asset facades, picking helpers, material dependency diagnostics, pipeline layout resolution, resource-cache construction, snapshot helpers, and draw resource set planning out of app.ts.",
-  "lastRunFinishedAt": "2026-05-27T20:31:47Z"
+  "notes": "Continued PACKAGE_STRUCTURE_REFACTOR_PLAN Track 2/3: split app frame-target, report/resource-reuse, source asset, picking, material dependency, pipeline layout, resource-cache, snapshot, draw-resource-set, and standard app pipeline-key helpers out of app.ts.",
+  "lastRunFinishedAt": "2026-05-27T20:35:42Z"
 }
