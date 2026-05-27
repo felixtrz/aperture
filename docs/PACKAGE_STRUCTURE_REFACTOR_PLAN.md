@@ -23,6 +23,9 @@ Status: in progress
   `packages/webgpu/src/app/report.ts`, covering JSON-safe report conversion,
   render report construction, depth-attachment summaries, resource-reuse
   summary helpers, and submitted-work waiting.
+- Source asset facade preparation now lives in
+  `packages/webgpu/src/app/source-assets.ts`, covering snapshot mesh/material
+  facade updates and resource-reuse summary synchronization.
 
 ## Purpose
 

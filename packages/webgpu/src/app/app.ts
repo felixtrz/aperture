@@ -19,10 +19,6 @@ import {
   renderQueueSortPolicyForPhase,
   createSamplerAsset,
   materialDependencyReadinessReportToJsonValue,
-  prepareSnapshotMeshes,
-  prepareSnapshotMaterials,
-  preparedMeshStoreSummaryToJsonValue,
-  preparedMaterialStoreSummaryToJsonValue,
   writeMaterialQueueFromSnapshot,
   writePackedSnapshotPreviousTransforms,
   writePackedSnapshotTransforms,
@@ -394,10 +390,8 @@ import {
   waitForSubmittedWork,
   webGpuAppPickReportToJsonValue,
   webGpuAppRenderReportToJsonValue,
-  writeWebGpuAppPreparedMaterialCacheSummary,
-  writeWebGpuAppPreparedMeshCacheSummary,
-  writeWebGpuAppTextureSamplerCacheSummary,
 } from "./report.js";
+import { prepareWebGpuAppSourceAssetFacades } from "./source-assets.js";
 
 export interface WebGpuAppRenderOptions {
   readonly frame?: number;
@@ -1152,36 +1146,13 @@ export async function createWebGpuApp(
         },
       );
 
-      prepareSnapshotMeshes({
+      prepareWebGpuAppSourceAssetFacades({
         registry: sourceAssets,
         snapshot: report.snapshot,
-        meshes: resourceCache.preparedMeshFacade,
+        cache: resourceCache,
         pruneUnreferenced: true,
+        resourceReuse: report.resourceReuse,
       });
-      report.resourceReuse.preparedMeshFacade =
-        preparedMeshStoreSummaryToJsonValue(resourceCache.preparedMeshFacade);
-      writeWebGpuAppPreparedMeshCacheSummary(
-        report.resourceReuse.preparedMeshCache,
-        resourceCache,
-      );
-      prepareSnapshotMaterials({
-        registry: sourceAssets,
-        snapshot: report.snapshot,
-        materials: resourceCache.preparedMaterialFacade,
-        pruneUnreferenced: true,
-      });
-      report.resourceReuse.preparedMaterialFacade =
-        preparedMaterialStoreSummaryToJsonValue(
-          resourceCache.preparedMaterialFacade,
-        );
-      writeWebGpuAppPreparedMaterialCacheSummary(
-        report.resourceReuse.preparedMaterialCache,
-        resourceCache,
-      );
-      writeWebGpuAppTextureSamplerCacheSummary(
-        report.resourceReuse.textureSamplerCache,
-        resourceCache,
-      );
 
       latestReport = report;
       previousSnapshotForUpdate = report.snapshot;
@@ -6378,15 +6349,10 @@ async function renderWebGpuAppFrame(
     (firstMaterialKindSupported || resourceSetPlan.sets.length > 1);
 
   if (shouldUseQueuedBuiltInRoute) {
-    prepareSnapshotMeshes({
+    prepareWebGpuAppSourceAssetFacades({
       registry: sourceAssets,
       snapshot,
-      meshes: resourceCache.preparedMeshFacade,
-    });
-    prepareSnapshotMaterials({
-      registry: sourceAssets,
-      snapshot,
-      materials: resourceCache.preparedMaterialFacade,
+      cache: resourceCache,
     });
   }
 
@@ -7349,15 +7315,10 @@ async function prepareWebGpuAppPickFrameResources(
     };
   }
 
-  prepareSnapshotMeshes({
+  prepareWebGpuAppSourceAssetFacades({
     registry: context.sourceAssets,
     snapshot,
-    meshes: resourceCache.preparedMeshFacade,
-  });
-  prepareSnapshotMaterials({
-    registry: context.sourceAssets,
-    snapshot,
-    materials: resourceCache.preparedMaterialFacade,
+    cache: resourceCache,
   });
 
   const queuedBuiltIn = collectQueuedBuiltInAppResourceSet({

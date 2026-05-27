@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-27T20:03:03Z
+Updated: 2026-05-27T20:06:41Z
+
+## Current Run Update — 2026-05-27T20:06:41Z — WebGPU source asset facade split
+
+Continued Track 2 of `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Extracted source asset facade preparation from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/source-assets.ts`.
+- The new helper owns snapshot mesh/material facade preparation and optional
+  resource-reuse summary synchronization for prepared mesh/material facades and
+  texture/sampler cache summaries.
+- `renderSnapshot(...)`, queued built-in render preparation, and app picking
+  now share the same facade preparation helper.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/source-assets.ts packages/webgpu/src/app/report.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/source-assets.ts packages/webgpu/src/app/report.ts`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|reuses prepared scalar unlit mesh buffers|reports scalar unlit prepared mesh and material source-version invalidation|prunes stale prepared material facade|reuses prepared StandardMaterial mesh buffers"`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs more `app.ts` splits, especially picking, frame-loop
+  orchestration, diagnostics orchestration, and startup/resource-cache
+  construction.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by extracting picking helpers from
+`packages/webgpu/src/app/app.ts` into `packages/webgpu/src/app/picking.ts`,
+or split resource-cache construction if the picking dependency graph is too
+large for the next slice.
 
 ## Current Run Update — 2026-05-27T20:03:03Z — WebGPU app report helpers split
 
