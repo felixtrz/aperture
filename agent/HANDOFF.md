@@ -1,6 +1,42 @@
 # Agent Handoff
 
-Updated: 2026-05-27T23:42:03Z
+Updated: 2026-05-27T23:47:33Z
+
+## Current Run Update — 2026-05-27T23:47:33Z — Render extraction sprite/skybox/fog split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted sprite draw packet assembly into
+  `packages/render/src/rendering/extraction-sprites.ts`.
+- Extracted skybox and fog packet assembly into
+  `packages/render/src/rendering/extraction-skyboxes.ts` and
+  `packages/render/src/rendering/extraction-fogs.ts`.
+- `packages/render/src/rendering/extraction.ts` is now roughly 1324 lines.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/rendering/extraction.ts packages/render/src/rendering/extraction-sprites.ts packages/render/src/rendering/extraction-skyboxes.ts packages/render/src/rendering/extraction-fogs.ts packages/render/src/rendering/extraction-lights.ts packages/render/src/rendering/extraction-matrices.ts packages/render/src/rendering/extraction-entities.ts packages/render/src/rendering/extraction-inputs.ts packages/render/src/rendering/extraction-asset-validation.ts packages/render/src/rendering/extraction-diagnostics.ts packages/render/src/rendering/extraction-culling.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/extraction.ts packages/render/src/rendering/extraction-sprites.ts packages/render/src/rendering/extraction-skyboxes.ts packages/render/src/rendering/extraction-fogs.ts packages/render/src/rendering/extraction-lights.ts packages/render/src/rendering/extraction-matrices.ts packages/render/src/rendering/extraction-entities.ts packages/render/src/rendering/extraction-inputs.ts packages/render/src/rendering/extraction-asset-validation.ts packages/render/src/rendering/extraction-diagnostics.ts packages/render/src/rendering/extraction-culling.ts`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/rendering/line-list-mesh.test.ts test/webgpu/fixtures/ecs-snapshot-render-frame.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- `packages/render/src/rendering/extraction.ts` remains large. Good next
+  splits are mesh draw assembly/caching, mesh draw material packet creation, or
+  skin/morph extraction helpers.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to these extractions; use targeted subsets
+  until those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting mesh draw assembly/caching out of
+`packages/render/src/rendering/extraction.ts`.
 
 ## Current Run Update — 2026-05-27T23:42:03Z — Render extraction light assembly split
 

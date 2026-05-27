@@ -251,6 +251,10 @@ Status: in progress
   `packages/render/src/rendering/extraction-lights.ts`, with shared sorted
   entity and transform-matrix helpers split into `extraction-entities.ts` and
   `extraction-matrices.ts`.
+- Render extraction sprite, skybox, and fog packet assembly now live in
+  `packages/render/src/rendering/extraction-sprites.ts`,
+  `packages/render/src/rendering/extraction-skyboxes.ts`, and
+  `packages/render/src/rendering/extraction-fogs.ts`.
 
 ## Purpose
 
