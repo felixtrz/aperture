@@ -17,8 +17,6 @@ import {
   type PackedSnapshotPreviousTransforms,
   type PackedPreviousSnapshotTransformHistoryReport,
   type PackedSnapshotTransformHistoryUpdateReport,
-  type PackedSnapshotInstanceTints,
-  type PackedSnapshotViewUniforms,
   type PreparedMaterialStoreJsonValue,
   type PreparedMeshStoreJsonValue,
   type RenderEntityRef,
@@ -48,11 +46,7 @@ import {
   type AppTextureSamplerResourceCacheSummary,
 } from "./app-texture-sampler-resources.js";
 import { registerWebGpuAppEnvironmentResourceCache } from "./app-environment-resources.js";
-import {
-  createPreparedMaterialTextureSamplerDependencies,
-  type PreparedMaterialTextureSamplerDependencies,
-} from "../materials/core/prepared-material-texture-sampler-dependencies.js";
-import type { PreparedBuiltInMaterialStore } from "../materials/core/prepared-built-in-material-store.js";
+import { createPreparedMaterialTextureSamplerDependencies } from "../materials/core/prepared-material-texture-sampler-dependencies.js";
 import type { PreparedAppMaterialCacheSummary } from "../materials/core/prepared-app-material-resource.js";
 import type { PreparedMeshGpuResourceCacheSummary } from "../resources/meshes/prepared-mesh-cache.js";
 import {
@@ -85,9 +79,6 @@ import {
   type CachedWebGpuDepthTextureResource,
 } from "../resources/textures/depth-texture-resource.js";
 import { resolveWebGpuMsaaConfig, type WebGpuMsaaConfig } from "../gpu/msaa.js";
-import type { BindGroupResourceCache } from "../gpu/bind-group-resource-cache.js";
-import type { LightBindGroupResource } from "../lighting/light-bind-group.js";
-import type { StandardLightShadowBindGroupResource } from "../materials/standard/standard-light-shadow-bind-group.js";
 import {
   createOrReuseDebugNormalAppFrameResources,
   type CreateDebugNormalAppFrameResourcesResult,
@@ -120,7 +111,6 @@ import {
   type QueuedBuiltInAppResourceSet,
 } from "../render/queues/queued-built-in-app-resource-set.js";
 import {
-  prepareQueuedBuiltInFrameResourceSet,
   type CreateQueuedBuiltInFrameResourcesResult,
   type QueuedBuiltInFrameResourceRouteDiagnostic,
   type QueuedBuiltInFrameResources,
@@ -146,7 +136,6 @@ import {
   createOrReuseStandardAppFrameResources,
   type CreateStandardAppFrameResourcesResult,
 } from "../materials/standard/standard-app-frame-resources.js";
-import type { StandardAreaLightLtcResources } from "../materials/standard/standard-area-light-ltc-resource.js";
 import type {
   StandardFrameIblResources,
   StandardFrameShadowReceiverResources,
@@ -180,7 +169,6 @@ import {
   createOrReuseUnlitAppFrameResources,
   type CreateUnlitAppFrameResourcesResult,
 } from "../materials/unlit/unlit-app-frame-resources.js";
-import type { UnlitBindGroupResource } from "../materials/unlit/unlit-bind-group.js";
 import {
   createUnlitRenderPipelineResource,
   type CreateUnlitRenderPipelineResourceResult,
@@ -248,7 +236,6 @@ import {
 import {
   getWebGpuAppPipelineLayouts,
   type WebGpuAppMaterialKind,
-  type WebGpuAppPipelineLayouts,
 } from "./pipeline-layouts.js";
 import {
   createWebGpuAppResourceCache,
@@ -316,6 +303,11 @@ import {
   collectMultiUnlitAppResourceSet,
   createMultiUnlitAppFrameResources,
 } from "./multi-unlit.js";
+import {
+  prepareQueuedBuiltInFrameResources,
+  type QueuedBuiltInAppResourcePreparationCache,
+  type QueuedBuiltInFrameResourcePreparationOptions,
+} from "./queued-frame-resources.js";
 
 export type { WebGpuAppMsaaReport };
 
@@ -707,46 +699,6 @@ interface QueuedBuiltInTextureSamplerPreparationOptions {
   readonly item: QueuedBuiltInAppResourceItem;
   readonly reuse: WebGpuAppResourceReuseReport;
 }
-
-interface QueuedBuiltInFrameResourcePreparationOptions {
-  readonly app: WebGpuApp;
-  readonly assets: AssetRegistry;
-  readonly cache: QueuedBuiltInAppResourcePreparationCache;
-  readonly preparedMaterials: PreparedBuiltInMaterialStore;
-  readonly snapshot: RenderSnapshot;
-  readonly item: QueuedBuiltInAppResourceItem;
-  readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
-  readonly viewUniforms: PackedSnapshotViewUniforms;
-  readonly worldTransforms: PackedSnapshotTransforms;
-  readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
-  readonly instanceTints?: PackedSnapshotInstanceTints | null;
-  readonly layouts: WebGpuAppPipelineLayouts;
-  readonly sharedBindGroupCache: BindGroupResourceCache<UnlitBindGroupResource>;
-  readonly lightBindGroupCache: BindGroupResourceCache<LightBindGroupResource>;
-  readonly standardLightShadowBindGroupCache: BindGroupResourceCache<StandardLightShadowBindGroupResource>;
-  readonly standardMaterialShadowReceiverResources?:
-    | StandardFrameShadowReceiverResources
-    | undefined;
-  readonly standardMaterialIblResources?: StandardFrameIblResources | undefined;
-  readonly standardAreaLightLtcResources?:
-    | StandardAreaLightLtcResources
-    | null
-    | undefined;
-  readonly localLightCookieResources?:
-    | LocalLightClusterCookieResources
-    | null
-    | undefined;
-  readonly transmissionSceneColorResources?:
-    | StandardFrameTransmissionSceneColorResources
-    | null
-    | undefined;
-  readonly reuse: WebGpuAppResourceReuseReport;
-}
-
-type QueuedBuiltInAppResourcePreparationCache = Omit<
-  WebGpuAppResourceCache,
-  "preparedMaterials"
->;
 
 export interface WebGpuApp {
   readonly canvas: WebGpuCanvasLike;
@@ -1358,7 +1310,6 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
 
   const prepared = await prepareQueuedBuiltInFrameResources({
     ...options,
-    motionVectorColorFormat,
     viewUniforms: packedViews,
     worldTransforms: packedTransforms,
     ...(previousObjectTransforms.resource === null
@@ -1379,6 +1330,23 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       : {
           standardMaterialIblResources: options.standardMaterialIblResources,
         }),
+    getPipeline: (item) =>
+      getOrCreateWebGpuAppPipeline({
+        app: options.app,
+        cache: options.cache,
+        reuse: options.reuse,
+        kind: item.adapter.kind,
+        pipelineKey: item.draw.batchKey.pipelineKey,
+        batchKey: item.draw.batchKey,
+        motionVectorColorFormat,
+      }),
+    getPipelineLayouts: ({ item, pipeline, getBindGroupLayout }) =>
+      getWebGpuAppPipelineLayouts({
+        cache: options.cache,
+        kind: item.adapter.kind,
+        pipeline,
+        getBindGroupLayout,
+      }),
   });
   const diagnosticsSummary = createQueuedBuiltInAppDiagnosticsSummary({
     snapshot: options.snapshot,
@@ -3141,265 +3109,6 @@ function appendFrameBoundaryDiagnostics(
   );
 }
 
-async function prepareQueuedBuiltInFrameResources(options: {
-  readonly app: WebGpuApp;
-  readonly assets: AssetRegistry;
-  readonly cache: WebGpuAppResourceCache;
-  readonly snapshot: RenderSnapshot;
-  readonly resourceSet: QueuedBuiltInAppResourceSet;
-  readonly reuse: WebGpuAppResourceReuseReport;
-  readonly motionVectorColorFormat?: string | null;
-  readonly viewUniforms: PackedSnapshotViewUniforms;
-  readonly worldTransforms: PackedSnapshotTransforms;
-  readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
-  readonly instanceTints?: PackedSnapshotInstanceTints | null;
-  readonly standardMaterialShadowReceiverResources?:
-    | StandardFrameShadowReceiverResources
-    | undefined;
-  readonly standardMaterialIblResources?: StandardFrameIblResources | undefined;
-  readonly standardAreaLightLtcResources?:
-    | StandardAreaLightLtcResources
-    | null
-    | undefined;
-  readonly localLightCookieResources?:
-    | LocalLightClusterCookieResources
-    | null
-    | undefined;
-  readonly transmissionSceneColorResources?:
-    | StandardFrameTransmissionSceneColorResources
-    | null
-    | undefined;
-}): Promise<{
-  readonly valid: boolean;
-  readonly resources: QueuedBuiltInFrameResources | null;
-  readonly resourcesResult: CreateQueuedBuiltInFrameResourcesResult;
-  readonly diagnostics: readonly unknown[];
-  readonly pipelineResults: readonly WebGpuAppPipelinePlanResult[];
-  readonly firstPipeline: WebGpuAppPipelineResourceResult | null;
-  readonly pipelineKeysByRenderId: ReadonlyMap<number, string>;
-  readonly meshResourceKeys: ReadonlyMap<string, string>;
-  readonly materialResourceKeys: ReadonlyMap<string, string>;
-}> {
-  const prepared = await prepareQueuedBuiltInFrameResourceSet({
-    resourceSet: options.resourceSet,
-    scratch: options.cache.frameScratch.queuedBuiltInFrameResources,
-    viewUniforms: options.viewUniforms,
-    worldTransforms: options.worldTransforms,
-    ...(options.instanceTints === undefined
-      ? {}
-      : { instanceTints: options.instanceTints }),
-    callbacks: {
-      getPipeline: (item) =>
-        getOrCreateWebGpuAppPipeline({
-          app: options.app,
-          cache: options.cache,
-          reuse: options.reuse,
-          kind: item.adapter.kind,
-          pipelineKey: item.draw.batchKey.pipelineKey,
-          batchKey: item.draw.batchKey,
-          ...(options.motionVectorColorFormat === undefined
-            ? {}
-            : { motionVectorColorFormat: options.motionVectorColorFormat }),
-        }),
-      getPipelineView: (pipeline) => pipeline,
-      getPipelineResourceKey: ({ item, pipeline }) =>
-        pipeline.resource?.cacheKey ?? item.draw.batchKey.pipelineKey,
-      createPipelinePlanResult: ({ item, pipeline }) =>
-        createWebGpuAppPipelinePlanResult(item.draw, pipeline),
-      getPipelineLayouts: ({ item, pipeline, getBindGroupLayout }) =>
-        getWebGpuAppPipelineLayouts({
-          cache: options.cache,
-          kind: item.adapter.kind,
-          pipeline,
-          getBindGroupLayout,
-        }),
-      prepareTextureSamplerDependencies: ({ item }) =>
-        createPreparedMaterialTextureSamplerDependencies(
-          item.adapter.prepareTextureSamplerResources({
-            app: options.app,
-            assets: options.assets,
-            cache: options.cache,
-            item,
-            reuse: options.reuse,
-          }),
-        ),
-      createFrameResourceOptions: ({
-        item,
-        textureSamplerDependencies,
-        viewUniforms,
-        worldTransforms,
-        instanceTints,
-        layouts,
-        sharedBindGroupCache,
-        lightBindGroupCache,
-        standardLightShadowBindGroupCache,
-      }) =>
-        createQueuedBuiltInFrameResourceOptions({
-          app: options.app,
-          assets: options.assets,
-          cache: options.cache,
-          snapshot: options.snapshot,
-          item,
-          textureSamplerDependencies,
-          viewUniforms,
-          worldTransforms,
-          ...(options.previousWorldTransforms === undefined
-            ? {}
-            : { previousWorldTransforms: options.previousWorldTransforms }),
-          ...(instanceTints === undefined ? {} : { instanceTints }),
-          layouts,
-          sharedBindGroupCache,
-          lightBindGroupCache,
-          standardLightShadowBindGroupCache,
-          ...(options.standardMaterialShadowReceiverResources === undefined
-            ? {}
-            : {
-                standardMaterialShadowReceiverResources:
-                  options.standardMaterialShadowReceiverResources,
-              }),
-          ...(options.standardMaterialIblResources === undefined
-            ? {}
-            : {
-                standardMaterialIblResources:
-                  options.standardMaterialIblResources,
-              }),
-          ...(options.standardAreaLightLtcResources === undefined
-            ? {}
-            : {
-                standardAreaLightLtcResources:
-                  options.standardAreaLightLtcResources,
-              }),
-          ...(options.localLightCookieResources === undefined ||
-          options.localLightCookieResources === null
-            ? {}
-            : {
-                localLightCookieResources: options.localLightCookieResources,
-              }),
-          ...(options.transmissionSceneColorResources === undefined
-            ? {}
-            : {
-                transmissionSceneColorResources:
-                  options.transmissionSceneColorResources,
-              }),
-          reuse: options.reuse,
-        }),
-    },
-  });
-
-  options.reuse.queuedBindGroupsCreated +=
-    prepared.resourcesResult.bindGroupReuse.created;
-  options.reuse.queuedBindGroupsReused +=
-    prepared.resourcesResult.bindGroupReuse.reused;
-  options.reuse.queuedBindGroupCacheSize +=
-    prepared.resourcesResult.bindGroupReuse.cached;
-
-  return prepared;
-}
-
-function createQueuedBuiltInFrameResourceOptions(input: {
-  readonly app: WebGpuApp;
-  readonly assets: AssetRegistry;
-  readonly cache: WebGpuAppResourceCache;
-  readonly snapshot: RenderSnapshot;
-  readonly item: QueuedBuiltInAppResourceItem;
-  readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
-  readonly viewUniforms: PackedSnapshotViewUniforms;
-  readonly worldTransforms: PackedSnapshotTransforms;
-  readonly previousWorldTransforms?: WorldTransformGpuBufferResource | null;
-  readonly instanceTints?: PackedSnapshotInstanceTints | null;
-  readonly layouts: WebGpuAppPipelineLayouts;
-  readonly sharedBindGroupCache: BindGroupResourceCache<UnlitBindGroupResource>;
-  readonly lightBindGroupCache: BindGroupResourceCache<LightBindGroupResource>;
-  readonly standardLightShadowBindGroupCache: BindGroupResourceCache<StandardLightShadowBindGroupResource>;
-  readonly standardMaterialShadowReceiverResources?:
-    | StandardFrameShadowReceiverResources
-    | undefined;
-  readonly standardMaterialIblResources?: StandardFrameIblResources | undefined;
-  readonly standardAreaLightLtcResources?:
-    | StandardAreaLightLtcResources
-    | null
-    | undefined;
-  readonly localLightCookieResources?:
-    | LocalLightClusterCookieResources
-    | null
-    | undefined;
-  readonly transmissionSceneColorResources?:
-    | StandardFrameTransmissionSceneColorResources
-    | null
-    | undefined;
-  readonly reuse: WebGpuAppResourceReuseReport;
-}): QueuedBuiltInFrameResourcePreparationOptions {
-  return {
-    app: input.app,
-    assets: input.assets,
-    cache: input.cache,
-    preparedMaterials: input.cache.preparedMaterials,
-    snapshot: input.snapshot,
-    item: input.item,
-    textureSamplerDependencies: input.textureSamplerDependencies,
-    viewUniforms: input.viewUniforms,
-    worldTransforms: input.worldTransforms,
-    ...(input.previousWorldTransforms === undefined
-      ? {}
-      : { previousWorldTransforms: input.previousWorldTransforms }),
-    ...(input.instanceTints === undefined
-      ? {}
-      : { instanceTints: input.instanceTints }),
-    layouts: input.layouts,
-    sharedBindGroupCache: input.sharedBindGroupCache,
-    lightBindGroupCache: input.lightBindGroupCache,
-    standardLightShadowBindGroupCache: input.standardLightShadowBindGroupCache,
-    ...(input.standardMaterialShadowReceiverResources === undefined
-      ? {}
-      : {
-          standardMaterialShadowReceiverResources:
-            input.standardMaterialShadowReceiverResources,
-        }),
-    ...(input.standardMaterialIblResources === undefined
-      ? {}
-      : {
-          standardMaterialIblResources: input.standardMaterialIblResources,
-        }),
-    ...(input.standardAreaLightLtcResources === undefined
-      ? {}
-      : {
-          standardAreaLightLtcResources: input.standardAreaLightLtcResources,
-        }),
-    ...(input.localLightCookieResources === undefined ||
-    input.localLightCookieResources === null
-      ? {}
-      : {
-          localLightCookieResources: input.localLightCookieResources,
-        }),
-    ...(input.transmissionSceneColorResources === undefined
-      ? {}
-      : {
-          transmissionSceneColorResources:
-            input.transmissionSceneColorResources,
-        }),
-    reuse: input.reuse,
-  };
-}
-
-function createWebGpuAppPipelinePlanResult(
-  draw: RenderSnapshot["meshDraws"][number],
-  pipeline: WebGpuAppPipelineResourceResult,
-): WebGpuAppPipelinePlanResult {
-  if (pipeline.resource === null) {
-    throw new Error(
-      "Cannot create a WebGPU app pipeline plan result without a pipeline resource.",
-    );
-  }
-
-  return {
-    ok: true as const,
-    status: "miss" as const,
-    key: pipeline.resource.cacheKey,
-    pipeline: pipeline.resource.pipeline,
-    diagnostics: [],
-  };
-}
-
 async function renderWebGpuAppFrame(
   context: WebGpuAppRenderContext,
   resourceCache: WebGpuAppResourceCache,
@@ -4571,17 +4280,34 @@ async function prepareWebGpuAppPickFrameResources(
     };
   }
 
+  const pickResourceReuse = createWebGpuAppResourceReuseReport();
   const prepared = await prepareQueuedBuiltInFrameResources({
     app: context.app,
     assets: context.sourceAssets,
     cache: resourceCache,
     snapshot,
     resourceSet: queuedBuiltIn.resourceSet,
-    reuse: createWebGpuAppResourceReuseReport(),
+    reuse: pickResourceReuse,
     viewUniforms: packedViews,
     worldTransforms: packedTransforms,
     instanceTints: packedInstanceTints,
     standardAreaLightLtcResources: standardAreaLightLtc.resources,
+    getPipeline: (item) =>
+      getOrCreateWebGpuAppPipeline({
+        app: context.app,
+        cache: resourceCache,
+        reuse: pickResourceReuse,
+        kind: item.adapter.kind,
+        pipelineKey: item.draw.batchKey.pipelineKey,
+        batchKey: item.draw.batchKey,
+      }),
+    getPipelineLayouts: ({ item, pipeline, getBindGroupLayout }) =>
+      getWebGpuAppPipelineLayouts({
+        cache: resourceCache,
+        kind: item.adapter.kind,
+        pipeline,
+        getBindGroupLayout,
+      }),
   });
 
   if (!prepared.valid || prepared.resources === null) {
