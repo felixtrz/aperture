@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-27T23:11:41Z
+Updated: 2026-05-27T23:15:34Z
+
+## Current Run Update — 2026-05-27T23:15:34Z — Prepared StandardMaterial scalar cache split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 3.
+
+### What changed
+
+- Extracted prepared scalar StandardMaterial cache creation and scalar material
+  preparation from
+  `packages/webgpu/src/materials/standard/prepared-standard-material-cache.ts`
+  into
+  `packages/webgpu/src/materials/standard/prepared-standard-material-scalar.ts`.
+- Extracted scalar/textured prepared cache-key helpers and the empty
+  dependency helper into
+  `packages/webgpu/src/materials/standard/prepared-standard-material-cache-helpers.ts`.
+- `prepared-standard-material-cache.ts` re-exports the previous scalar/cache-key
+  surface and is now roughly 885 lines, focused on textured StandardMaterial
+  preparation.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/materials/standard/prepared-standard-material-cache.ts packages/webgpu/src/materials/standard/prepared-standard-material-scalar.ts packages/webgpu/src/materials/standard/prepared-standard-material-cache-helpers.ts`
+- `pnpm exec prettier --check packages/webgpu/src/materials/standard/prepared-standard-material-cache.ts packages/webgpu/src/materials/standard/prepared-standard-material-scalar.ts packages/webgpu/src/materials/standard/prepared-standard-material-cache-helpers.ts`
+- `pnpm exec vitest run test/webgpu/prepared-standard-material-cache.test.ts test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/standard-shader.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 3 StandardMaterial implementation files are now split below 1k lines.
+  `standard-area-light-ltc-data.ts` remains over that threshold, but it is
+  static LUT data rather than implementation flow.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to these extractions; use targeted subsets
+  until those expectations are updated.
+
+### Recommended next task
+
+Reassess Track 3 against the acceptance criteria, then continue into Track 4
+large lighting/post/output modules.
 
 ## Current Run Update — 2026-05-27T23:11:41Z — Standard shadow bind-group report split
 

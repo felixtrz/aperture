@@ -189,6 +189,13 @@ Status: in progress
   covering prepared resource records, diagnostics, prepare options, and prepare
   results while `prepared-standard-material-cache.ts` remains the resource
   creation implementation.
+- StandardMaterial prepared scalar cache creation, scalar material preparation,
+  and shared prepared cache-key helpers now live in
+  `packages/webgpu/src/materials/standard/prepared-standard-material-scalar.ts`
+  and
+  `packages/webgpu/src/materials/standard/prepared-standard-material-cache-helpers.ts`,
+  while `prepared-standard-material-cache.ts` preserves the previous import
+  surface and focuses on textured material preparation.
 - StandardMaterial frame local-light cluster resource helpers now live in
   `packages/webgpu/src/materials/standard/standard-frame-local-light-resources.ts`,
   covering clustered-local-light pipeline-key checks, local-light cluster GPU
