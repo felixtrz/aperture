@@ -60,6 +60,10 @@ Status: in progress
   `packages/webgpu/src/app/transmission-grab.ts`, covering scene-color
   post-pass texture reuse, sampler creation/reuse, and transmission resource
   diagnostics for queued app frames.
+- Frame-boundary support helpers now live in
+  `packages/webgpu/src/app/frame-boundary-support.ts`, covering indirect draw
+  preparation, occlusion-query resource allocation, render-bundle command keys,
+  render-bundle report assembly, and static-snapshot render-bundle heuristics.
 
 ## Purpose
 

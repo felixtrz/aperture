@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-27T20:47:45Z
+Updated: 2026-05-27T20:51:50Z
+
+## Current Run Update — 2026-05-27T20:51:50Z — WebGPU frame-boundary support helpers split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted frame-boundary support helpers from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/frame-boundary-support.ts`.
+- The new module owns indirect draw command preparation, occlusion-query
+  resource allocation/cache reuse, render-bundle command-key creation,
+  render-bundle report assembly, and static-snapshot render-bundle heuristics.
+- `app.ts` still owns frame-boundary orchestration but no longer carries those
+  supporting resource/report helpers inline.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/frame-boundary-support.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/frame-boundary-support.ts`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|creates a renderer-only app|surfaces per-pass GPU timings"`
+- `pnpm exec vitest run test/webgpu/frame-boundary.test.ts --testNamePattern "occlusion query resources|render bundles"`
+- `pnpm exec vitest run test/webgpu/indirect-draw-commands.test.ts test/webgpu/render-pass-command-executor.test.ts --testNamePattern "indirect|occlusion query"`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs full picking orchestration, queued built-in frame resource
+  preparation, frame-loop orchestration, occlusion command filtering/planning,
+  and diagnostics orchestration splits.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by extracting occlusion command filtering/planning helpers, or
+begin the larger queued built-in frame-resource split after that support code
+is out of `app.ts`.
 
 ## Current Run Update — 2026-05-27T20:47:45Z — WebGPU transmission grab helpers split
 
