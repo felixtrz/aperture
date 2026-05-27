@@ -1,6 +1,44 @@
 # Agent Handoff
 
-Updated: 2026-05-27T19:54:17Z
+Updated: 2026-05-27T20:03:03Z
+
+## Current Run Update — 2026-05-27T20:03:03Z — WebGPU app report helpers split
+
+Continued Track 2 of `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Extracted render/pick report helpers from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/report.ts`.
+- The new module owns JSON-safe report conversion, render report construction,
+  pick report construction, depth-attachment summaries, resource-reuse summary
+  helpers, and submitted-work waiting.
+- `app.ts` imports the helpers and re-exports the existing public report JSON
+  functions so the package root API remains stable.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/report.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/report.ts`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|surfaces per-pass GPU timings|routes DebugNormalMaterial|surfaces material source dependency readiness|submits ViewPacket"`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs more `app.ts` splits, especially picking, source-asset
+  handling, frame-loop orchestration, and diagnostics orchestration.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by extracting picking helpers from
+`packages/webgpu/src/app/app.ts` into `packages/webgpu/src/app/picking.ts`.
 
 ## Current Run Update — 2026-05-27T19:54:17Z — WebGPU frame target helpers split
 

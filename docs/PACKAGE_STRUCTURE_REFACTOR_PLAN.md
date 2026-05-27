@@ -19,6 +19,10 @@ Status: in progress
   `packages/webgpu/src/app/frame-target.ts`, covering swapchain/offscreen view
   targets, per-target submission keys, and viewport/scissor rectangle
   normalization.
+- Render and pick report assembly now lives in
+  `packages/webgpu/src/app/report.ts`, covering JSON-safe report conversion,
+  render report construction, depth-attachment summaries, resource-reuse
+  summary helpers, and submitted-work waiting.
 
 ## Purpose
 
