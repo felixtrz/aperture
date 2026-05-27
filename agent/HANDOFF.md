@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-27T22:22:48Z
+Updated: 2026-05-27T22:25:50Z
+
+## Current Run Update — 2026-05-27T22:25:50Z — StandardMaterial shader sampling split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 3.
+
+### What changed
+
+- Extracted StandardMaterial WGSL sampling injectors from
+  `packages/webgpu/src/materials/standard/standard-shader.ts` into
+  `packages/webgpu/src/materials/standard/standard-shader-sampling.ts`.
+- The new module owns clearcoat, sheen, iridescence, transmission, fog,
+  clustered-local light, shadow-map, point-shadow, multi-shadow, diffuse IBL,
+  and specular IBL proof WGSL patching.
+- `standard-shader.ts` now focuses on base WGSL, texture variant assembly,
+  metadata validation, declarations, bindings, and labels.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/materials/standard/standard-shader.ts packages/webgpu/src/materials/standard/standard-shader-sampling.ts`
+- `pnpm exec prettier --check packages/webgpu/src/materials/standard/standard-shader.ts packages/webgpu/src/materials/standard/standard-shader-sampling.ts`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 3 still needs more StandardMaterial shader splitting: base WGSL chunks,
+  variant declaration/binding assembly, and shader label helpers are still in
+  `standard-shader.ts`.
+- `standard-shader.ts` is now roughly 2,550 lines, down from over 5,400 at the
+  start of Track 3.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 3 by extracting StandardMaterial shader declaration/binding
+assembly or base WGSL chunks from `standard-shader.ts`.
 
 ## Current Run Update — 2026-05-27T22:22:48Z — StandardMaterial shader feature split
 

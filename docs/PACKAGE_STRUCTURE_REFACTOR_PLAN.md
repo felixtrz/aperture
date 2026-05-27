@@ -144,6 +144,11 @@ Status: in progress
   covering shader variant constants, the `StandardTextureShaderFeatures`
   contract, MVP lighting-model metadata, texture feature naming, fog/generic
   feature predicates, and variant-key selection.
+- StandardMaterial shader sampling injectors now live in
+  `packages/webgpu/src/materials/standard/standard-shader-sampling.ts`,
+  covering clearcoat, sheen, iridescence, transmission, fog, clustered-local
+  light, shadow-map, point-shadow, multi-shadow, diffuse IBL, and specular IBL
+  proof WGSL patching.
 
 ## Purpose
 
