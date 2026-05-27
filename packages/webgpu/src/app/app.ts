@@ -99,7 +99,6 @@ import {
 } from "../output/output-stage-color-space.js";
 import { type CreateMultiMaterialUnlitFrameGpuResourcesResult } from "../materials/unlit/unlit-frame-resources.js";
 import { type CreateUnlitAppFrameResourcesResult } from "../materials/unlit/unlit-app-frame-resources.js";
-import { type CreateSpriteRenderPipelineResourceResult } from "../render/sprites/sprite-pipeline.js";
 import { writeRenderFramePlanFromSnapshot } from "../render/frame/render-frame-plan.js";
 import type { RenderPassCommandPressureReport } from "../render/passes/render-pass-commands.js";
 import { type WebGpuIdBufferPickReadbackResult } from "../picking/id-buffer-pick.js";
@@ -156,12 +155,7 @@ import {
   resolveStandardAreaLightLtcResources,
   snapshotUsesTransmission,
 } from "./queued-built-in-support.js";
-import {
-  createSpriteFrameResources,
-  getOrCreateWebGpuAppSpritePipeline,
-  prepareSpriteFrameResourcesForSnapshot,
-  type SpriteFrameResources,
-} from "./sprites.js";
+import { prepareSpriteFrameResourcesForSnapshot } from "./sprites.js";
 import {
   collectMultiUnlitAppResourceSet,
   createMultiUnlitAppFrameResources,
@@ -179,6 +173,7 @@ import {
 } from "./motion-vectors.js";
 import { pickWebGpuAppEntity } from "./picking-frame.js";
 import { assembleWebGpuAppFrameBoundaries } from "./frame-boundaries.js";
+import { renderSpriteOnlyWebGpuAppFrame } from "./sprite-frame.js";
 
 export type { WebGpuAppMsaaReport };
 
@@ -1184,132 +1179,6 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
         occlusionQueries,
         boundaries.occlusionQueryDiagnostics,
       ),
-    ],
-  });
-}
-
-async function renderSpriteOnlyWebGpuAppFrame(
-  context: WebGpuAppRenderContext,
-  resourceCache: WebGpuAppResourceCache,
-  options: WebGpuAppRenderOptions & { readonly snapshot: RenderSnapshot },
-): Promise<WebGpuAppRenderReport> {
-  const { app, sourceAssets } = context;
-  const reuse = createWebGpuAppResourceReuseReport();
-  const spriteDraws = options.snapshot.spriteDraws ?? [];
-  const packedViews = writePackedSnapshotViewUniforms(
-    options.snapshot,
-    resourceCache.frameScratch.viewUniforms,
-  );
-  const packedTransforms = writePackedSnapshotTransforms(
-    options.snapshot,
-    resourceCache.frameScratch.worldTransforms,
-  );
-  let pipeline: CreateSpriteRenderPipelineResourceResult | null = null;
-  let spriteResources: SpriteFrameResources = {
-    valid: true,
-    commands: [],
-    diagnostics: [],
-  };
-
-  if (spriteDraws.length > 0) {
-    pipeline = await getOrCreateWebGpuAppSpritePipeline(app, resourceCache);
-
-    if (!pipeline.valid || pipeline.resource === null) {
-      return renderReport({
-        ok: false,
-        snapshot: options.snapshot,
-        pipeline,
-        resourceReuse: reuse,
-        diagnostics: [
-          ...options.snapshot.diagnostics,
-          ...packedViews.diagnostics,
-          ...packedTransforms.diagnostics,
-          ...pipeline.diagnostics,
-        ],
-      });
-    }
-
-    spriteResources = createSpriteFrameResources({
-      app,
-      assets: sourceAssets,
-      cache: resourceCache,
-      snapshot: options.snapshot,
-      spriteDraws,
-      viewUniforms: packedViews,
-      worldTransforms: packedTransforms,
-      pipeline: pipeline.resource,
-      reuse,
-    });
-  }
-
-  if (!spriteResources.valid) {
-    return renderReport({
-      ok: false,
-      snapshot: options.snapshot,
-      pipeline,
-      resourceReuse: reuse,
-      diagnostics: [
-        ...options.snapshot.diagnostics,
-        ...packedViews.diagnostics,
-        ...packedTransforms.diagnostics,
-        ...spriteResources.diagnostics,
-      ],
-    });
-  }
-
-  const boundaries = await assembleWebGpuAppFrameBoundaries({
-    app,
-    assets: sourceAssets,
-    cache: resourceCache,
-    snapshot: options.snapshot,
-    commands: spriteResources.commands,
-    label: options.label ?? "aperture-webgpu-sprite-app",
-    reuse,
-    ...(options.clearColor === undefined
-      ? {}
-      : { clearColor: options.clearColor }),
-    ...(options.readbackSamples === undefined
-      ? {}
-      : { readbackSamples: options.readbackSamples }),
-  });
-
-  await waitForSubmittedWork(app.initialization.device);
-
-  const frameOk =
-    packedViews.diagnostics.length === 0 &&
-    packedTransforms.diagnostics.length === 0 &&
-    spriteResources.diagnostics.length === 0 &&
-    boundaries.valid;
-  const readback = await mapFrameBoundaryReadbackSamples(
-    boundaries.readbackBoundary?.readback,
-    frameOk,
-  );
-
-  return renderReport({
-    ok: frameOk,
-    snapshot: options.snapshot,
-    pipeline,
-    boundary: boundaries.boundary,
-    boundaries: boundaries.boundaries,
-    renderTargets: boundaries.renderTargets,
-    postEffects: boundaries.postEffects,
-    ...(boundaries.renderBundles === undefined
-      ? {}
-      : { renderBundles: boundaries.renderBundles }),
-    ...(boundaries.msaa === undefined ? {} : { msaa: boundaries.msaa }),
-    ...(boundaries.depthAttachment === undefined
-      ? {}
-      : { depthAttachment: boundaries.depthAttachment }),
-    ...(readback === undefined ? {} : { readback }),
-    resourceReuse: reuse,
-    drawCommands: boundaries.plannedCommands,
-    drawCalls: boundaries.drawCalls,
-    diagnostics: [
-      ...options.snapshot.diagnostics,
-      ...packedViews.diagnostics,
-      ...packedTransforms.diagnostics,
-      ...spriteResources.diagnostics,
-      ...boundaries.diagnostics,
     ],
   });
 }
