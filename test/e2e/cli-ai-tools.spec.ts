@@ -12,6 +12,7 @@ const CLI = path.resolve("packages/cli/dist/bin/aperture.js");
 const APP_ROOT = path.resolve("examples/developer-api");
 const PORT = 5187;
 const CREATED_APP_PORT = 5193;
+const WORKER_FAILURE_PORT = 5196;
 const WEBGPU_UNAVAILABLE_PORT = 5197;
 const MCP_TOOL_TIMEOUT_MS = 60_000;
 
@@ -1313,6 +1314,63 @@ test("aperture create produces an installable app that works with CLI AI tools",
     });
 
     await runCli(["dev", "down"], { cwd: appRoot, allowFailure: true });
+    const setupSystemPath = path.join(appRoot, "src/systems/setup.system.ts");
+    const originalSetupSystem = await readFile(setupSystemPath, "utf8");
+    try {
+      await writeFile(
+        setupSystemPath,
+        [
+          'throw new Error("worker startup failure e2e");',
+          originalSetupSystem,
+        ].join("\n"),
+        "utf8",
+      );
+      const workerFailureUp = await runCli(
+        ["dev", "up", "--port", String(WORKER_FAILURE_PORT), "--headless"],
+        { cwd: appRoot },
+      );
+      expect(workerFailureUp.stdout).toContain("Started Aperture dev session");
+
+      const workerFailure = await callMcpTool(
+        "browser_wait_for_webgpu",
+        { timeoutMs: 5_000 },
+        { cwd: appRoot },
+      );
+      expect(workerFailure.structuredContent).toMatchObject({
+        ok: false,
+        diagnostic: {
+          code: "aperture.mcp.workerError",
+        },
+        page: {
+          status: {
+            status: "worker-error",
+          },
+        },
+      });
+
+      const workerFailureDiagnostics = await callMcpTool(
+        "render_get_diagnostics",
+        {},
+        { cwd: appRoot },
+      );
+      expect(workerFailureDiagnostics.structuredContent).toMatchObject({
+        ok: true,
+        diagnostics: {
+          failure: {
+            status: "failed",
+            diagnostics: expect.arrayContaining([
+              expect.objectContaining({
+                code: "simulation-worker.transport-error",
+              }),
+            ]),
+          },
+        },
+      });
+    } finally {
+      await runCli(["dev", "down"], { cwd: appRoot, allowFailure: true });
+      await writeFile(setupSystemPath, originalSetupSystem, "utf8");
+    }
+
     await disableWebGpuInIndexHtml(appRoot);
     const webgpuUnavailableUp = await runCli(
       ["dev", "up", "--port", String(WEBGPU_UNAVAILABLE_PORT), "--headless"],
