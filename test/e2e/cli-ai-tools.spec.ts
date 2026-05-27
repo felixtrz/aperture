@@ -135,6 +135,76 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
     });
     const primaryEntity = firstEntityRef(find.structuredContent);
 
+    const taggedFind = await callMcpTool("ecs_find_entities", {
+      tags: ["interactive"],
+      limit: 5,
+    });
+    expect(taggedFind.structuredContent).toMatchObject({
+      ok: true,
+      result: {
+        summaries: expect.arrayContaining([
+          expect.objectContaining({
+            key: "level.crate.primary",
+            tags: expect.arrayContaining(["interactive", "crate"]),
+          }),
+        ]),
+      },
+    });
+
+    const namedFind = await callMcpTool("ecs_find_entities", {
+      namePattern: "^crate$",
+      limit: 5,
+    });
+    expect(namedFind.structuredContent).toMatchObject({
+      ok: true,
+      result: {
+        summaries: expect.arrayContaining([
+          expect.objectContaining({
+            key: "level.crate.primary",
+            name: "crate",
+          }),
+        ]),
+      },
+    });
+
+    const componentFind = await callMcpTool("ecs_find_entities", {
+      withComponents: ["aperture.app.entityTags"],
+      limit: 5,
+    });
+    expect(componentFind.structuredContent).toMatchObject({
+      ok: true,
+      result: {
+        summaries: expect.arrayContaining([
+          expect.objectContaining({
+            key: "level.crate.primary",
+            componentIds: expect.arrayContaining(["aperture.app.entityTags"]),
+          }),
+        ]),
+      },
+    });
+
+    const sourceFind = await callMcpTool("ecs_find_entities", {
+      source: { assetId: "robot" },
+      withComponents: ["aperture.render.mesh", "aperture.render.material"],
+      limit: 5,
+    });
+    expect(sourceFind.structuredContent).toMatchObject({
+      ok: true,
+      result: {
+        summaries: expect.arrayContaining([
+          expect.objectContaining({
+            componentIds: expect.arrayContaining([
+              "aperture.render.mesh",
+              "aperture.render.material",
+            ]),
+            source: expect.objectContaining({
+              assetId: "robot",
+            }),
+          }),
+        ]),
+      },
+    });
+
     const get = await callMcpTool("ecs_get_entity", {
       entity: primaryEntity,
     });
