@@ -1,6 +1,42 @@
 # Agent Handoff
 
-Updated: 2026-05-27T23:51:46Z
+Updated: 2026-05-27T23:54:22Z
+
+## Current Run Update — 2026-05-27T23:54:22Z — Render mesh layout and bounds helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted mesh layout key token generation into
+  `packages/render/src/rendering/extraction-mesh-layout.ts`.
+- Extracted mesh bounds packet creation into
+  `packages/render/src/rendering/extraction-mesh-bounds.ts`.
+- `packages/render/src/rendering/extraction-meshes.ts` is now roughly 972
+  lines.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/rendering/extraction-meshes.ts packages/render/src/rendering/extraction-mesh-layout.ts packages/render/src/rendering/extraction-mesh-bounds.ts packages/render/src/rendering/extraction.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/extraction-meshes.ts packages/render/src/rendering/extraction-mesh-layout.ts packages/render/src/rendering/extraction-mesh-bounds.ts`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/rendering/line-list-mesh.test.ts test/webgpu/fixtures/ecs-snapshot-render-frame.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- `packages/render/src/rendering/extraction-meshes.ts` remains the next
+  mesh-specific hotspot. Good next splits are mesh cache, skin/morph
+  extraction, or instance/material-slot helper modules.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to these extractions; use targeted subsets
+  until those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting mesh cache helpers out of
+`packages/render/src/rendering/extraction-meshes.ts`.
 
 ## Current Run Update — 2026-05-27T23:51:46Z — Render extraction mesh assembly split
 

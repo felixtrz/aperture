@@ -259,6 +259,9 @@ Status: in progress
   key helpers, skin/morph/instance extraction helpers, and material-slot
   resolution now live in `packages/render/src/rendering/extraction-meshes.ts`,
   leaving `extraction.ts` as the snapshot/view orchestration entry point.
+- Render extraction mesh bounds and mesh layout key helpers now live in
+  `packages/render/src/rendering/extraction-mesh-bounds.ts` and
+  `packages/render/src/rendering/extraction-mesh-layout.ts`.
 
 ## Purpose
 
