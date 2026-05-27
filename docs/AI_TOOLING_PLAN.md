@@ -43,6 +43,9 @@ The plan does not require a separate `@aperture-engine/create` package. A tiny
 alias package can be added later for discoverability if needed, but it should
 not own implementation.
 
+Operator-facing usage and mutation/restoration rules are documented in
+[`docs/AI_TOOLING.md`](AI_TOOLING.md).
+
 The CLI package should own creation, managed browser lifecycle, MCP stdio,
 adapter sync, and reference indexing/search command surfaces. Heavy dependencies
 such as Playwright, MCP server helpers, and reference-indexing libraries should
