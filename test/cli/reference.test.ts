@@ -1,3 +1,4 @@
+import { PassThrough } from "node:stream";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -7,6 +8,7 @@ import {
   buildApertureReferenceIndex,
   callApertureTool,
   runApertureCli,
+  runApertureMcpServer,
   searchApertureReferences,
 } from "@aperture-engine/cli";
 
@@ -102,6 +104,93 @@ describe("Aperture reference CLI and MCP tools", () => {
     });
   });
 
+  it("serves every reference MCP tool over stdio without a dev browser session", async () => {
+    const root = await referenceWorkspace();
+    await buildApertureReferenceIndex({ cwd: root });
+
+    const search = await callMcpTool(root, "reference_search", {
+      query: "SpinSystem",
+      limit: 3,
+    });
+    expect(search.structuredContent).toMatchObject({
+      results: expect.arrayContaining([
+        expect.objectContaining({
+          file: "packages/app/src/spin.system.ts",
+        }),
+      ]),
+    });
+
+    const api = await callMcpTool(root, "reference_api_lookup", {
+      symbol: "createSystem",
+      limit: 3,
+    });
+    expect(api.structuredContent).toMatchObject({
+      results: expect.arrayContaining([
+        expect.objectContaining({
+          file: "packages/app/src/spin.system.ts",
+        }),
+      ]),
+    });
+
+    const file = await callMcpTool(root, "reference_file_content", {
+      file: "packages/app/src/spin.system.ts",
+    });
+    expect(file.structuredContent).toMatchObject({
+      ok: true,
+      entry: {
+        file: "packages/app/src/spin.system.ts",
+      },
+    });
+
+    const examples = await callMcpTool(root, "reference_find_examples", {
+      query: "SpinSystem",
+      limit: 3,
+    });
+    expect(examples.structuredContent).toMatchObject({
+      results: expect.arrayContaining([
+        expect.objectContaining({
+          file: "examples/spinning-cube.ts",
+        }),
+      ]),
+    });
+
+    const components = await callMcpTool(root, "reference_list_components", {});
+    expect(components.structuredContent).toMatchObject({
+      ok: true,
+      components: expect.arrayContaining(["aperture.metadata.debug"]),
+    });
+
+    const systems = await callMcpTool(root, "reference_list_systems", {});
+    expect(systems.structuredContent).toMatchObject({
+      ok: true,
+      systems: expect.arrayContaining(["SpinSystem"]),
+    });
+
+    const dependents = await callMcpTool(root, "reference_find_dependents", {
+      symbol: "DebugMetadata",
+      limit: 3,
+    });
+    expect(dependents.structuredContent).toMatchObject({
+      results: expect.arrayContaining([
+        expect.objectContaining({
+          file: "packages/app/src/components.ts",
+        }),
+      ]),
+    });
+
+    const diagnostic = await callMcpTool(root, "reference_explain_diagnostic", {
+      code: "aperture.entityLookup.notFound",
+      limit: 3,
+    });
+    expect(diagnostic.structuredContent).toMatchObject({
+      results: expect.arrayContaining([
+        expect.objectContaining({
+          file: "packages/app/src/diagnostics.ts",
+        }),
+      ]),
+    });
+  });
+
   it("prints reference help and missing-query diagnostics", async () => {
     const root = await tempRoot();
     const help = await runCli(["reference", "--help"], root);
@@ -118,10 +207,16 @@ async function referenceWorkspace(): Promise<string> {
   const root = await tempRoot();
 
   await mkdir(path.join(root, "docs"), { recursive: true });
+  await mkdir(path.join(root, "examples"), { recursive: true });
   await mkdir(path.join(root, "packages/app/src"), { recursive: true });
   await writeFile(
     path.join(root, "docs/guide.md"),
     "Use DebugMetadata and SpinSystem when inspecting Aperture ECS apps.",
+    "utf8",
+  );
+  await writeFile(
+    path.join(root, "examples/spinning-cube.ts"),
+    "export const title = 'SpinSystem example';\n",
     "utf8",
   );
   await writeFile(
@@ -151,6 +246,54 @@ async function referenceWorkspace(): Promise<string> {
   );
 
   return root;
+}
+
+async function callMcpTool(
+  cwd: string,
+  name: string,
+  args: Record<string, unknown>,
+): Promise<{ readonly structuredContent?: unknown }> {
+  const stdin = new PassThrough();
+  const stdout = new PassThrough();
+  const chunks: string[] = [];
+
+  stdout.on("data", (chunk: Buffer) => {
+    chunks.push(chunk.toString());
+  });
+
+  const done = runApertureMcpServer({ cwd, stdin, stdout });
+  stdin.end(
+    `${JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "tools/call",
+      params: {
+        name,
+        arguments: args,
+      },
+    })}\n`,
+  );
+  await done;
+
+  const line = chunks.join("").trim().split("\n")[0];
+  if (line === undefined || line.length === 0) {
+    throw new Error(`MCP tool ${name} produced no output.`);
+  }
+
+  const message = JSON.parse(line) as {
+    readonly result?: { readonly structuredContent?: unknown };
+    readonly error?: unknown;
+  };
+
+  if (message.error !== undefined) {
+    throw new Error(
+      `MCP tool ${name} failed: ${JSON.stringify(message.error)}`,
+    );
+  }
+
+  return {
+    structuredContent: message.result?.structuredContent,
+  };
 }
 
 async function tempRoot(): Promise<string> {
