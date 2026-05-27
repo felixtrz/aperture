@@ -30,7 +30,6 @@ import {
 } from "@aperture-engine/simulation";
 import {
   Camera,
-  Fog,
   FogMode,
   InstanceData,
   InstanceTint,
@@ -44,14 +43,9 @@ import {
   ShadowCaster,
   ShadowReceiver,
   Skin,
-  Sprite,
-  Skybox,
   Visibility,
   registerRenderAuthoringComponents,
   validateCameraInput,
-  validateFogInput,
-  validateSpriteInput,
-  validateSkyboxInput,
 } from "./index.js";
 import {
   compareRenderSortKeys,
@@ -67,8 +61,6 @@ import {
   type RenderQueue,
   type RenderSnapshot,
   type ShadowRequestPacket,
-  type SpriteDrawPacket,
-  type SkyboxPacket,
   type ViewPacket,
   type ViewCullStats,
 } from "./snapshot.js";
@@ -82,28 +74,25 @@ import {
 } from "./extraction-culling.js";
 import {
   validateMaterialTextureDependencies,
-  validateSamplerAssetState,
-  validateSkyboxTextureAssetState,
   validateStandardMaterialTextureReadiness,
   validateStandardMaterialUvSetReadiness,
   validateStandardNormalMapReadiness,
-  validateTextureAssetState,
 } from "./extraction-asset-validation.js";
 import { diagnostic, entityRef } from "./extraction-diagnostics.js";
 import { sortedEntities } from "./extraction-entities.js";
+import { extractFogs } from "./extraction-fogs.js";
 import {
   applyTemporalJitter,
   cameraInput,
-  fogInput,
   parseMaterialHandle,
   parseMeshHandle,
   readCameraNumber,
   readRenderTarget,
-  skyboxInput,
-  spriteInput,
 } from "./extraction-inputs.js";
 import { extractLights } from "./extraction-lights.js";
 import { pushMatrix, readWorldMatrix } from "./extraction-matrices.js";
+import { extractSkyboxes } from "./extraction-skyboxes.js";
+import { extractSpriteDraws } from "./extraction-sprites.js";
 
 export interface RenderExtractionOptions {
   readonly frame?: number;
@@ -836,297 +825,6 @@ function meshVertexFormatByteSize(
   }
 }
 
-function extractSpriteDraws(
-  world: EcsWorld,
-  assets: AssetRegistry,
-  transforms: number[],
-  bounds: BoundsPacket[],
-  diagnostics: RenderDiagnostic[],
-  cameraLayerMask: number,
-  viewCullContexts: readonly ViewCullContext[],
-): SpriteDrawPacket[] {
-  const query = world.queryManager.registerQuery({ required: [Sprite] });
-  const draws: SpriteDrawPacket[] = [];
-
-  for (const entity of sortedEntities(query.entities)) {
-    if (
-      entity.hasComponent(Enabled) &&
-      entity.getValue(Enabled, "value") === false
-    ) {
-      diagnostics.push(diagnostic("render.disabled", entity));
-      continue;
-    }
-
-    if (
-      entity.hasComponent(Visibility) &&
-      entity.getValue(Visibility, "visible") === false
-    ) {
-      diagnostics.push(diagnostic("render.invisible", entity));
-      continue;
-    }
-
-    if (!entity.hasComponent(WorldTransform)) {
-      diagnostics.push(diagnostic("render.missingWorldTransform", entity));
-      continue;
-    }
-
-    const input = spriteInput(entity);
-    const validation = validateSpriteInput(input);
-
-    if (!validation.valid) {
-      for (const spriteDiagnostic of validation.diagnostics) {
-        diagnostics.push(diagnostic(`render.${spriteDiagnostic.code}`, entity));
-      }
-      continue;
-    }
-
-    const layerMask = entity.hasComponent(RenderLayer)
-      ? (entity.getValue(RenderLayer, "mask") ?? 1)
-      : 1;
-
-    if (layerMask === 0) {
-      diagnostics.push(diagnostic("render.zeroLayerMask", entity));
-      continue;
-    }
-
-    if (cameraLayerMask !== 0 && (layerMask & cameraLayerMask) === 0) {
-      diagnostics.push(diagnostic("render.layerMismatch", entity));
-      continue;
-    }
-
-    if (
-      !validateTextureAssetState(input.texture, assets, entity, diagnostics)
-    ) {
-      continue;
-    }
-
-    if (
-      input.sampler !== undefined &&
-      input.sampler !== null &&
-      !validateSamplerAssetState(input.sampler, assets, entity, diagnostics)
-    ) {
-      continue;
-    }
-
-    const worldMatrix = readWorldMatrix(entity);
-    const width = entity.getValue(Sprite, "width") ?? 1;
-    const height = entity.getValue(Sprite, "height") ?? 1;
-    const boundsPacket = createSpriteBoundsPacket(
-      bounds.length,
-      entity,
-      worldMatrix,
-      width,
-      height,
-    );
-
-    if (
-      !isVisibleInAnyMatchingView(
-        boundsPacket.worldAabb,
-        layerMask,
-        viewCullContexts,
-      )
-    ) {
-      continue;
-    }
-
-    const stableId = createStableRenderId(entityRef(entity));
-    const textureKey = assetHandleKey(input.texture);
-    const boundsIndex = bounds.length;
-    const sortView = firstMatchingSortView(layerMask, viewCullContexts);
-    const sortViewId = sortView?.viewId ?? 0;
-    const sortDepth =
-      sortView === undefined
-        ? 0
-        : computeViewDepth(
-            sortView.viewMatrix,
-            boundsPacket.worldSphere.center,
-          );
-
-    bounds.push(boundsPacket);
-    draws.push({
-      renderId: stableId,
-      entity: entityRef(entity),
-      texture: input.texture,
-      ...(input.sampler === undefined ? {} : { sampler: input.sampler }),
-      color: Array.from(entity.getVectorView(Sprite, "color")) as [
-        number,
-        number,
-        number,
-        number,
-      ],
-      width,
-      height,
-      worldTransformOffset: pushMatrix(transforms, worldMatrix),
-      boundsIndex,
-      layerMask,
-      sortKey: createRenderSortKey({
-        queue: "transparent",
-        viewId: sortViewId,
-        layer: layerMask,
-        order: entity.hasComponent(RenderOrder)
-          ? (entity.getValue(RenderOrder, "value") ?? 0)
-          : 0,
-        depth: sortDepth,
-        pipelineKey: "sprite-billboard",
-        materialKey: textureKey,
-        meshKey: "sprite-quad",
-        stableId,
-      }),
-    });
-  }
-
-  return draws;
-}
-
-function extractSkyboxes(
-  world: EcsWorld,
-  assets: AssetRegistry,
-  diagnostics: RenderDiagnostic[],
-  cameraLayerMask: number,
-): SkyboxPacket[] {
-  const query = world.queryManager.registerQuery({ required: [Skybox] });
-  const packets: SkyboxPacket[] = [];
-
-  for (const entity of sortedEntities(query.entities)) {
-    if (
-      entity.hasComponent(Enabled) &&
-      entity.getValue(Enabled, "value") === false
-    ) {
-      diagnostics.push(diagnostic("render.disabled", entity));
-      continue;
-    }
-
-    if (
-      entity.hasComponent(Visibility) &&
-      entity.getValue(Visibility, "visible") === false
-    ) {
-      diagnostics.push(diagnostic("render.invisible", entity));
-      continue;
-    }
-
-    const input = skyboxInput(entity);
-    const validation = validateSkyboxInput(input);
-    const layerMask = entity.hasComponent(RenderLayer)
-      ? (entity.getValue(RenderLayer, "mask") ?? 1)
-      : 1;
-
-    if (!validation.valid) {
-      for (const skyboxDiagnostic of validation.diagnostics) {
-        diagnostics.push(diagnostic(`render.${skyboxDiagnostic.code}`, entity));
-      }
-      continue;
-    }
-
-    if (layerMask === 0) {
-      diagnostics.push(diagnostic("render.zeroLayerMask", entity));
-      continue;
-    }
-
-    if (cameraLayerMask !== 0 && (layerMask & cameraLayerMask) === 0) {
-      diagnostics.push(diagnostic("render.layerMismatch", entity));
-      continue;
-    }
-
-    if (
-      validateSkyboxTextureAssetState(
-        input.texture,
-        assets,
-        entity,
-        diagnostics,
-      ) === null
-    ) {
-      continue;
-    }
-
-    if (
-      input.sampler !== undefined &&
-      input.sampler !== null &&
-      !validateSamplerAssetState(input.sampler, assets, entity, diagnostics)
-    ) {
-      continue;
-    }
-
-    packets.push({
-      skyboxId: createStableRenderId(entityRef(entity)),
-      entity: entityRef(entity),
-      texture: input.texture,
-      ...(input.sampler === undefined ? {} : { sampler: input.sampler }),
-      intensity: entity.getValue(Skybox, "intensity") ?? 1,
-      layerMask,
-    });
-  }
-
-  return packets;
-}
-
-function extractFogs(
-  world: EcsWorld,
-  diagnostics: RenderDiagnostic[],
-  cameraLayerMask: number,
-): FogPacket[] {
-  const query = world.queryManager.registerQuery({ required: [Fog] });
-  const packets: FogPacket[] = [];
-
-  for (const entity of sortedEntities(query.entities)) {
-    if (
-      entity.hasComponent(Enabled) &&
-      entity.getValue(Enabled, "value") === false
-    ) {
-      diagnostics.push(diagnostic("render.disabled", entity));
-      continue;
-    }
-
-    if (
-      entity.hasComponent(Visibility) &&
-      entity.getValue(Visibility, "visible") === false
-    ) {
-      diagnostics.push(diagnostic("render.invisible", entity));
-      continue;
-    }
-
-    const input = fogInput(entity);
-    const validation = validateFogInput(input);
-    const layerMask = entity.hasComponent(RenderLayer)
-      ? (entity.getValue(RenderLayer, "mask") ?? 1)
-      : 1;
-
-    if (!validation.valid) {
-      for (const fogDiagnostic of validation.diagnostics) {
-        diagnostics.push(diagnostic(`render.${fogDiagnostic.code}`, entity));
-      }
-      continue;
-    }
-
-    if (layerMask === 0) {
-      diagnostics.push(diagnostic("render.zeroLayerMask", entity));
-      continue;
-    }
-
-    if (cameraLayerMask !== 0 && (layerMask & cameraLayerMask) === 0) {
-      diagnostics.push(diagnostic("render.layerMismatch", entity));
-      continue;
-    }
-
-    packets.push({
-      fogId: createStableRenderId(entityRef(entity)),
-      entity: entityRef(entity),
-      mode: input.mode ?? FogMode.Linear,
-      color: Array.from(entity.getVectorView(Fog, "color")) as [
-        number,
-        number,
-        number,
-        number,
-      ],
-      density: entity.getValue(Fog, "density") ?? 0,
-      start: entity.getValue(Fog, "start") ?? 1,
-      end: entity.getValue(Fog, "end") ?? 1000,
-      layerMask,
-    });
-  }
-
-  return packets;
-}
-
 function appendCachedMeshDrawEntity(
   cached: CachedMeshDrawEntity,
   transforms: number[],
@@ -1209,40 +907,6 @@ function createBoundsPacket(
     worldAabb: transformAabb(localAabb, worldMatrix),
     localSphere,
     worldSphere: { center, radius: localSphere.radius },
-  };
-}
-
-function createSpriteBoundsPacket(
-  boundsId: number,
-  entity: Entity,
-  worldMatrix: Mat4,
-  width: number,
-  height: number,
-): BoundsPacket {
-  const halfWidth = width * 0.5;
-  const halfHeight = height * 0.5;
-  const radius = Math.hypot(halfWidth, halfHeight);
-  const center = transformPoint(worldMatrix, [0, 0, 0]);
-  const localAabb: Aabb = {
-    min: [-halfWidth, -halfHeight, -0.001],
-    max: [halfWidth, halfHeight, 0.001],
-  };
-  const worldAabb: Aabb = {
-    min: [center[0] - radius, center[1] - radius, center[2] - radius],
-    max: [center[0] + radius, center[1] + radius, center[2] + radius],
-  };
-  const localSphere: BoundingSphere = {
-    center: [0, 0, 0],
-    radius,
-  };
-
-  return {
-    boundsId,
-    entity: entityRef(entity),
-    localAabb,
-    worldAabb,
-    localSphere,
-    worldSphere: { center, radius },
   };
 }
 
