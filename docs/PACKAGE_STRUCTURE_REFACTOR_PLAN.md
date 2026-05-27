@@ -151,9 +151,13 @@ Status: in progress
   proof WGSL patching.
 - StandardMaterial shader sampling injectors are further split into
   `standard-shader-extension-sampling.ts` for PBR extension/fog WGSL patching
-  and `standard-shader-light-sampling.ts` for clustered-local-light, shadow,
-  point-shadow, multi-shadow, diffuse IBL, and specular IBL patching, with
-  `standard-shader-sampling.ts` kept as the existing import-path barrel.
+  and `standard-shader-light-sampling.ts` for clustered-local-light WGSL
+  patching, with `standard-shader-sampling.ts` kept as the existing import-path
+  barrel.
+- StandardMaterial shadow and IBL shader sampling injectors now live in
+  `standard-shader-shadow-sampling.ts` for directional, point, and multi-shadow
+  WGSL patching, and `standard-shader-ibl-sampling.ts` for diffuse/specular IBL
+  WGSL patching.
 - StandardMaterial shader variant helpers now live in
   `packages/webgpu/src/materials/standard/standard-shader-variant.ts`,
   covering texture variant comments, UV routing, WGSL declaration assembly,

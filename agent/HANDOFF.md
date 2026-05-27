@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-27T22:57:02Z
+Updated: 2026-05-27T22:59:28Z
+
+## Current Run Update — 2026-05-27T22:59:28Z — Standard shader sampling family split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 3.
+
+### What changed
+
+- Split `packages/webgpu/src/materials/standard/standard-shader-light-sampling.ts`
+  so it now owns clustered local-light WGSL patching only.
+- Moved directional, point, and multi-shadow WGSL patching into
+  `packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts`.
+- Moved diffuse IBL and specular IBL proof WGSL patching into
+  `packages/webgpu/src/materials/standard/standard-shader-ibl-sampling.ts`.
+- Updated `standard-shader-sampling.ts` to re-export each sampling family from
+  its focused module.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/materials/standard/standard-shader-light-sampling.ts packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts packages/webgpu/src/materials/standard/standard-shader-ibl-sampling.ts packages/webgpu/src/materials/standard/standard-shader-sampling.ts`
+- `pnpm exec prettier --check packages/webgpu/src/materials/standard/standard-shader-light-sampling.ts packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts packages/webgpu/src/materials/standard/standard-shader-ibl-sampling.ts packages/webgpu/src/materials/standard/standard-shader-sampling.ts`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-material-ibl-bind-group.test.ts test/webgpu/standard-material-shadow-bind-group.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 3 still has large StandardMaterial files to split, especially
+  `standard-shader.ts`, `standard-app-frame-resources.ts`,
+  `standard-shader-variant.ts`, `prepared-standard-material-cache.ts`,
+  `standard-pipeline.ts`, and `standard-material-shadow-bind-group.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 3 by splitting StandardMaterial shader assembly from
+`standard-shader.ts` or app-frame resource helpers from
+`standard-app-frame-resources.ts`.
 
 ## Current Run Update — 2026-05-27T22:57:02Z — Standard light/shadow layout split
 
