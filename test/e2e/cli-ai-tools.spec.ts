@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { execFile } from "node:child_process";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import net from "node:net";
 import os from "node:os";
 import { promisify } from "node:util";
@@ -34,6 +34,16 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
     expect(status.stdout).toContain("Daemon: running");
     expect(status.stdout).toContain("Server: running");
     expect(status.stdout).toContain("Browser: running");
+
+    const reused = await runCli([
+      "dev",
+      "up",
+      "--port",
+      String(PORT),
+      "--headless",
+    ]);
+    expect(reused.stdout).toContain("Reusing Aperture dev session");
+    expect(reused.stdout).toContain(`http://127.0.0.1:${PORT}/`);
 
     const browserReady = await callMcpTool("browser_wait_for_webgpu", {
       timeoutMs: 30_000,
@@ -662,6 +672,30 @@ test("aperture create produces an installable app that works with CLI AI tools",
 
   try {
     await runCli(["create", "starter"], { cwd: root });
+    const agentNotesPath = path.join(appRoot, "AGENTS.md");
+    const agentNote = "E2E user-owned adapter note.";
+    await writeFile(
+      agentNotesPath,
+      `${await readFile(agentNotesPath, "utf8")}\n${agentNote}\n`,
+      "utf8",
+    );
+    const adapterSync = await runCli(["adapter", "sync"], { cwd: appRoot });
+    expect(adapterSync.stdout).toContain("Synced Aperture adapter files");
+    expect(adapterSync.stdout).toContain("Conflicted: 0");
+    expect(await readFile(agentNotesPath, "utf8")).toContain(agentNote);
+    const mcpJson = JSON.parse(
+      await readFile(path.join(appRoot, ".mcp.json"), "utf8"),
+    ) as {
+      readonly mcpServers?: {
+        readonly aperture?: { readonly command?: string };
+      };
+    };
+    expect(mcpJson.mcpServers?.aperture?.command).toBe("pnpm");
+
+    const adapterResync = await runCli(["adapter", "sync"], { cwd: appRoot });
+    expect(adapterResync.stdout).toContain("Changed: 0");
+    expect(adapterResync.stdout).toContain("Conflicted: 0");
+
     await writeFile(
       path.join(root, "pnpm-workspace.yaml"),
       [
