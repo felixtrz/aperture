@@ -138,14 +138,57 @@ describe("Aperture CLI dev session and MCP command surface", () => {
       capabilities: { tools: {} },
       serverInfo: { name: "aperture" },
     });
-    expect(tools?.result).toMatchObject({
-      tools: expect.arrayContaining([
-        expect.objectContaining({ name: "browser_status" }),
-        expect.objectContaining({ name: "ecs_find_entities" }),
-        expect.objectContaining({ name: "input_key" }),
-        expect.objectContaining({ name: "render_get_frame_report" }),
-      ]),
-    });
+    expect(toolNames(tools?.result)).toEqual([
+      "browser_status",
+      "browser_screenshot",
+      "browser_console_logs",
+      "browser_reload",
+      "browser_wait_for_webgpu",
+      "browser_pick_pixel",
+      "ecs_find_entities",
+      "ecs_get_entity",
+      "ecs_query",
+      "ecs_get_component_schema",
+      "ecs_snapshot",
+      "ecs_diff",
+      "ecs_list_systems",
+      "ecs_pause",
+      "ecs_resume",
+      "ecs_step",
+      "ecs_set_component_field",
+      "ecs_get_hierarchy",
+      "input_key",
+      "input_pointer_move",
+      "input_pointer_click",
+      "input_drag",
+      "input_action_set",
+      "input_reset",
+      "camera_list",
+      "camera_get",
+      "camera_save",
+      "camera_restore",
+      "camera_create_agent",
+      "camera_set_transform",
+      "camera_look_at",
+      "camera_orbit",
+      "camera_fit_entity",
+      "camera_use_agent_view",
+      "render_get_frame_report",
+      "render_get_snapshot_summary",
+      "render_get_packets",
+      "render_explain_entity",
+      "render_get_diagnostics",
+      "render_readback_samples",
+      "render_pick_entity",
+      "reference_search",
+      "reference_api_lookup",
+      "reference_file_content",
+      "reference_find_examples",
+      "reference_list_components",
+      "reference_list_systems",
+      "reference_find_dependents",
+      "reference_explain_diagnostic",
+    ]);
     expect(call?.result).toMatchObject({
       structuredContent: {
         ok: false,
@@ -298,6 +341,23 @@ describe("Aperture CLI dev session and MCP command surface", () => {
 });
 
 type JsonRecord = Record<string, unknown>;
+
+function toolNames(value: unknown): readonly string[] {
+  const tools =
+    typeof value === "object" &&
+    value !== null &&
+    Array.isArray((value as { readonly tools?: unknown }).tools)
+      ? (value as { readonly tools: readonly unknown[] }).tools
+      : [];
+
+  return tools.map((tool) =>
+    typeof tool === "object" &&
+    tool !== null &&
+    typeof (tool as { readonly name?: unknown }).name === "string"
+      ? (tool as { readonly name: string }).name
+      : "",
+  );
+}
 
 async function tempRoot(): Promise<string> {
   const root = await mkdtemp(path.join(os.tmpdir(), "aperture-dev-cli-"));
