@@ -1,6 +1,42 @@
 # Agent Handoff
 
-Updated: 2026-05-27T23:04:41Z
+Updated: 2026-05-27T23:07:03Z
+
+## Current Run Update — 2026-05-27T23:07:03Z — Standard shader variant helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 3.
+
+### What changed
+
+- Split `packages/webgpu/src/materials/standard/standard-shader-variant.ts`
+  into focused variant utility, declaration, binding, and label modules.
+- `standard-shader-variant.ts` is now an 8-line import-path barrel preserving
+  the existing imports for `standard-shader.ts`.
+- Local-light cluster WGSL declarations and binding metadata now live in
+  dedicated declaration/binding modules instead of the shared variant helper.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/materials/standard/standard-shader-variant.ts packages/webgpu/src/materials/standard/standard-shader-variant-utils.ts packages/webgpu/src/materials/standard/standard-shader-variant-declarations.ts packages/webgpu/src/materials/standard/standard-shader-variant-bindings.ts packages/webgpu/src/materials/standard/standard-shader-variant-label.ts`
+- `pnpm exec prettier --check packages/webgpu/src/materials/standard/standard-shader-variant.ts packages/webgpu/src/materials/standard/standard-shader-variant-utils.ts packages/webgpu/src/materials/standard/standard-shader-variant-declarations.ts packages/webgpu/src/materials/standard/standard-shader-variant-bindings.ts packages/webgpu/src/materials/standard/standard-shader-variant-label.ts`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 3 still has large StandardMaterial files to split, especially
+  `prepared-standard-material-cache.ts`, `standard-pipeline.ts`, and
+  `standard-material-shadow-bind-group.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 3 by splitting vertex layout parsing from `standard-pipeline.ts`
+or descriptor/report helpers from `standard-material-shadow-bind-group.ts`.
 
 ## Current Run Update — 2026-05-27T23:04:41Z — Standard app prepared-resource split
 
