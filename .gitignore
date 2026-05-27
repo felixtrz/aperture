@@ -5,6 +5,7 @@ playwright-report/
 test-results/
 references/
 .aperture/
+.playwright-mcp/
 
 .DS_Store
 *.log
