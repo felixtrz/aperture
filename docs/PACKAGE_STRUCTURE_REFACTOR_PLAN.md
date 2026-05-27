@@ -222,6 +222,12 @@ Status: in progress
   `packages/webgpu/src/materials/standard/standard-material-shadow-bind-group-report.ts`,
   while the shadow bind-group module focuses on sampler, descriptor, layout,
   and resource creation.
+- Track 4 has started. Clustered local-light cookie resource preparation now
+  keeps the stable public entry point in
+  `packages/webgpu/src/lighting/local-light-cookie-resources.ts`, with
+  candidates, matrix buffers, texture atlas/array resources, sampler defaults,
+  and shared contracts split into focused `local-light-cookie-*` lighting
+  modules.
 
 ## Purpose
 

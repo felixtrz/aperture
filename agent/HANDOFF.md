@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-27T23:15:34Z
+Updated: 2026-05-27T23:21:05Z
+
+## Current Run Update — 2026-05-27T23:21:05Z — Local light cookie resource split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 4.
+
+### What changed
+
+- Split clustered local-light cookie preparation out of
+  `packages/webgpu/src/lighting/local-light-cookie-resources.ts` into focused
+  candidate discovery, texture resource, matrix resource, sampler, and contract
+  modules.
+- `local-light-cookie-resources.ts` remains the public orchestration/import
+  path and is now roughly 386 lines.
+- The largest new cookie helper is
+  `packages/webgpu/src/lighting/local-light-cookie-textures.ts` at roughly 836
+  lines; all cookie-specific lighting files are now below 1k lines.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/lighting/local-light-cookie-resources.ts packages/webgpu/src/lighting/local-light-cookie-types.ts packages/webgpu/src/lighting/local-light-cookie-candidates.ts packages/webgpu/src/lighting/local-light-cookie-textures.ts packages/webgpu/src/lighting/local-light-cookie-matrices.ts packages/webgpu/src/lighting/local-light-cookie-sampler.ts`
+- `pnpm exec prettier --check packages/webgpu/src/lighting/local-light-cookie-resources.ts packages/webgpu/src/lighting/local-light-cookie-types.ts packages/webgpu/src/lighting/local-light-cookie-candidates.ts packages/webgpu/src/lighting/local-light-cookie-textures.ts packages/webgpu/src/lighting/local-light-cookie-matrices.ts packages/webgpu/src/lighting/local-light-cookie-sampler.ts`
+- `pnpm exec vitest run test/webgpu/local-light-cookie-resources.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining large WebGPU implementation files include
+  `render/frame/renderer-frame-summary.ts`,
+  `lighting/local-light-clusters.ts`, `lighting/ibl-texture-resource.ts`, and
+  `render/frame/frame-boundary.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to these extractions; use targeted subsets
+  until those expectations are updated.
+
+### Recommended next task
+
+Continue Track 4 by splitting clustered local-light cluster planning from
+`packages/webgpu/src/lighting/local-light-clusters.ts` or environment-light
+texture preparation from `packages/webgpu/src/lighting/ibl-texture-resource.ts`.
 
 ## Current Run Update — 2026-05-27T23:15:34Z — Prepared StandardMaterial scalar cache split
 
