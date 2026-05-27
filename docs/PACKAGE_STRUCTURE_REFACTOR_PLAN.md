@@ -173,6 +173,10 @@ Status: in progress
   covering prepared resource records, diagnostics, prepare options, and prepare
   results while `prepared-standard-material-cache.ts` remains the resource
   creation implementation.
+- StandardMaterial frame local-light cluster resource helpers now live in
+  `packages/webgpu/src/materials/standard/standard-frame-local-light-resources.ts`,
+  covering clustered-local-light pipeline-key checks, local-light cluster GPU
+  resource creation, and supported point/spot shadow resource extraction.
 
 ## Purpose
 

@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-27T22:40:28Z
+Updated: 2026-05-27T22:43:14Z
+
+## Current Run Update — 2026-05-27T22:43:14Z — Standard frame local-light resource split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 3.
+
+### What changed
+
+- Extracted StandardMaterial frame local-light cluster helpers from
+  `packages/webgpu/src/materials/standard/standard-frame-resources.ts` into
+  `packages/webgpu/src/materials/standard/standard-frame-local-light-resources.ts`.
+- The new module owns clustered-local-light pipeline-key checks, local-light
+  cluster GPU resource creation, and point/spot shadow receiver resource
+  extraction for clustered local lights.
+- `standard-frame-resources.ts` now delegates clustered-local-light setup while
+  keeping top-level frame resource assembly and bind-group wiring.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/materials/standard/standard-frame-resources.ts packages/webgpu/src/materials/standard/standard-frame-local-light-resources.ts`
+- `pnpm exec prettier --check packages/webgpu/src/materials/standard/standard-frame-resources.ts packages/webgpu/src/materials/standard/standard-frame-local-light-resources.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/standard-material-ibl-bind-group.test.ts test/webgpu/standard-material-shadow-bind-group.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 3 still has StandardMaterial resource files above 1,000 lines,
+  especially `standard-shader-light-sampling.ts`, `standard-shader.ts`,
+  `standard-frame-resources.ts`, `standard-light-shadow-bind-group.ts`,
+  `standard-app-frame-resources.ts`, `standard-shader-variant.ts`,
+  `prepared-standard-material-cache.ts`, `standard-pipeline.ts`, and
+  `standard-material-shadow-bind-group.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 3 by extracting standard frame base GPU resource builders
+(mesh/view/world/attribute/material buffers) or split
+`standard-light-shadow-bind-group.ts` shadow/IBL planning.
 
 ## Current Run Update — 2026-05-27T22:40:28Z — Prepared StandardMaterial type split
 
