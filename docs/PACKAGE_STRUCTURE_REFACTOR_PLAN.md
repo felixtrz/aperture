@@ -48,6 +48,10 @@ Status: in progress
 - Standard material app pipeline-key routing now lives in
   `packages/webgpu/src/materials/standard/standard-app-pipeline-keys.ts`,
   covering shadow, IBL, and clustered-local-light feature key rewriting.
+- App depth/MSAA attachment helpers now live in
+  `packages/webgpu/src/app/attachments.ts`, covering per-target depth texture
+  reuse, MSAA color texture reuse, and MSAA report assembly while preserving
+  the existing public `WebGpuAppMsaaReport` export through `app.ts`.
 
 ## Purpose
 

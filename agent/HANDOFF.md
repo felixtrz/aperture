@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-27T20:35:42Z
+Updated: 2026-05-27T20:41:12Z
+
+## Current Run Update — 2026-05-27T20:41:12Z — WebGPU app attachment helpers split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted app depth/MSAA attachment helpers from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/attachments.ts`.
+- The new module owns per-target depth texture cache selection, per-target MSAA
+  color texture cache selection, MSAA texture creation/reuse, and MSAA report
+  assembly.
+- `app.ts` now imports those helpers and re-exports the existing public
+  `WebGpuAppMsaaReport` type from the focused attachment module.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/attachments.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/attachments.ts`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|creates a renderer-only app|renders multiple unlit app resource sets|surfaces per-pass GPU timings"`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs full picking orchestration, queued built-in frame resource
+  preparation, frame-loop orchestration, and diagnostics orchestration splits.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by extracting another app-frame resource/support cluster, with
+GPU timing/occlusion readback or transmission-grab resource setup as the next
+small low-risk slices before the larger queued frame-resource split.
 
 ## Current Run Update — 2026-05-27T20:35:42Z — Standard app pipeline-key helpers split
 
