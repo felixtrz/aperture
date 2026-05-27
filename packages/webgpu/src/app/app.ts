@@ -281,7 +281,10 @@ import {
   type WebGpuAppGpuTimingReadback,
   type WebGpuAppOcclusionQueryReadback,
 } from "./gpu-readback.js";
-import { createWebGpuAppTransmissionGrabResources } from "./transmission-grab.js";
+import {
+  assembleWebGpuAppTransmissionGrabPass,
+  createWebGpuAppTransmissionGrabResources,
+} from "./transmission-grab.js";
 import {
   createWebGpuAppOcclusionQueryResources,
   createWebGpuAppRenderBundleCommandKey,
@@ -299,11 +302,7 @@ import {
   recordWebGpuAppOcclusionCullingFallback,
   type WebGpuAppOcclusionCullingReport,
 } from "./occlusion-culling.js";
-import {
-  countDrawCommands,
-  isRenderPassDrawCommand,
-  writeCommandsForView,
-} from "./view-commands.js";
+import { countDrawCommands, writeCommandsForView } from "./view-commands.js";
 import {
   collectInstanceTintResources,
   createQueuedBuiltInAppDiagnosticsSummary,
@@ -2284,136 +2283,6 @@ async function assembleWebGpuAppFrameBoundaries(options: {
     drawCalls,
     diagnostics,
   };
-}
-
-function assembleWebGpuAppTransmissionGrabPass(options: {
-  readonly app: WebGpuApp;
-  readonly target: WebGpuAppFrameBoundaryTarget;
-  readonly commands: readonly RenderPassCommand[];
-  readonly depthAttachment: CachedWebGpuDepthTextureResource;
-  readonly label: string;
-  readonly clearColor: readonly number[];
-  readonly resources: StandardFrameTransmissionSceneColorResources;
-}): {
-  readonly boundary: FrameBoundaryAssemblyReport;
-  readonly report: WebGpuAppTransmissionGrabPassReport;
-  readonly diagnostics: readonly unknown[];
-} {
-  const commands = commandsWithoutOcclusionQueryCommands(
-    commandsWithoutTransmissionDraws(options.commands),
-  );
-  const boundary = assembleFrameBoundary({
-    context: options.app.initialization.context as Parameters<
-      typeof assembleFrameBoundary
-    >[0]["context"],
-    device: options.app.initialization.device as Parameters<
-      typeof assembleFrameBoundary
-    >[0]["device"],
-    queue: (options.app.initialization.device as { readonly queue: unknown })
-      .queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
-    commands,
-    label: `${options.label}:transmission-grab:${options.target.renderTargetKey ?? "swapchain"}`,
-    colorTarget: {
-      source: "offscreen-target",
-      texture: options.resources.texture.texture,
-    },
-    clearColor: options.clearColor,
-    depthTarget: {
-      view: options.depthAttachment.view,
-      depthClearValue: options.target.view.clearDepth,
-      depthLoadOp: "clear",
-      depthStoreOp: "store",
-    },
-  });
-  const diagnostics = [
-    ...boundary.texture.diagnostics,
-    ...(boundary.attachments?.diagnostics ?? []),
-    ...(boundary.encoder?.diagnostics ?? []),
-    ...(boundary.begin?.diagnostics ?? []),
-    ...(boundary.rectangle?.diagnostics ?? []),
-    ...(boundary.execution?.diagnostics ?? []),
-    ...(boundary.end?.diagnostics ?? []),
-    ...(boundary.finish?.diagnostics ?? []),
-    ...(boundary.submit?.diagnostics ?? []),
-  ];
-
-  return {
-    boundary,
-    report: {
-      enabled: true,
-      ok: boundary.valid,
-      width: options.resources.texture.width,
-      height: options.resources.texture.height,
-      format: options.resources.texture.format,
-      commands: commands.length,
-      drawCalls: countDrawCommands(commands),
-      textureResourceKey: options.resources.texture.resourceKey,
-      samplerResourceKey: options.resources.sampler.resourceKey,
-    },
-    diagnostics,
-  };
-}
-
-function commandsWithoutTransmissionDraws(
-  commands: readonly RenderPassCommand[],
-): readonly RenderPassCommand[] {
-  const transmissionRenderIds = new Set<number>();
-  let activePipelineKey = "";
-
-  for (const command of commands) {
-    if (command.kind === "setPipeline") {
-      activePipelineKey = command.pipelineKey;
-    }
-
-    if (
-      isRenderPassDrawCommand(command) &&
-      pipelineKeyUsesTransmission(activePipelineKey)
-    ) {
-      transmissionRenderIds.add(command.renderId);
-    }
-  }
-
-  if (transmissionRenderIds.size === 0) {
-    return commands;
-  }
-
-  return commands.filter(
-    (command) => !transmissionRenderIds.has(command.renderId),
-  );
-}
-
-function pipelineKeyUsesTransmission(pipelineKey: string): boolean {
-  return materialPipelineKeyFromRenderPipelineKey(pipelineKey)
-    .split("|")
-    .includes("transmission");
-}
-
-function materialPipelineKeyFromRenderPipelineKey(pipelineKey: string): string {
-  const cacheKey = pipelineKey.startsWith("render-pipeline:")
-    ? pipelineKey.slice("render-pipeline:".length)
-    : pipelineKey;
-
-  try {
-    const parsed = JSON.parse(cacheKey) as {
-      readonly material?: { readonly pipelineKey?: unknown };
-      readonly batch?: { readonly pipelineKey?: unknown };
-    };
-    const materialPipelineKey = parsed.material?.pipelineKey;
-
-    if (typeof materialPipelineKey === "string") {
-      return materialPipelineKey;
-    }
-
-    const batchPipelineKey = parsed.batch?.pipelineKey;
-
-    if (typeof batchPipelineKey === "string") {
-      return batchPipelineKey;
-    }
-  } catch {
-    // Non-cache pipeline keys are already authored material keys.
-  }
-
-  return pipelineKey;
 }
 
 async function renderSpriteOnlyWebGpuAppFrame(
