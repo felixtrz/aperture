@@ -1,6 +1,44 @@
 # Agent Handoff
 
-Updated: 2026-05-27T23:30:39Z
+Updated: 2026-05-27T23:33:35Z
+
+## Current Run Update — 2026-05-27T23:33:35Z — Render extraction asset validation split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted StandardMaterial readiness checks, unlit texture dependency
+  validation, texture/sampler/environment asset state validation, and shared
+  extraction diagnostic helpers out of
+  `packages/render/src/rendering/extraction.ts`.
+- New modules:
+  `packages/render/src/rendering/extraction-asset-validation.ts` and
+  `packages/render/src/rendering/extraction-diagnostics.ts`.
+- `extraction.ts` is now roughly 2152 lines.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/rendering/extraction.ts packages/render/src/rendering/extraction-asset-validation.ts packages/render/src/rendering/extraction-diagnostics.ts packages/render/src/rendering/extraction-culling.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/extraction.ts packages/render/src/rendering/extraction-asset-validation.ts packages/render/src/rendering/extraction-diagnostics.ts packages/render/src/rendering/extraction-culling.ts`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/rendering/line-list-mesh.test.ts test/webgpu/fixtures/ecs-snapshot-render-frame.test.ts test/webgpu/standard-material-ibl-bind-group.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- `packages/render/src/rendering/extraction.ts` remains large. Good next
+  splits are light/environment extraction, sprite/skybox/fog extraction, or
+  mesh draw assembly/caching.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to these extractions; use targeted subsets
+  until those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting light/environment extraction out of
+`packages/render/src/rendering/extraction.ts`.
 
 ## Current Run Update — 2026-05-27T23:30:39Z — Render extraction culling split
 

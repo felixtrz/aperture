@@ -240,6 +240,10 @@ Status: in progress
   `packages/render/src/rendering/extraction-culling.ts`, while
   `extraction.ts` keeps the public snapshot extraction entry point and
   high-level extraction orchestration.
+- Render extraction material readiness, texture/sampler/environment asset
+  validation, and shared diagnostic helpers now live in
+  `packages/render/src/rendering/extraction-asset-validation.ts` and
+  `packages/render/src/rendering/extraction-diagnostics.ts`.
 
 ## Purpose
 
