@@ -232,6 +232,10 @@ Status: in progress
   metadata, GPU buffer allocation, and report shaping now live in focused
   `packages/webgpu/src/lighting/local-light-cluster-*` modules, while
   `local-light-clusters.ts` remains the stable descriptor-building entry point.
+- IBL texture resource creation now keeps the stable public entry point in
+  `packages/webgpu/src/lighting/ibl-texture-resource.ts`, with diffuse
+  allocation, specular PMREM allocation, JSON report projection, shared
+  utilities, and contracts split into focused `ibl-texture-resource-*` modules.
 
 ## Purpose
 

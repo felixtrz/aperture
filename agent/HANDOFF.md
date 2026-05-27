@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-27T23:24:46Z
+Updated: 2026-05-27T23:27:49Z
+
+## Current Run Update — 2026-05-27T23:27:49Z — IBL texture resource module split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 4.
+
+### What changed
+
+- Split `packages/webgpu/src/lighting/ibl-texture-resource.ts` into diffuse
+  texture allocation, specular PMREM texture allocation, JSON report projection,
+  shared upload/resource utilities, and contract modules.
+- `ibl-texture-resource.ts` remains the stable public import path and is now a
+  roughly 20-line barrel.
+- The largest new IBL texture helper is
+  `packages/webgpu/src/lighting/ibl-texture-resource-specular.ts` at roughly
+  601 lines.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/lighting/ibl-texture-resource.ts packages/webgpu/src/lighting/ibl-texture-resource-types.ts packages/webgpu/src/lighting/ibl-texture-resource-utils.ts packages/webgpu/src/lighting/ibl-texture-resource-diffuse.ts packages/webgpu/src/lighting/ibl-texture-resource-specular.ts packages/webgpu/src/lighting/ibl-texture-resource-report.ts`
+- `pnpm exec prettier --check packages/webgpu/src/lighting/ibl-texture-resource.ts packages/webgpu/src/lighting/ibl-texture-resource-types.ts packages/webgpu/src/lighting/ibl-texture-resource-utils.ts packages/webgpu/src/lighting/ibl-texture-resource-diffuse.ts packages/webgpu/src/lighting/ibl-texture-resource-specular.ts packages/webgpu/src/lighting/ibl-texture-resource-report.ts`
+- `pnpm exec vitest run test/webgpu/ibl-texture-resource.test.ts test/webgpu/specular-ibl-texture-resource.test.ts test/webgpu/standard-material-ibl-bind-group.test.ts test/webgpu/app-environment-resources.test.ts test/webgpu/standard-shader.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining large WebGPU implementation files include
+  `render/frame/renderer-frame-summary.ts`,
+  `render/frame/frame-boundary.ts`, `post/post-bloom.ts`, and
+  `picking/id-buffer-pick.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to these extractions; use targeted subsets
+  until those expectations are updated.
+
+### Recommended next task
+
+Continue Track 4 by splitting post-processing output modules such as
+`packages/webgpu/src/post/post-bloom.ts`, then reassess render-frame/picking
+hotspots.
 
 ## Current Run Update — 2026-05-27T23:24:46Z — Local light cluster module split
 
