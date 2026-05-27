@@ -1343,6 +1343,7 @@ Session: ${status.sessionFile}
 Daemon: ${status.session.daemon.state} (${status.daemonAlive ? "alive" : "not running"})
 Server: ${status.session.server.state} (${status.serverAlive ? "alive" : "not running"})
 Browser: ${status.session.browser.state} (${status.browserAlive ? "alive" : "not running"})
+Bridge: ${status.session.bridge.url ?? "none"} (${status.serverAlive ? "available" : "not running"})
 CDP: ${status.session.browser.cdpUrl ?? "none"}
 `;
 }

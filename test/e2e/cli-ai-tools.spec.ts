@@ -36,6 +36,8 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
     expect(status.stdout).toContain("Daemon: running");
     expect(status.stdout).toContain("Server: running");
     expect(status.stdout).toContain("Browser: running");
+    expect(status.stdout).toContain(`Bridge: ws://127.0.0.1:${PORT}/`);
+    expect(status.stdout).toContain("(available)");
 
     const reused = await runCli([
       "dev",
