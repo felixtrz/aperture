@@ -1,6 +1,41 @@
 # Agent Handoff
 
-Updated: 2026-05-27T23:36:01Z
+Updated: 2026-05-27T23:42:03Z
+
+## Current Run Update — 2026-05-27T23:42:03Z — Render extraction light assembly split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted light/environment/shadow packet assembly into
+  `packages/render/src/rendering/extraction-lights.ts`.
+- Split shared sorted-entity ordering and transform-matrix packing helpers into
+  `packages/render/src/rendering/extraction-entities.ts` and
+  `packages/render/src/rendering/extraction-matrices.ts`.
+- `packages/render/src/rendering/extraction.ts` is now roughly 1660 lines.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/rendering/extraction.ts packages/render/src/rendering/extraction-lights.ts packages/render/src/rendering/extraction-matrices.ts packages/render/src/rendering/extraction-entities.ts packages/render/src/rendering/extraction-inputs.ts packages/render/src/rendering/extraction-asset-validation.ts packages/render/src/rendering/extraction-diagnostics.ts packages/render/src/rendering/extraction-culling.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/extraction.ts packages/render/src/rendering/extraction-lights.ts packages/render/src/rendering/extraction-matrices.ts packages/render/src/rendering/extraction-entities.ts packages/render/src/rendering/extraction-inputs.ts packages/render/src/rendering/extraction-asset-validation.ts packages/render/src/rendering/extraction-diagnostics.ts packages/render/src/rendering/extraction-culling.ts`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/rendering/line-list-mesh.test.ts test/webgpu/fixtures/ecs-snapshot-render-frame.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- `packages/render/src/rendering/extraction.ts` remains large. Good next
+  splits are sprite/skybox/fog extraction or mesh draw assembly/caching.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to these extractions; use targeted subsets
+  until those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting sprite/skybox/fog extraction out of
+`packages/render/src/rendering/extraction.ts`.
 
 ## Current Run Update — 2026-05-27T23:36:01Z — Render extraction input reader split
 

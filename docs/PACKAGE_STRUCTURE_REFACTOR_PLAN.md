@@ -247,6 +247,10 @@ Status: in progress
 - Render extraction authoring input readers and asset-handle parsing now live
   in `packages/render/src/rendering/extraction-inputs.ts`, keeping
   `extraction.ts` focused on snapshot orchestration and packet assembly.
+- Render extraction light/environment/shadow packet assembly now lives in
+  `packages/render/src/rendering/extraction-lights.ts`, with shared sorted
+  entity and transform-matrix helpers split into `extraction-entities.ts` and
+  `extraction-matrices.ts`.
 
 ## Purpose
 
