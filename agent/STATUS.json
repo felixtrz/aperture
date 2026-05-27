@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "6220414b",
+  "lastCommit": "6cd140e8",
   "activePid": null,
-  "notes": "Continued PACKAGE_STRUCTURE_REFACTOR_PLAN Track 2: split WebGPU app frame-target helpers, report/resource-reuse helpers, and source asset facade preparation out of app.ts while preserving public report exports.",
-  "lastRunFinishedAt": "2026-05-27T20:06:41Z"
+  "notes": "Continued PACKAGE_STRUCTURE_REFACTOR_PLAN Track 2: split WebGPU app frame-target helpers, report/resource-reuse helpers, source asset facade preparation, and low-level picking helpers out of app.ts while preserving public report exports.",
+  "lastRunFinishedAt": "2026-05-27T20:10:42Z"
 }
