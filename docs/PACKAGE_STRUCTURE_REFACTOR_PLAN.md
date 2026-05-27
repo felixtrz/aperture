@@ -86,6 +86,9 @@ Status: in progress
   `packages/webgpu/src/app/sprites.ts`, covering sprite pipeline caching,
   sprite buffer packing, default sampler creation, texture/sampler resource
   preparation, bind group creation, and sprite draw command emission.
+- Multi-unlit app resource helpers now live in
+  `packages/webgpu/src/app/multi-unlit.ts`, covering multi-material unlit
+  resource-set detection, frame-resource preparation, and reuse accounting.
 
 ## Purpose
 

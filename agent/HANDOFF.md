@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-27T21:15:41Z
+Updated: 2026-05-27T21:21:51Z
+
+## Current Run Update — 2026-05-27T21:21:51Z — WebGPU multi-unlit app helpers split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted multi-material unlit app resource helpers from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/multi-unlit.ts`.
+- The new module owns multi-unlit resource-set detection, frame-resource
+  preparation, and reuse-accounting updates.
+- `app.ts` delegates multi-unlit detection/preparation while preserving the
+  existing app render behavior and public frame-resource union.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/multi-unlit.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/multi-unlit.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "renders multiple unlit app resource sets|reuses prepared scalar unlit mesh buffers|initializes WebGPU|creates a renderer-only app"`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs full picking orchestration, queued built-in frame resource
+  preparation, post-processing/motion-vector helpers, frame-loop orchestration,
+  and diagnostics orchestration splits.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by moving `prepareQueuedBuiltInFrameResources` and its option
+builder into a dedicated queued-frame-resource module, or by extracting
+post-processing/motion-vector helpers if that split is cleaner first.
 
 ## Current Run Update — 2026-05-27T21:15:41Z — WebGPU transmission grab pass helpers moved
 
