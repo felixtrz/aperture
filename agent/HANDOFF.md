@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-27T21:40:01Z
+Updated: 2026-05-27T21:46:50Z
+
+## Current Run Update — 2026-05-27T21:46:50Z — WebGPU app picking orchestration split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted full app picking orchestration from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/picking-frame.ts`.
+- The new module owns ID-buffer pick resource preparation, pick-frame planning,
+  pick pass assembly/readback, and pick diagnostics.
+- `app.ts` still owns app pipeline caching/layout lookup and passes those into
+  picking as explicit callbacks.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/picking-frame.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/picking-frame.ts`
+- `pnpm exec vitest run test/webgpu/app-picking.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|creates a renderer-only app|renders multiple unlit app resource sets"`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs frame-loop orchestration, app startup/presentation
+  cleanup, and diagnostics orchestration splits.
+- `packages/webgpu/src/app/app.ts` is down to roughly 3,000 lines, with the
+  remaining large chunks concentrated around app creation/startup, app pipeline
+  creation, the built-in adapter registry, queued frame orchestration, frame
+  boundary orchestration, sprite-only orchestration, and the top-level render
+  frame path.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by extracting app pipeline creation helpers or the built-in
+adapter registry before attempting the larger frame-loop/render-frame split.
 
 ## Current Run Update — 2026-05-27T21:40:01Z — WebGPU post-processing assembly split
 

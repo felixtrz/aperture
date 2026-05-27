@@ -101,6 +101,10 @@ Status: in progress
   `packages/webgpu/src/app/post-processing.ts`, covering swapchain scene
   offscreen capture, post-effect pass/graph assembly, post readbacks, and
   post-effect submission reports.
+- Full app picking orchestration now lives in
+  `packages/webgpu/src/app/picking-frame.ts`, covering ID-buffer pick resource
+  preparation, pick-frame planning, pick pass assembly/readback, and app-owned
+  pipeline/layout callbacks.
 
 ## Purpose
 
