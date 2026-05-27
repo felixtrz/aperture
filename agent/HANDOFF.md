@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-27T20:54:54Z
+Updated: 2026-05-27T20:57:47Z
+
+## Current Run Update — 2026-05-27T20:57:47Z — WebGPU view command helpers split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted view command filtering and render-pass state coalescing from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/view-commands.ts`.
+- The new module owns per-view command visibility, pending render-pass state
+  coalescing, draw-command detection, and draw counting.
+- `occlusion-culling.ts` now imports the shared draw-command predicate from
+  `view-commands.ts`, keeping draw-command classification in one app support
+  module.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/view-commands.ts packages/webgpu/src/app/occlusion-culling.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/view-commands.ts packages/webgpu/src/app/occlusion-culling.ts`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/render-pass-commands.test.ts test/webgpu/render-pass-command-executor.test.ts --testNamePattern "occlusion query|render bundles|indirect"`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|creates a renderer-only app|surfaces per-pass GPU timings|renders multiple unlit app resource sets"`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs full picking orchestration, queued built-in frame resource
+  preparation, frame-loop orchestration, and diagnostics orchestration splits.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by starting the queued built-in frame-resource split, now that
+the smaller frame-boundary, occlusion, and view-command support clusters are
+out of `app.ts`.
 
 ## Current Run Update — 2026-05-27T20:54:54Z — WebGPU occlusion culling helpers split
 

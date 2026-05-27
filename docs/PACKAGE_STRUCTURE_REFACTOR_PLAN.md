@@ -68,6 +68,10 @@ Status: in progress
   `packages/webgpu/src/app/occlusion-culling.ts`, covering culling report
   accumulation, skipped-draw filtering, occlusion-query command stripping, and
   query-index normalization.
+- View command filtering helpers now live in
+  `packages/webgpu/src/app/view-commands.ts`, covering per-view command
+  visibility, pending render-pass state coalescing, draw-command detection, and
+  draw counting.
 
 ## Purpose
 
