@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-27T22:46:07Z
+Updated: 2026-05-27T22:50:50Z
+
+## Current Run Update — 2026-05-27T22:50:50Z — Standard light/shadow entry helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 3.
+
+### What changed
+
+- Extracted StandardMaterial light/shadow bind-group descriptor entry helpers
+  from
+  `packages/webgpu/src/materials/standard/standard-light-shadow-bind-group.ts`
+  into
+  `packages/webgpu/src/materials/standard/standard-light-shadow-bind-group-entries.ts`.
+- The new module owns area-light LTC descriptor entries, clustered local-light
+  resource entries, local-light cookie entries, and shared shadow receiver
+  entries.
+- `standard-light-shadow-bind-group.ts` now delegates entry append behavior and
+  stays focused on layout descriptors, descriptor-plan construction, and
+  bind-group resource creation.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/materials/standard/standard-light-shadow-bind-group.ts packages/webgpu/src/materials/standard/standard-light-shadow-bind-group-entries.ts`
+- `pnpm exec prettier --check packages/webgpu/src/materials/standard/standard-light-shadow-bind-group.ts packages/webgpu/src/materials/standard/standard-light-shadow-bind-group-entries.ts`
+- `pnpm exec vitest run test/webgpu/standard-material-shadow-bind-group.test.ts test/webgpu/standard-material-ibl-bind-group.test.ts test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 3 still has StandardMaterial resource files above 1,000 lines,
+  especially `standard-light-shadow-bind-group.ts`,
+  `standard-shader-light-sampling.ts`, `standard-shader.ts`,
+  `standard-app-frame-resources.ts`, `standard-shader-variant.ts`,
+  `prepared-standard-material-cache.ts`, `standard-pipeline.ts`, and
+  `standard-material-shadow-bind-group.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 3 by splitting layout descriptor construction or descriptor-plan
+construction from `standard-light-shadow-bind-group.ts`.
 
 ## Current Run Update — 2026-05-27T22:46:07Z — Standard frame base-resource split
 

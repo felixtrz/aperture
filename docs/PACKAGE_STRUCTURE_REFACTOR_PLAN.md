@@ -181,6 +181,10 @@ Status: in progress
   `packages/webgpu/src/materials/standard/standard-frame-base-resources.ts`,
   covering mesh, view-uniform, world-transform, instance-tint, skinning,
   morph-target, and material uniform buffer resource creation.
+- StandardMaterial light/shadow bind-group descriptor entry helpers now live in
+  `packages/webgpu/src/materials/standard/standard-light-shadow-bind-group-entries.ts`,
+  covering area-light LTC, clustered local-light, local-light cookie, and
+  shadow receiver descriptor entries.
 
 ## Purpose
 
