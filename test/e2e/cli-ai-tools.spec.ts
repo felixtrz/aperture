@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { execFile } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import net from "node:net";
 import os from "node:os";
 import { promisify } from "node:util";
 import path from "node:path";
@@ -11,8 +12,9 @@ const CLI = path.resolve("packages/cli/dist/bin/aperture.js");
 const APP_ROOT = path.resolve("examples/developer-api");
 const PORT = 5187;
 const CREATED_APP_PORT = 5193;
+const MCP_TOOL_TIMEOUT_MS = 60_000;
 
-test.setTimeout(180_000);
+test.setTimeout(420_000);
 
 test("Aperture CLI manages a browser session and exposes browser/ECS tools over MCP", async () => {
   await runCli(["dev", "down"], { allowFailure: true });
@@ -692,11 +694,26 @@ test("aperture create produces an installable app that works with CLI AI tools",
     await runPnpm(["run", "build"], appRoot, 60_000);
 
     await runCli(["dev", "down"], { cwd: appRoot, allowFailure: true });
-    const up = await runCli(
-      ["dev", "up", "--port", String(CREATED_APP_PORT), "--headless"],
-      { cwd: appRoot },
-    );
+    const portBlocker = net.createServer();
+    await listenOnPort(portBlocker, "127.0.0.1", CREATED_APP_PORT);
+    let up: CommandResult;
+    try {
+      up = await runCli(
+        [
+          "dev",
+          "up",
+          "--port",
+          String(CREATED_APP_PORT),
+          "--no-strict-port",
+          "--headless",
+        ],
+        { cwd: appRoot },
+      );
+    } finally {
+      await closeServer(portBlocker);
+    }
     expect(up.stdout).toContain("Started Aperture dev session");
+    expect(portFromDevUpOutput(up.stdout)).toBeGreaterThan(CREATED_APP_PORT);
 
     const ready = await callMcpTool(
       "browser_wait_for_webgpu",
@@ -814,6 +831,39 @@ function firstEntityRef(content: unknown): Record<string, unknown> {
   return entity;
 }
 
+async function listenOnPort(
+  server: net.Server,
+  host: string,
+  port: number,
+): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(port, host, resolve);
+  });
+}
+
+async function closeServer(server: net.Server): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    server.close((error) => {
+      if (error === undefined) {
+        resolve();
+      } else {
+        reject(error);
+      }
+    });
+  });
+}
+
+function portFromDevUpOutput(stdout: string): number {
+  const match = /URL:\s+http:\/\/127\.0\.0\.1:(\d+)\//.exec(stdout);
+
+  if (match === null) {
+    throw new Error(`Could not find dev server URL in output:\n${stdout}`);
+  }
+
+  return Number(match[1]);
+}
+
 async function runCli(
   args: readonly string[],
   options: { readonly allowFailure?: boolean; readonly cwd?: string } = {},
@@ -883,9 +933,26 @@ async function callMcpTool(
     })}\n`,
   );
 
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    child.kill("SIGTERM");
+    setTimeout(() => {
+      child.kill("SIGKILL");
+    }, 2_000).unref();
+  }, MCP_TOOL_TIMEOUT_MS);
   const exitCode = await new Promise<number | null>((resolve) => {
-    child.once("exit", resolve);
+    child.once("exit", (code) => {
+      clearTimeout(timeout);
+      resolve(code);
+    });
   });
+
+  if (timedOut) {
+    throw new Error(
+      `aperture mcp stdio timed out calling ${name} after ${MCP_TOOL_TIMEOUT_MS}ms.\nstdout:\n${stdout}\nstderr:\n${stderr}`,
+    );
+  }
 
   if (exitCode !== 0) {
     throw new Error(

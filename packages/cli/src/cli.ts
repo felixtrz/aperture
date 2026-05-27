@@ -1257,7 +1257,7 @@ Options:
   --host <host>       Host for the Vite server. Defaults to 127.0.0.1.
   --port <port>       Port for the Vite server. Defaults to 5173.
   --strict-port       Fail if the requested port is unavailable. Default.
-  --no-strict-port    Allow Vite to choose a different port. Experimental.
+  --no-strict-port    Allow Aperture to choose the next available port.
   --lines <count>     Log lines to print for dev logs. Defaults to 80.
   -h, --help          Show help.
 `;

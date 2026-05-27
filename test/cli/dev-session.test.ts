@@ -1,5 +1,6 @@
 import { PassThrough } from "node:stream";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -8,6 +9,7 @@ import {
   callApertureTool,
   createApertureDevSession,
   readApertureDevSession,
+  resolveApertureDevServerPort,
   runApertureCli,
   runApertureMcpServer,
   writeApertureDevSession,
@@ -202,6 +204,31 @@ describe("Aperture CLI dev session and MCP command surface", () => {
     expect(mcp.exitCode).toBe(0);
     expect(mcp.stdout).toContain("aperture mcp stdio");
   });
+
+  it("chooses the next available dev port when strict port mode is disabled", async () => {
+    const server = net.createServer();
+    const host = "127.0.0.1";
+    const occupiedPort = await listenOnEphemeralPort(server, host);
+
+    try {
+      await expect(
+        resolveApertureDevServerPort({
+          host,
+          port: occupiedPort,
+          strictPort: true,
+        }),
+      ).resolves.toBe(occupiedPort);
+      await expect(
+        resolveApertureDevServerPort({
+          host,
+          port: occupiedPort,
+          strictPort: false,
+        }),
+      ).resolves.toBeGreaterThan(occupiedPort);
+    } finally {
+      await closeServer(server);
+    }
+  });
 });
 
 type JsonRecord = Record<string, unknown>;
@@ -210,6 +237,35 @@ async function tempRoot(): Promise<string> {
   const root = await mkdtemp(path.join(os.tmpdir(), "aperture-dev-cli-"));
   tempRoots.push(root);
   return root;
+}
+
+async function listenOnEphemeralPort(
+  server: net.Server,
+  host: string,
+): Promise<number> {
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, host, resolve);
+  });
+
+  const address = server.address();
+  if (typeof address !== "object" || address === null) {
+    throw new Error("Expected test server to bind to a TCP port.");
+  }
+
+  return address.port;
+}
+
+async function closeServer(server: net.Server): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    server.close((error) => {
+      if (error === undefined) {
+        resolve();
+      } else {
+        reject(error);
+      }
+    });
+  });
 }
 
 async function runCli(

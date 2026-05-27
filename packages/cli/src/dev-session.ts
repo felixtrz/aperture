@@ -70,6 +70,12 @@ export interface ApertureDevLogsReport {
   }[];
 }
 
+export interface ResolveApertureDevServerPortOptions {
+  readonly host: string;
+  readonly port: number;
+  readonly strictPort: boolean;
+}
+
 interface ManagedBrowser {
   readonly pid: number | null;
   readonly close: () => Promise<void>;
@@ -106,7 +112,9 @@ export async function startApertureDevSession(
     args.push("--headless");
   }
 
-  if (options.strictPort !== false) {
+  if (options.strictPort === false) {
+    args.push("--no-strict-port");
+  } else {
     args.push("--strict-port");
   }
 
@@ -132,7 +140,11 @@ export async function runApertureDevSessionDaemon(
 ): Promise<void> {
   const appRoot = path.resolve(options.cwd);
   const host = options.host ?? DEFAULT_HOST;
-  const port = options.port ?? DEFAULT_PORT;
+  const port = await resolveApertureDevServerPort({
+    host,
+    port: options.port ?? DEFAULT_PORT,
+    strictPort: options.strictPort !== false,
+  });
   const url = `http://${host}:${port}/`;
   const headless = options.headless ?? options.open !== true;
   const logs = logFiles(appRoot);
@@ -276,6 +288,16 @@ export async function runApertureDevSessionDaemon(
   }
 
   await new Promise(() => undefined);
+}
+
+export async function resolveApertureDevServerPort(
+  options: ResolveApertureDevServerPortOptions,
+): Promise<number> {
+  if (options.strictPort) {
+    return options.port;
+  }
+
+  return findAvailablePort(options.port, options.host);
 }
 
 export async function readApertureDevStatus(

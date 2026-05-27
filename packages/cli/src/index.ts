@@ -15,6 +15,7 @@ export {
   openApertureDevSession,
   readApertureDevLogs,
   readApertureDevStatus,
+  resolveApertureDevServerPort,
   runApertureDevSessionDaemon,
   startApertureDevSession,
   stopApertureDevSession,
@@ -25,6 +26,7 @@ export {
   type ApertureDevLogsReport,
   type ApertureDevUpOptions,
   type ApertureDevUpReport,
+  type ResolveApertureDevServerPortOptions,
 } from "./dev-session.js";
 export {
   callApertureTool,
