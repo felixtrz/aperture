@@ -23,6 +23,20 @@ import {
   type StandardMaterialPackingDiagnostic,
 } from "./standard-material-buffer.js";
 import type { StandardFrameGpuResourceDeviceLike } from "./standard-frame-resources.js";
+import {
+  isBaseColorOnlyStandardMaterial,
+  isClearcoatOnlyStandardMaterial,
+  isClearcoatRoughnessOnlyStandardMaterial,
+  isIridescenceOnlyStandardMaterial,
+  isIridescenceThicknessOnlyStandardMaterial,
+  isMetallicRoughnessOnlyStandardMaterial,
+  isNormalOnlyStandardMaterial,
+  isOcclusionEmissiveOnlyStandardMaterial,
+  isScalarStandardMaterial,
+  isSheenColorOnlyStandardMaterial,
+  isSheenRoughnessOnlyStandardMaterial,
+  isTransmissionOnlyStandardMaterial,
+} from "./prepared-standard-material-classification.js";
 import type {
   SamplerGpuResource,
   TextureGpuResource,
@@ -1468,231 +1482,6 @@ export function preparedTexturedStandardMaterialCacheKey(input: {
     `layout:${input.layoutKey}`,
     ...input.dependencyCacheKeySegments,
   ].join("|");
-}
-
-function isScalarStandardMaterial(material: StandardMaterialAsset): boolean {
-  return (
-    material.baseColorTexture === null &&
-    material.metallicRoughnessTexture === null &&
-    material.clearcoatTexture === null &&
-    material.clearcoatRoughnessTexture === null &&
-    material.transmissionTexture === null &&
-    material.sheenColorTexture === null &&
-    material.sheenRoughnessTexture === null &&
-    material.iridescenceTexture === null &&
-    material.iridescenceThicknessTexture === null &&
-    material.normalTexture === null &&
-    material.occlusionTexture === null &&
-    material.emissiveTexture === null
-  );
-}
-
-function isBaseColorOnlyStandardMaterial(
-  material: StandardMaterialAsset,
-): boolean {
-  return (
-    material.baseColorTexture !== null &&
-    material.metallicRoughnessTexture === null &&
-    material.clearcoatTexture === null &&
-    material.clearcoatRoughnessTexture === null &&
-    material.transmissionTexture === null &&
-    material.sheenColorTexture === null &&
-    material.sheenRoughnessTexture === null &&
-    material.iridescenceTexture === null &&
-    material.iridescenceThicknessTexture === null &&
-    material.normalTexture === null &&
-    material.occlusionTexture === null &&
-    material.emissiveTexture === null
-  );
-}
-
-function isMetallicRoughnessOnlyStandardMaterial(
-  material: StandardMaterialAsset,
-): boolean {
-  return (
-    material.baseColorTexture === null &&
-    material.metallicRoughnessTexture !== null &&
-    material.clearcoatTexture === null &&
-    material.clearcoatRoughnessTexture === null &&
-    material.transmissionTexture === null &&
-    material.sheenColorTexture === null &&
-    material.sheenRoughnessTexture === null &&
-    material.iridescenceTexture === null &&
-    material.iridescenceThicknessTexture === null &&
-    material.normalTexture === null &&
-    material.occlusionTexture === null &&
-    material.emissiveTexture === null
-  );
-}
-
-function isNormalOnlyStandardMaterial(
-  material: StandardMaterialAsset,
-): boolean {
-  return (
-    material.baseColorTexture === null &&
-    material.metallicRoughnessTexture === null &&
-    material.clearcoatTexture === null &&
-    material.clearcoatRoughnessTexture === null &&
-    material.transmissionTexture === null &&
-    material.sheenColorTexture === null &&
-    material.sheenRoughnessTexture === null &&
-    material.iridescenceTexture === null &&
-    material.iridescenceThicknessTexture === null &&
-    material.normalTexture !== null &&
-    material.occlusionTexture === null &&
-    material.emissiveTexture === null
-  );
-}
-
-function isOcclusionEmissiveOnlyStandardMaterial(
-  material: StandardMaterialAsset,
-): boolean {
-  return (
-    material.baseColorTexture === null &&
-    material.metallicRoughnessTexture === null &&
-    material.clearcoatTexture === null &&
-    material.clearcoatRoughnessTexture === null &&
-    material.transmissionTexture === null &&
-    material.sheenColorTexture === null &&
-    material.sheenRoughnessTexture === null &&
-    material.iridescenceTexture === null &&
-    material.iridescenceThicknessTexture === null &&
-    material.normalTexture === null &&
-    (material.occlusionTexture !== null || material.emissiveTexture !== null)
-  );
-}
-
-function isClearcoatOnlyStandardMaterial(
-  material: StandardMaterialAsset,
-): boolean {
-  return (
-    material.baseColorTexture === null &&
-    material.metallicRoughnessTexture === null &&
-    material.clearcoatTexture !== null &&
-    material.clearcoatRoughnessTexture === null &&
-    material.transmissionTexture === null &&
-    material.sheenColorTexture === null &&
-    material.sheenRoughnessTexture === null &&
-    material.iridescenceTexture === null &&
-    material.iridescenceThicknessTexture === null &&
-    material.normalTexture === null &&
-    material.occlusionTexture === null &&
-    material.emissiveTexture === null
-  );
-}
-
-function isClearcoatRoughnessOnlyStandardMaterial(
-  material: StandardMaterialAsset,
-): boolean {
-  return (
-    material.baseColorTexture === null &&
-    material.metallicRoughnessTexture === null &&
-    material.clearcoatTexture === null &&
-    material.clearcoatRoughnessTexture !== null &&
-    material.transmissionTexture === null &&
-    material.sheenColorTexture === null &&
-    material.sheenRoughnessTexture === null &&
-    material.iridescenceTexture === null &&
-    material.iridescenceThicknessTexture === null &&
-    material.normalTexture === null &&
-    material.occlusionTexture === null &&
-    material.emissiveTexture === null
-  );
-}
-
-function isTransmissionOnlyStandardMaterial(
-  material: StandardMaterialAsset,
-): boolean {
-  return (
-    material.baseColorTexture === null &&
-    material.metallicRoughnessTexture === null &&
-    material.clearcoatTexture === null &&
-    material.clearcoatRoughnessTexture === null &&
-    material.transmissionTexture !== null &&
-    material.sheenColorTexture === null &&
-    material.sheenRoughnessTexture === null &&
-    material.iridescenceTexture === null &&
-    material.iridescenceThicknessTexture === null &&
-    material.normalTexture === null &&
-    material.occlusionTexture === null &&
-    material.emissiveTexture === null
-  );
-}
-
-function isSheenColorOnlyStandardMaterial(
-  material: StandardMaterialAsset,
-): boolean {
-  return (
-    material.baseColorTexture === null &&
-    material.metallicRoughnessTexture === null &&
-    material.clearcoatTexture === null &&
-    material.clearcoatRoughnessTexture === null &&
-    material.transmissionTexture === null &&
-    material.sheenColorTexture !== null &&
-    material.sheenRoughnessTexture === null &&
-    material.iridescenceTexture === null &&
-    material.iridescenceThicknessTexture === null &&
-    material.normalTexture === null &&
-    material.occlusionTexture === null &&
-    material.emissiveTexture === null
-  );
-}
-
-function isSheenRoughnessOnlyStandardMaterial(
-  material: StandardMaterialAsset,
-): boolean {
-  return (
-    material.baseColorTexture === null &&
-    material.metallicRoughnessTexture === null &&
-    material.clearcoatTexture === null &&
-    material.clearcoatRoughnessTexture === null &&
-    material.transmissionTexture === null &&
-    material.sheenColorTexture === null &&
-    material.sheenRoughnessTexture !== null &&
-    material.iridescenceTexture === null &&
-    material.iridescenceThicknessTexture === null &&
-    material.normalTexture === null &&
-    material.occlusionTexture === null &&
-    material.emissiveTexture === null
-  );
-}
-
-function isIridescenceOnlyStandardMaterial(
-  material: StandardMaterialAsset,
-): boolean {
-  return (
-    material.baseColorTexture === null &&
-    material.metallicRoughnessTexture === null &&
-    material.clearcoatTexture === null &&
-    material.clearcoatRoughnessTexture === null &&
-    material.transmissionTexture === null &&
-    material.sheenColorTexture === null &&
-    material.sheenRoughnessTexture === null &&
-    material.iridescenceTexture !== null &&
-    material.iridescenceThicknessTexture === null &&
-    material.normalTexture === null &&
-    material.occlusionTexture === null &&
-    material.emissiveTexture === null
-  );
-}
-
-function isIridescenceThicknessOnlyStandardMaterial(
-  material: StandardMaterialAsset,
-): boolean {
-  return (
-    material.baseColorTexture === null &&
-    material.metallicRoughnessTexture === null &&
-    material.clearcoatTexture === null &&
-    material.clearcoatRoughnessTexture === null &&
-    material.transmissionTexture === null &&
-    material.sheenColorTexture === null &&
-    material.sheenRoughnessTexture === null &&
-    material.iridescenceTexture === null &&
-    material.iridescenceThicknessTexture !== null &&
-    material.normalTexture === null &&
-    material.occlusionTexture === null &&
-    material.emissiveTexture === null
-  );
 }
 
 function emptyStandardMaterialDependencies(): Parameters<
