@@ -4,6 +4,7 @@ coverage/
 playwright-report/
 test-results/
 references/
+.aperture/
 
 .DS_Store
 *.log

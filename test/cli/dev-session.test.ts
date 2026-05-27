@@ -152,6 +152,7 @@ describe("Aperture CLI dev session and MCP command surface", () => {
     });
     expect(toolNames(tools?.result)).toEqual([
       "browser_status",
+      "browser_canvas_status",
       "browser_screenshot",
       "browser_console_logs",
       "browser_reload",
@@ -169,6 +170,7 @@ describe("Aperture CLI dev session and MCP command surface", () => {
       "ecs_step",
       "ecs_set_component_field",
       "ecs_get_hierarchy",
+      "asset_list",
       "input_key",
       "input_pointer_move",
       "input_pointer_click",

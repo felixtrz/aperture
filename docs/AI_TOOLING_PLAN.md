@@ -28,9 +28,11 @@ Use one real CLI package:
   - `aperture dev status`
   - `aperture dev open`
   - `aperture dev logs`
+  - `aperture tool <name>`
   - `aperture mcp stdio`
   - `aperture adapter sync`
-  - `aperture reference build`
+  - `aperture reference warmup`
+  - `aperture reference status`
   - `aperture reference search`
 
 Users should scaffold apps with:
@@ -47,7 +49,7 @@ Operator-facing usage and mutation/restoration rules are documented in
 [`docs/AI_TOOLING.md`](AI_TOOLING.md).
 
 The CLI package should own creation, managed browser lifecycle, MCP stdio,
-adapter sync, and reference indexing/search command surfaces. Heavy dependencies
+adapter sync, and reference RAG/warmup/search command surfaces. Heavy dependencies
 such as Playwright, MCP server helpers, and reference-indexing libraries should
 be CLI dependencies and loaded only by commands that need them.
 
@@ -171,6 +173,7 @@ not rely on "dispatch event, wait for next status frame" behavior.
 ### Browser Tools
 
 - `browser_status`
+- `browser_canvas_status`
 - `browser_screenshot`
 - `browser_console_logs`
 - `browser_reload`
@@ -194,6 +197,14 @@ not rely on "dispatch event, wait for next status frame" behavior.
 Mutation must stay allowlisted. Initial allowed mutations should include debug
 metadata and focused transform/camera fields. Broad arbitrary component writes
 should wait until there is a schema-safe mutation design.
+
+### Asset Tools
+
+- `asset_list`
+
+Asset tools report configured asset ids, kind, URL, preload policy, readiness,
+and load errors. They are read-only so agents can distinguish missing asset
+files from render extraction problems without probing private globals.
 
 ### Derived Hierarchy Tool
 
@@ -289,9 +300,9 @@ Tools:
 - `reference_find_dependents`
 - `reference_explain_diagnostic`
 
-The first version can use lexical search plus structured indexes. Semantic
-embeddings can be added behind the same tool names when the corpus and update
-workflow are stable.
+The current reference direction is a warmed RAG corpus with embeddings,
+manifest validation, source files, and CLI/MCP parity. The corpus must stay
+developer-facing rather than indexing the whole repository.
 
 ## App Creation and Adapter Sync
 
@@ -308,6 +319,15 @@ workflow are stable.
 - `.github/copilot-instructions.md`
 - `.codex/config.toml`
 - MCP config pointing at the workspace-local Aperture CLI
+- `package.json` scripts for `dev`, `build`, `typecheck`, and `aperture`
+
+The same CLI package should own these templates:
+
+- `minimal`: primitive 3D app with setup/spin systems.
+- `glb-viewer`: local GLB asset, blocking asset manifest, setup system, and
+  orbit system.
+- `game`: player input, camera follow, local GLB collectible, score/goal
+  signals, and deterministic priorities.
 
 `aperture adapter sync` should:
 
@@ -423,17 +443,23 @@ Acceptance criteria:
 
 ### Phase 7: Reference Tools
 
-Add reference index build/search and MCP reference tools.
+Add reference corpus warmup/search and MCP reference tools.
 
 Acceptance criteria:
 
-- `aperture reference build` creates a workspace-local index.
+- `aperture reference warmup` creates or installs a warmed RAG corpus with
+  embeddings, copied sources, manifest hashes, and an archive payload.
+- `aperture reference status` validates the warmed corpus and reports missing,
+  corrupt, ready, and model-mismatch states.
 - `aperture reference search` works from the CLI without a browser session.
 - MCP reference tools work with or without a running Aperture app.
-- The index includes docs, package exports, examples, tests, components,
-  systems, and diagnostics.
-- Results cite files and symbols, not only prose snippets.
-- End-to-end tests build the index in a temp workspace and invoke every
+- The corpus includes developer-facing docs, package exports, examples,
+  templates, selected dependency types, components, systems, and diagnostics.
+- The corpus excludes tests, agent handoff files, bulk reference checkouts, and
+  private renderer/WebGPU implementation files by default.
+- Results cite files, symbols, source category, and line ranges, not only prose
+  snippets.
+- End-to-end tests warm the corpus in a temp workspace and invoke every
   reference CLI and MCP tool.
 
 ### Phase 8: Adapter Sync
@@ -458,9 +484,10 @@ Acceptance criteria:
   harness.
 - Browser-dependent E2E tests prove managed browser launch, reconnect, reload,
   screenshot, logs, input, camera, ECS, render, and teardown behavior.
-- The generated app from `aperture create` passes install, typecheck, build,
-  dev startup, WebGPU readiness, MCP browser tools, MCP ECS tools, MCP input
-  tools, MCP camera tools, MCP render tools, and reference tools.
+- The generated app templates from `aperture create` pass install, typecheck,
+  build, dev startup, WebGPU readiness, MCP browser tools, MCP ECS tools, MCP
+  asset tools, MCP input tools, MCP camera tools, MCP render tools, and
+  reference tools where applicable.
 - Tests cover stale sessions, missing sessions, invalid app roots, unavailable
   WebGPU, port conflicts, bridge disconnects, browser crashes, and worker
   startup failures.

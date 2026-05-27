@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { readApertureDevSession, type ApertureDevSession } from "./session.js";
 import {
+  findApertureReferenceDependents,
   listApertureReferenceComponents,
   listApertureReferenceSystems,
   readApertureReferenceFile,
@@ -139,7 +140,10 @@ async function callReferenceTool(
       });
     case "reference_file_content": {
       const file = stringArg(args, "file") ?? "";
-      const entry = await readApertureReferenceFile(cwd, file);
+      const entry = await readApertureReferenceFile(cwd, file, {
+        ...optionalNumber("startLine", numberArg(args, "startLine")),
+        ...optionalNumber("endLine", numberArg(args, "endLine")),
+      });
 
       return entry === null
         ? {
@@ -148,7 +152,7 @@ async function callReferenceTool(
               code: "aperture.reference.fileNotIndexed",
               file,
               message:
-                "The requested file is not present in the reference index.",
+                "The requested file is not present in the warmed reference corpus.",
             },
           }
         : { ok: true, entry };
@@ -171,9 +175,9 @@ async function callReferenceTool(
         systems: await listApertureReferenceSystems(cwd),
       };
     case "reference_find_dependents":
-      return searchApertureReferences({
+      return findApertureReferenceDependents({
         cwd,
-        query: stringArg(args, "symbol") ?? stringArg(args, "query") ?? "",
+        symbol: stringArg(args, "symbol") ?? stringArg(args, "query") ?? "",
         ...optionalNumber("limit", numberArg(args, "limit")),
       });
     case "reference_explain_diagnostic":
@@ -181,6 +185,7 @@ async function callReferenceTool(
         cwd,
         query: stringArg(args, "code") ?? stringArg(args, "query") ?? "",
         limit: numberArg(args, "limit") ?? 5,
+        sourceCategory: "diagnostic",
       });
     default:
       return unsupportedTool(name, "Unknown Aperture reference tool.");
@@ -200,6 +205,8 @@ async function callBrowserBackedTool(
         session: sessionSummary(session),
         page: await readGeneratedStatus(page),
       };
+    case "browser_canvas_status":
+      return canvasStatus(page);
     case "browser_wait_for_webgpu":
       return waitForWebGpu(page, numberArg(args, "timeoutMs") ?? 30_000);
     case "browser_screenshot":
@@ -231,6 +238,8 @@ async function callBrowserBackedTool(
     case "ecs_pause":
     case "ecs_resume":
     case "ecs_step":
+      return callGeneratedRuntimeTool(page, name, args);
+    case "asset_list":
       return callGeneratedRuntimeTool(page, name, args);
     case "input_key":
       return inputKey(page, args);
@@ -402,6 +411,34 @@ async function screenshot(page: AperturePage): Promise<unknown> {
     encoding: "base64",
     data: bytes.toString("base64"),
   };
+}
+
+async function canvasStatus(page: AperturePage): Promise<unknown> {
+  const status = await page.evaluate(
+    ({ statusGlobal }) => {
+      const status = (globalThis as unknown as Record<string, unknown>)[
+        statusGlobal
+      ] as {
+        readonly canvas?: unknown;
+        readonly render?: unknown;
+        readonly diagnostics?: {
+          readonly lastFrame?: {
+            readonly renderTargets?: readonly unknown[];
+          };
+        };
+      } | null;
+
+      return {
+        canvas: status?.canvas ?? null,
+        render: status?.render ?? null,
+        renderTarget:
+          status?.diagnostics?.lastFrame?.renderTargets?.[0] ?? null,
+      };
+    },
+    { statusGlobal: STATUS_GLOBAL },
+  );
+
+  return { ok: true, status };
 }
 
 async function callGeneratedRuntimeTool(
@@ -920,9 +957,13 @@ function referenceKindArg(
 }
 
 function optionalNumber(
-  key: "limit",
+  key: "endLine" | "limit" | "startLine",
   value: number | undefined,
-): { readonly limit?: number } {
+): {
+  readonly endLine?: number;
+  readonly limit?: number;
+  readonly startLine?: number;
+} {
   return value === undefined ? {} : { [key]: value };
 }
 

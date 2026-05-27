@@ -4,6 +4,7 @@ import {
   readFile,
   readdir,
   rm,
+  stat,
   writeFile,
 } from "node:fs/promises";
 import os from "node:os";
@@ -34,10 +35,12 @@ describe("Aperture CLI create command", () => {
     expect(topLevel.stdout).toContain("aperture create");
     expect(topLevel.stdout).toContain("aperture adapter sync");
     expect(topLevel.stdout).toContain("aperture dev <subcommand>");
+    expect(topLevel.stdout).toContain("aperture tool <name>");
     expect(topLevel.stdout).toContain("aperture mcp stdio");
     expect(create.exitCode).toBe(0);
     expect(create.stdout).toContain("aperture create <path>");
     expect(create.stdout).toContain("--force");
+    expect(create.stdout).toContain("--template");
     expect(adapter.exitCode).toBe(0);
     expect(adapter.stdout).toContain("aperture adapter sync");
   });
@@ -62,6 +65,15 @@ describe("Aperture CLI create command", () => {
     const devSubcommand = await runCli(["dev", "unknown"], root);
     const devOption = await runCli(["dev", "up", "--unknown"], root);
     const mcpSubcommand = await runCli(["mcp", "unknown"], root);
+    const toolMissing = await runCli(["tool"], root);
+    const toolInvalidJson = await runCli(
+      ["tool", "browser_status", "--json", "[]"],
+      root,
+    );
+    const invalidTemplate = await runCli(
+      ["create", "bad-template", "--template", "empty"],
+      root,
+    );
     const referenceSubcommand = await runCli(["reference", "unknown"], root);
     const referenceOption = await runCli(
       ["reference", "search", "--unknown", "crate"],
@@ -88,6 +100,18 @@ describe("Aperture CLI create command", () => {
       exitCode: 1,
       stderr: expect.stringContaining("aperture.mcp.unknownSubcommand"),
     });
+    expect(toolMissing).toMatchObject({
+      exitCode: 1,
+      stderr: expect.stringContaining("aperture.tool.missingName"),
+    });
+    expect(toolInvalidJson).toMatchObject({
+      exitCode: 1,
+      stderr: expect.stringContaining("aperture.tool.invalidJson"),
+    });
+    expect(invalidTemplate).toMatchObject({
+      exitCode: 1,
+      stderr: expect.stringContaining("aperture.create.invalidTemplate"),
+    });
     expect(referenceSubcommand).toMatchObject({
       exitCode: 1,
       stderr: expect.stringContaining("aperture.reference.unknownSubcommand"),
@@ -106,6 +130,7 @@ describe("Aperture CLI create command", () => {
     });
 
     expect(report.packageName).toBe("starter-app");
+    expect(report.template).toBe("minimal");
     expect(report.files).toEqual(
       expect.arrayContaining([
         "package.json",
@@ -135,6 +160,10 @@ describe("Aperture CLI create command", () => {
       path.join(report.targetDir, "vite.config.ts"),
       "utf8",
     );
+    const apertureConfig = await readFile(
+      path.join(report.targetDir, "aperture.config.ts"),
+      "utf8",
+    );
     const setupSystem = await readFile(
       path.join(report.targetDir, "src/systems/setup.system.ts"),
       "utf8",
@@ -157,10 +186,102 @@ describe("Aperture CLI create command", () => {
       "@aperture-engine/cli": "workspace:*",
     });
     expect(viteConfig).toContain('mode: "agent"');
+    expect(apertureConfig).toContain("sampleCount: 4");
+    expect(apertureConfig).toContain("maxPixelRatio: 2");
     expect(setupSystem).toContain("this.spawn.camera");
     expect(setupSystem).toContain("starter.cube");
     expect(codexConfig).toContain("aperture");
     expect(codexConfig).toContain("mcp");
+  });
+
+  it("scaffolds the GLB viewer template with a local asset and orbit system", async () => {
+    const root = await tempRoot();
+    const report = await createApertureProject({
+      cwd: root,
+      name: "viewer",
+      template: "glb-viewer",
+    });
+
+    expect(report.template).toBe("glb-viewer");
+    expect(report.files).toEqual(
+      expect.arrayContaining([
+        "aperture.config.ts",
+        "public/assets/sample-cube.glb",
+        "src/systems/setup.system.ts",
+        "src/systems/orbit.system.ts",
+      ]),
+    );
+
+    const asset = await stat(
+      path.join(report.targetDir, "public/assets/sample-cube.glb"),
+    );
+    const config = await readFile(
+      path.join(report.targetDir, "aperture.config.ts"),
+      "utf8",
+    );
+    const setupSystem = await readFile(
+      path.join(report.targetDir, "src/systems/setup.system.ts"),
+      "utf8",
+    );
+    const orbitSystem = await readFile(
+      path.join(report.targetDir, "src/systems/orbit.system.ts"),
+      "utf8",
+    );
+
+    expect(asset.size).toBeGreaterThan(100);
+    expect(config).toContain(
+      'sampleCube: asset.gltf("/assets/sample-cube.glb"',
+    );
+    expect(config).toContain("sampleCount: 4");
+    expect(setupSystem).toContain("this.spawn.gltf");
+    expect(setupSystem).toContain("viewer.sampleCube");
+    expect(orbitSystem).toContain("priority: 20");
+  });
+
+  it("scaffolds the game template with gameplay systems, signals, and priorities", async () => {
+    const root = await tempRoot();
+    const report = await createApertureProject({
+      cwd: root,
+      name: "game",
+      template: "game",
+    });
+
+    expect(report.template).toBe("game");
+    expect(report.files).toEqual(
+      expect.arrayContaining([
+        "aperture.config.ts",
+        "public/assets/goal-cube.glb",
+        "src/systems/setup.system.ts",
+        "src/systems/player.system.ts",
+        "src/systems/camera-follow.system.ts",
+      ]),
+    );
+
+    const asset = await stat(
+      path.join(report.targetDir, "public/assets/goal-cube.glb"),
+    );
+    const config = await readFile(
+      path.join(report.targetDir, "aperture.config.ts"),
+      "utf8",
+    );
+    const playerSystem = await readFile(
+      path.join(report.targetDir, "src/systems/player.system.ts"),
+      "utf8",
+    );
+    const cameraSystem = await readFile(
+      path.join(report.targetDir, "src/systems/camera-follow.system.ts"),
+      "utf8",
+    );
+
+    expect(asset.size).toBeGreaterThan(100);
+    expect(config).toContain('goal: asset.gltf("/assets/goal-cube.glb"');
+    expect(config).toContain("score: signal.number(0)");
+    expect(config).toContain("goalReached: signal.boolean(false)");
+    expect(config).toContain("left: ");
+    expect(config).toContain("right: ");
+    expect(playerSystem).toContain("priority: 20");
+    expect(playerSystem).toContain("game.collectible.collected");
+    expect(cameraSystem).toContain("priority: 80");
   });
 
   it("refuses non-empty targets unless --force is provided", async () => {

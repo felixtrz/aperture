@@ -27,6 +27,30 @@ Normal browser apps use this shape:
 <canvas id="aperture"></canvas>
 ```
 
+## CLI Templates
+
+`@aperture-engine/cli` can scaffold app roots without a separate create package:
+
+```sh
+npx @aperture-engine/cli create my-app
+npx @aperture-engine/cli create viewer --template glb-viewer
+npx @aperture-engine/cli create game --template game
+```
+
+Available templates:
+
+- `minimal`: primitive cube, setup/spin systems, input action, signal, AI
+  adapter files, and render quality defaults.
+- `glb-viewer`: local `public/assets/sample-cube.glb`, blocking GLB asset
+  manifest entry, setup system, orbit system, stable `viewer.sampleCube` key,
+  and deterministic priorities.
+- `game`: local GLB collectible asset, player movement input actions, score and
+  goal signals, camera follow, collectible/goal state, and deterministic
+  priorities.
+
+Generated apps include `.mcp.json`, `.codex/config.toml`, Claude/Cursor/Copilot
+adapter files, and scripts for `dev`, `build`, and `typecheck`.
+
 ## Vite Config
 
 ```ts
@@ -75,6 +99,8 @@ export default defineApertureConfig({
     clearColor: [0.03, 0.035, 0.04, 1],
     defaultCamera: true,
     defaultLight: true,
+    sampleCount: 4,
+    maxPixelRatio: 2,
   },
   diagnostics: {
     level: "warn",
@@ -91,6 +117,13 @@ Asset preload policies:
 
 Headless apps use the same config shape with `mode: "headless"` and no canvas.
 The same system files can run in browser and headless mode.
+
+Generated browser apps default to 4x MSAA when `render.sampleCount` is omitted.
+Use `sampleCount: 1` to opt out for performance-sensitive apps. Canvas backing
+size follows device pixel ratio capped by `render.maxPixelRatio`, which defaults
+to `2`; use `render.pixelRatio` when an app needs an exact fixed backing-scale
+policy. Generated diagnostics report the CSS size, backing size, effective pixel
+ratio, aspect ratio, and MSAA state.
 
 ## Setup System
 
@@ -232,6 +265,10 @@ not a runtime signal and does not appear in `this.config`. Fields declared under
 modules default-export the class; the generated worker registers discovered
 systems in priority order. The main-thread generated bootstrap receives
 serializable manifest metadata, not live system classes.
+
+Use negative priorities only for very early setup, keep ordinary gameplay near
+`0` to `100`, and reserve larger values for late reactions such as camera follow
+or UI/status synchronization.
 
 ## Input, Signals, And Effects
 

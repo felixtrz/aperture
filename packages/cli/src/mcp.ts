@@ -1,4 +1,5 @@
 import { callApertureTool } from "./devtools-client.js";
+import { APERTURE_REFERENCE_TOOL_CONTRACT } from "./reference.js";
 
 const MCP_PROTOCOL_VERSION = "2025-06-18";
 
@@ -185,6 +186,10 @@ function writeJson(stdout: McpOutputStream, value: unknown): void {
 function toolDefinitions(): readonly McpToolDefinition[] {
   return [
     tool("browser_status", "Read the active Aperture browser/session status."),
+    tool(
+      "browser_canvas_status",
+      "Read canvas CSS size, backing size, DPR policy, and render-target size.",
+    ),
     tool("browser_screenshot", "Capture a PNG screenshot of the managed tab."),
     tool("browser_console_logs", "Read recent managed-browser console logs.", {
       lines: { type: "number" },
@@ -227,6 +232,7 @@ function toolDefinitions(): readonly McpToolDefinition[] {
       "Mutate an allowlisted ECS component field.",
     ),
     tool("ecs_get_hierarchy", "Return a derived ECS parent/child hierarchy."),
+    tool("asset_list", "List configured Aperture assets and readiness state."),
     tool("input_key", "Send keyboard input through the managed browser.", {
       key: { type: "string" },
       action: { enum: ["press", "down", "up"] },
@@ -308,23 +314,13 @@ function toolDefinitions(): readonly McpToolDefinition[] {
       y: { type: "number" },
       coordinateSpace: { enum: ["auto", "normalized", "pixel"] },
     }),
-    tool("reference_search", "Search the Aperture reference index."),
-    tool("reference_api_lookup", "Look up exported Aperture API symbols."),
-    tool(
-      "reference_file_content",
-      "Read indexed Aperture reference file content.",
+    ...APERTURE_REFERENCE_TOOL_CONTRACT.map((definition) =>
+      tool(
+        definition.name,
+        definition.description,
+        definition.properties ?? {},
+      ),
     ),
-    tool(
-      "reference_find_examples",
-      "Find Aperture examples related to a query.",
-    ),
-    tool("reference_list_components", "List indexed Aperture components."),
-    tool("reference_list_systems", "List indexed Aperture systems."),
-    tool(
-      "reference_find_dependents",
-      "Find indexed dependents of a symbol or file.",
-    ),
-    tool("reference_explain_diagnostic", "Explain an indexed diagnostic code."),
   ];
 }
 

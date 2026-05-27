@@ -11,6 +11,8 @@ Create an app:
 
 ```sh
 npx @aperture-engine/cli create my-app
+npx @aperture-engine/cli create viewer --template glb-viewer
+npx @aperture-engine/cli create game --template game
 ```
 
 Run a managed dev session from an Aperture app root:
@@ -18,6 +20,8 @@ Run a managed dev session from an Aperture app root:
 ```sh
 pnpm exec aperture dev up --headless
 pnpm exec aperture dev status
+pnpm exec aperture tool browser_canvas_status
+pnpm exec aperture tool asset_list
 pnpm exec aperture mcp stdio
 pnpm exec aperture dev down
 ```
@@ -27,7 +31,8 @@ Useful supporting commands:
 ```sh
 pnpm exec aperture dev logs
 pnpm exec aperture adapter sync
-pnpm exec aperture reference build
+pnpm exec aperture reference warmup
+pnpm exec aperture reference status
 pnpm exec aperture reference search createSystem
 ```
 
@@ -35,14 +40,32 @@ pnpm exec aperture reference search createSystem
 `.aperture/runtime/session.json`. MCP tools use that session file rather than
 hard-coded ports.
 
+`aperture tool <name> [--json <object>]` calls the same browser, ECS, asset,
+input, camera, render, and reference tool contracts exposed over MCP. Browser
+backed tools require an active managed dev session. Reference tools can run
+after the reference corpus has been warmed.
+
 ## State Ownership
 
 The tools do not introduce a scene graph. ECS remains the source of truth,
 rendering remains a derived view of ECS snapshots, and browser/WebGPU logic
 stays in dev tooling paths.
 
-Reference tools are read-only and work without a running app. Browser, ECS,
-input, camera, and render tools require an active managed dev session.
+Reference tools are read-only, embedding-backed, and work without a running app
+after `aperture reference warmup` has prepared the curated developer-facing
+corpus. Browser, ECS, input, camera, and render tools require an active managed
+dev session.
+
+Useful inspection tools include:
+
+- `browser_canvas_status`: CSS size, backing size, effective DPR, aspect, and
+  render target size.
+- `asset_list`: configured asset ids, kind, URL, preload policy, readiness, and
+  load errors.
+- `ecs_find_entities`, `ecs_get_entity`, `ecs_get_hierarchy`: ECS lookup and
+  derived hierarchy views.
+- `render_get_frame_report`, `render_get_packets`, `render_get_diagnostics`:
+  render extraction and WebGPU diagnostics.
 
 ## Mutating Tools
 

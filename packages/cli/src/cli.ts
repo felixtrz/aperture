@@ -14,11 +14,16 @@ import {
 import { runApertureMcpServer } from "./mcp.js";
 import {
   buildApertureReferenceIndex,
+  readApertureReferenceStatus,
   searchApertureReferences,
+  warmApertureReferences,
   type ApertureReferenceSearchReport,
+  type ApertureReferenceStatusReport,
   type BuildApertureReferenceIndexReport,
+  type WarmApertureReferenceReport,
 } from "./reference.js";
 import type { ApertureDevSessionStatus } from "./session.js";
+import { callApertureTool } from "./devtools-client.js";
 
 const CLI_VERSION = "0.0.0";
 
@@ -37,11 +42,13 @@ export interface CreateApertureProjectOptions {
   readonly cwd: string;
   readonly name: string;
   readonly force?: boolean;
+  readonly template?: ApertureCreateTemplate;
 }
 
 export interface CreateApertureProjectReport {
   readonly targetDir: string;
   readonly packageName: string;
+  readonly template: ApertureCreateTemplate;
   readonly files: readonly string[];
 }
 
@@ -67,6 +74,7 @@ export interface SyncApertureAdapterConflict {
 interface ParsedCreateCommand {
   readonly name: string;
   readonly force: boolean;
+  readonly template: ApertureCreateTemplate;
 }
 
 interface ParsedAdapterSyncCommand {
@@ -90,14 +98,22 @@ interface ParsedReferenceSearchCommand {
   readonly limit?: number;
 }
 
+interface ParsedToolCommand {
+  readonly name: string;
+  readonly arguments?: Record<string, unknown>;
+}
+
 type TemplateFile = {
   readonly path: string;
-  readonly contents: string;
+  readonly contents: string | Uint8Array;
 };
+
+type ApertureCreateTemplate = "minimal" | "glb-viewer" | "game";
 
 type ManagedBlockStyle = "html" | "hash";
 
-type AdapterTemplateFile = TemplateFile & {
+type AdapterTemplateFile = Omit<TemplateFile, "contents"> & {
+  readonly contents: string;
   readonly sync:
     | {
         readonly kind: "managedBlock";
@@ -157,6 +173,7 @@ export async function runApertureCli(
         cwd: options.cwd,
         name: parsed.name,
         force: parsed.force,
+        template: parsed.template,
       });
 
       io.stdout(createSuccessMessage(report, options.cwd));
@@ -290,6 +307,25 @@ export async function runApertureCli(
       return 0;
     }
 
+    if (command === "tool") {
+      if (rest.some(isHelpFlag)) {
+        io.stdout(toolHelp());
+        return 0;
+      }
+
+      const parsed = parseToolCommand(rest);
+      const result = await callApertureTool({
+        cwd: options.cwd,
+        name: parsed.name,
+        ...(parsed.arguments === undefined
+          ? {}
+          : { arguments: parsed.arguments }),
+      });
+
+      io.stdout(`${JSON.stringify(result, null, 2)}\n`);
+      return 0;
+    }
+
     if (command === "reference") {
       if (rest.some(isHelpFlag)) {
         io.stdout(referenceHelp());
@@ -297,6 +333,28 @@ export async function runApertureCli(
       }
 
       const [subcommand, ...subcommandRest] = rest;
+
+      if (subcommand === "warmup") {
+        const parsed = parseReferenceWarmupCommand(subcommandRest);
+        io.stdout(
+          referenceWarmupMessage(
+            await warmApertureReferences({
+              cwd: options.cwd,
+              ...(parsed.from === undefined ? {} : { from: parsed.from }),
+            }),
+          ),
+        );
+        return 0;
+      }
+
+      if (subcommand === "status") {
+        io.stdout(
+          referenceStatusMessage(
+            await readApertureReferenceStatus(options.cwd),
+          ),
+        );
+        return 0;
+      }
 
       if (subcommand === "build") {
         io.stdout(
@@ -323,7 +381,7 @@ export async function runApertureCli(
 
       throw new ApertureCliError(
         "aperture.reference.unknownSubcommand",
-        "The reference command supports build and search. Run 'aperture reference --help' for usage.",
+        "The reference command supports warmup, status, build, and search. Run 'aperture reference --help' for usage.",
       );
     }
 
@@ -365,20 +423,27 @@ export async function createApertureProject(
   const packageName = npmPackageNameFromPath(targetDir);
 
   await assertWritableTarget(targetDir, options.force === true);
+  const template = options.template ?? "minimal";
   const files = createTemplateFiles({
     packageName,
     dependencySpec: defaultApertureDependencySpec(),
+    template,
   });
 
   for (const file of files) {
     const absolutePath = path.join(targetDir, file.path);
     await mkdir(path.dirname(absolutePath), { recursive: true });
-    await writeFile(absolutePath, file.contents, "utf8");
+    if (typeof file.contents === "string") {
+      await writeFile(absolutePath, file.contents, "utf8");
+    } else {
+      await writeFile(absolutePath, file.contents);
+    }
   }
 
   return {
     targetDir,
     packageName,
+    template,
     files: files.map((file) => file.path),
   };
 }
@@ -555,10 +620,23 @@ function resolveIo(options: RunApertureCliOptions): ApertureCliIo {
 function parseCreateCommand(argv: readonly string[]): ParsedCreateCommand {
   let name: string | null = null;
   let force = false;
+  let template: ApertureCreateTemplate = "minimal";
 
-  for (const arg of argv) {
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+
+    if (arg === undefined) {
+      continue;
+    }
+
     if (arg === "--force") {
       force = true;
+      continue;
+    }
+
+    if (arg === "--template") {
+      index += 1;
+      template = parseCreateTemplate(readOptionValue(argv, index, arg));
       continue;
     }
 
@@ -586,7 +664,18 @@ function parseCreateCommand(argv: readonly string[]): ParsedCreateCommand {
     );
   }
 
-  return { name, force };
+  return { name, force, template };
+}
+
+function parseCreateTemplate(value: string): ApertureCreateTemplate {
+  if (value === "minimal" || value === "glb-viewer" || value === "game") {
+    return value;
+  }
+
+  throw new ApertureCliError(
+    "aperture.create.invalidTemplate",
+    `Unknown create template '${value}'. Use minimal, glb-viewer, or game.`,
+  );
 }
 
 function parseAdapterSyncCommand(
@@ -693,6 +782,73 @@ function parseDevLogsCommand(argv: readonly string[]): ParsedDevLogsCommand {
   return lines === undefined ? {} : { lines };
 }
 
+function parseToolCommand(argv: readonly string[]): ParsedToolCommand {
+  let name: string | undefined;
+  let args: Record<string, unknown> | undefined;
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+
+    if (arg === "--json" || arg === "--args") {
+      index += 1;
+      args = parseToolJsonArgs(readOptionValue(argv, index, arg));
+      continue;
+    }
+
+    if (arg?.startsWith("-") === true) {
+      throw new ApertureCliError(
+        "aperture.tool.unknownOption",
+        `Unknown tool option '${arg}'. Run 'aperture tool --help' for supported options.`,
+      );
+    }
+
+    if (name !== undefined) {
+      throw new ApertureCliError(
+        "aperture.tool.tooManyArguments",
+        "The tool command accepts one tool name.",
+      );
+    }
+
+    name = arg;
+  }
+
+  if (name === undefined || name.length === 0) {
+    throw new ApertureCliError(
+      "aperture.tool.missingName",
+      "The tool command requires a tool name, for example 'aperture tool browser_status'.",
+    );
+  }
+
+  return {
+    name,
+    ...(args === undefined ? {} : { arguments: args }),
+  };
+}
+
+function parseToolJsonArgs(value: string): Record<string, unknown> {
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(value) as unknown;
+  } catch (error: unknown) {
+    throw new ApertureCliError(
+      "aperture.tool.invalidJson",
+      `Tool arguments must be valid JSON. ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
+
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new ApertureCliError(
+      "aperture.tool.invalidJson",
+      "Tool arguments JSON must be an object.",
+    );
+  }
+
+  return parsed as Record<string, unknown>;
+}
+
 function parseReferenceSearchCommand(
   argv: readonly string[],
 ): ParsedReferenceSearchCommand {
@@ -732,6 +888,29 @@ function parseReferenceSearchCommand(
     query,
     ...(limit === undefined ? {} : { limit }),
   };
+}
+
+function parseReferenceWarmupCommand(argv: readonly string[]): {
+  readonly from?: string;
+} {
+  let from: string | undefined;
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+
+    if (arg === "--from") {
+      index += 1;
+      from = readOptionValue(argv, index, arg);
+      continue;
+    }
+
+    throw new ApertureCliError(
+      "aperture.reference.unknownOption",
+      `Unknown reference warmup option '${arg ?? ""}'. Run 'aperture reference --help' for supported options.`,
+    );
+  }
+
+  return from === undefined ? {} : { from };
 }
 
 function readOptionValue(
@@ -836,6 +1015,7 @@ function defaultApertureDependencySpec(): string {
 function createTemplateFiles(input: {
   readonly packageName: string;
   readonly dependencySpec: string;
+  readonly template: ApertureCreateTemplate;
 }): readonly TemplateFile[] {
   const packageJson = {
     name: input.packageName,
@@ -860,6 +1040,8 @@ function createTemplateFiles(input: {
     },
   };
 
+  const templateFiles = createAppTemplateFiles(input.template);
+
   return [
     {
       path: "package.json",
@@ -877,6 +1059,52 @@ function createTemplateFiles(input: {
       path: "vite.config.ts",
       contents: viteConfigTs(),
     },
+    ...templateFiles,
+    ...adapterTemplateFiles(),
+  ];
+}
+
+function createAppTemplateFiles(
+  template: ApertureCreateTemplate,
+): readonly TemplateFile[] {
+  if (template === "glb-viewer") {
+    return [
+      { path: "aperture.config.ts", contents: glbViewerConfigTs() },
+      binaryTemplateFile(
+        "public/assets/sample-cube.glb",
+        SAMPLE_CUBE_GLB_BASE64,
+      ),
+      {
+        path: "src/systems/setup.system.ts",
+        contents: glbViewerSetupSystemTs(),
+      },
+      {
+        path: "src/systems/orbit.system.ts",
+        contents: glbViewerOrbitSystemTs(),
+      },
+    ];
+  }
+
+  if (template === "game") {
+    return [
+      { path: "aperture.config.ts", contents: gameConfigTs() },
+      binaryTemplateFile("public/assets/goal-cube.glb", SAMPLE_CUBE_GLB_BASE64),
+      {
+        path: "src/systems/setup.system.ts",
+        contents: gameSetupSystemTs(),
+      },
+      {
+        path: "src/systems/player.system.ts",
+        contents: gamePlayerSystemTs(),
+      },
+      {
+        path: "src/systems/camera-follow.system.ts",
+        contents: gameCameraFollowSystemTs(),
+      },
+    ];
+  }
+
+  return [
     {
       path: "aperture.config.ts",
       contents: apertureConfigTs(),
@@ -889,8 +1117,14 @@ function createTemplateFiles(input: {
       path: "src/systems/spin.system.ts",
       contents: spinSystemTs(),
     },
-    ...adapterTemplateFiles(),
   ];
+}
+
+function binaryTemplateFile(path: string, base64: string): TemplateFile {
+  return {
+    path,
+    contents: Buffer.from(base64, "base64"),
+  };
 }
 
 function adapterTemplateFiles(): readonly AdapterTemplateFile[] {
@@ -1016,11 +1250,358 @@ export default defineApertureConfig({
     clearColor: [0.03, 0.035, 0.04, 1],
     defaultCamera: false,
     defaultLight: false,
+    sampleCount: 4,
+    maxPixelRatio: 2,
   },
   diagnostics: {
     level: "info",
   },
 });
+`;
+}
+
+const SAMPLE_CUBE_GLB_BASE64 =
+  "Z2xURgIAAADsAwAAKAMAAEpTT057ImFzc2V0Ijp7InZlcnNpb24iOiIyLjAiLCJnZW5lcmF0b3IiOiJBcGVydHVyZSB0YXNrLTIwMDcgZml4dHVyZSJ9LCJzY2VuZSI6MCwic2NlbmVzIjpbeyJub2RlcyI6WzBdfV0sIm5vZGVzIjpbeyJuYW1lIjoiU2FtcGxlQ3ViZSIsIm1lc2giOjAsInJvdGF0aW9uIjpbMCwwLjI1ODgxOSwwLDAuOTY1OTI2XX1dLCJtZXNoZXMiOlt7Im5hbWUiOiJTYW1wbGVDdWJlTWVzaCIsInByaW1pdGl2ZXMiOlt7ImF0dHJpYnV0ZXMiOnsiUE9TSVRJT04iOjB9LCJpbmRpY2VzIjoxLCJtYXRlcmlhbCI6MH1dfV0sIm1hdGVyaWFscyI6W3sibmFtZSI6IlNhbXBsZUN1YmVNaW50IiwicGJyTWV0YWxsaWNSb3VnaG5lc3MiOnsiYmFzZUNvbG9yRmFjdG9yIjpbMC4xNiwwLjc4LDAuNTYsMV19LCJleHRlbnNpb25zIjp7IktIUl9tYXRlcmlhbHNfdW5saXQiOnt9fX1dLCJidWZmZXJzIjpbeyJieXRlTGVuZ3RoIjoxNjh9XSwiYnVmZmVyVmlld3MiOlt7ImJ1ZmZlciI6MCwiYnl0ZU9mZnNldCI6MCwiYnl0ZUxlbmd0aCI6OTYsInRhcmdldCI6MzQ5NjJ9LHsiYnVmZmVyIjowLCJieXRlT2Zmc2V0Ijo5NiwiYnl0ZUxlbmd0aCI6NzIsInRhcmdldCI6MzQ5NjN9XSwiYWNjZXNzb3JzIjpbeyJidWZmZXJWaWV3IjowLCJieXRlT2Zmc2V0IjowLCJjb21wb25lbnRUeXBlIjo1MTI2LCJjb3VudCI6OCwidHlwZSI6IlZFQzMiLCJtaW4iOlstMC43LC0wLjcsLTAuN10sIm1heCI6WzAuNywwLjcsMC43XX0seyJidWZmZXJWaWV3IjoxLCJieXRlT2Zmc2V0IjowLCJjb21wb25lbnRUeXBlIjo1MTIzLCJjb3VudCI6MzYsInR5cGUiOiJTQ0FMQVIifV19qAAAAEJJTgAzMzO/MzMzvzMzM78zMzM/MzMzvzMzM78zMzM/MzMzPzMzM78zMzO/MzMzPzMzM78zMzO/MzMzvzMzMz8zMzM/MzMzvzMzMz8zMzM/MzMzPzMzMz8zMzO/MzMzPzMzMz8AAAEAAgAAAAIAAwAEAAYABQAEAAcABgAAAAQABQAAAAUAAQABAAUABgABAAYAAgACAAYABwACAAcAAwADAAcABAADAAQAAAA=";
+
+function glbViewerConfigTs(): string {
+  return `import { asset, defineApertureConfig } from "@aperture-engine/app/config";
+
+export default defineApertureConfig({
+  mode: "browser",
+  canvas: "#aperture",
+  systems: ["src/systems/**/*.system.ts"],
+  assets: {
+    sampleCube: asset.gltf("/assets/sample-cube.glb", {
+      preload: "blocking",
+      label: "Sample Cube",
+    }),
+  },
+  input: {
+    actions: {
+      resetView: [{ keyboard: "KeyR" }],
+    },
+  },
+  render: {
+    clearColor: [0.03, 0.035, 0.04, 1],
+    defaultCamera: false,
+    defaultLight: false,
+    sampleCount: 4,
+    maxPixelRatio: 2,
+  },
+  diagnostics: {
+    level: "info",
+  },
+});
+`;
+}
+
+function glbViewerSetupSystemTs(): string {
+  return `import { createSystem } from "@aperture-engine/app/systems";
+
+export default class SetupSystem extends createSystem({ priority: 0 }) {
+  override init(): void {
+    this.spawn.camera({
+      key: "camera.main",
+      name: "Main Camera",
+      transform: {
+        translation: [0, 1.4, 4],
+        lookAt: [0, 0.4, 0],
+      },
+      fovYDegrees: 50,
+    });
+
+    this.spawn.light({
+      key: "light.key",
+      name: "Key Light",
+      kind: "directional",
+      illuminance: 4,
+      transform: {
+        rotationEulerDegrees: [-40, 35, 0],
+      },
+    });
+
+    this.spawn.light({
+      key: "light.fill",
+      name: "Fill Light",
+      kind: "ambient",
+      intensity: 0.4,
+    });
+
+    this.spawn.gltf(this.assets.gltf("sampleCube"), {
+      key: "viewer.sampleCube",
+      name: "Sample Cube",
+      tags: ["asset", "gltf", "inspectable"],
+    });
+  }
+}
+`;
+}
+
+function glbViewerOrbitSystemTs(): string {
+  return `import {
+  AppEntityKey,
+  LocalTransform,
+  createSystem,
+  quatFromAxisAngle,
+} from "@aperture-engine/app/systems";
+
+export default class OrbitSystem extends createSystem({
+  priority: 20,
+  queries: {
+    objects: { required: [AppEntityKey, LocalTransform] },
+  },
+}) {
+  override update(_delta: number, time: number): void {
+    for (const entity of this.queries.objects.entities) {
+      if (entity.getValue(AppEntityKey, "value") !== "viewer.sampleCube") {
+        continue;
+      }
+
+      entity
+        .getVectorView(LocalTransform, "rotation")
+        .set(quatFromAxisAngle([0, 1, 0], time * 0.6));
+    }
+  }
+}
+`;
+}
+
+function gameConfigTs(): string {
+  return `import { asset, defineApertureConfig, signal } from "@aperture-engine/app/config";
+
+export default defineApertureConfig({
+  mode: "browser",
+  canvas: "#aperture",
+  systems: ["src/systems/**/*.system.ts"],
+  assets: {
+    goal: asset.gltf("/assets/goal-cube.glb", {
+      preload: "blocking",
+      label: "Goal Cube",
+    }),
+  },
+  signals: {
+    score: signal.number(0),
+    playerX: signal.number(0),
+    goalReached: signal.boolean(false),
+  },
+  input: {
+    actions: {
+      left: [{ keyboard: "ArrowLeft" }, { keyboard: "KeyA" }],
+      right: [{ keyboard: "ArrowRight" }, { keyboard: "KeyD" }],
+      jump: [{ keyboard: "Space" }, { keyboard: "KeyW" }],
+      reset: [{ keyboard: "KeyR" }],
+    },
+  },
+  render: {
+    clearColor: [0.08, 0.12, 0.16, 1],
+    defaultCamera: false,
+    defaultLight: false,
+    sampleCount: 4,
+    maxPixelRatio: 2,
+  },
+  diagnostics: {
+    level: "info",
+  },
+});
+`;
+}
+
+function gameSetupSystemTs(): string {
+  return `import { createSystem, material, mesh } from "@aperture-engine/app/systems";
+
+export default class SetupSystem extends createSystem({ priority: 0 }) {
+  override init(): void {
+    this.spawn.camera({
+      key: "camera.main",
+      name: "Main Camera",
+      transform: {
+        translation: [0, 3, 7],
+        lookAt: [0, 0.6, 0],
+      },
+      fovYDegrees: 50,
+    });
+
+    this.spawn.light({
+      key: "light.key",
+      name: "Key Light",
+      kind: "directional",
+      illuminance: 4,
+      transform: {
+        rotationEulerDegrees: [-45, 25, 0],
+      },
+    });
+
+    this.spawn.light({
+      key: "light.fill",
+      name: "Fill Light",
+      kind: "ambient",
+      intensity: 0.45,
+    });
+
+    this.spawn.mesh({
+      key: "level.ground",
+      name: "Ground",
+      tags: ["level", "ground"],
+      mesh: mesh.box({ size: [9, 0.3, 1.5] }),
+      material: material.standard({
+        baseColor: [0.18, 0.44, 0.32, 1],
+        roughness: 0.65,
+      }),
+      transform: { translation: [0, -0.15, 0] },
+    });
+
+    this.spawn.mesh({
+      key: "player",
+      name: "Player",
+      tags: ["player", "controllable"],
+      mesh: mesh.box({ size: [0.5, 0.8, 0.5] }),
+      material: material.standard({
+        baseColor: [0.18, 0.58, 1, 1],
+        roughness: 0.45,
+      }),
+      transform: { translation: [-3.5, 0.55, 0] },
+    });
+
+    this.spawn.gltf(this.assets.gltf("goal"), {
+      key: "collectible.goal",
+      name: "Goal Gem",
+      tags: ["collectible", "goal"],
+      transform: { translation: [1.8, 0.65, 0], scale: [0.35, 0.35, 0.35] },
+    });
+
+    this.spawn.mesh({
+      key: "finish.flag",
+      name: "Finish",
+      tags: ["finish"],
+      mesh: mesh.box({ size: [0.25, 1.2, 0.25] }),
+      material: material.standard({
+        baseColor: [1, 0.25, 0.3, 1],
+        roughness: 0.5,
+      }),
+      transform: { translation: [3.8, 0.6, 0] },
+    });
+  }
+}
+`;
+}
+
+function gamePlayerSystemTs(): string {
+  return `import {
+  AppEntityKey,
+  LocalTransform,
+  createSystem,
+} from "@aperture-engine/app/systems";
+
+export default class PlayerSystem extends createSystem({
+  priority: 20,
+  queries: {
+    actors: { required: [AppEntityKey, LocalTransform] },
+  },
+}) {
+  override update(delta: number): void {
+    const player = this.findByKey("player");
+    const gem = this.findByKey("collectible.goal");
+    const score = this.signals.score;
+    const playerX = this.signals.playerX;
+    const goalReached = this.signals.goalReached;
+
+    if (
+      player === null ||
+      score === undefined ||
+      playerX === undefined ||
+      goalReached === undefined
+    ) {
+      return;
+    }
+
+    const playerTranslation = player.getVectorView(LocalTransform, "translation");
+
+    if (this.input.actions.reset?.pressed.value === true) {
+      playerTranslation[0] = -3.5;
+      score.value = 0;
+      goalReached.value = false;
+      if (gem !== null) {
+        gem.getVectorView(LocalTransform, "translation")[1] = 0.65;
+      }
+    }
+
+    const direction =
+      (this.input.actions.right?.pressed.value === true ? 1 : 0) -
+      (this.input.actions.left?.pressed.value === true ? 1 : 0);
+    const playerCurrentX = playerTranslation[0] ?? -3.5;
+    const playerNextX = Math.max(
+      -4,
+      Math.min(4.2, playerCurrentX + direction * delta * 3),
+    );
+    playerTranslation[0] = playerNextX;
+    playerX.value = playerNextX;
+
+    if (
+      gem !== null &&
+      Number(score.value) === 0 &&
+      Math.abs(playerNextX - 1.8) < 0.45
+    ) {
+      score.value = 1;
+      gem.getVectorView(LocalTransform, "translation")[1] = -10;
+      this.diagnostics.info("game.collectible.collected", {
+        score: score.value,
+      });
+    }
+
+    if (Number(score.value) > 0 && playerNextX > 3.5) {
+      goalReached.value = true;
+    }
+  }
+
+  private findByKey(key: string) {
+    for (const entity of this.queries.actors.entities) {
+      if (entity.getValue(AppEntityKey, "value") === key) {
+        return entity;
+      }
+    }
+
+    return null;
+  }
+}
+`;
+}
+
+function gameCameraFollowSystemTs(): string {
+  return `import {
+  AppEntityKey,
+  LocalTransform,
+  createSystem,
+} from "@aperture-engine/app/systems";
+
+export default class CameraFollowSystem extends createSystem({
+  priority: 80,
+  queries: {
+    actors: { required: [AppEntityKey, LocalTransform] },
+  },
+}) {
+  override update(): void {
+    const player = this.findByKey("player");
+    const camera = this.findByKey("camera.main");
+
+    if (player === null || camera === null) {
+      return;
+    }
+
+    const playerTranslation = player.getVectorView(LocalTransform, "translation");
+    const cameraTranslation = camera.getVectorView(LocalTransform, "translation");
+    cameraTranslation[0] = playerTranslation[0] ?? 0;
+  }
+
+  private findByKey(key: string) {
+    for (const entity of this.queries.actors.entities) {
+      if (entity.getValue(AppEntityKey, "value") === key) {
+        return entity;
+      }
+    }
+
+    return null;
+  }
+}
 `;
 }
 
@@ -1221,9 +1802,10 @@ Usage:
 Commands:
   aperture create <path>        Scaffold an Aperture app with AI tooling files.
   aperture dev <subcommand>     Manage an AI-enabled dev browser session.
+  aperture tool <name>          Call one Aperture browser/ECS/render tool.
   aperture mcp stdio            Expose Aperture tools over MCP stdio.
   aperture adapter sync         Sync AI coding-tool adapter files.
-  aperture reference <command>  Build and query Aperture reference indexes.
+  aperture reference <command>  Warm and query the Aperture RAG corpus.
 
 Options:
   -h, --help           Show help.
@@ -1233,12 +1815,16 @@ Options:
 
 function referenceHelp(): string {
   return `Usage:
+  aperture reference warmup [--from <path-or-url>]
+  aperture reference status
   aperture reference build
   aperture reference search <query> [--limit <count>]
 
-Builds and searches a workspace-local Aperture reference index.
+Warms, validates, and searches the Aperture RAG reference corpus.
+The build subcommand is a local producer alias retained for development.
 
 Options:
+  --from <path-or-url> Use a local or hosted reference asset payload.
   --limit <count>     Maximum search results. Defaults to 10.
   -h, --help          Show help.
 `;
@@ -1279,6 +1865,26 @@ Options:
 `;
 }
 
+function toolHelp(): string {
+  return `Usage:
+  aperture tool <name> [--json <object>]
+
+Calls the same Aperture browser, ECS, input, render, camera, and reference tools
+that are exposed over MCP. Requires an active dev session for browser-backed
+tools; reference tools can run without one.
+
+Examples:
+  aperture tool browser_status
+  aperture tool render_get_diagnostics
+  aperture tool input_key --json '{"key":"Enter","action":"press"}'
+
+Options:
+  --json <object>     JSON object passed as tool arguments.
+  --args <object>     Alias for --json.
+  -h, --help          Show help.
+`;
+}
+
 function adapterHelp(): string {
   return `Usage:
   aperture adapter sync [--force]
@@ -1293,13 +1899,14 @@ Options:
 
 function createHelp(): string {
   return `Usage:
-  aperture create <path> [--force]
+  aperture create <path> [--force] [--template <minimal|glb-viewer|game>]
 
 Scaffolds a Vite-based Aperture app with starter ECS systems, Aperture config,
 and AI adapter files.
 
 Options:
   --force              Write starter files into a non-empty directory.
+  --template <name>    Template to scaffold. Defaults to minimal.
   -h, --help           Show help.
 `;
 }
@@ -1365,11 +1972,57 @@ ${log.text}`,
 function referenceBuildMessage(
   report: BuildApertureReferenceIndexReport,
 ): string {
-  return `Built Aperture reference index.
+  return `Built Aperture reference corpus.
 
 Root: ${report.root}
 Index: ${report.indexFile}
+Manifest: ${report.manifestFile}
+Archive: ${report.archiveFile}
 Entries: ${report.entries}
+Chunks: ${report.chunks}
+Sources: ${report.sources}
+`;
+}
+
+function referenceWarmupMessage(report: WarmApertureReferenceReport): string {
+  return `Warmed Aperture reference corpus.
+
+Root: ${report.root}
+Source: ${report.source}
+Index: ${report.indexFile}
+Manifest: ${report.manifestFile}
+Archive: ${report.archiveFile}
+State: ${report.stateFile}
+Entries: ${report.entries}
+Chunks: ${report.chunks}
+Sources: ${report.sources}
+`;
+}
+
+function referenceStatusMessage(report: ApertureReferenceStatusReport): string {
+  const diagnostics =
+    report.diagnostics.length === 0
+      ? "Diagnostics: none"
+      : `Diagnostics:\n${report.diagnostics
+          .map(
+            (diagnostic) =>
+              `- ${diagnostic.code}: ${diagnostic.message} Suggested fix: ${diagnostic.suggestedFix}`,
+          )
+          .join("\n")}`;
+
+  return `Aperture reference corpus
+
+Status: ${report.status}
+Ready: ${report.ok ? "yes" : "no"}
+Root: ${report.root}
+Index: ${report.indexFile}
+Manifest: ${report.manifestFile}
+Archive: ${report.archiveFile}
+State: ${report.stateFile}
+Chunks: ${report.chunks}
+Sources: ${report.sources}
+Model: ${report.model.provider}/${report.model.model}@${report.model.revision}
+${diagnostics}
 `;
 }
 
@@ -1384,6 +2037,7 @@ Index: ${report.indexFile}
   return `${report.results
     .map(
       (result) => `${result.file} (${result.kind}, score ${result.score})
+${result.symbol} lines ${result.startLine}-${result.endLine}
 ${result.snippet}`,
     )
     .join("\n\n")}

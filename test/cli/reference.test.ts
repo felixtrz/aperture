@@ -4,12 +4,15 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  apertureReferenceArchiveFile,
   apertureReferenceIndexFile,
-  buildApertureReferenceIndex,
+  apertureReferenceManifestFile,
   callApertureTool,
+  readApertureReferenceStatus,
   runApertureCli,
   runApertureMcpServer,
   searchApertureReferences,
+  warmApertureReferences,
 } from "@aperture-engine/cli";
 
 const tempRoots: string[] = [];
@@ -21,54 +24,168 @@ describe("Aperture reference CLI and MCP tools", () => {
     }
   });
 
-  it("builds and searches a workspace-local reference index", async () => {
+  it("warms, validates, and searches a curated RAG reference corpus", async () => {
     const root = await referenceWorkspace();
-    const build = await buildApertureReferenceIndex({ cwd: root });
+    const build = await warmApertureReferences({ cwd: root });
 
     expect(build.entries).toBeGreaterThan(2);
     expect(build.indexFile).toBe(apertureReferenceIndexFile(root));
+    expect(build.manifestFile).toBe(apertureReferenceManifestFile(root));
+    expect(build.archiveFile).toBe(apertureReferenceArchiveFile(root));
+
+    const status = await readApertureReferenceStatus(root);
+    expect(status).toMatchObject({
+      ok: true,
+      status: "ready",
+      chunks: expect.any(Number),
+      sources: expect.any(Number),
+    });
 
     const index = JSON.parse(await readFile(build.indexFile, "utf8")) as {
+      readonly chunks: readonly {
+        readonly embedding: readonly number[];
+        readonly metadata: {
+          readonly file: string;
+          readonly sourceCategory: string;
+          readonly startLine: number;
+          readonly endLine: number;
+        };
+      }[];
       readonly entries: readonly { readonly file: string }[];
     };
     expect(index.entries).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ file: "docs/guide.md" }),
+        expect.objectContaining({ file: "docs/AUTHORING.md" }),
         expect.objectContaining({
           file: "packages/app/src/spin.system.ts",
+        }),
+      ]),
+    );
+    expect(index.entries).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ file: "agent/HANDOFF.md" }),
+        expect.objectContaining({ file: "references/engine/private.ts" }),
+        expect.objectContaining({ file: "test/private.test.ts" }),
+      ]),
+    );
+    expect(index.chunks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          embedding: expect.arrayContaining([expect.any(Number)]),
+          metadata: expect.objectContaining({
+            file: "packages/app/src/spin.system.ts",
+            sourceCategory: "api",
+            startLine: expect.any(Number),
+            endLine: expect.any(Number),
+          }),
         }),
       ]),
     );
 
     const search = await searchApertureReferences({
       cwd: root,
-      query: "SpinSystem",
+      query: "rotating crate scheduler priority",
     });
     expect(search.total).toBeGreaterThan(0);
     expect(search.results[0]).toMatchObject({
       file: "packages/app/src/spin.system.ts",
+      sourceCategory: "api",
       systems: expect.arrayContaining(["SpinSystem"]),
     });
   });
 
-  it("exposes reference build/search through the CLI", async () => {
+  it("exposes reference warmup/status/search through the CLI", async () => {
     const root = await referenceWorkspace();
-    const build = await runCli(["reference", "build"], root);
+    const build = await runCli(["reference", "warmup"], root);
+    const status = await runCli(["reference", "status"], root);
     const search = await runCli(
       ["reference", "search", "aperture.entityLookup.notFound", "--limit", "2"],
       root,
     );
 
     expect(build.exitCode).toBe(0);
-    expect(build.stdout).toContain("Built Aperture reference index");
+    expect(build.stdout).toContain("Warmed Aperture reference corpus");
+    expect(status.exitCode).toBe(0);
+    expect(status.stdout).toContain("Status: ready");
     expect(search.exitCode).toBe(0);
     expect(search.stdout).toContain("diagnostics.ts");
     expect(search.stdout).toContain("aperture.entityLookup.notFound");
   });
 
+  it("detects corrupt warmed payloads and repairs them on warmup", async () => {
+    const root = await referenceWorkspace();
+    await warmApertureReferences({ cwd: root });
+
+    await writeFile(
+      path.join(
+        root,
+        ".aperture/runtime/reference/data/sources/packages/app/src/components.ts",
+      ),
+      "corrupted source payload",
+      "utf8",
+    );
+    const corruptPayload = await readApertureReferenceStatus(root);
+    expect(corruptPayload).toMatchObject({
+      ok: false,
+      status: "corrupt",
+      diagnostics: expect.arrayContaining([
+        expect.objectContaining({
+          code: "aperture.reference.fileCorrupt",
+        }),
+      ]),
+    });
+
+    await warmApertureReferences({ cwd: root });
+    await writeFile(apertureReferenceIndexFile(root), "{ invalid json", "utf8");
+
+    const corrupt = await readApertureReferenceStatus(root);
+    expect(corrupt).toMatchObject({
+      ok: false,
+      status: "corrupt",
+    });
+
+    const repaired = await warmApertureReferences({ cwd: root });
+    expect(repaired.chunks).toBeGreaterThan(0);
+    await expect(readApertureReferenceStatus(root)).resolves.toMatchObject({
+      ok: true,
+      status: "ready",
+    });
+  });
+
+  it("warms from a produced local payload directory", async () => {
+    const producerRoot = await referenceWorkspace();
+    const consumerRoot = await tempRoot();
+    await warmApertureReferences({ cwd: producerRoot });
+
+    const payloadDir = path.dirname(
+      apertureReferenceManifestFile(producerRoot),
+    );
+    const warm = await warmApertureReferences({
+      cwd: consumerRoot,
+      from: payloadDir,
+    });
+    const search = await searchApertureReferences({
+      cwd: consumerRoot,
+      query: "SpinSystem",
+    });
+
+    expect(warm.source).toBe("directory");
+    expect(search.results).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ file: "packages/app/src/spin.system.ts" }),
+      ]),
+    );
+    await expect(
+      readApertureReferenceStatus(consumerRoot),
+    ).resolves.toMatchObject({
+      ok: true,
+      status: "ready",
+    });
+  });
+
   it("serves reference tools without a dev browser session", async () => {
     const root = await referenceWorkspace();
-    await buildApertureReferenceIndex({ cwd: root });
+    await warmApertureReferences({ cwd: root });
 
     const results = await callApertureTool({
       cwd: root,
@@ -106,7 +223,7 @@ describe("Aperture reference CLI and MCP tools", () => {
 
   it("serves every reference MCP tool over stdio without a dev browser session", async () => {
     const root = await referenceWorkspace();
-    await buildApertureReferenceIndex({ cwd: root });
+    await warmApertureReferences({ cwd: root });
 
     const search = await callMcpTool(root, "reference_search", {
       query: "SpinSystem",
@@ -134,11 +251,14 @@ describe("Aperture reference CLI and MCP tools", () => {
 
     const file = await callMcpTool(root, "reference_file_content", {
       file: "packages/app/src/spin.system.ts",
+      startLine: 1,
+      endLine: 4,
     });
     expect(file.structuredContent).toMatchObject({
       ok: true,
       entry: {
         file: "packages/app/src/spin.system.ts",
+        text: expect.stringContaining("SpinSystem"),
       },
     });
 
@@ -173,7 +293,7 @@ describe("Aperture reference CLI and MCP tools", () => {
     expect(dependents.structuredContent).toMatchObject({
       results: expect.arrayContaining([
         expect.objectContaining({
-          file: "packages/app/src/components.ts",
+          file: "packages/app/src/spin.system.ts",
         }),
       ]),
     });
@@ -194,12 +314,22 @@ describe("Aperture reference CLI and MCP tools", () => {
   it("prints reference help and missing-query diagnostics", async () => {
     const root = await tempRoot();
     const help = await runCli(["reference", "--help"], root);
+    const status = await runCli(["reference", "status"], root);
     const missing = await runCli(["reference", "search"], root);
+    const missingWarmup = await runCli(
+      ["reference", "search", "createSystem"],
+      root,
+    );
 
     expect(help.exitCode).toBe(0);
+    expect(help.stdout).toContain("aperture reference warmup");
     expect(help.stdout).toContain("aperture reference build");
+    expect(status.exitCode).toBe(0);
+    expect(status.stdout).toContain("Status: missing");
     expect(missing.exitCode).toBe(1);
     expect(missing.stderr).toContain("aperture.reference.missingQuery");
+    expect(missingWarmup.exitCode).toBe(1);
+    expect(missingWarmup.stderr).toContain("aperture reference warmup");
   });
 });
 
@@ -208,10 +338,28 @@ async function referenceWorkspace(): Promise<string> {
 
   await mkdir(path.join(root, "docs"), { recursive: true });
   await mkdir(path.join(root, "examples"), { recursive: true });
+  await mkdir(path.join(root, "agent"), { recursive: true });
+  await mkdir(path.join(root, "references/engine"), { recursive: true });
+  await mkdir(path.join(root, "test"), { recursive: true });
   await mkdir(path.join(root, "packages/app/src"), { recursive: true });
   await writeFile(
-    path.join(root, "docs/guide.md"),
-    "Use DebugMetadata and SpinSystem when inspecting Aperture ECS apps.",
+    path.join(root, "docs/AUTHORING.md"),
+    "# Authoring\n\nUse DebugMetadata and SpinSystem when inspecting Aperture ECS apps.",
+    "utf8",
+  );
+  await writeFile(
+    path.join(root, "agent/HANDOFF.md"),
+    "private agent note",
+    "utf8",
+  );
+  await writeFile(
+    path.join(root, "references/engine/private.ts"),
+    "export const privateReference = true;",
+    "utf8",
+  );
+  await writeFile(
+    path.join(root, "test/private.test.ts"),
+    "export const privateTest = true;",
     "utf8",
   );
   await writeFile(
@@ -229,8 +377,13 @@ async function referenceWorkspace(): Promise<string> {
   );
   await writeFile(
     path.join(root, "packages/app/src/spin.system.ts"),
-    `export default class SpinSystem extends createSystem({
+    `import { DebugMetadata } from "./components.js";
+
+export default class SpinSystem extends createSystem({
   priority: 10,
+  queries: {
+    debug: { required: [DebugMetadata] },
+  },
 }) {}
 `,
     "utf8",

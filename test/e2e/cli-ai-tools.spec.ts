@@ -12,6 +12,7 @@ const CLI = path.resolve("packages/cli/dist/bin/aperture.js");
 const APP_ROOT = path.resolve("examples/developer-api");
 const PORT = 5187;
 const CREATED_APP_PORT = 5193;
+const TEMPLATE_APP_PORT = 5201;
 const WORKER_FAILURE_PORT = 5196;
 const WEBGPU_UNAVAILABLE_PORT = 5197;
 const MCP_TOOL_TIMEOUT_MS = 60_000;
@@ -72,6 +73,89 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
       page: {
         managed: true,
       },
+    });
+
+    const canvasStatus = await callMcpTool("browser_canvas_status", {});
+    expect(canvasStatus.structuredContent).toMatchObject({
+      ok: true,
+      status: {
+        canvas: {
+          width: expect.any(Number),
+          height: expect.any(Number),
+          displayWidth: expect.any(Number),
+          displayHeight: expect.any(Number),
+          pixelRatio: expect.any(Number),
+        },
+        renderTarget: {
+          width: expect.any(Number),
+          height: expect.any(Number),
+        },
+      },
+    });
+
+    const cliBrowserStatus = JSON.parse(
+      (await runCli(["tool", "browser_status"])).stdout,
+    ) as unknown;
+    expect(cliBrowserStatus).toMatchObject({
+      ok: true,
+      session: {
+        url: `http://127.0.0.1:${PORT}/`,
+      },
+      page: {
+        managed: true,
+      },
+    });
+
+    const cliCanvasStatus = JSON.parse(
+      (await runCli(["tool", "browser_canvas_status"])).stdout,
+    ) as unknown;
+    expect(cliCanvasStatus).toMatchObject({
+      ok: true,
+      status: {
+        canvas: {
+          pixelRatio: expect.any(Number),
+        },
+      },
+    });
+
+    const cliAssets = JSON.parse(
+      (await runCli(["tool", "asset_list"])).stdout,
+    ) as unknown;
+    expect(cliAssets).toMatchObject({
+      ok: true,
+      result: {
+        assets: expect.arrayContaining([
+          expect.objectContaining({
+            id: "robot",
+            kind: "gltf",
+            ready: true,
+          }),
+        ]),
+      },
+    });
+
+    const cliRenderFrame = JSON.parse(
+      (await runCli(["tool", "render_get_frame_report"])).stdout,
+    ) as unknown;
+    expect(cliRenderFrame).toMatchObject({
+      ok: true,
+      report: {
+        lastFrame: expect.any(Object),
+      },
+    });
+
+    const cliInput = JSON.parse(
+      (
+        await runCli([
+          "tool",
+          "input_key",
+          "--json",
+          JSON.stringify({ key: "Enter", action: "press" }),
+        ])
+      ).stdout,
+    ) as unknown;
+    expect(cliInput).toMatchObject({
+      ok: true,
     });
 
     const consoleLogs = await callMcpTool("browser_console_logs", {
@@ -758,8 +842,8 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
     const logs = await runCli(["dev", "logs", "--lines", "5"]);
     expect(logs.stdout).toContain("browser.log");
 
-    const referenceBuild = await runCli(["reference", "build"]);
-    expect(referenceBuild.stdout).toContain("Built Aperture reference index");
+    const referenceBuild = await runCli(["reference", "warmup"]);
+    expect(referenceBuild.stdout).toContain("Warmed Aperture reference corpus");
 
     const referenceSearch = await runCli([
       "reference",
@@ -1108,6 +1192,18 @@ test("aperture create produces an installable app that works with CLI AI tools",
       ]),
     });
 
+    const generatedAssets = await callMcpTool(
+      "asset_list",
+      {},
+      { cwd: appRoot },
+    );
+    expect(generatedAssets.structuredContent).toMatchObject({
+      ok: true,
+      result: {
+        assets: expect.any(Array),
+      },
+    });
+
     const pointer = await callMcpTool(
       "input_pointer_click",
       { x: 0.5, y: 0.5 },
@@ -1292,10 +1388,10 @@ test("aperture create produces an installable app that works with CLI AI tools",
       },
     });
 
-    const referenceBuild = await runCli(["reference", "build"], {
+    const referenceBuild = await runCli(["reference", "warmup"], {
       cwd: appRoot,
     });
-    expect(referenceBuild.stdout).toContain("Built Aperture reference index");
+    expect(referenceBuild.stdout).toContain("Warmed Aperture reference corpus");
     const referenceSearch = await runCli(
       ["reference", "search", "Starter Cube", "--limit", "3"],
       { cwd: appRoot },
@@ -1419,9 +1515,329 @@ test("aperture create produces an installable app that works with CLI AI tools",
   }
 });
 
+test("aperture create templates typecheck, build, and pass browser smoke checks", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "aperture-templates-e2e-"));
+  const templates = [
+    {
+      name: "minimal",
+      template: "minimal",
+      key: "starter.cube",
+      assetId: undefined,
+      port: TEMPLATE_APP_PORT,
+    },
+    {
+      name: "viewer",
+      template: "glb-viewer",
+      key: "viewer.sampleCube",
+      assetId: "sampleCube",
+      port: TEMPLATE_APP_PORT + 1,
+    },
+    {
+      name: "game",
+      template: "game",
+      key: "player",
+      assetId: "goal",
+      port: TEMPLATE_APP_PORT + 2,
+    },
+  ] as const;
+
+  try {
+    for (const template of templates) {
+      await runCli(["create", template.name, "--template", template.template], {
+        cwd: root,
+      });
+    }
+
+    await writeFile(
+      path.join(root, "pnpm-workspace.yaml"),
+      [
+        "packages:",
+        '  - "minimal"',
+        '  - "viewer"',
+        '  - "game"',
+        `  - ${JSON.stringify(path.resolve("packages/*"))}`,
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    await writeFile(
+      path.join(root, "package.json"),
+      `${JSON.stringify(
+        {
+          name: "aperture-template-e2e",
+          version: "0.0.0",
+          private: true,
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+
+    await runPnpm(
+      [
+        "install",
+        "--filter",
+        "minimal",
+        "--filter",
+        "viewer",
+        "--filter",
+        "game",
+        "--ignore-scripts",
+      ],
+      root,
+      120_000,
+    );
+
+    for (const template of templates) {
+      const appRoot = path.join(root, template.name);
+      await runPnpm(["run", "typecheck"], appRoot, 60_000);
+      await runPnpm(["run", "build"], appRoot, 60_000);
+    }
+
+    for (const template of templates) {
+      const appRoot = path.join(root, template.name);
+
+      try {
+        await runCli(["dev", "down"], { cwd: appRoot, allowFailure: true });
+        const up = await runCli(
+          ["dev", "up", "--port", String(template.port), "--headless"],
+          { cwd: appRoot },
+        );
+        expect(up.stdout).toContain("Started Aperture dev session");
+
+        const ready = await callMcpTool(
+          "browser_wait_for_webgpu",
+          { timeoutMs: 30_000 },
+          { cwd: appRoot },
+        );
+        expect(ready.structuredContent).toMatchObject({
+          ok: true,
+          page: {
+            status: {
+              status: "running",
+              webgpuOk: true,
+            },
+          },
+        });
+
+        if (template.name === "minimal") {
+          await expectManagedCanvasResize(appRoot, [
+            { width: 1024, height: 640 },
+            { width: 740, height: 720 },
+            { width: 390, height: 844 },
+          ]);
+        }
+
+        const canvas = await callMcpTool(
+          "browser_canvas_status",
+          {},
+          { cwd: appRoot },
+        );
+        expect(canvas.structuredContent).toMatchObject({
+          ok: true,
+          status: {
+            canvas: {
+              width: expect.any(Number),
+              height: expect.any(Number),
+              aspect: expect.any(Number),
+            },
+            renderTarget: {
+              width: expect.any(Number),
+              height: expect.any(Number),
+              msaaSampleCount: 4,
+            },
+          },
+        });
+
+        const entity = await callMcpTool(
+          "ecs_find_entities",
+          { key: template.key },
+          { cwd: appRoot },
+        );
+        expect(entity.structuredContent).toMatchObject({
+          ok: true,
+          result: {
+            total: 1,
+          },
+        });
+
+        const frame = await callMcpTool(
+          "render_get_frame_report",
+          {},
+          { cwd: appRoot },
+        );
+        expect(frame.structuredContent).toMatchObject({
+          ok: true,
+          report: {
+            lastFrame: {
+              counts: {
+                drawCalls: expect.any(Number),
+              },
+            },
+          },
+        });
+
+        if (template.assetId !== undefined) {
+          const assets = await callMcpTool("asset_list", {}, { cwd: appRoot });
+          expect(assets.structuredContent).toMatchObject({
+            ok: true,
+            result: {
+              assets: expect.arrayContaining([
+                expect.objectContaining({
+                  id: template.assetId,
+                  kind: "gltf",
+                  ready: true,
+                  error: null,
+                }),
+              ]),
+            },
+          });
+        }
+
+        if (template.template === "game") {
+          await callMcpTool(
+            "input_action_set",
+            { action: "right", pressed: true },
+            { cwd: appRoot },
+          );
+          await delay(2_600);
+          await callMcpTool(
+            "input_action_set",
+            { action: "right", pressed: false },
+            { cwd: appRoot },
+          );
+
+          const status = await callMcpTool(
+            "browser_status",
+            {},
+            { cwd: appRoot },
+          );
+          const signals = generatedSignals(status.structuredContent);
+
+          expect(signals.score).toBe(1);
+          expect(signals.goalReached).toBe(true);
+          expect(Number(signals.playerX)).toBeGreaterThan(3.5);
+        }
+      } finally {
+        await runCli(["dev", "down"], { cwd: appRoot, allowFailure: true });
+      }
+    }
+  } finally {
+    for (const template of templates) {
+      await runCli(["dev", "down"], {
+        cwd: path.join(root, template.name),
+        allowFailure: true,
+      });
+    }
+    await rm(root, { force: true, recursive: true });
+  }
+});
+
 interface CommandResult {
   readonly stdout: string;
   readonly stderr: string;
+}
+
+async function delay(ms: number): Promise<void> {
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+function generatedSignals(content: unknown): Record<string, unknown> {
+  const page = (content as { readonly page?: unknown }).page;
+  const status = (page as { readonly status?: unknown } | undefined)?.status;
+  const summary = (
+    status as { readonly lastWorkerSummary?: unknown } | undefined
+  )?.lastWorkerSummary;
+  const signals = (summary as { readonly signals?: unknown } | undefined)
+    ?.signals;
+
+  return typeof signals === "object" && signals !== null
+    ? (signals as Record<string, unknown>)
+    : {};
+}
+
+async function expectManagedCanvasResize(
+  cwd: string,
+  sizes: readonly { readonly width: number; readonly height: number }[],
+): Promise<void> {
+  for (const size of sizes) {
+    await withManagedPage(cwd, async (page) => {
+      await page.setViewportSize(size);
+    });
+
+    const deadline = Date.now() + 10_000;
+    let lastStatus: ManagedCanvasStatus | null = null;
+
+    while (Date.now() < deadline) {
+      lastStatus = await readManagedCanvasStatus(cwd);
+
+      if (
+        lastStatus.canvas.displayWidth === size.width &&
+        lastStatus.canvas.displayHeight === size.height &&
+        lastStatus.renderTarget.width === lastStatus.canvas.width &&
+        lastStatus.renderTarget.height === lastStatus.canvas.height
+      ) {
+        expect(lastStatus.canvas.aspect).toBeCloseTo(
+          size.width / size.height,
+          5,
+        );
+        return;
+      }
+
+      await delay(100);
+    }
+
+    throw new Error(
+      `Canvas did not resize to ${size.width}x${size.height}: ${JSON.stringify(
+        lastStatus,
+      )}`,
+    );
+  }
+}
+
+interface ManagedCanvasStatus {
+  readonly canvas: {
+    readonly width: number;
+    readonly height: number;
+    readonly displayWidth: number;
+    readonly displayHeight: number;
+    readonly aspect: number;
+  };
+  readonly renderTarget: {
+    readonly width: number;
+    readonly height: number;
+  };
+}
+
+async function readManagedCanvasStatus(
+  cwd: string,
+): Promise<ManagedCanvasStatus> {
+  const report = await callMcpTool("browser_canvas_status", {}, { cwd });
+  const status = (
+    report.structuredContent as {
+      readonly status?: {
+        readonly canvas?: unknown;
+        readonly renderTarget?: unknown;
+      };
+    }
+  ).status;
+  const canvas = status?.canvas as ManagedCanvasStatus["canvas"] | undefined;
+  const renderTarget = status?.renderTarget as
+    | ManagedCanvasStatus["renderTarget"]
+    | undefined;
+
+  if (canvas === undefined || renderTarget === undefined) {
+    throw new Error(
+      `browser_canvas_status did not return canvas and renderTarget: ${JSON.stringify(
+        report.structuredContent,
+      )}`,
+    );
+  }
+
+  return { canvas, renderTarget };
 }
 
 function firstEntityRef(content: unknown): Record<string, unknown> {
