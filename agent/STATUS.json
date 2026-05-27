@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "7664084d",
+  "lastCommit": "b62a80cc",
   "activePid": null,
-  "notes": "Continued PACKAGE_STRUCTURE_REFACTOR_PLAN Track 2/3: split app frame-target, report/resource-reuse, source asset, picking, material dependency, pipeline layout, resource-cache, snapshot, draw-resource-set, standard app pipeline-key, app attachment, and GPU readback helpers out of app.ts.",
-  "lastRunFinishedAt": "2026-05-27T20:45:07Z"
+  "notes": "Continued PACKAGE_STRUCTURE_REFACTOR_PLAN Track 2/3: split app frame-target, report/resource-reuse, source asset, picking, material dependency, pipeline layout, resource-cache, snapshot, draw-resource-set, standard app pipeline-key, app attachment, GPU readback, and transmission-grab helpers out of app.ts.",
+  "lastRunFinishedAt": "2026-05-27T20:47:45Z"
 }

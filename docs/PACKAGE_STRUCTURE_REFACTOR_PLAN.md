@@ -56,6 +56,10 @@ Status: in progress
   `packages/webgpu/src/app/gpu-readback.ts`, covering timestamp query
   readback, occlusion query readback, occlusion feedback updates, and GPU
   timing diagnostics summary merging.
+- StandardMaterial transmission-grab resource setup now lives in
+  `packages/webgpu/src/app/transmission-grab.ts`, covering scene-color
+  post-pass texture reuse, sampler creation/reuse, and transmission resource
+  diagnostics for queued app frames.
 
 ## Purpose
 

@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-27T20:45:07Z
+Updated: 2026-05-27T20:47:45Z
+
+## Current Run Update — 2026-05-27T20:47:45Z — WebGPU transmission grab helpers split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted StandardMaterial transmission-grab resource setup from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/transmission-grab.ts`.
+- The new module owns scene-color post-pass texture reuse, transmission sampler
+  creation/reuse, texture-view validation, and transmission scene-color
+  resource diagnostics.
+- `app.ts` now delegates transmission-grab resource preparation before queued
+  built-in frame resources are assembled.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/transmission-grab.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/transmission-grab.ts`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `pnpm exec vitest run test/webgpu/light-bind-group.test.ts test/webgpu/render-pass-draw-list.test.ts --testNamePattern "transmission"`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|creates a renderer-only app|renders mixed standard and matcap app resource sets"`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs full picking orchestration, queued built-in frame resource
+  preparation, frame-loop orchestration, render-bundle/occlusion planning, and
+  diagnostics orchestration splits.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 with render-bundle/occlusion planning helpers or start the
+larger queued built-in frame-resource split once enough surrounding support
+helpers have been extracted.
 
 ## Current Run Update — 2026-05-27T20:45:07Z — WebGPU app GPU readback helpers split
 
