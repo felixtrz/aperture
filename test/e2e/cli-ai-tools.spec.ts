@@ -926,6 +926,32 @@ test("aperture create produces an installable app that works with CLI AI tools",
       },
     });
 
+    const generatedBrowserStatus = await callMcpTool(
+      "browser_status",
+      {},
+      { cwd: appRoot },
+    );
+    expect(generatedBrowserStatus.structuredContent).toMatchObject({
+      ok: true,
+      page: {
+        managed: true,
+      },
+    });
+
+    const generatedScreenshot = await callMcpTool(
+      "browser_screenshot",
+      {},
+      { cwd: appRoot },
+    );
+    expect(generatedScreenshot.structuredContent).toMatchObject({
+      ok: true,
+      mimeType: "image/png",
+    });
+    expect(
+      (generatedScreenshot.structuredContent as { readonly data?: string }).data
+        ?.length ?? 0,
+    ).toBeGreaterThan(1000);
+
     const entity = await callMcpTool(
       "ecs_find_entities",
       { key: "starter.cube" },
@@ -942,6 +968,113 @@ test("aperture create produces an installable app that works with CLI AI tools",
         ],
       },
     });
+    const generatedEntity = firstEntityRef(entity.structuredContent);
+
+    const generatedGet = await callMcpTool(
+      "ecs_get_entity",
+      { entity: generatedEntity },
+      { cwd: appRoot },
+    );
+    expect(generatedGet.structuredContent).toMatchObject({
+      ok: true,
+      result: {
+        summary: {
+          key: "starter.cube",
+        },
+      },
+    });
+
+    const generatedSchema = await callMcpTool(
+      "ecs_get_component_schema",
+      { component: "aperture.transform.local" },
+      { cwd: appRoot },
+    );
+    expect(generatedSchema.structuredContent).toMatchObject({
+      ok: true,
+      result: {
+        schemas: expect.arrayContaining([
+          expect.objectContaining({
+            id: "aperture.transform.local",
+          }),
+        ]),
+      },
+    });
+
+    const generatedSnapshot = await callMcpTool(
+      "ecs_snapshot",
+      { key: "starter.cube", label: "generated-before" },
+      { cwd: appRoot },
+    );
+    expect(generatedSnapshot.structuredContent).toMatchObject({
+      ok: true,
+      result: {
+        label: "generated-before",
+      },
+    });
+
+    const generatedDiff = await callMcpTool(
+      "ecs_diff",
+      { key: "starter.cube", label: "generated-after" },
+      { cwd: appRoot },
+    );
+    expect(generatedDiff.structuredContent).toMatchObject({
+      ok: true,
+      result: {
+        counts: expect.any(Object),
+      },
+    });
+
+    const generatedHierarchy = await callMcpTool(
+      "ecs_get_hierarchy",
+      {},
+      { cwd: appRoot },
+    );
+    expect(generatedHierarchy.structuredContent).toMatchObject({
+      ok: true,
+      result: {
+        roots: expect.arrayContaining([
+          expect.objectContaining({
+            key: "starter.cube",
+          }),
+        ]),
+      },
+    });
+
+    const generatedSystems = await callMcpTool(
+      "ecs_list_systems",
+      {},
+      { cwd: appRoot },
+    );
+    expect(generatedSystems.structuredContent).toMatchObject({
+      ok: true,
+      systems: expect.arrayContaining([
+        expect.objectContaining({
+          moduleUrl: expect.stringContaining("setup.system.ts"),
+        }),
+      ]),
+    });
+
+    const pointer = await callMcpTool(
+      "input_pointer_click",
+      { x: 0.5, y: 0.5 },
+      { cwd: appRoot },
+    );
+    expect(pointer.structuredContent).toMatchObject({
+      ok: true,
+      point: {
+        x: expect.any(Number),
+        y: expect.any(Number),
+      },
+    });
+
+    const generatedKey = await callMcpTool(
+      "input_key",
+      { key: "Enter", action: "press" },
+      { cwd: appRoot },
+    );
+    expect(generatedKey.structuredContent).toMatchObject({
+      ok: true,
+    });
 
     const action = await callMcpTool(
       "input_action_set",
@@ -956,6 +1089,11 @@ test("aperture create produces an installable app that works with CLI AI tools",
       },
     });
 
+    const inputReset = await callMcpTool("input_reset", {}, { cwd: appRoot });
+    expect(inputReset.structuredContent).toMatchObject({
+      ok: true,
+    });
+
     const camera = await callMcpTool(
       "camera_create_agent",
       { key: "camera.agent.generated", lookAt: [0, 0.5, 0] },
@@ -965,6 +1103,110 @@ test("aperture create produces an installable app that works with CLI AI tools",
       ok: true,
       result: {
         key: "camera.agent.generated",
+      },
+    });
+
+    const savedCamera = await callMcpTool(
+      "camera_save",
+      { key: "camera.agent.generated", slot: "generated" },
+      { cwd: appRoot },
+    );
+    expect(savedCamera.structuredContent).toMatchObject({
+      ok: true,
+      result: {
+        slot: "generated",
+      },
+    });
+
+    const fitCamera = await callMcpTool(
+      "camera_fit_entity",
+      { key: "camera.agent.generated", entity: generatedEntity, radius: 4 },
+      { cwd: appRoot },
+    );
+    expect(fitCamera.structuredContent).toMatchObject({
+      ok: true,
+      result: {
+        key: "camera.agent.generated",
+      },
+    });
+
+    const agentView = await callMcpTool(
+      "camera_use_agent_view",
+      { key: "camera.agent.generated" },
+      { cwd: appRoot },
+    );
+    expect(agentView.structuredContent).toMatchObject({
+      ok: true,
+      result: {
+        camera: expect.objectContaining({
+          priority: 10000,
+        }),
+      },
+    });
+
+    const restoredCamera = await callMcpTool(
+      "camera_restore",
+      { key: "camera.agent.generated", slot: "generated" },
+      { cwd: appRoot },
+    );
+    expect(restoredCamera.structuredContent).toMatchObject({
+      ok: true,
+      result: {
+        key: "camera.agent.generated",
+      },
+    });
+
+    const frame = await callMcpTool(
+      "render_get_frame_report",
+      {},
+      { cwd: appRoot },
+    );
+    expect(frame.structuredContent).toMatchObject({
+      ok: true,
+      report: {
+        lastFrame: expect.any(Object),
+      },
+    });
+
+    const packets = await callMcpTool(
+      "render_get_packets",
+      { family: "meshDraws" },
+      { cwd: appRoot },
+    );
+    expect(packets.structuredContent).toMatchObject({
+      ok: true,
+      packets: {
+        families: {
+          meshDraws: {
+            family: "meshDraws",
+          },
+        },
+      },
+    });
+
+    const explain = await callMcpTool(
+      "render_explain_entity",
+      { key: "starter.cube" },
+      { cwd: appRoot },
+    );
+    expect(explain.structuredContent).toMatchObject({
+      ok: true,
+      report: {
+        entity: expect.objectContaining({
+          key: "starter.cube",
+        }),
+      },
+    });
+
+    const diagnostics = await callMcpTool(
+      "render_get_diagnostics",
+      {},
+      { cwd: appRoot },
+    );
+    expect(diagnostics.structuredContent).toMatchObject({
+      ok: true,
+      diagnostics: {
+        app: expect.any(Object),
       },
     });
 
@@ -985,6 +1227,17 @@ test("aperture create produces an installable app that works with CLI AI tools",
       },
     });
 
+    const pick = await callMcpTool(
+      "render_pick_entity",
+      { x: 0.5, y: 0.5 },
+      { cwd: appRoot },
+    );
+    expect(pick.structuredContent).toMatchObject({
+      result: {
+        pick: expect.any(Object),
+      },
+    });
+
     const referenceBuild = await runCli(["reference", "build"], {
       cwd: appRoot,
     });
@@ -994,6 +1247,19 @@ test("aperture create produces an installable app that works with CLI AI tools",
       { cwd: appRoot },
     );
     expect(referenceSearch.stdout).toContain("setup.system.ts");
+
+    const mcpReferenceSearch = await callMcpTool(
+      "reference_search",
+      { query: "Starter Cube", limit: 3 },
+      { cwd: appRoot },
+    );
+    expect(mcpReferenceSearch.structuredContent).toMatchObject({
+      results: expect.arrayContaining([
+        expect.objectContaining({
+          file: "src/systems/setup.system.ts",
+        }),
+      ]),
+    });
   } finally {
     await runCli(["dev", "down"], { cwd: appRoot, allowFailure: true });
     await rm(root, { force: true, recursive: true });
