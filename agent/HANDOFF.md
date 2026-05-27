@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-27T21:07:22Z
+Updated: 2026-05-27T21:12:04Z
+
+## Current Run Update — 2026-05-27T21:12:04Z — WebGPU app sprite helpers split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted app sprite frame-resource helpers from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/sprites.ts`.
+- The new module owns sprite pipeline caching, sprite data packing, default
+  sampler creation/reuse, texture/sampler resource preparation, bind group
+  creation, and sprite draw command emission.
+- `app.ts` still owns sprite-only frame orchestration, but now delegates sprite
+  resource preparation and command creation.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/sprites.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/sprites.ts`
+- `pnpm exec vitest run test/webgpu/sprite-pipeline.test.ts test/webgpu/webgpu-app.test.ts --testNamePattern "sprite|Sprite|initializes WebGPU|creates a renderer-only app"`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs full picking orchestration, queued built-in frame resource
+  preparation, frame-loop orchestration, and diagnostics orchestration splits.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by moving `prepareQueuedBuiltInFrameResources` and its option
+builder into a dedicated queued-frame-resource module, or by extracting
+post-processing/motion-vector helpers if that split needs more preparation.
 
 ## Current Run Update — 2026-05-27T21:07:22Z — WebGPU app skybox helpers split
 

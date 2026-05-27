@@ -81,6 +81,10 @@ Status: in progress
   `packages/webgpu/src/app/skybox.ts`, covering skybox selection, pipeline
   caching, view uniform packing, default sampler creation, bind group creation,
   and command emission.
+- App sprite frame helpers now live in
+  `packages/webgpu/src/app/sprites.ts`, covering sprite pipeline caching,
+  sprite buffer packing, default sampler creation, texture/sampler resource
+  preparation, bind group creation, and sprite draw command emission.
 
 ## Purpose
 
