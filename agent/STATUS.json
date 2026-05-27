@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "094877a1",
+  "lastCommit": "f8b15a7a",
   "activePid": null,
-  "notes": "Implemented input state/action resource, generated action types, browser/worker input forwarding, CLI/MCP input tools, and migrated playground/examples with targeted validation.",
-  "lastRunFinishedAt": "2026-05-27T17:07:12Z"
+  "notes": "Started PACKAGE_STRUCTURE_REFACTOR_PLAN implementation: organized WebGPU source folders, preserved root exports, updated docs/tooling references, and began splitting app render-target helpers.",
+  "lastRunFinishedAt": "2026-05-27T19:49:00Z"
 }
