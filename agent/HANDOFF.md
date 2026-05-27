@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-27T20:06:41Z
+Updated: 2026-05-27T20:10:42Z
+
+## Current Run Update — 2026-05-27T20:10:42Z — WebGPU app picking helpers split
+
+Continued Track 2 of `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Extracted low-level app picking helpers from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/picking.ts`.
+- The new module owns pick-pixel normalization, best-effort pick-pass error
+  scopes, shared ID-buffer pick bind-group creation, and ID-buffer pick
+  pipeline cache lookup/creation.
+- Added `test/webgpu/app-picking.test.ts` to cover the moved helper behavior
+  and verify these helpers stay off the public package root.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/picking.ts test/webgpu/app-picking.test.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/picking.ts test/webgpu/app-picking.test.ts`
+- `pnpm exec vitest run test/webgpu/app-picking.test.ts test/webgpu/id-buffer-pick.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|reuses prepared scalar unlit mesh buffers"`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs the full `pickWebGpuAppEntity(...)` orchestration and
+  pick frame-resource preparation moved out of `app.ts`; those helpers still
+  depend on private frame-resource functions.
+- Track 2 also still needs frame-loop orchestration, diagnostics
+  orchestration, and startup/resource-cache construction splits.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by splitting resource-cache/frame-scratch construction or by
+introducing an app-frame-resource module that can unblock moving the full
+picking orchestration.
 
 ## Current Run Update — 2026-05-27T20:06:41Z — WebGPU source asset facade split
 

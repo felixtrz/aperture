@@ -26,6 +26,10 @@ Status: in progress
 - Source asset facade preparation now lives in
   `packages/webgpu/src/app/source-assets.ts`, covering snapshot mesh/material
   facade updates and resource-reuse summary synchronization.
+- Low-level app picking helpers now live in
+  `packages/webgpu/src/app/picking.ts`, covering pick-pixel normalization,
+  pick-pass error scopes, shared bind group creation, and ID-buffer pick
+  pipeline caching.
 
 ## Purpose
 

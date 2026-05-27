@@ -350,11 +350,8 @@ import {
   createWebGpuIdBufferPickBindGroup,
   createWebGpuIdBufferPickCommands,
   createWebGpuIdBufferPickIdStorage,
-  createWebGpuIdBufferPickPipelineResource,
   createWebGpuIdBufferPickTexture,
   readWebGpuIdBufferPickPixel,
-  webGpuIdBufferPickPipelineCacheKey,
-  type WebGpuIdBufferPickBindGroupResource,
   type WebGpuIdBufferPickPipelineResource,
   type WebGpuIdBufferPickReadbackResult,
 } from "../picking/id-buffer-pick.js";
@@ -381,6 +378,13 @@ import {
   type WebGpuFailure,
   type WebGpuInitializationSuccess,
 } from "../gpu/initialize-webgpu.js";
+import {
+  createWebGpuAppPickSharedBindGroups,
+  getOrCreateWebGpuIdBufferPickPipelines,
+  popWebGpuPickErrorScope,
+  pushWebGpuPickErrorScope,
+  webGpuAppPickPixel,
+} from "./picking.js";
 import {
   createWebGpuAppDepthAttachmentReport,
   createWebGpuAppPickReport,
@@ -7179,110 +7183,6 @@ async function pickWebGpuAppEntity(
   }
 }
 
-function pushWebGpuPickErrorScope(device: unknown): void {
-  const scoped = device as {
-    readonly pushErrorScope?: (filter: "validation") => void;
-  };
-
-  try {
-    scoped.pushErrorScope?.("validation");
-  } catch {
-    // Error scopes are diagnostic-only; picking still returns readback results.
-  }
-}
-
-async function popWebGpuPickErrorScope(
-  device: unknown,
-): Promise<string | null> {
-  const scoped = device as {
-    readonly popErrorScope?: () => Promise<{
-      readonly message?: string;
-    } | null>;
-  };
-
-  if (scoped.popErrorScope === undefined) {
-    return null;
-  }
-
-  try {
-    const error = await scoped.popErrorScope();
-
-    return error?.message ?? null;
-  } catch {
-    return null;
-  }
-}
-
-function createWebGpuAppPickSharedBindGroups(options: {
-  readonly device: unknown;
-  readonly pipeline: WebGpuIdBufferPickPipelineResource;
-  readonly viewUniformBuffer: unknown;
-  readonly worldTransformBuffer: unknown;
-}): {
-  readonly valid: boolean;
-  readonly viewBindGroup: WebGpuIdBufferPickBindGroupResource;
-  readonly worldTransformBindGroup: WebGpuIdBufferPickBindGroupResource;
-  readonly diagnostics: readonly unknown[];
-} {
-  const device = options.device as {
-    readonly createBindGroup?: (descriptor: unknown) => unknown;
-  };
-
-  if (device.createBindGroup === undefined) {
-    return {
-      valid: false,
-      viewBindGroup: missingPickBindGroup(0),
-      worldTransformBindGroup: missingPickBindGroup(1),
-      diagnostics: [
-        {
-          code: "webGpuApp.pickCreateBindGroupUnavailable",
-          message:
-            "WebGPU app picking requires createBindGroup for view and transform resources.",
-        },
-      ],
-    };
-  }
-
-  return {
-    valid: true,
-    viewBindGroup: {
-      group: 0,
-      resourceKey: "id-buffer-pick/view",
-      bindGroup: device.createBindGroup({
-        label: "aperture/id-buffer-pick/view",
-        layout: options.pipeline.layouts.view,
-        entries: [
-          {
-            binding: 0,
-            resource: { buffer: options.viewUniformBuffer },
-          },
-        ],
-      }),
-    },
-    worldTransformBindGroup: {
-      group: 1,
-      resourceKey: "id-buffer-pick/world-transforms",
-      bindGroup: device.createBindGroup({
-        label: "aperture/id-buffer-pick/world-transforms",
-        layout: options.pipeline.layouts.worldTransforms,
-        entries: [
-          {
-            binding: 0,
-            resource: { buffer: options.worldTransformBuffer },
-          },
-        ],
-      }),
-    },
-    diagnostics: [],
-  };
-}
-
-function missingPickBindGroup(
-  group: number,
-): WebGpuIdBufferPickBindGroupResource {
-  return { group, resourceKey: "missing", bindGroup: null };
-}
-
 async function prepareWebGpuAppPickFrameResources(
   context: WebGpuAppRenderContext,
   resourceCache: WebGpuAppResourceCache,
@@ -7444,76 +7344,6 @@ async function prepareWebGpuAppPickFrameResources(
     pipelineResults: prepared.pipelineResults,
     diagnostics,
   };
-}
-
-async function getOrCreateWebGpuIdBufferPickPipelines(options: {
-  readonly app: WebGpuApp;
-  readonly cache: WebGpuAppResourceCache;
-  readonly snapshot: RenderSnapshot;
-  readonly pipelineResults: readonly WebGpuAppPipelinePlanResult[];
-}): Promise<{
-  readonly valid: boolean;
-  readonly pipelines: ReadonlyMap<string, WebGpuIdBufferPickPipelineResource>;
-  readonly diagnostics: readonly unknown[];
-}> {
-  const pipelines = new Map<string, WebGpuIdBufferPickPipelineResource>();
-  const diagnostics: unknown[] = [];
-
-  for (const draw of options.snapshot.meshDraws) {
-    if (pipelines.has(draw.batchKey.pipelineKey)) {
-      continue;
-    }
-
-    const cacheKey = webGpuIdBufferPickPipelineCacheKey(draw.batchKey);
-    const cached = options.cache.idPickPipelines.get(cacheKey);
-
-    if (cached !== undefined) {
-      pipelines.set(draw.batchKey.pipelineKey, cached);
-      continue;
-    }
-
-    const created = await createWebGpuIdBufferPickPipelineResource({
-      device: options.app.initialization.device as Parameters<
-        typeof createWebGpuIdBufferPickPipelineResource
-      >[0]["device"],
-      batchKey: draw.batchKey,
-      depthFormat: WEBGPU_APP_DEPTH_FORMAT,
-    });
-
-    diagnostics.push(...created.diagnostics);
-
-    if (created.valid && created.resource !== null) {
-      options.cache.idPickPipelines.set(cacheKey, created.resource);
-      pipelines.set(draw.batchKey.pipelineKey, created.resource);
-    }
-  }
-
-  return {
-    valid: diagnostics.length === 0,
-    pipelines,
-    diagnostics,
-  };
-}
-
-function webGpuAppPickPixel(
-  dimensions: { readonly width: number; readonly height: number },
-  x: number,
-  y: number,
-): { readonly x: number; readonly y: number } | null {
-  const pixel = { x: Math.floor(x), y: Math.floor(y) };
-
-  if (
-    !Number.isFinite(x) ||
-    !Number.isFinite(y) ||
-    pixel.x < 0 ||
-    pixel.y < 0 ||
-    pixel.x >= dimensions.width ||
-    pixel.y >= dimensions.height
-  ) {
-    return null;
-  }
-
-  return pixel;
 }
 
 function hasReadyStandardDiffuseIblResources(
