@@ -262,6 +262,9 @@ Status: in progress
 - Render extraction mesh bounds and mesh layout key helpers now live in
   `packages/render/src/rendering/extraction-mesh-bounds.ts` and
   `packages/render/src/rendering/extraction-mesh-layout.ts`.
+- Render extraction mesh cache state/replay helpers now live in
+  `packages/render/src/rendering/extraction-mesh-cache.ts`, with shared vector
+  packing in `packages/render/src/rendering/extraction-packing.ts`.
 
 ## Purpose
 
