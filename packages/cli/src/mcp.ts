@@ -270,7 +270,31 @@ function toolDefinitions(): readonly McpToolDefinition[] {
       "render_get_snapshot_summary",
       "Read latest render snapshot counts and diagnostics.",
     ),
-    tool("render_get_packets", "Inspect render packets."),
+    tool("render_get_packets", "Inspect render packets.", {
+      family: {
+        enum: [
+          "views",
+          "meshDraws",
+          "lights",
+          "environments",
+          "shadows",
+          "bounds",
+        ],
+      },
+      families: {
+        type: "array",
+        items: {
+          enum: [
+            "views",
+            "meshDraws",
+            "lights",
+            "environments",
+            "shadows",
+            "bounds",
+          ],
+        },
+      },
+    }),
     tool(
       "render_explain_entity",
       "Explain why an entity did or did not render.",

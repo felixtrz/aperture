@@ -619,6 +619,48 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
       },
     });
 
+    const filteredPackets = await callMcpTool("render_get_packets", {
+      families: [
+        "views",
+        "meshDraws",
+        "lights",
+        "environments",
+        "shadows",
+        "bounds",
+      ],
+    });
+    expect(filteredPackets.structuredContent).toMatchObject({
+      ok: true,
+      packets: {
+        families: {
+          views: {
+            family: "views",
+            counts: expect.any(Object),
+          },
+          meshDraws: {
+            family: "meshDraws",
+            counts: expect.any(Object),
+          },
+          lights: {
+            family: "lights",
+            counts: expect.any(Object),
+          },
+          environments: {
+            family: "environments",
+            counts: expect.any(Object),
+          },
+          shadows: {
+            family: "shadowRequests",
+            counts: expect.any(Object),
+          },
+          bounds: {
+            family: "bounds",
+            counts: expect.any(Object),
+          },
+        },
+      },
+    });
+
     const renderExplain = await callMcpTool("render_explain_entity", {
       key: "level.crate.primary",
     });

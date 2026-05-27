@@ -10,6 +10,14 @@ import {
 const STATUS_GLOBAL = "__APERTURE_GENERATED_APP__";
 const MANAGED_GLOBAL = "__APERTURE_MCP_MANAGED__";
 const RUNTIME_GLOBAL = "__APERTURE_MCP_RUNTIME__";
+const RENDER_PACKET_FAMILIES = [
+  "views",
+  "meshDraws",
+  "lights",
+  "environments",
+  "shadows",
+  "bounds",
+] as const;
 
 export interface ApertureToolCallOptions {
   readonly cwd: string;
@@ -258,7 +266,7 @@ async function callBrowserBackedTool(
     case "render_get_snapshot_summary":
       return renderSnapshotSummary(page);
     case "render_get_packets":
-      return renderPackets(page);
+      return renderPackets(page, args);
     case "render_explain_entity":
       return renderExplainEntity(page, args);
     case "render_get_diagnostics":
@@ -527,23 +535,48 @@ async function renderDiagnostics(page: AperturePage): Promise<unknown> {
   return { ok: true, diagnostics };
 }
 
-async function renderPackets(page: AperturePage): Promise<unknown> {
+async function renderPackets(
+  page: AperturePage,
+  args: Record<string, unknown>,
+): Promise<unknown> {
+  const families = renderPacketFamiliesArg(args);
   const packets = await page.evaluate(
-    ({ statusGlobal }) => {
+    ({ statusGlobal, requestedFamilies }) => {
       const status = (globalThis as unknown as Record<string, unknown>)[
         statusGlobal
       ] as GeneratedStatusLike | null;
       const lastFrame = status?.diagnostics?.lastFrame;
       const changeSet = lastFrame?.renderChangeSet;
+      const changeSetRecord = changeSet as Record<string, unknown> | undefined;
+      const changeSetKeys = changeSet?.keys as
+        | Record<string, unknown>
+        | undefined;
+      const families: Record<string, unknown> = {};
+
+      for (const family of requestedFamilies) {
+        const changeSetFamily =
+          family === "shadows" ? "shadowRequests" : family;
+        const familyCounts = changeSetRecord?.[changeSetFamily] ?? null;
+
+        families[family] = {
+          family: changeSetFamily,
+          counts:
+            typeof familyCounts === "object" && familyCounts !== null
+              ? familyCounts
+              : null,
+          keys: changeSetKeys?.[changeSetFamily] ?? null,
+        };
+      }
 
       return {
         frame: lastFrame?.frame ?? null,
         counts: lastFrame?.counts ?? null,
         keys: changeSet?.keys ?? null,
         changes: changeSet?.total ?? null,
+        families,
       };
     },
-    { statusGlobal: STATUS_GLOBAL },
+    { statusGlobal: STATUS_GLOBAL, requestedFamilies: families },
   );
 
   return { ok: true, packets };
@@ -650,17 +683,27 @@ interface GeneratedStatusLike {
       readonly counts?: unknown;
       readonly diagnostics?: readonly unknown[];
       readonly renderChangeSet?: {
+        readonly views?: unknown;
+        readonly meshDraws?: unknown;
+        readonly lights?: unknown;
+        readonly environments?: unknown;
+        readonly shadowRequests?: unknown;
+        readonly bounds?: unknown;
+        readonly total?: unknown;
         readonly keys?: {
           readonly meshDraws?: {
             readonly changed?: readonly string[];
             readonly unchanged?: readonly string[];
           };
+          readonly views?: unknown;
+          readonly lights?: unknown;
+          readonly environments?: unknown;
+          readonly shadowRequests?: unknown;
           readonly bounds?: {
             readonly changed?: readonly string[];
             readonly unchanged?: readonly string[];
           };
         };
-        readonly total?: unknown;
       };
     };
   };
@@ -745,6 +788,35 @@ function nestedRecord(
   return typeof value === "object" && value !== null
     ? (value as Record<string, unknown>)
     : null;
+}
+
+function renderPacketFamiliesArg(
+  args: Record<string, unknown>,
+): readonly (typeof RENDER_PACKET_FAMILIES)[number][] {
+  const requested = Array.isArray(args["families"])
+    ? args["families"]
+    : typeof args["family"] === "string"
+      ? [args["family"]]
+      : RENDER_PACKET_FAMILIES;
+  const families: (typeof RENDER_PACKET_FAMILIES)[number][] = [];
+
+  for (const family of requested) {
+    if (
+      typeof family === "string" &&
+      isRenderPacketFamily(family) &&
+      !families.includes(family)
+    ) {
+      families.push(family);
+    }
+  }
+
+  return families.length === 0 ? RENDER_PACKET_FAMILIES : families;
+}
+
+function isRenderPacketFamily(
+  value: string,
+): value is (typeof RENDER_PACKET_FAMILIES)[number] {
+  return (RENDER_PACKET_FAMILIES as readonly string[]).includes(value);
 }
 
 function referenceKindArg(
