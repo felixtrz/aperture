@@ -30,11 +30,27 @@ export interface SourceAssetMirrorReport {
   readonly skipped: number;
 }
 
+export interface SourceAssetSerializationState {
+  readonly versionsByHandle: Map<string, number>;
+}
+
+export function createSourceAssetSerializationState(): SourceAssetSerializationState {
+  return {
+    versionsByHandle: new Map(),
+  };
+}
+
 export function serializeSourceAssetRegistry(
   registry: AssetRegistry,
+  options: {
+    readonly state?: SourceAssetSerializationState;
+  } = {},
 ): SerializedSourceAssetRegistry {
   return {
-    entries: registry.list().map(serializeSourceAssetEntry),
+    entries: registry
+      .list()
+      .filter((entry) => shouldSerializeSourceAssetEntry(entry, options.state))
+      .map(serializeSourceAssetEntry),
   };
 }
 
@@ -80,6 +96,25 @@ function serializeSourceAssetEntry(
     dependencies: entry.dependencies.map(serializeAssetHandle),
     diagnostics: entry.diagnostics.map((diagnostic) => ({ ...diagnostic })),
   };
+}
+
+function shouldSerializeSourceAssetEntry(
+  entry: AssetRegistryEntry,
+  state: SourceAssetSerializationState | undefined,
+): boolean {
+  if (state === undefined) {
+    return true;
+  }
+
+  const key = assetHandleKey(entry.handle);
+  const sentVersion = state.versionsByHandle.get(key);
+
+  if (sentVersion !== undefined && sentVersion >= entry.version) {
+    return false;
+  }
+
+  state.versionsByHandle.set(key, entry.version);
+  return true;
 }
 
 function readSourceAssetRegistry(
@@ -182,6 +217,8 @@ function writeEntryStatus(
   registry.markReady(handle, entry.asset);
 }
 
-export function sourceAssetMirrorKey(entry: SerializedSourceAssetEntry): string {
+export function sourceAssetMirrorKey(
+  entry: SerializedSourceAssetEntry,
+): string {
   return assetHandleKey(deserializeAssetHandle(entry.handle));
 }

@@ -84,6 +84,9 @@ export interface ApertureRenderDefaults {
   readonly clearColor?: readonly [number, number, number, number];
   readonly defaultCamera?: boolean;
   readonly defaultLight?: boolean;
+  readonly sampleCount?: number;
+  readonly pixelRatio?: number;
+  readonly maxPixelRatio?: number;
 }
 
 export interface ApertureDiagnosticsConfig {

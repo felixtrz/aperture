@@ -7,7 +7,10 @@ import type { EcsWorld, Entity } from "@aperture-engine/simulation";
 import { Camera } from "@aperture-engine/render";
 import type { ApertureConfig } from "./config.js";
 import { createApertureApp, type ApertureSystemModule } from "./advanced.js";
-import { serializeSourceAssetRegistry } from "./asset-mirror.js";
+import {
+  createSourceAssetSerializationState,
+  serializeSourceAssetRegistry,
+} from "./asset-mirror.js";
 import {
   APERTURE_VIEWPORT_RESIZE_COMMAND_CHANNEL,
   createApertureDevtoolsResponse,
@@ -55,6 +58,8 @@ import {
   Name,
   WorldTransform,
   createSignalSummary,
+  type SystemAssetHandle,
+  type SystemAssetKind,
 } from "./systems.js";
 import type { ApertureApp } from "./advanced.js";
 import type { EcsEntityRef } from "./config.js";
@@ -179,6 +184,7 @@ async function runLoop(options: {
           : { entityCapacity: options.start.entityCapacity },
     });
     const entityTools = createGeneratedEntityToolBridge(app.lowLevel.world);
+    const sourceAssetState = createSourceAssetSerializationState();
     let frame = 0;
     let running = true;
     let paused = false;
@@ -190,10 +196,13 @@ async function runLoop(options: {
       options.port.postMessage({
         type: SIMULATION_WORKER_PROTOCOL.snapshot,
         snapshot,
-        sourceAssets: serializeSourceAssetRegistry(app.lowLevel.assets),
+        sourceAssets: serializeSourceAssetRegistry(app.lowLevel.assets, {
+          state: sourceAssetState,
+        }),
         workerSummary: {
           signals: createSignalSummary(app.context.signals),
           input: createInputSummary(app.context.input),
+          assets: createAssetSummary(app.context.assets.list()),
           commands: app.context.commands.summary(),
           diagnostics: app.context.diagnostics.list(),
           entities: createApertureEntityLookupSnapshot(app.lowLevel.world, {
@@ -813,6 +822,15 @@ function callGeneratedDevtoolsTool(
     return callInputActionTool(bridge.app, request.payload);
   }
 
+  if (request.tool === "asset_list") {
+    return {
+      ok: true,
+      result: {
+        assets: createAssetSummary(bridge.app.context.assets.list()),
+      },
+    };
+  }
+
   if (request.tool.startsWith("camera_")) {
     return callCameraTool(bridge.app, request, savedCameraStates);
   }
@@ -889,6 +907,19 @@ function callInputActionTool(
       input: createInputSummary(app.context.input),
     },
   };
+}
+
+function createAssetSummary(
+  handles: readonly SystemAssetHandle<SystemAssetKind>[],
+): readonly Record<string, unknown>[] {
+  return handles.map((handle) => ({
+    id: handle.id,
+    kind: handle.kind,
+    url: handle.url,
+    preload: handle.preload,
+    ready: handle.ready.value,
+    error: handle.error.value,
+  }));
 }
 
 interface CameraToolState {

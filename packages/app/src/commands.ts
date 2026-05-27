@@ -30,6 +30,11 @@ export interface ApertureViewportResizeCommandPayload {
   readonly displayHeight: number;
   readonly pixelRatio: number;
   readonly aspect: number;
+  readonly devicePixelRatio?: number;
+  readonly maxPixelRatio?: number;
+  readonly pixelRatioSource?: string;
+  readonly resizeSource?: string;
+  readonly measurementSource?: string;
 }
 
 export interface ApertureGeneratedCommandMessage {

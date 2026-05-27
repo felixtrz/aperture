@@ -14,7 +14,11 @@ import {
 import { createApertureGeneratedDiagnosticsStatus } from "@aperture-engine/app/diagnostics";
 import {
   APERTURE_GENERATED_STATUS_GLOBAL,
+  DEFAULT_GENERATED_MAX_PIXEL_RATIO,
+  DEFAULT_GENERATED_MSAA_SAMPLE_COUNT,
+  measureGeneratedCanvasResize,
   readGeneratedBrowserAppStatus,
+  resolveGeneratedRenderSettings,
   type GeneratedBrowserAppStatus,
 } from "@aperture-engine/app/browser";
 import {
@@ -92,6 +96,9 @@ describe("developer-facing app API", () => {
         clearColor: [0.03, 0.035, 0.04, 1],
         defaultCamera: true,
         defaultLight: true,
+        sampleCount: 4,
+        pixelRatio: 1,
+        maxPixelRatio: 2,
       },
     });
 
@@ -100,7 +107,90 @@ describe("developer-facing app API", () => {
       url: "/assets/robot.glb",
       preload: "blocking",
     });
+    expect(config.render?.sampleCount).toBe(4);
+    expect(config.render?.pixelRatio).toBe(1);
+    expect(config.render?.maxPixelRatio).toBe(2);
     expect("aperture" in appRoot).toBe(false);
+  });
+
+  it("defaults generated browser render quality to 4x MSAA and capped DPR", () => {
+    const defaults = resolveGeneratedRenderSettings(undefined, 3);
+
+    expect(defaults).toMatchObject({
+      requestedSampleCount: DEFAULT_GENERATED_MSAA_SAMPLE_COUNT,
+      sampleCountSource: "default",
+      pixelRatio: DEFAULT_GENERATED_MAX_PIXEL_RATIO,
+      devicePixelRatio: 3,
+      maxPixelRatio: DEFAULT_GENERATED_MAX_PIXEL_RATIO,
+      pixelRatioSource: "capped",
+      diagnostics: [],
+    });
+
+    const optOut = resolveGeneratedRenderSettings(
+      { sampleCount: 1, maxPixelRatio: 1 },
+      2,
+    );
+
+    expect(optOut).toMatchObject({
+      requestedSampleCount: 1,
+      sampleCountSource: "config",
+      pixelRatio: 1,
+      devicePixelRatio: 2,
+      maxPixelRatio: 1,
+      pixelRatioSource: "capped",
+      diagnostics: [],
+    });
+  });
+
+  it("reports generated render default diagnostics for unsupported sample counts", () => {
+    const settings = resolveGeneratedRenderSettings(
+      { sampleCount: 8, pixelRatio: 1.5 },
+      3,
+    );
+
+    expect(settings).toMatchObject({
+      requestedSampleCount: 8,
+      sampleCountSource: "config",
+      pixelRatio: 1.5,
+      devicePixelRatio: 3,
+      pixelRatioSource: "configured",
+      diagnostics: [
+        expect.objectContaining({
+          code: "aperture.render.sampleCount.clamped",
+          requestedSampleCount: 8,
+          resolvedSampleCount: 4,
+        }),
+      ],
+    });
+  });
+
+  it("measures generated canvas backing size from effective pixel ratio", () => {
+    const canvas = createCanvasMeasureElement({
+      width: 640,
+      height: 360,
+      clientWidth: 320,
+      clientHeight: 180,
+    });
+
+    const measured = measureGeneratedCanvasResize(canvas, {
+      render: { maxPixelRatio: 2 },
+      devicePixelRatio: 3,
+      resizeSource: "initial",
+    });
+
+    expect(measured).toMatchObject({
+      width: 1280,
+      height: 720,
+      displayWidth: 640,
+      displayHeight: 360,
+      pixelRatio: 2,
+      devicePixelRatio: 3,
+      maxPixelRatio: 2,
+      pixelRatioSource: "capped",
+      resizeSource: "initial",
+      measurementSource: "css-box",
+    });
+    expect(measured.aspect).toBeCloseTo(16 / 9, 5);
   });
 
   it("exposes the optional app/vite convenience subpath without changing the root app export", () => {
@@ -267,6 +357,7 @@ describe("developer-facing app API", () => {
       lastFailure: null,
       lastWorkerSummary: null,
       diagnostics: null,
+      render: null,
       canvas: null,
       systems: [],
     } satisfies GeneratedBrowserAppStatus;
@@ -1889,6 +1980,25 @@ function readRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null
     ? (value as Record<string, unknown>)
     : null;
+}
+
+function createCanvasMeasureElement(input: {
+  readonly width: number;
+  readonly height: number;
+  readonly clientWidth: number;
+  readonly clientHeight: number;
+}): {
+  readonly clientWidth: number;
+  readonly clientHeight: number;
+  getBoundingClientRect(): { readonly width: number; readonly height: number };
+} {
+  return {
+    clientWidth: input.clientWidth,
+    clientHeight: input.clientHeight,
+    getBoundingClientRect() {
+      return { width: input.width, height: input.height };
+    },
+  };
 }
 
 async function readEventually(file: string): Promise<string> {

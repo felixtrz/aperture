@@ -123,6 +123,18 @@ interface GeneratedBrowserAppStatus {
   };
   readonly diagnostics?: {
     readonly lastFrame?: {
+      readonly msaa?: {
+        readonly requestedSampleCount?: number;
+        readonly sampleCount?: number;
+        readonly enabled?: boolean;
+        readonly clamped?: boolean;
+        readonly colorTargets?: number;
+      };
+      readonly renderTargets?: readonly {
+        readonly width?: number;
+        readonly height?: number;
+        readonly msaaSampleCount?: number;
+      }[];
       readonly counts?: {
         readonly views?: number;
         readonly meshDraws?: number;
@@ -132,6 +144,26 @@ interface GeneratedBrowserAppStatus {
       readonly diagnostics?: readonly unknown[];
     };
   };
+  readonly render?: {
+    readonly requestedSampleCount?: number;
+    readonly sampleCountSource?: string;
+    readonly pixelRatio?: number;
+    readonly maxPixelRatio?: number;
+    readonly pixelRatioSource?: string;
+    readonly diagnostics?: readonly unknown[];
+  } | null;
+  readonly canvas?: {
+    readonly width?: number;
+    readonly height?: number;
+    readonly displayWidth?: number;
+    readonly displayHeight?: number;
+    readonly pixelRatio?: number;
+    readonly aspect?: number;
+    readonly maxPixelRatio?: number;
+    readonly pixelRatioSource?: string;
+    readonly resizeSource?: string;
+    readonly measurementSource?: string;
+  } | null;
 }
 
 let server: ChildProcess | null = null;
@@ -217,6 +249,104 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
   ).toBeGreaterThan(1);
   expect(status?.diagnostics?.lastFrame?.counts?.diagnostics).toBe(0);
   expect(status?.diagnostics?.lastFrame?.diagnostics ?? []).toEqual([]);
+  expect(status?.render).toMatchObject({
+    requestedSampleCount: 4,
+    sampleCountSource: "default",
+    maxPixelRatio: 2,
+    diagnostics: [],
+  });
+  expect(status?.diagnostics?.lastFrame?.msaa).toMatchObject({
+    requestedSampleCount: 4,
+    sampleCount: 4,
+    enabled: true,
+    clamped: false,
+  });
+  expect(status?.diagnostics?.lastFrame?.renderTargets?.[0]).toMatchObject({
+    msaaSampleCount: 4,
+  });
+  expect(status?.canvas).toMatchObject({
+    width: expect.any(Number),
+    height: expect.any(Number),
+    displayWidth: expect.any(Number),
+    displayHeight: expect.any(Number),
+    pixelRatio: expect.any(Number),
+    aspect: expect.any(Number),
+  });
+  expect(status?.canvas?.width).toBe(
+    Math.max(
+      1,
+      Math.floor(
+        (status?.canvas?.displayWidth ?? 0) * (status?.canvas?.pixelRatio ?? 0),
+      ),
+    ),
+  );
+  expect(status?.diagnostics?.lastFrame?.renderTargets?.[0]?.width).toBe(
+    status?.canvas?.width,
+  );
+  expect(status?.diagnostics?.lastFrame?.renderTargets?.[0]?.height).toBe(
+    status?.canvas?.height,
+  );
+
+  const initialCanvasWidth = status?.canvas?.width ?? 0;
+  await page.setViewportSize({ width: 740, height: 720 });
+  await page.waitForFunction(
+    (previousWidth) => {
+      const status = (globalThis as GeneratedStatusGlobal)
+        .__APERTURE_GENERATED_APP__;
+      const canvas = status?.canvas;
+      const target = status?.diagnostics?.lastFrame?.renderTargets?.[0];
+
+      return (
+        canvas !== null &&
+        canvas !== undefined &&
+        typeof canvas.width === "number" &&
+        canvas.width !== previousWidth &&
+        target?.width === canvas.width &&
+        target?.height === canvas.height
+      );
+    },
+    initialCanvasWidth,
+    { timeout: 10000 },
+  );
+
+  const resizedStatus = await page.evaluate(
+    () =>
+      (globalThis as GeneratedStatusGlobal).__APERTURE_GENERATED_APP__ ?? null,
+  );
+
+  await test.info().attach("developer-api-resized-status", {
+    body: JSON.stringify(
+      {
+        canvas: resizedStatus?.canvas,
+        renderTarget:
+          resizedStatus?.diagnostics?.lastFrame?.renderTargets?.[0] ?? null,
+      },
+      null,
+      2,
+    ),
+    contentType: "application/json",
+  });
+
+  expect(resizedStatus?.canvas?.width).toBe(
+    Math.max(
+      1,
+      Math.floor(
+        (resizedStatus?.canvas?.displayWidth ?? 0) *
+          (resizedStatus?.canvas?.pixelRatio ?? 0),
+      ),
+    ),
+  );
+  expect(resizedStatus?.diagnostics?.lastFrame?.renderTargets?.[0]?.width).toBe(
+    resizedStatus?.canvas?.width,
+  );
+  expect(
+    resizedStatus?.diagnostics?.lastFrame?.renderTargets?.[0]?.height,
+  ).toBe(resizedStatus?.canvas?.height);
+  expect(resizedStatus?.canvas?.aspect).toBeCloseTo(
+    (resizedStatus?.canvas?.displayWidth ?? 1) /
+      (resizedStatus?.canvas?.displayHeight ?? 1),
+    5,
+  );
   expect(status?.lastWorkerSummary?.entities?.total ?? 0).toBeGreaterThan(0);
   expect(status?.lastWorkerSummary?.entities?.summaries ?? []).toEqual(
     expect.arrayContaining([
