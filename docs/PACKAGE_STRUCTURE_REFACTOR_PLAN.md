@@ -33,6 +33,9 @@ Status: in progress
 - Material dependency diagnostics now live in
   `packages/webgpu/src/app/material-dependencies.ts`, covering snapshot
   dependency diagnostics and JSON-safe app diagnostic creation.
+- Pipeline layout resolution now lives in
+  `packages/webgpu/src/app/pipeline-layouts.ts`, covering cached layout
+  lookup and built-in material family layout construction.
 
 ## Purpose
 

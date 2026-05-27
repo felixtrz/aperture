@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-27T20:13:36Z
+Updated: 2026-05-27T20:19:45Z
+
+## Current Run Update — 2026-05-27T20:19:45Z — WebGPU pipeline layout helpers split
+
+Continued Track 2 of `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Extracted app pipeline layout resolution from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/pipeline-layouts.ts`.
+- The new module owns cached layout lookup and built-in material family layout
+  construction for unlit, standard, matcap, and debug-normal pipelines.
+- `app.ts` now imports the layout helper and related app layout types.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/pipeline-layouts.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/pipeline-layouts.ts`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "routes DebugNormalMaterial|renders mixed standard and matcap app resource sets"`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- A non-counted validation attempt with
+  `--testNamePattern "routes DebugNormalMaterial|renders the standard material queue path with extracted lights|renders mixed standard and matcap app resource sets|aliases ready StandardMaterial diffuse IBL resources"`
+  still hit the known pre-existing verbose standard pipeline resource-key
+  expectation failures. The two non-standard-expectation layout-family cases
+  passed afterward.
+- Track 2 still needs full picking orchestration, frame-loop orchestration,
+  diagnostics orchestration, and startup/resource-cache construction splits.
+
+### Recommended next task
+
+Continue Track 2 by splitting resource-cache/frame-scratch construction or by
+introducing an app-frame-resource module that can unblock moving the full
+picking orchestration.
 
 ## Current Run Update — 2026-05-27T20:13:36Z — WebGPU material dependency diagnostics split
 
