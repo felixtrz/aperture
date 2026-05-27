@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-27T22:35:42Z
+Updated: 2026-05-27T22:37:44Z
+
+## Current Run Update — 2026-05-27T22:37:44Z — Prepared StandardMaterial classification split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 3.
+
+### What changed
+
+- Extracted prepared StandardMaterial classification predicates from
+  `packages/webgpu/src/materials/standard/prepared-standard-material-cache.ts`
+  into
+  `packages/webgpu/src/materials/standard/prepared-standard-material-classification.ts`.
+- The new module owns scalar, single-texture-family, and occlusion/emissive
+  material shape checks used by prepared resource routing.
+- `prepared-standard-material-cache.ts` is now roughly 1,506 lines, down from
+  about 2,191 lines at the start of the prepared-cache splitting.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/materials/standard/prepared-standard-material-cache.ts packages/webgpu/src/materials/standard/prepared-standard-material-classification.ts packages/webgpu/src/materials/standard/prepared-standard-material-dependencies.ts`
+- `pnpm exec prettier --check packages/webgpu/src/materials/standard/prepared-standard-material-cache.ts packages/webgpu/src/materials/standard/prepared-standard-material-classification.ts packages/webgpu/src/materials/standard/prepared-standard-material-dependencies.ts`
+- `pnpm exec vitest run test/webgpu/prepared-standard-material-cache.test.ts test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 3 still has StandardMaterial cache/resource files above 1,000 lines,
+  especially `prepared-standard-material-cache.ts`,
+  `standard-frame-resources.ts`, `standard-light-shadow-bind-group.ts`,
+  `standard-app-frame-resources.ts`, and `standard-pipeline.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 3 by splitting StandardMaterial prepared-resource contracts or
+cache-key/reuse helpers from `prepared-standard-material-cache.ts`.
 
 ## Current Run Update — 2026-05-27T22:35:42Z — Prepared StandardMaterial dependency split
 

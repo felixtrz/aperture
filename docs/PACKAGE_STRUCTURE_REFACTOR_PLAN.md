@@ -164,6 +164,10 @@ Status: in progress
   `packages/webgpu/src/materials/standard/prepared-standard-material-dependencies.ts`,
   while `prepared-standard-material-cache.ts` preserves the previous public
   exports and focuses on prepared material resource creation and reuse.
+- StandardMaterial prepared material classification predicates now live in
+  `packages/webgpu/src/materials/standard/prepared-standard-material-classification.ts`,
+  covering scalar, single-texture-family, and occlusion/emissive material shape
+  checks used by prepared resource routing.
 
 ## Purpose
 
