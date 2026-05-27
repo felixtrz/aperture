@@ -38,10 +38,7 @@ import {
   webGpuAppFrameBoundaryTargetSubmissionKey,
   type WebGpuAppFrameBoundaryTarget,
 } from "./frame-target.js";
-import {
-  createWebGpuAppDrawResourceSetPlan,
-  type WebGpuAppDrawResourceSetPlan,
-} from "./draw-resource-set.js";
+import { createWebGpuAppDrawResourceSetPlan } from "./draw-resource-set.js";
 import {
   prepareMatcapAppTextureSamplerResources,
   prepareStandardAppTextureSamplerResources,
@@ -178,10 +175,7 @@ import {
   resolveOutputColorSpace,
   type OutputColorSpace,
 } from "../output/output-stage-color-space.js";
-import {
-  createMultiMaterialUnlitFrameGpuResources,
-  type CreateMultiMaterialUnlitFrameGpuResourcesResult,
-} from "../materials/unlit/unlit-frame-resources.js";
+import { type CreateMultiMaterialUnlitFrameGpuResourcesResult } from "../materials/unlit/unlit-frame-resources.js";
 import {
   createOrReuseUnlitAppFrameResources,
   type CreateUnlitAppFrameResourcesResult,
@@ -318,6 +312,10 @@ import {
   prepareSpriteFrameResourcesForSnapshot,
   type SpriteFrameResources,
 } from "./sprites.js";
+import {
+  collectMultiUnlitAppResourceSet,
+  createMultiUnlitAppFrameResources,
+} from "./multi-unlit.js";
 
 export type { WebGpuAppMsaaReport };
 
@@ -697,13 +695,6 @@ export type WebGpuAppFrameResourcesResult =
   | CreateDebugNormalAppFrameResourcesResult
   | CreateQueuedBuiltInFrameResourcesResult;
 
-interface MultiUnlitAppResourceSet {
-  readonly mesh: MeshAsset;
-  readonly meshKey: string;
-  readonly materials: readonly UnlitMaterialAsset[];
-  readonly materialKeys: readonly string[];
-}
-
 interface WebGpuAppRenderContext {
   readonly app: WebGpuApp;
   readonly sourceAssets: AssetRegistry;
@@ -1059,106 +1050,6 @@ async function getOrCreateWebGpuAppPipeline(options: {
   }
 
   return pipeline;
-}
-
-function createMultiUnlitAppFrameResources(options: {
-  readonly app: WebGpuApp;
-  readonly mesh: MeshAsset | null;
-  readonly materials: readonly UnlitMaterialAsset[];
-  readonly viewUniforms: PackedSnapshotViewUniforms;
-  readonly worldTransforms: PackedSnapshotTransforms;
-  readonly layouts: WebGpuAppPipelineLayouts;
-  readonly reuse: WebGpuAppResourceReuseReport;
-}): CreateMultiMaterialUnlitFrameGpuResourcesResult {
-  const result = createMultiMaterialUnlitFrameGpuResources({
-    device: options.app.initialization.device as Parameters<
-      typeof createMultiMaterialUnlitFrameGpuResources
-    >[0]["device"],
-    mesh: options.mesh,
-    materials: options.materials,
-    viewUniforms: options.viewUniforms,
-    worldTransforms: options.worldTransforms,
-    layouts: options.layouts.sharedLayouts,
-  });
-
-  if (result.valid && result.resources !== null) {
-    options.reuse.meshBuffersCreated += 1;
-    options.reuse.materialBuffersCreated += result.resources.materials.length;
-    options.reuse.bindGroupsCreated += result.resources.bindGroups.length;
-  }
-
-  return result;
-}
-
-function collectMultiUnlitAppResourceSet(options: {
-  readonly app: WebGpuApp;
-  readonly assets: AssetRegistry;
-  readonly snapshot: RenderSnapshot;
-  readonly plan: WebGpuAppDrawResourceSetPlan;
-  readonly firstDraw: RenderSnapshot["meshDraws"][number];
-}): MultiUnlitAppResourceSet | null {
-  if (options.plan.sets.length <= 1) {
-    return null;
-  }
-
-  const meshKey = options.plan.sets[0]?.meshKey;
-  const pipelineKey = options.firstDraw.batchKey.pipelineKey;
-  const materials: UnlitMaterialAsset[] = [];
-  const materialKeys: string[] = [];
-
-  if (meshKey === undefined) {
-    return null;
-  }
-
-  for (const set of options.plan.sets) {
-    if (set.meshKey !== meshKey) {
-      return null;
-    }
-
-    const firstDrawIndex = set.drawIndices[0];
-    const draw =
-      firstDrawIndex === undefined
-        ? undefined
-        : options.snapshot.meshDraws[firstDrawIndex];
-
-    if (draw === undefined || draw.batchKey.pipelineKey !== pipelineKey) {
-      return null;
-    }
-
-    const entry = options.assets.get<"material", MaterialAsset>(draw.material);
-
-    if (
-      entry === undefined ||
-      entry.status !== "ready" ||
-      entry.asset === null ||
-      entry.asset.kind !== "unlit" ||
-      entry.asset.baseColorTexture !== null
-    ) {
-      return null;
-    }
-
-    materials.push(entry.asset);
-    materialKeys.push(assetHandleKey(draw.material));
-  }
-
-  const meshEntry = options.assets.get<"mesh", MeshAsset>(
-    options.firstDraw.mesh,
-  );
-
-  if (
-    meshEntry === undefined ||
-    meshEntry.status !== "ready" ||
-    meshEntry.asset === null
-  ) {
-    return null;
-  }
-
-  return {
-    mesh: meshEntry.asset,
-    meshKey: sourceAssetCacheKey(options.firstDraw.mesh, meshEntry.version),
-    materials,
-    materialKeys,
-  };
 }
 
 const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
@@ -3745,7 +3636,6 @@ async function renderWebGpuAppFrame(
   }
 
   const multiUnlit = collectMultiUnlitAppResourceSet({
-    app,
     assets: sourceAssets,
     snapshot,
     plan: resourceSetPlan,
