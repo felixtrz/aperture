@@ -73,18 +73,10 @@ import {
 } from "../materials/debug-normal/debug-normal-app-frame-resources.js";
 import type { DebugNormalMaterialBindGroupLayoutResource } from "../materials/debug-normal/debug-normal-bind-group.js";
 import {
-  createDebugNormalRenderPipelineResource,
-  type CreateDebugNormalRenderPipelineResourceResult,
-} from "../materials/debug-normal/debug-normal-pipeline.js";
-import {
   createOrReuseMatcapAppFrameResources,
   type CreateMatcapAppFrameResourcesResult,
 } from "../materials/matcap/matcap-app-frame-resources.js";
 import { type MatcapMaterialBindGroupLayoutResource } from "../materials/matcap/matcap-bind-group.js";
-import {
-  createMatcapRenderPipelineResource,
-  type CreateMatcapRenderPipelineResourceResult,
-} from "../materials/matcap/matcap-pipeline.js";
 import { isBuiltInMaterialQueueFamily } from "../materials/core/built-in-material-queue-family.js";
 import {
   createQueuedBuiltInAppResourceAdapterRegistry,
@@ -138,16 +130,10 @@ import {
   withStandardShadowPipelineKeys,
 } from "../materials/standard/standard-app-pipeline-keys.js";
 import {
-  createStandardRenderPipelineResource,
-  type CreateStandardRenderPipelineResourceResult,
-} from "../materials/standard/standard-pipeline.js";
-import {
-  createTonemapPipelineKey,
   resolveTonemapOperator,
   type TonemapOperator,
 } from "../output/output-stage-tonemap.js";
 import {
-  createOutputColorSpacePipelineKey,
   resolveOutputColorSpace,
   type OutputColorSpace,
 } from "../output/output-stage-color-space.js";
@@ -156,10 +142,6 @@ import {
   createOrReuseUnlitAppFrameResources,
   type CreateUnlitAppFrameResourcesResult,
 } from "../materials/unlit/unlit-app-frame-resources.js";
-import {
-  createUnlitRenderPipelineResource,
-  type CreateUnlitRenderPipelineResourceResult,
-} from "../materials/unlit/unlit-pipeline.js";
 import { type CreateSpriteRenderPipelineResourceResult } from "../render/sprites/sprite-pipeline.js";
 import { writeRenderFramePlanFromSnapshot } from "../render/frame/render-frame-plan.js";
 import type {
@@ -189,14 +171,15 @@ import {
   createWebGpuAppMaterialDependencyDiagnostic,
   diagnoseSnapshotMaterialDependencies,
 } from "./material-dependencies.js";
-import {
-  getWebGpuAppPipelineLayouts,
-  type WebGpuAppMaterialKind,
-} from "./pipeline-layouts.js";
+import { getWebGpuAppPipelineLayouts } from "./pipeline-layouts.js";
 import {
   createWebGpuAppResourceCache,
   type WebGpuAppResourceCache,
 } from "./resource-cache.js";
+import {
+  getOrCreateWebGpuAppPipeline,
+  type WebGpuAppPipelineResourceResult,
+} from "./pipeline-resources.js";
 import {
   createEmptyRenderSnapshot,
   createWebGpuAppSnapshotUpdateMetadata,
@@ -304,6 +287,7 @@ export {
   webGpuAppRenderReportToJson,
   webGpuAppRenderReportToJsonValue,
 } from "./report.js";
+export type { WebGpuAppPipelineResourceResult } from "./pipeline-resources.js";
 
 export interface WebGpuAppRenderCounts {
   readonly views: number;
@@ -634,13 +618,6 @@ export interface WebGpuAppRenderBundleFrameReport {
   readonly diagnostics: readonly WebGpuAppJsonValue[];
 }
 
-export type WebGpuAppPipelineResourceResult =
-  | CreateUnlitRenderPipelineResourceResult
-  | CreateMatcapRenderPipelineResourceResult
-  | CreateStandardRenderPipelineResourceResult
-  | CreateDebugNormalRenderPipelineResourceResult
-  | CreateSpriteRenderPipelineResourceResult;
-
 export type WebGpuAppFrameResourcesResult =
   | CreateUnlitAppFrameResourcesResult
   | CreateMultiMaterialUnlitFrameGpuResourcesResult
@@ -889,100 +866,6 @@ export async function createWebGpuApp(
   }
 
   return { ok: true, app, initialization };
-}
-
-async function getOrCreateWebGpuAppPipeline(options: {
-  readonly app: WebGpuApp;
-  readonly cache: WebGpuAppResourceCache;
-  readonly reuse: WebGpuAppResourceReuseReport;
-  readonly kind: WebGpuAppMaterialKind;
-  readonly pipelineKey: string;
-  readonly batchKey: RenderSnapshot["meshDraws"][number]["batchKey"];
-  readonly motionVectorColorFormat?: string | null;
-}): Promise<WebGpuAppPipelineResourceResult> {
-  const key = [
-    options.kind,
-    options.app.initialization.format,
-    `motion:${options.motionVectorColorFormat ?? "none"}`,
-    WEBGPU_APP_DEPTH_FORMAT,
-    `samples:${options.app.msaa.sampleCount}`,
-    options.pipelineKey,
-    options.kind === "standard"
-      ? createTonemapPipelineKey(options.app.tonemap)
-      : "tonemap:none",
-    options.kind === "standard"
-      ? createOutputColorSpacePipelineKey(options.app.outputColorSpace)
-      : createOutputColorSpacePipelineKey("linear"),
-  ].join("|");
-  const cached = options.cache.pipelines.get(key);
-
-  if (cached !== undefined) {
-    options.reuse.pipelineHits += 1;
-    return cached;
-  }
-
-  options.reuse.pipelineMisses += 1;
-
-  const pipeline =
-    options.kind === "standard"
-      ? await createStandardRenderPipelineResource({
-          device: options.app.initialization.device as Parameters<
-            typeof createStandardRenderPipelineResource
-          >[0]["device"],
-          colorFormat: options.app.initialization.format,
-          ...(options.motionVectorColorFormat === undefined
-            ? {}
-            : { motionVectorColorFormat: options.motionVectorColorFormat }),
-          depthFormat: WEBGPU_APP_DEPTH_FORMAT,
-          sampleCount: options.app.msaa.sampleCount,
-          batchKey: options.batchKey,
-          tonemap: options.app.tonemap,
-          outputColorSpace: options.app.outputColorSpace,
-        })
-      : options.kind === "debug-normal"
-        ? await createDebugNormalRenderPipelineResource({
-            device: options.app.initialization.device as Parameters<
-              typeof createDebugNormalRenderPipelineResource
-            >[0]["device"],
-            colorFormat: options.app.initialization.format,
-            ...(options.motionVectorColorFormat === undefined
-              ? {}
-              : { motionVectorColorFormat: options.motionVectorColorFormat }),
-            depthFormat: WEBGPU_APP_DEPTH_FORMAT,
-            sampleCount: options.app.msaa.sampleCount,
-            batchKey: options.batchKey,
-          })
-        : options.kind === "matcap"
-          ? await createMatcapRenderPipelineResource({
-              device: options.app.initialization.device as Parameters<
-                typeof createMatcapRenderPipelineResource
-              >[0]["device"],
-              colorFormat: options.app.initialization.format,
-              ...(options.motionVectorColorFormat === undefined
-                ? {}
-                : { motionVectorColorFormat: options.motionVectorColorFormat }),
-              depthFormat: WEBGPU_APP_DEPTH_FORMAT,
-              sampleCount: options.app.msaa.sampleCount,
-              batchKey: options.batchKey,
-            })
-          : await createUnlitRenderPipelineResource({
-              device: options.app.initialization.device as Parameters<
-                typeof createUnlitRenderPipelineResource
-              >[0]["device"],
-              colorFormat: options.app.initialization.format,
-              ...(options.motionVectorColorFormat === undefined
-                ? {}
-                : { motionVectorColorFormat: options.motionVectorColorFormat }),
-              depthFormat: WEBGPU_APP_DEPTH_FORMAT,
-              sampleCount: options.app.msaa.sampleCount,
-              batchKey: options.batchKey,
-            });
-
-  if (pipeline.valid && pipeline.resource !== null) {
-    options.cache.pipelines.set(key, pipeline);
-  }
-
-  return pipeline;
 }
 
 const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
