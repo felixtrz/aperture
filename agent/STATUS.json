@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "a7ebcc17",
+  "lastCommit": "477f21ee",
   "activePid": null,
-  "notes": "Continued PACKAGE_STRUCTURE_REFACTOR_PLAN Track 2/3: split app frame-target, report/resource-reuse, source asset, picking, material dependency, pipeline layout, resource-cache, snapshot, draw-resource-set, standard app pipeline-key, app attachment, GPU readback, transmission-grab resources/pass, frame-boundary support, occlusion-culling, view-command, queued built-in support, skybox, sprite, multi-unlit, queued frame-resource preparation, motion-vector, post-processing assembly, full picking orchestration, app pipeline resource helpers, queued built-in adapter registry, frame-boundary assembly, sprite-only frame rendering, queued built-in frame rendering, app frame-loop routing, app creation facade, StandardMaterial shader feature contracts, StandardMaterial shader sampling injectors, and StandardMaterial shader variant helpers into focused modules.",
-  "lastRunFinishedAt": "2026-05-27T22:29:54Z"
+  "notes": "Continued PACKAGE_STRUCTURE_REFACTOR_PLAN Track 2/3: split app frame-target, report/resource-reuse, source asset, picking, material dependency, pipeline layout, resource-cache, snapshot, draw-resource-set, standard app pipeline-key, app attachment, GPU readback, transmission-grab resources/pass, frame-boundary support, occlusion-culling, view-command, queued built-in support, skybox, sprite, multi-unlit, queued frame-resource preparation, motion-vector, post-processing assembly, full picking orchestration, app pipeline resource helpers, queued built-in adapter registry, frame-boundary assembly, sprite-only frame rendering, queued built-in frame rendering, app frame-loop routing, app creation facade, StandardMaterial shader feature contracts, StandardMaterial shader sampling injectors and sampling families, and StandardMaterial shader variant helpers into focused modules.",
+  "lastRunFinishedAt": "2026-05-27T22:32:26Z"
 }
