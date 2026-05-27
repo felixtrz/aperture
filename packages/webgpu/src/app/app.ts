@@ -5,9 +5,7 @@ import {
 } from "@aperture-engine/simulation";
 import {
   RenderWorld,
-  createMaterialQueuePhaseSummary,
   createMaterialDependencyReadinessReport,
-  renderQueueSortPolicyForPhase,
   createSamplerAsset,
   writeMaterialQueueFromSnapshot,
   writePackedSnapshotPreviousTransforms,
@@ -30,7 +28,6 @@ import {
   type PreparedMeshStoreJsonValue,
   type RenderEntityRef,
   type RenderSnapshot,
-  type RenderQueueSortPhaseReport,
   type SkyboxPacket,
   type SpriteDrawPacket,
   type StandardMaterialAsset,
@@ -142,12 +139,7 @@ import {
   type QueuedBuiltInFrameResourceRouteDiagnostic,
   type QueuedBuiltInFrameResources,
 } from "../render/queues/queued-built-in-frame-resource-set.js";
-import { createQueuedMaterialFrameResourceSetSummary } from "../render/queues/queued-material-frame-resource-set-summary.js";
-import {
-  collectWebGpuAppMaterialQueueRouteReport,
-  createWebGpuAppDiagnosticsSummary,
-  type WebGpuAppDiagnosticsSummary,
-} from "./app-diagnostics-summary.js";
+import { type WebGpuAppDiagnosticsSummary } from "./app-diagnostics-summary.js";
 import {
   createWebGpuAppSnapshotTransport,
   createWebGpuAppSnapshotTransportStartPayload,
@@ -157,10 +149,6 @@ import {
   type WebGpuAppSnapshotTransportDiagnostics,
   type WebGpuAppSnapshotTransportMode,
 } from "./app-snapshot-transport.js";
-import {
-  createDirectLightReadinessReport,
-  directLightReadinessResourceStateFromStandardFrameResources,
-} from "../lighting/direct-light-readiness.js";
 import type { LocalLightClusterReport } from "../lighting/local-light-clusters.js";
 import {
   prepareLocalLightClusterCookieResources,
@@ -172,10 +160,7 @@ import {
   createOrReuseStandardAppFrameResources,
   type CreateStandardAppFrameResourcesResult,
 } from "../materials/standard/standard-app-frame-resources.js";
-import {
-  createStandardAreaLightLtcResources,
-  type StandardAreaLightLtcResources,
-} from "../materials/standard/standard-area-light-ltc-resource.js";
+import type { StandardAreaLightLtcResources } from "../materials/standard/standard-area-light-ltc-resource.js";
 import type {
   StandardFrameIblResources,
   StandardFrameShadowReceiverResources,
@@ -232,11 +217,7 @@ import {
   skyboxPipelineCacheKey,
   type CreateSkyboxRenderPipelineResourceResult,
 } from "../render/skybox/skybox-pipeline.js";
-import {
-  createRenderFrameQueueDiagnosticsSummary,
-  writeRenderFramePlanFromSnapshot,
-  type PlanRenderFrameFromSnapshotResult,
-} from "../render/frame/render-frame-plan.js";
+import { writeRenderFramePlanFromSnapshot } from "../render/frame/render-frame-plan.js";
 import type {
   RenderPassCommand,
   RenderPassCommandPressureReport,
@@ -348,6 +329,14 @@ import {
   isRenderPassDrawCommand,
   writeCommandsForView,
 } from "./view-commands.js";
+import {
+  collectInstanceTintResources,
+  createQueuedBuiltInAppDiagnosticsSummary,
+  createQueuedBuiltInRouteFailureDiagnosticsSummary,
+  queuedBuiltInResourceSetHasStandardMaterial,
+  resolveStandardAreaLightLtcResources,
+  snapshotUsesTransmission,
+} from "./queued-built-in-support.js";
 
 export type { WebGpuAppMsaaReport };
 
@@ -1523,6 +1512,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     snapshot: options.snapshot,
     resourceSet: options.resourceSet,
     resources: prepared.resources,
+    adapterValidation: QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION,
   });
   options.phaseTimer.finish("prepare");
 
@@ -1607,6 +1597,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     snapshot: options.snapshot,
     resourceSet: options.resourceSet,
     resources: prepared.resources,
+    adapterValidation: QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION,
     framePlan,
   });
   options.phaseTimer.start("prepare");
@@ -2441,12 +2432,6 @@ function materialPipelineKeyFromRenderPipelineKey(pipelineKey: string): string {
   }
 
   return pipelineKey;
-}
-
-function snapshotUsesTransmission(snapshot: RenderSnapshot): boolean {
-  return snapshot.meshDraws.some((draw) =>
-    draw.batchKey.pipelineKey.split("|").includes("transmission"),
-  );
 }
 
 async function renderSpriteOnlyWebGpuAppFrame(
@@ -4168,168 +4153,6 @@ function appendFrameBoundaryDiagnostics(
   );
 }
 
-function createQueuedBuiltInAppDiagnosticsSummary(input: {
-  readonly snapshot: RenderSnapshot;
-  readonly resourceSet: QueuedBuiltInAppResourceSet;
-  readonly resources: QueuedBuiltInFrameResources | null;
-  readonly framePlan?: Pick<
-    PlanRenderFrameFromSnapshotResult,
-    "readiness" | "packages"
-  >;
-}): WebGpuAppDiagnosticsSummary {
-  const hasStandardRoute = input.resourceSet.items.some(
-    (item) => item.queueItem.materialFamily === "standard",
-  );
-
-  return createWebGpuAppDiagnosticsSummary({
-    materialQueue: createMaterialQueuePhaseSummary(
-      input.resourceSet.items.map((item) => item.queueItem),
-    ),
-    routedResourceSet: createQueuedMaterialFrameResourceSetSummary(
-      input.resourceSet.items.map((item) => ({
-        materialFamily: item.queueItem.materialFamily,
-        pipelineKey: item.draw.batchKey.pipelineKey,
-        renderPhase: item.queueItem.renderPhase,
-      })),
-      input.resources === null
-        ? {}
-        : { byFamily: input.resources.byFamilySummary },
-    ),
-    renderQueueSortPhases: createQueuedBuiltInAppSortPhaseSummary(
-      input.resourceSet.items,
-    ),
-    ...(input.framePlan === undefined
-      ? {}
-      : {
-          renderFrameQueue: createRenderFrameQueueDiagnosticsSummary(
-            input.framePlan,
-          ),
-        }),
-    builtInAppResourceAdapters: QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION,
-    ...(hasStandardRoute
-      ? {
-          directLighting: createDirectLightReadinessReport({
-            snapshot: input.snapshot,
-            resources:
-              input.resources === null
-                ? null
-                : directLightReadinessResourceStateFromStandardFrameResources(
-                    input.resources.standard[0] ?? null,
-                  ),
-          }),
-        }
-      : {}),
-  });
-}
-
-function collectInstanceTintResources(
-  resources: QueuedBuiltInFrameResources,
-): NonNullable<
-  QueuedBuiltInFrameResources["standard"][number]["instanceTints"]
->[] {
-  const result: NonNullable<
-    QueuedBuiltInFrameResources["standard"][number]["instanceTints"]
-  >[] = [];
-  const seen = new Set<string>();
-
-  for (const standard of resources.standard) {
-    const instanceTints = standard.instanceTints;
-
-    if (instanceTints === undefined || seen.has(instanceTints.resourceKey)) {
-      continue;
-    }
-
-    seen.add(instanceTints.resourceKey);
-    result.push(instanceTints);
-  }
-
-  return result;
-}
-
-function createQueuedBuiltInAppSortPhaseSummary(
-  items: readonly QueuedBuiltInAppResourceItem[],
-): readonly RenderQueueSortPhaseReport[] {
-  let opaque = 0;
-  let transparent = 0;
-
-  for (const item of items) {
-    if (item.queueItem.renderPhase === "transparent") {
-      transparent += 1;
-    } else {
-      opaque += 1;
-    }
-  }
-
-  const phases: RenderQueueSortPhaseReport[] = [];
-
-  if (opaque > 0) {
-    phases.push({
-      phase: "opaque",
-      recordCount: opaque,
-      sortPolicy: renderQueueSortPolicyForPhase("opaque"),
-    });
-  }
-
-  if (transparent > 0) {
-    phases.push({
-      phase: "transparent",
-      recordCount: transparent,
-      sortPolicy: renderQueueSortPolicyForPhase("transparent"),
-    });
-  }
-
-  return phases;
-}
-
-function createQueuedBuiltInRouteFailureDiagnosticsSummary(
-  diagnostics: readonly unknown[],
-): WebGpuAppDiagnosticsSummary | undefined {
-  const materialQueueRoute =
-    collectWebGpuAppMaterialQueueRouteReport(diagnostics);
-
-  return materialQueueRoute === null
-    ? undefined
-    : createWebGpuAppDiagnosticsSummary({
-        materialQueueRoute,
-        builtInAppResourceAdapters:
-          QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION,
-      });
-}
-
-function queuedBuiltInResourceSetHasStandardMaterial(
-  resourceSet: QueuedBuiltInAppResourceSet,
-): boolean {
-  return resourceSet.items.some((item) => item.adapter.kind === "standard");
-}
-
-function resolveStandardAreaLightLtcResources(options: {
-  readonly app: WebGpuApp;
-  readonly cache: WebGpuAppResourceCache;
-  readonly required: boolean;
-}): {
-  readonly valid: boolean;
-  readonly resources: StandardAreaLightLtcResources | null;
-  readonly diagnostics: readonly unknown[];
-} {
-  if (!options.required) {
-    return { valid: true, resources: null, diagnostics: [] };
-  }
-
-  const result = createStandardAreaLightLtcResources({
-    device: options.app.initialization.device as Parameters<
-      typeof createStandardAreaLightLtcResources
-    >[0]["device"],
-    textureCache: options.cache.textures,
-    samplerCache: options.cache.samplers,
-  });
-
-  return {
-    valid: result.valid,
-    resources: result.resources,
-    diagnostics: result.diagnostics,
-  };
-}
-
 async function prepareQueuedBuiltInFrameResources(options: {
   readonly app: WebGpuApp;
   readonly assets: AssetRegistry;
@@ -4859,6 +4682,7 @@ async function renderWebGpuAppFrame(
     const diagnosticsSummary =
       createQueuedBuiltInRouteFailureDiagnosticsSummary(
         queuedBuiltIn.diagnostics,
+        QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION,
       );
 
     return renderReport({
