@@ -139,6 +139,11 @@ Status: in progress
   worker snapshot/error subscription handling, diagnostics snapshots, picking
   delegation, render delegation, source asset facade pruning, and environment
   resource cache registration.
+- StandardMaterial shader feature contracts now live in
+  `packages/webgpu/src/materials/standard/standard-shader-features.ts`,
+  covering shader variant constants, the `StandardTextureShaderFeatures`
+  contract, MVP lighting-model metadata, texture feature naming, fog/generic
+  feature predicates, and variant-key selection.
 
 ## Purpose
 

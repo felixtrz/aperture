@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-27T22:19:16Z
+Updated: 2026-05-27T22:22:48Z
+
+## Current Run Update — 2026-05-27T22:22:48Z — StandardMaterial shader feature split
+
+Started `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 3.
+
+### What changed
+
+- Extracted StandardMaterial shader feature contracts from
+  `packages/webgpu/src/materials/standard/standard-shader.ts` into
+  `packages/webgpu/src/materials/standard/standard-shader-features.ts`.
+- The new module owns shader variant constants, the
+  `StandardTextureShaderFeatures` contract, MVP lighting-model metadata,
+  texture feature naming, fog/generic feature predicates, and variant-key
+  selection.
+- `standard-shader.ts` re-exports the existing public constants/types/functions
+  so current imports continue to work while WGSL assembly stays in the shader
+  module.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/materials/standard/standard-shader.ts packages/webgpu/src/materials/standard/standard-shader-features.ts`
+- `pnpm exec prettier --check packages/webgpu/src/materials/standard/standard-shader.ts packages/webgpu/src/materials/standard/standard-shader-features.ts`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 3 still needs more StandardMaterial shader splitting: WGSL chunks,
+  sampling injectors, shader label/declaration/binding assembly, and eventually
+  pipeline/material integration cleanup.
+- `standard-shader.ts` is still large, but the feature contract and variant-key
+  logic are now separately navigable.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 3 by extracting StandardMaterial WGSL sampling injectors or
+shader variant assembly helpers from `standard-shader.ts`.
 
 ## Current Run Update — 2026-05-27T22:19:16Z — WebGPU app creation facade split
 
