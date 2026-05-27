@@ -6,13 +6,6 @@ import {
 import {
   RenderWorld,
   createMaterialQueuePhaseSummary,
-  createPreparedMeshStore,
-  createPreparedMaterialStore,
-  createMaterialQueueScratch,
-  createPackedSnapshotTransformsScratch,
-  createPackedSnapshotPreviousTransformsScratch,
-  createPackedSnapshotInstanceTintsScratch,
-  createPackedSnapshotViewUniformsScratch,
   createMaterialDependencyReadinessReport,
   createRenderSnapshotChangeSet,
   createRenderSnapshotUpdateSchedule,
@@ -24,7 +17,6 @@ import {
   rememberPackedSnapshotTransformsByRenderId,
   writePackedSnapshotInstanceTintsForVertexBuffer,
   writePackedSnapshotViewUniforms,
-  type MaterialQueueScratch,
   type MaterialAssetDependencyReadinessReportJsonValue,
   type DebugNormalMaterialAsset,
   type MatcapMaterialAsset,
@@ -36,9 +28,7 @@ import {
   type PackedSnapshotTransformHistoryUpdateReport,
   type PackedSnapshotInstanceTints,
   type PackedSnapshotViewUniforms,
-  type PreparedMaterialStore,
   type PreparedMaterialStoreJsonValue,
-  type PreparedMeshStore,
   type PreparedMeshStoreJsonValue,
   type RenderEntityRef,
   type RenderSnapshot,
@@ -70,25 +60,14 @@ import {
   sourceAssetCacheKey,
   type AppTextureSamplerResourceCacheSummary,
 } from "./app-texture-sampler-resources.js";
-import {
-  createWebGpuEnvironmentResourceCache,
-  registerWebGpuAppEnvironmentResourceCache,
-  type WebGpuEnvironmentResourceCache,
-} from "./app-environment-resources.js";
+import { registerWebGpuAppEnvironmentResourceCache } from "./app-environment-resources.js";
 import {
   createPreparedMaterialTextureSamplerDependencies,
   type PreparedMaterialTextureSamplerDependencies,
 } from "../materials/core/prepared-material-texture-sampler-dependencies.js";
-import {
-  createPreparedBuiltInMaterialStore,
-  type PreparedBuiltInMaterialStore,
-} from "../materials/core/prepared-built-in-material-store.js";
+import type { PreparedBuiltInMaterialStore } from "../materials/core/prepared-built-in-material-store.js";
 import type { PreparedAppMaterialCacheSummary } from "../materials/core/prepared-app-material-resource.js";
-import {
-  createPreparedMeshGpuResourceCache,
-  type PreparedMeshGpuResourceCache,
-  type PreparedMeshGpuResourceCacheSummary,
-} from "../resources/meshes/prepared-mesh-cache.js";
+import type { PreparedMeshGpuResourceCacheSummary } from "../resources/meshes/prepared-mesh-cache.js";
 import {
   assembleFrameBoundary,
   mapFrameBoundaryReadbackSamples,
@@ -97,15 +76,11 @@ import {
   type FrameBoundaryReadbackSampleRequest,
 } from "../render/frame/frame-boundary.js";
 import {
-  createRenderBundleCache,
   createRenderBundleCommandKey,
-  type RenderBundleCache,
   type RenderBundleExecutionReport,
 } from "../render/draw/render-bundle.js";
 import {
-  createIndirectDrawCommandCache,
   prepareIndirectDrawCommands,
-  type IndirectDrawCommandCache,
   type IndirectDrawCommandReport,
 } from "../render/draw/indirect-draw-commands.js";
 import {
@@ -119,20 +94,17 @@ import {
 } from "../gpu/gpu-timing.js";
 import {
   createWebGpuAppRenderPhaseTimer,
-  createWebGpuAppRenderPhaseTimingHistory,
-  type WebGpuAppRenderPhaseTimingHistory,
   type WebGpuAppRenderPhaseTimingReport,
   type WebGpuAppRenderPhaseTimingSamples,
   type WebGpuAppRenderPhaseTimer,
 } from "./app-phase-timing.js";
 import {
-  createGpuOcclusionFeedbackState,
   createGpuOcclusionQueryResources,
   planGpuOcclusionFeedbackCulling,
   readGpuOcclusionQueryResults,
   updateGpuOcclusionFeedbackState,
-  type GpuOcclusionFeedbackFallbackReason,
   type GpuOcclusionFeedbackState,
+  type GpuOcclusionFeedbackFallbackReason,
   type GpuOcclusionQueryDiagnostic,
   type GpuOcclusionQueryDeviceLike,
   type GpuOcclusionQueryReadbackResult,
@@ -161,9 +133,7 @@ import type { LightBindGroupResource } from "../lighting/light-bind-group.js";
 import type { StandardLightShadowBindGroupResource } from "../materials/standard/standard-light-shadow-bind-group.js";
 import {
   createOrReuseDebugNormalAppFrameResources,
-  type CachedDebugNormalAppFrameResources,
   type CreateDebugNormalAppFrameResourcesResult,
-  type DebugNormalAppFrameResourceCacheSlot,
 } from "../materials/debug-normal/debug-normal-app-frame-resources.js";
 import type { DebugNormalMaterialBindGroupLayoutResource } from "../materials/debug-normal/debug-normal-bind-group.js";
 import {
@@ -172,9 +142,7 @@ import {
 } from "../materials/debug-normal/debug-normal-pipeline.js";
 import {
   createOrReuseMatcapAppFrameResources,
-  type CachedMatcapAppFrameResources,
   type CreateMatcapAppFrameResourcesResult,
-  type MatcapAppFrameResourceCacheSlot,
 } from "../materials/matcap/matcap-app-frame-resources.js";
 import { type MatcapMaterialBindGroupLayoutResource } from "../materials/matcap/matcap-bind-group.js";
 import {
@@ -190,18 +158,14 @@ import {
 } from "../materials/core/built-in-material-app-resource-adapter.js";
 import {
   collectQueuedBuiltInAppResourceSet,
-  createQueuedBuiltInAppRouteCollectorScratch,
   createSingleQueuedBuiltInAppResourceItem,
   type QueuedBuiltInAppResourceItem,
   type QueuedBuiltInAppResourceSet,
-  type QueuedBuiltInAppRouteCollectorScratch,
 } from "../render/queues/queued-built-in-app-resource-set.js";
 import {
-  createQueuedBuiltInFrameResourceScratch,
   prepareQueuedBuiltInFrameResourceSet,
   type CreateQueuedBuiltInFrameResourcesResult,
   type QueuedBuiltInFrameResourceRouteDiagnostic,
-  type QueuedBuiltInFrameResourceScratch,
   type QueuedBuiltInFrameResources,
 } from "../render/queues/queued-built-in-frame-resource-set.js";
 import { createQueuedMaterialFrameResourceSetSummary } from "../render/queues/queued-material-frame-resource-set-summary.js";
@@ -237,15 +201,12 @@ import {
 import {
   prepareLocalLightClusterCookieResources,
   type LocalLightClusterCookieAtlasUpdateReport,
-  type LocalLightClusterCookieMatrixResource,
   type LocalLightClusterCookieResources,
 } from "../lighting/local-light-cookie-resources.js";
 import type { StandardMaterialBindGroupLayoutResource } from "../materials/standard/standard-bind-group.js";
 import {
   createOrReuseStandardAppFrameResources,
-  createStandardAppFrameResourceCacheSlot,
   type CreateStandardAppFrameResourcesResult,
-  type StandardAppFrameResourceCacheSlot,
 } from "../materials/standard/standard-app-frame-resources.js";
 import {
   createStandardAreaLightLtcResources,
@@ -276,9 +237,7 @@ import {
 } from "../materials/unlit/unlit-frame-resources.js";
 import {
   createOrReuseUnlitAppFrameResources,
-  type CachedUnlitAppFrameResources,
   type CreateUnlitAppFrameResourcesResult,
-  type UnlitAppFrameResourceCacheSlot,
 } from "../materials/unlit/unlit-app-frame-resources.js";
 import type { UnlitBindGroupResource } from "../materials/unlit/unlit-bind-group.js";
 import {
@@ -288,7 +247,6 @@ import {
 import {
   createSamplerGpuResource,
   type SamplerGpuResource,
-  type TextureGpuResource,
 } from "../resources/textures/texture-resources.js";
 import {
   createSpriteRenderPipelineResource,
@@ -303,10 +261,8 @@ import {
 } from "../render/skybox/skybox-pipeline.js";
 import {
   createRenderFrameQueueDiagnosticsSummary,
-  createRenderFramePlanScratch,
   writeRenderFramePlanFromSnapshot,
   type PlanRenderFrameFromSnapshotResult,
-  type RenderFramePlanScratch,
 } from "../render/frame/render-frame-plan.js";
 import type {
   RenderPassCommand,
@@ -324,23 +280,18 @@ import {
   createWebGpuIdBufferPickIdStorage,
   createWebGpuIdBufferPickTexture,
   readWebGpuIdBufferPickPixel,
-  type WebGpuIdBufferPickPipelineResource,
   type WebGpuIdBufferPickReadbackResult,
 } from "../picking/id-buffer-pick.js";
 import {
   createOrReuseWebGpuPostPassTexture,
-  createWebGpuPostPassTextureCacheSlot,
   type WebGpuPostEffect,
   type WebGpuPostPassDepthTextureResource,
-  type WebGpuPostPassTextureCacheSlot,
   type WebGpuPostPassTextureResource,
   type WebGpuPreparedPostEffectGraph,
 } from "../post/post-pass.js";
 import {
-  createWorldTransformBufferDescriptorScratch,
   createWorldTransformGpuBuffer,
   writeWorldTransformBufferDescriptor,
-  type WorldTransformBufferDescriptorScratch,
   type WorldTransformGpuBufferResource,
 } from "../resources/transforms/world-transform-buffer.js";
 import {
@@ -377,6 +328,12 @@ import {
   type WebGpuAppMaterialKind,
   type WebGpuAppPipelineLayouts,
 } from "./pipeline-layouts.js";
+import {
+  createWebGpuAppResourceCache,
+  type WebGpuAppPipelinePlanResult,
+  type WebGpuAppPostPassCache,
+  type WebGpuAppResourceCache,
+} from "./resource-cache.js";
 
 export interface WebGpuAppRenderOptions {
   readonly frame?: number;
@@ -773,96 +730,6 @@ export type WebGpuAppFrameResourcesResult =
   | CreateDebugNormalAppFrameResourcesResult
   | CreateQueuedBuiltInFrameResourcesResult;
 
-interface WebGpuAppResourceCache {
-  readonly pipelines: Map<string, WebGpuAppPipelineResourceResult>;
-  readonly spritePipelines: Map<
-    string,
-    CreateSpriteRenderPipelineResourceResult
-  >;
-  readonly skyboxPipelines: Map<
-    string,
-    CreateSkyboxRenderPipelineResourceResult
-  >;
-  readonly layouts: Map<string, WebGpuAppPipelineLayouts>;
-  readonly textures: Map<string, TextureGpuResource>;
-  readonly samplers: Map<string, SamplerGpuResource>;
-  readonly localLightCookieMatrices: Map<
-    string,
-    LocalLightClusterCookieMatrixResource
-  >;
-  readonly environmentResources: WebGpuEnvironmentResourceCache;
-  readonly preparedMeshes: PreparedMeshGpuResourceCache;
-  readonly preparedMeshFacade: PreparedMeshStore;
-  readonly preparedMaterials: PreparedBuiltInMaterialStore;
-  readonly preparedMaterialFacade: PreparedMaterialStore;
-  readonly idPickPipelines: Map<string, WebGpuIdBufferPickPipelineResource>;
-  readonly gpuTimings: Map<string, WebGpuAppGpuTimingCacheEntry>;
-  readonly phaseTimingHistory: WebGpuAppRenderPhaseTimingHistory;
-  readonly occlusionQueries: Map<string, GpuOcclusionQueryResources>;
-  readonly occlusionFeedback: GpuOcclusionFeedbackState;
-  readonly renderBundles: RenderBundleCache;
-  readonly indirectDraws: IndirectDrawCommandCache;
-  readonly postPasses: WebGpuAppPostPassCache;
-  readonly frameScratch: WebGpuAppFrameScratch;
-  readonly unlitFrame: UnlitAppFrameResourceCacheSlot;
-  readonly matcapFrame: MatcapAppFrameResourceCacheSlot;
-  readonly standardFrame: StandardAppFrameResourceCacheSlot;
-  readonly debugNormalFrame: DebugNormalAppFrameResourceCacheSlot;
-  readonly depth: WebGpuDepthTextureCacheSlot;
-  readonly depthByRenderTarget: Map<string, WebGpuDepthTextureCacheSlot>;
-  readonly msaaColor: WebGpuMsaaColorTextureCacheSlot;
-  readonly msaaColorByRenderTarget: Map<
-    string,
-    WebGpuMsaaColorTextureCacheSlot
-  >;
-}
-
-interface WebGpuAppPostPassCache {
-  readonly scene: WebGpuPostPassTextureCacheSlot;
-  readonly ping: WebGpuPostPassTextureCacheSlot;
-  readonly pong: WebGpuPostPassTextureCacheSlot;
-  readonly motionVector: WebGpuPostPassTextureCacheSlot;
-  readonly transmissionGrab: WebGpuPostPassTextureCacheSlot;
-  readonly previousViewProjectionByViewId: Map<number, Float32Array>;
-  readonly previousWorldTransformsByRenderId: Map<number, Float32Array>;
-  readonly previousWorldTransformsScratch: ReturnType<
-    typeof createPackedSnapshotPreviousTransformsScratch
-  >;
-  readonly previousWorldTransformDescriptorScratch: WorldTransformBufferDescriptorScratch;
-  previousWorldTransformResource: WorldTransformGpuBufferResource | null;
-  previousWorldTransformByteLength: number;
-}
-
-interface WebGpuAppFrameScratch {
-  readonly viewUniforms: ReturnType<
-    typeof createPackedSnapshotViewUniformsScratch
-  >;
-  readonly worldTransforms: ReturnType<
-    typeof createPackedSnapshotTransformsScratch
-  >;
-  readonly instanceTints: ReturnType<
-    typeof createPackedSnapshotInstanceTintsScratch
-  >;
-  readonly framePlan: RenderFramePlanScratch;
-  readonly materialQueue: MaterialQueueScratch;
-  readonly queueRoute: QueuedBuiltInAppRouteCollectorScratch;
-  readonly queuedBuiltInFrameResources: QueuedBuiltInFrameResourceScratch<WebGpuAppPipelinePlanResult>;
-  readonly viewCommands: RenderPassCommand[];
-  readonly skyboxCommands: RenderPassCommand[];
-  readonly occlusionFallbackCommands: RenderPassCommand[];
-  readonly occlusionCulledCommands: RenderPassCommand[];
-}
-
-interface WebGpuAppGpuTimingCacheEntry {
-  readonly passName: string;
-  readonly resources: GpuTimestampQueryResources | null;
-  readonly diagnostics: readonly GpuTimestampQueryDiagnostic[];
-}
-
-interface WebGpuAppFrameResourceCacheSlot<TCachedFrameResources> {
-  current: TCachedFrameResources | null;
-}
-
 interface MultiUnlitAppResourceSet {
   readonly mesh: MeshAsset;
   readonly meshKey: string;
@@ -873,14 +740,6 @@ interface MultiUnlitAppResourceSet {
 interface WebGpuAppRenderContext {
   readonly app: WebGpuApp;
   readonly sourceAssets: AssetRegistry;
-}
-
-interface WebGpuAppPipelinePlanResult {
-  readonly ok: true;
-  readonly status: "miss";
-  readonly key: string;
-  readonly pipeline: unknown;
-  readonly diagnostics: readonly [];
 }
 
 interface QueuedBuiltInTextureSamplerPreparationOptions {
@@ -1167,80 +1026,6 @@ function createEmptyRenderSnapshot(frame: number): RenderSnapshot {
       bounds: 0,
       diagnostics: 0,
     },
-  };
-}
-
-function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
-  return {
-    pipelines: new Map(),
-    spritePipelines: new Map(),
-    skyboxPipelines: new Map(),
-    layouts: new Map(),
-    textures: new Map(),
-    samplers: new Map(),
-    localLightCookieMatrices: new Map(),
-    environmentResources: createWebGpuEnvironmentResourceCache(),
-    preparedMeshes: createPreparedMeshGpuResourceCache(),
-    preparedMeshFacade: createPreparedMeshStore(),
-    preparedMaterials: createPreparedBuiltInMaterialStore(),
-    preparedMaterialFacade: createPreparedMaterialStore(),
-    idPickPipelines: new Map(),
-    gpuTimings: new Map(),
-    phaseTimingHistory: createWebGpuAppRenderPhaseTimingHistory(),
-    occlusionQueries: new Map(),
-    occlusionFeedback: createGpuOcclusionFeedbackState(),
-    renderBundles: createRenderBundleCache(),
-    indirectDraws: createIndirectDrawCommandCache(),
-    postPasses: {
-      scene: createWebGpuPostPassTextureCacheSlot(),
-      ping: createWebGpuPostPassTextureCacheSlot(),
-      pong: createWebGpuPostPassTextureCacheSlot(),
-      motionVector: createWebGpuPostPassTextureCacheSlot(),
-      transmissionGrab: createWebGpuPostPassTextureCacheSlot(),
-      previousViewProjectionByViewId: new Map(),
-      previousWorldTransformsByRenderId: new Map(),
-      previousWorldTransformsScratch:
-        createPackedSnapshotPreviousTransformsScratch(),
-      previousWorldTransformDescriptorScratch:
-        createWorldTransformBufferDescriptorScratch(),
-      previousWorldTransformResource: null,
-      previousWorldTransformByteLength: 0,
-    },
-    frameScratch: createWebGpuAppFrameScratch(),
-    unlitFrame:
-      createWebGpuAppFrameResourceCacheSlot<CachedUnlitAppFrameResources>(),
-    matcapFrame:
-      createWebGpuAppFrameResourceCacheSlot<CachedMatcapAppFrameResources>(),
-    standardFrame: createStandardAppFrameResourceCacheSlot(),
-    debugNormalFrame:
-      createWebGpuAppFrameResourceCacheSlot<CachedDebugNormalAppFrameResources>(),
-    depth: createWebGpuDepthTextureCacheSlot(),
-    depthByRenderTarget: new Map(),
-    msaaColor: createWebGpuMsaaColorTextureCacheSlot(),
-    msaaColorByRenderTarget: new Map(),
-  };
-}
-
-function createWebGpuAppFrameResourceCacheSlot<
-  TCachedFrameResources,
->(): WebGpuAppFrameResourceCacheSlot<TCachedFrameResources> {
-  return { current: null };
-}
-
-function createWebGpuAppFrameScratch(): WebGpuAppFrameScratch {
-  return {
-    viewUniforms: createPackedSnapshotViewUniformsScratch(),
-    worldTransforms: createPackedSnapshotTransformsScratch(),
-    instanceTints: createPackedSnapshotInstanceTintsScratch(),
-    framePlan: createRenderFramePlanScratch(),
-    materialQueue: createMaterialQueueScratch(),
-    queueRoute: createQueuedBuiltInAppRouteCollectorScratch(),
-    queuedBuiltInFrameResources:
-      createQueuedBuiltInFrameResourceScratch<WebGpuAppPipelinePlanResult>(),
-    viewCommands: [],
-    skyboxCommands: [],
-    occlusionFallbackCommands: [],
-    occlusionCulledCommands: [],
   };
 }
 

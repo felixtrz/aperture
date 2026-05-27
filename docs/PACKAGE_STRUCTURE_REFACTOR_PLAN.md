@@ -36,6 +36,9 @@ Status: in progress
 - Pipeline layout resolution now lives in
   `packages/webgpu/src/app/pipeline-layouts.ts`, covering cached layout
   lookup and built-in material family layout construction.
+- Resource cache and frame scratch construction now live in
+  `packages/webgpu/src/app/resource-cache.ts`, covering app resource cache
+  types, post-pass cache state, frame scratch buffers, and cache factory setup.
 
 ## Purpose
 

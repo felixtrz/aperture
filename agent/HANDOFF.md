@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-27T20:19:45Z
+Updated: 2026-05-27T20:26:14Z
+
+## Current Run Update — 2026-05-27T20:26:14Z — WebGPU resource cache factory split
+
+Continued Track 2 of `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Extracted WebGPU app resource cache and frame scratch construction from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/resource-cache.ts`.
+- The new module owns app resource cache types, post-pass cache state,
+  frame-scratch buffers, queued built-in scratch state, timing/occlusion caches,
+  and cache factory setup.
+- `app.ts` now imports the cache factory and internal cache types from the new
+  module.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/resource-cache.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/resource-cache.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|routes DebugNormalMaterial|renders mixed standard and matcap app resource sets"`
+- `pnpm exec vitest run test/webgpu/app-picking.test.ts test/webgpu/index.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs full picking orchestration, frame-loop orchestration, and
+  diagnostics orchestration splits.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by introducing an app-frame-resource module that can unblock
+moving the full picking orchestration and queued built-in frame preparation
+out of `app.ts`.
 
 ## Current Run Update — 2026-05-27T20:19:45Z — WebGPU pipeline layout helpers split
 
