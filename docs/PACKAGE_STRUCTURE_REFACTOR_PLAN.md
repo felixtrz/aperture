@@ -93,6 +93,10 @@ Status: in progress
   `packages/webgpu/src/app/queued-frame-resources.ts`, covering queued resource
   preparation, frame-resource option construction, pipeline plan results, and
   queued bind-group reuse accounting.
+- App motion-vector helpers now live in
+  `packages/webgpu/src/app/motion-vectors.ts`, covering scene motion-vector
+  eligibility, previous object-transform GPU resources, motion-vector reports,
+  and view-projection history for post passes.
 
 ## Purpose
 

@@ -1,6 +1,44 @@
 # Agent Handoff
 
-Updated: 2026-05-27T21:29:03Z
+Updated: 2026-05-27T21:34:03Z
+
+## Current Run Update — 2026-05-27T21:34:03Z — WebGPU motion-vector helpers split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted app motion-vector helpers from `packages/webgpu/src/app/app.ts`
+  into `packages/webgpu/src/app/motion-vectors.ts`.
+- The new module owns scene motion-vector eligibility, previous object-transform
+  GPU resource preparation, motion-vector report construction, motion-vector
+  clear-color encoding, and view-projection history maintenance.
+- `app.ts` still owns post-effect orchestration but now delegates the
+  motion-vector support layer.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/motion-vectors.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/motion-vectors.ts`
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "runs a no-op post effect chain|passes the renderer-owned scene depth texture|passes multisampled scene depth|initializes WebGPU|creates a renderer-only app"`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs full picking orchestration, post-processing pass
+  orchestration, frame-loop orchestration, and diagnostics orchestration splits.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by extracting the post-processed swapchain target assembly, now
+that the shared motion-vector helpers are separate.
 
 ## Current Run Update — 2026-05-27T21:29:03Z — WebGPU queued frame resources split
 
