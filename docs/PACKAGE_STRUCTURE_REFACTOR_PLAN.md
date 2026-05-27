@@ -228,6 +228,10 @@ Status: in progress
   candidates, matrix buffers, texture atlas/array resources, sampler defaults,
   and shared contracts split into focused `local-light-cookie-*` lighting
   modules.
+- Clustered local-light constants, contracts, layer-mask helpers, shadow/cookie
+  metadata, GPU buffer allocation, and report shaping now live in focused
+  `packages/webgpu/src/lighting/local-light-cluster-*` modules, while
+  `local-light-clusters.ts` remains the stable descriptor-building entry point.
 
 ## Purpose
 

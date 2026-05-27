@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-27T23:21:05Z
+Updated: 2026-05-27T23:24:46Z
+
+## Current Run Update — 2026-05-27T23:24:46Z — Local light cluster module split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 4.
+
+### What changed
+
+- Split clustered local-light constants, public/internal contracts, layer-mask
+  helpers, shadow/cookie metadata creation, GPU buffer allocation, and report
+  shaping out of `packages/webgpu/src/lighting/local-light-clusters.ts`.
+- `local-light-clusters.ts` remains the stable descriptor-building entry point
+  and is now roughly 788 lines.
+- The new `local-light-cluster-*` helper modules are all below roughly 300
+  lines.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/lighting/local-light-clusters.ts packages/webgpu/src/lighting/local-light-cluster-constants.ts packages/webgpu/src/lighting/local-light-cluster-types.ts packages/webgpu/src/lighting/local-light-cluster-layer.ts packages/webgpu/src/lighting/local-light-cluster-metadata.ts packages/webgpu/src/lighting/local-light-cluster-gpu-resource.ts packages/webgpu/src/lighting/local-light-cluster-report.ts`
+- `pnpm exec prettier --check packages/webgpu/src/lighting/local-light-clusters.ts packages/webgpu/src/lighting/local-light-cluster-constants.ts packages/webgpu/src/lighting/local-light-cluster-types.ts packages/webgpu/src/lighting/local-light-cluster-layer.ts packages/webgpu/src/lighting/local-light-cluster-metadata.ts packages/webgpu/src/lighting/local-light-cluster-gpu-resource.ts packages/webgpu/src/lighting/local-light-cluster-report.ts`
+- `pnpm exec vitest run test/webgpu/local-light-clusters.test.ts test/webgpu/local-light-cookie-resources.test.ts test/webgpu/light-bind-group.test.ts test/webgpu/light-bind-group-layout.test.ts test/webgpu/standard-shader.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining large WebGPU implementation files include
+  `render/frame/renderer-frame-summary.ts`,
+  `lighting/ibl-texture-resource.ts`, `render/frame/frame-boundary.ts`, and
+  `post/post-bloom.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to these extractions; use targeted subsets
+  until those expectations are updated.
+
+### Recommended next task
+
+Continue Track 4 by splitting environment-light texture preparation from
+`packages/webgpu/src/lighting/ibl-texture-resource.ts`, then reassess remaining
+post/output files.
 
 ## Current Run Update — 2026-05-27T23:21:05Z — Local light cookie resource split
 
