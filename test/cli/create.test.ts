@@ -277,9 +277,10 @@ describe("Aperture CLI create command", () => {
     expect(config).toContain('goal: asset.gltf("/assets/goal-cube.glb"');
     expect(config).toContain("score: signal.number(0)");
     expect(config).toContain("goalReached: signal.boolean(false)");
-    expect(config).toContain("left: ");
-    expect(config).toContain("right: ");
+    expect(config).toContain("move: input.axis2d");
+    expect(config).toContain('input.gamepadButton("south")');
     expect(playerSystem).toContain("priority: 20");
+    expect(playerSystem).toContain("this.actions.move");
     expect(playerSystem).toContain("game.collectible.collected");
     expect(cameraSystem).toContain("priority: 80");
   });

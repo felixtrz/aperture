@@ -9,5 +9,10 @@
     "skipLibCheck": true,
     "types": ["vite/client"]
   },
-  "include": ["aperture.config.ts", "vite.config.ts", "src/**/*.ts"]
+  "include": [
+    "aperture.config.ts",
+    "vite.config.ts",
+    "src/**/*.ts",
+    ".aperture/generated/**/*.d.ts"
+  ]
 }

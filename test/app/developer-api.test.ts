@@ -57,10 +57,13 @@ import {
   createSystem,
   material,
   mesh,
+  type InputAction,
+  type InputButtonAction,
 } from "@aperture-engine/app/systems";
 import {
   asset,
   defineApertureConfig,
+  input,
   signal,
 } from "@aperture-engine/app/config";
 import {
@@ -69,11 +72,22 @@ import {
   createApertureSystemManifest,
   type ApertureViteDevServer,
 } from "@aperture-engine/vite-plugin";
+import { createGeneratedInputEventMessage } from "../../packages/app/src/input.js";
 import developerHeadlessConfig from "../../examples/developer-api/aperture.headless.config.js";
 import SetupSystem from "../../examples/developer-api/src/systems/setup.system.js";
 import AssetCommandSystem from "../../examples/developer-api/src/systems/asset-command.system.js";
 import SelectSystem from "../../examples/developer-api/src/systems/select.system.js";
 import SpinCrateSystem from "../../examples/developer-api/src/systems/spin-crate.system.js";
+
+function requireButtonAction(
+  action: InputAction | undefined,
+): InputButtonAction {
+  if (action?.kind !== "button") {
+    throw new Error("Expected configured button action.");
+  }
+
+  return action;
+}
 
 describe("developer-facing app API", () => {
   it("defines config assets and keeps the app root free of Vite plugin exports", () => {
@@ -349,6 +363,9 @@ describe("developer-facing app API", () => {
       mirroredSourceAssets: 1,
       skippedSourceAssets: 0,
       forwardedInputEvents: 1,
+      forwardedInputFrames: 0,
+      connectedGamepads: 0,
+      lastInputReset: null,
       lastInputEvent: null,
       forwardedCommandEvents: 1,
       lastCommandEvent: null,
@@ -735,6 +752,63 @@ describe("developer-facing app API", () => {
     );
   });
 
+  it("advances generated worker input before effects and system updates", async () => {
+    const port = new InlineGeneratedWorkerPort();
+    const InputSystemModule: ApertureSystemModule = {
+      default: class InputSystem extends createSystem({ priority: 0 }) {
+        override update(): void {
+          const jump = this.actions.jump;
+
+          if (jump?.kind === "button" && jump.down()) {
+            this.signals.jumped!.value = true;
+          }
+        }
+      },
+    };
+
+    startGeneratedSimulationWorker({
+      config: defineApertureConfig({
+        mode: "headless",
+        systems: [],
+        input: {
+          actions: {
+            jump: input.button([input.key("Space")]),
+          },
+        },
+        signals: {
+          jumped: signal.boolean(false),
+        },
+      }),
+      systems: [InputSystemModule],
+      port,
+    });
+    port.dispatch(
+      createGeneratedInputEventMessage({
+        kind: "keyboard",
+        code: "Space",
+        pressed: true,
+      }),
+    );
+    port.dispatch({ type: SIMULATION_WORKER_PROTOCOL.start, stop: true });
+
+    const snapshotMessage = await port.nextPostedMessage(
+      isSimulationWorkerSnapshotMessage,
+    );
+    const workerSummary = readRecord(
+      (snapshotMessage as { readonly workerSummary?: unknown }).workerSummary,
+    );
+    const inputSummary = readRecord(workerSummary?.input);
+    const actionSummary = readRecord(readRecord(inputSummary?.actions)?.jump);
+    const signals = readRecord(workerSummary?.signals);
+
+    expect(actionSummary).toMatchObject({
+      kind: "button",
+      pressed: true,
+      down: true,
+    });
+    expect(signals?.jumped).toBe(true);
+  });
+
   it("registers generated worker systems using descriptor priority metadata", async () => {
     const events: string[] = [];
     const port = new InlineGeneratedWorkerPort();
@@ -845,7 +919,8 @@ describe("developer-facing app API", () => {
         priority: 50,
       }) {
         override init(): void {
-          this.effects.watch(this.input.actions.select!.pressed, (pressed) => {
+          const select = requireButtonAction(this.input.actions.select);
+          this.effects.watch(select.pressed, (pressed) => {
             if (pressed) {
               events.push("select");
             }
@@ -928,16 +1003,16 @@ describe("developer-facing app API", () => {
       included: 1,
     });
 
-    app.context.input.actions.select!.pressed.value = true;
+    requireButtonAction(app.context.input.actions.select).pressed.value = true;
     app.step(1 / 60, 1);
     expect(events).toContain("select");
     expect(events).toContain("spin:1");
 
     const reactive = app.lowLevel.world.getSystems()[1];
     app.lowLevel.world.unregisterSystem(reactive?.constructor as never);
-    app.context.input.actions.select!.pressed.value = false;
+    requireButtonAction(app.context.input.actions.select).pressed.value = false;
     app.step(1 / 60, 2);
-    app.context.input.actions.select!.pressed.value = true;
+    requireButtonAction(app.context.input.actions.select).pressed.value = true;
     app.step(1 / 60, 3);
     expect(events.filter((event) => event === "select")).toHaveLength(1);
 
@@ -1293,12 +1368,14 @@ describe("developer-facing app API", () => {
     });
 
     runner.app.context.input.pointer.primary.position.value = [0.25, 0.5];
-    runner.app.context.input.actions.select!.pressed.value = true;
+    requireButtonAction(runner.app.context.input.actions.select).pressed.value =
+      true;
     const selected = runner.step(1 / 60, 1);
 
     expect(selected.status.input.actions.select).toMatchObject({
+      kind: "button",
       pressed: true,
-      value: 0,
+      value: true,
     });
     expect(selected.status.signals.selectedEntity).toMatchObject({
       index: expect.any(Number),
@@ -1412,7 +1489,8 @@ describe("developer-facing app API", () => {
       key: "level.crate.primary",
     });
     runner.app.context.input.pointer.primary.position.value = [0.25, 0.5];
-    runner.app.context.input.actions.select!.pressed.value = true;
+    requireButtonAction(runner.app.context.input.actions.select).pressed.value =
+      true;
     runner.step(1 / 60, 1);
     const afterSelect = runner.entities.snapshot({
       label: "after-select",

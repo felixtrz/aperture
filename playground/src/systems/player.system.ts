@@ -4,6 +4,8 @@ import {
   createSystem,
   quatFromAxisAngle,
   type ApertureQuery,
+  type InputAxis2dAction,
+  type InputButtonAction,
 } from "@aperture-engine/app/systems";
 import { LEVEL, PLAYER, TOTAL_GEMS, type Rect } from "../level.js";
 
@@ -26,8 +28,6 @@ export default class PlayerSystem extends createSystem({
   #velocityY = 0;
   #grounded = false;
   #lastDirection = 1;
-  #wasJumpPressed = false;
-  #wasResetPressed = false;
   #elapsed = 0;
   #complete = false;
   #deaths = 0;
@@ -39,11 +39,10 @@ export default class PlayerSystem extends createSystem({
       return;
     }
 
-    const resetPressed = this.#isPressed("reset");
-    if (resetPressed && !this.#wasResetPressed) {
+    const reset = this.actions.reset as InputButtonAction | undefined;
+    if (reset?.down() === true) {
       this.#reset(player, "Reset run");
     }
-    this.#wasResetPressed = resetPressed;
 
     if (this.#complete) {
       this.#writeSignals("clear", "Clear. Press R to replay.");
@@ -56,9 +55,8 @@ export default class PlayerSystem extends createSystem({
     const translation = player.getVectorView(LocalTransform, "translation");
     const previousX = Number(translation[0] ?? PLAYER.start[0]);
     const previousY = Number(translation[1] ?? PLAYER.start[1]);
-    const moveAxis =
-      (this.#isPressed("moveRight") ? 1 : 0) -
-      (this.#isPressed("moveLeft") ? 1 : 0);
+    const move = this.actions.move as InputAxis2dAction | undefined;
+    const moveAxis = move?.x.value ?? 0;
 
     if (moveAxis !== 0) {
       this.#lastDirection = moveAxis;
@@ -67,12 +65,11 @@ export default class PlayerSystem extends createSystem({
     let nextX = previousX + moveAxis * PLAYER.speed * dt;
     nextX = clamp(nextX, LEVEL.startX - 0.3, LEVEL.goalX + 1.25);
 
-    const jumpPressed = this.#isPressed("jump");
-    if (jumpPressed && !this.#wasJumpPressed && this.#grounded) {
+    const jump = this.actions.jump as InputButtonAction | undefined;
+    if (jump?.down() === true && this.#grounded) {
       this.#velocityY = PLAYER.jumpSpeed;
       this.#grounded = false;
     }
-    this.#wasJumpPressed = jumpPressed;
 
     if (this.#touchesSpring(previousX, previousY)) {
       this.#velocityY = Math.max(this.#velocityY, PLAYER.jumpSpeed * 1.16);
@@ -113,10 +110,6 @@ export default class PlayerSystem extends createSystem({
         ? "Reach the flag"
         : "Collect every gem and reach the flag",
     );
-  }
-
-  #isPressed(action: string): boolean {
-    return this.input.actions[action]?.pressed.value === true;
   }
 
   #findNamedEntity(name: string): QueryEntity | null {

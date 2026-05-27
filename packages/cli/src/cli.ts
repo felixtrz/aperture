@@ -1210,7 +1210,7 @@ function tsconfigJson(): string {
     "skipLibCheck": true,
     "types": ["vite/client"]
   },
-  "include": ["aperture.config.ts", "vite.config.ts", "src/**/*.ts"]
+  "include": ["aperture.config.ts", "vite.config.ts", "src/**/*.ts", ".aperture/generated/**/*.d.ts"]
 }
 `;
 }
@@ -1232,7 +1232,7 @@ export default defineConfig({
 }
 
 function apertureConfigTs(): string {
-  return `import { defineApertureConfig, signal } from "@aperture-engine/app/config";
+  return `import { defineApertureConfig, input, signal } from "@aperture-engine/app/config";
 
 export default defineApertureConfig({
   mode: "browser",
@@ -1243,7 +1243,7 @@ export default defineApertureConfig({
   },
   input: {
     actions: {
-      select: [{ pointer: "primary" }, { keyboard: "Enter" }],
+      select: input.button([input.pointer("primary"), input.key("Enter")]),
     },
   },
   render: {
@@ -1264,7 +1264,7 @@ const SAMPLE_CUBE_GLB_BASE64 =
   "Z2xURgIAAADsAwAAKAMAAEpTT057ImFzc2V0Ijp7InZlcnNpb24iOiIyLjAiLCJnZW5lcmF0b3IiOiJBcGVydHVyZSB0YXNrLTIwMDcgZml4dHVyZSJ9LCJzY2VuZSI6MCwic2NlbmVzIjpbeyJub2RlcyI6WzBdfV0sIm5vZGVzIjpbeyJuYW1lIjoiU2FtcGxlQ3ViZSIsIm1lc2giOjAsInJvdGF0aW9uIjpbMCwwLjI1ODgxOSwwLDAuOTY1OTI2XX1dLCJtZXNoZXMiOlt7Im5hbWUiOiJTYW1wbGVDdWJlTWVzaCIsInByaW1pdGl2ZXMiOlt7ImF0dHJpYnV0ZXMiOnsiUE9TSVRJT04iOjB9LCJpbmRpY2VzIjoxLCJtYXRlcmlhbCI6MH1dfV0sIm1hdGVyaWFscyI6W3sibmFtZSI6IlNhbXBsZUN1YmVNaW50IiwicGJyTWV0YWxsaWNSb3VnaG5lc3MiOnsiYmFzZUNvbG9yRmFjdG9yIjpbMC4xNiwwLjc4LDAuNTYsMV19LCJleHRlbnNpb25zIjp7IktIUl9tYXRlcmlhbHNfdW5saXQiOnt9fX1dLCJidWZmZXJzIjpbeyJieXRlTGVuZ3RoIjoxNjh9XSwiYnVmZmVyVmlld3MiOlt7ImJ1ZmZlciI6MCwiYnl0ZU9mZnNldCI6MCwiYnl0ZUxlbmd0aCI6OTYsInRhcmdldCI6MzQ5NjJ9LHsiYnVmZmVyIjowLCJieXRlT2Zmc2V0Ijo5NiwiYnl0ZUxlbmd0aCI6NzIsInRhcmdldCI6MzQ5NjN9XSwiYWNjZXNzb3JzIjpbeyJidWZmZXJWaWV3IjowLCJieXRlT2Zmc2V0IjowLCJjb21wb25lbnRUeXBlIjo1MTI2LCJjb3VudCI6OCwidHlwZSI6IlZFQzMiLCJtaW4iOlstMC43LC0wLjcsLTAuN10sIm1heCI6WzAuNywwLjcsMC43XX0seyJidWZmZXJWaWV3IjoxLCJieXRlT2Zmc2V0IjowLCJjb21wb25lbnRUeXBlIjo1MTIzLCJjb3VudCI6MzYsInR5cGUiOiJTQ0FMQVIifV19qAAAAEJJTgAzMzO/MzMzvzMzM78zMzM/MzMzvzMzM78zMzM/MzMzPzMzM78zMzO/MzMzPzMzM78zMzO/MzMzvzMzMz8zMzM/MzMzvzMzMz8zMzM/MzMzPzMzMz8zMzO/MzMzPzMzMz8AAAEAAgAAAAIAAwAEAAYABQAEAAcABgAAAAQABQAAAAUAAQABAAUABgABAAYAAgACAAYABwACAAcAAwADAAcABAADAAQAAAA=";
 
 function glbViewerConfigTs(): string {
-  return `import { asset, defineApertureConfig } from "@aperture-engine/app/config";
+  return `import { asset, defineApertureConfig, input } from "@aperture-engine/app/config";
 
 export default defineApertureConfig({
   mode: "browser",
@@ -1278,7 +1278,7 @@ export default defineApertureConfig({
   },
   input: {
     actions: {
-      resetView: [{ keyboard: "KeyR" }],
+      resetView: input.button([input.key("KeyR")]),
     },
   },
   render: {
@@ -1367,7 +1367,7 @@ export default class OrbitSystem extends createSystem({
 }
 
 function gameConfigTs(): string {
-  return `import { asset, defineApertureConfig, signal } from "@aperture-engine/app/config";
+  return `import { asset, defineApertureConfig, input, signal } from "@aperture-engine/app/config";
 
 export default defineApertureConfig({
   mode: "browser",
@@ -1386,10 +1386,19 @@ export default defineApertureConfig({
   },
   input: {
     actions: {
-      left: [{ keyboard: "ArrowLeft" }, { keyboard: "KeyA" }],
-      right: [{ keyboard: "ArrowRight" }, { keyboard: "KeyD" }],
-      jump: [{ keyboard: "Space" }, { keyboard: "KeyW" }],
-      reset: [{ keyboard: "KeyR" }],
+      move: input.axis2d([
+        input.keyboard2d({
+          negativeX: ["ArrowLeft", "KeyA"],
+          positiveX: ["ArrowRight", "KeyD"],
+        }),
+        input.gamepadStick("left"),
+      ]),
+      jump: input.button([
+        input.key("Space"),
+        input.key("KeyW"),
+        input.gamepadButton("south"),
+      ]),
+      reset: input.button([input.key("KeyR")]),
     },
   },
   render: {
@@ -1516,7 +1525,8 @@ export default class PlayerSystem extends createSystem({
 
     const playerTranslation = player.getVectorView(LocalTransform, "translation");
 
-    if (this.input.actions.reset?.pressed.value === true) {
+    const reset = this.actions.reset;
+    if (reset?.kind === "button" && reset.down()) {
       playerTranslation[0] = -3.5;
       score.value = 0;
       goalReached.value = false;
@@ -1525,9 +1535,8 @@ export default class PlayerSystem extends createSystem({
       }
     }
 
-    const direction =
-      (this.input.actions.right?.pressed.value === true ? 1 : 0) -
-      (this.input.actions.left?.pressed.value === true ? 1 : 0);
+    const move = this.actions.move;
+    const direction = move?.kind === "axis2d" ? move.x.value : 0;
     const playerCurrentX = playerTranslation[0] ?? -3.5;
     const playerNextX = Math.max(
       -4,

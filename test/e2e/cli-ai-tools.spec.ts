@@ -548,6 +548,90 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
       },
     });
 
+    const gamepadButton = await callMcpTool("input_gamepad_set", {
+      button: "south",
+      pressed: true,
+    });
+    expect(gamepadButton.structuredContent).toMatchObject({
+      ok: true,
+      result: {
+        input: {
+          gamepads: {
+            primaryIndex: 0,
+            devices: [
+              expect.objectContaining({
+                buttons: expect.objectContaining({
+                  south: expect.objectContaining({ pressed: true }),
+                }),
+              }),
+            ],
+          },
+        },
+      },
+    });
+
+    const gamepadStick = await callMcpTool("input_gamepad_set", {
+      leftStick: { x: 0.5, y: -0.25 },
+    });
+    expect(gamepadStick.structuredContent).toMatchObject({
+      ok: true,
+      result: {
+        input: {
+          gamepads: {
+            devices: [
+              expect.objectContaining({
+                axes: {
+                  leftStick: [0.5, -0.25],
+                  rightStick: [0, 0],
+                },
+              }),
+            ],
+          },
+        },
+      },
+    });
+
+    await callMcpTool("ecs_pause", {});
+    await callMcpTool("input_gamepad_set", {
+      button: "south",
+      pressed: true,
+    });
+    const pausedInput = await callMcpTool("input_get_state", {});
+    expect(pausedInput.structuredContent).toMatchObject({
+      ok: true,
+      result: {
+        gamepads: {
+          devices: [
+            expect.objectContaining({
+              buttons: expect.objectContaining({
+                south: expect.objectContaining({ down: true }),
+              }),
+            }),
+          ],
+        },
+      },
+    });
+    await callMcpTool("ecs_step", { delta: 0.016 });
+    const steppedInput = await callMcpTool("input_get_state", {});
+    expect(steppedInput.structuredContent).toMatchObject({
+      ok: true,
+      result: {
+        gamepads: {
+          devices: [
+            expect.objectContaining({
+              buttons: expect.objectContaining({
+                south: expect.objectContaining({
+                  pressed: true,
+                  down: false,
+                }),
+              }),
+            }),
+          ],
+        },
+      },
+    });
+    await callMcpTool("ecs_resume", {});
+
     const hierarchy = await callMcpTool("ecs_get_hierarchy", {});
     expect(hierarchy.structuredContent).toMatchObject({
       ok: true,
@@ -1698,13 +1782,13 @@ test("aperture create templates typecheck, build, and pass browser smoke checks"
         if (template.template === "game") {
           await callMcpTool(
             "input_action_set",
-            { action: "right", pressed: true },
+            { action: "move", x: 1 },
             { cwd: appRoot },
           );
           await delay(2_600);
           await callMcpTool(
             "input_action_set",
-            { action: "right", pressed: false },
+            { action: "move", x: 0 },
             { cwd: appRoot },
           );
 

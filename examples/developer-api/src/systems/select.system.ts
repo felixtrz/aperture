@@ -14,9 +14,14 @@ export default class SelectSystem extends createSystem({
   },
 }) {
   override init(): void {
-    const select = this.input.actions.select;
+    const select = this.actions.select;
     if (select === undefined) {
       this.diagnostics.warn("select.actionMissing");
+      return;
+    }
+
+    if (select.kind !== "button") {
+      this.diagnostics.warn("select.actionInvalidKind");
       return;
     }
 

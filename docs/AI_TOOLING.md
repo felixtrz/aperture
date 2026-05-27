@@ -80,8 +80,8 @@ state:
 - `ecs_pause`, `ecs_resume`, `ecs_step`: change simulation control state in the
   generated worker.
 - `input_key`, `input_pointer_move`, `input_pointer_click`, `input_drag`,
-  `input_action_set`, `input_reset`: drive the same generated input path used
-  by real browser events.
+  `input_action_set`, `input_gamepad_set`, `input_get_state`, `input_reset`:
+  drive or inspect the same generated input path used by real browser events.
 - `camera_create_agent`, `camera_set_transform`, `camera_look_at`,
   `camera_orbit`, `camera_fit_entity`, `camera_use_agent_view`: create or
   mutate camera entities for inspection in the managed browser.
@@ -96,8 +96,9 @@ For camera inspection, call `camera_save` before changing a camera and
 `camera_create_agent` and switching the managed browser to it with
 `camera_use_agent_view` instead of modifying a user-authored app camera.
 
-For input inspection, call `input_reset` after pointer or action experiments to
-release transient input state.
+For input inspection, call `input_get_state` to read resolved keyboard, pointer,
+gamepad, and action state. Call `input_reset` after pointer, virtual action, or
+gamepad experiments to release transient input state.
 
 For ECS edits, use `ecs_snapshot` before mutation and `ecs_diff` after mutation
 to make changes explicit. There is no broad ECS undo tool; use app systems or a

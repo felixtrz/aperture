@@ -1,6 +1,7 @@
 import {
   asset,
   defineApertureConfig,
+  input,
   signal,
 } from "@aperture-engine/app/config";
 import { TOTAL_GEMS } from "./src/level.js";
@@ -74,14 +75,20 @@ export default defineApertureConfig({
   },
   input: {
     actions: {
-      moveLeft: [{ keyboard: "ArrowLeft" }, { keyboard: "KeyA" }],
-      moveRight: [{ keyboard: "ArrowRight" }, { keyboard: "KeyD" }],
-      jump: [
-        { keyboard: "Space" },
-        { keyboard: "ArrowUp" },
-        { keyboard: "KeyW" },
-      ],
-      reset: [{ keyboard: "KeyR" }],
+      move: input.axis2d([
+        input.keyboard2d({
+          negativeX: ["ArrowLeft", "KeyA"],
+          positiveX: ["ArrowRight", "KeyD"],
+        }),
+        input.gamepadStick("left"),
+      ]),
+      jump: input.button([
+        input.key("Space"),
+        input.key("ArrowUp"),
+        input.key("KeyW"),
+        input.gamepadButton("south"),
+      ]),
+      reset: input.button([input.key("KeyR")]),
     },
   },
   render: {

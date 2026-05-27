@@ -1,6 +1,59 @@
 # Agent Handoff
 
-Updated: 2026-05-27T05:54:00Z
+Updated: 2026-05-27T17:05:54Z
+
+## Current Run Update — 2026-05-27T17:05:54Z — Input state and action resource implemented
+
+Completed the user-directed implementation of
+`docs/INPUT_STATE_AND_ACTION_PLAN.md`.
+
+### What changed
+
+- Added typed `input.button`, `input.axis1d`, `input.axis2d`, keyboard,
+  pointer, and standard gamepad config helpers with validation.
+- Replaced ad hoc action signals with a worker-owned input resource that tracks
+  stateful keyboard keys, standard gamepad buttons/sticks, pointer state,
+  virtual actions, one-frame edges, diagnostics, and JSON-safe summaries.
+- Exposed `this.actions`, `this.keyboard`, and `this.gamepads` on systems while
+  keeping `this.input` as the grouped lower-level resource.
+- Moved generated worker input handling to frame advancement before input
+  effects and system updates.
+- Expanded browser forwarding with pointer cancel/lost-capture release, blur
+  and visibility reset, virtual action dispatch, and gamepad snapshot polling.
+- Added Vite-generated `.aperture/generated/aperture-env.d.ts` action-map
+  declarations for kind-specific system action types.
+- Added CLI/MCP `input_get_state` and `input_gamepad_set`, and routed
+  `input_action_set`/`input_reset` through the worker input resource.
+- Migrated the platformer playground, developer API example, and create
+  templates to the new typed action config and `this.actions` reads.
+
+### Validation
+
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/app/input-state.test.ts test/app/developer-api.test.ts test/cli/dev-session.test.ts test/cli/create.test.ts`
+- `pnpm exec playwright test test/e2e/cli-ai-tools.spec.ts`
+- `pnpm --dir playground run typecheck`
+- `pnpm --dir playground run build`
+- Manual Playwright playground smoke against local Vite dev server:
+  keyboard movement and virtual `aperture.generated.virtualAction` movement
+  both advanced `playerX`.
+- Targeted ESLint and Prettier checks for touched files passed.
+
+### Known issues / remaining work
+
+- `pnpm run lint` still fails on unrelated existing/generated issues outside
+  this slice: ignored `.aperture` reference files, `asset-mirror.ts`
+  type-import cleanup, WebGPU unused symbols, and `scripts/render-control.mjs`
+  caught-error metadata.
+- A full `pnpm test` run was not counted because it still includes unrelated
+  existing mesh/WebGPU failures documented in earlier handoffs. The targeted
+  input/app/CLI unit tests passed.
+
+### Recommended next task
+
+Resume the visible-feature queue at `task-3210` unless the user asks for a
+follow-up input API hardening slice.
 
 ## Current Run Update — 2026-05-27T05:54:00Z — Game authoring follow-ups implemented
 

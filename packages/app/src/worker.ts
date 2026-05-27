@@ -47,6 +47,7 @@ import {
   type ApertureEntityHierarchyReport,
 } from "./entity-lookup.js";
 import {
+  advanceGeneratedInputFrame,
   applyGeneratedInputEvent,
   createInputSummary,
   isGeneratedInputEventMessage,
@@ -100,15 +101,7 @@ function attachWorkerPort(
     const message = event.data;
 
     if (isGeneratedInputEventMessage(message)) {
-      if (app === null) {
-        pendingInput.push(message);
-      } else {
-        applyGeneratedInputEvent({
-          signals: app.context.input,
-          config: options.config,
-          event: message.event,
-        });
-      }
+      pendingInput.push(message);
       return;
     }
 
@@ -139,18 +132,12 @@ function attachWorkerPort(
       config: options.config,
       systems: options.systems,
       start: message,
+      pendingInput,
       setApp(nextApp, nextEntityTools, nextDevtools) {
         app = nextApp;
         entityTools = nextEntityTools;
         devtools = nextDevtools;
 
-        for (const pending of pendingInput.splice(0)) {
-          applyGeneratedInputEvent({
-            signals: nextApp.context.input,
-            config: options.config,
-            event: pending.event,
-          });
-        }
         for (const pending of pendingCommands.splice(0)) {
           applyGeneratedCommand(nextApp, nextEntityTools, pending);
         }
@@ -168,6 +155,7 @@ async function runLoop(options: {
   readonly config: ApertureConfig;
   readonly systems: readonly ApertureSystemModule[];
   readonly start: SimulationWorkerStartOptions;
+  readonly pendingInput: ApertureGeneratedInputEventMessage[];
   readonly setApp: (
     app: ApertureApp,
     entityTools: GeneratedEntityToolBridge,
@@ -191,6 +179,11 @@ async function runLoop(options: {
     let previousTime = performance.now();
 
     const publishSnapshot = (delta: number, time: number) => {
+      advanceGeneratedInputFrame({
+        signals: app.context.input,
+        config: options.config,
+        events: options.pendingInput.splice(0).map((message) => message.event),
+      });
       const snapshot = app.stepAndExtract(delta, time, frame);
 
       options.port.postMessage({
@@ -413,7 +406,7 @@ interface GeneratedEntityToolBridge {
 interface GeneratedDevtoolsToolResult {
   readonly ok: boolean;
   readonly result?: unknown;
-  readonly diagnostics?: readonly ApertureEntityLookupDiagnostic[];
+  readonly diagnostics?: readonly unknown[];
 }
 
 interface GeneratedDevtoolsBridge {
@@ -822,6 +815,30 @@ function callGeneratedDevtoolsTool(
     return callInputActionTool(bridge.app, request.payload);
   }
 
+  if (request.tool === "input_gamepad_set") {
+    return callInputGamepadTool(bridge.app, request.payload);
+  }
+
+  if (request.tool === "input_get_state") {
+    return {
+      ok: true,
+      result: createInputSummary(bridge.app.context.input),
+    };
+  }
+
+  if (request.tool === "input_reset") {
+    applyGeneratedInputEvent({
+      signals: bridge.app.context.input,
+      config: bridge.app.config,
+      event: { kind: "reset", reason: "devtools" },
+    });
+
+    return {
+      ok: true,
+      result: createInputSummary(bridge.app.context.input),
+    };
+  }
+
   if (request.tool === "asset_list") {
     return {
       ok: true,
@@ -892,20 +909,116 @@ function callInputActionTool(
   const value = numberFromValue(record["value"]);
   const pressed =
     booleanFromValue(record["pressed"]) ??
-    (value === undefined ? true : value > 0);
-  const nextValue = value ?? (pressed ? 1 : 0);
+    (value === undefined && action.kind === "button" ? true : undefined);
+  const x = numberFromValue(record["x"]);
+  const y = numberFromValue(record["y"]);
 
-  action.pressed.value = pressed;
-  action.value.value = nextValue;
+  applyGeneratedInputEvent({
+    signals: app.context.input,
+    config: app.config,
+    event: {
+      kind: "virtualAction",
+      action: actionName,
+      source: "devtools",
+      ...(pressed === undefined ? {} : { pressed }),
+      ...(value === undefined ? {} : { value }),
+      ...(x === undefined ? {} : { x }),
+      ...(y === undefined ? {} : { y }),
+    },
+  });
 
   return {
     ok: true,
     result: {
       action: actionName,
-      pressed: action.pressed.value,
-      value: action.value.value,
+      ...(action.kind === "button"
+        ? {
+            pressed: action.pressed.value,
+            value: action.value.value ? 1 : 0,
+          }
+        : action.kind === "axis1d"
+          ? { value: action.value.value }
+          : { x: action.x.value, y: action.y.value }),
       input: createInputSummary(app.context.input),
     },
+  };
+}
+
+function callInputGamepadTool(
+  app: ApertureApp,
+  payload: unknown,
+): GeneratedDevtoolsToolResult {
+  const record = isRecord(payload) ? payload : {};
+  const index = Math.max(0, Math.floor(numberFromValue(record["index"]) ?? 0));
+  const mapping = stringFromValue(record["mapping"]) ?? "standard";
+  const buttons = Array.from({ length: 17 }, () => ({
+    pressed: false,
+    touched: false,
+    value: 0,
+  }));
+  const button = stringFromValue(record["button"]);
+
+  if (button !== undefined) {
+    const buttonIndex = standardGamepadButtonIndex(button);
+
+    if (buttonIndex === null) {
+      return {
+        ok: false,
+        diagnostics: [
+          {
+            code: "aperture.input.unsupportedGamepadButton",
+            severity: "error",
+            message: `Unsupported standard gamepad button '${button}'.`,
+            data: { button },
+            suggestedFix:
+              "Use a standard gamepad button such as south, east, west, north, leftBumper, rightBumper, select, start, or dpadUp.",
+          },
+        ],
+      };
+    }
+
+    const value = numberFromValue(record["value"]);
+    const pressed =
+      booleanFromValue(record["pressed"]) ??
+      (value === undefined ? true : value > 0);
+
+    buttons[buttonIndex] = {
+      pressed,
+      touched: booleanFromValue(record["touched"]) ?? pressed,
+      value: value ?? (pressed ? 1 : 0),
+    };
+  }
+
+  applyGeneratedInputEvent({
+    signals: app.context.input,
+    config: app.config,
+    event: {
+      kind: "gamepad",
+      replace: false,
+      gamepads: [
+        {
+          index,
+          id: stringFromValue(record["id"]) ?? `devtools-gamepad-${index}`,
+          mapping,
+          connected: booleanFromValue(record["connected"]) ?? true,
+          buttons,
+          axes: gamepadAxesFromPayload(record),
+        },
+      ],
+    },
+  });
+
+  const summary = createInputSummary(app.context.input);
+
+  return {
+    ok: summary.diagnostics.every(
+      (diagnostic) => diagnostic.severity !== "error",
+    ),
+    result: {
+      index,
+      input: summary,
+    },
+    diagnostics: summary.diagnostics,
   };
 }
 
@@ -1698,6 +1811,73 @@ function stringArrayFromValue(value: unknown): readonly string[] | undefined {
     (entry): entry is string => typeof entry === "string",
   );
   return strings.length === 0 ? undefined : strings;
+}
+
+function standardGamepadButtonIndex(button: string): number | null {
+  const indices: Readonly<Record<string, number>> = {
+    south: 0,
+    east: 1,
+    west: 2,
+    north: 3,
+    leftBumper: 4,
+    rightBumper: 5,
+    leftTrigger: 6,
+    rightTrigger: 7,
+    select: 8,
+    start: 9,
+    leftStick: 10,
+    rightStick: 11,
+    dpadUp: 12,
+    dpadDown: 13,
+    dpadLeft: 14,
+    dpadRight: 15,
+    home: 16,
+  };
+
+  return indices[button] ?? null;
+}
+
+function gamepadAxesFromPayload(
+  record: Record<string, unknown>,
+): readonly number[] {
+  const directAxes = Array.isArray(record["axes"]) ? record["axes"] : [];
+  const axes = [0, 0, 0, 0];
+
+  for (let index = 0; index < axes.length; index += 1) {
+    axes[index] = numberFromValue(directAxes[index]) ?? axes[index] ?? 0;
+  }
+
+  const axesRecord = isRecord(record["axes"]) ? record["axes"] : {};
+  const leftStick =
+    nestedRecord(record, "leftStick") ??
+    nestedRecord(record, "left") ??
+    nestedRecord(axesRecord, "leftStick") ??
+    nestedRecord(axesRecord, "left");
+  const rightStick =
+    nestedRecord(record, "rightStick") ??
+    nestedRecord(record, "right") ??
+    nestedRecord(axesRecord, "rightStick") ??
+    nestedRecord(axesRecord, "right");
+
+  if (leftStick !== null) {
+    axes[0] = numberFromValue(leftStick["x"]) ?? axes[0] ?? 0;
+    axes[1] = numberFromValue(leftStick["y"]) ?? axes[1] ?? 0;
+  }
+
+  if (rightStick !== null) {
+    axes[2] = numberFromValue(rightStick["x"]) ?? axes[2] ?? 0;
+    axes[3] = numberFromValue(rightStick["y"]) ?? axes[3] ?? 0;
+  }
+
+  return axes;
+}
+
+function nestedRecord(
+  record: Record<string, unknown>,
+  key: string,
+): Record<string, unknown> | null {
+  const value = record[key];
+  return isRecord(value) ? value : null;
 }
 
 function numberFromValue(value: unknown): number | undefined {

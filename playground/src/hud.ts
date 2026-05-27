@@ -1,4 +1,7 @@
-import { readGeneratedBrowserAppStatus } from "@aperture-engine/app/browser";
+import {
+  dispatchApertureInputAction,
+  readGeneratedBrowserAppStatus,
+} from "@aperture-engine/app/browser";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -10,22 +13,22 @@ const deathsEl = document.querySelector<HTMLElement>("#deaths");
 const messageEl = document.querySelector<HTMLElement>("#message");
 
 for (const button of document.querySelectorAll<HTMLButtonElement>(
-  "[data-key]",
+  "[data-action]",
 )) {
-  const code = button.dataset.key;
-  if (code === undefined) {
+  const action = button.dataset.action;
+  if (action === undefined) {
     continue;
   }
 
   const press = (event: PointerEvent): void => {
     event.preventDefault();
     button.setPointerCapture?.(event.pointerId);
-    dispatchKey(code, true);
+    dispatchTouchAction(button, action, true);
   };
   const release = (event: PointerEvent): void => {
     event.preventDefault();
     button.releasePointerCapture?.(event.pointerId);
-    dispatchKey(code, false);
+    dispatchTouchAction(button, action, false);
   };
 
   button.addEventListener("pointerdown", press);
@@ -64,26 +67,27 @@ function renderHud(): void {
   requestAnimationFrame(renderHud);
 }
 
-function dispatchKey(code: string, pressed: boolean): void {
-  window.dispatchEvent(
-    new KeyboardEvent(pressed ? "keydown" : "keyup", {
-      bubbles: true,
-      code,
-      key: keyFromCode(code),
-    }),
-  );
-}
+function dispatchTouchAction(
+  button: HTMLButtonElement,
+  action: string,
+  pressed: boolean,
+): void {
+  const x = readNumberAttribute(button.dataset.x);
+  const y = readNumberAttribute(button.dataset.y);
 
-function keyFromCode(code: string): string {
-  if (code === "Space") {
-    return " ";
+  if (x !== null || y !== null) {
+    dispatchApertureInputAction(action, {
+      source: "touch-hud",
+      x: pressed ? (x ?? 0) : 0,
+      y: pressed ? (y ?? 0) : 0,
+    });
+    return;
   }
 
-  if (code.startsWith("Key") && code.length === 4) {
-    return code.slice(3).toLowerCase();
-  }
-
-  return code;
+  dispatchApertureInputAction(action, {
+    source: "touch-hud",
+    pressed,
+  });
 }
 
 function writeText(element: HTMLElement | null, value: string): void {
@@ -98,6 +102,15 @@ function readNumber(value: unknown, fallback: number): number {
 
 function readString(value: unknown, fallback: string): string {
   return typeof value === "string" ? value : fallback;
+}
+
+function readNumberAttribute(value: string | undefined): number | null {
+  if (value === undefined) {
+    return null;
+  }
+
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
 }
 
 function readRecord(value: unknown): JsonRecord | null {

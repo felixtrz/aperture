@@ -71,13 +71,147 @@ export type GamepadBinding = {
   readonly gamepad: string;
 };
 
+export type GamepadButtonName =
+  | "south"
+  | "east"
+  | "west"
+  | "north"
+  | "leftBumper"
+  | "rightBumper"
+  | "leftTrigger"
+  | "rightTrigger"
+  | "select"
+  | "start"
+  | "leftStick"
+  | "rightStick"
+  | "dpadUp"
+  | "dpadDown"
+  | "dpadLeft"
+  | "dpadRight"
+  | "home";
+
+export type GamepadStickName = "left" | "right";
+export type GamepadAxisComponent = "x" | "y";
+
+export interface InputKeyBinding {
+  readonly kind: "key";
+  readonly code: string;
+}
+
+export interface InputPointerBinding {
+  readonly kind: "pointer";
+  readonly pointer: "primary" | "secondary" | "middle";
+}
+
+export interface InputKeyboard1dBinding {
+  readonly kind: "keyboard1d";
+  readonly negative?: readonly string[];
+  readonly positive?: readonly string[];
+}
+
+export interface InputKeyboard2dBinding {
+  readonly kind: "keyboard2d";
+  readonly negativeX?: readonly string[];
+  readonly positiveX?: readonly string[];
+  readonly negativeY?: readonly string[];
+  readonly positiveY?: readonly string[];
+}
+
+export interface InputGamepadButtonBinding {
+  readonly kind: "gamepad-button";
+  readonly button: GamepadButtonName;
+  readonly gamepadIndex?: number;
+}
+
+export interface InputGamepadStickBinding {
+  readonly kind: "gamepad-stick";
+  readonly stick: GamepadStickName;
+  readonly gamepadIndex?: number;
+  readonly deadzone?: number;
+}
+
+export interface InputGamepadAxisBinding {
+  readonly kind: "gamepad-axis";
+  readonly stick: GamepadStickName;
+  readonly component: GamepadAxisComponent;
+  readonly gamepadIndex?: number;
+  readonly deadzone?: number;
+  readonly scale?: number;
+}
+
 export type InputActionBinding =
   | PointerBinding
   | KeyboardBinding
-  | GamepadBinding;
+  | GamepadBinding
+  | InputKeyBinding
+  | InputPointerBinding
+  | InputKeyboard1dBinding
+  | InputKeyboard2dBinding
+  | InputGamepadButtonBinding
+  | InputGamepadStickBinding
+  | InputGamepadAxisBinding;
+
+export interface ButtonActionDescriptor {
+  readonly kind: "button";
+  readonly bindings: readonly InputActionBinding[];
+}
+
+export interface Axis1dActionDescriptor {
+  readonly kind: "axis1d";
+  readonly bindings: readonly InputActionBinding[];
+}
+
+export interface Axis2dActionDescriptor {
+  readonly kind: "axis2d";
+  readonly bindings: readonly InputActionBinding[];
+}
+
+export type InputActionDescriptor =
+  | ButtonActionDescriptor
+  | Axis1dActionDescriptor
+  | Axis2dActionDescriptor;
+
+export type InputActionConfigEntry =
+  | InputActionDescriptor
+  | readonly InputActionBinding[];
 
 export interface ApertureInputConfig {
-  readonly actions?: Readonly<Record<string, readonly InputActionBinding[]>>;
+  readonly actions?: Readonly<Record<string, InputActionConfigEntry>>;
+}
+
+export interface InputConfigHelpers {
+  key(code: string): InputKeyBinding;
+  pointer(pointer?: InputPointerBinding["pointer"]): InputPointerBinding;
+  keyboard1d(options: {
+    readonly negative?: readonly string[];
+    readonly positive?: readonly string[];
+  }): InputKeyboard1dBinding;
+  keyboard2d(options: {
+    readonly negativeX?: readonly string[];
+    readonly positiveX?: readonly string[];
+    readonly negativeY?: readonly string[];
+    readonly positiveY?: readonly string[];
+  }): InputKeyboard2dBinding;
+  gamepadButton(
+    button: GamepadButtonName,
+    options?: { readonly gamepadIndex?: number },
+  ): InputGamepadButtonBinding;
+  gamepadStick(
+    stick: GamepadStickName,
+    options?: { readonly gamepadIndex?: number; readonly deadzone?: number },
+  ): InputGamepadStickBinding;
+  gamepadAxis(
+    stick: GamepadStickName,
+    component: GamepadAxisComponent,
+    options?: {
+      readonly gamepadIndex?: number;
+      readonly deadzone?: number;
+      readonly scale?: number;
+    },
+  ): InputGamepadAxisBinding;
+  button(bindings: readonly InputActionBinding[]): ButtonActionDescriptor;
+  axis1d(bindings: readonly InputActionBinding[]): Axis1dActionDescriptor;
+  axis2d(bindings: readonly InputActionBinding[]): Axis2dActionDescriptor;
 }
 
 export interface ApertureRenderDefaults {
@@ -141,6 +275,104 @@ export const signal: ApertureSignalHelpers = Object.freeze({
   },
 });
 
+export const input: InputConfigHelpers = Object.freeze({
+  key(code: string): InputKeyBinding {
+    return Object.freeze({ kind: "key", code });
+  },
+  pointer(pointer: InputPointerBinding["pointer"] = "primary") {
+    return Object.freeze({ kind: "pointer", pointer });
+  },
+  keyboard1d(options: {
+    readonly negative?: readonly string[];
+    readonly positive?: readonly string[];
+  }): InputKeyboard1dBinding {
+    return Object.freeze({
+      kind: "keyboard1d",
+      ...(options.negative === undefined ? {} : { negative: options.negative }),
+      ...(options.positive === undefined ? {} : { positive: options.positive }),
+    });
+  },
+  keyboard2d(options: {
+    readonly negativeX?: readonly string[];
+    readonly positiveX?: readonly string[];
+    readonly negativeY?: readonly string[];
+    readonly positiveY?: readonly string[];
+  }): InputKeyboard2dBinding {
+    return Object.freeze({
+      kind: "keyboard2d",
+      ...(options.negativeX === undefined
+        ? {}
+        : { negativeX: options.negativeX }),
+      ...(options.positiveX === undefined
+        ? {}
+        : { positiveX: options.positiveX }),
+      ...(options.negativeY === undefined
+        ? {}
+        : { negativeY: options.negativeY }),
+      ...(options.positiveY === undefined
+        ? {}
+        : { positiveY: options.positiveY }),
+    });
+  },
+  gamepadButton(
+    button: GamepadButtonName,
+    options: { readonly gamepadIndex?: number } = {},
+  ): InputGamepadButtonBinding {
+    return Object.freeze({
+      kind: "gamepad-button",
+      button,
+      ...(options.gamepadIndex === undefined
+        ? {}
+        : { gamepadIndex: options.gamepadIndex }),
+    });
+  },
+  gamepadStick(
+    stick: GamepadStickName,
+    options: {
+      readonly gamepadIndex?: number;
+      readonly deadzone?: number;
+    } = {},
+  ): InputGamepadStickBinding {
+    return Object.freeze({
+      kind: "gamepad-stick",
+      stick,
+      ...(options.gamepadIndex === undefined
+        ? {}
+        : { gamepadIndex: options.gamepadIndex }),
+      ...(options.deadzone === undefined ? {} : { deadzone: options.deadzone }),
+    });
+  },
+  gamepadAxis(
+    stick: GamepadStickName,
+    component: GamepadAxisComponent,
+    options: {
+      readonly gamepadIndex?: number;
+      readonly deadzone?: number;
+      readonly scale?: number;
+    } = {},
+  ): InputGamepadAxisBinding {
+    return Object.freeze({
+      kind: "gamepad-axis",
+      stick,
+      component,
+      ...(options.gamepadIndex === undefined
+        ? {}
+        : { gamepadIndex: options.gamepadIndex }),
+      ...(options.deadzone === undefined ? {} : { deadzone: options.deadzone }),
+      ...(options.scale === undefined ? {} : { scale: options.scale }),
+    });
+  },
+  button(bindings: readonly InputActionBinding[]): ButtonActionDescriptor {
+    return Object.freeze({ kind: "button", bindings: [...bindings] });
+  },
+  axis1d(bindings: readonly InputActionBinding[]): Axis1dActionDescriptor {
+    return Object.freeze({ kind: "axis1d", bindings: [...bindings] });
+  },
+  axis2d(bindings: readonly InputActionBinding[]): Axis2dActionDescriptor {
+    return Object.freeze({ kind: "axis2d", bindings: [...bindings] });
+  },
+});
+
 export function defineApertureConfig<TConfig extends ApertureConfig>(
   config: DefineApertureConfigInput<TConfig>,
 ): TConfig {
@@ -184,6 +416,8 @@ export function validateApertureConfig(config: ApertureConfig): void {
       );
     }
   }
+
+  validateInputActions(config.input?.actions ?? {});
 }
 
 export class ApertureConfigError extends Error {
@@ -273,6 +507,260 @@ function validateAssetDescriptor(
       "Use 'blocking', 'background', or 'manual'.",
     );
   }
+}
+
+function validateInputActions(
+  actions: Readonly<Record<string, InputActionConfigEntry>>,
+): void {
+  for (const [name, descriptor] of Object.entries(actions)) {
+    validateActionName(name);
+    const normalized = normalizeActionDescriptorForValidation(name, descriptor);
+
+    if (normalized.bindings.length === 0) {
+      throw new ApertureConfigError(
+        "aperture.config.emptyInputAction",
+        `Input action '${name}' must declare at least one binding.`,
+        "Add one or more bindings, such as input.key('Space') or input.gamepadButton('south').",
+      );
+    }
+
+    for (const binding of normalized.bindings) {
+      validateInputBinding(name, binding);
+    }
+  }
+}
+
+function validateActionName(name: string): void {
+  if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) {
+    return;
+  }
+
+  throw new ApertureConfigError(
+    "aperture.config.invalidInputActionName",
+    `Input action '${name}' is not a valid action key.`,
+    "Use an identifier-like action key such as jump, reset, move, or throttle.",
+  );
+}
+
+function normalizeActionDescriptorForValidation(
+  name: string,
+  descriptor: InputActionConfigEntry,
+): InputActionDescriptor {
+  if (isInputActionBindingArray(descriptor)) {
+    return { kind: "button", bindings: descriptor };
+  }
+
+  if (
+    descriptor.kind === "button" ||
+    descriptor.kind === "axis1d" ||
+    descriptor.kind === "axis2d"
+  ) {
+    return descriptor;
+  }
+
+  throw new ApertureConfigError(
+    "aperture.config.invalidInputActionKind",
+    `Input action '${name}' has unsupported kind '${String(
+      (descriptor as { readonly kind?: unknown }).kind,
+    )}'.`,
+    "Declare actions with input.button(...), input.axis1d(...), or input.axis2d(...).",
+  );
+}
+
+function isInputActionBindingArray(
+  value: InputActionConfigEntry,
+): value is readonly InputActionBinding[] {
+  return Array.isArray(value);
+}
+
+function validateInputBinding(
+  actionName: string,
+  binding: InputActionBinding,
+): void {
+  if ("keyboard" in binding) {
+    validateInputCode(actionName, binding.keyboard);
+    return;
+  }
+
+  if ("pointer" in binding && !("kind" in binding)) {
+    validatePointerName(actionName, binding.pointer);
+    return;
+  }
+
+  if ("gamepad" in binding) {
+    if (binding.gamepad.trim().length === 0) {
+      throw invalidBinding(
+        actionName,
+        "Legacy gamepad bindings require a name.",
+      );
+    }
+    return;
+  }
+
+  switch (binding.kind) {
+    case "key":
+      validateInputCode(actionName, binding.code);
+      return;
+    case "pointer":
+      validatePointerName(actionName, binding.pointer);
+      return;
+    case "keyboard1d":
+      validateInputCodes(actionName, binding.negative ?? []);
+      validateInputCodes(actionName, binding.positive ?? []);
+      return;
+    case "keyboard2d":
+      validateInputCodes(actionName, binding.negativeX ?? []);
+      validateInputCodes(actionName, binding.positiveX ?? []);
+      validateInputCodes(actionName, binding.negativeY ?? []);
+      validateInputCodes(actionName, binding.positiveY ?? []);
+      return;
+    case "gamepad-button":
+      validateGamepadButton(actionName, binding.button);
+      validateOptionalGamepadIndex(actionName, binding.gamepadIndex);
+      return;
+    case "gamepad-stick":
+      validateGamepadStick(actionName, binding.stick);
+      validateOptionalGamepadIndex(actionName, binding.gamepadIndex);
+      validateDeadzone(actionName, binding.deadzone);
+      return;
+    case "gamepad-axis":
+      validateGamepadStick(actionName, binding.stick);
+      if (binding.component !== "x" && binding.component !== "y") {
+        throw invalidBinding(
+          actionName,
+          `Unsupported gamepad axis component '${String(binding.component)}'.`,
+        );
+      }
+      validateOptionalGamepadIndex(actionName, binding.gamepadIndex);
+      validateDeadzone(actionName, binding.deadzone);
+      if (binding.scale !== undefined && !Number.isFinite(binding.scale)) {
+        throw invalidBinding(actionName, "Gamepad axis scale must be finite.");
+      }
+      return;
+    default:
+      throw invalidBinding(actionName, "Unsupported input binding.");
+  }
+}
+
+function validateInputCodes(
+  actionName: string,
+  codes: readonly string[],
+): void {
+  for (const code of codes) {
+    validateInputCode(actionName, code);
+  }
+}
+
+function validateInputCode(actionName: string, code: string): void {
+  if (code.trim().length === 0) {
+    throw invalidBinding(
+      actionName,
+      "Keyboard bindings require a non-empty KeyboardEvent.code value.",
+    );
+  }
+}
+
+function validatePointerName(
+  actionName: string,
+  pointer: PointerBinding["pointer"],
+): void {
+  if (
+    pointer === "primary" ||
+    pointer === "secondary" ||
+    pointer === "middle"
+  ) {
+    return;
+  }
+
+  throw invalidBinding(actionName, `Unsupported pointer binding '${pointer}'.`);
+}
+
+function validateGamepadButton(
+  actionName: string,
+  button: GamepadButtonName,
+): void {
+  if (
+    button === "south" ||
+    button === "east" ||
+    button === "west" ||
+    button === "north" ||
+    button === "leftBumper" ||
+    button === "rightBumper" ||
+    button === "leftTrigger" ||
+    button === "rightTrigger" ||
+    button === "select" ||
+    button === "start" ||
+    button === "leftStick" ||
+    button === "rightStick" ||
+    button === "dpadUp" ||
+    button === "dpadDown" ||
+    button === "dpadLeft" ||
+    button === "dpadRight" ||
+    button === "home"
+  ) {
+    return;
+  }
+
+  throw invalidBinding(
+    actionName,
+    `Unsupported standard gamepad button '${String(button)}'.`,
+  );
+}
+
+function validateGamepadStick(
+  actionName: string,
+  stick: GamepadStickName,
+): void {
+  if (stick === "left" || stick === "right") {
+    return;
+  }
+
+  throw invalidBinding(
+    actionName,
+    `Unsupported standard gamepad stick '${String(stick)}'.`,
+  );
+}
+
+function validateOptionalGamepadIndex(
+  actionName: string,
+  index: number | undefined,
+): void {
+  if (index === undefined || (Number.isInteger(index) && index >= 0)) {
+    return;
+  }
+
+  throw invalidBinding(
+    actionName,
+    "Gamepad index must be a non-negative integer.",
+  );
+}
+
+function validateDeadzone(
+  actionName: string,
+  deadzone: number | undefined,
+): void {
+  if (
+    deadzone === undefined ||
+    (Number.isFinite(deadzone) && deadzone >= 0 && deadzone < 1)
+  ) {
+    return;
+  }
+
+  throw invalidBinding(
+    actionName,
+    "Gamepad deadzone must be in the range [0, 1).",
+  );
+}
+
+function invalidBinding(
+  actionName: string,
+  message: string,
+): ApertureConfigError {
+  return new ApertureConfigError(
+    "aperture.config.invalidInputBinding",
+    `Input action '${actionName}' has an invalid binding. ${message}`,
+    "Use bindings from the exported input helpers in @aperture-engine/app/config.",
+  );
 }
 
 function isPreloadPolicy(value: unknown): value is AssetPreloadPolicy {

@@ -89,6 +89,13 @@ import {
   type RayInput,
   type SpatialQueries,
 } from "./spatial-queries.js";
+import {
+  createInputResource,
+  type InputAction,
+  type InputResourceBase,
+  type StatefulGamepadsState,
+  type StatefulKeyboardState,
+} from "./input-state.js";
 
 export { createSpatialQueries } from "./spatial-queries.js";
 export type {
@@ -163,25 +170,46 @@ export function createSignalSummary(signals: SignalStore): SignalSummary {
   return summary;
 }
 
-export interface InputActionSignals {
-  readonly pressed: Signal<boolean>;
-  readonly value: Signal<number>;
-}
+export type {
+  ApertureGeneratedGamepadInputEvent,
+  ApertureGeneratedGamepadSnapshot,
+  ApertureGeneratedInputEvent,
+  ApertureGeneratedInputResetEvent,
+  ApertureGeneratedKeyboardInputEvent,
+  ApertureGeneratedPointerInputEvent,
+  ApertureGeneratedPointerName,
+  ApertureGeneratedVirtualActionInputEvent,
+  ApertureInputDiagnostic,
+  ApertureInputSummary,
+  GamepadButtonState,
+  InputAction,
+  InputActionKind,
+  InputActionSignals,
+  InputAxis1dAction,
+  InputAxis2dAction,
+  InputButtonAction,
+  InputButtonPressedSignal,
+  InputVec2Like,
+  StatefulGamepadDevice,
+  StatefulGamepadDeviceSummary,
+  StatefulGamepadsState,
+  StatefulGamepadsSummary,
+  StatefulGamepadStickState,
+  StatefulKeyboardState,
+  StatefulKeyboardSummary,
+} from "./input-state.js";
 
-export interface InputSignals {
-  readonly actions: Record<string, InputActionSignals>;
-  readonly pointer: {
-    readonly primary: {
-      readonly position: Signal<readonly [number, number]>;
-      readonly pressed: Signal<boolean>;
-    };
-  };
-  readonly keyboard: Record<string, Signal<boolean>>;
-  readonly gamepad: Record<string, Signal<number>>;
-  readonly xr: {
-    readonly active: Signal<boolean>;
-  };
-}
+// This interface is intentionally empty so generated app-local declarations can
+// augment it with kind-specific action properties.
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ApertureGeneratedActionMap {}
+
+export type InputActions = ApertureGeneratedActionMap &
+  Record<string, InputAction>;
+
+export type InputSignals = Omit<InputResourceBase, "actions"> & {
+  readonly actions: InputActions;
+};
 
 export type SystemAssetKind = ConfigAssetKind;
 
@@ -370,6 +398,9 @@ export interface ApertureSystemInstance {
   readonly priority: number;
   readonly signals: SignalStore;
   readonly input: InputSignals;
+  readonly actions: InputActions;
+  readonly keyboard: StatefulKeyboardState;
+  readonly gamepads: StatefulGamepadsState;
   readonly assets: SystemAssetAccess;
   readonly commands: CommandAccess;
   readonly spawn: SpawnCommands;
@@ -544,6 +575,18 @@ export function createSystem<
 
     get input(): InputSignals {
       return this.#context.input;
+    }
+
+    get actions(): InputActions {
+      return this.#context.input.actions;
+    }
+
+    get keyboard(): StatefulKeyboardState {
+      return this.#context.input.keyboard;
+    }
+
+    get gamepads(): StatefulGamepadsState {
+      return this.#context.input.gamepads;
     }
 
     get assets(): SystemAssetAccess {
@@ -736,29 +779,7 @@ function createSignalStore(
 }
 
 function createInputSignals(config: ApertureConfig | undefined): InputSignals {
-  const actions: Record<string, InputActionSignals> = {};
-
-  for (const action of Object.keys(config?.input?.actions ?? {})) {
-    actions[action] = {
-      pressed: createSignal(false),
-      value: createSignal(0),
-    };
-  }
-
-  return {
-    actions,
-    pointer: {
-      primary: {
-        position: createSignal([0, 0] as const),
-        pressed: createSignal(false),
-      },
-    },
-    keyboard: {},
-    gamepad: {},
-    xr: {
-      active: createSignal(false),
-    },
-  };
+  return createInputResource(config) as InputSignals;
 }
 
 function createSystemAssetAccess(options: {

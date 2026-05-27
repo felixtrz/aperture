@@ -1,53 +1,37 @@
-import { signal as createSignal, type Signal } from "@preact/signals-core";
-import type {
-  ApertureConfig,
-  InputActionBinding,
-  PointerBinding,
-} from "./config.js";
-import type { InputSignals } from "./systems.js";
+import type { ApertureConfig } from "./config.js";
+import {
+  advanceInputResource,
+  createInputResourceSummary,
+  type ApertureGeneratedGamepadInputEvent,
+  type ApertureGeneratedGamepadSnapshot,
+  type ApertureGeneratedInputEvent,
+  type ApertureGeneratedInputResetEvent,
+  type ApertureGeneratedKeyboardInputEvent,
+  type ApertureGeneratedPointerInputEvent,
+  type ApertureGeneratedPointerName,
+  type ApertureGeneratedVirtualActionInputEvent,
+  type ApertureInputSummary,
+  type InputResourceBase,
+} from "./input-state.js";
 
 export const APERTURE_GENERATED_INPUT_EVENT =
   "aperture.generated.inputEvent" as const;
 
-export type ApertureGeneratedPointerName = "primary" | "secondary" | "middle";
-
-export interface ApertureGeneratedPointerInputEvent {
-  readonly kind: "pointer";
-  readonly pointer: ApertureGeneratedPointerName;
-  readonly position?: readonly [number, number];
-  readonly pressed?: boolean;
-}
-
-export interface ApertureGeneratedKeyboardInputEvent {
-  readonly kind: "keyboard";
-  readonly key: string;
-  readonly pressed: boolean;
-}
-
-export type ApertureGeneratedInputEvent =
-  | ApertureGeneratedPointerInputEvent
-  | ApertureGeneratedKeyboardInputEvent;
+export type {
+  ApertureGeneratedGamepadInputEvent,
+  ApertureGeneratedGamepadSnapshot,
+  ApertureGeneratedInputEvent,
+  ApertureGeneratedInputResetEvent,
+  ApertureGeneratedKeyboardInputEvent,
+  ApertureGeneratedPointerInputEvent,
+  ApertureGeneratedPointerName,
+  ApertureGeneratedVirtualActionInputEvent,
+  ApertureInputSummary,
+};
 
 export interface ApertureGeneratedInputEventMessage {
   readonly type: typeof APERTURE_GENERATED_INPUT_EVENT;
   readonly event: ApertureGeneratedInputEvent;
-}
-
-export interface ApertureInputSummary {
-  readonly actions: Record<
-    string,
-    {
-      readonly pressed: boolean;
-      readonly value: number;
-    }
-  >;
-  readonly pointer: {
-    readonly primary: {
-      readonly position: readonly [number, number];
-      readonly pressed: boolean;
-    };
-  };
-  readonly keyboard: Record<string, boolean>;
 }
 
 export function createGeneratedInputEventMessage(
@@ -66,145 +50,157 @@ export function isGeneratedInputEventMessage(
     return false;
   }
 
-  const event = value.event;
-  if (!isRecord(event)) {
-    return false;
-  }
-
-  if (event.kind === "pointer") {
-    return (
-      isPointerName(event.pointer) &&
-      (event.position === undefined || isPosition(event.position)) &&
-      (event.pressed === undefined || typeof event.pressed === "boolean")
-    );
-  }
-
-  return (
-    event.kind === "keyboard" &&
-    typeof event.key === "string" &&
-    event.key.length > 0 &&
-    typeof event.pressed === "boolean"
-  );
+  return isGeneratedInputEvent(value.event);
 }
 
 export function applyGeneratedInputEvent(input: {
-  readonly signals: InputSignals;
+  readonly signals: InputResourceBase;
   readonly config: ApertureConfig;
   readonly event: ApertureGeneratedInputEvent;
 }): void {
-  if (input.event.kind === "pointer") {
-    applyPointerInputEvent(input.signals, input.config, input.event);
-    return;
-  }
-
-  applyKeyboardInputEvent(input.signals, input.config, input.event);
+  void input.config;
+  advanceInputResource(input.signals, [input.event]);
 }
 
-export function createInputSummary(input: InputSignals): ApertureInputSummary {
-  const actions: ApertureInputSummary["actions"] = {};
-
-  for (const [name, signals] of Object.entries(input.actions)) {
-    actions[name] = {
-      pressed: signals.pressed.value,
-      value: signals.value.value,
-    };
-  }
-
-  const keyboard: Record<string, boolean> = {};
-  for (const [key, signal] of Object.entries(input.keyboard)) {
-    keyboard[key] = signal.value;
-  }
-
-  return {
-    actions,
-    pointer: {
-      primary: {
-        position: input.pointer.primary.position.value,
-        pressed: input.pointer.primary.pressed.value,
-      },
-    },
-    keyboard,
-  };
+export function advanceGeneratedInputFrame(input: {
+  readonly signals: InputResourceBase;
+  readonly config: ApertureConfig;
+  readonly events?: readonly ApertureGeneratedInputEvent[];
+}): void {
+  void input.config;
+  advanceInputResource(input.signals, input.events ?? []);
 }
 
-function applyPointerInputEvent(
-  input: InputSignals,
-  config: ApertureConfig,
-  event: ApertureGeneratedPointerInputEvent,
-): void {
-  if (event.pointer !== "primary") {
-    return;
+export function createInputSummary(
+  input: InputResourceBase,
+): ApertureInputSummary {
+  return createInputResourceSummary(input);
+}
+
+function isGeneratedInputEvent(
+  value: unknown,
+): value is ApertureGeneratedInputEvent {
+  if (!isRecord(value)) {
+    return false;
   }
 
-  if (event.position !== undefined) {
-    input.pointer.primary.position.value = [
-      event.position[0],
-      event.position[1],
-    ];
-  }
-
-  if (event.pressed !== undefined) {
-    input.pointer.primary.pressed.value = event.pressed;
-  }
-
-  if (event.pressed === undefined) {
-    return;
-  }
-
-  for (const [name, bindings] of Object.entries(config.input?.actions ?? {})) {
-    if (!bindings.some((binding) => isMatchingPointerBinding(binding, event))) {
-      continue;
-    }
-
-    const action = input.actions[name];
-    if (action === undefined) {
-      continue;
-    }
-
-    action.pressed.value = event.pressed;
-    action.value.value = event.pressed ? 1 : 0;
+  switch (value.kind) {
+    case "pointer":
+      return isGeneratedPointerInputEvent(value);
+    case "keyboard":
+      return isGeneratedKeyboardInputEvent(value);
+    case "gamepad":
+      return isGeneratedGamepadInputEvent(value);
+    case "virtualAction":
+      return isGeneratedVirtualActionInputEvent(value);
+    case "reset":
+      return (
+        value.reason === undefined ||
+        (typeof value.reason === "string" && value.reason.length > 0)
+      );
+    case "batch":
+      return (
+        Array.isArray(value.events) &&
+        value.events.every((event) => isGeneratedInputEvent(event))
+      );
+    default:
+      return false;
   }
 }
 
-function applyKeyboardInputEvent(
-  input: InputSignals,
-  config: ApertureConfig,
-  event: ApertureGeneratedKeyboardInputEvent,
-): void {
-  const keyboard = input.keyboard as Record<string, Signal<boolean>>;
-  const keySignal = keyboard[event.key] ?? createSignal(false);
-  keyboard[event.key] = keySignal;
-  keySignal.value = event.pressed;
-
-  for (const [name, bindings] of Object.entries(config.input?.actions ?? {})) {
-    if (
-      !bindings.some((binding) => isMatchingKeyboardBinding(binding, event))
-    ) {
-      continue;
-    }
-
-    const action = input.actions[name];
-    if (action === undefined) {
-      continue;
-    }
-
-    action.pressed.value = event.pressed;
-    action.value.value = event.pressed ? 1 : 0;
+function isGeneratedPointerInputEvent(
+  value: unknown,
+): value is ApertureGeneratedPointerInputEvent {
+  if (!isRecord(value)) {
+    return false;
   }
+
+  return (
+    isPointerName(value.pointer) &&
+    (value.position === undefined || isPosition(value.position)) &&
+    (value.pressed === undefined || typeof value.pressed === "boolean")
+  );
 }
 
-function isMatchingPointerBinding(
-  binding: InputActionBinding,
-  event: ApertureGeneratedPointerInputEvent,
-): binding is PointerBinding {
-  return "pointer" in binding && binding.pointer === event.pointer;
+function isGeneratedKeyboardInputEvent(
+  value: unknown,
+): value is ApertureGeneratedKeyboardInputEvent {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    (typeof value.key === "string" ||
+      typeof value.code === "string" ||
+      value.key === undefined ||
+      value.code === undefined) &&
+    (typeof value.key === "string" || typeof value.code === "string") &&
+    typeof value.pressed === "boolean"
+  );
 }
 
-function isMatchingKeyboardBinding(
-  binding: InputActionBinding,
-  event: ApertureGeneratedKeyboardInputEvent,
-): boolean {
-  return "keyboard" in binding && binding.keyboard === event.key;
+function isGeneratedGamepadInputEvent(
+  value: unknown,
+): value is ApertureGeneratedGamepadInputEvent {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    Array.isArray(value.gamepads) &&
+    value.gamepads.every((snapshot) => isGamepadSnapshot(snapshot)) &&
+    (value.replace === undefined || typeof value.replace === "boolean")
+  );
+}
+
+function isGeneratedVirtualActionInputEvent(
+  value: unknown,
+): value is ApertureGeneratedVirtualActionInputEvent {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.action === "string" &&
+    value.action.length > 0 &&
+    (value.source === undefined || typeof value.source === "string") &&
+    (value.pressed === undefined || typeof value.pressed === "boolean") &&
+    (value.value === undefined ||
+      typeof value.value === "boolean" ||
+      isFiniteNumber(value.value)) &&
+    (value.x === undefined || isFiniteNumber(value.x)) &&
+    (value.y === undefined || isFiniteNumber(value.y))
+  );
+}
+
+function isGamepadSnapshot(
+  value: unknown,
+): value is ApertureGeneratedGamepadSnapshot {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    Number.isInteger(value.index) &&
+    Number(value.index) >= 0 &&
+    (value.id === undefined || typeof value.id === "string") &&
+    (value.mapping === undefined || typeof value.mapping === "string") &&
+    (value.connected === undefined || typeof value.connected === "boolean") &&
+    (value.buttons === undefined ||
+      (Array.isArray(value.buttons) &&
+        value.buttons.every((button) => isGamepadButtonSnapshot(button)))) &&
+    (value.axes === undefined ||
+      (Array.isArray(value.axes) && value.axes.every(isFiniteNumber)))
+  );
+}
+
+function isGamepadButtonSnapshot(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    (value.pressed === undefined || typeof value.pressed === "boolean") &&
+    (value.touched === undefined || typeof value.touched === "boolean") &&
+    (value.value === undefined || isFiniteNumber(value.value))
+  );
 }
 
 function isPointerName(value: unknown): value is ApertureGeneratedPointerName {
@@ -217,6 +213,10 @@ function isPosition(value: unknown): value is readonly [number, number] {
     value.length === 2 &&
     value.every((entry) => typeof entry === "number" && Number.isFinite(entry))
   );
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

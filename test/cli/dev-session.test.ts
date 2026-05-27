@@ -176,6 +176,8 @@ describe("Aperture CLI dev session and MCP command surface", () => {
       "input_pointer_click",
       "input_drag",
       "input_action_set",
+      "input_gamepad_set",
+      "input_get_state",
       "input_reset",
       "camera_list",
       "camera_get",

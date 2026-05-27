@@ -73,6 +73,7 @@ as an optional convenience subpath, but this guide uses the canonical package.
 import {
   asset,
   defineApertureConfig,
+  input,
   signal,
 } from "@aperture-engine/app/config";
 
@@ -91,8 +92,15 @@ export default defineApertureConfig({
   },
   input: {
     actions: {
-      select: [{ pointer: "primary" }],
-      jump: [{ keyboard: "Space" }],
+      select: input.button([input.pointer("primary")]),
+      jump: input.button([input.key("Space"), input.gamepadButton("south")]),
+      move: input.axis2d([
+        input.keyboard2d({
+          negativeX: ["ArrowLeft", "KeyA"],
+          positiveX: ["ArrowRight", "KeyD"],
+        }),
+        input.gamepadStick("left"),
+      ]),
     },
   },
   render: {
@@ -282,8 +290,13 @@ export default class SelectSystem extends createSystem({
   priority: 50,
 }) {
   override init(): void {
+    const select = this.actions.select;
+    if (select.kind !== "button") {
+      return;
+    }
+
     this.effects.watch(
-      this.input.actions.select.pressed,
+      select.pressed,
       (pressed) => {
         if (!pressed) {
           return;
@@ -303,6 +316,12 @@ export default class SelectSystem extends createSystem({
 Effects registered in `init()` are disposed on system destroy and flushed in
 explicit simulation phases. Input actions are forwarded from the generated
 browser bootstrap into worker-owned signals before system effects run.
+Use `this.actions.jump.down()` for one-frame button presses, `this.actions.move.x`
+and `this.actions.move.y` for axis2d actions, `this.keyboard.down("KeyP")` for
+direct keyboard edges, and `this.gamepads.primary?.down("south")` for direct
+standard gamepad reads. The Vite plugin writes `.aperture/generated/aperture-env.d.ts`
+so configured `input.button`, `input.axis1d`, and `input.axis2d` actions receive
+kind-specific system types.
 
 ## Spatial Queries
 

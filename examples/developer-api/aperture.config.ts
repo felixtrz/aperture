@@ -1,6 +1,7 @@
 import {
   asset,
   defineApertureConfig,
+  input,
   signal,
 } from "@aperture-engine/app/config";
 
@@ -23,8 +24,8 @@ export default defineApertureConfig({
   },
   input: {
     actions: {
-      select: [{ pointer: "primary" }, { keyboard: "Enter" }],
-      jump: [{ keyboard: "Space" }],
+      select: input.button([input.pointer("primary"), input.key("Enter")]),
+      jump: input.button([input.key("Space")]),
     },
   },
   render: {

@@ -250,10 +250,12 @@ async function callBrowserBackedTool(
     case "input_drag":
       return inputDrag(page, args);
     case "input_action_set":
+    case "input_gamepad_set":
+    case "input_get_state":
       return callGeneratedRuntimeTool(page, name, args);
     case "input_reset":
       await page.mouse.up();
-      return { ok: true, page: await readGeneratedStatus(page) };
+      return callGeneratedRuntimeTool(page, name, args);
     case "camera_list":
     case "camera_get":
     case "camera_save":

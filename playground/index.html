@@ -141,16 +141,26 @@
     </div>
     <div class="controls" aria-label="Touch controls">
       <div class="cluster">
-        <button type="button" data-key="ArrowLeft" aria-label="Move left">
+        <button
+          type="button"
+          data-action="move"
+          data-x="-1"
+          aria-label="Move left"
+        >
           ←
         </button>
-        <button type="button" data-key="ArrowRight" aria-label="Move right">
+        <button
+          type="button"
+          data-action="move"
+          data-x="1"
+          aria-label="Move right"
+        >
           →
         </button>
       </div>
       <div class="cluster">
-        <button type="button" data-key="KeyR" aria-label="Reset">R</button>
-        <button type="button" data-key="Space" aria-label="Jump">↑</button>
+        <button type="button" data-action="reset" aria-label="Reset">R</button>
+        <button type="button" data-action="jump" aria-label="Jump">↑</button>
       </div>
     </div>
     <script type="module" src="/src/hud.ts"></script>
