@@ -149,6 +149,11 @@ Status: in progress
   covering clearcoat, sheen, iridescence, transmission, fog, clustered-local
   light, shadow-map, point-shadow, multi-shadow, diffuse IBL, and specular IBL
   proof WGSL patching.
+- StandardMaterial shader variant helpers now live in
+  `packages/webgpu/src/materials/standard/standard-shader-variant.ts`,
+  covering texture variant comments, UV routing, WGSL declaration assembly,
+  binding metadata, compact clustered-local multi-shadow detection, and shader
+  label selection.
 
 ## Purpose
 

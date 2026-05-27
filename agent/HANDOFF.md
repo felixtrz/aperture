@@ -1,6 +1,44 @@
 # Agent Handoff
 
-Updated: 2026-05-27T22:25:50Z
+Updated: 2026-05-27T22:29:54Z
+
+## Current Run Update — 2026-05-27T22:29:54Z — StandardMaterial shader variant helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 3.
+
+### What changed
+
+- Extracted StandardMaterial texture variant helper assembly from
+  `packages/webgpu/src/materials/standard/standard-shader.ts` into
+  `packages/webgpu/src/materials/standard/standard-shader-variant.ts`.
+- The new module owns variant comments, texcoord/UV expression routing, WGSL
+  resource declaration assembly, binding metadata, compact clustered-local
+  multi-shadow detection, and shader label selection.
+- `standard-shader.ts` is now roughly 1,474 lines and focuses on base WGSL,
+  built-in shader descriptors, metadata validation, and the WGSL mutation
+  pipeline.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/materials/standard/standard-shader.ts packages/webgpu/src/materials/standard/standard-shader-variant.ts`
+- `pnpm exec prettier --check packages/webgpu/src/materials/standard/standard-shader.ts packages/webgpu/src/materials/standard/standard-shader-variant.ts`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 3 still has StandardMaterial shader cleanup available: base WGSL chunks
+  and built-in descriptor grouping remain in `standard-shader.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 3 by deciding whether to split StandardMaterial base WGSL chunks
+or move on to the next material-family pressure point listed in the plan.
 
 ## Current Run Update — 2026-05-27T22:25:50Z — StandardMaterial shader sampling split
 
