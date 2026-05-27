@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-27T21:55:59Z
+Updated: 2026-05-27T22:02:17Z
+
+## Current Run Update — 2026-05-27T22:02:17Z — WebGPU frame-boundary assembly split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted app frame-boundary assembly from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/frame-boundaries.ts`.
+- The new module owns render target submission planning, per-view command
+  filtering, skybox insertion, occlusion queries, GPU timings, MSAA/depth target
+  setup, post-processing handoff, transmission grab passes, and render-bundle
+  reporting.
+- `app.ts` now delegates frame-boundary assembly from queued built-in and
+  sprite-only frame paths.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/frame-boundaries.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/frame-boundaries.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|creates a renderer-only app|renders multiple unlit app resource sets|renders mixed standard and matcap app resource sets|routes DebugNormalMaterial|runs a no-op post effect chain|passes the renderer-owned scene depth texture|passes multisampled scene depth"`
+- `pnpm exec vitest run test/webgpu/post-pass.test.ts test/webgpu/index.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs queued built-in frame orchestration, sprite-only frame
+  orchestration, app startup/presentation cleanup, and diagnostics
+  orchestration splits.
+- `packages/webgpu/src/app/app.ts` is now near 2,050 lines, with the remaining
+  large chunks concentrated around queued frame orchestration,
+  `renderWebGpuAppFrame`, and app creation/startup.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by extracting queued built-in frame orchestration or
+sprite-only frame orchestration now that frame-boundary assembly is separate.
 
 ## Current Run Update — 2026-05-27T21:55:59Z — WebGPU queued built-in adapters split
 

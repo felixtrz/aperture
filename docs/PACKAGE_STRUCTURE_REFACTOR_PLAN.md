@@ -113,6 +113,11 @@ Status: in progress
   `packages/webgpu/src/app/queued-built-in-adapters.ts`, covering built-in
   material texture-resource preparation, frame-resource adapter registration,
   and adapter validation.
+- App frame-boundary assembly now lives in
+  `packages/webgpu/src/app/frame-boundaries.ts`, covering render target
+  submission planning, per-view command filtering, skybox insertion, occlusion
+  queries, GPU timings, MSAA/depth target setup, post-processing handoff,
+  transmission grab passes, and render-bundle reporting.
 
 ## Purpose
 
