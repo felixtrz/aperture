@@ -30,6 +30,9 @@ Status: in progress
   `packages/webgpu/src/app/picking.ts`, covering pick-pixel normalization,
   pick-pass error scopes, shared bind group creation, and ID-buffer pick
   pipeline caching.
+- Material dependency diagnostics now live in
+  `packages/webgpu/src/app/material-dependencies.ts`, covering snapshot
+  dependency diagnostics and JSON-safe app diagnostic creation.
 
 ## Purpose
 

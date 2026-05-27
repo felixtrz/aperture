@@ -1,6 +1,44 @@
 # Agent Handoff
 
-Updated: 2026-05-27T20:10:42Z
+Updated: 2026-05-27T20:13:36Z
+
+## Current Run Update — 2026-05-27T20:13:36Z — WebGPU material dependency diagnostics split
+
+Continued Track 2 of `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Extracted app material dependency diagnostics from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/material-dependencies.ts`.
+- The new module owns snapshot material dependency diagnosis, render-diagnostic
+  fallback scanning, and JSON-safe `webGpuApp.materialDependenciesNotReady`
+  diagnostic creation.
+- `app.ts` now imports those helpers where render readiness checks need them.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/material-dependencies.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/material-dependencies.ts`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "surfaces material source dependency readiness|blocks mixed standard rendering when StandardMaterial texture dependencies are not ready|blocks mixed textured unlit and matcap rendering when the unlit texture dependency is missing|diagnoses unsupported alpha-test material queue families"`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs full picking orchestration, frame-loop orchestration,
+  diagnostics orchestration, and startup/resource-cache construction splits.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by splitting resource-cache/frame-scratch construction or by
+introducing an app-frame-resource module that can unblock moving the full
+picking orchestration.
 
 ## Current Run Update — 2026-05-27T20:10:42Z — WebGPU app picking helpers split
 
