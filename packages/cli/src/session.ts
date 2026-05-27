@@ -109,16 +109,17 @@ export async function readApertureDevSessionStatus(
   const session = await readApertureDevSession(appRoot);
   const daemonAlive = isProcessAlive(session?.daemon.pid ?? null);
   const browserPid = session?.browser.pid ?? null;
+  const browserAlive =
+    browserPid === null
+      ? await isBrowserEndpointAlive(session, daemonAlive)
+      : isProcessAlive(browserPid);
 
   return {
     session,
     sessionFile: apertureSessionFile(appRoot),
     daemonAlive,
     serverAlive: isProcessAlive(session?.server.pid ?? null),
-    browserAlive:
-      browserPid === null
-        ? session?.browser.state === "running" && daemonAlive
-        : isProcessAlive(browserPid),
+    browserAlive,
   };
 }
 
@@ -226,4 +227,43 @@ function isNodeErrorCode(error: unknown, code: string): boolean {
     error !== null &&
     (error as { readonly code?: unknown }).code === code
   );
+}
+
+async function isBrowserEndpointAlive(
+  session: ApertureDevSession | null,
+  daemonAlive: boolean,
+): Promise<boolean> {
+  if (session?.browser.state !== "running" || !daemonAlive) {
+    return false;
+  }
+
+  if (session.browser.cdpUrl === null) {
+    return true;
+  }
+
+  try {
+    return await isHttpEndpointAlive(
+      new URL("/json/version", session.browser.cdpUrl),
+    );
+  } catch {
+    return false;
+  }
+}
+
+async function isHttpEndpointAlive(url: URL): Promise<boolean> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => {
+    controller.abort();
+  }, 500);
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    await response.body?.cancel();
+
+    return response.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timeout);
+  }
 }

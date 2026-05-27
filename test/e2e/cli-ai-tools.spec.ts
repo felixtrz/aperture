@@ -839,6 +839,36 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
     expect(diagnosticExplanation.structuredContent).toMatchObject({
       results: expect.any(Array),
     });
+
+    await killManagedBrowser(APP_ROOT);
+    const crashedBrowserStatus = await callMcpTool("browser_status", {});
+    expect(crashedBrowserStatus.structuredContent).toMatchObject({
+      ok: false,
+      diagnostic: {
+        code: "aperture.mcp.browserConnectFailed",
+      },
+    });
+
+    const restarted = await runCli([
+      "dev",
+      "up",
+      "--port",
+      String(PORT),
+      "--headless",
+    ]);
+    expect(restarted.stdout).toContain("Started Aperture dev session");
+    const restartedReady = await callMcpTool("browser_wait_for_webgpu", {
+      timeoutMs: 30_000,
+    });
+    expect(restartedReady.structuredContent).toMatchObject({
+      ok: true,
+      page: {
+        status: {
+          status: "running",
+          webgpuOk: true,
+        },
+      },
+    });
   } finally {
     await runCli(["dev", "down"], { allowFailure: true });
     await rm(path.join(APP_ROOT, ".aperture"), {
@@ -1418,14 +1448,7 @@ async function withManagedPage(
   cwd: string,
   callback: (page: Page) => Promise<void>,
 ): Promise<void> {
-  const session = JSON.parse(
-    await readFile(path.join(cwd, ".aperture/runtime/session.json"), "utf8"),
-  ) as {
-    readonly url?: string;
-    readonly browser?: {
-      readonly cdpUrl?: string | null;
-    };
-  };
+  const session = await readManagedSession(cwd);
   const cdpUrl = session.browser?.cdpUrl;
 
   if (typeof cdpUrl !== "string" || cdpUrl.length === 0) {
@@ -1448,6 +1471,120 @@ async function withManagedPage(
     await callback(page);
   } finally {
     await browser.close();
+  }
+}
+
+async function killManagedBrowser(cwd: string): Promise<void> {
+  const session = await readManagedSession(cwd);
+  const pid = session.browser?.pid;
+
+  if (typeof pid === "number" && Number.isInteger(pid) && pid > 0) {
+    process.kill(pid, "SIGTERM");
+    await waitForProcessExit(pid, 5_000);
+    return;
+  }
+
+  const cdpUrl = session.browser?.cdpUrl;
+
+  if (typeof cdpUrl !== "string" || cdpUrl.length === 0) {
+    throw new Error("Managed Aperture session cannot identify a browser.");
+  }
+
+  const browser = await chromium.connectOverCDP(cdpUrl);
+
+  try {
+    const cdp = await browser.newBrowserCDPSession();
+    await cdp.send("Browser.close");
+  } finally {
+    await browser.close().catch(() => undefined);
+  }
+
+  await waitForCdpExit(cdpUrl, 5_000);
+}
+
+async function readManagedSession(cwd: string): Promise<{
+  readonly url?: string;
+  readonly browser?: {
+    readonly pid?: number | null;
+    readonly cdpUrl?: string | null;
+  };
+}> {
+  return JSON.parse(
+    await readFile(path.join(cwd, ".aperture/runtime/session.json"), "utf8"),
+  ) as {
+    readonly url?: string;
+    readonly browser?: {
+      readonly pid?: number | null;
+      readonly cdpUrl?: string | null;
+    };
+  };
+}
+
+async function waitForProcessExit(
+  pid: number,
+  timeoutMs: number,
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    if (!isProcessAlive(pid)) {
+      return;
+    }
+
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 100);
+    });
+  }
+
+  throw new Error(`Process ${pid} did not exit within ${timeoutMs}ms.`);
+}
+
+function isProcessAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error: unknown) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      (error as { readonly code?: unknown }).code === "ESRCH"
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+}
+
+async function waitForCdpExit(
+  cdpUrl: string,
+  timeoutMs: number,
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    if (!(await isCdpAlive(cdpUrl))) {
+      return;
+    }
+
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 100);
+    });
+  }
+
+  throw new Error(
+    `CDP endpoint ${cdpUrl} did not close within ${timeoutMs}ms.`,
+  );
+}
+
+async function isCdpAlive(cdpUrl: string): Promise<boolean> {
+  try {
+    const response = await fetch(new URL("/json/version", cdpUrl));
+    await response.body?.cancel();
+
+    return response.ok;
+  } catch {
+    return false;
   }
 }
 
