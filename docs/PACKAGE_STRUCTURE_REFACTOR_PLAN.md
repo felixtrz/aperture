@@ -118,6 +118,10 @@ Status: in progress
   submission planning, per-view command filtering, skybox insertion, occlusion
   queries, GPU timings, MSAA/depth target setup, post-processing handoff,
   transmission grab passes, and render-bundle reporting.
+- Sprite-only app frame rendering now lives in
+  `packages/webgpu/src/app/sprite-frame.ts`, covering sprite-only view packing,
+  sprite pipeline/resource preparation, frame-boundary delegation, submitted
+  work waiting, readback mapping, and sprite-only render report assembly.
 
 ## Purpose
 

@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-27T22:02:17Z
+Updated: 2026-05-27T22:05:09Z
+
+## Current Run Update — 2026-05-27T22:05:09Z — WebGPU sprite-only frame split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted sprite-only app frame rendering from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/sprite-frame.ts`.
+- The new module owns sprite-only view/transform packing, sprite
+  pipeline/resource preparation, frame-boundary delegation, submitted-work
+  waiting, readback mapping, and sprite-only render report assembly.
+- `renderWebGpuAppFrame` still owns route selection and delegates sprite-only
+  rendering when a snapshot has views and sprite or skybox draws but no mesh
+  draws.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/sprite-frame.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/sprite-frame.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|creates a renderer-only app|renders multiple unlit app resource sets|renders mixed standard and matcap app resource sets|routes DebugNormalMaterial"`
+- `pnpm exec vitest run test/webgpu/sprite.test.ts test/webgpu/index.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs queued built-in frame orchestration, app startup/
+  presentation cleanup, and diagnostics orchestration splits.
+- `packages/webgpu/src/app/app.ts` is now under 1,950 lines, with the remaining
+  large chunks concentrated around queued frame orchestration,
+  `renderWebGpuAppFrame`, and app creation/startup.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by extracting queued built-in frame orchestration now that the
+shared frame-boundary and sprite-only paths are separate.
 
 ## Current Run Update — 2026-05-27T22:02:17Z — WebGPU frame-boundary assembly split
 
