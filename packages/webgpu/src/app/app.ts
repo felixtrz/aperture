@@ -333,6 +333,17 @@ import {
   prepareWebGpuAppIndirectDrawCommands,
   shouldUseRenderBundlesForSnapshotSchedule,
 } from "./frame-boundary-support.js";
+import {
+  appendWebGpuAppOcclusionCullingPlan,
+  collectOcclusionQueryRenderIds,
+  commandsWithoutOcclusionQueryCommands,
+  commandsWithoutSkippedOcclusionDraws,
+  createWebGpuAppOcclusionCullingReport,
+  isRenderPassDrawCommand,
+  normalizeOcclusionQueryCommands,
+  recordWebGpuAppOcclusionCullingFallback,
+  type WebGpuAppOcclusionCullingReport,
+} from "./occlusion-culling.js";
 
 export type { WebGpuAppMsaaReport };
 
@@ -1390,16 +1401,6 @@ interface WebGpuAppFrameBoundaryAssemblyResult {
   readonly diagnostics: readonly unknown[];
 }
 
-interface WebGpuAppOcclusionCullingReport {
-  queryCandidateDraws: number;
-  queriedDraws: number;
-  skippedFromQuery: number;
-  readonly skippedRenderIds: number[];
-  forcedProbeDraws: number;
-  readonly forcedProbeRenderIds: number[];
-  fallbackReason: GpuOcclusionFeedbackFallbackReason | null;
-}
-
 async function renderQueuedBuiltInWebGpuAppFrame(options: {
   readonly app: WebGpuApp;
   readonly assets: AssetRegistry;
@@ -2388,7 +2389,7 @@ function commandsWithoutTransmissionDraws(
     }
 
     if (
-      isDrawCommand(command) &&
+      isRenderPassDrawCommand(command) &&
       pipelineKeyUsesTransmission(activePipelineKey)
     ) {
       transmissionRenderIds.add(command.renderId);
@@ -2436,151 +2437,6 @@ function materialPipelineKeyFromRenderPipelineKey(pipelineKey: string): string {
   }
 
   return pipelineKey;
-}
-
-function createWebGpuAppOcclusionCullingReport(): WebGpuAppOcclusionCullingReport {
-  return {
-    queryCandidateDraws: 0,
-    queriedDraws: 0,
-    skippedFromQuery: 0,
-    skippedRenderIds: [],
-    forcedProbeDraws: 0,
-    forcedProbeRenderIds: [],
-    fallbackReason: null,
-  };
-}
-
-function appendWebGpuAppOcclusionCullingPlan(
-  report: WebGpuAppOcclusionCullingReport,
-  plan: ReturnType<typeof planGpuOcclusionFeedbackCulling>,
-): void {
-  report.queryCandidateDraws += plan.candidateDraws;
-  report.skippedFromQuery += plan.skippedRenderIds.length;
-  report.skippedRenderIds.push(...plan.skippedRenderIds);
-  report.forcedProbeDraws += plan.forcedProbeRenderIds.length;
-  report.forcedProbeRenderIds.push(...plan.forcedProbeRenderIds);
-
-  if (plan.fallbackReason !== null) {
-    recordWebGpuAppOcclusionCullingFallback(report, plan.fallbackReason);
-  }
-}
-
-function recordWebGpuAppOcclusionCullingFallback(
-  report: WebGpuAppOcclusionCullingReport,
-  fallbackReason: GpuOcclusionFeedbackFallbackReason,
-): void {
-  if (
-    report.fallbackReason === null ||
-    fallbackReason === "unsupported" ||
-    report.fallbackReason !== "unsupported"
-  ) {
-    report.fallbackReason = fallbackReason;
-  }
-}
-
-function collectOcclusionQueryRenderIds(
-  commands: readonly RenderPassCommand[],
-): readonly number[] {
-  const renderIds: number[] = [];
-
-  for (const command of commands) {
-    if (command.kind === "beginOcclusionQuery") {
-      renderIds.push(command.renderId);
-    }
-  }
-
-  return renderIds;
-}
-
-function commandsWithoutSkippedOcclusionDraws(
-  commands: readonly RenderPassCommand[],
-  skippedRenderIds: readonly number[],
-  target: RenderPassCommand[],
-): readonly RenderPassCommand[] {
-  if (skippedRenderIds.length === 0) {
-    return commands;
-  }
-
-  const skipped = new Set(skippedRenderIds);
-  target.length = 0;
-
-  for (const command of commands) {
-    if (
-      skipped.has(command.renderId) &&
-      (isOcclusionQueryCommand(command) || isDrawCommand(command))
-    ) {
-      continue;
-    }
-
-    target.push(command);
-  }
-
-  return target;
-}
-
-function commandsWithoutOcclusionQueryCommands(
-  commands: readonly RenderPassCommand[],
-  target?: RenderPassCommand[],
-): readonly RenderPassCommand[] {
-  if (!commands.some(isOcclusionQueryCommand)) {
-    return commands;
-  }
-
-  if (target === undefined) {
-    return commands.filter((command) => !isOcclusionQueryCommand(command));
-  }
-
-  target.length = 0;
-
-  for (const command of commands) {
-    if (!isOcclusionQueryCommand(command)) {
-      target.push(command);
-    }
-  }
-
-  return target;
-}
-
-function normalizeOcclusionQueryCommands(
-  commands: readonly RenderPassCommand[],
-): readonly number[] {
-  const renderIds: number[] = [];
-  let queryIndex = 0;
-  let activeQueryIndex = -1;
-
-  for (const command of commands) {
-    if (command.kind === "beginOcclusionQuery") {
-      (command as { queryIndex: number }).queryIndex = queryIndex;
-      activeQueryIndex = queryIndex;
-      renderIds.push(command.renderId);
-      queryIndex += 1;
-      continue;
-    }
-
-    if (command.kind === "endOcclusionQuery") {
-      (command as { queryIndex: number }).queryIndex =
-        activeQueryIndex >= 0 ? activeQueryIndex : Math.max(0, queryIndex - 1);
-      activeQueryIndex = -1;
-    }
-  }
-
-  return renderIds;
-}
-
-function isOcclusionQueryCommand(command: RenderPassCommand): boolean {
-  return (
-    command.kind === "beginOcclusionQuery" ||
-    command.kind === "endOcclusionQuery"
-  );
-}
-
-function isDrawCommand(command: RenderPassCommand): boolean {
-  return (
-    command.kind === "draw" ||
-    command.kind === "drawIndexed" ||
-    command.kind === "drawIndirect" ||
-    command.kind === "drawIndexedIndirect"
-  );
 }
 
 function snapshotUsesTransmission(snapshot: RenderSnapshot): boolean {
