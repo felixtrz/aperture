@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "c8bf5c64",
   "activePid": null,
-  "notes": "Removed the retired umbrella package, migrated examples/tests/docs/build wiring to focused package imports, and validated build, typecheck, boundaries, examples, progress, package-entrypoint/navigation tests, and representative Playwright routes.",
-  "lastRunFinishedAt": "2026-05-26T17:39:03Z"
+  "notes": "Implemented game authoring follow-ups: generated render quality and DPR/canvas diagnostics, CLI/MCP canvas and asset tools, create templates, docs, and focused validation.",
+  "lastRunFinishedAt": "2026-05-27T05:59:19Z"
 }

@@ -1,6 +1,62 @@
 # Agent Handoff
 
-Updated: 2026-05-26T17:38:24Z
+Updated: 2026-05-27T05:54:00Z
+
+## Current Run Update — 2026-05-27T05:54:00Z — Game authoring follow-ups implemented
+
+Completed `docs/GAME_AUTHORING_FOLLOW_UP_PLAN.md`.
+
+### What changed
+
+- Generated browser apps now default to 4x MSAA when `render.sampleCount` is
+  omitted, preserve `sampleCount: 1` as the opt-out, and report requested,
+  effective, clamped, and invalid sample-count diagnostics.
+- Generated canvas sizing now resolves backing dimensions from CSS size and
+  effective DPR, caps default DPR at 2, prefers `device-pixel-content-box`,
+  and reports CSS size, backing size, aspect, DPR source, resize source, and
+  render-target size.
+- The CLI now supports `aperture tool <name> [--json <object>]` over the same
+  backend as MCP, including new `browser_canvas_status` and `asset_list`
+  inspection tools.
+- `aperture create` now supports `--template minimal`, `--template glb-viewer`,
+  and `--template game`. The GLB/game templates include local GLB assets,
+  render quality defaults, deterministic system priorities, and practical
+  asset/gameplay systems.
+- Docs were updated in `docs/AUTHORING.md`, `docs/AI_TOOLING.md`,
+  `docs/AI_TOOLING_PLAN.md`, `docs/GAME_AUTHORING_FOLLOW_UP_PLAN.md`, and the
+  public tracker pages.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm --filter @aperture-engine/app run build`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm --filter @aperture-engine/cli run build`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/cli/create.test.ts`
+- `pnpm exec vitest run test/cli/dev-session.test.ts`
+- `pnpm exec vitest run test/app/developer-api.test.ts --testNamePattern "generated browser render|generated render default|generated canvas backing|defines config assets|priority"`
+- `pnpm exec playwright test test/e2e/cli-ai-tools.spec.ts --grep "Aperture CLI manages|aperture create templates" --project=chrome-webgpu-headed`
+- Manual temp-workspace template validation: `minimal`, `glb-viewer`, and
+  `game` passed install, typecheck, build, managed-browser startup, WebGPU
+  readiness, canvas/render diagnostics, ECS lookup, asset readiness for GLB
+  templates, and game input driving to score/goal state.
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts --grep "generated developer API" --project=chrome-webgpu-headed` printed the pass line for the test, but the runner did not exit during teardown and was killed; do not count that as a clean validation result.
+- `pnpm run check:progress`
+- Targeted Prettier checks for touched files passed.
+
+### Known issues / remaining work
+
+- Pre-existing unrelated dirty work remains in the tree, including the deleted
+  `.codex/hooks.json`, untracked `.playwright-mcp/`, RAG/reference work, and
+  playground edits. This run did not revert them.
+- Full `pnpm test` and `pnpm run lint` were not rerun; earlier handoff notes
+  document unrelated existing failures.
+
+### Recommended next task
+
+Resume the existing visible-feature queue at `task-3210` unless the user asks
+for another AI-tooling or scaffold follow-up.
 
 ## Current Run Update — 2026-05-26T17:38:24Z — Removed retired umbrella package
 
