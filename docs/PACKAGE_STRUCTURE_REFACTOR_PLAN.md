@@ -236,6 +236,10 @@ Status: in progress
   `packages/webgpu/src/lighting/ibl-texture-resource.ts`, with diffuse
   allocation, specular PMREM allocation, JSON report projection, shared
   utilities, and contracts split into focused `ibl-texture-resource-*` modules.
+- Track 5 has started. Render extraction frustum/culling helpers now live in
+  `packages/render/src/rendering/extraction-culling.ts`, while
+  `extraction.ts` keeps the public snapshot extraction entry point and
+  high-level extraction orchestration.
 
 ## Purpose
 

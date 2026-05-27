@@ -1,6 +1,42 @@
 # Agent Handoff
 
-Updated: 2026-05-27T23:27:49Z
+Updated: 2026-05-27T23:30:39Z
+
+## Current Run Update — 2026-05-27T23:30:39Z — Render extraction culling split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted render extraction frustum plane creation, view-cull signatures,
+  visibility checks, first matching sort-view lookup, and view-depth
+  computation into
+  `packages/render/src/rendering/extraction-culling.ts`.
+- `packages/render/src/rendering/extraction.ts` remains the public extraction
+  entry point and is now roughly 2528 lines.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/rendering/extraction.ts packages/render/src/rendering/extraction-culling.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/extraction.ts packages/render/src/rendering/extraction-culling.ts`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/rendering/line-list-mesh.test.ts test/webgpu/fixtures/ecs-snapshot-render-frame.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- `packages/render/src/rendering/extraction.ts` remains the largest render
+  package file. Good next splits are material readiness/asset validation,
+  light/environment extraction, or sprite/skybox/fog extraction.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to these extractions; use targeted subsets
+  until those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting material readiness and asset dependency
+validation out of `packages/render/src/rendering/extraction.ts`.
 
 ## Current Run Update — 2026-05-27T23:27:49Z — IBL texture resource module split
 
