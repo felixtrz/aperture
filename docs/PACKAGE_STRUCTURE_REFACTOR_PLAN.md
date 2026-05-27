@@ -89,6 +89,10 @@ Status: in progress
 - Multi-unlit app resource helpers now live in
   `packages/webgpu/src/app/multi-unlit.ts`, covering multi-material unlit
   resource-set detection, frame-resource preparation, and reuse accounting.
+- Queued built-in frame-resource preparation now lives in
+  `packages/webgpu/src/app/queued-frame-resources.ts`, covering queued resource
+  preparation, frame-resource option construction, pipeline plan results, and
+  queued bind-group reuse accounting.
 
 ## Purpose
 

@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-27T21:21:51Z
+Updated: 2026-05-27T21:29:03Z
+
+## Current Run Update — 2026-05-27T21:29:03Z — WebGPU queued frame resources split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted queued built-in frame-resource preparation from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/queued-frame-resources.ts`.
+- The new module owns queued frame-resource preparation, frame-resource option
+  construction, pipeline plan result construction, and queued bind-group reuse
+  accounting.
+- `app.ts` still owns app pipeline caching/layout lookup and passes those as
+  explicit callbacks to the queued-frame module.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/queued-frame-resources.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/queued-frame-resources.ts`
+- `pnpm exec vitest run test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|creates a renderer-only app|renders multiple unlit app resource sets|renders mixed standard and matcap app resource sets|surfaces per-pass GPU timings"`
+- `pnpm exec vitest run test/webgpu/app-picking.test.ts test/webgpu/index.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs full picking orchestration, post-processing/motion-vector
+  helpers, frame-loop orchestration, and diagnostics orchestration splits.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by extracting the post-processing/motion-vector helper cluster
+or the remaining picking orchestration, depending on which split has the smaller
+public type surface.
 
 ## Current Run Update — 2026-05-27T21:21:51Z — WebGPU multi-unlit app helpers split
 
