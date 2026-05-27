@@ -55,45 +55,25 @@ import {
 import { diagnostic, entityRef } from "./extraction-diagnostics.js";
 import { sortedEntities } from "./extraction-entities.js";
 import { parseMaterialHandle, parseMeshHandle } from "./extraction-inputs.js";
+import {
+  appendCachedMeshDrawEntity,
+  createMeshDrawPacketTemplate,
+  entityCacheKey,
+  type RenderExtractionCache,
+} from "./extraction-mesh-cache.js";
 import { createBoundsPacket } from "./extraction-mesh-bounds.js";
 import { meshLayoutStreamToken } from "./extraction-mesh-layout.js";
 import { pushMatrix, readWorldMatrix } from "./extraction-matrices.js";
+import { pushVec4 } from "./extraction-packing.js";
 
-export interface RenderExtractionCache {
-  readonly meshDrawEntities: Map<string, CachedMeshDrawEntity>;
-  clear(): void;
-}
-
-type MeshDrawPacketTemplate = Omit<
-  MeshDrawPacket,
-  "worldTransformOffset" | "boundsIndex" | "instanceAttributePacketIndex"
->;
-
-interface CachedMeshDrawEntity {
-  readonly entityVersion: number;
-  readonly cameraLayerMask: number;
-  readonly viewCullSignature: number;
-  readonly layerMask: number;
-  readonly worldMatrix: readonly number[];
-  readonly instanceTint: readonly number[] | null;
-  readonly bounds: Omit<BoundsPacket, "boundsId">;
-  readonly draws: readonly MeshDrawPacketTemplate[];
-}
+export {
+  createRenderExtractionCache,
+  type RenderExtractionCache,
+} from "./extraction-mesh-cache.js";
 
 interface SkinExtraction {
   readonly jointMatrices: readonly number[];
   readonly jointCount: number;
-}
-
-export function createRenderExtractionCache(): RenderExtractionCache {
-  const meshDrawEntities = new Map<string, CachedMeshDrawEntity>();
-
-  return {
-    meshDrawEntities,
-    clear() {
-      meshDrawEntities.clear();
-    },
-  };
 }
 
 export function extractMeshDraws(
@@ -493,71 +473,6 @@ export function extractMeshDraws(
   return draws;
 }
 
-function appendCachedMeshDrawEntity(
-  cached: CachedMeshDrawEntity,
-  transforms: number[],
-  instanceTints: number[],
-  bounds: BoundsPacket[],
-  draws: MeshDrawPacket[],
-): void {
-  const worldTransformOffset = pushMatrix(transforms, cached.worldMatrix);
-  const instanceTintOffset =
-    cached.instanceTint === null
-      ? undefined
-      : pushVec4(instanceTints, cached.instanceTint);
-  const boundsIndex = bounds.length;
-
-  bounds.push({
-    boundsId: boundsIndex,
-    ...cached.bounds,
-  });
-
-  for (const draw of cached.draws) {
-    draws.push({
-      ...draw,
-      worldTransformOffset,
-      ...(instanceTintOffset === undefined ? {} : { instanceTintOffset }),
-      boundsIndex,
-    });
-  }
-}
-
-function createMeshDrawPacketTemplate(
-  draw: MeshDrawPacket,
-): MeshDrawPacketTemplate {
-  return {
-    renderId: draw.renderId,
-    entity: draw.entity,
-    mesh: draw.mesh,
-    material: draw.material,
-    submesh: draw.submesh,
-    materialSlot: draw.materialSlot,
-    ...(draw.vertexStart === undefined
-      ? {}
-      : { vertexStart: draw.vertexStart }),
-    ...(draw.vertexCount === undefined
-      ? {}
-      : { vertexCount: draw.vertexCount }),
-    ...(draw.indexStart === undefined ? {} : { indexStart: draw.indexStart }),
-    ...(draw.indexCount === undefined ? {} : { indexCount: draw.indexCount }),
-    layerMask: draw.layerMask,
-    ...(draw.instanceTintOffset === undefined
-      ? {}
-      : { instanceTintOffset: draw.instanceTintOffset }),
-    ...(draw.castsShadow === undefined
-      ? {}
-      : { castsShadow: draw.castsShadow }),
-    ...(draw.receivesShadow === undefined
-      ? {}
-      : { receivesShadow: draw.receivesShadow }),
-    ...(draw.occlusionQuery === undefined
-      ? {}
-      : { occlusionQuery: draw.occlusionQuery }),
-    sortKey: draw.sortKey,
-    batchKey: draw.batchKey,
-  };
-}
-
 function pushInstanceTint(
   values: number[],
   entity: Entity,
@@ -897,12 +812,6 @@ function instanceDataComponents(value: unknown): readonly number[] | null {
   return components;
 }
 
-function pushVec4(values: number[], vector: ArrayLike<number>): number {
-  const offset = values.length;
-  values.push(vector[0] ?? 1, vector[1] ?? 1, vector[2] ?? 1, vector[3] ?? 1);
-  return offset;
-}
-
 function readMaterialSlots(
   entity: Entity,
   diagnostics: RenderDiagnostic[],
@@ -965,8 +874,4 @@ function materialQueue(material: MaterialAsset): RenderQueue {
     case "opaque":
       return "opaque";
   }
-}
-
-function entityCacheKey(entity: Entity): string {
-  return `${entity.index}:${entity.generation}`;
 }
