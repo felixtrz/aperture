@@ -105,6 +105,10 @@ Status: in progress
   `packages/webgpu/src/app/picking-frame.ts`, covering ID-buffer pick resource
   preparation, pick-frame planning, pick pass assembly/readback, and app-owned
   pipeline/layout callbacks.
+- App pipeline resource creation now lives in
+  `packages/webgpu/src/app/pipeline-resources.ts`, covering built-in material
+  render-pipeline cache keys, creation, reuse accounting, and the public
+  `WebGpuAppPipelineResourceResult` type re-export.
 
 ## Purpose
 

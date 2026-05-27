@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-27T21:46:50Z
+Updated: 2026-05-27T21:50:38Z
+
+## Current Run Update — 2026-05-27T21:50:38Z — WebGPU app pipeline resources split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted built-in material app pipeline creation/caching from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/pipeline-resources.ts`.
+- The new module owns app pipeline cache keys, render-pipeline creation,
+  pipeline reuse accounting, and the `WebGpuAppPipelineResourceResult` type.
+- `app.ts` re-exports the public pipeline result type from the focused module.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/pipeline-resources.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/pipeline-resources.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|creates a renderer-only app|renders multiple unlit app resource sets|renders mixed standard and matcap app resource sets|routes DebugNormalMaterial"`
+- `pnpm exec vitest run test/webgpu/app-picking.test.ts test/webgpu/index.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs frame-loop orchestration, app startup/presentation
+  cleanup, diagnostics orchestration, and likely built-in adapter registry
+  extraction.
+- `packages/webgpu/src/app/app.ts` is now under 2,900 lines, with the remaining
+  large chunks concentrated around app creation/startup, the built-in adapter
+  registry, queued frame orchestration, frame-boundary orchestration,
+  sprite-only orchestration, and the top-level render frame path.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by extracting the built-in adapter registry, then revisit the
+larger frame-loop/render-frame split with the support modules already separate.
 
 ## Current Run Update — 2026-05-27T21:46:50Z — WebGPU app picking orchestration split
 
