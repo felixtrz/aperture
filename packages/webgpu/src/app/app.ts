@@ -2,7 +2,6 @@ import {
   AssetRegistry,
   assetHandleKey,
   invertMat4,
-  type RenderTargetHandle,
 } from "@aperture-engine/simulation";
 import {
   RenderWorld,
@@ -57,6 +56,12 @@ import {
   type RenderSnapshotUpdateSchedule,
 } from "@aperture-engine/render";
 import { writeBufferData } from "./app-frame-resource-utils.js";
+import { webGpuAppCanvasDimensions } from "./canvas.js";
+import {
+  createWebGpuAppRenderTargetDiagnostic,
+  isWebGpuAppRenderTargetAsset,
+  type WebGpuAppRenderTargetAsset,
+} from "./render-target.js";
 import {
   createAppTextureSamplerResourceCacheSummary,
   prepareAppTextureResource,
@@ -409,21 +414,11 @@ interface WebGpuAppFrameRenderOptions extends WebGpuAppRenderOptions {
   readonly previousSnapshotForUpdate?: RenderSnapshot | null;
 }
 
-export interface WebGpuAppRenderTargetAssetInput {
-  readonly texture: CurrentTextureLike;
-  readonly width: number;
-  readonly height: number;
-  readonly format?: string;
-  readonly label?: string;
-}
-
-export interface WebGpuAppRenderTargetAsset {
-  readonly texture: CurrentTextureLike;
-  readonly width: number;
-  readonly height: number;
-  readonly format?: string;
-  readonly label?: string;
-}
+export {
+  createWebGpuAppRenderTargetAsset,
+  type WebGpuAppRenderTargetAsset,
+  type WebGpuAppRenderTargetAssetInput,
+} from "./render-target.js";
 
 export interface WebGpuAppRenderCounts {
   readonly views: number;
@@ -1011,26 +1006,6 @@ export interface CreateWebGpuAppSuccess {
 }
 
 export type CreateWebGpuAppResult = CreateWebGpuAppSuccess | WebGpuFailure;
-
-export function createWebGpuAppRenderTargetAsset(
-  input: WebGpuAppRenderTargetAssetInput,
-): WebGpuAppRenderTargetAsset {
-  if (!Number.isInteger(input.width) || input.width <= 0) {
-    throw new RangeError("WebGPU app render target width must be positive.");
-  }
-
-  if (!Number.isInteger(input.height) || input.height <= 0) {
-    throw new RangeError("WebGPU app render target height must be positive.");
-  }
-
-  return Object.freeze({
-    texture: input.texture,
-    width: input.width,
-    height: input.height,
-    ...(input.format === undefined ? {} : { format: input.format }),
-    ...(input.label === undefined ? {} : { label: input.label }),
-  });
-}
 
 export async function createWebGpuApp(
   options: CreateWebGpuAppOptions,
@@ -5543,57 +5518,6 @@ function resolveWebGpuAppTargetViewRectangles(
   };
 }
 
-function createWebGpuAppRenderTargetDiagnostic(input: {
-  readonly code:
-    | "webGpuApp.renderTargetMissing"
-    | "webGpuApp.renderTargetNotReady"
-    | "webGpuApp.renderTargetInvalid"
-    | "webGpuApp.renderTargetFormatMismatch";
-  readonly viewId: number;
-  readonly renderTarget: RenderTargetHandle;
-  readonly message: string;
-  readonly status?: string;
-}): {
-  readonly code: typeof input.code;
-  readonly message: string;
-  readonly viewId: number;
-  readonly renderTargetKey: string;
-  readonly status?: string;
-} {
-  return {
-    code: input.code,
-    message: input.message,
-    viewId: input.viewId,
-    renderTargetKey: assetHandleKey(input.renderTarget),
-    ...(input.status === undefined ? {} : { status: input.status }),
-  };
-}
-
-function isWebGpuAppRenderTargetAsset(
-  value: unknown,
-): value is WebGpuAppRenderTargetAsset {
-  if (typeof value !== "object" || value === null) {
-    return false;
-  }
-
-  const asset = value as Partial<WebGpuAppRenderTargetAsset>;
-  const width = asset.width;
-  const height = asset.height;
-
-  return (
-    typeof asset.texture === "object" &&
-    asset.texture !== null &&
-    typeof asset.texture.createView === "function" &&
-    width !== undefined &&
-    Number.isInteger(width) &&
-    width > 0 &&
-    height !== undefined &&
-    Number.isInteger(height) &&
-    height > 0 &&
-    (asset.format === undefined || typeof asset.format === "string")
-  );
-}
-
 function writeCommandsForView(
   commands: readonly RenderPassCommand[],
   snapshot: RenderSnapshot,
@@ -8711,23 +8635,6 @@ function countOpaqueDepthWritePipelineKeys(snapshot: RenderSnapshot): number {
   }
 
   return pipelineKeys.size;
-}
-
-function webGpuAppCanvasDimensions(canvas: WebGpuCanvasLike): {
-  readonly width: number;
-  readonly height: number;
-} {
-  const dimensions = canvas as {
-    readonly width?: unknown;
-    readonly height?: unknown;
-  };
-  const width = typeof dimensions.width === "number" ? dimensions.width : 1;
-  const height = typeof dimensions.height === "number" ? dimensions.height : 1;
-
-  return {
-    width: Math.max(1, Math.floor(width)),
-    height: Math.max(1, Math.floor(height)),
-  };
 }
 
 function createWebGpuAppResourceReuseReport(): WebGpuAppResourceReuseReport {

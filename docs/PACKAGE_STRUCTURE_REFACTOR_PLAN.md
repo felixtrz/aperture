@@ -12,6 +12,9 @@ Status: in progress
 - The public package root still preserves the previous broad export surface for
   now. Track 9 remains responsible for tightening those exports after internal
   imports and tests no longer depend on broad barrels.
+- Track 2 has started. Render-target asset creation/validation/diagnostics now
+  live in `packages/webgpu/src/app/render-target.ts`, and canvas backing
+  dimension resolution lives in `packages/webgpu/src/app/canvas.ts`.
 
 ## Purpose
 

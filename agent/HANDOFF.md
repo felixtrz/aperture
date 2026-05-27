@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-27T19:44:15Z
+Updated: 2026-05-27T19:48:35Z
+
+## Current Run Update — 2026-05-27T19:48:35Z — WebGPU app split started
+
+Continued the user-directed package-structure refactor after committing Track
+
+1.
+
+### What changed
+
+- Started Track 2 by extracting render-target app helpers from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/render-target.ts`.
+- Extracted canvas backing dimension resolution into
+  `packages/webgpu/src/app/canvas.ts`.
+- Kept the public `createWebGpuAppRenderTargetAsset(...)` export available
+  through `packages/webgpu/src/app/app.ts` and the existing package root.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/canvas.ts packages/webgpu/src/app/render-target.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "render targets|off-screen textures|same off-screen|same MSAA"`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs the larger split of app startup, frame loop,
+  presentation, source-asset handling, diagnostics, picking, and snapshot
+  transport orchestration.
+- A broad `pnpm exec vitest run test/webgpu/webgpu-app.test.ts
+test/webgpu/index.test.ts` still fails on the known pre-existing verbose
+  pipeline resource-key expectation failures. The render-target-specific subset
+  passed.
+
+### Recommended next task
+
+Continue Track 2 by extracting picking or frame-boundary target assembly from
+`packages/webgpu/src/app/app.ts`, keeping behavior unchanged and validating with
+targeted WebGPU app tests.
 
 ## Current Run Update — 2026-05-27T19:44:15Z — WebGPU package structure Track 1 implemented
 
