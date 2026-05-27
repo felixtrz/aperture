@@ -109,6 +109,10 @@ Status: in progress
   `packages/webgpu/src/app/pipeline-resources.ts`, covering built-in material
   render-pipeline cache keys, creation, reuse accounting, and the public
   `WebGpuAppPipelineResourceResult` type re-export.
+- Queued built-in app adapters now live in
+  `packages/webgpu/src/app/queued-built-in-adapters.ts`, covering built-in
+  material texture-resource preparation, frame-resource adapter registration,
+  and adapter validation.
 
 ## Purpose
 

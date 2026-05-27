@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-27T21:50:38Z
+Updated: 2026-05-27T21:55:59Z
+
+## Current Run Update — 2026-05-27T21:55:59Z — WebGPU queued built-in adapters split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted the queued built-in material app adapter registry from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/queued-built-in-adapters.ts`.
+- The new module owns built-in material texture-resource preparation routing,
+  frame-resource adapter registration, and adapter registry validation.
+- `app.ts` now imports the shared adapter registry and validation report for
+  rendering and picking paths.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/queued-built-in-adapters.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/queued-built-in-adapters.ts`
+- `pnpm exec vitest run test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts test/webgpu/queued-material-frame-resource-set.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|creates a renderer-only app|renders multiple unlit app resource sets|renders mixed standard and matcap app resource sets|routes DebugNormalMaterial"`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs frame-loop orchestration, app startup/presentation
+  cleanup, and diagnostics orchestration splits.
+- `packages/webgpu/src/app/app.ts` is now under 2,700 lines, with the remaining
+  large chunks concentrated around queued frame orchestration, frame-boundary
+  orchestration, sprite-only orchestration, and the top-level render frame path.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by extracting queued frame orchestration or frame-boundary
+orchestration from `app.ts`, now that the adapter registry, frame-resource
+preparation, and pipeline resource creation are separate.
 
 ## Current Run Update — 2026-05-27T21:50:38Z — WebGPU app pipeline resources split
 
