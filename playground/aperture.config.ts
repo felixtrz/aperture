@@ -3,7 +3,7 @@ import {
   defineApertureConfig,
   signal,
 } from "@aperture-engine/app/config";
-import { TOTAL_GEMS } from "./src/level";
+import { TOTAL_GEMS } from "./src/level.js";
 
 export default defineApertureConfig({
   mode: "browser",
@@ -19,7 +19,16 @@ export default defineApertureConfig({
     blockLong: asset.gltf("/assets/kenney/block-grass-long.glb", {
       preload: "blocking",
     }),
+    blockLowLong: asset.gltf("/assets/kenney/block-grass-low-long.glb", {
+      preload: "blocking",
+    }),
+    blockLarge: asset.gltf("/assets/kenney/block-grass-large.glb", {
+      preload: "blocking",
+    }),
     platform: asset.gltf("/assets/kenney/platform.glb", {
+      preload: "blocking",
+    }),
+    platformOverhang: asset.gltf("/assets/kenney/platform-overhang.glb", {
       preload: "blocking",
     }),
     coin: asset.gltf("/assets/kenney/coin-gold.glb", {
@@ -43,6 +52,15 @@ export default defineApertureConfig({
     heart: asset.gltf("/assets/kenney/heart.glb", {
       preload: "blocking",
     }),
+    spring: asset.gltf("/assets/kenney/spring.glb", {
+      preload: "blocking",
+    }),
+    sign: asset.gltf("/assets/kenney/sign.glb", {
+      preload: "blocking",
+    }),
+    fence: asset.gltf("/assets/kenney/fence-straight.glb", {
+      preload: "blocking",
+    }),
   },
   signals: {
     gems: signal.number(0),
@@ -50,6 +68,9 @@ export default defineApertureConfig({
     runState: signal.string("run"),
     time: signal.number(0),
     playerX: signal.number(0),
+    playerY: signal.number(0),
+    deaths: signal.number(0),
+    message: signal.string("Collect every gem and reach the flag"),
   },
   input: {
     actions: {
@@ -64,11 +85,12 @@ export default defineApertureConfig({
     },
   },
   render: {
-    clearColor: [0.55, 0.76, 0.92, 1],
+    clearColor: [0.52, 0.75, 0.94, 1],
     defaultCamera: false,
     defaultLight: false,
+    sampleCount: 4,
   },
   diagnostics: {
-    level: "warn",
+    level: "info",
   },
 });

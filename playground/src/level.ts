@@ -10,18 +10,27 @@ export interface Rect {
 export type LevelAssetId =
   | "block"
   | "blockLong"
+  | "blockLowLong"
+  | "blockLarge"
   | "platform"
+  | "platformOverhang"
   | "coin"
   | "jewel"
   | "tree"
   | "crate"
   | "flag"
   | "spikes"
-  | "heart";
+  | "heart"
+  | "spring"
+  | "sign"
+  | "fence";
 
 export interface PlatformSpec {
   readonly key: string;
-  readonly asset: Extract<LevelAssetId, "block" | "blockLong" | "platform">;
+  readonly asset: Extract<
+    LevelAssetId,
+    "block" | "blockLong" | "blockLowLong" | "blockLarge" | "platform"
+  >;
   readonly position: Vec3;
   readonly scale: Vec3;
   readonly bounds: Rect;
@@ -50,127 +59,191 @@ export interface HazardSpec {
   readonly bounds: Rect;
 }
 
+export interface CloudSpec {
+  readonly key: string;
+  readonly position: Vec3;
+  readonly scale: Vec3;
+}
+
 export const PLAYER = {
-  start: [-4.7, 0.98, 0.12] as const,
+  start: [-5.65, 1.05, 0.12] as const,
   feetOffset: 0.62,
-  visualScale: [1, 1, 1] as const,
+  visualScale: [0.95, 1, 0.95] as const,
   assetScale: [0.86, 0.86, 0.86] as const,
-  width: 0.55,
+  width: 0.54,
   height: 1.05,
-  speed: 4.2,
-  jumpSpeed: 6.8,
-  gravity: -17.5,
-  fallLimit: -2.2,
+  speed: 4.45,
+  jumpSpeed: 7.1,
+  gravity: -18.25,
+  fallLimit: -2.35,
 };
 
 export const CAMERA = {
-  distance: 8.8,
-  yOffset: 3.1,
+  distance: 8.6,
+  yOffset: 3.05,
   minY: 3.55,
-  targetYOffset: 0.05,
+  targetYOffset: 0.1,
+  smoothing: 0.18,
 } as const;
 
 export const LEVEL = {
-  goalX: 5.65,
+  startX: -5.65,
+  goalX: 7.45,
   platforms: [
     {
       key: "start",
       asset: "blockLong",
-      position: [-3.8, 0, 0],
-      scale: [1.4, 0.8, 1],
-      bounds: { x: -3.8, y: 0, width: 3.9, height: 0.72 },
+      position: [-4.85, 0, 0],
+      scale: [1.45, 0.82, 1],
+      bounds: { x: -4.85, y: 0, width: 4.1, height: 0.72 },
+    },
+    {
+      key: "step-one",
+      asset: "block",
+      position: [-1.55, 0.72, 0],
+      scale: [0.84, 0.68, 1],
+      bounds: { x: -1.55, y: 0.72, width: 1.55, height: 0.58 },
     },
     {
       key: "middle",
       asset: "blockLong",
-      position: [0.25, 0.85, 0],
-      scale: [1.15, 0.65, 1],
-      bounds: { x: 0.25, y: 0.85, width: 3.2, height: 0.58 },
+      position: [1.05, 1.35, 0],
+      scale: [1.18, 0.64, 1],
+      bounds: { x: 1.05, y: 1.35, width: 3.25, height: 0.58 },
     },
     {
       key: "upper",
       asset: "platform",
-      position: [3.1, 1.65, 0],
-      scale: [1.25, 0.7, 1],
-      bounds: { x: 3.1, y: 1.65, width: 2.4, height: 0.44 },
+      position: [4.1, 2.18, 0],
+      scale: [1.35, 0.72, 1],
+      bounds: { x: 4.1, y: 2.18, width: 2.55, height: 0.44 },
     },
     {
       key: "finish",
       asset: "blockLong",
-      position: [5.95, 0.35, 0],
-      scale: [1.15, 0.7, 1],
-      bounds: { x: 5.95, y: 0.35, width: 3.1, height: 0.62 },
+      position: [7.25, 0.5, 0],
+      scale: [1.32, 0.72, 1],
+      bounds: { x: 7.25, y: 0.5, width: 3.55, height: 0.62 },
     },
   ] satisfies readonly PlatformSpec[],
   gems: [
     {
       asset: "coin",
-      position: [-3.7, 1.15, 0],
-      scale: [0.55, 0.55, 0.55],
+      position: [-5.55, 1.22, 0],
+      scale: [0.52, 0.52, 0.52],
       radius: 0.55,
     },
     {
       asset: "jewel",
-      position: [-1.0, 1.3, 0],
-      scale: [0.55, 0.55, 0.55],
+      position: [-4.35, 1.62, 0],
+      scale: [0.56, 0.56, 0.56],
+      radius: 0.78,
+    },
+    {
+      asset: "coin",
+      position: [-1.55, 1.82, 0],
+      scale: [0.52, 0.52, 0.52],
       radius: 0.55,
     },
     {
       asset: "coin",
-      position: [0.25, 1.95, 0],
-      scale: [0.55, 0.55, 0.55],
+      position: [1.05, 2.38, 0],
+      scale: [0.52, 0.52, 0.52],
       radius: 0.55,
     },
     {
       asset: "jewel",
-      position: [3.1, 2.65, 0],
-      scale: [0.58, 0.58, 0.58],
-      radius: 0.58,
+      position: [4.1, 3.22, 0],
+      scale: [0.6, 0.6, 0.6],
+      radius: 0.6,
     },
     {
       asset: "coin",
-      position: [5.5, 1.35, 0],
-      scale: [0.55, 0.55, 0.55],
-      radius: 0.55,
+      position: [8.1, 1.48, 0],
+      scale: [0.52, 0.52, 0.52],
+      radius: 0.84,
     },
   ] satisfies readonly GemSpec[],
   hazards: [
     {
-      key: "pit-spikes",
+      key: "low-spikes",
       asset: "spikes",
-      position: [1.85, -0.12, 0],
-      scale: [0.85, 0.85, 0.85],
-      bounds: { x: 1.85, y: 0.1, width: 1.0, height: 0.46 },
+      position: [2.75, -0.08, 0],
+      scale: [0.9, 0.9, 0.9],
+      bounds: { x: 2.75, y: 0.12, width: 1.0, height: 0.46 },
+    },
+    {
+      key: "finish-spikes",
+      asset: "spikes",
+      position: [5.75, -0.08, 0],
+      scale: [0.82, 0.82, 0.82],
+      bounds: { x: 5.75, y: 0.12, width: 0.92, height: 0.42 },
     },
   ] satisfies readonly HazardSpec[],
   props: [
     {
-      key: "pine-left",
+      key: "left-tree",
       asset: "tree",
-      position: [-5.4, 0.14, -0.72],
-      scale: [0.82, 0.82, 0.82],
+      position: [-6.65, 0.2, -0.8],
+      scale: [0.86, 0.86, 0.86],
     },
     {
-      key: "crate-left",
+      key: "start-sign",
+      asset: "sign",
+      position: [-5.95, 0.62, -0.32],
+      scale: [0.56, 0.56, 0.56],
+      rotationEulerDegrees: [0, 18, 0],
+    },
+    {
+      key: "crate-stack",
       asset: "crate",
-      position: [-2.55, 0.66, -0.18],
-      scale: [0.62, 0.62, 0.62],
+      position: [-3.15, 0.68, -0.22],
+      scale: [0.58, 0.58, 0.58],
+    },
+    {
+      key: "spring",
+      asset: "spring",
+      position: [-0.52, 1.05, -0.08],
+      scale: [0.46, 0.46, 0.46],
     },
     {
       key: "heart",
       asset: "heart",
-      position: [1.65, 2.7, -0.12],
-      scale: [0.5, 0.5, 0.5],
-      rotationEulerDegrees: [0, 20, 0],
+      position: [2.45, 2.74, -0.12],
+      scale: [0.48, 0.48, 0.48],
+      rotationEulerDegrees: [0, 24, 0],
     },
     {
       key: "finish-flag",
       asset: "flag",
-      position: [6.75, 0.98, -0.05],
-      scale: [0.72, 0.72, 0.72],
-      rotationEulerDegrees: [0, -25, 0],
+      position: [8.26, 1.16, -0.08],
+      scale: [0.76, 0.76, 0.76],
+      rotationEulerDegrees: [0, -24, 0],
+    },
+    {
+      key: "finish-fence",
+      asset: "fence",
+      position: [7.25, 1.1, -0.58],
+      scale: [0.78, 0.78, 0.78],
     },
   ] satisfies readonly PropSpec[],
+  clouds: [
+    {
+      key: "cloud-left",
+      position: [-4.8, 4.7, -1.5],
+      scale: [1.35, 0.42, 0.22],
+    },
+    {
+      key: "cloud-mid",
+      position: [0.8, 5.2, -1.7],
+      scale: [1.6, 0.48, 0.22],
+    },
+    {
+      key: "cloud-right",
+      position: [6.5, 4.85, -1.55],
+      scale: [1.45, 0.44, 0.22],
+    },
+  ] satisfies readonly CloudSpec[],
 } as const;
 
 export const TOTAL_GEMS = LEVEL.gems.length;

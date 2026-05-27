@@ -6,6 +6,8 @@ const gemsEl = document.querySelector<HTMLElement>("#gems");
 const totalGemsEl = document.querySelector<HTMLElement>("#total-gems");
 const timeEl = document.querySelector<HTMLElement>("#run-time");
 const stateEl = document.querySelector<HTMLElement>("#run-state");
+const deathsEl = document.querySelector<HTMLElement>("#deaths");
+const messageEl = document.querySelector<HTMLElement>("#message");
 
 for (const button of document.querySelectorAll<HTMLButtonElement>(
   "[data-key]",
@@ -40,16 +42,24 @@ function renderHud(): void {
   const totalGems = readNumber(signals?.totalGems, 0);
   const runTime = readNumber(signals?.time, 0);
   const runState = readString(signals?.runState, "run");
+  const deaths = readNumber(signals?.deaths, 0);
+  const message = readString(
+    signals?.message,
+    "Collect every gem and reach the flag",
+  );
 
   writeText(gemsEl, String(gems));
   writeText(totalGemsEl, String(totalGems));
   writeText(timeEl, runTime.toFixed(1));
   writeText(stateEl, runState === "clear" ? "Clear" : "Run");
+  writeText(deathsEl, String(deaths));
+  writeText(messageEl, message);
 
   document.body.dataset.apertureStatus = status?.status ?? "starting";
   document.body.dataset.apertureSnapshots = String(status?.snapshots ?? 0);
   document.body.dataset.gameState = runState;
   document.body.dataset.gems = String(gems);
+  document.body.dataset.webgpuOk = String(status?.webgpuOk ?? false);
 
   requestAnimationFrame(renderHud);
 }

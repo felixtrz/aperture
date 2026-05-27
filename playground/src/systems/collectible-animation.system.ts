@@ -4,7 +4,7 @@ import {
   createSystem,
   quatFromAxisAngle,
 } from "@aperture-engine/app/systems";
-import { LEVEL } from "../level";
+import { LEVEL } from "../level.js";
 
 export default class CollectibleAnimationSystem extends createSystem({
   priority: 80,

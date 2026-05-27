@@ -5,7 +5,7 @@ import {
   quatFromAxisAngle,
   type ApertureQuery,
 } from "@aperture-engine/app/systems";
-import { LEVEL, PLAYER, TOTAL_GEMS, type Rect } from "../level";
+import { LEVEL, PLAYER, TOTAL_GEMS, type Rect } from "../level.js";
 
 type QueryEntity = ApertureQuery["entities"] extends Set<infer T> ? T : never;
 
@@ -30,6 +30,7 @@ export default class PlayerSystem extends createSystem({
   #wasResetPressed = false;
   #elapsed = 0;
   #complete = false;
+  #deaths = 0;
   readonly #collected = new Set<number>();
 
   override update(delta: number): void {
@@ -40,12 +41,12 @@ export default class PlayerSystem extends createSystem({
 
     const resetPressed = this.#isPressed("reset");
     if (resetPressed && !this.#wasResetPressed) {
-      this.#reset(player);
+      this.#reset(player, "Reset run");
     }
     this.#wasResetPressed = resetPressed;
 
     if (this.#complete) {
-      this.#writeSignals("clear");
+      this.#writeSignals("clear", "Clear. Press R to replay.");
       return;
     }
 
@@ -64,7 +65,7 @@ export default class PlayerSystem extends createSystem({
     }
 
     let nextX = previousX + moveAxis * PLAYER.speed * dt;
-    nextX = clamp(nextX, -5.25, LEVEL.goalX + 1.1);
+    nextX = clamp(nextX, LEVEL.startX - 0.3, LEVEL.goalX + 1.25);
 
     const jumpPressed = this.#isPressed("jump");
     if (jumpPressed && !this.#wasJumpPressed && this.#grounded) {
@@ -72,6 +73,11 @@ export default class PlayerSystem extends createSystem({
       this.#grounded = false;
     }
     this.#wasJumpPressed = jumpPressed;
+
+    if (this.#touchesSpring(previousX, previousY)) {
+      this.#velocityY = Math.max(this.#velocityY, PLAYER.jumpSpeed * 1.16);
+      this.#grounded = false;
+    }
 
     this.#velocityY += PLAYER.gravity * dt;
     let nextY = previousY + this.#velocityY * dt;
@@ -86,7 +92,8 @@ export default class PlayerSystem extends createSystem({
     }
 
     if (nextY < PLAYER.fallLimit || this.#touchesHazard(nextX, nextY)) {
-      this.#reset(player);
+      this.#deaths += 1;
+      this.#reset(player, "Try again. Watch the spikes.");
       return;
     }
 
@@ -96,11 +103,16 @@ export default class PlayerSystem extends createSystem({
     if (this.#collected.size === TOTAL_GEMS && nextX >= LEVEL.goalX) {
       this.#complete = true;
       this.#velocityY = 0;
-      this.#writeSignals("clear");
+      this.#writeSignals("clear", "All gems collected. Level clear.");
       return;
     }
 
-    this.#writeSignals("run");
+    this.#writeSignals(
+      "run",
+      this.#collected.size === TOTAL_GEMS
+        ? "Reach the flag"
+        : "Collect every gem and reach the flag",
+    );
   }
 
   #isPressed(action: string): boolean {
@@ -156,6 +168,13 @@ export default class PlayerSystem extends createSystem({
     );
   }
 
+  #touchesSpring(x: number, y: number): boolean {
+    const dx = Math.abs(x - -0.52);
+    const dy = Math.abs(y - 1.15);
+
+    return dx < 0.34 && dy < 0.28 && this.#velocityY <= 0;
+  }
+
   #collectGems(playerX: number, playerY: number): void {
     LEVEL.gems.forEach((gem, index) => {
       if (this.#collected.has(index)) {
@@ -173,7 +192,7 @@ export default class PlayerSystem extends createSystem({
     });
   }
 
-  #reset(player: QueryEntity): void {
+  #reset(player: QueryEntity, message: string): void {
     this.#velocityY = 0;
     this.#grounded = false;
     this.#lastDirection = 1;
@@ -186,7 +205,7 @@ export default class PlayerSystem extends createSystem({
       this.#setGemCollected(index, false);
     });
 
-    this.#writeSignals("run");
+    this.#writeSignals("run", message);
   }
 
   #setGemCollected(index: number, collected: boolean): void {
@@ -222,7 +241,7 @@ export default class PlayerSystem extends createSystem({
   #writePlayerTransform(player: QueryEntity, x: number, y: number): void {
     const rotation = quatFromAxisAngle(
       [0, 1, 0],
-      this.#lastDirection > 0 ? 0.42 : -0.42,
+      this.#lastDirection > 0 ? 0.36 : -0.36,
     );
 
     player.getVectorView(LocalTransform, "translation").set([x, y, 0.12]);
@@ -241,19 +260,34 @@ export default class PlayerSystem extends createSystem({
     }
   }
 
-  #writeSignals(state: "run" | "clear"): void {
-    this.signals.gems.value = this.#collected.size;
-    this.signals.totalGems.value = TOTAL_GEMS;
-    this.signals.runState.value = state;
-    this.signals.time.value = Number(this.#elapsed.toFixed(1));
-    this.signals.playerX.value = Number(
-      (
-        this.#findNamedEntity("player")?.getVectorView(
-          LocalTransform,
-          "translation",
-        )[0] ?? PLAYER.start[0]
-      ).toFixed(2),
+  #writeSignals(state: "run" | "clear", message: string): void {
+    const playerTranslation = this.#findNamedEntity("player")?.getVectorView(
+      LocalTransform,
+      "translation",
     );
+
+    this.#setSignal("gems", this.#collected.size);
+    this.#setSignal("totalGems", TOTAL_GEMS);
+    this.#setSignal("runState", state);
+    this.#setSignal("time", Number(this.#elapsed.toFixed(1)));
+    this.#setSignal(
+      "playerX",
+      Number((playerTranslation?.[0] ?? PLAYER.start[0]).toFixed(2)),
+    );
+    this.#setSignal(
+      "playerY",
+      Number((playerTranslation?.[1] ?? PLAYER.start[1]).toFixed(2)),
+    );
+    this.#setSignal("deaths", this.#deaths);
+    this.#setSignal("message", message);
+  }
+
+  #setSignal(name: string, value: number | string): void {
+    const signal = this.signals[name];
+
+    if (signal !== undefined) {
+      signal.value = value;
+    }
   }
 }
 

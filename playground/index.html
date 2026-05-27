@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Aperture Playground</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aperture Platformer Playground</title>
     <style>
       :root {
         color-scheme: dark;
@@ -15,127 +15,111 @@
           BlinkMacSystemFont,
           "Segoe UI",
           sans-serif;
-        background: #0c1116;
-        color: #f6fbff;
+        background: #79bde8;
       }
 
-      * {
-        box-sizing: border-box;
-      }
-
+      html,
       body {
-        min-height: 100vh;
         margin: 0;
+        width: 100%;
+        height: 100%;
         overflow: hidden;
-        background: #0c1116;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 34%),
+          #79bde8;
       }
 
       #aperture {
         display: block;
         width: 100vw;
         height: 100vh;
-        background: #8bc2eb;
+        touch-action: none;
       }
 
       .hud {
         position: fixed;
-        top: 14px;
-        left: 14px;
-        right: 14px;
+        inset: 16px 16px auto 16px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 12px;
         pointer-events: none;
+        color: white;
+        text-shadow: 0 2px 10px rgba(14, 44, 68, 0.4);
       }
 
-      .hud__group {
+      .stats {
         display: flex;
-        align-items: center;
+        flex-wrap: wrap;
         gap: 8px;
-        min-width: 0;
-        padding: 9px 12px;
-        border: 1px solid rgb(255 255 255 / 28%);
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 34px;
+        padding: 0 12px;
+        border: 1px solid rgba(255, 255, 255, 0.34);
         border-radius: 8px;
-        background: rgb(9 18 26 / 62%);
-        box-shadow: 0 10px 28px rgb(0 0 0 / 18%);
-        backdrop-filter: blur(12px);
-      }
-
-      .hud__title {
-        color: #ffffff;
+        background: rgba(16, 54, 78, 0.52);
+        backdrop-filter: blur(10px);
         font-size: 13px;
-        font-weight: 750;
+        font-weight: 700;
         letter-spacing: 0;
-        white-space: nowrap;
       }
 
-      .hud__metric {
-        color: #eaf6ff;
-        font-size: 13px;
-        font-weight: 650;
-        white-space: nowrap;
-      }
-
-      .hud__state {
-        max-width: 32vw;
+      .message {
+        max-width: min(520px, 48vw);
         overflow: hidden;
-        color: #9df2b1;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
 
       .controls {
         position: fixed;
-        right: 16px;
-        bottom: 16px;
-        display: grid;
-        grid-template-columns: repeat(4, 48px);
+        inset: auto 16px 16px 16px;
+        display: flex;
+        justify-content: space-between;
+        pointer-events: none;
+      }
+
+      .cluster {
+        display: flex;
         gap: 10px;
+        pointer-events: auto;
       }
 
-      .controls button {
-        width: 48px;
-        height: 48px;
-        border: 1px solid rgb(255 255 255 / 28%);
+      button {
+        width: 58px;
+        height: 58px;
+        border: 1px solid rgba(255, 255, 255, 0.36);
         border-radius: 8px;
-        background: rgb(9 18 26 / 60%);
-        color: #ffffff;
-        font:
-          700 18px/1 system-ui,
-          sans-serif;
-        cursor: pointer;
+        color: #fff;
+        background: rgba(18, 61, 87, 0.62);
+        box-shadow: 0 10px 26px rgba(0, 36, 56, 0.22);
+        font: inherit;
+        font-size: 22px;
+        font-weight: 800;
         touch-action: none;
-        backdrop-filter: blur(12px);
       }
 
-      .controls button:active {
+      button:active {
         transform: translateY(1px);
-        background: rgb(39 114 82 / 74%);
+        background: rgba(25, 96, 130, 0.76);
       }
 
-      @media (max-width: 720px) {
+      body[data-game-state="clear"] .message {
+        color: #ffec93;
+      }
+
+      @media (max-width: 700px) {
         .hud {
           align-items: flex-start;
+          flex-direction: column;
         }
 
-        .hud__group {
-          padding: 8px 10px;
-        }
-
-        .hud__title,
-        .hud__metric {
-          font-size: 12px;
-        }
-
-        .controls {
-          left: 14px;
-          right: 14px;
-          grid-template-columns: repeat(4, minmax(44px, 1fr));
-        }
-
-        .controls button {
-          width: 100%;
+        .message {
+          max-width: calc(100vw - 32px);
         }
       }
     </style>
@@ -143,29 +127,31 @@
   <body>
     <canvas id="aperture"></canvas>
     <div class="hud" aria-live="polite">
-      <div class="hud__group">
-        <span class="hud__title">Skyline Run</span>
+      <div class="stats">
+        <span class="pill"
+          >Gems <span id="gems">0</span>/<span id="total-gems">0</span></span
+        >
+        <span class="pill">Time <span id="run-time">0.0</span>s</span>
+        <span class="pill">Falls <span id="deaths">0</span></span>
+        <span class="pill">State <span id="run-state">Run</span></span>
       </div>
-      <div class="hud__group">
-        <span class="hud__metric">Gems</span>
-        <span class="hud__metric" id="gems">0</span>
-        <span class="hud__metric">/</span>
-        <span class="hud__metric" id="total-gems">0</span>
-      </div>
-      <div class="hud__group">
-        <span class="hud__metric" id="run-time">0.0</span>
-        <span class="hud__metric" id="run-state">Run</span>
+      <div class="pill message" id="message">
+        Collect every gem and reach the flag
       </div>
     </div>
-    <div class="controls" aria-label="Game controls">
-      <button type="button" data-key="ArrowLeft" aria-label="Left">
-        &larr;
-      </button>
-      <button type="button" data-key="Space" aria-label="Jump">&uarr;</button>
-      <button type="button" data-key="ArrowRight" aria-label="Right">
-        &rarr;
-      </button>
-      <button type="button" data-key="KeyR" aria-label="Reset">R</button>
+    <div class="controls" aria-label="Touch controls">
+      <div class="cluster">
+        <button type="button" data-key="ArrowLeft" aria-label="Move left">
+          ←
+        </button>
+        <button type="button" data-key="ArrowRight" aria-label="Move right">
+          →
+        </button>
+      </div>
+      <div class="cluster">
+        <button type="button" data-key="KeyR" aria-label="Reset">R</button>
+        <button type="button" data-key="Space" aria-label="Jump">↑</button>
+      </div>
     </div>
     <script type="module" src="/src/hud.ts"></script>
   </body>
