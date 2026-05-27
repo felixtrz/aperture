@@ -30,11 +30,14 @@ import {
   isMetallicRoughnessOnlyStandardMaterial,
   isNormalOnlyStandardMaterial,
   isOcclusionEmissiveOnlyStandardMaterial,
-  isScalarStandardMaterial,
   isSheenColorOnlyStandardMaterial,
   isSheenRoughnessOnlyStandardMaterial,
   isTransmissionOnlyStandardMaterial,
 } from "./prepared-standard-material-classification.js";
+import {
+  emptyStandardMaterialDependencies,
+  preparedTexturedStandardMaterialCacheKey,
+} from "./prepared-standard-material-cache-helpers.js";
 import type {
   SamplerGpuResource,
   TextureGpuResource,
@@ -188,6 +191,14 @@ export type {
   PrepareOcclusionEmissiveTexturedStandardMaterialResourceResult,
 };
 export {
+  preparedScalarStandardMaterialCacheKey,
+  preparedTexturedStandardMaterialCacheKey,
+} from "./prepared-standard-material-cache-helpers.js";
+export {
+  createPreparedScalarStandardMaterialCache,
+  prepareScalarStandardMaterialResource,
+} from "./prepared-standard-material-scalar.js";
+export {
   createPreparedStandardBaseColorTextureDependencyKeys,
   createPreparedStandardClearcoatRoughnessTextureDependencyKeys,
   createPreparedStandardClearcoatTextureDependencyKeys,
@@ -229,149 +240,6 @@ export type {
   PreparedStandardTextureDependencyVersionKey,
   StandardTextureDependencyField,
 };
-
-export function createPreparedScalarStandardMaterialCache(): PreparedScalarStandardMaterialCache {
-  return { resources: new Map() };
-}
-
-export function prepareScalarStandardMaterialResource(
-  options: PrepareScalarStandardMaterialResourceOptions,
-): PrepareScalarStandardMaterialResourceResult {
-  const sourceMaterialKey = assetHandleKey(options.handle);
-
-  if (!isScalarStandardMaterial(options.material)) {
-    return {
-      valid: true,
-      status: "skipped",
-      resource: null,
-      diagnostics: [
-        {
-          code: "preparedScalarStandardMaterial.notScalar",
-          materialKey: sourceMaterialKey,
-          message:
-            "Scalar StandardMaterial prepared caching does not handle textured StandardMaterial variants.",
-        },
-      ],
-    };
-  }
-
-  if (options.layout === null) {
-    return {
-      valid: false,
-      status: "failed",
-      resource: null,
-      diagnostics: [
-        {
-          code: "preparedScalarStandardMaterial.missingLayout",
-          materialKey: sourceMaterialKey,
-          message:
-            "Scalar StandardMaterial prepared caching requires a group-2 material bind group layout.",
-        },
-      ],
-    };
-  }
-
-  const cacheKey = preparedScalarStandardMaterialCacheKey({
-    sourceMaterialKey,
-    sourceVersion: options.sourceVersion,
-    pipelineKey: options.pipelineKey,
-    layoutKey: options.layout.layoutKey,
-  });
-  const cached = options.cache.resources.get(cacheKey);
-
-  if (cached !== undefined) {
-    cached.lastUsedFrame = options.frame ?? 0;
-
-    return {
-      valid: true,
-      status: "reused",
-      resource: cached,
-      diagnostics: [],
-    };
-  }
-
-  const preparation = createStandardMaterialPreparationPlan(options.material, {
-    label: `prepared-material:${sourceMaterialKey}`,
-  });
-  const material = createStandardMaterialGpuBuffer({
-    device: options.device,
-    plan: preparation.plan?.materialBuffer ?? null,
-  });
-  const bindGroupPlan = createStandardMaterialBindGroupDescriptorPlan({
-    materialResourceKey: material.resource?.resourceKey ?? null,
-    dependencies:
-      preparation.plan?.materialBuffer.dependencies ??
-      emptyStandardMaterialDependencies(),
-  });
-  const bindGroup = createStandardMaterialBindGroupResource({
-    device: options.device,
-    plan: bindGroupPlan,
-    layout: options.layout,
-    buffers:
-      material.resource === null
-        ? []
-        : [
-            {
-              resourceKey: material.resource.resourceKey,
-              buffer: material.resource.uniformBuffer,
-            },
-          ],
-  });
-  const diagnostics: PreparedScalarStandardMaterialDiagnostic[] = [
-    ...preparation.diagnostics,
-    ...material.diagnostics,
-    ...bindGroup.diagnostics,
-  ];
-
-  if (
-    diagnostics.length > 0 ||
-    !preparation.valid ||
-    preparation.plan === null ||
-    !material.valid ||
-    material.resource === null ||
-    !bindGroup.valid ||
-    bindGroup.resource === null
-  ) {
-    if (bindGroup.resource === null && diagnostics.length === 0) {
-      diagnostics.push({
-        code: "preparedScalarStandardMaterial.missingPreparedBindGroup",
-        materialKey: sourceMaterialKey,
-        layoutKey: options.layout.layoutKey,
-        message:
-          "Scalar StandardMaterial prepared caching did not create a group-2 bind group.",
-      });
-    }
-
-    return {
-      valid: false,
-      status: "failed",
-      resource: null,
-      diagnostics,
-    };
-  }
-
-  const resource: PreparedScalarStandardMaterialResource = {
-    cacheKey,
-    sourceMaterialKey,
-    sourceVersion: options.sourceVersion,
-    lastUsedFrame: options.frame ?? 0,
-    pipelineKey: options.pipelineKey,
-    layoutKey: options.layout.layoutKey,
-    materialResourceKey: material.resource.resourceKey,
-    bindGroupResourceKey: bindGroup.resource.resourceKey,
-    material: material.resource,
-    bindGroup: bindGroup.resource,
-  };
-
-  options.cache.resources.set(cacheKey, resource);
-
-  return {
-    valid: true,
-    status: "created",
-    resource,
-    diagnostics: [],
-  };
-}
 
 export function prepareBaseColorTexturedStandardMaterialResource(
   options: PrepareBaseColorTexturedStandardMaterialResourceOptions,
@@ -1013,56 +881,5 @@ function prepareTextureSetTexturedStandardMaterialResource(
     status: "created",
     resource,
     diagnostics: [],
-  };
-}
-
-export function preparedScalarStandardMaterialCacheKey(input: {
-  readonly sourceMaterialKey: string;
-  readonly sourceVersion: number;
-  readonly pipelineKey: string;
-  readonly layoutKey: string;
-}): string {
-  return [
-    input.sourceMaterialKey,
-    `version:${input.sourceVersion}`,
-    `pipeline:${input.pipelineKey}`,
-    `layout:${input.layoutKey}`,
-  ].join("|");
-}
-
-export function preparedTexturedStandardMaterialCacheKey(input: {
-  readonly sourceMaterialKey: string;
-  readonly sourceVersion: number;
-  readonly pipelineKey: string;
-  readonly layoutKey: string;
-  readonly dependencyCacheKeySegments: readonly string[];
-}): string {
-  return [
-    input.sourceMaterialKey,
-    `version:${input.sourceVersion}`,
-    `pipeline:${input.pipelineKey}`,
-    `layout:${input.layoutKey}`,
-    ...input.dependencyCacheKeySegments,
-  ].join("|");
-}
-
-function emptyStandardMaterialDependencies(): Parameters<
-  typeof createStandardMaterialBindGroupDescriptorPlan
->[0]["dependencies"] {
-  const empty = { textureKey: null, samplerKey: null, texCoord: 0 };
-
-  return {
-    baseColor: empty,
-    metallicRoughness: empty,
-    clearcoat: empty,
-    clearcoatRoughness: empty,
-    transmission: empty,
-    sheenColor: empty,
-    sheenRoughness: empty,
-    iridescence: empty,
-    iridescenceThickness: empty,
-    normal: empty,
-    occlusion: empty,
-    emissive: empty,
   };
 }
