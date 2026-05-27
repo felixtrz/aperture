@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-27T21:02:05Z
+Updated: 2026-05-27T21:07:22Z
+
+## Current Run Update — 2026-05-27T21:07:22Z — WebGPU app skybox helpers split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted app skybox command and pipeline helpers from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/skybox.ts`.
+- The new module owns skybox selection, skybox pipeline caching, view uniform
+  packing, default sampler creation/reuse, bind group creation, and render-pass
+  command emission for skyboxes.
+- `app.ts` now delegates skybox command preparation from frame-boundary
+  assembly.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/skybox.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/skybox.ts`
+- `pnpm exec vitest run test/webgpu/skybox-pipeline.test.ts test/webgpu/webgpu-app.test.ts --testNamePattern "skybox|initializes WebGPU|creates a renderer-only app"`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs full picking orchestration, queued built-in frame resource
+  preparation, sprite frame helpers, frame-loop orchestration, and diagnostics
+  orchestration splits.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by extracting sprite frame helpers or by moving
+`prepareQueuedBuiltInFrameResources` and its option builder into a dedicated
+queued-frame-resource module.
 
 ## Current Run Update — 2026-05-27T21:02:05Z — WebGPU queued built-in support helpers split
 

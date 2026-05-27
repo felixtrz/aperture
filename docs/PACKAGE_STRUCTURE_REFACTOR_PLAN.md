@@ -77,6 +77,10 @@ Status: in progress
   diagnostics summaries, standard-material route checks, transmission route
   checks, instance-tint resource collection, and StandardMaterial area-light
   LTC resource resolution.
+- App skybox command helpers now live in
+  `packages/webgpu/src/app/skybox.ts`, covering skybox selection, pipeline
+  caching, view uniform packing, default sampler creation, bind group creation,
+  and command emission.
 
 ## Purpose
 
