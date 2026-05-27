@@ -1005,7 +1005,19 @@ function callCameraTool(
   }
 
   if (request.tool === "camera_orbit" || request.tool === "camera_fit_entity") {
-    const target = cameraOrbitTarget(app.lowLevel.world, payload);
+    const targetReport =
+      request.tool === "camera_fit_entity"
+        ? cameraFitTarget(app.lowLevel.world, payload)
+        : {
+            ok: true as const,
+            target: cameraOrbitTarget(app.lowLevel.world, payload),
+          };
+
+    if (!targetReport.ok) {
+      return targetReport;
+    }
+
+    const target = targetReport.target;
     const radius = numberFromValue(payload["radius"]) ?? 5;
     const yaw = degreesToRadians(numberFromValue(payload["yawDegrees"]) ?? 35);
     const pitch = degreesToRadians(
@@ -1277,6 +1289,67 @@ function cameraOrbitTarget(
   }
 
   return [0, 0, 0];
+}
+
+function cameraFitTarget(
+  world: EcsWorld,
+  payload: Record<string, unknown>,
+):
+  | { readonly ok: true; readonly target: readonly [number, number, number] }
+  | {
+      readonly ok: false;
+      readonly diagnostics: readonly ApertureEntityLookupDiagnostic[];
+    } {
+  const explicit = tuple3FromValue(payload["target"]);
+  if (explicit !== null) {
+    return { ok: true, target: explicit };
+  }
+
+  const ref = entityRefFromValue(payload["entity"]);
+  if (ref === null) {
+    return { ok: true, target: [0, 0, 0] };
+  }
+
+  const entity = world.entityManager.getEntityByIndex(ref.index);
+  if (
+    entity === null ||
+    !entity.active ||
+    entity.generation !== ref.generation
+  ) {
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "aperture.camera.targetNotFound",
+          severity: "error",
+          message: "The requested camera fit target entity was not found.",
+          data: { entity: ref },
+          suggestedFix:
+            "Call ecs_find_entities first, then pass a current entity reference to camera_fit_entity.",
+        },
+      ],
+    };
+  }
+
+  if (!entity.hasComponent(WorldTransform)) {
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "aperture.camera.targetMissingWorldTransform",
+          severity: "error",
+          message:
+            "The requested camera fit target does not have a WorldTransform component.",
+          data: { entity: ref },
+          suggestedFix:
+            "Fit an entity with transform data, or pass an explicit target vector.",
+        },
+      ],
+    };
+  }
+
+  const col3 = entity.getVectorView(WorldTransform, "col3");
+  return { ok: true, target: [col3[0] ?? 0, col3[1] ?? 0, col3[2] ?? 0] };
 }
 
 function orbitPosition(

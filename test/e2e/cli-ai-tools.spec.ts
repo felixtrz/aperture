@@ -562,6 +562,19 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
       },
     });
 
+    const invalidFitCamera = await callMcpTool("camera_fit_entity", {
+      key: agentCameraKey,
+      entity: { index: 999_999, generation: 1 },
+    });
+    expect(invalidFitCamera.structuredContent).toMatchObject({
+      ok: false,
+      diagnostics: [
+        expect.objectContaining({
+          code: "aperture.camera.targetNotFound",
+        }),
+      ],
+    });
+
     const agentView = await callMcpTool("camera_use_agent_view", {
       key: agentCameraKey,
     });
