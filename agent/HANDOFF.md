@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-27T20:41:12Z
+Updated: 2026-05-27T20:45:07Z
+
+## Current Run Update — 2026-05-27T20:45:07Z — WebGPU app GPU readback helpers split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted app GPU readback helpers from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/gpu-readback.ts`.
+- The new module owns timestamp query resource lookup/creation, timestamp
+  readback report assembly, occlusion query readback report assembly,
+  occlusion feedback updates, and GPU timing diagnostic summary merging.
+- `app.ts` now keeps frame-boundary assembly orchestration but delegates the
+  GPU timing and occlusion readback tail to the focused module.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/gpu-readback.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/gpu-readback.ts`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "surfaces per-pass GPU timings|initializes WebGPU|creates a renderer-only app"`
+- `pnpm exec vitest run test/webgpu/occlusion-query.test.ts test/webgpu/frame-boundary.test.ts --testNamePattern "occlusion query"`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs full picking orchestration, queued built-in frame resource
+  preparation, frame-loop orchestration, and diagnostics orchestration splits.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 with another app-frame support extraction, likely
+transmission-grab resource setup or render-bundle/occlusion planning helpers,
+before taking the larger queued built-in frame-resource split.
 
 ## Current Run Update — 2026-05-27T20:41:12Z — WebGPU app attachment helpers split
 

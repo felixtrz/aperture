@@ -52,6 +52,10 @@ Status: in progress
   `packages/webgpu/src/app/attachments.ts`, covering per-target depth texture
   reuse, MSAA color texture reuse, and MSAA report assembly while preserving
   the existing public `WebGpuAppMsaaReport` export through `app.ts`.
+- App GPU readback helpers now live in
+  `packages/webgpu/src/app/gpu-readback.ts`, covering timestamp query
+  readback, occlusion query readback, occlusion feedback updates, and GPU
+  timing diagnostics summary merging.
 
 ## Purpose
 
