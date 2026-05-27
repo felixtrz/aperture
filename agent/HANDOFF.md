@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-27T22:50:50Z
+Updated: 2026-05-27T22:57:02Z
+
+## Current Run Update — 2026-05-27T22:57:02Z — Standard light/shadow layout split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 3.
+
+### What changed
+
+- Extracted StandardMaterial light/shadow bind-group layout keys into
+  `packages/webgpu/src/materials/standard/standard-light-shadow-bind-group-constants.ts`.
+- Extracted shadow, cascaded-shadow, point-shadow, multi-shadow, and IBL
+  bind-group layout descriptor builders into
+  `packages/webgpu/src/materials/standard/standard-light-shadow-bind-group-layouts.ts`.
+- `standard-light-shadow-bind-group.ts` preserves the previous public exports
+  and is now roughly 871 lines, focused on layout-resource creation,
+  descriptor-plan construction, and bind-group resource creation.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/materials/standard/standard-light-shadow-bind-group.ts packages/webgpu/src/materials/standard/standard-light-shadow-bind-group-constants.ts packages/webgpu/src/materials/standard/standard-light-shadow-bind-group-layouts.ts`
+- `pnpm exec prettier --check packages/webgpu/src/materials/standard/standard-light-shadow-bind-group.ts packages/webgpu/src/materials/standard/standard-light-shadow-bind-group-constants.ts packages/webgpu/src/materials/standard/standard-light-shadow-bind-group-layouts.ts`
+- `pnpm exec vitest run test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/standard-material-shadow-bind-group.test.ts test/webgpu/standard-material-ibl-bind-group.test.ts test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 3 still has large StandardMaterial files to split, especially
+  `standard-shader-light-sampling.ts`, `standard-shader.ts`,
+  `standard-app-frame-resources.ts`, `standard-shader-variant.ts`,
+  `prepared-standard-material-cache.ts`, `standard-pipeline.ts`, and
+  `standard-material-shadow-bind-group.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 3 by splitting descriptor-plan construction from
+`standard-light-shadow-bind-group.ts` or by moving to
+`standard-shader-light-sampling.ts`.
 
 ## Current Run Update — 2026-05-27T22:50:50Z — Standard light/shadow entry helper split
 

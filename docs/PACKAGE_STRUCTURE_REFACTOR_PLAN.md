@@ -185,6 +185,12 @@ Status: in progress
   `packages/webgpu/src/materials/standard/standard-light-shadow-bind-group-entries.ts`,
   covering area-light LTC, clustered local-light, local-light cookie, and
   shadow receiver descriptor entries.
+- StandardMaterial light/shadow bind-group layout keys and descriptor builders
+  now live in
+  `packages/webgpu/src/materials/standard/standard-light-shadow-bind-group-constants.ts`
+  and
+  `packages/webgpu/src/materials/standard/standard-light-shadow-bind-group-layouts.ts`,
+  while the previous bind-group module re-exports the public layout surface.
 
 ## Purpose
 
