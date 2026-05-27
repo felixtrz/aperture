@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-27T22:37:44Z
+Updated: 2026-05-27T22:40:28Z
+
+## Current Run Update — 2026-05-27T22:40:28Z — Prepared StandardMaterial type split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 3.
+
+### What changed
+
+- Extracted prepared StandardMaterial public resource contracts from
+  `packages/webgpu/src/materials/standard/prepared-standard-material-cache.ts`
+  into
+  `packages/webgpu/src/materials/standard/prepared-standard-material-types.ts`.
+- The new module owns prepared resource records, diagnostics, prepare options,
+  and prepare result contracts.
+- `prepared-standard-material-cache.ts` preserves the existing public type
+  exports and now focuses on resource creation, cache lookup, and texture-set
+  preparation implementation. It is now roughly 1,070 lines, down from about
+  2,191 lines at the start of prepared-cache splitting.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/materials/standard/prepared-standard-material-cache.ts packages/webgpu/src/materials/standard/prepared-standard-material-types.ts packages/webgpu/src/materials/standard/prepared-standard-material-classification.ts packages/webgpu/src/materials/standard/prepared-standard-material-dependencies.ts`
+- `pnpm exec prettier --check packages/webgpu/src/materials/standard/prepared-standard-material-cache.ts packages/webgpu/src/materials/standard/prepared-standard-material-types.ts packages/webgpu/src/materials/standard/prepared-standard-material-classification.ts packages/webgpu/src/materials/standard/prepared-standard-material-dependencies.ts`
+- `pnpm exec vitest run test/webgpu/prepared-standard-material-cache.test.ts test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 3 still has StandardMaterial resource files above 1,000 lines,
+  especially `standard-shader-light-sampling.ts`, `standard-shader.ts`,
+  `standard-frame-resources.ts`, `standard-light-shadow-bind-group.ts`,
+  `standard-app-frame-resources.ts`, `standard-shader-variant.ts`,
+  `prepared-standard-material-cache.ts`, `standard-pipeline.ts`, and
+  `standard-material-shadow-bind-group.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 3 by moving to `standard-frame-resources.ts` or
+`standard-light-shadow-bind-group.ts`, since `prepared-standard-material-cache.ts`
+is now mostly implementation-focused and close to the 1,000-line threshold.
 
 ## Current Run Update — 2026-05-27T22:37:44Z — Prepared StandardMaterial classification split
 

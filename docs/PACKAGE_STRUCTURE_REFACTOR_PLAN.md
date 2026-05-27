@@ -168,6 +168,11 @@ Status: in progress
   `packages/webgpu/src/materials/standard/prepared-standard-material-classification.ts`,
   covering scalar, single-texture-family, and occlusion/emissive material shape
   checks used by prepared resource routing.
+- StandardMaterial prepared resource contracts now live in
+  `packages/webgpu/src/materials/standard/prepared-standard-material-types.ts`,
+  covering prepared resource records, diagnostics, prepare options, and prepare
+  results while `prepared-standard-material-cache.ts` remains the resource
+  creation implementation.
 
 ## Purpose
 
