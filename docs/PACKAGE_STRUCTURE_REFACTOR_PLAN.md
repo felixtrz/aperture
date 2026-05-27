@@ -58,8 +58,9 @@ Status: in progress
   timing diagnostics summary merging.
 - StandardMaterial transmission-grab resource setup now lives in
   `packages/webgpu/src/app/transmission-grab.ts`, covering scene-color
-  post-pass texture reuse, sampler creation/reuse, and transmission resource
-  diagnostics for queued app frames.
+  post-pass texture reuse, sampler creation/reuse, transmission resource
+  diagnostics, grab-pass assembly, transmission draw filtering, and grab-pass
+  report creation for queued app frames.
 - Frame-boundary support helpers now live in
   `packages/webgpu/src/app/frame-boundary-support.ts`, covering indirect draw
   preparation, occlusion-query resource allocation, render-bundle command keys,

@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-27T21:12:04Z
+Updated: 2026-05-27T21:15:41Z
+
+## Current Run Update — 2026-05-27T21:15:41Z — WebGPU transmission grab pass helpers moved
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Moved StandardMaterial transmission grab-pass assembly from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/transmission-grab.ts`.
+- The transmission module now owns both resource setup and pass assembly:
+  transmission draw filtering, occlusion-query command stripping, offscreen
+  frame-boundary assembly, and grab-pass report creation.
+- `app.ts` delegates the transmission grab pass from frame-boundary assembly.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/transmission-grab.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/transmission-grab.ts`
+- `pnpm exec vitest run test/webgpu/light-bind-group.test.ts test/webgpu/render-pass-draw-list.test.ts --testNamePattern "transmission"`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|creates a renderer-only app|renders mixed standard and matcap app resource sets"`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs full picking orchestration, queued built-in frame resource
+  preparation, post-processing/motion-vector helpers, frame-loop orchestration,
+  and diagnostics orchestration splits.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by moving `prepareQueuedBuiltInFrameResources` and its option
+builder into a dedicated queued-frame-resource module, or by extracting
+post-processing/motion-vector helpers if that split is cleaner first.
 
 ## Current Run Update — 2026-05-27T21:12:04Z — WebGPU app sprite helpers split
 
