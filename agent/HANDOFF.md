@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-27T20:57:47Z
+Updated: 2026-05-27T21:02:05Z
+
+## Current Run Update — 2026-05-27T21:02:05Z — WebGPU queued built-in support helpers split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted queued built-in support helpers from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/queued-built-in-support.ts`.
+- The new module owns queued-frame diagnostics summary creation,
+  material-route failure summary creation, standard-material route detection,
+  transmission route detection, instance-tint resource collection, and
+  StandardMaterial area-light LTC resource resolution.
+- `app.ts` still owns queued frame-resource preparation, but the smaller
+  diagnostics and route-support layer is now isolated.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/queued-built-in-support.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/queued-built-in-support.ts`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|creates a renderer-only app|surfaces per-pass GPU timings|renders multiple unlit app resource sets|reuses prepared scalar unlit mesh buffers"`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs full picking orchestration, queued built-in frame resource
+  preparation, frame-loop orchestration, and diagnostics orchestration splits.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by moving `prepareQueuedBuiltInFrameResources` and its option
+builder into a dedicated queued-frame-resource module.
 
 ## Current Run Update — 2026-05-27T20:57:47Z — WebGPU view command helpers split
 

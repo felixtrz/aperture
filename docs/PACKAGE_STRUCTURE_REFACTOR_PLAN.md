@@ -72,6 +72,11 @@ Status: in progress
   `packages/webgpu/src/app/view-commands.ts`, covering per-view command
   visibility, pending render-pass state coalescing, draw-command detection, and
   draw counting.
+- Queued built-in support helpers now live in
+  `packages/webgpu/src/app/queued-built-in-support.ts`, covering queued-frame
+  diagnostics summaries, standard-material route checks, transmission route
+  checks, instance-tint resource collection, and StandardMaterial area-light
+  LTC resource resolution.
 
 ## Purpose
 
