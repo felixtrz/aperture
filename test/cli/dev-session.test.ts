@@ -319,6 +319,31 @@ describe("Aperture CLI dev session and MCP command surface", () => {
     }
   });
 
+  it("starts open managed sessions without forcing headless mode", async () => {
+    const root = await tempRoot();
+    const entryPoint = await fakeDevDaemonEntryPoint(root);
+
+    try {
+      await writeFile(
+        path.join(root, "vite.config.ts"),
+        "export default {};\n",
+        "utf8",
+      );
+      const report = await startApertureDevSession({
+        cwd: root,
+        entryPoint,
+        port: 5199,
+        open: true,
+        timeoutMs: 5_000,
+      });
+
+      expect(report.reused).toBe(false);
+      expect(report.session.browser.headless).toBe(false);
+    } finally {
+      await stopApertureDevSession({ cwd: root });
+    }
+  });
+
   it("prints dev and mcp help", async () => {
     const root = await tempRoot();
     const dev = await runCli(["dev", "--help"], root);
@@ -397,6 +422,7 @@ const option = (name, fallback) => {
 const appRoot = process.cwd();
 const host = option("--host", "127.0.0.1");
 const port = Number(option("--port", "5173"));
+const headless = process.argv.includes("--headless");
 const now = new Date().toISOString();
 const runtimeDir = path.join(appRoot, ".aperture", "runtime");
 
@@ -416,7 +442,7 @@ fs.writeFileSync(path.join(runtimeDir, "session.json"), JSON.stringify({
     state: "running",
     cdpPort: null,
     cdpUrl: null,
-    headless: true,
+    headless,
   },
   bridge: {
     statusGlobal: "__APERTURE_GENERATED_APP__",
