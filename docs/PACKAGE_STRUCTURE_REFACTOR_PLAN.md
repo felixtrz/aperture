@@ -45,6 +45,9 @@ Status: in progress
 - Draw resource set planning now lives in
   `packages/webgpu/src/app/draw-resource-set.ts`, while the existing public
   root export remains available through `app.ts`.
+- Standard material app pipeline-key routing now lives in
+  `packages/webgpu/src/materials/standard/standard-app-pipeline-keys.ts`,
+  covering shadow, IBL, and clustered-local-light feature key rewriting.
 
 ## Purpose
 

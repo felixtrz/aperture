@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-27T20:31:47Z
+Updated: 2026-05-27T20:35:42Z
+
+## Current Run Update — 2026-05-27T20:35:42Z — Standard app pipeline-key helpers split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2/Track 3.
+
+### What changed
+
+- Extracted standard-material app pipeline-key routing helpers from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/materials/standard/standard-app-pipeline-keys.ts`.
+- The new module owns shadow, IBL, and clustered-local-light standard pipeline
+  feature key rewriting plus related readiness helpers.
+- `app.ts` now imports those material-family helpers instead of carrying
+  standard-specific key routing inline.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/materials/standard/standard-app-pipeline-keys.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/materials/standard/standard-app-pipeline-keys.ts`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "routes DebugNormalMaterial|renders mixed standard and matcap app resource sets"`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- A non-counted validation attempt with
+  `--testNamePattern "routes DebugNormalMaterial|renders mixed standard and matcap app resource sets|renders and reuses StandardMaterial base-color texture resources"`
+  still hit the known pre-existing verbose standard pipeline resource-key
+  expectation failure.
+- Track 2 still needs full picking orchestration, frame-loop orchestration, and
+  diagnostics orchestration splits.
+
+### Recommended next task
+
+Continue Track 2 by introducing an app-frame-resource module that can unblock
+moving the full picking orchestration and queued built-in frame preparation
+out of `app.ts`.
 
 ## Current Run Update — 2026-05-27T20:31:47Z — WebGPU draw resource set helper split
 
