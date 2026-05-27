@@ -15,6 +15,10 @@ Status: in progress
 - Track 2 has started. Render-target asset creation/validation/diagnostics now
   live in `packages/webgpu/src/app/render-target.ts`, and canvas backing
   dimension resolution lives in `packages/webgpu/src/app/canvas.ts`.
+- Frame-boundary target planning now lives in
+  `packages/webgpu/src/app/frame-target.ts`, covering swapchain/offscreen view
+  targets, per-target submission keys, and viewport/scissor rectangle
+  normalization.
 
 ## Purpose
 

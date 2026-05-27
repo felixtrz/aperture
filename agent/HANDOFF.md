@@ -1,6 +1,43 @@
 # Agent Handoff
 
-Updated: 2026-05-27T19:48:35Z
+Updated: 2026-05-27T19:54:17Z
+
+## Current Run Update — 2026-05-27T19:54:17Z — WebGPU frame target helpers split
+
+Continued Track 2 of `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Extracted frame-boundary target planning from
+  `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/frame-target.ts`.
+- The new module owns swapchain/offscreen view target assembly, target
+  submission keys/counts, last-swapchain target lookup, and viewport/scissor
+  normalization.
+- `app.ts` now imports those helpers and keeps the same frame assembly behavior.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/frame-target.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "render targets|off-screen textures|same off-screen|same MSAA"`
+- `pnpm exec vitest run test/webgpu/index.test.ts test/webgpu/view-rectangle.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs more `app.ts` splits, especially frame-loop/frame
+  rendering orchestration, picking, diagnostics assembly, and source-asset
+  handling.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by extracting picking helpers or diagnostics/report assembly
+from `packages/webgpu/src/app/app.ts`, with targeted WebGPU app tests.
 
 ## Current Run Update — 2026-05-27T19:48:35Z — WebGPU app split started
 
