@@ -1,6 +1,44 @@
 # Agent Handoff
 
-Updated: 2026-05-27T23:01:38Z
+Updated: 2026-05-27T23:04:41Z
+
+## Current Run Update — 2026-05-27T23:04:41Z — Standard app prepared-resource split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 3.
+
+### What changed
+
+- Extracted StandardMaterial app prepared mesh/material routing from
+  `packages/webgpu/src/materials/standard/standard-app-frame-resources.ts` into
+  `packages/webgpu/src/materials/standard/standard-app-prepared-resources.ts`.
+- The new module owns prepared mesh lookup, prepared StandardMaterial texture
+  family routing, fallback diagnostic creation, and source-version parsing.
+- `standard-app-frame-resources.ts` is now roughly 856 lines and stays focused
+  on frame-resource cache keys, dynamic buffer updates, GPU resource creation,
+  and reuse accounting.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/materials/standard/standard-app-frame-resources.ts packages/webgpu/src/materials/standard/standard-app-prepared-resources.ts`
+- `pnpm exec prettier --check packages/webgpu/src/materials/standard/standard-app-frame-resources.ts packages/webgpu/src/materials/standard/standard-app-prepared-resources.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/prepared-standard-material-cache.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 3 still has large StandardMaterial files to split, especially
+  `standard-shader-variant.ts`, `prepared-standard-material-cache.ts`,
+  `standard-pipeline.ts`, and `standard-material-shadow-bind-group.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 3 by splitting vertex layout parsing from `standard-pipeline.ts`
+or descriptor/report helpers from `standard-material-shadow-bind-group.ts`.
 
 ## Current Run Update — 2026-05-27T23:01:38Z — Standard shader source split
 

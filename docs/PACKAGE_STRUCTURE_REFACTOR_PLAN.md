@@ -189,6 +189,10 @@ Status: in progress
   `packages/webgpu/src/materials/standard/standard-frame-base-resources.ts`,
   covering mesh, view-uniform, world-transform, instance-tint, skinning,
   morph-target, and material uniform buffer resource creation.
+- StandardMaterial app prepared mesh/material routing now lives in
+  `packages/webgpu/src/materials/standard/standard-app-prepared-resources.ts`,
+  while `standard-app-frame-resources.ts` focuses on frame-resource cache
+  routing, dynamic buffer updates, resource creation, and reuse accounting.
 - StandardMaterial light/shadow bind-group descriptor entry helpers now live in
   `packages/webgpu/src/materials/standard/standard-light-shadow-bind-group-entries.ts`,
   covering area-light LTC, clustered local-light, local-light cookie, and
