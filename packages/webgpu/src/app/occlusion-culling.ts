@@ -3,6 +3,7 @@ import type {
   GpuOcclusionFeedbackFallbackReason,
 } from "../gpu/occlusion-query.js";
 import type { RenderPassCommand } from "../render/passes/render-pass-commands.js";
+import { isRenderPassDrawCommand } from "./view-commands.js";
 
 export interface WebGpuAppOcclusionCullingReport {
   queryCandidateDraws: number;
@@ -152,14 +153,5 @@ function isRenderPassOcclusionQueryCommand(
   return (
     command.kind === "beginOcclusionQuery" ||
     command.kind === "endOcclusionQuery"
-  );
-}
-
-export function isRenderPassDrawCommand(command: RenderPassCommand): boolean {
-  return (
-    command.kind === "draw" ||
-    command.kind === "drawIndexed" ||
-    command.kind === "drawIndirect" ||
-    command.kind === "drawIndexedIndirect"
   );
 }
