@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-27T22:43:14Z
+Updated: 2026-05-27T22:46:07Z
+
+## Current Run Update — 2026-05-27T22:46:07Z — Standard frame base-resource split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 3.
+
+### What changed
+
+- Extracted StandardMaterial frame base GPU resource builders from
+  `packages/webgpu/src/materials/standard/standard-frame-resources.ts` into
+  `packages/webgpu/src/materials/standard/standard-frame-base-resources.ts`.
+- The new module owns mesh, view-uniform, world-transform, instance-tint,
+  skinning joint, morph-target weight, and material uniform buffer resource
+  creation plus their pipeline-key requirement checks.
+- `standard-frame-resources.ts` is now roughly 954 lines and is focused on
+  top-level frame resource orchestration and bind-group assembly.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/materials/standard/standard-frame-resources.ts packages/webgpu/src/materials/standard/standard-frame-base-resources.ts packages/webgpu/src/materials/standard/standard-frame-local-light-resources.ts`
+- `pnpm exec prettier --check packages/webgpu/src/materials/standard/standard-frame-resources.ts packages/webgpu/src/materials/standard/standard-frame-base-resources.ts packages/webgpu/src/materials/standard/standard-frame-local-light-resources.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/standard-material-buffer-resource.test.ts test/webgpu/standard-material-buffer.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 3 still has StandardMaterial resource files above 1,000 lines,
+  especially `standard-shader-light-sampling.ts`, `standard-shader.ts`,
+  `standard-light-shadow-bind-group.ts`, `standard-app-frame-resources.ts`,
+  `standard-shader-variant.ts`, `prepared-standard-material-cache.ts`,
+  `standard-pipeline.ts`, and `standard-material-shadow-bind-group.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 3 by splitting `standard-light-shadow-bind-group.ts` into
+shadow-only and IBL/multi-shadow descriptor/resource planning helpers.
 
 ## Current Run Update — 2026-05-27T22:43:14Z — Standard frame local-light resource split
 

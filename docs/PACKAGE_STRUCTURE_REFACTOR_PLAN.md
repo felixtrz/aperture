@@ -177,6 +177,10 @@ Status: in progress
   `packages/webgpu/src/materials/standard/standard-frame-local-light-resources.ts`,
   covering clustered-local-light pipeline-key checks, local-light cluster GPU
   resource creation, and supported point/spot shadow resource extraction.
+- StandardMaterial frame base GPU resource builders now live in
+  `packages/webgpu/src/materials/standard/standard-frame-base-resources.ts`,
+  covering mesh, view-uniform, world-transform, instance-tint, skinning,
+  morph-target, and material uniform buffer resource creation.
 
 ## Purpose
 
