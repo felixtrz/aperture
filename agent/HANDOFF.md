@@ -1,6 +1,54 @@
 # Agent Handoff
 
-Updated: 2026-05-27T22:32:26Z
+Updated: 2026-05-27T22:35:42Z
+
+## Current Run Update — 2026-05-27T22:35:42Z — Prepared StandardMaterial dependency split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 3.
+
+### What changed
+
+- Extracted StandardMaterial prepared texture dependency contracts and cache-key
+  helpers from
+  `packages/webgpu/src/materials/standard/prepared-standard-material-cache.ts`
+  into
+  `packages/webgpu/src/materials/standard/prepared-standard-material-dependencies.ts`.
+- The new module owns texture dependency fields, dependency diagnostics,
+  source texture/sampler version-key creation, single-texture binding lookup,
+  and multi-texture dependency key assembly.
+- `prepared-standard-material-cache.ts` preserves the old public exports and
+  now focuses more tightly on prepared material resource creation, caching, and
+  reuse decisions.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/materials/standard/prepared-standard-material-cache.ts packages/webgpu/src/materials/standard/prepared-standard-material-dependencies.ts`
+- `pnpm exec prettier --check packages/webgpu/src/materials/standard/prepared-standard-material-cache.ts packages/webgpu/src/materials/standard/prepared-standard-material-dependencies.ts`
+- `pnpm exec vitest run test/webgpu/prepared-standard-material-cache.test.ts test/webgpu/standard-app-frame-resources.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- `test/webgpu/standard-app-frame-resources.test.ts` does not currently exist;
+  Vitest ran the existing prepared-cache file in that command.
+- Track 3 still has StandardMaterial cache/resource files above 1,000 lines,
+  especially `prepared-standard-material-cache.ts`,
+  `standard-frame-resources.ts`, `standard-light-shadow-bind-group.ts`,
+  `standard-app-frame-resources.ts`, and `standard-pipeline.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 3 by splitting StandardMaterial prepared-resource reuse/type
+contracts from `prepared-standard-material-cache.ts`, or move to
+`standard-frame-resources.ts` if resource assembly is the higher-priority
+navigation issue.
 
 ## Current Run Update — 2026-05-27T22:32:26Z — StandardMaterial shader sampling family split
 

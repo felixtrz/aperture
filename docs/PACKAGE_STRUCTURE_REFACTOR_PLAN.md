@@ -159,6 +159,11 @@ Status: in progress
   covering texture variant comments, UV routing, WGSL declaration assembly,
   binding metadata, compact clustered-local multi-shadow detection, and shader
   label selection.
+- StandardMaterial prepared texture dependency contracts and cache-key helpers
+  now live in
+  `packages/webgpu/src/materials/standard/prepared-standard-material-dependencies.ts`,
+  while `prepared-standard-material-cache.ts` preserves the previous public
+  exports and focuses on prepared material resource creation and reuse.
 
 ## Purpose
 
