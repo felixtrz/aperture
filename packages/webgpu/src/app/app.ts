@@ -114,20 +114,10 @@ import {
 } from "../gpu/occlusion-query.js";
 import type { CurrentTextureLike } from "./presentation/current-texture-view.js";
 import {
-  createOrReuseWebGpuDepthTexture,
-  createWebGpuDepthTextureCacheSlot,
   WEBGPU_APP_DEPTH_FORMAT,
   type CachedWebGpuDepthTextureResource,
-  type WebGpuDepthTextureCacheSlot,
 } from "../resources/textures/depth-texture-resource.js";
-import {
-  createOrReuseWebGpuMsaaColorTexture,
-  createWebGpuMsaaColorTextureCacheSlot,
-  resolveWebGpuMsaaConfig,
-  type CachedWebGpuMsaaColorTextureResource,
-  type WebGpuMsaaColorTextureCacheSlot,
-  type WebGpuMsaaConfig,
-} from "../gpu/msaa.js";
+import { resolveWebGpuMsaaConfig, type WebGpuMsaaConfig } from "../gpu/msaa.js";
 import { createWebGpuBuffer } from "../gpu/buffer.js";
 import type { BindGroupResourceCache } from "../gpu/bind-group-resource-cache.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
@@ -339,6 +329,14 @@ import {
   createEmptyRenderSnapshot,
   createWebGpuAppSnapshotUpdateMetadata,
 } from "./snapshot.js";
+import {
+  createWebGpuAppDepthAttachmentForTarget,
+  createWebGpuAppMsaaColorTargetForTarget,
+  createWebGpuAppMsaaReport,
+  type WebGpuAppMsaaReport,
+} from "./attachments.js";
+
+export type { WebGpuAppMsaaReport };
 
 export interface WebGpuAppRenderOptions {
   readonly frame?: number;
@@ -390,17 +388,6 @@ export interface WebGpuAppDepthAttachmentReport {
   readonly width: number;
   readonly height: number;
   readonly opaquePipelineDepthWriteCount: number;
-}
-
-export interface WebGpuAppMsaaReport {
-  readonly requestedSampleCount: number;
-  readonly sampleCount: number;
-  readonly enabled: boolean;
-  readonly clamped: boolean;
-  readonly supportedSampleCounts: readonly number[];
-  readonly colorTargets: number;
-  readonly colorTexturesCreated: number;
-  readonly colorTexturesReused: number;
 }
 
 export interface WebGpuAppRenderTargetSubmissionReport {
@@ -1425,13 +1412,6 @@ interface WebGpuAppOcclusionQueryReadback {
   readonly viewId: number;
   readonly resources: GpuOcclusionQueryResources;
   readonly renderIds: readonly number[];
-}
-
-interface WebGpuAppMsaaColorTargetResult {
-  readonly valid: boolean;
-  readonly status: "created" | "reused" | "disabled" | "failed";
-  readonly resource: CachedWebGpuMsaaColorTextureResource | null;
-  readonly diagnostics: readonly unknown[];
 }
 
 interface WebGpuAppTransmissionGrabResourcesResult {
@@ -4830,105 +4810,6 @@ function countDrawCommands(commands: readonly RenderPassCommand[]): number {
   }
 
   return count;
-}
-
-function createWebGpuAppDepthAttachmentForTarget(
-  app: WebGpuApp,
-  resourceCache: WebGpuAppResourceCache,
-  target: WebGpuAppFrameBoundaryTarget,
-): CachedWebGpuDepthTextureResource {
-  return createOrReuseWebGpuDepthTexture({
-    device: app.initialization.device as Parameters<
-      typeof createOrReuseWebGpuDepthTexture
-    >[0]["device"],
-    cache: depthCacheSlotForTarget(resourceCache, target),
-    width: target.width,
-    height: target.height,
-    format: WEBGPU_APP_DEPTH_FORMAT,
-    sampleCount: app.msaa.sampleCount,
-  }).resource;
-}
-
-function createWebGpuAppMsaaColorTargetForTarget(
-  app: WebGpuApp,
-  resourceCache: WebGpuAppResourceCache,
-  target: WebGpuAppFrameBoundaryTarget,
-): WebGpuAppMsaaColorTargetResult {
-  const result = createOrReuseWebGpuMsaaColorTexture({
-    device: app.initialization.device as Parameters<
-      typeof createOrReuseWebGpuMsaaColorTexture
-    >[0]["device"],
-    cache: msaaColorCacheSlotForTarget(resourceCache, target),
-    width: target.width,
-    height: target.height,
-    format: target.format,
-    sampleCount: app.msaa.sampleCount,
-    label:
-      target.source === "swapchain"
-        ? "aperture/webgpu-app/msaa/swapchain"
-        : `aperture/webgpu-app/msaa/${target.renderTargetKey}`,
-  });
-
-  return {
-    valid: result.valid,
-    status: result.status,
-    resource: result.resource,
-    diagnostics: result.diagnostics,
-  };
-}
-
-function depthCacheSlotForTarget(
-  resourceCache: WebGpuAppResourceCache,
-  target: WebGpuAppFrameBoundaryTarget,
-): WebGpuDepthTextureCacheSlot {
-  if (target.source === "swapchain") {
-    return resourceCache.depth;
-  }
-
-  let slot = resourceCache.depthByRenderTarget.get(target.renderTargetKey);
-
-  if (slot === undefined) {
-    slot = createWebGpuDepthTextureCacheSlot();
-    resourceCache.depthByRenderTarget.set(target.renderTargetKey, slot);
-  }
-
-  return slot;
-}
-
-function msaaColorCacheSlotForTarget(
-  resourceCache: WebGpuAppResourceCache,
-  target: WebGpuAppFrameBoundaryTarget,
-): WebGpuMsaaColorTextureCacheSlot {
-  if (target.source === "swapchain") {
-    return resourceCache.msaaColor;
-  }
-
-  let slot = resourceCache.msaaColorByRenderTarget.get(target.renderTargetKey);
-
-  if (slot === undefined) {
-    slot = createWebGpuMsaaColorTextureCacheSlot();
-    resourceCache.msaaColorByRenderTarget.set(target.renderTargetKey, slot);
-  }
-
-  return slot;
-}
-
-function createWebGpuAppMsaaReport(input: {
-  readonly config: WebGpuMsaaConfig;
-  readonly colorTargets: number;
-  readonly colorTexturesCreated: number;
-  readonly colorTexturesReused: number;
-}): WebGpuAppMsaaReport {
-  return {
-    requestedSampleCount: input.config.requestedSampleCount,
-    sampleCount: input.config.sampleCount,
-    enabled: input.config.enabled,
-    clamped: input.config.clamped,
-    supportedSampleCounts: input.config.supportedSampleCounts,
-    colorTargets: input.colorTargets,
-    colorTexturesCreated: input.colorTexturesCreated,
-    colorTexturesReused: input.colorTexturesReused,
-  };
 }
 
 function createQueuedBuiltInAppDiagnosticsSummary(input: {
