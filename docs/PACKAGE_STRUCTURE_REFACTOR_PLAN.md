@@ -133,6 +133,12 @@ Status: in progress
   standard-material route key rewriting, local-light cookie preparation,
   material dependency checks, sprite-only routing, queued built-in routing, and
   the remaining non-queued fallback frame path.
+- App creation/startup now lives in
+  `packages/webgpu/src/app/create-webgpu-app.ts`, covering WebGPU
+  initialization, app resource-cache creation, snapshot transport startup,
+  worker snapshot/error subscription handling, diagnostics snapshots, picking
+  delegation, render delegation, source asset facade pruning, and environment
+  resource cache registration.
 
 ## Purpose
 

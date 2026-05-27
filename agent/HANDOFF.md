@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-27T22:16:05Z
+Updated: 2026-05-27T22:19:16Z
+
+## Current Run Update — 2026-05-27T22:19:16Z — WebGPU app creation facade split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` across Track 2.
+
+### What changed
+
+- Extracted app creation/startup from `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/create-webgpu-app.ts`.
+- The new module owns WebGPU initialization, resource-cache creation, snapshot
+  transport startup, worker snapshot/error subscription handling, diagnostics
+  snapshots, picking delegation, render delegation, source asset facade pruning,
+  and environment resource cache registration.
+- `app.ts` now re-exports `createWebGpuApp` and is mostly public app/report
+  type surface plus focused public re-exports.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/create-webgpu-app.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/create-webgpu-app.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "initializes WebGPU|creates a renderer-only app|renders multiple unlit app resource sets|routes DebugNormalMaterial|supports indirect draw command preparation|reports occlusion query feedback"`
+- `pnpm exec vitest run test/webgpu/app-picking.test.ts test/webgpu/index.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 is now substantially complete: startup, frame-loop, canvas,
+  source-assets, snapshot transport, diagnostics/reporting, picking, and render
+  presentation helpers live in focused modules.
+- Remaining Track 2 cleanup is mostly naming/export hygiene for `app.ts`, which
+  is now under 500 lines.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Move to Track 3 by splitting the StandardMaterial shader/module surface, unless
+small app export hygiene is preferred first.
 
 ## Current Run Update — 2026-05-27T22:16:05Z — WebGPU app frame-loop split
 
