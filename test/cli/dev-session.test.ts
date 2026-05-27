@@ -45,6 +45,18 @@ describe("Aperture CLI dev session and MCP command surface", () => {
     expect(down.stdout).toContain("No Aperture dev session was active");
   });
 
+  it("reports invalid app roots before starting a managed dev session", async () => {
+    const root = await tempRoot();
+    const up = await runCli(["dev", "up"], root);
+
+    expect(up.exitCode).toBe(1);
+    expect(up.stdout).toBe("");
+    expect(up.stderr).toContain("aperture.dev.invalidAppRoot");
+    expect(up.stderr).toContain("vite.config.ts");
+    expect(up.stderr).toContain(root);
+    expect(await readApertureDevSession(root)).toBeNull();
+  });
+
   it("reads session state and dev logs from .aperture/runtime", async () => {
     const root = await tempRoot();
     const runtimeDir = apertureRuntimeDir(root);
@@ -258,6 +270,11 @@ describe("Aperture CLI dev session and MCP command surface", () => {
     );
 
     try {
+      await writeFile(
+        path.join(root, "vite.config.ts"),
+        "export default {};\n",
+        "utf8",
+      );
       await mkdir(runtimeDir, { recursive: true });
       await writeApertureDevSession(
         createApertureDevSession({

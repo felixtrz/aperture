@@ -12,6 +12,7 @@ export {
   type SyncApertureAdaptersReport,
 } from "./cli.js";
 export {
+  ApertureDevSessionError,
   openApertureDevSession,
   readApertureDevLogs,
   readApertureDevStatus,

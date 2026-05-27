@@ -1,6 +1,6 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import { createWriteStream, type WriteStream } from "node:fs";
-import { mkdir, readFile } from "node:fs/promises";
+import { mkdir, readFile, stat } from "node:fs/promises";
 import { createRequire } from "node:module";
 import net from "node:net";
 import path from "node:path";
@@ -20,6 +20,19 @@ import {
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 5173;
 const DEFAULT_TIMEOUT_MS = 30_000;
+const VITE_CONFIG_FILE = "vite.config.ts";
+
+export class ApertureDevSessionError extends Error {
+  readonly code: string;
+  readonly exitCode: number;
+
+  constructor(code: string, message: string, exitCode = 1) {
+    super(message);
+    this.name = "ApertureDevSessionError";
+    this.code = code;
+    this.exitCode = exitCode;
+  }
+}
 
 export interface ApertureDevUpOptions {
   readonly cwd: string;
@@ -85,6 +98,8 @@ export async function startApertureDevSession(
   options: ApertureDevUpOptions,
 ): Promise<ApertureDevUpReport> {
   const appRoot = path.resolve(options.cwd);
+  await assertApertureDevAppRoot(appRoot);
+
   const status = await readApertureDevSessionStatus(appRoot);
 
   if (
@@ -148,6 +163,8 @@ export async function runApertureDevSessionDaemon(
   options: ApertureDevDaemonOptions,
 ): Promise<void> {
   const appRoot = path.resolve(options.cwd);
+  await assertApertureDevAppRoot(appRoot);
+
   const host = options.host ?? DEFAULT_HOST;
   const port = await resolveApertureDevServerPort({
     host,
@@ -456,7 +473,7 @@ function startViteServer(input: {
     "--port",
     String(input.port),
     "--config",
-    "vite.config.ts",
+    VITE_CONFIG_FILE,
   ];
 
   if (input.strictPort) {
@@ -470,6 +487,35 @@ function startViteServer(input: {
 
   pipeChildOutput(child, input.log);
   return child;
+}
+
+async function assertApertureDevAppRoot(appRoot: string): Promise<void> {
+  const configPath = path.join(appRoot, VITE_CONFIG_FILE);
+
+  try {
+    const configStat = await stat(configPath);
+
+    if (configStat.isFile()) {
+      return;
+    }
+  } catch (error: unknown) {
+    if (!isNodeErrorCode(error, "ENOENT")) {
+      throw error;
+    }
+  }
+
+  throw new ApertureDevSessionError(
+    "aperture.dev.invalidAppRoot",
+    `Expected an Aperture app root with ${VITE_CONFIG_FILE} at ${configPath}. Run this command from a generated Aperture app or pass the app root as the working directory.`,
+  );
+}
+
+function isNodeErrorCode(error: unknown, code: string): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as { readonly code?: unknown }).code === code
+  );
 }
 
 function resolveViteBin(): string {

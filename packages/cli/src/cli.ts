@@ -1,6 +1,7 @@
 import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
+  ApertureDevSessionError,
   openApertureDevSession,
   readApertureDevLogs,
   readApertureDevStatus,
@@ -343,7 +344,10 @@ export async function runApertureCli(
       `Unknown Aperture command '${command}'. Run 'aperture --help' for available commands.`,
     );
   } catch (error: unknown) {
-    if (error instanceof ApertureCliError) {
+    if (
+      error instanceof ApertureCliError ||
+      error instanceof ApertureDevSessionError
+    ) {
       io.stderr(`${error.code}: ${error.message}\n`);
       return error.exitCode;
     }
