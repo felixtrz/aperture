@@ -55,6 +55,49 @@ describe("Aperture CLI create command", () => {
     expect(unknown.stderr).toContain("aperture --help");
   });
 
+  it("reports deterministic diagnostics for unknown AI tooling subcommands and options", async () => {
+    const root = await tempRoot();
+    const adapterSubcommand = await runCli(["adapter", "unknown"], root);
+    const adapterOption = await runCli(["adapter", "sync", "--unknown"], root);
+    const devSubcommand = await runCli(["dev", "unknown"], root);
+    const devOption = await runCli(["dev", "up", "--unknown"], root);
+    const mcpSubcommand = await runCli(["mcp", "unknown"], root);
+    const referenceSubcommand = await runCli(["reference", "unknown"], root);
+    const referenceOption = await runCli(
+      ["reference", "search", "--unknown", "crate"],
+      root,
+    );
+
+    expect(adapterSubcommand).toMatchObject({
+      exitCode: 1,
+      stderr: expect.stringContaining("aperture.adapter.unknownSubcommand"),
+    });
+    expect(adapterOption).toMatchObject({
+      exitCode: 1,
+      stderr: expect.stringContaining("aperture.adapter.unknownOption"),
+    });
+    expect(devSubcommand).toMatchObject({
+      exitCode: 1,
+      stderr: expect.stringContaining("aperture.dev.unknownSubcommand"),
+    });
+    expect(devOption).toMatchObject({
+      exitCode: 1,
+      stderr: expect.stringContaining("aperture.dev.unknownOption"),
+    });
+    expect(mcpSubcommand).toMatchObject({
+      exitCode: 1,
+      stderr: expect.stringContaining("aperture.mcp.unknownSubcommand"),
+    });
+    expect(referenceSubcommand).toMatchObject({
+      exitCode: 1,
+      stderr: expect.stringContaining("aperture.reference.unknownSubcommand"),
+    });
+    expect(referenceOption).toMatchObject({
+      exitCode: 1,
+      stderr: expect.stringContaining("aperture.reference.unknownOption"),
+    });
+  });
+
   it("scaffolds a Vite Aperture app with starter systems and AI adapter files", async () => {
     const root = await tempRoot();
     const report = await createApertureProject({
