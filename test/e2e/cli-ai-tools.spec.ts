@@ -264,6 +264,42 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
       },
     });
 
+    const unsupportedComponentMutation = await callMcpTool(
+      "ecs_set_component_field",
+      {
+        entity: debugEntity,
+        component: "aperture.render.mesh",
+        field: "handle",
+        value: "unsafe",
+      },
+    );
+    expect(unsupportedComponentMutation.structuredContent).toMatchObject({
+      ok: false,
+      diagnostics: [
+        expect.objectContaining({
+          code: "aperture.entityLookup.componentMutationUnsupported",
+        }),
+      ],
+    });
+
+    const unsupportedFieldMutation = await callMcpTool(
+      "ecs_set_component_field",
+      {
+        entity: debugEntity,
+        component: "aperture.metadata.debug",
+        field: "missing",
+        value: "unsafe",
+      },
+    );
+    expect(unsupportedFieldMutation.structuredContent).toMatchObject({
+      ok: false,
+      diagnostics: [
+        expect.objectContaining({
+          code: "aperture.entityLookup.componentFieldUnsupported",
+        }),
+      ],
+    });
+
     const diff = await callMcpTool("ecs_diff", {
       key: "level.robot",
       label: "e2e-after",
