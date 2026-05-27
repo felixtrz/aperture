@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MaterialQueueItem } from "@aperture-engine/render";
-import { queuedPrepareRouteDiagnosticToWebGpuAppDiagnostic } from "../../packages/webgpu/src/webgpu/queued-material-prepare-route-diagnostics.js";
+import { queuedPrepareRouteDiagnosticToWebGpuAppDiagnostic } from "../../packages/webgpu/src/render/queues/queued-material-prepare-route-diagnostics.js";
 
 describe("queued prepare route diagnostics", () => {
   it("normalizes missing adapter diagnostics to app route diagnostics", () => {

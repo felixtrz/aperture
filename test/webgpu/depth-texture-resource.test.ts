@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createOrReuseWebGpuDepthTexture,
   createWebGpuDepthTextureCacheSlot,
-} from "../../packages/webgpu/src/webgpu/depth-texture-resource.js";
+} from "../../packages/webgpu/src/resources/textures/depth-texture-resource.js";
 
 describe("WebGPU app depth texture resource", () => {
   it("reuses matching depth textures and recreates resized targets", () => {

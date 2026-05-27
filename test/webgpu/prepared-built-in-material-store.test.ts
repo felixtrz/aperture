@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import * as webgpu from "@aperture-engine/webgpu";
-import { createPreparedAppMaterialCacheSummary } from "../../packages/webgpu/src/webgpu/prepared-app-material-resource.js";
+import { createPreparedAppMaterialCacheSummary } from "../../packages/webgpu/src/materials/core/prepared-app-material-resource.js";
 import {
   createPreparedBuiltInMaterialStore,
   evictPreparedBuiltInMaterialStoreEntries,
   writePreparedBuiltInMaterialStoreSummary,
-} from "../../packages/webgpu/src/webgpu/prepared-built-in-material-store.js";
+} from "../../packages/webgpu/src/materials/core/prepared-built-in-material-store.js";
 
 describe("prepared built-in material store", () => {
   it("owns built-in prepared material cache buckets", () => {

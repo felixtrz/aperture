@@ -7,7 +7,7 @@ import {
   recordPreparedAppMaterialResourceUse,
   writePreparedAppMaterialCacheSummary,
   type PreparedAppMaterialResourceReuseCounters,
-} from "../../packages/webgpu/src/webgpu/prepared-app-material-resource.js";
+} from "../../packages/webgpu/src/materials/core/prepared-app-material-resource.js";
 
 describe("prepared app material resource reuse counters", () => {
   it("records created and reused prepared material resources consistently", () => {

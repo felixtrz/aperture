@@ -110,11 +110,11 @@ const CLI_PUBLIC_SOURCE_FILES = new Set([
 ]);
 const WEBGPU_PUBLIC_SOURCE_FILES = new Set([
   "packages/webgpu/src/index.ts",
-  "packages/webgpu/src/webgpu/app.ts",
-  "packages/webgpu/src/webgpu/app-diagnostics-summary.ts",
-  "packages/webgpu/src/webgpu/frame-readiness.ts",
-  "packages/webgpu/src/webgpu/frame-report.ts",
-  "packages/webgpu/src/webgpu/id-buffer-pick.ts",
+  "packages/webgpu/src/app/app.ts",
+  "packages/webgpu/src/app/app-diagnostics-summary.ts",
+  "packages/webgpu/src/render/frame/frame-readiness.ts",
+  "packages/webgpu/src/render/frame/frame-report.ts",
+  "packages/webgpu/src/picking/id-buffer-pick.ts",
 ]);
 const PUBLIC_PACKAGE_PREFIXES = [
   "packages/app/src/",

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createReusableRouteCollector,
   resetReusableRouteCollector,
-} from "../../packages/webgpu/src/webgpu/reusable-route-collector.js";
+} from "../../packages/webgpu/src/render/queues/reusable-route-collector.js";
 
 describe("reusable route collector", () => {
   it("reuses item, diagnostic, and resource-set identity across writes", () => {

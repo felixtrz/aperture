@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createWebGpuDepthStencilDescriptor,
   resolveWebGpuPipelineRenderState,
-} from "../../packages/webgpu/src/webgpu/material-render-state.js";
+} from "../../packages/webgpu/src/materials/core/material-render-state.js";
 
 describe("WebGPU material render-state descriptors", () => {
   it("enables opaque depth write when a depth format is attached", () => {

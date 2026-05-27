@@ -393,15 +393,23 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-27 05:54 UTC</dd>
+            <dd>2026-05-27 19:43 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Generated Aperture apps now default to 4x MSAA and
-              capped DPR canvas backing, expose canvas and asset readiness
-              diagnostics through CLI/MCP tools, and can be scaffolded as
-              <code>minimal</code>, <code>glb-viewer</code>, or
+              Latest update: Track 1 of the package-structure refactor moved the
+              WebGPU backend out of the flat
+              <code>packages/webgpu/src/webgpu</code> folder and into domain
+              folders for app orchestration, GPU helpers, material families,
+              lighting, shadows, post effects, render passes, queues, resources,
+              output, and picking. The root
+              <code>@aperture-engine/webgpu</code> export surface is preserved
+              for now while later tracks split larger modules and tighten public
+              exports. Previous update: Generated Aperture apps now default to
+              4x MSAA and capped DPR canvas backing, expose canvas and asset
+              readiness diagnostics through CLI/MCP tools, and can be scaffolded
+              as <code>minimal</code>, <code>glb-viewer</code>, or
               <code>game</code> templates with end-to-end install, typecheck,
               build, and browser smoke coverage. Previous update: The obsolete
               umbrella package has been removed from the workspace. Examples,

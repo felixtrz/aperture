@@ -1,6 +1,68 @@
 # Agent Handoff
 
-Updated: 2026-05-27T17:05:54Z
+Updated: 2026-05-27T19:44:15Z
+
+## Current Run Update — 2026-05-27T19:44:15Z — WebGPU package structure Track 1 implemented
+
+Started the user-directed implementation of
+`docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` and completed Track 1.
+
+### What changed
+
+- Moved WebGPU implementation files out of the flat
+  `packages/webgpu/src/webgpu/` folder into domain folders under
+  `packages/webgpu/src/`, including `app/`, `gpu/`, `materials/`, `lighting/`,
+  `shadows/`, `post/`, `render/`, `resources/`, `output/`, and `picking/`.
+- Moved WebGPU initialization types/helpers into
+  `packages/webgpu/src/gpu/initialize-webgpu.ts`.
+- Regenerated the package root barrel so the existing
+  `@aperture-engine/webgpu` export surface remains available during the
+  refactor.
+- Updated internal imports, source-relative tests, CLI reference/RAG allowlist
+  paths, and current docs that pointed at the old WebGPU folder.
+- Removed stale unused WebGPU symbols in the moved `standard-shader` and
+  `draw-command` modules so package-level ESLint now passes for WebGPU.
+- Updated `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md`, `docs/index.html`,
+  `docs/CUSTOM_WGSL_MATERIAL_ENABLEMENT_PLAN.md`, and
+  `docs/DIAGNOSTICS_SUMMARIES.md` to reflect the new layout.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/webgpu run build`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec eslint packages/webgpu/src packages/cli/src/reference.ts ...`
+  for the directly updated tests
+- `pnpm exec vitest run test/webgpu/prepared-app-material-resource.test.ts test/webgpu/prepared-built-in-material-store.test.ts test/webgpu/reusable-route-collector.test.ts test/webgpu/app-frame-resource-utils.test.ts test/webgpu/depth-texture-resource.test.ts test/webgpu/queued-material-prepare-route-diagnostics.test.ts test/webgpu/material-render-state.test.ts`
+- `pnpm exec vitest run test/webgpu/index.test.ts test/webgpu/standard-shader.test.ts test/webgpu/draw-command.test.ts`
+- `pnpm exec playwright test test/e2e/basic-status.spec.ts test/e2e/worker-cube.spec.ts --grep "ECS triangle example publishes|worker cube renders" --project=chrome-webgpu-headed`
+  passed the basic-status test, then the runner hung on the worker-cube test and
+  was killed.
+- `pnpm exec playwright test test/e2e/custom-material.spec.ts --grep "visible WaterMaterial" --project=chrome-webgpu-headed`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- The broader package-structure goal is not complete. Next tracks still need to
+  split WebGPU app orchestration, split the standard material/shader family,
+  deepen `render`, split `app`, split `vite-plugin`, split `cli`, and tighten
+  public exports.
+- `pnpm exec playwright test test/e2e/spinning-cube.spec.ts --grep "Playwright shows" --project=chrome-webgpu-headed`
+  reached the example but failed an existing pixel-threshold assertion for
+  roughness-aware specular IBL probe differences. This slice did not change
+  shader behavior beyond removing unused imports; do not count that command as
+  passing validation.
+
+### Recommended next task
+
+Continue `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` with Track 2: split
+`packages/webgpu/src/app/app.ts` into focused app startup, frame-loop,
+presentation/canvas, asset mirroring, diagnostics, picking, and transport
+modules without changing `createWebGpuApp(...)` behavior.
 
 ## Current Run Update — 2026-05-27T17:05:54Z — Input state and action resource implemented
 

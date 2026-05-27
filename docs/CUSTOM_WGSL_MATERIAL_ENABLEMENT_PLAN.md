@@ -20,7 +20,7 @@ The repo already has the low-level ingredients:
 - `packages/render/src/assets/preparation.ts` defines a test-facing
   `CustomWgslMaterialSource`, validation helper, prepared custom WGSL material
   metadata, and `createCustomWgslMaterialRenderAssetAdapter(...)`.
-- `packages/webgpu/src/webgpu/custom-wgsl-material.ts` can turn prepared custom
+- `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-material.ts` can turn prepared custom
   WGSL material metadata into a shader module, render pipeline, and material
   bind group.
 - `examples/custom-material.main.js` proves a custom water shader by manually
@@ -53,16 +53,16 @@ The accepted architectural decisions already establish the right boundary:
 
 - Aperture custom WGSL proof:
   - `packages/render/src/assets/preparation.ts`
-  - `packages/webgpu/src/webgpu/custom-wgsl-material.ts`
+  - `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-material.ts`
   - `examples/custom-material.main.js`
   - `examples/custom-material.worker.js`
 - Aperture route spine:
   - `packages/render/src/rendering/material-queue.ts`
-  - `packages/webgpu/src/webgpu/queued-material-prepare-route.ts`
-  - `packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`
-  - `packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts`
-  - `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`
-  - `packages/webgpu/src/webgpu/app.ts`
+  - `packages/webgpu/src/render/queues/queued-material-prepare-route.ts`
+  - `packages/webgpu/src/render/queues/queued-material-app-resource-item.ts`
+  - `packages/webgpu/src/render/queues/queued-material-frame-resource-set.ts`
+  - `packages/webgpu/src/render/queues/queued-built-in-app-resource-set.ts`
+  - `packages/webgpu/src/app/app.ts`
 - Aperture app facade:
   - `packages/app/src/config.ts`
   - `packages/app/src/systems.ts`
@@ -500,11 +500,11 @@ Acceptance:
 Files likely touched:
 
 - `packages/render/src/rendering/material-queue.ts`
-- `packages/webgpu/src/webgpu/queued-material-adapter.ts`
-- `packages/webgpu/src/webgpu/queued-material-prepare-route.ts`
-- `packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`
-- `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`
-- new `packages/webgpu/src/webgpu/queued-app-resource-set.ts`
+- `packages/webgpu/src/render/queues/queued-material-adapter.ts`
+- `packages/webgpu/src/render/queues/queued-material-prepare-route.ts`
+- `packages/webgpu/src/render/queues/queued-material-app-resource-item.ts`
+- `packages/webgpu/src/render/queues/queued-built-in-app-resource-set.ts`
+- new `packages/webgpu/src/render/queues/queued-app-resource-set.ts`
 - tests under `test/rendering/` and `test/webgpu/`
 
 Work:
@@ -540,11 +540,11 @@ Acceptance:
 
 Files likely touched:
 
-- `packages/webgpu/src/webgpu/custom-wgsl-material.ts`
-- new `packages/webgpu/src/webgpu/custom-wgsl-app-frame-resources.ts`
-- new `packages/webgpu/src/webgpu/prepared-custom-wgsl-material-cache.ts`
-- `packages/webgpu/src/webgpu/app-texture-sampler-resources.ts`
-- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-material.ts`
+- new `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-app-frame-resources.ts`
+- new `packages/webgpu/src/materials/custom-wgsl/prepared-custom-wgsl-material-cache.ts`
+- `packages/webgpu/src/app/app-texture-sampler-resources.ts`
+- `packages/webgpu/src/app/app.ts`
 - tests under `test/webgpu/`
 
 Work:
@@ -588,11 +588,11 @@ Acceptance:
 
 Files likely touched:
 
-- `packages/webgpu/src/webgpu/app.ts`
-- `packages/webgpu/src/webgpu/app-diagnostics-summary.ts`
-- `packages/webgpu/src/webgpu/material-queue-route-report.ts`
-- `packages/webgpu/src/webgpu/queued-material-frame-resource-set-summary.ts`
-- `packages/webgpu/src/webgpu/prepared-built-in-material-store.ts`
+- `packages/webgpu/src/app/app.ts`
+- `packages/webgpu/src/app/app-diagnostics-summary.ts`
+- `packages/webgpu/src/materials/core/material-queue-route-report.ts`
+- `packages/webgpu/src/render/queues/queued-material-frame-resource-set-summary.ts`
+- `packages/webgpu/src/materials/core/prepared-built-in-material-store.ts`
 - tests under `test/webgpu/webgpu-app.test.ts`
 
 Work:

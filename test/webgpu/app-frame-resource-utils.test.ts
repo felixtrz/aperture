@@ -4,7 +4,7 @@ import * as webgpu from "@aperture-engine/webgpu";
 import {
   sameStringList,
   writeBufferData,
-} from "../../packages/webgpu/src/webgpu/app-frame-resource-utils.js";
+} from "../../packages/webgpu/src/app/app-frame-resource-utils.js";
 
 describe("app frame-resource utilities", () => {
   it("compares string lists by length and ordered values", () => {
