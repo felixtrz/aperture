@@ -39,6 +39,9 @@ Status: in progress
 - Resource cache and frame scratch construction now live in
   `packages/webgpu/src/app/resource-cache.ts`, covering app resource cache
   types, post-pass cache state, frame scratch buffers, and cache factory setup.
+- Snapshot defaults and frame update metadata now live in
+  `packages/webgpu/src/app/snapshot.ts`, covering empty render snapshots and
+  render snapshot change-set/update-schedule creation.
 
 ## Purpose
 

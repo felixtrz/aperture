@@ -7,8 +7,6 @@ import {
   RenderWorld,
   createMaterialQueuePhaseSummary,
   createMaterialDependencyReadinessReport,
-  createRenderSnapshotChangeSet,
-  createRenderSnapshotUpdateSchedule,
   renderQueueSortPolicyForPhase,
   createSamplerAsset,
   writeMaterialQueueFromSnapshot,
@@ -334,6 +332,10 @@ import {
   type WebGpuAppPostPassCache,
   type WebGpuAppResourceCache,
 } from "./resource-cache.js";
+import {
+  createEmptyRenderSnapshot,
+  createWebGpuAppSnapshotUpdateMetadata,
+} from "./snapshot.js";
 
 export interface WebGpuAppRenderOptions {
   readonly frame?: number;
@@ -998,35 +1000,6 @@ export async function createWebGpuApp(
   }
 
   return { ok: true, app, initialization };
-}
-
-function createEmptyRenderSnapshot(frame: number): RenderSnapshot {
-  return {
-    frame,
-    views: [],
-    meshDraws: [],
-    spriteDraws: [],
-    lights: [],
-    environments: [],
-    shadowRequests: [],
-    bounds: [],
-    transforms: new Float32Array(0),
-    instanceTints: new Float32Array(0),
-    viewMatrices: new Float32Array(0),
-    diagnostics: [],
-    report: {
-      views: 0,
-      meshDraws: 0,
-      spriteDraws: 0,
-      skyboxes: 0,
-      fogs: 0,
-      lights: 0,
-      environments: 0,
-      shadowRequests: 0,
-      bounds: 0,
-      diagnostics: 0,
-    },
-  };
 }
 
 async function getOrCreateWebGpuAppPipeline(options: {
@@ -5514,29 +5487,6 @@ function createWebGpuAppPipelinePlanResult(
     key: pipeline.resource.cacheKey,
     pipeline: pipeline.resource.pipeline,
     diagnostics: [],
-  };
-}
-
-function createWebGpuAppSnapshotUpdateMetadata(
-  snapshot: RenderSnapshot,
-  options: WebGpuAppFrameRenderOptions,
-): {
-  readonly snapshotChangeSet: RenderSnapshotChangeSet;
-  readonly snapshotUpdateSchedule: RenderSnapshotUpdateSchedule;
-} {
-  const snapshotChangeSet =
-    options.snapshotChangeSet?.frame === snapshot.frame &&
-    options.snapshot === snapshot
-      ? options.snapshotChangeSet
-      : createRenderSnapshotChangeSet(
-          options.previousSnapshotForUpdate ?? null,
-          snapshot,
-        );
-
-  return {
-    snapshotChangeSet,
-    snapshotUpdateSchedule:
-      createRenderSnapshotUpdateSchedule(snapshotChangeSet),
   };
 }
 

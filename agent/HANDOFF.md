@@ -1,6 +1,43 @@
 # Agent Handoff
 
-Updated: 2026-05-27T20:26:14Z
+Updated: 2026-05-27T20:29:14Z
+
+## Current Run Update — 2026-05-27T20:29:14Z — WebGPU snapshot helpers split
+
+Continued Track 2 of `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Extracted empty render snapshot creation and app snapshot update metadata
+  from `packages/webgpu/src/app/app.ts` into
+  `packages/webgpu/src/app/snapshot.ts`.
+- The new module owns empty snapshot defaults plus render snapshot change-set
+  and update-schedule creation for app frame renders.
+- `app.ts` imports the helpers and keeps frame render behavior unchanged.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/app/app.ts packages/webgpu/src/app/snapshot.ts`
+- `pnpm exec prettier --check packages/webgpu/src/app/app.ts packages/webgpu/src/app/snapshot.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "creates a renderer-only app|consumes opt-in SharedArrayBuffer|initializes WebGPU"`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 still needs full picking orchestration, frame-loop orchestration, and
+  diagnostics orchestration splits.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 2 by introducing an app-frame-resource module that can unblock
+moving the full picking orchestration and queued built-in frame preparation
+out of `app.ts`.
 
 ## Current Run Update — 2026-05-27T20:26:14Z — WebGPU resource cache factory split
 
