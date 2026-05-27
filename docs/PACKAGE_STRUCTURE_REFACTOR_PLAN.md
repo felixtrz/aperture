@@ -211,6 +211,10 @@ Status: in progress
   and
   `packages/webgpu/src/materials/standard/standard-light-shadow-bind-group-layouts.ts`,
   while the previous bind-group module re-exports the public layout surface.
+- StandardMaterial shadow bind-group report JSON conversion now lives in
+  `packages/webgpu/src/materials/standard/standard-material-shadow-bind-group-report.ts`,
+  while the shadow bind-group module focuses on sampler, descriptor, layout,
+  and resource creation.
 
 ## Purpose
 

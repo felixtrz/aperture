@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-27T23:09:42Z
+Updated: 2026-05-27T23:11:41Z
+
+## Current Run Update — 2026-05-27T23:11:41Z — Standard shadow bind-group report split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 3.
+
+### What changed
+
+- Extracted StandardMaterial shadow bind-group JSON report value types and
+  `toJson*` helpers from
+  `packages/webgpu/src/materials/standard/standard-material-shadow-bind-group.ts`
+  into
+  `packages/webgpu/src/materials/standard/standard-material-shadow-bind-group-report.ts`.
+- `standard-material-shadow-bind-group.ts` re-exports the report helpers and is
+  now roughly 903 lines, focused on sampler, descriptor, layout, and bind-group
+  resource creation.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/materials/standard/standard-material-shadow-bind-group.ts packages/webgpu/src/materials/standard/standard-material-shadow-bind-group-report.ts`
+- `pnpm exec prettier --check packages/webgpu/src/materials/standard/standard-material-shadow-bind-group.ts packages/webgpu/src/materials/standard/standard-material-shadow-bind-group-report.ts`
+- `pnpm exec vitest run test/webgpu/standard-material-shadow-bind-group.test.ts test/webgpu/standard-material-ibl-bind-group.test.ts test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 3 has one remaining large StandardMaterial implementation file:
+  `prepared-standard-material-cache.ts`. `standard-area-light-ltc-data.ts` is
+  large static LUT data and is not a good split candidate by itself.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 3 by splitting cache implementation helpers from
+`prepared-standard-material-cache.ts`, then reassess Track 3 against the
+acceptance criteria.
 
 ## Current Run Update — 2026-05-27T23:09:42Z — Standard vertex layout split
 
