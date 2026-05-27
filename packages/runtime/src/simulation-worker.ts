@@ -61,10 +61,13 @@ export type SimulationWorkerErrorCallback = (
   event: SimulationWorkerErrorEvent,
 ) => void;
 
+export type SimulationWorkerMessageCallback = (message: unknown) => void;
+
 export interface SimulationWorker {
   readonly worker: SimulationWorkerTransport;
   start(options?: SimulationWorkerStartOptions): void;
   postMessage(message: unknown, transfer?: Transferable[]): void;
+  onMessage(callback: SimulationWorkerMessageCallback): () => void;
   onSnapshot(callback: SimulationWorkerSnapshotCallback): () => void;
   onError(callback: SimulationWorkerErrorCallback): () => void;
   terminate(): void;
@@ -127,6 +130,7 @@ export function createSimulationWorker(
   const channel = channelFactory();
   const snapshotCallbacks = new Set<SimulationWorkerSnapshotCallback>();
   const errorCallbacks = new Set<SimulationWorkerErrorCallback>();
+  const messageCallbacks = new Set<SimulationWorkerMessageCallback>();
   let terminated = false;
 
   const handleMessage = (event: MessageEvent<unknown>) => {
@@ -174,6 +178,11 @@ export function createSimulationWorker(
         ...(diagnostics === undefined ? {} : { diagnostics }),
         raw: message,
       });
+      return;
+    }
+
+    for (const callback of messageCallbacks) {
+      callback(message);
     }
   };
 
@@ -228,6 +237,12 @@ export function createSimulationWorker(
         snapshotCallbacks.delete(callback);
       };
     },
+    onMessage(callback) {
+      messageCallbacks.add(callback);
+      return () => {
+        messageCallbacks.delete(callback);
+      };
+    },
     onError(callback) {
       errorCallbacks.add(callback);
       return () => {
@@ -247,6 +262,7 @@ export function createSimulationWorker(
       worker.terminate();
       snapshotCallbacks.clear();
       errorCallbacks.clear();
+      messageCallbacks.clear();
     },
   };
 }

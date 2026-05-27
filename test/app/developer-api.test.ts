@@ -21,6 +21,7 @@ import {
   APERTURE_ENTITY_DIFF_COMMAND_CHANNEL,
   APERTURE_ENTITY_FIND_COMMAND_CHANNEL,
   APERTURE_ENTITY_GET_COMMAND_CHANNEL,
+  APERTURE_ENTITY_HIERARCHY_COMMAND_CHANNEL,
   APERTURE_ENTITY_SET_COMPONENT_COMMAND_CHANNEL,
   APERTURE_ENTITY_SNAPSHOT_COMMAND_CHANNEL,
   APERTURE_VIEWPORT_RESIZE_COMMAND_CHANNEL,
@@ -110,6 +111,39 @@ describe("developer-facing app API", () => {
     expect("aperture" in appRoot).toBe(false);
   });
 
+  it("generates the browser AI bridge only for dev AI mode", async () => {
+    const root = process.cwd();
+    const enabledPlugin = apertureFromVitePlugin();
+    enabledPlugin.configResolved?.({ root });
+    const enabledId = enabledPlugin.resolveId?.(
+      "virtual:aperture/browser-entry",
+    );
+    const enabledModule =
+      enabledId === null || enabledId === undefined
+        ? null
+        : await enabledPlugin.load?.(enabledId);
+
+    const disabledPlugin = apertureFromVitePlugin({ ai: { mode: "off" } });
+    disabledPlugin.configResolved?.({ root });
+    const disabledId = disabledPlugin.resolveId?.(
+      "virtual:aperture/browser-entry",
+    );
+    const disabledModule =
+      disabledId === null || disabledId === undefined
+        ? null
+        : await disabledPlugin.load?.(disabledId);
+
+    expect(enabledModule).toContain(
+      "const apertureDevtoolsEnabled = true && import.meta.env.DEV;",
+    );
+    expect(enabledModule).toContain(
+      "devtools: { enabled: apertureDevtoolsEnabled },",
+    );
+    expect(disabledModule).toContain(
+      "const apertureDevtoolsEnabled = false && import.meta.env.DEV;",
+    );
+  });
+
   it("reads generated browser status through the typed browser helper", () => {
     const status = {
       status: "running",
@@ -127,6 +161,7 @@ describe("developer-facing app API", () => {
       lastWorkerSummary: null,
       diagnostics: null,
       canvas: null,
+      systems: [],
     } satisfies GeneratedBrowserAppStatus;
     const scope = { [APERTURE_GENERATED_STATUS_GLOBAL]: status };
 
@@ -362,6 +397,12 @@ describe("developer-facing app API", () => {
         },
       }),
     );
+    port.dispatch(
+      createGeneratedCommandMessage({
+        channel: APERTURE_ENTITY_HIERARCHY_COMMAND_CHANNEL,
+        payload: {},
+      }),
+    );
     port.dispatch({ type: SIMULATION_WORKER_PROTOCOL.start, stop: true });
 
     const snapshotMessage = await port.nextPostedMessage(
@@ -378,6 +419,7 @@ describe("developer-facing app API", () => {
       mutations: 1,
       snapshots: 2,
       diffs: 1,
+      hierarchies: 1,
       lastFind: {
         total: 1,
         summaries: [
@@ -417,6 +459,16 @@ describe("developer-facing app API", () => {
           changed: 0,
           unchanged: 1,
         },
+        diagnostics: [],
+      },
+      lastHierarchy: {
+        total: expect.any(Number),
+        roots: expect.arrayContaining([
+          expect.objectContaining({
+            key: "level.crate.primary",
+            name: "crate",
+          }),
+        ]),
         diagnostics: [],
       },
       diagnostics: [],

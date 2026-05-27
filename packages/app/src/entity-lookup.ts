@@ -5,7 +5,10 @@ import {
   AppEntitySource,
   AppEntityTags,
   DebugMetadata,
+  LocalTransform,
   Name,
+  Parent,
+  WorldTransform,
 } from "./systems.js";
 
 export interface ApertureEntitySourceSummary {
@@ -21,6 +24,58 @@ export interface ApertureEntitySummary {
   readonly componentIds: readonly string[];
   readonly tags?: readonly string[];
   readonly source?: ApertureEntitySourceSummary;
+  readonly parent?: EcsEntityRef;
+  readonly localTransform?: ApertureLocalTransformSummary;
+  readonly worldTransform?: ApertureWorldTransformSummary;
+}
+
+export interface ApertureLocalTransformSummary {
+  readonly translation: readonly [number, number, number];
+  readonly rotation: readonly [number, number, number, number];
+  readonly scale: readonly [number, number, number];
+}
+
+export interface ApertureWorldTransformSummary {
+  readonly matrix: readonly [
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+  ];
+}
+
+export interface ApertureEntityHierarchyNode {
+  readonly entity: EcsEntityRef;
+  readonly key?: string;
+  readonly name: string;
+  readonly parent?: EcsEntityRef;
+  readonly children: readonly ApertureEntityHierarchyNode[];
+}
+
+export interface ApertureEntityHierarchyReport {
+  readonly roots: readonly ApertureEntityHierarchyNode[];
+  readonly total: number;
+  readonly diagnostics: readonly ApertureEntityLookupDiagnostic[];
+}
+
+interface MutableHierarchyNode {
+  readonly entity: EcsEntityRef;
+  readonly key?: string;
+  readonly name: string;
+  readonly parent?: EcsEntityRef;
+  readonly children: MutableHierarchyNode[];
 }
 
 export interface ApertureEntityLookupSourceFilter {
@@ -134,6 +189,7 @@ export interface ApertureEntityLookup {
   setComponentField(
     request: ApertureEntitySetComponentFieldRequest,
   ): ApertureEntitySetComponentFieldReport;
+  hierarchy(): ApertureEntityHierarchyReport;
 }
 
 export function createApertureEntityLookup(
@@ -155,6 +211,63 @@ export function createApertureEntityLookup(
     setComponentField(request) {
       return setApertureEntityComponentField(world, request);
     },
+    hierarchy() {
+      return createApertureEntityHierarchy(world);
+    },
+  };
+}
+
+export function createApertureEntityHierarchy(
+  world: EcsWorld,
+): ApertureEntityHierarchyReport {
+  const summaries = collectActiveEntities(world)
+    .map(entitySummary)
+    .sort(compareEntitySummaries);
+  const nodes = new Map<string, MutableHierarchyNode>();
+  const diagnostics: ApertureEntityLookupDiagnostic[] = [];
+
+  for (const summary of summaries) {
+    nodes.set(entityRefKey(summary.entity), {
+      entity: summary.entity,
+      ...(summary.key === undefined ? {} : { key: summary.key }),
+      name: summary.name,
+      ...(summary.parent === undefined ? {} : { parent: summary.parent }),
+      children: [],
+    });
+  }
+
+  const roots: MutableHierarchyNode[] = [];
+
+  for (const node of nodes.values()) {
+    if (node.parent === undefined) {
+      roots.push(node);
+      continue;
+    }
+
+    const parent = nodes.get(entityRefKey(node.parent));
+    if (parent === undefined) {
+      diagnostics.push({
+        code: "aperture.entityHierarchy.staleParent",
+        severity: "warning",
+        message: `Entity ${node.entity.index} references a parent that is not active in the hierarchy snapshot.`,
+        data: {
+          entity: node.entity,
+          parent: node.parent,
+        },
+        suggestedFix:
+          "Resolve transforms and remove stale Parent references from app systems.",
+      });
+      roots.push(node);
+      continue;
+    }
+
+    parent.children.push(node);
+  }
+
+  return {
+    roots: sortHierarchyNodes(roots),
+    total: summaries.length,
+    diagnostics,
   };
 }
 
@@ -558,6 +671,9 @@ function changedSummaryFields(
     "componentIds",
     "tags",
     "source",
+    "parent",
+    "localTransform",
+    "worldTransform",
   ] as const) {
     if (stableJson(before[field]) !== stableJson(after[field])) {
       fields.push(field);
@@ -600,6 +716,15 @@ function entitySummary(entity: Entity): ApertureEntitySummary {
   const source = entity.hasComponent(AppEntitySource)
     ? sourceSummary(entity)
     : null;
+  const parent = entity.hasComponent(Parent)
+    ? entityRefFromEntity(entity.getValue(Parent, "entity"))
+    : null;
+  const localTransform = entity.hasComponent(LocalTransform)
+    ? localTransformSummary(entity)
+    : null;
+  const worldTransform = entity.hasComponent(WorldTransform)
+    ? worldTransformSummary(entity)
+    : null;
 
   return {
     entity: {
@@ -617,7 +742,49 @@ function entitySummary(entity: Entity): ApertureEntitySummary {
       .sort((a, b) => a.localeCompare(b)),
     ...(tags.length === 0 ? {} : { tags }),
     ...(source === null ? {} : { source }),
+    ...(parent === null ? {} : { parent }),
+    ...(localTransform === null ? {} : { localTransform }),
+    ...(worldTransform === null ? {} : { worldTransform }),
   };
+}
+
+function localTransformSummary(entity: Entity): ApertureLocalTransformSummary {
+  return {
+    translation: tuple3FromView(
+      entity.getVectorView(LocalTransform, "translation"),
+    ),
+    rotation: tuple4FromView(entity.getVectorView(LocalTransform, "rotation")),
+    scale: tuple3FromView(entity.getVectorView(LocalTransform, "scale")),
+  };
+}
+
+function worldTransformSummary(entity: Entity): ApertureWorldTransformSummary {
+  return {
+    matrix: [
+      ...tuple4FromView(entity.getVectorView(WorldTransform, "col0")),
+      ...tuple4FromView(entity.getVectorView(WorldTransform, "col1")),
+      ...tuple4FromView(entity.getVectorView(WorldTransform, "col2")),
+      ...tuple4FromView(entity.getVectorView(WorldTransform, "col3")),
+    ],
+  };
+}
+
+function entityRefFromEntity(entity: Entity | null): EcsEntityRef | null {
+  return entity === null
+    ? null
+    : { index: entity.index, generation: entity.generation };
+}
+
+function tuple3FromView(
+  view: ArrayLike<number>,
+): readonly [number, number, number] {
+  return [view[0] ?? 0, view[1] ?? 0, view[2] ?? 0];
+}
+
+function tuple4FromView(
+  view: ArrayLike<number>,
+): readonly [number, number, number, number] {
+  return [view[0] ?? 0, view[1] ?? 0, view[2] ?? 0, view[3] ?? 0];
 }
 
 function sourceSummary(entity: Entity): ApertureEntitySourceSummary | null {
@@ -794,4 +961,22 @@ function compareEntitySummaries(
   return (
     a.entity.index - b.entity.index || a.entity.generation - b.entity.generation
   );
+}
+
+function sortHierarchyNodes(
+  nodes: readonly MutableHierarchyNode[],
+): readonly ApertureEntityHierarchyNode[] {
+  return [...nodes]
+    .sort(
+      (a, b) =>
+        a.entity.index - b.entity.index ||
+        a.entity.generation - b.entity.generation,
+    )
+    .map((node) => ({
+      entity: node.entity,
+      ...(node.key === undefined ? {} : { key: node.key }),
+      name: node.name,
+      ...(node.parent === undefined ? {} : { parent: node.parent }),
+      children: sortHierarchyNodes(node.children),
+    }));
 }

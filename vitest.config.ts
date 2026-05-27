@@ -63,6 +63,11 @@ export default defineConfig({
           .pathname,
       },
       {
+        find: "@aperture-engine/cli",
+        replacement: new URL("./packages/cli/src/index.ts", import.meta.url)
+          .pathname,
+      },
+      {
         find: "@aperture-engine/render",
         replacement: new URL("./packages/render/src/index.ts", import.meta.url)
           .pathname,

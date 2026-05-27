@@ -4,6 +4,11 @@ import * as ts from "typescript";
 
 export interface ApertureVitePluginOptions {
   readonly configFile?: string;
+  readonly ai?: ApertureVitePluginAiOptions;
+}
+
+export interface ApertureVitePluginAiOptions {
+  readonly mode?: "agent" | "off";
 }
 
 export interface ApertureVitePlugin {
@@ -105,16 +110,19 @@ export function aperture(
 
       if (virtualId === VIRTUAL_BROWSER_ENTRY) {
         const workerEntryPath = `/@id/__x00__${VIRTUAL_WORKER_ENTRY}`;
+        const aiDevtoolsEnabledInDev = options.ai?.mode !== "off";
 
         return [
           `import config from ${JSON.stringify(VIRTUAL_CONFIG)};`,
           `import systemManifest from ${JSON.stringify(VIRTUAL_SYSTEM_MANIFEST)};`,
           `import { startGeneratedBrowserApp } from "@aperture-engine/app/browser";`,
           `const worker = new Worker(${JSON.stringify(workerEntryPath)}, { type: "module" });`,
+          `const apertureDevtoolsEnabled = ${JSON.stringify(aiDevtoolsEnabledInDev)} && import.meta.env.DEV;`,
           `startGeneratedBrowserApp({`,
           `  config,`,
           `  systemManifest,`,
           `  workerEntry: worker,`,
+          `  devtools: { enabled: apertureDevtoolsEnabled },`,
           `});`,
           "",
         ].join("\n");

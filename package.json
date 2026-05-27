@@ -7,7 +7,7 @@
   "private": true,
   "packageManager": "pnpm@10.12.1",
   "scripts": {
-    "build": "tsc -b packages/simulation packages/render packages/runtime packages/webgpu packages/vite-plugin packages/app",
+    "build": "tsc -b packages/simulation packages/render packages/runtime packages/webgpu packages/vite-plugin packages/app packages/cli",
     "typecheck": "pnpm run build",
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
     "check:boundaries": "node scripts/check-package-boundaries.mjs",

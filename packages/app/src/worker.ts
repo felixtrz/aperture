@@ -3,19 +3,23 @@ import {
   type SimulationMessagePort,
   type SimulationWorkerStartOptions,
 } from "@aperture-engine/runtime";
-import type { EcsWorld } from "@aperture-engine/simulation";
+import type { EcsWorld, Entity } from "@aperture-engine/simulation";
 import { Camera } from "@aperture-engine/render";
 import type { ApertureConfig } from "./config.js";
 import { createApertureApp, type ApertureSystemModule } from "./advanced.js";
 import { serializeSourceAssetRegistry } from "./asset-mirror.js";
 import {
   APERTURE_VIEWPORT_RESIZE_COMMAND_CHANNEL,
+  createApertureDevtoolsResponse,
   APERTURE_ENTITY_DIFF_COMMAND_CHANNEL,
   APERTURE_ENTITY_FIND_COMMAND_CHANNEL,
   APERTURE_ENTITY_GET_COMMAND_CHANNEL,
+  APERTURE_ENTITY_HIERARCHY_COMMAND_CHANNEL,
   APERTURE_ENTITY_SET_COMPONENT_COMMAND_CHANNEL,
   APERTURE_ENTITY_SNAPSHOT_COMMAND_CHANNEL,
+  isApertureDevtoolsRequest,
   isGeneratedCommandMessage,
+  type ApertureDevtoolsRequest,
   type ApertureGeneratedCommand,
   type ApertureGeneratedCommandMessage,
   type ApertureViewportResizeCommandPayload,
@@ -23,6 +27,7 @@ import {
 import { errorToApertureDiagnostic } from "./diagnostics.js";
 import {
   createApertureEntityLookupSnapshot,
+  createApertureEntityHierarchy,
   diffApertureEntityLookupSnapshots,
   findApertureEntities,
   getApertureEntitySummary,
@@ -36,6 +41,7 @@ import {
   type ApertureEntitySetComponentFieldReport,
   type ApertureEntitySetComponentFieldRequest,
   type ApertureEntitySnapshotDiff,
+  type ApertureEntityHierarchyReport,
 } from "./entity-lookup.js";
 import {
   applyGeneratedInputEvent,
@@ -43,7 +49,13 @@ import {
   isGeneratedInputEventMessage,
   type ApertureGeneratedInputEventMessage,
 } from "./input.js";
-import { createSignalSummary } from "./systems.js";
+import {
+  AppEntityKey,
+  LocalTransform,
+  Name,
+  WorldTransform,
+  createSignalSummary,
+} from "./systems.js";
 import type { ApertureApp } from "./advanced.js";
 import type { EcsEntityRef } from "./config.js";
 
@@ -74,8 +86,10 @@ function attachWorkerPort(
   const port = options.port;
   const pendingInput: ApertureGeneratedInputEventMessage[] = [];
   const pendingCommands: ApertureGeneratedCommandMessage[] = [];
+  const pendingDevtools: ApertureDevtoolsRequest[] = [];
   let app: ApertureApp | null = null;
   let entityTools: GeneratedEntityToolBridge | null = null;
+  let devtools: GeneratedDevtoolsBridge | null = null;
 
   port.addEventListener("message", (event: MessageEvent<unknown>) => {
     const message = event.data;
@@ -102,6 +116,15 @@ function attachWorkerPort(
       return;
     }
 
+    if (isApertureDevtoolsRequest(message)) {
+      if (devtools === null) {
+        pendingDevtools.push(message);
+      } else {
+        devtools.handle(message);
+      }
+      return;
+    }
+
     if (!isStartMessage(message)) {
       return;
     }
@@ -111,9 +134,10 @@ function attachWorkerPort(
       config: options.config,
       systems: options.systems,
       start: message,
-      setApp(nextApp, nextEntityTools) {
+      setApp(nextApp, nextEntityTools, nextDevtools) {
         app = nextApp;
         entityTools = nextEntityTools;
+        devtools = nextDevtools;
 
         for (const pending of pendingInput.splice(0)) {
           applyGeneratedInputEvent({
@@ -124,6 +148,9 @@ function attachWorkerPort(
         }
         for (const pending of pendingCommands.splice(0)) {
           applyGeneratedCommand(nextApp, nextEntityTools, pending);
+        }
+        for (const pending of pendingDevtools.splice(0)) {
+          nextDevtools.handle(pending);
         }
       },
     });
@@ -139,6 +166,7 @@ async function runLoop(options: {
   readonly setApp: (
     app: ApertureApp,
     entityTools: GeneratedEntityToolBridge,
+    devtools: GeneratedDevtoolsBridge,
   ) => void;
 }): Promise<void> {
   try {
@@ -151,20 +179,13 @@ async function runLoop(options: {
           : { entityCapacity: options.start.entityCapacity },
     });
     const entityTools = createGeneratedEntityToolBridge(app.lowLevel.world);
-    options.setApp(app, entityTools);
     let frame = 0;
     let running = true;
+    let paused = false;
     let previousTime = performance.now();
 
-    const tick = () => {
-      if (!running) {
-        return;
-      }
-
-      const now = performance.now();
-      const delta = Math.max(0, (now - previousTime) / 1000);
-      previousTime = now;
-      const snapshot = app.stepAndExtract(delta, now / 1000, frame);
+    const publishSnapshot = (delta: number, time: number) => {
+      const snapshot = app.stepAndExtract(delta, time, frame);
 
       options.port.postMessage({
         type: SIMULATION_WORKER_PROTOCOL.snapshot,
@@ -183,6 +204,44 @@ async function runLoop(options: {
         frame,
       });
       frame += 1;
+    };
+    const devtools = createGeneratedDevtoolsBridge({
+      app,
+      entityTools,
+      port: options.port,
+      setPaused(nextPaused) {
+        paused = nextPaused;
+      },
+      step(delta) {
+        paused = true;
+        const now = performance.now();
+        previousTime = now;
+        publishSnapshot(delta, now / 1000);
+
+        return {
+          paused,
+          frame,
+        };
+      },
+      getSimulationState() {
+        return { paused, running, frame };
+      },
+    });
+    options.setApp(app, entityTools, devtools);
+
+    const tick = () => {
+      if (!running) {
+        return;
+      }
+
+      const now = performance.now();
+      const delta = Math.max(0, (now - previousTime) / 1000);
+      previousTime = now;
+
+      if (!paused) {
+        publishSnapshot(delta, now / 1000);
+      }
+
       setTimeout(tick, 0);
     };
 
@@ -325,18 +384,31 @@ interface GeneratedEntityToolStatus {
   readonly mutations: number;
   readonly snapshots: number;
   readonly diffs: number;
+  readonly hierarchies: number;
   readonly lastRequest: GeneratedEntityToolRequest | null;
   readonly lastFind: ApertureEntityFindReport | null;
   readonly lastGet: ApertureEntityGetReport | null;
   readonly lastMutation: ApertureEntitySetComponentFieldReport | null;
   readonly lastSnapshot: ApertureEntityLookupSnapshot | null;
   readonly lastDiff: ApertureEntitySnapshotDiff | null;
+  readonly lastHierarchy: ApertureEntityHierarchyReport | null;
   readonly diagnostics: readonly ApertureEntityLookupDiagnostic[];
 }
 
 interface GeneratedEntityToolBridge {
   handle(command: ApertureGeneratedCommand): boolean;
+  call(tool: string, payload: unknown): GeneratedDevtoolsToolResult;
   summary(): GeneratedEntityToolStatus;
+}
+
+interface GeneratedDevtoolsToolResult {
+  readonly ok: boolean;
+  readonly result?: unknown;
+  readonly diagnostics?: readonly ApertureEntityLookupDiagnostic[];
+}
+
+interface GeneratedDevtoolsBridge {
+  handle(request: ApertureDevtoolsRequest): void;
 }
 
 function createGeneratedEntityToolBridge(
@@ -347,12 +419,14 @@ function createGeneratedEntityToolBridge(
   let mutations = 0;
   let snapshots = 0;
   let diffs = 0;
+  let hierarchies = 0;
   let lastRequest: GeneratedEntityToolRequest | null = null;
   let lastFind: ApertureEntityFindReport | null = null;
   let lastGet: ApertureEntityGetReport | null = null;
   let lastMutation: ApertureEntitySetComponentFieldReport | null = null;
   let lastSnapshot: ApertureEntityLookupSnapshot | null = null;
   let lastDiff: ApertureEntitySnapshotDiff | null = null;
+  let lastHierarchy: ApertureEntityHierarchyReport | null = null;
   let diagnostics: readonly ApertureEntityLookupDiagnostic[] = [];
 
   return {
@@ -464,7 +538,175 @@ function createGeneratedEntityToolBridge(
         return true;
       }
 
+      if (command.channel === APERTURE_ENTITY_HIERARCHY_COMMAND_CHANNEL) {
+        const hierarchy = createApertureEntityHierarchy(world);
+
+        hierarchies += 1;
+        lastRequest = entityToolRequest(command);
+        lastHierarchy = hierarchy;
+        diagnostics = hierarchy.diagnostics;
+        return true;
+      }
+
       return false;
+    },
+    call(tool, payload) {
+      if (tool === "ecs_find_entities" || tool === "ecs_query") {
+        const report = findApertureEntities(
+          world,
+          findQueryFromPayload(payload, 50),
+        );
+
+        finds += 1;
+        lastRequest = { channel: tool, payload: jsonSafeValue(payload) };
+        lastFind = report;
+        diagnostics = report.diagnostics;
+        return {
+          ok: true,
+          result: report,
+          diagnostics: report.diagnostics,
+        };
+      }
+
+      if (tool === "ecs_get_entity") {
+        const ref = entityRefFromPayload(payload, lastFind, lastGet);
+        const report =
+          ref === null
+            ? {
+                ok: false as const,
+                diagnostic: missingEntityRefDiagnostic(tool),
+              }
+            : getApertureEntitySummary(world, ref);
+
+        gets += 1;
+        lastRequest = { channel: tool, payload: jsonSafeValue(payload) };
+        lastGet = report;
+        diagnostics = report.ok ? [] : [report.diagnostic];
+        return report.ok
+          ? { ok: true, result: report }
+          : { ok: false, diagnostics: [report.diagnostic], result: report };
+      }
+
+      if (tool === "ecs_set_component_field") {
+        const request = setComponentRequestFromPayload(
+          payload,
+          lastFind,
+          lastGet,
+        );
+        const report =
+          "diagnostic" in request
+            ? {
+                ok: false as const,
+                diagnostic: request.diagnostic,
+              }
+            : setApertureEntityComponentField(world, request);
+
+        mutations += 1;
+        lastRequest = { channel: tool, payload: jsonSafeValue(payload) };
+        lastMutation = report;
+        diagnostics = report.ok ? [] : [report.diagnostic];
+        return report.ok
+          ? { ok: true, result: report }
+          : { ok: false, diagnostics: [report.diagnostic], result: report };
+      }
+
+      if (tool === "ecs_snapshot") {
+        const snapshot = createApertureEntityLookupSnapshot(
+          world,
+          snapshotOptionsFromPayload(
+            payload,
+            `generated-snapshot-${snapshots + 1}`,
+          ),
+        );
+
+        snapshots += 1;
+        lastRequest = { channel: tool, payload: jsonSafeValue(payload) };
+        lastSnapshot = snapshot;
+        lastDiff = null;
+        diagnostics = snapshot.diagnostics;
+        return {
+          ok: true,
+          result: snapshot,
+          diagnostics: snapshot.diagnostics,
+        };
+      }
+
+      if (tool === "ecs_diff") {
+        lastRequest = { channel: tool, payload: jsonSafeValue(payload) };
+
+        if (lastSnapshot === null) {
+          diagnostics = [
+            {
+              code: "aperture.entityTools.diffMissingSnapshot",
+              severity: "error",
+              message:
+                "Entity diff requires a previous generated entity snapshot.",
+              data: { channel: tool },
+              suggestedFix: "Call ecs_snapshot before requesting ecs_diff.",
+            },
+          ];
+          lastDiff = null;
+          return { ok: false, diagnostics, result: null };
+        }
+
+        const nextSnapshot = createApertureEntityLookupSnapshot(
+          world,
+          snapshotOptionsFromPayload(payload, `generated-diff-${diffs + 1}`),
+        );
+        const diff = diffApertureEntityLookupSnapshots(
+          lastSnapshot,
+          nextSnapshot,
+        );
+
+        snapshots += 1;
+        diffs += 1;
+        lastSnapshot = nextSnapshot;
+        lastDiff = diff;
+        diagnostics = diff.diagnostics;
+        return { ok: true, result: diff, diagnostics: diff.diagnostics };
+      }
+
+      if (tool === "ecs_get_hierarchy") {
+        const hierarchy = createApertureEntityHierarchy(world);
+
+        hierarchies += 1;
+        lastRequest = { channel: tool, payload: jsonSafeValue(payload) };
+        lastHierarchy = hierarchy;
+        diagnostics = hierarchy.diagnostics;
+        return {
+          ok: true,
+          result: hierarchy,
+          diagnostics: hierarchy.diagnostics,
+        };
+      }
+
+      if (tool === "ecs_get_component_schema") {
+        const report = createComponentSchemaReport(world, payload);
+
+        lastRequest = { channel: tool, payload: jsonSafeValue(payload) };
+        diagnostics = report.diagnostics;
+        return {
+          ok: report.diagnostics.every(
+            (diagnostic) => diagnostic.severity !== "error",
+          ),
+          result: report,
+          diagnostics: report.diagnostics,
+        };
+      }
+
+      return {
+        ok: false,
+        diagnostics: [
+          {
+            code: "aperture.devtools.unsupportedEntityTool",
+            severity: "error",
+            message: `Unsupported generated entity devtools tool '${tool}'.`,
+            data: { tool },
+            suggestedFix:
+              "Use one of the supported ECS tools or add a focused generated worker handler.",
+          },
+        ],
+      };
     },
     summary() {
       return {
@@ -473,16 +715,662 @@ function createGeneratedEntityToolBridge(
         mutations,
         snapshots,
         diffs,
+        hierarchies,
         lastRequest,
         lastFind,
         lastGet,
         lastMutation,
         lastSnapshot,
         lastDiff,
+        lastHierarchy,
         diagnostics,
       };
     },
   };
+}
+
+function createGeneratedDevtoolsBridge(options: {
+  readonly app: ApertureApp;
+  readonly entityTools: GeneratedEntityToolBridge;
+  readonly port: SimulationMessagePort;
+  readonly setPaused: (paused: boolean) => void;
+  readonly step: (delta: number) => Readonly<Record<string, unknown>>;
+  readonly getSimulationState: () => Readonly<Record<string, unknown>>;
+}): GeneratedDevtoolsBridge {
+  const savedCameraStates = new Map<string, CameraToolState>();
+
+  return {
+    handle(request) {
+      try {
+        const result = callGeneratedDevtoolsTool(
+          options,
+          request,
+          savedCameraStates,
+        );
+
+        options.port.postMessage(
+          createApertureDevtoolsResponse({
+            requestId: request.requestId,
+            ok: result.ok,
+            ...(Object.prototype.hasOwnProperty.call(result, "result")
+              ? { result: result.result }
+              : {}),
+            ...(result.diagnostics === undefined
+              ? {}
+              : { diagnostics: result.diagnostics }),
+          }),
+        );
+      } catch (error: unknown) {
+        options.port.postMessage(
+          createApertureDevtoolsResponse({
+            requestId: request.requestId,
+            ok: false,
+            diagnostics: [
+              {
+                code: "aperture.devtools.toolFailed",
+                severity: "error",
+                message: error instanceof Error ? error.message : String(error),
+                suggestedFix:
+                  "Inspect the tool payload and generated worker diagnostics.",
+              },
+            ],
+          }),
+        );
+      }
+    },
+  };
+}
+
+function callGeneratedDevtoolsTool(
+  bridge: {
+    readonly app: ApertureApp;
+    readonly entityTools: GeneratedEntityToolBridge;
+    readonly setPaused: (paused: boolean) => void;
+    readonly step: (delta: number) => Readonly<Record<string, unknown>>;
+    readonly getSimulationState: () => Readonly<Record<string, unknown>>;
+  },
+  request: ApertureDevtoolsRequest,
+  savedCameraStates: Map<string, CameraToolState>,
+): GeneratedDevtoolsToolResult {
+  if (request.tool === "ecs_pause") {
+    bridge.setPaused(true);
+    return { ok: true, result: bridge.getSimulationState() };
+  }
+
+  if (request.tool === "ecs_resume") {
+    bridge.setPaused(false);
+    return { ok: true, result: bridge.getSimulationState() };
+  }
+
+  if (request.tool === "ecs_step") {
+    return {
+      ok: true,
+      result: bridge.step(devtoolsStepDelta(request.payload)),
+    };
+  }
+
+  if (request.tool === "input_action_set") {
+    return callInputActionTool(bridge.app, request.payload);
+  }
+
+  if (request.tool.startsWith("camera_")) {
+    return callCameraTool(bridge.app, request, savedCameraStates);
+  }
+
+  return bridge.entityTools.call(request.tool, request.payload);
+}
+
+function devtoolsStepDelta(payload: unknown): number {
+  const record = isRecord(payload) ? payload : {};
+  const delta = numberFromValue(record["delta"]);
+
+  return delta === undefined || delta < 0 ? 1 / 60 : delta;
+}
+
+function callInputActionTool(
+  app: ApertureApp,
+  payload: unknown,
+): GeneratedDevtoolsToolResult {
+  const record = isRecord(payload) ? payload : {};
+  const actionName =
+    stringFromValue(record["action"]) ?? stringFromValue(record["name"]);
+
+  if (actionName === undefined) {
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "aperture.input.actionMissing",
+          severity: "error",
+          message: "input_action_set requires an action name.",
+          data: jsonSafeRecord(record),
+          suggestedFix:
+            "Pass { action: '<name>', pressed: true } using an action from aperture.config.ts.",
+        },
+      ],
+    };
+  }
+
+  const action = app.context.input.actions[actionName];
+  if (action === undefined) {
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "aperture.input.actionNotFound",
+          severity: "error",
+          message: `Input action '${actionName}' is not defined in aperture.config.ts.`,
+          data: {
+            action: actionName,
+            available: Object.keys(app.context.input.actions),
+          },
+          suggestedFix:
+            "Use one of the configured input action names or add the action to aperture.config.ts.",
+        },
+      ],
+    };
+  }
+
+  const value = numberFromValue(record["value"]);
+  const pressed =
+    booleanFromValue(record["pressed"]) ??
+    (value === undefined ? true : value > 0);
+  const nextValue = value ?? (pressed ? 1 : 0);
+
+  action.pressed.value = pressed;
+  action.value.value = nextValue;
+
+  return {
+    ok: true,
+    result: {
+      action: actionName,
+      pressed: action.pressed.value,
+      value: action.value.value,
+      input: createInputSummary(app.context.input),
+    },
+  };
+}
+
+interface CameraToolState {
+  readonly entity: EcsEntityRef;
+  readonly camera: Readonly<Record<string, unknown>>;
+  readonly localTransform: {
+    readonly translation: readonly [number, number, number];
+    readonly rotation: readonly [number, number, number, number];
+    readonly scale: readonly [number, number, number];
+  } | null;
+}
+
+function callCameraTool(
+  app: ApertureApp,
+  request: ApertureDevtoolsRequest,
+  savedCameraStates: Map<string, CameraToolState>,
+): GeneratedDevtoolsToolResult {
+  const payload = isRecord(request.payload) ? request.payload : {};
+
+  if (request.tool === "camera_list") {
+    return {
+      ok: true,
+      result: cameraEntities(app.lowLevel.world).map(cameraSummary),
+    };
+  }
+
+  if (request.tool === "camera_create_agent") {
+    const key = stringFromValue(payload["key"]) ?? "camera.agent";
+    const existing = cameraEntityByKey(app.lowLevel.world, key);
+    const entity =
+      existing ??
+      app.context.spawn.camera({
+        key,
+        name: "Agent Camera",
+        transform: {
+          translation: tuple3FromValue(payload["translation"]) ?? [0, 1.5, 5],
+          lookAt: tuple3FromValue(payload["lookAt"]) ?? [0, 0, 0],
+        },
+        camera: {
+          priority: 10_000,
+          clearColor: [0.03, 0.035, 0.04, 1],
+        },
+      });
+
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  const entity = resolveCameraEntity(app.lowLevel.world, payload);
+  if (entity === null) {
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "aperture.camera.notFound",
+          severity: "error",
+          message: "No matching camera entity was found.",
+          data: jsonSafeRecord(payload),
+          suggestedFix:
+            "Pass a camera key/entity reference, or call camera_create_agent first.",
+        },
+      ],
+    };
+  }
+
+  if (request.tool === "camera_get") {
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  if (request.tool === "camera_save") {
+    const slot = stringFromValue(payload["slot"]) ?? "default";
+    const state = cameraState(entity);
+    savedCameraStates.set(slot, state);
+
+    return { ok: true, result: { slot, state } };
+  }
+
+  if (request.tool === "camera_restore") {
+    const slot = stringFromValue(payload["slot"]) ?? "default";
+    const state = savedCameraStates.get(slot);
+
+    if (state === undefined) {
+      return {
+        ok: false,
+        diagnostics: [
+          {
+            code: "aperture.camera.savedStateMissing",
+            severity: "error",
+            message: `No saved camera state exists in slot '${slot}'.`,
+            data: { slot },
+            suggestedFix: "Call camera_save before camera_restore.",
+          },
+        ],
+      };
+    }
+
+    restoreCameraState(entity, state);
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  if (request.tool === "camera_set_transform") {
+    setCameraTransform(entity, payload);
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  if (request.tool === "camera_look_at") {
+    const translation = tuple3FromValue(payload["translation"]) ??
+      cameraState(entity).localTransform?.translation ?? [0, 1.5, 5];
+    const target = tuple3FromValue(payload["target"]) ?? [0, 0, 0];
+    setCameraTransform(entity, {
+      translation,
+      rotation: quatLookAt(translation, target),
+    });
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  if (request.tool === "camera_orbit" || request.tool === "camera_fit_entity") {
+    const target = cameraOrbitTarget(app.lowLevel.world, payload);
+    const radius = numberFromValue(payload["radius"]) ?? 5;
+    const yaw = degreesToRadians(numberFromValue(payload["yawDegrees"]) ?? 35);
+    const pitch = degreesToRadians(
+      numberFromValue(payload["pitchDegrees"]) ?? 20,
+    );
+    const translation = orbitPosition(target, radius, yaw, pitch);
+
+    setCameraTransform(entity, {
+      translation,
+      rotation: quatLookAt(translation, target),
+    });
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  if (request.tool === "camera_use_agent_view") {
+    entity.setValue(Camera, "priority", 10_000);
+    entity.setValue(Camera, "renderTargetId", "");
+    entity.getVectorView(Camera, "viewport").set([0, 0, 1, 1]);
+    entity.getVectorView(Camera, "scissor").set([0, 0, 1, 1]);
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  return {
+    ok: false,
+    diagnostics: [
+      {
+        code: "aperture.camera.unsupportedTool",
+        severity: "error",
+        message: `Unsupported camera tool '${request.tool}'.`,
+        data: { tool: request.tool },
+        suggestedFix: "Use one of the registered Aperture camera tools.",
+      },
+    ],
+  };
+}
+
+function createComponentSchemaReport(
+  world: EcsWorld,
+  payload: unknown,
+): {
+  readonly schemas: readonly {
+    readonly id: string;
+    readonly description?: string;
+    readonly fields: Readonly<Record<string, unknown>>;
+  }[];
+  readonly diagnostics: readonly ApertureEntityLookupDiagnostic[];
+} {
+  const requested = stringFromValue(
+    isRecord(payload) ? (payload["component"] ?? payload["id"]) : undefined,
+  );
+  const components = new Map<
+    string,
+    {
+      readonly id: string;
+      readonly description?: string;
+      readonly fields: Readonly<Record<string, unknown>>;
+    }
+  >();
+
+  for (const entity of world.queryManager.registerQuery({ required: [] })
+    .entities) {
+    for (const component of entity.getComponents()) {
+      if (requested !== undefined && component.id !== requested) {
+        continue;
+      }
+
+      components.set(component.id, {
+        id: component.id,
+        ...(typeof component.description === "string" &&
+        component.description.length > 0
+          ? { description: component.description }
+          : {}),
+        fields: jsonSafeValue(component.schema) as Readonly<
+          Record<string, unknown>
+        >,
+      });
+    }
+  }
+
+  const schemas = [...components.values()].sort((a, b) =>
+    a.id.localeCompare(b.id),
+  );
+  const diagnostics: ApertureEntityLookupDiagnostic[] =
+    requested !== undefined && schemas.length === 0
+      ? [
+          {
+            code: "aperture.devtools.componentSchemaNotFound",
+            severity: "error",
+            message: `No active component schema was found for '${requested}'.`,
+            data: { component: requested },
+            suggestedFix:
+              "Check the component id or inspect an entity that currently has the component.",
+          },
+        ]
+      : [];
+
+  return { schemas, diagnostics };
+}
+
+function cameraEntities(world: EcsWorld): Entity[] {
+  return [...world.queryManager.registerQuery({ required: [Camera] }).entities]
+    .filter((entity) => entity.active)
+    .sort((a, b) => a.index - b.index || a.generation - b.generation);
+}
+
+function cameraEntityByKey(world: EcsWorld, key: string): Entity | null {
+  return (
+    cameraEntities(world).find(
+      (entity) =>
+        entity.hasComponent(AppEntityKey) &&
+        entity.getValue(AppEntityKey, "value") === key,
+    ) ?? null
+  );
+}
+
+function resolveCameraEntity(
+  world: EcsWorld,
+  payload: Record<string, unknown>,
+): Entity | null {
+  const key = stringFromValue(payload["key"]);
+  if (key !== undefined) {
+    return cameraEntityByKey(world, key);
+  }
+
+  const ref = entityRefFromValue(payload["entity"] ?? payload);
+  if (ref !== null) {
+    const entity = world.entityManager.getEntityByIndex(ref.index);
+    return entity !== null &&
+      entity.active &&
+      entity.generation === ref.generation &&
+      entity.hasComponent(Camera)
+      ? entity
+      : null;
+  }
+
+  return cameraEntities(world)[0] ?? null;
+}
+
+function cameraSummary(entity: Entity): Readonly<Record<string, unknown>> {
+  return {
+    entity: { index: entity.index, generation: entity.generation },
+    key: entity.hasComponent(AppEntityKey)
+      ? entity.getValue(AppEntityKey, "value")
+      : null,
+    name: entity.hasComponent(Name)
+      ? entity.getValue(Name, "value")
+      : `Camera ${entity.index}`,
+    camera: cameraComponentState(entity),
+    localTransform: entity.hasComponent(LocalTransform)
+      ? {
+          translation: tuple3FromView(
+            entity.getVectorView(LocalTransform, "translation"),
+          ),
+          rotation: tuple4FromView(
+            entity.getVectorView(LocalTransform, "rotation"),
+          ),
+          scale: tuple3FromView(entity.getVectorView(LocalTransform, "scale")),
+        }
+      : null,
+    worldTransform: entity.hasComponent(WorldTransform)
+      ? {
+          col0: tuple4FromView(entity.getVectorView(WorldTransform, "col0")),
+          col1: tuple4FromView(entity.getVectorView(WorldTransform, "col1")),
+          col2: tuple4FromView(entity.getVectorView(WorldTransform, "col2")),
+          col3: tuple4FromView(entity.getVectorView(WorldTransform, "col3")),
+        }
+      : null,
+  };
+}
+
+function cameraState(entity: Entity): CameraToolState {
+  return {
+    entity: { index: entity.index, generation: entity.generation },
+    camera: cameraComponentState(entity),
+    localTransform: entity.hasComponent(LocalTransform)
+      ? {
+          translation: tuple3FromView(
+            entity.getVectorView(LocalTransform, "translation"),
+          ),
+          rotation: tuple4FromView(
+            entity.getVectorView(LocalTransform, "rotation"),
+          ),
+          scale: tuple3FromView(entity.getVectorView(LocalTransform, "scale")),
+        }
+      : null,
+  };
+}
+
+function cameraComponentState(
+  entity: Entity,
+): Readonly<Record<string, unknown>> {
+  const fields: Record<string, unknown> = {};
+
+  for (const field of Object.keys(Camera.schema)) {
+    if (field === "viewport" || field === "scissor" || field === "clearColor") {
+      fields[field] = tuple4FromView(
+        entity.getVectorView(Camera, field as "viewport"),
+      );
+      continue;
+    }
+
+    fields[field] = entity.getValue(Camera, field as never);
+  }
+
+  return fields;
+}
+
+function restoreCameraState(entity: Entity, state: CameraToolState): void {
+  for (const [field, value] of Object.entries(state.camera)) {
+    if (field === "viewport" || field === "scissor" || field === "clearColor") {
+      if (Array.isArray(value)) {
+        entity.getVectorView(Camera, field as "viewport").set(value);
+      }
+      continue;
+    }
+
+    entity.setValue(Camera, field as never, value as never);
+  }
+
+  if (state.localTransform !== null) {
+    setCameraTransform(entity, state.localTransform);
+  }
+}
+
+function setCameraTransform(
+  entity: Entity,
+  payload: Record<string, unknown>,
+): void {
+  if (!entity.hasComponent(LocalTransform)) {
+    entity.addComponent(LocalTransform);
+  }
+
+  const translation = tuple3FromValue(payload["translation"]);
+  const rotation = tuple4FromValue(payload["rotation"]);
+  const scale = tuple3FromValue(payload["scale"]);
+
+  if (translation !== null) {
+    entity.getVectorView(LocalTransform, "translation").set(translation);
+  }
+  if (rotation !== null) {
+    entity.getVectorView(LocalTransform, "rotation").set(rotation);
+  }
+  if (scale !== null) {
+    entity.getVectorView(LocalTransform, "scale").set(scale);
+  }
+}
+
+function cameraOrbitTarget(
+  world: EcsWorld,
+  payload: Record<string, unknown>,
+): readonly [number, number, number] {
+  const explicit = tuple3FromValue(payload["target"]);
+  if (explicit !== null) {
+    return explicit;
+  }
+
+  const entity = entityRefFromValue(payload["entity"]);
+  if (entity !== null) {
+    const target = world.entityManager.getEntityByIndex(entity.index);
+    if (
+      target !== null &&
+      target.active &&
+      target.generation === entity.generation &&
+      target.hasComponent(WorldTransform)
+    ) {
+      const col3 = target.getVectorView(WorldTransform, "col3");
+      return [col3[0] ?? 0, col3[1] ?? 0, col3[2] ?? 0];
+    }
+  }
+
+  return [0, 0, 0];
+}
+
+function orbitPosition(
+  target: readonly [number, number, number],
+  radius: number,
+  yaw: number,
+  pitch: number,
+): readonly [number, number, number] {
+  const clampedRadius = Math.max(0.1, radius);
+  const x = target[0] + clampedRadius * Math.cos(pitch) * Math.sin(yaw);
+  const y = target[1] + clampedRadius * Math.sin(pitch);
+  const z = target[2] + clampedRadius * Math.cos(pitch) * Math.cos(yaw);
+
+  return [x, y, z];
+}
+
+function quatLookAt(
+  eye: readonly [number, number, number],
+  target: readonly [number, number, number],
+): readonly [number, number, number, number] {
+  const dx = target[0] - eye[0];
+  const dy = target[1] - eye[1];
+  const dz = target[2] - eye[2];
+  const yaw = Math.atan2(dx, dz);
+  const distance = Math.max(0.0001, Math.hypot(dx, dz));
+  const pitch = -Math.atan2(dy, distance);
+
+  return quatFromEuler(pitch, yaw, 0);
+}
+
+function quatFromEuler(
+  x: number,
+  y: number,
+  z: number,
+): readonly [number, number, number, number] {
+  const sx = Math.sin(x / 2);
+  const cx = Math.cos(x / 2);
+  const sy = Math.sin(y / 2);
+  const cy = Math.cos(y / 2);
+  const sz = Math.sin(z / 2);
+  const cz = Math.cos(z / 2);
+
+  return [
+    sx * cy * cz + cx * sy * sz,
+    cx * sy * cz - sx * cy * sz,
+    cx * cy * sz + sx * sy * cz,
+    cx * cy * cz - sx * sy * sz,
+  ];
+}
+
+function tuple3FromValue(
+  value: unknown,
+): readonly [number, number, number] | null {
+  return Array.isArray(value) &&
+    value.length === 3 &&
+    value.every((entry) => typeof entry === "number" && Number.isFinite(entry))
+    ? [value[0] as number, value[1] as number, value[2] as number]
+    : null;
+}
+
+function tuple4FromValue(
+  value: unknown,
+): readonly [number, number, number, number] | null {
+  return Array.isArray(value) &&
+    value.length === 4 &&
+    value.every((entry) => typeof entry === "number" && Number.isFinite(entry))
+    ? [
+        value[0] as number,
+        value[1] as number,
+        value[2] as number,
+        value[3] as number,
+      ]
+    : null;
+}
+
+function tuple3FromView(
+  view: ArrayLike<number>,
+): readonly [number, number, number] {
+  return [view[0] ?? 0, view[1] ?? 0, view[2] ?? 0];
+}
+
+function tuple4FromView(
+  view: ArrayLike<number>,
+): readonly [number, number, number, number] {
+  return [view[0] ?? 0, view[1] ?? 0, view[2] ?? 0, view[3] ?? 0];
+}
+
+function jsonSafeRecord(value: unknown): Readonly<Record<string, unknown>> {
+  const safe = jsonSafeValue(value);
+  return isRecord(safe) ? safe : {};
+}
+
+function degreesToRadians(degrees: number): number {
+  return (degrees * Math.PI) / 180;
 }
 
 function findQueryFromPayload(
@@ -710,6 +1598,10 @@ function stringArrayFromValue(value: unknown): readonly string[] | undefined {
 
 function numberFromValue(value: unknown): number | undefined {
   return Number.isFinite(value) ? (value as number) : undefined;
+}
+
+function booleanFromValue(value: unknown): boolean | undefined {
+  return typeof value === "boolean" ? value : undefined;
 }
 
 function jsonSafeValue(value: unknown): unknown {
