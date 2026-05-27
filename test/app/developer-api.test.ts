@@ -60,8 +60,10 @@ import {
   signal,
 } from "@aperture-engine/app/config";
 import {
+  APERTURE_VITE_DEVTOOLS_WS_CHANNEL,
   aperture as apertureFromVitePlugin,
   createApertureSystemManifest,
+  type ApertureViteDevServer,
 } from "@aperture-engine/vite-plugin";
 import developerHeadlessConfig from "../../examples/developer-api/aperture.headless.config.js";
 import SetupSystem from "../../examples/developer-api/src/systems/setup.system.js";
@@ -142,6 +144,111 @@ describe("developer-facing app API", () => {
     expect(disabledModule).toContain(
       "const apertureDevtoolsEnabled = false && import.meta.env.DEV;",
     );
+  });
+
+  it("registers a dev websocket bridge and writes AI session metadata in serve mode", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "aperture-vite-ai-"));
+
+    try {
+      let listening = false;
+      const callbacks: {
+        listening?: () => void;
+        bridge?: Parameters<NonNullable<ApertureViteDevServer["ws"]["on"]>>[1];
+      } = {};
+      const sentMessages: unknown[] = [];
+      const server = {
+        config: {
+          root,
+          server: { host: "127.0.0.1", port: 5199 },
+        },
+        httpServer: {
+          address() {
+            return listening
+              ? ({ address: "127.0.0.1", family: "IPv4", port: 5199 } as const)
+              : null;
+          },
+          once(event, listener) {
+            if (event === "listening") {
+              callbacks.listening = listener;
+            }
+          },
+        },
+        ws: {
+          on(event, listener) {
+            if (event === APERTURE_VITE_DEVTOOLS_WS_CHANNEL) {
+              callbacks.bridge = listener;
+            }
+          },
+        },
+      } satisfies ApertureViteDevServer;
+      const plugin = apertureFromVitePlugin({ ai: { mode: "agent" } });
+
+      plugin.configResolved?.({
+        root,
+        command: "serve",
+        server: { host: "127.0.0.1", port: 5199 },
+      });
+      await plugin.configureServer?.(server);
+      expect(callbacks.bridge).toBeDefined();
+      expect(callbacks.listening).toBeDefined();
+
+      if (callbacks.bridge === undefined || callbacks.listening === undefined) {
+        throw new Error("Aperture Vite dev bridge test server was not wired.");
+      }
+
+      listening = true;
+      callbacks.listening();
+
+      const session = JSON.parse(
+        await readEventually(path.join(root, ".aperture/runtime/session.json")),
+      ) as {
+        readonly protocolVersion: number;
+        readonly appRoot: string;
+        readonly url: string;
+        readonly server: { readonly state: string };
+        readonly browser: { readonly state: string };
+        readonly bridge: {
+          readonly url: string;
+          readonly channel: string;
+          readonly runtimeGlobal: string;
+        };
+        readonly owned: boolean;
+      };
+
+      callbacks.bridge(
+        {},
+        {
+          send(_event: string, payload: unknown) {
+            sentMessages.push(payload);
+          },
+        },
+      );
+
+      expect(session).toMatchObject({
+        protocolVersion: 1,
+        appRoot: root,
+        url: "http://127.0.0.1:5199/",
+        server: { state: "running" },
+        browser: { state: "unknown" },
+        bridge: {
+          url: "ws://127.0.0.1:5199/",
+          channel: APERTURE_VITE_DEVTOOLS_WS_CHANNEL,
+          runtimeGlobal: "__APERTURE_MCP_RUNTIME__",
+        },
+        owned: false,
+      });
+      expect(sentMessages).toEqual([
+        expect.objectContaining({
+          ok: true,
+          protocolVersion: 1,
+          bridge: expect.objectContaining({
+            channel: APERTURE_VITE_DEVTOOLS_WS_CHANNEL,
+          }),
+        }),
+      ]);
+    } finally {
+      await rm(root, { force: true, recursive: true });
+    }
   });
 
   it("reads generated browser status through the typed browser helper", () => {
@@ -1782,4 +1889,20 @@ function readRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null
     ? (value as Record<string, unknown>)
     : null;
+}
+
+async function readEventually(file: string): Promise<string> {
+  const deadline = Date.now() + 1000;
+  let lastError: unknown;
+
+  while (Date.now() < deadline) {
+    try {
+      return await readFile(file, "utf8");
+    } catch (error: unknown) {
+      lastError = error;
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }

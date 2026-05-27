@@ -4,6 +4,10 @@ import path from "node:path";
 export const APERTURE_DEVTOOLS_PROTOCOL_VERSION = 1;
 export const APERTURE_RUNTIME_DIRECTORY = ".aperture/runtime";
 export const APERTURE_SESSION_FILE = "session.json";
+export const APERTURE_DEVTOOLS_WS_CHANNEL = "aperture:devtools";
+export const APERTURE_STATUS_GLOBAL = "__APERTURE_GENERATED_APP__";
+export const APERTURE_MCP_MANAGED_GLOBAL = "__APERTURE_MCP_MANAGED__";
+export const APERTURE_MCP_RUNTIME_GLOBAL = "__APERTURE_MCP_RUNTIME__";
 
 export type ApertureProcessState =
   | "starting"
@@ -30,8 +34,11 @@ export interface ApertureDevSessionBrowser extends ApertureDevSessionProcess {
 }
 
 export interface ApertureDevSessionBridge {
-  readonly statusGlobal: "__APERTURE_GENERATED_APP__";
-  readonly managedGlobal: "__APERTURE_MCP_MANAGED__";
+  readonly statusGlobal: typeof APERTURE_STATUS_GLOBAL;
+  readonly managedGlobal: typeof APERTURE_MCP_MANAGED_GLOBAL;
+  readonly runtimeGlobal?: typeof APERTURE_MCP_RUNTIME_GLOBAL;
+  readonly url?: string | null;
+  readonly channel?: typeof APERTURE_DEVTOOLS_WS_CHANNEL;
 }
 
 export interface ApertureDevSession {
@@ -130,6 +137,7 @@ export function createApertureDevSession(input: {
   readonly browserState: ApertureProcessState;
   readonly logs: ApertureDevSessionLogFiles;
   readonly startedAt?: string;
+  readonly bridgeUrl?: string | null;
 }): ApertureDevSession {
   const now = new Date().toISOString();
   const cdpUrl =
@@ -161,8 +169,11 @@ export function createApertureDevSession(input: {
       headless: input.browserHeadless,
     },
     bridge: {
-      statusGlobal: "__APERTURE_GENERATED_APP__",
-      managedGlobal: "__APERTURE_MCP_MANAGED__",
+      statusGlobal: APERTURE_STATUS_GLOBAL,
+      managedGlobal: APERTURE_MCP_MANAGED_GLOBAL,
+      runtimeGlobal: APERTURE_MCP_RUNTIME_GLOBAL,
+      url: input.bridgeUrl ?? `ws://${input.host}:${input.port}/`,
+      channel: APERTURE_DEVTOOLS_WS_CHANNEL,
     },
     logs: input.logs,
     owned: true,
