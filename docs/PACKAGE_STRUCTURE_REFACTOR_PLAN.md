@@ -170,6 +170,11 @@ Status: in progress
 - StandardMaterial shader variant helpers are further split into focused
   utility, declaration, binding, and label modules, with
   `standard-shader-variant.ts` kept as the import-path barrel.
+- StandardMaterial vertex buffer layout constants, dynamic mesh-layout parsing,
+  and skinning attribute format selection now live in
+  `packages/webgpu/src/materials/standard/standard-vertex-layout.ts`, while
+  `standard-pipeline.ts` focuses on shader creation, render-state descriptors,
+  pipeline creation, and diagnostics.
 - StandardMaterial prepared texture dependency contracts and cache-key helpers
   now live in
   `packages/webgpu/src/materials/standard/prepared-standard-material-dependencies.ts`,

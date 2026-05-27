@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-27T23:07:03Z
+Updated: 2026-05-27T23:09:42Z
+
+## Current Run Update — 2026-05-27T23:09:42Z — Standard vertex layout split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 3.
+
+### What changed
+
+- Extracted StandardMaterial vertex buffer layout constants, dynamic
+  mesh-layout parsing, vertex feature detection, and skinning attribute format
+  selection from `packages/webgpu/src/materials/standard/standard-pipeline.ts`
+  into `packages/webgpu/src/materials/standard/standard-vertex-layout.ts`.
+- `standard-pipeline.ts` preserves the previous public layout exports and is
+  now roughly 298 lines, focused on shader creation, render-state descriptors,
+  pipeline creation, and diagnostics.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/webgpu/src/materials/standard/standard-pipeline.ts packages/webgpu/src/materials/standard/standard-vertex-layout.ts`
+- `pnpm exec prettier --check packages/webgpu/src/materials/standard/standard-pipeline.ts packages/webgpu/src/materials/standard/standard-vertex-layout.ts`
+- `pnpm exec vitest run test/webgpu/standard-pipeline.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-shader.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 3 still has large StandardMaterial files to split, especially
+  `prepared-standard-material-cache.ts` and
+  `standard-material-shadow-bind-group.ts`. `standard-area-light-ltc-data.ts`
+  is large static LUT data and is not a good split candidate by itself.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this extraction; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 3 by splitting descriptor/report helpers from
+`standard-material-shadow-bind-group.ts` or cache implementation helpers from
+`prepared-standard-material-cache.ts`.
 
 ## Current Run Update — 2026-05-27T23:07:03Z — Standard shader variant helper split
 
