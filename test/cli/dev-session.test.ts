@@ -1,3 +1,4 @@
+import { spawn } from "node:child_process";
 import { PassThrough } from "node:stream";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import net from "node:net";
@@ -8,10 +9,13 @@ import {
   apertureRuntimeDir,
   callApertureTool,
   createApertureDevSession,
+  isProcessAlive,
   readApertureDevSession,
   resolveApertureDevServerPort,
   runApertureCli,
   runApertureMcpServer,
+  startApertureDevSession,
+  stopApertureDevSession,
   writeApertureDevSession,
 } from "@aperture-engine/cli";
 
@@ -196,6 +200,65 @@ describe("Aperture CLI dev session and MCP command surface", () => {
     });
   });
 
+  it("restarts stale managed sessions instead of reusing a live daemon with a dead browser", async () => {
+    const root = await tempRoot();
+    const runtimeDir = apertureRuntimeDir(root);
+    const daemonLog = path.join(runtimeDir, "daemon.log");
+    const serverLog = path.join(runtimeDir, "server.log");
+    const browserLog = path.join(runtimeDir, "browser.log");
+    const staleDaemon = spawn(
+      process.execPath,
+      ["-e", "setInterval(() => {}, 1000);"],
+      {
+        stdio: "ignore",
+      },
+    );
+
+    try {
+      await mkdir(runtimeDir, { recursive: true });
+      await writeApertureDevSession(
+        createApertureDevSession({
+          appRoot: root,
+          url: "http://127.0.0.1:5173/",
+          host: "127.0.0.1",
+          port: 5173,
+          daemonPid: staleDaemon.pid ?? null,
+          serverPid: null,
+          browserPid: 9,
+          browserCdpPort: 6173,
+          browserHeadless: true,
+          daemonState: "running",
+          serverState: "running",
+          browserState: "running",
+          logs: {
+            daemon: daemonLog,
+            server: serverLog,
+            browser: browserLog,
+          },
+        }),
+      );
+
+      const entryPoint = await fakeDevDaemonEntryPoint(root);
+      const report = await startApertureDevSession({
+        cwd: root,
+        entryPoint,
+        port: 5188,
+        headless: true,
+        timeoutMs: 5_000,
+      });
+
+      expect(report.reused).toBe(false);
+      expect(report.session.port).toBe(5188);
+      expect(report.session.daemon.pid).not.toBe(staleDaemon.pid ?? null);
+      expect(isProcessAlive(staleDaemon.pid ?? null)).toBe(false);
+    } finally {
+      if (isProcessAlive(staleDaemon.pid ?? null)) {
+        staleDaemon.kill("SIGTERM");
+      }
+      await stopApertureDevSession({ cwd: root });
+    }
+  });
+
   it("prints dev and mcp help", async () => {
     const root = await tempRoot();
     const dev = await runCli(["dev", "--help"], root);
@@ -240,6 +303,64 @@ async function tempRoot(): Promise<string> {
   const root = await mkdtemp(path.join(os.tmpdir(), "aperture-dev-cli-"));
   tempRoots.push(root);
   return root;
+}
+
+async function fakeDevDaemonEntryPoint(root: string): Promise<string> {
+  const entryPoint = path.join(root, "fake-aperture-daemon.cjs");
+
+  await writeFile(
+    entryPoint,
+    `const fs = require("node:fs");
+const path = require("node:path");
+
+const option = (name, fallback) => {
+  const index = process.argv.indexOf(name);
+  return index === -1 ? fallback : process.argv[index + 1] ?? fallback;
+};
+const appRoot = process.cwd();
+const host = option("--host", "127.0.0.1");
+const port = Number(option("--port", "5173"));
+const now = new Date().toISOString();
+const runtimeDir = path.join(appRoot, ".aperture", "runtime");
+
+fs.mkdirSync(runtimeDir, { recursive: true });
+fs.writeFileSync(path.join(runtimeDir, "session.json"), JSON.stringify({
+  protocolVersion: 1,
+  appRoot,
+  url: \`http://\${host}:\${port}/\`,
+  host,
+  port,
+  startedAt: now,
+  updatedAt: now,
+  daemon: { pid: process.pid, state: "running" },
+  server: { pid: null, state: "running" },
+  browser: {
+    pid: null,
+    state: "running",
+    cdpPort: null,
+    cdpUrl: null,
+    headless: true,
+  },
+  bridge: {
+    statusGlobal: "__APERTURE_GENERATED_APP__",
+    managedGlobal: "__APERTURE_MCP_MANAGED__",
+    runtimeGlobal: "__APERTURE_MCP_RUNTIME__",
+    url: \`ws://\${host}:\${port}/\`,
+    channel: "aperture:devtools",
+  },
+  logs: {
+    daemon: path.join(runtimeDir, "daemon.log"),
+    server: path.join(runtimeDir, "server.log"),
+    browser: path.join(runtimeDir, "browser.log"),
+  },
+  owned: true,
+}, null, 2) + "\\n", "utf8");
+setInterval(() => {}, 1000);
+`,
+    "utf8",
+  );
+
+  return entryPoint;
 }
 
 async function listenOnEphemeralPort(

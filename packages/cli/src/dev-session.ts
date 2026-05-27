@@ -87,11 +87,20 @@ export async function startApertureDevSession(
   const appRoot = path.resolve(options.cwd);
   const status = await readApertureDevSessionStatus(appRoot);
 
-  if (status.session !== null && status.daemonAlive) {
+  if (
+    status.session !== null &&
+    status.daemonAlive &&
+    status.serverAlive &&
+    status.browserAlive
+  ) {
     return { session: status.session, reused: true };
   }
 
-  await clearApertureDevSession(appRoot);
+  if (status.session !== null) {
+    await stopApertureDevSession({ cwd: appRoot });
+  } else {
+    await clearApertureDevSession(appRoot);
+  }
   const host = options.host ?? DEFAULT_HOST;
   const port = options.port ?? DEFAULT_PORT;
   const args = [
