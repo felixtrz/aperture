@@ -5,7 +5,7 @@ import net from "node:net";
 import os from "node:os";
 import { promisify } from "node:util";
 import path from "node:path";
-import { expect, test } from "@playwright/test";
+import { chromium, expect, test, type Page } from "@playwright/test";
 
 const execFileAsync = promisify(execFile);
 const CLI = path.resolve("packages/cli/dist/bin/aperture.js");
@@ -77,6 +77,26 @@ test("Aperture CLI manages a browser session and exposes browser/ECS tools over 
     expect(consoleLogs.structuredContent).toMatchObject({
       ok: true,
       logs: expect.any(String),
+    });
+
+    await withManagedPage(APP_ROOT, async (page) => {
+      await page.evaluate(() => {
+        delete (globalThis as unknown as Record<string, unknown>)[
+          "__APERTURE_MCP_RUNTIME__"
+        ];
+      });
+    });
+    const missingRuntime = await callMcpTool("ecs_find_entities", {
+      key: "level.crate.primary",
+    });
+    expect(missingRuntime.structuredContent).toMatchObject({
+      ok: false,
+      result: null,
+      diagnostics: [
+        {
+          code: "aperture.devtools.runtimeMissing",
+        },
+      ],
     });
 
     const reload = await callMcpTool("browser_reload", {});
@@ -1392,6 +1412,43 @@ async function disableWebGpuInIndexHtml(appRoot: string): Promise<void> {
     html.replace("</body>", `  ${disableScript}\n</body>`),
     "utf8",
   );
+}
+
+async function withManagedPage(
+  cwd: string,
+  callback: (page: Page) => Promise<void>,
+): Promise<void> {
+  const session = JSON.parse(
+    await readFile(path.join(cwd, ".aperture/runtime/session.json"), "utf8"),
+  ) as {
+    readonly url?: string;
+    readonly browser?: {
+      readonly cdpUrl?: string | null;
+    };
+  };
+  const cdpUrl = session.browser?.cdpUrl;
+
+  if (typeof cdpUrl !== "string" || cdpUrl.length === 0) {
+    throw new Error("Managed Aperture session does not expose a CDP URL.");
+  }
+
+  const browser = await chromium.connectOverCDP(cdpUrl);
+
+  try {
+    const pages = browser.contexts().flatMap((context) => context.pages());
+    const page =
+      pages.find((candidate) =>
+        candidate.url().startsWith(session.url ?? ""),
+      ) ?? pages[0];
+
+    if (page === undefined) {
+      throw new Error("Managed Aperture browser does not have an open page.");
+    }
+
+    await callback(page);
+  } finally {
+    await browser.close();
+  }
 }
 
 async function runCli(
