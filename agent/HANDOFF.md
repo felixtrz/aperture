@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-28T06:58:50Z
+Updated: 2026-05-28T07:05:08Z
+
+## Current Run Update — 2026-05-28T07:05:08Z — GLB container chunk scanning split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split GLB chunk scanning, chunk metadata creation, JSON/BIN byte extraction,
+  duplicate chunk diagnostics, out-of-bounds checks, and unknown chunk warnings
+  from `packages/render/src/assets/glb-container.ts` into
+  `packages/render/src/assets/glb-container-chunks.ts`.
+- Kept `glb-container.ts` focused on header validation, missing JSON handling,
+  JSON UTF-8/object parsing, and final container assembly.
+- Updated the package-structure plan and public progress tracker to reflect the
+  new GLB parser module boundary.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/glb-container.ts packages/render/src/assets/glb-container-chunks.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/glb-container.ts packages/render/src/assets/glb-container-chunks.ts`
+- `pnpm exec prettier --check packages/render/src/assets/glb-container.ts packages/render/src/assets/glb-container-chunks.ts`
+- `pnpm exec vitest run test/assets/glb-container.test.ts test/assets/glb-uri-loader.test.ts test/assets/glb-source-loader-facade.test.ts test/assets/glb-source-loader-output-summary.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/draco-decoder.test.ts test/assets/meshopt-decoder.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include final `extraction-meshes.ts` tightening,
+  plus medium render/material/asset modules still near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by finishing the remaining extraction mesh tightening or
+splitting the next medium render asset/material hotspot.
 
 ## Current Run Update — 2026-05-28T06:58:50Z — prepared material resource split
 

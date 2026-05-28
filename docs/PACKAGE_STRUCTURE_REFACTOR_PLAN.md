@@ -543,9 +543,10 @@ Status: in progress
   in `extraction-mesh-submeshes.ts`, leaving `extraction-meshes.ts` focused on
   entity traversal, cache reuse/writeback, culling, and per-entity mesh data
   extraction.
-- GLB container public contracts/constants, diagnostic builders, and byte/JSON
-  helpers now live in focused `glb-container-*` asset modules, leaving
-  `glb-container.ts` focused on `parseGlbContainer` orchestration.
+- GLB container public contracts/constants, diagnostic builders, chunk
+  scanning, and byte/JSON helpers now live in focused `glb-container-*` asset
+  modules, leaving `glb-container.ts` focused on `parseGlbContainer`
+  orchestration.
 - Radiance HDR RGBE public contracts, URI fetch handling, parser coordination,
   header parsing, pixel decoding, RGBE-to-float conversion, and diagnostic
   construction now live in focused `hdr-rgbe-*` asset modules, leaving
