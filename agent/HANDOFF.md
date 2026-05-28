@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T10:24:07Z
+Updated: 2026-05-28T10:29:02Z
+
+## Current Run Update — 2026-05-28T10:29:02Z — app worker entity tools split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 6.
+
+### What changed
+
+- Split generated simulation worker ECS entity tools into
+  `packages/app/src/worker-entity-tools.ts`.
+- Moved command/devtools find/get/mutate/snapshot/diff/hierarchy/component-schema
+  handling and entity reference payload parsing out of `worker.ts`.
+- Reduced `packages/app/src/worker.ts` from 1,807 lines to 1,168 lines while
+  keeping generated worker startup, command routing, camera tools, input tools,
+  and snapshot publishing in place.
+
+### Validation
+
+- `pnpm exec prettier --write packages/app/src/worker.ts packages/app/src/worker-entity-tools.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec eslint packages/app/src/worker.ts packages/app/src/worker-entity-tools.ts packages/app/src/worker-payload.ts`
+- `pnpm exec prettier --check packages/app/src/worker.ts packages/app/src/worker-entity-tools.ts packages/app/src/worker-payload.ts`
+- `pnpm exec vitest run test/runtime/simulation-worker.test.ts test/app/developer-api.test.ts test/index.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- `packages/app/src/worker.ts` is still large and should be split next around
+  generated camera/devtools tools, input devtools tools, and/or worker command
+  routing.
+- `packages/app/src/browser.ts` is now much smaller but still owns startup,
+  status/mirroring, and canvas-resize orchestration.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 6 by splitting generated worker camera/devtools tools or worker
+command routing.
 
 ## Current Run Update — 2026-05-28T10:24:07Z — app worker payload split
 

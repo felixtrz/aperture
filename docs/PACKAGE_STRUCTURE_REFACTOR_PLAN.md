@@ -512,6 +512,11 @@ Status: in progress
   tuple parsing, gamepad payload normalization, and common value guards now
   live in `packages/app/src/worker-payload.ts`, keeping `worker.ts` focused on
   worker startup, command routing, and tool orchestration.
+- Generated simulation worker ECS entity tools now live in
+  `packages/app/src/worker-entity-tools.ts`, covering command/devtools
+  find/get/mutate/snapshot/diff/hierarchy/component-schema handling and entity
+  reference payload parsing while `worker.ts` keeps the generated worker loop
+  and non-ECS tool orchestration.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
