@@ -1,6 +1,39 @@
 # Agent Handoff
 
-Updated: 2026-05-28T00:27:38Z
+Updated: 2026-05-28T00:29:49Z
+
+## Current Run Update — 2026-05-28T00:29:49Z — glTF mesh tangent helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted generated tangent math and tangent-generation diagnostics into
+  `packages/render/src/assets/gltf-mesh-tangents.ts`.
+- `packages/render/src/assets/gltf-mesh-asset-construction.ts` is now roughly
+  893 lines and focuses on mesh asset assembly.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/gltf-mesh-asset-construction.ts packages/render/src/assets/gltf-mesh-tangents.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-mesh-asset-construction.ts packages/render/src/assets/gltf-mesh-tangents.ts`
+- `pnpm exec vitest run test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-report-driven-import.ts`,
+  `authoring.ts`, and `snapshot-packed-encoding.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting `packages/render/src/assets/gltf-report-driven-import.ts`
+or render authoring/snapshot packing.
 
 ## Current Run Update — 2026-05-28T00:27:38Z — glTF material texture helper split
 

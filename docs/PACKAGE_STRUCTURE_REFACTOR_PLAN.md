@@ -304,6 +304,9 @@ Status: in progress
   `packages/render/src/materials/gltf-material-textures.ts` and
   `packages/render/src/materials/gltf-material-utils.ts`, leaving
   `gltf-material.ts` focused on material asset assembly.
+- glTF mesh generated tangent math and tangent-generation diagnostics now live
+  in `packages/render/src/assets/gltf-mesh-tangents.ts`, leaving
+  `gltf-mesh-asset-construction.ts` focused on mesh asset assembly.
 
 ## Purpose
 
