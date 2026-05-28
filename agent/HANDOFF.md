@@ -1,6 +1,52 @@
 # Agent Handoff
 
-Updated: 2026-05-28T05:45:27Z
+Updated: 2026-05-28T05:48:11Z
+
+## Current Run Update — 2026-05-28T05:48:11Z — packed snapshot codec utility split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split packed snapshot binary word/entity/vector helpers into
+  `packages/render/src/rendering/snapshot-packed-binary-utils.ts`.
+- Split render queue, light kind, area-light shape, and topology id/value
+  codecs into `packages/render/src/rendering/snapshot-packed-id-codecs.ts`.
+- Split mesh draw packed batch flags into
+  `packages/render/src/rendering/snapshot-packed-batch-flags.ts`.
+- Split packed snapshot handle readers and handle-kind assertions into
+  `packages/render/src/rendering/snapshot-packed-handle-utils.ts`.
+- Kept `packages/render/src/rendering/snapshot-packed-codec-utils.ts` as the
+  stable utility re-export facade used by packet codecs.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/snapshot-packed-codec-utils.ts packages/render/src/rendering/snapshot-packed-binary-utils.ts packages/render/src/rendering/snapshot-packed-id-codecs.ts packages/render/src/rendering/snapshot-packed-batch-flags.ts packages/render/src/rendering/snapshot-packed-handle-utils.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/snapshot-packed-codec-utils.ts packages/render/src/rendering/snapshot-packed-binary-utils.ts packages/render/src/rendering/snapshot-packed-id-codecs.ts packages/render/src/rendering/snapshot-packed-batch-flags.ts packages/render/src/rendering/snapshot-packed-handle-utils.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/snapshot-packed-codec-utils.ts packages/render/src/rendering/snapshot-packed-binary-utils.ts packages/render/src/rendering/snapshot-packed-id-codecs.ts packages/render/src/rendering/snapshot-packed-batch-flags.ts packages/render/src/rendering/snapshot-packed-handle-utils.ts`
+- `pnpm exec vitest run test/rendering/snapshot-packed-encoding.test.ts test/rendering/snapshot-change-set.test.ts test/rendering/snapshot.test.ts test/runtime/simulation-worker.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-uri-external-fetch.ts`,
+  `glb-uri-external-fetch.ts`, `gltf-primitive-material-resolution.ts`,
+  `extraction-meshes.ts`, `draco-mesh-data.ts`,
+  `gltf-accessor-validation-primitives.ts`, and
+  `snapshot-packed-encoding.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining URI external fetch, glTF
+primitive material resolution, extraction mesh, Draco mesh-data, accessor
+validation primitive, or snapshot packed encoding modules.
 
 ## Current Run Update — 2026-05-28T05:45:27Z — snapshot change-set split
 

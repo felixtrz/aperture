@@ -332,6 +332,9 @@ Status: in progress
   `snapshot-packed-codecs.ts` remains the stable re-export facade, leaving
   `snapshot-packed-encoding.ts` focused on header validation plus high-level
   encode/decode orchestration.
+- Packed render snapshot codec utilities are split into binary word helpers,
+  enum/id codecs, mesh batch flags, and handle readers, with
+  `snapshot-packed-codec-utils.ts` kept as the stable utility re-export facade.
 - glTF texture decoded-image resolver normalization now lives in
   `packages/render/src/materials/gltf-texture-resolution.ts`, keeping
   `gltf-texture.ts` focused on texture/source/sampler mapping and asset report
