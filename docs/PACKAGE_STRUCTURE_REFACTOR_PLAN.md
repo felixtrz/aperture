@@ -586,6 +586,9 @@ Status: in progress
 - CLI RAG ingestion source allowlists, ignored-directory policy, selected
   dependency files, and source-category classification now live in
   `packages/cli/src/reference-source-filter.ts`.
+- CLI reference text tokenization, hashed embedding generation, vector
+  normalization, token aliases, and cosine scoring now live in
+  `packages/cli/src/reference-embedding.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

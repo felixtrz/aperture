@@ -1,6 +1,43 @@
 # Agent Handoff
 
-Updated: 2026-05-28T11:40:49Z
+Updated: 2026-05-28T11:46:53Z
+
+## Current Run Update — 2026-05-28T11:46:53Z — CLI reference embedding split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 8.
+
+### What changed
+
+- Split reference text tokenization, hashed embedding generation, vector
+  normalization, token aliases, and cosine scoring into
+  `packages/cli/src/reference-embedding.ts`.
+- Preserved the existing embedding/search behavior through
+  `packages/cli/src/reference.ts`.
+- Reduced `packages/cli/src/reference.ts` from 2360 lines to 2265 lines.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm exec eslint packages/cli/src/reference.ts packages/cli/src/reference-embedding.ts packages/cli/src/reference-source-filter.ts packages/cli/src/reference-tools.ts packages/cli/src/reference-paths.ts packages/cli/src/mcp.ts packages/cli/src/devtools-reference-tools.ts`
+- `pnpm exec prettier --check packages/cli/src/reference.ts packages/cli/src/reference-embedding.ts packages/cli/src/reference-source-filter.ts packages/cli/src/reference-tools.ts packages/cli/src/reference-paths.ts packages/cli/src/mcp.ts packages/cli/src/devtools-reference-tools.ts`
+- `pnpm exec vitest run test/cli/reference.test.ts test/cli/create.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- `packages/cli/src/reference.ts` remains large at 2265 lines and still mixes
+  source collection, chunking, warm/status IO, and query facades.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 8 by splitting reference source collection/export discovery or
+chunking/metadata extraction out of `reference.ts`.
 
 ## Current Run Update — 2026-05-28T11:40:49Z — CLI reference source filter split
 
