@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T09:55:15Z
+Updated: 2026-05-28T09:57:49Z
+
+## Current Run Update — 2026-05-28T09:57:49Z — app entity lookup summary split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 6.
+
+### What changed
+
+- Split app entity lookup ECS-to-summary projection, active-entity collection,
+  reference validation, stable ref keys, and JSON-safe value projection into
+  `packages/app/src/entity-lookup-summary.ts`.
+- Kept lookup behavior and public exports unchanged.
+- Reduced `packages/app/src/entity-lookup.ts` from 851 lines to 676 lines,
+  leaving hierarchy, find/query, snapshot diffing, and mutation behavior as the
+  remaining broad areas.
+
+### Validation
+
+- `pnpm exec prettier --write packages/app/src/entity-lookup.ts packages/app/src/entity-lookup-summary.ts packages/app/src/entity-lookup-types.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec eslint packages/app/src/entity-lookup.ts packages/app/src/entity-lookup-summary.ts packages/app/src/entity-lookup-types.ts`
+- `pnpm exec prettier --check packages/app/src/entity-lookup.ts packages/app/src/entity-lookup-summary.ts packages/app/src/entity-lookup-types.ts`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts test/index.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 6 still needs focused app modules for generated browser/worker
+  bootstrapping and remaining entity lookup behavior.
+- Remaining large app files include `worker.ts`, `browser.ts`, and the still
+  broad `entity-lookup.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 6 by splitting entity lookup hierarchy/query/snapshot behavior
+or generated browser/worker bootstrapping.
 
 ## Current Run Update — 2026-05-28T09:55:15Z — app entity lookup contract split
 

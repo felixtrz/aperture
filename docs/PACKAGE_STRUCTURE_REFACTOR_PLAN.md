@@ -478,6 +478,9 @@ Status: in progress
 - App entity lookup public query/report/snapshot/hierarchy/mutation contracts
   now live in `packages/app/src/entity-lookup-types.ts`, preserving existing
   public exports through `entity-lookup.ts`.
+- App entity lookup ECS-to-summary projection, active-entity collection,
+  reference validation, stable ref keys, and JSON-safe value projection now live
+  in `packages/app/src/entity-lookup-summary.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
