@@ -1,6 +1,43 @@
 # Agent Handoff
 
-Updated: 2026-05-28T01:08:45Z
+Updated: 2026-05-28T01:15:59Z
+
+## Current Run Update — 2026-05-28T01:15:59Z — glTF accessor validation split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF accessor validation public/internal contracts into
+  `packages/render/src/assets/gltf-accessor-validation-types.ts`.
+- Extracted accessor semantic format expectations, buffer/bufferView bounds
+  validation, diagnostic attachment, and shared field/diagnostic-value helpers
+  into focused `gltf-accessor-validation-*` asset modules.
+- `packages/render/src/assets/gltf-accessor-validation.ts` is now roughly 420
+  lines and remains the validation/report facade for primitive accessor plans.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/gltf-accessor-validation.ts packages/render/src/assets/gltf-accessor-validation-types.ts packages/render/src/assets/gltf-accessor-validation-utils.ts packages/render/src/assets/gltf-accessor-validation-expectations.ts packages/render/src/assets/gltf-accessor-validation-buffers.ts packages/render/src/assets/gltf-accessor-validation-diagnostics.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-accessor-validation.ts packages/render/src/assets/gltf-accessor-validation-types.ts packages/render/src/assets/gltf-accessor-validation-utils.ts packages/render/src/assets/gltf-accessor-validation-expectations.ts packages/render/src/assets/gltf-accessor-validation-buffers.ts packages/render/src/assets/gltf-accessor-validation-diagnostics.ts`
+- `pnpm exec vitest run test/assets/gltf-accessor-validation.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/gltf-mesh-asset-construction.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `preparation.ts`, `gltf-material.ts`,
+  `gltf-scene-traversal.ts`, `ktx2-decoder.ts`, `glb-uri-images.ts`, and
+  `gltf-uri-fetch.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting render asset preparation or glTF material
+assembly.
 
 ## Current Run Update — 2026-05-28T01:08:45Z — transform pack guard split
 

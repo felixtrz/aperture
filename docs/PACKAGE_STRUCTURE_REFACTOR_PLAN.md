@@ -340,6 +340,10 @@ Status: in progress
   helpers now live in `packages/render/src/rendering/transform-pack-guards.ts`,
   keeping `transform-pack.ts` focused on scratch/result allocation and packing
   writers.
+- glTF accessor validation public contracts, semantic format expectations,
+  buffer/bufferView bounds checks, diagnostic attachment, and shared field
+  guards now live in focused `gltf-accessor-validation-*` asset modules,
+  keeping `gltf-accessor-validation.ts` as the validation/report facade.
 
 ## Purpose
 
