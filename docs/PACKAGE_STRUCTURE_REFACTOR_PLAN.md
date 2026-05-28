@@ -520,6 +520,10 @@ Status: in progress
   vertex/index buffer assembly, and merged submesh range construction now live
   in focused `mesh-merge-*` rendering modules, leaving `mesh-merge.ts` focused
   on batch merge orchestration and final mesh report assembly.
+- Snapshot view-uniform scratch writing plus camera-position,
+  previous-view-projection, matrix range, and fog uniform writers now live in
+  focused `view-pack-*` rendering modules, leaving `view-pack.ts` focused on
+  allocation-based view uniform packing and public exports.
 
 ## Purpose
 

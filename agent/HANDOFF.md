@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T04:56:08Z
+Updated: 2026-05-28T05:00:41Z
+
+## Current Run Update — 2026-05-28T05:00:41Z — view-pack writer split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split scratch-buffer view uniform writing into
+  `packages/render/src/rendering/view-pack-write.ts`.
+- Split matrix range checks, previous-view-projection copying, camera-position
+  derivation, fog selection, and fog uniform writing into
+  `packages/render/src/rendering/view-pack-writers.ts`.
+- Kept `packages/render/src/rendering/view-pack.ts` focused on
+  allocation-based view uniform packing and public view-pack exports.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/view-pack.ts packages/render/src/rendering/view-pack-write.ts packages/render/src/rendering/view-pack-writers.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/view-pack.ts packages/render/src/rendering/view-pack-write.ts packages/render/src/rendering/view-pack-writers.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/view-pack.ts packages/render/src/rendering/view-pack-write.ts packages/render/src/rendering/view-pack-writers.ts`
+- `pnpm exec vitest run test/rendering/view-pack.test.ts test/webgpu/view-uniform-buffer.test.ts test/webgpu/view-uniform-buffer-resource.test.ts test/webgpu/unlit-frame-resources.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `glb-uri-loader.ts`,
+  `gltf-material-textures.ts`, `gltf-mesh-asset-vertex-streams.ts`,
+  `hdr-rgbe-parser.ts`, `snapshot.ts`, `gltf-scene-import-contract.ts`,
+  `custom-wgsl-material-preparation.ts`, and `standard-sampler-fidelity.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining GLB loader, material
+texture, mesh asset, HDR parser, snapshot, scene import contract, custom WGSL,
+or sampler fidelity modules.
 
 ## Current Run Update — 2026-05-28T04:56:08Z — mesh merge validation and assembly split
 
