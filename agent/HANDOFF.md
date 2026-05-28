@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T02:21:43Z
+Updated: 2026-05-28T02:27:23Z
+
+## Current Run Update — 2026-05-28T02:27:23Z — glTF source registration helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF source asset registration contracts into
+  `packages/render/src/assets/gltf-source-registration-types.ts`.
+- Extracted report JSON projection/result shaping into
+  `packages/render/src/assets/gltf-source-registration-report.ts`.
+- Extracted material dependency discovery, planned sampler/texture matching,
+  mapping diagnostic conversion, and planned material handle-id helpers into
+  `packages/render/src/assets/gltf-source-registration-dependencies.ts`.
+- Extracted invalid-root, duplicate, and skipped registration diagnostics into
+  `packages/render/src/assets/gltf-source-registration-skips.ts`.
+- `packages/render/src/assets/gltf-source-registration.ts` is now roughly 314
+  lines and remains focused on texture/sampler/material registry writes.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/gltf-source-registration.ts packages/render/src/assets/gltf-source-registration-types.ts packages/render/src/assets/gltf-source-registration-report.ts packages/render/src/assets/gltf-source-registration-dependencies.ts packages/render/src/assets/gltf-source-registration-skips.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-source-registration.ts packages/render/src/assets/gltf-source-registration-types.ts packages/render/src/assets/gltf-source-registration-report.ts packages/render/src/assets/gltf-source-registration-dependencies.ts packages/render/src/assets/gltf-source-registration-skips.ts`
+- `pnpm exec vitest run test/assets/gltf-source-registration.test.ts test/assets/gltf-source-registration-json.test.ts test/assets/gltf-source-registration-dependencies.test.ts test/assets/gltf-source-registration-orchestration.test.ts test/assets/gltf-source-registration-orchestration-json.test.ts test/assets/gltf-primitive-material-resolution.test.ts test/assets/gltf-combined-import-fixture.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `snapshot-packed-codecs.ts`, `render-queue.ts`, `gltf-mesh-primitive.ts`,
+  `mesh/primitives.ts`, `mesh-merge.ts`, and mesh/source asset construction
+  helpers.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining decoder, queue, mesh, or
+source-asset construction helper modules.
 
 ## Current Run Update — 2026-05-28T02:21:43Z — glTF ECS command planning helper split
 

@@ -394,6 +394,11 @@ Status: in progress
   `gltf-ecs-authoring-command-plan-entities.ts` and
   `gltf-ecs-authoring-command-plan-primitives.ts`, leaving the command-plan
   facade as compact traversal orchestration.
+- glTF source asset registration public contracts, report JSON projection,
+  material dependency discovery, planned-handle helpers, and skipped/duplicate
+  diagnostics now live in focused `gltf-source-registration-*` asset modules,
+  leaving `gltf-source-registration.ts` focused on texture/sampler/material
+  registry writes.
 
 ## Purpose
 
