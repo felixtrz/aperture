@@ -4,7 +4,7 @@ import {
   type GltfSamplerMappingDiagnostic,
   type GltfSamplerSource,
 } from "./gltf-sampler.js";
-import type { GltfMaterialTextureSlot } from "./gltf-material.js";
+import type { GltfMaterialTextureSlot } from "./gltf-material-types.js";
 import type {
   SamplerAsset,
   TextureAsset,

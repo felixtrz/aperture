@@ -4,7 +4,7 @@ import type {
   GltfMaterialTextureBindingResolverDiagnostic,
   GltfMaterialTextureBindingResolverResult,
   GltfMaterialTextureSlot,
-} from "./gltf-material.js";
+} from "./gltf-material-types.js";
 import type {
   MaterialTextureBinding,
   MaterialTextureTransform,
