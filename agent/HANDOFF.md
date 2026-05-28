@@ -1,6 +1,42 @@
 # Agent Handoff
 
-Updated: 2026-05-28T00:38:42Z
+Updated: 2026-05-28T00:45:26Z
+
+## Current Run Update — 2026-05-28T00:45:26Z — render authoring split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split render authoring enums/input types, ECS component definitions,
+  creation helpers, validation helpers, and small tuple/rectangle utilities
+  into focused `packages/render/src/rendering/authoring-*.ts` modules.
+- `packages/render/src/rendering/authoring.ts` is now roughly 56 lines and
+  remains the stable public facade plus `registerRenderAuthoringComponents`
+  entry point.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/rendering/authoring.ts packages/render/src/rendering/authoring-types.ts packages/render/src/rendering/authoring-utils.ts packages/render/src/rendering/authoring-components.ts packages/render/src/rendering/authoring-create.ts packages/render/src/rendering/authoring-validation.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/authoring.ts packages/render/src/rendering/authoring-types.ts packages/render/src/rendering/authoring-utils.ts packages/render/src/rendering/authoring-components.ts packages/render/src/rendering/authoring-create.ts packages/render/src/rendering/authoring-validation.ts`
+- `pnpm exec vitest run test/rendering/components.test.ts test/rendering/extraction.test.ts test/runtime/runtime.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `snapshot-packed-encoding.ts`,
+  `gltf-mesh-primitive.ts`, `mesh/primitives.ts`, `transform-pack.ts`, and
+  `gltf-accessor-validation.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting snapshot packed encoding or one of the remaining
+glTF/mesh helper modules.
 
 ## Current Run Update — 2026-05-28T00:38:42Z — glTF report import helper split
 

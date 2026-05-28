@@ -311,6 +311,10 @@ Status: in progress
   Draco primitive decoding, and GLB buffer-source resolution now live in
   focused `gltf-report-driven-import-*` asset modules, leaving
   `gltf-report-driven-import.ts` as the import/report orchestration facade.
+- Render authoring types/enums, component definitions, creation helpers, and
+  validation helpers now live in focused `authoring-*` rendering modules,
+  leaving `authoring.ts` as the stable public facade and component registration
+  entry point.
 
 ## Purpose
 
