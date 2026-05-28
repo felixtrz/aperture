@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-28T15:56:12Z
+Updated: 2026-05-28T16:01:57Z
+
+## Current Run Update — 2026-05-28T16:01:57Z — CLI create/template split
+
+Continued `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Kept `packages/cli/src/create-project.ts` as the public facade for
+  `createApertureProject()` and create option/report types.
+- Moved create orchestration into `packages/cli/src/create/project.ts`.
+- Split target validation, package-name/dependency metadata, shared starter
+  files, template file helpers, minimal template strings, GLB viewer template
+  strings, game template strings, and the embedded sample GLB payload under
+  `packages/cli/src/create/`.
+- Recorded Track 9 progress in `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md` and
+  `docs/index.html`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm exec prettier --write packages/cli/src/create-project.ts packages/cli/src/create/project.ts packages/cli/src/create/types.ts packages/cli/src/create/target.ts packages/cli/src/create/package-json.ts packages/cli/src/create/templates/files.ts packages/cli/src/create/templates/shared.ts packages/cli/src/create/templates/sample-cube.ts packages/cli/src/create/templates/minimal.ts packages/cli/src/create/templates/glb-viewer.ts packages/cli/src/create/templates/game.ts packages/cli/src/create/templates/index.ts docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md docs/index.html`
+- `pnpm exec eslint packages/cli/src/create-project.ts packages/cli/src/create/project.ts packages/cli/src/create/types.ts packages/cli/src/create/target.ts packages/cli/src/create/package-json.ts packages/cli/src/create/templates/files.ts packages/cli/src/create/templates/shared.ts packages/cli/src/create/templates/sample-cube.ts packages/cli/src/create/templates/minimal.ts packages/cli/src/create/templates/glb-viewer.ts packages/cli/src/create/templates/game.ts packages/cli/src/create/templates/index.ts`
+- `pnpm exec vitest run test/cli/create.test.ts test/index.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- CLI dev session/browser Track 10 remains.
+- CLI tool client Track 11 remains.
+- CLI reference folder completion Track 12 remains.
+- Export/boundary guard Track 13 remains.
+
+### Recommended next task
+
+Continue with Track 10 CLI dev session and browser folder split.
 
 ## Current Run Update — 2026-05-28T15:56:12Z — CLI command folder split
 
