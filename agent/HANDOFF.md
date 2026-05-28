@@ -1,6 +1,42 @@
 # Agent Handoff
 
-Updated: 2026-05-28T00:45:26Z
+Updated: 2026-05-28T00:52:20Z
+
+## Current Run Update — 2026-05-28T00:52:20Z — snapshot packed encoding split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted packed snapshot string/handle registry management into
+  `packages/render/src/rendering/snapshot-packed-registry.ts`.
+- Extracted per-packet binary codecs and codec-local enum/handle mapping
+  helpers into `packages/render/src/rendering/snapshot-packed-codecs.ts`.
+- `packages/render/src/rendering/snapshot-packed-encoding.ts` is now roughly
+  317 lines and focuses on public constants, header validation, and high-level
+  encode/decode orchestration.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/rendering/snapshot-packed-encoding.ts packages/render/src/rendering/snapshot-packed-registry.ts packages/render/src/rendering/snapshot-packed-codecs.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/snapshot-packed-encoding.ts packages/render/src/rendering/snapshot-packed-registry.ts packages/render/src/rendering/snapshot-packed-codecs.ts`
+- `pnpm exec vitest run test/rendering/snapshot-packed-encoding.test.ts test/rendering/extraction.test.ts test/webgpu/fixtures/ecs-snapshot-render-frame.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-mesh-primitive.ts`,
+  `mesh/primitives.ts`, `gltf-mesh-asset-construction.ts`,
+  `transform-pack.ts`, and `gltf-accessor-validation.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining glTF/mesh helper modules.
 
 ## Current Run Update — 2026-05-28T00:45:26Z — render authoring split
 

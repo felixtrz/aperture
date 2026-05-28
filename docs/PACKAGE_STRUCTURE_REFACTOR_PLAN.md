@@ -315,6 +315,10 @@ Status: in progress
   validation helpers now live in focused `authoring-*` rendering modules,
   leaving `authoring.ts` as the stable public facade and component registration
   entry point.
+- Packed render snapshot packet registry management and per-packet binary
+  codecs now live in `snapshot-packed-registry.ts` and
+  `snapshot-packed-codecs.ts`, leaving `snapshot-packed-encoding.ts` focused on
+  header validation plus high-level encode/decode orchestration.
 
 ## Purpose
 
