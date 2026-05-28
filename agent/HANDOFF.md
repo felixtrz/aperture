@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-28T02:17:05Z
+Updated: 2026-05-28T02:21:43Z
+
+## Current Run Update — 2026-05-28T02:21:43Z — glTF ECS command planning helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF ECS entity command construction, transform defaults,
+  scene-label/result helpers, and skipped-ancestor diagnostics into
+  `packages/render/src/assets/gltf-ecs-authoring-command-plan-entities.ts`.
+- Extracted primitive mesh/material readiness, primitive entity command
+  planning, skipped primitive diagnostics, and mesh/material asset-id helpers
+  into
+  `packages/render/src/assets/gltf-ecs-authoring-command-plan-primitives.ts`.
+- `packages/render/src/assets/gltf-ecs-authoring-command-plan.ts` is now
+  roughly 134 lines and remains the traversal orchestration facade.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/gltf-ecs-authoring-command-plan.ts packages/render/src/assets/gltf-ecs-authoring-command-plan-entities.ts packages/render/src/assets/gltf-ecs-authoring-command-plan-primitives.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-ecs-authoring-command-plan.ts packages/render/src/assets/gltf-ecs-authoring-command-plan-entities.ts packages/render/src/assets/gltf-ecs-authoring-command-plan-primitives.ts`
+- `pnpm exec vitest run test/assets/gltf-ecs-authoring-command-plan.test.ts test/assets/gltf-ecs-authoring-command-plan-json.test.ts test/assets/gltf-ecs-command-replay.test.ts test/assets/gltf-combined-import-fixture.test.ts test/assets/glb-source-loader-output-summary.test.ts test/runtime/runtime.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `snapshot-packed-codecs.ts`, `render-queue.ts`, `gltf-mesh-primitive.ts`,
+  `mesh/primitives.ts`, `mesh-merge.ts`, and `gltf-source-registration.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining decoder, queue, mesh, or
+source-registration helper modules.
 
 ## Current Run Update — 2026-05-28T02:17:05Z — glTF ECS command-plan contract split
 

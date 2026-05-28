@@ -388,6 +388,12 @@ Status: in progress
   now live in focused `gltf-ecs-authoring-command-plan-*` asset modules,
   keeping `gltf-ecs-authoring-command-plan.ts` focused on command planning and
   orchestration.
+- glTF ECS authoring entity command helpers, local/world transform defaults,
+  skipped-node diagnostics, primitive mesh/material readiness, and primitive
+  command construction now live in focused
+  `gltf-ecs-authoring-command-plan-entities.ts` and
+  `gltf-ecs-authoring-command-plan-primitives.ts`, leaving the command-plan
+  facade as compact traversal orchestration.
 
 ## Purpose
 
