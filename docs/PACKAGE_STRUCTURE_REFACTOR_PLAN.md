@@ -427,6 +427,10 @@ Status: in progress
   merged-bounds calculation now live in focused `mesh-merge-*` rendering
   modules, leaving `mesh-merge.ts` focused on batch merge orchestration and
   merged stream/index/submesh assembly.
+- Material queue public contracts, scratch/pool allocation, deterministic
+  ordering, family parsing, and phase/family summary generation now live in
+  focused `material-queue-*` rendering modules, leaving `material-queue.ts`
+  focused on snapshot-to-queue planning and missing-resource diagnostics.
 
 ## Purpose
 

@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-28T03:07:48Z
+Updated: 2026-05-28T03:12:36Z
+
+## Current Run Update — 2026-05-28T03:12:36Z — material queue module split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split material queue public contracts and mutable scratch contracts into
+  `packages/render/src/rendering/material-queue-types.ts`.
+- Split material queue scratch/pool allocation into
+  `packages/render/src/rendering/material-queue-scratch.ts`.
+- Split deterministic material queue ordering, phase rank, string ordering,
+  and material-family pipeline-key parsing into
+  `packages/render/src/rendering/material-queue-ordering.ts`.
+- Split phase/family summary generation into
+  `packages/render/src/rendering/material-queue-summary.ts`.
+- Kept `packages/render/src/rendering/material-queue.ts` as the stable public
+  facade and snapshot-to-queue planning surface.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/rendering/material-queue.ts packages/render/src/rendering/material-queue-types.ts packages/render/src/rendering/material-queue-scratch.ts packages/render/src/rendering/material-queue-ordering.ts packages/render/src/rendering/material-queue-summary.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/material-queue.ts packages/render/src/rendering/material-queue-types.ts packages/render/src/rendering/material-queue-scratch.ts packages/render/src/rendering/material-queue-ordering.ts packages/render/src/rendering/material-queue-summary.ts`
+- `pnpm exec vitest run test/rendering/material-queue.test.ts test/webgpu/app-diagnostics-summary.test.ts test/rendering/render-queue.test.ts`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `hdr-rgbe-loader.ts`, mesh asset construction helpers, scene import
+  contracts, asset mapping/report-driven import helpers, and view/transform
+  packing facades.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting a scene import/mapping helper, mesh asset
+construction helper, or one of the remaining decoder modules.
 
 ## Current Run Update — 2026-05-28T03:07:48Z — mesh merge helper split
 

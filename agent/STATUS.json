@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "bd74d0f1",
+  "lastCommit": "6ab4ddb3",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting mesh merge contracts, bounds calculation, and shared data/material helpers into focused rendering modules after the render queue and primitive factory splits; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T03:07:48Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting material queue contracts, scratch pooling, ordering, family parsing, and summaries into focused rendering modules after the render queue, primitive factory, and mesh merge splits; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T03:12:36Z"
 }
