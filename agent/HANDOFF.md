@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-28T01:38:53Z
+Updated: 2026-05-28T01:44:18Z
+
+## Current Run Update — 2026-05-28T01:44:18Z — GLB URI image helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted GLB image decode cache-key construction and KTX2 transcoder
+  selection into `packages/render/src/assets/glb-uri-image-cache.ts`.
+- Extracted image source resolution, external/bufferView byte lookup, MIME
+  support checks, status URI/source-kind helpers, and byte-length helpers into
+  `packages/render/src/assets/glb-uri-image-sources.ts`.
+- Extracted decoded-image merging, merged image-data resolver creation, empty
+  decoded-image results, concurrency mapping, and concurrency normalization
+  into `packages/render/src/assets/glb-uri-image-merge.ts`.
+- `packages/render/src/assets/glb-uri-images.ts` is now roughly 279 lines and
+  remains the external GLB image decode orchestration facade.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/glb-uri-images.ts packages/render/src/assets/glb-uri-image-cache.ts packages/render/src/assets/glb-uri-image-sources.ts packages/render/src/assets/glb-uri-image-merge.ts`
+- `pnpm exec prettier --check packages/render/src/assets/glb-uri-images.ts packages/render/src/assets/glb-uri-image-cache.ts packages/render/src/assets/glb-uri-image-sources.ts packages/render/src/assets/glb-uri-image-merge.ts`
+- `pnpm exec vitest run test/assets/glb-uri-loader.test.ts test/assets/glb-source-loader-facade.test.ts test/assets/glb-source-loader-output-summary.test.ts test/materials/gltf-texture.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `gltf-uri-fetch.ts`,
+  `snapshot-packed-codecs.ts`, `render-queue.ts`,
+  `standard-texture-readiness.ts`, and `gltf-ecs-authoring-command-plan.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining URI/decoder asset helpers.
 
 ## Current Run Update — 2026-05-28T01:38:53Z — glTF texture mapping split
 

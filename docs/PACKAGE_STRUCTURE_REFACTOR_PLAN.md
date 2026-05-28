@@ -360,6 +360,10 @@ Status: in progress
   mapping, texture asset/report construction, and result shaping now live in
   focused `gltf-texture-*` material modules, keeping `gltf-texture.ts` as the
   sync/async texture mapping facade.
+- GLB URI image decode cache/transcoder selection, image source/byte
+  resolution, and decoded-image merge/concurrency helpers now live in focused
+  `glb-uri-image-*` asset modules, keeping `glb-uri-images.ts` as the decode
+  orchestration facade.
 
 ## Purpose
 
