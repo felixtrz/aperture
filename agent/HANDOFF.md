@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-28T15:53:40Z
+Updated: 2026-05-28T15:56:12Z
+
+## Current Run Update — 2026-05-28T15:56:12Z — CLI command folder split
+
+Continued `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Moved CLI command parsing/help/output modules into
+  `packages/cli/src/commands/`.
+- Kept `packages/cli/src/cli.ts` as the public router and shared top-level
+  error handler.
+- Preserved create, dev, tool, MCP, reference, and adapter command names, help
+  text, backend delegation, and output shapes.
+- Recorded Track 8 progress in `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md` and
+  `docs/index.html`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm exec prettier --write packages/cli/src/cli.ts packages/cli/src/commands/adapter.ts packages/cli/src/commands/create.ts packages/cli/src/commands/dev.ts packages/cli/src/commands/mcp.ts packages/cli/src/commands/reference.ts packages/cli/src/commands/tool.ts docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md docs/index.html`
+- `pnpm exec eslint packages/cli/src/cli.ts packages/cli/src/commands/adapter.ts packages/cli/src/commands/create.ts packages/cli/src/commands/dev.ts packages/cli/src/commands/mcp.ts packages/cli/src/commands/reference.ts packages/cli/src/commands/tool.ts`
+- `pnpm exec vitest run test/cli/create.test.ts test/cli/dev-session.test.ts test/cli/reference.test.ts test/index.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- CLI create/template Track 9 remains.
+- CLI dev session/browser Track 10 remains.
+- CLI tool client Track 11 remains.
+- CLI reference folder completion Track 12 remains.
+- Export/boundary guard Track 13 remains.
+
+### Recommended next task
+
+Continue with Track 9 CLI create folder and templates split.
 
 ## Current Run Update — 2026-05-28T15:53:40Z — App worker runtime split
 

@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "56fb4e39",
+  "lastCommit": "761425cb",
   "activePid": null,
-  "notes": "Advanced APP_CLI_STRUCTURE_REFACTOR_PLAN Track 7 by moving generated worker bootstrap internals into packages/app/src/worker/ and splitting port attachment, run loop, snapshot publication, source-asset serialization, asset summaries, command handling, viewport resize handling, payload parsing, and devtools bridge/tool modules while preserving @aperture-engine/app/worker; app typecheck, targeted app tests, typecheck:test, boundaries, build, progress check, focused lint/format, diff check, and a headless developer-api browser smoke passed.",
-  "lastRunFinishedAt": "2026-05-28T15:53:40Z"
+  "notes": "Advanced APP_CLI_STRUCTURE_REFACTOR_PLAN Track 8 by moving CLI create, dev, tool, MCP, reference, and adapter command wrappers into packages/cli/src/commands/ while preserving cli.ts as the public router and shared top-level error handler; CLI typecheck, targeted CLI tests, typecheck:test, boundaries, build, progress check, focused lint/format, and diff check passed.",
+  "lastRunFinishedAt": "2026-05-28T15:56:12Z"
 }
