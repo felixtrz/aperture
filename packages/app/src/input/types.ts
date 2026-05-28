@@ -1,5 +1,5 @@
 import type { Signal } from "@preact/signals-core";
-import type { GamepadButtonName } from "./config.js";
+import type { GamepadButtonName } from "../config.js";
 
 export type ApertureGeneratedPointerName = "primary" | "secondary" | "middle";
 export type InputActionKind = "button" | "axis1d" | "axis2d";

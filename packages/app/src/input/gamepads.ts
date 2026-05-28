@@ -1,4 +1,4 @@
-import type { GamepadButtonName } from "./config.js";
+import type { GamepadButtonName } from "../config.js";
 import type {
   ApertureGeneratedGamepadSnapshot,
   ApertureInputDiagnostic,
@@ -9,7 +9,7 @@ import type {
   StatefulGamepadStickState,
   StatefulGamepadsState,
   StatefulGamepadsSummary,
-} from "./input-state-types.js";
+} from "./types.js";
 
 export const DEFAULT_GAMEPAD_DEADZONE = 0.12;
 

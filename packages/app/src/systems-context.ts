@@ -4,7 +4,7 @@ import {
   createInputResource,
   type InputAction,
   type InputResourceBase,
-} from "./input-state.js";
+} from "./input/state.js";
 import {
   createSpatialQueries,
   type SpatialQueries,

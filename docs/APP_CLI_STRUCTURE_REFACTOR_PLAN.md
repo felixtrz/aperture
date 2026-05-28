@@ -1,7 +1,17 @@
 # App And CLI Structure Refactor Plan
 
 Date: 2026-05-28
-Status: proposed
+Status: in progress
+
+## Implementation Progress
+
+- Track 2 has started. App config implementation now lives under
+  `packages/app/src/config/`, with `packages/app/src/config.ts` kept as the
+  public `@aperture-engine/app/config` facade. Input event/resource state now
+  lives under `packages/app/src/input/`, with `packages/app/src/input.ts` kept
+  as a compatibility facade for generated input event helpers. The removed
+  top-level `config-*` and `input-state-*` implementation files no longer act
+  as implicit folders.
 
 ## Summary
 

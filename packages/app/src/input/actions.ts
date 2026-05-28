@@ -1,5 +1,5 @@
 import { signal as createSignal, type Signal } from "@preact/signals-core";
-import type { InputActionDescriptor } from "./config.js";
+import type { InputActionDescriptor } from "../config.js";
 import type {
   InputAction,
   InputAxis1dAction,
@@ -7,7 +7,7 @@ import type {
   InputButtonAction,
   InputButtonPressedSignal,
   InputVec2Like,
-} from "./input-state-types.js";
+} from "./types.js";
 
 export function createInputActions(
   descriptors: Record<string, InputActionDescriptor>,

@@ -2,7 +2,7 @@ import { signal as createSignal, type Signal } from "@preact/signals-core";
 import type {
   StatefulKeyboardState,
   StatefulKeyboardSummary,
-} from "./input-state-types.js";
+} from "./types.js";
 
 export function createStatefulKeyboardState(): StatefulKeyboardState {
   return new StatefulKeyboardStateImpl() as unknown as StatefulKeyboardState;

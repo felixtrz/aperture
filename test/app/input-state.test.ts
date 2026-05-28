@@ -13,7 +13,7 @@ import {
   advanceInputResource,
   createInputResource,
   createInputResourceSummary,
-} from "../../packages/app/src/input-state.js";
+} from "../../packages/app/src/input/state.js";
 
 declare module "@aperture-engine/app/systems" {
   interface ApertureGeneratedActionMap {

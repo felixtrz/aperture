@@ -9,16 +9,13 @@ import type {
   InputKeyboard2dBinding,
   KeyboardBinding,
   PointerBinding,
-} from "./config.js";
-import {
-  DEFAULT_GAMEPAD_DEADZONE,
-  applyGamepadDeadzone,
-} from "./input-state-gamepads.js";
+} from "../config.js";
+import { DEFAULT_GAMEPAD_DEADZONE, applyGamepadDeadzone } from "./gamepads.js";
 import type {
   InputVec2Like,
   StatefulGamepadsState,
   StatefulKeyboardState,
-} from "./input-state-types.js";
+} from "./types.js";
 
 export interface InputBindingResource {
   readonly keyboard: StatefulKeyboardState;

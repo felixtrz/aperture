@@ -1,7 +1,4 @@
-import type {
-  ApertureInputSummary,
-  InputResourceBase,
-} from "./input-state-types.js";
+import type { ApertureInputSummary, InputResourceBase } from "./types.js";
 
 export function createInputResourceSummary(
   input: InputResourceBase,

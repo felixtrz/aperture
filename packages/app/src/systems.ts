@@ -27,7 +27,7 @@ import type { SpatialQueries } from "./spatial-queries.js";
 import {
   type StatefulGamepadsState,
   type StatefulKeyboardState,
-} from "./input-state.js";
+} from "./input/state.js";
 import {
   createScheduledEffects,
   registerSystemEffects,
@@ -164,7 +164,7 @@ export type {
   StatefulGamepadStickState,
   StatefulKeyboardState,
   StatefulKeyboardSummary,
-} from "./input-state.js";
+} from "./input/state.js";
 
 export interface ApertureSystemInstance {
   readonly world: unknown;

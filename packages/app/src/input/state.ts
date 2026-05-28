@@ -4,29 +4,25 @@ import type {
   InputActionBinding,
   InputActionConfigEntry,
   InputActionDescriptor,
-} from "./config.js";
+} from "../config.js";
 import type {
   ApertureGeneratedInputEvent,
   ApertureGeneratedVirtualActionInputEvent,
   ApertureInputDiagnostic,
   InputAction,
   InputResourceBase,
-} from "./input-state-types.js";
+} from "./types.js";
 import {
   beginActionFrame,
   createInputActions,
   setAxis1dActionValue,
   setAxis2dActionValue,
   setButtonActionPressed,
-} from "./input-state-actions.js";
-import {
-  bindingAxis1d,
-  bindingAxis2d,
-  bindingPressed,
-} from "./input-state-bindings.js";
-import { createStatefulGamepadsState } from "./input-state-gamepads.js";
-import { createStatefulKeyboardState } from "./input-state-keyboard.js";
-export { createInputResourceSummary } from "./input-state-summary.js";
+} from "./actions.js";
+import { bindingAxis1d, bindingAxis2d, bindingPressed } from "./bindings.js";
+import { createStatefulGamepadsState } from "./gamepads.js";
+import { createStatefulKeyboardState } from "./keyboard.js";
+export { createInputResourceSummary } from "./summary.js";
 export type {
   ApertureGeneratedGamepadInputEvent,
   ApertureGeneratedGamepadSnapshot,
@@ -56,7 +52,7 @@ export type {
   StatefulGamepadsSummary,
   StatefulKeyboardState,
   StatefulKeyboardSummary,
-} from "./input-state-types.js";
+} from "./types.js";
 
 export function createInputResource(
   config: ApertureConfig | undefined,

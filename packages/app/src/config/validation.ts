@@ -1,4 +1,4 @@
-import { ApertureConfigError } from "./config-error.js";
+import { ApertureConfigError } from "./errors.js";
 import type {
   ApertureConfig,
   ApertureConfigAssetDescriptor,
@@ -9,7 +9,7 @@ import type {
   InputActionConfigEntry,
   InputActionDescriptor,
   PointerBinding,
-} from "./config.js";
+} from "./index.js";
 
 export function validateApertureConfig(config: ApertureConfig): void {
   if (config.mode !== "browser" && config.mode !== "headless") {
