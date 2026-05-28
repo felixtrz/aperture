@@ -281,6 +281,9 @@ Status: in progress
 - GLB URI fetch/cache/external-buffer/external-image fetching and same-origin
   URL helpers now live in `packages/render/src/assets/glb-uri-fetch.ts`,
   keeping URI fetch/error handling outside `glb-uri-loader.ts`.
+- GLB URI external fetch contracts, deduplicated byte fetching, and same-origin
+  URL resolution now live in focused `glb-uri-external-fetch-*` modules,
+  leaving `glb-uri-external-fetch.ts` as the public buffer/image fetch facade.
 - GLB image source resolution, decode caching, MIME/type helpers, decoded
   image merging, and image-data resolver helpers now live in
   `packages/render/src/assets/glb-uri-images.ts`, leaving `glb-uri-loader.ts`

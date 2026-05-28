@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-28T05:51:19Z
+Updated: 2026-05-28T05:54:41Z
+
+## Current Run Update — 2026-05-28T05:54:41Z — GLB URI external fetch split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split GLB external buffer/image fetch result and candidate contracts into
+  `packages/render/src/assets/glb-uri-external-fetch-types.ts`.
+- Split deduplicated external byte fetching and diagnostic index projection
+  into `packages/render/src/assets/glb-uri-external-fetch-dedupe.ts`.
+- Split same-origin buffer/image URL resolution and record guarding into
+  `packages/render/src/assets/glb-uri-external-fetch-resolve.ts`.
+- Kept `packages/render/src/assets/glb-uri-external-fetch.ts` as the stable
+  public buffer/image fetch facade used by the GLB URI loader/fetch paths,
+  including the existing empty-result helpers.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/glb-uri-external-fetch.ts packages/render/src/assets/glb-uri-external-fetch-types.ts packages/render/src/assets/glb-uri-external-fetch-dedupe.ts packages/render/src/assets/glb-uri-external-fetch-resolve.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/glb-uri-external-fetch.ts packages/render/src/assets/glb-uri-external-fetch-types.ts packages/render/src/assets/glb-uri-external-fetch-dedupe.ts packages/render/src/assets/glb-uri-external-fetch-resolve.ts`
+- `pnpm exec prettier --check packages/render/src/assets/glb-uri-external-fetch.ts packages/render/src/assets/glb-uri-external-fetch-types.ts packages/render/src/assets/glb-uri-external-fetch-dedupe.ts packages/render/src/assets/glb-uri-external-fetch-resolve.ts`
+- `pnpm exec vitest run test/assets/glb-uri-loader.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/gltf-source-loader-facade.test.ts test/assets/gltf-combined-import-fixture.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-primitive-material-resolution.ts`,
+  `extraction-meshes.ts`, `draco-mesh-data.ts`,
+  `gltf-accessor-validation-primitives.ts`, `snapshot-packed-encoding.ts`,
+  `draw-package.ts`, and `dependency-readiness.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining glTF primitive material
+resolution, extraction mesh, Draco mesh-data, accessor validation primitive,
+snapshot packed encoding, draw package, or dependency readiness modules.
 
 ## Current Run Update — 2026-05-28T05:51:19Z — glTF URI external fetch split
 
