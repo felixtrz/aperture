@@ -267,6 +267,10 @@ Status: in progress
   packing in `packages/render/src/rendering/extraction-packing.ts`.
 - Render extraction skinning and morph-target extraction helpers now live in
   `packages/render/src/rendering/extraction-mesh-deformation.ts`.
+- Render extraction per-instance packet helpers and material-slot/material
+  pipeline feature helpers now live in
+  `packages/render/src/rendering/extraction-mesh-instances.ts` and
+  `packages/render/src/rendering/extraction-mesh-materials.ts`.
 
 ## Purpose
 
