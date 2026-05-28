@@ -1,6 +1,52 @@
 # Agent Handoff
 
-Updated: 2026-05-28T12:01:55Z
+Updated: 2026-05-28T12:09:01Z
+
+## Current Run Update — 2026-05-28T12:09:01Z — WebGPU public export tightening
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 9.
+
+### What changed
+
+- Added `packages/webgpu/src/test-support.ts` and the
+  `@aperture-engine/webgpu/test-support` export-map entry for internal tests
+  that need the full backend surface.
+- Migrated internal WebGPU unit/e2e tests from the public root barrel to
+  `@aperture-engine/webgpu/test-support`.
+- Narrowed `packages/webgpu/src/index.ts` to the current app/example-facing
+  public surface, removing root re-exports of `@aperture-engine/simulation`,
+  `@aperture-engine/render`, and backend support modules that are only covered
+  through test support.
+- Verified the narrowed root still exports every WebGPU symbol currently used
+  by examples/docs after the examples' simulation/render/runtime imports are
+  accounted for.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/index.test.ts`
+- `pnpm exec eslint packages/webgpu/src/index.ts packages/webgpu/src/test-support.ts test/webgpu test/e2e`
+- `pnpm run build`
+- `pnpm run check:boundaries`
+- Example/docs WebGPU root export check: 165 currently used WebGPU symbols checked, 0 missing from the narrowed root barrel.
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 9 is materially advanced, but the root WebGPU surface is still broad
+  because current examples intentionally exercise low-level proof helpers.
+  Future slices can move examples toward higher-level public APIs and then
+  narrow the root barrel further.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 9 by documenting the intentional WebGPU public surface and
+adding a small export guard so accidental root-barrel expansion is caught.
 
 ## Current Run Update — 2026-05-28T12:01:55Z — CLI reference search split
 

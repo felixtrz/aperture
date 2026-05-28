@@ -598,6 +598,11 @@ Status: in progress
 - CLI reference semantic search scoring, source-category filtering, dependent
   lookup result shaping, snippet selection, and rounded score formatting now
   live in `packages/cli/src/reference-search.ts`.
+- Track 9 has started. Internal WebGPU tests now import the full backend
+  surface from `@aperture-engine/webgpu/test-support`, while
+  `packages/webgpu/src/index.ts` is narrowed to the app/example-facing public
+  surface and no longer re-exports `@aperture-engine/simulation`,
+  `@aperture-engine/render`, or every backend support module.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
