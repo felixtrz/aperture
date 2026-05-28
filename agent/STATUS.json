@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "c3e84af1",
+  "lastCommit": "1e6eaddb",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting generated glTF tangent accumulation, handedness calculation, and fallback tangent math into gltf-mesh-tangent-calculation.ts while keeping gltf-mesh-tangents.ts focused on eligibility, diagnostics, and decoded-accessor result shaping; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T07:09:15Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting light cookie validation, sampler/texture dependency checks, shadow setting validation, shadow-request construction, and unsupported shadow diagnostics into extraction-light-settings.ts while keeping extraction-lights.ts focused on light/environment packet emission; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T07:12:35Z"
 }

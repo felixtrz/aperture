@@ -249,8 +249,9 @@ Status: in progress
   `extraction.ts` focused on snapshot orchestration and packet assembly.
 - Render extraction light/environment/shadow packet assembly now lives in
   `packages/render/src/rendering/extraction-lights.ts`, with shared sorted
-  entity and transform-matrix helpers split into `extraction-entities.ts` and
-  `extraction-matrices.ts`.
+  entity, transform-matrix, shadow-setting, and light-cookie helpers split into
+  `extraction-entities.ts`, `extraction-matrices.ts`, and
+  `extraction-light-settings.ts`.
 - Render extraction sprite, skybox, and fog packet assembly now live in
   `packages/render/src/rendering/extraction-sprites.ts`,
   `packages/render/src/rendering/extraction-skyboxes.ts`, and
