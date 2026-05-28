@@ -501,6 +501,11 @@ Status: in progress
   texCoord diagnostics now live in focused `standard-texture-readiness-*`
   material modules, leaving `standard-texture-readiness.ts` as the public
   registry guard and report entry point.
+- glTF material unlit/standard asset construction, scalar/vector field
+  mapping, texture binding routing, transmission render-state adjustment, and
+  unsupported extension-field diagnostics now live in
+  `gltf-material-builders.ts`, leaving `gltf-material.ts` focused on material
+  root validation, extension source discovery, and report orchestration.
 
 ## Purpose
 

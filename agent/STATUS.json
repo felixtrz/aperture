@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "41a33826",
+  "lastCommit": "821beffe",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting StandardMaterial texture readiness traversal, dependency diagnostics, ready-texture slot assembly, semantic/color-space diagnostics, and texCoord diagnostics into focused material modules while preserving the public report entry point; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T04:38:05Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting glTF unlit/StandardMaterial asset construction, scalar/vector mapping, texture binding routing, transmission render-state adjustment, and unsupported extension-field diagnostics into a focused material builder module while preserving the public mapping entry point; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T04:42:54Z"
 }
