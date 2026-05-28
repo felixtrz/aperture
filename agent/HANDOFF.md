@@ -1,6 +1,52 @@
 # Agent Handoff
 
-Updated: 2026-05-28T05:26:41Z
+Updated: 2026-05-28T05:31:55Z
+
+## Current Run Update — 2026-05-28T05:31:55Z — custom WGSL material split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split custom WGSL material source/prepared contracts into
+  `packages/render/src/assets/custom-wgsl-material-types.ts`.
+- Split custom WGSL material source validation and entry-point/binding checks
+  into `packages/render/src/assets/custom-wgsl-material-validation.ts`.
+- Split prepared custom WGSL material descriptor construction, pipeline keying,
+  and stable shader hashing into
+  `packages/render/src/assets/custom-wgsl-material-prepared.ts`.
+- Kept `packages/render/src/assets/custom-wgsl-material-preparation.ts` and
+  `packages/render/src/assets/preparation.ts` as the existing public facade
+  export paths.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/custom-wgsl-material-preparation.ts packages/render/src/assets/custom-wgsl-material-types.ts packages/render/src/assets/custom-wgsl-material-validation.ts packages/render/src/assets/custom-wgsl-material-prepared.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/custom-wgsl-material-preparation.ts packages/render/src/assets/custom-wgsl-material-types.ts packages/render/src/assets/custom-wgsl-material-validation.ts packages/render/src/assets/custom-wgsl-material-prepared.ts`
+- `pnpm exec prettier --check packages/render/src/assets/custom-wgsl-material-preparation.ts packages/render/src/assets/custom-wgsl-material-types.ts packages/render/src/assets/custom-wgsl-material-validation.ts packages/render/src/assets/custom-wgsl-material-prepared.ts`
+- `pnpm exec vitest run test/assets/render-asset-preparation.test.ts test/webgpu/custom-wgsl-material.test.ts test/webgpu/draw-command.test.ts test/rendering/extraction.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include
+  `standard-sampler-fidelity.ts`, `snapshot-packed-codecs.ts`,
+  `authoring-validation.ts`, `snapshot-packed-codec-utils.ts`,
+  `snapshot-change-set.ts`, `gltf-uri-external-fetch.ts`, and
+  `glb-uri-external-fetch.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining sampler fidelity, packed
+snapshot codec, authoring validation, packed snapshot codec utility, snapshot
+change-set, or URI external fetch modules.
 
 ## Current Run Update — 2026-05-28T05:26:41Z — glTF scene import contract split
 

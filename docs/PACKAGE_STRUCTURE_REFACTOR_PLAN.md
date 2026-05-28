@@ -271,10 +271,13 @@ Status: in progress
   pipeline feature helpers now live in
   `packages/render/src/rendering/extraction-mesh-instances.ts` and
   `packages/render/src/rendering/extraction-mesh-materials.ts`.
-- Render asset custom WGSL material preparation, validation, and prepared
-  descriptor construction now live in
-  `packages/render/src/assets/custom-wgsl-material-preparation.ts`, while
-  `preparation.ts` re-exports the same public API names.
+- Render asset custom WGSL material contracts now live in
+  `packages/render/src/assets/custom-wgsl-material-types.ts`, validation lives
+  in `packages/render/src/assets/custom-wgsl-material-validation.ts`, and
+  prepared descriptor construction lives in
+  `packages/render/src/assets/custom-wgsl-material-prepared.ts`, while
+  `custom-wgsl-material-preparation.ts` and `preparation.ts` preserve the same
+  public API names.
 - GLB URI fetch/cache/external-buffer/external-image fetching and same-origin
   URL helpers now live in `packages/render/src/assets/glb-uri-fetch.ts`,
   keeping URI fetch/error handling outside `glb-uri-loader.ts`.
