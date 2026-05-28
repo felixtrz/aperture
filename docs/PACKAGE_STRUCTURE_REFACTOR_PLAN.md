@@ -583,6 +583,9 @@ Status: in progress
 - CLI reference MCP tool contracts now live in
   `packages/cli/src/reference-tools.ts`, and reference runtime path/file helper
   functions now live in `packages/cli/src/reference-paths.ts`.
+- CLI RAG ingestion source allowlists, ignored-directory policy, selected
+  dependency files, and source-category classification now live in
+  `packages/cli/src/reference-source-filter.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
