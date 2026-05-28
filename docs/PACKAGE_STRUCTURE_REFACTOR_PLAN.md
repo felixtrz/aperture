@@ -443,6 +443,9 @@ Status: in progress
 - App system signal store creation and JSON-safe signal summary helpers now live
   in `packages/app/src/systems-signals.ts`, preserving public signal store and
   summary exports through `systems.ts`.
+- App input generated-event, action, keyboard, gamepad, resource, and summary
+  contracts now live in `packages/app/src/input-state-types.ts`, preserving the
+  existing public type exports through `input-state.ts` and `systems.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
