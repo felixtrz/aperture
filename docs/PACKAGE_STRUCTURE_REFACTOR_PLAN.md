@@ -506,6 +506,11 @@ Status: in progress
   unsupported extension-field diagnostics now live in
   `gltf-material-builders.ts`, leaving `gltf-material.ts` focused on material
   root validation, extension source discovery, and report orchestration.
+- KTX2 Basis Universal JS/WASM module loading, glue factory evaluation,
+  transcode target selection, texture row packing math, and DFD transfer
+  inspection now live in focused `ktx2-basis-*` asset modules, leaving
+  `ktx2-basis-transcoder.ts` focused on KTX2 validation and level-0 transcode
+  orchestration.
 
 ## Purpose
 

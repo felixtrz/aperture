@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-28T04:42:54Z
+Updated: 2026-05-28T04:47:15Z
+
+## Current Run Update — 2026-05-28T04:47:15Z — KTX2 Basis helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split Basis Universal JS/WASM source resolution, glue factory evaluation,
+  module initialization, and KTX2File capability checks into
+  `packages/render/src/assets/ktx2-basis-module.ts`.
+- Split Basis transcode target selection, compression format priority, row
+  packing math, and KTX2 DFD transfer inspection into
+  `packages/render/src/assets/ktx2-basis-targets.ts`.
+- Kept `packages/render/src/assets/ktx2-basis-transcoder.ts` focused on
+  KTX2 container validation and level-0 image transcode orchestration.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/ktx2-basis-transcoder.ts packages/render/src/assets/ktx2-basis-module.ts packages/render/src/assets/ktx2-basis-targets.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/ktx2-basis-transcoder.ts packages/render/src/assets/ktx2-basis-module.ts packages/render/src/assets/ktx2-basis-targets.ts`
+- `pnpm exec prettier --check packages/render/src/assets/ktx2-basis-transcoder.ts packages/render/src/assets/ktx2-basis-module.ts packages/render/src/assets/ktx2-basis-targets.ts`
+- `pnpm exec vitest run test/assets/ktx2-decoder.test.ts test/materials/gltf-texture.test.ts test/assets/glb-source-loader-output-summary.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `extraction-asset-validation.ts`,
+  `mesh-merge.ts`, `view-pack.ts`, `glb-uri-loader.ts`,
+  `gltf-material-textures.ts`, `gltf-mesh-asset-vertex-streams.ts`,
+  `hdr-rgbe-parser.ts`, and `snapshot.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining extraction validation, mesh
+merge, view-pack, GLB loader, material texture, mesh asset, HDR parser, or
+snapshot modules.
 
 ## Current Run Update — 2026-05-28T04:42:54Z — glTF material builder split
 
