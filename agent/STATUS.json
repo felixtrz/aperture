@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "da9c6249",
+  "lastCommit": "e7fb0170",
   "activePid": null,
-  "notes": "Advanced APP_CLI_STRUCTURE_REFACTOR_PLAN Track 3 by moving non-spawn app system internals into packages/app/src/systems/ while preserving the public systems facade; app typecheck, targeted app tests, typecheck:test, boundaries, build, focused lint/format, and diff check passed.",
-  "lastRunFinishedAt": "2026-05-28T15:18:51Z"
+  "notes": "Advanced APP_CLI_STRUCTURE_REFACTOR_PLAN Track 4 by splitting app spawn helpers into packages/app/src/systems/spawn/ while preserving public spawn exports through @aperture-engine/app/systems; app typecheck, targeted app tests, typecheck:test, boundaries, build, focused lint/format, and diff check passed.",
+  "lastRunFinishedAt": "2026-05-28T15:23:19Z"
 }

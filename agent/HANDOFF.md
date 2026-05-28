@@ -1,6 +1,43 @@
 # Agent Handoff
 
-Updated: 2026-05-28T15:18:51Z
+Updated: 2026-05-28T15:23:19Z
+
+## Current Run Update — 2026-05-28T15:23:19Z — App spawn decomposition
+
+Continued `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Split the former `packages/app/src/systems-spawn.ts` implementation into
+  `packages/app/src/systems/spawn/`.
+- Separated spawn public types, descriptor factories, command construction,
+  metadata handling, transform writing, primitive/material asset conversion,
+  and glTF replay helpers.
+- Updated `@aperture-engine/app/systems` and system context imports to use the
+  new spawn folder.
+- Recorded Track 4 progress in `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/app/input-state.test.ts test/index.test.ts`
+- `pnpm exec prettier --write packages/app/src/systems.ts packages/app/src/systems/context.ts packages/app/src/systems/spawn/index.ts packages/app/src/systems/spawn/types.ts packages/app/src/systems/spawn/descriptors.ts packages/app/src/systems/spawn/commands.ts packages/app/src/systems/spawn/metadata.ts packages/app/src/systems/spawn/transforms.ts packages/app/src/systems/spawn/assets.ts packages/app/src/systems/spawn/gltf.ts`
+- `pnpm exec eslint packages/app/src/systems.ts packages/app/src/systems/context.ts packages/app/src/systems/spawn/index.ts packages/app/src/systems/spawn/types.ts packages/app/src/systems/spawn/descriptors.ts packages/app/src/systems/spawn/commands.ts packages/app/src/systems/spawn/metadata.ts packages/app/src/systems/spawn/transforms.ts packages/app/src/systems/spawn/assets.ts packages/app/src/systems/spawn/gltf.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 5 remains: move entity lookup and spatial query implementation into
+  folders.
+- The full goal remains active; app browser/worker and all CLI folderization
+  tracks remain.
+
+### Recommended next task
+
+Continue with Track 5 app entity/spatial folderization.
 
 ## Current Run Update — 2026-05-28T15:18:51Z — App systems folderization
 
