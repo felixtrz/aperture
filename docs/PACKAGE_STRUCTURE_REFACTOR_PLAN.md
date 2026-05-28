@@ -359,6 +359,10 @@ Status: in progress
   live in `draw-package-types.ts` and `draw-package-scratch.ts`, leaving
   `draw-package.ts` focused on package writing, stable/state-aware sorting, and
   summary diagnostics.
+- Render queue coalescing/static batching helpers now live in
+  `render-queue-batching.ts`, and queue sort policy constants/report selection
+  live in `render-queue-sort-policies.ts`, leaving `render-queue-sort.ts` as
+  the stable queue ordering and phase-report facade.
 - Packed render snapshot codec utilities are split into binary word helpers,
   enum/id codecs, mesh batch flags, and handle readers, with
   `snapshot-packed-codec-utils.ts` kept as the stable utility re-export facade.

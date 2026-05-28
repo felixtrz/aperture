@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T06:18:50Z
+Updated: 2026-05-28T06:22:33Z
+
+## Current Run Update — 2026-05-28T06:22:33Z — render queue sorting helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split render queue coalescing and static batching helpers into
+  `packages/render/src/rendering/render-queue-batching.ts`.
+- Split queue sort policy constants and phase policy selection into
+  `packages/render/src/rendering/render-queue-sort-policies.ts`.
+- Kept `packages/render/src/rendering/render-queue-sort.ts` as the stable
+  public queue ordering and phase-report facade.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/render-queue-sort.ts packages/render/src/rendering/render-queue-batching.ts packages/render/src/rendering/render-queue-sort-policies.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/render-queue-sort.ts packages/render/src/rendering/render-queue-batching.ts packages/render/src/rendering/render-queue-sort-policies.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/render-queue-sort.ts packages/render/src/rendering/render-queue-batching.ts packages/render/src/rendering/render-queue-sort-policies.ts`
+- `pnpm exec vitest run test/rendering/render-queue.test.ts test/rendering/render-frame-phases.test.ts test/rendering/material-queue.test.ts test/webgpu/app-diagnostics-summary.test.ts test/webgpu/frame-readiness.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `extraction-meshes.ts`,
+  `gltf-accessor-validation-primitives.ts`, `gltf-source-registration.ts`,
+  `gltf-mesh-primitive.ts`, `gltf-mesh-source-registration.ts`,
+  `gltf-scene-traversal.ts`, and `render-world.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining extraction mesh, accessor
+validation primitive, source registration, mesh primitive, scene traversal, or
+render-world modules.
 
 ## Current Run Update — 2026-05-28T06:18:50Z — draw package contract/scratch split
 
