@@ -457,6 +457,10 @@ Status: in progress
   factory, frame advancement, and action value writers now live in
   `packages/app/src/input-state-actions.ts`, keeping `input-state.ts` focused on
   resource-level event application and binding resolution.
+- App input binding resolution for keyboard, pointer, gamepad button, gamepad
+  axis, gamepad stick, legacy bindings, and deadzone projection now lives in
+  `packages/app/src/input-state-bindings.ts`, leaving `input-state.ts` focused
+  on resource-level event flow and summaries.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "f09ab7a9",
+  "lastCommit": "8c7e861d",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 6 by splitting app button/axis action implementations, callable button pressed signal, action factory, frame advancement, and action value writers into input-state-actions.ts while preserving input behavior; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T09:38:07Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 6 by splitting app input binding resolution for keyboard, pointer, gamepad button, gamepad axis, gamepad stick, legacy bindings, and deadzone projection into input-state-bindings.ts while preserving input behavior; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T09:42:03Z"
 }
