@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "8c7e861d",
+  "lastCommit": "7e2f035a",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 6 by splitting app input binding resolution for keyboard, pointer, gamepad button, gamepad axis, gamepad stick, legacy bindings, and deadzone projection into input-state-bindings.ts while preserving input behavior; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T09:42:03Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 6 by splitting app input resource summary projection into input-state-summary.ts while preserving the existing createInputResourceSummary export; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T09:45:29Z"
 }

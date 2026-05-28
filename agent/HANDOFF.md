@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T09:42:03Z
+Updated: 2026-05-28T09:45:29Z
+
+## Current Run Update — 2026-05-28T09:45:29Z — app input summary split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 6.
+
+### What changed
+
+- Split app input resource summary projection into
+  `packages/app/src/input-state-summary.ts`.
+- Preserved the existing `createInputResourceSummary()` export through
+  `input-state.ts` for callers such as `packages/app/src/input.ts`.
+- Reduced `packages/app/src/input-state.ts` from 402 lines to 352 lines, leaving
+  it focused on frame/event application, virtual action state, and legacy
+  gamepad signal synchronization.
+
+### Validation
+
+- `pnpm exec prettier --write packages/app/src/input-state.ts packages/app/src/input-state-summary.ts packages/app/src/input-state-types.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec eslint packages/app/src/input-state.ts packages/app/src/input-state-summary.ts packages/app/src/input-state-types.ts`
+- `pnpm exec prettier --check packages/app/src/input-state.ts packages/app/src/input-state-summary.ts packages/app/src/input-state-types.ts`
+- `pnpm exec vitest run test/app/systems.test.ts test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 6 still needs focused app modules for system context, config/runtime
+  code, browser/worker generated bootstrapping, and entity lookup.
+- Remaining large app files include `worker.ts`, `browser.ts`,
+  `entity-lookup.ts`, and `config.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 6 by splitting app system context helpers, config/runtime code,
+or generated browser/worker bootstrapping.
 
 ## Current Run Update — 2026-05-28T09:42:03Z — app input binding resolution split
 

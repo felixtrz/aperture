@@ -461,6 +461,10 @@ Status: in progress
   axis, gamepad stick, legacy bindings, and deadzone projection now lives in
   `packages/app/src/input-state-bindings.ts`, leaving `input-state.ts` focused
   on resource-level event flow and summaries.
+- App input resource summary projection now lives in
+  `packages/app/src/input-state-summary.ts`, keeping `input-state.ts` focused
+  on frame/event application, virtual action state, and legacy gamepad signal
+  synchronization.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
