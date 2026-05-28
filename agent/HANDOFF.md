@@ -1,6 +1,44 @@
 # Agent Handoff
 
-Updated: 2026-05-28T00:13:26Z
+Updated: 2026-05-28T00:16:47Z
+
+## Current Run Update — 2026-05-28T00:16:47Z — glTF URI image helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF URI image source resolution, decode caching, KTX2 transcoder
+  resolution, and image-data resolver helpers into
+  `packages/render/src/assets/gltf-uri-images.ts`.
+- Extracted shared glTF URI MIME, byte-view, URL normalization, error-message,
+  and record guards into `packages/render/src/assets/gltf-uri-shared.ts`.
+- `packages/render/src/assets/gltf-uri-loader.ts` is now roughly 914 lines and
+  still owns fetch/JSON/external-resource orchestration.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/gltf-uri-loader.ts packages/render/src/assets/gltf-uri-images.ts packages/render/src/assets/gltf-uri-shared.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-uri-loader.ts packages/render/src/assets/gltf-uri-images.ts packages/render/src/assets/gltf-uri-shared.ts`
+- `pnpm exec vitest run test/assets/gltf-uri-loader.test.ts test/assets/gltf-source-loader-facade.test.ts test/assets/glb-uri-loader.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-uri-loader.ts`,
+  `gltf-texture.ts`, `gltf-material.ts`,
+  `gltf-mesh-asset-construction.ts`, `gltf-report-driven-import.ts`,
+  `authoring.ts`, and `snapshot-packed-encoding.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting fetch/JSON/external-resource helpers out of
+`packages/render/src/assets/gltf-uri-loader.ts`.
 
 ## Current Run Update — 2026-05-28T00:13:26Z — GLB URI image helper split
 

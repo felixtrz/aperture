@@ -282,6 +282,11 @@ Status: in progress
   image merging, and image-data resolver helpers now live in
   `packages/render/src/assets/glb-uri-images.ts`, leaving `glb-uri-loader.ts`
   as a compact URI load orchestration entry point.
+- glTF URI image source resolution, decode caching, decoded-image resolver
+  helpers, and shared URI/MIME/byte utilities now live in
+  `packages/render/src/assets/gltf-uri-images.ts` and
+  `packages/render/src/assets/gltf-uri-shared.ts`, reducing
+  `gltf-uri-loader.ts` to fetch/JSON/orchestration responsibilities.
 
 ## Purpose
 
