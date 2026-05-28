@@ -276,7 +276,7 @@ describe("mesh asset schema and primitive builders", () => {
       submeshes: [
         {
           ...required(plane.submeshes[0]),
-          topology: "line-list",
+          topology: "line-strip",
           materialSlot: 5,
           indexStart: 99,
           indexCount: 6,
