@@ -364,6 +364,9 @@ Status: in progress
   `authoring-components-core.ts`, `authoring-components-spatial.ts`, and
   `authoring-components-camera-light.ts`, with `authoring-components.ts` kept
   as the stable re-export facade.
+- Render authoring creation helpers are further split into camera/light,
+  sprite/skybox/fog effects, interaction/query, and mesh-data helper modules,
+  with `authoring-create.ts` kept as the stable re-export facade.
 - Render authoring validation is further split into camera, light/shadow, and
   sprite/skybox/fog validation modules, with `authoring-validation.ts` kept as
   the stable validation re-export facade.

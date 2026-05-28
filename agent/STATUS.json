@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "21a3f3c4",
+  "lastCommit": "349b4502",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting GLB source loader output summary contracts, mesh construction summary, source-registration summary, and ECS command-plan summary into focused asset modules while keeping glb-source-loader-output-summary.ts as the stable facade; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T08:21:31Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting render authoring creation helpers into focused camera/light, effects, interaction/query, and mesh-data modules while keeping authoring-create.ts as the stable facade; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T08:25:08Z"
 }

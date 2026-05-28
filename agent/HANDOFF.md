@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T08:21:31Z
+Updated: 2026-05-28T08:25:08Z
+
+## Current Run Update — 2026-05-28T08:25:08Z — render authoring creation helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split render authoring creation helpers into:
+  `authoring-create-camera-light.ts`, `authoring-create-effects.ts`,
+  `authoring-create-interaction.ts`, and `authoring-create-mesh-data.ts`.
+- Kept `authoring-create.ts` as the stable re-export facade for existing public
+  and internal imports.
+- Updated the package-structure plan and public progress tracker for the new
+  render authoring creation helper module boundaries.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/authoring-create.ts packages/render/src/rendering/authoring-create-interaction.ts packages/render/src/rendering/authoring-create-camera-light.ts packages/render/src/rendering/authoring-create-effects.ts packages/render/src/rendering/authoring-create-mesh-data.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/authoring-create.ts packages/render/src/rendering/authoring-create-interaction.ts packages/render/src/rendering/authoring-create-camera-light.ts packages/render/src/rendering/authoring-create-effects.ts packages/render/src/rendering/authoring-create-mesh-data.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/authoring-create.ts packages/render/src/rendering/authoring-create-interaction.ts packages/render/src/rendering/authoring-create-camera-light.ts packages/render/src/rendering/authoring-create-effects.ts packages/render/src/rendering/authoring-create-mesh-data.ts`
+- `pnpm exec vitest run test/rendering/components.test.ts test/rendering/extraction.test.ts test/assets/gltf-ecs-command-replay.test.ts test/runtime/runtime.test.ts test/app/developer-api.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `snapshot-types.ts`,
+  `snapshot-packed-encoding.ts`, `gltf-uri-fetch-bytes.ts`,
+  `gltf-sampler.ts`, and other medium render/material/asset modules still near
+  the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium render extraction/material/asset
+hotspot.
 
 ## Current Run Update — 2026-05-28T08:21:31Z — GLB source output summary split
 
