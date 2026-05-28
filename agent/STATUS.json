@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "340d8d33",
+  "lastCommit": "2e2ce0c3",
   "activePid": null,
-  "notes": "Started PACKAGE_STRUCTURE_REFACTOR_PLAN Track 6 by splitting app system effect scheduling and shared app system errors out of systems.ts while preserving the public app systems surface; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T08:51:04Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 6 by splitting app system command queue/request access and JSON-safe summary normalization out of systems.ts while preserving public command access types; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T08:54:22Z"
 }

@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-28T08:51:04Z
+Updated: 2026-05-28T08:54:22Z
+
+## Current Run Update — 2026-05-28T08:54:22Z — app system command access split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 6.
+
+### What changed
+
+- Split app system command queue/request access into
+  `packages/app/src/systems-commands.ts`.
+- Split the JSON-safe summary helper into
+  `packages/app/src/systems-json.ts`.
+- Kept command access types re-exported from `systems.ts` so the public
+  `@aperture-engine/app/systems` surface remains stable.
+- Reduced `systems.ts` further while preserving the existing system context
+  wiring and command access behavior.
+- Updated the package-structure plan and public progress tracker for the command
+  access split.
+
+### Validation
+
+- `pnpm exec prettier --write packages/app/src/systems.ts packages/app/src/systems-commands.ts packages/app/src/systems-json.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec eslint packages/app/src/systems.ts packages/app/src/systems-commands.ts packages/app/src/systems-json.ts`
+- `pnpm exec prettier --check packages/app/src/systems.ts packages/app/src/systems-commands.ts packages/app/src/systems-json.ts`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 6 still needs focused app modules for system context, asset access,
+  spawn helpers, config/runtime code, and input state.
+- Remaining large app files include `systems.ts`, `worker.ts`, `browser.ts`,
+  `input-state.ts`, `entity-lookup.ts`, and `config.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 6 by splitting app system asset access or spawn/context helpers.
 
 ## Current Run Update — 2026-05-28T08:51:04Z — app system effects split
 

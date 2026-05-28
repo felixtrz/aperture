@@ -419,6 +419,10 @@ Status: in progress
   error type now live in `packages/app/src/systems-effects.ts` and
   `packages/app/src/systems-error.ts`, keeping `systems.ts` focused more tightly
   on system creation/context and app authoring helpers.
+- App system command queue/request access now lives in
+  `packages/app/src/systems-commands.ts`, with JSON-safe summary normalization
+  in `packages/app/src/systems-json.ts`, preserving the existing public command
+  access types through `systems.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
