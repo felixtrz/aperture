@@ -419,6 +419,10 @@ Status: in progress
   sort/coalescing/static-batch policy now live in focused
   `render-queue-*` rendering modules, leaving `render-queue.ts` focused on
   queue planning from draw readiness plus packed transforms.
+- Procedural primitive mesh line-list and cone/cylinder frustum construction
+  now live in `primitives-line-list.ts` and `primitives-frustum.ts`, leaving
+  `primitives.ts` focused on the remaining public box, plane, sphere, capsule,
+  and torus factories.
 
 ## Purpose
 

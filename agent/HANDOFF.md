@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-28T02:57:33Z
+Updated: 2026-05-28T03:03:23Z
+
+## Current Run Update — 2026-05-28T03:03:23Z — primitive mesh factory split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split cone/cylinder frustum primitive construction into
+  `packages/render/src/mesh/primitives-frustum.ts`.
+- Split line-list mesh construction, line index-buffer selection, and
+  line-list submesh normalization into
+  `packages/render/src/mesh/primitives-line-list.ts`.
+- Kept `packages/render/src/mesh/primitives.ts` as the stable public factory
+  facade for those functions while it remains focused on box, plane, sphere,
+  capsule, and torus construction.
+- Corrected the primitive validation test fixture to use `line-strip` as the
+  unsupported topology; `line-list` is now a supported renderable topology and
+  already has dedicated line-list coverage.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/mesh/primitives.ts packages/render/src/mesh/primitives-frustum.ts packages/render/src/mesh/primitives-line-list.ts packages/render/src/mesh/primitives-builders.ts test/mesh/primitive.test.ts`
+- `pnpm exec prettier --check packages/render/src/mesh/primitives.ts packages/render/src/mesh/primitives-frustum.ts packages/render/src/mesh/primitives-line-list.ts packages/render/src/mesh/primitives-builders.ts test/mesh/primitive.test.ts`
+- `pnpm exec vitest run test/mesh/primitive.test.ts test/rendering/line-list-mesh.test.ts test/rendering/mesh-merge.test.ts`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `mesh-merge.ts`, `hdr-rgbe-loader.ts`, mesh asset construction helpers,
+  scene import contracts, material helpers, and view/transform packing
+  facades.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting `mesh-merge.ts`, a scene import/mapping helper,
+or one of the remaining decoder modules.
 
 ## Current Run Update — 2026-05-28T02:57:33Z — render queue planning module split
 
