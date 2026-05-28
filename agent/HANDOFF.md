@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T03:03:23Z
+Updated: 2026-05-28T03:07:48Z
+
+## Current Run Update — 2026-05-28T03:07:48Z — mesh merge helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split static mesh merge public/internal contracts into
+  `packages/render/src/rendering/mesh-merge-types.ts`.
+- Split merged-bounds calculation into
+  `packages/render/src/rendering/mesh-merge-bounds.ts`.
+- Split low-level mesh merge helpers for required values, stream element
+  counts, attribute/data compatibility, vertex data allocation/copying, and
+  material slot cloning/matching into
+  `packages/render/src/rendering/mesh-merge-utils.ts`.
+- Kept `packages/render/src/rendering/mesh-merge.ts` as the public facade and
+  batch merge orchestration surface.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/rendering/mesh-merge.ts packages/render/src/rendering/mesh-merge-types.ts packages/render/src/rendering/mesh-merge-utils.ts packages/render/src/rendering/mesh-merge-bounds.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/mesh-merge.ts packages/render/src/rendering/mesh-merge-types.ts packages/render/src/rendering/mesh-merge-utils.ts packages/render/src/rendering/mesh-merge-bounds.ts`
+- `pnpm exec vitest run test/rendering/mesh-merge.test.ts test/mesh/primitive.test.ts test/rendering/render-queue.test.ts`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `hdr-rgbe-loader.ts`, mesh asset construction helpers, scene import
+  contracts, material helpers, and view/transform packing facades.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting a scene import/mapping helper, material helper,
+or one of the remaining decoder modules.
 
 ## Current Run Update — 2026-05-28T03:03:23Z — primitive mesh factory split
 

@@ -423,6 +423,10 @@ Status: in progress
   now live in `primitives-line-list.ts` and `primitives-frustum.ts`, leaving
   `primitives.ts` focused on the remaining public box, plane, sphere, capsule,
   and torus factories.
+- Static mesh merge public contracts, shared validation/data helpers, and
+  merged-bounds calculation now live in focused `mesh-merge-*` rendering
+  modules, leaving `mesh-merge.ts` focused on batch merge orchestration and
+  merged stream/index/submesh assembly.
 
 ## Purpose
 
