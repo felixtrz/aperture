@@ -492,6 +492,10 @@ Status: in progress
   validation, source matching, duplicate-key diagnostics, and limit
   normalization now live in `packages/app/src/entity-lookup-query.ts`,
   preserving existing find/get exports through `entity-lookup.ts`.
+- App entity lookup snapshot creation, reference snapshots, snapshot diffing,
+  and changed-field detection now live in
+  `packages/app/src/entity-lookup-snapshot.ts`, leaving `entity-lookup.ts` as a
+  compact public facade for entity tooling.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
