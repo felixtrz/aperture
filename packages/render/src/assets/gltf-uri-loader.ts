@@ -6,7 +6,7 @@ import {
 import type {
   GltfDecodedImageData,
   GltfImageBytesDecoder,
-} from "../materials/gltf-texture.js";
+} from "../materials/gltf-texture-types.js";
 import type {
   Ktx2BasisTranscoder,
   Ktx2TextureCompressionSupport,
