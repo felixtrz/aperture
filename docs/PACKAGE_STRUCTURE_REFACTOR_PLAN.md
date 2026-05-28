@@ -381,6 +381,10 @@ Status: in progress
   `snapshot-packed-encoding-header.ts`, leaving
   `snapshot-packed-encoding.ts` as the stable high-level length,
   encode/decode, and compatibility facade.
+- Packed render snapshot high-level packet encoding and decoding now live in
+  `snapshot-packed-encoder.ts` and `snapshot-packed-decoder.ts`, keeping
+  `snapshot-packed-encoding.ts` as the stable public re-export and compatibility
+  wrapper facade.
 - Render-world draw package public contracts and scratch/pool construction now
   live in `draw-package-types.ts` and `draw-package-scratch.ts`, leaving
   `draw-package.ts` focused on package writing, stable/state-aware sorting, and
