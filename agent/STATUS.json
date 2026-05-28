@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "a0b94cc2",
+  "lastCommit": "de15afb3",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting material dependency readiness public contracts and per-slot texture/sampler inspection into focused material modules while preserving the public report/JSON facade; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T06:14:30Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting render-world draw package public contracts and scratch/pool construction into focused render modules while preserving the public writer facade; focused validation, build, and boundaries passed; broader injected draw-package frame fixture tests still have casted fixture packages without packet fields documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T06:18:50Z"
 }

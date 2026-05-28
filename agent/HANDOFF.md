@@ -1,6 +1,57 @@
 # Agent Handoff
 
-Updated: 2026-05-28T06:14:30Z
+Updated: 2026-05-28T06:18:50Z
+
+## Current Run Update — 2026-05-28T06:18:50Z — draw package contract/scratch split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split render-world draw package public contracts into
+  `packages/render/src/rendering/draw-package-types.ts`.
+- Split draw-package scratch creation, package pooling, and empty summary
+  construction into
+  `packages/render/src/rendering/draw-package-scratch.ts`.
+- Kept `packages/render/src/rendering/draw-package.ts` as the stable public
+  writer/sorting/summary facade.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/draw-package.ts packages/render/src/rendering/draw-package-types.ts packages/render/src/rendering/draw-package-scratch.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/draw-package.ts packages/render/src/rendering/draw-package-types.ts packages/render/src/rendering/draw-package-scratch.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/draw-package.ts packages/render/src/rendering/draw-package-types.ts packages/render/src/rendering/draw-package-scratch.ts`
+- `pnpm exec vitest run test/rendering/draw-package.test.ts test/rendering/batching-report.test.ts test/rendering/package-inspection.test.ts test/webgpu/draw-command.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- A broader injected-frame validation run
+  (`test/webgpu/render-frame-draw-package-json.test.ts`,
+  `test/webgpu/render-frame-draw-package-diagnostics.test.ts`,
+  `test/webgpu/render-frame-draw-package-runner.test.ts`, and
+  `test/webgpu/fixtures/draw-package-render-frame.test.ts`) still fails because
+  those test helpers construct `RenderWorldDrawPackage` objects with
+  `as unknown as` casts but no `packet` field, while the WebGPU draw-command
+  path reads `drawPackage.packet.vertexCount`. This is outside the touched
+  render package split; the direct draw-package and draw-command tests pass.
+- Remaining Track 5 hotspots include `extraction-meshes.ts`,
+  `gltf-accessor-validation-primitives.ts`, `render-queue-sort.ts`,
+  `gltf-source-registration.ts`, `gltf-mesh-primitive.ts`,
+  `gltf-mesh-source-registration.ts`, and `gltf-scene-traversal.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining extraction mesh, accessor
+validation primitive, render queue sort, source registration, mesh primitive,
+or scene traversal modules.
 
 ## Current Run Update — 2026-05-28T06:14:30Z — material dependency readiness split
 
