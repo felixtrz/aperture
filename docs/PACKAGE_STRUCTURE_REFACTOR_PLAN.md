@@ -277,8 +277,11 @@ Status: in progress
   `preparation.ts` re-exports the same public API names.
 - GLB URI fetch/cache/external-buffer/external-image fetching and same-origin
   URL helpers now live in `packages/render/src/assets/glb-uri-fetch.ts`,
-  leaving `glb-uri-loader.ts` focused on GLB orchestration, image decode, and
-  report assembly.
+  keeping URI fetch/error handling outside `glb-uri-loader.ts`.
+- GLB image source resolution, decode caching, MIME/type helpers, decoded
+  image merging, and image-data resolver helpers now live in
+  `packages/render/src/assets/glb-uri-images.ts`, leaving `glb-uri-loader.ts`
+  as a compact URI load orchestration entry point.
 
 ## Purpose
 

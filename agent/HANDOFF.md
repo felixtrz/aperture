@@ -1,6 +1,43 @@
 # Agent Handoff
 
-Updated: 2026-05-28T00:09:10Z
+Updated: 2026-05-28T00:13:26Z
+
+## Current Run Update — 2026-05-28T00:13:26Z — GLB URI image helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted GLB image source resolution, decode caching, MIME/type helpers,
+  decoded-image merging, and image-data resolver helpers into
+  `packages/render/src/assets/glb-uri-images.ts`.
+- `packages/render/src/assets/glb-uri-loader.ts` is now roughly 371 lines and
+  focuses on URI load orchestration plus Draco/Meshopt decoder resolution.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/glb-uri-loader.ts packages/render/src/assets/glb-uri-fetch.ts packages/render/src/assets/glb-uri-images.ts`
+- `pnpm exec prettier --check packages/render/src/assets/glb-uri-loader.ts packages/render/src/assets/glb-uri-fetch.ts packages/render/src/assets/glb-uri-images.ts`
+- `pnpm exec vitest run test/assets/glb-uri-loader.test.ts test/assets/glb-source-loader-facade.test.ts test/assets/glb-container.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-uri-loader.ts`,
+  `gltf-texture.ts`, `gltf-material.ts`,
+  `gltf-mesh-asset-construction.ts`, `gltf-report-driven-import.ts`,
+  `authoring.ts`, and `snapshot-packed-encoding.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting `packages/render/src/assets/gltf-uri-loader.ts`
+into focused fetch/JSON/image helper modules or by splitting glTF material and
+texture helpers.
 
 ## Current Run Update — 2026-05-28T00:09:10Z — GLB URI fetch helper split
 
