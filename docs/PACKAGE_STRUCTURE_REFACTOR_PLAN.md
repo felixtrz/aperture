@@ -475,6 +475,9 @@ Status: in progress
   `packages/app/src/config-validation.ts` and
   `packages/app/src/config-error.ts`, keeping `config.ts` focused on public
   config contracts and helper factories while preserving existing exports.
+- App entity lookup public query/report/snapshot/hierarchy/mutation contracts
+  now live in `packages/app/src/entity-lookup-types.ts`, preserving existing
+  public exports through `entity-lookup.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

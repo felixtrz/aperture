@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T09:52:46Z
+Updated: 2026-05-28T09:55:15Z
+
+## Current Run Update — 2026-05-28T09:55:15Z — app entity lookup contract split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 6.
+
+### What changed
+
+- Split app entity lookup public query/report/snapshot/hierarchy/mutation
+  contracts into `packages/app/src/entity-lookup-types.ts`.
+- Preserved the existing public type exports through
+  `packages/app/src/entity-lookup.ts`.
+- Reduced `packages/app/src/entity-lookup.ts` from 982 lines to 851 lines,
+  setting up behavior-level splits for summary, hierarchy, snapshot diffing,
+  and mutations.
+
+### Validation
+
+- `pnpm exec prettier --write packages/app/src/entity-lookup.ts packages/app/src/entity-lookup-types.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec eslint packages/app/src/entity-lookup.ts packages/app/src/entity-lookup-types.ts`
+- `pnpm exec prettier --check packages/app/src/entity-lookup.ts packages/app/src/entity-lookup-types.ts`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts test/index.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 6 still needs focused app modules for generated browser/worker
+  bootstrapping and entity lookup behavior.
+- Remaining large app files include `worker.ts`, `browser.ts`, and the still
+  broad `entity-lookup.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 6 by splitting entity lookup summary/hierarchy/snapshot behavior
+or generated browser/worker bootstrapping.
 
 ## Current Run Update — 2026-05-28T09:52:46Z — app config validation split
 

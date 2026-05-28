@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "3c3b32a0",
+  "lastCommit": "fb397827",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 6 by splitting app config validation into config-validation.ts and ApertureConfigError into config-error.ts while preserving config.ts exports; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T09:52:46Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 6 by splitting app entity lookup public contracts into entity-lookup-types.ts while preserving entity-lookup.ts exports; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T09:55:15Z"
 }
