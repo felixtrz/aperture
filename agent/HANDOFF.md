@@ -1,6 +1,43 @@
 # Agent Handoff
 
-Updated: 2026-05-28T00:29:49Z
+Updated: 2026-05-28T00:38:42Z
+
+## Current Run Update — 2026-05-28T00:38:42Z — glTF report import helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF report-driven import JSON projection into
+  `packages/render/src/assets/gltf-report-driven-import-json.ts`.
+- Extracted meshopt buffer-view decoding, Draco primitive decoding, and GLB
+  buffer-source resolution into focused
+  `gltf-report-driven-import-{meshopt,draco,buffers}.ts` modules.
+- `packages/render/src/assets/gltf-report-driven-import.ts` is now roughly
+  477 lines and focuses on import/report orchestration.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/gltf-report-driven-import.ts packages/render/src/assets/gltf-report-driven-import-json.ts packages/render/src/assets/gltf-report-driven-import-meshopt.ts packages/render/src/assets/gltf-report-driven-import-draco.ts packages/render/src/assets/gltf-report-driven-import-buffers.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-report-driven-import.ts packages/render/src/assets/gltf-report-driven-import-json.ts packages/render/src/assets/gltf-report-driven-import-meshopt.ts packages/render/src/assets/gltf-report-driven-import-draco.ts packages/render/src/assets/gltf-report-driven-import-buffers.ts`
+- `pnpm exec vitest run test/assets/gltf-report-driven-import.test.ts test/assets/gltf-mesh-asset-construction.test.ts test/assets/glb-container.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `authoring.ts`,
+  `snapshot-packed-encoding.ts`, `gltf-mesh-primitive.ts`, and
+  `mesh/primitives.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting render authoring, snapshot packed encoding, or a
+remaining glTF mesh primitive helper module.
 
 ## Current Run Update — 2026-05-28T00:29:49Z — glTF mesh tangent helper split
 

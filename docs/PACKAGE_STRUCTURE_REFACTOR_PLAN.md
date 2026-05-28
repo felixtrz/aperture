@@ -307,6 +307,10 @@ Status: in progress
 - glTF mesh generated tangent math and tangent-generation diagnostics now live
   in `packages/render/src/assets/gltf-mesh-tangents.ts`, leaving
   `gltf-mesh-asset-construction.ts` focused on mesh asset assembly.
+- glTF report-driven import JSON projection, meshopt buffer-view decoding,
+  Draco primitive decoding, and GLB buffer-source resolution now live in
+  focused `gltf-report-driven-import-*` asset modules, leaving
+  `gltf-report-driven-import.ts` as the import/report orchestration facade.
 
 ## Purpose
 
