@@ -524,6 +524,11 @@ Status: in progress
   previous-view-projection, matrix range, and fog uniform writers now live in
   focused `view-pack-*` rendering modules, leaving `view-pack.ts` focused on
   allocation-based view uniform packing and public exports.
+- GLB URI public loader contracts, cache/report option types, external image
+  status types, and optional Draco/meshopt decoder resolution now live in
+  focused `glb-uri-loader-*` asset modules, leaving `glb-uri-loader.ts` focused
+  on URI fetch, external byte/image resolution, source loader handoff, and final
+  report assembly.
 
 ## Purpose
 

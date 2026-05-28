@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-28T05:00:41Z
+Updated: 2026-05-28T05:05:09Z
+
+## Current Run Update — 2026-05-28T05:05:09Z — GLB URI loader contract split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split GLB URI loader public diagnostic, fetch, cache, option, external image
+  status, and report contracts into
+  `packages/render/src/assets/glb-uri-loader-types.ts`.
+- Split optional Draco and meshopt decoder resolution plus extension-use
+  detection into `packages/render/src/assets/glb-uri-loader-decoders.ts`.
+- Kept `packages/render/src/assets/glb-uri-loader.ts` focused on URL
+  normalization, source fetch, external buffer/image fetch, decoded image
+  merge, source-loader handoff, and final report assembly.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/glb-uri-loader.ts packages/render/src/assets/glb-uri-loader-types.ts packages/render/src/assets/glb-uri-loader-decoders.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/glb-uri-loader.ts packages/render/src/assets/glb-uri-loader-types.ts packages/render/src/assets/glb-uri-loader-decoders.ts`
+- `pnpm exec prettier --check packages/render/src/assets/glb-uri-loader.ts packages/render/src/assets/glb-uri-loader-types.ts packages/render/src/assets/glb-uri-loader-decoders.ts`
+- `pnpm exec vitest run test/assets/glb-uri-loader.test.ts test/assets/glb-source-loader-output-summary.test.ts test/assets/glb-container.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-material-textures.ts`,
+  `gltf-mesh-asset-vertex-streams.ts`, `hdr-rgbe-parser.ts`, `snapshot.ts`,
+  `gltf-scene-import-contract.ts`, `custom-wgsl-material-preparation.ts`,
+  `standard-sampler-fidelity.ts`, and `snapshot-packed-codecs.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining material texture, mesh
+asset, HDR parser, snapshot, scene import contract, custom WGSL, sampler
+fidelity, or packed snapshot codec modules.
 
 ## Current Run Update — 2026-05-28T05:00:41Z — view-pack writer split
 

@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "9c1fc3d1",
+  "lastCommit": "a5b602e0",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting snapshot view-uniform scratch writing, matrix range checks, camera-position derivation, previous-view-projection copying, and fog uniform writing into focused rendering modules while preserving the public view-pack entry point; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T05:00:41Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting GLB URI loader public contracts and optional Draco/meshopt decoder resolution into focused asset modules while preserving the public URI loader entry point; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T05:05:09Z"
 }
