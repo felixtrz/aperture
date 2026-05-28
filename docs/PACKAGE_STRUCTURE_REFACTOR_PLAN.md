@@ -423,6 +423,9 @@ Status: in progress
   `packages/app/src/systems-commands.ts`, with JSON-safe summary normalization
   in `packages/app/src/systems-json.ts`, preserving the existing public command
   access types through `systems.ts`.
+- App system diagnostics now live in
+  `packages/app/src/systems-diagnostics.ts`, preserving diagnostic collector
+  types and `assetDiagnosticFromSystemDiagnostic()` through `systems.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
