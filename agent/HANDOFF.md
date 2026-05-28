@@ -1,6 +1,60 @@
 # Agent Handoff
 
-Updated: 2026-05-28T11:11:58Z
+Updated: 2026-05-28T11:22:22Z
+
+## Current Run Update — 2026-05-28T11:22:22Z — CLI scaffolder and adapter backend split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 8.
+
+### What changed
+
+- Split AI adapter template definitions into
+  `packages/cli/src/adapter-templates.ts`.
+- Split adapter file sync, managed block merging, and MCP JSON server merging
+  into `packages/cli/src/adapter-sync.ts`.
+- Split create project scaffolding, app template file assembly, starter systems,
+  sample GLB fixture emission, and package metadata generation into
+  `packages/cli/src/create-project.ts`.
+- Preserved root public exports for `createApertureProject()`,
+  `syncApertureAdapters()`, and related public types.
+- Reduced `packages/cli/src/cli.ts` from 1399 lines before these backend splits
+  to 180 lines.
+
+### Validation
+
+- `pnpm exec prettier --write packages/cli/src/cli.ts packages/cli/src/adapter-templates.ts`
+- `pnpm exec prettier --write packages/cli/src/cli.ts packages/cli/src/adapter-sync.ts packages/cli/src/adapter-templates.ts`
+- `pnpm exec prettier --write packages/cli/src/cli.ts packages/cli/src/create-project.ts packages/cli/src/adapter-sync.ts packages/cli/src/adapter-templates.ts`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm exec eslint packages/cli/src/cli.ts packages/cli/src/adapter-templates.ts packages/cli/src/adapter-command.ts packages/cli/src/create-command.ts packages/cli/src/errors.ts`
+- `pnpm exec eslint packages/cli/src/cli.ts packages/cli/src/adapter-sync.ts packages/cli/src/adapter-templates.ts packages/cli/src/adapter-command.ts packages/cli/src/create-command.ts packages/cli/src/errors.ts`
+- `pnpm exec eslint packages/cli/src/cli.ts packages/cli/src/create-project.ts packages/cli/src/adapter-sync.ts packages/cli/src/adapter-templates.ts packages/cli/src/adapter-command.ts packages/cli/src/create-command.ts packages/cli/src/errors.ts`
+- `pnpm exec prettier --check packages/cli/src/cli.ts packages/cli/src/create-project.ts packages/cli/src/adapter-sync.ts packages/cli/src/adapter-templates.ts packages/cli/src/adapter-command.ts packages/cli/src/create-command.ts packages/cli/src/errors.ts`
+- `pnpm exec vitest run test/cli/create.test.ts`
+- `pnpm exec vitest run test/cli/create.test.ts test/cli/dev-session.test.ts test/cli/reference.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 8 command routing and create/adapter scaffolding are now in the intended
+  shape.
+- Remaining Track 8 work: split large backend modules, especially
+  `packages/cli/src/reference.ts` at 2591 lines and
+  `packages/cli/src/devtools-client.ts` at 993 lines. `dev-session.ts` remains
+  706 lines and may still deserve a transport/session-file split.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 8 by splitting `packages/cli/src/devtools-client.ts` into
+browser transport/session resolution and tool-call request helpers, or split
+`packages/cli/src/reference.ts` by corpus building, status/search, and MCP tool
+adapter responsibilities.
 
 ## Current Run Update — 2026-05-28T11:11:58Z — CLI create and adapter command wrappers split
 

@@ -564,6 +564,13 @@ Status: in progress
 - CLI adapter command help, `sync` subcommand validation, option parsing,
   adapter-sync delegation, and summary output now live in
   `packages/cli/src/adapter-command.ts`.
+- CLI AI adapter template definitions now live in
+  `packages/cli/src/adapter-templates.ts`, while adapter file merge and MCP
+  JSON sync behavior live in `packages/cli/src/adapter-sync.ts`.
+- CLI create project scaffolding, template file assembly, starter app systems,
+  sample GLB fixture, and package metadata generation now live in
+  `packages/cli/src/create-project.ts`, leaving `packages/cli/src/cli.ts` as a
+  compact command router and public re-export surface.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
