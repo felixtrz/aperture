@@ -1,24 +1,22 @@
 import type {
-  LoadGltfFromUriCache,
   LoadGltfFromUriDiagnostic,
-  LoadGltfFromUriDiagnosticCode,
-  LoadGltfFromUriFetch,
   LoadGltfFromUriFetchResponse,
 } from "./gltf-uri-loader.js";
-import { errorMessage } from "./gltf-uri-shared.js";
+import {
+  diagnosticForFetchInput,
+  fetchFailedDiagnostic,
+  httpErrorDiagnostic,
+  readFailedDiagnostic,
+} from "./gltf-uri-fetch-byte-diagnostics.js";
+import type {
+  FetchBytesInput,
+  FetchBytesResult,
+} from "./gltf-uri-fetch-byte-types.js";
 
-export interface FetchBytesInput {
-  readonly url: string;
-  readonly fetcher: LoadGltfFromUriFetch;
-  readonly context: "source" | "buffer" | "image";
-  readonly bufferIndex?: number;
-  readonly imageIndex?: number;
-  readonly cache?: LoadGltfFromUriCache;
-}
-
-export type FetchBytesResult =
-  | { readonly ok: true; readonly bytes: ArrayBuffer }
-  | { readonly ok: false; readonly diagnostic: LoadGltfFromUriDiagnostic };
+export type {
+  FetchBytesInput,
+  FetchBytesResult,
+} from "./gltf-uri-fetch-byte-types.js";
 
 export async function fetchBytes(
   input: FetchBytesInput,
@@ -71,64 +69,8 @@ async function fetchBytesWithCache(
 
     return {
       ok: false,
-      diagnostic: {
-        code: fetchFailedCode(input.context),
-        severity: "error",
-        message: errorMessage(
-          error,
-          `Fetching glTF URI '${input.url}' failed.`,
-        ),
-        uri: input.url,
-        ...(input.bufferIndex === undefined
-          ? {}
-          : { bufferIndex: input.bufferIndex }),
-        ...(input.imageIndex === undefined
-          ? {}
-          : { imageIndex: input.imageIndex }),
-      },
+      diagnostic: fetchFailedDiagnostic(input, error),
     };
-  }
-}
-
-function diagnosticForFetchInput(
-  diagnostic: LoadGltfFromUriDiagnostic,
-  input: FetchBytesInput,
-): LoadGltfFromUriDiagnostic {
-  return {
-    code: fetchDiagnosticCodeForContext(diagnostic.code, input.context),
-    severity: diagnostic.severity,
-    message: diagnostic.message,
-    ...(diagnostic.status === undefined ? {} : { status: diagnostic.status }),
-    ...(diagnostic.statusText === undefined
-      ? {}
-      : { statusText: diagnostic.statusText }),
-    uri: diagnostic.uri ?? input.url,
-    ...(input.bufferIndex === undefined
-      ? {}
-      : { bufferIndex: input.bufferIndex }),
-    ...(input.imageIndex === undefined ? {} : { imageIndex: input.imageIndex }),
-  };
-}
-
-function fetchDiagnosticCodeForContext(
-  code: LoadGltfFromUriDiagnosticCode,
-  context: FetchBytesInput["context"],
-): LoadGltfFromUriDiagnosticCode {
-  switch (code) {
-    case "loadGltfFromUri.fetchFailed":
-    case "loadGltfFromUri.bufferFetchFailed":
-    case "loadGltfFromUri.imageFetchFailed":
-      return fetchFailedCode(context);
-    case "loadGltfFromUri.httpError":
-    case "loadGltfFromUri.bufferHttpError":
-    case "loadGltfFromUri.imageHttpError":
-      return httpErrorCode(context);
-    case "loadGltfFromUri.readFailed":
-    case "loadGltfFromUri.bufferReadFailed":
-    case "loadGltfFromUri.imageReadFailed":
-      return readFailedCode(context);
-    default:
-      return code;
   }
 }
 
@@ -142,41 +84,14 @@ async function fetchBytesWithoutCache(
   } catch (error) {
     return {
       ok: false,
-      diagnostic: {
-        code: fetchFailedCode(input.context),
-        severity: "error",
-        message: errorMessage(
-          error,
-          `Fetching glTF URI '${input.url}' failed.`,
-        ),
-        uri: input.url,
-        ...(input.bufferIndex === undefined
-          ? {}
-          : { bufferIndex: input.bufferIndex }),
-        ...(input.imageIndex === undefined
-          ? {}
-          : { imageIndex: input.imageIndex }),
-      },
+      diagnostic: fetchFailedDiagnostic(input, error),
     };
   }
 
   if (!response.ok) {
     return {
       ok: false,
-      diagnostic: {
-        code: httpErrorCode(input.context),
-        severity: "error",
-        status: response.status,
-        statusText: response.statusText,
-        uri: input.url,
-        ...(input.bufferIndex === undefined
-          ? {}
-          : { bufferIndex: input.bufferIndex }),
-        ...(input.imageIndex === undefined
-          ? {}
-          : { imageIndex: input.imageIndex }),
-        message: `Fetching glTF URI '${input.url}' failed with HTTP ${response.status}.`,
-      },
+      diagnostic: httpErrorDiagnostic(input, response),
     };
   }
 
@@ -185,60 +100,7 @@ async function fetchBytesWithoutCache(
   } catch (error) {
     return {
       ok: false,
-      diagnostic: {
-        code: readFailedCode(input.context),
-        severity: "error",
-        message: errorMessage(
-          error,
-          `Reading glTF URI '${input.url}' response bytes failed.`,
-        ),
-        uri: input.url,
-        ...(input.bufferIndex === undefined
-          ? {}
-          : { bufferIndex: input.bufferIndex }),
-        ...(input.imageIndex === undefined
-          ? {}
-          : { imageIndex: input.imageIndex }),
-      },
+      diagnostic: readFailedDiagnostic(input, error),
     };
-  }
-}
-
-function fetchFailedCode(
-  context: FetchBytesInput["context"],
-): LoadGltfFromUriDiagnosticCode {
-  switch (context) {
-    case "source":
-      return "loadGltfFromUri.fetchFailed";
-    case "buffer":
-      return "loadGltfFromUri.bufferFetchFailed";
-    case "image":
-      return "loadGltfFromUri.imageFetchFailed";
-  }
-}
-
-function httpErrorCode(
-  context: FetchBytesInput["context"],
-): LoadGltfFromUriDiagnosticCode {
-  switch (context) {
-    case "source":
-      return "loadGltfFromUri.httpError";
-    case "buffer":
-      return "loadGltfFromUri.bufferHttpError";
-    case "image":
-      return "loadGltfFromUri.imageHttpError";
-  }
-}
-
-function readFailedCode(
-  context: FetchBytesInput["context"],
-): LoadGltfFromUriDiagnosticCode {
-  switch (context) {
-    case "source":
-      return "loadGltfFromUri.readFailed";
-    case "buffer":
-      return "loadGltfFromUri.bufferReadFailed";
-    case "image":
-      return "loadGltfFromUri.imageReadFailed";
   }
 }
