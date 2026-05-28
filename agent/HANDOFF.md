@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-28T08:00:14Z
+Updated: 2026-05-28T08:03:22Z
+
+## Current Run Update — 2026-05-28T08:03:22Z — render state sort module split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split render-state sort public contracts/constants into
+  `packages/render/src/rendering/render-state-sort-types.ts`.
+- Split stable/state-aware render record ordering into
+  `packages/render/src/rendering/render-state-sort-ordering.ts`.
+- Split opaque state-switch pressure reporting into
+  `packages/render/src/rendering/render-state-sort-pressure.ts`.
+- Kept `render-state-sort.ts` as the stable re-export facade for existing
+  internal and public imports.
+- Updated the package-structure plan and public progress tracker for the new
+  render-state sort module boundaries.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/render-state-sort.ts packages/render/src/rendering/render-state-sort-types.ts packages/render/src/rendering/render-state-sort-ordering.ts packages/render/src/rendering/render-state-sort-pressure.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/render-state-sort.ts packages/render/src/rendering/render-state-sort-types.ts packages/render/src/rendering/render-state-sort-ordering.ts packages/render/src/rendering/render-state-sort-pressure.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/render-state-sort.ts packages/render/src/rendering/render-state-sort-types.ts packages/render/src/rendering/render-state-sort-ordering.ts packages/render/src/rendering/render-state-sort-pressure.ts`
+- `pnpm exec vitest run test/rendering/render-queue.test.ts test/rendering/material-queue.test.ts test/rendering/render-world.test.ts test/webgpu/render-frame-plan.test.ts test/webgpu/render-frame-snapshot-runner.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `snapshot-types.ts`,
+  `gltf-mesh-primitive-attributes.ts`,
+  `gltf-ecs-authoring-command-plan-primitives.ts`, and other medium
+  render/material/asset modules still near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium render extraction/material/asset
+hotspot.
 
 ## Current Run Update — 2026-05-28T08:00:14Z — glTF loader orchestration contract split
 

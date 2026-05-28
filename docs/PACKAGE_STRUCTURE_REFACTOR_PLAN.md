@@ -522,6 +522,11 @@ Status: in progress
   sort/coalescing/static-batch policy now live in focused
   `render-queue-*` rendering modules, leaving `render-queue.ts` focused on
   queue planning from draw readiness plus packed transforms.
+- Render state sort public contracts/constants, stable/state-aware ordering,
+  and opaque state-switch pressure reporting now live in
+  `render-state-sort-types.ts`, `render-state-sort-ordering.ts`, and
+  `render-state-sort-pressure.ts`, leaving `render-state-sort.ts` as the stable
+  re-export facade.
 - Procedural primitive mesh line-list and cone/cylinder frustum construction
   now live in `primitives-line-list.ts` and `primitives-frustum.ts`, leaving
   `primitives.ts` focused on the remaining public box, plane, sphere, capsule,
