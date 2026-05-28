@@ -1,6 +1,44 @@
 # Agent Handoff
 
-Updated: 2026-05-28T02:41:55Z
+Updated: 2026-05-28T02:44:33Z
+
+## Current Run Update — 2026-05-28T02:44:33Z — glTF ECS command replay contract split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF ECS command replay public contracts into
+  `packages/render/src/assets/gltf-ecs-command-replay-types.ts`.
+- Extracted replay report JSON projection and report result shaping into
+  `packages/render/src/assets/gltf-ecs-command-replay-report.ts`.
+- `packages/render/src/assets/gltf-ecs-command-replay.ts` is now roughly 408
+  lines and remains focused on component registration, entity creation,
+  component application, and replay diagnostics.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/gltf-ecs-command-replay.ts packages/render/src/assets/gltf-ecs-command-replay-types.ts packages/render/src/assets/gltf-ecs-command-replay-report.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-ecs-command-replay.ts packages/render/src/assets/gltf-ecs-command-replay-types.ts packages/render/src/assets/gltf-ecs-command-replay-report.ts`
+- `pnpm exec vitest run test/assets/gltf-ecs-command-replay.test.ts test/assets/gltf-ecs-command-replay-json.test.ts test/assets/gltf-combined-import-fixture.test.ts test/assets/gltf-combined-import-fixture-json.test.ts test/assets/gltf-loader-orchestration.test.ts test/assets/gltf-loader-orchestration-json.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `mesh/primitives.ts`,
+  `draco-decoder.ts`, `render-queue.ts`, `mesh-merge.ts`,
+  `hdr-rgbe-loader.ts`, mesh asset construction helpers, scene import
+  contracts, and material/render queue helpers.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining decoder, queue, mesh, or
+scene import helper modules.
 
 ## Current Run Update — 2026-05-28T02:41:55Z — snapshot packed codec utility split
 

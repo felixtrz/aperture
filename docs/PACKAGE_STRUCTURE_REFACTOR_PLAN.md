@@ -411,6 +411,10 @@ Status: in progress
 - Packed snapshot primitive numeric/enum/entity/vector/handle codec helpers now
   live in `snapshot-packed-codec-utils.ts`, leaving
   `snapshot-packed-codecs.ts` focused on packet-specific read/write layouts.
+- glTF ECS command replay public contracts and report JSON/result shaping now
+  live in focused `gltf-ecs-command-replay-*` asset modules, leaving
+  `gltf-ecs-command-replay.ts` focused on component registration, entity
+  creation, component application, and replay diagnostics.
 
 ## Purpose
 
