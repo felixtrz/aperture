@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-28T03:12:36Z
+Updated: 2026-05-28T03:16:49Z
+
+## Current Run Update — 2026-05-28T03:16:49Z — glTF scene import contract type/report split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split glTF scene import contract public types into
+  `packages/render/src/assets/gltf-scene-import-contract-types.ts`.
+- Split glTF scene import contract JSON projection helpers into
+  `packages/render/src/assets/gltf-scene-import-contract-report.ts`.
+- Kept `packages/render/src/assets/gltf-scene-import-contract.ts` as the
+  stable public facade and orchestration/diagnostics implementation.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/gltf-scene-import-contract.ts packages/render/src/assets/gltf-scene-import-contract-types.ts packages/render/src/assets/gltf-scene-import-contract-report.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-scene-import-contract.ts packages/render/src/assets/gltf-scene-import-contract-types.ts packages/render/src/assets/gltf-scene-import-contract-report.ts`
+- `pnpm exec vitest run test/assets/gltf-scene-import-contract.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/gltf-loader-orchestration.test.ts`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `hdr-rgbe-loader.ts`, mesh asset construction helpers,
+  `gltf-report-driven-import.ts`, asset mapping helpers, and view/transform
+  packing facades.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting mesh asset construction, report-driven import,
+asset mapping helpers, or one of the remaining decoder modules.
 
 ## Current Run Update — 2026-05-28T03:12:36Z — material queue module split
 

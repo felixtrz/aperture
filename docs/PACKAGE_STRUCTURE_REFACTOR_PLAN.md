@@ -431,6 +431,10 @@ Status: in progress
   ordering, family parsing, and phase/family summary generation now live in
   focused `material-queue-*` rendering modules, leaving `material-queue.ts`
   focused on snapshot-to-queue planning and missing-resource diagnostics.
+- glTF scene import contract public types and JSON report projection now live
+  in focused `gltf-scene-import-contract-*` asset modules, leaving
+  `gltf-scene-import-contract.ts` focused on composing mapping, traversal,
+  material resolution, ECS command planning, summary, and diagnostics.
 
 ## Purpose
 
