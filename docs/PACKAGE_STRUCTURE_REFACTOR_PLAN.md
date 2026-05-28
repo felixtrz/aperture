@@ -412,6 +412,9 @@ Status: in progress
 - glTF sampler enum constants, public mapping contracts, sampler-asset mapping,
   and JSON projection now live in focused `gltf-sampler-*` material modules,
   keeping `gltf-sampler.ts` as the stable public re-export facade.
+- glTF texture sync/async asset creation and texture mapping preparation now
+  live in `gltf-texture-create.ts` and `gltf-texture-prepare.ts`, keeping
+  `gltf-texture.ts` as the stable public re-export facade.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T08:43:46Z
+Updated: 2026-05-28T08:46:38Z
+
+## Current Run Update — 2026-05-28T08:46:38Z — glTF texture entrypoint split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split glTF texture sync/async asset creation into
+  `packages/render/src/materials/gltf-texture-create.ts`.
+- Split glTF texture mapping preparation into
+  `packages/render/src/materials/gltf-texture-prepare.ts`.
+- Kept `gltf-texture.ts` as the stable public re-export facade for texture
+  creation, async loading, report JSON helpers, and public texture types.
+- Updated the package-structure plan and public progress tracker for the new
+  glTF texture entrypoint boundaries.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/materials/gltf-texture.ts packages/render/src/materials/gltf-texture-create.ts packages/render/src/materials/gltf-texture-prepare.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/materials/gltf-texture.ts packages/render/src/materials/gltf-texture-create.ts packages/render/src/materials/gltf-texture-prepare.ts`
+- `pnpm exec prettier --check packages/render/src/materials/gltf-texture.ts packages/render/src/materials/gltf-texture-create.ts packages/render/src/materials/gltf-texture-prepare.ts`
+- `pnpm exec vitest run test/materials/gltf-texture.test.ts test/materials/gltf-report-json.test.ts test/materials/gltf-material-texture-integration.test.ts test/assets/gltf-asset-mapping.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-source-registration-writers.ts`,
+  `preparation-material.ts`, `extraction-inputs.ts`, `extraction-meshes.ts`,
+  and other medium render/material/asset modules still near the hotspot
+  threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium asset/extraction hotspot or
+reassess Track 5 completion against the plan before moving to Track 6.
 
 ## Current Run Update — 2026-05-28T08:43:46Z — glTF sampler mapping split
 
