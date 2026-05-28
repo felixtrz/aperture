@@ -516,6 +516,10 @@ Status: in progress
   sampler/environment-map asset-state validation now live in focused
   `extraction-*-validation.ts` rendering modules, leaving
   `extraction-asset-validation.ts` as the stable import facade.
+- Static mesh merge source layout collection, compatibility diagnostics,
+  vertex/index buffer assembly, and merged submesh range construction now live
+  in focused `mesh-merge-*` rendering modules, leaving `mesh-merge.ts` focused
+  on batch merge orchestration and final mesh report assembly.
 
 ## Purpose
 

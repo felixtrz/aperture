@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-28T04:51:19Z
+Updated: 2026-05-28T04:56:08Z
+
+## Current Run Update — 2026-05-28T04:56:08Z — mesh merge validation and assembly split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split static mesh merge source layout collection, source mesh validation,
+  stream compatibility diagnostics, topology checks, index presence checks, and
+  material slot compatibility diagnostics into
+  `packages/render/src/rendering/mesh-merge-validation.ts`.
+- Split merged vertex stream packing, index buffer rebase/format selection,
+  invalid index diagnostics, and merged submesh range construction into
+  `packages/render/src/rendering/mesh-merge-assembly.ts`.
+- Kept `packages/render/src/rendering/mesh-merge.ts` focused on batch merge
+  orchestration, bounds/material-slot assembly, and public result shaping.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/mesh-merge.ts packages/render/src/rendering/mesh-merge-validation.ts packages/render/src/rendering/mesh-merge-assembly.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/mesh-merge.ts packages/render/src/rendering/mesh-merge-validation.ts packages/render/src/rendering/mesh-merge-assembly.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/mesh-merge.ts packages/render/src/rendering/mesh-merge-validation.ts packages/render/src/rendering/mesh-merge-assembly.ts`
+- `pnpm exec vitest run test/rendering/mesh-merge.test.ts test/rendering/render-world.test.ts test/e2e/mesh-merge.spec.ts test/e2e/batching.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `view-pack.ts`, `glb-uri-loader.ts`,
+  `gltf-material-textures.ts`, `gltf-mesh-asset-vertex-streams.ts`,
+  `hdr-rgbe-parser.ts`, `snapshot.ts`, `gltf-scene-import-contract.ts`, and
+  `custom-wgsl-material-preparation.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining view-pack, GLB loader,
+material texture, mesh asset, HDR parser, snapshot, scene import contract, or
+custom WGSL material modules.
 
 ## Current Run Update — 2026-05-28T04:51:19Z — extraction asset validation split
 
