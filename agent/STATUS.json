@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "d9b75379",
+  "lastCommit": "2dea4309",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting glTF scene recursive node traversal, child-node parsing, local transform attachment, and traversal diagnostics into a focused asset module while preserving the public scene traversal facade; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T06:39:29Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting mesh extraction entity eligibility, visibility/layer filtering, mesh asset lookup, primary material handle parsing, shadow flags, and world matrix reading into a focused render module while preserving extraction behavior; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T06:42:59Z"
 }

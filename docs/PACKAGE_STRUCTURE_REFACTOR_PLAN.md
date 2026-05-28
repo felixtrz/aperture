@@ -255,10 +255,12 @@ Status: in progress
   `packages/render/src/rendering/extraction-sprites.ts`,
   `packages/render/src/rendering/extraction-skyboxes.ts`, and
   `packages/render/src/rendering/extraction-fogs.ts`.
-- Render extraction mesh draw assembly, mesh extraction cache state, mesh layout
-  key helpers, skin/morph/instance extraction helpers, and material-slot
-  resolution now live in `packages/render/src/rendering/extraction-meshes.ts`,
-  leaving `extraction.ts` as the snapshot/view orchestration entry point.
+- Render extraction mesh draw assembly now lives in
+  `packages/render/src/rendering/extraction-meshes.ts`, with mesh entity-state
+  eligibility/asset lookup, mesh extraction cache state, mesh layout key
+  helpers, skin/morph/instance extraction helpers, and material-slot resolution
+  split into focused `extraction-mesh-*` modules, leaving `extraction.ts` as
+  the snapshot/view orchestration entry point.
 - Render extraction mesh bounds and mesh layout key helpers now live in
   `packages/render/src/rendering/extraction-mesh-bounds.ts` and
   `packages/render/src/rendering/extraction-mesh-layout.ts`.
@@ -526,8 +528,9 @@ Status: in progress
 - View uniform packing public contracts/constants and scratch/pool helpers now
   live in `view-pack-types.ts` and `view-pack-scratch.ts`, leaving
   `view-pack.ts` focused on view uniform validation and packing.
-- Mesh extraction submesh/material draw assembly now lives in
-  `extraction-mesh-submeshes.ts`, leaving `extraction-meshes.ts` focused on
+- Mesh extraction entity eligibility/asset lookup now lives in
+  `extraction-mesh-entity-state.ts`, and submesh/material draw assembly lives
+  in `extraction-mesh-submeshes.ts`, leaving `extraction-meshes.ts` focused on
   entity traversal, cache reuse/writeback, culling, and per-entity mesh data
   extraction.
 - GLB container public contracts/constants, diagnostic builders, and byte/JSON

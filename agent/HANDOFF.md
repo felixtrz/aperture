@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T06:39:29Z
+Updated: 2026-05-28T06:42:59Z
+
+## Current Run Update — 2026-05-28T06:42:59Z — mesh extraction entity state split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split per-entity mesh extraction eligibility, visibility/layer filtering,
+  mesh asset lookup, primary material handle parsing, shadow flags, and world
+  matrix reading from `packages/render/src/rendering/extraction-meshes.ts` into
+  `packages/render/src/rendering/extraction-mesh-entity-state.ts`.
+- Kept `extraction-meshes.ts` focused on sorted entity traversal, cache
+  reuse/writeback, culling, transform/instance/deformation packing, submesh
+  draw creation, and return aggregation.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/extraction-meshes.ts packages/render/src/rendering/extraction-mesh-entity-state.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/extraction-meshes.ts packages/render/src/rendering/extraction-mesh-entity-state.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/extraction-meshes.ts packages/render/src/rendering/extraction-mesh-entity-state.ts`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/runtime/runtime.test.ts test/runtime/simulation-worker.test.ts test/rendering/render-frame-phases.test.ts test/rendering/material-queue.test.ts test/webgpu/render-frame-snapshot-json.test.ts test/webgpu/app-diagnostics-summary.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include final `extraction-meshes.ts` tightening,
+  `gltf-accessor-validation-primitives.ts`, `render-world.ts`,
+  `gltf-report-driven-import-meshopt.ts`, `glb-uri-image-sources.ts`, and
+  `prepared-resource.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining extraction mesh, accessor
+validation primitive, render-world, report-driven import, GLB image-source, or
+prepared-resource modules.
 
 ## Current Run Update — 2026-05-28T06:39:29Z — glTF scene node traversal split
 
