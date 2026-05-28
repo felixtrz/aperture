@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "081b683e",
+  "lastCommit": "5b3a2349",
   "activePid": null,
-  "notes": "Completed PACKAGE_STRUCTURE_REFACTOR_PLAN: CLI/reference modules are split, WebGPU internals use test-support, the public root barrel is narrowed and guarded, and build/typecheck/boundary/focused test validation passed.",
-  "lastRunFinishedAt": "2026-05-28T12:12:53Z"
+  "notes": "Started APP_CLI_STRUCTURE_REFACTOR_PLAN Track 2 by moving app config internals into packages/app/src/config/ and input resource/event internals into packages/app/src/input/ while preserving public facades; app typecheck, targeted app tests, typecheck:test, boundaries, build, focused lint/format, and diff check passed.",
+  "lastRunFinishedAt": "2026-05-28T15:16:12Z"
 }

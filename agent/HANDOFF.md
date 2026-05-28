@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T12:12:29Z
+Updated: 2026-05-28T15:16:12Z
+
+## Current Run Update — 2026-05-28T15:16:12Z — App config/input folderization
+
+Started implementing `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Moved app config implementation into `packages/app/src/config/`.
+- Kept `packages/app/src/config.ts` as the public
+  `@aperture-engine/app/config` facade.
+- Moved generated input events, input resource state, actions, bindings,
+  keyboard, gamepad, summary, and input types into `packages/app/src/input/`.
+- Kept `packages/app/src/input.ts` as a compatibility facade for generated
+  input event helpers.
+- Updated app systems and input tests to import from the new folderized input
+  implementation.
+- Recorded Track 2 progress in `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec vitest run test/app/input-state.test.ts test/app/developer-api.test.ts test/index.test.ts`
+- `pnpm exec prettier --write packages/app/src/config.ts packages/app/src/config/index.ts packages/app/src/config/errors.ts packages/app/src/config/validation.ts packages/app/src/input.ts packages/app/src/input/index.ts packages/app/src/input/events.ts packages/app/src/input/state.ts packages/app/src/input/actions.ts packages/app/src/input/bindings.ts packages/app/src/input/gamepads.ts packages/app/src/input/keyboard.ts packages/app/src/input/summary.ts packages/app/src/input/types.ts packages/app/src/systems.ts packages/app/src/systems-context.ts test/app/input-state.test.ts`
+- `pnpm exec eslint packages/app/src/config.ts packages/app/src/config/index.ts packages/app/src/config/errors.ts packages/app/src/config/validation.ts packages/app/src/input.ts packages/app/src/input/index.ts packages/app/src/input/events.ts packages/app/src/input/state.ts packages/app/src/input/actions.ts packages/app/src/input/bindings.ts packages/app/src/input/gamepads.ts packages/app/src/input/keyboard.ts packages/app/src/input/summary.ts packages/app/src/input/types.ts packages/app/src/systems.ts packages/app/src/systems-context.ts test/app/input-state.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 2 is only partially complete because `browser-input.ts` remains
+  top-level until the browser runtime split.
+- Track 3 is next: move non-spawn app system modules under
+  `packages/app/src/systems/` while preserving `@aperture-engine/app/systems`.
+- The full goal remains active; app browser/worker, app spawn/entity/spatial,
+  CLI command/create/dev/tool/reference folderization, and export guards remain.
+
+### Recommended next task
+
+Continue with Track 3 app systems folderization.
 
 ## Current Run Update — 2026-05-28T12:12:29Z — Package structure refactor completion
 
