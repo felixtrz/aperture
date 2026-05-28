@@ -576,6 +576,10 @@ Status: in progress
   now lives in `packages/cli/src/devtools-reference-tools.ts`, keeping
   `packages/cli/src/devtools-client.ts` focused on browser-backed tool
   execution.
+- CLI managed-browser CDP connection, generated-app status readback, WebGPU
+  readiness polling, screenshot capture, and canvas status helpers now live in
+  `packages/cli/src/devtools-browser.ts`, reducing
+  `packages/cli/src/devtools-client.ts` to browser-backed tool orchestration.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

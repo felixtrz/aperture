@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-28T11:27:44Z
+Updated: 2026-05-28T11:32:28Z
+
+## Current Run Update — 2026-05-28T11:32:28Z — CLI devtools browser transport split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 8.
+
+### What changed
+
+- Split managed-browser CDP connection, generated-app status readback, WebGPU
+  readiness polling, screenshot capture, and canvas status helpers into
+  `packages/cli/src/devtools-browser.ts`.
+- Kept `packages/cli/src/devtools-client.ts` focused on browser-backed tool
+  orchestration and generated runtime/render/input tool calls.
+- Reduced `packages/cli/src/devtools-client.ts` from 790 lines to 602 lines.
+
+### Validation
+
+- `pnpm exec prettier --write packages/cli/src/devtools-client.ts packages/cli/src/devtools-browser.ts packages/cli/src/devtools-args.ts`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm exec eslint packages/cli/src/devtools-client.ts packages/cli/src/devtools-browser.ts packages/cli/src/devtools-reference-tools.ts packages/cli/src/devtools-args.ts packages/cli/src/tool-command.ts packages/cli/src/mcp.ts`
+- `pnpm exec prettier --check packages/cli/src/devtools-client.ts packages/cli/src/devtools-browser.ts packages/cli/src/devtools-reference-tools.ts packages/cli/src/devtools-args.ts packages/cli/src/tool-command.ts packages/cli/src/mcp.ts`
+- `pnpm exec vitest run test/cli/dev-session.test.ts test/cli/reference.test.ts test/cli/create.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 8 remaining largest module is `packages/cli/src/reference.ts` at 2591
+  lines.
+- `packages/cli/src/dev-session.ts` remains 706 lines and may still deserve a
+  session-file/process/browser-launch split.
+- `packages/cli/src/devtools-client.ts` is 602 lines and can be further split by
+  browser runtime tools versus render packet/explain helpers.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 8 by splitting `packages/cli/src/reference.ts` into corpus
+source collection, chunking/embedding/scoring, warm/status IO, and public query
+facades.
 
 ## Current Run Update — 2026-05-28T11:27:44Z — CLI devtools backend splits
 
