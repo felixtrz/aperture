@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-28T09:45:29Z
+Updated: 2026-05-28T09:49:04Z
+
+## Current Run Update — 2026-05-28T09:49:04Z — app system context split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 6.
+
+### What changed
+
+- Split app system context installation, shared generated action map typing,
+  input signal wiring, and context construction into
+  `packages/app/src/systems-context.ts`.
+- Preserved the existing public `systems.ts` exports for
+  `createApertureSystemContext()`, `installApertureSystemContext()`,
+  `ApertureGeneratedActionMap`, `InputActions`, `InputSignals`, and context
+  types.
+- Reduced `packages/app/src/systems.ts` from 442 lines to 330 lines, leaving it
+  focused on the public system authoring facade and `createSystem()`.
+
+### Validation
+
+- `pnpm exec prettier --write packages/app/src/systems.ts packages/app/src/systems-context.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec eslint packages/app/src/systems.ts packages/app/src/systems-context.ts`
+- `pnpm exec prettier --check packages/app/src/systems.ts packages/app/src/systems-context.ts`
+- `pnpm exec vitest run test/app/systems.test.ts test/app/developer-api.test.ts test/app/input-state.test.ts test/runtime/simulation-worker.test.ts test/index.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 6 still needs focused app modules for config/runtime code,
+  browser/worker generated bootstrapping, and entity lookup.
+- Remaining large app files include `worker.ts`, `browser.ts`,
+  `entity-lookup.ts`, and `config.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 6 by splitting app config/runtime code or generated
+browser/worker bootstrapping.
 
 ## Current Run Update — 2026-05-28T09:45:29Z — app input summary split
 

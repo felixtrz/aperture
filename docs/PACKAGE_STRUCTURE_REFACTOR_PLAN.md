@@ -443,6 +443,12 @@ Status: in progress
 - App system signal store creation and JSON-safe signal summary helpers now live
   in `packages/app/src/systems-signals.ts`, preserving public signal store and
   summary exports through `systems.ts`.
+- App system context installation, shared generated action map typing, input
+  signal wiring, and context construction now live in
+  `packages/app/src/systems-context.ts`, preserving the existing public
+  `systems.ts` exports for `createApertureSystemContext()`,
+  `installApertureSystemContext()`, generated action augmentation, input
+  signals, and context types.
 - App input generated-event, action, keyboard, gamepad, resource, and summary
   contracts now live in `packages/app/src/input-state-types.ts`, preserving the
   existing public type exports through `input-state.ts` and `systems.ts`.
