@@ -1,139 +1,43 @@
 import { assetHandleKey } from "@aperture-engine/simulation";
-import type { MaterialKind } from "../materials/index.js";
-import type { MeshTopology } from "../mesh/index.js";
+import type { MeshDrawPacket, RenderSnapshot } from "./snapshot.js";
+import {
+  createMaterialQueueScratch,
+  materialQueueItemAt,
+} from "./material-queue-scratch.js";
+import {
+  materialQueueFamilyFromPipelineKey,
+  sortMaterialQueueItems,
+} from "./material-queue-ordering.js";
 import type {
-  MeshDrawPacket,
-  RenderDiagnostic,
-  RenderEntityRef,
-  RenderQueue,
-  RenderSnapshot,
-} from "./snapshot.js";
+  MaterialQueuePlan,
+  MaterialQueueResolverInput,
+  MaterialQueueResourceKeyResolvers,
+  MaterialQueueScratch,
+  MutableMaterialQueueItemSortKey,
+} from "./material-queue-types.js";
 
-export type MaterialQueueFamily = MaterialKind | (string & {});
-
-export interface MaterialQueueResolverInput {
-  readonly draw: MeshDrawPacket;
-  readonly drawIndex: number;
-  readonly meshKey: string;
-  readonly materialKey: string;
-  readonly materialFamily: MaterialQueueFamily;
-}
-
-export interface MaterialQueueResourceKeyResolvers {
-  readonly meshResourceKey: (
-    input: MaterialQueueResolverInput,
-  ) => string | null;
-  readonly materialResourceKey: (
-    input: MaterialQueueResolverInput,
-  ) => string | null;
-}
-
-export interface MaterialQueueItemSortKey {
-  readonly renderPhase: RenderQueue;
-  readonly viewId: number;
-  readonly layer: number;
-  readonly order: number;
-  readonly pipelineKey: string;
-  readonly materialResourceKey: string;
-  readonly meshResourceKey: string;
-  readonly depth: number;
-  readonly stableId: number;
-  readonly drawIndex: number;
-}
-
-export interface MaterialQueueItem {
-  readonly renderId: number;
-  readonly drawIndex: number;
-  readonly entity: RenderEntityRef;
-  readonly submesh?: number;
-  readonly materialSlot?: number;
-  readonly vertexStart?: number;
-  readonly vertexCount?: number;
-  readonly indexStart?: number;
-  readonly indexCount?: number;
-  readonly renderPhase: RenderQueue;
-  readonly materialFamily: MaterialQueueFamily;
-  readonly pipelineKey: string;
-  readonly meshKey: string;
-  readonly materialKey: string;
-  readonly meshResourceKey: string;
-  readonly materialResourceKey: string;
-  readonly meshLayoutKey: string;
-  readonly topology: MeshTopology;
-  readonly depth: number;
-  readonly sortKey: MaterialQueueItemSortKey;
-}
-
-export interface MaterialQueuePlan {
-  readonly items: readonly MaterialQueueItem[];
-  readonly diagnostics: readonly RenderDiagnostic[];
-}
-
-export interface MaterialQueuePhaseBucketSummary {
-  readonly phase: RenderQueue;
-  readonly itemCount: number;
-}
-
-export interface MaterialQueueFamilyBucketSummary {
-  readonly family: MaterialQueueFamily;
-  readonly itemCount: number;
-}
-
-export interface MaterialQueuePhaseFamilyBucketSummary {
-  readonly phase: RenderQueue;
-  readonly family: MaterialQueueFamily;
-  readonly itemCount: number;
-}
-
-export interface MaterialQueuePhaseSummary {
-  readonly itemCount: number;
-  readonly byPhase: readonly MaterialQueuePhaseBucketSummary[];
-  readonly byFamily: readonly MaterialQueueFamilyBucketSummary[];
-  readonly byPhaseAndFamily: readonly MaterialQueuePhaseFamilyBucketSummary[];
-}
-
-export interface MaterialQueueScratch {
-  readonly items: MaterialQueueItem[];
-  readonly diagnostics: RenderDiagnostic[];
-  readonly itemPool: MaterialQueueItem[];
-  readonly plan: MaterialQueuePlan;
-}
-
-interface MutableMaterialQueueItem {
-  renderId: number;
-  drawIndex: number;
-  entity: RenderEntityRef;
-  submesh?: number;
-  materialSlot?: number;
-  vertexStart?: number;
-  vertexCount?: number;
-  indexStart?: number;
-  indexCount?: number;
-  renderPhase: RenderQueue;
-  materialFamily: MaterialQueueFamily;
-  pipelineKey: string;
-  meshKey: string;
-  materialKey: string;
-  meshResourceKey: string;
-  materialResourceKey: string;
-  meshLayoutKey: string;
-  topology: MeshTopology;
-  depth: number;
-  sortKey: MaterialQueueItemSortKey;
-}
-
-interface MutableMaterialQueueItemSortKey {
-  renderPhase: RenderQueue;
-  viewId: number;
-  layer: number;
-  order: number;
-  pipelineKey: string;
-  materialResourceKey: string;
-  meshResourceKey: string;
-  depth: number;
-  stableId: number;
-  drawIndex: number;
-}
+export { createMaterialQueueScratch } from "./material-queue-scratch.js";
+export {
+  MATERIAL_QUEUE_PHASE_ORDER,
+  compareStrings,
+  materialQueueFamilyFromPipelineKey,
+  materialQueuePhaseRank,
+  sortMaterialQueueItems,
+} from "./material-queue-ordering.js";
+export { createMaterialQueuePhaseSummary } from "./material-queue-summary.js";
+export type {
+  MaterialQueueFamily,
+  MaterialQueueFamilyBucketSummary,
+  MaterialQueueItem,
+  MaterialQueueItemSortKey,
+  MaterialQueuePhaseBucketSummary,
+  MaterialQueuePhaseFamilyBucketSummary,
+  MaterialQueuePhaseSummary,
+  MaterialQueuePlan,
+  MaterialQueueResolverInput,
+  MaterialQueueResourceKeyResolvers,
+  MaterialQueueScratch,
+} from "./material-queue-types.js";
 
 export function buildMaterialQueueFromSnapshot(
   snapshot: Pick<RenderSnapshot, "meshDraws" | "diagnostics">,
@@ -144,23 +48,6 @@ export function buildMaterialQueueFromSnapshot(
   writeMaterialQueueFromSnapshot(snapshot, resolvers, scratch);
 
   return scratch.plan;
-}
-
-export function createMaterialQueueScratch(capacity = 0): MaterialQueueScratch {
-  const itemPool: MaterialQueueItem[] = [];
-  const items: MaterialQueueItem[] = [];
-  const diagnostics: RenderDiagnostic[] = [];
-
-  for (let i = 0; i < capacity; i += 1) {
-    itemPool.push(createEmptyItem());
-  }
-
-  return {
-    items,
-    diagnostics,
-    itemPool,
-    plan: { items, diagnostics },
-  };
 }
 
 export function writeMaterialQueueFromSnapshot(
@@ -229,7 +116,7 @@ export function writeMaterialQueueFromSnapshot(
       continue;
     }
 
-    const item = itemAt(scratch, scratch.items.length);
+    const item = materialQueueItemAt(scratch, scratch.items.length);
     const sortKey = item.sortKey as MutableMaterialQueueItemSortKey;
 
     sortKey.renderPhase = draw.sortKey.queue;
@@ -270,139 +157,6 @@ export function writeMaterialQueueFromSnapshot(
   return scratch.plan;
 }
 
-export function sortMaterialQueueItems(
-  items: MaterialQueueItem[],
-): MaterialQueueItem[] {
-  items.sort(compareMaterialQueueItems);
-  return items;
-}
-
-export function createMaterialQueuePhaseSummary(
-  items: readonly MaterialQueueItem[],
-): MaterialQueuePhaseSummary {
-  const phaseCounts = new Map<RenderQueue, number>();
-  const familyCounts = new Map<MaterialQueueFamily, number>();
-  const phaseFamilyCounts = new Map<
-    string,
-    { phase: RenderQueue; family: MaterialQueueFamily; itemCount: number }
-  >();
-
-  for (const item of items) {
-    phaseCounts.set(
-      item.renderPhase,
-      (phaseCounts.get(item.renderPhase) ?? 0) + 1,
-    );
-    familyCounts.set(
-      item.materialFamily,
-      (familyCounts.get(item.materialFamily) ?? 0) + 1,
-    );
-
-    const phaseFamilyKey = `${item.renderPhase}|${item.materialFamily}`;
-    const phaseFamilyCount = phaseFamilyCounts.get(phaseFamilyKey);
-
-    if (phaseFamilyCount === undefined) {
-      phaseFamilyCounts.set(phaseFamilyKey, {
-        phase: item.renderPhase,
-        family: item.materialFamily,
-        itemCount: 1,
-      });
-    } else {
-      phaseFamilyCount.itemCount += 1;
-    }
-  }
-
-  return {
-    itemCount: items.length,
-    byPhase: MATERIAL_QUEUE_PHASE_ORDER.flatMap((phase) => {
-      const itemCount = phaseCounts.get(phase);
-
-      return itemCount === undefined ? [] : [{ phase, itemCount }];
-    }),
-    byFamily: [...familyCounts.entries()]
-      .sort(([a], [b]) => compareStrings(a, b))
-      .map(([family, itemCount]) => ({ family, itemCount })),
-    byPhaseAndFamily: [...phaseFamilyCounts.values()]
-      .sort(
-        (a, b) =>
-          materialQueuePhaseRank(a.phase) - materialQueuePhaseRank(b.phase) ||
-          compareStrings(a.family, b.family),
-      )
-      .map(({ phase, family, itemCount }) => ({ phase, family, itemCount })),
-  };
-}
-
-export function materialQueueFamilyFromPipelineKey(
-  pipelineKey: string,
-): MaterialQueueFamily | null {
-  const family = pipelineKey.split("|", 1)[0] ?? "";
-
-  return isMaterialQueueFamilyKey(family) ? family : null;
-}
-
-function isMaterialQueueFamilyKey(
-  family: string,
-): family is MaterialQueueFamily {
-  return /^[a-z][a-z0-9-]*$/.test(family);
-}
-
-function compareMaterialQueueItems(
-  a: MaterialQueueItem,
-  b: MaterialQueueItem,
-): number {
-  const phaseRankDelta =
-    materialQueuePhaseRank(a.renderPhase) -
-    materialQueuePhaseRank(b.renderPhase);
-
-  if (phaseRankDelta !== 0) {
-    return phaseRankDelta;
-  }
-
-  if (a.renderPhase === "transparent" || b.renderPhase === "transparent") {
-    return (
-      a.sortKey.viewId - b.sortKey.viewId ||
-      a.sortKey.layer - b.sortKey.layer ||
-      a.sortKey.order - b.sortKey.order ||
-      b.depth - a.depth ||
-      a.sortKey.stableId - b.sortKey.stableId ||
-      a.drawIndex - b.drawIndex
-    );
-  }
-
-  return (
-    a.sortKey.viewId - b.sortKey.viewId ||
-    a.sortKey.layer - b.sortKey.layer ||
-    a.sortKey.order - b.sortKey.order ||
-    compareStrings(a.pipelineKey, b.pipelineKey) ||
-    compareStrings(a.materialResourceKey, b.materialResourceKey) ||
-    compareStrings(a.meshLayoutKey, b.meshLayoutKey) ||
-    compareStrings(a.meshResourceKey, b.meshResourceKey) ||
-    a.depth - b.depth ||
-    a.sortKey.stableId - b.sortKey.stableId ||
-    a.drawIndex - b.drawIndex
-  );
-}
-
-function materialQueuePhaseRank(phase: RenderQueue): number {
-  switch (phase) {
-    case "opaque":
-      return 0;
-    case "alpha-test":
-      return 1;
-    case "transparent":
-      return 2;
-  }
-}
-
-const MATERIAL_QUEUE_PHASE_ORDER: readonly RenderQueue[] = [
-  "opaque",
-  "alpha-test",
-  "transparent",
-];
-
-function compareStrings(a: string, b: string): number {
-  return a < b ? -1 : a > b ? 1 : 0;
-}
-
 function assignOptionalNumber<T extends object, K extends keyof T>(
   target: T,
   key: K,
@@ -436,54 +190,4 @@ function missingPreparedResourceMessage(input: {
   return `Render object ${input.draw.renderId} is missing prepared ${missing.join(
     " and ",
   )}.`;
-}
-
-function itemAt(
-  scratch: MaterialQueueScratch,
-  index: number,
-): MutableMaterialQueueItem {
-  const existing = scratch.itemPool[index] as
-    | MutableMaterialQueueItem
-    | undefined;
-
-  if (existing !== undefined) {
-    return existing;
-  }
-
-  const item = createEmptyItem();
-
-  scratch.itemPool.push(item);
-  return item;
-}
-
-function createEmptyItem(): MutableMaterialQueueItem {
-  return {
-    renderId: 0,
-    drawIndex: 0,
-    entity: { index: 0, generation: 0 },
-    submesh: 0,
-    materialSlot: 0,
-    renderPhase: "opaque",
-    materialFamily: "unlit",
-    pipelineKey: "",
-    meshKey: "",
-    materialKey: "",
-    meshResourceKey: "",
-    materialResourceKey: "",
-    meshLayoutKey: "",
-    topology: "triangle-list",
-    depth: 0,
-    sortKey: {
-      renderPhase: "opaque",
-      viewId: 0,
-      layer: 0,
-      order: 0,
-      pipelineKey: "",
-      materialResourceKey: "",
-      meshResourceKey: "",
-      depth: 0,
-      stableId: 0,
-      drawIndex: 0,
-    },
-  };
 }
