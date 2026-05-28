@@ -2,23 +2,17 @@ import {
   assetHandleKey,
   Enabled,
   type AssetRegistry,
-  type Entity,
   type EcsWorld,
-  type MaterialHandle,
   WorldTransform,
 } from "@aperture-engine/simulation";
 import {
   createMaterialPipelineKeyInput,
   type MaterialAsset,
-  type MaterialPipelineKeyInput,
 } from "../materials/index.js";
 import { type MeshAsset, validateMeshAsset } from "../mesh/index.js";
 import {
-  FogMode,
   InstanceData,
-  InstanceTint,
   Material,
-  MaterialSlots,
   Mesh,
   OcclusionQuery,
   RenderLayer,
@@ -37,7 +31,6 @@ import {
   type InstanceAttributePacket,
   type MeshDrawPacket,
   type RenderDiagnostic,
-  type RenderQueue,
 } from "./snapshot.js";
 import {
   computeViewDepth,
@@ -55,6 +48,16 @@ import { diagnostic, entityRef } from "./extraction-diagnostics.js";
 import { sortedEntities } from "./extraction-entities.js";
 import { parseMaterialHandle, parseMeshHandle } from "./extraction-inputs.js";
 import {
+  pushInstanceAttributePacket,
+  pushInstanceTint,
+} from "./extraction-mesh-instances.js";
+import {
+  createExtractedMaterialPipelineKeyInput,
+  materialQueue,
+  readMaterialSlots,
+  selectFogModeForLayer,
+} from "./extraction-mesh-materials.js";
+import {
   appendCachedMeshDrawEntity,
   createMeshDrawPacketTemplate,
   entityCacheKey,
@@ -69,7 +72,6 @@ import {
 } from "./extraction-mesh-deformation.js";
 import { meshLayoutStreamToken } from "./extraction-mesh-layout.js";
 import { pushMatrix, readWorldMatrix } from "./extraction-matrices.js";
-import { pushVec4 } from "./extraction-packing.js";
 
 export {
   createRenderExtractionCache,
@@ -471,232 +473,4 @@ export function extractMeshDraws(
   }
 
   return draws;
-}
-
-function pushInstanceTint(
-  values: number[],
-  entity: Entity,
-): number | undefined {
-  if (!entity.hasComponent(InstanceTint)) {
-    return undefined;
-  }
-
-  return pushVec4(values, entity.getVectorView(InstanceTint, "color"));
-}
-
-function pushInstanceAttributePacket(
-  values: number[],
-  packets: InstanceAttributePacket[],
-  diagnostics: RenderDiagnostic[],
-  entity: Entity,
-): number | undefined {
-  if (!entity.hasComponent(InstanceData)) {
-    return undefined;
-  }
-
-  const materialKind = entity.getValue(InstanceData, "materialKind") ?? "";
-  const valuesJson = entity.getValue(InstanceData, "valuesJson") ?? "{}";
-  const fields: InstanceAttributePacket["fields"][number][] = [];
-  let parsed: unknown;
-
-  try {
-    parsed = JSON.parse(valuesJson);
-  } catch {
-    diagnostics.push(diagnostic("render.instanceData.invalidJson", entity));
-    return undefined;
-  }
-
-  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
-    diagnostics.push(diagnostic("render.instanceData.invalidValues", entity));
-    return undefined;
-  }
-
-  for (const name of Object.keys(parsed).sort()) {
-    const source = (parsed as Record<string, unknown>)[name];
-    const components = instanceDataComponents(source);
-
-    if (components === null) {
-      diagnostics.push(diagnostic("render.instanceData.invalidValue", entity));
-      continue;
-    }
-
-    const offset = values.length;
-
-    values.push(...components);
-    fields.push({
-      name,
-      offset,
-      components: components.length,
-    });
-  }
-
-  if (fields.length === 0) {
-    return undefined;
-  }
-
-  const packetIndex = packets.length;
-
-  packets.push({
-    packetIndex,
-    entity: entityRef(entity),
-    materialKind,
-    fields,
-  });
-
-  return packetIndex;
-}
-
-function createExtractedMaterialPipelineKeyInput(input: {
-  readonly base: MaterialPipelineKeyInput;
-  readonly material: MaterialAsset;
-  readonly instanceTint: boolean;
-  readonly skinned: boolean;
-  readonly morphed: boolean;
-  readonly fogMode?: FogMode | null;
-}): MaterialPipelineKeyInput {
-  if (
-    input.material.kind !== "standard" ||
-    (!input.instanceTint &&
-      !input.skinned &&
-      !input.morphed &&
-      input.fogMode == null)
-  ) {
-    return input.base;
-  }
-
-  const features = new Set(input.base.features);
-
-  if (input.instanceTint) {
-    features.add("instance-tint");
-  }
-
-  if (input.skinned) {
-    features.add("skinned");
-  }
-
-  if (input.morphed) {
-    features.add("morphed");
-  }
-
-  const fogFeature = fogPipelineFeature(input.fogMode);
-
-  if (fogFeature !== null) {
-    features.add(fogFeature);
-  }
-
-  return {
-    ...input.base,
-    features: [...features].sort(),
-  };
-}
-
-function selectFogModeForLayer(
-  layerMask: number,
-  fogs: readonly FogPacket[],
-): FogMode | null {
-  for (const fog of fogs) {
-    if ((fog.layerMask & layerMask) !== 0) {
-      return fog.mode;
-    }
-  }
-
-  return null;
-}
-
-function fogPipelineFeature(mode: FogMode | null | undefined): string | null {
-  switch (mode) {
-    case FogMode.Linear:
-      return "fogLinear";
-    case FogMode.Exp:
-      return "fogExp";
-    case FogMode.Exp2:
-      return "fogExp2";
-    case null:
-    case undefined:
-      return null;
-  }
-}
-
-function instanceDataComponents(value: unknown): readonly number[] | null {
-  const raw = Array.isArray(value) ? value : [value];
-
-  if (raw.length < 1 || raw.length > 4) {
-    return null;
-  }
-
-  const components: number[] = [];
-
-  for (const component of raw) {
-    if (typeof component !== "number" || !Number.isFinite(component)) {
-      return null;
-    }
-
-    components.push(component);
-  }
-
-  return components;
-}
-
-function readMaterialSlots(
-  entity: Entity,
-  diagnostics: RenderDiagnostic[],
-): Map<number, MaterialHandle> {
-  const slots = new Map<number, MaterialHandle>();
-
-  if (!entity.hasComponent(MaterialSlots)) {
-    return slots;
-  }
-
-  const slotsJson = entity.getValue(MaterialSlots, "slotsJson") ?? "[]";
-  let parsed: unknown;
-
-  try {
-    parsed = JSON.parse(slotsJson);
-  } catch {
-    diagnostics.push(diagnostic("render.invalidMaterialSlots", entity));
-    return slots;
-  }
-
-  if (!Array.isArray(parsed)) {
-    diagnostics.push(diagnostic("render.invalidMaterialSlots", entity));
-    return slots;
-  }
-
-  for (const entry of parsed) {
-    if (
-      typeof entry !== "object" ||
-      entry === null ||
-      !Number.isInteger((entry as { slot?: unknown }).slot) ||
-      ((entry as { slot?: number }).slot ?? -1) < 0 ||
-      typeof (entry as { materialId?: unknown }).materialId !== "string"
-    ) {
-      diagnostics.push(diagnostic("render.invalidMaterialSlots", entity));
-      continue;
-    }
-
-    const slot = (entry as { slot: number }).slot;
-    const material = parseMaterialHandle(
-      (entry as { materialId: string }).materialId,
-    );
-
-    if (material === null) {
-      diagnostics.push(diagnostic("render.invalidMaterialSlots", entity));
-      continue;
-    }
-
-    slots.set(slot, material);
-  }
-
-  return slots;
-}
-
-function materialQueue(material: MaterialAsset): RenderQueue {
-  switch (material.renderState.alphaMode) {
-    case "mask":
-      return "alpha-test";
-    case "blend":
-      return "transparent";
-    case "opaque":
-      return "opaque";
-  }
 }
