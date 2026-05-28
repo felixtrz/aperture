@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-28T08:03:22Z
+Updated: 2026-05-28T08:07:30Z
+
+## Current Run Update — 2026-05-28T08:07:30Z — glTF mesh primitive attribute helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split glTF mesh primitive accessor-reference validation into
+  `packages/render/src/assets/gltf-mesh-primitive-accessor-reference.ts`.
+- Split glTF mesh primitive index mapping into
+  `packages/render/src/assets/gltf-mesh-primitive-indices.ts`.
+- Split glTF mesh primitive morph target attribute mapping into
+  `packages/render/src/assets/gltf-mesh-primitive-morph-targets.ts`.
+- Kept `gltf-mesh-primitive-attributes.ts` as the stable import path for index
+  mapping and the focused top-level attribute reference aggregation module.
+- Updated the package-structure plan and public progress tracker for the new
+  glTF mesh primitive helper module boundaries.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-mesh-primitive-attributes.ts packages/render/src/assets/gltf-mesh-primitive-accessor-reference.ts packages/render/src/assets/gltf-mesh-primitive-morph-targets.ts packages/render/src/assets/gltf-mesh-primitive-indices.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-mesh-primitive-attributes.ts packages/render/src/assets/gltf-mesh-primitive-accessor-reference.ts packages/render/src/assets/gltf-mesh-primitive-morph-targets.ts packages/render/src/assets/gltf-mesh-primitive-indices.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-mesh-primitive-attributes.ts packages/render/src/assets/gltf-mesh-primitive-accessor-reference.ts packages/render/src/assets/gltf-mesh-primitive-morph-targets.ts packages/render/src/assets/gltf-mesh-primitive-indices.ts`
+- `pnpm exec vitest run test/assets/gltf-mesh-primitive.test.ts test/assets/gltf-mesh-primitive-json.test.ts test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-mesh-source-registration.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `snapshot-types.ts`,
+  `gltf-ecs-authoring-command-plan-primitives.ts`, `extraction-meshes.ts`, and
+  other medium render/material/asset modules still near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium render extraction/material/asset
+hotspot.
 
 ## Current Run Update — 2026-05-28T08:03:22Z — render state sort module split
 

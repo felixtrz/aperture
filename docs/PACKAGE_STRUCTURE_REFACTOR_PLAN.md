@@ -485,6 +485,13 @@ Status: in progress
   topology/compression/planning lives in `gltf-mesh-primitive-planning.ts`,
   leaving `gltf-mesh-primitive.ts` as the stable root validation and report
   orchestration facade.
+- glTF mesh primitive accessor-reference validation, index mapping, and morph
+  target attribute mapping now live in focused
+  `gltf-mesh-primitive-accessor-reference.ts`,
+  `gltf-mesh-primitive-indices.ts`, and
+  `gltf-mesh-primitive-morph-targets.ts`, leaving
+  `gltf-mesh-primitive-attributes.ts` focused on top-level attribute reference
+  aggregation.
 - glTF mesh source registration mesh handle creation, duplicate/invalid skips,
   construction diagnostic filtering, and registry writes now live in
   `gltf-mesh-source-registration-writers.ts`, leaving

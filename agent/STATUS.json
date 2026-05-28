@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "fda0ade1",
+  "lastCommit": "81842e28",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting render state sort contracts/constants, stable/state-aware ordering, and opaque state-switch pressure reporting into focused render modules while keeping render-state-sort.ts as the stable facade; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T08:03:22Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting glTF mesh primitive accessor-reference validation, index mapping, and morph target attribute mapping into focused asset modules while keeping gltf-mesh-primitive-attributes.ts as the top-level attribute aggregation facade; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T08:07:30Z"
 }
