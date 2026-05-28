@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "05592da4",
+  "lastCommit": "545f5f1b",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 8 by splitting CLI adapter templates, adapter sync, and create project scaffolding into focused modules, reducing cli.ts to a compact command router; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T11:22:22Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 8 by splitting devtools argument normalization and reference-backed MCP tool dispatch into focused modules, reducing devtools-client.ts to browser-backed tool execution; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T11:27:44Z"
 }

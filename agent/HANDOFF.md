@@ -1,6 +1,52 @@
 # Agent Handoff
 
-Updated: 2026-05-28T11:22:22Z
+Updated: 2026-05-28T11:27:44Z
+
+## Current Run Update — 2026-05-28T11:27:44Z — CLI devtools backend splits
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 8.
+
+### What changed
+
+- Split devtools argument normalization into
+  `packages/cli/src/devtools-args.ts`.
+- Split reference-backed MCP tool dispatch into
+  `packages/cli/src/devtools-reference-tools.ts`.
+- Kept `packages/cli/src/devtools-client.ts` focused on managed-browser
+  session resolution and browser-backed tool execution.
+- Reduced `packages/cli/src/devtools-client.ts` from 993 lines before these
+  splits to 790 lines.
+
+### Validation
+
+- `pnpm exec prettier --write packages/cli/src/devtools-client.ts packages/cli/src/devtools-args.ts`
+- `pnpm exec prettier --write packages/cli/src/devtools-client.ts packages/cli/src/devtools-reference-tools.ts packages/cli/src/devtools-args.ts`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm exec eslint packages/cli/src/devtools-client.ts packages/cli/src/devtools-args.ts packages/cli/src/tool-command.ts packages/cli/src/mcp.ts`
+- `pnpm exec eslint packages/cli/src/devtools-client.ts packages/cli/src/devtools-reference-tools.ts packages/cli/src/devtools-args.ts packages/cli/src/tool-command.ts packages/cli/src/mcp.ts`
+- `pnpm exec prettier --check packages/cli/src/devtools-client.ts packages/cli/src/devtools-reference-tools.ts packages/cli/src/devtools-args.ts packages/cli/src/tool-command.ts packages/cli/src/mcp.ts`
+- `pnpm exec vitest run test/cli/dev-session.test.ts test/cli/reference.test.ts test/cli/create.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 8 still has large backend modules: `packages/cli/src/reference.ts` is
+  2591 lines, and `packages/cli/src/dev-session.ts` is 706 lines.
+- `packages/cli/src/devtools-client.ts` is improved but still 790 lines; the
+  next clean split is browser transport/session connection versus individual
+  browser tool implementations.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 8 by splitting `devtools-client.ts` browser transport/session
+connection helpers from browser tool implementations, then split
+`reference.ts` by corpus build, warm/status/search, and source collection.
 
 ## Current Run Update — 2026-05-28T11:22:22Z — CLI scaffolder and adapter backend split
 

@@ -571,6 +571,11 @@ Status: in progress
   sample GLB fixture, and package metadata generation now live in
   `packages/cli/src/create-project.ts`, leaving `packages/cli/src/cli.ts` as a
   compact command router and public re-export surface.
+- CLI devtools argument normalization now lives in
+  `packages/cli/src/devtools-args.ts`, and reference-backed MCP tool dispatch
+  now lives in `packages/cli/src/devtools-reference-tools.ts`, keeping
+  `packages/cli/src/devtools-client.ts` focused on browser-backed tool
+  execution.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
