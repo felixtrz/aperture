@@ -64,7 +64,6 @@ import {
   quatFromAxisAngle,
   registerMetadataComponents,
   registerTransformComponents,
-  type AssetDiagnostic,
   type AssetRegistry,
   type EcsWorld,
   type Entity,
@@ -100,6 +99,11 @@ import {
   registerSystemEffects,
   type ScheduledEffects,
 } from "./systems-effects.js";
+import {
+  createDiagnostics,
+  type ApertureSystemDiagnostic,
+  type SystemDiagnostics,
+} from "./systems-diagnostics.js";
 import { ApertureSystemError } from "./systems-error.js";
 import { jsonSafeValue } from "./systems-json.js";
 import { createCommandAccess, type CommandAccess } from "./systems-commands.js";
@@ -141,6 +145,12 @@ export function createSignalSummary(signals: SignalStore): SignalSummary {
 
   return summary;
 }
+
+export type {
+  ApertureSystemDiagnostic,
+  SystemDiagnostics,
+} from "./systems-diagnostics.js";
+export { assetDiagnosticFromSystemDiagnostic } from "./systems-diagnostics.js";
 
 export type {
   ApertureEffectHandle,
@@ -251,21 +261,6 @@ export interface CameraAccess {
   readonly main: CameraHandle;
   readonly active: readonly CameraHandle[];
   byKey(key: string): CameraHandle | null;
-}
-
-export interface SystemDiagnostics {
-  info(code: string, data?: Record<string, unknown>): void;
-  warn(code: string, data?: Record<string, unknown>): void;
-  error(code: string, data?: Record<string, unknown>): void;
-  list(): readonly ApertureSystemDiagnostic[];
-}
-
-export interface ApertureSystemDiagnostic {
-  readonly code: string;
-  readonly severity: "info" | "warning" | "error";
-  readonly message: string;
-  readonly data?: Readonly<Record<string, unknown>>;
-  readonly suggestedFix?: string;
 }
 
 export interface ApertureSystemContext {
@@ -956,38 +951,6 @@ function fallbackCamera(): CameraHandle {
     "No camera entity is available.",
     "Spawn a camera in a setup system or enable render.defaultCamera in aperture.config.ts.",
   );
-}
-
-function createDiagnostics(): SystemDiagnostics {
-  const diagnostics: ApertureSystemDiagnostic[] = [];
-
-  function push(
-    severity: ApertureSystemDiagnostic["severity"],
-    code: string,
-    data?: Record<string, unknown>,
-  ): void {
-    diagnostics.push({
-      code,
-      severity,
-      message: code,
-      ...(data === undefined ? {} : { data }),
-    });
-  }
-
-  return {
-    info(code, data) {
-      push("info", code, data);
-    },
-    warn(code, data) {
-      push("warning", code, data);
-    },
-    error(code, data) {
-      push("error", code, data);
-    },
-    list() {
-      return diagnostics.map((diagnostic) => ({ ...diagnostic }));
-    },
-  };
 }
 
 function createSpawnCommands(options: {
@@ -1884,14 +1847,4 @@ function read4(values: ArrayLike<number>, index: number): number {
 
 function numberOption(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
-}
-
-export function assetDiagnosticFromSystemDiagnostic(
-  diagnostic: ApertureSystemDiagnostic,
-): AssetDiagnostic {
-  return {
-    code: diagnostic.code,
-    message: diagnostic.message,
-    severity: diagnostic.severity,
-  };
 }
