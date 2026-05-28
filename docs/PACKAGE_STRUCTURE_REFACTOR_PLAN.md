@@ -331,8 +331,10 @@ Status: in progress
   sampler dependency key collection lives in
   `packages/render/src/materials/prepared-resource-dependencies.ts`, leaving
   `prepared-resource.ts` as the descriptor creation facade.
-- glTF mesh generated tangent math and tangent-generation diagnostics now live
-  in `packages/render/src/assets/gltf-mesh-tangents.ts`, leaving
+- glTF mesh generated tangent policy/diagnostics now live in
+  `packages/render/src/assets/gltf-mesh-tangents.ts`, and vertex tangent
+  accumulation/orthogonalization math now lives in
+  `packages/render/src/assets/gltf-mesh-tangent-calculation.ts`, leaving
   `gltf-mesh-asset-construction.ts` focused on mesh asset assembly.
 - glTF primitive material resolution contracts now live in
   `gltf-primitive-material-resolution-types.ts`, primitive/default material

@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-28T07:05:08Z
+Updated: 2026-05-28T07:09:15Z
+
+## Current Run Update — 2026-05-28T07:09:15Z — glTF tangent calculation split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split generated glTF vertex tangent accumulation, handedness calculation, and
+  fallback tangent math from `packages/render/src/assets/gltf-mesh-tangents.ts`
+  into `packages/render/src/assets/gltf-mesh-tangent-calculation.ts`.
+- Kept `gltf-mesh-tangents.ts` focused on tangent-generation eligibility,
+  skipped/generated diagnostics, and decoded-accessor result shaping.
+- Updated the package-structure plan and public progress tracker for the new
+  tangent module boundary.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-mesh-tangents.ts packages/render/src/assets/gltf-mesh-tangent-calculation.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-mesh-tangents.ts packages/render/src/assets/gltf-mesh-tangent-calculation.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-mesh-tangents.ts packages/render/src/assets/gltf-mesh-tangent-calculation.ts`
+- `pnpm exec vitest run test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/gltf-mesh-source-registration.test.ts test/materials/standard-normal-map-readiness.test.ts test/assets/render-asset-preparation.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `extraction-lights.ts`,
+  `gltf-material-builders.ts`, `transform-pack-instances.ts`, and other
+  medium render/material/asset modules still near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium render extraction/material/asset
+hotspot.
 
 ## Current Run Update — 2026-05-28T07:05:08Z — GLB container chunk scanning split
 

@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "a090d904",
+  "lastCommit": "c3e84af1",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting GLB chunk scanning, chunk byte extraction, duplicate chunk diagnostics, and unknown chunk warnings into glb-container-chunks.ts while keeping glb-container.ts as the parser facade; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T07:05:08Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting generated glTF tangent accumulation, handedness calculation, and fallback tangent math into gltf-mesh-tangent-calculation.ts while keeping gltf-mesh-tangents.ts focused on eligibility, diagnostics, and decoded-accessor result shaping; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T07:09:15Z"
 }
