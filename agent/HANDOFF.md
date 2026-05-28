@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-28T05:54:41Z
+Updated: 2026-05-28T05:59:00Z
+
+## Current Run Update — 2026-05-28T05:59:00Z — glTF primitive material resolution split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split primitive material resolution public contracts into
+  `packages/render/src/assets/gltf-primitive-material-resolution-types.ts`.
+- Split primitive/default material lookup, registration skip mapping, and
+  unresolved-material diagnostics into
+  `packages/render/src/assets/gltf-primitive-material-resolution-resolve.ts`.
+- Kept `packages/render/src/assets/gltf-primitive-material-resolution.ts` as
+  the stable report creation and JSON facade used by scene import and ECS
+  command planning.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-primitive-material-resolution.ts packages/render/src/assets/gltf-primitive-material-resolution-types.ts packages/render/src/assets/gltf-primitive-material-resolution-resolve.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-primitive-material-resolution.ts packages/render/src/assets/gltf-primitive-material-resolution-types.ts packages/render/src/assets/gltf-primitive-material-resolution-resolve.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-primitive-material-resolution.ts packages/render/src/assets/gltf-primitive-material-resolution-types.ts packages/render/src/assets/gltf-primitive-material-resolution-resolve.ts`
+- `pnpm exec vitest run test/assets/gltf-primitive-material-resolution.test.ts test/assets/gltf-primitive-material-resolution-json.test.ts test/assets/gltf-combined-import-fixture.test.ts test/assets/gltf-combined-import-unresolved-material.test.ts test/assets/gltf-ecs-authoring-command-plan.test.ts test/assets/gltf-ecs-command-replay.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `extraction-meshes.ts`,
+  `draco-mesh-data.ts`, `gltf-accessor-validation-primitives.ts`,
+  `snapshot-packed-encoding.ts`, `draw-package.ts`, `dependency-readiness.ts`,
+  and `render-queue-sort.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining extraction mesh, Draco
+mesh-data, accessor validation primitive, snapshot packed encoding, draw
+package, dependency readiness, or render queue sort modules.
 
 ## Current Run Update — 2026-05-28T05:54:41Z — GLB URI external fetch split
 

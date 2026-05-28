@@ -322,6 +322,12 @@ Status: in progress
 - glTF mesh generated tangent math and tangent-generation diagnostics now live
   in `packages/render/src/assets/gltf-mesh-tangents.ts`, leaving
   `gltf-mesh-asset-construction.ts` focused on mesh asset assembly.
+- glTF primitive material resolution contracts now live in
+  `gltf-primitive-material-resolution-types.ts`, primitive/default material
+  lookup and unresolved-material diagnostics live in
+  `gltf-primitive-material-resolution-resolve.ts`, and
+  `gltf-primitive-material-resolution.ts` remains the public report/JSON
+  facade.
 - glTF report-driven import JSON projection, meshopt buffer-view decoding,
   Draco primitive decoding, and GLB buffer-source resolution now live in
   focused `gltf-report-driven-import-*` asset modules, leaving
