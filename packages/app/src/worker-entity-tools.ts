@@ -34,6 +34,7 @@ import {
   stringArrayFromValue,
   stringFromValue,
 } from "./worker-payload.js";
+import type { GeneratedDevtoolsToolResult } from "./worker-devtools-types.js";
 
 export interface GeneratedEntityToolRequest {
   readonly channel: string;
@@ -61,12 +62,6 @@ export interface GeneratedEntityToolBridge {
   handle(command: ApertureGeneratedCommand): boolean;
   call(tool: string, payload: unknown): GeneratedDevtoolsToolResult;
   summary(): GeneratedEntityToolStatus;
-}
-
-export interface GeneratedDevtoolsToolResult {
-  readonly ok: boolean;
-  readonly result?: unknown;
-  readonly diagnostics?: readonly unknown[];
 }
 
 export function createGeneratedEntityToolBridge(
