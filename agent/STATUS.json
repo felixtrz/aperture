@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "bcce5b0a",
+  "lastCommit": "6ff31635",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 8 by splitting the CLI tool command into tool-command.ts while preserving shared callApertureTool backend dispatch; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T11:01:18Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 8 by splitting the CLI MCP command into mcp-command.ts while preserving the reusable mcp.ts server implementation; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T11:03:17Z"
 }

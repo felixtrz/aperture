@@ -552,6 +552,9 @@ Status: in progress
   dispatch, and JSON output formatting now live in
   `packages/cli/src/tool-command.ts`, preserving the shared
   `callApertureTool()` backend used by MCP.
+- CLI MCP command help, subcommand validation, and stdio server dispatch now
+  live in `packages/cli/src/mcp-command.ts`, keeping the existing MCP server
+  implementation in `packages/cli/src/mcp.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
