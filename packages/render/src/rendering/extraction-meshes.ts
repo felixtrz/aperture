@@ -1,21 +1,6 @@
-import {
-  Enabled,
-  type AssetRegistry,
-  type EcsWorld,
-  WorldTransform,
-} from "@aperture-engine/simulation";
-import { type MeshAsset, validateMeshAsset } from "../mesh/index.js";
-import {
-  InstanceData,
-  Material,
-  Mesh,
-  OcclusionQuery,
-  RenderLayer,
-  ShadowCaster,
-  ShadowReceiver,
-  Skin,
-  Visibility,
-} from "./index.js";
+import { type AssetRegistry, type EcsWorld } from "@aperture-engine/simulation";
+import { validateMeshAsset } from "../mesh/index.js";
+import { InstanceData, Material, Mesh, OcclusionQuery, Skin } from "./index.js";
 import {
   type BoundsPacket,
   type FogPacket,
@@ -31,7 +16,7 @@ import {
 } from "./extraction-culling.js";
 import { diagnostic } from "./extraction-diagnostics.js";
 import { sortedEntities } from "./extraction-entities.js";
-import { parseMaterialHandle, parseMeshHandle } from "./extraction-inputs.js";
+import { readMeshEntityExtractionState } from "./extraction-mesh-entity-state.js";
 import {
   pushInstanceAttributePacket,
   pushInstanceTint,
@@ -51,7 +36,7 @@ import {
   readSkinning,
 } from "./extraction-mesh-deformation.js";
 import { createMeshSubmeshDraws } from "./extraction-mesh-submeshes.js";
-import { pushMatrix, readWorldMatrix } from "./extraction-matrices.js";
+import { pushMatrix } from "./extraction-matrices.js";
 
 export {
   createRenderExtractionCache,
@@ -113,95 +98,53 @@ export function extractMeshDraws(
 
     cache?.meshDrawEntities.delete(cacheKey);
 
-    if (
-      entity.hasComponent(Enabled) &&
-      entity.getValue(Enabled, "value") === false
-    ) {
-      diagnostics.push(diagnostic("render.disabled", entity));
+    const entityState = readMeshEntityExtractionState({
+      entity,
+      assets,
+      diagnostics,
+      cameraLayerMask,
+    });
+
+    if (entityState === null) {
       continue;
     }
 
-    if (
-      entity.hasComponent(Visibility) &&
-      entity.getValue(Visibility, "visible") === false
-    ) {
-      diagnostics.push(diagnostic("render.invisible", entity));
-      continue;
-    }
-
-    if (!entity.hasComponent(WorldTransform)) {
-      diagnostics.push(diagnostic("render.missingWorldTransform", entity));
-      continue;
-    }
-
-    const layerMask = entity.hasComponent(RenderLayer)
-      ? (entity.getValue(RenderLayer, "mask") ?? 1)
-      : 1;
-    const castsShadow = entity.hasComponent(ShadowCaster)
-      ? (entity.getValue(ShadowCaster, "enabled") ?? true)
-      : true;
-    const receivesShadow = entity.hasComponent(ShadowReceiver)
-      ? (entity.getValue(ShadowReceiver, "enabled") ?? true)
-      : true;
-
-    if (layerMask === 0) {
-      diagnostics.push(diagnostic("render.zeroLayerMask", entity));
-      continue;
-    }
-
-    if (cameraLayerMask !== 0 && (layerMask & cameraLayerMask) === 0) {
-      diagnostics.push(diagnostic("render.layerMismatch", entity));
-      continue;
-    }
-
-    const meshHandle = parseMeshHandle(entity.getValue(Mesh, "meshId") ?? "");
-    const meshEntry =
-      meshHandle === null
-        ? undefined
-        : assets.get<"mesh", MeshAsset>(meshHandle);
-
-    if (meshHandle === null || meshEntry === undefined) {
-      diagnostics.push(diagnostic("render.missingMeshHandle", entity));
-      continue;
-    }
-
-    if (meshEntry.status !== "ready" || meshEntry.asset === null) {
-      diagnostics.push(
-        diagnostic(`render.mesh.${meshEntry.status}`, entity, meshHandle),
-      );
-      continue;
-    }
-
-    const worldMatrix = readWorldMatrix(entity);
     const boundsPacket = createBoundsPacket(
       bounds.length,
       entity,
-      meshEntry.asset,
-      worldMatrix,
+      entityState.mesh,
+      entityState.worldMatrix,
     );
 
     if (
       !isVisibleInAnyMatchingView(
         boundsPacket.worldAabb,
-        layerMask,
+        entityState.layerMask,
         viewCullContexts,
       )
     ) {
       continue;
     }
 
-    const meshValidation = validateMeshAsset(meshEntry.asset);
+    const meshValidation = validateMeshAsset(entityState.mesh);
 
     if (!meshValidation.valid) {
       for (const meshDiagnostic of meshValidation.diagnostics) {
         diagnostics.push(
-          diagnostic(`render.${meshDiagnostic.code}`, entity, meshHandle),
+          diagnostic(
+            `render.${meshDiagnostic.code}`,
+            entity,
+            entityState.meshHandle,
+          ),
         );
       }
       continue;
     }
 
-    const worldTransformOffset = pushMatrix(transforms, worldMatrix);
+    const worldTransformOffset = pushMatrix(
+      transforms,
+      entityState.worldMatrix,
+    );
     const instanceTintOffset = pushInstanceTint(instanceTints, entity);
     const instanceAttributePacketIndex = pushInstanceAttributePacket(
       instanceAttributes,
@@ -209,7 +152,7 @@ export function extractMeshDraws(
       diagnostics,
       entity,
     );
-    const skinning = readSkinning(entity, meshEntry.asset, diagnostics);
+    const skinning = readSkinning(entity, entityState.mesh, diagnostics);
 
     if (skinning === null) {
       continue;
@@ -217,7 +160,7 @@ export function extractMeshDraws(
 
     const morphWeights = readMorphTargetWeights(
       entity,
-      meshEntry.asset,
+      entityState.mesh,
       diagnostics,
     );
 
@@ -239,7 +182,10 @@ export function extractMeshDraws(
       entity.hasComponent(OcclusionQuery) &&
       entity.getValue(OcclusionQuery, "enabled") !== false;
     const boundsIndex = bounds.length;
-    const sortView = firstMatchingSortView(layerMask, viewCullContexts);
+    const sortView = firstMatchingSortView(
+      entityState.layerMask,
+      viewCullContexts,
+    );
     const sortViewId = sortView?.viewId ?? 0;
     const sortDepth =
       sortView === undefined
@@ -254,17 +200,14 @@ export function extractMeshDraws(
     const entityDiagnosticsStart = diagnostics.length;
     const entityDraws: MeshDrawPacket[] = [];
 
-    const primaryMaterialHandle = parseMaterialHandle(
-      entity.getValue(Material, "materialId") ?? "",
-    );
     const materialSlots = readMaterialSlots(entity, diagnostics);
     entityDraws.push(
       ...createMeshSubmeshDraws({
         assets,
         entity,
-        mesh: meshEntry.asset,
-        meshHandle,
-        primaryMaterialHandle,
+        mesh: entityState.mesh,
+        meshHandle: entityState.meshHandle,
+        primaryMaterialHandle: entityState.primaryMaterialHandle,
         materialSlots,
         diagnostics,
         worldTransformOffset,
@@ -276,9 +219,9 @@ export function extractMeshDraws(
         ...(skinning === undefined ? {} : { skinning }),
         ...(morphWeights === undefined ? {} : { morphWeights }),
         boundsIndex,
-        layerMask,
-        castsShadow,
-        receivesShadow,
+        layerMask: entityState.layerMask,
+        castsShadow: entityState.castsShadow,
+        receivesShadow: entityState.receivesShadow,
         occlusionQuery,
         sortViewId,
         sortDepth,
@@ -303,8 +246,8 @@ export function extractMeshDraws(
           entityVersion,
           cameraLayerMask,
           viewCullSignature,
-          layerMask,
-          worldMatrix: Array.from(worldMatrix),
+          layerMask: entityState.layerMask,
+          worldMatrix: Array.from(entityState.worldMatrix),
           instanceTint:
             instanceTintOffset === undefined
               ? null
