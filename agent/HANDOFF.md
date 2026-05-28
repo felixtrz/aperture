@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-28T04:33:21Z
+Updated: 2026-05-28T04:38:05Z
+
+## Current Run Update — 2026-05-28T04:38:05Z — StandardMaterial texture readiness split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split StandardMaterial texture binding traversal, dependency readiness checks,
+  transform diagnostics, texture/sampler status diagnostics, and per-slot
+  orchestration into
+  `packages/render/src/materials/standard-texture-readiness-inspection.ts`.
+- Split ready-texture slot assembly, semantic/color-space/format diagnostics,
+  and unsupported texCoord diagnostics into
+  `packages/render/src/materials/standard-texture-readiness-texture.ts`.
+- Kept `packages/render/src/materials/standard-texture-readiness.ts` as the
+  public registry guard and report entry point.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/materials/standard-texture-readiness.ts packages/render/src/materials/standard-texture-readiness-inspection.ts packages/render/src/materials/standard-texture-readiness-texture.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/materials/standard-texture-readiness.ts packages/render/src/materials/standard-texture-readiness-inspection.ts packages/render/src/materials/standard-texture-readiness-texture.ts`
+- `pnpm exec prettier --check packages/render/src/materials/standard-texture-readiness.ts packages/render/src/materials/standard-texture-readiness-inspection.ts packages/render/src/materials/standard-texture-readiness-texture.ts`
+- `pnpm exec vitest run test/materials/standard-texture-readiness.test.ts test/materials/standard-texture-sampler-alignment.test.ts test/webgpu/standard-material-texture-fidelity-summary.test.ts test/rendering/extraction.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-material.ts`,
+  `ktx2-basis-transcoder.ts`, `extraction-asset-validation.ts`,
+  `mesh-merge.ts`, `view-pack.ts`, `glb-uri-loader.ts`,
+  `gltf-material-textures.ts`, and `gltf-mesh-asset-vertex-streams.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining glTF material, KTX2
+transcoder, extraction validation, mesh merge, view-pack, GLB loader, or mesh
+asset modules.
 
 ## Current Run Update — 2026-05-28T04:33:21Z — glTF ECS replay component split
 

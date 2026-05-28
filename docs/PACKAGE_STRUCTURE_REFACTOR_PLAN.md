@@ -496,6 +496,11 @@ Status: in progress
   `gltf-ecs-command-replay-components.ts`, leaving
   `gltf-ecs-command-replay.ts` focused on component registration, entity
   creation, replay orchestration, and report creation.
+- StandardMaterial texture readiness material traversal, dependency readiness
+  checks, ready-texture slot assembly, color-space/semantic diagnostics, and
+  texCoord diagnostics now live in focused `standard-texture-readiness-*`
+  material modules, leaving `standard-texture-readiness.ts` as the public
+  registry guard and report entry point.
 
 ## Purpose
 
