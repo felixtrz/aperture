@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T06:42:59Z
+Updated: 2026-05-28T06:45:50Z
+
+## Current Run Update — 2026-05-28T06:45:50Z — glTF accessor reference validation split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split individual glTF accessor metadata validation, sparse/zero-fill
+  diagnostics, bufferView validation handoff, stride checks, byte-range checks,
+  and validated reference construction from
+  `packages/render/src/assets/gltf-accessor-validation-primitives.ts` into
+  `packages/render/src/assets/gltf-accessor-validation-accessors.ts`.
+- Kept `gltf-accessor-validation-primitives.ts` as the primitive traversal,
+  attribute/index reference collection, and primitive accessor-plan builder.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-accessor-validation-primitives.ts packages/render/src/assets/gltf-accessor-validation-accessors.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-accessor-validation-primitives.ts packages/render/src/assets/gltf-accessor-validation-accessors.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-accessor-validation-primitives.ts packages/render/src/assets/gltf-accessor-validation-accessors.ts`
+- `pnpm exec vitest run test/assets/gltf-accessor-validation.test.ts test/assets/gltf-accessor-validation-json.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-accessor-decoding-json.test.ts test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include final `extraction-meshes.ts` tightening,
+  `render-world.ts`, `gltf-report-driven-import-meshopt.ts`,
+  `glb-uri-image-sources.ts`, and `prepared-resource.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining extraction mesh,
+render-world, report-driven import, GLB image-source, or prepared-resource
+modules.
 
 ## Current Run Update — 2026-05-28T06:42:59Z — mesh extraction entity state split
 
