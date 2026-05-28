@@ -344,6 +344,10 @@ Status: in progress
   buffer/bufferView bounds checks, diagnostic attachment, and shared field
   guards now live in focused `gltf-accessor-validation-*` asset modules,
   keeping `gltf-accessor-validation.ts` as the validation/report facade.
+- glTF accessor decoding contracts, output shape/typed-array helpers,
+  source-view/strided decoding, and report JSON projection now live in focused
+  `gltf-accessor-decoding-*` asset modules, keeping
+  `gltf-accessor-decoding.ts` as the primitive decode orchestration facade.
 - Render asset preparation contracts, generic preparation/unload flow, prepared
   asset store state, mesh metadata preparation, and material metadata
   preparation now live in focused `preparation-*` asset modules, keeping

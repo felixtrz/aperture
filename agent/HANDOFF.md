@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T01:53:39Z
+Updated: 2026-05-28T01:59:39Z
+
+## Current Run Update — 2026-05-28T01:59:39Z — glTF accessor decoding split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF accessor decoding public/internal contracts into
+  `packages/render/src/assets/gltf-accessor-decoding-types.ts`.
+- Extracted accessor output shape, typed-array factory, native endian, component
+  read, and expected-format array type helpers into
+  `packages/render/src/assets/gltf-accessor-decoding-shape.ts`.
+- Extracted source byte view normalization, direct source-view binding,
+  tightly packed decode, and strided decode helpers into
+  `packages/render/src/assets/gltf-accessor-decoding-source.ts`.
+- Extracted decoding report JSON projection and diagnostic shaping into
+  `packages/render/src/assets/gltf-accessor-decoding-report.ts`.
+- `packages/render/src/assets/gltf-accessor-decoding.ts` is now roughly 159
+  lines and remains the primitive/accessor decode orchestration facade.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/gltf-accessor-decoding.ts packages/render/src/assets/gltf-accessor-decoding-types.ts packages/render/src/assets/gltf-accessor-decoding-shape.ts packages/render/src/assets/gltf-accessor-decoding-source.ts packages/render/src/assets/gltf-accessor-decoding-report.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-accessor-decoding.ts packages/render/src/assets/gltf-accessor-decoding-types.ts packages/render/src/assets/gltf-accessor-decoding-shape.ts packages/render/src/assets/gltf-accessor-decoding-source.ts packages/render/src/assets/gltf-accessor-decoding-report.ts`
+- `pnpm exec vitest run test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-accessor-validation.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/gltf-mesh-asset-construction.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `snapshot-packed-codecs.ts`, `render-queue.ts`,
+  `standard-texture-readiness.ts`, and `gltf-ecs-authoring-command-plan.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining decoder, queue, or texture
+readiness helpers.
 
 ## Current Run Update — 2026-05-28T01:53:39Z — glTF URI image helper split
 
