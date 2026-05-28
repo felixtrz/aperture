@@ -440,6 +440,9 @@ Status: in progress
   pointer-ray handle creation, and missing-camera diagnostics now live in
   `packages/app/src/systems-cameras.ts`, preserving public camera access type
   exports through `systems.ts`.
+- App system signal store creation and JSON-safe signal summary helpers now live
+  in `packages/app/src/systems-signals.ts`, preserving public signal store and
+  summary exports through `systems.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-28T09:21:49Z
+Updated: 2026-05-28T09:24:06Z
+
+## Current Run Update — 2026-05-28T09:24:06Z — app system signal helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 6.
+
+### What changed
+
+- Split app system signal store creation and JSON-safe signal summary helpers
+  into `packages/app/src/systems-signals.ts`.
+- Kept `SignalStore`, `SignalSummary`, and `createSignalSummary()` re-exported
+  from `systems.ts`.
+- Reduced `packages/app/src/systems.ts` from 464 lines to 442 lines, leaving
+  signal setup as an imported helper used by context creation.
+
+### Validation
+
+- `pnpm exec prettier --write packages/app/src/systems.ts packages/app/src/systems-signals.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec eslint packages/app/src/systems.ts packages/app/src/systems-signals.ts`
+- `pnpm exec prettier --check packages/app/src/systems.ts packages/app/src/systems-signals.ts`
+- `pnpm exec vitest run test/app/systems.test.ts test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 6 still needs focused app modules for system context, config/runtime
+  code, browser/worker generated bootstrapping, entity lookup, and input state.
+- Remaining large app files include `worker.ts`, `browser.ts`,
+  `input-state.ts`, `entity-lookup.ts`, and `config.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 6 by splitting app system context helpers or input state.
 
 ## Current Run Update — 2026-05-28T09:21:49Z — app system camera access split
 
