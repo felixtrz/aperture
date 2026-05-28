@@ -361,6 +361,10 @@ Status: in progress
   live in `draw-package-types.ts` and `draw-package-scratch.ts`, leaving
   `draw-package.ts` focused on package writing, stable/state-aware sorting, and
   summary diagnostics.
+- Render-world public contracts, snapshot apply/change-set preservation, and
+  draw-readiness planning now live in `render-world-types.ts`,
+  `render-world-apply.ts`, and `render-world-readiness.ts`, leaving
+  `render-world.ts` as the stable stateful render-world facade.
 - Render queue coalescing/static batching helpers now live in
   `render-queue-batching.ts`, and queue sort policy constants/report selection
   live in `render-queue-sort-policies.ts`, leaving `render-queue-sort.ts` as

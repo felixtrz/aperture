@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T06:45:50Z
+Updated: 2026-05-28T06:49:18Z
+
+## Current Run Update — 2026-05-28T06:49:18Z — render-world facade split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split render-world public contracts from
+  `packages/render/src/rendering/render-world.ts` into
+  `packages/render/src/rendering/render-world-types.ts`.
+- Split snapshot apply/change-set unchanged preservation into
+  `packages/render/src/rendering/render-world-apply.ts`.
+- Split draw readiness planning and missing-resource diagnostics into
+  `packages/render/src/rendering/render-world-readiness.ts`.
+- Kept `render-world.ts` as the stable stateful facade and import path for
+  existing callers.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/render-world.ts packages/render/src/rendering/render-world-types.ts packages/render/src/rendering/render-world-apply.ts packages/render/src/rendering/render-world-readiness.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/render-world.ts packages/render/src/rendering/render-world-types.ts packages/render/src/rendering/render-world-apply.ts packages/render/src/rendering/render-world-readiness.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/render-world.ts packages/render/src/rendering/render-world-types.ts packages/render/src/rendering/render-world-apply.ts packages/render/src/rendering/render-world-readiness.ts`
+- `pnpm exec vitest run test/rendering/render-world.test.ts test/rendering/render-world-prepared-meshes.test.ts test/rendering/render-world-prepared-materials.test.ts test/rendering/render-world-prepared-resources.test.ts test/rendering/render-queue.test.ts test/rendering/draw-package.test.ts test/webgpu/render-frame-snapshot-runner.test.ts test/webgpu/render-frame-plan.test.ts test/webgpu/frame-readiness.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include final `extraction-meshes.ts` tightening,
+  `gltf-report-driven-import-meshopt.ts`, `glb-uri-image-sources.ts`, and
+  `prepared-resource.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining extraction mesh,
+report-driven import, GLB image-source, or prepared-resource modules.
 
 ## Current Run Update — 2026-05-28T06:45:50Z — glTF accessor reference validation split
 

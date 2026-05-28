@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "51345a9f",
+  "lastCommit": "cdee3c72",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting glTF accessor metadata validation, bufferView handoff, stride checks, byte-range checks, and validated reference construction into a focused asset module while preserving primitive accessor-plan behavior; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T06:45:50Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting render-world public contracts, snapshot apply/change-set preservation, and draw-readiness planning into focused render modules while keeping render-world.ts as the stable stateful facade; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T06:49:18Z"
 }
