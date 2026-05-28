@@ -517,6 +517,11 @@ Status: in progress
   find/get/mutate/snapshot/diff/hierarchy/component-schema handling and entity
   reference payload parsing while `worker.ts` keeps the generated worker loop
   and non-ECS tool orchestration.
+- Generated simulation worker camera devtools now live in
+  `packages/app/src/worker-camera-tools.ts`, covering agent camera creation,
+  list/get/save/restore, transform, look-at, orbit, fit-target, camera summary,
+  and camera transform math. The shared devtools tool-result contract now lives
+  in `packages/app/src/worker-devtools-types.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "8325074a",
+  "lastCommit": "92c9530f",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 6 by splitting generated simulation worker ECS entity tools into worker-entity-tools.ts, covering command/devtools find/get/mutate/snapshot/diff/hierarchy/component-schema handling; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T10:29:02Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 6 by splitting generated simulation worker camera devtools into worker-camera-tools.ts and shared devtools result typing into worker-devtools-types.ts; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T10:33:50Z"
 }
