@@ -2,7 +2,7 @@ import type {
   SystemAssetAccess,
   SystemAssetHandle,
   SystemAssetKind,
-} from "./systems.js";
+} from "./systems-assets.js";
 import { jsonSafeValue } from "./systems-json.js";
 
 export interface CommandAccess {

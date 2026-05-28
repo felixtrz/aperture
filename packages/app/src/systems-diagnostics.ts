@@ -56,3 +56,20 @@ export function assetDiagnosticFromSystemDiagnostic(
     severity: diagnostic.severity,
   };
 }
+
+export function formatReportDiagnostics(
+  diagnostics: readonly { readonly code?: string; readonly message?: string }[],
+): string {
+  if (diagnostics.length === 0) {
+    return "No detailed diagnostics were produced.";
+  }
+
+  return diagnostics
+    .slice(0, 3)
+    .map((diagnostic) =>
+      diagnostic.code === undefined
+        ? (diagnostic.message ?? "Unknown diagnostic.")
+        : `${diagnostic.code}: ${diagnostic.message ?? "Unknown diagnostic."}`,
+    )
+    .join(" ");
+}
