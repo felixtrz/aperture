@@ -457,6 +457,10 @@ Status: in progress
 - View uniform packing public contracts/constants and scratch/pool helpers now
   live in `view-pack-types.ts` and `view-pack-scratch.ts`, leaving
   `view-pack.ts` focused on view uniform validation and packing.
+- Mesh extraction submesh/material draw assembly now lives in
+  `extraction-mesh-submeshes.ts`, leaving `extraction-meshes.ts` focused on
+  entity traversal, cache reuse/writeback, culling, and per-entity mesh data
+  extraction.
 
 ## Purpose
 

@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T03:47:29Z
+Updated: 2026-05-28T03:54:41Z
+
+## Current Run Update — 2026-05-28T03:54:41Z — mesh extraction submesh split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split submesh material-slot resolution, material/texture readiness checks,
+  material pipeline-key specialization, sort/batch key generation, and
+  `MeshDrawPacket` creation into
+  `packages/render/src/rendering/extraction-mesh-submeshes.ts`.
+- Kept `packages/render/src/rendering/extraction-meshes.ts` focused on entity
+  traversal, cache reuse/writeback, visibility/layer filtering, mesh asset
+  readiness, culling, world transform packing, and per-entity deformation/
+  instance extraction.
+- Reduced `packages/render/src/rendering/extraction-meshes.ts` from 476 lines
+  to 326 lines.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/rendering/extraction-meshes.ts packages/render/src/rendering/extraction-mesh-submeshes.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/extraction-meshes.ts packages/render/src/rendering/extraction-mesh-submeshes.ts`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/rendering/draw-package.test.ts test/rendering/material-queue.test.ts test/rendering/render-world.test.ts`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `hdr-rgbe-loader.ts`, and several older asset/material facades.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining decoder, asset, or material
+facade modules.
 
 ## Current Run Update — 2026-05-28T03:47:29Z — view pack contract split
 
