@@ -319,6 +319,10 @@ Status: in progress
   codecs now live in `snapshot-packed-registry.ts` and
   `snapshot-packed-codecs.ts`, leaving `snapshot-packed-encoding.ts` focused on
   header validation plus high-level encode/decode orchestration.
+- glTF texture decoded-image resolver normalization now lives in
+  `packages/render/src/materials/gltf-texture-resolution.ts`, keeping
+  `gltf-texture.ts` focused on texture/source/sampler mapping and asset report
+  assembly.
 
 ## Purpose
 

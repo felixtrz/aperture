@@ -1,6 +1,40 @@
 # Agent Handoff
 
-Updated: 2026-05-28T00:52:20Z
+Updated: 2026-05-28T00:55:01Z
+
+## Current Run Update — 2026-05-28T00:55:01Z — glTF texture resolver split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF decoded-image resolver normalization, async resolver error
+  handling, and decoded image validation into
+  `packages/render/src/materials/gltf-texture-resolution.ts`.
+- `packages/render/src/materials/gltf-texture.ts` is now roughly 813 lines and
+  focuses on texture/source/sampler mapping plus texture asset report assembly.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/materials/gltf-texture.ts packages/render/src/materials/gltf-texture-resolution.ts`
+- `pnpm exec prettier --check packages/render/src/materials/gltf-texture.ts packages/render/src/materials/gltf-texture-resolution.ts`
+- `pnpm exec vitest run test/materials/gltf-texture.test.ts test/materials/gltf-material.test.ts test/assets/gltf-uri-loader.test.ts test/assets/glb-uri-loader.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-mesh-primitive.ts`,
+  `mesh/primitives.ts`, `gltf-mesh-asset-construction.ts`,
+  `transform-pack.ts`, and `gltf-accessor-validation.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining glTF/mesh helper modules.
 
 ## Current Run Update — 2026-05-28T00:52:20Z — snapshot packed encoding split
 
