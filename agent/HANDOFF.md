@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-28T05:31:55Z
+Updated: 2026-05-28T05:36:01Z
+
+## Current Run Update — 2026-05-28T05:36:01Z — StandardMaterial sampler fidelity split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split StandardMaterial sampler fidelity public contracts into
+  `packages/render/src/materials/standard-sampler-fidelity-types.ts`.
+- Split texture/sampler slot inspection, ready-pair diagnostics, and the
+  StandardMaterial texture-field list into
+  `packages/render/src/materials/standard-sampler-fidelity-inspection.ts`.
+- Kept `packages/render/src/materials/standard-sampler-fidelity.ts` as the
+  existing public report facade and JSON conversion path exported through
+  `materials/index.ts`.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/materials/standard-sampler-fidelity.ts packages/render/src/materials/standard-sampler-fidelity-types.ts packages/render/src/materials/standard-sampler-fidelity-inspection.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/materials/standard-sampler-fidelity.ts packages/render/src/materials/standard-sampler-fidelity-types.ts packages/render/src/materials/standard-sampler-fidelity-inspection.ts`
+- `pnpm exec prettier --check packages/render/src/materials/standard-sampler-fidelity.ts packages/render/src/materials/standard-sampler-fidelity-types.ts packages/render/src/materials/standard-sampler-fidelity-inspection.ts`
+- `pnpm exec vitest run test/materials/standard-sampler-fidelity.test.ts test/materials/standard-texture-sampler-alignment.test.ts test/webgpu/standard-material-sampler-fidelity-summary.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `snapshot-packed-codecs.ts`,
+  `authoring-validation.ts`, `snapshot-packed-codec-utils.ts`,
+  `snapshot-change-set.ts`, `gltf-uri-external-fetch.ts`,
+  `glb-uri-external-fetch.ts`, and `gltf-primitive-material-resolution.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining packed snapshot codec,
+authoring validation, packed snapshot codec utility, snapshot change-set, URI
+external fetch, or glTF primitive material resolution modules.
 
 ## Current Run Update — 2026-05-28T05:31:55Z — custom WGSL material split
 

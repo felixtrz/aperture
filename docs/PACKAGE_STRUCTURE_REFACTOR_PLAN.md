@@ -307,6 +307,11 @@ Status: in progress
   validation, `KHR_texture_transform` mapping, and texture-binding resolver
   diagnostic normalization split into focused `gltf-material-texture-*`
   modules.
+- StandardMaterial sampler fidelity public contracts now live in
+  `packages/render/src/materials/standard-sampler-fidelity-types.ts`, and
+  texture/sampler slot inspection lives in
+  `packages/render/src/materials/standard-sampler-fidelity-inspection.ts`,
+  leaving `standard-sampler-fidelity.ts` as the stable report facade.
 - glTF mesh generated tangent math and tangent-generation diagnostics now live
   in `packages/render/src/assets/gltf-mesh-tangents.ts`, leaving
   `gltf-mesh-asset-construction.ts` focused on mesh asset assembly.
