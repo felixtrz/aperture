@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "8b05960d",
+  "lastCommit": "eede4607",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting glTF ECS primitive command-planning mesh readiness and primitive skip/key diagnostics into focused asset modules while keeping gltf-ecs-authoring-command-plan-primitives.ts as the resolved primitive command coordinator; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T08:13:59Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting mesh extraction transform, instance, skinning, morph-target, and bone-offset draw inputs into a focused render module while keeping extraction-meshes.ts as the visibility, validation, sorting, submesh draw, and cache coordinator; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T08:17:20Z"
 }

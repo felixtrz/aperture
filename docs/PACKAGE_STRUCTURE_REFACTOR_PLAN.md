@@ -586,6 +586,10 @@ Status: in progress
 - Mesh extraction cache writeback eligibility and cached draw template storage
   now live in `extraction-mesh-cache-writeback.ts`, keeping
   `extraction-meshes.ts` focused on traversal and draw assembly orchestration.
+- Mesh extraction transform, instance, skinning, morph-target, and bone-offset
+  draw inputs now live in `extraction-mesh-draw-inputs.ts`, keeping
+  `extraction-meshes.ts` focused on visibility, validation, sorting, submesh
+  draw assembly, and cache coordination.
 - GLB container public contracts/constants, diagnostic builders, chunk
   scanning, and byte/JSON helpers now live in focused `glb-container-*` asset
   modules, leaving `glb-container.ts` focused on `parseGlbContainer`

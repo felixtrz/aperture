@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-28T08:13:59Z
+Updated: 2026-05-28T08:17:20Z
+
+## Current Run Update — 2026-05-28T08:17:20Z — mesh extraction draw-input split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split mesh extraction transform packing, instance tint/custom attribute
+  packing, skinning validation, morph-target packing, and bone-offset creation
+  from `packages/render/src/rendering/extraction-meshes.ts` into
+  `packages/render/src/rendering/extraction-mesh-draw-inputs.ts`.
+- Preserved the original mutation order for transform/instance arrays before
+  skinning and morph validation so extraction behavior remains unchanged.
+- Kept `extraction-meshes.ts` focused on visibility, mesh validation, sort
+  metadata, submesh draw assembly, and cache coordination.
+- Updated the package-structure plan and public progress tracker for the new
+  mesh extraction draw-input module boundary.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/extraction-meshes.ts packages/render/src/rendering/extraction-mesh-draw-inputs.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/extraction-meshes.ts packages/render/src/rendering/extraction-mesh-draw-inputs.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/extraction-meshes.ts packages/render/src/rendering/extraction-mesh-draw-inputs.ts`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/rendering/transform-pack.test.ts test/webgpu/skinning-joint-buffer.test.ts test/webgpu/morph-target-weight-buffer.test.ts test/webgpu/render-frame-snapshot-runner.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `snapshot-types.ts`,
+  `glb-source-loader-output-summary.ts`, `authoring-create.ts`, and other
+  medium render/material/asset modules still near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium render extraction/material/asset
+hotspot.
 
 ## Current Run Update — 2026-05-28T08:13:59Z — glTF ECS primitive command planning split
 
