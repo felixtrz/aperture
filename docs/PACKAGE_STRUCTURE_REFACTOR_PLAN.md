@@ -526,6 +526,11 @@ Status: in progress
   `packages/app/src/worker-input-tools.ts`, covering virtual action injection,
   synthetic gamepad injection, input state readback, and input reset handling
   while preserving the generated worker devtools dispatch behavior.
+- Track 7 has started. Vite plugin generated action type output now lives in
+  `packages/vite-plugin/src/generated-action-types.ts`, with shared config
+  file/path helpers in `file-utils.ts` and reusable TypeScript AST helpers in
+  `typescript-ast.ts`, while the root plugin module preserves the existing
+  public generated-action type exports.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

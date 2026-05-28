@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T10:37:04Z
+Updated: 2026-05-28T10:40:54Z
+
+## Current Run Update — 2026-05-28T10:40:54Z — Vite generated action types split
+
+Started `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 7.
+
+### What changed
+
+- Split Vite plugin generated action type output into
+  `packages/vite-plugin/src/generated-action-types.ts`.
+- Added shared Vite plugin `file-utils.ts` for config path/text helpers and
+  `typescript-ast.ts` for reusable AST property/numeric/script-kind helpers.
+- Preserved public root exports for
+  `createApertureGeneratedActionTypes()` and
+  `writeApertureGeneratedActionTypes()`.
+- Reduced `packages/vite-plugin/src/index.ts` from 994 lines to 706 lines.
+
+### Validation
+
+- `pnpm exec prettier --write packages/vite-plugin/src/index.ts packages/vite-plugin/src/generated-action-types.ts packages/vite-plugin/src/file-utils.ts packages/vite-plugin/src/typescript-ast.ts`
+- `pnpm --filter @aperture-engine/vite-plugin run typecheck`
+- `pnpm exec eslint packages/vite-plugin/src/index.ts packages/vite-plugin/src/generated-action-types.ts packages/vite-plugin/src/file-utils.ts packages/vite-plugin/src/typescript-ast.ts`
+- `pnpm exec prettier --check packages/vite-plugin/src/index.ts packages/vite-plugin/src/generated-action-types.ts packages/vite-plugin/src/file-utils.ts packages/vite-plugin/src/typescript-ast.ts`
+- `pnpm exec vitest run test/app/input-state.test.ts test/app/developer-api.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 7 still needs splits for plugin wiring, system discovery, descriptor
+  priority analysis, virtual modules, dev-session metadata, and diagnostics.
+- `packages/vite-plugin/src/index.ts` remains 706 lines after the first Track 7
+  slice.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 7 by splitting system discovery/descriptor priority analysis or
+virtual module generation from `packages/vite-plugin/src/index.ts`.
 
 ## Current Run Update — 2026-05-28T10:37:04Z — app worker input tools split
 
