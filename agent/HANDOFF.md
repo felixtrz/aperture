@@ -1,6 +1,38 @@
 # Agent Handoff
 
-Updated: 2026-05-28T02:44:33Z
+Updated: 2026-05-28T02:46:45Z
+
+## Current Run Update — 2026-05-28T02:46:45Z — final validation audit
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5 final audit.
+
+### Validation
+
+- `pnpm run build` passed.
+- `pnpm run check:boundaries` passed.
+- `pnpm run check:progress` passed.
+- `git status --short` was clean after the committed slices.
+
+### Known issues / remaining work
+
+- `pnpm run lint` still fails on pre-existing repository-wide issues outside
+  these refactor slices:
+  `packages/app/src/asset-mirror.ts` type-import style,
+  `scripts/render-control.mjs` preserve-caught-error, generated
+  `.aperture/runtime/reference/.../glb-viewer.*.js` unused disable warnings,
+  and `test/fixtures/app-vite/.aperture/generated/aperture-env.d.ts` parser
+  project inclusion.
+- `pnpm run format:check` still fails on pre-existing formatting drift in 14
+  unrelated app/webgpu/test files.
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `mesh/primitives.ts`,
+  `draco-decoder.ts`, `render-queue.ts`, `mesh-merge.ts`,
+  `hdr-rgbe-loader.ts`, mesh asset construction helpers, scene import
+  contracts, and material/render queue helpers.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining decoder, queue, mesh, or
+scene import helper modules.
 
 ## Current Run Update — 2026-05-28T02:44:33Z — glTF ECS command replay contract split
 
