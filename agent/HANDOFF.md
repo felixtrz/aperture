@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-28T10:33:50Z
+Updated: 2026-05-28T10:37:04Z
+
+## Current Run Update — 2026-05-28T10:37:04Z — app worker input tools split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 6.
+
+### What changed
+
+- Split generated simulation worker input devtools into
+  `packages/app/src/worker-input-tools.ts`.
+- Moved virtual action injection, synthetic gamepad injection, input state
+  readback, and input reset handling out of `worker.ts`.
+- Reduced `packages/app/src/worker.ts` from 708 lines to 524 lines.
+
+### Validation
+
+- `pnpm exec prettier --write packages/app/src/worker.ts packages/app/src/worker-input-tools.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec eslint packages/app/src/worker.ts packages/app/src/worker-input-tools.ts packages/app/src/worker-payload.ts packages/app/src/worker-devtools-types.ts`
+- `pnpm exec prettier --check packages/app/src/worker.ts packages/app/src/worker-input-tools.ts packages/app/src/worker-payload.ts packages/app/src/worker-devtools-types.ts`
+- `pnpm exec vitest run test/runtime/simulation-worker.test.ts test/app/developer-api.test.ts test/index.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- `packages/app/src/worker.ts` now mostly owns generated worker startup,
+  viewport command routing, devtools dispatch, asset summaries, and snapshot
+  publication.
+- `packages/app/src/browser.ts` is now much smaller but still owns startup,
+  status/mirroring, and canvas-resize orchestration.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 6 by splitting generated worker asset summaries or viewport
+command routing.
 
 ## Current Run Update — 2026-05-28T10:33:50Z — app worker camera tools split
 

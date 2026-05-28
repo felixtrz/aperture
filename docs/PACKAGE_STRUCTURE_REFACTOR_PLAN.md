@@ -522,6 +522,10 @@ Status: in progress
   list/get/save/restore, transform, look-at, orbit, fit-target, camera summary,
   and camera transform math. The shared devtools tool-result contract now lives
   in `packages/app/src/worker-devtools-types.ts`.
+- Generated simulation worker input devtools now live in
+  `packages/app/src/worker-input-tools.ts`, covering virtual action injection,
+  synthetic gamepad injection, input state readback, and input reset handling
+  while preserving the generated worker devtools dispatch behavior.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
