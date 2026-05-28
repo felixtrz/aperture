@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "e7fb0170",
+  "lastCommit": "6657e298",
   "activePid": null,
-  "notes": "Advanced APP_CLI_STRUCTURE_REFACTOR_PLAN Track 4 by splitting app spawn helpers into packages/app/src/systems/spawn/ while preserving public spawn exports through @aperture-engine/app/systems; app typecheck, targeted app tests, typecheck:test, boundaries, build, focused lint/format, and diff check passed.",
-  "lastRunFinishedAt": "2026-05-28T15:23:19Z"
+  "notes": "Advanced APP_CLI_STRUCTURE_REFACTOR_PLAN Track 5 by moving entity lookup internals into packages/app/src/entities/lookup/ and splitting spatial queries into packages/app/src/spatial/ while preserving public facades; app typecheck, targeted app tests, typecheck:test, boundaries, build, focused lint/format, and diff check passed.",
+  "lastRunFinishedAt": "2026-05-28T15:29:44Z"
 }

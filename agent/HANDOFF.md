@@ -1,6 +1,42 @@
 # Agent Handoff
 
-Updated: 2026-05-28T15:23:19Z
+Updated: 2026-05-28T15:29:44Z
+
+## Current Run Update — 2026-05-28T15:29:44Z — App entity/spatial folderization
+
+Continued `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Moved entity lookup implementation into
+  `packages/app/src/entities/lookup/`.
+- Kept `packages/app/src/entity-lookup.ts` as the public
+  `@aperture-engine/app/entity-lookup` facade.
+- Split spatial query implementation into `packages/app/src/spatial/` modules
+  for contracts, bounds raycasts, mesh raycasts, filters, and math helpers.
+- Updated system facade/context/camera imports to use the new spatial folder.
+- Recorded Track 5 progress in `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec vitest run test/app/spatial-queries.test.ts test/app/developer-api.test.ts test/index.test.ts`
+- `pnpm exec prettier --write packages/app/src/entity-lookup.ts packages/app/src/entities/lookup/index.ts packages/app/src/entities/lookup/hierarchy.ts packages/app/src/entities/lookup/mutation.ts packages/app/src/entities/lookup/query.ts packages/app/src/entities/lookup/snapshot.ts packages/app/src/entities/lookup/summary.ts packages/app/src/entities/lookup/types.ts packages/app/src/spatial/index.ts packages/app/src/spatial/types.ts packages/app/src/spatial/bounds.ts packages/app/src/spatial/mesh.ts packages/app/src/spatial/filters.ts packages/app/src/spatial/math.ts packages/app/src/systems.ts packages/app/src/systems/context.ts packages/app/src/systems/cameras.ts`
+- `pnpm exec eslint packages/app/src/entity-lookup.ts packages/app/src/entities/lookup/index.ts packages/app/src/entities/lookup/hierarchy.ts packages/app/src/entities/lookup/mutation.ts packages/app/src/entities/lookup/query.ts packages/app/src/entities/lookup/snapshot.ts packages/app/src/entities/lookup/summary.ts packages/app/src/entities/lookup/types.ts packages/app/src/spatial/index.ts packages/app/src/spatial/types.ts packages/app/src/spatial/bounds.ts packages/app/src/spatial/mesh.ts packages/app/src/spatial/filters.ts packages/app/src/spatial/math.ts packages/app/src/systems.ts packages/app/src/systems/context.ts packages/app/src/systems/cameras.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 6 remains: split generated browser runtime implementation into
+  `packages/app/src/browser/`.
+- Track 7 and the CLI folderization tracks remain.
+
+### Recommended next task
+
+Continue with Track 6 app browser runtime split.
 
 ## Current Run Update — 2026-05-28T15:23:19Z — App spawn decomposition
 
