@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-28T05:39:24Z
+Updated: 2026-05-28T05:42:34Z
+
+## Current Run Update — 2026-05-28T05:42:34Z — render authoring validation split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split camera input validation into
+  `packages/render/src/rendering/authoring-validation-camera.ts`.
+- Split light, light-cookie, and light-shadow validation into
+  `packages/render/src/rendering/authoring-validation-lights.ts`.
+- Split sprite, skybox, and fog validation into
+  `packages/render/src/rendering/authoring-validation-effects.ts`.
+- Kept `packages/render/src/rendering/authoring-validation.ts` as the stable
+  public validation facade exported by `authoring.ts`.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/authoring-validation.ts packages/render/src/rendering/authoring-validation-camera.ts packages/render/src/rendering/authoring-validation-lights.ts packages/render/src/rendering/authoring-validation-effects.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/authoring-validation.ts packages/render/src/rendering/authoring-validation-camera.ts packages/render/src/rendering/authoring-validation-lights.ts packages/render/src/rendering/authoring-validation-effects.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/authoring-validation.ts packages/render/src/rendering/authoring-validation-camera.ts packages/render/src/rendering/authoring-validation-lights.ts packages/render/src/rendering/authoring-validation-effects.ts`
+- `pnpm exec vitest run test/rendering/components.test.ts test/rendering/extraction.test.ts test/runtime/simulation-worker.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `snapshot-packed-codec-utils.ts`,
+  `snapshot-change-set.ts`, `gltf-uri-external-fetch.ts`,
+  `glb-uri-external-fetch.ts`, `gltf-primitive-material-resolution.ts`,
+  `extraction-meshes.ts`, and `draco-mesh-data.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining packed snapshot codec
+utility, snapshot change-set, URI external fetch, glTF primitive material
+resolution, extraction mesh, or Draco mesh-data modules.
 
 ## Current Run Update — 2026-05-28T05:39:24Z — packed snapshot codec split
 

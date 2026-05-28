@@ -323,6 +323,9 @@ Status: in progress
   validation helpers now live in focused `authoring-*` rendering modules,
   leaving `authoring.ts` as the stable public facade and component registration
   entry point.
+- Render authoring validation is further split into camera, light/shadow, and
+  sprite/skybox/fog validation modules, with `authoring-validation.ts` kept as
+  the stable validation re-export facade.
 - Packed render snapshot packet registry management now lives in
   `snapshot-packed-registry.ts`, packet-family binary codecs now live in
   focused `snapshot-packed-*-codec.ts` modules, and
