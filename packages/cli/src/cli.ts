@@ -12,18 +12,11 @@ import {
   type ApertureDevUpReport,
 } from "./dev-session.js";
 import { runApertureMcpServer } from "./mcp.js";
-import {
-  buildApertureReferenceIndex,
-  readApertureReferenceStatus,
-  searchApertureReferences,
-  warmApertureReferences,
-  type ApertureReferenceSearchReport,
-  type ApertureReferenceStatusReport,
-  type BuildApertureReferenceIndexReport,
-  type WarmApertureReferenceReport,
-} from "./reference.js";
 import type { ApertureDevSessionStatus } from "./session.js";
 import { callApertureTool } from "./devtools-client.js";
+import { ApertureCliError } from "./errors.js";
+import { runReferenceCommand } from "./reference-command.js";
+export { ApertureCliError } from "./errors.js";
 
 const CLI_VERSION = "0.0.0";
 
@@ -93,11 +86,6 @@ interface ParsedDevLogsCommand {
   readonly lines?: number;
 }
 
-interface ParsedReferenceSearchCommand {
-  readonly query: string;
-  readonly limit?: number;
-}
-
 interface ParsedToolCommand {
   readonly name: string;
   readonly arguments?: Record<string, unknown>;
@@ -132,18 +120,6 @@ type SyncApertureAdapterFileResult =
     };
 
 const MANAGED_BLOCK_ID = "aperture-ai-tools";
-
-export class ApertureCliError extends Error {
-  readonly code: string;
-  readonly exitCode: number;
-
-  constructor(code: string, message: string, exitCode = 1) {
-    super(message);
-    this.name = "ApertureCliError";
-    this.code = code;
-    this.exitCode = exitCode;
-  }
-}
 
 export async function runApertureCli(
   options: RunApertureCliOptions,
@@ -327,62 +303,11 @@ export async function runApertureCli(
     }
 
     if (command === "reference") {
-      if (rest.some(isHelpFlag)) {
-        io.stdout(referenceHelp());
-        return 0;
-      }
-
-      const [subcommand, ...subcommandRest] = rest;
-
-      if (subcommand === "warmup") {
-        const parsed = parseReferenceWarmupCommand(subcommandRest);
-        io.stdout(
-          referenceWarmupMessage(
-            await warmApertureReferences({
-              cwd: options.cwd,
-              ...(parsed.from === undefined ? {} : { from: parsed.from }),
-            }),
-          ),
-        );
-        return 0;
-      }
-
-      if (subcommand === "status") {
-        io.stdout(
-          referenceStatusMessage(
-            await readApertureReferenceStatus(options.cwd),
-          ),
-        );
-        return 0;
-      }
-
-      if (subcommand === "build") {
-        io.stdout(
-          referenceBuildMessage(
-            await buildApertureReferenceIndex({ cwd: options.cwd }),
-          ),
-        );
-        return 0;
-      }
-
-      if (subcommand === "search") {
-        const parsed = parseReferenceSearchCommand(subcommandRest);
-        io.stdout(
-          referenceSearchMessage(
-            await searchApertureReferences({
-              cwd: options.cwd,
-              query: parsed.query,
-              ...(parsed.limit === undefined ? {} : { limit: parsed.limit }),
-            }),
-          ),
-        );
-        return 0;
-      }
-
-      throw new ApertureCliError(
-        "aperture.reference.unknownSubcommand",
-        "The reference command supports warmup, status, build, and search. Run 'aperture reference --help' for usage.",
-      );
+      return await runReferenceCommand({
+        argv: rest,
+        cwd: options.cwd,
+        stdout: io.stdout,
+      });
     }
 
     if (isPlannedCommand(command)) {
@@ -847,70 +772,6 @@ function parseToolJsonArgs(value: string): Record<string, unknown> {
   }
 
   return parsed as Record<string, unknown>;
-}
-
-function parseReferenceSearchCommand(
-  argv: readonly string[],
-): ParsedReferenceSearchCommand {
-  let limit: number | undefined;
-  const queryParts: string[] = [];
-
-  for (let index = 0; index < argv.length; index += 1) {
-    const arg = argv[index];
-
-    if (arg === "--limit") {
-      index += 1;
-      limit = parsePositiveInteger(readOptionValue(argv, index, arg), arg);
-      continue;
-    }
-
-    if (arg?.startsWith("-") === true) {
-      throw new ApertureCliError(
-        "aperture.reference.unknownOption",
-        `Unknown reference search option '${arg}'. Run 'aperture reference --help' for supported options.`,
-      );
-    }
-
-    if (arg !== undefined) {
-      queryParts.push(arg);
-    }
-  }
-
-  const query = queryParts.join(" ").trim();
-  if (query.length === 0) {
-    throw new ApertureCliError(
-      "aperture.reference.missingQuery",
-      "The reference search command requires a query.",
-    );
-  }
-
-  return {
-    query,
-    ...(limit === undefined ? {} : { limit }),
-  };
-}
-
-function parseReferenceWarmupCommand(argv: readonly string[]): {
-  readonly from?: string;
-} {
-  let from: string | undefined;
-
-  for (let index = 0; index < argv.length; index += 1) {
-    const arg = argv[index];
-
-    if (arg === "--from") {
-      index += 1;
-      from = readOptionValue(argv, index, arg);
-      continue;
-    }
-
-    throw new ApertureCliError(
-      "aperture.reference.unknownOption",
-      `Unknown reference warmup option '${arg ?? ""}'. Run 'aperture reference --help' for supported options.`,
-    );
-  }
-
-  return from === undefined ? {} : { from };
 }
 
 function readOptionValue(
@@ -1822,23 +1683,6 @@ Options:
 `;
 }
 
-function referenceHelp(): string {
-  return `Usage:
-  aperture reference warmup [--from <path-or-url>]
-  aperture reference status
-  aperture reference build
-  aperture reference search <query> [--limit <count>]
-
-Warms, validates, and searches the Aperture RAG reference corpus.
-The build subcommand is a local producer alias retained for development.
-
-Options:
-  --from <path-or-url> Use a local or hosted reference asset payload.
-  --limit <count>     Maximum search results. Defaults to 10.
-  -h, --help          Show help.
-`;
-}
-
 function devHelp(): string {
   return `Usage:
   aperture dev up [--open] [--host <host>] [--port <port>]
@@ -1973,81 +1817,6 @@ function devLogsMessage(report: ApertureDevLogsReport): string {
     .map(
       (log) => `== ${log.name}: ${log.file} ==
 ${log.text}`,
-    )
-    .join("\n\n")}
-`;
-}
-
-function referenceBuildMessage(
-  report: BuildApertureReferenceIndexReport,
-): string {
-  return `Built Aperture reference corpus.
-
-Root: ${report.root}
-Index: ${report.indexFile}
-Manifest: ${report.manifestFile}
-Archive: ${report.archiveFile}
-Entries: ${report.entries}
-Chunks: ${report.chunks}
-Sources: ${report.sources}
-`;
-}
-
-function referenceWarmupMessage(report: WarmApertureReferenceReport): string {
-  return `Warmed Aperture reference corpus.
-
-Root: ${report.root}
-Source: ${report.source}
-Index: ${report.indexFile}
-Manifest: ${report.manifestFile}
-Archive: ${report.archiveFile}
-State: ${report.stateFile}
-Entries: ${report.entries}
-Chunks: ${report.chunks}
-Sources: ${report.sources}
-`;
-}
-
-function referenceStatusMessage(report: ApertureReferenceStatusReport): string {
-  const diagnostics =
-    report.diagnostics.length === 0
-      ? "Diagnostics: none"
-      : `Diagnostics:\n${report.diagnostics
-          .map(
-            (diagnostic) =>
-              `- ${diagnostic.code}: ${diagnostic.message} Suggested fix: ${diagnostic.suggestedFix}`,
-          )
-          .join("\n")}`;
-
-  return `Aperture reference corpus
-
-Status: ${report.status}
-Ready: ${report.ok ? "yes" : "no"}
-Root: ${report.root}
-Index: ${report.indexFile}
-Manifest: ${report.manifestFile}
-Archive: ${report.archiveFile}
-State: ${report.stateFile}
-Chunks: ${report.chunks}
-Sources: ${report.sources}
-Model: ${report.model.provider}/${report.model.model}@${report.model.revision}
-${diagnostics}
-`;
-}
-
-function referenceSearchMessage(report: ApertureReferenceSearchReport): string {
-  if (report.results.length === 0) {
-    return `No Aperture reference results for '${report.query}'.
-
-Index: ${report.indexFile}
-`;
-  }
-
-  return `${report.results
-    .map(
-      (result) => `${result.file} (${result.kind}, score ${result.score})
-${result.symbol} lines ${result.startLine}-${result.endLine}
-${result.snippet}`,
     )
     .join("\n\n")}
 `;
