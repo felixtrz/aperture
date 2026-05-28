@@ -445,8 +445,10 @@ Status: in progress
 - glTF source asset registration public contracts, report JSON projection,
   material dependency discovery, planned-handle helpers, and skipped/duplicate
   diagnostics now live in focused `gltf-source-registration-*` asset modules,
-  leaving `gltf-source-registration.ts` focused on texture/sampler/material
-  registry writes.
+  and texture/sampler/material registry writes now live in
+  `gltf-source-registration-writers.ts`, leaving
+  `gltf-source-registration.ts` as the stable mapping-report orchestration
+  facade.
 - glTF mesh primitive mapping public contracts, report JSON projection, and
   attribute/index reference mapping now live in focused
   `gltf-mesh-primitive-*` asset modules, leaving

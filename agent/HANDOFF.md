@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-28T06:22:33Z
+Updated: 2026-05-28T06:26:18Z
+
+## Current Run Update — 2026-05-28T06:26:18Z — glTF source registration writer split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split texture, sampler, and material registry writes from
+  `packages/render/src/assets/gltf-source-registration.ts` into
+  `packages/render/src/assets/gltf-source-registration-writers.ts`.
+- Kept `gltf-source-registration.ts` as the stable mapping-report
+  orchestration, report creation, and public type-export facade.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-source-registration.ts packages/render/src/assets/gltf-source-registration-writers.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-source-registration.ts packages/render/src/assets/gltf-source-registration-writers.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-source-registration.ts packages/render/src/assets/gltf-source-registration-writers.ts`
+- `pnpm exec vitest run test/assets/gltf-source-registration.test.ts test/assets/gltf-source-registration-json.test.ts test/assets/gltf-source-registration-dependencies.test.ts test/assets/gltf-source-registration-orchestration.test.ts test/assets/gltf-source-registration-orchestration-json.test.ts test/assets/gltf-combined-import-fixture.test.ts test/assets/gltf-primitive-material-resolution.test.ts test/assets/gltf-ecs-authoring-command-plan.test.ts test/assets/gltf-ecs-command-replay.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `extraction-meshes.ts`,
+  `gltf-accessor-validation-primitives.ts`, `gltf-mesh-primitive.ts`,
+  `gltf-mesh-source-registration.ts`, `gltf-scene-traversal.ts`,
+  `render-world.ts`, and `gltf-report-driven-import-meshopt.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining extraction mesh, accessor
+validation primitive, mesh primitive, mesh source registration, scene
+traversal, or render-world modules.
 
 ## Current Run Update — 2026-05-28T06:22:33Z — render queue sorting helper split
 
