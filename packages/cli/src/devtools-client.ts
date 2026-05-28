@@ -7,18 +7,20 @@ import {
   readApertureReferenceFile,
   searchApertureReferences,
 } from "./reference.js";
+import {
+  isRecord,
+  nestedRecord,
+  numberArg,
+  optionalNumber,
+  optionalReferenceKind,
+  referenceKindArg,
+  renderPacketFamiliesArg,
+  stringArg,
+} from "./devtools-args.js";
 
 const STATUS_GLOBAL = "__APERTURE_GENERATED_APP__";
 const MANAGED_GLOBAL = "__APERTURE_MCP_MANAGED__";
 const RUNTIME_GLOBAL = "__APERTURE_MCP_RUNTIME__";
-const RENDER_PACKET_FAMILIES = [
-  "views",
-  "meshDraws",
-  "lights",
-  "environments",
-  "shadows",
-  "bounds",
-] as const;
 
 export interface ApertureToolCallOptions {
   readonly cwd: string;
@@ -864,130 +866,8 @@ async function tailFile(file: string, lines: number): Promise<string> {
   }
 }
 
-function stringArg(
-  args: Record<string, unknown>,
-  key: string,
-): string | undefined {
-  const value = args[key];
-
-  return typeof value === "string" && value.length > 0 ? value : undefined;
-}
-
-function numberArg(
-  args: Record<string, unknown>,
-  key: string,
-): number | undefined {
-  const value = args[key];
-
-  return typeof value === "number" && Number.isFinite(value)
-    ? value
-    : undefined;
-}
-
-function nestedRecord(
-  args: Record<string, unknown>,
-  key: string,
-): Record<string, unknown> | null {
-  const value = args[key];
-
-  return typeof value === "object" && value !== null
-    ? (value as Record<string, unknown>)
-    : null;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
 async function delay(ms: number): Promise<void> {
   await new Promise<void>((resolve) => {
     setTimeout(resolve, ms);
   });
-}
-
-function renderPacketFamiliesArg(
-  args: Record<string, unknown>,
-): readonly (typeof RENDER_PACKET_FAMILIES)[number][] {
-  const requested = Array.isArray(args["families"])
-    ? args["families"]
-    : typeof args["family"] === "string"
-      ? [args["family"]]
-      : RENDER_PACKET_FAMILIES;
-  const families: (typeof RENDER_PACKET_FAMILIES)[number][] = [];
-
-  for (const family of requested) {
-    if (
-      typeof family === "string" &&
-      isRenderPacketFamily(family) &&
-      !families.includes(family)
-    ) {
-      families.push(family);
-    }
-  }
-
-  return families.length === 0 ? RENDER_PACKET_FAMILIES : families;
-}
-
-function isRenderPacketFamily(
-  value: string,
-): value is (typeof RENDER_PACKET_FAMILIES)[number] {
-  return (RENDER_PACKET_FAMILIES as readonly string[]).includes(value);
-}
-
-function referenceKindArg(
-  args: Record<string, unknown>,
-):
-  | "doc"
-  | "source"
-  | "example"
-  | "test"
-  | "reference"
-  | "other"
-  | "any"
-  | undefined {
-  const value = stringArg(args, "kind");
-
-  return value === "doc" ||
-    value === "source" ||
-    value === "example" ||
-    value === "test" ||
-    value === "reference" ||
-    value === "other" ||
-    value === "any"
-    ? value
-    : undefined;
-}
-
-function optionalNumber(
-  key: "endLine" | "limit" | "startLine",
-  value: number | undefined,
-): {
-  readonly endLine?: number;
-  readonly limit?: number;
-  readonly startLine?: number;
-} {
-  return value === undefined ? {} : { [key]: value };
-}
-
-function optionalReferenceKind(
-  value:
-    | "doc"
-    | "source"
-    | "example"
-    | "test"
-    | "reference"
-    | "other"
-    | "any"
-    | undefined,
-): {
-  readonly kind?:
-    | "doc"
-    | "source"
-    | "example"
-    | "test"
-    | "reference"
-    | "other"
-    | "any";
-} {
-  return value === undefined ? {} : { kind: value };
 }
