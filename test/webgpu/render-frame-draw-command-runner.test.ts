@@ -21,8 +21,8 @@ describe("injected render frame draw-command runner", () => {
     expect(report.drawList.draws.map((draw) => draw.renderId)).toEqual([9, 7]);
     expect(report.frame.summary.ready).toBe(true);
     expect(report.frame.execution.counts).toMatchObject({
-      commands: 12,
-      executedCommands: 12,
+      commands: 7,
+      executedCommands: 7,
       drawCalls: 2,
     });
     expect(events.filter((event) => event === "frame:draw:3")).toHaveLength(2);

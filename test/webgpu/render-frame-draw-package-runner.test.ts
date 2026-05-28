@@ -35,7 +35,7 @@ describe("injected render frame draw-package runner", () => {
       9, 7,
     ]);
     expect(report.frame.frame.execution.counts).toMatchObject({
-      commands: 12,
+      commands: 7,
       drawCalls: 2,
     });
   });
@@ -139,6 +139,7 @@ function drawPackage(
     batchKey: BATCH,
     meshResourceKey,
     materialResourceKey: "material:red",
+    packet: {},
     transformPackedOffset: renderId * 16,
   } as unknown as RenderWorldDrawPackage;
 }

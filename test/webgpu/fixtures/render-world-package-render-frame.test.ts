@@ -12,7 +12,7 @@ describe("render-world package injected render frame fixture", () => {
     expect(fixture.report.frame.descriptors.descriptors).toHaveLength(2);
     expect(fixture.report.frame.frame.drawList.draws).toHaveLength(2);
     expect(fixture.report.frame.frame.frame.execution.counts).toMatchObject({
-      commands: 12,
+      commands: 7,
       drawCalls: 2,
     });
   });

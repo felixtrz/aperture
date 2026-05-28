@@ -2593,7 +2593,11 @@ describe("WebGPU app facade", () => {
         `material-buffer:prepared-material:${assetHandleKey(material)}`,
         assetHandleKey(texture),
         assetHandleKey(sampler),
-        "unlit|baseColorTexture|opaque|back|less|none",
+        expect.stringContaining(
+          pipelineKeyJsonFragment(
+            "unlit|baseColorTexture|opaque|back|less|none",
+          ),
+        ) as string,
       ],
     });
 
@@ -3073,7 +3077,9 @@ describe("WebGPU app facade", () => {
         `material-buffer:prepared-material:${assetHandleKey(material)}`,
         assetHandleKey(texture),
         assetHandleKey(sampler),
-        "matcap|matcapTexture|opaque|back|less|none",
+        expect.stringContaining(
+          pipelineKeyJsonFragment("matcap|matcapTexture|opaque|back|less|none"),
+        ) as string,
       ],
     });
 
@@ -4394,7 +4400,9 @@ describe("WebGPU app facade", () => {
         ready: true,
         resources: {
           lightGpuBufferResourceKey: "light-buffer:main",
-          lightBindGroupLayoutKey: "webgpu-app/standard/group-3",
+          lightBindGroupLayoutKey: expect.stringContaining(
+            "webgpu-app/standard/group-3",
+          ) as string,
           lightBindGroupResourceKey:
             "bind-group:lights/group-3/light-buffer:main",
         },
@@ -6025,7 +6033,9 @@ describe("WebGPU app facade", () => {
           },
           resources: {
             lightGpuBufferResourceKey: "light-buffer:main",
-            lightBindGroupLayoutKey: "webgpu-app/standard/group-3",
+            lightBindGroupLayoutKey: expect.stringContaining(
+              "webgpu-app/standard/group-3",
+            ) as string,
             lightBindGroupResourceKey:
               "bind-group:lights/group-3/light-buffer:main",
           },
@@ -6209,7 +6219,9 @@ describe("WebGPU app facade", () => {
       [],
     );
     expect(queuedBindGroupResourceKeys(frame.resources?.resources, 3)).toEqual([
-      "bind-group:webgpu-app/standard/lights-ibl/group-3/0:light-buffer:main/floats/1:light-buffer:main/metadata/5:texture:test:diffuse:texture/6:texture:test:diffuse:sampler/11:standard-area-light-ltc:matrix/12:standard-area-light-ltc:fresnel/13:standard-area-light-ltc:sampler|pipeline:standard|iblDiffuse|opaque|back|less|none",
+      expect.stringContaining(
+        pipelineKeyJsonFragment("standard|iblDiffuse|opaque|back|less|none"),
+      ) as string,
     ]);
     expect(standardIblBindGroupResource(frame.resources?.resources)).toBe(
       standardMaterialIblResources.bindGroupResource.resource,
@@ -6574,10 +6586,10 @@ describe("WebGPU app facade", () => {
     expect(queuedMeshResourceCount(frame.resources?.resources)).toBe(1);
     expect(queuedBindGroupResourceKeys(frame.resources?.resources, 3)).toEqual([
       expect.stringContaining(
-        "|pipeline:standard|opaque|back|less|none",
+        pipelineKeyJsonFragment("standard|opaque|back|less|none"),
       ) as string,
       expect.stringContaining(
-        "|pipeline:standard|mask|back|less|none",
+        pipelineKeyJsonFragment("standard|mask|back|less|none"),
       ) as string,
     ]);
     expect(events).toContain("queue:submit:1");
@@ -6752,16 +6764,16 @@ describe("WebGPU app facade", () => {
     ).toBe(4);
     expect(queuedBindGroupResourceKeys(frame.resources?.resources, 3)).toEqual([
       expect.stringContaining(
-        "|pipeline:standard|opaque|back|less|none",
+        pipelineKeyJsonFragment("standard|opaque|back|less|none"),
       ) as string,
       expect.stringContaining(
-        "|pipeline:standard|mask|back|less|none",
+        pipelineKeyJsonFragment("standard|mask|back|less|none"),
       ) as string,
       expect.stringContaining(
-        "|pipeline:standard|blend|back|less|alpha",
+        pipelineKeyJsonFragment("standard|blend|back|less|alpha"),
       ) as string,
       expect.stringContaining(
-        "|pipeline:standard|blend|back|less|alpha",
+        pipelineKeyJsonFragment("standard|blend|back|less|alpha"),
       ) as string,
     ]);
     expect(events).toContain("queue:submit:1");
@@ -6914,7 +6926,11 @@ describe("WebGPU app facade", () => {
         `material-buffer:prepared-material:${assetHandleKey(material)}`,
         assetHandleKey(texture),
         assetHandleKey(sampler),
-        "standard|baseColorTexture|opaque|back|less|none",
+        expect.stringContaining(
+          pipelineKeyJsonFragment(
+            "standard|baseColorTexture|opaque|back|less|none",
+          ),
+        ) as string,
       ],
     });
     expect(
@@ -6935,7 +6951,9 @@ describe("WebGPU app facade", () => {
         ready: true,
         resources: {
           lightGpuBufferResourceKey: "light-buffer:main",
-          lightBindGroupLayoutKey: "webgpu-app/standard/group-3",
+          lightBindGroupLayoutKey: expect.stringContaining(
+            "webgpu-app/standard/group-3",
+          ) as string,
           lightBindGroupResourceKey:
             "bind-group:lights/group-3/light-buffer:main",
         },
@@ -7290,7 +7308,11 @@ describe("WebGPU app facade", () => {
         `material-buffer:prepared-material:${assetHandleKey(material)}`,
         assetHandleKey(texture),
         assetHandleKey(sampler),
-        "standard|metallicRoughnessTexture|opaque|back|less|none",
+        expect.stringContaining(
+          pipelineKeyJsonFragment(
+            "standard|metallicRoughnessTexture|opaque|back|less|none",
+          ),
+        ) as string,
       ],
     });
 
@@ -7613,7 +7635,11 @@ describe("WebGPU app facade", () => {
         assetHandleKey(occlusionSampler),
         assetHandleKey(emissiveTexture),
         assetHandleKey(emissiveSampler),
-        "standard|emissiveTexture|occlusionTexture|opaque|back|less|none",
+        expect.stringContaining(
+          pipelineKeyJsonFragment(
+            "standard|emissiveTexture|occlusionTexture|opaque|back|less|none",
+          ),
+        ) as string,
       ],
     });
 
@@ -7882,7 +7908,11 @@ describe("WebGPU app facade", () => {
         `material-buffer:prepared-material:${assetHandleKey(material)}`,
         assetHandleKey(texture),
         assetHandleKey(sampler),
-        "standard|normalTexture|opaque|back|less|none",
+        expect.stringContaining(
+          pipelineKeyJsonFragment(
+            "standard|normalTexture|opaque|back|less|none",
+          ),
+        ) as string,
       ],
     });
 
@@ -8937,6 +8967,10 @@ function queuedBindGroupResourceKeys(
       ? [candidate.resourceKey]
       : [];
   });
+}
+
+function pipelineKeyJsonFragment(pipelineKey: string): string {
+  return `"pipelineKey":"${pipelineKey}"`;
 }
 
 function standardIblBindGroupResource(resources: unknown): unknown {

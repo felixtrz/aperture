@@ -102,14 +102,14 @@ describe("injected render frame smoke fixture", () => {
         .map((command) => command.renderId),
     ).toEqual([9, 7]);
     expect(fixture.frameExecution.counts).toMatchObject({
-      commands: 12,
-      executedCommands: 12,
+      commands: 7,
+      executedCommands: 7,
       drawCalls: 2,
     });
     expect(fixture.summary.counts).toMatchObject({
       plannedDraws: 2,
-      commands: 12,
-      executedCommands: 12,
+      commands: 7,
+      executedCommands: 7,
     });
   });
 

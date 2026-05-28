@@ -343,7 +343,7 @@ describe("worker-split examples", () => {
   it("keeps the GLB viewer image decode path worker-compatible", async () => {
     const viewer = await readWorkspaceFile("examples/glb-viewer.worker.js");
     const texture = await readWorkspaceFile(
-      "packages/render/src/materials/gltf-texture.ts",
+      "packages/render/src/materials/gltf-texture-browser-decoder.ts",
     );
 
     expect(viewer).toContain("loadGlbFromUri");

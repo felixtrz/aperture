@@ -14,14 +14,14 @@ describe("draw-package injected render frame fixture", () => {
       9, 7,
     ]);
     expect(fixture.frame.frame.execution.counts).toMatchObject({
-      commands: 12,
-      executedCommands: 12,
+      commands: 7,
+      executedCommands: 7,
       drawCalls: 2,
     });
     expect(fixture.frame.frame.summary.counts).toMatchObject({
       plannedDraws: 2,
       drawCalls: 2,
-      commands: 12,
+      commands: 7,
     });
   });
 

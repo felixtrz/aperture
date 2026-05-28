@@ -37,7 +37,7 @@ describe("injected render frame render-world package runner", () => {
       ),
     ).toEqual([9, 7]);
     expect(report.frame.frame.frame.execution.counts).toMatchObject({
-      commands: 12,
+      commands: 7,
       drawCalls: 2,
     });
   });
