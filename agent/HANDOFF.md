@@ -1,6 +1,43 @@
 # Agent Handoff
 
-Updated: 2026-05-28T02:37:29Z
+Updated: 2026-05-28T02:41:55Z
+
+## Current Run Update — 2026-05-28T02:41:55Z — snapshot packed codec utility split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted packed snapshot primitive numeric helpers, float64 packing,
+  optional uint32 handling, entity/vector packing, enum id mapping, batch flag
+  mapping, and handle read validation into
+  `packages/render/src/rendering/snapshot-packed-codec-utils.ts`.
+- `packages/render/src/rendering/snapshot-packed-codecs.ts` is now roughly 353
+  lines and remains focused on packet-specific read/write layouts.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/rendering/snapshot-packed-codecs.ts packages/render/src/rendering/snapshot-packed-codec-utils.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/snapshot-packed-codecs.ts packages/render/src/rendering/snapshot-packed-codec-utils.ts`
+- `pnpm exec vitest run test/rendering/snapshot-packed-encoding.test.ts test/webgpu/render-frame-snapshot-json.test.ts test/webgpu/render-frame-snapshot-diagnostics.test.ts test/webgpu/render-frame-snapshot-runner.test.ts test/webgpu/fixtures/snapshot-render-frame.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `mesh/primitives.ts`,
+  `draco-decoder.ts`, `render-queue.ts`, `mesh-merge.ts`,
+  `hdr-rgbe-loader.ts`, mesh asset construction helpers, and scene import
+  contracts.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining decoder, queue, mesh, or
+scene import helper modules.
 
 ## Current Run Update — 2026-05-28T02:37:29Z — transform pack scratch helper split
 
