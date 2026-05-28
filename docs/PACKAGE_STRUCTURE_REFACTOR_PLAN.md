@@ -348,6 +348,10 @@ Status: in progress
   asset store state, mesh metadata preparation, and material metadata
   preparation now live in focused `preparation-*` asset modules, keeping
   `preparation.ts` as the stable public facade.
+- glTF material mapping contracts, scalar/vector field mapping, render-state
+  mapping, material extension diagnostics, and report JSON cloning now live in
+  focused `gltf-material-*` material modules, keeping `gltf-material.ts` as the
+  material assembly facade.
 
 ## Purpose
 
