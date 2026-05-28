@@ -592,6 +592,9 @@ Status: in progress
 - CLI reference source collection, package export traversal, re-export
   following, dependency source inclusion, and source file walking now live in
   `packages/cli/src/reference-source-collection.ts`.
+- CLI reference markdown/source chunking, TypeScript declaration metadata
+  extraction, system/diagnostic chunk creation, and chunk deduplication now
+  live in `packages/cli/src/reference-chunking.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

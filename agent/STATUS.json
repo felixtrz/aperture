@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "122ca0f5",
+  "lastCommit": "10b6bca2",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 8 by splitting reference source collection, package export traversal, re-export following, dependency source inclusion, and source file walking into reference-source-collection.ts; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T11:52:51Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 8 by splitting reference markdown/source chunking, TypeScript declaration metadata extraction, system/diagnostic chunk creation, and chunk deduplication into reference-chunking.ts; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T11:58:30Z"
 }
