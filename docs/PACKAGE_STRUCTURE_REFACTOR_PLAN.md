@@ -489,10 +489,12 @@ Status: in progress
   `gltf-mesh-source-registration-writers.ts`, leaving
   `gltf-mesh-source-registration.ts` as the stable report/type and JSON
   facade.
-- Transform packing public contracts, mutable scratch state, capacity growth,
-  and reusable offset pools now live in `transform-pack-types.ts` and
-  `transform-pack-scratch.ts`, leaving `transform-pack.ts` focused on current,
-  previous, tint, and custom instance-attribute packing algorithms.
+- Transform packing public contracts and mutable scratch construction now live
+  in `transform-pack-types.ts` and `transform-pack-scratch.ts`, with capacity
+  growth and reusable offset-pool helpers split into
+  `transform-pack-scratch-capacity.ts` and `transform-pack-offset-pools.ts`,
+  leaving `transform-pack.ts` focused on current, previous, tint, and custom
+  instance-attribute packing algorithms.
 - Transform packing previous-transform history helpers, instance-tint vertex
   buffer packing, and custom instance-attribute vertex buffer packing now live
   in `transform-pack-history.ts`, `transform-pack-instance-tints.ts`, and

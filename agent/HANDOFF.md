@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-28T07:37:51Z
+Updated: 2026-05-28T07:41:05Z
+
+## Current Run Update — 2026-05-28T07:41:05Z — transform pack scratch split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split transform packing scratch capacity growth helpers from
+  `packages/render/src/rendering/transform-pack-scratch.ts` into
+  `packages/render/src/rendering/transform-pack-scratch-capacity.ts`.
+- Split reusable transform/instance offset-pool accessors and empty-offset
+  constructors into
+  `packages/render/src/rendering/transform-pack-offset-pools.ts`.
+- Kept `transform-pack-scratch.ts` as the stable scratch construction facade and
+  re-export surface for existing internal imports.
+- Updated the package-structure plan and public progress tracker for the new
+  transform packing scratch helper modules.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/transform-pack-scratch.ts packages/render/src/rendering/transform-pack-scratch-capacity.ts packages/render/src/rendering/transform-pack-offset-pools.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/transform-pack-scratch.ts packages/render/src/rendering/transform-pack-scratch-capacity.ts packages/render/src/rendering/transform-pack-offset-pools.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/transform-pack-scratch.ts packages/render/src/rendering/transform-pack-scratch-capacity.ts packages/render/src/rendering/transform-pack-offset-pools.ts`
+- `pnpm exec vitest run test/rendering/transform-pack.test.ts test/rendering/extraction.test.ts test/webgpu/render-frame-snapshot-runner.test.ts test/webgpu/render-frame-plan.test.ts test/webgpu/frame-readiness.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `glb-uri-images.ts`,
+  `gltf-uri-images.ts`, `extraction-meshes.ts`, and other medium
+  render/material/asset modules still near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium render extraction/material/asset
+hotspot.
 
 ## Current Run Update — 2026-05-28T07:37:51Z — authoring component group split
 
