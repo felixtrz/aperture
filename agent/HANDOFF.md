@@ -1,6 +1,42 @@
 # Agent Handoff
 
-Updated: 2026-05-28T00:02:47Z
+Updated: 2026-05-28T00:05:22Z
+
+## Current Run Update — 2026-05-28T00:05:22Z — Render custom WGSL preparation split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted custom WGSL material source types, validation, prepared descriptor
+  construction, and render asset adapter creation into
+  `packages/render/src/assets/custom-wgsl-material-preparation.ts`.
+- `packages/render/src/assets/preparation.ts` now re-exports the same custom
+  WGSL public names and focuses on generic prepared asset stores/adapters.
+- `packages/render/src/assets/preparation.ts` is now roughly 795 lines.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/preparation.ts packages/render/src/assets/custom-wgsl-material-preparation.ts`
+- `pnpm exec prettier --check packages/render/src/assets/preparation.ts packages/render/src/assets/custom-wgsl-material-preparation.ts`
+- `pnpm exec vitest run test/assets/render-asset-preparation.test.ts test/webgpu/custom-wgsl-material.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots are mostly glTF URI/importer files and glTF
+  material/texture helpers.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting glTF URI loading/import preparation helpers out
+of `packages/render/src/assets/glb-uri-loader.ts` or
+`packages/render/src/assets/gltf-uri-loader.ts`.
 
 ## Current Run Update — 2026-05-28T00:02:47Z — Render mesh instance/material helper split
 

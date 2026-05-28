@@ -271,6 +271,10 @@ Status: in progress
   pipeline feature helpers now live in
   `packages/render/src/rendering/extraction-mesh-instances.ts` and
   `packages/render/src/rendering/extraction-mesh-materials.ts`.
+- Render asset custom WGSL material preparation, validation, and prepared
+  descriptor construction now live in
+  `packages/render/src/assets/custom-wgsl-material-preparation.ts`, while
+  `preparation.ts` re-exports the same public API names.
 
 ## Purpose
 
