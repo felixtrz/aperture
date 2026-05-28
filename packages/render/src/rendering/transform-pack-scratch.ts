@@ -1,8 +1,10 @@
 import type { RenderDiagnostic } from "./snapshot.js";
+import {
+  createEmptyInstanceAttributeOffset,
+  createEmptyInstanceTintOffset,
+  createEmptyOffset,
+} from "./transform-pack-offset-pools.js";
 import type {
-  MutablePackedInstanceAttributeOffset,
-  MutablePackedInstanceTintOffset,
-  MutablePackedTransformOffset,
   PackedInstanceAttributeOffset,
   PackedInstanceTintOffset,
   PackedSnapshotInstanceAttributesScratch,
@@ -11,6 +13,19 @@ import type {
   PackedSnapshotTransformsScratch,
   PackedTransformOffset,
 } from "./transform-pack-types.js";
+
+export {
+  ensureInstanceAttributeDataCapacity,
+  ensureInstanceTintDataCapacity,
+  ensurePreviousTransformDataCapacity,
+  ensureTransformDataCapacity,
+} from "./transform-pack-scratch-capacity.js";
+export {
+  instanceAttributeOffsetAt,
+  instanceTintOffsetAt,
+  offsetAt,
+  previousOffsetAt,
+} from "./transform-pack-offset-pools.js";
 
 export function createPackedSnapshotTransformsScratch(
   floatCapacity = 0,
@@ -114,162 +129,4 @@ export function createPackedSnapshotInstanceAttributesScratch(
       diagnostics,
     },
   };
-}
-
-export function ensureTransformDataCapacity(
-  scratch: PackedSnapshotTransformsScratch,
-  required: number,
-): void {
-  if (scratch.data.length >= required) {
-    return;
-  }
-
-  let capacity = Math.max(16, scratch.data.length);
-
-  while (capacity < required) {
-    capacity *= 2;
-  }
-
-  const next = new Float32Array(capacity);
-
-  next.set(scratch.data.subarray(0, scratch.data.length));
-  scratch.data = next;
-}
-
-export function ensurePreviousTransformDataCapacity(
-  scratch: PackedSnapshotPreviousTransformsScratch,
-  required: number,
-): void {
-  if (scratch.data.length >= required) {
-    return;
-  }
-
-  let capacity = Math.max(16, scratch.data.length);
-
-  while (capacity < required) {
-    capacity *= 2;
-  }
-
-  const next = new Float32Array(capacity);
-
-  next.set(scratch.data.subarray(0, scratch.data.length));
-  scratch.data = next;
-}
-
-export function ensureInstanceTintDataCapacity(
-  scratch: PackedSnapshotInstanceTintsScratch,
-  required: number,
-): void {
-  if (scratch.data.length >= required) {
-    return;
-  }
-
-  let capacity = Math.max(4, scratch.data.length);
-
-  while (capacity < required) {
-    capacity *= 2;
-  }
-
-  scratch.data = new Float32Array(capacity);
-}
-
-export function ensureInstanceAttributeDataCapacity(
-  scratch: PackedSnapshotInstanceAttributesScratch,
-  required: number,
-): void {
-  if (scratch.data.length >= required) {
-    return;
-  }
-
-  let capacity = Math.max(4, scratch.data.length);
-
-  while (capacity < required) {
-    capacity *= 2;
-  }
-
-  scratch.data = new Float32Array(capacity);
-}
-
-export function offsetAt(
-  scratch: PackedSnapshotTransformsScratch,
-  index: number,
-): MutablePackedTransformOffset {
-  const existing = scratch.offsetPool[index] as
-    | MutablePackedTransformOffset
-    | undefined;
-
-  if (existing !== undefined) {
-    return existing;
-  }
-
-  const offset = createEmptyOffset();
-
-  scratch.offsetPool.push(offset);
-  return offset;
-}
-
-export function previousOffsetAt(
-  scratch: PackedSnapshotPreviousTransformsScratch,
-  index: number,
-): MutablePackedTransformOffset {
-  const existing = scratch.offsetPool[index] as
-    | MutablePackedTransformOffset
-    | undefined;
-
-  if (existing !== undefined) {
-    return existing;
-  }
-
-  const offset = createEmptyOffset();
-
-  scratch.offsetPool.push(offset);
-  return offset;
-}
-
-export function instanceTintOffsetAt(
-  scratch: PackedSnapshotInstanceTintsScratch,
-  index: number,
-): MutablePackedInstanceTintOffset {
-  const existing = scratch.offsetPool[index] as
-    | MutablePackedInstanceTintOffset
-    | undefined;
-
-  if (existing !== undefined) {
-    return existing;
-  }
-
-  const offset = createEmptyInstanceTintOffset();
-
-  scratch.offsetPool.push(offset);
-  return offset;
-}
-
-export function instanceAttributeOffsetAt(
-  scratch: PackedSnapshotInstanceAttributesScratch,
-  index: number,
-): MutablePackedInstanceAttributeOffset {
-  const existing = scratch.offsetPool[index] as
-    | MutablePackedInstanceAttributeOffset
-    | undefined;
-
-  if (existing !== undefined) {
-    return existing;
-  }
-
-  const offset = createEmptyInstanceAttributeOffset();
-
-  scratch.offsetPool.push(offset);
-  return offset;
-}
-
-function createEmptyOffset(): MutablePackedTransformOffset {
-  return { renderId: 0, sourceOffset: 0, packedOffset: 0 };
-}
-
-function createEmptyInstanceTintOffset(): MutablePackedInstanceTintOffset {
-  return { renderId: 0, sourceOffset: 0, packedOffset: 0 };
-}
-
-function createEmptyInstanceAttributeOffset(): MutablePackedInstanceAttributeOffset {
-  return { renderId: 0, sourcePacketIndex: 0, packedOffset: 0 };
 }
