@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T04:03:27Z
+Updated: 2026-05-28T04:07:05Z
+
+## Current Run Update — 2026-05-28T04:07:05Z — primitive factory split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split box and plane mesh factory construction into
+  `packages/render/src/mesh/primitives-box-plane.ts`.
+- Split sphere mesh generation into
+  `packages/render/src/mesh/primitives-sphere.ts`.
+- Split ring-based capsule and torus mesh generation into
+  `packages/render/src/mesh/primitives-rings.ts`.
+- Kept `packages/render/src/mesh/primitives.ts` as the stable public facade
+  for all primitive mesh factory exports.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/mesh/primitives.ts packages/render/src/mesh/primitives-box-plane.ts packages/render/src/mesh/primitives-sphere.ts packages/render/src/mesh/primitives-rings.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/mesh/primitives.ts packages/render/src/mesh/primitives-box-plane.ts packages/render/src/mesh/primitives-sphere.ts packages/render/src/mesh/primitives-rings.ts`
+- `pnpm exec prettier --check packages/render/src/mesh/primitives.ts packages/render/src/mesh/primitives-box-plane.ts packages/render/src/mesh/primitives-sphere.ts packages/render/src/mesh/primitives-rings.ts`
+- `pnpm exec vitest run test/webgpu/mesh-buffer-descriptors.test.ts test/rendering/mesh-merge.test.ts test/rendering/extraction.test.ts`
+- `pnpm exec vitest run test/mesh/primitive.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `gltf-uri-fetch.ts`, `gltf-accessor-validation.ts`, and several older
+  asset/material facades.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining decoder, URI asset,
+accessor validation, or material facade modules.
 
 ## Current Run Update — 2026-05-28T04:03:27Z — HDR RGBE loader split
 

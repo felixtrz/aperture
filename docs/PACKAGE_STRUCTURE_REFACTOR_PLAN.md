@@ -467,6 +467,10 @@ Status: in progress
 - Radiance HDR RGBE public contracts, parser/pixel decoding, and URI fetch
   handling now live in focused `hdr-rgbe-*` asset modules, leaving
   `hdr-rgbe-loader.ts` as the stable public facade.
+- Remaining procedural primitive mesh factories now live in focused
+  `primitives-box-plane.ts`, `primitives-sphere.ts`, and
+  `primitives-rings.ts` modules, leaving `primitives.ts` as the stable public
+  primitive factory facade.
 
 ## Purpose
 
