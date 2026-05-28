@@ -56,6 +56,12 @@ Status: in progress
   payload are split under `packages/cli/src/create/` and
   `packages/cli/src/create/templates/` without changing generated template
   behavior.
+- Track 10 has started. Managed dev session implementation now lives under
+  `packages/cli/src/dev/`, with `packages/cli/src/dev-session.ts` kept as the
+  public facade. Session lifecycle, daemon orchestration, Vite server launch,
+  managed browser launch/opening, port selection, log tailing/stream handling,
+  process helpers, and app-root validation are split by responsibility without
+  changing the dev-session status file contract.
 
 ## Summary
 
