@@ -1,176 +1,46 @@
-export const GLB_CONTAINER_MAGIC = 0x46546c67;
-export const GLB_CONTAINER_VERSION = 2;
-export const GLB_JSON_CHUNK_TYPE = 0x4e4f534a;
-export const GLB_BINARY_CHUNK_TYPE = 0x004e4942;
-export const GLB_HEADER_BYTE_LENGTH = 12;
-export const GLB_CHUNK_HEADER_BYTE_LENGTH = 8;
+import {
+  GLB_BINARY_CHUNK_TYPE,
+  GLB_CHUNK_HEADER_BYTE_LENGTH,
+  GLB_CONTAINER_MAGIC,
+  GLB_CONTAINER_VERSION,
+  GLB_HEADER_BYTE_LENGTH,
+  GLB_JSON_CHUNK_TYPE,
+  type GlbChunkInfo,
+  type GlbContainerDiagnostic,
+  type GlbContainerParseResult,
+  type GlbContainerSource,
+} from "./glb-container-types.js";
+import {
+  createErrorDiagnostic,
+  createWarningDiagnostic,
+  hasErrorDiagnostics,
+} from "./glb-container-diagnostics.js";
+import {
+  classifyChunkType,
+  decodeGlbJson,
+  parseJsonObject,
+  sourceBytesForRange,
+  sourceToDataView,
+} from "./glb-container-utils.js";
 
-export type GlbChunkKind = "json" | "bin" | "unknown";
-
-export type GlbContainerDiagnosticCode =
-  | "glb.tooShort"
-  | "glb.invalidMagic"
-  | "glb.unsupportedVersion"
-  | "glb.lengthMismatch"
-  | "glb.missingJsonChunk"
-  | "glb.invalidChunkHeader"
-  | "glb.chunkOutOfBounds"
-  | "glb.emptyJsonChunk"
-  | "glb.duplicateJsonChunk"
-  | "glb.duplicateBinaryChunk"
-  | "glb.invalidJson"
-  | "glb.unknownChunk";
-
-export type GlbContainerDiagnosticSeverity = "error" | "warning";
-
-export interface GlbContainerDiagnostic {
-  readonly code: GlbContainerDiagnosticCode;
-  readonly message: string;
-  readonly severity: GlbContainerDiagnosticSeverity;
-  readonly byteOffset?: number;
-  readonly byteLength?: number;
-  readonly chunkType?: number;
-}
-
-export interface GlbChunkInfo {
-  readonly type: GlbChunkKind;
-  readonly typeCode: number;
-  readonly byteOffset: number;
-  readonly byteLength: number;
-}
-
-export interface GlbContainer {
-  readonly version: typeof GLB_CONTAINER_VERSION;
-  readonly byteLength: number;
-  readonly json: Record<string, unknown>;
-  readonly jsonText: string;
-  readonly binaryChunk: Uint8Array | null;
-  readonly chunks: readonly GlbChunkInfo[];
-}
-
-export interface GlbContainerParseResult {
-  readonly ok: boolean;
-  readonly container: GlbContainer | null;
-  readonly diagnostics: readonly GlbContainerDiagnostic[];
-}
-
-export type GlbContainerSource = ArrayBuffer | Uint8Array;
-
-interface DiagnosticInput {
-  readonly code: GlbContainerDiagnosticCode;
-  readonly message: string;
-  readonly severity: GlbContainerDiagnosticSeverity;
-  readonly byteOffset?: number;
-  readonly byteLength?: number;
-  readonly chunkType?: number;
-}
-
-function createGlbContainerDiagnostic(
-  input: DiagnosticInput,
-): GlbContainerDiagnostic {
-  const diagnostic: {
-    code: GlbContainerDiagnosticCode;
-    message: string;
-    severity: GlbContainerDiagnosticSeverity;
-    byteOffset?: number;
-    byteLength?: number;
-    chunkType?: number;
-  } = {
-    code: input.code,
-    message: input.message,
-    severity: input.severity,
-  };
-
-  if (input.byteOffset !== undefined) {
-    diagnostic.byteOffset = input.byteOffset;
-  }
-  if (input.byteLength !== undefined) {
-    diagnostic.byteLength = input.byteLength;
-  }
-  if (input.chunkType !== undefined) {
-    diagnostic.chunkType = input.chunkType;
-  }
-
-  return diagnostic;
-}
-
-function createErrorDiagnostic(
-  input: Omit<DiagnosticInput, "severity">,
-): GlbContainerDiagnostic {
-  return createGlbContainerDiagnostic({ ...input, severity: "error" });
-}
-
-function createWarningDiagnostic(
-  input: Omit<DiagnosticInput, "severity">,
-): GlbContainerDiagnostic {
-  return createGlbContainerDiagnostic({ ...input, severity: "warning" });
-}
-
-function sourceToDataView(source: GlbContainerSource): DataView {
-  if (source instanceof Uint8Array) {
-    return new DataView(source.buffer, source.byteOffset, source.byteLength);
-  }
-
-  return new DataView(source);
-}
-
-function sourceBytesForRange(
-  source: GlbContainerSource,
-  byteOffset: number,
-  byteLength: number,
-): Uint8Array {
-  if (source instanceof Uint8Array) {
-    return new Uint8Array(
-      source.buffer,
-      source.byteOffset + byteOffset,
-      byteLength,
-    );
-  }
-
-  return new Uint8Array(source, byteOffset, byteLength);
-}
-
-function classifyChunkType(typeCode: number): GlbChunkKind {
-  if (typeCode === GLB_JSON_CHUNK_TYPE) {
-    return "json";
-  }
-  if (typeCode === GLB_BINARY_CHUNK_TYPE) {
-    return "bin";
-  }
-  return "unknown";
-}
-
-function hasErrorDiagnostics(
-  diagnostics: readonly GlbContainerDiagnostic[],
-): boolean {
-  return diagnostics.some((diagnostic) => diagnostic.severity === "error");
-}
-
-function decodeGlbJson(bytes: Uint8Array): string | null {
-  try {
-    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-  } catch {
-    return null;
-  }
-}
-
-function parseJsonObject(jsonText: string): Record<string, unknown> | null {
-  try {
-    const parsed: unknown = JSON.parse(jsonText);
-
-    if (
-      parsed === null ||
-      typeof parsed !== "object" ||
-      Array.isArray(parsed)
-    ) {
-      return null;
-    }
-
-    return parsed as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-}
+export {
+  GLB_BINARY_CHUNK_TYPE,
+  GLB_CHUNK_HEADER_BYTE_LENGTH,
+  GLB_CONTAINER_MAGIC,
+  GLB_CONTAINER_VERSION,
+  GLB_HEADER_BYTE_LENGTH,
+  GLB_JSON_CHUNK_TYPE,
+} from "./glb-container-types.js";
+export type {
+  GlbChunkInfo,
+  GlbChunkKind,
+  GlbContainer,
+  GlbContainerDiagnostic,
+  GlbContainerDiagnosticCode,
+  GlbContainerDiagnosticSeverity,
+  GlbContainerParseResult,
+  GlbContainerSource,
+} from "./glb-container-types.js";
 
 export function parseGlbContainer(
   source: GlbContainerSource,
