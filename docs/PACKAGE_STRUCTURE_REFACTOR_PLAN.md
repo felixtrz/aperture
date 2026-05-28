@@ -449,6 +449,10 @@ Status: in progress
 - App stateful keyboard implementation now lives in
   `packages/app/src/input-state-keyboard.ts`, preserving the same
   `StatefulKeyboardState` contract used by input resources and systems.
+- App stateful gamepad implementation, standard button mapping, deadzone
+  handling, device diagnostics, and gamepad summary projection now live in
+  `packages/app/src/input-state-gamepads.ts`, preserving the same
+  `StatefulGamepadsState` contract used by input resources and systems.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
