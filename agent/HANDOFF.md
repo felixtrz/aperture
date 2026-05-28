@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T10:19:26Z
+Updated: 2026-05-28T10:24:07Z
+
+## Current Run Update — 2026-05-28T10:24:07Z — app worker payload split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 6.
+
+### What changed
+
+- Split generated simulation worker shared payload parsing, JSON-safe
+  projection, tuple parsing, gamepad payload normalization, and common value
+  guards into `packages/app/src/worker-payload.ts`.
+- Kept `packages/app/src/worker.ts` behavior unchanged while reducing it from
+  1,943 lines to 1,807 lines.
+- Preserved generated worker startup, command routing, devtools tool handling,
+  camera tools, input tools, and ECS tool behavior.
+
+### Validation
+
+- `pnpm exec prettier --write packages/app/src/worker.ts packages/app/src/worker-payload.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec eslint packages/app/src/worker.ts packages/app/src/worker-payload.ts`
+- `pnpm exec prettier --check packages/app/src/worker.ts packages/app/src/worker-payload.ts`
+- `pnpm exec vitest run test/runtime/simulation-worker.test.ts test/app/developer-api.test.ts test/index.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- `packages/app/src/worker.ts` remains the largest app package hotspot and
+  should be split next around ECS entity tools, camera/devtools tools, and
+  worker command routing.
+- `packages/app/src/browser.ts` is now much smaller but still owns startup,
+  status/mirroring, and canvas-resize orchestration.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 6 by splitting generated worker ECS entity tooling into a
+focused module that uses `worker-payload.ts`.
 
 ## Current Run Update — 2026-05-28T10:19:26Z — app browser devtools split
 

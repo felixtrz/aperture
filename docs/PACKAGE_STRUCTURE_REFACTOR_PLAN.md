@@ -508,6 +508,10 @@ Status: in progress
   and browser entity-pick tools now live in
   `packages/app/src/browser-devtools.ts`, preserving public MCP browser exports
   through `browser.ts`.
+- Generated simulation worker shared payload parsing, JSON-safe projection,
+  tuple parsing, gamepad payload normalization, and common value guards now
+  live in `packages/app/src/worker-payload.ts`, keeping `worker.ts` focused on
+  worker startup, command routing, and tool orchestration.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

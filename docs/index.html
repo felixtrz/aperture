@@ -393,12 +393,16 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-28 10:19 UTC</dd>
+            <dd>2026-05-28 10:24 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update: Track 6 of the package-structure refactor split app
+              generated simulation worker shared payload parsing, JSON-safe
+              projection, tuple parsing, gamepad payload normalization, and
+              common value guards into a focused worker payload module. Previous
+              update: Track 6 of the package-structure refactor split app
               generated browser MCP/devtools runtime exposure, browser-side
               canvas readback, and browser entity-pick tools into a focused
               browser devtools module while preserving public MCP browser
@@ -410,55 +414,51 @@
               app generated browser render-default normalization,
               MSAA/pixel-ratio diagnostics, and canvas backing-size measurement
               into a focused browser render module while preserving public
-              browser exports. Previous update: Track 6 of the
-              package-structure refactor split app entity lookup
-              snapshot creation, reference snapshots, snapshot diffing, and
-              changed-field detection into a focused snapshot module, leaving
+              browser exports. Previous update: Track 6 of the package-structure
+              refactor split app entity lookup snapshot creation, reference
+              snapshots, snapshot diffing, and changed-field detection into a
+              focused snapshot module, leaving
               <code>entity-lookup.ts</code> as a compact public facade. Previous
-              update: Track 6 of the
-              package-structure refactor split app entity lookup find/get query
-              flow, query matching, name-pattern validation, source matching,
-              duplicate-key diagnostics, and limit normalization into a focused
-              query module while preserving existing find/get exports. Previous
-              update:
-              Track 6 of the package-structure refactor split app entity lookup
-              component-field mutation, mutation whitelisting, entity
-              resolution, and mutation diagnostics into a focused mutation
-              module while preserving the existing
-              <code>setApertureEntityComponentField()</code> export. Previous
-              update: Track 6 of the package-structure refactor split app
-              entity hierarchy assembly and hierarchy sorting into a focused
+              update: Track 6 of the package-structure refactor split app entity
+              lookup find/get query flow, query matching, name-pattern
+              validation, source matching, duplicate-key diagnostics, and limit
+              normalization into a focused query module while preserving
+              existing find/get exports. Previous update: Track 6 of the
+              package-structure refactor split app entity lookup component-field
+              mutation, mutation whitelisting, entity resolution, and mutation
+              diagnostics into a focused mutation module while preserving the
+              existing <code>setApertureEntityComponentField()</code> export.
+              Previous update: Track 6 of the package-structure refactor split
+              app entity hierarchy assembly and hierarchy sorting into a focused
               hierarchy module while preserving the existing
               <code>createApertureEntityHierarchy()</code> export. Previous
-              update: Track 6 of the package-structure refactor split app
-              entity lookup ECS-to-summary projection, active-entity
-              collection, reference validation, stable ref keys, and JSON-safe
-              value projection into a focused summary module. Previous update:
-              Track 6 of the package-structure refactor split app entity lookup
-              public query/report/snapshot/hierarchy/mutation contracts into a
-              focused entity lookup types module while preserving existing
-              public exports. Previous update: Track 6 of the
-              package-structure refactor split app config validation and the
-              config error type into focused config modules, keeping
+              update: Track 6 of the package-structure refactor split app entity
+              lookup ECS-to-summary projection, active-entity collection,
+              reference validation, stable ref keys, and JSON-safe value
+              projection into a focused summary module. Previous update: Track 6
+              of the package-structure refactor split app entity lookup public
+              query/report/snapshot/hierarchy/mutation contracts into a focused
+              entity lookup types module while preserving existing public
+              exports. Previous update: Track 6 of the package-structure
+              refactor split app config validation and the config error type
+              into focused config modules, keeping
               <code>config.ts</code> focused on public config contracts and
               helper factories while preserving existing exports. Previous
-              update: Track 6 of the
-              package-structure refactor split app system context installation,
-              shared generated action map typing, input signal wiring, and
-              context construction into a focused system context module while
-              preserving public <code>systems.ts</code> exports. Previous
-              update: Track 6 of the
+              update: Track 6 of the package-structure refactor split app system
+              context installation, shared generated action map typing, input
+              signal wiring, and context construction into a focused system
+              context module while preserving public
+              <code>systems.ts</code> exports. Previous update: Track 6 of the
               package-structure refactor split app input resource summary
               projection into a focused input summary module, leaving
               <code>input-state.ts</code> focused on frame/event application,
               virtual action state, and legacy gamepad signal synchronization.
-              Previous update: Track 6 of the
-              package-structure refactor split app input binding resolution for
-              keyboard, pointer, gamepad button, gamepad axis, gamepad stick,
-              legacy bindings, and deadzone projection into a focused input
-              binding module, leaving <code>input-state.ts</code> focused on
-              resource-level event flow and summaries. Previous update: Track
-              6 of the package-structure
+              Previous update: Track 6 of the package-structure refactor split
+              app input binding resolution for keyboard, pointer, gamepad
+              button, gamepad axis, gamepad stick, legacy bindings, and deadzone
+              projection into a focused input binding module, leaving
+              <code>input-state.ts</code> focused on resource-level event flow
+              and summaries. Previous update: Track 6 of the package-structure
               refactor split app button/axis action implementations, callable
               button pressed signal, action factory, frame advancement, and
               action value writers into a focused input action module, leaving
