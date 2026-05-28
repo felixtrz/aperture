@@ -480,6 +480,9 @@ Status: in progress
   utilities, and Basis Universal transcoder glue now live in focused
   `ktx2-*` asset modules, leaving `ktx2-decoder.ts` as the public decode and
   compression-support facade.
+- Draco public contracts, WASM/JS module loading, decoded mesh extraction, and
+  glTF accessor adaptation now live in focused `draco-*` asset modules, leaving
+  `draco-decoder.ts` as the stable public decoder facade.
 
 ## Purpose
 

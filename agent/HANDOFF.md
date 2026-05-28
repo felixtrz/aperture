@@ -1,6 +1,52 @@
 # Agent Handoff
 
-Updated: 2026-05-28T04:15:24Z
+Updated: 2026-05-28T04:19:17Z
+
+## Current Run Update — 2026-05-28T04:19:17Z — Draco decoder helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split Draco public and internal module contracts into
+  `packages/render/src/assets/draco-types.ts`.
+- Split shared byte/ArrayBuffer helpers into
+  `packages/render/src/assets/draco-utils.ts`.
+- Split raw Draco mesh decode, index decode, attribute resolution, and heap
+  typed-array extraction into `packages/render/src/assets/draco-mesh-data.ts`.
+- Split Draco JS/WASM source resolution, factory compilation, and decoder
+  creation into `packages/render/src/assets/draco-module-loader.ts`.
+- Split Draco decoded mesh to glTF decoded accessor adaptation into
+  `packages/render/src/assets/draco-gltf-accessors.ts`.
+- Kept `packages/render/src/assets/draco-decoder.ts` as the stable public
+  facade for decoder creation, glTF accessor adaptation, and existing exported
+  types.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/draco-decoder.ts packages/render/src/assets/draco-types.ts packages/render/src/assets/draco-utils.ts packages/render/src/assets/draco-mesh-data.ts packages/render/src/assets/draco-module-loader.ts packages/render/src/assets/draco-gltf-accessors.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/draco-decoder.ts packages/render/src/assets/draco-types.ts packages/render/src/assets/draco-utils.ts packages/render/src/assets/draco-mesh-data.ts packages/render/src/assets/draco-module-loader.ts packages/render/src/assets/draco-gltf-accessors.ts`
+- `pnpm exec prettier --check packages/render/src/assets/draco-decoder.ts packages/render/src/assets/draco-types.ts packages/render/src/assets/draco-utils.ts packages/render/src/assets/draco-mesh-data.ts packages/render/src/assets/draco-module-loader.ts packages/render/src/assets/draco-gltf-accessors.ts`
+- `pnpm exec vitest run test/assets/draco-decoder.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/glb-source-loader-output-summary.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-uri-fetch.ts`,
+  `gltf-ecs-command-replay.ts`, `standard-texture-readiness.ts`,
+  `gltf-material.ts`, and several older asset/material facades.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining URI asset, command replay,
+texture readiness, or material facade modules.
 
 ## Current Run Update — 2026-05-28T04:15:24Z — KTX2 decoder helper split
 
