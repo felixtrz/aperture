@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-28T04:47:15Z
+Updated: 2026-05-28T04:51:19Z
+
+## Current Run Update — 2026-05-28T04:51:19Z — extraction asset validation split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split StandardMaterial texture readiness diagnostics, normal-map tangent
+  readiness diagnostics, TEXCOORD_1 mesh dependency checks, and related mesh
+  helpers into
+  `packages/render/src/rendering/extraction-standard-material-validation.ts`.
+- Split unlit material texture dependency checks plus texture, skybox texture,
+  sampler, and environment-map asset-state checks into
+  `packages/render/src/rendering/extraction-asset-state-validation.ts`.
+- Kept `packages/render/src/rendering/extraction-asset-validation.ts` as the
+  stable import facade for existing extraction callers.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/extraction-asset-validation.ts packages/render/src/rendering/extraction-asset-state-validation.ts packages/render/src/rendering/extraction-standard-material-validation.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/extraction-asset-validation.ts packages/render/src/rendering/extraction-asset-state-validation.ts packages/render/src/rendering/extraction-standard-material-validation.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/extraction-asset-validation.ts packages/render/src/rendering/extraction-asset-state-validation.ts packages/render/src/rendering/extraction-standard-material-validation.ts`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/rendering/render-world-prepared-resources.test.ts test/rendering/render-world-prepared-materials.test.ts test/webgpu/app-environment-resources.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `mesh-merge.ts`, `view-pack.ts`,
+  `glb-uri-loader.ts`, `gltf-material-textures.ts`,
+  `gltf-mesh-asset-vertex-streams.ts`, `hdr-rgbe-parser.ts`, `snapshot.ts`,
+  and `gltf-scene-import-contract.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining mesh merge, view-pack, GLB
+loader, material texture, mesh asset, HDR parser, snapshot, or scene import
+contract modules.
 
 ## Current Run Update — 2026-05-28T04:47:15Z — KTX2 Basis helper split
 

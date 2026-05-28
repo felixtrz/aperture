@@ -511,6 +511,11 @@ Status: in progress
   inspection now live in focused `ktx2-basis-*` asset modules, leaving
   `ktx2-basis-transcoder.ts` focused on KTX2 validation and level-0 transcode
   orchestration.
+- Render extraction StandardMaterial readiness diagnostics, TEXCOORD_1 mesh
+  dependency checks, unlit texture dependency checks, and generic texture/
+  sampler/environment-map asset-state validation now live in focused
+  `extraction-*-validation.ts` rendering modules, leaving
+  `extraction-asset-validation.ts` as the stable import facade.
 
 ## Purpose
 
