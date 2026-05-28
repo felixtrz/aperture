@@ -299,6 +299,11 @@ Status: in progress
 - glTF texture report JSON projection now lives in
   `packages/render/src/materials/gltf-texture-report.ts`, leaving
   `gltf-texture.ts` below the current hotspot threshold.
+- glTF material texture binding, texture-transform mapping, resolver
+  diagnostics, and shared material guard helpers now live in
+  `packages/render/src/materials/gltf-material-textures.ts` and
+  `packages/render/src/materials/gltf-material-utils.ts`, leaving
+  `gltf-material.ts` focused on material asset assembly.
 
 ## Purpose
 

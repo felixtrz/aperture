@@ -1,6 +1,43 @@
 # Agent Handoff
 
-Updated: 2026-05-28T00:24:15Z
+Updated: 2026-05-28T00:27:38Z
+
+## Current Run Update — 2026-05-28T00:27:38Z — glTF material texture helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF material texture binding, texture-transform mapping, resolver
+  diagnostics, and transform support checks into
+  `packages/render/src/materials/gltf-material-textures.ts`.
+- Extracted shared glTF material guard/diagnostic helpers into
+  `packages/render/src/materials/gltf-material-utils.ts`.
+- `packages/render/src/materials/gltf-material.ts` is now roughly 790 lines
+  and focuses on material asset assembly.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/materials/gltf-material.ts packages/render/src/materials/gltf-material-textures.ts packages/render/src/materials/gltf-material-utils.ts`
+- `pnpm exec prettier --check packages/render/src/materials/gltf-material.ts packages/render/src/materials/gltf-material-textures.ts packages/render/src/materials/gltf-material-utils.ts`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/gltf-texture.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include
+  `gltf-mesh-asset-construction.ts`, `gltf-report-driven-import.ts`,
+  `authoring.ts`, and `snapshot-packed-encoding.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining glTF asset
+construction/report modules or render authoring/snapshot packing.
 
 ## Current Run Update — 2026-05-28T00:24:15Z — glTF texture report split
 
