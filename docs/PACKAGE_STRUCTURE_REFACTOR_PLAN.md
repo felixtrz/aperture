@@ -364,6 +364,10 @@ Status: in progress
   mapping, texture asset/report construction, and result shaping now live in
   focused `gltf-texture-*` material modules, keeping `gltf-texture.ts` as the
   sync/async texture mapping facade.
+- StandardMaterial texture readiness contracts, expectation tables,
+  transform/format helpers, and report JSON projection now live in focused
+  `standard-texture-readiness-*` material modules, keeping
+  `standard-texture-readiness.ts` as the registry inspection facade.
 - GLB URI image decode cache/transcoder selection, image source/byte
   resolution, and decoded-image merge/concurrency helpers now live in focused
   `glb-uri-image-*` asset modules, keeping `glb-uri-images.ts` as the decode

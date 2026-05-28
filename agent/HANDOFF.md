@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T02:03:35Z
+Updated: 2026-05-28T02:08:49Z
+
+## Current Run Update — 2026-05-28T02:08:49Z — StandardMaterial texture readiness split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted StandardMaterial texture readiness public contracts into
+  `packages/render/src/materials/standard-texture-readiness-types.ts`.
+- Extracted texture field expectation tables and supported texcoord checks into
+  `packages/render/src/materials/standard-texture-readiness-expectations.ts`.
+- Extracted texture transform, color-space/format, and transform cloning
+  helpers into
+  `packages/render/src/materials/standard-texture-readiness-utils.ts`.
+- Extracted report JSON projection into
+  `packages/render/src/materials/standard-texture-readiness-report.ts`.
+- `packages/render/src/materials/standard-texture-readiness.ts` is now roughly
+  404 lines and remains the registry inspection/readiness facade.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/materials/standard-texture-readiness.ts packages/render/src/materials/standard-texture-readiness-types.ts packages/render/src/materials/standard-texture-readiness-expectations.ts packages/render/src/materials/standard-texture-readiness-utils.ts packages/render/src/materials/standard-texture-readiness-report.ts`
+- `pnpm exec prettier --check packages/render/src/materials/standard-texture-readiness.ts packages/render/src/materials/standard-texture-readiness-types.ts packages/render/src/materials/standard-texture-readiness-expectations.ts packages/render/src/materials/standard-texture-readiness-utils.ts packages/render/src/materials/standard-texture-readiness-report.ts`
+- `pnpm exec vitest run test/materials/standard-texture-readiness.test.ts test/materials/standard-texture-sampler-alignment.test.ts test/rendering/extraction-asset-validation.test.ts test/rendering/extraction.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `snapshot-packed-codecs.ts`, `render-queue.ts`,
+  `gltf-ecs-authoring-command-plan.ts`, and render mesh/merge helpers.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining decoder, queue, or mesh
+helper modules.
 
 ## Current Run Update — 2026-05-28T02:03:35Z — GLB URI byte-fetch split
 
