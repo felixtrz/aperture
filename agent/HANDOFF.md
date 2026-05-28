@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T07:57:11Z
+Updated: 2026-05-28T08:00:14Z
+
+## Current Run Update — 2026-05-28T08:00:14Z — glTF loader orchestration contract split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split glTF loader orchestration public contracts from
+  `packages/render/src/assets/gltf-loader-orchestration.ts` into
+  `packages/render/src/assets/gltf-loader-orchestration-types.ts`.
+- Kept `gltf-loader-orchestration.ts` as the stable public export surface by
+  re-exporting those types while focusing the implementation file on stage
+  summary construction, prerequisite diagnostics, and JSON projection.
+- Updated the package-structure plan and public progress tracker for the new
+  glTF loader orchestration contract module boundary.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-loader-orchestration.ts packages/render/src/assets/gltf-loader-orchestration-types.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-loader-orchestration.ts packages/render/src/assets/gltf-loader-orchestration-types.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-loader-orchestration.ts packages/render/src/assets/gltf-loader-orchestration-types.ts`
+- `pnpm exec vitest run test/assets/gltf-loader-orchestration.test.ts test/assets/gltf-loader-orchestration-json.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/gltf-report-driven-import-json.test.ts test/assets/gltf-combined-import-fixture.test.ts test/assets/gltf-combined-import-fixture-json.test.ts test/assets/gltf-combined-import-unresolved-material.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `snapshot-types.ts`,
+  `render-state-sort.ts`, `gltf-mesh-primitive-attributes.ts`, and other
+  medium render/material/asset modules still near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium render extraction/material/asset
+hotspot.
 
 ## Current Run Update — 2026-05-28T07:57:11Z — mesh extraction cache writeback split
 

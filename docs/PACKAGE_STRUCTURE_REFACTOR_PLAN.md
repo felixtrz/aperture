@@ -554,6 +554,10 @@ Status: in progress
   composition now live in focused `gltf-report-driven-import-*` asset modules,
   leaving `gltf-report-driven-import.ts` focused on root/asset/scene
   orchestration and GLB handoff.
+- glTF loader orchestration public contracts now live in
+  `gltf-loader-orchestration-types.ts`, leaving
+  `gltf-loader-orchestration.ts` focused on stage summary construction,
+  prerequisite diagnostics, and JSON projection.
 - View uniform packing public contracts/constants and scratch/pool helpers now
   live in `view-pack-types.ts` and `view-pack-scratch.ts`, leaving
   `view-pack.ts` focused on view uniform validation and packing.

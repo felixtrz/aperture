@@ -393,66 +393,70 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-28 07:57 UTC</dd>
+            <dd>2026-05-28 08:00 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update: Track 5 of the package-structure refactor split
-              mesh extraction cache writeback eligibility and cached draw
-              template storage into a focused render module while keeping
-              `extraction-meshes.ts` as the traversal and draw assembly
-              coordinator. Previous update: Track 5 of the package-structure
-              refactor split glTF URI loader public contracts into a focused
-              asset module while keeping `gltf-uri-loader.ts` as the URI loading
-              orchestration facade. Previous update: Track 5 of the
-              package-structure refactor split glTF URI per-image decode task
-              handling into a focused asset module while keeping
-              `gltf-uri-images.ts` as the decode orchestration and aggregation
-              facade. Previous update: Track 5 of the package-structure refactor
-              split GLB URI per-image decode task handling into a focused asset
-              module while keeping `glb-uri-images.ts` as the decode
+              glTF loader orchestration public contracts into a focused asset
+              type module while keeping `gltf-loader-orchestration.ts` as the
+              stage summary and diagnostic facade. Previous update: Track 5 of
+              the package-structure refactor split mesh extraction cache
+              writeback eligibility and cached draw template storage into a
+              focused render module while keeping `extraction-meshes.ts` as the
+              traversal and draw assembly coordinator. Previous update: Track 5
+              of the package-structure refactor split glTF URI loader public
+              contracts into a focused asset module while keeping
+              `gltf-uri-loader.ts` as the URI loading orchestration facade.
+              Previous update: Track 5 of the package-structure refactor split
+              glTF URI per-image decode task handling into a focused asset
+              module while keeping `gltf-uri-images.ts` as the decode
               orchestration and aggregation facade. Previous update: Track 5 of
-              the package-structure refactor split transform packing scratch
-              capacity growth and offset-pool helpers into focused render
-              modules while preserving `transform-pack-scratch.ts` as the
-              scratch construction facade. Previous update: Track 5 of the
-              package-structure refactor split render authoring component
-              definitions into core render, spatial-query, and camera/light
-              component groups while preserving `authoring-components.ts` as the
-              stable re-export facade. Previous update: Track 5 of the
-              package-structure refactor split glTF ECS command replay
-              diagnostics and tuple/value guards into focused asset modules
-              while leaving replay component application in the component replay
-              module. Previous update: Track 5 of the package-structure refactor
-              split glTF async texture byte-source loading, data-URI parsing,
-              fetch-result normalization, MIME inference, and browser/canvas
-              fallback image decoding into focused material modules while
-              keeping `loadGltfTextureAsync` as the public loading facade.
+              the package-structure refactor split GLB URI per-image decode task
+              handling into a focused asset module while keeping
+              `glb-uri-images.ts` as the decode orchestration and aggregation
+              facade. Previous update: Track 5 of the package-structure refactor
+              split transform packing scratch capacity growth and offset-pool
+              helpers into focused render modules while preserving
+              `transform-pack-scratch.ts` as the scratch construction facade.
               Previous update: Track 5 of the package-structure refactor split
-              camera/view packet extraction, projection/view matrix packing,
-              temporal jitter, render-target reading, and view cull-context
-              creation into a focused render extraction module while keeping
-              `extractRenderSnapshot` as the orchestration facade. Previous
-              update: Track 5 of the package-structure refactor split glTF
-              StandardMaterial PBR/surface field mapping and extension field
-              mapping into focused material modules while keeping
-              `gltf-material-builders.ts` as the asset construction facade.
-              Previous update: Track 5 of the package-structure refactor split
-              instance-tint snapshot packing and transform-aligned vertex-buffer
-              writing into a focused render module while preserving the stable
-              transform-pack facade. Previous update: Track 5 of the
-              package-structure refactor split light cookie validation, shadow
-              settings, shadow-request construction, and unsupported shadow
-              diagnostics into a focused render extraction module while keeping
-              light packet emission in the extraction facade. Previous update:
-              Track 5 of the package-structure refactor split generated glTF
-              tangent accumulation and orthogonalization math into a focused
-              asset module while keeping tangent-generation policy and
-              diagnostics in the importer-facing facade. Previous update: Track
-              5 of the package-structure refactor split GLB chunk scanning,
-              chunk byte extraction, duplicate chunk diagnostics, and unknown
-              chunk warnings into a focused asset module while keeping
+              render authoring component definitions into core render,
+              spatial-query, and camera/light component groups while preserving
+              `authoring-components.ts` as the stable re-export facade. Previous
+              update: Track 5 of the package-structure refactor split glTF ECS
+              command replay diagnostics and tuple/value guards into focused
+              asset modules while leaving replay component application in the
+              component replay module. Previous update: Track 5 of the
+              package-structure refactor split glTF async texture byte-source
+              loading, data-URI parsing, fetch-result normalization, MIME
+              inference, and browser/canvas fallback image decoding into focused
+              material modules while keeping `loadGltfTextureAsync` as the
+              public loading facade. Previous update: Track 5 of the
+              package-structure refactor split camera/view packet extraction,
+              projection/view matrix packing, temporal jitter, render-target
+              reading, and view cull-context creation into a focused render
+              extraction module while keeping `extractRenderSnapshot` as the
+              orchestration facade. Previous update: Track 5 of the
+              package-structure refactor split glTF StandardMaterial PBR/surface
+              field mapping and extension field mapping into focused material
+              modules while keeping `gltf-material-builders.ts` as the asset
+              construction facade. Previous update: Track 5 of the
+              package-structure refactor split instance-tint snapshot packing
+              and transform-aligned vertex-buffer writing into a focused render
+              module while preserving the stable transform-pack facade. Previous
+              update: Track 5 of the package-structure refactor split light
+              cookie validation, shadow settings, shadow-request construction,
+              and unsupported shadow diagnostics into a focused render
+              extraction module while keeping light packet emission in the
+              extraction facade. Previous update: Track 5 of the
+              package-structure refactor split generated glTF tangent
+              accumulation and orthogonalization math into a focused asset
+              module while keeping tangent-generation policy and diagnostics in
+              the importer-facing facade. Previous update: Track 5 of the
+              package-structure refactor split GLB chunk scanning, chunk byte
+              extraction, duplicate chunk diagnostics, and unknown chunk
+              warnings into a focused asset module while keeping
               `parseGlbContainer` as the stable parser facade. Previous update:
               Track 5 of the package-structure refactor split prepared material
               resource public contracts and texture/sampler dependency
