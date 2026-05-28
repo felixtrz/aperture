@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-28T06:49:18Z
+Updated: 2026-05-28T06:52:15Z
+
+## Current Run Update — 2026-05-28T06:52:15Z — glTF Meshopt extension parsing split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split Meshopt compression extension name detection, extension field
+  validation, decode mode/filter parsing, decoded bufferView rewriting, generic
+  record checks, and source-byte normalization from
+  `packages/render/src/assets/gltf-report-driven-import-meshopt.ts` into
+  `packages/render/src/assets/gltf-report-driven-import-meshopt-extension.ts`.
+- Kept `gltf-report-driven-import-meshopt.ts` as the stable Meshopt
+  bufferView decode orchestration entry point.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-report-driven-import-meshopt.ts packages/render/src/assets/gltf-report-driven-import-meshopt-extension.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-report-driven-import-meshopt.ts packages/render/src/assets/gltf-report-driven-import-meshopt-extension.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-report-driven-import-meshopt.ts packages/render/src/assets/gltf-report-driven-import-meshopt-extension.ts`
+- `pnpm exec vitest run test/assets/meshopt-decoder.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-accessor-validation.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include final `extraction-meshes.ts` tightening,
+  `glb-uri-image-sources.ts`, and `prepared-resource.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining extraction mesh, GLB
+image-source, or prepared-resource modules.
 
 ## Current Run Update — 2026-05-28T06:49:18Z — render-world facade split
 

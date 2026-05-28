@@ -336,8 +336,9 @@ Status: in progress
   `gltf-primitive-material-resolution.ts` remains the public report/JSON
   facade.
 - glTF report-driven import JSON projection, meshopt buffer-view decoding,
-  Draco primitive decoding, and GLB buffer-source resolution now live in
-  focused `gltf-report-driven-import-*` asset modules, leaving
+  Meshopt extension parsing/decoded bufferView rewriting, Draco primitive
+  decoding, and GLB buffer-source resolution now live in focused
+  `gltf-report-driven-import-*` asset modules, leaving
   `gltf-report-driven-import.ts` as the import/report orchestration facade.
 - Render authoring types/enums, component definitions, creation helpers, and
   validation helpers now live in focused `authoring-*` rendering modules,
