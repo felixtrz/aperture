@@ -393,12 +393,16 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-28 15:53 UTC</dd>
+            <dd>2026-05-28 15:55 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Track 7 of the app/CLI structure refactor moved
+              Latest update: Track 8 of the app/CLI structure refactor moved
+              create, dev, tool, MCP, reference, and adapter command wrappers
+              into <code>packages/cli/src/commands/</code>, keeping
+              <code>packages/cli/src/cli.ts</code> as the compact public router
+              and shared top-level error handler. Previous update: Track 7 moved
               generated worker bootstrap internals into
               <code>packages/app/src/worker/</code>, leaving
               <code>@aperture-engine/app/worker</code> as the public facade

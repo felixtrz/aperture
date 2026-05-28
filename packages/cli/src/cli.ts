@@ -1,13 +1,13 @@
-import { runAdapterCommand } from "./adapter-command.js";
+import { runAdapterCommand } from "./commands/adapter.js";
 import { syncApertureAdapters } from "./adapter-sync.js";
-import { runCreateCommand } from "./create-command.js";
+import { runCreateCommand } from "./commands/create.js";
 import { createApertureProject } from "./create-project.js";
-import { runDevCommand } from "./dev-command.js";
+import { runDevCommand } from "./commands/dev.js";
 import { ApertureDevSessionError } from "./dev-session.js";
 import { ApertureCliError } from "./errors.js";
-import { runMcpCommand } from "./mcp-command.js";
-import { runReferenceCommand } from "./reference-command.js";
-import { runToolCommand } from "./tool-command.js";
+import { runMcpCommand } from "./commands/mcp.js";
+import { runReferenceCommand } from "./commands/reference.js";
+import { runToolCommand } from "./commands/tool.js";
 
 export {
   syncApertureAdapters,

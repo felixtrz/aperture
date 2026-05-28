@@ -44,6 +44,11 @@ Status: in progress
   parsing, and generated devtools bridge dispatch are split by responsibility.
   Worker entity, camera, and input devtools tools now live under
   `packages/app/src/worker/devtools/`.
+- Track 8 has started. CLI command parsing and help/output wrappers now live
+  under `packages/cli/src/commands/`, while `packages/cli/src/cli.ts` remains
+  the public command router and shared top-level error handler. Create, dev,
+  tool, MCP, reference, and adapter command modules moved without changing
+  command names, help text, backend delegation, or output shapes.
 
 ## Summary
 

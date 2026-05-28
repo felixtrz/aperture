@@ -1,5 +1,5 @@
-import { callApertureTool } from "./devtools-client.js";
-import { ApertureCliError } from "./errors.js";
+import { callApertureTool } from "../devtools-client.js";
+import { ApertureCliError } from "../errors.js";
 
 interface ParsedToolCommand {
   readonly name: string;

@@ -1,4 +1,4 @@
-import { ApertureCliError } from "./errors.js";
+import { ApertureCliError } from "../errors.js";
 import {
   buildApertureReferenceIndex,
   readApertureReferenceStatus,
@@ -8,7 +8,7 @@ import {
   type ApertureReferenceStatusReport,
   type BuildApertureReferenceIndexReport,
   type WarmApertureReferenceReport,
-} from "./reference.js";
+} from "../reference.js";
 
 interface ParsedReferenceSearchCommand {
   readonly query: string;

@@ -1,5 +1,5 @@
 import path from "node:path";
-import { ApertureCliError } from "./errors.js";
+import { ApertureCliError } from "../errors.js";
 
 type ApertureCreateTemplate = "minimal" | "glb-viewer" | "game";
 

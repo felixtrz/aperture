@@ -1,4 +1,4 @@
-import { ApertureCliError } from "./errors.js";
+import { ApertureCliError } from "../errors.js";
 
 interface ParsedAdapterSyncCommand {
   readonly force: boolean;

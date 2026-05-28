@@ -1,5 +1,5 @@
-import { ApertureCliError } from "./errors.js";
-import { runApertureMcpServer } from "./mcp.js";
+import { ApertureCliError } from "../errors.js";
+import { runApertureMcpServer } from "../mcp.js";
 
 export async function runMcpCommand(options: {
   readonly argv: readonly string[];

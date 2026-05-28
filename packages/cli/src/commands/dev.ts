@@ -7,9 +7,9 @@ import {
   stopApertureDevSession,
   type ApertureDevLogsReport,
   type ApertureDevUpReport,
-} from "./dev-session.js";
-import { ApertureCliError } from "./errors.js";
-import type { ApertureDevSessionStatus } from "./session.js";
+} from "../dev-session.js";
+import { ApertureCliError } from "../errors.js";
+import type { ApertureDevSessionStatus } from "../session.js";
 
 interface ParsedDevUpCommand {
   readonly host?: string;
