@@ -535,6 +535,10 @@ Status: in progress
   `packages/vite-plugin/src/system-discovery.ts`, covering config system glob
   parsing, glob file discovery, default-export diagnostics, deterministic
   priority extraction, manifest sorting, and public manifest type exports.
+- Vite plugin virtual module resolution, generated config/system/worker/browser
+  module loading, worker-system import assembly, and generated browser-entry
+  HTML injection now live in `packages/vite-plugin/src/virtual-modules.ts`,
+  keeping `index.ts` focused on Vite hook wiring.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

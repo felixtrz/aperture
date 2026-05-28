@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T10:44:22Z
+Updated: 2026-05-28T10:47:50Z
+
+## Current Run Update — 2026-05-28T10:47:50Z — Vite virtual modules split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 7.
+
+### What changed
+
+- Split Vite plugin virtual module resolution and loading into
+  `packages/vite-plugin/src/virtual-modules.ts`.
+- Moved generated
+  config/system-manifest/worker-systems/worker-entry/browser-entry module
+  generation, worker-system import assembly, virtual ID resolution, and
+  generated browser-entry HTML injection out of `index.ts`.
+- Reduced `packages/vite-plugin/src/index.ts` from 424 lines to 323 lines.
+
+### Validation
+
+- `pnpm exec prettier --write packages/vite-plugin/src/index.ts packages/vite-plugin/src/virtual-modules.ts`
+- `pnpm --filter @aperture-engine/vite-plugin run typecheck`
+- `pnpm exec eslint packages/vite-plugin/src/index.ts packages/vite-plugin/src/virtual-modules.ts packages/vite-plugin/src/system-discovery.ts packages/vite-plugin/src/generated-action-types.ts packages/vite-plugin/src/file-utils.ts packages/vite-plugin/src/typescript-ast.ts`
+- `pnpm exec prettier --check packages/vite-plugin/src/index.ts packages/vite-plugin/src/virtual-modules.ts packages/vite-plugin/src/system-discovery.ts packages/vite-plugin/src/generated-action-types.ts packages/vite-plugin/src/file-utils.ts packages/vite-plugin/src/typescript-ast.ts`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/app/input-state.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 7 still needs splits for dev-session metadata and possibly plugin type
+  contracts/wiring.
+- `packages/vite-plugin/src/index.ts` is now 323 lines and mostly owns Vite
+  plugin hook wiring plus dev-session bridge/session helpers.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 7 by splitting Vite dev-session bridge/session metadata from
+`packages/vite-plugin/src/index.ts`.
 
 ## Current Run Update — 2026-05-28T10:44:22Z — Vite system discovery split
 
