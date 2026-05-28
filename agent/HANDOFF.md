@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T07:12:35Z
+Updated: 2026-05-28T07:15:54Z
+
+## Current Run Update — 2026-05-28T07:15:54Z — instance tint packing split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split simple instance-tint snapshot packing and transform-aligned
+  vertex-buffer tint packing from
+  `packages/render/src/rendering/transform-pack-instances.ts` into
+  `packages/render/src/rendering/transform-pack-instance-tints.ts`.
+- Kept `transform-pack-instances.ts` as the stable instance packing re-export
+  and custom instance-attribute vertex-buffer packing module.
+- Updated the package-structure plan and public progress tracker for the new
+  transform packing module boundary.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/transform-pack-instances.ts packages/render/src/rendering/transform-pack-instance-tints.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/transform-pack-instances.ts packages/render/src/rendering/transform-pack-instance-tints.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/transform-pack-instances.ts packages/render/src/rendering/transform-pack-instance-tints.ts`
+- `pnpm exec vitest run test/rendering/transform-pack.test.ts test/rendering/extraction.test.ts test/webgpu/render-frame-snapshot-runner.test.ts test/webgpu/render-frame-plan.test.ts test/webgpu/frame-readiness.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-material-builders.ts`,
+  `extraction.ts`, `gltf-texture-loading.ts`, and other medium
+  render/material/asset modules still near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium render extraction/material/asset
+hotspot.
 
 ## Current Run Update — 2026-05-28T07:12:35Z — light extraction settings split
 

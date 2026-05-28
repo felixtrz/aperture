@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "1e6eaddb",
+  "lastCommit": "271b2237",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting light cookie validation, sampler/texture dependency checks, shadow setting validation, shadow-request construction, and unsupported shadow diagnostics into extraction-light-settings.ts while keeping extraction-lights.ts focused on light/environment packet emission; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T07:12:35Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting instance-tint snapshot packing and transform-aligned vertex-buffer tint writing into transform-pack-instance-tints.ts while keeping transform-pack-instances.ts as the stable instance packing re-export and custom instance-attribute packing module; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T07:15:54Z"
 }

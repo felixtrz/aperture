@@ -481,8 +481,9 @@ Status: in progress
   and reusable offset pools now live in `transform-pack-types.ts` and
   `transform-pack-scratch.ts`, leaving `transform-pack.ts` focused on current,
   previous, tint, and custom instance-attribute packing algorithms.
-- Transform packing previous-transform history helpers and instance vertex
-  buffer packing helpers now live in `transform-pack-history.ts` and
+- Transform packing previous-transform history helpers, instance-tint vertex
+  buffer packing, and custom instance-attribute vertex buffer packing now live
+  in `transform-pack-history.ts`, `transform-pack-instance-tints.ts`, and
   `transform-pack-instances.ts`, leaving `transform-pack.ts` as the stable
   public facade for transform packing.
 - Render snapshot packet contracts now live in
