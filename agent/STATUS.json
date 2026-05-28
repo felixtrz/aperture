@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "731cfa6c",
+  "lastCommit": "77061ea6",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 6 by splitting app system spawn descriptors, helper factories, spawn command implementation, GLTF replay metadata, and spawn-time transform writing into systems-spawn.ts while preserving public systems exports; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T09:18:41Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 6 by splitting app system camera access contracts, camera entity lookup, pointer-ray handles, and missing-camera diagnostics into systems-cameras.ts while preserving public camera access type exports; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T09:21:49Z"
 }

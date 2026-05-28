@@ -436,6 +436,10 @@ Status: in progress
   command implementation, GLTF replay metadata, and spawn-time transform writing
   now live in `packages/app/src/systems-spawn.ts`, preserving the public
   `mesh`, `material`, and spawn type exports through `systems.ts`.
+- App system camera access contracts, camera entity collection, key lookup,
+  pointer-ray handle creation, and missing-camera diagnostics now live in
+  `packages/app/src/systems-cameras.ts`, preserving public camera access type
+  exports through `systems.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
