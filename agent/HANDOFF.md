@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T06:26:18Z
+Updated: 2026-05-28T06:30:23Z
+
+## Current Run Update — 2026-05-28T06:30:23Z — glTF mesh primitive planning split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split mesh/primitive selection and primitive reference validation into
+  `packages/render/src/assets/gltf-mesh-primitive-selection.ts`.
+- Split primitive topology validation, compression planning, material-index
+  mapping, handle-key construction, and planned mesh assembly into
+  `packages/render/src/assets/gltf-mesh-primitive-planning.ts`.
+- Kept `packages/render/src/assets/gltf-mesh-primitive.ts` as the stable root
+  validation, report creation, and public type-export facade.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-mesh-primitive.ts packages/render/src/assets/gltf-mesh-primitive-planning.ts packages/render/src/assets/gltf-mesh-primitive-selection.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-mesh-primitive.ts packages/render/src/assets/gltf-mesh-primitive-planning.ts packages/render/src/assets/gltf-mesh-primitive-selection.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-mesh-primitive.ts packages/render/src/assets/gltf-mesh-primitive-planning.ts packages/render/src/assets/gltf-mesh-primitive-selection.ts`
+- `pnpm exec vitest run test/assets/gltf-mesh-primitive.test.ts test/assets/gltf-mesh-primitive-json.test.ts test/assets/gltf-accessor-validation.test.ts test/assets/gltf-accessor-validation-json.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-accessor-decoding-json.test.ts test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-primitive-material-resolution.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `extraction-meshes.ts`,
+  `gltf-accessor-validation-primitives.ts`, `gltf-mesh-source-registration.ts`,
+  `gltf-scene-traversal.ts`, `render-world.ts`,
+  `gltf-report-driven-import-meshopt.ts`, and `glb-uri-image-sources.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining extraction mesh, accessor
+validation primitive, mesh source registration, scene traversal, render-world,
+or report-driven import modules.
 
 ## Current Run Update — 2026-05-28T06:26:18Z — glTF source registration writer split
 

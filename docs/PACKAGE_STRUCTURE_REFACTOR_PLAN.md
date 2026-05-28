@@ -451,9 +451,11 @@ Status: in progress
   facade.
 - glTF mesh primitive mapping public contracts, report JSON projection, and
   attribute/index reference mapping now live in focused
-  `gltf-mesh-primitive-*` asset modules, leaving
-  `gltf-mesh-primitive.ts` focused on root validation, primitive selection,
-  topology checks, compression routing, and planned mesh assembly.
+  `gltf-mesh-primitive-*` asset modules, primitive selection/reference
+  validation lives in `gltf-mesh-primitive-selection.ts`, and primitive
+  topology/compression/planning lives in `gltf-mesh-primitive-planning.ts`,
+  leaving `gltf-mesh-primitive.ts` as the stable root validation and report
+  orchestration facade.
 - Transform packing public contracts, mutable scratch state, capacity growth,
   and reusable offset pools now live in `transform-pack-types.ts` and
   `transform-pack-scratch.ts`, leaving `transform-pack.ts` focused on current,
