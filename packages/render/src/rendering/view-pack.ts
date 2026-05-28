@@ -1,64 +1,43 @@
 import { FogMode } from "./authoring.js";
 import type { FogPacket, RenderSnapshot, ViewPacket } from "./snapshot.js";
+import {
+  ensureViewUniformDataCapacity,
+  viewRecordAt,
+} from "./view-pack-scratch.js";
+import type {
+  MutablePackedSnapshotViewUniforms,
+  PackedSnapshotViewUniformRecord,
+  PackedSnapshotViewUniforms,
+  PackedSnapshotViewUniformsScratch,
+  SnapshotViewUniformPackDiagnostic,
+  SnapshotViewUniformPackOptions,
+} from "./view-pack-types.js";
+import {
+  PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+  VIEW_CAMERA_POSITION_FLOAT_OFFSET,
+  VIEW_FOG_COLOR_FLOAT_OFFSET,
+  VIEW_FOG_PARAMS_FLOAT_OFFSET,
+  VIEW_PREVIOUS_VIEW_PROJECTION_FLOAT_OFFSET,
+  VIEW_PROJECTION_FLOAT_COUNT,
+} from "./view-pack-types.js";
 
-const VIEW_PROJECTION_FLOAT_COUNT = 16;
-const VIEW_CAMERA_POSITION_FLOAT_OFFSET = 16;
-const VIEW_PREVIOUS_VIEW_PROJECTION_FLOAT_OFFSET = 20;
-const VIEW_FOG_COLOR_FLOAT_OFFSET = 36;
-const VIEW_FOG_PARAMS_FLOAT_OFFSET = 40;
-export const PACKED_VIEW_UNIFORM_FLOAT_STRIDE = 44;
-
-export type SnapshotViewUniformPackDiagnosticCode =
-  | "viewUniform.emptySnapshot"
-  | "viewUniform.duplicateViewId"
-  | "viewUniform.missingMatrixData"
-  | "viewUniform.matrixOutOfRange";
-
-export interface SnapshotViewUniformPackDiagnostic {
-  readonly code: SnapshotViewUniformPackDiagnosticCode;
-  readonly message: string;
-  readonly viewId?: number;
-  readonly sourceOffset?: number;
-}
-
-export interface PackedSnapshotViewUniformRecord {
-  readonly viewId: number;
-  readonly sourceOffset: number;
-  readonly packedOffset: number;
-}
-
-export interface PackedSnapshotViewUniforms {
-  readonly data: Float32Array;
-  readonly floatCount?: number;
-  readonly views: readonly PackedSnapshotViewUniformRecord[];
-  readonly diagnostics: readonly SnapshotViewUniformPackDiagnostic[];
-}
-
-export interface SnapshotViewUniformPackOptions {
-  readonly previousViewProjectionByViewId?: ReadonlyMap<number, Float32Array>;
-}
-
-export interface PackedSnapshotViewUniformsScratch {
-  data: Float32Array;
-  readonly views: PackedSnapshotViewUniformRecord[];
-  readonly diagnostics: SnapshotViewUniformPackDiagnostic[];
-  readonly viewPool: PackedSnapshotViewUniformRecord[];
-  readonly seenViewIds: Set<number>;
-  readonly result: PackedSnapshotViewUniforms;
-}
-
-interface MutablePackedSnapshotViewUniformRecord {
-  viewId: number;
-  sourceOffset: number;
-  packedOffset: number;
-}
-
-interface MutablePackedSnapshotViewUniforms {
-  data: Float32Array;
-  floatCount: number;
-  views: readonly PackedSnapshotViewUniformRecord[];
-  diagnostics: readonly SnapshotViewUniformPackDiagnostic[];
-}
+export { createPackedSnapshotViewUniformsScratch } from "./view-pack-scratch.js";
+export {
+  PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+  VIEW_CAMERA_POSITION_FLOAT_OFFSET,
+  VIEW_FOG_COLOR_FLOAT_OFFSET,
+  VIEW_FOG_PARAMS_FLOAT_OFFSET,
+  VIEW_PREVIOUS_VIEW_PROJECTION_FLOAT_OFFSET,
+  VIEW_PROJECTION_FLOAT_COUNT,
+} from "./view-pack-types.js";
+export type {
+  PackedSnapshotViewUniformRecord,
+  PackedSnapshotViewUniforms,
+  PackedSnapshotViewUniformsScratch,
+  SnapshotViewUniformPackDiagnostic,
+  SnapshotViewUniformPackDiagnosticCode,
+  SnapshotViewUniformPackOptions,
+} from "./view-pack-types.js";
 
 export function packSnapshotViewUniforms(
   snapshot: RenderSnapshot,
@@ -167,29 +146,6 @@ export function packSnapshotViewUniforms(
   });
 
   return { data, floatCount: data.length, views, diagnostics };
-}
-
-export function createPackedSnapshotViewUniformsScratch(
-  floatCapacity = 0,
-  viewCapacity = 0,
-): PackedSnapshotViewUniformsScratch {
-  const data = new Float32Array(floatCapacity);
-  const views: PackedSnapshotViewUniformRecord[] = [];
-  const diagnostics: SnapshotViewUniformPackDiagnostic[] = [];
-  const viewPool: PackedSnapshotViewUniformRecord[] = [];
-
-  for (let index = 0; index < viewCapacity; index += 1) {
-    viewPool.push(createEmptyViewRecord());
-  }
-
-  return {
-    data,
-    views,
-    diagnostics,
-    viewPool,
-    seenViewIds: new Set(),
-    result: { data, floatCount: 0, views, diagnostics },
-  };
 }
 
 export function writePackedSnapshotViewUniforms(
@@ -416,46 +372,4 @@ function fogModeId(mode: FogMode): number {
     case FogMode.Exp2:
       return 3;
   }
-}
-
-function ensureViewUniformDataCapacity(
-  scratch: PackedSnapshotViewUniformsScratch,
-  required: number,
-): void {
-  if (scratch.data.length >= required) {
-    return;
-  }
-
-  let capacity = Math.max(16, scratch.data.length);
-
-  while (capacity < required) {
-    capacity *= 2;
-  }
-
-  const next = new Float32Array(capacity);
-
-  next.set(scratch.data.subarray(0, scratch.data.length));
-  scratch.data = next;
-}
-
-function viewRecordAt(
-  scratch: PackedSnapshotViewUniformsScratch,
-  index: number,
-): MutablePackedSnapshotViewUniformRecord {
-  const existing = scratch.viewPool[index] as
-    | MutablePackedSnapshotViewUniformRecord
-    | undefined;
-
-  if (existing !== undefined) {
-    return existing;
-  }
-
-  const record = createEmptyViewRecord();
-
-  scratch.viewPool.push(record);
-  return record;
-}
-
-function createEmptyViewRecord(): MutablePackedSnapshotViewUniformRecord {
-  return { viewId: 0, sourceOffset: 0, packedOffset: 0 };
 }
