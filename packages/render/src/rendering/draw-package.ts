@@ -1,71 +1,31 @@
-import type {
-  RenderWorldDrawReadinessReport,
-  RenderWorldReadyDraw,
-} from "./render-world.js";
-import type { RenderDiagnostic } from "./snapshot.js";
+import type { RenderWorldDrawReadinessReport } from "./render-world.js";
 import {
   compareStableRenderRecords,
   compareStateAwareRenderRecords,
   countOpaqueRenderStateRecords,
   countOpaqueRenderStateSwitches,
   createOpaqueRenderStateSortPressureReport,
-  emptyOpaqueRenderStateSortPressureReport,
   type OpaqueRenderStateSortPressureReport,
 } from "./render-state-sort.js";
+import {
+  createRenderWorldDrawPackageScratch,
+  drawPackageAt,
+} from "./draw-package-scratch.js";
+import type {
+  RenderWorldDrawPackage,
+  RenderWorldDrawPackagePlan,
+  RenderWorldDrawPackageScratch,
+} from "./draw-package-types.js";
 import type { PackedSnapshotTransforms } from "./transform-pack.js";
 
-export interface RenderWorldDrawPackage {
-  readonly renderId: number;
-  readonly packet: RenderWorldReadyDraw["packet"];
-  readonly meshResourceKey: string;
-  readonly materialResourceKey: string;
-  readonly batchKey: RenderWorldReadyDraw["batchKey"];
-  readonly sortKey: RenderWorldReadyDraw["packet"]["sortKey"];
-  readonly transformPackedOffset: number;
-}
-
-export interface RenderWorldDrawPackagePlan {
-  readonly packages: readonly RenderWorldDrawPackage[];
-  readonly diagnostics: readonly RenderDiagnostic[];
-  readonly summary: RenderWorldDrawPackageScratchSummary;
-}
-
-export interface RenderWorldDrawPackageDiagnosticSummary {
-  readonly total: number;
-  readonly byCode: Readonly<Record<string, number>>;
-}
-
-export interface RenderWorldDrawPackageScratchSummary {
-  readonly readyDrawCount: number;
-  readonly blockedDrawCount: number;
-  readonly packageCount: number;
-  readonly packagePoolSize: number;
-  readonly packagePoolSizeBeforeWrite: number;
-  readonly packageSlotsReused: number;
-  readonly packageSlotsCreated: number;
-  readonly missingPackedTransformCount: number;
-  readonly diagnostics: RenderWorldDrawPackageDiagnosticSummary;
-  readonly stateSort: OpaqueRenderStateSortPressureReport;
-}
-
-export interface RenderWorldDrawPackageScratch {
-  readonly packages: RenderWorldDrawPackage[];
-  readonly diagnostics: RenderDiagnostic[];
-  readonly packagePool: RenderWorldDrawPackage[];
-  readonly stableOrderScratch: RenderWorldDrawPackage[];
-  readonly summary: RenderWorldDrawPackageScratchSummary;
-  readonly plan: RenderWorldDrawPackagePlan;
-}
-
-interface MutableRenderWorldDrawPackage {
-  renderId: number;
-  packet: RenderWorldReadyDraw["packet"];
-  meshResourceKey: string;
-  materialResourceKey: string;
-  batchKey: RenderWorldReadyDraw["batchKey"];
-  sortKey: RenderWorldReadyDraw["packet"]["sortKey"];
-  transformPackedOffset: number;
-}
+export { createRenderWorldDrawPackageScratch } from "./draw-package-scratch.js";
+export type {
+  RenderWorldDrawPackage,
+  RenderWorldDrawPackageDiagnosticSummary,
+  RenderWorldDrawPackagePlan,
+  RenderWorldDrawPackageScratch,
+  RenderWorldDrawPackageScratchSummary,
+} from "./draw-package-types.js";
 
 interface MutableRenderWorldDrawPackageDiagnosticSummary {
   total: number;
@@ -94,29 +54,6 @@ export function planRenderWorldDrawPackages(
   writeRenderWorldDrawPackages(readiness, transforms, scratch);
 
   return scratch.plan;
-}
-
-export function createRenderWorldDrawPackageScratch(
-  capacity = 0,
-): RenderWorldDrawPackageScratch {
-  const packagePool: RenderWorldDrawPackage[] = [];
-  const packages: RenderWorldDrawPackage[] = [];
-  const stableOrderScratch: RenderWorldDrawPackage[] = [];
-  const diagnostics: RenderDiagnostic[] = [];
-  const summary = createEmptySummary();
-
-  for (let i = 0; i < capacity; i += 1) {
-    packagePool.push(createEmptyPackage());
-  }
-
-  return {
-    packages,
-    diagnostics,
-    packagePool,
-    stableOrderScratch,
-    summary,
-    plan: { packages, diagnostics, summary },
-  };
 }
 
 export function writeRenderWorldDrawPackages(
@@ -158,7 +95,7 @@ export function writeRenderWorldDrawPackages(
       continue;
     }
 
-    const drawPackage = packageAt(scratch, scratch.packages.length);
+    const drawPackage = drawPackageAt(scratch, scratch.packages.length);
 
     drawPackage.renderId = draw.renderId;
     drawPackage.packet = draw.packet;
@@ -203,54 +140,6 @@ function findPackedTransformOffset(
   }
 
   return undefined;
-}
-
-function packageAt(
-  scratch: RenderWorldDrawPackageScratch,
-  index: number,
-): MutableRenderWorldDrawPackage {
-  const existing = scratch.packagePool[index] as
-    | MutableRenderWorldDrawPackage
-    | undefined;
-
-  if (existing !== undefined) {
-    return existing;
-  }
-
-  const drawPackage = createEmptyPackage();
-
-  scratch.packagePool.push(drawPackage);
-  return drawPackage;
-}
-
-function createEmptyPackage(): MutableRenderWorldDrawPackage {
-  return {
-    renderId: 0,
-    packet: null as unknown as RenderWorldReadyDraw["packet"],
-    meshResourceKey: "",
-    materialResourceKey: "",
-    batchKey: null as unknown as RenderWorldReadyDraw["batchKey"],
-    sortKey: null as unknown as RenderWorldReadyDraw["packet"]["sortKey"],
-    transformPackedOffset: 0,
-  };
-}
-
-function createEmptySummary(): MutableRenderWorldDrawPackageScratchSummary {
-  return {
-    readyDrawCount: 0,
-    blockedDrawCount: 0,
-    packageCount: 0,
-    packagePoolSize: 0,
-    packagePoolSizeBeforeWrite: 0,
-    packageSlotsReused: 0,
-    packageSlotsCreated: 0,
-    missingPackedTransformCount: 0,
-    diagnostics: {
-      total: 0,
-      byCode: {},
-    },
-    stateSort: emptyOpaqueRenderStateSortPressureReport(),
-  };
 }
 
 function writeScratchSummary(
