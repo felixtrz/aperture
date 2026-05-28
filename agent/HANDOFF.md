@@ -1,6 +1,53 @@
 # Agent Handoff
 
-Updated: 2026-05-28T05:18:48Z
+Updated: 2026-05-28T05:22:36Z
+
+## Current Run Update — 2026-05-28T05:22:36Z — render snapshot contract split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split render snapshot packet contracts, report contracts, diagnostics,
+  culling stats, sort-key inputs, and structured-clone snapshot shape into
+  `packages/render/src/rendering/snapshot-types.ts`.
+- Split stable render id creation, render sort-key construction, and
+  deterministic sort-key comparison into
+  `packages/render/src/rendering/snapshot-sort-key.ts`.
+- Split batch compatibility key construction into
+  `packages/render/src/rendering/snapshot-batch-key.ts`.
+- Kept `packages/render/src/rendering/snapshot.ts` as the existing public
+  re-export facade for snapshot types and helpers.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/snapshot.ts packages/render/src/rendering/snapshot-types.ts packages/render/src/rendering/snapshot-sort-key.ts packages/render/src/rendering/snapshot-batch-key.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/snapshot.ts packages/render/src/rendering/snapshot-types.ts packages/render/src/rendering/snapshot-sort-key.ts packages/render/src/rendering/snapshot-batch-key.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/snapshot.ts packages/render/src/rendering/snapshot-types.ts packages/render/src/rendering/snapshot-sort-key.ts packages/render/src/rendering/snapshot-batch-key.ts`
+- `pnpm exec vitest run test/rendering/snapshot.test.ts test/rendering/snapshot-change-set.test.ts test/rendering/snapshot-inspection.test.ts test/rendering/snapshot-packed-encoding.test.ts test/rendering/render-world.test.ts test/rendering/render-queue.test.ts test/rendering/extraction.test.ts test/runtime/simulation-worker.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-scene-import-contract.ts`,
+  `custom-wgsl-material-preparation.ts`, `standard-sampler-fidelity.ts`,
+  `snapshot-packed-codecs.ts`, `authoring-validation.ts`,
+  `snapshot-packed-codec-utils.ts`, `snapshot-change-set.ts`, and
+  `gltf-uri-external-fetch.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining scene import contract,
+custom WGSL, sampler fidelity, packed snapshot codec, authoring validation,
+packed snapshot codec utility, snapshot change-set, or URI external fetch
+modules.
 
 ## Current Run Update — 2026-05-28T05:18:48Z — HDR RGBE parser split
 

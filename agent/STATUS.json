@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "bf50ba17",
+  "lastCommit": "b2353e2d",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting Radiance HDR RGBE header parsing, pixel decoding, RGBE-to-float conversion, and parser diagnostics into focused asset modules while preserving the public parser entry point; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T05:18:48Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting render snapshot packet contracts, stable id/sort-key helpers, and batch compatibility key construction into focused rendering modules while preserving the public snapshot facade; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T05:22:36Z"
 }

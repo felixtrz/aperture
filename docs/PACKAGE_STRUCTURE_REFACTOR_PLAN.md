@@ -413,6 +413,11 @@ Status: in progress
   buffer packing helpers now live in `transform-pack-history.ts` and
   `transform-pack-instances.ts`, leaving `transform-pack.ts` as the stable
   public facade for transform packing.
+- Render snapshot packet contracts now live in
+  `packages/render/src/rendering/snapshot-types.ts`, with stable render id and
+  sort-key helpers in `snapshot-sort-key.ts` and batch compatibility key
+  construction in `snapshot-batch-key.ts`, leaving `snapshot.ts` as the stable
+  public re-export facade.
 - Packed snapshot primitive numeric/enum/entity/vector/handle codec helpers now
   live in `snapshot-packed-codec-utils.ts`, leaving
   `snapshot-packed-codecs.ts` focused on packet-specific read/write layouts.
