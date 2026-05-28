@@ -453,6 +453,10 @@ Status: in progress
   handling, device diagnostics, and gamepad summary projection now live in
   `packages/app/src/input-state-gamepads.ts`, preserving the same
   `StatefulGamepadsState` contract used by input resources and systems.
+- App button/axis action implementations, callable button pressed signal, action
+  factory, frame advancement, and action value writers now live in
+  `packages/app/src/input-state-actions.ts`, keeping `input-state.ts` focused on
+  resource-level event application and binding resolution.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

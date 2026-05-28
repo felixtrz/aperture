@@ -393,15 +393,21 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-28 09:34 UTC</dd>
+            <dd>2026-05-28 09:38 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update: Track 6 of the package-structure refactor split app
-              stateful gamepad implementation, standard button mapping, deadzone
-              handling, device diagnostics, and gamepad summary projection into
-              a focused input gamepad module while preserving the same
+              button/axis action implementations, callable button pressed
+              signal, action factory, frame advancement, and action value
+              writers into a focused input action module, leaving
+              <code>input-state.ts</code> focused on resource-level event
+              application and binding resolution. Previous update: Track 6 of
+              the package-structure refactor split app stateful gamepad
+              implementation, standard button mapping, deadzone handling, device
+              diagnostics, and gamepad summary projection into a focused input
+              gamepad module while preserving the same
               <code>StatefulGamepadsState</code> contract used by input
               resources and systems. Previous update: Track 6 of the
               package-structure refactor split app stateful keyboard

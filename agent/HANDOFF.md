@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-28T09:34:48Z
+Updated: 2026-05-28T09:38:07Z
+
+## Current Run Update — 2026-05-28T09:38:07Z — app input action state split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 6.
+
+### What changed
+
+- Split app button/axis action implementations, callable button pressed signal,
+  action factory, frame advancement, and action value writers into
+  `packages/app/src/input-state-actions.ts`.
+- Kept `input-state.ts` focused on input resource event application, virtual
+  action state, binding resolution, summaries, and legacy gamepad signal
+  synchronization.
+- Reduced `packages/app/src/input-state.ts` from 772 lines to 625 lines.
+
+### Validation
+
+- `pnpm exec prettier --write packages/app/src/input-state.ts packages/app/src/input-state-actions.ts packages/app/src/input-state-gamepads.ts packages/app/src/input-state-keyboard.ts packages/app/src/input-state-types.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec eslint packages/app/src/input-state.ts packages/app/src/input-state-actions.ts packages/app/src/input-state-gamepads.ts packages/app/src/input-state-keyboard.ts packages/app/src/input-state-types.ts`
+- `pnpm exec prettier --check packages/app/src/input-state.ts packages/app/src/input-state-actions.ts packages/app/src/input-state-gamepads.ts packages/app/src/input-state-keyboard.ts packages/app/src/input-state-types.ts`
+- `pnpm exec vitest run test/app/systems.test.ts test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 6 still needs focused app modules for system context, config/runtime
+  code, browser/worker generated bootstrapping, entity lookup, and remaining
+  input resource/binding resolution behavior.
+- Remaining large app files include `worker.ts`, `browser.ts`,
+  `entity-lookup.ts`, `config.ts`, and the smaller but still mixed
+  `input-state.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 6 by splitting app input resource/binding resolution or system
+context helpers.
 
 ## Current Run Update — 2026-05-28T09:34:48Z — app input gamepad state split
 
