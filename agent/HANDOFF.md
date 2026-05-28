@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-28T07:30:54Z
+Updated: 2026-05-28T07:34:39Z
+
+## Current Run Update — 2026-05-28T07:34:39Z — glTF ECS replay helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split glTF ECS command replay skip/invalid-value diagnostic construction from
+  `packages/render/src/assets/gltf-ecs-command-replay-components.ts` into
+  `packages/render/src/assets/gltf-ecs-command-replay-diagnostics.ts`.
+- Split replay tuple/value guards into
+  `packages/render/src/assets/gltf-ecs-command-replay-value-guards.ts`.
+- Kept `gltf-ecs-command-replay-components.ts` focused on applying supported
+  ECS components and kept `gltf-ecs-command-replay.ts` focused on component
+  registration, entity creation, replay orchestration, and report creation.
+- Updated the package-structure plan and public progress tracker for the new
+  replay helper module boundaries.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-ecs-command-replay.ts packages/render/src/assets/gltf-ecs-command-replay-components.ts packages/render/src/assets/gltf-ecs-command-replay-diagnostics.ts packages/render/src/assets/gltf-ecs-command-replay-value-guards.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-ecs-command-replay.ts packages/render/src/assets/gltf-ecs-command-replay-components.ts packages/render/src/assets/gltf-ecs-command-replay-diagnostics.ts packages/render/src/assets/gltf-ecs-command-replay-value-guards.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-ecs-command-replay.ts packages/render/src/assets/gltf-ecs-command-replay-components.ts packages/render/src/assets/gltf-ecs-command-replay-diagnostics.ts packages/render/src/assets/gltf-ecs-command-replay-value-guards.ts`
+- `pnpm exec vitest run test/assets/gltf-ecs-command-replay.test.ts test/assets/gltf-ecs-command-replay-readiness.test.ts test/assets/gltf-ecs-command-replay-json.test.ts test/assets/gltf-scene-import-contract.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `authoring-components.ts`,
+  `glb-uri-images.ts`, `transform-pack-scratch.ts`, and other medium
+  render/material/asset modules still near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium render extraction/material/asset
+hotspot.
 
 ## Current Run Update — 2026-05-28T07:30:54Z — glTF texture loading split
 

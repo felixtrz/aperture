@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "18f8242a",
+  "lastCommit": "6bb4f8b4",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting glTF async texture byte-source loading, data-URI parsing, fetch-result normalization, MIME inference, and browser/canvas fallback image decoding into focused material modules while keeping loadGltfTextureAsync as the public loading facade; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T07:30:54Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting glTF ECS command replay diagnostics and tuple/value guards into focused asset modules while keeping component application and replay orchestration behavior stable; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T07:34:39Z"
 }

@@ -590,9 +590,10 @@ Status: in progress
   validation, empty external result helpers, and provided/fetched byte merge
   helpers now live in focused `glb-uri-*` asset modules, leaving
   `glb-uri-fetch.ts` as the stable public fetch facade.
-- glTF ECS command replay component application, value validation, skip
-  diagnostics, and tuple guards now live in
-  `gltf-ecs-command-replay-components.ts`, leaving
+- glTF ECS command replay component application now lives in
+  `gltf-ecs-command-replay-components.ts`, with skip/invalid-value diagnostic
+  construction in `gltf-ecs-command-replay-diagnostics.ts` and tuple/value
+  guards in `gltf-ecs-command-replay-value-guards.ts`, leaving
   `gltf-ecs-command-replay.ts` focused on component registration, entity
   creation, replay orchestration, and report creation.
 - StandardMaterial texture readiness material traversal, dependency readiness
