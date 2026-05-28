@@ -1,16 +1,12 @@
 import type { EcsWorld, Entity } from "@aperture-engine/simulation";
-import type { EcsEntityRef } from "./config.js";
-import {
-  entitySummary,
-  jsonSafeValue,
-  validEntityRef,
-} from "./entity-lookup-summary.js";
+import type { EcsEntityRef } from "../../config.js";
+import { entitySummary, jsonSafeValue, validEntityRef } from "./summary.js";
 import type {
   ApertureEntityLookupDiagnostic,
   ApertureEntitySetComponentFieldReport,
   ApertureEntitySetComponentFieldRequest,
-} from "./entity-lookup-types.js";
-import { DebugMetadata } from "./systems.js";
+} from "./types.js";
+import { DebugMetadata } from "../../systems.js";
 
 export function setApertureEntityComponentField(
   world: EcsWorld,

@@ -1,11 +1,11 @@
 import type { EcsWorld } from "@aperture-engine/simulation";
-import type { EcsEntityRef } from "./config.js";
+import type { EcsEntityRef } from "../../config.js";
 import {
   collectActiveEntities,
   compareEntitySummaries,
   entitySummary,
   validEntityRef,
-} from "./entity-lookup-summary.js";
+} from "./summary.js";
 import type {
   ApertureEntityFindQuery,
   ApertureEntityFindReport,
@@ -13,7 +13,7 @@ import type {
   ApertureEntityLookupDiagnostic,
   ApertureEntityLookupSourceFilter,
   ApertureEntitySummary,
-} from "./entity-lookup-types.js";
+} from "./types.js";
 
 export function findApertureEntities(
   world: EcsWorld,

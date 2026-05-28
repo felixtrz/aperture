@@ -1,4 +1,4 @@
-import type { EcsEntityRef } from "./config.js";
+import type { EcsEntityRef } from "../../config.js";
 
 export interface ApertureEntitySourceSummary {
   readonly assetId?: string;

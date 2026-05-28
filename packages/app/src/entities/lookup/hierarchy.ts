@@ -1,16 +1,16 @@
 import type { EcsWorld } from "@aperture-engine/simulation";
-import type { EcsEntityRef } from "./config.js";
+import type { EcsEntityRef } from "../../config.js";
 import {
   collectActiveEntities,
   compareEntitySummaries,
   entityRefKey,
   entitySummary,
-} from "./entity-lookup-summary.js";
+} from "./summary.js";
 import type {
   ApertureEntityHierarchyNode,
   ApertureEntityHierarchyReport,
   ApertureEntityLookupDiagnostic,
-} from "./entity-lookup-types.js";
+} from "./types.js";
 
 interface MutableHierarchyNode {
   readonly entity: EcsEntityRef;

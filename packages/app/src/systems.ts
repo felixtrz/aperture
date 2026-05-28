@@ -23,7 +23,7 @@ import {
   type EcsWorld,
   type Entity,
 } from "@aperture-engine/simulation";
-import type { SpatialQueries } from "./spatial-queries.js";
+import type { SpatialQueries } from "./spatial/index.js";
 import {
   type StatefulGamepadsState,
   type StatefulKeyboardState,
@@ -47,7 +47,7 @@ import {
   type InputSignals,
 } from "./systems/context.js";
 
-export { createSpatialQueries } from "./spatial-queries.js";
+export { createSpatialQueries } from "./spatial/index.js";
 export type {
   RayInput,
   SpatialPickableState,
@@ -56,7 +56,7 @@ export type {
   SpatialRaycastOptions,
   SpatialRaycastableBounds,
   SpatialRaycastableMesh,
-} from "./spatial-queries.js";
+} from "./spatial/index.js";
 
 export {
   DebugMetadata,

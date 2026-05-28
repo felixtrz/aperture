@@ -1,12 +1,6 @@
 import type { EcsWorld } from "@aperture-engine/simulation";
-import {
-  compareEntitySummaries,
-  entityRefKey,
-} from "./entity-lookup-summary.js";
-import {
-  findApertureEntities,
-  getApertureEntitySummary,
-} from "./entity-lookup-query.js";
+import { compareEntitySummaries, entityRefKey } from "./summary.js";
+import { findApertureEntities, getApertureEntitySummary } from "./query.js";
 import type {
   ApertureEntityLookupDiagnostic,
   ApertureEntityLookupSnapshot,
@@ -14,7 +8,7 @@ import type {
   ApertureEntitySnapshotChange,
   ApertureEntitySnapshotDiff,
   ApertureEntitySummary,
-} from "./entity-lookup-types.js";
+} from "./types.js";
 
 export function createApertureEntityLookupSnapshot(
   world: EcsWorld,

@@ -22,6 +22,12 @@ Status: in progress
   live in focused modules under `packages/app/src/systems/spawn/`. The public
   `mesh`, `material`, spawn option types, and `SpawnCommands` surface still
   comes through `@aperture-engine/app/systems`.
+- Track 5 has started. Entity lookup implementation now lives under
+  `packages/app/src/entities/lookup/`, with `packages/app/src/entity-lookup.ts`
+  kept as the public `@aperture-engine/app/entity-lookup` facade. Spatial query
+  contracts, bounds raycasts, mesh raycasts, filters, and math helpers now live
+  under `packages/app/src/spatial/`, with the public system facade still
+  re-exporting spatial query APIs.
 
 ## Summary
 

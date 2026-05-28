@@ -1,11 +1,11 @@
 import type { EcsWorld, Entity } from "@aperture-engine/simulation";
-import type { EcsEntityRef } from "./config.js";
+import type { EcsEntityRef } from "../../config.js";
 import type {
   ApertureEntitySourceSummary,
   ApertureEntitySummary,
   ApertureLocalTransformSummary,
   ApertureWorldTransformSummary,
-} from "./entity-lookup-types.js";
+} from "./types.js";
 import {
   AppEntityKey,
   AppEntitySource,
@@ -14,7 +14,7 @@ import {
   Name,
   Parent,
   WorldTransform,
-} from "./systems.js";
+} from "../../systems.js";
 
 export function entitySummary(entity: Entity): ApertureEntitySummary {
   const key = entity.hasComponent(AppEntityKey)

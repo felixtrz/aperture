@@ -1,7 +1,7 @@
 import { Camera } from "@aperture-engine/render";
 import type { EcsWorld, Entity } from "@aperture-engine/simulation";
 import type { EcsEntityRef } from "../config.js";
-import type { RayInput } from "../spatial-queries.js";
+import type { RayInput } from "../spatial/index.js";
 import { AppEntityKey } from "./components.js";
 import { ApertureSystemError } from "./errors.js";
 

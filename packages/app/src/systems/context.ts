@@ -5,10 +5,7 @@ import {
   type InputAction,
   type InputResourceBase,
 } from "../input/state.js";
-import {
-  createSpatialQueries,
-  type SpatialQueries,
-} from "../spatial-queries.js";
+import { createSpatialQueries, type SpatialQueries } from "../spatial/index.js";
 import { createDiagnostics, type SystemDiagnostics } from "./diagnostics.js";
 import { createScheduledEffects, type ScheduledEffects } from "./effects.js";
 import { ApertureSystemError } from "./errors.js";
