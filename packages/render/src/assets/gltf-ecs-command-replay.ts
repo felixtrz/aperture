@@ -5,10 +5,8 @@ import {
 } from "@aperture-engine/simulation";
 
 import { registerRenderAuthoringComponents } from "../rendering/authoring.js";
-import {
-  applyGltfEcsReplayComponent,
-  skipGltfEcsReplayCommand,
-} from "./gltf-ecs-command-replay-components.js";
+import { applyGltfEcsReplayComponent } from "./gltf-ecs-command-replay-components.js";
+import { skipGltfEcsReplayCommand } from "./gltf-ecs-command-replay-diagnostics.js";
 import {
   createGltfEcsCommandReplayReport,
   gltfEcsCommandReplayReportToJson,

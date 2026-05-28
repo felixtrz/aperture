@@ -7,11 +7,21 @@ import {
 } from "@aperture-engine/simulation";
 
 import { Material, Mesh, Visibility } from "../rendering/authoring.js";
+import {
+  skipGltfEcsReplayCommand,
+  skipInvalidGltfEcsReplayComponentValue,
+} from "./gltf-ecs-command-replay-diagnostics.js";
 import type {
   GltfEcsCommandReplayDiagnostic,
-  GltfEcsCommandReplayDiagnosticCode,
   GltfSkippedEcsCommand,
 } from "./gltf-ecs-command-replay-types.js";
+import {
+  isRecord,
+  isTuple3,
+  isTuple4,
+  tuple3,
+  tuple4,
+} from "./gltf-ecs-command-replay-value-guards.js";
 import type {
   GltfEcsAuthoringCommand,
   GltfLocalTransformCommandValue,
@@ -36,7 +46,10 @@ export function applyGltfEcsReplayComponent(input: {
       case "Name": {
         const value = input.command.value as GltfNameCommandValue;
         if (!isRecord(value) || typeof value.value !== "string") {
-          invalidComponentValue(input, "Name.value must be a string.");
+          skipInvalidGltfEcsReplayComponentValue(
+            input,
+            "Name.value must be a string.",
+          );
           return false;
         }
         input.entity.addComponent(Name, { value: value.value });
@@ -50,7 +63,7 @@ export function applyGltfEcsReplayComponent(input: {
           !isTuple4(value.rotation) ||
           !isTuple3(value.scale)
         ) {
-          invalidComponentValue(
+          skipInvalidGltfEcsReplayComponentValue(
             input,
             "LocalTransform value must contain finite translation, rotation, and scale tuples.",
           );
@@ -72,7 +85,7 @@ export function applyGltfEcsReplayComponent(input: {
             typeof value.parentEntityKey === "string"
           )
         ) {
-          invalidComponentValue(
+          skipInvalidGltfEcsReplayComponentValue(
             input,
             "Parent.parentEntityKey must be a string or null.",
           );
@@ -108,7 +121,7 @@ export function applyGltfEcsReplayComponent(input: {
           !isTuple4(value.col2) ||
           !isTuple4(value.col3)
         ) {
-          invalidComponentValue(
+          skipInvalidGltfEcsReplayComponentValue(
             input,
             "WorldTransform value must contain finite column tuples.",
           );
@@ -125,7 +138,10 @@ export function applyGltfEcsReplayComponent(input: {
       case "Visibility": {
         const value = input.command.value as GltfVisibilityCommandValue;
         if (!isRecord(value) || typeof value.visible !== "boolean") {
-          invalidComponentValue(input, "Visibility.visible must be a boolean.");
+          skipInvalidGltfEcsReplayComponentValue(
+            input,
+            "Visibility.visible must be a boolean.",
+          );
           return false;
         }
         input.entity.addComponent(Visibility, { visible: value.visible });
@@ -138,7 +154,7 @@ export function applyGltfEcsReplayComponent(input: {
           typeof value.meshId !== "string" ||
           typeof value.handleKey !== "string"
         ) {
-          invalidComponentValue(
+          skipInvalidGltfEcsReplayComponentValue(
             input,
             "Mesh value must contain meshId and handleKey strings.",
           );
@@ -154,7 +170,7 @@ export function applyGltfEcsReplayComponent(input: {
           typeof value.materialId !== "string" ||
           typeof value.handleKey !== "string"
         ) {
-          invalidComponentValue(
+          skipInvalidGltfEcsReplayComponentValue(
             input,
             "Material value must contain materialId and handleKey strings.",
           );
@@ -190,92 +206,4 @@ export function applyGltfEcsReplayComponent(input: {
     });
     return false;
   }
-}
-
-export function skipGltfEcsReplayCommand(input: {
-  readonly diagnostics: GltfEcsCommandReplayDiagnostic[];
-  readonly skipped: GltfSkippedEcsCommand[];
-  readonly commandIndex: number;
-  readonly entityKey?: string;
-  readonly component?: string;
-  readonly code: GltfEcsCommandReplayDiagnosticCode;
-  readonly message: string;
-  readonly parentEntityKey?: string | null;
-}): void {
-  const diagnostic: GltfEcsCommandReplayDiagnostic = {
-    code: input.code,
-    severity: "error",
-    message: input.message,
-    commandIndex: input.commandIndex,
-    ...(input.entityKey === undefined ? {} : { entityKey: input.entityKey }),
-    ...(input.component === undefined ? {} : { component: input.component }),
-    ...(input.parentEntityKey === undefined
-      ? {}
-      : { parentEntityKey: input.parentEntityKey }),
-  };
-  input.diagnostics.push(diagnostic);
-  input.skipped.push({
-    commandIndex: input.commandIndex,
-    ...(input.entityKey === undefined ? {} : { entityKey: input.entityKey }),
-    ...(input.component === undefined ? {} : { component: input.component }),
-    reason: input.code,
-    diagnostics: [diagnostic],
-  });
-}
-
-function invalidComponentValue(
-  input: {
-    readonly command: Extract<
-      GltfEcsAuthoringCommand,
-      { type: "addComponent" }
-    >;
-    readonly commandIndex: number;
-    readonly diagnostics: GltfEcsCommandReplayDiagnostic[];
-    readonly skipped: GltfSkippedEcsCommand[];
-  },
-  message: string,
-): void {
-  skipGltfEcsReplayCommand({
-    diagnostics: input.diagnostics,
-    skipped: input.skipped,
-    commandIndex: input.commandIndex,
-    entityKey: input.command.entityKey,
-    component: input.command.component,
-    code: "gltfEcsReplay.invalidComponentValue",
-    message,
-  });
-}
-
-function tuple3(
-  value: readonly [number, number, number],
-): [number, number, number] {
-  return [value[0], value[1], value[2]];
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function isTuple3(value: unknown): value is readonly [number, number, number] {
-  return (
-    Array.isArray(value) &&
-    value.length === 3 &&
-    value.every((entry) => typeof entry === "number" && Number.isFinite(entry))
-  );
-}
-
-function isTuple4(
-  value: unknown,
-): value is readonly [number, number, number, number] {
-  return (
-    Array.isArray(value) &&
-    value.length === 4 &&
-    value.every((entry) => typeof entry === "number" && Number.isFinite(entry))
-  );
-}
-
-function tuple4(
-  value: readonly [number, number, number, number],
-): [number, number, number, number] {
-  return [value[0], value[1], value[2], value[3]];
 }
