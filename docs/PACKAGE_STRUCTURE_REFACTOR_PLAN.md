@@ -418,7 +418,7 @@ Status: in progress
 - glTF ECS command replay public contracts and report JSON/result shaping now
   live in focused `gltf-ecs-command-replay-*` asset modules, leaving
   `gltf-ecs-command-replay.ts` focused on component registration, entity
-  creation, component application, and replay diagnostics.
+  creation, component replay orchestration, and report creation.
 - Render queue public contracts, reusable scratch/pool allocation, and
   sort/coalescing/static-batch policy now live in focused
   `render-queue-*` rendering modules, leaving `render-queue.ts` focused on
@@ -491,6 +491,11 @@ Status: in progress
   validation, empty external result helpers, and provided/fetched byte merge
   helpers now live in focused `glb-uri-*` asset modules, leaving
   `glb-uri-fetch.ts` as the stable public fetch facade.
+- glTF ECS command replay component application, value validation, skip
+  diagnostics, and tuple guards now live in
+  `gltf-ecs-command-replay-components.ts`, leaving
+  `gltf-ecs-command-replay.ts` focused on component registration, entity
+  creation, replay orchestration, and report creation.
 
 ## Purpose
 

@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T04:27:42Z
+Updated: 2026-05-28T04:33:21Z
+
+## Current Run Update — 2026-05-28T04:33:21Z — glTF ECS replay component split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split GLB/glTF ECS replay component application, value validation, skip
+  diagnostics, parent lookup diagnostics, and tuple guards into
+  `packages/render/src/assets/gltf-ecs-command-replay-components.ts`.
+- Kept `packages/render/src/assets/gltf-ecs-command-replay.ts` focused on
+  component registration, entity creation, add-component replay orchestration,
+  and report creation.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-ecs-command-replay.ts packages/render/src/assets/gltf-ecs-command-replay-components.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-ecs-command-replay.ts packages/render/src/assets/gltf-ecs-command-replay-components.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-ecs-command-replay.ts packages/render/src/assets/gltf-ecs-command-replay-components.ts`
+- `pnpm exec vitest run test/assets/gltf-ecs-command-replay.test.ts test/assets/gltf-ecs-command-replay-json.test.ts test/runtime/runtime.test.ts test/assets/gltf-combined-import-fixture.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `standard-texture-readiness.ts`,
+  `gltf-material.ts`, `ktx2-basis-transcoder.ts`,
+  `extraction-asset-validation.ts`, `mesh-merge.ts`, `view-pack.ts`, and
+  `glb-uri-loader.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining texture readiness, material,
+KTX2 transcoder, extraction validation, mesh merge, view-pack, or GLB loader
+modules.
 
 ## Current Run Update — 2026-05-28T04:27:42Z — GLB URI fetch helper split
 
