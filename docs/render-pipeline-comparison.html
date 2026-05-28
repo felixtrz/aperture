@@ -529,7 +529,7 @@
 
 <section class="progress-status" aria-label="Aperture render pipeline status">
   <div class="status-head">
-    <h2>Current Aperture Render Pipeline Status · Updated 2026-05-27 · generated app MSAA and canvas defaults added</h2>
+    <h2>Current Aperture Render Pipeline Status · Updated 2026-05-28 · render queue modules split</h2>
     <a href="index.html">Back to project tracker</a>
   </div>
   <p>Generated browser apps now opt into the renderer's 4x MSAA path by default, preserve <code>sampleCount: 1</code> as the explicit opt-out, size canvas backing stores from effective DPR capped at 2, and expose CSS size, backing size, aspect, DPR, MSAA, and render-target diagnostics through the generated status, CLI, and MCP surfaces. Scaffolded <code>minimal</code>, <code>glb-viewer</code>, and <code>game</code> templates are covered by install, typecheck, build, and browser smoke tests so the default authoring path exercises the render-quality and resize contracts.</p>
@@ -975,7 +975,7 @@
       <div class="engine-tag">Aperture · render-package</div>
 
       <div class="meta">
-        <div class="row"><div class="k">FILE</div><div class="v">packages/render/src/rendering/render-queue.ts</div></div>
+        <div class="row"><div class="k">FILES</div><div class="v">packages/render/src/rendering/render-queue.ts<br>packages/render/src/rendering/render-queue-types.ts<br>packages/render/src/rendering/render-queue-scratch.ts</div></div>
         <div class="row"><div class="k">FN</div><div class="v">writeRenderQueueRecords(readiness, transforms, scratch, options?)</div></div>
         <div class="row"><div class="k">IN</div><div class="v">RenderWorldDrawReadinessReport, PackedSnapshotTransforms</div></div>
         <div class="row"><div class="k">OUT</div><div class="v">RenderQueuePlan { records, diagnostics, sortPhases }</div></div>
@@ -998,7 +998,7 @@
         <li>For each <code>blocked</code> draw (from <code>RenderWorld.createDrawReadinessReport()</code>): emit <code>renderDrawPackage.blockedDraw</code> with missing-resource reasons</li>
         <li>For each <code>ready</code> draw: look up <code>transformPackedOffset</code> in <code>transforms.offsets</code> (by renderId)</li>
         <li>If offset missing: emit <code>renderDrawPackage.missingPackedTransform</code>, skip</li>
-        <li>Allocate a <code>RenderQueueRecord</code> from <code>recordPool</code> (or expand pool) — <b>no <code>new</code></b></li>
+        <li>Allocate a <code>RenderQueueRecord</code> from <code>recordPool</code> via <code>render-queue-scratch.ts</code> (or expand pool) — <b>no <code>new</code></b> on the steady-state pool hit</li>
         <li>Populate the record (renderId, viewId, passId, queueKind, resourceKeys, batchKey, sortKey, transformPackedOffset, instanceCount=1, drawKind=<code>single</code>) and push to <code>records</code></li>
         <li>Sort records, coalesce compatible records when transform slots are contiguous, then optionally compact adjacent opaque non-instanced records into static-merged batch records</li>
         <li>Write <code>sortPhases</code> with JSON-safe opaque/transparent record counts for diagnostics</li>
@@ -1102,7 +1102,7 @@
       <div class="engine-tag">Aperture · render-package</div>
 
       <div class="meta">
-        <div class="row"><div class="k">FILE</div><div class="v">packages/render/src/rendering/render-queue.ts<br>packages/render/src/rendering/snapshot.ts (compareRenderSortKeys)</div></div>
+        <div class="row"><div class="k">FILES</div><div class="v">packages/render/src/rendering/render-queue-sort.ts<br>packages/render/src/rendering/render-state-sort.ts<br>packages/render/src/rendering/snapshot.ts (compareRenderSortKeys)</div></div>
         <div class="row"><div class="k">FN</div><div class="v">sortRenderQueueRecords(records)</div></div>
         <div class="row"><div class="k">IN/OUT</div><div class="v">RenderQueueRecord[] — sorted in place</div></div>
       </div>

@@ -415,6 +415,10 @@ Status: in progress
   live in focused `gltf-ecs-command-replay-*` asset modules, leaving
   `gltf-ecs-command-replay.ts` focused on component registration, entity
   creation, component application, and replay diagnostics.
+- Render queue public contracts, reusable scratch/pool allocation, and
+  sort/coalescing/static-batch policy now live in focused
+  `render-queue-*` rendering modules, leaving `render-queue.ts` focused on
+  queue planning from draw readiness plus packed transforms.
 
 ## Purpose
 

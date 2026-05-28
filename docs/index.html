@@ -393,13 +393,18 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-27 19:43 UTC</dd>
+            <dd>2026-05-28 02:57 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Track 1 of the package-structure refactor moved the
-              WebGPU backend out of the flat
+              Latest update: Track 5 of the package-structure refactor split
+              render queue contracts, reusable scratch pools, and
+              sort/coalescing/static-batch policy into focused
+              <code>render-queue-*</code> modules while preserving the stable
+              public <code>render-queue.ts</code> facade and render-frame phase
+              behavior. Previous update: Track 1 of the package-structure
+              refactor moved the WebGPU backend out of the flat
               <code>packages/webgpu/src/webgpu</code> folder and into domain
               folders for app orchestration, GPU helpers, material families,
               lighting, shadows, post effects, render passes, queues, resources,
