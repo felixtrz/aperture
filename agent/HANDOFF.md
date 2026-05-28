@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-28T16:01:57Z
+Updated: 2026-05-28T16:09:10Z
+
+## Current Run Update — 2026-05-28T16:09:10Z — CLI dev-session split
+
+Continued `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Kept `packages/cli/src/dev-session.ts` as the public facade for managed dev
+  session functions and option/report types.
+- Moved dev-session implementation into `packages/cli/src/dev/`.
+- Split session lifecycle, daemon orchestration, Vite server startup, managed
+  browser launch/opening, port selection, log tailing/stream handling, process
+  helpers, and app-root validation into focused modules.
+- Preserved the dev-session status file contract and public exports.
+- Recorded Track 10 progress in `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md` and
+  `docs/index.html`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm exec prettier --write packages/cli/src/dev-session.ts "packages/cli/src/dev/**/*.ts"`
+- `pnpm exec eslint packages/cli/src/dev-session.ts "packages/cli/src/dev/**/*.ts"`
+- `pnpm exec vitest run test/cli/dev-session.test.ts test/cli/create.test.ts test/index.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md docs/index.html packages/cli/src/dev-session.ts "packages/cli/src/dev/**/*.ts"`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- CLI tool client Track 11 remains.
+- CLI reference folder completion Track 12 remains.
+- Export/boundary guard Track 13 remains.
+
+### Recommended next task
+
+Continue with Track 11 CLI tool client folder split.
 
 ## Current Run Update — 2026-05-28T16:01:57Z — CLI create/template split
 

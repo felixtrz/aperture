@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "b6369f2d",
+  "lastCommit": "45604b21",
   "activePid": null,
-  "notes": "Advanced APP_CLI_STRUCTURE_REFACTOR_PLAN Track 9 by splitting createApertureProject orchestration, target validation, package metadata, shared starter files, per-template source strings, and the sample GLB payload under packages/cli/src/create/ while preserving packages/cli/src/create-project.ts as the public facade; CLI typecheck, targeted create tests, typecheck:test, boundaries, build, progress check, focused lint/format, and diff check passed.",
-  "lastRunFinishedAt": "2026-05-28T16:01:57Z"
+  "notes": "Advanced APP_CLI_STRUCTURE_REFACTOR_PLAN Track 10 by splitting managed dev-session implementation under packages/cli/src/dev/ while preserving packages/cli/src/dev-session.ts as the public facade; CLI typecheck, targeted dev-session tests, typecheck:test, boundaries, build, progress check, focused lint/format, and diff check passed.",
+  "lastRunFinishedAt": "2026-05-28T16:09:10Z"
 }
