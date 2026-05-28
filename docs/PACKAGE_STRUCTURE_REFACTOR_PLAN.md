@@ -671,6 +671,10 @@ Status: in progress
   focused `glb-uri-loader-*` asset modules, leaving `glb-uri-loader.ts` focused
   on URI fetch, external byte/image resolution, source loader handoff, and final
   report assembly.
+- GLB source loader output summary public contracts, mesh construction summary,
+  source-registration summary, and ECS command-plan summary now live in focused
+  `glb-source-loader-output-summary-*` asset modules, leaving
+  `glb-source-loader-output-summary.ts` as the stable output-summary facade.
 
 ## Purpose
 

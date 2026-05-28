@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T08:17:20Z
+Updated: 2026-05-28T08:21:31Z
+
+## Current Run Update — 2026-05-28T08:21:31Z — GLB source output summary split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split GLB source loader output-summary public contracts into
+  `packages/render/src/assets/glb-source-loader-output-summary-types.ts`.
+- Split mesh construction, source-registration, and ECS command-plan summary
+  builders into focused `glb-source-loader-output-summary-*` modules.
+- Kept `glb-source-loader-output-summary.ts` as the stable public facade for
+  existing GLB and glTF source loader imports.
+- Updated the package-structure plan and public progress tracker for the new
+  GLB source output-summary module boundaries.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/glb-source-loader-output-summary.ts packages/render/src/assets/glb-source-loader-output-summary-types.ts packages/render/src/assets/glb-source-loader-output-summary-mesh.ts packages/render/src/assets/glb-source-loader-output-summary-source-registration.ts packages/render/src/assets/glb-source-loader-output-summary-ecs-command-plan.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/glb-source-loader-output-summary.ts packages/render/src/assets/glb-source-loader-output-summary-types.ts packages/render/src/assets/glb-source-loader-output-summary-mesh.ts packages/render/src/assets/glb-source-loader-output-summary-source-registration.ts packages/render/src/assets/glb-source-loader-output-summary-ecs-command-plan.ts`
+- `pnpm exec prettier --check packages/render/src/assets/glb-source-loader-output-summary.ts packages/render/src/assets/glb-source-loader-output-summary-types.ts packages/render/src/assets/glb-source-loader-output-summary-mesh.ts packages/render/src/assets/glb-source-loader-output-summary-source-registration.ts packages/render/src/assets/glb-source-loader-output-summary-ecs-command-plan.ts`
+- `pnpm exec vitest run test/assets/glb-source-loader-output-summary.test.ts test/assets/glb-source-loader-facade.test.ts test/assets/gltf-source-loader-facade.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/gltf-scene-import-contract.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `snapshot-types.ts`,
+  `authoring-create.ts`, `snapshot-packed-encoding.ts`,
+  `gltf-uri-fetch-bytes.ts`, and other medium render/material/asset modules
+  still near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium render extraction/material/asset
+hotspot.
 
 ## Current Run Update — 2026-05-28T08:17:20Z — mesh extraction draw-input split
 
