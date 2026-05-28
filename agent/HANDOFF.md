@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-28T06:55:30Z
+Updated: 2026-05-28T06:58:50Z
+
+## Current Run Update — 2026-05-28T06:58:50Z — prepared material resource split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split prepared material resource public descriptor/options/result/diagnostic
+  contracts from `packages/render/src/materials/prepared-resource.ts` into
+  `packages/render/src/materials/prepared-resource-types.ts`.
+- Split texture/sampler dependency key collection and texture binding resource
+  projection into
+  `packages/render/src/materials/prepared-resource-dependencies.ts`.
+- Kept `prepared-resource.ts` as the stable descriptor creation facade and
+  material-family convenience entry point.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/materials/prepared-resource.ts packages/render/src/materials/prepared-resource-types.ts packages/render/src/materials/prepared-resource-dependencies.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/materials/prepared-resource.ts packages/render/src/materials/prepared-resource-types.ts packages/render/src/materials/prepared-resource-dependencies.ts`
+- `pnpm exec prettier --check packages/render/src/materials/prepared-resource.ts packages/render/src/materials/prepared-resource-types.ts packages/render/src/materials/prepared-resource-dependencies.ts`
+- `pnpm exec vitest run test/materials/prepared-material-resource.test.ts test/materials/material-dependency-readiness.test.ts test/materials/matcap-preparation.test.ts test/assets/render-asset-preparation.test.ts test/rendering/render-world-prepared-materials.test.ts test/rendering/render-world-prepared-resources.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include final `extraction-meshes.ts` tightening,
+  plus medium render/material/asset modules still near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by finishing the remaining extraction mesh tightening or
+splitting the next medium render asset/material hotspot.
 
 ## Current Run Update — 2026-05-28T06:55:30Z — GLB image byte resolution split
 

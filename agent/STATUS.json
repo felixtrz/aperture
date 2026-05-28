@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "ec9adf91",
+  "lastCommit": "12e54b3e",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting GLB image URI/bufferView byte resolution, byte range validation, GLB/external buffer lookup, and byte helpers into a focused asset module while keeping source/MIME classification separate; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T06:55:30Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting prepared material resource contracts and texture/sampler dependency collection into focused material modules while keeping prepared-resource.ts as the descriptor creation facade; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T06:58:50Z"
 }
