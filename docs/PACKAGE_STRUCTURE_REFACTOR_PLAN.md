@@ -500,6 +500,10 @@ Status: in progress
   and canvas backing-size measurement now live in
   `packages/app/src/browser-render.ts`, preserving the existing public browser
   exports for render settings and canvas resize measurement.
+- Generated browser pointer, keyboard, gamepad, reset, and virtual action input
+  forwarding now lives in `packages/app/src/browser-input.ts`, preserving the
+  public virtual-input constant and `dispatchApertureInputAction()` export
+  through `browser.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
