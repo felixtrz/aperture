@@ -1,10 +1,14 @@
 import type { InstanceAttributeLayout } from "../materials/index.js";
-import type {
-  InstanceAttributePacket,
-  MeshDrawPacket,
-  RenderDiagnostic,
-  RenderSnapshot,
-} from "./snapshot.js";
+import type { RenderDiagnostic, RenderSnapshot } from "./snapshot.js";
+import {
+  findInstanceAttributeField,
+  findTransformPackedOffset,
+  hasInstanceAttributeValues,
+  hasTransform,
+  hasTransformRange,
+  hasVec4,
+  missingTransformDiagnostic,
+} from "./transform-pack-guards.js";
 
 export interface PackedTransformOffset {
   readonly renderId: number;
@@ -832,61 +836,4 @@ function createEmptyInstanceTintOffset(): MutablePackedInstanceTintOffset {
 
 function createEmptyInstanceAttributeOffset(): MutablePackedInstanceAttributeOffset {
   return { renderId: 0, sourcePacketIndex: 0, packedOffset: 0 };
-}
-
-function findTransformPackedOffset(
-  transforms: PackedSnapshotTransforms,
-  renderId: number,
-): number | undefined {
-  for (const offset of transforms.offsets) {
-    if (offset.renderId === renderId) {
-      return offset.packedOffset;
-    }
-  }
-
-  return undefined;
-}
-
-function hasTransform(transforms: Float32Array, offset: number): boolean {
-  return (
-    Number.isInteger(offset) && offset >= 0 && offset + 16 <= transforms.length
-  );
-}
-
-function hasTransformRange(floatCount: number, offset: number): boolean {
-  return Number.isInteger(offset) && offset >= 0 && offset + 16 <= floatCount;
-}
-
-function hasVec4(values: Float32Array, offset: number): boolean {
-  return Number.isInteger(offset) && offset >= 0 && offset + 4 <= values.length;
-}
-
-function findInstanceAttributeField(
-  packet: InstanceAttributePacket,
-  name: string,
-): InstanceAttributePacket["fields"][number] | undefined {
-  return packet.fields.find((field) => field.name === name);
-}
-
-function hasInstanceAttributeValues(
-  values: Float32Array,
-  field: InstanceAttributePacket["fields"][number],
-): boolean {
-  return (
-    Number.isInteger(field.offset) &&
-    field.offset >= 0 &&
-    field.offset + field.components <= values.length
-  );
-}
-
-function missingTransformDiagnostic(
-  draw: MeshDrawPacket,
-  transforms: Float32Array,
-): RenderDiagnostic {
-  return {
-    code: "renderTransformPack.missingTransform",
-    message: `Render id ${draw.renderId} references transform offset ${draw.worldTransformOffset}, but transform buffer length is ${transforms.length}.`,
-    severity: "warning",
-    entity: draw.entity,
-  };
 }
