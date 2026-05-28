@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-28T15:46:53Z
+Updated: 2026-05-28T15:53:40Z
+
+## Current Run Update — 2026-05-28T15:53:40Z — App worker runtime split
+
+Continued `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Moved generated worker bootstrap implementation into
+  `packages/app/src/worker/`.
+- Kept `packages/app/src/worker.ts` as the public
+  `@aperture-engine/app/worker` facade.
+- Split worker port attachment, run loop startup, snapshot publication,
+  source-asset serialization, asset summaries, generated command handling,
+  viewport resize handling, and payload parsing into focused worker modules.
+- Moved worker entity, camera, and input devtools tools under
+  `packages/app/src/worker/devtools/`, with the bridge dispatcher isolated in
+  `worker/devtools/bridge.ts`.
+- Recorded Track 7 progress in `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md` and
+  `docs/index.html`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/index.test.ts`
+- `pnpm exec prettier --write packages/app/src/worker.ts packages/app/src/worker/start.ts packages/app/src/worker/loop.ts packages/app/src/worker/snapshot.ts packages/app/src/worker/assets.ts packages/app/src/worker/commands.ts packages/app/src/worker/viewport.ts packages/app/src/worker/payload.ts packages/app/src/worker/devtools/bridge.ts packages/app/src/worker/devtools/entities.ts packages/app/src/worker/devtools/camera.ts packages/app/src/worker/devtools/input.ts packages/app/src/worker/devtools/types.ts docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md docs/index.html`
+- `pnpm exec eslint packages/app/src/worker.ts packages/app/src/worker/start.ts packages/app/src/worker/loop.ts packages/app/src/worker/snapshot.ts packages/app/src/worker/assets.ts packages/app/src/worker/commands.ts packages/app/src/worker/viewport.ts packages/app/src/worker/payload.ts packages/app/src/worker/devtools/bridge.ts packages/app/src/worker/devtools/entities.ts packages/app/src/worker/devtools/camera.ts packages/app/src/worker/devtools/input.ts packages/app/src/worker/devtools/types.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `git diff --check`
+- Headless Playwright/Vite smoke for `examples/developer-api` verified
+  `__APERTURE_GENERATED_APP__` reports `status: "running"`, `webgpuOk: true`,
+  rendered frame counts, worker entity summaries, input action summaries, and
+  mirrored source assets.
+
+### Known issues / remaining work
+
+- CLI folderization Tracks 8-12 remain.
+- Export/boundary guard Track 13 remains.
+
+### Recommended next task
+
+Continue with Track 8 CLI command folder split.
 
 ## Current Run Update — 2026-05-28T15:46:53Z — App browser runtime split
 

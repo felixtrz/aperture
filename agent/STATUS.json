@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "eb6f8a5b",
+  "lastCommit": "56fb4e39",
   "activePid": null,
-  "notes": "Advanced APP_CLI_STRUCTURE_REFACTOR_PLAN Track 6 by moving generated browser bootstrap internals into packages/app/src/browser/ and splitting browser startup, status, source-asset mirroring, command forwarding, canvas resize sync, render defaults, input forwarding, and devtools helpers while preserving @aperture-engine/app/browser; app typecheck, targeted app tests, typecheck:test, boundaries, build, progress check, focused lint/format, diff check, and a headless developer-api browser smoke passed.",
-  "lastRunFinishedAt": "2026-05-28T15:46:53Z"
+  "notes": "Advanced APP_CLI_STRUCTURE_REFACTOR_PLAN Track 7 by moving generated worker bootstrap internals into packages/app/src/worker/ and splitting port attachment, run loop, snapshot publication, source-asset serialization, asset summaries, command handling, viewport resize handling, payload parsing, and devtools bridge/tool modules while preserving @aperture-engine/app/worker; app typecheck, targeted app tests, typecheck:test, boundaries, build, progress check, focused lint/format, diff check, and a headless developer-api browser smoke passed.",
+  "lastRunFinishedAt": "2026-05-28T15:53:40Z"
 }
