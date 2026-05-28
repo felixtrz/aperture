@@ -364,6 +364,10 @@ Status: in progress
   resolution, and decoded-image merge/concurrency helpers now live in focused
   `glb-uri-image-*` asset modules, keeping `glb-uri-images.ts` as the decode
   orchestration facade.
+- glTF URI byte fetching, fetch-cache reuse, and context-aware fetch/read/HTTP
+  diagnostics now live in `packages/render/src/assets/gltf-uri-fetch-bytes.ts`,
+  keeping `gltf-uri-fetch.ts` focused on JSON parsing, external buffer/image
+  fetch orchestration, URL resolution, and byte merging.
 
 ## Purpose
 
