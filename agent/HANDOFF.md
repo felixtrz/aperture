@@ -1,6 +1,54 @@
 # Agent Handoff
 
-Updated: 2026-05-28T05:12:00Z
+Updated: 2026-05-28T05:15:45Z
+
+## Current Run Update — 2026-05-28T05:15:45Z — glTF mesh vertex stream split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split source buffer-view reuse, source stream candidate grouping, overlap
+  checks, required byte-length checks, and source stream construction into
+  `packages/render/src/assets/gltf-mesh-asset-source-streams.ts`.
+- Split packed interleaved vertex attribute descriptor creation, float-only
+  packing, mixed byte packing, and decoded component writes into
+  `packages/render/src/assets/gltf-mesh-asset-packed-streams.ts`.
+- Split decoded attribute support checks, decoded byte-size helpers, and
+  mesh vertex format selection into
+  `packages/render/src/assets/gltf-mesh-asset-vertex-formats.ts`, with the
+  shared attribute source contract in
+  `packages/render/src/assets/gltf-mesh-asset-vertex-stream-types.ts`.
+- Kept `packages/render/src/assets/gltf-mesh-asset-vertex-streams.ts` as the
+  existing vertex stream orchestration and re-export entry point.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-mesh-asset-vertex-streams.ts packages/render/src/assets/gltf-mesh-asset-vertex-stream-types.ts packages/render/src/assets/gltf-mesh-asset-vertex-formats.ts packages/render/src/assets/gltf-mesh-asset-source-streams.ts packages/render/src/assets/gltf-mesh-asset-packed-streams.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-mesh-asset-vertex-streams.ts packages/render/src/assets/gltf-mesh-asset-vertex-stream-types.ts packages/render/src/assets/gltf-mesh-asset-vertex-formats.ts packages/render/src/assets/gltf-mesh-asset-source-streams.ts packages/render/src/assets/gltf-mesh-asset-packed-streams.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-mesh-asset-vertex-streams.ts packages/render/src/assets/gltf-mesh-asset-vertex-stream-types.ts packages/render/src/assets/gltf-mesh-asset-vertex-formats.ts packages/render/src/assets/gltf-mesh-asset-source-streams.ts packages/render/src/assets/gltf-mesh-asset-packed-streams.ts`
+- `pnpm exec vitest run test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-accessor-validation.test.ts test/assets/gltf-report-driven-import.test.ts test/rendering/extraction.test.ts test/webgpu/standard-pipeline.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `hdr-rgbe-parser.ts`, `snapshot.ts`,
+  `gltf-scene-import-contract.ts`, `custom-wgsl-material-preparation.ts`,
+  `standard-sampler-fidelity.ts`, `snapshot-packed-codecs.ts`,
+  `authoring-validation.ts`, and `snapshot-packed-codec-utils.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining HDR parser, snapshot, scene
+import contract, custom WGSL, sampler fidelity, packed snapshot codec,
+authoring validation, or packed snapshot codec utility modules.
 
 ## Current Run Update — 2026-05-28T05:12:00Z — glTF material texture mapper split
 

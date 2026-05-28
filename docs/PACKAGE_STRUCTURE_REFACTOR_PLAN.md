@@ -332,10 +332,11 @@ Status: in progress
   `packages/render/src/mesh/primitives-builders.ts`, leaving
   `primitives.ts` focused on public shape factory functions and shape-specific
   assembly.
-- glTF mesh source-view reuse, vertex stream packing, attribute format
-  selection, and decoded component writing now live in
-  `packages/render/src/assets/gltf-mesh-asset-vertex-streams.ts`, leaving mesh
-  asset construction focused on primitive-to-asset assembly and diagnostics.
+- glTF mesh vertex stream orchestration remains in
+  `packages/render/src/assets/gltf-mesh-asset-vertex-streams.ts`, with
+  source-view reuse, packed attribute writing, decoded format support, and
+  shared stream source types split into focused `gltf-mesh-asset-*stream*` and
+  `gltf-mesh-asset-vertex-formats.ts` modules.
 - Transform, instance-tint, and instance-attribute packing guard/lookup
   helpers now live in `packages/render/src/rendering/transform-pack-guards.ts`,
   keeping `transform-pack.ts` focused on scratch/result allocation and packing

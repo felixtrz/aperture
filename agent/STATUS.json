@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "541821fc",
+  "lastCommit": "6f362a7e",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting glTF material texture-info validation, KHR_texture_transform mapping, and texture-binding resolver diagnostics into focused material modules while preserving the public material texture binding entry point; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T05:12:00Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting glTF mesh source-view stream reuse, packed vertex attribute writing, decoded format support, and shared stream source contracts into focused asset modules while preserving the public vertex stream entry point; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T05:15:45Z"
 }
