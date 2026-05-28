@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "2a827707",
+  "lastCommit": "05e7311f",
   "activePid": null,
-  "notes": "Advanced APP_CLI_STRUCTURE_REFACTOR_PLAN Track 12 by splitting reference/RAG implementation under packages/cli/src/reference/ while preserving packages/cli/src/reference.ts as the public facade; CLI typecheck, targeted reference/dev-session tests, typecheck:test, boundaries, build, progress check, focused lint/format, and diff check passed.",
-  "lastRunFinishedAt": "2026-05-28T16:25:18Z"
+  "notes": "Completed APP_CLI_STRUCTURE_REFACTOR_PLAN by adding Track 13 export/boundary guards, marking the plan complete, and updating stale WebGPU validation expectations exposed by the full suite. Full Vitest passed (367 files / 2094 tests), along with build, typecheck:test, boundaries, progress check, focused lint/format, and diff check.",
+  "lastRunFinishedAt": "2026-05-28T16:34:52Z"
 }

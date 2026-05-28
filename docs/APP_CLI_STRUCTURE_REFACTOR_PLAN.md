@@ -1,7 +1,7 @@
 # App And CLI Structure Refactor Plan
 
 Date: 2026-05-28
-Status: in progress
+Status: complete
 
 ## Implementation Progress
 
@@ -82,6 +82,9 @@ Status: in progress
   of CLI internal path aliases, app path aliases matching public subpaths, and
   examples/generated templates importing only public `@aperture-engine/app`
   entry points.
+- The plan is complete. The app and CLI package source trees now use domain
+  folders behind stable public facades, and final validation passed, including
+  full Vitest coverage.
 
 ## Summary
 

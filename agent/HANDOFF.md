@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T16:25:18Z
+Updated: 2026-05-28T16:34:52Z
+
+## Current Run Update — 2026-05-28T16:34:52Z — App/CLI structure refactor complete
+
+Completed `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Added Track 13 export/boundary guards in `test/index.test.ts`.
+- The guard now checks app package public subpaths, CLI package root exports,
+  CLI root runtime exports, absence of CLI internal path aliases, app path
+  aliases matching public subpaths, and examples/generated templates importing
+  only public `@aperture-engine/app` entry points.
+- Updated stale WebGPU validation tests exposed by the full suite:
+  draw-package fixtures now include the current packet contract, command counts
+  match redundant-state elision, pipeline-resource assertions match descriptor
+  keyed resources, and the GLB worker split image-decoder assertion reads the
+  current browser decoder module.
+- Marked `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md` complete and updated
+  `docs/index.html`.
+
+### Validation
+
+- `pnpm exec vitest run test/index.test.ts`
+- `pnpm exec vitest run test/webgpu/render-frame-draw-package-runner.test.ts test/webgpu/webgpu-app.test.ts test/examples/worker-split-examples.test.mjs test/webgpu/render-frame-draw-command-runner.test.ts test/webgpu/render-frame-render-world-package-runner.test.ts test/webgpu/fixtures/draw-package-render-frame.test.ts test/webgpu/fixtures/injected-render-frame.test.ts test/webgpu/fixtures/render-world-package-render-frame.test.ts test/webgpu/render-frame-draw-package-diagnostics.test.ts test/webgpu/render-frame-draw-package-json.test.ts`
+- `pnpm test` — 367 files / 2094 tests passed.
+- `pnpm run typecheck:test`
+- `pnpm run build`
+- `pnpm run check:boundaries`
+- `pnpm run check:progress`
+- Focused ESLint on changed Track 13 and stale WebGPU/worker-split test files.
+- Focused Prettier checks on changed docs/tests.
+- `git diff --check`
+
+### Known issues / remaining work
+
+- None for `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md`.
+
+### Recommended next task
+
+Return to the visible-feature queue in `agent/BACKLOG.md` when the next run
+starts.
 
 ## Current Run Update — 2026-05-28T16:25:18Z — CLI reference split
 
