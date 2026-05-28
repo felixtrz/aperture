@@ -2,7 +2,7 @@ import type { TextureAsset } from "./types.js";
 import type {
   GltfTextureMappingReport,
   GltfTextureMappingReportJsonValue,
-} from "./gltf-texture.js";
+} from "./gltf-texture-types.js";
 
 export function gltfTextureMappingReportToJsonValue(
   report: GltfTextureMappingReport,

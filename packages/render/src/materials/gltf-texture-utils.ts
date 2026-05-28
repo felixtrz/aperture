@@ -2,7 +2,7 @@ import type {
   GltfDecodedImageData,
   GltfImageDataResolverReport,
   GltfTextureDiagnosticValue,
-} from "./gltf-texture.js";
+} from "./gltf-texture-types.js";
 
 export function bytesView(bytes: ArrayBuffer | ArrayBufferView): Uint8Array {
   return bytes instanceof ArrayBuffer

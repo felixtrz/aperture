@@ -5,7 +5,7 @@ import type {
   GltfImageFetchResult,
   GltfImageSourceRef,
   GltfTextureAsyncLoadSource,
-} from "./gltf-texture.js";
+} from "./gltf-texture-types.js";
 import {
   bytesView,
   isRecord,

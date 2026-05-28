@@ -10,7 +10,7 @@ import type {
   GltfImageSourceRef,
   GltfTextureMappingDiagnostic,
   GltfTextureMappingOptions,
-} from "./gltf-texture.js";
+} from "./gltf-texture-types.js";
 
 export function resolveDecodedImage(input: {
   readonly options: GltfTextureMappingOptions;
