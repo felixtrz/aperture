@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T01:15:59Z
+Updated: 2026-05-28T01:21:20Z
+
+## Current Run Update — 2026-05-28T01:21:20Z — render asset preparation split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted render asset preparation public contracts into
+  `packages/render/src/assets/preparation-types.ts`.
+- Extracted generic prepared-asset store state into
+  `packages/render/src/assets/preparation-store.ts`.
+- Extracted generic prepare/unload/dependency-state orchestration into
+  `packages/render/src/assets/preparation-core.ts`.
+- Extracted mesh metadata preparation/store/report helpers and material
+  metadata preparation/store/report helpers into `preparation-mesh.ts` and
+  `preparation-material.ts`.
+- `packages/render/src/assets/preparation.ts` is now roughly 74 lines and
+  remains the stable public facade, including the existing custom WGSL material
+  exports.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/preparation.ts packages/render/src/assets/preparation-core.ts packages/render/src/assets/preparation-material.ts packages/render/src/assets/preparation-mesh.ts packages/render/src/assets/preparation-store.ts packages/render/src/assets/preparation-types.ts`
+- `pnpm exec prettier --check packages/render/src/assets/preparation.ts packages/render/src/assets/preparation-core.ts packages/render/src/assets/preparation-material.ts packages/render/src/assets/preparation-mesh.ts packages/render/src/assets/preparation-store.ts packages/render/src/assets/preparation-types.ts`
+- `pnpm exec vitest run test/assets/render-asset-preparation.test.ts test/rendering/render-world-prepared-resources.test.ts test/rendering/render-world-prepared-materials.test.ts test/rendering/render-world-prepared-meshes.test.ts test/rendering/render-world-prepared-resource-summary.test.ts test/rendering/snapshot-prepared-materials.test.ts test/rendering/material-queue.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-material.ts`,
+  `gltf-scene-traversal.ts`, `ktx2-decoder.ts`, `glb-uri-images.ts`,
+  `gltf-uri-fetch.ts`, and `snapshot-packed-codecs.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting glTF material assembly or glTF scene traversal.
 
 ## Current Run Update — 2026-05-28T01:15:59Z — glTF accessor validation split
 

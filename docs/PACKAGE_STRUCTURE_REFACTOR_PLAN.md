@@ -344,6 +344,10 @@ Status: in progress
   buffer/bufferView bounds checks, diagnostic attachment, and shared field
   guards now live in focused `gltf-accessor-validation-*` asset modules,
   keeping `gltf-accessor-validation.ts` as the validation/report facade.
+- Render asset preparation contracts, generic preparation/unload flow, prepared
+  asset store state, mesh metadata preparation, and material metadata
+  preparation now live in focused `preparation-*` asset modules, keeping
+  `preparation.ts` as the stable public facade.
 
 ## Purpose
 
