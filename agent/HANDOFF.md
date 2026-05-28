@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T03:33:25Z
+Updated: 2026-05-28T03:38:02Z
+
+## Current Run Update — 2026-05-28T03:38:02Z — glTF report-driven import split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split glTF report-driven import public contracts into
+  `packages/render/src/assets/gltf-report-driven-import-types.ts`.
+- Split mesh-report pipeline composition, including meshopt, Draco, accessor
+  validation/decoding merge, mesh construction, and missing-tangent requests,
+  into `packages/render/src/assets/gltf-report-driven-import-meshes.ts`.
+- Updated report-driven import JSON and GLB buffer helpers to depend on the
+  focused type module.
+- Reduced `packages/render/src/assets/gltf-report-driven-import.ts` from 477
+  lines to 196 lines, leaving it as the stable public facade for root/asset/
+  scene orchestration and GLB handoff.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/gltf-report-driven-import.ts packages/render/src/assets/gltf-report-driven-import-types.ts packages/render/src/assets/gltf-report-driven-import-meshes.ts packages/render/src/assets/gltf-report-driven-import-buffers.ts packages/render/src/assets/gltf-report-driven-import-json.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-report-driven-import.ts packages/render/src/assets/gltf-report-driven-import-types.ts packages/render/src/assets/gltf-report-driven-import-meshes.ts packages/render/src/assets/gltf-report-driven-import-buffers.ts packages/render/src/assets/gltf-report-driven-import-json.ts`
+- `pnpm exec vitest run test/assets/gltf-report-driven-import.test.ts test/assets/gltf-report-driven-import-json.test.ts test/assets/gltf-combined-import-fixture.test.ts test/assets/gltf-combined-import-fixture-json.test.ts test/assets/gltf-combined-import-unresolved-material.test.ts test/assets/meshopt-decoder.test.ts test/assets/draco-decoder.test.ts`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `hdr-rgbe-loader.ts`, extraction mesh helpers, view/transform packing
+  facades, and several older asset/material facades.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting extraction mesh helpers, view/transform packing
+helpers, or one of the remaining decoder modules.
 
 ## Current Run Update — 2026-05-28T03:33:25Z — glTF mesh construction helper split
 

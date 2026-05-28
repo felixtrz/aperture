@@ -446,6 +446,10 @@ Status: in progress
   `gltf-mesh-asset-construction-*` asset modules, leaving
   `gltf-mesh-asset-construction.ts` focused on primitive-to-mesh assembly
   orchestration.
+- glTF report-driven import public contracts and mesh import pipeline
+  composition now live in focused `gltf-report-driven-import-*` asset modules,
+  leaving `gltf-report-driven-import.ts` focused on root/asset/scene
+  orchestration and GLB handoff.
 
 ## Purpose
 
