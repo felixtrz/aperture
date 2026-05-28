@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T03:59:49Z
+Updated: 2026-05-28T04:03:27Z
+
+## Current Run Update — 2026-05-28T04:03:27Z — HDR RGBE loader split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split Radiance HDR RGBE public contracts into
+  `packages/render/src/assets/hdr-rgbe-types.ts`.
+- Split header parsing, RLE/flat pixel decoding, RGBE-to-float conversion, and
+  parser diagnostics into `packages/render/src/assets/hdr-rgbe-parser.ts`.
+- Split URI normalization, fetch/read diagnostics, and parser diagnostic
+  projection into `packages/render/src/assets/hdr-rgbe-uri-loader.ts`.
+- Kept `packages/render/src/assets/hdr-rgbe-loader.ts` as the stable public
+  facade for `parseHdrRgbe`, `loadHdrFromUri`, and existing exported types.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/hdr-rgbe-loader.ts packages/render/src/assets/hdr-rgbe-parser.ts packages/render/src/assets/hdr-rgbe-types.ts packages/render/src/assets/hdr-rgbe-uri-loader.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/hdr-rgbe-loader.ts packages/render/src/assets/hdr-rgbe-parser.ts packages/render/src/assets/hdr-rgbe-types.ts packages/render/src/assets/hdr-rgbe-uri-loader.ts`
+- `pnpm exec prettier --check packages/render/src/assets/hdr-rgbe-loader.ts packages/render/src/assets/hdr-rgbe-parser.ts packages/render/src/assets/hdr-rgbe-types.ts packages/render/src/assets/hdr-rgbe-uri-loader.ts`
+- `pnpm exec vitest run test/assets/hdr-rgbe-loader.test.ts test/webgpu/ibl-texture-resource.test.ts test/e2e/tonemap-showcase.spec.ts` (Vitest matched and ran the two unit files)
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `gltf-uri-fetch.ts`, `mesh/primitives.ts`, and several older asset/material
+  facades.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining decoder, URI asset, mesh
+primitive, or material facade modules.
 
 ## Current Run Update — 2026-05-28T03:59:49Z — GLB container helper split
 
