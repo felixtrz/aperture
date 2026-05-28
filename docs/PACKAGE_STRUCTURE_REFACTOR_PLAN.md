@@ -481,6 +481,9 @@ Status: in progress
 - App entity lookup ECS-to-summary projection, active-entity collection,
   reference validation, stable ref keys, and JSON-safe value projection now live
   in `packages/app/src/entity-lookup-summary.ts`.
+- App entity hierarchy assembly and hierarchy sorting now live in
+  `packages/app/src/entity-lookup-hierarchy.ts`, preserving the existing
+  `createApertureEntityHierarchy()` export through `entity-lookup.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
