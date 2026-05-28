@@ -1,6 +1,42 @@
 # Agent Handoff
 
-Updated: 2026-05-28T01:59:39Z
+Updated: 2026-05-28T02:03:35Z
+
+## Current Run Update — 2026-05-28T02:03:35Z — GLB URI byte-fetch split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted GLB URI byte fetching, byte cache reuse, cached diagnostic
+  remapping, and context-aware fetch/read/HTTP diagnostics into
+  `packages/render/src/assets/glb-uri-fetch-bytes.ts`.
+- `packages/render/src/assets/glb-uri-fetch.ts` is now roughly 387 lines and
+  remains focused on external buffer/image fetch orchestration, same-origin URL
+  resolution, and byte merging.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/glb-uri-fetch.ts packages/render/src/assets/glb-uri-fetch-bytes.ts`
+- `pnpm exec prettier --check packages/render/src/assets/glb-uri-fetch.ts packages/render/src/assets/glb-uri-fetch-bytes.ts`
+- `pnpm exec vitest run test/assets/glb-uri-loader.test.ts test/assets/glb-source-loader-facade.test.ts test/assets/glb-source-loader-output-summary.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `snapshot-packed-codecs.ts`, `render-queue.ts`,
+  `standard-texture-readiness.ts`, and `gltf-ecs-authoring-command-plan.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining decoder, queue, or texture
+readiness helpers.
 
 ## Current Run Update — 2026-05-28T01:59:39Z — glTF accessor decoding split
 
