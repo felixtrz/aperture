@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-28T10:47:50Z
+Updated: 2026-05-28T10:51:32Z
+
+## Current Run Update — 2026-05-28T10:51:32Z — Vite dev-session split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 7.
+
+### What changed
+
+- Split Vite plugin dev-session bridge/session metadata into
+  `packages/vite-plugin/src/dev-session.ts`.
+- Moved devtools WS bridge registration, session-file writing, endpoint
+  normalization, managed-browser bridge descriptors, and the dev server type out
+  of `index.ts`.
+- Preserved public root exports for `APERTURE_VITE_DEVTOOLS_WS_CHANNEL` and
+  `ApertureViteDevServer`.
+- Reduced `packages/vite-plugin/src/index.ts` from 323 lines to 115 lines.
+
+### Validation
+
+- `pnpm exec prettier --write packages/vite-plugin/src/index.ts packages/vite-plugin/src/dev-session.ts`
+- `pnpm --filter @aperture-engine/vite-plugin run typecheck`
+- `pnpm exec eslint packages/vite-plugin/src/index.ts packages/vite-plugin/src/dev-session.ts packages/vite-plugin/src/virtual-modules.ts packages/vite-plugin/src/system-discovery.ts packages/vite-plugin/src/generated-action-types.ts packages/vite-plugin/src/file-utils.ts packages/vite-plugin/src/typescript-ast.ts`
+- `pnpm exec prettier --check packages/vite-plugin/src/index.ts packages/vite-plugin/src/dev-session.ts packages/vite-plugin/src/virtual-modules.ts packages/vite-plugin/src/system-discovery.ts packages/vite-plugin/src/generated-action-types.ts packages/vite-plugin/src/file-utils.ts packages/vite-plugin/src/typescript-ast.ts`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/app/input-state.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 7 is now in the intended shape: `index.ts` is compact hook wiring, and
+  generated actions, system discovery, virtual modules, shared AST/file helpers,
+  and dev-session metadata are separated.
+- Track 8 remains: split CLI command wiring, create/dev/tool/MCP/reference
+  command implementation, dev-session transport, browser tools, and RAG
+  tooling.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Start Track 8 by splitting `packages/cli/src/cli.ts` command wiring from
+command implementations.
 
 ## Current Run Update — 2026-05-28T10:47:50Z — Vite virtual modules split
 
