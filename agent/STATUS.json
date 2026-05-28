@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "6657e298",
+  "lastCommit": "eb6f8a5b",
   "activePid": null,
-  "notes": "Advanced APP_CLI_STRUCTURE_REFACTOR_PLAN Track 5 by moving entity lookup internals into packages/app/src/entities/lookup/ and splitting spatial queries into packages/app/src/spatial/ while preserving public facades; app typecheck, targeted app tests, typecheck:test, boundaries, build, focused lint/format, and diff check passed.",
-  "lastRunFinishedAt": "2026-05-28T15:29:44Z"
+  "notes": "Advanced APP_CLI_STRUCTURE_REFACTOR_PLAN Track 6 by moving generated browser bootstrap internals into packages/app/src/browser/ and splitting browser startup, status, source-asset mirroring, command forwarding, canvas resize sync, render defaults, input forwarding, and devtools helpers while preserving @aperture-engine/app/browser; app typecheck, targeted app tests, typecheck:test, boundaries, build, progress check, focused lint/format, diff check, and a headless developer-api browser smoke passed.",
+  "lastRunFinishedAt": "2026-05-28T15:46:53Z"
 }

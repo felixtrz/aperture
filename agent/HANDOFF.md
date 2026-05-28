@@ -1,6 +1,57 @@
 # Agent Handoff
 
-Updated: 2026-05-28T15:29:44Z
+Updated: 2026-05-28T15:46:53Z
+
+## Current Run Update — 2026-05-28T15:46:53Z — App browser runtime split
+
+Continued `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Moved generated browser bootstrap implementation into
+  `packages/app/src/browser/`.
+- Kept `packages/app/src/browser.ts` as the public
+  `@aperture-engine/app/browser` facade.
+- Split browser startup, generated status installation, source-asset mirroring,
+  generated command forwarding, canvas resize sync, diagnostics sync, render
+  setting normalization, and input forwarding into focused browser modules.
+- Split browser devtools into runtime installation, tool dispatch, canvas
+  readback, entity picking, payload parsing, shared result types, and WebGPU
+  diagnostic helpers under `packages/app/src/browser/devtools/`.
+- Updated the developer API e2e spec to expect the current typed button action
+  summary shape (`value: true`) already asserted by the app unit tests.
+- Recorded Track 6 progress in `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md` and
+  `docs/index.html`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/index.test.ts`
+- `pnpm exec prettier --write packages/app/src/browser.ts packages/app/src/browser/app.ts packages/app/src/browser/assets.ts packages/app/src/browser/canvas.ts packages/app/src/browser/commands.ts packages/app/src/browser/diagnostics.ts packages/app/src/browser/input.ts packages/app/src/browser/render.ts packages/app/src/browser/status.ts packages/app/src/browser/devtools/index.ts packages/app/src/browser/devtools/runtime.ts packages/app/src/browser/devtools/dispatch.ts packages/app/src/browser/devtools/types.ts packages/app/src/browser/devtools/payloads.ts packages/app/src/browser/devtools/canvas-readback.ts packages/app/src/browser/devtools/picking.ts packages/app/src/browser/devtools/webgpu-diagnostics.ts test/e2e/developer-api.spec.ts docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md docs/index.html`
+- `pnpm exec eslint packages/app/src/browser.ts packages/app/src/browser/app.ts packages/app/src/browser/assets.ts packages/app/src/browser/canvas.ts packages/app/src/browser/commands.ts packages/app/src/browser/diagnostics.ts packages/app/src/browser/input.ts packages/app/src/browser/render.ts packages/app/src/browser/status.ts packages/app/src/browser/devtools/index.ts packages/app/src/browser/devtools/runtime.ts packages/app/src/browser/devtools/dispatch.ts packages/app/src/browser/devtools/types.ts packages/app/src/browser/devtools/payloads.ts packages/app/src/browser/devtools/canvas-readback.ts packages/app/src/browser/devtools/picking.ts packages/app/src/browser/devtools/webgpu-diagnostics.ts test/e2e/developer-api.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `git diff --check`
+- Headless Playwright/Vite smoke for `examples/developer-api` verified
+  `__APERTURE_GENERATED_APP__` reports `status: "running"`, `webgpuOk: true`,
+  rendered frame counts, render settings, canvas resize status, and mirrored
+  source assets.
+
+### Known issues / remaining work
+
+- Track 7 remains: split generated worker runtime implementation into
+  `packages/app/src/worker/`.
+- CLI folderization Tracks 8-12 and export/boundary Track 13 remain.
+- `pnpm exec playwright test test/e2e/developer-api.spec.ts` reached the test
+  pass line after the assertion correction, but headed Chrome stayed open during
+  runner cleanup in this local environment. The equivalent headless
+  Playwright/Vite smoke exited cleanly and verified generated browser status.
+
+### Recommended next task
+
+Continue with Track 7 app worker runtime split.
 
 ## Current Run Update — 2026-05-28T15:29:44Z — App entity/spatial folderization
 
