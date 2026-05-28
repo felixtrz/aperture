@@ -1,15 +1,5 @@
-import type { Aabb, BoundingSphere } from "@aperture-engine/simulation";
-
-import type {
-  GltfDecodedAccessor,
-  GltfDecodedPrimitiveAccessors,
-} from "./gltf-accessor-decoding.js";
-import type {
-  MeshAsset,
-  MeshIndexBufferDescriptor,
-  MeshMorphTargetDescriptor,
-  MeshVertexAttributeDescriptor,
-} from "../mesh/index.js";
+import type { GltfDecodedPrimitiveAccessors } from "./gltf-accessor-decoding.js";
+import type { MeshAsset } from "../mesh/index.js";
 import type {
   GltfMeshAssetConstructionDiagnostic,
   GltfMeshAssetConstructionOptions,
@@ -17,13 +7,21 @@ import type {
   GltfMeshAssetTangentGenerationRequest,
   GltfPlannedMeshSourceAsset,
 } from "./gltf-mesh-asset-construction-types.js";
-import { generateMissingTangents } from "./gltf-mesh-tangents.js";
+import { collectGltfMeshAttributeSources } from "./gltf-mesh-asset-construction-attributes.js";
 import {
-  createVertexStreams,
-  decodedAttributeByteSize,
-  isSupportedMeshAttributeArray,
-  type GltfMeshAttributeSource,
-} from "./gltf-mesh-asset-vertex-streams.js";
+  createGltfMeshAssetDiagnostic,
+  gltfMeshAssetIdFromRegisteredHandleKey,
+  gltfMeshPrimitiveRequestKey,
+} from "./gltf-mesh-asset-construction-diagnostics.js";
+import {
+  createGltfMeshMorphTargetDescriptors,
+  createGltfMeshSkinningSchema,
+} from "./gltf-mesh-asset-construction-schema.js";
+import {
+  computeGltfMeshBounds,
+  createGltfMeshIndexBuffer,
+} from "./gltf-mesh-asset-construction-validation.js";
+import { createVertexStreams } from "./gltf-mesh-asset-vertex-streams.js";
 
 export type {
   GltfMeshAssetConstructionArrayJsonSummary,
@@ -51,7 +49,7 @@ export function createMeshAssetsFromGltfDecodedAccessors(
   const meshes: GltfPlannedMeshSourceAsset[] = [];
   const tangentRequests = new Map(
     (options.generateMissingTangentsFor ?? []).map((request) => [
-      primitiveRequestKey(request.meshIndex, request.primitiveIndex),
+      gltfMeshPrimitiveRequestKey(request.meshIndex, request.primitiveIndex),
       request,
     ]),
   );
@@ -61,11 +59,16 @@ export function createMeshAssetsFromGltfDecodedAccessors(
       primitive,
       diagnostics,
       tangentRequests.get(
-        primitiveRequestKey(primitive.meshIndex, primitive.primitiveIndex),
+        gltfMeshPrimitiveRequestKey(
+          primitive.meshIndex,
+          primitive.primitiveIndex,
+        ),
       ),
     );
     meshes.push({
-      handleKey: meshIdFromRegisteredHandleKey(primitive.meshHandleKey),
+      handleKey: gltfMeshAssetIdFromRegisteredHandleKey(
+        primitive.meshHandleKey,
+      ),
       registeredHandleKey: primitive.meshHandleKey,
       meshIndex: primitive.meshIndex,
       primitiveIndex: primitive.primitiveIndex,
@@ -90,15 +93,19 @@ function createMeshAssetFromPrimitive(
   );
   if (position === undefined || !(position.array instanceof Float32Array)) {
     diagnostics.push(
-      diagnostic(primitive, "gltfMeshAsset.missingPosition", {
-        semantic: "POSITION",
-        message: `Primitive '${primitive.meshHandleKey}' cannot construct a MeshAsset without decoded POSITION data.`,
-      }),
+      createGltfMeshAssetDiagnostic(
+        primitive,
+        "gltfMeshAsset.missingPosition",
+        {
+          semantic: "POSITION",
+          message: `Primitive '${primitive.meshHandleKey}' cannot construct a MeshAsset without decoded POSITION data.`,
+        },
+      ),
     );
     return null;
   }
 
-  const attributes = collectAttributes(
+  const attributes = collectGltfMeshAttributeSources(
     primitive,
     position,
     diagnostics,
@@ -109,18 +116,18 @@ function createMeshAssetFromPrimitive(
   }
 
   const vertexStreams = createVertexStreams(primitive.vertexCount, attributes);
-  const indices = createIndexBuffer(primitive, diagnostics);
+  const indices = createGltfMeshIndexBuffer(primitive, diagnostics);
   if (indices === null && primitive.indices !== null) {
     return null;
   }
 
-  const bounds = computeBounds(position, primitive, diagnostics);
+  const bounds = computeGltfMeshBounds(position, primitive, diagnostics);
   if (bounds === null) {
     return null;
   }
   const descriptors = vertexStreams.flatMap((stream) => stream.attributes);
-  const skinning = createMeshSkinningSchema(descriptors);
-  const morphTargets = createMeshMorphTargetDescriptors(descriptors);
+  const skinning = createGltfMeshSkinningSchema(descriptors);
+  const morphTargets = createGltfMeshMorphTargetDescriptors(descriptors);
 
   return {
     kind: "mesh",
@@ -144,281 +151,4 @@ function createMeshAssetFromPrimitive(
     ...(skinning === null ? {} : { skinning }),
     ...(morphTargets.length === 0 ? {} : { morphTargets }),
   };
-}
-
-function createMeshSkinningSchema(
-  descriptors: readonly MeshVertexAttributeDescriptor[],
-): NonNullable<MeshAsset["skinning"]> | null {
-  const hasJoints0 = descriptors.some(
-    (descriptor) => descriptor.semantic === "JOINTS_0",
-  );
-  const hasWeights0 = descriptors.some(
-    (descriptor) => descriptor.semantic === "WEIGHTS_0",
-  );
-
-  return hasJoints0 && hasWeights0
-    ? { joints0: "JOINTS_0", weights0: "WEIGHTS_0" }
-    : null;
-}
-
-function createMeshMorphTargetDescriptors(
-  descriptors: readonly MeshVertexAttributeDescriptor[],
-): NonNullable<MeshAsset["morphTargets"]> {
-  const semantics = new Set(
-    descriptors.map((descriptor) => descriptor.semantic),
-  );
-  const targets: MeshMorphTargetDescriptor[] = [];
-
-  if (semantics.has("MORPH_POSITION_0")) {
-    targets.push({
-      label: "target0",
-      positionSemantic: "MORPH_POSITION_0",
-      ...(semantics.has("MORPH_NORMAL_0")
-        ? { normalSemantic: "MORPH_NORMAL_0" }
-        : {}),
-    });
-  }
-
-  if (semantics.has("MORPH_POSITION_1")) {
-    targets.push({
-      label: "target1",
-      positionSemantic: "MORPH_POSITION_1",
-      ...(semantics.has("MORPH_NORMAL_1")
-        ? { normalSemantic: "MORPH_NORMAL_1" }
-        : {}),
-    });
-  }
-
-  return targets;
-}
-
-function collectAttributes(
-  primitive: GltfDecodedPrimitiveAccessors,
-  position: GltfDecodedAccessor,
-  diagnostics: GltfMeshAssetConstructionDiagnostic[],
-  tangentRequest: GltfMeshAssetTangentGenerationRequest | undefined,
-): readonly GltfMeshAttributeSource[] | null {
-  const sources: GltfMeshAttributeSource[] = [{ decoded: position, offset: 0 }];
-  let offset = decodedAttributeByteSize(position);
-  const decodedBySemantic = new Map(
-    primitive.attributes.map((attribute) => [attribute.semantic, attribute]),
-  );
-
-  if (tangentRequest !== undefined && !decodedBySemantic.has("TANGENT")) {
-    const generated = generateMissingTangents(
-      primitive,
-      position,
-      decodedBySemantic.get("NORMAL"),
-      decodedBySemantic.get("TEXCOORD_0"),
-      diagnostics,
-      tangentRequest,
-    );
-
-    if (generated !== null) {
-      decodedBySemantic.set("TANGENT", generated);
-    }
-  }
-
-  for (const semantic of [
-    "NORMAL",
-    "TEXCOORD_0",
-    "JOINTS_0",
-    "WEIGHTS_0",
-    "MORPH_POSITION_0",
-    "MORPH_NORMAL_0",
-    "MORPH_POSITION_1",
-    "MORPH_NORMAL_1",
-    "TANGENT",
-    "TEXCOORD_1",
-    "COLOR_0",
-  ] as const) {
-    const decoded =
-      decodedBySemantic.get(semantic) ??
-      createZeroMorphAccessor(semantic, primitive, decodedBySemantic);
-    if (decoded === undefined) {
-      continue;
-    }
-
-    const count = decoded.array.length / decoded.itemSize;
-    if (
-      count !== primitive.vertexCount ||
-      !isSupportedMeshAttributeArray(decoded)
-    ) {
-      diagnostics.push(
-        diagnostic(primitive, "gltfMeshAsset.mismatchedAttributeCount", {
-          semantic,
-          vertexCount: primitive.vertexCount,
-          message: `Primitive '${primitive.meshHandleKey}' ${semantic} attribute count does not match POSITION vertex count.`,
-        }),
-      );
-      return null;
-    }
-
-    sources.push({ decoded, offset });
-    offset += decodedAttributeByteSize(decoded);
-  }
-
-  return sources;
-}
-
-function createZeroMorphAccessor(
-  semantic: string,
-  primitive: GltfDecodedPrimitiveAccessors,
-  decodedBySemantic: ReadonlyMap<string, GltfDecodedAccessor>,
-): GltfDecodedAccessor | undefined {
-  const requiredByPosition =
-    semantic === "MORPH_NORMAL_0"
-      ? decodedBySemantic.has("MORPH_POSITION_0")
-      : semantic === "MORPH_POSITION_1" || semantic === "MORPH_NORMAL_1"
-        ? decodedBySemantic.has("MORPH_POSITION_0")
-        : false;
-
-  if (!requiredByPosition) {
-    return undefined;
-  }
-
-  return {
-    semantic: semantic as GltfDecodedAccessor["semantic"],
-    accessorIndex: -1,
-    bufferIndex: -1,
-    sourceByteOffset: 0,
-    sourceByteLength: 0,
-    expectedFormat: "float32x3",
-    itemSize: 3,
-    array: new Float32Array(primitive.vertexCount * 3),
-  };
-}
-
-function createIndexBuffer(
-  primitive: GltfDecodedPrimitiveAccessors,
-  diagnostics: GltfMeshAssetConstructionDiagnostic[],
-): MeshIndexBufferDescriptor | null {
-  if (primitive.indices === null) {
-    return null;
-  }
-
-  const source = primitive.indices.array;
-  if (!(source instanceof Uint16Array) && !(source instanceof Uint32Array)) {
-    diagnostics.push(
-      diagnostic(primitive, "gltfMeshAsset.unsupportedSemantic", {
-        semantic: "INDICES",
-        message: `Primitive '${primitive.meshHandleKey}' has unsupported index array type.`,
-      }),
-    );
-    return null;
-  }
-
-  for (const indexValue of source) {
-    if (indexValue >= primitive.vertexCount) {
-      diagnostics.push(
-        diagnostic(primitive, "gltfMeshAsset.invalidIndexValue", {
-          semantic: "INDICES",
-          indexValue,
-          vertexCount: primitive.vertexCount,
-          message: `Primitive '${primitive.meshHandleKey}' index ${indexValue} is outside vertex count ${primitive.vertexCount}.`,
-        }),
-      );
-      return null;
-    }
-  }
-
-  return {
-    format: source instanceof Uint16Array ? "uint16" : "uint32",
-    data: source,
-  };
-}
-
-function computeBounds(
-  position: GltfDecodedAccessor,
-  primitive: GltfDecodedPrimitiveAccessors,
-  diagnostics: GltfMeshAssetConstructionDiagnostic[],
-): { readonly aabb: Aabb; readonly sphere: BoundingSphere } | null {
-  if (position.array.length < 3 || position.itemSize !== 3) {
-    diagnostics.push(
-      diagnostic(primitive, "gltfMeshAsset.missingBounds", {
-        semantic: "POSITION",
-        message: `Primitive '${primitive.meshHandleKey}' cannot compute bounds without float32x3 POSITION data.`,
-      }),
-    );
-    return null;
-  }
-
-  const min: [number, number, number] = [
-    Number.POSITIVE_INFINITY,
-    Number.POSITIVE_INFINITY,
-    Number.POSITIVE_INFINITY,
-  ];
-  const max: [number, number, number] = [
-    Number.NEGATIVE_INFINITY,
-    Number.NEGATIVE_INFINITY,
-    Number.NEGATIVE_INFINITY,
-  ];
-
-  for (let i = 0; i < position.array.length; i += 3) {
-    for (const axis of [0, 1, 2] as const) {
-      const value = position.array[i + axis] ?? 0;
-      min[axis] = Math.min(min[axis], value);
-      max[axis] = Math.max(max[axis], value);
-    }
-  }
-
-  if (!min.every(Number.isFinite) || !max.every(Number.isFinite)) {
-    diagnostics.push(
-      diagnostic(primitive, "gltfMeshAsset.invalidBounds", {
-        semantic: "POSITION",
-        message: `Primitive '${primitive.meshHandleKey}' produced non-finite bounds.`,
-      }),
-    );
-    return null;
-  }
-
-  const center: [number, number, number] = [
-    (min[0] + max[0]) / 2,
-    (min[1] + max[1]) / 2,
-    (min[2] + max[2]) / 2,
-  ];
-  let radius = 0;
-  for (let i = 0; i < position.array.length; i += 3) {
-    const dx = (position.array[i] ?? 0) - center[0];
-    const dy = (position.array[i + 1] ?? 0) - center[1];
-    const dz = (position.array[i + 2] ?? 0) - center[2];
-    radius = Math.max(radius, Math.hypot(dx, dy, dz));
-  }
-
-  return {
-    aabb: { min, max },
-    sphere: { center, radius },
-  };
-}
-
-function diagnostic(
-  primitive: GltfDecodedPrimitiveAccessors,
-  code: string,
-  input: Omit<
-    GltfMeshAssetConstructionDiagnostic,
-    "code" | "severity" | "meshHandleKey" | "meshIndex" | "primitiveIndex"
-  >,
-): GltfMeshAssetConstructionDiagnostic {
-  return {
-    code,
-    severity: "error",
-    meshHandleKey: primitive.meshHandleKey,
-    meshIndex: primitive.meshIndex,
-    primitiveIndex: primitive.primitiveIndex,
-    ...input,
-  };
-}
-
-function meshIdFromRegisteredHandleKey(handleKey: string): string {
-  const prefix = "mesh:";
-  return handleKey.startsWith(prefix)
-    ? handleKey.slice(prefix.length)
-    : handleKey;
-}
-
-function primitiveRequestKey(
-  meshIndex: number,
-  primitiveIndex: number,
-): string {
-  return `${meshIndex}:${primitiveIndex}`;
 }
