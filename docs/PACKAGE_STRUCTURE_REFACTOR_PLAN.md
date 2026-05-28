@@ -471,6 +471,10 @@ Status: in progress
   `packages/app/src/input-state-summary.ts`, keeping `input-state.ts` focused
   on frame/event application, virtual action state, and legacy gamepad signal
   synchronization.
+- App config validation and the config error type now live in
+  `packages/app/src/config-validation.ts` and
+  `packages/app/src/config-error.ts`, keeping `config.ts` focused on public
+  config contracts and helper factories while preserving existing exports.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

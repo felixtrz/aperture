@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-28T09:49:04Z
+Updated: 2026-05-28T09:52:46Z
+
+## Current Run Update — 2026-05-28T09:52:46Z — app config validation split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 6.
+
+### What changed
+
+- Split app config validation into `packages/app/src/config-validation.ts`.
+- Split `ApertureConfigError` into `packages/app/src/config-error.ts`.
+- Preserved `ApertureConfigError` and `validateApertureConfig()` exports
+  through `packages/app/src/config.ts`.
+- Reduced `packages/app/src/config.ts` from 768 lines to 419 lines, keeping it
+  focused on public config contracts and helper factories.
+
+### Validation
+
+- `pnpm exec prettier --write packages/app/src/config.ts packages/app/src/config-error.ts packages/app/src/config-validation.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec eslint packages/app/src/config.ts packages/app/src/config-error.ts packages/app/src/config-validation.ts`
+- `pnpm exec prettier --check packages/app/src/config.ts packages/app/src/config-error.ts packages/app/src/config-validation.ts`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/app/input-state.test.ts test/runtime/simulation-worker.test.ts test/index.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 6 still needs focused app modules for generated browser/worker
+  bootstrapping, entity lookup, and possibly config type/helper grouping.
+- Remaining large app files include `worker.ts`, `browser.ts`, and
+  `entity-lookup.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 6 by splitting generated browser/worker bootstrapping or entity
+lookup.
 
 ## Current Run Update — 2026-05-28T09:49:04Z — app system context split
 
