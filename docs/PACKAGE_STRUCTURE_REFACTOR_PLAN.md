@@ -435,6 +435,11 @@ Status: in progress
   in focused `gltf-scene-import-contract-*` asset modules, leaving
   `gltf-scene-import-contract.ts` focused on composing mapping, traversal,
   material resolution, ECS command planning, summary, and diagnostics.
+- glTF asset mapping public types, JSON report projection, texture-slot
+  discovery, planned handle keys, sampler-source lookup, and texture diagnostic
+  conversion now live in focused `gltf-asset-mapping-*` asset modules, leaving
+  `gltf-asset-mapping.ts` focused on root validation plus texture/sampler/
+  material mapping orchestration.
 
 ## Purpose
 

@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "0df87300",
+  "lastCommit": "40489ff4",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting glTF scene import contract types and JSON report projection into focused asset modules after render queue, primitive factory, mesh merge, and material queue splits; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T03:16:49Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting glTF asset mapping contracts, JSON projection, texture-slot discovery, handle-key helpers, sampler lookup, and texture diagnostic conversion into focused asset modules; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T03:23:51Z"
 }
