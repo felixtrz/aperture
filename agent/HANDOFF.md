@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T06:10:32Z
+Updated: 2026-05-28T06:14:30Z
+
+## Current Run Update — 2026-05-28T06:14:30Z — material dependency readiness split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split material dependency readiness public contracts into
+  `packages/render/src/materials/dependency-readiness-types.ts`.
+- Split per-slot texture/sampler readiness inspection and diagnostic code
+  mapping into
+  `packages/render/src/materials/dependency-readiness-inspection.ts`.
+- Kept `packages/render/src/materials/dependency-readiness.ts` as the stable
+  public report creation, compatibility alias, and JSON facade.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/materials/dependency-readiness.ts packages/render/src/materials/dependency-readiness-types.ts packages/render/src/materials/dependency-readiness-inspection.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/materials/dependency-readiness.ts packages/render/src/materials/dependency-readiness-types.ts packages/render/src/materials/dependency-readiness-inspection.ts`
+- `pnpm exec prettier --check packages/render/src/materials/dependency-readiness.ts packages/render/src/materials/dependency-readiness-types.ts packages/render/src/materials/dependency-readiness-inspection.ts`
+- `pnpm exec vitest run test/materials/material-dependency-readiness.test.ts test/materials/matcap-preparation.test.ts test/materials/prepared-material-resource.test.ts test/webgpu/material-dependency-diagnostics-summary.test.ts test/webgpu/app-diagnostics-summary.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `extraction-meshes.ts`,
+  `gltf-accessor-validation-primitives.ts`, `draw-package.ts`,
+  `render-queue-sort.ts`, `gltf-source-registration.ts`,
+  `gltf-mesh-primitive.ts`, and `gltf-mesh-source-registration.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining extraction mesh, accessor
+validation primitive, draw package, render queue sort, source registration, or
+mesh primitive modules.
 
 ## Current Run Update — 2026-05-28T06:10:32Z — snapshot packed encoding split
 

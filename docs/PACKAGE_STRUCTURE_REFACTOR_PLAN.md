@@ -319,6 +319,11 @@ Status: in progress
   texture/sampler slot inspection lives in
   `packages/render/src/materials/standard-sampler-fidelity-inspection.ts`,
   leaving `standard-sampler-fidelity.ts` as the stable report facade.
+- Material dependency readiness public contracts now live in
+  `packages/render/src/materials/dependency-readiness-types.ts`, and
+  per-slot texture/sampler readiness inspection lives in
+  `packages/render/src/materials/dependency-readiness-inspection.ts`, leaving
+  `dependency-readiness.ts` as the stable report and JSON facade.
 - glTF mesh generated tangent math and tangent-generation diagnostics now live
   in `packages/render/src/assets/gltf-mesh-tangents.ts`, leaving
   `gltf-mesh-asset-construction.ts` focused on mesh asset assembly.
