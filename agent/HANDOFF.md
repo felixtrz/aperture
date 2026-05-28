@@ -1,6 +1,41 @@
 # Agent Handoff
 
-Updated: 2026-05-28T01:05:44Z
+Updated: 2026-05-28T01:08:45Z
+
+## Current Run Update — 2026-05-28T01:08:45Z — transform pack guard split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted transform-range checks, vec4 checks, transform offset lookup,
+  instance-attribute field/value checks, and missing-transform diagnostics into
+  `packages/render/src/rendering/transform-pack-guards.ts`.
+- `packages/render/src/rendering/transform-pack.ts` is now roughly 839 lines
+  and remains focused on scratch/result allocation plus transform/tint/instance
+  attribute packing writers.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/rendering/transform-pack.ts packages/render/src/rendering/transform-pack-guards.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/transform-pack.ts packages/render/src/rendering/transform-pack-guards.ts`
+- `pnpm exec vitest run test/rendering/transform-pack.test.ts test/rendering/extraction.test.ts test/webgpu/fixtures/ecs-snapshot-render-frame.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-accessor-validation.ts`,
+  `preparation.ts`, `gltf-material.ts`, `gltf-scene-traversal.ts`,
+  `ktx2-decoder.ts`, and `glb-uri-images.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting glTF accessor validation or preparation.
 
 ## Current Run Update — 2026-05-28T01:05:44Z — glTF mesh vertex stream split
 

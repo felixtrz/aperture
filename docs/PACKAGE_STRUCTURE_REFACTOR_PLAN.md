@@ -336,6 +336,10 @@ Status: in progress
   selection, and decoded component writing now live in
   `packages/render/src/assets/gltf-mesh-asset-vertex-streams.ts`, leaving mesh
   asset construction focused on primitive-to-asset assembly and diagnostics.
+- Transform, instance-tint, and instance-attribute packing guard/lookup
+  helpers now live in `packages/render/src/rendering/transform-pack-guards.ts`,
+  keeping `transform-pack.ts` focused on scratch/result allocation and packing
+  writers.
 
 ## Purpose
 
