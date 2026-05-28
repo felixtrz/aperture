@@ -1,19 +1,15 @@
-import type { DracoMeshDecoder } from "./draco-decoder.js";
-import type { MeshoptBufferDecoder } from "./meshopt-decoder.js";
 import { parseGlbContainer } from "./glb-container.js";
+import { createNoFetchGlbSourceLoaderReport } from "./glb-source-loader-facade.js";
 import {
-  createNoFetchGlbSourceLoaderReport,
-  type CreateNoFetchGlbSourceLoaderReportOptions,
-  type NoFetchGlbSourceLoaderReport,
-} from "./glb-source-loader-facade.js";
+  resolveDracoDecoder,
+  resolveMeshoptDecoder,
+} from "./glb-uri-loader-decoders.js";
 import type {
-  GltfDecodedImageData,
-  GltfImageBytesDecoder,
-} from "../materials/gltf-texture.js";
-import type {
-  Ktx2BasisTranscoder,
-  Ktx2TextureCompressionSupport,
-} from "./ktx2-decoder.js";
+  LoadGlbFromUriCache,
+  LoadGlbFromUriDiagnostic,
+  LoadGlbFromUriOptions,
+  LoadGlbFromUriReport,
+} from "./glb-uri-loader-types.js";
 import {
   emptyExternalBuffers,
   emptyExternalImages,
@@ -31,102 +27,13 @@ import {
   normalizeConcurrency,
 } from "./glb-uri-images.js";
 
-export type LoadGlbFromUriDiagnosticCode =
-  | "loadGlbFromUri.invalidUrl"
-  | "loadGlbFromUri.fetchUnavailable"
-  | "loadGlbFromUri.fetchFailed"
-  | "loadGlbFromUri.httpError"
-  | "loadGlbFromUri.readFailed"
-  | "loadGlbFromUri.unsupportedBufferUri"
-  | "loadGlbFromUri.bufferFetchFailed"
-  | "loadGlbFromUri.bufferHttpError"
-  | "loadGlbFromUri.bufferReadFailed"
-  | "loadGlbFromUri.unsupportedImageUri"
-  | "loadGlbFromUri.imageFetchFailed"
-  | "loadGlbFromUri.imageHttpError"
-  | "loadGlbFromUri.imageReadFailed"
-  | "loadGlbFromUri.loaderDiagnostic";
-
-export interface LoadGlbFromUriDiagnostic {
-  readonly code: LoadGlbFromUriDiagnosticCode;
-  readonly severity: "error";
-  readonly message: string;
-  readonly status?: number;
-  readonly statusText?: string;
-  readonly uri?: string;
-  readonly bufferIndex?: number;
-  readonly imageIndex?: number;
-  readonly loaderCode?: string;
-}
-
-export interface LoadGlbFromUriFetchResponse {
-  readonly ok: boolean;
-  readonly status: number;
-  readonly statusText: string;
-  readonly arrayBuffer: () => Promise<ArrayBuffer>;
-}
-
-export type LoadGlbFromUriFetch = (
-  url: string,
-) => Promise<LoadGlbFromUriFetchResponse>;
-
-export interface LoadGlbFromUriCache {
-  readonly bytes: Map<string, Promise<ArrayBuffer>>;
-  readonly decodedImages: Map<string, Promise<GltfDecodedImageData>>;
-}
+export type * from "./glb-uri-loader-types.js";
 
 export function createGlbUriLoadCache(): LoadGlbFromUriCache {
   return {
     bytes: new Map(),
     decodedImages: new Map(),
   };
-}
-
-export type LoadGlbFromUriExternalImageSourceKind =
-  | "uri"
-  | "data-uri"
-  | "buffer-view";
-
-export interface LoadGlbFromUriExternalImageStatus {
-  readonly imageIndex: number;
-  readonly sourceKind: LoadGlbFromUriExternalImageSourceKind;
-  readonly uri: string;
-  readonly status: "loaded" | "blocked";
-  readonly byteLength: number | null;
-  readonly mimeType?: string;
-  readonly url?: string;
-  readonly width?: number;
-  readonly height?: number;
-  readonly diagnosticCode?: LoadGlbFromUriDiagnosticCode;
-}
-
-export interface LoadGlbFromUriOptions extends Omit<
-  CreateNoFetchGlbSourceLoaderReportOptions,
-  "source" | "decodedImageData"
-> {
-  readonly fetch?: LoadGlbFromUriFetch;
-  readonly cache?: LoadGlbFromUriCache;
-  readonly decodeImageData?: GltfImageBytesDecoder;
-  readonly basisTranscoder?: Ktx2BasisTranscoder;
-  readonly createBasisKtx2Transcoder?: () => PromiseLike<Ktx2BasisTranscoder>;
-  readonly ktx2TextureCompression?: Ktx2TextureCompressionSupport;
-  readonly imageDecodeConcurrency?: number;
-  readonly externalImageBytes?: ReadonlyMap<
-    number,
-    ArrayBuffer | ArrayBufferView
-  >;
-  readonly decodedImageData?: ReadonlyMap<number, GltfDecodedImageData>;
-  readonly createDracoDecoder?: () => PromiseLike<DracoMeshDecoder>;
-  readonly createMeshoptDecoder?: () => PromiseLike<MeshoptBufferDecoder>;
-}
-
-export interface LoadGlbFromUriReport {
-  readonly ok: boolean;
-  readonly url: string;
-  readonly byteLength: number | null;
-  readonly loader: NoFetchGlbSourceLoaderReport | null;
-  readonly externalImages: readonly LoadGlbFromUriExternalImageStatus[];
-  readonly diagnostics: readonly LoadGlbFromUriDiagnostic[];
 }
 
 export async function loadGlbFromUri(
@@ -290,62 +197,6 @@ export async function loadGlbFromUri(
     externalImages: decodedImages.statuses,
     diagnostics,
   };
-}
-
-async function resolveDracoDecoder(input: {
-  readonly root: Record<string, unknown> | null;
-  readonly provided: DracoMeshDecoder | undefined;
-  readonly create: (() => PromiseLike<DracoMeshDecoder>) | undefined;
-}): Promise<DracoMeshDecoder | undefined> {
-  if (input.provided !== undefined || !gltfUsesDraco(input.root)) {
-    return input.provided;
-  }
-
-  return input.create?.();
-}
-
-async function resolveMeshoptDecoder(input: {
-  readonly root: Record<string, unknown> | null;
-  readonly provided: MeshoptBufferDecoder | undefined;
-  readonly create: (() => PromiseLike<MeshoptBufferDecoder>) | undefined;
-}): Promise<MeshoptBufferDecoder | undefined> {
-  if (input.provided !== undefined || !gltfUsesMeshopt(input.root)) {
-    return input.provided;
-  }
-
-  return input.create?.();
-}
-
-function gltfUsesDraco(root: Record<string, unknown> | null): boolean {
-  return (
-    root !== null &&
-    (stringArray(root.extensionsUsed).includes("KHR_draco_mesh_compression") ||
-      stringArray(root.extensionsRequired).includes(
-        "KHR_draco_mesh_compression",
-      ))
-  );
-}
-
-function gltfUsesMeshopt(root: Record<string, unknown> | null): boolean {
-  if (root === null) {
-    return false;
-  }
-
-  const used = stringArray(root.extensionsUsed);
-  const required = stringArray(root.extensionsRequired);
-
-  return (
-    used.includes("EXT_meshopt_compression") ||
-    used.includes("KHR_meshopt_compression") ||
-    required.includes("EXT_meshopt_compression") ||
-    required.includes("KHR_meshopt_compression")
-  );
-}
-
-function stringArray(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.filter((entry): entry is string => typeof entry === "string")
-    : [];
 }
 
 function normalizeUrl(url: string): string | null {
