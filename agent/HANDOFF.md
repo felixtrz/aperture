@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-28T05:59:00Z
+Updated: 2026-05-28T06:03:36Z
+
+## Current Run Update — 2026-05-28T06:03:36Z — Draco mesh data split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split Draco index decoding into
+  `packages/render/src/assets/draco-mesh-indices.ts`.
+- Split Draco attribute traversal and per-attribute decoding into
+  `packages/render/src/assets/draco-mesh-attributes.ts`.
+- Split Draco attribute kind/data-type/typed-array heap mapping into
+  `packages/render/src/assets/draco-mesh-attribute-types.ts`.
+- Kept `packages/render/src/assets/draco-mesh-data.ts` as the stable
+  `decodeDracoMeshData()` entry point.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/draco-mesh-data.ts packages/render/src/assets/draco-mesh-indices.ts packages/render/src/assets/draco-mesh-attributes.ts packages/render/src/assets/draco-mesh-attribute-types.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/draco-mesh-data.ts packages/render/src/assets/draco-mesh-indices.ts packages/render/src/assets/draco-mesh-attributes.ts packages/render/src/assets/draco-mesh-attribute-types.ts`
+- `pnpm exec prettier --check packages/render/src/assets/draco-mesh-data.ts packages/render/src/assets/draco-mesh-indices.ts packages/render/src/assets/draco-mesh-attributes.ts packages/render/src/assets/draco-mesh-attribute-types.ts`
+- `pnpm exec vitest run test/assets/draco-decoder.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/gltf-combined-import-fixture.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `extraction-meshes.ts`,
+  `gltf-accessor-validation-primitives.ts`, `snapshot-packed-encoding.ts`,
+  `draw-package.ts`, `dependency-readiness.ts`, `render-queue-sort.ts`, and
+  `gltf-source-registration.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining extraction mesh, accessor
+validation primitive, snapshot packed encoding, draw package, dependency
+readiness, render queue sort, or source registration modules.
 
 ## Current Run Update — 2026-05-28T05:59:00Z — glTF primitive material resolution split
 
