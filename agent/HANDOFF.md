@@ -1,6 +1,40 @@
 # Agent Handoff
 
-Updated: 2026-05-28T00:22:07Z
+Updated: 2026-05-28T00:24:15Z
+
+## Current Run Update — 2026-05-28T00:24:15Z — glTF texture report split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF texture report JSON projection into
+  `packages/render/src/materials/gltf-texture-report.ts`.
+- `packages/render/src/materials/gltf-texture.ts` now stays below the current
+  hotspot threshold while preserving the public report helper exports.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/materials/gltf-texture.ts packages/render/src/materials/gltf-texture-loading.ts packages/render/src/materials/gltf-texture-utils.ts packages/render/src/materials/gltf-texture-report.ts packages/render/src/assets/gltf-uri-images.ts packages/render/src/assets/glb-uri-images.ts`
+- `pnpm exec prettier --check packages/render/src/materials/gltf-texture.ts packages/render/src/materials/gltf-texture-loading.ts packages/render/src/materials/gltf-texture-utils.ts packages/render/src/materials/gltf-texture-report.ts`
+- `pnpm exec vitest run test/materials/gltf-texture.test.ts test/assets/gltf-uri-loader.test.ts test/assets/glb-uri-loader.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-material.ts`,
+  `gltf-mesh-asset-construction.ts`, `gltf-report-driven-import.ts`,
+  `authoring.ts`, and `snapshot-packed-encoding.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting `packages/render/src/materials/gltf-material.ts`
+or one of the remaining glTF asset construction/report modules.
 
 ## Current Run Update — 2026-05-28T00:22:07Z — glTF texture loading split
 

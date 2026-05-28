@@ -296,6 +296,9 @@ Status: in progress
   `packages/render/src/materials/gltf-texture-utils.ts`, while
   `gltf-texture.ts` preserves the public exports and focuses on texture
   mapping/report assembly.
+- glTF texture report JSON projection now lives in
+  `packages/render/src/materials/gltf-texture-report.ts`, leaving
+  `gltf-texture.ts` below the current hotspot threshold.
 
 ## Purpose
 
