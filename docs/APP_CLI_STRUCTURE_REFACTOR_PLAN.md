@@ -77,6 +77,11 @@ Status: in progress
   source collection, source filtering, and reference MCP tool contracts are
   split by responsibility without changing ingestion policy, search behavior, or
   public reference exports.
+- Track 13 has started. Export and boundary guards now cover the app public
+  subpath set, the CLI package root export map, CLI root runtime exports, absence
+  of CLI internal path aliases, app path aliases matching public subpaths, and
+  examples/generated templates importing only public `@aperture-engine/app`
+  entry points.
 
 ## Summary
 
