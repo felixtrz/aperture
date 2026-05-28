@@ -484,6 +484,10 @@ Status: in progress
 - App entity hierarchy assembly and hierarchy sorting now live in
   `packages/app/src/entity-lookup-hierarchy.ts`, preserving the existing
   `createApertureEntityHierarchy()` export through `entity-lookup.ts`.
+- App entity lookup component-field mutation, mutation whitelisting, entity
+  resolution, and mutation diagnostics now live in
+  `packages/app/src/entity-lookup-mutation.ts`, preserving the existing
+  `setApertureEntityComponentField()` export through `entity-lookup.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
