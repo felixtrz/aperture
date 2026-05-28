@@ -431,6 +431,11 @@ Status: in progress
   sort-key helpers in `snapshot-sort-key.ts` and batch compatibility key
   construction in `snapshot-batch-key.ts`, leaving `snapshot.ts` as the stable
   public re-export facade.
+- Render snapshot change-set public contracts now live in
+  `snapshot-change-set-types.ts`, generic family comparison lives in
+  `snapshot-change-set-compare.ts`, and packet signature builders live in
+  `snapshot-change-set-packets.ts`, leaving `snapshot-change-set.ts` as the
+  stable public creation facade.
 - Packed snapshot primitive numeric/enum/entity/vector/handle codec helpers now
   live in `snapshot-packed-codec-utils.ts`, leaving
   `snapshot-packed-codecs.ts` focused on packet-specific read/write layouts.

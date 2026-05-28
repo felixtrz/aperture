@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-28T05:42:34Z
+Updated: 2026-05-28T05:45:27Z
+
+## Current Run Update — 2026-05-28T05:45:27Z — snapshot change-set split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split render snapshot change-set public contracts into
+  `packages/render/src/rendering/snapshot-change-set-types.ts`.
+- Split generic packet-family comparison and total-count aggregation into
+  `packages/render/src/rendering/snapshot-change-set-compare.ts`.
+- Split packet-specific key/signature builders for views, mesh draws, lights,
+  environments, shadow requests, and bounds into
+  `packages/render/src/rendering/snapshot-change-set-packets.ts`.
+- Kept `packages/render/src/rendering/snapshot-change-set.ts` as the stable
+  public change-set creation facade.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/snapshot-change-set.ts packages/render/src/rendering/snapshot-change-set-types.ts packages/render/src/rendering/snapshot-change-set-compare.ts packages/render/src/rendering/snapshot-change-set-packets.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/snapshot-change-set.ts packages/render/src/rendering/snapshot-change-set-types.ts packages/render/src/rendering/snapshot-change-set-compare.ts packages/render/src/rendering/snapshot-change-set-packets.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/snapshot-change-set.ts packages/render/src/rendering/snapshot-change-set-types.ts packages/render/src/rendering/snapshot-change-set-compare.ts packages/render/src/rendering/snapshot-change-set-packets.ts`
+- `pnpm exec vitest run test/rendering/snapshot-change-set.test.ts test/rendering/snapshot-packed-encoding.test.ts test/runtime/simulation-worker.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `snapshot-packed-codec-utils.ts`,
+  `gltf-uri-external-fetch.ts`, `glb-uri-external-fetch.ts`,
+  `gltf-primitive-material-resolution.ts`, `extraction-meshes.ts`,
+  `draco-mesh-data.ts`, and `gltf-accessor-validation-primitives.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining packed snapshot codec
+utility, URI external fetch, glTF primitive material resolution, extraction
+mesh, Draco mesh-data, or accessor validation primitive modules.
 
 ## Current Run Update — 2026-05-28T05:42:34Z — render authoring validation split
 
