@@ -399,6 +399,11 @@ Status: in progress
   diagnostics now live in focused `gltf-source-registration-*` asset modules,
   leaving `gltf-source-registration.ts` focused on texture/sampler/material
   registry writes.
+- glTF mesh primitive mapping public contracts, report JSON projection, and
+  attribute/index reference mapping now live in focused
+  `gltf-mesh-primitive-*` asset modules, leaving
+  `gltf-mesh-primitive.ts` focused on root validation, primitive selection,
+  topology checks, compression routing, and planned mesh assembly.
 
 ## Purpose
 

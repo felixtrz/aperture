@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T02:27:23Z
+Updated: 2026-05-28T02:32:51Z
+
+## Current Run Update — 2026-05-28T02:32:51Z — glTF mesh primitive mapping helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF mesh primitive public contracts into
+  `packages/render/src/assets/gltf-mesh-primitive-types.ts`.
+- Extracted report JSON projection/result shaping into
+  `packages/render/src/assets/gltf-mesh-primitive-report.ts`.
+- Extracted primitive attribute, morph target, and index accessor reference
+  mapping into
+  `packages/render/src/assets/gltf-mesh-primitive-attributes.ts`.
+- Retargeted compression and utility helper type imports to the new type
+  module to avoid depending on the facade.
+- `packages/render/src/assets/gltf-mesh-primitive.ts` is now roughly 307 lines
+  and remains focused on root validation, primitive selection, topology,
+  compression routing, and planned mesh assembly.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/gltf-mesh-primitive.ts packages/render/src/assets/gltf-mesh-primitive-types.ts packages/render/src/assets/gltf-mesh-primitive-report.ts packages/render/src/assets/gltf-mesh-primitive-attributes.ts packages/render/src/assets/gltf-mesh-primitive-compression.ts packages/render/src/assets/gltf-mesh-primitive-utils.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-mesh-primitive.ts packages/render/src/assets/gltf-mesh-primitive-types.ts packages/render/src/assets/gltf-mesh-primitive-report.ts packages/render/src/assets/gltf-mesh-primitive-attributes.ts packages/render/src/assets/gltf-mesh-primitive-compression.ts packages/render/src/assets/gltf-mesh-primitive-utils.ts`
+- `pnpm exec vitest run test/assets/gltf-mesh-primitive.test.ts test/assets/gltf-mesh-primitive-json.test.ts test/assets/gltf-accessor-validation.test.ts test/assets/gltf-accessor-validation-json.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-accessor-decoding-json.test.ts test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-primitive-material-resolution.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `transform-pack.ts`, `ktx2-decoder.ts`,
+  `mesh/primitives.ts`, `draco-decoder.ts`, `snapshot-packed-codecs.ts`,
+  `render-queue.ts`, `mesh-merge.ts`, and mesh asset construction helpers.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining decoder, queue, mesh, or
+packed snapshot helper modules.
 
 ## Current Run Update — 2026-05-28T02:27:23Z — glTF source registration helper split
 
