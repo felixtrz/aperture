@@ -1,6 +1,41 @@
 # Agent Handoff
 
-Updated: 2026-05-27T23:56:34Z
+Updated: 2026-05-27T23:59:40Z
+
+## Current Run Update — 2026-05-27T23:59:40Z — Render mesh deformation helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted skinning validation/matrix packing and morph target weight
+  extraction/packing into
+  `packages/render/src/rendering/extraction-mesh-deformation.ts`.
+- `packages/render/src/rendering/extraction-meshes.ts` is now roughly 702
+  lines.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/rendering/extraction-meshes.ts packages/render/src/rendering/extraction-mesh-deformation.ts packages/render/src/rendering/extraction.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/extraction-meshes.ts packages/render/src/rendering/extraction-mesh-deformation.ts`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/rendering/line-list-mesh.test.ts test/webgpu/fixtures/ecs-snapshot-render-frame.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- `packages/render/src/rendering/extraction-meshes.ts` remains the largest
+  mesh extraction coordinator. Good next splits are instance/material-slot
+  helper modules or material pipeline key helpers.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to these extractions; use targeted subsets
+  until those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting instance data and material-slot helpers out of
+`packages/render/src/rendering/extraction-meshes.ts`.
 
 ## Current Run Update — 2026-05-27T23:56:34Z — Render mesh cache helper split
 
