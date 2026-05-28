@@ -1,6 +1,55 @@
 # Agent Handoff
 
-Updated: 2026-05-28T05:15:45Z
+Updated: 2026-05-28T05:18:48Z
+
+## Current Run Update — 2026-05-28T05:18:48Z — HDR RGBE parser split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split Radiance HDR RGBE header parsing, byte line reading, resolution
+  validation, and gamma/exposure parsing into
+  `packages/render/src/assets/hdr-rgbe-header.ts`.
+- Split RLE scanline decoding and flat RGBE pixel fallback decoding into
+  `packages/render/src/assets/hdr-rgbe-pixels.ts`.
+- Split RGBE-to-linear-float RGBA conversion into
+  `packages/render/src/assets/hdr-rgbe-conversion.ts` and parser diagnostic
+  construction into `packages/render/src/assets/hdr-rgbe-diagnostics.ts`.
+- Kept `packages/render/src/assets/hdr-rgbe-parser.ts` as the existing public
+  parser coordination entry point.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/hdr-rgbe-parser.ts packages/render/src/assets/hdr-rgbe-conversion.ts packages/render/src/assets/hdr-rgbe-diagnostics.ts packages/render/src/assets/hdr-rgbe-header.ts packages/render/src/assets/hdr-rgbe-pixels.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/hdr-rgbe-parser.ts packages/render/src/assets/hdr-rgbe-conversion.ts packages/render/src/assets/hdr-rgbe-diagnostics.ts packages/render/src/assets/hdr-rgbe-header.ts packages/render/src/assets/hdr-rgbe-pixels.ts`
+- `pnpm exec prettier --check packages/render/src/assets/hdr-rgbe-parser.ts packages/render/src/assets/hdr-rgbe-conversion.ts packages/render/src/assets/hdr-rgbe-diagnostics.ts packages/render/src/assets/hdr-rgbe-header.ts packages/render/src/assets/hdr-rgbe-pixels.ts`
+- `pnpm exec vitest run test/assets/hdr-rgbe-loader.test.ts test/assets/glb-source-loader-output-summary.test.ts test/webgpu/app-environment-resources.test.ts test/e2e/spinning-cube.spec.ts test/e2e/tonemap-showcase.spec.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- The HDR-focused Vitest command only selected the Vitest-backed files from the
+  mixed unit/e2e list; build/typecheck/boundary validation still passed for the
+  full workspace.
+- Remaining Track 5 hotspots include `snapshot.ts`,
+  `gltf-scene-import-contract.ts`, `custom-wgsl-material-preparation.ts`,
+  `standard-sampler-fidelity.ts`, `snapshot-packed-codecs.ts`,
+  `authoring-validation.ts`, `snapshot-packed-codec-utils.ts`, and
+  `snapshot-change-set.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining snapshot, scene import
+contract, custom WGSL, sampler fidelity, packed snapshot codec, authoring
+validation, packed snapshot codec utility, or snapshot change-set modules.
 
 ## Current Run Update — 2026-05-28T05:15:45Z — glTF mesh vertex stream split
 

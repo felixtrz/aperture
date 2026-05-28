@@ -465,8 +465,9 @@ Status: in progress
 - GLB container public contracts/constants, diagnostic builders, and byte/JSON
   helpers now live in focused `glb-container-*` asset modules, leaving
   `glb-container.ts` focused on `parseGlbContainer` orchestration.
-- Radiance HDR RGBE public contracts, parser/pixel decoding, and URI fetch
-  handling now live in focused `hdr-rgbe-*` asset modules, leaving
+- Radiance HDR RGBE public contracts, URI fetch handling, parser coordination,
+  header parsing, pixel decoding, RGBE-to-float conversion, and diagnostic
+  construction now live in focused `hdr-rgbe-*` asset modules, leaving
   `hdr-rgbe-loader.ts` as the stable public facade.
 - Remaining procedural primitive mesh factories now live in focused
   `primitives-box-plane.ts`, `primitives-sphere.ts`, and
