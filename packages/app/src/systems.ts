@@ -39,7 +39,7 @@ import type { CommandAccess } from "./systems/commands.js";
 import type { SystemAssetAccess } from "./systems/assets.js";
 import type { CameraAccess } from "./systems/cameras.js";
 import type { SignalStore } from "./systems/signals.js";
-import type { SpawnCommands } from "./systems-spawn.js";
+import type { SpawnCommands } from "./systems/spawn/index.js";
 import {
   getApertureSystemContext,
   type ApertureSystemContext,
@@ -111,7 +111,7 @@ export {
   registerApertureAppComponents,
 } from "./systems/components.js";
 export type { CameraAccess, CameraHandle } from "./systems/cameras.js";
-export { material, mesh } from "./systems-spawn.js";
+export { material, mesh } from "./systems/spawn/index.js";
 export type {
   PrimitiveMeshDescriptor,
   SpawnCameraOptions,
@@ -123,7 +123,7 @@ export type {
   StandardMaterialDescriptor,
   StandardMaterialOptions,
   SystemTransformInput,
-} from "./systems-spawn.js";
+} from "./systems/spawn/index.js";
 
 export type {
   ApertureGeneratedActionMap,

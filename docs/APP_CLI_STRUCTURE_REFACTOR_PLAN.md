@@ -17,6 +17,11 @@ Status: in progress
   public `@aperture-engine/app/systems` facade. System assets, cameras,
   commands, components, context, diagnostics, effects, errors, JSON helpers, and
   signal helpers no longer live as top-level `systems-*` implementation files.
+- Track 4 has started. Spawn descriptors, command construction, metadata,
+  transform writing, primitive/material asset conversion, and glTF replay now
+  live in focused modules under `packages/app/src/systems/spawn/`. The public
+  `mesh`, `material`, spawn option types, and `SpawnCommands` surface still
+  comes through `@aperture-engine/app/systems`.
 
 ## Summary
 

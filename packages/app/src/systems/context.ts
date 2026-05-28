@@ -21,7 +21,7 @@ import {
 import { registerApertureAppComponents } from "./components.js";
 import { createCameraAccess, type CameraAccess } from "./cameras.js";
 import { createSignalStore, type SignalStore } from "./signals.js";
-import { createSpawnCommands, type SpawnCommands } from "../systems-spawn.js";
+import { createSpawnCommands, type SpawnCommands } from "./spawn/index.js";
 
 // This interface is intentionally empty so generated app-local declarations can
 // augment it with kind-specific action properties.
