@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-28T04:07:05Z
+Updated: 2026-05-28T04:10:32Z
+
+## Current Run Update — 2026-05-28T04:10:32Z — glTF accessor primitive validation split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split glTF primitive/accessor traversal, required/optional attribute
+  validation, index validation, sparse/zero-fill deferral diagnostics, byte
+  stride/range checks, and primitive accessor-plan assembly into
+  `packages/render/src/assets/gltf-accessor-validation-primitives.ts`.
+- Kept `packages/render/src/assets/gltf-accessor-validation.ts` as the stable
+  public facade for validation orchestration and JSON report APIs.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-accessor-validation.ts packages/render/src/assets/gltf-accessor-validation-primitives.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-accessor-validation.ts packages/render/src/assets/gltf-accessor-validation-primitives.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-accessor-validation.ts packages/render/src/assets/gltf-accessor-validation-primitives.ts`
+- `pnpm exec vitest run test/assets/gltf-accessor-validation.test.ts test/assets/gltf-accessor-validation-json.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `gltf-uri-fetch.ts`, `gltf-ecs-command-replay.ts`, and several older
+  asset/material facades.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining decoder, URI asset, command
+replay, or material facade modules.
 
 ## Current Run Update — 2026-05-28T04:07:05Z — primitive factory split
 

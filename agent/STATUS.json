@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "090a00ce",
+  "lastCommit": "42bc8f94",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting remaining procedural primitive mesh factories into focused shape-family modules while preserving the public primitives facade; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T04:07:05Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting glTF accessor primitive traversal and accessor range validation into a focused asset module while preserving the public validation facade; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T04:10:32Z"
 }

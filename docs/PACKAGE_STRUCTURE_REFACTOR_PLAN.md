@@ -471,6 +471,11 @@ Status: in progress
   `primitives-box-plane.ts`, `primitives-sphere.ts`, and
   `primitives-rings.ts` modules, leaving `primitives.ts` as the stable public
   primitive factory facade.
+- glTF accessor primitive traversal, attribute/index reference validation,
+  accessor range checks, and primitive-plan assembly now live in
+  `gltf-accessor-validation-primitives.ts`, leaving
+  `gltf-accessor-validation.ts` focused on root validation and public report
+  APIs.
 
 ## Purpose
 
