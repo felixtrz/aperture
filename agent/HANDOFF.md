@@ -1,6 +1,42 @@
 # Agent Handoff
 
-Updated: 2026-05-28T02:12:22Z
+Updated: 2026-05-28T02:17:05Z
+
+## Current Run Update — 2026-05-28T02:17:05Z — glTF ECS command-plan contract split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF ECS authoring command-plan public contracts into
+  `packages/render/src/assets/gltf-ecs-authoring-command-plan-types.ts`.
+- Extracted command-plan JSON/report projection into
+  `packages/render/src/assets/gltf-ecs-authoring-command-plan-report.ts`.
+- `packages/render/src/assets/gltf-ecs-authoring-command-plan.ts` now
+  re-exports those helpers and remains focused on planning/orchestration.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/gltf-ecs-authoring-command-plan.ts packages/render/src/assets/gltf-ecs-authoring-command-plan-types.ts packages/render/src/assets/gltf-ecs-authoring-command-plan-report.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-ecs-authoring-command-plan.ts packages/render/src/assets/gltf-ecs-authoring-command-plan-types.ts packages/render/src/assets/gltf-ecs-authoring-command-plan-report.ts`
+- `pnpm exec vitest run test/assets/gltf-ecs-authoring-command-plan.test.ts test/assets/gltf-ecs-authoring-command-plan-json.test.ts test/assets/gltf-ecs-command-replay.test.ts test/assets/gltf-combined-import-fixture.test.ts test/assets/glb-source-loader-output-summary.test.ts test/runtime/runtime.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `snapshot-packed-codecs.ts`, `render-queue.ts`, render mesh/merge helpers,
+  and the still-large command-plan planning facade.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting command-plan primitive/entity helpers or one of
+the remaining decoder, queue, or mesh helper modules.
 
 ## Current Run Update — 2026-05-28T02:12:22Z — glTF URI image source split
 

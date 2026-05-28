@@ -384,6 +384,10 @@ Status: in progress
   diagnostics now live in `packages/render/src/assets/gltf-uri-fetch-bytes.ts`,
   keeping `gltf-uri-fetch.ts` focused on JSON parsing, external buffer/image
   fetch orchestration, URL resolution, and byte merging.
+- glTF ECS authoring command-plan public contracts and JSON/report projection
+  now live in focused `gltf-ecs-authoring-command-plan-*` asset modules,
+  keeping `gltf-ecs-authoring-command-plan.ts` focused on command planning and
+  orchestration.
 
 ## Purpose
 
