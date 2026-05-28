@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T10:15:02Z
+Updated: 2026-05-28T10:19:26Z
+
+## Current Run Update — 2026-05-28T10:19:26Z — app browser devtools split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 6.
+
+### What changed
+
+- Split generated browser MCP/devtools runtime exposure, browser-side canvas
+  readback, and browser entity-pick tools into
+  `packages/app/src/browser-devtools.ts`.
+- Preserved public `APERTURE_MCP_RUNTIME_GLOBAL`,
+  `APERTURE_MCP_MANAGED_GLOBAL`, and `ApertureMcpRuntime` exports through
+  `packages/app/src/browser.ts`.
+- Reduced `packages/app/src/browser.ts` from 910 lines to 432 lines.
+
+### Validation
+
+- `pnpm exec prettier --write packages/app/src/browser.ts packages/app/src/browser-devtools.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec eslint packages/app/src/browser.ts packages/app/src/browser-devtools.ts`
+- `pnpm exec prettier --check packages/app/src/browser.ts packages/app/src/browser-devtools.ts`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts test/index.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 6 still needs focused app modules for generated browser status/mirroring
+  helpers and worker bootstrapping.
+- Remaining large app file is `worker.ts`; `browser.ts` is now much smaller but
+  still owns startup/status/mirroring/canvas-resize orchestration.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 6 by splitting generated browser status/mirroring helpers or
+generated worker bootstrapping.
 
 ## Current Run Update — 2026-05-28T10:15:02Z — app browser input split
 

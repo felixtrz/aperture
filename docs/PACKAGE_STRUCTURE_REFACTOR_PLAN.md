@@ -504,6 +504,10 @@ Status: in progress
   forwarding now lives in `packages/app/src/browser-input.ts`, preserving the
   public virtual-input constant and `dispatchApertureInputAction()` export
   through `browser.ts`.
+- Generated browser MCP/devtools runtime exposure, browser-side canvas readback,
+  and browser entity-pick tools now live in
+  `packages/app/src/browser-devtools.ts`, preserving public MCP browser exports
+  through `browser.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
