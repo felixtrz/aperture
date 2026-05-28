@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "be559e34",
+  "lastCommit": "18f8242a",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting camera/view packet extraction, projection/view matrix packing, render-target reading, temporal jitter application, and view cull-context creation into extraction-views.ts while keeping extraction.ts as the snapshot orchestration facade; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T07:24:24Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting glTF async texture byte-source loading, data-URI parsing, fetch-result normalization, MIME inference, and browser/canvas fallback image decoding into focused material modules while keeping loadGltfTextureAsync as the public loading facade; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T07:30:54Z"
 }

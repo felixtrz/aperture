@@ -308,10 +308,12 @@ Status: in progress
   same-origin URL resolution now live in focused
   `gltf-uri-external-fetch-*` modules, leaving
   `gltf-uri-external-fetch.ts` as the public buffer/image fetch facade.
-- glTF texture async byte loading, browser/canvas image decode, data-URI
-  decoding, and shared texture validation helpers now live in
-  `packages/render/src/materials/gltf-texture-loading.ts` and
-  `packages/render/src/materials/gltf-texture-utils.ts`, while
+- glTF texture async loading now keeps public load orchestration and decoded
+  image validation in `packages/render/src/materials/gltf-texture-loading.ts`,
+  with source byte loading, data-URI parsing, fetch-result normalization, and
+  MIME inference in `packages/render/src/materials/gltf-texture-image-bytes.ts`
+  and browser/canvas fallback image decoding in
+  `packages/render/src/materials/gltf-texture-browser-decoder.ts`, while
   `gltf-texture.ts` preserves the public exports and focuses on texture
   mapping/report assembly.
 - glTF texture report JSON projection now lives in

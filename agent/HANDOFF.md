@@ -1,6 +1,51 @@
 # Agent Handoff
 
-Updated: 2026-05-28T07:24:24Z
+Updated: 2026-05-28T07:30:54Z
+
+## Current Run Update — 2026-05-28T07:30:54Z — glTF texture loading split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split source byte loading, data-URI parsing, fetch-result normalization, and
+  MIME inference from
+  `packages/render/src/materials/gltf-texture-loading.ts` into
+  `packages/render/src/materials/gltf-texture-image-bytes.ts`.
+- Split browser/canvas fallback image decoding from
+  `gltf-texture-loading.ts` into
+  `packages/render/src/materials/gltf-texture-browser-decoder.ts`.
+- Kept `loadGltfTextureAsync()` as the public async texture loading facade for
+  KTX2 dispatch, decoder selection, and decoded-image validation.
+- Updated the package-structure plan and public progress tracker for the new
+  glTF texture module boundaries.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/materials/gltf-texture-loading.ts packages/render/src/materials/gltf-texture-image-bytes.ts packages/render/src/materials/gltf-texture-browser-decoder.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/materials/gltf-texture-loading.ts packages/render/src/materials/gltf-texture-image-bytes.ts packages/render/src/materials/gltf-texture-browser-decoder.ts`
+- `pnpm exec prettier --check packages/render/src/materials/gltf-texture-loading.ts packages/render/src/materials/gltf-texture-image-bytes.ts packages/render/src/materials/gltf-texture-browser-decoder.ts`
+- `pnpm exec vitest run test/materials/gltf-texture.test.ts test/assets/gltf-uri-loader.test.ts test/assets/glb-uri-loader.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/gltf-scene-import-contract.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include
+  `gltf-ecs-command-replay-components.ts`, `authoring-components.ts`,
+  `glb-uri-images.ts`, and other medium render/material/asset modules still
+  near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium render extraction/material/asset
+hotspot.
 
 ## Current Run Update — 2026-05-28T07:24:24Z — view extraction split
 
