@@ -299,11 +299,11 @@ Status: in progress
 - glTF texture report JSON projection now lives in
   `packages/render/src/materials/gltf-texture-report.ts`, leaving
   `gltf-texture.ts` below the current hotspot threshold.
-- glTF material texture binding, texture-transform mapping, resolver
-  diagnostics, and shared material guard helpers now live in
-  `packages/render/src/materials/gltf-material-textures.ts` and
-  `packages/render/src/materials/gltf-material-utils.ts`, leaving
-  `gltf-material.ts` focused on material asset assembly.
+- glTF material texture binding orchestration remains in
+  `packages/render/src/materials/gltf-material-textures.ts`, with texture-info
+  validation, `KHR_texture_transform` mapping, and texture-binding resolver
+  diagnostic normalization split into focused `gltf-material-texture-*`
+  modules.
 - glTF mesh generated tangent math and tangent-generation diagnostics now live
   in `packages/render/src/assets/gltf-mesh-tangents.ts`, leaving
   `gltf-mesh-asset-construction.ts` focused on mesh asset assembly.

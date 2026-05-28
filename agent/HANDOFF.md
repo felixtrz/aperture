@@ -1,6 +1,53 @@
 # Agent Handoff
 
-Updated: 2026-05-28T05:05:09Z
+Updated: 2026-05-28T05:12:00Z
+
+## Current Run Update — 2026-05-28T05:12:00Z — glTF material texture mapper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split glTF texture-info object validation, texture index mapping, and
+  texCoord mapping into
+  `packages/render/src/materials/gltf-material-texture-info.ts`.
+- Split `KHR_texture_transform` parsing, vector/rotation diagnostics, and
+  unsupported-transform warnings into
+  `packages/render/src/materials/gltf-material-texture-transform.ts`.
+- Split texture binding resolver result normalization and resolver diagnostic
+  projection into
+  `packages/render/src/materials/gltf-material-texture-resolver.ts`.
+- Kept `packages/render/src/materials/gltf-material-textures.ts` as the
+  existing texture binding orchestration entry point.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/materials/gltf-material-textures.ts packages/render/src/materials/gltf-material-texture-info.ts packages/render/src/materials/gltf-material-texture-resolver.ts packages/render/src/materials/gltf-material-texture-transform.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/materials/gltf-material-textures.ts packages/render/src/materials/gltf-material-texture-info.ts packages/render/src/materials/gltf-material-texture-resolver.ts packages/render/src/materials/gltf-material-texture-transform.ts`
+- `pnpm exec prettier --check packages/render/src/materials/gltf-material-textures.ts packages/render/src/materials/gltf-material-texture-info.ts packages/render/src/materials/gltf-material-texture-resolver.ts packages/render/src/materials/gltf-material-texture-transform.ts`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/gltf-material-texture-integration.test.ts test/materials/gltf-texture.test.ts test/assets/gltf-report-driven-import.test.ts test/rendering/extraction.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include
+  `gltf-mesh-asset-vertex-streams.ts`, `hdr-rgbe-parser.ts`, `snapshot.ts`,
+  `gltf-scene-import-contract.ts`, `custom-wgsl-material-preparation.ts`,
+  `standard-sampler-fidelity.ts`, `snapshot-packed-codecs.ts`, and
+  `authoring-validation.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining mesh asset, HDR parser,
+snapshot, scene import contract, custom WGSL, sampler fidelity, packed snapshot
+codec, or authoring validation modules.
 
 ## Current Run Update — 2026-05-28T05:05:09Z — GLB URI loader contract split
 
