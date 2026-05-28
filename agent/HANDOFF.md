@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T07:49:16Z
+Updated: 2026-05-28T07:52:34Z
+
+## Current Run Update — 2026-05-28T07:52:34Z — glTF URI loader contract split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split glTF URI loader public contracts from
+  `packages/render/src/assets/gltf-uri-loader.ts` into
+  `packages/render/src/assets/gltf-uri-loader-types.ts`.
+- Kept `gltf-uri-loader.ts` as the stable public export surface by re-exporting
+  those types while focusing the implementation file on cache construction, URI
+  loading orchestration, failure reports, and final loader report assembly.
+- Updated the package-structure plan and public progress tracker for the new
+  glTF URI loader contract module boundary.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-uri-loader.ts packages/render/src/assets/gltf-uri-loader-types.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-uri-loader.ts packages/render/src/assets/gltf-uri-loader-types.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-uri-loader.ts packages/render/src/assets/gltf-uri-loader-types.ts`
+- `pnpm exec vitest run test/assets/gltf-uri-loader.test.ts test/assets/gltf-source-loader-facade.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/gltf-scene-import-contract.test.ts test/app/developer-api.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `extraction-meshes.ts`,
+  `snapshot-types.ts`, `gltf-loader-orchestration.ts`, and other medium
+  render/material/asset modules still near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium render extraction/material/asset
+hotspot.
 
 ## Current Run Update — 2026-05-28T07:49:16Z — glTF URI image decode task split
 

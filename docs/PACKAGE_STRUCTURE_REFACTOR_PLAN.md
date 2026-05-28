@@ -594,6 +594,10 @@ Status: in progress
   URL validation, and provided/fetched byte merge helpers now live in focused
   `gltf-uri-*` asset modules, leaving `gltf-uri-fetch.ts` as the stable public
   fetch facade.
+- glTF URI loader public contracts now live in
+  `gltf-uri-loader-types.ts`, leaving `gltf-uri-loader.ts` focused on cache
+  creation, URI loading orchestration, failure reports, and final loader report
+  assembly.
 - GLB URI external buffer/image fetch orchestration, same-origin URL
   validation, empty external result helpers, and provided/fetched byte merge
   helpers now live in focused `glb-uri-*` asset modules, leaving
