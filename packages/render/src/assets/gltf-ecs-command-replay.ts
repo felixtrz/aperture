@@ -5,7 +5,6 @@ import {
   WorldTransform,
   registerMetadataComponents,
   registerTransformComponents,
-  type EcsWorld,
   type Entity,
 } from "@aperture-engine/simulation";
 
@@ -15,10 +14,22 @@ import {
   Visibility,
   registerRenderAuthoringComponents,
 } from "../rendering/authoring.js";
+import {
+  createGltfEcsCommandReplayReport,
+  gltfEcsCommandReplayReportToJson,
+  gltfEcsCommandReplayReportToJsonValue,
+} from "./gltf-ecs-command-replay-report.js";
+import type {
+  GltfAppliedEcsComponent,
+  GltfCreatedEcsEntity,
+  GltfEcsCommandReplayDiagnostic,
+  GltfEcsCommandReplayDiagnosticCode,
+  GltfEcsCommandReplayOptions,
+  GltfEcsCommandReplayReport,
+  GltfSkippedEcsCommand,
+} from "./gltf-ecs-command-replay-types.js";
 import type {
   GltfEcsAuthoringCommand,
-  GltfEcsAuthoringCommandPlan,
-  GltfEcsAuthoringComponentName,
   GltfLocalTransformCommandValue,
   GltfMaterialCommandValue,
   GltfMeshCommandValue,
@@ -28,68 +39,12 @@ import type {
   GltfWorldTransformCommandValue,
 } from "./gltf-ecs-authoring-command-plan.js";
 
-export type GltfEcsCommandReplayDiagnosticCode =
-  | "gltfEcsReplay.invalidPlan"
-  | "gltfEcsReplay.duplicateEntityKey"
-  | "gltfEcsReplay.missingEntityKey"
-  | "gltfEcsReplay.missingParentEntityKey"
-  | "gltfEcsReplay.unknownComponent"
-  | "gltfEcsReplay.invalidComponentValue"
-  | "gltfEcsReplay.componentApplyFailed";
+export {
+  gltfEcsCommandReplayReportToJson,
+  gltfEcsCommandReplayReportToJsonValue,
+};
 
-export interface GltfEcsCommandReplayDiagnostic {
-  readonly code: GltfEcsCommandReplayDiagnosticCode;
-  readonly severity: "error";
-  readonly message: string;
-  readonly entityKey?: string;
-  readonly parentEntityKey?: string | null;
-  readonly component?: string;
-  readonly commandIndex?: number;
-  readonly sourceReason?: string;
-}
-
-export interface GltfCreatedEcsEntity {
-  readonly entityKey: string;
-  readonly label: string;
-  readonly entityIndex: number;
-  readonly entityGeneration: number;
-}
-
-export interface GltfAppliedEcsComponent {
-  readonly entityKey: string;
-  readonly component: GltfEcsAuthoringComponentName;
-  readonly commandIndex: number;
-}
-
-export interface GltfSkippedEcsCommand {
-  readonly commandIndex: number;
-  readonly entityKey?: string;
-  readonly component?: string;
-  readonly reason: GltfEcsCommandReplayDiagnosticCode;
-  readonly diagnostics: readonly GltfEcsCommandReplayDiagnostic[];
-}
-
-export interface GltfEcsCommandReplayOptions {
-  readonly world: EcsWorld;
-  readonly plan: GltfEcsAuthoringCommandPlan;
-  readonly registerComponents?: boolean;
-}
-
-export interface GltfEcsCommandReplayReport {
-  readonly valid: boolean;
-  readonly entitiesByKey: ReadonlyMap<string, Entity>;
-  readonly created: readonly GltfCreatedEcsEntity[];
-  readonly appliedComponents: readonly GltfAppliedEcsComponent[];
-  readonly skipped: readonly GltfSkippedEcsCommand[];
-  readonly diagnostics: readonly GltfEcsCommandReplayDiagnostic[];
-}
-
-export interface GltfEcsCommandReplayReportJsonValue extends Omit<
-  GltfEcsCommandReplayReport,
-  "entitiesByKey"
-> {
-  readonly entityKeys: readonly string[];
-}
+export type * from "./gltf-ecs-command-replay-types.js";
 
 export function replayGltfEcsAuthoringCommands(
   options: GltfEcsCommandReplayOptions,
@@ -108,7 +63,7 @@ export function replayGltfEcsAuthoringCommands(
         "GLB ECS authoring commands were not replayed because the command plan is invalid.",
     };
     diagnostics.push(diagnostic);
-    return result({
+    return createGltfEcsCommandReplayReport({
       entitiesByKey,
       created,
       appliedComponents,
@@ -186,35 +141,13 @@ export function replayGltfEcsAuthoringCommands(
     }
   });
 
-  return result({
+  return createGltfEcsCommandReplayReport({
     entitiesByKey,
     created,
     appliedComponents,
     skipped,
     diagnostics,
   });
-}
-
-export function gltfEcsCommandReplayReportToJsonValue(
-  report: GltfEcsCommandReplayReport,
-): GltfEcsCommandReplayReportJsonValue {
-  return {
-    valid: report.valid,
-    entityKeys: [...report.entitiesByKey.keys()],
-    created: report.created.map((entry) => ({ ...entry })),
-    appliedComponents: report.appliedComponents.map((entry) => ({ ...entry })),
-    skipped: report.skipped.map((entry) => ({
-      ...entry,
-      diagnostics: entry.diagnostics.map((diagnostic) => ({ ...diagnostic })),
-    })),
-    diagnostics: report.diagnostics.map((diagnostic) => ({ ...diagnostic })),
-  };
-}
-
-export function gltfEcsCommandReplayReportToJson(
-  report: GltfEcsCommandReplayReport,
-): string {
-  return JSON.stringify(gltfEcsCommandReplayReportToJsonValue(report));
 }
 
 function applyComponent(input: {
@@ -438,23 +371,6 @@ function skip(input: {
     reason: input.code,
     diagnostics: [diagnostic],
   });
-}
-
-function result(input: {
-  readonly entitiesByKey: ReadonlyMap<string, Entity>;
-  readonly created: readonly GltfCreatedEcsEntity[];
-  readonly appliedComponents: readonly GltfAppliedEcsComponent[];
-  readonly skipped: readonly GltfSkippedEcsCommand[];
-  readonly diagnostics: readonly GltfEcsCommandReplayDiagnostic[];
-}): GltfEcsCommandReplayReport {
-  return {
-    valid: input.diagnostics.length === 0,
-    entitiesByKey: input.entitiesByKey,
-    created: input.created,
-    appliedComponents: input.appliedComponents,
-    skipped: input.skipped,
-    diagnostics: input.diagnostics,
-  };
 }
 
 function tuple3(
