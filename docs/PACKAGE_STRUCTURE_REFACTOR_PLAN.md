@@ -560,8 +560,10 @@ Status: in progress
 - Mesh extraction entity eligibility/asset lookup now lives in
   `extraction-mesh-entity-state.ts`, and submesh/material draw assembly lives
   in `extraction-mesh-submeshes.ts`, leaving `extraction-meshes.ts` focused on
-  entity traversal, cache reuse/writeback, culling, and per-entity mesh data
-  extraction.
+  entity traversal, cache reuse, culling, and per-entity mesh data extraction.
+- Mesh extraction cache writeback eligibility and cached draw template storage
+  now live in `extraction-mesh-cache-writeback.ts`, keeping
+  `extraction-meshes.ts` focused on traversal and draw assembly orchestration.
 - GLB container public contracts/constants, diagnostic builders, chunk
   scanning, and byte/JSON helpers now live in focused `glb-container-*` asset
   modules, leaving `glb-container.ts` focused on `parseGlbContainer`

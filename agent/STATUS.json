@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "1063eab1",
+  "lastCommit": "82d1dcee",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting glTF URI loader public contracts into a focused asset module while keeping gltf-uri-loader.ts as the stable URI loading orchestration facade; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T07:52:34Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting mesh extraction cache writeback eligibility and cached draw template storage into a focused render module while keeping extraction-meshes.ts as the traversal and draw assembly coordinator; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T07:57:11Z"
 }
