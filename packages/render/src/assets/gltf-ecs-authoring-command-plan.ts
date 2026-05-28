@@ -3,130 +3,30 @@ import type {
   GltfSceneTraversalReport,
   GltfTraversedNode,
 } from "./gltf-scene-traversal.js";
-import type { GltfMeshSourceAssetRegistrationReport } from "./gltf-mesh-source-registration.js";
 import type {
-  GltfPrimitiveMaterialResolutionReport,
   GltfResolvedPrimitiveMaterial,
   GltfUnresolvedPrimitiveMaterial,
 } from "./gltf-primitive-material-resolution.js";
+import {
+  gltfEcsAuthoringCommandPlanToJson,
+  gltfEcsAuthoringCommandPlanToJsonValue,
+} from "./gltf-ecs-authoring-command-plan-report.js";
+import type {
+  GltfEcsAuthoringCommand,
+  GltfEcsAuthoringCommandPlan,
+  GltfEcsAuthoringCommandPlanOptions,
+  GltfEcsAuthoringDiagnostic,
+  GltfLocalTransformCommandValue,
+  GltfSkippedEcsAuthoringEntry,
+  GltfWorldTransformCommandValue,
+} from "./gltf-ecs-authoring-command-plan-types.js";
 
-export type GltfEcsAuthoringComponentName =
-  | "Name"
-  | "LocalTransform"
-  | "Parent"
-  | "WorldTransform"
-  | "Mesh"
-  | "Material"
-  | "Visibility";
+export {
+  gltfEcsAuthoringCommandPlanToJson,
+  gltfEcsAuthoringCommandPlanToJsonValue,
+};
 
-export type GltfEcsAuthoringCommand =
-  | {
-      readonly type: "createEntity";
-      readonly entityKey: string;
-      readonly label: string;
-    }
-  | {
-      readonly type: "addComponent";
-      readonly entityKey: string;
-      readonly component: GltfEcsAuthoringComponentName;
-      readonly value: GltfEcsAuthoringComponentValue;
-    };
-
-export type GltfEcsAuthoringComponentValue =
-  | GltfNameCommandValue
-  | GltfLocalTransformCommandValue
-  | GltfParentCommandValue
-  | GltfWorldTransformCommandValue
-  | GltfMeshCommandValue
-  | GltfMaterialCommandValue
-  | GltfVisibilityCommandValue;
-
-export interface GltfNameCommandValue {
-  readonly value: string;
-}
-
-export interface GltfLocalTransformCommandValue {
-  readonly translation: readonly [number, number, number];
-  readonly rotation: readonly [number, number, number, number];
-  readonly scale: readonly [number, number, number];
-}
-
-export interface GltfParentCommandValue {
-  readonly parentEntityKey: string | null;
-}
-
-export interface GltfWorldTransformCommandValue {
-  readonly col0: readonly [number, number, number, number];
-  readonly col1: readonly [number, number, number, number];
-  readonly col2: readonly [number, number, number, number];
-  readonly col3: readonly [number, number, number, number];
-}
-
-export interface GltfMeshCommandValue {
-  readonly meshId: string;
-  readonly handleKey: string;
-}
-
-export interface GltfMaterialCommandValue {
-  readonly materialId: string;
-  readonly handleKey: string;
-}
-
-export interface GltfVisibilityCommandValue {
-  readonly visible: boolean;
-}
-
-export type GltfEcsAuthoringDiagnosticCode =
-  | "gltfEcsAuthoring.invalidTraversalReport"
-  | "gltfEcsAuthoring.missingSceneRoot"
-  | "gltfEcsAuthoring.nodeSkippedByAncestor"
-  | "gltfEcsAuthoring.missingMeshRegistration"
-  | "gltfEcsAuthoring.skippedMeshRegistration"
-  | "gltfEcsAuthoring.unresolvedPrimitiveMaterial"
-  | "gltfEcsAuthoring.missingPrimitiveMaterialResolution"
-  | "gltfEcsAuthoring.duplicateEntityKey";
-
-export interface GltfEcsAuthoringDiagnostic {
-  readonly code: GltfEcsAuthoringDiagnosticCode;
-  readonly severity: "error";
-  readonly message: string;
-  readonly sceneIndex?: number;
-  readonly nodeIndex?: number;
-  readonly entityKey?: string;
-  readonly parentEntityKey?: string | null;
-  readonly meshIndex?: number;
-  readonly primitiveIndex?: number;
-  readonly meshHandleKey?: string;
-  readonly materialHandleKey?: string;
-  readonly sourceReason?: string;
-}
-
-export interface GltfSkippedEcsAuthoringEntry {
-  readonly entityKey: string;
-  readonly reason: GltfEcsAuthoringDiagnosticCode;
-  readonly nodeIndex?: number;
-  readonly parentEntityKey?: string | null;
-  readonly diagnostics: readonly GltfEcsAuthoringDiagnostic[];
-}
-
-export interface GltfEcsAuthoringCommandPlanOptions {
-  readonly traversalReport: GltfSceneTraversalReport;
-  readonly meshRegistrationReport?: GltfMeshSourceAssetRegistrationReport;
-  readonly primitiveMaterialReport?: GltfPrimitiveMaterialResolutionReport;
-  readonly availableMeshHandleKeys?: readonly string[];
-}
-
-export interface GltfEcsAuthoringCommandPlan {
-  readonly valid: boolean;
-  readonly sceneIndex: number | null;
-  readonly rootEntityKeys: readonly string[];
-  readonly commands: readonly GltfEcsAuthoringCommand[];
-  readonly dependencies: readonly string[];
-  readonly skipped: readonly GltfSkippedEcsAuthoringEntry[];
-  readonly diagnostics: readonly GltfEcsAuthoringDiagnostic[];
-}
-
-export type GltfEcsAuthoringCommandPlanJsonValue = GltfEcsAuthoringCommandPlan;
+export type * from "./gltf-ecs-authoring-command-plan-types.js";
 
 export function createGltfEcsAuthoringCommandPlan(
   options: GltfEcsAuthoringCommandPlanOptions,
@@ -214,29 +114,6 @@ export function createGltfEcsAuthoringCommandPlan(
   return result(options.traversalReport, commands, diagnostics, skipped, [
     ...dependencies,
   ]);
-}
-
-export function gltfEcsAuthoringCommandPlanToJsonValue(
-  plan: GltfEcsAuthoringCommandPlan,
-): GltfEcsAuthoringCommandPlanJsonValue {
-  return {
-    valid: plan.valid,
-    sceneIndex: plan.sceneIndex,
-    rootEntityKeys: [...plan.rootEntityKeys],
-    commands: plan.commands.map((command) => ({ ...command })),
-    dependencies: [...plan.dependencies],
-    skipped: plan.skipped.map((entry) => ({
-      ...entry,
-      diagnostics: entry.diagnostics.map((diagnostic) => ({ ...diagnostic })),
-    })),
-    diagnostics: plan.diagnostics.map((diagnostic) => ({ ...diagnostic })),
-  };
-}
-
-export function gltfEcsAuthoringCommandPlanToJson(
-  plan: GltfEcsAuthoringCommandPlan,
-): string {
-  return JSON.stringify(gltfEcsAuthoringCommandPlanToJsonValue(plan));
 }
 
 function appendEntityCommands(input: {
