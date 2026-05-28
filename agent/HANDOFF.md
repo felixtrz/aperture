@@ -1,6 +1,6 @@
 # Agent Handoff
 
-Updated: 2026-05-28T02:47:44Z
+Updated: 2026-05-28T02:50:10Z
 
 ## Current Run Update — 2026-05-28T02:46:45Z — final validation audit
 
@@ -12,6 +12,10 @@ Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5 final audit.
 - `pnpm run check:boundaries` passed.
 - `pnpm run check:progress` passed.
 - `pnpm run check:examples` passed.
+- `pnpm exec vitest run test/rendering/snapshot-packed-encoding.test.ts test/assets/gltf-ecs-command-replay.test.ts`
+  passed.
+- `pnpm exec vitest run test/rendering/transform-pack.test.ts test/assets/gltf-mesh-primitive.test.ts test/assets/gltf-source-registration.test.ts`
+  passed.
 - `git status --short` was clean after the committed slices.
 
 ### Known issues / remaining work
