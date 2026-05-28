@@ -589,6 +589,9 @@ Status: in progress
 - CLI reference text tokenization, hashed embedding generation, vector
   normalization, token aliases, and cosine scoring now live in
   `packages/cli/src/reference-embedding.ts`.
+- CLI reference source collection, package export traversal, re-export
+  following, dependency source inclusion, and source file walking now live in
+  `packages/cli/src/reference-source-collection.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

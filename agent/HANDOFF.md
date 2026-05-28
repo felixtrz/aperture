@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-28T11:46:53Z
+Updated: 2026-05-28T11:52:51Z
+
+## Current Run Update — 2026-05-28T11:52:51Z — CLI reference source collection split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 8.
+
+### What changed
+
+- Split reference source collection, package export traversal, re-export
+  following, dependency source inclusion, and source file walking into
+  `packages/cli/src/reference-source-collection.ts`.
+- Kept generated payload manifest walking local to `reference.ts` as a small
+  `collectManifestFiles()` helper because it is runtime-output validation, not
+  source discovery.
+- Reduced `packages/cli/src/reference.ts` from 2265 lines to 1971 lines.
+
+### Validation
+
+- `pnpm exec prettier --write packages/cli/src/reference.ts packages/cli/src/reference-source-collection.ts`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm exec eslint packages/cli/src/reference.ts packages/cli/src/reference-source-collection.ts packages/cli/src/reference-source-filter.ts packages/cli/src/reference-embedding.ts packages/cli/src/reference-tools.ts packages/cli/src/reference-paths.ts packages/cli/src/mcp.ts packages/cli/src/devtools-reference-tools.ts`
+- `pnpm exec prettier --check packages/cli/src/reference.ts packages/cli/src/reference-source-collection.ts packages/cli/src/reference-source-filter.ts packages/cli/src/reference-embedding.ts packages/cli/src/reference-tools.ts packages/cli/src/reference-paths.ts packages/cli/src/mcp.ts packages/cli/src/devtools-reference-tools.ts`
+- `pnpm exec vitest run test/cli/reference.test.ts test/cli/create.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- `packages/cli/src/reference.ts` remains large at 1971 lines and still mixes
+  chunking/metadata extraction, warm/status IO, and query facades.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 8 by splitting reference chunking/metadata extraction out of
+`reference.ts`.
 
 ## Current Run Update — 2026-05-28T11:46:53Z — CLI reference embedding split
 
