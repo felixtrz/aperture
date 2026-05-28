@@ -24,7 +24,7 @@ import {
   type EcsWorld,
   type Entity,
 } from "@aperture-engine/simulation";
-import type { ApertureConfig, ApertureSignalDescriptor } from "./config.js";
+import type { ApertureConfig } from "./config.js";
 import {
   createSpatialQueries,
   type SpatialQueries,
@@ -46,7 +46,6 @@ import {
   type SystemDiagnostics,
 } from "./systems-diagnostics.js";
 import { ApertureSystemError } from "./systems-error.js";
-import { jsonSafeValue } from "./systems-json.js";
 import { createCommandAccess, type CommandAccess } from "./systems-commands.js";
 import {
   createSystemAssetAccess,
@@ -55,6 +54,7 @@ import {
 } from "./systems-assets.js";
 import { registerApertureAppComponents } from "./systems-components.js";
 import { createCameraAccess, type CameraAccess } from "./systems-cameras.js";
+import { createSignalStore, type SignalStore } from "./systems-signals.js";
 import { createSpawnCommands, type SpawnCommands } from "./systems-spawn.js";
 
 export { createSpatialQueries } from "./spatial-queries.js";
@@ -82,18 +82,8 @@ export {
   quatFromAxisAngle,
 };
 
-export type SignalStore = Record<string, Signal<unknown>>;
-export type SignalSummary = Readonly<Record<string, unknown>>;
-
-export function createSignalSummary(signals: SignalStore): SignalSummary {
-  const summary: Record<string, unknown> = {};
-
-  for (const [key, signal] of Object.entries(signals)) {
-    summary[key] = jsonSafeValue(signal.value);
-  }
-
-  return summary;
-}
+export type { SignalStore, SignalSummary } from "./systems-signals.js";
+export { createSignalSummary } from "./systems-signals.js";
 
 export type {
   ApertureSystemDiagnostic,
@@ -445,18 +435,6 @@ function isApertureSystemContext(
     "spawn" in value &&
     "effects" in value
   );
-}
-
-function createSignalStore(
-  descriptors: Readonly<Record<string, ApertureSignalDescriptor>>,
-): SignalStore {
-  const output: SignalStore = {};
-
-  for (const [key, descriptor] of Object.entries(descriptors)) {
-    output[key] = createSignal(descriptor.initial);
-  }
-
-  return output;
 }
 
 function createInputSignals(config: ApertureConfig | undefined): InputSignals {
