@@ -385,6 +385,11 @@ Status: in progress
   `snapshot-packed-encoder.ts` and `snapshot-packed-decoder.ts`, keeping
   `snapshot-packed-encoding.ts` as the stable public re-export and compatibility
   wrapper facade.
+- Render snapshot public packet contracts, diagnostic/report contracts, and the
+  core structured-clone snapshot contract now live in
+  `snapshot-packet-types.ts`, `snapshot-diagnostic-types.ts`, and
+  `snapshot-core-types.ts`, keeping `snapshot-types.ts` as the stable public
+  re-export facade.
 - Render-world draw package public contracts and scratch/pool construction now
   live in `draw-package-types.ts` and `draw-package-scratch.ts`, leaving
   `draw-package.ts` focused on package writing, stable/state-aware sorting, and

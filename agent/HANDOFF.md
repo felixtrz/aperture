@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T08:36:35Z
+Updated: 2026-05-28T08:40:58Z
+
+## Current Run Update — 2026-05-28T08:40:58Z — snapshot contract type split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split render snapshot packet contracts into
+  `packages/render/src/rendering/snapshot-packet-types.ts`.
+- Split render snapshot diagnostic/report contracts into
+  `packages/render/src/rendering/snapshot-diagnostic-types.ts`.
+- Split the core `RenderSnapshot` and sort-key input contracts into
+  `packages/render/src/rendering/snapshot-core-types.ts`.
+- Kept `snapshot-types.ts` as the stable public re-export facade, so existing
+  imports through `snapshot.ts` and package barrels remain unchanged.
+- Updated the package-structure plan and public progress tracker for the new
+  snapshot contract module boundaries.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/snapshot-types.ts packages/render/src/rendering/snapshot-core-types.ts packages/render/src/rendering/snapshot-diagnostic-types.ts packages/render/src/rendering/snapshot-packet-types.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/snapshot-types.ts packages/render/src/rendering/snapshot-core-types.ts packages/render/src/rendering/snapshot-diagnostic-types.ts packages/render/src/rendering/snapshot-packet-types.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/snapshot-types.ts packages/render/src/rendering/snapshot-core-types.ts packages/render/src/rendering/snapshot-diagnostic-types.ts packages/render/src/rendering/snapshot-packet-types.ts`
+- `pnpm exec vitest run test/rendering/snapshot.test.ts test/rendering/snapshot-clone.test.ts test/rendering/snapshot-diagnostics.test.ts test/rendering/snapshot-inspection.test.ts test/rendering/snapshot-change-set.test.ts test/rendering/snapshot-packed-encoding.test.ts test/runtime/simulation-worker.test.ts test/webgpu/render-frame-snapshot-runner.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-sampler.ts`, `gltf-texture.ts`,
+  `gltf-source-registration-writers.ts`, `preparation-material.ts`, and other
+  medium render/material/asset modules still near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium material/asset hotspot.
 
 ## Current Run Update — 2026-05-28T08:36:35Z — URI fetch byte helper split
 
