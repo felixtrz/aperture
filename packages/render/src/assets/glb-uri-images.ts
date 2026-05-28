@@ -1,21 +1,9 @@
-import { loadGltfTextureAsync } from "../materials/gltf-texture-loading.js";
 import type {
   GltfDecodedImageData,
   GltfImageBytesDecoder,
 } from "../materials/gltf-texture-types.js";
-import {
-  imageDecodeCacheKey,
-  imageDecodeOptionsKeyField,
-  resolveBasisKtx2Transcoder,
-} from "./glb-uri-image-cache.js";
-import { byteLengthOf, bytesForImageSource } from "./glb-uri-image-bytes.js";
+import { decodeGlbExternalImage } from "./glb-uri-image-decode-task.js";
 import { mapWithConcurrency } from "./glb-uri-image-merge.js";
-import {
-  externalImageSourceKind,
-  imageSourceRefFromImage,
-  imageStatusUri,
-  isRecord,
-} from "./glb-uri-image-sources.js";
 import type {
   LoadGlbFromUriCache,
   LoadGlbFromUriDiagnostic,
@@ -87,174 +75,34 @@ export async function decodeExternalImages(input: {
   const results = await mapWithConcurrency(
     images.map((image, imageIndex) => ({ image, imageIndex })),
     input.imageDecodeConcurrency,
-    async ({ image, imageIndex }) => {
-      if (!isRecord(image)) {
-        return null;
-      }
-
-      const source = imageSourceRefFromImage(image);
-
-      if (!source.ok) {
-        if (
-          typeof image.uri === "string" ||
-          Number.isInteger(image.bufferView)
-        ) {
-          return {
-            diagnostics: [
-              {
-                code: "loadGlbFromUri.unsupportedImageUri" as const,
-                severity: "error" as const,
-                imageIndex,
-                ...(typeof image.uri === "string" ? { uri: image.uri } : {}),
-                message: source.message,
-              },
-            ],
-            statuses: [],
-          };
-        }
-        return null;
-      }
-
-      const imageBytes = bytesForImageSource({
+    ({ image, imageIndex }) =>
+      decodeGlbExternalImage({
+        image,
+        imageIndex,
         root: input.root,
         binary: input.binary,
-        source: source.source,
-        imageIndex,
+        sourceUrl,
         externalBufferBytes: input.externalBufferBytes,
         externalImageBytes: input.externalImageBytes,
-      });
-
-      if (!imageBytes.ok) {
-        return {
-          diagnostics: [imageBytes.diagnostic],
-          statuses: [
-            {
-              imageIndex,
-              sourceKind: externalImageSourceKind(source.source),
-              uri: imageStatusUri(source.source),
-              status: "blocked" as const,
-              byteLength: null,
-              ...(source.source.mimeType === undefined
-                ? {}
-                : { mimeType: source.source.mimeType }),
-              ...(imageBytes.diagnostic.uri === undefined
-                ? {}
-                : { url: imageBytes.diagnostic.uri }),
-              diagnosticCode: imageBytes.diagnostic.code,
-            },
-          ],
-        };
-      }
-
-      try {
-        const decodeCacheKey = imageDecodeCacheKey({
-          source: source.source,
-          sourceUrl,
-          bytes: imageBytes.bytes,
-          byteObjectId,
-          ...imageDecodeOptionsKeyField({
-            source: source.source,
-            ...(input.ktx2TextureCompression === undefined
-              ? {}
-              : { textureCompression: input.ktx2TextureCompression }),
-          }),
-        });
-        let decodedPromise = decodeCache.get(decodeCacheKey);
-
-        if (decodedPromise === undefined) {
-          const basisTranscoder =
-            input.decodeImageData === undefined
-              ? await resolveBasisKtx2Transcoder({
-                  source: source.source,
-                  provided: input.basisTranscoder,
-                  create: input.createBasisKtx2Transcoder,
-                  getCreated: () => createdBasisTranscoder,
-                  setCreated: (promise) => {
-                    createdBasisTranscoder = promise;
-                  },
-                })
-              : undefined;
-
-          decodedPromise = loadGltfTextureAsync({
-            source: source.source,
-            ...(imageBytes.bytes === undefined
-              ? {}
-              : { bytes: imageBytes.bytes }),
-            ...(input.decodeImageData === undefined
-              ? {}
-              : { decodeImageData: input.decodeImageData }),
-            ...(basisTranscoder === undefined ? {} : { basisTranscoder }),
-            ...(input.ktx2TextureCompression === undefined
-              ? {}
-              : { ktx2TextureCompression: input.ktx2TextureCompression }),
-          }).catch((error: unknown) => {
-            decodeCache.delete(decodeCacheKey);
-            throw error;
-          });
-          decodeCache.set(decodeCacheKey, decodedPromise);
-        }
-
-        const decoded = await decodedPromise;
-
-        return {
-          decoded: { imageIndex, image: decoded },
-          diagnostics: [],
-          statuses: [
-            {
-              imageIndex,
-              sourceKind: externalImageSourceKind(source.source),
-              uri: imageStatusUri(source.source),
-              status: "loaded" as const,
-              byteLength:
-                imageBytes.bytes === undefined
-                  ? decoded.sourceData.bytes.byteLength
-                  : byteLengthOf(imageBytes.bytes),
-              ...(source.source.mimeType === undefined
-                ? {}
-                : { mimeType: source.source.mimeType }),
-              ...(source.source.kind === "uri" &&
-              !source.source.uri.startsWith("data:")
-                ? { url: new URL(source.source.uri, sourceUrl).href }
-                : {}),
-              width: decoded.width,
-              height: decoded.height,
-            },
-          ],
-        };
-      } catch (error) {
-        const uri = imageStatusUri(source.source);
-        return {
-          diagnostics: [
-            {
-              code: "loadGlbFromUri.imageReadFailed" as const,
-              severity: "error" as const,
-              imageIndex,
-              uri,
-              message: errorMessage(
-                error,
-                `Decoding GLB image ${imageIndex} '${uri}' failed.`,
-              ),
-            },
-          ],
-          statuses: [
-            {
-              imageIndex,
-              sourceKind: externalImageSourceKind(source.source),
-              uri,
-              status: "blocked" as const,
-              byteLength:
-                imageBytes.bytes === undefined
-                  ? null
-                  : byteLengthOf(imageBytes.bytes),
-              ...(source.source.mimeType === undefined
-                ? {}
-                : { mimeType: source.source.mimeType }),
-              diagnosticCode: "loadGlbFromUri.imageReadFailed" as const,
-            },
-          ],
-        };
-      }
-    },
+        ...(input.decodeImageData === undefined
+          ? {}
+          : { decodeImageData: input.decodeImageData }),
+        ...(input.basisTranscoder === undefined
+          ? {}
+          : { basisTranscoder: input.basisTranscoder }),
+        ...(input.createBasisKtx2Transcoder === undefined
+          ? {}
+          : { createBasisKtx2Transcoder: input.createBasisKtx2Transcoder }),
+        ...(input.ktx2TextureCompression === undefined
+          ? {}
+          : { ktx2TextureCompression: input.ktx2TextureCompression }),
+        decodeCache,
+        byteObjectId,
+        getCreatedBasisTranscoder: () => createdBasisTranscoder,
+        setCreatedBasisTranscoder: (promise) => {
+          createdBasisTranscoder = promise;
+        },
+      }),
   );
 
   for (const result of results) {
@@ -271,8 +119,4 @@ export async function decodeExternalImages(input: {
   }
 
   return { images: decodedImages, statuses, diagnostics };
-}
-
-function errorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
 }
