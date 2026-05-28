@@ -1,161 +1,37 @@
 import { assetHandleKey, createMeshHandle } from "@aperture-engine/simulation";
 
-import type { MeshAsset } from "../mesh/index.js";
 import {
   gltfRootValidationReportToJsonValue,
   validateGltfRootForAssetMapping,
-  type GltfRootValidationReportJsonValue,
 } from "./gltf-root.js";
+import {
+  mapGltfMeshPrimitiveAttributes,
+  mapGltfMeshPrimitiveIndexReference,
+} from "./gltf-mesh-primitive-attributes.js";
 import {
   inspectUnsupportedCompression,
   mapCompressedPrimitive,
 } from "./gltf-mesh-primitive-compression.js";
+import {
+  createGltfMeshPrimitiveMappingReportResult,
+  gltfMeshPrimitiveMappingReportToJson,
+  gltfMeshPrimitiveMappingReportToJsonValue,
+} from "./gltf-mesh-primitive-report.js";
+import type {
+  GltfMeshPrimitiveMappingDiagnostic,
+  GltfMeshPrimitiveMappingOptions,
+  GltfMeshPrimitiveMappingReport,
+  GltfMeshPrimitiveSelection,
+  GltfPlannedMeshPrimitiveAsset,
+} from "./gltf-mesh-primitive-types.js";
 import { isRecord, toDiagnosticValue } from "./gltf-mesh-primitive-utils.js";
 
-export type GltfMeshPrimitiveMappingDiagnosticSeverity = "error" | "warning";
+export {
+  gltfMeshPrimitiveMappingReportToJson,
+  gltfMeshPrimitiveMappingReportToJsonValue,
+};
 
-export type GltfMeshPrimitiveMappingLayer = "root" | "mesh";
-
-export type GltfMeshPrimitiveMappingDiagnosticCode =
-  | "gltfMesh.malformedMeshes"
-  | "gltfMesh.missingMesh"
-  | "gltfMesh.malformedPrimitives"
-  | "gltfMesh.missingPrimitive"
-  | "gltfMesh.malformedPrimitive"
-  | "gltfMesh.missingPosition"
-  | "gltfMesh.invalidAccessorReference"
-  | "gltfMesh.invalidCompressedPrimitive"
-  | "gltfMesh.unsupportedPrimitiveMode"
-  | "gltfMesh.unsupportedCompressedPrimitive"
-  | "gltfMesh.unresolvedAccessorData";
-
-export type GltfMeshPrimitiveDiagnosticValue = string | number | boolean | null;
-
-export type GltfMeshPrimitiveAttributeSemantic =
-  | "POSITION"
-  | "NORMAL"
-  | "TEXCOORD_0"
-  | "TEXCOORD_1"
-  | "TANGENT"
-  | "COLOR_0"
-  | "JOINTS_0"
-  | "WEIGHTS_0"
-  | "MORPH_POSITION_0"
-  | "MORPH_NORMAL_0"
-  | "MORPH_POSITION_1"
-  | "MORPH_NORMAL_1";
-
-export interface GltfMeshPrimitiveMappingDiagnostic {
-  readonly layer: GltfMeshPrimitiveMappingLayer;
-  readonly code: string;
-  readonly severity: GltfMeshPrimitiveMappingDiagnosticSeverity;
-  readonly message: string;
-  readonly meshIndex?: number;
-  readonly primitiveIndex?: number;
-  readonly accessorIndex?: number;
-  readonly attribute?: GltfMeshPrimitiveAttributeSemantic;
-  readonly field?: string;
-  readonly mode?: number;
-  readonly extensionName?: string;
-  readonly value?: GltfMeshPrimitiveDiagnosticValue;
-}
-
-export type GltfSupportedCompressedPrimitiveExtension =
-  "KHR_draco_mesh_compression";
-
-export interface GltfMeshPrimitiveSelection {
-  readonly meshIndex: number;
-  readonly primitiveIndex: number;
-}
-
-export interface GltfMeshPrimitiveMappingOptions {
-  readonly root: unknown;
-  readonly meshPrimitiveIndices?: readonly GltfMeshPrimitiveSelection[];
-  readonly keyPrefix?: string;
-  readonly supportedCompressedPrimitiveExtensions?: readonly GltfSupportedCompressedPrimitiveExtension[];
-}
-
-export interface GltfMeshPrimitiveAttributeReference {
-  readonly semantic: GltfMeshPrimitiveAttributeSemantic;
-  readonly accessorIndex: number;
-}
-
-export interface GltfMeshPrimitiveAttributeReferences {
-  readonly position: GltfMeshPrimitiveAttributeReference;
-  readonly normal?: GltfMeshPrimitiveAttributeReference;
-  readonly texcoord0?: GltfMeshPrimitiveAttributeReference;
-  readonly texcoord1?: GltfMeshPrimitiveAttributeReference;
-  readonly tangent?: GltfMeshPrimitiveAttributeReference;
-  readonly color0?: GltfMeshPrimitiveAttributeReference;
-  readonly joints0?: GltfMeshPrimitiveAttributeReference;
-  readonly weights0?: GltfMeshPrimitiveAttributeReference;
-  readonly morphPosition0?: GltfMeshPrimitiveAttributeReference;
-  readonly morphNormal0?: GltfMeshPrimitiveAttributeReference;
-  readonly morphPosition1?: GltfMeshPrimitiveAttributeReference;
-  readonly morphNormal1?: GltfMeshPrimitiveAttributeReference;
-}
-
-export interface GltfMeshPrimitiveIndexReference {
-  readonly accessorIndex: number;
-}
-
-export interface GltfCompressedMeshPrimitiveAttributeReference {
-  readonly semantic: GltfMeshPrimitiveAttributeSemantic;
-  readonly uniqueId: number;
-}
-
-export interface GltfCompressedMeshPrimitiveReference {
-  readonly extensionName: GltfSupportedCompressedPrimitiveExtension;
-  readonly bufferView: number;
-  readonly attributes: readonly GltfCompressedMeshPrimitiveAttributeReference[];
-}
-
-export interface GltfPlannedMeshPrimitiveAsset {
-  readonly handleKey: string;
-  readonly registeredHandleKey: string;
-  readonly meshIndex: number;
-  readonly primitiveIndex: number;
-  readonly label: string;
-  readonly topology: "triangle-list";
-  readonly attributes: GltfMeshPrimitiveAttributeReferences;
-  readonly indices: GltfMeshPrimitiveIndexReference | null;
-  readonly compression: GltfCompressedMeshPrimitiveReference | null;
-  readonly materialIndex: number | null;
-  readonly mesh: MeshAsset | null;
-}
-
-export interface GltfMeshPrimitiveMappingReport {
-  readonly valid: boolean;
-  readonly root: GltfRootValidationReportJsonValue;
-  readonly meshes: readonly GltfPlannedMeshPrimitiveAsset[];
-  readonly diagnostics: readonly GltfMeshPrimitiveMappingDiagnostic[];
-}
-
-export interface GltfMeshAssetJsonSummary {
-  readonly kind: "mesh";
-  readonly label: string;
-  readonly vertexStreams: number;
-  readonly submeshes: number;
-  readonly materialSlots: number;
-  readonly indexFormat?: "uint16" | "uint32";
-  readonly indexCount?: number;
-  readonly hasLocalAabb: boolean;
-  readonly hasLocalSphere: boolean;
-}
-
-export interface GltfPlannedMeshPrimitiveAssetJsonValue extends Omit<
-  GltfPlannedMeshPrimitiveAsset,
-  "mesh"
-> {
-  readonly mesh: GltfMeshAssetJsonSummary | null;
-}
-
-export interface GltfMeshPrimitiveMappingReportJsonValue {
-  readonly valid: boolean;
-  readonly root: GltfRootValidationReportJsonValue;
-  readonly meshes: readonly GltfPlannedMeshPrimitiveAssetJsonValue[];
-  readonly diagnostics: readonly GltfMeshPrimitiveMappingDiagnostic[];
-}
+export type * from "./gltf-mesh-primitive-types.js";
 
 interface PrimitiveReferenceResult {
   readonly primitive: Record<string, unknown> | null;
@@ -181,7 +57,11 @@ export function createGltfMeshPrimitiveMappingReport(
     }));
 
   if (!isRecord(options.root)) {
-    return result({ root, diagnostics, meshes: [] });
+    return createGltfMeshPrimitiveMappingReportResult({
+      root,
+      diagnostics,
+      meshes: [],
+    });
   }
 
   const meshesField = options.root.meshes;
@@ -194,7 +74,11 @@ export function createGltfMeshPrimitiveMappingReport(
       value: toDiagnosticValue(meshesField),
       message: "glTF meshes must be an array when present.",
     });
-    return result({ root, diagnostics, meshes: [] });
+    return createGltfMeshPrimitiveMappingReportResult({
+      root,
+      diagnostics,
+      meshes: [],
+    });
   }
 
   const meshes = Array.isArray(meshesField) ? meshesField : [];
@@ -227,27 +111,11 @@ export function createGltfMeshPrimitiveMappingReport(
     }
   }
 
-  return result({ root, diagnostics, meshes: plannedMeshes });
-}
-
-export function gltfMeshPrimitiveMappingReportToJsonValue(
-  report: GltfMeshPrimitiveMappingReport,
-): GltfMeshPrimitiveMappingReportJsonValue {
-  return {
-    valid: report.valid,
-    root: report.root,
-    meshes: report.meshes.map((mesh) => ({
-      ...mesh,
-      mesh: mesh.mesh === null ? null : meshAssetToJsonSummary(mesh.mesh),
-    })),
-    diagnostics: report.diagnostics.map((diagnostic) => ({ ...diagnostic })),
-  };
-}
-
-export function gltfMeshPrimitiveMappingReportToJson(
-  report: GltfMeshPrimitiveMappingReport,
-): string {
-  return JSON.stringify(gltfMeshPrimitiveMappingReportToJsonValue(report));
+  return createGltfMeshPrimitiveMappingReportResult({
+    root,
+    diagnostics,
+    meshes: plannedMeshes,
+  });
 }
 
 function resolvePrimitiveReference(input: {
@@ -324,10 +192,10 @@ function planPrimitive(input: {
 
   inspectUnsupportedCompression(input);
   const topology = mapTopology(input);
-  const attributes = mapAttributes(input);
+  const attributes = mapGltfMeshPrimitiveAttributes(input);
   const compression =
     attributes === null ? null : mapCompressedPrimitive(input, attributes);
-  const indices = mapIndexReference(input);
+  const indices = mapGltfMeshPrimitiveIndexReference(input);
   const materialIndex = mapMaterialIndex(input.primitive.material);
 
   const hasNewError = input.diagnostics
@@ -394,256 +262,6 @@ function mapTopology(input: {
   return null;
 }
 
-function mapAttributes(input: {
-  readonly root: Record<string, unknown>;
-  readonly primitive: Record<string, unknown>;
-  readonly meshIndex: number;
-  readonly primitiveIndex: number;
-  readonly diagnostics: GltfMeshPrimitiveMappingDiagnostic[];
-}): GltfMeshPrimitiveAttributeReferences | null {
-  const attributes = input.primitive.attributes;
-  if (!isRecord(attributes)) {
-    input.diagnostics.push({
-      layer: "mesh",
-      code: "gltfMesh.missingPosition",
-      severity: "error",
-      meshIndex: input.meshIndex,
-      primitiveIndex: input.primitiveIndex,
-      field: `meshes[${input.meshIndex}].primitives[${input.primitiveIndex}].attributes.POSITION`,
-      message: `glTF mesh ${input.meshIndex} primitive ${input.primitiveIndex} must include a POSITION attribute.`,
-    });
-    return null;
-  }
-
-  const position = mapAttributeReference(input, attributes, "POSITION");
-  if (position === null) {
-    return null;
-  }
-
-  const normal = mapAttributeReference(input, attributes, "NORMAL");
-  const texcoord0 = mapAttributeReference(input, attributes, "TEXCOORD_0");
-  const texcoord1 = mapAttributeReference(input, attributes, "TEXCOORD_1");
-  const tangent = mapAttributeReference(input, attributes, "TANGENT");
-  const color0 = mapAttributeReference(input, attributes, "COLOR_0");
-  const joints0 = mapAttributeReference(input, attributes, "JOINTS_0");
-  const weights0 = mapAttributeReference(input, attributes, "WEIGHTS_0");
-  const morphTargets = mapMorphTargetAttributeReferences(input);
-  const hasOptionalAttributeError = input.diagnostics.some(
-    (diagnostic) =>
-      diagnostic.severity === "error" &&
-      diagnostic.meshIndex === input.meshIndex &&
-      diagnostic.primitiveIndex === input.primitiveIndex &&
-      (diagnostic.attribute === "NORMAL" ||
-        diagnostic.attribute === "TEXCOORD_0" ||
-        diagnostic.attribute === "TEXCOORD_1" ||
-        diagnostic.attribute === "TANGENT" ||
-        diagnostic.attribute === "COLOR_0" ||
-        diagnostic.attribute === "JOINTS_0" ||
-        diagnostic.attribute === "WEIGHTS_0" ||
-        diagnostic.attribute === "MORPH_POSITION_0" ||
-        diagnostic.attribute === "MORPH_NORMAL_0" ||
-        diagnostic.attribute === "MORPH_POSITION_1" ||
-        diagnostic.attribute === "MORPH_NORMAL_1"),
-  );
-  if (hasOptionalAttributeError) {
-    return null;
-  }
-
-  return {
-    position,
-    ...(normal === null ? {} : { normal }),
-    ...(texcoord0 === null ? {} : { texcoord0 }),
-    ...(texcoord1 === null ? {} : { texcoord1 }),
-    ...(tangent === null ? {} : { tangent }),
-    ...(color0 === null ? {} : { color0 }),
-    ...(joints0 === null ? {} : { joints0 }),
-    ...(weights0 === null ? {} : { weights0 }),
-    ...(morphTargets.morphPosition0 === null
-      ? {}
-      : { morphPosition0: morphTargets.morphPosition0 }),
-    ...(morphTargets.morphNormal0 === null
-      ? {}
-      : { morphNormal0: morphTargets.morphNormal0 }),
-    ...(morphTargets.morphPosition1 === null
-      ? {}
-      : { morphPosition1: morphTargets.morphPosition1 }),
-    ...(morphTargets.morphNormal1 === null
-      ? {}
-      : { morphNormal1: morphTargets.morphNormal1 }),
-  };
-}
-
-function mapMorphTargetAttributeReferences(input: {
-  readonly root: Record<string, unknown>;
-  readonly primitive: Record<string, unknown>;
-  readonly meshIndex: number;
-  readonly primitiveIndex: number;
-  readonly diagnostics: GltfMeshPrimitiveMappingDiagnostic[];
-}): {
-  readonly morphPosition0: GltfMeshPrimitiveAttributeReference | null;
-  readonly morphNormal0: GltfMeshPrimitiveAttributeReference | null;
-  readonly morphPosition1: GltfMeshPrimitiveAttributeReference | null;
-  readonly morphNormal1: GltfMeshPrimitiveAttributeReference | null;
-} {
-  const targets = Array.isArray(input.primitive.targets)
-    ? input.primitive.targets
-    : [];
-  const target0 = isRecord(targets[0]) ? targets[0] : {};
-  const target1 = isRecord(targets[1]) ? targets[1] : {};
-
-  return {
-    morphPosition0: mapTargetAttributeReference(
-      input,
-      target0,
-      "POSITION",
-      "MORPH_POSITION_0",
-    ),
-    morphNormal0: mapTargetAttributeReference(
-      input,
-      target0,
-      "NORMAL",
-      "MORPH_NORMAL_0",
-    ),
-    morphPosition1: mapTargetAttributeReference(
-      input,
-      target1,
-      "POSITION",
-      "MORPH_POSITION_1",
-    ),
-    morphNormal1: mapTargetAttributeReference(
-      input,
-      target1,
-      "NORMAL",
-      "MORPH_NORMAL_1",
-    ),
-  };
-}
-
-function mapTargetAttributeReference(
-  input: {
-    readonly root: Record<string, unknown>;
-    readonly meshIndex: number;
-    readonly primitiveIndex: number;
-    readonly diagnostics: GltfMeshPrimitiveMappingDiagnostic[];
-  },
-  target: Record<string, unknown>,
-  targetSemantic: "POSITION" | "NORMAL",
-  semantic: GltfMeshPrimitiveAttributeSemantic,
-): GltfMeshPrimitiveAttributeReference | null {
-  const accessorIndex = target[targetSemantic];
-
-  if (accessorIndex === undefined) {
-    return null;
-  }
-
-  if (!validAccessorReference(input.root, accessorIndex)) {
-    input.diagnostics.push({
-      layer: "mesh",
-      code: "gltfMesh.invalidAccessorReference",
-      severity: "error",
-      meshIndex: input.meshIndex,
-      primitiveIndex: input.primitiveIndex,
-      attribute: semantic,
-      field: `meshes[${input.meshIndex}].primitives[${input.primitiveIndex}].targets.${targetSemantic}`,
-      value: toDiagnosticValue(accessorIndex),
-      ...(typeof accessorIndex === "number" ? { accessorIndex } : {}),
-      message: `glTF mesh ${input.meshIndex} primitive ${input.primitiveIndex} has an invalid ${semantic} accessor reference.`,
-    });
-    return null;
-  }
-
-  return { semantic, accessorIndex };
-}
-
-function mapAttributeReference(
-  input: {
-    readonly root: Record<string, unknown>;
-    readonly meshIndex: number;
-    readonly primitiveIndex: number;
-    readonly diagnostics: GltfMeshPrimitiveMappingDiagnostic[];
-  },
-  attributes: Record<string, unknown>,
-  semantic: GltfMeshPrimitiveAttributeSemantic,
-): GltfMeshPrimitiveAttributeReference | null {
-  const accessorIndex = attributes[semantic];
-  if (accessorIndex === undefined) {
-    if (semantic === "POSITION") {
-      input.diagnostics.push({
-        layer: "mesh",
-        code: "gltfMesh.missingPosition",
-        severity: "error",
-        meshIndex: input.meshIndex,
-        primitiveIndex: input.primitiveIndex,
-        attribute: semantic,
-        field: `meshes[${input.meshIndex}].primitives[${input.primitiveIndex}].attributes.POSITION`,
-        message: `glTF mesh ${input.meshIndex} primitive ${input.primitiveIndex} must include a POSITION attribute.`,
-      });
-    }
-    return null;
-  }
-
-  if (!validAccessorReference(input.root, accessorIndex)) {
-    input.diagnostics.push({
-      layer: "mesh",
-      code: "gltfMesh.invalidAccessorReference",
-      severity: "error",
-      meshIndex: input.meshIndex,
-      primitiveIndex: input.primitiveIndex,
-      attribute: semantic,
-      field: `meshes[${input.meshIndex}].primitives[${input.primitiveIndex}].attributes.${semantic}`,
-      value: toDiagnosticValue(accessorIndex),
-      ...(typeof accessorIndex === "number" ? { accessorIndex } : {}),
-      message: `glTF mesh ${input.meshIndex} primitive ${input.primitiveIndex} has an invalid ${semantic} accessor reference.`,
-    });
-    return null;
-  }
-
-  return { semantic, accessorIndex };
-}
-
-function mapIndexReference(input: {
-  readonly root: Record<string, unknown>;
-  readonly primitive: Record<string, unknown>;
-  readonly meshIndex: number;
-  readonly primitiveIndex: number;
-  readonly diagnostics: GltfMeshPrimitiveMappingDiagnostic[];
-}): GltfMeshPrimitiveIndexReference | null {
-  const accessorIndex = input.primitive.indices;
-  if (accessorIndex === undefined) {
-    return null;
-  }
-
-  if (!validAccessorReference(input.root, accessorIndex)) {
-    input.diagnostics.push({
-      layer: "mesh",
-      code: "gltfMesh.invalidAccessorReference",
-      severity: "error",
-      meshIndex: input.meshIndex,
-      primitiveIndex: input.primitiveIndex,
-      field: `meshes[${input.meshIndex}].primitives[${input.primitiveIndex}].indices`,
-      value: toDiagnosticValue(accessorIndex),
-      ...(typeof accessorIndex === "number" ? { accessorIndex } : {}),
-      message: `glTF mesh ${input.meshIndex} primitive ${input.primitiveIndex} has an invalid indices accessor reference.`,
-    });
-    return null;
-  }
-
-  return { accessorIndex };
-}
-
-function validAccessorReference(
-  root: Record<string, unknown>,
-  accessorIndex: unknown,
-): accessorIndex is number {
-  return (
-    Number.isInteger(accessorIndex) &&
-    typeof accessorIndex === "number" &&
-    accessorIndex >= 0 &&
-    Array.isArray(root.accessors) &&
-    accessorIndex < root.accessors.length
-  );
-}
-
 function mapMaterialIndex(value: unknown): number | null {
   return Number.isInteger(value) && typeof value === "number" && value >= 0
     ? value
@@ -686,37 +304,4 @@ function primitiveLabel(
   return typeof mesh?.name === "string" && mesh.name.length > 0
     ? `${mesh.name}.primitive.${primitiveIndex}`
     : `gltf mesh ${meshIndex} primitive ${primitiveIndex}`;
-}
-
-function result(input: {
-  readonly root: GltfRootValidationReportJsonValue;
-  readonly diagnostics: readonly GltfMeshPrimitiveMappingDiagnostic[];
-  readonly meshes: readonly GltfPlannedMeshPrimitiveAsset[];
-}): GltfMeshPrimitiveMappingReport {
-  return {
-    valid: input.diagnostics.every(
-      (diagnostic) => diagnostic.severity !== "error",
-    ),
-    root: input.root,
-    meshes: input.meshes,
-    diagnostics: input.diagnostics,
-  };
-}
-
-function meshAssetToJsonSummary(mesh: MeshAsset): GltfMeshAssetJsonSummary {
-  return {
-    kind: "mesh",
-    label: mesh.label,
-    vertexStreams: mesh.vertexStreams.length,
-    submeshes: mesh.submeshes.length,
-    materialSlots: mesh.materialSlots.length,
-    ...(mesh.indexBuffer === undefined
-      ? {}
-      : {
-          indexFormat: mesh.indexBuffer.format,
-          indexCount: mesh.indexBuffer.data.length,
-        }),
-    hasLocalAabb: mesh.localAabb !== undefined,
-    hasLocalSphere: mesh.localSphere !== undefined,
-  };
 }

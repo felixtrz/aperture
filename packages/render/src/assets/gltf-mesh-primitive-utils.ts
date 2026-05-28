@@ -1,4 +1,4 @@
-import type { GltfMeshPrimitiveDiagnosticValue } from "./gltf-mesh-primitive.js";
+import type { GltfMeshPrimitiveDiagnosticValue } from "./gltf-mesh-primitive-types.js";
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);

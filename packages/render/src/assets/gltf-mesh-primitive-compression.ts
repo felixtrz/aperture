@@ -10,7 +10,7 @@ import type {
   GltfMeshPrimitiveAttributeReferences,
   GltfMeshPrimitiveMappingDiagnostic,
   GltfMeshPrimitiveMappingOptions,
-} from "./gltf-mesh-primitive.js";
+} from "./gltf-mesh-primitive-types.js";
 
 export function inspectUnsupportedCompression(input: {
   readonly options: GltfMeshPrimitiveMappingOptions;
