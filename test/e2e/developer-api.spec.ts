@@ -446,7 +446,7 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
 
   expect(inputStatus?.forwardedInputEvents ?? 0).toBeGreaterThan(0);
   expect(inputStatus?.lastWorkerSummary?.input?.actions?.select).toMatchObject({
-    value: expect.any(Number),
+    value: true,
   });
   expect(inputStatus?.lastWorkerSummary?.signals?.selectedEntity).toMatchObject(
     {

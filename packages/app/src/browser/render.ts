@@ -1,5 +1,5 @@
-import type { ApertureRenderDefaults } from "./config.js";
-import type { ApertureViewportResizeCommandPayload } from "./commands.js";
+import type { ApertureViewportResizeCommandPayload } from "../commands.js";
+import type { ApertureRenderDefaults } from "../config.js";
 
 export const DEFAULT_GENERATED_MSAA_SAMPLE_COUNT = 4;
 export const DEFAULT_GENERATED_MAX_PIXEL_RATIO = 2;

@@ -28,6 +28,14 @@ Status: in progress
   contracts, bounds raycasts, mesh raycasts, filters, and math helpers now live
   under `packages/app/src/spatial/`, with the public system facade still
   re-exporting spatial query APIs.
+- Track 6 has started. Generated browser bootstrap implementation now lives
+  under `packages/app/src/browser/`, with `packages/app/src/browser.ts` kept as
+  the public `@aperture-engine/app/browser` facade. Browser startup, status
+  installation, source-asset mirroring, command forwarding, canvas resize sync,
+  render-default normalization, input forwarding, and generated devtools tools
+  are split by responsibility. The browser devtools bridge now separates runtime
+  installation, dispatch, canvas readback, entity picking, payload parsing, and
+  WebGPU diagnostic helpers.
 
 ## Summary
 

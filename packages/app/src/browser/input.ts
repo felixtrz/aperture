@@ -1,10 +1,10 @@
 import type { SimulationWorker } from "@aperture-engine/runtime";
-import type { ApertureConfig } from "./config.js";
+import type { ApertureConfig } from "../config.js";
 import {
   createGeneratedInputEventMessage,
   type ApertureGeneratedInputEvent,
-} from "./input.js";
-import type { GeneratedBrowserAppStatus } from "./browser.js";
+} from "../input.js";
+import type { GeneratedBrowserAppStatus } from "./status.js";
 
 export const APERTURE_GENERATED_VIRTUAL_INPUT_EVENT =
   "aperture.generated.virtualAction" as const;

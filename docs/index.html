@@ -393,64 +393,68 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-28 15:29 UTC</dd>
+            <dd>2026-05-28 15:44 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Track 5 of the app/CLI structure refactor moved
-              entity lookup internals into
+              Latest update: Track 6 of the app/CLI structure refactor moved
+              generated browser bootstrap internals into
+              <code>packages/app/src/browser/</code>, leaving
+              <code>@aperture-engine/app/browser</code> as the public facade
+              while splitting startup, status, source-asset mirroring, command
+              forwarding, canvas resize sync, render defaults, input forwarding,
+              and browser devtools tools by responsibility. Previous update:
+              Track 5 moved entity lookup internals into
               <code>packages/app/src/entities/lookup/</code> and split spatial
               query contracts, bounds, mesh, filters, and math helpers into
               <code>packages/app/src/spatial/</code>. Previous update: Track 4
-              split
-              spawn descriptors, command construction, metadata, transforms,
-              primitive/material conversion, and glTF replay into
+              split spawn descriptors, command construction, metadata,
+              transforms, primitive/material conversion, and glTF replay into
               <code>packages/app/src/systems/spawn/</code>. Previous update:
-              Track 3 moved
-              non-spawn app system internals into
+              Track 3 moved non-spawn app system internals into
               <code>packages/app/src/systems/</code>, leaving
               <code>@aperture-engine/app/systems</code> as the public authoring
-              facade. Previous update: Track 2 moved
-              app config internals into <code>packages/app/src/config/</code>
+              facade. Previous update: Track 2 moved app config internals into
+              <code>packages/app/src/config/</code>
               and input resource/event internals into
               <code>packages/app/src/input/</code>, leaving the public top-level
-              config and input files as facades. Previous update: Track 9 of
-              the package-structure refactor is
-              implemented: full WebGPU backend coverage moved to
+              config and input files as facades. Previous update: Track 9 of the
+              package-structure refactor is implemented: full WebGPU backend
+              coverage moved to
               <code>@aperture-engine/webgpu/test-support</code> for internal
               tests and narrowed the root WebGPU barrel to the current
               app/example-facing public surface, with an export guard preventing
               accidental root-barrel expansion. Previous update: Track 8 of the
-              package-structure refactor split CLI
-              reference semantic search scoring, source-category filtering,
-              dependent lookup result shaping, snippet selection, and rounded
-              score formatting into a focused search module. Previous update:
-              Track 8 of the package-structure refactor split CLI
-              reference markdown/source chunking, TypeScript declaration
-              metadata extraction, system/diagnostic chunk creation, and chunk
-              deduplication into a focused chunking module. Previous update:
-              Track 8 of the package-structure refactor split CLI
-              reference source collection, package export traversal, re-export
-              following, dependency source inclusion, and source file walking
-              into a focused collection module. Previous update: Track 8 of the
-              package-structure refactor split CLI
-              reference tokenization, hashed embedding generation, vector
-              normalization, token aliases, and cosine scoring into a focused
-              embedding module. Previous update: Track 8 of the package-structure refactor split CLI
-              RAG ingestion source allowlists, ignored-directory policy,
-              selected dependency files, and source-category classification into
-              a focused source-filter module. Previous update: Track 8 of the
-              package-structure refactor split CLI reference MCP tool contracts
-              and reference runtime path helpers into focused modules. Previous
-              update: Track 8 of the package-structure refactor split CLI
-              managed-browser CDP connection, generated-app status readback,
-              WebGPU readiness polling, screenshot capture, and canvas status
-              helpers into a focused devtools browser module. Previous update:
-              Track 8 of the package-structure refactor split CLI devtools
-              argument normalization and reference-backed MCP tool dispatch into
-              focused modules, leaving <code>devtools-client.ts</code> focused
-              on browser-backed tool execution. Previous update: Track 8 of the
+              package-structure refactor split CLI reference semantic search
+              scoring, source-category filtering, dependent lookup result
+              shaping, snippet selection, and rounded score formatting into a
+              focused search module. Previous update: Track 8 of the
+              package-structure refactor split CLI reference markdown/source
+              chunking, TypeScript declaration metadata extraction,
+              system/diagnostic chunk creation, and chunk deduplication into a
+              focused chunking module. Previous update: Track 8 of the
+              package-structure refactor split CLI reference source collection,
+              package export traversal, re-export following, dependency source
+              inclusion, and source file walking into a focused collection
+              module. Previous update: Track 8 of the package-structure refactor
+              split CLI reference tokenization, hashed embedding generation,
+              vector normalization, token aliases, and cosine scoring into a
+              focused embedding module. Previous update: Track 8 of the
+              package-structure refactor split CLI RAG ingestion source
+              allowlists, ignored-directory policy, selected dependency files,
+              and source-category classification into a focused source-filter
+              module. Previous update: Track 8 of the package-structure refactor
+              split CLI reference MCP tool contracts and reference runtime path
+              helpers into focused modules. Previous update: Track 8 of the
+              package-structure refactor split CLI managed-browser CDP
+              connection, generated-app status readback, WebGPU readiness
+              polling, screenshot capture, and canvas status helpers into a
+              focused devtools browser module. Previous update: Track 8 of the
+              package-structure refactor split CLI devtools argument
+              normalization and reference-backed MCP tool dispatch into focused
+              modules, leaving <code>devtools-client.ts</code> focused on
+              browser-backed tool execution. Previous update: Track 8 of the
               package-structure refactor split CLI create scaffolding, starter
               app templates, AI adapter templates, and adapter file sync into
               focused backend modules, leaving <code>cli.ts</code> as a compact
