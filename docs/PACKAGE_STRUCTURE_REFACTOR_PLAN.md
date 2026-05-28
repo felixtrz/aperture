@@ -548,6 +548,10 @@ Status: in progress
   output formatting now live in `packages/cli/src/reference-command.ts`, with
   the shared structured CLI error type in `packages/cli/src/errors.ts` and the
   root CLI preserving command routing and existing public exports.
+- CLI tool command parsing, help text, JSON argument validation, backend tool
+  dispatch, and JSON output formatting now live in
+  `packages/cli/src/tool-command.ts`, preserving the shared
+  `callApertureTool()` backend used by MCP.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T10:57:54Z
+Updated: 2026-05-28T11:01:18Z
+
+## Current Run Update — 2026-05-28T11:01:18Z — CLI tool command split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 8.
+
+### What changed
+
+- Split CLI `tool` command parsing, help text, JSON argument validation, backend
+  dispatch, and output formatting into `packages/cli/src/tool-command.ts`.
+- Preserved the shared `callApertureTool()` backend used by MCP and direct CLI
+  tool invocation.
+- Kept the root CLI responsible for command routing only for the `tool`
+  subcommand.
+- Reduced `packages/cli/src/cli.ts` from 1999 lines to 1896 lines.
+
+### Validation
+
+- `pnpm exec prettier --write packages/cli/src/cli.ts packages/cli/src/tool-command.ts`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm exec eslint packages/cli/src/cli.ts packages/cli/src/tool-command.ts packages/cli/src/errors.ts`
+- `pnpm exec prettier --check packages/cli/src/cli.ts packages/cli/src/tool-command.ts packages/cli/src/errors.ts`
+- `pnpm exec vitest run test/cli/create.test.ts test/cli/reference.test.ts test/cli/dev-session.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 8 remains: split create/dev/MCP command implementations, CLI templates,
+  dev-session transport, browser/devtools client code, and RAG tooling.
+- Large remaining CLI modules include `packages/cli/src/reference.ts` at 2591
+  lines, `packages/cli/src/devtools-client.ts` at 993 lines, and
+  `packages/cli/src/dev-session.ts` at 706 lines.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 8 by splitting the `mcp` command or starting the larger
+`create` scaffolding/template extraction.
 
 ## Current Run Update — 2026-05-28T10:57:54Z — CLI reference command split
 

@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "120c4f9e",
+  "lastCommit": "bcce5b0a",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 8 by splitting the CLI reference command into reference-command.ts, moving shared ApertureCliError to errors.ts, and preserving root CLI routing/public exports; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T10:57:54Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 8 by splitting the CLI tool command into tool-command.ts while preserving shared callApertureTool backend dispatch; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T11:01:18Z"
 }

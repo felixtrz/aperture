@@ -393,14 +393,17 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-28 10:57 UTC</dd>
+            <dd>2026-05-28 11:01 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Latest update: Track 8 of the package-structure refactor split the
-              CLI reference command into a focused command module and moved the
-              shared structured CLI error type into
+              CLI tool command into a focused command module for help text, JSON
+              argument parsing, shared backend dispatch, and output formatting.
+              Previous update: Track 8 of the package-structure refactor split
+              the CLI reference command into a focused command module and moved
+              the shared structured CLI error type into
               <code>errors.ts</code>, leaving the root CLI to route the
               subcommand while preserving public exports. Previous update: Track
               7 of the package-structure refactor split Vite plugin dev-session
