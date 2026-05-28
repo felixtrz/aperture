@@ -1,6 +1,44 @@
 # Agent Handoff
 
-Updated: 2026-05-28T11:58:30Z
+Updated: 2026-05-28T12:01:55Z
+
+## Current Run Update — 2026-05-28T12:01:55Z — CLI reference search split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 8.
+
+### What changed
+
+- Split reference semantic search scoring, source-category filtering, dependent
+  lookup result shaping, snippet selection, and rounded score formatting into
+  `packages/cli/src/reference-search.ts`.
+- Kept public search entry points in `packages/cli/src/reference.ts` so the
+  existing API surface still owns index loading and report file paths.
+- Reduced `packages/cli/src/reference.ts` from 1403 lines to 1195 lines.
+
+### Validation
+
+- `pnpm exec prettier --write packages/cli/src/reference.ts packages/cli/src/reference-search.ts`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm exec eslint packages/cli/src/reference.ts packages/cli/src/reference-search.ts packages/cli/src/reference-chunking.ts packages/cli/src/reference-source-collection.ts packages/cli/src/reference-source-filter.ts packages/cli/src/reference-embedding.ts packages/cli/src/reference-tools.ts packages/cli/src/reference-paths.ts packages/cli/src/mcp.ts packages/cli/src/devtools-reference-tools.ts`
+- `pnpm exec prettier --check packages/cli/src/reference.ts packages/cli/src/reference-search.ts packages/cli/src/reference-chunking.ts packages/cli/src/reference-source-collection.ts packages/cli/src/reference-source-filter.ts packages/cli/src/reference-embedding.ts packages/cli/src/reference-tools.ts packages/cli/src/reference-paths.ts packages/cli/src/mcp.ts packages/cli/src/devtools-reference-tools.ts`
+- `pnpm exec vitest run test/cli/reference.test.ts test/cli/create.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- `packages/cli/src/reference.ts` is down to 1195 lines but still owns index
+  build assembly, warm/status IO, payload install, and manifest validation.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 8 by splitting reference index assembly or payload warm/status
+IO out of `reference.ts`.
 
 ## Current Run Update — 2026-05-28T11:58:30Z — CLI reference chunking split
 

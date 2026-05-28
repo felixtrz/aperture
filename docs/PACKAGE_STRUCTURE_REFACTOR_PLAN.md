@@ -595,6 +595,9 @@ Status: in progress
 - CLI reference markdown/source chunking, TypeScript declaration metadata
   extraction, system/diagnostic chunk creation, and chunk deduplication now
   live in `packages/cli/src/reference-chunking.ts`.
+- CLI reference semantic search scoring, source-category filtering, dependent
+  lookup result shaping, snippet selection, and rounded score formatting now
+  live in `packages/cli/src/reference-search.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
