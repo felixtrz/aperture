@@ -1,5 +1,6 @@
 import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { runCreateCommand } from "./create-command.js";
 import { runDevCommand } from "./dev-command.js";
 import { ApertureDevSessionError } from "./dev-session.js";
 import { ApertureCliError } from "./errors.js";
@@ -54,12 +55,6 @@ export interface SyncApertureAdapterConflict {
   readonly reason: string;
 }
 
-interface ParsedCreateCommand {
-  readonly name: string;
-  readonly force: boolean;
-  readonly template: ApertureCreateTemplate;
-}
-
 interface ParsedAdapterSyncCommand {
   readonly force: boolean;
 }
@@ -112,21 +107,12 @@ export async function runApertureCli(
     }
 
     if (command === "create") {
-      if (rest.some(isHelpFlag)) {
-        io.stdout(createHelp());
-        return 0;
-      }
-
-      const parsed = parseCreateCommand(rest);
-      const report = await createApertureProject({
+      return await runCreateCommand({
+        argv: rest,
         cwd: options.cwd,
-        name: parsed.name,
-        force: parsed.force,
-        template: parsed.template,
+        stdout: io.stdout,
+        createProject: createApertureProject,
       });
-
-      io.stdout(createSuccessMessage(report, options.cwd));
-      return 0;
     }
 
     if (command === "adapter") {
@@ -420,67 +406,6 @@ function resolveIo(options: RunApertureCliOptions): ApertureCliIo {
   };
 }
 
-function parseCreateCommand(argv: readonly string[]): ParsedCreateCommand {
-  let name: string | null = null;
-  let force = false;
-  let template: ApertureCreateTemplate = "minimal";
-
-  for (let index = 0; index < argv.length; index += 1) {
-    const arg = argv[index];
-
-    if (arg === undefined) {
-      continue;
-    }
-
-    if (arg === "--force") {
-      force = true;
-      continue;
-    }
-
-    if (arg === "--template") {
-      index += 1;
-      template = parseCreateTemplate(readOptionValue(argv, index, arg));
-      continue;
-    }
-
-    if (arg.startsWith("-")) {
-      throw new ApertureCliError(
-        "aperture.create.unknownOption",
-        `Unknown create option '${arg}'. Run 'aperture create --help' for supported options.`,
-      );
-    }
-
-    if (name !== null) {
-      throw new ApertureCliError(
-        "aperture.create.tooManyArguments",
-        "The create command accepts one project path.",
-      );
-    }
-
-    name = arg;
-  }
-
-  if (name === null || name.trim().length === 0) {
-    throw new ApertureCliError(
-      "aperture.create.missingName",
-      "The create command requires a project path, for example 'aperture create my-app'.",
-    );
-  }
-
-  return { name, force, template };
-}
-
-function parseCreateTemplate(value: string): ApertureCreateTemplate {
-  if (value === "minimal" || value === "glb-viewer" || value === "game") {
-    return value;
-  }
-
-  throw new ApertureCliError(
-    "aperture.create.invalidTemplate",
-    `Unknown create template '${value}'. Use minimal, glb-viewer, or game.`,
-  );
-}
-
 function parseAdapterSyncCommand(
   argv: readonly string[],
 ): ParsedAdapterSyncCommand {
@@ -499,23 +424,6 @@ function parseAdapterSyncCommand(
   }
 
   return { force };
-}
-
-function readOptionValue(
-  argv: readonly string[],
-  index: number,
-  option: string,
-): string {
-  const value = argv[index];
-
-  if (value === undefined || value.startsWith("-")) {
-    throw new ApertureCliError(
-      "aperture.cli.missingOptionValue",
-      `Option '${option}' requires a value.`,
-    );
-  }
-
-  return value;
 }
 
 async function assertWritableTarget(
@@ -1396,20 +1304,6 @@ Options:
 `;
 }
 
-function createHelp(): string {
-  return `Usage:
-  aperture create <path> [--force] [--template <minimal|glb-viewer|game>]
-
-Scaffolds a Vite-based Aperture app with starter ECS systems, Aperture config,
-and AI adapter files.
-
-Options:
-  --force              Write starter files into a non-empty directory.
-  --template <name>    Template to scaffold. Defaults to minimal.
-  -h, --help           Show help.
-`;
-}
-
 function adapterSyncSuccessMessage(report: SyncApertureAdaptersReport): string {
   return `Synced Aperture adapter files in ${report.targetDir}.
 
@@ -1425,25 +1319,6 @@ function plannedCommandHelp(command: string): string {
   return `The '${command}' command is part of the Aperture AI tooling plan but is not implemented yet.
 
 Run 'aperture --help' to see the current command surface.
-`;
-}
-
-function createSuccessMessage(
-  report: CreateApertureProjectReport,
-  cwd: string,
-): string {
-  const relativeTarget = path.relative(cwd, report.targetDir);
-  const displayTarget =
-    relativeTarget.length === 0 || relativeTarget.startsWith("..")
-      ? report.targetDir
-      : relativeTarget;
-
-  return `Created Aperture app '${report.packageName}' in ${displayTarget}.
-
-Next steps:
-  cd ${displayTarget}
-  pnpm install
-  pnpm run dev
 `;
 }
 
