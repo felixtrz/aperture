@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-28T01:48:08Z
+Updated: 2026-05-28T01:53:39Z
+
+## Current Run Update — 2026-05-28T01:53:39Z — glTF URI image helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF image decode cache-key construction and KTX2 transcoder
+  selection into `packages/render/src/assets/gltf-uri-image-cache.ts`.
+- Extracted decoded-image resolver creation, concurrency mapping, and
+  concurrency normalization into
+  `packages/render/src/assets/gltf-uri-image-merge.ts`.
+- Updated `packages/render/src/assets/gltf-uri-images.ts` to import texture
+  loading and texture contracts from focused material modules instead of the
+  texture facade while preserving the existing image helper exports.
+- `packages/render/src/assets/gltf-uri-images.ts` is now roughly 478 lines and
+  remains focused on image source/byte resolution plus decode orchestration.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/gltf-uri-images.ts packages/render/src/assets/gltf-uri-image-cache.ts packages/render/src/assets/gltf-uri-image-merge.ts packages/render/src/assets/gltf-uri-loader.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-uri-images.ts packages/render/src/assets/gltf-uri-image-cache.ts packages/render/src/assets/gltf-uri-image-merge.ts packages/render/src/assets/gltf-uri-loader.ts`
+- `pnpm exec vitest run test/assets/gltf-uri-loader.test.ts test/assets/gltf-source-loader-facade.test.ts test/materials/gltf-texture.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `snapshot-packed-codecs.ts`, `render-queue.ts`,
+  `standard-texture-readiness.ts`, and `gltf-ecs-authoring-command-plan.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining decoder, queue, or texture
+readiness helpers.
 
 ## Current Run Update — 2026-05-28T01:48:08Z — glTF URI byte-fetch split
 
