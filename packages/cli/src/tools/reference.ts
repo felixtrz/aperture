@@ -4,14 +4,14 @@ import {
   listApertureReferenceSystems,
   readApertureReferenceFile,
   searchApertureReferences,
-} from "./reference.js";
+} from "../reference.js";
 import {
   numberArg,
   optionalNumber,
   optionalReferenceKind,
   referenceKindArg,
   stringArg,
-} from "./devtools-args.js";
+} from "./args.js";
 
 export async function callReferenceTool(
   cwd: string,

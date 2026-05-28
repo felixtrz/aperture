@@ -393,17 +393,23 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-28 16:07 UTC</dd>
+            <dd>2026-05-28 16:13 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Track 10 of the app/CLI structure refactor split
-              managed dev-session internals into
-              <code>packages/cli/src/dev/</code>, separating session lifecycle,
-              daemon orchestration, Vite server launch, managed browser
-              launch/opening, port selection, log handling, process helpers, and
-              app-root validation while keeping
+              Latest update: Track 11 of the app/CLI structure refactor split
+              MCP/tool client internals into
+              <code>packages/cli/src/tools/</code>, separating the
+              callApertureTool client, browser/CDP helpers, runtime bridge
+              forwarding, input emulation, render reports, argument parsing,
+              reference tool delegation, and the dispatch table while keeping
+              <code>packages/cli/src/devtools-client.ts</code> as the public
+              facade. Previous update: Track 10 split managed dev-session
+              internals into <code>packages/cli/src/dev/</code>, separating
+              session lifecycle, daemon orchestration, Vite server launch,
+              managed browser launch/opening, port selection, log handling,
+              process helpers, and app-root validation while keeping
               <code>packages/cli/src/dev-session.ts</code> as the public facade.
               Previous update: Track 9 split CLI project creation into
               <code>packages/cli/src/create/</code>

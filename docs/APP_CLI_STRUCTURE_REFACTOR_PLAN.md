@@ -62,6 +62,12 @@ Status: in progress
   managed browser launch/opening, port selection, log tailing/stream handling,
   process helpers, and app-root validation are split by responsibility without
   changing the dev-session status file contract.
+- Track 11 has started. MCP/tool client implementation now lives under
+  `packages/cli/src/tools/`, with `packages/cli/src/devtools-client.ts` kept as
+  the public facade for `callApertureTool()`. Tool dispatch, browser/CDP status
+  helpers, runtime bridge forwarding, input emulation, render reports, argument
+  parsing, and reference tool delegation are split by responsibility without
+  changing tool names, diagnostics, or result shapes.
 
 ## Summary
 

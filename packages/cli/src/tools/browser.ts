@@ -1,7 +1,7 @@
-import type { ApertureDevSession } from "./session.js";
-import { isRecord } from "./devtools-args.js";
+import type { ApertureDevSession } from "../session.js";
+import { isRecord } from "./args.js";
+import { STATUS_GLOBAL } from "./types.js";
 
-const STATUS_GLOBAL = "__APERTURE_GENERATED_APP__";
 const MANAGED_GLOBAL = "__APERTURE_MCP_MANAGED__";
 
 export interface BrowserConnection {
