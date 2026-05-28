@@ -5,7 +5,7 @@ import type {
 import type {
   GltfMeshAssetConstructionDiagnostic,
   GltfMeshAssetTangentGenerationRequest,
-} from "./gltf-mesh-asset-construction.js";
+} from "./gltf-mesh-asset-construction-types.js";
 
 export function generateMissingTangents(
   primitive: GltfDecodedPrimitiveAccessors,

@@ -1,7 +1,6 @@
 import type { Aabb, BoundingSphere } from "@aperture-engine/simulation";
 
 import type {
-  GltfAccessorDecodingReport,
   GltfDecodedAccessor,
   GltfDecodedPrimitiveAccessors,
 } from "./gltf-accessor-decoding.js";
@@ -11,6 +10,13 @@ import type {
   MeshMorphTargetDescriptor,
   MeshVertexAttributeDescriptor,
 } from "../mesh/index.js";
+import type {
+  GltfMeshAssetConstructionDiagnostic,
+  GltfMeshAssetConstructionOptions,
+  GltfMeshAssetConstructionReport,
+  GltfMeshAssetTangentGenerationRequest,
+  GltfPlannedMeshSourceAsset,
+} from "./gltf-mesh-asset-construction-types.js";
 import { generateMissingTangents } from "./gltf-mesh-tangents.js";
 import {
   createVertexStreams,
@@ -19,87 +25,24 @@ import {
   type GltfMeshAttributeSource,
 } from "./gltf-mesh-asset-vertex-streams.js";
 
-export interface GltfMeshAssetConstructionDiagnostic {
-  readonly code: string;
-  readonly severity: "error" | "warning";
-  readonly message: string;
-  readonly meshHandleKey?: string;
-  readonly meshIndex?: number;
-  readonly primitiveIndex?: number;
-  readonly semantic?: string;
-  readonly indexValue?: number;
-  readonly vertexCount?: number;
-  readonly reason?: GltfMeshAssetTangentGenerationReason;
-  readonly tangentPath?: "generated-mesh-attribute";
-}
-
-export interface GltfPlannedMeshSourceAsset {
-  readonly handleKey: string;
-  readonly registeredHandleKey: string;
-  readonly meshIndex: number;
-  readonly primitiveIndex: number;
-  readonly mesh: MeshAsset | null;
-}
-
-export interface GltfMeshAssetConstructionReport {
-  readonly valid: boolean;
-  readonly meshes: readonly GltfPlannedMeshSourceAsset[];
-  readonly diagnostics: readonly GltfMeshAssetConstructionDiagnostic[];
-}
-
-export interface GltfMeshAssetConstructionArrayJsonSummary {
-  readonly type: "Float32Array" | "Uint8Array" | "Uint16Array" | "Uint32Array";
-  readonly length: number;
-}
-
-export interface GltfMeshAssetConstructionVertexStreamJsonSummary extends Omit<
-  MeshAsset["vertexStreams"][number],
-  "data"
-> {
-  readonly data: GltfMeshAssetConstructionArrayJsonSummary;
-}
-
-export interface GltfMeshAssetConstructionIndexBufferJsonSummary extends Omit<
-  MeshIndexBufferDescriptor,
-  "data"
-> {
-  readonly data: GltfMeshAssetConstructionArrayJsonSummary;
-}
-
-export interface GltfMeshAssetConstructionMeshJsonSummary extends Omit<
-  MeshAsset,
-  "vertexStreams" | "indexBuffer"
-> {
-  readonly vertexStreams: readonly GltfMeshAssetConstructionVertexStreamJsonSummary[];
-  readonly indexBuffer?: GltfMeshAssetConstructionIndexBufferJsonSummary;
-}
-
-export interface GltfPlannedMeshSourceAssetJsonValue extends Omit<
-  GltfPlannedMeshSourceAsset,
-  "mesh"
-> {
-  readonly mesh: GltfMeshAssetConstructionMeshJsonSummary | null;
-}
-
-export interface GltfMeshAssetConstructionReportJsonValue extends Omit<
+export type {
+  GltfMeshAssetConstructionArrayJsonSummary,
+  GltfMeshAssetConstructionDiagnostic,
+  GltfMeshAssetConstructionIndexBufferJsonSummary,
+  GltfMeshAssetConstructionMeshJsonSummary,
+  GltfMeshAssetConstructionOptions,
   GltfMeshAssetConstructionReport,
-  "meshes"
-> {
-  readonly meshes: readonly GltfPlannedMeshSourceAssetJsonValue[];
-}
-
-export type GltfMeshAssetTangentGenerationReason = "normalTexture";
-
-export interface GltfMeshAssetTangentGenerationRequest {
-  readonly meshIndex: number;
-  readonly primitiveIndex: number;
-  readonly reason: GltfMeshAssetTangentGenerationReason;
-}
-
-export interface GltfMeshAssetConstructionOptions {
-  readonly decodedReport: GltfAccessorDecodingReport;
-  readonly generateMissingTangentsFor?: readonly GltfMeshAssetTangentGenerationRequest[];
-}
+  GltfMeshAssetConstructionReportJsonValue,
+  GltfMeshAssetConstructionVertexStreamJsonSummary,
+  GltfMeshAssetTangentGenerationReason,
+  GltfMeshAssetTangentGenerationRequest,
+  GltfPlannedMeshSourceAsset,
+  GltfPlannedMeshSourceAssetJsonValue,
+} from "./gltf-mesh-asset-construction-types.js";
+export {
+  gltfMeshAssetConstructionReportToJson,
+  gltfMeshAssetConstructionReportToJsonValue,
+} from "./gltf-mesh-asset-construction-report.js";
 
 export function createMeshAssetsFromGltfDecodedAccessors(
   options: GltfMeshAssetConstructionOptions,
@@ -135,25 +78,6 @@ export function createMeshAssetsFromGltfDecodedAccessors(
     meshes,
     diagnostics,
   };
-}
-
-export function gltfMeshAssetConstructionReportToJsonValue(
-  report: GltfMeshAssetConstructionReport,
-): GltfMeshAssetConstructionReportJsonValue {
-  return {
-    valid: report.valid,
-    meshes: report.meshes.map((mesh) => ({
-      ...mesh,
-      mesh: mesh.mesh === null ? null : meshAssetToJsonValue(mesh.mesh),
-    })),
-    diagnostics: report.diagnostics.map((diagnostic) => ({ ...diagnostic })),
-  };
-}
-
-export function gltfMeshAssetConstructionReportToJson(
-  report: GltfMeshAssetConstructionReport,
-): string {
-  return JSON.stringify(gltfMeshAssetConstructionReportToJsonValue(report));
 }
 
 function createMeshAssetFromPrimitive(
@@ -483,46 +407,6 @@ function diagnostic(
     primitiveIndex: primitive.primitiveIndex,
     ...input,
   };
-}
-
-function meshAssetToJsonValue(
-  mesh: MeshAsset,
-): GltfMeshAssetConstructionMeshJsonSummary {
-  const { vertexStreams, indexBuffer, ...rest } = mesh;
-
-  return {
-    ...rest,
-    vertexStreams: vertexStreams.map((stream) => ({
-      ...stream,
-      data: typedArrayToJsonSummary(stream.data),
-    })),
-    ...(indexBuffer === undefined
-      ? {}
-      : {
-          indexBuffer: {
-            format: indexBuffer.format,
-            data: typedArrayToJsonSummary(indexBuffer.data),
-          },
-        }),
-  };
-}
-
-function typedArrayToJsonSummary(
-  array: Float32Array | Uint8Array | Uint16Array | Uint32Array,
-): GltfMeshAssetConstructionArrayJsonSummary {
-  if (array instanceof Float32Array) {
-    return { type: "Float32Array", length: array.length };
-  }
-
-  if (array instanceof Uint8Array) {
-    return { type: "Uint8Array", length: array.length };
-  }
-
-  if (array instanceof Uint16Array) {
-    return { type: "Uint16Array", length: array.length };
-  }
-
-  return { type: "Uint32Array", length: array.length };
 }
 
 function meshIdFromRegisteredHandleKey(handleKey: string): string {
