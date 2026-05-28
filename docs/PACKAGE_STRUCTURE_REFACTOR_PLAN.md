@@ -426,6 +426,9 @@ Status: in progress
 - App system diagnostics now live in
   `packages/app/src/systems-diagnostics.ts`, preserving diagnostic collector
   types and `assetDiagnosticFromSystemDiagnostic()` through `systems.ts`.
+- App system asset handles, asset access, and GLTF/GLB asset loading now live in
+  `packages/app/src/systems-assets.ts`, preserving public asset access and
+  loaded-scene types through `systems.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

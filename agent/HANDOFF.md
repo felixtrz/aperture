@@ -1,6 +1,52 @@
 # Agent Handoff
 
-Updated: 2026-05-28T08:57:22Z
+Updated: 2026-05-28T09:06:02Z
+
+## Current Run Update — 2026-05-28T09:06:02Z — app system asset access split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 6.
+
+### What changed
+
+- Split app system asset handle/access contracts and asset request/loading
+  implementation into `packages/app/src/systems-assets.ts`.
+- Moved GLTF/GLB URI load caching, report-driven asset registration, default
+  GLTF material setup, primitive material resolution, ECS command-plan creation,
+  URL resolution, and ready-metadata projection out of `systems.ts`.
+- Kept `ApertureAssetLoader`, `SystemAssetAccess`, `SystemAssetHandle`,
+  `SystemAssetKind`, `SystemGltfAssetHandle`, and `SystemGltfLoadedScene`
+  re-exported from `systems.ts` to preserve `@aperture-engine/app/systems`.
+- Moved shared report diagnostic formatting into
+  `packages/app/src/systems-diagnostics.ts` for use by both asset loading and
+  spawn-time GLTF replay diagnostics.
+- Updated `systems-commands.ts` to depend on the asset module contracts instead
+  of importing types back through `systems.ts`.
+
+### Validation
+
+- `pnpm exec prettier --write packages/app/src/systems.ts packages/app/src/systems-assets.ts packages/app/src/systems-commands.ts packages/app/src/systems-diagnostics.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec eslint packages/app/src/systems.ts packages/app/src/systems-assets.ts packages/app/src/systems-commands.ts packages/app/src/systems-diagnostics.ts`
+- `pnpm exec prettier --check packages/app/src/systems.ts packages/app/src/systems-assets.ts packages/app/src/systems-commands.ts packages/app/src/systems-diagnostics.ts`
+- `pnpm exec vitest run test/app/systems.test.ts test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 6 still needs focused app modules for system context, spawn helpers,
+  config/runtime code, and input state.
+- Remaining large app files include `worker.ts`, `systems.ts`, `browser.ts`,
+  `input-state.ts`, `entity-lookup.ts`, and `config.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 6 by splitting app system spawn/context helpers or input state.
 
 ## Current Run Update — 2026-05-28T08:57:22Z — app system diagnostics split
 
