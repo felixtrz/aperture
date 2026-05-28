@@ -8,10 +8,9 @@ import {
   imageDecodeOptionsKeyField,
   resolveBasisKtx2Transcoder,
 } from "./glb-uri-image-cache.js";
+import { byteLengthOf, bytesForImageSource } from "./glb-uri-image-bytes.js";
 import { mapWithConcurrency } from "./glb-uri-image-merge.js";
 import {
-  byteLengthOf,
-  bytesForImageSource,
   externalImageSourceKind,
   imageSourceRefFromImage,
   imageStatusUri,
