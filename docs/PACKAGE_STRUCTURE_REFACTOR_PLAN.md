@@ -544,6 +544,10 @@ Status: in progress
   `packages/vite-plugin/src/dev-session.ts`, preserving the public devtools WS
   channel and dev server type exports while leaving `index.ts` as a compact
   Vite hook entry point.
+- Track 8 has started. CLI reference command parsing, help text, execution, and
+  output formatting now live in `packages/cli/src/reference-command.ts`, with
+  the shared structured CLI error type in `packages/cli/src/errors.ts` and the
+  root CLI preserving command routing and existing public exports.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

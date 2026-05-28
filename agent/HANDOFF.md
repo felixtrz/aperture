@@ -1,6 +1,54 @@
 # Agent Handoff
 
-Updated: 2026-05-28T10:51:32Z
+Updated: 2026-05-28T10:57:54Z
+
+## Current Run Update — 2026-05-28T10:57:54Z — CLI reference command split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 8.
+
+### What changed
+
+- Split CLI reference command parsing, help text, execution, and output
+  formatting into `packages/cli/src/reference-command.ts`.
+- Moved the structured CLI error type into `packages/cli/src/errors.ts` while
+  preserving the existing public export through `packages/cli/src/cli.ts`.
+- Kept the root CLI responsible for command routing only for the `reference`
+  subcommand.
+- Fixed the extracted routing boundary to `await` the command module so
+  structured CLI errors still flow through the existing `runApertureCli()`
+  catch block.
+- Reduced `packages/cli/src/cli.ts` from 2230 lines before Track 8 to 1999
+  lines after this slice.
+
+### Validation
+
+- `pnpm exec prettier --write packages/cli/src/cli.ts packages/cli/src/errors.ts packages/cli/src/reference-command.ts`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm exec eslint packages/cli/src/cli.ts packages/cli/src/errors.ts packages/cli/src/reference-command.ts`
+- `pnpm exec prettier --check packages/cli/src/cli.ts packages/cli/src/errors.ts packages/cli/src/reference-command.ts`
+- `pnpm exec vitest run test/cli/reference.test.ts test/cli/create.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 8 remains: split create/dev/tool/MCP command implementations, CLI
+  templates, dev-session transport, browser/devtools client code, and RAG
+  tooling.
+- Large remaining CLI modules include `packages/cli/src/reference.ts` at 2591
+  lines, `packages/cli/src/devtools-client.ts` at 993 lines, and
+  `packages/cli/src/dev-session.ts` at 706 lines.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 8 by splitting another command implementation from
+`packages/cli/src/cli.ts`, with `create` or `tool` as the next narrowest
+behavior-preserving slice.
 
 ## Current Run Update — 2026-05-28T10:51:32Z — Vite dev-session split
 
