@@ -1,76 +1,40 @@
-import {
-  assetHandleKey,
-  type Aabb,
-  type BoundingSphere,
-  type MeshHandle,
-} from "@aperture-engine/simulation";
+import { assetHandleKey } from "@aperture-engine/simulation";
 import type {
   MeshAsset,
   MeshIndexBufferDescriptor,
-  MeshMaterialSlot,
   MeshSubmeshDescriptor,
-  MeshVertexAttributeDescriptor,
   MeshVertexStreamDescriptor,
 } from "../mesh/index.js";
 import { validateMeshAsset } from "../mesh/index.js";
+import { mergeBounds } from "./mesh-merge-bounds.js";
+import type {
+  MergedMeshSubmeshRange,
+  MergeMeshAssetsForBatchOptions,
+  MergeMeshAssetsForBatchResult,
+  MeshMergeDiagnostic,
+  MeshMergeSource,
+  MeshVertexDataArray,
+  SourceLayout,
+} from "./mesh-merge-types.js";
+import {
+  attributesMatch,
+  cloneMaterialSlots,
+  createVertexDataArray,
+  dataConstructorsMatch,
+  materialSlotsMatch,
+  required,
+  requiredElementCount,
+  setVertexData,
+} from "./mesh-merge-utils.js";
 
-export type MeshMergeDiagnosticCode =
-  | "meshMerge.emptyInput"
-  | "meshMerge.invalidSourceMesh"
-  | "meshMerge.incompatibleVertexStreamCount"
-  | "meshMerge.incompatibleVertexStreamLayout"
-  | "meshMerge.incompatibleVertexStreamData"
-  | "meshMerge.incompatibleIndexPresence"
-  | "meshMerge.invalidIndexRange"
-  | "meshMerge.incompatibleTopology"
-  | "meshMerge.incompatibleMaterialSlots";
-
-export interface MeshMergeDiagnostic {
-  readonly code: MeshMergeDiagnosticCode;
-  readonly message: string;
-  readonly severity: "warning" | "error";
-  readonly meshKey?: string;
-  readonly streamId?: string;
-  readonly submesh?: number;
-}
-
-export interface MeshMergeSource {
-  readonly handle: MeshHandle;
-  readonly mesh: MeshAsset;
-}
-
-export interface MergedMeshSubmeshRange {
-  readonly sourceMeshKey: string;
-  readonly sourceMeshLabel: string;
-  readonly sourceSubmesh: number;
-  readonly mergedSubmesh: number;
-  readonly vertexStart: number;
-  readonly vertexCount: number;
-  readonly indexStart: number;
-  readonly indexCount: number;
-}
-
-export interface MergeMeshAssetsForBatchOptions {
-  readonly label?: string;
-  readonly sources: readonly MeshMergeSource[];
-}
-
-export interface MergeMeshAssetsForBatchResult {
-  readonly valid: boolean;
-  readonly mesh: MeshAsset | null;
-  readonly ranges: readonly MergedMeshSubmeshRange[];
-  readonly diagnostics: readonly MeshMergeDiagnostic[];
-}
-
-type MeshVertexDataArray = MeshVertexStreamDescriptor["data"];
-
-interface SourceLayout {
-  readonly meshKey: string;
-  readonly mesh: MeshAsset;
-  readonly vertexCount: number;
-  readonly vertexBase: number;
-  readonly indexBase: number;
-}
+export type {
+  MergedMeshSubmeshRange,
+  MergeMeshAssetsForBatchOptions,
+  MergeMeshAssetsForBatchResult,
+  MeshMergeDiagnostic,
+  MeshMergeDiagnosticCode,
+  MeshMergeSource,
+} from "./mesh-merge-types.js";
 
 export function mergeMeshAssetsForBatch(
   options: MergeMeshAssetsForBatchOptions,
@@ -409,184 +373,4 @@ function mergeSubmeshes(
   }
 
   return submeshes;
-}
-
-function mergeBounds(meshes: readonly MeshAsset[]): {
-  readonly localAabb?: Aabb;
-  readonly localSphere?: BoundingSphere;
-} {
-  const bounds = meshes.flatMap((mesh) =>
-    mesh.localAabb === undefined ? [] : [mesh.localAabb],
-  );
-
-  if (bounds.length !== meshes.length || bounds.length === 0) {
-    return {};
-  }
-
-  const min: [number, number, number] = [Infinity, Infinity, Infinity];
-  const max: [number, number, number] = [-Infinity, -Infinity, -Infinity];
-
-  for (const bound of bounds) {
-    for (let axis = 0; axis < 3; axis += 1) {
-      min[axis] = Math.min(min[axis] ?? Infinity, read(bound.min, axis));
-      max[axis] = Math.max(max[axis] ?? -Infinity, read(bound.max, axis));
-    }
-  }
-
-  const center: [number, number, number] = [
-    (min[0] + max[0]) * 0.5,
-    (min[1] + max[1]) * 0.5,
-    (min[2] + max[2]) * 0.5,
-  ];
-  const corners = [
-    [min[0], min[1], min[2]],
-    [min[0], min[1], max[2]],
-    [min[0], max[1], min[2]],
-    [min[0], max[1], max[2]],
-    [max[0], min[1], min[2]],
-    [max[0], min[1], max[2]],
-    [max[0], max[1], min[2]],
-    [max[0], max[1], max[2]],
-  ] as const;
-  const radius = Math.max(
-    ...corners.map((corner) =>
-      Math.hypot(
-        corner[0] - center[0],
-        corner[1] - center[1],
-        corner[2] - center[2],
-      ),
-    ),
-  );
-
-  return {
-    localAabb: { min, max },
-    localSphere: { center, radius },
-  };
-}
-
-function required<T>(value: T | undefined): T {
-  if (value === undefined) {
-    throw new Error("Expected mesh merge value to exist after validation.");
-  }
-
-  return value;
-}
-
-function requiredElementCount(stream: MeshVertexStreamDescriptor): number {
-  return (
-    (stream.vertexCount * stream.arrayStride) / stream.data.BYTES_PER_ELEMENT
-  );
-}
-
-function attributesMatch(
-  a: readonly MeshVertexAttributeDescriptor[],
-  b: readonly MeshVertexAttributeDescriptor[],
-): boolean {
-  if (a.length !== b.length) {
-    return false;
-  }
-
-  for (let index = 0; index < a.length; index += 1) {
-    const left = a[index];
-    const right = b[index];
-
-    if (
-      left === undefined ||
-      right === undefined ||
-      left.semantic !== right.semantic ||
-      left.format !== right.format ||
-      left.offset !== right.offset
-    ) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function dataConstructorsMatch(
-  a: MeshVertexDataArray,
-  b: MeshVertexDataArray,
-): boolean {
-  return (
-    (a instanceof Float32Array && b instanceof Float32Array) ||
-    (a instanceof Uint16Array && b instanceof Uint16Array) ||
-    (a instanceof Uint8Array && b instanceof Uint8Array)
-  );
-}
-
-function createVertexDataArray(
-  sample: MeshVertexDataArray,
-  length: number,
-): MeshVertexDataArray {
-  if (sample instanceof Float32Array) {
-    return new Float32Array(length);
-  }
-
-  if (sample instanceof Uint16Array) {
-    return new Uint16Array(length);
-  }
-
-  return new Uint8Array(length);
-}
-
-function setVertexData(
-  target: MeshVertexDataArray,
-  source: MeshVertexDataArray,
-  offset: number,
-): void {
-  if (target instanceof Float32Array && source instanceof Float32Array) {
-    target.set(source, offset);
-    return;
-  }
-
-  if (target instanceof Uint16Array && source instanceof Uint16Array) {
-    target.set(source, offset);
-    return;
-  }
-
-  if (target instanceof Uint8Array && source instanceof Uint8Array) {
-    target.set(source, offset);
-  }
-}
-
-function materialSlotsMatch(
-  a: readonly MeshMaterialSlot[],
-  b: readonly MeshMaterialSlot[],
-): boolean {
-  if (a.length !== b.length) {
-    return false;
-  }
-
-  for (let index = 0; index < a.length; index += 1) {
-    const left = a[index];
-    const right = b[index];
-
-    if (
-      left === undefined ||
-      right === undefined ||
-      left.index !== right.index ||
-      left.label !== right.label
-    ) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function cloneMaterialSlots(
-  materialSlots: readonly MeshMaterialSlot[],
-): readonly MeshMaterialSlot[] {
-  return materialSlots.map((slot) => ({ ...slot }));
-}
-
-function read(value: ArrayLike<number>, index: number): number {
-  const item = value[index];
-
-  if (item === undefined) {
-    throw new RangeError(`Missing vector component ${index}.`);
-  }
-
-  return item;
 }
