@@ -1,6 +1,43 @@
 # Agent Handoff
 
-Updated: 2026-05-28T00:55:01Z
+Updated: 2026-05-28T00:58:43Z
+
+## Current Run Update — 2026-05-28T00:58:43Z — glTF mesh primitive compression split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF mesh primitive compression checks and Draco compressed
+  primitive mapping into
+  `packages/render/src/assets/gltf-mesh-primitive-compression.ts`.
+- Extracted shared primitive guard/diagnostic value helpers into
+  `packages/render/src/assets/gltf-mesh-primitive-utils.ts`.
+- `packages/render/src/assets/gltf-mesh-primitive.ts` is now roughly 722 lines
+  and focuses on primitive selection, topology, attributes, indices, labels,
+  and report assembly.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/gltf-mesh-primitive.ts packages/render/src/assets/gltf-mesh-primitive-compression.ts packages/render/src/assets/gltf-mesh-primitive-utils.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-mesh-primitive.ts packages/render/src/assets/gltf-mesh-primitive-compression.ts packages/render/src/assets/gltf-mesh-primitive-utils.ts`
+- `pnpm exec vitest run test/assets/gltf-mesh-primitive.test.ts test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `mesh/primitives.ts`,
+  `gltf-mesh-asset-construction.ts`, `transform-pack.ts`,
+  `gltf-accessor-validation.ts`, `preparation.ts`, and `gltf-material.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting mesh primitive construction or transform packing.
 
 ## Current Run Update — 2026-05-28T00:55:01Z — glTF texture resolver split
 

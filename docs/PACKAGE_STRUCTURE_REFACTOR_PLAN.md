@@ -323,6 +323,10 @@ Status: in progress
   `packages/render/src/materials/gltf-texture-resolution.ts`, keeping
   `gltf-texture.ts` focused on texture/source/sampler mapping and asset report
   assembly.
+- glTF mesh primitive compression checks and Draco compressed primitive mapping
+  now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
+  with shared primitive guard/diagnostic helpers in
+  `gltf-mesh-primitive-utils.ts`.
 
 ## Purpose
 
