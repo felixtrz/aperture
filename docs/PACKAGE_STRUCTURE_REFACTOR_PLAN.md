@@ -594,10 +594,12 @@ Status: in progress
   material modules, leaving `standard-texture-readiness.ts` as the public
   registry guard and report entry point.
 - glTF material unlit/standard asset construction, scalar/vector field
-  mapping, texture binding routing, transmission render-state adjustment, and
-  unsupported extension-field diagnostics now live in
-  `gltf-material-builders.ts`, leaving `gltf-material.ts` focused on material
-  root validation, extension source discovery, and report orchestration.
+  mapping, texture binding routing, StandardMaterial PBR/surface field mapping,
+  StandardMaterial extension field mapping, transmission render-state
+  adjustment, and unsupported extension-field diagnostics now live in focused
+  `gltf-material-*` material modules, leaving `gltf-material.ts` focused on
+  material root validation, extension source discovery, and report
+  orchestration.
 - KTX2 Basis Universal JS/WASM module loading, glue factory evaluation,
   transcode target selection, texture row packing math, and DFD transfer
   inspection now live in focused `ktx2-basis-*` asset modules, leaving

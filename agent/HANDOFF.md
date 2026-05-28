@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-28T07:15:54Z
+Updated: 2026-05-28T07:21:19Z
+
+## Current Run Update — 2026-05-28T07:21:19Z — glTF StandardMaterial field mapping split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split StandardMaterial PBR/base and normal/occlusion/emissive surface field
+  mapping from `packages/render/src/materials/gltf-material-builders.ts` into
+  `packages/render/src/materials/gltf-material-standard-fields.ts`.
+- Split clearcoat, transmission, sheen, and iridescence extension field mapping
+  into
+  `packages/render/src/materials/gltf-material-standard-extension-fields.ts`.
+- Kept `gltf-material-builders.ts` as the unlit/standard asset construction
+  facade with transmission render-state adjustment and unsupported clearcoat
+  texture diagnostics.
+- Updated the package-structure plan and public progress tracker for the new
+  glTF material module boundaries.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/materials/gltf-material-builders.ts packages/render/src/materials/gltf-material-standard-fields.ts packages/render/src/materials/gltf-material-standard-extension-fields.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/materials/gltf-material-builders.ts packages/render/src/materials/gltf-material-standard-fields.ts packages/render/src/materials/gltf-material-standard-extension-fields.ts`
+- `pnpm exec prettier --check packages/render/src/materials/gltf-material-builders.ts packages/render/src/materials/gltf-material-standard-fields.ts packages/render/src/materials/gltf-material-standard-extension-fields.ts`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/gltf-texture.test.ts test/assets/gltf-asset-mapping.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/gltf-scene-import-contract.test.ts test/materials/prepared-material-resource.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `extraction.ts`, `gltf-texture-loading.ts`,
+  `gltf-ecs-command-replay-components.ts`, and other medium
+  render/material/asset modules still near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium render extraction/material/asset
+hotspot.
 
 ## Current Run Update — 2026-05-28T07:15:54Z — instance tint packing split
 
