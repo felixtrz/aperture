@@ -11,9 +11,9 @@ import {
   type ApertureDevLogsReport,
   type ApertureDevUpReport,
 } from "./dev-session.js";
-import { runApertureMcpServer } from "./mcp.js";
 import type { ApertureDevSessionStatus } from "./session.js";
 import { ApertureCliError } from "./errors.js";
+import { runMcpCommand } from "./mcp-command.js";
 import { runReferenceCommand } from "./reference-command.js";
 import { runToolCommand } from "./tool-command.js";
 export { ApertureCliError } from "./errors.js";
@@ -261,21 +261,11 @@ export async function runApertureCli(
     }
 
     if (command === "mcp") {
-      if (rest.some(isHelpFlag)) {
-        io.stdout(mcpHelp());
-        return 0;
-      }
-
-      const [subcommand] = rest;
-      if (subcommand !== "stdio") {
-        throw new ApertureCliError(
-          "aperture.mcp.unknownSubcommand",
-          "The mcp command currently supports 'stdio'. Run 'aperture mcp --help' for usage.",
-        );
-      }
-
-      await runApertureMcpServer({ cwd: options.cwd });
-      return 0;
+      return await runMcpCommand({
+        argv: rest,
+        cwd: options.cwd,
+        stdout: io.stdout,
+      });
     }
 
     if (command === "tool") {
@@ -1619,18 +1609,6 @@ Options:
   --strict-port       Fail if the requested port is unavailable. Default.
   --no-strict-port    Allow Aperture to choose the next available port.
   --lines <count>     Log lines to print for dev logs. Defaults to 80.
-  -h, --help          Show help.
-`;
-}
-
-function mcpHelp(): string {
-  return `Usage:
-  aperture mcp stdio
-
-Exposes Aperture browser, ECS, input, render, camera, and reference tools over
-MCP stdio for the active dev session.
-
-Options:
   -h, --help          Show help.
 `;
 }
