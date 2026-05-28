@@ -471,6 +471,12 @@ Status: in progress
   `gltf-ecs-authoring-command-plan-entities.ts` and
   `gltf-ecs-authoring-command-plan-primitives.ts`, leaving the command-plan
   facade as compact traversal orchestration.
+- glTF ECS primitive command-planning mesh readiness and primitive skip/key
+  diagnostics now live in
+  `gltf-ecs-authoring-command-plan-primitive-readiness.ts` and
+  `gltf-ecs-authoring-command-plan-primitive-skips.ts`, keeping
+  `gltf-ecs-authoring-command-plan-primitives.ts` focused on resolved primitive
+  command coordination.
 - glTF source asset registration public contracts, report JSON projection,
   material dependency discovery, planned-handle helpers, and skipped/duplicate
   diagnostics now live in focused `gltf-source-registration-*` asset modules,

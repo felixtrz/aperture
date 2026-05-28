@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T08:07:30Z
+Updated: 2026-05-28T08:13:59Z
+
+## Current Run Update — 2026-05-28T08:13:59Z — glTF ECS primitive command planning split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split glTF ECS primitive command-planning mesh readiness into
+  `packages/render/src/assets/gltf-ecs-authoring-command-plan-primitive-readiness.ts`.
+- Split primitive skip diagnostics and primitive entity-key construction into
+  `packages/render/src/assets/gltf-ecs-authoring-command-plan-primitive-skips.ts`.
+- Kept `gltf-ecs-authoring-command-plan-primitives.ts` as the stable import path
+  for `createGltfEcsMeshReadiness` and focused it on resolved primitive command
+  coordination, mesh/material component commands, and dependency registration.
+- Updated the package-structure plan and public progress tracker for the new
+  glTF ECS primitive command-planning module boundaries.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-ecs-authoring-command-plan-primitives.ts packages/render/src/assets/gltf-ecs-authoring-command-plan-primitive-readiness.ts packages/render/src/assets/gltf-ecs-authoring-command-plan-primitive-skips.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-ecs-authoring-command-plan-primitives.ts packages/render/src/assets/gltf-ecs-authoring-command-plan-primitive-readiness.ts packages/render/src/assets/gltf-ecs-authoring-command-plan-primitive-skips.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-ecs-authoring-command-plan-primitives.ts packages/render/src/assets/gltf-ecs-authoring-command-plan-primitive-readiness.ts packages/render/src/assets/gltf-ecs-authoring-command-plan-primitive-skips.ts`
+- `pnpm exec vitest run test/assets/gltf-ecs-authoring-command-plan.test.ts test/assets/gltf-ecs-authoring-command-plan-json.test.ts test/assets/gltf-ecs-command-replay.test.ts test/assets/gltf-scene-import-contract.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `snapshot-types.ts`,
+  `extraction-meshes.ts`, `glb-source-loader-output-summary.ts`, and other
+  medium render/material/asset modules still near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium render extraction/material/asset
+hotspot.
 
 ## Current Run Update — 2026-05-28T08:07:30Z — glTF mesh primitive attribute helper split
 
