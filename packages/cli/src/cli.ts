@@ -1,5 +1,6 @@
 import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { runAdapterCommand } from "./adapter-command.js";
 import { runCreateCommand } from "./create-command.js";
 import { runDevCommand } from "./dev-command.js";
 import { ApertureDevSessionError } from "./dev-session.js";
@@ -53,10 +54,6 @@ export interface SyncApertureAdaptersReport {
 export interface SyncApertureAdapterConflict {
   readonly path: string;
   readonly reason: string;
-}
-
-interface ParsedAdapterSyncCommand {
-  readonly force: boolean;
 }
 
 type TemplateFile = {
@@ -116,27 +113,12 @@ export async function runApertureCli(
     }
 
     if (command === "adapter") {
-      if (rest.some(isHelpFlag)) {
-        io.stdout(adapterHelp());
-        return 0;
-      }
-
-      const [subcommand, ...subcommandRest] = rest;
-      if (subcommand !== "sync") {
-        throw new ApertureCliError(
-          "aperture.adapter.unknownSubcommand",
-          "The adapter command currently supports 'sync'. Run 'aperture adapter --help' for usage.",
-        );
-      }
-
-      const parsed = parseAdapterSyncCommand(subcommandRest);
-      const report = await syncApertureAdapters({
+      return await runAdapterCommand({
+        argv: rest,
         cwd: options.cwd,
-        force: parsed.force,
+        stdout: io.stdout,
+        syncAdapters: syncApertureAdapters,
       });
-
-      io.stdout(adapterSyncSuccessMessage(report));
-      return 0;
     }
 
     if (command === "dev") {
@@ -404,26 +386,6 @@ function resolveIo(options: RunApertureCliOptions): ApertureCliIo {
     stdout: options.stdout ?? (() => undefined),
     stderr: options.stderr ?? (() => undefined),
   };
-}
-
-function parseAdapterSyncCommand(
-  argv: readonly string[],
-): ParsedAdapterSyncCommand {
-  let force = false;
-
-  for (const arg of argv) {
-    if (arg === "--force") {
-      force = true;
-      continue;
-    }
-
-    throw new ApertureCliError(
-      "aperture.adapter.unknownOption",
-      `Unknown adapter sync option '${arg}'. Run 'aperture adapter --help' for supported options.`,
-    );
-  }
-
-  return { force };
 }
 
 async function assertWritableTarget(
@@ -1289,29 +1251,6 @@ Commands:
 Options:
   -h, --help           Show help.
   -v, --version        Show the CLI version.
-`;
-}
-
-function adapterHelp(): string {
-  return `Usage:
-  aperture adapter sync [--force]
-
-Creates Aperture AI coding-tool adapter files in the current app.
-
-Options:
-  --force              Overwrite existing adapter files.
-  -h, --help           Show help.
-`;
-}
-
-function adapterSyncSuccessMessage(report: SyncApertureAdaptersReport): string {
-  return `Synced Aperture adapter files in ${report.targetDir}.
-
-Written: ${report.written.length}
-Changed: ${report.changed.length}
-Unchanged: ${report.unchanged.length}
-Skipped: ${report.skipped.length}
-Conflicted: ${report.conflicted.length}
 `;
 }
 
