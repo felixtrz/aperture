@@ -488,6 +488,10 @@ Status: in progress
   resolution, and mutation diagnostics now live in
   `packages/app/src/entity-lookup-mutation.ts`, preserving the existing
   `setApertureEntityComponentField()` export through `entity-lookup.ts`.
+- App entity lookup find/get query flow, query matching, name-pattern
+  validation, source matching, duplicate-key diagnostics, and limit
+  normalization now live in `packages/app/src/entity-lookup-query.ts`,
+  preserving existing find/get exports through `entity-lookup.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

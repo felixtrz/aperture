@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "9186ca67",
+  "lastCommit": "2c001bd9",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 6 by splitting app entity lookup component-field mutation into entity-lookup-mutation.ts while preserving setApertureEntityComponentField export; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T10:02:09Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 6 by splitting app entity lookup find/get query flow into entity-lookup-query.ts while preserving find/get exports; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T10:04:41Z"
 }

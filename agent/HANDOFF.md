@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T10:02:09Z
+Updated: 2026-05-28T10:04:41Z
+
+## Current Run Update — 2026-05-28T10:04:41Z — app entity lookup query split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 6.
+
+### What changed
+
+- Split app entity lookup find/get query flow, query matching, name-pattern
+  validation, source matching, duplicate-key diagnostics, and limit
+  normalization into `packages/app/src/entity-lookup-query.ts`.
+- Preserved existing `findApertureEntities()` and
+  `getApertureEntitySummary()` exports through
+  `packages/app/src/entity-lookup.ts`.
+- Reduced `packages/app/src/entity-lookup.ts` from 420 lines to 215 lines,
+  leaving mostly facade plus snapshot/diff behavior.
+
+### Validation
+
+- `pnpm exec prettier --write packages/app/src/entity-lookup.ts packages/app/src/entity-lookup-query.ts packages/app/src/entity-lookup-summary.ts packages/app/src/entity-lookup-types.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec eslint packages/app/src/entity-lookup.ts packages/app/src/entity-lookup-query.ts packages/app/src/entity-lookup-summary.ts packages/app/src/entity-lookup-types.ts`
+- `pnpm exec prettier --check packages/app/src/entity-lookup.ts packages/app/src/entity-lookup-query.ts packages/app/src/entity-lookup-summary.ts packages/app/src/entity-lookup-types.ts`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts test/index.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 6 still needs focused app modules for generated browser/worker
+  bootstrapping and entity lookup snapshot/diff behavior.
+- Remaining large app files include `worker.ts` and `browser.ts`;
+  `entity-lookup.ts` is now small but still owns snapshot/diff.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 6 by splitting entity lookup snapshot/diff behavior or generated
+browser/worker bootstrapping.
 
 ## Current Run Update — 2026-05-28T10:02:09Z — app entity lookup mutation split
 
