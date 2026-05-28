@@ -21,7 +21,32 @@ import {
   type Node as MorphNode,
   type SourceFile,
 } from "ts-morph";
-import { apertureRuntimeDir } from "./session.js";
+import {
+  ARCHIVE_FILE,
+  DATA_DIRECTORY,
+  MANIFEST_FILE,
+  MODEL_CONTRACT_FILE,
+  MODEL_DIRECTORY,
+  apertureReferenceArchiveFile,
+  apertureReferenceDataDir,
+  apertureReferenceEmbeddingsFile,
+  apertureReferenceIndexFile,
+  apertureReferenceManifestFile,
+  apertureReferenceModelDir,
+  apertureReferenceRuntimeDir,
+  apertureReferenceStateFile,
+} from "./reference-paths.js";
+export {
+  APERTURE_REFERENCE_TOOL_CONTRACT,
+  type ApertureReferenceToolContract,
+} from "./reference-tools.js";
+export {
+  apertureReferenceArchiveFile,
+  apertureReferenceIndexFile,
+  apertureReferenceManifestFile,
+  apertureReferenceRuntimeDir,
+  apertureReferenceStateFile,
+} from "./reference-paths.js";
 
 const INDEX_VERSION = 2;
 const CORPUS_SCHEMA_VERSION = 1;
@@ -30,15 +55,7 @@ const DEFAULT_LIMIT = 10;
 const MAX_INDEXED_FILE_BYTES = 420_000;
 const MAX_WHOLE_FILE_CHUNK_BYTES = 18_000;
 const EMBEDDING_DIMENSIONS = 384;
-const ARCHIVE_FILE = "data.tgz";
-const INDEX_FILE = "index.json";
-const STATE_FILE = "state.json";
-const MANIFEST_FILE = "manifest.json";
-const DATA_DIRECTORY = "data";
-const MODEL_DIRECTORY = "model";
 const SOURCES_DIRECTORY = "sources";
-const EMBEDDINGS_FILE = "embeddings.json";
-const MODEL_CONTRACT_FILE = "model-contract.json";
 const DEFAULT_CORPUS_NAME = "aperture-developer-api";
 
 const MODEL_CONTRACT: ApertureReferenceModelContract = {
@@ -131,95 +148,6 @@ const SELECTED_DEPENDENCY_FILES = [
   "node_modules/elics/lib/world.d.ts",
   "node_modules/elics/lib/entity.d.ts",
 ] as const;
-
-export interface ApertureReferenceToolContract {
-  readonly name:
-    | "reference_api_lookup"
-    | "reference_explain_diagnostic"
-    | "reference_file_content"
-    | "reference_find_dependents"
-    | "reference_find_examples"
-    | "reference_list_components"
-    | "reference_list_systems"
-    | "reference_search";
-  readonly description: string;
-  readonly properties?: Record<string, unknown>;
-}
-
-export const APERTURE_REFERENCE_TOOL_CONTRACT: readonly ApertureReferenceToolContract[] =
-  [
-    {
-      name: "reference_search",
-      description: "Search the Aperture RAG reference corpus.",
-      properties: {
-        query: { type: "string" },
-        limit: { type: "number" },
-        kind: {
-          enum: [
-            "doc",
-            "source",
-            "example",
-            "test",
-            "reference",
-            "other",
-            "any",
-          ],
-        },
-      },
-    },
-    {
-      name: "reference_api_lookup",
-      description: "Look up exported Aperture API symbols.",
-      properties: {
-        symbol: { type: "string" },
-        query: { type: "string" },
-        limit: { type: "number" },
-      },
-    },
-    {
-      name: "reference_file_content",
-      description: "Read indexed Aperture reference file content.",
-      properties: {
-        file: { type: "string" },
-        startLine: { type: "number" },
-        endLine: { type: "number" },
-      },
-    },
-    {
-      name: "reference_find_examples",
-      description: "Find Aperture examples related to a query.",
-      properties: {
-        query: { type: "string" },
-        limit: { type: "number" },
-      },
-    },
-    {
-      name: "reference_list_components",
-      description: "List indexed Aperture components.",
-    },
-    {
-      name: "reference_list_systems",
-      description: "List indexed Aperture systems.",
-    },
-    {
-      name: "reference_find_dependents",
-      description: "Find indexed dependents of a symbol or file.",
-      properties: {
-        symbol: { type: "string" },
-        query: { type: "string" },
-        limit: { type: "number" },
-      },
-    },
-    {
-      name: "reference_explain_diagnostic",
-      description: "Explain an indexed diagnostic code.",
-      properties: {
-        code: { type: "string" },
-        query: { type: "string" },
-        limit: { type: "number" },
-      },
-    },
-  ];
 
 export type ApertureReferenceSourceCategory =
   | "api"
@@ -844,26 +772,6 @@ export async function ensureApertureReferenceIndex(
   cwd: string,
 ): Promise<ApertureReferenceIndex> {
   return readApertureReferenceIndex(cwd, { allowBuild: true });
-}
-
-export function apertureReferenceIndexFile(root: string): string {
-  return path.join(apertureReferenceRuntimeDir(root), INDEX_FILE);
-}
-
-export function apertureReferenceManifestFile(root: string): string {
-  return path.join(apertureReferenceRuntimeDir(root), MANIFEST_FILE);
-}
-
-export function apertureReferenceArchiveFile(root: string): string {
-  return path.join(apertureReferenceRuntimeDir(root), ARCHIVE_FILE);
-}
-
-export function apertureReferenceStateFile(root: string): string {
-  return path.join(apertureReferenceRuntimeDir(root), STATE_FILE);
-}
-
-export function apertureReferenceRuntimeDir(root: string): string {
-  return path.join(apertureRuntimeDir(root), "reference");
 }
 
 async function ingestApertureReferenceCorpus(root: string): Promise<{
@@ -2454,18 +2362,6 @@ function lineForOffset(text: string, offset: number): number {
 
 function roundScore(value: number): number {
   return Number(value.toFixed(6));
-}
-
-function apertureReferenceDataDir(root: string): string {
-  return path.join(apertureReferenceRuntimeDir(root), DATA_DIRECTORY);
-}
-
-function apertureReferenceModelDir(root: string): string {
-  return path.join(apertureReferenceRuntimeDir(root), MODEL_DIRECTORY);
-}
-
-function apertureReferenceEmbeddingsFile(root: string): string {
-  return path.join(apertureReferenceDataDir(root), EMBEDDINGS_FILE);
 }
 
 async function readWarmedSourceFile(
