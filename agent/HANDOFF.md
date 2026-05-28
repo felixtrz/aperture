@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-28T07:34:39Z
+Updated: 2026-05-28T07:37:51Z
+
+## Current Run Update — 2026-05-28T07:37:51Z — authoring component group split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split render authoring component definitions from
+  `packages/render/src/rendering/authoring-components.ts` into:
+  `authoring-components-core.ts`, `authoring-components-spatial.ts`, and
+  `authoring-components-camera-light.ts`.
+- Kept `authoring-components.ts` as the stable re-export facade so existing
+  imports and public exports continue to work.
+- Preserved `authoring.ts` component registration behavior and public facade
+  exports.
+- Updated the package-structure plan and public progress tracker for the new
+  authoring component group modules.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/authoring-components.ts packages/render/src/rendering/authoring-components-core.ts packages/render/src/rendering/authoring-components-spatial.ts packages/render/src/rendering/authoring-components-camera-light.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/authoring-components.ts packages/render/src/rendering/authoring-components-core.ts packages/render/src/rendering/authoring-components-spatial.ts packages/render/src/rendering/authoring-components-camera-light.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/authoring-components.ts packages/render/src/rendering/authoring-components-core.ts packages/render/src/rendering/authoring-components-spatial.ts packages/render/src/rendering/authoring-components-camera-light.ts`
+- `pnpm exec vitest run test/rendering/components.test.ts test/rendering/extraction.test.ts test/runtime/runtime.test.ts test/assets/gltf-ecs-command-replay.test.ts test/app/developer-api.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `glb-uri-images.ts`,
+  `transform-pack-scratch.ts`, `gltf-uri-images.ts`, and other medium
+  render/material/asset modules still near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium render extraction/material/asset
+hotspot.
 
 ## Current Run Update — 2026-05-28T07:34:39Z — glTF ECS replay helper split
 

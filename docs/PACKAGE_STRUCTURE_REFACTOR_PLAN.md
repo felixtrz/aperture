@@ -359,6 +359,11 @@ Status: in progress
   validation helpers now live in focused `authoring-*` rendering modules,
   leaving `authoring.ts` as the stable public facade and component registration
   entry point.
+- Render authoring component definitions are further split into core render,
+  spatial-query, and camera/light component groups in
+  `authoring-components-core.ts`, `authoring-components-spatial.ts`, and
+  `authoring-components-camera-light.ts`, with `authoring-components.ts` kept
+  as the stable re-export facade.
 - Render authoring validation is further split into camera, light/shadow, and
   sprite/skybox/fog validation modules, with `authoring-validation.ts` kept as
   the stable validation re-export facade.
