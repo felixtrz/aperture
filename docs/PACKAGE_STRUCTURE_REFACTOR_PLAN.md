@@ -461,6 +461,9 @@ Status: in progress
   `extraction-mesh-submeshes.ts`, leaving `extraction-meshes.ts` focused on
   entity traversal, cache reuse/writeback, culling, and per-entity mesh data
   extraction.
+- GLB container public contracts/constants, diagnostic builders, and byte/JSON
+  helpers now live in focused `glb-container-*` asset modules, leaving
+  `glb-container.ts` focused on `parseGlbContainer` orchestration.
 
 ## Purpose
 

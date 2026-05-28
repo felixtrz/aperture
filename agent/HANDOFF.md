@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T03:54:41Z
+Updated: 2026-05-28T03:59:49Z
+
+## Current Run Update — 2026-05-28T03:59:49Z — GLB container helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split GLB container public constants/contracts into
+  `packages/render/src/assets/glb-container-types.ts`.
+- Split diagnostic construction and error-detection helpers into
+  `packages/render/src/assets/glb-container-diagnostics.ts`.
+- Split source byte-view, chunk type classification, UTF-8 decode, and JSON
+  object parsing helpers into
+  `packages/render/src/assets/glb-container-utils.ts`.
+- Kept `packages/render/src/assets/glb-container.ts` as the stable public
+  facade for `parseGlbContainer` and existing type/constant exports.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/glb-container.ts packages/render/src/assets/glb-container-types.ts packages/render/src/assets/glb-container-diagnostics.ts packages/render/src/assets/glb-container-utils.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/glb-container.ts packages/render/src/assets/glb-container-types.ts packages/render/src/assets/glb-container-diagnostics.ts packages/render/src/assets/glb-container-utils.ts`
+- `pnpm exec prettier --check packages/render/src/assets/glb-container.ts packages/render/src/assets/glb-container-types.ts packages/render/src/assets/glb-container-diagnostics.ts packages/render/src/assets/glb-container-utils.ts`
+- `pnpm exec vitest run test/assets/glb-container.test.ts test/assets/glb-source-loader-output-summary.test.ts test/assets/meshopt-decoder.test.ts test/assets/draco-decoder.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `hdr-rgbe-loader.ts`, `gltf-uri-fetch.ts`, and several older asset/material
+  facades.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining decoder, URI asset, or
+material facade modules.
 
 ## Current Run Update — 2026-05-28T03:54:41Z — mesh extraction submesh split
 
