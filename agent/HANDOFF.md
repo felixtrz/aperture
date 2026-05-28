@@ -1,6 +1,51 @@
 # Agent Handoff
 
-Updated: 2026-05-28T08:29:20Z
+Updated: 2026-05-28T08:36:35Z
+
+## Current Run Update — 2026-05-28T08:36:35Z — URI fetch byte helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split glTF URI byte-fetch public contracts into
+  `packages/render/src/assets/gltf-uri-fetch-byte-types.ts`.
+- Split glTF URI fetch/read/HTTP diagnostic builders into
+  `packages/render/src/assets/gltf-uri-fetch-byte-diagnostics.ts`.
+- Split the mirrored GLB URI byte-fetch public contracts and diagnostic builders
+  into `packages/render/src/assets/glb-uri-fetch-byte-types.ts` and
+  `packages/render/src/assets/glb-uri-fetch-byte-diagnostics.ts`.
+- Kept `gltf-uri-fetch-bytes.ts` and `glb-uri-fetch-bytes.ts` as the stable
+  cache-aware byte-fetch orchestration facades, including the existing GLB
+  `fetchIndexFields` re-export for current callers.
+- Updated the package-structure plan and public progress tracker for the new
+  URI byte-fetch module boundaries.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-uri-fetch-bytes.ts packages/render/src/assets/gltf-uri-fetch-byte-types.ts packages/render/src/assets/gltf-uri-fetch-byte-diagnostics.ts packages/render/src/assets/glb-uri-fetch-bytes.ts packages/render/src/assets/glb-uri-fetch-byte-types.ts packages/render/src/assets/glb-uri-fetch-byte-diagnostics.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-uri-fetch-bytes.ts packages/render/src/assets/gltf-uri-fetch-byte-types.ts packages/render/src/assets/gltf-uri-fetch-byte-diagnostics.ts packages/render/src/assets/glb-uri-fetch-bytes.ts packages/render/src/assets/glb-uri-fetch-byte-types.ts packages/render/src/assets/glb-uri-fetch-byte-diagnostics.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-uri-fetch-bytes.ts packages/render/src/assets/gltf-uri-fetch-byte-types.ts packages/render/src/assets/gltf-uri-fetch-byte-diagnostics.ts packages/render/src/assets/glb-uri-fetch-bytes.ts packages/render/src/assets/glb-uri-fetch-byte-types.ts packages/render/src/assets/glb-uri-fetch-byte-diagnostics.ts`
+- `pnpm exec vitest run test/assets/gltf-uri-loader.test.ts test/assets/glb-uri-loader.test.ts test/assets/gltf-source-loader-facade.test.ts test/assets/glb-source-loader-facade.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/gltf-scene-import-contract.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `snapshot-types.ts`,
+  `gltf-sampler.ts`, `gltf-texture.ts`, `gltf-source-registration-writers.ts`,
+  and other medium render/material/asset modules still near the hotspot
+  threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium render/material/asset hotspot.
 
 ## Current Run Update — 2026-05-28T08:29:20Z — packed snapshot encoding split
 

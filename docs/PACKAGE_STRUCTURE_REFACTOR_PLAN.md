@@ -456,18 +456,20 @@ Status: in progress
   resolution, and decoded-image merge/concurrency helpers now live in focused
   `glb-uri-image-*` asset modules, keeping `glb-uri-images.ts` as the decode
   orchestration facade.
-- GLB URI byte fetching, fetch-cache reuse, and context-aware fetch/read/HTTP
-  diagnostics now live in `packages/render/src/assets/glb-uri-fetch-bytes.ts`,
-  keeping `glb-uri-fetch.ts` focused on external buffer/image fetch
-  orchestration, URL resolution, and byte merging.
+- GLB URI byte-fetch public contracts and context-aware fetch/read/HTTP
+  diagnostics now live in focused `glb-uri-fetch-byte-*` asset modules, keeping
+  `glb-uri-fetch-bytes.ts` focused on cache-aware byte fetching and
+  `glb-uri-fetch.ts` focused on external buffer/image fetch orchestration, URL
+  resolution, and byte merging.
 - glTF URI image source/byte resolution, decode cache/transcoder selection,
   per-image decode task handling, and decoded-image resolver/concurrency
   helpers now live in focused `gltf-uri-image-*` asset modules, keeping
   `gltf-uri-images.ts` as the decode orchestration facade.
-- glTF URI byte fetching, fetch-cache reuse, and context-aware fetch/read/HTTP
-  diagnostics now live in `packages/render/src/assets/gltf-uri-fetch-bytes.ts`,
-  keeping `gltf-uri-fetch.ts` focused on JSON parsing, external buffer/image
-  fetch orchestration, URL resolution, and byte merging.
+- glTF URI byte-fetch public contracts and context-aware fetch/read/HTTP
+  diagnostics now live in focused `gltf-uri-fetch-byte-*` asset modules, keeping
+  `gltf-uri-fetch-bytes.ts` focused on cache-aware byte fetching and
+  `gltf-uri-fetch.ts` focused on JSON parsing, external buffer/image fetch
+  orchestration, URL resolution, and byte merging.
 - glTF ECS authoring command-plan public contracts and JSON/report projection
   now live in focused `gltf-ecs-authoring-command-plan-*` asset modules,
   keeping `gltf-ecs-authoring-command-plan.ts` focused on command planning and
