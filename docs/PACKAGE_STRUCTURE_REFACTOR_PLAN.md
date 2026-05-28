@@ -286,10 +286,10 @@ Status: in progress
 - GLB URI external fetch contracts, deduplicated byte fetching, and same-origin
   URL resolution now live in focused `glb-uri-external-fetch-*` modules,
   leaving `glb-uri-external-fetch.ts` as the public buffer/image fetch facade.
-- GLB image source resolution, decode caching, MIME/type helpers, decoded
-  image merging, and image-data resolver helpers now live in
-  `packages/render/src/assets/glb-uri-images.ts`, leaving `glb-uri-loader.ts`
-  as a compact URI load orchestration entry point.
+- GLB image source resolution, bufferView/external image byte resolution,
+  decode caching, MIME/type helpers, decoded image merging, and image-data
+  resolver helpers now live in focused `glb-uri-image-*` modules, leaving
+  `glb-uri-loader.ts` as a compact URI load orchestration entry point.
 - glTF URI image source resolution, decode caching, decoded-image resolver
   helpers, and shared URI/MIME/byte utilities now live in
   `packages/render/src/assets/gltf-uri-images.ts` and
@@ -424,10 +424,10 @@ Status: in progress
   transform/format helpers, and report JSON projection now live in focused
   `standard-texture-readiness-*` material modules, keeping
   `standard-texture-readiness.ts` as the registry inspection facade.
-- GLB URI image decode cache/transcoder selection, image source/byte
-  resolution, and decoded-image merge/concurrency helpers now live in focused
-  `glb-uri-image-*` asset modules, keeping `glb-uri-images.ts` as the decode
-  orchestration facade.
+- GLB URI image decode cache/transcoder selection, image source
+  classification, bufferView/external image byte resolution, and decoded-image
+  merge/concurrency helpers now live in focused `glb-uri-image-*` asset
+  modules, keeping `glb-uri-images.ts` as the decode orchestration facade.
 - GLB URI byte fetching, fetch-cache reuse, and context-aware fetch/read/HTTP
   diagnostics now live in `packages/render/src/assets/glb-uri-fetch-bytes.ts`,
   keeping `glb-uri-fetch.ts` focused on external buffer/image fetch

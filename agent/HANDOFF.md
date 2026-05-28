@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T06:52:15Z
+Updated: 2026-05-28T06:55:30Z
+
+## Current Run Update — 2026-05-28T06:55:30Z — GLB image byte resolution split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split GLB image URI/bufferView byte resolution, bufferView byte range
+  validation, GLB/external buffer byte lookup, byte-length helpers, and byte
+  view normalization from `packages/render/src/assets/glb-uri-image-sources.ts`
+  into `packages/render/src/assets/glb-uri-image-bytes.ts`.
+- Kept `glb-uri-image-sources.ts` focused on image source references, MIME/type
+  detection, status source-kind mapping, and generic record checks.
+- Updated `glb-uri-images.ts` to import byte lookup from the new byte module
+  while preserving decode behavior.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/glb-uri-image-sources.ts packages/render/src/assets/glb-uri-image-bytes.ts packages/render/src/assets/glb-uri-images.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/glb-uri-image-sources.ts packages/render/src/assets/glb-uri-image-bytes.ts packages/render/src/assets/glb-uri-images.ts`
+- `pnpm exec prettier --check packages/render/src/assets/glb-uri-image-sources.ts packages/render/src/assets/glb-uri-image-bytes.ts packages/render/src/assets/glb-uri-images.ts`
+- `pnpm exec vitest run test/assets/glb-uri-loader.test.ts test/assets/glb-source-loader-facade.test.ts test/assets/glb-container.test.ts test/assets/glb-source-loader-output-summary.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include final `extraction-meshes.ts` tightening
+  and `prepared-resource.ts`, plus other medium render modules that still sit
+  near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting `prepared-resource.ts` or finishing the
+remaining extraction mesh tightening.
 
 ## Current Run Update — 2026-05-28T06:52:15Z — glTF Meshopt extension parsing split
 
