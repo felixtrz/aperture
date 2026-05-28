@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-28T05:22:36Z
+Updated: 2026-05-28T05:26:41Z
+
+## Current Run Update — 2026-05-28T05:26:41Z — glTF scene import contract split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split scene import summary aggregation, primitive shape counting,
+  material-family counting, intent counts, and renderable primitive counts into
+  `packages/render/src/assets/gltf-scene-import-contract-summary.ts`.
+- Split scene import acceptance diagnostics, invalid report checks, missing
+  registration diagnostics, and vertical-slice minimum checks into
+  `packages/render/src/assets/gltf-scene-import-contract-diagnostics.ts`.
+- Kept `packages/render/src/assets/gltf-scene-import-contract.ts` as the
+  existing public orchestration and re-export facade.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-scene-import-contract.ts packages/render/src/assets/gltf-scene-import-contract-summary.ts packages/render/src/assets/gltf-scene-import-contract-diagnostics.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-scene-import-contract.ts packages/render/src/assets/gltf-scene-import-contract-summary.ts packages/render/src/assets/gltf-scene-import-contract-diagnostics.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-scene-import-contract.ts packages/render/src/assets/gltf-scene-import-contract-summary.ts packages/render/src/assets/gltf-scene-import-contract-diagnostics.ts`
+- `pnpm exec vitest run test/assets/gltf-scene-import-contract.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/gltf-combined-import-fixture.test.ts test/assets/gltf-asset-mapping.test.ts test/assets/gltf-mesh-primitive.test.ts test/assets/gltf-ecs-command-replay.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include
+  `custom-wgsl-material-preparation.ts`, `standard-sampler-fidelity.ts`,
+  `snapshot-packed-codecs.ts`, `authoring-validation.ts`,
+  `snapshot-packed-codec-utils.ts`, `snapshot-change-set.ts`,
+  `gltf-uri-external-fetch.ts`, and `glb-uri-external-fetch.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining custom WGSL, sampler
+fidelity, packed snapshot codec, authoring validation, packed snapshot codec
+utility, snapshot change-set, or URI external fetch modules.
 
 ## Current Run Update — 2026-05-28T05:22:36Z — render snapshot contract split
 
