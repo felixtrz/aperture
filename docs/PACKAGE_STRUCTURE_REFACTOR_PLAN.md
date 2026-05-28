@@ -496,6 +496,10 @@ Status: in progress
   and changed-field detection now live in
   `packages/app/src/entity-lookup-snapshot.ts`, leaving `entity-lookup.ts` as a
   compact public facade for entity tooling.
+- Generated browser render-default normalization, MSAA/pixel-ratio diagnostics,
+  and canvas backing-size measurement now live in
+  `packages/app/src/browser-render.ts`, preserving the existing public browser
+  exports for render settings and canvas resize measurement.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

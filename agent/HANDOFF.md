@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-28T10:08:34Z
+Updated: 2026-05-28T10:11:58Z
+
+## Current Run Update — 2026-05-28T10:11:58Z — app browser render sizing split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 6.
+
+### What changed
+
+- Split generated browser render-default normalization, MSAA/pixel-ratio
+  diagnostics, and canvas backing-size measurement into
+  `packages/app/src/browser-render.ts`.
+- Preserved existing public browser exports for
+  `resolveGeneratedRenderSettings()`, `measureGeneratedCanvasResize()`,
+  generated render/canvas types, and default render constants.
+- Reduced `packages/app/src/browser.ts` from 1,372 lines to 1,182 lines.
+
+### Validation
+
+- `pnpm exec prettier --write packages/app/src/browser.ts packages/app/src/browser-render.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec eslint packages/app/src/browser.ts packages/app/src/browser-render.ts`
+- `pnpm exec prettier --check packages/app/src/browser.ts packages/app/src/browser-render.ts`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts test/index.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 6 still needs focused app modules for generated browser input,
+  devtools/readback, status/mirroring, and worker bootstrapping.
+- Remaining large app files include `worker.ts` and `browser.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 6 by splitting generated browser input/devtools/status helpers
+or generated worker bootstrapping.
 
 ## Current Run Update — 2026-05-28T10:08:34Z — app entity lookup snapshot split
 
