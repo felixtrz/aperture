@@ -30,7 +30,7 @@ test("public app.pick returns an ECS entity ref from the ID buffer", async ({
         ...render,
         ...runtime,
       })),
-      import("@aperture-engine/webgpu"),
+      import("@aperture-engine/webgpu/test-support"),
     ]);
     const assets = new core.AssetRegistry();
     const world = core.createWorld({ entityCapacity: 8 });

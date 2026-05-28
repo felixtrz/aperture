@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createUnsupportedBuiltInMaterialQueuePhaseDiagnostic } from "@aperture-engine/webgpu";
+import { createUnsupportedBuiltInMaterialQueuePhaseDiagnostic } from "@aperture-engine/webgpu/test-support";
 
 describe("built-in material queue phase diagnostics", () => {
   it("allows opaque draws for built-in material families", () => {

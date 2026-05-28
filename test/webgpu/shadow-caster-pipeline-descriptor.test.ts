@@ -5,7 +5,7 @@ import {
   shadowCasterPipelineDescriptorReportToJson,
   shadowCasterPipelineDescriptorReportToJsonValue,
   type ShadowPassCommandEncodingReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow caster pipeline descriptor metadata", () => {
   it("reports depth-only shadow caster pipeline metadata without creating pipelines", () => {

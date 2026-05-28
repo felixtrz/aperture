@@ -4,7 +4,7 @@ import {
   clearWebGpuCanvas,
   type WebGpuClearContextLike,
   type WebGpuClearDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("WebGPU clear pass scaffolding", () => {
   it("encodes and submits a clear pass through injected objects", () => {

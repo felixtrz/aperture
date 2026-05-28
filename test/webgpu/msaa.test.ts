@@ -4,7 +4,7 @@ import {
   createOrReuseWebGpuMsaaColorTexture,
   createWebGpuMsaaColorTextureCacheSlot,
   resolveWebGpuMsaaConfig,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("WebGPU MSAA helpers", () => {
   it("resolves requested sample counts to WebGPU-supported counts", () => {

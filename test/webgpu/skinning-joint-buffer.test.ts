@@ -10,7 +10,7 @@ import {
   createSkinningJointGpuBuffer,
   skinningJointBufferResourceKeyForRenderId,
   type WebGpuBufferDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("skinning joint matrix GPU buffer", () => {
   it("creates a storage buffer plan from a draw-scoped snapshot bone palette", () => {

@@ -8,7 +8,7 @@ import {
   packStandardMaterial,
   type StandardMaterialBufferDescriptorPlan,
   type WebGpuBufferDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("standard material GPU buffer resource creation", () => {
   it("creates uniform buffer resources for standard materials", () => {

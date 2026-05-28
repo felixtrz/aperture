@@ -14,7 +14,7 @@ import {
   createTextureHandle,
   packMatcapMaterial,
   type PackedMatcapMaterial,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("matcap material WebGPU uniform packing", () => {
   it("packs base color and required matcap texture dependencies", () => {

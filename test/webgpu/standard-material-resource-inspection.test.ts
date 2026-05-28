@@ -5,7 +5,7 @@ import {
   createStandardMaterialResourceInspectionRecords,
   createStandardMaterialResourceInspectionReport,
   type StandardMaterialGpuBufferResource,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("standard material resource inspection", () => {
   it("creates live, missing, stale, and pending-destroy material records", () => {

@@ -9,7 +9,7 @@ import {
   directionalShadowViewProjectionPlanReportToJsonValue,
   type LightPacket,
   type ShadowRequestPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("directional shadow view-projection planning", () => {
   it("plans JSON-safe directional shadow matrix keys without computing matrices", () => {

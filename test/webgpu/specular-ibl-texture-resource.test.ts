@@ -9,7 +9,7 @@ import {
   specularIblTextureResourceReportToJsonValue,
   type EnvironmentPacket,
   type TextureGpuDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("specular IBL texture resource", () => {
   it("creates a renderer-owned specular texture resource from planned IBL slots", () => {

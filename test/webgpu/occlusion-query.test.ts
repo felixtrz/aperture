@@ -9,7 +9,7 @@ import {
   resolveGpuOcclusionQueries,
   updateGpuOcclusionFeedbackState,
   type GpuOcclusionBufferLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("GPU occlusion query helpers", () => {
   it("creates occlusion query resources with resolve and readback buffers", () => {

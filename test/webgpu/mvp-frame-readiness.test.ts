@@ -8,7 +8,7 @@ import {
   type FrameSubmissionSmokeReport,
   type RenderPassAssemblySmokeReport,
   type RendererAssemblySmokeReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("MVP frame readiness aggregate", () => {
   it("reports ready when all major frame sections are ready", () => {

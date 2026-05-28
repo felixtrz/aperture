@@ -9,7 +9,7 @@ import {
   type PackedSnapshotTransforms,
   type PackedSnapshotViewUniforms,
   type UnlitBindGroupLayoutResource,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("debug-normal frame GPU resource assembly", () => {
   it("uploads shared frame resources and creates a debug-normal material bind group", () => {

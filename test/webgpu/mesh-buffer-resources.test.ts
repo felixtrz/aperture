@@ -8,7 +8,7 @@ import {
   createPlaneMeshAsset,
   type MeshUploadBufferDescriptorPlan,
   type WebGpuBufferDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("mesh GPU buffer resource creation", () => {
   it("creates vertex and index resources for indexed meshes", () => {

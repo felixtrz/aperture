@@ -92,6 +92,13 @@ export default defineConfig({
         ).pathname,
       },
       {
+        find: "@aperture-engine/webgpu/test-support",
+        replacement: new URL(
+          "./packages/webgpu/src/test-support.ts",
+          import.meta.url,
+        ).pathname,
+      },
+      {
         find: "@aperture-engine/webgpu",
         replacement: new URL("./packages/webgpu/src/index.ts", import.meta.url)
           .pathname,

@@ -28,7 +28,7 @@ import {
   type BatchCompatibilityKey,
   type WebGpuRenderPipelineCreateDescriptor,
   type WebGpuShaderCreateDescriptor,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 const STANDARD_BATCH_KEY: BatchCompatibilityKey = {
   pipelineKey: "standard|opaque|back|less|none",

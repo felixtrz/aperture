@@ -6,7 +6,7 @@ import {
   type RendererFrameSummaryReport,
   type RendererFrameSummarySection,
   type RendererFrameSummarySectionStatus,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 import { createRendererFrameSummaryFixture } from "./fixtures/renderer-frame-summary.js";
 
 describe("renderer frame summary JSON helpers", () => {

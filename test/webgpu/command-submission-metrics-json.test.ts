@@ -7,7 +7,7 @@ import {
   type FinishCommandEncoderResult,
   type RenderPassCommandExecutionReport,
   type SubmitCommandBuffersReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("command submission metrics JSON helpers", () => {
   it("creates JSON-safe values for ready reports", () => {

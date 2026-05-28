@@ -5,7 +5,7 @@ import {
   preparedResourceAppReuseAlignmentSummaryToJsonValue,
   type PreparedResourceAppReuseFacadeSummary,
   type PreparedResourceAppReuseReportSummary,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("prepared resource app reuse alignment summary", () => {
   it("compares render prepared facade counts with app reuse facade counts", () => {

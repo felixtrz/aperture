@@ -8,7 +8,7 @@ import {
   writeGpuTimestampQuery,
   type GpuTimestampBufferLike,
   type GpuTimestampCommandEncoderLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("GPU timestamp query infrastructure", () => {
   it("creates timestamp query resources when the feature is available", () => {

@@ -4,7 +4,7 @@ import {
   createWebGpuAppMaterialQueueRouteReport,
   unknownToWebGpuAppMaterialQueueRouteDiagnostics,
   webGpuAppMaterialQueueRouteReportToJsonValue,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("WebGPU app material queue route report diagnostics", () => {
   it("aggregates repeated diagnostic codes by severity", () => {

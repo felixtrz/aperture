@@ -9,7 +9,7 @@ import {
   type LightPacket,
   type RenderSnapshot,
   type WebGpuBufferDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("snapshot light GPU buffer JSON helpers", () => {
   it("serializes empty no-op snapshot light GPU buffer results", () => {

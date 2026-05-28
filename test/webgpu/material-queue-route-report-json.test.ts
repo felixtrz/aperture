@@ -4,7 +4,7 @@ import {
   createWebGpuAppMaterialQueueRouteReport,
   webGpuAppMaterialQueueRouteReportToJson,
   webGpuAppMaterialQueueRouteReportToJsonValue,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("WebGPU app material queue route report JSON", () => {
   it("serializes ready route reports without queue item payloads", () => {

@@ -47,7 +47,7 @@ import {
   type UnlitBindGroupLayoutResource,
   type TextureGpuDeviceLike,
   type WebGpuBufferDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("unlit app frame-resource fallback diagnostics", () => {
   it("emits an app fallback diagnostic when prepared material layout is missing", () => {
@@ -727,7 +727,10 @@ function clusteredLocalLightSnapshot(
   const transforms = new Float32Array(16 * 16);
   const lights = Array.from({ length: 16 }, (_, index) => {
     transforms.set(localLightTransform(index), index * 16);
-    return pointLight(index + 1, { ...input, worldTransformOffset: index * 16 });
+    return pointLight(index + 1, {
+      ...input,
+      worldTransformOffset: index * 16,
+    });
   });
 
   return {

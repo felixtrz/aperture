@@ -9,7 +9,7 @@ import {
   WEBGPU_ID_BUFFER_EMPTY_ID,
   WEBGPU_ID_BUFFER_FORMAT,
   type MeshDrawPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("WebGPU ID buffer helpers", () => {
   it("derives stable pick IDs from ECS entity refs", () => {

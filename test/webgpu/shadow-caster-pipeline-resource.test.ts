@@ -9,7 +9,7 @@ import {
   type ShadowPassCommandEncodingReport,
   type WebGpuRenderPipelineCreateDescriptor,
   type WebGpuShaderCreateDescriptor,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow caster pipeline resource", () => {
   it("creates a depth-only shadow caster pipeline through an injected device", () => {

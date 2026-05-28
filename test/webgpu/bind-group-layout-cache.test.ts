@@ -5,7 +5,7 @@ import {
   createWebGpuBindGroupLayoutCacheKey,
   type WebGpuBindGroupLayoutDescriptor,
   type WebGpuBindGroupLayoutDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("WebGPU bind group layout cache", () => {
   it("creates stable keys from sorted layout descriptor entries", () => {

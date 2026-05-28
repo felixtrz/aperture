@@ -25,7 +25,7 @@ import {
   createQueuedBuiltInAppRouteCollectorScratch,
   createQueuedBuiltInAppResourceAdapterRegistry,
   createQueuedBuiltInAppResourceFamilyAdapterTable,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("queued built-in app resource set collector", () => {
   it("collects a routed built-in resource item without exposing GPU handles", () => {

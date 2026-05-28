@@ -4,7 +4,7 @@ import {
   createCurrentTextureColorTarget,
   createOffscreenColorTarget,
   createOffscreenColorTargets,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("current texture view acquisition", () => {
   it("creates color attachment target inputs from current texture views", () => {

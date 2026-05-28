@@ -5,7 +5,7 @@ import {
   createRenderBundleCache,
   createRenderBundleCommandKey,
   type RenderPassCommand,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("frame boundary assembly helper", () => {
   it("assembles an all-ready injected frame boundary", () => {

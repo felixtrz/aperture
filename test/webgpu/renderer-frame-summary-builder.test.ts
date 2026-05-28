@@ -5,7 +5,7 @@ import {
   createRendererFrameSummaryFromExecutionReport,
   type RenderPassAssemblySmokeReport,
   type RendererAssemblySmokeReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 import { createFrameExecutionSmokeFixture } from "./fixtures/frame-execution.js";
 
 describe("renderer frame summary builder from frame execution", () => {

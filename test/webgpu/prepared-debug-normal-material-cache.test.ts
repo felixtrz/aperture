@@ -10,7 +10,7 @@ import {
   type DebugNormalFrameGpuResourceDeviceLike,
   type DebugNormalMaterialBindGroupCreationDescriptor,
   type DebugNormalMaterialBindGroupLayoutResource,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("DebugNormal prepared material cache", () => {
   it("creates, reuses, and invalidates group-2 prepared resources", () => {

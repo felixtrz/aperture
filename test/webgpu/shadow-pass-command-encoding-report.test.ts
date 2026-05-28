@@ -23,7 +23,7 @@ import {
   type ShadowRequestPacket,
   type TextureGpuDeviceLike,
   type WebGpuBufferDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow pass command encoding reports", () => {
   it("records JSON-safe command encoding records for ready shadow pass inputs", () => {

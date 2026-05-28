@@ -6,7 +6,7 @@ import type {
   StandardMaterialTextureReadinessReportJsonValue,
   StandardMaterialTextureReadinessSlot,
 } from "@aperture-engine/render";
-import { createStandardMaterialTextureFidelitySummary } from "@aperture-engine/webgpu";
+import { createStandardMaterialTextureFidelitySummary } from "@aperture-engine/webgpu/test-support";
 
 describe("StandardMaterial texture fidelity summary", () => {
   it("summarizes empty StandardMaterial texture readiness reports", () => {

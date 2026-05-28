@@ -11,7 +11,7 @@ import {
   prepareStandardAppTextureSamplerResources,
   writeAppTextureSamplerResourceCacheSummary,
   type AppTextureSamplerResourceCache,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("app texture sampler resource cache summaries", () => {
   it("summarizes an empty texture/sampler backend cache", () => {

@@ -8,7 +8,7 @@ import {
   iblPreparationPassPlanReportToJson,
   iblPreparationPassPlanReportToJsonValue,
   type EnvironmentPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("IBL preparation pass planning", () => {
   it("plans JSON-safe IBL preparation passes without submitting GPU commands", () => {

@@ -7,7 +7,7 @@ import {
   type WebGpuCanvasContextLike,
   type WebGpuDeviceLike,
   type WebGpuLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("WebGPU support boundary", () => {
   it("reports missing navigator.gpu distinctly", () => {

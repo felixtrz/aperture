@@ -10,7 +10,7 @@ import {
   shadowMatrixBufferDescriptorReportToJsonValue,
   type LightPacket,
   type ShadowRequestPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow matrix buffer descriptor planning", () => {
   it("plans JSON-safe matrix buffer descriptors without allocating GPU buffers", () => {

@@ -13,7 +13,7 @@ import {
   type QueuedBuiltInFrameResource,
   type QueuedMaterialFrameResourceAdapterResult,
   validateQueuedBuiltInAppResourceAdapterRegistry,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("built-in material app resource adapter factory", () => {
   it("exposes the active built-in app resource adapter family registry shape", () => {

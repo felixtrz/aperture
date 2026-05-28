@@ -10,7 +10,7 @@ import {
   DEFAULT_MORPH_TARGET_WEIGHT_BUFFER_USAGE,
   morphTargetWeightBufferResourceKeyForRenderId,
   type WebGpuBufferDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("morph target weight GPU buffer", () => {
   it("creates a storage buffer plan from snapshot morph target weights", () => {

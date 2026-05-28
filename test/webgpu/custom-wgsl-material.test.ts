@@ -15,7 +15,7 @@ import {
   type CustomWgslMaterialBindGroupCreationDescriptor,
   type WebGpuRenderPipelineCreateDescriptor,
   type WebGpuShaderCreateDescriptor,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("custom WGSL material WebGPU resources", () => {
   it("builds browser pipeline and bind-group layout descriptors from prepared metadata", () => {

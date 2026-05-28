@@ -9,7 +9,7 @@ import {
   packUnlitMaterial,
   type UnlitMaterialBufferDescriptorPlan,
   type WebGpuBufferDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("unlit material GPU buffer resource creation", () => {
   it("creates uniform buffer resources for default unlit materials", () => {

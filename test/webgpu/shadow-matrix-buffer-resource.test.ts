@@ -13,7 +13,7 @@ import {
   type LightPacket,
   type ShadowRequestPacket,
   type WebGpuBufferDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow matrix buffer resources", () => {
   it("allocates, uploads, and reuses renderer-owned shadow matrix buffers", () => {

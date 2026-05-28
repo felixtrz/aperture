@@ -6,7 +6,7 @@ import {
   environmentMapReadinessReportToJson,
   environmentMapReadinessReportToJsonValue,
   type EnvironmentPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("environment map readiness", () => {
   it("treats empty environment snapshots as ready planning no-ops", () => {

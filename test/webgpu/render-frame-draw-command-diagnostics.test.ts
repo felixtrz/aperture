@@ -9,7 +9,7 @@ import {
   type RenderPassEncoderLike,
   type RendererAssemblySmokeReport,
   type UnlitBindGroupResource,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 type FailurePoint = "bindGroup" | "commandExecution" | "submit" | "renderer";
 

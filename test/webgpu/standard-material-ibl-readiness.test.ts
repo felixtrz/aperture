@@ -7,7 +7,7 @@ import {
   standardMaterialIblReadinessReportToJson,
   standardMaterialIblReadinessReportToJsonValue,
   type EnvironmentPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("StandardMaterial IBL readiness", () => {
   it("reports available descriptors while keeping shader sampling deferred", () => {

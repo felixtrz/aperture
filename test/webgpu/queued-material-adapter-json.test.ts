@@ -9,7 +9,7 @@ import {
   queuedMaterialAdapterRegistryValidationReportToJsonValue,
   type QueuedMaterialAdapterRegistration,
   validateQueuedMaterialAdapterRegistry,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 interface TestAdapter extends QueuedMaterialAdapterRegistration {
   readonly label?: string;

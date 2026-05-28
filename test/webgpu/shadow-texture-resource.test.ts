@@ -6,7 +6,7 @@ import {
   shadowTextureResourceReportToJson,
   shadowTextureResourceReportToJsonValue,
   type ShadowRequestPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow texture resources", () => {
   it("plans JSON-safe texture descriptors without allocating GPU textures", () => {

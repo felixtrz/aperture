@@ -8,7 +8,7 @@ import {
   createMatcapMaterialBindGroupResourceKey,
   validateMatcapMaterialBindGroupLayout,
   type MatcapMaterialBindGroupCreationDescriptor,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("matcap material bind group descriptor planning", () => {
   it("creates a required material, texture, and sampler group-2 descriptor", () => {

@@ -5,7 +5,7 @@ import {
   standardMaterialIblShadowPipelineKeyReadinessReportToJson,
   standardMaterialIblShadowPipelineKeyReadinessReportToJsonValue,
   type StandardMaterialIblShadowBindingReadinessReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("StandardMaterial IBL/shadow pipeline-key readiness", () => {
   it("reports deferred pipeline-key features without changing pipeline descriptors", () => {

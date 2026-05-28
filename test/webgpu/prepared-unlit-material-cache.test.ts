@@ -18,7 +18,7 @@ import {
   type UnlitBindGroupCreationDescriptor,
   type UnlitBindGroupLayoutResource,
   type WebGpuBufferDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("scalar unlit prepared material cache", () => {
   it("creates, reuses, and invalidates scalar unlit material resources", () => {

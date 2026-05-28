@@ -19,7 +19,7 @@ test("PMREM compute pipeline writes constant cubemap color into mip zero", async
     }
 
     const device = await adapter.requestDevice();
-    const webgpu = await import("@aperture-engine/webgpu");
+    const webgpu = await import("@aperture-engine/webgpu/test-support");
     const browserGlobals = globalThis as unknown as {
       readonly GPUTextureUsage?: {
         readonly COPY_SRC: number;
@@ -224,7 +224,7 @@ test("PMREM compute pipeline writes GGX-prefiltered colors into rough mips", asy
     }
 
     const device = await adapter.requestDevice();
-    const webgpu = await import("@aperture-engine/webgpu");
+    const webgpu = await import("@aperture-engine/webgpu/test-support");
     const browserGlobals = globalThis as unknown as {
       readonly GPUTextureUsage?: {
         readonly COPY_SRC: number;

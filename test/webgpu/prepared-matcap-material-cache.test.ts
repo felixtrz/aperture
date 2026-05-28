@@ -17,7 +17,7 @@ import {
   type MatcapMaterialBindGroupLayoutResource,
   type SamplerGpuResource,
   type TextureGpuResource,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("Matcap prepared texture dependency keys", () => {
   it("derives ready matcap texture and sampler handle/version keys", () => {

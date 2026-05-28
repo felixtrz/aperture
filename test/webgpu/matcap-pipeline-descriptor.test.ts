@@ -5,7 +5,7 @@ import {
   createMatcapPipelineDescriptorPlan,
   type BatchCompatibilityKey,
   type BuiltInShaderSourceModule,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 const MATCAP_BATCH_KEY: BatchCompatibilityKey = {
   pipelineKey: "matcap|matcapTexture|opaque|back|less|none",

@@ -7,7 +7,7 @@ import {
   type ShadowCasterDrawListPlanReport,
   type ShadowCasterPipelineDescriptorReport,
   type ShadowMatrixBufferResourceReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow caster frame-resource readiness", () => {
   it("reports JSON-safe prepared mesh, matrix, and pipeline resources per caster draw", () => {

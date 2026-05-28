@@ -4,7 +4,7 @@ import {
   createQueuedMaterialFrameResourceRouteShell,
   createQueuedMaterialPrepareRouteResult,
   createWebGpuAppFrameResourceRouteDiagnostic,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("queued material frame-resource route diagnostics", () => {
   it("creates JSON-safe app diagnostics from frame-resource route shells", () => {

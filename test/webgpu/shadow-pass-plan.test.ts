@@ -7,7 +7,7 @@ import {
   shadowPassPlanReportToJson,
   shadowPassPlanReportToJsonValue,
   type ShadowRequestPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow pass planning", () => {
   it("plans JSON-safe shadow passes without submitting GPU commands", () => {

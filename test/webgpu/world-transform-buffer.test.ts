@@ -9,7 +9,7 @@ import {
   type PackedSnapshotTransforms,
   type WebGpuBufferDeviceLike,
   type WorldTransformBufferDescriptorPlan,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("world transform GPU buffer resources", () => {
   it("creates storage buffer descriptors and resources for packed transforms", () => {

@@ -18,7 +18,7 @@ import {
   type PackedSnapshotTransforms,
   type PackedSnapshotViewUniforms,
   type UnlitBindGroupLayoutResource,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("debug-normal app frame-resource cache", () => {
   it("creates first-frame resources and records creation counters", () => {

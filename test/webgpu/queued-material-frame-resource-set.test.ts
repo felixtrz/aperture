@@ -11,7 +11,7 @@ import {
   prepareQueuedMaterialFrameResourceSet,
   queuedMaterialAdapterRegistryToJsonValue,
   resetQueuedMaterialFrameResourceBuckets,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("queued material frame-resource set preparation", () => {
   it("groups generic frame resources by material family with JSON-safe summaries", () => {

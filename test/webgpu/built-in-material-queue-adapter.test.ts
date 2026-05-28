@@ -11,7 +11,7 @@ import {
   createBuiltInMaterialQueueRouteAdapterRegistry,
   queuedMaterialAdapterRegistryToJsonValue,
   type BuiltInMaterialQueueRouteAdapter,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("built-in material queue route adapter factory", () => {
   it("registers route-only adapters for built-in material families", () => {

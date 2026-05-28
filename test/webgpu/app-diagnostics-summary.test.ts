@@ -11,7 +11,7 @@ import {
   createWebGpuAppDiagnosticsSummary,
   type QueuedMaterialFrameResourceSetSummary,
   type RenderFrameQueueDiagnosticsSummary,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("WebGPU app diagnostics summary", () => {
   it("summarizes empty diagnostic groups", () => {

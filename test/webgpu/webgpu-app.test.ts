@@ -62,7 +62,7 @@ import {
   type WebGpuAppSimulationWorkerErrorCallback,
   webGpuAppRenderReportToJson,
   webGpuAppRenderReportToJsonValue,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 type LegacyCreateWebGpuAppOptions = Omit<
   CreateWebGpuAppOptions,

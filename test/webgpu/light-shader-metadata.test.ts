@@ -12,7 +12,7 @@ import {
   lightShaderResourceReadinessReportToJsonValue,
   lightShaderReadinessToResourceSummaryDiagnostics,
   validateLightBindGroupLayoutMetadata,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("light shader binding metadata", () => {
   it("declares stable light buffer binding metadata", () => {

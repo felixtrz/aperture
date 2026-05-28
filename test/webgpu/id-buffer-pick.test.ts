@@ -13,7 +13,7 @@ import {
   type WebGpuIdBufferPickPipelineResource,
   type WebGpuRenderPipelineCreateDescriptor,
   type WebGpuShaderCreateDescriptor,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("WebGPU ID-buffer picking", () => {
   it("packs ECS-derived pick IDs by world-transform slot", () => {

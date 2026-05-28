@@ -22,7 +22,7 @@ import {
   type ShadowRequestPacket,
   type TextureGpuDeviceLike,
   type WebGpuBufferDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("point shadow cube-map pipeline planning", () => {
   it("expands one point shadow request into six face passes and matrices", () => {

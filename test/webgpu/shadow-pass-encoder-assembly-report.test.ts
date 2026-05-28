@@ -9,7 +9,7 @@ import {
   type ShadowCasterFrameResourceReadinessReport,
   type ShadowPassAttachmentDescriptorReport,
   type ShadowPassCommandEncodingReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow pass encoder assembly report", () => {
   it("begins, executes, and ends shadow pass command records without submitting", () => {

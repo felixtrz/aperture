@@ -15,7 +15,7 @@ import {
   lightBindGroupLayoutResourceKey,
   type WebGpuBindGroupLayoutDescriptor,
   type WebGpuBindGroupLayoutDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("light bind group layout resources", () => {
   it("creates read-only storage layout entries for packed light buffers", () => {

@@ -5,7 +5,7 @@ import type {
   MaterialAssetDependencyReadinessReportJsonValue,
   MaterialAssetDependencySlotReadinessJsonValue,
 } from "@aperture-engine/render";
-import { createMaterialDependencyDiagnosticsSummary } from "@aperture-engine/webgpu";
+import { createMaterialDependencyDiagnosticsSummary } from "@aperture-engine/webgpu/test-support";
 
 describe("material dependency diagnostics summary", () => {
   it("summarizes empty dependency readiness reports", () => {

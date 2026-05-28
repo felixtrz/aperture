@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   mergeRenderResourceSummaryReports,
   type RenderResourceSummaryReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("renderer resource summary merge", () => {
   it("merges empty inputs", () => {

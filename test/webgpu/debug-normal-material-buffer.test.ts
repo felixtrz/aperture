@@ -13,7 +13,7 @@ import {
   debugNormalMaterialGpuBufferResourceToJsonValue,
   packDebugNormalMaterial,
   type PackedDebugNormalMaterial,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("debug-normal material WebGPU uniform packing", () => {
   it("packs the shader mode uniform into the documented 16-byte layout", () => {

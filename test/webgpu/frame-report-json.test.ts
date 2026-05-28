@@ -4,7 +4,7 @@ import {
   frameReportToJson,
   frameReportToJsonValue,
   type FrameReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("frame report JSON helpers", () => {
   it("creates JSON-safe frame report values", () => {

@@ -4,7 +4,7 @@ import {
   UNLIT_MESH_SHADER,
   createUnlitBindGroupLayoutPlan,
   type BuiltInShaderSourceModule,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("unlit bind group layout descriptor planning", () => {
   it("creates layout descriptors matching unlit shader binding metadata", () => {

@@ -12,7 +12,7 @@ import {
   diffuseIblResourceSummaryReportToJsonValue,
   type EnvironmentPacket,
   type TextureGpuDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("diffuse IBL resource summary", () => {
   it("summarizes live diffuse texture and sampler resources with deferred shader work", () => {

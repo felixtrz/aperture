@@ -10,7 +10,7 @@ import {
   iblSamplerResourceReportToJsonValue,
   type EnvironmentPacket,
   type TextureGpuDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("IBL sampler resource", () => {
   it("creates renderer-owned sampler resources from ready IBL sampler descriptors", () => {

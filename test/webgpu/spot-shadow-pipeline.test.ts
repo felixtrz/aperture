@@ -22,7 +22,7 @@ import {
   type ShadowRequestPacket,
   type TextureGpuDeviceLike,
   type WebGpuBufferDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("spot shadow 2D pipeline planning", () => {
   it("keeps one spot shadow request as one 2D pass and matrix", () => {

@@ -12,7 +12,7 @@ import {
   shaderModuleResourceKey,
   viewUniformBufferResourceKey,
   webGpuResourceKey,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("WebGPU renderer resource key conventions", () => {
   it("creates stable keys for renderer-owned resource kinds", () => {

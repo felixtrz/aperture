@@ -4,7 +4,7 @@ import {
   createIndirectDrawCommandCache,
   prepareIndirectDrawCommands,
   type RenderPassCommand,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("indirect draw command preparation", () => {
   it("packs compatible grouped indexed draws into an indirect argument buffer", () => {

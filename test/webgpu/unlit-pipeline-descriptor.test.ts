@@ -4,7 +4,7 @@ import {
   createUnlitPipelineDescriptorPlan,
   type BatchCompatibilityKey,
   type BuiltInShaderSourceModule,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 const BATCH_KEY: BatchCompatibilityKey = {
   pipelineKey: "unlit|opaque|back|less|none",

@@ -4,7 +4,7 @@ import {
   createStandardMaterialBindGroupLayoutMetadata,
   createStandardMaterialBindGroupLayoutPlan,
   validateStandardMaterialBindGroupLayout,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("standard material bind group layout metadata", () => {
   it("creates group-2 layout metadata for scalar and deferred texture resources", () => {

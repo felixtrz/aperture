@@ -19,7 +19,7 @@ import {
   type LightPacket,
   type MeshDrawPacket,
   type ShadowRequestPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("StandardMaterial IBL/shadow binding readiness", () => {
   it("reports metadata-only binding slots as deferred", () => {

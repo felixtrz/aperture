@@ -5,7 +5,7 @@ import {
   createInstanceTintBufferDescriptor,
   createInstanceTintGpuBuffer,
   type WebGpuBufferDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 import type { PackedSnapshotInstanceTints } from "@aperture-engine/render";
 
 describe("instance tint vertex buffer resources", () => {

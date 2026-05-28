@@ -8,7 +8,7 @@ import {
   type DrawCommandDescriptor,
   type GetOrCreateRenderPipelineResult,
   type UnlitBindGroupResource,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("render pass draw list planning", () => {
   it("combines ready draw commands, pipelines, and bind groups", () => {

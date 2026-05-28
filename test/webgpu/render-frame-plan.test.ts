@@ -12,7 +12,7 @@ import {
   type RenderSnapshot,
   type RenderSortKey,
   type UnlitBindGroupResource,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 const BATCH: BatchCompatibilityKey = {
   pipelineKey: "pipeline:unlit",

@@ -10,7 +10,7 @@ import {
   webGpuPreparedEnvironmentAssetSetToJsonValue,
   type EnvironmentPacket,
   type TextureGpuDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("WebGPU app environment resource cache", () => {
   it("creates then reuses app-owned IBL texture and sampler resources", () => {

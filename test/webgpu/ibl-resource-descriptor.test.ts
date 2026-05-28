@@ -6,7 +6,7 @@ import {
   iblResourceDescriptorReportToJson,
   iblResourceDescriptorReportToJsonValue,
   type EnvironmentPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("IBL resource descriptors", () => {
   it("creates stable renderer-owned diffuse/specular descriptor keys", () => {

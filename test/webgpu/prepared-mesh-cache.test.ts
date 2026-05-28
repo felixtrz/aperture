@@ -10,7 +10,7 @@ import {
   prepareMeshGpuResource,
   writePreparedMeshGpuResourceCacheSummary,
   type WebGpuBufferDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("prepared mesh GPU resource cache", () => {
   it("creates, reuses, and invalidates mesh GPU resources by source version", () => {

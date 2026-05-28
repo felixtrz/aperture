@@ -6,7 +6,7 @@ import {
   shadowPassAttachmentDescriptorReportToJsonValue,
   type ShadowDepthTextureResourceReport,
   type ShadowPassPlanReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow pass attachment descriptors", () => {
   it("maps shadow pass plans to live depth attachment descriptors", () => {

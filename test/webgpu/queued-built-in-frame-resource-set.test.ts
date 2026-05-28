@@ -21,7 +21,7 @@ import {
   prepareQueuedBuiltInFrameResourceSet,
   type QueuedBuiltInAppResourceItem,
   type UnlitFrameGpuResources,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("queued built-in frame-resource set preparation", () => {
   it("prepares a routed built-in frame-resource set with injected pipeline callbacks", async () => {

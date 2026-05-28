@@ -5,7 +5,7 @@ import {
   type RenderPassAssemblySmokeReport,
   type RenderPassCommand,
   type RendererAssemblySmokeReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 type FailurePoint = "texture" | "execute" | "finish" | "submit";
 

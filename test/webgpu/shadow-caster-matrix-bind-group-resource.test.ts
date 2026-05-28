@@ -5,7 +5,7 @@ import {
   shadowCasterMatrixBindGroupResourceReportToJson,
   shadowCasterMatrixBindGroupResourceReportToJsonValue,
   type ShadowMatrixBufferResourceReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow caster matrix bind-group resource", () => {
   it("creates a group 0 matrix bind group over the live shadow matrix buffer", () => {

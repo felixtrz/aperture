@@ -8,7 +8,7 @@ import {
   type FinishCommandEncoderResult,
   type RenderPassCommandExecutionReport,
   type SubmitCommandBuffersReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 import { createFrameExecutionSmokeFixture } from "./fixtures/frame-execution.js";
 
 describe("frame submission smoke report", () => {

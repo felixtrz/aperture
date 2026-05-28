@@ -6,7 +6,7 @@ import {
   standardMaterialIblBindGroupLayoutReadinessReportToJson,
   standardMaterialIblBindGroupLayoutReadinessReportToJsonValue,
   validateStandardMaterialIblBindGroupLayout,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("StandardMaterial IBL bind group layout", () => {
   it("plans JSON-safe group 4 texture and sampler layout metadata", () => {

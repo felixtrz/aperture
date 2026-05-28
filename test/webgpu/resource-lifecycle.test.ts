@@ -4,7 +4,7 @@ import {
   createRenderResourceInspectionReport,
   createRenderResourceLifecycleReport,
   type RenderResourceLifecycleKeySets,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("renderer resource lifecycle report", () => {
   it("reports retained resources when key sets do not change", () => {

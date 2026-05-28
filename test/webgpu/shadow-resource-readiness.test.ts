@@ -6,7 +6,7 @@ import {
   shadowResourceReadinessReportToJson,
   shadowResourceReadinessReportToJsonValue,
   type ShadowRequestPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow resource readiness", () => {
   it("reports descriptor-backed resources while keeping pass submission deferred", () => {

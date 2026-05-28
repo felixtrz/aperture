@@ -16,7 +16,7 @@ import {
   indexQueuedSourceAssets,
   type QueuedSourceMaterialAsset,
   type QueuedSourceMeshAsset,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("queued source asset indexing", () => {
   it("indexes ready source mesh and material assets once with versioned resource keys", () => {

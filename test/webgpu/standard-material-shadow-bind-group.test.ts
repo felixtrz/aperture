@@ -20,7 +20,7 @@ import {
   type ShadowRequestPacket,
   type TextureGpuDeviceLike,
   type WebGpuBufferDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("StandardMaterial shadow bind group descriptor planning", () => {
   it("plans group 5 matrix and depth resource keys while sampler creation is deferred", () => {

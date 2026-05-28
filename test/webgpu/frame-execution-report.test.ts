@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createFrameExecutionReport } from "@aperture-engine/webgpu";
+import { createFrameExecutionReport } from "@aperture-engine/webgpu/test-support";
 import { createFrameExecutionSmokeFixture } from "./fixtures/frame-execution.js";
 
 describe("frame execution aggregate report", () => {

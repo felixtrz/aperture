@@ -13,7 +13,7 @@ import {
   type SamplerGpuResource,
   type TextureGpuResource,
   type UnlitBindGroupLayoutResource,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("matcap frame GPU resource assembly", () => {
   it("uploads shared frame resources and creates a matcap material bind group", () => {

@@ -6,7 +6,7 @@ import {
   type PackedSnapshotViewUniforms,
   type ViewUniformBufferDescriptorPlan,
   type WebGpuBufferDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 import { PACKED_VIEW_UNIFORM_FLOAT_STRIDE } from "@aperture-engine/render";
 
 describe("view uniform GPU buffer resource creation", () => {

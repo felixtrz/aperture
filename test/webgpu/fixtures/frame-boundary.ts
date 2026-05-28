@@ -1,4 +1,4 @@
-import type { FrameBoundaryAssemblyReport } from "@aperture-engine/webgpu";
+import type { FrameBoundaryAssemblyReport } from "@aperture-engine/webgpu/test-support";
 
 export function frameBoundaryFixture(
   overrides: Partial<FrameBoundaryAssemblyReport> = {},

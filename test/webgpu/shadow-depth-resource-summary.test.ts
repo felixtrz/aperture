@@ -9,7 +9,7 @@ import {
   shadowDepthResourceSummaryReportToJsonValue,
   type ShadowRequestPacket,
   type TextureGpuDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow depth resource summary", () => {
   it("summarizes live depth texture resources and deferred shadow stages", () => {

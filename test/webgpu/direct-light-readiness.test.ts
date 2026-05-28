@@ -7,7 +7,7 @@ import {
   directLightReadinessResourceStateFromStandardFrameResources,
   type LightPacket,
   type RenderSnapshot,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("direct light readiness report", () => {
   it("summarizes extracted light kinds and ready WebGPU resources", () => {

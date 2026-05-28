@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import type {
   WebGpuCanvasLike,
   WebGpuPostEffect,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 test("no-op post effect preserves rendered output through the app path", async ({
   page,
@@ -29,7 +29,7 @@ test("no-op post effect preserves rendered output through the app path", async (
       ...render,
       ...runtime,
     }));
-    const webgpu = await import("@aperture-engine/webgpu");
+    const webgpu = await import("@aperture-engine/webgpu/test-support");
 
     async function renderSample(postEffects: readonly WebGpuPostEffect[] = []) {
       const canvas = document.createElement("canvas");
@@ -179,7 +179,7 @@ test("FXAA post effect softens a high-contrast texture edge", async ({
       createWebGpuCopyPostEffect,
       createWebGpuFxaaPostEffect,
       mapFrameBoundaryReadbackSamples,
-    } = await import("@aperture-engine/webgpu");
+    } = await import("@aperture-engine/webgpu/test-support");
     const usage = {
       COPY_SRC: 0x01,
       COPY_DST: 0x02,
@@ -361,7 +361,7 @@ test("bloom post effect adds glow around bright pixels", async ({ page }) => {
       createWebGpuBloomPostEffect,
       createWebGpuCopyPostEffect,
       mapFrameBoundaryReadbackSamples,
-    } = await import("@aperture-engine/webgpu");
+    } = await import("@aperture-engine/webgpu/test-support");
     const usage = {
       COPY_SRC: 0x01,
       COPY_DST: 0x02,

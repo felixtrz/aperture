@@ -6,7 +6,7 @@ import {
   standardMaterialShadowBindGroupLayoutReadinessReportToJson,
   standardMaterialShadowBindGroupLayoutReadinessReportToJsonValue,
   validateStandardMaterialShadowBindGroupLayout,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("StandardMaterial shadow bind group layout", () => {
   it("plans JSON-safe group 5 shadow matrix, depth texture, and sampler metadata", () => {

@@ -4,7 +4,7 @@ import {
   createWebGpuShaderModule,
   type WebGpuShaderDeviceLike,
   type WebGpuShaderModuleLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 const WGSL = `
 @vertex

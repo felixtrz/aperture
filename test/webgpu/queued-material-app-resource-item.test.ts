@@ -16,7 +16,7 @@ import {
   type QueuedMaterialAdapterRegistration,
   type QueuedMaterialAppResourceSet,
   type QueuedMaterialPrepareRouteResult,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("queued material app resource item", () => {
   it("creates a family-agnostic app route item for a test-only material family", () => {

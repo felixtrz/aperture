@@ -15,7 +15,7 @@ import {
   createUnlitMaterialAsset,
   packStandardMaterial,
   type PackedStandardMaterial,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("standard material WebGPU uniform packing", () => {
   it("packs scalar proof-point fields into the documented uniform layout", () => {

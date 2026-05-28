@@ -2,7 +2,7 @@ import {
   createShadowPassCommandBufferSubmissionReport,
   shadowPassCommandBufferSubmissionReportToJsonValue,
   type ShadowPassEncoderAssemblyReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 import { describe, expect, it } from "vitest";
 
 describe("ShadowPassCommandBufferSubmissionReport", () => {

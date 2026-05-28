@@ -4,7 +4,7 @@ import {
   frameBoundaryReportToJson,
   frameBoundaryReportToJsonValue,
   type FrameBoundaryAssemblyReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("frame boundary JSON helpers", () => {
   it("creates JSON-safe values for ready frame boundary reports", () => {

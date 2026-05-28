@@ -23,7 +23,7 @@ import {
   type LightGpuBufferResource,
   type LocalLightClusterCookieResources,
   type LocalLightClusterGpuResource,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("light bind group descriptor planning", () => {
   it("plans stable entries from renderer-owned light GPU buffer resources", () => {

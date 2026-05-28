@@ -12,7 +12,7 @@ import {
   type RendererFrameSummaryReport,
   type RendererFrameSummaryReportJsonValue,
   type UnlitBindGroupResource,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 export type InjectedRenderFrameSmokeFailurePoint =
   | "renderer"

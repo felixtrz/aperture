@@ -6,7 +6,7 @@ import {
   type ShadowPassCommandBufferSubmissionReport,
   type ShadowSamplerResourceReport,
   type StandardMaterialShadowBindGroupResourceReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 import { describe, expect, it } from "vitest";
 
 describe("StandardMaterialShadowReceiverBindingReadinessReport", () => {

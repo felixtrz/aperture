@@ -11,7 +11,7 @@ import {
   shadowCasterDrawListPlanReportToJsonValue,
   type MeshDrawPacket,
   type ShadowRequestPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow caster draw-list planning", () => {
   it("filters mesh draws by caster layer and keeps command encoding deferred", () => {

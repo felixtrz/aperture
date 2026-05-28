@@ -5,7 +5,7 @@ import {
   createWebGpuAppMaterialQueueRouteReportShell,
   webGpuAppMaterialQueueRouteReportShellToJsonValue,
   writeWebGpuAppMaterialQueueRouteReportShell,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("WebGPU app material queue route report", () => {
   it("reports all-routed queue items by material family and render phase", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { summarizeFrameBoundaryDiagnostics } from "@aperture-engine/webgpu";
+import { summarizeFrameBoundaryDiagnostics } from "@aperture-engine/webgpu/test-support";
 import { frameBoundaryFixture } from "./fixtures/frame-boundary.js";
 
 describe("frame boundary diagnostic summary", () => {

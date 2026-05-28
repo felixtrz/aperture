@@ -10,7 +10,7 @@ import {
   createTonemapPipelineKey,
   parseTonemapOperator,
   resolveTonemapOperator,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("output-stage tonemap operators", () => {
   it("parses supported operators and falls back to none", () => {

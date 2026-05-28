@@ -5,7 +5,7 @@ import {
   shadowMapDescriptorReportToJson,
   shadowMapDescriptorReportToJsonValue,
   type ShadowRequestPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow-map descriptors", () => {
   it("creates renderer-owned descriptor keys from extracted shadow requests", () => {

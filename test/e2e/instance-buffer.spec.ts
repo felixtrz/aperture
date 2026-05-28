@@ -20,7 +20,7 @@ test("draws four indexed cube instances from one instance transform buffer", asy
     const {
       createInstanceTransformData,
       createInstanceTransformVertexBufferLayout,
-    } = await import("@aperture-engine/webgpu");
+    } = await import("@aperture-engine/webgpu/test-support");
     const globals = globalThis as unknown as {
       readonly GPUBufferUsage?: {
         readonly VERTEX: number;

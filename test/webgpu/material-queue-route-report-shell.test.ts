@@ -4,7 +4,7 @@ import {
   createWebGpuAppMaterialQueueRouteReportShell,
   webGpuAppMaterialQueueRouteReportShellToJsonValue,
   writeWebGpuAppMaterialQueueRouteReportShell,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("WebGPU app material queue route report shell", () => {
   it("reuses shell maps, diagnostics, and summary across writes", () => {

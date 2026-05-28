@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createRendererFrameSummaryReport,
   summarizeRendererFrameSummaryDiagnosticsBySection,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 import { createRendererFrameSummaryFixture } from "./fixtures/renderer-frame-summary.js";
 
 describe("renderer frame summary diagnostics by section", () => {

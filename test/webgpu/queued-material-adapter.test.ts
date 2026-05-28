@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createQueuedMaterialAdapterRegistry,
   type QueuedMaterialAdapterRegistration,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 interface TestAdapter extends QueuedMaterialAdapterRegistration {
   readonly label: string;

@@ -15,7 +15,7 @@ import {
   type SnapshotLightBindGroupDeviceLike,
   type WebGpuBindGroupLayoutDescriptor,
   type WebGpuBufferCreateDescriptor,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("snapshot light bind group resource creation", () => {
   it("returns a valid no-op for snapshots without lights", () => {

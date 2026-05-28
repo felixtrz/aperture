@@ -9,7 +9,7 @@ import {
   validateDebugNormalShaderMetadata,
   type BuiltInShaderSourceModule,
   type WebGpuShaderDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("debug-normal material WGSL shader metadata", () => {
   it("exports expected entry points and validates through the shader helper", async () => {

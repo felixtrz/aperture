@@ -14,7 +14,7 @@ import {
   type QueuedMaterialAppResourceItem,
   type QueuedMaterialFrameResourceSetCallbacks,
   type QueuedMaterialPrepareRouteAdapter,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 type PreviewMaterial = {
   readonly kind: "test-preview";

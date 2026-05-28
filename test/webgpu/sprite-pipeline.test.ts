@@ -5,7 +5,7 @@ import {
   createSpriteRenderPipelineResource,
   spritePipelineCacheKey,
   type SpriteRenderPipelineDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("sprite billboard WebGPU pipeline", () => {
   it("builds a transparent billboard pipeline from camera-facing basis vectors", async () => {

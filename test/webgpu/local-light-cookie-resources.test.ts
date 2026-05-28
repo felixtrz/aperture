@@ -10,7 +10,7 @@ import {
   type AppTextureSamplerResourceCache,
   type AppTextureSamplerResourceReuseReport,
   type RenderSnapshot,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("clustered local-light cookie resources", () => {
   it("prepares the first spot cookie with a renderer-owned projection matrix", () => {

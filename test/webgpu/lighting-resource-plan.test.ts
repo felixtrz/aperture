@@ -14,7 +14,7 @@ import {
   type LightPacket,
   type RenderSnapshot,
   type WebGpuBufferDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("snapshot lighting resource planning", () => {
   it("composes light buffer and environment resource plans from a render snapshot", () => {

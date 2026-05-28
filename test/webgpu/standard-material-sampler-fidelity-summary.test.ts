@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createStandardMaterialSamplerFidelitySummary } from "@aperture-engine/webgpu";
+import { createStandardMaterialSamplerFidelitySummary } from "@aperture-engine/webgpu/test-support";
 import type { StandardMaterialSamplerFidelityReportJsonValue } from "@aperture-engine/render";
 
 describe("StandardMaterial sampler fidelity summary", () => {

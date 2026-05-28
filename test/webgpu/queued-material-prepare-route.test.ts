@@ -8,7 +8,7 @@ import {
 import {
   createBuiltInMaterialQueueRouteAdapterRegistry,
   routeQueuedMaterialPrepare,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("queued material prepare route contract", () => {
   it("routes valid built-in material queue items through JSON-safe prepared key shells", () => {

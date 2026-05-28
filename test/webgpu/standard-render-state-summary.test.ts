@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createStandardMaterialAsset,
   createStandardMaterialRenderStateSummary,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("StandardMaterial render-state summary", () => {
   it("summarizes opaque render-state and pipeline tokens without diagnostics", () => {

@@ -5,7 +5,7 @@ import {
   planRenderPassCommands,
   writeRenderPassCommands,
   type ResolvedRenderPassDraw,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("render pass command planning", () => {
   it("plans indexed render pass commands", () => {

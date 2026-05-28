@@ -8,7 +8,7 @@ import {
   createQueuedMaterialRouteSummaryGroup,
   queuedMaterialPrepareRouteSummaryToJsonValue,
   queuedMaterialRouteSummaryGroupToJsonValue,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("queued material route summary group", () => {
   it("summarizes prepare routes without raw material or resource keys", () => {

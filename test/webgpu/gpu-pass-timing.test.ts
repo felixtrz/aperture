@@ -12,7 +12,7 @@ import {
   type ShadowCasterFrameResourceReadinessReport,
   type ShadowPassAttachmentDescriptorReport,
   type ShadowPassCommandEncodingReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("GPU pass timing instrumentation", () => {
   it("writes and resolves a named main render pass timing around frame submission", async () => {

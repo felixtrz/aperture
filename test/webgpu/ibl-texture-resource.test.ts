@@ -11,7 +11,7 @@ import {
   specularIblTextureResourceReportToJsonValue,
   type EnvironmentPacket,
   type TextureGpuDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("diffuse IBL texture resource", () => {
   it("creates a renderer-owned diffuse texture resource from planned IBL slots", () => {

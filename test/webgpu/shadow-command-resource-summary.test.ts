@@ -10,7 +10,7 @@ import {
   type ShadowMatrixBufferDescriptorReport,
   type ShadowPassPlanReport,
   type ShadowTextureResourceReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow command resource summary", () => {
   it("summarizes deferred shadow resources and command plans", () => {

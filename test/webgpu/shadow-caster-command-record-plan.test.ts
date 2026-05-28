@@ -6,7 +6,7 @@ import {
   shadowCasterCommandRecordPlanReportToJsonValue,
   type ShadowCasterCommandPlanReadinessReport,
   type ShadowCasterFrameResourceReadinessReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow caster command record planning", () => {
   it("maps ready frame resources into executable render pass commands", () => {

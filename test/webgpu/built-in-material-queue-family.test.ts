@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   BUILT_IN_MATERIAL_QUEUE_FAMILIES,
   isBuiltInMaterialQueueFamily,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("built-in material queue families", () => {
   it("lists the currently supported built-in queue families", () => {

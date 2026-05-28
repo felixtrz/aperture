@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveNormalizedViewRectangle } from "@aperture-engine/webgpu";
+import { resolveNormalizedViewRectangle } from "@aperture-engine/webgpu/test-support";
 
 describe("normalized view rectangle resolution", () => {
   it("resolves split-screen halves into target-space rectangles", () => {

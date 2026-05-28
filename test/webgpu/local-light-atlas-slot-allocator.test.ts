@@ -4,7 +4,7 @@ import {
   allocateLocalLightAtlasSlots,
   createLocalLightAtlasSlotAllocatorState,
   type LocalLightAtlasSlotRequest,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("local light atlas slot allocator", () => {
   it("preserves per-light slots across reorder and one-frame toggles", () => {

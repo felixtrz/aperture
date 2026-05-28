@@ -22,7 +22,7 @@ test("renders three known entity IDs into an r32uint ID buffer", async ({
       createRenderPassAttachmentPlan,
       createWebGpuIdBufferIdForEntity,
       WEBGPU_ID_BUFFER_FORMAT,
-    } = await import("@aperture-engine/webgpu");
+    } = await import("@aperture-engine/webgpu/test-support");
     const globals = globalThis as unknown as {
       readonly GPUTextureUsage?: {
         readonly COPY_SRC: number;

@@ -10,7 +10,7 @@ import {
   directionalShadowMatrixComputationReportToJsonValue,
   type LightPacket,
   type ShadowRequestPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("directional shadow matrix computation", () => {
   it("computes JSON-safe view/projection matrices from extracted light transforms", () => {

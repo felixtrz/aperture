@@ -11,7 +11,7 @@ import {
   type RenderSnapshot,
   type RenderSortKey,
   type UnlitBindGroupResource,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 type FailurePoint =
   | "duplicate"

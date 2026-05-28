@@ -4,7 +4,7 @@ import {
   injectedRenderFrameDrawPackageRunnerReportToJson,
   injectedRenderFrameDrawPackageRunnerReportToJsonValue,
   type InjectedRenderFrameDrawPackageRunnerReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 import { createDrawPackageRenderFrameFixture } from "./fixtures/draw-package-render-frame.js";
 
 describe("injected render frame draw-package JSON helpers", () => {

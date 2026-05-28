@@ -11,7 +11,7 @@ import {
   createStandardAreaLightLtcMatrixData,
   createStandardAreaLightLtcResources,
   type TextureGpuDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("standard area-light LTC resources", () => {
   it("decodes production half-float matrix and fresnel payloads", () => {

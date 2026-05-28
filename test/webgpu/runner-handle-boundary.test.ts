@@ -9,7 +9,7 @@ import {
   rendererFrameSummaryReportToJson,
   type InjectedRenderFrameRunnerReport,
   type RendererAssemblySmokeReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 import { createInjectedRenderFrameSmokeFixture } from "./fixtures/injected-render-frame.js";
 
 describe("runner JSON handle boundaries", () => {

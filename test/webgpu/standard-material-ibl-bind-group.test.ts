@@ -15,7 +15,7 @@ import {
   standardMaterialIblBindGroupResourceReportToJsonValue,
   type EnvironmentPacket,
   type TextureGpuDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("StandardMaterial IBL bind group descriptor planning", () => {
   it("plans group 4 resource keys while specular prefiltering is deferred", () => {

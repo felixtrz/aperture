@@ -7,7 +7,7 @@ import {
   iblTexturePreparationReportToJson,
   iblTexturePreparationReportToJsonValue,
   type EnvironmentPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("IBL texture preparation", () => {
   it("plans JSON-safe diffuse and specular texture resources as deferred", () => {

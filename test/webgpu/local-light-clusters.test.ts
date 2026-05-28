@@ -18,7 +18,7 @@ import {
   type WebGpuBufferDeviceLike,
   createSamplerHandle,
   createTextureHandle,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("local light cluster preparation", () => {
   it("keeps sparse local-light scenes on the packed-light shader loop", () => {

@@ -24,6 +24,9 @@
       "@aperture-engine/runtime": ["packages/runtime/src/index.ts"],
       "@aperture-engine/simulation": ["packages/simulation/src/index.ts"],
       "@aperture-engine/vite-plugin": ["packages/vite-plugin/src/index.ts"],
+      "@aperture-engine/webgpu/test-support": [
+        "packages/webgpu/src/test-support.ts"
+      ],
       "@aperture-engine/webgpu": ["packages/webgpu/src/index.ts"]
     }
   },

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   mergeFrameBoundaryDiagnosticSummaryReports,
   type FrameBoundaryDiagnosticSummaryReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("frame boundary diagnostic summary merge", () => {
   it("merges empty inputs", () => {

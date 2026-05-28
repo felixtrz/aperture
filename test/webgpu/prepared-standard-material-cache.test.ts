@@ -29,7 +29,7 @@ import {
   type StandardMaterialBindGroupCreationDescriptor,
   type StandardMaterialBindGroupLayoutResource,
   type TextureGpuResource,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("scalar StandardMaterial prepared material cache", () => {
   it("creates, reuses, and invalidates scalar group-2 prepared resources", () => {

@@ -5,7 +5,7 @@ import {
   type ClearCompatibilityReport,
   type FrameBoundaryDiagnosticSummaryReport,
   type FrameBoundarySmokeReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("frame boundary validation aggregate", () => {
   it("reports ready when smoke, compatibility, and diagnostics are clear", () => {

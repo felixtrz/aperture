@@ -5,7 +5,7 @@ import {
   createQueuedMaterialFrameResourceSetSummary,
   type QueuedBuiltInResourceSetSummaryItem,
   type QueuedMaterialFrameResourceSetSummaryItem,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("queued material frame resource set summary", () => {
   it("summarizes generic material families and pipeline keys", () => {

@@ -10,7 +10,7 @@ import {
   type MeshDrawPacket,
   type RenderSnapshot,
   type RenderSortKey,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 type MissingResource = "mesh" | "material";
 

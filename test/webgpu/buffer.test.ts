@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createWebGpuBuffer,
   type WebGpuBufferDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("WebGPU buffer creation boundary", () => {
   it("creates buffers through an injected device", () => {

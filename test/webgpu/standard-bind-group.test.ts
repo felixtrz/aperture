@@ -7,7 +7,7 @@ import {
   createStandardMaterialBindGroupResourceKey,
   type StandardMaterialBindGroupCreationDescriptor,
   type StandardMaterialResourceDependencies,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("standard material bind group descriptor planning", () => {
   it("creates a material-only group-2 descriptor for scalar proof-point materials", () => {

@@ -10,7 +10,7 @@ import {
   type UnlitBindGroupCreationDescriptor,
   type UnlitBindGroupLayoutResource,
   type UnlitBindGroupResource,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("unlit bind group descriptor planning", () => {
   it("creates descriptor entries for all required resources", () => {

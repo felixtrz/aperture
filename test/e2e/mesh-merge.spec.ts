@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import type { MeshAsset } from "@aperture-engine/webgpu";
+import type { MeshAsset } from "@aperture-engine/webgpu/test-support";
 
 test("merged static mesh buffer renders pixel-identical to per-mesh draws", async ({
   page,
@@ -18,7 +18,7 @@ test("merged static mesh buffer renders pixel-identical to per-mesh draws", asyn
     }
 
     const device = await adapter.requestDevice();
-    const aperture = await import("@aperture-engine/webgpu");
+    const aperture = await import("@aperture-engine/webgpu/test-support");
     const globals = globalThis as unknown as {
       readonly GPUBufferUsage?: {
         readonly VERTEX: number;

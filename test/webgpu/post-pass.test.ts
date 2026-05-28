@@ -10,7 +10,7 @@ import {
   createWebGpuSsaoPostEffect,
   createWebGpuSsrPostEffect,
   createWebGpuTaaPostEffect,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("WebGPU post-pass helpers", () => {
   it("prepares a copy/no-op post effect as a full-screen draw", () => {

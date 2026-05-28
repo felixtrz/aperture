@@ -5,7 +5,7 @@ import {
   createPipelineScopedBindGroupScratch,
   resetPipelineScopedBindGroupScratch,
   type PipelineScopedBindGroupResource,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("pipeline-scoped bind group scratch", () => {
   it("reuses scoped wrapper records for every bind group", () => {

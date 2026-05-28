@@ -5,7 +5,7 @@ import {
   createQueuedMaterialFrameResourceRouteShellSummary,
   createQueuedMaterialPrepareRouteResult,
   queuedMaterialFrameResourceRouteShellSummaryToJsonValue,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("queued material frame resource route shell", () => {
   it("keeps facade queue keys separate from source-version backend preparation keys", () => {

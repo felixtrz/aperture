@@ -18,7 +18,7 @@ test("renders a triangle into an off-screen color target and reads pixels", asyn
 
     const device = await adapter.requestDevice();
     const { createOffscreenColorTarget, createRenderPassAttachmentPlan } =
-      await import("@aperture-engine/webgpu");
+      await import("@aperture-engine/webgpu/test-support");
     const width = 32;
     const height = 32;
     const format = "rgba8unorm";
@@ -180,7 +180,7 @@ test("renders a triangle into two off-screen color targets in one pass", async (
 
     const device = await adapter.requestDevice();
     const { createOffscreenColorTargets, createRenderPassAttachmentPlan } =
-      await import("@aperture-engine/webgpu");
+      await import("@aperture-engine/webgpu/test-support");
     const globals = globalThis as unknown as {
       readonly GPUTextureUsage?: {
         readonly COPY_SRC: number;
@@ -447,7 +447,7 @@ test("renders ECS ViewPacket targets to off-screen texture and swapchain", async
         ...render,
         ...runtime,
       })),
-      import("@aperture-engine/webgpu"),
+      import("@aperture-engine/webgpu/test-support"),
     ]);
     const aperture = { ...core, ...webgpu };
     const browserGlobals = globalThis as unknown as {

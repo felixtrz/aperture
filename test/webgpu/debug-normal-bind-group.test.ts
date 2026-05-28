@@ -9,7 +9,7 @@ import {
   debugNormalMaterialBindGroupResourceToJsonValue,
   validateDebugNormalMaterialBindGroupLayout,
   type DebugNormalMaterialBindGroupCreationDescriptor,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("debug-normal material bind group descriptor planning", () => {
   it("creates a required material group-2 descriptor", () => {

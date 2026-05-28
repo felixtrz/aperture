@@ -8,7 +8,7 @@ import {
   standardMaterialShadowReadinessReportToJson,
   standardMaterialShadowReadinessReportToJsonValue,
   type ShadowRequestPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("StandardMaterial shadow readiness", () => {
   it("reports deferred shadow pass submission distinctly from shader sampling", () => {

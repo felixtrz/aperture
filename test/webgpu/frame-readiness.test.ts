@@ -7,7 +7,7 @@ import {
   type GetOrCreateRenderPipelineResult,
   type PackedSnapshotViewUniforms,
   type RenderWorldDrawPackagePlan,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 import { PACKED_VIEW_UNIFORM_FLOAT_STRIDE } from "@aperture-engine/render";
 
 describe("frame assembly readiness report", () => {

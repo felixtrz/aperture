@@ -8,7 +8,7 @@ import {
   iblSamplerDescriptorReadinessReportToJson,
   iblSamplerDescriptorReadinessReportToJsonValue,
   type EnvironmentPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("IBL sampler descriptor readiness", () => {
   it("plans JSON-safe sampler descriptors with deferred allocation", () => {

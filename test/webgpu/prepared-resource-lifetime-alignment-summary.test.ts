@@ -5,7 +5,7 @@ import {
   preparedResourceLifetimeAlignmentSummaryToJsonValue,
   type PreparedResourceLifetimeFacadeSummary,
   type RenderResourceSummaryReport,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("prepared resource lifetime alignment summary", () => {
   it("compares facade prepared counts with backend resource summary counts", () => {

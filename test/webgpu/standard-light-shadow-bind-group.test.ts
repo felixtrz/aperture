@@ -11,7 +11,7 @@ import {
   createStandardLightShadowBindGroupLayoutDescriptor,
   createStandardLightShadowBindGroupLayoutResource,
   createStandardLightShadowBindGroupResource,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 import { describe, expect, it } from "vitest";
 
 describe("StandardMaterial light/shadow bind group", () => {

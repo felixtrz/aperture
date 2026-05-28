@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   materialPipelineFamilyFromKey,
   requiredBindGroupGroupsForPipelineKey,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("material pipeline selection", () => {
   it("selects WebGPU material pipeline families from extracted batch keys", () => {

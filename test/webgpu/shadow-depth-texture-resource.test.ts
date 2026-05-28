@@ -10,7 +10,7 @@ import {
   type ShadowDepthTextureResourceCache,
   type ShadowRequestPacket,
   type TextureGpuDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow depth texture resource", () => {
   it("creates renderer-owned depth texture resources from planned shadow texture descriptors", () => {
@@ -441,9 +441,7 @@ describe("shadow depth texture resource", () => {
     expect(first.ready).toBe(true);
     expect(moved.ready).toBe(true);
     expect(moved.reusedTextureCount).toBe(1);
-    expect(moved.resources[0]?.allocation).toBe(
-      first.resources[0]?.allocation,
-    );
+    expect(moved.resources[0]?.allocation).toBe(first.resources[0]?.allocation);
     expect(createdTextures).toHaveLength(1);
   });
 

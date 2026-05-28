@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import * as webgpu from "@aperture-engine/webgpu";
+import * as webgpu from "@aperture-engine/webgpu/test-support";
 import {
   createPreparedAppMaterialFallbackDiagnostic,
   createPreparedAppMaterialCacheSummary,

@@ -5,7 +5,7 @@ import {
   createSkyboxRenderPipelineResource,
   skyboxPipelineCacheKey,
   type SkyboxRenderPipelineDeviceLike,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("skybox WebGPU pipeline", () => {
   it("builds an infinite-depth cube-map background pipeline", async () => {

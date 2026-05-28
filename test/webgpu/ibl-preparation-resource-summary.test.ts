@@ -11,7 +11,7 @@ import {
   iblPreparationResourceSummaryReportToJsonValue,
   writeIblPreparationResourceSummaryReport,
   type EnvironmentPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("IBL preparation resource summary", () => {
   it("summarizes descriptor, texture, and pass readiness without GPU handles", () => {

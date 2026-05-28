@@ -17,7 +17,7 @@ import {
   type LightPacket,
   type MeshDrawPacket,
   type ShadowRequestPacket,
-} from "@aperture-engine/webgpu";
+} from "@aperture-engine/webgpu/test-support";
 
 describe("shadow caster command-plan readiness", () => {
   it("summarizes deferred command plans without command encoders", () => {
