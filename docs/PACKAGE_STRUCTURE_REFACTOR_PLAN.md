@@ -352,6 +352,10 @@ Status: in progress
   mapping, material extension diagnostics, and report JSON cloning now live in
   focused `gltf-material-*` material modules, keeping `gltf-material.ts` as the
   material assembly facade.
+- glTF scene traversal contracts, scene selection, local transform decoding,
+  traversal report JSON cloning, and shared traversal guards now live in
+  focused `gltf-scene-traversal-*` asset modules, keeping
+  `gltf-scene-traversal.ts` as the scene traversal orchestration facade.
 
 ## Purpose
 

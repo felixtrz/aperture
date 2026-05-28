@@ -1,6 +1,42 @@
 # Agent Handoff
 
-Updated: 2026-05-28T01:26:57Z
+Updated: 2026-05-28T01:32:22Z
+
+## Current Run Update — 2026-05-28T01:32:22Z — glTF scene traversal split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF scene traversal public/internal contracts into
+  `packages/render/src/assets/gltf-scene-traversal-types.ts`.
+- Extracted scene selection/root-node validation, local transform decoding,
+  report JSON cloning, and shared traversal guards/key helpers into focused
+  `gltf-scene-traversal-*` asset modules.
+- `packages/render/src/assets/gltf-scene-traversal.ts` is now roughly 304
+  lines and remains the traversal orchestration facade.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/gltf-scene-traversal.ts packages/render/src/assets/gltf-scene-traversal-types.ts packages/render/src/assets/gltf-scene-traversal-utils.ts packages/render/src/assets/gltf-scene-traversal-selection.ts packages/render/src/assets/gltf-scene-traversal-transforms.ts packages/render/src/assets/gltf-scene-traversal-report.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-scene-traversal.ts packages/render/src/assets/gltf-scene-traversal-types.ts packages/render/src/assets/gltf-scene-traversal-utils.ts packages/render/src/assets/gltf-scene-traversal-selection.ts packages/render/src/assets/gltf-scene-traversal-transforms.ts packages/render/src/assets/gltf-scene-traversal-report.ts`
+- `pnpm exec vitest run test/assets/gltf-scene-traversal.test.ts test/assets/gltf-scene-traversal-json.test.ts test/assets/gltf-ecs-authoring-command-plan.test.ts test/assets/gltf-ecs-authoring-command-plan-json.test.ts test/assets/gltf-ecs-command-replay.test.ts test/assets/glb-source-loader-output-summary.test.ts test/assets/glb-source-loader-facade.test.ts test/runtime/runtime.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `glb-uri-images.ts`,
+  `gltf-uri-fetch.ts`, `snapshot-packed-codecs.ts`, `render-queue.ts`, and
+  `standard-texture-readiness.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining URI/decoder asset helpers.
 
 ## Current Run Update — 2026-05-28T01:26:57Z — glTF material mapping split
 
