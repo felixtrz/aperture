@@ -456,6 +456,11 @@ Status: in progress
   topology/compression/planning lives in `gltf-mesh-primitive-planning.ts`,
   leaving `gltf-mesh-primitive.ts` as the stable root validation and report
   orchestration facade.
+- glTF mesh source registration mesh handle creation, duplicate/invalid skips,
+  construction diagnostic filtering, and registry writes now live in
+  `gltf-mesh-source-registration-writers.ts`, leaving
+  `gltf-mesh-source-registration.ts` as the stable report/type and JSON
+  facade.
 - Transform packing public contracts, mutable scratch state, capacity growth,
   and reusable offset pools now live in `transform-pack-types.ts` and
   `transform-pack-scratch.ts`, leaving `transform-pack.ts` focused on current,

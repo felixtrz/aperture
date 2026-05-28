@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T06:30:23Z
+Updated: 2026-05-28T06:33:57Z
+
+## Current Run Update — 2026-05-28T06:33:57Z — glTF mesh source registration writer split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split mesh handle creation, invalid/duplicate skip diagnostics,
+  construction-diagnostic filtering, and registry writes from
+  `packages/render/src/assets/gltf-mesh-source-registration.ts` into
+  `packages/render/src/assets/gltf-mesh-source-registration-writers.ts`.
+- Kept `gltf-mesh-source-registration.ts` as the stable public report/type and
+  JSON facade.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-mesh-source-registration.ts packages/render/src/assets/gltf-mesh-source-registration-writers.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-mesh-source-registration.ts packages/render/src/assets/gltf-mesh-source-registration-writers.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-mesh-source-registration.ts packages/render/src/assets/gltf-mesh-source-registration-writers.ts`
+- `pnpm exec vitest run test/assets/gltf-mesh-source-registration.test.ts test/assets/gltf-mesh-source-registration-json.test.ts test/assets/gltf-source-registration-orchestration.test.ts test/assets/gltf-source-registration-orchestration-json.test.ts test/assets/gltf-combined-import-fixture.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/glb-source-loader-output-summary.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `extraction-meshes.ts`,
+  `gltf-accessor-validation-primitives.ts`, `gltf-scene-traversal.ts`,
+  `render-world.ts`, `gltf-report-driven-import-meshopt.ts`,
+  `glb-uri-image-sources.ts`, and `prepared-resource.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining extraction mesh, accessor
+validation primitive, scene traversal, render-world, report-driven import, or
+GLB image-source modules.
 
 ## Current Run Update — 2026-05-28T06:30:23Z — glTF mesh primitive planning split
 
