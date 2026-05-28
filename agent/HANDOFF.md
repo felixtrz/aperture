@@ -1,6 +1,41 @@
 # Agent Handoff
 
-Updated: 2026-05-28T00:58:43Z
+Updated: 2026-05-28T01:01:48Z
+
+## Current Run Update — 2026-05-28T01:01:48Z — mesh primitive builder split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted shared procedural mesh primitive builder types, bounds calculation,
+  vertex interleaving, primitive mesh asset assembly, and numeric helpers into
+  `packages/render/src/mesh/primitives-builders.ts`.
+- `packages/render/src/mesh/primitives.ts` is now roughly 718 lines and
+  focuses on public shape factory functions plus shape-specific assembly.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/mesh/primitives.ts packages/render/src/mesh/primitives-builders.ts`
+- `pnpm exec prettier --check packages/render/src/mesh/primitives.ts packages/render/src/mesh/primitives-builders.ts`
+- `pnpm exec vitest run test/rendering/mesh-primitives.test.ts test/rendering/line-list-mesh.test.ts test/assets/gltf-mesh-asset-construction.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-mesh-asset-construction.ts`,
+  `transform-pack.ts`, `gltf-accessor-validation.ts`, `preparation.ts`,
+  `gltf-material.ts`, and `gltf-scene-traversal.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting glTF mesh asset construction or transform
+packing.
 
 ## Current Run Update — 2026-05-28T00:58:43Z — glTF mesh primitive compression split
 

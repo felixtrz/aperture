@@ -327,6 +327,11 @@ Status: in progress
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
   `gltf-mesh-primitive-utils.ts`.
+- Shared procedural mesh primitive builder types, bounds calculation, vertex
+  interleaving, and numeric helpers now live in
+  `packages/render/src/mesh/primitives-builders.ts`, leaving
+  `primitives.ts` focused on public shape factory functions and shape-specific
+  assembly.
 
 ## Purpose
 
