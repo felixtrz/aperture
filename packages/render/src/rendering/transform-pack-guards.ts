@@ -3,7 +3,7 @@ import type {
   MeshDrawPacket,
   RenderDiagnostic,
 } from "./snapshot.js";
-import type { PackedSnapshotTransforms } from "./transform-pack.js";
+import type { PackedSnapshotTransforms } from "./transform-pack-types.js";
 
 export function findTransformPackedOffset(
   transforms: PackedSnapshotTransforms,

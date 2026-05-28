@@ -1,6 +1,37 @@
 import type { InstanceAttributeLayout } from "../materials/index.js";
 import type { RenderDiagnostic, RenderSnapshot } from "./snapshot.js";
 import {
+  createPackedSnapshotInstanceAttributesScratch,
+  createPackedSnapshotInstanceTintsScratch,
+  createPackedSnapshotPreviousTransformsScratch,
+  createPackedSnapshotTransformsScratch,
+  ensureInstanceAttributeDataCapacity,
+  ensureInstanceTintDataCapacity,
+  ensurePreviousTransformDataCapacity,
+  ensureTransformDataCapacity,
+  instanceAttributeOffsetAt,
+  instanceTintOffsetAt,
+  offsetAt,
+  previousOffsetAt,
+} from "./transform-pack-scratch.js";
+import type {
+  MutablePackedSnapshotInstanceAttributes,
+  MutablePackedSnapshotInstanceTints,
+  MutablePackedSnapshotPreviousTransforms,
+  MutablePackedSnapshotTransforms,
+  PackedInstanceTintOffset,
+  PackedSnapshotInstanceAttributes,
+  PackedSnapshotInstanceAttributesScratch,
+  PackedSnapshotInstanceTints,
+  PackedSnapshotInstanceTintsScratch,
+  PackedSnapshotPreviousTransforms,
+  PackedSnapshotPreviousTransformsScratch,
+  PackedSnapshotTransformHistoryUpdateReport,
+  PackedSnapshotTransforms,
+  PackedSnapshotTransformsScratch,
+  PackedTransformOffset,
+} from "./transform-pack-types.js";
+import {
   findInstanceAttributeField,
   findTransformPackedOffset,
   hasInstanceAttributeValues,
@@ -10,147 +41,14 @@ import {
   missingTransformDiagnostic,
 } from "./transform-pack-guards.js";
 
-export interface PackedTransformOffset {
-  readonly renderId: number;
-  readonly sourceOffset: number;
-  readonly packedOffset: number;
-}
+export {
+  createPackedSnapshotInstanceAttributesScratch,
+  createPackedSnapshotInstanceTintsScratch,
+  createPackedSnapshotPreviousTransformsScratch,
+  createPackedSnapshotTransformsScratch,
+};
 
-export interface PackedSnapshotTransforms {
-  readonly data: Float32Array;
-  readonly floatCount?: number;
-  readonly offsets: readonly PackedTransformOffset[];
-  readonly diagnostics: readonly RenderDiagnostic[];
-}
-
-export interface PackedPreviousSnapshotTransformHistoryReport {
-  readonly total: number;
-  readonly used: number;
-  readonly fallback: number;
-  readonly missing: readonly number[];
-}
-
-export interface PackedSnapshotPreviousTransforms extends PackedSnapshotTransforms {
-  readonly history: PackedPreviousSnapshotTransformHistoryReport;
-}
-
-export interface PackedSnapshotTransformHistoryUpdateReport {
-  readonly stored: number;
-  readonly staleRemoved: number;
-}
-
-export interface PackedInstanceTintOffset {
-  readonly renderId: number;
-  readonly sourceOffset: number;
-  readonly packedOffset: number;
-}
-
-export interface PackedSnapshotInstanceTints {
-  readonly data: Float32Array;
-  readonly floatCount: number;
-  readonly offsets: readonly PackedInstanceTintOffset[];
-  readonly diagnostics: readonly RenderDiagnostic[];
-}
-
-export interface PackedInstanceAttributeOffset {
-  readonly renderId: number;
-  readonly sourcePacketIndex: number;
-  readonly packedOffset: number;
-}
-
-export interface PackedSnapshotInstanceAttributes {
-  readonly layout: InstanceAttributeLayout;
-  readonly data: Float32Array;
-  readonly floatCount: number;
-  readonly offsets: readonly PackedInstanceAttributeOffset[];
-  readonly diagnostics: readonly RenderDiagnostic[];
-}
-
-export interface PackedSnapshotTransformsScratch {
-  data: Float32Array;
-  readonly offsets: PackedTransformOffset[];
-  readonly diagnostics: RenderDiagnostic[];
-  readonly offsetPool: PackedTransformOffset[];
-  readonly sourceToPackedOffset: Map<number, number>;
-  readonly result: PackedSnapshotTransforms;
-}
-
-export interface PackedSnapshotPreviousTransformsScratch {
-  data: Float32Array;
-  readonly offsets: PackedTransformOffset[];
-  readonly diagnostics: RenderDiagnostic[];
-  readonly offsetPool: PackedTransformOffset[];
-  readonly missing: number[];
-  readonly history: MutablePackedPreviousSnapshotTransformHistoryReport;
-  readonly result: PackedSnapshotPreviousTransforms;
-}
-
-export interface PackedSnapshotInstanceTintsScratch {
-  data: Float32Array;
-  readonly offsets: PackedInstanceTintOffset[];
-  readonly diagnostics: RenderDiagnostic[];
-  readonly offsetPool: PackedInstanceTintOffset[];
-  readonly result: PackedSnapshotInstanceTints;
-}
-
-export interface PackedSnapshotInstanceAttributesScratch {
-  data: Float32Array;
-  readonly offsets: PackedInstanceAttributeOffset[];
-  readonly diagnostics: RenderDiagnostic[];
-  readonly offsetPool: PackedInstanceAttributeOffset[];
-  readonly result: PackedSnapshotInstanceAttributes;
-}
-
-interface MutablePackedTransformOffset {
-  renderId: number;
-  sourceOffset: number;
-  packedOffset: number;
-}
-
-interface MutablePackedInstanceTintOffset {
-  renderId: number;
-  sourceOffset: number;
-  packedOffset: number;
-}
-
-interface MutablePackedSnapshotTransforms {
-  data: Float32Array;
-  floatCount: number;
-  offsets: readonly PackedTransformOffset[];
-  diagnostics: readonly RenderDiagnostic[];
-}
-
-interface MutablePackedSnapshotPreviousTransforms extends MutablePackedSnapshotTransforms {
-  history: PackedPreviousSnapshotTransformHistoryReport;
-}
-
-interface MutablePackedPreviousSnapshotTransformHistoryReport {
-  total: number;
-  used: number;
-  fallback: number;
-  missing: readonly number[];
-}
-
-interface MutablePackedSnapshotInstanceTints {
-  data: Float32Array;
-  floatCount: number;
-  offsets: readonly PackedInstanceTintOffset[];
-  diagnostics: readonly RenderDiagnostic[];
-}
-
-interface MutablePackedInstanceAttributeOffset {
-  renderId: number;
-  sourcePacketIndex: number;
-  packedOffset: number;
-}
-
-interface MutablePackedSnapshotInstanceAttributes {
-  layout: InstanceAttributeLayout;
-  data: Float32Array;
-  floatCount: number;
-  offsets: readonly PackedInstanceAttributeOffset[];
-  diagnostics: readonly RenderDiagnostic[];
-}
+export type * from "./transform-pack-types.js";
 
 export function packSnapshotTransforms(
   snapshot: Pick<RenderSnapshot, "meshDraws" | "transforms">,
@@ -247,110 +145,6 @@ export function packSnapshotInstanceAttributesForVertexBuffer(
     createPackedSnapshotInstanceAttributesScratch(),
     options,
   );
-}
-
-export function createPackedSnapshotTransformsScratch(
-  floatCapacity = 0,
-  offsetCapacity = 0,
-): PackedSnapshotTransformsScratch {
-  const offsets: PackedTransformOffset[] = [];
-  const diagnostics: RenderDiagnostic[] = [];
-  const offsetPool: PackedTransformOffset[] = [];
-  const data = new Float32Array(floatCapacity);
-
-  for (let i = 0; i < offsetCapacity; i += 1) {
-    offsetPool.push(createEmptyOffset());
-  }
-
-  return {
-    data,
-    offsets,
-    diagnostics,
-    offsetPool,
-    sourceToPackedOffset: new Map(),
-    result: { data, floatCount: 0, offsets, diagnostics },
-  };
-}
-
-export function createPackedSnapshotPreviousTransformsScratch(
-  floatCapacity = 0,
-  offsetCapacity = 0,
-): PackedSnapshotPreviousTransformsScratch {
-  const offsets: PackedTransformOffset[] = [];
-  const diagnostics: RenderDiagnostic[] = [];
-  const offsetPool: PackedTransformOffset[] = [];
-  const missing: number[] = [];
-  const data = new Float32Array(floatCapacity);
-  const history = { total: 0, used: 0, fallback: 0, missing };
-
-  for (let i = 0; i < offsetCapacity; i += 1) {
-    offsetPool.push(createEmptyOffset());
-  }
-
-  return {
-    data,
-    offsets,
-    diagnostics,
-    offsetPool,
-    missing,
-    history,
-    result: { data, floatCount: 0, offsets, diagnostics, history },
-  };
-}
-
-export function createPackedSnapshotInstanceTintsScratch(
-  floatCapacity = 0,
-  offsetCapacity = 0,
-): PackedSnapshotInstanceTintsScratch {
-  const offsets: PackedInstanceTintOffset[] = [];
-  const diagnostics: RenderDiagnostic[] = [];
-  const offsetPool: PackedInstanceTintOffset[] = [];
-  const data = new Float32Array(floatCapacity);
-
-  for (let i = 0; i < offsetCapacity; i += 1) {
-    offsetPool.push(createEmptyInstanceTintOffset());
-  }
-
-  return {
-    data,
-    offsets,
-    diagnostics,
-    offsetPool,
-    result: { data, floatCount: 0, offsets, diagnostics },
-  };
-}
-
-export function createPackedSnapshotInstanceAttributesScratch(
-  floatCapacity = 0,
-  offsetCapacity = 0,
-): PackedSnapshotInstanceAttributesScratch {
-  const offsets: PackedInstanceAttributeOffset[] = [];
-  const diagnostics: RenderDiagnostic[] = [];
-  const offsetPool: PackedInstanceAttributeOffset[] = [];
-  const data = new Float32Array(floatCapacity);
-
-  for (let i = 0; i < offsetCapacity; i += 1) {
-    offsetPool.push(createEmptyInstanceAttributeOffset());
-  }
-
-  return {
-    data,
-    offsets,
-    diagnostics,
-    offsetPool,
-    result: {
-      layout: {
-        attributes: [],
-        stride: 0,
-        strideFloats: 0,
-        layoutKey: "",
-      },
-      data,
-      floatCount: 0,
-      offsets,
-      diagnostics,
-    },
-  };
 }
 
 export function writePackedSnapshotTransforms(
@@ -678,162 +472,4 @@ export function writePackedSnapshotInstanceAttributesForVertexBuffer(
   result.floatCount = requiredFloats;
 
   return scratch.result;
-}
-
-function ensureTransformDataCapacity(
-  scratch: PackedSnapshotTransformsScratch,
-  required: number,
-): void {
-  if (scratch.data.length >= required) {
-    return;
-  }
-
-  let capacity = Math.max(16, scratch.data.length);
-
-  while (capacity < required) {
-    capacity *= 2;
-  }
-
-  const next = new Float32Array(capacity);
-
-  next.set(scratch.data.subarray(0, scratch.data.length));
-  scratch.data = next;
-}
-
-function ensurePreviousTransformDataCapacity(
-  scratch: PackedSnapshotPreviousTransformsScratch,
-  required: number,
-): void {
-  if (scratch.data.length >= required) {
-    return;
-  }
-
-  let capacity = Math.max(16, scratch.data.length);
-
-  while (capacity < required) {
-    capacity *= 2;
-  }
-
-  const next = new Float32Array(capacity);
-
-  next.set(scratch.data.subarray(0, scratch.data.length));
-  scratch.data = next;
-}
-
-function ensureInstanceTintDataCapacity(
-  scratch: PackedSnapshotInstanceTintsScratch,
-  required: number,
-): void {
-  if (scratch.data.length >= required) {
-    return;
-  }
-
-  let capacity = Math.max(4, scratch.data.length);
-
-  while (capacity < required) {
-    capacity *= 2;
-  }
-
-  scratch.data = new Float32Array(capacity);
-}
-
-function ensureInstanceAttributeDataCapacity(
-  scratch: PackedSnapshotInstanceAttributesScratch,
-  required: number,
-): void {
-  if (scratch.data.length >= required) {
-    return;
-  }
-
-  let capacity = Math.max(4, scratch.data.length);
-
-  while (capacity < required) {
-    capacity *= 2;
-  }
-
-  scratch.data = new Float32Array(capacity);
-}
-
-function offsetAt(
-  scratch: PackedSnapshotTransformsScratch,
-  index: number,
-): MutablePackedTransformOffset {
-  const existing = scratch.offsetPool[index] as
-    | MutablePackedTransformOffset
-    | undefined;
-
-  if (existing !== undefined) {
-    return existing;
-  }
-
-  const offset = createEmptyOffset();
-
-  scratch.offsetPool.push(offset);
-  return offset;
-}
-
-function previousOffsetAt(
-  scratch: PackedSnapshotPreviousTransformsScratch,
-  index: number,
-): MutablePackedTransformOffset {
-  const existing = scratch.offsetPool[index] as
-    | MutablePackedTransformOffset
-    | undefined;
-
-  if (existing !== undefined) {
-    return existing;
-  }
-
-  const offset = createEmptyOffset();
-
-  scratch.offsetPool.push(offset);
-  return offset;
-}
-
-function instanceTintOffsetAt(
-  scratch: PackedSnapshotInstanceTintsScratch,
-  index: number,
-): MutablePackedInstanceTintOffset {
-  const existing = scratch.offsetPool[index] as
-    | MutablePackedInstanceTintOffset
-    | undefined;
-
-  if (existing !== undefined) {
-    return existing;
-  }
-
-  const offset = createEmptyInstanceTintOffset();
-
-  scratch.offsetPool.push(offset);
-  return offset;
-}
-
-function instanceAttributeOffsetAt(
-  scratch: PackedSnapshotInstanceAttributesScratch,
-  index: number,
-): MutablePackedInstanceAttributeOffset {
-  const existing = scratch.offsetPool[index] as
-    | MutablePackedInstanceAttributeOffset
-    | undefined;
-
-  if (existing !== undefined) {
-    return existing;
-  }
-
-  const offset = createEmptyInstanceAttributeOffset();
-
-  scratch.offsetPool.push(offset);
-  return offset;
-}
-
-function createEmptyOffset(): MutablePackedTransformOffset {
-  return { renderId: 0, sourceOffset: 0, packedOffset: 0 };
-}
-
-function createEmptyInstanceTintOffset(): MutablePackedInstanceTintOffset {
-  return { renderId: 0, sourceOffset: 0, packedOffset: 0 };
-}
-
-function createEmptyInstanceAttributeOffset(): MutablePackedInstanceAttributeOffset {
-  return { renderId: 0, sourcePacketIndex: 0, packedOffset: 0 };
 }
