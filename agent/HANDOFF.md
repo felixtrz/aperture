@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-28T00:18:52Z
+Updated: 2026-05-28T00:22:07Z
+
+## Current Run Update — 2026-05-28T00:22:07Z — glTF texture loading split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF texture async byte loading, browser/canvas image decode,
+  data-URI decoding, and KTX2 decode routing into
+  `packages/render/src/materials/gltf-texture-loading.ts`.
+- Extracted shared glTF texture validation and conversion helpers into
+  `packages/render/src/materials/gltf-texture-utils.ts`.
+- `packages/render/src/materials/gltf-texture.ts` preserves the public
+  `loadGltfTextureAsync` export and now focuses on texture mapping/report
+  assembly.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/materials/gltf-texture.ts packages/render/src/materials/gltf-texture-loading.ts packages/render/src/materials/gltf-texture-utils.ts packages/render/src/assets/gltf-uri-images.ts packages/render/src/assets/glb-uri-images.ts`
+- `pnpm exec prettier --check packages/render/src/materials/gltf-texture.ts packages/render/src/materials/gltf-texture-loading.ts packages/render/src/materials/gltf-texture-utils.ts`
+- `pnpm exec vitest run test/materials/gltf-texture.test.ts test/assets/gltf-uri-loader.test.ts test/assets/glb-uri-loader.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-texture.ts`, `gltf-material.ts`,
+  `gltf-mesh-asset-construction.ts`, `gltf-report-driven-import.ts`,
+  `authoring.ts`, and `snapshot-packed-encoding.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting texture mapping/report helpers out of
+`packages/render/src/materials/gltf-texture.ts` or by splitting
+`packages/render/src/materials/gltf-material.ts`.
 
 ## Current Run Update — 2026-05-28T00:18:52Z — glTF URI fetch helper split
 

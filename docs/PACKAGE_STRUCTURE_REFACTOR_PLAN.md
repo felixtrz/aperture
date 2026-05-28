@@ -290,6 +290,12 @@ Status: in progress
   URL validation, and external byte merge helpers now live in
   `packages/render/src/assets/gltf-uri-fetch.ts`, leaving
   `gltf-uri-loader.ts` as a compact URI load orchestration entry point.
+- glTF texture async byte loading, browser/canvas image decode, data-URI
+  decoding, and shared texture validation helpers now live in
+  `packages/render/src/materials/gltf-texture-loading.ts` and
+  `packages/render/src/materials/gltf-texture-utils.ts`, while
+  `gltf-texture.ts` preserves the public exports and focuses on texture
+  mapping/report assembly.
 
 ## Purpose
 
