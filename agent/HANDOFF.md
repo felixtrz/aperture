@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-28T07:21:19Z
+Updated: 2026-05-28T07:24:24Z
+
+## Current Run Update — 2026-05-28T07:24:24Z — view extraction split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split camera/view packet extraction, projection/view matrix packing,
+  render-target reading, temporal jitter application, camera validation
+  diagnostics, and view cull-context creation from
+  `packages/render/src/rendering/extraction.ts` into
+  `packages/render/src/rendering/extraction-views.ts`.
+- Kept `extraction.ts` as the public snapshot extraction orchestration facade:
+  component registration, array allocation, family extractor calls, final
+  snapshot assembly, and report counts.
+- Updated the package-structure plan and public progress tracker for the new
+  view extraction module boundary.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/extraction.ts packages/render/src/rendering/extraction-views.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/extraction.ts packages/render/src/rendering/extraction-views.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/extraction.ts packages/render/src/rendering/extraction-views.ts`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/runtime/runtime.test.ts test/webgpu/render-frame-snapshot-json.test.ts test/webgpu/app-diagnostics-summary.test.ts test/webgpu/render-frame-snapshot-runner.test.ts test/webgpu/render-frame-plan.test.ts test/webgpu/frame-readiness.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-texture-loading.ts`,
+  `gltf-ecs-command-replay-components.ts`, `authoring-components.ts`, and other
+  medium render/material/asset modules still near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium render extraction/material/asset
+hotspot.
 
 ## Current Run Update — 2026-05-28T07:21:19Z — glTF StandardMaterial field mapping split
 

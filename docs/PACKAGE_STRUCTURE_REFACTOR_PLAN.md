@@ -240,6 +240,11 @@ Status: in progress
   `packages/render/src/rendering/extraction-culling.ts`, while
   `extraction.ts` keeps the public snapshot extraction entry point and
   high-level extraction orchestration.
+- Render extraction camera/view packet assembly, projection/view matrix
+  packing, render-target reading, temporal jitter application, and view cull
+  context creation now live in `packages/render/src/rendering/extraction-views.ts`,
+  leaving `extraction.ts` focused on snapshot orchestration and final report
+  assembly.
 - Render extraction material readiness, texture/sampler/environment asset
   validation, and shared diagnostic helpers now live in
   `packages/render/src/rendering/extraction-asset-validation.ts` and
