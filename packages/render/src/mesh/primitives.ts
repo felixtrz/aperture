@@ -12,9 +12,20 @@ import type {
   SphereMeshOptions,
   TorusMeshOptions,
 } from "./types.js";
-
-const FLOATS_PER_PRIMITIVE_VERTEX = 8;
-const PRIMITIVE_VERTEX_STRIDE_BYTES = FLOATS_PER_PRIMITIVE_VERTEX * 4;
+import {
+  PRIMITIVE_VERTEX_STRIDE_BYTES,
+  boundsFromPositions,
+  clampInteger,
+  createPrimitiveMeshAsset,
+  face,
+  interleavePrimitiveVertexList,
+  interleavePrimitiveVertices,
+  nonNegativeFinite,
+  normalize,
+  positiveFinite,
+  type PrimitivePosition,
+  type PrimitiveVertex,
+} from "./primitives-builders.js";
 
 export function createBoxMeshAsset(options: BoxMeshOptions = {}): MeshAsset {
   const width = options.width ?? 1;
@@ -649,28 +660,6 @@ function ringRadius(ring: readonly PrimitiveVertex[] | undefined): number {
   return radius < 1e-8 ? 0 : radius;
 }
 
-interface PrimitiveMeshAssetInput {
-  readonly label: string;
-  readonly vertices: Float32Array;
-  readonly vertexCount: number;
-  readonly indices: Uint16Array;
-  readonly localAabb: Aabb;
-  readonly localSphere: BoundingSphere;
-}
-
-type PrimitivePosition = readonly [number, number, number];
-type PrimitiveFace = readonly PrimitiveVertex[];
-type PrimitiveBounds = {
-  readonly aabb: Aabb;
-  readonly sphere: BoundingSphere;
-};
-
-interface PrimitiveVertex {
-  readonly position: PrimitivePosition;
-  readonly normal: PrimitivePosition;
-  readonly uv: readonly [number, number];
-}
-
 function createLineListIndexBuffer(
   indices: LineListMeshOptions["indices"],
 ): MeshIndexBufferDescriptor | undefined {
@@ -726,175 +715,4 @@ function createLineListSubmeshes(input: {
     indexStart: submesh.indexStart ?? 0,
     indexCount: submesh.indexCount ?? (input.indexed ? input.indexCount : 0),
   }));
-}
-
-function boundsFromPositions(
-  positions: readonly PrimitivePosition[],
-): PrimitiveBounds {
-  if (positions.length === 0) {
-    return {
-      aabb: { min: [0, 0, 0], max: [0, 0, 0] },
-      sphere: { center: [0, 0, 0], radius: 0 },
-    };
-  }
-
-  const min: [number, number, number] = [
-    Number.POSITIVE_INFINITY,
-    Number.POSITIVE_INFINITY,
-    Number.POSITIVE_INFINITY,
-  ];
-  const max: [number, number, number] = [
-    Number.NEGATIVE_INFINITY,
-    Number.NEGATIVE_INFINITY,
-    Number.NEGATIVE_INFINITY,
-  ];
-
-  for (const position of positions) {
-    min[0] = Math.min(min[0], position[0]);
-    min[1] = Math.min(min[1], position[1]);
-    min[2] = Math.min(min[2], position[2]);
-    max[0] = Math.max(max[0], position[0]);
-    max[1] = Math.max(max[1], position[1]);
-    max[2] = Math.max(max[2], position[2]);
-  }
-
-  const center: [number, number, number] = [
-    (min[0] + max[0]) * 0.5,
-    (min[1] + max[1]) * 0.5,
-    (min[2] + max[2]) * 0.5,
-  ];
-  const radius = positions.reduce(
-    (current, position) =>
-      Math.max(
-        current,
-        Math.hypot(
-          position[0] - center[0],
-          position[1] - center[1],
-          position[2] - center[2],
-        ),
-      ),
-    0,
-  );
-
-  return {
-    aabb: { min, max },
-    sphere: { center, radius },
-  };
-}
-
-function createPrimitiveMeshAsset(input: PrimitiveMeshAssetInput): MeshAsset {
-  return {
-    kind: "mesh",
-    label: input.label,
-    vertexStreams: [
-      {
-        id: "primitive-interleaved",
-        arrayStride: PRIMITIVE_VERTEX_STRIDE_BYTES,
-        vertexCount: input.vertexCount,
-        attributes: [
-          { semantic: "POSITION", format: "float32x3", offset: 0 },
-          { semantic: "NORMAL", format: "float32x3", offset: 12 },
-          { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
-        ],
-        data: input.vertices,
-      },
-    ],
-    indexBuffer: {
-      format: "uint16",
-      data: input.indices,
-    },
-    submeshes: [
-      {
-        label: "default",
-        topology: "triangle-list",
-        materialSlot: 0,
-        vertexStart: 0,
-        vertexCount: input.vertexCount,
-        indexStart: 0,
-        indexCount: input.indices.length,
-      },
-    ],
-    materialSlots: [{ index: 0, label: "default" }],
-    localAabb: input.localAabb,
-    localSphere: input.localSphere,
-  };
-}
-
-function face(
-  positions: readonly [
-    PrimitivePosition,
-    PrimitivePosition,
-    PrimitivePosition,
-    PrimitivePosition,
-  ],
-  normal: PrimitivePosition,
-): PrimitiveFace {
-  return [
-    { position: positions[0], normal, uv: [0, 0] },
-    { position: positions[1], normal, uv: [1, 0] },
-    { position: positions[2], normal, uv: [1, 1] },
-    { position: positions[3], normal, uv: [0, 1] },
-  ];
-}
-
-function interleavePrimitiveVertices(
-  faces: readonly PrimitiveFace[],
-): Float32Array {
-  return interleavePrimitiveVertexList(
-    faces.flatMap((primitiveFace) => [...primitiveFace]),
-  );
-}
-
-function interleavePrimitiveVertexList(
-  vertices: readonly PrimitiveVertex[],
-): Float32Array {
-  const values: number[] = [];
-
-  for (const vertex of vertices) {
-    values.push(
-      vertex.position[0],
-      vertex.position[1],
-      vertex.position[2],
-      vertex.normal[0],
-      vertex.normal[1],
-      vertex.normal[2],
-      vertex.uv[0],
-      vertex.uv[1],
-    );
-  }
-
-  return new Float32Array(values);
-}
-
-function positiveFinite(value: number | undefined, fallback: number): number {
-  return value === undefined || !Number.isFinite(value) || value <= 0
-    ? fallback
-    : value;
-}
-
-function nonNegativeFinite(
-  value: number | undefined,
-  fallback: number,
-): number {
-  return value === undefined || !Number.isFinite(value) || value < 0
-    ? fallback
-    : value;
-}
-
-function clampInteger(value: number, min: number, max: number): number {
-  if (!Number.isFinite(value)) {
-    return min;
-  }
-
-  return Math.min(max, Math.max(min, Math.floor(value)));
-}
-
-function normalize(value: PrimitivePosition): PrimitivePosition {
-  const length = Math.hypot(value[0], value[1], value[2]);
-
-  if (length === 0) {
-    return [0, 1, 0];
-  }
-
-  return [value[0] / length, value[1] / length, value[2] / length];
 }
