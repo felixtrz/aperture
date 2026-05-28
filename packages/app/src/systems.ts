@@ -24,7 +24,6 @@ import {
   createPlaneMeshAsset,
   createSphereMeshAsset,
   createStandardMaterialAsset,
-  registerRenderAuthoringComponents,
   replayGltfEcsAuthoringCommands,
   type CameraInput,
   type GltfEcsCommandReplayReport,
@@ -47,8 +46,6 @@ import {
   createSystem as createElicsSystem,
   defineComponent,
   quatFromAxisAngle,
-  registerMetadataComponents,
-  registerTransformComponents,
   type AssetRegistry,
   type EcsWorld,
   type Entity,
@@ -95,6 +92,12 @@ import {
   type SystemGltfAssetHandle,
   type SystemGltfLoadedScene,
 } from "./systems-assets.js";
+import {
+  AppEntityKey,
+  AppEntitySource,
+  AppEntityTags,
+  registerApertureAppComponents,
+} from "./systems-components.js";
 
 export { createSpatialQueries } from "./spatial-queries.js";
 export type {
@@ -163,6 +166,12 @@ export type {
   SystemGltfAssetHandle,
   SystemGltfLoadedScene,
 } from "./systems-assets.js";
+export {
+  AppEntityKey,
+  AppEntitySource,
+  AppEntityTags,
+  registerApertureAppComponents,
+} from "./systems-components.js";
 
 export type {
   ApertureGeneratedGamepadInputEvent,
@@ -356,33 +365,6 @@ export type ApertureSystemConstructor<
     readonly config: ApertureSystemConfigSignals<TSchema>;
   };
 };
-
-export const AppEntityKey = defineComponent(
-  "aperture.app.entityKey",
-  {
-    value: { type: EcsType.String, default: "" },
-  },
-  "Optional globally unique app-authored entity key for tooling and diagnostics.",
-);
-
-export const AppEntityTags = defineComponent(
-  "aperture.app.entityTags",
-  {
-    valuesJson: { type: EcsType.String, default: "[]" },
-  },
-  "Optional app-authored entity tags serialized for tooling and diagnostics.",
-);
-
-export const AppEntitySource = defineComponent(
-  "aperture.app.entitySource",
-  {
-    kind: { type: EcsType.String, default: "" },
-    assetId: { type: EcsType.String, default: "" },
-    gltfNodeIndex: { type: EcsType.Int32, default: -1 },
-    gltfNodePath: { type: EcsType.String, default: "" },
-  },
-  "Optional app-authored or loader-authored source metadata for tooling and diagnostics.",
-);
 
 export const mesh = Object.freeze({
   box(
@@ -598,16 +580,6 @@ export function createApertureSystemContext(options: {
 
   installApertureSystemContext(options.world, context);
   return context;
-}
-
-export function registerApertureAppComponents(world: EcsWorld): EcsWorld {
-  registerTransformComponents(world);
-  registerMetadataComponents(world);
-  registerRenderAuthoringComponents(world);
-  world.registerComponent(AppEntityKey);
-  world.registerComponent(AppEntityTags);
-  world.registerComponent(AppEntitySource);
-  return world;
 }
 
 function getApertureSystemContext(world: EcsWorld): ApertureSystemContext {
