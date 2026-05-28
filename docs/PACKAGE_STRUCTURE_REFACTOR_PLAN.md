@@ -432,6 +432,10 @@ Status: in progress
 - App-authored ECS metadata components and app component registration now live
   in `packages/app/src/systems-components.ts`, preserving the existing component
   exports through `systems.ts`.
+- App system spawn descriptors, primitive/material helper factories, spawn
+  command implementation, GLTF replay metadata, and spawn-time transform writing
+  now live in `packages/app/src/systems-spawn.ts`, preserving the public
+  `mesh`, `material`, and spawn type exports through `systems.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
