@@ -1,6 +1,42 @@
 # Agent Handoff
 
-Updated: 2026-05-28T01:01:48Z
+Updated: 2026-05-28T01:05:44Z
+
+## Current Run Update — 2026-05-28T01:05:44Z — glTF mesh vertex stream split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF mesh source-view reuse, vertex stream packing, attribute
+  format selection, decoded component byte sizing, and mixed typed-array
+  component writing into
+  `packages/render/src/assets/gltf-mesh-asset-vertex-streams.ts`.
+- `packages/render/src/assets/gltf-mesh-asset-construction.ts` is now roughly
+  540 lines and focuses on primitive-to-asset assembly, skin/morph schema
+  derivation, bounds, indices, and report JSON.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/gltf-mesh-asset-construction.ts packages/render/src/assets/gltf-mesh-asset-vertex-streams.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-mesh-asset-construction.ts packages/render/src/assets/gltf-mesh-asset-vertex-streams.ts`
+- `pnpm exec vitest run test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/gltf-mesh-primitive.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `transform-pack.ts`,
+  `gltf-accessor-validation.ts`, `preparation.ts`, `gltf-material.ts`,
+  `gltf-scene-traversal.ts`, and `ktx2-decoder.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting transform packing or glTF accessor validation.
 
 ## Current Run Update — 2026-05-28T01:01:48Z — mesh primitive builder split
 
