@@ -3,32 +3,22 @@ import type {
   LoadGlbFromUriDiagnostic,
   LoadGlbFromUriFetch,
 } from "./glb-uri-loader.js";
+import { fetchDeduplicatedExternalBytes } from "./glb-uri-external-fetch-dedupe.js";
 import {
-  fetchBytes,
-  fetchIndexFields,
-  type FetchBytesInput,
-} from "./glb-uri-fetch-bytes.js";
+  isRecord,
+  resolveSameOriginBufferUrl,
+  resolveSameOriginImageUrl,
+} from "./glb-uri-external-fetch-resolve.js";
+import type {
+  ExternalFetchCandidate,
+  FetchExternalBuffersResult,
+  FetchExternalImagesResult,
+} from "./glb-uri-external-fetch-types.js";
 
-export interface FetchExternalBuffersResult {
-  readonly bytes: ReadonlyMap<number, ArrayBuffer>;
-  readonly diagnostics: readonly LoadGlbFromUriDiagnostic[];
-}
-
-export interface FetchExternalImagesResult {
-  readonly bytes: ReadonlyMap<number, ArrayBuffer>;
-  readonly diagnostics: readonly LoadGlbFromUriDiagnostic[];
-}
-
-interface ExternalFetchCandidate {
-  readonly index: number;
-  readonly url: string;
-}
-
-type ExternalFetchContext = "buffer" | "image";
-
-type IndexedExternalFetchResult =
-  | { readonly index: number; readonly bytes: ArrayBuffer }
-  | { readonly index: number; readonly diagnostic: LoadGlbFromUriDiagnostic };
+export type {
+  FetchExternalBuffersResult,
+  FetchExternalImagesResult,
+} from "./glb-uri-external-fetch-types.js";
 
 export async function fetchExternalBuffers(input: {
   readonly root: Record<string, unknown>;
@@ -152,195 +142,4 @@ export function emptyExternalBuffers(): FetchExternalBuffersResult {
 
 export function emptyExternalImages(): FetchExternalImagesResult {
   return { bytes: new Map(), diagnostics: [] };
-}
-
-async function fetchDeduplicatedExternalBytes(input: {
-  readonly candidates: readonly ExternalFetchCandidate[];
-  readonly fetcher: LoadGlbFromUriFetch;
-  readonly context: ExternalFetchContext;
-  readonly cache?: LoadGlbFromUriCache;
-}): Promise<IndexedExternalFetchResult[]> {
-  const candidatesByUrl = new Map<string, ExternalFetchCandidate[]>();
-
-  for (const candidate of input.candidates) {
-    const existing = candidatesByUrl.get(candidate.url);
-
-    if (existing === undefined) {
-      candidatesByUrl.set(candidate.url, [candidate]);
-    } else {
-      existing.push(candidate);
-    }
-  }
-
-  const resultGroups = await Promise.all(
-    [...candidatesByUrl.entries()].map(async ([url, candidates]) => {
-      const first = candidates[0];
-
-      if (first === undefined) {
-        return [];
-      }
-
-      const fetched = await fetchBytes({
-        url,
-        fetcher: input.fetcher,
-        context: input.context,
-        ...(input.cache === undefined ? {} : { cache: input.cache }),
-        ...fetchIndexField(input.context, first.index),
-      });
-
-      if (!fetched.ok) {
-        return candidates.map((candidate) => ({
-          index: candidate.index,
-          diagnostic: diagnosticForExternalFetchIndex(
-            fetched.diagnostic,
-            input.context,
-            candidate.index,
-          ),
-        }));
-      }
-
-      return candidates.map((candidate) => ({
-        index: candidate.index,
-        bytes: fetched.bytes,
-      }));
-    }),
-  );
-
-  return resultGroups.flat();
-}
-
-function fetchIndexField(
-  context: ExternalFetchContext,
-  index: number,
-): Pick<FetchBytesInput, "bufferIndex" | "imageIndex"> {
-  return context === "buffer" ? { bufferIndex: index } : { imageIndex: index };
-}
-
-function diagnosticForExternalFetchIndex(
-  diagnostic: LoadGlbFromUriDiagnostic,
-  context: ExternalFetchContext,
-  index: number,
-): LoadGlbFromUriDiagnostic {
-  return {
-    code: diagnostic.code,
-    severity: diagnostic.severity,
-    message: diagnostic.message,
-    ...(diagnostic.status === undefined ? {} : { status: diagnostic.status }),
-    ...(diagnostic.statusText === undefined
-      ? {}
-      : { statusText: diagnostic.statusText }),
-    ...(diagnostic.uri === undefined ? {} : { uri: diagnostic.uri }),
-    ...(diagnostic.loaderCode === undefined
-      ? {}
-      : { loaderCode: diagnostic.loaderCode }),
-    ...fetchIndexField(context, index),
-  };
-}
-
-function resolveSameOriginBufferUrl(input: {
-  readonly sourceUrl: URL;
-  readonly uri: string;
-  readonly bufferIndex: number;
-}):
-  | { readonly ok: true; readonly url: string }
-  | { readonly ok: false; readonly diagnostic: LoadGlbFromUriDiagnostic } {
-  if (input.uri.startsWith("data:")) {
-    return {
-      ok: false,
-      diagnostic: {
-        code: "loadGlbFromUri.unsupportedBufferUri",
-        severity: "error",
-        uri: input.uri,
-        bufferIndex: input.bufferIndex,
-        message: `GLB external buffer ${input.bufferIndex} uses an embedded data URI, which must be provided via externalBufferBytes.`,
-      },
-    };
-  }
-
-  return resolveSameOriginUrl({
-    sourceUrl: input.sourceUrl,
-    uri: input.uri,
-    code: "loadGlbFromUri.unsupportedBufferUri",
-    message: `GLB external buffer ${input.bufferIndex} URI '${input.uri}' is not same-origin with the source GLB.`,
-    bufferIndex: input.bufferIndex,
-  });
-}
-
-function resolveSameOriginImageUrl(input: {
-  readonly sourceUrl: URL;
-  readonly image: Record<string, unknown>;
-  readonly imageIndex: number;
-}):
-  | { readonly ok: true; readonly url: string }
-  | { readonly ok: false; readonly diagnostic: LoadGlbFromUriDiagnostic } {
-  const uri = input.image.uri;
-
-  if (typeof uri !== "string") {
-    return {
-      ok: false,
-      diagnostic: {
-        code: "loadGlbFromUri.unsupportedImageUri",
-        severity: "error",
-        imageIndex: input.imageIndex,
-        message: `GLB image ${input.imageIndex} does not provide a URI.`,
-      },
-    };
-  }
-
-  return resolveSameOriginUrl({
-    sourceUrl: input.sourceUrl,
-    uri,
-    code: "loadGlbFromUri.unsupportedImageUri",
-    message: `GLB image ${input.imageIndex} URI '${uri}' is not same-origin with the source GLB.`,
-    imageIndex: input.imageIndex,
-  });
-}
-
-function resolveSameOriginUrl(input: {
-  readonly sourceUrl: URL;
-  readonly uri: string;
-  readonly code:
-    | "loadGlbFromUri.unsupportedBufferUri"
-    | "loadGlbFromUri.unsupportedImageUri";
-  readonly message: string;
-  readonly bufferIndex?: number;
-  readonly imageIndex?: number;
-}):
-  | { readonly ok: true; readonly url: string }
-  | { readonly ok: false; readonly diagnostic: LoadGlbFromUriDiagnostic } {
-  let url: URL;
-
-  try {
-    url = new URL(input.uri, input.sourceUrl);
-  } catch {
-    return {
-      ok: false,
-      diagnostic: {
-        code: input.code,
-        severity: "error",
-        uri: input.uri,
-        ...fetchIndexFields(input),
-        message: `GLB URI '${input.uri}' could not be resolved.`,
-      },
-    };
-  }
-
-  if (url.origin !== input.sourceUrl.origin) {
-    return {
-      ok: false,
-      diagnostic: {
-        code: input.code,
-        severity: "error",
-        uri: input.uri,
-        ...fetchIndexFields(input),
-        message: input.message,
-      },
-    };
-  }
-
-  return { ok: true, url: url.href };
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
