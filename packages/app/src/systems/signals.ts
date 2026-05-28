@@ -1,6 +1,6 @@
 import { signal as createSignal, type Signal } from "@preact/signals-core";
-import type { ApertureSignalDescriptor } from "./config.js";
-import { jsonSafeValue } from "./systems-json.js";
+import type { ApertureSignalDescriptor } from "../config.js";
+import { jsonSafeValue } from "./json.js";
 
 export type SignalStore = Record<string, Signal<unknown>>;
 export type SignalSummary = Readonly<Record<string, unknown>>;

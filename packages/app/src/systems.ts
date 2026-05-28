@@ -32,20 +32,20 @@ import {
   createScheduledEffects,
   registerSystemEffects,
   type ScheduledEffects,
-} from "./systems-effects.js";
-import { type SystemDiagnostics } from "./systems-diagnostics.js";
-import { ApertureSystemError } from "./systems-error.js";
-import type { CommandAccess } from "./systems-commands.js";
-import type { SystemAssetAccess } from "./systems-assets.js";
-import type { CameraAccess } from "./systems-cameras.js";
-import type { SignalStore } from "./systems-signals.js";
+} from "./systems/effects.js";
+import { type SystemDiagnostics } from "./systems/diagnostics.js";
+import { ApertureSystemError } from "./systems/errors.js";
+import type { CommandAccess } from "./systems/commands.js";
+import type { SystemAssetAccess } from "./systems/assets.js";
+import type { CameraAccess } from "./systems/cameras.js";
+import type { SignalStore } from "./systems/signals.js";
 import type { SpawnCommands } from "./systems-spawn.js";
 import {
   getApertureSystemContext,
   type ApertureSystemContext,
   type InputActions,
   type InputSignals,
-} from "./systems-context.js";
+} from "./systems/context.js";
 
 export { createSpatialQueries } from "./spatial-queries.js";
 export type {
@@ -72,14 +72,14 @@ export {
   quatFromAxisAngle,
 };
 
-export type { SignalStore, SignalSummary } from "./systems-signals.js";
-export { createSignalSummary } from "./systems-signals.js";
+export type { SignalStore, SignalSummary } from "./systems/signals.js";
+export { createSignalSummary } from "./systems/signals.js";
 
 export type {
   ApertureSystemDiagnostic,
   SystemDiagnostics,
-} from "./systems-diagnostics.js";
-export { assetDiagnosticFromSystemDiagnostic } from "./systems-diagnostics.js";
+} from "./systems/diagnostics.js";
+export { assetDiagnosticFromSystemDiagnostic } from "./systems/diagnostics.js";
 
 export type {
   ApertureEffectHandle,
@@ -88,14 +88,14 @@ export type {
   ApertureEffects,
   ApertureQuery,
   ScheduledEffects,
-} from "./systems-effects.js";
-export { flushApertureSystemEffects } from "./systems-effects.js";
+} from "./systems/effects.js";
+export { flushApertureSystemEffects } from "./systems/effects.js";
 export type {
   CommandAccess,
   CommandAccessSummary,
   CommandAssetRequestSummary,
   CommandChannelEntry,
-} from "./systems-commands.js";
+} from "./systems/commands.js";
 export type {
   ApertureAssetLoader,
   SystemAssetAccess,
@@ -103,14 +103,14 @@ export type {
   SystemAssetKind,
   SystemGltfAssetHandle,
   SystemGltfLoadedScene,
-} from "./systems-assets.js";
+} from "./systems/assets.js";
 export {
   AppEntityKey,
   AppEntitySource,
   AppEntityTags,
   registerApertureAppComponents,
-} from "./systems-components.js";
-export type { CameraAccess, CameraHandle } from "./systems-cameras.js";
+} from "./systems/components.js";
+export type { CameraAccess, CameraHandle } from "./systems/cameras.js";
 export { material, mesh } from "./systems-spawn.js";
 export type {
   PrimitiveMeshDescriptor,
@@ -131,11 +131,11 @@ export type {
   CreateApertureSystemContextOptions,
   InputActions,
   InputSignals,
-} from "./systems-context.js";
+} from "./systems/context.js";
 export {
   createApertureSystemContext,
   installApertureSystemContext,
-} from "./systems-context.js";
+} from "./systems/context.js";
 
 export type {
   ApertureGeneratedGamepadInputEvent,

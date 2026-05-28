@@ -44,18 +44,18 @@ import {
   type SystemAssetAccess,
   type SystemGltfAssetHandle,
   type SystemGltfLoadedScene,
-} from "./systems-assets.js";
+} from "./systems/assets.js";
 import {
   AppEntityKey,
   AppEntitySource,
   AppEntityTags,
   registerApertureAppComponents,
-} from "./systems-components.js";
+} from "./systems/components.js";
 import {
   formatReportDiagnostics,
   type SystemDiagnostics,
-} from "./systems-diagnostics.js";
-import { ApertureSystemError } from "./systems-error.js";
+} from "./systems/diagnostics.js";
+import { ApertureSystemError } from "./systems/errors.js";
 
 export interface SpawnMetadata {
   readonly name?: string;

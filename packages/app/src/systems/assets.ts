@@ -28,13 +28,13 @@ import type {
   ApertureConfigAssetDescriptor,
   AssetPreloadPolicy,
   ConfigAssetKind,
-} from "./config.js";
+} from "../config.js";
 import {
   formatReportDiagnostics,
   type ApertureSystemDiagnostic,
   type SystemDiagnostics,
-} from "./systems-diagnostics.js";
-import { ApertureSystemError } from "./systems-error.js";
+} from "./diagnostics.js";
+import { ApertureSystemError } from "./errors.js";
 
 export type SystemAssetKind = ConfigAssetKind;
 

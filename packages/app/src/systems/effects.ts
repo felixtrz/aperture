@@ -1,6 +1,6 @@
 import type { ReadonlySignal, Signal } from "@preact/signals-core";
 import type { EcsWorld, Entity } from "@aperture-engine/simulation";
-import { ApertureSystemError } from "./systems-error.js";
+import { ApertureSystemError } from "./errors.js";
 
 export type ApertureEffectPhase = "input" | "update" | "postUpdate";
 

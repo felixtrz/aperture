@@ -12,6 +12,11 @@ Status: in progress
   as a compatibility facade for generated input event helpers. The removed
   top-level `config-*` and `input-state-*` implementation files no longer act
   as implicit folders.
+- Track 3 has started. Non-spawn app system implementation now lives under
+  `packages/app/src/systems/`, with `packages/app/src/systems.ts` kept as the
+  public `@aperture-engine/app/systems` facade. System assets, cameras,
+  commands, components, context, diagnostics, effects, errors, JSON helpers, and
+  signal helpers no longer live as top-level `systems-*` implementation files.
 
 ## Summary
 

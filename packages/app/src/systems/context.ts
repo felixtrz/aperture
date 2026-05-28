@@ -1,33 +1,27 @@
 import type { AssetRegistry, EcsWorld } from "@aperture-engine/simulation";
-import type { ApertureConfig } from "./config.js";
+import type { ApertureConfig } from "../config.js";
 import {
   createInputResource,
   type InputAction,
   type InputResourceBase,
-} from "./input/state.js";
+} from "../input/state.js";
 import {
   createSpatialQueries,
   type SpatialQueries,
-} from "./spatial-queries.js";
-import {
-  createDiagnostics,
-  type SystemDiagnostics,
-} from "./systems-diagnostics.js";
-import {
-  createScheduledEffects,
-  type ScheduledEffects,
-} from "./systems-effects.js";
-import { ApertureSystemError } from "./systems-error.js";
-import { createCommandAccess, type CommandAccess } from "./systems-commands.js";
+} from "../spatial-queries.js";
+import { createDiagnostics, type SystemDiagnostics } from "./diagnostics.js";
+import { createScheduledEffects, type ScheduledEffects } from "./effects.js";
+import { ApertureSystemError } from "./errors.js";
+import { createCommandAccess, type CommandAccess } from "./commands.js";
 import {
   createSystemAssetAccess,
   type ApertureAssetLoader,
   type SystemAssetAccess,
-} from "./systems-assets.js";
-import { registerApertureAppComponents } from "./systems-components.js";
-import { createCameraAccess, type CameraAccess } from "./systems-cameras.js";
-import { createSignalStore, type SignalStore } from "./systems-signals.js";
-import { createSpawnCommands, type SpawnCommands } from "./systems-spawn.js";
+} from "./assets.js";
+import { registerApertureAppComponents } from "./components.js";
+import { createCameraAccess, type CameraAccess } from "./cameras.js";
+import { createSignalStore, type SignalStore } from "./signals.js";
+import { createSpawnCommands, type SpawnCommands } from "../systems-spawn.js";
 
 // This interface is intentionally empty so generated app-local declarations can
 // augment it with kind-specific action properties.
