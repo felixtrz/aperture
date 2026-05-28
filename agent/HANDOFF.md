@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T10:40:54Z
+Updated: 2026-05-28T10:44:22Z
+
+## Current Run Update — 2026-05-28T10:44:22Z — Vite system discovery split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 7.
+
+### What changed
+
+- Split Vite plugin system discovery and descriptor priority analysis into
+  `packages/vite-plugin/src/system-discovery.ts`.
+- Moved config system glob parsing, glob file discovery, default-export
+  diagnostics, deterministic priority extraction, manifest sorting, and public
+  manifest type definitions out of `index.ts`.
+- Preserved public root exports for `createApertureSystemManifest()`,
+  `ApertureSystemManifest`, `DiscoveredApertureSystem`, and
+  `ApertureVitePluginDiagnostic`.
+- Reduced `packages/vite-plugin/src/index.ts` from 706 lines to 424 lines.
+
+### Validation
+
+- `pnpm exec prettier --write packages/vite-plugin/src/index.ts packages/vite-plugin/src/system-discovery.ts packages/vite-plugin/src/file-utils.ts packages/vite-plugin/src/typescript-ast.ts`
+- `pnpm --filter @aperture-engine/vite-plugin run typecheck`
+- `pnpm exec eslint packages/vite-plugin/src/index.ts packages/vite-plugin/src/system-discovery.ts packages/vite-plugin/src/file-utils.ts packages/vite-plugin/src/typescript-ast.ts packages/vite-plugin/src/generated-action-types.ts`
+- `pnpm exec prettier --check packages/vite-plugin/src/index.ts packages/vite-plugin/src/system-discovery.ts packages/vite-plugin/src/file-utils.ts packages/vite-plugin/src/typescript-ast.ts packages/vite-plugin/src/generated-action-types.ts`
+- `pnpm exec vitest run test/app/developer-api.test.ts test/app/input-state.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 7 still needs splits for plugin wiring, virtual module generation,
+  dev-session metadata, and diagnostics.
+- `packages/vite-plugin/src/index.ts` remains 424 lines after this slice.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 7 by splitting virtual module generation or dev-session metadata
+from `packages/vite-plugin/src/index.ts`.
 
 ## Current Run Update — 2026-05-28T10:40:54Z — Vite generated action types split
 

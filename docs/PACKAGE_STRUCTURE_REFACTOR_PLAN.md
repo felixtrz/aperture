@@ -531,6 +531,10 @@ Status: in progress
   file/path helpers in `file-utils.ts` and reusable TypeScript AST helpers in
   `typescript-ast.ts`, while the root plugin module preserves the existing
   public generated-action type exports.
+- Vite plugin system discovery and descriptor priority analysis now live in
+  `packages/vite-plugin/src/system-discovery.ts`, covering config system glob
+  parsing, glob file discovery, default-export diagnostics, deterministic
+  priority extraction, manifest sorting, and public manifest type exports.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
