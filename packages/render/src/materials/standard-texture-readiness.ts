@@ -1,169 +1,52 @@
 import {
   assetHandleKey,
   type AssetRegistry,
-  type AssetStatus,
-  type MaterialHandle,
 } from "@aperture-engine/simulation";
 import type {
   MaterialAsset,
-  MaterialKind,
   MaterialTextureBinding,
-  MaterialTextureTransform,
   SamplerAsset,
   StandardMaterialAsset,
   TextureAsset,
-  TextureColorSpace,
-  TextureFormat,
-  TextureSemantic,
 } from "./types.js";
+import {
+  isSupportedStandardTexCoord,
+  STANDARD_TEXTURE_EXPECTATIONS,
+  SUPPORTED_STANDARD_TEXCOORDS,
+} from "./standard-texture-readiness-expectations.js";
+import {
+  standardMaterialTextureReadinessReportToJson,
+  standardMaterialTextureReadinessReportToJsonValue,
+} from "./standard-texture-readiness-report.js";
+import type {
+  StandardMaterialTextureExpectation,
+  StandardMaterialTextureField,
+  StandardMaterialTextureReadinessDiagnostic,
+  StandardMaterialTextureReadinessOptions,
+  StandardMaterialTextureReadinessReport,
+  StandardMaterialTextureReadinessSlot,
+} from "./standard-texture-readiness-types.js";
+import {
+  cloneTextureTransform,
+  isIdentityTextureTransform,
+  isSupportedStandardTextureTransform,
+  textureFormatMatchesColorSpace,
+} from "./standard-texture-readiness-utils.js";
 
-export type StandardMaterialTextureField =
-  | "baseColorTexture"
-  | "metallicRoughnessTexture"
-  | "clearcoatTexture"
-  | "clearcoatRoughnessTexture"
-  | "transmissionTexture"
-  | "sheenColorTexture"
-  | "sheenRoughnessTexture"
-  | "iridescenceTexture"
-  | "iridescenceThicknessTexture"
-  | "normalTexture"
-  | "occlusionTexture"
-  | "emissiveTexture";
+export {
+  standardMaterialTextureReadinessReportToJson,
+  standardMaterialTextureReadinessReportToJsonValue,
+};
 
-export type StandardMaterialTextureReadinessDiagnosticCode =
-  | "standardMaterialTexture.missingMaterial"
-  | "standardMaterialTexture.materialNotReady"
-  | "standardMaterialTexture.unsupportedMaterialKind"
-  | "standardMaterialTexture.missingTextureHandle"
-  | "standardMaterialTexture.missingSamplerHandle"
-  | "standardMaterialTexture.textureNotReady"
-  | "standardMaterialTexture.samplerNotReady"
-  | "standardMaterialTexture.unsupportedTexCoord"
-  | "standardMaterialTexture.unsupportedTextureTransform"
-  | "standardMaterialTexture.invalidSemantic"
-  | "standardMaterialTexture.invalidColorSpace"
-  | "standardMaterialTexture.invalidColorSpaceFormat";
-
-export interface StandardMaterialTextureReadinessDiagnostic {
-  readonly code: StandardMaterialTextureReadinessDiagnosticCode;
-  readonly message: string;
-  readonly severity: "warning" | "error";
-  readonly materialKey: string;
-  readonly textureKey?: string;
-  readonly samplerKey?: string;
-  readonly field?: StandardMaterialTextureField;
-  readonly dependencyKind?: "texture" | "sampler";
-  readonly status?: AssetStatus | "missing";
-  readonly expectedSemantic?: TextureSemantic;
-  readonly actualSemantic?: TextureSemantic;
-  readonly expectedColorSpaces?: readonly TextureColorSpace[];
-  readonly actualColorSpace?: TextureColorSpace;
-  readonly expectedFormatSrgb?: boolean;
-  readonly actualFormat?: TextureFormat;
-  readonly texCoord?: number;
-  readonly supportedTexCoords?: readonly number[];
-  readonly textureTransform?: MaterialTextureTransform;
-}
-
-export interface StandardMaterialTextureReadinessSlot {
-  readonly field: StandardMaterialTextureField;
-  readonly textureKey: string;
-  readonly expectedSemantic: TextureSemantic;
-  readonly actualSemantic: TextureSemantic;
-  readonly expectedColorSpaces: readonly TextureColorSpace[];
-  readonly actualColorSpace: TextureColorSpace;
-  readonly actualFormat: TextureFormat;
-  readonly texCoord: number;
-  readonly ready: boolean;
-}
-
-export interface StandardMaterialTextureReadinessReport {
-  readonly ready: boolean;
-  readonly materialKey: string;
-  readonly materialStatus: AssetStatus | "missing";
-  readonly materialKind?: MaterialKind;
-  readonly slots: readonly StandardMaterialTextureReadinessSlot[];
-  readonly diagnostics: readonly StandardMaterialTextureReadinessDiagnostic[];
-}
-
-export interface StandardMaterialTextureReadinessOptions {
-  readonly registry: AssetRegistry;
-  readonly material: MaterialHandle;
-}
-
-export type StandardMaterialTextureReadinessReportJsonValue =
-  StandardMaterialTextureReadinessReport;
-
-interface StandardMaterialTextureExpectation {
-  readonly field: StandardMaterialTextureField;
-  readonly semantic: TextureSemantic;
-  readonly colorSpaces: readonly TextureColorSpace[];
-}
-
-const STANDARD_TEXTURE_EXPECTATIONS = [
-  {
-    field: "baseColorTexture",
-    semantic: "base-color",
-    colorSpaces: ["srgb"],
-  },
-  {
-    field: "metallicRoughnessTexture",
-    semantic: "metallic-roughness",
-    colorSpaces: ["linear", "data"],
-  },
-  {
-    field: "clearcoatTexture",
-    semantic: "data",
-    colorSpaces: ["linear", "data"],
-  },
-  {
-    field: "clearcoatRoughnessTexture",
-    semantic: "clearcoat-roughness",
-    colorSpaces: ["linear", "data"],
-  },
-  {
-    field: "transmissionTexture",
-    semantic: "data",
-    colorSpaces: ["linear", "data"],
-  },
-  {
-    field: "sheenColorTexture",
-    semantic: "sheen-color",
-    colorSpaces: ["srgb"],
-  },
-  {
-    field: "sheenRoughnessTexture",
-    semantic: "sheen-roughness",
-    colorSpaces: ["linear", "data"],
-  },
-  {
-    field: "iridescenceTexture",
-    semantic: "iridescence",
-    colorSpaces: ["linear", "data"],
-  },
-  {
-    field: "iridescenceThicknessTexture",
-    semantic: "iridescence-thickness",
-    colorSpaces: ["linear", "data"],
-  },
-  {
-    field: "normalTexture",
-    semantic: "normal",
-    colorSpaces: ["linear", "data"],
-  },
-  {
-    field: "occlusionTexture",
-    semantic: "occlusion",
-    colorSpaces: ["linear", "data"],
-  },
-  {
-    field: "emissiveTexture",
-    semantic: "emissive",
-    colorSpaces: ["srgb"],
-  },
-] as const satisfies readonly StandardMaterialTextureExpectation[];
-const SUPPORTED_STANDARD_TEXCOORDS = [0, 1] as const;
+export type {
+  StandardMaterialTextureField,
+  StandardMaterialTextureReadinessDiagnostic,
+  StandardMaterialTextureReadinessDiagnosticCode,
+  StandardMaterialTextureReadinessOptions,
+  StandardMaterialTextureReadinessReport,
+  StandardMaterialTextureReadinessReportJsonValue,
+  StandardMaterialTextureReadinessSlot,
+} from "./standard-texture-readiness-types.js";
 
 export function createStandardMaterialTextureReadinessReport(
   options: StandardMaterialTextureReadinessOptions,
@@ -231,42 +114,6 @@ export function createStandardMaterialTextureReadinessReport(
     options.registry,
     materialKey,
     entry.asset,
-  );
-}
-
-export function standardMaterialTextureReadinessReportToJsonValue(
-  report: StandardMaterialTextureReadinessReport,
-): StandardMaterialTextureReadinessReportJsonValue {
-  return {
-    ...report,
-    slots: report.slots.map((slot) => ({
-      ...slot,
-      expectedColorSpaces: [...slot.expectedColorSpaces],
-    })),
-    diagnostics: report.diagnostics.map((diagnostic) => ({
-      ...diagnostic,
-      ...(diagnostic.expectedColorSpaces === undefined
-        ? {}
-        : { expectedColorSpaces: [...diagnostic.expectedColorSpaces] }),
-      ...(diagnostic.supportedTexCoords === undefined
-        ? {}
-        : { supportedTexCoords: [...diagnostic.supportedTexCoords] }),
-      ...(diagnostic.textureTransform === undefined
-        ? {}
-        : {
-            textureTransform: cloneTextureTransform(
-              diagnostic.textureTransform,
-            ),
-          }),
-    })),
-  };
-}
-
-export function standardMaterialTextureReadinessReportToJson(
-  report: StandardMaterialTextureReadinessReport,
-): string {
-  return JSON.stringify(
-    standardMaterialTextureReadinessReportToJsonValue(report),
   );
 }
 
@@ -554,85 +401,4 @@ function pushUnsupportedTexCoordDiagnostic(input: {
     expectedColorSpaces: input.expectation.colorSpaces,
     message: `StandardMaterial ${input.field} uses unsupported texCoord ${input.texCoord}; only TEXCOORD_0 and TEXCOORD_1 are currently rendered.`,
   });
-}
-
-function isSupportedStandardTexCoord(texCoord: number): boolean {
-  return SUPPORTED_STANDARD_TEXCOORDS.includes(
-    texCoord as (typeof SUPPORTED_STANDARD_TEXCOORDS)[number],
-  );
-}
-
-function isIdentityTextureTransform(
-  transform: MaterialTextureTransform,
-): boolean {
-  const offset = transform.offset ?? [0, 0];
-  const scale = transform.scale ?? [1, 1];
-  const rotation = transform.rotation ?? 0;
-
-  return (
-    offset[0] === 0 &&
-    offset[1] === 0 &&
-    scale[0] === 1 &&
-    scale[1] === 1 &&
-    rotation === 0
-  );
-}
-
-function isSupportedStandardTextureTransform(input: {
-  readonly field: StandardMaterialTextureField;
-  readonly texCoord: number;
-  readonly transform: MaterialTextureTransform;
-}): boolean {
-  return (
-    (input.field === "baseColorTexture" ||
-      input.field === "metallicRoughnessTexture" ||
-      input.field === "clearcoatTexture" ||
-      input.field === "normalTexture" ||
-      input.field === "occlusionTexture" ||
-      input.field === "emissiveTexture") &&
-    (input.texCoord === 0 || input.texCoord === 1) &&
-    isFiniteTextureTransform(input.transform)
-  );
-}
-
-function isFiniteTextureTransform(
-  transform: MaterialTextureTransform,
-): boolean {
-  const offset = transform.offset ?? [0, 0];
-  const scale = transform.scale ?? [1, 1];
-  const rotation = transform.rotation ?? 0;
-
-  return (
-    Number.isFinite(offset[0]) &&
-    Number.isFinite(offset[1]) &&
-    Number.isFinite(scale[0]) &&
-    Number.isFinite(scale[1]) &&
-    Number.isFinite(rotation)
-  );
-}
-
-function textureFormatMatchesColorSpace(texture: TextureAsset): boolean {
-  return (
-    isSrgbTextureFormat(texture.format) === (texture.colorSpace === "srgb")
-  );
-}
-
-function isSrgbTextureFormat(format: TextureFormat): boolean {
-  return format.endsWith("-srgb");
-}
-
-function cloneTextureTransform(
-  transform: MaterialTextureTransform,
-): MaterialTextureTransform {
-  return {
-    ...(transform.offset === undefined
-      ? {}
-      : { offset: [transform.offset[0], transform.offset[1]] }),
-    ...(transform.scale === undefined
-      ? {}
-      : { scale: [transform.scale[0], transform.scale[1]] }),
-    ...(transform.rotation === undefined
-      ? {}
-      : { rotation: transform.rotation }),
-  };
 }
