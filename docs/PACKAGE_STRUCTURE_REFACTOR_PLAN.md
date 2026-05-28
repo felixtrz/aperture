@@ -323,10 +323,12 @@ Status: in progress
   validation helpers now live in focused `authoring-*` rendering modules,
   leaving `authoring.ts` as the stable public facade and component registration
   entry point.
-- Packed render snapshot packet registry management and per-packet binary
-  codecs now live in `snapshot-packed-registry.ts` and
-  `snapshot-packed-codecs.ts`, leaving `snapshot-packed-encoding.ts` focused on
-  header validation plus high-level encode/decode orchestration.
+- Packed render snapshot packet registry management now lives in
+  `snapshot-packed-registry.ts`, packet-family binary codecs now live in
+  focused `snapshot-packed-*-codec.ts` modules, and
+  `snapshot-packed-codecs.ts` remains the stable re-export facade, leaving
+  `snapshot-packed-encoding.ts` focused on header validation plus high-level
+  encode/decode orchestration.
 - glTF texture decoded-image resolver normalization now lives in
   `packages/render/src/materials/gltf-texture-resolution.ts`, keeping
   `gltf-texture.ts` focused on texture/source/sampler mapping and asset report
