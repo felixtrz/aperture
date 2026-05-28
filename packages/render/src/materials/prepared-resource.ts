@@ -1,76 +1,30 @@
-import {
-  assetHandleKey,
-  type AssetHandle,
-  type AssetRegistry,
-  type MaterialHandle,
-} from "@aperture-engine/simulation";
-import { materialTextureBindings } from "./bindings.js";
+import { assetHandleKey } from "@aperture-engine/simulation";
 import {
   createMaterialDependencyReadinessReport,
   materialDependencyReadinessReportToJsonValue,
-  type MaterialAssetDependencyReadinessDiagnostic,
-  type MaterialAssetDependencyReadinessReportJsonValue,
 } from "./dependency-readiness.js";
 import {
   createMaterialPipelineKeyInput,
   materialPipelineKeyInputToKey,
 } from "./pipeline-key.js";
+import type { MaterialAsset } from "./types.js";
+import {
+  collectMaterialDependencyKeys,
+  collectTextureBindingResources,
+} from "./prepared-resource-dependencies.js";
 import type {
-  MaterialAsset,
-  MaterialKind,
-  MaterialPipelineKeyInput,
-} from "./types.js";
+  CreatePreparedMaterialResourceDescriptorOptions,
+  CreatePreparedMaterialResourceDescriptorResult,
+} from "./prepared-resource-types.js";
 import { validateMaterialAsset } from "./validation.js";
 
-export type PreparedMaterialResourceDiagnostic =
-  | MaterialAssetDependencyReadinessDiagnostic
-  | {
-      readonly code:
-        | "preparedMaterialResource.missingMaterial"
-        | "preparedMaterialResource.materialNotReady"
-        | "preparedMaterialResource.unsupportedMaterialKind"
-        | "preparedMaterialResource.invalidMaterial";
-      readonly message: string;
-      readonly materialKey: string;
-      readonly expectedMaterialFamily?: MaterialKind;
-      readonly actualMaterialFamily?: MaterialKind;
-      readonly field?: string;
-    };
-
-export interface PreparedMaterialTextureBindingResource {
-  readonly field: string;
-  readonly textureKey: string;
-  readonly samplerKey: string;
-  readonly texCoord?: number;
-}
-
-export interface PreparedMaterialResourceDescriptor {
-  readonly resourceFamily: "material";
-  readonly sourceMaterialKey: string;
-  readonly materialKey: string;
-  readonly label: string;
-  readonly materialFamily: MaterialKind;
-  readonly materialKind: MaterialKind;
-  readonly pipelineKey: string;
-  readonly pipelineKeyInput: MaterialPipelineKeyInput;
-  readonly materialResourceKey: string;
-  readonly bindGroupResourceKey: string;
-  readonly dependencies: readonly string[];
-  readonly textureBindings: readonly PreparedMaterialTextureBindingResource[];
-  readonly dependencyReadiness: MaterialAssetDependencyReadinessReportJsonValue;
-}
-
-export interface CreatePreparedMaterialResourceDescriptorOptions {
-  readonly registry: AssetRegistry;
-  readonly material: MaterialHandle;
-  readonly expectedMaterialFamily?: MaterialKind;
-}
-
-export interface CreatePreparedMaterialResourceDescriptorResult {
-  readonly valid: boolean;
-  readonly descriptor: PreparedMaterialResourceDescriptor | null;
-  readonly diagnostics: readonly PreparedMaterialResourceDiagnostic[];
-}
+export type {
+  CreatePreparedMaterialResourceDescriptorOptions,
+  CreatePreparedMaterialResourceDescriptorResult,
+  PreparedMaterialResourceDescriptor,
+  PreparedMaterialResourceDiagnostic,
+  PreparedMaterialTextureBindingResource,
+} from "./prepared-resource-types.js";
 
 export function createPreparedMaterialResourceDescriptor(
   options: CreatePreparedMaterialResourceDescriptorOptions,
@@ -243,56 +197,4 @@ export function preparedMaterialBindGroupResourceKey(input: {
   readonly pipelineKey: string;
 }): string {
   return `prepared-material-bind-group:${input.sourceMaterialKey}|pipeline:${input.pipelineKey}`;
-}
-
-function collectMaterialDependencyKeys(
-  material: MaterialAsset,
-): readonly string[] {
-  const dependencyKeys: string[] = [];
-  const seen = new Set<string>();
-
-  for (const [, binding] of materialTextureBindings(material)) {
-    appendDependencyKey(binding.texture, dependencyKeys, seen);
-    appendDependencyKey(binding.sampler, dependencyKeys, seen);
-  }
-
-  return dependencyKeys;
-}
-
-function collectTextureBindingResources(
-  material: MaterialAsset,
-): readonly PreparedMaterialTextureBindingResource[] {
-  const resources: PreparedMaterialTextureBindingResource[] = [];
-
-  for (const [field, binding] of materialTextureBindings(material)) {
-    if (binding.texture === null || binding.sampler === null) {
-      continue;
-    }
-
-    resources.push({
-      field,
-      textureKey: assetHandleKey(binding.texture),
-      samplerKey: assetHandleKey(binding.sampler),
-      ...(binding.texCoord === undefined ? {} : { texCoord: binding.texCoord }),
-    });
-  }
-
-  return resources;
-}
-
-function appendDependencyKey(
-  handle: AssetHandle | null,
-  dependencyKeys: string[],
-  seen: Set<string>,
-): void {
-  if (handle === null) {
-    return;
-  }
-
-  const key = assetHandleKey(handle);
-
-  if (!seen.has(key)) {
-    seen.add(key);
-    dependencyKeys.push(key);
-  }
 }
