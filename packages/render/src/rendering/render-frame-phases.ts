@@ -2,13 +2,13 @@ import type {
   PlanRenderQueueOptions,
   RenderQueuePlan,
   RenderQueueScratch,
-} from "./render-queue.js";
+} from "./render-queue-types.js";
 import {
   batchStaticRenderQueueRecords,
   sortRenderQueueRecords,
   writeRenderQueueSortPhases,
-  writeUnsortedRenderQueueRecords,
-} from "./render-queue.js";
+} from "./render-queue-sort.js";
+import { writeUnsortedRenderQueueRecords } from "./render-queue.js";
 import type { RenderWorldDrawReadinessReport } from "./render-world.js";
 import type { PackedSnapshotTransforms } from "./transform-pack.js";
 

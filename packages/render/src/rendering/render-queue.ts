@@ -2,132 +2,50 @@ import type {
   RenderWorldDrawReadinessReport,
   RenderWorldReadyDraw,
 } from "./render-world.js";
-import type { RenderDiagnostic } from "./snapshot.js";
-import {
-  compareStateAwareRenderRecords,
-  OPAQUE_STATE_SORT_POLICY_NAME,
-} from "./render-state-sort.js";
 import type { PackedSnapshotTransforms } from "./transform-pack.js";
+import {
+  DEFAULT_RENDER_QUEUE_PASS_ID,
+  DEFAULT_RENDER_QUEUE_VIEW_ID,
+  type PlanRenderQueueOptions,
+  type RenderQueueKind,
+  type RenderQueuePlan,
+  type RenderQueueScratch,
+} from "./render-queue-types.js";
+import {
+  createRenderQueueScratch,
+  renderQueueRecordAt,
+} from "./render-queue-scratch.js";
+import {
+  batchStaticRenderQueueRecords,
+  coalesceRenderQueueRecords,
+  sortRenderQueueRecords,
+  writeRenderQueueSortPhases,
+} from "./render-queue-sort.js";
 
-export const DEFAULT_RENDER_QUEUE_VIEW_ID = "default";
-export const DEFAULT_RENDER_QUEUE_PASS_ID = "main";
-
-export type RenderQueueKind = "opaque" | "transparent";
-
-export interface RenderQueueScope {
-  readonly viewId: string;
-  readonly passId: string;
-  readonly queueKind: RenderQueueKind;
-}
-
-export interface RenderQueueRecord {
-  readonly renderId: number;
-  readonly sortOrdinal: number;
-  readonly viewId: string;
-  readonly passId: string;
-  readonly queueKind: RenderQueueKind;
-  readonly packet: RenderWorldReadyDraw["packet"];
-  readonly submesh: number;
-  readonly materialSlot: number;
-  readonly vertexStart?: number;
-  readonly vertexCount?: number;
-  readonly indexStart?: number;
-  readonly indexCount?: number;
-  readonly meshResourceKey: string;
-  readonly materialResourceKey: string;
-  readonly pipelineKey: string;
-  readonly materialKey: string;
-  readonly meshLayoutKey: string;
-  readonly batchKey: RenderWorldReadyDraw["batchKey"];
-  readonly sortKey: RenderWorldReadyDraw["packet"]["sortKey"];
-  readonly transformPackedOffset: number;
-  readonly instanceCount: number;
-  readonly drawKind: "single" | "instanced" | "static-merged";
-  readonly sourceRecordCount: number;
-  readonly sourceRenderIds: readonly number[];
-  readonly sourceMeshResourceKeys: readonly string[];
-}
-
-export interface RenderQueueSortPhaseReport {
-  readonly phase: RenderQueueKind;
-  readonly recordCount: number;
-  readonly sortPolicy: RenderQueueSortPolicyReport;
-  readonly durationUs?: number;
-}
-
-export type RenderQueueSortPolicyName =
-  | typeof OPAQUE_STATE_SORT_POLICY_NAME
-  | "transparent-order-back-to-front-stable";
-
-export type RenderQueueDepthOrder = "front-to-back" | "back-to-front";
-
-export interface RenderQueueSortPolicyReport {
-  readonly name: RenderQueueSortPolicyName;
-  readonly depthOrder: RenderQueueDepthOrder;
-  readonly primaryKeys: readonly string[];
-  readonly tieBreakers: readonly string[];
-  readonly totalOrder: true;
-}
-
-export interface RenderQueuePlan {
-  readonly records: readonly RenderQueueRecord[];
-  readonly diagnostics: readonly RenderDiagnostic[];
-  readonly sortPhases: readonly RenderQueueSortPhaseReport[];
-}
-
-export interface PlanRenderQueueOptions {
-  readonly scope?: Partial<RenderQueueScope>;
-  readonly staticBatching?: RenderQueueStaticBatchingOptions;
-}
-
-export interface RenderQueueStaticBatchingOptions {
-  readonly enabled?: boolean;
-  readonly maxRecordsPerBatch?: number;
-}
-
-export interface RenderQueueScratch {
-  readonly records: RenderQueueRecord[];
-  readonly diagnostics: RenderDiagnostic[];
-  readonly sortPhases: RenderQueueSortPhaseReport[];
-  readonly sortPhasePool: RenderQueueSortPhaseReport[];
-  readonly recordPool: RenderQueueRecord[];
-  readonly plan: RenderQueuePlan;
-}
-
-interface MutableRenderQueueSortPhaseReport {
-  phase: RenderQueueKind;
-  recordCount: number;
-  sortPolicy: RenderQueueSortPolicyReport;
-  durationUs?: number;
-}
-
-interface MutableRenderQueueRecord {
-  renderId: number;
-  sortOrdinal: number;
-  viewId: string;
-  passId: string;
-  queueKind: RenderQueueKind;
-  packet: RenderWorldReadyDraw["packet"];
-  submesh: number;
-  materialSlot: number;
-  vertexStart?: number;
-  vertexCount?: number;
-  indexStart?: number;
-  indexCount?: number;
-  meshResourceKey: string;
-  materialResourceKey: string;
-  pipelineKey: string;
-  materialKey: string;
-  meshLayoutKey: string;
-  batchKey: RenderWorldReadyDraw["batchKey"];
-  sortKey: RenderWorldReadyDraw["packet"]["sortKey"];
-  transformPackedOffset: number;
-  instanceCount: number;
-  drawKind: "single" | "instanced" | "static-merged";
-  sourceRecordCount: number;
-  readonly sourceRenderIds: number[];
-  readonly sourceMeshResourceKeys: string[];
-}
+export {
+  DEFAULT_RENDER_QUEUE_PASS_ID,
+  DEFAULT_RENDER_QUEUE_VIEW_ID,
+  type PlanRenderQueueOptions,
+  type RenderQueueDepthOrder,
+  type RenderQueueKind,
+  type RenderQueuePlan,
+  type RenderQueueRecord,
+  type RenderQueueScope,
+  type RenderQueueScratch,
+  type RenderQueueSortPhaseReport,
+  type RenderQueueSortPolicyName,
+  type RenderQueueSortPolicyReport,
+  type RenderQueueStaticBatchingOptions,
+} from "./render-queue-types.js";
+export { createRenderQueueScratch } from "./render-queue-scratch.js";
+export {
+  batchStaticRenderQueueRecords,
+  coalesceRenderQueueRecords,
+  compareRenderQueueRecords,
+  renderQueueSortPolicyForPhase,
+  sortRenderQueueRecords,
+  writeRenderQueueSortPhases,
+} from "./render-queue-sort.js";
 
 export function planRenderQueueRecords(
   readiness: RenderWorldDrawReadinessReport,
@@ -139,38 +57,6 @@ export function planRenderQueueRecords(
   writeRenderQueueRecords(readiness, transforms, scratch, options);
 
   return scratch.plan;
-}
-
-export function createRenderQueueScratch(capacity = 0): RenderQueueScratch {
-  const recordPool: RenderQueueRecord[] = [];
-  const records: RenderQueueRecord[] = [];
-  const diagnostics: RenderDiagnostic[] = [];
-  const sortPhases: RenderQueueSortPhaseReport[] = [];
-  const sortPhasePool: RenderQueueSortPhaseReport[] = [
-    {
-      phase: "opaque",
-      recordCount: 0,
-      sortPolicy: renderQueueSortPolicyForPhase("opaque"),
-    },
-    {
-      phase: "transparent",
-      recordCount: 0,
-      sortPolicy: renderQueueSortPolicyForPhase("transparent"),
-    },
-  ];
-
-  for (let i = 0; i < capacity; i += 1) {
-    recordPool.push(createEmptyRecord());
-  }
-
-  return {
-    records,
-    diagnostics,
-    sortPhases,
-    sortPhasePool,
-    recordPool,
-    plan: { records, diagnostics, sortPhases },
-  };
 }
 
 export function writeRenderQueueRecords(
@@ -235,7 +121,7 @@ export function writeUnsortedRenderQueueRecords(
       continue;
     }
 
-    const record = recordAt(scratch, scratch.records.length);
+    const record = renderQueueRecordAt(scratch, scratch.records.length);
 
     record.renderId = draw.renderId;
     record.sortOrdinal = scratch.records.length;
@@ -271,135 +157,6 @@ export function writeUnsortedRenderQueueRecords(
   return scratch.plan;
 }
 
-export function sortRenderQueueRecords(
-  records: RenderQueueRecord[],
-): RenderQueueRecord[] {
-  records.sort(compareRenderQueueRecords);
-  return records;
-}
-
-export function compareRenderQueueRecords(
-  a: RenderQueueRecord,
-  b: RenderQueueRecord,
-): number {
-  return compareStateAwareRenderRecords(a, b) || a.sortOrdinal - b.sortOrdinal;
-}
-
-export function coalesceRenderQueueRecords(
-  records: RenderQueueRecord[],
-): RenderQueueRecord[] {
-  if (records.length < 2) {
-    return records;
-  }
-
-  let writeIndex = 1;
-
-  for (let readIndex = 1; readIndex < records.length; readIndex += 1) {
-    const previous = records[writeIndex - 1] as
-      | MutableRenderQueueRecord
-      | undefined;
-    const record = records[readIndex];
-
-    if (previous === undefined || record === undefined) {
-      continue;
-    }
-
-    if (canCoalesceRenderQueueRecord(previous, record)) {
-      previous.instanceCount += record.instanceCount;
-      previous.drawKind = "instanced";
-      previous.sourceRecordCount += record.sourceRecordCount;
-      appendSources(previous, record);
-      continue;
-    }
-
-    records[writeIndex] = record;
-    writeIndex += 1;
-  }
-
-  records.length = writeIndex;
-  return records;
-}
-
-export function batchStaticRenderQueueRecords(
-  records: RenderQueueRecord[],
-  options?: RenderQueueStaticBatchingOptions,
-): RenderQueueRecord[] {
-  if (!options?.enabled || records.length < 2) {
-    return records;
-  }
-
-  const maxRecordsPerBatch = Math.max(
-    1,
-    Math.floor(options.maxRecordsPerBatch ?? 4),
-  );
-  let writeIndex = 1;
-
-  for (let readIndex = 1; readIndex < records.length; readIndex += 1) {
-    const previous = records[writeIndex - 1] as
-      | MutableRenderQueueRecord
-      | undefined;
-    const record = records[readIndex];
-
-    if (previous === undefined || record === undefined) {
-      continue;
-    }
-
-    if (canBatchStaticRenderQueueRecord(previous, record, maxRecordsPerBatch)) {
-      previous.drawKind = "static-merged";
-      previous.sourceRecordCount += record.sourceRecordCount;
-      appendSources(previous, record);
-      continue;
-    }
-
-    records[writeIndex] = record;
-    writeIndex += 1;
-  }
-
-  records.length = writeIndex;
-  return records;
-}
-
-export function writeRenderQueueSortPhases(
-  records: readonly RenderQueueRecord[],
-  output: RenderQueueSortPhaseReport[],
-  pool: RenderQueueSortPhaseReport[] = [],
-): readonly RenderQueueSortPhaseReport[] {
-  output.length = 0;
-
-  let opaque = 0;
-  let transparent = 0;
-
-  for (const record of records) {
-    if (record.queueKind === "transparent") {
-      transparent += 1;
-    } else {
-      opaque += 1;
-    }
-  }
-
-  if (opaque > 0) {
-    const phase = sortPhaseAt(pool, output.length);
-
-    phase.phase = "opaque";
-    phase.recordCount = opaque;
-    phase.sortPolicy = renderQueueSortPolicyForPhase("opaque");
-    delete phase.durationUs;
-    output.push(phase);
-  }
-
-  if (transparent > 0) {
-    const phase = sortPhaseAt(pool, output.length);
-
-    phase.phase = "transparent";
-    phase.recordCount = transparent;
-    phase.sortPolicy = renderQueueSortPolicyForPhase("transparent");
-    delete phase.durationUs;
-    output.push(phase);
-  }
-
-  return output;
-}
-
 function findPackedTransformOffset(
   transforms: PackedSnapshotTransforms,
   renderId: number,
@@ -419,115 +176,6 @@ function renderQueueKindFromSortKey(
   return sortKey.queue === "transparent" ? "transparent" : "opaque";
 }
 
-function canCoalesceRenderQueueRecord(
-  previous: RenderQueueRecord,
-  record: RenderQueueRecord,
-): boolean {
-  return (
-    previous.queueKind !== "transparent" &&
-    record.queueKind !== "transparent" &&
-    previous.viewId === record.viewId &&
-    previous.passId === record.passId &&
-    previous.queueKind === record.queueKind &&
-    previous.meshResourceKey === record.meshResourceKey &&
-    previous.materialResourceKey === record.materialResourceKey &&
-    previous.pipelineKey === record.pipelineKey &&
-    previous.materialKey === record.materialKey &&
-    previous.meshLayoutKey === record.meshLayoutKey &&
-    batchKeysMatch(previous.batchKey, record.batchKey) &&
-    drawRangesMatch(previous, record) &&
-    previous.transformPackedOffset + previous.instanceCount * 16 ===
-      record.transformPackedOffset
-  );
-}
-
-function canBatchStaticRenderQueueRecord(
-  previous: RenderQueueRecord,
-  record: RenderQueueRecord,
-  maxRecordsPerBatch: number,
-): boolean {
-  return (
-    maxRecordsPerBatch > 1 &&
-    previous.queueKind === "opaque" &&
-    record.queueKind === "opaque" &&
-    previous.drawKind !== "instanced" &&
-    record.drawKind === "single" &&
-    previous.instanceCount === 1 &&
-    record.instanceCount === 1 &&
-    previous.sourceRecordCount + record.sourceRecordCount <=
-      maxRecordsPerBatch &&
-    previous.viewId === record.viewId &&
-    previous.passId === record.passId &&
-    previous.meshResourceKey !== record.meshResourceKey &&
-    previous.materialResourceKey === record.materialResourceKey &&
-    previous.pipelineKey === record.pipelineKey &&
-    previous.materialKey === record.materialKey &&
-    previous.meshLayoutKey === record.meshLayoutKey &&
-    batchKeysMatch(previous.batchKey, record.batchKey) &&
-    !previous.batchKey.instanced &&
-    !previous.batchKey.skinned &&
-    !previous.batchKey.morphed
-  );
-}
-
-function appendSources(
-  previous: MutableRenderQueueRecord,
-  record: RenderQueueRecord,
-): void {
-  for (const renderId of record.sourceRenderIds) {
-    previous.sourceRenderIds.push(renderId);
-  }
-
-  for (const meshResourceKey of record.sourceMeshResourceKeys) {
-    previous.sourceMeshResourceKeys.push(meshResourceKey);
-  }
-}
-
-function batchKeysMatch(
-  a: RenderWorldReadyDraw["batchKey"],
-  b: RenderWorldReadyDraw["batchKey"],
-): boolean {
-  return (
-    a.pipelineKey === b.pipelineKey &&
-    a.materialKey === b.materialKey &&
-    a.meshLayoutKey === b.meshLayoutKey &&
-    a.topology === b.topology &&
-    a.instanced === b.instanced &&
-    a.skinned === b.skinned &&
-    a.morphed === b.morphed
-  );
-}
-
-function drawRangesMatch(
-  a: Pick<
-    RenderQueueRecord,
-    | "submesh"
-    | "materialSlot"
-    | "vertexStart"
-    | "vertexCount"
-    | "indexStart"
-    | "indexCount"
-  >,
-  b: Pick<
-    RenderQueueRecord,
-    | "submesh"
-    | "materialSlot"
-    | "vertexStart"
-    | "vertexCount"
-    | "indexStart"
-    | "indexCount"
-  >,
-): boolean {
-  return (
-    a.submesh === b.submesh &&
-    a.materialSlot === b.materialSlot &&
-    a.vertexStart === b.vertexStart &&
-    a.vertexCount === b.vertexCount &&
-    a.indexStart === b.indexStart &&
-    a.indexCount === b.indexCount
-  );
-}
-
 function assignOptionalNumber<T extends object, K extends keyof T>(
   target: T,
   key: K,
@@ -540,108 +188,3 @@ function assignOptionalNumber<T extends object, K extends keyof T>(
 
   target[key] = value as T[K];
 }
-
-function recordAt(
-  scratch: RenderQueueScratch,
-  index: number,
-): MutableRenderQueueRecord {
-  const existing = scratch.recordPool[index] as
-    | MutableRenderQueueRecord
-    | undefined;
-
-  if (existing !== undefined) {
-    return existing;
-  }
-
-  const record = createEmptyRecord();
-
-  scratch.recordPool.push(record);
-  return record;
-}
-
-function sortPhaseAt(
-  pool: RenderQueueSortPhaseReport[],
-  index: number,
-): MutableRenderQueueSortPhaseReport {
-  const existing = pool[index] as MutableRenderQueueSortPhaseReport | undefined;
-
-  if (existing !== undefined) {
-    return existing;
-  }
-
-  const phase: MutableRenderQueueSortPhaseReport = {
-    phase: "opaque",
-    recordCount: 0,
-    sortPolicy: renderQueueSortPolicyForPhase("opaque"),
-  };
-
-  pool.push(phase);
-  return phase;
-}
-
-function createEmptyRecord(): MutableRenderQueueRecord {
-  return {
-    renderId: 0,
-    sortOrdinal: 0,
-    viewId: DEFAULT_RENDER_QUEUE_VIEW_ID,
-    passId: DEFAULT_RENDER_QUEUE_PASS_ID,
-    queueKind: "opaque",
-    packet: null as unknown as RenderWorldReadyDraw["packet"],
-    submesh: 0,
-    materialSlot: 0,
-    meshResourceKey: "",
-    materialResourceKey: "",
-    pipelineKey: "",
-    materialKey: "",
-    meshLayoutKey: "",
-    batchKey: null as unknown as RenderWorldReadyDraw["batchKey"],
-    sortKey: null as unknown as RenderWorldReadyDraw["packet"]["sortKey"],
-    transformPackedOffset: 0,
-    instanceCount: 1,
-    drawKind: "single",
-    sourceRecordCount: 1,
-    sourceRenderIds: [],
-    sourceMeshResourceKeys: [],
-  };
-}
-
-export function renderQueueSortPolicyForPhase(
-  phase: RenderQueueKind,
-): RenderQueueSortPolicyReport {
-  return phase === "transparent"
-    ? TRANSPARENT_RENDER_QUEUE_SORT_POLICY
-    : OPAQUE_RENDER_QUEUE_SORT_POLICY;
-}
-
-const OPAQUE_RENDER_QUEUE_SORT_POLICY: RenderQueueSortPolicyReport = {
-  name: OPAQUE_STATE_SORT_POLICY_NAME,
-  depthOrder: "front-to-back",
-  primaryKeys: [
-    "queue",
-    "viewId",
-    "layer",
-    "order",
-    "pipelineKey",
-    "materialResourceKey",
-    "meshLayoutKey",
-    "meshResourceKey",
-    "depth",
-  ],
-  tieBreakers: ["stableId", "renderId", "sortOrdinal"],
-  totalOrder: true,
-};
-
-const TRANSPARENT_RENDER_QUEUE_SORT_POLICY: RenderQueueSortPolicyReport = {
-  name: "transparent-order-back-to-front-stable",
-  depthOrder: "back-to-front",
-  primaryKeys: ["queue", "viewId", "layer", "order", "depth"],
-  tieBreakers: [
-    "stableId",
-    "pipelineKey",
-    "materialKey",
-    "meshKey",
-    "renderId",
-    "sortOrdinal",
-  ],
-  totalOrder: true,
-};
