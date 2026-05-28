@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "095b8199",
+  "lastCommit": "2a827707",
   "activePid": null,
-  "notes": "Advanced APP_CLI_STRUCTURE_REFACTOR_PLAN Track 11 by splitting MCP/tool client internals under packages/cli/src/tools/ while preserving packages/cli/src/devtools-client.ts as the public facade; CLI typecheck, targeted dev-session/reference tests, typecheck:test, boundaries, build, progress check, focused lint/format, and diff check passed.",
-  "lastRunFinishedAt": "2026-05-28T16:14:22Z"
+  "notes": "Advanced APP_CLI_STRUCTURE_REFACTOR_PLAN Track 12 by splitting reference/RAG implementation under packages/cli/src/reference/ while preserving packages/cli/src/reference.ts as the public facade; CLI typecheck, targeted reference/dev-session tests, typecheck:test, boundaries, build, progress check, focused lint/format, and diff check passed.",
+  "lastRunFinishedAt": "2026-05-28T16:25:18Z"
 }

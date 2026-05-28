@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-28T16:14:22Z
+Updated: 2026-05-28T16:25:18Z
+
+## Current Run Update — 2026-05-28T16:25:18Z — CLI reference split
+
+Continued `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Kept `packages/cli/src/reference.ts` as the public reference facade.
+- Moved reference/RAG implementation under `packages/cli/src/reference/`.
+- Split public contracts, model contract, build/corpus ingestion, entry
+  creation, manifest validation, warmup payload installation, status reporting,
+  index IO, source readback, component/system listing, search, dependent lookup,
+  paths, state/cache handling, embeddings, chunking, source collection, source
+  filtering, and reference MCP tool contracts into focused modules.
+- Preserved the reference ingestion policy, search/dependent lookup behavior,
+  warmed payload shape, and public reference exports.
+- Recorded Track 12 progress in `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md` and
+  `docs/index.html`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm exec prettier --write packages/cli/src/reference.ts "packages/cli/src/reference/**/*.ts"`
+- `pnpm exec eslint packages/cli/src/reference.ts "packages/cli/src/reference/**/*.ts"`
+- `pnpm exec vitest run test/cli/reference.test.ts test/cli/dev-session.test.ts test/index.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md docs/index.html packages/cli/src/reference.ts "packages/cli/src/reference/**/*.ts"`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Export/boundary guard Track 13 remains.
+
+### Recommended next task
+
+Continue with Track 13 export and boundary guards.
 
 ## Current Run Update — 2026-05-28T16:14:22Z — CLI tool client split
 
