@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-28T07:45:45Z
+Updated: 2026-05-28T07:49:16Z
+
+## Current Run Update — 2026-05-28T07:49:16Z — glTF URI image decode task split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split per-image glTF URI image decode task handling from
+  `packages/render/src/assets/gltf-uri-images.ts` into
+  `packages/render/src/assets/gltf-uri-image-decode-task.ts`.
+- Moved image source validation, image-byte readiness/status mapping, decode
+  cache keying, KTX2 transcoder resolution, `loadGltfTextureAsync()` dispatch,
+  and image decode error/status conversion into the focused task module.
+- Kept `gltf-uri-images.ts` as the decode orchestration and aggregation facade:
+  image list traversal, concurrency control, cache/context setup, and final
+  decoded-image/status/diagnostic collection.
+- Updated the package-structure plan and public progress tracker for the new
+  glTF URI image decode task module boundary.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-uri-images.ts packages/render/src/assets/gltf-uri-image-decode-task.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-uri-images.ts packages/render/src/assets/gltf-uri-image-decode-task.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-uri-images.ts packages/render/src/assets/gltf-uri-image-decode-task.ts`
+- `pnpm exec vitest run test/assets/gltf-uri-loader.test.ts test/assets/gltf-source-loader-facade.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/gltf-scene-import-contract.test.ts test/materials/gltf-texture.test.ts test/assets/gltf-asset-mapping.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `extraction-meshes.ts`,
+  `gltf-uri-loader.ts`, `snapshot-types.ts`, and other medium
+  render/material/asset modules still near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium render extraction/material/asset
+hotspot.
 
 ## Current Run Update — 2026-05-28T07:45:45Z — GLB URI image decode task split
 
