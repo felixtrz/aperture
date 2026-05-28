@@ -1,14 +1,9 @@
 import {
-  assetHandleKey,
   Enabled,
   type AssetRegistry,
   type EcsWorld,
   WorldTransform,
 } from "@aperture-engine/simulation";
-import {
-  createMaterialPipelineKeyInput,
-  type MaterialAsset,
-} from "../materials/index.js";
 import { type MeshAsset, validateMeshAsset } from "../mesh/index.js";
 import {
   InstanceData,
@@ -16,16 +11,12 @@ import {
   Mesh,
   OcclusionQuery,
   RenderLayer,
-  RenderOrder,
   ShadowCaster,
   ShadowReceiver,
   Skin,
   Visibility,
 } from "./index.js";
 import {
-  createBatchCompatibilityKey,
-  createRenderSortKey,
-  createStableRenderId,
   type BoundsPacket,
   type FogPacket,
   type InstanceAttributePacket,
@@ -38,25 +29,14 @@ import {
   isVisibleInAnyMatchingView,
   type ViewCullContext,
 } from "./extraction-culling.js";
-import {
-  validateMaterialTextureDependencies,
-  validateStandardMaterialTextureReadiness,
-  validateStandardMaterialUvSetReadiness,
-  validateStandardNormalMapReadiness,
-} from "./extraction-asset-validation.js";
-import { diagnostic, entityRef } from "./extraction-diagnostics.js";
+import { diagnostic } from "./extraction-diagnostics.js";
 import { sortedEntities } from "./extraction-entities.js";
 import { parseMaterialHandle, parseMeshHandle } from "./extraction-inputs.js";
 import {
   pushInstanceAttributePacket,
   pushInstanceTint,
 } from "./extraction-mesh-instances.js";
-import {
-  createExtractedMaterialPipelineKeyInput,
-  materialQueue,
-  readMaterialSlots,
-  selectFogModeForLayer,
-} from "./extraction-mesh-materials.js";
+import { readMaterialSlots } from "./extraction-mesh-materials.js";
 import {
   appendCachedMeshDrawEntity,
   createMeshDrawPacketTemplate,
@@ -70,7 +50,7 @@ import {
   readMorphTargetWeights,
   readSkinning,
 } from "./extraction-mesh-deformation.js";
-import { meshLayoutStreamToken } from "./extraction-mesh-layout.js";
+import { createMeshSubmeshDraws } from "./extraction-mesh-submeshes.js";
 import { pushMatrix, readWorldMatrix } from "./extraction-matrices.js";
 
 export {
@@ -278,163 +258,33 @@ export function extractMeshDraws(
       entity.getValue(Material, "materialId") ?? "",
     );
     const materialSlots = readMaterialSlots(entity, diagnostics);
-
-    for (
-      let submeshIndex = 0;
-      submeshIndex < meshEntry.asset.submeshes.length;
-      submeshIndex += 1
-    ) {
-      const submesh = meshEntry.asset.submeshes[submeshIndex];
-
-      if (submesh === undefined) {
-        continue;
-      }
-
-      const materialHandle =
-        materialSlots.get(submesh.materialSlot) ?? primaryMaterialHandle;
-      const materialEntry =
-        materialHandle === null
-          ? undefined
-          : assets.get<"material", MaterialAsset>(materialHandle);
-
-      if (materialHandle === null || materialEntry === undefined) {
-        diagnostics.push(diagnostic("render.missingMaterialHandle", entity));
-        continue;
-      }
-
-      if (materialEntry.status !== "ready" || materialEntry.asset === null) {
-        diagnostics.push(
-          diagnostic(
-            `render.material.${materialEntry.status}`,
-            entity,
-            materialHandle,
-          ),
-        );
-        continue;
-      }
-
-      if (
-        !validateMaterialTextureDependencies(
-          materialEntry.asset,
-          materialHandle,
-          assets,
-          entity,
-          diagnostics,
-        )
-      ) {
-        continue;
-      }
-
-      const materialKey = assetHandleKey(materialHandle);
-      const meshKey = assetHandleKey(meshHandle);
-
-      if (
-        materialEntry.asset.kind === "standard" &&
-        !validateStandardMaterialTextureReadiness({
-          registry: assets,
-          material: materialHandle,
-          entity,
-          diagnostics,
-        })
-      ) {
-        continue;
-      }
-
-      if (
-        materialEntry.asset.kind === "standard" &&
-        !validateStandardMaterialUvSetReadiness({
-          mesh: meshEntry.asset,
-          material: materialEntry.asset,
-          meshKey,
-          materialKey,
-          entity,
-          diagnostics,
-        })
-      ) {
-        continue;
-      }
-
-      const queue = materialQueue(materialEntry.asset);
-      const baseMaterialPipeline = createMaterialPipelineKeyInput(
-        materialEntry.asset,
-      );
-      const materialPipeline = createExtractedMaterialPipelineKeyInput({
-        base: baseMaterialPipeline,
-        material: materialEntry.asset,
-        instanceTint: instanceTintOffset !== undefined,
-        skinned: skinning !== undefined,
-        morphed: morphWeights !== undefined,
-        fogMode: selectFogModeForLayer(layerMask, fogs),
-      });
-
-      const stableId = createStableRenderId(entityRef(entity)) + submeshIndex;
-      const normalMapReadiness = validateStandardNormalMapReadiness({
-        mesh: meshEntry.asset,
-        material: materialEntry.asset,
-        meshKey,
-        materialKey,
+    entityDraws.push(
+      ...createMeshSubmeshDraws({
+        assets,
         entity,
+        mesh: meshEntry.asset,
+        meshHandle,
+        primaryMaterialHandle,
+        materialSlots,
         diagnostics,
-      });
-
-      if (!normalMapReadiness) {
-        continue;
-      }
-
-      entityDraws.push({
-        renderId: stableId,
-        entity: entityRef(entity),
-        mesh: meshHandle,
-        material: materialHandle,
-        submesh: submeshIndex,
-        materialSlot: submesh.materialSlot,
-        vertexStart: submesh.vertexStart,
-        vertexCount: submesh.vertexCount,
-        indexStart: submesh.indexStart,
-        indexCount: submesh.indexCount,
         worldTransformOffset,
         ...(instanceTintOffset === undefined ? {} : { instanceTintOffset }),
         ...(instanceAttributePacketIndex === undefined
           ? {}
           : { instanceAttributePacketIndex }),
-        ...(boneMatrixOffset === undefined || skinning === undefined
-          ? {}
-          : {
-              boneMatrixOffset,
-              boneMatrixCount: skinning.jointCount,
-            }),
+        ...(boneMatrixOffset === undefined ? {} : { boneMatrixOffset }),
+        ...(skinning === undefined ? {} : { skinning }),
+        ...(morphWeights === undefined ? {} : { morphWeights }),
         boundsIndex,
         layerMask,
         castsShadow,
         receivesShadow,
-        ...(occlusionQuery ? { occlusionQuery } : {}),
-        sortKey: createRenderSortKey({
-          queue,
-          viewId: sortViewId,
-          layer: layerMask,
-          order: entity.hasComponent(RenderOrder)
-            ? (entity.getValue(RenderOrder, "value") ?? 0)
-            : 0,
-          depth: sortDepth,
-          materialKey,
-          meshKey,
-          stableId,
-        }),
-        batchKey: createBatchCompatibilityKey({
-          materialPipeline,
-          materialKey,
-          meshLayoutKey: meshEntry.asset.vertexStreams
-            .map(meshLayoutStreamToken)
-            .join("|"),
-          topology: submesh.topology,
-          skinned:
-            skinning !== undefined && materialEntry.asset.kind === "standard",
-          morphed:
-            morphWeights !== undefined &&
-            materialEntry.asset.kind === "standard",
-        }),
-      });
-    }
+        occlusionQuery,
+        sortViewId,
+        sortDepth,
+        fogs,
+      }),
+    );
 
     draws.push(...entityDraws);
 
