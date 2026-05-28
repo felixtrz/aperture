@@ -356,6 +356,10 @@ Status: in progress
   traversal report JSON cloning, and shared traversal guards now live in
   focused `gltf-scene-traversal-*` asset modules, keeping
   `gltf-scene-traversal.ts` as the scene traversal orchestration facade.
+- glTF texture mapping contracts, texture source/image selection, sampler
+  mapping, texture asset/report construction, and result shaping now live in
+  focused `gltf-texture-*` material modules, keeping `gltf-texture.ts` as the
+  sync/async texture mapping facade.
 
 ## Purpose
 

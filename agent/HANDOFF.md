@@ -1,6 +1,43 @@
 # Agent Handoff
 
-Updated: 2026-05-28T01:32:22Z
+Updated: 2026-05-28T01:38:53Z
+
+## Current Run Update — 2026-05-28T01:38:53Z — glTF texture mapping split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF texture mapping public/internal contracts into
+  `packages/render/src/materials/gltf-texture-types.ts`.
+- Extracted texture source/image selection, sampler mapping, and texture
+  asset/report construction into focused `gltf-texture-*` material modules.
+- Updated existing texture loading/resolution/report/utility modules to import
+  shared contracts from `gltf-texture-types.ts` instead of the facade.
+- `packages/render/src/materials/gltf-texture.ts` is now roughly 255 lines and
+  remains the sync/async texture mapping facade plus stable public export path.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/materials/gltf-texture.ts packages/render/src/materials/gltf-texture-types.ts packages/render/src/materials/gltf-texture-result.ts packages/render/src/materials/gltf-texture-source-mapping.ts packages/render/src/materials/gltf-texture-sampler-mapping.ts packages/render/src/materials/gltf-texture-resolution.ts packages/render/src/materials/gltf-texture-report.ts packages/render/src/materials/gltf-texture-loading.ts packages/render/src/materials/gltf-texture-utils.ts`
+- `pnpm exec prettier --check packages/render/src/materials/gltf-texture.ts packages/render/src/materials/gltf-texture-types.ts packages/render/src/materials/gltf-texture-result.ts packages/render/src/materials/gltf-texture-source-mapping.ts packages/render/src/materials/gltf-texture-sampler-mapping.ts packages/render/src/materials/gltf-texture-resolution.ts packages/render/src/materials/gltf-texture-report.ts packages/render/src/materials/gltf-texture-loading.ts packages/render/src/materials/gltf-texture-utils.ts`
+- `pnpm exec vitest run test/materials/gltf-texture.test.ts test/materials/gltf-material.test.ts test/assets/gltf-uri-loader.test.ts test/assets/glb-uri-loader.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/render-asset-preparation.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `glb-uri-images.ts`,
+  `gltf-uri-fetch.ts`, `snapshot-packed-codecs.ts`, `render-queue.ts`, and
+  `standard-texture-readiness.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining URI/decoder asset helpers.
 
 ## Current Run Update — 2026-05-28T01:32:22Z — glTF scene traversal split
 
