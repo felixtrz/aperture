@@ -559,6 +559,11 @@ Status: in progress
   output formatting, port validation, and daemon entry-point resolution now
   live in `packages/cli/src/dev-command.ts`, keeping the reusable session
   implementation in `packages/cli/src/dev-session.ts`.
+- CLI create command parsing, help text, project scaffolder delegation, and
+  success output formatting now live in `packages/cli/src/create-command.ts`.
+- CLI adapter command help, `sync` subcommand validation, option parsing,
+  adapter-sync delegation, and summary output now live in
+  `packages/cli/src/adapter-command.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

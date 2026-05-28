@@ -1,6 +1,55 @@
 # Agent Handoff
 
-Updated: 2026-05-28T11:07:30Z
+Updated: 2026-05-28T11:11:58Z
+
+## Current Run Update — 2026-05-28T11:11:58Z — CLI create and adapter command wrappers split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 8.
+
+### What changed
+
+- Split CLI `create` command parsing, help text, project scaffolder delegation,
+  and success output formatting into `packages/cli/src/create-command.ts`.
+- Split CLI `adapter` command help, `sync` subcommand validation, option
+  parsing, adapter-sync delegation, and summary output into
+  `packages/cli/src/adapter-command.ts`.
+- Kept the actual project scaffolder, template definitions, and adapter file
+  sync implementation in `packages/cli/src/cli.ts` for the next slice.
+- Reduced `packages/cli/src/cli.ts` from 1585 lines to 1399 lines across the
+  two command-wrapper slices.
+
+### Validation
+
+- `pnpm exec prettier --write packages/cli/src/cli.ts packages/cli/src/create-command.ts`
+- `pnpm exec prettier --write packages/cli/src/cli.ts packages/cli/src/adapter-command.ts packages/cli/src/create-command.ts`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm exec eslint packages/cli/src/cli.ts packages/cli/src/create-command.ts packages/cli/src/errors.ts`
+- `pnpm exec eslint packages/cli/src/cli.ts packages/cli/src/adapter-command.ts packages/cli/src/create-command.ts packages/cli/src/errors.ts`
+- `pnpm exec prettier --check packages/cli/src/cli.ts packages/cli/src/create-command.ts packages/cli/src/errors.ts`
+- `pnpm exec prettier --check packages/cli/src/cli.ts packages/cli/src/adapter-command.ts packages/cli/src/create-command.ts packages/cli/src/errors.ts`
+- `pnpm exec vitest run test/cli/create.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 8 command wrappers are now split for create, adapter, dev, tool, MCP,
+  and reference.
+- Track 8 still needs the larger implementation split for CLI templates,
+  adapter file sync, browser/devtools client code, and RAG tooling.
+- Large remaining CLI modules include `packages/cli/src/reference.ts` at 2591
+  lines, `packages/cli/src/devtools-client.ts` at 993 lines, and
+  `packages/cli/src/dev-session.ts` at 706 lines.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 8 by moving create scaffolding/templates and adapter file sync
+out of `packages/cli/src/cli.ts` into reusable backend modules.
 
 ## Current Run Update — 2026-05-28T11:07:30Z — CLI dev command split
 

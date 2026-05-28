@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "6e231352",
+  "lastCommit": "daeb906c",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 8 by splitting the CLI dev command into dev-command.ts while preserving the reusable dev-session.ts implementation; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T11:07:30Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 8 by splitting CLI create and adapter command wrappers into create-command.ts and adapter-command.ts while preserving scaffolder/template and sync implementations for the next slice; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T11:11:58Z"
 }
