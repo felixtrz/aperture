@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-28T03:42:54Z
+Updated: 2026-05-28T03:47:29Z
+
+## Current Run Update — 2026-05-28T03:47:29Z — view pack contract split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split view uniform packing constants and public contracts into
+  `packages/render/src/rendering/view-pack-types.ts`.
+- Split view uniform scratch allocation, capacity growth, and pooled view
+  record helpers into `packages/render/src/rendering/view-pack-scratch.ts`.
+- Kept `packages/render/src/rendering/view-pack.ts` as the stable public
+  facade and view uniform validation/packing implementation.
+- Reduced `packages/render/src/rendering/view-pack.ts` from 461 lines to 375
+  lines.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/rendering/view-pack.ts packages/render/src/rendering/view-pack-types.ts packages/render/src/rendering/view-pack-scratch.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/view-pack.ts packages/render/src/rendering/view-pack-types.ts packages/render/src/rendering/view-pack-scratch.ts`
+- `pnpm exec vitest run test/rendering/view-pack.test.ts test/webgpu/view-uniform-buffer.test.ts test/webgpu/view-uniform-buffer-resource.test.ts test/webgpu/frame-readiness.test.ts test/webgpu/render-frame-snapshot-json.test.ts`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `hdr-rgbe-loader.ts`, extraction mesh helpers, and several older
+  asset/material facades.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting extraction mesh helpers or one of the remaining
+decoder/asset/material facade modules.
 
 ## Current Run Update — 2026-05-28T03:42:54Z — transform pack helper split
 

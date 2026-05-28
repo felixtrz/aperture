@@ -454,6 +454,9 @@ Status: in progress
   composition now live in focused `gltf-report-driven-import-*` asset modules,
   leaving `gltf-report-driven-import.ts` focused on root/asset/scene
   orchestration and GLB handoff.
+- View uniform packing public contracts/constants and scratch/pool helpers now
+  live in `view-pack-types.ts` and `view-pack-scratch.ts`, leaving
+  `view-pack.ts` focused on view uniform validation and packing.
 
 ## Purpose
 
