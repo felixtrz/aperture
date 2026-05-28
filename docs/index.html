@@ -393,14 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-28 15:55 UTC</dd>
+            <dd>2026-05-28 16:01 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Track 8 of the app/CLI structure refactor moved
-              create, dev, tool, MCP, reference, and adapter command wrappers
-              into <code>packages/cli/src/commands/</code>, keeping
+              Latest update: Track 9 of the app/CLI structure refactor split CLI
+              project creation into <code>packages/cli/src/create/</code>
+              and moved shared starter files, minimal, GLB viewer, game template
+              source strings, and the embedded sample GLB payload under
+              <code>packages/cli/src/create/templates/</code>, while keeping
+              <code>packages/cli/src/create-project.ts</code> as the public
+              facade. Previous update: Track 8 moved create, dev, tool, MCP,
+              reference, and adapter command wrappers into
+              <code>packages/cli/src/commands/</code>, keeping
               <code>packages/cli/src/cli.ts</code> as the compact public router
               and shared top-level error handler. Previous update: Track 7 moved
               generated worker bootstrap internals into

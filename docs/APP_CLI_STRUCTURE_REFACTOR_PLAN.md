@@ -49,6 +49,13 @@ Status: in progress
   the public command router and shared top-level error handler. Create, dev,
   tool, MCP, reference, and adapter command modules moved without changing
   command names, help text, backend delegation, or output shapes.
+- Track 9 has started. `createApertureProject()` now lives in
+  `packages/cli/src/create/project.ts`, with `packages/cli/src/create-project.ts`
+  kept as the public facade. Target validation, package-name/dependency metadata,
+  shared starter files, per-template source strings, and the embedded sample GLB
+  payload are split under `packages/cli/src/create/` and
+  `packages/cli/src/create/templates/` without changing generated template
+  behavior.
 
 ## Summary
 
