@@ -9,7 +9,6 @@ import type {
   SystemSchema,
   TypeValueToType,
 } from "elics";
-import { Camera } from "@aperture-engine/render";
 import {
   DebugMetadata,
   EcsType,
@@ -25,14 +24,9 @@ import {
   type EcsWorld,
   type Entity,
 } from "@aperture-engine/simulation";
-import type {
-  ApertureConfig,
-  ApertureSignalDescriptor,
-  EcsEntityRef,
-} from "./config.js";
+import type { ApertureConfig, ApertureSignalDescriptor } from "./config.js";
 import {
   createSpatialQueries,
-  type RayInput,
   type SpatialQueries,
 } from "./spatial-queries.js";
 import {
@@ -59,10 +53,8 @@ import {
   type ApertureAssetLoader,
   type SystemAssetAccess,
 } from "./systems-assets.js";
-import {
-  AppEntityKey,
-  registerApertureAppComponents,
-} from "./systems-components.js";
+import { registerApertureAppComponents } from "./systems-components.js";
+import { createCameraAccess, type CameraAccess } from "./systems-cameras.js";
 import { createSpawnCommands, type SpawnCommands } from "./systems-spawn.js";
 
 export { createSpatialQueries } from "./spatial-queries.js";
@@ -138,6 +130,7 @@ export {
   AppEntityTags,
   registerApertureAppComponents,
 } from "./systems-components.js";
+export type { CameraAccess, CameraHandle } from "./systems-cameras.js";
 export { material, mesh } from "./systems-spawn.js";
 export type {
   PrimitiveMeshDescriptor,
@@ -192,18 +185,6 @@ export type InputActions = ApertureGeneratedActionMap &
 export type InputSignals = Omit<InputResourceBase, "actions"> & {
   readonly actions: InputActions;
 };
-
-export interface CameraHandle {
-  readonly entity: Entity;
-  readonly ref: EcsEntityRef;
-  rayFromPointer(position: readonly [number, number]): RayInput;
-}
-
-export interface CameraAccess {
-  readonly main: CameraHandle;
-  readonly active: readonly CameraHandle[];
-  byKey(key: string): CameraHandle | null;
-}
 
 export interface ApertureSystemContext {
   readonly world: unknown;
@@ -418,7 +399,9 @@ export function createApertureSystemContext(options: {
       return assets;
     },
   });
-  const cameras = createCameraAccess(options.world);
+  const cameras = createCameraAccess(options.world, {
+    contextKey: APERTURE_SYSTEM_CONTEXT_KEY,
+  });
 
   const context: ApertureSystemContext = {
     world: options.world,
@@ -478,73 +461,4 @@ function createSignalStore(
 
 function createInputSignals(config: ApertureConfig | undefined): InputSignals {
   return createInputResource(config) as InputSignals;
-}
-
-function createCameraAccess(world: EcsWorld): CameraAccess {
-  function handles(): CameraHandle[] {
-    const systemsContext = world.globals[APERTURE_SYSTEM_CONTEXT_KEY];
-    void systemsContext;
-    const entities = collectCameraEntities(world);
-    return entities.map(cameraHandle);
-  }
-
-  const access: CameraAccess = {
-    get main() {
-      return access.byKey("camera.main") ?? handles()[0] ?? fallbackCamera();
-    },
-    get active() {
-      return handles();
-    },
-    byKey(key) {
-      for (const entity of collectCameraEntities(world)) {
-        if (
-          entity.hasComponent(AppEntityKey) &&
-          entity.getValue(AppEntityKey, "value") === key
-        ) {
-          return cameraHandle(entity);
-        }
-      }
-
-      return null;
-    },
-  };
-
-  return access;
-}
-
-function collectCameraEntities(world: EcsWorld): Entity[] {
-  return world
-    .getSystems()
-    .flatMap(() => [] as Entity[])
-    .concat(collectEntitiesByComponents(world));
-}
-
-function collectEntitiesByComponents(world: EcsWorld): Entity[] {
-  const query = world.queryManager.registerQuery({ required: [Camera] });
-  return [...query.entities];
-}
-
-function cameraHandle(entity: Entity): CameraHandle {
-  return {
-    entity,
-    ref: entityRef(entity),
-    rayFromPointer(position) {
-      return {
-        origin: [position[0], position[1], 1],
-        direction: [0, 0, -1],
-      };
-    },
-  };
-}
-
-function fallbackCamera(): CameraHandle {
-  throw new ApertureSystemError(
-    "aperture.camera.missing",
-    "No camera entity is available.",
-    "Spawn a camera in a setup system or enable render.defaultCamera in aperture.config.ts.",
-  );
-}
-
-function entityRef(entity: Entity): EcsEntityRef {
-  return { index: entity.index, generation: entity.generation };
 }
