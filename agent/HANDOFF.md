@@ -1,6 +1,49 @@
 # Agent Handoff
 
-Updated: 2026-05-28T11:03:17Z
+Updated: 2026-05-28T11:07:30Z
+
+## Current Run Update — 2026-05-28T11:07:30Z — CLI dev command split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 8.
+
+### What changed
+
+- Split CLI `dev` command parsing, help text, managed-session dispatch,
+  status/log output formatting, port validation, and daemon entry-point
+  resolution into `packages/cli/src/dev-command.ts`.
+- Kept the reusable dev-session implementation in
+  `packages/cli/src/dev-session.ts`.
+- Kept the root CLI responsible for command routing only for the `dev`
+  subcommand.
+- Reduced `packages/cli/src/cli.ts` from 1874 lines to 1585 lines.
+
+### Validation
+
+- `pnpm exec prettier --write packages/cli/src/cli.ts packages/cli/src/dev-command.ts`
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm exec eslint packages/cli/src/cli.ts packages/cli/src/dev-command.ts packages/cli/src/errors.ts`
+- `pnpm exec prettier --check packages/cli/src/cli.ts packages/cli/src/dev-command.ts packages/cli/src/errors.ts`
+- `pnpm exec vitest run test/cli/dev-session.test.ts test/cli/create.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 8 remains: split create/adapter command implementations, CLI
+  templates, browser/devtools client code, and RAG tooling.
+- Large remaining CLI modules include `packages/cli/src/reference.ts` at 2591
+  lines, `packages/cli/src/devtools-client.ts` at 993 lines, and
+  `packages/cli/src/dev-session.ts` at 706 lines.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 8 by extracting create scaffolding/templates and adapter sync out
+of `packages/cli/src/cli.ts`.
 
 ## Current Run Update — 2026-05-28T11:03:17Z — CLI MCP command split
 
