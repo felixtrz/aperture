@@ -342,9 +342,14 @@ Status: in progress
 - Packed render snapshot packet registry management now lives in
   `snapshot-packed-registry.ts`, packet-family binary codecs now live in
   focused `snapshot-packed-*-codec.ts` modules, and
-  `snapshot-packed-codecs.ts` remains the stable re-export facade, leaving
-  `snapshot-packed-encoding.ts` focused on header validation plus high-level
-  encode/decode orchestration.
+  `snapshot-packed-codecs.ts` remains the stable re-export facade.
+- Packed render snapshot encoding constants/stride metadata, public
+  bundle/result contracts, and header read/write validation now live in
+  `snapshot-packed-encoding-constants.ts`,
+  `snapshot-packed-encoding-types.ts`, and
+  `snapshot-packed-encoding-header.ts`, leaving
+  `snapshot-packed-encoding.ts` as the stable high-level length,
+  encode/decode, and compatibility facade.
 - Packed render snapshot codec utilities are split into binary word helpers,
   enum/id codecs, mesh batch flags, and handle readers, with
   `snapshot-packed-codec-utils.ts` kept as the stable utility re-export facade.

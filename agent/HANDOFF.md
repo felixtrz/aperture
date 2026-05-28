@@ -1,6 +1,57 @@
 # Agent Handoff
 
-Updated: 2026-05-28T06:03:36Z
+Updated: 2026-05-28T06:10:32Z
+
+## Current Run Update — 2026-05-28T06:10:32Z — snapshot packed encoding split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split packed snapshot encoding constants, byte/word stride metadata, and the
+  diagnostic transport note into
+  `packages/render/src/rendering/snapshot-packed-encoding-constants.ts`.
+- Split public packed snapshot bundle, encode options/result, and input
+  contracts into
+  `packages/render/src/rendering/snapshot-packed-encoding-types.ts`.
+- Split packed snapshot header write/read validation into
+  `packages/render/src/rendering/snapshot-packed-encoding-header.ts`.
+- Kept `packages/render/src/rendering/snapshot-packed-encoding.ts` as the
+  stable public length, encode/decode, and compatibility facade.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/snapshot-packed-encoding.ts packages/render/src/rendering/snapshot-packed-encoding-constants.ts packages/render/src/rendering/snapshot-packed-encoding-types.ts packages/render/src/rendering/snapshot-packed-encoding-header.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/rendering/snapshot-packed-encoding.ts packages/render/src/rendering/snapshot-packed-encoding-constants.ts packages/render/src/rendering/snapshot-packed-encoding-types.ts packages/render/src/rendering/snapshot-packed-encoding-header.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/snapshot-packed-encoding.ts packages/render/src/rendering/snapshot-packed-encoding-constants.ts packages/render/src/rendering/snapshot-packed-encoding-types.ts packages/render/src/rendering/snapshot-packed-encoding-header.ts`
+- `pnpm exec vitest run test/rendering/snapshot-packed-encoding.test.ts test/rendering/snapshot-change-set.test.ts test/runtime/simulation-worker.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- A broad `pnpm exec vitest run test/rendering/snapshot-packed-encoding.test.ts test/rendering/snapshot-change-set.test.ts test/runtime/simulation-worker.test.ts test/webgpu/webgpu-app.test.ts`
+  run still fails 11 pre-existing `webgpu-app.test.ts` expectations around
+  WebGPU resource keys carrying full pipeline descriptor JSON instead of the
+  older short pipeline keys. This baseline is unrelated to the touched render
+  snapshot encoding modules and is already documented elsewhere in this
+  handoff.
+- Remaining Track 5 hotspots include `extraction-meshes.ts`,
+  `gltf-accessor-validation-primitives.ts`, `draw-package.ts`,
+  `dependency-readiness.ts`, `render-queue-sort.ts`,
+  `gltf-source-registration.ts`, and `gltf-mesh-primitive.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining extraction mesh, accessor
+validation primitive, draw package, dependency readiness, render queue sort, or
+source registration modules.
 
 ## Current Run Update — 2026-05-28T06:03:36Z — Draco mesh data split
 

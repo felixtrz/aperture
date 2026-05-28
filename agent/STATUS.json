@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "6d57b272",
+  "lastCommit": "1d257e5e",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting Draco mesh data index decoding, attribute decoding, and data type/heap mapping into focused asset modules while preserving the public decode entry; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T06:03:36Z"
+  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting packed snapshot encoding constants, public contracts, and header read/write validation into focused render modules while preserving the public encode/decode facade; focused validation, build, and boundaries passed; broad webgpu-app.test still has the documented pre-existing resource-key expectation failures.",
+  "lastRunFinishedAt": "2026-05-28T06:10:32Z"
 }
