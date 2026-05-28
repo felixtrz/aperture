@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-28T16:09:10Z
+Updated: 2026-05-28T16:14:22Z
+
+## Current Run Update — 2026-05-28T16:14:22Z — CLI tool client split
+
+Continued `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Kept `packages/cli/src/devtools-client.ts` as the public facade for
+  `callApertureTool()` and `ApertureToolCallOptions`.
+- Moved MCP/tool client internals under `packages/cli/src/tools/`.
+- Split the browser/CDP helper surface, tool dispatch table, input emulation,
+  render report helpers, generated runtime bridge forwarding, argument parsing,
+  reference tool delegation, and shared tool types into focused modules.
+- Removed the old top-level `devtools-args.ts`, `devtools-browser.ts`, and
+  `devtools-reference-tools.ts` implementation files.
+- Recorded Track 11 progress in `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md` and
+  `docs/index.html`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/cli run typecheck`
+- `pnpm exec prettier --write packages/cli/src/devtools-client.ts "packages/cli/src/tools/**/*.ts"`
+- `pnpm exec eslint packages/cli/src/devtools-client.ts "packages/cli/src/tools/**/*.ts"`
+- `pnpm exec vitest run test/cli/dev-session.test.ts test/cli/reference.test.ts test/index.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md docs/index.html packages/cli/src/devtools-client.ts "packages/cli/src/tools/**/*.ts"`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- CLI reference folder completion Track 12 remains.
+- Export/boundary guard Track 13 remains.
+
+### Recommended next task
+
+Continue with Track 12 CLI reference folder completion.
 
 ## Current Run Update — 2026-05-28T16:09:10Z — CLI dev-session split
 
