@@ -275,6 +275,10 @@ Status: in progress
   descriptor construction now live in
   `packages/render/src/assets/custom-wgsl-material-preparation.ts`, while
   `preparation.ts` re-exports the same public API names.
+- GLB URI fetch/cache/external-buffer/external-image fetching and same-origin
+  URL helpers now live in `packages/render/src/assets/glb-uri-fetch.ts`,
+  leaving `glb-uri-loader.ts` focused on GLB orchestration, image decode, and
+  report assembly.
 
 ## Purpose
 

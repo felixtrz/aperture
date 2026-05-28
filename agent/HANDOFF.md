@@ -1,6 +1,44 @@
 # Agent Handoff
 
-Updated: 2026-05-28T00:05:22Z
+Updated: 2026-05-28T00:09:10Z
+
+## Current Run Update — 2026-05-28T00:09:10Z — GLB URI fetch helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted GLB fetch/cache/external buffer/image fetching and same-origin URL
+  helpers to `packages/render/src/assets/glb-uri-fetch.ts`.
+- `packages/render/src/assets/glb-uri-loader.ts` now focuses on orchestration,
+  image decode, decoder resolution, and report creation.
+- `packages/render/src/assets/glb-uri-loader.ts` is now roughly 1070 lines;
+  the remaining GLB-specific hotspot is likely image decode/source helpers.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/glb-uri-loader.ts packages/render/src/assets/glb-uri-fetch.ts`
+- `pnpm exec prettier --check packages/render/src/assets/glb-uri-loader.ts packages/render/src/assets/glb-uri-fetch.ts`
+- `pnpm exec vitest run test/assets/glb-uri-loader.test.ts test/assets/glb-source-loader-facade.test.ts test/assets/glb-container.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-uri-loader.ts`,
+  `gltf-texture.ts`, `gltf-material.ts`,
+  `gltf-mesh-asset-construction.ts`, `gltf-report-driven-import.ts`,
+  `authoring.ts`, and `snapshot-packed-encoding.ts`.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting GLB image decode helpers out of
+`packages/render/src/assets/glb-uri-loader.ts` or split
+`packages/render/src/assets/gltf-uri-loader.ts`.
 
 ## Current Run Update — 2026-05-28T00:05:22Z — Render custom WGSL preparation split
 
