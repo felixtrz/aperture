@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-28T03:29:12Z
+Updated: 2026-05-28T03:33:25Z
+
+## Current Run Update — 2026-05-28T03:33:25Z — glTF mesh construction helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split glTF mesh attribute collection and zero-morph accessor synthesis into
+  `packages/render/src/assets/gltf-mesh-asset-construction-attributes.ts`.
+- Split construction diagnostic/key helpers into
+  `packages/render/src/assets/gltf-mesh-asset-construction-diagnostics.ts`.
+- Split morph-target and skinning schema derivation into
+  `packages/render/src/assets/gltf-mesh-asset-construction-schema.ts`.
+- Split index-buffer validation and local bounds computation into
+  `packages/render/src/assets/gltf-mesh-asset-construction-validation.ts`.
+- Reduced `packages/render/src/assets/gltf-mesh-asset-construction.ts` from
+  424 lines after the report split to 154 lines, leaving it as the stable
+  public facade and primitive-to-mesh assembly orchestration surface.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/gltf-mesh-asset-construction.ts packages/render/src/assets/gltf-mesh-asset-construction-attributes.ts packages/render/src/assets/gltf-mesh-asset-construction-diagnostics.ts packages/render/src/assets/gltf-mesh-asset-construction-schema.ts packages/render/src/assets/gltf-mesh-asset-construction-validation.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-mesh-asset-construction.ts packages/render/src/assets/gltf-mesh-asset-construction-attributes.ts packages/render/src/assets/gltf-mesh-asset-construction-diagnostics.ts packages/render/src/assets/gltf-mesh-asset-construction-schema.ts packages/render/src/assets/gltf-mesh-asset-construction-validation.ts`
+- `pnpm exec vitest run test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-mesh-asset-construction-json.test.ts test/assets/gltf-report-driven-import.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-mesh-primitive.test.ts`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `hdr-rgbe-loader.ts`, `gltf-report-driven-import.ts`, extraction mesh
+  helpers, view/transform packing facades, and several older asset/material
+  facades.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting report-driven import, extraction mesh helpers,
+view/transform packing helpers, or one of the remaining decoder modules.
 
 ## Current Run Update — 2026-05-28T03:29:12Z — glTF mesh construction report split
 

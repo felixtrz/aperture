@@ -440,10 +440,12 @@ Status: in progress
   conversion now live in focused `gltf-asset-mapping-*` asset modules, leaving
   `gltf-asset-mapping.ts` focused on root validation plus texture/sampler/
   material mapping orchestration.
-- glTF mesh asset construction public contracts and JSON report projection now
-  live in focused `gltf-mesh-asset-construction-*` asset modules, leaving
-  `gltf-mesh-asset-construction.ts` focused on primitive-to-mesh assembly,
-  index/bounds validation, morph/skinning schema derivation, and diagnostics.
+- glTF mesh asset construction public contracts, JSON report projection,
+  attribute collection, diagnostic/key helpers, index/bounds validation, and
+  morph/skinning schema derivation now live in focused
+  `gltf-mesh-asset-construction-*` asset modules, leaving
+  `gltf-mesh-asset-construction.ts` focused on primitive-to-mesh assembly
+  orchestration.
 
 ## Purpose
 
