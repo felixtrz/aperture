@@ -9,113 +9,49 @@ import {
   createTextureAssetFromGltfTexture,
   gltfMaterialMappingReportToJsonValue,
   gltfTextureMappingReportToJsonValue,
-  type GltfImageDataResolver,
-  type GltfMaterialDiagnosticValue,
-  type GltfMaterialMappingDiagnosticSeverity,
-  type GltfMaterialTextureDependencyKind,
-  type GltfMaterialMappingReportJsonValue,
   type GltfMaterialTextureBindingResolver,
-  type GltfMaterialTextureBindingResolverDiagnostic,
-  type GltfMaterialTextureSlot,
-  type GltfTextureMappingDiagnostic,
-  type GltfTextureMappingReport,
-  type GltfTextureMappingReportJsonValue,
-  type MaterialAsset,
-  type SamplerAsset,
-  type TextureAsset,
 } from "../materials/index.js";
 import {
   gltfRootValidationReportToJsonValue,
   validateGltfRootForAssetMapping,
-  type GltfRootValidationReportJsonValue,
 } from "./gltf-root.js";
+import type {
+  GltfAssetMappingDiagnostic,
+  GltfAssetMappingOptions,
+  GltfAssetMappingReport,
+  GltfPlannedMaterialAsset,
+  GltfPlannedSamplerAsset,
+  GltfPlannedTextureAsset,
+  TextureReportEntry,
+} from "./gltf-asset-mapping-types.js";
+import {
+  arrayField,
+  collectMaterialTextureSlots,
+  isRecord,
+  plannedHandleKey,
+  samplerSourceForTexture,
+  stringArray,
+  textureDiagnosticToAssetDiagnostic,
+  textureDiagnosticToResolverDiagnostic,
+  textureReportKey,
+} from "./gltf-asset-mapping-utils.js";
 
-export type GltfAssetMappingLayer = "root" | "texture" | "material";
-
-export interface GltfAssetMappingDiagnostic {
-  readonly layer: GltfAssetMappingLayer;
-  readonly code: string;
-  readonly severity: GltfMaterialMappingDiagnosticSeverity;
-  readonly message: string;
-  readonly materialIndex?: number;
-  readonly textureIndex?: number;
-  readonly samplerIndex?: number;
-  readonly slot?: GltfMaterialTextureSlot;
-  readonly field?: string;
-  readonly extensionName?: string;
-  readonly dependencyKind?: GltfMaterialTextureDependencyKind;
-  readonly value?: GltfMaterialDiagnosticValue;
-}
-
-export interface GltfPlannedTextureAsset {
-  readonly handleKey: string;
-  readonly textureIndex: number;
-  readonly slot: GltfMaterialTextureSlot;
-  readonly texture: TextureAsset | null;
-  readonly report: GltfTextureMappingReportJsonValue;
-}
-
-export interface GltfPlannedSamplerAsset {
-  readonly handleKey: string;
-  readonly textureIndex: number;
-  readonly slot: GltfMaterialTextureSlot;
-  readonly source: Record<string, unknown> | null;
-  readonly sampler: SamplerAsset | null;
-}
-
-export interface GltfPlannedMaterialAsset {
-  readonly handleKey: string;
-  readonly materialIndex: number;
-  readonly material: MaterialAsset | null;
-  readonly report: GltfMaterialMappingReportJsonValue;
-}
-
-export interface GltfAssetMappingOptions {
-  readonly root: unknown;
-  readonly resolveImageData: GltfImageDataResolver;
-  readonly materialIndices?: readonly number[];
-  readonly keyPrefix?: string;
-}
-
-export interface GltfAssetMappingReport {
-  readonly valid: boolean;
-  readonly root: GltfRootValidationReportJsonValue;
-  readonly textures: readonly GltfPlannedTextureAsset[];
-  readonly samplers: readonly GltfPlannedSamplerAsset[];
-  readonly materials: readonly GltfPlannedMaterialAsset[];
-  readonly diagnostics: readonly GltfAssetMappingDiagnostic[];
-}
-
-export interface GltfPlannedTextureAssetJsonValue {
-  readonly handleKey: string;
-  readonly textureIndex: number;
-  readonly slot: GltfMaterialTextureSlot;
-  readonly texture: Record<string, unknown> | null;
-  readonly report: GltfTextureMappingReportJsonValue;
-}
-
-export interface GltfPlannedMaterialAssetJsonValue {
-  readonly handleKey: string;
-  readonly materialIndex: number;
-  readonly material: Record<string, unknown> | null;
-  readonly report: GltfMaterialMappingReportJsonValue;
-}
-
-export interface GltfAssetMappingReportJsonValue {
-  readonly valid: boolean;
-  readonly root: GltfRootValidationReportJsonValue;
-  readonly textures: readonly GltfPlannedTextureAssetJsonValue[];
-  readonly samplers: readonly GltfPlannedSamplerAsset[];
-  readonly materials: readonly GltfPlannedMaterialAssetJsonValue[];
-  readonly diagnostics: readonly GltfAssetMappingDiagnostic[];
-}
-
-interface TextureReportEntry {
-  readonly key: string;
-  readonly report: GltfTextureMappingReport;
-  readonly textureHandleKey: string;
-  readonly samplerHandleKey: string;
-}
+export {
+  gltfAssetMappingReportToJson,
+  gltfAssetMappingReportToJsonValue,
+} from "./gltf-asset-mapping-report.js";
+export type {
+  GltfAssetMappingDiagnostic,
+  GltfAssetMappingLayer,
+  GltfAssetMappingOptions,
+  GltfAssetMappingReport,
+  GltfAssetMappingReportJsonValue,
+  GltfPlannedMaterialAsset,
+  GltfPlannedMaterialAssetJsonValue,
+  GltfPlannedSamplerAsset,
+  GltfPlannedTextureAsset,
+  GltfPlannedTextureAssetJsonValue,
+} from "./gltf-asset-mapping-types.js";
 
 export function createGltfAssetMappingReport(
   options: GltfAssetMappingOptions,
@@ -260,31 +196,6 @@ export function createGltfAssetMappingReport(
   };
 }
 
-export function gltfAssetMappingReportToJsonValue(
-  report: GltfAssetMappingReport,
-): GltfAssetMappingReportJsonValue {
-  return {
-    valid: report.valid,
-    root: report.root,
-    textures: report.textures.map((texture) => ({
-      ...texture,
-      texture: texture.report.texture,
-    })),
-    samplers: report.samplers.map((sampler) => ({ ...sampler })),
-    materials: report.materials.map((material) => ({
-      ...material,
-      material: material.report.material,
-    })),
-    diagnostics: report.diagnostics.map((diagnostic) => ({ ...diagnostic })),
-  };
-}
-
-export function gltfAssetMappingReportToJson(
-  report: GltfAssetMappingReport,
-): string {
-  return JSON.stringify(gltfAssetMappingReportToJsonValue(report));
-}
-
 function resolverFromTextureEntries(
   entries: ReadonlyMap<string, TextureReportEntry>,
 ): GltfMaterialTextureBindingResolver {
@@ -308,164 +219,4 @@ function resolverFromTextureEntries(
       ),
     };
   };
-}
-
-function textureDiagnosticToResolverDiagnostic(
-  diagnostic: GltfTextureMappingDiagnostic,
-): GltfMaterialTextureBindingResolverDiagnostic {
-  const samplerFailure =
-    diagnostic.code === "gltfTexture.invalidSamplerIndex" ||
-    diagnostic.code === "gltfTexture.invalidSampler";
-
-  return {
-    dependencyKind: samplerFailure ? "sampler" : "texture",
-    message: diagnostic.message,
-    ...(diagnostic.samplerIndex === undefined
-      ? {}
-      : { samplerIndex: diagnostic.samplerIndex }),
-  };
-}
-
-function textureDiagnosticToAssetDiagnostic(
-  diagnostic: GltfTextureMappingDiagnostic,
-): GltfAssetMappingDiagnostic {
-  return {
-    layer: "texture",
-    code: diagnostic.code,
-    severity: diagnostic.severity,
-    message: diagnostic.message,
-    textureIndex: diagnostic.textureIndex,
-    slot: diagnostic.slot,
-    ...(diagnostic.samplerIndex === undefined
-      ? {}
-      : { samplerIndex: diagnostic.samplerIndex }),
-    ...(diagnostic.field === undefined ? {} : { field: diagnostic.field }),
-    ...(diagnostic.value === undefined ? {} : { value: diagnostic.value }),
-  };
-}
-
-function collectMaterialTextureSlots(material: unknown): readonly {
-  readonly slot: GltfMaterialTextureSlot;
-  readonly textureIndex: number;
-}[] {
-  if (!isRecord(material)) {
-    return [];
-  }
-
-  const pbr = recordField(material, "pbrMetallicRoughness");
-  const clearcoat = recordField(
-    recordField(material, "extensions") ?? {},
-    "KHR_materials_clearcoat",
-  );
-  const transmission = recordField(
-    recordField(material, "extensions") ?? {},
-    "KHR_materials_transmission",
-  );
-  const sheen = recordField(
-    recordField(material, "extensions") ?? {},
-    "KHR_materials_sheen",
-  );
-  const iridescence = recordField(
-    recordField(material, "extensions") ?? {},
-    "KHR_materials_iridescence",
-  );
-  return [
-    textureSlot(pbr?.baseColorTexture, "baseColorTexture"),
-    textureSlot(pbr?.metallicRoughnessTexture, "metallicRoughnessTexture"),
-    textureSlot(clearcoat?.clearcoatTexture, "clearcoatTexture"),
-    textureSlot(
-      clearcoat?.clearcoatRoughnessTexture,
-      "clearcoatRoughnessTexture",
-    ),
-    textureSlot(transmission?.transmissionTexture, "transmissionTexture"),
-    textureSlot(sheen?.sheenColorTexture, "sheenColorTexture"),
-    textureSlot(sheen?.sheenRoughnessTexture, "sheenRoughnessTexture"),
-    textureSlot(iridescence?.iridescenceTexture, "iridescenceTexture"),
-    textureSlot(
-      iridescence?.iridescenceThicknessTexture,
-      "iridescenceThicknessTexture",
-    ),
-    textureSlot(material.normalTexture, "normalTexture"),
-    textureSlot(material.occlusionTexture, "occlusionTexture"),
-    textureSlot(material.emissiveTexture, "emissiveTexture"),
-  ].filter(
-    (slot): slot is { slot: GltfMaterialTextureSlot; textureIndex: number } =>
-      slot !== null,
-  );
-}
-
-function textureSlot(
-  textureInfo: unknown,
-  slot: GltfMaterialTextureSlot,
-): {
-  readonly slot: GltfMaterialTextureSlot;
-  readonly textureIndex: number;
-} | null {
-  if (!isRecord(textureInfo) || !Number.isInteger(textureInfo.index)) {
-    return null;
-  }
-
-  const textureIndex = textureInfo.index;
-  return typeof textureIndex === "number" && textureIndex >= 0
-    ? { slot, textureIndex }
-    : null;
-}
-
-function textureReportKey(
-  textureIndex: number,
-  slot: GltfMaterialTextureSlot,
-): string {
-  return `${textureIndex}:${slot}`;
-}
-
-function plannedHandleKey(
-  options: GltfAssetMappingOptions,
-  kind: "material" | "sampler" | "texture",
-  index: number,
-  slot?: GltfMaterialTextureSlot,
-): string {
-  const prefix = options.keyPrefix ?? "gltf";
-  return slot === undefined
-    ? `${prefix}:${kind}:${index}`
-    : `${prefix}:${kind}:${index}:${slot}`;
-}
-
-function samplerSourceForTexture(
-  root: Record<string, unknown>,
-  textureIndex: number,
-): Record<string, unknown> | null {
-  const texture = arrayField(root, "textures")[textureIndex];
-
-  if (!isRecord(texture) || typeof texture.sampler !== "number") {
-    return null;
-  }
-
-  const sampler = arrayField(root, "samplers")[texture.sampler];
-  return isRecord(sampler) ? sampler : null;
-}
-
-function arrayField(
-  root: Record<string, unknown>,
-  field: string,
-): readonly unknown[] {
-  const value = root[field];
-  return Array.isArray(value) ? value : [];
-}
-
-function stringArray(value: unknown): readonly string[] {
-  return Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === "string")
-    : [];
-}
-
-function recordField(
-  source: Record<string, unknown>,
-  field: string,
-): Record<string, unknown> | undefined {
-  const value = source[field];
-  return isRecord(value) ? value : undefined;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
