@@ -20,19 +20,11 @@ import {
   createSystem as createElicsSystem,
   defineComponent,
   quatFromAxisAngle,
-  type AssetRegistry,
   type EcsWorld,
   type Entity,
 } from "@aperture-engine/simulation";
-import type { ApertureConfig } from "./config.js";
+import type { SpatialQueries } from "./spatial-queries.js";
 import {
-  createSpatialQueries,
-  type SpatialQueries,
-} from "./spatial-queries.js";
-import {
-  createInputResource,
-  type InputAction,
-  type InputResourceBase,
   type StatefulGamepadsState,
   type StatefulKeyboardState,
 } from "./input-state.js";
@@ -41,21 +33,19 @@ import {
   registerSystemEffects,
   type ScheduledEffects,
 } from "./systems-effects.js";
-import {
-  createDiagnostics,
-  type SystemDiagnostics,
-} from "./systems-diagnostics.js";
+import { type SystemDiagnostics } from "./systems-diagnostics.js";
 import { ApertureSystemError } from "./systems-error.js";
-import { createCommandAccess, type CommandAccess } from "./systems-commands.js";
+import type { CommandAccess } from "./systems-commands.js";
+import type { SystemAssetAccess } from "./systems-assets.js";
+import type { CameraAccess } from "./systems-cameras.js";
+import type { SignalStore } from "./systems-signals.js";
+import type { SpawnCommands } from "./systems-spawn.js";
 import {
-  createSystemAssetAccess,
-  type ApertureAssetLoader,
-  type SystemAssetAccess,
-} from "./systems-assets.js";
-import { registerApertureAppComponents } from "./systems-components.js";
-import { createCameraAccess, type CameraAccess } from "./systems-cameras.js";
-import { createSignalStore, type SignalStore } from "./systems-signals.js";
-import { createSpawnCommands, type SpawnCommands } from "./systems-spawn.js";
+  getApertureSystemContext,
+  type ApertureSystemContext,
+  type InputActions,
+  type InputSignals,
+} from "./systems-context.js";
 
 export { createSpatialQueries } from "./spatial-queries.js";
 export type {
@@ -136,6 +126,18 @@ export type {
 } from "./systems-spawn.js";
 
 export type {
+  ApertureGeneratedActionMap,
+  ApertureSystemContext,
+  CreateApertureSystemContextOptions,
+  InputActions,
+  InputSignals,
+} from "./systems-context.js";
+export {
+  createApertureSystemContext,
+  installApertureSystemContext,
+} from "./systems-context.js";
+
+export type {
   ApertureGeneratedGamepadInputEvent,
   ApertureGeneratedGamepadSnapshot,
   ApertureGeneratedInputEvent,
@@ -163,32 +165,6 @@ export type {
   StatefulKeyboardState,
   StatefulKeyboardSummary,
 } from "./input-state.js";
-
-// This interface is intentionally empty so generated app-local declarations can
-// augment it with kind-specific action properties.
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface ApertureGeneratedActionMap {}
-
-export type InputActions = ApertureGeneratedActionMap &
-  Record<string, InputAction>;
-
-export type InputSignals = Omit<InputResourceBase, "actions"> & {
-  readonly actions: InputActions;
-};
-
-export interface ApertureSystemContext {
-  readonly world: unknown;
-  readonly assetsRegistry: AssetRegistry;
-  readonly signals: SignalStore;
-  readonly input: InputSignals;
-  readonly assets: SystemAssetAccess;
-  readonly commands: CommandAccess;
-  readonly spawn: SpawnCommands;
-  readonly spatial: SpatialQueries;
-  readonly cameras: CameraAccess;
-  readonly diagnostics: SystemDiagnostics;
-  readonly effects: ScheduledEffects;
-}
 
 export interface ApertureSystemInstance {
   readonly world: unknown;
@@ -251,8 +227,6 @@ export type ApertureSystemConstructor<
     readonly config: ApertureSystemConfigSignals<TSchema>;
   };
 };
-
-const APERTURE_SYSTEM_CONTEXT_KEY = "aperture.systemContext";
 
 export function createSystem<
   TQueries extends SystemQueries = Record<string, never>,
@@ -353,90 +327,4 @@ function normalizeSystemPriority(priority: number | undefined): number {
   }
 
   return normalized;
-}
-
-export function installApertureSystemContext(
-  world: EcsWorld,
-  context: ApertureSystemContext,
-): void {
-  world.globals[APERTURE_SYSTEM_CONTEXT_KEY] = context;
-}
-
-export function createApertureSystemContext(options: {
-  readonly world: EcsWorld;
-  readonly assetsRegistry: AssetRegistry;
-  readonly config?: ApertureConfig;
-  readonly assetLoader?: ApertureAssetLoader;
-}): ApertureSystemContext {
-  registerApertureAppComponents(options.world);
-
-  const diagnostics = createDiagnostics();
-  const signals = createSignalStore(options.config?.signals ?? {});
-  const input = createInputSignals(options.config);
-  const assets = createSystemAssetAccess({
-    config: options.config,
-    registry: options.assetsRegistry,
-    diagnostics,
-    loader: options.assetLoader,
-  });
-  const commands = createCommandAccess(assets);
-  const spatial = createSpatialQueries();
-  const spawn = createSpawnCommands({
-    world: options.world,
-    registry: options.assetsRegistry,
-    diagnostics,
-    get assets() {
-      return assets;
-    },
-  });
-  const cameras = createCameraAccess(options.world, {
-    contextKey: APERTURE_SYSTEM_CONTEXT_KEY,
-  });
-
-  const context: ApertureSystemContext = {
-    world: options.world,
-    assetsRegistry: options.assetsRegistry,
-    signals,
-    input,
-    assets,
-    commands,
-    spawn,
-    spatial,
-    cameras,
-    diagnostics,
-    effects: createScheduledEffects(),
-  };
-
-  installApertureSystemContext(options.world, context);
-  return context;
-}
-
-function getApertureSystemContext(world: EcsWorld): ApertureSystemContext {
-  const context = world.globals[APERTURE_SYSTEM_CONTEXT_KEY];
-
-  if (isApertureSystemContext(context)) {
-    return context;
-  }
-
-  throw new ApertureSystemError(
-    "aperture.systemContext.missing",
-    "Aperture system context is not installed on the ECS world.",
-    "Create the app through createApertureApp() or installApertureSystemContext() before registering app systems.",
-  );
-}
-
-function isApertureSystemContext(
-  value: unknown,
-): value is ApertureSystemContext {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "signals" in value &&
-    "spawn" in value &&
-    "effects" in value
-  );
-}
-
-function createInputSignals(config: ApertureConfig | undefined): InputSignals {
-  return createInputResource(config) as InputSignals;
 }
