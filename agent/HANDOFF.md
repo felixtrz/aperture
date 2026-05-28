@@ -1,6 +1,42 @@
 # Agent Handoff
 
-Updated: 2026-05-28T02:08:49Z
+Updated: 2026-05-28T02:12:22Z
+
+## Current Run Update — 2026-05-28T02:12:22Z — glTF URI image source split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted glTF image URI/bufferView source selection, MIME support checks,
+  external/bufferView byte lookup, status URI/source-kind helpers, byte-length
+  helpers, and shared record guard export into
+  `packages/render/src/assets/gltf-uri-image-sources.ts`.
+- `packages/render/src/assets/gltf-uri-images.ts` is now roughly 271 lines and
+  remains the external glTF image decode orchestration facade.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/assets/gltf-uri-images.ts packages/render/src/assets/gltf-uri-image-sources.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-uri-images.ts packages/render/src/assets/gltf-uri-image-sources.ts`
+- `pnpm exec vitest run test/assets/gltf-uri-loader.test.ts test/assets/gltf-source-loader-facade.test.ts test/materials/gltf-texture.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `snapshot-packed-codecs.ts`, `render-queue.ts`,
+  `gltf-ecs-authoring-command-plan.ts`, and render mesh/merge helpers.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining decoder, queue, or mesh
+helper modules.
 
 ## Current Run Update — 2026-05-28T02:08:49Z — StandardMaterial texture readiness split
 
