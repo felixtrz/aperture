@@ -16,11 +16,8 @@ import {
 } from "./extraction-culling.js";
 import { diagnostic } from "./extraction-diagnostics.js";
 import { sortedEntities } from "./extraction-entities.js";
+import { readMeshDrawExtractionInputs } from "./extraction-mesh-draw-inputs.js";
 import { readMeshEntityExtractionState } from "./extraction-mesh-entity-state.js";
-import {
-  pushInstanceAttributePacket,
-  pushInstanceTint,
-} from "./extraction-mesh-instances.js";
 import { readMaterialSlots } from "./extraction-mesh-materials.js";
 import {
   appendCachedMeshDrawEntity,
@@ -29,14 +26,7 @@ import {
 } from "./extraction-mesh-cache.js";
 import { writeMeshDrawEntityCache } from "./extraction-mesh-cache-writeback.js";
 import { createBoundsPacket } from "./extraction-mesh-bounds.js";
-import {
-  pushBoneMatrices,
-  pushMorphTargetWeights,
-  readMorphTargetWeights,
-  readSkinning,
-} from "./extraction-mesh-deformation.js";
 import { createMeshSubmeshDraws } from "./extraction-mesh-submeshes.js";
-import { pushMatrix } from "./extraction-matrices.js";
 
 export {
   createRenderExtractionCache,
@@ -141,43 +131,23 @@ export function extractMeshDraws(
       continue;
     }
 
-    const worldTransformOffset = pushMatrix(
+    const drawInputs = readMeshDrawExtractionInputs({
+      entity,
+      mesh: entityState.mesh,
+      worldMatrix: entityState.worldMatrix,
       transforms,
-      entityState.worldMatrix,
-    );
-    const instanceTintOffset = pushInstanceTint(instanceTints, entity);
-    const instanceAttributePacketIndex = pushInstanceAttributePacket(
+      bones,
+      morphTargetWeights,
+      instanceTints,
       instanceAttributes,
       instanceAttributePackets,
       diagnostics,
-      entity,
-    );
-    const skinning = readSkinning(entity, entityState.mesh, diagnostics);
+    });
 
-    if (skinning === null) {
+    if (drawInputs === null) {
       continue;
     }
 
-    const morphWeights = readMorphTargetWeights(
-      entity,
-      entityState.mesh,
-      diagnostics,
-    );
-
-    if (morphWeights === null) {
-      continue;
-    }
-
-    if (morphWeights !== undefined) {
-      pushMorphTargetWeights(
-        morphTargetWeights,
-        worldTransformOffset,
-        morphWeights,
-      );
-    }
-
-    const boneMatrixOffset =
-      skinning === undefined ? undefined : pushBoneMatrices(bones, skinning);
     const occlusionQuery =
       entity.hasComponent(OcclusionQuery) &&
       entity.getValue(OcclusionQuery, "enabled") !== false;
@@ -210,14 +180,25 @@ export function extractMeshDraws(
         primaryMaterialHandle: entityState.primaryMaterialHandle,
         materialSlots,
         diagnostics,
-        worldTransformOffset,
-        ...(instanceTintOffset === undefined ? {} : { instanceTintOffset }),
-        ...(instanceAttributePacketIndex === undefined
+        worldTransformOffset: drawInputs.worldTransformOffset,
+        ...(drawInputs.instanceTintOffset === undefined
           ? {}
-          : { instanceAttributePacketIndex }),
-        ...(boneMatrixOffset === undefined ? {} : { boneMatrixOffset }),
-        ...(skinning === undefined ? {} : { skinning }),
-        ...(morphWeights === undefined ? {} : { morphWeights }),
+          : { instanceTintOffset: drawInputs.instanceTintOffset }),
+        ...(drawInputs.instanceAttributePacketIndex === undefined
+          ? {}
+          : {
+              instanceAttributePacketIndex:
+                drawInputs.instanceAttributePacketIndex,
+            }),
+        ...(drawInputs.boneMatrixOffset === undefined
+          ? {}
+          : { boneMatrixOffset: drawInputs.boneMatrixOffset }),
+        ...(drawInputs.skinning === undefined
+          ? {}
+          : { skinning: drawInputs.skinning }),
+        ...(drawInputs.morphWeights === undefined
+          ? {}
+          : { morphWeights: drawInputs.morphWeights }),
         boundsIndex,
         layerMask: entityState.layerMask,
         castsShadow: entityState.castsShadow,
@@ -246,8 +227,8 @@ export function extractMeshDraws(
       bounds,
       boundsIndex,
       instanceTints,
-      instanceTintOffset,
-      morphWeights,
+      instanceTintOffset: drawInputs.instanceTintOffset,
+      morphWeights: drawInputs.morphWeights,
     });
   }
 
