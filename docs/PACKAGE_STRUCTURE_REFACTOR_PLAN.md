@@ -580,6 +580,9 @@ Status: in progress
   readiness polling, screenshot capture, and canvas status helpers now live in
   `packages/cli/src/devtools-browser.ts`, reducing
   `packages/cli/src/devtools-client.ts` to browser-backed tool orchestration.
+- CLI reference MCP tool contracts now live in
+  `packages/cli/src/reference-tools.ts`, and reference runtime path/file helper
+  functions now live in `packages/cli/src/reference-paths.ts`.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
