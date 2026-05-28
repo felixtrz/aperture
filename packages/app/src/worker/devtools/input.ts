@@ -1,6 +1,6 @@
-import type { ApertureApp } from "./advanced.js";
-import { applyGeneratedInputEvent, createInputSummary } from "./input.js";
-import type { GeneratedDevtoolsToolResult } from "./worker-devtools-types.js";
+import type { ApertureApp } from "../../advanced.js";
+import { applyGeneratedInputEvent, createInputSummary } from "../../input.js";
+import type { GeneratedDevtoolsToolResult } from "./types.js";
 import {
   booleanFromValue,
   gamepadAxesFromPayload,
@@ -9,7 +9,7 @@ import {
   numberFromValue,
   standardGamepadButtonIndex,
   stringFromValue,
-} from "./worker-payload.js";
+} from "../payload.js";
 
 export function callInputDevtoolsTool(
   app: ApertureApp,

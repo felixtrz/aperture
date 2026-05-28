@@ -36,6 +36,14 @@ Status: in progress
   are split by responsibility. The browser devtools bridge now separates runtime
   installation, dispatch, canvas readback, entity picking, payload parsing, and
   WebGPU diagnostic helpers.
+- Track 7 has started. Generated worker bootstrap implementation now lives
+  under `packages/app/src/worker/`, with `packages/app/src/worker.ts` kept as
+  the public `@aperture-engine/app/worker` facade. Worker port attachment, run
+  loop startup, snapshot publication, source-asset serialization, asset
+  summaries, generated command handling, viewport resize handling, payload
+  parsing, and generated devtools bridge dispatch are split by responsibility.
+  Worker entity, camera, and input devtools tools now live under
+  `packages/app/src/worker/devtools/`.
 
 ## Summary
 

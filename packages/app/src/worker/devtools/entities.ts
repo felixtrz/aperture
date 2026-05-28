@@ -7,8 +7,8 @@ import {
   APERTURE_ENTITY_SET_COMPONENT_COMMAND_CHANNEL,
   APERTURE_ENTITY_SNAPSHOT_COMMAND_CHANNEL,
   type ApertureGeneratedCommand,
-} from "./commands.js";
-import type { EcsEntityRef } from "./config.js";
+} from "../../commands.js";
+import type { EcsEntityRef } from "../../config.js";
 import {
   createApertureEntityHierarchy,
   createApertureEntityLookupSnapshot,
@@ -26,15 +26,15 @@ import {
   type ApertureEntitySetComponentFieldReport,
   type ApertureEntitySetComponentFieldRequest,
   type ApertureEntitySnapshotDiff,
-} from "./entity-lookup.js";
+} from "../../entity-lookup.js";
 import {
   isRecord,
   jsonSafeValue,
   numberFromValue,
   stringArrayFromValue,
   stringFromValue,
-} from "./worker-payload.js";
-import type { GeneratedDevtoolsToolResult } from "./worker-devtools-types.js";
+} from "../payload.js";
+import type { GeneratedDevtoolsToolResult } from "./types.js";
 
 export interface GeneratedEntityToolRequest {
   readonly channel: string;

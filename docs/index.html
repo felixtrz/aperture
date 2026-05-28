@@ -393,13 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-28 15:44 UTC</dd>
+            <dd>2026-05-28 15:53 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Track 6 of the app/CLI structure refactor moved
-              generated browser bootstrap internals into
+              Latest update: Track 7 of the app/CLI structure refactor moved
+              generated worker bootstrap internals into
+              <code>packages/app/src/worker/</code>, leaving
+              <code>@aperture-engine/app/worker</code> as the public facade
+              while splitting port attachment, run loop startup, snapshot
+              publication, source-asset serialization, asset summaries, command
+              handling, viewport resize handling, payload parsing, and worker
+              devtools dispatch by responsibility. Previous update: Track 6
+              moved generated browser bootstrap internals into
               <code>packages/app/src/browser/</code>, leaving
               <code>@aperture-engine/app/browser</code> as the public facade
               while splitting startup, status, source-asset mirroring, command

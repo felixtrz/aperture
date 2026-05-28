@@ -1,17 +1,17 @@
 import type { EcsWorld, Entity } from "@aperture-engine/simulation";
 import { Camera } from "@aperture-engine/render";
-import type { ApertureApp } from "./advanced.js";
-import type { ApertureDevtoolsRequest } from "./commands.js";
-import type { EcsEntityRef } from "./config.js";
-import type { ApertureEntityLookupDiagnostic } from "./entity-lookup.js";
+import type { ApertureApp } from "../../advanced.js";
+import type { ApertureDevtoolsRequest } from "../../commands.js";
+import type { EcsEntityRef } from "../../config.js";
+import type { ApertureEntityLookupDiagnostic } from "../../entity-lookup.js";
 import {
   AppEntityKey,
   LocalTransform,
   Name,
   WorldTransform,
-} from "./systems.js";
-import { entityRefFromValue } from "./worker-entity-tools.js";
-import type { GeneratedDevtoolsToolResult } from "./worker-devtools-types.js";
+} from "../../systems.js";
+import { entityRefFromValue } from "./entities.js";
+import type { GeneratedDevtoolsToolResult } from "./types.js";
 import {
   degreesToRadians,
   isRecord,
@@ -22,7 +22,7 @@ import {
   tuple3FromView,
   tuple4FromValue,
   tuple4FromView,
-} from "./worker-payload.js";
+} from "../payload.js";
 
 export interface CameraToolState {
   readonly entity: EcsEntityRef;
