@@ -1,7 +1,7 @@
 import type {
   GltfReportDrivenGlbImportDiagnostic,
   GltfReportDrivenImportOptions,
-} from "./gltf-report-driven-import.js";
+} from "./gltf-report-driven-import-types.js";
 
 export function resolvedExternalBufferByteLengths(
   options: GltfReportDrivenImportOptions,

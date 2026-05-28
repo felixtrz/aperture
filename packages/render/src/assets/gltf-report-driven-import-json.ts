@@ -12,7 +12,7 @@ import type {
   GltfReportDrivenGlbSourceStatusJsonValue,
   GltfReportDrivenImportReport,
   GltfReportDrivenImportReportJsonValue,
-} from "./gltf-report-driven-import.js";
+} from "./gltf-report-driven-import-types.js";
 
 export function gltfReportDrivenImportReportToJsonValue(
   report: GltfReportDrivenImportReport,

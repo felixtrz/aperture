@@ -1,0 +1,150 @@
+import {
+  decodeGltfPrimitiveAccessors,
+  type GltfAccessorDecodingReport,
+} from "./gltf-accessor-decoding.js";
+import { validateGltfPrimitiveAccessorReferences } from "./gltf-accessor-validation.js";
+import {
+  createGltfMeshPrimitiveMappingReport,
+  type GltfMeshPrimitiveMappingReport,
+} from "./gltf-mesh-primitive.js";
+import {
+  createMeshAssetsFromGltfDecodedAccessors,
+  type GltfMeshAssetConstructionReport,
+  type GltfMeshAssetTangentGenerationRequest,
+} from "./gltf-mesh-asset-construction.js";
+import { resolvedExternalBufferByteLengths } from "./gltf-report-driven-import-buffers.js";
+import { decodeGltfDracoPrimitiveAccessors } from "./gltf-report-driven-import-draco.js";
+import { decodeGltfMeshoptBufferViews } from "./gltf-report-driven-import-meshopt.js";
+import type { GltfAccessorValidationReport } from "./gltf-accessor-validation.js";
+import type { GltfReportDrivenImportOptions } from "./gltf-report-driven-import-types.js";
+
+export interface GltfReportDrivenMeshReports {
+  readonly meshPrimitive: GltfMeshPrimitiveMappingReport;
+  readonly accessorValidation: GltfAccessorValidationReport;
+  readonly accessorDecoding: GltfAccessorDecodingReport;
+  readonly meshConstruction: GltfMeshAssetConstructionReport;
+}
+
+export function createGltfReportDrivenMeshReports(
+  options: GltfReportDrivenImportOptions,
+): GltfReportDrivenMeshReports {
+  const meshoptBuffers = decodeGltfMeshoptBufferViews({
+    root: options.root,
+    decoder: options.meshoptDecoder,
+    resolveBufferBytes: options.resolveBufferBytes ?? (() => null),
+  });
+  const meshRoot = meshoptBuffers.root;
+  const resolveMeshBufferBytes = meshoptBuffers.resolveBufferBytes;
+  const meshPrimitive = createGltfMeshPrimitiveMappingReport({
+    root: meshRoot,
+    ...(options.keyPrefix === undefined
+      ? {}
+      : { keyPrefix: options.keyPrefix }),
+    ...(options.dracoDecoder === undefined
+      ? {}
+      : {
+          supportedCompressedPrimitiveExtensions: [
+            "KHR_draco_mesh_compression",
+          ] as const,
+        }),
+  });
+  const accessorValidation = validateGltfPrimitiveAccessorReferences({
+    root: meshRoot,
+    primitiveReport: meshPrimitive,
+    ...resolvedExternalBufferByteLengths({
+      ...options,
+      root: meshRoot,
+      resolveBufferBytes: resolveMeshBufferBytes,
+    }),
+  });
+  const uncompressedAccessorDecoding = decodeGltfPrimitiveAccessors({
+    validationReport: accessorValidation,
+    resolveBufferBytes: resolveMeshBufferBytes,
+    storageMode: options.accessorStorageMode ?? "source-view",
+  });
+  const dracoAccessorDecoding = decodeGltfDracoPrimitiveAccessors({
+    root: meshRoot,
+    primitiveReport: meshPrimitive,
+    decoder: options.dracoDecoder,
+    resolveBufferBytes: resolveMeshBufferBytes,
+  });
+  const accessorDecoding = mergeAccessorDecodingReports(
+    mergeAccessorDecodingReports(
+      uncompressedAccessorDecoding,
+      dracoAccessorDecoding,
+    ),
+    {
+      valid: meshoptBuffers.diagnostics.every(
+        (diagnostic) => diagnostic.severity !== "error",
+      ),
+      primitives: [],
+      diagnostics: meshoptBuffers.diagnostics,
+    },
+  );
+  const meshConstruction = createMeshAssetsFromGltfDecodedAccessors({
+    decodedReport: accessorDecoding,
+    generateMissingTangentsFor: createMissingTangentGenerationRequests(
+      meshRoot,
+      meshPrimitive,
+    ),
+  });
+
+  return {
+    meshPrimitive,
+    accessorValidation,
+    accessorDecoding,
+    meshConstruction,
+  };
+}
+
+function mergeAccessorDecodingReports(
+  first: GltfAccessorDecodingReport,
+  second: GltfAccessorDecodingReport,
+): GltfAccessorDecodingReport {
+  return {
+    valid: first.valid && second.valid,
+    primitives: [...first.primitives, ...second.primitives],
+    diagnostics: [...first.diagnostics, ...second.diagnostics],
+  };
+}
+
+function createMissingTangentGenerationRequests(
+  root: unknown,
+  meshPrimitive: GltfMeshPrimitiveMappingReport,
+): readonly GltfMeshAssetTangentGenerationRequest[] {
+  if (!isRecord(root) || !Array.isArray(root.materials)) {
+    return [];
+  }
+
+  const requests: GltfMeshAssetTangentGenerationRequest[] = [];
+
+  for (const mesh of meshPrimitive.meshes) {
+    if (
+      mesh.materialIndex === null ||
+      !gltfMaterialNeedsTangents(root.materials, mesh.materialIndex)
+    ) {
+      continue;
+    }
+
+    requests.push({
+      meshIndex: mesh.meshIndex,
+      primitiveIndex: mesh.primitiveIndex,
+      reason: "normalTexture",
+    });
+  }
+
+  return requests;
+}
+
+function gltfMaterialNeedsTangents(
+  materials: readonly unknown[],
+  materialIndex: number,
+): boolean {
+  const material = materials[materialIndex];
+
+  return isRecord(material) && isRecord(material.normalTexture);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
