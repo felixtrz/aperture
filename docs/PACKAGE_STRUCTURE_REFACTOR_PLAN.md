@@ -446,6 +446,9 @@ Status: in progress
 - App input generated-event, action, keyboard, gamepad, resource, and summary
   contracts now live in `packages/app/src/input-state-types.ts`, preserving the
   existing public type exports through `input-state.ts` and `systems.ts`.
+- App stateful keyboard implementation now lives in
+  `packages/app/src/input-state-keyboard.ts`, preserving the same
+  `StatefulKeyboardState` contract used by input resources and systems.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
