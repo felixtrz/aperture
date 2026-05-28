@@ -415,6 +415,10 @@ Status: in progress
 - glTF texture sync/async asset creation and texture mapping preparation now
   live in `gltf-texture-create.ts` and `gltf-texture-prepare.ts`, keeping
   `gltf-texture.ts` as the stable public re-export facade.
+- Track 6 has started. App system effect scheduling and the shared app system
+  error type now live in `packages/app/src/systems-effects.ts` and
+  `packages/app/src/systems-error.ts`, keeping `systems.ts` focused more tightly
+  on system creation/context and app authoring helpers.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

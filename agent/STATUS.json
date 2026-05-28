@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "bfb95f6f",
+  "lastCommit": "340d8d33",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 5 by splitting glTF texture sync/async asset creation and texture mapping preparation into focused material modules while keeping gltf-texture.ts as the stable public facade; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T08:46:38Z"
+  "notes": "Started PACKAGE_STRUCTURE_REFACTOR_PLAN Track 6 by splitting app system effect scheduling and shared app system errors out of systems.ts while preserving the public app systems surface; focused validation, build, and boundaries passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
+  "lastRunFinishedAt": "2026-05-28T08:51:04Z"
 }
