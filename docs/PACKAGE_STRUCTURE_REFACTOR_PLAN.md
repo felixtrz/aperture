@@ -285,8 +285,11 @@ Status: in progress
 - glTF URI image source resolution, decode caching, decoded-image resolver
   helpers, and shared URI/MIME/byte utilities now live in
   `packages/render/src/assets/gltf-uri-images.ts` and
-  `packages/render/src/assets/gltf-uri-shared.ts`, reducing
-  `gltf-uri-loader.ts` to fetch/JSON/orchestration responsibilities.
+  `packages/render/src/assets/gltf-uri-shared.ts`.
+- glTF URI fetch/cache, JSON parsing, external buffer/image fetch, same-origin
+  URL validation, and external byte merge helpers now live in
+  `packages/render/src/assets/gltf-uri-fetch.ts`, leaving
+  `gltf-uri-loader.ts` as a compact URI load orchestration entry point.
 
 ## Purpose
 
