@@ -476,6 +476,10 @@ Status: in progress
   `gltf-accessor-validation-primitives.ts`, leaving
   `gltf-accessor-validation.ts` focused on root validation and public report
   APIs.
+- KTX2 public contracts, constants, container parsing, shared byte/feature
+  utilities, and Basis Universal transcoder glue now live in focused
+  `ktx2-*` asset modules, leaving `ktx2-decoder.ts` as the public decode and
+  compression-support facade.
 
 ## Purpose
 

@@ -1,6 +1,52 @@
 # Agent Handoff
 
-Updated: 2026-05-28T04:10:32Z
+Updated: 2026-05-28T04:15:24Z
+
+## Current Run Update — 2026-05-28T04:15:24Z — KTX2 decoder helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split KTX2 public contracts and internal Basis module contracts into
+  `packages/render/src/assets/ktx2-types.ts`.
+- Split KTX2 constants into `packages/render/src/assets/ktx2-constants.ts`.
+- Split KTX2 header/level-index parsing into
+  `packages/render/src/assets/ktx2-container.ts`.
+- Split byte-view, 64-bit offset, ArrayBuffer copy, and compression-feature
+  helpers into `packages/render/src/assets/ktx2-utils.ts`.
+- Split Basis Universal glue compilation, WASM/JS source resolution, target
+  selection, and BasisU transcode execution into
+  `packages/render/src/assets/ktx2-basis-transcoder.ts`.
+- Kept `packages/render/src/assets/ktx2-decoder.ts` as the stable public facade
+  for container parsing, sync/async decode, transcoder creation, and compression
+  support helpers.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/ktx2-decoder.ts packages/render/src/assets/ktx2-constants.ts packages/render/src/assets/ktx2-types.ts packages/render/src/assets/ktx2-utils.ts packages/render/src/assets/ktx2-container.ts packages/render/src/assets/ktx2-basis-transcoder.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/ktx2-decoder.ts packages/render/src/assets/ktx2-constants.ts packages/render/src/assets/ktx2-types.ts packages/render/src/assets/ktx2-utils.ts packages/render/src/assets/ktx2-container.ts packages/render/src/assets/ktx2-basis-transcoder.ts`
+- `pnpm exec prettier --check packages/render/src/assets/ktx2-decoder.ts packages/render/src/assets/ktx2-constants.ts packages/render/src/assets/ktx2-types.ts packages/render/src/assets/ktx2-utils.ts packages/render/src/assets/ktx2-container.ts packages/render/src/assets/ktx2-basis-transcoder.ts`
+- `pnpm exec vitest run test/assets/ktx2-decoder.test.ts test/materials/gltf-texture.test.ts test/assets/glb-source-loader-output-summary.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `draco-decoder.ts`, `gltf-uri-fetch.ts`,
+  `gltf-ecs-command-replay.ts`, `standard-texture-readiness.ts`, and several
+  older asset/material facades.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting Draco decoder helpers or one of the remaining
+URI asset, command replay, or material facade modules.
 
 ## Current Run Update — 2026-05-28T04:10:32Z — glTF accessor primitive validation split
 
