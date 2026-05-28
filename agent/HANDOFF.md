@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-28T09:06:02Z
+Updated: 2026-05-28T09:09:13Z
+
+## Current Run Update — 2026-05-28T09:09:13Z — app system metadata component split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 6.
+
+### What changed
+
+- Split app-authored ECS metadata components and app component registration into
+  `packages/app/src/systems-components.ts`.
+- Kept `AppEntityKey`, `AppEntityTags`, `AppEntitySource`, and
+  `registerApertureAppComponents()` re-exported from `systems.ts`.
+- Reduced `systems.ts` and set up a cleaner boundary for a future spawn/context
+  split.
+
+### Validation
+
+- `pnpm exec prettier --write packages/app/src/systems.ts packages/app/src/systems-components.ts`
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec eslint packages/app/src/systems.ts packages/app/src/systems-components.ts`
+- `pnpm exec prettier --check packages/app/src/systems.ts packages/app/src/systems-components.ts`
+- `pnpm exec vitest run test/app/systems.test.ts test/app/developer-api.test.ts test/runtime/simulation-worker.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 6 still needs focused app modules for system context, spawn helpers,
+  config/runtime code, and input state.
+- Remaining large app files include `worker.ts`, `systems.ts`, `browser.ts`,
+  `input-state.ts`, `entity-lookup.ts`, and `config.ts`.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 6 by splitting app system spawn/context helpers or input state.
 
 ## Current Run Update — 2026-05-28T09:06:02Z — app system asset access split
 
