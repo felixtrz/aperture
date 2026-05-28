@@ -409,6 +409,9 @@ Status: in progress
   `packages/render/src/materials/gltf-texture-resolution.ts`, keeping
   `gltf-texture.ts` focused on texture/source/sampler mapping and asset report
   assembly.
+- glTF sampler enum constants, public mapping contracts, sampler-asset mapping,
+  and JSON projection now live in focused `gltf-sampler-*` material modules,
+  keeping `gltf-sampler.ts` as the stable public re-export facade.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in

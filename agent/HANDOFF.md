@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T08:40:58Z
+Updated: 2026-05-28T08:43:46Z
+
+## Current Run Update — 2026-05-28T08:43:46Z — glTF sampler mapping split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split glTF sampler enum constants into
+  `packages/render/src/materials/gltf-sampler-constants.ts`.
+- Split public sampler mapping contracts into
+  `packages/render/src/materials/gltf-sampler-types.ts`.
+- Split sampler asset mapping and diagnostic creation into
+  `packages/render/src/materials/gltf-sampler-mapping.ts`.
+- Split sampler mapping JSON projection into
+  `packages/render/src/materials/gltf-sampler-json.ts`.
+- Kept `gltf-sampler.ts` as the stable public re-export facade.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/materials/gltf-sampler.ts packages/render/src/materials/gltf-sampler-constants.ts packages/render/src/materials/gltf-sampler-types.ts packages/render/src/materials/gltf-sampler-mapping.ts packages/render/src/materials/gltf-sampler-json.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/materials/gltf-sampler.ts packages/render/src/materials/gltf-sampler-constants.ts packages/render/src/materials/gltf-sampler-types.ts packages/render/src/materials/gltf-sampler-mapping.ts packages/render/src/materials/gltf-sampler-json.ts`
+- `pnpm exec prettier --check packages/render/src/materials/gltf-sampler.ts packages/render/src/materials/gltf-sampler-constants.ts packages/render/src/materials/gltf-sampler-types.ts packages/render/src/materials/gltf-sampler-mapping.ts packages/render/src/materials/gltf-sampler-json.ts`
+- `pnpm exec vitest run test/materials/gltf-sampler.test.ts test/materials/gltf-report-json.test.ts test/materials/gltf-material-texture-integration.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-texture.ts`,
+  `gltf-source-registration-writers.ts`, `preparation-material.ts`,
+  `extraction-inputs.ts`, and other medium render/material/asset modules still
+  near the hotspot threshold.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting the next medium material/asset hotspot.
 
 ## Current Run Update — 2026-05-28T08:40:58Z — snapshot contract type split
 
