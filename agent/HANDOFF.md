@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-28T04:19:17Z
+Updated: 2026-05-28T04:22:22Z
+
+## Current Run Update — 2026-05-28T04:22:22Z — glTF URI fetch helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split glTF JSON byte decoding/parsing and invalid-JSON diagnostics into
+  `packages/render/src/assets/gltf-uri-json.ts`.
+- Split same-origin external buffer/image URL validation, deduplicated external
+  fetch orchestration, and fetch diagnostic re-indexing into
+  `packages/render/src/assets/gltf-uri-external-fetch.ts`.
+- Split provided/fetched external buffer and image byte merging into
+  `packages/render/src/assets/gltf-uri-external-merge.ts`.
+- Kept `packages/render/src/assets/gltf-uri-fetch.ts` as the stable public
+  facade for byte fetch, JSON parse, external fetch, and merge exports.
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/assets/gltf-uri-fetch.ts packages/render/src/assets/gltf-uri-json.ts packages/render/src/assets/gltf-uri-external-fetch.ts packages/render/src/assets/gltf-uri-external-merge.ts`
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm exec eslint packages/render/src/assets/gltf-uri-fetch.ts packages/render/src/assets/gltf-uri-json.ts packages/render/src/assets/gltf-uri-external-fetch.ts packages/render/src/assets/gltf-uri-external-merge.ts`
+- `pnpm exec prettier --check packages/render/src/assets/gltf-uri-fetch.ts packages/render/src/assets/gltf-uri-json.ts packages/render/src/assets/gltf-uri-external-fetch.ts packages/render/src/assets/gltf-uri-external-merge.ts`
+- `pnpm exec vitest run test/assets/gltf-uri-loader.test.ts test/assets/gltf-uri-loader-json.test.ts test/assets/gltf-report-driven-import-json.test.ts test/assets/gltf-combined-import-fixture-json.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `gltf-ecs-command-replay.ts`,
+  `standard-texture-readiness.ts`, `gltf-material.ts`, `glb-uri-fetch.ts`, and
+  several older asset/material/rendering facades.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining command replay, texture
+readiness, material, GLB URI fetch, or rendering facade modules.
 
 ## Current Run Update — 2026-05-28T04:19:17Z — Draco decoder helper split
 

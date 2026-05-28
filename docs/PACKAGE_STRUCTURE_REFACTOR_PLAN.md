@@ -483,6 +483,10 @@ Status: in progress
 - Draco public contracts, WASM/JS module loading, decoded mesh extraction, and
   glTF accessor adaptation now live in focused `draco-*` asset modules, leaving
   `draco-decoder.ts` as the stable public decoder facade.
+- glTF URI JSON parsing, external buffer/image fetch orchestration, same-origin
+  URL validation, and provided/fetched byte merge helpers now live in focused
+  `gltf-uri-*` asset modules, leaving `gltf-uri-fetch.ts` as the stable public
+  fetch facade.
 
 ## Purpose
 
