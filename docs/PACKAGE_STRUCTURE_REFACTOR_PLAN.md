@@ -404,6 +404,10 @@ Status: in progress
   `gltf-mesh-primitive-*` asset modules, leaving
   `gltf-mesh-primitive.ts` focused on root validation, primitive selection,
   topology checks, compression routing, and planned mesh assembly.
+- Transform packing public contracts, mutable scratch state, capacity growth,
+  and reusable offset pools now live in `transform-pack-types.ts` and
+  `transform-pack-scratch.ts`, leaving `transform-pack.ts` focused on current,
+  previous, tint, and custom instance-attribute packing algorithms.
 
 ## Purpose
 

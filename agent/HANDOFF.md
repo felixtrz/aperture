@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T02:32:51Z
+Updated: 2026-05-28T02:37:29Z
+
+## Current Run Update — 2026-05-28T02:37:29Z — transform pack scratch helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Extracted transform/instance tint/instance attribute packing public contracts
+  and mutable scratch/result contracts into
+  `packages/render/src/rendering/transform-pack-types.ts`.
+- Extracted scratch constructors, data-capacity growth helpers, offset-pool
+  lookup helpers, and empty-offset factories into
+  `packages/render/src/rendering/transform-pack-scratch.ts`.
+- Retargeted `transform-pack-guards.ts` to import the packed transform type
+  from the type module instead of the facade.
+- `packages/render/src/rendering/transform-pack.ts` is now roughly 475 lines
+  and remains focused on current/previous transform, tint, and custom
+  instance-attribute packing algorithms.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/rendering/transform-pack.ts packages/render/src/rendering/transform-pack-types.ts packages/render/src/rendering/transform-pack-scratch.ts packages/render/src/rendering/transform-pack-guards.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/transform-pack.ts packages/render/src/rendering/transform-pack-types.ts packages/render/src/rendering/transform-pack-scratch.ts packages/render/src/rendering/transform-pack-guards.ts`
+- `pnpm exec vitest run test/rendering/transform-pack.test.ts test/rendering/draw-package.test.ts test/rendering/render-world.test.ts test/webgpu/world-transform-buffer.test.ts test/webgpu/render-frame-snapshot-json.test.ts test/webgpu/render-frame-snapshot-diagnostics.test.ts test/webgpu/render-frame-snapshot-runner.test.ts test/webgpu/fixtures/snapshot-render-frame.test.ts`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `mesh/primitives.ts`,
+  `draco-decoder.ts`, `snapshot-packed-codecs.ts`, `render-queue.ts`,
+  `mesh-merge.ts`, `hdr-rgbe-loader.ts`, and mesh asset construction helpers.
+- Broad `test/webgpu/webgpu-app.test.ts` still has pre-existing resource-key
+  expectation failures unrelated to this split; use targeted subsets until
+  those expectations are updated.
+
+### Recommended next task
+
+Continue Track 5 by splitting one of the remaining decoder, queue, mesh, or
+packed snapshot helper modules.
 
 ## Current Run Update — 2026-05-28T02:32:51Z — glTF mesh primitive mapping helper split
 
