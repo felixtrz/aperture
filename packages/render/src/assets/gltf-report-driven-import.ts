@@ -1,63 +1,44 @@
 import {
   createGltfLoaderOrchestrationReport,
-  gltfLoaderOrchestrationReportToJsonValue,
   type GltfLoaderOrchestrationReport,
   type GltfLoaderOrchestrationReportJsonValue,
   type GltfLoaderOrchestrationReportOptions,
 } from "./gltf-loader-orchestration.js";
 import {
   createGltfAssetMappingReport,
-  gltfAssetMappingReportToJsonValue,
   type GltfAssetMappingReport,
   type GltfAssetMappingReportJsonValue,
 } from "./gltf-asset-mapping.js";
 import {
   decodeGltfPrimitiveAccessors,
-  gltfAccessorDecodingReportToJsonValue,
   type GltfAccessorDecodingReport,
-  type GltfAccessorDecodingDiagnostic,
-  type GltfDecodedPrimitiveAccessors,
   type GltfAccessorDecodingReportJsonValue,
   type GltfAccessorStorageMode,
 } from "./gltf-accessor-decoding.js";
 import {
-  gltfAccessorValidationReportToJsonValue,
   validateGltfPrimitiveAccessorReferences,
   type GltfAccessorValidationReport,
   type GltfAccessorValidationReportJsonValue,
 } from "./gltf-accessor-validation.js";
 import {
-  gltfRootValidationReportToJsonValue,
   validateGltfRootForAssetMapping,
   type GltfRootValidationReport,
   type GltfRootValidationReportJsonValue,
 } from "./gltf-root.js";
 import {
   createGltfSceneTraversalReport,
-  gltfSceneTraversalReportToJsonValue,
   type GltfSceneTraversalReport,
   type GltfSceneTraversalReportJsonValue,
 } from "./gltf-scene-traversal.js";
 import {
   createGltfMeshPrimitiveMappingReport,
-  gltfMeshPrimitiveMappingReportToJsonValue,
   type GltfMeshPrimitiveMappingReport,
   type GltfMeshPrimitiveMappingReportJsonValue,
-  type GltfPlannedMeshPrimitiveAsset,
 } from "./gltf-mesh-primitive.js";
-import {
-  createGltfDecodedPrimitiveAccessorsFromDraco,
-  type DracoAttributeDecodeRequest,
-  type DracoMeshDecoder,
-} from "./draco-decoder.js";
-import type {
-  MeshoptBufferDecoder,
-  MeshoptDecodeFilter,
-  MeshoptDecodeMode,
-} from "./meshopt-decoder.js";
+import type { DracoMeshDecoder } from "./draco-decoder.js";
+import type { MeshoptBufferDecoder } from "./meshopt-decoder.js";
 import {
   createMeshAssetsFromGltfDecodedAccessors,
-  gltfMeshAssetConstructionReportToJsonValue,
   type GltfMeshAssetConstructionReport,
   type GltfMeshAssetConstructionReportJsonValue,
   type GltfMeshAssetTangentGenerationRequest,
@@ -67,7 +48,21 @@ import {
   type GlbContainerParseResult,
   type GlbContainerSource,
 } from "./glb-container.js";
+import {
+  createGlbBufferSourceDiagnostics,
+  resolvedExternalBufferByteLengths,
+  resolveGlbBufferBytes,
+} from "./gltf-report-driven-import-buffers.js";
+import { decodeGltfDracoPrimitiveAccessors } from "./gltf-report-driven-import-draco.js";
+import { decodeGltfMeshoptBufferViews } from "./gltf-report-driven-import-meshopt.js";
 import type { GltfImageDataResolver } from "../materials/gltf-texture.js";
+
+export {
+  gltfReportDrivenGlbImportReportToJsonValue,
+  gltfReportDrivenGlbImportReportToSourceStatusJsonValue,
+  gltfReportDrivenImportReportToJson,
+  gltfReportDrivenImportReportToJsonValue,
+} from "./gltf-report-driven-import-json.js";
 
 export type GltfReportDrivenImportDiagnosticCode =
   | "gltfImport.providedRootReport"
@@ -354,93 +349,6 @@ export function createGltfReportDrivenImportReportFromGlb(
   };
 }
 
-export function gltfReportDrivenImportReportToJsonValue(
-  report: GltfReportDrivenImportReport,
-): GltfReportDrivenImportReportJsonValue {
-  return {
-    valid: report.valid,
-    root: gltfRootValidationReportToJsonValue(report.root),
-    assetMapping:
-      report.assetMapping === null
-        ? null
-        : gltfAssetMappingReportToJsonValue(report.assetMapping),
-    meshPrimitive:
-      report.meshPrimitive === null
-        ? null
-        : gltfMeshPrimitiveMappingReportToJsonValue(report.meshPrimitive),
-    accessorValidation:
-      report.accessorValidation === null
-        ? null
-        : gltfAccessorValidationReportToJsonValue(report.accessorValidation),
-    accessorDecoding:
-      report.accessorDecoding === null
-        ? null
-        : gltfAccessorDecodingReportToJsonValue(report.accessorDecoding),
-    meshConstruction:
-      report.meshConstruction === null
-        ? null
-        : gltfMeshAssetConstructionReportToJsonValue(report.meshConstruction),
-    sceneTraversal: gltfSceneTraversalReportToJsonValue(report.sceneTraversal),
-    orchestration: gltfLoaderOrchestrationReportToJsonValue(
-      report.orchestration,
-    ),
-    diagnostics: report.diagnostics.map((diagnostic) => ({ ...diagnostic })),
-  };
-}
-
-export function gltfReportDrivenGlbImportReportToJsonValue(
-  report: GltfReportDrivenGlbImportReport,
-): GltfReportDrivenGlbImportReportJsonValue {
-  return {
-    valid: report.valid,
-    container: {
-      ok: report.container.ok,
-      byteLength: report.container.container?.byteLength ?? null,
-      chunks:
-        report.container.container?.chunks.map((chunk) => ({ ...chunk })) ?? [],
-      diagnostics: report.container.diagnostics.map((diagnostic) => ({
-        ...diagnostic,
-      })),
-    },
-    importReport:
-      report.importReport === null
-        ? null
-        : gltfReportDrivenImportReportToJsonValue(report.importReport),
-    diagnostics: report.diagnostics.map((diagnostic) => ({ ...diagnostic })),
-  };
-}
-
-export function gltfReportDrivenGlbImportReportToSourceStatusJsonValue(
-  report: GltfReportDrivenGlbImportReport,
-): GltfReportDrivenGlbSourceStatusJsonValue {
-  return {
-    valid: report.valid,
-    byteLength: report.container.container?.byteLength ?? null,
-    chunks:
-      report.container.container?.chunks.map((chunk) => ({
-        type: chunk.type,
-        byteLength: chunk.byteLength,
-      })) ?? [],
-    diagnostics: [
-      ...report.container.diagnostics.map((diagnostic) => ({
-        code: diagnostic.code,
-        severity: diagnostic.severity,
-        message: diagnostic.message,
-      })),
-      ...report.diagnostics.map((diagnostic) => ({
-        code: diagnostic.code,
-        severity: diagnostic.severity,
-        message: diagnostic.message,
-      })),
-    ],
-    importStages:
-      report.importReport?.orchestration.stages.map((stage) => ({
-        stage: stage.stage,
-        status: stage.status,
-      })) ?? [],
-  };
-}
-
 function createMeshReports(options: GltfReportDrivenImportOptions): {
   readonly meshPrimitive: GltfMeshPrimitiveMappingReport;
   readonly accessorValidation: GltfAccessorValidationReport;
@@ -516,424 +424,6 @@ function createMeshReports(options: GltfReportDrivenImportOptions): {
   };
 }
 
-type GltfMeshoptCompressionExtensionName =
-  | "EXT_meshopt_compression"
-  | "KHR_meshopt_compression";
-
-interface DecodedGltfMeshoptBufferViews {
-  readonly root: unknown;
-  readonly resolveBufferBytes: (
-    bufferIndex: number,
-  ) => ArrayBuffer | ArrayBufferView | null | undefined;
-  readonly diagnostics: readonly GltfAccessorDecodingDiagnostic[];
-}
-
-interface GltfMeshoptBufferViewExtension {
-  readonly extensionName: GltfMeshoptCompressionExtensionName;
-  readonly buffer: number;
-  readonly byteOffset: number;
-  readonly byteLength: number;
-  readonly byteStride: number;
-  readonly count: number;
-  readonly mode: MeshoptDecodeMode;
-  readonly filter?: MeshoptDecodeFilter;
-}
-
-function decodeGltfMeshoptBufferViews(input: {
-  readonly root: unknown;
-  readonly decoder: MeshoptBufferDecoder | undefined;
-  readonly resolveBufferBytes: (
-    bufferIndex: number,
-  ) => ArrayBuffer | ArrayBufferView | null | undefined;
-}): DecodedGltfMeshoptBufferViews {
-  const passthrough: DecodedGltfMeshoptBufferViews = {
-    root: input.root,
-    resolveBufferBytes: input.resolveBufferBytes,
-    diagnostics: [],
-  };
-
-  if (!isRecord(input.root) || !Array.isArray(input.root.bufferViews)) {
-    return passthrough;
-  }
-
-  const compressedBufferViewIndexes = input.root.bufferViews
-    .map((bufferView, bufferViewIndex) =>
-      meshoptExtensionNameForBufferView(bufferView) === null
-        ? null
-        : bufferViewIndex,
-    )
-    .filter(
-      (bufferViewIndex): bufferViewIndex is number => bufferViewIndex !== null,
-    );
-
-  if (compressedBufferViewIndexes.length === 0) {
-    return passthrough;
-  }
-
-  const diagnostics: GltfAccessorDecodingDiagnostic[] = [];
-  if (input.decoder === undefined) {
-    for (const bufferViewIndex of compressedBufferViewIndexes) {
-      diagnostics.push({
-        code: "gltfMeshoptDecode.decoderRequired",
-        severity: "error",
-        message: `Meshopt-compressed bufferView ${bufferViewIndex} requires a Meshopt decoder.`,
-        bufferViewIndex,
-      });
-    }
-
-    return {
-      ...passthrough,
-      diagnostics,
-    };
-  }
-
-  const buffers = Array.isArray(input.root.buffers) ? input.root.buffers : [];
-  const transformedBuffers = buffers.map((buffer) =>
-    isRecord(buffer) ? { ...buffer } : buffer,
-  );
-  const transformedBufferViews = input.root.bufferViews.map((bufferView) =>
-    isRecord(bufferView) ? { ...bufferView } : bufferView,
-  );
-  const decodedBuffers = new Map<number, Uint8Array>();
-
-  for (const bufferViewIndex of compressedBufferViewIndexes) {
-    const bufferView = input.root.bufferViews[bufferViewIndex];
-    const extension = meshoptExtensionForBufferView(bufferView);
-
-    if (extension === null) {
-      diagnostics.push({
-        code: "gltfMeshoptDecode.malformedExtension",
-        severity: "error",
-        message: `Meshopt-compressed bufferView ${bufferViewIndex} has a malformed compression extension.`,
-        bufferViewIndex,
-      });
-      continue;
-    }
-
-    const sourceBytes = bytesView(input.resolveBufferBytes(extension.buffer));
-    if (
-      sourceBytes === null ||
-      extension.byteOffset + extension.byteLength > sourceBytes.byteLength
-    ) {
-      diagnostics.push({
-        code: "gltfMeshoptDecode.missingBufferBytes",
-        severity: "error",
-        message: `Meshopt-compressed bufferView ${bufferViewIndex} source bytes were not available.`,
-        bufferViewIndex,
-        bufferIndex: extension.buffer,
-        byteOffset: extension.byteOffset,
-        byteLength: extension.byteLength,
-      });
-      continue;
-    }
-
-    try {
-      const decoded = input.decoder.decodeGltfBuffer(
-        sourceBytes.subarray(
-          extension.byteOffset,
-          extension.byteOffset + extension.byteLength,
-        ),
-        {
-          count: extension.count,
-          byteStride: extension.byteStride,
-          mode: extension.mode,
-          ...(extension.filter === undefined
-            ? {}
-            : { filter: extension.filter }),
-        },
-      );
-      const decodedBufferIndex = transformedBuffers.length;
-      transformedBuffers.push({ byteLength: decoded.byteLength });
-      decodedBuffers.set(decodedBufferIndex, decoded);
-      transformedBufferViews[bufferViewIndex] = decodedMeshoptBufferView(
-        bufferView,
-        decodedBufferIndex,
-        decoded.byteLength,
-      );
-    } catch (error) {
-      diagnostics.push({
-        code: "gltfMeshoptDecode.failed",
-        severity: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : `Meshopt decode failed for bufferView ${bufferViewIndex}.`,
-        bufferViewIndex,
-        bufferIndex: extension.buffer,
-        byteOffset: extension.byteOffset,
-        byteLength: extension.byteLength,
-      });
-    }
-  }
-
-  return {
-    root: {
-      ...input.root,
-      buffers: transformedBuffers,
-      bufferViews: transformedBufferViews,
-    },
-    resolveBufferBytes: (bufferIndex) =>
-      decodedBuffers.get(bufferIndex) ?? input.resolveBufferBytes(bufferIndex),
-    diagnostics,
-  };
-}
-
-function decodedMeshoptBufferView(
-  source: unknown,
-  bufferIndex: number,
-  byteLength: number,
-): Record<string, unknown> {
-  const output = isRecord(source) ? { ...source } : {};
-  output.buffer = bufferIndex;
-  output.byteOffset = 0;
-  output.byteLength = byteLength;
-
-  const extensions = isRecord(output.extensions)
-    ? { ...output.extensions }
-    : null;
-  if (extensions !== null) {
-    delete extensions.EXT_meshopt_compression;
-    delete extensions.KHR_meshopt_compression;
-    if (Object.keys(extensions).length === 0) {
-      delete output.extensions;
-    } else {
-      output.extensions = extensions;
-    }
-  }
-
-  return output;
-}
-
-function meshoptExtensionNameForBufferView(
-  bufferView: unknown,
-): GltfMeshoptCompressionExtensionName | null {
-  if (!isRecord(bufferView) || !isRecord(bufferView.extensions)) {
-    return null;
-  }
-
-  if (bufferView.extensions.EXT_meshopt_compression !== undefined) {
-    return "EXT_meshopt_compression";
-  }
-  if (bufferView.extensions.KHR_meshopt_compression !== undefined) {
-    return "KHR_meshopt_compression";
-  }
-
-  return null;
-}
-
-function meshoptExtensionForBufferView(
-  bufferView: unknown,
-): GltfMeshoptBufferViewExtension | null {
-  const extensionName = meshoptExtensionNameForBufferView(bufferView);
-  if (
-    !isRecord(bufferView) ||
-    !isRecord(bufferView.extensions) ||
-    extensionName === null
-  ) {
-    return null;
-  }
-
-  const extension = bufferView.extensions[extensionName];
-  if (!isRecord(extension)) {
-    return null;
-  }
-
-  const buffer = integerField(extension.buffer);
-  const byteOffset = integerField(extension.byteOffset ?? 0);
-  const byteLength = integerField(extension.byteLength);
-  const byteStride = integerField(extension.byteStride);
-  const count = integerField(extension.count);
-  const mode = meshoptDecodeMode(extension.mode);
-  const filter = meshoptDecodeFilter(extension.filter ?? "NONE");
-
-  if (
-    buffer === null ||
-    buffer < 0 ||
-    byteOffset === null ||
-    byteOffset < 0 ||
-    byteLength === null ||
-    byteLength < 0 ||
-    byteStride === null ||
-    byteStride <= 0 ||
-    count === null ||
-    count <= 0 ||
-    mode === null ||
-    filter === null
-  ) {
-    return null;
-  }
-
-  return {
-    extensionName,
-    buffer,
-    byteOffset,
-    byteLength,
-    byteStride,
-    count,
-    mode,
-    ...(filter === "NONE" ? {} : { filter }),
-  };
-}
-
-function meshoptDecodeMode(value: unknown): MeshoptDecodeMode | null {
-  return value === "ATTRIBUTES" || value === "TRIANGLES" || value === "INDICES"
-    ? value
-    : null;
-}
-
-function meshoptDecodeFilter(value: unknown): MeshoptDecodeFilter | null {
-  return value === "NONE" ||
-    value === "OCTAHEDRAL" ||
-    value === "QUATERNION" ||
-    value === "EXPONENTIAL" ||
-    value === "COLOR"
-    ? value
-    : null;
-}
-
-function decodeGltfDracoPrimitiveAccessors(input: {
-  readonly root: unknown;
-  readonly primitiveReport: GltfMeshPrimitiveMappingReport;
-  readonly decoder: DracoMeshDecoder | undefined;
-  readonly resolveBufferBytes: (
-    bufferIndex: number,
-  ) => ArrayBuffer | ArrayBufferView | null | undefined;
-}): GltfAccessorDecodingReport {
-  const diagnostics: GltfAccessorDecodingDiagnostic[] = [];
-  const primitives: GltfDecodedPrimitiveAccessors[] = [];
-
-  if (input.decoder === undefined || !isRecord(input.root)) {
-    return { valid: true, primitives, diagnostics };
-  }
-
-  for (const primitive of input.primitiveReport.meshes) {
-    if (primitive.compression?.extensionName !== "KHR_draco_mesh_compression") {
-      continue;
-    }
-
-    const source = resolveCompressedBufferViewBytes(
-      {
-        root: input.root,
-        resolveBufferBytes: input.resolveBufferBytes,
-      },
-      primitive,
-    );
-    if (source === null) {
-      diagnostics.push({
-        code: "gltfDracoDecode.missingBufferBytes",
-        severity: "error",
-        message: `Draco bufferView ${primitive.compression.bufferView} bytes were not available for mesh ${primitive.meshIndex} primitive ${primitive.primitiveIndex}.`,
-        meshHandleKey: primitive.registeredHandleKey,
-        meshIndex: primitive.meshIndex,
-        primitiveIndex: primitive.primitiveIndex,
-      });
-      continue;
-    }
-
-    try {
-      const decoded = input.decoder.decode(source.bytes, {
-        attributes: primitive.compression.attributes.map(
-          dracoAttributeRequestForSemantic,
-        ),
-      });
-      primitives.push(
-        createGltfDecodedPrimitiveAccessorsFromDraco({
-          meshHandleKey: primitive.registeredHandleKey,
-          meshIndex: primitive.meshIndex,
-          primitiveIndex: primitive.primitiveIndex,
-          decoded,
-        }),
-      );
-    } catch (error) {
-      diagnostics.push({
-        code: "gltfDracoDecode.failed",
-        severity: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : `Draco decode failed for mesh ${primitive.meshIndex} primitive ${primitive.primitiveIndex}.`,
-        meshHandleKey: primitive.registeredHandleKey,
-        meshIndex: primitive.meshIndex,
-        primitiveIndex: primitive.primitiveIndex,
-        bufferIndex: source.bufferIndex,
-        byteOffset: source.byteOffset,
-        byteLength: source.bytes.byteLength,
-      });
-    }
-  }
-
-  return {
-    valid: diagnostics.every((diagnostic) => diagnostic.severity !== "error"),
-    primitives,
-    diagnostics,
-  };
-}
-
-function resolveCompressedBufferViewBytes(
-  input: {
-    readonly root: Record<string, unknown>;
-    readonly resolveBufferBytes: (
-      bufferIndex: number,
-    ) => ArrayBuffer | ArrayBufferView | null | undefined;
-  },
-  primitive: GltfPlannedMeshPrimitiveAsset,
-): {
-  readonly bytes: Uint8Array;
-  readonly bufferIndex: number;
-  readonly byteOffset: number;
-} | null {
-  const bufferViewIndex = primitive.compression?.bufferView;
-  const bufferView =
-    bufferViewIndex === undefined
-      ? undefined
-      : Array.isArray(input.root.bufferViews)
-        ? input.root.bufferViews[bufferViewIndex]
-        : undefined;
-
-  if (!isRecord(bufferView)) {
-    return null;
-  }
-
-  const bufferIndex = integerField(bufferView.buffer);
-  const byteOffset = integerField(bufferView.byteOffset ?? 0);
-  const byteLength = integerField(bufferView.byteLength);
-  if (
-    bufferIndex === null ||
-    bufferIndex < 0 ||
-    byteOffset === null ||
-    byteOffset < 0 ||
-    byteLength === null ||
-    byteLength < 0
-  ) {
-    return null;
-  }
-
-  const sourceBytes = bytesView(input.resolveBufferBytes(bufferIndex));
-  if (
-    sourceBytes === null ||
-    byteOffset + byteLength > sourceBytes.byteLength
-  ) {
-    return null;
-  }
-
-  return {
-    bytes: sourceBytes.subarray(byteOffset, byteOffset + byteLength),
-    bufferIndex,
-    byteOffset,
-  };
-}
-
-function dracoAttributeRequestForSemantic(input: {
-  readonly semantic: string;
-  readonly uniqueId: number;
-}): DracoAttributeDecodeRequest {
-  return {
-    semantic: input.semantic,
-    uniqueId: input.uniqueId,
-    output: input.semantic === "JOINTS_0" ? "uint16" : "float32",
-  };
-}
-
 function mergeAccessorDecodingReports(
   first: GltfAccessorDecodingReport,
   second: GltfAccessorDecodingReport,
@@ -982,134 +472,6 @@ function gltfMaterialNeedsTangents(
   return isRecord(material) && isRecord(material.normalTexture);
 }
 
-function resolvedExternalBufferByteLengths(
-  options: GltfReportDrivenImportOptions,
-): { readonly externalBufferByteLengths?: ReadonlyMap<number, number> } {
-  if (!isRecord(options.root) || !Array.isArray(options.root.buffers)) {
-    return {};
-  }
-
-  const byteLengths = new Map<number, number>();
-
-  for (const [bufferIndex, buffer] of options.root.buffers.entries()) {
-    if (!isRecord(buffer) || typeof buffer.uri !== "string") {
-      continue;
-    }
-
-    const bytes = options.resolveBufferBytes?.(bufferIndex) ?? null;
-
-    if (bytes !== null) {
-      byteLengths.set(bufferIndex, byteLengthOf(bytes));
-    }
-  }
-
-  return byteLengths.size === 0
-    ? {}
-    : { externalBufferByteLengths: byteLengths };
-}
-
-function resolveGlbBufferBytes(
-  bufferIndex: number,
-  root: Record<string, unknown>,
-  binaryChunk: Uint8Array | null,
-  resolveExternalBufferBytes:
-    | ((
-        bufferIndex: number,
-      ) => ArrayBuffer | ArrayBufferView | null | undefined)
-    | undefined,
-  resolvedBuffers: Map<number, ArrayBuffer | ArrayBufferView | null>,
-): ArrayBuffer | ArrayBufferView | null {
-  if (resolvedBuffers.has(bufferIndex)) {
-    return resolvedBuffers.get(bufferIndex) ?? null;
-  }
-
-  const buffer = Array.isArray(root.buffers)
-    ? root.buffers[bufferIndex]
-    : undefined;
-  const isExternalBuffer = isRecord(buffer) && typeof buffer.uri === "string";
-  const resolved =
-    (isExternalBuffer
-      ? resolveExternalBufferBytes?.(bufferIndex)
-      : bufferIndex === 0
-        ? binaryChunk
-        : null) ?? null;
-  const normalized = resolved ?? null;
-
-  resolvedBuffers.set(bufferIndex, normalized);
-
-  return normalized;
-}
-
-function createGlbBufferSourceDiagnostics(
-  root: Record<string, unknown>,
-  binaryChunk: Uint8Array | null,
-  resolveBufferBytes: (
-    bufferIndex: number,
-  ) => ArrayBuffer | ArrayBufferView | null,
-): GltfReportDrivenGlbImportDiagnostic[] {
-  const buffers = Array.isArray(root.buffers) ? root.buffers : [];
-  const diagnostics: GltfReportDrivenGlbImportDiagnostic[] = [];
-
-  buffers.forEach((buffer, bufferIndex) => {
-    if (!isRecord(buffer)) {
-      return;
-    }
-
-    if (resolveBufferBytes(bufferIndex) !== null) {
-      return;
-    }
-
-    if (typeof buffer.uri === "string") {
-      diagnostics.push({
-        code: "glbImport.externalBufferUnsupported",
-        severity: "error",
-        bufferIndex,
-        uri: buffer.uri,
-        message: `GLB buffer ${bufferIndex} uses external URI '${buffer.uri}', but no caller-provided bytes were resolved.`,
-      });
-      return;
-    }
-
-    if (bufferIndex === 0 && binaryChunk === null) {
-      diagnostics.push({
-        code: "glbImport.missingBinaryChunk",
-        severity: "error",
-        bufferIndex,
-        message:
-          "GLB buffer 0 requires bytes, but the container has no BIN chunk.",
-      });
-    }
-  });
-
-  return diagnostics;
-}
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-function byteLengthOf(bytes: ArrayBuffer | ArrayBufferView): number {
-  return bytes instanceof ArrayBuffer ? bytes.byteLength : bytes.byteLength;
-}
-
-function bytesView(
-  source: ArrayBuffer | ArrayBufferView | null | undefined,
-): Uint8Array | null {
-  if (source === null || source === undefined) {
-    return null;
-  }
-
-  return source instanceof ArrayBuffer
-    ? new Uint8Array(source)
-    : new Uint8Array(source.buffer, source.byteOffset, source.byteLength);
-}
-
-function integerField(value: unknown): number | null {
-  return Number.isInteger(value) && typeof value === "number" ? value : null;
-}
-
-export function gltfReportDrivenImportReportToJson(
-  report: GltfReportDrivenImportReport,
-): string {
-  return JSON.stringify(gltfReportDrivenImportReportToJsonValue(report));
 }
