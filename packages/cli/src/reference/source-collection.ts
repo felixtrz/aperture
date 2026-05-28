@@ -6,7 +6,7 @@ import {
   SELECTED_DEPENDENCY_FILES,
   sourceCategoryForFile,
   type ApertureReferenceSourceCategory,
-} from "./reference-source-filter.js";
+} from "./source-filter.js";
 
 export interface CandidateSource {
   readonly file: string;

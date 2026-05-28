@@ -1,5 +1,5 @@
 import path from "node:path";
-import { apertureRuntimeDir } from "./session.js";
+import { apertureRuntimeDir } from "../session.js";
 
 export const ARCHIVE_FILE = "data.tgz";
 export const INDEX_FILE = "index.json";
@@ -7,6 +7,7 @@ export const STATE_FILE = "state.json";
 export const MANIFEST_FILE = "manifest.json";
 export const DATA_DIRECTORY = "data";
 export const MODEL_DIRECTORY = "model";
+export const SOURCES_DIRECTORY = "sources";
 export const EMBEDDINGS_FILE = "embeddings.json";
 export const MODEL_CONTRACT_FILE = "model-contract.json";
 

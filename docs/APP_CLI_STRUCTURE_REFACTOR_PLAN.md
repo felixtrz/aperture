@@ -68,6 +68,15 @@ Status: in progress
   helpers, runtime bridge forwarding, input emulation, render reports, argument
   parsing, and reference tool delegation are split by responsibility without
   changing tool names, diagnostics, or result shapes.
+- Track 12 has started. Reference/RAG implementation now lives under
+  `packages/cli/src/reference/`, with `packages/cli/src/reference.ts` kept as
+  the public facade. Public contracts, model contract, build/corpus ingestion,
+  entry creation, manifest validation, warmup payload installation, status
+  reporting, index IO, source readback, component/system listing, search,
+  dependent lookup, paths, state/cache handling, embeddings, chunking,
+  source collection, source filtering, and reference MCP tool contracts are
+  split by responsibility without changing ingestion policy, search behavior, or
+  public reference exports.
 
 ## Summary
 

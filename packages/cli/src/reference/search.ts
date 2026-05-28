@@ -2,7 +2,7 @@ import {
   cosineSimilarity,
   embedReferenceText,
   tokenizeReferenceText,
-} from "./reference-embedding.js";
+} from "./embedding.js";
 import type {
   ApertureReferenceChunk,
   ApertureReferenceEntry,
@@ -10,8 +10,8 @@ import type {
   ApertureReferenceSearchReport,
   ApertureReferenceSearchResult,
   SearchApertureReferencesOptions,
-} from "./reference.js";
-import type { ApertureReferenceSourceCategory } from "./reference-source-filter.js";
+} from "./contracts.js";
+import type { ApertureReferenceSourceCategory } from "./source-filter.js";
 
 const DEFAULT_LIMIT = 10;
 

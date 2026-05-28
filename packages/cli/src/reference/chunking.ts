@@ -7,12 +7,12 @@ import {
   type Project,
   type SourceFile,
 } from "ts-morph";
-import { tokenizeReferenceText } from "./reference-embedding.js";
+import { tokenizeReferenceText } from "./embedding.js";
 import type {
   ApertureReferenceChunkMetadata,
   ApertureReferenceChunkType,
-} from "./reference.js";
-import type { CandidateSource } from "./reference-source-collection.js";
+} from "./contracts.js";
+import type { CandidateSource } from "./source-collection.js";
 
 const MAX_WHOLE_FILE_CHUNK_BYTES = 18_000;
 

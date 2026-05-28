@@ -393,13 +393,22 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-28 16:13 UTC</dd>
+            <dd>2026-05-28 16:24 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: Track 11 of the app/CLI structure refactor split
-              MCP/tool client internals into
+              Latest update: Track 12 of the app/CLI structure refactor moved
+              reference/RAG implementation into
+              <code>packages/cli/src/reference/</code>, splitting public
+              contracts, model contract, build/corpus ingestion, entry creation,
+              manifest validation, warmup payload installation, status
+              reporting, index IO, source readback, component/system listing,
+              search, dependent lookup, paths, state/cache handling, embeddings,
+              chunking, source collection, source filtering, and reference MCP
+              tool contracts while keeping
+              <code>packages/cli/src/reference.ts</code> as the public facade.
+              Previous update: Track 11 split MCP/tool client internals into
               <code>packages/cli/src/tools/</code>, separating the
               callApertureTool client, browser/CDP helpers, runtime bridge
               forwarding, input emulation, render reports, argument parsing,
