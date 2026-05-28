@@ -1,6 +1,47 @@
 # Agent Handoff
 
-Updated: 2026-05-28T03:38:02Z
+Updated: 2026-05-28T03:42:54Z
+
+## Current Run Update — 2026-05-28T03:42:54Z — transform pack helper split
+
+Continued `docs/PACKAGE_STRUCTURE_REFACTOR_PLAN.md` Track 5.
+
+### What changed
+
+- Split previous-transform history packing and history retention into
+  `packages/render/src/rendering/transform-pack-history.ts`.
+- Split instance tint and custom instance-attribute vertex-buffer packing into
+  `packages/render/src/rendering/transform-pack-instances.ts`.
+- Kept `packages/render/src/rendering/transform-pack.ts` as the stable public
+  facade, re-exporting the existing scratch constructors and moved pack/write
+  helpers.
+- Reduced `packages/render/src/rendering/transform-pack.ts` from 475 lines to
+  100 lines.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/render run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec eslint packages/render/src/rendering/transform-pack.ts packages/render/src/rendering/transform-pack-history.ts packages/render/src/rendering/transform-pack-instances.ts`
+- `pnpm exec prettier --check packages/render/src/rendering/transform-pack.ts packages/render/src/rendering/transform-pack-history.ts packages/render/src/rendering/transform-pack-instances.ts`
+- `pnpm exec vitest run test/rendering/transform-pack.test.ts test/rendering/draw-package.test.ts test/webgpu/render-frame-snapshot-diagnostics.test.ts test/webgpu/render-frame-snapshot-json.test.ts test/webgpu/render-frame-snapshot-runner.test.ts`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Remaining Track 5 hotspots include `ktx2-decoder.ts`, `draco-decoder.ts`,
+  `hdr-rgbe-loader.ts`, extraction mesh helpers, view packing helpers, and
+  several older asset/material facades.
+- Repo-wide `pnpm run lint` and `pnpm run format:check` still have the
+  pre-existing unrelated failures documented in the previous final validation
+  audit; this slice used focused lint/format checks on touched files.
+
+### Recommended next task
+
+Continue Track 5 by splitting extraction mesh helpers, view packing helpers,
+or one of the remaining decoder modules.
 
 ## Current Run Update — 2026-05-28T03:38:02Z — glTF report-driven import split
 

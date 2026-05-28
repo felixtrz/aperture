@@ -408,6 +408,10 @@ Status: in progress
   and reusable offset pools now live in `transform-pack-types.ts` and
   `transform-pack-scratch.ts`, leaving `transform-pack.ts` focused on current,
   previous, tint, and custom instance-attribute packing algorithms.
+- Transform packing previous-transform history helpers and instance vertex
+  buffer packing helpers now live in `transform-pack-history.ts` and
+  `transform-pack-instances.ts`, leaving `transform-pack.ts` as the stable
+  public facade for transform packing.
 - Packed snapshot primitive numeric/enum/entity/vector/handle codec helpers now
   live in `snapshot-packed-codec-utils.ts`, leaving
   `snapshot-packed-codecs.ts` focused on packet-specific read/write layouts.
