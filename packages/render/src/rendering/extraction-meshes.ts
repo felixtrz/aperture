@@ -1,6 +1,6 @@
 import { type AssetRegistry, type EcsWorld } from "@aperture-engine/simulation";
 import { validateMeshAsset } from "../mesh/index.js";
-import { InstanceData, Material, Mesh, OcclusionQuery, Skin } from "./index.js";
+import { Material, Mesh, OcclusionQuery } from "./index.js";
 import {
   type BoundsPacket,
   type FogPacket,
@@ -24,10 +24,10 @@ import {
 import { readMaterialSlots } from "./extraction-mesh-materials.js";
 import {
   appendCachedMeshDrawEntity,
-  createMeshDrawPacketTemplate,
   entityCacheKey,
   type RenderExtractionCache,
 } from "./extraction-mesh-cache.js";
+import { writeMeshDrawEntityCache } from "./extraction-mesh-cache-writeback.js";
 import { createBoundsPacket } from "./extraction-mesh-bounds.js";
 import {
   pushBoneMatrices,
@@ -231,38 +231,24 @@ export function extractMeshDraws(
 
     draws.push(...entityDraws);
 
-    if (
-      cache !== undefined &&
-      entityDraws.length > 0 &&
-      diagnostics.length === entityDiagnosticsStart &&
-      !entity.hasComponent(InstanceData) &&
-      !entity.hasComponent(Skin) &&
-      morphWeights === undefined
-    ) {
-      const sourceBounds = bounds[boundsIndex];
-
-      if (sourceBounds !== undefined) {
-        cache.meshDrawEntities.set(cacheKey, {
-          entityVersion,
-          cameraLayerMask,
-          viewCullSignature,
-          layerMask: entityState.layerMask,
-          worldMatrix: Array.from(entityState.worldMatrix),
-          instanceTint:
-            instanceTintOffset === undefined
-              ? null
-              : instanceTints.slice(instanceTintOffset, instanceTintOffset + 4),
-          bounds: {
-            entity: sourceBounds.entity,
-            localAabb: sourceBounds.localAabb,
-            worldAabb: sourceBounds.worldAabb,
-            localSphere: sourceBounds.localSphere,
-            worldSphere: sourceBounds.worldSphere,
-          },
-          draws: entityDraws.map(createMeshDrawPacketTemplate),
-        });
-      }
-    }
+    writeMeshDrawEntityCache({
+      cache,
+      cacheKey,
+      entity,
+      entityVersion,
+      cameraLayerMask,
+      viewCullSignature,
+      layerMask: entityState.layerMask,
+      worldMatrix: entityState.worldMatrix,
+      entityDraws,
+      diagnosticsStart: entityDiagnosticsStart,
+      diagnosticsCount: diagnostics.length,
+      bounds,
+      boundsIndex,
+      instanceTints,
+      instanceTintOffset,
+      morphWeights,
+    });
   }
 
   return draws;
