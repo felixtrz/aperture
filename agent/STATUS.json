@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "9f2bbe03",
+  "lastCommit": "081b683e",
   "activePid": null,
-  "notes": "Advanced PACKAGE_STRUCTURE_REFACTOR_PLAN Track 9 by adding @aperture-engine/webgpu/test-support for internal tests and narrowing the WebGPU root barrel to the app/example-facing public surface; focused validation, build, boundaries, and example/docs export coverage checks passed; repo-wide lint/format still have pre-existing unrelated failures documented in handoff.",
-  "lastRunFinishedAt": "2026-05-28T12:09:01Z"
+  "notes": "Completed PACKAGE_STRUCTURE_REFACTOR_PLAN: CLI/reference modules are split, WebGPU internals use test-support, the public root barrel is narrowed and guarded, and build/typecheck/boundary/focused test validation passed.",
+  "lastRunFinishedAt": "2026-05-28T12:12:53Z"
 }

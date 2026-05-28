@@ -1,7 +1,7 @@
 # Package Structure Refactor Plan
 
 Date: 2026-05-27
-Status: in progress
+Status: implemented
 
 ## Implementation Progress
 
@@ -9,9 +9,11 @@ Status: in progress
   implementation folder; WebGPU backend files now live under domain folders
   such as `app/`, `gpu/`, `materials/`, `lighting/`, `shadows/`, `post/`,
   `render/`, `resources/`, `output/`, and `picking/`.
-- The public package root still preserves the previous broad export surface for
-  now. Track 9 remains responsible for tightening those exports after internal
-  imports and tests no longer depend on broad barrels.
+- The public package root no longer preserves the previous broad internal
+  export surface. Track 9 moved internal coverage to
+  `@aperture-engine/webgpu/test-support`, narrowed the WebGPU root barrel to the
+  current app/example-facing surface, and added export guard tests to prevent
+  accidental root-barrel expansion.
 - Track 2 has started. Render-target asset creation/validation/diagnostics now
   live in `packages/webgpu/src/app/render-target.ts`, and canvas backing
   dimension resolution lives in `packages/webgpu/src/app/canvas.ts`.
@@ -544,8 +546,8 @@ Status: in progress
   `packages/vite-plugin/src/dev-session.ts`, preserving the public devtools WS
   channel and dev server type exports while leaving `index.ts` as a compact
   Vite hook entry point.
-- Track 8 has started. CLI reference command parsing, help text, execution, and
-  output formatting now live in `packages/cli/src/reference-command.ts`, with
+- Track 8 is implemented. CLI reference command parsing, help text, execution,
+  and output formatting now live in `packages/cli/src/reference-command.ts`, with
   the shared structured CLI error type in `packages/cli/src/errors.ts` and the
   root CLI preserving command routing and existing public exports.
 - CLI tool command parsing, help text, JSON argument validation, backend tool
@@ -598,11 +600,14 @@ Status: in progress
 - CLI reference semantic search scoring, source-category filtering, dependent
   lookup result shaping, snippet selection, and rounded score formatting now
   live in `packages/cli/src/reference-search.ts`.
-- Track 9 has started. Internal WebGPU tests now import the full backend
+- Track 9 is implemented. Internal WebGPU tests now import the full backend
   surface from `@aperture-engine/webgpu/test-support`, while
   `packages/webgpu/src/index.ts` is narrowed to the app/example-facing public
   surface and no longer re-exports `@aperture-engine/simulation`,
   `@aperture-engine/render`, or every backend support module.
+  `test/webgpu/public-exports.test.ts` guards the public-root/test-support
+  split so examples keep their intended WebGPU exports without reabsorbing the
+  full backend surface.
 - glTF mesh primitive compression checks and Draco compressed primitive mapping
   now live in `packages/render/src/assets/gltf-mesh-primitive-compression.ts`,
   with shared primitive guard/diagnostic helpers in
