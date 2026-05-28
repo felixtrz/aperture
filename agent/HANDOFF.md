@@ -1,6 +1,42 @@
 # Agent Handoff
 
-Updated: 2026-05-28T15:16:12Z
+Updated: 2026-05-28T15:18:51Z
+
+## Current Run Update — 2026-05-28T15:18:51Z — App systems folderization
+
+Continued `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md`.
+
+### What changed
+
+- Moved non-spawn app system implementation into
+  `packages/app/src/systems/`.
+- Kept `packages/app/src/systems.ts` as the public
+  `@aperture-engine/app/systems` facade.
+- Updated `systems-spawn.ts` and system context imports to consume the new
+  folderized modules.
+- Recorded Track 3 progress in `docs/APP_CLI_STRUCTURE_REFACTOR_PLAN.md`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app run typecheck`
+- `pnpm exec vitest run test/app/input-state.test.ts test/app/developer-api.test.ts test/index.test.ts`
+- `pnpm exec prettier --write packages/app/src/systems.ts packages/app/src/systems/assets.ts packages/app/src/systems/cameras.ts packages/app/src/systems/commands.ts packages/app/src/systems/components.ts packages/app/src/systems/context.ts packages/app/src/systems/diagnostics.ts packages/app/src/systems/effects.ts packages/app/src/systems/errors.ts packages/app/src/systems/json.ts packages/app/src/systems/signals.ts packages/app/src/systems-spawn.ts`
+- `pnpm exec eslint packages/app/src/systems.ts packages/app/src/systems/assets.ts packages/app/src/systems/cameras.ts packages/app/src/systems/commands.ts packages/app/src/systems/components.ts packages/app/src/systems/context.ts packages/app/src/systems/diagnostics.ts packages/app/src/systems/effects.ts packages/app/src/systems/errors.ts packages/app/src/systems/json.ts packages/app/src/systems/signals.ts packages/app/src/systems-spawn.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Track 4 remains: split `packages/app/src/systems-spawn.ts` into a focused
+  `systems/spawn/` folder.
+- The full goal remains active; app entity/spatial/browser/worker and all CLI
+  folderization tracks remain.
+
+### Recommended next task
+
+Continue with Track 4 app spawn decomposition.
 
 ## Current Run Update — 2026-05-28T15:16:12Z — App config/input folderization
 

@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "5b3a2349",
+  "lastCommit": "da9c6249",
   "activePid": null,
-  "notes": "Started APP_CLI_STRUCTURE_REFACTOR_PLAN Track 2 by moving app config internals into packages/app/src/config/ and input resource/event internals into packages/app/src/input/ while preserving public facades; app typecheck, targeted app tests, typecheck:test, boundaries, build, focused lint/format, and diff check passed.",
-  "lastRunFinishedAt": "2026-05-28T15:16:12Z"
+  "notes": "Advanced APP_CLI_STRUCTURE_REFACTOR_PLAN Track 3 by moving non-spawn app system internals into packages/app/src/systems/ while preserving the public systems facade; app typecheck, targeted app tests, typecheck:test, boundaries, build, focused lint/format, and diff check passed.",
+  "lastRunFinishedAt": "2026-05-28T15:18:51Z"
 }
