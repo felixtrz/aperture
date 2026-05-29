@@ -1,5 +1,36 @@
 # Completed Tasks
 
+## M1-T11 — Add CI and release pipeline gates
+
+Completed: 2026-05-29
+Commit: f835fb62
+
+### Summary
+
+- Added `.github/workflows/ci.yml` to run `pnpm run check` on PRs and pushes
+  to `main`.
+- Added `.github/workflows/release.yml` with a build + pack dry-run job and a
+  tag-only publish job guarded by `NPM_TOKEN`.
+- Added `.changeset/config.json` with fixed public release grouping for the
+  seven publishable `@aperture-engine/*` packages and `playground` excluded.
+- Added root `changeset`, `version-packages`, `release:dry-run`,
+  `release:publish`, and `check:release-config` scripts.
+- Added `scripts/check-release-config.mjs` to validate workflows, release
+  scripts, Changesets coverage, and a temporary publish-regression fixture.
+- Extended `scripts/check-package-publish-readiness.mjs` with `--root` so the
+  release-config guard can prove a regressed package fails.
+- Wired `check:publish` and `check:release-config` into `pnpm run check`, which
+  is the CI gate.
+
+### Validation
+
+- `pnpm run check:release-config`
+- `pnpm exec changeset status --since HEAD`
+- `pnpm run release:dry-run`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check`
+
 ## M1-T10 — Make CLI scaffolds installable
 
 Completed: 2026-05-29

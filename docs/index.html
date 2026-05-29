@@ -393,29 +393,28 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-29 16:19 UTC</dd>
+            <dd>2026-05-29 16:32 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: SOTA roadmap M1-T10 makes generated projects
-              installable outside the workspace: the CLI now reads its package
-              version, prints <code>0.1.0</code> in CLI/MCP metadata, generates
-              project version <code>0.1.0</code>, emits Aperture
+              Latest update: SOTA roadmap M1 is complete at 11/11. M1-T11 adds
+              PR/push CI for <code>pnpm run check</code>, release dry-run and
+              tag-publish workflows, Changesets fixed-version release metadata
+              for the seven publishable packages, and a release-config guard
+              that proves publish regressions fail. Next SOTA task:
+              <code>M2-T1</code> AnimationClip asset and sampler core. Previous
+              update: M1-T10 makes generated projects installable outside the
+              workspace: the CLI reads its package version, generates project
+              version <code>0.1.0</code>, emits Aperture
               <code>^0.1.0</code> dependencies by default, and preserves
-              <code>APERTURE_LOCAL</code> for local <code>workspace:*</code>
-              scaffolds. M1 remains in progress at 10/11; next SOTA task:
-              <code>M1-T11</code> CI and release gates. Previous update: M1-T9
-              makes the seven publishable packages installable: manifests now
-              use version <code>0.1.0</code> and <code>MIT</code>, publishable
-              packages no longer set <code>private:true</code>, tarballs include
-              <code>LICENSE</code> plus <code>dist</code>, and
-              <code>pnpm run publish:dry-run</code> pack-inspects dependency
-              conversion and package contents. Earlier update: M1-T8
-              auto-populates <code>context.spatial</code> from live ECS mesh
-              state and proves <code>CameraHandle.rayFromPointer</code> hits an
-              app-spawned mesh in
-              <code>examples/auto-picking.html</code> without manual
+              <code>APERTURE_LOCAL</code> for local
+              <code>workspace:*</code> scaffolds. Earlier update: M1-T9 makes
+              the seven publishable packages installable and pack-guarded.
+              Earlier update: M1-T8 auto-populates
+              <code>context.spatial</code> from live ECS mesh state and proves
+              <code>CameraHandle.rayFromPointer</code> hits an app-spawned mesh
+              in <code>examples/auto-picking.html</code> without manual
               <code>setBounds</code>/<code>setMeshes</code>. Earlier update:
               M1-T7 replaced the pointer-ray stub with real perspective and
               orthographic camera unprojection. Earlier update: M1-T6 added
@@ -2686,10 +2685,10 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Continue SOTA roadmap wave 0 with <code>M1-T11</code>: add CI and
-              release gates that run <code>pnpm run check</code>, build and
-              pack-check every publishable package, and guard against
-              publish-readiness regressions.
+              Continue SOTA roadmap wave 1 with <code>M2-T1</code>: add the
+              headless AnimationClip asset model and keyframe sampler core that
+              later mixer, glTF animation import, and skinned-route proof tasks
+              build on.
             </dd>
           </dl>
         </aside>
@@ -3588,6 +3587,13 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">M1-T11</span> Completed M1 by adding
+                CI and release gates. PRs run <code>pnpm run check</code>,
+                release dry-runs build and pack-check all seven publishable
+                packages, Changesets coordinates public package releases, and a
+                release-config guard proves publish regressions fail.
+              </li>
               <li>
                 <span class="badge green">M1-T10</span> Made CLI scaffolds
                 publish-consumable. Generated projects now use version
@@ -6484,10 +6490,9 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add <code>M1-T11</code>
-                CI and release pipeline gates so PRs run
-                <code>pnpm run check</code> and release dry-runs build plus
-                pack-check all seven publishable packages.
+                <span class="badge amber">next</span> Start <code>M2-T1</code>
+                with the headless AnimationClip asset and sampler core,
+                including LINEAR, STEP, and CUBICSPLINE interpolation coverage.
               </li>
               <li>
                 <span class="badge green">done</span> Custom WGSL mixed
@@ -6863,6 +6868,17 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">M1-T11</div>
+            <div>
+              <strong>M1 is complete with CI and release gates.</strong>
+              <span>
+                GitHub Actions now run the workspace check, release dry-runs
+                build and pack-check publishable packages, and Changesets
+                metadata covers the seven public packages.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">M1-T10</div>
             <div>

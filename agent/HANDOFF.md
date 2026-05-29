@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-29T16:19:28Z
+Updated: 2026-05-29T16:32:07Z
+
+## Current Run Update — 2026-05-29T16:32:07Z — SOTA M1 complete
+
+Completed `docs/SOTA_ROADMAP.md` task `M1-T11` in commit `f835fb62`.
+Milestone M1 is now complete at 11/11.
+
+### What Changed
+
+- Added `.github/workflows/ci.yml` to run `pnpm run check` on PRs and pushes
+  to `main`.
+- Added `.github/workflows/release.yml` with a build + pack dry-run job and a
+  tag-only publish job guarded by `NPM_TOKEN`.
+- Added Changesets release metadata for the seven publishable
+  `@aperture-engine/*` packages, with `access:"public"` and fixed-version
+  grouping.
+- Added root release/version scripts and wired `check:release-config` plus
+  `check:publish` into the full `pnpm run check` gate.
+- Added `scripts/check-release-config.mjs` to validate workflow/script/config
+  wiring and prove a temporary `private:true` / `0.0.0` package regression
+  fails the publish-readiness guard.
+- Extended `scripts/check-package-publish-readiness.mjs` with `--root` so the
+  regression fixture can run without modifying real package manifests.
+
+### Validation
+
+- `pnpm run check:release-config`
+- `pnpm exec changeset status --since HEAD`
+- `pnpm run release:dry-run`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check`
+
+### Known Issues / Remaining Work
+
+- No known M1 blockers remain.
+- M2 wave 1 animation/skinning work is next.
+
+### Recommended Next Task
+
+Start `M2-T1`: add the runtime `AnimationClip` asset model and pure keyframe
+sampler with LINEAR, STEP, CUBICSPLINE, endpoint clamp, and shortest-path
+quaternion interpolation coverage.
 
 ## Current Run Update — 2026-05-29T16:19:28Z — SOTA M1-T10 CLI scaffold semver output
 

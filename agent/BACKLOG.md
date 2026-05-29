@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-The active project direction is now `docs/SOTA_ROADMAP.md` wave 0. M1-T1
-through M1-T10 are complete: the reusable `createRenderShadowFrame()` shadow
+The active project direction is now `docs/SOTA_ROADMAP.md` wave 1. M1 is
+complete at 11/11: the reusable `createRenderShadowFrame()` shadow
 orchestrator is wired into `renderWebGpuAppFrame`, automatic StandardMaterial
 shadow receiver resources submit and bind, submitted shadow reports now publish
 truthful `shaderSampling` status, and `KHR_mesh_quantization` root/accessor
@@ -77,15 +77,25 @@ Pickable state with mesh-BVH reuse. Package manifests are now publishable
 `pnpm run publish:dry-run` pack-inspects all seven publishable packages. CLI
 scaffolds now emit installable `^0.1.0` Aperture deps by default, generated
 projects start at version `0.1.0`, and `APERTURE_LOCAL` preserves the explicit
-workspace escape.
+workspace escape. CI and release gates now run `pnpm run check`, build and
+pack-check all seven publishable packages, validate Changesets release metadata,
+and prove publish regressions fail the guard.
 Continue with one visible SOTA feature slice at a time.
 
 The next ready visible-feature queue is:
 
-- `M1-T11` — add CI + release pipeline gates after M1-T9 and M1-T10 land.
-  Reference anchor: `references/three.js/.github/workflows/ci.yml`.
-  Done when CI runs `pnpm run check`, the release dry-run builds and pack-checks
-  every publishable package, and publish-readiness regressions fail the gate.
+- `M2-T1` — add the headless AnimationClip asset and keyframe sampler core.
+  Reference anchor: `references/three.js/src/animation/KeyframeTrack.js`.
+  Done when runtime tests cover LINEAR, STEP, CUBICSPLINE, endpoint clamping,
+  and shortest-path quaternion interpolation.
+- `M2-T3` — import glTF skins into engine skeleton/Skin data.
+  Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+  Done when glTF skin inverse-bind matrices and joint entity keys import through
+  the engine loader instead of example-only code.
+- `M2-T5` — replace JSON joint/morph transport with typed deformation data.
+  Reference anchor: `references/bevy/crates/bevy_render/src/mesh/morph.rs`.
+  Done when extraction no longer parses `jointMatricesJson` or `weightsJson`
+  per frame and tests cover typed transport.
 
 Keep the earlier camera/render-target visible route queue as later backlog
 after the active SOTA wave tasks above.
