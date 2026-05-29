@@ -14,7 +14,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
     5. Use absolute dates (YYYY-MM-DD [HH:MM TZ]) everywhere — never "today"/"now".
 -->
 
-**Last updated:** `2026-05-29 17:05 PDT — claude/opus`
+**Last updated:** `2026-05-29 17:35 PDT — claude/opus`
 
 > _What to write:_ Absolute date + time + timezone, then `— <your agent/author id>` (e.g. `2026-06-02 14:30 PDT — claude/opus`). Update on every edit to this block.
 
@@ -692,7 +692,18 @@ Expose a high-level animation API and an ECS driver system so imported clips ani
 
 **Watch out:** System ordering: animation-driver (writes joint LocalTransforms) -> TransformResolutionSystem (resolves world) -> palette system (M2-T6). Get priorities right or you get one-frame lag or a static pose. The mixer must be owned per animated root, not global — store it keyed by entity. Binding clip targetIds (entity keys) to live entities requires the replay entitiesByKey that gltf() currently throws away; this is the load-bearing wiring fix. Keep the API worker-safe (mixer lives in the simulation worker), with controls marshaled across the transport if the app drives from the main thread.
 
-#### `M2-T9` · End-to-end skinned + animated GLB route: render-control + Playwright proof through createWebGpuApp
+#### `M2-T9` · End-to-end skinned + animated GLB route: render-control + Playwright proof through createWebGpuApp — 🟡 in-progress (⛔ WebGPU-blocked, see [B1])
+
+> **Status (2026-05-29):** The headlessly-verifiable half is done and green —
+> `test/app/skinned-animated-route.test.ts` drives a 2-joint skinned +
+> CUBICSPLINE-animated GLB through `createApertureApp` + the public
+> `spawn.gltf`/`spawn.animation` API and asserts engine-owned status (skin
+> jointCount, imported clip names, active clip, time) plus that the CUBICSPLINE
+> clip drives the joint pose end-to-end (proving M2-T1 through the M2-T8
+> driver). The remaining boxes (live Playwright pixel-diff #711, morph
+> targetCount/>2-target morph contribution #712-#713, render-control snapshot
+> #714) require a live WebGPU device + the M2-T7 morph data-texture render, both
+> unavailable here ([B1]); they are the milestone's documented follow-up.
 
 `docs-tooling` · effort **M** · depends: M2-T6, M2-T7, M2-T8
 
