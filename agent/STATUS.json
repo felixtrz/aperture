@@ -3,9 +3,9 @@
   "currentTaskId": null,
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
-  "lastResult": "success",
+  "lastResult": "blocked",
   "lastCommit": "f835fb62",
   "activePid": null,
-  "notes": "Completed SOTA M1 at 11/11; pnpm run check, release:dry-run, changeset status, check:release-config, check:progress, and format:check passed. Next recommended task is M2-T1 AnimationClip sampler core.",
-  "lastRunFinishedAt": "2026-05-29T16:36:13Z"
+  "notes": "SOTA M2: 7/9 tasks done + gate-green (T1-T6 animation core/skin/clip-import/typed-transport/palette + T8 public play/crossfade API & ECS driver). T7 partial (typed morph-weight transport; N-target morph data-texture GPU render is the documented follow-up) and T9 partial (headless skinned+CUBICSPLINE end-to-end proof in test/app/skinned-animated-route.test.ts). Both blocked only on WebGPU: navigator.gpu is unavailable here (headless + full Chrome under xvfb w/ swiftshader), so the live pixel-readback/render-control proofs (T7 #3, T9 Playwright/render-control) cannot run. pnpm run check green: 381 files / 2158 tests.",
+  "lastRunFinishedAt": "2026-05-29T22:41:54Z"
 }
