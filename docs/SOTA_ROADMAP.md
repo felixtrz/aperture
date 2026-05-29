@@ -14,7 +14,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
     5. Use absolute dates (YYYY-MM-DD [HH:MM TZ]) everywhere — never "today"/"now".
 -->
 
-**Last updated:** `2026-05-28 22:06 PDT — codex/gpt-5`
+**Last updated:** `2026-05-28 22:08 PDT — codex/gpt-5`
 
 > _What to write:_ Absolute date + time + timezone, then `— <your agent/author id>` (e.g. `2026-06-02 14:30 PDT — claude/opus`). Update on every edit to this block.
 
@@ -65,10 +65,10 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 >
 > Mark a task `✅ done` ONLY when: every `Done when` box is checked, the named proof (Playwright / render-control / vitest) passes, and `pnpm run check` is green. Partial work stays `🟡 in-progress` and is described in "Resume notes".
 
-| Date                             | Task  | → Status | Commit  | Proof run                                                                                                                                                                                | Notes                                                                                                                                                                                                         |
-| -------------------------------- | ----- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| _append rows below; newest last_ |       |          |         |                                                                                                                                                                                          |                                                                                                                                                                                                               |
-| 2026-05-28 22:06 PDT             | M1-T1 | ✅ done  | pending | `pnpm run check`; `pnpm exec vitest run test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/app-environment-resources.test.ts test/webgpu/shadow-depth-texture-resource.test.ts` | Extracted `createRenderShadowFrame()` and caster mesh helpers into `packages/webgpu/src/shadows`, added renderer-owned cache slots, and proved submitted cascaded directional shadow frames plus cache reuse. |
+| Date                             | Task  | → Status | Commit   | Proof run                                                                                                                                                                                | Notes                                                                                                                                                                                                         |
+| -------------------------------- | ----- | -------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| _append rows below; newest last_ |       |          |          |                                                                                                                                                                                          |                                                                                                                                                                                                               |
+| 2026-05-28 22:06 PDT             | M1-T1 | ✅ done  | 20b53817 | `pnpm run check`; `pnpm exec vitest run test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/app-environment-resources.test.ts test/webgpu/shadow-depth-texture-resource.test.ts` | Extracted `createRenderShadowFrame()` and caster mesh helpers into `packages/webgpu/src/shadows`, added renderer-owned cache slots, and proved submitted cascaded directional shadow frames plus cache reuse. |
 
 ### Resume notes (for the next agent)
 
@@ -180,7 +180,7 @@ M1 ──┬─> M2 ────────────────────
 
 ### Tasks
 
-#### `M1-T1` · Extract a reusable per-frame shadow orchestrator from the CSM example into the shadows package — ✅ done (2026-05-28 · pending)
+#### `M1-T1` · Extract a reusable per-frame shadow orchestrator from the CSM example into the shadows package — ✅ done (2026-05-28 · 20b53817)
 
 `webgpu-render` · effort **L** · depends: none
 
