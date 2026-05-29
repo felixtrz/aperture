@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-29T16:09:49Z
+Updated: 2026-05-29T16:19:28Z
+
+## Current Run Update — 2026-05-29T16:19:28Z — SOTA M1-T10 CLI scaffold semver output
+
+Completed `docs/SOTA_ROADMAP.md` task `M1-T10` in commit `3bdb211d`.
+
+### What Changed
+
+- Added a shared CLI version module that reads `packages/cli/package.json`
+  through a dist-relative `createRequire(import.meta.url)` path.
+- Replaced hardcoded `0.0.0` output in `aperture --version`, top-level CLI
+  help, and MCP `serverInfo.version`.
+- Changed generated project manifests from version `0.0.0` to `0.1.0`.
+- Changed generated Aperture dependency specs from default `workspace:*` to
+  installable `^0.1.0` ranges for app, vite-plugin, and CLI.
+- Preserved an explicit local scaffolding escape:
+  `APERTURE_LOCAL=1|true|workspace` still emits `workspace:*`.
+- Extended CLI create tests to assert package-version output, default semver
+  scaffold deps, no default workspace deps, and the local workspace escape.
+
+### Validation
+
+- `pnpm exec vitest run test/cli/create.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:publish`
+- `pnpm run check:publish:pack`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check`
+
+### Known Issues / Remaining Work
+
+- M1 remains incomplete at 10/11.
+- CI/release automation remains `M1-T11`; this is the final incomplete M1 task.
+
+### Recommended Next Task
+
+Start `M1-T11`: add CI and release pipeline gates so PR/push CI runs
+`pnpm run check`, release dry-runs build and pack-check all seven publishable
+packages, and publish-readiness regressions fail the gate.
 
 ## Current Run Update — 2026-05-29T16:09:49Z — SOTA M1-T9 package publishability
 

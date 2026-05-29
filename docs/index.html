@@ -393,23 +393,29 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-29 16:09 UTC</dd>
+            <dd>2026-05-29 16:19 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: SOTA roadmap M1-T9 makes the seven publishable
-              packages installable: manifests now use version
-              <code>0.1.0</code> and <code>MIT</code>, publishable packages no
-              longer set <code>private:true</code>, tarballs include
+              Latest update: SOTA roadmap M1-T10 makes generated projects
+              installable outside the workspace: the CLI now reads its package
+              version, prints <code>0.1.0</code> in CLI/MCP metadata, generates
+              project version <code>0.1.0</code>, emits Aperture
+              <code>^0.1.0</code> dependencies by default, and preserves
+              <code>APERTURE_LOCAL</code> for local <code>workspace:*</code>
+              scaffolds. M1 remains in progress at 10/11; next SOTA task:
+              <code>M1-T11</code> CI and release gates. Previous update: M1-T9
+              makes the seven publishable packages installable: manifests now
+              use version <code>0.1.0</code> and <code>MIT</code>, publishable
+              packages no longer set <code>private:true</code>, tarballs include
               <code>LICENSE</code> plus <code>dist</code>, and
               <code>pnpm run publish:dry-run</code> pack-inspects dependency
-              conversion and package contents. M1 remains in progress at 9/11;
-              next SOTA task: <code>M1-T10</code> CLI scaffolder semver
-              dependency output. Previous update: M1-T8 auto-populates
-              <code>context.spatial</code> from live ECS mesh state and proves
-              <code>CameraHandle.rayFromPointer</code> hits an app-spawned mesh
-              in <code>examples/auto-picking.html</code> without manual
+              conversion and package contents. Earlier update: M1-T8
+              auto-populates <code>context.spatial</code> from live ECS mesh
+              state and proves <code>CameraHandle.rayFromPointer</code> hits an
+              app-spawned mesh in
+              <code>examples/auto-picking.html</code> without manual
               <code>setBounds</code>/<code>setMeshes</code>. Earlier update:
               M1-T7 replaced the pointer-ray stub with real perspective and
               orthographic camera unprojection. Earlier update: M1-T6 added
@@ -2680,10 +2686,10 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Continue SOTA roadmap wave 0 with <code>M1-T10</code>: make the
-              CLI scaffolder emit installable <code>^x.y.z</code> Aperture
-              dependency specs and a real generated project version instead of
-              <code>workspace:*</code> and <code>0.0.0</code>.
+              Continue SOTA roadmap wave 0 with <code>M1-T11</code>: add CI and
+              release gates that run <code>pnpm run check</code>, build and
+              pack-check every publishable package, and guard against
+              publish-readiness regressions.
             </dd>
           </dl>
         </aside>
@@ -3582,6 +3588,14 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">M1-T10</span> Made CLI scaffolds
+                publish-consumable. Generated projects now use version
+                <code>0.1.0</code>, Aperture deps default to
+                <code>^0.1.0</code>, CLI/MCP version metadata reads from the
+                package version, and <code>APERTURE_LOCAL</code> keeps an
+                explicit workspace escape.
+              </li>
               <li>
                 <span class="badge green">M1-T9</span> Made the package set
                 publishable. Package manifests now use <code>0.1.0</code> and
@@ -6470,10 +6484,10 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Update CLI scaffolding for
-                <code>M1-T10</code> so generated projects use installable
-                Aperture <code>^x.y.z</code> dependencies and a non-0.0.0
-                project version.
+                <span class="badge amber">next</span> Add <code>M1-T11</code>
+                CI and release pipeline gates so PRs run
+                <code>pnpm run check</code> and release dry-runs build plus
+                pack-check all seven publishable packages.
               </li>
               <li>
                 <span class="badge green">done</span> Custom WGSL mixed
@@ -6849,6 +6863,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">M1-T10</div>
+            <div>
+              <strong
+                >CLI scaffolds now use installable dependency specs.</strong
+              >
+              <span>
+                The CLI package version is the source of truth for generated
+                Aperture dependency ranges, generated apps start at
+                <code>0.1.0</code>, and the local workspace escape is explicit.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">M1-T9</div>
             <div>

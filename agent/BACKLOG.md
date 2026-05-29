@@ -60,7 +60,7 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 The active project direction is now `docs/SOTA_ROADMAP.md` wave 0. M1-T1
-through M1-T9 are complete: the reusable `createRenderShadowFrame()` shadow
+through M1-T10 are complete: the reusable `createRenderShadowFrame()` shadow
 orchestrator is wired into `renderWebGpuAppFrame`, automatic StandardMaterial
 shadow receiver resources submit and bind, submitted shadow reports now publish
 truthful `shaderSampling` status, and `KHR_mesh_quantization` root/accessor
@@ -74,16 +74,14 @@ screen-to-world rays for perspective and orthographic ECS cameras, and
 `context.spatial` is now auto-populated from live ECS Mesh + WorldTransform +
 Pickable state with mesh-BVH reuse. Package manifests are now publishable
 (`0.1.0`, MIT, package `LICENSE`, `files`, `publishConfig`) and
-`pnpm run publish:dry-run` pack-inspects all seven publishable packages.
+`pnpm run publish:dry-run` pack-inspects all seven publishable packages. CLI
+scaffolds now emit installable `^0.1.0` Aperture deps by default, generated
+projects start at version `0.1.0`, and `APERTURE_LOCAL` preserves the explicit
+workspace escape.
 Continue with one visible SOTA feature slice at a time.
 
 The next ready visible-feature queue is:
 
-- `M1-T10` — make the CLI scaffolder emit installable semver deps and a real
-  project version after M1-T9 lands.
-  Reference anchor: `references/three.js/package.json`.
-  Done when generated project package.json files contain no `workspace:*` deps
-  in publish mode and use concrete `^x.y.z` Aperture dependency specs.
 - `M1-T11` — add CI + release pipeline gates after M1-T9 and M1-T10 land.
   Reference anchor: `references/three.js/.github/workflows/ci.yml`.
   Done when CI runs `pnpm run check`, the release dry-run builds and pack-checks

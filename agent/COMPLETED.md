@@ -1,5 +1,35 @@
 # Completed Tasks
 
+## M1-T10 — Make CLI scaffolds installable
+
+Completed: 2026-05-29
+Commit: 3bdb211d
+
+### Summary
+
+- Added `APERTURE_CLI_VERSION` so the CLI reads its version from the package
+  root `package.json` through a path that works from source and published dist.
+- Replaced hardcoded `0.0.0` CLI version output in CLI help/version and MCP
+  `serverInfo.version`.
+- Changed generated project manifests to use project version `0.1.0`.
+- Changed generated Aperture dependency specs to default to `^0.1.0` for app,
+  vite-plugin, and CLI.
+- Preserved explicit local scaffolding through `APERTURE_LOCAL=1|true|workspace`
+  and the internal local option, which still emit `workspace:*`.
+- Extended CLI create tests to assert version output, semver scaffold deps, no
+  default workspace deps, and the local workspace escape.
+
+### Validation
+
+- `pnpm exec vitest run test/cli/create.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:publish`
+- `pnpm run check:publish:pack`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check`
+
 ## M1-T9 — Make packages publishable
 
 Completed: 2026-05-29

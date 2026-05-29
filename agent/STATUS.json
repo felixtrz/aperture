@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "9962f384",
+  "lastCommit": "3bdb211d",
   "activePid": null,
-  "notes": "Completed SOTA M1-T9 package publishability in 9962f384; pnpm run check and publish dry-run/pack readiness guard passed. M1 remains incomplete at 9/11. Next recommended task is M1-T10 CLI scaffolder semver dependency output.",
-  "lastRunFinishedAt": "2026-05-29T16:09:49Z"
+  "notes": "Completed SOTA M1-T10 CLI scaffold semver dependency output in 3bdb211d; pnpm run check and publish pack readiness guard passed. M1 remains incomplete at 10/11. Next recommended task is M1-T11 CI + release pipeline gates.",
+  "lastRunFinishedAt": "2026-05-29T16:19:28Z"
 }
