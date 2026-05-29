@@ -56,8 +56,8 @@ export default class SetupSystem extends createSystem({
       {
         entity: crate,
         worldAabb: {
-          min: [0.2, 0.45, -1],
-          max: [0.3, 0.55, 1],
+          min: [-1.5, 0, -0.5],
+          max: [-0.5, 1, 0.5],
         },
       },
     ]);
