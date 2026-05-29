@@ -159,6 +159,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.motionVectors === undefined
       ? {}
       : { motionVectors: report.motionVectors }),
+    ...(report.shadow === undefined
+      ? {}
+      : { shadow: toWebGpuAppJsonValue(report.shadow) }),
     ...(report.localLightClusters === undefined
       ? {}
       : { localLightClusters: report.localLightClusters }),
@@ -272,6 +275,7 @@ export function renderReport(input: {
   readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly indirectDraws?: IndirectDrawCommandReport;
   readonly motionVectors?: WebGpuAppMotionVectorReport;
+  readonly shadow?: WebGpuAppRenderReport["shadow"];
   readonly localLightCookieResources?:
     | LocalLightClusterCookieResources
     | null
@@ -352,6 +356,7 @@ export function renderReport(input: {
     ...(input.motionVectors === undefined
       ? {}
       : { motionVectors: input.motionVectors }),
+    ...(input.shadow === undefined ? {} : { shadow: input.shadow }),
     ...(localLightClusters === undefined ? {} : { localLightClusters }),
     ...(localLightCookies === undefined ? {} : { localLightCookies }),
     ...(input.occlusionQueries === undefined

@@ -393,33 +393,31 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-29 05:06 UTC</dd>
+            <dd>2026-05-29 06:33 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: SOTA roadmap M1-T1 extracted the reusable
-              renderer-owned shadow frame orchestrator from the CSM example into
-              <code>packages/webgpu/src/shadows</code>. The new
-              <code>createRenderShadowFrame()</code> path accepts an ECS-derived
-              <code>RenderSnapshot</code>, prepared caster mesh views, a passed
-              WebGPU device, and the app environment cache, then allocates or
-              reuses shadow depth/sampler/pipeline/matrix bind-group resources,
-              submits cascaded directional caster passes, and returns
-              <code>StandardFrameShadowReceiverResources</code> plus a compact
-              JSON-safe report. Vitest covers submitted command-buffer status,
-              nonzero pass/draw counts, receiver resources, cache reuse across
-              identical frames, and the absence of deferred/not-implemented
-              diagnostics in the returned report. Next SOTA task:
-              <code>M1-T2</code> wires the orchestrator into
-              <code>renderWebGpuAppFrame</code> so standard app frames can
-              produce shadow receiver resources automatically. Previous update:
-              custom WGSL material enablement now has public shader assets, app
-              system builders, source validation, source-asset mirroring,
-              prepared custom material metadata, mixed built-in/custom app-route
-              rendering, group-2 texture/sampler binding resources, and
-              generated developer API browser coverage for
-              <code>asset.shader(...)</code> plus
+              Latest update: SOTA roadmap M1-T2 wires the reusable
+              renderer-owned shadow frame orchestrator into
+              <code>renderWebGpuAppFrame</code>. StandardMaterial frames with
+              directional shadow requests now automatically prepare caster mesh
+              views, submit the shadow command buffer, inject receiver resources
+              into the normal group-3 frame-resource path, and publish
+              <code>WebGpuAppRenderReport.shadow</code> JSON. The new
+              <code>examples/auto-shadow.html</code> route proves that a worker
+              snapshot with no caller-provided
+              <code>standardMaterialShadowReceiverResources</code> still renders
+              cascaded shadows, while manual CSM, multi-light, point, and spot
+              shadow examples keep their explicit override paths. Next SOTA
+              task: <code>M1-T3</code> makes lower-level
+              <code>shaderSampling</code> shadow status truthful now that
+              receiver sampling is wired. Previous update: custom WGSL material
+              enablement now has public shader assets, app system builders,
+              source validation, source-asset mirroring, prepared custom
+              material metadata, mixed built-in/custom app-route rendering,
+              group-2 texture/sampler binding resources, and generated developer
+              API browser coverage for <code>asset.shader(...)</code> plus
               <code>material.customWgsl(...)</code>. The animated
               <code>custom-material</code> example no longer rewrites snapshots
               or submits manual WebGPU commands, broken WGSL reports app-route
@@ -3572,14 +3570,13 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">M1-T1</span> Extracted
-                <code>createRenderShadowFrame()</code> and caster mesh view
-                helpers into <code>packages/webgpu/src/shadows</code>. The
-                orchestrator submits cascaded directional shadow caster passes,
-                returns standard receiver resources for later app-frame
-                injection, reuses renderer-owned depth/sampler/pipeline/matrix
-                bind-group cache entries across identical frames, and is covered
-                by Vitest fake-device submission and cache-reuse proofs.
+                <span class="badge green">M1-T2</span> Wired
+                <code>createRenderShadowFrame()</code> into the WebGPU app frame
+                loop. StandardMaterial frames now auto-submit directional shadow
+                caster passes, inject receiver resources when no explicit
+                override is supplied, expose <code>report.shadow</code> JSON,
+                and are covered by the new <code>auto-shadow</code>
+                render-control route plus receiver-delta Playwright proof.
               </li>
               <li>
                 <span class="badge green">task-3209</span> Added
@@ -6435,11 +6432,10 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Wire
-                <code>createRenderShadowFrame()</code> into
-                <code>renderWebGpuAppFrame</code> for <code>M1-T2</code>, while
-                preserving explicit shadow receiver overrides and adding the
-                auto-shadow render-control and Playwright receiver-delta proof.
+                <span class="badge amber">next</span> Enable truthful
+                lower-level shadow <code>shaderSampling</code> status for
+                <code>M1-T3</code>, now that automatic StandardMaterial receiver
+                resources are wired through app-frame rendering.
               </li>
               <li>
                 <span class="badge green">done</span> Custom WGSL mixed
@@ -6815,6 +6811,22 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">M1-T2</div>
+            <div>
+              <strong>Automatic app-frame shadows wired.</strong>
+              <span>
+                <code>renderWebGpuAppFrame</code> now invokes
+                <code>createRenderShadowFrame()</code> for StandardMaterial
+                directional shadow requests, prepares caster mesh views from
+                renderer-owned mesh resources, injects produced receiver
+                resources into queued and mixed built-in frame-resource routes,
+                and exposes the submitted shadow report through app JSON.
+                <code>examples/auto-shadow.html</code> proves receiver darkening
+                without caller-provided shadow resources.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">M1-T1</div>
             <div>

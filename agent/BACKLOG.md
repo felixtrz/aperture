@@ -59,21 +59,21 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-The active project direction is now `docs/SOTA_ROADMAP.md` wave 0. M1-T1 is
-complete: the reusable `createRenderShadowFrame()` shadow orchestrator and
-caster mesh view helpers live in `packages/webgpu/src/shadows`, with Vitest
-coverage for submitted cascaded directional passes and renderer-owned cache
-reuse. Continue with one visible SOTA feature slice at a time.
+The active project direction is now `docs/SOTA_ROADMAP.md` wave 0. M1-T1 and
+M1-T2 are complete: the reusable `createRenderShadowFrame()` shadow
+orchestrator lives in `packages/webgpu/src/shadows`, and
+`renderWebGpuAppFrame` now invokes it automatically for StandardMaterial shadow
+receiver frames when the caller does not provide explicit receiver resources.
+Continue with one visible SOTA feature slice at a time.
 
 The next ready visible-feature queue is:
 
-- `M1-T2` — drive the shadow orchestrator from the frame loop and inject
-  receiver resources automatically.
+- `M1-T3` — enable truthful shadow `shaderSampling` status now that automatic
+  receiver resources are wired into the app frame loop.
   Reference anchor: `references/engine/src/scene/renderer/shadow-renderer-directional.js`.
-  Done when an auto-shadow render-control route submits shadow caster passes
-  without caller-provided `standardMaterialShadowReceiverResources`, reports the
-  shadow command-buffer status, preserves explicit override compatibility, and
-  Playwright proves receiver darkening.
+  Done when submitted shadow reports expose `sections.shaderSampling === true`,
+  the stale `shaderSamplingDeferred` diagnostic is absent on the submitted
+  auto-shadow path, and the updated shadow Vitest/E2E expectations pass.
 - `M1-T4` — add `KHR_mesh_quantization` support at glTF root validation and
   accessor decode.
   Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`.

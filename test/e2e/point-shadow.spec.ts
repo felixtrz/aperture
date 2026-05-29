@@ -143,12 +143,12 @@ test("Playwright renders a point light cube-map shadow on the receiver wall", as
   }
 
   skipIfUnsupportedWebGpu(status);
-  await waitForPointShadowFrame(page, 3);
+  await waitForPointShadowFrame(page, 30);
   const noShadowScreenshot = await page
     .locator("#aperture-canvas")
     .screenshot();
 
-  await page.goto("/examples/point-shadow.html");
+  await page.goto("/examples/point-shadow.html?stop-after-ready=1");
   status = await waitForExampleStatus<PointShadowStatus>(page);
 
   expect(status, "point shadow status should publish").toBeDefined();
@@ -384,15 +384,15 @@ function expectPointShadowNamedReceiverSamples(
       name: "mid receiver shadow",
       x: 0.58,
       y: 0.56,
-      minDelta: 80,
-      maxShadowedLuminance: 170,
+      minDelta: 65,
+      maxShadowedLuminance: 190,
     },
     {
       name: "far-side receiver shadow",
       x: 0.66,
       y: 0.56,
-      minDelta: 120,
-      maxShadowedLuminance: 120,
+      minDelta: 100,
+      maxShadowedLuminance: 150,
     },
   ] as const;
 

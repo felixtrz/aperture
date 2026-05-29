@@ -65,6 +65,7 @@ import {
 } from "../gpu/initialize-webgpu.js";
 import { type WebGpuAppPipelineResourceResult } from "./pipeline-resources.js";
 import { type WebGpuAppMsaaReport } from "./attachments.js";
+import type { RenderShadowFrameReport } from "../shadows/render-shadow-frame.js";
 
 export type { WebGpuAppMsaaReport };
 
@@ -75,6 +76,7 @@ export interface WebGpuAppRenderOptions {
   readonly clearColor?: readonly number[];
   readonly label?: string;
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
+  readonly autoStandardMaterialShadowReceiverResources?: boolean;
   readonly standardMaterialShadowReceiverResources?: StandardFrameShadowReceiverResources;
   readonly standardMaterialIblResources?: StandardFrameIblResources;
   readonly phaseTimingSamples?: WebGpuAppRenderPhaseTimingSamples;
@@ -303,6 +305,7 @@ export interface WebGpuAppRenderReport {
   readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly indirectDraws?: IndirectDrawCommandReport;
   readonly motionVectors?: WebGpuAppMotionVectorReport;
+  readonly shadow?: RenderShadowFrameReport;
   readonly localLightClusters?: LocalLightClusterReport;
   readonly localLightCookies?: WebGpuAppLocalLightCookieReport;
   readonly occlusionQueries?: WebGpuAppOcclusionQueryReport;
@@ -386,6 +389,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly renderBundles?: WebGpuAppRenderBundleReport;
   readonly indirectDraws?: IndirectDrawCommandReport;
   readonly motionVectors?: WebGpuAppMotionVectorReport;
+  readonly shadow?: WebGpuAppJsonValue;
   readonly localLightClusters?: LocalLightClusterReport;
   readonly localLightCookies?: WebGpuAppLocalLightCookieReport;
   readonly occlusionQueries?: WebGpuAppOcclusionQueryReport;

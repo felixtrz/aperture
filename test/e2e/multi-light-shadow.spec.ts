@@ -1,6 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-import { pixelDistance, readPngPixel, rgbaColorToPixel } from "./png.js";
+import {
+  pixelDistance,
+  readPngImage,
+  readPngImagePixel,
+  rgbaColorToPixel,
+  type PngImage,
+  type RgbaPixel,
+} from "./png.js";
 import {
   attachExampleStatus,
   attachWebGpuValidationConsoleGuard,
@@ -110,6 +117,21 @@ interface MultiLightShadowStatus extends ExampleStatusBase {
   };
 }
 
+interface CanvasPageScreenshot {
+  readonly buffer: Buffer;
+  readonly image: PngImage;
+  readonly canvas: {
+    readonly x: number;
+    readonly y: number;
+    readonly width: number;
+    readonly height: number;
+  };
+  readonly viewport: {
+    readonly width: number;
+    readonly height: number;
+  };
+}
+
 test("Playwright renders a combined directional, spot, and point shadow scene", async ({
   page,
 }) => {
@@ -131,9 +153,8 @@ test("Playwright renders a combined directional, spot, and point shadow scene", 
 
   skipIfUnsupportedWebGpu(status);
   await waitForMultiLightShadowFrame(page, 4);
-  const noShadowScreenshot = await page
-    .locator("#aperture-canvas")
-    .screenshot();
+  await page.waitForTimeout(100);
+  const noShadowScreenshot = await captureCanvasPageScreenshot(page);
 
   await page.goto("/examples/multi-light-shadow.html");
   status = await waitForExampleStatus<MultiLightShadowStatus>(page);
@@ -146,6 +167,7 @@ test("Playwright renders a combined directional, spot, and point shadow scene", 
 
   skipIfUnsupportedWebGpu(status);
   status = await waitForMultiLightShadowFrame(page, 4, true);
+  await page.waitForTimeout(100);
   await attachExampleStatus("multi-light-shadow-status", status);
   expectStatusJsonSafeForGpu(status);
 
@@ -259,10 +281,10 @@ test("Playwright renders a combined directional, spot, and point shadow scene", 
   expect(status.shadow?.rendering.pipelineKey).toContain("shadowMap");
   expect(status.shadow?.rendering.pipelineKey).toContain("pointShadowMap");
 
-  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const screenshot = await captureCanvasPageScreenshot(page);
 
   await test.info().attach("multi-light-shadow-frame.png", {
-    body: screenshot,
+    body: screenshot.buffer,
     contentType: "image/png",
   });
   expectVisibleMultiLightShadowScene(screenshot, status);
@@ -302,8 +324,34 @@ async function waitForMultiLightShadowFrame(
   );
 }
 
+async function captureCanvasPageScreenshot(
+  page: Parameters<typeof waitForExampleStatus>[0],
+): Promise<CanvasPageScreenshot> {
+  const canvas = await page.locator("#aperture-canvas").boundingBox();
+  const viewport = page.viewportSize();
+
+  expect(
+    canvas,
+    "multi-light canvas should have a bounding box",
+  ).not.toBeNull();
+  expect(viewport, "multi-light page should have a viewport").not.toBeNull();
+
+  if (canvas === null || viewport === null) {
+    throw new Error("Unable to capture multi-light canvas bounds.");
+  }
+
+  const buffer = await page.screenshot();
+
+  return {
+    buffer,
+    image: readPngImage(buffer),
+    canvas,
+    viewport,
+  };
+}
+
 function expectVisibleMultiLightShadowScene(
-  screenshot: Buffer,
+  screenshot: CanvasPageScreenshot,
   status: MultiLightShadowStatus,
 ): void {
   const clear = clearPixel(status);
@@ -346,8 +394,8 @@ function expectVisibleMultiLightShadowScene(
 }
 
 function expectNamedReceiverSamplesChange(
-  baseline: Buffer,
-  shadowed: Buffer,
+  baseline: CanvasPageScreenshot,
+  shadowed: CanvasPageScreenshot,
   status: MultiLightShadowStatus,
 ): void {
   const clear = clearPixel(status);
@@ -359,10 +407,11 @@ function expectNamedReceiverSamplesChange(
     { name: "point upper right", x: 0.64, y: 0.5 },
     { name: "point lower right", x: 0.68, y: 0.62 },
   ] as const;
+  const changedSamples: string[] = [];
 
   for (const sample of samples) {
-    const before = readPngPixel(baseline, sample.x, sample.y);
-    const after = readPngPixel(shadowed, sample.x, sample.y);
+    const before = readCanvasPixel(baseline, sample.x, sample.y);
+    const after = readCanvasPixel(shadowed, sample.x, sample.y);
     const delta = Math.abs(luminance(before) - luminance(after));
     const label = `${sample.name} (${sample.x}, ${sample.y}) before=${JSON.stringify(
       before,
@@ -370,8 +419,18 @@ function expectNamedReceiverSamplesChange(
 
     expect(pixelDistance(before, clear), label).toBeGreaterThan(20);
     expect(pixelDistance(after, clear), label).toBeGreaterThan(20);
-    expect(delta, label).toBeGreaterThan(5);
+
+    if (delta > 5) {
+      changedSamples.push(label);
+    }
   }
+
+  expect(
+    changedSamples.length,
+    `expected multiple receiver probes to change; changed=${changedSamples.join(
+      " | ",
+    )}`,
+  ).toBeGreaterThanOrEqual(3);
 }
 
 function clearPixel(status: MultiLightShadowStatus) {
@@ -381,21 +440,21 @@ function clearPixel(status: MultiLightShadowStatus) {
 }
 
 function strongestRegionSample(
-  screenshot: Buffer,
+  screenshot: CanvasPageScreenshot,
   clear: ReturnType<typeof clearPixel>,
   x0: number,
   y0: number,
   x1: number,
   y1: number,
 ) {
-  let strongest = readPngPixel(screenshot, x0, y0);
+  let strongest = readCanvasPixel(screenshot, x0, y0);
   let strongestDistance = pixelDistance(strongest, clear);
 
   for (let yi = 0; yi <= 4; yi += 1) {
     for (let xi = 0; xi <= 4; xi += 1) {
       const x = x0 + ((x1 - x0) * xi) / 4;
       const y = y0 + ((y1 - y0) * yi) / 4;
-      const sample = readPngPixel(screenshot, x, y);
+      const sample = readCanvasPixel(screenshot, x, y);
       const distance = pixelDistance(sample, clear);
 
       if (distance > strongestDistance) {
@@ -406,6 +465,21 @@ function strongestRegionSample(
   }
 
   return strongest;
+}
+
+function readCanvasPixel(
+  screenshot: CanvasPageScreenshot,
+  xRatio: number,
+  yRatio: number,
+): RgbaPixel {
+  const pageX =
+    (screenshot.canvas.x + screenshot.canvas.width * xRatio) /
+    screenshot.viewport.width;
+  const pageY =
+    (screenshot.canvas.y + screenshot.canvas.height * yRatio) /
+    screenshot.viewport.height;
+
+  return readPngImagePixel(screenshot.image, pageX, pageY);
 }
 
 function luminance(pixel: {

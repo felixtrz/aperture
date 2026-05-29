@@ -14,7 +14,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
     5. Use absolute dates (YYYY-MM-DD [HH:MM TZ]) everywhere — never "today"/"now".
 -->
 
-**Last updated:** `2026-05-28 22:08 PDT — codex/gpt-5`
+**Last updated:** `2026-05-28 23:37 PDT — codex/gpt-5`
 
 > _What to write:_ Absolute date + time + timezone, then `— <your agent/author id>` (e.g. `2026-06-02 14:30 PDT — claude/opus`). Update on every edit to this block.
 
@@ -26,11 +26,11 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 
 > _What to write:_ Exactly ONE task id (`M#-T#`) you are mid-implementation on, or `none` when between tasks. Never two at once. Reset to `none` after you record the result in the completion log below.
 
-**Next recommended task:** `M1-T2 — wires the reusable shadow orchestrator into renderWebGpuAppFrame and unblocks auto-shadow receiver sampling`
+**Next recommended task:** `M1-T3 — enables truthful shadow shaderSampling status now that auto receiver sampling is wired`
 
 > _What to write:_ The next `todo` task whose `dependsOn` are all `done`, lowest milestone/task number within the current wave. One line: `M#-T# — <why it's next / what it unblocks>`.
 
-**Gate status:** `pnpm run check = pass; test/webgpu/shadows/render-shadow-frame.spec.ts = pass`
+**Gate status:** `pnpm run check = pass; auto-shadow / csm / point / spot / multi-light focused E2E = pass; webgpu auto-shadow Vitest = pass; pnpm run check:progress = pass; git diff --check = pass`
 
 > _What to write:_ Result of the project gate at your last stop: `pnpm run check = pass|fail` plus any task-specific proofs you ran (e.g. `test/e2e/auto-shadow.spec.ts = pass`). If fail, name the failing check. Never mark a task `done` on a red gate.
 
@@ -42,19 +42,19 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 
 > _What to write:_ One row per milestone. `Status` ∈ {`not-started`, `in-progress`, `done`}. `Done/Total` = tasks marked `✅ done` ÷ total. `Proof` is fixed (the milestone's §"Proof"); flip its trailing flag to `✅` only when that verification passes. Update the row the instant any task status changes. A milestone is `done` only when every task is `done` AND its proof passes.
 
-| Milestone   | Wave | Status      | Done/Total | Proof (route/spec)                                                               | Notes                                                                        |
-| ----------- | ---- | ----------- | ---------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| [M1](#m1)   | 0    | in-progress | 1/11       | `auto-shadow` route + compressed-GLB load + picking + `npm publish --dry-run` ⬜ | M1-T1 reusable shadow orchestrator complete; frame-loop wiring remains M1-T2 |
-| [M2](#m2)   | 1    | not-started | 0/9        | skinned+animated GLB route (M2-T9) ⬜                                            | —                                                                            |
-| [M3](#m3)   | 2    | not-started | 0/7        | post+forward+shadow ported under graph + custom-pass example (M3-T7) ⬜          | —                                                                            |
-| [M4](#m4)   | 1    | not-started | 0/9        | frustum-fit / PCSS / alpha-test shadow routes ⬜                                 | —                                                                            |
-| [M5](#m5)   | 1    | not-started | 0/6        | DFG / irradiance / transmission correctness routes ⬜                            | —                                                                            |
-| [M6](#m6)   | 3    | not-started | 0/5        | content-showcase routes (sprites/particles/text/UI) ⬜                           | —                                                                            |
-| [M7](#m7)   | 3    | not-started | 0/9        | scene round-trip E2E + pointer-event route ⬜                                    | —                                                                            |
-| [M8](#m8)   | 3    | not-started | 0/9        | GPU-driven scale route (compute cull → indirect) ⬜                              | —                                                                            |
-| [M9](#m9)   | 4    | not-started | 0/4        | multi-zone reflection + irradiance routes ⬜                                     | —                                                                            |
-| [M10](#m10) | 4    | not-started | 0/4        | physics settle test + XR stereo route ⬜                                         | —                                                                            |
-| [M11](#m11) | 4    | not-started | 0/5        | editor open→edit→save→reload E2E ⬜                                              | —                                                                            |
+| Milestone   | Wave | Status      | Done/Total | Proof (route/spec)                                                               | Notes                                                                             |
+| ----------- | ---- | ----------- | ---------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| [M1](#m1)   | 0    | in-progress | 2/11       | `auto-shadow` route + compressed-GLB load + picking + `npm publish --dry-run` ⬜ | M1-T2 auto-shadow frame-loop wiring complete; shaderSampling status remains M1-T3 |
+| [M2](#m2)   | 1    | not-started | 0/9        | skinned+animated GLB route (M2-T9) ⬜                                            | —                                                                                 |
+| [M3](#m3)   | 2    | not-started | 0/7        | post+forward+shadow ported under graph + custom-pass example (M3-T7) ⬜          | —                                                                                 |
+| [M4](#m4)   | 1    | not-started | 0/9        | frustum-fit / PCSS / alpha-test shadow routes ⬜                                 | —                                                                                 |
+| [M5](#m5)   | 1    | not-started | 0/6        | DFG / irradiance / transmission correctness routes ⬜                            | —                                                                                 |
+| [M6](#m6)   | 3    | not-started | 0/5        | content-showcase routes (sprites/particles/text/UI) ⬜                           | —                                                                                 |
+| [M7](#m7)   | 3    | not-started | 0/9        | scene round-trip E2E + pointer-event route ⬜                                    | —                                                                                 |
+| [M8](#m8)   | 3    | not-started | 0/9        | GPU-driven scale route (compute cull → indirect) ⬜                              | —                                                                                 |
+| [M9](#m9)   | 4    | not-started | 0/4        | multi-zone reflection + irradiance routes ⬜                                     | —                                                                                 |
+| [M10](#m10) | 4    | not-started | 0/4        | physics settle test + XR stereo route ⬜                                         | —                                                                                 |
+| [M11](#m11) | 4    | not-started | 0/5        | editor open→edit→save→reload E2E ⬜                                              | —                                                                                 |
 
 ### Task status & completion log
 
@@ -65,10 +65,11 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 >
 > Mark a task `✅ done` ONLY when: every `Done when` box is checked, the named proof (Playwright / render-control / vitest) passes, and `pnpm run check` is green. Partial work stays `🟡 in-progress` and is described in "Resume notes".
 
-| Date                             | Task  | → Status | Commit   | Proof run                                                                                                                                                                                | Notes                                                                                                                                                                                                         |
-| -------------------------------- | ----- | -------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| _append rows below; newest last_ |       |          |          |                                                                                                                                                                                          |                                                                                                                                                                                                               |
-| 2026-05-28 22:06 PDT             | M1-T1 | ✅ done  | 20b53817 | `pnpm run check`; `pnpm exec vitest run test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/app-environment-resources.test.ts test/webgpu/shadow-depth-texture-resource.test.ts` | Extracted `createRenderShadowFrame()` and caster mesh helpers into `packages/webgpu/src/shadows`, added renderer-owned cache slots, and proved submitted cascaded directional shadow frames plus cache reuse. |
+| Date                             | Task  | → Status | Commit   | Proof run                                                                                                                                                                                                                                                                                                                              | Notes                                                                                                                                                                                                                                                        |
+| -------------------------------- | ----- | -------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| _append rows below; newest last_ |       |          |          |                                                                                                                                                                                                                                                                                                                                        |                                                                                                                                                                                                                                                              |
+| 2026-05-28 22:06 PDT             | M1-T1 | ✅ done  | 20b53817 | `pnpm run check`; `pnpm exec vitest run test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/app-environment-resources.test.ts test/webgpu/shadow-depth-texture-resource.test.ts`                                                                                                                                               | Extracted `createRenderShadowFrame()` and caster mesh helpers into `packages/webgpu/src/shadows`, added renderer-owned cache slots, and proved submitted cascaded directional shadow frames plus cache reuse.                                                |
+| 2026-05-28 23:37 PDT             | M1-T2 | ✅ done  | pending  | `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "auto-renders directional shadow resources\|renders the standard material queue path"`; `CI=true pnpm exec playwright test test/e2e/auto-shadow.spec.ts --reporter=list --timeout=90000`; focused CSM/point/spot/multi-light shadow E2E specs; `pnpm run check` | Wired automatic StandardMaterial shadow receiver resources through the queued and mixed app frame routes, added `examples/auto-shadow.*`, preserved explicit shadow-resource override examples, and proved receiver darkening plus JSON-safe shadow reports. |
 
 ### Resume notes (for the next agent)
 
@@ -202,7 +203,7 @@ Lift the 17-stage hand-orchestration in examples/csm-directional-shadow.main.js:
 
 **Watch out:** The orchestrator must run AFTER the frame's prepared mesh GPU buffers exist (prepareWebGpuAppSourceAssetFacades), because caster command records need real vertex/index GPU buffers (example builds them from report.resources/resourceReuse). Do not duplicate mesh uploads — read from the same prepared-mesh facade the main pass uses. Keep ECS authority intact: the orchestrator only reads the snapshot, never mutates scene/render-world state.
 
-#### `M1-T2` · Drive the shadow orchestrator from the frame loop and inject receiver resources automatically
+#### `M1-T2` · Drive the shadow orchestrator from the frame loop and inject receiver resources automatically — ✅ done (2026-05-28 · pending)
 
 `webgpu-render` · effort **M** · depends: M1-T1
 
@@ -216,10 +217,10 @@ Invoke createRenderShadowFrame from inside renderWebGpuAppFrame (packages/webgpu
 
 **Done when:**
 
-- [ ] A new render-control route (examples/auto-shadow.\* + examples/auto-shadow.worker.js) that does NOT hand-build any shadow resources (calls app.renderSnapshot with NO standardMaterialShadowReceiverResources) still produces a frame whose report.shadow.commandBufferSubmission.status === 'submitted' and whose pipelineKey contains 'shadowMap' or 'cascadedShadowMap'.
-- [ ] A Playwright E2E (test/e2e/auto-shadow.spec.ts) compares a shadow-disabled baseline screenshot to the auto-shadow screenshot and asserts a receiver-region luminance delta > 10 (same pixel-delta technique as csm-directional-shadow.spec.ts:expectCsmShadowActivation).
-- [ ] The existing csm-directional-shadow.spec.ts and multi/spot/point shadow specs still pass (explicit-override path unchanged).
-- [ ] No webgpu validation console warnings (attachWebGpuValidationConsoleGuard.expectNoWarnings()).
+- [x] A new render-control route (examples/auto-shadow.\* + examples/auto-shadow.worker.js) that does NOT hand-build any shadow resources (calls app.renderSnapshot with NO standardMaterialShadowReceiverResources) still produces a frame whose report.shadow.commandBufferSubmission.status === 'submitted' and whose pipelineKey contains 'shadowMap' or 'cascadedShadowMap'.
+- [x] A Playwright E2E (test/e2e/auto-shadow.spec.ts) compares a shadow-disabled baseline screenshot to the auto-shadow screenshot and asserts a receiver-region luminance delta > 10 (same pixel-delta technique as csm-directional-shadow.spec.ts:expectCsmShadowActivation).
+- [x] The existing csm-directional-shadow.spec.ts and multi/spot/point shadow specs still pass (explicit-override path unchanged).
+- [x] No webgpu validation console warnings (attachWebGpuValidationConsoleGuard.expectNoWarnings()).
 
 **Study:** examples/csm-directional-shadow.main.js:handleWorkerMessage (lines 126-183, shows option threading + feeding receiverResources back into renderSnapshot); packages/webgpu/src/app/frame-loop.ts:132-192,726-730
 

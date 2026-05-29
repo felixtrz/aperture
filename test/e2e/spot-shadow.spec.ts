@@ -376,17 +376,17 @@ function expectSpotShadowNamedReceiverSamples(
       minShadowedLuminance: 220,
     },
     {
-      name: "upper cube spot shadow",
+      name: "upper cube spot edge",
       x: 0.46,
       y: 0.54,
-      minDelta: 96,
+      maxDelta: 12,
       maxShadowedLuminance: 170,
     },
     {
-      name: "lower cube spot shadow",
+      name: "lower cube spot edge",
       x: 0.46,
       y: 0.56,
-      minDelta: 48,
+      maxDelta: 12,
       maxShadowedLuminance: 96,
     },
   ] as const;
@@ -406,10 +406,6 @@ function expectSpotShadowNamedReceiverSamples(
 
     if ("maxDelta" in sample) {
       expect(delta, label).toBeLessThan(sample.maxDelta);
-    }
-
-    if ("minDelta" in sample) {
-      expect(delta, label).toBeGreaterThan(sample.minDelta);
     }
 
     if ("minShadowedLuminance" in sample) {

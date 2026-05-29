@@ -159,6 +159,7 @@ async function handleWorkerMessage(
     frame: message.frame,
     clearColor,
     label: "csm-directional-shadow-app",
+    autoStandardMaterialShadowReceiverResources: false,
     ...(!scene.shadowControls.receiverEnabled ||
     loop.standardMaterialShadowReceiverResources === null
       ? {}
@@ -220,6 +221,7 @@ async function publishFrameStatus(
   const renderingSupported =
     scene.shadowControls.receiverEnabled &&
     scene.shadowControls.casterEnabled &&
+    frame >= 3 &&
     shadowFrame.commandBufferSubmissionReport.status === "submitted" &&
     shadowFrame.route !== null;
 

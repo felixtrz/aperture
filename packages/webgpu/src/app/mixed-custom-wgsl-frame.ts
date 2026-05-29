@@ -59,6 +59,7 @@ import {
   readWebGpuAppOcclusionQueries,
 } from "./gpu-readback.js";
 import { renderReport, waitForSubmittedWork } from "./report.js";
+import { createWebGpuAppAutoShadowFrame } from "./auto-shadow-frame.js";
 import type { WebGpuAppRenderPhaseTimer } from "./app-phase-timing.js";
 import type {
   WebGpuApp,
@@ -142,6 +143,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
   readonly standardMaterialShadowReceiverResources?:
     | StandardFrameShadowReceiverResources
     | undefined;
+  readonly autoStandardMaterialShadowReceiverResources?: boolean;
   readonly standardMaterialIblResources?: StandardFrameIblResources | undefined;
   readonly localLightCookieResources?:
     | LocalLightClusterCookieResources
@@ -201,6 +203,47 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     });
   }
 
+  const autoShadowFrame =
+    options.standardMaterialShadowReceiverResources === undefined &&
+    options.autoStandardMaterialShadowReceiverResources !== false
+      ? createWebGpuAppAutoShadowFrame({
+          app: options.app,
+          assets: options.assets,
+          cache: options.cache,
+          reuse: options.reuse,
+          snapshot: options.snapshot,
+          ...(options.label === undefined ? {} : { label: options.label }),
+        })
+      : null;
+  const standardMaterialShadowReceiverResources =
+    options.standardMaterialShadowReceiverResources ??
+    autoShadowFrame?.receiverResources ??
+    undefined;
+
+  if (
+    autoShadowFrame !== null &&
+    (autoShadowFrame.report.status !== "submitted" ||
+      autoShadowFrame.receiverResources === null)
+  ) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      shadow: autoShadowFrame.report,
+      resourceReuse: options.reuse,
+      phaseTimings: options.phaseTimer.report(
+        options.cache.phaseTimingHistory,
+        options.snapshot.frame,
+      ),
+      diagnostics: [
+        ...options.snapshot.diagnostics,
+        ...packedViews.diagnostics,
+        ...packedTransforms.diagnostics,
+        ...packedInstanceTints.diagnostics,
+        ...autoShadowFrame.report.diagnostics,
+      ],
+    });
+  }
+
   const preparedBuiltIn = await prepareQueuedBuiltInFrameResources({
     ...options,
     snapshot: options.snapshot,
@@ -211,11 +254,11 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     standardAreaLightLtcResources: standardAreaLightLtc.resources,
     localLightCookieResources: options.localLightCookieResources,
     transmissionSceneColorResources: transmissionGrabResources.resources,
-    ...(options.standardMaterialShadowReceiverResources === undefined
+    ...(standardMaterialShadowReceiverResources === undefined
       ? {}
       : {
           standardMaterialShadowReceiverResources:
-            options.standardMaterialShadowReceiverResources,
+            standardMaterialShadowReceiverResources,
         }),
     ...(options.standardMaterialIblResources === undefined
       ? {}
@@ -280,6 +323,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
       snapshot: options.snapshot,
       pipeline: firstPipeline,
       resources: resourcesResult,
+      ...(autoShadowFrame === null ? {} : { shadow: autoShadowFrame.report }),
       resourceReuse: options.reuse,
       phaseTimings: options.phaseTimer.report(
         options.cache.phaseTimingHistory,
@@ -368,6 +412,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
       snapshot: options.snapshot,
       pipeline: firstPipeline,
       resources: resourcesResult,
+      ...(autoShadowFrame === null ? {} : { shadow: autoShadowFrame.report }),
       resourceReuse: options.reuse,
       phaseTimings: options.phaseTimer.report(
         options.cache.phaseTimingHistory,
@@ -464,6 +509,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     boundaries: boundaries.boundaries,
     renderTargets: boundaries.renderTargets,
     postEffects: boundaries.postEffects,
+    ...(autoShadowFrame === null ? {} : { shadow: autoShadowFrame.report }),
     ...(boundaries.renderBundles === undefined
       ? {}
       : { renderBundles: boundaries.renderBundles }),

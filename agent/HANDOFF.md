@@ -1,6 +1,66 @@
 # Agent Handoff
 
-Updated: 2026-05-29T05:08:22Z
+Updated: 2026-05-29T06:37:47Z
+
+## Current Run Update — 2026-05-29T06:37:47Z — SOTA M1-T2 auto-shadow frame-loop wiring
+
+Completed `docs/SOTA_ROADMAP.md` task `M1-T2`.
+
+### What changed
+
+- Added an app-layer auto-shadow frame helper that detects StandardMaterial
+  shadow receivers, prepares caster mesh GPU views from renderer-owned mesh
+  resources, and invokes `createRenderShadowFrame()` when directional shadow
+  requests are present.
+- Wired automatic StandardMaterial shadow receiver resources through
+  `renderWebGpuAppFrame`, the queued built-in route, and the mixed
+  built-in/custom WGSL route while preserving the existing explicit
+  `standardMaterialShadowReceiverResources` override path.
+- Added `WebGpuAppRenderReport.shadow` plus JSON projection so render-control
+  routes and tests can assert submitted shadow command-buffer status,
+  pass/draw counts, receiver-resource readiness, and pipeline-key routing.
+- Added `examples/auto-shadow.html`, `examples/auto-shadow.main.js`, and
+  `examples/auto-shadow.worker.js`, which render the CSM scene without
+  hand-building shadow receiver resources and publish a compact auto-shadow
+  status.
+- Updated the manual CSM, multi-light, point, and spot shadow examples to opt
+  out of automatic receiver-resource generation so their explicit two-frame
+  feedback paths stay covered.
+- Added Vitest and Playwright coverage for automatic shadow submission, JSON
+  reports, explicit opt-out behavior, receiver darkening, and the existing
+  explicit shadow examples.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "auto-renders directional shadow resources|renders the standard material queue path"`
+- `pnpm exec tsc --noEmit`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run build`
+- `pnpm run format:check`
+- Focused ESLint/Prettier checks for touched app, example, and shadow E2E files.
+- `CI=true pnpm exec playwright test test/e2e/auto-shadow.spec.ts --reporter=list --timeout=90000`
+- `CI=true pnpm exec playwright test test/e2e/point-shadow.spec.ts --reporter=list --timeout=90000`
+- `CI=true pnpm exec playwright test test/e2e/spot-shadow.spec.ts --reporter=list --timeout=90000`
+- `CI=true pnpm exec playwright test test/e2e/multi-light-shadow.spec.ts --reporter=list --timeout=90000`
+- `CI=true pnpm exec playwright test test/e2e/csm-directional-shadow.spec.ts --reporter=list --timeout=90000` printed the pass line, then the Playwright runner hung during shutdown and was killed after success.
+- `pnpm run check:progress`
+- `pnpm run check`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- Lower-level shadow reports still carry the legacy `shaderSampling:false` /
+  `shaderSamplingDeferred` status even though auto receiver resources are now
+  wired. `M1-T3` is the next task and should make that status truthful.
+- The CSM focused Playwright run can hang after printing a passing test line in
+  this environment; no leftover Playwright or example-server processes were
+  present before the docs update.
+
+### Recommended next task
+
+Start `M1-T3`: enable truthful shadow `shaderSampling` status and remove the
+stale deferred diagnostic on submitted auto-shadow paths.
 
 ## Current Run Update — 2026-05-29T05:08:22Z — SOTA M1-T1 shadow orchestrator
 

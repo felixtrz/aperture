@@ -80,6 +80,7 @@ import { renderSpriteOnlyWebGpuAppFrame } from "./sprite-frame.js";
 import { renderQueuedBuiltInWebGpuAppFrame } from "./queued-built-in-frame.js";
 import { renderCustomWgslWebGpuAppFrame } from "./custom-wgsl-frame.js";
 import { renderMixedCustomWgslWebGpuAppFrame } from "./mixed-custom-wgsl-frame.js";
+import { standardAutoShadowPipelineKindFromSnapshot } from "./auto-shadow-frame.js";
 import type {
   WebGpuApp,
   WebGpuAppFrameResourcesResult,
@@ -105,6 +106,8 @@ export async function renderWebGpuAppFrame(
     options.phaseTimingSamples,
   );
   const extractedSnapshot = options.snapshot;
+  const autoStandardMaterialShadowReceiverResources =
+    options.autoStandardMaterialShadowReceiverResources !== false;
 
   phaseTimer.start("collect");
 
@@ -129,15 +132,18 @@ export async function renderWebGpuAppFrame(
     });
   }
 
-  const shadowSnapshot =
+  const shadowPipelineKind =
     options.standardMaterialShadowReceiverResources === undefined
-      ? extractedSnapshot
-      : withStandardShadowPipelineKeys(
-          extractedSnapshot,
-          standardShadowPipelineKind(
-            options.standardMaterialShadowReceiverResources,
-          ),
+      ? autoStandardMaterialShadowReceiverResources
+        ? standardAutoShadowPipelineKindFromSnapshot(extractedSnapshot)
+        : null
+      : standardShadowPipelineKind(
+          options.standardMaterialShadowReceiverResources,
         );
+  const shadowSnapshot =
+    shadowPipelineKind === null
+      ? extractedSnapshot
+      : withStandardShadowPipelineKeys(extractedSnapshot, shadowPipelineKind);
   const iblSnapshot = hasReadyStandardDiffuseIblResources(
     options.standardMaterialIblResources,
   )
@@ -382,6 +388,7 @@ export async function renderWebGpuAppFrame(
             standardMaterialShadowReceiverResources:
               options.standardMaterialShadowReceiverResources,
           }),
+      autoStandardMaterialShadowReceiverResources,
       ...(options.standardMaterialIblResources === undefined
         ? {}
         : {
@@ -516,6 +523,7 @@ export async function renderWebGpuAppFrame(
             standardMaterialShadowReceiverResources:
               options.standardMaterialShadowReceiverResources,
           }),
+      autoStandardMaterialShadowReceiverResources,
       ...(options.standardMaterialIblResources === undefined
         ? {}
         : {

@@ -243,6 +243,7 @@ async function handleWorkerMessage(
     frame: message.frame,
     clearColor,
     label: "multi-light-shadow-app",
+    autoStandardMaterialShadowReceiverResources: false,
     ...(!scene.shadowControls.receiverEnabled ||
     loop.standardMaterialShadowReceiverResources === null
       ? {}

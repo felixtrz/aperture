@@ -32,6 +32,7 @@ import {
   createExtractionApp,
   withCamera,
   withLight,
+  withLightShadowSettings,
   withMaterial,
   withMesh,
   withRenderLayer,
@@ -6446,6 +6447,120 @@ describe("WebGPU app facade", () => {
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
 
+  it("auto-renders directional shadow resources for standard material frames", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "ShadowCube" }));
+    const material = assets.materials.standard.add(
+      createStandardMaterialAsset({
+        label: "Auto Shadow Lit",
+        roughnessFactor: 0.7,
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform(),
+      withLight({
+        kind: LightKind.Directional,
+        intensity: 1.5,
+        layerMask: 1,
+      }),
+      withLightShadowSettings({
+        enabled: true,
+        cascadeCount: 2,
+        mapSize: 512,
+        casterLayerMask: 1,
+        receiverLayerMask: 1,
+      }),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 32);
+    const value = webGpuAppRenderReportToJsonValue(frame);
+
+    expect(frame.ok).toBe(true);
+    expect(frame.shadow).toMatchObject({
+      status: "submitted",
+      shadowKind: "directional-cascaded",
+      passCount: 2,
+      commandBufferSubmission: {
+        status: "submitted",
+        submittedCommandBuffers: 1,
+      },
+      sections: {
+        commandBufferSubmission: true,
+        receiverResources: true,
+      },
+    });
+    expect(frame.shadow?.drawCalls).toBeGreaterThan(0);
+    expect(frame.snapshot.shadowRequests).toHaveLength(1);
+    expect(frame.snapshot.meshDraws[0]?.batchKey.pipelineKey).toContain(
+      "shadowMap",
+    );
+    expect(frame.snapshot.meshDraws[0]?.batchKey.pipelineKey).toContain(
+      "cascadedShadowMap",
+    );
+    expect(frame.resourceReuse).toMatchObject({
+      meshBuffersCreated: 1,
+      meshBuffersReused: 1,
+      preparedMeshBuffersCreated: 1,
+      preparedMeshBuffersReused: 1,
+    });
+    expect(value.shadow).toMatchObject({
+      status: "submitted",
+      commandBufferSubmission: { status: "submitted" },
+    });
+    expect(frame.diagnostics).toEqual([]);
+    expect(events.filter((event) => event === "queue:submit:1")).toHaveLength(
+      2,
+    );
+    expect(events).toContain("pass:drawIndexed:36");
+
+    const disabledEventStart = events.length;
+
+    app.step(1 / 60, 2);
+
+    const disabledFrame = await app.render({
+      frame: 33,
+      autoStandardMaterialShadowReceiverResources: false,
+    });
+    const disabledEvents = events.slice(disabledEventStart);
+
+    expect(disabledFrame.ok).toBe(true);
+    expect(disabledFrame.shadow).toBeUndefined();
+    expect(disabledFrame.snapshot.shadowRequests).toHaveLength(1);
+    expect(
+      disabledFrame.snapshot.meshDraws[0]?.batchKey.pipelineKey,
+    ).not.toContain("shadowMap");
+    expect(
+      disabledEvents.filter((event) => event === "queue:submit:1"),
+    ).toHaveLength(1);
+  });
+
   it("aliases ready StandardMaterial diffuse IBL resources into executable group 3", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
@@ -8609,6 +8724,14 @@ function webGpuHarness(
     createShaderModule: (descriptor: unknown) => {
       events.push("device:shader");
       return { descriptor, compilationInfo: async () => ({ messages: [] }) };
+    },
+    createBindGroupLayout: (descriptor: unknown) => {
+      events.push("device:bindGroupLayout");
+      return { descriptor };
+    },
+    createPipelineLayout: (descriptor: unknown) => {
+      events.push("device:pipelineLayout");
+      return { descriptor };
     },
     createRenderPipeline: (descriptor: { readonly label?: string }) => {
       events.push(`device:pipeline:${descriptor.label ?? "unlabeled"}`);

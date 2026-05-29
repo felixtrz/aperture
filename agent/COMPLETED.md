@@ -1,5 +1,39 @@
 # Completed Tasks
 
+## M1-T2 — Drive the shadow orchestrator from the frame loop and inject receiver resources automatically
+
+Completed: 2026-05-28
+
+### Summary
+
+- Added app-layer auto-shadow orchestration that detects StandardMaterial shadow
+  receivers, prepares caster mesh GPU views from renderer-owned mesh resources,
+  and invokes `createRenderShadowFrame()` for directional shadow requests.
+- Wired automatic StandardMaterial shadow receiver resources into
+  `renderWebGpuAppFrame`, queued built-in frames, and mixed built-in/custom WGSL
+  frames while preserving explicit receiver-resource overrides.
+- Added `WebGpuAppRenderReport.shadow` JSON projection and a new
+  `examples/auto-shadow.*` render-control route that proves app frames submit
+  shadow passes without caller-provided `standardMaterialShadowReceiverResources`.
+- Kept the manual CSM, multi-light, point, and spot shadow examples on their
+  explicit override paths and updated their E2E coverage for stable presentation
+  timing.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "auto-renders directional shadow resources|renders the standard material queue path"`
+- `pnpm exec tsc --noEmit`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run build`
+- `pnpm run format:check`
+- Focused ESLint and Prettier checks for touched app, example, and shadow E2E files.
+- `CI=true pnpm exec playwright test test/e2e/auto-shadow.spec.ts --reporter=list --timeout=90000`
+- `CI=true pnpm exec playwright test test/e2e/point-shadow.spec.ts --reporter=list --timeout=90000`
+- `CI=true pnpm exec playwright test test/e2e/spot-shadow.spec.ts --reporter=list --timeout=90000`
+- `CI=true pnpm exec playwright test test/e2e/multi-light-shadow.spec.ts --reporter=list --timeout=90000`
+- `CI=true pnpm exec playwright test test/e2e/csm-directional-shadow.spec.ts --reporter=list --timeout=90000` printed the pass line before a runner shutdown hang.
+
 ## M1-T1 — Extract a reusable per-frame shadow orchestrator from the CSM example
 
 Completed: 2026-05-28

@@ -157,6 +157,7 @@ async function handleWorkerMessage(
     frame: message.frame,
     clearColor,
     label: "point-shadow-app",
+    autoStandardMaterialShadowReceiverResources: false,
     ...(!scene.shadowControls.receiverEnabled ||
     loop.standardMaterialShadowReceiverResources === null
       ? {}

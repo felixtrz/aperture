@@ -10,7 +10,7 @@ import {
 } from "./webgpu-status.js";
 import type { ExampleStatusBase } from "./example-status-types.js";
 
-interface CsmDirectionalShadowStatus extends ExampleStatusBase {
+interface AutoShadowStatus extends ExampleStatusBase {
   readonly frame?: number;
   readonly clearColor?: {
     readonly r: number;
@@ -28,102 +28,26 @@ interface CsmDirectionalShadowStatus extends ExampleStatusBase {
   readonly shadow?: {
     readonly controls: {
       readonly receiverEnabled: boolean;
-      readonly casterEnabled: boolean;
     };
     readonly requests: readonly {
       readonly lightKind: string;
       readonly cascadeCount: number;
     }[];
-    readonly descriptor: {
-      readonly descriptors: readonly {
-        readonly lightKind: string;
-        readonly cascadeCount: number;
-        readonly faceCount: number;
-        readonly viewDimension: string;
-      }[];
-    };
-    readonly textures: {
-      readonly textures: readonly {
-        readonly cascadeCount: number;
-        readonly layerCount: number;
-        readonly faceCount: number;
-        readonly viewDimension: string;
-        readonly attachmentViewKeys: readonly string[];
-      }[];
-    };
-    readonly depthTextureResources: {
+    readonly report: {
       readonly status: string;
-      readonly resources: readonly {
-        readonly layerCount: number;
-        readonly faceCount: number;
-        readonly viewDimension: string;
-        readonly attachmentViewKeys: readonly string[];
-        readonly descriptor: {
-          readonly size: readonly [number, number, number];
-        } | null;
-      }[];
-    };
-    readonly passPlan: {
-      readonly status: string;
+      readonly shadowKind: string | null;
+      readonly requestCount: number;
       readonly passCount: number;
-      readonly passes: readonly {
-        readonly lightKind: string;
-        readonly cascadeIndex: number;
-        readonly cascadeCount: number;
-        readonly passKey: string;
-        readonly viewKey: string;
-      }[];
-    };
-    readonly passAttachments: {
-      readonly status: string;
-      readonly attachmentCount: number;
-      readonly attachments: readonly {
-        readonly passKey: string;
-        readonly viewKey: string;
-      }[];
-    };
-    readonly viewProjection: {
-      readonly status: string;
-      readonly planCount: number;
-      readonly plans: readonly {
-        readonly cascadeIndex: number;
-        readonly cascadeCount: number;
-        readonly passKey: string;
-      }[];
-    };
-    readonly matrixComputation: {
-      readonly status: string;
-      readonly matrixCount: number;
-      readonly matrices: readonly {
-        readonly cascadeIndex: number;
-        readonly cascadeCount: number;
-      }[];
-    };
-    readonly matrixBufferResource: {
-      readonly status: string;
-      readonly matrixCount: number;
-    };
-    readonly commandEncoding: {
-      readonly status: string;
-      readonly counts: {
-        readonly commandRecords: number;
-        readonly drawCommands: number;
+      readonly drawCalls: number;
+      readonly commandBufferSubmission: {
+        readonly status: string;
+        readonly submittedCommandBuffers: number;
       };
-      readonly records: readonly {
-        readonly passKey: string;
-        readonly depthViewKey: string;
-      }[];
-    };
-    readonly encoderAssembly: {
-      readonly status: string;
-      readonly counts: {
-        readonly assembledPasses: number;
-        readonly drawCalls: number;
+      readonly sections: {
+        readonly commandBufferSubmission: boolean;
+        readonly receiverResources: boolean;
       };
-    };
-    readonly commandBufferSubmission: {
-      readonly status: string;
-    };
+    } | null;
     readonly rendering: {
       readonly supported: boolean;
       readonly mode: string;
@@ -137,47 +61,45 @@ interface CsmDirectionalShadowStatus extends ExampleStatusBase {
   };
 }
 
-test("Playwright renders directional CSM shadows on near and far receivers", async ({
+test("Playwright renders frame-loop auto shadows on standard receivers", async ({
   page,
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
-  await page.goto(
-    "/examples/csm-directional-shadow.html?disable-shadow-receiver=1",
-  );
-  let status = await waitForExampleStatus<CsmDirectionalShadowStatus>(page);
+  await page.goto("/examples/auto-shadow.html?disable-shadow-receiver=1");
+  let status = await waitForExampleStatus<AutoShadowStatus>(page);
 
-  expect(status, "CSM baseline status should publish").toBeDefined();
+  expect(status, "auto-shadow baseline status should publish").toBeDefined();
 
   if (status === undefined) {
     return;
   }
 
   skipIfUnsupportedWebGpu(status);
-  await waitForCsmDirectionalShadowFrame(page, 3);
+  await waitForAutoShadowFrame(page, 3);
   const noShadowScreenshot = await page
     .locator("#aperture-canvas")
     .screenshot();
 
-  await page.goto("/examples/csm-directional-shadow.html?stop-after-ready=1");
-  status = await waitForExampleStatus<CsmDirectionalShadowStatus>(page);
+  await page.goto("/examples/auto-shadow.html?stop-after-ready=1");
+  status = await waitForExampleStatus<AutoShadowStatus>(page);
 
-  expect(status, "CSM shadow status should publish").toBeDefined();
+  expect(status, "auto-shadow status should publish").toBeDefined();
 
   if (status === undefined) {
     return;
   }
 
   skipIfUnsupportedWebGpu(status);
-  status = await waitForCsmDirectionalShadowFrame(page, 3, true);
-  await attachExampleStatus("csm-directional-shadow-status", status);
+  status = await waitForAutoShadowFrame(page, 3, true);
+  await attachExampleStatus("auto-shadow-status", status);
   expectStatusJsonSafeForGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
-    example: "csm-directional-shadow",
+    example: "auto-shadow",
     ok: true,
     phase: "render",
-    renderingBackend: "webgpu-explicit",
+    renderingBackend: "webgpu-auto-shadow",
     extraction: {
       views: 1,
       meshDraws: 4,
@@ -188,70 +110,25 @@ test("Playwright renders directional CSM shadows on near and far receivers", asy
     shadow: {
       controls: {
         receiverEnabled: true,
-        casterEnabled: true,
       },
       requests: [{ lightKind: "directional", cascadeCount: 4 }],
-      descriptor: {
-        descriptors: [
-          {
-            lightKind: "directional",
-            cascadeCount: 4,
-            faceCount: 1,
-            viewDimension: "2d-array",
-          },
-        ],
-      },
-      depthTextureResources: {
-        status: "available",
-        resources: [
-          {
-            layerCount: 4,
-            faceCount: 1,
-            viewDimension: "2d-array",
-            descriptor: { size: [1024, 1024, 4] },
-          },
-        ],
-      },
-      passPlan: {
-        status: "ready",
-        passCount: 4,
-      },
-      passAttachments: {
-        status: "ready",
-        attachmentCount: 4,
-      },
-      viewProjection: {
-        status: "ready",
-        planCount: 4,
-      },
-      matrixComputation: {
-        status: "ready",
-        matrixCount: 4,
-      },
-      matrixBufferResource: {
-        status: "available",
-        matrixCount: 4,
-      },
-      commandEncoding: {
-        status: "ready",
-        counts: {
-          commandRecords: 4,
-          drawCommands: 8,
-        },
-      },
-      encoderAssembly: {
-        status: "ready",
-        counts: {
-          assembledPasses: 4,
-          drawCalls: 8,
-        },
-      },
-      commandBufferSubmission: {
+      report: {
         status: "submitted",
+        shadowKind: "directional-cascaded",
+        requestCount: 1,
+        passCount: 4,
+        commandBufferSubmission: {
+          status: "submitted",
+          submittedCommandBuffers: 1,
+        },
+        sections: {
+          commandBufferSubmission: true,
+          receiverResources: true,
+        },
       },
       rendering: {
         supported: true,
-        mode: "directional-csm-depth-array-compare",
+        mode: "frame-loop-auto-directional-csm",
         cascadeCount: 4,
       },
     },
@@ -260,55 +137,32 @@ test("Playwright renders directional CSM shadows on near and far receivers", asy
       indexedDrawCalls: 4,
     },
   });
+  expect(status.shadow?.report?.drawCalls).toBeGreaterThanOrEqual(8);
+  expect(status.shadow?.rendering.pipelineKey).toContain("shadowMap");
   expect(status.shadow?.rendering.pipelineKey).toContain("cascadedShadowMap");
-  expect(status.shadow?.textures.textures[0]?.attachmentViewKeys).toHaveLength(
-    4,
-  );
-  expect(
-    status.shadow?.depthTextureResources.resources[0]?.attachmentViewKeys,
-  ).toHaveLength(4);
-  expect(
-    status.shadow?.passPlan.passes.map((pass) => pass.cascadeIndex),
-  ).toEqual([0, 1, 2, 3]);
-  expect(
-    status.shadow?.viewProjection.plans.map((plan) => plan.cascadeIndex),
-  ).toEqual([0, 1, 2, 3]);
-  expect(
-    status.shadow?.matrixComputation.matrices.map(
-      (matrix) => matrix.cascadeIndex,
-    ),
-  ).toEqual([0, 1, 2, 3]);
-  expect(
-    status.shadow?.commandEncoding.records.map((record) => record.depthViewKey),
-  ).toEqual([
-    status.shadow?.depthTextureResources.resources[0]?.attachmentViewKeys[0],
-    status.shadow?.depthTextureResources.resources[0]?.attachmentViewKeys[1],
-    status.shadow?.depthTextureResources.resources[0]?.attachmentViewKeys[2],
-    status.shadow?.depthTextureResources.resources[0]?.attachmentViewKeys[3],
-  ]);
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
 
-  await test.info().attach("csm-directional-shadow-frame.png", {
+  await test.info().attach("auto-shadow-frame.png", {
     body: screenshot,
     contentType: "image/png",
   });
-  expectVisibleCsmScene(screenshot, status);
-  expectCsmShadowActivation(noShadowScreenshot, screenshot, status);
+  expectVisibleAutoShadowScene(screenshot, status);
+  expectAutoShadowActivation(noShadowScreenshot, screenshot, status);
   webGpuValidation.expectNoWarnings();
   await page.goto("about:blank");
 });
 
-async function waitForCsmDirectionalShadowFrame(
+async function waitForAutoShadowFrame(
   page: Parameters<typeof waitForExampleStatus>[0],
   minimumFrame: number,
   requireRendering = false,
-): Promise<CsmDirectionalShadowStatus> {
+): Promise<AutoShadowStatus> {
   await page.waitForFunction(
     ({ minimumFrame, requireRendering }) => {
       const status = (
         globalThis as {
-          readonly __APERTURE_EXAMPLE_STATUS__?: CsmDirectionalShadowStatus;
+          readonly __APERTURE_EXAMPLE_STATUS__?: AutoShadowStatus;
         }
       ).__APERTURE_EXAMPLE_STATUS__;
 
@@ -325,15 +179,15 @@ async function waitForCsmDirectionalShadowFrame(
     () =>
       (
         globalThis as unknown as {
-          readonly __APERTURE_EXAMPLE_STATUS__: CsmDirectionalShadowStatus;
+          readonly __APERTURE_EXAMPLE_STATUS__: AutoShadowStatus;
         }
       ).__APERTURE_EXAMPLE_STATUS__,
   );
 }
 
-function expectVisibleCsmScene(
+function expectVisibleAutoShadowScene(
   screenshot: Buffer,
-  status: CsmDirectionalShadowStatus,
+  status: AutoShadowStatus,
 ): void {
   const clear = clearPixel(status);
   const samples = {
@@ -367,25 +221,24 @@ function expectVisibleCsmScene(
   }
 }
 
-function expectCsmShadowActivation(
+function expectAutoShadowActivation(
   baseline: Buffer,
   shadowed: Buffer,
-  status: CsmDirectionalShadowStatus,
+  status: AutoShadowStatus,
 ): void {
   const clear = clearPixel(status);
   const regions = [
     {
-      name: "near cascade receiver",
+      name: "near auto-shadow receiver",
       region: { x0: 0.24, y0: 0.34, x1: 0.54, y1: 0.72 },
     },
     {
-      name: "far cascade receiver",
+      name: "far auto-shadow receiver",
       region: { x0: 0.52, y0: 0.36, x1: 0.82, y1: 0.74 },
     },
   ] as const;
 
   for (const { name, region } of regions) {
-    const baselineLuminance = averageRegionLuminance(baseline, clear, region);
     const shadowedLuminance = averageRegionLuminance(shadowed, clear, region);
     const maxDelta = maxRegionLuminanceDelta(baseline, shadowed, clear, region);
 
@@ -397,14 +250,12 @@ function expectCsmShadowActivation(
     ).toBeGreaterThanOrEqual(4);
     expect(
       maxDelta,
-      `${name} should change after cascaded array shadow sampling; baseline=${JSON.stringify(
-        baselineLuminance,
-      )} shadowed=${JSON.stringify(shadowedLuminance)} maxDelta=${maxDelta}`,
+      `${name} should change after frame-loop auto-shadow sampling; maxDelta=${maxDelta}`,
     ).toBeGreaterThan(10);
   }
 }
 
-function clearPixel(status: CsmDirectionalShadowStatus) {
+function clearPixel(status: AutoShadowStatus) {
   return status.clearColor === undefined
     ? { r: 3, g: 5, b: 7, a: 255 }
     : rgbaColorToPixel(status.clearColor);
