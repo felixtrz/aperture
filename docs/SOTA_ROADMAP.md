@@ -14,7 +14,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
     5. Use absolute dates (YYYY-MM-DD [HH:MM TZ]) everywhere — never "today"/"now".
 -->
 
-**Last updated:** `2026-05-29 18:10 PDT — claude/opus`
+**Last updated:** `2026-05-29 18:50 PDT — claude/opus`
 
 > _What to write:_ Absolute date + time + timezone, then `— <your agent/author id>` (e.g. `2026-06-02 14:30 PDT — claude/opus`). Update on every edit to this block.
 
@@ -30,7 +30,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 
 > _What to write:_ The next `todo` task whose `dependsOn` are all `done`, lowest milestone/task number within the current wave. One line: `M#-T# — <why it's next / what it unblocks>`.
 
-**Gate status:** `pnpm run check = pass (380 files / 2157 tests); test/app/gltf-animation-playback.test.ts = pass`
+**Gate status:** `pnpm run check = pass (382 files / 2161 tests); test/render/gltf-morph-target-import.spec.ts = pass; WebGPU e2e runnable (spinning-cube.spec.ts passes via playwright.local.config.ts)`
 
 > _What to write:_ Result of the project gate at your last stop: `pnpm run check = pass|fail` plus any task-specific proofs you ran (e.g. `test/e2e/auto-shadow.spec.ts = pass`). If fail, name the failing check. Never mark a task `done` on a red gate.
 
@@ -42,19 +42,19 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 
 > _What to write:_ One row per milestone. `Status` ∈ {`not-started`, `in-progress`, `done`}. `Done/Total` = tasks marked `✅ done` ÷ total. `Proof` is fixed (the milestone's §"Proof"); flip its trailing flag to `✅` only when that verification passes. Update the row the instant any task status changes. A milestone is `done` only when every task is `done` AND its proof passes.
 
-| Milestone   | Wave | Status      | Done/Total | Proof (route/spec)                                                               | Notes                                                                              |
-| ----------- | ---- | ----------- | ---------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| [M1](#m1)   | 0    | done        | 11/11      | `auto-shadow` route + compressed-GLB load + picking + `npm publish --dry-run` ✅ | Complete: shadows, compressed assets, picking, publishing, CI/release gates        |
-| [M2](#m2)   | 1    | in-progress | 7/9        | skinned+animated GLB route (M2-T9) ⬜                                            | T1-T6 + T8 done; T7 transport done (N-morph GPU render = WebGPU-blocked follow-up) |
-| [M3](#m3)   | 2    | not-started | 0/7        | post+forward+shadow ported under graph + custom-pass example (M3-T7) ⬜          | —                                                                                  |
-| [M4](#m4)   | 1    | not-started | 0/9        | frustum-fit / PCSS / alpha-test shadow routes ⬜                                 | —                                                                                  |
-| [M5](#m5)   | 1    | not-started | 0/6        | DFG / irradiance / transmission correctness routes ⬜                            | —                                                                                  |
-| [M6](#m6)   | 3    | not-started | 0/5        | content-showcase routes (sprites/particles/text/UI) ⬜                           | —                                                                                  |
-| [M7](#m7)   | 3    | not-started | 0/9        | scene round-trip E2E + pointer-event route ⬜                                    | —                                                                                  |
-| [M8](#m8)   | 3    | not-started | 0/9        | GPU-driven scale route (compute cull → indirect) ⬜                              | —                                                                                  |
-| [M9](#m9)   | 4    | not-started | 0/4        | multi-zone reflection + irradiance routes ⬜                                     | —                                                                                  |
-| [M10](#m10) | 4    | not-started | 0/4        | physics settle test + XR stereo route ⬜                                         | —                                                                                  |
-| [M11](#m11) | 4    | not-started | 0/5        | editor open→edit→save→reload E2E ⬜                                              | —                                                                                  |
+| Milestone   | Wave | Status      | Done/Total | Proof (route/spec)                                                               | Notes                                                                                                                                  |
+| ----------- | ---- | ----------- | ---------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| [M1](#m1)   | 0    | done        | 11/11      | `auto-shadow` route + compressed-GLB load + picking + `npm publish --dry-run` ✅ | Complete: shadows, compressed assets, picking, publishing, CI/release gates                                                            |
+| [M2](#m2)   | 1    | in-progress | 7/9        | skinned+animated GLB route (M2-T9) ⬜                                            | T1-T6 + T8 done; T7 #1/#4 done (transport + N-target import incl. 52); T7 #2/#3 (morph GPU render) + T9 route/pixel remain (unblocked) |
+| [M3](#m3)   | 2    | not-started | 0/7        | post+forward+shadow ported under graph + custom-pass example (M3-T7) ⬜          | —                                                                                                                                      |
+| [M4](#m4)   | 1    | not-started | 0/9        | frustum-fit / PCSS / alpha-test shadow routes ⬜                                 | —                                                                                                                                      |
+| [M5](#m5)   | 1    | not-started | 0/6        | DFG / irradiance / transmission correctness routes ⬜                            | —                                                                                                                                      |
+| [M6](#m6)   | 3    | not-started | 0/5        | content-showcase routes (sprites/particles/text/UI) ⬜                           | —                                                                                                                                      |
+| [M7](#m7)   | 3    | not-started | 0/9        | scene round-trip E2E + pointer-event route ⬜                                    | —                                                                                                                                      |
+| [M8](#m8)   | 3    | not-started | 0/9        | GPU-driven scale route (compute cull → indirect) ⬜                              | —                                                                                                                                      |
+| [M9](#m9)   | 4    | not-started | 0/4        | multi-zone reflection + irradiance routes ⬜                                     | —                                                                                                                                      |
+| [M10](#m10) | 4    | not-started | 0/4        | physics settle test + XR stereo route ⬜                                         | —                                                                                                                                      |
+| [M11](#m11) | 4    | not-started | 0/5        | editor open→edit→save→reload E2E ⬜                                              | —                                                                                                                                      |
 
 ### Task status & completion log
 
@@ -612,7 +612,7 @@ Eliminate the per-frame JSON.parse of joint matrices. Redesign the Skin authorin
 - [x] grep for JSON.parse/JSON.stringify in extraction-mesh-deformation.ts and authoring-create-mesh-data.ts (skin path) returns zero hits
 - [x] An existing-style vitest comparing extractRenderSnapshot.bones for a skinned entity before/after the refactor produces identical Float32Array contents and identical boneMatrixOffset/boneMatrixCount on the MeshDrawPacket
 - [x] A perf microbench (or assertion) shows readSkinning performs no allocation proportional to a JSON string per extract for a 50-joint skin
-- [x] Existing skinned-mesh render route still produces the same pixels (no visual regression) — verified by proxy: this is a pure transport refactor and the complete GPU skinning input (snapshot.bones contents + boneMatrixOffset/boneMatrixCount + skinned batchKey/pipelineKey) is asserted byte-identical; no skinned-mesh Playwright route exists in the headless gate yet (it lands in M2-T9, and Playwright/WebGPU is unreliable in this environment)
+- [x] Existing skinned-mesh render route still produces the same pixels (no visual regression) — verified by proxy: this is a pure transport refactor and the complete GPU skinning input (snapshot.bones contents + boneMatrixOffset/boneMatrixCount + skinned batchKey/pipelineKey) is asserted byte-identical; the dedicated skinned-mesh Playwright pixel route lands with M2-T9 (WebGPU is runnable here — see [B1] resolved)
 
 **Study:** packages/render/src/rendering/extraction-mesh-deformation.ts:12-77 and packages/webgpu/src/resources/attributes/skinning-joint-buffer.ts (createSkinningJointBufferDescriptor)
 
@@ -657,10 +657,10 @@ Lift the 2-target morph cap end to end. (1) Import: rewrite gltf-mesh-primitive-
 
 **Done when:**
 
-- [ ] vitest: a GLB with 4+ morph targets imports all targets (targetCount>=4), not just 2
-- [ ] extractRenderSnapshot packs all N weights for an entity into snapshot.morphTargetWeights with no [-1,1] clamp truncating beyond 2
-- [ ] A render-control route morphs a mesh with 3+ targets and pixel readback differs from the 2-target-only result (proving target>=3 contributes)
-- [ ] grep for JSON.parse in readMorphTargetWeights returns zero hits; the 52-blendshape ARKit case is representable (targetCount==52 imports without dropping targets)
+- [x] vitest: a GLB with 4+ morph targets imports all targets (targetCount>=4), not just 2 — `importGltfMorphTargets` (test/render/gltf-morph-target-import.spec.ts) decodes all N targets' deltas; a 4-target GLB → targetCount 4
+- [ ] extractRenderSnapshot packs all N weights for an entity into snapshot.morphTargetWeights with no [-1,1] clamp truncating beyond 2 — REMAINING: clamp already removed (typed transport, ba636db); the >4-weight snapshot packing (flat per-draw) ships with the morph GPU render slice
+- [ ] A render-control route morphs a mesh with 3+ targets and pixel readback differs from the 2-target-only result (proving target>=3 contributes) — REMAINING: morph GPU render (extend the standard vertex layout/WGSL past 2 targets, or a morph-target storage-buffer/data-texture consuming morphTargetData) + a render-control/Playwright pixel proof (runnable via playwright.local.config.ts)
+- [x] grep for JSON.parse in readMorphTargetWeights returns zero hits; the 52-blendshape ARKit case is representable (targetCount==52 imports without dropping targets) — no JSON (ba636db); `importGltfMorphTargets` imports 52 targets without dropping (test asserts targetCount 52)
 
 **Study:** packages/webgpu/src/materials/standard/standard-morph-target-shader.ts (current 2-target WGSL) and references/three.js src/nodes (morph node / morphTargetsTexture) for the data-texture approach
 
