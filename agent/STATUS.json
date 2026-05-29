@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "6d998669",
+  "lastCommit": "9962f384",
   "activePid": null,
-  "notes": "Completed SOTA M1-T8 spatial index auto-population in 6d998669; pnpm run check, focused spatial-population Vitest, and auto-picking Playwright passed. M1 remains incomplete at 8/11. Next recommended task is M1-T9 publishing metadata and npm pack dry-run guards.",
-  "lastRunFinishedAt": "2026-05-29T15:55:31Z"
+  "notes": "Completed SOTA M1-T9 package publishability in 9962f384; pnpm run check and publish dry-run/pack readiness guard passed. M1 remains incomplete at 9/11. Next recommended task is M1-T10 CLI scaffolder semver dependency output.",
+  "lastRunFinishedAt": "2026-05-29T16:09:49Z"
 }

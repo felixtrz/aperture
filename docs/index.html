@@ -393,21 +393,24 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-29 15:55 UTC</dd>
+            <dd>2026-05-29 16:09 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: SOTA roadmap M1-T8 auto-populates
-              <code>context.spatial</code> from live ECS <code>Mesh</code> +
-              <code>WorldTransform</code> entities, honors
-              <code>Pickable</code> and render-layer filters, reuses
-              <code>MeshBvh</code> instances by mesh version, and proves
+              Latest update: SOTA roadmap M1-T9 makes the seven publishable
+              packages installable: manifests now use version
+              <code>0.1.0</code> and <code>MIT</code>, publishable packages no
+              longer set <code>private:true</code>, tarballs include
+              <code>LICENSE</code> plus <code>dist</code>, and
+              <code>pnpm run publish:dry-run</code> pack-inspects dependency
+              conversion and package contents. M1 remains in progress at 9/11;
+              next SOTA task: <code>M1-T10</code> CLI scaffolder semver
+              dependency output. Previous update: M1-T8 auto-populates
+              <code>context.spatial</code> from live ECS mesh state and proves
               <code>CameraHandle.rayFromPointer</code> hits an app-spawned mesh
               in <code>examples/auto-picking.html</code> without manual
-              <code>setBounds</code>/<code>setMeshes</code>. M1 remains in
-              progress at 8/11; next SOTA task: <code>M1-T9</code> package
-              publishing metadata and npm pack dry-run guards. Previous update:
+              <code>setBounds</code>/<code>setMeshes</code>. Earlier update:
               M1-T7 replaced the pointer-ray stub with real perspective and
               orthographic camera unprojection. Earlier update: M1-T6 added
               renderer-owned mipmap generation for uncompressed material
@@ -2677,11 +2680,10 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Continue SOTA roadmap wave 0 with <code>M1-T9</code>: make the
-              publishable packages installable with real version/license
-              metadata, root <code>LICENSE</code>, package
-              <code>files</code>/<code>publishConfig</code>, export guards, and
-              npm pack dry-run validation.
+              Continue SOTA roadmap wave 0 with <code>M1-T10</code>: make the
+              CLI scaffolder emit installable <code>^x.y.z</code> Aperture
+              dependency specs and a real generated project version instead of
+              <code>workspace:*</code> and <code>0.0.0</code>.
             </dd>
           </dl>
         </aside>
@@ -3580,6 +3582,13 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">M1-T9</span> Made the package set
+                publishable. Package manifests now use <code>0.1.0</code> and
+                <code>MIT</code>, tarballs include <code>LICENSE</code> and
+                <code>dist</code>, and <code>publish:dry-run</code> validates
+                pack contents plus dependency conversion.
+              </li>
               <li>
                 <span class="badge green">M1-T8</span> Auto-populated the
                 spatial index from live ECS mesh state. App camera rays now hit
@@ -6461,11 +6470,10 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Make the publishable
-                packages installable for <code>M1-T9</code>: real
-                version/license metadata, root <code>LICENSE</code>, package
-                <code>files</code>/<code>publishConfig</code>, export-path
-                guards, and npm pack dry-run validation.
+                <span class="badge amber">next</span> Update CLI scaffolding for
+                <code>M1-T10</code> so generated projects use installable
+                Aperture <code>^x.y.z</code> dependencies and a non-0.0.0
+                project version.
               </li>
               <li>
                 <span class="badge green">done</span> Custom WGSL mixed
@@ -6841,6 +6849,17 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">M1-T9</div>
+            <div>
+              <strong>Packages are publishable and pack-guarded.</strong>
+              <span>
+                Seven publishable packages now have real version/license
+                metadata, package license files, dist-only publish lists, public
+                publish config, and a dry-run pack guard.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">M1-T8</div>
             <div>

@@ -1,5 +1,38 @@
 # Completed Tasks
 
+## M1-T9 — Make packages publishable
+
+Completed: 2026-05-29
+Commit: 9962f384
+
+### Summary
+
+- Set the root workspace and all seven publishable package manifests to version
+  `0.1.0` and license `MIT`.
+- Removed `private:true` from publishable packages while keeping the workspace
+  root private.
+- Added root and per-package `LICENSE` files, package `files` arrays, and
+  `publishConfig.access: "public"`.
+- Changed inter-package publishable dependency specs to `workspace:^` and
+  refreshed `pnpm-lock.yaml`.
+- Added `scripts/check-package-publish-readiness.mjs` to validate publish
+  metadata, dist export targets, package license files, pack contents, and
+  packed dependency conversion.
+- Extended `test/index.test.ts` to guard package publish metadata and export
+  target existence.
+
+### Validation
+
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/index.test.ts`
+- `pnpm run check:publish`
+- `pnpm run check:publish:pack`
+- `pnpm run publish:dry-run`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check`
+
 ## M1-T8 — Populate the spatial index from the live ECS scene
 
 Completed: 2026-05-29

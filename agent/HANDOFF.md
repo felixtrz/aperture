@@ -1,6 +1,52 @@
 # Agent Handoff
 
-Updated: 2026-05-29T15:55:31Z
+Updated: 2026-05-29T16:09:49Z
+
+## Current Run Update — 2026-05-29T16:09:49Z — SOTA M1-T9 package publishability
+
+Completed `docs/SOTA_ROADMAP.md` task `M1-T9` in commit `9962f384`.
+
+### What Changed
+
+- Set root and all seven publishable package manifests to version `0.1.0` and
+  license `MIT`.
+- Removed `private:true` from publishable packages while keeping the workspace
+  root private.
+- Added root and package `LICENSE` files so tarballs include license text.
+- Added package `files: ["dist", "LICENSE"]` and
+  `publishConfig.access: "public"`.
+- Changed inter-package publishable dependency specs to `workspace:^` so pnpm
+  pack/publish conversion emits concrete semver ranges.
+- Added `scripts/check-package-publish-readiness.mjs` plus root
+  `check:publish`, `check:publish:pack`, and `publish:dry-run` scripts.
+- Extended the package public-surface Vitest guard to verify publish metadata
+  and export target files.
+
+### Validation
+
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/index.test.ts`
+- `pnpm run check:publish`
+- `pnpm run check:publish:pack`
+- `pnpm run publish:dry-run`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check`
+
+### Known Issues / Remaining Work
+
+- M1 remains incomplete at 9/11.
+- `packages/cli/src/create/package-json.ts` still has `CLI_VERSION = "0.0.0"`;
+  generated app package.json files still use `workspace:*` and version
+  `0.0.0`. That is exactly `M1-T10`.
+- Release/CI automation remains `M1-T11`.
+
+### Recommended Next Task
+
+Start `M1-T10`: make CLI scaffolding use the package version to emit
+installable `^x.y.z` Aperture dependency specs and a non-`0.0.0` generated
+project version, while preserving an explicit local workspace-mode escape.
 
 ## Current Run Update — 2026-05-29T15:55:31Z — SOTA M1-T8 spatial index auto-population
 

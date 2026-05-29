@@ -60,7 +60,7 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 The active project direction is now `docs/SOTA_ROADMAP.md` wave 0. M1-T1
-through M1-T8 are complete: the reusable `createRenderShadowFrame()` shadow
+through M1-T9 are complete: the reusable `createRenderShadowFrame()` shadow
 orchestrator is wired into `renderWebGpuAppFrame`, automatic StandardMaterial
 shadow receiver resources submit and bind, submitted shadow reports now publish
 truthful `shaderSampling` status, and `KHR_mesh_quantization` root/accessor
@@ -72,17 +72,13 @@ generates uncompressed material mips, and removes the missing-mip sampler
 fidelity warning for mip-filtered glTF textures. Camera handles now produce real
 screen-to-world rays for perspective and orthographic ECS cameras, and
 `context.spatial` is now auto-populated from live ECS Mesh + WorldTransform +
-Pickable state with mesh-BVH reuse. Continue with one visible SOTA feature slice
-at a time.
+Pickable state with mesh-BVH reuse. Package manifests are now publishable
+(`0.1.0`, MIT, package `LICENSE`, `files`, `publishConfig`) and
+`pnpm run publish:dry-run` pack-inspects all seven publishable packages.
+Continue with one visible SOTA feature slice at a time.
 
 The next ready visible-feature queue is:
 
-- `M1-T9` — make all packages publishable with real version, license, exports,
-  files, publishConfig, and a root LICENSE.
-  Reference anchor: `references/three.js/package.json`.
-  Done when package dry-runs include built dist and metadata only, public-surface
-  guards reject private/0.0.0/UNLICENSED leaks, and workspace dependency specs
-  resolve to concrete publishable versions.
 - `M1-T10` — make the CLI scaffolder emit installable semver deps and a real
   project version after M1-T9 lands.
   Reference anchor: `references/three.js/package.json`.
