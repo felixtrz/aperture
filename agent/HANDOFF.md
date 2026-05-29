@@ -2,20 +2,43 @@
 
 Updated: 2026-05-29T23:10:00Z
 
-## Current Run Update — 2026-05-29 — SOTA M2 (End-to-end animation) in progress
+## Current Run Update — 2026-05-29 — SOTA M2 (End-to-end animation): 7/9 done, T7+T9 WebGPU-blocked
 
-Implementing milestone M2 from `docs/SOTA_ROADMAP.md`, one task per commit
-(feat + docs checkpoint). Done so far: **M2-T1..T6** (6/9), full gate green
-after each (`pnpm run check`).
+Implemented M2 from `docs/SOTA_ROADMAP.md`, one task per commit (feat + docs
+checkpoint). **7/9 tasks fully done + gate-green; T7 partial, T9 partial —
+both blocked only on the WebGPU/pixel portions ([B1] below).** Full
+`pnpm run check` green after every commit (latest: 381 files / 2158 tests).
 
-- M2-T1 `d6c26e6` — AnimationClip asset + keyframe sampler (LINEAR/STEP/CUBICSPLINE).
-- M2-T2 `5cbb865` — AnimationMixer (play/pause/seek/crossFade/update; loop/once/pingpong).
-- M2-T3 `43f09a1` — glTF skin import → engine skeleton (Skin.skeleton + Skin command/replay).
-- M2-T4 `3685f2c` — glTF animation import → engine AnimationClips (clip data types moved to simulation).
-- M2-T5 `0ef493a` — typed joint-matrix transport (Skin.jointMatrices Float32Array; no JSON).
-- M2-T6 `65b3be5` — world-driven joint-palette compute system (runtime step after resolveWorldTransforms).
+- M2-T1 `d6c26e6` ✅ — AnimationClip asset + keyframe sampler (LINEAR/STEP/CUBICSPLINE).
+- M2-T2 `5cbb865` ✅ — AnimationMixer (play/pause/seek/crossFade/update; loop/once/pingpong).
+- M2-T3 `43f09a1` ✅ — glTF skin import → engine skeleton (Skin.skeleton + Skin command/replay).
+- M2-T4 `3685f2c` ✅ — glTF animation import → engine AnimationClips (clip data types moved to simulation).
+- M2-T5 `0ef493a` ✅ — typed joint-matrix transport (Skin.jointMatrices Float32Array; no JSON).
+- M2-T6 `65b3be5` ✅ — world-driven joint-palette compute system (runtime step after resolveWorldTransforms).
+- M2-T7 `ba636db` 🟡 — typed morph-weight transport (no JSON / no [-1,1] clamp). REMAINING
+  (WebGPU-blocked follow-up): N-target morph delta import + N-weight snapshot packing +
+  the morph-target data-texture/storage-buffer N-loop GPU render (52 ARKit) + done-when #3
+  live pixel readback. The 2-target vertex-attribute render path is preserved byte-for-byte.
+- M2-T8 `f132670` ✅ — public play/crossfade API + ECS animation driver
+  (Animation component, updateAnimationDrivers, spawn.gltf binds clips→entities,
+  spawn.animation(entity) controls). Proven headlessly end-to-end.
+- M2-T9 `a798d0d` 🟡 — headless end-to-end proof (test/app/skinned-animated-route.test.ts):
+  skinned + CUBICSPLINE-animated GLB through createApertureApp + public API, asserting
+  engine-owned status + CUBICSPLINE joint drive. REMAINING (WebGPU-blocked): Playwright
+  pixel-diff, render-control snapshot, >2-target morph contribution, the examples/animation-skinning.* route.
 - Prerequisite: `5fe516f` hardened a pre-existing flaky frustum-culling microbenchmark
   (it asserted a 30% wall-clock speedup that does not reproduce on this runner; measured ~1.0x).
+
+### What a WebGPU-capable agent should do next (to finish M2 → 9/9)
+
+1. M2-T7 morph data-texture GPU render: add a `morphTargetData` delta buffer to the mesh
+   asset (decode all N glTF targets via the shared `decodeGltfFloatAccessor`), build a GPU
+   storage buffer/texture, and a targetCount-parameterized N-loop WGSL shader that replaces
+   the 2 vertex-attribute morph deltas; pack N weights per draw (morphWeightOffset/Count on
+   the packet). Update the morph webgpu tests. Reach 52 ARKit blendshapes.
+2. M2-T9 route + pixel proof: author examples/animation-skinning.{worker,main}.js + .html
+   (engine API only) + a skinned+morphed+animated fixture, and test/e2e/animation-skinning.spec.ts
+   asserting pixels differ across two clip phases + a >2-target morph contributes.
 
 ### ENVIRONMENT CONSTRAINT — WebGPU / Playwright pixel proofs cannot run here
 
