@@ -60,7 +60,7 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 The active project direction is now `docs/SOTA_ROADMAP.md` wave 0. M1-T1
-through M1-T6 are complete: the reusable `createRenderShadowFrame()` shadow
+through M1-T7 are complete: the reusable `createRenderShadowFrame()` shadow
 orchestrator is wired into `renderWebGpuAppFrame`, automatic StandardMaterial
 shadow receiver resources submit and bind, submitted shadow reports now publish
 truthful `shaderSampling` status, and `KHR_mesh_quantization` root/accessor
@@ -69,28 +69,28 @@ glTF loading now receives lazy Draco/Meshopt/Basis decoder factories plus
 device-derived KTX2 texture-compression support, proven by
 `examples/compressed-gltf.html`. Texture upload now preserves KTX2 mip chains,
 generates uncompressed material mips, and removes the missing-mip sampler
-fidelity warning for mip-filtered glTF textures. Continue with one visible SOTA
-feature slice at a time.
+fidelity warning for mip-filtered glTF textures. Camera handles now produce real
+screen-to-world rays for perspective and orthographic ECS cameras. Continue with
+one visible SOTA feature slice at a time.
 
 The next ready visible-feature queue is:
 
-- `M1-T7` — implement `CameraHandle.rayFromPointer` with real camera
-  unprojection.
-  Reference anchor: `references/three.js/src/core/Raycaster.js`.
-  Done when perspective and orthographic camera handles produce normalized
-  screen-to-world rays from ECS camera transforms/projections, with focused
-  headless tests for center and off-axis pointer positions.
+- `M1-T8` — populate the spatial index from the live ECS scene via an engine
+  system.
+  Reference anchor: `references/engine/src/framework/components/collision/system.js`.
+  Done when default app/system context raycasts hit ECS-authored pickable meshes
+  without per-app manual `setBounds`/`setMeshes` calls and BVH reuse is covered.
 - `M1-T9` — make all packages publishable with real version, license, exports,
   files, publishConfig, and a root LICENSE.
   Reference anchor: `references/three.js/package.json`.
   Done when package dry-runs include built dist and metadata only, public-surface
   guards reject private/0.0.0/UNLICENSED leaks, and workspace dependency specs
   resolve to concrete publishable versions.
-- `M1-T8` — populate the spatial index from the live ECS scene via an engine
-  system after M1-T7 lands.
-  Reference anchor: `references/engine/src/framework/components/collision/system.js`.
-  Done when default app/system context raycasts hit ECS-authored pickable meshes
-  without per-app manual `setBounds`/`setMeshes` calls and BVH reuse is covered.
+- `M1-T10` — make the CLI scaffolder emit installable semver deps and a real
+  project version after M1-T9 lands.
+  Reference anchor: `references/three.js/package.json`.
+  Done when generated project package.json files contain no `workspace:*` deps
+  in publish mode and use concrete `^x.y.z` Aperture dependency specs.
 
 Keep the earlier camera/render-target visible route queue as later backlog
 after the active SOTA wave tasks above.

@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-29T15:12:44Z
+Updated: 2026-05-29T15:31:00Z
+
+## Current Run Update — 2026-05-29T15:31:00Z — SOTA M1-T7 camera ray unprojection
+
+Completed `docs/SOTA_ROADMAP.md` task `M1-T7` in commit `e1f9ce21`.
+
+### What Changed
+
+- Replaced the fixed `CameraHandle.rayFromPointer()` stub with real
+  screen-to-world unprojection from the ECS `Camera` component and
+  `WorldTransform`.
+- Matched render extraction's projection convention: perspective and
+  orthographic rays use `makePerspective` / `makeOrthographic`,
+  `invertMat4`, `multiplyMat4`, and `transformPoint`, with normalized
+  `[0, 1]` pointer coordinates mapped to NDC and Y flipped.
+- Added focused Vitest coverage for perspective center/corner rays,
+  orthographic parallel rays with shifted origins, and
+  `rayFromPointer -> context.spatial.raycastFirst` bounds picking.
+- Updated the developer-api manual picking fixture so its temporary bounds
+  match the spawned crate instead of depending on the old fake ray.
+
+### Validation
+
+- `pnpm exec vitest run test/app/cameras.test.ts`
+- `pnpm exec vitest run test/app/cameras.test.ts test/app/developer-api.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check`
+
+### Known Issues / Remaining Work
+
+- M1 remains incomplete at 7/11. The next picking task is `M1-T8`: populate
+  `context.spatial` automatically from live ECS `Pickable`/`Mesh`/
+  `WorldTransform` state so apps no longer hand-call `setBounds()` or
+  `setMeshes()`.
+- Publishing work still remains in `M1-T9` through `M1-T11`.
+
+### Recommended Next Task
+
+Start `M1-T8`: add a worker/system-context spatial-population system that
+extracts pickable ECS meshes/bounds each frame, caches BVHs, updates transforms,
+and proves `CameraHandle.rayFromPointer -> context.spatial.raycastFirst` works
+without manual per-app spatial setup.
 
 ## Current Run Update — 2026-05-29T15:12:44Z — SOTA M1-T6 texture mip generation and KTX2 mip upload
 

@@ -1,5 +1,36 @@
 # Completed Tasks
 
+## M1-T7 — Implement CameraHandle.rayFromPointer with real unprojection
+
+Completed: 2026-05-29
+Commit: e1f9ce21
+
+### Summary
+
+- Replaced the fixed `CameraHandle.rayFromPointer()` stub with
+  renderer-matched unprojection from ECS `Camera` and `WorldTransform` state.
+- Built perspective and orthographic projection matrices with the same
+  simulation math used by render extraction, inverted the view-projection
+  matrix, applied normalized pointer-to-NDC mapping with Y flip, and returned
+  normalized world-space ray directions.
+- Added actionable system errors for missing/invertible camera transform and
+  invalid view-projection/ray results.
+- Added focused camera tests for perspective center/corner rays, orthographic
+  parallel rays with shifted origins, and `rayFromPointer` feeding
+  `context.spatial.raycastFirst`.
+- Updated the developer-api manual picking fixture so its temporary bounds
+  match the spawned crate and selection works under real camera rays.
+
+### Validation
+
+- `pnpm exec vitest run test/app/cameras.test.ts`
+- `pnpm exec vitest run test/app/cameras.test.ts test/app/developer-api.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check`
+
 ## M1-T6 — Generate GPU mipmaps for material textures + upload KTX2 precomputed mip chains
 
 Completed: 2026-05-29

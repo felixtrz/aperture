@@ -393,28 +393,28 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-29 15:09 UTC</dd>
+            <dd>2026-05-29 15:31 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: SOTA roadmap M1-T6 adds renderer-owned mipmap
-              generation for uncompressed material textures and preserves
-              KTX2/Basis precomputed mip chains through decode, app asset
-              status, and WebGPU upload.
-              <code>examples/compressed-gltf.html</code> now reports a six-level
-              KTX2 chain, and the standard glTF sampler browser route no longer
-              reports the missing-mip fidelity warning. Next SOTA task:
-              <code>M1-T7</code> replaces the pointer-ray stub with real camera
-              unprojection. Previous update: M1-T5 threaded lazy Draco, Meshopt,
-              and Basis/KTX2 decoder factories through the generated app glTF
-              loader. Earlier update: M1-T4 added
-              <code>KHR_mesh_quantization</code> root validation and normalized
-              quantized geometry accessor decode. Earlier update: SOTA roadmap
-              M1-T3 makes lower-level shadow reports truthful with
-              <code>shaderSampling: true</code> on ready/submitted shadow paths.
-              Earlier update: SOTA roadmap M1-T2 wires the reusable
-              renderer-owned shadow frame orchestrator into
+              Latest update: SOTA roadmap M1-T7 replaces the pointer-ray stub
+              with real perspective and orthographic camera unprojection from
+              ECS <code>Camera</code> and <code>WorldTransform</code> state, and
+              focused tests now prove <code>rayFromPointer</code> feeds
+              <code>context.spatial.raycastFirst</code>. M1 remains in progress
+              at 7/11; next SOTA task: <code>M1-T8</code> auto-populates the
+              spatial index from live ECS pickable meshes. Previous update:
+              M1-T6 added renderer-owned mipmap generation for uncompressed
+              material textures and preserved KTX2/Basis precomputed mip chains.
+              Earlier update: M1-T5 threaded lazy Draco, Meshopt, and Basis/KTX2
+              decoder factories through the generated app glTF loader. Earlier
+              update: M1-T4 added <code>KHR_mesh_quantization</code> root
+              validation and normalized quantized geometry accessor decode.
+              Earlier update: SOTA roadmap M1-T3 makes lower-level shadow
+              reports truthful with <code>shaderSampling: true</code> on
+              ready/submitted shadow paths. Earlier update: SOTA roadmap M1-T2
+              wires the reusable renderer-owned shadow frame orchestrator into
               <code>renderWebGpuAppFrame</code> and proves auto-shadow receiver
               darkening. Earlier update: custom WGSL material enablement now has
               public shader assets, app system builders, source validation,
@@ -2672,9 +2672,10 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Continue SOTA roadmap wave 0 with <code>M1-T7</code>: implement
-              <code>CameraHandle.rayFromPointer</code> with real camera
-              unprojection.
+              Continue SOTA roadmap wave 0 with <code>M1-T8</code>: populate
+              <code>context.spatial</code> from live ECS
+              <code>Pickable</code>/<code>Mesh</code>/
+              <code>WorldTransform</code> state.
             </dd>
           </dl>
         </aside>
@@ -6821,6 +6822,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">M1-T7</div>
+            <div>
+              <strong>Camera handles now emit real pointer rays.</strong>
+              <span>
+                <code>CameraHandle.rayFromPointer</code> unprojects normalized
+                pointer coordinates through ECS camera projection and world
+                transform state, with focused tests for perspective,
+                orthographic, and spatial bounds picking flows.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">M1-T6</div>
             <div>
