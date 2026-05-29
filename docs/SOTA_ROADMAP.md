@@ -1156,6 +1156,56 @@ Stop SSAO from darkening direct lighting and emissive. Currently post-ssao.ts:56
 
 > **Goal.** After this milestone, an Aperture frame is assembled as a declarative FrameGraph: a list of named PassNodes (render AND compute) that declare read/write resource handles (transient color/depth/history textures plus the swapchain), are topologically ordered into a single GPUCommandEncoder, and have their colorLoadOp/depthLoadOp/storeOp inferred globally from a renderTargetMap-style dependency scan. Every current route (sprite-only, custom-WGSL, mixed-custom, queued-built-in, single-built-in), the 6-phase diagnostics, render-bundle caching, redundant-state elision, occlusion-query feedback, MSAA resolve, motion-vector history, and the full post stack (bloom/DOF/FXAA/SSAO/SSR/TAA) run unchanged through the graph and produce byte-identical reports — but the frame now submits ONE command buffer instead of N+1. A user can call app.addRenderPass(node) / app.addComputePass(node) to inject a depth-tested geometry pass or a compute dispatch that reads scene G-buffers/history and writes a graph resource, proven by a new render-control example asserting pixels + JSON-safe status.
 
+### Design decisions — SIGNED OFF 2026-05-29 (felixz)
+
+> _These are binding inputs for M3. They lock the public vocabulary, so honor them starting at **M3-T1** (the data model), not just at M3-T7. Do not redesign the surface mid-milestone; if a decision proves wrong, change it here first with a dated note, then propagate._
+
+**D1 · Public pass API shape — declarative node + `encode` callback, string-named handles, edges drive order.** A pass is a plain, JSON-describable node object; the actual GPU work lives in an `encode(ctx)` callback (never serialized). Resources are referenced by **string id**. Built-in handles available to user passes: `"scene-color"`, `"depth"`, `"motion-vector"`, `"swapchain"`, `"shadow-depth:<lightId>"`; users declare their own via `graph.declareTransient(...)` / `graph.declareHistory(...)`. **Ordering is driven by declared `reads`/`writes` edges**; `before`/`after: "<nodeName>"` is optional sugar that compiles down to edges (edges are the source of truth, sugar is convenience). Each write carries attachment intent (`"clear" | "load"` + clear value); global load/store inference still applies but an explicit intent wins. Existing `WebGpuPostEffect[]` auto-wrap as render nodes (back-compat). Canonical shape:
+
+> ```ts
+> app.addRenderPass({
+>   name: "wireframe-overlay",
+>   kind: "render",
+>   after: "opaque", // optional sugar → compiles to an ordering edge
+>   reads: ["depth"], // declared edges drive order + load/store inference
+>   writes: [{ handle: "swapchain", attachment: "load" }],
+>   encode(ctx) {
+>     // ctx: resolved views + command sink (opaque, not serialized)
+>     ctx.setPipeline(wireframePipeline);
+>     ctx.setBindGroup(0, ctx.view("depth"));
+>     ctx.draw(/* … */);
+>   },
+> });
+>
+> app.addComputePass({
+>   name: "luminance-histogram",
+>   kind: "compute",
+>   reads: ["scene-color"],
+>   writes: [{ handle: "histogram-buffer" }],
+>   encode(ctx) {
+>     ctx.setComputePipeline(histogramPipeline);
+>     ctx.setBindGroup(
+>       0,
+>       ctx.bindings({
+>         src: ctx.view("scene-color"),
+>         dst: ctx.buffer("histogram-buffer"),
+>       }),
+>     );
+>     ctx.dispatchWorkgroups(wx, wy, 1);
+>   },
+> });
+>
+> app.removePass("wireframe-overlay");
+> ```
+>
+> The node **metadata** (name/kind/reads/writes/before/after) must stay JSON-safe so it flows into the compile report and stays agent-readable; the `encode` callback and any GPU handles are never serialized — the report carries only names/counts.
+
+**D2 · Naming.** Ratify the vocabulary the tasks already use: `FrameGraph`, `PassNode` (`kind: "render" | "compute"`), `ResourceHandle` (string id), `app.addRenderPass` / `addComputePass` / `removePass`. Built-in node names are a **stable public contract** — fix the set now: `"shadow:<lightId>"`, `"opaque"`, `"skybox"`, `"transmission-grab"`, `"post:<effectId>"`, `"swapchain"`. (These are generic graphics terms, not Bevy/three API copies — consistent with the North Star.)
+
+**D3 · v1 scope line — hold the doc's default.** Ship: single-encoder execution, declared-dependency ordering, global load/store inference (PlayCanvas `renderTargetMap` semantics), per-frame transient aliasing (a simple descriptor-keyed pool, not optimal lifetime packing), first-class compute nodes, TAA color-history resources, and the public `addRenderPass`/`addComputePass` API. **Stop short of:** an optimal GPU-memory transient allocator, deferred/visibility-buffer/clustered-forward topologies (the graph only needs to make them _expressible_, not ship them), barrier insertion beyond load/store + read-after-write ordering, and cross-queue parallelization. Compute nodes are first-class **now** (M8 and M6 particles depend on it; retrofitting later is costly).
+
+**D4 · Regression bar — pixels + key metrics are the hard gate; reports are additive.** The hard gate is: **identical pixels** on every existing route, and **identical key metrics** (submit/command-buffer counts, draw counts, and every load/store decision vs. the legacy `submittedTargetCounts` logic). Existing report **fields stay unchanged**; the graph adds a new additive `graph` sub-report (so "byte-identical" means existing fields are untouched, not that no fields are added). Migrate behind a `useFrameGraph` flag (default OFF until each route's E2E is green) and keep the legacy path reachable for one release, then remove it.
+
 **Current state (verified against source).** Confirmed against source: there is no FrameGraph/PassNode/renderTargetMap anywhere in packages/webgpu/src. The frame is an if/else dispatcher: renderWebGpuAppFrame in frame-loop.ts (994 lines) picks one of 5 routes by inspecting material kind/snapshot shape (renderSpriteOnlyWebGpuAppFrame, renderMixedCustomWgslWebGpuAppFrame, renderCustomWgslWebGpuAppFrame, renderQueuedBuiltInWebGpuAppFrame, and the inline single-built-in path at lines 529-952). Pass order is imperative: frame-loop.ts:847-850 concatenates sprite commands into the opaque command list; view-commands.ts writeCommandsForView merges skybox prefixCommands + opaque draws into ONE target array; shadows submit via their own path (shadows/shadow-pass-command-buffer-submission-report.ts, submission defaults to "deferred" in shadow-pass-plan.ts). The single GPU-execution primitive is assembleFrameBoundary (render/frame/frame-boundary.ts:287) which creates a fresh encoder (createCommandEncoderResource, line 333), begins ONE render pass, executes a flat RenderPassCommand[] list (render-pass-command-executor.ts, with render-bundle caching + redundant-state elision already inside it), ends, finishes, and submits a single-element array (submitCommandBuffers, lines 414-420). It is called 9 times across the tree: post-processing.ts (scene/motion/effect/graph-pass at 158/212/347/504/516), frame-boundaries.ts:419 (per render target), transmission-grab.ts:146, picking-frame.ts:318, frame-execution-report.ts:272. So a scene + N effects + extra targets = N+1+ separate encoders and submit() calls. Load/store inference exists but is LOCAL: frame-boundaries.ts builds submittedTargetCounts (line 153) and computes loadExistingTarget = previousTargetSubmissions > 0 per-target (lines 261-274); depth always clears on first submission. Transient post textures are fixed cached slots (resource-cache.ts WebGpuAppPostPassCache: scene/ping/pong/motionVector/transmissionGrab) chosen by (effectIndex+frame)%2 — no lifetime aliasing. Compute is not a frame node (RenderPassCommand union has no compute kind; only offline IBL/PMREM/shadow-depth-probe use beginComputePass). History buffers are hand-threaded (previousViewProjectionByViewId, previousWorldTransformsByRenderId in postPasses cache). The only user extension point is WebGpuPostEffect.prepare() (post-pass.ts:120-129) over screen-space textures; postEffects is readonly on the app (app.ts:447/473) and not even surfaced by createApertureApp. NOTABLE: PlayCanvas references/engine/src/scene/frame-graph.js is the near-exact SOTA target — it owns the renderTargetMap, does compile-time store-on-no-clear inference, pass merging via \_skipStart/\_skipEnd, and beforePasses/afterPasses for user insertion; FramePass/RenderPass (frame-pass.js, render-pass.js) is the node base with explicit ColorAttachmentOps/DepthStencilAttachmentOps load/store/resolve. three.js PassNode (\_previousTextures/getPreviousTexture, src/nodes/display/PassNode.js:610) is the SOTA history-resource model.
 
 ### Key entry points
@@ -1350,7 +1400,7 @@ Expose the user-facing insertion API on WebGpuApp (and surface it through packag
 
 **Study:** /Users/felixz/Projects/aperture/references/engine/src/platform/graphics/frame-pass.js
 
-**Watch out:** A user node that writes the swapchain mid-frame must not clobber the final post output — validate that user writes target transient handles unless explicitly inserted last; emit a diagnostic on conflicting swapchain writes. Compute nodes need their own bind-group/pipeline layout path (none exists per the compute-not-first-class gap) — the example must create its compute pipeline via device.createComputePipeline guarded by capability. Keep the node API JSON-describable enough that the graph report stays JSON-safe (commands carry opaque GPU handles but the REPORT must not serialize them — only names/counts). This is the keystone deliverable; ensure the API shape is reviewed before broad adoption since it is hard to change later.
+**Watch out:** A user node that writes the swapchain mid-frame must not clobber the final post output — validate that user writes target transient handles unless explicitly inserted last; emit a diagnostic on conflicting swapchain writes. Compute nodes need their own bind-group/pipeline layout path (none exists per the compute-not-first-class gap) — the example must create its compute pipeline via device.createComputePipeline guarded by capability. Keep the node API JSON-describable enough that the graph report stays JSON-safe (commands carry opaque GPU handles but the REPORT must not serialize them — only names/counts). This is the keystone deliverable; the public API shape is SIGNED OFF — implement exactly the shape in §Design decisions D1 at the top of M3 (declarative node + `encode` callback, string-named handles, edges drive order), do not improvise it.
 
 **Sequencing.** Strict spine: M3-T1 (pure graph model) -> M3-T2 (single-encoder executor + the assembleFrameBoundary wrapper that preserves all legacy tests) are the non-negotiable foundation and must land first and green. After T2, three ports can proceed largely in parallel against the flag: M3-T3 (post stack) is the easiest first port and the cleanest proof of fewer submits; M3-T4 (forward + multi-target, which subsumes submittedTargetCounts) depends on T3 because the post target is built inside the multi-target loop; M3-T5 (shadows into the encoder) depends on T4 since opaque must already be a node to declare the shadow read edge. M3-T6 (TAA history) only needs T3 and can run alongside T4/T5. M3-T7 (public API + custom-pass example) is the milestone capstone and needs T4 (opaque node to insert after) and T2 (executor); land it last. Keep useFrameGraph default OFF through T3, flip ON for the queued-built-in route in T4 once camera-clear-load-matrix + multi-camera specs are green, and keep the legacy path reachable behind the flag until all shadow specs (T5) pass.
 
