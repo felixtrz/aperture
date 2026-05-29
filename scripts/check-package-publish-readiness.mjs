@@ -4,10 +4,15 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const rootDir = path.resolve(
+const defaultRootDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
+
+const failures = [];
+const options = parseArgs(process.argv.slice(2));
+const rootDir = options.rootDir;
+const shouldPack = options.shouldPack;
 
 const publishablePackages = [
   "packages/simulation",
@@ -18,10 +23,6 @@ const publishablePackages = [
   "packages/app",
   "packages/cli",
 ];
-
-const args = new Set(process.argv.slice(2));
-const shouldPack = args.has("--pack");
-const failures = [];
 
 const rootPackage = await readJson(path.join(rootDir, "package.json"));
 const rootLicense = await readText(path.join(rootDir, "LICENSE"));
@@ -304,4 +305,34 @@ function isSemver(value) {
 
 function fail(message) {
   failures.push(message);
+}
+
+function parseArgs(args) {
+  let rootDir = defaultRootDir;
+  let shouldPack = false;
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+
+    if (arg === "--pack") {
+      shouldPack = true;
+      continue;
+    }
+
+    if (arg === "--root") {
+      index += 1;
+      const value = args[index];
+
+      if (value === undefined || value.length === 0) {
+        throw new Error("--root requires a directory path.");
+      }
+
+      rootDir = path.resolve(value);
+      continue;
+    }
+
+    throw new Error(`Unknown option '${arg}'.`);
+  }
+
+  return { rootDir, shouldPack };
 }

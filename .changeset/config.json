@@ -1,0 +1,21 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config/schema.json",
+  "access": "public",
+  "baseBranch": "main",
+  "changelog": false,
+  "commit": false,
+  "fixed": [
+    [
+      "@aperture-engine/simulation",
+      "@aperture-engine/render",
+      "@aperture-engine/runtime",
+      "@aperture-engine/webgpu",
+      "@aperture-engine/vite-plugin",
+      "@aperture-engine/app",
+      "@aperture-engine/cli"
+    ]
+  ],
+  "ignore": ["playground"],
+  "linked": [],
+  "updateInternalDependencies": "patch"
+}
