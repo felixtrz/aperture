@@ -1,6 +1,37 @@
 # Agent Handoff
 
-Updated: 2026-05-29T16:32:07Z
+Updated: 2026-05-29T23:10:00Z
+
+## Current Run Update — 2026-05-29 — SOTA M2 (End-to-end animation) in progress
+
+Implementing milestone M2 from `docs/SOTA_ROADMAP.md`, one task per commit
+(feat + docs checkpoint). Done so far: **M2-T1..T6** (6/9), full gate green
+after each (`pnpm run check`).
+
+- M2-T1 `d6c26e6` — AnimationClip asset + keyframe sampler (LINEAR/STEP/CUBICSPLINE).
+- M2-T2 `5cbb865` — AnimationMixer (play/pause/seek/crossFade/update; loop/once/pingpong).
+- M2-T3 `43f09a1` — glTF skin import → engine skeleton (Skin.skeleton + Skin command/replay).
+- M2-T4 `3685f2c` — glTF animation import → engine AnimationClips (clip data types moved to simulation).
+- M2-T5 `0ef493a` — typed joint-matrix transport (Skin.jointMatrices Float32Array; no JSON).
+- M2-T6 `65b3be5` — world-driven joint-palette compute system (runtime step after resolveWorldTransforms).
+- Prerequisite: `5fe516f` hardened a pre-existing flaky frustum-culling microbenchmark
+  (it asserted a 30% wall-clock speedup that does not reproduce on this runner; measured ~1.0x).
+
+### ENVIRONMENT CONSTRAINT — WebGPU / Playwright pixel proofs cannot run here
+
+Verified this run: there is no system Chrome; Playwright's chromium was
+installed (`/opt/pw-browsers`), but `navigator.gpu` is **undefined** in both
+the headless-shell and the full Chrome build under `xvfb` with
+`--enable-unsafe-webgpu` + swiftshader/Vulkan flags. The Playwright config
+also requires headed Chrome (`channel: "chrome"`, `headless: false`). So the
+WebGPU render-control / Playwright **pixel-readback** proofs (M2-T7 done-when
+#3, and the M2-T9 milestone proof route) cannot execute in this environment.
+
+Alternative verification used for GPU-facing criteria: the project's webgpu
+vitest suite is itself headless (it asserts generated WGSL, vertex layouts,
+bind-group/batch keys, and GPU buffer/texture descriptors — not pixels), plus
+render-snapshot assertions. These are run and reported; the live pixel proof
+is marked explicitly as not-runnable-here with the structural proof named.
 
 ## Current Run Update — 2026-05-29T16:32:07Z — SOTA M1 complete
 
