@@ -1,7 +1,9 @@
 import path from "node:path";
+import { APERTURE_CLI_VERSION } from "../version.js";
 import type { TemplateFile } from "./types.js";
 
-const CLI_VERSION = "0.0.0";
+const DEFAULT_PROJECT_VERSION = "0.1.0";
+const LOCAL_DEPENDENCY_SPEC = "workspace:*";
 
 export function npmPackageNameFromPath(targetDir: string): string {
   const baseName = path.basename(targetDir).toLowerCase();
@@ -16,8 +18,14 @@ export function npmPackageNameFromPath(targetDir: string): string {
   return `aperture-${normalized || "app"}`;
 }
 
-export function defaultApertureDependencySpec(): string {
-  return CLI_VERSION === "0.0.0" ? "workspace:*" : `^${CLI_VERSION}`;
+export function defaultApertureDependencySpec(input?: {
+  readonly local?: boolean;
+}): string {
+  if (input?.local === true || isLocalDependencyMode()) {
+    return LOCAL_DEPENDENCY_SPEC;
+  }
+
+  return `^${APERTURE_CLI_VERSION}`;
 }
 
 export function packageJsonFile(input: {
@@ -26,7 +34,7 @@ export function packageJsonFile(input: {
 }): TemplateFile {
   const packageJson = {
     name: input.packageName,
-    version: "0.0.0",
+    version: DEFAULT_PROJECT_VERSION,
     private: true,
     type: "module",
     scripts: {
@@ -51,4 +59,10 @@ export function packageJsonFile(input: {
     path: "package.json",
     contents: `${JSON.stringify(packageJson, null, 2)}\n`,
   };
+}
+
+function isLocalDependencyMode(): boolean {
+  const value = process.env.APERTURE_LOCAL;
+
+  return value === "1" || value === "true" || value === "workspace";
 }

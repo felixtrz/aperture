@@ -8,6 +8,7 @@ import { ApertureCliError } from "./errors.js";
 import { runMcpCommand } from "./commands/mcp.js";
 import { runReferenceCommand } from "./commands/reference.js";
 import { runToolCommand } from "./commands/tool.js";
+import { APERTURE_CLI_VERSION } from "./version.js";
 
 export {
   syncApertureAdapters,
@@ -22,8 +23,6 @@ export {
   type CreateApertureProjectReport,
 } from "./create-project.js";
 export { ApertureCliError } from "./errors.js";
-
-const CLI_VERSION = "0.0.0";
 
 export interface ApertureCliIo {
   readonly stdout: (text: string) => void;
@@ -49,7 +48,7 @@ export async function runApertureCli(
     }
 
     if (command === "--version" || command === "-v") {
-      io.stdout(`${CLI_VERSION}\n`);
+      io.stdout(`${APERTURE_CLI_VERSION}\n`);
       return 0;
     }
 
@@ -145,7 +144,7 @@ function resolveIo(options: RunApertureCliOptions): ApertureCliIo {
 }
 
 function mainHelp(): string {
-  return `Aperture CLI ${CLI_VERSION}
+  return `Aperture CLI ${APERTURE_CLI_VERSION}
 
 Usage:
   aperture <command> [options]

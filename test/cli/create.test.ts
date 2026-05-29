@@ -15,6 +15,7 @@ import {
   runApertureCli,
   syncApertureAdapters,
 } from "@aperture-engine/cli";
+import { defaultApertureDependencySpec } from "../../packages/cli/src/create/package-json.js";
 
 const tempRoots: string[] = [];
 
@@ -27,11 +28,16 @@ describe("Aperture CLI create command", () => {
 
   it("prints top-level and create help", async () => {
     const root = await tempRoot();
+    const cliVersion = await readCliPackageVersion();
+    const version = await runCli(["--version"], root);
     const topLevel = await runCli(["--help"], root);
     const create = await runCli(["create", "--help"], root);
     const adapter = await runCli(["adapter", "--help"], root);
 
+    expect(version.exitCode).toBe(0);
+    expect(version.stdout).toBe(`${cliVersion}\n`);
     expect(topLevel.exitCode).toBe(0);
+    expect(topLevel.stdout).toContain(`Aperture CLI ${cliVersion}`);
     expect(topLevel.stdout).toContain("aperture create");
     expect(topLevel.stdout).toContain("aperture adapter sync");
     expect(topLevel.stdout).toContain("aperture dev <subcommand>");
@@ -124,6 +130,8 @@ describe("Aperture CLI create command", () => {
 
   it("scaffolds a Vite Aperture app with starter systems and AI adapter files", async () => {
     const root = await tempRoot();
+    const cliVersion = await readCliPackageVersion();
+    const apertureDependencySpec = `^${cliVersion}`;
     const report = await createApertureProject({
       cwd: root,
       name: "starter app",
@@ -152,6 +160,7 @@ describe("Aperture CLI create command", () => {
     const packageJson = JSON.parse(
       await readFile(path.join(report.targetDir, "package.json"), "utf8"),
     ) as {
+      readonly version: string;
       readonly scripts: Record<string, string>;
       readonly dependencies: Record<string, string>;
       readonly devDependencies: Record<string, string>;
@@ -178,13 +187,21 @@ describe("Aperture CLI create command", () => {
       build: "vite build",
       typecheck: "tsc --noEmit",
     });
+    expect(packageJson.version).toBe("0.1.0");
+    expect(defaultApertureDependencySpec()).toBe(apertureDependencySpec);
     expect(packageJson.dependencies).toMatchObject({
-      "@aperture-engine/app": "workspace:*",
-      "@aperture-engine/vite-plugin": "workspace:*",
+      "@aperture-engine/app": apertureDependencySpec,
+      "@aperture-engine/vite-plugin": apertureDependencySpec,
     });
     expect(packageJson.devDependencies).toMatchObject({
-      "@aperture-engine/cli": "workspace:*",
+      "@aperture-engine/cli": apertureDependencySpec,
     });
+    expect(
+      Object.values({
+        ...packageJson.dependencies,
+        ...packageJson.devDependencies,
+      }),
+    ).not.toContain("workspace:*");
     expect(viteConfig).toContain('mode: "agent"');
     expect(apertureConfig).toContain("sampleCount: 4");
     expect(apertureConfig).toContain("maxPixelRatio: 2");
@@ -192,6 +209,42 @@ describe("Aperture CLI create command", () => {
     expect(setupSystem).toContain("starter.cube");
     expect(codexConfig).toContain("aperture");
     expect(codexConfig).toContain("mcp");
+  });
+
+  it("keeps a local workspace dependency escape for in-repo scaffolds", async () => {
+    const root = await tempRoot();
+    const previousLocal = process.env.APERTURE_LOCAL;
+
+    process.env.APERTURE_LOCAL = "1";
+    try {
+      expect(defaultApertureDependencySpec()).toBe("workspace:*");
+      const report = await createApertureProject({
+        cwd: root,
+        name: "local app",
+      });
+      const packageJson = JSON.parse(
+        await readFile(path.join(report.targetDir, "package.json"), "utf8"),
+      ) as {
+        readonly version: string;
+        readonly dependencies: Record<string, string>;
+        readonly devDependencies: Record<string, string>;
+      };
+
+      expect(packageJson.version).toBe("0.1.0");
+      expect(packageJson.dependencies).toMatchObject({
+        "@aperture-engine/app": "workspace:*",
+        "@aperture-engine/vite-plugin": "workspace:*",
+      });
+      expect(packageJson.devDependencies).toMatchObject({
+        "@aperture-engine/cli": "workspace:*",
+      });
+    } finally {
+      if (previousLocal === undefined) {
+        delete process.env.APERTURE_LOCAL;
+      } else {
+        process.env.APERTURE_LOCAL = previousLocal;
+      }
+    }
   });
 
   it("scaffolds the GLB viewer template with a local asset and orbit system", async () => {
@@ -410,6 +463,14 @@ async function tempRoot(): Promise<string> {
   const root = await mkdtemp(path.join(os.tmpdir(), "aperture-cli-"));
   tempRoots.push(root);
   return root;
+}
+
+async function readCliPackageVersion(): Promise<string> {
+  const packageJson = JSON.parse(
+    await readFile(path.resolve("packages/cli/package.json"), "utf8"),
+  ) as { readonly version: string };
+
+  return packageJson.version;
 }
 
 async function runCli(

@@ -1,5 +1,6 @@
 import { callApertureTool } from "./devtools-client.js";
 import { APERTURE_REFERENCE_TOOL_CONTRACT } from "./reference.js";
+import { APERTURE_CLI_VERSION } from "./version.js";
 
 const MCP_PROTOCOL_VERSION = "2025-06-18";
 
@@ -132,7 +133,7 @@ async function handleRequest(
         },
         serverInfo: {
           name: "aperture",
-          version: "0.0.0",
+          version: APERTURE_CLI_VERSION,
         },
       };
     case "tools/list":
