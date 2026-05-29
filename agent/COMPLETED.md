@@ -3,7 +3,7 @@
 ## M1-T6 — Generate GPU mipmaps for material textures + upload KTX2 precomputed mip chains
 
 Completed: 2026-05-29
-Commit: pending
+Commit: d1967a2a
 
 ### Summary
 

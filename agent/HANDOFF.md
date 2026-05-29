@@ -4,7 +4,7 @@ Updated: 2026-05-29T15:12:44Z
 
 ## Current Run Update — 2026-05-29T15:12:44Z — SOTA M1-T6 texture mip generation and KTX2 mip upload
 
-Completed `docs/SOTA_ROADMAP.md` task `M1-T6` locally. Commit id is pending.
+Completed `docs/SOTA_ROADMAP.md` task `M1-T6` in commit `d1967a2a`.
 
 ### What Changed
 

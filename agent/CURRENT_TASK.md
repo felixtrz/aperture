@@ -3,7 +3,7 @@
 No active task is currently checked out.
 
 Status: SOTA roadmap M1-T6 texture mip generation and KTX2 mip-chain upload
-completed locally; commit id pending.
+completed in commit `d1967a2a`.
 
 Key findings:
 
