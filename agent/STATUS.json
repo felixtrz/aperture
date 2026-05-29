@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "20b53817",
+  "lastCommit": "811995cf",
   "activePid": null,
-  "notes": "Completed SOTA M1-T1 reusable shadow orchestrator with fake-device Vitest coverage, public tracker updates, and pnpm run check passing. Next recommended task is M1-T2 frame-loop auto-shadow wiring.",
-  "lastRunFinishedAt": "2026-05-29T05:08:07Z"
+  "notes": "Completed SOTA M1-T2 automatic StandardMaterial shadow frame-loop wiring with auto-shadow render-control coverage, focused shadow E2E proofs, and pnpm run check passing. Next recommended task is M1-T3 shaderSampling status correctness.",
+  "lastRunFinishedAt": "2026-05-29T06:39:44Z"
 }

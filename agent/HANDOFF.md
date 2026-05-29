@@ -4,7 +4,7 @@ Updated: 2026-05-29T06:37:47Z
 
 ## Current Run Update — 2026-05-29T06:37:47Z — SOTA M1-T2 auto-shadow frame-loop wiring
 
-Completed `docs/SOTA_ROADMAP.md` task `M1-T2`.
+Completed `docs/SOTA_ROADMAP.md` task `M1-T2` in commit `811995cf`.
 
 ### What changed
 
