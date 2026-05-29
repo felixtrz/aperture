@@ -4630,11 +4630,7 @@ function setEntityMorphTargetWeights(aperture, entity, weights) {
     "targetCount",
     input.targetCount,
   );
-  entity.setValue(
-    aperture.MorphTargetWeights,
-    "weightsJson",
-    input.weightsJson,
-  );
+  entity.setValue(aperture.MorphTargetWeights, "weights", input.weights);
 }
 
 function morphTargetNames(mesh) {

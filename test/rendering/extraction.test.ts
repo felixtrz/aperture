@@ -26,6 +26,7 @@ import {
   Material,
   MaterialSlots,
   Mesh,
+  MorphTargetWeights,
   OcclusionQuery,
   RenderLayer,
   ShadowCaster,
@@ -41,6 +42,7 @@ import {
   createLight,
   createLightShadowSettings,
   createMaterialSlots,
+  createMorphTargetWeights,
   createOcclusionQuery,
   createSamplerAsset,
   createStandardMaterialAsset,
@@ -690,6 +692,42 @@ describe("render extraction", () => {
     expect(snapshot.bones?.length).toBe(50 * 16);
     // Extraction did not copy/replace the component's typed palette.
     expect(entity.getValue(Skin, "jointMatrices")).toBe(palette);
+  });
+
+  it("stores morph target weights as a typed Float32Array with no JSON transport", () => {
+    const data = createMorphTargetWeights({ weights: [0.25, 2.5, -3, 0.5] });
+
+    expect(data.weights).toBeInstanceOf(Float32Array);
+    expect("weightsJson" in data).toBe(false);
+    expect(data.targetCount).toBe(4);
+  });
+
+  it("extracts unclamped morph weights into the snapshot with no JSON parse", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      meshAsset: withMorphTargetAttributes(createBoxMeshAsset()),
+      materialAsset: createStandardMaterialAsset(),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const entity = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+    // Weights outside [-1, 1]: the old JSON path clamped these to [-1, 1];
+    // the typed path must preserve them unchanged.
+    entity.addComponent(
+      MorphTargetWeights,
+      createMorphTargetWeights({ weights: [2.5, -3] }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.meshDraws[0]?.batchKey.morphed).toBe(true);
+    expect(snapshot.morphTargetWeights?.[0]).toBeCloseTo(2.5, 5);
+    expect(snapshot.morphTargetWeights?.[1]).toBeCloseTo(-3, 5);
   });
 
   it("includes compact skinning formats in mesh layout keys", () => {
@@ -2797,6 +2835,43 @@ function withSkinningAttributes(mesh: MeshAsset): MeshAsset {
       joints0: "JOINTS_0",
       weights0: "WEIGHTS_0",
     },
+  };
+}
+
+function withMorphTargetAttributes(mesh: MeshAsset): MeshAsset {
+  const stream = required(mesh.vertexStreams[0]);
+
+  return {
+    ...mesh,
+    vertexStreams: [
+      {
+        ...stream,
+        attributes: [
+          ...stream.attributes,
+          {
+            semantic: "MORPH_POSITION_0",
+            format: "float32x3",
+            offset: stream.arrayStride,
+          },
+          {
+            semantic: "MORPH_NORMAL_0",
+            format: "float32x3",
+            offset: stream.arrayStride + 12,
+          },
+          {
+            semantic: "MORPH_POSITION_1",
+            format: "float32x3",
+            offset: stream.arrayStride + 24,
+          },
+          {
+            semantic: "MORPH_NORMAL_1",
+            format: "float32x3",
+            offset: stream.arrayStride + 36,
+          },
+        ],
+        arrayStride: stream.arrayStride + 48,
+      },
+    ],
   };
 }
 

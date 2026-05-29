@@ -153,7 +153,11 @@ export const MorphTargetWeights = defineComponent(
   "aperture.render.morphTargetWeights",
   {
     targetCount: { type: EcsType.Int32, default: 0 },
-    weightsJson: { type: EcsType.String, default: "[]" },
+    // Typed per-entity morph weights: a flat `Float32Array` of `targetCount`
+    // scalars, read directly by extraction with zero per-frame JSON.parse and
+    // no [-1, 1] clamp. Held by reference (same-thread). Supports unlimited
+    // targets (e.g. 52 ARKit blendshapes). Null until weights are supplied.
+    weights: { type: EcsType.Object, default: null },
   },
-  "Renderer-independent per-entity morph target weights stored as serialized scalar values.",
+  "Renderer-independent per-entity morph target weights stored as a typed scalar buffer.",
 );

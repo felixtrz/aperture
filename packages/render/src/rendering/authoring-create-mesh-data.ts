@@ -62,10 +62,10 @@ export function createSkin(
 export function createMorphTargetWeights(
   input: MorphTargetWeightsInput,
 ): ComponentInitialData<typeof MorphTargetWeights> {
-  const weights = Array.from(input.weights);
+  const weights = Float32Array.from(input.weights);
 
   return {
     targetCount: weights.length,
-    weightsJson: JSON.stringify(weights),
+    weights,
   };
 }

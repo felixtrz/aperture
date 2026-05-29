@@ -82,40 +82,35 @@ export function readMorphTargetWeights(
     return [0, 0, 0, 0];
   }
 
-  const weightsJson =
-    entity.getValue(MorphTargetWeights, "weightsJson") ?? "[]";
-  let parsed: unknown;
+  // Read the typed weight buffer directly — no JSON.parse, no intermediate
+  // allocation, and no [-1, 1] clamp (glTF weights are unbounded). The typed
+  // buffer can hold an arbitrary target count (e.g. 52 ARKit blendshapes); the
+  // two-target vertex-attribute GPU path consumes the first weights here, and
+  // the N-target data-buffer GPU path (see morphTargets import) is the
+  // documented follow-up that will pack the full weight vector.
+  const weights = entity.getValue(MorphTargetWeights, "weights") as
+    | Float32Array
+    | null
+    | undefined;
 
-  try {
-    parsed = JSON.parse(weightsJson);
-  } catch {
-    diagnostics.push(
-      diagnostic("render.morphTargetWeights.invalidJson", entity),
-    );
-    return null;
-  }
-
-  if (!Array.isArray(parsed)) {
-    diagnostics.push(
-      diagnostic("render.morphTargetWeights.invalidWeights", entity),
-    );
-    return null;
-  }
-
-  const weights = parseFiniteNumberArray(parsed);
-
-  if (weights === null) {
+  if (
+    weights !== null &&
+    weights !== undefined &&
+    !(weights instanceof Float32Array)
+  ) {
     diagnostics.push(
       diagnostic("render.morphTargetWeights.invalidWeights", entity),
     );
     return null;
   }
+
+  const values = weights ?? EMPTY_WEIGHTS;
 
   return [
-    clamp(weights[0] ?? 0, -1, 1),
-    clamp(weights[1] ?? 0, -1, 1),
-    clamp(weights[2] ?? 0, -1, 1),
-    clamp(weights[3] ?? 0, -1, 1),
+    finiteOrZero(values[0]),
+    finiteOrZero(values[1]),
+    finiteOrZero(values[2]),
+    finiteOrZero(values[3]),
   ];
 }
 
@@ -162,20 +157,8 @@ function meshHasStandardMorphTargetAttributes(mesh: MeshAsset): boolean {
   );
 }
 
-function parseFiniteNumberArray(values: readonly unknown[]): number[] | null {
-  const result: number[] = [];
+const EMPTY_WEIGHTS = new Float32Array(0);
 
-  for (const value of values) {
-    if (typeof value !== "number" || !Number.isFinite(value)) {
-      return null;
-    }
-
-    result.push(value);
-  }
-
-  return result;
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
+function finiteOrZero(value: number | undefined): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
