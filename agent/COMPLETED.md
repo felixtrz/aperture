@@ -1,5 +1,29 @@
 # Completed Tasks
 
+## M1-T4 — Add KHR_mesh_quantization support at root validation + accessor decode
+
+Completed: 2026-05-29
+
+### Summary
+
+- Added `KHR_mesh_quantization` to the supported required glTF root extension
+  set.
+- Accepted normalized byte, unsigned-byte, short, and unsigned-short quantized
+  geometry attributes as float POSITION/NORMAL/TANGENT/TEXCOORD streams.
+- Dequantized normalized signed/unsigned integer geometry accessors into
+  `Float32Array` data while preserving compact normalized color/skinning
+  streams for existing WebGPU vertex formats.
+- Added a structured unsupported quantized component diagnostic and a
+  quantization-required `.gltf` fixture.
+- Extended the meshopt import test so a quantization-required header succeeds
+  through the report-driven import path.
+
+### Validation
+
+- `pnpm exec vitest run test/assets/gltf-root.test.ts test/assets/gltf-accessor-validation.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/meshopt-decoder.test.ts`
+- `pnpm exec tsc --noEmit`
+- `pnpm run check`
+
 ## M1-T3 — Enable shaderSampling status and make full shadow darkness reachable end-to-end
 
 Completed: 2026-05-29

@@ -352,6 +352,79 @@ describe("glTF accessor typed-array decoding", () => {
     });
   });
 
+  it("decodes normalized short KHR_mesh_quantization geometry as float streams", () => {
+    const root = {
+      asset: { version: "2.0" },
+      extensionsRequired: ["KHR_mesh_quantization"],
+      buffers: [{ byteLength: 24 }],
+      bufferViews: [
+        { buffer: 0, byteOffset: 0, byteLength: 12 },
+        { buffer: 0, byteOffset: 12, byteLength: 12 },
+      ],
+      accessors: [
+        {
+          bufferView: 0,
+          componentType: 5122,
+          type: "VEC3",
+          count: 2,
+          normalized: true,
+        },
+        {
+          bufferView: 1,
+          componentType: 5122,
+          type: "VEC3",
+          count: 2,
+          normalized: true,
+        },
+      ],
+      meshes: [{ primitives: [{ attributes: { POSITION: 0, NORMAL: 1 } }] }],
+    };
+    const bytes = new Uint8Array(24);
+    const view = new DataView(bytes.buffer);
+    [-32768, 0, 32767, 16384, -16384, 0].forEach((value, index) =>
+      view.setInt16(index * 2, value, true),
+    );
+    [0, 32767, 0, -32768, 0, 32767].forEach((value, index) =>
+      view.setInt16(12 + index * 2, value, true),
+    );
+
+    const report = decodeGltfPrimitiveAccessors({
+      validationReport: validateGltfPrimitiveAccessorReferences({
+        root,
+        primitiveReport: createGltfMeshPrimitiveMappingReport({ root }),
+      }),
+      resolveBufferBytes: () => bytes,
+      storageMode: "source-view",
+    });
+    const position = report.primitives[0]?.attributes.find(
+      (attribute) => attribute.semantic === "POSITION",
+    );
+    const normal = report.primitives[0]?.attributes.find(
+      (attribute) => attribute.semantic === "NORMAL",
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(position).toMatchObject({
+      expectedFormat: "float32x3",
+      itemSize: 3,
+      sourceByteOffset: 0,
+      sourceByteLength: 12,
+    });
+    expect(position?.array).toBeInstanceOf(Float32Array);
+    expect(position?.array.buffer).not.toBe(bytes.buffer);
+    expect(Array.from(position?.array ?? [])).toEqual([
+      -1,
+      0,
+      1,
+      expect.closeTo(16384 / 32767),
+      expect.closeTo(-16384 / 32767),
+      0,
+    ]);
+    expect(normal?.array).toBeInstanceOf(Float32Array);
+    expect(Array.from(normal?.array ?? [])).toEqual([0, 1, 0, -1, 0, 1]);
+  });
+
   it("decodes accessors with nonzero offsets inside a shared strided bufferView", () => {
     const root = {
       asset: { version: "2.0" },

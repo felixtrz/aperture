@@ -1,7 +1,10 @@
 import type { GltfPlannedMeshPrimitiveAsset } from "./gltf-mesh-primitive.js";
 import { validateBufferView } from "./gltf-accessor-validation-buffers.js";
 import { pushAccessorValidationDiagnostic } from "./gltf-accessor-validation-diagnostics.js";
-import { expectationForSemantic } from "./gltf-accessor-validation-expectations.js";
+import {
+  expectationForSemantic,
+  hasUnsupportedQuantizedComponentType,
+} from "./gltf-accessor-validation-expectations.js";
 import type {
   GltfAccessorValidationContext,
   GltfAccessorValidationInput,
@@ -45,11 +48,21 @@ export function validateGltfAccessorReference(
 
   const expectation = expectationForSemantic(input.semantic, accessor);
   if (expectation === null) {
+    const unsupportedQuantizedComponentType =
+      hasUnsupportedQuantizedComponentType(input.semantic, accessor);
     pushAccessorValidationDiagnostic(context, primitive, input, {
-      code: "gltfAccessor.unsupportedSemanticFormat",
+      code: unsupportedQuantizedComponentType
+        ? "gltfAccessor.unsupportedQuantizedComponentType"
+        : "gltfAccessor.unsupportedSemanticFormat",
       field: `accessors[${input.accessorIndex}]`,
-      value: toDiagnosticValue(accessor.type),
-      message: `Accessor ${input.accessorIndex} has an unsupported format for ${input.semantic}.`,
+      value: toDiagnosticValue(
+        unsupportedQuantizedComponentType
+          ? accessor.componentType
+          : accessor.type,
+      ),
+      message: unsupportedQuantizedComponentType
+        ? `Accessor ${input.accessorIndex} uses an unsupported normalized quantized component type for ${input.semantic}.`
+        : `Accessor ${input.accessorIndex} has an unsupported format for ${input.semantic}.`,
     });
     return null;
   }

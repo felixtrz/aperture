@@ -60,20 +60,21 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 The active project direction is now `docs/SOTA_ROADMAP.md` wave 0. M1-T1
-through M1-T3 are complete: the reusable `createRenderShadowFrame()` shadow
+through M1-T4 are complete: the reusable `createRenderShadowFrame()` shadow
 orchestrator is wired into `renderWebGpuAppFrame`, automatic StandardMaterial
-shadow receiver resources submit and bind, and submitted shadow reports now
-publish truthful `shaderSampling` status. Continue with one visible SOTA
-feature slice at a time.
+shadow receiver resources submit and bind, submitted shadow reports now publish
+truthful `shaderSampling` status, and `KHR_mesh_quantization` root/accessor
+decode support is in place for normalized quantized glTF geometry. Continue
+with one visible SOTA feature slice at a time.
 
 The next ready visible-feature queue is:
 
-- `M1-T4` — add `KHR_mesh_quantization` support at glTF root validation and
-  accessor decode.
+- `M1-T5` — thread Draco/Meshopt/KTX2 decoder factories and GPU
+  texture-compression feature support through the app glTF loader.
   Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
-  Done when quantized glTF attributes decode into the compact source layouts
-  already supported by WebGPU pipelines and a compressed/quantized fixture loads
-  without unsupported-extension diagnostics.
+  Done when app-level `loadGltfFromUri` / `loadGlbFromUri` paths receive the
+  existing decoder/transcoder factories and a compressed glTF/GLB route loads
+  without caller-provided decoder plumbing.
 - `M1-T7` — implement `CameraHandle.rayFromPointer` with real camera
   unprojection.
   Reference anchor: `references/three.js/src/core/Raycaster.js`.

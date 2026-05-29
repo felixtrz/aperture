@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+
 import { describe, expect, it } from "vitest";
 import {
   gltfRootValidationReportToJson,
@@ -15,6 +17,19 @@ describe("glTF root validation for asset mapping", () => {
       samplers: [],
       extensionsRequired: ["KHR_materials_unlit", "KHR_texture_basisu"],
     });
+
+    expect(report).toEqual({ valid: true, diagnostics: [] });
+  });
+
+  it("accepts KHR_mesh_quantization as a required root extension", async () => {
+    const fixture = JSON.parse(
+      await readFile(
+        new URL("./fixtures/quantized-required.gltf", import.meta.url),
+        "utf8",
+      ),
+    ) as unknown;
+
+    const report = validateGltfRootForAssetMapping(fixture);
 
     expect(report).toEqual({ valid: true, diagnostics: [] });
   });

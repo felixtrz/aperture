@@ -39,6 +39,7 @@ const SUPPORTED_ROOT_EXTENSIONS = new Set([
   "KHR_draco_mesh_compression",
   "EXT_meshopt_compression",
   "KHR_meshopt_compression",
+  "KHR_mesh_quantization",
 ]);
 
 export function validateGltfRootForAssetMapping(

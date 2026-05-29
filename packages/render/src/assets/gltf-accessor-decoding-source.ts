@@ -43,6 +43,8 @@ export function createDirectSourceBinding(input: {
     input.storageMode !== "source-view" ||
     !NATIVE_LITTLE_ENDIAN ||
     input.shape.sourceItemSize !== input.shape.outputItemSize ||
+    input.shape.sourceComponentBytes !== outputComponentBytes(input.shape) ||
+    input.shape.sourceComponentType !== input.shape.output ||
     input.accessor.expectedFormat === "uint8-to-uint16"
   ) {
     return null;
@@ -73,6 +75,8 @@ export function decodeTightlyPackedAccessor(input: {
     !NATIVE_LITTLE_ENDIAN ||
     input.accessor.byteStride !== input.elementByteSize ||
     input.shape.sourceItemSize !== input.shape.outputItemSize ||
+    input.shape.sourceComponentBytes !== outputComponentBytes(input.shape) ||
+    input.shape.sourceComponentType !== input.shape.output ||
     input.accessor.expectedFormat === "uint8-to-uint16"
   ) {
     return null;
@@ -131,7 +135,7 @@ export function decodeStridedAccessor(
           ? readComponent(
               view,
               elementOffset + component * shape.sourceComponentBytes,
-              accessor.expectedFormat,
+              shape,
             )
           : shape.paddingComponentValue;
     }

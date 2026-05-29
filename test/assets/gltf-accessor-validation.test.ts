@@ -525,4 +525,38 @@ describe("glTF accessor and buffer reference validation", () => {
       },
     ]);
   });
+
+  it("reports unsupported KHR_mesh_quantization component types", () => {
+    const root = {
+      asset: { version: "2.0" },
+      extensionsRequired: ["KHR_mesh_quantization"],
+      buffers: [{ byteLength: 36 }],
+      bufferViews: [{ buffer: 0, byteLength: 36 }],
+      accessors: [
+        {
+          bufferView: 0,
+          componentType: 5125,
+          type: "VEC3",
+          count: 3,
+          normalized: true,
+        },
+      ],
+      meshes: [{ primitives: [{ attributes: { POSITION: 0 } }] }],
+    };
+
+    const report = validateGltfPrimitiveAccessorReferences({
+      root,
+      primitiveReport: createGltfMeshPrimitiveMappingReport({ root }),
+    });
+
+    expect(report.valid).toBe(false);
+    expect(report.diagnostics).toMatchObject([
+      {
+        code: "gltfAccessor.unsupportedQuantizedComponentType",
+        severity: "error",
+        semantic: "POSITION",
+        value: 5125,
+      },
+    ]);
+  });
 });

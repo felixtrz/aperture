@@ -1,4 +1,12 @@
 import type { GltfValidatedAccessorReference } from "./gltf-accessor-validation.js";
+import {
+  GLTF_COMPONENT_BYTE,
+  GLTF_COMPONENT_FLOAT,
+  GLTF_COMPONENT_SHORT,
+  GLTF_COMPONENT_UNSIGNED_BYTE,
+  GLTF_COMPONENT_UNSIGNED_INT,
+  GLTF_COMPONENT_UNSIGNED_SHORT,
+} from "./gltf-accessor-validation-utils.js";
 import type {
   DecodeShape,
   GltfDecodedArray,
@@ -26,19 +34,31 @@ export function decodeShape(
   switch (accessor.expectedFormat) {
     case "float32x2":
     case "float32x3":
-    case "float32x4":
+    case "float32x4": {
+      const sourceComponent = sourceComponentForAccessor(accessor);
+      if (sourceComponent === null) {
+        return null;
+      }
+
       return {
         sourceItemSize,
         outputItemSize: sourceItemSize,
-        sourceComponentBytes: 4,
+        sourceComponentBytes: sourceComponent.sourceComponentBytes,
+        sourceComponentType: sourceComponent.sourceComponentType,
+        normalizeComponents:
+          accessor.normalized &&
+          sourceComponent.sourceComponentType !== "float32",
         output: "float32",
         paddingComponentValue: 0,
       };
+    }
     case "unorm8x4":
       return {
         sourceItemSize,
         outputItemSize: 4,
         sourceComponentBytes: 1,
+        sourceComponentType: "uint8",
+        normalizeComponents: false,
         output: "uint8",
         paddingComponentValue: 255,
       };
@@ -47,6 +67,8 @@ export function decodeShape(
         sourceItemSize,
         outputItemSize: 4,
         sourceComponentBytes: 2,
+        sourceComponentType: "uint16",
+        normalizeComponents: false,
         output: "uint16",
         paddingComponentValue: 65535,
       };
@@ -55,6 +77,8 @@ export function decodeShape(
         sourceItemSize,
         outputItemSize: sourceItemSize,
         sourceComponentBytes: 1,
+        sourceComponentType: "uint8",
+        normalizeComponents: false,
         output: "uint8",
         paddingComponentValue: 0,
       };
@@ -63,6 +87,8 @@ export function decodeShape(
         sourceItemSize,
         outputItemSize: sourceItemSize,
         sourceComponentBytes: 2,
+        sourceComponentType: "uint16",
+        normalizeComponents: false,
         output: "uint16",
         paddingComponentValue: 0,
       };
@@ -71,6 +97,8 @@ export function decodeShape(
         sourceItemSize,
         outputItemSize: sourceItemSize,
         sourceComponentBytes: 1,
+        sourceComponentType: "uint8",
+        normalizeComponents: false,
         output: "uint16",
         paddingComponentValue: 0,
       };
@@ -79,6 +107,8 @@ export function decodeShape(
         sourceItemSize,
         outputItemSize: sourceItemSize,
         sourceComponentBytes: 2,
+        sourceComponentType: "uint16",
+        normalizeComponents: false,
         output: "uint16",
         paddingComponentValue: 0,
       };
@@ -87,6 +117,8 @@ export function decodeShape(
         sourceItemSize,
         outputItemSize: sourceItemSize,
         sourceComponentBytes: 4,
+        sourceComponentType: "uint32",
+        normalizeComponents: false,
         output: "uint32",
         paddingComponentValue: 0,
       };
@@ -134,24 +166,51 @@ export function outputComponentBytes(shape: DecodeShape): 1 | 2 | 4 {
 export function readComponent(
   view: DataView,
   byteOffset: number,
-  expectedFormat: GltfValidatedAccessorReference["expectedFormat"],
+  shape: DecodeShape,
 ): number {
-  switch (expectedFormat) {
-    case "float32x2":
-    case "float32x3":
-    case "float32x4":
+  switch (shape.sourceComponentType) {
+    case "float32":
       return view.getFloat32(byteOffset, true);
-    case "unorm8x4":
-    case "uint8x4":
-    case "uint8-to-uint16":
-      return view.getUint8(byteOffset);
-    case "unorm16x4":
-    case "uint16x4":
-    case "uint16":
-      return view.getUint16(byteOffset, true);
+    case "int8": {
+      const value = view.getInt8(byteOffset);
+      return shape.normalizeComponents ? Math.max(value / 127, -1) : value;
+    }
+    case "uint8": {
+      const value = view.getUint8(byteOffset);
+      return shape.normalizeComponents ? value / 255 : value;
+    }
+    case "int16": {
+      const value = view.getInt16(byteOffset, true);
+      return shape.normalizeComponents ? Math.max(value / 32767, -1) : value;
+    }
+    case "uint16": {
+      const value = view.getUint16(byteOffset, true);
+      return shape.normalizeComponents ? value / 65535 : value;
+    }
     case "uint32":
       return view.getUint32(byteOffset, true);
   }
+}
+
+function sourceComponentForAccessor(
+  accessor: GltfValidatedAccessorReference,
+): Pick<DecodeShape, "sourceComponentBytes" | "sourceComponentType"> | null {
+  switch (accessor.componentType) {
+    case GLTF_COMPONENT_FLOAT:
+      return { sourceComponentBytes: 4, sourceComponentType: "float32" };
+    case GLTF_COMPONENT_BYTE:
+      return { sourceComponentBytes: 1, sourceComponentType: "int8" };
+    case GLTF_COMPONENT_UNSIGNED_BYTE:
+      return { sourceComponentBytes: 1, sourceComponentType: "uint8" };
+    case GLTF_COMPONENT_SHORT:
+      return { sourceComponentBytes: 2, sourceComponentType: "int16" };
+    case GLTF_COMPONENT_UNSIGNED_SHORT:
+      return { sourceComponentBytes: 2, sourceComponentType: "uint16" };
+    case GLTF_COMPONENT_UNSIGNED_INT:
+      return { sourceComponentBytes: 4, sourceComponentType: "uint32" };
+  }
+
+  return null;
 }
 
 export function arrayTypeForExpectedFormat(

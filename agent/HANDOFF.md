@@ -1,6 +1,44 @@
 # Agent Handoff
 
-Updated: 2026-05-29T07:02:38Z
+Updated: 2026-05-29T07:14:09Z
+
+## Current Run Update — 2026-05-29T07:14:09Z — SOTA M1-T4 glTF quantization support
+
+Completed `docs/SOTA_ROADMAP.md` task `M1-T4` in commit `pending`.
+
+### What Changed
+
+- Added `KHR_mesh_quantization` to glTF root validation so required quantized
+  assets no longer fail with `gltfRoot.unsupportedRequiredExtension`.
+- Extended glTF accessor validation so normalized byte/ubyte/short/ushort
+  POSITION, NORMAL, TANGENT, TEXCOORD, and existing morph geometry semantics
+  are accepted as float vertex streams.
+- Updated accessor decoding to dequantize signed/unsigned normalized integer
+  geometry into `Float32Array` data while preserving existing compact
+  normalized COLOR_0 / WEIGHTS_0 and JOINTS_0 GPU streams.
+- Added a structured `gltfAccessor.unsupportedQuantizedComponentType`
+  diagnostic for unsupported normalized geometry component types.
+- Extended the meshopt fixture import test with a quantization-required glTF
+  header so the report-driven path proves meshopt + quantization root
+  requirements work together.
+
+### Validation
+
+- `pnpm exec vitest run test/assets/gltf-root.test.ts test/assets/gltf-accessor-validation.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/meshopt-decoder.test.ts`
+- `pnpm exec tsc --noEmit`
+- `pnpm run check`
+
+### Known Issues / Remaining Work
+
+- None for M1-T4. App-level compressed asset loading still needs M1-T5 to pass
+  decoder/transcoder factories and WebGPU texture-compression support through
+  `packages/app/src/systems/assets.ts`.
+
+### Recommended Next Task
+
+Start `M1-T5`: thread Draco/Meshopt/KTX2 decoder factories and
+`createKtx2TextureCompressionSupportFromFeatures(...)` through the app glTF
+loader so compressed GLB/texture assets work without caller-provided plumbing.
 
 ## Current Run Update — 2026-05-29T07:02:38Z — SOTA M1-T3 shaderSampling status
 

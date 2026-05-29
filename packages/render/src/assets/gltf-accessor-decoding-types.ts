@@ -105,6 +105,14 @@ export interface DecodeShape {
   readonly sourceItemSize: number;
   readonly outputItemSize: number;
   readonly sourceComponentBytes: 1 | 2 | 4;
+  readonly sourceComponentType:
+    | "float32"
+    | "int8"
+    | "uint8"
+    | "int16"
+    | "uint16"
+    | "uint32";
+  readonly normalizeComponents: boolean;
   readonly output: "float32" | "uint8" | "uint16" | "uint32";
   readonly paddingComponentValue: number;
 }

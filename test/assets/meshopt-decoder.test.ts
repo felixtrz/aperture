@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createMeshoptDecoder,
+  createGltfReportDrivenImportReport,
   createGltfReportDrivenImportReportFromGlb,
   createNoFetchGlbSourceLoaderReport,
   parseGlbContainer,
@@ -84,19 +85,29 @@ describe("createMeshoptDecoder", () => {
     const decoder = await createFixtureDecoder();
     const source = await readAsset("meshopt-cube.glb");
 
-    const report = createGltfReportDrivenImportReportFromGlb({
-      source,
+    const parsed = parseGlbContainer(source);
+    if (parsed.container === null) {
+      throw new Error("meshopt fixture did not parse as GLB.");
+    }
+
+    const root = withRequiredExtension(
+      parsed.container.json,
+      "KHR_mesh_quantization",
+    );
+    const report = createGltfReportDrivenImportReport({
+      root,
       createAssetMapping: true,
       createMeshAssets: true,
       meshoptDecoder: decoder,
+      resolveBufferBytes: (bufferIndex) =>
+        bufferIndex === 0 ? parsed.container?.binaryChunk : null,
     });
 
     expect(report.valid).toBe(true);
-    expect(report.importReport?.root.valid).toBe(true);
-    expect(report.importReport?.accessorDecoding?.diagnostics).toEqual([]);
-    expect(
-      report.importReport?.meshConstruction?.meshes[0]?.mesh,
-    ).toMatchObject({
+    expect(report.root.valid).toBe(true);
+    expect(report.root.diagnostics).toEqual([]);
+    expect(report.accessorDecoding?.diagnostics).toEqual([]);
+    expect(report.meshConstruction?.meshes[0]?.mesh).toMatchObject({
       kind: "mesh",
       label: "mesh:gltf:mesh:0:primitive:0",
       submeshes: [{ vertexCount: 24, indexCount: 36 }],
@@ -147,3 +158,36 @@ describe("createMeshoptDecoder", () => {
     });
   });
 });
+
+function withRequiredExtension(
+  root: unknown,
+  extension: string,
+): Record<string, unknown> {
+  if (root === null || typeof root !== "object" || Array.isArray(root)) {
+    throw new Error("Expected a parsed glTF root object.");
+  }
+  const record = root as Record<string, unknown>;
+
+  return {
+    ...record,
+    extensionsUsed: appendUniqueExtension(record, "extensionsUsed", extension),
+    extensionsRequired: appendUniqueExtension(
+      record,
+      "extensionsRequired",
+      extension,
+    ),
+  };
+}
+
+function appendUniqueExtension(
+  root: Record<string, unknown>,
+  field: "extensionsUsed" | "extensionsRequired",
+  extension: string,
+): readonly string[] {
+  const existing = root[field];
+  const values = Array.isArray(existing)
+    ? existing.filter((value): value is string => typeof value === "string")
+    : [];
+
+  return values.includes(extension) ? values : [...values, extension];
+}

@@ -393,21 +393,22 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-29 07:02 UTC</dd>
+            <dd>2026-05-29 07:14 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: SOTA roadmap M1-T3 makes lower-level shadow reports
-              truthful now that automatic receiver sampling is wired. Shadow
-              pass planning, encoder assembly, command-buffer submission, the
-              reusable shadow frame, and app JSON now report
-              <code>shaderSampling: true</code> on ready/submitted shadow paths
-              instead of stale deferred status, and the submitted path no longer
-              emits <code>shaderSamplingDeferred</code>. Next SOTA task:
-              <code>M1-T4</code> adds <code>KHR_mesh_quantization</code> root
-              validation and accessor decode support for common
-              meshopt/quantized glTF assets. Previous update: SOTA roadmap M1-T2
+              Latest update: SOTA roadmap M1-T4 adds
+              <code>KHR_mesh_quantization</code> root validation and normalized
+              quantized geometry accessor decode. Required quantized glTF roots
+              now validate, byte/short normalized POSITION/NORMAL/TANGENT/UV
+              data dequantizes into float streams, and meshopt import succeeds
+              with a quantization-required header. Next SOTA task:
+              <code>M1-T5</code> threads Draco/Meshopt/KTX2 decoder factories
+              plus WebGPU texture-compression support through the app glTF
+              loader. Previous update: SOTA roadmap M1-T3 makes lower-level
+              shadow reports truthful with <code>shaderSampling: true</code> on
+              ready/submitted shadow paths. Earlier update: SOTA roadmap M1-T2
               wires the reusable renderer-owned shadow frame orchestrator into
               <code>renderWebGpuAppFrame</code> and proves auto-shadow receiver
               darkening. Earlier update: custom WGSL material enablement now has
@@ -3568,12 +3569,11 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">M1-T3</span> Enabled truthful shadow
-                <code>shaderSampling</code> status. Submitted automatic shadow
-                frames now report sampled receiver readiness through
-                <code>shadow.commandBufferSubmission.sections</code>, and stale
-                deferred diagnostics are removed from assembled/submitted shadow
-                paths.
+                <span class="badge green">M1-T4</span> Added
+                <code>KHR_mesh_quantization</code> support. Required quantized
+                roots validate, normalized byte/short geometry attributes decode
+                into float vertex streams, and the meshopt fixture import path
+                succeeds with a quantization-required header.
               </li>
               <li>
                 <span class="badge green">task-3209</span> Added
@@ -6429,10 +6429,9 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add
-                <code>KHR_mesh_quantization</code> support for
-                <code>M1-T4</code>, including root validation and normalized
-                quantized accessor decode for common meshopt glTF assets.
+                <span class="badge amber">next</span> Thread Draco/Meshopt/KTX2
+                decoder factories and GPU texture-compression support through
+                the app glTF loader for <code>M1-T5</code>.
               </li>
               <li>
                 <span class="badge green">done</span> Custom WGSL mixed
@@ -6808,6 +6807,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">M1-T4</div>
+            <div>
+              <strong>glTF quantized geometry roots and accessors load.</strong>
+              <span>
+                <code>KHR_mesh_quantization</code> is now accepted as a required
+                root extension, normalized byte/short geometry attributes
+                dequantize into <code>Float32Array</code> streams, unsupported
+                quantized component types report a structured diagnostic, and
+                meshopt import coverage includes a quantization-required header.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">M1-T3</div>
             <div>

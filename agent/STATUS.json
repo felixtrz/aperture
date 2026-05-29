@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "ae5e9ded",
+  "lastCommit": "pending",
   "activePid": null,
-  "notes": "Completed SOTA M1-T3 shaderSampling status correctness with lower shadow report booleans, submitted-path diagnostics cleanup, auto-shadow/point-shadow browser proofs, and pnpm run check passing. Next recommended task is M1-T4 KHR_mesh_quantization support.",
-  "lastRunFinishedAt": "2026-05-29T07:02:38Z"
+  "notes": "Completed SOTA M1-T4 KHR_mesh_quantization support with root validation, normalized quantized geometry dequantization, meshopt quantization-required coverage, and pnpm run check passing. Next recommended task is M1-T5 decoder factory and texture-compression app loader wiring.",
+  "lastRunFinishedAt": "2026-05-29T07:14:09Z"
 }
