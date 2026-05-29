@@ -61,6 +61,9 @@ export interface WebGpuDeviceLostInfoLike {
 }
 
 export interface WebGpuDeviceLike {
+  readonly features?: {
+    readonly has?: (feature: string) => boolean;
+  };
   readonly lost?: Promise<WebGpuDeviceLostInfoLike>;
 }
 

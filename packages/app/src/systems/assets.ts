@@ -4,16 +4,23 @@ import {
   createGltfEcsAuthoringCommandPlan,
   createGltfPrimitiveMaterialResolutionReport,
   createGltfUriLoadCache,
+  createBasisUniversalKtx2Transcoder,
+  createDracoMeshDecoder,
+  createMeshoptDecoder as createMeshoptBufferDecoder,
   createWgslShaderAsset,
   createStandardMaterialAsset,
   loadGlbFromUri,
   loadGltfFromUri,
   registerGltfSourceAssetsFromReports,
+  type DracoMeshDecoder,
   type GltfEcsAuthoringCommandPlan,
   type GltfMeshSourceAssetRegistrationReport,
   type GltfPrimitiveMaterialResolutionReport,
   type GltfReportDrivenImportReport,
   type GltfSourceAssetRegistrationReport,
+  type Ktx2BasisTranscoder,
+  type Ktx2TextureCompressionSupport,
+  type MeshoptBufferDecoder,
 } from "@aperture-engine/render";
 import {
   assetHandleKey,
@@ -91,11 +98,63 @@ export interface ApertureAssetLoader {
   load(asset: SystemAssetHandle<SystemAssetKind>): Promise<void>;
 }
 
+export interface SystemGltfAssetDecoderProvider {
+  readonly createDracoDecoder?: () => PromiseLike<DracoMeshDecoder>;
+  readonly createMeshoptDecoder?: () => PromiseLike<MeshoptBufferDecoder>;
+  readonly createBasisKtx2Transcoder?: () => PromiseLike<Ktx2BasisTranscoder>;
+  readonly ktx2TextureCompression?: Ktx2TextureCompressionSupport;
+}
+
+export interface SystemGltfAssetDecoderProviderOptions {
+  readonly baseUrl?: string;
+  readonly ktx2TextureCompression?: Ktx2TextureCompressionSupport;
+}
+
+const DEFAULT_GLTF_DECODER_BASE_URL = "/assets/";
+
+export function createDefaultSystemGltfAssetDecoderProvider(
+  options: SystemGltfAssetDecoderProviderOptions = {},
+): SystemGltfAssetDecoderProvider {
+  const assetUrl = createDecoderAssetUrlResolver(
+    options.baseUrl ?? DEFAULT_GLTF_DECODER_BASE_URL,
+  );
+  let dracoDecoder: Promise<DracoMeshDecoder> | null = null;
+  let meshoptDecoder: Promise<MeshoptBufferDecoder> | null = null;
+  let basisTranscoder: Promise<Ktx2BasisTranscoder> | null = null;
+
+  return {
+    createDracoDecoder() {
+      dracoDecoder ??= createDracoMeshDecoder({
+        jsUrl: assetUrl("draco/draco_wasm_wrapper.js"),
+        wasmUrl: assetUrl("draco/draco_decoder.wasm"),
+      });
+      return dracoDecoder;
+    },
+    createMeshoptDecoder() {
+      meshoptDecoder ??= createMeshoptBufferDecoder({
+        jsUrl: assetUrl("meshopt/meshopt_decoder.module.js"),
+      });
+      return meshoptDecoder;
+    },
+    createBasisKtx2Transcoder() {
+      basisTranscoder ??= createBasisUniversalKtx2Transcoder({
+        jsUrl: assetUrl("basis/basis_transcoder.js"),
+        wasmUrl: assetUrl("basis/basis_transcoder.wasm"),
+      });
+      return basisTranscoder;
+    },
+    ...(options.ktx2TextureCompression === undefined
+      ? {}
+      : { ktx2TextureCompression: options.ktx2TextureCompression }),
+  };
+}
+
 export function createSystemAssetAccess(options: {
   readonly config: ApertureConfig | undefined;
   readonly registry: AssetRegistry;
   readonly diagnostics: SystemDiagnostics;
   readonly loader: ApertureAssetLoader | undefined;
+  readonly gltfAssetDecoders?: SystemGltfAssetDecoderProvider;
 }): SystemAssetAccess {
   const assets = new Map<string, SystemAssetHandle<SystemAssetKind>>();
   const glbCache = createGlbUriLoadCache();
@@ -137,6 +196,9 @@ export function createSystemAssetAccess(options: {
           registry: options.registry,
           glbCache,
           gltfCache,
+          ...(options.gltfAssetDecoders === undefined
+            ? {}
+            : { gltfAssetDecoders: options.gltfAssetDecoders }),
         });
         (handle as SystemGltfAssetHandle).scene.value = scene;
       } else if (handle.kind === "shader") {
@@ -151,7 +213,7 @@ export function createSystemAssetAccess(options: {
           id: handle.id,
           kind: handle.kind,
           url: handle.url,
-          ...sceneReadyMetadata(handle),
+          ...systemAssetReadyMetadata(handle),
         });
       }
       handle.ready.value = true;
@@ -263,6 +325,14 @@ export function createSystemAssetAccess(options: {
   };
 }
 
+function createDecoderAssetUrlResolver(
+  baseUrl: string,
+): (path: string) => string {
+  const normalizedBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+
+  return (path: string) => `${normalizedBase}${path}`;
+}
+
 function createSystemAssetHandle(
   id: string,
   descriptor: ApertureConfigAssetDescriptor,
@@ -367,6 +437,7 @@ async function loadSystemGltfAsset(input: {
   readonly registry: AssetRegistry;
   readonly glbCache: ReturnType<typeof createGlbUriLoadCache>;
   readonly gltfCache: ReturnType<typeof createGltfUriLoadCache>;
+  readonly gltfAssetDecoders?: SystemGltfAssetDecoderProvider;
 }): Promise<SystemGltfLoadedScene> {
   const resolvedUrl = resolveAssetUrl(input.handle.url);
 
@@ -394,12 +465,47 @@ async function loadSystemGltfAsset(input: {
           keyPrefix: input.handle.id,
           createAssetMapping: true,
           createMeshAssets: true,
+          ...(input.gltfAssetDecoders?.createBasisKtx2Transcoder === undefined
+            ? {}
+            : {
+                createBasisKtx2Transcoder:
+                  input.gltfAssetDecoders.createBasisKtx2Transcoder,
+              }),
+          ...(input.gltfAssetDecoders?.ktx2TextureCompression === undefined
+            ? {}
+            : {
+                ktx2TextureCompression:
+                  input.gltfAssetDecoders.ktx2TextureCompression,
+              }),
         })
       : await loadGlbFromUri(resolvedUrl, {
           cache: input.glbCache,
           keyPrefix: input.handle.id,
           createAssetMapping: true,
           createMeshAssets: true,
+          ...(input.gltfAssetDecoders?.createDracoDecoder === undefined
+            ? {}
+            : {
+                createDracoDecoder: input.gltfAssetDecoders.createDracoDecoder,
+              }),
+          ...(input.gltfAssetDecoders?.createMeshoptDecoder === undefined
+            ? {}
+            : {
+                createMeshoptDecoder:
+                  input.gltfAssetDecoders.createMeshoptDecoder,
+              }),
+          ...(input.gltfAssetDecoders?.createBasisKtx2Transcoder === undefined
+            ? {}
+            : {
+                createBasisKtx2Transcoder:
+                  input.gltfAssetDecoders.createBasisKtx2Transcoder,
+              }),
+          ...(input.gltfAssetDecoders?.ktx2TextureCompression === undefined
+            ? {}
+            : {
+                ktx2TextureCompression:
+                  input.gltfAssetDecoders.ktx2TextureCompression,
+              }),
         });
   const importReport =
     loaded.loader === null
@@ -514,7 +620,7 @@ async function loadSystemGltfAsset(input: {
   };
 }
 
-function sceneReadyMetadata(
+export function systemAssetReadyMetadata(
   handle: SystemAssetHandle<SystemAssetKind>,
 ): Record<string, unknown> {
   if (handle.kind !== "gltf") {
@@ -538,6 +644,23 @@ function sceneReadyMetadata(
     materialAssetCount: scene.sourceRegistration.written.filter(
       (entry) => entry.kind === "material",
     ).length,
+    textures:
+      scene.importReport.assetMapping?.textures.map((texture) => ({
+        textureIndex: texture.textureIndex,
+        slot: texture.slot,
+        handleKey: texture.handleKey,
+        format: texture.texture?.format ?? null,
+        width: texture.texture?.width ?? null,
+        height: texture.texture?.height ?? null,
+        sourceData:
+          texture.texture?.sourceData === undefined
+            ? null
+            : {
+                byteLength: texture.texture.sourceData.bytes.byteLength,
+                bytesPerRow: texture.texture.sourceData.bytesPerRow,
+                rowsPerImage: texture.texture.sourceData.rowsPerImage ?? null,
+              },
+      })) ?? [],
   };
 }
 

@@ -178,6 +178,27 @@ function createManualSimulationWorker(): WebGpuAppSimulationWorker & {
   };
 }
 
+function createStartOptionsCaptureSimulationWorker(): WebGpuAppSimulationWorker & {
+  readonly startOptions: Record<string, unknown> | null;
+} {
+  let startOptions: Record<string, unknown> | null = null;
+
+  return {
+    get startOptions() {
+      return startOptions;
+    },
+    start(options = {}) {
+      startOptions = options;
+    },
+    onSnapshot() {
+      return () => {};
+    },
+    onError() {
+      return () => {};
+    },
+  };
+}
+
 function createSharedSnapshotManualSimulationWorker(
   snapshot: RenderSnapshot,
 ): WebGpuAppSimulationWorker & {
@@ -472,6 +493,32 @@ describe("WebGPU app facade", () => {
         diagnostic: {
           code: "webGpuApp.sharedSnapshotTransportUnsupported",
           reason: "shared-array-buffer-unavailable",
+        },
+      },
+    });
+  });
+
+  it("starts generated workers with KTX2 texture-compression support from WebGPU features", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events, {
+      features: ["texture-compression-bc"],
+    });
+    const worker = createStartOptionsCaptureSimulationWorker();
+
+    const created = await createRendererOnlyWebGpuApp({
+      canvas,
+      environment,
+      simulationWorker: worker,
+      autoStart: true,
+    });
+
+    expect(created.ok).toBe(true);
+    expect(worker.startOptions).toMatchObject({
+      assetDecoders: {
+        ktx2TextureCompression: {
+          astc: false,
+          bc: true,
+          etc2: false,
         },
       },
     });
@@ -8696,13 +8743,18 @@ describe("WebGPU app facade", () => {
 
 function webGpuHarness(
   events: string[],
-  options: { readonly timestampQuery?: boolean } = {},
+  options: {
+    readonly timestampQuery?: boolean;
+    readonly features?: readonly string[];
+  } = {},
 ) {
   let timestamp = 1_000n;
+  const supportedFeatures = new Set(options.features ?? []);
   const device = {
     features: {
       has: (feature: string) =>
-        feature === "timestamp-query" && options.timestampQuery === true,
+        (feature === "timestamp-query" && options.timestampQuery === true) ||
+        supportedFeatures.has(feature),
     },
     queue: {
       writeBuffer: (buffer: unknown) => {

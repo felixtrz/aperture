@@ -8,6 +8,7 @@ import {
   createApertureSystemContext,
   flushApertureSystemEffects,
   type ApertureAssetLoader,
+  type SystemGltfAssetDecoderProvider,
   type ApertureSystemConstructor,
   type ApertureSystemContext,
 } from "./systems.js";
@@ -33,6 +34,7 @@ export interface CreateApertureAppOptions {
   readonly config: ApertureConfig;
   readonly systems?: readonly ApertureSystemModule[];
   readonly assetLoader?: ApertureAssetLoader;
+  readonly gltfAssetDecoders?: SystemGltfAssetDecoderProvider;
   readonly worldOptions?: CreateExtractionAppOptions["worldOptions"];
 }
 
@@ -92,6 +94,9 @@ export async function createApertureApp(
     ...(options.assetLoader === undefined
       ? {}
       : { assetLoader: options.assetLoader }),
+    ...(options.gltfAssetDecoders === undefined
+      ? {}
+      : { gltfAssetDecoders: options.gltfAssetDecoders }),
   });
   const preload = preloadReport(config);
 

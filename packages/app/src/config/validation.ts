@@ -48,11 +48,28 @@ export function validateApertureConfig(config: ApertureConfig): void {
     }
   }
 
+  validateAssetDecoderConfig(config.assetDecoders);
   validateInputActions(config.input?.actions ?? {});
 }
 
 export function isPreloadPolicy(value: unknown): value is AssetPreloadPolicy {
   return value === "blocking" || value === "background" || value === "manual";
+}
+
+function validateAssetDecoderConfig(
+  assetDecoders: ApertureConfig["assetDecoders"] | undefined,
+): void {
+  if (assetDecoders?.baseUrl !== undefined) {
+    if (assetDecoders.baseUrl.trim().length > 0) {
+      return;
+    }
+
+    throw new ApertureConfigError(
+      "aperture.config.emptyAssetDecoderBaseUrl",
+      "Asset decoder baseUrl must be non-empty when provided.",
+      "Use a URL such as '/assets/' or omit assetDecoders.baseUrl to use the default.",
+    );
+  }
 }
 
 function validateAssetId(id: string): void {

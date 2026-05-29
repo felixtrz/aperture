@@ -239,6 +239,10 @@ export interface ApertureDiagnosticsConfig {
   readonly level?: DiagnosticsLevel;
 }
 
+export interface ApertureAssetDecoderConfig {
+  readonly baseUrl?: string;
+}
+
 export interface ApertureConfig {
   readonly mode: ApertureAppMode;
   readonly canvas?: string;
@@ -250,6 +254,7 @@ export interface ApertureConfig {
   readonly input?: ApertureInputConfig;
   readonly render?: ApertureRenderDefaults;
   readonly diagnostics?: ApertureDiagnosticsConfig;
+  readonly assetDecoders?: ApertureAssetDecoderConfig;
 }
 
 export type DefineApertureConfigInput<TConfig extends ApertureConfig> = TConfig;

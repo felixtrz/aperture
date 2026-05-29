@@ -85,11 +85,13 @@ function attachWorkerPort(
       return;
     }
 
+    const start = startOptionsFromMessage(message);
+
     void runGeneratedWorkerLoop({
       port,
       config: options.config,
       systems: options.systems,
-      start: message,
+      start,
       pendingInput,
       createEntityTools: createGeneratedEntityToolBridge,
       setApp(nextApp, nextEntityTools, nextDevtools) {
@@ -145,4 +147,19 @@ function isStartMessage(value: unknown): value is SimulationWorkerStartOptions {
     (value as { readonly type?: unknown }).type ===
       SIMULATION_WORKER_PROTOCOL.start
   );
+}
+
+function startOptionsFromMessage(
+  message: SimulationWorkerStartOptions,
+): SimulationWorkerStartOptions {
+  const nested = message.options;
+
+  if (nested === null || typeof nested !== "object" || Array.isArray(nested)) {
+    return message;
+  }
+
+  return {
+    ...message,
+    ...(nested as Record<string, unknown>),
+  };
 }

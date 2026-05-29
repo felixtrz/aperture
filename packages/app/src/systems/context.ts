@@ -13,6 +13,7 @@ import { createCommandAccess, type CommandAccess } from "./commands.js";
 import {
   createSystemAssetAccess,
   type ApertureAssetLoader,
+  type SystemGltfAssetDecoderProvider,
   type SystemAssetAccess,
 } from "./assets.js";
 import { registerApertureAppComponents } from "./components.js";
@@ -51,6 +52,7 @@ export interface CreateApertureSystemContextOptions {
   readonly assetsRegistry: AssetRegistry;
   readonly config?: ApertureConfig;
   readonly assetLoader?: ApertureAssetLoader;
+  readonly gltfAssetDecoders?: SystemGltfAssetDecoderProvider;
 }
 
 const APERTURE_SYSTEM_CONTEXT_KEY = "aperture.systemContext";
@@ -75,6 +77,9 @@ export function createApertureSystemContext(
     registry: options.assetsRegistry,
     diagnostics,
     loader: options.assetLoader,
+    ...(options.gltfAssetDecoders === undefined
+      ? {}
+      : { gltfAssetDecoders: options.gltfAssetDecoders }),
   });
   const commands = createCommandAccess(assets);
   const spatial = createSpatialQueries();

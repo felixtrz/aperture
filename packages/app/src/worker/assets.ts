@@ -1,4 +1,8 @@
-import type { SystemAssetHandle, SystemAssetKind } from "../systems.js";
+import {
+  systemAssetReadyMetadata,
+  type SystemAssetHandle,
+  type SystemAssetKind,
+} from "../systems.js";
 
 export function createAssetSummary(
   handles: readonly SystemAssetHandle<SystemAssetKind>[],
@@ -10,5 +14,6 @@ export function createAssetSummary(
     preload: handle.preload,
     ready: handle.ready.value,
     error: handle.error.value,
+    ...systemAssetReadyMetadata(handle),
   }));
 }

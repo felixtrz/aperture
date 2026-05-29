@@ -3,7 +3,9 @@ import {
   type SimulationMessagePort,
   type SimulationWorkerStartOptions,
 } from "@aperture-engine/runtime";
+import type { Ktx2TextureCompressionSupport } from "@aperture-engine/render";
 import { createApertureApp, type ApertureApp } from "../advanced.js";
+import { createDefaultSystemGltfAssetDecoderProvider } from "../systems.js";
 import {
   createSourceAssetSerializationState,
   type SourceAssetSerializationState,
@@ -35,9 +37,21 @@ export async function runGeneratedWorkerLoop(options: {
   ) => void;
 }): Promise<void> {
   try {
+    const workerAssetDecoders = readWorkerAssetDecoderOptions(options.start);
+    const decoderBaseUrl =
+      workerAssetDecoders?.baseUrl ?? options.config.assetDecoders?.baseUrl;
     const app = await createApertureApp({
       config: options.config,
       systems: options.systems,
+      gltfAssetDecoders: createDefaultSystemGltfAssetDecoderProvider({
+        ...(decoderBaseUrl === undefined ? {} : { baseUrl: decoderBaseUrl }),
+        ...(workerAssetDecoders?.ktx2TextureCompression === undefined
+          ? {}
+          : {
+              ktx2TextureCompression:
+                workerAssetDecoders.ktx2TextureCompression,
+            }),
+      }),
       worldOptions:
         options.start.entityCapacity === undefined
           ? undefined
@@ -129,3 +143,48 @@ export async function runGeneratedWorkerLoop(options: {
 }
 
 export type GeneratedWorkerSourceAssetState = SourceAssetSerializationState;
+
+interface WorkerAssetDecoderOptions {
+  readonly baseUrl?: string;
+  readonly ktx2TextureCompression?: Ktx2TextureCompressionSupport;
+}
+
+function readWorkerAssetDecoderOptions(
+  start: SimulationWorkerStartOptions,
+): WorkerAssetDecoderOptions | null {
+  const value = start.assetDecoders;
+
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+  const baseUrl =
+    typeof record.baseUrl === "string" && record.baseUrl.trim().length > 0
+      ? record.baseUrl
+      : undefined;
+  const ktx2TextureCompression = readKtx2TextureCompressionSupport(
+    record.ktx2TextureCompression,
+  );
+
+  return {
+    ...(baseUrl === undefined ? {} : { baseUrl }),
+    ...(ktx2TextureCompression === null ? {} : { ktx2TextureCompression }),
+  };
+}
+
+function readKtx2TextureCompressionSupport(
+  value: unknown,
+): Ktx2TextureCompressionSupport | null {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+
+  return {
+    astc: record.astc === true,
+    bc: record.bc === true,
+    etc2: record.etc2 === true,
+  };
+}

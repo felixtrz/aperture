@@ -98,6 +98,8 @@ export type {
 } from "./systems/commands.js";
 export type {
   ApertureAssetLoader,
+  SystemGltfAssetDecoderProvider,
+  SystemGltfAssetDecoderProviderOptions,
   SystemAssetAccess,
   SystemAssetHandle,
   SystemAssetKind,
@@ -105,6 +107,8 @@ export type {
   SystemGltfLoadedScene,
   SystemShaderAssetHandle,
 } from "./systems/assets.js";
+export { createDefaultSystemGltfAssetDecoderProvider } from "./systems/assets.js";
+export { systemAssetReadyMetadata } from "./systems/assets.js";
 export {
   AppEntityKey,
   AppEntitySource,

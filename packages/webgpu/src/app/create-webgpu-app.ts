@@ -1,5 +1,9 @@
 import { AssetRegistry } from "@aperture-engine/simulation";
-import { RenderWorld, type RenderSnapshot } from "@aperture-engine/render";
+import {
+  createKtx2TextureCompressionSupportFromFeatures,
+  RenderWorld,
+  type RenderSnapshot,
+} from "@aperture-engine/render";
 import { registerWebGpuAppEnvironmentResourceCache } from "./app-environment-resources.js";
 import {
   createWebGpuAppSnapshotTransport,
@@ -53,6 +57,11 @@ export async function createWebGpuApp(
       ? {}
       : { sharedSnapshotTransport: options.sharedSnapshotTransport }),
   });
+  const assetDecoderStartOptions = {
+    ktx2TextureCompression: createKtx2TextureCompressionSupportFromFeatures(
+      initialization.device.features ?? initialization.adapter.features,
+    ),
+  };
   let running = false;
   let unsubscribeSnapshot: (() => void) | null = null;
   let unsubscribeError: (() => void) | null = null;
@@ -114,13 +123,16 @@ export async function createWebGpuApp(
       const transportStartPayload =
         createWebGpuAppSnapshotTransportStartPayload(snapshotTransport);
 
-      options.simulationWorker.start({
-        ...(options.workerStartOptions ?? {}),
-        ...startOptions,
-        ...(transportStartPayload === null
-          ? {}
-          : { transport: transportStartPayload }),
-      });
+      options.simulationWorker.start(
+        mergeWorkerStartOptions(
+          assetDecoderStartOptions,
+          options.workerStartOptions,
+          startOptions,
+          transportStartPayload === null
+            ? undefined
+            : { transport: transportStartPayload },
+        ),
+      );
     },
     stop() {
       if (!running) {
@@ -214,4 +226,43 @@ export async function createWebGpuApp(
   }
 
   return { ok: true, app, initialization };
+}
+
+function mergeWorkerStartOptions(
+  defaults: Record<string, unknown>,
+  ...overrides: readonly (Record<string, unknown> | undefined)[]
+): Record<string, unknown> {
+  const merged: Record<string, unknown> = { assetDecoders: defaults };
+
+  for (const override of overrides) {
+    if (override === undefined) {
+      continue;
+    }
+
+    const nextAssetDecoders = mergeRecordFields(
+      merged.assetDecoders,
+      override.assetDecoders,
+    );
+    Object.assign(merged, override);
+    if (nextAssetDecoders !== null) {
+      merged.assetDecoders = nextAssetDecoders;
+    }
+  }
+
+  return merged;
+}
+
+function mergeRecordFields(first: unknown, second: unknown): unknown | null {
+  if (!isRecord(first) && !isRecord(second)) {
+    return null;
+  }
+
+  return {
+    ...(isRecord(first) ? first : {}),
+    ...(isRecord(second) ? second : {}),
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
