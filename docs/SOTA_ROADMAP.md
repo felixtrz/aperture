@@ -14,7 +14,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
     5. Use absolute dates (YYYY-MM-DD [HH:MM TZ]) everywhere — never "today"/"now".
 -->
 
-**Last updated:** `2026-05-29 13:40 PDT — claude/opus`
+**Last updated:** `2026-05-29 14:05 PDT — claude/opus`
 
 > _What to write:_ Absolute date + time + timezone, then `— <your agent/author id>` (e.g. `2026-06-02 14:30 PDT — claude/opus`). Update on every edit to this block.
 
@@ -26,11 +26,11 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 
 > _What to write:_ Exactly ONE task id (`M#-T#`) you are mid-implementation on, or `none` when between tasks. Never two at once. Reset to `none` after you record the result in the completion log below.
 
-**Next recommended task:** `M2-T2 — AnimationMixer time driver + crossfade (depends M2-T1, now done); unblocks the play/crossfade API in M2-T8`
+**Next recommended task:** `M2-T3 — glTF skin import (depends: none); produces engine-owned skeletons and unblocks M2-T4/T6`
 
 > _What to write:_ The next `todo` task whose `dependsOn` are all `done`, lowest milestone/task number within the current wave. One line: `M#-T# — <why it's next / what it unblocks>`.
 
-**Gate status:** `pnpm run check = pass (373 files / 2128 tests); test/runtime/animation-clip.spec.ts = pass`
+**Gate status:** `pnpm run check = pass (374 files / 2135 tests); test/runtime/animation-mixer.spec.ts = pass`
 
 > _What to write:_ Result of the project gate at your last stop: `pnpm run check = pass|fail` plus any task-specific proofs you ran (e.g. `test/e2e/auto-shadow.spec.ts = pass`). If fail, name the failing check. Never mark a task `done` on a red gate.
 
@@ -45,7 +45,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 | Milestone   | Wave | Status      | Done/Total | Proof (route/spec)                                                               | Notes                                                                       |
 | ----------- | ---- | ----------- | ---------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | [M1](#m1)   | 0    | done        | 11/11      | `auto-shadow` route + compressed-GLB load + picking + `npm publish --dry-run` ✅ | Complete: shadows, compressed assets, picking, publishing, CI/release gates |
-| [M2](#m2)   | 1    | in-progress | 1/9        | skinned+animated GLB route (M2-T9) ⬜                                            | T1 sampler core landed (LINEAR/STEP/CUBICSPLINE)                            |
+| [M2](#m2)   | 1    | in-progress | 2/9        | skinned+animated GLB route (M2-T9) ⬜                                            | T1 sampler + T2 mixer (loop/once/pingpong/crossfade) landed                 |
 | [M3](#m3)   | 2    | not-started | 0/7        | post+forward+shadow ported under graph + custom-pass example (M3-T7) ⬜          | —                                                                           |
 | [M4](#m4)   | 1    | not-started | 0/9        | frustum-fit / PCSS / alpha-test shadow routes ⬜                                 | —                                                                           |
 | [M5](#m5)   | 1    | not-started | 0/6        | DFG / irradiance / transmission correctness routes ⬜                            | —                                                                           |
@@ -80,12 +80,13 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 | 2026-05-29 09:19 PDT             | M1-T10 | ✅ done  | 3bdb211d | `pnpm exec vitest run test/cli/create.test.ts`; `pnpm run typecheck`; `pnpm run typecheck:test`; `pnpm run check:publish`; `pnpm run check:publish:pack`; `pnpm run lint`; `pnpm run format:check`; `pnpm run check`                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Replaced hardcoded CLI version literals with a package-version reader that survives the published layout, made generated projects version 0.1.0, emitted `^0.1.0` Aperture deps by default, preserved an `APERTURE_LOCAL`/local option workspace escape, and covered CLI version/help plus default/local scaffold manifests.                                                                                                                                                   |
 | 2026-05-29 09:32 PDT             | M1-T11 | ✅ done  | f835fb62 | `pnpm run check:release-config`; `pnpm exec changeset status --since HEAD`; `pnpm run release:dry-run`; `pnpm run lint`; `pnpm run format:check`; `pnpm run check`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Added CI and release workflows, Changesets fixed-version config for the seven publishable packages, release scripts, CI-wired publish-readiness checks, a release-config guard, and a temp-fixture regression proof that private:true/version 0.0.0 publish regressions fail the gate.                                                                                                                                                                                         |
 | 2026-05-29 13:40 PDT             | M2-T1  | ✅ done  | d6c26e6  | `pnpm exec vitest run test/runtime/animation-clip.spec.ts` (6 pass); `pnpm run check` (373 files / 2128 tests pass)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Added engine-owned `AnimationClip`/`AnimationKeyframeChannel` (flat Float32Array times+values, CUBICSPLINE 3x-stride triples) and a pure allocation-light `sampleAnimationChannel` (LINEAR lerp + rotation shortest-path flip/renormalize, STEP hold-prev, CUBICSPLINE Hermite matching three.js GLTFCubicSplineInterpolant) in the runtime package; re-exported from `@aperture-engine/runtime`. Also hardened a pre-existing flaky frustum-culling microbenchmark (5fe516f). |
+| 2026-05-29 14:05 PDT             | M2-T2  | ✅ done  | 5cbb865  | `pnpm exec vitest run test/runtime/animation-mixer.spec.ts` (7 pass); `pnpm run check` (374 files / 2135 tests pass)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Added `AnimationMixer` (play/pause/resume/seek/crossFadeTo/update) with an internal time accumulator: signed speed, repeat-wrap, once-clamp+finished, pingpong reflection; single crossfade lane reusing `crossFadeTo`/`sampleAnimationCrossFade`; returns `BlendedAnimationChannel[]` via `blendAnimationClipSamples` and exposes blended morph `weightChannels`. Pure data, no ECS/GPU deps; exported from runtime.                                                          |
 
 ### Resume notes (for the next agent)
 
 > _What to write:_ If you stop mid-task, state exactly what is done, what remains, which files are dirty, and the next concrete step — enough for a cold agent to resume without re-reading the whole task. OVERWRITE this section on each hand-off (it is current-state, not a log). Write `clean — no in-flight work` when you finish a task cleanly.
 
-`clean — no in-flight work. M2-T1 done (d6c26e6): AnimationClip + sampleAnimationChannel landed in packages/runtime/src/animation-clip.ts, exported from runtime index, covered by test/runtime/animation-clip.spec.ts. Full gate green. Next: M2-T2 — build the AnimationMixer time driver (play/pause/seek/crossFadeTo/update) in packages/runtime/src/animation-mixer.ts, reusing blendAnimationClipSamples + sampleAnimationCrossFade and the new sampleAnimationChannel; keep it pure (return BlendedAnimationChannel[], no ECS writes).`
+`clean — no in-flight work. M2-T1 (d6c26e6) sampler + M2-T2 (5cbb865) AnimationMixer landed in packages/runtime/src; both covered by test/runtime/animation-{clip,mixer}.spec.ts. Full gate green (374 files / 2135 tests). Next: M2-T3 — glTF skin import. Capture node.skin in gltf-scene-traversal-nodes.ts, add packages/render/src/assets/gltf-skin-import.ts (decode inverseBindMatrices via decodeGltfPrimitiveAccessors), grow GltfEcsAuthoringComponentName with a 'Skin' command, resolve joint entity keys at replay time (deferred like the Parent case), and recognize the 'skins' root array in gltf-root.ts.`
 
 ---
 
@@ -514,7 +515,7 @@ Create an engine-level AnimationClip data type and a pure keyframe sampler in th
 
 **Watch out:** glTF CUBICSPLINE output layout interleaves in-tangent/value/out-tangent per keyframe (3x stride) — values array length is 3x a LINEAR channel; do not confuse stride. Rotation tangents must NOT be normalized before Hermite, only the final result. Keep sampler pure/allocation-light (reuse scratch tuples) since it runs per-channel per-frame.
 
-#### `M2-T2` · AnimationMixer time driver + crossfade over engine clips (headless)
+#### `M2-T2` · AnimationMixer time driver + crossfade over engine clips (headless) — ✅ done (2026-05-29 · 5cbb865)
 
 `runtime-orchestration` · effort **M** · depends: M2-T1
 
@@ -527,10 +528,10 @@ Create an engine AnimationMixer in packages/runtime/src/animation-mixer.ts that 
 
 **Done when:**
 
-- [ ] vitest at test/runtime/animation-mixer.spec.ts: a mixer playing a looping clip of duration D, advanced by update(D\*0.25) four times, returns samples whose local time wraps to ~0 (loop) and matches the clip value at 0
-- [ ] pause() freezes returned samples across subsequent update() calls; seek(t) makes update(0) return the clip value at t
-- [ ] loop:'once' clamps at duration and reports a clamped/finished flag; speed<0 plays backward and clamps at 0
-- [ ] crossFadeTo(B, 1.0) then update(0.5) returns samples that are a normalized blend of clip A and clip B for shared targets (per-target weight sums to ~1), and after update past the duration only clip B contributes (weight 1)
+- [x] vitest at test/runtime/animation-mixer.spec.ts: a mixer playing a looping clip of duration D, advanced by update(D\*0.25) four times, returns samples whose local time wraps to ~0 (loop) and matches the clip value at 0
+- [x] pause() freezes returned samples across subsequent update() calls; seek(t) makes update(0) return the clip value at t
+- [x] loop:'once' clamps at duration and reports a clamped/finished flag; speed<0 plays backward and clamps at 0
+- [x] crossFadeTo(B, 1.0) then update(0.5) returns samples that are a normalized blend of clip A and clip B for shared targets (per-target weight sums to ~1), and after update past the duration only clip B contributes (weight 1)
 
 **Study:** examples/glb-viewer.worker.js:5280-5466 (updateActiveAnimation/applyAnimationAtTime/crossfade) and references/three.js src/animation/AnimationMixer.js + AnimationAction.js (clampWhenFinished, crossFadeTo, timeScale)
 
