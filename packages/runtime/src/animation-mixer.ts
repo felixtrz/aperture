@@ -101,6 +101,11 @@ export class AnimationMixer {
     return this.clips.has(id);
   }
 
+  /** Ids of all registered clips. */
+  get clipIds(): readonly string[] {
+    return [...this.clips.keys()];
+  }
+
   /** Begin playing `clipId` from `startTime`, replacing any current playback. */
   play(clipId: string, options: AnimationPlayOptions = {}): void {
     const clip = this.clips.get(clipId);

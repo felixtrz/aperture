@@ -13,6 +13,12 @@ import {
   type AssetRegistry,
   type EcsWorld,
 } from "@aperture-engine/simulation";
+import {
+  Animation,
+  createAnimationAccess,
+  createAnimationDriverState,
+  registerRuntimeComponents,
+} from "@aperture-engine/runtime";
 import type { SystemAssetAccess } from "../assets.js";
 import { AppEntitySource } from "../components.js";
 import type { SystemDiagnostics } from "../diagnostics.js";
@@ -115,7 +121,27 @@ export function createSpawnCommands(options: {
         tag: "gltf",
         note: handle.url,
       });
+
+      // Bind imported clips to live entities (via the replay key map) and
+      // attach an engine animation driver to the root, so the public
+      // animation() controls can play/crossfade without hand-rolled sampling.
+      if (loadedScene.clips.length > 0) {
+        registerRuntimeComponents(options.world);
+        root.addComponent(Animation, {
+          state: createAnimationDriverState({
+            clips: loadedScene.clips.map((clip) => ({
+              id: clip.name,
+              clip: clip.clip,
+            })),
+            targets: replay.entitiesByKey,
+          }),
+        });
+      }
+
       return root;
+    },
+    animation(entity) {
+      return createAnimationAccess(entity);
     },
   };
 }
