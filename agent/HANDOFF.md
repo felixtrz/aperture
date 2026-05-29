@@ -4,7 +4,7 @@ Updated: 2026-05-29T07:02:38Z
 
 ## Current Run Update — 2026-05-29T07:02:38Z — SOTA M1-T3 shaderSampling status
 
-Completed `docs/SOTA_ROADMAP.md` task `M1-T3`.
+Completed `docs/SOTA_ROADMAP.md` task `M1-T3` in commit `ae5e9ded`.
 
 ### What Changed
 
