@@ -63,12 +63,31 @@ done-when #3 and M2-T9 pixel/render-control proofs are NOT environment-blocked
 
 ### Remaining M2 work (unblocked; large GPU subsystem + example authoring)
 
-The morph GPU render (T7 #3) + T9 route are a deeply-plumbed change (vertex
-layout variants in `standard-vertex-layout.ts`, WGSL injection in
-`standard-morph-target-shader.ts`, the per-mesh morph-delta source, the
-weight buffer/bind-group/batch-key, and ~9 morph webgpu tests asserting the
-2-target shape), plus example/fixture/spec authoring. Scoped above (steps 1-2).
-It is real engineering effort, not a blocker.
+Progress: M2-T7 #1 + #4 are now DONE — `importGltfMorphTargets`
+(packages/render/src/assets/gltf-morph-target-import.ts, commit 2890824)
+imports all N morph-target deltas (4-target → targetCount 4; 52 ARKit
+representable without dropping), covered by
+test/render/gltf-morph-target-import.spec.ts. With the typed transport
+(no JSON / no clamp), only T7 #2 and #3 remain.
+
+Still to do (each unblocked; WebGPU runnable via playwright.local.config.ts):
+
+1. T7 #3 (morph GPU render) + #2 (>4-weight snapshot): extend the standard
+   vertex layout + WGSL morph injection past 2 targets (or move deltas to a
+   per-mesh storage buffer / data texture consuming `morphTargetData`), pack N
+   weights per draw, update the ~9 morph webgpu tests (they assert @location
+   10-13 / stride 80,104 / weights.x,.y), and add a render-control/Playwright
+   pixel proof (3+ targets differs from 2-target-only).
+2. T9 route + pixel-diff: author a minimal skinned+animated GLB fixture (none
+   under examples/assets has both a skin and animations), examples/
+   animation-skinning.{worker,main}.js + .html (engine API: spawn.gltf +
+   spawn.animation), and test/e2e/animation-skinning.spec.ts asserting pixels
+   differ across two clip phases + engine-owned status. Run via:
+   `VK_ICD_FILENAMES=/opt/pw-browsers/chromium-1223/chrome-linux64/vk_swiftshader_icd.json xvfb-run -a pnpm exec playwright test --config playwright.local.config.ts <spec>`.
+
+The headless animation pipeline + public API are fully proven
+(test/app/{skinned-animated-route,gltf-animation-playback,gltf-animation-clips}.test.ts);
+the remaining work is the GPU render + the live pixel proofs.
 
 ## Current Run Update — 2026-05-29T16:32:07Z — SOTA M1 complete
 
