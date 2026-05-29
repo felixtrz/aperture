@@ -14,7 +14,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
     5. Use absolute dates (YYYY-MM-DD [HH:MM TZ]) everywhere — never "today"/"now".
 -->
 
-**Last updated:** `2026-05-29 15:35 PDT — claude/opus`
+**Last updated:** `2026-05-29 16:05 PDT — claude/opus`
 
 > _What to write:_ Absolute date + time + timezone, then `— <your agent/author id>` (e.g. `2026-06-02 14:30 PDT — claude/opus`). Update on every edit to this block.
 
@@ -26,11 +26,11 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 
 > _What to write:_ Exactly ONE task id (`M#-T#`) you are mid-implementation on, or `none` when between tasks. Never two at once. Reset to `none` after you record the result in the completion log below.
 
-**Next recommended task:** `M2-T6 — joint-palette compute system (depends M2-T3, M2-T5, both done); computes the palette from resolved world transforms each step`
+**Next recommended task:** `M2-T7 — unlimited morph targets (depends M2-T5, done); N-target import + typed weight transport + N-target WGSL`
 
 > _What to write:_ The next `todo` task whose `dependsOn` are all `done`, lowest milestone/task number within the current wave. One line: `M#-T# — <why it's next / what it unblocks>`.
 
-**Gate status:** `pnpm run check = pass (377 files / 2147 tests); skin typed-transport tests in test/rendering/extraction.test.ts = pass`
+**Gate status:** `pnpm run check = pass (378 files / 2151 tests); test/runtime/skinning-palette-system.spec.ts = pass`
 
 > _What to write:_ Result of the project gate at your last stop: `pnpm run check = pass|fail` plus any task-specific proofs you ran (e.g. `test/e2e/auto-shadow.spec.ts = pass`). If fail, name the failing check. Never mark a task `done` on a red gate.
 
@@ -45,7 +45,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 | Milestone   | Wave | Status      | Done/Total | Proof (route/spec)                                                               | Notes                                                                       |
 | ----------- | ---- | ----------- | ---------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | [M1](#m1)   | 0    | done        | 11/11      | `auto-shadow` route + compressed-GLB load + picking + `npm publish --dry-run` ✅ | Complete: shadows, compressed assets, picking, publishing, CI/release gates |
-| [M2](#m2)   | 1    | in-progress | 5/9        | skinned+animated GLB route (M2-T9) ⬜                                            | T1-T4 + T5 typed joint transport landed                                     |
+| [M2](#m2)   | 1    | in-progress | 6/9        | skinned+animated GLB route (M2-T9) ⬜                                            | T1-T5 + T6 joint-palette compute landed                                     |
 | [M3](#m3)   | 2    | not-started | 0/7        | post+forward+shadow ported under graph + custom-pass example (M3-T7) ⬜          | —                                                                           |
 | [M4](#m4)   | 1    | not-started | 0/9        | frustum-fit / PCSS / alpha-test shadow routes ⬜                                 | —                                                                           |
 | [M5](#m5)   | 1    | not-started | 0/6        | DFG / irradiance / transmission correctness routes ⬜                            | —                                                                           |
@@ -84,12 +84,13 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 | 2026-05-29 14:35 PDT             | M2-T3  | ✅ done  | 43f09a1  | `pnpm exec vitest run test/render/gltf-skin-import.spec.ts` (4 pass); `pnpm run check` (375 files / 2139 tests pass)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Imported glTF skins into an engine skeleton: traversal captures node.skin; new `importGltfSkins` parses joints/skeleton and decodes inverse-bind via a shared standalone float-accessor reader (also for M2-T4); a new `Skin` authoring command emits on skinned primitives and replays into a `Skin.skeleton` Object (live joint entities + inverse-bind, deferred key resolution like Parent), seeding an identity rest-pose palette; `skins` recognized as a core root array.                    |
 | 2026-05-29 15:05 PDT             | M2-T4  | ✅ done  | 3685f2c  | `pnpm exec vitest run test/render/gltf-animation-import.spec.ts test/app/gltf-animation-clips.test.ts` (6 pass); `pnpm run check` (377 files / 2145 tests pass)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Parsed gltf.animations into engine AnimationClips (LINEAR/STEP/CUBICSPLINE incl. 3x-stride; TRS + dynamic morph weights) via the shared decodeGltfFloatAccessor, targetId=keyPrefix:node:N. Relocated AnimationClip data types to simulation (runtime re-exports) to avoid a render→runtime cycle. Report-driven import now exposes skin+animation; loadSystemGltfAsset feeds skins to the command plan, registers clips as 'animation-clip', and surfaces clips+skeleton on SystemGltfLoadedScene. |
 | 2026-05-29 15:35 PDT             | M2-T5  | ✅ done  | 0ef493a  | `pnpm exec vitest run test/rendering/extraction.test.ts` (typed-transport + bone-snapshot cases pass); `pnpm run check` (377 files / 2147 tests pass)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Replaced Skin.jointMatricesJson (String) with a typed jointMatrices Float32Array palette (EcsType.Object). createSkin emits Float32Array; readSkinning reads it by reference (zero JSON.parse / zero per-extract allocation); pushBoneMatrices keeps snapshot.bones byte-identical. glTF Skin replay seeds a typed identity palette; glb-viewer example writes the typed field. Pixel-equivalence verified by proxy (byte-identical GPU skinning input).                                            |
+| 2026-05-29 16:05 PDT             | M2-T6  | ✅ done  | 65b3be5  | `pnpm exec vitest run test/runtime/skinning-palette-system.spec.ts` (4 pass); `pnpm run check` (378 files / 2151 tests pass)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Added updateSkeletonPalettes(world): palette_i = inverse(meshWorld)*jointWorld_i*inverseBind_i written in place into the typed Skin.jointMatrices (scratch-reused, identity fallback on degenerate/missing joint world). Runtime step() runs it imperatively after resolveWorldTransforms and before extraction (same-frame, no lag); app facade inherits via lowLevel.step(). Verified palette math, bind-pose identity, single-joint isolation, and same-frame ordering.                          |
 
 ### Resume notes (for the next agent)
 
 > _What to write:_ If you stop mid-task, state exactly what is done, what remains, which files are dirty, and the next concrete step — enough for a cold agent to resume without re-reading the whole task. OVERWRITE this section on each hand-off (it is current-state, not a log). Write `clean — no in-flight work` when you finish a task cleanly.
 
-`clean — no in-flight work. M2-T1..T5 landed; full gate green (377 files / 2147 tests). Skin palette is now a typed Float32Array (Skin.jointMatrices); Skin.skeleton holds {joints, inverseBindMatrices}. Next: M2-T6 — joint-palette compute system. Add packages/runtime/src/skinning-palette-system.ts computing palette_i = inverse(meshWorld) * jointWorld_i * inverseBind_i into Skin.jointMatrices, registered to run AFTER TransformResolutionSystem and before extraction (use invertMat4/multiplyMat4 from simulation math; fall back to identity on degenerate mesh world).`
+`clean — no in-flight work. M2-T1..T6 landed; full gate green (378 files / 2151 tests). Joint palettes now compute each step from resolved world transforms into Skin.jointMatrices. Next: M2-T7 — unlimited morph targets. Lift the 2-target cap end to end: rewrite gltf-mesh-primitive-morph-targets.ts for N targets (data texture or 8-target expanded buffer), replace MorphTargetWeights.weightsJson with a typed N-weight array (drop the 4-float [-1,1] clamp + JSON in readMorphTargetWeights), widen morph-target-weight-buffer.ts, and update standard-morph-target-shader.ts to accumulate N targets. SOTA target is a morph-target data texture (52 ARKit); an 8-target expanded-buffer intermediate is an acceptable exit with the texture path as documented follow-up.`
 
 ---
 
@@ -615,7 +616,7 @@ Eliminate the per-frame JSON.parse of joint matrices. Redesign the Skin authorin
 
 **Watch out:** elics components store fixed-shape schemas; a variable-length per-entity matrix array may need a side table keyed by entity/skin id rather than an ECS field. Whatever storage is chosen must remain structured-clone/worker-safe AND headless-safe (no GPU types). Do not change snapshot.bones layout or the GPU buffer descriptor — only the authoring->extraction source. Keep diagnostic codes (render.skinning.\*) so existing tests asserting them still pass or are intentionally updated.
 
-#### `M2-T6` · Joint-palette compute system: world-transform-driven skin update each step (headless)
+#### `M2-T6` · Joint-palette compute system: world-transform-driven skin update each step (headless) — ✅ done (2026-05-29 · 65b3be5)
 
 `simulation` · effort **M** · depends: M2-T3, M2-T5
 
@@ -629,10 +630,10 @@ Add an engine system that computes the joint palette from resolved world transfo
 
 **Done when:**
 
-- [ ] vitest at test/runtime/skinning-palette-system.spec.ts: a 2-joint skeleton with a known joint LocalTransform, after world-transform resolution + the palette system, has Skin palette matrices equal to hand-computed inverseMeshWorld*jointWorld*inverseBind within 1e-5
-- [ ] With all joints at bind pose (jointWorld == inverse(inverseBind) relative to mesh) the palette is identity within 1e-5
-- [ ] Rotating a joint's LocalTransform and re-stepping changes only that joint's palette block
-- [ ] The system runs after TransformResolutionSystem in a full createExtractionApp.step() (assert ordering via a sentinel or by checking palette reflects the same-frame transform, not last frame)
+- [x] vitest at test/runtime/skinning-palette-system.spec.ts: a 2-joint skeleton with a known joint LocalTransform, after world-transform resolution + the palette system, has Skin palette matrices equal to hand-computed inverseMeshWorld*jointWorld*inverseBind within 1e-5
+- [x] With all joints at bind pose (jointWorld == inverse(inverseBind) relative to mesh) the palette is identity within 1e-5
+- [x] Rotating a joint's LocalTransform and re-stepping changes only that joint's palette block
+- [x] The system runs after TransformResolutionSystem in a full createExtractionApp.step() (assert ordering via a sentinel or by checking palette reflects the same-frame transform, not last frame)
 
 **Study:** examples/glb-viewer.worker.js:4407-4458 (updateSkinningPalettesFromWorld) and references/bevy skinned mesh joint matrix computation
 
