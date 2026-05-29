@@ -1,7 +1,12 @@
 /**
- * Engine-level keyframe animation clip data + a pure, allocation-light keyframe
- * sampler. Headless / worker-safe: no ECS, GPU, or DOM dependencies — only flat
- * typed buffers and plain math.
+ * Pure, allocation-light keyframe sampler for engine {@link AnimationClip}s.
+ * Headless / worker-safe: no ECS, GPU, or DOM dependencies — only flat typed
+ * buffers and plain math.
+ *
+ * The clip *data* types live in `@aperture-engine/simulation` (so the glTF
+ * importer in `@aperture-engine/render` can produce them without a package
+ * cycle); they are re-exported here so `@aperture-engine/runtime` remains the
+ * one-stop import for the animation clip API + sampler.
  *
  * Extracted and generalized from the hand-rolled glb-viewer worker sampler
  * (`sampleAnimationChannel` / `interpolateAnimationTuple` /
@@ -13,51 +18,17 @@
  * derivation in references/three.js src/math/interpolants/CubicInterpolant.js.
  */
 
-/** glTF sampler interpolation modes. */
-export type AnimationInterpolation = "LINEAR" | "STEP" | "CUBICSPLINE";
+import type {
+  AnimationChannelPath,
+  AnimationKeyframeChannel,
+} from "@aperture-engine/simulation";
 
-/** Animation channel target paths (glTF `channel.target.path`). */
-export type AnimationChannelPath =
-  | "translation"
-  | "rotation"
-  | "scale"
-  | "weights";
-
-/**
- * A single keyframe channel: one TRS/weights path on one target, sampled over
- * time. All numeric data lives in flat `Float32Array`s so a clip is
- * structured-clone friendly and worker-transportable with no per-frame parse.
- */
-export interface AnimationKeyframeChannel {
-  /** Opaque target identifier (an entity key for imported glTF clips). */
-  readonly targetId: string;
-  readonly path: AnimationChannelPath;
-  readonly interpolation: AnimationInterpolation;
-  /** Ascending keyframe input times in seconds. Length === keyframe count. */
-  readonly times: Float32Array;
-  /**
-   * Flat keyframe outputs.
-   *
-   * - LINEAR / STEP: `keyframeCount * componentCount` values.
-   * - CUBICSPLINE: each keyframe is laid out as
-   *   `[inTangent(C), value(C), outTangent(C)]`, so the array is
-   *   `keyframeCount * componentCount * 3` long.
-   */
-  readonly values: Float32Array;
-  /**
-   * Components per value tuple: 3 for translation/scale, 4 for rotation, and
-   * the morph-target count for `weights` channels.
-   */
-  readonly componentCount: number;
-}
-
-/** An engine-owned animation clip: a named, timed bundle of channels. */
-export interface AnimationClip {
-  readonly name: string;
-  /** Clip length in seconds (max channel end time). */
-  readonly duration: number;
-  readonly channels: readonly AnimationKeyframeChannel[];
-}
+export type {
+  AnimationInterpolation,
+  AnimationChannelPath,
+  AnimationKeyframeChannel,
+  AnimationClip,
+} from "@aperture-engine/simulation";
 
 /** Number of keyframes in a channel. */
 export function animationChannelKeyframeCount(

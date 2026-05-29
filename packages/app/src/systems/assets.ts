@@ -13,10 +13,12 @@ import {
   loadGltfFromUri,
   registerGltfSourceAssetsFromReports,
   type DracoMeshDecoder,
+  type GltfAnimationImportReport,
   type GltfEcsAuthoringCommandPlan,
   type GltfMeshSourceAssetRegistrationReport,
   type GltfPrimitiveMaterialResolutionReport,
   type GltfReportDrivenImportReport,
+  type GltfSkinImportReport,
   type GltfSourceAssetRegistrationReport,
   type Ktx2BasisTranscoder,
   type Ktx2TextureCompressionSupport,
@@ -24,11 +26,14 @@ import {
 } from "@aperture-engine/render";
 import {
   assetHandleKey,
+  createAnimationClipHandle,
   createEnvironmentMapHandle,
   createMaterialHandle,
   createSceneHandle,
   createShaderHandle,
   createTextureHandle,
+  type AnimationClip,
+  type AnimationClipHandle,
   type AssetRegistry,
   type AssetHandle,
   type SceneHandle,
@@ -68,6 +73,14 @@ export type SystemShaderAssetHandle = SystemAssetHandle<"shader"> & {
   readonly renderHandle: ShaderHandle;
 };
 
+/** A glTF animation clip registered in the AssetRegistry under a handle. */
+export interface SystemGltfAnimationClip {
+  readonly animationIndex: number;
+  readonly name: string;
+  readonly handle: AnimationClipHandle;
+  readonly clip: AnimationClip;
+}
+
 export interface SystemGltfLoadedScene {
   readonly assetId: string;
   readonly url: string;
@@ -79,6 +92,11 @@ export interface SystemGltfLoadedScene {
   readonly primitiveMaterials: GltfPrimitiveMaterialResolutionReport;
   readonly commandPlan: GltfEcsAuthoringCommandPlan;
   readonly defaultMaterialHandleKey: string;
+  /** Engine-owned skeletons parsed from gltf.skins (M2-T3). */
+  readonly skin: GltfSkinImportReport;
+  /** Engine AnimationClips registered under AnimationClipHandles (M2-T4). */
+  readonly clips: readonly SystemGltfAnimationClip[];
+  readonly animationReport: GltfAnimationImportReport;
 }
 
 export interface SystemAssetAccess {
@@ -594,6 +612,7 @@ async function loadSystemGltfAsset(input: {
     traversalReport: importReport.sceneTraversal,
     meshRegistrationReport: registration.meshRegistration,
     primitiveMaterialReport: primitiveMaterials,
+    skinReport: importReport.skinImport,
   });
 
   if (!commandPlan.valid) {
@@ -606,6 +625,26 @@ async function loadSystemGltfAsset(input: {
     );
   }
 
+  // Register each imported AnimationClip in the asset registry under a stable
+  // AnimationClipHandle so the public play/crossfade API (M2-T8) can drive it.
+  const clips: SystemGltfAnimationClip[] = importReport.animation.clips.map(
+    (imported) => {
+      const handle = createAnimationClipHandle(
+        `${input.handle.id}:animation:${imported.animationIndex}`,
+      );
+      if (!input.registry.has(handle)) {
+        input.registry.register(handle, { label: imported.clip.name });
+        input.registry.markReady(handle, imported.clip);
+      }
+      return {
+        animationIndex: imported.animationIndex,
+        name: imported.clip.name,
+        handle,
+        clip: imported.clip,
+      };
+    },
+  );
+
   return {
     assetId: input.handle.id,
     url: loaded.url,
@@ -617,6 +656,9 @@ async function loadSystemGltfAsset(input: {
     primitiveMaterials,
     commandPlan,
     defaultMaterialHandleKey,
+    skin: importReport.skinImport,
+    clips,
+    animationReport: importReport.animation.report,
   };
 }
 
