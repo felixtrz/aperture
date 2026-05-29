@@ -5,6 +5,7 @@ export * from "./gltf-accessor-float-reader.js";
 export * from "./gltf-accessor-validation.js";
 export * from "./gltf-ecs-authoring-command-plan.js";
 export * from "./gltf-skin-import.js";
+export * from "./gltf-morph-target-import.js";
 export * from "./gltf-animation-import.js";
 export * from "./gltf-animation-import-report.js";
 export * from "./gltf-ecs-command-replay.js";
