@@ -705,8 +705,9 @@ Expose a high-level animation API and an ECS driver system so imported clips ani
 > #714) require a live WebGPU device + the M2-T7 morph data-texture render.
 > WebGPU IS runnable here (xvfb + SwiftShader Vulkan over localhost — [B1]
 > resolved; see playwright.local.config.ts), so these are large UNBLOCKED GPU
-> + example-authoring work, the milestone's documented follow-up — not an
-> environment block.
+>
+> - example-authoring work, the milestone's documented follow-up — not an
+>   environment block.
 
 `docs-tooling` · effort **M** · depends: M2-T6, M2-T7, M2-T8
 

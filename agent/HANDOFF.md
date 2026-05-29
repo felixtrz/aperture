@@ -25,7 +25,7 @@ both blocked only on the WebGPU/pixel portions ([B1] below).** Full
 - M2-T9 `a798d0d` 🟡 — headless end-to-end proof (test/app/skinned-animated-route.test.ts):
   skinned + CUBICSPLINE-animated GLB through createApertureApp + public API, asserting
   engine-owned status + CUBICSPLINE joint drive. REMAINING (WebGPU-blocked): Playwright
-  pixel-diff, render-control snapshot, >2-target morph contribution, the examples/animation-skinning.* route.
+  pixel-diff, render-control snapshot, >2-target morph contribution, the examples/animation-skinning.\* route.
 - Prerequisite: `5fe516f` hardened a pre-existing flaky frustum-culling microbenchmark
   (it asserted a 30% wall-clock speedup that does not reproduce on this runner; measured ~1.0x).
 
