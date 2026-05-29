@@ -4,7 +4,7 @@ Updated: 2026-05-29T07:14:09Z
 
 ## Current Run Update — 2026-05-29T07:14:09Z — SOTA M1-T4 glTF quantization support
 
-Completed `docs/SOTA_ROADMAP.md` task `M1-T4` in commit `pending`.
+Completed `docs/SOTA_ROADMAP.md` task `M1-T4` in commit `e24600a3`.
 
 ### What Changed
 
