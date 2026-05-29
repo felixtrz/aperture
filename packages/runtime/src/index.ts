@@ -1,3 +1,4 @@
+import { updateSkeletonPalettes } from "./skinning-palette-system.js";
 import {
   AssetRegistry,
   DebugMetadata,
@@ -90,6 +91,7 @@ export * from "./shared-snapshot-transport.js";
 export * from "./animation-blending.js";
 export * from "./animation-clip.js";
 export * from "./animation-mixer.js";
+export * from "./skinning-palette-system.js";
 
 export interface SpawnContext {
   readonly app: SimulationApp;
@@ -203,7 +205,11 @@ export function createSimulationApp(
     },
     step(delta = 0, time = 0) {
       world.update(delta, time);
-      return { transform: resolveWorldTransforms(world) };
+      const transform = resolveWorldTransforms(world);
+      // Compute skin joint palettes from same-frame resolved world transforms,
+      // after resolution and before any extraction (M2-T6).
+      updateSkeletonPalettes(world);
+      return { transform };
     },
   };
 
