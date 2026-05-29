@@ -1,6 +1,126 @@
 # Agent Handoff
 
-Updated: 2026-05-28T16:34:52Z
+Updated: 2026-05-28T18:43:11Z
+
+## Current Run Update — 2026-05-28T18:43:11Z — Custom WGSL v1 completion
+
+Completed the remaining visible slices in
+`docs/CUSTOM_WGSL_MATERIAL_ENABLEMENT_PLAN.md`.
+
+### What changed
+
+- Added a mixed built-in/custom WGSL WebGPU app route that prepares built-in and
+  custom resource sets, merges their mesh/pipeline/bind-group/resource maps, and
+  submits through the normal frame-boundary path with zero route diagnostics.
+- Added app-route custom WGSL texture and sampler binding resource preparation
+  using the existing renderer-owned texture/sampler helpers, with JSON-safe
+  diagnostics for missing or unsupported binding resources.
+- Added generated developer API browser coverage for `asset.shader(...)` plus
+  `material.customWgsl(...)`: the browser config preloads
+  `/shaders/generated-water.wgsl`, the setup system spawns
+  `level.custom.water`, and E2E expectations now require the custom entity and
+  three mesh draws.
+- Updated custom WGSL, authoring, architecture, decision, render asset
+  preparation, public tracker, backlog, and completed-task docs to reflect the
+  v1-complete state.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "custom-first mixed|unregistered route family|resets material queue route report"`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "custom WGSL texture|custom-first mixed"`
+- `pnpm exec vitest run test/app/developer-api.test.ts --testNamePattern "developer API example|config-driven headless|manual config assets|loads shader config assets"`
+- `pnpm run check` — passed after the mixed-route slice.
+- `pnpm run check` — passed after the texture/sampler slice.
+- `pnpm run check` — passed after the generated developer API slice.
+- Final `pnpm run check` after docs and tracker updates — passed.
+- `pnpm run check:progress` and `git diff --check` — passed.
+- Render-control browser smokes passed for `examples/custom-material.html`,
+  `examples/custom-material.html?broken=wgsl`, and
+  `examples/triangle.html?material=custom-wgsl`.
+- Chrome/WebGPU smoke for `examples/developer-api/` on port `4182` reported
+  `meshDraws: 3`, `drawCalls: 3`, the `level.custom.water` entity, and no frame
+  diagnostics.
+- A targeted headed Playwright run for
+  `test/e2e/developer-api.spec.ts --grep "generated developer API Vite browser bootstrap"`
+  printed the test as passed, then the runner process did not exit; it was
+  stopped manually after the pass line.
+
+### Known issues / remaining work
+
+- Storage-buffer custom WGSL bindings remain source-valid but app-route
+  unsupported until a renderer-independent buffer source asset exists.
+- WGSL imports/includes and custom lighting/environment integration remain
+  follow-up work.
+- One parallel render-control smoke run saw a transient zero center pixel while
+  three WebGPU Chrome instances ran at once; the same custom-material route
+  passed when rerun sequentially.
+
+### Recommended next task
+
+Start `task-3169`: add a camera render-target preview route.
+
+## Current Run Update — 2026-05-28T18:08:22Z — Custom WGSL app route v1
+
+Advanced `docs/CUSTOM_WGSL_MATERIAL_ENABLEMENT_PLAN.md` through the public v1
+custom WGSL data route.
+
+### What changed
+
+- Added shader source assets and handles across simulation/render/app:
+  `ShaderHandle`, `createShaderHandle(...)`, `asset.shader(...)`,
+  `this.assets.shader(...)`, shader source loading, source asset mirroring, and
+  JSON-safe shader readiness/failure diagnostics.
+- Added public custom WGSL material source contracts, namespaced family-key
+  validation, `customMaterialSource.*` source validation diagnostics, custom
+  material dependency readiness, prepared custom material metadata, and
+  `material.customWgsl(...)` / `shader.asset(...)` / `shader.inlineWgsl(...)`
+  worker-safe builders.
+- Added a WebGPU app route for one custom WGSL mesh/material resource set using
+  renderer-owned shader modules, pipelines, uniform buffers, group 0/1 shared
+  resources, group 2 material bind groups, normal frame-boundary assembly,
+  readback, render bundles, indirect-draw support, and JSON-safe diagnostics.
+- Migrated `examples/custom-material.html` from manual WebGPU preparation and
+  snapshot rewriting to worker-authored source assets plus `createWebGpuApp()`.
+  The default route animates via worker-authored uniform source data; the
+  `?broken=wgsl` route reports shader diagnostics without crashing.
+- Updated `examples/triangle.html?material=custom-wgsl`, docs, decision log,
+  public tracker pages, custom WGSL tests, route diagnostics, and generated
+  authoring coverage for `asset.shader(...)` plus `material.customWgsl(...)`.
+- Cleaned up lint/format gates by ignoring generated `.aperture` output in
+  ESLint, preserving a caught JSON parse cause in `scripts/render-control.mjs`,
+  and applying Prettier to files that blocked the repo-wide format gate.
+
+### Validation
+
+- `pnpm run check` — passed.
+- Earlier focused checks also passed for simulation/render/app/webgpu
+  typechecks and builds, custom WGSL asset/app/WebGPU Vitest coverage,
+  `pnpm run check:examples`, and `pnpm run check:progress`.
+- Focused browser smoke passed before the final repo check:
+  `examples/custom-material.html` rendered and animated through
+  `webgpu-app-route`; `examples/custom-material.html?broken=wgsl` reported
+  `customWgslMaterial.shaderDiagnostic` and
+  `customWgslMaterial.shaderCreationFailed`; and
+  `examples/triangle.html?material=custom-wgsl` rendered with family
+  `example/triangle-water`.
+
+### Known issues / remaining work
+
+- The app route currently renders one custom mesh/material resource set. Mixed
+  built-in/custom snapshots now route deterministically and fail with complete
+  material queue diagnostics, but they do not yet render both families in one
+  successful frame.
+- Custom WGSL app-route group 2 uniform buffers are supported. Texture,
+  sampler, and storage-buffer bindings are source-validating or diagnosed as
+  unsupported until renderer-owned resource resolution is added.
+- Formal headed Playwright for `test/e2e/custom-material.spec.ts` hung in this
+  environment before useful output; the focused headless browser smoke above
+  covered the success, broken-WGSL, and triangle custom routes.
+
+### Recommended next task
+
+Start `task-custom-wgsl-mixed-route`: render mixed built-in/custom WGSL frames
+through one successful `createWebGpuApp()` resource collector.
 
 ## Current Run Update — 2026-05-28T16:34:52Z — App/CLI structure refactor complete
 

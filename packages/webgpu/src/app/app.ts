@@ -52,6 +52,8 @@ import { type TonemapOperator } from "../output/output-stage-tonemap.js";
 import { type OutputColorSpace } from "../output/output-stage-color-space.js";
 import { type CreateMultiMaterialUnlitFrameGpuResourcesResult } from "../materials/unlit/unlit-frame-resources.js";
 import { type CreateUnlitAppFrameResourcesResult } from "../materials/unlit/unlit-app-frame-resources.js";
+import { type CreateCustomWgslAppFrameResourcesResult } from "../materials/custom-wgsl/custom-wgsl-app-frame-resources.js";
+import { type MixedCustomWgslAppFrameResourcesResult } from "./mixed-custom-wgsl-frame.js";
 import type { RenderPassCommandPressureReport } from "../render/passes/render-pass-commands.js";
 import { type WebGpuIdBufferPickReadbackResult } from "../picking/id-buffer-pick.js";
 import { type WebGpuPostEffect } from "../post/post-pass.js";
@@ -431,7 +433,9 @@ export type WebGpuAppFrameResourcesResult =
   | CreateMatcapAppFrameResourcesResult
   | CreateStandardAppFrameResourcesResult
   | CreateDebugNormalAppFrameResourcesResult
-  | CreateQueuedBuiltInFrameResourcesResult;
+  | CreateQueuedBuiltInFrameResourcesResult
+  | CreateCustomWgslAppFrameResourcesResult
+  | MixedCustomWgslAppFrameResourcesResult;
 
 export interface WebGpuApp {
   readonly canvas: WebGpuCanvasLike;

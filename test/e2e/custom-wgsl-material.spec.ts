@@ -44,7 +44,7 @@ test("custom WGSL material route renders through the full WebGPU draw path", asy
     phase: "submit",
     renderingBackend: "webgpu-explicit",
     customMaterial: {
-      family: "custom-water",
+      family: "example/triangle-water",
       sourceMaterialKey: "material:triangle",
       materialResourceKey: "material:triangle",
       diagnostics: 0,
@@ -56,7 +56,9 @@ test("custom WGSL material route renders through the full WebGPU draw path", asy
     command: { drawCount: 1, indexedDrawCount: 1 },
     submission: { commandBuffers: 1, drawCalls: 1, indexedDrawCalls: 1 },
   });
-  expect(status.customMaterial?.pipelineKey).toContain("custom-water|shader:");
+  expect(status.customMaterial?.pipelineKey).toContain(
+    "example/triangle-water|shader:",
+  );
   expect(status.customMaterial?.bindGroupResourceKey).toContain(
     "custom-wgsl-bind-group:material:triangle",
   );

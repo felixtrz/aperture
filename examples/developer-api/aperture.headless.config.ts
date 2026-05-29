@@ -16,6 +16,9 @@ export default defineApertureConfig({
     decal: asset.texture("/assets/aperture-base-color-checker.png", {
       preload: "manual",
     }),
+    generatedWater: asset.shader("/shaders/generated-water.wgsl", {
+      preload: "manual",
+    }),
   },
   input: {
     actions: {

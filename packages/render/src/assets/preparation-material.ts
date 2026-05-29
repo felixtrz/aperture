@@ -4,10 +4,16 @@ import type {
 } from "@aperture-engine/simulation";
 import {
   createPreparedMaterialResourceDescriptor,
+  isCustomWgslMaterialAsset,
   type MaterialAsset,
   type MaterialKind,
   type PreparedMaterialResourceDescriptor,
+  type SourceMaterialAsset,
 } from "../materials/index.js";
+import {
+  createCustomWgslMaterialRenderAssetAdapter,
+  type PreparedCustomWgslMaterial,
+} from "./custom-wgsl-material-preparation.js";
 import { prepareRenderAsset } from "./preparation-core.js";
 import { PreparedRenderAssetStore } from "./preparation-store.js";
 import type {
@@ -35,15 +41,19 @@ export interface PreparedMaterialAssetMetadata {
   readonly dependencyReadiness: PreparedMaterialResourceDescriptor["dependencyReadiness"];
 }
 
+export type PreparedSourceMaterialMetadata =
+  | PreparedMaterialAssetMetadata
+  | PreparedCustomWgslMaterial;
+
 export type PreparedMaterialAssetStore = PreparedRenderAssetStore<
   "material",
-  PreparedMaterialAssetMetadata
+  PreparedSourceMaterialMetadata
 >;
 
 export function createPreparedMaterialAssetStore(): PreparedMaterialAssetStore {
   return new PreparedRenderAssetStore<
     "material",
-    PreparedMaterialAssetMetadata
+    PreparedSourceMaterialMetadata
   >();
 }
 
@@ -52,15 +62,21 @@ export interface PreparedMaterialStore {
   get(
     handle: MaterialHandle,
   ):
-    | PreparedRenderAssetEntry<"material", PreparedMaterialAssetMetadata>
+    | PreparedRenderAssetEntry<"material", PreparedSourceMaterialMetadata>
     | undefined;
-  list(): PreparedRenderAssetEntry<"material", PreparedMaterialAssetMetadata>[];
+  list(): PreparedRenderAssetEntry<
+    "material",
+    PreparedSourceMaterialMetadata
+  >[];
   prepare(
     options: PreparedMaterialStorePrepareOptions,
-  ): RenderAssetPreparationReport<"material", PreparedMaterialAssetMetadata>;
+  ): RenderAssetPreparationReport<"material", PreparedSourceMaterialMetadata>;
   remove(
     handle: MaterialHandle,
-  ): PreparedRenderAssetStoreRemoval<"material", PreparedMaterialAssetMetadata>;
+  ): PreparedRenderAssetStoreRemoval<
+    "material",
+    PreparedSourceMaterialMetadata
+  >;
   clear(): void;
 }
 
@@ -77,8 +93,8 @@ export interface PreparedMaterialStoreEntryJsonValue {
   readonly assetKey: string;
   readonly sourceVersion: number;
   readonly label: string;
-  readonly materialFamily: MaterialKind;
-  readonly materialKind: MaterialKind;
+  readonly materialFamily: string;
+  readonly materialKind?: MaterialKind;
   readonly pipelineKey: string;
   readonly materialResourceKey: string;
   readonly bindGroupResourceKey: string;
@@ -89,10 +105,7 @@ export interface PreparedMaterialStoreEntryJsonValue {
 
 export interface PreparedMaterialStoreJsonValue {
   readonly totalEntries: number;
-  readonly families: Record<
-    MaterialKind,
-    PreparedMaterialStoreFamilyJsonSummary
-  >;
+  readonly families: Record<string, PreparedMaterialStoreFamilyJsonSummary>;
   readonly entries: readonly PreparedMaterialStoreEntryJsonValue[];
 }
 
@@ -102,7 +115,7 @@ export function createPreparedMaterialStore(
   } = {},
 ): PreparedMaterialStore {
   const entries = options.entries ?? createPreparedMaterialAssetStore();
-  const adapter = createMaterialMetadataRenderAssetAdapter();
+  const builtInAdapter = createMaterialMetadataRenderAssetAdapter();
 
   return {
     entries,
@@ -113,9 +126,24 @@ export function createPreparedMaterialStore(
       return entries.list();
     },
     prepare(prepareOptions) {
+      const entry = prepareOptions.registry.get<
+        "material",
+        SourceMaterialAsset
+      >(prepareOptions.handle);
+      const adapter =
+        entry?.status === "ready" &&
+        entry.asset !== null &&
+        isCustomWgslMaterialAsset(entry.asset)
+          ? createCustomWgslMaterialRenderAssetAdapter(entry.asset.familyKey)
+          : builtInAdapter;
+
       return prepareRenderAsset({
         registry: prepareOptions.registry,
-        adapter,
+        adapter: adapter as RenderAssetAdapter<
+          "material",
+          SourceMaterialAsset,
+          PreparedSourceMaterialMetadata
+        >,
         store: entries,
         handle: prepareOptions.handle,
       });
@@ -138,8 +166,9 @@ export function preparedMaterialStoreSummaryToJsonValue(
   const families = createEmptyPreparedMaterialFamilySummary();
 
   for (const entry of entries) {
+    const summary = families[entry.materialFamily] ?? { entries: 0 };
     families[entry.materialFamily] = {
-      entries: families[entry.materialFamily].entries + 1,
+      entries: summary.entries + 1,
     };
   }
 
@@ -196,7 +225,7 @@ export function createMaterialMetadataRenderAssetAdapter(): RenderAssetAdapter<
 }
 
 function createEmptyPreparedMaterialFamilySummary(): Record<
-  MaterialKind,
+  string,
   PreparedMaterialStoreFamilyJsonSummary
 > {
   return {
@@ -208,19 +237,27 @@ function createEmptyPreparedMaterialFamilySummary(): Record<
 }
 
 function preparedMaterialStoreEntryToJsonValue(
-  entry: PreparedRenderAssetEntry<"material", PreparedMaterialAssetMetadata>,
+  entry: PreparedRenderAssetEntry<"material", PreparedSourceMaterialMetadata>,
 ): PreparedMaterialStoreEntryJsonValue {
   return {
     assetKey: entry.assetKey,
     sourceVersion: entry.sourceVersion,
     label: entry.prepared.label,
     materialFamily: entry.prepared.materialFamily,
-    materialKind: entry.prepared.materialKind,
+    ...("materialKind" in entry.prepared
+      ? { materialKind: entry.prepared.materialKind }
+      : {}),
     pipelineKey: entry.prepared.pipelineKey,
     materialResourceKey: entry.prepared.materialResourceKey,
     bindGroupResourceKey: entry.prepared.bindGroupResourceKey,
-    dependencyCount: entry.prepared.dependencies.length,
-    textureBindingCount: entry.prepared.textureBindings.length,
+    dependencyCount:
+      "dependencies" in entry.prepared ? entry.prepared.dependencies.length : 0,
+    textureBindingCount:
+      "textureBindings" in entry.prepared
+        ? entry.prepared.textureBindings.length
+        : entry.prepared.bindGroup.entries.filter(
+            (binding) => binding.kind === "texture",
+          ).length,
     diagnosticCount: entry.diagnostics.length,
   };
 }

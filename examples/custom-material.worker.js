@@ -1,6 +1,14 @@
-const clearColor = { r: 0.01, g: 0.018, b: 0.028, a: 1 };
+import {
+  createSourceAssetSerializationState,
+  serializeSourceAssetRegistry,
+} from "/worker-modules/packages/app/dist/asset-mirror.js";
+
+const clearColor = [0.01, 0.018, 0.028, 1];
+const waterColor = [0.02, 0.46, 0.9, 1];
 
 let apertureModulePromise = null;
+let scene = null;
+const sourceAssetState = createSourceAssetSerializationState();
 
 self.addEventListener("error", (event) => {
   self.postMessage({
@@ -29,35 +37,49 @@ async function handleMessage(data) {
   try {
     const aperture = await loadAperture();
 
-    if (data?.type !== "snapshot") {
+    if (data?.type === "init") {
+      scene = createWaterScene(aperture, {
+        canvas: data.canvas ?? { width: 960, height: 540 },
+        brokenWgsl: data.brokenWgsl === true,
+      });
+      self.postMessage({
+        type: "ready",
+        scene: sceneSummary(aperture, scene),
+      });
       return;
     }
 
-    const canvasSize = data.canvas ?? { width: 960, height: 540 };
-    const scene = createWaterWorld(aperture, canvasSize);
-    const frame = finiteInteger(data.frame, 1);
-    const snapshot = aperture.extractRenderSnapshot(scene.world, scene.assets, {
-      frame,
-    });
+    if (data?.type === "frame") {
+      if (scene === null) {
+        throw new Error("Worker scene has not been initialized.");
+      }
 
-    self.postMessage(
-      {
-        type: "snapshot",
-        frame,
-        snapshot,
-        scene: {
-          meshKey: aperture.assetHandleKey(scene.meshHandle),
-          materialKey: aperture.assetHandleKey(scene.materialHandle),
-          meshLabel: scene.mesh.label,
-          materialLabel: scene.material.label,
+      updateWaterMaterial(aperture, scene, finiteNumber(data.time, 0));
+      scene.app.step(finiteNumber(data.delta, 0), finiteNumber(data.time, 0));
+
+      const frame = finiteInteger(data.frame, 1);
+      const snapshot = scene.app.extract(frame);
+
+      self.postMessage(
+        {
+          type: "snapshot",
+          frame,
+          time: finiteNumber(data.time, 0),
+          delta: finiteNumber(data.delta, 0),
+          shaderTime: finiteNumber(data.time, 0),
+          snapshot,
+          sourceAssets: serializeSourceAssetRegistry(scene.app.assets, {
+            state: sourceAssetState,
+          }),
+          scene: sceneSummary(aperture, scene),
         },
-      },
-      aperture.renderSnapshotTransferList(snapshot),
-    );
+        aperture.renderSnapshotTransferList(snapshot),
+      );
+    }
   } catch (error) {
     self.postMessage({
       type: "error",
-      reason: "worker-snapshot-failed",
+      reason: "worker-frame-failed",
       message: messageFromError(error),
     });
   }
@@ -76,56 +98,97 @@ function loadAperture() {
   return apertureModulePromise;
 }
 
-function createWaterWorld(aperture, canvasSize) {
-  const world = aperture.createWorld({ entityCapacity: 8 });
-  const assets = new aperture.AssetRegistry();
-  const meshHandle = aperture.createMeshHandle("custom-water-plane");
-  const materialHandle = aperture.createMaterialHandle("custom-water-material");
-  const mesh = createWaterPlaneMesh();
-  const material = aperture.createUnlitMaterialAsset({
-    label: "WaterMaterialExtractionPlaceholder",
-    baseColorFactor: new Float32Array([0.02, 0.46, 0.9, 1]),
+function createWaterScene(aperture, options) {
+  const app = aperture.createExtractionApp({
+    worldOptions: { entityCapacity: 8 },
   });
-
-  aperture.registerTransformComponents(world);
-  aperture.registerMetadataComponents(world);
-  aperture.registerRenderAuthoringComponents(world);
-  assets.register(meshHandle);
-  assets.register(materialHandle);
-  assets.markReady(meshHandle, mesh);
-  assets.markReady(materialHandle, material);
-
-  const camera = world.createEntity();
-  const cameraTransform = aperture.createRootTransform({
-    translation: [0, 0, 2.45],
+  const assets = aperture.createRenderAssetCollections({
+    registry: app.assets,
   });
+  const shader = assets.shaders.add(
+    aperture.createWgslShaderAsset({
+      label: "Water WGSL",
+      source: options.brokenWgsl ? brokenWaterWgsl() : waterWgsl(),
+      virtualPath: "water.wgsl",
+    }),
+    { id: "custom-water-shader" },
+  );
+  const mesh = assets.meshes.add(createWaterPlaneMesh(), {
+    id: "custom-water-plane",
+  });
+  const material = assets.materials.customWgsl.add(
+    createWaterMaterial(aperture, shader, 0),
+    { id: "custom-water-material" },
+  );
 
-  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
-  camera.addComponent(
-    aperture.Camera,
-    aperture.createCamera({
-      aspect: canvasSize.width / canvasSize.height,
+  app.spawn(
+    aperture.withTransform({ translation: [0, 0, 2.45] }),
+    aperture.withCamera({
+      aspect: options.canvas.width / options.canvas.height,
       near: 0.1,
       far: 100,
-      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      clearColor,
       layerMask: 1,
     }),
   );
+  app.spawn(
+    aperture.withTransform(),
+    aperture.withMesh(mesh),
+    aperture.withMaterial(material),
+    aperture.withRenderLayer(1),
+    aperture.withVisibility(true),
+  );
 
-  const plane = world.createEntity();
-  const planeTransform = aperture.createRootTransform();
+  return { app, mesh, material, shader, brokenWgsl: options.brokenWgsl };
+}
 
-  plane.addComponent(aperture.WorldTransform, planeTransform.world);
-  plane.addComponent(aperture.Mesh, {
-    meshId: aperture.assetHandleKey(meshHandle),
+function updateWaterMaterial(aperture, scene, time) {
+  scene.app.assets.markReady(
+    scene.material,
+    createWaterMaterial(aperture, scene.shader, time),
+  );
+}
+
+function createWaterMaterial(aperture, shader, time) {
+  return aperture.createCustomWgslMaterialAsset({
+    familyKey: "example/water",
+    label: "Water Material",
+    shader: { kind: "shader-asset", handle: shader },
+    entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+    renderState: {
+      cullMode: "none",
+      depth: { test: true, write: false, compare: "less" },
+      blend: { preset: "alpha" },
+      alphaMode: "blend",
+    },
+    bindings: [
+      {
+        name: "water",
+        binding: 0,
+        kind: "uniform-buffer",
+        visibility: ["fragment"],
+        label: "WaterUniforms",
+        fields: {
+          color: { type: "vec4", default: waterColor },
+          time: { type: "float32", default: 0 },
+        },
+        values: {
+          color: waterColor,
+          time,
+        },
+      },
+    ],
   });
-  plane.addComponent(aperture.Material, {
-    materialId: aperture.assetHandleKey(materialHandle),
-  });
-  plane.addComponent(aperture.RenderLayer, { mask: 1 });
-  plane.addComponent(aperture.Visibility);
+}
 
-  return { world, assets, mesh, meshHandle, material, materialHandle };
+function sceneSummary(aperture, scene) {
+  return {
+    meshKey: aperture.assetHandleKey(scene.mesh),
+    materialKey: aperture.assetHandleKey(scene.material),
+    shaderKey: aperture.assetHandleKey(scene.shader),
+    familyKey: "example/water",
+    brokenWgsl: scene.brokenWgsl,
+  };
 }
 
 function createWaterPlaneMesh() {
@@ -169,8 +232,70 @@ function createWaterPlaneMesh() {
   };
 }
 
+function waterWgsl() {
+  return `
+struct ViewProjectionUniform {
+  viewProjection: mat4x4f,
+  cameraPosition: vec4f,
+};
+
+struct VertexInput {
+  @location(0) position: vec3f,
+  @location(1) normal: vec3f,
+  @location(2) uv: vec2f,
+  @builtin(instance_index) instanceIndex: u32,
+};
+
+struct VertexOutput {
+  @builtin(position) position: vec4f,
+  @location(0) uv: vec2f,
+};
+
+struct WaterUniforms {
+  color: vec4f,
+  time: f32,
+};
+
+@group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
+@group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4f>;
+@group(2) @binding(0) var<uniform> water: WaterUniforms;
+
+@vertex
+fn vs_main(input: VertexInput) -> VertexOutput {
+  var output: VertexOutput;
+  let wave = sin((input.position.x * 5.0) + water.time * 3.0) * 0.08;
+  let world = worldTransforms[input.instanceIndex];
+  output.position =
+    view.viewProjection * world * vec4f(input.position.x, input.position.y + wave, input.position.z, 1.0);
+  output.uv = input.uv;
+  return output;
+}
+
+@fragment
+fn fs_main(input: VertexOutput) -> @location(0) vec4f {
+  let shimmer = 0.5 + 0.5 * sin(water.time * 5.0 + input.uv.x * 8.0);
+  let foam = smoothstep(0.72, 1.0, shimmer);
+  let base = water.color.rgb + vec3f(0.0, 0.18, 0.28) * shimmer;
+  return vec4f(mix(base, vec3f(0.72, 0.92, 1.0), foam * 0.35), water.color.a);
+}
+`;
+}
+
+function brokenWaterWgsl() {
+  return `
+@vertex
+fn vs_main() -> @builtin(position) vec4f {
+  return vec4f(0.0, 0.0, 0.0, 1.0);
+}
+`;
+}
+
 function finiteInteger(value, fallback) {
   return Number.isInteger(value) ? value : fallback;
+}
+
+function finiteNumber(value, fallback) {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
 function messageFromError(error) {

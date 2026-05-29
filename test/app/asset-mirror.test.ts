@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { AssetRegistry, createMeshHandle } from "@aperture-engine/simulation";
 import {
+  AssetRegistry,
+  createMeshHandle,
+  createShaderHandle,
+} from "@aperture-engine/simulation";
+import { createWgslShaderAsset } from "@aperture-engine/render";
+import {
+  mirrorSourceAssetRegistryFromMessage,
   createSourceAssetSerializationState,
   serializeSourceAssetRegistry,
 } from "../../packages/app/src/asset-mirror.js";
@@ -51,5 +57,47 @@ describe("generated app source asset mirroring", () => {
 
     expect(serializeSourceAssetRegistry(registry).entries).toHaveLength(1);
     expect(serializeSourceAssetRegistry(registry).entries).toHaveLength(1);
+  });
+
+  it("mirrors shader source assets by handle version", () => {
+    const workerRegistry = new AssetRegistry();
+    const mainRegistry = new AssetRegistry();
+    const state = createSourceAssetSerializationState();
+    const shader = createShaderHandle("water");
+
+    workerRegistry.register(shader, { label: "Water WGSL" });
+    workerRegistry.markReady(
+      shader,
+      createWgslShaderAsset({
+        label: "Water WGSL",
+        source: "fn fs_main() -> vec4f { return vec4f(1.0); }",
+        url: "/shaders/water.wgsl",
+      }),
+    );
+
+    const firstMessage = {
+      sourceAssets: serializeSourceAssetRegistry(workerRegistry, { state }),
+    };
+    const firstMirror = mirrorSourceAssetRegistryFromMessage(
+      mainRegistry,
+      firstMessage,
+    );
+    const mirrored = mainRegistry.get(shader);
+
+    expect(firstMirror).toEqual({ mirrored: 1, skipped: 0 });
+    expect(mirrored).toMatchObject({
+      kind: "shader",
+      label: "Water WGSL",
+      status: "ready",
+      version: 1,
+      asset: {
+        kind: "shader",
+        language: "wgsl",
+        url: "/shaders/water.wgsl",
+      },
+    });
+    expect(
+      serializeSourceAssetRegistry(workerRegistry, { state }).entries,
+    ).toEqual([]);
   });
 });

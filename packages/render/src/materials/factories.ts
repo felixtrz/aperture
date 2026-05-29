@@ -1,5 +1,9 @@
 import type {
   DebugNormalMaterialAsset,
+  CustomMaterialDependencyDeclaration,
+  CustomWgslMaterialAsset,
+  CustomWgslMaterialPipelineKeyInput,
+  CustomWgslShaderRef,
   MaterialUnsupportedFeature,
   MatcapMaterialAsset,
   RenderStateDescriptor,
@@ -7,6 +11,7 @@ import type {
   StandardMaterialAsset,
   TextureAsset,
   UnlitMaterialAsset,
+  WgslShaderAsset,
 } from "./types.js";
 
 export function createDefaultRenderState(
@@ -153,4 +158,82 @@ export function createSamplerAsset(
     lodMaxClamp: input.lodMaxClamp ?? 32,
     maxAnisotropy: input.maxAnisotropy ?? 1,
   };
+}
+
+export function createWgslShaderAsset(input: {
+  readonly label?: string;
+  readonly source: string;
+  readonly url?: string;
+  readonly virtualPath?: string;
+}): WgslShaderAsset {
+  return {
+    kind: "shader",
+    language: "wgsl",
+    label: input.label ?? input.virtualPath ?? input.url ?? "WGSL Shader",
+    source: input.source,
+    ...(input.url === undefined ? {} : { url: input.url }),
+    ...(input.virtualPath === undefined
+      ? {}
+      : { virtualPath: input.virtualPath }),
+  };
+}
+
+export function createCustomWgslMaterialAsset(
+  input: Omit<
+    CustomWgslMaterialAsset,
+    | "sourceDiscriminator"
+    | "shaderLanguage"
+    | "renderState"
+    | "pipelineKey"
+    | "bindings"
+    | "dependencies"
+  > & {
+    readonly renderState?: Partial<RenderStateDescriptor>;
+    readonly pipelineKey?: Partial<CustomWgslMaterialPipelineKeyInput>;
+    readonly bindings?: CustomWgslMaterialAsset["bindings"];
+    readonly dependencies?: CustomWgslMaterialAsset["dependencies"];
+  },
+): CustomWgslMaterialAsset {
+  return {
+    sourceDiscriminator: "custom-material-source",
+    shaderLanguage: "wgsl",
+    familyKey: input.familyKey,
+    label: input.label,
+    shader: input.shader,
+    entryPoints: input.entryPoints,
+    renderState: createDefaultRenderState(input.renderState),
+    pipelineKey: {
+      features: input.pipelineKey?.features ?? [],
+      specialization: input.pipelineKey?.specialization ?? {},
+    },
+    bindings: input.bindings ?? [],
+    dependencies: input.dependencies ?? customWgslMaterialDependencies(input),
+    ...(input.instanceAttributes === undefined
+      ? {}
+      : { instanceAttributes: input.instanceAttributes }),
+    ...(input.metadata === undefined ? {} : { metadata: input.metadata }),
+  };
+}
+
+function customWgslMaterialDependencies(input: {
+  readonly shader: CustomWgslShaderRef;
+  readonly bindings?: CustomWgslMaterialAsset["bindings"];
+}): readonly CustomMaterialDependencyDeclaration[] {
+  const dependencies: CustomMaterialDependencyDeclaration[] = [];
+
+  if (input.shader.kind === "shader-asset") {
+    dependencies.push({ kind: "shader", handle: input.shader.handle });
+  }
+
+  for (const binding of input.bindings ?? []) {
+    if (binding.kind === "texture") {
+      dependencies.push({ kind: "texture", handle: binding.texture });
+    }
+
+    if (binding.kind === "sampler") {
+      dependencies.push({ kind: "sampler", handle: binding.sampler });
+    }
+  }
+
+  return dependencies;
 }

@@ -526,3 +526,53 @@ Consequences:
   bounds/collider fallback, not with an extra BVH worker.
 - Serialized BVH payloads, if retained, are cache/debug snapshots rather than a
   worker handoff contract.
+
+## 0016 — Custom WGSL Materials Use an Aperture-Owned Data Route
+
+Status: accepted
+
+Context:
+
+Decision 0012 established that custom material source assets are data-only
+family instances. The implementation now exposes shader source assets, app
+system builders, render-asset preparation, and a WebGPU app route for custom
+WGSL. That route needs a policy boundary so it does not turn into arbitrary
+app-owned renderer plugins or leak WebGPU objects into worker systems.
+
+Decision:
+
+The public custom material v1 is an Aperture-owned WGSL material route:
+
+- App config may declare `asset.shader(...)` entries, and systems may access
+  them through `this.assets.shader(...)`.
+- Worker systems may author `material.customWgsl(...)` with `shader.asset(...)`
+  or `shader.inlineWgsl(...)`, data-only render state, entry points, pipeline
+  key inputs, binding declarations, dependencies, and JSON-safe metadata.
+- Built-in `MaterialKind` remains a closed built-in union. Custom materials use
+  the separate `sourceDiscriminator: "custom-material-source"` shape and a
+  namespaced `familyKey`.
+- The worker/main boundary transports WGSL as source asset text by
+  handle/version or inline source in the material asset. No worker system may
+  create or store `GPUShaderModule`, `GPUBuffer`, `GPUBindGroup`,
+  `GPURenderPipeline`, texture views, samplers, or callback-based adapters.
+- The WebGPU backend owns shader module creation, pipeline creation, uniform
+  buffers, bind groups, caches, command planning, and submission.
+- V1 reserves groups 0 and 1 for renderer view/transform resources, group 2 for
+  declared custom material bindings, and group 3 for future renderer
+  extensions.
+
+Consequences:
+
+- Custom WGSL can render through `createWebGpuApp()` and the normal
+  worker/main source asset mirror without example-local snapshot rewriting.
+- Mixed built-in/custom WGSL frames can render through the same material queue,
+  frame-resource preparation, frame-boundary assembly, and submission path as
+  built-ins.
+- Shader compile and pipeline failures must surface as JSON-safe WebGPU/app
+  diagnostics, while source-shape failures stay under
+  `customMaterialSource.*`.
+- Texture and sampler bindings fit the data-only source contract and are
+  resolved into renderer-owned app-route resources. Storage-buffer bindings,
+  lighting, environment, shader imports, and arbitrary user adapter callbacks
+  remain explicit follow-up work unless they fit the same data-only source
+  contract and renderer-owned GPU boundary.

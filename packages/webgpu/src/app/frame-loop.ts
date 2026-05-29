@@ -4,12 +4,14 @@ import {
 } from "@aperture-engine/simulation";
 import {
   createMaterialDependencyReadinessReport,
+  isCustomWgslMaterialAsset,
   writePackedSnapshotInstanceTintsForVertexBuffer,
   writePackedSnapshotTransforms,
   writePackedSnapshotViewUniforms,
-  type MaterialAsset,
   type MeshAsset,
+  type MeshDrawPacket,
   type RenderSnapshot,
+  type SourceMaterialAsset,
 } from "@aperture-engine/render";
 import { createWebGpuAppDrawResourceSetPlan } from "./draw-resource-set.js";
 import {
@@ -76,6 +78,8 @@ import {
 import { assembleWebGpuAppFrameBoundaries } from "./frame-boundaries.js";
 import { renderSpriteOnlyWebGpuAppFrame } from "./sprite-frame.js";
 import { renderQueuedBuiltInWebGpuAppFrame } from "./queued-built-in-frame.js";
+import { renderCustomWgslWebGpuAppFrame } from "./custom-wgsl-frame.js";
+import { renderMixedCustomWgslWebGpuAppFrame } from "./mixed-custom-wgsl-frame.js";
 import type {
   WebGpuApp,
   WebGpuAppFrameResourcesResult,
@@ -256,7 +260,7 @@ export async function renderWebGpuAppFrame(
   }
 
   const meshEntry = sourceAssets.get<"mesh", MeshAsset>(firstDraw.mesh);
-  const materialEntry = sourceAssets.get<"material", MaterialAsset>(
+  const materialEntry = sourceAssets.get<"material", SourceMaterialAsset>(
     firstDraw.material,
   );
   const mesh = meshEntry?.asset ?? null;
@@ -303,9 +307,120 @@ export async function renderWebGpuAppFrame(
     });
   }
 
-  const firstMaterialKindSupported = isBuiltInMaterialQueueFamily(
-    material.kind,
-  );
+  const materialIsCustom = isCustomWgslMaterialAsset(material);
+  const builtInMaterial = materialIsCustom ? null : material;
+  const materialFamilyLabel = materialIsCustom
+    ? material.familyKey
+    : material.kind;
+  const firstMaterialKindSupported =
+    builtInMaterial !== null &&
+    isBuiltInMaterialQueueFamily(builtInMaterial.kind);
+  const mixedCustomBuiltInSnapshot =
+    createBuiltInOnlySnapshotForMixedCustomWgslRoute(sourceAssets, snapshot);
+
+  if (mixedCustomBuiltInSnapshot !== null) {
+    prepareWebGpuAppSourceAssetFacades({
+      registry: sourceAssets,
+      snapshot,
+      cache: resourceCache,
+      resourceReuse: reuse,
+    });
+
+    const queuedBuiltIn = collectQueuedBuiltInAppResourceSet({
+      assets: sourceAssets,
+      snapshot: mixedCustomBuiltInSnapshot,
+      materialQueueScratch: resourceCache.frameScratch.materialQueue,
+      routeScratch: resourceCache.frameScratch.queueRoute,
+      meshes: resourceCache.preparedMeshFacade,
+      materials: resourceCache.preparedMaterialFacade,
+      adapters: QUEUED_BUILT_IN_MATERIAL_ADAPTERS,
+    });
+
+    if (!queuedBuiltIn.valid || queuedBuiltIn.resourceSet === null) {
+      const diagnosticsSummary =
+        createQueuedBuiltInRouteFailureDiagnosticsSummary(
+          queuedBuiltIn.diagnostics,
+          QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION,
+        );
+
+      return renderReport({
+        ok: false,
+        snapshot,
+        resourceReuse: reuse,
+        phaseTimings: phaseTimer.report(
+          resourceCache.phaseTimingHistory,
+          snapshot.frame,
+        ),
+        ...(diagnosticsSummary === undefined ? {} : { diagnosticsSummary }),
+        diagnostics: [...snapshot.diagnostics, ...queuedBuiltIn.diagnostics],
+      });
+    }
+
+    phaseTimer.finish("collect");
+    phaseTimer.start("prepare");
+
+    return renderMixedCustomWgslWebGpuAppFrame({
+      app,
+      assets: sourceAssets,
+      cache: resourceCache,
+      snapshot,
+      snapshotChangeSet: updateMetadata.snapshotChangeSet,
+      snapshotUpdateSchedule: updateMetadata.snapshotUpdateSchedule,
+      builtInSnapshot: mixedCustomBuiltInSnapshot,
+      builtInResourceSet: queuedBuiltIn.resourceSet,
+      reuse,
+      ...(options.clearColor === undefined
+        ? {}
+        : { clearColor: options.clearColor }),
+      ...(options.label === undefined ? {} : { label: options.label }),
+      ...(options.readbackSamples === undefined
+        ? {}
+        : { readbackSamples: options.readbackSamples }),
+      ...(options.standardMaterialShadowReceiverResources === undefined
+        ? {}
+        : {
+            standardMaterialShadowReceiverResources:
+              options.standardMaterialShadowReceiverResources,
+          }),
+      ...(options.standardMaterialIblResources === undefined
+        ? {}
+        : {
+            standardMaterialIblResources: options.standardMaterialIblResources,
+          }),
+      localLightCookieResources: localLightCookieResources.resources,
+      phaseTimer,
+    });
+  }
+
+  if (materialIsCustom && resourceSetPlan.sets.length <= 1) {
+    prepareWebGpuAppSourceAssetFacades({
+      registry: sourceAssets,
+      snapshot,
+      cache: resourceCache,
+      resourceReuse: reuse,
+    });
+
+    phaseTimer.finish("collect");
+    phaseTimer.start("prepare");
+
+    return renderCustomWgslWebGpuAppFrame({
+      app,
+      assets: sourceAssets,
+      cache: resourceCache,
+      snapshot,
+      snapshotChangeSet: updateMetadata.snapshotChangeSet,
+      snapshotUpdateSchedule: updateMetadata.snapshotUpdateSchedule,
+      reuse,
+      ...(options.clearColor === undefined
+        ? {}
+        : { clearColor: options.clearColor }),
+      ...(options.label === undefined ? {} : { label: options.label }),
+      ...(options.readbackSamples === undefined
+        ? {}
+        : { readbackSamples: options.readbackSamples }),
+      phaseTimer,
+    });
+  }
 
   if (!firstMaterialKindSupported && resourceSetPlan.sets.length <= 1) {
     return renderReport({
@@ -319,7 +434,7 @@ export async function renderWebGpuAppFrame(
       diagnostics: [
         {
           code: "webGpuApp.unsupportedMaterialKind",
-          message: `WebGPU app render supports unlit, matcap, standard, and debug-normal materials, not '${material.kind}'.`,
+          message: `WebGPU app render supports unlit, matcap, standard, and debug-normal materials, not '${materialFamilyLabel}'.`,
         },
       ],
     });
@@ -412,7 +527,11 @@ export async function renderWebGpuAppFrame(
   }
 
   const materialKind =
-    multiUnlit === null && firstMaterialKindSupported ? material.kind : "unlit";
+    multiUnlit === null &&
+    builtInMaterial !== null &&
+    firstMaterialKindSupported
+      ? builtInMaterial.kind
+      : "unlit";
   const pipeline = await getOrCreateWebGpuAppPipeline({
     app,
     cache: resourceCache,
@@ -479,14 +598,14 @@ export async function renderWebGpuAppFrame(
     materialEntry?.version ?? -1,
   );
   const singleBuiltInItem =
-    multiUnlit === null
+    multiUnlit === null && builtInMaterial !== null
       ? createSingleQueuedBuiltInAppResourceItem({
           adapters: QUEUED_BUILT_IN_MATERIAL_ADAPTERS,
           draw: firstDraw,
           drawIndex: 0,
           mesh,
           meshKey,
-          material,
+          material: builtInMaterial,
           materialKey,
           materialVersion: materialEntry?.version ?? -1,
           frame: snapshot.frame,
@@ -502,7 +621,7 @@ export async function renderWebGpuAppFrame(
       diagnostics: [
         {
           code: "webGpuApp.unsupportedMaterialKind",
-          message: `WebGPU app render supports unlit, matcap, standard, and debug-normal materials, not '${material.kind}'.`,
+          message: `WebGPU app render supports unlit, matcap, standard, and debug-normal materials, not '${materialFamilyLabel}'.`,
         },
       ],
     });
@@ -559,7 +678,7 @@ export async function renderWebGpuAppFrame(
         diagnostics: [
           {
             code: "webGpuApp.unsupportedMaterialKind",
-            message: `WebGPU app render supports unlit, matcap, standard, and debug-normal materials, not '${material.kind}'.`,
+            message: `WebGPU app render supports unlit, matcap, standard, and debug-normal materials, not '${materialFamilyLabel}'.`,
           },
         ],
       });
@@ -831,4 +950,44 @@ export async function renderWebGpuAppFrame(
       ),
     ],
   });
+}
+
+function createBuiltInOnlySnapshotForMixedCustomWgslRoute(
+  assets: AssetRegistry,
+  snapshot: RenderSnapshot,
+): RenderSnapshot | null {
+  const builtInDraws: MeshDrawPacket[] = [];
+  let customDrawCount = 0;
+
+  for (const draw of snapshot.meshDraws) {
+    const material = assets.get<"material", SourceMaterialAsset>(
+      draw.material,
+    )?.asset;
+
+    if (material === null || material === undefined) {
+      continue;
+    }
+
+    if (isCustomWgslMaterialAsset(material)) {
+      customDrawCount += 1;
+      continue;
+    }
+
+    if (isBuiltInMaterialQueueFamily(material.kind)) {
+      builtInDraws.push(draw);
+    }
+  }
+
+  if (customDrawCount === 0 || builtInDraws.length === 0) {
+    return null;
+  }
+
+  return {
+    ...snapshot,
+    meshDraws: builtInDraws,
+    report: {
+      ...snapshot.report,
+      meshDraws: builtInDraws.length,
+    },
+  };
 }

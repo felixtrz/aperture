@@ -74,12 +74,13 @@ function validateAssetDescriptor(
   if (
     descriptor.kind !== "gltf" &&
     descriptor.kind !== "texture" &&
-    descriptor.kind !== "hdr"
+    descriptor.kind !== "hdr" &&
+    descriptor.kind !== "shader"
   ) {
     throw new ApertureConfigError(
       "aperture.config.invalidAssetKind",
       `Asset '${id}' has unsupported kind '${String(descriptor.kind)}'.`,
-      "Declare assets through asset.gltf(), asset.texture(), or asset.hdr().",
+      "Declare assets through asset.gltf(), asset.texture(), asset.hdr(), or asset.shader().",
     );
   }
 

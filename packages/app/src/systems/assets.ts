@@ -4,6 +4,7 @@ import {
   createGltfEcsAuthoringCommandPlan,
   createGltfPrimitiveMaterialResolutionReport,
   createGltfUriLoadCache,
+  createWgslShaderAsset,
   createStandardMaterialAsset,
   loadGlbFromUri,
   loadGltfFromUri,
@@ -19,9 +20,12 @@ import {
   createEnvironmentMapHandle,
   createMaterialHandle,
   createSceneHandle,
+  createShaderHandle,
   createTextureHandle,
   type AssetRegistry,
+  type AssetHandle,
   type SceneHandle,
+  type ShaderHandle,
 } from "@aperture-engine/simulation";
 import type {
   ApertureConfig,
@@ -53,6 +57,10 @@ export type SystemGltfAssetHandle = SystemAssetHandle<"gltf"> & {
   readonly scene: Signal<SystemGltfLoadedScene | null>;
 };
 
+export type SystemShaderAssetHandle = SystemAssetHandle<"shader"> & {
+  readonly renderHandle: ShaderHandle;
+};
+
 export interface SystemGltfLoadedScene {
   readonly assetId: string;
   readonly url: string;
@@ -70,6 +78,7 @@ export interface SystemAssetAccess {
   gltf(id: string): SystemGltfAssetHandle;
   texture(id: string): SystemAssetHandle<"texture">;
   hdr(id: string): SystemAssetHandle<"hdr">;
+  shader(id: string): SystemShaderAssetHandle;
   request(
     idOrHandle: string | SystemAssetHandle<SystemAssetKind>,
   ): Promise<void>;
@@ -108,7 +117,7 @@ export function createSystemAssetAccess(options: {
   ): Promise<void> {
     const handle =
       typeof idOrHandle === "string" ? lookup(idOrHandle) : idOrHandle;
-    const registryHandle = handle.renderHandle as SceneHandle;
+    const registryHandle = handle.renderHandle as AssetHandle;
 
     if (handle.ready.value) {
       return;
@@ -130,14 +139,21 @@ export function createSystemAssetAccess(options: {
           gltfCache,
         });
         (handle as SystemGltfAssetHandle).scene.value = scene;
+      } else if (handle.kind === "shader") {
+        const shaderAsset = await loadSystemShaderAsset(
+          handle as SystemShaderAssetHandle,
+        );
+        options.registry.markReady(registryHandle as ShaderHandle, shaderAsset);
       }
 
-      options.registry.markReady(registryHandle, {
-        id: handle.id,
-        kind: handle.kind,
-        url: handle.url,
-        ...sceneReadyMetadata(handle),
-      });
+      if (handle.kind !== "shader") {
+        options.registry.markReady(registryHandle, {
+          id: handle.id,
+          kind: handle.kind,
+          url: handle.url,
+          ...sceneReadyMetadata(handle),
+        });
+      }
       handle.ready.value = true;
       handle.error.value = null;
     } catch (error: unknown) {
@@ -222,6 +238,18 @@ export function createSystemAssetAccess(options: {
 
       return handle as SystemAssetHandle<"hdr">;
     },
+    shader(id) {
+      const handle = lookup(id);
+      if (handle.kind !== "shader") {
+        throw new ApertureSystemError(
+          "aperture.asset.kindMismatch",
+          `Asset '${id}' is '${handle.kind}', not 'shader'.`,
+          "Use this.assets.shader() only with asset.shader() declarations.",
+        );
+      }
+
+      return handle as SystemShaderAssetHandle;
+    },
     request,
     readiness(id) {
       return lookup(id).ready;
@@ -264,8 +292,74 @@ function createSystemAssetHandle(
         ? createTextureHandle(id)
         : descriptor.kind === "hdr"
           ? createEnvironmentMapHandle(id)
-          : createSceneHandle(id),
+          : descriptor.kind === "shader"
+            ? createShaderHandle(id)
+            : createSceneHandle(id),
   } as SystemAssetHandle<SystemAssetKind>;
+}
+
+async function loadSystemShaderAsset(
+  handle: SystemShaderAssetHandle,
+): Promise<ReturnType<typeof createWgslShaderAsset>> {
+  const resolvedUrl = resolveAssetUrl(handle.url);
+
+  if (resolvedUrl === null) {
+    throw new ApertureSystemError(
+      "aperture.asset.invalidUrl",
+      `Shader asset '${handle.id}' URL '${handle.url}' could not be resolved.`,
+      "Use an absolute URL, a root-relative Vite public asset URL, or a data URL in aperture.config.ts.",
+      {
+        asset: handle.id,
+        url: handle.url,
+        kind: handle.kind,
+        preload: handle.preload,
+        phase: "load",
+        blocksStartup: handle.preload === "blocking",
+      },
+    );
+  }
+
+  if (typeof fetch !== "function") {
+    throw new ApertureSystemError(
+      "aperture.asset.shaderFetchUnavailable",
+      `Shader asset '${handle.id}' cannot be fetched in this environment.`,
+      "Provide an ApertureAssetLoader in tests/headless mode or run in a browser worker with fetch support.",
+      {
+        asset: handle.id,
+        url: handle.url,
+        kind: handle.kind,
+        preload: handle.preload,
+        phase: "load",
+        blocksStartup: handle.preload === "blocking",
+      },
+    );
+  }
+
+  const response = await fetch(resolvedUrl);
+
+  if (!response.ok) {
+    throw new ApertureSystemError(
+      "aperture.asset.shaderLoadFailed",
+      `Shader asset '${handle.id}' failed to load with HTTP ${response.status}.`,
+      "Check the shader URL in aperture.config.ts.",
+      {
+        asset: handle.id,
+        url: handle.url,
+        status: response.status,
+        kind: handle.kind,
+        preload: handle.preload,
+        phase: "load",
+        blocksStartup: handle.preload === "blocking",
+      },
+    );
+  }
+
+  return createWgslShaderAsset({
+    label: handle.id,
+    source: await response.text(),
+    url: resolvedUrl,
+    virtualPath: handle.url,
+  });
 }
 
 async function loadSystemGltfAsset(input: {

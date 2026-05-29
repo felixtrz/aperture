@@ -37,7 +37,11 @@ import {
   findApertureEntities,
   getApertureEntitySummary,
 } from "@aperture-engine/app/entity-lookup";
-import { composeTrsMatrix, createMeshBvh } from "@aperture-engine/simulation";
+import {
+  composeTrsMatrix,
+  createMeshBvh,
+  createShaderHandle,
+} from "@aperture-engine/simulation";
 import {
   createPlaneMeshAsset,
   createSpatialTriangleMeshFromMeshAsset,
@@ -57,6 +61,7 @@ import {
   createSystem,
   material,
   mesh,
+  shader,
   type InputAction,
   type InputButtonAction,
 } from "@aperture-engine/app/systems";
@@ -101,6 +106,9 @@ describe("developer-facing app API", () => {
           preload: "background",
         }),
         studio: asset.hdr("/assets/studio.hdr", { preload: "manual" }),
+        water: asset.shader("/shaders/water.wgsl", {
+          preload: "blocking",
+        }),
       },
       signals: {
         selectedEntity: signal.ref(null),
@@ -121,10 +129,151 @@ describe("developer-facing app API", () => {
       url: "/assets/robot.glb",
       preload: "blocking",
     });
+    expect(config.assets.water).toMatchObject({
+      kind: "shader",
+      url: "/shaders/water.wgsl",
+      preload: "blocking",
+    });
     expect(config.render?.sampleCount).toBe(4);
     expect(config.render?.pixelRatio).toBe(1);
     expect(config.render?.maxPixelRatio).toBe(2);
     expect("aperture" in appRoot).toBe(false);
+  });
+
+  it("exposes worker-safe custom WGSL material and shader builders", () => {
+    const waterShader = createShaderHandle("water");
+    const inlineShader = shader.inlineWgsl(
+      "@vertex fn vs_main() -> @builtin(position) vec4f { return vec4f(); }\n@fragment fn fs_main() -> @location(0) vec4f { return vec4f(1.0); }",
+      { virtualPath: "inline-water.wgsl" },
+    );
+    const descriptor = material.customWgsl({
+      familyKey: "app/water",
+      label: "Water",
+      shader: shader.asset(waterShader),
+      entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+      renderState: { cullMode: "none" },
+      bindings: [
+        material.uniform("water", {
+          binding: 0,
+          visibility: ["fragment"],
+          fields: {
+            color: { type: EcsType.Vec4, default: [0.02, 0.46, 0.9, 1] },
+          },
+        }),
+      ],
+    });
+
+    expect(inlineShader).toMatchObject({
+      kind: "inline-wgsl",
+      virtualPath: "inline-water.wgsl",
+    });
+    expect(descriptor).toMatchObject({
+      kind: "custom-wgsl",
+      familyKey: "app/water",
+      shader: { kind: "shader-asset", handle: waterShader },
+      bindings: [
+        {
+          kind: "uniform-buffer",
+          name: "water",
+          binding: 0,
+          visibility: ["fragment"],
+        },
+      ],
+    });
+  });
+
+  it("loads shader config assets for system-authored custom WGSL materials", async () => {
+    const source = [
+      "@group(0) @binding(0) var<uniform> view: mat4x4f;",
+      "struct VertexOut { @builtin(position) position: vec4f };",
+      "@vertex fn vs_main(@location(0) position: vec3f) -> VertexOut {",
+      "  var out: VertexOut;",
+      "  out.position = vec4f(position, 1.0);",
+      "  return out;",
+      "}",
+      "@fragment fn fs_main() -> @location(0) vec4f {",
+      "  return vec4f(0.05, 0.45, 0.9, 1.0);",
+      "}",
+    ].join("\n");
+    const waterShader = createShaderHandle("water");
+
+    class CustomMaterialSystem extends createSystem({ priority: 0 }) {
+      override init(): void {
+        const shaderAsset = this.assets.shader("water");
+
+        this.spawn.camera({
+          key: "camera.custom-material",
+          transform: { translation: [0, 0, 4], lookAt: [0, 0, 0] },
+          camera: { clearColor: [0.01, 0.02, 0.03, 1] },
+        });
+        this.spawn.mesh({
+          key: "custom-material.water-plane",
+          mesh: mesh.plane({ size: [2, 1] }),
+          material: material.customWgsl({
+            familyKey: "app/water",
+            label: "Generated Water",
+            shader: shader.asset(shaderAsset),
+            entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+            renderState: { cullMode: "none" },
+            bindings: [],
+          }),
+        });
+      }
+    }
+
+    const runner = await createApertureHeadlessRunner({
+      config: defineApertureConfig({
+        mode: "headless",
+        systems: ["src/systems/**/*.system.ts"],
+        assets: {
+          water: asset.shader(
+            `data:text/plain;charset=utf-8,${encodeURIComponent(source)}`,
+            { preload: "blocking" },
+          ),
+        },
+      }),
+      systems: [{ default: CustomMaterialSystem }],
+    });
+
+    const shaderEntry = runner.app.lowLevel.assets.get<
+      "shader",
+      {
+        readonly kind: string;
+        readonly language: string;
+        readonly source: string;
+        readonly virtualPath?: string;
+      }
+    >(waterShader);
+
+    expect(shaderEntry).toMatchObject({
+      status: "ready",
+      asset: {
+        kind: "shader",
+        language: "wgsl",
+        source,
+      },
+    });
+
+    const report = runner.step(1 / 60, 0);
+    const draw = report.snapshot.meshDraws[0];
+
+    expect(report.snapshot.views).toHaveLength(1);
+    expect(report.snapshot.meshDraws).toHaveLength(1);
+    expect(draw?.batchKey.pipelineKey.startsWith("app/water|")).toBe(true);
+
+    const materialEntry =
+      draw === undefined
+        ? undefined
+        : runner.app.lowLevel.assets.get(draw.material);
+
+    expect(materialEntry?.status).toBe("ready");
+    expect(materialEntry?.asset).toMatchObject({
+      sourceDiscriminator: "custom-material-source",
+      shaderLanguage: "wgsl",
+      familyKey: "app/water",
+      shader: { kind: "shader-asset", handle: waterShader },
+    });
+    expect(JSON.stringify(materialEntry?.asset)).not.toContain("GPU");
   });
 
   it("defaults generated browser render quality to 4x MSAA and capped DPR", () => {
@@ -1350,7 +1499,7 @@ describe("developer-facing app API", () => {
       preload: {
         blocking: ["robot"],
         background: ["floorColor"],
-        manual: ["decal"],
+        manual: ["decal", "generatedWater"],
       },
       lastSnapshot: null,
     });
@@ -1655,6 +1804,7 @@ describe("developer-facing app API", () => {
 
     expect(loadedAssets).toContain("robot");
     expect(loadedAssets).not.toContain("decal");
+    expect(loadedAssets).not.toContain("generatedWater");
     expect(runner.app.context.assets.texture("decal").ready.value).toBe(false);
 
     runner.app.context.commands.queue("asset.request", { assetId: "decal" });
@@ -1929,6 +2079,8 @@ describe("developer-facing app API", () => {
     expect(headlessConfig).toContain('systems: ["src/systems/**/*.system.ts"]');
     expect(setupSystem).toContain("this.spawn.mesh");
     expect(setupSystem).toContain("this.spawn.gltf");
+    expect(setupSystem).toContain("material.customWgsl");
+    expect(setupSystem).toContain("shader.asset");
 
     const userCode = `${viteConfig}\n${apertureConfig}\n${headlessConfig}\n${setupSystem}`;
     expect(userCode).not.toMatch(

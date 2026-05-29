@@ -306,6 +306,7 @@ Examples:
 - `MeshHandle`
 - `MaterialHandle`
 - `TextureHandle`
+- `ShaderHandle`
 - `AssetHandle`
 
 GPU objects are created and owned by the renderer/asset backend, not by ECS components.
@@ -319,6 +320,7 @@ registry:
 - `Assets<StandardMaterialAsset>`
 - `Assets<TextureAsset>`
 - `Assets<SamplerAsset>`
+- `Assets<WgslShaderAsset>`
 
 The generic `AssetRegistry` can remain the manifest, status, dependency, and
 diagnostic substrate. Typed collections should be the ergonomic API for adding,
@@ -333,6 +335,33 @@ Texture source assets may include uploadable texel bytes and row-layout metadata
 as renderer-independent source data. That source payload is not a GPU resource:
 the WebGPU backend is responsible for turning it into `GPUQueue.writeTexture`
 work and prepared texture views keyed by source handle/version.
+
+Shader source assets follow the same rule. A `WgslShaderAsset` is WGSL text plus
+metadata such as label, URL, and virtual path. It is mirrored across the
+worker/main source-asset channel by handle/version. The WebGPU backend is the
+only layer that may create `GPUShaderModule` objects from it.
+
+Custom WGSL material assets are source material assets with a
+`sourceDiscriminator: "custom-material-source"` instead of a built-in
+`MaterialKind`. They carry a namespaced `familyKey`, render state, shader ref,
+entry points, pipeline-key inputs, data-only bindings, dependencies, optional
+instance attributes, and JSON-safe metadata. Built-in material families remain
+reserved, and unsupported custom families diagnose instead of falling back to a
+built-in material.
+
+The current renderer-owned custom WGSL app route reserves these groups:
+
+- `group(0) binding(0)`: view uniform.
+- `group(1) binding(0)`: world transform storage.
+- `group(2)`: custom material bindings.
+- `group(3)`: future renderer extensions.
+
+V1 supports path-loaded or inline WGSL, renderer-owned uniform-buffer material
+bindings, texture bindings, sampler bindings, existing instance-attribute
+layouts, and mixed built-in/custom frames through the normal app route. Storage
+binding declarations are part of the source contract and dependency readiness
+path, but unsupported app-route resource creation must diagnose with JSON-safe
+records until renderer-independent buffer source assets are implemented.
 
 Texture assets also carry renderer-independent `semantic` and `colorSpace`
 metadata. The current color-management contract is documented in

@@ -16,7 +16,10 @@ import {
   type CurrentTextureContextLike,
   type CurrentTextureLike,
 } from "../../app/presentation/current-texture-view.js";
-import { submitCommandBuffers, type QueueSubmitLike } from "../queues/queue-submit.js";
+import {
+  submitCommandBuffers,
+  type QueueSubmitLike,
+} from "../queues/queue-submit.js";
 import type { SubmitCommandBuffersReport } from "../queues/queue-submit.js";
 import {
   createRenderPassAttachmentPlan,

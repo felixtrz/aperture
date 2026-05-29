@@ -4,6 +4,7 @@ import {
   assetHandleKey,
   createMaterialHandle,
   createMeshHandle,
+  createShaderHandle,
   type AssetDiagnostic,
   type AssetHandle,
   type AssetListFilter,
@@ -14,12 +15,15 @@ import {
 } from "@aperture-engine/simulation";
 import { materialTextureBindings } from "../materials/bindings.js";
 import type {
+  CustomWgslMaterialAsset,
   DebugNormalMaterialAsset,
-  MaterialAsset,
   MatcapMaterialAsset,
+  SourceMaterialAsset,
   StandardMaterialAsset,
   UnlitMaterialAsset,
+  WgslShaderAsset,
 } from "../materials/types.js";
+import { isCustomWgslMaterialAsset } from "../materials/family-key.js";
 import type { MeshAsset } from "../mesh/types.js";
 
 export interface RenderAssetCollectionsOptions {
@@ -30,10 +34,11 @@ export interface RenderAssetCollections {
   readonly registry: AssetRegistry;
   readonly meshes: TypedAssetCollection<"mesh", MeshAsset>;
   readonly materials: MaterialAssetCollections;
+  readonly shaders: TypedAssetCollection<"shader", WgslShaderAsset>;
 }
 
 export class MaterialAssetCollections {
-  readonly #all: TypedAssetCollection<"material", MaterialAsset>;
+  readonly #all: TypedAssetCollection<"material", SourceMaterialAsset>;
 
   readonly unlit: TypedAssetCollection<"material", UnlitMaterialAsset>;
   readonly matcap: TypedAssetCollection<"material", MatcapMaterialAsset>;
@@ -42,9 +47,13 @@ export class MaterialAssetCollections {
     "material",
     DebugNormalMaterialAsset
   >;
+  readonly customWgsl: TypedAssetCollection<
+    "material",
+    CustomWgslMaterialAsset
+  >;
 
   constructor(registry: AssetRegistry) {
-    this.#all = new TypedAssetCollection<"material", MaterialAsset>({
+    this.#all = new TypedAssetCollection<"material", SourceMaterialAsset>({
       registry,
       kind: "material",
       createHandle: createMaterialHandle,
@@ -89,6 +98,17 @@ export class MaterialAssetCollections {
       label: (asset) => asset.label,
       dependencies: materialAssetDependencies,
     });
+    this.customWgsl = new TypedAssetCollection<
+      "material",
+      CustomWgslMaterialAsset
+    >({
+      registry,
+      kind: "material",
+      createHandle: createMaterialHandle,
+      idPrefix: "custom-wgsl-material",
+      label: (asset) => asset.label,
+      dependencies: materialAssetDependencies,
+    });
   }
 
   get registry(): AssetRegistry {
@@ -96,7 +116,7 @@ export class MaterialAssetCollections {
   }
 
   add(
-    asset: MaterialAsset,
+    asset: SourceMaterialAsset,
     options: TypedAssetAddOptions<"material"> = {},
   ): MaterialHandle {
     return this.#all.add(asset, options);
@@ -114,25 +134,25 @@ export class MaterialAssetCollections {
 
   get(
     handle: MaterialHandle,
-  ): AssetRegistryEntry<"material", MaterialAsset> | undefined {
+  ): AssetRegistryEntry<"material", SourceMaterialAsset> | undefined {
     return this.#all.get(handle);
   }
 
-  getAsset(handle: MaterialHandle): MaterialAsset | undefined {
+  getAsset(handle: MaterialHandle): SourceMaterialAsset | undefined {
     return this.#all.getAsset(handle);
   }
 
   markLoading(
     handle: MaterialHandle,
-  ): AssetRegistryEntry<"material", MaterialAsset> {
+  ): AssetRegistryEntry<"material", SourceMaterialAsset> {
     return this.#all.markLoading(handle);
   }
 
   markReady(
     handle: MaterialHandle,
-    asset: MaterialAsset,
+    asset: SourceMaterialAsset,
     diagnostics?: readonly AssetDiagnostic[],
-  ): AssetRegistryEntry<"material", MaterialAsset> {
+  ): AssetRegistryEntry<"material", SourceMaterialAsset> {
     return diagnostics === undefined
       ? this.#all.markReady(handle, asset)
       : this.#all.markReady(handle, asset, diagnostics);
@@ -141,13 +161,13 @@ export class MaterialAssetCollections {
   markFailed(
     handle: MaterialHandle,
     diagnostics: readonly AssetDiagnostic[],
-  ): AssetRegistryEntry<"material", MaterialAsset> {
+  ): AssetRegistryEntry<"material", SourceMaterialAsset> {
     return this.#all.markFailed(handle, diagnostics);
   }
 
   list(
     filter: Omit<AssetListFilter, "kind"> = {},
-  ): AssetRegistryEntry<"material", MaterialAsset>[] {
+  ): AssetRegistryEntry<"material", SourceMaterialAsset>[] {
     return this.#all.list(filter);
   }
 }
@@ -167,14 +187,39 @@ export function createRenderAssetCollections(
       label: (asset) => asset.label,
     }),
     materials: new MaterialAssetCollections(registry),
+    shaders: new TypedAssetCollection<"shader", WgslShaderAsset>({
+      registry,
+      kind: "shader",
+      createHandle: createShaderHandle,
+      idPrefix: "shader",
+      label: (asset) => asset.label,
+    }),
   };
 }
 
 export function materialAssetDependencies(
-  material: MaterialAsset,
+  material: SourceMaterialAsset,
 ): readonly AssetHandle[] {
   const dependencies: AssetHandle[] = [];
   const seen = new Set<string>();
+
+  if (isCustomWgslMaterialAsset(material)) {
+    for (const dependency of material.dependencies) {
+      appendDependency(dependency.handle, dependencies, seen);
+    }
+
+    for (const binding of material.bindings) {
+      if (binding.kind === "texture") {
+        appendDependency(binding.texture, dependencies, seen);
+      }
+
+      if (binding.kind === "sampler") {
+        appendDependency(binding.sampler, dependencies, seen);
+      }
+    }
+
+    return dependencies;
+  }
 
   for (const [, binding] of materialTextureBindings(material)) {
     appendDependency(binding.texture, dependencies, seen);
@@ -204,7 +249,7 @@ function appendDependency(
 export type MeshAssetCollection = TypedAssetCollection<"mesh", MeshAsset>;
 export type MaterialAssetCollection = TypedAssetCollection<
   "material",
-  MaterialAsset
+  SourceMaterialAsset
 >;
 export type UnlitMaterialAssetCollection = TypedAssetCollection<
   "material",
@@ -221,4 +266,12 @@ export type StandardMaterialAssetCollection = TypedAssetCollection<
 export type DebugNormalMaterialAssetCollection = TypedAssetCollection<
   "material",
   DebugNormalMaterialAsset
+>;
+export type CustomWgslMaterialAssetCollection = TypedAssetCollection<
+  "material",
+  CustomWgslMaterialAsset
+>;
+export type ShaderAssetCollection = TypedAssetCollection<
+  "shader",
+  WgslShaderAsset
 >;

@@ -7,7 +7,8 @@ import {
 } from "@aperture-engine/simulation";
 import {
   createMaterialPipelineKeyInput,
-  type MaterialAsset,
+  isCustomWgslMaterialAsset,
+  type SourceMaterialAsset,
 } from "../materials/index.js";
 import type { MeshAsset } from "../mesh/index.js";
 import { RenderOrder } from "./index.js";
@@ -80,7 +81,7 @@ export function createMeshSubmeshDraws(
     const materialEntry =
       materialHandle === null
         ? undefined
-        : input.assets.get<"material", MaterialAsset>(materialHandle);
+        : input.assets.get<"material", SourceMaterialAsset>(materialHandle);
 
     if (materialHandle === null || materialEntry === undefined) {
       input.diagnostics.push(
@@ -116,6 +117,7 @@ export function createMeshSubmeshDraws(
     const meshKey = assetHandleKey(input.meshHandle);
 
     if (
+      !isCustomWgslMaterialAsset(materialEntry.asset) &&
       materialEntry.asset.kind === "standard" &&
       !validateStandardMaterialTextureReadiness({
         registry: input.assets,
@@ -128,6 +130,7 @@ export function createMeshSubmeshDraws(
     }
 
     if (
+      !isCustomWgslMaterialAsset(materialEntry.asset) &&
       materialEntry.asset.kind === "standard" &&
       !validateStandardMaterialUvSetReadiness({
         mesh: input.mesh,
@@ -156,14 +159,16 @@ export function createMeshSubmeshDraws(
 
     const stableId =
       createStableRenderId(entityRef(input.entity)) + submeshIndex;
-    const normalMapReadiness = validateStandardNormalMapReadiness({
-      mesh: input.mesh,
-      material: materialEntry.asset,
-      meshKey,
-      materialKey,
-      entity: input.entity,
-      diagnostics: input.diagnostics,
-    });
+    const normalMapReadiness = isCustomWgslMaterialAsset(materialEntry.asset)
+      ? true
+      : validateStandardNormalMapReadiness({
+          mesh: input.mesh,
+          material: materialEntry.asset,
+          meshKey,
+          materialKey,
+          entity: input.entity,
+          diagnostics: input.diagnostics,
+        });
 
     if (!normalMapReadiness) {
       continue;
@@ -219,9 +224,11 @@ export function createMeshSubmeshDraws(
         topology: submesh.topology,
         skinned:
           input.skinning !== undefined &&
+          !isCustomWgslMaterialAsset(materialEntry.asset) &&
           materialEntry.asset.kind === "standard",
         morphed:
           input.morphWeights !== undefined &&
+          !isCustomWgslMaterialAsset(materialEntry.asset) &&
           materialEntry.asset.kind === "standard",
       }),
     });

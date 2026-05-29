@@ -16,6 +16,7 @@ import {
   createUnlitRenderPipelineResource,
   type CreateUnlitRenderPipelineResourceResult,
 } from "../materials/unlit/unlit-pipeline.js";
+import type { CreateCustomWgslMaterialRenderPipelineResourceResult } from "../materials/custom-wgsl/custom-wgsl-material.js";
 import type { CreateSpriteRenderPipelineResourceResult } from "../render/sprites/sprite-pipeline.js";
 import { createTonemapPipelineKey } from "../output/output-stage-tonemap.js";
 import { createOutputColorSpacePipelineKey } from "../output/output-stage-color-space.js";
@@ -28,7 +29,8 @@ export type WebGpuAppPipelineResourceResult =
   | CreateMatcapRenderPipelineResourceResult
   | CreateStandardRenderPipelineResourceResult
   | CreateDebugNormalRenderPipelineResourceResult
-  | CreateSpriteRenderPipelineResourceResult;
+  | CreateSpriteRenderPipelineResourceResult
+  | CreateCustomWgslMaterialRenderPipelineResourceResult;
 
 export async function getOrCreateWebGpuAppPipeline(options: {
   readonly app: WebGpuApp;

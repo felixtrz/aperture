@@ -229,6 +229,102 @@ Current primitive descriptors include:
 - `mesh.cylinder({ radius, depth, segments? })`
 - `mesh.cone({ radius, depth, segments? })`
 
+## Custom WGSL Materials
+
+Generated browser apps can author a data-only custom WGSL material from config
+assets and worker systems. Systems never create WebGPU objects; they declare
+shader source, render state, binding layouts, and JSON-safe uniform values. The
+main-thread WebGPU app mirrors the source assets, compiles WGSL, creates
+renderer-owned buffers/bind groups/pipelines, and submits the final frame.
+
+Declare path-loaded shader source in `aperture.config.ts`:
+
+```ts
+import { asset, defineApertureConfig } from "@aperture-engine/app/config";
+
+export default defineApertureConfig({
+  mode: "browser",
+  canvas: "#aperture",
+  systems: ["src/systems/**/*.system.ts"],
+  assets: {
+    water: asset.shader("/shaders/water.wgsl", { preload: "blocking" }),
+  },
+});
+```
+
+Use the shader handle from a worker system:
+
+```ts
+import {
+  EcsType,
+  createSystem,
+  material,
+  mesh,
+  shader,
+} from "@aperture-engine/app/systems";
+
+export default class WaterSetupSystem extends createSystem({ priority: 0 }) {
+  override init(): void {
+    this.spawn.mesh({
+      key: "water",
+      mesh: mesh.plane({ size: [6, 3] }),
+      material: material.customWgsl({
+        familyKey: "app/water",
+        label: "Water",
+        shader: shader.asset(this.assets.shader("water")),
+        entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+        renderState: {
+          cullMode: "none",
+          depth: { test: true, write: false, compare: "less" },
+          blend: { preset: "alpha" },
+          alphaMode: "blend",
+        },
+        bindings: [
+          material.uniform("water", {
+            binding: 0,
+            visibility: ["fragment"],
+            fields: {
+              color: { type: EcsType.Vec4, default: [0.02, 0.46, 0.9, 1] },
+              time: { type: EcsType.Float32, default: 0 },
+            },
+            values: {
+              color: [0.02, 0.46, 0.9, 1],
+              time: 0,
+            },
+          }),
+        ],
+      }),
+    });
+  }
+}
+```
+
+Inline WGSL is available for tests and small demos:
+
+```ts
+material.customWgsl({
+  familyKey: "example/tint",
+  label: "Inline Tint",
+  shader: shader.inlineWgsl(WGSL, { virtualPath: "inline-tint.wgsl" }),
+  entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+});
+```
+
+V1 custom WGSL shaders use fixed renderer groups:
+
+- `@group(0) @binding(0)`: view uniform, renderer-owned.
+- `@group(1) @binding(0)`: world transform storage, renderer-owned.
+- `@group(2)`: custom material bindings declared by `material.customWgsl(...)`.
+- `@group(3)`: reserved for future renderer extensions.
+
+Current limitations: WGSL only; no shader imports; no user-supplied WebGPU
+objects or callbacks; no arbitrary app-owned material adapter registration; and
+lighting/environment integration is deferred. App-route custom WGSL supports
+group-2 uniform buffers, texture bindings, sampler bindings, existing
+instance-attribute layouts, and mixed built-in/custom frames through the normal
+`createWebGpuApp()` path. Storage-buffer bindings are validated but reported as
+unsupported until a renderer-independent buffer source asset exists.
+
 ## Runtime Systems
 
 Systems map to EliCS systems and can query ECS components directly.

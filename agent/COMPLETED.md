@@ -1,5 +1,95 @@
 # Completed Tasks
 
+## task-custom-wgsl-generated-browser — Add generated browser coverage for custom WGSL authoring
+
+Completed: 2026-05-28
+
+### Summary
+
+- Added a generated developer API WGSL shader asset and custom WGSL water mesh
+  authored from `aperture.config.ts` plus a worker system.
+- Kept the headless config deterministic by making the shader manual there,
+  while browser config preloads the shader for normal generated rendering.
+- Updated app/developer API and E2E expectations so browser status proves the
+  `level.custom.water` entity, shader/custom-material tags, three mesh draws,
+  and zero frame diagnostics.
+
+### Validation
+
+- `pnpm exec vitest run test/app/developer-api.test.ts --testNamePattern "developer API example|config-driven headless|manual config assets|loads shader config assets"`
+- `pnpm run check`
+- Chrome/WebGPU smoke for `examples/developer-api/` on `127.0.0.1:4182`
+  reported `meshDraws: 3`, `drawCalls: 3`, the `level.custom.water` entity, and
+  no frame diagnostics.
+
+## task-custom-wgsl-texture-sampler — Support app-route custom WGSL texture and sampler bindings
+
+Completed: 2026-05-28
+
+### Summary
+
+- Added app-route preparation for custom WGSL texture and sampler binding
+  resources using existing renderer-owned texture/sampler resource helpers.
+- Wired external binding resources into group-2 custom WGSL bind group creation
+  while preserving JSON-safe diagnostics for missing or unsupported bindings.
+- Added WebGPU coverage proving texture/sampler resource creation, reuse across
+  frames, pipeline cache reuse, and one texture upload.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "custom WGSL texture|custom-first mixed"`
+- `pnpm run check`
+- Render-control browser smokes for custom-material success, broken-WGSL
+  diagnostics, and triangle custom-WGSL success.
+
+## task-custom-wgsl-mixed-route — Render mixed built-in/custom WGSL frames through one app collector
+
+Completed: 2026-05-28
+
+### Summary
+
+- Added a mixed custom WGSL WebGPU app frame route that prepares built-in and
+  custom resource sets, merges pipeline/bind-group/mesh/resource maps, and
+  submits through normal frame-boundary assembly.
+- Updated the frame loop to detect mixed built-in/custom snapshots and route
+  them through the mixed collector instead of failing the custom-first path.
+- Added WebGPU coverage proving one built-in draw plus one custom WGSL draw
+  submit successfully with no route diagnostics and JSON-safe reports.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "custom-first mixed|unregistered route family|resets material queue route report"`
+- `pnpm run check`
+
+## task-custom-wgsl-v1 — Enable public custom WGSL materials through the app route
+
+Completed: 2026-05-28
+
+### Summary
+
+- Added shader source assets, `ShaderHandle`, `asset.shader(...)`,
+  `this.assets.shader(...)`, worker-safe `shader.asset(...)`,
+  `shader.inlineWgsl(...)`, and `material.customWgsl(...)` builders.
+- Added public custom WGSL material source contracts with namespaced family-key
+  validation, JSON-safe `customMaterialSource.*` diagnostics, dependency
+  readiness, source asset mirroring, and prepared custom material metadata.
+- Routed a single custom WGSL mesh/material resource set through
+  `createWebGpuApp()` frame-boundary assembly, command planning, readback,
+  render-bundle/indirect-draw support, shader/pipeline diagnostics, and
+  renderer-owned group 0/1/2 resources.
+- Migrated `examples/custom-material.html` to worker-authored source assets and
+  normal app rendering instead of manual WebGPU preparation and snapshot
+  rewriting. The broken-WGSL route now reports typed shader diagnostics.
+- Updated authoring, architecture, render asset preparation, decision log, and
+  public tracker docs.
+
+### Validation
+
+- `pnpm run check`
+- Focused custom WGSL browser smoke before finalization:
+  `examples/custom-material.html`, `examples/custom-material.html?broken=wgsl`,
+  and `examples/triangle.html?material=custom-wgsl`.
+
 ## task-3209 — Add a mixed current-texture plus MSAA reused same-target clear/load off-screen target route
 
 Completed: 2026-05-26

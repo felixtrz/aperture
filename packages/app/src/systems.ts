@@ -103,6 +103,7 @@ export type {
   SystemAssetKind,
   SystemGltfAssetHandle,
   SystemGltfLoadedScene,
+  SystemShaderAssetHandle,
 } from "./systems/assets.js";
 export {
   AppEntityKey,
@@ -111,8 +112,14 @@ export {
   registerApertureAppComponents,
 } from "./systems/components.js";
 export type { CameraAccess, CameraHandle } from "./systems/cameras.js";
-export { material, mesh } from "./systems/spawn/index.js";
+export { material, mesh, shader } from "./systems/spawn/index.js";
 export type {
+  CustomWgslMaterialDescriptor,
+  CustomWgslSamplerBindingOptions,
+  CustomWgslShaderDescriptor,
+  CustomWgslTextureBindingOptions,
+  CustomWgslUniformBindingOptions,
+  MaterialDescriptor,
   PrimitiveMeshDescriptor,
   SpawnCameraOptions,
   SpawnCommands,

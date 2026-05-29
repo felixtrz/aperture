@@ -393,19 +393,32 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-28 16:34 UTC</dd>
+            <dd>2026-05-28 18:42 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the app/CLI structure refactor plan is complete.
-              Track 13 added export and boundary guards for the app public
-              subpath set, CLI package root export map, CLI root runtime
-              exports, absence of CLI internal path aliases, app path aliases
-              matching public subpaths, and examples/generated templates
-              importing only public <code>@aperture-engine/app</code> entry
-              points; full Vitest validation now passes. Previous update: Track
-              12 moved reference/RAG implementation into
+              Latest update: custom WGSL material enablement now has public
+              shader assets, app system builders, source validation,
+              source-asset mirroring, prepared custom material metadata, mixed
+              built-in/custom app-route rendering, group-2 texture/sampler
+              binding resources, and generated developer API browser coverage
+              for <code>asset.shader(...)</code> plus
+              <code>material.customWgsl(...)</code>. The animated
+              <code>custom-material</code> example no longer rewrites snapshots
+              or submits manual WebGPU commands, broken WGSL reports app-route
+              shader diagnostics, and the repo-wide
+              <code>pnpm run check</code> gate passes. Current v1 follow-ups are
+              storage-buffer source assets, WGSL imports, and custom
+              lighting/environment integration. Previous update: the app/CLI
+              structure refactor plan is complete. Track 13 added export and
+              boundary guards for the app public subpath set, CLI package root
+              export map, CLI root runtime exports, absence of CLI internal path
+              aliases, app path aliases matching public subpaths, and
+              examples/generated templates importing only public
+              <code>@aperture-engine/app</code> entry points; full Vitest
+              validation now passes. Previous update: Track 12 moved
+              reference/RAG implementation into
               <code>packages/cli/src/reference/</code>, splitting public
               contracts, model contract, build/corpus ingestion, entry creation,
               manifest validation, warmup payload installation, status
@@ -6395,6 +6408,17 @@
           <article class="card task-list">
             <h3>Recommended next tasks</h3>
             <ul>
+              <li>
+                <span class="badge amber">next</span> Add a camera render-target
+                preview route that renders one ECS-authored camera into a
+                renderer-owned off-screen color target and displays it in a
+                second visible pass.
+              </li>
+              <li>
+                <span class="badge green">done</span> Custom WGSL mixed
+                built-in/custom rendering, app-route texture/sampler bindings,
+                and generated developer API browser coverage are complete.
+              </li>
               <li>
                 <span class="badge green">done</span> The covered
                 render-pipeline SOTA audit is supported in

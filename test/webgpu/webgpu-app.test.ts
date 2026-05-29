@@ -9,6 +9,7 @@ import {
 } from "@aperture-engine/simulation";
 import {
   createBoxMeshAsset,
+  createCustomWgslMaterialAsset,
   createDebugNormalMaterialAsset,
   createMatcapMaterialAsset,
   createRenderAssetCollections,
@@ -4990,7 +4991,7 @@ describe("WebGPU app facade", () => {
       return;
     }
 
-    const pipelineKey = "toon-shaded|opaque|back|less|none";
+    const pipelineKey = "example/toon-shaded|opaque|back|less|none";
     const frame = await app.render({
       snapshot: renderSnapshotWithDraws(snapshot, 44, [
         {
@@ -5016,7 +5017,7 @@ describe("WebGPU app facade", () => {
       expect.arrayContaining([
         expect.objectContaining({
           code: "webGpuApp.unsupportedMaterialQueueFamily",
-          materialFamily: "toon-shaded",
+          materialFamily: "example/toon-shaded",
         }),
       ]),
     );
@@ -5030,7 +5031,7 @@ describe("WebGPU app facade", () => {
       skippedItemCount: 1,
       byFamily: [
         {
-          key: "toon-shaded",
+          key: "example/toon-shaded",
           queuedCount: 1,
           routedCount: 0,
           skippedCount: 1,
@@ -5053,7 +5054,7 @@ describe("WebGPU app facade", () => {
         skippedItemCount: 1,
         byFamily: [
           {
-            key: "toon-shaded",
+            key: "example/toon-shaded",
             queuedCount: 1,
             routedCount: 0,
             skippedCount: 1,
@@ -5075,7 +5076,7 @@ describe("WebGPU app facade", () => {
         diagnostics: [
           expect.objectContaining({
             code: "webGpuApp.unsupportedMaterialQueueFamily",
-            materialFamily: "toon-shaded",
+            materialFamily: "example/toon-shaded",
             renderId: expect.any(Number),
             drawIndex: 0,
             entity: expect.objectContaining({
@@ -5107,6 +5108,307 @@ describe("WebGPU app facade", () => {
     expect(serialized).not.toContain("unlitResourceSet");
     expect(serialized).not.toContain("matcapResourceSet");
     expect(serialized).not.toContain("GPUBuffer");
+  });
+
+  it("renders custom-first mixed built-in frames through the app route", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "MixedCustomRouteCube" }),
+    );
+    const customMaterial = assets.materials.customWgsl.add(
+      createCustomWgslMaterialAsset({
+        familyKey: "example/mixed-route",
+        label: "Mixed Route Custom",
+        shader: {
+          kind: "inline-wgsl",
+          virtualPath: "mixed-route.wgsl",
+          code: `
+            struct ViewProjectionUniform {
+              viewProjection: mat4x4f,
+              cameraPosition: vec4f,
+            };
+
+            struct MixedMaterialUniform {
+              color: vec4f,
+            };
+
+            struct VertexInput {
+              @location(0) position: vec3f,
+              @location(1) normal: vec3f,
+              @location(2) uv: vec2f,
+              @builtin(instance_index) instanceIndex: u32,
+            };
+
+            @group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
+            @group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4f>;
+            @group(2) @binding(0) var<uniform> material: MixedMaterialUniform;
+
+            @vertex
+            fn vs_main(input: VertexInput) -> @builtin(position) vec4f {
+              let world = worldTransforms[input.instanceIndex];
+              return view.viewProjection * world * vec4f(input.position, 1.0);
+            }
+
+            @fragment
+            fn fs_main() -> @location(0) vec4f {
+              return material.color;
+            }
+          `,
+        },
+        entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+        bindings: [
+          {
+            name: "material",
+            binding: 0,
+            kind: "uniform-buffer",
+            visibility: ["fragment"],
+            fields: {
+              color: { type: "vec4", default: [0, 0.4, 1, 1] },
+            },
+          },
+        ],
+      }),
+      { id: "mixed-route-custom" },
+    );
+    const unlitMaterial = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "Mixed Route Unlit" }),
+      { id: "mixed-route-unlit" },
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.7, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(customMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.7, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(unlitMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    app.step(1 / 60, 1);
+    const snapshot = app.extract(77);
+    const customDraw = drawForMaterial(snapshot, customMaterial);
+    const unlitDraw = drawForMaterial(snapshot, unlitMaterial);
+    const frame = await app.render({
+      snapshot: renderSnapshotWithDraws(snapshot, 78, [customDraw, unlitDraw]),
+    });
+
+    expect(frame.ok).toBe(true);
+    expect(frame.counts).toMatchObject({
+      meshDraws: 2,
+      drawCalls: 2,
+    });
+    expect(frame.diagnostics).toEqual([]);
+    expect(frame.diagnostics).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "webGpuApp.unsupportedMaterialQueueFamily",
+        }),
+        expect.objectContaining({
+          code: "webGpuApp.materialQueueRouteReport",
+        }),
+        expect.objectContaining({
+          code: "webGpuApp.customWgslMixedRouteDeferred",
+        }),
+      ]),
+    );
+
+    expect(frame.diagnosticsSummary).toMatchObject({
+      routedResourceSet: {
+        byFamily: expect.arrayContaining([
+          expect.objectContaining({
+            family: "unlit",
+            itemCount: 1,
+          }),
+        ]),
+      },
+    });
+    expect(events).toContain("queue:submit:1");
+    expect(
+      JSON.stringify(webGpuAppRenderReportToJsonValue(frame)),
+    ).not.toContain("GPUBuffer");
+  });
+
+  it("renders custom WGSL texture and sampler app bindings", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "CustomTextureCube" }),
+    );
+    const texture = createTextureHandle("custom-wgsl-albedo");
+    const sampler = createSamplerHandle("custom-wgsl-linear");
+
+    app.assets.register(texture);
+    app.assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "CustomWgslAlbedo",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "data",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array([
+            0, 200, 255, 255, 255, 255, 255, 255, 20, 40, 80, 255, 40, 180, 220,
+            255,
+          ]),
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      }),
+    );
+    app.assets.register(sampler);
+    app.assets.markReady(
+      sampler,
+      createSamplerAsset({ label: "CustomWgslLinear" }),
+    );
+
+    const material = assets.materials.customWgsl.add(
+      createCustomWgslMaterialAsset({
+        familyKey: "example/custom-textured",
+        label: "Textured Custom WGSL",
+        shader: {
+          kind: "inline-wgsl",
+          virtualPath: "custom-textured.wgsl",
+          code: `
+            struct ViewProjectionUniform {
+              viewProjection: mat4x4f,
+              cameraPosition: vec4f,
+            };
+
+            struct VertexInput {
+              @location(0) position: vec3f,
+              @location(1) normal: vec3f,
+              @location(2) uv: vec2f,
+              @builtin(instance_index) instanceIndex: u32,
+            };
+
+            struct VertexOutput {
+              @builtin(position) position: vec4f,
+              @location(0) uv: vec2f,
+            };
+
+            @group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
+            @group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4f>;
+            @group(2) @binding(0) var customTexture: texture_2d<f32>;
+            @group(2) @binding(1) var customSampler: sampler;
+
+            @vertex
+            fn vs_main(input: VertexInput) -> VertexOutput {
+              var output: VertexOutput;
+              let world = worldTransforms[input.instanceIndex];
+              output.position = view.viewProjection * world * vec4f(input.position, 1.0);
+              output.uv = input.uv;
+              return output;
+            }
+
+            @fragment
+            fn fs_main(input: VertexOutput) -> @location(0) vec4f {
+              return textureSample(customTexture, customSampler, input.uv);
+            }
+          `,
+        },
+        entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+        bindings: [
+          {
+            name: "customTexture",
+            binding: 0,
+            kind: "texture",
+            visibility: ["fragment"],
+            texture,
+          },
+          {
+            name: "customSampler",
+            binding: 1,
+            kind: "sampler",
+            visibility: ["fragment"],
+            sampler,
+          },
+        ],
+      }),
+      { id: "custom-textured-material" },
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const firstFrame = await app.stepAndRender(1 / 60, 1, 88);
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 89);
+
+    expect(firstFrame.ok).toBe(true);
+    expect(firstFrame.diagnostics).toEqual([]);
+    expect(firstFrame.counts).toMatchObject({
+      meshDraws: 1,
+      drawCalls: 1,
+    });
+    expect(firstFrame.resourceReuse).toMatchObject({
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+    });
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.diagnostics).toEqual([]);
+    expect(secondFrame.resourceReuse).toMatchObject({
+      pipelineHits: 1,
+      textureResourcesReused: 1,
+      samplerResourcesReused: 1,
+    });
+    expect(
+      events.filter((event) => event === "queue:writeTexture:16"),
+    ).toHaveLength(1);
+    expect(events).toContain("queue:submit:1");
+    expect(
+      JSON.stringify(webGpuAppRenderReportToJsonValue(secondFrame)),
+    ).not.toContain("GPUTexture");
   });
 
   it("surfaces JSON-safe built-in app adapter registry validation diagnostics", () => {
@@ -5623,7 +5925,7 @@ describe("WebGPU app facade", () => {
     app.step(1 / 60, 1);
     const snapshot = app.extract(47);
     const unregisteredDraw = drawForMaterial(snapshot, unlitMaterial);
-    const unregisteredPipelineKey = "toon-shaded|opaque|back|less|none";
+    const unregisteredPipelineKey = "example/toon-shaded|opaque|back|less|none";
     const firstFrame = await app.render({
       snapshot: renderSnapshotWithDraws(snapshot, 47, [
         {
@@ -5658,7 +5960,7 @@ describe("WebGPU app facade", () => {
       skippedItemCount: 1,
       byFamily: [
         {
-          key: "toon-shaded",
+          key: "example/toon-shaded",
           queuedCount: 1,
           routedCount: 0,
           skippedCount: 1,
@@ -5700,7 +6002,7 @@ describe("WebGPU app facade", () => {
     });
     expect(JSON.stringify(secondReport)).not.toContain("debug-normal");
     expect(JSON.stringify(secondReport)).not.toContain("unlit");
-    expect(JSON.stringify(secondReport)).not.toContain("toon-shaded");
+    expect(JSON.stringify(secondReport)).not.toContain("example/toon-shaded");
     expect(events).not.toContain("queue:submit:1");
   });
 

@@ -217,8 +217,8 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
         status?.webgpuOk === true &&
         (status.snapshots ?? 0) > 2 &&
         (counts?.views ?? 0) >= 1 &&
-        (counts?.meshDraws ?? 0) >= 2 &&
-        (counts?.drawCalls ?? 0) >= 2
+        (counts?.meshDraws ?? 0) >= 3 &&
+        (counts?.drawCalls ?? 0) >= 3
       );
     },
     undefined,
@@ -243,10 +243,10 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
   expect(status?.diagnostics?.lastFrame?.counts?.views).toBe(1);
   expect(
     status?.diagnostics?.lastFrame?.counts?.meshDraws ?? 0,
-  ).toBeGreaterThan(1);
+  ).toBeGreaterThan(2);
   expect(
     status?.diagnostics?.lastFrame?.counts?.drawCalls ?? 0,
-  ).toBeGreaterThan(1);
+  ).toBeGreaterThan(2);
   expect(status?.diagnostics?.lastFrame?.counts?.diagnostics).toBe(0);
   expect(status?.diagnostics?.lastFrame?.diagnostics ?? []).toEqual([]);
   expect(status?.render).toMatchObject({
@@ -359,6 +359,10 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
         source: expect.objectContaining({
           assetId: "robot",
         }),
+      }),
+      expect.objectContaining({
+        key: "level.custom.water",
+        tags: expect.arrayContaining(["custom-wgsl", "shader-asset"]),
       }),
     ]),
   );

@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "05e7311f",
   "activePid": null,
-  "notes": "Completed APP_CLI_STRUCTURE_REFACTOR_PLAN by adding Track 13 export/boundary guards, marking the plan complete, and updating stale WebGPU validation expectations exposed by the full suite. Full Vitest passed (367 files / 2094 tests), along with build, typecheck:test, boundaries, progress check, focused lint/format, and diff check.",
-  "lastRunFinishedAt": "2026-05-28T16:34:52Z"
+  "notes": "Custom WGSL v1 plan complete: mixed built-in/custom app route, group-2 texture/sampler binding resources, generated developer API browser coverage, docs/tracker/backlog updates, and final pnpm run check passing. Remaining follow-ups are storage-buffer source assets, WGSL imports, and custom lighting/environment integration.",
+  "lastRunFinishedAt": "2026-05-28T18:47:28Z"
 }

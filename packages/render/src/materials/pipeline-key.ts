@@ -1,13 +1,37 @@
 import { materialTextureBindings } from "./bindings.js";
+import { isCustomWgslMaterialAsset } from "./family-key.js";
 import type {
   MaterialAsset,
   MaterialPipelineKeyInput,
   SamplerAsset,
+  SourceMaterialAsset,
 } from "./types.js";
 
 export function createMaterialPipelineKeyInput(
-  material: MaterialAsset,
+  material: SourceMaterialAsset,
 ): MaterialPipelineKeyInput {
+  if (isCustomWgslMaterialAsset(material)) {
+    return {
+      shaderFamily: material.familyKey,
+      features: [
+        ...material.pipelineKey.features,
+        `specialization:${stableStringHash(
+          JSON.stringify(material.pipelineKey.specialization),
+        )}`,
+        `bindings:${material.bindings
+          .map((binding) => `${binding.binding}:${binding.kind}`)
+          .sort()
+          .join(",")}`,
+      ].sort(),
+      alphaMode: material.renderState.alphaMode,
+      cullMode: material.renderState.cullMode,
+      frontFace: material.renderState.frontFace,
+      depth: material.renderState.depth,
+      blend: material.renderState.blend,
+      colorWriteMask: material.renderState.colorWriteMask,
+    };
+  }
+
   const features = materialTextureBindings(material)
     .filter(([, binding]) => binding.texture !== null)
     .map(([field]) => field);
@@ -99,4 +123,15 @@ export function samplerPipelineKey(sampler: SamplerAsset): string {
     sampler.lodMaxClamp,
     sampler.maxAnisotropy,
   ].join("|");
+}
+
+function stableStringHash(value: string): string {
+  let hash = 0x811c9dc5;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193);
+  }
+
+  return (hash >>> 0).toString(16).padStart(8, "0");
 }

@@ -1,4 +1,7 @@
-import { createWebGpuBuffer, type WebGpuBufferDeviceLike } from "../../gpu/buffer.js";
+import {
+  createWebGpuBuffer,
+  type WebGpuBufferDeviceLike,
+} from "../../gpu/buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../../resources/meshes/mesh-buffer-descriptors.js";
 import type {
   DrawCommand,

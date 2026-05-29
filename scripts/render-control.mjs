@@ -1276,6 +1276,7 @@ function parseScenarioOptions(optionArgs) {
   } catch (error) {
     throw new Error(
       `Scenario options must be JSON, got '${text}': ${messageFromError(error)}`,
+      { cause: error },
     );
   }
 }

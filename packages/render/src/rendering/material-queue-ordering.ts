@@ -2,6 +2,7 @@ import type {
   MaterialQueueFamily,
   MaterialQueueItem,
 } from "./material-queue-types.js";
+import { isValidMaterialFamilyKey } from "../materials/index.js";
 import type { RenderQueue } from "./snapshot.js";
 
 export const MATERIAL_QUEUE_PHASE_ORDER: readonly RenderQueue[] = [
@@ -43,7 +44,7 @@ export function compareStrings(a: string, b: string): number {
 function isMaterialQueueFamilyKey(
   family: string,
 ): family is MaterialQueueFamily {
-  return /^[a-z][a-z0-9-]*$/.test(family);
+  return isValidMaterialFamilyKey(family);
 }
 
 function compareMaterialQueueItems(

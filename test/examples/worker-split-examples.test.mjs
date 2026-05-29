@@ -48,8 +48,6 @@ const workerSplitExamples = [
     main: "examples/custom-material.main.js",
     worker: "examples/custom-material.worker.js",
     legacy: "examples/custom-material.js",
-    mode: "manual-render",
-    requestSnapshot: "requestCustomWaterSnapshot",
   },
   {
     html: "examples/multi-entity.html",

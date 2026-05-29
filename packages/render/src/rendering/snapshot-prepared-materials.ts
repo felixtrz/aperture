@@ -3,8 +3,8 @@ import {
   type AssetRegistry,
 } from "@aperture-engine/simulation";
 import type {
-  PreparedMaterialAssetMetadata,
   PreparedMaterialStore,
+  PreparedSourceMaterialMetadata,
   RenderAssetPreparationDiagnostic,
   RenderAssetPreparationOutcome,
   RenderAssetPreparationReport,
@@ -120,7 +120,7 @@ export function prepareSnapshotMaterials(
 function renderDiagnosticsFromPreparationReport(
   report: RenderAssetPreparationReport<
     "material",
-    PreparedMaterialAssetMetadata
+    PreparedSourceMaterialMetadata
   >,
 ): readonly RenderDiagnostic[] {
   return report.diagnostics.map((diagnostic) =>
@@ -131,7 +131,7 @@ function renderDiagnosticsFromPreparationReport(
 function renderDiagnosticFromPreparationDiagnostic(
   report: RenderAssetPreparationReport<
     "material",
-    PreparedMaterialAssetMetadata
+    PreparedSourceMaterialMetadata
   >,
   diagnostic: RenderAssetPreparationDiagnostic,
 ): RenderDiagnostic {

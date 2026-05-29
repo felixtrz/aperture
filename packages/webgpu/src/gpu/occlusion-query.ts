@@ -99,9 +99,7 @@ export interface GpuOcclusionQueryReadbackResult {
 
 export type GpuOcclusionFeedbackStatus = "empty" | "ready" | "unsupported";
 
-export type GpuOcclusionFeedbackFallbackReason =
-  | "not-ready"
-  | "unsupported";
+export type GpuOcclusionFeedbackFallbackReason = "not-ready" | "unsupported";
 
 export interface GpuOcclusionFeedbackState {
   readonly occludedQueryKeys: Set<string>;

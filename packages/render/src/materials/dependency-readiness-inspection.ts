@@ -36,10 +36,7 @@ export function inspectMaterialDependencySlot(
       ready: false,
     });
     input.diagnostics.push({
-      code:
-        input.dependencyKind === "texture"
-          ? "materialDependency.missingTextureHandle"
-          : "materialDependency.missingSamplerHandle",
+      code: missingHandleDiagnosticCode(input.dependencyKind),
       materialKey: input.materialKey,
       field: input.field,
       dependencyKind: input.dependencyKind,
@@ -83,6 +80,19 @@ export function inspectMaterialDependencySlot(
     status,
     message: `${input.field} ${input.dependencyKind} dependency '${dependencyKey}' is '${status}'.`,
   });
+}
+
+function missingHandleDiagnosticCode(
+  dependencyKind: MaterialDependencyKind,
+): MaterialAssetDependencyReadinessDiagnosticCode {
+  switch (dependencyKind) {
+    case "texture":
+      return "materialDependency.missingTextureHandle";
+    case "sampler":
+      return "materialDependency.missingSamplerHandle";
+    case "shader":
+      return "materialDependency.missingShaderHandle";
+  }
 }
 
 function materialDependencyDiagnosticCode(

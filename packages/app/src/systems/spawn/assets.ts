@@ -3,15 +3,20 @@ import {
   createCapsuleMeshAsset,
   createConeMeshAsset,
   createCylinderMeshAsset,
+  createCustomWgslMaterialAsset,
   createPlaneMeshAsset,
   createSphereMeshAsset,
   createStandardMaterialAsset,
-  type MaterialAsset,
+  materialAssetDependencies,
+  validateCustomMaterialSource,
+  type CustomWgslUniformFieldType,
   type MeshAsset,
+  type SourceMaterialAsset,
 } from "@aperture-engine/render";
 import {
   createMaterialHandle,
   createMeshHandle,
+  type AssetHandle,
   type AssetRegistry,
   type MaterialHandle,
   type MeshHandle,
@@ -19,8 +24,9 @@ import {
 import type {
   PrimitiveMeshDescriptor,
   SpawnMeshOptions,
-  StandardMaterialDescriptor,
+  MaterialDescriptor,
 } from "./types.js";
+import { ApertureSystemError } from "../errors.js";
 
 export function resolveMeshHandle(
   options: {
@@ -51,11 +57,12 @@ export function resolveMaterialHandle(
   if ("kind" in input.material && input.material.kind !== "material") {
     const id = `${input.key ?? input.name ?? "mesh"}.material`;
     const handle = createMaterialHandle(id);
-    registerReadyAsset(
-      options.registry,
-      handle,
-      materialDescriptorToAsset(input.material),
-    );
+    const asset = materialDescriptorToAsset(input.material);
+
+    registerReadyAsset(options.registry, handle, asset, {
+      label: asset.label,
+      dependencies: materialAssetDependencies(asset),
+    });
     return handle;
   }
 
@@ -66,9 +73,18 @@ function registerReadyAsset<TAsset>(
   registry: AssetRegistry,
   handle: MeshHandle | MaterialHandle,
   assetValue: TAsset,
+  options: {
+    readonly dependencies?: readonly AssetHandle[];
+    readonly label?: string;
+  } = {},
 ): void {
   if (!registry.has(handle)) {
-    registry.register(handle);
+    registry.register(handle, {
+      ...(options.label === undefined ? {} : { label: options.label }),
+      ...(options.dependencies === undefined
+        ? {}
+        : { dependencies: options.dependencies }),
+    });
   }
 
   registry.markReady(handle, assetValue);
@@ -133,8 +149,37 @@ function primitiveToMeshAsset(
 }
 
 function materialDescriptorToAsset(
-  descriptorValue: StandardMaterialDescriptor,
-): MaterialAsset {
+  descriptorValue: MaterialDescriptor,
+): SourceMaterialAsset {
+  if (descriptorValue.kind === "custom-wgsl") {
+    const source = createCustomWgslMaterialAsset({
+      ...descriptorValue,
+      ...(descriptorValue.bindings === undefined
+        ? {}
+        : {
+            bindings: descriptorValue.bindings.map(normalizeCustomWgslBinding),
+          }),
+    });
+    const diagnostics = validateCustomMaterialSource(source, {
+      expectedFamily: source.familyKey,
+    });
+    const errors = diagnostics.filter(
+      (diagnostic) => diagnostic.severity === "error",
+    );
+
+    if (errors.length > 0) {
+      throw new ApertureSystemError(
+        "aperture.spawn.invalidCustomWgslMaterial",
+        `Custom WGSL material '${source.label}' is invalid: ${errors
+          .map((diagnostic) => diagnostic.message)
+          .join(" ")}`,
+        "Fix material.customWgsl() familyKey, shader, entry points, render state, bindings, dependencies, or metadata.",
+      );
+    }
+
+    return source;
+  }
+
   return createStandardMaterialAsset({
     ...(descriptorValue.options.label === undefined
       ? {}
@@ -156,6 +201,59 @@ function materialDescriptorToAsset(
       ? {}
       : { metallicFactor: descriptorValue.options.metallic }),
   });
+}
+
+function normalizeCustomWgslBinding(
+  binding: NonNullable<
+    Extract<MaterialDescriptor, { readonly kind: "custom-wgsl" }>["bindings"]
+  >[number],
+): NonNullable<
+  Extract<MaterialDescriptor, { readonly kind: "custom-wgsl" }>["bindings"]
+>[number] {
+  if (binding.kind !== "uniform-buffer") {
+    return binding;
+  }
+
+  return {
+    ...binding,
+    fields: Object.fromEntries(
+      Object.entries(binding.fields).map(([name, field]) => [
+        name,
+        {
+          ...field,
+          type: normalizeUniformFieldType(field.type),
+        },
+      ]),
+    ),
+  };
+}
+
+function normalizeUniformFieldType(value: string): CustomWgslUniformFieldType {
+  switch (value) {
+    case "Float32":
+    case "float32":
+      return "float32";
+    case "Vec2":
+    case "vec2":
+      return "vec2";
+    case "Vec3":
+    case "vec3":
+      return "vec3";
+    case "Vec4":
+    case "Color":
+    case "vec4":
+      return "vec4";
+    case "Int32":
+    case "int32":
+      return "int32";
+    case "Uint32":
+    case "uint32":
+      return "uint32";
+    case "mat4x4":
+      return "mat4x4";
+    default:
+      return value as CustomWgslUniformFieldType;
+  }
 }
 
 function read2(values: ArrayLike<number>, index: number): number {

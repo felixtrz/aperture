@@ -707,11 +707,14 @@ describe("material family render queue", () => {
     expect(materialQueueFamilyFromPipelineKey("debug-normal|opaque")).toBe(
       "debug-normal",
     );
-    expect(materialQueueFamilyFromPipelineKey("toon|opaque")).toBe("toon");
-    expect(materialQueueFamilyFromPipelineKey("toon-shaded|opaque")).toBe(
-      "toon-shaded",
+    expect(materialQueueFamilyFromPipelineKey("example/toon|opaque")).toBe(
+      "example/toon",
     );
+    expect(
+      materialQueueFamilyFromPipelineKey("example/toon-shaded|opaque"),
+    ).toBe("example/toon-shaded");
     expect(materialQueueFamilyFromPipelineKey("|opaque")).toBeNull();
+    expect(materialQueueFamilyFromPipelineKey("toon|opaque")).toBeNull();
     expect(materialQueueFamilyFromPipelineKey("bad family|opaque")).toBeNull();
     expect(materialQueueFamilyFromPipelineKey("Standard|opaque")).toBeNull();
   });

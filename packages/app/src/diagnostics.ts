@@ -99,7 +99,9 @@ export function errorToApertureDiagnostic(
   };
 
   return {
-    code: isRecord(error) ? readString(error["code"], fallback.code) : fallback.code,
+    code: isRecord(error)
+      ? readString(error["code"], fallback.code)
+      : fallback.code,
     severity: fallback.severity ?? "error",
     message: error instanceof Error ? error.message : fallback.message,
     ...(source === undefined ? {} : { source }),
@@ -128,9 +130,7 @@ function sourceFromDiagnostic(
   return Object.keys(source).length === 0 ? undefined : source;
 }
 
-function sourceFromDetail(
-  detail: unknown,
-): ApertureGeneratedDiagnosticSource {
+function sourceFromDetail(detail: unknown): ApertureGeneratedDiagnosticSource {
   if (!isRecord(detail)) {
     return {};
   }
@@ -202,7 +202,9 @@ function readSeverity(
     : fallback;
 }
 
-function readRecord(value: unknown): Readonly<Record<string, unknown>> | undefined {
+function readRecord(
+  value: unknown,
+): Readonly<Record<string, unknown>> | undefined {
   return isRecord(value) ? value : undefined;
 }
 

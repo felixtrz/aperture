@@ -1,7 +1,20 @@
-import type { SamplerHandle, TextureHandle } from "@aperture-engine/simulation";
+import type {
+  SamplerHandle,
+  ShaderHandle,
+  TextureHandle,
+} from "@aperture-engine/simulation";
 import type { Color } from "@aperture-engine/simulation";
+import type { InstanceAttributeLayoutInput } from "./instance-attributes.js";
 
 export type MaterialKind = "unlit" | "matcap" | "standard" | "debug-normal";
+export const BUILT_IN_MATERIAL_KINDS = [
+  "unlit",
+  "matcap",
+  "standard",
+  "debug-normal",
+] as const satisfies readonly MaterialKind[];
+
+export type MaterialFamilyKey = MaterialKind | (string & {});
 export type MaterialAlphaMode = "opaque" | "mask" | "blend";
 export type MaterialCullMode = "back" | "front" | "none";
 export type MaterialFrontFace = "ccw" | "cw";
@@ -96,6 +109,13 @@ export interface TextureSourceData {
   readonly rowsPerImage?: number;
 }
 
+export type JsonPrimitive = string | number | boolean | null;
+export type JsonValue =
+  | JsonPrimitive
+  | readonly JsonValue[]
+  | { readonly [key: string]: JsonValue };
+export type JsonRecord = { readonly [key: string]: JsonValue };
+
 export interface BaseMaterialAsset {
   readonly kind: MaterialKind;
   readonly label: string;
@@ -158,6 +178,140 @@ export type MaterialAsset =
   | StandardMaterialAsset
   | DebugNormalMaterialAsset;
 
+export type SourceMaterialAsset = MaterialAsset | CustomWgslMaterialAsset;
+
+export type CustomWgslShaderStage = "vertex" | "fragment";
+export type CustomWgslBindingKind =
+  | "uniform-buffer"
+  | "storage-buffer"
+  | "texture"
+  | "sampler";
+
+export interface WgslShaderAsset {
+  readonly kind: "shader";
+  readonly language: "wgsl";
+  readonly label: string;
+  readonly source: string;
+  readonly url?: string;
+  readonly virtualPath?: string;
+}
+
+export type CustomWgslShaderRef =
+  | {
+      readonly kind: "shader-asset";
+      readonly handle: ShaderHandle;
+    }
+  | {
+      readonly kind: "inline-wgsl";
+      readonly code: string;
+      readonly virtualPath?: string;
+    };
+
+export type CustomWgslUniformFieldType =
+  | "float32"
+  | "Float32"
+  | "int32"
+  | "Int32"
+  | "uint32"
+  | "Uint32"
+  | "vec2"
+  | "Vec2"
+  | "vec3"
+  | "Vec3"
+  | "vec4"
+  | "Vec4"
+  | "Color"
+  | "mat4x4";
+
+export interface CustomWgslUniformField {
+  readonly type: CustomWgslUniformFieldType;
+  readonly default?: JsonPrimitive | readonly number[];
+}
+
+export interface BaseCustomWgslBindingDeclaration {
+  readonly name: string;
+  readonly binding: number;
+  readonly kind: CustomWgslBindingKind;
+  readonly visibility: readonly CustomWgslShaderStage[];
+  readonly label?: string;
+}
+
+export interface CustomWgslUniformBindingDeclaration extends BaseCustomWgslBindingDeclaration {
+  readonly kind: "uniform-buffer";
+  readonly fields: Readonly<Record<string, CustomWgslUniformField>>;
+  readonly values?: Readonly<Record<string, JsonPrimitive | readonly number[]>>;
+}
+
+export interface CustomWgslStorageBindingDeclaration extends BaseCustomWgslBindingDeclaration {
+  readonly kind: "storage-buffer";
+  readonly access?: "read" | "read-write";
+  readonly resourceKey?: string;
+}
+
+export interface CustomWgslTextureBindingDeclaration extends BaseCustomWgslBindingDeclaration {
+  readonly kind: "texture";
+  readonly texture: TextureHandle;
+  readonly sampleType?:
+    | "float"
+    | "unfilterable-float"
+    | "depth"
+    | "sint"
+    | "uint";
+  readonly viewDimension?: "2d" | "cube";
+  readonly multisampled?: boolean;
+}
+
+export interface CustomWgslSamplerBindingDeclaration extends BaseCustomWgslBindingDeclaration {
+  readonly kind: "sampler";
+  readonly sampler: SamplerHandle;
+  readonly samplerType?: "filtering" | "non-filtering" | "comparison";
+}
+
+export type CustomWgslBindingDeclaration =
+  | CustomWgslUniformBindingDeclaration
+  | CustomWgslStorageBindingDeclaration
+  | CustomWgslTextureBindingDeclaration
+  | CustomWgslSamplerBindingDeclaration;
+
+export type CustomMaterialDependencyDeclaration =
+  | {
+      readonly kind: "shader";
+      readonly handle: ShaderHandle;
+    }
+  | {
+      readonly kind: "texture";
+      readonly handle: TextureHandle;
+    }
+  | {
+      readonly kind: "sampler";
+      readonly handle: SamplerHandle;
+    };
+
+export interface CustomWgslMaterialPipelineKeyInput {
+  readonly features: readonly string[];
+  readonly specialization: Readonly<Record<string, string | number | boolean>>;
+}
+
+export interface CustomWgslMaterialEntryPoints {
+  readonly vertex: string;
+  readonly fragment: string;
+}
+
+export interface CustomWgslMaterialAsset {
+  readonly sourceDiscriminator: "custom-material-source";
+  readonly shaderLanguage: "wgsl";
+  readonly familyKey: MaterialFamilyKey;
+  readonly label: string;
+  readonly shader: CustomWgslShaderRef;
+  readonly entryPoints: CustomWgslMaterialEntryPoints;
+  readonly renderState: RenderStateDescriptor;
+  readonly pipelineKey: CustomWgslMaterialPipelineKeyInput;
+  readonly bindings: readonly CustomWgslBindingDeclaration[];
+  readonly dependencies: readonly CustomMaterialDependencyDeclaration[];
+  readonly instanceAttributes?: InstanceAttributeLayoutInput;
+  readonly metadata?: JsonRecord;
+}
+
 export interface TextureAsset {
   readonly kind: "texture";
   readonly label: string;
@@ -208,7 +362,7 @@ export interface MaterialValidationReport {
 }
 
 export interface MaterialPipelineKeyInput {
-  readonly shaderFamily: MaterialKind;
+  readonly shaderFamily: MaterialFamilyKey;
   readonly features: readonly string[];
   readonly alphaMode: MaterialAlphaMode;
   readonly cullMode: MaterialCullMode;

@@ -59,82 +59,39 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-`task-3209` is complete: `examples/mixed-msaa-reuse-clear-load.html` now proves
-one MSAA-enabled WebGPU app can render two worker snapshots through the same
-renderer-owned off-screen `ViewPacket.renderTarget` handle while each snapshot
-extracts one current-texture ECS camera plus two off-screen ECS cameras
-targeting the same handle. Each snapshot clears/stores the first off-screen MSAA
-boundary, loads existing color/depth for the second boundary, and displays the
-second-frame resolved clear/base/overlay regions plus current-texture readback.
-The route reports current/off-screen classifications, stable target key,
-target-key reuse, per-frame dimensions and draw counts, pass-order load ops,
-requested/resolved sample count, per-pass MSAA sample count, resolve attachment
-behavior, display samples, and reuse pressure, and Playwright verifies the
-current-texture sample, clear-only region, base-preserved region, and overlay
-region are distinct without stale first-frame pixels. Continue the post-SOTA
-visible-feature queue at `task-3210`: add a mixed current-texture plus MSAA
-resized reused same-target clear/load off-screen target route.
+The custom WGSL visible-feature queue is complete for v1: public shader assets,
+worker-safe `material.customWgsl(...)` builders, namespaced custom family keys,
+source asset mirroring, render-asset preparation, single-custom and mixed
+built-in/custom `createWebGpuApp()` routes, app-route group-2 texture/sampler
+resources, and generated developer API browser coverage are all landed and
+validated. Storage-buffer source assets, WGSL imports, and custom
+lighting/environment integration remain explicit follow-ups, not blockers for
+the v1 plan.
 
-The next ready visible-feature queue is:
+The next ready visible-feature queue returns to camera/render-target coverage:
 
-- `task-3210` — add a mixed current-texture plus MSAA resized reused
-  same-target clear/load off-screen target route.
-  Reference anchor:
-  `references/engine/src/extras/render-passes/camera-frame.js`,
-  `references/bevy/examples/3d/render_to_texture.rs`.
-  Done when one browser route creates an MSAA-enabled WebGPU app, replaces a
-  renderer-owned off-screen `ViewPacket.renderTarget` texture under the same ECS
-  handle, renders two worker snapshots through the resized handle while each
-  snapshot extracts one current-texture ECS camera plus two off-screen ECS
-  cameras targeting the same resized handle, clears/stores the first off-screen
-  MSAA boundary and loads existing color/depth for the second boundary, displays
-  the second-frame resolved clear/base/overlay regions plus current-texture
-  readback, reports current/off-screen classifications, before/after dimensions,
-  stable target key, target-key reuse, per-frame dimensions and draw counts,
-  pass-order load ops, requested/resolved sample count, per-pass MSAA sample
-  count, resolve attachment behavior, display samples, resize pressure, and
-  reuse pressure, and Playwright verifies the current-texture sample, clear-only
-  region, base-preserved region, and overlay region are distinct without
-  stale-size or stale first-frame pixels.
-- `task-3211` — add a mixed current-texture plus MSAA resized reused cropped
-  secondary off-screen target route.
-  Reference anchor:
-  `references/engine/src/extras/render-passes/camera-frame.js`,
-  `references/bevy/examples/3d/render_to_texture.rs`.
-  Done when one browser route creates an MSAA-enabled WebGPU app, replaces the
-  primary renderer-owned off-screen `ViewPacket.renderTarget` texture under the
-  same ECS handle, renders two worker snapshots through the resized primary
-  handle while also extracting a current-texture ECS camera and a differently
-  sized secondary off-screen target with a non-full viewport/scissor rectangle,
-  displays the second-frame resolved resized primary preview and cropped
-  secondary preview plus current-texture readback, reports current/off-screen
-  classifications, before/after dimensions, stable primary target key,
-  secondary target dimensions, secondary crop rectangle and pixels, per-frame
-  dimensions and draw counts, requested/resolved sample count, per-pass MSAA
-  sample count, resolve attachment behavior, display samples, resize pressure,
-  and reuse pressure, and Playwright verifies the current-texture sample,
-  primary preview, inside-secondary-crop preview, and outside-secondary-clear
-  region are distinct without stale-size or stale first-frame pixels.
-- `task-3212` — add a mixed current-texture plus MSAA reused cropped secondary
-  off-screen target route.
-  Reference anchor:
-  `references/engine/src/extras/render-passes/camera-frame.js`,
-  `references/bevy/examples/3d/render_to_texture.rs`.
-  Done when one browser route creates an MSAA-enabled WebGPU app, renders two
-  worker snapshots through the same primary renderer-owned off-screen
-  `ViewPacket.renderTarget` handle while also extracting a current-texture ECS
-  camera and a secondary off-screen target with a non-full viewport/scissor
-  rectangle, displays the second-frame primary preview and cropped secondary
-  preview plus current-texture readback, reports current/off-screen
-  classifications, stable primary target key, secondary crop rectangle and
-  pixels, per-frame dimensions and draw counts, requested/resolved sample count,
-  per-pass MSAA sample count, resolve attachment behavior, display samples, and
-  reuse pressure, and Playwright verifies the current-texture sample, primary
-  preview, inside-secondary-crop preview, and outside-secondary-clear region are
-  distinct without stale first-frame pixels.
+- `task-3169` — add a camera render-target preview route.
+  Reference anchor: `references/bevy/examples/3d/render_to_texture.rs`,
+  `references/three.js/examples/webgpu_rtt.html`.
+  Done when a public browser route renders one ECS-authored camera into a
+  renderer-owned off-screen color target, displays that texture in a second
+  visible pass, reports JSON-safe target/status details, and Playwright or
+  render-control proves the preview pixels are visible and distinct.
+- `task-3170` — add a camera render-layer isolation route.
+  Reference anchor: `references/three.js/examples/webgpu_layers.html`.
+  Done when a public browser route renders two simultaneous cameras over one
+  worker-owned ECS world with distinct `Camera.layerMask` values, proves each
+  viewport shows only matching-layer entities, and reports per-view layer
+  diagnostics in JSON-safe form.
+- `task-3171` — add a camera priority overlay route.
+  Reference anchor: `references/bevy/examples/ui/ui_target_camera.rs`,
+  `references/engine/src/extras/render-passes/camera-frame.js`.
+  Done when two ECS-authored cameras render into the same canvas target by
+  priority, a higher-priority overlay preserves the lower-priority base pass,
+  and status reports ordered view/pass execution with focused E2E coverage.
 
-Keep `task-3161` as later post-SOTA hardening work after the visible-feature
-queue above.
+Keep `task-3161` as later post-SOTA hardening work after the visible camera
+route queue above.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity

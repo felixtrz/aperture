@@ -58,8 +58,7 @@ export interface ApertureHeadlessStepReport {
   readonly status: ApertureHeadlessStatus;
 }
 
-export interface ApertureHeadlessFailureStatus
-  extends ApertureGeneratedDiagnosticsStatus {
+export interface ApertureHeadlessFailureStatus extends ApertureGeneratedDiagnosticsStatus {
   readonly mode: "headless";
 }
 

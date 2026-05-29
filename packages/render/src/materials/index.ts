@@ -5,6 +5,7 @@ export * from "./dependency-readiness.js";
 export * from "./debug-normal-preparation.js";
 export * from "./matcap-preparation.js";
 export * from "./pipeline-key.js";
+export * from "./family-key.js";
 export * from "./prepared-resource.js";
 export * from "./unlit-packing.js";
 export * from "./standard-proof-point.js";

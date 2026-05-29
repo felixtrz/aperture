@@ -13,11 +13,13 @@ interface CustomMaterialStatus extends SingleDrawExampleStatus {
   readonly customMaterial?: {
     readonly family: string;
     readonly sourceMaterialKey: string;
+    readonly shaderAssetKey?: string;
     readonly materialResourceKey: string;
     readonly pipelineKey: string;
     readonly bindGroupResourceKey: string;
-    readonly uniformColor: readonly [number, number, number, number];
+    readonly bindingCount?: number;
     readonly diagnostics: number;
+    readonly diagnosticsByCode?: Readonly<Record<string, number>>;
   };
   readonly animation?: {
     readonly frame: number;
@@ -34,6 +36,11 @@ interface CustomMaterialStatus extends SingleDrawExampleStatus {
         readonly a: number;
       };
     }[];
+  };
+  readonly rendering?: {
+    readonly drawPackages: number;
+    readonly drawCommands: number;
+    readonly drawCalls: number;
   };
 }
 
@@ -91,23 +98,20 @@ test("visible WaterMaterial custom shader animates through WebGPU", async ({
     scenario: "water-material",
     ok: true,
     phase: "animate",
-    renderingBackend: "webgpu-explicit",
+    renderingBackend: "webgpu-app-route",
     customMaterial: {
-      family: "custom-water",
+      family: "example/water",
       sourceMaterialKey: "material:custom-water-material",
-      materialResourceKey: "material:custom-water-material",
-      validationDiagnostics: 0,
+      shaderAssetKey: "shader:custom-water-shader",
+      bindingCount: 1,
       diagnostics: 0,
     },
     extraction: { views: 1, meshDraws: 1, diagnostics: 0 },
-    binding: { planned: 1, applied: 1, diagnostics: 0 },
-    renderWorld: { active: 1, ready: 1, blocked: 0 },
-    draw: { packages: 1, descriptors: 1, drawList: 1, resolved: 1 },
-    command: { drawCount: 1, indexedDrawCount: 1 },
-    submission: { commandBuffers: 1, drawCalls: 1, indexedDrawCalls: 1 },
+    rendering: { drawPackages: 1, drawCalls: 1 },
     readback: { ok: true },
   });
-  expect(status.customMaterial?.pipelineKey).toContain("custom-water|shader:");
+  expect(status.rendering?.drawCommands).toBeGreaterThan(0);
+  expect(status.customMaterial?.pipelineKey).toContain("example/water|shader:");
   expect(status.customMaterial?.bindGroupResourceKey).toContain(
     "custom-wgsl-bind-group:material:custom-water-material",
   );
@@ -161,12 +165,18 @@ test("custom material example reports typed source validation failures", async (
     scenario: "water-material",
     mode: "broken-wgsl",
     ok: false,
-    phase: "validate-custom-material",
-    reason: "custom-material-source-invalid",
-    customMaterialValidation: {
-      diagnostics: 1,
-      codes: ["renderAsset.customWgslMaterial.missingFragmentEntryPoint"],
+    phase: "render",
+    reason: "custom-material-render-failed",
+    renderingBackend: "webgpu-app-route",
+    customMaterial: {
+      family: "example/water",
+      sourceMaterialKey: "material:custom-water-material",
+      shaderAssetKey: "shader:custom-water-shader",
     },
+  });
+  expect(status.customMaterial?.diagnosticsByCode).toMatchObject({
+    "customWgslMaterial.shaderDiagnostic": 1,
+    "customWgslMaterial.shaderCreationFailed": 1,
   });
   guard.expectNoWarnings();
 });

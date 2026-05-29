@@ -242,10 +242,17 @@ function customWaterMaterial(
     sourceMaterialKey: "material:water",
     materialKey: "material:water",
     label: "Water Material",
-    materialFamily: "custom-water",
+    materialFamily: "custom/water",
+    pipelineKey:
+      "custom/water|shader:abc123|vs:vs_main|fs:fs_main|instance-attributes:none|bindings:0:uniform-buffer|opaque|none|less|none",
+    materialResourceKey:
+      "custom-wgsl-bind-group:material:water:custom-water-pipeline",
+    bindGroupResourceKey:
+      "custom-wgsl-bind-group:material:water:custom-water-pipeline",
     shader: {
       language: "wgsl",
       moduleKey: "custom-wgsl-module:material:water:shader",
+      sourceKey: "inline:material:water:water.wgsl",
       code: `
         @group(2) @binding(0) var<uniform> water: vec4f;
 
@@ -275,7 +282,7 @@ function customWaterMaterial(
     },
     pipeline: {
       pipelineKey:
-        "custom-water|shader:abc123|vs:vs_main|fs:fs_main|instance-attributes:none|bindings:0:uniform-buffer|opaque|none|less|none",
+        "custom/water|shader:abc123|vs:vs_main|fs:fs_main|instance-attributes:none|bindings:0:uniform-buffer|opaque|none|less|none",
       shaderModuleKey: "custom-wgsl-module:material:water:shader",
       vertexEntryPoint: "vs_main",
       fragmentEntryPoint: "fs_main",

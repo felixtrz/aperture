@@ -122,7 +122,10 @@ export function allocateLocalLightAtlasSlots(options: {
       previous.width === request.width &&
       previous.height === request.height &&
       regionFits(previous, state) &&
-      !regionsOverlapAny(previous, assigned.map((entry) => entry.tile))
+      !regionsOverlapAny(
+        previous,
+        assigned.map((entry) => entry.tile),
+      )
     ) {
       assigned.push({
         request,
@@ -148,8 +151,7 @@ export function allocateLocalLightAtlasSlots(options: {
         regionFits(slot, state) &&
         !regionsOverlapAny(slot, occupied),
     );
-    const region =
-      staleSlot ?? firstAvailableRegion(request, state, occupied);
+    const region = staleSlot ?? firstAvailableRegion(request, state, occupied);
 
     if (region === null) {
       diagnostics.push({

@@ -1,7 +1,7 @@
 # Custom WGSL Material Enablement Plan
 
 Date: 2026-05-27
-Status: plan
+Status: v1 implemented; storage-buffer and shader-import follow-ups deferred
 
 ## Purpose
 
@@ -13,32 +13,47 @@ This plan turns the current proof pieces into a supported path. It does not
 introduce a general user-supplied renderer plugin API, shader graph, scene
 graph, WebGL fallback, or app-owned live WebGPU callbacks.
 
+Implementation note, 2026-05-28: the v1 data route is now wired through public
+shader assets, app system builders, source asset mirroring, render-asset
+preparation, the normal `createWebGpuApp()` custom frame paths, the animated
+`examples/custom-material.html` app route, generated config/system coverage for
+`asset.shader(...)` plus `material.customWgsl(...)`, and a Chrome/WebGPU smoke
+of the generated developer API app. Mixed built-in/custom snapshots now render
+through one successful app resource collector. App-route group-2 uniform,
+texture, sampler, and instance-attribute declarations are supported or clearly
+diagnosed by the renderer-owned custom WGSL resource path. Remaining follow-up
+scope is explicitly deferred to storage-buffer source assets, WGSL
+imports/includes, and custom lighting/environment integration.
+
 ## Current State
 
-The repo already has the low-level ingredients:
+The v1 route now has the expected pieces:
 
-- `packages/render/src/assets/preparation.ts` defines a test-facing
-  `CustomWgslMaterialSource`, validation helper, prepared custom WGSL material
-  metadata, and `createCustomWgslMaterialRenderAssetAdapter(...)`.
-- `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-material.ts` can turn prepared custom
-  WGSL material metadata into a shader module, render pipeline, and material
-  bind group.
-- `examples/custom-material.main.js` proves a custom water shader by manually
-  validating, preparing, creating WebGPU resources, rewriting the snapshot, and
-  submitting commands.
-- `examples/custom-material.worker.js` still extracts a placeholder unlit
-  material, so the custom material is not authored as normal app data.
-- `createWebGpuApp()` routes only built-in material families through the normal
-  app path: `unlit`, `matcap`, `standard`, and `debug-normal`.
-- Generated apps mirror source assets from worker to main via
-  `serializeSourceAssetRegistry(...)` and
+- `packages/render/src/materials/` exposes a public, data-only
+  `CustomWgslMaterialAsset` contract, namespaced family keys, shader refs,
+  binding declarations, source validation, and prepared custom material
+  metadata.
+- `packages/simulation/src/assets/` and `packages/app/src/` expose
+  `ShaderHandle`, `asset.shader(...)`, `this.assets.shader(...)`,
+  `shader.asset(...)`, `shader.inlineWgsl(...)`, and
+  `material.customWgsl(...)` without DOM or WebGPU types in worker systems.
+- Generated apps mirror shader and material source assets from worker to main
+  via `serializeSourceAssetRegistry(...)` and
   `mirrorSourceAssetRegistryFromMessage(...)`.
-- `MaterialQueueFamily` can already carry strings, but successful WebGPU app
-  resource collection is still built-in-specific.
-- `AssetKind` does not include a `shader` kind, and `aperture.config.ts`
-  assets do not have `asset.shader(...)`.
-- `@aperture-engine/app/systems` exposes `material.standard(...)`, but no
-  custom material descriptor.
+- `createWebGpuApp()` routes built-ins, single-custom WGSL frames, and mixed
+  built-in/custom WGSL frames through normal material queueing, frame-resource
+  preparation, command planning, frame-boundary assembly, and submission.
+- `packages/webgpu/src/materials/custom-wgsl/` creates renderer-owned shader
+  modules, pipelines, uniform buffers, texture views, samplers, bind groups, and
+  caches from prepared custom WGSL metadata.
+- `examples/custom-material.html` and
+  `examples/triangle.html?material=custom-wgsl` render custom WGSL through the
+  normal app path. `examples/custom-material.html?broken=wgsl` reports typed
+  shader diagnostics without crashing.
+- `examples/developer-api/` now declares a generated WGSL shader asset and
+  worker-authored custom material; unit tests and a Chrome/WebGPU smoke prove
+  the generated browser path reports the custom entity and zero frame
+  diagnostics.
 
 The accepted architectural decisions already establish the right boundary:
 
@@ -48,6 +63,9 @@ The accepted architectural decisions already establish the right boundary:
 - GPU resources, shader modules, bind groups, pipelines, and caches remain
   renderer-owned.
 - Worker simulation remains the default browser shape.
+- Storage-buffer material bindings, WGSL imports/includes, and custom
+  lighting/environment integration remain follow-up work behind the same
+  data-only source and renderer-owned GPU boundary.
 
 ## Reference Anchors
 
@@ -589,6 +607,8 @@ Acceptance:
 Files likely touched:
 
 - `packages/webgpu/src/app/app.ts`
+- `packages/webgpu/src/app/custom-wgsl-frame.ts`
+- `packages/webgpu/src/app/mixed-custom-wgsl-frame.ts`
 - `packages/webgpu/src/app/app-diagnostics-summary.ts`
 - `packages/webgpu/src/materials/core/material-queue-route-report.ts`
 - `packages/webgpu/src/render/queues/queued-material-frame-resource-set-summary.ts`
@@ -707,6 +727,22 @@ Acceptance:
 - Docs list the current binding groups and limitations.
 - `pnpm run check:progress` passes if tracker pages are changed.
 
+## Implementation Status
+
+As of 2026-05-28, Phases 1 through 9 are implemented for the v1 scope:
+
+- Public shader assets and custom material builders are exported from the app
+  subpaths and remain worker-safe.
+- Custom material source validation, dependency readiness, prepared metadata,
+  and source asset mirroring are covered by focused tests.
+- `createWebGpuApp()` renders single-custom and mixed built-in/custom WGSL
+  frames without manual snapshot rewriting or manual command submission.
+- Group-2 uniform, texture, sampler, and existing instance-attribute bindings
+  are supported in the app route; storage-buffer bindings remain source-valid
+  but app-route unsupported with JSON-safe diagnostics.
+- The custom-material, triangle custom-WGSL, and generated developer API app
+  routes have browser or render-control coverage for success and failure paths.
+
 ## End-To-End Acceptance Criteria
 
 The feature is complete when all of these are true:
@@ -741,7 +777,8 @@ The feature is complete when all of these are true:
    - No custom material example performs manual snapshot rewriting or manual
      WebGPU submission.
    - Unsupported custom family keys diagnose without falling back to built-ins.
-   - Mixed built-in/custom frames route deterministically.
+   - Mixed built-in/custom frames render deterministically through the mixed
+     app resource collector.
 
 5. GPU ownership:
    - GPU shader modules, buffers, texture views, samplers, bind groups,

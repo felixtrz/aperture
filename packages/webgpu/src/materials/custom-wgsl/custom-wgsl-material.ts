@@ -549,7 +549,7 @@ function mapShaderDiagnostic(
   };
 }
 
-function customWgslMaterialRenderPipelineCacheKey(input: {
+export function customWgslMaterialRenderPipelineCacheKey(input: {
   readonly material: PreparedCustomWgslMaterial;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;

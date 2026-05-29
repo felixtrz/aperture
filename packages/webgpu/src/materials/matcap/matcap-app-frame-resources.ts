@@ -10,7 +10,10 @@ import type {
   PackedSnapshotTransforms,
   PackedSnapshotViewUniforms,
 } from "@aperture-engine/render";
-import { sameStringList, writeBufferData } from "../../app/app-frame-resource-utils.js";
+import {
+  sameStringList,
+  writeBufferData,
+} from "../../app/app-frame-resource-utils.js";
 import type { BindGroupResourceCache } from "../../gpu/bind-group-resource-cache.js";
 import {
   createPreparedAppMaterialFallbackDiagnostic,

@@ -7,20 +7,30 @@ import type {
   TextureHandle,
 } from "@aperture-engine/simulation";
 import type {
-  MaterialAsset,
+  SourceMaterialAsset,
   SamplerAsset,
   TextureAsset,
 } from "../materials/index.js";
+import { isCustomWgslMaterialAsset } from "../materials/index.js";
 import { diagnostic } from "./extraction-diagnostics.js";
 import type { RenderDiagnostic } from "./snapshot.js";
 
 export function validateMaterialTextureDependencies(
-  material: MaterialAsset,
+  material: SourceMaterialAsset,
   materialHandle: MaterialHandle,
   assets: AssetRegistry,
   entity: Entity,
   diagnostics: RenderDiagnostic[],
 ): boolean {
+  if (isCustomWgslMaterialAsset(material)) {
+    return validateCustomMaterialBindingDependencies(
+      material,
+      assets,
+      entity,
+      diagnostics,
+    );
+  }
+
   if (material.kind !== "unlit" || material.baseColorTexture === null) {
     return true;
   }
@@ -56,6 +66,42 @@ export function validateMaterialTextureDependencies(
     valid =
       validateSamplerAssetState(binding.sampler, assets, entity, diagnostics) &&
       valid;
+  }
+
+  return valid;
+}
+
+function validateCustomMaterialBindingDependencies(
+  material: Extract<
+    SourceMaterialAsset,
+    { readonly sourceDiscriminator: "custom-material-source" }
+  >,
+  assets: AssetRegistry,
+  entity: Entity,
+  diagnostics: RenderDiagnostic[],
+): boolean {
+  let valid = true;
+
+  for (const binding of material.bindings) {
+    if (binding.kind === "texture") {
+      valid =
+        validateTextureAssetState(
+          binding.texture,
+          assets,
+          entity,
+          diagnostics,
+        ) && valid;
+    }
+
+    if (binding.kind === "sampler") {
+      valid =
+        validateSamplerAssetState(
+          binding.sampler,
+          assets,
+          entity,
+          diagnostics,
+        ) && valid;
+    }
   }
 
   return valid;

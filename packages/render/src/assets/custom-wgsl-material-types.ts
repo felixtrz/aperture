@@ -1,43 +1,42 @@
 import type {
-  InstanceAttributeLayout,
-  InstanceAttributeLayoutInput,
+  CustomWgslBindingKind,
+  CustomWgslMaterialAsset,
+  CustomWgslShaderRef,
+  CustomWgslShaderStage,
+  CustomWgslUniformBindingDeclaration,
+  MaterialFamilyKey,
   RenderStateDescriptor,
 } from "../materials/index.js";
+import type { InstanceAttributeLayout } from "../materials/instance-attributes.js";
 
-export type CustomWgslShaderStage = "vertex" | "fragment";
-export type CustomWgslBindingKind =
-  | "uniform-buffer"
-  | "storage-buffer"
-  | "texture"
-  | "sampler";
+export type {
+  CustomMaterialDependencyDeclaration,
+  CustomWgslBindingDeclaration,
+  CustomWgslBindingKind,
+  CustomWgslMaterialAsset,
+  CustomWgslMaterialEntryPoints,
+  CustomWgslMaterialPipelineKeyInput,
+  CustomWgslSamplerBindingDeclaration,
+  CustomWgslShaderRef,
+  CustomWgslShaderStage,
+  CustomWgslStorageBindingDeclaration,
+  CustomWgslTextureBindingDeclaration,
+  CustomWgslUniformBindingDeclaration,
+  CustomWgslUniformField,
+  CustomWgslUniformFieldType,
+  WgslShaderAsset,
+} from "../materials/index.js";
 
-export interface CustomWgslShaderSource {
-  readonly code: string;
-  readonly vertexEntryPoint: string;
-  readonly fragmentEntryPoint: string;
-}
-
-export interface CustomWgslBindingDeclaration {
-  readonly binding: number;
-  readonly kind: CustomWgslBindingKind;
-  readonly visibility: readonly CustomWgslShaderStage[];
-  readonly label?: string;
-}
-
-export interface CustomWgslMaterialSource {
-  readonly family: string;
-  readonly label: string;
-  readonly renderState: RenderStateDescriptor;
-  readonly shader: CustomWgslShaderSource;
-  readonly bindings?: readonly CustomWgslBindingDeclaration[];
-  readonly instanceAttributes?: InstanceAttributeLayoutInput;
-}
+export type CustomWgslMaterialSource = CustomWgslMaterialAsset;
+export type CustomWgslShaderSource = CustomWgslShaderRef;
 
 export interface PreparedCustomWgslBindingLayoutEntry {
   readonly binding: number;
   readonly kind: CustomWgslBindingKind;
   readonly visibility: readonly CustomWgslShaderStage[];
   readonly label: string;
+  readonly fields?: CustomWgslUniformBindingDeclaration["fields"];
+  readonly values?: CustomWgslUniformBindingDeclaration["values"];
 }
 
 export interface PreparedCustomWgslBindingResourceEntry {
@@ -51,11 +50,15 @@ export interface PreparedCustomWgslMaterial {
   readonly sourceMaterialKey: string;
   readonly materialKey: string;
   readonly label: string;
-  readonly materialFamily: string;
+  readonly materialFamily: MaterialFamilyKey;
+  readonly pipelineKey: string;
+  readonly materialResourceKey: string;
+  readonly bindGroupResourceKey: string;
   readonly shader: {
     readonly language: "wgsl";
     readonly moduleKey: string;
     readonly code: string;
+    readonly sourceKey: string;
     readonly vertexEntryPoint: string;
     readonly fragmentEntryPoint: string;
   };

@@ -1,4 +1,10 @@
-import { createSystem, material, mesh } from "@aperture-engine/app/systems";
+import {
+  EcsType,
+  createSystem,
+  material,
+  mesh,
+  shader,
+} from "@aperture-engine/app/systems";
 
 export default class SetupSystem extends createSystem({
   priority: 0,
@@ -62,5 +68,33 @@ export default class SetupSystem extends createSystem({
       tags: ["asset", "robot"],
       transform: { translation: [1, 0, 0] },
     });
+
+    const generatedWaterShader = this.assets.shader("generatedWater");
+
+    if (generatedWaterShader.ready.value) {
+      this.spawn.mesh({
+        key: "level.custom.water",
+        name: "generated custom water",
+        tags: ["custom-wgsl", "shader-asset"],
+        mesh: mesh.plane({ size: [1.3, 0.7] }),
+        material: material.customWgsl({
+          familyKey: "example/generated-water",
+          label: "Generated Water",
+          shader: shader.asset(generatedWaterShader),
+          entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+          renderState: { cullMode: "none" },
+          bindings: [
+            material.uniform("water", {
+              binding: 0,
+              visibility: ["fragment"],
+              fields: {
+                color: { type: EcsType.Vec4, default: [0.02, 0.58, 0.95, 1] },
+              },
+            }),
+          ],
+        }),
+        transform: { translation: [0, 0.65, -0.9] },
+      });
+    }
   }
 }

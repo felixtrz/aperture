@@ -1,7 +1,8 @@
 import type { Entity, MaterialHandle } from "@aperture-engine/simulation";
 import {
-  type MaterialAsset,
+  isCustomWgslMaterialAsset,
   type MaterialPipelineKeyInput,
+  type SourceMaterialAsset,
 } from "../materials/index.js";
 import { FogMode, MaterialSlots } from "./index.js";
 import type { FogPacket, RenderDiagnostic, RenderQueue } from "./snapshot.js";
@@ -10,13 +11,14 @@ import { parseMaterialHandle } from "./extraction-inputs.js";
 
 export function createExtractedMaterialPipelineKeyInput(input: {
   readonly base: MaterialPipelineKeyInput;
-  readonly material: MaterialAsset;
+  readonly material: SourceMaterialAsset;
   readonly instanceTint: boolean;
   readonly skinned: boolean;
   readonly morphed: boolean;
   readonly fogMode?: FogMode | null;
 }): MaterialPipelineKeyInput {
   if (
+    isCustomWgslMaterialAsset(input.material) ||
     input.material.kind !== "standard" ||
     (!input.instanceTint &&
       !input.skinned &&
@@ -118,7 +120,7 @@ export function readMaterialSlots(
   return slots;
 }
 
-export function materialQueue(material: MaterialAsset): RenderQueue {
+export function materialQueue(material: SourceMaterialAsset): RenderQueue {
   switch (material.renderState.alphaMode) {
     case "mask":
       return "alpha-test";

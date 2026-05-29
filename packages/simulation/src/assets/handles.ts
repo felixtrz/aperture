@@ -10,6 +10,7 @@ import type {
   SamplerHandle,
   SceneHandle,
   SerializedAssetHandle,
+  ShaderHandle,
   SkinHandle,
   TextureHandle,
 } from "./types.js";
@@ -71,6 +72,10 @@ export function createMorphTargetSetHandle(id: string): MorphTargetSetHandle {
 
 export function createEnvironmentMapHandle(id: string): EnvironmentMapHandle {
   return createAssetHandle("environment-map", id);
+}
+
+export function createShaderHandle(id: string): ShaderHandle {
+  return createAssetHandle("shader", id);
 }
 
 export function assetHandleKey(handle: AssetHandle): string {

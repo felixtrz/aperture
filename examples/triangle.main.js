@@ -412,7 +412,7 @@ async function renderCustomWgslTriangleScene(
   const customPreparation = aperture.prepareRenderAsset({
     registry: assets,
     adapter: aperture.createCustomWgslMaterialRenderAssetAdapter(
-      customSource.family,
+      customSource.familyKey,
     ),
     store: customStore,
     handle: materialHandle,
@@ -811,12 +811,20 @@ function createTriangleMesh() {
 
 function createCustomWgslTriangleMaterial(aperture) {
   return {
-    family: "custom-water",
+    sourceDiscriminator: "custom-material-source",
+    shaderLanguage: "wgsl",
+    familyKey: "example/triangle-water",
     label: "Custom WGSL Water Triangle",
     renderState: aperture.createDefaultRenderState({
       cullMode: "none",
     }),
+    pipelineKey: {
+      features: [],
+      specialization: {},
+    },
     shader: {
+      kind: "inline-wgsl",
+      virtualPath: "triangle-water.wgsl",
       code: `
 struct ViewProjectionUniform {
   viewProjection: mat4x4f,
@@ -862,17 +870,27 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   return vec4f(customColor, material.color.a);
 }
       `.trim(),
-      vertexEntryPoint: "vs_main",
-      fragmentEntryPoint: "fs_main",
+    },
+    entryPoints: {
+      vertex: "vs_main",
+      fragment: "fs_main",
     },
     bindings: [
       {
+        name: "material",
         binding: 0,
         kind: "uniform-buffer",
         visibility: ["fragment"],
         label: "customMaterialUniform",
+        fields: {
+          color: { type: "vec4", default: customMaterialUniformColor },
+        },
+        values: {
+          color: customMaterialUniformColor,
+        },
       },
     ],
+    dependencies: [],
   };
 }
 

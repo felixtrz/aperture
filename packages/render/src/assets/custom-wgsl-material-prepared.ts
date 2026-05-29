@@ -10,12 +10,14 @@ import type {
 export function createPreparedCustomWgslMaterial(input: {
   readonly source: CustomWgslMaterialSource;
   readonly assetKey: string;
+  readonly shaderCode: string;
+  readonly shaderSourceKey: string;
 }): PreparedCustomWgslMaterial {
-  const shaderHash = stableStringHash(input.source.shader.code);
+  const shaderHash = stableStringHash(input.shaderCode);
   const instanceAttributes = createInstanceAttributeLayout(
     input.source.instanceAttributes,
   );
-  const moduleKey = `custom-wgsl-module:${input.assetKey}:${shaderHash}`;
+  const moduleKey = `custom-wgsl-module:${input.shaderSourceKey}:${shaderHash}`;
   const pipelineKey = customWgslMaterialPipelineKey(
     input.source,
     shaderHash,
@@ -31,6 +33,12 @@ export function createPreparedCustomWgslMaterial(input: {
     kind: binding.kind,
     visibility: [...binding.visibility].sort(),
     label: binding.label ?? `binding-${binding.binding}`,
+    ...(binding.kind === "uniform-buffer"
+      ? {
+          fields: binding.fields,
+          ...(binding.values === undefined ? {} : { values: binding.values }),
+        }
+      : {}),
   }));
 
   return {
@@ -38,19 +46,23 @@ export function createPreparedCustomWgslMaterial(input: {
     sourceMaterialKey: input.assetKey,
     materialKey: input.assetKey,
     label: input.source.label,
-    materialFamily: input.source.family,
+    materialFamily: input.source.familyKey,
+    pipelineKey,
+    materialResourceKey: bindGroupResourceKey,
+    bindGroupResourceKey,
     shader: {
       language: "wgsl",
       moduleKey,
-      code: input.source.shader.code,
-      vertexEntryPoint: input.source.shader.vertexEntryPoint,
-      fragmentEntryPoint: input.source.shader.fragmentEntryPoint,
+      code: input.shaderCode,
+      sourceKey: input.shaderSourceKey,
+      vertexEntryPoint: input.source.entryPoints.vertex,
+      fragmentEntryPoint: input.source.entryPoints.fragment,
     },
     pipeline: {
       pipelineKey,
       shaderModuleKey: moduleKey,
-      vertexEntryPoint: input.source.shader.vertexEntryPoint,
-      fragmentEntryPoint: input.source.shader.fragmentEntryPoint,
+      vertexEntryPoint: input.source.entryPoints.vertex,
+      fragmentEntryPoint: input.source.entryPoints.fragment,
       renderState: input.source.renderState,
       instanceAttributes,
     },
@@ -76,12 +88,16 @@ function customWgslMaterialPipelineKey(
   instanceAttributes: InstanceAttributeLayout | null,
 ): string {
   return [
-    source.family,
+    source.familyKey,
     `shader:${shaderHash}`,
-    `vs:${source.shader.vertexEntryPoint}`,
-    `fs:${source.shader.fragmentEntryPoint}`,
+    `vs:${source.entryPoints.vertex}`,
+    `fs:${source.entryPoints.fragment}`,
     `instance-attributes:${instanceAttributes?.layoutKey ?? "none"}`,
-    `bindings:${(source.bindings ?? [])
+    `features:${source.pipelineKey.features.join(",")}`,
+    `specialization:${stableStringHash(
+      JSON.stringify(source.pipelineKey.specialization),
+    )}`,
+    `bindings:${source.bindings
       .map((binding) => `${binding.binding}:${binding.kind}`)
       .sort()
       .join(",")}`,

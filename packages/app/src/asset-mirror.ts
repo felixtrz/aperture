@@ -1,11 +1,11 @@
 import {
-  AssetRegistry,
   assetHandleKey,
   deserializeAssetHandle,
   serializeAssetHandle,
   type AssetDiagnostic,
   type AssetHandle,
   type AssetKind,
+  type AssetRegistry,
   type AssetRegistryEntry,
   type AssetStatus,
   type SerializedAssetHandle,

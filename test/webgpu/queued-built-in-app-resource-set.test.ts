@@ -202,7 +202,7 @@ describe("queued built-in app resource set collector", () => {
     const snapshot = renderSnapshot([
       drawPacket({
         renderId: 13,
-        materialFamily: "toon-shaded",
+        materialFamily: "example/toon-shaded",
       }),
     ]);
     const meshes = createPreparedMeshStore();
@@ -229,7 +229,7 @@ describe("queued built-in app resource set collector", () => {
           code: "webGpuApp.unsupportedMaterialQueueFamily",
           renderId: 13,
           drawIndex: 0,
-          materialFamily: "toon-shaded",
+          materialFamily: "example/toon-shaded",
           entity: { index: 13, generation: 1 },
         }),
         expect.objectContaining({
@@ -241,7 +241,7 @@ describe("queued built-in app resource set collector", () => {
             skippedItemCount: 1,
             byFamily: [
               {
-                key: "toon-shaded",
+                key: "example/toon-shaded",
                 queuedCount: 1,
                 routedCount: 0,
                 skippedCount: 1,
@@ -277,7 +277,7 @@ describe("queued built-in app resource set collector", () => {
     const unsupportedSnapshot = renderSnapshot([
       drawPacket({
         renderId: 17,
-        materialFamily: "toon-shaded",
+        materialFamily: "example/toon-shaded",
       }),
     ]);
     const unsupportedMeshes = createPreparedMeshStore();
@@ -305,7 +305,7 @@ describe("queued built-in app resource set collector", () => {
     });
 
     expect(unsupported.valid).toBe(false);
-    expect(JSON.stringify(unsupported)).toContain("toon-shaded");
+    expect(JSON.stringify(unsupported)).toContain("example/toon-shaded");
 
     const validAssets = readyAssets("standard");
     const validSnapshot = renderSnapshot([
@@ -349,7 +349,7 @@ describe("queued built-in app resource set collector", () => {
       },
     });
     expect(JSON.stringify(valid)).not.toContain("debug-normal");
-    expect(JSON.stringify(valid)).not.toContain("toon-shaded");
+    expect(JSON.stringify(valid)).not.toContain("example/toon-shaded");
     expect(JSON.stringify(valid)).not.toContain(
       "webGpuApp.materialQueueRouteReport",
     );

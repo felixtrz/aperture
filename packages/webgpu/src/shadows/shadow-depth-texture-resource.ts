@@ -166,17 +166,18 @@ export function createShadowDepthTextureResourceReport(
     let allocation = allocationsByTextureKey.get(texture.textureKey);
 
     if (allocation === undefined) {
-      const cached = reuseShadowDepthTextureAllocation(
-        texture,
-        options.cache,
-      );
+      const cached = reuseShadowDepthTextureAllocation(texture, options.cache);
 
       if (cached === null) {
         allocation = createShadowDepthTextureAllocation(
           options.device,
           texture,
         );
-        rememberShadowDepthTextureAllocation(texture, allocation, options.cache);
+        rememberShadowDepthTextureAllocation(
+          texture,
+          allocation,
+          options.cache,
+        );
       } else {
         allocation = cached;
         reusedTextureCount += 1;
@@ -352,7 +353,11 @@ function rememberShadowDepthTextureAllocation(
   allocation: CreateTextureGpuResourceResult,
   cache: ShadowDepthTextureResourceCache | undefined,
 ): void {
-  if (cache === undefined || !allocation.valid || allocation.resource === null) {
+  if (
+    cache === undefined ||
+    !allocation.valid ||
+    allocation.resource === null
+  ) {
     return;
   }
 
@@ -455,8 +460,7 @@ function shadowFilterRadiusTexels(
   >,
 ): number {
   return (
-    resource.filterRadiusTexels ??
-    (resource.viewDimension === "cube" ? 0 : 1)
+    resource.filterRadiusTexels ?? (resource.viewDimension === "cube" ? 0 : 1)
   );
 }
 

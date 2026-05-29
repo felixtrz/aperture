@@ -11,6 +11,7 @@ import {
 import {
   PreparedRenderAssetStore,
   createBoxMeshAsset,
+  createCustomWgslMaterialAsset,
   createCustomWgslMaterialRenderAssetAdapter,
   createDefaultRenderState,
   defineInstanceAttributes,
@@ -237,11 +238,11 @@ describe("render asset preparation contract", () => {
       "material",
       PreparedCustomWgslMaterial
     >();
-    const adapter = createCustomWgslMaterialRenderAssetAdapter("custom.water");
-    const source: CustomWgslMaterialSource = {
-      family: "custom.water",
+    const adapter = createCustomWgslMaterialRenderAssetAdapter("custom/water");
+    const source = createCustomWgslMaterialAsset({
+      familyKey: "custom/water",
       label: "Water Material",
-      renderState: createDefaultRenderState({
+      renderState: {
         cullMode: "none",
         depth: {
           test: true,
@@ -250,10 +251,15 @@ describe("render asset preparation contract", () => {
         },
         blend: { preset: "alpha" },
         alphaMode: "blend",
-      }),
+      },
       shader: {
+        kind: "inline-wgsl",
         code: `
-          @group(2) @binding(0) var<uniform> water: vec4f;
+          struct WaterUniforms {
+            color: vec4f,
+          };
+
+          @group(2) @binding(0) var<uniform> water: WaterUniforms;
 
           @vertex
           fn vs_main() -> @builtin(position) vec4f {
@@ -262,25 +268,31 @@ describe("render asset preparation contract", () => {
 
           @fragment
           fn fs_main() -> @location(0) vec4f {
-            return water;
+            return water.color;
           }
         `,
-        vertexEntryPoint: "vs_main",
-        fragmentEntryPoint: "fs_main",
+      },
+      entryPoints: {
+        vertex: "vs_main",
+        fragment: "fs_main",
       },
       bindings: [
         {
+          name: "water",
           binding: 0,
           kind: "uniform-buffer",
           visibility: ["fragment"],
           label: "waterUniforms",
+          fields: {
+            color: { type: "vec4", default: [0.02, 0.46, 0.9, 1] },
+          },
         },
       ],
       instanceAttributes: defineInstanceAttributes([
         { name: "wind", format: "float32x3" },
         { name: "phase", format: "float32" },
       ]),
-    };
+    });
 
     registry.register<"material", CustomWgslMaterialSource>(handle);
     registry.markReady(handle, source);
@@ -302,14 +314,14 @@ describe("render asset preparation contract", () => {
       resourceFamily: "custom-wgsl-material",
       sourceMaterialKey: "material:water",
       label: "Water Material",
-      materialFamily: "custom.water",
+      materialFamily: "custom/water",
       shader: {
         language: "wgsl",
         vertexEntryPoint: "vs_main",
         fragmentEntryPoint: "fs_main",
       },
       pipeline: {
-        pipelineKey: expect.stringContaining("custom.water|shader:"),
+        pipelineKey: expect.stringContaining("custom/water|shader:"),
         vertexEntryPoint: "vs_main",
         fragmentEntryPoint: "fs_main",
         renderState: source.renderState,
@@ -365,20 +377,19 @@ describe("render asset preparation contract", () => {
 
   it("uses the custom instance attribute layout in the custom pipeline key", () => {
     const source = (attributes: ReturnType<typeof defineInstanceAttributes>) =>
-      ({
-        family: "custom.wind",
+      createCustomWgslMaterialAsset({
+        familyKey: "custom/wind",
         label: "Wind Material",
-        renderState: createDefaultRenderState(),
         shader: {
+          kind: "inline-wgsl",
           code: `
             @vertex fn vs_main() -> @builtin(position) vec4f { return vec4f(); }
             @fragment fn fs_main() -> @location(0) vec4f { return vec4f(1.0); }
           `,
-          vertexEntryPoint: "vs_main",
-          fragmentEntryPoint: "fs_main",
         },
+        entryPoints: { vertex: "vs_main", fragment: "fs_main" },
         instanceAttributes: attributes,
-      }) satisfies CustomWgslMaterialSource;
+      });
     const first = prepareCustomSource(
       "a",
       source(defineInstanceAttributes([{ name: "phase", format: "float32" }])),
@@ -402,19 +413,21 @@ describe("render asset preparation contract", () => {
       "material",
       PreparedCustomWgslMaterial
     >();
-    const adapter = createCustomWgslMaterialRenderAssetAdapter("custom.water");
+    const adapter = createCustomWgslMaterialRenderAssetAdapter("custom/water");
 
     registry.register<"material", CustomWgslMaterialSource>(handle);
-    registry.markReady(handle, {
-      family: "custom.water",
-      label: "Broken Water",
-      renderState: createDefaultRenderState(),
-      shader: {
-        code: "fn only_main() -> vec4f { return vec4f(1.0); }",
-        vertexEntryPoint: "vs_main",
-        fragmentEntryPoint: "fs_main",
-      },
-    });
+    registry.markReady(
+      handle,
+      createCustomWgslMaterialAsset({
+        familyKey: "custom/water",
+        label: "Broken Water",
+        shader: {
+          kind: "inline-wgsl",
+          code: "fn only_main() -> vec4f { return vec4f(1.0); }",
+        },
+        entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+      }),
+    );
 
     const failed = prepareRenderAsset({
       registry,
@@ -428,79 +441,89 @@ describe("render asset preparation contract", () => {
       assetKey: "material:broken-water",
     });
     expect(failed.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
-      "renderAsset.customWgslMaterial.missingVertexEntryPoint",
-      "renderAsset.customWgslMaterial.missingFragmentEntryPoint",
+      "customMaterialSource.invalidDependency",
+      "customMaterialSource.invalidDependency",
     ]);
   });
 
   it("exposes package-level custom material source diagnostics", () => {
     const diagnostics = validateCustomMaterialSource(
       {
-        family: "custom.water",
+        sourceDiscriminator: "custom-material-source",
+        shaderLanguage: "wgsl",
+        familyKey: "custom/water",
         label: " ",
         renderState: createDefaultRenderState(),
+        pipelineKey: { features: [], specialization: {} },
         shader: {
+          kind: "inline-wgsl",
           code: `
             @vertex
             fn only_vertex() -> @builtin(position) vec4f {
               return vec4f(0.0, 0.0, 0.0, 1.0);
             }
           `,
-          vertexEntryPoint: "vs_main",
-          fragmentEntryPoint: "fs_main",
         },
+        entryPoints: { vertex: "vs_main", fragment: "fs_main" },
         bindings: [
           {
+            name: "water",
             binding: 0,
             kind: "uniform-buffer",
             visibility: ["fragment"],
+            fields: {},
           },
           {
+            name: "waterDuplicate",
             binding: 0,
             kind: "uniform-buffer",
             visibility: [],
+            fields: {},
           },
           {
+            name: "waterNegative",
             binding: -1,
             kind: "uniform-buffer",
             visibility: ["fragment"],
+            fields: {},
           },
         ],
-      },
+        dependencies: [],
+      } as unknown as CustomWgslMaterialSource,
       {
         assetKey: "material:broken-water",
-        expectedFamily: "custom.water",
+        expectedFamily: "custom/water",
       },
     );
 
     expect(diagnostics).toMatchObject([
       {
-        code: "renderAsset.customWgslMaterial.invalidLabel",
+        code: "customMaterialSource.invalidLabel",
+        severity: "warning",
+        assetKey: "material:broken-water",
+      },
+      {
+        code: "customMaterialSource.invalidDependency",
         severity: "error",
         assetKey: "material:broken-water",
       },
       {
-        code: "renderAsset.customWgslMaterial.missingVertexEntryPoint",
+        code: "customMaterialSource.invalidDependency",
         severity: "error",
         assetKey: "material:broken-water",
       },
       {
-        code: "renderAsset.customWgslMaterial.missingFragmentEntryPoint",
+        code: "customMaterialSource.invalidBindingDeclaration",
         severity: "error",
         assetKey: "material:broken-water",
       },
       {
-        code: "renderAsset.customWgslMaterial.duplicateBinding",
+        code: "customMaterialSource.invalidBindingDeclaration",
         severity: "error",
         assetKey: "material:broken-water",
       },
       {
-        code: "renderAsset.customWgslMaterial.invalidBindingVisibility",
-        severity: "error",
-        assetKey: "material:broken-water",
-      },
-      {
-        code: "renderAsset.customWgslMaterial.invalidBinding",
+        code: "customMaterialSource.invalidBindingDeclaration",
         severity: "error",
         assetKey: "material:broken-water",
       },
@@ -966,7 +989,7 @@ function prepareCustomSource(
 
   const prepared = prepareRenderAsset({
     registry,
-    adapter: createCustomWgslMaterialRenderAssetAdapter(source.family),
+    adapter: createCustomWgslMaterialRenderAssetAdapter(source.familyKey),
     store,
     handle,
   });

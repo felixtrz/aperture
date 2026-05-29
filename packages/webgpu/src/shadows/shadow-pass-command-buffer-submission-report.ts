@@ -9,7 +9,10 @@ import {
   type GpuTimestampCommandReport,
   type GpuTimestampQueryResources,
 } from "../gpu/gpu-timing.js";
-import { submitCommandBuffers, type QueueSubmitLike } from "../render/queues/queue-submit.js";
+import {
+  submitCommandBuffers,
+  type QueueSubmitLike,
+} from "../render/queues/queue-submit.js";
 import type { ShadowPassEncoderAssemblyReport } from "./shadow-pass-encoder-assembly-report.js";
 
 export type ShadowPassCommandBufferSubmissionStatus =

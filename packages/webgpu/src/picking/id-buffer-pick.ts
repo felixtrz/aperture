@@ -7,7 +7,10 @@ import {
   WEBGPU_ID_BUFFER_EMPTY_ID,
   WEBGPU_ID_BUFFER_FORMAT,
 } from "./id-buffer.js";
-import { createWebGpuBuffer, type WebGpuBufferDeviceLike } from "../gpu/buffer.js";
+import {
+  createWebGpuBuffer,
+  type WebGpuBufferDeviceLike,
+} from "../gpu/buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
 import { resolveUnlitVertexBufferLayouts } from "../materials/unlit/unlit-pipeline.js";
 import { hasUnlitVertexColorFeature } from "../materials/unlit/unlit-pipeline-descriptor.js";

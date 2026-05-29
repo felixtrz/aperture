@@ -17,6 +17,7 @@ export {
 export type {
   PreparedMaterialAssetMetadata,
   PreparedMaterialAssetStore,
+  PreparedSourceMaterialMetadata,
   PreparedMaterialStore,
   PreparedMaterialStoreEntryJsonValue,
   PreparedMaterialStoreFamilyJsonSummary,

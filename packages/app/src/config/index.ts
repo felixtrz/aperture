@@ -1,6 +1,7 @@
 import type {
   EnvironmentMapHandle,
   SceneHandle,
+  ShaderHandle,
   TextureHandle,
 } from "@aperture-engine/simulation";
 import { ApertureConfigError } from "./errors.js";
@@ -11,7 +12,7 @@ export { validateApertureConfig } from "./validation.js";
 
 export type ApertureAppMode = "browser" | "headless";
 export type AssetPreloadPolicy = "blocking" | "background" | "manual";
-export type ConfigAssetKind = "gltf" | "texture" | "hdr";
+export type ConfigAssetKind = "gltf" | "texture" | "hdr" | "shader";
 export type DiagnosticsLevel = "debug" | "info" | "warn" | "error" | "silent";
 
 export type EcsEntityRef = {
@@ -37,6 +38,8 @@ export type ApertureGltfAssetDescriptor = ApertureConfigAssetDescriptor<"gltf">;
 export type ApertureTextureAssetDescriptor =
   ApertureConfigAssetDescriptor<"texture">;
 export type ApertureHdrAssetDescriptor = ApertureConfigAssetDescriptor<"hdr">;
+export type ApertureShaderAssetDescriptor =
+  ApertureConfigAssetDescriptor<"shader">;
 
 export interface ApertureConfigAssetHelpers {
   gltf(
@@ -48,6 +51,10 @@ export interface ApertureConfigAssetHelpers {
     options?: ApertureAssetOptions,
   ): ApertureTextureAssetDescriptor;
   hdr(url: string, options?: ApertureAssetOptions): ApertureHdrAssetDescriptor;
+  shader(
+    url: string,
+    options?: ApertureAssetOptions,
+  ): ApertureShaderAssetDescriptor;
 }
 
 export type ApertureSignalKind = "ref" | "string" | "number" | "boolean";
@@ -251,6 +258,7 @@ export interface RuntimeAssetHandles {
   readonly gltf: Readonly<Record<string, SceneHandle>>;
   readonly texture: Readonly<Record<string, TextureHandle>>;
   readonly hdr: Readonly<Record<string, EnvironmentMapHandle>>;
+  readonly shader: Readonly<Record<string, ShaderHandle>>;
 }
 
 export const asset: ApertureConfigAssetHelpers = Object.freeze({
@@ -262,6 +270,9 @@ export const asset: ApertureConfigAssetHelpers = Object.freeze({
   },
   hdr(url: string, options: ApertureAssetOptions = {}) {
     return assetDescriptor("hdr", url, options);
+  },
+  shader(url: string, options: ApertureAssetOptions = {}) {
+    return assetDescriptor("shader", url, options);
   },
 });
 
