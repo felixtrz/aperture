@@ -44,6 +44,20 @@ function textureAssetToJsonValue(
             ...(texture.sourceData.rowsPerImage === undefined
               ? {}
               : { rowsPerImage: texture.sourceData.rowsPerImage }),
+            ...(texture.sourceData.mipLevels === undefined
+              ? {}
+              : {
+                  mipLevelCount: texture.sourceData.mipLevels.length,
+                  mipLevels: texture.sourceData.mipLevels.map((level) => ({
+                    byteLength: level.bytes.byteLength,
+                    bytesPerRow: level.bytesPerRow,
+                    ...(level.rowsPerImage === undefined
+                      ? {}
+                      : { rowsPerImage: level.rowsPerImage }),
+                    width: level.width,
+                    height: level.height,
+                  })),
+                }),
           },
         }),
   };

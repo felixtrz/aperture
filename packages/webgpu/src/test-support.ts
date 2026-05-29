@@ -203,6 +203,7 @@ export * from "./materials/standard/standard-skinning-shader.js";
 export * from "./resources/attributes/skinning-joint-buffer.js";
 export * from "./materials/standard/standard-shader.js";
 export * from "./resources/textures/texture-resources.js";
+export * from "./resources/textures/generate-mipmaps.js";
 export * from "./materials/unlit/unlit-material-buffer.js";
 export * from "./materials/unlit/unlit-material-buffer-resource.js";
 export * from "./materials/unlit/unlit-app-frame-resources.js";

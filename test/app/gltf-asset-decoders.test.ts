@@ -68,11 +68,14 @@ describe("app glTF asset decoder providers", () => {
           format: "rgba8unorm-srgb",
           width: 40,
           height: 40,
-          sourceData: {
+          mipLevelCount: 1,
+          sourceData: expect.objectContaining({
             byteLength: 6400,
             bytesPerRow: 160,
             rowsPerImage: 40,
-          },
+            mipLevelCount: 1,
+            mipLevels: null,
+          }),
         }),
       ],
     });

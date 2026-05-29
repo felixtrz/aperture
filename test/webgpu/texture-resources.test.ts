@@ -4,6 +4,7 @@ import {
   createSamplerAsset,
   createSamplerGpuResource,
   createTextureGpuResource,
+  WEBGPU_TEXTURE_USAGE_FLAGS,
   type TextureDescriptorInput,
   type TextureGpuDeviceLike,
 } from "@aperture-engine/webgpu/test-support";
@@ -386,6 +387,128 @@ describe("texture GPU resource creation", () => {
     ]);
   });
 
+  it("generates a full mip chain for uncompressed texture uploads", () => {
+    const texture = textureWithViewFactory();
+    const writes: unknown[] = [];
+    const created: unknown[] = [];
+    const device = mipmapDevice({
+      texture,
+      writes,
+      created,
+    });
+    const descriptor = textureDescriptor({
+      size: [256, 256, 1],
+      mipLevelCount: 9,
+      usage:
+        WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING |
+        WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST,
+    });
+    const result = createTextureGpuResource({
+      device,
+      resourceKey: "texture:mipmapped-albedo",
+      descriptor,
+      upload: {
+        data: new Uint8Array(256 * 256 * 4),
+        bytesPerRow: 256 * 4,
+        rowsPerImage: 256,
+      },
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.resource?.descriptor.mipLevelCount).toBe(9);
+    expect(created[0]).toMatchObject({
+      mipLevelCount: 9,
+      usage:
+        WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING |
+        WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST |
+        WEBGPU_TEXTURE_USAGE_FLAGS.RENDER_ATTACHMENT,
+    });
+    expect(writes).toHaveLength(1);
+    expect(writes).toMatchObject([
+      {
+        destination: { texture, mipLevel: 0 },
+        size: [256, 256, 1],
+      },
+    ]);
+    expect(result.resource?.mipGeneration).toMatchObject({
+      resourceKey: "texture:mipmapped-albedo",
+      requestedMipLevelCount: 9,
+      generatedMipLevels: [1, 2, 3, 4, 5, 6, 7, 8],
+      passCount: 8,
+      submitted: true,
+    });
+  });
+
+  it("uploads every explicit mip level for precomputed KTX2 chains", () => {
+    const texture = textureWithView({ label: "ktx2-mip-view" });
+    const writes: unknown[] = [];
+    const result = createTextureGpuResource({
+      device: {
+        createTexture: () => texture,
+        queue: {
+          writeTexture: (destination, data, layout, size) => {
+            writes.push({ destination, data, layout, size });
+          },
+        },
+      },
+      resourceKey: "texture:basis-ktx2-mips",
+      descriptor: textureDescriptor({
+        format: "etc2-rgba8unorm-srgb",
+        size: [40, 40, 1],
+        mipLevelCount: 6,
+      }),
+      upload: {
+        data: new Uint8Array(400),
+        bytesPerRow: 160,
+        rowsPerImage: 40,
+        mipLevels: [
+          mipLevelUpload(40, 40, 160),
+          mipLevelUpload(20, 20, 80),
+          mipLevelUpload(10, 10, 48),
+          mipLevelUpload(5, 5, 32),
+          mipLevelUpload(2, 2, 16),
+          mipLevelUpload(1, 1, 16),
+        ],
+      },
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(writes).toMatchObject([
+      {
+        destination: { texture, mipLevel: 0 },
+        layout: { bytesPerRow: 160, rowsPerImage: 10 },
+        size: [40, 40, 1],
+      },
+      {
+        destination: { texture, mipLevel: 1 },
+        layout: { bytesPerRow: 80, rowsPerImage: 5 },
+        size: [20, 20, 1],
+      },
+      {
+        destination: { texture, mipLevel: 2 },
+        layout: { bytesPerRow: 48, rowsPerImage: 3 },
+        size: [12, 12, 1],
+      },
+      {
+        destination: { texture, mipLevel: 3 },
+        layout: { bytesPerRow: 32, rowsPerImage: 2 },
+        size: [8, 8, 1],
+      },
+      {
+        destination: { texture, mipLevel: 4 },
+        layout: { bytesPerRow: 16, rowsPerImage: 1 },
+        size: [4, 4, 1],
+      },
+      {
+        destination: { texture, mipLevel: 5 },
+        layout: { bytesPerRow: 16, rowsPerImage: 1 },
+        size: [4, 4, 1],
+      },
+    ]);
+  });
+
   it("validates block-compressed texture row strides and block rows", () => {
     const cases = [
       {
@@ -577,7 +700,7 @@ describe("texture GPU resource creation", () => {
         code: "textureResource.invalidRowsPerImage",
         resourceKey: "texture:fractional-rows",
         message:
-          "Texture upload rowsPerImage for resource 'texture:fractional-rows' must be an integer at least 2 row(s).",
+          "Texture upload rowsPerImage for resource 'texture:fractional-rows' mip level 0 must be an integer at least 2 row(s).",
       },
     ]);
     expect(writes).toEqual([]);
@@ -804,5 +927,68 @@ function textureWithView(
 ): ReturnType<NonNullable<TextureGpuDeviceLike["createTexture"]>> {
   return {
     createView: () => view,
+  };
+}
+
+function textureWithViewFactory(): ReturnType<
+  NonNullable<TextureGpuDeviceLike["createTexture"]>
+> {
+  return {
+    createView: (descriptor?: unknown) => ({ descriptor }),
+  };
+}
+
+function mipLevelUpload(width: number, height: number, bytesPerRow: number) {
+  const rowsPerImage = Math.ceil(height / 4);
+
+  return {
+    data: new Uint8Array(bytesPerRow * rowsPerImage),
+    bytesPerRow,
+    rowsPerImage,
+    width,
+    height,
+  };
+}
+
+function mipmapDevice(input: {
+  readonly texture: ReturnType<
+    NonNullable<TextureGpuDeviceLike["createTexture"]>
+  >;
+  readonly writes: unknown[];
+  readonly created: unknown[];
+}): TextureGpuDeviceLike {
+  return {
+    createTexture: (descriptor) => {
+      input.created.push(descriptor);
+      return input.texture;
+    },
+    createShaderModule: (descriptor: unknown) => ({ descriptor }),
+    createSampler: (descriptor: unknown) => ({ descriptor }),
+    createBindGroupLayout: (descriptor: unknown) => ({ descriptor }),
+    createPipelineLayout: (descriptor: unknown) => ({ descriptor }),
+    createRenderPipeline: (descriptor: unknown) => ({ descriptor }),
+    createBindGroup: (descriptor: unknown) => ({ descriptor }),
+    createCommandEncoder: (descriptor?: unknown) => {
+      const passes: unknown[] = [];
+
+      return {
+        beginRenderPass: (passDescriptor: unknown) => {
+          passes.push(passDescriptor);
+          return {
+            setPipeline: () => undefined,
+            setBindGroup: () => undefined,
+            draw: () => undefined,
+            end: () => undefined,
+          };
+        },
+        finish: () => ({ descriptor, passes }),
+      };
+    },
+    queue: {
+      writeTexture: (destination, data, layout, size) => {
+        input.writes.push({ destination, data, layout, size });
+      },
+      submit: () => undefined,
+    },
   };
 }

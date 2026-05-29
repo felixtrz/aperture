@@ -45,6 +45,34 @@ describe("KTX2 decoder", () => {
     ]);
   });
 
+  it("preserves uncompressed KTX2 mip levels as texture source levels", () => {
+    const bytes = createKtx2Rgba8Bytes({
+      vkFormat: 43,
+      width: 4,
+      height: 4,
+      levels: [
+        new Uint8Array(4 * 4 * 4).fill(10),
+        new Uint8Array(2 * 2 * 4).fill(20),
+        new Uint8Array(1 * 1 * 4).fill(30),
+      ],
+    });
+
+    const container = parseKtx2Container(bytes);
+    const decoded = decodeKtx2TextureData(bytes);
+
+    expect(container.levelCount).toBe(3);
+    expect(decoded.sourceData.mipLevels).toHaveLength(3);
+    expect(decoded.sourceData.mipLevels?.map((level) => level.width)).toEqual([
+      4, 2, 1,
+    ]);
+    expect(decoded.sourceData.mipLevels?.map((level) => level.height)).toEqual([
+      4, 2, 1,
+    ]);
+    expect(
+      decoded.sourceData.mipLevels?.map((level) => level.bytes[0]),
+    ).toEqual([10, 20, 30]);
+  });
+
   it("reports BasisU supercompression as a required transcoder path", () => {
     const bytes = createKtx2Rgba8Bytes({
       vkFormat: 0,
@@ -94,6 +122,10 @@ describe("KTX2 decoder", () => {
         rowsPerImage: 40,
       },
     });
+    expect(decoded.sourceData.mipLevels).toHaveLength(6);
+    expect(decoded.sourceData.mipLevels?.map((level) => level.width)).toEqual([
+      40, 20, 10, 5, 2, 1,
+    ]);
     expect(decoded.sourceData.bytes).toHaveLength(40 * 40 * 4);
     expect(Array.from(decoded.sourceData.bytes.slice(0, 4))).toEqual([
       181, 148, 16, 255,
@@ -132,6 +164,7 @@ describe("KTX2 decoder", () => {
     expect(["etc2-rgb8unorm-srgb", "etc2-rgba8unorm-srgb"]).toContain(
       decoded.format,
     );
+    expect(decoded.sourceData.mipLevels).toHaveLength(6);
     expect(decoded.sourceData.rowsPerImage).toBe(10);
     expect(decoded.sourceData.bytes.byteLength).toBeLessThan(40 * 40 * 4);
   });
@@ -151,13 +184,22 @@ export function createKtx2Rgba8Bytes(input: {
   readonly vkFormat: number;
   readonly width: number;
   readonly height: number;
-  readonly pixels: Uint8Array;
+  readonly pixels?: Uint8Array;
+  readonly levels?: readonly Uint8Array[];
   readonly supercompressionScheme?: number;
 }): Uint8Array {
   const headerByteLength = 80;
   const levelIndexByteLength = 24;
-  const dataOffset = headerByteLength + levelIndexByteLength;
-  const bytes = new Uint8Array(dataOffset + input.pixels.byteLength);
+  const levels = input.levels ?? [
+    input.pixels ?? new Uint8Array(input.width * input.height * 4),
+  ];
+  const levelIndexLength = levelIndexByteLength * levels.length;
+  const dataOffset = headerByteLength + levelIndexLength;
+  const dataByteLength = levels.reduce(
+    (total, level) => total + level.byteLength,
+    0,
+  );
+  const bytes = new Uint8Array(dataOffset + dataByteLength);
   bytes.set(
     [0xab, 0x4b, 0x54, 0x58, 0x20, 0x32, 0x30, 0xbb, 0x0d, 0x0a, 0x1a, 0x0a],
     0,
@@ -169,11 +211,20 @@ export function createKtx2Rgba8Bytes(input: {
   view.setUint32(20, input.width, true);
   view.setUint32(24, input.height, true);
   view.setUint32(36, 1, true);
-  view.setUint32(40, 1, true);
+  view.setUint32(40, levels.length, true);
   view.setUint32(44, input.supercompressionScheme ?? 0, true);
-  view.setBigUint64(80, BigInt(dataOffset), true);
-  view.setBigUint64(88, BigInt(input.pixels.byteLength), true);
-  view.setBigUint64(96, BigInt(input.pixels.byteLength), true);
-  bytes.set(input.pixels, dataOffset);
+
+  let levelOffset = dataOffset;
+
+  levels.forEach((level, index) => {
+    const indexOffset = headerByteLength + index * levelIndexByteLength;
+
+    view.setBigUint64(indexOffset, BigInt(levelOffset), true);
+    view.setBigUint64(indexOffset + 8, BigInt(level.byteLength), true);
+    view.setBigUint64(indexOffset + 16, BigInt(level.byteLength), true);
+    bytes.set(level, levelOffset);
+    levelOffset += level.byteLength;
+  });
+
   return bytes;
 }

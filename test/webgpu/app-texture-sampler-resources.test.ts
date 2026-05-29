@@ -318,6 +318,112 @@ describe("app texture sampler resource cache summaries", () => {
       samplerResourcesReused: 0,
     });
   });
+
+  it("preserves precomputed texture mip levels from source assets", () => {
+    const registry = new AssetRegistry();
+    const baseTexture = createTextureHandle("ktx2-base-color");
+    const baseSampler = createSamplerHandle("ktx2-linear");
+    const writes: unknown[] = [];
+    const reuse = {
+      textureResourcesCreated: 0,
+      textureResourcesReused: 0,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 0,
+    };
+
+    registry.register(baseTexture);
+    registry.register(baseSampler);
+    registry.markReady(
+      baseTexture,
+      createTextureAsset({
+        label: "ktx2-base-color",
+        dimension: "2d",
+        width: 4,
+        height: 4,
+        format: "rgba8unorm-srgb",
+        colorSpace: "srgb",
+        semantic: "base-color",
+        usage: ["sampled", "copy-dst"],
+        mipLevelCount: 3,
+        sourceData: {
+          bytes: new Uint8Array(4 * 4 * 4).fill(10),
+          bytesPerRow: 16,
+          rowsPerImage: 4,
+          mipLevels: [
+            {
+              bytes: new Uint8Array(4 * 4 * 4).fill(10),
+              bytesPerRow: 16,
+              rowsPerImage: 4,
+              width: 4,
+              height: 4,
+            },
+            {
+              bytes: new Uint8Array(2 * 2 * 4).fill(20),
+              bytesPerRow: 8,
+              rowsPerImage: 2,
+              width: 2,
+              height: 2,
+            },
+            {
+              bytes: new Uint8Array(1 * 1 * 4).fill(30),
+              bytesPerRow: 4,
+              rowsPerImage: 1,
+              width: 1,
+              height: 1,
+            },
+          ],
+        },
+      }),
+    );
+    registry.markReady(baseSampler, createSamplerAsset());
+
+    const result = prepareStandardAppTextureSamplerResources({
+      assets: registry,
+      cache: createCache(),
+      device: {
+        createTexture: () => ({ createView: () => ({ label: "ktx2-view" }) }),
+        createSampler: () => ({ label: "ktx2-sampler" }),
+        queue: {
+          writeTexture: (
+            destination: unknown,
+            data: Uint8Array,
+            layout: unknown,
+            size: unknown,
+          ) => {
+            writes.push({ destination, data, layout, size });
+          },
+        },
+      },
+      material: createStandardMaterialAsset({
+        baseColorTexture: {
+          texture: baseTexture,
+          sampler: baseSampler,
+        },
+      }),
+      reuse,
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.textures[0]?.descriptor.mipLevelCount).toBe(3);
+    expect(writes).toMatchObject([
+      {
+        destination: { mipLevel: 0 },
+        layout: { bytesPerRow: 16, rowsPerImage: 4 },
+        size: [4, 4, 1],
+      },
+      {
+        destination: { mipLevel: 1 },
+        layout: { bytesPerRow: 8, rowsPerImage: 2 },
+        size: [2, 2, 1],
+      },
+      {
+        destination: { mipLevel: 2 },
+        layout: { bytesPerRow: 4, rowsPerImage: 1 },
+        size: [1, 1, 1],
+      },
+    ]);
+  });
 });
 
 function createCache(): AppTextureSamplerResourceCache {

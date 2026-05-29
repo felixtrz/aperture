@@ -45,29 +45,42 @@ export function decodeKtx2TextureData(
   }
 
   const format = textureFormatFromVkFormat(container.vkFormat);
-  const level = container.levels[0];
-  if (level === undefined) {
+  const level0 = container.levels[0];
+  if (level0 === undefined) {
     throw new Error("KTX2 texture does not contain a level 0 payload.");
   }
 
-  const expectedByteLength = container.pixelWidth * container.pixelHeight * 4;
-  if (level.byteLength < expectedByteLength) {
-    throw new Error("KTX2 level 0 payload is smaller than expected.");
-  }
+  const levels = container.levels.map((level, levelIndex) => {
+    const width = mipDimension(container.pixelWidth, levelIndex);
+    const height = mipDimension(container.pixelHeight, levelIndex);
+    const expectedByteLength = width * height * 4;
 
-  const levelBytes = bytes.subarray(
-    level.byteOffset,
-    level.byteOffset + expectedByteLength,
-  );
+    if (level.byteLength < expectedByteLength) {
+      throw new Error(
+        `KTX2 level ${levelIndex} payload is smaller than expected.`,
+      );
+    }
+
+    return {
+      bytes: new Uint8Array(
+        bytes.subarray(level.byteOffset, level.byteOffset + expectedByteLength),
+      ),
+      bytesPerRow: width * 4,
+      rowsPerImage: height,
+      width,
+      height,
+    };
+  });
 
   return {
     width: container.pixelWidth,
     height: container.pixelHeight,
     format,
     sourceData: {
-      bytes: new Uint8Array(levelBytes),
+      bytes: levels[0]?.bytes ?? new Uint8Array(),
       bytesPerRow: container.pixelWidth * 4,
       rowsPerImage: container.pixelHeight,
+      ...(levels.length <= 1 ? {} : { mipLevels: levels }),
     },
   };
 }
@@ -123,4 +136,8 @@ function textureFormatFromVkFormat(vkFormat: number): TextureFormat {
     default:
       throw new Error(`Unsupported KTX2 vkFormat ${vkFormat}.`);
   }
+}
+
+function mipDimension(base: number, level: number): number {
+  return Math.max(1, base >> level);
 }

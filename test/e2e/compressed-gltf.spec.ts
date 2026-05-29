@@ -30,6 +30,10 @@ interface CompressedGltfStatus extends ExampleStatusBase {
       readonly gpuFormat: string;
       readonly family: "compressed-gpu" | "rgba32-fallback";
       readonly transcodeTarget: string;
+      readonly mipLevelCount?: number;
+      readonly sourceData?: {
+        readonly mipLevelCount?: number;
+      };
     }[];
   };
 }
@@ -103,6 +107,8 @@ test("Playwright reports the KTX2 transcode target from the generated app loader
     },
   });
   expect(status.ktx2.targets.length).toBeGreaterThan(0);
+  expect(status.ktx2.targets[0]?.mipLevelCount).toBeGreaterThan(1);
+  expect(status.ktx2.targets[0]?.sourceData?.mipLevelCount).toBeGreaterThan(1);
   if (status.ktx2.hasCompressionSupport) {
     expect(status.ktx2.compressedGpuTarget).toBe(true);
   } else {

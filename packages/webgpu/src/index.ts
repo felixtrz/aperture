@@ -85,6 +85,7 @@ export * from "./materials/standard/standard-material-shadow-readiness.js";
 export * from "./materials/standard/standard-material-sampler-fidelity-summary.js";
 export * from "./materials/standard/standard-material-texture-fidelity-summary.js";
 export * from "./resources/textures/texture-resources.js";
+export * from "./resources/textures/generate-mipmaps.js";
 export * from "./materials/unlit/unlit-bind-group.js";
 export * from "./materials/unlit/unlit-frame-resources.js";
 export * from "./materials/unlit/unlit-pipeline.js";

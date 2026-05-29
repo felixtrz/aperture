@@ -1708,6 +1708,10 @@ function createStandardTextureStatus(aperture, scene) {
     registry: scene.registry,
     material: scene.material,
   });
+  const samplerFidelity = aperture.createStandardMaterialSamplerFidelityReport({
+    registry: scene.registry,
+    material: scene.material,
+  });
 
   return {
     standardTexture: {
@@ -1738,6 +1742,10 @@ function createStandardTextureStatus(aperture, scene) {
       expectedSampler: scene.expectedSampler,
       readiness:
         aperture.standardMaterialTextureReadinessReportToJsonValue(readiness),
+      samplerFidelity:
+        aperture.standardMaterialSamplerFidelityReportToJsonValue(
+          samplerFidelity,
+        ),
       sample: scene.samplePoint,
       samples:
         scene.expectedAlphaMaskTexture === null &&

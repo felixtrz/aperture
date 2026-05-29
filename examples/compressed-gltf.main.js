@@ -211,6 +211,7 @@ function textureTargets(assetSummary) {
         transcodeTarget: compressed ? texture.format : "rgba32",
         width: texture.width,
         height: texture.height,
+        mipLevelCount: texture.mipLevelCount,
         sourceData: texture.sourceData,
       };
     })

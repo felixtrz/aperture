@@ -462,6 +462,19 @@ function textureUploadFromAsset(
     ...(texture.sourceData.rowsPerImage === undefined
       ? {}
       : { rowsPerImage: texture.sourceData.rowsPerImage }),
+    ...(texture.sourceData.mipLevels === undefined
+      ? {}
+      : {
+          mipLevels: texture.sourceData.mipLevels.map((level) => ({
+            data: level.bytes,
+            bytesPerRow: level.bytesPerRow,
+            ...(level.rowsPerImage === undefined
+              ? {}
+              : { rowsPerImage: level.rowsPerImage }),
+            width: level.width,
+            height: level.height,
+          })),
+        }),
   };
 }
 

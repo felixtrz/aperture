@@ -1,6 +1,52 @@
 # Agent Handoff
 
-Updated: 2026-05-29T07:56:15Z
+Updated: 2026-05-29T15:12:44Z
+
+## Current Run Update — 2026-05-29T15:12:44Z — SOTA M1-T6 texture mip generation and KTX2 mip upload
+
+Completed `docs/SOTA_ROADMAP.md` task `M1-T6` locally. Commit id is pending.
+
+### What Changed
+
+- Added a renderer-owned WebGPU mipmap generator for uncompressed material
+  textures using an inline WGSL downsample render pass.
+- Extended `createTextureGpuResource()` so texture uploads can carry explicit
+  mip levels, validate each level, upload every level with `mipLevel`, and round
+  compressed copy extents to whole compression blocks.
+- Preserved KTX2/Basis mip chains through KTX2 decode/transcode, texture source
+  data, app texture upload, and generated example asset summaries.
+- Updated glTF texture mapping/reporting so mip-filtered uncompressed material
+  textures advertise generated mip counts and avoid the stale missing-mip
+  sampler-fidelity diagnostic.
+- Added/updated focused tests for KTX2 multi-level decode, generated texture
+  mip reports, explicit KTX2 level upload, app upload propagation, and standard
+  glTF sampler-fidelity reporting.
+
+### Validation
+
+- `pnpm exec vitest run test/assets/ktx2-decoder.test.ts test/materials/gltf-texture.test.ts test/webgpu/texture-resources.test.ts test/webgpu/app-texture-sampler-resources.test.ts --testNamePattern "mip|KTX2|texture GPU resource|precomputed"`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:boundaries`
+- `pnpm exec playwright test test/e2e/compressed-gltf.spec.ts test/e2e/standard-gltf-texture.spec.ts --project=chrome-webgpu-headed -g "KTX2|valid non-default sampler" --timeout=60000` passed the KTX2 test; the standard glTF sampler test hung in this environment and was killed after a direct browser proof passed.
+- Direct browser probe of `/examples/compressed-gltf.html?asset=ktx2&v=1780067120` reported `ok: true`, zero diagnostics, a six-level KTX2 mip chain, and no WebGPU warnings except the static favicon 403.
+- Direct browser probe of `/examples/standard-gltf-texture.html?scenario=valid-non-default-sampler&v=1780067170` reported `ok: true`, `diagnosticCodes: []`, `mipLevelCount: 2`, no `standardMaterialSampler.mipmapFilterWithoutMips`, and no console warnings.
+- `pnpm run check`
+
+### Known Issues / Remaining Work
+
+- No known M1-T6 code issue. The headed Playwright standard glTF sampler test
+  still hangs in this local environment, matching the earlier behavior; the
+  direct browser proof and focused unit coverage passed.
+- M1 remains incomplete. Picking is next: `M1-T7` should replace
+  `CameraHandle.rayFromPointer` with real unprojection, then `M1-T8` should
+  populate the spatial index from live ECS state.
+
+### Recommended Next Task
+
+Start `M1-T7`: implement `CameraHandle.rayFromPointer` with real perspective
+and orthographic camera unprojection.
 
 ## Current Run Update — 2026-05-29T07:56:15Z — SOTA M1-T5 compressed glTF app decoder wiring
 

@@ -3,6 +3,12 @@ import type {
   TextureColorSpace,
   TextureSemantic,
 } from "@aperture-engine/render";
+import {
+  canGenerateTextureMipmaps,
+  generateTextureMipmaps,
+  type GenerateTextureMipmapsDeviceLike,
+  type GenerateTextureMipmapsReport,
+} from "./generate-mipmaps.js";
 
 export const WEBGPU_TEXTURE_USAGE_FLAGS = {
   COPY_SRC: 0x1,
@@ -19,6 +25,9 @@ export type TextureGpuResourceDiagnosticCode =
   | "textureResource.invalidBytesPerRow"
   | "textureResource.invalidRowsPerImage"
   | "textureResource.uploadDataTooSmall"
+  | "textureResource.invalidMipLevelCount"
+  | "textureResource.generateMipmapsUnavailable"
+  | "textureResource.mipmapGenerationFailed"
   | "textureResource.invalidColorSpaceFormat"
   | "textureResource.textureCreationFailed"
   | "textureResource.textureViewCreationFailed"
@@ -32,10 +41,10 @@ export interface TextureGpuResourceDiagnostic {
   readonly resourceKey: string;
 }
 
-export interface TextureGpuDeviceLike {
+export interface TextureGpuDeviceLike extends GenerateTextureMipmapsDeviceLike {
   readonly createTexture?: (descriptor: unknown) => TextureLike;
   readonly createSampler?: (descriptor: unknown) => unknown;
-  readonly queue?: {
+  readonly queue?: GenerateTextureMipmapsDeviceLike["queue"] & {
     readonly writeTexture?: (
       destination: unknown,
       data: Uint8Array,
@@ -55,6 +64,7 @@ export interface TextureGpuResource {
   readonly view: unknown;
   readonly descriptor: TextureDescriptorInput;
   readonly viewDescriptor?: unknown;
+  readonly mipGeneration?: GenerateTextureMipmapsReport;
   readonly prefiltered?: boolean;
 }
 
@@ -78,6 +88,15 @@ export interface TextureUploadInput {
   readonly data: Uint8Array;
   readonly bytesPerRow: number;
   readonly rowsPerImage?: number;
+  readonly mipLevels?: readonly TextureMipLevelUploadInput[];
+}
+
+export interface TextureMipLevelUploadInput {
+  readonly data: Uint8Array;
+  readonly bytesPerRow: number;
+  readonly rowsPerImage?: number;
+  readonly width: number;
+  readonly height: number;
 }
 
 export interface CreateTextureGpuResourceOptions {
@@ -144,10 +163,16 @@ export function createTextureGpuResource(
   }
 
   let texture: TextureLike;
+  const mipGenerationRequested = shouldGenerateMipmaps(
+    options.descriptor,
+    options.upload,
+  );
 
   try {
     texture = options.device.createTexture(
-      textureDescriptorForWebGpu(options.descriptor),
+      textureDescriptorForWebGpu(options.descriptor, {
+        generateMipmaps: mipGenerationRequested,
+      }),
     );
   } catch (error) {
     return failure(
@@ -174,7 +199,7 @@ export function createTextureGpuResource(
       );
     }
 
-    const uploadLayoutDiagnostic = validateTextureUploadLayout(
+    const uploadLayoutDiagnostic = validateTextureUploadInput(
       options.resourceKey,
       options.descriptor,
       options.upload,
@@ -189,22 +214,59 @@ export function createTextureGpuResource(
     }
 
     try {
-      options.device.queue.writeTexture(
-        { texture },
-        options.upload.data,
-        {
-          bytesPerRow: options.upload.bytesPerRow,
-          ...(options.upload.rowsPerImage === undefined
-            ? {}
-            : { rowsPerImage: options.upload.rowsPerImage }),
-        },
-        options.descriptor.size,
-      );
+      for (const level of textureUploadLevels(
+        options.descriptor,
+        options.upload,
+      )) {
+        const copySize = textureUploadCopySize(
+          options.descriptor,
+          level.width,
+          level.height,
+        );
+        options.device.queue.writeTexture(
+          { texture, mipLevel: level.mipLevel },
+          level.data,
+          {
+            bytesPerRow: level.bytesPerRow,
+            ...(level.rowsPerImage === undefined
+              ? {}
+              : { rowsPerImage: level.rowsPerImage }),
+          },
+          copySize,
+        );
+      }
     } catch (error) {
       return failure(
         "textureResource.textureUploadFailed",
         options.resourceKey,
         error instanceof Error ? error.message : "Texture upload failed.",
+      );
+    }
+  }
+
+  let mipGeneration: GenerateTextureMipmapsReport | undefined;
+
+  if (mipGenerationRequested) {
+    try {
+      mipGeneration = generateTextureMipmaps({
+        device: options.device,
+        texture,
+        resourceKey: options.resourceKey,
+        format: options.descriptor.format,
+        width: options.descriptor.size[0],
+        height: options.descriptor.size[1],
+        mipLevelCount: options.descriptor.mipLevelCount ?? 1,
+        ...(options.descriptor.label === undefined
+          ? {}
+          : { label: options.descriptor.label }),
+      });
+    } catch (error) {
+      return failure(
+        "textureResource.mipmapGenerationFailed",
+        options.resourceKey,
+        error instanceof Error
+          ? error.message
+          : "Texture mipmap generation failed.",
       );
     }
   }
@@ -231,6 +293,7 @@ export function createTextureGpuResource(
       ...(options.viewDescriptor === undefined
         ? {}
         : { viewDescriptor: options.viewDescriptor }),
+      ...(mipGeneration === undefined ? {} : { mipGeneration }),
     },
     diagnostics: [],
   };
@@ -260,6 +323,7 @@ function validateTextureDescriptorColorSpace(
 
 function textureDescriptorForWebGpu(
   descriptor: TextureDescriptorInput,
+  options: { readonly generateMipmaps?: boolean } = {},
 ): Omit<TextureDescriptorInput, "colorSpace" | "semantic"> {
   const {
     colorSpace: _colorSpace,
@@ -267,15 +331,118 @@ function textureDescriptorForWebGpu(
     ...webGpuDescriptor
   } = descriptor;
 
-  return webGpuDescriptor;
+  return {
+    ...webGpuDescriptor,
+    ...(options.generateMipmaps === true
+      ? {
+          usage:
+            webGpuDescriptor.usage |
+            WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING |
+            WEBGPU_TEXTURE_USAGE_FLAGS.RENDER_ATTACHMENT,
+        }
+      : {}),
+  };
 }
 
-function validateTextureUploadLayout(
+function validateTextureUploadInput(
   resourceKey: string,
   descriptor: TextureDescriptorInput,
   upload: TextureUploadInput,
 ): TextureGpuResourceDiagnostic | null {
-  const [width, height] = descriptor.size;
+  const levels = textureUploadLevels(descriptor, upload);
+  const expectedMipLevelCount = descriptor.mipLevelCount ?? 1;
+
+  if (
+    upload.mipLevels !== undefined &&
+    upload.mipLevels.length !== expectedMipLevelCount
+  ) {
+    return {
+      code: "textureResource.invalidMipLevelCount",
+      resourceKey,
+      message: `Texture upload for resource '${resourceKey}' provides ${upload.mipLevels.length} mip level(s), but the descriptor expects ${expectedMipLevelCount}.`,
+    };
+  }
+
+  for (const level of levels) {
+    const diagnostic = validateTextureUploadLevelLayout(
+      resourceKey,
+      descriptor,
+      level,
+    );
+
+    if (diagnostic !== null) {
+      return diagnostic;
+    }
+  }
+
+  if (
+    shouldGenerateMipmaps(descriptor, upload) &&
+    !canGenerateTextureMipmaps(descriptor.format)
+  ) {
+    return {
+      code: "textureResource.generateMipmapsUnavailable",
+      resourceKey,
+      message: `Texture resource '${resourceKey}' requests generated mipmaps for unsupported format '${descriptor.format}'.`,
+    };
+  }
+
+  return null;
+}
+
+interface TextureUploadLevel extends TextureMipLevelUploadInput {
+  readonly mipLevel: number;
+}
+
+function textureUploadLevels(
+  descriptor: TextureDescriptorInput,
+  upload: TextureUploadInput,
+): readonly TextureUploadLevel[] {
+  if (upload.mipLevels !== undefined) {
+    return upload.mipLevels.map((level, mipLevel) => ({
+      ...level,
+      mipLevel,
+    }));
+  }
+
+  return [
+    {
+      data: upload.data,
+      bytesPerRow: upload.bytesPerRow,
+      ...(upload.rowsPerImage === undefined
+        ? {}
+        : { rowsPerImage: upload.rowsPerImage }),
+      width: descriptor.size[0],
+      height: descriptor.size[1],
+      mipLevel: 0,
+    },
+  ];
+}
+
+function textureUploadCopySize(
+  descriptor: TextureDescriptorInput,
+  width: number,
+  height: number,
+): readonly [number, number, number] {
+  const layout = textureFormatUploadLayout(descriptor.format);
+
+  if (layout === null || layout.blockWidth === 1 || layout.blockHeight === 1) {
+    return [width, height, descriptor.size[2]];
+  }
+
+  return [
+    Math.ceil(width / layout.blockWidth) * layout.blockWidth,
+    Math.ceil(height / layout.blockHeight) * layout.blockHeight,
+    descriptor.size[2],
+  ];
+}
+
+function validateTextureUploadLevelLayout(
+  resourceKey: string,
+  descriptor: TextureDescriptorInput,
+  upload: TextureUploadLevel,
+): TextureGpuResourceDiagnostic | null {
+  const width = upload.width;
+  const height = upload.height;
   const layout = textureFormatUploadLayout(descriptor.format);
   const blockRows =
     layout === null ? height : Math.ceil(height / layout.blockHeight);
@@ -294,8 +461,8 @@ function validateTextureUploadLayout(
       resourceKey,
       message:
         minimumBytesPerRow === null
-          ? `Texture upload bytesPerRow must be a positive integer for resource '${resourceKey}'.`
-          : `Texture upload bytesPerRow for resource '${resourceKey}' must be at least ${minimumBytesPerRow} bytes for ${width} texel(s) of '${descriptor.format}'.`,
+          ? `Texture upload bytesPerRow must be a positive integer for resource '${resourceKey}' mip level ${upload.mipLevel}.`
+          : `Texture upload bytesPerRow for resource '${resourceKey}' mip level ${upload.mipLevel} must be at least ${minimumBytesPerRow} bytes for ${width} texel(s) of '${descriptor.format}'.`,
     };
   }
 
@@ -306,7 +473,7 @@ function validateTextureUploadLayout(
     return {
       code: "textureResource.invalidRowsPerImage",
       resourceKey,
-      message: `Texture upload rowsPerImage for resource '${resourceKey}' must be an integer at least ${blockRows} row(s).`,
+      message: `Texture upload rowsPerImage for resource '${resourceKey}' mip level ${upload.mipLevel} must be an integer at least ${blockRows} row(s).`,
     };
   }
 
@@ -322,12 +489,24 @@ function validateTextureUploadLayout(
       return {
         code: "textureResource.uploadDataTooSmall",
         resourceKey,
-        message: `Texture upload data for resource '${resourceKey}' must contain at least ${minimumByteLength} byte(s); received ${upload.data.byteLength}.`,
+        message: `Texture upload data for resource '${resourceKey}' mip level ${upload.mipLevel} must contain at least ${minimumByteLength} byte(s); received ${upload.data.byteLength}.`,
       };
     }
   }
 
   return null;
+}
+
+function shouldGenerateMipmaps(
+  descriptor: TextureDescriptorInput,
+  upload: TextureUploadInput | undefined,
+): boolean {
+  return (
+    upload !== undefined &&
+    upload.mipLevels === undefined &&
+    descriptor.size[2] === 1 &&
+    (descriptor.mipLevelCount ?? 1) > 1
+  );
 }
 
 interface TextureFormatUploadLayout {

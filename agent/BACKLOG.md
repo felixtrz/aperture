@@ -60,24 +60,20 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 The active project direction is now `docs/SOTA_ROADMAP.md` wave 0. M1-T1
-through M1-T5 are complete: the reusable `createRenderShadowFrame()` shadow
+through M1-T6 are complete: the reusable `createRenderShadowFrame()` shadow
 orchestrator is wired into `renderWebGpuAppFrame`, automatic StandardMaterial
 shadow receiver resources submit and bind, submitted shadow reports now publish
 truthful `shaderSampling` status, and `KHR_mesh_quantization` root/accessor
 decode support is in place for normalized quantized glTF geometry. App-level
 glTF loading now receives lazy Draco/Meshopt/Basis decoder factories plus
 device-derived KTX2 texture-compression support, proven by
-`examples/compressed-gltf.html`. Continue with one visible SOTA feature slice at
-a time.
+`examples/compressed-gltf.html`. Texture upload now preserves KTX2 mip chains,
+generates uncompressed material mips, and removes the missing-mip sampler
+fidelity warning for mip-filtered glTF textures. Continue with one visible SOTA
+feature slice at a time.
 
 The next ready visible-feature queue is:
 
-- `M1-T6` — generate GPU mipmaps for material textures and upload KTX2
-  precomputed mip chains.
-  Reference anchor: `references/three.js/src/renderers/webgpu/utils/WebGPUTextureUtils.js`.
-  Done when material texture resources upload/generate the expected mip chain,
-  KTX2-provided levels are preserved, and the sampler-fidelity warning route no
-  longer reports missing mips for mip-filtered textures.
 - `M1-T7` — implement `CameraHandle.rayFromPointer` with real camera
   unprojection.
   Reference anchor: `references/three.js/src/core/Raycaster.js`.
@@ -90,6 +86,11 @@ The next ready visible-feature queue is:
   Done when package dry-runs include built dist and metadata only, public-surface
   guards reject private/0.0.0/UNLICENSED leaks, and workspace dependency specs
   resolve to concrete publishable versions.
+- `M1-T8` — populate the spatial index from the live ECS scene via an engine
+  system after M1-T7 lands.
+  Reference anchor: `references/engine/src/framework/components/collision/system.js`.
+  Done when default app/system context raycasts hit ECS-authored pickable meshes
+  without per-app manual `setBounds`/`setMeshes` calls and BVH reuse is covered.
 
 Keep the earlier camera/render-target visible route queue as later backlog
 after the active SOTA wave tasks above.

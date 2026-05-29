@@ -38,14 +38,20 @@ export function createTextureMappingReportFromDecoded(
   }
 
   const slotInfo = textureSlotInfo(input.options.slot);
+  const format = input.decoded.format ?? slotInfo.format;
   const textureAsset = createTextureAsset({
     label: textureLabel(input.options, input.texture, input.image),
     dimension: "2d",
     width: input.decoded.width,
     height: input.decoded.height,
-    format: input.decoded.format ?? slotInfo.format,
+    format,
     colorSpace: slotInfo.colorSpace,
     semantic: slotInfo.semantic,
+    mipLevelCount: decodedMipLevelCount({
+      decoded: input.decoded,
+      format,
+      sampler: input.sampler,
+    }),
     usage: ["sampled", "copy-dst"],
     sourceData: input.decoded.sourceData,
   });
@@ -82,6 +88,40 @@ export function createGltfTextureMappingReport(input: {
       : { samplerIndex: input.samplerIndex }),
     diagnostics: input.diagnostics,
   };
+}
+
+function decodedMipLevelCount(input: {
+  readonly decoded: GltfDecodedImageData;
+  readonly format: TextureFormat;
+  readonly sampler: SamplerAsset | null;
+}): number {
+  const sourceMipLevelCount = input.decoded.sourceData.mipLevels?.length ?? 0;
+
+  if (sourceMipLevelCount > 1) {
+    return sourceMipLevelCount;
+  }
+
+  if (
+    input.sampler !== null &&
+    input.sampler.mipmapFilter !== "nearest" &&
+    canGenerateTextureMipmapsForFormat(input.format)
+  ) {
+    return fullMipLevelCount(input.decoded.width, input.decoded.height);
+  }
+
+  return 1;
+}
+
+function fullMipLevelCount(width: number, height: number): number {
+  return Math.floor(Math.log2(Math.max(width, height))) + 1;
+}
+
+function canGenerateTextureMipmapsForFormat(format: TextureFormat): boolean {
+  return (
+    !format.startsWith("bc") &&
+    !format.startsWith("etc2-") &&
+    !format.startsWith("astc-")
+  );
 }
 
 function textureSlotInfo(slot: GltfMaterialTextureSlot): {

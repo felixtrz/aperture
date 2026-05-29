@@ -64,21 +64,21 @@ describe("renderer resource summary JSON helpers", () => {
       {
         code: "textureResource.invalidBytesPerRow",
         message:
-          "Texture upload bytesPerRow for resource 'texture:bad-row' must be at least 8 bytes for 2 texel(s) of 'rgba8unorm'.",
+          "Texture upload bytesPerRow for resource 'texture:bad-row' mip level 0 must be at least 8 bytes for 2 texel(s) of 'rgba8unorm'.",
         resourceKey: "texture:bad-row",
         severity: "warning",
       },
       {
         code: "textureResource.invalidRowsPerImage",
         message:
-          "Texture upload rowsPerImage for resource 'texture:bad-rows' must be an integer at least 2 row(s).",
+          "Texture upload rowsPerImage for resource 'texture:bad-rows' mip level 0 must be an integer at least 2 row(s).",
         resourceKey: "texture:bad-rows",
         severity: "warning",
       },
       {
         code: "textureResource.uploadDataTooSmall",
         message:
-          "Texture upload data for resource 'texture:short-upload' must contain at least 16 byte(s); received 15.",
+          "Texture upload data for resource 'texture:short-upload' mip level 0 must contain at least 16 byte(s); received 15.",
         resourceKey: "texture:short-upload",
         severity: "warning",
       },

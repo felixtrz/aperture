@@ -195,6 +195,23 @@ interface StandardGltfTextureStatus extends ExampleStatusBase {
         readonly actualFormat?: string;
       }[];
     };
+    readonly samplerFidelity?: {
+      readonly ready: boolean;
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly field?: string;
+        readonly textureKey?: string;
+        readonly samplerKey?: string;
+      }[];
+      readonly slots: readonly {
+        readonly field: string;
+        readonly textureKey: string;
+        readonly samplerKey: string;
+        readonly mipLevelCount: number;
+        readonly mipmapFilter: string;
+        readonly warningCount: number;
+      }[];
+    };
     readonly sample: { readonly x: number; readonly y: number };
     readonly samples?: {
       readonly scalar?: {
@@ -776,6 +793,16 @@ test("standard glTF texture fixture maps valid non-default sampler enums", async
           mipmapFilter: "linear",
         },
       },
+      samplerFidelity: {
+        ready: true,
+        slots: [
+          {
+            field: "baseColorTexture",
+            mipLevelCount: 2,
+            mipmapFilter: "linear",
+          },
+        ],
+      },
     },
     resources: {
       textureResourcesCreated: 1,
@@ -785,6 +812,11 @@ test("standard glTF texture fixture maps valid non-default sampler enums", async
     draw: { packages: 1, drawCalls: 1 },
   });
   expect(status.diagnosticCodes ?? []).toEqual([]);
+  expect(
+    status.standardTexture?.samplerFidelity?.diagnostics.map(
+      (diagnostic) => diagnostic.code,
+    ) ?? [],
+  ).not.toContain("standardMaterialSampler.mipmapFilterWithoutMips");
   expect(status.pipelines?.keys).toContain(
     "standard|baseColorTexture|opaque|back|less|none",
   );

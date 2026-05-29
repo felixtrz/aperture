@@ -652,6 +652,7 @@ export function systemAssetReadyMetadata(
         format: texture.texture?.format ?? null,
         width: texture.texture?.width ?? null,
         height: texture.texture?.height ?? null,
+        mipLevelCount: texture.texture?.mipLevelCount ?? null,
         sourceData:
           texture.texture?.sourceData === undefined
             ? null
@@ -659,6 +660,16 @@ export function systemAssetReadyMetadata(
                 byteLength: texture.texture.sourceData.bytes.byteLength,
                 bytesPerRow: texture.texture.sourceData.bytesPerRow,
                 rowsPerImage: texture.texture.sourceData.rowsPerImage ?? null,
+                mipLevelCount:
+                  texture.texture.sourceData.mipLevels?.length ?? 1,
+                mipLevels:
+                  texture.texture.sourceData.mipLevels?.map((level) => ({
+                    byteLength: level.bytes.byteLength,
+                    bytesPerRow: level.bytesPerRow,
+                    rowsPerImage: level.rowsPerImage ?? null,
+                    width: level.width,
+                    height: level.height,
+                  })) ?? null,
               },
       })) ?? [],
   };

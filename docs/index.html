@@ -393,24 +393,28 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-29 07:56 UTC</dd>
+            <dd>2026-05-29 15:09 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: SOTA roadmap M1-T5 threads lazy Draco, Meshopt, and
-              Basis/KTX2 decoder factories through the generated app glTF
-              loader. <code>examples/compressed-gltf.html</code> now proves an
-              engine-supplied Draco route, and <code>?asset=ktx2</code> reports
-              a compressed GPU transcode target when WebGPU texture-compression
-              support is advertised. Next SOTA task: <code>M1-T6</code> adds
-              material texture mipmap generation and KTX2 mip upload. Previous
-              update: M1-T4 added <code>KHR_mesh_quantization</code> root
-              validation and normalized quantized geometry accessor decode.
-              Earlier update: SOTA roadmap M1-T3 makes lower-level shadow
-              reports truthful with <code>shaderSampling: true</code> on
-              ready/submitted shadow paths. Earlier update: SOTA roadmap M1-T2
-              wires the reusable renderer-owned shadow frame orchestrator into
+              Latest update: SOTA roadmap M1-T6 adds renderer-owned mipmap
+              generation for uncompressed material textures and preserves
+              KTX2/Basis precomputed mip chains through decode, app asset
+              status, and WebGPU upload.
+              <code>examples/compressed-gltf.html</code> now reports a six-level
+              KTX2 chain, and the standard glTF sampler browser route no longer
+              reports the missing-mip fidelity warning. Next SOTA task:
+              <code>M1-T7</code> replaces the pointer-ray stub with real camera
+              unprojection. Previous update: M1-T5 threaded lazy Draco, Meshopt,
+              and Basis/KTX2 decoder factories through the generated app glTF
+              loader. Earlier update: M1-T4 added
+              <code>KHR_mesh_quantization</code> root validation and normalized
+              quantized geometry accessor decode. Earlier update: SOTA roadmap
+              M1-T3 makes lower-level shadow reports truthful with
+              <code>shaderSampling: true</code> on ready/submitted shadow paths.
+              Earlier update: SOTA roadmap M1-T2 wires the reusable
+              renderer-owned shadow frame orchestrator into
               <code>renderWebGpuAppFrame</code> and proves auto-shadow receiver
               darkening. Earlier update: custom WGSL material enablement now has
               public shader assets, app system builders, source validation,
@@ -2668,8 +2672,9 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Continue SOTA roadmap wave 0 with <code>M1-T6</code>: generate
-              material texture mipmaps and upload KTX2 precomputed mip chains.
+              Continue SOTA roadmap wave 0 with <code>M1-T7</code>: implement
+              <code>CameraHandle.rayFromPointer</code> with real camera
+              unprojection.
             </dd>
           </dl>
         </aside>
@@ -6816,6 +6821,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">M1-T6</div>
+            <div>
+              <strong>Material textures now keep usable mip chains.</strong>
+              <span>
+                Uncompressed material uploads can generate renderer-owned GPU
+                mips, KTX2/Basis imports preserve and upload every precomputed
+                level, and app/example status exposes mip counts so mip-filtered
+                glTF textures no longer trip the missing-mip sampler diagnostic.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">M1-T5</div>
             <div>

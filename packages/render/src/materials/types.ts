@@ -103,10 +103,19 @@ export interface MaterialTextureTransform {
   readonly rotation?: number;
 }
 
+export interface TextureMipLevelSourceData {
+  readonly bytes: Uint8Array;
+  readonly bytesPerRow: number;
+  readonly rowsPerImage?: number;
+  readonly width: number;
+  readonly height: number;
+}
+
 export interface TextureSourceData {
   readonly bytes: Uint8Array;
   readonly bytesPerRow: number;
   readonly rowsPerImage?: number;
+  readonly mipLevels?: readonly TextureMipLevelSourceData[];
 }
 
 export type JsonPrimitive = string | number | boolean | null;

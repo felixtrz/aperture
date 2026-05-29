@@ -1,5 +1,47 @@
 # Completed Tasks
 
+## M1-T6 — Generate GPU mipmaps for material textures + upload KTX2 precomputed mip chains
+
+Completed: 2026-05-29
+Commit: pending
+
+### Summary
+
+- Added renderer-owned WebGPU mipmap generation for uncompressed material
+  textures through a WGSL downsample render pass.
+- Extended texture resource upload to accept explicit mip levels, validate each
+  level layout, upload every level with the right `mipLevel`, and round
+  compressed copy extents to whole compression blocks.
+- Preserved KTX2/Basis mip chains through built-in uncompressed KTX2 decode,
+  BasisU transcode, render texture source data, app texture upload, and example
+  asset status summaries.
+- Updated glTF texture mapping/reporting so mip-filtered uncompressed textures
+  advertise their generated chain and no longer emit
+  `standardMaterialSampler.mipmapFilterWithoutMips`.
+- Added focused unit and browser coverage for generated mips, explicit KTX2
+  level upload, app upload propagation, KTX2 source mip reporting, and the
+  standard glTF sampler-fidelity route.
+
+### Validation
+
+- `pnpm exec vitest run test/assets/ktx2-decoder.test.ts test/materials/gltf-texture.test.ts test/webgpu/texture-resources.test.ts test/webgpu/app-texture-sampler-resources.test.ts --testNamePattern "mip|KTX2|texture GPU resource|precomputed"`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:boundaries`
+- Browser probe: `/examples/compressed-gltf.html?asset=ktx2&v=1780067120`
+  reported `ok: true`, zero diagnostics, a six-level KTX2 chain, and no WebGPU
+  warnings beyond the static favicon 403.
+- Browser probe:
+  `/examples/standard-gltf-texture.html?scenario=valid-non-default-sampler&v=1780067170`
+  reported `ok: true`, `diagnosticCodes: []`, `mipLevelCount: 2`, and no
+  `standardMaterialSampler.mipmapFilterWithoutMips` diagnostic or console
+  warnings.
+- `pnpm exec playwright test test/e2e/compressed-gltf.spec.ts test/e2e/standard-gltf-texture.spec.ts --project=chrome-webgpu-headed -g "KTX2|valid non-default sampler" --timeout=60000`
+  passed the KTX2 test; the standard glTF sampler test hung in this environment
+  and was killed after the direct browser proof passed.
+- `pnpm run check`
+
 ## M1-T5 — Thread Draco/Meshopt/KTX2 decoder factories + GPU texture-compression support through the app glTF loader
 
 Completed: 2026-05-29

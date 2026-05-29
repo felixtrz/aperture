@@ -405,6 +405,33 @@ describe("glTF texture mapping", () => {
     ]);
   });
 
+  it("marks mip-filtered glTF textures with a generated mip chain count", () => {
+    const report = createTextureAssetFromGltfTexture({
+      textureIndex: 0,
+      slot: "baseColorTexture",
+      textures: [{ source: 0, sampler: 0 }],
+      images: [{ bufferView: 1, mimeType: "image/png" }],
+      samplers: [
+        {
+          magFilter: GLTF_SAMPLER_FILTER.LINEAR,
+          minFilter: GLTF_SAMPLER_FILTER.LINEAR_MIPMAP_LINEAR,
+        },
+      ],
+      resolveImageData: () => ({
+        width: 256,
+        height: 256,
+        sourceData: {
+          bytes: new Uint8Array(256 * 256 * 4),
+          bytesPerRow: 256 * 4,
+          rowsPerImage: 256,
+        },
+      }),
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.texture?.mipLevelCount).toBe(9);
+  });
+
   it("loads image/ktx2 data URIs through the built-in KTX2 decoder", async () => {
     const ktx2Bytes = createKtx2Rgba8Bytes({
       vkFormat: 37,

@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "79bc53e6",
+  "lastCommit": "pending",
   "activePid": null,
-  "notes": "Completed SOTA M1-T5 compressed glTF decoder wiring in 79bc53e6; pnpm run check and compressed glTF Playwright route passed. Next recommended task is M1-T6 texture mip generation and KTX2 mip-chain upload.",
-  "lastRunFinishedAt": "2026-05-29T07:56:15Z"
+  "notes": "Completed SOTA M1-T6 texture mip generation and KTX2 mip-chain upload locally; pnpm run check and focused browser proofs passed. Next recommended task is M1-T7 camera ray unprojection.",
+  "lastRunFinishedAt": "2026-05-29T15:12:44Z"
 }

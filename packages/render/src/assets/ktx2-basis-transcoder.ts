@@ -90,26 +90,43 @@ export function transcodeBasisKtx2TextureData(
       throw new Error("BasisU KTX2 transcoder failed to start.");
     }
 
-    const byteLength = ktx2File.getImageTranscodedSizeInBytes(
-      0,
-      0,
-      0,
-      target.transcoderFormat,
-    );
-    const level0 = new Uint8Array(byteLength);
-    const ok = ktx2File.transcodeImage(
-      level0,
-      0,
-      0,
-      0,
-      target.transcoderFormat,
-      0,
-      -1,
-      -1,
-    );
+    const mipLevels = Array.from({ length: levels }, (_, level) => {
+      const levelWidth = mipDimension(width, level);
+      const levelHeight = mipDimension(height, level);
+      const byteLength = ktx2File.getImageTranscodedSizeInBytes(
+        level,
+        0,
+        0,
+        target.transcoderFormat,
+      );
+      const bytes = new Uint8Array(byteLength);
+      const ok = ktx2File.transcodeImage(
+        bytes,
+        level,
+        0,
+        0,
+        target.transcoderFormat,
+        0,
+        -1,
+        -1,
+      );
 
-    if (ok !== 1) {
-      throw new Error("BasisU KTX2 level 0 transcode failed.");
+      if (ok !== 1) {
+        throw new Error(`BasisU KTX2 level ${level} transcode failed.`);
+      }
+
+      return {
+        bytes,
+        bytesPerRow: textureLevelBytesPerRow(levelWidth, target),
+        rowsPerImage: textureLevelRowsPerImage(levelHeight, target),
+        width: levelWidth,
+        height: levelHeight,
+      };
+    });
+    const level0 = mipLevels[0];
+
+    if (level0 === undefined) {
+      throw new Error("BasisU KTX2 texture did not transcode any levels.");
     }
 
     return {
@@ -117,15 +134,20 @@ export function transcodeBasisKtx2TextureData(
       height,
       format: target.textureFormat,
       sourceData: {
-        bytes: level0,
-        bytesPerRow: textureLevelBytesPerRow(width, target),
-        rowsPerImage: textureLevelRowsPerImage(height, target),
+        bytes: level0.bytes,
+        bytesPerRow: level0.bytesPerRow,
+        rowsPerImage: level0.rowsPerImage,
+        ...(mipLevels.length <= 1 ? {} : { mipLevels }),
       },
     };
   } finally {
     ktx2File.close();
     ktx2File.delete();
   }
+}
+
+function mipDimension(base: number, level: number): number {
+  return Math.max(1, base >> level);
 }
 
 function basisKtx2Encoding(ktx2File: BasisKtx2File): BasisKtx2Encoding {
