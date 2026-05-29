@@ -1,7 +1,23 @@
-import { EcsType, defineComponent } from "@aperture-engine/simulation";
+import {
+  EcsType,
+  defineComponent,
+  type Entity,
+} from "@aperture-engine/simulation";
 
 import { FogMode } from "./authoring-types.js";
 import { tuple4 } from "./authoring-utils.js";
+
+/**
+ * Engine-owned skeleton structure stored on the {@link Skin} component's
+ * `skeleton` Object field for imported skins. Holds live joint entity refs and
+ * flat column-major inverse-bind matrices by reference (same-thread only).
+ */
+export interface SkinSkeleton {
+  /** Live joint entities, in skin.joints order. */
+  readonly joints: readonly Entity[];
+  /** Flat column-major inverse-bind matrices, length === joints.length * 16. */
+  readonly inverseBindMatrices: Float32Array;
+}
 
 export const Mesh = defineComponent(
   "aperture.render.mesh",
@@ -119,6 +135,13 @@ export const Skin = defineComponent(
   {
     jointCount: { type: EcsType.Int32, default: 0 },
     jointMatricesJson: { type: EcsType.String, default: "[]" },
+    // Engine-owned skeleton structure for imported skins: the live joint
+    // entities and their flat column-major inverse-bind matrices. Held by
+    // reference (same-thread, never snapshot-transported) so the joint-palette
+    // system (M2-T6) can compute palette_i = inverseMeshWorld * jointWorld_i *
+    // inverseBind_i without re-parsing JSON. Null for manually-authored skins
+    // that supply a precomputed palette via jointMatricesJson.
+    skeleton: { type: EcsType.Object, default: null },
   },
   "Renderer-independent per-entity skin palette stored as serialized joint matrices.",
 );

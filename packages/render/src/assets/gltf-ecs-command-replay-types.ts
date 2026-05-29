@@ -10,6 +10,7 @@ export type GltfEcsCommandReplayDiagnosticCode =
   | "gltfEcsReplay.duplicateEntityKey"
   | "gltfEcsReplay.missingEntityKey"
   | "gltfEcsReplay.missingParentEntityKey"
+  | "gltfEcsReplay.missingJointEntityKey"
   | "gltfEcsReplay.unknownComponent"
   | "gltfEcsReplay.invalidComponentValue"
   | "gltfEcsReplay.componentApplyFailed";

@@ -1,6 +1,7 @@
 import type { GltfSceneTraversalReport } from "./gltf-scene-traversal.js";
 import type { GltfMeshSourceAssetRegistrationReport } from "./gltf-mesh-source-registration.js";
 import type { GltfPrimitiveMaterialResolutionReport } from "./gltf-primitive-material-resolution.js";
+import type { GltfSkinImportReport } from "./gltf-skin-import.js";
 
 export type GltfEcsAuthoringComponentName =
   | "Name"
@@ -9,7 +10,8 @@ export type GltfEcsAuthoringComponentName =
   | "WorldTransform"
   | "Mesh"
   | "Material"
-  | "Visibility";
+  | "Visibility"
+  | "Skin";
 
 export type GltfEcsAuthoringCommand =
   | {
@@ -31,7 +33,8 @@ export type GltfEcsAuthoringComponentValue =
   | GltfWorldTransformCommandValue
   | GltfMeshCommandValue
   | GltfMaterialCommandValue
-  | GltfVisibilityCommandValue;
+  | GltfVisibilityCommandValue
+  | GltfSkinCommandValue;
 
 export interface GltfNameCommandValue {
   readonly value: string;
@@ -68,6 +71,15 @@ export interface GltfVisibilityCommandValue {
   readonly visible: boolean;
 }
 
+export interface GltfSkinCommandValue {
+  /** Entity keys (keyPrefix:node:N) of the joints, in skin.joints order. */
+  readonly jointEntityKeys: readonly string[];
+  /** Flat column-major inverse-bind matrices, length === jointCount * 16. */
+  readonly inverseBindMatrices: readonly number[];
+  /** Entity key of the common skeleton-root node, or null. */
+  readonly skeletonEntityKey: string | null;
+}
+
 export type GltfEcsAuthoringDiagnosticCode =
   | "gltfEcsAuthoring.invalidTraversalReport"
   | "gltfEcsAuthoring.missingSceneRoot"
@@ -76,7 +88,8 @@ export type GltfEcsAuthoringDiagnosticCode =
   | "gltfEcsAuthoring.skippedMeshRegistration"
   | "gltfEcsAuthoring.unresolvedPrimitiveMaterial"
   | "gltfEcsAuthoring.missingPrimitiveMaterialResolution"
-  | "gltfEcsAuthoring.duplicateEntityKey";
+  | "gltfEcsAuthoring.duplicateEntityKey"
+  | "gltfEcsAuthoring.skinJointNodeMissing";
 
 export interface GltfEcsAuthoringDiagnostic {
   readonly code: GltfEcsAuthoringDiagnosticCode;
@@ -106,6 +119,7 @@ export interface GltfEcsAuthoringCommandPlanOptions {
   readonly meshRegistrationReport?: GltfMeshSourceAssetRegistrationReport;
   readonly primitiveMaterialReport?: GltfPrimitiveMaterialResolutionReport;
   readonly availableMeshHandleKeys?: readonly string[];
+  readonly skinReport?: GltfSkinImportReport;
 }
 
 export interface GltfEcsAuthoringCommandPlan {

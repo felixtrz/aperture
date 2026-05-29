@@ -47,6 +47,7 @@ describe("glTF scene traversal report JSON", () => {
             scale: [1, 1, 1],
           },
           meshIndex: null,
+          skinIndex: null,
           childNodeIndices: [1],
         },
         {
@@ -62,6 +63,7 @@ describe("glTF scene traversal report JSON", () => {
             scale: [1, 2, 3],
           },
           meshIndex: null,
+          skinIndex: null,
           childNodeIndices: [],
         },
       ],

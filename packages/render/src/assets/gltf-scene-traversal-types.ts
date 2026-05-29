@@ -57,6 +57,7 @@ export interface GltfTraversedNode {
   readonly label: string;
   readonly localTransform: GltfNodeLocalTransform | null;
   readonly meshIndex: number | null;
+  readonly skinIndex: number | null;
   readonly childNodeIndices: readonly number[];
 }
 

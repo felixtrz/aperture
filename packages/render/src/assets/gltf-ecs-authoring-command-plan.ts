@@ -38,6 +38,12 @@ export function createGltfEcsAuthoringCommandPlan(
   const seenEntityKeys = new Set<string>();
   const dependencies = new Set<string>();
   const meshReadiness = createGltfEcsMeshReadiness(options);
+  const nodeEntityKeyByIndex = new Map<number, string>(
+    options.traversalReport.nodes.map((node) => [
+      node.nodeIndex,
+      node.entityKey,
+    ]),
+  );
 
   if (!options.traversalReport.valid) {
     diagnostics.push({
@@ -121,6 +127,7 @@ export function createGltfEcsAuthoringCommandPlan(
       seenEntityKeys,
       dependencies,
       meshReadiness,
+      nodeEntityKeyByIndex,
     });
   }
 

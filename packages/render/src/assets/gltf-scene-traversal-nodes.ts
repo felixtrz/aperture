@@ -87,6 +87,7 @@ export function traverseGltfSceneNode(input: {
       entityKey,
     }),
     meshIndex: mapOptionalIndex(rawNode.mesh),
+    skinIndex: mapOptionalIndex(rawNode.skin),
     childNodeIndices,
   });
 
