@@ -1,5 +1,33 @@
 # Completed Tasks
 
+## M1-T3 — Enable shaderSampling status and make full shadow darkness reachable end-to-end
+
+Completed: 2026-05-29
+
+### Summary
+
+- Widened the lower shadow pass plan, encoder assembly, and command-buffer
+  submission `shaderSampling` report sections from literal `false` to boolean
+  status.
+- Reports `gpuCommands` / `shaderSampling` as true on ready/submitted shadow
+  paths now that M1-T2 wires receiver resources into StandardMaterial frames.
+- Removed stale `shaderSamplingDeferred` diagnostics from assembled and
+  submitted shadow paths while keeping deferred queue-submission paths honest.
+- Updated reusable shadow-frame, app auto-shadow, and auto-shadow E2E
+  expectations so submitted reports prove `sections.shaderSampling === true`.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/shadow-pass-plan.test.ts test/webgpu/shadow-pass-encoder-assembly-report.test.ts test/webgpu/shadow-pass-command-buffer-submission-report.test.ts test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/webgpu-app.test.ts --testNamePattern "shadow pass planning|shadow pass encoder assembly|ShadowPassCommandBufferSubmissionReport|render shadow frame|auto-renders directional shadow resources"`
+- `pnpm exec tsc --noEmit`
+- `pnpm run typecheck:test`
+- `CI=true pnpm exec playwright test test/e2e/auto-shadow.spec.ts --reporter=list --timeout=45000`
+- `CI=true pnpm exec playwright test test/e2e/point-shadow.spec.ts --reporter=list --timeout=90000`
+- `pnpm run check`
+- Spot-shadow route status probe reported `ok: true` and supported spot shadow
+  rendering; the full `spot-shadow.spec.ts` Playwright worker hung before
+  result in this environment.
+
 ## M1-T2 — Drive the shadow orchestrator from the frame loop and inject receiver resources automatically
 
 Completed: 2026-05-28

@@ -60,7 +60,7 @@ export interface ShadowPassPlanReport {
     readonly textureResources: boolean;
     readonly passPlans: boolean;
     readonly passSubmission: boolean;
-    readonly gpuCommands: false;
+    readonly gpuCommands: boolean;
   };
   readonly passes: readonly ShadowPassPlan[];
   readonly diagnostics: readonly ShadowPassPlanDiagnostic[];
@@ -175,7 +175,7 @@ export function createShadowPassPlanReport(
       textureResources: input.textures.ready,
       passPlans: !hasMissingInput,
       passSubmission: status === "ready",
-      gpuCommands: false,
+      gpuCommands: status === "ready",
     },
     passes,
     diagnostics,

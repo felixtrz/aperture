@@ -6510,6 +6510,9 @@ describe("WebGPU app facade", () => {
       commandBufferSubmission: {
         status: "submitted",
         submittedCommandBuffers: 1,
+        sections: {
+          shaderSampling: true,
+        },
       },
       sections: {
         commandBufferSubmission: true,
@@ -6532,7 +6535,10 @@ describe("WebGPU app facade", () => {
     });
     expect(value.shadow).toMatchObject({
       status: "submitted",
-      commandBufferSubmission: { status: "submitted" },
+      commandBufferSubmission: {
+        status: "submitted",
+        sections: { shaderSampling: true },
+      },
     });
     expect(frame.diagnostics).toEqual([]);
     expect(events.filter((event) => event === "queue:submit:1")).toHaveLength(

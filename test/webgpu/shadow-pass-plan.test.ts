@@ -184,7 +184,7 @@ describe("shadow pass planning", () => {
     expect(ready.status).toBe("ready");
     expect(ready.ready).toBe(true);
     expect(ready.sections.passSubmission).toBe(true);
-    expect(ready.sections.gpuCommands).toBe(false);
+    expect(ready.sections.gpuCommands).toBe(true);
     expect(ready.diagnostics).toEqual([]);
   });
 

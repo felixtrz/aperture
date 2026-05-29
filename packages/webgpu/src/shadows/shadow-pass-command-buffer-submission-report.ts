@@ -50,7 +50,7 @@ export interface ShadowPassCommandBufferSubmissionReport {
     readonly encoderAssembly: boolean;
     readonly commandBufferFinish: boolean;
     readonly queueSubmission: boolean;
-    readonly shaderSampling: false;
+    readonly shaderSampling: boolean;
   };
   readonly commandBufferKeys: readonly string[];
   readonly gpuTiming?: ShadowPassCommandBufferGpuTimingReport;
@@ -212,7 +212,7 @@ export function createShadowPassCommandBufferSubmissionReport(
     submittedCommandBuffers: submit.submitted,
     skippedSubmissions: submit.skipped,
     ...(gpuTiming === undefined ? {} : { gpuTiming }),
-    diagnostics: [shaderSamplingDeferredDiagnostic()],
+    diagnostics: [],
   });
 }
 
@@ -275,7 +275,7 @@ function report(input: {
       encoderAssembly: input.assembly.counts.assembledPasses > 0,
       commandBufferFinish: input.commandBuffers.length > 0,
       queueSubmission: input.submittedCommandBuffers > 0,
-      shaderSampling: false,
+      shaderSampling: input.status === "submitted",
     },
     commandBufferKeys: input.commandBuffers.map((buffer) => buffer.resourceKey),
     ...(input.gpuTiming === undefined ? {} : { gpuTiming: input.gpuTiming }),

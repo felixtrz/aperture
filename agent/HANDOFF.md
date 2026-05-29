@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-29T06:37:47Z
+Updated: 2026-05-29T07:02:38Z
+
+## Current Run Update — 2026-05-29T07:02:38Z — SOTA M1-T3 shaderSampling status
+
+Completed `docs/SOTA_ROADMAP.md` task `M1-T3`.
+
+### What Changed
+
+- Widened lower shadow report `shaderSampling` / `gpuCommands` fields from
+  literal `false` to boolean status in the shadow pass plan, encoder assembly,
+  and command-buffer submission reports.
+- Set ready/submitted shadow paths to report `shaderSampling: true` now that
+  M1-T2 produces and binds StandardMaterial receiver resources automatically.
+- Removed stale `shaderSamplingDeferred` diagnostics from assembled and
+  submitted shadow paths while keeping deferred queue-submission reports
+  diagnostic-bearing.
+- Updated reusable shadow-frame, WebGPU app, and auto-shadow E2E expectations so
+  `shadow.commandBufferSubmission.sections.shaderSampling === true` is asserted
+  on the submitted path.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/shadow-pass-plan.test.ts test/webgpu/shadow-pass-encoder-assembly-report.test.ts test/webgpu/shadow-pass-command-buffer-submission-report.test.ts test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/webgpu-app.test.ts --testNamePattern "shadow pass planning|shadow pass encoder assembly|ShadowPassCommandBufferSubmissionReport|render shadow frame|auto-renders directional shadow resources"`
+- `pnpm exec tsc --noEmit`
+- `pnpm run typecheck:test`
+- `CI=true pnpm exec playwright test test/e2e/auto-shadow.spec.ts --reporter=list --timeout=45000`
+- `CI=true pnpm exec playwright test test/e2e/point-shadow.spec.ts --reporter=list --timeout=90000`
+- `pnpm run check`
+- A direct browser status probe for `/examples/spot-shadow.html` reported
+  `ok: true`, frame `2`, and `shadow.rendering.supported: true`.
+
+### Known Issues / Remaining Work
+
+- `test/e2e/spot-shadow.spec.ts` hung before result twice in this environment
+  and required killing the Playwright worker. The route-level browser status
+  probe succeeded, and no leftover Playwright/example-server process remained
+  after cleanup.
+- A combined point/spot/multi run printed the multi-light pass line before the
+  runner hung; point-shadow and auto-shadow passed cleanly as individual specs.
+
+### Recommended Next Task
+
+Start `M1-T4`: add `KHR_mesh_quantization` root validation and quantized
+accessor decode so common meshopt/quantized glTF assets load instead of failing
+unsupported-extension validation.
 
 ## Current Run Update — 2026-05-29T06:37:47Z — SOTA M1-T2 auto-shadow frame-loop wiring
 

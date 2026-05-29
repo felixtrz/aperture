@@ -46,7 +46,7 @@ describe("shadow pass encoder assembly report", () => {
         passEnd: true,
         commandBufferFinish: false,
         queueSubmission: false,
-        shaderSampling: false,
+        shaderSampling: true,
       },
       records: [
         {
@@ -69,12 +69,6 @@ describe("shadow pass encoder assembly report", () => {
           severity: "warning",
           message:
             "Shadow pass encoders are assembled, but command-buffer finish and queue submission are deferred.",
-        },
-        {
-          code: "shadowPassEncoderAssembly.shaderSamplingDeferred",
-          severity: "warning",
-          message:
-            "Shadow pass encoders are assembled, but StandardMaterial shadow sampling remains deferred.",
         },
       ],
     });
@@ -185,7 +179,6 @@ describe("shadow pass encoder assembly report", () => {
       "shadowPassEncoderAssembly.commandExecutionFailed",
       "shadowPassEncoderAssembly.commandExecutionFailed",
       "shadowPassEncoderAssembly.commandBufferSubmissionDeferred",
-      "shadowPassEncoderAssembly.shaderSamplingDeferred",
     ]);
   });
 });

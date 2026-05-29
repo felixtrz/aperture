@@ -26,6 +26,9 @@ describe("render shadow frame", () => {
 
     expect(result.report.status).toBe("submitted");
     expect(result.report.commandBufferSubmission.status).toBe("submitted");
+    expect(result.report.commandBufferSubmission.sections.shaderSampling).toBe(
+      true,
+    );
     expect(result.report.passCount).toBeGreaterThan(0);
     expect(result.report.drawCalls).toBeGreaterThan(0);
     expect(result.report.diagnostics).toEqual([]);
@@ -83,6 +86,9 @@ describe("render shadow frame", () => {
       matrixBindGroupsReused: 1,
     });
     expect(second.report.commandBufferSubmission.status).toBe("submitted");
+    expect(second.report.commandBufferSubmission.sections.shaderSampling).toBe(
+      true,
+    );
     expect(second.report.diagnostics).toEqual([]);
     expect(calls.textures).toHaveLength(1);
     expect(calls.samplers).toHaveLength(1);

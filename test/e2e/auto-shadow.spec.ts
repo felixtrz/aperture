@@ -42,11 +42,17 @@ interface AutoShadowStatus extends ExampleStatusBase {
       readonly commandBufferSubmission: {
         readonly status: string;
         readonly submittedCommandBuffers: number;
+        readonly sections: {
+          readonly shaderSampling: boolean;
+        };
       };
       readonly sections: {
         readonly commandBufferSubmission: boolean;
         readonly receiverResources: boolean;
       };
+      readonly diagnostics: readonly {
+        readonly code: string;
+      }[];
     } | null;
     readonly rendering: {
       readonly supported: boolean;
@@ -120,11 +126,15 @@ test("Playwright renders frame-loop auto shadows on standard receivers", async (
         commandBufferSubmission: {
           status: "submitted",
           submittedCommandBuffers: 1,
+          sections: {
+            shaderSampling: true,
+          },
         },
         sections: {
           commandBufferSubmission: true,
           receiverResources: true,
         },
+        diagnostics: [],
       },
       rendering: {
         supported: true,

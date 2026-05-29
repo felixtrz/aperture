@@ -137,13 +137,9 @@ describe("ShadowPassCommandBufferSubmissionReport", () => {
       sections: {
         commandBufferFinish: true,
         queueSubmission: true,
-        shaderSampling: false,
+        shaderSampling: true,
       },
-      diagnostics: [
-        {
-          code: "shadowPassCommandBufferSubmission.shaderSamplingDeferred",
-        },
-      ],
+      diagnostics: [],
     });
   });
 

@@ -59,21 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-The active project direction is now `docs/SOTA_ROADMAP.md` wave 0. M1-T1 and
-M1-T2 are complete: the reusable `createRenderShadowFrame()` shadow
-orchestrator lives in `packages/webgpu/src/shadows`, and
-`renderWebGpuAppFrame` now invokes it automatically for StandardMaterial shadow
-receiver frames when the caller does not provide explicit receiver resources.
-Continue with one visible SOTA feature slice at a time.
+The active project direction is now `docs/SOTA_ROADMAP.md` wave 0. M1-T1
+through M1-T3 are complete: the reusable `createRenderShadowFrame()` shadow
+orchestrator is wired into `renderWebGpuAppFrame`, automatic StandardMaterial
+shadow receiver resources submit and bind, and submitted shadow reports now
+publish truthful `shaderSampling` status. Continue with one visible SOTA
+feature slice at a time.
 
 The next ready visible-feature queue is:
 
-- `M1-T3` — enable truthful shadow `shaderSampling` status now that automatic
-  receiver resources are wired into the app frame loop.
-  Reference anchor: `references/engine/src/scene/renderer/shadow-renderer-directional.js`.
-  Done when submitted shadow reports expose `sections.shaderSampling === true`,
-  the stale `shaderSamplingDeferred` diagnostic is absent on the submitted
-  auto-shadow path, and the updated shadow Vitest/E2E expectations pass.
 - `M1-T4` — add `KHR_mesh_quantization` support at glTF root validation and
   accessor decode.
   Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
@@ -86,6 +80,12 @@ The next ready visible-feature queue is:
   Done when perspective and orthographic camera handles produce normalized
   screen-to-world rays from ECS camera transforms/projections, with focused
   headless tests for center and off-axis pointer positions.
+- `M1-T9` — make all packages publishable with real version, license, exports,
+  files, publishConfig, and a root LICENSE.
+  Reference anchor: `references/three.js/package.json`.
+  Done when package dry-runs include built dist and metadata only, public-surface
+  guards reject private/0.0.0/UNLICENSED leaks, and workspace dependency specs
+  resolve to concrete publishable versions.
 
 Keep the earlier camera/render-target visible route queue as later backlog
 after the active SOTA wave tasks above.

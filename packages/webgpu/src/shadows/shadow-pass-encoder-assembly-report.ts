@@ -37,8 +37,7 @@ export type ShadowPassEncoderAssemblyDiagnosticCode =
   | "shadowPassEncoderAssembly.beginFailed"
   | "shadowPassEncoderAssembly.commandExecutionFailed"
   | "shadowPassEncoderAssembly.endFailed"
-  | "shadowPassEncoderAssembly.commandBufferSubmissionDeferred"
-  | "shadowPassEncoderAssembly.shaderSamplingDeferred";
+  | "shadowPassEncoderAssembly.commandBufferSubmissionDeferred";
 
 export interface ShadowPassEncoderAssemblyDiagnostic {
   readonly code: ShadowPassEncoderAssemblyDiagnosticCode;
@@ -110,7 +109,7 @@ export interface ShadowPassEncoderAssemblyReport {
     readonly passEnd: boolean;
     readonly commandBufferFinish: false;
     readonly queueSubmission: false;
-    readonly shaderSampling: false;
+    readonly shaderSampling: boolean;
   };
   readonly records: readonly ShadowPassEncoderAssemblyRecord[];
   readonly gpuTiming?: ShadowPassGpuTimingCommandReport;
@@ -256,19 +255,12 @@ export function createShadowPassEncoderAssemblyReport(
       message:
         "Shadow pass encoders are assembled, but command-buffer finish and queue submission are deferred.",
     });
-    diagnostics.push({
-      code: "shadowPassEncoderAssembly.shaderSamplingDeferred",
-      severity: "warning",
-      message:
-        "Shadow pass encoders are assembled, but StandardMaterial shadow sampling remains deferred.",
-    });
   }
 
   const hasBlockingDiagnostics = diagnostics.some(
     (diagnostic) =>
       diagnostic.code !==
-        "shadowPassEncoderAssembly.commandBufferSubmissionDeferred" &&
-      diagnostic.code !== "shadowPassEncoderAssembly.shaderSamplingDeferred",
+      "shadowPassEncoderAssembly.commandBufferSubmissionDeferred",
   );
 
   return report({
@@ -488,7 +480,7 @@ function report(input: {
       passEnd: input.records.some((record) => record.ended),
       commandBufferFinish: false,
       queueSubmission: false,
-      shaderSampling: false,
+      shaderSampling: input.status === "ready",
     },
     records: input.records,
     ...(input.gpuTiming === undefined ? {} : { gpuTiming: input.gpuTiming }),
