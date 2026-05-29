@@ -1,6 +1,48 @@
 # Agent Handoff
 
-Updated: 2026-05-29T15:31:00Z
+Updated: 2026-05-29T15:55:31Z
+
+## Current Run Update — 2026-05-29T15:55:31Z — SOTA M1-T8 spatial index auto-population
+
+Completed `docs/SOTA_ROADMAP.md` task `M1-T8` in commit `6d998669`.
+
+### What Changed
+
+- Added `populateSpatialIndexFromWorld()` to derive `context.spatial` from live
+  ECS `Mesh` + `WorldTransform` entities.
+- The population path honors `Pickable`, `RenderLayer`, `Visibility`, and
+  `Enabled`, adapts ready `MeshAsset` geometry into spatial triangle meshes,
+  builds/reuses `MeshBvh` entries by mesh key/version, and publishes both
+  coarse bounds and mesh-precision entries.
+- `createApertureApp()` now resolves world transforms and refreshes the derived
+  spatial index on startup and during each app step, so app-level camera rays
+  can hit spawned meshes without per-route `setBounds()`/`setMeshes()` setup.
+- Added `examples/auto-picking.html` / `examples/auto-picking.js` and an e2e
+  proof that `CameraHandle.rayFromPointer -> context.spatial.raycastFirst`
+  returns the target entity with source `mesh-bvh`.
+
+### Validation
+
+- `pnpm exec vitest run test/app/spatial-index-population.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/auto-picking.spec.ts --project=chrome-webgpu-headed`
+- `pnpm run check`
+
+### Known Issues / Remaining Work
+
+- No known issue for M1-T8.
+- M1 remains incomplete at 8/11. Publishing work still remains in `M1-T9`
+  through `M1-T11`.
+
+### Recommended Next Task
+
+Start `M1-T9`: make the packages publishable with real version/license
+metadata, root `LICENSE`, `files`/`publishConfig`, export-path validation, and
+npm pack dry-run guards.
 
 ## Current Run Update — 2026-05-29T15:31:00Z — SOTA M1-T7 camera ray unprojection
 

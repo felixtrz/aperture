@@ -60,7 +60,7 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 The active project direction is now `docs/SOTA_ROADMAP.md` wave 0. M1-T1
-through M1-T7 are complete: the reusable `createRenderShadowFrame()` shadow
+through M1-T8 are complete: the reusable `createRenderShadowFrame()` shadow
 orchestrator is wired into `renderWebGpuAppFrame`, automatic StandardMaterial
 shadow receiver resources submit and bind, submitted shadow reports now publish
 truthful `shaderSampling` status, and `KHR_mesh_quantization` root/accessor
@@ -70,16 +70,13 @@ device-derived KTX2 texture-compression support, proven by
 `examples/compressed-gltf.html`. Texture upload now preserves KTX2 mip chains,
 generates uncompressed material mips, and removes the missing-mip sampler
 fidelity warning for mip-filtered glTF textures. Camera handles now produce real
-screen-to-world rays for perspective and orthographic ECS cameras. Continue with
-one visible SOTA feature slice at a time.
+screen-to-world rays for perspective and orthographic ECS cameras, and
+`context.spatial` is now auto-populated from live ECS Mesh + WorldTransform +
+Pickable state with mesh-BVH reuse. Continue with one visible SOTA feature slice
+at a time.
 
 The next ready visible-feature queue is:
 
-- `M1-T8` — populate the spatial index from the live ECS scene via an engine
-  system.
-  Reference anchor: `references/engine/src/framework/components/collision/system.js`.
-  Done when default app/system context raycasts hit ECS-authored pickable meshes
-  without per-app manual `setBounds`/`setMeshes` calls and BVH reuse is covered.
 - `M1-T9` — make all packages publishable with real version, license, exports,
   files, publishConfig, and a root LICENSE.
   Reference anchor: `references/three.js/package.json`.
@@ -91,6 +88,10 @@ The next ready visible-feature queue is:
   Reference anchor: `references/three.js/package.json`.
   Done when generated project package.json files contain no `workspace:*` deps
   in publish mode and use concrete `^x.y.z` Aperture dependency specs.
+- `M1-T11` — add CI + release pipeline gates after M1-T9 and M1-T10 land.
+  Reference anchor: `references/three.js/.github/workflows/ci.yml`.
+  Done when CI runs `pnpm run check`, the release dry-run builds and pack-checks
+  every publishable package, and publish-readiness regressions fail the gate.
 
 Keep the earlier camera/render-target visible route queue as later backlog
 after the active SOTA wave tasks above.

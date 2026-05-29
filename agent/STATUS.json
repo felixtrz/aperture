@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "e1f9ce21",
+  "lastCommit": "6d998669",
   "activePid": null,
-  "notes": "Completed SOTA M1-T7 camera ray unprojection in e1f9ce21; pnpm run check and focused camera/developer-api Vitest passed. M1 remains incomplete at 7/11. Next recommended task is M1-T8 spatial index auto-population.",
-  "lastRunFinishedAt": "2026-05-29T15:31:00Z"
+  "notes": "Completed SOTA M1-T8 spatial index auto-population in 6d998669; pnpm run check, focused spatial-population Vitest, and auto-picking Playwright passed. M1 remains incomplete at 8/11. Next recommended task is M1-T9 publishing metadata and npm pack dry-run guards.",
+  "lastRunFinishedAt": "2026-05-29T15:55:31Z"
 }

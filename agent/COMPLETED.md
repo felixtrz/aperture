@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## M1-T8 — Populate the spatial index from the live ECS scene
+
+Completed: 2026-05-29
+Commit: 6d998669
+
+### Summary
+
+- Added `populateSpatialIndexFromWorld()` to derive app spatial queries from
+  live ECS `Mesh` + `WorldTransform` entities.
+- Honored `Pickable`, `RenderLayer`, `Visibility`, and `Enabled` while building
+  bounds and mesh-precision spatial entries.
+- Adapted ready `MeshAsset` geometry through the render spatial adapter,
+  built/reused `MeshBvh` entries by mesh key/version, and recomputed
+  `worldFromMesh`/`meshFromWorld` transforms every refresh.
+- Refreshed the spatial index from `createApertureApp()` startup/step paths so
+  camera rays hit spawned app meshes without route-level `setBounds()` or
+  `setMeshes()` calls.
+- Added `examples/auto-picking.html` and Playwright coverage for
+  `CameraHandle.rayFromPointer -> context.spatial.raycastFirst` returning a
+  `mesh-bvh` hit on the spawned target.
+
+### Validation
+
+- `pnpm exec vitest run test/app/spatial-index-population.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/auto-picking.spec.ts --project=chrome-webgpu-headed`
+- `pnpm run check`
+
 ## M1-T7 — Implement CameraHandle.rayFromPointer with real unprojection
 
 Completed: 2026-05-29

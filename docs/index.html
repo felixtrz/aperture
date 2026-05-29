@@ -393,28 +393,33 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-29 15:31 UTC</dd>
+            <dd>2026-05-29 15:55 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: SOTA roadmap M1-T7 replaces the pointer-ray stub
-              with real perspective and orthographic camera unprojection from
-              ECS <code>Camera</code> and <code>WorldTransform</code> state, and
-              focused tests now prove <code>rayFromPointer</code> feeds
-              <code>context.spatial.raycastFirst</code>. M1 remains in progress
-              at 7/11; next SOTA task: <code>M1-T8</code> auto-populates the
-              spatial index from live ECS pickable meshes. Previous update:
-              M1-T6 added renderer-owned mipmap generation for uncompressed
-              material textures and preserved KTX2/Basis precomputed mip chains.
-              Earlier update: M1-T5 threaded lazy Draco, Meshopt, and Basis/KTX2
-              decoder factories through the generated app glTF loader. Earlier
-              update: M1-T4 added <code>KHR_mesh_quantization</code> root
-              validation and normalized quantized geometry accessor decode.
-              Earlier update: SOTA roadmap M1-T3 makes lower-level shadow
-              reports truthful with <code>shaderSampling: true</code> on
-              ready/submitted shadow paths. Earlier update: SOTA roadmap M1-T2
-              wires the reusable renderer-owned shadow frame orchestrator into
+              Latest update: SOTA roadmap M1-T8 auto-populates
+              <code>context.spatial</code> from live ECS <code>Mesh</code> +
+              <code>WorldTransform</code> entities, honors
+              <code>Pickable</code> and render-layer filters, reuses
+              <code>MeshBvh</code> instances by mesh version, and proves
+              <code>CameraHandle.rayFromPointer</code> hits an app-spawned mesh
+              in <code>examples/auto-picking.html</code> without manual
+              <code>setBounds</code>/<code>setMeshes</code>. M1 remains in
+              progress at 8/11; next SOTA task: <code>M1-T9</code> package
+              publishing metadata and npm pack dry-run guards. Previous update:
+              M1-T7 replaced the pointer-ray stub with real perspective and
+              orthographic camera unprojection. Earlier update: M1-T6 added
+              renderer-owned mipmap generation for uncompressed material
+              textures and preserved KTX2/Basis precomputed mip chains. Earlier
+              update: M1-T5 threaded lazy Draco, Meshopt, and Basis/KTX2 decoder
+              factories through the generated app glTF loader. Earlier update:
+              M1-T4 added <code>KHR_mesh_quantization</code> root validation and
+              normalized quantized geometry accessor decode. Earlier update:
+              SOTA roadmap M1-T3 makes lower-level shadow reports truthful with
+              <code>shaderSampling: true</code> on ready/submitted shadow paths.
+              Earlier update: SOTA roadmap M1-T2 wires the reusable
+              renderer-owned shadow frame orchestrator into
               <code>renderWebGpuAppFrame</code> and proves auto-shadow receiver
               darkening. Earlier update: custom WGSL material enablement now has
               public shader assets, app system builders, source validation,
@@ -2672,10 +2677,11 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Continue SOTA roadmap wave 0 with <code>M1-T8</code>: populate
-              <code>context.spatial</code> from live ECS
-              <code>Pickable</code>/<code>Mesh</code>/
-              <code>WorldTransform</code> state.
+              Continue SOTA roadmap wave 0 with <code>M1-T9</code>: make the
+              publishable packages installable with real version/license
+              metadata, root <code>LICENSE</code>, package
+              <code>files</code>/<code>publishConfig</code>, export guards, and
+              npm pack dry-run validation.
             </dd>
           </dl>
         </aside>
@@ -3574,6 +3580,17 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">M1-T8</span> Auto-populated the
+                spatial index from live ECS mesh state. App camera rays now hit
+                spawned meshes through mesh-BVH picking without manual
+                <code>setBounds</code>/<code>setMeshes</code> setup.
+              </li>
+              <li>
+                <span class="badge green">M1-T7</span> Replaced
+                <code>CameraHandle.rayFromPointer</code> with real perspective
+                and orthographic unprojection from ECS camera transforms.
+              </li>
               <li>
                 <span class="badge green">M1-T5</span> Wired compressed glTF
                 decoder providers through the app loader. Generated WebGPU apps
@@ -6444,9 +6461,11 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Generate material texture
-                mipmaps and upload KTX2 precomputed mip chains for
-                <code>M1-T6</code>.
+                <span class="badge amber">next</span> Make the publishable
+                packages installable for <code>M1-T9</code>: real
+                version/license metadata, root <code>LICENSE</code>, package
+                <code>files</code>/<code>publishConfig</code>, export-path
+                guards, and npm pack dry-run validation.
               </li>
               <li>
                 <span class="badge green">done</span> Custom WGSL mixed
@@ -6822,6 +6841,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">M1-T8</div>
+            <div>
+              <strong>Spatial picking now populates from ECS.</strong>
+              <span>
+                The app derives bounds and mesh-BVH entries from live
+                <code>Mesh</code> + <code>WorldTransform</code> state, honors
+                <code>Pickable</code> and layer filters, and
+                <code>examples/auto-picking.html</code> proves camera-ray
+                picking without manual spatial setup.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">M1-T7</div>
             <div>

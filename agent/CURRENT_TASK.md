@@ -2,24 +2,27 @@
 
 No active task is currently checked out.
 
-Status: SOTA roadmap M1-T7 camera ray unprojection completed in commit
-`e1f9ce21`.
+Status: SOTA roadmap M1-T8 spatial index auto-population completed in commit
+`6d998669`.
 
 Key findings:
 
-- `CameraHandle.rayFromPointer()` now reads ECS `Camera` and
-  `WorldTransform`, builds renderer-matched perspective/orthographic
-  projections, inverts the view-projection matrix, and returns normalized
-  world-space rays from normalized pointer coordinates.
-- `test/app/cameras.test.ts` covers perspective center/corner rays,
-  orthographic parallel rays with shifted origins, and
-  `rayFromPointer -> context.spatial.raycastFirst` bounds picking.
-- The developer-api manual picking fixture now places its temporary bounds on
-  the spawned crate so the existing select pointer works with real camera rays.
-- `pnpm run check` passed after the M1-T7 feature slice.
+- `populateSpatialIndexFromWorld()` now extracts live ECS `Mesh` +
+  `WorldTransform` entries, honors `Pickable`, `RenderLayer`, `Visibility`, and
+  `Enabled`, adapts ready `MeshAsset` geometry into spatial triangle meshes,
+  and publishes both coarse bounds and mesh-BVH entries to `context.spatial`.
+- `createApertureApp()` refreshes the derived spatial index on startup and
+  during each app step, after world transforms are resolved.
+- Focused Vitest coverage proves 2-mesh population, mesh-BVH hits with
+  face/UV/normal data, moving-entity transform updates without BVH rebuilds,
+  mesh-version rebuilds, disabled Pickable exclusion, and layer filtering.
+- `examples/auto-picking.html` plus `test/e2e/auto-picking.spec.ts` prove
+  `CameraHandle.rayFromPointer -> context.spatial.raycastFirst` hits an
+  app-spawned mesh with source `mesh-bvh` and no manual spatial setup.
+- `pnpm run check` passed after the M1-T8 feature slice.
 
 Recommended next task:
 
-- `M1-T8` — populate the spatial index from live ECS `Pickable`/`Mesh`/
-  `WorldTransform` state so app-level raycasts work without manual
-  `context.spatial.setBounds()` or `setMeshes()` calls.
+- `M1-T9` — make the publishable packages installable: real version/license,
+  package `files`/`publishConfig`, root `LICENSE`, export-path guards, and
+  npm pack dry-run validation.
