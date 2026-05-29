@@ -393,21 +393,22 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-29 07:14 UTC</dd>
+            <dd>2026-05-29 07:56 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: SOTA roadmap M1-T4 adds
-              <code>KHR_mesh_quantization</code> root validation and normalized
-              quantized geometry accessor decode. Required quantized glTF roots
-              now validate, byte/short normalized POSITION/NORMAL/TANGENT/UV
-              data dequantizes into float streams, and meshopt import succeeds
-              with a quantization-required header. Next SOTA task:
-              <code>M1-T5</code> threads Draco/Meshopt/KTX2 decoder factories
-              plus WebGPU texture-compression support through the app glTF
-              loader. Previous update: SOTA roadmap M1-T3 makes lower-level
-              shadow reports truthful with <code>shaderSampling: true</code> on
+              Latest update: SOTA roadmap M1-T5 threads lazy Draco, Meshopt, and
+              Basis/KTX2 decoder factories through the generated app glTF
+              loader. <code>examples/compressed-gltf.html</code> now proves an
+              engine-supplied Draco route, and <code>?asset=ktx2</code> reports
+              a compressed GPU transcode target when WebGPU texture-compression
+              support is advertised. Next SOTA task: <code>M1-T6</code> adds
+              material texture mipmap generation and KTX2 mip upload. Previous
+              update: M1-T4 added <code>KHR_mesh_quantization</code> root
+              validation and normalized quantized geometry accessor decode.
+              Earlier update: SOTA roadmap M1-T3 makes lower-level shadow
+              reports truthful with <code>shaderSampling: true</code> on
               ready/submitted shadow paths. Earlier update: SOTA roadmap M1-T2
               wires the reusable renderer-owned shadow frame orchestrator into
               <code>renderWebGpuAppFrame</code> and proves auto-shadow receiver
@@ -2667,9 +2668,8 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Continue the render-target MSAA route family with
-              <code>task-3210</code>: a mixed current-texture plus MSAA resized
-              reused same-target clear/load off-screen target route.
+              Continue SOTA roadmap wave 0 with <code>M1-T6</code>: generate
+              material texture mipmaps and upload KTX2 precomputed mip chains.
             </dd>
           </dl>
         </aside>
@@ -3568,6 +3568,15 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">M1-T5</span> Wired compressed glTF
+                decoder providers through the app loader. Generated WebGPU apps
+                now pass device-derived KTX2 compression support to workers,
+                workers create lazy Draco/Meshopt/Basis decoder factories from
+                <code>assetDecoders.baseUrl</code>, and
+                <code>examples/compressed-gltf.html</code> proves both Draco and
+                KTX2/Basis routes.
+              </li>
               <li>
                 <span class="badge green">M1-T4</span> Added
                 <code>KHR_mesh_quantization</code> support. Required quantized
@@ -6429,9 +6438,9 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Thread Draco/Meshopt/KTX2
-                decoder factories and GPU texture-compression support through
-                the app glTF loader for <code>M1-T5</code>.
+                <span class="badge amber">next</span> Generate material texture
+                mipmaps and upload KTX2 precomputed mip chains for
+                <code>M1-T6</code>.
               </li>
               <li>
                 <span class="badge green">done</span> Custom WGSL mixed
@@ -6807,6 +6816,20 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">M1-T5</div>
+            <div>
+              <strong>Compressed glTF assets load through app defaults.</strong>
+              <span>
+                App/system asset access now accepts Draco, Meshopt, and
+                Basis/KTX2 decoder providers, generated workers build lazy
+                default factories from <code>assetDecoders.baseUrl</code>, and
+                <code>createWebGpuApp</code> forwards WebGPU texture-compression
+                support so the compressed glTF route can report compressed GPU
+                targets without route-level decoder registration.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">M1-T4</div>
             <div>

@@ -1,6 +1,54 @@
 # Agent Handoff
 
-Updated: 2026-05-29T07:14:09Z
+Updated: 2026-05-29T07:56:15Z
+
+## Current Run Update — 2026-05-29T07:56:15Z — SOTA M1-T5 compressed glTF app decoder wiring
+
+Completed `docs/SOTA_ROADMAP.md` task `M1-T5` in commit `79bc53e6`.
+
+### What Changed
+
+- Added an app/system glTF decoder-provider seam so `loadSystemGltfAsset()`
+  passes lazy Draco, Meshopt, and Basis/KTX2 decoder factories plus
+  `ktx2TextureCompression` into the existing render URI loaders.
+- Added default generated-worker decoder factories rooted at configurable
+  `assetDecoders.baseUrl`, with generated workers reading the base URL from
+  config and KTX2 compression support from the WebGPU start payload.
+- Wired `createWebGpuApp()` to derive KTX2 texture-compression support from
+  device/adapter features and merge it into generated worker start options.
+- Fixed generated worker start option unwrapping so `createSimulationWorker()`'s
+  nested `message.options` payload reaches worker startup.
+- Added `examples/compressed-gltf.*`, linked it from the examples index, and
+  updated the examples server worker import rewrite map for generated app
+  worker modules.
+- Exposed glTF texture format/source-data summaries in generated worker asset
+  status so the KTX2 route can report compressed GPU targets versus rgba32
+  fallback.
+
+### Validation
+
+- `pnpm exec vitest run test/app/gltf-asset-decoders.test.ts test/app/generated-worker-start.test.ts test/webgpu/webgpu-app.test.ts --testNamePattern "KTX2|decoder providers|unwraps start options"`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/compressed-gltf.spec.ts --project=chrome-webgpu-headed`
+- Direct browser probe of `/examples/compressed-gltf.html?asset=ktx2` reported
+  `ok: true`, `meshDraws: 2`, `drawCalls: 2`, and KTX2 target
+  `etc2-rgba8unorm-srgb`.
+- `pnpm run check`
+
+### Known Issues / Remaining Work
+
+- No known issue for M1-T5. M1-T6 remains necessary because texture resources
+  still upload only level 0 and KTX2 mip chains are not preserved yet.
+- The Codex in-app browser `iab` backend was unavailable in this session; the
+  route was verified with the Playwright MCP tab and the headed Playwright E2E
+  project instead.
+
+### Recommended Next Task
+
+Start `M1-T6`: generate GPU mipmaps for material textures and upload KTX2
+precomputed mip chains so mip-filtered material textures no longer report
+missing-mip fidelity warnings.
 
 ## Current Run Update — 2026-05-29T07:14:09Z — SOTA M1-T4 glTF quantization support
 

@@ -1,5 +1,31 @@
 # Completed Tasks
 
+## M1-T5 — Thread Draco/Meshopt/KTX2 decoder factories + GPU texture-compression support through the app glTF loader
+
+Completed: 2026-05-29
+
+### Summary
+
+- Added a `SystemGltfAssetDecoderProvider` seam and default lazy decoder
+  factories for Draco, Meshopt, and Basis/KTX2 assets.
+- Threaded decoder factories and KTX2 texture-compression support through
+  app/system glTF asset loading, generated worker startup, and
+  `createWebGpuApp()` device-feature detection.
+- Added generated worker asset summaries for loaded glTF texture formats and
+  source-data layout so browser routes can report compressed GPU targets.
+- Added `examples/compressed-gltf.*` proving an engine-supplied Draco route and
+  a KTX2/Basis route without route-level decoder registration.
+- Fixed generated worker start option unwrapping for nested
+  `createSimulationWorker()` start payloads.
+
+### Validation
+
+- `pnpm exec vitest run test/app/gltf-asset-decoders.test.ts test/app/generated-worker-start.test.ts test/webgpu/webgpu-app.test.ts --testNamePattern "KTX2|decoder providers|unwraps start options"`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/compressed-gltf.spec.ts --project=chrome-webgpu-headed`
+- `pnpm run check`
+
 ## M1-T4 — Add KHR_mesh_quantization support at root validation + accessor decode
 
 Completed: 2026-05-29

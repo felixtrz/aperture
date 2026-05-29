@@ -60,21 +60,24 @@ to catch drift before it compounds.
 ## Recommended Next Task
 
 The active project direction is now `docs/SOTA_ROADMAP.md` wave 0. M1-T1
-through M1-T4 are complete: the reusable `createRenderShadowFrame()` shadow
+through M1-T5 are complete: the reusable `createRenderShadowFrame()` shadow
 orchestrator is wired into `renderWebGpuAppFrame`, automatic StandardMaterial
 shadow receiver resources submit and bind, submitted shadow reports now publish
 truthful `shaderSampling` status, and `KHR_mesh_quantization` root/accessor
-decode support is in place for normalized quantized glTF geometry. Continue
-with one visible SOTA feature slice at a time.
+decode support is in place for normalized quantized glTF geometry. App-level
+glTF loading now receives lazy Draco/Meshopt/Basis decoder factories plus
+device-derived KTX2 texture-compression support, proven by
+`examples/compressed-gltf.html`. Continue with one visible SOTA feature slice at
+a time.
 
 The next ready visible-feature queue is:
 
-- `M1-T5` — thread Draco/Meshopt/KTX2 decoder factories and GPU
-  texture-compression feature support through the app glTF loader.
-  Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
-  Done when app-level `loadGltfFromUri` / `loadGlbFromUri` paths receive the
-  existing decoder/transcoder factories and a compressed glTF/GLB route loads
-  without caller-provided decoder plumbing.
+- `M1-T6` — generate GPU mipmaps for material textures and upload KTX2
+  precomputed mip chains.
+  Reference anchor: `references/three.js/src/renderers/webgpu/utils/WebGPUTextureUtils.js`.
+  Done when material texture resources upload/generate the expected mip chain,
+  KTX2-provided levels are preserved, and the sampler-fidelity warning route no
+  longer reports missing mips for mip-filtered textures.
 - `M1-T7` — implement `CameraHandle.rayFromPointer` with real camera
   unprojection.
   Reference anchor: `references/three.js/src/core/Raycaster.js`.
