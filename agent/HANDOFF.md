@@ -40,21 +40,35 @@ both blocked only on the WebGPU/pixel portions ([B1] below).** Full
    (engine API only) + a skinned+morphed+animated fixture, and test/e2e/animation-skinning.spec.ts
    asserting pixels differ across two clip phases + a >2-target morph contributes.
 
-### ENVIRONMENT CONSTRAINT — WebGPU / Playwright pixel proofs cannot run here
+### CORRECTION — WebGPU pixel proofs ARE runnable here (earlier note was wrong)
 
-Verified this run: there is no system Chrome; Playwright's chromium was
-installed (`/opt/pw-browsers`), but `navigator.gpu` is **undefined** in both
-the headless-shell and the full Chrome build under `xvfb` with
-`--enable-unsafe-webgpu` + swiftshader/Vulkan flags. The Playwright config
-also requires headed Chrome (`channel: "chrome"`, `headless: false`). So the
-WebGPU render-control / Playwright **pixel-readback** proofs (M2-T7 done-when
-#3, and the M2-T9 milestone proof route) cannot execute in this environment.
+An earlier note in this run claimed WebGPU was unavailable; that was a probe
+error (I tested `navigator.gpu` on `about:blank`, which is not a secure
+context). **WebGPU works here over a localhost secure context**: Playwright's
+downloaded Chromium (`/opt/pw-browsers/chromium-1223/chrome-linux64/chrome`)
+under `xvfb`, with SwiftShader's Vulkan ICD, exposes a real WebGPU device.
+Verified by running `test/e2e/spinning-cube.spec.ts` (passes with GPU
+readback) via a local override config:
 
-Alternative verification used for GPU-facing criteria: the project's webgpu
-vitest suite is itself headless (it asserts generated WGSL, vertex layouts,
-bind-group/batch keys, and GPU buffer/texture descriptors — not pixels), plus
-render-snapshot assertions. These are run and reported; the live pixel proof
-is marked explicitly as not-runnable-here with the structural proof named.
+```
+VK_ICD_FILENAMES=/opt/pw-browsers/chromium-1223/chrome-linux64/vk_swiftshader_icd.json \
+  xvfb-run -a pnpm exec playwright test --config playwright.local.config.ts <spec>
+```
+
+(`playwright.local.config.ts` is git-ignored: it points Playwright at the
+downloaded Chromium with `--enable-unsafe-webgpu --enable-features=Vulkan
+--use-vulkan=swiftshader --use-angle=vulkan`, headed under xvfb.) So the M2-T7
+done-when #3 and M2-T9 pixel/render-control proofs are NOT environment-blocked
+— they are simply the large remaining GPU work below.
+
+### Remaining M2 work (unblocked; large GPU subsystem + example authoring)
+
+The morph GPU render (T7 #3) + T9 route are a deeply-plumbed change (vertex
+layout variants in `standard-vertex-layout.ts`, WGSL injection in
+`standard-morph-target-shader.ts`, the per-mesh morph-delta source, the
+weight buffer/bind-group/batch-key, and ~9 morph webgpu tests asserting the
+2-target shape), plus example/fixture/spec authoring. Scoped above (steps 1-2).
+It is real engineering effort, not a blocker.
 
 ## Current Run Update — 2026-05-29T16:32:07Z — SOTA M1 complete
 

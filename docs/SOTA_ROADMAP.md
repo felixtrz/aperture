@@ -92,7 +92,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 
 > _What to write:_ If you stop mid-task, state exactly what is done, what remains, which files are dirty, and the next concrete step — enough for a cold agent to resume without re-reading the whole task. OVERWRITE this section on each hand-off (it is current-state, not a log). Write `clean — no in-flight work` when you finish a task cleanly.
 
-`M2-T1..T6 + T8 done and gate-green (380 files / 2157 tests). M2-T7 is PARTIAL: the typed morph-weight transport (no JSON / no clamp) landed (ba636db); the N-target morph IMPORT + N-weight snapshot packing + the morph-target data-texture/storage-buffer N-loop GPU render (52 ARKit) remain — that GPU render + its done-when #3 live pixel readback are BLOCKED here by the unavailable WebGPU environment (see [B1]); they are the milestone's named data-texture follow-up. M2-T9 (skinned+animated GLB route) depends on T7 + a WebGPU pixel/render-control proof, so its live render is likewise blocked; its engine-owned animation status is headlessly proven by test/app/gltf-animation-playback.test.ts + test/app/gltf-animation-clips.test.ts. NEXT for a WebGPU-capable agent: implement the morph-target data-texture GPU path (mesh morphTargetData buffer → GPU storage buffer/texture → N-loop shader, removing the 2 vertex-attribute morph deltas), then author examples/animation-skinning.* + test/e2e/animation-skinning.spec.ts pixel-diff.`
+`M2-T1..T6 + T8 done and gate-green (380 files / 2157 tests). M2-T7 is PARTIAL: the typed morph-weight transport (no JSON / no clamp) landed (ba636db); the N-target morph IMPORT + N-weight snapshot packing + the morph-target data-texture/storage-buffer N-loop GPU render (52 ARKit) remain — that GPU render + its done-when #3 live pixel readback are LARGE UNBLOCKED WORK — WebGPU IS runnable here via xvfb + SwiftShader Vulkan over localhost ([B1] resolved; spinning-cube.spec.ts passes with GPU readback through playwright.local.config.ts). They are the milestone's named data-texture follow-up. M2-T9 (skinned+animated GLB route) depends on T7 + a WebGPU pixel/render-control proof (runnable, unwritten); its engine-owned animation status + CUBICSPLINE end-to-end behaviour are already headlessly proven by test/app/{skinned-animated-route,gltf-animation-playback,gltf-animation-clips}.test.ts. NEXT: (1) morph GPU render — extend the standard vertex layout + WGSL morph injection past 2 targets (or move deltas to a per-mesh storage buffer / data texture) consuming a new mesh morphTargetData(N) buffer, pack N weights per draw, update the ~9 morph webgpu tests; (2) author examples/animation-skinning.{worker,main}.js + .html + a skinned+morphed+animated fixture + test/e2e/animation-skinning.spec.ts pixel-diff (run via playwright.local.config.ts under xvfb).`
 
 ---
 
@@ -702,8 +702,11 @@ Expose a high-level animation API and an ECS driver system so imported clips ani
 > clip drives the joint pose end-to-end (proving M2-T1 through the M2-T8
 > driver). The remaining boxes (live Playwright pixel-diff #711, morph
 > targetCount/>2-target morph contribution #712-#713, render-control snapshot
-> #714) require a live WebGPU device + the M2-T7 morph data-texture render, both
-> unavailable here ([B1]); they are the milestone's documented follow-up.
+> #714) require a live WebGPU device + the M2-T7 morph data-texture render.
+> WebGPU IS runnable here (xvfb + SwiftShader Vulkan over localhost — [B1]
+> resolved; see playwright.local.config.ts), so these are large UNBLOCKED GPU
+> + example-authoring work, the milestone's documented follow-up — not an
+> environment block.
 
 `docs-tooling` · effort **M** · depends: M2-T6, M2-T7, M2-T8
 
