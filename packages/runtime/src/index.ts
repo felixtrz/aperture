@@ -88,6 +88,7 @@ import {
 export * from "./simulation-worker.js";
 export * from "./shared-snapshot-transport.js";
 export * from "./animation-blending.js";
+export * from "./animation-clip.js";
 
 export interface SpawnContext {
   readonly app: SimulationApp;
