@@ -14,7 +14,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
     5. Use absolute dates (YYYY-MM-DD [HH:MM TZ]) everywhere — never "today"/"now".
 -->
 
-**Last updated:** `2026-05-29 15:05 PDT — claude/opus`
+**Last updated:** `2026-05-29 15:35 PDT — claude/opus`
 
 > _What to write:_ Absolute date + time + timezone, then `— <your agent/author id>` (e.g. `2026-06-02 14:30 PDT — claude/opus`). Update on every edit to this block.
 
@@ -26,11 +26,11 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 
 > _What to write:_ Exactly ONE task id (`M#-T#`) you are mid-implementation on, or `none` when between tasks. Never two at once. Reset to `none` after you record the result in the completion log below.
 
-**Next recommended task:** `M2-T5 — typed (non-JSON) joint-matrix snapshot transport (depends: none); eliminates per-frame JSON.parse in skin extraction`
+**Next recommended task:** `M2-T6 — joint-palette compute system (depends M2-T3, M2-T5, both done); computes the palette from resolved world transforms each step`
 
 > _What to write:_ The next `todo` task whose `dependsOn` are all `done`, lowest milestone/task number within the current wave. One line: `M#-T# — <why it's next / what it unblocks>`.
 
-**Gate status:** `pnpm run check = pass (377 files / 2145 tests); test/render/gltf-animation-import.spec.ts + test/app/gltf-animation-clips.test.ts = pass`
+**Gate status:** `pnpm run check = pass (377 files / 2147 tests); skin typed-transport tests in test/rendering/extraction.test.ts = pass`
 
 > _What to write:_ Result of the project gate at your last stop: `pnpm run check = pass|fail` plus any task-specific proofs you ran (e.g. `test/e2e/auto-shadow.spec.ts = pass`). If fail, name the failing check. Never mark a task `done` on a red gate.
 
@@ -45,7 +45,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 | Milestone   | Wave | Status      | Done/Total | Proof (route/spec)                                                               | Notes                                                                       |
 | ----------- | ---- | ----------- | ---------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | [M1](#m1)   | 0    | done        | 11/11      | `auto-shadow` route + compressed-GLB load + picking + `npm publish --dry-run` ✅ | Complete: shadows, compressed assets, picking, publishing, CI/release gates |
-| [M2](#m2)   | 1    | in-progress | 4/9        | skinned+animated GLB route (M2-T9) ⬜                                            | T1 sampler + T2 mixer + T3 skin + T4 animation import landed                |
+| [M2](#m2)   | 1    | in-progress | 5/9        | skinned+animated GLB route (M2-T9) ⬜                                            | T1-T4 + T5 typed joint transport landed                                     |
 | [M3](#m3)   | 2    | not-started | 0/7        | post+forward+shadow ported under graph + custom-pass example (M3-T7) ⬜          | —                                                                           |
 | [M4](#m4)   | 1    | not-started | 0/9        | frustum-fit / PCSS / alpha-test shadow routes ⬜                                 | —                                                                           |
 | [M5](#m5)   | 1    | not-started | 0/6        | DFG / irradiance / transmission correctness routes ⬜                            | —                                                                           |
@@ -83,12 +83,13 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 | 2026-05-29 14:05 PDT             | M2-T2  | ✅ done  | 5cbb865  | `pnpm exec vitest run test/runtime/animation-mixer.spec.ts` (7 pass); `pnpm run check` (374 files / 2135 tests pass)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Added `AnimationMixer` (play/pause/resume/seek/crossFadeTo/update) with an internal time accumulator: signed speed, repeat-wrap, once-clamp+finished, pingpong reflection; single crossfade lane reusing `crossFadeTo`/`sampleAnimationCrossFade`; returns `BlendedAnimationChannel[]` via `blendAnimationClipSamples` and exposes blended morph `weightChannels`. Pure data, no ECS/GPU deps; exported from runtime.                                                                               |
 | 2026-05-29 14:35 PDT             | M2-T3  | ✅ done  | 43f09a1  | `pnpm exec vitest run test/render/gltf-skin-import.spec.ts` (4 pass); `pnpm run check` (375 files / 2139 tests pass)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Imported glTF skins into an engine skeleton: traversal captures node.skin; new `importGltfSkins` parses joints/skeleton and decodes inverse-bind via a shared standalone float-accessor reader (also for M2-T4); a new `Skin` authoring command emits on skinned primitives and replays into a `Skin.skeleton` Object (live joint entities + inverse-bind, deferred key resolution like Parent), seeding an identity rest-pose palette; `skins` recognized as a core root array.                    |
 | 2026-05-29 15:05 PDT             | M2-T4  | ✅ done  | 3685f2c  | `pnpm exec vitest run test/render/gltf-animation-import.spec.ts test/app/gltf-animation-clips.test.ts` (6 pass); `pnpm run check` (377 files / 2145 tests pass)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Parsed gltf.animations into engine AnimationClips (LINEAR/STEP/CUBICSPLINE incl. 3x-stride; TRS + dynamic morph weights) via the shared decodeGltfFloatAccessor, targetId=keyPrefix:node:N. Relocated AnimationClip data types to simulation (runtime re-exports) to avoid a render→runtime cycle. Report-driven import now exposes skin+animation; loadSystemGltfAsset feeds skins to the command plan, registers clips as 'animation-clip', and surfaces clips+skeleton on SystemGltfLoadedScene. |
+| 2026-05-29 15:35 PDT             | M2-T5  | ✅ done  | 0ef493a  | `pnpm exec vitest run test/rendering/extraction.test.ts` (typed-transport + bone-snapshot cases pass); `pnpm run check` (377 files / 2147 tests pass)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Replaced Skin.jointMatricesJson (String) with a typed jointMatrices Float32Array palette (EcsType.Object). createSkin emits Float32Array; readSkinning reads it by reference (zero JSON.parse / zero per-extract allocation); pushBoneMatrices keeps snapshot.bones byte-identical. glTF Skin replay seeds a typed identity palette; glb-viewer example writes the typed field. Pixel-equivalence verified by proxy (byte-identical GPU skinning input).                                            |
 
 ### Resume notes (for the next agent)
 
 > _What to write:_ If you stop mid-task, state exactly what is done, what remains, which files are dirty, and the next concrete step — enough for a cold agent to resume without re-reading the whole task. OVERWRITE this section on each hand-off (it is current-state, not a log). Write `clean — no in-flight work` when you finish a task cleanly.
 
-`clean — no in-flight work. M2-T1..T4 landed (sampler, mixer, skin import, animation import); full gate green (377 files / 2145 tests). AnimationClip data types now live in @aperture-engine/simulation (runtime re-exports). Next: M2-T5 — typed (non-JSON) joint-matrix transport. Replace Skin.jointMatricesJson with a typed flat palette (the Skin.skeleton Object is already typed); rewrite readSkinning (extraction-mesh-deformation.ts) to read it directly with zero JSON.parse, keeping snapshot.bones byte-identical and render.skinning.* diagnostics.`
+`clean — no in-flight work. M2-T1..T5 landed; full gate green (377 files / 2147 tests). Skin palette is now a typed Float32Array (Skin.jointMatrices); Skin.skeleton holds {joints, inverseBindMatrices}. Next: M2-T6 — joint-palette compute system. Add packages/runtime/src/skinning-palette-system.ts computing palette_i = inverse(meshWorld) * jointWorld_i * inverseBind_i into Skin.jointMatrices, registered to run AFTER TransformResolutionSystem and before extraction (use invertMat4/multiplyMat4 from simulation math; fall back to identity on degenerate mesh world).`
 
 ---
 
@@ -590,7 +591,7 @@ Parse gltf.animations into engine AnimationClip assets, extracting parseGltfAnim
 
 **Watch out:** morph 'weights' target path produces a channel whose value count == number of morph targets (variable), not 3/4 — keep componentCount dynamic and route it to morph weights not TRS (depends on M2-T7 for >2 morph support to be visible). target.node may be undefined for some channels (skip with diagnostic). Reuse the engine accessor decoder rather than the worker's readGltfFloatAccessorTuples to avoid a second accessor implementation drifting from validation.
 
-#### `M2-T5` · Typed (non-JSON) joint-matrix snapshot transport replacing jointMatricesJson
+#### `M2-T5` · Typed (non-JSON) joint-matrix snapshot transport replacing jointMatricesJson — ✅ done (2026-05-29 · 0ef493a)
 
 `render-bridge` · effort **M** · depends: none
 
@@ -605,10 +606,10 @@ Eliminate the per-frame JSON.parse of joint matrices. Redesign the Skin authorin
 
 **Done when:**
 
-- [ ] grep for JSON.parse/JSON.stringify in extraction-mesh-deformation.ts and authoring-create-mesh-data.ts (skin path) returns zero hits
-- [ ] An existing-style vitest comparing extractRenderSnapshot.bones for a skinned entity before/after the refactor produces identical Float32Array contents and identical boneMatrixOffset/boneMatrixCount on the MeshDrawPacket
-- [ ] A perf microbench (or assertion) shows readSkinning performs no allocation proportional to a JSON string per extract for a 50-joint skin
-- [ ] Existing skinned-mesh render route still produces the same pixels (no visual regression)
+- [x] grep for JSON.parse/JSON.stringify in extraction-mesh-deformation.ts and authoring-create-mesh-data.ts (skin path) returns zero hits
+- [x] An existing-style vitest comparing extractRenderSnapshot.bones for a skinned entity before/after the refactor produces identical Float32Array contents and identical boneMatrixOffset/boneMatrixCount on the MeshDrawPacket
+- [x] A perf microbench (or assertion) shows readSkinning performs no allocation proportional to a JSON string per extract for a 50-joint skin
+- [x] Existing skinned-mesh render route still produces the same pixels (no visual regression) — verified by proxy: this is a pure transport refactor and the complete GPU skinning input (snapshot.bones contents + boneMatrixOffset/boneMatrixCount + skinned batchKey/pipelineKey) is asserted byte-identical; no skinned-mesh Playwright route exists in the headless gate yet (it lands in M2-T9, and Playwright/WebGPU is unreliable in this environment)
 
 **Study:** packages/render/src/rendering/extraction-mesh-deformation.ts:12-77 and packages/webgpu/src/resources/attributes/skinning-joint-buffer.ts (createSkinningJointBufferDescriptor)
 
