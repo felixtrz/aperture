@@ -5,7 +5,8 @@ import type { RenderDiagnostic } from "./snapshot.js";
 import { diagnostic } from "./extraction-diagnostics.js";
 
 export interface SkinExtraction {
-  readonly jointMatrices: readonly number[];
+  /** The typed joint palette, returned by reference (no per-extract copy). */
+  readonly jointMatrices: ArrayLike<number>;
   readonly jointCount: number;
 }
 
@@ -29,24 +30,13 @@ export function readSkinning(
   }
 
   const jointCount = entity.getValue(Skin, "jointCount") ?? 0;
-  const jointMatricesJson = entity.getValue(Skin, "jointMatricesJson") ?? "[]";
-  let parsed: unknown;
+  // Read the typed palette directly — no JSON.parse, no intermediate array.
+  const jointMatrices = entity.getValue(Skin, "jointMatrices") as
+    | Float32Array
+    | null
+    | undefined;
 
-  try {
-    parsed = JSON.parse(jointMatricesJson);
-  } catch {
-    diagnostics.push(diagnostic("render.skinning.invalidJson", entity));
-    return null;
-  }
-
-  if (!Array.isArray(parsed)) {
-    diagnostics.push(diagnostic("render.skinning.invalidMatrices", entity));
-    return null;
-  }
-
-  const jointMatrices = parseFiniteNumberArray(parsed);
-
-  if (jointMatrices === null || jointMatrices.length === 0) {
+  if (!(jointMatrices instanceof Float32Array) || jointMatrices.length === 0) {
     diagnostics.push(diagnostic("render.skinning.invalidMatrices", entity));
     return null;
   }
@@ -71,8 +61,11 @@ export function pushBoneMatrices(
   skinning: SkinExtraction,
 ): number {
   const offset = values.length;
+  const matrices = skinning.jointMatrices;
 
-  values.push(...skinning.jointMatrices);
+  for (let index = 0; index < matrices.length; index += 1) {
+    values.push(matrices[index]!);
+  }
   return offset;
 }
 

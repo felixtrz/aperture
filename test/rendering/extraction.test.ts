@@ -645,6 +645,53 @@ describe("render extraction", () => {
     });
   });
 
+  it("stores the skin palette as a typed Float32Array with no JSON transport", () => {
+    const data = createSkin({
+      jointMatrices: [...identityMatrix(), ...translationMatrix(2, 0, 0)],
+    });
+
+    // createSkin emits a typed palette, not a serialized JSON string.
+    expect(data.jointMatrices).toBeInstanceOf(Float32Array);
+    expect("jointMatricesJson" in data).toBe(false);
+    expect(data.jointCount).toBe(2);
+  });
+
+  it("reads the typed joint palette by reference without per-extract allocation", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      meshAsset: withSkinningAttributes(createBoxMeshAsset()),
+      materialAsset: createStandardMaterialAsset(),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const entity = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    // A 50-joint palette: the JSON path would parse/allocate ~800 numbers per
+    // extract; the typed path reads the same Float32Array by reference.
+    const palette = new Float32Array(50 * 16);
+    for (let joint = 0; joint < 50; joint += 1) {
+      const base = joint * 16;
+      palette[base] = 1;
+      palette[base + 5] = 1;
+      palette[base + 10] = 1;
+      palette[base + 15] = 1;
+    }
+    entity.addComponent(Skin, { jointCount: 50, jointMatrices: palette });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+    const draw = required(snapshot.meshDraws[0]);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(draw.boneMatrixCount).toBe(50);
+    expect(snapshot.bones?.length).toBe(50 * 16);
+    // Extraction did not copy/replace the component's typed palette.
+    expect(entity.getValue(Skin, "jointMatrices")).toBe(palette);
+  });
+
   it("includes compact skinning formats in mesh layout keys", () => {
     const world = createRuntimeWorld();
     const assets = createReadyAssets({

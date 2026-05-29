@@ -235,10 +235,9 @@ export function applyGltfEcsReplayComponent(input: {
         };
         // Seed the palette with identity matrices so the mesh renders in its
         // rest pose until the joint-palette system (M2-T6) computes it.
-        const identityPalette = createIdentityJointPalette(joints.length);
         input.entity.addComponent(Skin, {
           jointCount: joints.length,
-          jointMatricesJson: JSON.stringify(identityPalette),
+          jointMatrices: createIdentityJointPalette(joints.length),
           skeleton,
         });
         return true;
@@ -272,8 +271,8 @@ export function applyGltfEcsReplayComponent(input: {
   }
 }
 
-function createIdentityJointPalette(jointCount: number): number[] {
-  const palette = new Array<number>(jointCount * 16).fill(0);
+function createIdentityJointPalette(jointCount: number): Float32Array {
+  const palette = new Float32Array(jointCount * 16);
   for (let joint = 0; joint < jointCount; joint += 1) {
     const base = joint * 16;
     palette[base] = 1;

@@ -4327,8 +4327,8 @@ function createGltfSkinningState({
         entity.setValue(aperture.Skin, "jointCount", jointNodeIndices.length);
         entity.setValue(
           aperture.Skin,
-          "jointMatricesJson",
-          JSON.stringify(Array.from(jointMatrices)),
+          "jointMatrices",
+          Float32Array.from(jointMatrices),
         );
       } else {
         entity.addComponent(
@@ -4451,8 +4451,8 @@ function updateSkinningPalettesFromWorld(aperture, skinning) {
     );
     entry.entity.setValue(
       aperture.Skin,
-      "jointMatricesJson",
-      JSON.stringify(Array.from(entry.jointMatrices)),
+      "jointMatrices",
+      Float32Array.from(entry.jointMatrices),
     );
   }
 }

@@ -134,16 +134,19 @@ export const Skin = defineComponent(
   "aperture.render.skin",
   {
     jointCount: { type: EcsType.Int32, default: 0 },
-    jointMatricesJson: { type: EcsType.String, default: "[]" },
+    // Typed joint palette: a flat column-major `Float32Array` of jointCount*16
+    // matrices, read directly by extraction with zero per-frame JSON.parse.
+    // Held by reference (same-thread, never snapshot-transported). Null until a
+    // palette is supplied (manual skins) or computed (M2-T6 for imported skins).
+    jointMatrices: { type: EcsType.Object, default: null },
     // Engine-owned skeleton structure for imported skins: the live joint
     // entities and their flat column-major inverse-bind matrices. Held by
-    // reference (same-thread, never snapshot-transported) so the joint-palette
-    // system (M2-T6) can compute palette_i = inverseMeshWorld * jointWorld_i *
-    // inverseBind_i without re-parsing JSON. Null for manually-authored skins
-    // that supply a precomputed palette via jointMatricesJson.
+    // reference so the joint-palette system (M2-T6) can compute
+    // palette_i = inverseMeshWorld * jointWorld_i * inverseBind_i in place.
+    // Null for manually-authored skins that supply a precomputed palette.
     skeleton: { type: EcsType.Object, default: null },
   },
-  "Renderer-independent per-entity skin palette stored as serialized joint matrices.",
+  "Renderer-independent per-entity skin palette stored as a typed joint-matrix buffer.",
 );
 
 export const MorphTargetWeights = defineComponent(

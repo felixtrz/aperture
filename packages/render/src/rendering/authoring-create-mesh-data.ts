@@ -51,11 +51,11 @@ export function createInstanceData(
 export function createSkin(
   input: SkinInput,
 ): ComponentInitialData<typeof Skin> {
-  const jointMatrices = Array.from(input.jointMatrices);
+  const jointMatrices = Float32Array.from(input.jointMatrices);
 
   return {
     jointCount: Math.floor(jointMatrices.length / 16),
-    jointMatricesJson: JSON.stringify(jointMatrices),
+    jointMatrices,
   };
 }
 
