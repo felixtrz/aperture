@@ -59,39 +59,36 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-The custom WGSL visible-feature queue is complete for v1: public shader assets,
-worker-safe `material.customWgsl(...)` builders, namespaced custom family keys,
-source asset mirroring, render-asset preparation, single-custom and mixed
-built-in/custom `createWebGpuApp()` routes, app-route group-2 texture/sampler
-resources, and generated developer API browser coverage are all landed and
-validated. Storage-buffer source assets, WGSL imports, and custom
-lighting/environment integration remain explicit follow-ups, not blockers for
-the v1 plan.
+The active project direction is now `docs/SOTA_ROADMAP.md` wave 0. M1-T1 is
+complete: the reusable `createRenderShadowFrame()` shadow orchestrator and
+caster mesh view helpers live in `packages/webgpu/src/shadows`, with Vitest
+coverage for submitted cascaded directional passes and renderer-owned cache
+reuse. Continue with one visible SOTA feature slice at a time.
 
-The next ready visible-feature queue returns to camera/render-target coverage:
+The next ready visible-feature queue is:
 
-- `task-3169` — add a camera render-target preview route.
-  Reference anchor: `references/bevy/examples/3d/render_to_texture.rs`,
-  `references/three.js/examples/webgpu_rtt.html`.
-  Done when a public browser route renders one ECS-authored camera into a
-  renderer-owned off-screen color target, displays that texture in a second
-  visible pass, reports JSON-safe target/status details, and Playwright or
-  render-control proves the preview pixels are visible and distinct.
-- `task-3170` — add a camera render-layer isolation route.
-  Reference anchor: `references/three.js/examples/webgpu_layers.html`.
-  Done when a public browser route renders two simultaneous cameras over one
-  worker-owned ECS world with distinct `Camera.layerMask` values, proves each
-  viewport shows only matching-layer entities, and reports per-view layer
-  diagnostics in JSON-safe form.
-- `task-3171` — add a camera priority overlay route.
-  Reference anchor: `references/bevy/examples/ui/ui_target_camera.rs`,
-  `references/engine/src/extras/render-passes/camera-frame.js`.
-  Done when two ECS-authored cameras render into the same canvas target by
-  priority, a higher-priority overlay preserves the lower-priority base pass,
-  and status reports ordered view/pass execution with focused E2E coverage.
+- `M1-T2` — drive the shadow orchestrator from the frame loop and inject
+  receiver resources automatically.
+  Reference anchor: `references/engine/src/scene/renderer/shadow-renderer-directional.js`.
+  Done when an auto-shadow render-control route submits shadow caster passes
+  without caller-provided `standardMaterialShadowReceiverResources`, reports the
+  shadow command-buffer status, preserves explicit override compatibility, and
+  Playwright proves receiver darkening.
+- `M1-T4` — add `KHR_mesh_quantization` support at glTF root validation and
+  accessor decode.
+  Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+  Done when quantized glTF attributes decode into the compact source layouts
+  already supported by WebGPU pipelines and a compressed/quantized fixture loads
+  without unsupported-extension diagnostics.
+- `M1-T7` — implement `CameraHandle.rayFromPointer` with real camera
+  unprojection.
+  Reference anchor: `references/three.js/src/core/Raycaster.js`.
+  Done when perspective and orthographic camera handles produce normalized
+  screen-to-world rays from ECS camera transforms/projections, with focused
+  headless tests for center and off-axis pointer positions.
 
-Keep `task-3161` as later post-SOTA hardening work after the visible camera
-route queue above.
+Keep the earlier camera/render-target visible route queue as later backlog
+after the active SOTA wave tasks above.
 
 Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
 with square raw-vs-effect browser proofs. The stricter reference-parity

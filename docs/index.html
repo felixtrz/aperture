@@ -393,17 +393,33 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-28 18:42 UTC</dd>
+            <dd>2026-05-29 05:06 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: custom WGSL material enablement now has public
-              shader assets, app system builders, source validation,
-              source-asset mirroring, prepared custom material metadata, mixed
-              built-in/custom app-route rendering, group-2 texture/sampler
-              binding resources, and generated developer API browser coverage
-              for <code>asset.shader(...)</code> plus
+              Latest update: SOTA roadmap M1-T1 extracted the reusable
+              renderer-owned shadow frame orchestrator from the CSM example into
+              <code>packages/webgpu/src/shadows</code>. The new
+              <code>createRenderShadowFrame()</code> path accepts an ECS-derived
+              <code>RenderSnapshot</code>, prepared caster mesh views, a passed
+              WebGPU device, and the app environment cache, then allocates or
+              reuses shadow depth/sampler/pipeline/matrix bind-group resources,
+              submits cascaded directional caster passes, and returns
+              <code>StandardFrameShadowReceiverResources</code> plus a compact
+              JSON-safe report. Vitest covers submitted command-buffer status,
+              nonzero pass/draw counts, receiver resources, cache reuse across
+              identical frames, and the absence of deferred/not-implemented
+              diagnostics in the returned report. Next SOTA task:
+              <code>M1-T2</code> wires the orchestrator into
+              <code>renderWebGpuAppFrame</code> so standard app frames can
+              produce shadow receiver resources automatically. Previous update:
+              custom WGSL material enablement now has public shader assets, app
+              system builders, source validation, source-asset mirroring,
+              prepared custom material metadata, mixed built-in/custom app-route
+              rendering, group-2 texture/sampler binding resources, and
+              generated developer API browser coverage for
+              <code>asset.shader(...)</code> plus
               <code>material.customWgsl(...)</code>. The animated
               <code>custom-material</code> example no longer rewrites snapshots
               or submits manual WebGPU commands, broken WGSL reports app-route
@@ -3556,6 +3572,16 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">M1-T1</span> Extracted
+                <code>createRenderShadowFrame()</code> and caster mesh view
+                helpers into <code>packages/webgpu/src/shadows</code>. The
+                orchestrator submits cascaded directional shadow caster passes,
+                returns standard receiver resources for later app-frame
+                injection, reuses renderer-owned depth/sampler/pipeline/matrix
+                bind-group cache entries across identical frames, and is covered
+                by Vitest fake-device submission and cache-reuse proofs.
+              </li>
+              <li>
                 <span class="badge green">task-3209</span> Added
                 <code>examples/mixed-msaa-reuse-clear-load.html</code>. The
                 render-to-texture route family now creates an MSAA-enabled app,
@@ -6409,10 +6435,11 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add a camera render-target
-                preview route that renders one ECS-authored camera into a
-                renderer-owned off-screen color target and displays it in a
-                second visible pass.
+                <span class="badge amber">next</span> Wire
+                <code>createRenderShadowFrame()</code> into
+                <code>renderWebGpuAppFrame</code> for <code>M1-T2</code>, while
+                preserving explicit shadow receiver overrides and adding the
+                auto-shadow render-control and Playwright receiver-delta proof.
               </li>
               <li>
                 <span class="badge green">done</span> Custom WGSL mixed
@@ -6788,6 +6815,23 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">M1-T1</div>
+            <div>
+              <strong>Reusable shadow frame orchestrator extracted.</strong>
+              <span>
+                <code>createRenderShadowFrame()</code> now lives in the WebGPU
+                shadows package and coordinates the existing shadow descriptor,
+                depth texture, sampler, pass plan, attachment, view-projection,
+                matrix, caster draw-list, pipeline, bind-group, encoder, and
+                submission reports into one per-frame helper. It stays
+                headless-safe, reads ECS snapshots and prepared caster mesh GPU
+                views, returns StandardMaterial receiver resources, and has
+                Vitest coverage for submitted cascaded directional passes plus
+                renderer-owned cache reuse.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3209</div>
             <div>

@@ -1,6 +1,57 @@
 # Agent Handoff
 
-Updated: 2026-05-28T18:43:11Z
+Updated: 2026-05-29T05:06:30Z
+
+## Current Run Update — 2026-05-29T05:06:30Z — SOTA M1-T1 shadow orchestrator
+
+Completed `docs/SOTA_ROADMAP.md` task `M1-T1`.
+
+### What changed
+
+- Added `createRenderShadowFrame()` in `packages/webgpu/src/shadows` as a
+  reusable, headless-safe per-frame coordinator for the existing directional and
+  cascaded shadow descriptor, texture, sampler, pass-plan, attachment,
+  view-projection, matrix upload, caster draw-list, pipeline, bind-group,
+  encoder, and command-buffer submission modules.
+- Added caster mesh view helpers that read prepared mesh GPU resources from app
+  reports/facades so the future frame-loop wiring can reuse main-pass mesh
+  uploads instead of duplicating them.
+- Extended the app environment resource cache with shadow depth texture and
+  matrix buffer slots, exported the new shadow APIs, and corrected the shadow
+  depth texture reuse metric so second-frame cached reuse reports zero created
+  textures.
+- Added focused WebGPU tests proving submitted cascaded directional shadow
+  frames, nonzero pass/draw counts, returned StandardMaterial receiver
+  resources, cache reuse across identical frames, and no
+  deferred/not-implemented diagnostics in the compact orchestrator report.
+- Updated `docs/SOTA_ROADMAP.md`, `docs/index.html`,
+  `docs/render-pipeline-comparison.html`, `agent/BACKLOG.md`, and
+  `agent/COMPLETED.md` for M1-T1 completion and M1-T2 as the recommended next
+  task.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/app-environment-resources.test.ts test/webgpu/shadow-depth-texture-resource.test.ts`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm exec eslint packages/webgpu/src/shadows/render-shadow-frame.ts packages/webgpu/src/shadows/render-shadow-frame-caster-meshes.ts test/webgpu/shadows/render-shadow-frame.spec.ts packages/webgpu/src/app/app-environment-resources.ts`
+- `pnpm exec prettier --check packages/webgpu/src/shadows/render-shadow-frame.ts packages/webgpu/src/shadows/render-shadow-frame-caster-meshes.ts test/webgpu/shadows/render-shadow-frame.spec.ts packages/webgpu/src/app/app-environment-resources.ts test/webgpu/app-environment-resources.test.ts test/webgpu/shadow-depth-texture-resource.test.ts packages/webgpu/src/index.ts packages/webgpu/src/test-support.ts`
+- `pnpm run check`
+- `pnpm run check:progress`
+- `git diff --check`
+
+### Known issues / remaining work
+
+- M1-T1 intentionally does not invoke the orchestrator from the live app frame
+  loop. `M1-T2` must wire it into `renderWebGpuAppFrame`, preserve explicit
+  receiver-resource overrides, and add the auto-shadow browser proof.
+- Lower-level shadow reports still carry the legacy shader-sampling deferred
+  status until `M1-T3`; the compact M1-T1 orchestrator report filters those
+  stale diagnostics for valid submitted inputs.
+
+### Recommended next task
+
+Start `M1-T2`: drive `createRenderShadowFrame()` from the WebGPU app frame loop
+and inject produced shadow receiver resources automatically.
 
 ## Current Run Update — 2026-05-28T18:43:11Z — Custom WGSL v1 completion
 

@@ -410,7 +410,7 @@ describe("shadow depth texture resource", () => {
     expect(first.ready).toBe(true);
     expect(first.reusedTextureCount).toBe(0);
     expect(second.ready).toBe(true);
-    expect(second.createdTextureCount).toBe(1);
+    expect(second.createdTextureCount).toBe(0);
     expect(second.reusedTextureCount).toBe(1);
     expect(second.resources[0]?.allocation).toBe(
       first.resources[0]?.allocation,

@@ -169,6 +169,8 @@ export * from "./shadows/shadow-pass-attachment-descriptor.js";
 export * from "./shadows/shadow-pass-command-encoding-report.js";
 export * from "./shadows/shadow-pass-encoder-assembly-report.js";
 export * from "./shadows/shadow-pass-plan.js";
+export * from "./shadows/render-shadow-frame.js";
+export * from "./shadows/render-shadow-frame-caster-meshes.js";
 export * from "./shadows/shadow-resource-readiness.js";
 export * from "./shadows/shadow-texture-resource.js";
 export * from "./render/skybox/skybox-pipeline.js";

@@ -1,5 +1,34 @@
 # Completed Tasks
 
+## M1-T1 — Extract a reusable per-frame shadow orchestrator from the CSM example
+
+Completed: 2026-05-28
+
+### Summary
+
+- Added `createRenderShadowFrame()` in the WebGPU shadows package to coordinate
+  existing shadow descriptor, texture, sampler, pass-plan, attachment,
+  view-projection, matrix upload, caster draw-list, pipeline, bind-group,
+  encoder, and command-buffer submission modules.
+- Added caster mesh view helpers that build shadow prepared/executable mesh
+  views from app render reports and prepared mesh facade resources without
+  duplicating mesh uploads.
+- Extended the app environment cache with shadow depth texture and matrix
+  buffer slots, exported the new APIs, and corrected the shadow depth texture
+  reuse metric so reused cached textures report zero second-frame creations.
+- Updated the SOTA roadmap and public tracker pages to mark M1-T1 complete and
+  set M1-T2 as the next SOTA task.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/shadows/render-shadow-frame.spec.ts test/webgpu/app-environment-resources.test.ts test/webgpu/shadow-depth-texture-resource.test.ts`
+- `pnpm --filter @aperture-engine/webgpu run typecheck`
+- `pnpm exec eslint packages/webgpu/src/shadows/render-shadow-frame.ts packages/webgpu/src/shadows/render-shadow-frame-caster-meshes.ts test/webgpu/shadows/render-shadow-frame.spec.ts packages/webgpu/src/app/app-environment-resources.ts`
+- `pnpm exec prettier --check packages/webgpu/src/shadows/render-shadow-frame.ts packages/webgpu/src/shadows/render-shadow-frame-caster-meshes.ts test/webgpu/shadows/render-shadow-frame.spec.ts packages/webgpu/src/app/app-environment-resources.ts test/webgpu/app-environment-resources.test.ts test/webgpu/shadow-depth-texture-resource.test.ts packages/webgpu/src/index.ts packages/webgpu/src/test-support.ts`
+- `pnpm run check`
+- `pnpm run check:progress`
+- `git diff --check`
+
 ## task-custom-wgsl-generated-browser — Add generated browser coverage for custom WGSL authoring
 
 Completed: 2026-05-28

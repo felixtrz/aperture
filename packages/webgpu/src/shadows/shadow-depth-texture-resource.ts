@@ -494,18 +494,23 @@ function report(input: {
   readonly reusedTextureCount?: number;
   readonly diagnostics: readonly ShadowDepthTextureResourceDiagnostic[];
 }): ShadowDepthTextureResourceReport {
-  const createdTextureCount = new Set(
+  const allocatedTextureCount = new Set(
     input.resources
       .filter((resource) => resource.allocation.valid)
       .map((resource) => resource.textureKey),
   ).size;
+  const reusedTextureCount = input.reusedTextureCount ?? 0;
+  const createdTextureCount = Math.max(
+    0,
+    allocatedTextureCount - reusedTextureCount,
+  );
 
   return {
     ready: input.status === "available" || input.status === "not-required",
     status: input.status,
     textureDescriptorCount: input.textureDescriptorCount,
     createdTextureCount,
-    reusedTextureCount: input.reusedTextureCount ?? 0,
+    reusedTextureCount,
     sections: {
       textureDescriptors: input.textureDescriptorsAvailable,
       depthTextureResource: input.status === "available",

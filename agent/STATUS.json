@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "05e7311f",
   "activePid": null,
-  "notes": "Custom WGSL v1 plan complete: mixed built-in/custom app route, group-2 texture/sampler binding resources, generated developer API browser coverage, docs/tracker/backlog updates, and final pnpm run check passing. Remaining follow-ups are storage-buffer source assets, WGSL imports, and custom lighting/environment integration.",
-  "lastRunFinishedAt": "2026-05-28T18:47:28Z"
+  "notes": "Completed SOTA M1-T1 reusable shadow orchestrator with fake-device Vitest coverage, public tracker updates, and pnpm run check passing. Next recommended task is M1-T2 frame-loop auto-shadow wiring.",
+  "lastRunFinishedAt": "2026-05-29T05:06:58Z"
 }

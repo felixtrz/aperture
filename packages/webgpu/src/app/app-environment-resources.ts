@@ -53,6 +53,8 @@ import type {
 } from "../materials/standard/standard-material-shadow-bind-group.js";
 import type { ShadowCasterPipelineResource } from "../shadows/shadow-caster-pipeline-resource.js";
 import type { ShadowCasterMatrixBindGroupResource } from "../shadows/shadow-caster-matrix-bind-group-resource.js";
+import type { ShadowDepthTextureResourceCache } from "../shadows/shadow-depth-texture-resource.js";
+import type { ShadowMatrixBufferResource } from "../shadows/shadow-matrix-buffer-resource.js";
 import type { StandardFrameIblResources } from "../materials/standard/standard-frame-resources.js";
 
 export interface WebGpuEnvironmentResourceCache {
@@ -73,6 +75,8 @@ export interface WebGpuEnvironmentResourceCache {
     string,
     ShadowCasterMatrixBindGroupResource
   >;
+  readonly shadowDepthTextures: ShadowDepthTextureResourceCache;
+  readonly shadowMatrixBuffers: Map<string, ShadowMatrixBufferResource>;
 }
 
 interface WebGpuEnvironmentBindGroupDeviceLike extends TextureGpuDeviceLike {
@@ -89,6 +93,8 @@ export interface WebGpuEnvironmentResourceCacheSummary {
   standardShadowBindGroupEntries: number;
   shadowCasterPipelineEntries: number;
   shadowCasterMatrixBindGroupEntries: number;
+  shadowDepthTextureEntries: number;
+  shadowMatrixBufferEntries: number;
   totalEntries: number;
 }
 
@@ -203,6 +209,8 @@ export function createWebGpuEnvironmentResourceCache(): WebGpuEnvironmentResourc
     standardShadowBindGroups: new Map(),
     shadowCasterPipelines: new Map(),
     shadowCasterMatrixBindGroups: new Map(),
+    shadowDepthTextures: new Map(),
+    shadowMatrixBuffers: new Map(),
   };
 }
 
@@ -237,6 +245,8 @@ export function createWebGpuEnvironmentResourceCacheSummary(): WebGpuEnvironment
     standardShadowBindGroupEntries: 0,
     shadowCasterPipelineEntries: 0,
     shadowCasterMatrixBindGroupEntries: 0,
+    shadowDepthTextureEntries: 0,
+    shadowMatrixBufferEntries: 0,
     totalEntries: 0,
   };
 }
@@ -254,6 +264,8 @@ export function writeWebGpuEnvironmentResourceCacheSummary(
   summary.shadowCasterPipelineEntries = cache.shadowCasterPipelines.size;
   summary.shadowCasterMatrixBindGroupEntries =
     cache.shadowCasterMatrixBindGroups.size;
+  summary.shadowDepthTextureEntries = cache.shadowDepthTextures.size;
+  summary.shadowMatrixBufferEntries = cache.shadowMatrixBuffers.size;
   summary.totalEntries =
     summary.diffuseTextureEntries +
     summary.specularTextureEntries +
@@ -262,7 +274,9 @@ export function writeWebGpuEnvironmentResourceCacheSummary(
     summary.shadowSamplerEntries +
     summary.standardShadowBindGroupEntries +
     summary.shadowCasterPipelineEntries +
-    summary.shadowCasterMatrixBindGroupEntries;
+    summary.shadowCasterMatrixBindGroupEntries +
+    summary.shadowDepthTextureEntries +
+    summary.shadowMatrixBufferEntries;
   return summary;
 }
 

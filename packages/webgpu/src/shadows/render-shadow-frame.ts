@@ -1,0 +1,816 @@
+import type {
+  RenderSnapshot,
+  ShadowRequestPacket,
+} from "@aperture-engine/render";
+
+import type { WebGpuBufferDeviceLike } from "../gpu/buffer.js";
+import type { CommandEncoderFinishLike } from "../gpu/command-buffer.js";
+import {
+  createCommandEncoderResource,
+  type CommandEncoderDeviceLike,
+} from "../gpu/command-encoder.js";
+import type { RenderPassCommandEncoderLike } from "../render/passes/render-pass-lifecycle.js";
+import type { QueueSubmitLike } from "../render/queues/queue-submit.js";
+import type { TextureGpuDeviceLike } from "../resources/textures/texture-resources.js";
+import {
+  createShadowSamplerResourceReport,
+  type ShadowSamplerDeviceLike,
+  type ShadowSamplerResource,
+} from "../materials/standard/standard-material-shadow-bind-group.js";
+import type { StandardFrameShadowReceiverResources } from "../materials/standard/standard-frame-resources.js";
+import {
+  createDirectionalShadowMatrixComputationReport,
+  directionalShadowMatrixComputationReportToJsonValue,
+  type DirectionalShadowMatrixComputationReport,
+} from "./directional-shadow-matrix-computation.js";
+import {
+  createDirectionalShadowViewProjectionPlanReport,
+  directionalShadowViewProjectionPlanReportToJsonValue,
+  type DirectionalShadowViewProjectionPlanReport,
+} from "./directional-shadow-view-projection-plan.js";
+import {
+  createShadowCasterCommandPlanReadinessReport,
+  shadowCasterCommandPlanReadinessReportToJsonValue,
+  type ShadowCasterCommandPlanReadinessReport,
+} from "./shadow-caster-command-plan-readiness.js";
+import {
+  createShadowCasterCommandRecordPlanReport,
+  shadowCasterCommandRecordPlanReportToJsonValue,
+  type ShadowCasterCommandRecordPlanReport,
+  type ShadowCasterExecutableMeshResourceView,
+} from "./shadow-caster-command-record-plan.js";
+import {
+  createShadowCasterDrawListPlanReport,
+  shadowCasterDrawListPlanReportToJsonValue,
+  type ShadowCasterDrawListPlanReport,
+} from "./shadow-caster-draw-list-plan.js";
+import {
+  createShadowCasterFrameResourceReadinessReport,
+  shadowCasterFrameResourceReadinessReportToJsonValue,
+  type ShadowCasterFrameResourceReadinessReport,
+  type ShadowCasterPreparedMeshResourceView,
+} from "./shadow-caster-frame-resource-readiness.js";
+import {
+  createShadowCasterMatrixBindGroupResourceReport,
+  type ShadowCasterMatrixBindGroupResource,
+  type ShadowCasterMatrixBindGroupResourceReport,
+  type ShadowCasterMatrixBindGroupDeviceLike,
+} from "./shadow-caster-matrix-bind-group-resource.js";
+import {
+  createShadowCasterPipelineDescriptorReport,
+  shadowCasterPipelineDescriptorReportToJsonValue,
+  type ShadowCasterPipelineDescriptorReport,
+} from "./shadow-caster-pipeline-descriptor.js";
+import {
+  createShadowCasterPipelineResourceReport,
+  type ShadowCasterPipelineDeviceLike,
+  type ShadowCasterPipelineResource,
+  type ShadowCasterPipelineResourceReport,
+} from "./shadow-caster-pipeline-resource.js";
+import {
+  createShadowDepthTextureResourceReport,
+  resolveShadowDepthTextureAttachmentView,
+  shadowDepthTextureResourceReportToJsonValue,
+  type ShadowDepthTextureResourceCache,
+  type ShadowDepthTextureResourceReport,
+} from "./shadow-depth-texture-resource.js";
+import {
+  createShadowMapDescriptorReport,
+  shadowMapDescriptorReportToJsonValue,
+  type ShadowMapDescriptorReport,
+  type ShadowMapDescriptorSource,
+} from "./shadow-map-descriptor.js";
+import {
+  createShadowMatrixBufferDescriptorReport,
+  shadowMatrixBufferDescriptorReportToJsonValue,
+  type ShadowMatrixBufferDescriptorReport,
+} from "./shadow-matrix-buffer-descriptor.js";
+import {
+  createShadowMatrixBufferResourceReport,
+  type ShadowMatrixBufferResource,
+  type ShadowMatrixBufferResourceReport,
+} from "./shadow-matrix-buffer-resource.js";
+import {
+  createShadowPassAttachmentDescriptorReport,
+  shadowPassAttachmentDescriptorReportToJsonValue,
+  type ShadowPassAttachmentDescriptorReport,
+} from "./shadow-pass-attachment-descriptor.js";
+import {
+  createShadowPassCommandBufferSubmissionReport,
+  shadowPassCommandBufferSubmissionReportToJsonValue,
+  type ShadowPassCommandBufferSubmissionReport,
+} from "./shadow-pass-command-buffer-submission-report.js";
+import {
+  createShadowPassCommandEncodingReport,
+  shadowPassCommandEncodingReportToJsonValue,
+  type ShadowPassCommandEncodingReport,
+} from "./shadow-pass-command-encoding-report.js";
+import {
+  createShadowPassEncoderAssemblyReport,
+  shadowPassEncoderAssemblyReportToJsonValue,
+  type ShadowPassEncoderAssemblyReport,
+} from "./shadow-pass-encoder-assembly-report.js";
+import {
+  createShadowPassPlanReport,
+  shadowPassPlanReportToJsonValue,
+  type ShadowPassPlanReport,
+} from "./shadow-pass-plan.js";
+import {
+  createShadowTextureResourceReport,
+  shadowTextureResourceReportToJsonValue,
+  type ShadowTextureResourceReport,
+} from "./shadow-texture-resource.js";
+
+export interface RenderShadowFrameDeviceLike extends CommandEncoderDeviceLike {
+  readonly createTexture?: NonNullable<TextureGpuDeviceLike["createTexture"]>;
+  readonly createSampler?: NonNullable<
+    TextureGpuDeviceLike["createSampler"] &
+      ShadowSamplerDeviceLike["createSampler"]
+  >;
+  readonly createBuffer?: NonNullable<WebGpuBufferDeviceLike["createBuffer"]>;
+  readonly createShaderModule?: NonNullable<
+    ShadowCasterPipelineDeviceLike["createShaderModule"]
+  >;
+  readonly createRenderPipeline?: NonNullable<
+    ShadowCasterPipelineDeviceLike["createRenderPipeline"]
+  >;
+  readonly createBindGroupLayout?: (descriptor: unknown) => unknown;
+  readonly createPipelineLayout?: NonNullable<
+    ShadowCasterPipelineDeviceLike["createPipelineLayout"]
+  >;
+  readonly createBindGroup?: NonNullable<
+    ShadowCasterMatrixBindGroupDeviceLike["createBindGroup"]
+  >;
+  readonly queue?: TextureGpuDeviceLike["queue"] &
+    WebGpuBufferDeviceLike["queue"] &
+    QueueSubmitLike;
+}
+
+export type RenderShadowFrameShadowKind = NonNullable<
+  StandardFrameShadowReceiverResources["shadowKind"]
+>;
+
+export interface RenderShadowFrameCache {
+  readonly shadowDepthTextures?: ShadowDepthTextureResourceCache;
+  readonly shadowMatrixBuffers?: Map<string, ShadowMatrixBufferResource>;
+  readonly shadowSamplers?: Map<string, ShadowSamplerResource>;
+  readonly shadowCasterPipelines?: Map<string, ShadowCasterPipelineResource>;
+  readonly shadowCasterMatrixBindGroups?: Map<
+    string,
+    ShadowCasterMatrixBindGroupResource
+  >;
+}
+
+export interface RenderShadowFrameShadowMapOptions {
+  readonly mapSize?: number;
+  readonly depthBias?: number;
+  readonly normalBias?: number;
+  readonly filterRadiusTexels?: number;
+  readonly cascadeCount?: number;
+  readonly resourceKey?: string;
+}
+
+export interface RenderShadowFrameMatrixOptions {
+  readonly center?: readonly [number, number, number];
+  readonly orthographicSize?: number;
+  readonly near?: number;
+  readonly far?: number;
+  readonly lightDistance?: number;
+}
+
+export interface CreateRenderShadowFrameOptions {
+  readonly device: RenderShadowFrameDeviceLike;
+  readonly snapshot: RenderSnapshot;
+  readonly preparedMeshes: readonly ShadowCasterPreparedMeshResourceView[];
+  readonly executableMeshes: readonly ShadowCasterExecutableMeshResourceView[];
+  readonly cache?: RenderShadowFrameCache;
+  readonly shadowMap?: RenderShadowFrameShadowMapOptions;
+  readonly matrix?: RenderShadowFrameMatrixOptions;
+  readonly label?: string;
+  readonly submit?: boolean;
+}
+
+export interface RenderShadowFrameResult {
+  readonly receiverResources: StandardFrameShadowReceiverResources | null;
+  readonly report: RenderShadowFrameReport;
+  readonly descriptor: ShadowMapDescriptorReport;
+  readonly textures: ShadowTextureResourceReport;
+  readonly depthTextureResources: ShadowDepthTextureResourceReport;
+  readonly samplerResource: ReturnType<
+    typeof createShadowSamplerResourceReport
+  >;
+  readonly passPlan: ShadowPassPlanReport;
+  readonly passAttachments: ShadowPassAttachmentDescriptorReport;
+  readonly viewProjection: DirectionalShadowViewProjectionPlanReport;
+  readonly matrixComputation: DirectionalShadowMatrixComputationReport;
+  readonly matrixBuffer: ShadowMatrixBufferDescriptorReport;
+  readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
+  readonly casterDrawList: ShadowCasterDrawListPlanReport;
+  readonly commandPlan: ShadowCasterCommandPlanReadinessReport;
+  readonly commandEncoding: ShadowPassCommandEncodingReport;
+  readonly pipelineDescriptor: ShadowCasterPipelineDescriptorReport;
+  readonly pipelineResource: ShadowCasterPipelineResourceReport;
+  readonly matrixBindGroupResource: ShadowCasterMatrixBindGroupResourceReport;
+  readonly frameResources: ShadowCasterFrameResourceReadinessReport;
+  readonly commandRecords: ShadowCasterCommandRecordPlanReport;
+  readonly encoderAssembly: ShadowPassEncoderAssemblyReport;
+  readonly commandBufferSubmission: ShadowPassCommandBufferSubmissionReport;
+}
+
+export interface RenderShadowFrameReport {
+  readonly ready: boolean;
+  readonly status: "submitted" | "ready" | "missing" | "not-required";
+  readonly shadowKind: RenderShadowFrameShadowKind | null;
+  readonly requestCount: number;
+  readonly passCount: number;
+  readonly drawCalls: number;
+  readonly depthTextureKeys: readonly string[];
+  readonly matrixBufferResourceKey: string | null;
+  readonly sections: {
+    readonly shadowRequests: boolean;
+    readonly depthTextureResources: boolean;
+    readonly matrixBufferResource: boolean;
+    readonly samplerResource: boolean;
+    readonly pipelineResource: boolean;
+    readonly matrixBindGroupResource: boolean;
+    readonly commandBufferSubmission: boolean;
+    readonly receiverResources: boolean;
+  };
+  readonly resourceReuse: {
+    readonly depthTexturesCreated: number;
+    readonly depthTexturesReused: number;
+    readonly matrixBuffersCreated: number;
+    readonly matrixBuffersReused: number;
+    readonly samplersCreated: number;
+    readonly samplersReused: number;
+    readonly pipelinesCreated: number;
+    readonly pipelinesReused: number;
+    readonly matrixBindGroupsCreated: number;
+    readonly matrixBindGroupsReused: number;
+  };
+  readonly commandBufferSubmission: {
+    readonly status: ShadowPassCommandBufferSubmissionReport["status"];
+    readonly assembledPasses: number;
+    readonly commandBuffers: number;
+    readonly submittedCommandBuffers: number;
+    readonly commandBufferKeys: readonly string[];
+    readonly sections: ShadowPassCommandBufferSubmissionReport["sections"];
+  };
+  readonly diagnostics: readonly RenderShadowFrameDiagnostic[];
+}
+
+export interface RenderShadowFrameDiagnostic {
+  readonly stage: string;
+  readonly code: string;
+  readonly severity: "warning" | "error";
+  readonly message: string;
+}
+
+const DEFAULT_SHADOW_MAP_SIZE = 1024;
+const DEFAULT_DEPTH_BIAS = 0.001;
+
+export function createRenderShadowFrame(
+  options: CreateRenderShadowFrameOptions,
+): RenderShadowFrameResult {
+  const shadowRequests = options.snapshot.shadowRequests.filter(
+    isDirectionalShadowRequest,
+  );
+  const descriptor = createShadowMapDescriptorReport({
+    shadowRequests,
+    descriptors: shadowRequests.map((request) =>
+      createDirectionalShadowDescriptor(request, options.shadowMap),
+    ),
+  });
+  const textures = createShadowTextureResourceReport({
+    descriptors: descriptor,
+  });
+  const depthTextureResources = createShadowDepthTextureResourceReport({
+    device: options.device,
+    textures,
+    ...(options.cache?.shadowDepthTextures === undefined
+      ? {}
+      : { cache: options.cache.shadowDepthTextures }),
+  });
+  const samplerResource = createShadowSamplerResourceReport({
+    device: options.device,
+    resourceKey: "shadow-sampler:directional",
+    ...(options.cache?.shadowSamplers === undefined
+      ? {}
+      : { cache: options.cache.shadowSamplers }),
+  });
+  const passPlan = createShadowPassPlanReport({
+    shadowRequests,
+    textures,
+    submission: "ready",
+  });
+  const passAttachments = createShadowPassAttachmentDescriptorReport({
+    shadowPassPlan: passPlan,
+    depthTextureResources,
+  });
+  const viewProjection = createDirectionalShadowViewProjectionPlanReport({
+    shadowRequests,
+    lights: options.snapshot.lights,
+    shadowPassPlan: passPlan,
+    computation: "ready",
+  });
+  const matrixComputation = createDirectionalShadowMatrixComputationReport({
+    viewProjection,
+    transforms: options.snapshot.transforms,
+    ...(options.matrix?.center === undefined
+      ? {}
+      : { center: options.matrix.center }),
+    ...(options.matrix?.orthographicSize === undefined
+      ? {}
+      : { orthographicSize: options.matrix.orthographicSize }),
+    ...(options.matrix?.near === undefined
+      ? {}
+      : { near: options.matrix.near }),
+    ...(options.matrix?.far === undefined ? {} : { far: options.matrix.far }),
+    ...(options.matrix?.lightDistance === undefined
+      ? {}
+      : { lightDistance: options.matrix.lightDistance }),
+  });
+  const matrixBuffer = createShadowMatrixBufferDescriptorReport({
+    viewProjection,
+    upload: "ready",
+    resourceKey: "shadow-matrix-buffer:directional",
+    label: "DirectionalShadowMatrices/storage",
+  });
+  const matrixBufferResource = createShadowMatrixBufferResourceReport({
+    device: options.device,
+    descriptor: matrixBuffer,
+    matrices: matrixComputation,
+    ...(options.cache?.shadowMatrixBuffers === undefined
+      ? {}
+      : { cache: options.cache.shadowMatrixBuffers }),
+  });
+  const casterDrawList = createShadowCasterDrawListPlanReport({
+    shadowRequests,
+    meshDraws: options.snapshot.meshDraws,
+    shadowPassPlan: passPlan,
+    commandEncoding: "ready",
+  });
+  const commandPlan = createShadowCasterCommandPlanReadinessReport({
+    shadowPassPlan: passPlan,
+    viewProjection,
+    matrixBuffer,
+    casterDrawList,
+    commandEncoding: "ready",
+  });
+  const commandEncoding = createShadowPassCommandEncodingReport({
+    shadowPassPlan: passPlan,
+    depthTextureResources,
+    matrixBufferResource,
+    casterDrawList,
+    commandPlan,
+    commandEncoding: "ready",
+  });
+  const pipelineDescriptor = createShadowCasterPipelineDescriptorReport({
+    commandEncoding,
+  });
+  const pipelineResource = createShadowCasterPipelineResourceReport({
+    device: options.device,
+    descriptor: pipelineDescriptor,
+    ...(options.cache?.shadowCasterPipelines === undefined
+      ? {}
+      : { cache: options.cache.shadowCasterPipelines }),
+  });
+  const matrixBindGroupResource =
+    createShadowCasterMatrixBindGroupResourceReport({
+      device: options.device,
+      matrixBufferResource,
+      ...(pipelineResource.resource?.matrixBindGroupLayout === undefined
+        ? {}
+        : { layout: pipelineResource.resource.matrixBindGroupLayout }),
+      ...(options.cache?.shadowCasterMatrixBindGroups === undefined
+        ? {}
+        : { cache: options.cache.shadowCasterMatrixBindGroups }),
+    });
+  const frameResources = createShadowCasterFrameResourceReadinessReport({
+    casterDrawList,
+    preparedMeshes: options.preparedMeshes,
+    matrixBufferResource,
+    pipelineDescriptor,
+  });
+  const commandRecords = createShadowCasterCommandRecordPlanReport({
+    frameResources,
+    commandPlan,
+    pipelines: pipelineResource.resources.map((resource) => ({
+      pipelineKey: resource.pipelineKey,
+      resourceKey: resource.resourceKey,
+      pipeline: resource.pipeline,
+    })),
+    matrixBindGroups:
+      matrixBindGroupResource.resource === null
+        ? []
+        : [
+            {
+              matrixResourceKey:
+                matrixBindGroupResource.resource.matrixResourceKey,
+              resourceKey: matrixBindGroupResource.resource.resourceKey,
+              group: matrixBindGroupResource.resource.group,
+              bindGroup: matrixBindGroupResource.resource.bindGroup,
+            },
+          ],
+    meshes: options.executableMeshes,
+  });
+  const encoderResource = createCommandEncoderResource({
+    device: options.device,
+    label: options.label ?? "shadow-pass:directional",
+  });
+  const encoder = encoderResource.resource?.encoder as
+    | (RenderPassCommandEncoderLike & CommandEncoderFinishLike)
+    | undefined;
+  const encoderAssembly = createShadowPassEncoderAssemblyReport({
+    attachments: passAttachments,
+    frameResources,
+    commandEncoding,
+    commands: commandRecords.commandRecords,
+    ...(encoder === undefined ? {} : { encoder }),
+    resolveDepthView: (attachment) =>
+      resolveShadowDepthTextureAttachmentView(
+        depthTextureResources,
+        attachment,
+      ),
+  });
+  const commandBufferSubmission = createShadowPassCommandBufferSubmissionReport(
+    {
+      assembly: encoderAssembly,
+      ...(encoder === undefined ? {} : { encoder }),
+      ...(options.device.queue === undefined
+        ? {}
+        : { queue: options.device.queue }),
+      label: options.label ?? "shadow-pass:directional",
+      submit: options.submit ?? true,
+    },
+  );
+  const receiverResources = createReceiverResources({
+    shadowKind: resolveShadowKind(descriptor),
+    matrixBufferResource,
+    depthTextureResources,
+    samplerResource,
+  });
+  const report = createRenderShadowFrameReport({
+    shadowKind: receiverResources?.shadowKind ?? null,
+    shadowRequests,
+    depthTextureResources,
+    matrixBufferResource,
+    samplerResource,
+    pipelineResource,
+    matrixBindGroupResource,
+    commandBufferSubmission,
+    receiverResources,
+    stages: {
+      descriptor,
+      textures,
+      depthTextureResources,
+      samplerResource,
+      passPlan,
+      passAttachments,
+      viewProjection,
+      matrixComputation,
+      matrixBuffer,
+      matrixBufferResource,
+      casterDrawList,
+      commandPlan,
+      commandEncoding,
+      pipelineDescriptor,
+      pipelineResource,
+      matrixBindGroupResource,
+      frameResources,
+      commandRecords,
+      encoderAssembly,
+      commandBufferSubmission,
+    },
+  });
+
+  return {
+    receiverResources,
+    report,
+    descriptor,
+    textures,
+    depthTextureResources,
+    samplerResource,
+    passPlan,
+    passAttachments,
+    viewProjection,
+    matrixComputation,
+    matrixBuffer,
+    matrixBufferResource,
+    casterDrawList,
+    commandPlan,
+    commandEncoding,
+    pipelineDescriptor,
+    pipelineResource,
+    matrixBindGroupResource,
+    frameResources,
+    commandRecords,
+    encoderAssembly,
+    commandBufferSubmission,
+  };
+}
+
+function createDirectionalShadowDescriptor(
+  request: ShadowRequestPacket,
+  options: RenderShadowFrameShadowMapOptions | undefined,
+): ShadowMapDescriptorSource {
+  const cascadeCount = Math.max(
+    1,
+    Math.min(4, Math.round(options?.cascadeCount ?? request.cascadeCount ?? 1)),
+  );
+  const resourceKey =
+    options?.resourceKey ??
+    (cascadeCount > 1
+      ? `shadow-map:${request.shadowId}:light:${request.lightId}:csm`
+      : `shadow-map:${request.shadowId}:light:${request.lightId}`);
+
+  return {
+    shadowId: request.shadowId,
+    lightId: request.lightId,
+    mapSize: options?.mapSize ?? DEFAULT_SHADOW_MAP_SIZE,
+    depthBias: options?.depthBias ?? DEFAULT_DEPTH_BIAS,
+    normalBias: options?.normalBias ?? 0,
+    filterRadiusTexels: options?.filterRadiusTexels ?? 1,
+    cascadeCount,
+    viewDimension: cascadeCount > 1 ? "2d-array" : "2d",
+    resourceKey,
+  };
+}
+
+function createReceiverResources(input: {
+  readonly shadowKind: RenderShadowFrameShadowKind;
+  readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
+  readonly depthTextureResources: ShadowDepthTextureResourceReport;
+  readonly samplerResource: ReturnType<
+    typeof createShadowSamplerResourceReport
+  >;
+}): StandardFrameShadowReceiverResources | null {
+  if (
+    input.matrixBufferResource.resource === null ||
+    input.samplerResource.resource === null ||
+    !input.depthTextureResources.resources.some(
+      (resource) => resource.allocation.resource !== null,
+    )
+  ) {
+    return null;
+  }
+
+  return {
+    shadowKind: input.shadowKind,
+    matrixBufferResource: input.matrixBufferResource,
+    depthTextureResources: input.depthTextureResources,
+    samplerResource: input.samplerResource,
+  };
+}
+
+function createRenderShadowFrameReport(input: {
+  readonly shadowKind: RenderShadowFrameShadowKind | null;
+  readonly shadowRequests: readonly ShadowRequestPacket[];
+  readonly depthTextureResources: ShadowDepthTextureResourceReport;
+  readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
+  readonly samplerResource: ReturnType<
+    typeof createShadowSamplerResourceReport
+  >;
+  readonly pipelineResource: ShadowCasterPipelineResourceReport;
+  readonly matrixBindGroupResource: ShadowCasterMatrixBindGroupResourceReport;
+  readonly commandBufferSubmission: ShadowPassCommandBufferSubmissionReport;
+  readonly receiverResources: StandardFrameShadowReceiverResources | null;
+  readonly stages: RenderShadowFrameDiagnosticStages;
+}): RenderShadowFrameReport {
+  const diagnostics = collectRenderShadowFrameDiagnostics(input.stages);
+  const submitted = input.commandBufferSubmission.status === "submitted";
+  const ready =
+    input.receiverResources !== null && input.commandBufferSubmission.ready;
+  const status =
+    input.shadowRequests.length === 0
+      ? "not-required"
+      : submitted
+        ? "submitted"
+        : ready
+          ? "ready"
+          : "missing";
+
+  return {
+    ready:
+      status === "submitted" || status === "ready" || status === "not-required",
+    status,
+    shadowKind: input.shadowKind,
+    requestCount: input.shadowRequests.length,
+    passCount: input.commandBufferSubmission.counts.assembledPasses,
+    drawCalls: input.commandBufferSubmission.counts.drawCalls,
+    depthTextureKeys: input.depthTextureResources.resources.map(
+      (resource) => resource.textureKey,
+    ),
+    matrixBufferResourceKey:
+      input.matrixBufferResource.resource?.resourceKey ?? null,
+    sections: {
+      shadowRequests: input.shadowRequests.length > 0,
+      depthTextureResources: input.depthTextureResources.ready,
+      matrixBufferResource: input.matrixBufferResource.ready,
+      samplerResource: input.samplerResource.ready,
+      pipelineResource: input.pipelineResource.ready,
+      matrixBindGroupResource: input.matrixBindGroupResource.ready,
+      commandBufferSubmission:
+        input.commandBufferSubmission.status === "submitted",
+      receiverResources: input.receiverResources !== null,
+    },
+    resourceReuse: {
+      depthTexturesCreated: input.depthTextureResources.createdTextureCount,
+      depthTexturesReused: input.depthTextureResources.reusedTextureCount,
+      matrixBuffersCreated: input.matrixBufferResource.createdBufferCount,
+      matrixBuffersReused: input.matrixBufferResource.reusedBufferCount,
+      samplersCreated: input.samplerResource.createdSamplerCount,
+      samplersReused: input.samplerResource.reusedSamplerCount,
+      pipelinesCreated: input.pipelineResource.createdPipelineCount,
+      pipelinesReused: input.pipelineResource.reusedPipelineCount,
+      matrixBindGroupsCreated:
+        input.matrixBindGroupResource.createdBindGroupCount,
+      matrixBindGroupsReused:
+        input.matrixBindGroupResource.reusedBindGroupCount,
+    },
+    commandBufferSubmission: {
+      status: input.commandBufferSubmission.status,
+      assembledPasses: input.commandBufferSubmission.counts.assembledPasses,
+      commandBuffers: input.commandBufferSubmission.counts.commandBuffers,
+      submittedCommandBuffers:
+        input.commandBufferSubmission.counts.submittedCommandBuffers,
+      commandBufferKeys: [...input.commandBufferSubmission.commandBufferKeys],
+      sections: { ...input.commandBufferSubmission.sections },
+    },
+    diagnostics,
+  };
+}
+
+interface RenderShadowFrameDiagnosticStages {
+  readonly descriptor: ShadowMapDescriptorReport;
+  readonly textures: ShadowTextureResourceReport;
+  readonly depthTextureResources: ShadowDepthTextureResourceReport;
+  readonly samplerResource: ReturnType<
+    typeof createShadowSamplerResourceReport
+  >;
+  readonly passPlan: ShadowPassPlanReport;
+  readonly passAttachments: ShadowPassAttachmentDescriptorReport;
+  readonly viewProjection: DirectionalShadowViewProjectionPlanReport;
+  readonly matrixComputation: DirectionalShadowMatrixComputationReport;
+  readonly matrixBuffer: ShadowMatrixBufferDescriptorReport;
+  readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
+  readonly casterDrawList: ShadowCasterDrawListPlanReport;
+  readonly commandPlan: ShadowCasterCommandPlanReadinessReport;
+  readonly commandEncoding: ShadowPassCommandEncodingReport;
+  readonly pipelineDescriptor: ShadowCasterPipelineDescriptorReport;
+  readonly pipelineResource: ShadowCasterPipelineResourceReport;
+  readonly matrixBindGroupResource: ShadowCasterMatrixBindGroupResourceReport;
+  readonly frameResources: ShadowCasterFrameResourceReadinessReport;
+  readonly commandRecords: ShadowCasterCommandRecordPlanReport;
+  readonly encoderAssembly: ShadowPassEncoderAssemblyReport;
+  readonly commandBufferSubmission: ShadowPassCommandBufferSubmissionReport;
+}
+
+function collectRenderShadowFrameDiagnostics(
+  stages: RenderShadowFrameDiagnosticStages,
+): readonly RenderShadowFrameDiagnostic[] {
+  const diagnostics: RenderShadowFrameDiagnostic[] = [];
+  const append = (stage: string, values: readonly unknown[]) => {
+    for (const value of values) {
+      const diagnostic = normalizeDiagnostic(stage, value);
+
+      if (diagnostic !== null && !isLegacyDeferredDiagnostic(diagnostic)) {
+        diagnostics.push(diagnostic);
+      }
+    }
+  };
+
+  append(
+    "descriptor",
+    shadowMapDescriptorReportToJsonValue(stages.descriptor).diagnostics,
+  );
+  append(
+    "textures",
+    shadowTextureResourceReportToJsonValue(stages.textures).diagnostics,
+  );
+  append(
+    "depthTextureResources",
+    shadowDepthTextureResourceReportToJsonValue(stages.depthTextureResources)
+      .diagnostics,
+  );
+  append("samplerResource", stages.samplerResource.diagnostics);
+  append(
+    "passPlan",
+    shadowPassPlanReportToJsonValue(stages.passPlan).diagnostics,
+  );
+  append(
+    "passAttachments",
+    shadowPassAttachmentDescriptorReportToJsonValue(stages.passAttachments)
+      .diagnostics,
+  );
+  append(
+    "viewProjection",
+    directionalShadowViewProjectionPlanReportToJsonValue(stages.viewProjection)
+      .diagnostics,
+  );
+  append(
+    "matrixComputation",
+    directionalShadowMatrixComputationReportToJsonValue(
+      stages.matrixComputation,
+    ).diagnostics,
+  );
+  append(
+    "matrixBuffer",
+    shadowMatrixBufferDescriptorReportToJsonValue(stages.matrixBuffer)
+      .diagnostics,
+  );
+  append("matrixBufferResource", stages.matrixBufferResource.diagnostics);
+  append(
+    "casterDrawList",
+    shadowCasterDrawListPlanReportToJsonValue(stages.casterDrawList)
+      .diagnostics,
+  );
+  append(
+    "commandPlan",
+    shadowCasterCommandPlanReadinessReportToJsonValue(stages.commandPlan)
+      .diagnostics,
+  );
+  append(
+    "commandEncoding",
+    shadowPassCommandEncodingReportToJsonValue(stages.commandEncoding)
+      .diagnostics,
+  );
+  append(
+    "pipelineDescriptor",
+    shadowCasterPipelineDescriptorReportToJsonValue(stages.pipelineDescriptor)
+      .diagnostics,
+  );
+  append("pipelineResource", stages.pipelineResource.diagnostics);
+  append("matrixBindGroupResource", stages.matrixBindGroupResource.diagnostics);
+  append(
+    "frameResources",
+    shadowCasterFrameResourceReadinessReportToJsonValue(stages.frameResources)
+      .diagnostics,
+  );
+  append(
+    "commandRecords",
+    shadowCasterCommandRecordPlanReportToJsonValue(stages.commandRecords)
+      .diagnostics,
+  );
+  append(
+    "encoderAssembly",
+    shadowPassEncoderAssemblyReportToJsonValue(stages.encoderAssembly)
+      .diagnostics,
+  );
+  append(
+    "commandBufferSubmission",
+    shadowPassCommandBufferSubmissionReportToJsonValue(
+      stages.commandBufferSubmission,
+    ).diagnostics,
+  );
+
+  return diagnostics;
+}
+
+function normalizeDiagnostic(
+  stage: string,
+  value: unknown,
+): RenderShadowFrameDiagnostic | null {
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+
+  const record = value as {
+    readonly code?: unknown;
+    readonly severity?: unknown;
+    readonly message?: unknown;
+  };
+
+  if (typeof record.code !== "string" || typeof record.message !== "string") {
+    return null;
+  }
+
+  return {
+    stage,
+    code: record.code,
+    severity: record.severity === "error" ? "error" : "warning",
+    message: record.message,
+  };
+}
+
+function isLegacyDeferredDiagnostic(
+  diagnostic: RenderShadowFrameDiagnostic,
+): boolean {
+  return (
+    diagnostic.code.endsWith("Deferred") ||
+    diagnostic.message.includes("deferred") ||
+    diagnostic.message.includes("not implemented yet")
+  );
+}
+
+function resolveShadowKind(
+  descriptor: ShadowMapDescriptorReport,
+): RenderShadowFrameShadowKind {
+  return descriptor.descriptors.some((entry) => entry.cascadeCount > 1)
+    ? "directional-cascaded"
+    : "directional";
+}
+
+function isDirectionalShadowRequest(request: ShadowRequestPacket): boolean {
+  return request.lightKind === undefined || request.lightKind === "directional";
+}
