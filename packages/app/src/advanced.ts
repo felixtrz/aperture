@@ -4,6 +4,7 @@ import {
   type ExtractionApp,
 } from "@aperture-engine/runtime";
 import type { SystemConstructor, SystemQueries, SystemSchema } from "elics";
+import { resolveWorldTransforms } from "@aperture-engine/simulation";
 import {
   createApertureSystemContext,
   flushApertureSystemEffects,
@@ -12,6 +13,10 @@ import {
   type ApertureSystemConstructor,
   type ApertureSystemContext,
 } from "./systems.js";
+import {
+  createSpatialIndexPopulationState,
+  populateSpatialIndexFromWorld,
+} from "./systems/spatial-index-population.js";
 import {
   defineApertureConfig,
   type ApertureConfig,
@@ -99,11 +104,23 @@ export async function createApertureApp(
       : { gltfAssetDecoders: options.gltfAssetDecoders }),
   });
   const preload = preloadReport(config);
+  const spatialIndexPopulation = createSpatialIndexPopulationState();
+  const refreshSpatialIndex = () =>
+    populateSpatialIndexFromWorld(
+      {
+        world: lowLevel.world,
+        assetsRegistry: context.assetsRegistry,
+        spatial: context.spatial,
+      },
+      spatialIndexPopulation,
+    );
 
   await preloadAssets(context, "blocking");
   startBackgroundPreloads(context);
   installRenderDefaults(config, context);
   registerApertureSystemModules(lowLevel, options.systems ?? []);
+  resolveWorldTransforms(lowLevel.world);
+  refreshSpatialIndex();
 
   const apertureApp: ApertureApp = {
     mode: config.mode,
@@ -112,8 +129,11 @@ export async function createApertureApp(
     context,
     preload,
     step(delta = 0, time = 0) {
+      resolveWorldTransforms(lowLevel.world);
+      refreshSpatialIndex();
       flushApertureSystemEffects(lowLevel.world, "input");
       const result = lowLevel.step(delta, time);
+      refreshSpatialIndex();
       flushApertureSystemEffects(lowLevel.world, "postUpdate");
       return result;
     },

@@ -147,6 +147,16 @@ export {
   createApertureSystemContext,
   installApertureSystemContext,
 } from "./systems/context.js";
+export type {
+  SpatialIndexPopulationContext,
+  SpatialIndexPopulationDiagnostic,
+  SpatialIndexPopulationReport,
+  SpatialIndexPopulationState,
+} from "./systems/spatial-index-population.js";
+export {
+  createSpatialIndexPopulationState,
+  populateSpatialIndexFromWorld,
+} from "./systems/spatial-index-population.js";
 
 export type {
   ApertureGeneratedGamepadInputEvent,
