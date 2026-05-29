@@ -23,6 +23,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:install": "playwright install chrome",
+    "setup:references": "bash scripts/setup-references.sh",
     "examples:build": "pnpm run build",
     "examples:serve": "node scripts/serve-examples.mjs",
     "render-control": "node scripts/render-control.mjs",
