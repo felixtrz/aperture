@@ -10,6 +10,23 @@ There is no run-start hook. Do not write `agent/STATUS.json.currentRunStartedAt`
 at wake time. The stop hook uses the current wall-clock minute of the hour, not
 an elapsed runtime timestamp, to decide whether final stopping is allowed.
 
+**References precondition — MANDATORY, do this before §3 work selection.** The
+`references/` folder holds the proven upstream implementations you are REQUIRED
+to study in §4 (`references/bevy`, `references/engine` PlayCanvas,
+`references/three.js`, `references/three-mesh-bvh`). It is git-ignored and is
+absent on a fresh checkout or cloud runner. You cannot satisfy §4 reference
+anchoring without it, so reconstruct it FIRST:
+
+- If `references/bevy`, `references/engine`, and `references/three.js` are all
+  present on disk, continue.
+- Otherwise run `pnpm setup:references` (clones each engine pinned to its exact
+  captured commit). It is idempotent and fast when repos are already present, so
+  running it at every wake is safe.
+- Do NOT begin implementation, and do NOT skip or fabricate the §4 reference
+  study, with a missing `references/` folder. If `pnpm setup:references` fails
+  (e.g. no network), stop and record the blocker in `agent/HANDOFF.md` rather
+  than proceeding without the anchors.
+
 ## 1. Read Context
 
 Read:
@@ -96,6 +113,8 @@ inspect the matching local reference code.
 Before writing any new shader, pipeline, render-graph, asset-loading, lighting, shadow, or material-system code, you MUST identify and read the analogous implementation in at least one of `references/bevy`, `references/engine` (PlayCanvas), or `references/three.js`. Compare common patterns across at least two references when the slice touches the WebGPU backend or render pipeline. Borrow concepts; do not copy code. Adapt the borrowed pattern to Aperture's TypeScript, package-boundary, ECS-authoritative, WebGPU-only architecture.
 
 Reference anchoring is required even for "small" slices when they touch rendering, lighting, shadows, IBL, glTF loading, or material wiring. The only slices exempt from reference anchoring are pure docs/tooling tasks and slices that are removing code (a deletion does not need a reference).
+
+If a required reference file is not present on disk, you have NOT completed the §0 references precondition — run `pnpm setup:references` and retry. Never skip, guess at, or fabricate the reference study because the `references/` folder is missing.
 
 Every visible-feature task in the backlog must include a `Reference anchor:` line naming at least one specific file path in `references/`. If a task lacks a reference anchor, fix the backlog entry before starting implementation. If no analogous reference implementation exists for the slice, stop and document the gap in handoff before writing speculative code — the user prefers an industry-proven implementation as the anchor over a from-scratch design.
 

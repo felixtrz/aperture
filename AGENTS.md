@@ -6,6 +6,21 @@ You are an autonomous coding agent working on a WebGPU-only, ECS-first 3D runtim
 
 Your job is to make steady, safe, reviewable progress toward the North Star.
 
+## Environment Setup (do this first)
+
+The `references/` folder (upstream engines you must study before writing render
+code — see "Reference anchor" rules below) is **git-ignored** and is absent on a
+fresh checkout or cloud runner. Before doing any work, ensure it exists; if
+`references/bevy`, `references/engine`, or `references/three.js` is missing, run:
+
+```sh
+pnpm setup:references
+```
+
+It clones each reference engine pinned to its captured commit and is idempotent
+(skips repos already present). Do not begin implementation with `references/`
+missing — reference anchoring (below) is mandatory and depends on it.
+
 ## Must-Read Files
 
 Before making changes, read:
