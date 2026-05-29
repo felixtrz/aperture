@@ -36,6 +36,16 @@ const APP_PUBLIC_IMPORTS = new Set([
   ),
 ]);
 
+const PUBLISHABLE_PACKAGE_DIRS = [
+  "packages/simulation",
+  "packages/render",
+  "packages/runtime",
+  "packages/webgpu",
+  "packages/vite-plugin",
+  "packages/app",
+  "packages/cli",
+] as const;
+
 describe("Aperture package entrypoints", () => {
   it("keeps the app root focused on app runtime APIs", () => {
     expect("aperture" in app).toBe(false);
@@ -83,6 +93,69 @@ describe("Aperture package entrypoints", () => {
     expect(cliPackage.exports).not.toHaveProperty("./tools/client");
     expect(cliPackage.exports).not.toHaveProperty("./dev/session");
     expect(cliPackage.exports).not.toHaveProperty("./create/project");
+  });
+
+  it("keeps package manifests publishable and export targets resolvable", async () => {
+    const rootPackage = await readPackageJson("package.json");
+    const rootLicense = await readFile(path.resolve("LICENSE"), "utf8");
+
+    expect(rootPackage).toMatchObject({
+      private: true,
+      version: "0.1.0",
+      license: "MIT",
+    });
+    expect(rootLicense).toContain("MIT License");
+
+    for (const packageDir of PUBLISHABLE_PACKAGE_DIRS) {
+      const packageJson = await readPackageJson(
+        path.join(packageDir, "package.json"),
+      );
+
+      expect(packageJson.private, packageDir).not.toBe(true);
+      expect(packageJson.version, packageDir).toBe(rootPackage.version);
+      expect(packageJson.license, packageDir).toBe(rootPackage.license);
+      expect(packageJson.files, packageDir).toEqual(
+        expect.arrayContaining(["dist", "LICENSE"]),
+      );
+      expect(packageJson.publishConfig, packageDir).toMatchObject({
+        access: "public",
+      });
+      await expectFileExists(path.join(packageDir, "LICENSE"));
+
+      for (const [sectionName, dependencies] of [
+        ["dependencies", packageJson.dependencies],
+        ["peerDependencies", packageJson.peerDependencies],
+      ] as const) {
+        for (const [name, spec] of Object.entries(dependencies ?? {})) {
+          if (name.startsWith("@aperture-engine/")) {
+            expect(spec, `${packageDir} ${sectionName}.${name}`).toBe(
+              "workspace:^",
+            );
+          }
+        }
+      }
+
+      for (const [label, target] of [
+        ["main", packageJson.main],
+        ["types", packageJson.types],
+      ] as const) {
+        expect(target, `${packageDir} ${label}`).toEqual(expect.any(String));
+
+        if (target === undefined) {
+          continue;
+        }
+
+        expect(target, `${packageDir} ${label}`).toMatch(/^\.\/dist\//u);
+        await expectFileExists(path.join(packageDir, target.slice(2)));
+      }
+
+      for (const target of collectExportTargets(packageJson.exports)) {
+        expect(target.path, `${packageDir} ${target.label}`).toMatch(
+          /^\.\/dist\//u,
+        );
+        await expectFileExists(path.join(packageDir, target.path.slice(2)));
+      }
+    }
   });
 
   it("does not expose internal app or CLI folders through test path aliases", async () => {
@@ -138,11 +211,52 @@ describe("Aperture package entrypoints", () => {
 });
 
 async function readPackageJson(file: string): Promise<{
+  readonly dependencies?: Record<string, string>;
   readonly exports: Record<string, unknown>;
+  readonly files?: readonly string[];
+  readonly license?: string;
+  readonly main?: string;
+  readonly peerDependencies?: Record<string, string>;
+  readonly private?: boolean;
+  readonly publishConfig?: { readonly access?: string };
+  readonly types?: string;
+  readonly version?: string;
 }> {
   return JSON.parse(await readFile(path.resolve(file), "utf8")) as {
+    readonly dependencies?: Record<string, string>;
     readonly exports: Record<string, unknown>;
+    readonly files?: readonly string[];
+    readonly license?: string;
+    readonly main?: string;
+    readonly peerDependencies?: Record<string, string>;
+    readonly private?: boolean;
+    readonly publishConfig?: { readonly access?: string };
+    readonly types?: string;
+    readonly version?: string;
   };
+}
+
+async function expectFileExists(file: string): Promise<void> {
+  await expect(readFile(path.resolve(file), "utf8")).resolves.toEqual(
+    expect.any(String),
+  );
+}
+
+function collectExportTargets(
+  exportsValue: unknown,
+  label = "exports",
+): readonly { readonly label: string; readonly path: string }[] {
+  if (typeof exportsValue === "string") {
+    return [{ label, path: exportsValue }];
+  }
+
+  if (exportsValue === null || typeof exportsValue !== "object") {
+    return [];
+  }
+
+  return Object.entries(exportsValue).flatMap(([key, value]) =>
+    collectExportTargets(value, `${label}.${key}`),
+  );
 }
 
 async function collectSourceFiles(root: string): Promise<readonly string[]> {

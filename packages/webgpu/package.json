@@ -1,10 +1,9 @@
 {
   "name": "@aperture-engine/webgpu",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "WebGPU backend package for Aperture render snapshots and render-world data.",
   "type": "module",
-  "license": "UNLICENSED",
-  "private": true,
+  "license": "MIT",
   "sideEffects": false,
   "exports": {
     ".": {
@@ -18,13 +17,20 @@
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@aperture-engine/render": "workspace:*",
-    "@aperture-engine/runtime": "workspace:*",
-    "@aperture-engine/simulation": "workspace:*"
+    "@aperture-engine/render": "workspace:^",
+    "@aperture-engine/runtime": "workspace:^",
+    "@aperture-engine/simulation": "workspace:^"
   }
 }

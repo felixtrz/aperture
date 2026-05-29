@@ -1,10 +1,9 @@
 {
   "name": "@aperture-engine/cli",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Aperture command-line tools for app creation, managed dev sessions, MCP, and reference tooling.",
   "type": "module",
-  "license": "UNLICENSED",
-  "private": true,
+  "license": "MIT",
   "sideEffects": false,
   "bin": {
     "aperture": "./dist/bin/aperture.js"
@@ -17,6 +16,13 @@
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json"

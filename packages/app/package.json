@@ -1,10 +1,9 @@
 {
   "name": "@aperture-engine/app",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Aperture metaframework app facade, config helpers, and worker-safe system authoring API.",
   "type": "module",
-  "license": "UNLICENSED",
-  "private": true,
+  "license": "MIT",
   "sideEffects": false,
   "exports": {
     ".": {
@@ -54,15 +53,22 @@
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@aperture-engine/render": "workspace:*",
-    "@aperture-engine/runtime": "workspace:*",
-    "@aperture-engine/simulation": "workspace:*",
-    "@aperture-engine/webgpu": "workspace:*",
+    "@aperture-engine/render": "workspace:^",
+    "@aperture-engine/runtime": "workspace:^",
+    "@aperture-engine/simulation": "workspace:^",
+    "@aperture-engine/webgpu": "workspace:^",
     "@preact/signals-core": "^1.8.0",
     "elics": "^3.4.2"
   }
