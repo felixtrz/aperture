@@ -14,7 +14,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
     5. Use absolute dates (YYYY-MM-DD [HH:MM TZ]) everywhere — never "today"/"now".
 -->
 
-**Last updated:** `2026-05-29 17:35 PDT — claude/opus`
+**Last updated:** `2026-05-29 18:10 PDT — claude/opus`
 
 > _What to write:_ Absolute date + time + timezone, then `— <your agent/author id>` (e.g. `2026-06-02 14:30 PDT — claude/opus`). Update on every edit to this block.
 
@@ -34,7 +34,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 
 > _What to write:_ Result of the project gate at your last stop: `pnpm run check = pass|fail` plus any task-specific proofs you ran (e.g. `test/e2e/auto-shadow.spec.ts = pass`). If fail, name the failing check. Never mark a task `done` on a red gate.
 
-**Blockers / open decisions:** `[B1] WebGPU unavailable in this environment (navigator.gpu undefined in headless + full Chrome under xvfb w/ swiftshader; Playwright config requires headed chrome). Blocks the live pixel-readback proofs: M2-T7 done-when #3 (3+ morph targets render) and the M2-T9 Playwright/render-control proof. — needs: a WebGPU-capable runner. M2-T7 N-target morph GPU render (data-texture/storage-buffer for 52 ARKit blendshapes) is the milestone's named follow-up.`
+**Blockers / open decisions:** `none — [B1] RESOLVED 2026-05-29: WebGPU IS runnable here via Playwright's downloaded Chromium under xvfb + SwiftShader Vulkan ICD over a localhost secure context (earlier about:blank probe was misleading). spinning-cube.spec.ts passes with real GPU readback. Pixel proofs for M2-T7/T9 are runnable; resuming both.`
 
 > _What to write:_ Anything preventing progress (missing decision, external dep, ambiguous acceptance criterion). Format: `[B#] <description> — needs: <who/what>`. Remove on resolution and note it in the completion log.
 
