@@ -1,6 +1,8 @@
 import {
+  invertMat4,
   makeOrthographic,
   multiplyMat4,
+  transformPoint,
   type Mat4Like,
   type Vec3Like,
 } from "@aperture-engine/simulation";
@@ -80,6 +82,19 @@ export interface DirectionalShadowMatrixComputationInput {
   readonly near?: number;
   readonly far?: number;
   readonly lightDistance?: number;
+  /**
+   * Camera world->view matrix. When supplied together with
+   * {@link cameraProjectionMatrix} (and the plan carries absolute cascade
+   * near/far distances from M4-T2), each cascade ortho is FRUSTUM-FIT to the
+   * camera view slice and TEXEL-SNAPPED for stability instead of using the
+   * fixed {@link center} + globally-scaled {@link orthographicSize}. Consumed
+   * read-only from the snapshot transforms; no scene graph is introduced.
+   */
+  readonly cameraViewMatrix?: Mat4Like | undefined;
+  /** Camera view->clip projection matrix (pairs with {@link cameraViewMatrix}). */
+  readonly cameraProjectionMatrix?: Mat4Like | undefined;
+  /** Optional world up used to build the light view basis (defaults to +Y). */
+  readonly up?: Vec3Like | undefined;
 }
 
 const DEFAULT_CENTER = [0, 0, 0] as const;
@@ -248,20 +263,26 @@ function computeDirectionalShadowMatrix(
     };
   }
 
-  const center = tuple3(input.center ?? DEFAULT_CENTER);
+  const fit = tryFrustumFit(input, plan, direction);
+
+  const center = fit?.center ?? tuple3(input.center ?? DEFAULT_CENTER);
   const distance = input.lightDistance ?? DEFAULT_LIGHT_DISTANCE;
-  const lightPosition = tuple3([
-    center[0] - direction[0] * distance,
-    center[1] - direction[1] * distance,
-    center[2] - direction[2] * distance,
-  ]);
+  const lightPosition =
+    fit?.lightPosition ??
+    tuple3([
+      center[0] - direction[0] * distance,
+      center[1] - direction[1] * distance,
+      center[2] - direction[2] * distance,
+    ]);
   const size =
+    fit?.size ??
     (input.orthographicSize ?? DEFAULT_ORTHOGRAPHIC_SIZE) *
-    (plan.cascadeFar ?? 1);
+      (plan.cascadeFar ?? 1);
   const halfSize = size * 0.5;
-  const near = input.near ?? DEFAULT_NEAR;
-  const far = input.far ?? DEFAULT_FAR;
-  const viewMatrix = makeLookAt(lightPosition, center, [0, 1, 0]);
+  const near = fit?.near ?? input.near ?? DEFAULT_NEAR;
+  const far = fit?.far ?? input.far ?? DEFAULT_FAR;
+  const up = fit?.up ?? [0, 1, 0];
+  const viewMatrix = makeLookAt(lightPosition, center, up);
   const projectionMatrix = makeOrthographic(
     -halfSize,
     halfSize,
@@ -295,6 +316,193 @@ function computeDirectionalShadowMatrix(
       viewProjectionMatrix: Array.from(viewProjectionMatrix),
     },
   };
+}
+
+interface FrustumFitResult {
+  readonly center: readonly [number, number, number];
+  readonly lightPosition: readonly [number, number, number];
+  readonly size: number;
+  readonly near: number;
+  readonly far: number;
+  readonly up: readonly [number, number, number];
+}
+
+/**
+ * Per-cascade frustum-fit + texel-stabilized ortho derivation, adapted from
+ * bevy `calculate_cascade` (references/bevy/crates/bevy_light/src/cascade.rs
+ * lines 263-334): fit each cascade's camera-view slice into a light-space AABB,
+ * size the ortho to the slice's largest diagonal (so the extent depends only on
+ * the frustum SHAPE, not the camera position — shadows do not swim), and snap
+ * the cascade center to integer texel multiples. Borrowed concept only; this
+ * keeps Aperture's existing makeLookAt/makeOrthographic (non-reverse-Z)
+ * convention so the shader's shadowClip.z*0.5+0.5 remap stays valid.
+ *
+ * Returns null (caller falls back to the static-center behavior, byte-identical
+ * for existing examples) when no camera frustum is supplied, when the plan lacks
+ * the absolute cascade distances (M4-T2), or on a degenerate frustum.
+ */
+function tryFrustumFit(
+  input: DirectionalShadowMatrixComputationInput,
+  plan: DirectionalShadowViewProjectionPlan,
+  direction: readonly [number, number, number],
+): FrustumFitResult | null {
+  const cameraView = input.cameraViewMatrix;
+  const cameraProjection = input.cameraProjectionMatrix;
+  const sliceNear = plan.cascadeNearDistance;
+  const sliceFar = plan.cascadeFarDistance;
+
+  if (
+    cameraView === undefined ||
+    cameraView === null ||
+    cameraProjection === undefined ||
+    cameraProjection === null ||
+    sliceNear === undefined ||
+    sliceFar === undefined ||
+    sliceFar <= sliceNear
+  ) {
+    return null;
+  }
+
+  // Light view basis: look along the light direction. zAxis points back toward
+  // the light source (+zAxis = -direction), matching makeLookAt's basis so the
+  // fitted center/eye stay consistent with the view matrix we hand back.
+  const zAxis = negate(direction);
+  const requestedUp = input.up ? tuple3(input.up) : ([0, 1, 0] as const);
+  let up = requestedUp;
+  let xAxis = normalize(cross(up, zAxis));
+  if (xAxis === null) {
+    up = [0, 0, 1];
+    xAxis = normalize(cross(up, zAxis));
+  }
+  if (xAxis === null) {
+    return null;
+  }
+  const yAxis = cross(zAxis, xAxis);
+
+  const inverseViewProjection = invertMat4(
+    multiplyMat4(cameraProjection, cameraView),
+  );
+  const inverseView = invertMat4(cameraView);
+  if (inverseViewProjection === null || inverseView === null) {
+    return null;
+  }
+
+  // Camera forward + position to convert the cascade's world-space split
+  // distances into normalized depths along the near->far frustum edges.
+  const cameraPosition: readonly [number, number, number] = [
+    inverseView[12] ?? 0,
+    inverseView[13] ?? 0,
+    inverseView[14] ?? 0,
+  ];
+  const forward = normalize([
+    -(inverseView[8] ?? 0),
+    -(inverseView[9] ?? 0),
+    -(inverseView[10] ?? 0),
+  ]);
+  if (forward === null) {
+    return null;
+  }
+
+  // WebGPU clip space z in [0,1] (wgpu-matrix projections): near plane z=0,
+  // far plane z=1. Corner xy order matches bevy: BR, TR, TL, BL.
+  const ndcXy: readonly (readonly [number, number])[] = [
+    [1, -1],
+    [1, 1],
+    [-1, 1],
+    [-1, -1],
+  ];
+  const nearCorners = ndcXy.map((xy) =>
+    asTuple3(transformPoint(inverseViewProjection, [xy[0], xy[1], 0])),
+  );
+  const farCorners = ndcXy.map((xy) =>
+    asTuple3(transformPoint(inverseViewProjection, [xy[0], xy[1], 1])),
+  );
+  const nearCenter = asTuple3(transformPoint(inverseViewProjection, [0, 0, 0]));
+  const farCenter = asTuple3(transformPoint(inverseViewProjection, [0, 0, 1]));
+
+  const cameraNear = dot(forward, sub(nearCenter, cameraPosition));
+  const cameraFar = dot(forward, sub(farCenter, cameraPosition));
+  const depthRange = cameraFar - cameraNear;
+  if (!(depthRange > EPSILON)) {
+    return null;
+  }
+
+  const tNear = clamp01((sliceNear - cameraNear) / depthRange);
+  const tFar = clamp01((sliceFar - cameraNear) / depthRange);
+  if (tFar <= tNear) {
+    return null;
+  }
+
+  // Eight world-space corners of this cascade's frustum slice.
+  const corners: (readonly [number, number, number])[] = [];
+  for (let i = 0; i < 4; i += 1) {
+    corners.push(lerp(nearCorners[i]!, farCorners[i]!, tNear));
+  }
+  for (let i = 0; i < 4; i += 1) {
+    corners.push(lerp(nearCorners[i]!, farCorners[i]!, tFar));
+  }
+
+  // Light-space AABB (projection onto the orthonormal light basis).
+  let minU = Infinity;
+  let maxU = -Infinity;
+  let minV = Infinity;
+  let maxV = -Infinity;
+  let minW = Infinity;
+  let maxW = -Infinity;
+  for (const corner of corners) {
+    const u = dot(xAxis, corner);
+    const v = dot(yAxis, corner);
+    const w = dot(zAxis, corner);
+    minU = Math.min(minU, u);
+    maxU = Math.max(maxU, u);
+    minV = Math.min(minV, v);
+    maxV = Math.max(maxV, v);
+    minW = Math.min(minW, w);
+    maxW = Math.max(maxW, w);
+  }
+
+  // Diameter from the largest world-space diagonal (body vs far-plane). Using
+  // the original world corners (not the projected coords) for precision, and
+  // ceil() for floating-point stability, exactly as bevy does. This is what
+  // makes the extent depend only on the frustum shape (position-invariant).
+  const bodyDiagonalSq = distanceSquared(corners[0]!, corners[6]!);
+  const farDiagonalSq = distanceSquared(corners[4]!, corners[6]!);
+  const diameter = Math.ceil(
+    Math.sqrt(Math.max(bodyDiagonalSq, farDiagonalSq)),
+  );
+  if (!(diameter > EPSILON)) {
+    return null;
+  }
+
+  const mapSize = plan.mapSize > 0 ? plan.mapSize : 1;
+  const texelSize = diameter / mapSize;
+
+  // Snap the in-plane center to integer texel multiples for stability; the
+  // depth (w) center is not snapped (it only shifts the ortho near/far range).
+  const centerU = Math.floor((0.5 * (minU + maxU)) / texelSize) * texelSize;
+  const centerV = Math.floor((0.5 * (minV + maxV)) / texelSize) * texelSize;
+  const centerW = 0.5 * (minW + maxW);
+  const center: readonly [number, number, number] = [
+    centerU * xAxis[0] + centerV * yAxis[0] + centerW * zAxis[0],
+    centerU * xAxis[1] + centerV * yAxis[1] + centerW * zAxis[1],
+    centerU * xAxis[2] + centerV * yAxis[2] + centerW * zAxis[2],
+  ];
+
+  // Place the light eye behind the slice along +zAxis (toward the light) with a
+  // near-plane slack of one slice thickness so casters between the light and
+  // the slice still write the depth map.
+  const depthSpan = Math.max(maxW - minW, EPSILON);
+  const halfDepth = depthSpan * 0.5;
+  const distance = depthSpan + halfDepth + 1;
+  const near = 1;
+  const far = distance + halfDepth;
+  const lightPosition: readonly [number, number, number] = [
+    center[0] + zAxis[0] * distance,
+    center[1] + zAxis[1] * distance,
+    center[2] + zAxis[2] * distance,
+  ];
+
+  return { center, lightPosition, size: diameter, near, far, up };
 }
 
 function determineStatus(input: {
@@ -406,4 +614,49 @@ function dot(
   b: readonly [number, number, number],
 ): number {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+function negate(
+  value: readonly [number, number, number],
+): readonly [number, number, number] {
+  return [-value[0], -value[1], -value[2]];
+}
+
+function sub(
+  a: readonly [number, number, number],
+  b: readonly [number, number, number],
+): readonly [number, number, number] {
+  return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+}
+
+function lerp(
+  a: readonly [number, number, number],
+  b: readonly [number, number, number],
+  t: number,
+): readonly [number, number, number] {
+  return [
+    a[0] + (b[0] - a[0]) * t,
+    a[1] + (b[1] - a[1]) * t,
+    a[2] + (b[2] - a[2]) * t,
+  ];
+}
+
+function distanceSquared(
+  a: readonly [number, number, number],
+  b: readonly [number, number, number],
+): number {
+  const dx = a[0] - b[0];
+  const dy = a[1] - b[1];
+  const dz = a[2] - b[2];
+  return dx * dx + dy * dy + dz * dz;
+}
+
+function clamp01(value: number): number {
+  return Math.min(1, Math.max(0, value));
+}
+
+function asTuple3(value: {
+  readonly [index: number]: number;
+}): readonly [number, number, number] {
+  return [value[0] ?? 0, value[1] ?? 0, value[2] ?? 0];
 }

@@ -410,13 +410,18 @@ async function createCsmShadowFrame(input) {
         computation: "ready",
       }),
     );
+  const cameraMatrices = readPrimaryCameraMatrices(report.snapshot);
   const matrixComputation =
     aperture.directionalShadowMatrixComputationReportToJsonValue(
       aperture.createDirectionalShadowMatrixComputationReport({
         viewProjection,
         transforms: report.snapshot.transforms,
+        // Static center/size are the fallback; when the camera frustum is
+        // available the matrices are frustum-fit + texel-snapped (M4-T1).
         center: shadowIntent.center,
         orthographicSize: shadowIntent.orthographicSize,
+        cameraViewMatrix: cameraMatrices?.view,
+        cameraProjectionMatrix: cameraMatrices?.projection,
       }),
     );
   const matrixBuffer = aperture.shadowMatrixBufferDescriptorReportToJsonValue(
@@ -623,6 +628,39 @@ function setupShadowControls(controls) {
       controls.casterEnabled = shadowCasterToggle.checked;
     });
   }
+}
+
+// Read the highest-priority view's camera world->view and view->clip matrices
+// out of the snapshot transforms (read-only) so the directional cascade
+// matrices can be frustum-fit to the actual camera view (M4-T1). Returns null
+// when no view is present or the offsets are out of range (the matrix
+// computation then falls back to the static-center fit).
+function readPrimaryCameraMatrices(snapshot) {
+  const views = snapshot?.views ?? [];
+  if (views.length === 0) {
+    return null;
+  }
+  const primary = views.reduce((best, view) =>
+    view.priority > best.priority ? view : best,
+  );
+  const transforms = snapshot.transforms;
+  const view = sliceMatrix(transforms, primary.viewMatrixOffset);
+  const projection = sliceMatrix(transforms, primary.projectionMatrixOffset);
+  if (view === null || projection === null) {
+    return null;
+  }
+  return { view, projection };
+}
+
+function sliceMatrix(transforms, offset) {
+  if (
+    !Number.isInteger(offset) ||
+    offset < 0 ||
+    offset + 16 > transforms.length
+  ) {
+    return null;
+  }
+  return transforms.slice(offset, offset + 16);
 }
 
 function createShadowCasterPreparedMeshViews(report) {
