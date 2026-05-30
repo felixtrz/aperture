@@ -148,7 +148,7 @@ export function standardTextureVariantDeclaration(
     );
   }
 
-  if (features.iblSpecularProof === true) {
+  if (features.iblSpecularProof === true || features.iblSpecularBrdf === true) {
     declarations.push(
       "@group(3) @binding(7) var standardSpecularIblTexture: texture_cube<f32>;",
     );

@@ -350,10 +350,10 @@ export function standardTextureVariantBindings(
     );
   }
 
-  if (features.iblSpecularProof === true) {
+  if (features.iblSpecularProof === true || features.iblSpecularBrdf === true) {
     bindings.push({
       id: "standardSpecularIblTexture",
-      label: "Standard material placeholder specular IBL cube texture",
+      label: "Standard material specular IBL cube texture",
       group: 3,
       binding: 7,
       resource: "texture",

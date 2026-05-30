@@ -21,6 +21,8 @@ export const STANDARD_DIFFUSE_IBL_SHADER_VARIANT =
   "direct-lit-metallic-roughness-diffuse-ibl";
 export const STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT =
   "direct-lit-metallic-roughness-diffuse-specular-ibl-proof";
+export const STANDARD_SPECULAR_IBL_BRDF_SHADER_VARIANT =
+  "direct-lit-metallic-roughness-diffuse-specular-ibl-brdf";
 export const STANDARD_CLEARCOAT_SHADER_VARIANT =
   "direct-lit-metallic-roughness-clearcoat";
 export const STANDARD_TRANSMISSION_SHADER_VARIANT =
@@ -48,6 +50,7 @@ export interface StandardTextureShaderFeatures {
   readonly pointShadowMap?: boolean;
   readonly iblDiffuse?: boolean;
   readonly iblSpecularProof?: boolean;
+  readonly iblSpecularBrdf?: boolean;
   readonly texCoord1?: boolean;
   readonly vertexColor?: boolean;
   readonly instanceTint?: boolean;
@@ -153,6 +156,7 @@ export function createStandardTextureShaderVariantKey(
     features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
+    features.iblSpecularBrdf !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
     features.instanceTint !== true &&
@@ -181,6 +185,7 @@ export function createStandardTextureShaderVariantKey(
     features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
+    features.iblSpecularBrdf !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
     features.instanceTint !== true &&
@@ -209,6 +214,7 @@ export function createStandardTextureShaderVariantKey(
     !features.emissiveTexture &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
+    features.iblSpecularBrdf !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
     features.instanceTint !== true &&
@@ -237,6 +243,7 @@ export function createStandardTextureShaderVariantKey(
     !features.emissiveTexture &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
+    features.iblSpecularBrdf !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
     features.instanceTint !== true &&
@@ -250,6 +257,7 @@ export function createStandardTextureShaderVariantKey(
   if (
     features.iblDiffuse === true &&
     features.iblSpecularProof !== true &&
+    features.iblSpecularBrdf !== true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
     features.clearcoatTexture !== true &&
@@ -277,7 +285,7 @@ export function createStandardTextureShaderVariantKey(
 
   if (
     features.iblDiffuse === true &&
-    features.iblSpecularProof === true &&
+    (features.iblSpecularProof === true || features.iblSpecularBrdf === true) &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
     features.clearcoatTexture !== true &&
@@ -300,7 +308,9 @@ export function createStandardTextureShaderVariantKey(
     features.morphed !== true &&
     !hasStandardGenericOnlyFeature(features)
   ) {
-    return STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT;
+    return features.iblSpecularBrdf === true
+      ? STANDARD_SPECULAR_IBL_BRDF_SHADER_VARIANT
+      : STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT;
   }
 
   if (
@@ -322,6 +332,7 @@ export function createStandardTextureShaderVariantKey(
     features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
+    features.iblSpecularBrdf !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
     features.instanceTint !== true &&
@@ -354,6 +365,7 @@ export function createStandardTextureShaderVariantKey(
     features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
+    features.iblSpecularBrdf !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
     features.instanceTint !== true &&
@@ -386,6 +398,7 @@ export function createStandardTextureShaderVariantKey(
     features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
+    features.iblSpecularBrdf !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
     features.instanceTint !== true &&
@@ -418,6 +431,7 @@ export function createStandardTextureShaderVariantKey(
     features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
+    features.iblSpecularBrdf !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
     features.instanceTint !== true &&
@@ -507,6 +521,10 @@ export function createStandardTextureShaderVariantKey(
 
   if (features.iblSpecularProof === true) {
     names.push("specular-ibl-proof");
+  }
+
+  if (features.iblSpecularBrdf === true) {
+    names.push("specular-ibl-brdf");
   }
 
   if (features.texCoord1 === true) {
@@ -635,6 +653,10 @@ export function standardTextureFeatureNames(
     names.push("specular-ibl-proof");
   }
 
+  if (features.iblSpecularBrdf === true) {
+    names.push("specular-ibl-brdf");
+  }
+
   if (features.texCoord1 === true) {
     names.push("uv1");
   }
@@ -742,6 +764,7 @@ export function hasAnyStandardTextureFeature(
     features.pointShadowMap === true ||
     features.iblDiffuse === true ||
     features.iblSpecularProof === true ||
+    features.iblSpecularBrdf === true ||
     features.texCoord1 === true ||
     features.vertexColor === true ||
     features.instanceTint === true ||

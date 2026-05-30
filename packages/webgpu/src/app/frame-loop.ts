@@ -30,6 +30,7 @@ import { prepareLocalLightClusterCookieResources } from "../lighting/local-light
 import {
   canReuseClusteredLocalLightShadowMatricesForCookies,
   hasReadyStandardDiffuseIblResources,
+  hasReadyStandardSpecularIblBrdfResources,
   hasReadyStandardSpecularIblProofResources,
   standardShadowPipelineKind,
   withStandardClusteredLocalLightPipelineKeys,
@@ -150,6 +151,9 @@ export async function renderWebGpuAppFrame(
     ? withStandardIblPipelineKeys(
         shadowSnapshot,
         hasReadyStandardSpecularIblProofResources(
+          options.standardMaterialIblResources,
+        ),
+        hasReadyStandardSpecularIblBrdfResources(
           options.standardMaterialIblResources,
         ),
       )

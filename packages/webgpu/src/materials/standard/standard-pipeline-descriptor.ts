@@ -325,7 +325,8 @@ function standardBindGroupLayoutKeys(
           },sampler@4`
         : features.shadowMap === true
           ? features.iblDiffuse === true
-            ? features.iblSpecularProof === true
+            ? features.iblSpecularProof === true ||
+              features.iblSpecularBrdf === true
               ? features.cascadedShadowMap === true ||
                 features.clusteredLocalLightArrayShadows === true
                 ? `${STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY}:light-floats@0,light-metadata@1,matrix@2,depth-array@3,sampler@4,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7`
@@ -339,7 +340,8 @@ function standardBindGroupLayoutKeys(
               ? `${STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY}:light-floats@0,light-metadata@1,matrix@2,depth-array@3,sampler@4`
               : "standard/lights-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4"
           : features.iblDiffuse === true
-            ? features.iblSpecularProof === true
+            ? features.iblSpecularProof === true ||
+              features.iblSpecularBrdf === true
               ? "standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7"
               : "standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6"
             : "lights/group-3:light-floats@0,light-metadata@1";
@@ -467,6 +469,7 @@ function standardTextureFeatures(
     pointShadowMap: tokens.includes("pointShadowMap"),
     iblDiffuse: tokens.includes("iblDiffuse"),
     iblSpecularProof: tokens.includes("iblSpecularProof"),
+    iblSpecularBrdf: tokens.includes("iblSpecularBrdf"),
     texCoord1: tokens.includes("uv1"),
     instanceTint: tokens.includes("instance-tint"),
     clearcoat: tokens.includes("clearcoat"),
