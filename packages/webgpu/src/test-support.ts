@@ -209,6 +209,7 @@ export * from "./materials/standard/standard-morph-target-shader.js";
 export * from "./materials/standard/standard-skinning-shader.js";
 export * from "./resources/attributes/skinning-joint-buffer.js";
 export * from "./materials/standard/standard-shader.js";
+export * from "./materials/standard/standard-indirect-channel-shader.js";
 export * from "./materials/standard/standard-app-pipeline-keys.js";
 export * from "./resources/textures/texture-resources.js";
 export * from "./resources/textures/generate-mipmaps.js";

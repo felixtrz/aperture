@@ -40,6 +40,7 @@ export async function getOrCreateWebGpuAppPipeline(options: {
   readonly pipelineKey: string;
   readonly batchKey: RenderSnapshot["meshDraws"][number]["batchKey"];
   readonly motionVectorColorFormat?: string | null;
+  readonly indirectColorFormat?: string | null;
 }): Promise<WebGpuAppPipelineResourceResult> {
   // HDR scene-buffer path (M5-T4): the lit pass renders into rgba16float and the
   // material does NOT tonemap (tonemap+exposure+sRGB run in the final post
@@ -54,6 +55,7 @@ export async function getOrCreateWebGpuAppPipeline(options: {
     options.kind,
     options.app.sceneRenderFormat,
     `motion:${options.motionVectorColorFormat ?? "none"}`,
+    `indirect:${options.indirectColorFormat ?? "none"}`,
     WEBGPU_APP_DEPTH_FORMAT,
     `samples:${options.app.msaa.sampleCount}`,
     options.pipelineKey,
@@ -83,6 +85,10 @@ export async function getOrCreateWebGpuAppPipeline(options: {
           ...(options.motionVectorColorFormat === undefined
             ? {}
             : { motionVectorColorFormat: options.motionVectorColorFormat }),
+          ...(options.indirectColorFormat === undefined ||
+          options.indirectColorFormat === null
+            ? {}
+            : { indirectColorFormat: options.indirectColorFormat }),
           depthFormat: WEBGPU_APP_DEPTH_FORMAT,
           sampleCount: options.app.msaa.sampleCount,
           batchKey: options.batchKey,

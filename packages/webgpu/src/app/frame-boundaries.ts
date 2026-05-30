@@ -94,6 +94,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   readonly label: string;
   readonly reuse: WebGpuAppResourceReuseReport;
   readonly motionVectorColorFormat?: string | null;
+  readonly indirectColorFormat?: string | null;
   readonly transmissionSceneColorResources?: StandardFrameTransmissionSceneColorResources | null;
   readonly clearColor?: readonly number[];
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
@@ -307,6 +308,10 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         ...(options.motionVectorColorFormat === undefined
           ? {}
           : { motionVectorColorFormat: options.motionVectorColorFormat }),
+        ...(options.indirectColorFormat === undefined ||
+        options.indirectColorFormat === null
+          ? {}
+          : { indirectColorFormat: options.indirectColorFormat }),
         ...(msaaColorTarget.resource === null
           ? {}
           : {

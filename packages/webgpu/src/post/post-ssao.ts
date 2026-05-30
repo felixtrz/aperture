@@ -71,8 +71,15 @@ export function createWebGpuSsaoPostEffect(
     label,
     ...(enabled === undefined ? {} : { enabled }),
     requiresDepthTexture: true,
+    // M5-T6: prefer the lit pass's separated indirect (ambient+IBL) color so AO
+    // attenuates only indirect light. Best-effort — falls back to the legacy
+    // whole-image multiply when the frame cannot supply the indirect channel
+    // (MSAA on, motion vectors active, or a non-standard material).
+    requiresIndirectColor: true,
     prepare(prepareOptions) {
       const diagnostics: WebGpuPostPassDiagnostic[] = [];
+      const indirectView = prepareOptions.indirectColor?.texture.createView?.();
+      const appliesToIndirect = indirectView !== undefined;
 
       if (prepareOptions.depth === undefined) {
         diagnostics.push({
@@ -100,6 +107,7 @@ export function createWebGpuSsaoPostEffect(
         minAngleDegrees,
         power,
         randomSeed,
+        appliesToIndirect,
       });
       const pipelineResult =
         cachedPipeline?.key === pipelineKey
@@ -119,6 +127,7 @@ export function createWebGpuSsaoPostEffect(
               minAngleDegrees,
               power,
               randomSeed,
+              appliesToIndirect,
               label: `${prepareOptions.label}:${id}:pipeline`,
               effectId: id,
               diagnostics,
@@ -195,6 +204,9 @@ export function createWebGpuSsaoPostEffect(
           { binding: 0, resource: sampler },
           { binding: 1, resource: inputView },
           { binding: 2, resource: depthView },
+          ...(appliesToIndirect && indirectView !== undefined
+            ? [{ binding: 3, resource: indirectView }]
+            : []),
         ],
       });
 
@@ -212,7 +224,7 @@ export function createWebGpuSsaoPostEffect(
             kind: "setBindGroup",
             renderId: 0,
             index: 0,
-            resourceKey: `${id}:input:${prepareOptions.input.label}:depth:${prepareOptions.depth.label}:depthSamples:${depthSampleCount}:radius:${radiusPixels.toFixed(2)}:samples:${sampleCount}:intensity:${intensity.toFixed(2)}`,
+            resourceKey: `${id}:input:${prepareOptions.input.label}:depth:${prepareOptions.depth.label}:depthSamples:${depthSampleCount}:radius:${radiusPixels.toFixed(2)}:samples:${sampleCount}:intensity:${intensity.toFixed(2)}:indirect:${appliesToIndirect ? (prepareOptions.indirectColor?.label ?? "yes") : "no"}`,
             bindGroup,
           },
           {
@@ -244,6 +256,7 @@ function ssaoPipelineKey(options: {
   readonly minAngleDegrees: number;
   readonly power: number;
   readonly randomSeed: number;
+  readonly appliesToIndirect: boolean;
 }): string {
   return [
     "webgpu-post-ssao",
@@ -260,6 +273,7 @@ function ssaoPipelineKey(options: {
     `minAngle:${options.minAngleDegrees.toFixed(2)}`,
     `power:${options.power.toFixed(3)}`,
     `random:${options.randomSeed.toFixed(4)}`,
+    `appliesTo:${options.appliesToIndirect ? "indirect" : "composite"}`,
   ].join("|");
 }
 
@@ -278,6 +292,7 @@ function createSsaoPostPipeline(options: {
   readonly minAngleDegrees: number;
   readonly power: number;
   readonly randomSeed: number;
+  readonly appliesToIndirect: boolean;
   readonly label: string;
   readonly effectId: string;
   readonly diagnostics: WebGpuPostPassDiagnostic[];
@@ -315,6 +330,7 @@ function createSsaoPostPipeline(options: {
       minAngleDegrees: options.minAngleDegrees,
       power: options.power,
       randomSeed: options.randomSeed,
+      appliesToIndirect: options.appliesToIndirect,
     }),
   });
   const pipeline = options.device.createRenderPipeline({
@@ -406,6 +422,7 @@ function ssaoPostEffectWgsl(options: {
   readonly minAngleDegrees: number;
   readonly power: number;
   readonly randomSeed: number;
+  readonly appliesToIndirect: boolean;
 }): string {
   const minAngleSine = Math.sin((options.minAngleDegrees * Math.PI) / 180);
 
@@ -418,6 +435,7 @@ struct VertexOutput {
 @group(0) @binding(0) var inputSampler: sampler;
 @group(0) @binding(1) var inputTexture: texture_2d<f32>;
 ${postDepthTextureBindingWgsl(options.depthSampleCount)}
+${options.appliesToIndirect ? "@group(0) @binding(3) var indirectTexture: texture_2d<f32>;" : ""}
 
 const SAMPLE_COUNT: u32 = ${options.sampleCount}u;
 const INV_SAMPLE_COUNT: f32 = ${wgslFloat(1 / options.sampleCount)};
@@ -558,7 +576,15 @@ fn fs(input: VertexOutput) -> @location(0) vec4f {
 
   let normalizedOcclusion = occlusion * ((2.0 * peak * 2.0 * PI * INTENSITY) / f32(SAMPLE_COUNT));
   let visibility = pow(clamp(1.0 - normalizedOcclusion, 0.0, 1.0), POWER);
-  return vec4f(source.rgb * visibility, source.a);
+${
+  options.appliesToIndirect
+    ? `  // M5-T6: attenuate only the indirect (ambient+IBL) contribution the lit
+  // pass wrote to its second target. Removing indirect * (1 - visibility)
+  // leaves direct light and emissive (= source - indirect) untouched.
+  let indirect = textureSampleLevel(indirectTexture, inputSampler, textureUv, 0.0).rgb;
+  return vec4f(source.rgb - indirect * (1.0 - visibility), source.a);`
+    : `  return vec4f(source.rgb * visibility, source.a);`
+}
 }
 `;
 }

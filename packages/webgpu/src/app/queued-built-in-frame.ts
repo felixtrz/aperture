@@ -115,6 +115,19 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     previousObjectTransforms.resource === null
       ? null
       : sceneMotionVectors.colorFormat;
+  // M5-T6: split the lit pass's indirect (ambient+IBL) light into a second
+  // color target so an SSAO effect can attenuate only indirect light. Best
+  // effort: mutually exclusive with motion vectors (both @location(1)) and
+  // disabled under MSAA (the second attachment would need its own resolve).
+  const indirectColorFormat =
+    motionVectorColorFormat === null &&
+    options.app.msaa.sampleCount <= 1 &&
+    options.app.postEffects.some(
+      (effect) =>
+        effect.enabled !== false && effect.requiresIndirectColor === true,
+    )
+      ? options.app.sceneRenderFormat
+      : null;
   const packedInstanceTints = writePackedSnapshotInstanceTintsForVertexBuffer(
     options.snapshot,
     packedTransforms,
@@ -227,6 +240,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
         pipelineKey: item.draw.batchKey.pipelineKey,
         batchKey: item.draw.batchKey,
         motionVectorColorFormat,
+        indirectColorFormat,
       }),
     getPipelineLayouts: ({ item, pipeline, getBindGroupLayout }) =>
       getWebGpuAppPipelineLayouts({
@@ -385,6 +399,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     label: options.label ?? "aperture-webgpu-app",
     reuse: options.reuse,
     motionVectorColorFormat,
+    indirectColorFormat,
     transmissionSceneColorResources: transmissionGrabResources.resources,
     enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(
       options.snapshotUpdateSchedule,

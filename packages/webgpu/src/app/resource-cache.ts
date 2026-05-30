@@ -149,6 +149,7 @@ export interface WebGpuAppPostPassCache {
   readonly ping: WebGpuPostPassTextureCacheSlot;
   readonly pong: WebGpuPostPassTextureCacheSlot;
   readonly motionVector: WebGpuPostPassTextureCacheSlot;
+  readonly indirectColor: WebGpuPostPassTextureCacheSlot;
   readonly transmissionGrab: WebGpuPostPassTextureCacheSlot;
   readonly previousViewProjectionByViewId: Map<number, Float32Array>;
   readonly previousWorldTransformsByRenderId: Map<number, Float32Array>;
@@ -224,6 +225,7 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
       ping: createWebGpuPostPassTextureCacheSlot(),
       pong: createWebGpuPostPassTextureCacheSlot(),
       motionVector: createWebGpuPostPassTextureCacheSlot(),
+      indirectColor: createWebGpuPostPassTextureCacheSlot(),
       transmissionGrab: createWebGpuPostPassTextureCacheSlot(),
       previousViewProjectionByViewId: new Map(),
       previousWorldTransformsByRenderId: new Map(),

@@ -70,6 +70,9 @@ export interface StandardPipelineDescriptorInput {
   readonly shader?: BuiltInShaderSourceModule;
   readonly colorFormat: string;
   readonly motionVectorColorFormat?: string | null;
+  // Second color target carrying separated indirect lighting (M5-T6); mutually
+  // exclusive with motionVectorColorFormat (both occupy @location(1)).
+  readonly indirectColorFormat?: string | null;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
   readonly topology?: MeshTopology;
@@ -180,16 +183,19 @@ export function createStandardPipelineDescriptorPlan(
     input.colorFormat,
     renderState,
   );
+  // Motion vectors and the M5-T6 indirect channel are mutually exclusive
+  // second color targets (both @location(1)); the shader-variant label (set by
+  // the respective wrapper) keeps their cache keys distinct.
+  const secondColorFormat =
+    input.motionVectorColorFormat ?? input.indirectColorFormat ?? null;
   const colorFormats =
-    input.motionVectorColorFormat === undefined ||
-    input.motionVectorColorFormat === null
+    secondColorFormat === null
       ? [input.colorFormat]
-      : [input.colorFormat, input.motionVectorColorFormat];
+      : [input.colorFormat, secondColorFormat];
   const colorTargets =
-    input.motionVectorColorFormat === undefined ||
-    input.motionVectorColorFormat === null
+    secondColorFormat === null
       ? [colorTarget]
-      : [colorTarget, { format: input.motionVectorColorFormat }];
+      : [colorTarget, { format: secondColorFormat }];
   const keyInput: WebGpuRenderPipelineCacheKeyInput = {
     shaderLabel: shader.label,
     shaderFamily: "standard",
@@ -211,12 +217,11 @@ export function createStandardPipelineDescriptorPlan(
       alphaToCoverageEnabled: false,
       colorTargets: [
         createWebGpuColorTargetStateKey(input.colorFormat, renderState),
-        ...(input.motionVectorColorFormat === undefined ||
-        input.motionVectorColorFormat === null
+        ...(secondColorFormat === null
           ? []
           : [
               {
-                format: input.motionVectorColorFormat,
+                format: secondColorFormat,
                 blend: null,
                 writeMask: "all" as const,
               },
