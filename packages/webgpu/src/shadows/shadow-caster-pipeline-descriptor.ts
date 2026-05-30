@@ -28,16 +28,27 @@ export interface ShadowCasterPipelineDescriptorMetadata {
   readonly label: string;
   readonly shader: {
     readonly family: "shadow-caster";
-    readonly label: "shadow-caster-depth-only";
+    readonly label: "shadow-caster-depth-only" | "shadow-caster-alpha-test";
     readonly entryPoints: {
       readonly vertex: "vs_main";
       readonly fragment: "fs_main";
     };
   };
   readonly vertex: {
-    readonly buffers: readonly ["POSITION"];
+    readonly buffers: readonly ("POSITION" | "TEXCOORD_0")[];
     readonly meshLayoutKey: string | null;
     readonly matrixBufferLayoutKey: "shadow-caster/group-0:directional-shadow-matrices@0";
+  };
+  /**
+   * Alpha-test caster metadata (M4-T8). Present only on the alpha-test pipeline
+   * variant: a second bind group binds the material baseColor texture + sampler
+   * + alpha cutoff so the fragment can discard cutout fragments. Absent on the
+   * opaque (position-only, empty-fragment) variant.
+   */
+  readonly alphaTest?: {
+    readonly alphaCutoff: number;
+    readonly baseColorTextureKey: string;
+    readonly baseColorSamplerKey: string;
   };
   readonly index: {
     readonly required: true;
@@ -95,6 +106,19 @@ export interface CreateShadowCasterPipelineDescriptorReportOptions {
   readonly depthBias?: number;
   /** Authored slope-scaled depth bias for the caster pipeline (M4-T5). */
   readonly slopeBias?: number;
+  /**
+   * Alpha-tested casters (M4-T8): each entry produces an additional alpha-test
+   * pipeline variant (TEXCOORD_0 + baseColor discard) distinct from the opaque
+   * position-only variant. Deduplicated by (meshLayoutKey, cutoff, textures).
+   */
+  readonly alphaTestCasters?: readonly AlphaTestCasterDescriptorInput[];
+}
+
+export interface AlphaTestCasterDescriptorInput {
+  readonly meshLayoutKey: string | null;
+  readonly alphaCutoff: number;
+  readonly baseColorTextureKey: string;
+  readonly baseColorSamplerKey: string;
 }
 
 const SHADOW_CASTER_DEPTH_ONLY_PIPELINE_KEY =
@@ -170,15 +194,31 @@ export function createShadowCasterPipelineDescriptorReport(
       diagnostic.code === "shadowCasterPipelineDescriptor.missingDepthFormat" ||
       diagnostic.code === "shadowCasterPipelineDescriptor.unsupportedTopology",
   );
+  const bias = {
+    depthBias: Math.trunc(options.depthBias ?? 0),
+    depthBiasSlopeScale: Math.max(0, options.slopeBias ?? 0),
+  };
   const descriptors =
     hasBlockingDiagnostics || depthFormat !== "depth24plus"
       ? []
-      : collectMeshLayoutKeys(options).map((meshLayoutKey) =>
-          createDescriptor(options.indexFormat ?? "uint32", meshLayoutKey, {
-            depthBias: Math.trunc(options.depthBias ?? 0),
-            depthBiasSlopeScale: Math.max(0, options.slopeBias ?? 0),
-          }),
-        );
+      : [
+          ...collectMeshLayoutKeys(options).map((meshLayoutKey) =>
+            createDescriptor(
+              options.indexFormat ?? "uint32",
+              meshLayoutKey,
+              bias,
+            ),
+          ),
+          ...dedupeAlphaTestCasters(options.alphaTestCasters ?? []).map(
+            (alphaTest) =>
+              createDescriptor(
+                options.indexFormat ?? "uint32",
+                alphaTest.meshLayoutKey,
+                bias,
+                alphaTest,
+              ),
+          ),
+        ];
   const status = determineStatus(
     options.commandEncoding.status,
     hasBlockingDiagnostics,
@@ -218,17 +258,60 @@ function createDescriptor(
   indexFormat: MeshIndexFormat,
   meshLayoutKey: string | null,
   bias: { readonly depthBias: number; readonly depthBiasSlopeScale: number },
+  alphaTest?: AlphaTestCasterDescriptorInput,
 ): ShadowCasterPipelineDescriptorMetadata {
+  const base = {
+    index: {
+      required: true as const,
+      format: indexFormat,
+    },
+    primitive: {
+      topology: "triangle-list" as const,
+      cullMode: "none" as const,
+      frontFace: "ccw" as const,
+    },
+    depthStencil: {
+      format: "depth24plus" as const,
+      depthWriteEnabled: true as const,
+      depthCompare: "less-equal" as const,
+      depthBias: bias.depthBias,
+      depthBiasSlopeScale: bias.depthBiasSlopeScale,
+    },
+    colorTargets: [] as const,
+  };
+
+  if (alphaTest !== undefined) {
+    return {
+      ...base,
+      pipelineKey: shadowCasterAlphaTestPipelineKey(meshLayoutKey, alphaTest),
+      label: shadowCasterAlphaTestPipelineLabel(meshLayoutKey),
+      shader: {
+        family: "shadow-caster",
+        label: "shadow-caster-alpha-test",
+        entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+      },
+      vertex: {
+        buffers: ["POSITION", "TEXCOORD_0"],
+        meshLayoutKey,
+        matrixBufferLayoutKey:
+          "shadow-caster/group-0:directional-shadow-matrices@0",
+      },
+      alphaTest: {
+        alphaCutoff: alphaTest.alphaCutoff,
+        baseColorTextureKey: alphaTest.baseColorTextureKey,
+        baseColorSamplerKey: alphaTest.baseColorSamplerKey,
+      },
+    };
+  }
+
   return {
+    ...base,
     pipelineKey: shadowCasterPipelineKeyForMeshLayoutKey(meshLayoutKey),
     label: shadowCasterPipelineLabelForMeshLayoutKey(meshLayoutKey),
     shader: {
       family: "shadow-caster",
       label: "shadow-caster-depth-only",
-      entryPoints: {
-        vertex: "vs_main",
-        fragment: "fs_main",
-      },
+      entryPoints: { vertex: "vs_main", fragment: "fs_main" },
     },
     vertex: {
       buffers: ["POSITION"],
@@ -236,24 +319,44 @@ function createDescriptor(
       matrixBufferLayoutKey:
         "shadow-caster/group-0:directional-shadow-matrices@0",
     },
-    index: {
-      required: true,
-      format: indexFormat,
-    },
-    primitive: {
-      topology: "triangle-list",
-      cullMode: "none",
-      frontFace: "ccw",
-    },
-    depthStencil: {
-      format: "depth24plus",
-      depthWriteEnabled: true,
-      depthCompare: "less-equal",
-      depthBias: bias.depthBias,
-      depthBiasSlopeScale: bias.depthBiasSlopeScale,
-    },
-    colorTargets: [],
   };
+}
+
+function dedupeAlphaTestCasters(
+  casters: readonly AlphaTestCasterDescriptorInput[],
+): readonly AlphaTestCasterDescriptorInput[] {
+  const byKey = new Map<string, AlphaTestCasterDescriptorInput>();
+
+  for (const caster of casters) {
+    byKey.set(shadowCasterAlphaTestPipelineKey(caster.meshLayoutKey, caster), {
+      ...caster,
+    });
+  }
+
+  return [...byKey.values()];
+}
+
+function shadowCasterAlphaTestPipelineKey(
+  meshLayoutKey: string | null,
+  alphaTest: AlphaTestCasterDescriptorInput,
+): string {
+  const base = shadowCasterPipelineKeyForMeshLayoutKey(meshLayoutKey);
+  const cutoff = Number.isFinite(alphaTest.alphaCutoff)
+    ? alphaTest.alphaCutoff.toFixed(3)
+    : "0.000";
+  return `${base}/alpha-test:cutoff:${cutoff}:tex:${encodeURIComponent(
+    alphaTest.baseColorTextureKey,
+  )}`;
+}
+
+function shadowCasterAlphaTestPipelineLabel(
+  meshLayoutKey: string | null,
+): string {
+  const base = shadowCasterPipelineLabelForMeshLayoutKey(meshLayoutKey).replace(
+    "shadow-caster-depth-only",
+    "shadow-caster-alpha-test",
+  );
+  return base;
 }
 
 export function shadowCasterPipelineKeyForMeshLayoutKey(

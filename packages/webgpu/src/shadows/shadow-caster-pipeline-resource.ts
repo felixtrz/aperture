@@ -45,6 +45,53 @@ fn fs_main() {
 }
 `;
 
+// Alpha-tested caster variant (M4-T8): a TEXCOORD_0 vertex stream feeds the UV;
+// the fragment samples the material baseColor texture (group 1) and discards
+// fragments below the authored alpha cutoff so foliage/cutout casters throw a
+// PERFORATED shadow instead of a solid silhouette. Still depth-only (no color
+// target). cullMode stays 'none' (cutout geometry is typically double-sided).
+export const SHADOW_CASTER_ALPHA_TEST_WGSL = /* wgsl */ `
+struct ShadowMatrices {
+  matrices: array<mat4x4<f32>>,
+};
+
+struct AlphaTestParams {
+  alphaCutoff: f32,
+};
+
+@group(0) @binding(0) var<storage, read> shadowMatrices: ShadowMatrices;
+@group(1) @binding(0) var baseColorTexture: texture_2d<f32>;
+@group(1) @binding(1) var baseColorSampler: sampler;
+@group(1) @binding(2) var<uniform> alphaTestParams: AlphaTestParams;
+
+struct VertexInput {
+  @location(0) position: vec3f,
+  @location(1) uv: vec2f,
+  @builtin(instance_index) instanceIndex: u32,
+};
+
+struct VertexOutput {
+  @builtin(position) position: vec4f,
+  @location(0) uv: vec2f,
+};
+
+@vertex
+fn vs_main(input: VertexInput) -> VertexOutput {
+  var output: VertexOutput;
+  output.position = shadowMatrices.matrices[input.instanceIndex] * vec4f(input.position, 1.0);
+  output.uv = input.uv;
+  return output;
+}
+
+@fragment
+fn fs_main(input: VertexOutput) {
+  let alpha = textureSample(baseColorTexture, baseColorSampler, input.uv).a;
+  if (alpha < alphaTestParams.alphaCutoff) {
+    discard;
+  }
+}
+`;
+
 export type ShadowCasterPipelineResourceStatus =
   | "available"
   | "missing"
