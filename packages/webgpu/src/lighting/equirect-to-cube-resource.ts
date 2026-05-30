@@ -229,7 +229,8 @@ export function createEquirectToCubeResource(
       format,
       usage:
         WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING |
-        WEBGPU_TEXTURE_USAGE_FLAGS.STORAGE_BINDING,
+        WEBGPU_TEXTURE_USAGE_FLAGS.STORAGE_BINDING |
+        WEBGPU_TEXTURE_USAGE_FLAGS.COPY_SRC,
       mipLevelCount: 1,
     });
 
