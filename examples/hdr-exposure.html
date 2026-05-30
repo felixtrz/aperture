@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aperture HDR Exposure</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "@aperture-engine/render": "/packages/render/dist/index.js",
+          "@aperture-engine/runtime": "/packages/runtime/dist/index.js",
+          "@aperture-engine/simulation": "/packages/simulation/dist/index.js",
+          "@aperture-engine/webgpu": "/packages/webgpu/dist/index.js",
+          "elics": "/node_modules/elics/lib/index.js",
+          "wgpu-matrix": "/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
+          "@preact/signals-core": "/node_modules/@preact/signals-core/dist/signals-core.mjs"
+        }
+      }
+    </script>
+    <script type="module" src="./example-control.js"></script>
+  </head>
+  <body>
+    <main class="runtime-shell">
+      <section
+        class="viewport-panel"
+        aria-label="Aperture HDR exposure runtime"
+      >
+        <canvas
+          id="aperture-canvas"
+          width="960"
+          height="540"
+          aria-label="Aperture WebGPU HDR exposure canvas"
+        ></canvas>
+      </section>
+      <aside class="status-panel" aria-label="Runtime status">
+        <div class="status-row">
+          <span>example</span>
+          <strong id="example-name">hdr exposure</strong>
+        </div>
+        <div class="status-row">
+          <span>exposure</span>
+          <strong id="example-state">loading</strong>
+        </div>
+        <div class="runtime-controls" aria-label="Exposure presets">
+          <button type="button" data-exposure="0.25">0.25×</button>
+          <button type="button" data-exposure="1">1×</button>
+          <button type="button" data-exposure="4">4×</button>
+        </div>
+        <nav class="example-links" aria-label="Examples">
+          <a href="/">clear</a>
+          <a href="/examples/tonemap-showcase.html">tonemap showcase</a>
+          <a href="/examples/hdr-exposure.html">hdr exposure</a>
+          <a href="/examples/post-effects.html">post effects</a>
+          <a href="/examples/materials-showcase.html">materials</a>
+        </nav>
+        <pre id="example-json">{}</pre>
+      </aside>
+    </main>
+    <script type="module" src="./hdr-exposure.main.js"></script>
+  </body>
+</html>

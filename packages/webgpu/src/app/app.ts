@@ -447,6 +447,13 @@ export interface WebGpuApp {
   readonly renderWorld: RenderWorld;
   readonly tonemap: TonemapOperator;
   readonly outputColorSpace: OutputColorSpace;
+  // Exposure scalar applied over the linear HDR scene buffer in the final
+  // tonemap post stage (M5-T4). 1 when no HDR scene buffer is configured.
+  readonly exposure: number;
+  // Color format the lit scene is rendered into. Equals initialization.format
+  // (8-bit swapchain) by default; "rgba16float" when an `exposure` option opts
+  // into the persistent HDR scene buffer + final tonemap post stage.
+  readonly sceneRenderFormat: string;
   readonly msaa: WebGpuMsaaConfig;
   readonly postEffects: readonly WebGpuPostEffect[];
   start(options?: WebGpuAppStartOptions): void;
@@ -474,6 +481,11 @@ export interface CreateWebGpuAppOptions extends Omit<
   readonly msaaSampleCount?: number;
   readonly tonemap?: TonemapOperator;
   readonly outputColorSpace?: OutputColorSpace;
+  // Opt into a persistent rgba16float linear HDR scene buffer: the lit scene is
+  // rendered into rgba16float (in-material tonemap skipped) and exposure +
+  // tonemap + sRGB encode run as a final post stage over that buffer. When
+  // omitted the legacy 8-bit-swapchain in-material tonemap path is unchanged.
+  readonly exposure?: number;
   readonly postEffects?: readonly WebGpuPostEffect[];
 }
 

@@ -76,7 +76,10 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     slot: options.cache.postPasses.scene,
     width: options.target.width,
     height: options.target.height,
-    format: options.target.format,
+    // The lit scene renders into the app's scene-render format: the 8-bit
+    // swapchain format by default, rgba16float when the HDR scene buffer is
+    // active (M5-T4). The final post stage tonemaps it back to the swapchain.
+    format: options.app.sceneRenderFormat,
     label: `${options.label}:post:scene`,
   });
 

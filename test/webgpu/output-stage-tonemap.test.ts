@@ -34,11 +34,17 @@ describe("output-stage tonemap operators", () => {
 
       // exposure variant takes exposure: f32 and multiplies color * exposure
       // BEFORE the operator (exposure=0 -> color 0 -> black; exposure=1 ->
-      // identity pre-operator).
+      // identity pre-operator). The parameter is renamed to `inputColor` so the
+      // injected `let color` does NOT shadow a same-named parameter in the same
+      // scope — WGSL rejects that as a redeclaration (would fail to compile).
       expect(exposed).toContain(
-        "fn apertureOutputTonemap(color: vec3f, exposure: f32) -> vec3f",
+        "fn apertureOutputTonemap(inputColor: vec3f, exposure: f32) -> vec3f",
       );
-      expect(exposed).toContain("let color = color * exposure;");
+      expect(exposed).toContain("let color = inputColor * exposure;");
+      expect(
+        exposed,
+        "exposure WGSL must not shadow its own parameter (WGSL compile error)",
+      ).not.toContain("let color = color * exposure;");
 
       // The default (in-material) form stays byte-identical: single argument,
       // no exposure term.

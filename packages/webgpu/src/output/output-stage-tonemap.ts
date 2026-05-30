@@ -64,9 +64,12 @@ export function createOutputTonemapWgsl(
     return base;
   }
 
+  // Rename the parameter to `inputColor` and define `color` from it: WGSL
+  // forbids a `let` shadowing a parameter of the same name in the same scope,
+  // so reusing `color` for both would be a redeclaration compile error.
   return base.replace(
     "fn apertureOutputTonemap(color: vec3f) -> vec3f {",
-    "fn apertureOutputTonemap(color: vec3f, exposure: f32) -> vec3f {\n  let color = color * exposure;",
+    "fn apertureOutputTonemap(inputColor: vec3f, exposure: f32) -> vec3f {\n  let color = inputColor * exposure;",
   );
 }
 

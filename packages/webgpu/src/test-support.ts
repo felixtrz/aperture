@@ -109,6 +109,7 @@ export * from "./lighting/equirect-to-cube-resource.js";
 export * from "./post/post-bloom.js";
 export * from "./post/post-dof.js";
 export * from "./post/post-fxaa.js";
+export * from "./post/post-tonemap.js";
 export * from "./post/post-pass.js";
 export * from "./post/post-ssao.js";
 export * from "./post/post-ssr.js";
