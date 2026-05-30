@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "f835fb62",
   "activePid": null,
-  "notes": "SOTA M5: T1 (7beb1ca) + T2 (3cc58d9) done & fully proven (ibl-brdf + ibl-irradiance e2e green on HEAD under SwiftShader); T3 in-progress — projection compute pipeline (3f54524) + resource builder (2a85c8a), both fake-device + UV-math vitest-covered (Done-when #3 ✅); T3 remaining: equirectSource auto-wiring + example (needs 2:1 equirect .hdr) + live spec. T4/T5/T6 not started. pnpm run check = 390 files / 2200 tests, zero regressions. Full M5 (4 remaining effort-L/M slices + asset) exceeds one session; precise resume plan in roadmap + handoff.",
-  "lastRunFinishedAt": "2026-05-30T12:49:06Z"
+  "notes": "SOTA M5 at 3/6 done: T1 split-sum DFG (7beb1ca), T2 cosine irradiance-convolution (3cc58d9), T3 equirect->cube single-asset auto-IBL (4afc17e) — all fully proven (ibl-brdf + ibl-irradiance + ibl-equirect e2e green on HEAD under SwiftShader; pnpm run check = 390 files / 2200 tests). Remaining: T4 (rgba16float HDR scene buffer + exposure — a pervasive lit-pass color-format change; deep), T6 (SSAO->indirect — needs MRT/depth-prepass; deep), T5 (transmission; depends T4). Each remaining task is a deep slice in a different subsystem; precise resume plan in roadmap Resume notes. Next: M5-T4.",
+  "lastRunFinishedAt": "2026-05-30T13:09:29Z"
 }
