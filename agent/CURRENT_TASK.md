@@ -1,13 +1,15 @@
 # Current Task
 
-No active task is currently checked out.
+**M5-T4 is in progress** — its exposure WGSL (Done-when #4) landed in `ccaffcc`;
+the rgba16float scene-render-format threading, the `createWebGpuTonemapPostEffect`
+final stage, and the `hdr-exposure` example/spec remain.
 
 Status: SOTA roadmap **M5 (Close core PBR/IBL correctness gaps)** is at **3/6
-done** (T1, T2, T3 all ✅ done & fully proven). Source of truth is
-`docs/SOTA_ROADMAP.md` (its 📋 Status block + completion log + Resume notes are
-authoritative). Recommended next task: **M5-T4** (persistent rgba16float HDR
-scene buffer + exposure; no deps, no asset blocker) — see the roadmap Resume
-notes for the T4 plan. M5-T6 (SSAO→indirect) is also ready; M5-T5 depends on T4.
+done** (T1, T2, T3 all ✅ done & fully proven) + T4 in progress. Source of truth
+is `docs/SOTA_ROADMAP.md` (its 📋 Status block + completion log + Resume notes
+are authoritative — see M5-T4's "In-progress note" and `agent/HANDOFF.md`
+"M5-T4 refined integration plan" for the exact remaining steps). M5-T6
+(SSAO→indirect) is also ready; M5-T5 depends on T4.
 
 Completed this run (both fully proven, gate-green, pushed):
 
