@@ -1,14 +1,13 @@
 # Current Task
 
-**M5-T3 is in progress** (equirect→cube projection + auto-wire single-asset IBL).
-The projection compute-pipeline core (`equirect-to-cube-compute-pipeline.ts` +
-CPU mirror + vitest, Done-when #3 ✅) landed in `3f54524`; the resource builder,
-`equirectSource` auto-wiring, example route, and live Playwright proof remain.
+No active task is currently checked out.
 
-Status: SOTA roadmap **M5 (Close core PBR/IBL correctness gaps)** is at **2/6
-done** + T3 in progress. Source of truth is `docs/SOTA_ROADMAP.md` (its 📋 Status
-block + completion log + Resume notes are authoritative — see M5-T3's "In-progress
-note" for the exact remaining steps and the equirect-`.hdr` asset blocker).
+Status: SOTA roadmap **M5 (Close core PBR/IBL correctness gaps)** is at **3/6
+done** (T1, T2, T3 all ✅ done & fully proven). Source of truth is
+`docs/SOTA_ROADMAP.md` (its 📋 Status block + completion log + Resume notes are
+authoritative). Recommended next task: **M5-T4** (persistent rgba16float HDR
+scene buffer + exposure; no deps, no asset blocker) — see the roadmap Resume
+notes for the T4 plan. M5-T6 (SSAO→indirect) is also ready; M5-T5 depends on T4.
 
 Completed this run (both fully proven, gate-green, pushed):
 
