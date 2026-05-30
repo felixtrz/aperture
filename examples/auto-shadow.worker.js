@@ -177,6 +177,9 @@ function createWorkerScene(aperture, options) {
       bias: shadowIntent.depthBias,
       normalBias: shadowIntent.normalBias,
       cascadeCount: shadowIntent.cascadeCount,
+      // Authored shadow strength (M4-T4): preserve the visible-but-dark demo
+      // look (the removed 0.45 MIN_VISIBILITY floor ≈ strength 0.55).
+      strength: 0.55,
       casterLayerMask: 1,
       receiverLayerMask: 1,
     }),

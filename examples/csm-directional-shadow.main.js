@@ -115,6 +115,11 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
       width: canvas?.width ?? 960,
       height: canvas?.height ?? 540,
     },
+    // M4-T4 proof: let the spec drive the authored shadow strength so it can
+    // assert full darkness (strength=1) vs no-shadow (strength=0).
+    shadowStrength: exampleParams.has("shadow-strength")
+      ? Number(exampleParams.get("shadow-strength"))
+      : undefined,
   });
   globalThis.__APERTURE_STOP_EXAMPLE__ = () => {
     loop.workerReady = false;

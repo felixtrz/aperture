@@ -1328,8 +1328,17 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32",
     );
+    // M4-T4: the baked MIN_VISIBILITY floor is gone; the shadow factor is now
+    // floored by the authored per-light strength read from the packed buffer.
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).not.toContain(
+      "STANDARD_SHADOW_MIN_VISIBILITY",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).not.toContain("0.45");
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
-      "const STANDARD_SHADOW_MIN_VISIBILITY: f32 = 0.45;",
+      "fn shadowStrength(lightIndex: u32) -> f32",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "mix(1.0 - directionalShadowStrengthValue(), 1.0, visibility)",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32, filterRadiusTexels: f32) -> f32",

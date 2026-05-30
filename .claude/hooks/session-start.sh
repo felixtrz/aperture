@@ -81,6 +81,9 @@ export default defineConfig({
   fullyParallel: false,
   retries: 0,
   workers: 1,
+  // SwiftShader renders ~10s/load; specs that load several routes need headroom
+  // beyond Playwright's 30s default.
+  timeout: 150000,
   reporter: [["list"]],
   use: {
     baseURL: "http://127.0.0.1:4173",

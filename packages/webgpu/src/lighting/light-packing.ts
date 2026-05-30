@@ -13,7 +13,10 @@ import {
 } from "../gpu/buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
 
-export const PACKED_LIGHT_FLOAT_STRIDE = 24;
+// Slots 0-23: color/intensity/range-or-cascadeCount/cascade-far-bounds-or-cones/
+// matrixBaseIndex-or-shape/cookie/position/direction/area extents.
+// Slot 24: authored shadow strength (M4-T4); shadow-casting lights only.
+export const PACKED_LIGHT_FLOAT_STRIDE = 25;
 export const PACKED_LIGHT_METADATA_STRIDE = 6;
 
 export const PackedLightKindId = {
@@ -251,6 +254,9 @@ export function writePackedLightPackets(
   const directionalShadows = isLightPacketArray(input)
     ? null
     : directionalShadowMetadata(input.shadowRequests ?? []);
+  const shadowParams = isLightPacketArray(input)
+    ? null
+    : shadowParamsByLight(input.shadowRequests ?? []);
 
   ensureLightPacketCapacity(scratch, lights.length);
 
@@ -305,6 +311,7 @@ export function writePackedLightPackets(
         transformData.areaHalfHeight[0],
         transformData.areaHalfHeight[1],
         transformData.areaHalfHeight[2],
+        shadowParams?.get(light.lightId)?.strength ?? 1,
       ],
       floatOffset,
     );
@@ -695,6 +702,38 @@ function isPackedLightPackets(
 interface DirectionalShadowMetadata {
   readonly cascadeCount: number;
   readonly matrixBaseIndex: number;
+}
+
+interface PackedShadowParams {
+  readonly strength: number;
+}
+
+/**
+ * Per-light shadow params keyed by lightId, for ALL shadow-casting kinds
+ * (directional/point/spot) — not just directional. Sourced from the authored
+ * ShadowRequestPacket (M4-T3) so the shader can read per-light strength
+ * (M4-T4) without a new binding.
+ */
+function shadowParamsByLight(
+  shadowRequests: readonly ShadowRequestPacket[],
+): ReadonlyMap<number, PackedShadowParams> {
+  const params = new Map<number, PackedShadowParams>();
+
+  for (const request of shadowRequests) {
+    params.set(request.lightId, {
+      strength: clampUnit(request.strength ?? 1),
+    });
+  }
+
+  return params;
+}
+
+function clampUnit(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 1;
+  }
+
+  return Math.min(1, Math.max(0, value));
 }
 
 function directionalShadowMetadata(

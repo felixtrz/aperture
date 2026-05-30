@@ -7,9 +7,12 @@ export function applyStandardShadowMapSampling(
 ): string {
   const helpers =
     options.cascaded === true
-      ? `const STANDARD_SHADOW_MIN_VISIBILITY: f32 = 0.45;
-const STANDARD_SHADOW_DEPTH_BIAS: f32 = 0.002;
+      ? `const STANDARD_SHADOW_DEPTH_BIAS: f32 = 0.002;
 const STANDARD_SHADOW_MAX_CASCADES: u32 = 4u;
+
+fn shadowStrength(lightIndex: u32) -> f32 {
+  return clamp(lightFloats[lightFloatOffset(lightIndex) + 24u], 0.0, 1.0);
+}
 
 fn directionalShadowCascadeCount(lightIndex: u32) -> u32 {
   let offset = lightFloatOffset(lightIndex);
@@ -127,7 +130,7 @@ fn sampleDirectionalShadowFactor(lightIndex: u32, worldPosition: vec3f) -> f32 {
     rawVisibility != rawVisibility,
   );
 
-  return mix(STANDARD_SHADOW_MIN_VISIBILITY, 1.0, visibility);
+  return mix(1.0 - shadowStrength(lightIndex), 1.0, visibility);
 }
 
 fn sampleDirectionalShadowReceiverFactor(worldPosition: vec3f) -> f32 {
@@ -141,8 +144,20 @@ fn sampleDirectionalShadowReceiverFactor(worldPosition: vec3f) -> f32 {
 
   return factor;
 }`
-      : `const STANDARD_SHADOW_MIN_VISIBILITY: f32 = 0.45;
-const STANDARD_SHADOW_DEPTH_BIAS: f32 = 0.002;
+      : `const STANDARD_SHADOW_DEPTH_BIAS: f32 = 0.002;
+
+fn shadowStrength(lightIndex: u32) -> f32 {
+  return clamp(lightFloats[lightFloatOffset(lightIndex) + 24u], 0.0, 1.0);
+}
+
+fn directionalShadowStrengthValue() -> f32 {
+  for (var strengthIndex = 0u; strengthIndex < lightCount(); strengthIndex = strengthIndex + 1u) {
+    if (lightKind(strengthIndex) == LIGHT_KIND_DIRECTIONAL) {
+      return shadowStrength(strengthIndex);
+    }
+  }
+  return 1.0;
+}
 
 fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32${options.arrayShadows === true ? ", layerIndex: u32" : ""}, filterRadiusTexels: f32) -> f32 {
   let shadowDimensions = textureDimensions(directionalShadowMap);
@@ -224,7 +239,7 @@ fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u
     rawVisibility != rawVisibility,
   );
 
-  let compareFactor = mix(STANDARD_SHADOW_MIN_VISIBILITY, 1.0, visibility);
+  let compareFactor = mix(1.0 - directionalShadowStrengthValue(), 1.0, visibility);
 
   return compareFactor;
 }`;
@@ -338,7 +353,7 @@ function pointShadowReceiverSamplingBody(pointArrayShadows: boolean): string {
     rawVisibility != rawVisibility,
   );
 
-  return mix(STANDARD_POINT_SHADOW_MIN_VISIBILITY, 1.0, visibility);`
+  return mix(1.0 - pointShadowStrengthValue(), 1.0, visibility);`
     : `  let clampedShadowDepth = clamp(shadowDepth, 0.0, 1.0);
   let receiverDepth = clamp(
     clampedShadowDepth - STANDARD_POINT_SHADOW_DEPTH_BIAS,
@@ -380,7 +395,7 @@ function pointShadowReceiverSamplingBody(pointArrayShadows: boolean): string {
     rawVisibility != rawVisibility,
   );
 
-  return mix(STANDARD_POINT_SHADOW_MIN_VISIBILITY, 1.0, visibility);`;
+  return mix(1.0 - pointShadowStrengthValue(), 1.0, visibility);`;
 }
 
 export function applyStandardPointShadowMapSampling(
@@ -393,8 +408,20 @@ export function applyStandardPointShadowMapSampling(
     .replace(
       `fn evaluateDirectLight(
   normal: vec3f,`,
-      `const STANDARD_POINT_SHADOW_MIN_VISIBILITY: f32 = 0.5;
-const STANDARD_POINT_SHADOW_DEPTH_BIAS: f32 = 0.0001;
+      `const STANDARD_POINT_SHADOW_DEPTH_BIAS: f32 = 0.0001;
+
+fn shadowStrength(lightIndex: u32) -> f32 {
+  return clamp(lightFloats[lightFloatOffset(lightIndex) + 24u], 0.0, 1.0);
+}
+
+fn pointShadowStrengthValue() -> f32 {
+  for (var strengthIndex = 0u; strengthIndex < lightCount(); strengthIndex = strengthIndex + 1u) {
+    if (lightKind(strengthIndex) == LIGHT_KIND_POINT) {
+      return shadowStrength(strengthIndex);
+    }
+  }
+  return 1.0;
+}
 
 fn pointShadowFaceIndex(toReceiver: vec3f) -> u32 {
   let absDirection = abs(toReceiver);
@@ -505,10 +532,39 @@ export function applyStandardMultiShadowMapSampling(
     .replace(
       `fn evaluateDirectLight(
   normal: vec3f,`,
-      `const STANDARD_SHADOW_MIN_VISIBILITY: f32 = 0.45;
-const STANDARD_SHADOW_DEPTH_BIAS: f32 = 0.002;
-const STANDARD_POINT_SHADOW_MIN_VISIBILITY: f32 = 0.5;
+      `const STANDARD_SHADOW_DEPTH_BIAS: f32 = 0.002;
 const STANDARD_POINT_SHADOW_DEPTH_BIAS: f32 = 0.0001;
+
+fn shadowStrength(lightIndex: u32) -> f32 {
+  return clamp(lightFloats[lightFloatOffset(lightIndex) + 24u], 0.0, 1.0);
+}
+
+fn directionalShadowStrengthValue() -> f32 {
+  for (var strengthIndex = 0u; strengthIndex < lightCount(); strengthIndex = strengthIndex + 1u) {
+    if (lightKind(strengthIndex) == LIGHT_KIND_DIRECTIONAL) {
+      return shadowStrength(strengthIndex);
+    }
+  }
+  return 1.0;
+}
+
+fn spotShadowStrengthValue() -> f32 {
+  for (var strengthIndex = 0u; strengthIndex < lightCount(); strengthIndex = strengthIndex + 1u) {
+    if (lightKind(strengthIndex) == LIGHT_KIND_SPOT) {
+      return shadowStrength(strengthIndex);
+    }
+  }
+  return 1.0;
+}
+
+fn pointShadowStrengthValue() -> f32 {
+  for (var strengthIndex = 0u; strengthIndex < lightCount(); strengthIndex = strengthIndex + 1u) {
+    if (lightKind(strengthIndex) == LIGHT_KIND_POINT) {
+      return shadowStrength(strengthIndex);
+    }
+  }
+  return 1.0;
+}
 
 fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32${options.arrayShadows === true ? ", layerIndex: u32" : ""}, filterRadiusTexels: f32) -> f32 {
   let shadowDimensions = textureDimensions(directionalShadowMap);
@@ -609,7 +665,7 @@ fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32 {
     rawVisibility != rawVisibility,
   );
 
-  return mix(STANDARD_SHADOW_MIN_VISIBILITY, 1.0, visibility);
+  return mix(1.0 - directionalShadowStrengthValue(), 1.0, visibility);
 }
 
 fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u32, filterRadiusTexels: f32) -> f32 {
@@ -657,7 +713,7 @@ fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u
     rawVisibility != rawVisibility,
   );
 
-  return mix(STANDARD_SHADOW_MIN_VISIBILITY, 1.0, visibility);
+  return mix(1.0 - spotShadowStrengthValue(), 1.0, visibility);
 }
 
 fn sampleSpotShadowFactor(worldPosition: vec3f) -> f32 {
