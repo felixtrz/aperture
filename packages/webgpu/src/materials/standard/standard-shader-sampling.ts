@@ -13,5 +13,6 @@ export {
 } from "./standard-shader-shadow-sampling.js";
 export {
   applyStandardDiffuseIblSampling,
+  applyStandardSpecularIblBrdfSampling,
   applyStandardSpecularIblProofSampling,
 } from "./standard-shader-ibl-sampling.js";

@@ -46,7 +46,34 @@ export function createTonemapPipelineKey(operator: TonemapOperator): string {
   return `tonemap:${operator}`;
 }
 
-export function createOutputTonemapWgsl(operator: TonemapOperator): string {
+export interface CreateOutputTonemapWgslOptions {
+  // When true the emitted `apertureOutputTonemap` takes an extra `exposure: f32`
+  // and multiplies `color * exposure` BEFORE the operator — used by the HDR
+  // post tonemap stage (M5-T4). Default false keeps the legacy in-material
+  // single-argument form byte-identical.
+  readonly exposure?: boolean;
+}
+
+export function createOutputTonemapWgsl(
+  operator: TonemapOperator,
+  options?: CreateOutputTonemapWgslOptions,
+): string {
+  const base = createOutputTonemapOperatorWgsl(operator);
+
+  if (options?.exposure !== true) {
+    return base;
+  }
+
+  // Rename the parameter to `inputColor` and define `color` from it: WGSL
+  // forbids a `let` shadowing a parameter of the same name in the same scope,
+  // so reusing `color` for both would be a redeclaration compile error.
+  return base.replace(
+    "fn apertureOutputTonemap(color: vec3f) -> vec3f {",
+    "fn apertureOutputTonemap(inputColor: vec3f, exposure: f32) -> vec3f {\n  let color = inputColor * exposure;",
+  );
+}
+
+function createOutputTonemapOperatorWgsl(operator: TonemapOperator): string {
   switch (operator) {
     case "none":
       return `

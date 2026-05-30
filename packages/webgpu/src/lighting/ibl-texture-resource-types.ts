@@ -20,6 +20,8 @@ export type IblTextureResourceDiagnostic =
         | "iblTextureResource.missingTexturePreparation"
         | "iblTextureResource.unsupportedTextureSlots"
         | "iblTextureResource.invalidDiffuseCubeSource"
+        | "iblTextureResource.diffuseIrradianceConvolutionDeferred"
+        | "iblTextureResource.diffuseIrradianceConvolutionDispatchFailed"
         | "iblTextureResource.invalidSpecularPmremSource"
         | "iblTextureResource.specularPmremDeviceUnsupported"
         | "iblTextureResource.specularPmremDispatchFailed"
@@ -57,6 +59,13 @@ export interface CreateDiffuseIblTextureResourceOptions {
   readonly size?: number;
   readonly cache?: Map<string, TextureGpuResource>;
   readonly diffuseSources?: readonly DiffuseIblCubeSource[];
+  // When the device supports compute, the 6 source faces are convolved into a
+  // cosine-weighted irradiance cube (true diffuse IBL) rather than uploaded
+  // verbatim. Set false to force the legacy verbatim upload. Default: convolve.
+  readonly convolveIrradiance?: boolean;
+  // Face size of the convolved irradiance cube (16-32 is sufficient — irradiance
+  // is low-frequency). Default 32.
+  readonly irradianceFaceSize?: number;
 }
 
 export interface CreateSpecularIblTextureResourceOptions {
@@ -74,6 +83,11 @@ export interface DiffuseIblTextureResourceReport {
   readonly diffuseSlotCount: number;
   readonly createdTextureCount: number;
   readonly reusedTextureCount: number;
+  // True when at least one diffuse cube was produced by the GPU cosine
+  // irradiance convolution (vs verbatim upload). Reported in render-control
+  // status as environment.diffuse.convolved.
+  readonly convolved?: boolean;
+  readonly irradianceFaceSize?: number;
   readonly sections: {
     readonly texturePreparation: boolean;
     readonly diffuseTextureResource: boolean;
@@ -112,6 +126,8 @@ export interface DiffuseIblTextureResourceReportJsonValue {
   readonly diffuseSlotCount: number;
   readonly createdTextureCount: number;
   readonly reusedTextureCount: number;
+  readonly convolved?: boolean;
+  readonly irradianceFaceSize?: number;
   readonly sections: DiffuseIblTextureResourceReport["sections"];
   readonly resources: readonly {
     readonly valid: boolean;

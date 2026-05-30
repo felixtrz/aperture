@@ -42,6 +42,16 @@ export function hasReadyStandardSpecularIblProofResources(
   );
 }
 
+export function hasReadyStandardSpecularIblBrdfResources(
+  resources: StandardFrameIblResources | undefined,
+): boolean {
+  return (
+    hasReadyStandardSpecularIblProofResources(resources) &&
+    resources?.brdfLutTextureResource?.ready === true &&
+    resources.brdfLutTextureResource.resource !== null
+  );
+}
+
 export function withStandardShadowPipelineKeys(
   snapshot: RenderSnapshot,
   shadowKind:
@@ -219,8 +229,17 @@ function isMultiShadowKind(
 export function withStandardIblPipelineKeys(
   snapshot: RenderSnapshot,
   includeSpecularProof: boolean,
+  includeSpecularBrdf = false,
 ): RenderSnapshot {
   let changed = false;
+  // The split-sum DFG term (iblSpecularBrdf) supersedes the hand-tuned proof
+  // term: when the BRDF LUT is ready the snapshot carries iblSpecularBrdf
+  // INSTEAD of iblSpecularProof so the pipeline cacheKey reflects the upgrade.
+  const specularPrefix = includeSpecularBrdf
+    ? "standard|iblDiffuse|iblSpecularBrdf|"
+    : includeSpecularProof
+      ? "standard|iblDiffuse|iblSpecularProof|"
+      : "standard|iblDiffuse|";
   const meshDraws = snapshot.meshDraws.map((draw) => {
     const pipelineKey = draw.batchKey.pipelineKey;
 
@@ -232,12 +251,7 @@ export function withStandardIblPipelineKeys(
     }
 
     changed = true;
-    const iblPipelineKey = pipelineKey.replace(
-      /^standard\|/,
-      includeSpecularProof
-        ? "standard|iblDiffuse|iblSpecularProof|"
-        : "standard|iblDiffuse|",
-    );
+    const iblPipelineKey = pipelineKey.replace(/^standard\|/, specularPrefix);
 
     return {
       ...draw,

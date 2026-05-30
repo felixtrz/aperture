@@ -28,6 +28,7 @@ import {
   type OutputColorSpace,
 } from "../../output/output-stage-color-space.js";
 import { createMotionVectorBuiltInShaderVariant } from "../../render/motion/motion-vector-shader.js";
+import { createIndirectColorChannelShaderVariant } from "./standard-indirect-channel-shader.js";
 import {
   createWebGpuShaderModule,
   type WebGpuShaderDeviceLike,
@@ -72,6 +73,10 @@ export interface BrowserStandardRenderPipelineDescriptorInput {
   readonly shader?: BuiltInShaderSourceModule;
   readonly colorFormat: string;
   readonly motionVectorColorFormat?: string | null;
+  // Second color target carrying the separated indirect (ambient+IBL) lighting
+  // for screen-space-AO-on-indirect (M5-T6). Mutually exclusive with
+  // motionVectorColorFormat (both occupy @location(1)).
+  readonly indirectColorFormat?: string | null;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
   readonly batchKey?: BatchCompatibilityKey;
@@ -81,6 +86,7 @@ export interface CreateStandardRenderPipelineResourceOptions {
   readonly device: StandardRenderPipelineDeviceLike;
   readonly colorFormat: string;
   readonly motionVectorColorFormat?: string | null;
+  readonly indirectColorFormat?: string | null;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
   readonly batchKey: BatchCompatibilityKey;
@@ -113,11 +119,18 @@ export async function createStandardRenderPipelineResource(
     options.tonemap ?? DEFAULT_TONEMAP_OPERATOR,
     options.outputColorSpace ?? DEFAULT_OUTPUT_COLOR_SPACE,
   );
-  const shader =
+  const indirectColorFormat =
     options.motionVectorColorFormat === undefined ||
     options.motionVectorColorFormat === null
-      ? baseShader
-      : createMotionVectorBuiltInShaderVariant(baseShader);
+      ? options.indirectColorFormat
+      : null;
+  const shader =
+    options.motionVectorColorFormat !== undefined &&
+    options.motionVectorColorFormat !== null
+      ? createMotionVectorBuiltInShaderVariant(baseShader)
+      : indirectColorFormat !== undefined && indirectColorFormat !== null
+        ? createIndirectColorChannelShaderVariant(baseShader)
+        : baseShader;
   const descriptorPlan = createStandardPipelineDescriptorPlan({
     shader,
     colorFormat: options.colorFormat,
@@ -125,6 +138,9 @@ export async function createStandardRenderPipelineResource(
     ...(options.motionVectorColorFormat === undefined
       ? {}
       : { motionVectorColorFormat: options.motionVectorColorFormat }),
+    ...(indirectColorFormat === undefined || indirectColorFormat === null
+      ? {}
+      : { indirectColorFormat }),
     ...(options.sampleCount === undefined
       ? {}
       : { sampleCount: options.sampleCount }),
@@ -184,6 +200,9 @@ export async function createStandardRenderPipelineResource(
     ...(options.motionVectorColorFormat === undefined
       ? {}
       : { motionVectorColorFormat: options.motionVectorColorFormat }),
+    ...(indirectColorFormat === undefined || indirectColorFormat === null
+      ? {}
+      : { indirectColorFormat }),
     ...(options.sampleCount === undefined
       ? {}
       : { sampleCount: options.sampleCount }),
@@ -233,11 +252,12 @@ export function createBrowserStandardRenderPipelineDescriptor(
     input.colorFormat,
     renderState,
   );
+  const secondColorFormat =
+    input.motionVectorColorFormat ?? input.indirectColorFormat ?? null;
   const targets =
-    input.motionVectorColorFormat === undefined ||
-    input.motionVectorColorFormat === null
+    secondColorFormat === null
       ? [colorTarget]
-      : [colorTarget, { format: input.motionVectorColorFormat }];
+      : [colorTarget, { format: secondColorFormat }];
   const descriptor: WebGpuRenderPipelineCreateDescriptor = {
     label: `${shader.label}:${input.colorFormat}:triangle-list`,
     layout: "auto",

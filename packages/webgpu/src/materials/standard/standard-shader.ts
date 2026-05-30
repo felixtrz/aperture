@@ -24,6 +24,7 @@ import {
   applyStandardPointShadowMapSampling,
   applyStandardShadowMapSampling,
   applyStandardSheenSampling,
+  applyStandardSpecularIblBrdfSampling,
   applyStandardSpecularIblProofSampling,
   applyStandardTransmissionSampling,
 } from "./standard-shader-sampling.js";
@@ -703,7 +704,9 @@ ${emissive}
     code = applyStandardDiffuseIblSampling(code);
   }
 
-  if (features.iblSpecularProof === true) {
+  if (features.iblSpecularBrdf === true) {
+    code = applyStandardSpecularIblBrdfSampling(code);
+  } else if (features.iblSpecularProof === true) {
     code = applyStandardSpecularIblProofSampling(code);
   }
 

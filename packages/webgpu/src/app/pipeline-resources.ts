@@ -40,19 +40,30 @@ export async function getOrCreateWebGpuAppPipeline(options: {
   readonly pipelineKey: string;
   readonly batchKey: RenderSnapshot["meshDraws"][number]["batchKey"];
   readonly motionVectorColorFormat?: string | null;
+  readonly indirectColorFormat?: string | null;
 }): Promise<WebGpuAppPipelineResourceResult> {
+  // HDR scene-buffer path (M5-T4): the lit pass renders into rgba16float and the
+  // material does NOT tonemap (tonemap+exposure+sRGB run in the final post
+  // stage). Default path: sceneRenderFormat === the swapchain format -> unchanged.
+  const isHdr =
+    options.app.sceneRenderFormat !== options.app.initialization.format;
+  const standardTonemap = isHdr ? "none" : options.app.tonemap;
+  const standardOutputColorSpace = isHdr
+    ? "linear"
+    : options.app.outputColorSpace;
   const key = [
     options.kind,
-    options.app.initialization.format,
+    options.app.sceneRenderFormat,
     `motion:${options.motionVectorColorFormat ?? "none"}`,
+    `indirect:${options.indirectColorFormat ?? "none"}`,
     WEBGPU_APP_DEPTH_FORMAT,
     `samples:${options.app.msaa.sampleCount}`,
     options.pipelineKey,
     options.kind === "standard"
-      ? createTonemapPipelineKey(options.app.tonemap)
+      ? createTonemapPipelineKey(standardTonemap)
       : "tonemap:none",
     options.kind === "standard"
-      ? createOutputColorSpacePipelineKey(options.app.outputColorSpace)
+      ? createOutputColorSpacePipelineKey(standardOutputColorSpace)
       : createOutputColorSpacePipelineKey("linear"),
   ].join("|");
   const cached = options.cache.pipelines.get(key);
@@ -70,22 +81,26 @@ export async function getOrCreateWebGpuAppPipeline(options: {
           device: options.app.initialization.device as Parameters<
             typeof createStandardRenderPipelineResource
           >[0]["device"],
-          colorFormat: options.app.initialization.format,
+          colorFormat: options.app.sceneRenderFormat,
           ...(options.motionVectorColorFormat === undefined
             ? {}
             : { motionVectorColorFormat: options.motionVectorColorFormat }),
+          ...(options.indirectColorFormat === undefined ||
+          options.indirectColorFormat === null
+            ? {}
+            : { indirectColorFormat: options.indirectColorFormat }),
           depthFormat: WEBGPU_APP_DEPTH_FORMAT,
           sampleCount: options.app.msaa.sampleCount,
           batchKey: options.batchKey,
-          tonemap: options.app.tonemap,
-          outputColorSpace: options.app.outputColorSpace,
+          tonemap: standardTonemap,
+          outputColorSpace: standardOutputColorSpace,
         })
       : options.kind === "debug-normal"
         ? await createDebugNormalRenderPipelineResource({
             device: options.app.initialization.device as Parameters<
               typeof createDebugNormalRenderPipelineResource
             >[0]["device"],
-            colorFormat: options.app.initialization.format,
+            colorFormat: options.app.sceneRenderFormat,
             ...(options.motionVectorColorFormat === undefined
               ? {}
               : { motionVectorColorFormat: options.motionVectorColorFormat }),
@@ -98,7 +113,7 @@ export async function getOrCreateWebGpuAppPipeline(options: {
               device: options.app.initialization.device as Parameters<
                 typeof createMatcapRenderPipelineResource
               >[0]["device"],
-              colorFormat: options.app.initialization.format,
+              colorFormat: options.app.sceneRenderFormat,
               ...(options.motionVectorColorFormat === undefined
                 ? {}
                 : { motionVectorColorFormat: options.motionVectorColorFormat }),
@@ -110,7 +125,7 @@ export async function getOrCreateWebGpuAppPipeline(options: {
               device: options.app.initialization.device as Parameters<
                 typeof createUnlitRenderPipelineResource
               >[0]["device"],
-              colorFormat: options.app.initialization.format,
+              colorFormat: options.app.sceneRenderFormat,
               ...(options.motionVectorColorFormat === undefined
                 ? {}
                 : { motionVectorColorFormat: options.motionVectorColorFormat }),

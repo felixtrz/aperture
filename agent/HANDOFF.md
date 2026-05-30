@@ -28171,3 +28171,160 @@ Focus the audit on:
 - The readback-based browser proof is honest about the missing isolated pixel.
 - The next implementation slice should plan source-driven material mapping for
   the buffer-backed primitive rather than broad GLB viewer behavior.
+
+---
+
+## 2026-05-30 — SOTA M5 (PBR/IBL correctness): T1 + T2 shipped (M5 at 2/6)
+
+Result: success (partial milestone — 2 of 6 M5 tasks done, both fully proven).
+Gate: `pnpm run check` = pass (387 files / 2188 tests). Both named Playwright
+proofs pass under SwiftShader + xvfb (`scripts/webgpu-e2e.sh`).
+
+Shipped (in dependsOn order, one commit per task + a hash-fill doc commit each):
+
+- **M5-T1** `7beb1ca` — Split-sum environment-BRDF (DFG) specular IBL. New
+  `packages/webgpu/src/lighting/brdf-lut-compute-pipeline.ts` (rg16float GGX DFG
+  integration compute shader + `integrateEnvironmentBrdf` CPU mirror) +
+  `brdf-lut-resource.ts` (`createBrdfIntegrationLutResource`: one-time 256²
+  dispatch → 2d view). New `iblSpecularBrdf` shader variant evaluates the
+  split-sum (scale,bias) via the SOTA-bar-sanctioned analytic Karis DFGApprox
+  in-shader (`applyStandardSpecularIblBrdfSampling`), reusing the specular cube
+  at group 3 binding 7 — it SUPERSEDES `iblSpecularProof` (snapshot carries
+  `iblSpecularBrdf` instead, via `withStandardIblPipelineKeys(..., includeSpecularBrdf)`
+  - `hasReadyStandardSpecularIblBrdfResources` in `frame-loop.ts`). Wired through
+    features / variant-label / variant-declarations / variant-bindings /
+    pipeline-descriptor / app-pipeline-keys / frame-resources. Proof:
+    `examples/ibl-brdf.*` + `test/e2e/ibl-brdf.spec.ts` +
+    `test/webgpu/brdf-lut-compute-pipeline.test.ts`. Design choice recorded in
+    `docs/DECISIONS.md` §0017 (analytic DFG vs a sampled binding-8 LUT; the GPU LUT
+    is built+validated+reported but not yet sampled — optional follow-up).
+
+- **M5-T2** `3cc58d9` — Cosine irradiance-convolution compute pass for diffuse
+  IBL. New `irradiance-convolution-compute-pipeline.ts` (cosine-weighted
+  hemisphere convolution + `convolveIrradianceDirection` CPU mirror).
+  `createDiffuseIblTextureResourceReport` now convolves by default into a 32²
+  irradiance cube when the device supports compute
+  (`hasIrradianceConvolutionDeviceSupport`, feature-detected like the PMREM
+  path); `convolveIrradiance:false` forces the legacy verbatim upload; no-compute
+  devices fall back + emit `diffuseIrradianceConvolutionDeferred` (so existing
+  tests are unchanged). Report gained `convolved`/`irradianceFaceSize`. Proof:
+  `examples/ibl-irradiance.*` + `test/e2e/ibl-irradiance.spec.ts` +
+  `test/webgpu/irradiance-convolution-compute-pipeline.test.ts`. NOTE: the
+  example uses a bright +X/+Y/+Z HEMISPHERE (not a single white face): a single
+  small bright face correctly convolves toward the global average, so a
+  hemisphere is needed for a strong directional gradient (the CPU unit test
+  proves the lobe). `ibl-preparation-pass-plan.ts` was left unchanged: it is a
+  standalone planning report with no live callers, so the convolution-executed
+  state is surfaced via the diffuse report's `convolved` flag.
+
+Next (for the resuming agent): **M5-T3** (equirect→cube + auto-wire single-asset
+IBL). Deps met. BLOCKER: no 2:1 equirect `.hdr` in-repo (only a 6:1 cube atlas
+`examples/assets/pisa-studio-rgbe-cube.hdr`); Done-when #1 wants `loadHdrFromUri`
+on a real equirect — author a small RGBE equirect asset or synthesize the
+equirect data and document the deviation. **M5-T4** (rgba16float HDR scene buffer
+
+- exposure) and **M5-T6** (SSAO→indirect) are also ready (no deps, no asset
+  blocker). Full plans in `docs/SOTA_ROADMAP.md` Resume notes + each task's body.
+
+References inspected (this run):
+
+- `references/three.js/src/nodes/functions/BSDF/EnvironmentBRDF.js` and
+  `DFGLUT.js` (split-sum `specularColor*fab.x + specularF90*fab.y`; the analytic
+  DFGApprox is the LUT-free form). [M5-T1]
+- `references/three.js/src/nodes/utils/EquirectUV.js` (equirect↔direction
+  mapping `u=atan2(z,x)/2π+0.5`, `v=asin(y)/π+0.5`). [M5-T3 prep]
+- Aperture in-repo reference patterns adapted: `pmrem-compute-pipeline.ts`
+  (compute-pass + Hammersley + cubeDirection structure → both new compute
+  pipelines), `ibl-texture-resource-specular.ts`
+  (`createSpecularIblPmremTextureResource` dispatch-on-create + device
+  feature-detection → BRDF-LUT + irradiance resource builders).
+
+---
+
+## 2026-05-30 (cont.) — SOTA M5 advanced to 3/6 (T3 completed); T4 assessment
+
+M5-T3 (equirect->cube single-asset auto-IBL) is now ✅ done (`4afc17e`), fully
+proven — see roadmap completion log. M5 is at 3/6 (T1 `7beb1ca`, T2 `3cc58d9`,
+T3 `4afc17e`), gate green (390 files / 2200 tests), all three e2e proofs
+(ibl-brdf, ibl-irradiance, ibl-equirect) green on HEAD under SwiftShader.
+
+T3 completion details: new `equirect-to-cube-resource.ts`
+(`createEquirectToCubeResource`: equirect 2D source -> projected cube
+`TextureGpuResource` with COPY_SRC for readback; fake-device vitest). Example
+`examples/ibl-equirect.*` + `ibl-equirect-environment.js` synthesizes a valid
+2:1 flat-RGBE `.hdr` in-JS (round-trip-verified against `parseHdrRgbe`), loads it
+via `loadHdrFromUri` (data URL), projects to a cube, reads back the 6 faces, and
+feeds BOTH PMREM (specularPrefiltering:true) and the T2 convolution. Mirror
+sphere reflects the projected env; `test/e2e/ibl-equirect.spec.ts` asserts the
+source metadata + the reflective probe.
+
+**T4 depth assessment (for the next agent — IMPORTANT).** M5-T4 (persistent
+rgba16float HDR scene buffer + exposure) is NOT a localized post-processing
+change. The lit-pass color format is threaded from `app.initialization.format`
+(the 8-bit swapchain format) into EVERY pipeline-creation site:
+`packages/webgpu/src/app/pipeline-resources.ts` (standard material, lines
+73/88/101/113), `skybox.ts:259`, `sprites.ts:350`, `custom-wgsl-frame.ts:159`,
+`mixed-custom-wgsl-frame.ts:696`, plus `post-processing.ts` (scene texture +
+final boundary) and `frame-boundaries.ts:409`. To render the lit pass into an
+rgba16float buffer, ALL of those must use a distinct "scene render format"
+(rgba16float) while the FINAL swapchain stage stays 8-bit. Recommended approach:
+introduce an opt-in scene-render-format (driven by a new `exposure`/`hdr` option
+on CreateWebGpuAppOptions) so the default 8-bit path is untouched (zero
+regressions), thread it through the pipeline-creation sites + the post scene
+texture, skip `applyOutputTonemapToStandardShader` (standard-pipeline.ts:113)
+when active so the material returns linear HDR, and add a final
+`createWebGpuTonemapPostEffect` (exposure*color -> tonemap -> sRGB encode ->
+swapchain). The `* exposure` term + its vitest (Done-when #4) and the
+hdr-exposure example/spec follow. This is a deep, hot-path slice; budget for it
+accordingly. M5-T6 (SSAO->indirect) also needs an MRT split or a depth-prepass
+(see its watch-out); M5-T5 depends on T4.
+
+References inspected (this continuation): in-repo render-path source —
+`packages/webgpu/src/app/post-processing.ts` (lit-pass-into-scene-texture +
+final-output flow), `pipeline-resources.ts` / `skybox.ts` / `sprites.ts` /
+`custom-wgsl-frame.ts` / `mixed-custom-wgsl-frame.ts` (lit-pass colorFormat
+sourced from `app.initialization.format`); `packages/render/src/assets/`
+hdr-rgbe-parser/header/pixels/conversion (RGBE flat-format encoding for the
+synthesized equirect .hdr); `references/three.js/src/nodes/utils/EquirectUV.js`
+(equirect<->direction mapping).
+
+### M5-T4 refined integration plan (investigated 2026-05-30)
+
+Clean integration point found in `packages/webgpu/src/app/post-processing.ts`:
+the post-effects loop (line ~238) runs effects in order, the `isLast` effect
+writing to the swapchain (`outputFormat: options.target.format`). So implement
+T4 as an OPT-IN HDR path:
+
+1. `app.ts` (CreateWebGpuAppOptions ~457-474): add `exposure?: number`. When
+   defined, set an app `sceneRenderFormat = "rgba16float"` (else
+   `initialization.format`) + store `exposure`.
+2. `pipeline-resources.ts` (73/88/101/113): `colorFormat: app.sceneRenderFormat`
+   (was `app.initialization.format`); include the format in the pipeline cache
+   `key` (line ~40-57); pass `tonemap: undefined` for the standard pipeline when
+   HDR so `applyOutputTonemapToStandardShader` (standard-pipeline.ts:113) is NOT
+   applied (material returns linear HDR). Default path is byte-identical.
+3. `post-processing.ts`: scene texture (line 79) + intermediate ping/pong (260)
+   use `sceneRenderFormat`; APPEND a tonemap post effect to `options.effects`
+   when HDR so it is the last stage (reads the rgba16float scene/post output,
+   writes the 8-bit swapchain). For the hdr-exposure example use NO other post
+   effects → the tonemap effect is the only/last one → no intermediate-format
+   threading needed (the intermediate-format work for bloom+HDR is a follow-up;
+   bloom's min(...,1.0) clamp is out of M5 scope per the task).
+4. New `post-tonemap.ts` `createWebGpuTonemapPostEffect` (model on the
+   WebGpuPostEffect contract in post-pass.ts + a simple effect like post-fxaa.ts):
+   full-screen pass sampling the input, `color * exposure` then the tonemap
+   operator then sRGB OETF encode, writing the swapchain.
+5. `output-stage-tonemap.ts` `createOutputTonemapWgsl`: add a `* exposure`
+   multiply before the operator (Done-when #4 vitest: exposure=0 -> black,
+   exposure=1 identity pre-operator).
+6. `examples/hdr-exposure.{html,main,worker}.js` + `test/e2e/hdr-exposure.spec.ts`:
+   a scene with a bright (>1.0) emissive highlight, sweep exposure {0.25,1.0,4.0}
+   via URL param; readback shows monotonic brightening; status
+   output:{sceneBufferFormat:'rgba16float',tonemapStage:'post',exposure}.
+   Regression-guard: tonemap-showcase still switches operators (now applied in
+   the post stage).
+
+Risk: WebGPU color-format mismatch errors are likely during wiring (the lit-pass
+pipeline color attachment must equal the scene-texture format); iterate with
+scripts/webgpu-e2e.sh. After T4, M5-T5 (transmission; depends T4) and M5-T6
+(SSAO->indirect; needs MRT or a depth-prepass) remain.

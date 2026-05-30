@@ -494,10 +494,39 @@ export function applyStandardTransmissionSampling(
   return withMutableFragment.replace(
     `  return vec4f(color, alpha);`,
     `  let transmission = clamp(material.transmissionFactor * ${transmissionTextureFactor}, 0.0, 1.0);
+  let transmissionIor = max(material.transmissionVolume.x, 1.0);
+  let transmissionThickness = max(material.transmissionVolume.y, 0.0);
+  let transmissionAttenuationDistance = material.transmissionVolume.z;
   let sceneColorSize = vec2f(textureDimensions(standardTransmissionSceneColorTexture));
   let sceneColorUv = clamp(input.position.xy / max(sceneColorSize, vec2f(1.0)), vec2f(0.0), vec2f(1.0));
-  let refractionOffset = clamp(normal.xy * transmission * (0.045 + roughness * 0.02), vec2f(-0.08), vec2f(0.08));
-  let transmissionUv = clamp(sceneColorUv + refractionOffset, vec2f(0.0), vec2f(1.0));
+  // IOR-driven refraction (M5-T5): bend the view ray entering the volume, walk
+  // it across the authored thickness, and project the exit point back to the
+  // grabbed scene color. The screen offset is the projected delta from the
+  // fragment's own screen position, so ior=1 (no bend) samples straight behind
+  // and higher ior shifts the background. thickness=0 => thin-walled (no offset).
+  let transmissionViewDir = normalize(view.cameraPosition.xyz - input.worldPosition);
+  // The shading normal can face away from the camera on the transmissive
+  // surface (back-facing/normal-flipped fragments); force it toward the viewer
+  // so the Snell refraction enters the volume with the correct geometry.
+  let transmissionGeoNormal = normalize(normal);
+  let transmissionNormal = select(
+    -transmissionGeoNormal,
+    transmissionGeoNormal,
+    dot(transmissionGeoNormal, transmissionViewDir) >= 0.0,
+  );
+  let transmissionRefraction = refract(-transmissionViewDir, transmissionNormal, 1.0 / transmissionIor);
+  let transmissionExitPos = input.worldPosition + transmissionRefraction * transmissionThickness;
+  let transmissionSelfClip = view.viewProjection * vec4f(input.worldPosition, 1.0);
+  let transmissionExitClip = view.viewProjection * vec4f(transmissionExitPos, 1.0);
+  let transmissionSelfUv = vec2f(
+    transmissionSelfClip.x / max(transmissionSelfClip.w, 0.0001) * 0.5 + 0.5,
+    0.5 - transmissionSelfClip.y / max(transmissionSelfClip.w, 0.0001) * 0.5,
+  );
+  let transmissionExitUv = vec2f(
+    transmissionExitClip.x / max(transmissionExitClip.w, 0.0001) * 0.5 + 0.5,
+    0.5 - transmissionExitClip.y / max(transmissionExitClip.w, 0.0001) * 0.5,
+  );
+  let transmissionUv = clamp(sceneColorUv + (transmissionExitUv - transmissionSelfUv), vec2f(0.0), vec2f(1.0));
   let transmissionRoughness = clamp(roughness, 0.0, 1.0);
   let transmissionBlurRadiusPixels = transmissionRoughness * transmissionRoughness * 96.0;
   let transmissionBlurTexel = transmissionBlurRadiusPixels / max(sceneColorSize, vec2f(1.0));
@@ -523,8 +552,24 @@ export function applyStandardTransmissionSampling(
     transmissionBlurColor,
     smoothstep(0.08, 0.85, transmissionRoughness),
   );
+  // Beer-Lambert absorption through the volume: transmittance per channel =
+  // attenuationColor ^ (thickness / attenuationDistance). attenuationDistance==0
+  // is the "no absorption" sentinel (glTF default attenuationDistance=Infinity).
+  let transmissionAttenuationRatio = select(
+    0.0,
+    transmissionThickness / max(transmissionAttenuationDistance, 0.0001),
+    transmissionAttenuationDistance > 0.0,
+  );
+  let transmissionTransmittance = pow(
+    max(material.attenuationColor.rgb, vec3f(0.0)),
+    vec3f(transmissionAttenuationRatio),
+  );
   let transmissionTint = mix(vec3f(1.0), max(baseColor, vec3f(0.04)), 0.35);
-  color = mix(color, transmittedSceneColor * transmissionTint, transmission);
+  color = mix(
+    color,
+    transmittedSceneColor * transmissionTransmittance * transmissionTint,
+    transmission,
+  );
   alpha = alpha * max(1.0 - transmission * 0.25, 0.72);
   return vec4f(color, alpha);`,
   );

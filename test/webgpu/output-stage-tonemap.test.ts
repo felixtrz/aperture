@@ -28,6 +28,32 @@ describe("output-stage tonemap operators", () => {
     }
   });
 
+  it("emits an exposure multiply for the HDR post tonemap stage (opt-in)", () => {
+    for (const operator of TONEMAP_OPERATORS) {
+      const exposed = createOutputTonemapWgsl(operator, { exposure: true });
+
+      // exposure variant takes exposure: f32 and multiplies color * exposure
+      // BEFORE the operator (exposure=0 -> color 0 -> black; exposure=1 ->
+      // identity pre-operator). The parameter is renamed to `inputColor` so the
+      // injected `let color` does NOT shadow a same-named parameter in the same
+      // scope — WGSL rejects that as a redeclaration (would fail to compile).
+      expect(exposed).toContain(
+        "fn apertureOutputTonemap(inputColor: vec3f, exposure: f32) -> vec3f",
+      );
+      expect(exposed).toContain("let color = inputColor * exposure;");
+      expect(
+        exposed,
+        "exposure WGSL must not shadow its own parameter (WGSL compile error)",
+      ).not.toContain("let color = color * exposure;");
+
+      // The default (in-material) form stays byte-identical: single argument,
+      // no exposure term.
+      const base = createOutputTonemapWgsl(operator);
+      expect(base).toContain("fn apertureOutputTonemap(color: vec3f) -> vec3f");
+      expect(base).not.toContain("exposure");
+    }
+  });
+
   it("provides WGSL output color-space encoding for sRGB displays", () => {
     expect(createOutputColorSpaceWgsl("srgb")).toContain(
       "fn apertureLinearToSrgbChannel",

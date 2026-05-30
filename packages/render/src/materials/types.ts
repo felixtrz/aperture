@@ -158,6 +158,16 @@ export interface StandardMaterialAsset extends BaseMaterialAsset {
   readonly clearcoatRoughnessTexture: MaterialTextureBinding | null;
   readonly transmissionFactor: number;
   readonly transmissionTexture: MaterialTextureBinding | null;
+  // Refractive transmission volume (KHR_materials_ior + KHR_materials_volume).
+  // `ior` drives the Snell refraction vector; `thickness` scales the refracted
+  // ray length; `attenuationColor`/`attenuationDistance` drive Beer-Lambert
+  // absorption through the volume. `attenuationDistance` of 0 is the JSON-safe
+  // sentinel for "no absorption" (the glTF default is +Infinity, which is not
+  // JSON-serializable); a bounded volume uses a positive distance.
+  readonly ior: number;
+  readonly thickness: number;
+  readonly attenuationColor: readonly [number, number, number];
+  readonly attenuationDistance: number;
   readonly sheenColorFactor: readonly [number, number, number];
   readonly sheenColorTexture: MaterialTextureBinding | null;
   readonly sheenRoughnessFactor: number;

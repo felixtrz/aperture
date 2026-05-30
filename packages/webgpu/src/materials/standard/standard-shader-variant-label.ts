@@ -26,6 +26,7 @@ export function standardTextureVariantShaderLabel(
     features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
+    features.iblSpecularBrdf !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
     features.instanceTint !== true &&
@@ -47,6 +48,7 @@ export function standardTextureVariantShaderLabel(
     features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
+    features.iblSpecularBrdf !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
     features.instanceTint !== true &&
@@ -67,6 +69,7 @@ export function standardTextureVariantShaderLabel(
     features.cascadedShadowMap !== true &&
     features.pointShadowMap !== true &&
     features.iblSpecularProof !== true &&
+    features.iblSpecularBrdf !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
     features.instanceTint !== true &&
@@ -188,6 +191,7 @@ export function standardTextureVariantShaderLabel(
   if (
     features.iblDiffuse === true &&
     features.iblSpecularProof !== true &&
+    features.iblSpecularBrdf !== true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
     features.clearcoatTexture !== true &&
@@ -215,7 +219,7 @@ export function standardTextureVariantShaderLabel(
 
   if (
     features.iblDiffuse === true &&
-    features.iblSpecularProof === true &&
+    (features.iblSpecularProof === true || features.iblSpecularBrdf === true) &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
     features.clearcoatTexture !== true &&
@@ -238,7 +242,9 @@ export function standardTextureVariantShaderLabel(
     features.morphed !== true &&
     !hasStandardGenericOnlyFeature(features)
   ) {
-    return "aperture/standard-mesh-diffuse-specular-ibl-proof";
+    return features.iblSpecularBrdf === true
+      ? "aperture/standard-mesh-diffuse-specular-ibl-brdf"
+      : "aperture/standard-mesh-diffuse-specular-ibl-proof";
   }
 
   if (
@@ -260,6 +266,7 @@ export function standardTextureVariantShaderLabel(
     features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
+    features.iblSpecularBrdf !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
     features.instanceTint !== true &&
@@ -292,6 +299,7 @@ export function standardTextureVariantShaderLabel(
     features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
+    features.iblSpecularBrdf !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
     features.instanceTint !== true &&
@@ -324,6 +332,7 @@ export function standardTextureVariantShaderLabel(
     features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
+    features.iblSpecularBrdf !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
     features.instanceTint !== true &&
@@ -356,6 +365,7 @@ export function standardTextureVariantShaderLabel(
     features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
+    features.iblSpecularBrdf !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
     features.instanceTint !== true &&

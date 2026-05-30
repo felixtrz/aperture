@@ -331,12 +331,12 @@ describe("WebGPU post-pass helpers", () => {
       {
         kind: "setPipeline",
         pipelineKey:
-          "webgpu-post-ssao|rgba8unorm|depthSamples:1|radius:7.000|intensity:1.500|bias:0.00100|range:0.0800|near:0.1000|far:40.000|fovY:1.0472|samples:18|minAngle:7.00|power:1.200|random:0.2500",
+          "webgpu-post-ssao|rgba8unorm|depthSamples:1|radius:7.000|intensity:1.500|bias:0.00100|range:0.0800|near:0.1000|far:40.000|fovY:1.0472|samples:18|minAngle:7.00|power:1.200|random:0.2500|appliesTo:composite",
       },
       {
         kind: "setBindGroup",
         resourceKey:
-          "ssao:input:scene:depth:scene-depth:depthSamples:1:radius:7.00:samples:18:intensity:1.50",
+          "ssao:input:scene:depth:scene-depth:depthSamples:1:radius:7.00:samples:18:intensity:1.50:indirect:no",
       },
       { kind: "draw", vertexCount: 3 },
     ]);

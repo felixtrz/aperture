@@ -62,6 +62,10 @@ export interface WebGpuPostEffectPrepareOptions {
   readonly device: WebGpuPostPassDeviceLike;
   readonly input: WebGpuPostPassTextureResource;
   readonly motionVector?: WebGpuPostPassTextureResource;
+  // The lit pass's separated indirect (ambient+IBL) color, when an effect set
+  // requiresIndirectColor and the frame could provide it (M5-T6). An effect
+  // that requests it must still degrade gracefully when it is absent.
+  readonly indirectColor?: WebGpuPostPassTextureResource;
   readonly depth?: WebGpuPostPassDepthTextureResource;
   readonly outputFormat: string;
   readonly width: number;
@@ -122,6 +126,12 @@ export interface WebGpuPostEffect {
   readonly label?: string;
   readonly enabled?: boolean;
   readonly requiresMotionVectors?: boolean;
+  // The effect would like the lit pass's separated indirect (ambient+IBL)
+  // color as a second color attachment so it can attenuate only indirect light
+  // (M5-T6). Best-effort: the frame only provides it when MSAA is off and
+  // motion vectors are not in use; otherwise prepareOptions.indirectColor is
+  // undefined and the effect must fall back.
+  readonly requiresIndirectColor?: boolean;
   readonly requiresDepthTexture?: boolean;
   prepare(
     options: WebGpuPostEffectPrepareOptions,

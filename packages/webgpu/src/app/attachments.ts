@@ -20,6 +20,11 @@ interface WebGpuAppAttachmentContext {
     readonly device: unknown;
   };
   readonly msaa: Pick<WebGpuMsaaConfig, "sampleCount">;
+  // The format the lit scene renders into. Equals the swapchain format by
+  // default; rgba16float when the HDR scene buffer is active (M5-T4). The MSAA
+  // color attachment for a swapchain target must match the scene-render format
+  // so it can resolve into the (possibly HDR) offscreen scene texture.
+  readonly sceneRenderFormat: string;
 }
 
 export interface WebGpuAppMsaaReport {
@@ -69,7 +74,8 @@ export function createWebGpuAppMsaaColorTargetForTarget(
     cache: msaaColorCacheSlotForTarget(resourceCache, target),
     width: target.width,
     height: target.height,
-    format: target.format,
+    format:
+      target.source === "swapchain" ? app.sceneRenderFormat : target.format,
     sampleCount: app.msaa.sampleCount,
     label:
       target.source === "swapchain"

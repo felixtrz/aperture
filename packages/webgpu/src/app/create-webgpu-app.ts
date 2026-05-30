@@ -13,6 +13,7 @@ import {
 } from "./app-snapshot-transport.js";
 import { resolveWebGpuMsaaConfig } from "../gpu/msaa.js";
 import { resolveTonemapOperator } from "../output/output-stage-tonemap.js";
+import { createWebGpuTonemapPostEffect } from "../post/post-tonemap.js";
 import { resolveOutputColorSpace } from "../output/output-stage-color-space.js";
 import { initializeWebGpu } from "../gpu/initialize-webgpu.js";
 import {
@@ -49,7 +50,28 @@ export async function createWebGpuApp(
   const tonemap = resolveTonemapOperator(options.tonemap);
   const outputColorSpace = resolveOutputColorSpace(options.outputColorSpace);
   const msaa = resolveWebGpuMsaaConfig(options.msaa ?? options.msaaSampleCount);
+  // Persistent HDR scene buffer (M5-T4): opting into `exposure` renders the lit
+  // scene into rgba16float and moves tonemap+exposure+sRGB to a final post
+  // stage. Default (no exposure) keeps the byte-identical 8-bit in-material path.
+  const hdrSceneBuffer =
+    options.exposure !== undefined && Number.isFinite(options.exposure);
+  const exposure = hdrSceneBuffer ? (options.exposure as number) : 1;
+  const sceneRenderFormat = hdrSceneBuffer
+    ? "rgba16float"
+    : initialization.format;
   const postEffects = [...(options.postEffects ?? [])];
+
+  if (hdrSceneBuffer) {
+    // The tonemap stage is the LAST post effect: it samples the rgba16float
+    // scene/post output and writes the 8-bit swapchain with exposure applied.
+    postEffects.push(
+      createWebGpuTonemapPostEffect({
+        operator: tonemap,
+        exposure,
+        outputColorSpace,
+      }),
+    );
+  }
   const resourceCache = createWebGpuAppResourceCache();
   const snapshotTransport = createWebGpuAppSnapshotTransport({
     ...(options.transport === undefined ? {} : { mode: options.transport }),
@@ -77,6 +99,8 @@ export async function createWebGpuApp(
     renderWorld,
     tonemap,
     outputColorSpace,
+    exposure,
+    sceneRenderFormat,
     msaa,
     postEffects,
     start(startOptions = {}) {

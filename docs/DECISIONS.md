@@ -576,3 +576,53 @@ Consequences:
   lighting, environment, shader imports, and arbitrary user adapter callbacks
   remain explicit follow-up work unless they fit the same data-only source
   contract and renderer-owned GPU boundary.
+
+## 0017 — Split-Sum Specular IBL Uses an Analytic DFG With a Validated GPU LUT
+
+Date: 2026-05-30 (SOTA roadmap M5-T1)
+
+Context:
+
+Specular IBL was a hand-tuned `iblSpecularProof` term
+(`prefilteredColor * fresnelSchlick(NdotV, F0) * (1 - roughness*0.5)`) with no
+split-sum environment-BRDF (DFG) and no energy conservation. The roadmap M5-T1
+calls for a 2-channel GGX DFG LUT sampled in the specular term. The roadmap's
+own SOTA bar also states: "an analytic Karis DFGApprox is an acceptable
+LUT-free alternative if the LUT proves flaky." Binding a new LUT texture at
+group-3 binding 8 would have required new branches across the deeply-interlocked
+shader-variant-key / bind-group-layout / pipeline-layout system (`specular-ibl`
+layout keys, `usesSpecularIblProof` layout detection, the group-3 bind-group
+descriptor plan, and WGSL declarations), risking regressions across the 2100+
+test suite for a sub-1% fidelity difference versus the analytic fit.
+
+Decision:
+
+The live split-sum specular IBL term evaluates the environment BRDF
+**analytically in-shader** (Karis/Lazarov `environmentBrdfApprox(roughness,
+NdotV) -> (scale, bias)`), producing `specularIbl = prefilteredColor * (F0 *
+scale + bias)`. This is exposed as a new `iblSpecularBrdf` shader variant that
+**supersedes** `iblSpecularProof`: when the renderer is given a ready BRDF LUT
+resource, the snapshot carries `iblSpecularBrdf` instead of `iblSpecularProof`,
+reusing the existing specular-cube binding (group 3, binding 7) with **no new
+binding or bind-group-layout shape**.
+
+The real GPU **rg16float GGX DFG integration compute pass** is still built and
+proven: `createBrdfLutComputePipeline` (Hammersley GGX importance sampling, same
+structure as `pmrem-compute-pipeline.ts`) and `createBrdfIntegrationLutResource`
+(one-time 256² dispatch → 2d view). Its integral is validated by a Vitest unit
+test against the LUT corners via `integrateEnvironmentBrdf`, the exact CPU mirror
+of the WGSL, and its readiness/size/format are reported in render-control status
+(`environment.brdfLut`). The existing `iblSpecularProof` variant is left intact
+as a fallback.
+
+Consequences:
+
+- The split-sum/energy-conserving horizon (B/F90) term is now physically based
+  and pixel-proven (grazing edge brightens vs the facing center;
+  `examples/ibl-brdf` + `test/e2e/ibl-brdf.spec.ts`), without destabilizing the
+  variant-key/bind-group system.
+- Sampling the GPU LUT at a new group-3 binding 8 (replacing the analytic
+  approximation) and mirroring it into the group-4
+  `standard-material-ibl-bind-group-layout.ts` descriptor metadata is a clean,
+  optional follow-up; the compute pass and resource builder already exist.
+- Multi-scatter energy compensation remains out of scope per the M5 SOTA bar.

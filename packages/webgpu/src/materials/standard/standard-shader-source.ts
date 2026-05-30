@@ -59,6 +59,11 @@ struct StandardMaterialUniform {
   iridescenceFactorIorThickness: vec4f,
   transmissionTexCoordPadding: vec4u,
   iridescenceThicknessTexCoordPadding: vec4u,
+  // Refractive transmission volume (M5-T5): x=ior, y=thickness,
+  // z=attenuationDistance (0 = no Beer-Lambert absorption), w=pad.
+  transmissionVolume: vec4f,
+  // Beer-Lambert attenuation color (rgb), w=pad.
+  attenuationColor: vec4f,
 };
 
 struct VertexInput {

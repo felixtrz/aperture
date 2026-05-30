@@ -94,6 +94,7 @@ import type {
   StandardMaterialIblBindGroupResourceReport,
 } from "./standard-material-ibl-bind-group.js";
 import type { IblSamplerResourceReport } from "../../lighting/ibl-sampler-resource.js";
+import type { BrdfLutResourceReport } from "../../lighting/brdf-lut-resource.js";
 import type {
   DiffuseIblTextureResourceReport,
   SpecularIblTextureResourceReport,
@@ -270,6 +271,12 @@ export interface StandardFrameIblResources {
   readonly diffuseTextureResource?: DiffuseIblTextureResourceReport;
   readonly specularTextureResource?: SpecularIblTextureResourceReport;
   readonly samplerResource?: IblSamplerResourceReport;
+  // Split-sum environment-BRDF (DFG) integration LUT. When present and ready the
+  // renderer selects the iblSpecularBrdf shader variant (energy-conserving
+  // split-sum specular IBL) over the hand-tuned iblSpecularProof term. The live
+  // specular IBL term evaluates the DFG analytically in-shader, so this resource
+  // is the proof that the GPU integration pass ran; it is not bound directly.
+  readonly brdfLutTextureResource?: BrdfLutResourceReport;
 }
 
 export interface StandardFrameGpuResources {
@@ -690,7 +697,8 @@ function createLightIblBindGroup(
       ? "standard/lights-shadow-ibl"
       : "standard/lights-ibl",
     diffuseTextureResource: iblResources.diffuseTextureResource,
-    ...(options.pipelineKey.includes("iblSpecularProof") &&
+    ...((options.pipelineKey.includes("iblSpecularProof") ||
+      options.pipelineKey.includes("iblSpecularBrdf")) &&
     iblResources.specularTextureResource !== undefined
       ? { specularTextureResource: iblResources.specularTextureResource }
       : {}),
@@ -730,7 +738,8 @@ function createLightIblBindGroup(
       shadowReceiverResources?.samplerResource ??
       emptyShadowSamplerResourceReport(),
     diffuseTextureResource: iblResources.diffuseTextureResource,
-    ...(options.pipelineKey.includes("iblSpecularProof") &&
+    ...((options.pipelineKey.includes("iblSpecularProof") ||
+      options.pipelineKey.includes("iblSpecularBrdf")) &&
     iblResources.specularTextureResource !== undefined
       ? { specularTextureResource: iblResources.specularTextureResource }
       : {}),

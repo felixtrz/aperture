@@ -48,6 +48,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   readonly label: string;
   readonly clearColor?: readonly number[];
   readonly motionVectorColorFormat?: string | null;
+  readonly indirectColorFormat?: string | null;
   readonly msaaColorTarget?: Parameters<
     typeof assembleFrameBoundary
   >[0]["msaaColorTarget"];
@@ -76,7 +77,10 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     slot: options.cache.postPasses.scene,
     width: options.target.width,
     height: options.target.height,
-    format: options.target.format,
+    // The lit scene renders into the app's scene-render format: the 8-bit
+    // swapchain format by default, rgba16float when the HDR scene buffer is
+    // active (M5-T4). The final post stage tonemaps it back to the swapchain.
+    format: options.app.sceneRenderFormat,
     label: `${options.label}:post:scene`,
   });
 
@@ -132,6 +136,33 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     }
   }
 
+  // M5-T6: the separated indirect (ambient+IBL) color the lit pass writes to a
+  // second attachment, consumed by an SSAO effect to attenuate only indirect
+  // light. Mutually exclusive with motion vectors (both @location(1)).
+  let indirectColorTexture: WebGpuPostPassTextureResource | undefined;
+
+  if (
+    options.indirectColorFormat !== undefined &&
+    options.indirectColorFormat !== null
+  ) {
+    const indirect = createOrReuseWebGpuPostPassTexture({
+      device: options.app.initialization.device as Parameters<
+        typeof createOrReuseWebGpuPostPassTexture
+      >[0]["device"],
+      slot: options.cache.postPasses.indirectColor,
+      width: options.target.width,
+      height: options.target.height,
+      format: options.indirectColorFormat,
+      label: `${options.label}:post:indirect`,
+    });
+
+    diagnostics.push(...indirect.diagnostics);
+
+    if (indirect.valid && indirect.resource !== null) {
+      indirectColorTexture = indirect.resource;
+    }
+  }
+
   const requiresDepthTexture = options.effects.some(
     (effect) => effect.requiresDepthTexture === true,
   );
@@ -155,6 +186,35 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   const useSceneMotionVectorAttachment =
     motionVectorTexture !== undefined &&
     motionVectorAttachmentView !== undefined;
+  const indirectColorAttachmentView =
+    options.indirectColorFormat === undefined ||
+    options.indirectColorFormat === null
+      ? undefined
+      : indirectColorTexture?.texture.createView?.();
+  const useSceneIndirectAttachment =
+    indirectColorTexture !== undefined &&
+    indirectColorAttachmentView !== undefined;
+  // Motion vectors and the indirect channel are mutually exclusive second
+  // attachments; emit at most one.
+  const sceneAdditionalColorTargets = useSceneMotionVectorAttachment
+    ? [
+        {
+          view: motionVectorAttachmentView,
+          clearColor: [0.5, 0.5, 0.5, 1],
+          loadOp: "clear" as const,
+          storeOp: "store" as const,
+        },
+      ]
+    : useSceneIndirectAttachment
+      ? [
+          {
+            view: indirectColorAttachmentView,
+            clearColor: [0, 0, 0, 1],
+            loadOp: "clear" as const,
+            storeOp: "store" as const,
+          },
+        ]
+      : undefined;
   const sceneBoundary = assembleFrameBoundary({
     context,
     device,
@@ -171,18 +231,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     ...(options.msaaColorTarget === undefined
       ? {}
       : { msaaColorTarget: options.msaaColorTarget }),
-    ...(useSceneMotionVectorAttachment
-      ? {
-          additionalColorTargets: [
-            {
-              view: motionVectorAttachmentView,
-              clearColor: [0.5, 0.5, 0.5, 1],
-              loadOp: "clear",
-              storeOp: "store",
-            },
-          ],
-        }
-      : {}),
+    ...(sceneAdditionalColorTargets === undefined
+      ? {}
+      : { additionalColorTargets: sceneAdditionalColorTargets }),
     depthTarget: {
       view: options.depthAttachment.view,
       depthClearValue: options.target.view.clearDepth,
@@ -284,6 +335,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
       ...(motionVectorTexture === undefined
         ? {}
         : { motionVector: motionVectorTexture }),
+      ...(indirectColorTexture === undefined
+        ? {}
+        : { indirectColor: indirectColorTexture }),
       ...(depthTexture === undefined ? {} : { depth: depthTexture }),
       ...(outputTexture === null ? {} : { output: outputTexture }),
       label: `${options.label}:post:${effect.id}`,
