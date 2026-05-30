@@ -1,6 +1,41 @@
 # Agent Handoff
 
-Updated: 2026-05-30T08:25:00Z
+Updated: 2026-05-30T10:48:00Z
+
+## Current Run Update — 2026-05-30 — SOTA M4 (Production-quality shadows): COMPLETE 9/9
+
+Implemented Milestone M4 from docs/SOTA_ROADMAP.md end to end. **All 9 tasks
+(T1-T9) are done with passing named proofs and a green gate** (pnpm run check =
+385 files / 2176 tests). Each task committed separately; the docs/SOTA_ROADMAP.md
+completion log + Status block are fully updated.
+
+ENVIRONMENT (committed, turnkey): .claude/hooks/session-start.sh installs deps,
+rebuilds references/, installs a WebGPU-capable Chrome, ensures xvfb, regenerates
+playwright.local.config.ts. Run WebGPU pixel/readback proofs with
+scripts/webgpu-e2e.sh <spec>. (navigator.gpu needs a SECURE context = the
+localhost server, not about:blank; the bundled Chromium ships WebGPU off so it
+uses channel "chrome".)
+
+T1 frustum-fit + texel-snapped CSM matrices (no swim) · T2 practical linear/log
+splits · T3 authored shadow params on ShadowRequestPacket + packed codec · T4
+strength replaces the MIN_VISIBILITY floor (full darkness) · T5 real
+depth/normal/slope bias · T6 cascade blending (no seam) · T7 PCSS
+contact-hardening via textureLoad blocker search behind shadowType=2 · T8
+alpha-tested perforated casters (SHADOW_CASTER_ALPHA_TEST_WGSL) · T9 deterministic
+atlas packer + realtime/once/interval update scheduler.
+
+KEY: the SwiftShader pixel proofs use dedicated, purely-additive render-control
+routes (examples/{shadow-bias,alpha-shadow,atlas-shadow}.\*) that drive the real
+shaders/packer end to end and read back depth/color — robust region-average /
+variance / texel-count assertions, not subtle precision. This is the proven
+template for shadow proofs under SwiftShader. The per-light light-float layout is
+now stride 29 (slots 24-28 = strength/depthBias/normalBias/filterRadius/shadowType).
+
+NEXT: M4 is complete. Wave 1 still has M5 (PBR/IBL correctness) not-started, so
+the wave does not advance. Per the run directive only M4 was in scope; no other
+milestone was started.
+
+---
 
 ## Current Run Update — 2026-05-30 — SOTA M4 (Production-quality shadows): 7/9 done
 

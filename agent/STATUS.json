@@ -3,9 +3,9 @@
   "currentTaskId": null,
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
-  "lastResult": "stop-condition",
+  "lastResult": "success",
   "lastCommit": "f835fb62",
   "activePid": null,
-  "notes": "SOTA M4: 7/9 done (T1-T7) + gate-green (2173 tests, all shadow e2e pass under SwiftShader). T8 (alpha-test casters) + T9 (atlas packer) remain — large GPU-plumbing slices, detailed plans in roadmap. Stopping on session scope.",
-  "lastRunFinishedAt": "2026-05-30T08:23:04Z"
+  "notes": "SOTA M4 (Production-quality shadows) COMPLETE: all 9 tasks done with passing proofs; gate green (385 files / 2176 tests). Proof routes csm-directional/shadow-bias/alpha-shadow/atlas-shadow pass under SwiftShader.",
+  "lastRunFinishedAt": "2026-05-30T10:49:59Z"
 }
