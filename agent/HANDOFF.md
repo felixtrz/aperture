@@ -28238,3 +28238,52 @@ References inspected (this run):
   pipelines), `ibl-texture-resource-specular.ts`
   (`createSpecularIblPmremTextureResource` dispatch-on-create + device
   feature-detection → BRDF-LUT + irradiance resource builders).
+
+---
+
+## 2026-05-30 (cont.) — SOTA M5 advanced to 3/6 (T3 completed); T4 assessment
+
+M5-T3 (equirect->cube single-asset auto-IBL) is now ✅ done (`4afc17e`), fully
+proven — see roadmap completion log. M5 is at 3/6 (T1 `7beb1ca`, T2 `3cc58d9`,
+T3 `4afc17e`), gate green (390 files / 2200 tests), all three e2e proofs
+(ibl-brdf, ibl-irradiance, ibl-equirect) green on HEAD under SwiftShader.
+
+T3 completion details: new `equirect-to-cube-resource.ts`
+(`createEquirectToCubeResource`: equirect 2D source -> projected cube
+`TextureGpuResource` with COPY_SRC for readback; fake-device vitest). Example
+`examples/ibl-equirect.*` + `ibl-equirect-environment.js` synthesizes a valid
+2:1 flat-RGBE `.hdr` in-JS (round-trip-verified against `parseHdrRgbe`), loads it
+via `loadHdrFromUri` (data URL), projects to a cube, reads back the 6 faces, and
+feeds BOTH PMREM (specularPrefiltering:true) and the T2 convolution. Mirror
+sphere reflects the projected env; `test/e2e/ibl-equirect.spec.ts` asserts the
+source metadata + the reflective probe.
+
+**T4 depth assessment (for the next agent — IMPORTANT).** M5-T4 (persistent
+rgba16float HDR scene buffer + exposure) is NOT a localized post-processing
+change. The lit-pass color format is threaded from `app.initialization.format`
+(the 8-bit swapchain format) into EVERY pipeline-creation site:
+`packages/webgpu/src/app/pipeline-resources.ts` (standard material, lines
+73/88/101/113), `skybox.ts:259`, `sprites.ts:350`, `custom-wgsl-frame.ts:159`,
+`mixed-custom-wgsl-frame.ts:696`, plus `post-processing.ts` (scene texture +
+final boundary) and `frame-boundaries.ts:409`. To render the lit pass into an
+rgba16float buffer, ALL of those must use a distinct "scene render format"
+(rgba16float) while the FINAL swapchain stage stays 8-bit. Recommended approach:
+introduce an opt-in scene-render-format (driven by a new `exposure`/`hdr` option
+on CreateWebGpuAppOptions) so the default 8-bit path is untouched (zero
+regressions), thread it through the pipeline-creation sites + the post scene
+texture, skip `applyOutputTonemapToStandardShader` (standard-pipeline.ts:113)
+when active so the material returns linear HDR, and add a final
+`createWebGpuTonemapPostEffect` (exposure*color -> tonemap -> sRGB encode ->
+swapchain). The `* exposure` term + its vitest (Done-when #4) and the
+hdr-exposure example/spec follow. This is a deep, hot-path slice; budget for it
+accordingly. M5-T6 (SSAO->indirect) also needs an MRT split or a depth-prepass
+(see its watch-out); M5-T5 depends on T4.
+
+References inspected (this continuation): in-repo render-path source —
+`packages/webgpu/src/app/post-processing.ts` (lit-pass-into-scene-texture +
+final-output flow), `pipeline-resources.ts` / `skybox.ts` / `sprites.ts` /
+`custom-wgsl-frame.ts` / `mixed-custom-wgsl-frame.ts` (lit-pass colorFormat
+sourced from `app.initialization.format`); `packages/render/src/assets/`
+hdr-rgbe-parser/header/pixels/conversion (RGBE flat-format encoding for the
+synthesized equirect .hdr); `references/three.js/src/nodes/utils/EquirectUV.js`
+(equirect<->direction mapping).
