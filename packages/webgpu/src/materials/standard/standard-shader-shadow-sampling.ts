@@ -10,6 +10,9 @@ export function applyStandardShadowMapSampling(
       ? `const STANDARD_SHADOW_MAX_CASCADES: u32 = 4u;
 // World-space scale applied to the authored (texel-unit) normal-offset bias.
 const STANDARD_SHADOW_NORMAL_OFFSET_SCALE: f32 = 0.05;
+// Fraction of a cascade's view-distance range used as the blend band before
+// its far bound, where the current and next cascade factors are mixed (M4-T6).
+const STANDARD_SHADOW_CASCADE_BLEND: f32 = 0.12;
 
 fn shadowStrength(lightIndex: u32) -> f32 {
   return clamp(lightFloats[lightFloatOffset(lightIndex) + 24u], 0.0, 1.0);
@@ -85,23 +88,13 @@ fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32, cascadeInd
   return visibility * (1.0 / 9.0);
 }
 
-fn sampleDirectionalShadowFactor(lightIndex: u32, worldPosition: vec3f, normal: vec3f) -> f32 {
-  let cascadeIndex = selectDirectionalShadowCascade(lightIndex, worldPosition);
-  let cascadeCount = directionalShadowCascadeCount(lightIndex);
-
-  if (cascadeIndex >= cascadeCount) {
-    return 1.0;
-  }
-
+fn sampleDirectionalCascadeVisibility(lightIndex: u32, cascadeIndex: u32, biasedPosition: vec3f) -> f32 {
   let matrixIndex = directionalShadowMatrixBaseIndex(lightIndex) + cascadeIndex;
 
   if (matrixIndex >= arrayLength(&directionalShadowMatrices)) {
     return 1.0;
   }
 
-  // Normal-offset bias: push the receiver position along its surface normal
-  // before projecting into shadow space (reduces acne on grazing surfaces).
-  let biasedPosition = worldPosition + normal * shadowNormalBias(lightIndex) * STANDARD_SHADOW_NORMAL_OFFSET_SCALE;
   let shadowPosition = directionalShadowMatrices[matrixIndex] * vec4f(biasedPosition, 1.0);
 
   if (abs(shadowPosition.w) <= 0.00001) {
@@ -136,11 +129,45 @@ fn sampleDirectionalShadowFactor(lightIndex: u32, worldPosition: vec3f, normal: 
     receiverDepth,
     cascadeIndex,
   );
-  let visibility = select(
+  return select(
     clamp(rawVisibility, 0.0, 1.0),
     1.0,
     rawVisibility != rawVisibility,
   );
+}
+
+fn sampleDirectionalShadowFactor(lightIndex: u32, worldPosition: vec3f, normal: vec3f) -> f32 {
+  let cascadeCount = directionalShadowCascadeCount(lightIndex);
+  let cascadeIndex = selectDirectionalShadowCascade(lightIndex, worldPosition);
+
+  if (cascadeIndex >= cascadeCount) {
+    return 1.0;
+  }
+
+  // Normal-offset bias: push the receiver position along its surface normal
+  // before projecting into shadow space (reduces acne on grazing surfaces).
+  let biasedPosition = worldPosition + normal * shadowNormalBias(lightIndex) * STANDARD_SHADOW_NORMAL_OFFSET_SCALE;
+  var visibility = sampleDirectionalCascadeVisibility(lightIndex, cascadeIndex, biasedPosition);
+
+  // Cascade blend (M4-T6): inside a band before this cascade's far bound, mix
+  // the current and NEXT cascade visibility factors (each sampled with its own
+  // matrix/layer — never blend the UVs) so the split boundary has no hard seam.
+  let nextCascade = cascadeIndex + 1u;
+  if (nextCascade < cascadeCount) {
+    let farBound = directionalShadowCascadeFarBound(lightIndex, cascadeIndex);
+    let nearBound = select(
+      0.0,
+      directionalShadowCascadeFarBound(lightIndex, max(cascadeIndex, 1u) - 1u),
+      cascadeIndex > 0u,
+    );
+    let bandWidth = max((farBound - nearBound) * STANDARD_SHADOW_CASCADE_BLEND, 0.0001);
+    let viewDistance = distance(view.cameraPosition.xyz, worldPosition);
+    let blend = clamp((viewDistance - (farBound - bandWidth)) / bandWidth, 0.0, 1.0);
+    if (blend > 0.0) {
+      let nextVisibility = sampleDirectionalCascadeVisibility(lightIndex, nextCascade, biasedPosition);
+      visibility = mix(visibility, nextVisibility, blend);
+    }
+  }
 
   return mix(1.0 - shadowStrength(lightIndex), 1.0, visibility);
 }

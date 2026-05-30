@@ -1473,14 +1473,27 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "let biasedPosition = worldPosition + normal * shadowNormalBias(lightIndex)",
     );
-    const offsetIndex = STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL.indexOf(
-      "let biasedPosition = worldPosition + normal * shadowNormalBias(lightIndex)",
-    );
-    const projectIndex = STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL.indexOf(
+    // The shadow-matrix multiply consumes the normal-offset (biasedPosition),
+    // i.e. the offset is applied before the projection.
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "directionalShadowMatrices[matrixIndex] * vec4f(biasedPosition, 1.0)",
     );
-    expect(offsetIndex).toBeGreaterThan(0);
-    expect(projectIndex).toBeGreaterThan(offsetIndex);
+
+    // M4-T6: the cascaded path blends the current and the NEXT cascade's
+    // visibility factors (each sampled with its own matrix/layer) near the
+    // cascade boundary so there is no hard seam.
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "fn sampleDirectionalCascadeVisibility(lightIndex: u32, cascadeIndex: u32, biasedPosition: vec3f) -> f32",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "let nextCascade = cascadeIndex + 1u;",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "let nextVisibility = sampleDirectionalCascadeVisibility(lightIndex, nextCascade, biasedPosition);",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "visibility = mix(visibility, nextVisibility, blend);",
+    );
   });
 
   it("declares cascaded directional shadows and IBL in one group 3 route", () => {
