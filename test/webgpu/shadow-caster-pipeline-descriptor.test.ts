@@ -8,6 +8,30 @@ import {
 } from "@aperture-engine/webgpu/test-support";
 
 describe("shadow caster pipeline descriptor metadata", () => {
+  it("emits authored slope-scaled and constant depth bias on the caster pipeline depthStencil (M4-T5)", () => {
+    const report = createShadowCasterPipelineDescriptorReport({
+      commandEncoding: commandEncoding("ready"),
+      depthBias: 3,
+      slopeBias: 2.5,
+    });
+
+    expect(report.descriptor?.depthStencil).toMatchObject({
+      format: "depth24plus",
+      depthWriteEnabled: true,
+      depthCompare: "less-equal",
+      depthBias: 3,
+      depthBiasSlopeScale: 2.5,
+    });
+    // Truncated to an integer for the WebGPU depthBias (depth-buffer units).
+    const biased = createShadowCasterPipelineDescriptorReport({
+      commandEncoding: commandEncoding("ready"),
+      depthBias: 4.9,
+      slopeBias: -1,
+    });
+    expect(biased.descriptor?.depthStencil.depthBias).toBe(4);
+    expect(biased.descriptor?.depthStencil.depthBiasSlopeScale).toBe(0);
+  });
+
   it("reports depth-only shadow caster pipeline metadata without creating pipelines", () => {
     const report = createShadowCasterPipelineDescriptorReport({
       commandEncoding: commandEncoding("ready"),
@@ -60,6 +84,8 @@ describe("shadow caster pipeline descriptor metadata", () => {
           format: "depth24plus",
           depthWriteEnabled: true,
           depthCompare: "less-equal",
+          depthBias: 0,
+          depthBiasSlopeScale: 0,
         },
         colorTargets: [],
       },
@@ -95,6 +121,8 @@ describe("shadow caster pipeline descriptor metadata", () => {
             format: "depth24plus",
             depthWriteEnabled: true,
             depthCompare: "less-equal",
+            depthBias: 0,
+            depthBiasSlopeScale: 0,
           },
           colorTargets: [],
         },

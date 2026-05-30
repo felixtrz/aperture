@@ -7,11 +7,20 @@ export function applyStandardShadowMapSampling(
 ): string {
   const helpers =
     options.cascaded === true
-      ? `const STANDARD_SHADOW_DEPTH_BIAS: f32 = 0.002;
-const STANDARD_SHADOW_MAX_CASCADES: u32 = 4u;
+      ? `const STANDARD_SHADOW_MAX_CASCADES: u32 = 4u;
+// World-space scale applied to the authored (texel-unit) normal-offset bias.
+const STANDARD_SHADOW_NORMAL_OFFSET_SCALE: f32 = 0.05;
 
 fn shadowStrength(lightIndex: u32) -> f32 {
   return clamp(lightFloats[lightFloatOffset(lightIndex) + 24u], 0.0, 1.0);
+}
+
+fn shadowDepthBias(lightIndex: u32) -> f32 {
+  return max(lightFloats[lightFloatOffset(lightIndex) + 25u], 0.0);
+}
+
+fn shadowNormalBias(lightIndex: u32) -> f32 {
+  return max(lightFloats[lightFloatOffset(lightIndex) + 26u], 0.0);
 }
 
 fn directionalShadowCascadeCount(lightIndex: u32) -> u32 {
@@ -76,7 +85,7 @@ fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32, cascadeInd
   return visibility * (1.0 / 9.0);
 }
 
-fn sampleDirectionalShadowFactor(lightIndex: u32, worldPosition: vec3f) -> f32 {
+fn sampleDirectionalShadowFactor(lightIndex: u32, worldPosition: vec3f, normal: vec3f) -> f32 {
   let cascadeIndex = selectDirectionalShadowCascade(lightIndex, worldPosition);
   let cascadeCount = directionalShadowCascadeCount(lightIndex);
 
@@ -90,7 +99,10 @@ fn sampleDirectionalShadowFactor(lightIndex: u32, worldPosition: vec3f) -> f32 {
     return 1.0;
   }
 
-  let shadowPosition = directionalShadowMatrices[matrixIndex] * vec4f(worldPosition, 1.0);
+  // Normal-offset bias: push the receiver position along its surface normal
+  // before projecting into shadow space (reduces acne on grazing surfaces).
+  let biasedPosition = worldPosition + normal * shadowNormalBias(lightIndex) * STANDARD_SHADOW_NORMAL_OFFSET_SCALE;
+  let shadowPosition = directionalShadowMatrices[matrixIndex] * vec4f(biasedPosition, 1.0);
 
   if (abs(shadowPosition.w) <= 0.00001) {
     return 1.0;
@@ -115,7 +127,7 @@ fn sampleDirectionalShadowFactor(lightIndex: u32, worldPosition: vec3f) -> f32 {
   }
 
   let receiverDepth = clamp(
-    clampedShadowDepth - STANDARD_SHADOW_DEPTH_BIAS,
+    clampedShadowDepth - shadowDepthBias(lightIndex),
     0.0,
     1.0,
   );
@@ -133,12 +145,12 @@ fn sampleDirectionalShadowFactor(lightIndex: u32, worldPosition: vec3f) -> f32 {
   return mix(1.0 - shadowStrength(lightIndex), 1.0, visibility);
 }
 
-fn sampleDirectionalShadowReceiverFactor(worldPosition: vec3f) -> f32 {
+fn sampleDirectionalShadowReceiverFactor(worldPosition: vec3f, normal: vec3f) -> f32 {
   var factor = 1.0;
 
   for (var lightIndex = 0u; lightIndex < lightCount(); lightIndex = lightIndex + 1u) {
     if (lightKind(lightIndex) == LIGHT_KIND_DIRECTIONAL) {
-      factor = min(factor, sampleDirectionalShadowFactor(lightIndex, worldPosition));
+      factor = min(factor, sampleDirectionalShadowFactor(lightIndex, worldPosition, normal));
     }
   }
 
@@ -264,7 +276,7 @@ fn evaluateDirectLight(
         roughness,
       );`,
       options.cascaded === true
-        ? `      let shadowFactor = sampleDirectionalShadowFactor(lightIndex, input.worldPosition);
+        ? `      let shadowFactor = sampleDirectionalShadowFactor(lightIndex, input.worldPosition, normal);
       direct = direct + evaluateDirectLight(
         normal,
         viewDir,
@@ -288,7 +300,7 @@ fn evaluateDirectLight(
     .replace(
       `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
       options.cascaded === true
-        ? `  let receiverShadowFactor = sampleDirectionalShadowReceiverFactor(input.worldPosition);
+        ? `  let receiverShadowFactor = sampleDirectionalShadowReceiverFactor(input.worldPosition, normal);
   let color = (ambientDiffuse + direct) * receiverShadowFactor + material.emissiveFactor;`
         : `  let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
   let color = (ambientDiffuse + direct) * receiverShadowFactor + material.emissiveFactor;`,

@@ -324,6 +324,8 @@ export function createBrowserShadowCasterPipelineDescriptor(
       format: metadata.depthStencil.format,
       depthWriteEnabled: metadata.depthStencil.depthWriteEnabled,
       depthCompare: metadata.depthStencil.depthCompare,
+      depthBias: metadata.depthStencil.depthBias,
+      depthBiasSlopeScale: metadata.depthStencil.depthBiasSlopeScale,
     },
   };
 }

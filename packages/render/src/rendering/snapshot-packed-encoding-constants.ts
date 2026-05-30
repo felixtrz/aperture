@@ -7,8 +7,8 @@ export const MESH_DRAW_PACKET_WORDS = 34;
 export const LIGHT_PACKET_WORDS = 31;
 export const ENVIRONMENT_PACKET_WORDS = 13;
 // 0-5: ids/kind/masks/cascadeCount; 6: shadowType; 7-9: strength/filterRadius/
-// slopeBias (float32) — added in M4-T3.
-export const SHADOW_REQUEST_PACKET_WORDS = 10;
+// slopeBias (M4-T3); 10-11: depthBias/normalBias (float32) (M4-T5).
+export const SHADOW_REQUEST_PACKET_WORDS = 12;
 export const BOUNDS_PACKET_WORDS = 43;
 
 export const SNAPSHOT_PACKET_WORD_STRIDES = Object.freeze({

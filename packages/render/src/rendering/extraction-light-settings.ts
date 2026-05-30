@@ -140,6 +140,8 @@ export function appendShadowRequest(
   const strength = settings.strength ?? 1;
   const filterRadius = settings.filterRadius ?? 1;
   const slopeBias = settings.slopeBias ?? 0;
+  const depthBias = settings.bias ?? 0;
+  const normalBias = settings.normalBias ?? 0;
 
   shadowRequests.push({
     shadowId: lightId,
@@ -154,6 +156,8 @@ export function appendShadowRequest(
     ...(strength === 1 ? {} : { strength }),
     ...(filterRadius === 1 ? {} : { filterRadius }),
     ...(slopeBias === 0 ? {} : { slopeBias }),
+    ...(depthBias === 0 ? {} : { depthBias }),
+    ...(normalBias === 0 ? {} : { normalBias }),
   });
 }
 

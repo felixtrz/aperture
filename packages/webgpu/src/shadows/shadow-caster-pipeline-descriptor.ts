@@ -52,6 +52,10 @@ export interface ShadowCasterPipelineDescriptorMetadata {
     readonly format: "depth24plus";
     readonly depthWriteEnabled: true;
     readonly depthCompare: "less-equal";
+    /** Constant depth bias in depth-buffer units (M4-T5). */
+    readonly depthBias: number;
+    /** Slope-scaled depth bias factor (M4-T5). */
+    readonly depthBiasSlopeScale: number;
   };
   readonly colorTargets: readonly [];
 }
@@ -87,6 +91,10 @@ export interface CreateShadowCasterPipelineDescriptorReportOptions {
   readonly topology?: MeshTopology;
   readonly depthFormat?: "depth24plus" | "";
   readonly indexFormat?: MeshIndexFormat;
+  /** Authored constant depth bias for the caster pipeline (M4-T5). */
+  readonly depthBias?: number;
+  /** Authored slope-scaled depth bias for the caster pipeline (M4-T5). */
+  readonly slopeBias?: number;
 }
 
 const SHADOW_CASTER_DEPTH_ONLY_PIPELINE_KEY =
@@ -166,7 +174,10 @@ export function createShadowCasterPipelineDescriptorReport(
     hasBlockingDiagnostics || depthFormat !== "depth24plus"
       ? []
       : collectMeshLayoutKeys(options).map((meshLayoutKey) =>
-          createDescriptor(options.indexFormat ?? "uint32", meshLayoutKey),
+          createDescriptor(options.indexFormat ?? "uint32", meshLayoutKey, {
+            depthBias: Math.trunc(options.depthBias ?? 0),
+            depthBiasSlopeScale: Math.max(0, options.slopeBias ?? 0),
+          }),
         );
   const status = determineStatus(
     options.commandEncoding.status,
@@ -206,6 +217,7 @@ export function shadowCasterPipelineDescriptorReportToJson(
 function createDescriptor(
   indexFormat: MeshIndexFormat,
   meshLayoutKey: string | null,
+  bias: { readonly depthBias: number; readonly depthBiasSlopeScale: number },
 ): ShadowCasterPipelineDescriptorMetadata {
   return {
     pipelineKey: shadowCasterPipelineKeyForMeshLayoutKey(meshLayoutKey),
@@ -237,6 +249,8 @@ function createDescriptor(
       format: "depth24plus",
       depthWriteEnabled: true,
       depthCompare: "less-equal",
+      depthBias: bias.depthBias,
+      depthBiasSlopeScale: bias.depthBiasSlopeScale,
     },
     colorTargets: [],
   };

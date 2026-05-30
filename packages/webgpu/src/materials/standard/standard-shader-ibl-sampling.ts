@@ -28,10 +28,10 @@ export function applyStandardDiffuseIblSampling(code: string): string {
   let color = (ambientDiffuse + diffuseIbl + direct) * receiverShadowFactor + material.emissiveFactor;`,
     )
     .replace(
-      `  let receiverShadowFactor = sampleDirectionalShadowReceiverFactor(input.worldPosition);
+      `  let receiverShadowFactor = sampleDirectionalShadowReceiverFactor(input.worldPosition, normal);
   let color = (ambientDiffuse + direct) * receiverShadowFactor + material.emissiveFactor;`,
       `${sample}
-  let receiverShadowFactor = sampleDirectionalShadowReceiverFactor(input.worldPosition);
+  let receiverShadowFactor = sampleDirectionalShadowReceiverFactor(input.worldPosition, normal);
   let color = (ambientDiffuse + diffuseIbl + direct) * receiverShadowFactor + material.emissiveFactor;`,
     );
 }

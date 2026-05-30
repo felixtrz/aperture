@@ -32,6 +32,7 @@ import {
   STANDARD_SHADOW_MAP_SHADER_VARIANT,
   STANDARD_SHADOW_RECEIVER_MESH_SHADER,
   STANDARD_SHADOW_RECEIVER_MESH_WGSL,
+  STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL,
   STANDARD_MATERIAL_MVP_LIGHTING_MODEL,
   STANDARD_MESH_SHADER,
   STANDARD_MESH_WGSL,
@@ -1451,11 +1452,35 @@ describe("built-in standard material WGSL shader metadata", () => {
       "textureSampleCompareLevel(\n        directionalShadowMap,\n        directionalShadowSampler,\n        sampleUv,\n        i32(cascadeIndex),",
     );
     expect(shader.code).toContain(
-      "fn sampleDirectionalShadowReceiverFactor(worldPosition: vec3f) -> f32",
+      "fn sampleDirectionalShadowReceiverFactor(worldPosition: vec3f, normal: vec3f) -> f32",
     );
     expect(shader.code).toContain(
-      "let shadowFactor = sampleDirectionalShadowFactor(lightIndex, input.worldPosition);",
+      "let shadowFactor = sampleDirectionalShadowFactor(lightIndex, input.worldPosition, normal);",
     );
+
+    // M4-T5: receiver depth bias is read per-light (not the literal 0.002), and
+    // a normal-offset term is applied to the receiver position BEFORE the
+    // shadow-matrix multiply.
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).not.toContain(
+      "STANDARD_SHADOW_DEPTH_BIAS",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "fn shadowDepthBias(lightIndex: u32) -> f32",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "clampedShadowDepth - shadowDepthBias(lightIndex)",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "let biasedPosition = worldPosition + normal * shadowNormalBias(lightIndex)",
+    );
+    const offsetIndex = STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL.indexOf(
+      "let biasedPosition = worldPosition + normal * shadowNormalBias(lightIndex)",
+    );
+    const projectIndex = STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL.indexOf(
+      "directionalShadowMatrices[matrixIndex] * vec4f(biasedPosition, 1.0)",
+    );
+    expect(offsetIndex).toBeGreaterThan(0);
+    expect(projectIndex).toBeGreaterThan(offsetIndex);
   });
 
   it("declares cascaded directional shadows and IBL in one group 3 route", () => {

@@ -129,6 +129,8 @@ export function writeShadowRequestPacket(
   writeFloat32(words, offset + 7, packet.strength ?? 1);
   writeFloat32(words, offset + 8, packet.filterRadius ?? 1);
   writeFloat32(words, offset + 9, packet.slopeBias ?? 0);
+  writeFloat32(words, offset + 10, packet.depthBias ?? 0);
+  writeFloat32(words, offset + 11, packet.normalBias ?? 0);
 }
 
 export function readShadowRequestPacket(
@@ -150,6 +152,8 @@ export function readShadowRequestPacket(
   const strength = readFloat32(words, offset + 7);
   const filterRadius = readFloat32(words, offset + 8);
   const slopeBias = readFloat32(words, offset + 9);
+  const depthBias = readFloat32(words, offset + 10);
+  const normalBias = readFloat32(words, offset + 11);
 
   return {
     ...packet,
@@ -159,5 +163,7 @@ export function readShadowRequestPacket(
     ...(strength === 1 ? {} : { strength }),
     ...(filterRadius === 1 ? {} : { filterRadius }),
     ...(slopeBias === 0 ? {} : { slopeBias }),
+    ...(depthBias === 0 ? {} : { depthBias }),
+    ...(normalBias === 0 ? {} : { normalBias }),
   };
 }

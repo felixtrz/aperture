@@ -16,7 +16,9 @@ import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descr
 // Slots 0-23: color/intensity/range-or-cascadeCount/cascade-far-bounds-or-cones/
 // matrixBaseIndex-or-shape/cookie/position/direction/area extents.
 // Slot 24: authored shadow strength (M4-T4); shadow-casting lights only.
-export const PACKED_LIGHT_FLOAT_STRIDE = 25;
+// Slot 25: authored shadow receiver depthBias (M4-T5).
+// Slot 26: authored shadow normal-offset bias (M4-T5).
+export const PACKED_LIGHT_FLOAT_STRIDE = 27;
 export const PACKED_LIGHT_METADATA_STRIDE = 6;
 
 export const PackedLightKindId = {
@@ -312,6 +314,8 @@ export function writePackedLightPackets(
         transformData.areaHalfHeight[1],
         transformData.areaHalfHeight[2],
         shadowParams?.get(light.lightId)?.strength ?? 1,
+        shadowParams?.get(light.lightId)?.depthBias ?? 0,
+        shadowParams?.get(light.lightId)?.normalBias ?? 0,
       ],
       floatOffset,
     );
@@ -706,6 +710,8 @@ interface DirectionalShadowMetadata {
 
 interface PackedShadowParams {
   readonly strength: number;
+  readonly depthBias: number;
+  readonly normalBias: number;
 }
 
 /**
@@ -722,6 +728,8 @@ function shadowParamsByLight(
   for (const request of shadowRequests) {
     params.set(request.lightId, {
       strength: clampUnit(request.strength ?? 1),
+      depthBias: Math.max(0, request.depthBias ?? 0),
+      normalBias: Math.max(0, request.normalBias ?? 0),
     });
   }
 

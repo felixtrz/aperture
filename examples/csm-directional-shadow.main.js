@@ -120,6 +120,11 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     shadowStrength: exampleParams.has("shadow-strength")
       ? Number(exampleParams.get("shadow-strength"))
       : undefined,
+    // M4-T5 proof: drive the authored receiver depth bias (and normal bias) so
+    // the spec can assert acne at bias=0 and peter-panning at very large bias.
+    shadowDepthBias: exampleParams.has("shadow-depth-bias")
+      ? Number(exampleParams.get("shadow-depth-bias"))
+      : undefined,
   });
   globalThis.__APERTURE_STOP_EXAMPLE__ = () => {
     loop.workerReady = false;
@@ -285,6 +290,8 @@ async function publishFrameStatus(
         strength: request.strength ?? 1,
         filterRadius: request.filterRadius ?? 1,
         slopeBias: request.slopeBias ?? 0,
+        depthBias: request.depthBias ?? 0,
+        normalBias: request.normalBias ?? 0,
       })),
       descriptor: shadowFrame.descriptor,
       textures: shadowFrame.textures,
@@ -491,6 +498,9 @@ async function createCsmShadowFrame(input) {
     aperture.shadowCasterPipelineDescriptorReportToJsonValue(
       aperture.createShadowCasterPipelineDescriptorReport({
         commandEncoding,
+        // M4-T5: authored slope-scaled + constant pipeline bias from the light.
+        depthBias: shadowRequests[0]?.depthBias ?? 0,
+        slopeBias: shadowRequests[0]?.slopeBias ?? 0,
       }),
     );
   const pipelineResourceReport =

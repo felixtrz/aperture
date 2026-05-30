@@ -144,6 +144,10 @@ export interface ShadowRequestPacket {
   readonly filterRadius?: number;
   /** Slope-scaled depth bias for the caster pipeline (M4-T3). */
   readonly slopeBias?: number;
+  /** Authored receiver depth bias (LightShadowSettings.bias) (M4-T5). */
+  readonly depthBias?: number;
+  /** Authored normal-offset bias (LightShadowSettings.normalBias) (M4-T5). */
+  readonly normalBias?: number;
 }
 
 export interface BoundsPacket {
