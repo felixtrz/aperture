@@ -91,10 +91,7 @@ export function packShadowAtlas(
   return { atlasWidth, atlasHeight, assignments, dropped };
 }
 
-function compareRequests(
-  a: ShadowAtlasRequest,
-  b: ShadowAtlasRequest,
-): number {
+function compareRequests(a: ShadowAtlasRequest, b: ShadowAtlasRequest): number {
   const priorityA = a.priority ?? 0;
   const priorityB = b.priority ?? 0;
 

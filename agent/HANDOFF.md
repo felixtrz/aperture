@@ -18,6 +18,7 @@ SECURE context = the localhost server, not about:blank; bundled Chromium ships
 WebGPU off so it uses channel "chrome".)
 
 DONE (commit per task; see roadmap completion log):
+
 - T2 practical cascade splits; T1 frustum-fit + texel-snapped matrices (no swim);
   T3 authored shadowType/strength/filterRadius/slopeBias/depthBias/normalBias on
   ShadowRequestPacket + packed codec (stride 6->12) + extraction;
@@ -27,12 +28,13 @@ DONE (commit per task; see roadmap completion log):
   normal-offset slot 26); T6 cascade blend (per-cascade helper + mix);
   T7 PCSS (filterRadius slot 27 + shadowType slot 28; blocker search via
   textureLoad + variable-radius PCF; cascaded PCF now honors filterRadius).
-- Dedicated proof route examples/shadow-bias.* (grazing floor caster+receiver +
+- Dedicated proof route examples/shadow-bias.\* (grazing floor caster+receiver +
   pillar) with ?shadow-depth-bias=/?shadow-type=/?caster= params drives the
   acne (T5), cascade-continuity (T6), and PCSS contact-hardening (T7) pixel
   proofs in test/e2e/shadow-bias.spec.ts. Light-float stride is now 29.
 
 REMAINING (NOT started — detailed plans in the roadmap §M4 Done-when + resume notes):
+
 - T8 alpha-tested shadow casters (independent): thread material alphaMode/
   alphaCutoff/baseColor into the shadow caster draw-list (ShadowCasterDrawRecord
   only has materialKey today — resolve alphaMode from the material renderState,
@@ -43,7 +45,7 @@ REMAINING (NOT started — detailed plans in the roadmap §M4 Done-when + resume
   alphaMode=MASK; bind the material texture in the shadow pass encoder. Proof:
   a checkerboard alpha-cutout quad casts a PERFORATED shadow (lit+shadowed
   samples coexist in the footprint) vs solid for opaque — build a dedicated
-  alpha-cutout example (shadow-bias.* pattern). Descriptor/WGSL/draw-list layer
+  alpha-cutout example (shadow-bias.\* pattern). Descriptor/WGSL/draw-list layer
   is unit-testable (done-when #2/#3); the GPU bind-group + pixel proof is the
   heavy part.
 - T9 shadow atlas packer (deps T3): new shadow-atlas-packer.ts (deterministic
@@ -55,7 +57,7 @@ REMAINING (NOT started — detailed plans in the roadmap §M4 Done-when + resume
   a multi-light atlas route.
 
 PROOF TIP: SwiftShader needs robust region-average/variance assertions (subtle
-precision fails); the examples/shadow-bias.* dedicated-route + URL-param pattern
+precision fails); the examples/shadow-bias.\* dedicated-route + URL-param pattern
 is the template that worked for T5/T6/T7.
 
 HASH NOTE: each task's roadmap log hash points to its implementation commit; the
