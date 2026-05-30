@@ -116,3 +116,115 @@ function isPositiveInteger(value: number): boolean {
 function isNonNegativeInteger(value: number): boolean {
   return Number.isInteger(value) && value >= 0;
 }
+
+export type ComputePassEncoderMethod =
+  | "setPipeline"
+  | "setBindGroup"
+  | "dispatchWorkgroups"
+  | "dispatchWorkgroupsIndirect";
+
+export interface ComputePassEncoderLike {
+  setPipeline?: (pipeline: unknown) => void;
+  setBindGroup?: (index: number, bindGroup: unknown) => void;
+  dispatchWorkgroups?: (x: number, y: number, z: number) => void;
+  dispatchWorkgroupsIndirect?: (buffer: unknown, offset: number) => void;
+}
+
+export type ComputePassCommandExecutorDiagnosticCode =
+  "computePassCommandExecutor.missingMethod";
+
+export interface ComputePassCommandExecutorDiagnostic {
+  readonly code: ComputePassCommandExecutorDiagnosticCode;
+  readonly message: string;
+  readonly method: ComputePassEncoderMethod;
+}
+
+export interface ComputePassCommandExecutionReport {
+  readonly valid: boolean;
+  readonly commandCount: number;
+  readonly executedCommands: number;
+  readonly skippedCommands: number;
+  readonly dispatchCount: number;
+  readonly diagnostics: readonly ComputePassCommandExecutorDiagnostic[];
+}
+
+export interface ExecuteComputePassCommandsOptions {
+  readonly pass: ComputePassEncoderLike;
+  readonly commands: readonly ComputePassCommand[];
+}
+
+/**
+ * Replay a flat ComputePassCommand list against a live GPUComputePassEncoder,
+ * mirroring executeRenderPassCommands. A missing encoder method is a recorded
+ * diagnostic (the command is skipped), never a throw, so a degraded encoder
+ * still produces a JSON-safe report.
+ */
+export function executeComputePassCommands(
+  options: ExecuteComputePassCommandsOptions,
+): ComputePassCommandExecutionReport {
+  const diagnostics: ComputePassCommandExecutorDiagnostic[] = [];
+  let executedCommands = 0;
+  let dispatchCount = 0;
+
+  for (const command of options.commands) {
+    switch (command.kind) {
+      case "setComputePipeline":
+        if (options.pass.setPipeline === undefined) {
+          diagnostics.push(missingMethod("setPipeline"));
+          continue;
+        }
+        options.pass.setPipeline(command.pipeline);
+        executedCommands += 1;
+        break;
+      case "setComputeBindGroup":
+        if (options.pass.setBindGroup === undefined) {
+          diagnostics.push(missingMethod("setBindGroup"));
+          continue;
+        }
+        options.pass.setBindGroup(command.index, command.bindGroup);
+        executedCommands += 1;
+        break;
+      case "dispatchWorkgroups":
+        if (options.pass.dispatchWorkgroups === undefined) {
+          diagnostics.push(missingMethod("dispatchWorkgroups"));
+          continue;
+        }
+        options.pass.dispatchWorkgroups(
+          command.workgroupCountX,
+          command.workgroupCountY,
+          command.workgroupCountZ,
+        );
+        executedCommands += 1;
+        dispatchCount += 1;
+        break;
+      case "dispatchWorkgroupsIndirect":
+        if (options.pass.dispatchWorkgroupsIndirect === undefined) {
+          diagnostics.push(missingMethod("dispatchWorkgroupsIndirect"));
+          continue;
+        }
+        options.pass.dispatchWorkgroupsIndirect(command.buffer, command.offset);
+        executedCommands += 1;
+        dispatchCount += 1;
+        break;
+    }
+  }
+
+  return {
+    valid: diagnostics.length === 0,
+    commandCount: options.commands.length,
+    executedCommands,
+    skippedCommands: options.commands.length - executedCommands,
+    dispatchCount,
+    diagnostics,
+  };
+}
+
+function missingMethod(
+  method: ComputePassEncoderMethod,
+): ComputePassCommandExecutorDiagnostic {
+  return {
+    code: "computePassCommandExecutor.missingMethod",
+    message: `Compute pass encoder is missing the '${method}' method.`,
+    method,
+  };
+}

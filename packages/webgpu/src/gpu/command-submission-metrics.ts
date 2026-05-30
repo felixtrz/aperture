@@ -79,6 +79,80 @@ export function createCommandSubmissionMetricsReport(input: {
   };
 }
 
+/**
+ * An execution report shaped enough for metric aggregation — both
+ * RenderPassCommandExecutionReport (has drawCalls) and
+ * ComputePassCommandExecutionReport (no drawCalls) satisfy it.
+ */
+export interface CommandSubmissionExecutionLike {
+  readonly valid: boolean;
+  readonly commandCount: number;
+  readonly executedCommands: number;
+  readonly skippedCommands: number;
+  readonly drawCalls?: number;
+}
+
+/**
+ * Aggregate metrics for a single command buffer assembled from MANY passes
+ * (the FrameGraph single-encoder path): commands/executedCommands/drawCalls sum
+ * across all render + compute node executions, while commandBuffers/submitted
+ * reflect the one finish + one submit of the shared encoder.
+ */
+export function createMultiPassCommandSubmissionMetricsReport(input: {
+  readonly executions: readonly CommandSubmissionExecutionLike[];
+  readonly finish: FinishCommandEncoderResult;
+  readonly submit: SubmitCommandBuffersReport;
+}): CommandSubmissionMetricsReport {
+  const diagnostics: CommandSubmissionMetricsDiagnostic[] = [];
+
+  if (input.executions.some((execution) => !execution.valid)) {
+    diagnostics.push({
+      code: "commandSubmissionMetrics.executionFailed",
+      message: "One or more render/compute pass executions failed.",
+    });
+  }
+
+  if (!input.finish.valid) {
+    diagnostics.push({
+      code: "commandSubmissionMetrics.finishFailed",
+      message: "Command encoder finish failed.",
+    });
+  }
+
+  if (!input.submit.valid) {
+    diagnostics.push({
+      code: "commandSubmissionMetrics.submitFailed",
+      message: "Queue submission failed.",
+    });
+  }
+
+  let commands = 0;
+  let executedCommands = 0;
+  let skippedCommands = 0;
+  let drawCalls = 0;
+
+  for (const execution of input.executions) {
+    commands += execution.commandCount;
+    executedCommands += execution.executedCommands;
+    skippedCommands += execution.skippedCommands;
+    drawCalls += execution.drawCalls ?? 0;
+  }
+
+  return {
+    ready: diagnostics.length === 0,
+    counts: {
+      commands,
+      executedCommands,
+      skippedCommands,
+      drawCalls,
+      commandBuffers: input.finish.resource === null ? 0 : 1,
+      submittedCommandBuffers: input.submit.submitted,
+      skippedSubmissions: input.submit.skipped,
+    },
+    diagnostics,
+  };
+}
+
 export function commandSubmissionMetricsReportToJsonValue(
   report: CommandSubmissionMetricsReport,
 ): CommandSubmissionMetricsReportJsonValue {

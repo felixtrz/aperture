@@ -58,6 +58,7 @@ export * from "./render/passes/render-pass-lifecycle.js";
 export * from "./render/passes/render-pass-resources.js";
 export * from "./render/graph/frame-graph.js";
 export * from "./render/graph/frame-graph-compile.js";
+export * from "./render/graph/frame-graph-execute.js";
 export * from "./shadows/shadow-caster-command-plan-readiness.js";
 export * from "./shadows/shadow-caster-command-record-plan.js";
 export * from "./shadows/shadow-caster-draw-list-plan.js";
