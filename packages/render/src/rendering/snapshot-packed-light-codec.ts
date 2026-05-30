@@ -10,10 +10,12 @@ import {
   lightKindId,
   lightKindValue,
   readEntity,
+  readFloat32,
   readFloat64,
   readNullableHandle,
   readVec4,
   writeEntity,
+  writeFloat32,
   writeFloat64,
   writeVec4,
 } from "./snapshot-packed-codec-utils.js";
@@ -123,6 +125,12 @@ export function writeShadowRequestPacket(
   words[offset + 3] = packet.casterLayerMask >>> 0;
   words[offset + 4] = packet.receiverLayerMask >>> 0;
   words[offset + 5] = Math.max(1, Math.floor(packet.cascadeCount ?? 1)) >>> 0;
+  words[offset + 6] = (packet.shadowType ?? 1) >>> 0;
+  writeFloat32(words, offset + 7, packet.strength ?? 1);
+  writeFloat32(words, offset + 8, packet.filterRadius ?? 1);
+  writeFloat32(words, offset + 9, packet.slopeBias ?? 0);
+  writeFloat32(words, offset + 10, packet.depthBias ?? 0);
+  writeFloat32(words, offset + 11, packet.normalBias ?? 0);
 }
 
 export function readShadowRequestPacket(
@@ -137,10 +145,25 @@ export function readShadowRequestPacket(
     receiverLayerMask: words[offset + 4] ?? 0,
   };
   const cascadeCount = words[offset + 5] ?? 1;
+  // Mirror the cascadeCount convention: only surface authored shadow params
+  // when they differ from the defaults so default-authored packets round-trip
+  // to a minimal shape (consumers read with their own `?? default`).
+  const shadowType = words[offset + 6] ?? 1;
+  const strength = readFloat32(words, offset + 7);
+  const filterRadius = readFloat32(words, offset + 8);
+  const slopeBias = readFloat32(words, offset + 9);
+  const depthBias = readFloat32(words, offset + 10);
+  const normalBias = readFloat32(words, offset + 11);
 
   return {
     ...packet,
     ...(lightKind === 0 ? {} : { lightKind: lightKindValue(lightKind) }),
     ...(cascadeCount > 1 ? { cascadeCount } : {}),
+    ...(shadowType === 1 ? {} : { shadowType }),
+    ...(strength === 1 ? {} : { strength }),
+    ...(filterRadius === 1 ? {} : { filterRadius }),
+    ...(slopeBias === 0 ? {} : { slopeBias }),
+    ...(depthBias === 0 ? {} : { depthBias }),
+    ...(normalBias === 0 ? {} : { normalBias }),
   };
 }

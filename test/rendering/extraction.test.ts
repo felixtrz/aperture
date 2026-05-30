@@ -2673,6 +2673,33 @@ describe("render extraction", () => {
       "render.shadowUnsupportedLightKind.rect-area",
     ]);
   });
+
+  it("extracts authored shadowType/strength/filterRadius/slopeBias onto the shadow request packet", () => {
+    const world = createRuntimeWorld();
+    const directionalLight = createLightEntity(world, {
+      kind: LightKind.Directional,
+      intensity: 1,
+      layerMask: 1,
+    });
+    directionalLight.addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({
+        enabled: true,
+        shadowType: 2,
+        strength: 0.7,
+        filterRadius: 4,
+        slopeBias: 2,
+      }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+    expect(snapshot.shadowRequests).toHaveLength(1);
+    const request = snapshot.shadowRequests[0]!;
+    expect(request.shadowType).toBe(2);
+    expect(request.strength).toBeCloseTo(0.7, 5);
+    expect(request.filterRadius).toBe(4);
+    expect(request.slopeBias).toBe(2);
+  });
 });
 
 function createRuntimeWorld(

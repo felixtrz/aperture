@@ -2,12 +2,86 @@ import { describe, expect, it } from "vitest";
 
 import {
   createShadowCasterPipelineDescriptorReport,
+  SHADOW_CASTER_ALPHA_TEST_WGSL,
+  SHADOW_CASTER_DEPTH_ONLY_WGSL,
   shadowCasterPipelineDescriptorReportToJson,
   shadowCasterPipelineDescriptorReportToJsonValue,
   type ShadowPassCommandEncodingReport,
 } from "@aperture-engine/webgpu/test-support";
 
 describe("shadow caster pipeline descriptor metadata", () => {
+  it("emits an alpha-test caster pipeline variant alongside the opaque position-only one (M4-T8)", () => {
+    const report = createShadowCasterPipelineDescriptorReport({
+      commandEncoding: commandEncoding("ready"),
+      alphaTestCasters: [
+        {
+          meshLayoutKey: null,
+          alphaCutoff: 0.5,
+          baseColorTextureKey: "texture:foliage",
+          baseColorSamplerKey: "sampler:foliage",
+        },
+      ],
+    });
+
+    const opaque = report.descriptors.find(
+      (descriptor) => descriptor.shader.label === "shadow-caster-depth-only",
+    );
+    const alphaTest = report.descriptors.find(
+      (descriptor) => descriptor.shader.label === "shadow-caster-alpha-test",
+    );
+
+    // Both variants coexist with DISTINCT pipeline keys.
+    expect(opaque).toBeDefined();
+    expect(alphaTest).toBeDefined();
+    expect(alphaTest?.pipelineKey).not.toBe(opaque?.pipelineKey);
+    expect(alphaTest?.pipelineKey).toContain("alpha-test");
+
+    // Opaque caster stays position-only with an empty fragment.
+    expect(opaque?.vertex.buffers).toEqual(["POSITION"]);
+    expect(opaque?.alphaTest).toBeUndefined();
+    expect(SHADOW_CASTER_DEPTH_ONLY_WGSL).toContain("fn fs_main() {");
+
+    // Alpha-test caster adds TEXCOORD_0 + binds the material baseColor + cutoff,
+    // and its fragment discards cutout fragments.
+    expect(alphaTest?.vertex.buffers).toEqual(["POSITION", "TEXCOORD_0"]);
+    expect(alphaTest?.alphaTest).toEqual({
+      alphaCutoff: 0.5,
+      baseColorTextureKey: "texture:foliage",
+      baseColorSamplerKey: "sampler:foliage",
+    });
+    expect(SHADOW_CASTER_ALPHA_TEST_WGSL).toContain(
+      "var baseColorTexture: texture_2d<f32>",
+    );
+    expect(SHADOW_CASTER_ALPHA_TEST_WGSL).toContain(
+      "textureSample(baseColorTexture, baseColorSampler, input.uv).a",
+    );
+    expect(SHADOW_CASTER_ALPHA_TEST_WGSL).toContain("discard;");
+  });
+
+  it("emits authored slope-scaled and constant depth bias on the caster pipeline depthStencil (M4-T5)", () => {
+    const report = createShadowCasterPipelineDescriptorReport({
+      commandEncoding: commandEncoding("ready"),
+      depthBias: 3,
+      slopeBias: 2.5,
+    });
+
+    expect(report.descriptor?.depthStencil).toMatchObject({
+      format: "depth24plus",
+      depthWriteEnabled: true,
+      depthCompare: "less-equal",
+      depthBias: 3,
+      depthBiasSlopeScale: 2.5,
+    });
+    // Truncated to an integer for the WebGPU depthBias (depth-buffer units).
+    const biased = createShadowCasterPipelineDescriptorReport({
+      commandEncoding: commandEncoding("ready"),
+      depthBias: 4.9,
+      slopeBias: -1,
+    });
+    expect(biased.descriptor?.depthStencil.depthBias).toBe(4);
+    expect(biased.descriptor?.depthStencil.depthBiasSlopeScale).toBe(0);
+  });
+
   it("reports depth-only shadow caster pipeline metadata without creating pipelines", () => {
     const report = createShadowCasterPipelineDescriptorReport({
       commandEncoding: commandEncoding("ready"),
@@ -60,6 +134,8 @@ describe("shadow caster pipeline descriptor metadata", () => {
           format: "depth24plus",
           depthWriteEnabled: true,
           depthCompare: "less-equal",
+          depthBias: 0,
+          depthBiasSlopeScale: 0,
         },
         colorTargets: [],
       },
@@ -95,6 +171,8 @@ describe("shadow caster pipeline descriptor metadata", () => {
             format: "depth24plus",
             depthWriteEnabled: true,
             depthCompare: "less-equal",
+            depthBias: 0,
+            depthBiasSlopeScale: 0,
           },
           colorTargets: [],
         },

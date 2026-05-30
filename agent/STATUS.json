@@ -3,9 +3,9 @@
   "currentTaskId": null,
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
-  "lastResult": "stop-condition",
+  "lastResult": "success",
   "lastCommit": "f835fb62",
   "activePid": null,
-  "notes": "SOTA M2: 7/9 tasks done + gate-green (T1-T6 + T8). T7 partial (typed morph-weight transport done; N-target morph GPU render is large remaining work) and T9 partial (headless skinned+CUBICSPLINE end-to-end proof done; example route + Playwright pixel-diff unwritten). NOT environment-blocked: WebGPU verified runnable here via Playwright's chromium under xvfb + SwiftShader Vulkan over localhost (spinning-cube.spec.ts passes; see playwright.local.config.ts + agent/HANDOFF.md). Stopping this run: the morph GPU render is a large fragile vertex-layout/WGSL/test subsystem change best done in a focused follow-up; protecting the clean green state. pnpm run check green: 381 files / 2158 tests.",
-  "lastRunFinishedAt": "2026-05-29T22:59:20Z"
+  "notes": "SOTA M4 (Production-quality shadows) COMPLETE: all 9 tasks done with passing proofs; gate green (385 files / 2176 tests). Proof routes csm-directional/shadow-bias/alpha-shadow/atlas-shadow pass under SwiftShader.",
+  "lastRunFinishedAt": "2026-05-30T10:49:59Z"
 }

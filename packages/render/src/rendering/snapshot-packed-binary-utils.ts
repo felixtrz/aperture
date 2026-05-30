@@ -3,6 +3,24 @@ const OPTIONAL_UINT32_ABSENT = 0xffff_ffff;
 const FLOAT64_SCRATCH = new Float64Array(1);
 const FLOAT64_WORDS = new Uint32Array(FLOAT64_SCRATCH.buffer);
 
+const FLOAT32_SCRATCH = new Float32Array(1);
+const FLOAT32_WORDS = new Uint32Array(FLOAT32_SCRATCH.buffer);
+
+export function writeFloat32(
+  words: Uint32Array,
+  offset: number,
+  value: number,
+): void {
+  FLOAT32_SCRATCH[0] = value;
+  words[offset] = FLOAT32_WORDS[0] ?? 0;
+}
+
+export function readFloat32(words: Uint32Array, offset: number): number {
+  FLOAT32_WORDS[0] = words[offset] ?? 0;
+
+  return FLOAT32_SCRATCH[0] ?? 0;
+}
+
 export function writeEntity(
   words: Uint32Array,
   offset: number,

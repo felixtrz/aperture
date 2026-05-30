@@ -136,6 +136,18 @@ export interface ShadowRequestPacket {
   readonly cascadeCount?: number;
   readonly casterLayerMask: number;
   readonly receiverLayerMask: number;
+  /** Filtering mode: 0 = hard, 1 = PCF, 2 = PCSS (M4-T3). */
+  readonly shadowType?: number;
+  /** Authored shadow opacity in [0,1]; 1 = fully dark capable (M4-T3). */
+  readonly strength?: number;
+  /** PCF/PCSS filter radius in texels (M4-T3). */
+  readonly filterRadius?: number;
+  /** Slope-scaled depth bias for the caster pipeline (M4-T3). */
+  readonly slopeBias?: number;
+  /** Authored receiver depth bias (LightShadowSettings.bias) (M4-T5). */
+  readonly depthBias?: number;
+  /** Authored normal-offset bias (LightShadowSettings.normalBias) (M4-T5). */
+  readonly normalBias?: number;
 }
 
 export interface BoundsPacket {

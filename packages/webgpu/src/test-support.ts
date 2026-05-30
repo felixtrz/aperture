@@ -160,6 +160,7 @@ export * from "./shadows/shadow-caster-pipeline-resource.js";
 export * from "./shadows/shadow-command-resource-summary.js";
 export * from "./shadows/shadow-depth-probe.js";
 export * from "./shadows/shadow-depth-resource-summary.js";
+export * from "./shadows/shadow-atlas-packer.js";
 export * from "./shadows/shadow-depth-texture-resource.js";
 export * from "./shadows/shadow-map-descriptor.js";
 export * from "./shadows/shadow-matrix-buffer-descriptor.js";

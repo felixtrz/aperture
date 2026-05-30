@@ -94,6 +94,17 @@ export const STANDARD_SHADOW_RECEIVER_MESH_WGSL =
     shadowMap: true,
   });
 
+export const STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL =
+  createStandardTextureVariantWgsl({
+    baseColorTexture: false,
+    metallicRoughnessTexture: false,
+    normalTexture: false,
+    occlusionTexture: false,
+    emissiveTexture: false,
+    shadowMap: true,
+    cascadedShadowMap: true,
+  });
+
 export const STANDARD_MESH_SHADER: BuiltInShaderSourceModule = {
   label: "aperture/standard-mesh",
   code: STANDARD_MESH_WGSL,

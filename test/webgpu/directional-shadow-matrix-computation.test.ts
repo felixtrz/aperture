@@ -1,3 +1,4 @@
+import { makePerspective } from "@aperture-engine/simulation";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -88,6 +89,101 @@ describe("directional shadow matrix computation", () => {
     ]);
   });
 
+  it("frustum-fits a texel-stable extent: identical ortho size and texel-snapped center under camera translation", () => {
+    const request = { ...shadowRequest(), cascadeCount: 4 };
+    const projection = makePerspective(1.0, 1, 1, 200);
+    // Two cameras that differ by a pure X translation (same orientation).
+    const cameraA = translationView(0, 0, 0);
+    const cameraB = translationView(5.0, 0, 0);
+
+    const reportA = createDirectionalShadowMatrixComputationReport({
+      viewProjection: frustumFitPlan(request),
+      transforms: directionalDownTransform(),
+      cameraViewMatrix: cameraA,
+      cameraProjectionMatrix: projection,
+    });
+    const reportB = createDirectionalShadowMatrixComputationReport({
+      viewProjection: frustumFitPlan(request),
+      transforms: directionalDownTransform(),
+      cameraViewMatrix: cameraB,
+      cameraProjectionMatrix: projection,
+    });
+
+    expect(reportA.matrixCount).toBe(4);
+    expect(reportB.matrixCount).toBe(4);
+
+    const mapSize = 1024;
+    for (let cascade = 0; cascade < 4; cascade += 1) {
+      const sizeA = reportA.matrices[cascade]!.orthographicSize;
+      const sizeB = reportB.matrices[cascade]!.orthographicSize;
+
+      // Extent depends only on the frustum SHAPE, not camera position.
+      expect(sizeB).toBe(sizeA);
+
+      // Light points straight down, so the in-plane center maps to world X/Z;
+      // both centers must sit on the texel grid (snapped), and their delta is
+      // an integer multiple of texelSize = diameter / mapSize.
+      const texel = sizeA / mapSize;
+      const centerXA = reportA.matrices[cascade]!.center[0];
+      const centerXB = reportB.matrices[cascade]!.center[0];
+      expect(fractional(centerXA / texel)).toBeLessThan(1e-3);
+      expect(fractional(centerXB / texel)).toBeLessThan(1e-3);
+      expect(fractional((centerXB - centerXA) / texel)).toBeLessThan(1e-3);
+    }
+
+    // The camera moved, so at least one cascade center actually shifted.
+    const moved = reportA.matrices.some(
+      (matrix, index) =>
+        Math.abs(matrix.center[0] - reportB.matrices[index]!.center[0]) > 1e-4,
+    );
+    expect(moved).toBe(true);
+  });
+
+  it("frustum-fits a tighter near cascade than far cascade for a perspective camera", () => {
+    const request = { ...shadowRequest(), cascadeCount: 4 };
+    const report = createDirectionalShadowMatrixComputationReport({
+      viewProjection: frustumFitPlan(request),
+      transforms: directionalDownTransform(),
+      cameraViewMatrix: translationView(0, 0, 0),
+      cameraProjectionMatrix: makePerspective(1.0, 1, 1, 200),
+    });
+
+    const sizes = report.matrices.map((matrix) => matrix.orthographicSize);
+    expect(sizes).toHaveLength(4);
+    // Strictly increasing: each nearer cascade is a tighter fit.
+    expect(sizes[0]).toBeLessThan(sizes[1]!);
+    expect(sizes[1]).toBeLessThan(sizes[2]!);
+    expect(sizes[2]).toBeLessThan(sizes[3]!);
+  });
+
+  it("falls back to the static-center behavior byte-identically when no camera frustum is supplied", () => {
+    const request = { ...shadowRequest(), cascadeCount: 3 };
+    const baseInput = {
+      viewProjection: viewProjection(request),
+      transforms: identityTransform(),
+      orthographicSize: 30,
+    } as const;
+
+    const withoutCamera =
+      createDirectionalShadowMatrixComputationReport(baseInput);
+    // Passing explicit-undefined camera fields must be identical to omitting.
+    const withUndefinedCamera = createDirectionalShadowMatrixComputationReport({
+      ...baseInput,
+      cameraViewMatrix: undefined,
+      cameraProjectionMatrix: undefined,
+    });
+
+    expect(
+      directionalShadowMatrixComputationReportToJsonValue(withUndefinedCamera),
+    ).toEqual(
+      directionalShadowMatrixComputationReportToJsonValue(withoutCamera),
+    );
+    // Old global-scaled behavior preserved: size = orthographicSize * cascadeFar.
+    expect(
+      withoutCamera.matrices.map((matrix) => matrix.orthographicSize),
+    ).toEqual([10, 20, 30]);
+  });
+
   it("reports missing light transform data", () => {
     const report = createDirectionalShadowMatrixComputationReport({
       viewProjection: viewProjection(),
@@ -138,6 +234,54 @@ function viewProjection(request: ShadowRequestPacket = shadowRequest()) {
       }),
     }),
   });
+}
+
+// A view/projection plan carrying real absolute cascade distances (M4-T2) for a
+// 100-unit shadow range, so the frustum-fit path has slices to fit.
+function frustumFitPlan(request: ShadowRequestPacket) {
+  return createDirectionalShadowViewProjectionPlanReport({
+    shadowRequests: [request],
+    lights: [light()],
+    shadowPassPlan: createShadowPassPlanReport({
+      shadowRequests: [request],
+      textures: createShadowTextureResourceReport({
+        descriptors: createShadowMapDescriptorReport({
+          shadowRequests: [request],
+          descriptors: [
+            { shadowId: 7, lightId: 11, mapSize: 1024, depthBias: 0.001 },
+          ],
+        }),
+      }),
+    }),
+    shadowMaxDistance: 100,
+  });
+}
+
+// World->view for a camera at (x,y,z) with identity orientation (looks down -Z).
+function translationView(x: number, y: number, z: number): Float32Array {
+  // prettier-ignore
+  return new Float32Array([
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    -x, -y, -z, 1,
+  ]);
+}
+
+// Light world transform whose -Z column points straight down (direction [0,-1,0]).
+function directionalDownTransform(): Float32Array {
+  // Column 2 (basis Z) = [0,1,0] so direction = -Z column = [0,-1,0].
+  // prettier-ignore
+  return new Float32Array([
+    1, 0, 0, 0,
+    0, 0, 1, 0,
+    0, 1, 0, 0,
+    0, 0, 0, 1,
+  ]);
+}
+
+function fractional(value: number): number {
+  return Math.abs(value - Math.round(value));
 }
 
 function shadowRequest(): ShadowRequestPacket {

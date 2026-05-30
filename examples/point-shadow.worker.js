@@ -147,6 +147,9 @@ function createWorkerScene(aperture, canvasSize) {
       mapSize: shadowIntent.mapSize,
       bias: shadowIntent.depthBias,
       normalBias: shadowIntent.normalBias,
+      // Authored shadow strength (M4-T4): keep the demo shadow visible-but-dark
+      // (the removed 0.5 MIN_VISIBILITY floor was equivalent to strength 0.5).
+      strength: 0.5,
       casterLayerMask: 1,
       receiverLayerMask: 1,
     }),

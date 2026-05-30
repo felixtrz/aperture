@@ -115,6 +115,16 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
       width: canvas?.width ?? 960,
       height: canvas?.height ?? 540,
     },
+    // M4-T4 proof: let the spec drive the authored shadow strength so it can
+    // assert full darkness (strength=1) vs no-shadow (strength=0).
+    shadowStrength: exampleParams.has("shadow-strength")
+      ? Number(exampleParams.get("shadow-strength"))
+      : undefined,
+    // M4-T5 proof: drive the authored receiver depth bias (and normal bias) so
+    // the spec can assert acne at bias=0 and peter-panning at very large bias.
+    shadowDepthBias: exampleParams.has("shadow-depth-bias")
+      ? Number(exampleParams.get("shadow-depth-bias"))
+      : undefined,
   });
   globalThis.__APERTURE_STOP_EXAMPLE__ = () => {
     loop.workerReady = false;
@@ -274,6 +284,14 @@ async function publishFrameStatus(
         cascadeCount: request.cascadeCount ?? 1,
         casterLayerMask: request.casterLayerMask,
         receiverLayerMask: request.receiverLayerMask,
+        // Authored shadow params (M4-T3) surfaced for the proof; defaults shown
+        // when the light did not author them.
+        shadowType: request.shadowType ?? 1,
+        strength: request.strength ?? 1,
+        filterRadius: request.filterRadius ?? 1,
+        slopeBias: request.slopeBias ?? 0,
+        depthBias: request.depthBias ?? 0,
+        normalBias: request.normalBias ?? 0,
       })),
       descriptor: shadowFrame.descriptor,
       textures: shadowFrame.textures,
@@ -410,13 +428,18 @@ async function createCsmShadowFrame(input) {
         computation: "ready",
       }),
     );
+  const cameraMatrices = readPrimaryCameraMatrices(report.snapshot);
   const matrixComputation =
     aperture.directionalShadowMatrixComputationReportToJsonValue(
       aperture.createDirectionalShadowMatrixComputationReport({
         viewProjection,
         transforms: report.snapshot.transforms,
+        // Static center/size are the fallback; when the camera frustum is
+        // available the matrices are frustum-fit + texel-snapped (M4-T1).
         center: shadowIntent.center,
         orthographicSize: shadowIntent.orthographicSize,
+        cameraViewMatrix: cameraMatrices?.view,
+        cameraProjectionMatrix: cameraMatrices?.projection,
       }),
     );
   const matrixBuffer = aperture.shadowMatrixBufferDescriptorReportToJsonValue(
@@ -475,6 +498,9 @@ async function createCsmShadowFrame(input) {
     aperture.shadowCasterPipelineDescriptorReportToJsonValue(
       aperture.createShadowCasterPipelineDescriptorReport({
         commandEncoding,
+        // M4-T5: authored slope-scaled + constant pipeline bias from the light.
+        depthBias: shadowRequests[0]?.depthBias ?? 0,
+        slopeBias: shadowRequests[0]?.slopeBias ?? 0,
       }),
     );
   const pipelineResourceReport =
@@ -623,6 +649,39 @@ function setupShadowControls(controls) {
       controls.casterEnabled = shadowCasterToggle.checked;
     });
   }
+}
+
+// Read the highest-priority view's camera world->view and view->clip matrices
+// out of the snapshot transforms (read-only) so the directional cascade
+// matrices can be frustum-fit to the actual camera view (M4-T1). Returns null
+// when no view is present or the offsets are out of range (the matrix
+// computation then falls back to the static-center fit).
+function readPrimaryCameraMatrices(snapshot) {
+  const views = snapshot?.views ?? [];
+  if (views.length === 0) {
+    return null;
+  }
+  const primary = views.reduce((best, view) =>
+    view.priority > best.priority ? view : best,
+  );
+  const transforms = snapshot.transforms;
+  const view = sliceMatrix(transforms, primary.viewMatrixOffset);
+  const projection = sliceMatrix(transforms, primary.projectionMatrixOffset);
+  if (view === null || projection === null) {
+    return null;
+  }
+  return { view, projection };
+}
+
+function sliceMatrix(transforms, offset) {
+  if (
+    !Number.isInteger(offset) ||
+    offset < 0 ||
+    offset + 16 > transforms.length
+  ) {
+    return null;
+  }
+  return transforms.slice(offset, offset + 16);
 }
 
 function createShadowCasterPreparedMeshViews(report) {

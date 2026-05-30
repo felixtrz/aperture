@@ -343,6 +343,8 @@ function pipelineDescriptor(
           format: "depth24plus" as const,
           depthWriteEnabled: true as const,
           depthCompare: "less-equal" as const,
+          depthBias: 0,
+          depthBiasSlopeScale: 0,
         },
         colorTargets: [] as const,
       }

@@ -13,7 +13,14 @@ import {
 } from "../gpu/buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
 
-export const PACKED_LIGHT_FLOAT_STRIDE = 24;
+// Slots 0-23: color/intensity/range-or-cascadeCount/cascade-far-bounds-or-cones/
+// matrixBaseIndex-or-shape/cookie/position/direction/area extents.
+// Slot 24: authored shadow strength (M4-T4); shadow-casting lights only.
+// Slot 25: authored shadow receiver depthBias (M4-T5).
+// Slot 26: authored shadow normal-offset bias (M4-T5).
+// Slot 27: authored shadow filter radius in texels (M4-T7).
+// Slot 28: authored shadow filtering type (0=hard, 1=PCF, 2=PCSS) (M4-T7).
+export const PACKED_LIGHT_FLOAT_STRIDE = 29;
 export const PACKED_LIGHT_METADATA_STRIDE = 6;
 
 export const PackedLightKindId = {
@@ -251,6 +258,9 @@ export function writePackedLightPackets(
   const directionalShadows = isLightPacketArray(input)
     ? null
     : directionalShadowMetadata(input.shadowRequests ?? []);
+  const shadowParams = isLightPacketArray(input)
+    ? null
+    : shadowParamsByLight(input.shadowRequests ?? []);
 
   ensureLightPacketCapacity(scratch, lights.length);
 
@@ -305,6 +315,11 @@ export function writePackedLightPackets(
         transformData.areaHalfHeight[0],
         transformData.areaHalfHeight[1],
         transformData.areaHalfHeight[2],
+        shadowParams?.get(light.lightId)?.strength ?? 1,
+        shadowParams?.get(light.lightId)?.depthBias ?? 0,
+        shadowParams?.get(light.lightId)?.normalBias ?? 0,
+        shadowParams?.get(light.lightId)?.filterRadius ?? 1,
+        shadowParams?.get(light.lightId)?.shadowType ?? 1,
       ],
       floatOffset,
     );
@@ -695,6 +710,46 @@ function isPackedLightPackets(
 interface DirectionalShadowMetadata {
   readonly cascadeCount: number;
   readonly matrixBaseIndex: number;
+}
+
+interface PackedShadowParams {
+  readonly strength: number;
+  readonly depthBias: number;
+  readonly normalBias: number;
+  readonly filterRadius: number;
+  readonly shadowType: number;
+}
+
+/**
+ * Per-light shadow params keyed by lightId, for ALL shadow-casting kinds
+ * (directional/point/spot) — not just directional. Sourced from the authored
+ * ShadowRequestPacket (M4-T3) so the shader can read per-light strength
+ * (M4-T4) without a new binding.
+ */
+function shadowParamsByLight(
+  shadowRequests: readonly ShadowRequestPacket[],
+): ReadonlyMap<number, PackedShadowParams> {
+  const params = new Map<number, PackedShadowParams>();
+
+  for (const request of shadowRequests) {
+    params.set(request.lightId, {
+      strength: clampUnit(request.strength ?? 1),
+      depthBias: Math.max(0, request.depthBias ?? 0),
+      normalBias: Math.max(0, request.normalBias ?? 0),
+      filterRadius: Math.max(0, request.filterRadius ?? 1),
+      shadowType: Math.min(2, Math.max(0, Math.round(request.shadowType ?? 1))),
+    });
+  }
+
+  return params;
+}
+
+function clampUnit(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 1;
+  }
+
+  return Math.min(1, Math.max(0, value));
 }
 
 function directionalShadowMetadata(

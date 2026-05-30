@@ -90,5 +90,9 @@ export function createLightShadowSettings(
     cascadeCount: input.cascadeCount ?? 1,
     casterLayerMask: input.casterLayerMask ?? -1,
     receiverLayerMask: input.receiverLayerMask ?? -1,
+    shadowType: input.shadowType ?? 1,
+    strength: input.strength ?? 1,
+    filterRadius: input.filterRadius ?? 1,
+    slopeBias: input.slopeBias ?? 0,
   };
 }

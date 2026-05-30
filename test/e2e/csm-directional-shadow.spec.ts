@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { pixelDistance, readPngPixel, rgbaColorToPixel } from "./png.js";
 import {
@@ -33,6 +33,10 @@ interface CsmDirectionalShadowStatus extends ExampleStatusBase {
     readonly requests: readonly {
       readonly lightKind: string;
       readonly cascadeCount: number;
+      readonly shadowType?: number;
+      readonly strength?: number;
+      readonly filterRadius?: number;
+      readonly slopeBias?: number;
     }[];
     readonly descriptor: {
       readonly descriptors: readonly {
@@ -287,6 +291,17 @@ test("Playwright renders directional CSM shadows on near and far receivers", asy
     status.shadow?.depthTextureResources.resources[0]?.attachmentViewKeys[3],
   ]);
 
+  // M4-T3: the authored shadowType/strength/filterRadius/slopeBias flow
+  // through ECS -> extraction -> packed worker codec -> route status, JSON-safe.
+  const shadowRequest = status.shadow?.requests[0];
+  expect(shadowRequest?.shadowType).toBe(2);
+  expect(shadowRequest?.strength).toBeCloseTo(0.9, 4);
+  expect(shadowRequest?.filterRadius).toBeCloseTo(2, 4);
+  expect(shadowRequest?.slopeBias).toBeCloseTo(0.5, 4);
+  expect(JSON.stringify(status.shadow?.requests)).not.toMatch(
+    /NaN|Infinity|undefined/,
+  );
+
   const screenshot = await page.locator("#aperture-canvas").screenshot();
 
   await test.info().attach("csm-directional-shadow-frame.png", {
@@ -298,6 +313,93 @@ test("Playwright renders directional CSM shadows on near and far receivers", asy
   webGpuValidation.expectNoWarnings();
   await page.goto("about:blank");
 });
+
+test("M4-T4: authored shadow strength reaches full darkness (strength=1) and disappears (strength=0)", async ({
+  page,
+}) => {
+  // No-shadow baseline: identical geometry, receiver simply does not sample
+  // the shadow map → lit receiver (disable-shadow-receiver, not -caster, so the
+  // caster box still renders and only the shadow is removed).
+  const baseline = await captureCsmStrengthFrame(
+    page,
+    "disable-shadow-receiver=1",
+    false,
+  );
+  if (baseline === null) {
+    return;
+  }
+  // Full strength: fully-occluded receiver reaches near-black (below the old
+  // 0.45 MIN_VISIBILITY floor, which is now gone).
+  const strong = await captureCsmStrengthFrame(page, "shadow-strength=1.0");
+  if (strong === null) {
+    return;
+  }
+  // Zero strength: shadow factor is 1 everywhere → frame matches the baseline.
+  const none = await captureCsmStrengthFrame(page, "shadow-strength=0.0");
+  if (none === null) {
+    return;
+  }
+
+  const clear = clearPixel(baseline.status);
+  const regions = [
+    { name: "near cascade receiver", x0: 0.24, y0: 0.34, x1: 0.54, y1: 0.72 },
+    { name: "far cascade receiver", x0: 0.52, y0: 0.36, x1: 0.82, y1: 0.74 },
+  ] as const;
+
+  let strongDelta = 0;
+  let zeroDelta = 0;
+  for (const region of regions) {
+    strongDelta = Math.max(
+      strongDelta,
+      maxRegionLuminanceDelta(baseline.shot, strong.shot, clear, region),
+    );
+    zeroDelta = Math.max(
+      zeroDelta,
+      maxRegionLuminanceDelta(baseline.shot, none.shot, clear, region),
+    );
+  }
+
+  // strength=1 darkens the shadowed receiver far more than strength=0, and well
+  // beyond the previous 0.45-clamped result.
+  expect(
+    strongDelta,
+    `strength=1 should darken the shadowed receiver strongly (delta=${strongDelta})`,
+  ).toBeGreaterThan(40);
+  // strength=0 leaves the frame ~identical to the no-shadow baseline.
+  expect(
+    zeroDelta,
+    `strength=0 should match the no-shadow baseline (delta=${zeroDelta})`,
+  ).toBeLessThan(15);
+  expect(
+    strongDelta,
+    `authored strength must clearly modulate shadow darkness (strong=${strongDelta} zero=${zeroDelta})`,
+  ).toBeGreaterThan(zeroDelta + 25);
+
+  await page.goto("about:blank");
+});
+
+async function captureCsmStrengthFrame(
+  page: Page,
+  query: string,
+  requireRendering = true,
+): Promise<{
+  readonly shot: Buffer;
+  readonly status: CsmDirectionalShadowStatus;
+} | null> {
+  await page.goto(`/examples/csm-directional-shadow.html?${query}`);
+  let status = await waitForExampleStatus<CsmDirectionalShadowStatus>(page);
+  expect(
+    status,
+    `CSM strength status should publish for ${query}`,
+  ).toBeDefined();
+  if (status === undefined) {
+    return null;
+  }
+  skipIfUnsupportedWebGpu(status);
+  status = await waitForCsmDirectionalShadowFrame(page, 3, requireRendering);
+  const shot = await page.locator("#aperture-canvas").screenshot();
+  return { shot, status };
+}
 
 async function waitForCsmDirectionalShadowFrame(
   page: Parameters<typeof waitForExampleStatus>[0],

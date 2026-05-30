@@ -32,6 +32,7 @@ import {
   STANDARD_SHADOW_MAP_SHADER_VARIANT,
   STANDARD_SHADOW_RECEIVER_MESH_SHADER,
   STANDARD_SHADOW_RECEIVER_MESH_WGSL,
+  STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL,
   STANDARD_MATERIAL_MVP_LIGHTING_MODEL,
   STANDARD_MESH_SHADER,
   STANDARD_MESH_WGSL,
@@ -1328,8 +1329,17 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32",
     );
+    // M4-T4: the baked MIN_VISIBILITY floor is gone; the shadow factor is now
+    // floored by the authored per-light strength read from the packed buffer.
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).not.toContain(
+      "STANDARD_SHADOW_MIN_VISIBILITY",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).not.toContain("0.45");
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
-      "const STANDARD_SHADOW_MIN_VISIBILITY: f32 = 0.45;",
+      "fn shadowStrength(lightIndex: u32) -> f32",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "mix(1.0 - directionalShadowStrengthValue(), 1.0, visibility)",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32, filterRadiusTexels: f32) -> f32",
@@ -1442,10 +1452,67 @@ describe("built-in standard material WGSL shader metadata", () => {
       "textureSampleCompareLevel(\n        directionalShadowMap,\n        directionalShadowSampler,\n        sampleUv,\n        i32(cascadeIndex),",
     );
     expect(shader.code).toContain(
-      "fn sampleDirectionalShadowReceiverFactor(worldPosition: vec3f) -> f32",
+      "fn sampleDirectionalShadowReceiverFactor(worldPosition: vec3f, normal: vec3f) -> f32",
     );
     expect(shader.code).toContain(
-      "let shadowFactor = sampleDirectionalShadowFactor(lightIndex, input.worldPosition);",
+      "let shadowFactor = sampleDirectionalShadowFactor(lightIndex, input.worldPosition, normal);",
+    );
+
+    // M4-T5: receiver depth bias is read per-light (not the literal 0.002), and
+    // a normal-offset term is applied to the receiver position BEFORE the
+    // shadow-matrix multiply.
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).not.toContain(
+      "STANDARD_SHADOW_DEPTH_BIAS",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "fn shadowDepthBias(lightIndex: u32) -> f32",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "clampedShadowDepth - shadowDepthBias(lightIndex)",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "let biasedPosition = worldPosition + normal * shadowNormalBias(lightIndex)",
+    );
+    // The shadow-matrix multiply consumes the normal-offset (biasedPosition),
+    // i.e. the offset is applied before the projection.
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "directionalShadowMatrices[matrixIndex] * vec4f(biasedPosition, 1.0)",
+    );
+
+    // M4-T6: the cascaded path blends the current and the NEXT cascade's
+    // visibility factors (each sampled with its own matrix/layer) near the
+    // cascade boundary so there is no hard seam.
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "fn sampleDirectionalCascadeVisibility(lightIndex: u32, cascadeIndex: u32, biasedPosition: vec3f) -> f32",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "let nextCascade = cascadeIndex + 1u;",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "let nextVisibility = sampleDirectionalCascadeVisibility(lightIndex, nextCascade, biasedPosition);",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "visibility = mix(visibility, nextVisibility, blend);",
+    );
+
+    // M4-T7: PCSS variant (blocker search via textureLoad + penumbra width +
+    // variable-radius PCF), selected by the authored shadowType; and the
+    // cascaded PCF now multiplies the kernel offset by the authored filter
+    // radius (it previously ignored it).
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "fn sampleDirectionalShadowPcss(shadowUv: vec2f, receiverDepth: f32, cascadeIndex: u32, filterRadiusTexels: f32) -> f32",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "let occluderDepth = textureLoad(directionalShadowMap, coord, i32(cascadeIndex), 0);",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "let penumbraWidth = max(",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "shadowUv + vec2f(f32(x), f32(y)) * texelSize * filterRadius",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "let filterType = shadowFilterType(lightIndex);",
     );
   });
 

@@ -1,9 +1,9 @@
 import {
   clearColor,
-  createDirectionalLightRotation,
-  registerCsmDirectionalShadowScene,
-  shadowIntent,
-} from "./csm-directional-shadow-scene.js";
+  createShadowBiasLightRotation,
+  registerShadowBiasScene,
+  shadowBiasIntent,
+} from "./shadow-bias-scene.js";
 
 let apertureModulePromise = null;
 let scene = null;
@@ -42,15 +42,11 @@ async function handleMessage(data) {
     if (data?.type === "init") {
       scene = createWorkerScene(aperture, {
         canvas: data.canvas ?? { width: 960, height: 540 },
-        controls: data.controls ?? {},
+        depthBias: data.depthBias,
+        shadowType: data.shadowType,
+        caster: data.caster === true,
       });
-      self.postMessage({
-        type: "ready",
-        scene: {
-          receiverMeshKeys: scene.assets.receiverMeshKeys,
-          casterMeshKeys: scene.assets.casterMeshKeys,
-        },
-      });
+      self.postMessage({ type: "ready" });
       return;
     }
 
@@ -68,12 +64,11 @@ async function handleMessage(data) {
           frame,
           snapshot,
           workerStep: {
-            transforms: snapshot.transforms.length / 16,
-            viewMatrices: snapshot.viewMatrices.length / 16,
             meshDraws: snapshot.meshDraws.length,
             lights: snapshot.lights.length,
             shadowRequests: snapshot.shadowRequests.length,
-            diagnostics: snapshot.diagnostics.length,
+            depthBias: scene.depthBias,
+            normalBias: scene.normalBias,
           },
         },
         aperture.renderSnapshotTransferList(snapshot),
@@ -103,89 +98,94 @@ function loadAperture() {
 
 function createWorkerScene(aperture, options) {
   const app = aperture.createExtractionApp({
-    worldOptions: { entityCapacity: 16 },
+    worldOptions: { entityCapacity: 8 },
   });
-  const assets = registerCsmDirectionalShadowScene(aperture, app.assets);
-  const receiverEnabled = options.controls.receiverEnabled !== false;
+  const assets = registerShadowBiasScene(aperture, app.assets);
+
+  const hasOverride =
+    typeof options.depthBias === "number" && Number.isFinite(options.depthBias);
+  const depthBias = hasOverride
+    ? Math.max(0, options.depthBias)
+    : shadowBiasIntent.depthBias;
+  // Normal-offset bias scales with depth bias so bias=0 fully exposes acne and
+  // a large bias detaches the self-shadow (peter-panning).
+  const normalBias = hasOverride
+    ? options.depthBias <= 0
+      ? 0
+      : shadowBiasIntent.normalBias
+    : shadowBiasIntent.normalBias;
+  const shadowType =
+    typeof options.shadowType === "number" &&
+    Number.isFinite(options.shadowType)
+      ? Math.min(2, Math.max(0, Math.round(options.shadowType)))
+      : 1;
 
   app.spawn(
-    aperture.withTransform({ translation: [0, 0.18, 5.4] }),
+    aperture.withTransform({ translation: [0, 1.1, 12] }),
     aperture.withCamera({
       aspect: options.canvas.width / options.canvas.height,
       near: 0.1,
-      far: 60,
+      far: 90,
       clearColor,
       layerMask: 1,
     }),
   );
+  // Grazing floor: caster + receiver, so it self-shadows at the shallow light
+  // angle. bias=0 -> acne; authored bias -> clean; huge bias -> detached/bright.
   app.spawn(
-    aperture.withTransform({ translation: [-0.9, 0.02, -1.3] }),
-    aperture.withMesh(assets.nearReceiverMesh),
-    aperture.withMaterial(assets.nearReceiverMaterial),
-    aperture.withRenderLayer(1),
-    aperture.withShadowCaster(false),
-    aperture.withShadowReceiver(receiverEnabled),
-    aperture.withVisibility(true),
-  );
-  app.spawn(
-    aperture.withTransform({ translation: [1.15, 0.06, -6.2] }),
-    aperture.withMesh(assets.farReceiverMesh),
-    aperture.withMaterial(assets.farReceiverMaterial),
-    aperture.withRenderLayer(1),
-    aperture.withShadowCaster(false),
-    aperture.withShadowReceiver(receiverEnabled),
-    aperture.withVisibility(true),
-  );
-  app.spawn(
-    aperture.withTransform({ translation: [-0.54, 0.26, -0.42] }),
-    aperture.withMesh(assets.nearCasterMesh),
-    aperture.withMaterial(assets.nearCasterMaterial),
+    aperture.withTransform({ translation: [0, 0, 0] }),
+    aperture.withMesh(assets.floorMesh),
+    aperture.withMaterial(assets.floorMaterial),
     aperture.withRenderLayer(1),
     aperture.withShadowCaster(true),
-    aperture.withShadowReceiver(false),
+    aperture.withShadowReceiver(true),
     aperture.withVisibility(true),
   );
-  app.spawn(
-    aperture.withTransform({ translation: [1.6, 0.34, -5.18] }),
-    aperture.withMesh(assets.farCasterMesh),
-    aperture.withMaterial(assets.farCasterMaterial),
-    aperture.withRenderLayer(1),
-    aperture.withShadowCaster(true),
-    aperture.withShadowReceiver(false),
-    aperture.withVisibility(true),
-  );
+  if (options.caster === true) {
+    // Pillar resting on the floor: its cast shadow hardens at the base contact
+    // and softens with distance under PCSS (M4-T7 contact-hardening proof).
+    app.spawn(
+      aperture.withTransform({ translation: [0, 2.5, 1] }),
+      aperture.withMesh(assets.pillarMesh),
+      aperture.withMaterial(assets.pillarMaterial),
+      aperture.withRenderLayer(1),
+      aperture.withShadowCaster(true),
+      aperture.withShadowReceiver(false),
+      aperture.withVisibility(true),
+    );
+  }
   app.spawn(
     aperture.withLight({
       kind: aperture.LightKind.Ambient,
-      color: [0.48, 0.52, 0.58, 1],
-      intensity: 1.2,
+      color: [0.4, 0.44, 0.5, 1],
+      intensity: 0.8,
       layerMask: 1,
     }),
   );
   app.spawn(
-    aperture.withTransform({ rotation: createDirectionalLightRotation() }),
+    aperture.withTransform({ rotation: createShadowBiasLightRotation() }),
     aperture.withLight({
       kind: aperture.LightKind.Directional,
-      color: [1, 0.95, 0.82, 1],
-      intensity: 1.25,
-      range: shadowIntent.shadowDistance,
+      color: [1, 0.96, 0.88, 1],
+      intensity: 1.4,
+      range: shadowBiasIntent.shadowDistance,
       layerMask: 1,
     }),
     aperture.withLightShadowSettings({
       enabled: true,
-      mapSize: shadowIntent.mapSize,
-      bias: shadowIntent.depthBias,
-      normalBias: shadowIntent.normalBias,
-      cascadeCount: shadowIntent.cascadeCount,
-      // Authored shadow strength (M4-T4): preserve the visible-but-dark demo
-      // look (the removed 0.45 MIN_VISIBILITY floor ≈ strength 0.55).
-      strength: 0.55,
+      mapSize: shadowBiasIntent.mapSize,
+      bias: depthBias,
+      normalBias,
+      cascadeCount: shadowBiasIntent.cascadeCount,
+      strength: 0.85,
+      shadowType,
+      filterRadius: 3,
       casterLayerMask: 1,
       receiverLayerMask: 1,
     }),
   );
 
-  return { app, assets };
+  return { app, assets, depthBias, normalBias };
 }
 
 function finiteInteger(value, fallback) {

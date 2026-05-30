@@ -357,6 +357,32 @@ describe("render authoring ECS components", () => {
       "shadow.zeroLayerMask",
     ]);
   });
+
+  it("validates the M4-T3 shadowType/strength/filterRadius/slopeBias ranges", () => {
+    const invalid = validateLightShadowSettingsInput({
+      shadowType: 5,
+      strength: 1.5,
+      filterRadius: -1,
+      slopeBias: -2,
+    });
+    expect(invalid.valid).toBe(false);
+    expect(invalid.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "shadow.invalidShadowType",
+      "shadow.invalidStrength",
+      "shadow.invalidFilterRadius",
+      "shadow.invalidSlopeBias",
+    ]);
+
+    // Boundary values are accepted: strength 0, filterRadius 8, PCSS type.
+    const valid = validateLightShadowSettingsInput({
+      shadowType: 2,
+      strength: 0,
+      filterRadius: 8,
+      slopeBias: 0,
+    });
+    expect(valid.valid).toBe(true);
+    expect(valid.diagnostics).toEqual([]);
+  });
 });
 
 function expectVector(

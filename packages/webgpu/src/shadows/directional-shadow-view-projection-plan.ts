@@ -30,6 +30,15 @@ export interface DirectionalShadowViewProjectionPlan {
   readonly cascadeCount?: number;
   readonly cascadeNear?: number;
   readonly cascadeFar?: number;
+  /**
+   * Absolute world-space near distance of this cascade's camera-frustum slice.
+   * Emitted alongside the normalized {@link cascadeNear} fraction so the matrix
+   * fit (M4-T1) can build the frustum slice and so the matrix-side splits agree
+   * with the shader-side selection bounds (light-packing directionalCascadeFarBounds).
+   */
+  readonly cascadeNearDistance?: number;
+  /** Absolute world-space far distance of this cascade's camera-frustum slice. */
+  readonly cascadeFarDistance?: number;
   readonly lightTransformOffset: number;
   readonly mapSize: number;
   readonly casterLayerMask: number;
@@ -74,6 +83,20 @@ export interface DirectionalShadowViewProjectionPlanInput {
   readonly lights: readonly LightPacket[];
   readonly shadowPassPlan: ShadowPassPlanReport;
   readonly computation?: DirectionalShadowViewProjectionMode;
+  /**
+   * Camera near plane distance feeding the practical cascade-split scheme. When
+   * omitted the nearest cascade bound falls back to the same minimum the
+   * light-packing far-bounds use, preserving prior behavior.
+   */
+  readonly cameraNear?: number;
+  /** Camera far plane distance; defaults to the per-light shadow max distance. */
+  readonly cameraFar?: number;
+  /**
+   * Shadow max distance for the cascade split. Defaults per-light to
+   * {@link LightPacket.range} so the matrix-side splits use the SAME source as
+   * the shader-side selection bounds (light-packing directionalCascadeFarBounds).
+   */
+  readonly shadowMaxDistance?: number;
 }
 
 export function createDirectionalShadowViewProjectionPlanReport(
@@ -146,10 +169,16 @@ export function createDirectionalShadowViewProjectionPlanReport(
       continue;
     }
 
+    const shadowMaxDistance = input.shadowMaxDistance ?? light.range;
+
     for (const pass of passes) {
       const cascadeIndex = pass.cascadeIndex ?? 0;
       const cascadeCount = pass.cascadeCount ?? 1;
-      const split = cascadeSplit(cascadeIndex, cascadeCount);
+      const split = cascadeSplit(cascadeIndex, cascadeCount, {
+        cameraNear: input.cameraNear,
+        cameraFar: input.cameraFar,
+        shadowMaxDistance,
+      });
 
       plans.push({
         shadowId: request.shadowId,
@@ -164,6 +193,8 @@ export function createDirectionalShadowViewProjectionPlanReport(
         cascadeCount,
         cascadeNear: split.near,
         cascadeFar: split.far,
+        cascadeNearDistance: split.nearDistance,
+        cascadeFarDistance: split.farDistance,
         lightTransformOffset: light.worldTransformOffset,
         mapSize: pass.width,
         casterLayerMask: request.casterLayerMask,
@@ -276,13 +307,82 @@ function groupPassesByShadowRequest(
   return grouped;
 }
 
+interface CascadeSplitOptions {
+  readonly cameraNear?: number | undefined;
+  readonly cameraFar?: number | undefined;
+  readonly shadowMaxDistance?: number | undefined;
+}
+
+interface CascadeSplitResult {
+  /** Normalized near fraction (back-compat with the prior linear scheme). */
+  readonly near: number;
+  /** Normalized far fraction (back-compat with the prior linear scheme). */
+  readonly far: number;
+  /** Absolute world-space near distance of the cascade slice. */
+  readonly nearDistance: number;
+  /** Absolute world-space far distance of the cascade slice. */
+  readonly farDistance: number;
+}
+
 function cascadeSplit(
   cascadeIndex: number,
   cascadeCount: number,
-): { readonly near: number; readonly far: number } {
+  options: CascadeSplitOptions = {},
+): CascadeSplitResult {
   const clampedCount = Math.max(1, cascadeCount);
+  // Back-compat normalized fractions (still consumed by the matrix computation
+  // until M4-T1 switches to the absolute distances below).
   const near = cascadeIndex / clampedCount;
   const far = (cascadeIndex + 1) / clampedCount;
 
-  return { near, far };
+  const bounds = practicalCascadeBounds(clampedCount, options);
+  const clampedIndex = Math.min(Math.max(cascadeIndex, 0), clampedCount - 1);
+
+  return {
+    near,
+    far,
+    nearDistance: bounds[clampedIndex]?.near ?? 0,
+    farDistance: bounds[clampedIndex]?.far ?? 0,
+  };
+}
+
+/**
+ * Practical (linear/logarithmic blended) cascade split distances. Uses the same
+ * minimum/maximum and per-cascade blend formula as light-packing
+ * `directionalCascadeFarBounds`, so the cascade the shader SELECTS matches the
+ * cascade the matrix was FIT for. Adapted from bevy `calculate_cascade_bounds`
+ * (references/bevy/crates/bevy_light/src/cascade.rs lines 41-56) which uses a
+ * pure exponential split; we keep the existing linear/log average to stay
+ * byte-compatible with the already-shipped selection bounds.
+ */
+function practicalCascadeBounds(
+  cascadeCount: number,
+  options: CascadeSplitOptions,
+): readonly { readonly near: number; readonly far: number }[] {
+  const maximumDistance = Math.max(
+    1,
+    options.shadowMaxDistance ?? options.cameraFar ?? 0,
+  );
+  const minimumDistance = Math.min(0.1, maximumDistance * 0.5);
+  const cameraNear = options.cameraNear ?? minimumDistance;
+
+  const result: { near: number; far: number }[] = [];
+  let previousFar = cameraNear;
+
+  for (let index = 0; index < cascadeCount; index += 1) {
+    const fraction = (index + 1) / cascadeCount;
+    const linear =
+      minimumDistance + (maximumDistance - minimumDistance) * fraction;
+    const logarithmic =
+      minimumDistance * Math.pow(maximumDistance / minimumDistance, fraction);
+    const far =
+      index + 1 === cascadeCount
+        ? maximumDistance
+        : (linear + logarithmic) * 0.5;
+
+    result.push({ near: previousFar, far });
+    previousFar = far;
+  }
+
+  return result;
 }

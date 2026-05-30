@@ -128,6 +128,14 @@ export interface LightShadowSettingsInput {
   readonly cascadeCount?: number;
   readonly casterLayerMask?: number;
   readonly receiverLayerMask?: number;
+  /** Filtering mode: 0 = hard, 1 = PCF (default), 2 = PCSS contact-hardening. */
+  readonly shadowType?: number;
+  /** Authored shadow opacity in [0,1]; 1 = fully dark capable. */
+  readonly strength?: number;
+  /** PCF/PCSS filter radius in texels (>= 0). */
+  readonly filterRadius?: number;
+  /** Slope-scaled depth bias for the caster pipeline (>= 0). */
+  readonly slopeBias?: number;
 }
 
 export interface SpriteInput {
@@ -222,7 +230,11 @@ export type RenderAuthoringDiagnosticCode =
   | "shadow.invalidMapSize"
   | "shadow.invalidBias"
   | "shadow.invalidCascadeCount"
-  | "shadow.zeroLayerMask";
+  | "shadow.zeroLayerMask"
+  | "shadow.invalidShadowType"
+  | "shadow.invalidStrength"
+  | "shadow.invalidFilterRadius"
+  | "shadow.invalidSlopeBias";
 
 export interface RenderAuthoringDiagnostic {
   readonly code: RenderAuthoringDiagnosticCode;

@@ -43,6 +43,8 @@ async function handleMessage(data) {
       scene = createWorkerScene(
         aperture,
         data.canvas ?? { width: 960, height: 540 },
+        data.shadowStrength,
+        data.shadowDepthBias,
       );
       self.postMessage({
         type: "ready",
@@ -101,7 +103,30 @@ function loadAperture() {
   return apertureModulePromise;
 }
 
-function createWorkerScene(aperture, canvasSize) {
+function createWorkerScene(
+  aperture,
+  canvasSize,
+  shadowStrengthOverride,
+  shadowDepthBiasOverride,
+) {
+  const shadowStrength =
+    typeof shadowStrengthOverride === "number" &&
+    Number.isFinite(shadowStrengthOverride)
+      ? Math.min(1, Math.max(0, shadowStrengthOverride))
+      : shadowIntent.strength;
+  // When the depth bias is overridden the normal bias scales with it so that
+  // bias=0 exposes acne and a very large bias detaches the contact shadow.
+  const hasDepthBiasOverride =
+    typeof shadowDepthBiasOverride === "number" &&
+    Number.isFinite(shadowDepthBiasOverride);
+  const shadowDepthBias = hasDepthBiasOverride
+    ? Math.max(0, shadowDepthBiasOverride)
+    : shadowIntent.depthBias;
+  const shadowNormalBias = hasDepthBiasOverride
+    ? shadowDepthBiasOverride <= 0
+      ? 0
+      : shadowIntent.normalBias
+    : shadowIntent.normalBias;
   const app = aperture.createExtractionApp({
     worldOptions: { entityCapacity: 16 },
   });
@@ -165,11 +190,18 @@ function createWorkerScene(aperture, canvasSize) {
     aperture.withLightShadowSettings({
       enabled: true,
       mapSize: shadowIntent.mapSize,
-      bias: shadowIntent.depthBias,
-      normalBias: shadowIntent.normalBias,
+      bias: shadowDepthBias,
+      normalBias: shadowNormalBias,
       cascadeCount: shadowIntent.cascadeCount,
       casterLayerMask: 1,
       receiverLayerMask: 1,
+      // Authored shadow params (M4-T3). No renderer consumer yet (strength is
+      // consumed in M4-T4, filterRadius/slopeBias in M4-T5, shadowType in
+      // M4-T7), so these flow to status without changing the render.
+      shadowType: shadowIntent.shadowType,
+      strength: shadowStrength,
+      filterRadius: shadowIntent.filterRadius,
+      slopeBias: shadowIntent.slopeBias,
     }),
   );
 
