@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "bfa7e39",
+  "lastCommit": "64eb481",
   "activePid": null,
-  "notes": "SOTA M5 at 5/6 done. T1 (7beb1ca), T2 (3cc58d9), T3 (4afc17e), T4 (f85b7fe), T5 (bfa7e39) all fully proven (ibl-brdf/ibl-irradiance/ibl-equirect/hdr-exposure/transmission-ior + tonemap-showcase/transmission e2e green; pnpm run check = 391 files / 2208 tests). T5: refractive transmission — ior/thickness/attenuationColor/attenuationDistance + KHR_materials_ior/volume parse + transmissionVolume uniform packing + refract(-viewDir,N,1/ior)+thickness+Beer-Lambert shader. Fixed an ior-insensitivity bug: the transmissive fragment normal faced away from the camera, so forced a viewer-facing normal before refract. NEXT: M5-T6 (SSAO→indirect/ambient/IBL only, not direct light; dependsOn none) — the last M5 task. Approach (B): bind SSAO visibility into the standard shader's ambient+IBL occlusion instead of post-multiplying the final color. Plan in docs/SOTA_ROADMAP.md Resume notes + the M5-T6 task block.",
-  "lastRunFinishedAt": "2026-05-30T18:15:00Z"
+  "notes": "SOTA M5 (Close core PBR/IBL correctness gaps) COMPLETE — 6/6. T1 (7beb1ca) split-sum DFG, T2 (3cc58d9) irradiance convolution, T3 (4afc17e) equirect->cube auto-IBL, T4 (f85b7fe) HDR scene buffer + exposure post-tonemap, T5 (bfa7e39) IOR refraction + thickness + Beer-Lambert, T6 (64eb481) SSAO->indirect-only. pnpm run check = pass (392 files / 2211 tests); e2e proofs ibl-brdf/ibl-irradiance/ibl-equirect/hdr-exposure/transmission-ior/ssao-indirect + tonemap-showcase/transmission/ssao/post-effects/taa regressions all green under SwiftShader. T6 used approach A (lit pass emits an indirect color channel; SSAO removes indirect*(1-ao), preserving direct+emissive). Per the active directive, no other milestone was started. KNOWN ENV: dof.spec.ts times out under SwiftShader on a clean tree (pre-existing, unrelated). NEXT (out of scope this run): M3 (Render Graph, wave 2).",
+  "lastRunFinishedAt": "2026-05-30T19:10:00Z"
 }

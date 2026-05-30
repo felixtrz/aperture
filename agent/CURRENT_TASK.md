@@ -1,59 +1,50 @@
 # Current Task
 
-**M5-T5 is ✅ done** (`bfa7e39`) — refractive transmission (IOR refraction +
-thickness + Beer-Lambert), fully proven and gate-green. SOTA roadmap **M5 (Close
-core PBR/IBL correctness gaps)** is at **5/6 done** (T1–T5 all ✅).
+**M5 is ✅ COMPLETE (6/6).** The SOTA roadmap milestone **M5 (Close core PBR/IBL
+correctness gaps)** is fully done, committed, pushed, and gate-green. Per the
+active directive, no other milestone was started.
 
 Source of truth is `docs/SOTA_ROADMAP.md` (its 📋 Status block + completion log +
-Resume notes are authoritative). **Next task: M5-T6** (SSAO → indirect/ambient/
-IBL only, not direct light; dependsOn none) — the last remaining M5 task.
+Resume notes are authoritative).
 
-Completed this run (fully proven, gate-green, pushed):
+Completed this milestone (each fully proven, gate-green, pushed):
 
 - **M5-T1** (`7beb1ca`) — split-sum environment-BRDF (DFG) specular IBL.
 - **M5-T2** (`3cc58d9`) — cosine irradiance-convolution compute pass for diffuse IBL.
 - **M5-T3** (`4afc17e`) — equirect → cube projection + single-asset auto-IBL.
 - **M5-T4** (`f85b7fe`) — persistent rgba16float HDR scene buffer; tonemap +
   exposure + sRGB moved to a final post stage.
-- **M5-T5** (`bfa7e39`) — refractive transmission. Added ior/thickness/
-  attenuationColor/attenuationDistance to StandardMaterialAsset (attenuationDistance=0
-  is the JSON-safe "no absorption" sentinel for the glTF +Infinity default).
-  Parsed KHR_materials_ior + KHR_materials_volume. Packed transmissionVolume +
-  attenuationColor vec4s into StandardMaterialUniform (68→76 floats). Rewrote
-  applyStandardTransmissionSampling: `refract(-viewDir, N, 1/ior)` → walk
-  thickness → project exit to the grab buffer (ior=1 ⇒ no shift) + Beer-Lambert
-  `pow(attenuationColor, thickness/attenuationDistance)`. KEY FIX: the
-  transmissive fragment's shading normal faced away from the camera, making
-  refract() ior-insensitive; forced a viewer-facing normal
-  (`select(-N, N, dot(N,viewDir) >= 0)`) before refract. Proof:
-  examples/transmission-ior.\* + test/e2e/transmission-ior.spec.ts (IOR sweep
-  shifts the background monotonically; amber volume absorbs blue by thickness).
+- **M5-T5** (`bfa7e39`) — refractive transmission: IOR refraction + thickness +
+  Beer-Lambert (KHR_materials_ior/volume).
+- **M5-T6** (`64eb481`) — SSAO attenuates only indirect (ambient/IBL) light, not
+  direct or emissive. Approach A: the lit pass emits a second color attachment
+  carrying the separated indirect term (new `standard-indirect-channel-shader.ts`,
+  threaded as `indirectColorFormat` alongside `motionVectorColorFormat`); SSAO
+  removes only `indirect * (1 - visibility)`. Proof: `examples/ssao-indirect.*` +
+  `test/e2e/ssao-indirect.spec.ts` (emissive cube in a high-AO corner preserved
+  while the diffuse crease darkens).
 
-Gate: `pnpm run check` = pass (391 files / 2208 tests). All named Playwright
-proofs pass under SwiftShader + xvfb via `scripts/webgpu-e2e.sh`.
+Gate: `pnpm run check` = pass (392 files / 2211 tests). E2E proofs ibl-brdf,
+ibl-irradiance, ibl-equirect, hdr-exposure, transmission-ior, ssao-indirect +
+the tonemap-showcase / transmission / ssao / post-effects / taa regressions all
+pass under SwiftShader + xvfb via `scripts/webgpu-e2e.sh`.
 
-## Next: M5-T6 — SSAO applies to indirect/ambient/IBL only, not direct light
+**KNOWN ENV ISSUE (pre-existing, not M5):** `test/e2e/dof.spec.ts` times out at
+"loading" under SwiftShader — it fails on a clean tree too (verified by
+stashing), so it is a pre-existing environment limitation, not an M5 regression.
 
-dependsOn none. Approach (B) (see the M5-T6 task block + Resume notes in
-`docs/SOTA_ROADMAP.md`):
+## Next (out of scope for this run)
 
-- Stop the final-color multiply in `post-ssao.ts` (~line 561 returns
-  `source.rgb * visibility` over the whole composited color).
-- Bind the SSAO visibility texture into the standard shader and fold it into the
-  ambient + IBL occlusion factor (combine with the existing occlusionTexture
-  term ~`standard-shader-source.ts:695`; multiply diffuseIbl/specularIbl by AO in
-  `standard-shader-ibl-sampling.ts`); add a binding in
-  `standard-shader-variant-bindings.ts` if approach B needs one. Keep the SSAO
-  pass PRODUCING visibility; change its CONSUMPTION so direct light is untouched.
-- Proof: `examples/ssao-indirect` (or extend `examples/ssao`) — a creased
-  surface lit by ONE strong direct light + ambient/IBL; with SSAO on, the crease
-  GPU-readback probe darkens (> large threshold) while a direct-lit probe barely
-  changes (< small threshold) vs SSAO-off.
+The active directive was to complete M5 only and not start another milestone.
+The next milestone in wave/dependsOn order is **M3 (Render Graph, wave 2)** —
+M3-T1 is the lowest-numbered todo. A future run should pick up there.
 
 **LESSONS (carry forward):** (1) post-effect/shader WGSL must be proven by an
 actual GPU draw + readback — a shader compile error still counts a draw but
-writes nothing. (2) For view-dependent shading (refraction/reflection) on
-transmissive/double-sided surfaces, force the normal to face the viewer before
-refract/reflect; when a term looks input-insensitive, read the GPU inputs
-(normal/viewDir/worldPos) back as color to diagnose. (3) Infinity is not
-JSON-safe — use a finite sentinel for "unbounded" material params.
+writes nothing (caught the T4 parameter-shadowing and T6 `textureSample`-in-
+non-uniform-flow bugs). (2) For view-dependent shading on transmissive/double-
+sided surfaces, force the normal to face the viewer before refract/reflect;
+read GPU inputs back as color when a term looks input-insensitive. (3) Infinity
+is not JSON-safe — use a finite sentinel for "unbounded" material params. (4)
+Some e2e specs hardcode environment-dependent values (swapchain format, scene
+draw counts) — assert shapes/relations, not absolutes.
