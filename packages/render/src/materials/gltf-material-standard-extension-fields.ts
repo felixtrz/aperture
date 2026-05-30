@@ -1,12 +1,15 @@
 import {
   CLEARCOAT_EXTENSION,
   IRIDESCENCE_EXTENSION,
+  IOR_EXTENSION,
   SHEEN_EXTENSION,
   TRANSMISSION_EXTENSION,
+  VOLUME_EXTENSION,
 } from "./gltf-material-extensions.js";
 import { mapFiniteNumber, mapVec3 } from "./gltf-material-scalars.js";
 import { mapTextureBinding } from "./gltf-material-textures.js";
 import type { StandardMaterialAsset } from "./types.js";
+import type { GltfMaterialMappingDiagnostic } from "./gltf-material-types.js";
 import type { GltfStandardMaterialFieldInput } from "./gltf-material-standard-fields.js";
 
 export function mapStandardClearcoatFields(
@@ -66,6 +69,85 @@ export function mapStandardTransmissionFields(
       diagnostics: input.diagnostics,
     }),
   };
+}
+
+export function mapStandardVolumeFields(
+  input: GltfStandardMaterialFieldInput,
+): Pick<
+  StandardMaterialAsset,
+  "ior" | "thickness" | "attenuationColor" | "attenuationDistance"
+> {
+  return {
+    // KHR_materials_ior.ior (default 1.5).
+    ior: mapFiniteNumber({
+      materialKey: input.materialKey,
+      field: `extensions.${IOR_EXTENSION}.ior`,
+      value: input.iorSource?.ior,
+      fallback: 1.5,
+      diagnostics: input.diagnostics,
+    }),
+    // KHR_materials_volume.thicknessFactor (default 0 = no bounded volume).
+    thickness: mapFiniteNumber({
+      materialKey: input.materialKey,
+      field: `extensions.${VOLUME_EXTENSION}.thicknessFactor`,
+      value: input.volumeSource?.thicknessFactor,
+      fallback: 0,
+      diagnostics: input.diagnostics,
+    }),
+    // KHR_materials_volume.attenuationColor (default white = no tint).
+    attenuationColor: mapVec3({
+      materialKey: input.materialKey,
+      field: `extensions.${VOLUME_EXTENSION}.attenuationColor`,
+      value: input.volumeSource?.attenuationColor,
+      fallback: [1, 1, 1],
+      diagnostics: input.diagnostics,
+    }),
+    // KHR_materials_volume.attenuationDistance. The glTF default is +Infinity
+    // (no absorption); the engine stores that as the JSON-safe sentinel 0. A
+    // bounded volume must specify a positive distance.
+    attenuationDistance: mapAttenuationDistance({
+      materialKey: input.materialKey,
+      field: `extensions.${VOLUME_EXTENSION}.attenuationDistance`,
+      value: input.volumeSource?.attenuationDistance,
+      diagnostics: input.diagnostics,
+    }),
+  };
+}
+
+function mapAttenuationDistance(input: {
+  readonly materialKey: string;
+  readonly field: string;
+  readonly value: unknown;
+  readonly diagnostics: GltfMaterialMappingDiagnostic[];
+}): number {
+  // Absent => no bounded absorption (glTF +Infinity), stored as the sentinel 0.
+  if (input.value === undefined) {
+    return 0;
+  }
+
+  if (typeof input.value === "number" && Number.isFinite(input.value)) {
+    if (input.value > 0) {
+      return input.value;
+    }
+
+    input.diagnostics.push({
+      code: "gltfMaterial.invalidField",
+      severity: "error",
+      materialKey: input.materialKey,
+      field: input.field,
+      message: `${input.field} must be a positive number.`,
+    });
+    return 0;
+  }
+
+  input.diagnostics.push({
+    code: "gltfMaterial.invalidField",
+    severity: "error",
+    materialKey: input.materialKey,
+    field: input.field,
+    message: `${input.field} must be a positive finite number.`,
+  });
+  return 0;
 }
 
 export function mapStandardSheenFields(

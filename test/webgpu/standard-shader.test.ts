@@ -696,6 +696,29 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain(
       "smoothstep(0.08, 0.85, transmissionRoughness)",
     );
+    // M5-T5: IOR-driven refraction (Snell) + Beer-Lambert volume absorption
+    // replace the old fixed normal.xy screen offset.
+    expect(shader.code).toContain(
+      "let transmissionIor = max(material.transmissionVolume.x, 1.0);",
+    );
+    expect(shader.code).toContain(
+      "refract(-transmissionViewDir, transmissionNormal, 1.0 / transmissionIor)",
+    );
+    // The refraction normal is forced to face the viewer (back-facing/flipped
+    // transmissive fragments would otherwise make refract() ior-insensitive).
+    expect(shader.code).toContain(
+      "dot(transmissionGeoNormal, transmissionViewDir) >= 0.0,",
+    );
+    expect(shader.code).toContain(
+      "let transmissionExitPos = input.worldPosition + transmissionRefraction * transmissionThickness;",
+    );
+    expect(shader.code).toContain(
+      "max(material.attenuationColor.rgb, vec3f(0.0)),",
+    );
+    expect(shader.code).toContain(
+      "transmissionThickness / max(transmissionAttenuationDistance, 0.0001),",
+    );
+    expect(shader.code).not.toContain("normal.xy * transmission");
     expect(shader.code).toContain("var alpha = material.baseColorFactor.a");
     expect(shader.code).toContain(
       "alpha = alpha * max(1.0 - transmission * 0.25, 0.72)",

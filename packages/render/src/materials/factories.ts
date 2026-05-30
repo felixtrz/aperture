@@ -88,6 +88,14 @@ export function createStandardMaterialAsset(
     clearcoatRoughnessTexture: input.clearcoatRoughnessTexture ?? null,
     transmissionFactor: input.transmissionFactor ?? 0,
     transmissionTexture: input.transmissionTexture ?? null,
+    // KHR_materials_ior default is 1.5; KHR_materials_volume defaults to no
+    // bounded volume (thickness 0, white attenuation). attenuationDistance uses
+    // 0 as the JSON-safe sentinel for "no Beer-Lambert absorption" (the glTF
+    // default attenuationDistance is +Infinity, which is not JSON-serializable).
+    ior: input.ior ?? 1.5,
+    thickness: input.thickness ?? 0,
+    attenuationColor: input.attenuationColor ?? [1, 1, 1],
+    attenuationDistance: input.attenuationDistance ?? 0,
     sheenColorFactor: input.sheenColorFactor ?? [0, 0, 0],
     sheenColorTexture: input.sheenColorTexture ?? null,
     sheenRoughnessFactor: input.sheenRoughnessFactor ?? 0,

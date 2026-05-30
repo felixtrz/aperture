@@ -35,6 +35,10 @@ describe("glTF material mapping", () => {
       clearcoatRoughnessTexture: null,
       transmissionFactor: 0,
       transmissionTexture: null,
+      ior: 1.5,
+      thickness: 0,
+      attenuationColor: [1, 1, 1],
+      attenuationDistance: 0,
       sheenColorFactor: [0, 0, 0],
       sheenColorTexture: null,
       sheenRoughnessFactor: 0,
@@ -90,6 +94,85 @@ describe("glTF material mapping", () => {
       clearcoatRoughnessFactor: 0.08,
       clearcoatRoughnessTexture: null,
     });
+  });
+
+  it("maps KHR_materials_ior + KHR_materials_volume into the transmission volume fields", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        name: "Volumetric Glass",
+        extensions: {
+          KHR_materials_transmission: { transmissionFactor: 0.9 },
+          KHR_materials_ior: { ior: 1.7 },
+          KHR_materials_volume: {
+            thicknessFactor: 2.5,
+            attenuationColor: [0.2, 0.85, 0.4],
+            attenuationDistance: 0.4,
+          },
+        },
+        pbrMetallicRoughness: { metallicFactor: 0, roughnessFactor: 0.05 },
+      },
+      {
+        materialKey: "material:glass",
+        extensionsRequired: ["KHR_materials_ior", "KHR_materials_volume"],
+      },
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      transmissionFactor: 0.9,
+      ior: 1.7,
+      thickness: 2.5,
+      attenuationColor: [0.2, 0.85, 0.4],
+      attenuationDistance: 0.4,
+    });
+  });
+
+  it("defaults ior=1.5 / attenuationDistance=Infinity when KHR_materials_ior/volume are absent", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        name: "Thin Glass",
+        extensions: {
+          KHR_materials_transmission: { transmissionFactor: 1 },
+        },
+      },
+      { materialKey: "material:thin-glass" },
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      transmissionFactor: 1,
+      ior: 1.5,
+      thickness: 0,
+      attenuationColor: [1, 1, 1],
+      // Absent KHR_materials_volume => sentinel 0 (no bounded absorption).
+      attenuationDistance: 0,
+    });
+  });
+
+  it("rejects a non-positive KHR_materials_volume.attenuationDistance", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        name: "Bad Volume",
+        extensions: {
+          KHR_materials_transmission: { transmissionFactor: 1 },
+          KHR_materials_volume: { thicknessFactor: 1, attenuationDistance: 0 },
+        },
+      },
+      { materialKey: "material:bad-volume" },
+    );
+
+    expect(report.valid).toBe(false);
+    expect(
+      report.diagnostics.some(
+        (diagnostic) =>
+          diagnostic.field ===
+          "extensions.KHR_materials_volume.attenuationDistance",
+      ),
+    ).toBe(true);
   });
 
   it("maps KHR_materials_clearcoat clearcoat textures and warns on remaining unsupported texture slots", () => {

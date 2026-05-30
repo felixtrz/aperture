@@ -15,7 +15,7 @@ import { WEBGPU_BUFFER_USAGE_FLAGS } from "../../resources/meshes/mesh-buffer-de
 import { materialUniformBufferResourceKey } from "../../resources/core/resource-keys.js";
 import { createStandardMaterialBindGroupDescriptorPlan } from "./standard-bind-group.js";
 
-export const STANDARD_MATERIAL_UNIFORM_FLOATS = 68;
+export const STANDARD_MATERIAL_UNIFORM_FLOATS = 76;
 export const STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH =
   STANDARD_MATERIAL_UNIFORM_FLOATS * Float32Array.BYTES_PER_ELEMENT;
 
@@ -88,6 +88,16 @@ export const STANDARD_MATERIAL_UNIFORM_LAYOUT = [
   "clearcoatRoughnessTexCoord.u32",
   "padding7.u32",
   "padding8.u32",
+  // transmissionVolume: vec4f (M5-T5)
+  "transmissionIor",
+  "transmissionThickness",
+  "transmissionAttenuationDistance",
+  "padding9",
+  // attenuationColor: vec4f
+  "attenuationColor.r",
+  "attenuationColor.g",
+  "attenuationColor.b",
+  "padding10",
 ] as const;
 
 export const STANDARD_MATERIAL_FEATURE_FLAGS = {
@@ -295,6 +305,14 @@ export function packStandardMaterial(
   uniformUint32[63] = dependencies.sheenRoughness.texCoord;
   uniformUint32[64] = dependencies.iridescenceThickness.texCoord;
   uniformUint32[65] = dependencies.clearcoatRoughness.texCoord;
+  // Refractive transmission volume (M5-T5). attenuationDistance packs as 0 when
+  // infinite/non-positive — the shader treats 0 as "no Beer-Lambert absorption".
+  uniformFloat32[68] = material.ior;
+  uniformFloat32[69] = Math.max(material.thickness, 0);
+  uniformFloat32[70] = packAttenuationDistance(material.attenuationDistance);
+  uniformFloat32[72] = material.attenuationColor[0] ?? 1;
+  uniformFloat32[73] = material.attenuationColor[1] ?? 1;
+  uniformFloat32[74] = material.attenuationColor[2] ?? 1;
 
   return {
     valid: true,
@@ -308,6 +326,12 @@ export function packStandardMaterial(
     },
     diagnostics,
   };
+}
+
+function packAttenuationDistance(distance: number): number {
+  // The shader uses 0 as the "no Beer-Lambert absorption" sentinel; the glTF
+  // default attenuationDistance is +Infinity (and a finite value must be > 0).
+  return Number.isFinite(distance) && distance > 0 ? distance : 0;
 }
 
 function readTextureTransform(

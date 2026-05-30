@@ -4,6 +4,8 @@ export const CLEARCOAT_EXTENSION = "KHR_materials_clearcoat";
 export const TRANSMISSION_EXTENSION = "KHR_materials_transmission";
 export const SHEEN_EXTENSION = "KHR_materials_sheen";
 export const IRIDESCENCE_EXTENSION = "KHR_materials_iridescence";
+export const IOR_EXTENSION = "KHR_materials_ior";
+export const VOLUME_EXTENSION = "KHR_materials_volume";
 
 const SUPPORTED_MATERIAL_EXTENSIONS = new Set([
   "KHR_materials_unlit",
@@ -11,6 +13,8 @@ const SUPPORTED_MATERIAL_EXTENSIONS = new Set([
   TRANSMISSION_EXTENSION,
   SHEEN_EXTENSION,
   IRIDESCENCE_EXTENSION,
+  IOR_EXTENSION,
+  VOLUME_EXTENSION,
 ]);
 
 export function inspectUnsupportedClearcoatTextures(

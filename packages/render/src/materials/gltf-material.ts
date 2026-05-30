@@ -5,8 +5,10 @@ import {
 import {
   CLEARCOAT_EXTENSION,
   IRIDESCENCE_EXTENSION,
+  IOR_EXTENSION,
   SHEEN_EXTENSION,
   TRANSMISSION_EXTENSION,
+  VOLUME_EXTENSION,
   inspectMaterialExtensions,
 } from "./gltf-material-extensions.js";
 import { gltfRenderState } from "./gltf-material-render-state.js";
@@ -124,6 +126,26 @@ export function createMaterialAssetFromGltfMaterial(
           diagnostics,
         })
       : undefined;
+  const iorSource =
+    isRecord(materialExtensions) &&
+    materialExtensions[IOR_EXTENSION] !== undefined
+      ? optionalRecordField({
+          source: materialExtensions,
+          field: IOR_EXTENSION,
+          materialKey,
+          diagnostics,
+        })
+      : undefined;
+  const volumeSource =
+    isRecord(materialExtensions) &&
+    materialExtensions[VOLUME_EXTENSION] !== undefined
+      ? optionalRecordField({
+          source: materialExtensions,
+          field: VOLUME_EXTENSION,
+          materialKey,
+          diagnostics,
+        })
+      : undefined;
   const transmissionFactor = mapFiniteNumber({
     materialKey,
     field: `extensions.${TRANSMISSION_EXTENSION}.transmissionFactor`,
@@ -157,6 +179,8 @@ export function createMaterialAssetFromGltfMaterial(
     transmissionSource,
     sheenSource,
     iridescenceSource,
+    iorSource,
+    volumeSource,
     materialKey,
     label,
     renderState,

@@ -18,6 +18,8 @@ export interface GltfStandardMaterialFieldInput {
   readonly transmissionSource?: Record<string, unknown> | undefined;
   readonly sheenSource?: Record<string, unknown> | undefined;
   readonly iridescenceSource?: Record<string, unknown> | undefined;
+  readonly iorSource?: Record<string, unknown> | undefined;
+  readonly volumeSource?: Record<string, unknown> | undefined;
   readonly materialKey: string;
   readonly transmissionFactor: number;
   readonly resolver?: GltfMaterialTextureBindingResolver | undefined;

@@ -371,7 +371,14 @@ describe("standard material WebGPU uniform packing", () => {
     expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[65]).toBe(
       "clearcoatRoughnessTexCoord.u32",
     );
-    expect(STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH).toBe(272);
+    // Transmission volume (M5-T5) appends two vec4f blocks (8 floats).
+    expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[68]).toBe("transmissionIor");
+    expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[69]).toBe("transmissionThickness");
+    expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[70]).toBe(
+      "transmissionAttenuationDistance",
+    );
+    expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[72]).toBe("attenuationColor.r");
+    expect(STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH).toBe(304);
   });
 
   it("packs textured alpha-mask flags and cutoff for shader discard", () => {

@@ -153,12 +153,17 @@ test("browser renders roughness-filtered transmission through scene color", asyn
         ok: true,
         width: 960,
         height: 960,
-        textureResourceKey:
-          "standard-transmission-grab:scene-color:960:960:bgra8unorm",
         samplerResourceKey: "standard-transmission-grab:sampler",
       },
     },
   });
+
+  // The grab texture follows the swapchain format, which is environment
+  // dependent (bgra8unorm on most browsers, rgba8unorm under SwiftShader), so
+  // assert the resource-key shape rather than a hardcoded format.
+  expect(status.frame?.transmissionGrabPass?.textureResourceKey).toMatch(
+    /^standard-transmission-grab:scene-color:960:960:(rgba8unorm|bgra8unorm)$/,
+  );
 
   const frame = status.frame;
 

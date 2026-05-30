@@ -13,6 +13,7 @@ import {
   mapStandardIridescenceFields,
   mapStandardSheenFields,
   mapStandardTransmissionFields,
+  mapStandardVolumeFields,
 } from "./gltf-material-standard-extension-fields.js";
 import {
   mapStandardPbrFields,
@@ -73,6 +74,8 @@ export function createStandardGltfMaterialAsset(input: {
   readonly transmissionSource?: Record<string, unknown> | undefined;
   readonly sheenSource?: Record<string, unknown> | undefined;
   readonly iridescenceSource?: Record<string, unknown> | undefined;
+  readonly iorSource?: Record<string, unknown> | undefined;
+  readonly volumeSource?: Record<string, unknown> | undefined;
   readonly materialKey: string;
   readonly label: string;
   readonly renderState: RenderStateDescriptor;
@@ -89,6 +92,7 @@ export function createStandardGltfMaterialAsset(input: {
     ...mapStandardPbrFields(input),
     ...mapStandardClearcoatFields(input),
     ...mapStandardTransmissionFields(input),
+    ...mapStandardVolumeFields(input),
     ...mapStandardSheenFields(input),
     ...mapStandardIridescenceFields(input),
     ...mapStandardSurfaceFields(input),
