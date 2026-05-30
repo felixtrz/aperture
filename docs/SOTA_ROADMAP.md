@@ -14,7 +14,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
     5. Use absolute dates (YYYY-MM-DD [HH:MM TZ]) everywhere — never "today"/"now".
 -->
 
-**Last updated:** `2026-05-30 10:12 PDT — claude/opus`
+**Last updated:** `2026-05-30 10:22 PDT — claude/opus`
 
 > _What to write:_ Absolute date + time + timezone, then `— <your agent/author id>` (e.g. `2026-06-02 14:30 PDT — claude/opus`). Update on every edit to this block.
 
@@ -22,7 +22,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 
 > _What to write:_ The single lowest-numbered wave (0–4) that still has an incomplete milestone — the ONLY wave to pull work from. Bump it only once every milestone in the current wave is `done`.
 
-**Active task:** `M4-T9 (in-progress: deterministic atlas packer + unit done [done-when #1]; updateMode authoring + per-frame scheduler + multi-light atlas route remaining). M4-T8 not started.`
+**Active task:** `M4-T8 (in-progress: alpha-test caster descriptor + WGSL + unit done [done-when #2/#3]; GPU pipeline resource + draw-list alphaMode selection + shadow-pass material binding + perforated-shadow pixel proof remaining). M4-T9 also in-progress (packer done).`
 
 > _What to write:_ Exactly ONE task id (`M#-T#`) you are mid-implementation on, or `none` when between tasks. Never two at once. Reset to `none` after you record the result in the completion log below.
 
@@ -931,7 +931,7 @@ Add a PCSS (percentage-closer soft shadows) path selectable via authored shadowT
 
 **Watch out:** WGSL comparison samplers (textureSampleCompareLevel) cannot directly return raw depth for a blocker search; the blocker search needs either a second non-comparison sampler/view of the same depth texture or a manual compare against multiple taps. This may require a second sampler binding or a depth-as-texture view — verify the shadow-depth-texture-resource binding layout supports it before designing the WGSL. Variable-radius PCF inside a dynamic loop can hit WGSL uniform-control-flow constraints with textureSampleCompareLevel (must use Level, already the case). Keep sample counts bounded to avoid perf cliffs; gate PCSS behind the explicit shadowType so default scenes stay cheap.
 
-#### `M4-T8` · Alpha-tested shadow casters (UV + baseColor + discard) for foliage silhouettes
+#### `M4-T8` · Alpha-tested shadow casters (UV + baseColor + discard) for foliage silhouettes — 🟡 in-progress
 
 `webgpu-render` · effort **L** · depends: none
 
@@ -946,8 +946,8 @@ Replace the position-only depth caster with an alpha-test-capable variant. Add a
 **Done when:**
 
 - [ ] A render-control route with a quad caster using a checkerboard/alpha-cutout baseColor texture, lit by a directional shadow, casts a PERFORATED shadow (holes where alpha<cutoff) on the receiver — the spec asserts both lit and shadowed samples exist within the caster's shadow footprint (proving holes), vs the opaque path which produces a solid rectangle
-- [ ] A Vitest WGSL-generation/descriptor unit asserts the alpha-test caster pipeline binds a baseColor texture and its fs_main contains a discard, while the opaque caster pipeline remains empty-fragment position-only
-- [ ] An opaque caster in the same scene still uses the position-only pipeline (descriptor pipelineKey differs); spec asserts both pipeline variants coexist without WebGPU validation warnings
+- [x] A Vitest WGSL-generation/descriptor unit asserts the alpha-test caster pipeline binds a baseColor texture and its fs_main contains a discard, while the opaque caster pipeline remains empty-fragment position-only — `test/webgpu/shadow-caster-pipeline-descriptor.test.ts` (SHADOW_CASTER_ALPHA_TEST_WGSL binds baseColorTexture + discard; opaque stays empty fs_main position-only).
+- [x] An opaque caster in the same scene still uses the position-only pipeline (descriptor pipelineKey differs); spec asserts both pipeline variants coexist without WebGPU validation warnings — descriptor unit asserts both variants coexist with distinct pipelineKeys (the GPU-pass coexistence/no-warnings assertion lands with the pixel route, below).
 - [ ] commandBufferSubmission.status stays 'submitted' and depth pass still produces a valid shadow map (existing csm spec passes)
 
 **Study:** /Users/felixz/Projects/aperture/references/bevy (prepass / alpha-mask shadow caster patterns in bevy_pbr)
