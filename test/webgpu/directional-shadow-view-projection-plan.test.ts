@@ -44,6 +44,8 @@ describe("directional shadow view-projection planning", () => {
           cascadeCount: 1,
           cascadeNear: 0,
           cascadeFar: 1,
+          cascadeNearDistance: 0.1,
+          cascadeFarDistance: 10,
           lightTransformOffset: 64,
           mapSize: 1024,
           casterLayerMask: 1,
@@ -100,6 +102,46 @@ describe("directional shadow view-projection planning", () => {
     ]);
   });
 
+  it("emits practical (linear/log blended) absolute cascade far distances, not index/count linear", () => {
+    const request = { ...shadowRequest(7, 11), cascadeCount: 4 };
+    const report = createDirectionalShadowViewProjectionPlanReport({
+      shadowRequests: [request],
+      lights: [light(11, "directional")],
+      shadowPassPlan: shadowPassPlan(request),
+      shadowMaxDistance: 100,
+    });
+    const json = directionalShadowViewProjectionPlanReportToJsonValue(report);
+
+    const farDistances = json.plans.map((plan) => plan.cascadeFarDistance);
+
+    expect(farDistances).toHaveLength(4);
+    expect(farDistances).toEqual(expectedPracticalFarBounds(4, 100));
+
+    // The far cascade must be the full shadow max distance.
+    expect(farDistances[3]).toBe(100);
+
+    // The split must NOT be the old index/count linear scheme (which would be
+    // [25, 50, 75, 100] for max distance 100).
+    expect(farDistances).not.toEqual([25, 50, 75, 100]);
+  });
+
+  it("emits contiguous cascade coverage: cascade N near equals cascade N-1 far", () => {
+    const request = { ...shadowRequest(7, 11), cascadeCount: 4 };
+    const report = createDirectionalShadowViewProjectionPlanReport({
+      shadowRequests: [request],
+      lights: [light(11, "directional")],
+      shadowPassPlan: shadowPassPlan(request),
+      shadowMaxDistance: 100,
+    });
+    const json = directionalShadowViewProjectionPlanReportToJsonValue(report);
+
+    for (let index = 1; index < json.plans.length; index += 1) {
+      expect(json.plans[index]?.cascadeNearDistance).toBe(
+        json.plans[index - 1]?.cascadeFarDistance,
+      );
+    }
+  });
+
   it("reports missing light or unsupported light kind", () => {
     const missing = directionalShadowViewProjectionPlanReportToJsonValue(
       createDirectionalShadowViewProjectionPlanReport({
@@ -128,6 +170,30 @@ describe("directional shadow view-projection planning", () => {
     ).toEqual(["directionalShadowViewProjection.unsupportedLightKind"]);
   });
 });
+
+// Independent replication of the practical (linear/log blended) far-bound
+// formula used by light-packing `directionalCascadeFarBounds`. The plan's
+// absolute far distances must match this exactly so the shader-side cascade
+// SELECTION agrees with the matrix-side fit.
+function expectedPracticalFarBounds(
+  cascadeCount: number,
+  shadowMaxDistance: number,
+): number[] {
+  const max = Math.max(1, shadowMaxDistance);
+  const min = Math.min(0.1, max * 0.5);
+  const bounds: number[] = [];
+
+  for (let index = 0; index < cascadeCount; index += 1) {
+    const fraction = (index + 1) / cascadeCount;
+    const linear = min + (max - min) * fraction;
+    const logarithmic = min * Math.pow(max / min, fraction);
+    bounds.push(
+      index + 1 === cascadeCount ? max : (linear + logarithmic) * 0.5,
+    );
+  }
+
+  return bounds;
+}
 
 function shadowPassPlan(request: ShadowRequestPacket = shadowRequest(7, 11)) {
   return createShadowPassPlanReport({
