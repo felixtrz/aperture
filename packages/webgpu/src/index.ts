@@ -10,6 +10,7 @@ export * from "./materials/custom-wgsl/custom-wgsl-material.js";
 export * from "./lighting/brdf-lut-compute-pipeline.js";
 export * from "./lighting/brdf-lut-resource.js";
 export * from "./lighting/irradiance-convolution-compute-pipeline.js";
+export * from "./lighting/equirect-to-cube-compute-pipeline.js";
 export * from "./lighting/diffuse-ibl-resource-summary.js";
 export * from "./shadows/directional-shadow-matrix-computation.js";
 export * from "./shadows/directional-shadow-view-projection-plan.js";
