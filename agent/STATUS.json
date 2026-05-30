@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "f835fb62",
   "activePid": null,
-  "notes": "SOTA M5 at 2/6 done + T3 in-progress. T1 split-sum DFG (7beb1ca) + T2 cosine irradiance-convolution (3cc58d9) both fully proven; re-verified on HEAD: ibl-brdf + ibl-irradiance e2e both pass under SwiftShader. M5-T3 projection compute pipeline core + UV vitest landed (3f54524, Done-when #3); resource builder + equirectSource auto-wiring + example/live proof remain (no in-repo 2:1 equirect .hdr). pnpm run check = 389 files / 2196 tests.",
-  "lastRunFinishedAt": "2026-05-30T12:36:45Z"
+  "notes": "SOTA M5: T1 (7beb1ca) + T2 (3cc58d9) done & fully proven (ibl-brdf + ibl-irradiance e2e green on HEAD under SwiftShader); T3 in-progress — projection compute pipeline (3f54524) + resource builder (2a85c8a), both fake-device + UV-math vitest-covered (Done-when #3 ✅); T3 remaining: equirectSource auto-wiring + example (needs 2:1 equirect .hdr) + live spec. T4/T5/T6 not started. pnpm run check = 390 files / 2200 tests, zero regressions. Full M5 (4 remaining effort-L/M slices + asset) exceeds one session; precise resume plan in roadmap + handoff.",
+  "lastRunFinishedAt": "2026-05-30T12:49:06Z"
 }
