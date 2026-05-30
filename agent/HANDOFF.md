@@ -1,6 +1,52 @@
 # Agent Handoff
 
-Updated: 2026-05-29T23:10:00Z
+Updated: 2026-05-30T07:30:00Z
+
+## Current Run Update — 2026-05-30 — SOTA M4 (Production-quality shadows): 4/9 done + T5 code-complete
+
+Implemented M4 from `docs/SOTA_ROADMAP.md` (the source of truth; ignored
+agent/BACKLOG.md per the run directive), one task per commit. **T1, T2, T3, T4
+fully done + gate-green with passing proofs; T5 code-complete with 2/4 done-when
+proven (WGSL-gen + pipeline-descriptor units); T6-T9 not started.** Full
+`pnpm run check` green after every commit (latest: 384 files / 2173 tests). All
+5 shadow e2e specs pass under SwiftShader.
+
+ENVIRONMENT (now turnkey — committed): WebGPU e2e works via a SessionStart hook
+`.claude/hooks/session-start.sh` (installs deps, rebuilds git-ignored
+references/, installs a WebGPU-capable Google Chrome, ensures xvfb, regenerates
+the git-ignored `playwright.local.config.ts`). Run pixel proofs with
+`scripts/webgpu-e2e.sh <spec>`. Key facts baked in: navigator.gpu needs a SECURE
+context (localhost server, not about:blank); bundled Chromium ships WebGPU off
+(use channel "chrome"); must run headed under xvfb; SwiftShader Vulkan flags.
+
+DONE (commits): M4-T2 practical cascade splits; M4-T1 frustum-fit+texel-snapped
+cascade matrices (no swim); M4-T3 authored shadowType/strength/filterRadius/
+slopeBias plumbed ECS->packet->packed-codec->status; M4-T4 strength replaces the
+0.45/0.5 MIN_VISIBILITY floor (full-darkness reachable, per-light authored).
+
+T5 IN-PROGRESS (committed code): authored depth/normal/slope bias — caster
+pipeline depthStencil depthBias+depthBiasSlopeScale; per-light receiver
+shadowDepthBias (light-float slot 25, cascaded); normal-offset (slot 26,
+cascaded) before the shadow-matrix multiply; packet/codec stride 10->12,
+light-packing stride 25->27. WGSL-gen unit (#2) + pipeline-descriptor unit (#3)
+PASS. NOT yet proven: done-when #1 (acne variance) and #4 (peter-panning) PIXEL
+proofs — the csm scene cannot isolate the acne/detach signal from box+shadow-edge
+geometry under SwiftShader. FOLLOW-UP: add a dedicated single flat grazing-plane
+shadow route (single-light-shadow pattern) with the already-wired
+`?shadow-depth-bias=` param to make acne/peter-panning isolable; also consider
+wiring per-light depthBias into the non-cascaded/multi/point shader variants
+(they retain the tuned 0.002/0.0001 consts for now).
+
+REMAINING M4 (not started): T6 cascade blend (deps T1+T2 done), T7 PCSS
+(deps T3+T4 done), T8 alpha-test casters (independent), T9 shadow atlas packer
+(deps T3). Build proofs on the csm harness or dedicated routes per each task's
+Done-when.
+
+NOTE on hash bookkeeping: each task's roadmap log hash points to the
+implementation commit; the branch tip is one commit ahead (the doc-hash amend),
+an inherent self-reference drift.
+
+---
 
 ## Current Run Update — 2026-05-29 — SOTA M2 (End-to-end animation): 7/9 done, T7+T9 WebGPU-blocked
 
