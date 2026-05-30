@@ -28171,3 +28171,70 @@ Focus the audit on:
 - The readback-based browser proof is honest about the missing isolated pixel.
 - The next implementation slice should plan source-driven material mapping for
   the buffer-backed primitive rather than broad GLB viewer behavior.
+
+---
+
+## 2026-05-30 — SOTA M5 (PBR/IBL correctness): T1 + T2 shipped (M5 at 2/6)
+
+Result: success (partial milestone — 2 of 6 M5 tasks done, both fully proven).
+Gate: `pnpm run check` = pass (387 files / 2188 tests). Both named Playwright
+proofs pass under SwiftShader + xvfb (`scripts/webgpu-e2e.sh`).
+
+Shipped (in dependsOn order, one commit per task + a hash-fill doc commit each):
+
+- **M5-T1** `7beb1ca` — Split-sum environment-BRDF (DFG) specular IBL. New
+  `packages/webgpu/src/lighting/brdf-lut-compute-pipeline.ts` (rg16float GGX DFG
+  integration compute shader + `integrateEnvironmentBrdf` CPU mirror) +
+  `brdf-lut-resource.ts` (`createBrdfIntegrationLutResource`: one-time 256²
+  dispatch → 2d view). New `iblSpecularBrdf` shader variant evaluates the
+  split-sum (scale,bias) via the SOTA-bar-sanctioned analytic Karis DFGApprox
+  in-shader (`applyStandardSpecularIblBrdfSampling`), reusing the specular cube
+  at group 3 binding 7 — it SUPERSEDES `iblSpecularProof` (snapshot carries
+  `iblSpecularBrdf` instead, via `withStandardIblPipelineKeys(..., includeSpecularBrdf)`
+  - `hasReadyStandardSpecularIblBrdfResources` in `frame-loop.ts`). Wired through
+    features / variant-label / variant-declarations / variant-bindings /
+    pipeline-descriptor / app-pipeline-keys / frame-resources. Proof:
+    `examples/ibl-brdf.*` + `test/e2e/ibl-brdf.spec.ts` +
+    `test/webgpu/brdf-lut-compute-pipeline.test.ts`. Design choice recorded in
+    `docs/DECISIONS.md` §0017 (analytic DFG vs a sampled binding-8 LUT; the GPU LUT
+    is built+validated+reported but not yet sampled — optional follow-up).
+
+- **M5-T2** `3cc58d9` — Cosine irradiance-convolution compute pass for diffuse
+  IBL. New `irradiance-convolution-compute-pipeline.ts` (cosine-weighted
+  hemisphere convolution + `convolveIrradianceDirection` CPU mirror).
+  `createDiffuseIblTextureResourceReport` now convolves by default into a 32²
+  irradiance cube when the device supports compute
+  (`hasIrradianceConvolutionDeviceSupport`, feature-detected like the PMREM
+  path); `convolveIrradiance:false` forces the legacy verbatim upload; no-compute
+  devices fall back + emit `diffuseIrradianceConvolutionDeferred` (so existing
+  tests are unchanged). Report gained `convolved`/`irradianceFaceSize`. Proof:
+  `examples/ibl-irradiance.*` + `test/e2e/ibl-irradiance.spec.ts` +
+  `test/webgpu/irradiance-convolution-compute-pipeline.test.ts`. NOTE: the
+  example uses a bright +X/+Y/+Z HEMISPHERE (not a single white face): a single
+  small bright face correctly convolves toward the global average, so a
+  hemisphere is needed for a strong directional gradient (the CPU unit test
+  proves the lobe). `ibl-preparation-pass-plan.ts` was left unchanged: it is a
+  standalone planning report with no live callers, so the convolution-executed
+  state is surfaced via the diffuse report's `convolved` flag.
+
+Next (for the resuming agent): **M5-T3** (equirect→cube + auto-wire single-asset
+IBL). Deps met. BLOCKER: no 2:1 equirect `.hdr` in-repo (only a 6:1 cube atlas
+`examples/assets/pisa-studio-rgbe-cube.hdr`); Done-when #1 wants `loadHdrFromUri`
+on a real equirect — author a small RGBE equirect asset or synthesize the
+equirect data and document the deviation. **M5-T4** (rgba16float HDR scene buffer
+
+- exposure) and **M5-T6** (SSAO→indirect) are also ready (no deps, no asset
+  blocker). Full plans in `docs/SOTA_ROADMAP.md` Resume notes + each task's body.
+
+References inspected (this run):
+
+- `references/three.js/src/nodes/functions/BSDF/EnvironmentBRDF.js` and
+  `DFGLUT.js` (split-sum `specularColor*fab.x + specularF90*fab.y`; the analytic
+  DFGApprox is the LUT-free form). [M5-T1]
+- `references/three.js/src/nodes/utils/EquirectUV.js` (equirect↔direction
+  mapping `u=atan2(z,x)/2π+0.5`, `v=asin(y)/π+0.5`). [M5-T3 prep]
+- Aperture in-repo reference patterns adapted: `pmrem-compute-pipeline.ts`
+  (compute-pass + Hammersley + cubeDirection structure → both new compute
+  pipelines), `ibl-texture-resource-specular.ts`
+  (`createSpecularIblPmremTextureResource` dispatch-on-create + device
+  feature-detection → BRDF-LUT + irradiance resource builders).
