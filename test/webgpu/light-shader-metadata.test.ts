@@ -67,7 +67,7 @@ describe("light shader binding metadata", () => {
   it("declares deterministic WGSL storage bindings for packed light buffers", () => {
     expect(LIGHT_SHADER_WGSL_DECLARATION).toMatchObject({
       group: 3,
-      floatStride: 27,
+      floatStride: 29,
       metadataStride: 6,
       bindings: [
         {
@@ -109,7 +109,7 @@ describe("light shader binding metadata", () => {
     expect(value).toMatchObject({
       group: 3,
       strides: {
-        floats: 27,
+        floats: 29,
         metadata: 6,
       },
       bindings: [

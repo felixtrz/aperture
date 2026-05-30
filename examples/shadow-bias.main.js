@@ -13,6 +13,10 @@ const stopAfterReady = exampleParams.has("stop-after-ready");
 const depthBiasOverride = exampleParams.has("shadow-depth-bias")
   ? Number(exampleParams.get("shadow-depth-bias"))
   : undefined;
+const shadowTypeOverride = exampleParams.has("shadow-type")
+  ? Number(exampleParams.get("shadow-type"))
+  : undefined;
+const casterEnabled = exampleParams.has("caster");
 
 try {
   const [core, webgpu] = await Promise.all([
@@ -91,6 +95,8 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
       height: canvas?.height ?? 540,
     },
     depthBias: depthBiasOverride,
+    shadowType: shadowTypeOverride,
+    caster: casterEnabled,
   });
   globalThis.__APERTURE_STOP_EXAMPLE__ = () => {
     loop.workerReady = false;

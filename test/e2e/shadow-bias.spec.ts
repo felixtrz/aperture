@@ -105,6 +105,51 @@ test("M4-T6: the cascade-spanning floor is continuous (no seam) across cascade s
   await page.goto("about:blank");
 });
 
+// M4-T7 proof: a pillar resting on the floor casts a shadow that, under PCSS
+// (shadowType=2), is hard near the base contact and softens with distance
+// (contact hardening); under PCF (shadowType=1) the penumbra is uniform.
+test("M4-T7: PCSS contact-hardening vs uniform PCF on a pillar shadow", async ({
+  page,
+}) => {
+  const pcss = await captureFloor(page, "caster=1&shadow-type=2");
+  if (pcss === null) {
+    return;
+  }
+  const pcf = await captureFloor(page, "caster=1&shadow-type=1");
+  if (pcf === null) {
+    return;
+  }
+
+  // Near the pillar base (contact) vs far down the shadow toward the camera.
+  const nearContact = { x0: 0.4, y0: 0.62, x1: 0.6, y1: 0.68 } as const;
+  const farContact = { x0: 0.4, y0: 0.82, x1: 0.6, y1: 0.9 } as const;
+
+  const pcssNear = regionLuminanceStats(pcss.shot, nearContact).average;
+  const pcssFar = regionLuminanceStats(pcss.shot, farContact).average;
+  const pcfNear = regionLuminanceStats(pcf.shot, nearContact).average;
+  const pcfFar = regionLuminanceStats(pcf.shot, farContact).average;
+
+  // PCF: roughly uniform penumbra — near and far shadow darkness are similar.
+  expect(
+    Math.abs(pcfFar - pcfNear),
+    `PCF penumbra should be ~uniform (near=${pcfNear} far=${pcfFar})`,
+  ).toBeLessThan(7);
+
+  // PCSS: contact hardening — the shadow is sharper/darker near the base and
+  // softens (brightens, wider penumbra) with distance from the contact.
+  expect(
+    pcssFar - pcssNear,
+    `PCSS should soften with distance from contact (near=${pcssNear} far=${pcssFar})`,
+  ).toBeGreaterThan(8);
+
+  // The PCSS profile is clearly less uniform than PCF (distinguishes the two).
+  expect(Math.abs(pcssFar - pcssNear)).toBeGreaterThan(
+    Math.abs(pcfFar - pcfNear) + 6,
+  );
+
+  await page.goto("about:blank");
+});
+
 async function captureFloor(
   page: Page,
   query: string,

@@ -1494,6 +1494,26 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "visibility = mix(visibility, nextVisibility, blend);",
     );
+
+    // M4-T7: PCSS variant (blocker search via textureLoad + penumbra width +
+    // variable-radius PCF), selected by the authored shadowType; and the
+    // cascaded PCF now multiplies the kernel offset by the authored filter
+    // radius (it previously ignored it).
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "fn sampleDirectionalShadowPcss(shadowUv: vec2f, receiverDepth: f32, cascadeIndex: u32, filterRadiusTexels: f32) -> f32",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "let occluderDepth = textureLoad(directionalShadowMap, coord, i32(cascadeIndex), 0);",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "let penumbraWidth = max(",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "shadowUv + vec2f(f32(x), f32(y)) * texelSize * filterRadius",
+    );
+    expect(STANDARD_CASCADED_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "let filterType = shadowFilterType(lightIndex);",
+    );
   });
 
   it("declares cascaded directional shadows and IBL in one group 3 route", () => {

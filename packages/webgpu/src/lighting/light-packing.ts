@@ -18,7 +18,9 @@ import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descr
 // Slot 24: authored shadow strength (M4-T4); shadow-casting lights only.
 // Slot 25: authored shadow receiver depthBias (M4-T5).
 // Slot 26: authored shadow normal-offset bias (M4-T5).
-export const PACKED_LIGHT_FLOAT_STRIDE = 27;
+// Slot 27: authored shadow filter radius in texels (M4-T7).
+// Slot 28: authored shadow filtering type (0=hard, 1=PCF, 2=PCSS) (M4-T7).
+export const PACKED_LIGHT_FLOAT_STRIDE = 29;
 export const PACKED_LIGHT_METADATA_STRIDE = 6;
 
 export const PackedLightKindId = {
@@ -316,6 +318,8 @@ export function writePackedLightPackets(
         shadowParams?.get(light.lightId)?.strength ?? 1,
         shadowParams?.get(light.lightId)?.depthBias ?? 0,
         shadowParams?.get(light.lightId)?.normalBias ?? 0,
+        shadowParams?.get(light.lightId)?.filterRadius ?? 1,
+        shadowParams?.get(light.lightId)?.shadowType ?? 1,
       ],
       floatOffset,
     );
@@ -712,6 +716,8 @@ interface PackedShadowParams {
   readonly strength: number;
   readonly depthBias: number;
   readonly normalBias: number;
+  readonly filterRadius: number;
+  readonly shadowType: number;
 }
 
 /**
@@ -730,6 +736,8 @@ function shadowParamsByLight(
       strength: clampUnit(request.strength ?? 1),
       depthBias: Math.max(0, request.depthBias ?? 0),
       normalBias: Math.max(0, request.normalBias ?? 0),
+      filterRadius: Math.max(0, request.filterRadius ?? 1),
+      shadowType: Math.min(2, Math.max(0, Math.round(request.shadowType ?? 1))),
     });
   }
 

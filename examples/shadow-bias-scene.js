@@ -36,8 +36,29 @@ export function registerShadowBiasScene(aperture, registry) {
     }),
     { id: "shadow-bias-floor-matte" },
   );
+  // A tall thin pillar resting on the floor — used by the PCSS contact-hardening
+  // proof. Its cast shadow is sharp at the base (contact) and softens with
+  // distance when PCSS (shadowType=2) is active.
+  const pillarMesh = assets.meshes.add(
+    aperture.createBoxMeshAsset({
+      label: "ShadowBiasPillar",
+      width: 0.5,
+      height: 5,
+      depth: 0.5,
+    }),
+    { id: "shadow-bias-pillar" },
+  );
+  const pillarMaterial = assets.materials.standard.add(
+    aperture.createStandardMaterialAsset({
+      label: "ShadowBiasPillarMatte",
+      baseColorFactor: new Float32Array([0.9, 0.5, 0.3, 1]),
+      metallicFactor: 0,
+      roughnessFactor: 0.6,
+    }),
+    { id: "shadow-bias-pillar-matte" },
+  );
 
-  return { floorMesh, floorMaterial };
+  return { floorMesh, floorMaterial, pillarMesh, pillarMaterial };
 }
 
 export function createShadowBiasLightRotation() {

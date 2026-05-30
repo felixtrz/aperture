@@ -43,6 +43,8 @@ async function handleMessage(data) {
       scene = createWorkerScene(aperture, {
         canvas: data.canvas ?? { width: 960, height: 540 },
         depthBias: data.depthBias,
+        shadowType: data.shadowType,
+        caster: data.caster === true,
       });
       self.postMessage({ type: "ready" });
       return;
@@ -112,6 +114,11 @@ function createWorkerScene(aperture, options) {
       ? 0
       : shadowBiasIntent.normalBias
     : shadowBiasIntent.normalBias;
+  const shadowType =
+    typeof options.shadowType === "number" &&
+    Number.isFinite(options.shadowType)
+      ? Math.min(2, Math.max(0, Math.round(options.shadowType)))
+      : 1;
 
   app.spawn(
     aperture.withTransform({ translation: [0, 1.1, 12] }),
@@ -134,6 +141,19 @@ function createWorkerScene(aperture, options) {
     aperture.withShadowReceiver(true),
     aperture.withVisibility(true),
   );
+  if (options.caster === true) {
+    // Pillar resting on the floor: its cast shadow hardens at the base contact
+    // and softens with distance under PCSS (M4-T7 contact-hardening proof).
+    app.spawn(
+      aperture.withTransform({ translation: [0, 2.5, 1] }),
+      aperture.withMesh(assets.pillarMesh),
+      aperture.withMaterial(assets.pillarMaterial),
+      aperture.withRenderLayer(1),
+      aperture.withShadowCaster(true),
+      aperture.withShadowReceiver(false),
+      aperture.withVisibility(true),
+    );
+  }
   app.spawn(
     aperture.withLight({
       kind: aperture.LightKind.Ambient,
@@ -158,6 +178,8 @@ function createWorkerScene(aperture, options) {
       normalBias,
       cascadeCount: shadowBiasIntent.cascadeCount,
       strength: 0.85,
+      shadowType,
+      filterRadius: 3,
       casterLayerMask: 1,
       receiverLayerMask: 1,
     }),
