@@ -1,8 +1,8 @@
 # Agent Handoff
 
-Updated: 2026-05-30T19:55:00Z
+Updated: 2026-05-30T20:13:00Z
 
-## Current Run Update — 2026-05-30 — SOTA M3 (Real render graph): IN PROGRESS 1/7
+## Current Run Update — 2026-05-30 — SOTA M3 (Real render graph): IN PROGRESS 2/7
 
 Implementing Milestone M3 (A real render graph) from docs/SOTA_ROADMAP.md in
 dependsOn order, one task per commit. M5 was already COMPLETE (6/6) at run start;
@@ -23,7 +23,7 @@ side effects), the foundation every later M3 task executes through:
   is a PURE function: Kahn topo-sort over read/write edges with insertion-index
   tiebreak (before/after compiles to edges; edges are the source of truth),
   per-node colorLoadOp/depthLoadOp + per-write storeOp via PlayCanvas
-  store-on-no-clear *generalized* so a later READ (not just a load-write) forces
+  store-on-no-clear _generalized_ so a later READ (not just a load-write) forces
   the producer to store, descriptor-keyed transient aliasing (simple per-frame
   pool per D3, not optimal lifetime packing), and a JSON-safe
   `FrameGraphCompileReportJsonValue`. A cycle ⇒ `frameGraph.cyclicDependency`
@@ -41,26 +41,53 @@ pass (393 files / 2217 tests). Architectural invariants upheld: the graph layer
 is GPU-free + synchronous (headless/worker-safe), ECS-authoritative untouched,
 no scene graph, WebGPU-only. No executor/route wiring yet — that lands in T2.
 
-**NEXT — M3-T2 (single-encoder executor).** Build
-`render/graph/frame-graph-execute.ts` `executeFrameGraph(device,queue,compiled,
-resources)` = ONE `createCommandEncoderResource` encoder, walk
-`compiled.orderedNodes` (render ⇒ begin pass with compiled load/store + resolve
-write handles to views + replay `RenderPassCommand[]` through the EXISTING
-`render/passes/render-pass-command-executor.ts` to preserve bundle-caching +
-state elision verbatim + end; compute ⇒ begin compute pass + run
-`ComputePassCommand[]` + end), finish ONCE + `submitCommandBuffers([one])`.
-Keystone refactor: split `render/frame/frame-boundary.ts` `assembleFrameBoundary`
-(~line 287) into (a) `encodeFrameBoundaryInto(encoder, options)` =
-begin→execute→end on a caller-provided encoder (no create/finish/submit), and
-(b) keep `assembleFrameBoundary` as a thin wrapper that creates+finishes+submits
-around it so `test/webgpu/frame-boundary.test.ts` still emits
-`['begin','draw','end','finish','submit:1']` UNCHANGED (that is the migration
-safety net — get it green before touching routes). Extend
-`gpu/command-submission-metrics.ts` to count multi-pass single-buffer frames.
-T2 proof: NEW `test/webgpu/frame-graph-execute.test.ts` (fake-device recorder:
-3-render+1-compute graph ⇒ ONE createCommandEncoder/finish/submit, passes
-interleaved in compiled order; compute begin/dispatch/end in the same encoder) +
-the unchanged frame-boundary.test.ts.
+**M3-T2 ✅ done (924003c)** — the single-encoder executor + the keystone
+frame-boundary split:
+
+- `render/frame/frame-boundary.ts` — extracted `encodeFrameBoundaryInto(options)`
+  that does timing-start → begin → rectangles → draw commands → end → timing-end
+  → occlusion → readback on a CALLER-PROVIDED encoder (no create/finish/submit).
+  `assembleFrameBoundary` is now a thin wrapper: resolve target+attachments,
+  create the encoder, delegate to `encodeFrameBoundaryInto`, then finish+submit.
+  Operation order is byte-identical so `test/webgpu/frame-boundary.test.ts` stays
+  green UNCHANGED (15/15) — the migration safety net.
+- `render/graph/frame-graph-execute.ts` (new) — `executeFrameGraph({device,
+queue,compiled,resources,label})`: ONE `createCommandEncoderResource` encoder,
+  walk `compiled.orderedNodes` (render ⇒ build attachments from
+  `resources.resolveAttachment(handle)` + compiled load/store, then
+  `encodeFrameBoundaryInto` so bundle-caching/elision is preserved; compute ⇒
+  `beginComputePass` + `executeComputePassCommands` + end), finish ONCE +
+  `submitCommandBuffers([one])`. A `FrameGraphResources` resolver keeps the graph
+  model GPU-free. A failed compile (cycle) refuses to execute + creates no encoder.
+- `render/passes/compute-pass-commands.ts` — added `executeComputePassCommands` +
+  `ComputePassEncoderLike` (mirror of the render-pass executor).
+- `gpu/command-submission-metrics.ts` — added
+  `createMultiPassCommandSubmissionMetricsReport` (sums executed/draw across all
+  node executions; reports one command buffer + one submit).
+
+Proof: `test/webgpu/frame-graph-execute.test.ts` (4 cases) — 3-render+1-compute ⇒
+exactly ONE createCommandEncoder/finish/submit:1 with begin/draw/dispatch/end
+interleaved in compiled order; commandBuffers===1 & submittedCommandBuffers===1,
+drawCalls=3 & executedCommands=6 summed; in-encoder compute dispatch; cyclic
+compile refused. `frame-boundary.test.ts` unchanged-green. Gate: `pnpm run check`
+= pass (394 files / 2221 tests). The default production render path is STILL the
+legacy path — nothing is wired through the graph yet (that begins at T3).
+
+**NEXT — M3-T3 (port the post stack behind a flag).** In `app/post-processing.ts`,
+convert `assembleWebGpuAppPostProcessedSwapchainTarget` to BUILD a FrameGraph
+(scene node + optional motion-vector node + one node per WebGpuPostEffect +
+expanded bloom down/up/composite nodes) and run it via `executeFrameGraph`, gated
+behind a per-app `useFrameGraph` boolean (default FALSE) threaded from
+`app/frame-boundaries.ts`. Map the (effectIndex+frame)%2 ping/pong onto
+`declareTransient` handles (replace the fixed slots in resource-cache.ts
+WebGpuAppPostPassCache). The graph path MUST reproduce
+`WebGpuAppPostEffectSubmissionReport[]` byte-identically (D4: identical pixels +
+metrics; existing report fields unchanged; the `graph` sub-report is additive).
+T3 proof: dof.spec.ts with flag ON, a new vitest/render-control proof that
+scene+bloom submits ONE command buffer vs legacy ≥4, a golden deep-equal of the
+post-effect report graph-vs-legacy, post-effects pixels, and a clean validation
+console guard. The full T3 step list + watch-outs are in the SOTA_ROADMAP Resume
+notes block.
 
 ### References inspected (this run)
 
@@ -74,6 +101,9 @@ the unchanged frame-boundary.test.ts.
   (consumed fully in M3-T6).
 - `packages/webgpu/src/render/passes/render-pass-commands.ts` (local) — shape
   mirrored for the sibling ComputePassCommand union.
+- `references/engine/src/platform/graphics/render-pass.js` (T2) — PlayCanvas
+  RenderPass: one encoder, explicit begin/end per pass, single submit; informs
+  the executor's one-encoder walk. Concept borrowed, no code copied.
 
 LESSON (T1): the repo tsconfig.base.json sets `noUncheckedIndexedAccess: true`,
 so every bounded array index is `T | undefined`; `tsc -b` surfaces these in
