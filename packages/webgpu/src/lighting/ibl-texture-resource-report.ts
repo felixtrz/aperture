@@ -15,6 +15,10 @@ export function diffuseIblTextureResourceReportToJsonValue(
     diffuseSlotCount: report.diffuseSlotCount,
     createdTextureCount: report.createdTextureCount,
     reusedTextureCount: report.reusedTextureCount,
+    ...(report.convolved === undefined ? {} : { convolved: report.convolved }),
+    ...(report.irradianceFaceSize === undefined
+      ? {}
+      : { irradianceFaceSize: report.irradianceFaceSize }),
     sections: { ...report.sections },
     resources: report.resources.map((resource) => ({
       valid: resource.valid,

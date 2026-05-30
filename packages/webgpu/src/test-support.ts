@@ -103,6 +103,7 @@ export * from "./output/output-stage-color-space.js";
 export * from "./lighting/pmrem-compute-pipeline.js";
 export * from "./lighting/brdf-lut-compute-pipeline.js";
 export * from "./lighting/brdf-lut-resource.js";
+export * from "./lighting/irradiance-convolution-compute-pipeline.js";
 export * from "./post/post-bloom.js";
 export * from "./post/post-dof.js";
 export * from "./post/post-fxaa.js";
