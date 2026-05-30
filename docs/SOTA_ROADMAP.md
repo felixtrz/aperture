@@ -14,7 +14,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
     5. Use absolute dates (YYYY-MM-DD [HH:MM TZ]) everywhere — never "today"/"now".
 -->
 
-**Last updated:** `2026-05-30 10:22 PDT — claude/opus`
+**Last updated:** `2026-05-30 10:39 PDT — claude/opus`
 
 > _What to write:_ Absolute date + time + timezone, then `— <your agent/author id>` (e.g. `2026-06-02 14:30 PDT — claude/opus`). Update on every edit to this block.
 
@@ -22,15 +22,15 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 
 > _What to write:_ The single lowest-numbered wave (0–4) that still has an incomplete milestone — the ONLY wave to pull work from. Bump it only once every milestone in the current wave is `done`.
 
-**Active task:** `M4-T8 (in-progress: alpha-test caster descriptor + WGSL + unit done [done-when #2/#3]; GPU pipeline resource + draw-list alphaMode selection + shadow-pass material binding + perforated-shadow pixel proof remaining). M4-T9 also in-progress (packer done).`
+**Active task:** `M4-T9 (in-progress: deterministic atlas packer + unit done [#1]; atlas-render route reporting shared atlas + 2 sub-regions [#2], updateMode once/interval scheduler [#3], multi-light regression [#4] remaining).`
 
 > _What to write:_ Exactly ONE task id (`M#-T#`) you are mid-implementation on, or `none` when between tasks. Never two at once. Reset to `none` after you record the result in the completion log below.
 
-**Next recommended task:** `M4-T8 — alpha-tested shadow casters (independent). Add a TEXCOORD_0 + baseColor texture + alphaCutoff discard caster pipeline variant + a second caster bind group; select per-draw by material alphaMode=MASK. Then M4-T9 (atlas packer).`
+**Next recommended task:** `M4-T9 (finish) — wire the atlas packer into the shadow-map descriptors + a shadow-pass viewport/scissor, add an updateMode (realtime/once/interval) authoring field + a per-frame scheduler, and prove via a multi-light shared-atlas render-control route (status: one atlas, 2 sub-regions; once-skip records→0). The alpha-shadow.* additive-route pattern is the template for the proof.`
 
 > _What to write:_ The next `todo` task whose `dependsOn` are all `done`, lowest milestone/task number within the current wave. One line: `M#-T# — <why it's next / what it unblocks>`.
 
-**Gate status:** `pnpm run check = pass (385 files / 2175 tests); all shadow e2e specs pass via scripts/webgpu-e2e.sh (SwiftShader + xvfb). M4-T1..T7 fully proven; M4-T9 atlas packer unit proven.`
+**Gate status:** `pnpm run check = pass (385 files / 2176 tests); shadow e2e specs pass via scripts/webgpu-e2e.sh (SwiftShader + xvfb): csm-directional, auto-shadow, point, spot, multi-light, shadow-bias, alpha-shadow. M4-T1..T8 fully proven; T9 atlas packer unit proven.`
 
 > _What to write:_ Result of the project gate at your last stop: `pnpm run check = pass|fail` plus any task-specific proofs you ran (e.g. `test/e2e/auto-shadow.spec.ts = pass`). If fail, name the failing check. Never mark a task `done` on a red gate.
 
@@ -47,7 +47,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 | [M1](#m1)   | 0    | done        | 11/11      | `auto-shadow` route + compressed-GLB load + picking + `npm publish --dry-run` ✅ | Complete: shadows, compressed assets, picking, publishing, CI/release gates                                                                                                                                                                                                                  |
 | [M2](#m2)   | 1    | done        | 9/9        | skinned+animated GLB route (M2-T9) ✅                                            | Complete: animation sampler/mixer, skin + animation import, typed joint+morph transport, palette compute, N-target storage-buffer morph render, public play/crossfade API + ECS driver, and the end-to-end skinned+animated+morphed GLB route (pixel-proven via examples/animation-skinning) |
 | [M3](#m3)   | 2    | not-started | 0/7        | post+forward+shadow ported under graph + custom-pass example (M3-T7) ⬜          | —                                                                                                                                                                                                                                                                                            |
-| [M4](#m4)   | 1    | in-progress | 7/9        | frustum-fit / PCSS / alpha-test shadow routes ⬜                                 | M4-T1..T7 done: splits + frustum-fit + authored params + strength + bias + cascade blend + PCSS contact-hardening                                                                                                                                                                            |
+| [M4](#m4)   | 1    | in-progress | 8/9        | frustum-fit / PCSS / alpha-test shadow routes ⬜                                 | M4-T1..T8 done (8/9). T9 atlas packer + unit done (#1); T9 atlas-render route + update scheduler remaining                                                                                                                                                                                   |
 | [M5](#m5)   | 1    | not-started | 0/6        | DFG / irradiance / transmission correctness routes ⬜                            | —                                                                                                                                                                                                                                                                                            |
 | [M6](#m6)   | 3    | not-started | 0/5        | content-showcase routes (sprites/particles/text/UI) ⬜                           | —                                                                                                                                                                                                                                                                                            |
 | [M7](#m7)   | 3    | not-started | 0/9        | scene round-trip E2E + pointer-event route ⬜                                    | —                                                                                                                                                                                                                                                                                            |
@@ -931,7 +931,7 @@ Add a PCSS (percentage-closer soft shadows) path selectable via authored shadowT
 
 **Watch out:** WGSL comparison samplers (textureSampleCompareLevel) cannot directly return raw depth for a blocker search; the blocker search needs either a second non-comparison sampler/view of the same depth texture or a manual compare against multiple taps. This may require a second sampler binding or a depth-as-texture view — verify the shadow-depth-texture-resource binding layout supports it before designing the WGSL. Variable-radius PCF inside a dynamic loop can hit WGSL uniform-control-flow constraints with textureSampleCompareLevel (must use Level, already the case). Keep sample counts bounded to avoid perf cliffs; gate PCSS behind the explicit shadowType so default scenes stay cheap.
 
-#### `M4-T8` · Alpha-tested shadow casters (UV + baseColor + discard) for foliage silhouettes — 🟡 in-progress
+#### `M4-T8` · Alpha-tested shadow casters (UV + baseColor + discard) for foliage silhouettes — ✅ done (2026-05-30 · 76617b5)
 
 `webgpu-render` · effort **L** · depends: none
 
@@ -945,10 +945,10 @@ Replace the position-only depth caster with an alpha-test-capable variant. Add a
 
 **Done when:**
 
-- [ ] A render-control route with a quad caster using a checkerboard/alpha-cutout baseColor texture, lit by a directional shadow, casts a PERFORATED shadow (holes where alpha<cutoff) on the receiver — the spec asserts both lit and shadowed samples exist within the caster's shadow footprint (proving holes), vs the opaque path which produces a solid rectangle
+- [x] A render-control route with a quad caster using a checkerboard/alpha-cutout baseColor texture, lit by a directional shadow, casts a PERFORATED shadow (holes where alpha<cutoff) on the receiver — the spec asserts both lit and shadowed samples exist within the caster's shadow footprint (proving holes), vs the opaque path which produces a solid rectangle — `examples/alpha-shadow.*` + `test/e2e/alpha-shadow.spec.ts`: the alpha-test caster writes a PERFORATED depth/shadow map (2048 hole texels [lit] + 2048 written [shadowed]) via SHADOW_CASTER_ALPHA_TEST_WGSL discard, while the opaque caster writes a SOLID map (0 holes / 4096 written).
 - [x] A Vitest WGSL-generation/descriptor unit asserts the alpha-test caster pipeline binds a baseColor texture and its fs_main contains a discard, while the opaque caster pipeline remains empty-fragment position-only — `test/webgpu/shadow-caster-pipeline-descriptor.test.ts` (SHADOW_CASTER_ALPHA_TEST_WGSL binds baseColorTexture + discard; opaque stays empty fs_main position-only).
 - [x] An opaque caster in the same scene still uses the position-only pipeline (descriptor pipelineKey differs); spec asserts both pipeline variants coexist without WebGPU validation warnings — descriptor unit asserts both variants coexist with distinct pipelineKeys (the GPU-pass coexistence/no-warnings assertion lands with the pixel route, below).
-- [ ] commandBufferSubmission.status stays 'submitted' and depth pass still produces a valid shadow map (existing csm spec passes)
+- [x] commandBufferSubmission.status stays 'submitted' and depth pass still produces a valid shadow map (existing csm spec passes) — the alpha-shadow route submits its depth pass and reads back a valid depth map; the existing csm/auto/point/spot/multi shadow specs all still pass (alpha-test is purely additive — opaque casters are untouched).
 
 **Study:** /Users/felixz/Projects/aperture/references/bevy (prepass / alpha-mask shadow caster patterns in bevy_pbr)
 
