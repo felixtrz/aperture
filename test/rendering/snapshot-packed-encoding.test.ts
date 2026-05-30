@@ -42,6 +42,40 @@ describe("snapshot packed packet encoding", () => {
     });
   });
 
+  it("round-trips authored M4-T3 shadow params through the worker codec", () => {
+    const bundle: SnapshotPacketBundle = {
+      views: [],
+      meshDraws: [],
+      lights: [],
+      environments: [],
+      shadowRequests: [
+        {
+          shadowId: 1,
+          lightId: 1,
+          lightKind: "directional",
+          cascadeCount: 4,
+          casterLayerMask: 1,
+          receiverLayerMask: 1,
+          shadowType: 2,
+          strength: 0.7,
+          filterRadius: 4,
+          slopeBias: 2,
+        },
+      ],
+      bounds: [],
+    };
+
+    const encoded = encodeSnapshotPackets(bundle);
+    const decoded = decodeSnapshotPackets(encoded.words, encoded.registry);
+    const request = decoded.shadowRequests[0]!;
+
+    expect(request.shadowType).toBe(2);
+    expect(request.strength).toBeCloseTo(0.7, 5);
+    expect(request.filterRadius).toBe(4);
+    expect(request.slopeBias).toBe(2);
+    expect(request.cascadeCount).toBe(4);
+  });
+
   it("documents fixed packet strides in words and bytes", () => {
     expect(SNAPSHOT_PACKET_WORD_STRIDES).toEqual({
       header: SNAPSHOT_PACKET_HEADER_WORDS,

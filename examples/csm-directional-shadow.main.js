@@ -274,6 +274,12 @@ async function publishFrameStatus(
         cascadeCount: request.cascadeCount ?? 1,
         casterLayerMask: request.casterLayerMask,
         receiverLayerMask: request.receiverLayerMask,
+        // Authored shadow params (M4-T3) surfaced for the proof; defaults shown
+        // when the light did not author them.
+        shadowType: request.shadowType ?? 1,
+        strength: request.strength ?? 1,
+        filterRadius: request.filterRadius ?? 1,
+        slopeBias: request.slopeBias ?? 0,
       })),
       descriptor: shadowFrame.descriptor,
       textures: shadowFrame.textures,

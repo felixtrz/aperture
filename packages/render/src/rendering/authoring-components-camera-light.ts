@@ -99,6 +99,16 @@ export const LightShadowSettings = defineComponent(
     cascadeCount: { type: EcsType.Int32, default: 1 },
     casterLayerMask: { type: EcsType.Int32, default: -1 },
     receiverLayerMask: { type: EcsType.Int32, default: -1 },
+    // Filtering mode: 0 = hard, 1 = PCF (default, matches the existing 3x3 box
+    // filter), 2 = PCSS contact-hardening (consumed in M4-T7).
+    shadowType: { type: EcsType.Int32, default: 1 },
+    // Authored shadow opacity in [0,1]; 1 = fully dark capable (consumed in
+    // M4-T4, replacing the hard-coded MIN_VISIBILITY floor).
+    strength: { type: EcsType.Float32, default: 1 },
+    // PCF/PCSS filter radius in texels (consumed in M4-T5/T7).
+    filterRadius: { type: EcsType.Float32, default: 1 },
+    // Slope-scaled depth bias for the caster pipeline (consumed in M4-T5).
+    slopeBias: { type: EcsType.Float32, default: 0 },
   },
   "Renderer-independent per-light shadow request authoring component.",
 );

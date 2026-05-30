@@ -113,6 +113,10 @@ export function validateLightShadowSettingsInput(
   const cascadeCount = settings.cascadeCount ?? 1;
   const casterLayerMask = settings.casterLayerMask ?? -1;
   const receiverLayerMask = settings.receiverLayerMask ?? -1;
+  const shadowType = settings.shadowType ?? 1;
+  const strength = settings.strength ?? 1;
+  const filterRadius = settings.filterRadius ?? 1;
+  const slopeBias = settings.slopeBias ?? 0;
   const diagnostics: RenderAuthoringDiagnostic[] = [];
 
   if (!Number.isInteger(mapSize) || mapSize <= 0) {
@@ -145,6 +149,39 @@ export function validateLightShadowSettingsInput(
       code: "shadow.zeroLayerMask",
       field: "casterLayerMask/receiverLayerMask",
       message: "Light shadow caster and receiver layer masks must not be zero.",
+    });
+  }
+
+  if (!Number.isInteger(shadowType) || shadowType < 0 || shadowType > 2) {
+    diagnostics.push({
+      code: "shadow.invalidShadowType",
+      field: "shadowType",
+      message:
+        "Light shadow shadowType must be 0 (hard), 1 (PCF), or 2 (PCSS).",
+    });
+  }
+
+  if (!(strength >= 0) || strength > 1) {
+    diagnostics.push({
+      code: "shadow.invalidStrength",
+      field: "strength",
+      message: "Light shadow strength must be in the range [0, 1].",
+    });
+  }
+
+  if (!(filterRadius >= 0)) {
+    diagnostics.push({
+      code: "shadow.invalidFilterRadius",
+      field: "filterRadius",
+      message: "Light shadow filterRadius must be non-negative.",
+    });
+  }
+
+  if (!(slopeBias >= 0)) {
+    diagnostics.push({
+      code: "shadow.invalidSlopeBias",
+      field: "slopeBias",
+      message: "Light shadow slopeBias must be non-negative.",
     });
   }
 

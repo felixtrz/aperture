@@ -33,6 +33,10 @@ interface CsmDirectionalShadowStatus extends ExampleStatusBase {
     readonly requests: readonly {
       readonly lightKind: string;
       readonly cascadeCount: number;
+      readonly shadowType?: number;
+      readonly strength?: number;
+      readonly filterRadius?: number;
+      readonly slopeBias?: number;
     }[];
     readonly descriptor: {
       readonly descriptors: readonly {
@@ -286,6 +290,17 @@ test("Playwright renders directional CSM shadows on near and far receivers", asy
     status.shadow?.depthTextureResources.resources[0]?.attachmentViewKeys[2],
     status.shadow?.depthTextureResources.resources[0]?.attachmentViewKeys[3],
   ]);
+
+  // M4-T3: the authored shadowType/strength/filterRadius/slopeBias flow
+  // through ECS -> extraction -> packed worker codec -> route status, JSON-safe.
+  const shadowRequest = status.shadow?.requests[0];
+  expect(shadowRequest?.shadowType).toBe(2);
+  expect(shadowRequest?.strength).toBeCloseTo(0.9, 4);
+  expect(shadowRequest?.filterRadius).toBeCloseTo(2, 4);
+  expect(shadowRequest?.slopeBias).toBeCloseTo(0.5, 4);
+  expect(JSON.stringify(status.shadow?.requests)).not.toMatch(
+    /NaN|Infinity|undefined/,
+  );
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
 

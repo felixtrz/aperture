@@ -9,6 +9,14 @@ export const shadowIntent = {
   normalBias: 0.01,
   center: [0, 0, -3.4],
   orthographicSize: 8,
+  // Authored M4-T3 shadow params (proven end-to-end via the route status).
+  // Chosen non-default but benign: shadows stay clearly present for every
+  // downstream consumer (strength M4-T4, filterRadius/slopeBias M4-T5,
+  // shadowType M4-T7).
+  shadowType: 2,
+  strength: 0.9,
+  filterRadius: 2,
+  slopeBias: 0.5,
 };
 
 export function registerCsmDirectionalShadowScene(aperture, registry) {

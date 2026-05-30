@@ -170,6 +170,13 @@ function createWorkerScene(aperture, canvasSize) {
       cascadeCount: shadowIntent.cascadeCount,
       casterLayerMask: 1,
       receiverLayerMask: 1,
+      // Authored shadow params (M4-T3). No renderer consumer yet (strength is
+      // consumed in M4-T4, filterRadius/slopeBias in M4-T5, shadowType in
+      // M4-T7), so these flow to status without changing the render.
+      shadowType: shadowIntent.shadowType,
+      strength: shadowIntent.strength,
+      filterRadius: shadowIntent.filterRadius,
+      slopeBias: shadowIntent.slopeBias,
     }),
   );
 

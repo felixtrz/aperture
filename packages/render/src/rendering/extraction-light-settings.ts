@@ -42,6 +42,10 @@ export function readShadowSettings(
       entity.getValue(LightShadowSettings, "casterLayerMask") ?? -1,
     receiverLayerMask:
       entity.getValue(LightShadowSettings, "receiverLayerMask") ?? -1,
+    shadowType: entity.getValue(LightShadowSettings, "shadowType") ?? 1,
+    strength: entity.getValue(LightShadowSettings, "strength") ?? 1,
+    filterRadius: entity.getValue(LightShadowSettings, "filterRadius") ?? 1,
+    slopeBias: entity.getValue(LightShadowSettings, "slopeBias") ?? 0,
   };
   const validation = validateLightShadowSettingsInput(settings);
 
@@ -129,6 +133,13 @@ export function appendShadowRequest(
   }
 
   const lightId = createStableRenderId(entityRef(entity));
+  // Only attach authored shadow params when they differ from the renderer
+  // defaults, so default-authored lights keep the prior minimal packet shape
+  // (and round-trip identically through the packed worker codec).
+  const shadowType = settings.shadowType ?? 1;
+  const strength = settings.strength ?? 1;
+  const filterRadius = settings.filterRadius ?? 1;
+  const slopeBias = settings.slopeBias ?? 0;
 
   shadowRequests.push({
     shadowId: lightId,
@@ -139,6 +150,10 @@ export function appendShadowRequest(
       : {}),
     casterLayerMask: settings.casterLayerMask ?? -1,
     receiverLayerMask: settings.receiverLayerMask ?? -1,
+    ...(shadowType === 1 ? {} : { shadowType }),
+    ...(strength === 1 ? {} : { strength }),
+    ...(filterRadius === 1 ? {} : { filterRadius }),
+    ...(slopeBias === 0 ? {} : { slopeBias }),
   });
 }
 
