@@ -51,6 +51,14 @@ export interface MeshDrawPacket {
   readonly instanceAttributePacketIndex?: number;
   readonly boneMatrixOffset?: number;
   readonly boneMatrixCount?: number;
+  /** Float offset into `snapshot.morphTargetDeltas` for this draw's mesh. */
+  readonly morphDeltaOffset?: number;
+  /** Number of morph targets blended for this draw (N, not capped). */
+  readonly morphTargetCount?: number;
+  /** Float offset into `snapshot.morphTargetWeights` for this draw's weights. */
+  readonly morphWeightOffset?: number;
+  /** Vertex count of the morphed mesh (delta indexing stride). */
+  readonly morphVertexCount?: number;
   readonly boundsIndex: number;
   readonly layerMask: number;
   readonly castsShadow?: boolean;

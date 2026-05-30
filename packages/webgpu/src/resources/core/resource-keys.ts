@@ -7,6 +7,8 @@ export type WebGpuResourceKeyKind =
   | "world-transform-buffer"
   | "skinning-joint-buffer"
   | "morph-target-weight-buffer"
+  | "morph-target-delta-buffer"
+  | "morph-instance-descriptor-buffer"
   | "instance-tint-buffer"
   | "instance-attribute-buffer"
   | "shader-module"
@@ -64,6 +66,16 @@ export function skinningJointBufferResourceKey(label: string): string {
 
 export function morphTargetWeightBufferResourceKey(label: string): string {
   return webGpuResourceKey("morph-target-weight-buffer", label);
+}
+
+export function morphTargetDeltaBufferResourceKey(label: string): string {
+  return webGpuResourceKey("morph-target-delta-buffer", label);
+}
+
+export function morphInstanceDescriptorBufferResourceKey(
+  label: string,
+): string {
+  return webGpuResourceKey("morph-instance-descriptor-buffer", label);
 }
 
 export function instanceTintBufferResourceKey(label: string): string {

@@ -13,16 +13,26 @@ import {
 } from "@aperture-engine/webgpu/test-support";
 
 describe("morph target weight GPU buffer", () => {
-  it("creates a storage buffer plan from snapshot morph target weights", () => {
-    const draw = morphedDraw({ renderId: 9, worldTransformOffset: 16 });
-    const snapshot = snapshotWithMorphWeights([0, 0, 0, 0, 0.75, 0.25, 0, 0]);
+  it("uploads the whole flat N-weight buffer and validates the draw's slice", () => {
+    // Two morphed instances: instance 0 has 3 weights at offset 0, instance 1
+    // has 5 weights at offset 3 — an unbounded per-instance count, not a vec4.
+    const draw = morphedDraw({
+      renderId: 9,
+      worldTransformOffset: 16,
+      morphWeightOffset: 3,
+      morphTargetCount: 5,
+    });
+    // float32-exact values so the round-trip compares deeply.
+    const snapshot = snapshotWithMorphWeights([
+      1, 0.5, 0.25, 0.75, 0.5, 0.25, 0.125, 0.5,
+    ]);
     const descriptor = createMorphTargetWeightBufferDescriptor(snapshot, draw);
 
     expect(descriptor.valid).toBe(true);
     expect(descriptor.diagnostics).toEqual([]);
     expect(descriptor.plan).toMatchObject({
       renderId: 9,
-      weightCount: 2,
+      weightCount: 8,
       descriptor: {
         label: "MorphTargetWeights/render:9",
         size: 8 * 4,
@@ -30,7 +40,7 @@ describe("morph target weight GPU buffer", () => {
       },
     });
     expect(Array.from(descriptor.plan?.source ?? [])).toEqual([
-      0, 0, 0, 0, 0.75, 0.25, 0, 0,
+      1, 0.5, 0.25, 0.75, 0.5, 0.25, 0.125, 0.5,
     ]);
   });
 
@@ -46,8 +56,8 @@ describe("morph target weight GPU buffer", () => {
       createBuffer: () => buffer,
     };
     const descriptor = createMorphTargetWeightBufferDescriptor(
-      snapshotWithMorphWeights([1, 0, 0, 0]),
-      morphedDraw({ renderId: 5 }),
+      snapshotWithMorphWeights([1, 0, 0]),
+      morphedDraw({ renderId: 5, morphWeightOffset: 0, morphTargetCount: 3 }),
     );
     const resource = createMorphTargetWeightGpuBuffer({
       device,
@@ -60,18 +70,20 @@ describe("morph target weight GPU buffer", () => {
         resourceKey: morphTargetWeightBufferResourceKeyForRenderId(5),
         buffer,
         renderId: 5,
-        weightCount: 1,
+        weightCount: 3,
       },
       diagnostics: [],
     });
     expect(writes).toHaveLength(1);
   });
 
-  it("diagnoses non-morphed draws and missing weight data", () => {
+  it("diagnoses non-morphed draws and out-of-range weight slices", () => {
     const notMorphed = createMorphTargetWeightBufferDescriptor(
       snapshotWithMorphWeights([0, 0, 0, 0]),
       morphedDraw({
         renderId: 2,
+        morphWeightOffset: 0,
+        morphTargetCount: 4,
         batchKey: {
           ...morphedDraw().batchKey,
           morphed: false,
@@ -79,8 +91,8 @@ describe("morph target weight GPU buffer", () => {
       }),
     );
     const missing = createMorphTargetWeightBufferDescriptor(
-      snapshotWithMorphWeights([0, 0, 0, 0]),
-      morphedDraw({ renderId: 3, worldTransformOffset: 16 }),
+      snapshotWithMorphWeights([0, 0]),
+      morphedDraw({ renderId: 3, morphWeightOffset: 1, morphTargetCount: 4 }),
     );
 
     expect(notMorphed.valid).toBe(false);
@@ -119,6 +131,10 @@ function morphedDraw(overrides: Partial<MeshDrawPacket> = {}): MeshDrawPacket {
     submesh: 0,
     materialSlot: 0,
     worldTransformOffset: overrides.worldTransformOffset ?? 0,
+    morphWeightOffset: overrides.morphWeightOffset ?? 0,
+    morphTargetCount: overrides.morphTargetCount ?? 2,
+    morphDeltaOffset: overrides.morphDeltaOffset ?? 0,
+    morphVertexCount: overrides.morphVertexCount ?? 3,
     boundsIndex: 0,
     layerMask: 1,
     sortKey: {

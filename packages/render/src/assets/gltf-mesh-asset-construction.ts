@@ -1,5 +1,5 @@
 import type { GltfDecodedPrimitiveAccessors } from "./gltf-accessor-decoding.js";
-import type { MeshAsset } from "../mesh/index.js";
+import type { MeshAsset, MeshMorphTargetData } from "../mesh/index.js";
 import type {
   GltfMeshAssetConstructionDiagnostic,
   GltfMeshAssetConstructionOptions,
@@ -64,6 +64,12 @@ export function createMeshAssetsFromGltfDecodedAccessors(
           primitive.primitiveIndex,
         ),
       ),
+      options.morphTargetDataFor?.get(
+        gltfMeshPrimitiveRequestKey(
+          primitive.meshIndex,
+          primitive.primitiveIndex,
+        ),
+      ),
     );
     meshes.push({
       handleKey: gltfMeshAssetIdFromRegisteredHandleKey(
@@ -87,6 +93,7 @@ function createMeshAssetFromPrimitive(
   primitive: GltfDecodedPrimitiveAccessors,
   diagnostics: GltfMeshAssetConstructionDiagnostic[],
   tangentRequest: GltfMeshAssetTangentGenerationRequest | undefined,
+  morphTargetData: MeshMorphTargetData | undefined,
 ): MeshAsset | null {
   const position = primitive.attributes.find(
     (attribute) => attribute.semantic === "POSITION",
@@ -150,5 +157,6 @@ function createMeshAssetFromPrimitive(
     localSphere: bounds.sphere,
     ...(skinning === null ? {} : { skinning }),
     ...(morphTargets.length === 0 ? {} : { morphTargets }),
+    ...(morphTargetData === undefined ? {} : { morphTargetData }),
   };
 }

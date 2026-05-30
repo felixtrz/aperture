@@ -1245,43 +1245,68 @@ describe("built-in standard material WGSL shader metadata", () => {
       valid: true,
       diagnostics: [],
     });
-    expect(shader.code).toContain("@location(10) morphPosition0: vec3f");
-    expect(shader.code).toContain("@location(11) morphNormal0: vec3f");
-    expect(shader.code).toContain("@location(12) morphPosition1: vec3f");
-    expect(shader.code).toContain("@location(13) morphNormal1: vec3f");
+    // N-target storage-buffer morph render: no fixed morph vertex attributes,
+    // a flat weights buffer, a target-major delta buffer, and a per-instance
+    // descriptor, blended in a `for` loop over targetCount.
+    expect(shader.code).not.toContain("morphPosition0");
+    expect(shader.code).toContain("@builtin(vertex_index) morphVertexIndex");
     expect(shader.code).toContain(
-      "@group(1) @binding(2) var<storage, read> standardMorphTargetWeights",
+      "@group(1) @binding(2) var<storage, read> standardMorphTargetWeights: array<f32>",
     );
-    expect(shader.code).toContain("fn apertureMorphPosition");
-    expect(shader.code).toContain("apertureMorphPosition(input.position");
-    expect(shader.code).toContain("apertureMorphDirection(input.normal");
-    expect(
-      shader.bindings.map((binding) => [
-        binding.id,
-        binding.group,
-        binding.binding,
-        binding.resource,
-      ]),
-    ).toContainEqual([
+    expect(shader.code).toContain(
+      "@group(1) @binding(4) var<storage, read> standardMorphTargetDeltas: array<f32>",
+    );
+    expect(shader.code).toContain(
+      "@group(1) @binding(5) var<storage, read> standardMorphInstanceDescriptors: array<vec4u>",
+    );
+    expect(shader.code).toContain("fn apertureMorph(");
+    expect(shader.code).toContain("for (var t = 0u; t < targetCount;");
+    expect(shader.code).toContain(
+      "apertureMorph(input.position, input.normal, input.instanceIndex, input.morphVertexIndex)",
+    );
+    const morphBindings = shader.bindings.map((binding) => [
+      binding.id,
+      binding.group,
+      binding.binding,
+      binding.resource,
+    ]);
+    expect(morphBindings).toContainEqual([
       "standardMorphTargetWeights",
       1,
       2,
       "read-only-storage-buffer",
     ]);
+    expect(morphBindings).toContainEqual([
+      "standardMorphTargetDeltas",
+      1,
+      4,
+      "read-only-storage-buffer",
+    ]);
+    expect(morphBindings).toContainEqual([
+      "standardMorphInstanceDescriptors",
+      1,
+      5,
+      "read-only-storage-buffer",
+    ]);
     expect(STANDARD_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY).toBe(
-      "standard/group-1:world-transforms@0,morph-target-weights@2",
+      "standard/group-1:world-transforms@0,morph-target-weights@2,morph-target-deltas@4,morph-instance-descriptors@5",
     );
 
+    // The reference blend accumulates an arbitrary number of targets (here 3,
+    // proving the 2-target cap is gone).
     const deformed = evaluateStandardMorphTargetBlend({
       base: [1, 2, 3],
-      target0: [2, 0, -1],
-      target1: [-1, 4, 0.5],
-      weights: [0.25, 0.5],
+      targets: [
+        [2, 0, -1],
+        [-1, 4, 0.5],
+        [0, -2, 4],
+      ],
+      weights: [0.25, 0.5, 0.5],
     });
 
     expect(deformed[0]).toBeCloseTo(1);
-    expect(deformed[1]).toBeCloseTo(4);
-    expect(deformed[2]).toBeCloseTo(3);
+    expect(deformed[1]).toBeCloseTo(3);
+    expect(deformed[2]).toBeCloseTo(5);
   });
 
   it("declares browser-safe group 3 bindings and 3x3 PCF comparison sampling for shadow receivers", () => {

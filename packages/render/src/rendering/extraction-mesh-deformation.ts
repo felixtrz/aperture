@@ -69,91 +69,136 @@ export function pushBoneMatrices(
   return offset;
 }
 
+export interface MorphExtraction {
+  /** Number of morph targets the mesh carries (N, not capped). */
+  readonly targetCount: number;
+  /** Vertex count of the morphed mesh (delta indexing stride). */
+  readonly vertexCount: number;
+  /** Per-target blended weights, length === `targetCount`. */
+  readonly weights: Float32Array;
+  /** Target-major position deltas (the mesh's payload, by reference). */
+  readonly positionDeltas: Float32Array;
+  /** Target-major normal deltas (the mesh's payload, by reference). */
+  readonly normalDeltas: Float32Array;
+}
+
+const VEC3 = 3;
+
 export function readMorphTargetWeights(
   entity: Entity,
   mesh: MeshAsset,
   diagnostics: RenderDiagnostic[],
-): readonly [number, number, number, number] | undefined | null {
-  if (!meshHasStandardMorphTargetAttributes(mesh)) {
+): MorphExtraction | undefined | null {
+  const data = mesh.morphTargetData;
+
+  if (data === undefined || data.targetCount === 0) {
     return undefined;
   }
 
-  if (!entity.hasComponent(MorphTargetWeights)) {
-    return [0, 0, 0, 0];
+  const targetCount = data.targetCount;
+  const out = new Float32Array(targetCount);
+
+  if (entity.hasComponent(MorphTargetWeights)) {
+    // Read the typed weight buffer directly — no JSON.parse, no intermediate
+    // allocation, and no [-1, 1] clamp (glTF weights are unbounded). The typed
+    // buffer holds an arbitrary target count (e.g. 52 ARKit blendshapes); all
+    // of them flow into the snapshot and the N-target storage-buffer GPU render.
+    const weights = entity.getValue(MorphTargetWeights, "weights") as
+      | Float32Array
+      | null
+      | undefined;
+
+    if (
+      weights !== null &&
+      weights !== undefined &&
+      !(weights instanceof Float32Array)
+    ) {
+      diagnostics.push(
+        diagnostic("render.morphTargetWeights.invalidWeights", entity),
+      );
+      return null;
+    }
+
+    const values = weights ?? EMPTY_WEIGHTS;
+    const shared = Math.min(targetCount, values.length);
+    for (let index = 0; index < shared; index += 1) {
+      out[index] = finiteOrZero(values[index]);
+    }
   }
 
-  // Read the typed weight buffer directly — no JSON.parse, no intermediate
-  // allocation, and no [-1, 1] clamp (glTF weights are unbounded). The typed
-  // buffer can hold an arbitrary target count (e.g. 52 ARKit blendshapes); the
-  // two-target vertex-attribute GPU path consumes the first weights here, and
-  // the N-target data-buffer GPU path (see morphTargets import) is the
-  // documented follow-up that will pack the full weight vector.
-  const weights = entity.getValue(MorphTargetWeights, "weights") as
-    | Float32Array
-    | null
-    | undefined;
-
-  if (
-    weights !== null &&
-    weights !== undefined &&
-    !(weights instanceof Float32Array)
-  ) {
-    diagnostics.push(
-      diagnostic("render.morphTargetWeights.invalidWeights", entity),
-    );
-    return null;
-  }
-
-  const values = weights ?? EMPTY_WEIGHTS;
-
-  return [
-    finiteOrZero(values[0]),
-    finiteOrZero(values[1]),
-    finiteOrZero(values[2]),
-    finiteOrZero(values[3]),
-  ];
+  return {
+    targetCount,
+    vertexCount: data.vertexCount,
+    weights: out,
+    positionDeltas: data.positionDeltas,
+    normalDeltas: data.normalDeltas,
+  };
 }
 
+/**
+ * Append a morphed instance's `targetCount` weights to the flat snapshot weight
+ * buffer and return the float offset at which they start.
+ */
 export function pushMorphTargetWeights(
   values: number[],
-  worldTransformOffset: number,
-  weights: readonly [number, number, number, number],
+  morph: MorphExtraction,
 ): number {
-  const packedOffset = (worldTransformOffset / 16) * 4;
-
-  while (values.length < packedOffset + 4) {
-    values.push(0);
+  const offset = values.length;
+  for (let index = 0; index < morph.targetCount; index += 1) {
+    values.push(morph.weights[index] ?? 0);
   }
+  return offset;
+}
 
-  values[packedOffset] = weights[0];
-  values[packedOffset + 1] = weights[1];
-  values[packedOffset + 2] = weights[2];
-  values[packedOffset + 3] = weights[3];
+/**
+ * Append a morphed mesh's target-major deltas (positions then normals) to the
+ * flat snapshot delta buffer and return the float offset at which they start.
+ */
+export function pushMorphTargetDeltas(
+  values: number[],
+  morph: MorphExtraction,
+): number {
+  const offset = values.length;
+  const span = morph.targetCount * morph.vertexCount * VEC3;
+  for (let index = 0; index < span; index += 1) {
+    values.push(morph.positionDeltas[index] ?? 0);
+  }
+  for (let index = 0; index < span; index += 1) {
+    values.push(morph.normalDeltas[index] ?? 0);
+  }
+  return offset;
+}
 
-  return packedOffset;
+/**
+ * Write a morphed instance's descriptor (weightOffset, targetCount, deltaOffset,
+ * vertexCount) into the per-instance descriptor buffer at its transform slot.
+ */
+export function pushMorphInstanceDescriptor(
+  descriptors: number[],
+  worldTransformOffset: number,
+  descriptor: {
+    readonly weightOffset: number;
+    readonly targetCount: number;
+    readonly deltaOffset: number;
+    readonly vertexCount: number;
+  },
+): void {
+  const slot = (worldTransformOffset / 16) * 4;
+  while (descriptors.length < slot + 4) {
+    descriptors.push(0);
+  }
+  descriptors[slot] = descriptor.weightOffset;
+  descriptors[slot + 1] = descriptor.targetCount;
+  descriptors[slot + 2] = descriptor.deltaOffset;
+  descriptors[slot + 3] = descriptor.vertexCount;
 }
 
 function meshHasVertexSemantic(
   mesh: MeshAsset,
-  semantic:
-    | "JOINTS_0"
-    | "WEIGHTS_0"
-    | "MORPH_POSITION_0"
-    | "MORPH_NORMAL_0"
-    | "MORPH_POSITION_1"
-    | "MORPH_NORMAL_1",
+  semantic: "JOINTS_0" | "WEIGHTS_0",
 ): boolean {
   return mesh.vertexStreams.some((stream) =>
     stream.attributes.some((attribute) => attribute.semantic === semantic),
-  );
-}
-
-function meshHasStandardMorphTargetAttributes(mesh: MeshAsset): boolean {
-  return (
-    meshHasVertexSemantic(mesh, "MORPH_POSITION_0") &&
-    meshHasVertexSemantic(mesh, "MORPH_NORMAL_0") &&
-    meshHasVertexSemantic(mesh, "MORPH_POSITION_1") &&
-    meshHasVertexSemantic(mesh, "MORPH_NORMAL_1")
   );
 }
 

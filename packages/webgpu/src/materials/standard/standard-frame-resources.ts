@@ -37,6 +37,8 @@ import {
   createMaterialResource,
   createMeshResource,
   createMorphTargetWeightResource,
+  createMorphTargetDeltaResource,
+  createMorphInstanceDescriptorResource,
   createSkinningJointResource,
   createViewUniformResource,
   createWorldTransformResource,
@@ -64,6 +66,16 @@ import type {
   MorphTargetWeightGpuBufferDiagnostic,
   MorphTargetWeightGpuBufferResource,
 } from "../../resources/attributes/morph-target-weight-buffer.js";
+import type {
+  MorphTargetDeltaBufferDescriptorDiagnostic,
+  MorphTargetDeltaGpuBufferDiagnostic,
+  MorphTargetDeltaGpuBufferResource,
+} from "../../resources/attributes/morph-target-delta-buffer.js";
+import type {
+  MorphInstanceDescriptorBufferDescriptorDiagnostic,
+  MorphInstanceDescriptorGpuBufferDiagnostic,
+  MorphInstanceDescriptorGpuBufferResource,
+} from "../../resources/attributes/morph-instance-descriptor-buffer.js";
 import type {
   MeshGpuBufferCreationDiagnostic,
   MeshGpuBufferResource,
@@ -158,6 +170,10 @@ export type CreateStandardFrameGpuResourcesDiagnostic =
   | SkinningJointGpuBufferDiagnostic
   | MorphTargetWeightBufferDescriptorDiagnostic
   | MorphTargetWeightGpuBufferDiagnostic
+  | MorphTargetDeltaBufferDescriptorDiagnostic
+  | MorphTargetDeltaGpuBufferDiagnostic
+  | MorphInstanceDescriptorBufferDescriptorDiagnostic
+  | MorphInstanceDescriptorGpuBufferDiagnostic
   | InstanceTintBufferDescriptorDiagnostic
   | InstanceTintGpuBufferDiagnostic
   | StandardMaterialPackingDiagnostic
@@ -264,6 +280,8 @@ export interface StandardFrameGpuResources {
   readonly instanceTints?: InstanceTintGpuBufferResource;
   readonly skinningJointMatrices?: SkinningJointGpuBufferResource;
   readonly morphTargetWeights?: MorphTargetWeightGpuBufferResource;
+  readonly morphTargetDeltas?: MorphTargetDeltaGpuBufferResource;
+  readonly morphInstanceDescriptors?: MorphInstanceDescriptorGpuBufferResource;
   readonly material: StandardMaterialGpuBufferResource;
   readonly lightGpuBuffers: CreateSnapshotLightGpuBuffersResult;
   readonly localLightClusters?: LocalLightClusterGpuResource;
@@ -302,6 +320,14 @@ export function createStandardFrameGpuResources(
     options,
     diagnostics,
   );
+  const morphTargetDeltas = createMorphTargetDeltaResource(
+    options,
+    diagnostics,
+  );
+  const morphInstanceDescriptors = createMorphInstanceDescriptorResource(
+    options,
+    diagnostics,
+  );
   const material =
     options.preparedMaterial?.material ??
     createMaterialResource(options, diagnostics);
@@ -311,6 +337,8 @@ export function createStandardFrameGpuResources(
     worldTransforms,
     skinningJointMatrices,
     morphTargetWeights,
+    morphTargetDeltas,
+    morphInstanceDescriptors,
     diagnostics,
   );
   const materialBindGroup =
@@ -352,7 +380,9 @@ export function createStandardFrameGpuResources(
     (requiresSkinningJointBuffer(options.pipelineKey) &&
       skinningJointMatrices === null) ||
     (requiresMorphTargetWeightBuffer(options.pipelineKey) &&
-      morphTargetWeights === null) ||
+      (morphTargetWeights === null ||
+        morphTargetDeltas === null ||
+        morphInstanceDescriptors === null)) ||
     material === null ||
     !sharedBindGroups.valid ||
     materialBindGroup === null ||
@@ -378,6 +408,10 @@ export function createStandardFrameGpuResources(
       ...(instanceTints === null ? {} : { instanceTints }),
       ...(skinningJointMatrices === null ? {} : { skinningJointMatrices }),
       ...(morphTargetWeights === null ? {} : { morphTargetWeights }),
+      ...(morphTargetDeltas === null ? {} : { morphTargetDeltas }),
+      ...(morphInstanceDescriptors === null
+        ? {}
+        : { morphInstanceDescriptors }),
       material,
       lightGpuBuffers,
       ...(localLightClusters === null ? {} : { localLightClusters }),
@@ -415,6 +449,8 @@ function createSharedBindGroups(
   worldTransforms: WorldTransformGpuBufferResource | null,
   skinningJointMatrices: SkinningJointGpuBufferResource | null,
   morphTargetWeights: MorphTargetWeightGpuBufferResource | null,
+  morphTargetDeltas: MorphTargetDeltaGpuBufferResource | null,
+  morphInstanceDescriptors: MorphInstanceDescriptorGpuBufferResource | null,
   diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
 ): CreateUnlitBindGroupsResult {
   const plan = createSharedBindGroupDescriptorPlan({
@@ -428,6 +464,9 @@ function createSharedBindGroups(
     ...(requiresMorphTargetWeightBuffer(options.pipelineKey)
       ? {
           morphTargetWeightResourceKey: morphTargetWeights?.resourceKey ?? null,
+          morphTargetDeltaResourceKey: morphTargetDeltas?.resourceKey ?? null,
+          morphInstanceDescriptorResourceKey:
+            morphInstanceDescriptors?.resourceKey ?? null,
         }
       : {}),
     ...(options.previousWorldTransforms === undefined
@@ -477,6 +516,22 @@ function createSharedBindGroups(
             {
               resourceKey: morphTargetWeights.resourceKey,
               buffer: morphTargetWeights.buffer,
+            },
+          ]),
+      ...(morphTargetDeltas === null
+        ? []
+        : [
+            {
+              resourceKey: morphTargetDeltas.resourceKey,
+              buffer: morphTargetDeltas.buffer,
+            },
+          ]),
+      ...(morphInstanceDescriptors === null
+        ? []
+        : [
+            {
+              resourceKey: morphInstanceDescriptors.resourceKey,
+              buffer: morphInstanceDescriptors.buffer,
             },
           ]),
       ...(options.previousWorldTransforms === undefined ||
@@ -811,6 +866,8 @@ function createSharedBindGroupDescriptorPlan(input: {
   readonly worldTransformResourceKey: string | null;
   readonly skinningJointResourceKey?: string | null;
   readonly morphTargetWeightResourceKey?: string | null;
+  readonly morphTargetDeltaResourceKey?: string | null;
+  readonly morphInstanceDescriptorResourceKey?: string | null;
   readonly previousWorldTransformResourceKey?: string | null;
 }): UnlitBindGroupDescriptorPlan {
   const diagnostics: UnlitBindGroupDescriptorDiagnostic[] = [];
@@ -871,6 +928,36 @@ function createSharedBindGroupDescriptorPlan(input: {
       group: 1,
       binding: 2,
       resourceKey: input.morphTargetWeightResourceKey,
+      resourceKind: "buffer",
+    });
+  }
+
+  if (input.morphTargetDeltaResourceKey === null) {
+    diagnostics.push({
+      code: "unlitBindGroup.missingTransformResource",
+      message:
+        "Standard morphed shared bind group planning requires a morph target delta buffer.",
+    });
+  } else if (input.morphTargetDeltaResourceKey !== undefined) {
+    entries.push({
+      group: 1,
+      binding: 4,
+      resourceKey: input.morphTargetDeltaResourceKey,
+      resourceKind: "buffer",
+    });
+  }
+
+  if (input.morphInstanceDescriptorResourceKey === null) {
+    diagnostics.push({
+      code: "unlitBindGroup.missingTransformResource",
+      message:
+        "Standard morphed shared bind group planning requires a morph instance descriptor buffer.",
+    });
+  } else if (input.morphInstanceDescriptorResourceKey !== undefined) {
+    entries.push({
+      group: 1,
+      binding: 5,
+      resourceKey: input.morphInstanceDescriptorResourceKey,
       resourceKind: "buffer",
     });
   }

@@ -28,6 +28,7 @@ import {
 } from "./extraction-asset-validation.js";
 import { diagnostic, entityRef } from "./extraction-diagnostics.js";
 import type { SkinExtraction } from "./extraction-mesh-deformation.js";
+import type { MeshDrawMorphInputs } from "./extraction-mesh-draw-inputs.js";
 import { meshLayoutStreamToken } from "./extraction-mesh-layout.js";
 import {
   createExtractedMaterialPipelineKeyInput,
@@ -48,7 +49,7 @@ export interface MeshSubmeshDrawExtractionInput {
   readonly instanceAttributePacketIndex?: number;
   readonly boneMatrixOffset?: number;
   readonly skinning?: SkinExtraction;
-  readonly morphWeights?: readonly [number, number, number, number];
+  readonly morph?: MeshDrawMorphInputs;
   readonly boundsIndex: number;
   readonly layerMask: number;
   readonly castsShadow: boolean;
@@ -153,7 +154,7 @@ export function createMeshSubmeshDraws(
       material: materialEntry.asset,
       instanceTint: input.instanceTintOffset !== undefined,
       skinned: input.skinning !== undefined,
-      morphed: input.morphWeights !== undefined,
+      morphed: input.morph !== undefined,
       fogMode: selectFogModeForLayer(input.layerMask, input.fogs),
     });
 
@@ -198,6 +199,14 @@ export function createMeshSubmeshDraws(
             boneMatrixOffset: input.boneMatrixOffset,
             boneMatrixCount: input.skinning.jointCount,
           }),
+      ...(input.morph === undefined
+        ? {}
+        : {
+            morphDeltaOffset: input.morph.deltaOffset,
+            morphTargetCount: input.morph.targetCount,
+            morphWeightOffset: input.morph.weightOffset,
+            morphVertexCount: input.morph.vertexCount,
+          }),
       boundsIndex: input.boundsIndex,
       layerMask: input.layerMask,
       castsShadow: input.castsShadow,
@@ -227,7 +236,7 @@ export function createMeshSubmeshDraws(
           !isCustomWgslMaterialAsset(materialEntry.asset) &&
           materialEntry.asset.kind === "standard",
         morphed:
-          input.morphWeights !== undefined &&
+          input.morph !== undefined &&
           !isCustomWgslMaterialAsset(materialEntry.asset) &&
           materialEntry.asset.kind === "standard",
       }),

@@ -8,7 +8,6 @@ import {
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../meshes/mesh-buffer-descriptors.js";
 import { morphTargetWeightBufferResourceKey } from "../core/resource-keys.js";
 
-export const MORPH_TARGET_WEIGHT_FLOATS = 4;
 export const DEFAULT_MORPH_TARGET_WEIGHT_BUFFER_USAGE =
   WEBGPU_BUFFER_USAGE_FLAGS.STORAGE | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST;
 
@@ -105,19 +104,21 @@ export function createMorphTargetWeightBufferDescriptor(
   }
 
   const source = snapshot.morphTargetWeights ?? new Float32Array(0);
-  const firstInstance = draw.worldTransformOffset / 16;
-  const requiredEnd = (firstInstance + 1) * MORPH_TARGET_WEIGHT_FLOATS;
+  const weightOffset = draw.morphWeightOffset ?? 0;
+  const targetCount = draw.morphTargetCount ?? 0;
+  const requiredEnd = weightOffset + targetCount;
 
   if (
-    !Number.isInteger(firstInstance) ||
-    firstInstance < 0 ||
+    !Number.isInteger(weightOffset) ||
+    weightOffset < 0 ||
+    targetCount <= 0 ||
     requiredEnd > source.length
   ) {
     diagnostics.push({
       code: "morphTargetWeightBuffer.missingData",
       renderId: draw.renderId,
       field: "morphTargetWeights",
-      message: `Render id ${draw.renderId} references morph weights through instance ${firstInstance}, but the snapshot morph weight buffer length is ${source.length}.`,
+      message: `Render id ${draw.renderId} references ${targetCount} morph weights at offset ${weightOffset}, but the snapshot morph weight buffer length is ${source.length}.`,
     });
   }
 
@@ -136,7 +137,7 @@ export function createMorphTargetWeightBufferDescriptor(
       },
       source,
       renderId: draw.renderId,
-      weightCount: source.length / MORPH_TARGET_WEIGHT_FLOATS,
+      weightCount: source.length,
     },
     diagnostics,
   };

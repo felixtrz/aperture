@@ -1,5 +1,9 @@
 import type { GltfAccessorDecodingReport } from "./gltf-accessor-decoding.js";
-import type { MeshAsset, MeshIndexBufferDescriptor } from "../mesh/index.js";
+import type {
+  MeshAsset,
+  MeshIndexBufferDescriptor,
+  MeshMorphTargetData,
+} from "../mesh/index.js";
 
 export type GltfMeshAssetTangentGenerationReason = "normalTexture";
 
@@ -50,12 +54,21 @@ export interface GltfMeshAssetConstructionIndexBufferJsonSummary extends Omit<
   readonly data: GltfMeshAssetConstructionArrayJsonSummary;
 }
 
+export interface GltfMeshAssetConstructionMorphTargetDataJsonSummary extends Omit<
+  MeshMorphTargetData,
+  "positionDeltas" | "normalDeltas"
+> {
+  readonly positionDeltas: GltfMeshAssetConstructionArrayJsonSummary;
+  readonly normalDeltas: GltfMeshAssetConstructionArrayJsonSummary;
+}
+
 export interface GltfMeshAssetConstructionMeshJsonSummary extends Omit<
   MeshAsset,
-  "vertexStreams" | "indexBuffer"
+  "vertexStreams" | "indexBuffer" | "morphTargetData"
 > {
   readonly vertexStreams: readonly GltfMeshAssetConstructionVertexStreamJsonSummary[];
   readonly indexBuffer?: GltfMeshAssetConstructionIndexBufferJsonSummary;
+  readonly morphTargetData?: GltfMeshAssetConstructionMorphTargetDataJsonSummary;
 }
 
 export interface GltfPlannedMeshSourceAssetJsonValue extends Omit<
@@ -81,4 +94,10 @@ export interface GltfMeshAssetTangentGenerationRequest {
 export interface GltfMeshAssetConstructionOptions {
   readonly decodedReport: GltfAccessorDecodingReport;
   readonly generateMissingTangentsFor?: readonly GltfMeshAssetTangentGenerationRequest[];
+  /**
+   * All-N morph-target deltas keyed by `${meshIndex}:${primitiveIndex}`, decoded
+   * upstream by `importGltfMorphTargets`. Attached to the constructed mesh asset
+   * as {@link MeshAsset.morphTargetData} for the storage-buffer GPU render path.
+   */
+  readonly morphTargetDataFor?: ReadonlyMap<string, MeshMorphTargetData>;
 }

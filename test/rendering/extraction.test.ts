@@ -730,6 +730,50 @@ describe("render extraction", () => {
     expect(snapshot.morphTargetWeights?.[1]).toBeCloseTo(-3, 5);
   });
 
+  it("packs all N morph weights, deltas, and a per-instance descriptor into the snapshot (no 2/4 cap)", () => {
+    const world = createRuntimeWorld();
+    const meshAsset = withMorphTargetAttributes(createBoxMeshAsset(), 5);
+    const assets = createReadyAssets({
+      meshAsset,
+      materialAsset: createStandardMaterialAsset(),
+    });
+    const vertexCount = required(meshAsset.morphTargetData).vertexCount;
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const entity = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+    // Five weights: the 5th proves packing past the legacy 2/4 cap; values
+    // outside [-1, 1] prove no clamp.
+    entity.addComponent(
+      MorphTargetWeights,
+      createMorphTargetWeights({ weights: [2.5, -3, 0.5, 1.25, -2] }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets);
+    const draw = required(snapshot.meshDraws[0]);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(draw.batchKey.morphed).toBe(true);
+    expect(draw.morphTargetCount).toBe(5);
+    expect(draw.morphVertexCount).toBe(vertexCount);
+    expect(Array.from(snapshot.morphTargetWeights ?? [])).toEqual([
+      2.5, -3, 0.5, 1.25, -2,
+    ]);
+    // Per-instance descriptor for instance 0: weightOffset, targetCount,
+    // deltaOffset, vertexCount.
+    expect(Array.from(snapshot.morphInstanceDescriptors ?? [])).toEqual([
+      0,
+      5,
+      0,
+      vertexCount,
+    ]);
+    // Deltas are target-major positions then normals: 5 * V * 3 * 2 floats.
+    expect(snapshot.morphTargetDeltas?.length).toBe(5 * vertexCount * 3 * 2);
+  });
+
   it("includes compact skinning formats in mesh layout keys", () => {
     const world = createRuntimeWorld();
     const assets = createReadyAssets({
@@ -2838,40 +2882,28 @@ function withSkinningAttributes(mesh: MeshAsset): MeshAsset {
   };
 }
 
-function withMorphTargetAttributes(mesh: MeshAsset): MeshAsset {
+function withMorphTargetAttributes(
+  mesh: MeshAsset,
+  targetCount = 2,
+): MeshAsset {
   const stream = required(mesh.vertexStreams[0]);
+  const vertexCount = stream.vertexCount;
+  const span = targetCount * vertexCount * 3;
 
   return {
     ...mesh,
-    vertexStreams: [
-      {
-        ...stream,
-        attributes: [
-          ...stream.attributes,
-          {
-            semantic: "MORPH_POSITION_0",
-            format: "float32x3",
-            offset: stream.arrayStride,
-          },
-          {
-            semantic: "MORPH_NORMAL_0",
-            format: "float32x3",
-            offset: stream.arrayStride + 12,
-          },
-          {
-            semantic: "MORPH_POSITION_1",
-            format: "float32x3",
-            offset: stream.arrayStride + 24,
-          },
-          {
-            semantic: "MORPH_NORMAL_1",
-            format: "float32x3",
-            offset: stream.arrayStride + 36,
-          },
-        ],
-        arrayStride: stream.arrayStride + 48,
-      },
-    ],
+    // The N-target render reads deltas from morphTargetData (a storage buffer),
+    // not vertex attributes. Distinct per-target deltas so each target moves
+    // the mesh independently.
+    morphTargetData: {
+      targetCount,
+      vertexCount,
+      hasNormals: true,
+      positionDeltas: new Float32Array(span).map(
+        (_value, index) => 1 + (index % (targetCount * 3)),
+      ),
+      normalDeltas: new Float32Array(span),
+    },
   };
 }
 

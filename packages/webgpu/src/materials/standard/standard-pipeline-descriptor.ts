@@ -27,6 +27,8 @@ import {
 } from "./standard-skinning-shader.js";
 import {
   STANDARD_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY,
+  STANDARD_MORPH_TARGET_DELTAS_BINDING,
+  STANDARD_MORPH_TARGET_DESCRIPTORS_BINDING,
   STANDARD_SKINNED_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY,
   standardMorphTargetsEnabledFromBatchKey,
 } from "./standard-morph-target-shader.js";
@@ -112,12 +114,10 @@ export interface StandardPipelineShaderFeaturePlan {
   readonly morphedEnabled: boolean;
   readonly morphTargets: {
     readonly enabled: boolean;
-    readonly positionAttributeSemantics:
-      | readonly ["MORPH_POSITION_0", "MORPH_POSITION_1"]
-      | null;
-    readonly normalAttributeSemantics:
-      | readonly ["MORPH_NORMAL_0", "MORPH_NORMAL_1"]
-      | null;
+    /** Storage-buffer render: deltas + per-instance descriptors, no attributes. */
+    readonly render: "storage-buffer" | null;
+    readonly deltaBufferBinding: number | null;
+    readonly descriptorBufferBinding: number | null;
   };
 }
 
@@ -299,12 +299,13 @@ export function createStandardPipelineShaderFeaturePlan(
     morphedEnabled: features.morphed === true,
     morphTargets: {
       enabled: features.morphed === true,
-      positionAttributeSemantics:
+      render: features.morphed === true ? "storage-buffer" : null,
+      deltaBufferBinding:
+        features.morphed === true ? STANDARD_MORPH_TARGET_DELTAS_BINDING : null,
+      descriptorBufferBinding:
         features.morphed === true
-          ? ["MORPH_POSITION_0", "MORPH_POSITION_1"]
+          ? STANDARD_MORPH_TARGET_DESCRIPTORS_BINDING
           : null,
-      normalAttributeSemantics:
-        features.morphed === true ? ["MORPH_NORMAL_0", "MORPH_NORMAL_1"] : null,
     },
   };
 }
@@ -539,14 +540,9 @@ function standardVertexBufferSemantics(
     semantics.push("JOINTS_0", "WEIGHTS_0");
   }
 
-  if (features.morphed === true) {
-    semantics.push(
-      "MORPH_POSITION_0",
-      "MORPH_NORMAL_0",
-      "MORPH_POSITION_1",
-      "MORPH_NORMAL_1",
-    );
-  }
+  // Morph deltas are not vertex attributes: they render from the group(1)
+  // storage buffer (binding 4) indexed by target+vertex, so morphed meshes use
+  // the base vertex layout.
 
   return semantics;
 }

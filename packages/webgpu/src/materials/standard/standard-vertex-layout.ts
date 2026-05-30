@@ -1,12 +1,6 @@
 import type { BatchCompatibilityKey } from "@aperture-engine/render";
 import { INSTANCE_TINT_VERTEX_BUFFER_LAYOUT } from "../../resources/attributes/instance-tint-buffer.js";
 import {
-  STANDARD_MORPH_TARGET_NORMAL_0_LOCATION,
-  STANDARD_MORPH_TARGET_NORMAL_1_LOCATION,
-  STANDARD_MORPH_TARGET_POSITION_0_LOCATION,
-  STANDARD_MORPH_TARGET_POSITION_1_LOCATION,
-} from "./standard-morph-target-shader.js";
-import {
   STANDARD_SKINNING_JOINTS_LOCATION,
   STANDARD_SKINNING_WEIGHTS_LOCATION,
 } from "./standard-skinning-shader.js";
@@ -44,7 +38,6 @@ interface StandardPrimitiveVertexFeatureNeeds {
   readonly needsTexCoord1: boolean;
   readonly needsVertexColor: boolean;
   readonly needsSkinning: boolean;
-  readonly needsMorphTargets: boolean;
 }
 
 interface ParsedStandardMeshLayout {
@@ -138,76 +131,6 @@ export const STANDARD_SKINNED_PRIMITIVE_VERTEX_BUFFER_LAYOUT = {
   ],
 } as const;
 
-export const STANDARD_MORPHED_PRIMITIVE_VERTEX_BUFFER_LAYOUT = {
-  arrayStride: 80,
-  stepMode: "vertex",
-  attributes: [
-    { shaderLocation: 0, offset: 0, format: "float32x3" },
-    { shaderLocation: 1, offset: 12, format: "float32x3" },
-    { shaderLocation: 2, offset: 24, format: "float32x2" },
-    {
-      shaderLocation: STANDARD_MORPH_TARGET_POSITION_0_LOCATION,
-      offset: 32,
-      format: "float32x3",
-    },
-    {
-      shaderLocation: STANDARD_MORPH_TARGET_NORMAL_0_LOCATION,
-      offset: 44,
-      format: "float32x3",
-    },
-    {
-      shaderLocation: STANDARD_MORPH_TARGET_POSITION_1_LOCATION,
-      offset: 56,
-      format: "float32x3",
-    },
-    {
-      shaderLocation: STANDARD_MORPH_TARGET_NORMAL_1_LOCATION,
-      offset: 68,
-      format: "float32x3",
-    },
-  ],
-} as const;
-
-export const STANDARD_SKINNED_MORPHED_PRIMITIVE_VERTEX_BUFFER_LAYOUT = {
-  arrayStride: 104,
-  stepMode: "vertex",
-  attributes: [
-    { shaderLocation: 0, offset: 0, format: "float32x3" },
-    { shaderLocation: 1, offset: 12, format: "float32x3" },
-    { shaderLocation: 2, offset: 24, format: "float32x2" },
-    {
-      shaderLocation: STANDARD_SKINNING_JOINTS_LOCATION,
-      offset: 32,
-      format: "uint16x4",
-    },
-    {
-      shaderLocation: STANDARD_SKINNING_WEIGHTS_LOCATION,
-      offset: 40,
-      format: "float32x4",
-    },
-    {
-      shaderLocation: STANDARD_MORPH_TARGET_POSITION_0_LOCATION,
-      offset: 56,
-      format: "float32x3",
-    },
-    {
-      shaderLocation: STANDARD_MORPH_TARGET_NORMAL_0_LOCATION,
-      offset: 68,
-      format: "float32x3",
-    },
-    {
-      shaderLocation: STANDARD_MORPH_TARGET_POSITION_1_LOCATION,
-      offset: 80,
-      format: "float32x3",
-    },
-    {
-      shaderLocation: STANDARD_MORPH_TARGET_NORMAL_1_LOCATION,
-      offset: 92,
-      format: "float32x3",
-    },
-  ],
-} as const;
-
 export const STANDARD_TANGENT_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT = {
   arrayStride: 56,
   stepMode: "vertex",
@@ -224,36 +147,11 @@ function standardPrimitiveVertexBufferLayout(
   shader: BuiltInShaderSourceModule,
   batchKey?: BatchCompatibilityKey,
 ): StandardPrimitiveVertexBufferLayout {
-  const {
-    needsTangents,
-    needsTexCoord1,
-    needsVertexColor,
-    needsSkinning,
-    needsMorphTargets,
-  } = standardPrimitiveVertexFeatureNeeds(shader);
-
-  if (
-    needsSkinning &&
-    needsMorphTargets &&
-    !needsTangents &&
-    !needsTexCoord1 &&
-    !needsVertexColor
-  ) {
-    return resolveStandardSkinnedPrimitiveVertexBufferLayout(batchKey, true);
-  }
-
-  if (
-    needsMorphTargets &&
-    !needsSkinning &&
-    !needsTangents &&
-    !needsTexCoord1 &&
-    !needsVertexColor
-  ) {
-    return STANDARD_MORPHED_PRIMITIVE_VERTEX_BUFFER_LAYOUT;
-  }
+  const { needsTangents, needsTexCoord1, needsVertexColor, needsSkinning } =
+    standardPrimitiveVertexFeatureNeeds(shader);
 
   if (needsSkinning && !needsTangents && !needsTexCoord1 && !needsVertexColor) {
-    return resolveStandardSkinnedPrimitiveVertexBufferLayout(batchKey, false);
+    return resolveStandardSkinnedPrimitiveVertexBufferLayout(batchKey);
   }
 
   if (needsTangents && needsTexCoord1) {
@@ -294,9 +192,6 @@ function standardPrimitiveVertexFeatureNeeds(
     needsTexCoord1: shader.code.includes("@location(4) uv1: vec2f"),
     needsVertexColor: shader.code.includes("@location(5) color: vec4f"),
     needsSkinning: shader.code.includes("@location(8) joints0: vec4u"),
-    needsMorphTargets: shader.code.includes(
-      "@location(10) morphPosition0: vec3f",
-    ),
   };
 }
 
@@ -396,15 +291,6 @@ function requiredStandardVertexSemantics(
 
   if (features.needsSkinning) {
     semantics.push("JOINTS_0", "WEIGHTS_0");
-  }
-
-  if (features.needsMorphTargets) {
-    semantics.push(
-      "MORPH_POSITION_0",
-      "MORPH_NORMAL_0",
-      "MORPH_POSITION_1",
-      "MORPH_NORMAL_1",
-    );
   }
 
   return semantics;
@@ -601,37 +487,27 @@ function standardVertexShaderLocation(semantic: string): number | null {
       return STANDARD_SKINNING_JOINTS_LOCATION;
     case "WEIGHTS_0":
       return STANDARD_SKINNING_WEIGHTS_LOCATION;
-    case "MORPH_POSITION_0":
-      return STANDARD_MORPH_TARGET_POSITION_0_LOCATION;
-    case "MORPH_NORMAL_0":
-      return STANDARD_MORPH_TARGET_NORMAL_0_LOCATION;
-    case "MORPH_POSITION_1":
-      return STANDARD_MORPH_TARGET_POSITION_1_LOCATION;
-    case "MORPH_NORMAL_1":
-      return STANDARD_MORPH_TARGET_NORMAL_1_LOCATION;
     default:
+      // Morph semantics (MORPH_POSITION_*/MORPH_NORMAL_*) intentionally have no
+      // vertex shader location: morph deltas render via the group(1) storage
+      // buffer, not vertex attributes. They are still parsed by
+      // `standardMeshLayoutTokenFormat` so the interleaved mesh stride is honored.
       return null;
   }
 }
 
 function resolveStandardSkinnedPrimitiveVertexBufferLayout(
   batchKey: BatchCompatibilityKey | undefined,
-  morphed: boolean,
 ): StandardPrimitiveVertexBufferLayout {
   const formats = vertexSkinningAttributeFormatsFromBatchKey(batchKey);
   const usesDefaultFormats =
     formats.joints === "uint16x4" && formats.weights === "float32x4";
 
   if (usesDefaultFormats) {
-    return morphed
-      ? STANDARD_SKINNED_MORPHED_PRIMITIVE_VERTEX_BUFFER_LAYOUT
-      : STANDARD_SKINNED_PRIMITIVE_VERTEX_BUFFER_LAYOUT;
+    return STANDARD_SKINNED_PRIMITIVE_VERTEX_BUFFER_LAYOUT;
   }
 
-  return createStandardSkinnedPrimitiveVertexBufferLayout({
-    formats,
-    morphed,
-  });
+  return createStandardSkinnedPrimitiveVertexBufferLayout({ formats });
 }
 
 export function vertexSkinningAttributeFormatsFromBatchKey(
@@ -661,7 +537,6 @@ export function vertexSkinningAttributeFormatsFromBatchKey(
 
 function createStandardSkinnedPrimitiveVertexBufferLayout(input: {
   readonly formats: WebGpuSkinningAttributeFormats;
-  readonly morphed: boolean;
 }): StandardPrimitiveVertexBufferLayout {
   const attributes: StandardVertexBufferAttributeLayout[] = [
     { shaderLocation: 0, offset: 0, format: "float32x3" },
@@ -682,30 +557,6 @@ function createStandardSkinnedPrimitiveVertexBufferLayout(input: {
     format: input.formats.weights,
   });
   offset += vertexFormatByteSize(input.formats.weights);
-
-  if (input.morphed) {
-    for (const attribute of [
-      {
-        shaderLocation: STANDARD_MORPH_TARGET_POSITION_0_LOCATION,
-        format: "float32x3",
-      },
-      {
-        shaderLocation: STANDARD_MORPH_TARGET_NORMAL_0_LOCATION,
-        format: "float32x3",
-      },
-      {
-        shaderLocation: STANDARD_MORPH_TARGET_POSITION_1_LOCATION,
-        format: "float32x3",
-      },
-      {
-        shaderLocation: STANDARD_MORPH_TARGET_NORMAL_1_LOCATION,
-        format: "float32x3",
-      },
-    ] as const) {
-      attributes.push({ ...attribute, offset });
-      offset += vertexFormatByteSize(attribute.format);
-    }
-  }
 
   return {
     arrayStride: offset,
