@@ -1,50 +1,37 @@
 # Current Task
 
-**M5 is ✅ COMPLETE (6/6).** The SOTA roadmap milestone **M5 (Close core PBR/IBL
-correctness gaps)** is fully done, committed, pushed, and gate-green. Per the
-active directive, no other milestone was started.
+**Milestone M3 — A real render graph** (docs/SOTA_ROADMAP.md, wave 2). IN
+PROGRESS: 1 of 7 tasks done. Source of truth is `docs/SOTA_ROADMAP.md` (its 📋
+Status block + completion log + Resume notes are authoritative; ignore
+agent/BACKLOG.md per the active directive).
 
-Source of truth is `docs/SOTA_ROADMAP.md` (its 📋 Status block + completion log +
-Resume notes are authoritative).
+Work the M3 tasks in dependsOn order, one at a time, committing each separately.
+Do not start any other milestone.
 
-Completed this milestone (each fully proven, gate-green, pushed):
+## Done
 
-- **M5-T1** (`7beb1ca`) — split-sum environment-BRDF (DFG) specular IBL.
-- **M5-T2** (`3cc58d9`) — cosine irradiance-convolution compute pass for diffuse IBL.
-- **M5-T3** (`4afc17e`) — equirect → cube projection + single-asset auto-IBL.
-- **M5-T4** (`f85b7fe`) — persistent rgba16float HDR scene buffer; tonemap +
-  exposure + sRGB moved to a final post stage.
-- **M5-T5** (`bfa7e39`) — refractive transmission: IOR refraction + thickness +
-  Beer-Lambert (KHR_materials_ior/volume).
-- **M5-T6** (`64eb481`) — SSAO attenuates only indirect (ambient/IBL) light, not
-  direct or emissive. Approach A: the lit pass emits a second color attachment
-  carrying the separated indirect term (new `standard-indirect-channel-shader.ts`,
-  threaded as `indirectColorFormat` alongside `motionVectorColorFormat`); SSAO
-  removes only `indirect * (1 - visibility)`. Proof: `examples/ssao-indirect.*` +
-  `test/e2e/ssao-indirect.spec.ts` (emissive cube in a high-AO corner preserved
-  while the diffuse crease darkens).
+- **M3-T1** (`107c61d`) — pure, headless FrameGraph data model + `compileFrameGraph`
+  (topo order, store-on-no-clear load/store inference, descriptor-keyed transient
+  aliasing, JSON-safe report; cycle ⇒ ok:false, no throw) + `ComputePassCommand`
+  union. Proof: `test/webgpu/frame-graph-compile.test.ts` (6 pass). Gate green
+  (393 files / 2217 tests).
 
-Gate: `pnpm run check` = pass (392 files / 2211 tests). E2E proofs ibl-brdf,
-ibl-irradiance, ibl-equirect, hdr-exposure, transmission-ior, ssao-indirect +
-the tonemap-showcase / transmission / ssao / post-effects / taa regressions all
-pass under SwiftShader + xvfb via `scripts/webgpu-e2e.sh`.
+## Next
 
-**KNOWN ENV ISSUE (pre-existing, not M5):** `test/e2e/dof.spec.ts` times out at
-"loading" under SwiftShader — it fails on a clean tree too (verified by
-stashing), so it is a pre-existing environment limitation, not an M5 regression.
+- **M3-T2** (depends T1, done) — single-encoder executor
+  `render/graph/frame-graph-execute.ts` + the `frame-boundary.ts` refactor
+  (extract `encodeFrameBoundaryInto`; keep `assembleFrameBoundary` as a
+  legacy-preserving wrapper so `test/webgpu/frame-boundary.test.ts` stays
+  byte-identical). Then T3 (post stack) → T4 (forward/multi-target) → T5
+  (shadows); T6 (TAA history) after T3; T7 (public addRenderPass/addComputePass
+  + custom-pass example) last (depends T4, T2).
 
-## Next (out of scope for this run)
+See the Resume notes in docs/SOTA_ROADMAP.md for the concrete T2 step list.
 
-The active directive was to complete M5 only and not start another milestone.
-The next milestone in wave/dependsOn order is **M3 (Render Graph, wave 2)** —
-M3-T1 is the lowest-numbered todo. A future run should pick up there.
+## Invariants (every M3 task)
 
-**LESSONS (carry forward):** (1) post-effect/shader WGSL must be proven by an
-actual GPU draw + readback — a shader compile error still counts a draw but
-writes nothing (caught the T4 parameter-shadowing and T6 `textureSample`-in-
-non-uniform-flow bugs). (2) For view-dependent shading on transmissive/double-
-sided surfaces, force the normal to face the viewer before refract/reflect;
-read GPU inputs back as color when a term looks input-insensitive. (3) Infinity
-is not JSON-safe — use a finite sentinel for "unbounded" material params. (4)
-Some e2e specs hardcode environment-dependent values (swapchain format, scene
-draw counts) — assert shapes/relations, not absolutes.
+ECS-authoritative, no central scene graph, renderer never owns game state,
+headless/worker-safe, WebGPU-only (no WebGL fallback). The graph model layer
+stays GPU-free; only the executor touches the device. Each task: every "Done
+when" box ticked, named proof passing with new coverage, `pnpm run check` green,
+heading marked `✅ done (date · commit)`, completion-log row appended.

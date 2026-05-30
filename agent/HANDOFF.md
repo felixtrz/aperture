@@ -1,6 +1,86 @@
 # Agent Handoff
 
-Updated: 2026-05-30T10:48:00Z
+Updated: 2026-05-30T19:55:00Z
+
+## Current Run Update — 2026-05-30 — SOTA M3 (Real render graph): IN PROGRESS 1/7
+
+Implementing Milestone M3 (A real render graph) from docs/SOTA_ROADMAP.md in
+dependsOn order, one task per commit. M5 was already COMPLETE (6/6) at run start;
+per the directive only M3 is in scope.
+
+**M3-T1 ✅ done (107c61d)** — the pure, headless render-graph data model (NO GPU
+side effects), the foundation every later M3 task executes through:
+
+- `packages/webgpu/src/render/graph/frame-graph.ts` — `createFrameGraph()`
+  builder; `ResourceHandle` (kind color/depth/history/swapchain/buffer ×
+  transient/persistent/imported lifetime, optional history double-buffer flag);
+  `RenderPassNode`/`ComputePassNode` union (string-named `reads`, `writes` with
+  per-write `clear|load` attachment intent + clear values, `before`/`after`
+  ordering sugar, `enabled`); `declareTransient`/`declareHistory`/
+  `importSwapchain`/`importDepth`/`declareResource` populate a handle map (the
+  renderTargetMap-equivalent).
+- `packages/webgpu/src/render/graph/frame-graph-compile.ts` — `compileFrameGraph()`
+  is a PURE function: Kahn topo-sort over read/write edges with insertion-index
+  tiebreak (before/after compiles to edges; edges are the source of truth),
+  per-node colorLoadOp/depthLoadOp + per-write storeOp via PlayCanvas
+  store-on-no-clear *generalized* so a later READ (not just a load-write) forces
+  the producer to store, descriptor-keyed transient aliasing (simple per-frame
+  pool per D3, not optimal lifetime packing), and a JSON-safe
+  `FrameGraphCompileReportJsonValue`. A cycle ⇒ `frameGraph.cyclicDependency`
+  diagnostic + `ok:false` + empty order (never throws).
+- `packages/webgpu/src/render/passes/compute-pass-commands.ts` —
+  `ComputePassCommand` union (setComputePipeline / setComputeBindGroup /
+  dispatchWorkgroups / dispatchWorkgroupsIndirect) mirroring
+  render-pass-commands.ts, plus a headless `validateComputePassCommands`.
+- Barrels updated: index.ts + test-support.ts.
+
+Proof: `test/webgpu/frame-graph-compile.test.ts` (6 cases, all pass) — topo
+order, byte-for-byte load/store report, transient-slot reuse, cycle handling,
+compute-node ordering, JSON round-trip + determinism. Gate: `pnpm run check` =
+pass (393 files / 2217 tests). Architectural invariants upheld: the graph layer
+is GPU-free + synchronous (headless/worker-safe), ECS-authoritative untouched,
+no scene graph, WebGPU-only. No executor/route wiring yet — that lands in T2.
+
+**NEXT — M3-T2 (single-encoder executor).** Build
+`render/graph/frame-graph-execute.ts` `executeFrameGraph(device,queue,compiled,
+resources)` = ONE `createCommandEncoderResource` encoder, walk
+`compiled.orderedNodes` (render ⇒ begin pass with compiled load/store + resolve
+write handles to views + replay `RenderPassCommand[]` through the EXISTING
+`render/passes/render-pass-command-executor.ts` to preserve bundle-caching +
+state elision verbatim + end; compute ⇒ begin compute pass + run
+`ComputePassCommand[]` + end), finish ONCE + `submitCommandBuffers([one])`.
+Keystone refactor: split `render/frame/frame-boundary.ts` `assembleFrameBoundary`
+(~line 287) into (a) `encodeFrameBoundaryInto(encoder, options)` =
+begin→execute→end on a caller-provided encoder (no create/finish/submit), and
+(b) keep `assembleFrameBoundary` as a thin wrapper that creates+finishes+submits
+around it so `test/webgpu/frame-boundary.test.ts` still emits
+`['begin','draw','end','finish','submit:1']` UNCHANGED (that is the migration
+safety net — get it green before touching routes). Extend
+`gpu/command-submission-metrics.ts` to count multi-pass single-buffer frames.
+T2 proof: NEW `test/webgpu/frame-graph-execute.test.ts` (fake-device recorder:
+3-render+1-compute graph ⇒ ONE createCommandEncoder/finish/submit, passes
+interleaved in compiled order; compute begin/dispatch/end in the same encoder) +
+the unchanged frame-boundary.test.ts.
+
+### References inspected (this run)
+
+- `references/engine/src/scene/frame-graph.js` — PlayCanvas FrameGraph:
+  `renderTargetMap` + `_compilePasses` store-on-no-clear inference, pass-merge
+  `_skipStart`/`_skipEnd`, before/after insertion. Borrowed the store-on-no-clear
+  concept (generalized to reads); did not copy code.
+- `references/three.js/src/nodes/display/PassNode.js` — the
+  `_previousTextures`/`getPreviousTexture` history-resource model; informs the
+  `history-texture` handle kind / double-buffer lifetime used by `declareHistory`
+  (consumed fully in M3-T6).
+- `packages/webgpu/src/render/passes/render-pass-commands.ts` (local) — shape
+  mirrored for the sibling ComputePassCommand union.
+
+LESSON (T1): the repo tsconfig.base.json sets `noUncheckedIndexedAccess: true`,
+so every bounded array index is `T | undefined`; `tsc -b` surfaces these in
+waves. Use `arr[i]!` for provably-in-range access (the pattern already used in
+src, e.g. standard-morph-target-shader.ts, directional-shadow-matrix-computation.ts).
+
+---
 
 ## Current Run Update — 2026-05-30 — SOTA M4 (Production-quality shadows): COMPLETE 9/9
 
