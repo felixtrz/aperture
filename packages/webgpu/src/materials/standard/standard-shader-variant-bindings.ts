@@ -459,6 +459,20 @@ export function standardTextureVariantBindings(
       binding: 2,
       resource: "read-only-storage-buffer",
     });
+    bindings.push({
+      id: "standardMorphTargetDeltas",
+      label: "Standard material morph target deltas",
+      group: 1,
+      binding: 4,
+      resource: "read-only-storage-buffer",
+    });
+    bindings.push({
+      id: "standardMorphInstanceDescriptors",
+      label: "Standard material morph instance descriptors",
+      group: 1,
+      binding: 5,
+      resource: "read-only-storage-buffer",
+    });
   }
 
   return bindings;

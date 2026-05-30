@@ -30,6 +30,9 @@ const MAPPER_ARRAY_FIELDS = [
   "textures",
   "images",
   "samplers",
+  // `skins` is a core root array (not an extension). Recognize it so skinned
+  // assets validate as an array rather than being treated as unknown (M2-T3).
+  "skins",
 ] as const;
 
 const SUPPORTED_ROOT_EXTENSIONS = new Set([

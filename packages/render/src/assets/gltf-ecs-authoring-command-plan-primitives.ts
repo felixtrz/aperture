@@ -3,8 +3,10 @@ import type {
   GltfEcsAuthoringCommand,
   GltfEcsAuthoringCommandPlanOptions,
   GltfEcsAuthoringDiagnostic,
+  GltfSkinCommandValue,
   GltfSkippedEcsAuthoringEntry,
 } from "./gltf-ecs-authoring-command-plan-types.js";
+import { findImportedSkin } from "./gltf-skin-import.js";
 import {
   appendGltfEcsEntityCommands,
   gltfIdentityLocalTransformCommandValue,
@@ -34,6 +36,7 @@ export function appendGltfEcsPrimitiveCommands(input: {
   readonly seenEntityKeys: Set<string>;
   readonly dependencies: Set<string>;
   readonly meshReadiness: GltfEcsMeshReadiness;
+  readonly nodeEntityKeyByIndex: ReadonlyMap<number, string>;
 }): void {
   if (
     input.node.meshIndex === null ||
@@ -120,7 +123,65 @@ export function appendGltfEcsPrimitiveCommands(input: {
     );
     input.dependencies.add(entry.meshHandleKey);
     input.dependencies.add(entry.materialHandleKey);
+
+    const skinValue = gltfSkinCommandValue({
+      node: input.node,
+      options: input.options,
+      nodeEntityKeyByIndex: input.nodeEntityKeyByIndex,
+      diagnostics: input.diagnostics,
+    });
+    if (skinValue !== null) {
+      input.commands.push({
+        type: "addComponent",
+        entityKey,
+        component: "Skin",
+        value: skinValue,
+      });
+    }
   }
+}
+
+function gltfSkinCommandValue(input: {
+  readonly node: GltfTraversedNode;
+  readonly options: GltfEcsAuthoringCommandPlanOptions;
+  readonly nodeEntityKeyByIndex: ReadonlyMap<number, string>;
+  readonly diagnostics: GltfEcsAuthoringDiagnostic[];
+}): GltfSkinCommandValue | null {
+  if (input.node.skinIndex === null || input.options.skinReport === undefined) {
+    return null;
+  }
+
+  const skin = findImportedSkin(input.options.skinReport, input.node.skinIndex);
+  if (skin === null) {
+    return null;
+  }
+
+  const jointEntityKeys: string[] = [];
+  for (const jointNodeIndex of skin.jointNodeIndices) {
+    const jointEntityKey = input.nodeEntityKeyByIndex.get(jointNodeIndex);
+    if (jointEntityKey === undefined) {
+      input.diagnostics.push({
+        code: "gltfEcsAuthoring.skinJointNodeMissing",
+        severity: "error",
+        message: `glTF skin ${input.node.skinIndex} joint node ${jointNodeIndex} was not produced by scene traversal.`,
+        nodeIndex: input.node.nodeIndex,
+        entityKey: input.node.entityKey,
+      });
+      return null;
+    }
+    jointEntityKeys.push(jointEntityKey);
+  }
+
+  const skeletonEntityKey =
+    skin.skeletonNodeIndex === null
+      ? null
+      : (input.nodeEntityKeyByIndex.get(skin.skeletonNodeIndex) ?? null);
+
+  return {
+    jointEntityKeys,
+    inverseBindMatrices: Array.from(skin.inverseBindMatrices),
+    skeletonEntityKey,
+  };
 }
 
 function assetIdFromHandleKey(handleKey: string, kind: "mesh" | "material") {

@@ -5,7 +5,6 @@ import {
   INSTANCE_TINT_VERTEX_BUFFER_LAYOUT,
   STANDARD_MESH_SHADER,
   STANDARD_MESH_WGSL,
-  STANDARD_MORPHED_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   STANDARD_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY,
   STANDARD_SKINNED_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY,
@@ -787,7 +786,7 @@ describe("browser standard material pipeline bridge", () => {
     });
   });
 
-  it("uses morph delta attributes for morphed StandardMaterial shaders", () => {
+  it("renders morphed StandardMaterial shaders via the storage-buffer N-target path", () => {
     const shaderModule = {
       compilationInfo: async () => ({ messages: [] }),
     };
@@ -817,14 +816,29 @@ describe("browser standard material pipeline bridge", () => {
       colorFormat: "bgra8unorm",
     });
 
+    // Morph deltas render from a storage buffer, so the morphed mesh uses the
+    // base POSITION/NORMAL/TEXCOORD_0 vertex layout — the interleaved morph
+    // bytes remain in the stream stride (80) but are not declared attributes.
     expect(descriptor.vertex).toMatchObject({
       module: shaderModule,
       entryPoint: "vs_main",
-      buffers: [STANDARD_MORPHED_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
+      buffers: [
+        {
+          arrayStride: 80,
+          attributes: [
+            { shaderLocation: 0, offset: 0, format: "float32x3" },
+            { shaderLocation: 1, offset: 12, format: "float32x3" },
+            { shaderLocation: 2, offset: 24, format: "float32x2" },
+          ],
+        },
+      ],
     });
-    expect(shader.code).toContain("@location(10) morphPosition0: vec3f");
-    expect(shader.code).toContain("@location(13) morphNormal1: vec3f");
-    expect(shader.code).toContain("apertureMorphPosition(input.position");
+    expect(shader.code).not.toContain("morphPosition0");
+    expect(shader.code).toContain("@builtin(vertex_index) morphVertexIndex");
+    expect(shader.code).toContain("fn apertureMorph(");
+    expect(shader.code).toContain(
+      "apertureMorph(input.position, input.normal, input.instanceIndex, input.morphVertexIndex)",
+    );
     expect(plan).toMatchObject({
       valid: true,
       plan: {
@@ -837,15 +851,7 @@ describe("browser standard material pipeline bridge", () => {
         },
         descriptor: {
           vertex: {
-            buffers: [
-              "POSITION",
-              "NORMAL",
-              "TEXCOORD_0",
-              "MORPH_POSITION_0",
-              "MORPH_NORMAL_0",
-              "MORPH_POSITION_1",
-              "MORPH_NORMAL_1",
-            ],
+            buffers: ["POSITION", "NORMAL", "TEXCOORD_0"],
           },
         },
       },

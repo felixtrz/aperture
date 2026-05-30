@@ -58,6 +58,8 @@ export type BuiltInShaderBindingId =
   | "standardTransmissionSceneColorSampler"
   | "skinJointMatrices"
   | "standardMorphTargetWeights"
+  | "standardMorphTargetDeltas"
+  | "standardMorphInstanceDescriptors"
   | "matcapTexture"
   | "matcapSampler";
 

@@ -39,6 +39,8 @@ export function extractMeshDraws(
   transforms: number[],
   bones: number[],
   morphTargetWeights: number[],
+  morphTargetDeltas: number[],
+  morphInstanceDescriptors: number[],
   instanceTints: number[],
   instanceAttributes: number[],
   instanceAttributePackets: InstanceAttributePacket[],
@@ -138,6 +140,8 @@ export function extractMeshDraws(
       transforms,
       bones,
       morphTargetWeights,
+      morphTargetDeltas,
+      morphInstanceDescriptors,
       instanceTints,
       instanceAttributes,
       instanceAttributePackets,
@@ -196,9 +200,7 @@ export function extractMeshDraws(
         ...(drawInputs.skinning === undefined
           ? {}
           : { skinning: drawInputs.skinning }),
-        ...(drawInputs.morphWeights === undefined
-          ? {}
-          : { morphWeights: drawInputs.morphWeights }),
+        ...(drawInputs.morph === undefined ? {} : { morph: drawInputs.morph }),
         boundsIndex,
         layerMask: entityState.layerMask,
         castsShadow: entityState.castsShadow,
@@ -228,7 +230,7 @@ export function extractMeshDraws(
       boundsIndex,
       instanceTints,
       instanceTintOffset: drawInputs.instanceTintOffset,
-      morphWeights: drawInputs.morphWeights,
+      morph: drawInputs.morph,
     });
   }
 

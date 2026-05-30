@@ -2,6 +2,8 @@ import { createGltfLoaderOrchestrationReport } from "./gltf-loader-orchestration
 import { createGltfAssetMappingReport } from "./gltf-asset-mapping.js";
 import { validateGltfRootForAssetMapping } from "./gltf-root.js";
 import { createGltfSceneTraversalReport } from "./gltf-scene-traversal.js";
+import { importGltfSkins } from "./gltf-skin-import.js";
+import { importGltfAnimations } from "./gltf-animation-import.js";
 import { parseGlbContainer } from "./glb-container.js";
 import {
   createGlbBufferSourceDiagnostics,
@@ -122,6 +124,21 @@ export function createGltfReportDrivenImportReport(
     sceneTraversal,
   });
 
+  // Skin + animation import are non-blocking: a malformed clip/skin should not
+  // fail the whole asset import, so their diagnostics do not affect `valid`.
+  const resolveBufferBytes = options.resolveBufferBytes ?? (() => null);
+  const skinImport = importGltfSkins({
+    root: options.root,
+    resolveBufferBytes,
+  });
+  const animation = importGltfAnimations({
+    root: options.root,
+    resolveBufferBytes,
+    ...(options.keyPrefix === undefined
+      ? {}
+      : { keyPrefix: options.keyPrefix }),
+  });
+
   return {
     valid:
       diagnostics.length === 0 &&
@@ -141,6 +158,8 @@ export function createGltfReportDrivenImportReport(
     meshConstruction: meshReports.meshConstruction,
     sceneTraversal,
     orchestration,
+    skinImport,
+    animation,
     diagnostics,
   };
 }

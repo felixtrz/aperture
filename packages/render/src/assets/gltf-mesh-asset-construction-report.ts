@@ -28,7 +28,7 @@ export function gltfMeshAssetConstructionReportToJson(
 function meshAssetToJsonValue(
   mesh: MeshAsset,
 ): GltfMeshAssetConstructionMeshJsonSummary {
-  const { vertexStreams, indexBuffer, ...rest } = mesh;
+  const { vertexStreams, indexBuffer, morphTargetData, ...rest } = mesh;
 
   return {
     ...rest,
@@ -42,6 +42,19 @@ function meshAssetToJsonValue(
           indexBuffer: {
             format: indexBuffer.format,
             data: typedArrayToJsonSummary(indexBuffer.data),
+          },
+        }),
+    ...(morphTargetData === undefined
+      ? {}
+      : {
+          morphTargetData: {
+            targetCount: morphTargetData.targetCount,
+            vertexCount: morphTargetData.vertexCount,
+            hasNormals: morphTargetData.hasNormals,
+            positionDeltas: typedArrayToJsonSummary(
+              morphTargetData.positionDeltas,
+            ),
+            normalDeltas: typedArrayToJsonSummary(morphTargetData.normalDeltas),
           },
         }),
   };

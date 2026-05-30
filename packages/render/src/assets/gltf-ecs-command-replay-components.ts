@@ -6,7 +6,13 @@ import {
   type Entity,
 } from "@aperture-engine/simulation";
 
-import { Material, Mesh, Visibility } from "../rendering/authoring.js";
+import {
+  Material,
+  Mesh,
+  Skin,
+  Visibility,
+  type SkinSkeleton,
+} from "../rendering/authoring.js";
 import {
   skipGltfEcsReplayCommand,
   skipInvalidGltfEcsReplayComponentValue,
@@ -29,6 +35,7 @@ import type {
   GltfMeshCommandValue,
   GltfNameCommandValue,
   GltfParentCommandValue,
+  GltfSkinCommandValue,
   GltfVisibilityCommandValue,
   GltfWorldTransformCommandValue,
 } from "./gltf-ecs-authoring-command-plan.js";
@@ -179,6 +186,62 @@ export function applyGltfEcsReplayComponent(input: {
         input.entity.addComponent(Material, { materialId: value.handleKey });
         return true;
       }
+      case "Skin": {
+        const value = input.command.value as GltfSkinCommandValue;
+        if (
+          !isRecord(value) ||
+          !Array.isArray(value.jointEntityKeys) ||
+          !value.jointEntityKeys.every((key) => typeof key === "string") ||
+          !Array.isArray(value.inverseBindMatrices) ||
+          !value.inverseBindMatrices.every(
+            (component) =>
+              typeof component === "number" && Number.isFinite(component),
+          ) ||
+          !(
+            value.skeletonEntityKey === null ||
+            typeof value.skeletonEntityKey === "string"
+          )
+        ) {
+          skipInvalidGltfEcsReplayComponentValue(
+            input,
+            "Skin value must contain jointEntityKeys (strings), inverseBindMatrices (finite numbers), and a nullable skeletonEntityKey.",
+          );
+          return false;
+        }
+
+        // Resolve joint node keys to live entities, deferred to replay time
+        // like Parent — joints may be created after the skinned mesh entity.
+        const joints: Entity[] = [];
+        for (const jointKey of value.jointEntityKeys) {
+          const joint = input.entitiesByKey.get(jointKey);
+          if (joint === undefined) {
+            skipGltfEcsReplayCommand({
+              diagnostics: input.diagnostics,
+              skipped: input.skipped,
+              commandIndex: input.commandIndex,
+              entityKey: input.command.entityKey,
+              component: input.command.component,
+              code: "gltfEcsReplay.missingJointEntityKey",
+              message: `Skin joint '${jointKey}' was not found for entity '${input.command.entityKey}'.`,
+            });
+            return false;
+          }
+          joints.push(joint);
+        }
+
+        const skeleton: SkinSkeleton = {
+          joints,
+          inverseBindMatrices: Float32Array.from(value.inverseBindMatrices),
+        };
+        // Seed the palette with identity matrices so the mesh renders in its
+        // rest pose until the joint-palette system (M2-T6) computes it.
+        input.entity.addComponent(Skin, {
+          jointCount: joints.length,
+          jointMatrices: createIdentityJointPalette(joints.length),
+          skeleton,
+        });
+        return true;
+      }
       default:
         skipGltfEcsReplayCommand({
           diagnostics: input.diagnostics,
@@ -206,4 +269,16 @@ export function applyGltfEcsReplayComponent(input: {
     });
     return false;
   }
+}
+
+function createIdentityJointPalette(jointCount: number): Float32Array {
+  const palette = new Float32Array(jointCount * 16);
+  for (let joint = 0; joint < jointCount; joint += 1) {
+    const base = joint * 16;
+    palette[base] = 1;
+    palette[base + 5] = 1;
+    palette[base + 10] = 1;
+    palette[base + 15] = 1;
+  }
+  return palette;
 }

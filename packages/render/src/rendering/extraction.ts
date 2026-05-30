@@ -51,6 +51,8 @@ export function extractRenderSnapshot(
   const transforms: number[] = [];
   const bones: number[] = [];
   const morphTargetWeights: number[] = [];
+  const morphTargetDeltas: number[] = [];
+  const morphInstanceDescriptors: number[] = [];
   const instanceTints: number[] = [];
   const instanceAttributes: number[] = [];
   const instanceAttributePackets: InstanceAttributePacket[] = [];
@@ -85,6 +87,8 @@ export function extractRenderSnapshot(
     transforms,
     bones,
     morphTargetWeights,
+    morphTargetDeltas,
+    morphInstanceDescriptors,
     instanceTints,
     instanceAttributes,
     instanceAttributePackets,
@@ -123,6 +127,14 @@ export function extractRenderSnapshot(
     ...(morphTargetWeights.length === 0
       ? {}
       : { morphTargetWeights: new Float32Array(morphTargetWeights) }),
+    ...(morphTargetDeltas.length === 0
+      ? {}
+      : { morphTargetDeltas: new Float32Array(morphTargetDeltas) }),
+    ...(morphInstanceDescriptors.length === 0
+      ? {}
+      : {
+          morphInstanceDescriptors: new Uint32Array(morphInstanceDescriptors),
+        }),
     instanceTints: new Float32Array(instanceTints),
     ...(instanceAttributes.length === 0
       ? {}

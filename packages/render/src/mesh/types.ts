@@ -83,6 +83,26 @@ export interface MeshMorphTargetDescriptor {
   readonly tangentSemantic?: MeshVertexSemantic;
 }
 
+/**
+ * Engine-owned morph-target delta payload for the N-target GPU render path.
+ *
+ * Unlike {@link MeshMorphTargetDescriptor} (which names per-target vertex-stream
+ * semantics and is structurally capped by the number of named slots), this
+ * carries every target's deltas in a single target-major typed buffer so an
+ * arbitrary target count (e.g. the 52 ARKit blendshapes) renders through a
+ * storage buffer indexed by `(target, vertex)` rather than fixed vertex
+ * attributes. For target `t`, vertex `v`, the position delta is at
+ * `positionDeltas[(t * vertexCount + v) * 3 ..]` (likewise `normalDeltas`,
+ * zero-filled where a target lacks NORMAL).
+ */
+export interface MeshMorphTargetData {
+  readonly targetCount: number;
+  readonly vertexCount: number;
+  readonly hasNormals: boolean;
+  readonly positionDeltas: Float32Array;
+  readonly normalDeltas: Float32Array;
+}
+
 export interface MeshAsset {
   readonly kind: "mesh";
   readonly label: string;
@@ -94,6 +114,12 @@ export interface MeshAsset {
   readonly localSphere?: BoundingSphere;
   readonly skinning?: MeshSkinningSchema;
   readonly morphTargets?: readonly MeshMorphTargetDescriptor[];
+  /**
+   * All-N morph-target deltas for the storage-buffer GPU render path. When
+   * present, the renderer morphs via this payload (indexed by target+vertex),
+   * lifting the structural 2-target vertex-attribute cap.
+   */
+  readonly morphTargetData?: MeshMorphTargetData;
 }
 
 export type MeshDiagnosticCode =

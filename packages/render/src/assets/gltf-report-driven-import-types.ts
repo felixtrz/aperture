@@ -24,6 +24,8 @@ import type {
   GltfSceneTraversalReport,
   GltfSceneTraversalReportJsonValue,
 } from "./gltf-scene-traversal.js";
+import type { GltfSkinImportReport } from "./gltf-skin-import.js";
+import type { GltfAnimationImportResult } from "./gltf-animation-import.js";
 import type {
   GltfMeshPrimitiveMappingReport,
   GltfMeshPrimitiveMappingReportJsonValue,
@@ -100,6 +102,20 @@ export interface GltfReportDrivenImportReport {
   readonly meshConstruction: GltfMeshAssetConstructionReport | null;
   readonly sceneTraversal: GltfSceneTraversalReport;
   readonly orchestration: GltfLoaderOrchestrationReport;
+  /**
+   * Parsed engine skeleton descriptors (joints + inverse-bind matrices) for
+   * `gltf.skins`. Carries `Float32Array`s, so it is excluded from the JSON
+   * projection. Consumed by the app loader to feed the command plan's Skin
+   * commands and surface skeletons on the loaded scene.
+   */
+  readonly skinImport: GltfSkinImportReport;
+  /**
+   * Parsed engine `AnimationClip`s (M2-T1 shape) for `gltf.animations`, bound
+   * to `keyPrefix:node:N` target keys. Carries `Float32Array`s, so it is
+   * excluded from the JSON projection. Consumed by the app loader to register
+   * `AnimationClipHandle`s and surface clips on the loaded scene.
+   */
+  readonly animation: GltfAnimationImportResult;
   readonly diagnostics: readonly GltfReportDrivenImportDiagnostic[];
 }
 
@@ -155,6 +171,8 @@ export interface GltfReportDrivenImportReportJsonValue extends Omit<
   | "meshConstruction"
   | "sceneTraversal"
   | "orchestration"
+  | "skinImport"
+  | "animation"
 > {
   readonly root: GltfRootValidationReportJsonValue;
   readonly assetMapping: GltfAssetMappingReportJsonValue | null;

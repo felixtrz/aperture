@@ -32,6 +32,19 @@ export interface RenderSnapshot {
   readonly transforms: Float32Array;
   readonly bones?: Float32Array;
   readonly morphTargetWeights?: Float32Array;
+  /**
+   * Flat, target-major morph deltas for the N-target storage-buffer render path.
+   * Each morphed draw's slice begins at its `morphDeltaOffset` and holds
+   * `targetCount * vertexCount * 3` position floats followed by the same count of
+   * normal floats.
+   */
+  readonly morphTargetDeltas?: Float32Array;
+  /**
+   * Per-instance morph descriptors, four `u32` per world-transform slot
+   * (`weightOffset, targetCount, deltaOffset, vertexCount`) indexed by the
+   * shader's `instance_index`. Zeroed for non-morphed instances.
+   */
+  readonly morphInstanceDescriptors?: Uint32Array;
   readonly instanceTints?: Float32Array;
   readonly instanceAttributes?: Float32Array;
   readonly instanceAttributePackets?: readonly InstanceAttributePacket[];

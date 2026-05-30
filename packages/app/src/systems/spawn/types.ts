@@ -1,4 +1,5 @@
 import type { CameraInput, LightInput } from "@aperture-engine/render";
+import type { AnimationAccess } from "@aperture-engine/runtime";
 import type {
   Entity,
   LocalTransformInput,
@@ -140,4 +141,6 @@ export interface SpawnCommands {
   light(options?: SpawnLightOptions): Entity;
   mesh(options: SpawnMeshOptions): Entity;
   gltf(handle: SystemGltfAssetHandle, options?: SpawnGltfOptions): Entity;
+  /** Engine-owned animation controls for a spawned (e.g. glTF) entity. */
+  animation(entity: Entity): AnimationAccess;
 }

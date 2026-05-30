@@ -1,6 +1,93 @@
 # Agent Handoff
 
-Updated: 2026-05-29T16:32:07Z
+Updated: 2026-05-29T23:10:00Z
+
+## Current Run Update — 2026-05-29 — SOTA M2 (End-to-end animation): 7/9 done, T7+T9 WebGPU-blocked
+
+Implemented M2 from `docs/SOTA_ROADMAP.md`, one task per commit (feat + docs
+checkpoint). **7/9 tasks fully done + gate-green; T7 partial, T9 partial —
+both blocked only on the WebGPU/pixel portions ([B1] below).** Full
+`pnpm run check` green after every commit (latest: 381 files / 2158 tests).
+
+- M2-T1 `d6c26e6` ✅ — AnimationClip asset + keyframe sampler (LINEAR/STEP/CUBICSPLINE).
+- M2-T2 `5cbb865` ✅ — AnimationMixer (play/pause/seek/crossFade/update; loop/once/pingpong).
+- M2-T3 `43f09a1` ✅ — glTF skin import → engine skeleton (Skin.skeleton + Skin command/replay).
+- M2-T4 `3685f2c` ✅ — glTF animation import → engine AnimationClips (clip data types moved to simulation).
+- M2-T5 `0ef493a` ✅ — typed joint-matrix transport (Skin.jointMatrices Float32Array; no JSON).
+- M2-T6 `65b3be5` ✅ — world-driven joint-palette compute system (runtime step after resolveWorldTransforms).
+- M2-T7 `ba636db` 🟡 — typed morph-weight transport (no JSON / no [-1,1] clamp). REMAINING
+  (WebGPU-blocked follow-up): N-target morph delta import + N-weight snapshot packing +
+  the morph-target data-texture/storage-buffer N-loop GPU render (52 ARKit) + done-when #3
+  live pixel readback. The 2-target vertex-attribute render path is preserved byte-for-byte.
+- M2-T8 `f132670` ✅ — public play/crossfade API + ECS animation driver
+  (Animation component, updateAnimationDrivers, spawn.gltf binds clips→entities,
+  spawn.animation(entity) controls). Proven headlessly end-to-end.
+- M2-T9 `a798d0d` 🟡 — headless end-to-end proof (test/app/skinned-animated-route.test.ts):
+  skinned + CUBICSPLINE-animated GLB through createApertureApp + public API, asserting
+  engine-owned status + CUBICSPLINE joint drive. REMAINING (WebGPU-blocked): Playwright
+  pixel-diff, render-control snapshot, >2-target morph contribution, the examples/animation-skinning.\* route.
+- Prerequisite: `5fe516f` hardened a pre-existing flaky frustum-culling microbenchmark
+  (it asserted a 30% wall-clock speedup that does not reproduce on this runner; measured ~1.0x).
+
+### What a WebGPU-capable agent should do next (to finish M2 → 9/9)
+
+1. M2-T7 morph data-texture GPU render: add a `morphTargetData` delta buffer to the mesh
+   asset (decode all N glTF targets via the shared `decodeGltfFloatAccessor`), build a GPU
+   storage buffer/texture, and a targetCount-parameterized N-loop WGSL shader that replaces
+   the 2 vertex-attribute morph deltas; pack N weights per draw (morphWeightOffset/Count on
+   the packet). Update the morph webgpu tests. Reach 52 ARKit blendshapes.
+2. M2-T9 route + pixel proof: author examples/animation-skinning.{worker,main}.js + .html
+   (engine API only) + a skinned+morphed+animated fixture, and test/e2e/animation-skinning.spec.ts
+   asserting pixels differ across two clip phases + a >2-target morph contributes.
+
+### CORRECTION — WebGPU pixel proofs ARE runnable here (earlier note was wrong)
+
+An earlier note in this run claimed WebGPU was unavailable; that was a probe
+error (I tested `navigator.gpu` on `about:blank`, which is not a secure
+context). **WebGPU works here over a localhost secure context**: Playwright's
+downloaded Chromium (`/opt/pw-browsers/chromium-1223/chrome-linux64/chrome`)
+under `xvfb`, with SwiftShader's Vulkan ICD, exposes a real WebGPU device.
+Verified by running `test/e2e/spinning-cube.spec.ts` (passes with GPU
+readback) via a local override config:
+
+```
+VK_ICD_FILENAMES=/opt/pw-browsers/chromium-1223/chrome-linux64/vk_swiftshader_icd.json \
+  xvfb-run -a pnpm exec playwright test --config playwright.local.config.ts <spec>
+```
+
+(`playwright.local.config.ts` is git-ignored: it points Playwright at the
+downloaded Chromium with `--enable-unsafe-webgpu --enable-features=Vulkan
+--use-vulkan=swiftshader --use-angle=vulkan`, headed under xvfb.) So the M2-T7
+done-when #3 and M2-T9 pixel/render-control proofs are NOT environment-blocked
+— they are simply the large remaining GPU work below.
+
+### Remaining M2 work (unblocked; large GPU subsystem + example authoring)
+
+Progress: M2-T7 #1 + #4 are now DONE — `importGltfMorphTargets`
+(packages/render/src/assets/gltf-morph-target-import.ts, commit 2890824)
+imports all N morph-target deltas (4-target → targetCount 4; 52 ARKit
+representable without dropping), covered by
+test/render/gltf-morph-target-import.spec.ts. With the typed transport
+(no JSON / no clamp), only T7 #2 and #3 remain.
+
+Still to do (each unblocked; WebGPU runnable via playwright.local.config.ts):
+
+1. T7 #3 (morph GPU render) + #2 (>4-weight snapshot): extend the standard
+   vertex layout + WGSL morph injection past 2 targets (or move deltas to a
+   per-mesh storage buffer / data texture consuming `morphTargetData`), pack N
+   weights per draw, update the ~9 morph webgpu tests (they assert @location
+   10-13 / stride 80,104 / weights.x,.y), and add a render-control/Playwright
+   pixel proof (3+ targets differs from 2-target-only).
+2. T9 route + pixel-diff: author a minimal skinned+animated GLB fixture (none
+   under examples/assets has both a skin and animations), examples/
+   animation-skinning.{worker,main}.js + .html (engine API: spawn.gltf +
+   spawn.animation), and test/e2e/animation-skinning.spec.ts asserting pixels
+   differ across two clip phases + engine-owned status. Run via:
+   `VK_ICD_FILENAMES=/opt/pw-browsers/chromium-1223/chrome-linux64/vk_swiftshader_icd.json xvfb-run -a pnpm exec playwright test --config playwright.local.config.ts <spec>`.
+
+The headless animation pipeline + public API are fully proven
+(test/app/{skinned-animated-route,gltf-animation-playback,gltf-animation-clips}.test.ts);
+the remaining work is the GPU render + the live pixel proofs.
 
 ## Current Run Update — 2026-05-29T16:32:07Z — SOTA M1 complete
 

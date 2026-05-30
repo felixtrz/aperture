@@ -12,6 +12,8 @@ import {
   type GltfMeshAssetConstructionReport,
   type GltfMeshAssetTangentGenerationRequest,
 } from "./gltf-mesh-asset-construction.js";
+import { importGltfMorphTargets } from "./gltf-morph-target-import.js";
+import type { MeshMorphTargetData } from "../mesh/index.js";
 import { resolvedExternalBufferByteLengths } from "./gltf-report-driven-import-buffers.js";
 import { decodeGltfDracoPrimitiveAccessors } from "./gltf-report-driven-import-draco.js";
 import { decodeGltfMeshoptBufferViews } from "./gltf-report-driven-import-meshopt.js";
@@ -81,12 +83,30 @@ export function createGltfReportDrivenMeshReports(
       diagnostics: meshoptBuffers.diagnostics,
     },
   );
+  const morphTargetImport = importGltfMorphTargets({
+    root: meshRoot,
+    resolveBufferBytes: resolveMeshBufferBytes,
+  });
+  const morphTargetDataFor = new Map<string, MeshMorphTargetData>();
+  for (const primitive of morphTargetImport.primitives) {
+    morphTargetDataFor.set(
+      `${primitive.meshIndex}:${primitive.primitiveIndex}`,
+      {
+        targetCount: primitive.targetCount,
+        vertexCount: primitive.vertexCount,
+        hasNormals: primitive.hasNormals,
+        positionDeltas: primitive.positionDeltas,
+        normalDeltas: primitive.normalDeltas,
+      },
+    );
+  }
   const meshConstruction = createMeshAssetsFromGltfDecodedAccessors({
     decodedReport: accessorDecoding,
     generateMissingTangentsFor: createMissingTangentGenerationRequests(
       meshRoot,
       meshPrimitive,
     ),
+    ...(morphTargetDataFor.size === 0 ? {} : { morphTargetDataFor }),
   });
 
   return {

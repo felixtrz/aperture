@@ -15,6 +15,16 @@ import {
   type MorphTargetWeightGpuBufferResource,
 } from "../../resources/attributes/morph-target-weight-buffer.js";
 import {
+  createMorphTargetDeltaBufferDescriptor,
+  createMorphTargetDeltaGpuBuffer,
+  type MorphTargetDeltaGpuBufferResource,
+} from "../../resources/attributes/morph-target-delta-buffer.js";
+import {
+  createMorphInstanceDescriptorBufferDescriptor,
+  createMorphInstanceDescriptorGpuBuffer,
+  type MorphInstanceDescriptorGpuBufferResource,
+} from "../../resources/attributes/morph-instance-descriptor-buffer.js";
+import {
   createMeshGpuBuffers,
   type MeshGpuBufferResource,
 } from "../../resources/meshes/mesh-buffer-resources.js";
@@ -253,6 +263,84 @@ export function createMorphTargetWeightResource(
   diagnostics.push(...descriptor.diagnostics);
 
   const resource = createMorphTargetWeightGpuBuffer({
+    device: options.device,
+    plan: descriptor.plan,
+  });
+
+  diagnostics.push(...resource.diagnostics);
+
+  return resource.valid ? resource.resource : null;
+}
+
+export function createMorphTargetDeltaResource(
+  options: Pick<
+    CreateStandardFrameGpuResourcesOptions,
+    "device" | "snapshot" | "draw" | "pipelineKey"
+  >,
+  diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
+): MorphTargetDeltaGpuBufferResource | null {
+  if (!requiresMorphTargetWeightBuffer(options.pipelineKey)) {
+    return null;
+  }
+
+  if (options.draw === undefined) {
+    diagnostics.push({
+      code: "morphTargetDeltaBuffer.missingData",
+      renderId: 0,
+      field: "draw",
+      message:
+        "Standard frame GPU resource creation requires a draw packet for a morphed pipeline.",
+    });
+    return null;
+  }
+
+  const descriptor = createMorphTargetDeltaBufferDescriptor(
+    options.snapshot,
+    options.draw,
+  );
+
+  diagnostics.push(...descriptor.diagnostics);
+
+  const resource = createMorphTargetDeltaGpuBuffer({
+    device: options.device,
+    plan: descriptor.plan,
+  });
+
+  diagnostics.push(...resource.diagnostics);
+
+  return resource.valid ? resource.resource : null;
+}
+
+export function createMorphInstanceDescriptorResource(
+  options: Pick<
+    CreateStandardFrameGpuResourcesOptions,
+    "device" | "snapshot" | "draw" | "pipelineKey"
+  >,
+  diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
+): MorphInstanceDescriptorGpuBufferResource | null {
+  if (!requiresMorphTargetWeightBuffer(options.pipelineKey)) {
+    return null;
+  }
+
+  if (options.draw === undefined) {
+    diagnostics.push({
+      code: "morphInstanceDescriptorBuffer.missingData",
+      renderId: 0,
+      field: "draw",
+      message:
+        "Standard frame GPU resource creation requires a draw packet for a morphed pipeline.",
+    });
+    return null;
+  }
+
+  const descriptor = createMorphInstanceDescriptorBufferDescriptor(
+    options.snapshot,
+    options.draw,
+  );
+
+  diagnostics.push(...descriptor.diagnostics);
+
+  const resource = createMorphInstanceDescriptorGpuBuffer({
     device: options.device,
     plan: descriptor.plan,
   });

@@ -1,5 +1,6 @@
 import type { Entity } from "@aperture-engine/simulation";
 import { InstanceData, Skin } from "./index.js";
+import type { MeshDrawMorphInputs } from "./extraction-mesh-draw-inputs.js";
 import type { BoundsPacket, MeshDrawPacket } from "./snapshot.js";
 import {
   createMeshDrawPacketTemplate,
@@ -22,7 +23,7 @@ export interface WriteMeshDrawEntityCacheInput {
   readonly boundsIndex: number;
   readonly instanceTints: readonly number[];
   readonly instanceTintOffset: number | undefined;
-  readonly morphWeights: readonly [number, number, number, number] | undefined;
+  readonly morph: MeshDrawMorphInputs | undefined;
 }
 
 export function writeMeshDrawEntityCache(
@@ -34,7 +35,7 @@ export function writeMeshDrawEntityCache(
     input.diagnosticsCount !== input.diagnosticsStart ||
     input.entity.hasComponent(InstanceData) ||
     input.entity.hasComponent(Skin) ||
-    input.morphWeights !== undefined
+    input.morph !== undefined
   ) {
     return;
   }

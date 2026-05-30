@@ -1,7 +1,23 @@
-import { EcsType, defineComponent } from "@aperture-engine/simulation";
+import {
+  EcsType,
+  defineComponent,
+  type Entity,
+} from "@aperture-engine/simulation";
 
 import { FogMode } from "./authoring-types.js";
 import { tuple4 } from "./authoring-utils.js";
+
+/**
+ * Engine-owned skeleton structure stored on the {@link Skin} component's
+ * `skeleton` Object field for imported skins. Holds live joint entity refs and
+ * flat column-major inverse-bind matrices by reference (same-thread only).
+ */
+export interface SkinSkeleton {
+  /** Live joint entities, in skin.joints order. */
+  readonly joints: readonly Entity[];
+  /** Flat column-major inverse-bind matrices, length === joints.length * 16. */
+  readonly inverseBindMatrices: Float32Array;
+}
 
 export const Mesh = defineComponent(
   "aperture.render.mesh",
@@ -118,16 +134,30 @@ export const Skin = defineComponent(
   "aperture.render.skin",
   {
     jointCount: { type: EcsType.Int32, default: 0 },
-    jointMatricesJson: { type: EcsType.String, default: "[]" },
+    // Typed joint palette: a flat column-major `Float32Array` of jointCount*16
+    // matrices, read directly by extraction with zero per-frame JSON.parse.
+    // Held by reference (same-thread, never snapshot-transported). Null until a
+    // palette is supplied (manual skins) or computed (M2-T6 for imported skins).
+    jointMatrices: { type: EcsType.Object, default: null },
+    // Engine-owned skeleton structure for imported skins: the live joint
+    // entities and their flat column-major inverse-bind matrices. Held by
+    // reference so the joint-palette system (M2-T6) can compute
+    // palette_i = inverseMeshWorld * jointWorld_i * inverseBind_i in place.
+    // Null for manually-authored skins that supply a precomputed palette.
+    skeleton: { type: EcsType.Object, default: null },
   },
-  "Renderer-independent per-entity skin palette stored as serialized joint matrices.",
+  "Renderer-independent per-entity skin palette stored as a typed joint-matrix buffer.",
 );
 
 export const MorphTargetWeights = defineComponent(
   "aperture.render.morphTargetWeights",
   {
     targetCount: { type: EcsType.Int32, default: 0 },
-    weightsJson: { type: EcsType.String, default: "[]" },
+    // Typed per-entity morph weights: a flat `Float32Array` of `targetCount`
+    // scalars, read directly by extraction with zero per-frame JSON.parse and
+    // no [-1, 1] clamp. Held by reference (same-thread). Supports unlimited
+    // targets (e.g. 52 ARKit blendshapes). Null until weights are supplied.
+    weights: { type: EcsType.Object, default: null },
   },
-  "Renderer-independent per-entity morph target weights stored as serialized scalar values.",
+  "Renderer-independent per-entity morph target weights stored as a typed scalar buffer.",
 );

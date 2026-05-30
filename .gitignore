@@ -14,3 +14,4 @@ npm-debug.log*
 .env
 .env.*
 !.env.example
+playwright.local.config.ts

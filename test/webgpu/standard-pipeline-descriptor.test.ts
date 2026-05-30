@@ -479,8 +479,9 @@ describe("standard material pipeline descriptor planning", () => {
     expect(featurePlan.morphedEnabled).toBe(true);
     expect(featurePlan.morphTargets).toEqual({
       enabled: true,
-      positionAttributeSemantics: ["MORPH_POSITION_0", "MORPH_POSITION_1"],
-      normalAttributeSemantics: ["MORPH_NORMAL_0", "MORPH_NORMAL_1"],
+      render: "storage-buffer",
+      deltaBufferBinding: 4,
+      descriptorBufferBinding: 5,
     });
     expect(featurePlan.variantKey).toContain("morphed");
   });
