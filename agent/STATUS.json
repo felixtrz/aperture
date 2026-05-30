@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "f835fb62",
   "activePid": null,
-  "notes": "SOTA M5 at 3/6 done: T1 split-sum DFG (7beb1ca), T2 cosine irradiance-convolution (3cc58d9), T3 equirect->cube single-asset auto-IBL (4afc17e) — all fully proven (ibl-brdf + ibl-irradiance + ibl-equirect e2e green on HEAD under SwiftShader; pnpm run check = 390 files / 2200 tests). Remaining: T4 (rgba16float HDR scene buffer + exposure — a pervasive lit-pass color-format change; deep), T6 (SSAO->indirect — needs MRT/depth-prepass; deep), T5 (transmission; depends T4). Each remaining task is a deep slice in a different subsystem; precise resume plan in roadmap Resume notes. Next: M5-T4.",
-  "lastRunFinishedAt": "2026-05-30T13:09:29Z"
+  "notes": "SOTA M5 at 3/6 done + T4 in-progress. T1 (7beb1ca), T2 (3cc58d9), T3 (4afc17e) all fully proven (ibl-brdf/ibl-irradiance/ibl-equirect e2e green; pnpm run check = 390 files / 2201 tests). T4 exposure WGSL Done-when #4 done (ccaffcc, backward-compatible + vitest); remaining T4 = rgba16float sceneRenderFormat threading + createWebGpuTonemapPostEffect + hdr-exposure example (detailed plan in HANDOFF.md). T5 depends T4; T6 (SSAO) needs MRT/prepass. Each remaining piece is a deep cross-cutting change; full milestone exceeds one session.",
+  "lastRunFinishedAt": "2026-05-30T13:26:32Z"
 }
