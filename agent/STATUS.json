@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "f835fb62",
   "activePid": null,
-  "notes": "SOTA M5 (PBR/IBL correctness) at 2/6: T1 split-sum environment-BRDF (DFG, 7beb1ca) + T2 cosine irradiance-convolution (3cc58d9), both fully proven. pnpm run check = 387 files / 2188 tests; ibl-brdf + ibl-irradiance e2e pass under SwiftShader. Next: M5-T3 (equirect->cube; note: no in-repo 2:1 equirect .hdr asset). T4/T6 also ready.",
-  "lastRunFinishedAt": "2026-05-30T12:19:49Z"
+  "notes": "SOTA M5 at 2/6 done + T3 in-progress. T1 split-sum DFG (7beb1ca) + T2 cosine irradiance-convolution (3cc58d9) both fully proven; re-verified on HEAD: ibl-brdf + ibl-irradiance e2e both pass under SwiftShader. M5-T3 projection compute pipeline core + UV vitest landed (3f54524, Done-when #3); resource builder + equirectSource auto-wiring + example/live proof remain (no in-repo 2:1 equirect .hdr). pnpm run check = 389 files / 2196 tests.",
+  "lastRunFinishedAt": "2026-05-30T12:36:45Z"
 }
