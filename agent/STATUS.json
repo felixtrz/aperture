@@ -6,6 +6,6 @@
   "lastResult": "stop-condition",
   "lastCommit": "f835fb62",
   "activePid": null,
-  "notes": "SOTA M4: T1-T4 done + gate-green (384 files/2173 tests, 5 shadow e2e specs pass under SwiftShader); T5 code-complete with WGSL-gen+pipeline-descriptor unit proofs, acne/peter-panning pixel proofs pending a dedicated grazing-plane route; T6-T9 not started. Stopping on session scope.",
-  "lastRunFinishedAt": "2026-05-30T07:32:03Z"
+  "notes": "SOTA M4: 7/9 done (T1-T7) + gate-green (2173 tests, all shadow e2e pass under SwiftShader). T8 (alpha-test casters) + T9 (atlas packer) remain — large GPU-plumbing slices, detailed plans in roadmap. Stopping on session scope.",
+  "lastRunFinishedAt": "2026-05-30T08:23:04Z"
 }

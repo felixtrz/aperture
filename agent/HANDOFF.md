@@ -1,6 +1,67 @@
 # Agent Handoff
 
-Updated: 2026-05-30T07:30:00Z
+Updated: 2026-05-30T08:25:00Z
+
+## Current Run Update — 2026-05-30 — SOTA M4 (Production-quality shadows): 7/9 done
+
+Implemented M4 from docs/SOTA_ROADMAP.md (source of truth; ignored BACKLOG per
+the run directive), one task per commit. **T1-T7 fully done + gate-green with
+passing proofs (vitest + WebGPU e2e under SwiftShader); T8 + T9 remain.** Full
+pnpm run check green after every commit (384 files / 2173 tests). All shadow
+e2e specs pass via scripts/webgpu-e2e.sh.
+
+ENVIRONMENT (committed, turnkey): .claude/hooks/session-start.sh installs deps,
+rebuilds references/, installs a WebGPU-capable Chrome, ensures xvfb, regenerates
+git-ignored playwright.local.config.ts (SwiftShader, headed, timeout 150s). Run
+WebGPU pixel proofs with scripts/webgpu-e2e.sh <spec>. (navigator.gpu needs a
+SECURE context = the localhost server, not about:blank; bundled Chromium ships
+WebGPU off so it uses channel "chrome".)
+
+DONE (commit per task; see roadmap completion log):
+- T2 practical cascade splits; T1 frustum-fit + texel-snapped matrices (no swim);
+  T3 authored shadowType/strength/filterRadius/slopeBias/depthBias/normalBias on
+  ShadowRequestPacket + packed codec (stride 6->12) + extraction;
+- T4 strength replaces the MIN_VISIBILITY floor (light-float slot 24; all 4
+  shader variants); T5 authored depth/normal/slope bias (caster pipeline
+  depthBias+slopeScale; cascaded per-light shadowDepthBias slot 25 +
+  normal-offset slot 26); T6 cascade blend (per-cascade helper + mix);
+  T7 PCSS (filterRadius slot 27 + shadowType slot 28; blocker search via
+  textureLoad + variable-radius PCF; cascaded PCF now honors filterRadius).
+- Dedicated proof route examples/shadow-bias.* (grazing floor caster+receiver +
+  pillar) with ?shadow-depth-bias=/?shadow-type=/?caster= params drives the
+  acne (T5), cascade-continuity (T6), and PCSS contact-hardening (T7) pixel
+  proofs in test/e2e/shadow-bias.spec.ts. Light-float stride is now 29.
+
+REMAINING (NOT started — detailed plans in the roadmap §M4 Done-when + resume notes):
+- T8 alpha-tested shadow casters (independent): thread material alphaMode/
+  alphaCutoff/baseColor into the shadow caster draw-list (ShadowCasterDrawRecord
+  only has materialKey today — resolve alphaMode from the material renderState,
+  see extraction-mesh-materials.ts:124); add SHADOW_CASTER_ALPHA_TEST_WGSL
+  (UV + baseColor.a discard) + a SECOND caster bind group (baseColor
+  texture+sampler+cutoff) + an alpha-test pipeline-descriptor variant
+  (vertex.buffers + TEXCOORD_0, distinct pipelineKey); select per-draw by
+  alphaMode=MASK; bind the material texture in the shadow pass encoder. Proof:
+  a checkerboard alpha-cutout quad casts a PERFORATED shadow (lit+shadowed
+  samples coexist in the footprint) vs solid for opaque — build a dedicated
+  alpha-cutout example (shadow-bias.* pattern). Descriptor/WGSL/draw-list layer
+  is unit-testable (done-when #2/#3); the GPU bind-group + pixel proof is the
+  heavy part.
+- T9 shadow atlas packer (deps T3): new shadow-atlas-packer.ts (deterministic
+  shelf/quadtree assigning non-overlapping ShadowAtlasRegions; drop the 5th
+  over-budget light) — done-when #1 is a PURE vitest unit, fully tractable with
+  no GPU. Then updateMode (realtime/once/interval) on LightShadowSettings +
+  per-frame scheduler skipping static 'once' caster passes (depth cache
+  persists) + wire atlasRegion into the pass viewport/scissor. Proofs #2-#4 need
+  a multi-light atlas route.
+
+PROOF TIP: SwiftShader needs robust region-average/variance assertions (subtle
+precision fails); the examples/shadow-bias.* dedicated-route + URL-param pattern
+is the template that worked for T5/T6/T7.
+
+HASH NOTE: each task's roadmap log hash points to its implementation commit; the
+branch tip is one commit ahead (the doc-hash amend) — inherent self-reference.
+
+---
 
 ## Current Run Update — 2026-05-30 — SOTA M4 (Production-quality shadows): 4/9 done + T5 code-complete
 
