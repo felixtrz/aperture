@@ -28287,3 +28287,44 @@ sourced from `app.initialization.format`); `packages/render/src/assets/`
 hdr-rgbe-parser/header/pixels/conversion (RGBE flat-format encoding for the
 synthesized equirect .hdr); `references/three.js/src/nodes/utils/EquirectUV.js`
 (equirect<->direction mapping).
+
+### M5-T4 refined integration plan (investigated 2026-05-30)
+
+Clean integration point found in `packages/webgpu/src/app/post-processing.ts`:
+the post-effects loop (line ~238) runs effects in order, the `isLast` effect
+writing to the swapchain (`outputFormat: options.target.format`). So implement
+T4 as an OPT-IN HDR path:
+
+1. `app.ts` (CreateWebGpuAppOptions ~457-474): add `exposure?: number`. When
+   defined, set an app `sceneRenderFormat = "rgba16float"` (else
+   `initialization.format`) + store `exposure`.
+2. `pipeline-resources.ts` (73/88/101/113): `colorFormat: app.sceneRenderFormat`
+   (was `app.initialization.format`); include the format in the pipeline cache
+   `key` (line ~40-57); pass `tonemap: undefined` for the standard pipeline when
+   HDR so `applyOutputTonemapToStandardShader` (standard-pipeline.ts:113) is NOT
+   applied (material returns linear HDR). Default path is byte-identical.
+3. `post-processing.ts`: scene texture (line 79) + intermediate ping/pong (260)
+   use `sceneRenderFormat`; APPEND a tonemap post effect to `options.effects`
+   when HDR so it is the last stage (reads the rgba16float scene/post output,
+   writes the 8-bit swapchain). For the hdr-exposure example use NO other post
+   effects → the tonemap effect is the only/last one → no intermediate-format
+   threading needed (the intermediate-format work for bloom+HDR is a follow-up;
+   bloom's min(...,1.0) clamp is out of M5 scope per the task).
+4. New `post-tonemap.ts` `createWebGpuTonemapPostEffect` (model on the
+   WebGpuPostEffect contract in post-pass.ts + a simple effect like post-fxaa.ts):
+   full-screen pass sampling the input, `color * exposure` then the tonemap
+   operator then sRGB OETF encode, writing the swapchain.
+5. `output-stage-tonemap.ts` `createOutputTonemapWgsl`: add a `* exposure`
+   multiply before the operator (Done-when #4 vitest: exposure=0 -> black,
+   exposure=1 identity pre-operator).
+6. `examples/hdr-exposure.{html,main,worker}.js` + `test/e2e/hdr-exposure.spec.ts`:
+   a scene with a bright (>1.0) emissive highlight, sweep exposure {0.25,1.0,4.0}
+   via URL param; readback shows monotonic brightening; status
+   output:{sceneBufferFormat:'rgba16float',tonemapStage:'post',exposure}.
+   Regression-guard: tonemap-showcase still switches operators (now applied in
+   the post stage).
+
+Risk: WebGPU color-format mismatch errors are likely during wiring (the lit-pass
+pipeline color attachment must equal the scene-texture format); iterate with
+scripts/webgpu-e2e.sh. After T4, M5-T5 (transmission; depends T4) and M5-T6
+(SSAO->indirect; needs MRT or a depth-prepass) remain.
