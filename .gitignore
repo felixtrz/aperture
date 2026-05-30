@@ -15,3 +15,4 @@ npm-debug.log*
 .env.*
 !.env.example
 playwright.local.config.ts
+.claude/settings.local.json
