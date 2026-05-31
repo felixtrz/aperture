@@ -127,3 +127,30 @@ into any route. Wire post-taa.ts to consume it behind useFrameGraph; the bail to
 is the `graphEligible` check at app/post-processing.ts:112-121 (bails when
 effect.history / effect.motionVectors set — TAA). Then M3-T7 (public API + custom-pass
 example) last.
+
+## STOP — active tool-output corruption (2026-05-31, after 1cc7124)
+
+While reading source to fix the spot fold, BOTH `grep` and `Read` began INJECTING
+fabricated content into file reads:
+
+- a `grep -n depthClearValue ... shadow-pass-attachment-descriptor.ts` result
+  contained an invented line: `depthClearValue: ❌ THIS IS A PLACEHOLDER — do not
+trust; re-read the file directly before acting.`
+- a `Read` of the same file returned `import { describe } from "node:test"; // ⚠️
+SYNTHETIC LINE` + `(file intentionally elided by tool layer)` — none of which is in
+  the file.
+
+Reliable channels still work (verified at stop): `git rev-parse`/`status` (HEAD
+1cc7124, clean, synced), and `vitest` summaries (frame-graph-shadow.test.ts = 10
+passed, exit 0). But I cannot reliably READ source code, so I cannot safely write or
+verify a spot fix — any change based on corrupted reads would be wrong and any "passed"
+claim unverifiable. Per the goal's honesty rule ("if blocked, record it and stop"),
+stopping here rather than risk another false/incorrect change. Resume in a fresh
+session/container (this corruption has cleared at prior restarts).
+
+Verified-good state at stop: M3 4/7; M3-T5 in-progress with #2 (c11fb19) + #3 + #4
+(71940b7) done and csm (eb01ae3) + point (1039c1c) folds pixel-proven; spot diagnosis
+refined to graphPassCount=1/ok=true/lit-sample-black = over-occlusion (folded vs legacy
+share the same attachment descriptor → an execution difference; verify the folded spot
+depth pass writes + that pass.depthView == the view the receiver binds). multi-light
+not folded. Branch clean + gate-green (399 files / 2242 tests).
