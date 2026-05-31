@@ -17,10 +17,6 @@ const shadowControls = {
   casterEnabled: !exampleParams.has("disable-shadow-caster"),
 };
 const stopAfterReady = exampleParams.has("stop-after-ready");
-// M3-T5: when ?graph=1, fold the shadow caster passes into the forward encoder
-// (one command buffer) instead of submitting a separate caster command buffer.
-const useFrameGraph = exampleParams.get("graph") === "1";
-let pendingShadowCasterGraphPasses = null;
 
 let shadowDepthTextureResourceReport = null;
 
@@ -97,7 +93,6 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     },
   );
   const loop = {
-    shadowCasterGraphPasses: null,
     frame: 0,
     receivedSnapshots: 0,
     workerReady: false,
@@ -178,9 +173,6 @@ async function handleWorkerMessage(
     clearColor,
     label: "csm-directional-shadow-app",
     autoStandardMaterialShadowReceiverResources: false,
-    ...(useFrameGraph && loop.shadowCasterGraphPasses
-      ? { shadowCasterGraphPasses: loop.shadowCasterGraphPasses }
-      : {}),
     ...(!scene.shadowControls.receiverEnabled ||
     loop.standardMaterialShadowReceiverResources === null
       ? {}
@@ -201,7 +193,6 @@ async function handleWorkerMessage(
 
   loop.standardMaterialShadowReceiverResources =
     nextFrameResources.standardMaterialShadowReceiverResources;
-  loop.shadowCasterGraphPasses = pendingShadowCasterGraphPasses;
   requestWorkerFrame(worker, loop);
 }
 
@@ -599,19 +590,12 @@ async function createCsmShadowFrame(input) {
       encoder: encoderResource.resource?.encoder,
       queue: app.initialization.device.queue,
       label: "shadow-pass:csm-directional",
-      submit: scene.shadowControls.casterEnabled && !useFrameGraph,
+      submit: scene.shadowControls.casterEnabled,
     });
   const commandBufferSubmission =
     aperture.shadowPassCommandBufferSubmissionReportToJsonValue(
       commandBufferSubmissionReport,
     );
-  pendingShadowCasterGraphPasses = useFrameGraph
-    ? aperture.createShadowCasterGraphPasses({
-        passAttachments: shadowPassAttachments,
-        depthTextureResources: shadowDepthTextureResourceReport,
-        commandRecords: commandRecordPlan.commandRecords,
-      })
-    : null;
   const route = findCascadedShadowRoute(reportJson);
   const receiverResources =
     matrixBufferResourceReport.resource !== null &&
