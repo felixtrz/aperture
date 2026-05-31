@@ -314,6 +314,40 @@ test("Playwright renders directional CSM shadows on near and far receivers", asy
   await page.goto("about:blank");
 });
 
+test("CSM shadow-receiver forward route renders through the single-encoder FrameGraph (M3-T4)", async ({
+  page,
+}) => {
+  // M3-T4 Done-when #4: with ?graph=1 the forward (shadow-receiver) frame is
+  // encoded into ONE command buffer; the receiver pass still samples the shadow
+  // maps written by the separate caster passes and renders with no validation
+  // warnings (shadows-as-receiver through the graph).
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/csm-directional-shadow.html?graph=1");
+
+  const initial = await waitForExampleStatus<CsmDirectionalShadowStatus>(page);
+  expect(initial, "csm graph status should publish").toBeDefined();
+  if (initial === undefined) {
+    return;
+  }
+  skipIfUnsupportedWebGpu(initial);
+
+  await page.waitForFunction(
+    () =>
+      ((
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: { readonly frame?: number };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.frame ?? 0) >= 3,
+  );
+
+  const rendered = await waitForExampleStatus<CsmDirectionalShadowStatus>(page);
+  expect(rendered?.ok).toBe(true);
+  expectStatusJsonSafeForGpu(rendered);
+  webGpuValidation.expectNoWarnings();
+  await page.goto("about:blank");
+});
+
 test("M4-T4: authored shadow strength reaches full darkness (strength=1) and disappears (strength=0)", async ({
   page,
 }) => {

@@ -43,6 +43,9 @@ try {
       canvas,
       simulationWorker: createNoopSimulationWorker(),
       sourceAssets,
+      // M3-T4: ?graph=1 routes the forward (shadow-receiver) frame through the
+      // single-encoder graph; shadow caster passes stay on their own path (T5).
+      ...(exampleParams.get("graph") === "1" ? { useFrameGraph: true } : {}),
     });
 
     if (!created.ok) {
