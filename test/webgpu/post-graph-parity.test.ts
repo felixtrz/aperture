@@ -75,7 +75,86 @@ function simpleEffect(id: string, renderId: number) {
   };
 }
 
-function postOptions(useFrameGraph: boolean, recorder: Recorder): PostOptions {
+function fakeTextureResource(label: string, width: number, height: number) {
+  return {
+    texture: fakeTexture(label),
+    width,
+    height,
+    format: "rgba8unorm",
+    label,
+  };
+}
+
+// A bloom-style effect: prepare() returns a multi-pass graph (down/up/composite),
+// the path the real post-effects example exercises through the graph branch.
+function bloomEffect(id: string) {
+  return {
+    id,
+    prepare: (input: { readonly isLast: boolean }) => ({
+      effectId: id,
+      label: id,
+      commands: [],
+      diagnostics: [],
+      graph: {
+        passes: [
+          {
+            label: `${id}:down`,
+            kind: "downsample",
+            output: "offscreen",
+            outputResource: fakeTextureResource(`${id}:half`, 2, 2),
+            width: 2,
+            height: 2,
+            commands: [drawCommand(20)],
+            diagnostics: [],
+          },
+          {
+            label: `${id}:up`,
+            kind: "upsample",
+            output: "offscreen",
+            outputResource: fakeTextureResource(`${id}:full`, 4, 4),
+            width: 4,
+            height: 4,
+            commands: [drawCommand(21)],
+            diagnostics: [],
+          },
+          {
+            label: `${id}:composite`,
+            kind: "composite",
+            output: input.isLast ? "swapchain" : "offscreen",
+            ...(input.isLast
+              ? {}
+              : { outputResource: fakeTextureResource(`${id}:out`, 4, 4) }),
+            width: 4,
+            height: 4,
+            commands: [drawCommand(22)],
+            diagnostics: [],
+          },
+        ],
+        report: {
+          topology: "downsample-upsample",
+          passCount: 3,
+          resourceCount: 2,
+          downsamplePasses: 1,
+          upsamplePasses: 1,
+          compositePasses: 1,
+          levels: [
+            { width: 2, height: 2 },
+            { width: 4, height: 4 },
+          ],
+        },
+      },
+    }),
+  };
+}
+
+function postOptions(
+  useFrameGraph: boolean,
+  recorder: Recorder,
+  effects: readonly unknown[] = [
+    simpleEffect("fxaa", 10),
+    simpleEffect("blur", 11),
+  ],
+): PostOptions {
   const device = fakeDevice(recorder);
   const app = {
     initialization: {
@@ -114,7 +193,7 @@ function postOptions(useFrameGraph: boolean, recorder: Recorder): PostOptions {
       sampleCount: 1,
       view: { label: "depth-view" },
     },
-    effects: [simpleEffect("fxaa", 10), simpleEffect("blur", 11)],
+    effects,
     label: "post",
     clearColor: [0, 0, 0, 1],
     useFrameGraph,
@@ -161,5 +240,42 @@ describe("post processing graph-vs-legacy parity (M3-T3)", () => {
     expect(graphRecorder.encoders).toBe(1);
     expect(legacyRecorder.submits).toBe(3);
     expect(legacyRecorder.encoders).toBe(3);
+  });
+
+  it("matches for a multi-pass bloom effect (graph-pass expansion) in one encoder", () => {
+    const effects = [simpleEffect("fxaa", 10), bloomEffect("bloom")];
+
+    const legacyRecorder: Recorder = { submits: 0, encoders: 0 };
+    const legacy = assembleWebGpuAppPostProcessedSwapchainTarget(
+      postOptions(false, legacyRecorder, effects),
+    );
+
+    const graphRecorder: Recorder = { submits: 0, encoders: 0 };
+    const graph = assembleWebGpuAppPostProcessedSwapchainTarget(
+      postOptions(true, graphRecorder, effects),
+    );
+
+    expect(legacy.valid).toBe(true);
+    expect(graph.valid).toBe(true);
+
+    // Done-when #3 across the graph-pass path: identical reports incl. the bloom
+    // effect's expanded draw count (down+up+composite = 3) + its graph sub-report.
+    expect(graph.postEffects).toEqual(legacy.postEffects);
+    expect(graph.postEffects[1]).toMatchObject({
+      effectId: "bloom",
+      output: "swapchain",
+      ok: true,
+      drawCalls: 3,
+    });
+    expect(graph.postEffects[1]?.graph).toMatchObject({
+      topology: "downsample-upsample",
+      passCount: 3,
+    });
+
+    // scene + fxaa + 3 bloom passes = 5 legacy submits, collapsed to ONE
+    expect(graphRecorder.submits).toBe(1);
+    expect(graphRecorder.encoders).toBe(1);
+    expect(legacyRecorder.submits).toBe(5);
+    expect(legacyRecorder.encoders).toBe(5);
   });
 });
