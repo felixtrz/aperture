@@ -9,9 +9,18 @@ import {
 } from "./frame-target.js";
 import {
   assembleFrameBoundary,
+  buildFrameBoundaryTargetPlan,
   type FrameBoundaryAssemblyReport,
+  type FrameBoundaryEncodeReport,
   type FrameBoundaryReadbackSampleRequest,
 } from "../render/frame/frame-boundary.js";
+import { createFrameGraph } from "../render/graph/frame-graph.js";
+import { compileFrameGraph } from "../render/graph/frame-graph-compile.js";
+import {
+  executeFrameGraph,
+  type FrameGraphRenderNodeBoundary,
+  type FrameGraphResources,
+} from "../render/graph/frame-graph-execute.js";
 import type { GpuTimestampQueryDiagnostic } from "../gpu/gpu-timing.js";
 import {
   planGpuOcclusionFeedbackCulling,
@@ -158,6 +167,18 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   const lastSwapchainTargetIndex = findLastSwapchainTargetIndex(
     targetPlan.targets,
   );
+
+  // M3-T4: route the whole multi-target forward frame through ONE FrameGraph
+  // (single command buffer) when useFrameGraph is on and there are no post
+  // effects or transmission-grab pass (those keep the legacy path for now).
+  const forwardGraphEligible =
+    options.app.useFrameGraph === true &&
+    activePostEffects.length === 0 &&
+    (options.transmissionSceneColorResources === undefined ||
+      options.transmissionSceneColorResources === null);
+  const forwardGraph = forwardGraphEligible ? createFrameGraph() : null;
+  const forwardGraphPayloads = new Map<string, FrameGraphRenderNodeBoundary>();
+  const forwardGraphEntries: ForwardGraphTargetEntry[] = [];
 
   for (
     let targetIndex = 0;
@@ -422,7 +443,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       commands: commandsForBoundary,
       cache: options.cache.renderBundles,
     });
-    const boundary = assembleFrameBoundary({
+    const boundaryOptions: Parameters<typeof assembleFrameBoundary>[0] = {
       context: options.app.initialization.context as Parameters<
         typeof assembleFrameBoundary
       >[0]["context"],
@@ -504,7 +525,40 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
             },
           }
         : {}),
-    });
+    };
+
+    // M3-T4: in FrameGraph mode, collect this target as a graph node + payload
+    // and defer its boundary-dependent reads; the whole frame is encoded into
+    // one command buffer after the loop. The boundary-independent bookkeeping
+    // (depth report, planned counts, submission count for the next target's
+    // load/clear) happens here so subsequent targets compute load/clear identically.
+    if (forwardGraph !== null) {
+      registerForwardGraphTarget({
+        graph: forwardGraph,
+        payloads: forwardGraphPayloads,
+        entries: forwardGraphEntries,
+        boundaryOptions,
+        target,
+        targetSubmissionKey,
+        msaaSampleCount: msaaColorTarget.resource?.sampleCount ?? null,
+        occlusionQueries,
+        occlusionRenderIds,
+        gpuTimingPassName: gpuTiming.passName,
+      });
+      firstDepthAttachment ??= createWebGpuAppDepthAttachmentReport(
+        options.snapshot,
+        depthAttachment,
+      );
+      plannedCommands += commandsForBoundary.length;
+      drawCalls += countDrawCommands(commandsForBoundary);
+      submittedTargetCounts.set(
+        targetSubmissionKey,
+        previousTargetSubmissions + 1,
+      );
+      continue;
+    }
+
+    const boundary = assembleFrameBoundary(boundaryOptions);
 
     firstBoundary ??= boundary;
     firstDepthAttachment ??= createWebGpuAppDepthAttachmentReport(
@@ -571,6 +625,103 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     );
   }
 
+  // M3-T4: execute the collected forward targets in ONE encoder, then rebuild
+  // the legacy-compatible per-target boundaries + reports from the node results.
+  if (forwardGraph !== null && forwardGraphEntries.length > 0) {
+    const device = options.app.initialization.device as Parameters<
+      typeof assembleFrameBoundary
+    >[0]["device"];
+    const queue = (
+      options.app.initialization.device as { readonly queue: unknown }
+    ).queue as Parameters<typeof assembleFrameBoundary>[0]["queue"];
+    const exec = executeFrameGraph({
+      device,
+      queue,
+      compiled: compileFrameGraph(forwardGraph),
+      resources: {
+        resolveAttachment: () => null,
+        resolveRenderBoundary: (node) =>
+          forwardGraphPayloads.get(node.name) ?? null,
+      } satisfies FrameGraphResources,
+      label: options.label,
+    });
+    const frameOk = exec.finish?.valid === true && exec.submit?.valid === true;
+    const encodeByName = new Map<string, FrameBoundaryEncodeReport>();
+    for (const node of exec.nodes) {
+      if (node.kind === "render") {
+        encodeByName.set(node.name, node.encode);
+      }
+    }
+
+    for (const entry of forwardGraphEntries) {
+      const encode = encodeByName.get(entry.nodeName);
+      const boundary: FrameBoundaryAssemblyReport = {
+        valid: (encode?.valid ?? false) && frameOk,
+        texture: entry.texture,
+        attachments: entry.attachments,
+        encoder: exec.encoder,
+        begin: encode?.begin ?? null,
+        rectangle: encode?.rectangle ?? null,
+        execution: encode?.execution ?? null,
+        renderBundle: encode?.renderBundle ?? null,
+        end: encode?.end ?? null,
+        finish: exec.finish,
+        submit: exec.submit,
+        readback: encode?.readback ?? null,
+        gpuTiming: encode?.gpuTiming ?? null,
+        occlusionQueries: encode?.occlusionQueries ?? null,
+      };
+
+      firstBoundary ??= boundary;
+      if (boundary.readback !== null && boundary.readback !== undefined) {
+        readbackBoundary = boundary;
+      }
+      boundaries.push(boundary);
+      allTargetsValid &&= boundary.valid;
+      occlusionQueryDiagnostics.push(
+        ...(boundary.occlusionQueries?.diagnostics ?? []),
+      );
+      if (
+        entry.occlusionQueries?.resources !== undefined &&
+        entry.occlusionQueries.resources !== null &&
+        boundary.occlusionQueries?.valid === true
+      ) {
+        occlusionQueryReadbacks.push({
+          passName: entry.gpuTimingPassName,
+          viewId: entry.target.view.viewId,
+          resources: entry.occlusionQueries.resources,
+          renderIds: [...entry.occlusionRenderIds],
+        });
+      }
+      renderTargets.push({
+        viewId: entry.target.view.viewId,
+        source: entry.target.source,
+        renderTargetKey: entry.target.renderTargetKey,
+        width: entry.target.width,
+        height: entry.target.height,
+        format: entry.target.format,
+        ok: boundary.valid,
+        drawCalls: boundary.execution?.drawCalls ?? 0,
+        ...(entry.msaaSampleCount === null
+          ? {}
+          : { msaaSampleCount: entry.msaaSampleCount }),
+      });
+      diagnostics.push(
+        ...boundary.texture.diagnostics,
+        ...(boundary.attachments?.diagnostics ?? []),
+        ...(boundary.encoder?.diagnostics ?? []),
+        ...(boundary.begin?.diagnostics ?? []),
+        ...(boundary.execution?.diagnostics ?? []),
+        ...(boundary.renderBundle?.diagnostics ?? []),
+        ...(boundary.end?.diagnostics ?? []),
+        ...(boundary.occlusionQueries?.diagnostics ?? []),
+        ...(boundary.rectangle?.diagnostics ?? []),
+        ...(boundary.finish?.diagnostics ?? []),
+        ...(boundary.submit?.diagnostics ?? []),
+      );
+    }
+  }
+
   const renderBundleReport = createWebGpuAppRenderBundleReport(boundaries);
 
   return {
@@ -613,4 +764,123 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     drawCalls,
     diagnostics,
   };
+}
+
+type ForwardGraphTarget = ReturnType<
+  typeof createWebGpuAppFrameBoundaryTargets
+>["targets"][number];
+
+interface ForwardGraphTargetEntry {
+  readonly nodeName: string;
+  readonly texture: ReturnType<typeof buildFrameBoundaryTargetPlan>["texture"];
+  readonly attachments: ReturnType<
+    typeof buildFrameBoundaryTargetPlan
+  >["attachments"];
+  readonly target: ForwardGraphTarget;
+  readonly msaaSampleCount: number | null;
+  readonly occlusionQueries: ReturnType<
+    typeof createWebGpuAppOcclusionQueryResources
+  > | null;
+  readonly occlusionRenderIds: readonly number[];
+  readonly gpuTimingPassName: string;
+}
+
+// M3-T4: convert one per-target assembleFrameBoundary options object into a
+// FrameGraph render node + a resolveRenderBoundary payload, built through the
+// EXACT same buildFrameBoundaryTargetPlan the legacy path uses so the encoded
+// attachments are byte-identical — the single shared encoder is the only change.
+function registerForwardGraphTarget(args: {
+  readonly graph: ReturnType<typeof createFrameGraph>;
+  readonly payloads: Map<string, FrameGraphRenderNodeBoundary>;
+  readonly entries: ForwardGraphTargetEntry[];
+  readonly boundaryOptions: Parameters<typeof assembleFrameBoundary>[0];
+  readonly target: ForwardGraphTarget;
+  readonly targetSubmissionKey: string;
+  readonly msaaSampleCount: number | null;
+  readonly occlusionQueries: ReturnType<
+    typeof createWebGpuAppOcclusionQueryResources
+  > | null;
+  readonly occlusionRenderIds: readonly number[];
+  readonly gpuTimingPassName: string;
+}): void {
+  const opts = args.boundaryOptions;
+  const plan = buildFrameBoundaryTargetPlan({
+    context: opts.context,
+    ...(opts.colorTarget === undefined
+      ? {}
+      : { colorTarget: opts.colorTarget }),
+    ...(opts.colorLoadOp === undefined
+      ? {}
+      : { colorLoadOp: opts.colorLoadOp }),
+    ...(opts.clearColor === undefined ? {} : { clearColor: opts.clearColor }),
+    ...(opts.msaaColorTarget === undefined
+      ? {}
+      : { msaaColorTarget: opts.msaaColorTarget }),
+    ...(opts.msaaColorStoreOp === undefined
+      ? {}
+      : { msaaColorStoreOp: opts.msaaColorStoreOp }),
+    ...(opts.depthTarget === undefined
+      ? {}
+      : { depthTarget: opts.depthTarget }),
+    ...(args.occlusionQueries?.resources === undefined ||
+    args.occlusionQueries.resources === null
+      ? {}
+      : { occlusionQuerySet: args.occlusionQueries.resources.querySet }),
+  });
+
+  const handle = `forward:${args.targetSubmissionKey}`;
+  if (args.graph.handle(handle) === undefined) {
+    if (args.target.source === "swapchain") {
+      args.graph.importSwapchain(handle);
+    } else {
+      args.graph.declareTransient(handle, {
+        kind: "color-texture",
+        width: args.target.width,
+        height: args.target.height,
+        format: args.target.format,
+        sampleCount: 1,
+      });
+    }
+  }
+
+  const nodeName = `${opts.label}:fg:${args.entries.length}`;
+  args.graph.addRenderPass({
+    name: nodeName,
+    reads: [],
+    writes: [
+      { handle, attachment: opts.colorLoadOp === "load" ? "load" : "clear" },
+    ],
+    commands: opts.commands,
+  });
+  args.payloads.set(nodeName, {
+    device: opts.device,
+    attachments: plan.attachments,
+    commands: opts.commands,
+    label: opts.label,
+    colorTargetSource:
+      opts.colorTarget?.source === "offscreen-target"
+        ? "offscreen-target"
+        : "current-texture",
+    readbackTexture: plan.texture.texture,
+    ...(opts.viewport === undefined ? {} : { viewport: opts.viewport }),
+    ...(opts.scissor === undefined ? {} : { scissor: opts.scissor }),
+    ...(opts.readback === undefined ? {} : { readback: opts.readback }),
+    ...(opts.gpuTiming === undefined ? {} : { gpuTiming: opts.gpuTiming }),
+    ...(opts.occlusionQueries === undefined
+      ? {}
+      : { occlusionQueries: opts.occlusionQueries }),
+    ...(opts.renderBundle === undefined
+      ? {}
+      : { renderBundle: opts.renderBundle }),
+  });
+  args.entries.push({
+    nodeName,
+    texture: plan.texture,
+    attachments: plan.attachments,
+    target: args.target,
+    msaaSampleCount: args.msaaSampleCount,
+    occlusionQueries: args.occlusionQueries,
+    occlusionRenderIds: args.occlusionRenderIds,
+    gpuTimingPassName: args.gpuTimingPassName,
+  });
 }

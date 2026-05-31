@@ -265,6 +265,38 @@ interface ClusteredLightsStatus extends ExampleStatusBase {
   };
 }
 
+test("renders the forward route through the single-encoder FrameGraph (M3-T4)", async ({
+  page,
+}) => {
+  // M3-T4: with ?graph=1 the whole forward frame is encoded into ONE command
+  // buffer via the FrameGraph path. The lit clustered-lights scene must render
+  // byte-correctly (same luminance variation as the legacy path) with no WebGPU
+  // validation warnings.
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/clustered-lights.html?disable-cluster-point-shadow=1&disable-cluster-spot-shadow=1&graph=1",
+  );
+  await page.bringToFront();
+
+  const status = await waitForExampleStatus<ClusteredLightsStatus>(page);
+  await attachExampleStatus("clustered-lights-frame-graph-status", status);
+  expect(status, "clustered lights graph status should publish").toBeDefined();
+  if (status === undefined) {
+    return;
+  }
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+
+  expect(status.ok).toBe(true);
+  // the forward route rendered the lit scene (readback ok + real luminance)
+  expect(status.readbackStatus?.ok).toBe(true);
+  expect(status.readbackStatus?.luminanceRange ?? 0).toBeGreaterThan(12);
+  expect(status.counts?.meshDraws ?? 0).toBeGreaterThan(0);
+
+  webGpuValidation.expectNoWarnings();
+});
+
 test("browser renders StandardMaterial through clustered local lights", async ({
   page,
 }) => {
