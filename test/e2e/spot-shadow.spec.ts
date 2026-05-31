@@ -270,6 +270,45 @@ test("Playwright renders a spot light shadow on the receiver wall", async ({
   webGpuValidation.expectNoWarnings();
 });
 
+test("Spot shadows render visibly when casters are FOLDED into the single encoder (M3-T5)", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/spot-shadow.html?graph=1&disable-shadow-receiver=1",
+  );
+  let status = await waitForExampleStatus<SpotShadowStatus>(page);
+  expect(status, "spot folded baseline should publish").toBeDefined();
+  if (status === undefined) {
+    return;
+  }
+  skipIfUnsupportedWebGpu(status);
+  await waitForSpotShadowFrame(page, 10);
+  const noShadowScreenshot = await page
+    .locator("#aperture-canvas")
+    .screenshot();
+
+  await page.goto("/examples/spot-shadow.html?graph=1");
+  status = await waitForExampleStatus<SpotShadowStatus>(page);
+  expect(status, "spot folded shadow should publish").toBeDefined();
+  if (status === undefined) {
+    return;
+  }
+  skipIfUnsupportedWebGpu(status);
+  status = await waitForSpotShadowFrame(page, 10);
+  expect(status.ok, "spot folded-caster graph frame ok").toBe(true);
+  expectStatusJsonSafeForGpu(status);
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+
+  expectVisibleSpotShadowScene(screenshot, status);
+  expectSpotShadowActivation(noShadowScreenshot, screenshot, status);
+  expectSpotShadowNamedReceiverSamples(noShadowScreenshot, screenshot, status);
+  webGpuValidation.expectNoWarnings();
+  await page.goto("about:blank");
+});
+
 async function waitForSpotShadowFrame(
   page: Parameters<typeof waitForExampleStatus>[0],
   minimumFrame: number,
