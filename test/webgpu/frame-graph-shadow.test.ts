@@ -12,6 +12,9 @@ import {
   type FrameGraphResources,
 } from "../../packages/webgpu/src/render/graph/frame-graph-execute.js";
 import { createRenderPassAttachmentPlan } from "../../packages/webgpu/src/render/passes/render-pass-attachments.js";
+import { createShadowMapDescriptorReport } from "../../packages/webgpu/src/shadows/shadow-map-descriptor.js";
+import { createShadowTextureResourceReport } from "../../packages/webgpu/src/shadows/shadow-texture-resource.js";
+import { createShadowPassPlanReport } from "../../packages/webgpu/src/shadows/shadow-pass-plan.js";
 
 // M3-T5: the shadow caster passes fold into the single frame encoder as DEPTH-ONLY
 // graph nodes the forward (opaque) node READS. These pure-compile tests prove the
@@ -409,5 +412,54 @@ describe("M3-T5 shadow caster fold executes in ONE encoder / submit", () => {
     const lastDepth = events.lastIndexOf("beginDepthPass");
     const forwardColor = events.indexOf("beginColorPass");
     expect(forwardColor).toBeGreaterThan(lastDepth);
+  });
+});
+
+describe("M3-T5 shadow pass plan is 'ready' under the graph path (Done-when #4)", () => {
+  // The folded graph path drives shadow casters with submission:"ready" — the engine
+  // renders them as in-encoder nodes, NOT the legacy deferred separate submit. Prove
+  // the ShadowPassPlanReport then reports status:"ready" + sections.passSubmission:true
+  // (was "deferred"/false on the legacy unimplemented path). Inputs are built through
+  // the SAME chain shadow-pass-plan.test.ts uses (descriptor -> textures -> plan).
+  function shadowRequest(shadowId: number, lightId: number) {
+    return {
+      shadowId,
+      lightId,
+      lightKind: "directional" as const,
+      casterLayerMask: 0xffffffff,
+      receiverLayerMask: 0xffffffff,
+      castsShadow: true,
+      receivesShadow: true,
+    };
+  }
+  function shadowTextures() {
+    return createShadowTextureResourceReport({
+      descriptors: createShadowMapDescriptorReport({
+        shadowRequests: [shadowRequest(7, 11)],
+        descriptors: [
+          { shadowId: 7, lightId: 11, mapSize: 1024, depthBias: 0.001 },
+        ],
+      }),
+    });
+  }
+
+  it("reports status:'ready' + sections.passSubmission:true for the graph path", () => {
+    const report = createShadowPassPlanReport({
+      shadowRequests: [shadowRequest(7, 11)],
+      textures: shadowTextures(),
+      submission: "ready",
+    });
+    expect(report.status).toBe("ready");
+    expect(report.sections.passSubmission).toBe(true);
+    expect(report.ready).toBe(true);
+  });
+
+  it("stays 'deferred' (passSubmission:false) on the legacy unimplemented path", () => {
+    const report = createShadowPassPlanReport({
+      shadowRequests: [shadowRequest(7, 11)],
+      textures: shadowTextures(),
+    });
+    expect(report.status).toBe("deferred");
+    expect(report.sections.passSubmission).toBe(false);
   });
 });
