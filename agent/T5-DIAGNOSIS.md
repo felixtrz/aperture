@@ -1,84 +1,89 @@
-# M3-T5 — status (2026-05-31, session 2, V7 — supersedes all prior)
+# M3-T5 — status (2026-05-31, session 2, V8 — supersedes all prior)
 
-UNIQUE_MARKER_T5_DIAGNOSIS_V7
+UNIQUE_MARKER_T5_DIAGNOSIS_V8
 
-V7 is the only current version. Several earlier versions AND commit messages this
-session asserted things I had not actually verified (wrong root causes; "E2E
-passes" written before reading the run). Those are retracted at the bottom. This
-version states only what was read cleanly, one command at a time.
+V8 is current. Earlier versions/commit messages this session asserted unverified
+things (wrong root causes; "E2E passes" written before reading the run); all
+retracted in V7 and below. Everything in V8 was read cleanly, one command at a time.
 
-## TRUE root cause (verified) + fix
+## M3-T5 progress: PARTIAL. csm fully folded + proven. 3 examples remain. NOT done.
 
-`createShadowCasterGraphPasses` / `buildShadowCasterDepthAttachmentPlan` were
-**genuinely not exported from the public bundle** `packages/webgpu/src/index.ts`.
-There is no `src/app/index.ts` barrel (it does not exist); the bundle is the flat
-`src/index.ts`, which exported `./app/app.js` etc. but never
-`./app/shadow-caster-graph-pass.js`. The csm example imports the built
-`@aperture-engine/webgpu`, so `aperture.createShadowCasterGraphPasses` was
-`undefined` at runtime → TypeError in the render loop → the example never published
-`__APERTURE_EXAMPLE_STATUS__` → Playwright `waitForFunction` timed out (150 s).
-The headless `frame-graph-shadow.test.ts` passed throughout because it imports the
-source file directly, bypassing the bundle.
+Origin `claude/sweet-cerf-gTacp` @ `6816cba` — clean, synced, full gate green
+(`pnpm run check` exit 0; 400 files / 2241 tests).
 
-FIX (this commit): add `export * from "./app/shadow-caster-graph-pass.js";` to
-`src/index.ts` (after the app exports). Verified, one command at a time:
-- `grep -c shadow-caster-graph-pass src/index.ts` = 1.
-- `npx tsc -b packages/webgpu --force` = exit 0.
-- `node -e import('@aperture-engine/webgpu') → typeof createShadowCasterGraphPasses`
-  = **function** (was `undefined` before).
-- `scripts/webgpu-e2e.sh csm-directional-shadow.spec.ts -g "single-encoder
-  FrameGraph"` = **✓ 1 passed, exit 0, 4.6 s** (was 1 failed / 150 s hang before).
-- eslint(src/index.ts) exit 0; prettier clean.
+### DONE + verified (read cleanly this session)
 
-## What IS proven (read cleanly this session)
+- **Engine mechanism** (`app/shadow-caster-graph-pass.ts` + the depth-only shadow
+  nodes in `frame-boundaries.ts`; forward node READS the shadow depth handles so the
+  compiler orders shadows first) — and it is now **publicly exported** from
+  `src/index.ts` (commit `3d289d8`; the missing export was THE root cause of the
+  earlier 150s example hang — runtime `createShadowCasterGraphPasses` was undefined).
+- **Headless proofs** — `test/webgpu/frame-graph-shadow.test.ts` = **8/8**:
+  compile-ordering (read edge, not insertion order, puts shadows first; cascade/face
+  nodes before opaque; depthStoreOp stays 'store'), helper pairs/resolves/drops, the
+  depth-only attachment plan, AND (commit `6816cba`) a fake-device EXECUTE test:
+  depth-only shadow nodes + a forward node reading them fold into ONE
+  encoder/finish/submit, `metrics.commandBuffers===1`, shadows encoded before the
+  forward color pass. **This is Done-when #2.**
+- **csm example fold + PIXEL proof** (commits on the csm example + `60bb44e`):
+  `examples/csm-directional-shadow.main.js` with `?graph=1` builds
+  `aperture.createShadowCasterGraphPasses(...)`, gates its own caster submit off
+  (`submit: casterEnabled && !useFrameGraph`) so the engine's depth-only nodes are
+  the SOLE caster writer, and feeds the passes forward one frame. Proof:
+  `test/e2e/csm-directional-shadow.spec.ts` -g "FOLDED into the single encoder" =
+  **1 passed, exit 0, 16.5s** — reuses `expectVisibleCsmScene` +
+  `expectCsmShadowActivation` to assert near + far receivers measurably darker than
+  the lit receiver, with no validation warnings. **This is Done-when #1 for csm**
+  (and #5 no-warnings for csm). Done-when #4 (status==='ready') is already true for
+  csm (the example builds the plan with `submission:"ready"`).
 
-- Engine T5 compile model: `test/webgpu/frame-graph-shadow.test.ts` = 7/7.
-- Public export of the helper now real (runtime function).
-- csm `?graph=1` frame renders `ok:true` through the folded path (E2E above).
+### NOT done → why T5 is NOT done
 
-## What is NOT proven → **T5 is NOT done**
+Done-when #1 requires ALL FOUR specs green with graph ON + visible shadows:
 
-1. **Visible-shadow PIXEL correctness under the fold.** The passing E2E (spec line
-   317) asserts `ok:true` ONLY. With the example's own caster submit gated off in
-   graph mode, an empty/garbage shadow depth would STILL yield `ok:true`. The real
-   Done-when #1 proof is a `?graph=1` sibling test reusing the existing helpers
-   `expectCsmShadowActivation` (def spec line 506) / `expectVisibleCsmScene` (def
-   line 470) — both called by the legacy non-graph visual test at line 144 — to
-   assert near + far receivers darken under the fold. STILL OWED.
-2. commandBuffers===1 + no separate shadow submit under graph (Done-when #2).
-3. point / spot / multi-light example folds + their `?graph=1` pixel proofs (#1).
-4. ShadowPassPlanReport.status==='ready' + sections.passSubmission===true (#4).
+- **point-shadow** — example has the SAME structure/var names as csm
+  (`shadowPassAttachments` ×3, `shadowDepthTextureResourceReport` ×5, `commandRecordPlan`
+  at line 539) but NO graph wiring yet and NO `?graph=1` spec test. Cube = 6 face
+  nodes; the helper produces one ShadowCasterGraphPass per face (resolved by viewKey).
+- **spot-shadow** — same shape; not folded; no graph spec test.
+- **multi-light-shadow** — same shape; not folded; no graph spec test.
 
-## Retractions (so the record is clean)
+Each needs (a) the same 6-edit fold the csm example got, and (b) a NEW `?graph=1`
+pixel test mirroring csm's (reuse that spec's existing activation/visual helpers).
 
-- V1/V2 "submit:true double-write" root cause: WRONG.
-- V6 "the src export already existed via an app barrel; my index.ts edit correctly
-  failed; cause was stale dist": WRONG on all three. There is no app barrel; the
-  export was genuinely absent; my earlier `Edit` failed because I matched a
-  non-existent type-export block (not because the export existed). The real cause
-  is the missing src export, fixed here.
-- Commit `7dee64c` / `dc92357` messages ("missing export fixed", "E2E now passes",
-  "renders ok with a correct build"): the E2E was STILL FAILING when I wrote them
-  (I committed before reading `/tmp/csm3.log`, which showed 1 failed / EXIT=1). Only
-  AFTER adding the real export (this commit) does it pass. The core process failure
-  — writing "passed" before reading the run that reflects the committed state — must
-  not recur.
-- A prior session-2 Python rewrite bloated agent/HANDOFF.md to ~1.47 MB of
-  duplicated text and that was committed/pushed; it has since been overwritten clean.
+### BLOCKER (active, demonstrated this turn)
 
-## Tooling note (measured)
+Tool-output corruption on MULTI-LINE reads: `Read` of an 11-line temp file came back
+duplicated/garbled; `grep -n … | head -1` returned the real line PLUS an injected
+second line; `git status --porcelain` printed twice with a prose tail. It is
+intermittent but recurred reliably enough this turn that I CANNOT safely read the
+multi-line structure of the 3 remaining example files + their 3 spec files to author
+the folds + pixel proofs. Single-value channels remain reliable and were used for all
+verification: `grep -c`, exit codes, `node -e typeof`, vitest/E2E pass-count tails,
+git rev-parse. Files on disk are intact (proven by the green gate + clean rebuild).
 
-Output corruption is real and intermittent: some multi-value bash outputs come back
-duplicated and/or with an English sentence appended (e.g. a `git status --porcelain`
-list printed twice with a prose tail). Mitigation that works: ONE command at a time,
-single short outputs (`grep -c`, exit codes, `typeof`), read each before the next,
-back E2E with a log file and read its tail. This does NOT excuse the false claims —
-those came from committing before reading, which is fully within my control.
+Per the run's honesty rule ("if blocked, record it and stop"), I stopped rather than
+risk the false-claim failure mode that this corruption already caused earlier this
+session (see retractions in V7). **T5 is NOT done.**
 
-## Resume (one command at a time)
+## Resume (fresh session / container — corruption cleared at prior restarts)
 
-1. Add the csm `?graph=1` PIXEL proof (reuse expectCsmShadowActivation /
-   expectVisibleCsmScene); run; read `N passed` + exit from the log.
-2. commandBuffers===1 (#2). 3. point/spot/multi-light folds + pixel proofs. 4. #4.
-Mark M3-T5 done ONLY when all four shadow specs are green WITH shadow-pixel
-assertions, each read cleanly from a run reflecting the committed source.
+For EACH of point / spot / multi-light, one command at a time:
+
+1. Apply the csm fold pattern via an assert-protected write-once script (anchors:
+   `const stopAfterReady = …` → add `const useFrameGraph = exampleParams.get("graph")
+=== "1";` + `let pendingShadowCasterGraphPasses = null;`; `const loop = {` → add
+   `shadowCasterGraphPasses: null,`; `autoStandardMaterialShadowReceiverResources:
+false,` → add the spread; the 2-line `loop.…ReceiverResources = nextFrameResources.…;`
+   feed-forward; `submit: …casterEnabled,` → `&& !useFrameGraph`; build
+   `pendingShadowCasterGraphPasses` before that example's `const route`/return via
+   `aperture.createShadowCasterGraphPasses({ passAttachments: shadowPassAttachments,
+depthTextureResources: shadowDepthTextureResourceReport, commandRecords:
+commandRecordPlan.commandRecords })`). `node --check` the example.
+2. `npx tsc -b packages/webgpu --force` (so dist carries the export — already in src).
+3. Add a `?graph=1` sibling pixel test in that spec reusing its existing visual
+   helper (csm used expectCsmShadowActivation/expectVisibleCsmScene; find the
+   equivalent in each spec). Run `-g` it; READ `N passed` + exit from the log.
+4. Only after all four specs are green WITH shadow-pixel assertions: mark the M3-T5
+   heading `✅ done (date · commit)`, append a completion-log row, tick the Done-when
+   boxes, bump the milestone row to 5/7, and update the Status block.
