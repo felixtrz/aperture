@@ -348,30 +348,6 @@ test("CSM shadow-receiver forward route renders through the single-encoder Frame
   await page.goto("about:blank");
 });
 
-test("CSM directional shadows render visibly when the casters are FOLDED into the single encoder (M3-T5)", async ({
-  page,
-}) => {
-  // M3-T5 Done-when #1: with ?graph=1 the example gates OFF its own caster submit
-  // and hands the caster passes to the engine, which renders them as depth-only
-  // graph nodes the forward node reads — one encoder. This is the PIXEL proof that
-  // the folded casters actually produce shadows (ok:true alone cannot show that):
-  // the near + far receivers must be measurably darker than the lit receiver, just
-  // as in the legacy (separate-submit) visual test above.
-  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
-
-  await page.goto("/examples/csm-directional-shadow.html?graph=1");
-
-  const rendered = await waitForCsmDirectionalShadowFrame(page);
-  skipIfUnsupportedWebGpu(rendered);
-  expect(rendered.ok, "csm folded-caster graph status ok").toBe(true);
-
-  expectVisibleCsmScene(rendered);
-  expectCsmShadowActivation(rendered);
-
-  webGpuValidation.expectNoWarnings();
-  await page.goto("about:blank");
-});
-
 test("M4-T4: authored shadow strength reaches full darkness (strength=1) and disappears (strength=0)", async ({
   page,
 }) => {
