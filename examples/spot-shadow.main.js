@@ -8,9 +8,6 @@ const jsonElement = document.querySelector("#example-json");
 const shadowReceiverToggle = document.querySelector("#shadow-receiver-toggle");
 const shadowCasterToggle = document.querySelector("#shadow-caster-toggle");
 const exampleParams = new URLSearchParams(globalThis.location.search);
-// M3-T5: ?graph=1 folds the shadow caster passes into the forward encoder.
-const useFrameGraph = exampleParams.get("graph") === "1";
-let pendingShadowCasterGraphPasses = null;
 const shadowControls = {
   receiverEnabled: !exampleParams.has("disable-shadow-receiver"),
   casterEnabled: !exampleParams.has("disable-shadow-caster"),
@@ -48,7 +45,6 @@ try {
       canvas,
       simulationWorker: createNoopSimulationWorker(),
       sourceAssets,
-      ...(useFrameGraph ? { useFrameGraph: true } : {}),
     });
 
     if (!created.ok) {
@@ -97,7 +93,6 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     type: "module",
   });
   const loop = {
-    shadowCasterGraphPasses: null,
     frame: 0,
     receivedSnapshots: 0,
     workerReady: false,
@@ -163,9 +158,6 @@ async function handleWorkerMessage(
     clearColor,
     label: "spot-shadow-app",
     autoStandardMaterialShadowReceiverResources: false,
-    ...(useFrameGraph && loop.shadowCasterGraphPasses
-      ? { shadowCasterGraphPasses: loop.shadowCasterGraphPasses }
-      : {}),
     ...(!scene.shadowControls.receiverEnabled ||
     loop.standardMaterialShadowReceiverResources === null
       ? {}
@@ -186,7 +178,6 @@ async function handleWorkerMessage(
 
   loop.standardMaterialShadowReceiverResources =
     nextFrameResources.standardMaterialShadowReceiverResources;
-  loop.shadowCasterGraphPasses = pendingShadowCasterGraphPasses;
   requestWorkerFrame(worker, loop);
 }
 
@@ -443,7 +434,7 @@ async function publishFrameStatus(
       encoder: shadowPassCommandEncoderResource.resource?.encoder,
       queue: app.initialization.device.queue,
       label: "shadow-pass:spot",
-      submit: scene.shadowControls.casterEnabled && !useFrameGraph,
+      submit: scene.shadowControls.casterEnabled,
     });
   const shadowPassCommandBufferSubmission =
     aperture.shadowPassCommandBufferSubmissionReportToJsonValue(
@@ -556,13 +547,6 @@ async function publishFrameStatus(
     report: reportJson,
   });
 
-  pendingShadowCasterGraphPasses = useFrameGraph
-    ? aperture.createShadowCasterGraphPasses({
-        passAttachments: shadowPassAttachments,
-        depthTextureResources: shadowDepthTextureResourceReport,
-        commandRecords: shadowCasterCommandRecordPlan.commandRecords,
-      })
-    : null;
   return {
     standardMaterialShadowReceiverResources: {
       shadowKind: "spot",
