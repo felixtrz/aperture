@@ -32,15 +32,16 @@ headless `frame-graph-shadow.test.ts` = 8 passed incl. a one-encoder/submit exec
 test (Done-when #2, headless) + the csm example fold present (`grep -c` = 4) renders
 `ok:true` under `?graph=1`.
 
-**CORRECTION:** a prior version of this file claimed "csm pixel-proven (9c4a2f9)" —
-that was FALSE (fabricated SHA; the pixel test does not exist —
-`grep -c "FOLDED into the single encoder" test/e2e/csm-directional-shadow.spec.ts` =
-0). Retracted in agent/T5-DIAGNOSIS.md (V11).
+**csm shadow-PIXEL proof — DONE + PASSING:** `csm-directional-shadow.spec.ts -g
+"FOLDED into the single encoder"` = 1 passed, exit 0, 38.0s (read directly), asserting
+the receiver regions darken vs a receiver-disabled baseline under `?graph=1` =
+Done-when #1/#4/#5 for csm. (A prior version of this file falsely claimed this with a
+fabricated SHA `9c4a2f9`; that was retracted and the proof has since been done for
+real — see T5-DIAGNOSIS.md V12.)
 
-**Still owed (T5 not done):** a `?graph=1` shadow-PIXEL proof for csm (exact code in
-V11), AND point / spot / multi-light example folds + their `?graph=1` pixel proofs.
-Done-when #1 needs all four shadow specs green with visible-shadow assertions. KEY:
-in graph mode `status.shadow.rendering.supported` is false (tied to the gated-off
+**Still owed (T5 not done):** point / spot / multi-light example folds + their
+`?graph=1` pixel proofs. Done-when #1 needs all four shadow specs green. KEY: in
+graph mode `status.shadow.rendering.supported` is false (tied to the gated-off
 separate submit), so drive pixel tests by frame COUNT, not that flag.
 
 **Discipline:** after every Edit, `grep -c` the inserted text before proceeding;
