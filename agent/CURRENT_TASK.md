@@ -26,23 +26,24 @@ Do not start any other milestone.
   #1/#5 (dof.spec.ts) = documented SwiftShader timeout; covered by the
   post-effects graph E2E. Gate green (396 files / 2225 tests).
 
-## Next — M3-T4 (forward + multi-target route → graph)
+## In progress — M3-T4 (forward + multi-target route → graph)
 
-Make `assembleWebGpuAppFrameBoundaries` (`app/frame-boundaries.ts`) build ONE
-FrameGraph spanning all render targets, replace the local
-submittedTargetCounts/loadExistingTarget logic with the compiler's
-renderTargetMap inference (verify SAME load/store via a vitest golden), make
-transmission-grab + MSAA resolve declared graph writes, and flip `useFrameGraph`
-default ON for the queued-built-in route once camera-clear-load-matrix +
-multi-camera specs are green. Reuse the T3 primitives (buildFrameBoundaryTargetPlan
+**Integration LANDED (`5ad6d3f`):** `assembleWebGpuAppFrameBoundaries`
+(`app/frame-boundaries.ts`) now builds ONE FrameGraph spanning all render targets
+behind `useFrameGraph` (default OFF; legacy untouched). Proven on real GPU
+(clustered-lights graph E2E) + headless #3 (load/store == legacy
+submittedTargetCounts) + #5 (multi-target ⇒ one command buffer). REMAINING: #1/#2
+camera multi-target E2E (thread `useFrameGraph` through `createApertureApp` — those
+examples use the generated harness), #4 csm/glb `?graph=1` runs, #5 fold
+transmission-grab into the same encoder. Also: T6 history model (`11b9518`, #1/#4)
 
-- resolveRenderBoundary + the report-synthesis-from-encode pattern).
+- its TAA route wiring.
 
-Then T5 (shadows into the encoder); T6 (TAA history) after T3; T7 (public
-addRenderPass/addComputePass + custom-pass example) last (depends T4, T2).
+Then T5 (shadows into the encoder, deps T4); T7 (public
+addRenderPass/addComputePass + custom-pass example) last (deps T4, T2).
 
-See the Resume notes in docs/SOTA_ROADMAP.md for the full T4 step list +
-watch-outs.
+See the Resume notes in docs/SOTA_ROADMAP.md for the precise T4-remaining steps +
+the T6 history work + watch-outs.
 
 ## Invariants (every M3 task)
 

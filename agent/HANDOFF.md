@@ -1,6 +1,33 @@
 # Agent Handoff
 
-Updated: 2026-05-31T08:20:00Z
+Updated: 2026-05-31T09:18:00Z
+
+## Current Run Update — 2026-05-31 — SOTA M3: 3/7 done + T4 forward-route integration + T6 history
+
+**M3-T4 forward-route integration LANDED (5ad6d3f), gate-green, pushed.** The
+single-encoder FrameGraph path is implemented in
+`packages/webgpu/src/app/frame-boundaries.ts` behind `useFrameGraph` (default
+OFF — legacy path provably untouched): each render target is collected as a graph
+node + a `resolveRenderBoundary` payload built via the EXACT
+`buildFrameBoundaryTargetPlan` the legacy path uses, the whole frame is encoded
+into ONE command buffer via `executeFrameGraph`, and the legacy-compatible
+`boundaries[]`/`renderTargets[]`/readback/occlusion reports are rebuilt after the
+single submit from the per-node encode reports (`registerForwardGraphTarget` +
+the post-loop synthesis — the mirror of T3's `synthesizePostGraphBoundary`).
+Proven on real SwiftShader GPU: clustered-lights renders the lit forward scene
+byte-correctly through the graph (`luminanceRange > 12`, zero WebGPU validation
+warnings) — test/e2e/clustered-lights.spec.ts "forward route through the
+single-encoder FrameGraph". Plus headless #3 (compiler load/store == legacy
+`submittedTargetCounts`, test/webgpu/frame-graph-multi-target.test.ts) and #5
+(multi-target frame ⇒ one command buffer).
+
+**T4 REMAINING** (precise steps in the SOTA_ROADMAP Resume notes): #1/#2 (camera
+multi-target E2E — thread `useFrameGraph` through `createApertureApp` since those
+examples use the generated harness), #4 (csm-directional-shadow + glb-viewer with
+`?graph=1`), #5 second half (fold transmission-grab into the same encoder — the
+graph branch currently bails when `transmissionSceneColorResources` is set). T6
+(history model 11b9518) + its TAA route wiring also remain; then T5 (deps T4),
+T7 (capstone, deps T4 + T2).
 
 ## Current Run Update — 2026-05-31 — SOTA M3 (Real render graph): 3/7 done (T1+T2+T3)
 
