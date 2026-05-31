@@ -22,18 +22,29 @@ Do not start any other milestone.
   `test/webgpu/frame-graph-execute.test.ts` (4 pass). Gate green (394 files /
   2221 tests).
 
-## Next
+## In progress — M3-T3 (post-stack graph port)
 
-- **M3-T3** (depends T2, done) — port the post stack (`app/post-processing.ts`)
-  to build a FrameGraph + run via `executeFrameGraph`, behind a `useFrameGraph`
-  flag (default OFF). Must reproduce `WebGpuAppPostEffectSubmissionReport[]`
-  byte-identically and prove scene+bloom submits ONE command buffer vs legacy
-  ≥4. Then T4 (forward/multi-target) → T5 (shadows); T6 (TAA history) after T3;
-  T7 (public addRenderPass/addComputePass + custom-pass example) last (depends
-  T4, T2).
+Two proven groundwork commits landed; the orchestrator port itself remains:
 
-See the Resume notes in docs/SOTA_ROADMAP.md for the concrete T3 step list +
-watch-outs.
+- **`bd383f3`** — executor `FrameGraphResources.resolveRenderBoundary(node)`
+  hook: a route hands the single-encoder executor a fully-resolved boundary
+  payload; it threads it into the one shared encoder verbatim. Tested.
+- **`16eec77`** — extracted `buildFrameBoundaryTargetPlan` from
+  `assembleFrameBoundary` (behavior-preserving) so the post-graph builder builds
+  byte-identical attachments per node.
+
+Remaining: the `useFrameGraph` branch in `app/post-processing.ts` (build nodes +
+payloads + `executeFrameGraph` once + synthesize the post reports), thread the
+flag through `CreateWebGpuAppOptions`→`create-webgpu-app`→`frame-boundaries`
+(default OFF), and prove via the post-effects E2E (commandBuffers===1 +
+postEffects parity + pixels). `dof.spec.ts` is the documented SwiftShader
+timeout — use post-effects as the alternative + record it honestly.
+
+Then T4 (forward/multi-target) → T5 (shadows); T6 (TAA history) after T3; T7
+(public addRenderPass/addComputePass + custom-pass example) last (depends T4, T2).
+
+See the Resume notes in docs/SOTA_ROADMAP.md for the full T3 step list +
+watch-outs + the lowest-risk implementation shape.
 
 ## Invariants (every M3 task)
 

@@ -1,6 +1,36 @@
 # Agent Handoff
 
-Updated: 2026-05-30T20:13:00Z
+Updated: 2026-05-31T07:25:00Z
+
+## Current Run Update — 2026-05-31 — SOTA M3 (Real render graph): 2/7 done + T3 groundwork
+
+**M3-T3 (post-stack port) is IN PROGRESS.** Two proven, gate-green groundwork
+commits landed this run; the orchestrator port itself remains:
+
+- `bd383f3` — the single-encoder executor's `FrameGraphResources` gained an
+  optional `resolveRenderBoundary(node)` hook: a route hands the executor a
+  fully-resolved `Omit<EncodeFrameBoundaryIntoOptions,"encoder">` payload
+  (attachments + commands + readback/timing/occlusion) and the executor threads
+  it into the ONE shared encoder verbatim (precedence over `resolveAttachment`).
+  The pure T1 graph model stays untouched — the GPU payload lives in the
+  resolution layer. Proven by a new `frame-graph-execute.test.ts` case (a
+  two-node payload graph ⇒ one encoder/finish/submit, commandBuffers===1).
+- `16eec77` — extracted `buildFrameBoundaryTargetPlan(options)→{texture,
+attachments}` from `assembleFrameBoundary` (behavior-preserving;
+  `frame-boundary.test.ts` unchanged-green). The T3 post-graph builder will call
+  this per node so each pass's attachments are byte-identical to the legacy path.
+
+**Remaining T3** (full step list + lowest-risk shape in the SOTA_ROADMAP Resume
+notes): add the `useFrameGraph` branch to `app/post-processing.ts`
+(build nodes + payloads via the two primitives above, ping/pong→declareTransient,
+`executeFrameGraph` once, synthesize the boundaries/postEffects/renderTarget
+reports from `exec.nodes[].encode`), thread the flag
+(`CreateWebGpuAppOptions`→`create-webgpu-app`→`frame-boundaries` call site
+~line 298, default false), surface the single-buffer metric, and prove via the
+post-effects E2E (the post path has NO fake-app unit scaffolding — it is
+E2E-tested only). KNOWN ENV: `test/e2e/dof.spec.ts` (T3 Done-when #1/#5) is the
+documented SwiftShader timeout — use post-effects as the equivalent E2E and
+record the dof limitation honestly.
 
 ## Current Run Update — 2026-05-30 — SOTA M3 (Real render graph): IN PROGRESS 2/7
 
