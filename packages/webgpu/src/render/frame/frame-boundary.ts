@@ -425,9 +425,33 @@ export function encodeFrameBoundaryInto(
   };
 }
 
-export function assembleFrameBoundary(
-  options: AssembleFrameBoundaryOptions,
-): FrameBoundaryAssemblyReport {
+export interface FrameBoundaryTargetPlanOptions {
+  readonly context: CurrentTextureContextLike;
+  readonly colorTarget?: FrameBoundaryColorTarget;
+  readonly colorLoadOp?: RenderPassAttachmentLoadOp;
+  readonly clearColor?: readonly number[];
+  readonly msaaColorTarget?: FrameBoundaryMsaaColorTarget | null;
+  readonly msaaColorStoreOp?: RenderPassAttachmentStoreOp;
+  readonly additionalColorTargets?: readonly RenderPassColorAttachmentInput[];
+  readonly depthTarget?: RenderPassDepthAttachmentInput | null;
+  readonly occlusionQuerySet?: unknown;
+}
+
+export interface FrameBoundaryTargetPlan {
+  readonly texture: CreateCurrentTextureColorTargetResult;
+  readonly attachments: CreateRenderPassAttachmentPlanResult | null;
+}
+
+/**
+ * Resolve a frame boundary's color target (swapchain or off-screen) and build
+ * its render-pass attachment plan (color + optional MSAA resolve + extra color
+ * targets + depth + occlusion query set). Extracted so the single-encoder graph
+ * executor's route ports build attachments through the EXACT same path as the
+ * legacy assembleFrameBoundary wrapper — keeping per-pass encoding identical.
+ */
+export function buildFrameBoundaryTargetPlan(
+  options: FrameBoundaryTargetPlanOptions,
+): FrameBoundaryTargetPlan {
   const colorTarget = options.colorTarget ?? { source: "current-texture" };
   const texture =
     colorTarget.source === "offscreen-target"
@@ -465,12 +489,44 @@ export function assembleFrameBoundary(
           ...(options.depthTarget === undefined
             ? {}
             : { depthTarget: options.depthTarget }),
-          ...(options.occlusionQueries === undefined
+          ...(options.occlusionQuerySet === undefined
             ? {}
-            : {
-                occlusionQuerySet: options.occlusionQueries.resources.querySet,
-              }),
+            : { occlusionQuerySet: options.occlusionQuerySet }),
         });
+  return { texture, attachments };
+}
+
+export function assembleFrameBoundary(
+  options: AssembleFrameBoundaryOptions,
+): FrameBoundaryAssemblyReport {
+  const colorTarget = options.colorTarget ?? { source: "current-texture" };
+  const { texture, attachments } = buildFrameBoundaryTargetPlan({
+    context: options.context,
+    ...(options.colorTarget === undefined
+      ? {}
+      : { colorTarget: options.colorTarget }),
+    ...(options.colorLoadOp === undefined
+      ? {}
+      : { colorLoadOp: options.colorLoadOp }),
+    ...(options.clearColor === undefined
+      ? {}
+      : { clearColor: options.clearColor }),
+    ...(options.msaaColorTarget === undefined
+      ? {}
+      : { msaaColorTarget: options.msaaColorTarget }),
+    ...(options.msaaColorStoreOp === undefined
+      ? {}
+      : { msaaColorStoreOp: options.msaaColorStoreOp }),
+    ...(options.additionalColorTargets === undefined
+      ? {}
+      : { additionalColorTargets: options.additionalColorTargets }),
+    ...(options.depthTarget === undefined
+      ? {}
+      : { depthTarget: options.depthTarget }),
+    ...(options.occlusionQueries === undefined
+      ? {}
+      : { occlusionQuerySet: options.occlusionQueries.resources.querySet }),
+  });
   const encoder =
     attachments?.valid === true
       ? createCommandEncoderResource({
