@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildFrameBoundaryTargetPlan,
   compileFrameGraph,
   createFrameGraph,
+  executeFrameGraph,
   type FrameGraphLoadOp,
+  type FrameGraphRenderNodeBoundary,
+  type FrameGraphResources,
+  type RenderPassCommand,
 } from "@aperture-engine/webgpu/test-support";
 
 // M3-T4 regression keystone (Done-when #3): the FrameGraph compiler's global
@@ -143,5 +148,96 @@ describe("frame graph multi-target load/store (M3-T4)", () => {
       "load",
       "load",
     ]);
+  });
+
+  // M3-T4 Done-when #5 (executor level): a multi-target frame submits ONE command
+  // buffer, with each target's attachment load op taken from the compiler's
+  // inference — the load/store golden above, wired through to real execution.
+  it("executes a 3-target frame in ONE command buffer using compiler load ops", () => {
+    const targetKeys = ["rt:A", "swapchain", "rt:A"];
+    const compiled = compileFrameGraph(buildMultiTargetGraph(targetKeys));
+
+    const events: string[] = [];
+    const offscreen = (label: string) => ({
+      label,
+      createView: () => ({ label: `${label}:view` }),
+    });
+    const device = {
+      createCommandEncoder: () => {
+        events.push("createCommandEncoder");
+        return {
+          beginRenderPass: () => ({
+            setPipeline: () => {},
+            setBindGroup: () => {},
+            setVertexBuffer: () => {},
+            setIndexBuffer: () => {},
+            draw: () => events.push("draw"),
+            drawIndexed: () => events.push("draw"),
+            end: () => {},
+          }),
+          finish: () => {
+            events.push("finish");
+            return { label: "command-buffer" };
+          },
+        };
+      },
+    };
+    const context = { getCurrentTexture: () => offscreen("swapchain") };
+    const drawCommand: RenderPassCommand = {
+      kind: "draw",
+      renderId: 1,
+      vertexCount: 3,
+      instanceCount: 1,
+      firstVertex: 0,
+      firstInstance: 0,
+    };
+
+    // build each node's boundary payload using the COMPILER's inferred color
+    // load op (clear vs load), the way the T4 loop rewrite will.
+    const payloads = new Map<string, FrameGraphRenderNodeBoundary>();
+    for (const pass of compiled.report.passes) {
+      const isSwapchain = pass.name.endsWith("swapchain");
+      const plan = buildFrameBoundaryTargetPlan({
+        context,
+        ...(isSwapchain
+          ? {}
+          : {
+              colorTarget: {
+                source: "offscreen-target" as const,
+                texture: offscreen(pass.name),
+              },
+            }),
+        colorLoadOp: pass.colorLoadOp === "load" ? "load" : "clear",
+        ...(pass.colorLoadOp === "clear" ? { clearColor: [0, 0, 0, 1] } : {}),
+      });
+      payloads.set(pass.name, {
+        device,
+        attachments: plan.attachments,
+        commands: [drawCommand],
+        label: pass.name,
+        colorTargetSource: isSwapchain ? "current-texture" : "offscreen-target",
+        readbackTexture: plan.texture.texture,
+      });
+    }
+
+    const resources: FrameGraphResources = {
+      resolveAttachment: () => null,
+      resolveRenderBoundary: (node) => payloads.get(node.name) ?? null,
+    };
+    const exec = executeFrameGraph({
+      device,
+      queue: { submit: (buffers) => events.push(`submit:${buffers.length}`) },
+      compiled,
+      resources,
+      label: "multi-target",
+    });
+
+    expect(exec.valid).toBe(true);
+    // three targets, ONE command buffer / ONE submit / three draws
+    expect(events.filter((e) => e === "createCommandEncoder")).toHaveLength(1);
+    expect(events.filter((e) => e === "draw")).toHaveLength(3);
+    expect(events.filter((e) => e.startsWith("submit:"))).toEqual(["submit:1"]);
+    expect(exec.metrics.counts.commandBuffers).toBe(1);
+    expect(exec.metrics.counts.drawCalls).toBe(3);
   });
 });
