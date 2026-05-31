@@ -39,14 +39,19 @@ Do not start any other milestone.
 
 ## In progress — M3-T5 (shadow casters into the single frame encoder, deps T4 done)
 
-> **STATUS 2026-05-31:** Engine mechanism `85e7bdb` is sound (code compiles, gate
-> green); its bundled vitest had a wrong import (`compileFrameGraph` from the wrong
-> module) — FIXED in the follow-up commit, now genuinely 7/7. `6885e15` (a broken
-> half-applied csm edit) was reverted by `1bc3ecc`. The earlier "tool corruption
-> blocker" was an over-reaction to over-parallelized tool calls — see the corrected
-> post-mortem at the top of agent/HANDOFF.md. Remaining T5 work = wire the 4 example
-> migrations (csm/point/spot/multi-light) + their `?graph=1` E2E proofs, then mark
-> done. Work SEQUENTIALLY. Do NOT mark M3-T5 done — it is NOT done.
+> **STATUS 2026-05-31 (origin @ `6c8300b`):** Engine mechanism is DONE and proven
+> HEADLESS — `shadow-caster-graph-pass.ts` + frame-boundaries.ts depth-only shadow
+> nodes the forward node reads + public-API threading + `test/webgpu/frame-graph-shadow.test.ts`
+> (7/7); `pnpm run check` green. BUT the EXAMPLE caster fold does NOT work yet: the
+> csm migration I pushed (`2830292`) failed its E2E (`rendered.ok === false` on real
+> GPU) and was reverted off origin (force-pushed back to `6c8300b`). Root cause not
+> diagnosed. Also: this environment has intermittent tool-output corruption that made
+> reliable E2E iteration impossible (see the honest status + next-agent plan at the
+> top of agent/HANDOFF.md). Remaining T5 work = diagnose the `ok:false` (add a HEADLESS
+> vitest driving assembleWebGpuAppFrameBoundaries with shadowCasterGraphPasses first),
+> then wire the 4 examples + their `?graph=1` E2E proofs. Work SEQUENTIALLY; never
+> commit a message claiming a test result you did not read cleanly. Do NOT mark
+> M3-T5 done — it is NOT done.
 
 **SCOPE DECISION (user: "Full scope now", 2026-05-31):** The roadmap assumed
 shadow casters flow through an engine-internal path. REALITY (verified): all four
