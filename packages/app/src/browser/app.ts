@@ -72,12 +72,18 @@ export async function startGeneratedBrowserApp(
     sourceAssets,
     status,
   );
+  // M3-T4: ?graph=1 opts the generated app into the single-encoder FrameGraph
+  // forward-route path (default OFF). Browser-only harness, so window is present.
+  const useFrameGraph =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("graph") === "1";
   const webgpu = await createWebGpuApp({
     canvas: canvas as unknown as WebGpuCanvasLike,
     simulationWorker: mirroredWorker,
     sourceAssets,
     autoStart: true,
     msaaSampleCount: status.render.requestedSampleCount,
+    ...(useFrameGraph ? { useFrameGraph: true } : {}),
   });
   webgpuResult = webgpu;
 

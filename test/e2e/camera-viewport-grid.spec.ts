@@ -326,3 +326,52 @@ test("camera viewport grid route renders four ECS camera cells", async ({
 
   validationGuard.expectNoWarnings();
 });
+
+test("camera viewport grid renders four cells through the single-encoder FrameGraph (M3-T4)", async ({
+  page,
+}) => {
+  // M3-T4: ?graph=1 merges the four camera viewport submissions to the swapchain
+  // into ONE command buffer. Each quadrant must still show its camera's color
+  // (the multi-target merge renders byte-correctly) with no validation warnings.
+  const validationGuard = attachWebGpuValidationConsoleGuard(page);
+  const status = await loadExampleStatus<CameraViewportGridStatus>(
+    page,
+    "/examples/camera-viewport-grid.html?graph=1",
+    "camera-viewport-grid-graph-status",
+  );
+
+  if (status === undefined) {
+    return;
+  }
+
+  expect(status.ok).toBe(true);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "camera-viewport-grid",
+    extraction: { views: 4, meshDraws: 4, diagnostics: 0 },
+  });
+  expectStatusJsonSafeForGpu(status);
+
+  test.skip(
+    status.readback.ok !== true,
+    status.readback.ok ? "" : "Current-texture readback unavailable",
+  );
+  if (!status.readback.ok) {
+    return;
+  }
+
+  const samples = new Map(
+    status.readback.samples.map((sample) => [sample.id, sample.pixel]),
+  );
+  for (const cell of gridCells) {
+    const sample = samples.get(cell.sampleId);
+    expect(sample, `${cell.sampleId} graph sample should exist`).toBeDefined();
+    if (sample !== undefined) {
+      expect(
+        pixelDistance(sample, rgbaColorToPixel(cell.color)),
+        `${cell.sampleId} (graph path)`,
+      ).toBeLessThan(90);
+    }
+  }
+
+  validationGuard.expectNoWarnings();
+});
