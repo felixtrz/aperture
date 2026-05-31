@@ -199,6 +199,51 @@ test("browser renders roughness-filtered transmission through scene color", asyn
   webGpuValidation.expectNoWarnings();
 });
 
+test("transmission renders through the single-encoder FrameGraph (M3-T4)", async ({
+  page,
+}) => {
+  // M3-T4 Done-when #5: ?graph=1 folds the transmission-grab pass + the main
+  // forward pass that samples it into ONE command buffer (grab encoded first,
+  // stored, then sampled by the main pass). The through-glass transmission must
+  // still render byte-correctly with no WebGPU validation warnings.
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/transmission.html?graph=1");
+
+  const status = await waitForExampleStatus<TransmissionStatus>(page);
+  expect(status, "transmission graph status should publish").toBeDefined();
+  if (status === undefined) {
+    return;
+  }
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expect(status.ok).toBe(true);
+
+  const frame = status.frame;
+  expect(frame, "transmission graph frame should exist").toBeDefined();
+  if (frame === undefined) {
+    return;
+  }
+
+  // the grab pass still ran (now a graph node in the shared encoder)
+  expect(frame.transmissionGrabPass?.commands ?? 0).toBeGreaterThan(0);
+  expect(frame.transmissionGrabPass?.drawCalls ?? 0).toBeGreaterThanOrEqual(1);
+
+  if (frame.readback?.ok !== true) {
+    test.skip(
+      true,
+      `Transmission graph pixel assertion requires readback: ${
+        frame.readback?.reason ?? "unknown"
+      }`,
+    );
+    return;
+  }
+
+  // the full transmission pixel proof — through-glass samples the grab correctly
+  assertTransmissionSamples(frame);
+  webGpuValidation.expectNoWarnings();
+});
+
 function assertTransmissionSamples(frame: TransmissionFrameStatus): void {
   const clear = rgbaColorToPixel({ r: 0.018, g: 0.022, b: 0.028, a: 1 });
   const samples = frame.readback?.samples ?? [];

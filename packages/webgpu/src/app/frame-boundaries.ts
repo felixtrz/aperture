@@ -51,7 +51,10 @@ import {
   type WebGpuAppGpuTimingReadback,
   type WebGpuAppOcclusionQueryReadback,
 } from "./gpu-readback.js";
-import { assembleWebGpuAppTransmissionGrabPass } from "./transmission-grab.js";
+import {
+  assembleWebGpuAppTransmissionGrabPass,
+  buildWebGpuAppTransmissionGrabBoundaryOptions,
+} from "./transmission-grab.js";
 import {
   createWebGpuAppOcclusionQueryResources,
   createWebGpuAppRenderBundleCommandKey,
@@ -172,13 +175,13 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   // (single command buffer) when useFrameGraph is on and there are no post
   // effects or transmission-grab pass (those keep the legacy path for now).
   const forwardGraphEligible =
-    options.app.useFrameGraph === true &&
-    activePostEffects.length === 0 &&
-    (options.transmissionSceneColorResources === undefined ||
-      options.transmissionSceneColorResources === null);
+    options.app.useFrameGraph === true && activePostEffects.length === 0;
   const forwardGraph = forwardGraphEligible ? createFrameGraph() : null;
   const forwardGraphPayloads = new Map<string, FrameGraphRenderNodeBoundary>();
   const forwardGraphEntries: ForwardGraphTargetEntry[] = [];
+  // M3-T4: transmission-grab passes collected as graph nodes (they render the
+  // scene to the grab texture the main pass samples; same encoder, grab first).
+  const forwardGraphGrabEntries: ForwardGraphGrabEntry[] = [];
 
   for (
     let targetIndex = 0;
@@ -407,28 +410,82 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       continue;
     }
 
-    const transmissionGrabPass =
-      options.transmissionSceneColorResources === undefined ||
-      options.transmissionSceneColorResources === null
-        ? null
-        : assembleWebGpuAppTransmissionGrabPass({
-            app: options.app,
-            target,
-            commands: commandsForBoundary,
-            depthAttachment,
-            label: options.label,
-            clearColor: options.clearColor ?? target.view.clearColor,
-            resources: options.transmissionSceneColorResources,
-          });
+    if (
+      options.transmissionSceneColorResources !== undefined &&
+      options.transmissionSceneColorResources !== null
+    ) {
+      const grabPassOptions = {
+        app: options.app,
+        target,
+        commands: commandsForBoundary,
+        depthAttachment,
+        label: options.label,
+        clearColor: options.clearColor ?? target.view.clearColor,
+        resources: options.transmissionSceneColorResources,
+      };
 
-    if (transmissionGrabPass !== null) {
-      firstBoundary ??= transmissionGrabPass.boundary;
-      boundaries.push(transmissionGrabPass.boundary);
-      plannedCommands += transmissionGrabPass.report.commands;
-      drawCalls += transmissionGrabPass.report.drawCalls;
-      allTargetsValid &&= transmissionGrabPass.boundary.valid;
-      transmissionGrabPassReport = transmissionGrabPass.report;
-      diagnostics.push(...transmissionGrabPass.diagnostics);
+      if (forwardGraph !== null) {
+        // graph path: register the grab as a node BEFORE the main target node;
+        // the grab stores its texture (same options as legacy) and the main
+        // pass samples it — one shared encoder, grab encoded first (insertion).
+        const grab =
+          buildWebGpuAppTransmissionGrabBoundaryOptions(grabPassOptions);
+        const grabHandle = `transmission-grab:${targetSubmissionKey}`;
+        if (forwardGraph.handle(grabHandle) === undefined) {
+          forwardGraph.declareTransient(grabHandle, {
+            kind: "color-texture",
+            width: grab.reportBase.width,
+            height: grab.reportBase.height,
+            format: grab.reportBase.format,
+            sampleCount: 1,
+          });
+        }
+        const grabPlan = buildFrameBoundaryTargetPlan({
+          context: grab.boundaryOptions.context,
+          ...(grab.boundaryOptions.colorTarget === undefined
+            ? {}
+            : { colorTarget: grab.boundaryOptions.colorTarget }),
+          ...(grab.boundaryOptions.clearColor === undefined
+            ? {}
+            : { clearColor: grab.boundaryOptions.clearColor }),
+          ...(grab.boundaryOptions.depthTarget === undefined
+            ? {}
+            : { depthTarget: grab.boundaryOptions.depthTarget }),
+        });
+        const grabNodeName = `${grab.boundaryOptions.label}:fg`;
+        forwardGraph.addRenderPass({
+          name: grabNodeName,
+          reads: [],
+          writes: [{ handle: grabHandle, attachment: "clear" }],
+          commands: grab.boundaryOptions.commands,
+        });
+        forwardGraphPayloads.set(grabNodeName, {
+          device: grab.boundaryOptions.device,
+          attachments: grabPlan.attachments,
+          commands: grab.boundaryOptions.commands,
+          label: grab.boundaryOptions.label,
+          colorTargetSource: "offscreen-target",
+          readbackTexture: grabPlan.texture.texture,
+        });
+        forwardGraphGrabEntries.push({
+          nodeName: grabNodeName,
+          texture: grabPlan.texture,
+          attachments: grabPlan.attachments,
+          reportBase: grab.reportBase,
+        });
+        plannedCommands += grab.reportBase.commands;
+        drawCalls += grab.reportBase.drawCalls;
+      } else {
+        const transmissionGrabPass =
+          assembleWebGpuAppTransmissionGrabPass(grabPassOptions);
+        firstBoundary ??= transmissionGrabPass.boundary;
+        boundaries.push(transmissionGrabPass.boundary);
+        plannedCommands += transmissionGrabPass.report.commands;
+        drawCalls += transmissionGrabPass.report.drawCalls;
+        allTargetsValid &&= transmissionGrabPass.boundary.valid;
+        transmissionGrabPassReport = transmissionGrabPass.report;
+        diagnostics.push(...transmissionGrabPass.diagnostics);
+      }
     }
 
     const sampleCount = msaaColorTarget.resource?.sampleCount ?? 1;
@@ -627,7 +684,10 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
 
   // M3-T4: execute the collected forward targets in ONE encoder, then rebuild
   // the legacy-compatible per-target boundaries + reports from the node results.
-  if (forwardGraph !== null && forwardGraphEntries.length > 0) {
+  if (
+    forwardGraph !== null &&
+    (forwardGraphEntries.length > 0 || forwardGraphGrabEntries.length > 0)
+  ) {
     const device = options.app.initialization.device as Parameters<
       typeof assembleFrameBoundary
     >[0]["device"];
@@ -651,6 +711,46 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       if (node.kind === "render") {
         encodeByName.set(node.name, node.encode);
       }
+    }
+
+    // grab nodes are encoded first (insertion order) — synthesize their
+    // boundaries + the transmission-grab report from the per-node encode reports.
+    for (const grabEntry of forwardGraphGrabEntries) {
+      const encode = encodeByName.get(grabEntry.nodeName);
+      const grabBoundary: FrameBoundaryAssemblyReport = {
+        valid: (encode?.valid ?? false) && frameOk,
+        texture: grabEntry.texture,
+        attachments: grabEntry.attachments,
+        encoder: exec.encoder,
+        begin: encode?.begin ?? null,
+        rectangle: encode?.rectangle ?? null,
+        execution: encode?.execution ?? null,
+        renderBundle: encode?.renderBundle ?? null,
+        end: encode?.end ?? null,
+        finish: exec.finish,
+        submit: exec.submit,
+        readback: encode?.readback ?? null,
+        gpuTiming: encode?.gpuTiming ?? null,
+        occlusionQueries: encode?.occlusionQueries ?? null,
+      };
+      firstBoundary ??= grabBoundary;
+      boundaries.push(grabBoundary);
+      allTargetsValid &&= grabBoundary.valid;
+      transmissionGrabPassReport = {
+        ...grabEntry.reportBase,
+        ok: grabBoundary.valid,
+      };
+      diagnostics.push(
+        ...grabBoundary.texture.diagnostics,
+        ...(grabBoundary.attachments?.diagnostics ?? []),
+        ...(grabBoundary.encoder?.diagnostics ?? []),
+        ...(grabBoundary.begin?.diagnostics ?? []),
+        ...(grabBoundary.rectangle?.diagnostics ?? []),
+        ...(grabBoundary.execution?.diagnostics ?? []),
+        ...(grabBoundary.end?.diagnostics ?? []),
+        ...(grabBoundary.finish?.diagnostics ?? []),
+        ...(grabBoundary.submit?.diagnostics ?? []),
+      );
     }
 
     for (const entry of forwardGraphEntries) {
@@ -769,6 +869,15 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
 type ForwardGraphTarget = ReturnType<
   typeof createWebGpuAppFrameBoundaryTargets
 >["targets"][number];
+
+interface ForwardGraphGrabEntry {
+  readonly nodeName: string;
+  readonly texture: ReturnType<typeof buildFrameBoundaryTargetPlan>["texture"];
+  readonly attachments: ReturnType<
+    typeof buildFrameBoundaryTargetPlan
+  >["attachments"];
+  readonly reportBase: Omit<WebGpuAppTransmissionGrabPassReport, "ok">;
+}
 
 interface ForwardGraphTargetEntry {
   readonly nodeName: string;

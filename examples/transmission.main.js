@@ -42,6 +42,11 @@ try {
       canvas,
       simulationWorker: createNoopSimulationWorker(),
       sourceAssets,
+      // M3-T4: ?graph=1 routes the transmission frame (grab pass + main forward
+      // pass that samples it) through the single-encoder graph.
+      ...(new URLSearchParams(globalThis.location.search).get("graph") === "1"
+        ? { useFrameGraph: true }
+        : {}),
       ...(readbackUsage.ok ? { textureUsage: readbackUsage.usage } : {}),
     });
 
