@@ -42,11 +42,17 @@ NOT done (this is why M3-T5 is open):
   matches a depthTextureResources entry; compare spot's shadowPassAttachments shape vs
   point's (point worked). Do NOT just bump frame count — csm/point disprove warmup.
 - **multi-light — not folded** (no fold, no graph test).
-- **Done-when #2** (one command buffer / no separate shadow submit) — the fake-device
-  EXECUTE test for the fold was drafted but NEVER committed (cancelled batch);
-  frame-graph-shadow.test.ts is still 7, not 10. Must be re-added + run.
-- **Done-when #4** (ShadowPassPlanReport status:'ready' on graph path) — drafted but
-  NEVER committed. Must be re-added.
+- **Done-when #2** (one command buffer / no separate shadow submit) — DONE + committed
+  (`c11fb19`): frame-graph-shadow.test.ts has the fake-device EXECUTE test folding
+  depth-only shadow nodes + a forward node into ONE encoder/finish/submit
+  (commandBuffers===1, shadows before forward). The file is **8 passed** (7 compile +
+  1 execute). [Corrected: an earlier line here wrongly said "still 7 / never
+  committed" — verified 8 on disk.]
+- **Done-when #3** (read-edge ordering, remove-edge reorder) — DONE (part of the 7
+  compile tests).
+- **Done-when #4** (ShadowPassPlanReport status:'ready' on graph path) — NOT present
+  (grep "Done-when #4" frame-graph-shadow.test.ts = 0). Drafts were cancelled; must be
+  added + run.
 
 ## How NOT to repeat this session's mistakes (cost the whole session)
 

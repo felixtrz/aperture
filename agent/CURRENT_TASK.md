@@ -29,9 +29,11 @@ Still owed (T5 not done):
   createShadowCasterGraphPasses dropping the spot pass → depth never written. Diagnose
   before re-folding.
 - **multi-light** — not folded.
-- **Done-when #2** (one command buffer / no separate submit, fake-device execute
-  test) and **#4** (ShadowPassPlanReport status:'ready') — drafted but never committed
-  (cancelled batches); frame-graph-shadow.test.ts is still 7, must reach those proofs.
+- **Done-when #2** (one command buffer / no separate submit) — DONE + committed
+  (`c11fb19`); frame-graph-shadow.test.ts is **8 passed** (incl. the fake-device
+  execute-fold test). **#3** (read-edge ordering) — DONE (compile tests). **#4**
+  (ShadowPassPlanReport status:'ready' on the graph path) — NOT present yet (drafts
+  cancelled); must be added + run.
 
 Done-when #1 needs ALL FOUR shadow specs green with visible-shadow assertions (2/4
 so far). Then M3-T6 (TAA history; model `11b9518` landed), then M3-T7.
