@@ -14,7 +14,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
     5. Use absolute dates (YYYY-MM-DD [HH:MM TZ]) everywhere — never "today"/"now".
 -->
 
-**Last updated:** `2026-05-31 08:20 UTC — claude/opus`
+**Last updated:** `2026-05-31 08:32 UTC — claude/opus`
 
 > _What to write:_ Absolute date + time + timezone, then `— <your agent/author id>` (e.g. `2026-06-02 14:30 PDT — claude/opus`). Update on every edit to this block.
 
@@ -22,7 +22,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 
 > _What to write:_ The single lowest-numbered wave (0–4) that still has an incomplete milestone — the ONLY wave to pull work from. Bump it only once every milestone in the current wave is `done`.
 
-**Active task:** `none`
+**Active task:** `M3-T4`
 
 > _What to write:_ Exactly ONE task id (`M#-T#`) you are mid-implementation on, or `none` when between tasks. Never two at once. Reset to `none` after you record the result in the completion log below.
 
@@ -30,7 +30,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
 
 > _What to write:_ The next `todo` task whose `dependsOn` are all `done`, lowest milestone/task number within the current wave. One line: `M#-T# — <why it's next / what it unblocks>`.
 
-**Gate status:** `pnpm run check = pass (396 files / 2225 tests) @ 6b4a3f6. M3 IN PROGRESS (3/7 done). M3-T3 ✅ done (1f6721f): the post-processing.ts FrameGraph branch behind useFrameGraph (default OFF; threaded CreateWebGpuAppOptions→create-webgpu-app→frame-boundaries), built on bd383f3 (executor resolveRenderBoundary hook) + 16eec77 (buildFrameBoundaryTargetPlan). Proofs: post-frame-graph.test.ts (#2, 1 cmd buffer vs ≥4), post-graph-parity.test.ts (#3, graph.postEffects deep-equals legacy for simple + multi-pass-bloom effects), and test/e2e/post-effects.spec.ts "FrameGraph path matches…" (#4, real-GPU pixel + report parity, PASSED on chrome-webgpu-swiftshader 7.8s). Done-when #1/#5 name dof.spec.ts = documented SwiftShader timeout (unrunnable); their substance is covered by the post-effects graph E2E on real GPU. NEXT: M3-T4 (forward + multi-target route → graph; subsume submittedTargetCounts; flip useFrameGraph ON for queued-built-in). M1/M2/M4/M5 remain COMPLETE. M3-T1 (107c61d): pure FrameGraph data model + compileFrameGraph (topo order + store-on-no-clear inference + transient aliasing + JSON report; cycle ⇒ ok:false, no throw) + ComputePassCommand union; proof test/webgpu/frame-graph-compile.test.ts (6). M3-T2 (924003c): single-encoder executor — executeFrameGraph (render/graph/frame-graph-execute.ts) folds all ordered nodes into ONE encoder + submit once; KEYSTONE frame-boundary.ts split into encodeFrameBoundaryInto (begin→exec→end on a caller-provided encoder) + a legacy-preserving assembleFrameBoundary wrapper (test/webgpu/frame-boundary.test.ts unchanged-green 15/15); compute executor + multi-pass metrics added; proof test/webgpu/frame-graph-execute.test.ts (4: one createCommandEncoder/finish/submit, interleaved order, commandBuffers===1, in-encoder compute dispatch, cyclic refusal). Still headless/vitest — no route wired through the graph yet (default path unchanged; that is T3+). M1/M2/M4/M5 remain COMPLETE. KNOWN ENV: test/e2e/dof.spec.ts times out under SwiftShader on a clean tree (pre-existing, unrelated).`
+**Gate status:** `pnpm run check = pass (396 files / 2225 tests) @ 6b4a3f6. M3 IN PROGRESS (3/7 done). M3-T3 ✅ done (1f6721f): the post-processing.ts FrameGraph branch behind useFrameGraph (default OFF; threaded CreateWebGpuAppOptions→create-webgpu-app→frame-boundaries), built on bd383f3 (executor resolveRenderBoundary hook) + 16eec77 (buildFrameBoundaryTargetPlan). Proofs: post-frame-graph.test.ts (#2, 1 cmd buffer vs ≥4), post-graph-parity.test.ts (#3, graph.postEffects deep-equals legacy for simple + multi-pass-bloom effects), and test/e2e/post-effects.spec.ts "FrameGraph path matches…" (#4, real-GPU pixel + report parity, PASSED on chrome-webgpu-swiftshader 7.8s). Done-when #1/#5 name dof.spec.ts = documented SwiftShader timeout (unrunnable); their substance is covered by the post-effects graph E2E on real GPU. M3-T4 (forward + multi-target route) IN PROGRESS: regression keystone Done-when #3 ✅ 8e9df63 (test/webgpu/frame-graph-multi-target.test.ts proves the compiler's color+depth load/store inference equals the legacy submittedTargetCounts clear-then-load sequence). REMAINING T4: the actual frame-boundaries.ts multi-target loop rewrite (build ONE graph spanning all targets, reuse the T3 buildFrameBoundaryTargetPlan + resolveRenderBoundary + report-synthesis pattern; transmission-grab + MSAA resolve as graph writes; flip useFrameGraph ON for queued-built-in) + its E2E specs (camera-clear-load-matrix, split-screen-multi-camera, camera-viewport-grid, clustered-lights, csm-directional-shadow, transmission, glb-viewer). Gate @ 8e9df63 = 397 files / 2228 tests. M1/M2/M5 remain COMPLETE. M3-T1 (107c61d): pure FrameGraph data model + compileFrameGraph (topo order + store-on-no-clear inference + transient aliasing + JSON report; cycle ⇒ ok:false, no throw) + ComputePassCommand union; proof test/webgpu/frame-graph-compile.test.ts (6). M3-T2 (924003c): single-encoder executor — executeFrameGraph (render/graph/frame-graph-execute.ts) folds all ordered nodes into ONE encoder + submit once; KEYSTONE frame-boundary.ts split into encodeFrameBoundaryInto (begin→exec→end on a caller-provided encoder) + a legacy-preserving assembleFrameBoundary wrapper (test/webgpu/frame-boundary.test.ts unchanged-green 15/15); compute executor + multi-pass metrics added; proof test/webgpu/frame-graph-execute.test.ts (4: one createCommandEncoder/finish/submit, interleaved order, commandBuffers===1, in-encoder compute dispatch, cyclic refusal). Still headless/vitest — no route wired through the graph yet (default path unchanged; that is T3+). M1/M2/M4/M5 remain COMPLETE. KNOWN ENV: test/e2e/dof.spec.ts times out under SwiftShader on a clean tree (pre-existing, unrelated).`
 
 > _What to write:_ Result of the project gate at your last stop: `pnpm run check = pass|fail` plus any task-specific proofs you ran (e.g. `test/e2e/auto-shadow.spec.ts = pass`). If fail, name the failing check. Never mark a task `done` on a red gate.
 
@@ -1368,7 +1368,7 @@ Convert assembleWebGpuAppPostProcessedSwapchainTarget (post-processing.ts) to BU
 
 **Watch out:** The motion-vector attachment is sometimes a SECOND color target on the scene pass (useSceneMotionVectorAttachment) and sometimes a separate clear pass — both must map to graph writes or TAA breaks. The last-effect-to-swapchain detection (isLast) becomes 'write handle == swapchain handle'; getting this wrong double-renders or drops the final blit. Readback must still attach to the last swapchain-writing node. Keep the flag default OFF until E2E is green so main stays shippable.
 
-#### `M3-T4` · Port the main forward route + multi-target loop to the graph; subsume submittedTargetCounts load/store inference
+#### `M3-T4` · Port the main forward route + multi-target loop to the graph; subsume submittedTargetCounts load/store inference — 🟡 in-progress (regression keystone Done-when #3 ✅ 8e9df63)
 
 `webgpu-render` · effort **L** · depends: M3-T3
 
@@ -1385,7 +1385,7 @@ Make assembleWebGpuAppFrameBoundaries (frame-boundaries.ts) build ONE FrameGraph
 
 - [ ] test/e2e/camera-clear-load-matrix.spec.ts (the load-vs-clear matrix proof) passes with graph ON, proving compiler-inferred load/store matches the previous submittedTargetCounts behavior
 - [ ] test/e2e/split-screen-multi-camera + camera-viewport-grid specs pass with graph ON: all targets render to correct viewports/scissors and report ok:true
-- [ ] A vitest golden test feeds a 3-target snapshot (two offscreen sharing a handle + swapchain) through compileFrameGraph and asserts the per-target colorLoadOp/depthLoadOp sequence equals the legacy submittedTargetCounts output exactly
+- [x] A vitest golden test feeds a 3-target snapshot (two offscreen sharing a handle + swapchain) through compileFrameGraph and asserts the per-target colorLoadOp/depthLoadOp sequence equals the legacy submittedTargetCounts output exactly _(test/webgpu/frame-graph-multi-target.test.ts, 8e9df63: compiler color+depth loadOps equal an independent submittedTargetCounts reimplementation for a 3-target shared-handle frame + a 4-viewport grid; store-on-no-clear stores color+depth that a later submission loads, swapchain stores its presented color)_
 - [ ] clustered-lights, csm-directional-shadow, transmission/glb-viewer E2E specs pass with graph ON (no regression in forward+ clustering, shadows-as-receiver, transmission grab)
 - [ ] Frame submits ONE command buffer for a multi-target + transmission-grab frame (CommandSubmissionMetricsReport.commandBuffers===1), down from the prior per-target+grab count
 
