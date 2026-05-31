@@ -71,12 +71,12 @@ sentinel `echo X; pwd; echo Y` first and confirm no extra lines):
    vitest) is the sound, valuable part of T5; keep it if green.
 3. Redo the FOUR example migrations CLEANLY + SEQUENTIALLY (csm/point/spot/multi-light):
    for each, when `?graph=1`: build `aperture.createShadowCasterGraphPasses({
-   passAttachments: <rich createShadowPassAttachmentDescriptorReport result>,
-   depthTextureResources: <rich shadowDepthTextureResourceReport>,
-   commandRecords: <rich commandRecordPlan.commandRecords> })`, pass the result as
+passAttachments: <rich createShadowPassAttachmentDescriptorReport result>,
+depthTextureResources: <rich shadowDepthTextureResourceReport>,
+commandRecords: <rich commandRecordPlan.commandRecords> })`, pass the result as
    `shadowCasterGraphPasses` to `app.renderSnapshot(...)`, and gate the example's
    own `createShadowPassCommandBufferSubmissionReport({... submit: casterEnabled &&
-   graph===false})`. NOTE: the rich reports must be retained (not only their
+graph===false})`. NOTE: the rich reports must be retained (not only their
    JSON-value forms) — see the per-file map below. The shadow build currently runs
    AFTER renderSnapshot (in publishFrameStatus) in point/spot/multi-light, so the
    caster passes must be hoisted to BEFORE renderSnapshot, or computed in the prior

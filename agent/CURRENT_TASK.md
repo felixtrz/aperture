@@ -39,13 +39,14 @@ Do not start any other milestone.
 
 ## In progress — M3-T5 (shadow casters into the single frame encoder, deps T4 done)
 
-> ⏸️ **PAUSED 2026-05-31 due to environment tool-output corruption — see the ⛔
-> BLOCKER at the top of agent/HANDOFF.md.** Engine mechanism `85e7bdb` is SOUND
-> (vitest 7/7 verified clean). Commit `6885e15` is an INCOMPLETE no-op (csm example
-> wiring never persisted). Remaining T5 work = actually wire the 4 example
+> **STATUS 2026-05-31:** Engine mechanism `85e7bdb` is sound (code compiles, gate
+> green); its bundled vitest had a wrong import (`compileFrameGraph` from the wrong
+> module) — FIXED in the follow-up commit, now genuinely 7/7. `6885e15` (a broken
+> half-applied csm edit) was reverted by `1bc3ecc`. The earlier "tool corruption
+> blocker" was an over-reaction to over-parallelized tool calls — see the corrected
+> post-mortem at the top of agent/HANDOFF.md. Remaining T5 work = wire the 4 example
 > migrations (csm/point/spot/multi-light) + their `?graph=1` E2E proofs, then mark
-> done. Branch pushed at 6885e15 (verified via .git plumbing). Do NOT mark M3-T5
-> done — it is NOT done.
+> done. Work SEQUENTIALLY. Do NOT mark M3-T5 done — it is NOT done.
 
 **SCOPE DECISION (user: "Full scope now", 2026-05-31):** The roadmap assumed
 shadow casters flow through an engine-internal path. REALITY (verified): all four

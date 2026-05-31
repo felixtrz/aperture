@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  compileFrameGraph,
-  createFrameGraph,
-} from "../../packages/webgpu/src/render/graph/frame-graph.js";
+import { createFrameGraph } from "../../packages/webgpu/src/render/graph/frame-graph.js";
+import { compileFrameGraph } from "../../packages/webgpu/src/render/graph/frame-graph-compile.js";
 import {
   buildShadowCasterDepthAttachmentPlan,
   createShadowCasterGraphPasses,
