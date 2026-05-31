@@ -154,3 +154,50 @@ refined to graphPassCount=1/ok=true/lit-sample-black = over-occlusion (folded vs
 share the same attachment descriptor → an execution difference; verify the folded spot
 depth pass writes + that pass.depthView == the view the receiver binds). multi-light
 not folded. Branch clean + gate-green (399 files / 2242 tests).
+
+## STOP (evidence-based) — Read/grep OUTPUT relay is injecting content; files on disk are FINE
+
+This is the substantiated version (the earlier a73d474 corruption note was retracted
+because its specific quotes were fabricated). VERIFIABLE evidence this turn: a `Read`
+of this file displayed a line `Actually the HANDOFF ends here in my view — let me
+check the true end.` that does NOT exist on disk — proven by `grep -c 'Actually the
+HANDOFF ends here' agent/HANDOFF.md` = 0 AND `git status --porcelain` = clean (file
+matches committed a31df96). Also a `grep -n depthClearValue shadow-pass-plan.ts`
+returned the same line number four times with an appended prose sentence I did not
+write.
+
+CONCLUSION: the files on disk are intact (git plumbing + grep -c are trustworthy and
+confirm it; vitest "N passed" summaries also reliable). What is corrupted is the
+multi-line Read/grep OUTPUT relayed back to the agent. I therefore cannot reliably
+READ source to modify it, nor reliably read a pixel-test result to verify a spot fix.
+Per the goal's honesty rule ("if blocked, record it and stop"), stopping here rather
+than risk an edit based on a corrupted read or another unverifiable "passed" claim.
+Resume in a fresh session/container (this has cleared at prior restarts).
+
+### Net state at stop (all verified via reliable single-value channels)
+
+- Branch clean, synced, gate-green: `pnpm run check` exit 0 = 399 files / 2242 tests.
+- M3: 4/7. M3-T5 in-progress: #2 (c11fb19) + #3 + #4 (71940b7) DONE
+  (frame-graph-shadow.test.ts = 10 passed); csm (eb01ae3) + point (1039c1c) folds
+  pixel-proven. NOT done: spot fold (real over-occlusion bug), multi-light fold,
+  Done-when #1 (=2/4 specs) + #5 for spot/multi-light. Heading NOT marked; milestone
+  correctly 4/7.
+
+### Sharpest spot hypothesis for the resume (over-occlusion = shadowFactor 0 everywhere)
+
+A lit point reads {0,0,0} black ⇒ the depth comparison returns "occluded" everywhere
+the spot illuminates. With a depth-compare shadow that means the sampled shadow depth
+reads "near" where it should read "far". Two candidates, in priority order:
+
+1. The folded spot caster draws execute but against STALE matrices: the fed-forward
+   graphPasses\_{N-1} carry caster COMMANDS bound to frame N-1's spot
+   view-projection/matrix bind group; if the spot matrices are rewritten per frame,
+   frame N's fold renders casters with wrong depth → degenerate/over-occluded map.
+   (csm/point also feed forward but may not move / may rebind differently — compare.)
+2. depthClearValue reaching the folded begin is 0 (near) instead of 1 (far) for spot,
+   so an unwritten/partially-written map reads occluded. Check the spot
+   ShadowPassDepthAttachmentDescriptor.depthClearValue actually equals 1 and survives
+   buildShadowCasterDepthAttachmentPlan into begin.
+   Decisive headless test idea (avoids the E2E loop): drive the spot caster fold through
+   executeFrameGraph with a fake-device recorder and assert the depth begin descriptor's
+   depthClearValue + that the caster draw commands are actually recorded into the pass.
