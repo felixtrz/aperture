@@ -1,72 +1,89 @@
-# M3-T5 — root-cause diagnosis + minimal fix (2026-05-31)
+# M3-T5 — status + evidence-based findings (2026-05-31, session 2)
 
-UNIQUE_MARKER_T5_DIAGNOSIS_OK
+UNIQUE_MARKER_T5_DIAGNOSIS_V2
 
-Engine mechanism is DONE and headless-proven (`frame-graph-shadow.test.ts` 7/7,
-re-confirmed this session). Branch green: `csm-directional-shadow.spec.ts` = 2
-passed on SwiftShader. HEAD = origin = `40a1bca`, clean tree. The ONLY thing
-left for T5 is migrating the four hand-rolled shadow examples to hand their
-caster passes to the engine so they fold into the single forward encoder.
+## CORRECTION to the previous version of this file
 
-## Root cause of the reverted csm fold's `ok:false` (commit 6885e15, reverted)
+The earlier root-cause claim in this file (reverted csm fold failed because of a
+`submit:true` double-write) is **WRONG** and is retracted. Evidence: the reverted
+commit `6885e15` is a **1-line diff** (`submit: ...casterEnabled && !useFrameGraphParam`)
+— it NEVER threaded `shadowCasterGraphPasses` into `renderSnapshot`. Its commit
+message overclaimed a much larger change that silently never landed (a batched-edit
+failure under the tool-output corruption described below). So in graph mode the
+reverted attempt ran NO shadow casters at all (engine got `useFrameGraph:true` but
+`shadowCasterGraphPasses:undefined`, and the example's own submit was gated off).
 
-The four shadow examples build their caster pipeline AFTER `renderSnapshot`
-(to reuse the forward report's prepared mesh GPU buffers) and feed receiver
-resources forward one frame. The reverted fold piped `graphPasses` forward the
-same way BUT kept `createRenderShadowFrame` at its default `submit: true`. So in
-graph mode each frame:
+## What is VERIFIED this session (reliable channels only)
 
-- the engine's folded depth-only shadow node wrote the (single, persistent)
-  shadow depth texture inside the forward encoder, AND
-- `createRenderShadowFrame` ALSO separately submitted its own caster command
-  buffer writing the SAME texture.
+- **Engine T5 mechanism — DONE, headless-proven.** `test/webgpu/frame-graph-shadow.test.ts`
+  = 7/7 (re-run this session). `shadow-caster-graph-pass.ts` worktree hash ==
+  HEAD == `3f349bf`.
+- **csm example caster fold — APPLIED + renders ok in graph mode.** This session I
+  threaded the fold correctly into `examples/csm-directional-shadow.main.js`:
+  - module-level `const useFrameGraph = exampleParams.get("graph") === "1";` +
+    `let pendingShadowCasterGraphPasses = null;`
+  - `createCsmShadowFrame` builds `pendingShadowCasterGraphPasses` via
+    `aperture.createShadowCasterGraphPasses({ passAttachments: shadowPassAttachments,
+depthTextureResources: shadowDepthTextureResourceReport, commandRecords:
+commandRecordPlan.commandRecords })` when `useFrameGraph`.
+  - the example's own caster submit is gated: `submit: ...casterEnabled && !useFrameGraph`
+    (the engine fold becomes the SOLE caster writer of the persistent depth texture).
+  - `pendingShadowCasterGraphPasses` is fed forward one frame
+    (`loop.shadowCasterGraphPasses = pendingShadowCasterGraphPasses;`) and passed
+    into the next `renderSnapshot` (spread when `useFrameGraph && loop.shadowCasterGraphPasses`).
+  - Verified: all edit counts (single-token Python), `node --check` exit 0, and the
+    `?graph=1` E2E (`csm-directional-shadow.spec.ts -g "single-encoder FrameGraph"`)
+    = **1 passed** on SwiftShader. Default (non-graph) path untouched.
 
-Two writers to the same depth texture across two submissions in one frame →
-`rendered.ok === false` on real SwiftShader GPU (resource-state / usage-scope
-conflict). Not an engine-mechanism bug.
+## What is NOT yet proven (the remaining T5 work)
 
-## Minimal fix (per example, ?graph=1 only)
+1. **Visual-shadow correctness in graph mode.** The passing `?graph=1` E2E asserts
+   `ok:true` but has NO shadow-pixel/darkening assertion — so it does NOT prove the
+   folded casters produce visible shadows (an unshadowed floor would also pass it).
+   Owed: a graph-mode pixel proof (near/far receiver darkened), mirroring the
+   legacy visual test (`csm-directional-shadow.spec.ts:144`, which reads canvas
+   pixels — `readback`/`pixel` tokens live in the SPEC, not the example).
+2. **commandBuffers===1 + no separate shadow submit** (Done-when #2).
+3. **point / spot / multi-light** example folds + their `?graph=1` pixel proofs
+   (Done-when #1). Each sets `autoStandardMaterialShadowReceiverResources:false` and
+   hand-rolls casters like csm; the same fold pattern applies (point/spot = 6/1 face
+   nodes; resolveShadowDepthTextureAttachmentView keys faces by viewKey).
+4. **ShadowPassPlanReport.status==='ready' + sections.passSubmission===true** under graph.
 
-1. Pass `submit: false` to `aperture.createRenderShadowFrame` so the casters are
-   NOT separately submitted — the folded graph node becomes the SOLE writer of
-   the depth texture. (With `submit:false` the function still builds an unused
-   private encoder/command-buffer that is never submitted = harmless waste; an
-   optional engine follow-up is a `mode:"graph"` that skips that encode.)
-2. Feed `shadowFrame.graphPasses` (built via `aperture.createShadowCasterGraphPasses`)
-   forward one frame: `loop.shadowCasterGraphPasses = shadowFrame.graphPasses`,
-   and pass `shadowCasterGraphPasses: loop.shadowCasterGraphPasses` into the next
-   `renderSnapshot` call (alongside `useFrameGraph: true`).
-3. Keep the legacy path (graph OFF) exactly as-is: `submit` defaults true, no
-   graphPasses. The forward route already passes with graph ON (T4 #4); folding
-   the casters is the only delta.
+## BLOCKER — active tool-output corruption (why this stops here)
 
-Because the folded node is ordered BEFORE the forward node (the forward target
-node READS the `shadow:<key>` handles — engine already wired in `frame-boundaries.ts`),
-frame N samples freshly-written maps within the same encoder. One command buffer.
+This environment is injecting **fabricated prose / duplicated / reordered text** into
+multi-line and even structured single-token tool outputs (`Read`, `sed`, `awk`,
+`python` heredocs). Examples observed this session: `sed -n '563p'` returned the real
+line PLUS "this is line 563 content but the tool output may include extra material…";
+`awk` returned "at Object.<anonymous>"/"stack" injected between real lines; a function-
+listing probe returned "FNS# first DABABABABBC stack overflow… [CORRUPT]". It is
+intermittent but WORSENING (it now sometimes hits single-token probes too).
 
-NOTE the receiver depth texture is persistent (created once via
-`shadowDepthTextureResourceReport ??= ...`), so feed-forward timing of
-`receiverResources` is safe — same texture every frame; the folded caster node
-just re-renders into it before the forward pass samples it.
+RELIABLE channels (cross-verified): pure numeric/hash output (`wc -l`, `grep -c`,
+`git rev-parse`, `git hash-object`, push SHAs), `node --check` exit codes, and
+vitest/E2E pass-count tokens (`N passed`, `✓`). The **files on disk are intact**
+(node runs them; E2E passes; git hashes match) — only the relay to the agent is
+corrupted. Self-verifying Python EDIT scripts (assert anchor counts on disk, write
+once, fail loud) are safe and were used for the csm fold.
 
-## Proofs still owed (Done-when)
+What the corruption BLOCKS: reliably READING existing multi-line test assertions to
+extend them, and REVIEWING diffs. Authoring four graph-mode pixel-proof E2E tests
+(each reusing/duplicating ~20 lines of existing canvas-readback assertions I cannot
+read cleanly) is not safe under this — it is exactly the failure mode that produced
+the overclaiming reverted commit. Per the run's honesty rule ("if blocked, record it
+and stop"), T5 is paused here. **T5 is NOT done.**
 
-- 4 specs (csm/point/spot/multi-light) with `?graph=1`: shadows correct + ONE
-  command buffer (`CommandSubmissionMetricsReport.commandBuffers===1`) + zero
-  validation warnings.
-- vitest: compiler orders shadow nodes < opaque BECAUSE opaque reads the shadow
-  handles (remove edge ⇒ reorder) — partially covered by frame-graph-shadow.test.ts.
-- vitest/headless: separate shadow `submitCommandBuffers` NOT invoked in graph path.
+## Resume plan (fresh session / container — corruption cleared at prior restarts)
 
-## Environment blocker (why this wasn't finished here)
-
-Intermittent tool-output corruption recurred mid-session: multi-line `Read`
-truncates after ~10-20 lines and returns INCONSISTENT line numbers across calls;
-multi-pattern `grep -n` returns false matches; multi-echo Bash truncates after
-the first line. RELIABLE channels (verified this session): single-value Bash
-(`grep -c`, `git rev-parse`, `git status --porcelain`), vitest summaries, and
-E2E `✓`/`N passed` pass-fail signals (timings/line-numbers within them are
-cosmetically mangled but the pass/fail is trustworthy). Editing four ~360-line
-example files reliably under this is not safe. The corruption cleared at this
-session's start and after the prior container restart → resume in a FRESH
-session/container. Do NOT mark T5 done until the four specs are proven.
+1. Re-run `frame-graph-shadow.test.ts` (expect 7/7) and the csm `?graph=1` E2E
+   (expect 1 passed) to confirm the baseline.
+2. Add the csm graph-mode VISUAL proof: a sibling test in
+   `csm-directional-shadow.spec.ts` navigating `?graph=1` and reusing the line-144
+   canvas-pixel darkening assertions (near + far receivers darker than lit). This is
+   the real Done-when #1 proof — it confirms the folded casters render shadows.
+3. Add a commandBuffers===1 assertion for the shadows+opaque graph frame (Done-when #2).
+4. Repeat the fold + pixel proof for point / spot / multi-light.
+5. Tick Done-when boxes ONLY against E2E results read cleanly; mark the M3-T5 heading
+   `✅ done (date · commit)` + completion-log row + Status block ONLY when all four
+   specs are green with shadow-pixel assertions.
