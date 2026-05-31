@@ -185,3 +185,49 @@ test("split-screen route submits two ECS camera views with distinct pixels", asy
   expect(pixelDistance(right.pixel, clearPixel)).toBeGreaterThan(40);
   validationGuard.expectNoWarnings();
 });
+
+test("split-screen renders two camera views through the single-encoder FrameGraph (M3-T4)", async ({
+  page,
+}) => {
+  // M3-T4 Done-when #2: ?graph=1 merges the two camera submissions into ONE
+  // command buffer; the two views must still render distinct, non-clear pixels.
+  const validationGuard = attachWebGpuValidationConsoleGuard(page);
+  const status = await loadExampleStatus<SplitScreenStatus>(
+    page,
+    "/examples/split-screen-multi-camera.html?graph=1",
+    "split-screen-multi-camera-graph-status",
+  );
+
+  if (status === undefined) {
+    return;
+  }
+
+  expect(status.ok).toBe(true);
+  expectStatusJsonSafeForGpu(status);
+
+  test.skip(
+    status.readback.ok !== true,
+    status.readback.ok ? "" : "Current-texture readback unavailable",
+  );
+  if (!status.readback.ok) {
+    return;
+  }
+
+  const left = status.readback.samples.find(
+    (sample) => sample.id === "left-center",
+  );
+  const right = status.readback.samples.find(
+    (sample) => sample.id === "right-center",
+  );
+  expect(left, "left-center graph sample should exist").toBeDefined();
+  expect(right, "right-center graph sample should exist").toBeDefined();
+  if (left === undefined || right === undefined) {
+    return;
+  }
+
+  const clearPixel = { r: 4, g: 6, b: 9, a: 255 };
+  expect(pixelDistance(left.pixel, right.pixel)).toBeGreaterThan(120);
+  expect(pixelDistance(left.pixel, clearPixel)).toBeGreaterThan(40);
+  expect(pixelDistance(right.pixel, clearPixel)).toBeGreaterThan(40);
+  validationGuard.expectNoWarnings();
+});
