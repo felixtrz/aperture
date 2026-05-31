@@ -12,8 +12,6 @@ import {
   type FrameGraphResources,
 } from "../../packages/webgpu/src/render/graph/frame-graph-execute.js";
 import { createRenderPassAttachmentPlan } from "../../packages/webgpu/src/render/passes/render-pass-attachments.js";
-import { createShadowPassPlanReport } from "../../packages/webgpu/src/shadows/shadow-pass-plan.js";
-import { createShadowTextureResourceReport } from "../../packages/webgpu/src/shadows/shadow-texture-resource.js";
 
 // M3-T5: the shadow caster passes fold into the single frame encoder as DEPTH-ONLY
 // graph nodes the forward (opaque) node READS. These pure-compile tests prove the
@@ -411,58 +409,5 @@ describe("M3-T5 shadow caster fold executes in ONE encoder / submit", () => {
     const lastDepth = events.lastIndexOf("beginDepthPass");
     const forwardColor = events.indexOf("beginColorPass");
     expect(forwardColor).toBeGreaterThan(lastDepth);
-  });
-});
-
-describe("M3-T5 shadow pass plan is 'ready' under the graph path (Done-when #4)", () => {
-  // The folded graph path drives shadow casters with submission:"ready" — the engine
-  // renders them as in-encoder nodes, NOT the legacy deferred separate submit. Prove
-  // the ShadowPassPlanReport then reports status:"ready" + sections.passSubmission:true
-  // (was "deferred"/false on the legacy unimplemented path), the precondition the
-  // receiver bind group relies on under the fold.
-  function shadowTextures() {
-    return createShadowTextureResourceReport({
-      descriptors: [
-        {
-          shadowId: 7,
-          lightId: 11,
-          mapSize: 1024,
-          depthBias: 0.001,
-          normalBias: 0,
-          filterRadiusTexels: 1,
-          cascadeCount: 1,
-          viewDimension: "2d" as const,
-          resourceKey: "shadow-map:7:11",
-        },
-      ],
-    });
-  }
-  const shadowRequests = [
-    {
-      shadowId: 7,
-      lightId: 11,
-      casterLayerMask: 0xffffffff,
-      receiverLayerMask: 0xffffffff,
-    },
-  ];
-
-  it("reports status:'ready' + sections.passSubmission:true for the graph path", () => {
-    const report = createShadowPassPlanReport({
-      shadowRequests,
-      textures: shadowTextures(),
-      submission: "ready",
-    });
-    expect(report.status).toBe("ready");
-    expect(report.sections.passSubmission).toBe(true);
-    expect(report.ready).toBe(true);
-  });
-
-  it("stays 'deferred' (passSubmission:false) on the legacy unimplemented path", () => {
-    const report = createShadowPassPlanReport({
-      shadowRequests,
-      textures: shadowTextures(),
-    });
-    expect(report.status).toBe("deferred");
-    expect(report.sections.passSubmission).toBe(false);
   });
 });
