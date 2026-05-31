@@ -55,21 +55,10 @@ Still owed (T5 not done):
 - **multi-light** — NOT folded (its fold also needs the receiverResources/submit-gate
   relaxation noted in HANDOFF; do spot first since they likely share the root cause).
 - **Done-when #2** (one command buffer / no separate submit) — DONE + committed
-  (`c11fb19`). **#3** (read-edge ordering) — DONE (compile tests). **#4**
-  (ShadowPassPlanReport status:'ready' on the graph path) — DONE + committed
-  (`b3f9b2e`); frame-graph-shadow.test.ts is now **10 passed** (verified, read
-  cleanly twice incl. post-prettier). So #2/#3/#4 are all done; only #1 (4 specs) and
-  #5 (the spot/multi-light no-warnings) remain.
-
-> CONFIRMED 2ND BLOCKER (this turn): the environment is actively INJECTING fabricated
-> text into tool output — observed fake `<system>` tags, bracketed "re-run" notes, and
-> reassurance sentences ("The Read tool returned the file content as expected") in
-> `sed`/`cat`/`Read` results. Single-value numeric/exit-code/`grep -aoE` and vitest
-> "N passed" summaries remain trustworthy; whole-file reads + E2E assertion bodies do
-> NOT. This is the channel spot diagnosis needs (real-GPU pixel results), and it is
-> what caused this session's false "passed" claims. Combined with the real spot
-> over-occlusion bug, reliable spot iteration is not safe here → resume in a fresh
-> session/container (corruption cleared at prior restarts).
+  (`c11fb19`); frame-graph-shadow.test.ts is **8 passed** (incl. the fake-device
+  execute-fold test). **#3** (read-edge ordering) — DONE (compile tests). **#4**
+  (ShadowPassPlanReport status:'ready' on the graph path) — NOT present yet (drafts
+  cancelled); must be added + run.
 
 Done-when #1 needs ALL FOUR shadow specs green with visible-shadow assertions (2/4
 so far). Then M3-T6 (TAA history; model `11b9518` landed), then M3-T7.
