@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   compileFrameGraph,
   createFrameGraph,
+  createRenderPassAttachmentPlan,
   executeFrameGraph,
   type ComputePassCommand,
   type FrameGraphResources,
@@ -256,5 +257,72 @@ describe("frame graph execute (M3-T2)", () => {
         (diagnostic) => diagnostic.code === "frameGraphExecute.compileNotOk",
       ),
     ).toBe(true);
+  });
+
+  it("encodes a route-supplied boundary payload through the shared encoder", () => {
+    // The post/forward route ports (T3+) build attachments with the exact legacy
+    // code and hand the executor a ready boundary payload via resolveRenderBoundary;
+    // the executor threads it into the ONE shared encoder (no per-node encoder).
+    const events: string[] = [];
+    const graph = createFrameGraph();
+    graph.declareTransient("scene-color", {
+      kind: "color-texture",
+      width: 8,
+      height: 8,
+      format: "rgba8unorm",
+      sampleCount: 1,
+    });
+    graph.importSwapchain();
+    graph.addRenderPass({
+      name: "scene",
+      reads: [],
+      writes: [{ handle: "scene-color", attachment: "clear" }],
+      commands: [drawCommand(1)],
+    });
+    graph.addRenderPass({
+      name: "blit",
+      reads: ["scene-color"],
+      writes: [{ handle: "swapchain", attachment: "clear" }],
+      commands: [drawCommand(2)],
+    });
+
+    const device = recordingDevice(events);
+    const resources: FrameGraphResources = {
+      resolveAttachment: () => null,
+      resolveRenderBoundary: (node) => ({
+        device,
+        attachments: createRenderPassAttachmentPlan({
+          colorTargets: [
+            { view: { label: node.name }, loadOp: "clear", storeOp: "store" },
+          ],
+        }),
+        commands: node.commands as RenderPassCommand[],
+        label: node.name,
+        colorTargetSource: "offscreen-target",
+      }),
+    };
+
+    const report = executeFrameGraph({
+      device,
+      queue: { submit: (buffers) => events.push(`submit:${buffers.length}`) },
+      compiled: compileFrameGraph(graph),
+      resources,
+      label: "payload-frame",
+    });
+
+    expect(report.valid).toBe(true);
+    expect(events).toEqual([
+      "createCommandEncoder",
+      "beginRenderPass",
+      "draw",
+      "end",
+      "beginRenderPass",
+      "draw",
+      "end",
+      "finish",
+      "submit:1",
+    ]);
+    expect(report.metrics.counts.commandBuffers).toBe(1);
+    expect(report.metrics.counts.drawCalls).toBe(2);
   });
 });

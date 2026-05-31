@@ -34,6 +34,7 @@ import {
 } from "../passes/render-pass-attachments.js";
 import {
   encodeFrameBoundaryInto,
+  type EncodeFrameBoundaryIntoOptions,
   type FrameBoundaryDeviceLike,
   type FrameBoundaryEncodeReport,
   type FrameBoundaryEncoderHandle,
@@ -66,9 +67,24 @@ export interface FrameGraphResolvedAttachment {
  * model stays GPU-free (M3-T1); this is where ids become device views, supplied
  * by the route/resource layer (T3+).
  */
+export type FrameGraphRenderNodeBoundary = Omit<
+  EncodeFrameBoundaryIntoOptions,
+  "encoder"
+>;
+
 export interface FrameGraphResources {
   resolveAttachment(handleId: string): FrameGraphResolvedAttachment | null;
   resolveReadbackTexture?(handleId: string): unknown;
+  /**
+   * Optional fast path for real routes: a fully-resolved boundary encode payload
+   * (attachments + commands + readback/timing/occlusion) for a render node, built
+   * by existing route code so encoding stays byte-identical to the legacy
+   * assembleFrameBoundary path. When it returns a payload, it takes precedence
+   * over resolveAttachment; the executor injects the shared encoder.
+   */
+  resolveRenderBoundary?(
+    node: RenderPassNode,
+  ): FrameGraphRenderNodeBoundary | null;
 }
 
 export interface ComputeCommandEncoderLike {
@@ -212,6 +228,17 @@ function encodeRenderNode(
   encoderHandle: FrameGraphExecuteEncoderHandle,
   diagnostics: FrameGraphExecuteDiagnostic[],
 ): FrameGraphRenderNodeReport {
+  // Fast path: a route supplied a fully-resolved boundary payload (built by the
+  // exact legacy attachment code). Encode it into the shared encoder verbatim.
+  const boundary = options.resources.resolveRenderBoundary?.(node);
+  if (boundary !== undefined && boundary !== null) {
+    const encode = encodeFrameBoundaryInto({
+      ...boundary,
+      encoder: encoderHandle,
+    });
+    return { name: node.name, kind: "render", valid: encode.valid, encode };
+  }
+
   const ops = options.compiled.perNodeLoadStoreOps.get(node.name);
   const colorTargets: RenderPassColorAttachmentInput[] = [];
   let depthTarget: RenderPassDepthAttachmentInput | null = null;
