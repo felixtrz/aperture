@@ -456,6 +456,10 @@ export interface WebGpuApp {
   readonly sceneRenderFormat: string;
   readonly msaa: WebGpuMsaaConfig;
   readonly postEffects: readonly WebGpuPostEffect[];
+  // M3-T3: route the swapchain post target through the single-encoder FrameGraph
+  // path. False by default (legacy N-submit path); the graph path falls back to
+  // legacy for routes it does not yet cover, so this is a safe opt-in.
+  readonly useFrameGraph: boolean;
   start(options?: WebGpuAppStartOptions): void;
   stop(): void;
   getDiagnostics(): WebGpuAppDiagnostics;
@@ -487,6 +491,8 @@ export interface CreateWebGpuAppOptions extends Omit<
   // omitted the legacy 8-bit-swapchain in-material tonemap path is unchanged.
   readonly exposure?: number;
   readonly postEffects?: readonly WebGpuPostEffect[];
+  // M3-T3: opt the swapchain post target into the single-encoder FrameGraph path.
+  readonly useFrameGraph?: boolean;
 }
 
 export interface CreateWebGpuAppSuccess {

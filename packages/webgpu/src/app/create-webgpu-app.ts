@@ -103,6 +103,7 @@ export async function createWebGpuApp(
     sceneRenderFormat,
     msaa,
     postEffects,
+    useFrameGraph: options.useFrameGraph ?? false,
     start(startOptions = {}) {
       if (running) {
         return;

@@ -305,6 +305,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         effects: activePostEffects,
         label: options.label,
         clearColor: options.clearColor ?? target.view.clearColor,
+        useFrameGraph: options.app.useFrameGraph,
         ...(options.motionVectorColorFormat === undefined
           ? {}
           : { motionVectorColorFormat: options.motionVectorColorFormat }),
