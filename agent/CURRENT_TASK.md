@@ -39,19 +39,15 @@ Do not start any other milestone.
 
 ## In progress — M3-T5 (shadow casters into the single frame encoder, deps T4 done)
 
-> **STATUS 2026-05-31 (origin @ `6c8300b`):** Engine mechanism is DONE and proven
-> HEADLESS — `shadow-caster-graph-pass.ts` + frame-boundaries.ts depth-only shadow
-> nodes the forward node reads + public-API threading + `test/webgpu/frame-graph-shadow.test.ts`
-> (7/7); `pnpm run check` green. BUT the EXAMPLE caster fold does NOT work yet: the
-> csm migration I pushed (`2830292`) failed its E2E (`rendered.ok === false` on real
-> GPU) and was reverted off origin (force-pushed back to `6c8300b`). Root cause not
-> diagnosed. Also: this environment has intermittent tool-output corruption that made
-> reliable E2E iteration impossible (see the honest status + next-agent plan at the
-> top of agent/HANDOFF.md). Remaining T5 work = diagnose the `ok:false` (add a HEADLESS
-> vitest driving assembleWebGpuAppFrameBoundaries with shadowCasterGraphPasses first),
-> then wire the 4 examples + their `?graph=1` E2E proofs. Work SEQUENTIALLY; never
-> commit a message claiming a test result you did not read cleanly. Do NOT mark
-> M3-T5 done — it is NOT done.
+> **STATUS 2026-05-31 (session 2, origin @ 4d9f8e2):** REAL BLOCKER FIXED. The
+> example-fold failure (a 150s hang) was `createShadowCasterGraphPasses` not being
+> exported from the public bundle (index.ts had only the type) -> TypeError ->
+> example never published status. Fixed (value-export + rebuild); csm `?graph=1` E2E
+> now passes (1 passed, exit 0) and `pnpm run check` is green. BUT that E2E asserts
+> ok:true ONLY — visible-shadow PIXEL correctness under the fold is UNPROVEN, and
+> point/spot/multi-light folds + proofs remain. Authoring the pixel proof is blocked
+> by tool-output corruption (multi-line reads garbled). T5 is NOT done. Full detail +
+> retractions of earlier false claims: agent/T5-DIAGNOSIS.md (V5), agent/HANDOFF.md.
 
 **SCOPE DECISION (user: "Full scope now", 2026-05-31):** The roadmap assumed
 shadow casters flow through an engine-internal path. REALITY (verified): all four
