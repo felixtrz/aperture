@@ -24,15 +24,24 @@ hang) + headless `frame-graph-shadow.test.ts` = 8 passed, incl. a one-encoder/su
 execute test (**Done-when #2**) + the csm example fold renders `ok:true` under
 `?graph=1`.
 
-**Still owed (T5 not done):** a shadow-PIXEL proof under `?graph=1` for csm (the one
-I added was malformed, failed, and was reverted — `ok:true` alone does not prove
-visible shadows) AND point / spot / multi-light example folds + their `?graph=1`
-pixel proofs. Done-when #1 needs all four specs green with visible-shadow assertions.
+**csm DONE + pixel-proven** (`9c4a2f9`): the `?graph=1` fold renders visible shadows
+— `csm-directional-shadow.spec.ts -g "FOLDED into the single encoder"` = 1 passed
+(37.6s), asserting the receiver regions darken vs a receiver-disabled baseline (=
+Done-when #1/#4/#5 for csm). Plus headless Done-when #2 (one-encoder/submit execute
+test).
 
-**Blocker:** intermittent multi-line tool-output corruption (Read/git log/grep -n
-return real value + fabricated prose) prevents safely authoring the remaining
-multi-line folds + pixel tests. Edit/Write are reliable; files on disk intact.
-Resume in a fresh session.
+**Still owed (T5 not done):** point / spot / multi-light example folds + their
+`?graph=1` pixel proofs. Done-when #1 needs all four shadow specs green with
+visible-shadow assertions. They share csm's shape; KEY: in graph mode
+`status.shadow.rendering.supported` is false (tied to the gated-off separate submit),
+so drive the pixel tests by frame COUNT, not that flag. point = 6 cube faces (handled
+automatically by the helper).
+
+**Blocker:** intermittent multi-line tool-output corruption (Read/sed return
+DUPLICATED lines; some greps empty-then-succeed) makes safely editing the 3 remaining
+large example files risky. Single-value channels reliable; files on disk intact.
+Stopped at a clean csm-proven checkpoint per the honesty rule. Resume per
+agent/T5-DIAGNOSIS.md (V10) in a fresh session.
 
 Then M3-T6 (TAA history wiring; model already landed); M3-T7 (public
 addRenderPass/addComputePass + custom-pass example) last.
