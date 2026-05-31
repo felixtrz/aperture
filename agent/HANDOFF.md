@@ -1,6 +1,35 @@
 # Agent Handoff
 
-Updated: 2026-05-31T09:18:00Z
+Updated: 2026-05-31T09:40:00Z
+
+## Current Run Update — 2026-05-31 — SOTA M3: 3/7 done + T4 NEARLY DONE (4.5/5) + T6 history
+
+**M3-T4 is 4.5/5 — core validated on real SwiftShader GPU; only the
+transmission-grab merge remains.** The single-encoder forward-route graph path in
+`frame-boundaries.ts` (behind `useFrameGraph`, default OFF) is proven on real GPU:
+Done-when #1 (camera-clear-load-matrix `896b5fc` — base region preserved via LOAD),
+#2 (split-screen `7c0f0fc` + camera-viewport-grid `6ac4ccd` — the multi-target
+merge, four/two camera submissions → ONE command buffer, each correct), #3
+(`8e9df63` vitest — compiler load/store == legacy submittedTargetCounts), #4
+(clustered-lights `5ad6d3f` + csm-directional-shadow `16ef314` — lit + shadow
+receiver forward routes), #5 multi-target (vitest + the camera merge), all with
+zero validation warnings. `useFrameGraph` is threaded through `createApertureApp`
+(`?graph=1`) so the generated-harness camera examples opt in. ONE T4 piece
+remains: fold the transmission-grab pass into the same encoder (#5 second half —
+`transmission-grab.ts:146` assembleFrameBoundary is the hook; register a grab node
+writing a `grab:<key>` handle + pass `reads:["grab:<key>"]` to
+`registerForwardGraphTarget` for the main target so the compiler orders grab→main
+
+- stores the grab; remove the transmission exclusion from `forwardGraphEligible`;
+  validate transmission.spec.ts with `?graph=1`). The graph safely bails to legacy
+  on transmission frames today (they render correctly, just not merged).
+
+**M3 remaining after T4:** T6 (history model `11b9518` #1/#4 done) needs its TAA
+route wiring (post-taa.ts → createFrameGraphHistoryResource + a convergence E2E);
+then T5 (shadow casters into the encoder, deps T4) and T7 (public
+addRenderPass/addComputePass + custom-pass example, deps T4 + T2 — the capstone).
+The integration pattern is established (registerForwardGraphTarget + post-loop
+synthesis in frame-boundaries.ts, the mirror of T3's synthesizePostGraphBoundary).
 
 ## Current Run Update — 2026-05-31 — SOTA M3: 3/7 done + T4 forward-route integration + T6 history
 

@@ -28,16 +28,17 @@ Do not start any other milestone.
 
 ## In progress — M3-T4 (forward + multi-target route → graph)
 
-**Integration LANDED (`5ad6d3f`):** `assembleWebGpuAppFrameBoundaries`
-(`app/frame-boundaries.ts`) now builds ONE FrameGraph spanning all render targets
-behind `useFrameGraph` (default OFF; legacy untouched). Proven on real GPU
-(clustered-lights graph E2E) + headless #3 (load/store == legacy
-submittedTargetCounts) + #5 (multi-target ⇒ one command buffer). REMAINING: #1/#2
-camera multi-target E2E (thread `useFrameGraph` through `createApertureApp` — those
-examples use the generated harness), #4 csm/glb `?graph=1` runs, #5 fold
-transmission-grab into the same encoder. Also: T6 history model (`11b9518`, #1/#4)
+**NEARLY DONE (4.5/5).** `assembleWebGpuAppFrameBoundaries`
+(`app/frame-boundaries.ts`) builds ONE FrameGraph spanning all render targets
+behind `useFrameGraph` (default OFF; legacy untouched), threaded through
+`createApertureApp` (`?graph=1`). VALIDATED ON REAL GPU: #1 camera-clear-load-matrix
+(`896b5fc`), #2 split-screen + camera-viewport-grid multi-target merge (`7c0f0fc`
 
-- its TAA route wiring.
+- `6ac4ccd`), #4 clustered-lights + csm (`5ad6d3f` + `16ef314`); + #3 vitest
+  (`8e9df63`) + #5 multi-target. ONLY remaining: #5 fold the transmission-grab pass
+  into the same encoder (hook: `transmission-grab.ts:146`; the graph bails to legacy
+  on transmission frames today — they render correctly, just not merged). Then T6
+  TAA route wiring (history model `11b9518` done).
 
 Then T5 (shadows into the encoder, deps T4); T7 (public
 addRenderPass/addComputePass + custom-pass example) last (deps T4, T2).
