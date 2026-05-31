@@ -590,9 +590,7 @@ async function createCsmShadowFrame(input) {
       encoder: encoderResource.resource?.encoder,
       queue: app.initialization.device.queue,
       label: "shadow-pass:csm-directional",
-      // M3-T5: when ?graph=1, the engine folds the caster passes into the forward
-      // encoder (one command buffer), so skip the example's own separate submit.
-      submit: scene.shadowControls.casterEnabled && !useFrameGraphParam,
+      submit: scene.shadowControls.casterEnabled,
     });
   const commandBufferSubmission =
     aperture.shadowPassCommandBufferSubmissionReportToJsonValue(
