@@ -7,6 +7,11 @@ import {
   type ShadowCasterGraphPass,
 } from "../../packages/webgpu/src/app/shadow-caster-graph-pass.js";
 import type { RenderPassCommand } from "../../packages/webgpu/src/render/passes/render-pass-commands.js";
+import {
+  executeFrameGraph,
+  type FrameGraphResources,
+} from "../../packages/webgpu/src/render/graph/frame-graph-execute.js";
+import { createRenderPassAttachmentPlan } from "../../packages/webgpu/src/render/passes/render-pass-attachments.js";
 
 // M3-T5: the shadow caster passes fold into the single frame encoder as DEPTH-ONLY
 // graph nodes the forward (opaque) node READS. These pure-compile tests prove the
@@ -262,5 +267,147 @@ describe("createShadowCasterGraphPasses", () => {
     expect(plan.plan?.colorAttachments).toHaveLength(0);
     expect(plan.plan?.depthStencilAttachment?.view).toBe(depthView);
     expect(plan.plan?.depthStencilAttachment?.depthStoreOp).toBe("store");
+  });
+});
+
+function recordingDevice(events: string[]) {
+  return {
+    createCommandEncoder: () => {
+      events.push("createCommandEncoder");
+      return {
+        beginRenderPass: (descriptor: {
+          readonly colorAttachments: readonly unknown[];
+          readonly depthStencilAttachment?: unknown;
+        }) => {
+          const depthOnly =
+            descriptor.colorAttachments.length === 0 &&
+            descriptor.depthStencilAttachment !== undefined;
+          events.push(depthOnly ? "beginDepthPass" : "beginColorPass");
+          return {
+            setPipeline: () => {},
+            setBindGroup: () => {},
+            setVertexBuffer: () => {},
+            setIndexBuffer: () => {},
+            draw: () => events.push("draw"),
+            drawIndexed: () => events.push("draw"),
+            end: () => events.push("end"),
+          };
+        },
+        finish: () => {
+          events.push("finish");
+          return { label: "command-buffer" };
+        },
+      };
+    },
+  };
+}
+
+describe("M3-T5 shadow caster fold executes in ONE encoder / submit", () => {
+  it("folds depth-only shadow nodes + the forward node into one encoder with one submit, shadows first", () => {
+    // Done-when #2: a frame with shadow casters + opaque submits ONE command
+    // buffer and does NOT invoke a separate shadow submit. Two depth-only shadow
+    // nodes the forward node READS are encoded into the SAME encoder, before the
+    // forward color pass, then finished + submitted exactly once.
+    const events: string[] = [];
+    const device = recordingDevice(events);
+
+    const shadowKeys = ["shadow:dir:cascade:0", "shadow:dir:cascade:1"];
+    const passesByName = new Map<string, ShadowCasterGraphPass>(
+      shadowKeys.map((key) => [
+        `${key}:fg`,
+        {
+          key,
+          depthView: { __depth: key },
+          depthLoadOp: "clear" as const,
+          depthStoreOp: "store" as const,
+          depthClearValue: 1,
+          width: 1024,
+          height: 1024,
+          depthFormat: "depth24plus",
+          commands: [drawCommand],
+        },
+      ]),
+    );
+
+    const graph = createFrameGraph();
+    graph.importSwapchain("swapchain");
+    for (const key of shadowKeys) {
+      graph.declareTransient(`shadow:${key}`, {
+        kind: "depth-texture",
+        width: 1024,
+        height: 1024,
+        format: "depth24plus",
+        sampleCount: 1,
+      });
+      graph.addRenderPass({
+        name: `${key}:fg`,
+        reads: [],
+        writes: [
+          { handle: `shadow:${key}`, attachment: "clear", clearDepth: 1 },
+        ],
+        commands: [drawCommand],
+      });
+    }
+    graph.addRenderPass({
+      name: "forward",
+      reads: shadowKeys.map((key) => `shadow:${key}`),
+      writes: [{ handle: "swapchain", attachment: "clear" }],
+      commands: [drawCommand],
+    });
+
+    const resources: FrameGraphResources = {
+      resolveAttachment: () => null,
+      resolveRenderBoundary: (node) => {
+        const shadowPass = passesByName.get(node.name);
+        if (shadowPass !== undefined) {
+          return {
+            device,
+            attachments: buildShadowCasterDepthAttachmentPlan(shadowPass),
+            commands: node.commands as RenderPassCommand[],
+            label: node.name,
+            colorTargetSource: "offscreen-target",
+          };
+        }
+        return {
+          device,
+          attachments: createRenderPassAttachmentPlan({
+            colorTargets: [
+              { view: { label: "swap" }, loadOp: "clear", storeOp: "store" },
+            ],
+          }),
+          commands: node.commands as RenderPassCommand[],
+          label: node.name,
+          colorTargetSource: "offscreen-target",
+        };
+      },
+    };
+
+    const report = executeFrameGraph({
+      device,
+      queue: { submit: (buffers) => events.push(`submit:${buffers.length}`) },
+      compiled: compileFrameGraph(graph),
+      resources,
+      label: "shadow-fold",
+    });
+
+    // depth-only shadow nodes ENCODE valid in the shared encoder (the gap that the
+    // real-GPU fold exposed: a render pass with zero color attachments + a depth
+    // attachment must encode valid).
+    expect(report.valid).toBe(true);
+
+    // ONE encoder, ONE finish, ONE submit of ONE command buffer (no separate
+    // shadow submit).
+    expect(events.filter((e) => e === "createCommandEncoder")).toHaveLength(1);
+    expect(events.filter((e) => e === "finish")).toHaveLength(1);
+    expect(events.filter((e) => e.startsWith("submit:"))).toEqual(["submit:1"]);
+    expect(report.metrics.counts.commandBuffers).toBe(1);
+    expect(report.metrics.counts.submittedCommandBuffers).toBe(1);
+
+    // both shadow depth passes are encoded BEFORE the forward color pass.
+    const depthCount = events.filter((e) => e === "beginDepthPass").length;
+    expect(depthCount).toBe(2);
+    const lastDepth = events.lastIndexOf("beginDepthPass");
+    const forwardColor = events.indexOf("beginColorPass");
+    expect(forwardColor).toBeGreaterThan(lastDepth);
   });
 });
