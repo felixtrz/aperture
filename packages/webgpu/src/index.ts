@@ -1,6 +1,7 @@
 export * from "./gpu/initialize-webgpu.js";
 export * from "./app/app.js";
 export * from "./app/app-environment-resources.js";
+export * from "./app/shadow-caster-graph-pass.js";
 export * from "./gpu/buffer.js";
 export * from "./render/clear/clear.js";
 export * from "./render/clear/clear-readback.js";
