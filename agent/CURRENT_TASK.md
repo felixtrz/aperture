@@ -1,7 +1,7 @@
 # Current Task
 
 **Milestone M3 — A real render graph** (docs/SOTA_ROADMAP.md, wave 2). IN
-PROGRESS: 2 of 7 tasks done. Source of truth is `docs/SOTA_ROADMAP.md` (its 📋
+PROGRESS: 3 of 7 tasks done. Source of truth is `docs/SOTA_ROADMAP.md` (its 📋
 Status block + completion log + Resume notes are authoritative; ignore
 agent/BACKLOG.md per the active directive).
 
@@ -10,41 +10,39 @@ Do not start any other milestone.
 
 ## Done
 
-- **M3-T1** (`107c61d`) — pure, headless FrameGraph data model + `compileFrameGraph`
-  (topo order, store-on-no-clear load/store inference, descriptor-keyed transient
-  aliasing, JSON-safe report; cycle ⇒ ok:false, no throw) + `ComputePassCommand`
-  union. Proof: `test/webgpu/frame-graph-compile.test.ts` (6 pass).
-- **M3-T2** (`924003c`) — single-encoder executor `executeFrameGraph`
-  (`render/graph/frame-graph-execute.ts`) + the `frame-boundary.ts` keystone
-  split (extracted `encodeFrameBoundaryInto`; `assembleFrameBoundary` is now a
-  legacy-preserving wrapper, `frame-boundary.test.ts` byte-identical-green) +
-  compute executor + multi-pass metrics. Proof:
-  `test/webgpu/frame-graph-execute.test.ts` (4 pass). Gate green (394 files /
-  2221 tests).
+- **M3-T1** (`107c61d`) — pure, headless FrameGraph data model + `compileFrameGraph`.
+  Proof: `test/webgpu/frame-graph-compile.test.ts` (6 pass).
+- **M3-T2** (`924003c`) — single-encoder executor `executeFrameGraph` + the
+  `frame-boundary.ts` keystone split (`encodeFrameBoundaryInto` +
+  legacy-preserving `assembleFrameBoundary` wrapper) + compute executor +
+  multi-pass metrics. Proof: `test/webgpu/frame-graph-execute.test.ts` (5 pass).
+- **M3-T3** (`1f6721f`) — post stack behind `useFrameGraph` (default OFF):
+  `assembleWebGpuAppPostProcessedSwapchainTargetViaGraph` builds the same per-pass
+  boundaries via `buildFrameBoundaryTargetPlan` → `resolveRenderBoundary`
+  payloads → `executeFrameGraph` once → byte-identical reports; flag threaded
+  through the app; examples/post-effects `?graph=1`. Proofs: post-frame-graph.test.ts
+  (#2), post-graph-parity.test.ts (#3, simple + bloom), post-effects.spec.ts
+  "FrameGraph path matches…" (#4, real-GPU pixel+report parity on SwiftShader).
+  #1/#5 (dof.spec.ts) = documented SwiftShader timeout; covered by the
+  post-effects graph E2E. Gate green (396 files / 2225 tests).
 
-## In progress — M3-T3 (post-stack graph port)
+## Next — M3-T4 (forward + multi-target route → graph)
 
-Two proven groundwork commits landed; the orchestrator port itself remains:
+Make `assembleWebGpuAppFrameBoundaries` (`app/frame-boundaries.ts`) build ONE
+FrameGraph spanning all render targets, replace the local
+submittedTargetCounts/loadExistingTarget logic with the compiler's
+renderTargetMap inference (verify SAME load/store via a vitest golden), make
+transmission-grab + MSAA resolve declared graph writes, and flip `useFrameGraph`
+default ON for the queued-built-in route once camera-clear-load-matrix +
+multi-camera specs are green. Reuse the T3 primitives (buildFrameBoundaryTargetPlan
 
-- **`bd383f3`** — executor `FrameGraphResources.resolveRenderBoundary(node)`
-  hook: a route hands the single-encoder executor a fully-resolved boundary
-  payload; it threads it into the one shared encoder verbatim. Tested.
-- **`16eec77`** — extracted `buildFrameBoundaryTargetPlan` from
-  `assembleFrameBoundary` (behavior-preserving) so the post-graph builder builds
-  byte-identical attachments per node.
+- resolveRenderBoundary + the report-synthesis-from-encode pattern).
 
-Remaining: the `useFrameGraph` branch in `app/post-processing.ts` (build nodes +
-payloads + `executeFrameGraph` once + synthesize the post reports), thread the
-flag through `CreateWebGpuAppOptions`→`create-webgpu-app`→`frame-boundaries`
-(default OFF), and prove via the post-effects E2E (commandBuffers===1 +
-postEffects parity + pixels). `dof.spec.ts` is the documented SwiftShader
-timeout — use post-effects as the alternative + record it honestly.
+Then T5 (shadows into the encoder); T6 (TAA history) after T3; T7 (public
+addRenderPass/addComputePass + custom-pass example) last (depends T4, T2).
 
-Then T4 (forward/multi-target) → T5 (shadows); T6 (TAA history) after T3; T7
-(public addRenderPass/addComputePass + custom-pass example) last (depends T4, T2).
-
-See the Resume notes in docs/SOTA_ROADMAP.md for the full T3 step list +
-watch-outs + the lowest-risk implementation shape.
+See the Resume notes in docs/SOTA_ROADMAP.md for the full T4 step list +
+watch-outs.
 
 ## Invariants (every M3 task)
 

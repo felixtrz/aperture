@@ -1,11 +1,37 @@
 # Agent Handoff
 
-Updated: 2026-05-31T07:25:00Z
+Updated: 2026-05-31T08:20:00Z
 
-## Current Run Update — 2026-05-31 — SOTA M3 (Real render graph): 2/7 done + T3 groundwork
+## Current Run Update — 2026-05-31 — SOTA M3 (Real render graph): 3/7 done (T1+T2+T3)
 
-**M3-T3 (post-stack port) is IN PROGRESS.** Two proven, gate-green groundwork
-commits landed this run; the orchestrator port itself remains:
+**M3-T3 (post-stack graph port) is ✅ DONE (1f6721f), gate-green, pushed.** The
+swapchain post target now routes through the single-encoder FrameGraph behind a
+`useFrameGraph` flag (default OFF), proven byte-identical to legacy in vitest
+(#2 single command buffer, #3 report parity for simple + multi-pass-bloom
+effects) AND real-GPU pixel-parity (#4 post-effects.spec.ts on SwiftShader,
+7.8s). #1/#5 name `dof.spec.ts` = documented SwiftShader timeout (unrunnable);
+their substance is covered by the post-effects graph E2E on real GPU. Key new
+code: `app/post-processing.ts` `assembleWebGpuAppPostProcessedSwapchainTargetViaGraph`
+(builds the same per-pass boundaries via `buildFrameBoundaryTargetPlan` →
+`resolveRenderBoundary` payloads → `executeFrameGraph` once → synthesizes
+legacy-compatible reports), flag threaded through CreateWebGpuAppOptions →
+create-webgpu-app → frame-boundaries, examples/post-effects `?graph=1`. The
+report-synthesis-from-`exec.nodes[].encode` pattern is the template for the
+remaining route ports (T4/T5).
+
+**NEXT — M3-T4 (forward + multi-target route → graph):** make
+`assembleWebGpuAppFrameBoundaries` build ONE FrameGraph spanning all render
+targets, replace the local submittedTargetCounts/loadExistingTarget logic with
+the compiler's renderTargetMap inference (verify SAME load/store via a vitest
+golden), make transmission-grab + MSAA resolve declared graph writes, and flip
+`useFrameGraph` default ON for the queued-built-in route once
+camera-clear-load-matrix + multi-camera specs are green. Reuse the T3 primitives
+(buildFrameBoundaryTargetPlan + resolveRenderBoundary + the synth pattern). Full
+step list + watch-outs in the SOTA_ROADMAP Resume notes.
+
+### M3-T3 groundwork (now part of the shipped T3)
+
+Two reusable primitives landed first and are exported via test-support:
 
 - `bd383f3` — the single-encoder executor's `FrameGraphResources` gained an
   optional `resolveRenderBoundary(node)` hook: a route hands the executor a
