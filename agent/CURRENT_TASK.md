@@ -37,23 +37,48 @@ Do not start any other milestone.
   #5 multi-target one-buffer + transmission-grab fold (6aa330a). Zero validation
   warnings.
 
-## Next — M3-T5 (shadow casters into the single frame encoder, deps T4 done)
+## In progress — M3-T5 (shadow casters into the single frame encoder, deps T4 done)
 
-Wire each ShadowPassPlan (directional cascade / point face×6 / spot) as a render
-PassNode that runs BEFORE the opaque node in the SAME FrameGraph, reusing
-`shadow-caster-command-record-plan.ts` RenderPassCommand lists + the plan's
-depthLoadOp/depthStoreOp. Declare the opaque/forward node as READING the shadow
-depth handles so the compiler orders shadows first (store-on-no-clear sets the
-shadow node's depthStoreOp='store' because opaque reads it) and the receiver
-samples a single-encoder-consistent depth map. Flip shadow-pass-plan submission
-to 'ready' in the graph path so the separate shadow submit is no longer invoked.
-NOTE csm-directional-shadow already passes with graph ON for the FORWARD route
-(16ef314, T4 #4) — T5 must keep it green AND fold the caster passes in.
+**SCOPE DECISION (user: "Full scope now", 2026-05-31):** The roadmap assumed
+shadow casters flow through an engine-internal path. REALITY (verified): all four
+named specs (csm-directional/point/spot/multi-light) set
+`autoStandardMaterialShadowReceiverResources: false` and HAND-ROLL their shadow
+caster pipelines in EXAMPLE code via the public lower-level APIs, submitting their
+OWN caster command buffer, then pass the engine only pre-baked receiverResources.
+The engine forward route (sampling the maps) already passes with graph ON (T4 #4).
+So full T5 = a NEW public surface to hand caster passes to the engine + migrate all
+4 hand-rolled examples/specs.
 
-Reuse the T4 plumbing in `frame-boundaries.ts` (forwardGraph + addRenderPass +
-forwardGraphPayloads + the per-node-encode synthesis); the transmission-grab
-merge (6aa330a) is the closest template. See the Resume notes in
-docs/SOTA_ROADMAP.md for the full T5 plan, watch-outs, and proofs.
+DESIGN (generic engine fold, reused by all shadow types):
+
+1. **`app/shadow-caster-graph-pass.ts`** (new): public `ShadowCasterGraphPass`
+   type `{ key, depthView, depthClearValue?, depthLoadOp, depthStoreOp, commands,
+width?, height?, depthFormat? }` + a `createShadowCasterGraphPasses({
+passAttachments, commandRecords, depthTextureResources })` helper that pairs each
+   ShadowPassDepthAttachmentDescriptor with its commands (by passKey) + resolves the
+   depth view via resolveShadowDepthTextureAttachmentView. Depth-only render pass
+   data, encoder-agnostic.
+2. **Thread `shadowCasterGraphPasses?`** through renderSnapshot → queued-built-in-frame
+   → assembleWebGpuAppFrameBoundaries.
+3. **frame-boundaries.ts**: when forwardGraph active + shadowCasterGraphPasses present,
+   for each pass: declareTransient(`shadow:<key>`, depth descriptor) + addRenderPass
+   writing it (attachment = depthLoadOp) + a resolveRenderBoundary payload with a
+   DEPTH-ONLY attachment plan (createRenderPassAttachmentPlan({colorTargets:[],
+   depthTarget})) + the caster commands. Each opaque target node adds
+   `reads: [...shadow keys]` (line 963 reads:[]) so the compiler orders shadows
+   first. Synthesize shadow boundaries from exec.nodes[].encode (mirror grab synthesis).
+   encodeFrameBoundaryInto SUPPORTS depth-only (verified: empty colorTargets + depth).
+4. **Examples** (csm/point/spot/multi-light): when `?graph=1`, build
+   ShadowCasterGraphPass[] via the helper + pass to renderSnapshot, SKIP their own
+   caster submission. → shadows+opaque in ONE command buffer.
+5. **Proofs**: 4 specs graph ON (one buffer + shadows correct + zero warnings) +
+   vitests (#3 compiler orders shadow<opaque via read edge, remove edge ⇒ reorder;
+   #2 no separate submit / commandBuffers===1; #5 store inference).
+
+WATCH-OUTS: shadow depth needs depthStoreOp='store' (always for shadows; compiler
+store-on-no-clear also infers it from the opaque read edge). Cube/point = 6 face
+nodes (faceIndex → arrayLayer in resolveShadowDepthTextureAttachmentView via
+viewKey). Keep legacy (example-submitted) path when graph OFF.
 
 Then T6 TAA history wiring (model done `11b9518`); T7 (public
 addRenderPass/addComputePass + custom-pass example) last (deps T4, T2).

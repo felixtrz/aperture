@@ -56,6 +56,10 @@ import {
   buildWebGpuAppTransmissionGrabBoundaryOptions,
 } from "./transmission-grab.js";
 import {
+  buildShadowCasterDepthAttachmentPlan,
+  type ShadowCasterGraphPass,
+} from "./shadow-caster-graph-pass.js";
+import {
   createWebGpuAppOcclusionQueryResources,
   createWebGpuAppRenderBundleCommandKey,
   createWebGpuAppRenderBundleReport,
@@ -111,6 +115,9 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   readonly clearColor?: readonly number[];
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
   readonly enableRenderBundles?: boolean;
+  // M3-T5: shadow caster passes to fold into the forward encoder as depth-only
+  // graph nodes the opaque pass reads (only used when useFrameGraph is on).
+  readonly shadowCasterGraphPasses?: readonly ShadowCasterGraphPass[];
 }): Promise<WebGpuAppFrameBoundaryAssemblyResult> {
   const targetPlan = createWebGpuAppFrameBoundaryTargets(
     options.app,
@@ -182,6 +189,50 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   // M3-T4: transmission-grab passes collected as graph nodes (they render the
   // scene to the grab texture the main pass samples; same encoder, grab first).
   const forwardGraphGrabEntries: ForwardGraphGrabEntry[] = [];
+
+  // M3-T5: shadow caster passes become DEPTH-ONLY graph nodes registered BEFORE
+  // the forward target nodes; each forward node reads the shadow depth handles so
+  // the compiler orders shadows first and the receiver samples a freshly-written,
+  // single-encoder-consistent depth map (one encoder, one submit for shadows +
+  // opaque). The caller (route/example) hands resolved caster passes in.
+  const forwardGraphShadowEntries: ForwardGraphShadowEntry[] = [];
+  const forwardGraphShadowReads: string[] = [];
+  if (forwardGraph !== null) {
+    const shadowDevice = options.app.initialization.device as Parameters<
+      typeof assembleFrameBoundary
+    >[0]["device"];
+    for (const shadowPass of options.shadowCasterGraphPasses ?? []) {
+      const handle = `shadow:${shadowPass.key}`;
+      if (forwardGraph.handle(handle) === undefined) {
+        forwardGraph.declareTransient(handle, {
+          kind: "depth-texture",
+          width: shadowPass.width,
+          height: shadowPass.height,
+          format: shadowPass.depthFormat,
+          sampleCount: 1,
+        });
+      }
+      const shadowNodeName = `${options.label}:shadow:${shadowPass.key}:fg`;
+      forwardGraph.addRenderPass({
+        name: shadowNodeName,
+        reads: [],
+        writes: [{ handle, attachment: shadowPass.depthLoadOp }],
+        commands: shadowPass.commands,
+      });
+      forwardGraphPayloads.set(shadowNodeName, {
+        device: shadowDevice,
+        attachments: buildShadowCasterDepthAttachmentPlan(shadowPass),
+        commands: shadowPass.commands,
+        label: shadowNodeName,
+        colorTargetSource: "offscreen-target",
+      });
+      forwardGraphShadowEntries.push({
+        nodeName: shadowNodeName,
+        key: shadowPass.key,
+      });
+      forwardGraphShadowReads.push(handle);
+    }
+  }
 
   for (
     let targetIndex = 0;
@@ -601,6 +652,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         occlusionQueries,
         occlusionRenderIds,
         gpuTimingPassName: gpuTiming.passName,
+        shadowReads: forwardGraphShadowReads,
       });
       firstDepthAttachment ??= createWebGpuAppDepthAttachmentReport(
         options.snapshot,
@@ -686,7 +738,9 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   // the legacy-compatible per-target boundaries + reports from the node results.
   if (
     forwardGraph !== null &&
-    (forwardGraphEntries.length > 0 || forwardGraphGrabEntries.length > 0)
+    (forwardGraphEntries.length > 0 ||
+      forwardGraphGrabEntries.length > 0 ||
+      forwardGraphShadowEntries.length > 0)
   ) {
     const device = options.app.initialization.device as Parameters<
       typeof assembleFrameBoundary
@@ -711,6 +765,19 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       if (node.kind === "render") {
         encodeByName.set(node.name, node.encode);
       }
+    }
+
+    // M3-T5: shadow caster nodes are ordered first (the forward nodes read their
+    // depth handles). They are depth-only (no color boundary), so they fold their
+    // encode validity + diagnostics into the frame rather than into boundaries[].
+    for (const shadowEntry of forwardGraphShadowEntries) {
+      const encode = encodeByName.get(shadowEntry.nodeName);
+      allTargetsValid &&= (encode?.valid ?? false) && frameOk;
+      diagnostics.push(
+        ...(encode?.begin?.diagnostics ?? []),
+        ...(encode?.execution?.diagnostics ?? []),
+        ...(encode?.end?.diagnostics ?? []),
+      );
     }
 
     // grab nodes are encoded first (insertion order) — synthesize their
@@ -879,6 +946,11 @@ interface ForwardGraphGrabEntry {
   readonly reportBase: Omit<WebGpuAppTransmissionGrabPassReport, "ok">;
 }
 
+interface ForwardGraphShadowEntry {
+  readonly nodeName: string;
+  readonly key: string;
+}
+
 interface ForwardGraphTargetEntry {
   readonly nodeName: string;
   readonly texture: ReturnType<typeof buildFrameBoundaryTargetPlan>["texture"];
@@ -911,6 +983,9 @@ function registerForwardGraphTarget(args: {
   > | null;
   readonly occlusionRenderIds: readonly number[];
   readonly gpuTimingPassName: string;
+  // M3-T5: shadow depth handles this forward node reads so the compiler orders
+  // the shadow caster nodes strictly before it (one shared encoder).
+  readonly shadowReads?: readonly string[];
 }): void {
   const opts = args.boundaryOptions;
   const plan = buildFrameBoundaryTargetPlan({
@@ -955,7 +1030,7 @@ function registerForwardGraphTarget(args: {
   const nodeName = `${opts.label}:fg:${args.entries.length}`;
   args.graph.addRenderPass({
     name: nodeName,
-    reads: [],
+    reads: args.shadowReads ?? [],
     writes: [
       { handle, attachment: opts.colorLoadOp === "load" ? "load" : "clear" },
     ],

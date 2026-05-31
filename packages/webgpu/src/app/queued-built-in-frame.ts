@@ -53,6 +53,7 @@ import {
   rememberCurrentViewProjectionMatrices,
 } from "./motion-vectors.js";
 import { assembleWebGpuAppFrameBoundaries } from "./frame-boundaries.js";
+import type { ShadowCasterGraphPass } from "./shadow-caster-graph-pass.js";
 import { renderReport, waitForSubmittedWork } from "./report.js";
 import { createWebGpuAppAutoShadowFrame } from "./auto-shadow-frame.js";
 import type { WebGpuAppRenderPhaseTimer } from "./app-phase-timing.js";
@@ -79,6 +80,10 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     | StandardFrameShadowReceiverResources
     | undefined;
   readonly autoStandardMaterialShadowReceiverResources?: boolean;
+  // M3-T5: shadow caster passes to fold into the single forward encoder.
+  readonly shadowCasterGraphPasses?:
+    | readonly ShadowCasterGraphPass[]
+    | undefined;
   readonly standardMaterialIblResources?: StandardFrameIblResources | undefined;
   readonly localLightCookieResources?:
     | LocalLightClusterCookieResources
@@ -410,6 +415,9 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     ...(options.readbackSamples === undefined
       ? {}
       : { readbackSamples: options.readbackSamples }),
+    ...(options.shadowCasterGraphPasses === undefined
+      ? {}
+      : { shadowCasterGraphPasses: options.shadowCasterGraphPasses }),
   });
   rememberCurrentViewProjectionMatrices(
     options.snapshot,
