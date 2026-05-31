@@ -1,6 +1,42 @@
 # Agent Handoff
 
-Updated: 2026-05-31T09:40:00Z
+Updated: 2026-05-31T10:08:00Z
+
+## Current Run Update — 2026-05-31 — SOTA M3: 4/7 done (M3-T4 ✅ complete)
+
+**M3-T4 is DONE (`6aa330a`), gate-green, pushed.** The final piece — folding the
+transmission-grab pass into the single-encoder graph — landed: when a transmission
+frame is graph-eligible, the grab is registered as a render node that clears+writes
+a transient `transmission-grab:<key>` handle BEFORE the main target node (insertion
+order ⇒ grab encoded first, stores its scene color, the main forward pass samples it
+via the existing transmission resources — one shared encoder, no read edge needed).
+`buildWebGpuAppTransmissionGrabBoundaryOptions` was extracted from
+`assembleWebGpuAppTransmissionGrabPass` so the grab options build without executing;
+the transmission exclusion was removed from `forwardGraphEligible`; the grab boundary
+
+- `transmissionGrabPass` report are synthesized from the per-node encode results.
+  Proof: `test/e2e/transmission.spec.ts` "transmission renders through the
+  single-encoder FrameGraph (M3-T4)" PASSES on SwiftShader (4.5s), zero validation
+  warnings; `pnpm run check` green (398 files / 2232 tests).
+
+**All 5 T4 Done-when ✅** (validated on real SwiftShader GPU or vitest, zero
+warnings): #1 camera-clear-load-matrix (`896b5fc`), #2 split-screen (`7c0f0fc`) +
+camera-viewport-grid (`6ac4ccd`), #3 frame-graph-multi-target.test.ts (`8e9df63`),
+#4 clustered-lights (`5ad6d3f`) + csm-directional-shadow (`16ef314`), #5 multi-target
+one-buffer + transmission-grab fold (`6aa330a`). The forward + multi-target route in
+`frame-boundaries.ts` now builds ONE FrameGraph spanning all targets behind
+`useFrameGraph` (default OFF; legacy multi-submit reachable via flag for one
+release), the compiler's renderTargetMap inference subsuming submittedTargetCounts.
+
+**M3 remaining:** T5 (shadow casters into the encoder, deps T4 — now unblocked) is
+NEXT in dependsOn order; then T6 (history model `11b9518` #1/#4 done) needs its TAA
+route wiring (post-taa.ts → createFrameGraphHistoryResource + convergence E2E); T7
+(public addRenderPass/addComputePass + custom-pass example, deps T4 + T2) is the
+capstone, last. The T4 plumbing (forwardGraph + addRenderPass + forwardGraphPayloads
+
+- per-node-encode synthesis in frame-boundaries.ts) + the transmission-grab merge are
+  the templates for T5 — the shadow node WRITES a depth handle, the opaque node READS
+  it so store-on-no-clear forces depthStoreOp='store'.
 
 ## Current Run Update — 2026-05-31 — SOTA M3: 3/7 done + T4 NEARLY DONE (4.5/5) + T6 history
 
