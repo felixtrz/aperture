@@ -44,21 +44,36 @@ Still owed (T5 not done):
     ReferenceError → never published status → Playwright timed out. (I "fixed" the one
     visible occurrence but a second bare reference remained — grep showed
     spot_bare_crp=1 even after the edit.)
-  - NEXT for spot: re-fold with the CORRECT var name everywhere (grep -c
-    'commandRecordPlan.commandRecords' must be 0 — only the `shadowCasterCommandRecordPlan.`
-    form is valid), run at frame 3 FIRST to reproduce attempt-1's black receiver, then
-    diagnose the over-occlusion (is the spot shadow map actually written by the folded
-    node? compare the folded depth vs the legacy separate-submit depth — add a status
-    field for the grab/caster pass, or a headless check that the spot
-    ShadowCasterGraphPass list is non-empty + its depthView resolves). Do NOT just bump
-    frame count — attempt-1 black at frame 3 is a content bug, not warmup.
+  - REFINED DIAGNOSIS (verified this turn via a temporary `?graph=1` diagnostic test
+    that logged a `graphPassCount` status field, then reverted — tree clean): at frame
+    3 the folded spot example reports **graphPassCount=1, ok=true**, lit sample
+    (0.44,0.5)={0,0,0} BLACK (legacy wants luminance>220 there), another receiver
+    region (0.62,0.62)={73,78,78} has color. So the folded spot caster pass IS created
+    and the frame renders — the earlier "pass dropped / depth never written" theory is
+    WRONG and retracted. The shadow map reads OVER-OCCLUDED at the lit point.
+  - NEXT for spot: re-fold with the correct var name (grep -c
+    'commandRecordPlan.commandRecords' must be 0; only `shadowCasterCommandRecordPlan.`
+    is valid — node --check does NOT catch the ReferenceError). Then localize the
+    over-occlusion by comparing the FOLDED spot depth attachment to the LEGACY
+    separate-submit one (both come from the SAME createShadowPassAttachmentDescriptorReport,
+    so depthLoadOp/StoreOp/ClearValue/viewKey are identical) — the difference is in
+    EXECUTION: legacy renders the spot caster in its own pre-submitted encoder;
+    the fold renders it in the shared encoder ordered before forward. Check whether the
+    folded spot depth pass actually writes (e.g. its `depthClearValue` survives into
+    begin = 1=far for spot; pass.depthView is the SAME view the receiver bind group
+    samples). Black-everywhere ⇒ the sampled depth reads near/occluded where it should
+    read far/lit. csm/point pass the identical helper at frame 3, so it is
+    spot-attachment/execution-specific, NOT warmup.
 - **multi-light** — NOT folded (its fold also needs the receiverResources/submit-gate
   relaxation noted in HANDOFF; do spot first since they likely share the root cause).
 - **Done-when #2** (one command buffer / no separate submit) — DONE + committed
-  (`c11fb19`); frame-graph-shadow.test.ts is **8 passed** (incl. the fake-device
-  execute-fold test). **#3** (read-edge ordering) — DONE (compile tests). **#4**
-  (ShadowPassPlanReport status:'ready' on the graph path) — NOT present yet (drafts
-  cancelled); must be added + run.
+  (`c11fb19`). **#3** (read-edge ordering) — DONE (compile tests). **#4**
+  (ShadowPassPlanReport status:'ready' on the graph path) — DONE + committed
+  (`71940b7`): frame-graph-shadow.test.ts now **10 passed** (verified — inputs built
+  via createShadowMapDescriptorReport → createShadowTextureResourceReport →
+  createShadowPassPlanReport, the chain shadow-pass-plan.test.ts uses; passing raw
+  descriptors to createShadowTextureResourceReport throws and was reverted). So
+  #2/#3/#4 are all done; only #1 (4 specs) and #5 (spot/multi-light no-warnings) remain.
 
 Done-when #1 needs ALL FOUR shadow specs green with visible-shadow assertions (2/4
 so far). Then M3-T6 (TAA history; model `11b9518` landed), then M3-T7.

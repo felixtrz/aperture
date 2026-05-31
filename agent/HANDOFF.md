@@ -18,7 +18,8 @@ Updated: 2026-05-31 — STOP POINT. M3-T5 IN PROGRESS (NOT done). origin @ 24fd6
   from `packages/webgpu/src/index.ts` (grep -c = 1). `frame-boundaries.ts` registers
   each as a DEPTH-ONLY graph node the forward target node READS
   (`registerForwardGraphTarget.shadowReads`) so the compiler orders shadows first.
-- **frame-graph-shadow.test.ts = 8 passed** (committed): compile-model (#3 read-edge
+- **frame-graph-shadow.test.ts = 10 passed** (committed; incl. Done-when #4 at
+  71940b7): compile-model (#3 read-edge
   ordering, cascade/face ordering, depthStoreOp='store', helper, depth-only plan) +
   the fake-device EXECUTE one-encoder/one-submit fold test (#2, commit c11fb19).
 - **csm fold + PIXEL proof — DONE** (eb01ae3): csm-directional-shadow.spec.ts -g
@@ -61,13 +62,25 @@ Updated: 2026-05-31 — STOP POINT. M3-T5 IN PROGRESS (NOT done). origin @ 24fd6
   (createShadowBundle return ~line 665 + the assignment ~line 411), which is false
   when the example's own submit is gated off — so the fold must accept useFrameGraph
   there too. Do spot first; they may share the root cause.
-- **Done-when #4** (ShadowPassPlanReport status:'ready' on the graph path) — NOT in
-  frame-graph-shadow.test.ts yet (grep "Done-when #4" = 0). Easy headless add:
-  createShadowPassPlanReport({shadowRequests, textures:
-  createShadowTextureResourceReport({descriptors:[{shadowId,lightId,mapSize,depthBias,
-  normalBias,filterRadiusTexels,cascadeCount:1,viewDimension:"2d",resourceKey}]}),
-  submission:"ready"}) ⇒ status:"ready" + sections.passSubmission:true; legacy
-  (no submission) ⇒ "deferred"/false.
+- **Done-when #4** (ShadowPassPlanReport status:'ready' on the graph path) — DONE +
+  committed (`71940b7`): frame-graph-shadow.test.ts now **10 passed**. Inputs MUST go
+  through createShadowMapDescriptorReport → createShadowTextureResourceReport →
+  createShadowPassPlanReport (the chain shadow-pass-plan.test.ts uses); passing raw
+  descriptors to createShadowTextureResourceReport throws "Cannot read properties of
+  undefined (reading 'filter')" (a first attempt did that, failed, was reverted).
+
+REFINED spot diagnosis (verified this turn; SUPERSEDES the "pass dropped" theory
+above, which is WRONG): a temporary `?graph=1` diagnostic that logged a
+`graphPassCount` status field printed, at frame 3,
+`graphPassCount=1 ok=true near={0,0,0} recv={73,78,78}`. So the folded spot caster
+pass IS created and the frame renders; the lit point (0.44,0.5) is BLACK while another
+receiver region has color ⇒ the sampled shadow depth reads OVER-OCCLUDED at the lit
+point — NOT a missing pass, NOT warmup. Both folded + legacy spot use the SAME
+createShadowPassAttachmentDescriptorReport (identical depthLoadOp/StoreOp/ClearValue/
+viewKey), so the difference is EXECUTION (folded shared-encoder node vs legacy
+pre-submitted encoder). Next: verify the folded spot depth pass actually writes (its
+depthClearValue=1=far survives into begin; pass.depthView == the view the receiver
+binds). csm/point pass the identical helper at frame 3, so it is spot-specific.
 
 So Done-when #1 = 2/4 specs (csm, point). #2 + #3 done. #4 + #5(spot/multi-light)
 remain. M3-T5 is NOT done; do NOT mark the heading ✅ or bump the milestone to 5/7.
