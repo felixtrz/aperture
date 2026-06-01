@@ -26,11 +26,36 @@
 >    commands present); the executor encodes the boundary verbatim (frame-graph-execute.ts:234);
 >    buildShadowCasterDepthAttachmentPlan matches the canonical/legacy plan shape; the
 >    probe's status:"missing" does NOT zero sampledDepth. So the bug is at the GPU
->    begin/clear of the depth-only (colorAttachments:[]) pass. Test candidates: (a)
->    depth24plus depth-only-clear quirk under SwiftShader — try depth32float or whether
->    the shared encoder's prior use of that depth view interferes; (b) the forward target
->    node aliasing/clobbering the shadow depth (inspect registerForwardGraphTarget's
->    depthTarget); (c) a re-clear between the shadow node and the receiver read.
+>    begin/clear of the depth-only (colorAttachments:[]) pass — i.e. SwiftShader appears
+>    to drop (or no-op) a depth-ONLY render pass's depth clear when that pass shares one
+>    GPUCommandEncoder with later passes; the depth stays at its 0 init, so a "less"
+>    depth-compare rejects every caster draw and the receiver reads fully-occluded (black).
+>    NEW (this session, both verified by reading the code):
+>      • (b) RULED OUT — transient aliasing/clobber is NOT the cause. The forward target
+>        node writes ONLY its color handle (frame-boundaries.ts:1034) and `reads` the
+>        shadow handles purely to force ordering; it declares NO depth transient. Both the
+>        shadow depth (shadowPass.depthView) and the forward depth (depthAttachment.view)
+>        are REAL external views encoded VERBATIM via their resolveRenderBoundary payloads
+>        (frame-graph-execute.ts:234) — the compiler-allocated transients (forward:<key>
+>        color, shadow:<key> depth) are never bound, so nothing in the graph can clobber
+>        the real shadow depth to 0.
+>      • (i)/(a) the color-attachment workaround NEEDS A NEW CASTER PIPELINE VARIANT. The
+>        classic SwiftShader fix is to attach a throwaway color target so the pass is NOT
+>        colorAttachments:[]. BUT the shadow caster pipeline is `targets: []`
+>        (shadow-caster-pipeline-resource.ts:368, fragment writes no color), so attaching a
+>        color attachment to the pass is a render-pass↔pipeline color-COUNT mismatch
+>        (0 pipeline targets vs 1 pass attachment) → setPipeline validation error. The fix
+>        must (1) add a folded caster pipeline variant with ONE dummy color target at
+>        writeMask:0 (writes nothing), (2) thread a scratch color view (RENDER_ATTACHMENT,
+>        loadOp clear / storeOp discard) into buildShadowCasterDepthAttachmentPlan's
+>        optional 2nd arg [reverted from this branch — re-add it], (3) make the fold use
+>        that variant under useFrameGraph across all four shadow examples. NON-TRIVIAL,
+>        multi-file — this is the fresh-session task.
+>      • CONSIDER FIRST: this may be SwiftShader-ONLY. On real WebGPU hardware (the actual
+>        target) the depth-only fold may simply work. If so the honesty-rule move is to say
+>        the SwiftShader E2E proof can't validate it and use an alternative (a genuinely-
+>        submitted depth probe extended to texture_depth_2d, or a hardware run). Do NOT
+>        mark T5 done on the SwiftShader proof unless it's actually green.
 >    VERIFY with the depth-probe harness (★ block below): folded spot depth must become
 >    ~1, THEN add/pass the spot `?graph=1` pixel proof (receivers darken vs a
 >    receiver-disabled baseline; drive frames by COUNT, not status.shadow.rendering.supported).
