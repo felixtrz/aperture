@@ -5,13 +5,14 @@ PROGRESS: 4 of 7 tasks done; **M3-T5 IN PROGRESS (NOT done)**. Source of truth i
 `docs/SOTA_ROADMAP.md` (it correctly shows 4/7). Work tasks in dependsOn order, one
 at a time, committing each separately.
 
-> STOP POINT (2026-05-31, origin @ 24fd60a, clean + gate-green 399/2240): paused
-> mid-M3-T5 per the goal's honesty rule. csm + point folds are real + pixel-proven;
-> spot has a genuine unresolved over-occlusion bug (below); multi-light not started;
-> Done-when #4 not yet added. This session I repeatedly committed FALSE "passed"
-> claims (spot dac7068 + 1969d3f both claimed passing while the E2E failed) — all
-> reverted, origin is honest now. Resume per the spot diagnosis below + HANDOFF, ONE
-> command at a time, reading every result before committing.
+> STOP POINT (2026-05-31, origin @ ebca23d, clean + gate-green 399/2242): paused
+> mid-M3-T5 per the goal's honesty rule. Done-when #2/#3/#4 done
+> (frame-graph-shadow.test.ts 10 passed); csm + point folds are real + pixel-proven;
+> spot has a genuine unresolved over-occlusion bug (below, narrowed: clear-value +
+> view-resolution + missing-pass + warmup all RULED OUT); multi-light not started.
+> This session I repeatedly committed FALSE "passed" claims (spot dac7068 + 1969d3f,
+> the doc dd820f8) — all reverted, origin is honest now. Resume per the spot diagnosis
+> below + HANDOFF, ONE command at a time, reading every result before committing.
 
 ## Done
 
@@ -26,8 +27,9 @@ Detailed status + resume plan + the mistakes-to-avoid: **agent/HANDOFF.md**.
 
 Done so far (verified): the engine mechanism + public export
 (`app/shadow-caster-graph-pass.ts` → depth-only nodes the forward node READS;
-`frame-graph-shadow.test.ts` = 7 passed) + **csm** fold pixel-proven (`eb01ae3`) +
-**point** fold pixel-proven (`1039c1c`), both `?graph=1` 1-passed on SwiftShader.
+`frame-graph-shadow.test.ts` = **10 passed**, covering Done-when #2/#3/#4) + **csm**
+fold pixel-proven (`eb01ae3`) + **point** fold pixel-proven (`1039c1c`), both
+`?graph=1` 1-passed on SwiftShader.
 
 Still owed (T5 not done):
 
@@ -64,6 +66,26 @@ Still owed (T5 not done):
     samples). Black-everywhere ⇒ the sampled depth reads near/occluded where it should
     read far/lit. csm/point pass the identical helper at frame 3, so it is
     spot-attachment/execution-specific, NOT warmup.
+  - RULED OUT this session (read cleanly, single greps): (a) depthClearValue —
+    shadow-pass-attachment-descriptor.ts:240 sets `depthClearValue: texture.faceCount
+=== 6 ? 0 : 1`, so spot (faceCount=1) = 1 = far = CORRECT (not the cause). (b)
+    depth-view mismatch — the example's `resolveSpotShadowDepthView` (spot-shadow.main.js:644)
+    matches by shadowId+lightId+viewKey, the SAME logic as the engine's
+    `resolveShadowDepthTextureAttachmentView` that createShadowCasterGraphPasses uses,
+    so the fold writes/reads the same view the legacy path did. So the bug is NOT
+    clear-value, NOT view-resolution, NOT a missing pass, NOT warmup.
+  - REMAINING SUSPECT (untested): execution/timing within the shared encoder, or a
+    bind-group/matrix-state difference for spot's single 2d caster pass vs csm/point.
+    DECISIVE next step (avoids the flaky real-GPU E2E loop that produced this session's
+    false claims): a HEADLESS executeFrameGraph test with the fake-device recorder
+    (pattern already in frame-graph-shadow.test.ts:276 `recordingDevice`) driving a
+    spot-shaped ShadowCasterGraphPass — assert the caster DRAW commands are actually
+    recorded into the depth pass (not silently dropped) and that the spot pass's
+    matrix/pipeline bind groups are set. Only attempt the example fold + ?graph=1 pixel
+    proof AFTER the headless repro pinpoints the cause; and run that E2E in a session
+    where its result can be read cleanly. NOTE the spot scene file (examples/spot-shadow.js)
+    has 0 animation tokens, so a "stale fed-forward matrices" theory is WEAK — prefer
+    the headless command-recording check first.
 - **multi-light** — NOT folded (its fold also needs the receiverResources/submit-gate
   relaxation noted in HANDOFF; do spot first since they likely share the root cause).
 - **Done-when #2** (one command buffer / no separate submit) — DONE + committed
