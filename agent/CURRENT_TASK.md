@@ -100,6 +100,32 @@ at a time, committing each separately.
 >   clean probe target and already gave the decisive result (folded=0 vs legacy~1).
 >   Verify any fix by re-running the SPOT probe (folded spot depth must become ~1 far)
 >   then the spot ?graph=1 pixel test.
+> - ★★ NOW PROVEN BY A HEADLESS TEST (424551b, frame-graph-shadow.test.ts = 11 passed):
+>   our engine hands depthClearValue:1 + depthLoadOp:"clear" + depthStoreOp:"store" + the
+>   real spot depth VIEW to encoder.beginRenderPass for the folded spot-shaped depth-only
+>   node (a depthCapturingDevice records the GPURenderPassDepthStencilAttachment). So the
+>   "our fold drops the clear value" class is ELIMINATED. Combined with the probe (folded
+>   spot depth=0 vs legacy ~1), the clear IS submitted as 1 yet the GPU texture ends at 0.
+> - ALSO RULED OUT this turn: (b) forward node clobbering the shadow depth — forward depth
+>   is a SEPARATE, differently-sized texture (WEBGPU_APP_DEPTH_FORMAT depth24plus, canvas
+>   size) and the shadow node uses the REAL view via resolveRenderBoundary (not a pooled
+>   alias). And the shadow depth TEXTURE itself is identical for legacy + fold (same
+>   shadowDepthTextureResourceReport, usage RENDER_ATTACHMENT|TEXTURE_BINDING, depth24plus,
+>   2d full view — shadow-depth-texture-resource.ts:308). SAME texture, SAME clear=1
+>   reaching beginRenderPass; legacy→1, fold→0.
+> - SO THE ONLY REMAINING VARIABLE is the ENCODER CONTEXT: legacy begins the spot depth
+>   pass in a fresh, dedicated encoder submitted alone; the fold begins it in the SHARED
+>   encoder (ordered first, then the forward pass). This is almost certainly a
+>   SwiftShader-specific behavior for a DEPTH-ONLY (colorAttachments:[]) render pass
+>   followed by another render pass in the same command encoder — the depth clear/store
+>   not persisting. THE EXPERIMENT TO RUN NEXT (real engine change, verify with the spot
+>   depth probe → folded depth must read ~1, then the spot ?graph=1 pixel test): in the
+>   fold's depth-only encode, either (i) attach a 1×1 throwaway color target so the pass
+>   is NOT colorAttachments:[] (mirrors what some drivers need), or (ii) try depth32float,
+>   or (iii) split the shadow pass into its own pre-forward submit within the fold (last
+>   resort — partially defeats the single-encoder goal). Start with (i). The legacy path
+>   (assemblePass, shadow-pass-encoder-assembly-report.ts) is colorAttachments:[] too but
+>   in its OWN encoder, so the differentiator is shared-encoder + depth-only.
 > - EXECUTOR PATH VERIFIED CORRECT END-TO-END (source, this session): the shadow node
 >   uses resolveRenderBoundary, and frame-graph-execute.ts:234 encodeRenderNode takes
 >   the boundary payload VERBATIM (encodeFrameBoundaryInto) and returns — it does NOT
