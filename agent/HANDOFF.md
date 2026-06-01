@@ -254,3 +254,37 @@ matrix is zero. Likely fix: build+submit the spot caster graph passes for the CU
 frame (not fed-forward), or ensure the matrix buffer the fed-forward bind group points
 at is stable+populated at fold-execute time. Verify with the probe above + the pixel
 test. multi-light is blocked by this same spot bug (its worker adds a Spot light).
+
+### Sharpest fix hypothesis (transform-buffer feed-forward desync) — try FIRST next session
+
+The caster vertex shader computes clip = lightViewProj · worldTransform[offset] · pos.
+
+- lightViewProj comes from the matrix BIND GROUP (cached/stable across frames — OK).
+- worldTransform[offset] comes from the engine's per-frame WORLD-TRANSFORM storage
+  buffer, packed inside renderSnapshot; the caster draw carries `transformPackedOffset`
+  (shadow-caster-command-record-plan.ts:325) computed for the snapshot it was built from.
+  In graph mode the example builds graphPasses in publishFrameStatus (AFTER renderSnapshot)
+  and feeds them to the NEXT frame's renderSnapshot. So frame N's fold encodes frame N-1's
+  caster draws — which read frame N's freshly-packed world-transform buffer using offsets
+  computed against frame N-1's snapshot. If the spot scene's transform layout makes that
+  offset land on a zero/identity-but-wrong matrix, the MVP collapses geometry to z≈0 →
+  the exact probe result (sampledDepth=0 everywhere). csm/point fold the same way but may
+  be insensitive (ortho/cube projection, or stable single-caster offset 0).
+
+TWO fixes to try (verify each with the depth probe → sampledDepth non-zero → then the
+spot ?graph=1 pixel test):
+
+1. BEST: don't feed-forward. Build the spot caster graphPasses for the CURRENT frame and
+   pass them into the SAME renderSnapshot. Requires building the caster pipeline/commands
+   BEFORE renderSnapshot (today publishFrameStatus runs after). Restructure the example so
+   the caster command plan is built pre-render, OR have the engine build the caster graph
+   passes internally from the snapshot (cleaner, but larger — the auto-shadow path).
+2. CHEAPER probe of the hypothesis: log the caster draw's transformPackedOffset and the
+   world-transform buffer length/contents at fold-execute for spot vs csm; if spot's
+   offset exceeds frame N's packed transform count (or reads zeros), the desync is
+   confirmed and fix #1 is required.
+
+If the transform-buffer hypothesis is WRONG (offsets match, transforms identical for the
+static spot scene), fall back to instrumenting the matrix bind group's BUFFER contents at
+fold-execute (read the 16 floats) — z=0 with a correct lightViewProj would then point at
+the caster pipeline's depth-output for a perspective frustum in the shared encoder.
