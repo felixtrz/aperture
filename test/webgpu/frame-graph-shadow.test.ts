@@ -471,24 +471,28 @@ describe("M3-T5 folded shadow depth-only pass preserves the clear value", () => 
   // buildShadowCasterDepthAttachmentPlan + executed through executeFrameGraph's
   // resolveRenderBoundary path — isolating whether the clear value is lost in OUR
   // plumbing (this test would fail) or in the real GPU begin (this passes; bug is GPU).
-  function depthCapturingDevice(captured: Record<string, unknown>[]) {
+  function depthCapturingDevice(
+    captured: Record<string, unknown>[],
+  ): ReturnType<typeof recordingDevice> {
     return {
       createCommandEncoder: () => ({
         beginRenderPass: (descriptor: {
           readonly colorAttachments: readonly unknown[];
-          readonly depthStencilAttachment?: Record<string, unknown>;
+          readonly depthStencilAttachment?: unknown;
         }) => {
           if (descriptor.depthStencilAttachment !== undefined) {
-            captured.push(descriptor.depthStencilAttachment);
+            captured.push(
+              descriptor.depthStencilAttachment as Record<string, unknown>,
+            );
           }
           return {
             setPipeline: () => {},
             setBindGroup: () => {},
             setVertexBuffer: () => {},
             setIndexBuffer: () => {},
-            draw: () => {},
-            drawIndexed: () => {},
-            end: () => {},
+            draw: () => 0,
+            drawIndexed: () => 0,
+            end: () => 0,
           };
         },
         finish: () => ({ label: "command-buffer" }),
