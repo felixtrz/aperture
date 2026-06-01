@@ -40,9 +40,16 @@ at a time, committing each separately.
 > - WHY csm/point pass: csm clears to 1 (far) too but is ORTHO; point clears to 0 by
 >   design (cube compare). If the fold forces 0, csm would ALSO break — so check
 >   whether csm's folded depth is actually 1 or whether csm tolerates 0 (it may, if its
->   receiver compare/range differs). RE-PROBE csm folded depth as a second control.
->   Verify any fix by re-running both probes (folded spot depth must become ~1 far) then
->   the spot ?graph=1 pixel test.
+>   receiver compare/range differs). RE-PROBE csm folded depth as a second control —
+>   ATTEMPTED this session, BLOCKED: createShadowDepthProbeReport's WGSL binds
+>   `texture_depth_2d`, but csm's depth is a 2d-ARRAY (4 cascades), so the csm probe
+>   throws during publishFrameStatus and the example never publishes status (150s
+>   timeout) — a probe/cascade incompatibility, NOT a fold signal. To cross-check csm
+>   folded depth, either probe a single array layer (extend the probe to texture_depth_2d_array)
+>   or use point (also a 2d single-face per pass? no—cube). Spot (2d, single) is the
+>   clean probe target and already gave the decisive result (folded=0 vs legacy~1).
+>   Verify any fix by re-running the SPOT probe (folded spot depth must become ~1 far)
+>   then the spot ?graph=1 pixel test.
 >
 > This session I earlier committed FALSE "passed" claims (spot dac7068 + 1969d3f, doc
 > dd820f8) — all reverted, origin honest. Resume ONE command at a time, reading every
