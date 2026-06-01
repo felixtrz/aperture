@@ -5,14 +5,32 @@ PROGRESS: 4 of 7 tasks done; **M3-T5 IN PROGRESS (NOT done)**. Source of truth i
 `docs/SOTA_ROADMAP.md` (it correctly shows 4/7). Work tasks in dependsOn order, one
 at a time, committing each separately.
 
-> STOP POINT (2026-05-31, origin @ ebca23d, clean + gate-green 399/2242): paused
-> mid-M3-T5 per the goal's honesty rule. Done-when #2/#3/#4 done
-> (frame-graph-shadow.test.ts 10 passed); csm + point folds are real + pixel-proven;
-> spot has a genuine unresolved over-occlusion bug (below, narrowed: clear-value +
-> view-resolution + missing-pass + warmup all RULED OUT); multi-light not started.
-> This session I repeatedly committed FALSE "passed" claims (spot dac7068 + 1969d3f,
-> the doc dd820f8) — all reverted, origin is honest now. Resume per the spot diagnosis
-> below + HANDOFF, ONE command at a time, reading every result before committing.
+> STOP POINT (2026-05-31, clean + gate-green 399/2242): paused mid-M3-T5 per the
+> goal's honesty rule. Done-when #2/#3/#4 done (frame-graph-shadow.test.ts 10 passed);
+> csm + point folds pixel-proven; spot fold has a now-LOCALIZED over-occlusion bug;
+> multi-light blocked by the same spot bug.
+>
+> ★ ROOT CAUSE LOCALIZED THIS SESSION (real-GPU depth probe, read cleanly): under the
+> spot fold the shadow depth texture reads sampledDepth=0 at ALL 25 grid UVs
+> (min=max=0), while the folded ShadowCasterGraphPass descriptor is CORRECT
+> (depthLoadOp:"clear", depthClearValue:1=far, depthStoreOp:"store", commands:5,
+> passCount:1). Cleared-to-1-but-reads-0 with 5 caster draws present ⇒ the caster
+> geometry is rasterized at the NEAR plane (z≈0) → every receiver fragment occluded →
+> BLACK. So the folded caster DRAWS EXECUTE but against a DEGENERATE/ZERO shadow
+> view-projection matrix at fold-execution time. THE FIX is to make the folded spot
+> caster sample the correct matrices — investigate the shadow matrix bind group /
+> buffer the fed-forward caster commands reference vs when the fold executes them
+> (frame N folds frame N-1's commandRecords, which bind frame N-1's matrix bind group;
+> ensure that buffer is still valid + populated when executeFrameGraph runs the node).
+> Verify with the SAME depth probe (sampledDepth should become non-zero/varied) then
+> the spot ?graph=1 pixel test. Probe recipe is in the diagnosis below + this session's
+> commits. This LOCALIZATION supersedes the speculative "matrix timing" vs "projection"
+> branches below — it is confirmed a matrix/projection problem (depth z=0), not clear/
+> view/missing-pass.
+>
+> This session I earlier committed FALSE "passed" claims (spot dac7068 + 1969d3f, doc
+> dd820f8) — all reverted, origin honest. Resume ONE command at a time, reading every
+> result before committing.
 
 ## Done
 
