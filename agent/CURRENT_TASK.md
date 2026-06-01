@@ -74,6 +74,26 @@ Still owed (T5 not done):
     `resolveShadowDepthTextureAttachmentView` that createShadowCasterGraphPasses uses,
     so the fold writes/reads the same view the legacy path did. So the bug is NOT
     clear-value, NOT view-resolution, NOT a missing pass, NOT warmup.
+  - ALSO RULED OUT (clean reads, next session-restart): (c) null receiver in graph
+    mode — spot's publishFrameStatus return (spot-shadow.main.js:550) builds
+    standardMaterialShadowReceiverResources UNCONDITIONALLY (NOT gated on
+    submission status, unlike multi-light), so the receiver DOES bind the depth
+    texture under ?graph=1. (d) empty/missing caster commands — the spot
+    commandRecordPlan (spot-shadow.main.js:371) feeds the same pipeline + matrix
+    bind group + meshes as csm/point, and graphPassCount=1 proves commands.length>0.
+    SYSTEMATIC ELIMINATION COMPLETE: pass-creation, clear-value, depth-view,
+    receiver-binding, command-content, and ordering are all confirmed correct/identical
+    to csm+point. The spot-only black-receiver therefore lives in DYNAMIC GPU EXECUTION
+    STATE within the shared encoder — most plausibly the shadow MATRIX BUFFER contents
+    the caster samples: legacy uploads + submits the caster in its OWN earlier command
+    buffer; the fold encodes the caster into the shared encoder. If the spot matrix
+    buffer write (queue.writeBuffer) is ordered/timed differently relative to the
+    folded caster draw than in the legacy separate-submit, the caster renders depth
+    with wrong/zero matrices → degenerate map → receiver reads occluded everywhere →
+    black. This is a real-GPU-only observable; a fake-device recorder cannot reproduce
+    it (it records calls, not depth contents). So the headless test can only confirm
+    draws ARE recorded (necessary, not sufficient); the actual fix MUST be verified by
+    the spot ?graph=1 pixel E2E, in a session where that result can be read reliably.
   - REMAINING SUSPECT (untested): execution/timing within the shared encoder, or a
     bind-group/matrix-state difference for spot's single 2d caster pass vs csm/point.
     DECISIVE next step (avoids the flaky real-GPU E2E loop that produced this session's
