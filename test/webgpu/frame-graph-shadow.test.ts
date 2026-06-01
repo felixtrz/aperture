@@ -463,3 +463,118 @@ describe("M3-T5 shadow pass plan is 'ready' under the graph path (Done-when #4)"
     expect(report.sections.passSubmission).toBe(false);
   });
 });
+
+describe("M3-T5 folded shadow depth-only pass preserves the clear value", () => {
+  // The spot ?graph=1 fold renders BLACK because the folded spot shadow depth reads 0
+  // (vs legacy ~1). This headless test proves the engine carries depthClearValue all
+  // the way to encoder.beginRenderPass for a depth-only shadow node built via
+  // buildShadowCasterDepthAttachmentPlan + executed through executeFrameGraph's
+  // resolveRenderBoundary path — isolating whether the clear value is lost in OUR
+  // plumbing (this test would fail) or in the real GPU begin (this passes; bug is GPU).
+  function depthCapturingDevice(captured: Record<string, unknown>[]) {
+    return {
+      createCommandEncoder: () => ({
+        beginRenderPass: (descriptor: {
+          readonly colorAttachments: readonly unknown[];
+          readonly depthStencilAttachment?: Record<string, unknown>;
+        }) => {
+          if (descriptor.depthStencilAttachment !== undefined) {
+            captured.push(descriptor.depthStencilAttachment);
+          }
+          return {
+            setPipeline: () => {},
+            setBindGroup: () => {},
+            setVertexBuffer: () => {},
+            setIndexBuffer: () => {},
+            draw: () => {},
+            drawIndexed: () => {},
+            end: () => {},
+          };
+        },
+        finish: () => ({ label: "command-buffer" }),
+      }),
+    };
+  }
+
+  it("hands depthClearValue:1 + depthLoadOp:'clear' to beginRenderPass for a spot-shaped depth-only node", () => {
+    const captured: Record<string, unknown>[] = [];
+    const device = depthCapturingDevice(captured);
+    const spotDepthView = { __spotDepth: true };
+    const spotPass: ShadowCasterGraphPass = {
+      key: "shadow-pass:4:light:4",
+      depthView: spotDepthView,
+      depthLoadOp: "clear",
+      depthStoreOp: "store",
+      depthClearValue: 1,
+      width: 512,
+      height: 512,
+      depthFormat: "depth24plus",
+      commands: [drawCommand],
+    };
+
+    const graph = createFrameGraph();
+    graph.importSwapchain("swapchain");
+    graph.declareTransient("shadow:spot", {
+      kind: "depth-texture",
+      width: 512,
+      height: 512,
+      format: "depth24plus",
+      sampleCount: 1,
+    });
+    graph.addRenderPass({
+      name: "shadow:spot:fg",
+      reads: [],
+      writes: [{ handle: "shadow:spot", attachment: "clear", clearDepth: 1 }],
+      commands: [drawCommand],
+    });
+    graph.addRenderPass({
+      name: "forward",
+      reads: ["shadow:spot"],
+      writes: [{ handle: "swapchain", attachment: "clear" }],
+      commands: [drawCommand],
+    });
+
+    const resources: FrameGraphResources = {
+      resolveAttachment: () => null,
+      resolveRenderBoundary: (node) => {
+        if (node.name === "shadow:spot:fg") {
+          return {
+            device,
+            attachments: buildShadowCasterDepthAttachmentPlan(spotPass),
+            commands: node.commands as RenderPassCommand[],
+            label: node.name,
+            colorTargetSource: "offscreen-target",
+          };
+        }
+        return {
+          device,
+          attachments: createRenderPassAttachmentPlan({
+            colorTargets: [
+              { view: { label: "swap" }, loadOp: "clear", storeOp: "store" },
+            ],
+          }),
+          commands: node.commands as RenderPassCommand[],
+          label: node.name,
+          colorTargetSource: "offscreen-target",
+        };
+      },
+    };
+
+    executeFrameGraph({
+      device,
+      queue: { submit: () => {} },
+      compiled: compileFrameGraph(graph),
+      resources,
+      label: "spot-depth-clear",
+    });
+
+    // exactly one depth attachment captured (the shadow node), and it carries the
+    // spot depth view + clear op + clear value 1 (far) all the way to beginRenderPass.
+    expect(captured).toHaveLength(1);
+    const depth = captured[0] as Record<string, unknown>;
+    expect(depth.view).toBe(spotDepthView);
+    expect(depth.depthLoadOp).toBe("clear");
+    expect(depth.depthStoreOp).toBe("store");
+    expect(depth.depthClearValue).toBe(1);
+  });
+});
