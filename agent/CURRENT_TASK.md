@@ -120,6 +120,27 @@ Still owed (T5 not done):
     inspection: capture the spot fold's depth-map readback (or compare folded vs
     legacy depth at a known texel) on a real GPU to see HOW the depth is wrong, in a
     session where E2E results read reliably.
+  - NEW VERIFIED FACT (this session, E2E read cleanly — RAW_EXIT codes + ✘/✓ lines):
+    re-ran a fresh spot fold (fold built BEFORE the example's legacy encoder assembly,
+    own submit gated off) → spot `?graph=1` pixel test FAILED identically: near-light
+    receiver (0.44,0.5) `before`(=`?graph=1&disable-shadow-receiver=1` baseline)
+    = WHITE {255,255,255}, `after`(shadow-receiving on) = BLACK {0,0,0}. CRITICAL
+    isolation: the baseline being correctly WHITE proves the forward + lighting path
+    under `?graph=1` is FINE — the defect is STRICTLY the folded shadow-depth CONTENT
+    (the comparison reads "occluded" where the light reaches). Also confirmed this
+    session: legacy spot E2E (no fold) PASSES, and the csm `?graph=1` fold E2E PASSES
+    (so the E2E channel is reliable right now). The example ALSO still calls
+    createShadowPassEncoderAssemblyReport every frame (line ~429) into its own
+    UNsubmitted encoder targeting the same cached depth view — a double-ENCODE
+    (harmless in principle since unsubmitted, but a candidate to eliminate by skipping
+    that whole legacy assembly in graph mode, not just its submit). REVERTED the fold
+    (branch clean) since it only re-confirmed the known failure without new info beyond
+    the baseline-white isolation. TRUE NEXT STEP: a real-GPU depth readback of the
+    folded spot map (the legacy spot test already does pixel readback via readPngPixel;
+    add a shadow-depth probe) to see whether the folded depth is all-near (caster never
+    effectively wrote) vs wrong-projection — that distinguishes "engine fold doesn't
+    execute the spot caster draws against the right target/state" from "spot
+    perspective matrices wrong in fold". Needs a session with reliable E2E reads.
 - **multi-light** — NOT folded (its fold also needs the receiverResources/submit-gate
   relaxation noted in HANDOFF; do spot first since they likely share the root cause).
 - **Done-when #2** (one command buffer / no separate submit) — DONE + committed
