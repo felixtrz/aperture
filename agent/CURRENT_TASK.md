@@ -106,6 +106,20 @@ Still owed (T5 not done):
     where its result can be read cleanly. NOTE the spot scene file (examples/spot-shadow.js)
     has 0 animation tokens, so a "stale fed-forward matrices" theory is WEAK — prefer
     the headless command-recording check first.
+  - ALSO RULED OUT as the differentiator: depth-texture caching. spot caches its depth
+    texture (`shadowDepthTextureResourceReport ??=`, count 1) — but so do csm AND point
+    (count 1 each), and those folds PASS. matrix buffer is recreated per-frame in all
+    three (no caching, count 0 each). So neither depth-caching nor matrix-recreation
+    explains why spot alone fails. The remaining spot-vs-(csm,point) differences are
+    CONTENT-level: spot is a single 2D perspective (cone) shadow map; csm is
+    directional-ortho cascades; point is a 6-face cube. The folded-depth defect is
+    therefore tied to spot's perspective projection / cone geometry as rendered in the
+    shared encoder — a real-GPU pixel observable. After ~6 verified eliminations
+    (pass-creation, clear-value, depth-view, receiver-binding, command-content,
+    ordering, depth-caching, matrix-caching), the next move is NOT more static
+    inspection: capture the spot fold's depth-map readback (or compare folded vs
+    legacy depth at a known texel) on a real GPU to see HOW the depth is wrong, in a
+    session where E2E results read reliably.
 - **multi-light** — NOT folded (its fold also needs the receiverResources/submit-gate
   relaxation noted in HANDOFF; do spot first since they likely share the root cause).
 - **Done-when #2** (one command buffer / no separate submit) — DONE + committed
