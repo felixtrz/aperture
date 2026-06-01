@@ -6,6 +6,17 @@
 > SPOT shadow fold. Do these in order, one at a time, reading every run result before
 > committing or ticking a box (honesty rule: never write "passed" you didn't read).
 >
+> PROBE CAVEATS (learned this session, save time): createShadowDepthProbeReport binds
+> `texture_depth_2d`, so it works ONLY on SPOT (2d single). csm (2d-array, 4 cascades)
+> and point (cube) make the probe throw → the example never publishes status → 150s
+> timeout. So you CANNOT cross-check a "working" fold's depth with this probe without
+> extending it to texture_depth_2d_array / cube. UNTESTED CONFOUND in the "folded spot
+> depth=0" evidence: the folded probe used a SYNTHETIC commandBufferSubmission
+> {counts:{submittedCommandBuffers:1}} (legacy used a real submitted report) — if you
+> doubt the 0, first re-probe with a genuinely-submitted report, or trust the ?graph=1
+> spot PIXEL test (receiver black) as the real arbiter. The FIX's real proof is the spot
+> ?graph=1 pixel test going green, not the probe.
+>
 > 1. **Fix the spot folded-depth-clear bug (engine-side).** Symptom: spot `?graph=1`
 >    receiver renders fully BLACK. Root cause (real-GPU depth probe this session): the
 >    folded spot depth-only pass leaves the shadow depth at **0** everywhere, while the
