@@ -12,7 +12,7 @@ hypotheses in the middle of this file.
 
 ## M3: 4/7 done (T1–T4). M3-T5 IN PROGRESS — NOT done. Branch clean + gate-green.
 
-`pnpm run check` = exit 0 (399 files / 2240 tests) at HEAD 24fd60a; working tree clean.
+`pnpm run check` = exit 0 (399 files / 2242 tests) at HEAD 9ff3db6+; working tree clean.
 
 ### Real + verified M3-T5 progress (committed, on origin)
 
