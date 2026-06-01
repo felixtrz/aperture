@@ -156,6 +156,27 @@ Still owed (T5 not done):
     spot caster draws in executeFrameGraph vs the legacy createShadowPassEncoderAssemblyReport
     (compare begin/viewport/scissor/pipeline-state handling for a perspective depth
     target). Verify with a real-GPU folded-vs-legacy spot depth readback.
+  - ENGINE FOLD WIRING VERIFIED CORRECT (this session, source read cleanly,
+    frame-boundaries.ts:200-235): the shadow node is declareTransient(`shadow:<key>`,
+    depth-texture) + addRenderPass({writes:[{handle, attachment: depthLoadOp}], commands})
+    - a resolveRenderBoundary payload using buildShadowCasterDepthAttachmentPlan
+      (depthLoadOp/StoreOp/ClearValue from the attachment descriptor) + commands; the
+      forward target node adds `reads:[shadow:<key>]` so the compiler orders shadow→forward
+      and store-on-no-clear keeps depthStoreOp='store'. This wiring is IDENTICAL for csm/
+      point/spot (no per-kind branching) and neither path sets a viewport/scissor (caster
+      command records contain none — checked shadow-caster-command-record-plan.ts). So the
+      fold WIRING is not the bug. The DECISIVE experiment remains a real-GPU depth readback:
+      the engine already ships `createShadowDepthProbeReport` (compute readback of the
+      shadow depth: sampledDepth + compareResult at given UVs; usage example in
+      examples/gltf-scene.main.js:786). NEXT-SESSION PLAN: in the spot example under
+      ?graph=1, after renderSnapshot, call createShadowDepthProbeReport on
+      shadowDepthTextureResourceReport + a few receiver-projected UVs and surface
+      sampledDepth into status. If sampledDepth≈1.0 everywhere → the folded caster draws
+      did NOT write the spot depth (engine fold doesn't execute spot's perspective caster
+      against the cached target as expected) ⇒ fix in executeFrameGraph/encodeFrameBoundaryInto
+      depth-only path or the cached-depth-texture usage. If sampledDepth has real values
+      but compareResult is wrong → spot perspective matrix / receiver-projection mismatch.
+      That single readback ends the ~11-hypothesis elimination and pinpoints the fix.
 - **multi-light** — NOT folded, AND BLOCKED BY THE SPOT BUG (verified this session):
   the multi-light worker (examples/multi-light-shadow.worker.js:175) adds a Spot light
   alongside Directional + Point, so its `?graph=1` fold would hit the SAME unresolved
