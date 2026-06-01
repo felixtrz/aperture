@@ -10,23 +10,39 @@ at a time, committing each separately.
 > csm + point folds pixel-proven; spot fold has a now-LOCALIZED over-occlusion bug;
 > multi-light blocked by the same spot bug.
 >
-> ★ ROOT CAUSE LOCALIZED THIS SESSION (real-GPU depth probe, read cleanly): under the
-> spot fold the shadow depth texture reads sampledDepth=0 at ALL 25 grid UVs
-> (min=max=0), while the folded ShadowCasterGraphPass descriptor is CORRECT
-> (depthLoadOp:"clear", depthClearValue:1=far, depthStoreOp:"store", commands:5,
-> passCount:1). Cleared-to-1-but-reads-0 with 5 caster draws present ⇒ the caster
-> geometry is rasterized at the NEAR plane (z≈0) → every receiver fragment occluded →
-> BLACK. So the folded caster DRAWS EXECUTE but against a DEGENERATE/ZERO shadow
-> view-projection matrix at fold-execution time. THE FIX is to make the folded spot
-> caster sample the correct matrices — investigate the shadow matrix bind group /
-> buffer the fed-forward caster commands reference vs when the fold executes them
-> (frame N folds frame N-1's commandRecords, which bind frame N-1's matrix bind group;
-> ensure that buffer is still valid + populated when executeFrameGraph runs the node).
-> Verify with the SAME depth probe (sampledDepth should become non-zero/varied) then
-> the spot ?graph=1 pixel test. Probe recipe is in the diagnosis below + this session's
-> commits. This LOCALIZATION supersedes the speculative "matrix timing" vs "projection"
-> branches below — it is confirmed a matrix/projection problem (depth z=0), not clear/
-> view/missing-pass.
+> ★ ROOT CAUSE (real-GPU depth probe + CONTROL, read cleanly) — it is a DEPTH-CLEAR
+> bug in the fold, NOT a matrix bug (earlier "degenerate matrix" interpretation is
+> RETRACTED). Evidence, two probes over the SAME 25-UV grid via createShadowDepthProbeReport:
+> • FOLDED spot (?graph=1): sampledDepth = 0 at ALL 25 UVs (min=max=0).
+> • LEGACY spot (?diag-depth=1, the WORKING separate-submit path): sampledDepth
+> min=0.9955, max=1.0 — i.e. ~FAR (1.0), correct (the map stores far where there's
+> no caster, slightly-less where the cube is; receiver reads "lit").
+> So the folded depth texture is CLEARED/LEFT AT 0 where the legacy one is ~1. With a
+> depth-compare shadow, stored depth 0 (near) ⇒ every receiver fragment is "behind" it
+> ⇒ fully occluded ⇒ BLACK. The folded ShadowCasterGraphPass descriptor LOOKS correct
+> (depthLoadOp:"clear", depthClearValue:1, depthStoreOp:"store", commands:5) — yet the
+> GPU result is 0. So depthClearValue:1 in the plan is NOT being applied on the GPU in
+> the fold path (or the depth is being overwritten with 0). THE FIX is engine-side in
+> the fold's depth-only encode: trace why beginRenderPass clears the spot depth to 0
+> despite the plan carrying depthClearValue:1.
+>
+> - VERIFIED IDENTICAL plan shape: buildShadowCasterDepthAttachmentPlan emits
+>   { view, depthLoadOp, depthStoreOp, depthClearValue } exactly like the canonical
+>   createDepthAttachment (render-pass-attachments.ts:177) and the legacy assemblePass
+>   (shadow-pass-encoder-assembly-report.ts:331); beginPlannedRenderPass passes the
+>   plan straight to encoder.beginRenderPass. So by inspection the fold + legacy
+>   descriptors are the same — yet runtime clears differ (0 vs 1). NEXT: instrument/log
+>   the actual GPURenderPassDepthStencilAttachment the fold hands beginRenderPass for
+>   the spot node (is depthClearValue present + 1?), and compare csm/point (which clear
+>   correctly: csm far, point=0-but-cube-compare-works). Candidate: the executor's
+>   resolveRenderBoundary path or encodeFrameBoundaryInto drops/zeroes depthClearValue
+>   for a depth-ONLY (colorAttachments:[]) plan, OR a depth24plus + clear interaction.
+> - WHY csm/point pass: csm clears to 1 (far) too but is ORTHO; point clears to 0 by
+>   design (cube compare). If the fold forces 0, csm would ALSO break — so check
+>   whether csm's folded depth is actually 1 or whether csm tolerates 0 (it may, if its
+>   receiver compare/range differs). RE-PROBE csm folded depth as a second control.
+>   Verify any fix by re-running both probes (folded spot depth must become ~1 far) then
+>   the spot ?graph=1 pixel test.
 >
 > This session I earlier committed FALSE "passed" claims (spot dac7068 + 1969d3f, doc
 > dd820f8) — all reverted, origin honest. Resume ONE command at a time, reading every
