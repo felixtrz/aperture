@@ -100,14 +100,16 @@ Still owed (T5 not done):
     samples). Black-everywhere ⇒ the sampled depth reads near/occluded where it should
     read far/lit. csm/point pass the identical helper at frame 3, so it is
     spot-attachment/execution-specific, NOT warmup.
-  - RULED OUT this session (read cleanly, single greps): (a) depthClearValue —
-    shadow-pass-attachment-descriptor.ts:240 sets `depthClearValue: texture.faceCount
-=== 6 ? 0 : 1`, so spot (faceCount=1) = 1 = far = CORRECT (not the cause). (b)
-    depth-view mismatch — the example's `resolveSpotShadowDepthView` (spot-shadow.main.js:644)
-    matches by shadowId+lightId+viewKey, the SAME logic as the engine's
-    `resolveShadowDepthTextureAttachmentView` that createShadowCasterGraphPasses uses,
-    so the fold writes/reads the same view the legacy path did. So the bug is NOT
-    clear-value, NOT view-resolution, NOT a missing pass, NOT warmup.
+  - NOTE (CORRECTED by the ★ control above): I earlier wrote that depthClearValue was
+    "ruled out" because the DESCRIPTOR value is 1 (shadow-pass-attachment-descriptor.ts:240,
+    faceCount===6 ? 0 : 1). That's true of the plan value but the control proves the
+    GPU clears the folded spot depth to 0 anyway — so the EFFECTIVE clear IS the bug
+    (the value is correct in the plan but lost at runtime in the fold). Still genuinely
+    ruled out: depth-view mismatch — the example's `resolveSpotShadowDepthView`
+    (spot-shadow.main.js:644) matches by shadowId+lightId+viewKey, the SAME logic as the
+    engine's `resolveShadowDepthTextureAttachmentView`, so the fold reads/writes the
+    same view as legacy. So: NOT view-resolution, NOT a missing pass, NOT warmup — it IS
+    the runtime depth-clear (1 in plan → 0 on GPU).
   - ALSO RULED OUT (clean reads, next session-restart): (c) null receiver in graph
     mode — spot's publishFrameStatus return (spot-shadow.main.js:550) builds
     standardMaterialShadowReceiverResources UNCONDITIONALLY (NOT gated on
