@@ -156,8 +156,18 @@ Still owed (T5 not done):
     spot caster draws in executeFrameGraph vs the legacy createShadowPassEncoderAssemblyReport
     (compare begin/viewport/scissor/pipeline-state handling for a perspective depth
     target). Verify with a real-GPU folded-vs-legacy spot depth readback.
-- **multi-light** — NOT folded (its fold also needs the receiverResources/submit-gate
-  relaxation noted in HANDOFF; do spot first since they likely share the root cause).
+- **multi-light** — NOT folded, AND BLOCKED BY THE SPOT BUG (verified this session):
+  the multi-light worker (examples/multi-light-shadow.worker.js:175) adds a Spot light
+  alongside Directional + Point, so its `?graph=1` fold would hit the SAME unresolved
+  spot perspective-caster over-occlusion on the spot receiver region. So multi-light
+  CANNOT pass until spot is fixed — they are NOT independent. (It also needs a
+  per-bundle receiverResources/submit-gate relaxation: multi-light gates each light's
+  bundle on `bundle.commandBufferSubmissionReport.status === "submitted"`
+  — main.js:334 — false when the example's own submit is off; and it builds depth
+  resources per-bundle, not module-cached.) CONSEQUENCE: **spot is the single blocking
+  root cause for BOTH remaining Done-when #1 specs** (csm✓ point✓ spot✗ multi-light✗←spot).
+  Fix spot first; multi-light then follows (directional+point bundles already proven to
+  fold by the csm/point pattern).
 - **Done-when #2** (one command buffer / no separate submit) — DONE + committed
   (`c11fb19`). **#3** (read-edge ordering) — DONE (compile tests). **#4**
   (ShadowPassPlanReport status:'ready' on the graph path) — DONE + committed
