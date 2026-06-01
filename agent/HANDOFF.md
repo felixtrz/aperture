@@ -1,6 +1,9 @@
 # Agent Handoff
 
-Updated: 2026-05-31 — STOP POINT. M3-T5 IN PROGRESS (NOT done). origin @ 24fd60a.
+Updated: 2026-05-31 — STOP POINT. M3-T5 IN PROGRESS (NOT done). origin @ 9ff3db6.
+See the "★ BREAKTHROUGH (later session)" section at the BOTTOM first — the folded spot
+caster writes shadow-depth z=0 (degenerate matrix), which supersedes the older
+hypotheses in the middle of this file.
 
 > Milestone record: **docs/SOTA_ROADMAP.md** (correct: M3 4/7, M3-T5 unmarked /
 > in-progress, gate-green). Re-verify code state on disk (grep -c / vitest / E2E) —
@@ -201,3 +204,53 @@ reads "near" where it should read "far". Two candidates, in priority order:
    Decisive headless test idea (avoids the E2E loop): drive the spot caster fold through
    executeFrameGraph with a fake-device recorder and assert the depth begin descriptor's
    depthClearValue + that the caster draw commands are actually recorded into the pass.
+
+## ★ BREAKTHROUGH (later session) — folded spot caster writes shadow-depth z=0; matrices degenerate
+
+SUPERSEDES the two hypotheses just above (depthClearValue=0 is DISPROVEN). A real-GPU
+depth probe (createShadowDepthProbeReport over a 25-UV grid) on the FOLDED spot frame,
+read cleanly, showed: sampledDepth=0 at ALL 25 UVs (min=max=0), while the folded
+ShadowCasterGraphPass[0] descriptor is CORRECT — depthLoadOp:"clear",
+depthClearValue:1 (=far), depthStoreOp:"store", depthFormat:"depth24plus", commands:5,
+passCount:1. Depth cleared to 1 but reading 0 with 5 caster draws present ⇒ the caster
+geometry is rasterized at the NEAR plane (z≈0) → every receiver fragment occluded →
+BLACK receiver. So the folded spot caster DRAWS EXECUTE but against a DEGENERATE/ZERO
+view-projection matrix. (Confirmed NOT clear-value, NOT view-resolution, NOT a missing
+pass, NOT warmup, NOT double-encode, NOT example caching — csm/point use the SAME
+example caching + the SAME engine fold path and pass; spot's differentiator is its
+PERSPECTIVE projection, which collapses to 0 under a bad matrix where csm's ortho may
+not.)
+
+### The probe harness that WORKED (reuse it to verify the fix)
+
+In examples/spot-shadow.main.js publishFrameStatus, under `?graph=1`, after building
+pendingShadowCasterGraphPasses:
+
+- build 25 ShadowDepthProbeProjectionSample over a UV grid (key/role/shape/uv/depth:0.5/
+  insideProjection:true/projectionDistance:0);
+- `await aperture.createShadowDepthProbeReport({ device, samples, depthTextureResources:
+shadowDepthTextureResourceReport, samplerResource: shadowSamplerResourceReport,
+commandBufferSubmission: { counts: { submittedCommandBuffers: 1 } }, depthBias })`
+  — NOTE the synthetic submitted-count: the probe bails (status:"missing") if
+  submittedCommandBuffers===0, and in graph mode the example's own submit is gated off,
+  so pass a synthetic {counts:{submittedCommandBuffers:1}} (the engine fold did submit).
+- surface min/max sampledDepth + graphPasses[0].{depthLoadOp,depthClearValue,commands}
+  into status; a temporary spec test console.logs status.diagDepth.
+  A correct fix makes sampledDepth become non-zero/varied (real depth), then the spot
+  `?graph=1` pixel test (receivers darken) passes.
+
+### Fix direction (NOT yet attempted)
+
+The caster commands (setPipeline/setBindGroup/draw incl. the matrix bind group) are
+IDENTICAL to the passing csm path and run through the same executeRenderPassCommands;
+the matrix bind group object is cached. So trace WHY the folded spot caster samples a
+zero/degenerate matrix at execute time: instrument the spot matrix buffer CONTENTS
+(matrixComputation / what writeBuffer uploads) and compare the value the bind group's
+buffer holds when executeFrameGraph runs the node vs when the legacy pre-submitted
+encoder runs it. Candidate: the fed-forward commandRecords (frame N runs N-1's) bind a
+matrix buffer whose CONTENTS for frame N-1 were correct, but if the engine fold runs
+before the per-frame writeBuffer, or the buffer object identity churns, the sampled
+matrix is zero. Likely fix: build+submit the spot caster graph passes for the CURRENT
+frame (not fed-forward), or ensure the matrix buffer the fed-forward bind group points
+at is stable+populated at fold-execute time. Verify with the probe above + the pixel
+test. multi-light is blocked by this same spot bug (its worker adds a Spot light).
