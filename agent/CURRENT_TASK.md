@@ -50,6 +50,26 @@ at a time, committing each separately.
 >   clean probe target and already gave the decisive result (folded=0 vs legacy~1).
 >   Verify any fix by re-running the SPOT probe (folded spot depth must become ~1 far)
 >   then the spot ?graph=1 pixel test.
+> - EXECUTOR PATH VERIFIED CORRECT END-TO-END (source, this session): the shadow node
+>   uses resolveRenderBoundary, and frame-graph-execute.ts:234 encodeRenderNode takes
+>   the boundary payload VERBATIM (encodeFrameBoundaryInto) and returns — it does NOT
+>   rebuild attachments from node.writes/perNodeLoadStoreOps. encodeFrameBoundaryInto
+>   uses options.attachments.plan; beginPlannedRenderPass (render-pass-lifecycle.ts:40)
+>   passes that plan STRAIGHT to encoder.beginRenderPass. The plan is
+>   buildShadowCasterDepthAttachmentPlan(shadowPass) with depthClearValue:1 (probe
+>   confirmed graphPasses[0].depthClearValue===1). So EVERY layer carries clearValue:1,
+>   yet the GPU depth is 0 — the bug is at the actual GPU begin/clear, not in our plan
+>   plumbing. Candidates left: (i) a SwiftShader depth24plus depth-only-clear quirk
+>   when colorAttachments:[] (try depth32float, or add a dummy color target); (ii) the
+>   shared encoder's prior state on that depth view; (iii) the probe CONFOUND below.
+> - PROBE CONFOUND RULED OUT (probe source read this session, shadow-depth-probe.ts:303-330):
+>   status:"missing" does NOT zero sampledDepth. The early bails return records:[] (my
+>   probes had count:25, so they did NOT bail); the final return runs runProbe + builds
+>   records from real GPU probe.values via createRecords, and only sets
+>   status:"missing" when findStrictPair returns null (no strict caster/receiver pair) —
+>   the sampledDepth numbers are genuine readbacks regardless. So folded spot depth=0
+>   and legacy ~1 are BOTH real GPU reads. The depth-clear bug is confirmed, not an
+>   artifact.
 >
 > This session I earlier committed FALSE "passed" claims (spot dac7068 + 1969d3f, doc
 > dd820f8) — all reverted, origin honest. Resume ONE command at a time, reading every
