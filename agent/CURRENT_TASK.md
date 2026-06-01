@@ -141,6 +141,21 @@ Still owed (T5 not done):
     effectively wrote) vs wrong-projection — that distinguishes "engine fold doesn't
     execute the spot caster draws against the right target/state" from "spot
     perspective matrices wrong in fold". Needs a session with reliable E2E reads.
+  - DOUBLE-ENCODE RULED OUT (this session, E2E read cleanly): re-ran the spot fold with
+    the example's ENTIRE legacy caster encode skipped in graph mode (gated
+    createShadowPassEncoderAssemblyReport + its encoder + submission off via
+    `useFrameGraph ? null : …`, so the engine's folded depth-only node is the SOLE
+    writer of the cached spot depth) → spot `?graph=1` test STILL FAILS identically
+    (near-light receiver before=WHITE, after=BLACK, pixelDistance 9.49<20). So the
+    double-encode is NOT the cause. Reverted (branch clean). CONCLUSION: the bug is
+    INSIDE the engine's fold execution of the spot caster depth node — csm + point fold
+    correctly through the SAME engine path (createShadowCasterGraphPasses → depth-only
+    node in frame-boundaries → executeFrameGraph), so the spot-specific factor is its
+    single 2D PERSPECTIVE (cone) caster pass. Fix is engine-side, not example-side.
+    Sharpest remaining lead: how the depth-only shadow node's render-pass executes the
+    spot caster draws in executeFrameGraph vs the legacy createShadowPassEncoderAssemblyReport
+    (compare begin/viewport/scissor/pipeline-state handling for a perspective depth
+    target). Verify with a real-GPU folded-vs-legacy spot depth readback.
 - **multi-light** — NOT folded (its fold also needs the receiverResources/submit-gate
   relaxation noted in HANDOFF; do spot first since they likely share the root cause).
 - **Done-when #2** (one command buffer / no separate submit) — DONE + committed
