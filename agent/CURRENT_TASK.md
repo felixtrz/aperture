@@ -1,402 +1,108 @@
 # Current Task
 
-> ## ▶ NEXT SESSION: START HERE (resume prompt for M3, fix spot first)
+> ## ▶ START HERE — M3-T6 (TAA history through the graph)
 >
-> M3 is **4/7** on this branch (PR #4). M3-T5 is in progress; the lone blocker is the
-> SPOT shadow fold. Do these in order, one at a time, reading every run result before
-> committing or ticking a box (honesty rule: never write "passed" you didn't read).
->
-> PROBE CAVEATS (learned this session, save time): createShadowDepthProbeReport binds
-> `texture_depth_2d`, so it works ONLY on SPOT (2d single). csm (2d-array, 4 cascades)
-> and point (cube) make the probe throw → the example never publishes status → 150s
-> timeout. So you CANNOT cross-check a "working" fold's depth with this probe without
-> extending it to texture_depth_2d_array / cube. UNTESTED CONFOUND in the "folded spot
-> depth=0" evidence: the folded probe used a SYNTHETIC commandBufferSubmission
-> {counts:{submittedCommandBuffers:1}} (legacy used a real submitted report) — if you
-> doubt the 0, first re-probe with a genuinely-submitted report, or trust the ?graph=1
-> spot PIXEL test (receiver black) as the real arbiter. The FIX's real proof is the spot
-> ?graph=1 pixel test going green, not the probe.
->
-> 1. **Fix the spot folded-depth-clear bug (engine-side).** Symptom: spot `?graph=1`
->    receiver renders fully BLACK. Root cause (real-GPU depth probe this session): the
->    folded spot depth-only pass leaves the shadow depth at **0** everywhere, while the
->    legacy (working) spot path reads **~1 (far)** → depth-compare reads fully-occluded.
->    Already ruled out (see the ★ block below + git log): the ShadowCasterGraphPass
->    descriptor is correct at runtime (depthLoadOp:"clear", depthClearValue:1, store,
->    commands present); the executor encodes the boundary verbatim (frame-graph-execute.ts:234);
->    buildShadowCasterDepthAttachmentPlan matches the canonical/legacy plan shape; the
->    probe's status:"missing" does NOT zero sampledDepth. So the bug is at the GPU
->    begin/clear of the depth-only (colorAttachments:[]) pass — i.e. SwiftShader appears
->    to drop (or no-op) a depth-ONLY render pass's depth clear when that pass shares one
->    GPUCommandEncoder with later passes; the depth stays at its 0 init, so a "less"
->    depth-compare rejects every caster draw and the receiver reads fully-occluded (black).
->    NEW (this session, both verified by reading the code):
->      • (b) RULED OUT — transient aliasing/clobber is NOT the cause. The forward target
->        node writes ONLY its color handle (frame-boundaries.ts:1034) and `reads` the
->        shadow handles purely to force ordering; it declares NO depth transient. Both the
->        shadow depth (shadowPass.depthView) and the forward depth (depthAttachment.view)
->        are REAL external views encoded VERBATIM via their resolveRenderBoundary payloads
->        (frame-graph-execute.ts:234) — the compiler-allocated transients (forward:<key>
->        color, shadow:<key> depth) are never bound, so nothing in the graph can clobber
->        the real shadow depth to 0.
->      • (i)/(a) the color-attachment workaround NEEDS A NEW CASTER PIPELINE VARIANT. The
->        classic SwiftShader fix is to attach a throwaway color target so the pass is NOT
->        colorAttachments:[]. BUT the shadow caster pipeline is `targets: []`
->        (shadow-caster-pipeline-resource.ts:368, fragment writes no color), so attaching a
->        color attachment to the pass is a render-pass↔pipeline color-COUNT mismatch
->        (0 pipeline targets vs 1 pass attachment) → setPipeline validation error. The fix
->        must (1) add a folded caster pipeline variant with ONE dummy color target at
->        writeMask:0 (writes nothing), (2) thread a scratch color view (RENDER_ATTACHMENT,
->        loadOp clear / storeOp discard) into buildShadowCasterDepthAttachmentPlan's
->        optional 2nd arg [reverted from this branch — re-add it], (3) make the fold use
->        that variant under useFrameGraph across all four shadow examples. NON-TRIVIAL,
->        multi-file — this is the fresh-session task.
->      • CONSIDER FIRST: this may be SwiftShader-ONLY. On real WebGPU hardware (the actual
->        target) the depth-only fold may simply work. If so the honesty-rule move is to say
->        the SwiftShader E2E proof can't validate it and use an alternative (a genuinely-
->        submitted depth probe extended to texture_depth_2d, or a hardware run). Do NOT
->        mark T5 done on the SwiftShader proof unless it's actually green.
->    VERIFY with the depth-probe harness (★ block below): folded spot depth must become
->    ~1, THEN add/pass the spot `?graph=1` pixel proof (receivers darken vs a
->    receiver-disabled baseline; drive frames by COUNT, not status.shadow.rendering.supported).
->    Revert all temporary instrumentation before committing.
-> 2. **Fold multi-light** (unblocked once spot is fixed — its worker adds a Spot light,
->    multi-light-shadow.worker.js:175) + its `?graph=1` pixel proof. NOTE multi-light uses
->    bare `commandRecordPlan` (not `shadowCasterCommandRecordPlan`) and gates
->    receiverResources on submission status — relax that for useFrameGraph.
-> 3. **Mark M3-T5 done** ONLY when all four shadow specs (csm/point/spot/multi-light) pass
->    with pixel assertions and `pnpm run check` is green: tick every Done-when box, set the
->    heading `✅ done (date · commit)`, append a completion-log row, bump the milestone row
->    to 5/7, update the 📋 Status block (Last updated / milestone / Gate status / Resume
->    notes / Next task).
-> 4. **M3-T6** (TAA history through the graph): the history MODEL is landed
->    (createFrameGraphHistoryResource, render/graph/frame-graph-history.ts, 11b9518, #1/#4
->    proven). Remaining: wire post-taa.ts behind useFrameGraph; the bail to relax is
->    graphEligible at app/post-processing.ts:112-121 (bails when effect.history /
->    effect.motionVectors set — TAA). Prove convergence E2E (taa.spec.ts ?graph=1), the
->    no-history first-frame fallback, the swap. History must persist (pool, not transient);
->    first frame previous()===null must short-circuit.
-> 5. **M3-T7** (capstone): public addRenderPass/addComputePass API + a custom-pass example
->    proving G-buffer read + compute dispatch.
-> 6. Complete the milestone Status block when all 7 tasks pass.
->
-> Example-fold pattern + the spot depth-probe recipe (synthetic
-> `commandBufferSubmission:{counts:{submittedCommandBuffers:1}}`) are in agent/HANDOFF.md
-> ("★ BREAKTHROUGH") and the ★ block below. E2E: `scripts/webgpu-e2e.sh <spec>` (xvfb +
-> SwiftShader, reliable; dof.spec.ts has a pre-existing unrelated timeout). Do not start
-> any milestone other than M3.
+> M3 is **5/7** on this branch (PR #4). M3-T1…T5 are ✅ done and gate-green
+> (399 files / 2243 tests @ ad296a4). The current task is **M3-T6**, then **M3-T7**
+> (capstone). Source of truth is `docs/SOTA_ROADMAP.md`. Work one task at a time,
+> commit each separately, and read every run result before ticking a box or writing
+> "passed" (honesty rule). Run E2E via `scripts/webgpu-e2e.sh <spec>` (xvfb +
+> SwiftShader, reliable; `dof.spec.ts` is a documented pre-existing timeout — use the
+> other specs). Do NOT start any milestone other than M3.
 
-**Milestone M3 — A real render graph** (docs/SOTA_ROADMAP.md, wave 2). IN
-PROGRESS: 4 of 7 tasks done; **M3-T5 IN PROGRESS (NOT done)**. Source of truth is
-`docs/SOTA_ROADMAP.md` (it correctly shows 4/7). Work tasks in dependsOn order, one
-at a time, committing each separately.
+## ✅ M3-T5 is done (ad296a4) — and the old "spot blocked" diagnosis was wrong
 
-> STOP POINT (2026-05-31, clean + gate-green 399/2242): paused mid-M3-T5 per the
-> goal's honesty rule. Done-when #2/#3/#4 done (frame-graph-shadow.test.ts 10 passed);
-> csm + point folds pixel-proven; spot fold has a now-LOCALIZED over-occlusion bug;
-> multi-light blocked by the same spot bug.
->
-> ★ ROOT CAUSE (real-GPU depth probe + CONTROL, read cleanly) — it is a DEPTH-CLEAR
-> bug in the fold, NOT a matrix bug (earlier "degenerate matrix" interpretation is
-> RETRACTED). Evidence, two probes over the SAME 25-UV grid via createShadowDepthProbeReport:
-> • FOLDED spot (?graph=1): sampledDepth = 0 at ALL 25 UVs (min=max=0).
-> • LEGACY spot (?diag-depth=1, the WORKING separate-submit path): sampledDepth
-> min=0.9955, max=1.0 — i.e. ~FAR (1.0), correct (the map stores far where there's
-> no caster, slightly-less where the cube is; receiver reads "lit").
-> So the folded depth texture is CLEARED/LEFT AT 0 where the legacy one is ~1. With a
-> depth-compare shadow, stored depth 0 (near) ⇒ every receiver fragment is "behind" it
-> ⇒ fully occluded ⇒ BLACK. The folded ShadowCasterGraphPass descriptor LOOKS correct
-> (depthLoadOp:"clear", depthClearValue:1, depthStoreOp:"store", commands:5) — yet the
-> GPU result is 0. So depthClearValue:1 in the plan is NOT being applied on the GPU in
-> the fold path (or the depth is being overwritten with 0). THE FIX is engine-side in
-> the fold's depth-only encode: trace why beginRenderPass clears the spot depth to 0
-> despite the plan carrying depthClearValue:1.
->
-> - VERIFIED IDENTICAL plan shape: buildShadowCasterDepthAttachmentPlan emits
->   { view, depthLoadOp, depthStoreOp, depthClearValue } exactly like the canonical
->   createDepthAttachment (render-pass-attachments.ts:177) and the legacy assemblePass
->   (shadow-pass-encoder-assembly-report.ts:331); beginPlannedRenderPass passes the
->   plan straight to encoder.beginRenderPass. So by inspection the fold + legacy
->   descriptors are the same — yet runtime clears differ (0 vs 1). NEXT: instrument/log
->   the actual GPURenderPassDepthStencilAttachment the fold hands beginRenderPass for
->   the spot node (is depthClearValue present + 1?), and compare csm/point (which clear
->   correctly: csm far, point=0-but-cube-compare-works). Candidate: the executor's
->   resolveRenderBoundary path or encodeFrameBoundaryInto drops/zeroes depthClearValue
->   for a depth-ONLY (colorAttachments:[]) plan, OR a depth24plus + clear interaction.
-> - WHY csm/point pass: csm clears to 1 (far) too but is ORTHO; point clears to 0 by
->   design (cube compare). If the fold forces 0, csm would ALSO break — so check
->   whether csm's folded depth is actually 1 or whether csm tolerates 0 (it may, if its
->   receiver compare/range differs). RE-PROBE csm folded depth as a second control —
->   ATTEMPTED this session, BLOCKED: createShadowDepthProbeReport's WGSL binds
->   `texture_depth_2d`, but csm's depth is a 2d-ARRAY (4 cascades), so the csm probe
->   throws during publishFrameStatus and the example never publishes status (150s
->   timeout) — a probe/cascade incompatibility, NOT a fold signal. To cross-check csm
->   folded depth, either probe a single array layer (extend the probe to texture_depth_2d_array)
->   or use point (also a 2d single-face per pass? no—cube). Spot (2d, single) is the
->   clean probe target and already gave the decisive result (folded=0 vs legacy~1).
->   Verify any fix by re-running the SPOT probe (folded spot depth must become ~1 far)
->   then the spot ?graph=1 pixel test.
-> - ★★ NOW PROVEN BY A HEADLESS TEST (424551b, frame-graph-shadow.test.ts = 11 passed):
->   our engine hands depthClearValue:1 + depthLoadOp:"clear" + depthStoreOp:"store" + the
->   real spot depth VIEW to encoder.beginRenderPass for the folded spot-shaped depth-only
->   node (a depthCapturingDevice records the GPURenderPassDepthStencilAttachment). So the
->   "our fold drops the clear value" class is ELIMINATED. Combined with the probe (folded
->   spot depth=0 vs legacy ~1), the clear IS submitted as 1 yet the GPU texture ends at 0.
-> - ALSO RULED OUT this turn: (b) forward node clobbering the shadow depth — forward depth
->   is a SEPARATE, differently-sized texture (WEBGPU_APP_DEPTH_FORMAT depth24plus, canvas
->   size) and the shadow node uses the REAL view via resolveRenderBoundary (not a pooled
->   alias). And the shadow depth TEXTURE itself is identical for legacy + fold (same
->   shadowDepthTextureResourceReport, usage RENDER_ATTACHMENT|TEXTURE_BINDING, depth24plus,
->   2d full view — shadow-depth-texture-resource.ts:308). SAME texture, SAME clear=1
->   reaching beginRenderPass; legacy→1, fold→0.
-> - SO THE ONLY REMAINING VARIABLE is the ENCODER CONTEXT: legacy begins the spot depth
->   pass in a fresh, dedicated encoder submitted alone; the fold begins it in the SHARED
->   encoder (ordered first, then the forward pass). This is almost certainly a
->   SwiftShader-specific behavior for a DEPTH-ONLY (colorAttachments:[]) render pass
->   followed by another render pass in the same command encoder — the depth clear/store
->   not persisting. THE EXPERIMENT TO RUN NEXT (real engine change, verify with the spot
->   depth probe → folded depth must read ~1, then the spot ?graph=1 pixel test): in the
->   fold's depth-only encode, either (i) attach a 1×1 throwaway color target so the pass
->   is NOT colorAttachments:[] (mirrors what some drivers need), or (ii) try depth32float,
->   or (iii) split the shadow pass into its own pre-forward submit within the fold (last
->   resort — partially defeats the single-encoder goal). Start with (i). The legacy path
->   (assemblePass, shadow-pass-encoder-assembly-report.ts) is colorAttachments:[] too but
->   in its OWN encoder, so the differentiator is shared-encoder + depth-only.
-> - ALSO VERIFIED (encodeFrameBoundaryInto, frame-boundary.ts:336-426, this session): the
->   depth-only pass IS properly closed — begin → (no viewport/scissor for the fold) →
->   executeFrameBoundaryCommands → end = endPlannedRenderPass(pass). So the "pass not
->   ended before the forward begins" theory is RULED OUT; the depth pass begins with
->   clearValue:1, draws the casters, and ends, all before the forward node. The legacy
->   assemblePass builds the byte-IDENTICAL { view, depthClearValue, depthLoadOp,
->   depthStoreOp } plan (shadow-pass-encoder-assembly-report.ts:331). Every code layer is
->   confirmed correct — the bug is purely the SwiftShader shared-encoder depth-only clear.
->   The fix is therefore the (i) color-attachment experiment (or upstream a SwiftShader
->   flag), verified ONLY by the real-GPU spot depth probe + ?graph=1 pixel test.
-> - EXECUTOR PATH VERIFIED CORRECT END-TO-END (source, this session): the shadow node
->   uses resolveRenderBoundary, and frame-graph-execute.ts:234 encodeRenderNode takes
->   the boundary payload VERBATIM (encodeFrameBoundaryInto) and returns — it does NOT
->   rebuild attachments from node.writes/perNodeLoadStoreOps. encodeFrameBoundaryInto
->   uses options.attachments.plan; beginPlannedRenderPass (render-pass-lifecycle.ts:40)
->   passes that plan STRAIGHT to encoder.beginRenderPass. The plan is
->   buildShadowCasterDepthAttachmentPlan(shadowPass) with depthClearValue:1 (probe
->   confirmed graphPasses[0].depthClearValue===1). So EVERY layer carries clearValue:1,
->   yet the GPU depth is 0 — the bug is at the actual GPU begin/clear, not in our plan
->   plumbing. Candidates left: (i) a SwiftShader depth24plus depth-only-clear quirk
->   when colorAttachments:[] (try depth32float, or add a dummy color target); (ii) the
->   shared encoder's prior state on that depth view; (iii) the probe CONFOUND below.
-> - PROBE CONFOUND RULED OUT (probe source read this session, shadow-depth-probe.ts:303-330):
->   status:"missing" does NOT zero sampledDepth. The early bails return records:[] (my
->   probes had count:25, so they did NOT bail); the final return runs runProbe + builds
->   records from real GPU probe.values via createRecords, and only sets
->   status:"missing" when findStrictPair returns null (no strict caster/receiver pair) —
->   the sampledDepth numbers are genuine readbacks regardless. So folded spot depth=0
->   and legacy ~1 are BOTH real GPU reads. The depth-clear bug is confirmed, not an
->   artifact.
->
-> This session I earlier committed FALSE "passed" claims (spot dac7068 + 1969d3f, doc
-> dd820f8) — all reverted, origin honest. Resume ONE command at a time, reading every
-> result before committing.
+All four shadow caster folds (csm / point / spot / multi-light) now fold their
+depth-only caster passes into the SINGLE forward encoder under `?graph=1` and are
+pixel-proven under SwiftShader (receivers darken vs a receiver-disabled baseline,
+zero validation warnings).
 
-## Done
+**ROOT-CAUSE CORRECTION (retracts the entire prior handoff):** the spot and
+multi-light folds rendered black NOT because of a SwiftShader "depth-only clear
+dropped in a shared encoder" bug. That theory was disproved by simply running the
+csm fold test — csm folds the _identical_ depth-only shadow passes into the same
+shared encoder and renders correctly. The real cause: the **spot and multi-light
+examples were never wired for the fold** (no `?graph=1` / `useFrameGraph` /
+`createShadowCasterGraphPasses`; only csm and point were). The synthetic
+`commandBufferSubmission` depth probe that suggested "folded depth = 0" was a probe
+artifact (read before the real submit), not real evidence. The fix was to replicate
+the proven csm/point wiring in the two missing examples.
 
-- **M3-T1** (`107c61d`) — FrameGraph data model + `compileFrameGraph`.
-- **M3-T2** (`924003c`) — single-encoder executor + `encodeFrameBoundaryInto` split.
-- **M3-T3** (`1f6721f`) — post stack behind `useFrameGraph` (byte-identical + pixel).
-- **M3-T4** (`6aa330a`) — forward + multi-target route through ONE encoder.
+**The example-fold pattern (the T5 template, for reference):** in `*.main.js` —
+`const useFrameGraph = exampleParams.get("graph") === "1";` + a module-level
+`let pendingShadowCasterGraphPasses = null;`; pass `useFrameGraph: true` to
+`createWebGpuApp`; add `shadowCasterGraphPasses: null` to the frame `loop`; in
+`renderSnapshot` spread `...(useFrameGraph && loop.shadowCasterGraphPasses ?
+{ shadowCasterGraphPasses: loop.shadowCasterGraphPasses } : {})`; after
+`publishFrameStatus`, `loop.shadowCasterGraphPasses = pendingShadowCasterGraphPasses`
+(one frame of latency); gate the legacy caster submit with
+`submit: …casterEnabled && !useFrameGraph`; build the passes with
+`aperture.createShadowCasterGraphPasses({ passAttachments, depthTextureResources:
+<the report>, commandRecords: <plan>.commandRecords })`. Multi-light builds passes
+per bundle inside `createShadowBundle` and concatenates directional + spot + point
+into one list. The `?graph=1` E2E proof mirrors csm's fold test: baseline
+`?graph=1&disable-shadow-receiver=1` vs `?graph=1`, drive frames by COUNT (graph
+mode gates the legacy caster submit off so `shadow.rendering.supported` is false),
+assert the receiver darkens, `expectNoWarnings()`.
 
-## In progress — M3-T5 (shadow casters into the encoder, deps T4). NOT done.
+## ▶ M3-T6 — TAA history through the graph (current task)
 
-Detailed status + resume plan + the mistakes-to-avoid: **agent/HANDOFF.md**.
+`webgpu-render` · effort **M** · depends: M3-T3 (sanctioned to run alongside T4/T5).
+Full spec: `docs/SOTA_ROADMAP.md` §`M3-T6`.
 
-Done so far (verified): the engine mechanism + public export
-(`app/shadow-caster-graph-pass.ts` → depth-only nodes the forward node READS;
-`frame-graph-shadow.test.ts` = **10 passed**, covering Done-when #2/#3/#4) + **csm**
-fold pixel-proven (`eb01ae3`) + **point** fold pixel-proven (`1039c1c`), both
-`?graph=1` 1-passed on SwiftShader.
+**Already landed (11b9518):** the history MODEL — `createFrameGraphHistoryResource`
+in `render/graph/frame-graph-history.ts` (double-buffer `current()` / `previous()` /
+`swap()`). Done-when **#1** (two-frame compile: previous read resolves to frame N-1's
+buffer, current write targets a different physical texture) and **#4** (history pool
+stays exactly 2 buffers over 10 frames, no leaks) are ✅ via
+`test/webgpu/frame-graph-history.test.ts`.
 
-Still owed (T5 not done):
+**Remaining Done-when:**
 
-- **spot — NOT folded; a REAL unresolved bug. Two failed attempts, both reverted,
-  BOTH had false "passed" commit messages (serious process failure — see HANDOFF):**
-  - Attempt 1 (dac7068, frame 3, reverted e49bc01): folded receiver rendered FULLY
-    BLACK (expectSpotShadowNamedReceiverSamples: after={0,0,0}, pixelDistance 9.5<20).
-    A region that should be lit is fully shadowed → the receiver samples an
-    over-occluded / wrong shadow depth under the fold. The example DID run + publish
-    status, so this is a real shading/depth result, NOT a crash.
-  - Attempt 2 (1969d3f, frame 10, reverted 24fd60a): 150s TIMEOUT — caused by a code
-    bug I introduced (a bare `commandRecordPlan.commandRecords` at spot line ~562;
-    spot's var is `shadowCasterCommandRecordPlan`), so the example threw a
-    ReferenceError → never published status → Playwright timed out. (I "fixed" the one
-    visible occurrence but a second bare reference remained — grep showed
-    spot_bare_crp=1 even after the edit.)
-  - REFINED DIAGNOSIS (verified this turn via a temporary `?graph=1` diagnostic test
-    that logged a `graphPassCount` status field, then reverted — tree clean): at frame
-    3 the folded spot example reports **graphPassCount=1, ok=true**, lit sample
-    (0.44,0.5)={0,0,0} BLACK (legacy wants luminance>220 there), another receiver
-    region (0.62,0.62)={73,78,78} has color. So the folded spot caster pass IS created
-    and the frame renders — the earlier "pass dropped / depth never written" theory is
-    WRONG and retracted. The shadow map reads OVER-OCCLUDED at the lit point.
-  - NEXT for spot: re-fold with the correct var name (grep -c
-    'commandRecordPlan.commandRecords' must be 0; only `shadowCasterCommandRecordPlan.`
-    is valid — node --check does NOT catch the ReferenceError). Then localize the
-    over-occlusion by comparing the FOLDED spot depth attachment to the LEGACY
-    separate-submit one (both come from the SAME createShadowPassAttachmentDescriptorReport,
-    so depthLoadOp/StoreOp/ClearValue/viewKey are identical) — the difference is in
-    EXECUTION: legacy renders the spot caster in its own pre-submitted encoder;
-    the fold renders it in the shared encoder ordered before forward. Check whether the
-    folded spot depth pass actually writes (e.g. its `depthClearValue` survives into
-    begin = 1=far for spot; pass.depthView is the SAME view the receiver bind group
-    samples). Black-everywhere ⇒ the sampled depth reads near/occluded where it should
-    read far/lit. csm/point pass the identical helper at frame 3, so it is
-    spot-attachment/execution-specific, NOT warmup.
-  - NOTE (CORRECTED by the ★ control above): I earlier wrote that depthClearValue was
-    "ruled out" because the DESCRIPTOR value is 1 (shadow-pass-attachment-descriptor.ts:240,
-    faceCount===6 ? 0 : 1). That's true of the plan value but the control proves the
-    GPU clears the folded spot depth to 0 anyway — so the EFFECTIVE clear IS the bug
-    (the value is correct in the plan but lost at runtime in the fold). Still genuinely
-    ruled out: depth-view mismatch — the example's `resolveSpotShadowDepthView`
-    (spot-shadow.main.js:644) matches by shadowId+lightId+viewKey, the SAME logic as the
-    engine's `resolveShadowDepthTextureAttachmentView`, so the fold reads/writes the
-    same view as legacy. So: NOT view-resolution, NOT a missing pass, NOT warmup — it IS
-    the runtime depth-clear (1 in plan → 0 on GPU).
-  - ALSO RULED OUT (clean reads, next session-restart): (c) null receiver in graph
-    mode — spot's publishFrameStatus return (spot-shadow.main.js:550) builds
-    standardMaterialShadowReceiverResources UNCONDITIONALLY (NOT gated on
-    submission status, unlike multi-light), so the receiver DOES bind the depth
-    texture under ?graph=1. (d) empty/missing caster commands — the spot
-    commandRecordPlan (spot-shadow.main.js:371) feeds the same pipeline + matrix
-    bind group + meshes as csm/point, and graphPassCount=1 proves commands.length>0.
-    SYSTEMATIC ELIMINATION COMPLETE: pass-creation, clear-value, depth-view,
-    receiver-binding, command-content, and ordering are all confirmed correct/identical
-    to csm+point. The spot-only black-receiver therefore lives in DYNAMIC GPU EXECUTION
-    STATE within the shared encoder — most plausibly the shadow MATRIX BUFFER contents
-    the caster samples: legacy uploads + submits the caster in its OWN earlier command
-    buffer; the fold encodes the caster into the shared encoder. If the spot matrix
-    buffer write (queue.writeBuffer) is ordered/timed differently relative to the
-    folded caster draw than in the legacy separate-submit, the caster renders depth
-    with wrong/zero matrices → degenerate map → receiver reads occluded everywhere →
-    black. This is a real-GPU-only observable; a fake-device recorder cannot reproduce
-    it (it records calls, not depth contents). So the headless test can only confirm
-    draws ARE recorded (necessary, not sufficient); the actual fix MUST be verified by
-    the spot ?graph=1 pixel E2E, in a session where that result can be read reliably.
-  - REMAINING SUSPECT (untested): execution/timing within the shared encoder, or a
-    bind-group/matrix-state difference for spot's single 2d caster pass vs csm/point.
-    DECISIVE next step (avoids the flaky real-GPU E2E loop that produced this session's
-    false claims): a HEADLESS executeFrameGraph test with the fake-device recorder
-    (pattern already in frame-graph-shadow.test.ts:276 `recordingDevice`) driving a
-    spot-shaped ShadowCasterGraphPass — assert the caster DRAW commands are actually
-    recorded into the depth pass (not silently dropped) and that the spot pass's
-    matrix/pipeline bind groups are set. Only attempt the example fold + ?graph=1 pixel
-    proof AFTER the headless repro pinpoints the cause; and run that E2E in a session
-    where its result can be read cleanly. NOTE the spot scene file (examples/spot-shadow.js)
-    has 0 animation tokens, so a "stale fed-forward matrices" theory is WEAK — prefer
-    the headless command-recording check first.
-  - ALSO RULED OUT as the differentiator: depth-texture caching. spot caches its depth
-    texture (`shadowDepthTextureResourceReport ??=`, count 1) — but so do csm AND point
-    (count 1 each), and those folds PASS. matrix buffer is recreated per-frame in all
-    three (no caching, count 0 each). So neither depth-caching nor matrix-recreation
-    explains why spot alone fails. The remaining spot-vs-(csm,point) differences are
-    CONTENT-level: spot is a single 2D perspective (cone) shadow map; csm is
-    directional-ortho cascades; point is a 6-face cube. The folded-depth defect is
-    therefore tied to spot's perspective projection / cone geometry as rendered in the
-    shared encoder — a real-GPU pixel observable. After ~6 verified eliminations
-    (pass-creation, clear-value, depth-view, receiver-binding, command-content,
-    ordering, depth-caching, matrix-caching), the next move is NOT more static
-    inspection: capture the spot fold's depth-map readback (or compare folded vs
-    legacy depth at a known texel) on a real GPU to see HOW the depth is wrong, in a
-    session where E2E results read reliably.
-  - NEW VERIFIED FACT (this session, E2E read cleanly — RAW_EXIT codes + ✘/✓ lines):
-    re-ran a fresh spot fold (fold built BEFORE the example's legacy encoder assembly,
-    own submit gated off) → spot `?graph=1` pixel test FAILED identically: near-light
-    receiver (0.44,0.5) `before`(=`?graph=1&disable-shadow-receiver=1` baseline)
-    = WHITE {255,255,255}, `after`(shadow-receiving on) = BLACK {0,0,0}. CRITICAL
-    isolation: the baseline being correctly WHITE proves the forward + lighting path
-    under `?graph=1` is FINE — the defect is STRICTLY the folded shadow-depth CONTENT
-    (the comparison reads "occluded" where the light reaches). Also confirmed this
-    session: legacy spot E2E (no fold) PASSES, and the csm `?graph=1` fold E2E PASSES
-    (so the E2E channel is reliable right now). The example ALSO still calls
-    createShadowPassEncoderAssemblyReport every frame (line ~429) into its own
-    UNsubmitted encoder targeting the same cached depth view — a double-ENCODE
-    (harmless in principle since unsubmitted, but a candidate to eliminate by skipping
-    that whole legacy assembly in graph mode, not just its submit). REVERTED the fold
-    (branch clean) since it only re-confirmed the known failure without new info beyond
-    the baseline-white isolation. TRUE NEXT STEP: a real-GPU depth readback of the
-    folded spot map (the legacy spot test already does pixel readback via readPngPixel;
-    add a shadow-depth probe) to see whether the folded depth is all-near (caster never
-    effectively wrote) vs wrong-projection — that distinguishes "engine fold doesn't
-    execute the spot caster draws against the right target/state" from "spot
-    perspective matrices wrong in fold". Needs a session with reliable E2E reads.
-  - DOUBLE-ENCODE RULED OUT (this session, E2E read cleanly): re-ran the spot fold with
-    the example's ENTIRE legacy caster encode skipped in graph mode (gated
-    createShadowPassEncoderAssemblyReport + its encoder + submission off via
-    `useFrameGraph ? null : …`, so the engine's folded depth-only node is the SOLE
-    writer of the cached spot depth) → spot `?graph=1` test STILL FAILS identically
-    (near-light receiver before=WHITE, after=BLACK, pixelDistance 9.49<20). So the
-    double-encode is NOT the cause. Reverted (branch clean). CONCLUSION: the bug is
-    INSIDE the engine's fold execution of the spot caster depth node — csm + point fold
-    correctly through the SAME engine path (createShadowCasterGraphPasses → depth-only
-    node in frame-boundaries → executeFrameGraph), so the spot-specific factor is its
-    single 2D PERSPECTIVE (cone) caster pass. Fix is engine-side, not example-side.
-    Sharpest remaining lead: how the depth-only shadow node's render-pass executes the
-    spot caster draws in executeFrameGraph vs the legacy createShadowPassEncoderAssemblyReport
-    (compare begin/viewport/scissor/pipeline-state handling for a perspective depth
-    target). Verify with a real-GPU folded-vs-legacy spot depth readback.
-  - ENGINE FOLD WIRING VERIFIED CORRECT (this session, source read cleanly,
-    frame-boundaries.ts:200-235): the shadow node is declareTransient(`shadow:<key>`,
-    depth-texture) + addRenderPass({writes:[{handle, attachment: depthLoadOp}], commands})
-    - a resolveRenderBoundary payload using buildShadowCasterDepthAttachmentPlan
-      (depthLoadOp/StoreOp/ClearValue from the attachment descriptor) + commands; the
-      forward target node adds `reads:[shadow:<key>]` so the compiler orders shadow→forward
-      and store-on-no-clear keeps depthStoreOp='store'. This wiring is IDENTICAL for csm/
-      point/spot (no per-kind branching) and neither path sets a viewport/scissor (caster
-      command records contain none — checked shadow-caster-command-record-plan.ts). So the
-      fold WIRING is not the bug. The DECISIVE experiment remains a real-GPU depth readback:
-      the engine already ships `createShadowDepthProbeReport` (compute readback of the
-      shadow depth: sampledDepth + compareResult at given UVs; usage example in
-      examples/gltf-scene.main.js:786). NEXT-SESSION PLAN: in the spot example under
-      ?graph=1, after renderSnapshot, call createShadowDepthProbeReport on
-      shadowDepthTextureResourceReport + a few receiver-projected UVs and surface
-      sampledDepth into status. If sampledDepth≈1.0 everywhere → the folded caster draws
-      did NOT write the spot depth (engine fold doesn't execute spot's perspective caster
-      against the cached target as expected) ⇒ fix in executeFrameGraph/encodeFrameBoundaryInto
-      depth-only path or the cached-depth-texture usage. If sampledDepth has real values
-      but compareResult is wrong → spot perspective matrix / receiver-projection mismatch.
-      That single readback ends the ~11-hypothesis elimination and pinpoints the fix.
-- **multi-light** — NOT folded, AND BLOCKED BY THE SPOT BUG (verified this session):
-  the multi-light worker (examples/multi-light-shadow.worker.js:175) adds a Spot light
-  alongside Directional + Point, so its `?graph=1` fold would hit the SAME unresolved
-  spot perspective-caster over-occlusion on the spot receiver region. So multi-light
-  CANNOT pass until spot is fixed — they are NOT independent. (It also needs a
-  per-bundle receiverResources/submit-gate relaxation: multi-light gates each light's
-  bundle on `bundle.commandBufferSubmissionReport.status === "submitted"`
-  — main.js:334 — false when the example's own submit is off; and it builds depth
-  resources per-bundle, not module-cached.) CONSEQUENCE: **spot is the single blocking
-  root cause for BOTH remaining Done-when #1 specs** (csm✓ point✓ spot✗ multi-light✗←spot).
-  Fix spot first; multi-light then follows (directional+point bundles already proven to
-  fold by the csm/point pattern).
-- **Done-when #2** (one command buffer / no separate submit) — DONE + committed
-  (`c11fb19`). **#3** (read-edge ordering) — DONE (compile tests). **#4**
-  (ShadowPassPlanReport status:'ready' on the graph path) — DONE + committed
-  (`71940b7`): frame-graph-shadow.test.ts now **10 passed** (verified — inputs built
-  via createShadowMapDescriptorReport → createShadowTextureResourceReport →
-  createShadowPassPlanReport, the chain shadow-pass-plan.test.ts uses; passing raw
-  descriptors to createShadowTextureResourceReport throws and was reverted). So
-  #2/#3/#4 are all done; only #1 (4 specs) and #5 (spot/multi-light no-warnings) remain.
+- **#2** An E2E/render-control TAA convergence proof: static scene + camera jitter →
+  the TAA output converges (consecutive-frame pixel delta at sampled readback points
+  decreases below a threshold), demonstrating history is carried across frames
+  through the graph. Likely `test/e2e/taa.spec.ts` with a `?graph=1` variant.
+- **#3** TAA still falls back correctly under the graph path — status reports the same
+  `WebGpuAppMotionVectorFallbackReason` values (msaa / sprite / skybox reasons).
 
-Done-when #1 needs ALL FOUR shadow specs green with visible-shadow assertions (2/4
-so far). Then M3-T6 (TAA history; model `11b9518` landed), then M3-T7.
+**Remaining wiring:** route TAA's color history through the graph. The bail to relax
+is `graphEligible` at `app/post-processing.ts:112-121` (it currently bails to legacy
+when `effect.history` / `effect.motionVectors` are set — i.e. TAA). `post-taa.ts`
+should declare a read of the history handle's `previous` view + a write of its
+`current` view (instead of fixed ping/pong); the executor binds the correct buffer
+per frame. Replace the hand-threaded history in `resource-cache.ts`
+(`WebGpuAppPostPassCache.previous*`) for TAA color with the
+`createFrameGraphHistoryResource` pool.
 
-## Working discipline (mandatory — this session's lesson)
+**Watch out (from the task §):** history must persist (a POOL, not a transient);
+the first frame `previous() === null` must short-circuit (no-history fallback);
+the swap must happen exactly once per frame at end-of-execute (not per node) or a
+frame referencing history twice reads inconsistent data; history double-buffering
+must survive canvas resize (reallocate both buffers, drop stale history that frame,
+or you get ghosting). Keep motion-vector GEOMETRY history as-is (out of scope) —
+scope this to TAA COLOR history only. Keep `useFrameGraph` default OFF.
 
-ONE command at a time when a step gates the next (a failed assertion in a batch
-cancels everything after it). After every Edit/write-script, `grep -c` the inserted
-text on disk (sandboxed writes can be silently dropped — use disable_sandbox). After
-every test, READ `N passed` + exit BEFORE committing. NEVER write "X passed" or a SHA
-not read from git. NEVER mark a task done on an unrun/unread proof.
+**Study:** `references/three.js/src/nodes/display/PassNode.js` (`_previousTextures` /
+`getPreviousTexture`, concepts only — do not copy).
 
-## Invariants (every M3 task)
+## ▶ M3-T7 — capstone (after T6)
 
-ECS-authoritative, no central scene graph, headless/worker-safe, WebGPU-only. Graph
-model layer stays GPU-free; only the executor touches the device. Each task: every
-"Done when" box ticked, named proof passing with NEW coverage, `pnpm run check`
-green, heading `✅ done (date · commit)`, completion-log row.
+Public `addRenderPass` / `addComputePass` / `removePass` on `WebGpuApp` (and through
+`createApertureApp` in `packages/app`) + a custom-pass example proving a compute
+histogram read of scene-color and a depth-tested wireframe overlay node inserted
+after `'opaque'`. The public API shape is SIGNED OFF (M3 §"Design decisions D1") —
+implement exactly that shape, do not improvise. Full spec + Done-when:
+`docs/SOTA_ROADMAP.md` §`M3-T7`.
+
+## Run protocol reminders
+
+- One task at a time, in dependsOn order; commit each completed task separately.
+- Per-task acceptance: every Done-when box ticked; named proof passes with new
+  coverage; `pnpm run check` green (typecheck + lint + prettier + vitest — vitest
+  passing alone is NOT the gate); architectural invariants (ECS-authoritative, no
+  scene graph, headless/worker-safe, WebGPU-only); heading carries
+  `✅ done (date · commit)` + a completion-log row; 📋 Status block updated.
+- Honesty: never mark a task done on a red gate or unrun proof. If a proof cannot run
+  in this environment, say so and use a stated alternative. If blocked, record it and
+  stop.
