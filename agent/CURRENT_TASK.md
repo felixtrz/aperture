@@ -126,6 +126,16 @@ at a time, committing each separately.
 >   resort — partially defeats the single-encoder goal). Start with (i). The legacy path
 >   (assemblePass, shadow-pass-encoder-assembly-report.ts) is colorAttachments:[] too but
 >   in its OWN encoder, so the differentiator is shared-encoder + depth-only.
+> - ALSO VERIFIED (encodeFrameBoundaryInto, frame-boundary.ts:336-426, this session): the
+>   depth-only pass IS properly closed — begin → (no viewport/scissor for the fold) →
+>   executeFrameBoundaryCommands → end = endPlannedRenderPass(pass). So the "pass not
+>   ended before the forward begins" theory is RULED OUT; the depth pass begins with
+>   clearValue:1, draws the casters, and ends, all before the forward node. The legacy
+>   assemblePass builds the byte-IDENTICAL { view, depthClearValue, depthLoadOp,
+>   depthStoreOp } plan (shadow-pass-encoder-assembly-report.ts:331). Every code layer is
+>   confirmed correct — the bug is purely the SwiftShader shared-encoder depth-only clear.
+>   The fix is therefore the (i) color-attachment experiment (or upstream a SwiftShader
+>   flag), verified ONLY by the real-GPU spot depth probe + ?graph=1 pixel test.
 > - EXECUTOR PATH VERIFIED CORRECT END-TO-END (source, this session): the shadow node
 >   uses resolveRenderBoundary, and frame-graph-execute.ts:234 encodeRenderNode takes
 >   the boundary payload VERBATIM (encodeFrameBoundaryInto) and returns — it does NOT
