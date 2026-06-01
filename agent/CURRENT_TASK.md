@@ -1,5 +1,55 @@
 # Current Task
 
+> ## ▶ NEXT SESSION: START HERE (resume prompt for M3, fix spot first)
+>
+> M3 is **4/7** on this branch (PR #4). M3-T5 is in progress; the lone blocker is the
+> SPOT shadow fold. Do these in order, one at a time, reading every run result before
+> committing or ticking a box (honesty rule: never write "passed" you didn't read).
+>
+> 1. **Fix the spot folded-depth-clear bug (engine-side).** Symptom: spot `?graph=1`
+>    receiver renders fully BLACK. Root cause (real-GPU depth probe this session): the
+>    folded spot depth-only pass leaves the shadow depth at **0** everywhere, while the
+>    legacy (working) spot path reads **~1 (far)** → depth-compare reads fully-occluded.
+>    Already ruled out (see the ★ block below + git log): the ShadowCasterGraphPass
+>    descriptor is correct at runtime (depthLoadOp:"clear", depthClearValue:1, store,
+>    commands present); the executor encodes the boundary verbatim (frame-graph-execute.ts:234);
+>    buildShadowCasterDepthAttachmentPlan matches the canonical/legacy plan shape; the
+>    probe's status:"missing" does NOT zero sampledDepth. So the bug is at the GPU
+>    begin/clear of the depth-only (colorAttachments:[]) pass. Test candidates: (a)
+>    depth24plus depth-only-clear quirk under SwiftShader — try depth32float or whether
+>    the shared encoder's prior use of that depth view interferes; (b) the forward target
+>    node aliasing/clobbering the shadow depth (inspect registerForwardGraphTarget's
+>    depthTarget); (c) a re-clear between the shadow node and the receiver read.
+>    VERIFY with the depth-probe harness (★ block below): folded spot depth must become
+>    ~1, THEN add/pass the spot `?graph=1` pixel proof (receivers darken vs a
+>    receiver-disabled baseline; drive frames by COUNT, not status.shadow.rendering.supported).
+>    Revert all temporary instrumentation before committing.
+> 2. **Fold multi-light** (unblocked once spot is fixed — its worker adds a Spot light,
+>    multi-light-shadow.worker.js:175) + its `?graph=1` pixel proof. NOTE multi-light uses
+>    bare `commandRecordPlan` (not `shadowCasterCommandRecordPlan`) and gates
+>    receiverResources on submission status — relax that for useFrameGraph.
+> 3. **Mark M3-T5 done** ONLY when all four shadow specs (csm/point/spot/multi-light) pass
+>    with pixel assertions and `pnpm run check` is green: tick every Done-when box, set the
+>    heading `✅ done (date · commit)`, append a completion-log row, bump the milestone row
+>    to 5/7, update the 📋 Status block (Last updated / milestone / Gate status / Resume
+>    notes / Next task).
+> 4. **M3-T6** (TAA history through the graph): the history MODEL is landed
+>    (createFrameGraphHistoryResource, render/graph/frame-graph-history.ts, 11b9518, #1/#4
+>    proven). Remaining: wire post-taa.ts behind useFrameGraph; the bail to relax is
+>    graphEligible at app/post-processing.ts:112-121 (bails when effect.history /
+>    effect.motionVectors set — TAA). Prove convergence E2E (taa.spec.ts ?graph=1), the
+>    no-history first-frame fallback, the swap. History must persist (pool, not transient);
+>    first frame previous()===null must short-circuit.
+> 5. **M3-T7** (capstone): public addRenderPass/addComputePass API + a custom-pass example
+>    proving G-buffer read + compute dispatch.
+> 6. Complete the milestone Status block when all 7 tasks pass.
+>
+> Example-fold pattern + the spot depth-probe recipe (synthetic
+> `commandBufferSubmission:{counts:{submittedCommandBuffers:1}}`) are in agent/HANDOFF.md
+> ("★ BREAKTHROUGH") and the ★ block below. E2E: `scripts/webgpu-e2e.sh <spec>` (xvfb +
+> SwiftShader, reliable; dof.spec.ts has a pre-existing unrelated timeout). Do not start
+> any milestone other than M3.
+
 **Milestone M3 — A real render graph** (docs/SOTA_ROADMAP.md, wave 2). IN
 PROGRESS: 4 of 7 tasks done; **M3-T5 IN PROGRESS (NOT done)**. Source of truth is
 `docs/SOTA_ROADMAP.md` (it correctly shows 4/7). Work tasks in dependsOn order, one
