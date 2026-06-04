@@ -30,6 +30,7 @@ export function registerTransformComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(LocalTransform);
   world.registerComponent(Parent);
   world.registerComponent(WorldTransform);
+  world.registerComponent(Children);
   return world;
 }
 
@@ -67,6 +68,20 @@ export const WorldTransform = defineComponent(
     col3: { type: EcsType.Vec4, default: tuple4(0, 0, 0, 1) },
   },
   "Derived ECS-owned world matrix stored as four Vec4 columns for extraction.",
+);
+
+export const Children = defineComponent(
+  "aperture.transform.children",
+  {
+    // Ordered child entity list, stored as a JSON array of "index:generation"
+    // ref strings (elics has no list/entity-array field type). Parent stays the
+    // single source of truth for resolution (resolution.ts); Children is a
+    // DERIVED convenience index kept consistent on every setParent mutation
+    // (transform/hierarchy.ts). The generation in each ref makes stale entries
+    // detectable, matching resolveActiveEntity semantics.
+    refs: { type: EcsType.String, default: "[]" },
+  },
+  "Derived ordered child-entity index (JSON array of index:generation refs). Parent is authoritative; Children is kept consistent on setParent.",
 );
 
 export const Enabled = defineComponent(
