@@ -40,6 +40,7 @@ import type { CommandAccess } from "./systems/commands.js";
 import type { SystemAssetAccess } from "./systems/assets.js";
 import type { CameraAccess } from "./systems/cameras.js";
 import type { HierarchyAccess } from "./systems/hierarchy.js";
+import type { MaterialAccess } from "./systems/materials.js";
 import type { PrefabAccess } from "./systems/prefabs.js";
 import type { SignalStore } from "./systems/signals.js";
 import type { SpawnCommands } from "./systems/spawn/index.js";
@@ -129,6 +130,12 @@ export type {
 export { createHierarchyAccess } from "./systems/hierarchy.js";
 export type { PrefabAccess, PrefabRegisterOptions } from "./systems/prefabs.js";
 export { createPrefabAccess } from "./systems/prefabs.js";
+export type {
+  MaterialAccess,
+  MaterialPatch,
+  MaterialSetResult,
+} from "./systems/materials.js";
+export { createMaterialAccess } from "./systems/materials.js";
 export { material, mesh, shader } from "./systems/spawn/index.js";
 export type {
   CustomWgslMaterialDescriptor,
@@ -217,6 +224,7 @@ export interface ApertureSystemInstance {
   readonly cameras: CameraAccess;
   readonly hierarchy: HierarchyAccess;
   readonly prefabs: PrefabAccess;
+  readonly materials: MaterialAccess;
   readonly diagnostics: SystemDiagnostics;
   readonly effects: ScheduledEffects;
   createEntity(): Entity;
@@ -337,6 +345,10 @@ export function createSystem<
 
     get prefabs(): PrefabAccess {
       return this.#context.prefabs;
+    }
+
+    get materials(): MaterialAccess {
+      return this.#context.materials;
     }
 
     get diagnostics(): SystemDiagnostics {

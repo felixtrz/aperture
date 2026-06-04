@@ -19,6 +19,7 @@ import {
 import { registerApertureAppComponents } from "./components.js";
 import { createCameraAccess, type CameraAccess } from "./cameras.js";
 import { createHierarchyAccess, type HierarchyAccess } from "./hierarchy.js";
+import { createMaterialAccess, type MaterialAccess } from "./materials.js";
 import { createPrefabAccess, type PrefabAccess } from "./prefabs.js";
 import { createSignalStore, type SignalStore } from "./signals.js";
 import { createSpawnCommands, type SpawnCommands } from "./spawn/index.js";
@@ -47,6 +48,7 @@ export interface ApertureSystemContext {
   readonly cameras: CameraAccess;
   readonly hierarchy: HierarchyAccess;
   readonly prefabs: PrefabAccess;
+  readonly materials: MaterialAccess;
   readonly diagnostics: SystemDiagnostics;
   readonly effects: ScheduledEffects;
 }
@@ -100,6 +102,7 @@ export function createApertureSystemContext(
   });
   const hierarchy = createHierarchyAccess(options.world);
   const prefabs = createPrefabAccess(options.assetsRegistry);
+  const materials = createMaterialAccess(options.assetsRegistry);
 
   const context: ApertureSystemContext = {
     world: options.world,
@@ -113,6 +116,7 @@ export function createApertureSystemContext(
     cameras,
     hierarchy,
     prefabs,
+    materials,
     diagnostics,
     effects: createScheduledEffects(),
   };

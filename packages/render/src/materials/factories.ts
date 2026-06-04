@@ -1,3 +1,4 @@
+import type { Vec3Like, Vec4Like } from "@aperture-engine/simulation";
 import type {
   DebugNormalMaterialAsset,
   CustomMaterialDependencyDeclaration,
@@ -115,6 +116,90 @@ export function createStandardMaterialAsset(
     emissiveTexture: input.emissiveTexture ?? null,
     unsupportedFeatures: input.unsupportedFeatures ?? [],
   };
+}
+
+// M7-T6: runtime material parameter mutation. Each patch* returns a NEW frozen
+// asset with the provided scalar/color uniform fields merged over `prev` — `prev`
+// is never mutated. Scoped to same-variant uniform-level fields (color/scalar
+// factors); fields that flip a shader variant (e.g. enabling clearcoat) are out
+// of scope. Mutation flows through the versioned asset registry (markReady), not
+// GPU state, so the existing version-gated mirror re-prepares the GPU material.
+
+const COLOR4_PATCH_FIELDS = new Set<string>(["baseColorFactor"]);
+const VEC3_PATCH_FIELDS = new Set<string>([
+  "emissiveFactor",
+  "attenuationColor",
+  "sheenColorFactor",
+]);
+
+export interface StandardMaterialPatch {
+  readonly baseColorFactor?: Vec4Like;
+  readonly metallicFactor?: number;
+  readonly roughnessFactor?: number;
+  readonly emissiveFactor?: Vec3Like;
+  readonly occlusionStrength?: number;
+  readonly normalScale?: number;
+  readonly ior?: number;
+  readonly transmissionFactor?: number;
+  readonly thickness?: number;
+  readonly attenuationColor?: Vec3Like;
+  readonly attenuationDistance?: number;
+  readonly sheenColorFactor?: Vec3Like;
+  readonly sheenRoughnessFactor?: number;
+  readonly iridescenceFactor?: number;
+  readonly label?: string;
+}
+
+export interface UnlitMaterialPatch {
+  readonly baseColorFactor?: Vec4Like;
+  readonly label?: string;
+}
+
+export interface MatcapMaterialPatch {
+  readonly baseColorFactor?: Vec4Like;
+  readonly label?: string;
+}
+
+export function patchStandardMaterial(
+  prev: StandardMaterialAsset,
+  patch: StandardMaterialPatch,
+): StandardMaterialAsset {
+  return mergeMaterialAsset(prev, patch);
+}
+
+export function patchUnlitMaterial(
+  prev: UnlitMaterialAsset,
+  patch: UnlitMaterialPatch,
+): UnlitMaterialAsset {
+  return mergeMaterialAsset(prev, patch);
+}
+
+export function patchMatcapMaterial(
+  prev: MatcapMaterialAsset,
+  patch: MatcapMaterialPatch,
+): MatcapMaterialAsset {
+  return mergeMaterialAsset(prev, patch);
+}
+
+function mergeMaterialAsset<T extends object>(prev: T, patch: object): T {
+  const next: Record<string, unknown> = {
+    ...(prev as Record<string, unknown>),
+  };
+  for (const [key, value] of Object.entries(patch)) {
+    // Only update fields the asset already has, so a cross-kind patch (e.g. a
+    // metallicFactor aimed at an unlit asset) never grows a spurious field.
+    if (value === undefined || !(key in prev)) {
+      continue;
+    }
+    if (COLOR4_PATCH_FIELDS.has(key)) {
+      next[key] = new Float32Array(value as ArrayLike<number>);
+    } else if (VEC3_PATCH_FIELDS.has(key)) {
+      next[key] = Array.from(value as ArrayLike<number>);
+    } else {
+      next[key] = value;
+    }
+  }
+  return Object.freeze(next) as T;
 }
 
 export function createDebugNormalMaterialAsset(
