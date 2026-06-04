@@ -1,10 +1,22 @@
 # Current Task
 
-> ## ⛔ STOP POINT — M7 5/9 — M7-T6 BLOCKED (see `agent/HANDOFF.md`)
+> ## ▶ START HERE — M7 6/9 — next M7-T8 (M7-T6 BLOCKED, see `agent/HANDOFF.md`)
 >
-> Active /goal: **Implement Milestone M7**. Gate-green (409 files / 2279 tests @
-> 30541c06), working tree clean. **T1 ✅ → T2 ✅ → T3 ✅ → T4 ✅ → T5 ✅ → T6 🟡 BLOCKED
-> → T7 → T8 → T9.**
+> Active /goal: **Implement Milestone M7**. Gate-green (409 files / 2282 tests @
+> 86dea057), working tree clean. **T1 ✅ → T2 ✅ → T3 ✅ → T4 ✅ → T5 ✅ → T6 🟡 BLOCKED
+> → T7 ✅ → T8 (next) → T9.**
+>
+> - **M7-T7 ✅ done (86dea057):** pointer-ray unprojection proofs + unified the
+>   perspective+orthographic `rayFromPointer` origin on the near-plane point (more
+>   correct for picking; ray line unchanged → spatial picking + the auto-picking E2E
+>   re-verified on the real GPU). #1/#2/#4 via `test/app/cameras.test.ts`; #3 = the
+>   M1-T8 auto-picking E2E.
+> - **NEXT — M7-T8** (`runtime-orchestration`, L, depends T7): an `interaction` accessor
+>   on `ApertureSystemContext` + a worker system casting `cameras.main.rayFromPointer` +
+>   `spatial.raycastFirst` each frame → per-entity hover/enter/leave/down/up/click/drag
+>   with cross-frame state (`interaction.onClick`/`onEnter`/`onLeave`/`onDrag`); migrate
+>   `examples/developer-api` select.system.ts; add a pointer-events render-control route.
+>   Full spec + Done-when: `docs/SOTA_ROADMAP.md` §`M7-T8`.
 >
 > **M7-T6 (runtime material mutation) is PARTIAL/BLOCKED — NOT done.** The authoring
 > surface landed (commit `30541c06`): `patchStandardMaterial`/`patchUnlitMaterial`/
