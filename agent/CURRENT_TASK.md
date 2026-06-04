@@ -1,10 +1,10 @@
 # Current Task
 
-> ## ▶ START HERE — M7 (scene persistence + authoring layer) — 🟡 in-progress 3/9
+> ## ▶ START HERE — M7 (scene persistence + authoring layer) — 🟡 in-progress 4/9
 >
-> Active /goal: **Implement Milestone M7**. Gate-green (405 files / 2266 tests @
-> 54c3728f), working tree clean. Implement M7 in task-number order (deps are always
-> lower-numbered): **T1 ✅ → T2 ✅ → T3 ✅ → T4 → T5 → T6 → T7 → T8 → T9**.
+> Active /goal: **Implement Milestone M7**. Gate-green (406 files / 2269 tests @
+> fb1dac4b), working tree clean. Implement M7 in task-number order (deps are always
+> lower-numbered): **T1 ✅ → T2 ✅ → T3 ✅ → T4 ✅ → T5 → T6 → T7 → T8 → T9**.
 >
 > - **M7-T1 ✅ done (c1509d62):** bidirectional transform hierarchy —
 >   `packages/simulation/src/transform/hierarchy.ts` (`setParent` world-preserving
@@ -21,10 +21,17 @@
 >   `serializeEntityComponents`/`deserializeEntityComponents` via a `component.id`→
 >   component allow-list registry; Entity fields as `index:generation` tokens,
 >   `WorldTransform` excluded. Proven by `test/serialization/component-codec.test.ts` (4).
-> - **NEXT — M7-T4** (`simulation`, M, depends T3 + T1): compose the codec into a
->   versioned `ApertureSceneDocument` — `saveScene(world)` / `loadScene(world, doc)`
->   with an oldId→newEntity remap pass for Entity-typed fields + `resolveWorldTransforms`;
->   realize the dead `SceneHandle` payload. Full spec + Done-when: `docs/SOTA_ROADMAP.md` §`M7-T4`.
+> - **M7-T4 ✅ done (fb1dac4b):** whole-world scene document save/load —
+>   `saveScene`/`loadScene` round-trip an ECS world via a versioned
+>   `ApertureSceneDocument` (oldId→newEntity remap of Entity-typed fields, `Children`
+>   rebuilt from `Parent`, `resolveWorldTransforms`, formatVersion-gated, explicit
+>   allow-list registry). Proven by `test/serialization/scene-roundtrip.test.ts` (3).
+> - **NEXT — M7-T5** (`render-bridge`, M, depends T3 + T1): turn the dead `PrefabHandle`
+>   into a working blueprint — `instantiatePrefab(world, document, overrides)` clones an
+>   `ApertureSceneDocument`-shaped subtree (loadScene remap), returns the root + applies a
+>   root transform override + per-prefab-id field overrides; surface
+>   `spawn.prefab(handle, { transform, overrides })` on `SpawnCommands` + a
+>   `prefabs.register(document)` accessor. Full spec + Done-when: `docs/SOTA_ROADMAP.md` §`M7-T5`.
 >
 > Per-task bar (per the /goal): every Done-when ticked + named vitest/E2E proof with
 > new coverage + `pnpm run check` green + heading `✅ done (date · commit)` + a
