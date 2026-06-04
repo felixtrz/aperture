@@ -5,6 +5,7 @@ import {
   isProcessAlive,
   readApertureDevSession,
   readApertureDevSessionStatus,
+  terminateProcess,
   type ApertureDevSession,
   type ApertureDevSessionStatus,
 } from "../session.js";
@@ -102,7 +103,7 @@ export async function stopApertureDevSession(
   }
 
   if (status.daemonAlive && status.session.daemon.pid !== null) {
-    process.kill(status.session.daemon.pid, "SIGTERM");
+    terminateProcess(status.session.daemon.pid);
     await waitForProcessExit(
       status.session.daemon.pid,
       options.timeoutMs ?? 5_000,
@@ -111,12 +112,12 @@ export async function stopApertureDevSession(
 
   const serverPid = status.session.server.pid;
   if (isProcessAlive(serverPid) && serverPid !== null) {
-    process.kill(serverPid, "SIGTERM");
+    terminateProcess(serverPid);
   }
 
   const browserPid = status.session.browser.pid;
   if (isProcessAlive(browserPid) && browserPid !== null) {
-    process.kill(browserPid, "SIGTERM");
+    terminateProcess(browserPid);
   }
 
   await clearApertureDevSession(appRoot);

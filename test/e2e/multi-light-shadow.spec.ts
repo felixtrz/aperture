@@ -292,6 +292,60 @@ test("Playwright renders a combined directional, spot, and point shadow scene", 
   webGpuValidation.expectNoWarnings();
 });
 
+test("multi-light shadows render visibly when ALL casters are FOLDED into the single encoder (M3-T5)", async ({
+  page,
+}) => {
+  // M3-T5 Done-when (multi-light): with ?graph=1 the example STOPS submitting its
+  // three separate caster command buffers and hands the engine every bundle's
+  // (directional + spot + point) caster pass as ONE list, rendered as depth-only
+  // graph nodes the forward (receiver) node reads — ONE encoder. PIXEL proof that
+  // the FOLDED casters cast shadows: receivers darken vs a receiver-disabled
+  // baseline. Drive frames by COUNT — graph mode gates the legacy caster submit off
+  // so status.shadow.rendering.supported is false.
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/multi-light-shadow.html?graph=1&disable-shadow-receiver=1",
+  );
+  let status = await waitForExampleStatus<MultiLightShadowStatus>(page);
+  expect(
+    status,
+    "multi-light folded baseline status should publish",
+  ).toBeDefined();
+  if (status === undefined) {
+    return;
+  }
+  skipIfUnsupportedWebGpu(status);
+  await waitForMultiLightShadowFrame(page, 4);
+  await page.waitForTimeout(100);
+  const noShadowScreenshot = await captureCanvasPageScreenshot(page);
+
+  await page.goto("/examples/multi-light-shadow.html?graph=1");
+  status = await waitForExampleStatus<MultiLightShadowStatus>(page);
+  expect(
+    status,
+    "multi-light folded shadow status should publish",
+  ).toBeDefined();
+  if (status === undefined) {
+    return;
+  }
+  skipIfUnsupportedWebGpu(status);
+  status = await waitForMultiLightShadowFrame(page, 4);
+  await page.waitForTimeout(100);
+  expect(status.ok, "multi-light folded-caster graph frame ok").toBe(true);
+  expectStatusJsonSafeForGpu(status);
+
+  const screenshot = await captureCanvasPageScreenshot(page);
+  await test.info().attach("multi-light-shadow-folded-frame.png", {
+    body: screenshot.buffer,
+    contentType: "image/png",
+  });
+  expectVisibleMultiLightShadowScene(screenshot, status);
+  expectNamedReceiverSamplesChange(noShadowScreenshot, screenshot, status);
+  webGpuValidation.expectNoWarnings();
+  await page.goto("about:blank");
+});
+
 async function waitForMultiLightShadowFrame(
   page: Parameters<typeof waitForExampleStatus>[0],
   minimumFrame: number,

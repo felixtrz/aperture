@@ -23,19 +23,80 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      # pnpm must exist BEFORE setup-node, since setup-node's `cache: pnpm`
+      # resolves the pnpm store path by invoking pnpm.
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.12.1 --activate
+
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: pnpm
 
-      - name: Enable pnpm
-        run: |
-          corepack enable
-          corepack prepare pnpm@10.12.1 --activate
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Run workspace check
         run: pnpm run check
+
+  e2e:
+    name: WebGPU E2E regression (SwiftShader)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.12.1 --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm run build
+
+      # Google Chrome + its system libs (channel "chrome" → real Chrome, which
+      # exposes navigator.gpu under SwiftShader Vulkan; headless Chromium hides it).
+      - name: Install Chrome + system deps
+        run: pnpm exec playwright install --with-deps chrome
+
+      # xvfb provides the display a non-headless Chrome needs for a GPU context.
+      - name: Install xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
+      # Pixel/report regression for the single-encoder render graph (M3), run on
+      # software SwiftShader under xvfb. Scoped to lighter render-graph routes
+      # that stay well under the 150s/test budget — the heavy clustered-lights
+      # and multi-cascade-shadow suites take 2-3 min/test under SwiftShader, so
+      # their headless logic is covered by vitest in the Workspace check job
+      # instead. dof.spec.ts is excluded (documented SwiftShader timeout) via the
+      # config's testIgnore.
+      - name: Run WebGPU E2E (SwiftShader under xvfb)
+        run: |
+          xvfb-run -a pnpm exec playwright test \
+            --config=playwright.ci.config.ts \
+            test/e2e/post-effects.spec.ts \
+            test/e2e/taa.spec.ts \
+            test/e2e/custom-graph-pass.spec.ts \
+            test/e2e/camera-clear-load-matrix.spec.ts
+
+      - name: Upload E2E artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webgpu-e2e-results
+          path: test-results/playwright-ci
+          retention-days: 7

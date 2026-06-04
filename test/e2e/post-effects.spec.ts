@@ -109,9 +109,51 @@ test("post effects example toggles FXAA and bloom with visible pixel changes", a
   ).toBeGreaterThan(8);
 });
 
+test("post effects FrameGraph path matches the legacy path's pixels + report", async ({
+  page,
+}) => {
+  // M3-T3 Done-when #4: fxaa + bloom through the single-encoder graph path
+  // produces the same per-effect report and the same readback pixels as the
+  // legacy per-pass path (the win is one command buffer, not new pixels).
+  const legacy = await loadPostEffectsStatus(page, { fxaa: true, bloom: true });
+  const graph = await loadPostEffectsStatus(page, {
+    fxaa: true,
+    bloom: true,
+    useFrameGraph: true,
+  });
+
+  expect(effectIds(graph.status)).toEqual(["fxaa", "bloom"]);
+  expect(graph.status.draw?.drawCalls).toBe(legacy.status.draw?.drawCalls);
+  // byte-identical per-effect submission reports (incl. the bloom graph report)
+  expect(graph.status.effects?.report).toEqual(legacy.status.effects?.report);
+
+  // identical pixels at every shared readback sample — one encoder, same draws
+  let maxDelta = 0;
+  let compared = 0;
+  for (const [id, graphPixel] of graph.samples) {
+    const legacyPixel = legacy.samples.get(id);
+    if (legacyPixel !== undefined) {
+      compared += 1;
+      maxDelta = Math.max(maxDelta, pixelDistance(graphPixel, legacyPixel));
+    }
+  }
+  expect(
+    compared,
+    "graph + legacy should share readback samples",
+  ).toBeGreaterThan(100);
+  expect(
+    maxDelta,
+    "graph-path pixels should match the legacy path",
+  ).toBeLessThanOrEqual(2);
+});
+
 async function loadPostEffectsStatus(
   page: Page,
-  config: { readonly fxaa: boolean; readonly bloom: boolean },
+  config: {
+    readonly fxaa: boolean;
+    readonly bloom: boolean;
+    readonly useFrameGraph?: boolean;
+  },
 ): Promise<{
   readonly status: PostEffectsStatus;
   readonly samples: Map<string, RgbaPixel>;
@@ -119,7 +161,7 @@ async function loadPostEffectsStatus(
   await page.goto(
     `/examples/post-effects.html?fxaa=${config.fxaa ? "1" : "0"}&bloom=${
       config.bloom ? "1" : "0"
-    }`,
+    }${config.useFrameGraph === true ? "&graph=1" : ""}`,
   );
 
   return waitForPostEffectsStatus(page, config);

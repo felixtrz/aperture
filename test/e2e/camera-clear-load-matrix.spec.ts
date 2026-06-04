@@ -282,3 +282,72 @@ test("camera clear/load matrix route preserves clear, base, and overlay regions"
 
   validationGuard.expectNoWarnings();
 });
+
+test("camera clear/load matrix renders through the single-encoder FrameGraph (M3-T4)", async ({
+  page,
+}) => {
+  // M3-T4 Done-when #1: with ?graph=1 the multi-camera clear/load matrix is
+  // encoded into ONE command buffer; the compiler's renderTargetMap inference
+  // (proven == legacy submittedTargetCounts in frame-graph-multi-target.test.ts)
+  // must produce the SAME pixels — the base region stays preserved (second camera
+  // LOADs, not clears) and the overlay composites on top — with no warnings.
+  const validationGuard = attachWebGpuValidationConsoleGuard(page);
+  const status = await loadExampleStatus<CameraClearLoadMatrixStatus>(
+    page,
+    "/examples/camera-clear-load-matrix.html?graph=1",
+    "camera-clear-load-matrix-graph-status",
+  );
+
+  if (status === undefined) {
+    return;
+  }
+
+  expect(status.ok).toBe(true);
+  expectStatusJsonSafeForGpu(status);
+
+  test.skip(
+    status.readback.ok !== true,
+    status.readback.ok ? "" : "Current-texture readback unavailable",
+  );
+  if (!status.readback.ok) {
+    return;
+  }
+
+  const samples = new Map(
+    status.readback.samples.map((sample) => [sample.id, sample.pixel]),
+  );
+  const clearSample = samples.get("clear-only");
+  const baseSample = samples.get("base-preserved");
+  const overlaySample = samples.get("overlay-center");
+
+  expect(clearSample, "clear-only graph sample should exist").toBeDefined();
+  expect(baseSample, "base-preserved graph sample should exist").toBeDefined();
+  expect(overlaySample, "overlay graph sample should exist").toBeDefined();
+
+  if (
+    clearSample !== undefined &&
+    baseSample !== undefined &&
+    overlaySample !== undefined
+  ) {
+    expect(
+      pixelDistance(clearSample, rgbaColorToPixel(clearColor)),
+      "clear-only region (graph path)",
+    ).toBeLessThan(30);
+    // the base region survives because the overlay camera LOADs the target —
+    // the compiler-inferred load op, not a clear, exactly like the legacy path
+    expect(
+      pixelDistance(baseSample, rgbaColorToPixel(baseLayer)),
+      "base-preserved region (graph path)",
+    ).toBeLessThan(85);
+    expect(
+      pixelDistance(overlaySample, rgbaColorToPixel(overlayLayer)),
+      "overlay region (graph path)",
+    ).toBeLessThan(85);
+    expect(
+      pixelDistance(baseSample, overlaySample),
+      "base and overlay regions should differ (graph path)",
+    ).toBeGreaterThan(120);
+  }
+
+  validationGuard.expectNoWarnings();
+});

@@ -11,6 +11,10 @@ const shadowControls = {
   receiverEnabled: !exampleParams.has("disable-shadow-receiver"),
   casterEnabled: !exampleParams.has("disable-shadow-caster"),
 };
+// M3-T5: ?graph=1 folds every (directional/spot/point) shadow caster pass into
+// the single forward encoder instead of submitting separate caster buffers.
+const useFrameGraph = exampleParams.get("graph") === "1";
+let pendingShadowCasterGraphPasses = null;
 
 const clearColor = [0.014, 0.019, 0.026, 1];
 const shadowIntent = {
@@ -45,6 +49,7 @@ try {
       canvas,
       simulationWorker: createNoopSimulationWorker(),
       sourceAssets,
+      ...(useFrameGraph ? { useFrameGraph: true } : {}),
     });
 
     if (!created.ok) {
@@ -179,6 +184,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     },
   );
   const loop = {
+    shadowCasterGraphPasses: null,
     frame: 0,
     receivedSnapshots: 0,
     workerReady: false,
@@ -244,6 +250,9 @@ async function handleWorkerMessage(
     clearColor,
     label: "multi-light-shadow-app",
     autoStandardMaterialShadowReceiverResources: false,
+    ...(useFrameGraph && loop.shadowCasterGraphPasses
+      ? { shadowCasterGraphPasses: loop.shadowCasterGraphPasses }
+      : {}),
     ...(!scene.shadowControls.receiverEnabled ||
     loop.standardMaterialShadowReceiverResources === null
       ? {}
@@ -264,6 +273,7 @@ async function handleWorkerMessage(
 
   loop.standardMaterialShadowReceiverResources =
     nextFrameResources.standardMaterialShadowReceiverResources;
+  loop.shadowCasterGraphPasses = pendingShadowCasterGraphPasses;
   requestWorkerFrame(worker, loop);
 }
 
@@ -326,6 +336,15 @@ async function publishFrameStatus(
       appEnvironmentResourceCache,
     }),
   };
+  // M3-T5: hand the engine every bundle's folded caster passes as ONE list so the
+  // single forward encoder renders all three shadow depth maps before the receivers.
+  pendingShadowCasterGraphPasses = useFrameGraph
+    ? [
+        ...bundles.directional.shadowCasterGraphPasses,
+        ...bundles.spot.shadowCasterGraphPasses,
+        ...bundles.point.shadowCasterGraphPasses,
+      ]
+    : null;
   const multiShadowRoute = findMultiShadowRoute(reportJson);
   const renderingSupported =
     scene.shadowControls.receiverEnabled &&
@@ -632,12 +651,19 @@ async function createShadowBundle(input) {
       encoder: encoderResource.resource?.encoder,
       queue: app.initialization.device.queue,
       label: `shadow-pass:${kind}`,
-      submit: scene.shadowControls.casterEnabled,
+      submit: scene.shadowControls.casterEnabled && !useFrameGraph,
     });
   const commandBufferSubmission =
     aperture.shadowPassCommandBufferSubmissionReportToJsonValue(
       commandBufferSubmissionReport,
     );
+  const shadowCasterGraphPasses = useFrameGraph
+    ? aperture.createShadowCasterGraphPasses({
+        passAttachments: shadowPassAttachments,
+        depthTextureResources: shadowDepthTextureResourceReport,
+        commandRecords: commandRecordPlan.commandRecords,
+      })
+    : [];
 
   return {
     kind,
@@ -662,6 +688,7 @@ async function createShadowBundle(input) {
     encoderAssembly,
     commandBufferSubmission,
     commandBufferSubmissionReport,
+    shadowCasterGraphPasses,
     receiverResources:
       matrixBufferResourceReport.resource !== null &&
       shadowDepthTextureResourceReport.resources.some(

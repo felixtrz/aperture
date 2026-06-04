@@ -17,6 +17,8 @@ const shadowControls = {
   casterEnabled: !exampleParams.has("disable-shadow-caster"),
 };
 const stopAfterReady = exampleParams.has("stop-after-ready");
+const useFrameGraph = exampleParams.get("graph") === "1";
+let pendingShadowCasterGraphPasses = null;
 
 let shadowDepthTextureResourceReport = null;
 
@@ -43,6 +45,9 @@ try {
       canvas,
       simulationWorker: createNoopSimulationWorker(),
       sourceAssets,
+      // M3-T4: ?graph=1 routes the forward (shadow-receiver) frame through the
+      // single-encoder graph; shadow caster passes stay on their own path (T5).
+      ...(exampleParams.get("graph") === "1" ? { useFrameGraph: true } : {}),
     });
 
     if (!created.ok) {
@@ -90,6 +95,7 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
     },
   );
   const loop = {
+    shadowCasterGraphPasses: null,
     frame: 0,
     receivedSnapshots: 0,
     workerReady: false,
@@ -170,6 +176,9 @@ async function handleWorkerMessage(
     clearColor,
     label: "csm-directional-shadow-app",
     autoStandardMaterialShadowReceiverResources: false,
+    ...(useFrameGraph && loop.shadowCasterGraphPasses
+      ? { shadowCasterGraphPasses: loop.shadowCasterGraphPasses }
+      : {}),
     ...(!scene.shadowControls.receiverEnabled ||
     loop.standardMaterialShadowReceiverResources === null
       ? {}
@@ -190,6 +199,7 @@ async function handleWorkerMessage(
 
   loop.standardMaterialShadowReceiverResources =
     nextFrameResources.standardMaterialShadowReceiverResources;
+  loop.shadowCasterGraphPasses = pendingShadowCasterGraphPasses;
   requestWorkerFrame(worker, loop);
 }
 
@@ -587,12 +597,19 @@ async function createCsmShadowFrame(input) {
       encoder: encoderResource.resource?.encoder,
       queue: app.initialization.device.queue,
       label: "shadow-pass:csm-directional",
-      submit: scene.shadowControls.casterEnabled,
+      submit: scene.shadowControls.casterEnabled && !useFrameGraph,
     });
   const commandBufferSubmission =
     aperture.shadowPassCommandBufferSubmissionReportToJsonValue(
       commandBufferSubmissionReport,
     );
+  pendingShadowCasterGraphPasses = useFrameGraph
+    ? aperture.createShadowCasterGraphPasses({
+        passAttachments: shadowPassAttachments,
+        depthTextureResources: shadowDepthTextureResourceReport,
+        commandRecords: commandRecordPlan.commandRecords,
+      })
+    : null;
   const route = findCascadedShadowRoute(reportJson);
   const receiverResources =
     matrixBufferResourceReport.resource !== null &&

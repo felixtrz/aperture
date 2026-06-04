@@ -7,6 +7,8 @@ import { AssetRegistry } from "@aperture-engine/simulation";
 import {
   createWebGpuApp,
   type CreateWebGpuAppResult,
+  type WebGpuAppComputePassDescriptor,
+  type WebGpuAppRenderPassDescriptor,
   type WebGpuCanvasLike,
 } from "@aperture-engine/webgpu";
 import { defineApertureConfig, type ApertureConfig } from "../config.js";
@@ -38,6 +40,12 @@ export interface StartGeneratedBrowserAppOptions {
 export interface GeneratedBrowserApp {
   readonly worker: SimulationWorker;
   readonly webgpu: CreateWebGpuAppResult;
+  // M3-T7: surface the user-pass insertion API through the generated app so a
+  // developer can register custom render/compute passes without reaching into
+  // `.webgpu.app`. No-ops (with a console warning) if WebGPU failed to start.
+  addRenderPass(descriptor: WebGpuAppRenderPassDescriptor): void;
+  addComputePass(descriptor: WebGpuAppComputePassDescriptor): void;
+  removePass(name: string): boolean;
 }
 
 export async function startGeneratedBrowserApp(
@@ -72,12 +80,18 @@ export async function startGeneratedBrowserApp(
     sourceAssets,
     status,
   );
+  // M3-T4: ?graph=1 opts the generated app into the single-encoder FrameGraph
+  // forward-route path (default OFF). Browser-only harness, so window is present.
+  const useFrameGraph =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("graph") === "1";
   const webgpu = await createWebGpuApp({
     canvas: canvas as unknown as WebGpuCanvasLike,
     simulationWorker: mirroredWorker,
     sourceAssets,
     autoStart: true,
     msaaSampleCount: status.render.requestedSampleCount,
+    ...(useFrameGraph ? { useFrameGraph: true } : {}),
   });
   webgpuResult = webgpu;
 
@@ -91,5 +105,18 @@ export async function startGeneratedBrowserApp(
   return {
     worker,
     webgpu,
+    addRenderPass(descriptor) {
+      if (webgpu.ok) {
+        webgpu.app.addRenderPass(descriptor);
+      }
+    },
+    addComputePass(descriptor) {
+      if (webgpu.ok) {
+        webgpu.app.addComputePass(descriptor);
+      }
+    },
+    removePass(name) {
+      return webgpu.ok ? webgpu.app.removePass(name) : false;
+    },
   };
 }

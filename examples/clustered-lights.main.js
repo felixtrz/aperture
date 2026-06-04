@@ -228,6 +228,8 @@ try {
       canvas,
       simulationWorker: createNoopSimulationWorker(),
       sourceAssets,
+      // M3-T4: ?graph=1 routes the forward frame through the single-encoder graph.
+      ...(exampleParams.get("graph") === "1" ? { useFrameGraph: true } : {}),
       ...(readbackUsage.ok ? { textureUsage: readbackUsage.usage } : {}),
     });
 

@@ -314,6 +314,88 @@ test("Playwright renders directional CSM shadows on near and far receivers", asy
   await page.goto("about:blank");
 });
 
+test("CSM directional shadows render visibly when casters are FOLDED into the single encoder (M3-T5)", async ({
+  page,
+}) => {
+  // M3-T5 Done-when #1 (csm): with ?graph=1 the example STOPS submitting its own
+  // caster command buffer and hands the caster passes to the engine, which renders
+  // them as depth-only graph nodes the forward (receiver) node reads — ONE encoder.
+  // This is the PIXEL proof that the FOLDED casters actually produce shadows
+  // (ok:true alone cannot show that): the receiver regions must darken vs a
+  // shadow-receiver-disabled baseline, exactly like the legacy separate-submit test.
+  //
+  // NB: in graph mode the example's own caster submit is gated off, so
+  // status.shadow.rendering.supported (tied to that submit path) is false — drive
+  // frames by COUNT, not that flag, and let the pixel diff be the proof.
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/csm-directional-shadow.html?graph=1&disable-shadow-receiver=1",
+  );
+  let status = await waitForExampleStatus<CsmDirectionalShadowStatus>(page);
+  expect(status, "CSM folded baseline status should publish").toBeDefined();
+  if (status === undefined) {
+    return;
+  }
+  skipIfUnsupportedWebGpu(status);
+  await waitForCsmDirectionalShadowFrame(page, 3);
+  const noShadowScreenshot = await page
+    .locator("#aperture-canvas")
+    .screenshot();
+
+  await page.goto("/examples/csm-directional-shadow.html?graph=1");
+  status = await waitForExampleStatus<CsmDirectionalShadowStatus>(page);
+  expect(status, "CSM folded shadow status should publish").toBeDefined();
+  if (status === undefined) {
+    return;
+  }
+  skipIfUnsupportedWebGpu(status);
+  status = await waitForCsmDirectionalShadowFrame(page, 3);
+  expect(status.ok, "csm folded-caster graph frame ok").toBe(true);
+  expectStatusJsonSafeForGpu(status);
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+
+  expectVisibleCsmScene(screenshot, status);
+  expectCsmShadowActivation(noShadowScreenshot, screenshot, status);
+  webGpuValidation.expectNoWarnings();
+  await page.goto("about:blank");
+});
+
+test("CSM shadow-receiver forward route renders through the single-encoder FrameGraph (M3-T4)", async ({
+  page,
+}) => {
+  // M3-T4 Done-when #4: with ?graph=1 the forward (shadow-receiver) frame is
+  // encoded into ONE command buffer; the receiver pass still samples the shadow
+  // maps written by the separate caster passes and renders with no validation
+  // warnings (shadows-as-receiver through the graph).
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/csm-directional-shadow.html?graph=1");
+
+  const initial = await waitForExampleStatus<CsmDirectionalShadowStatus>(page);
+  expect(initial, "csm graph status should publish").toBeDefined();
+  if (initial === undefined) {
+    return;
+  }
+  skipIfUnsupportedWebGpu(initial);
+
+  await page.waitForFunction(
+    () =>
+      ((
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: { readonly frame?: number };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.frame ?? 0) >= 3,
+  );
+
+  const rendered = await waitForExampleStatus<CsmDirectionalShadowStatus>(page);
+  expect(rendered?.ok).toBe(true);
+  expectStatusJsonSafeForGpu(rendered);
+  webGpuValidation.expectNoWarnings();
+  await page.goto("about:blank");
+});
+
 test("M4-T4: authored shadow strength reaches full darkness (strength=1) and disappears (strength=0)", async ({
   page,
 }) => {

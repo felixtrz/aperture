@@ -270,6 +270,58 @@ test("Playwright renders a spot light shadow on the receiver wall", async ({
   webGpuValidation.expectNoWarnings();
 });
 
+test("spot shadow renders visibly when the caster is FOLDED into the single encoder (M3-T5)", async ({
+  page,
+}) => {
+  // M3-T5 Done-when (spot): with ?graph=1 the example STOPS submitting its own
+  // caster command buffer and hands the spot caster pass to the engine, which
+  // renders it as a depth-only graph node the forward (receiver) node reads — ONE
+  // encoder. PIXEL proof that the FOLDED caster actually casts a shadow (ok:true
+  // alone cannot show that): the receiver region must darken vs a receiver-disabled
+  // baseline, exactly like the legacy separate-submit test above.
+  //
+  // NB: in graph mode the example's own caster submit is gated off, so
+  // status.shadow.rendering.supported (tied to that submit path) is false — drive
+  // frames by COUNT, not that flag, and let the pixel diff be the proof.
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/spot-shadow.html?graph=1&disable-shadow-receiver=1",
+  );
+  let status = await waitForExampleStatus<SpotShadowStatus>(page);
+  expect(status, "spot folded baseline status should publish").toBeDefined();
+  if (status === undefined) {
+    return;
+  }
+  skipIfUnsupportedWebGpu(status);
+  await waitForSpotShadowFrame(page, 3);
+  const noShadowScreenshot = await page
+    .locator("#aperture-canvas")
+    .screenshot();
+
+  await page.goto("/examples/spot-shadow.html?graph=1");
+  status = await waitForExampleStatus<SpotShadowStatus>(page);
+  expect(status, "spot folded shadow status should publish").toBeDefined();
+  if (status === undefined) {
+    return;
+  }
+  skipIfUnsupportedWebGpu(status);
+  status = await waitForSpotShadowFrame(page, 3);
+  expect(status.ok, "spot folded-caster graph frame ok").toBe(true);
+  expectStatusJsonSafeForGpu(status);
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+
+  await test.info().attach("spot-shadow-folded-frame.png", {
+    body: screenshot,
+    contentType: "image/png",
+  });
+  expectVisibleSpotShadowScene(screenshot, status);
+  expectSpotShadowActivation(noShadowScreenshot, screenshot, status);
+  webGpuValidation.expectNoWarnings();
+  await page.goto("about:blank");
+});
+
 async function waitForSpotShadowFrame(
   page: Parameters<typeof waitForExampleStatus>[0],
   minimumFrame: number,

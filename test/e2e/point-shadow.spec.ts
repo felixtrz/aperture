@@ -275,6 +275,52 @@ test("Playwright renders a point light cube-map shadow on the receiver wall", as
   webGpuValidation.expectNoWarnings();
 });
 
+test("Point cube-map shadows render visibly when casters are FOLDED into the single encoder (M3-T5)", async ({
+  page,
+}) => {
+  // M3-T5 Done-when #1 (point): with ?graph=1 the example STOPS submitting its own
+  // 6-face cube caster command buffer and hands the caster passes to the engine,
+  // which renders them as depth-only graph nodes the forward (receiver) node reads —
+  // ONE encoder. PIXEL proof the FOLDED casters produce shadows: the receiver wall
+  // must darken vs a shadow-receiver-disabled baseline. Drive frames by COUNT, since
+  // in graph mode status.shadow.rendering.supported is false (tied to the gated-off
+  // separate submit).
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/point-shadow.html?graph=1&disable-shadow-receiver=1",
+  );
+  let status = await waitForExampleStatus<PointShadowStatus>(page);
+  expect(status, "point folded baseline status should publish").toBeDefined();
+  if (status === undefined) {
+    return;
+  }
+  skipIfUnsupportedWebGpu(status);
+  await waitForPointShadowFrame(page, 3);
+  const noShadowScreenshot = await page
+    .locator("#aperture-canvas")
+    .screenshot();
+
+  await page.goto("/examples/point-shadow.html?graph=1");
+  status = await waitForExampleStatus<PointShadowStatus>(page);
+  expect(status, "point folded shadow status should publish").toBeDefined();
+  if (status === undefined) {
+    return;
+  }
+  skipIfUnsupportedWebGpu(status);
+  status = await waitForPointShadowFrame(page, 3);
+  expect(status.ok, "point folded-caster graph frame ok").toBe(true);
+  expectStatusJsonSafeForGpu(status);
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+
+  expectVisiblePointShadowScene(screenshot, status);
+  expectPointShadowActivation(noShadowScreenshot, screenshot, status);
+  expectPointShadowNamedReceiverSamples(noShadowScreenshot, screenshot, status);
+  webGpuValidation.expectNoWarnings();
+  await page.goto("about:blank");
+});
+
 async function waitForPointShadowFrame(
   page: Parameters<typeof waitForExampleStatus>[0],
   minimumFrame: number,

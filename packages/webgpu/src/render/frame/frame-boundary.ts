@@ -284,66 +284,60 @@ export interface FrameBoundaryAssemblyReport {
   readonly occlusionQueries?: GpuOcclusionQueryResolveReport | null;
 }
 
-export function assembleFrameBoundary(
-  options: AssembleFrameBoundaryOptions,
-): FrameBoundaryAssemblyReport {
-  const colorTarget = options.colorTarget ?? { source: "current-texture" };
-  const texture =
-    colorTarget.source === "offscreen-target"
-      ? createOffscreenColorTarget({
-          texture: colorTarget.texture,
-          loadOp: options.colorLoadOp ?? "clear",
-          ...(options.clearColor === undefined
-            ? {}
-            : { clearColor: options.clearColor }),
-        })
-      : createCurrentTextureColorTarget({
-          context: options.context,
-          loadOp: options.colorLoadOp ?? "clear",
-          ...(options.clearColor === undefined
-            ? {}
-            : { clearColor: options.clearColor }),
-        });
-  const attachments =
-    texture.target === null
-      ? null
-      : createRenderPassAttachmentPlan({
-          colorTargets: [
-            options.msaaColorTarget === undefined ||
-            options.msaaColorTarget === null ||
-            options.msaaColorTarget.sampleCount <= 1
-              ? texture.target
-              : {
-                  ...texture.target,
-                  view: options.msaaColorTarget.view,
-                  resolveTarget: texture.target.view,
-                  storeOp: options.msaaColorStoreOp ?? "discard",
-                },
-            ...(options.additionalColorTargets ?? []),
-          ],
-          ...(options.depthTarget === undefined
-            ? {}
-            : { depthTarget: options.depthTarget }),
-          ...(options.occlusionQueries === undefined
-            ? {}
-            : {
-                occlusionQuerySet: options.occlusionQueries.resources.querySet,
-              }),
-        });
-  const encoder =
-    attachments?.valid === true
-      ? createCommandEncoderResource({
-          device: options.device,
-          label: options.label,
-        })
-      : null;
-  const encoderHandle = encoder?.resource?.encoder as
-    | (RenderPassCommandEncoderLike &
-        CommandEncoderFinishLike &
-        FrameBoundaryReadbackCommandEncoderLike &
-        GpuTimestampCommandEncoderLike &
-        GpuOcclusionCommandEncoderLike)
-    | undefined;
+/**
+ * The encoder-side surface of a frame boundary: the union of methods the begin/
+ * execute/end/readback/timing/occlusion steps require on a single command encoder.
+ */
+export type FrameBoundaryEncoderHandle = RenderPassCommandEncoderLike &
+  CommandEncoderFinishLike &
+  FrameBoundaryReadbackCommandEncoderLike &
+  GpuTimestampCommandEncoderLike &
+  GpuOcclusionCommandEncoderLike;
+
+export interface EncodeFrameBoundaryIntoOptions {
+  /** The shared encoder to encode this boundary into (no create/finish/submit). */
+  readonly encoder: FrameBoundaryEncoderHandle | undefined;
+  readonly device: FrameBoundaryDeviceLike;
+  /** Pre-built attachment plan (already resolved to concrete views + load/store). */
+  readonly attachments: CreateRenderPassAttachmentPlanResult | null;
+  readonly commands: readonly RenderPassCommand[];
+  readonly label: string;
+  readonly colorTargetSource: FrameBoundaryColorTargetSource;
+  /** Source texture for readback copies (when `readback` is set). */
+  readonly readbackTexture?: unknown;
+  readonly viewport?: FrameBoundaryViewRectangle | null;
+  readonly scissor?: FrameBoundaryViewRectangle | null;
+  readonly readback?: FrameBoundaryReadbackOptions;
+  readonly gpuTiming?: FrameBoundaryGpuTimingOptions;
+  readonly occlusionQueries?: FrameBoundaryOcclusionQueryOptions;
+  readonly renderBundle?: FrameBoundaryRenderBundleOptions;
+}
+
+export interface FrameBoundaryEncodeReport {
+  readonly valid: boolean;
+  readonly begin: BeginRenderPassResult | null;
+  readonly rectangle: FrameBoundaryPassRectangleReport | null;
+  readonly execution: RenderPassCommandExecutionReport | null;
+  readonly renderBundle: RenderBundleExecutionReport | null;
+  readonly end: EndRenderPassResult | null;
+  readonly readback: FrameBoundaryReadbackPlan | null;
+  readonly gpuTiming: FrameBoundaryGpuTimingCommandReport | null;
+  readonly occlusionQueries: GpuOcclusionQueryResolveReport | null;
+}
+
+/**
+ * Encode ONE render boundary (timing-start → begin → rectangles → draw commands
+ * → end → timing-end → occlusion resolve → timing resolve → readback copy) into a
+ * CALLER-PROVIDED encoder. It never creates, finishes, or submits the encoder —
+ * that is the caller's job. This is the single-encoder primitive the FrameGraph
+ * executor (M3) uses to fold every pass into one GPUCommandEncoder;
+ * `assembleFrameBoundary` is the legacy one-pass wrapper around it.
+ */
+export function encodeFrameBoundaryInto(
+  options: EncodeFrameBoundaryIntoOptions,
+): FrameBoundaryEncodeReport {
+  const encoderHandle = options.encoder;
+  const attachments = options.attachments;
   const gpuTimingStart = writeFrameBoundaryGpuTimingStart(
     encoderHandle,
     options.gpuTiming,
@@ -400,12 +394,172 @@ export function assembleFrameBoundary(
       : createFrameBoundaryReadbackCopyPlan({
           device: options.device,
           encoder: encoderHandle,
-          source: colorTarget.source,
-          texture: texture.texture,
+          source: options.colorTargetSource,
+          texture: options.readbackTexture,
           readback: options.readback,
         });
+
+  return {
+    valid:
+      begin?.valid === true &&
+      (rectangle === null || rectangle.valid) &&
+      execution?.valid === true &&
+      end?.valid === true &&
+      (occlusionQueries === null || occlusionQueries.valid),
+    begin,
+    rectangle,
+    execution,
+    renderBundle,
+    end,
+    readback,
+    gpuTiming:
+      options.gpuTiming === undefined
+        ? null
+        : createFrameBoundaryGpuTimingCommandReport(
+            options.gpuTiming,
+            gpuTimingStart,
+            gpuTimingEnd,
+            gpuTimingResolve,
+          ),
+    occlusionQueries,
+  };
+}
+
+export interface FrameBoundaryTargetPlanOptions {
+  readonly context: CurrentTextureContextLike;
+  readonly colorTarget?: FrameBoundaryColorTarget;
+  readonly colorLoadOp?: RenderPassAttachmentLoadOp;
+  readonly clearColor?: readonly number[];
+  readonly msaaColorTarget?: FrameBoundaryMsaaColorTarget | null;
+  readonly msaaColorStoreOp?: RenderPassAttachmentStoreOp;
+  readonly additionalColorTargets?: readonly RenderPassColorAttachmentInput[];
+  readonly depthTarget?: RenderPassDepthAttachmentInput | null;
+  readonly occlusionQuerySet?: unknown;
+}
+
+export interface FrameBoundaryTargetPlan {
+  readonly texture: CreateCurrentTextureColorTargetResult;
+  readonly attachments: CreateRenderPassAttachmentPlanResult | null;
+}
+
+/**
+ * Resolve a frame boundary's color target (swapchain or off-screen) and build
+ * its render-pass attachment plan (color + optional MSAA resolve + extra color
+ * targets + depth + occlusion query set). Extracted so the single-encoder graph
+ * executor's route ports build attachments through the EXACT same path as the
+ * legacy assembleFrameBoundary wrapper — keeping per-pass encoding identical.
+ */
+export function buildFrameBoundaryTargetPlan(
+  options: FrameBoundaryTargetPlanOptions,
+): FrameBoundaryTargetPlan {
+  const colorTarget = options.colorTarget ?? { source: "current-texture" };
+  const texture =
+    colorTarget.source === "offscreen-target"
+      ? createOffscreenColorTarget({
+          texture: colorTarget.texture,
+          loadOp: options.colorLoadOp ?? "clear",
+          ...(options.clearColor === undefined
+            ? {}
+            : { clearColor: options.clearColor }),
+        })
+      : createCurrentTextureColorTarget({
+          context: options.context,
+          loadOp: options.colorLoadOp ?? "clear",
+          ...(options.clearColor === undefined
+            ? {}
+            : { clearColor: options.clearColor }),
+        });
+  const attachments =
+    texture.target === null
+      ? null
+      : createRenderPassAttachmentPlan({
+          colorTargets: [
+            options.msaaColorTarget === undefined ||
+            options.msaaColorTarget === null ||
+            options.msaaColorTarget.sampleCount <= 1
+              ? texture.target
+              : {
+                  ...texture.target,
+                  view: options.msaaColorTarget.view,
+                  resolveTarget: texture.target.view,
+                  storeOp: options.msaaColorStoreOp ?? "discard",
+                },
+            ...(options.additionalColorTargets ?? []),
+          ],
+          ...(options.depthTarget === undefined
+            ? {}
+            : { depthTarget: options.depthTarget }),
+          ...(options.occlusionQuerySet === undefined
+            ? {}
+            : { occlusionQuerySet: options.occlusionQuerySet }),
+        });
+  return { texture, attachments };
+}
+
+export function assembleFrameBoundary(
+  options: AssembleFrameBoundaryOptions,
+): FrameBoundaryAssemblyReport {
+  const colorTarget = options.colorTarget ?? { source: "current-texture" };
+  const { texture, attachments } = buildFrameBoundaryTargetPlan({
+    context: options.context,
+    ...(options.colorTarget === undefined
+      ? {}
+      : { colorTarget: options.colorTarget }),
+    ...(options.colorLoadOp === undefined
+      ? {}
+      : { colorLoadOp: options.colorLoadOp }),
+    ...(options.clearColor === undefined
+      ? {}
+      : { clearColor: options.clearColor }),
+    ...(options.msaaColorTarget === undefined
+      ? {}
+      : { msaaColorTarget: options.msaaColorTarget }),
+    ...(options.msaaColorStoreOp === undefined
+      ? {}
+      : { msaaColorStoreOp: options.msaaColorStoreOp }),
+    ...(options.additionalColorTargets === undefined
+      ? {}
+      : { additionalColorTargets: options.additionalColorTargets }),
+    ...(options.depthTarget === undefined
+      ? {}
+      : { depthTarget: options.depthTarget }),
+    ...(options.occlusionQueries === undefined
+      ? {}
+      : { occlusionQuerySet: options.occlusionQueries.resources.querySet }),
+  });
+  const encoder =
+    attachments?.valid === true
+      ? createCommandEncoderResource({
+          device: options.device,
+          label: options.label,
+        })
+      : null;
+  const encoderHandle = encoder?.resource?.encoder as
+    | FrameBoundaryEncoderHandle
+    | undefined;
+  const encoded = encodeFrameBoundaryInto({
+    encoder: encoderHandle,
+    device: options.device,
+    attachments,
+    commands: options.commands,
+    label: options.label,
+    colorTargetSource: colorTarget.source,
+    readbackTexture: texture.texture,
+    viewport: options.viewport ?? null,
+    scissor: options.scissor ?? null,
+    ...(options.readback === undefined ? {} : { readback: options.readback }),
+    ...(options.gpuTiming === undefined
+      ? {}
+      : { gpuTiming: options.gpuTiming }),
+    ...(options.occlusionQueries === undefined
+      ? {}
+      : { occlusionQueries: options.occlusionQueries }),
+    ...(options.renderBundle === undefined
+      ? {}
+      : { renderBundle: options.renderBundle }),
+  });
   const finish =
-    encoderHandle === undefined || end?.valid !== true
+    encoderHandle === undefined || encoded.end?.valid !== true
       ? null
       : finishCommandEncoder({
           encoder: encoderHandle,
@@ -424,34 +578,22 @@ export function assembleFrameBoundary(
       texture.valid &&
       attachments?.valid === true &&
       encoder?.valid === true &&
-      begin?.valid === true &&
-      (rectangle === null || rectangle.valid) &&
-      execution?.valid === true &&
-      end?.valid === true &&
-      (occlusionQueries === null || occlusionQueries.valid) &&
+      encoded.valid &&
       finish?.valid === true &&
       submit?.valid === true,
     texture,
     attachments,
     encoder,
-    begin,
-    rectangle,
-    execution,
-    renderBundle,
-    end,
+    begin: encoded.begin,
+    rectangle: encoded.rectangle,
+    execution: encoded.execution,
+    renderBundle: encoded.renderBundle,
+    end: encoded.end,
     finish,
     submit,
-    readback,
-    gpuTiming:
-      options.gpuTiming === undefined
-        ? null
-        : createFrameBoundaryGpuTimingCommandReport(
-            options.gpuTiming,
-            gpuTimingStart,
-            gpuTimingEnd,
-            gpuTimingResolve,
-          ),
-    occlusionQueries,
+    readback: encoded.readback,
+    gpuTiming: encoded.gpuTiming,
+    occlusionQueries: encoded.occlusionQueries,
   };
 }
 

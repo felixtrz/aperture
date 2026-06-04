@@ -74,6 +74,14 @@ export interface WebGpuPostEffectPrepareOptions {
   readonly passIndex: number;
   readonly isLast: boolean;
   readonly output?: WebGpuPostPassTextureResource;
+  // The previous-frame color-history buffer, supplied by the route's
+  // double-buffered history pool (M3-T6) for effects that set
+  // requiresColorHistory. Distinct from `output` (this frame's write target):
+  // `history` is last frame's written buffer (the 'previous' view of a
+  // declareHistory graph handle). Undefined on the first frame (no history yet)
+  // or when the route does not own a history pool (the legacy path), in which
+  // case a temporal effect must degrade gracefully (sample its own input).
+  readonly history?: WebGpuPostPassTextureResource;
   readonly label: string;
 }
 
@@ -126,6 +134,12 @@ export interface WebGpuPostEffect {
   readonly label?: string;
   readonly enabled?: boolean;
   readonly requiresMotionVectors?: boolean;
+  // The effect carries color across frames (e.g. TAA accumulation). When set,
+  // the route supplies a double-buffered history pool (M3-T6): prepare() writes
+  // this frame's result into `output` (the pool's 'current' buffer) and samples
+  // last frame's result from `history` (the pool's 'previous' buffer), letting
+  // the FrameGraph own cross-frame history instead of a hand-threaded closure.
+  readonly requiresColorHistory?: boolean;
   // The effect would like the lit pass's separated indirect (ambient+IBL)
   // color as a second color attachment so it can attenuate only indirect light
   // (M5-T6). Best-effort: the frame only provides it when MSAA is off and

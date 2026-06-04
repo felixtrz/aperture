@@ -127,6 +127,7 @@ async function startConfig(config, options = {}) {
       },
       sourceAssets,
       postEffects: createPostEffects(aperture, config),
+      ...(config.useFrameGraph === true ? { useFrameGraph: true } : {}),
       ...(readbackUsage.ok ? { textureUsage: readbackUsage.usage } : {}),
     });
 
@@ -489,6 +490,9 @@ function readConfigFromLocation() {
   return {
     fxaa: searchParams.get("fxaa") !== "0",
     bloom: searchParams.get("bloom") !== "0",
+    // M3-T3: ?graph=1 routes the swapchain post target through the single-encoder
+    // FrameGraph path. Default off keeps the legacy per-pass path.
+    useFrameGraph: searchParams.get("graph") === "1",
   };
 }
 

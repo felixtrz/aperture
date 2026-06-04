@@ -127,7 +127,7 @@ export function createWebGpuAppTransmissionGrabResources(options: {
   };
 }
 
-export function assembleWebGpuAppTransmissionGrabPass(options: {
+export interface WebGpuAppTransmissionGrabPassOptions {
   readonly app: WebGpuAppTransmissionGrabContext;
   readonly target: WebGpuAppFrameBoundaryTarget;
   readonly commands: readonly RenderPassCommand[];
@@ -135,15 +135,22 @@ export function assembleWebGpuAppTransmissionGrabPass(options: {
   readonly label: string;
   readonly clearColor: readonly number[];
   readonly resources: StandardFrameTransmissionSceneColorResources;
-}): {
-  readonly boundary: FrameBoundaryAssemblyReport;
-  readonly report: WebGpuAppTransmissionGrabPassReport;
-  readonly diagnostics: readonly unknown[];
+}
+
+// Build the transmission-grab boundary options + static report fields WITHOUT
+// executing. The legacy path (assembleWebGpuAppTransmissionGrabPass) runs these
+// through assembleFrameBoundary; the M3-T4 FrameGraph path registers them as a
+// grab node the main forward node reads, so the grab + main share one encoder.
+export function buildWebGpuAppTransmissionGrabBoundaryOptions(
+  options: WebGpuAppTransmissionGrabPassOptions,
+): {
+  readonly boundaryOptions: Parameters<typeof assembleFrameBoundary>[0];
+  readonly reportBase: Omit<WebGpuAppTransmissionGrabPassReport, "ok">;
 } {
   const commands = commandsWithoutOcclusionQueryCommands(
     commandsWithoutTransmissionDraws(options.commands),
   );
-  const boundary = assembleFrameBoundary({
+  const boundaryOptions: Parameters<typeof assembleFrameBoundary>[0] = {
     context: options.app.initialization.context as Parameters<
       typeof assembleFrameBoundary
     >[0]["context"],
@@ -165,7 +172,32 @@ export function assembleWebGpuAppTransmissionGrabPass(options: {
       depthLoadOp: "clear",
       depthStoreOp: "store",
     },
-  });
+  };
+  return {
+    boundaryOptions,
+    reportBase: {
+      enabled: true,
+      width: options.resources.texture.width,
+      height: options.resources.texture.height,
+      format: options.resources.texture.format,
+      commands: commands.length,
+      drawCalls: countDrawCommands(commands),
+      textureResourceKey: options.resources.texture.resourceKey,
+      samplerResourceKey: options.resources.sampler.resourceKey,
+    },
+  };
+}
+
+export function assembleWebGpuAppTransmissionGrabPass(
+  options: WebGpuAppTransmissionGrabPassOptions,
+): {
+  readonly boundary: FrameBoundaryAssemblyReport;
+  readonly report: WebGpuAppTransmissionGrabPassReport;
+  readonly diagnostics: readonly unknown[];
+} {
+  const { boundaryOptions, reportBase } =
+    buildWebGpuAppTransmissionGrabBoundaryOptions(options);
+  const boundary = assembleFrameBoundary(boundaryOptions);
   const diagnostics = [
     ...boundary.texture.diagnostics,
     ...(boundary.attachments?.diagnostics ?? []),
@@ -180,17 +212,7 @@ export function assembleWebGpuAppTransmissionGrabPass(options: {
 
   return {
     boundary,
-    report: {
-      enabled: true,
-      ok: boundary.valid,
-      width: options.resources.texture.width,
-      height: options.resources.texture.height,
-      format: options.resources.texture.format,
-      commands: commands.length,
-      drawCalls: countDrawCommands(commands),
-      textureResourceKey: options.resources.texture.resourceKey,
-      samplerResourceKey: options.resources.sampler.resourceKey,
-    },
+    report: { ...reportBase, ok: boundary.valid },
     diagnostics,
   };
 }
