@@ -155,25 +155,12 @@ function rayFromCamera(
   ]);
   const farPoint = transformPoint(inverseViewProjectionMatrix, [ndcX, ndcY, 1]);
 
-  if (projection === CameraProjection.Orthographic) {
-    return {
-      origin: tuple3(nearPoint),
-      direction: normalize3([
-        readVec3(farPoint, 0) - readVec3(nearPoint, 0),
-        readVec3(farPoint, 1) - readVec3(nearPoint, 1),
-        readVec3(farPoint, 2) - readVec3(nearPoint, 2),
-      ]),
-    };
-  }
-
-  const origin = [
-    readMat4(worldMatrix, 12),
-    readMat4(worldMatrix, 13),
-    readMat4(worldMatrix, 14),
-  ] as const;
-
+  // Both perspective and orthographic rays start at the near-plane point under
+  // the pointer and travel toward the far plane. Anchoring the perspective ray on
+  // the near plane (rather than the eye) keeps picking inside the view frustum and
+  // unifies the two projection paths — `projection` only selects the matrix above.
   return {
-    origin: tuple3(origin),
+    origin: tuple3(nearPoint),
     direction: normalize3([
       readVec3(farPoint, 0) - readVec3(nearPoint, 0),
       readVec3(farPoint, 1) - readVec3(nearPoint, 1),
@@ -223,16 +210,6 @@ function readVec3(value: Vec3Like, index: 0 | 1 | 2): number {
 
   if (next === undefined) {
     throw new RangeError(`Expected Vec3Like value at index ${index}.`);
-  }
-
-  return next;
-}
-
-function readMat4(value: Mat4, index: number): number {
-  const next = value[index];
-
-  if (next === undefined) {
-    throw new RangeError(`Expected Mat4 value at index ${index}.`);
   }
 
   return next;

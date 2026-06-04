@@ -78,6 +78,21 @@ function readVec3(value: Vec3Like, index: 0 | 1 | 2): number {
   return next;
 }
 
+function normalize(
+  value: readonly [number, number, number],
+): [number, number, number] {
+  const length = Math.hypot(value[0], value[1], value[2]);
+  return [value[0] / length, value[1] / length, value[2] / length];
+}
+
+function distance(a: Vec3Like, b: readonly [number, number, number]): number {
+  return Math.hypot(
+    readVec3(a, 0) - b[0],
+    readVec3(a, 1) - b[1],
+    readVec3(a, 2) - b[2],
+  );
+}
+
 describe("camera system access", () => {
   it("unprojects perspective pointer coordinates into camera-space rays", () => {
     const { context, world } = createTestContext();
@@ -88,9 +103,11 @@ describe("camera system access", () => {
     const cornerRay = context.cameras.main.rayFromPointer([1, 0]);
     const corner = 1 / Math.sqrt(3);
 
-    expectVectorCloseTo(centerRay.origin, [0, 0, 5]);
+    // Perspective rays start at the near-plane point under the pointer (near = 1
+    // unit in front of the eye at [0,0,5]).
+    expectVectorCloseTo(centerRay.origin, [0, 0, 4]);
     expectVectorCloseTo(centerRay.direction, [0, 0, -1]);
-    expectVectorCloseTo(cornerRay.origin, [0, 0, 5]);
+    expectVectorCloseTo(cornerRay.origin, [1, 1, 4]);
     expectVectorCloseTo(cornerRay.direction, [corner, corner, -corner]);
   });
 
@@ -136,5 +153,85 @@ describe("camera system access", () => {
     expect(hit?.entity.entity).toBe(target);
     expect(hit?.source).toBe("bounds");
     expect(miss).toBeNull();
+  });
+
+  it("rays a look-at perspective camera toward the target with a near-plane origin (M7-T7 #1)", () => {
+    const { context } = createTestContext();
+
+    context.spawn.camera({
+      key: "camera.main",
+      transform: { translation: [0, 1.5, 5], lookAt: [0, 0, 0] },
+      fovYDegrees: 60,
+      camera: { near: 0.1, far: 100, aspect: 1 },
+    });
+
+    const ray = context.cameras.main.rayFromPointer([0.5, 0.5]);
+    const eye: [number, number, number] = [0, 1.5, 5];
+    const forward = normalize([0, -1.5, -5]);
+
+    // Direction points from the camera toward the look target.
+    expectVectorCloseTo(ray.direction, forward, 3);
+    // Origin lies on the near plane: `near` units in front of the eye.
+    expect(distance(ray.origin, eye)).toBeCloseTo(0.1, 4);
+    expectVectorCloseTo(
+      ray.origin,
+      [
+        eye[0] + forward[0] * 0.1,
+        eye[1] + forward[1] * 0.1,
+        eye[2] + forward[2] * 0.1,
+      ],
+      4,
+    );
+  });
+
+  it("spreads perspective corner rays by the half-fov and flips NDC Y (M7-T7 #2)", () => {
+    const { context, world } = createTestContext();
+
+    createCameraEntity(world, {
+      fovYRadians: Math.PI / 3,
+      aspect: 1,
+      near: 1,
+      far: 11,
+    });
+
+    const center = context.cameras.main.rayFromPointer([0.5, 0.5]);
+    const topLeft = context.cameras.main.rayFromPointer([0, 0]);
+    const bottomRight = context.cameras.main.rayFromPointer([1, 1]);
+    const t = Math.tan(Math.PI / 6); // half of a 60deg fov
+
+    expectVectorCloseTo(center.direction, [0, 0, -1], 4);
+    // Top-left pointer -> up (+y) + left (-x); screen y=0 is the top (NDC Y flip).
+    expectVectorCloseTo(topLeft.direction, normalize([-t, t, -1]), 4);
+    // Bottom-right pointer -> down (-y) + right (+x).
+    expectVectorCloseTo(bottomRight.direction, normalize([t, -t, -1]), 4);
+    expect(readVec3(topLeft.direction, 1)).toBeGreaterThan(0);
+    expect(readVec3(bottomRight.direction, 1)).toBeLessThan(0);
+  });
+
+  it("produces parallel orthographic rays with varying origins (M7-T7 #4)", () => {
+    const { context, world } = createTestContext();
+
+    createCameraEntity(world, {
+      projection: CameraProjection.Orthographic,
+      aspect: 2,
+      orthographicHeight: 4,
+    });
+
+    const a = context.cameras.main.rayFromPointer([0.5, 0.5]);
+    const b = context.cameras.main.rayFromPointer([0, 0]);
+    const c = context.cameras.main.rayFromPointer([1, 1]);
+
+    // Parallel: identical direction regardless of pointer position.
+    expectVectorCloseTo(a.direction, [0, 0, -1], 4);
+    expectVectorCloseTo(b.direction, [0, 0, -1], 4);
+    expectVectorCloseTo(c.direction, [0, 0, -1], 4);
+    // Origins vary across the orthographic near plane.
+    expect(
+      distance(a.origin, [
+        readVec3(b.origin, 0),
+        readVec3(b.origin, 1),
+        readVec3(b.origin, 2),
+      ]),
+    ).toBeGreaterThan(0.5);
   });
 });
