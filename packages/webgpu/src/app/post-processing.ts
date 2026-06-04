@@ -564,7 +564,6 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     (options.indirectColorFormat !== undefined &&
       options.indirectColorFormat !== null) ||
     options.occlusionQueries !== undefined ||
-    options.gpuTiming !== undefined ||
     options.effects.length === 0 ||
     // M3-T6: the graph path produces motion vectors only as a scene attachment
     // (motionVectorColorFormat set). When motion vectors are required but fall
@@ -689,6 +688,10 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     readonly commands: readonly RenderPassCommand[];
     readonly colorTargetSource: "current-texture" | "offscreen-target";
     readonly readback?: FrameGraphRenderNodeBoundary["readback"];
+    // M3-T7: GPU timestamp queries for this node's pass (the scene node carries
+    // them, matching the legacy path which times the scene pass) — lets the graph
+    // path preserve the gpuTiming diagnostic instead of bailing to legacy.
+    readonly gpuTiming?: FrameGraphRenderNodeBoundary["gpuTiming"];
     // Extra color attachments written alongside writeHandle (e.g. the scene
     // node's motion-vector target). Each is recorded as an additional graph
     // write so a downstream node (TAA) can declare a read edge on it.
@@ -725,6 +728,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       colorTargetSource: args.colorTargetSource,
       readbackTexture: plan.texture.texture,
       ...(args.readback === undefined ? {} : { readback: args.readback }),
+      ...(args.gpuTiming === undefined ? {} : { gpuTiming: args.gpuTiming }),
     });
     records.push({
       name: args.name,
@@ -760,6 +764,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     },
     commands: options.commands,
     colorTargetSource: "offscreen-target",
+    ...(options.gpuTiming === undefined
+      ? {}
+      : { gpuTiming: options.gpuTiming }),
     ...(motionVectorHandle === null
       ? {}
       : { additionalWriteHandles: [motionVectorHandle] }),
