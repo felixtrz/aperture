@@ -9,6 +9,7 @@ export * from "./app/app-snapshot-transport.js";
 export * from "./app/app-texture-sampler-resources.js";
 export * from "./app/post-processing.js";
 export * from "./app/resource-cache.js";
+export * from "./app/user-pass.js";
 export * from "./gpu/buffer.js";
 export * from "./materials/core/built-in-material-app-resource-adapter.js";
 export * from "./materials/core/built-in-material-queue-adapter.js";
