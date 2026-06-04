@@ -1,22 +1,29 @@
 # Current Task
 
-> ## ▶ START HERE — M7 6/9 — next M7-T8 (M7-T6 BLOCKED, see `agent/HANDOFF.md`)
+> ## ▶ START HERE — M7 7/9 — next M7-T9 (M7-T6 BLOCKED, see `agent/HANDOFF.md`)
 >
-> Active /goal: **Implement Milestone M7**. Gate-green (409 files / 2282 tests @
-> 86dea057), working tree clean. **T1 ✅ → T2 ✅ → T3 ✅ → T4 ✅ → T5 ✅ → T6 🟡 BLOCKED
-> → T7 ✅ → T8 (next) → T9.**
+> Active /goal: **Implement Milestone M7**. Gate-green (411 files / 2288 tests @
+> 339f1b9b), working tree clean. **T1 ✅ → T2 ✅ → T3 ✅ → T4 ✅ → T5 ✅ → T6 🟡 BLOCKED
+> → T7 ✅ → T8 ✅ → T9 (next).**
 >
-> - **M7-T7 ✅ done (86dea057):** pointer-ray unprojection proofs + unified the
->   perspective+orthographic `rayFromPointer` origin on the near-plane point (more
->   correct for picking; ray line unchanged → spatial picking + the auto-picking E2E
->   re-verified on the real GPU). #1/#2/#4 via `test/app/cameras.test.ts`; #3 = the
->   M1-T8 auto-picking E2E.
-> - **NEXT — M7-T8** (`runtime-orchestration`, L, depends T7): an `interaction` accessor
->   on `ApertureSystemContext` + a worker system casting `cameras.main.rayFromPointer` +
->   `spatial.raycastFirst` each frame → per-entity hover/enter/leave/down/up/click/drag
->   with cross-frame state (`interaction.onClick`/`onEnter`/`onLeave`/`onDrag`); migrate
->   `examples/developer-api` select.system.ts; add a pointer-events render-control route.
->   Full spec + Done-when: `docs/SOTA_ROADMAP.md` §`M7-T8`.
+> - **M7-T8 ✅ done (impl 1d5dae76 + route 339f1b9b):** public pointer-on-object
+>   interaction layer — `packages/app/src/interaction/*`: a pure `PointerInteractionState`
+>   machine (enter/leave edge-triggered; down/up; click = down+up over the same entity
+>   sub-threshold; drag = dragStart/drag/dragEnd past a normalized-space threshold with a
+>   world delta) + `createInteractionAccess` (`onEnter`/`onLeave`/`onDown`/`onUp`/`onClick`/
+>   `onDrag`(cb | filter,cb), ref/tag/predicate filters, `hoveredEntity()`) surfaced as
+>   `context.interaction`; `runInteractionFrame` casts `cameras.main.rayFromPointer` +
+>   `spatial.raycastFirst` each frame, wired into `advanced.ts` step() after the spatial
+>   refresh. developer-api select.system migrated to `interaction.onClick`. #1/#2
+>   render-control (`test/app/interaction-route.test.ts`) + E2E (`examples/pointer-events`,
+>   `test/e2e/pointer-events.spec.ts`, real GPU); #3 `test/app/pointer-events-state.test.ts`;
+>   #4 `test/app/developer-api.test.ts` (28).
+> - **NEXT — M7-T9** (`runtime-orchestration`, L, depends T7+T8): `createOrbitCameraController`
+>   (azimuth/elevation/distance from pointer drag + wheel → camera `LocalTransform` via lookAt)
+>   + a translate gizmo (3 axis-handle Pickable meshes parented to the selected entity; on
+>   handle drag project pointer motion onto the axis → write the selected `LocalTransform`
+>   translation, world-preserving M7-T1 math) — both pure ECS authoring; 2 example routes.
+>   Full spec + Done-when: `docs/SOTA_ROADMAP.md` §`M7-T9`.
 >
 > **M7-T6 (runtime material mutation) is PARTIAL/BLOCKED — NOT done.** The authoring
 > surface landed (commit `30541c06`): `patchStandardMaterial`/`patchUnlitMaterial`/
