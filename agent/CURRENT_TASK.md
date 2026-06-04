@@ -1,10 +1,28 @@
 # Current Task
 
-> ## ▶ START HERE — M7 (scene persistence + authoring layer) — 🟡 in-progress 5/9
+> ## ⛔ STOP POINT — M7 5/9 — M7-T6 BLOCKED (see `agent/HANDOFF.md`)
 >
-> Active /goal: **Implement Milestone M7**. Gate-green (408 files / 2273 tests @
-> 78434a6d), working tree clean. Implement M7 in task-number order (deps are always
-> lower-numbered): **T1 ✅ → T2 ✅ → T3 ✅ → T4 ✅ → T5 ✅ → T6 → T7 → T8 → T9**.
+> Active /goal: **Implement Milestone M7**. Gate-green (409 files / 2279 tests @
+> 30541c06), working tree clean. **T1 ✅ → T2 ✅ → T3 ✅ → T4 ✅ → T5 ✅ → T6 🟡 BLOCKED
+> → T7 → T8 → T9.**
+>
+> **M7-T6 (runtime material mutation) is PARTIAL/BLOCKED — NOT done.** The authoring
+> surface landed (commit `30541c06`): `patchStandardMaterial`/`patchUnlitMaterial`/
+> `patchMatcapMaterial` (render) + `this.materials.set(handle, patch)` on
+> `ApertureSystemContext` (version-bump via `markReady`, no new handle). Done-when **#1**
+> (frozen patch) + **#2** (version bump + version-gated mirror re-serialize) proven by
+> `test/materials/runtime-material-mutation.test.ts` (6, which also proves the
+> `prepareSnapshotMaterials` `'updated'` action). **#3** (E2E pixel green→red) + **#4**
+> (render-control action surfacing) are **BLOCKED**: built-in (unlit/standard/matcap)
+> material GPU resources are cached by a version-INDEPENDENT `materialResourceKey`, so the
+> frame bind-group cache reuses the prior version's bind group on a same-handle content
+> change (custom-WGSL works). The red asset provably reaches the GPU adapter; the webgpu
+> render path was left UNTOUCHED (a naive version-stamp broke the resource linkage →
+> transparent draw, reverted). **Root cause + fix path: `agent/HANDOFF.md`.**
+> `test/e2e/material-mutation.spec.ts` is `test.fixme`.
+>
+> **Resume options:** (1) the deep webgpu version-aware-key fix (HANDOFF.md), (2) descope
+> #3/#4 to the headless proof, or (3) continue **M7-T7 → T8 → T9** (none depend on T6).
 >
 > - **M7-T1 ✅ done (c1509d62):** bidirectional transform hierarchy —
 >   `packages/simulation/src/transform/hierarchy.ts` (`setParent` world-preserving
