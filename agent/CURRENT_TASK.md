@@ -1,10 +1,10 @@
 # Current Task
 
-> ## ▶ START HERE — M7 (scene persistence + authoring layer) — 🟡 in-progress 2/9
+> ## ▶ START HERE — M7 (scene persistence + authoring layer) — 🟡 in-progress 3/9
 >
-> Active /goal: **Implement Milestone M7**. Gate-green (404 files / 2262 tests @
-> 2f1f6b50), working tree clean. Implement M7 in task-number order (deps are always
-> lower-numbered): **T1 ✅ → T2 ✅ → T3 → T4 → T5 → T6 → T7 → T8 → T9**.
+> Active /goal: **Implement Milestone M7**. Gate-green (405 files / 2266 tests @
+> 54c3728f), working tree clean. Implement M7 in task-number order (deps are always
+> lower-numbered): **T1 ✅ → T2 ✅ → T3 ✅ → T4 → T5 → T6 → T7 → T8 → T9**.
 >
 > - **M7-T1 ✅ done (c1509d62):** bidirectional transform hierarchy —
 >   `packages/simulation/src/transform/hierarchy.ts` (`setParent` world-preserving
@@ -16,11 +16,15 @@
 >   (`entities/lookup/resolve.ts`); `createApertureEntityHierarchy` now prefers the
 >   `Children` index (no full ALL-entities scan; legacy `collectActiveEntities`
 >   fallback retained). Proven by `test/app/hierarchy-accessor.test.ts` (4).
-> - **NEXT — M7-T3** (`simulation`, M, depends none): generic headless-safe component
->   (de)serialization codec in `packages/simulation/src/serialization/` — schema-driven
+> - **M7-T3 ✅ done (54c3728f):** generic schema-driven component (de)serialization
+>   codec in `packages/simulation/src/serialization/` —
 >   `serializeEntityComponents`/`deserializeEntityComponents` via a `component.id`→
->   component registry, Entity-typed fields as `index:generation` tokens, `WorldTransform`
->   excluded. Full spec + Done-when: `docs/SOTA_ROADMAP.md` §`M7-T3`.
+>   component allow-list registry; Entity fields as `index:generation` tokens,
+>   `WorldTransform` excluded. Proven by `test/serialization/component-codec.test.ts` (4).
+> - **NEXT — M7-T4** (`simulation`, M, depends T3 + T1): compose the codec into a
+>   versioned `ApertureSceneDocument` — `saveScene(world)` / `loadScene(world, doc)`
+>   with an oldId→newEntity remap pass for Entity-typed fields + `resolveWorldTransforms`;
+>   realize the dead `SceneHandle` payload. Full spec + Done-when: `docs/SOTA_ROADMAP.md` §`M7-T4`.
 >
 > Per-task bar (per the /goal): every Done-when ticked + named vitest/E2E proof with
 > new coverage + `pnpm run check` green + heading `✅ done (date · commit)` + a
