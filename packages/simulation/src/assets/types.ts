@@ -30,6 +30,12 @@ export type MaterialHandle = AssetHandle<"material">;
 export type TextureHandle = AssetHandle<"texture">;
 export type SamplerHandle = AssetHandle<"sampler">;
 export type RenderTargetHandle = AssetHandle<"render-target">;
+/**
+ * Handle for a scene asset. Its registry payload (the `TAsset` of
+ * {@link AssetRegistryEntry}) is an `ApertureSceneDocument`
+ * (serialization/scene-document.ts) — a versioned, JSON-safe snapshot of an ECS
+ * world produced by `saveScene` and instantiated by `loadScene` (M7-T4).
+ */
 export type SceneHandle = AssetHandle<"scene">;
 export type PrefabHandle = AssetHandle<"prefab">;
 export type AnimationClipHandle = AssetHandle<"animation-clip">;
