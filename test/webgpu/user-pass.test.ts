@@ -6,6 +6,8 @@ import {
   compileFrameGraph,
   createFrameGraph,
   createWebGpuAppUserPassRegistry,
+  executeFrameGraph,
+  type FrameGraphResources,
   type WebGpuAppPassResolvers,
 } from "@aperture-engine/webgpu/test-support";
 
@@ -186,6 +188,132 @@ describe("user pass registry + node building (M3-T7)", () => {
     expect(order.indexOf("luminance-histogram")).toBeGreaterThan(
       order.indexOf("opaque"),
     );
+  });
+
+  it("executes user render + compute nodes in ONE encoder, including the compute dispatch (Done-when #2 mechanism)", () => {
+    const registry = createWebGpuAppUserPassRegistry();
+    registry.addRenderPass({
+      name: "wireframe-overlay",
+      after: "opaque",
+      reads: ["depth"],
+      writes: [{ handle: "swapchain", attachment: "load" }],
+      encode(ctx) {
+        ctx.setPipeline({ id: "wireframe" });
+        ctx.draw(6);
+      },
+    });
+    registry.addComputePass({
+      name: "luminance-histogram",
+      reads: ["scene-color"],
+      writes: [{ handle: "histogram-buffer" }],
+      encode(ctx) {
+        ctx.setComputePipeline({ id: "histogram" });
+        ctx.setBindGroup(0, ctx.bindings({ src: ctx.view("scene-color") }));
+        ctx.dispatchWorkgroups(4, 4, 1);
+      },
+    });
+
+    const events: string[] = [];
+    const renderPass = () => ({
+      setPipeline: () => {},
+      setBindGroup: () => {},
+      setVertexBuffer: () => {},
+      setIndexBuffer: () => {},
+      setViewport: () => {},
+      setScissorRect: () => {},
+      draw: () => events.push("draw"),
+      drawIndexed: () => events.push("draw"),
+      end: () => {},
+    });
+    const computePass = () => ({
+      setPipeline: () => {},
+      setBindGroup: () => {},
+      dispatchWorkgroups: () => events.push("dispatch"),
+      end: () => {},
+    });
+    const device = {
+      createCommandEncoder: () => {
+        events.push("createCommandEncoder");
+        return {
+          beginRenderPass: renderPass,
+          beginComputePass: computePass,
+          finish: () => {
+            events.push("finish");
+            return { label: "command-buffer" };
+          },
+        };
+      },
+    };
+
+    const graph = createFrameGraph();
+    graph.importSwapchain();
+    graph.declareTransient("scene-color", colorDesc);
+    graph.importDepth("depth", {
+      width: 8,
+      height: 8,
+      format: "depth24plus",
+      sampleCount: 1,
+    });
+    graph.declareResource({
+      id: "histogram-buffer",
+      descriptor: { kind: "buffer", lifetime: "transient" },
+    });
+    // opaque produces scene-color + depth (so the overlay/compute read edges
+    // order them after it); it does NOT write the swapchain (the overlay does).
+    graph.addRenderPass({
+      name: "opaque",
+      reads: [],
+      writes: [
+        { handle: "scene-color", attachment: "clear" },
+        { handle: "depth", attachment: "clear", clearDepth: 1 },
+      ],
+      commands: [],
+    });
+    for (const node of buildUserPassNodes(registry, fakeResolvers())) {
+      if (node.kind === "compute") {
+        graph.addComputePass(node);
+      } else {
+        graph.addRenderPass(node);
+      }
+    }
+
+    const resources: FrameGraphResources = {
+      // resolve every write handle to a fake attachment (depth routed to depth)
+      resolveAttachment: (handle) =>
+        handle === "depth"
+          ? { kind: "depth", view: { view: handle } }
+          : { kind: "color", view: { view: handle } },
+      resolveRenderBoundary: () => null,
+    };
+    const exec = executeFrameGraph({
+      device: device as Parameters<typeof executeFrameGraph>[0]["device"],
+      queue: { submit: (buffers) => events.push(`submit:${buffers.length}`) },
+      compiled: compileFrameGraph(graph),
+      resources,
+      label: "user-passes",
+    });
+
+    // the whole frame (opaque + user render + user compute) folds into ONE
+    // command buffer / submit
+    expect(
+      events.filter((event) => event === "createCommandEncoder"),
+    ).toHaveLength(1);
+    expect(events.filter((event) => event.startsWith("submit:"))).toEqual([
+      "submit:1",
+    ]);
+    expect(exec.metrics.counts.commandBuffers).toBe(1);
+    expect(exec.metrics.counts.submittedCommandBuffers).toBe(1);
+    // the user compute node ran its dispatch in-frame
+    expect(events).toContain("dispatch");
+    const computeNode = exec.nodes.find(
+      (node) => node.name === "luminance-histogram",
+    );
+    expect(computeNode?.kind).toBe("compute");
+    expect(
+      computeNode?.kind === "compute"
+        ? computeNode.execution?.dispatchCount
+        : 0,
+    ).toBeGreaterThan(0);
   });
 
   it("removePass removes the pass from the next compiled frame (Done-when #3)", () => {
