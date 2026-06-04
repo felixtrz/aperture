@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aperture Pointer Events</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "@aperture-engine/app": "/packages/app/dist/index.js",
+          "@aperture-engine/app/config": "/packages/app/dist/config.js",
+          "@aperture-engine/app/systems": "/packages/app/dist/systems.js",
+          "@aperture-engine/render": "/packages/render/dist/index.js",
+          "@aperture-engine/runtime": "/packages/runtime/dist/index.js",
+          "@aperture-engine/simulation": "/packages/simulation/dist/index.js",
+          "elics": "/node_modules/elics/lib/index.js",
+          "wgpu-matrix": "/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
+          "@preact/signals-core": "/node_modules/@preact/signals-core/dist/signals-core.mjs"
+        }
+      }
+    </script>
+    <script type="module" src="./example-control.js"></script>
+  </head>
+  <body>
+    <main class="runtime-shell">
+      <section class="viewport-panel" aria-label="Aperture pointer events">
+        <canvas
+          id="aperture-canvas"
+          width="960"
+          height="540"
+          aria-label="Aperture pointer events canvas"
+        ></canvas>
+      </section>
+      <aside class="status-panel" aria-label="Runtime status">
+        <div class="status-row">
+          <span>example</span>
+          <strong id="example-name">pointer events</strong>
+        </div>
+        <div class="status-row">
+          <span>state</span>
+          <strong id="example-state">loading</strong>
+        </div>
+        <nav class="example-links" aria-label="Examples">
+          <a href="/">clear</a>
+          <a href="/examples/spinning-cube.html">spinning cube</a>
+          <a href="/examples/auto-picking.html">auto picking</a>
+          <a href="/examples/pointer-events.html">pointer events</a>
+          <a href="/examples/auto-shadow.html">auto shadow</a>
+          <a href="/examples/compressed-gltf.html">compressed glTF</a>
+        </nav>
+        <pre id="example-json">{}</pre>
+      </aside>
+    </main>
+    <script type="module" src="./pointer-events.js"></script>
+  </body>
+</html>
