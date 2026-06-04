@@ -1,28 +1,48 @@
 # Current Task
 
-> ## ▶ START HERE — M3-T7 (capstone: public addRenderPass/addComputePass) — 🟡 in-progress
+> ## ▶ START HERE — M3-T7 (capstone) — 🟡 in-progress: API+wiring DONE, EXAMPLE+E2E remain
 >
-> M3 is **6/7** done; the **M3-T7 capstone is in-progress** on this branch (PR #4).
-> Gate-green (401 files / 2250 tests @ 7d890b57). The **foundation is committed**
-> (7d890b57): `packages/webgpu/src/app/user-pass.ts` holds the signed-off D1 public
-> pass shape + registry + encode-ctx recorder + `buildUserPassNode(s)`, with
-> Done-when #3 (compile ordering + removePass) proven in
-> `test/webgpu/user-pass.test.ts`. **It is NOT yet wired to the app or the live
-> frame graph.** REMAINING (see the roadmap Resume notes for the full step list):
-> (1) add `addRenderPass`/`addComputePass`/`removePass` to the WebGpuApp interface +
-> create-webgpu-app.ts (registry field) + createApertureApp surface; (2) execution
-> wiring in `app/frame-boundaries.ts` (call `buildUserPassNodes` with real GPU
-> resolvers, insert after the 'opaque' node, additive `status.graph.order`); (3) the
-> `custom-graph-pass` example (compute histogram + wireframe overlay) + E2E; (4) the
-> WebGpuPostEffect auto-wrap adapter. Source of truth is `docs/SOTA_ROADMAP.md`
-> §`M3-T7` (public API shape SIGNED OFF in §Design decisions D1 — implement exactly,
-> do not improvise). Work one task at a time, commit each
-> separately, and read every run result before ticking a box or writing "passed"
-> (honesty rule). Run E2E via `scripts/webgpu-e2e.sh <spec>` (xvfb + SwiftShader on
-> the cloud runner); on a macOS/dev box xvfb is unavailable — use the base
-> `playwright.config.ts` headed-Chrome/real-GPU config instead (`pnpm exec playwright
-test <spec>`). `dof.spec.ts` is a documented pre-existing SwiftShader timeout. Do
-> NOT start any milestone other than M3.
+> M3 is **6/7** done; the **M3-T7 capstone is in-progress**, gate-green (402 files /
+> 2253 tests @ 2a12985b). The **entire public API + execution wiring is committed**:
+>
+> - `7d890b57`/`9acbfdb2`: `user-pass.ts` foundation — the signed-off D1 pass shape,
+>   registry, encode-ctx recorder, `buildUserPassNode(s)`. Done-when #3 + #2's
+>   execution mechanism proven in `test/webgpu/user-pass.test.ts`.
+> - `3349eb9a`: **live wiring** — `app.addRenderPass/addComputePass/removePass` +
+>   `userPassRegistry` on `WebGpuApp` (`create-webgpu-app.ts`); the graph post path
+>   (`post-processing.ts`) builds registered passes after the scene node (resolvers
+>   map `scene-color`→offscreen scene texture, `depth`→depth attachment), render
+>   passes write scene-color (LOAD, depth-tested overlay over the scene), compute
+>   passes dispatch in-frame — all in ONE post command buffer + an additive
+>   `graph` report. Proven in `test/webgpu/post-user-pass-graph.test.ts`.
+> - `2a12985b`: `graph` report threaded to `report.renderTargets[0].graph` (order +
+>   per-pass kind/ran/executedCommands, JSON-safe) + `addRenderPass`/etc. surfaced
+>   through `createApertureApp` (Done-when #5).
+>
+> **REMAINING to finish M3-T7 (then M3 is COMPLETE):**
+>
+> 1. **The `custom-graph-pass` example** — `examples/custom-graph-pass.{worker,main,html}.js`
+>    - scene. Create the app with `useFrameGraph:true` + a `createWebGpuCopyPostEffect`
+>      present pass (so the graph post path engages — it needs effects.length>0 AND an
+>      offscreen scene-color). Register via `app.addComputePass` a luminance-histogram
+>      (own `device.createComputePipeline` guarded by capability; a storage buffer the
+>      encode binds + `ctx.view("scene-color")`) and via `app.addRenderPass` a
+>      depth-tested overlay (own line/triangle pipeline; `reads:["depth"]`,
+>      `writes:[{handle:"scene-color",attachment:"load"}]`; encode `ctx.setPipeline`+`ctx.draw`).
+>      Publish `report.renderTargets[0].graph` + a histogram readback into status.
+> 2. **`test/e2e/custom-graph-pass.spec.ts`** — overlay pixels where expected + scene
+>    elsewhere (Done-when #1), `status.graph.order` has the custom node between the
+>    scene node and the first post node, the compute `ran`/`executedCommands>0`, frame
+>    `commandBuffers===1` (Done-when #2). Run on the base headed-Chrome/real-GPU config
+>    here (xvfb unavailable); cloud uses `scripts/webgpu-e2e.sh` under SwiftShader.
+> 3. **Auto-wrap note (Done-when #4)** — the post path already runs `WebGpuPostEffect[]`
+>    as graph nodes; the post-effects E2E is unchanged (user-pass changes are a no-op
+>    when none are registered). Confirm + document.
+> 4. **Done-marking** — tick all M3-T7 Done-when, mark the heading ✅ done, flip the M3
+>    milestone row to done + Proof ✅, append a completion-log row, update the Status block.
+>
+> Public API shape is SIGNED OFF (D1) — implement exactly. `dof.spec.ts` is a
+> documented pre-existing SwiftShader timeout. Do NOT start any milestone other than M3.
 
 ## ✅ M3-T5 is done (ad296a4) — and the old "spot blocked" diagnosis was wrong
 
