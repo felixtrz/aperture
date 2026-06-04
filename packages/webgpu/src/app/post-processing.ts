@@ -34,23 +34,9 @@ import { countDrawCommands } from "./view-commands.js";
 import type {
   WebGpuApp,
   WebGpuAppPostEffectSubmissionReport,
+  WebGpuAppPostGraphReport,
   WebGpuAppRenderTargetSubmissionReport,
 } from "./app.js";
-
-// M3-T7 (D4 additive): the JSON-safe graph sub-report. Names + counts only —
-// no GPU handles. `order` is the compiled node order; `userPasses` reports each
-// inserted app.addRenderPass/addComputePass node and whether it executed.
-export interface WebGpuAppUserPassReport {
-  readonly name: string;
-  readonly kind: "render" | "compute";
-  readonly ran: boolean;
-  readonly executedCommands: number;
-}
-
-export interface WebGpuAppPostGraphReport {
-  readonly order: readonly string[];
-  readonly userPasses: readonly WebGpuAppUserPassReport[];
-}
 
 interface WebGpuAppPostProcessedSwapchainTargetResult {
   readonly valid: boolean;
@@ -1221,6 +1207,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     format: options.target.format,
     ok: valid,
     drawCalls: sceneEncode?.execution?.drawCalls ?? 0,
+    graph: graphReport,
   };
 
   return {

@@ -125,6 +125,22 @@ export interface WebGpuAppDepthAttachmentReport {
   readonly opaquePipelineDepthWriteCount: number;
 }
 
+// M3-T7 (D4 additive): the JSON-safe graph sub-report for a swapchain target on
+// the single-encoder graph path. Names + counts only — no GPU handles. `order`
+// is the compiled node order; `userPasses` reports each inserted
+// app.addRenderPass/addComputePass node and whether it executed.
+export interface WebGpuAppUserPassReport {
+  readonly name: string;
+  readonly kind: "render" | "compute";
+  readonly ran: boolean;
+  readonly executedCommands: number;
+}
+
+export interface WebGpuAppPostGraphReport {
+  readonly order: readonly string[];
+  readonly userPasses: readonly WebGpuAppUserPassReport[];
+}
+
 export interface WebGpuAppRenderTargetSubmissionReport {
   readonly viewId: number;
   readonly source: "swapchain" | "offscreen";
@@ -135,6 +151,9 @@ export interface WebGpuAppRenderTargetSubmissionReport {
   readonly ok: boolean;
   readonly drawCalls: number;
   readonly msaaSampleCount?: number;
+  // M3-T7: present only on the single-encoder graph path; existing fields above
+  // are unchanged (per D4).
+  readonly graph?: WebGpuAppPostGraphReport;
 }
 
 export interface WebGpuAppPostEffectSubmissionReport {
