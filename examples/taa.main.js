@@ -11,8 +11,15 @@ const taaCanvas = document.querySelector("#taa-canvas-taa");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
 
+// M3-T6: `?graph=1` routes the whole frame (forward + post, including TAA color
+// history) through the single-encoder FrameGraph. Default OFF keeps the legacy
+// multi-submit path, so the existing legacy proof is unaffected.
+const useFrameGraph =
+  new URLSearchParams(globalThis.location?.search ?? "").get("graph") === "1";
+
 const baseStatus = {
   example: "taa",
+  useFrameGraph,
   canvas: {
     raw: {
       width: rawCanvas?.width ?? 0,
@@ -86,6 +93,7 @@ async function createTaaRuntime(aperture, canvas, enabled) {
     simulationWorker: createNoopSimulationWorker(),
     sourceAssets,
     postEffects,
+    useFrameGraph,
   });
 
   return {

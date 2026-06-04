@@ -93,6 +93,10 @@ import {
   type WebGpuPostPassTextureCacheSlot,
 } from "../post/post-pass.js";
 import {
+  createWebGpuAppPostPassColorHistorySlot,
+  type WebGpuAppPostPassColorHistorySlot,
+} from "../post/post-color-history.js";
+import {
   createWorldTransformBufferDescriptorScratch,
   type WorldTransformBufferDescriptorScratch,
   type WorldTransformGpuBufferResource,
@@ -151,6 +155,11 @@ export interface WebGpuAppPostPassCache {
   readonly motionVector: WebGpuPostPassTextureCacheSlot;
   readonly indirectColor: WebGpuPostPassTextureCacheSlot;
   readonly transmissionGrab: WebGpuPostPassTextureCacheSlot;
+  // M3-T6: TAA color history as a double-buffered FrameGraph history pool
+  // (current/previous), replacing the per-effect ping/pong closure for the
+  // graph post path. Motion-vector GEOMETRY history (the previous* fields
+  // below) is intentionally left as-is — out of scope for T6.
+  readonly taaColorHistory: WebGpuAppPostPassColorHistorySlot;
   readonly previousViewProjectionByViewId: Map<number, Float32Array>;
   readonly previousWorldTransformsByRenderId: Map<number, Float32Array>;
   readonly previousWorldTransformsScratch: ReturnType<
@@ -227,6 +236,7 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
       motionVector: createWebGpuPostPassTextureCacheSlot(),
       indirectColor: createWebGpuPostPassTextureCacheSlot(),
       transmissionGrab: createWebGpuPostPassTextureCacheSlot(),
+      taaColorHistory: createWebGpuAppPostPassColorHistorySlot(),
       previousViewProjectionByViewId: new Map(),
       previousWorldTransformsByRenderId: new Map(),
       previousWorldTransformsScratch:

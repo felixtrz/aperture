@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  compileFrameGraph,
   createFrameGraphHistoryResource,
   createFrameGraph,
 } from "@aperture-engine/webgpu/test-support";
@@ -70,5 +71,91 @@ describe("frame graph history resource (M3-T6)", () => {
     expect(handle.descriptor.lifetime).toBe("persistent");
     // the same handle id is resolvable from the graph
     expect(graph.handle("taa-history")).toBe(handle);
+  });
+
+  it("compiles two consecutive frames: the TAA node's history 'previous' read resolves to frame N-1's 'current' write, a distinct physical buffer", () => {
+    const bufferA = { id: "history-A" };
+    const bufferB = { id: "history-B" };
+    const pool = createFrameGraphHistoryResource(bufferA, bufferB);
+    const colorDesc = {
+      kind: "color-texture" as const,
+      width: 8,
+      height: 8,
+      format: "rgba16float",
+      sampleCount: 1,
+    };
+
+    // A frame: scene → taa (reads scene-color, writes the history 'current'
+    // handle) → present (reads the history handle, writes the swapchain).
+    const compileFrame = () => {
+      const graph = createFrameGraph();
+      graph.importSwapchain();
+      graph.declareTransient("scene-color", colorDesc);
+      graph.declareHistory("taa-history", {
+        width: 8,
+        height: 8,
+        format: "rgba16float",
+        sampleCount: 1,
+      });
+      graph.addRenderPass({
+        name: "scene",
+        reads: [],
+        writes: [{ handle: "scene-color", attachment: "clear" }],
+        commands: [],
+      });
+      graph.addRenderPass({
+        name: "taa",
+        reads: ["scene-color"],
+        writes: [{ handle: "taa-history", attachment: "clear" }],
+        commands: [],
+      });
+      graph.addRenderPass({
+        name: "present",
+        reads: ["taa-history"],
+        writes: [{ handle: "swapchain", attachment: "clear" }],
+        commands: [],
+      });
+      return compileFrameGraph(graph);
+    };
+
+    // ---- frame 0 ----
+    const frame0 = compileFrame();
+    expect(frame0.ok).toBe(true);
+    // dependency-driven order: the history producer (taa) runs after the scene
+    // it reads and before the present that consumes it.
+    expect(frame0.orderedNodes.map((node) => node.name)).toEqual([
+      "scene",
+      "taa",
+      "present",
+    ]);
+    const current0 = pool.current(); // frame 0's history write target
+    expect(pool.hasPrevious()).toBe(false); // nothing to read on the first frame
+    expect(pool.current()).not.toBe(pool.previous());
+    pool.swap(); // end-of-frame swap
+
+    // ---- frame 1 ----
+    const frame1 = compileFrame();
+    expect(frame1.ok).toBe(true);
+    expect(frame1.orderedNodes.map((node) => node.name)).toEqual([
+      "scene",
+      "taa",
+      "present",
+    ]);
+    // the 'previous' read resolves to frame 0's 'current' write...
+    expect(pool.previous()).toBe(current0);
+    // ...and the 'current' write targets a DIFFERENT physical buffer (no
+    // read-write aliasing of one texture within the frame).
+    expect(pool.current()).not.toBe(pool.previous());
+    expect(pool.current()).not.toBe(current0);
+
+    // the history handle survives compilation as the taa node's write target
+    const taaNode = frame1.orderedNodes.find((node) => node.name === "taa");
+    expect(taaNode?.writes[0]?.handle).toBe("taa-history");
+    // and the persistent history buffer is never aliased into the per-frame
+    // transient pool (only transient handles alias), so it carries across frames
+    const historyAlias = frame1.aliasing.find(
+      (assignment) => assignment.handle === "taa-history",
+    );
+    expect(historyAlias?.aliasedFrom ?? null).toBeNull();
   });
 });

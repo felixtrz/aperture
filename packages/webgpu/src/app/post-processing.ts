@@ -22,6 +22,10 @@ import {
   type WebGpuPostPassTextureResource,
   type WebGpuPreparedPostEffectGraph,
 } from "../post/post-pass.js";
+import {
+  resolveWebGpuAppPostPassColorHistory,
+  type WebGpuAppPostPassColorHistory,
+} from "../post/post-color-history.js";
 import type { WebGpuAppFrameBoundaryTarget } from "./frame-target.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 import { encodePostPassMotionVectorClearColor } from "./motion-vectors.js";
@@ -538,21 +542,34 @@ interface PostGraphEffectMeta {
  * v1 does not cover (motion vectors / MSAA / indirect channel / occlusion / gpu
  * timing, or any resource allocation failure), keeping the flag a safe no-op.
  */
-function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
+export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
   options: PostProcessedSwapchainTargetOptions,
 ): WebGpuAppPostProcessedSwapchainTargetResult | null {
   const requiresMotionVectors = options.effects.some(
     (effect) => effect.requiresMotionVectors === true,
   );
+  const motionVectorColorFormat =
+    options.motionVectorColorFormat === undefined ||
+    options.motionVectorColorFormat === null
+      ? null
+      : options.motionVectorColorFormat;
   if (
-    requiresMotionVectors ||
     (options.msaaColorTarget !== undefined &&
       options.msaaColorTarget !== null) ||
     (options.indirectColorFormat !== undefined &&
       options.indirectColorFormat !== null) ||
     options.occlusionQueries !== undefined ||
     options.gpuTiming !== undefined ||
-    options.effects.length === 0
+    options.effects.length === 0 ||
+    // M3-T6: the graph path produces motion vectors only as a scene attachment
+    // (motionVectorColorFormat set). When motion vectors are required but fall
+    // back to a flat clear (colorFormat null: msaa / sprite+skybox packets /
+    // unsupported target / missing previous-transform buffer) the graph path
+    // declines, so the legacy path handles the fallback. The reported
+    // WebGpuAppMotionVectorFallbackReason is computed upstream
+    // (queued-built-in-frame.ts) and is identical regardless of which post path
+    // runs, so TAA's fallback reporting is unchanged under the flag.
+    (requiresMotionVectors && motionVectorColorFormat === null)
   ) {
     return null;
   }
@@ -611,6 +628,51 @@ function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
   const sceneColorHandle = "post:scene-color";
   graph.declareTransient(sceneColorHandle, colorHandleDescriptor);
 
+  // M3-T6: when an effect needs motion vectors and they are available as a
+  // scene attachment (the bail above guaranteed motionVectorColorFormat is set
+  // in that case), produce them on the scene node as a second color target —
+  // exactly as the legacy path does — so TAA can sample per-object velocity.
+  let motionVectorTexture: WebGpuPostPassTextureResource | null = null;
+  let motionVectorHandle: string | null = null;
+  let motionVectorAttachment:
+    | {
+        readonly view: unknown;
+        readonly clearColor: readonly [number, number, number, number];
+        readonly loadOp: "clear";
+        readonly storeOp: "store";
+      }
+    | undefined;
+  if (requiresMotionVectors && motionVectorColorFormat !== null) {
+    const motionVector = createOrReuseWebGpuPostPassTexture({
+      device: options.app.initialization.device as Parameters<
+        typeof createOrReuseWebGpuPostPassTexture
+      >[0]["device"],
+      slot: options.cache.postPasses.motionVector,
+      width: options.target.width,
+      height: options.target.height,
+      format: motionVectorColorFormat,
+      label: `${options.label}:post:motion-vector`,
+    });
+    diagnostics.push(...motionVector.diagnostics);
+    const motionVectorView = motionVector.resource?.texture.createView?.();
+    if (
+      !motionVector.valid ||
+      motionVector.resource === null ||
+      motionVectorView === undefined
+    ) {
+      return null;
+    }
+    motionVectorTexture = motionVector.resource;
+    motionVectorHandle = "post:motion-vector";
+    motionVectorAttachment = {
+      view: motionVectorView,
+      // Neutral camera-relative motion; geometry shaders overwrite per pixel.
+      clearColor: [0.5, 0.5, 0.5, 1],
+      loadOp: "clear",
+      storeOp: "store",
+    };
+  }
+
   const records: PostGraphNodeRecord[] = [];
   const payloads = new Map<string, FrameGraphRenderNodeBoundary>();
 
@@ -622,15 +684,32 @@ function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     readonly commands: readonly RenderPassCommand[];
     readonly colorTargetSource: "current-texture" | "offscreen-target";
     readonly readback?: FrameGraphRenderNodeBoundary["readback"];
+    // Extra color attachments written alongside writeHandle (e.g. the scene
+    // node's motion-vector target). Each is recorded as an additional graph
+    // write so a downstream node (TAA) can declare a read edge on it.
+    readonly additionalWriteHandles?: readonly string[];
   }): void => {
-    if (args.writeHandle !== "swapchain") {
+    // Declare the write handle as a transient unless it is the imported
+    // swapchain or was already declared (a persistent declareHistory handle
+    // must not be overwritten with a transient).
+    if (
+      args.writeHandle !== "swapchain" &&
+      graph.handle(args.writeHandle) === undefined
+    ) {
       graph.declareTransient(args.writeHandle, colorHandleDescriptor);
+    }
+    const writes = [{ handle: args.writeHandle, attachment: "clear" as const }];
+    for (const extra of args.additionalWriteHandles ?? []) {
+      if (graph.handle(extra) === undefined) {
+        graph.declareTransient(extra, colorHandleDescriptor);
+      }
+      writes.push({ handle: extra, attachment: "clear" as const });
     }
     const plan = buildFrameBoundaryTargetPlan(args.planOptions);
     graph.addRenderPass({
       name: args.name,
       reads: args.reads,
-      writes: [{ handle: args.writeHandle, attachment: "clear" }],
+      writes,
       commands: args.commands,
     });
     payloads.set(args.name, {
@@ -664,6 +743,9 @@ function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       ...(options.clearColor === undefined
         ? {}
         : { clearColor: options.clearColor }),
+      ...(motionVectorAttachment === undefined
+        ? {}
+        : { additionalColorTargets: [motionVectorAttachment] }),
       depthTarget: {
         view: options.depthAttachment.view,
         depthClearValue: options.target.view.clearDepth,
@@ -673,6 +755,9 @@ function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     },
     commands: options.commands,
     colorTargetSource: "offscreen-target",
+    ...(motionVectorHandle === null
+      ? {}
+      : { additionalWriteHandles: [motionVectorHandle] }),
   });
 
   let input: WebGpuPostPassTextureResource = sceneTexture.resource;
@@ -680,6 +765,9 @@ function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
   let plannedCommands = options.commands.length;
   let drawCalls = countDrawCommands(options.commands);
   const effectMetas: PostGraphEffectMeta[] = [];
+  // M3-T6: the double-buffered color-history pool used by a requiresColorHistory
+  // effect (TAA) this frame. Swapped exactly once, after the single execute.
+  let taaColorHistory: WebGpuAppPostPassColorHistory | null = null;
 
   for (
     let effectIndex = 0;
@@ -691,9 +779,49 @@ function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       continue;
     }
     const isLast = effectIndex === options.effects.length - 1;
+    const usesColorHistory = effect.requiresColorHistory === true;
+
+    // A history effect must write its accumulation buffer off-screen (the pool's
+    // current buffer) so the next frame can sample it; it cannot be the final
+    // swapchain write. The graph path declines such a chain to the legacy path.
+    if (usesColorHistory && isLast) {
+      return null;
+    }
 
     let outputTexture: WebGpuPostPassTextureResource | null = null;
-    if (!isLast) {
+    let historyForEffect: WebGpuPostPassTextureResource | undefined;
+    let effectHistoryHandle: string | null = null;
+    if (usesColorHistory) {
+      // M3-T6: source this frame's write target (current) and last frame's
+      // history (previous) from the persistent double-buffered pool, replacing
+      // the per-effect ping/pong + closure. The graph owns history.
+      const resolved = resolveWebGpuAppPostPassColorHistory({
+        device: options.app.initialization.device as Parameters<
+          typeof resolveWebGpuAppPostPassColorHistory
+        >[0]["device"],
+        slot: options.cache.postPasses.taaColorHistory,
+        width: options.target.width,
+        height: options.target.height,
+        format: options.target.format,
+        label: `${options.label}:post:${effectIndex}`,
+      });
+      diagnostics.push(...resolved.diagnostics);
+      if (resolved.history === null) {
+        return null;
+      }
+      taaColorHistory = resolved.history;
+      outputTexture = resolved.history.pool.current();
+      historyForEffect = resolved.history.pool.hasPrevious()
+        ? resolved.history.pool.previous()
+        : undefined;
+      effectHistoryHandle = `post:${effectIndex}:color-history`;
+      graph.declareHistory(effectHistoryHandle, {
+        width: options.target.width,
+        height: options.target.height,
+        format: options.target.format,
+        sampleCount: 1,
+      });
+    } else if (!isLast) {
       const intermediate = createOrReuseWebGpuPostPassTexture({
         device: options.app.initialization.device as Parameters<
           typeof createOrReuseWebGpuPostPassTexture
@@ -726,6 +854,10 @@ function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       passIndex: effectIndex,
       isLast,
       ...(depthTexture === undefined ? {} : { depth: depthTexture }),
+      ...(motionVectorTexture === null
+        ? {}
+        : { motionVector: motionVectorTexture }),
+      ...(historyForEffect === undefined ? {} : { history: historyForEffect }),
       ...(outputTexture === null ? {} : { output: outputTexture }),
       label: `${options.label}:post:${effect.id}`,
     });
@@ -826,11 +958,22 @@ function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     }
 
     // ---- single-boundary effect ----
-    const writeHandle = isLast ? "swapchain" : `post:${effectIndex}`;
+    // A history effect writes the pool's 'current' buffer (its declareHistory
+    // handle); other non-last effects write a transient intermediate.
+    const writeHandle = isLast
+      ? "swapchain"
+      : (effectHistoryHandle ?? `post:${effectIndex}`);
+    // A motion-vector consumer reads the scene node's motion target, ordering it
+    // after the scene pass. The history 'previous' buffer is last frame's data,
+    // so it needs no intra-frame read edge.
+    const effectReads =
+      motionVectorHandle !== null && effect.requiresMotionVectors === true
+        ? [inputHandle, motionVectorHandle]
+        : [inputHandle];
     const nodeName = `${options.label}:post:${effectIndex}:${effect.id}`;
     registerNode({
       name: nodeName,
-      reads: [inputHandle],
+      reads: effectReads,
       writeHandle,
       planOptions: {
         context,
@@ -880,6 +1023,13 @@ function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     resources,
     label: options.label,
   });
+
+  // M3-T6: advance the history pool exactly ONCE per frame, at end-of-execute —
+  // this frame's write (current) becomes next frame's history (previous). All
+  // bind groups were already built against the pre-swap views during prepare(),
+  // so the swap only rotates which buffer the next frame samples/writes; doing
+  // it once here (not per node) keeps a frame that touches history consistent.
+  taaColorHistory?.pool.swap();
 
   const frameOk = exec.finish?.valid === true && exec.submit?.valid === true;
   const encodeByName = new Map<string, FrameBoundaryEncodeReport>();

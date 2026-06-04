@@ -35,6 +35,7 @@ export function createWebGpuTaaPostEffect(
     label,
     ...(enabled === undefined ? {} : { enabled }),
     requiresMotionVectors: true,
+    requiresColorHistory: true,
     prepare(prepareOptions) {
       const diagnostics: WebGpuPostPassDiagnostic[] = [];
 
@@ -100,8 +101,14 @@ export function createWebGpuTaaPostEffect(
         return preparedTaaPass(id, label, [], diagnostics);
       }
 
+      // M3-T6: when the route owns a double-buffered history pool it supplies
+      // last frame's buffer explicitly (the graph path's declareHistory
+      // 'previous' view); otherwise self-thread the previous output across
+      // frames (the legacy ping/pong path). Either way the first frame has no
+      // history and falls back to sampling the input.
+      const routeSuppliesHistory = prepareOptions.history !== undefined;
       const history = historyTextureForFrame(
-        previousOutput,
+        prepareOptions.history ?? previousOutput,
         prepareOptions.input,
       );
       const historyView = history.texture.createView?.();
@@ -162,7 +169,12 @@ export function createWebGpuTaaPostEffect(
         ],
       });
 
-      previousOutput = prepareOptions.output;
+      // Only self-thread history when the route is not supplying it (legacy
+      // path). When the graph owns the history pool the closure stays dormant
+      // so the two mechanisms never fight over which buffer is "previous".
+      if (!routeSuppliesHistory) {
+        previousOutput = prepareOptions.output;
+      }
 
       return preparedTaaPass(
         id,
