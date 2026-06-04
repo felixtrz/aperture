@@ -104,7 +104,13 @@ function quatFromEulerDegrees(
   ];
 }
 
-function quatLookAt(
+/**
+ * Build the look-at orientation quaternion used by `spawn.camera({ transform:
+ * { translation, lookAt } })`. Exported so reusable controllers (the orbit
+ * camera) compose the camera rotation with the exact same convention (forward
+ * down -Z, world-up [0,1,0]) as the spawn path.
+ */
+export function quatLookAt(
   translation: Vec3Like,
   target: Vec3Like,
 ): readonly [number, number, number, number] {
