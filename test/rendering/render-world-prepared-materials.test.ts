@@ -62,7 +62,7 @@ describe("render world prepared material bindings", () => {
     expect(ready.ready[0]).toMatchObject({
       renderId: 1,
       meshResourceKey: "prepared-mesh:mesh:combined-cube",
-      materialResourceKey: "prepared-material:material:standard-material-1",
+      materialResourceKey: "prepared-material:material:standard-material-1@v1",
     });
     expect("materialResourceKey" in sourceSnapshot.meshDraws[0]!).toBe(false);
   });
@@ -136,7 +136,7 @@ describe("render world prepared material bindings", () => {
     const ready = world.createDrawReadinessReport();
 
     expect(prepared.entry?.prepared.materialResourceKey).toBe(
-      "prepared-material:material:standard-material-1",
+      "prepared-material:material:standard-material-1@v1",
     );
     expect(initiallyBlocked.blocked[0]?.missing).toEqual([
       "missing-mesh-resource",
@@ -154,7 +154,7 @@ describe("render world prepared material bindings", () => {
     expect(ready.ready[0]).toMatchObject({
       renderId: 1,
       meshResourceKey: "prepared-mesh:mesh:cube",
-      materialResourceKey: "prepared-material:material:standard-material-1",
+      materialResourceKey: "prepared-material:material:standard-material-1@v1",
     });
     const sourceDraw = sourceSnapshot.meshDraws[0];
 
@@ -177,7 +177,7 @@ describe("render world prepared material bindings", () => {
     world.applySnapshot(snapshot([packet({ renderId: 2, mesh, material })]));
     world.updateResourceBindings(2, {
       meshResourceKey: "prepared-mesh:mesh:fallback-cube",
-      materialResourceKey: "prepared-material:material:stale",
+      materialResourceKey: "prepared-material:material:stale@v1",
     });
 
     const report = bindPreparedMaterialResourcesToRenderWorld({

@@ -484,7 +484,7 @@ describe("material family render queue", () => {
     expect(plan.diagnostics).toEqual([]);
     expect(plan.items[0]).toMatchObject({
       materialKey: "material:white",
-      materialResourceKey: "prepared-material:material:white",
+      materialResourceKey: "prepared-material:material:white@v1",
     });
     expect(JSON.stringify(plan)).not.toContain("Map");
   });
@@ -527,10 +527,10 @@ describe("material family render queue", () => {
       meshKey: "mesh:cube",
       materialKey: "material:white",
       meshResourceKey: "prepared-mesh:mesh:cube",
-      materialResourceKey: "prepared-material:material:white",
+      materialResourceKey: "prepared-material:material:white@v1",
       sortKey: {
         meshResourceKey: "prepared-mesh:mesh:cube",
-        materialResourceKey: "prepared-material:material:white",
+        materialResourceKey: "prepared-material:material:white@v1",
       },
     });
     expect(JSON.stringify(plan)).not.toContain("Float32Array");

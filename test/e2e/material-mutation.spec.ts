@@ -10,20 +10,14 @@ import {
 // calls materials.set(handle, { baseColorFactor: red }); the center pixel readback
 // should transition from the original green to red with no new mesh/material handle.
 //
-// KNOWN BLOCKER (fixme): the authoring side works end-to-end — materials.set bumps
-// the registry version, the version-gated source-asset mirror delivers the red
-// asset to the main thread (verified: mirroredMaterialColor=[1,0,0,1]@v2), and the
-// red asset reaches the unlit GPU adapter (verified: options.material is red). BUT
-// the rendered pixel stays green: the built-in (unlit/standard/matcap) material GPU
-// resources are cached by a version-INDEPENDENT materialResourceKey, so the frame
-// bind-group cache reuses the previous version's buffer/bind group on a same-handle
-// content change. Custom-WGSL materials (whose uniform values live in the bind
-// group) update correctly, which is why examples/custom-material mutates visibly.
-// Closing this needs version-aware built-in-material GPU resource keys threaded
-// consistently across the prepared-material buffer + bind-group caches (a naive
-// version-stamp breaks the resource linkage and skips the draw). The authoring
-// surface + the version/mirror/prepared-action mechanism are proven headlessly in
-// test/materials/runtime-material-mutation.test.ts.
+// M7-T6 Done-when #3 (real GPU, headed Chrome/Metal): a route renders an unlit quad,
+// reads back its center pixel, calls materials.set(handle, { baseColorFactor: red }),
+// and the readback transitions green -> red with no new mesh/material handle. The
+// built-in prepared-material resource keys now carry @v<version> (prepared-resource.ts,
+// matching the custom-WGSL precedent), so a same-handle content change re-creates the
+// buffer + bind group instead of reusing the prior version's. Done-when #4 (the
+// prepared-material snapshot-status action transitions 'created' -> 'updated' after the
+// mutation) is proven in test/materials/runtime-material-mutation.test.ts.
 
 interface MutationPixel {
   readonly r: number;
@@ -59,7 +53,7 @@ function readStatus(): MaterialMutationStatus | undefined {
   ).__APERTURE_EXAMPLE_STATUS__;
 }
 
-test.fixme("runtime materials.set transitions the unlit quad center pixel from green to red", async ({
+test("runtime materials.set transitions the unlit quad center pixel from green to red", async ({
   page,
 }) => {
   const guard = attachWebGpuValidationConsoleGuard(page);

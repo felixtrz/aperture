@@ -76,7 +76,7 @@ describe("scalar unlit prepared material cache", () => {
     expect(first.status).toBe("created");
     expect(first.resource?.sourceVersion).toBe(firstEntry.version);
     expect(first.resource?.materialResourceKey).toBe(
-      "prepared-material:material:white",
+      "prepared-material:material:white@v1",
     );
     expect(second.status).toBe("reused");
     expect(second.resource).toBe(first.resource);

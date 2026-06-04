@@ -2639,7 +2639,7 @@ describe("WebGPU app facade", () => {
       frame.resources?.resources?.bindGroups.find((group) => group.group === 2),
     ).toMatchObject({
       entryResourceKeys: [
-        `material-buffer:prepared-material:${assetHandleKey(material)}`,
+        `material-buffer:prepared-material:${assetHandleKey(material)}@v1`,
         assetHandleKey(texture),
         assetHandleKey(sampler),
         expect.stringContaining(
@@ -3123,7 +3123,7 @@ describe("WebGPU app facade", () => {
       frame.resources?.resources?.bindGroups.find((group) => group.group === 2),
     ).toMatchObject({
       entryResourceKeys: [
-        `material-buffer:prepared-material:${assetHandleKey(material)}`,
+        `material-buffer:prepared-material:${assetHandleKey(material)}@v1`,
         assetHandleKey(texture),
         assetHandleKey(sampler),
         expect.stringContaining(
@@ -9394,7 +9394,7 @@ function expectPreparedMaterialFacadeResourceKeys(
       .preparedMaterialFacade.entries;
 
   expect(entries.map((entry) => entry.materialResourceKey).sort()).toEqual(
-    sourceMaterialKeys.map((key) => `prepared-material:${key}`).sort(),
+    sourceMaterialKeys.map((key) => `prepared-material:${key}@v1`).sort(),
   );
   expect(
     entries

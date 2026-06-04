@@ -63,7 +63,7 @@ describe("queued built-in app resource set collector", () => {
         renderId: 3,
         materialFamily: "unlit",
         meshResourceKey: "prepared-mesh:mesh:cube",
-        materialResourceKey: "prepared-material:material:white",
+        materialResourceKey: "prepared-material:material:white@v1",
       },
     });
     expect(item?.prepareRoute).toEqual({
@@ -72,7 +72,7 @@ describe("queued built-in app resource set collector", () => {
       family: "unlit",
       materialKey: "material:white",
       meshResourceKey: "prepared-mesh:mesh:cube",
-      materialResourceKey: "prepared-material:material:white",
+      materialResourceKey: "prepared-material:material:white@v1",
       pipelineKey: "unlit|opaque|back|less|none",
       sourceVersion: 1,
       frame: 1,
@@ -120,7 +120,7 @@ describe("queued built-in app resource set collector", () => {
         renderId: 7,
         materialFamily: "debug-normal",
         meshResourceKey: "prepared-mesh:mesh:cube",
-        materialResourceKey: "prepared-material:material:debug",
+        materialResourceKey: "prepared-material:material:debug@v1",
       },
       prepareRoute: {
         valid: true,
@@ -128,7 +128,7 @@ describe("queued built-in app resource set collector", () => {
         family: "debug-normal",
         materialKey: "material:debug",
         meshResourceKey: "prepared-mesh:mesh:cube",
-        materialResourceKey: "prepared-material:material:debug",
+        materialResourceKey: "prepared-material:material:debug@v1",
         pipelineKey: "debug-normal|opaque|back|less|none",
         sourceVersion: 1,
         frame: 1,
@@ -173,7 +173,7 @@ describe("queued built-in app resource set collector", () => {
         materialFamily: "standard",
         pipelineKey: "standard|opaque|back|less|none",
         meshResourceKey: "prepared-mesh:mesh:cube",
-        materialResourceKey: "prepared-material:material:white",
+        materialResourceKey: "prepared-material:material:white@v1",
       },
       prepareRoute: {
         valid: true,
@@ -181,7 +181,7 @@ describe("queued built-in app resource set collector", () => {
         family: "standard",
         materialKey: "material:white",
         meshResourceKey: "prepared-mesh:mesh:cube",
-        materialResourceKey: "prepared-material:material:white",
+        materialResourceKey: "prepared-material:material:white@v1",
         pipelineKey: "standard|opaque|back|less|none",
         sourceVersion: 1,
         frame: 1,

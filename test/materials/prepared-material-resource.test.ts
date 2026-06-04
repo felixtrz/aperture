@@ -91,7 +91,7 @@ describe("prepared material resource descriptors", () => {
       sourceMaterialKey: "material:unlit-material-1",
       materialFamily: "unlit",
       pipelineKey: "unlit|baseColorTexture|opaque|back|less|none",
-      materialResourceKey: "prepared-material:material:unlit-material-1",
+      materialResourceKey: "prepared-material:material:unlit-material-1@v1",
       dependencies: ["texture:color", "sampler:linear"],
       textureBindings: [
         {

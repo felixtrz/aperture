@@ -204,7 +204,7 @@ describe("Matcap prepared material cache", () => {
 
     expect(first.status).toBe("created");
     expect(first.resource?.materialResourceKey).toBe(
-      "material-buffer:prepared-material:material:studio-matcap",
+      "material-buffer:prepared-material:material:studio-matcap@v1",
     );
     expect(first.resource?.textureResourceKey).toBe("texture:studio");
     expect(first.resource?.samplerResourceKey).toBe("sampler:linear");

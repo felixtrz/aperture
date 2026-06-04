@@ -126,10 +126,14 @@ export function createPreparedMaterialResourceDescriptor(
       materialKind: material.kind,
       pipelineKey,
       pipelineKeyInput,
-      materialResourceKey: preparedMaterialResourceKey(sourceMaterialKey),
+      materialResourceKey: preparedMaterialResourceKey(
+        sourceMaterialKey,
+        entry.version,
+      ),
       bindGroupResourceKey: preparedMaterialBindGroupResourceKey({
         sourceMaterialKey,
         pipelineKey,
+        version: entry.version,
       }),
       dependencies: collectMaterialDependencyKeys(material),
       textureBindings: collectTextureBindingResources(material),
@@ -188,13 +192,17 @@ export function createDebugNormalPreparedMaterialResourceDescriptor(
   });
 }
 
-export function preparedMaterialResourceKey(sourceMaterialKey: string): string {
-  return `prepared-material:${sourceMaterialKey}`;
+export function preparedMaterialResourceKey(
+  sourceMaterialKey: string,
+  version: number,
+): string {
+  return `prepared-material:${sourceMaterialKey}@v${version}`;
 }
 
 export function preparedMaterialBindGroupResourceKey(input: {
   readonly sourceMaterialKey: string;
   readonly pipelineKey: string;
+  readonly version: number;
 }): string {
-  return `prepared-material-bind-group:${input.sourceMaterialKey}|pipeline:${input.pipelineKey}`;
+  return `prepared-material-bind-group:${input.sourceMaterialKey}@v${input.version}|pipeline:${input.pipelineKey}`;
 }

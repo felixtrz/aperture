@@ -592,9 +592,9 @@ describe("render asset preparation contract", () => {
         shaderFamily: "standard",
         features: ["baseColorTexture"],
       },
-      materialResourceKey: "prepared-material:material:standard-material-1",
+      materialResourceKey: "prepared-material:material:standard-material-1@v1",
       bindGroupResourceKey:
-        "prepared-material-bind-group:material:standard-material-1|pipeline:standard|baseColorTexture|opaque|back|less|none",
+        "prepared-material-bind-group:material:standard-material-1@v1|pipeline:standard|baseColorTexture|opaque|back|less|none",
     });
   });
 
@@ -752,7 +752,7 @@ describe("render asset preparation contract", () => {
       resourceFamily: "material",
       label: "Facade Standard B",
       materialFamily: "standard",
-      materialResourceKey: "prepared-material:material:standard-material-1",
+      materialResourceKey: "prepared-material:material:standard-material-1@v2",
     });
     expect(store.list().length).toBe(0);
     expect(removed).toMatchObject({
@@ -783,7 +783,7 @@ describe("render asset preparation contract", () => {
     const materialResourceKey = prepared.entry?.prepared.materialResourceKey;
 
     expect(materialResourceKey).toBe(
-      "prepared-material:material:standard-material-1",
+      "prepared-material:material:standard-material-1@v1",
     );
 
     if (materialResourceKey === undefined) {
@@ -804,7 +804,7 @@ describe("render asset preparation contract", () => {
     expect(ready.ready[0]).toMatchObject({
       renderId: 1,
       meshResourceKey: "prepared-mesh:mesh:facade-mesh",
-      materialResourceKey: "prepared-material:material:standard-material-1",
+      materialResourceKey: "prepared-material:material:standard-material-1@v1",
     });
     expect(JSON.stringify(renderWorld.listObjects())).not.toContain("buffer");
   });

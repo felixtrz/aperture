@@ -151,7 +151,7 @@ describe("render world prepared resource summary", () => {
     });
     expect(drawReadiness.ready[0]).toMatchObject({
       meshResourceKey: `prepared-mesh:${assetHandleKey(readyMesh)}`,
-      materialResourceKey: `prepared-material:${assetHandleKey(readyMaterial)}`,
+      materialResourceKey: `prepared-material:${assetHandleKey(readyMaterial)}@v1`,
     });
     expect(
       JSON.stringify(renderWorldPreparedResourceSummaryToJsonValue(summary)),

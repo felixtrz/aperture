@@ -68,10 +68,10 @@ describe("DebugNormal prepared material cache", () => {
 
     expect(first.status).toBe("created");
     expect(first.resource?.materialResourceKey).toBe(
-      "material-buffer:prepared-material:material:normal-visualizer",
+      "material-buffer:prepared-material:material:normal-visualizer@v1",
     );
     expect(first.resource?.bindGroupResourceKey).toBe(
-      "bind-group:debug-normal/group-2/0:material-buffer:prepared-material:material:normal-visualizer",
+      "bind-group:debug-normal/group-2/0:material-buffer:prepared-material:material:normal-visualizer@v1",
     );
     expect(second.status).toBe("reused");
     expect(second.resource).toBe(first.resource);

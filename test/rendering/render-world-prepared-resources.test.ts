@@ -60,7 +60,7 @@ describe("render world prepared resource bindings", () => {
     expect(readiness.ready[0]).toMatchObject({
       renderId: 1,
       meshResourceKey: `prepared-mesh:${assetHandleKey(mesh)}`,
-      materialResourceKey: `prepared-material:${assetHandleKey(material)}`,
+      materialResourceKey: `prepared-material:${assetHandleKey(material)}@v1`,
     });
     expect("meshResourceKey" in sourceSnapshot.meshDraws[0]!).toBe(false);
     expect("materialResourceKey" in sourceSnapshot.meshDraws[0]!).toBe(false);
@@ -80,7 +80,7 @@ describe("render world prepared resource bindings", () => {
     world.applySnapshot(sourceSnapshot);
     world.updateResourceBindings(2, {
       meshResourceKey: "prepared-mesh:mesh:stale",
-      materialResourceKey: "prepared-material:material:stale",
+      materialResourceKey: "prepared-material:material:stale@v1",
     });
 
     const report = prepareAndBindSnapshotPreparedResourcesToRenderWorld({
