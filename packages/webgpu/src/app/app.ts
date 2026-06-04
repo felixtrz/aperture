@@ -58,6 +58,11 @@ import type { RenderPassCommandPressureReport } from "../render/passes/render-pa
 import { type WebGpuIdBufferPickReadbackResult } from "../picking/id-buffer-pick.js";
 import { type WebGpuPostEffect } from "../post/post-pass.js";
 import {
+  type WebGpuAppComputePassDescriptor,
+  type WebGpuAppRenderPassDescriptor,
+  type WebGpuAppUserPassRegistry,
+} from "./user-pass.js";
+import {
   type InitializeWebGpuOptions,
   type WebGpuCanvasLike,
   type WebGpuFailure,
@@ -460,6 +465,10 @@ export interface WebGpuApp {
   // path. False by default (legacy N-submit path); the graph path falls back to
   // legacy for routes it does not yet cover, so this is a safe opt-in.
   readonly useFrameGraph: boolean;
+  // M3-T7: registry backing the public addRenderPass/addComputePass/removePass
+  // API. The graph route reads it each frame to insert user passes (read here so
+  // post/forward route code can pull registered passes without new threading).
+  readonly userPassRegistry: WebGpuAppUserPassRegistry;
   start(options?: WebGpuAppStartOptions): void;
   stop(): void;
   getDiagnostics(): WebGpuAppDiagnostics;
@@ -468,6 +477,12 @@ export interface WebGpuApp {
     snapshot: RenderSnapshot,
     options?: Omit<WebGpuAppRenderOptions, "snapshot">,
   ): Promise<WebGpuAppRenderReport>;
+  // M3-T7: insert a user render/compute pass into the frame graph (signed-off
+  // D1 shape). Runs only on the single-encoder graph path (useFrameGraph).
+  addRenderPass(descriptor: WebGpuAppRenderPassDescriptor): void;
+  addComputePass(descriptor: WebGpuAppComputePassDescriptor): void;
+  /** Remove a user pass by name; returns true if one was registered. */
+  removePass(name: string): boolean;
 }
 
 export interface CreateWebGpuAppOptions extends Omit<

@@ -26,6 +26,7 @@ import {
   resolveWebGpuAppPostPassColorHistory,
   type WebGpuAppPostPassColorHistory,
 } from "../post/post-color-history.js";
+import { buildUserPassNode, type WebGpuAppPassResolvers } from "./user-pass.js";
 import type { WebGpuAppFrameBoundaryTarget } from "./frame-target.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 import { encodePostPassMotionVectorClearColor } from "./motion-vectors.js";
@@ -36,6 +37,21 @@ import type {
   WebGpuAppRenderTargetSubmissionReport,
 } from "./app.js";
 
+// M3-T7 (D4 additive): the JSON-safe graph sub-report. Names + counts only —
+// no GPU handles. `order` is the compiled node order; `userPasses` reports each
+// inserted app.addRenderPass/addComputePass node and whether it executed.
+export interface WebGpuAppUserPassReport {
+  readonly name: string;
+  readonly kind: "render" | "compute";
+  readonly ran: boolean;
+  readonly executedCommands: number;
+}
+
+export interface WebGpuAppPostGraphReport {
+  readonly order: readonly string[];
+  readonly userPasses: readonly WebGpuAppUserPassReport[];
+}
+
 interface WebGpuAppPostProcessedSwapchainTargetResult {
   readonly valid: boolean;
   readonly boundaries: readonly FrameBoundaryAssemblyReport[];
@@ -45,6 +61,9 @@ interface WebGpuAppPostProcessedSwapchainTargetResult {
   readonly plannedCommands: number;
   readonly drawCalls: number;
   readonly diagnostics: readonly unknown[];
+  // M3-T7: additive graph sub-report (only present on the graph path). Existing
+  // fields above are unchanged, per D4.
+  readonly graph?: WebGpuAppPostGraphReport;
 }
 
 export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
@@ -769,6 +788,91 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
   // effect (TAA) this frame. Swapped exactly once, after the single execute.
   let taaColorHistory: WebGpuAppPostPassColorHistory | null = null;
 
+  // ---- M3-T7: user passes (app.addRenderPass / app.addComputePass) ----
+  // Inserted after the scene node so they run between 'opaque' (the scene
+  // render) and the post effects. Render passes write the offscreen scene-color
+  // with LOAD (the scene + depth they draw over are preserved — a depth-tested
+  // overlay draws over the scene); compute passes read scene-color and write a
+  // user-owned resource. The present effect then samples the (possibly overlaid)
+  // scene-color. Resolvers map the public built-in handle ids to this route's GPU
+  // resources; user pipelines/buffers/bind groups are owned by the encode closure.
+  const userPassNodeNames: string[] = [];
+  // Optional chaining: the real app always has a registry, but lightweight
+  // callers/tests may omit it — treat a missing registry as no user passes.
+  const userPasses = (options.app.userPassRegistry?.list() ?? []).filter(
+    (descriptor) => descriptor.enabled !== false,
+  );
+  if (userPasses.length > 0) {
+    const sceneView = sceneTexture.resource.texture.createView?.();
+    const userResolvers: WebGpuAppPassResolvers = {
+      view: (handle) =>
+        handle === "scene-color"
+          ? sceneView
+          : handle === "depth"
+            ? options.depthAttachment.view
+            : undefined,
+      buffer: () => undefined,
+      createBindGroup: (entries) =>
+        (
+          device as { createBindGroup?: (descriptor: unknown) => unknown }
+        ).createBindGroup?.(entries),
+    };
+    for (const descriptor of userPasses) {
+      const built = buildUserPassNode(descriptor, userResolvers);
+      if (built.kind === "compute") {
+        for (const write of built.writes) {
+          if (graph.handle(write.handle) === undefined) {
+            graph.declareResource({
+              id: write.handle,
+              descriptor: { kind: "buffer", lifetime: "transient" },
+            });
+          }
+        }
+        graph.addComputePass(built);
+        userPassNodeNames.push(built.name);
+        plannedCommands += built.commands.length;
+      } else {
+        const plan = buildFrameBoundaryTargetPlan({
+          context,
+          colorTarget: {
+            source: "offscreen-target",
+            texture: sceneTexture.resource.texture,
+          },
+          colorLoadOp: "load",
+          depthTarget: {
+            view: options.depthAttachment.view,
+            depthLoadOp: "load",
+            depthStoreOp: "store",
+          },
+        });
+        graph.addRenderPass({
+          name: built.name,
+          // LOAD ⇒ also a read of scene-color, so the compiler orders this after
+          // the scene node and forces it to store scene-color for the overlay.
+          reads: [...built.reads, sceneColorHandle],
+          writes: [{ handle: sceneColorHandle, attachment: "load" }],
+          commands: built.commands,
+        });
+        payloads.set(built.name, {
+          device,
+          attachments: plan.attachments,
+          commands: built.commands,
+          label: built.name,
+          colorTargetSource: "offscreen-target",
+          readbackTexture: plan.texture.texture,
+        });
+        records.push({
+          name: built.name,
+          texture: plan.texture,
+          attachments: plan.attachments,
+        });
+        userPassNodeNames.push(built.name);
+        plannedCommands += built.commands.length;
+        drawCalls += countDrawCommands(built.commands);
+      }
+    }
+  }
+
   for (
     let effectIndex = 0;
     effectIndex < options.effects.length;
@@ -1016,13 +1120,35 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     resolveAttachment: () => null,
     resolveRenderBoundary: (node) => payloads.get(node.name) ?? null,
   };
+  const compiled = compileFrameGraph(graph);
   const exec = executeFrameGraph({
     device,
     queue,
-    compiled: compileFrameGraph(graph),
+    compiled,
     resources,
     label: options.label,
   });
+
+  // M3-T7: additive graph sub-report — the compiled node order + each inserted
+  // user pass's execution (names/counts only, JSON-safe).
+  const graphReport: WebGpuAppPostGraphReport = {
+    order: compiled.orderedNodes.map((node) => node.name),
+    userPasses: userPassNodeNames.map((name) => {
+      const node = exec.nodes.find((entry) => entry.name === name);
+      const executedCommands =
+        node === undefined
+          ? 0
+          : node.kind === "compute"
+            ? (node.execution?.executedCommands ?? 0)
+            : (node.encode.execution?.executedCommands ?? 0);
+      return {
+        name,
+        kind: node?.kind === "compute" ? "compute" : "render",
+        ran: (node?.valid ?? false) && executedCommands > 0,
+        executedCommands,
+      };
+    }),
+  };
 
   // M3-T6: advance the history pool exactly ONCE per frame, at end-of-execute —
   // this frame's write (current) becomes next frame's history (previous). All
@@ -1106,6 +1232,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     plannedCommands,
     drawCalls,
     diagnostics,
+    graph: graphReport,
   };
 }
 

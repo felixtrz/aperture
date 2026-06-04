@@ -23,6 +23,7 @@ import {
 import { prepareWebGpuAppSourceAssetFacades } from "./source-assets.js";
 import { getWebGpuAppPipelineLayouts } from "./pipeline-layouts.js";
 import { createWebGpuAppResourceCache } from "./resource-cache.js";
+import { createWebGpuAppUserPassRegistry } from "./user-pass.js";
 import { getOrCreateWebGpuAppPipeline } from "./pipeline-resources.js";
 import { QUEUED_BUILT_IN_MATERIAL_ADAPTERS } from "./queued-built-in-adapters.js";
 import { pickWebGpuAppEntity } from "./picking-frame.js";
@@ -73,6 +74,7 @@ export async function createWebGpuApp(
     );
   }
   const resourceCache = createWebGpuAppResourceCache();
+  const userPassRegistry = createWebGpuAppUserPassRegistry();
   const snapshotTransport = createWebGpuAppSnapshotTransport({
     ...(options.transport === undefined ? {} : { mode: options.transport }),
     ...(options.sharedSnapshotTransport === undefined
@@ -104,6 +106,16 @@ export async function createWebGpuApp(
     msaa,
     postEffects,
     useFrameGraph: options.useFrameGraph ?? false,
+    userPassRegistry,
+    addRenderPass(descriptor) {
+      userPassRegistry.addRenderPass(descriptor);
+    },
+    addComputePass(descriptor) {
+      userPassRegistry.addComputePass(descriptor);
+    },
+    removePass(name) {
+      return userPassRegistry.removePass(name);
+    },
     start(startOptions = {}) {
       if (running) {
         return;
