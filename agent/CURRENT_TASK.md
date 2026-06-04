@@ -1,10 +1,10 @@
 # Current Task
 
-> ## ▶ START HERE — M7 (scene persistence + authoring layer) — 🟡 in-progress 4/9
+> ## ▶ START HERE — M7 (scene persistence + authoring layer) — 🟡 in-progress 5/9
 >
-> Active /goal: **Implement Milestone M7**. Gate-green (406 files / 2269 tests @
-> fb1dac4b), working tree clean. Implement M7 in task-number order (deps are always
-> lower-numbered): **T1 ✅ → T2 ✅ → T3 ✅ → T4 ✅ → T5 → T6 → T7 → T8 → T9**.
+> Active /goal: **Implement Milestone M7**. Gate-green (408 files / 2273 tests @
+> 78434a6d), working tree clean. Implement M7 in task-number order (deps are always
+> lower-numbered): **T1 ✅ → T2 ✅ → T3 ✅ → T4 ✅ → T5 ✅ → T6 → T7 → T8 → T9**.
 >
 > - **M7-T1 ✅ done (c1509d62):** bidirectional transform hierarchy —
 >   `packages/simulation/src/transform/hierarchy.ts` (`setParent` world-preserving
@@ -26,12 +26,17 @@
 >   `ApertureSceneDocument` (oldId→newEntity remap of Entity-typed fields, `Children`
 >   rebuilt from `Parent`, `resolveWorldTransforms`, formatVersion-gated, explicit
 >   allow-list registry). Proven by `test/serialization/scene-roundtrip.test.ts` (3).
-> - **NEXT — M7-T5** (`render-bridge`, M, depends T3 + T1): turn the dead `PrefabHandle`
->   into a working blueprint — `instantiatePrefab(world, document, overrides)` clones an
->   `ApertureSceneDocument`-shaped subtree (loadScene remap), returns the root + applies a
->   root transform override + per-prefab-id field overrides; surface
->   `spawn.prefab(handle, { transform, overrides })` on `SpawnCommands` + a
->   `prefabs.register(document)` accessor. Full spec + Done-when: `docs/SOTA_ROADMAP.md` §`M7-T5`.
+> - **M7-T5 ✅ done (78434a6d):** prefab register + instantiate —
+>   `instantiatePrefab(world, document, {registry, transform?, overrides?})` deep-clones an
+>   `ApertureSceneDocument` subtree (loadScene remap), returns the root + applies a root
+>   transform override + per-prefab-id field overrides; `spawn.prefab` + `prefabs.register`
+>   on the system context; `componentRegistryFromWorld` helper. Proven by
+>   `test/serialization/prefab-instantiate.test.ts` (3) + `test/app/prefab-spawn-route.test.ts` (1).
+> - **NEXT — M7-T6** (`render-bridge`, M, depends none): runtime material parameter mutation
+>   via versioned asset re-registration — `patchStandardMaterial(prev, patch)` (+ unlit/matcap)
+>   returns a NEW frozen asset; `materials.set(handle, patch)` on `ApertureSystemContext` reads
+>   the asset, patches, and `assetsRegistry.markReady(handle, next)` (bumps version → re-prepares
+>   the GPU material, no re-extraction). Full spec + Done-when: `docs/SOTA_ROADMAP.md` §`M7-T6`.
 >
 > Per-task bar (per the /goal): every Done-when ticked + named vitest/E2E proof with
 > new coverage + `pnpm run check` green + heading `✅ done (date · commit)` + a
