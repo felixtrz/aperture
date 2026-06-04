@@ -1,12 +1,22 @@
 # Current Task
 
-> ## ▶ START HERE — M3-T7 (capstone: public addRenderPass/addComputePass)
+> ## ▶ START HERE — M3-T7 (capstone: public addRenderPass/addComputePass) — 🟡 in-progress
 >
-> M3 is **6/7** on this branch (PR #4). M3-T1…T6 are ✅ done and gate-green
-> (400 files / 2246 tests @ d598e59f). The current task is **M3-T7** — the capstone
-> and the **LAST** M3 task; landing it completes M3. Source of truth is
-> `docs/SOTA_ROADMAP.md` §`M3-T7` (public API shape SIGNED OFF in §Design decisions
-> D1 — implement exactly, do not improvise). Work one task at a time, commit each
+> M3 is **6/7** done; the **M3-T7 capstone is in-progress** on this branch (PR #4).
+> Gate-green (401 files / 2250 tests @ 7d890b57). The **foundation is committed**
+> (7d890b57): `packages/webgpu/src/app/user-pass.ts` holds the signed-off D1 public
+> pass shape + registry + encode-ctx recorder + `buildUserPassNode(s)`, with
+> Done-when #3 (compile ordering + removePass) proven in
+> `test/webgpu/user-pass.test.ts`. **It is NOT yet wired to the app or the live
+> frame graph.** REMAINING (see the roadmap Resume notes for the full step list):
+> (1) add `addRenderPass`/`addComputePass`/`removePass` to the WebGpuApp interface +
+> create-webgpu-app.ts (registry field) + createApertureApp surface; (2) execution
+> wiring in `app/frame-boundaries.ts` (call `buildUserPassNodes` with real GPU
+> resolvers, insert after the 'opaque' node, additive `status.graph.order`); (3) the
+> `custom-graph-pass` example (compute histogram + wireframe overlay) + E2E; (4) the
+> WebGpuPostEffect auto-wrap adapter. Source of truth is `docs/SOTA_ROADMAP.md`
+> §`M3-T7` (public API shape SIGNED OFF in §Design decisions D1 — implement exactly,
+> do not improvise). Work one task at a time, commit each
 > separately, and read every run result before ticking a box or writing "passed"
 > (honesty rule). Run E2E via `scripts/webgpu-e2e.sh <spec>` (xvfb + SwiftShader on
 > the cloud runner); on a macOS/dev box xvfb is unavailable — use the base
