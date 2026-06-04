@@ -198,6 +198,33 @@ export function isProcessAlive(pid: number | null): boolean {
   }
 }
 
+/**
+ * Best-effort process termination. Sending a signal to a pid can fail because
+ * the process already exited (ESRCH) or because we are not permitted to signal
+ * it (EPERM — e.g. a reparented child on a CI runner); neither is an error for
+ * session cleanup, so swallow both and report delivery via the return value.
+ * Any other error (an invalid signal) still throws.
+ */
+export function terminateProcess(
+  pid: number | null,
+  signal: NodeJS.Signals = "SIGTERM",
+): boolean {
+  if (pid === null || !Number.isInteger(pid) || pid <= 0) {
+    return false;
+  }
+
+  try {
+    process.kill(pid, signal);
+    return true;
+  } catch (error: unknown) {
+    if (isNodeErrorCode(error, "ESRCH") || isNodeErrorCode(error, "EPERM")) {
+      return false;
+    }
+
+    throw error;
+  }
+}
+
 function isApertureDevSession(value: unknown): value is ApertureDevSession {
   if (!isRecord(value)) {
     return false;
