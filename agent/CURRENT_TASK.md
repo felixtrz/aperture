@@ -1,20 +1,28 @@
 # Current Task
 
-> ## ✅ M3 COMPLETE (7/7) — the /goal "Implement Milestone M3" is SATISFIED
+> ## ▶ START HERE — M7 (scene persistence + authoring layer) — 🟡 in-progress 1/9
 >
-> Gate-green (402 files / 2253 tests @ 2f3474b8), working tree clean. M3-T1…T7 are
-> all ✅ done. The whole render graph ships behind `useFrameGraph` (default OFF):
-> single-encoder execution, declared-dependency ordering, global load/store
-> inference, transient aliasing, TAA color history, first-class compute nodes, and
-> the public `addRenderPass`/`addComputePass`/`removePass` user-pass API. M3-T7
-> commits: `7d890b57` (foundation) + `9acbfdb2` (execution proof) + `3349eb9a` (live
-> wiring) + `2a12985b` (report + createApertureApp surface) + `2f3474b8`
-> (custom-graph-pass example + real-GPU E2E + gpuTiming through the graph).
+> Active /goal: **Implement Milestone M7**. Gate-green (403 files / 2258 tests @
+> c1509d62), working tree clean. Implement M7 in task-number order (deps are always
+> lower-numbered): **T1 ✅ → T2 → T3 → T4 → T5 → T6 → T7 → T8 → T9**.
 >
-> **There is no in-flight M3 work.** M1/M2/M4/M5 are also complete. The next ready
-> roadmap task is **M6-T1** (wave 3 — content layer), but that is OUT OF SCOPE for
-> the satisfied M3 goal — do NOT start it without a new `/goal`. If a new goal
-> targets M6+, follow `agent/WAKE.md` and `docs/SOTA_ROADMAP.md` from the §M6 spec.
+> - **M7-T1 ✅ done (c1509d62):** bidirectional transform hierarchy —
+>   `packages/simulation/src/transform/hierarchy.ts` (`setParent` world-preserving
+>   reparent via Bevy `reparented_to`, `getChildren`, `despawnRecursive`, cycle
+>   rejection) + a derived `Children` component on the authoritative `Parent`.
+>   Proven by `test/transform/hierarchy.test.ts` (5 = the 5 Done-when).
+> - **NEXT — M7-T2** (`runtime-orchestration`, S, depends T1): add a `hierarchy`
+>   accessor (`children`/`setParent`/`despawnRecursive`) to `ApertureSystemContext`
+>   (`packages/app/src/systems/context.ts` + new `systems/hierarchy.ts`), resolving
+>   `EcsEntityRef`→`Entity` via `resolveActiveEntity`; make
+>   `createApertureEntityHierarchy` prefer the `Children` component over the
+>   full-scan. Full spec + Done-when: `docs/SOTA_ROADMAP.md` §`M7-T2`.
+>
+> Per-task bar (per the /goal): every Done-when ticked + named vitest/E2E proof with
+> new coverage + `pnpm run check` green + heading `✅ done (date · commit)` + a
+> completion-log row + the 📋 Status block updated. Commit each task separately. Do
+> NOT start any milestone other than M7. `dof.spec.ts` is a documented SwiftShader
+> timeout; on a macOS/dev box use the base headed-Chrome/real-GPU playwright config.
 >
 > The M3-T7 detail below is retained for reference. `dof.spec.ts` is a documented
 > pre-existing SwiftShader timeout; on a macOS/dev box use the base
