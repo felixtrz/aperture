@@ -1,14 +1,18 @@
 # Current Task
 
-> ## ▶ START HERE — M3-T6 (TAA history through the graph)
+> ## ▶ START HERE — M3-T7 (capstone: public addRenderPass/addComputePass)
 >
-> M3 is **5/7** on this branch (PR #4). M3-T1…T5 are ✅ done and gate-green
-> (399 files / 2243 tests @ ad296a4). The current task is **M3-T6**, then **M3-T7**
-> (capstone). Source of truth is `docs/SOTA_ROADMAP.md`. Work one task at a time,
-> commit each separately, and read every run result before ticking a box or writing
-> "passed" (honesty rule). Run E2E via `scripts/webgpu-e2e.sh <spec>` (xvfb +
-> SwiftShader, reliable; `dof.spec.ts` is a documented pre-existing timeout — use the
-> other specs). Do NOT start any milestone other than M3.
+> M3 is **6/7** on this branch (PR #4). M3-T1…T6 are ✅ done and gate-green
+> (400 files / 2246 tests @ d598e59f). The current task is **M3-T7** — the capstone
+> and the **LAST** M3 task; landing it completes M3. Source of truth is
+> `docs/SOTA_ROADMAP.md` §`M3-T7` (public API shape SIGNED OFF in §Design decisions
+> D1 — implement exactly, do not improvise). Work one task at a time, commit each
+> separately, and read every run result before ticking a box or writing "passed"
+> (honesty rule). Run E2E via `scripts/webgpu-e2e.sh <spec>` (xvfb + SwiftShader on
+> the cloud runner); on a macOS/dev box xvfb is unavailable — use the base
+> `playwright.config.ts` headed-Chrome/real-GPU config instead (`pnpm exec playwright
+test <spec>`). `dof.spec.ts` is a documented pre-existing SwiftShader timeout. Do
+> NOT start any milestone other than M3.
 
 ## ✅ M3-T5 is done (ad296a4) — and the old "spot blocked" diagnosis was wrong
 
@@ -45,7 +49,24 @@ into one list. The `?graph=1` E2E proof mirrors csm's fold test: baseline
 mode gates the legacy caster submit off so `shadow.rendering.supported` is false),
 assert the receiver darkens, `expectNoWarnings()`.
 
-## ▶ M3-T6 — TAA history through the graph (current task)
+## ✅ M3-T6 is done (d598e59f) — TAA color history through the graph
+
+TAA color history is now a `declareHistory` double-buffered pool
+(`createFrameGraphHistoryResource`) owned by the graph post path, replacing the
+per-effect ping/pong closure. The graph post path admits TAA when motion vectors
+are available as a scene attachment (writes them as the scene node's 2nd color
+target), sources the TAA write from `pool.current()` and the history read from
+`pool.previous()`, and swaps the pool exactly once after the single execute; it
+declines to legacy when motion vectors fall back (`motionVectorColorFormat`
+null), so `WebGpuAppMotionVectorFallbackReason` (computed upstream in
+`queued-built-in-frame.ts`) is unchanged. `requiresColorHistory` on
+`WebGpuPostEffect` + `history` on the prepare options carry it; legacy path
+untouched (default `useFrameGraph` OFF). Proven by `frame-graph-history.test.ts`
+(compileFrameGraph two-frame: previous→N-1's current, distinct buffer),
+`post-history-graph.test.ts` (route-level no-aliasing + fallback decline + pool
+stays 2), and `test/e2e/taa.spec.ts` `?graph=1` (real-GPU convergence,
+scene-attachment motion vectors, zero validation warnings). The historical
+planning notes below are retained for reference.
 
 `webgpu-render` · effort **M** · depends: M3-T3 (sanctioned to run alongside T4/T5).
 Full spec: `docs/SOTA_ROADMAP.md` §`M3-T6`.
