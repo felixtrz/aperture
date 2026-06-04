@@ -1,11 +1,29 @@
 # Current Task
 
-> ## ▶ START HERE — M7 7/9 — next M7-T9 (M7-T6 BLOCKED, see `agent/HANDOFF.md`)
+> ## ▶ START HERE — M7 8/9 — M7-T6 is the LONE remaining task (🟡 BLOCKED, see `agent/HANDOFF.md`)
 >
-> Active /goal: **Implement Milestone M7**. Gate-green (411 files / 2288 tests @
-> 339f1b9b), working tree clean. **T1 ✅ → T2 ✅ → T3 ✅ → T4 ✅ → T5 ✅ → T6 🟡 BLOCKED
-> → T7 ✅ → T8 ✅ → T9 (next).**
+> Active /goal: **Implement Milestone M7**. Gate-green (413 files / 2293 tests @
+> 6b53d00d), working tree clean. **T1 ✅ → T2 ✅ → T3 ✅ → T4 ✅ → T5 ✅ → T6 🟡 BLOCKED
+> → T7 ✅ → T8 ✅ → T9 ✅.** All non-blocked M7 tasks are done; only M7-T6 (#3/#4) remains.
 >
+> - **M7-T9 ✅ done (impl 097aba6a + routes 6b53d00d):** reusable orbit camera controller +
+>   translate gizmo (pure ECS authoring, `packages/app/src/controllers/`).
+>   `createOrbitCameraController` writes the camera `LocalTransform` from spherical orbit state
+>   (orbitFromDrag/zoomFromWheel → azimuth/elevation/distance, elevation pole-clamped, reusing
+>   the spawn `quatLookAt`); `createTranslateGizmo` spawns 3 axis-handle Pickable meshes parented
+>   world-preserving (M7-T1), onDrag (M7-T8) projects the pointer ray (M7-T7) onto the world axis →
+>   writes the target `LocalTransform` translation X-only (handles follow). Proofs: orbit math
+>   vitest (`test/app/orbit-camera-controller.test.ts`) + render-control
+>   (`test/app/controllers-route.test.ts`) + real-GPU E2E (`test/e2e/orbit-camera.spec.ts`,
+>   `test/e2e/translate-gizmo.spec.ts`). RENDER NOTE: built-in standard materials render dark
+>   without IBL → the orbit route uses the low-level/unlit render path; the gizmo route proves the
+>   transform (X-only translation), not pixels.
+> - **NEXT — M7-T6** (`render-bridge`, M, 🟡 BLOCKED): the LONE remaining M7 task. #1/#2 (authoring
+>   surface) ✅ (30541c06); #3 (E2E pixel green→red) + #4 (render-control action surfacing) BLOCKED
+>   on the version-INDEPENDENT built-in-material `materialResourceKey` (the frame bind-group cache
+>   reuses the prior version's bind group on a same-handle content change). Fix: thread the material
+>   version through the unlit/standard/matcap GPU resource keys. Root cause + fix: `agent/HANDOFF.md`.
+>   Alternative: descope #3/#4 to the headless proof.
 > - **M7-T8 ✅ done (impl 1d5dae76 + route 339f1b9b):** public pointer-on-object
 >   interaction layer — `packages/app/src/interaction/*`: a pure `PointerInteractionState`
 >   machine (enter/leave edge-triggered; down/up; click = down+up over the same entity
@@ -18,12 +36,6 @@
 >   render-control (`test/app/interaction-route.test.ts`) + E2E (`examples/pointer-events`,
 >   `test/e2e/pointer-events.spec.ts`, real GPU); #3 `test/app/pointer-events-state.test.ts`;
 >   #4 `test/app/developer-api.test.ts` (28).
-> - **NEXT — M7-T9** (`runtime-orchestration`, L, depends T7+T8): `createOrbitCameraController`
->   (azimuth/elevation/distance from pointer drag + wheel → camera `LocalTransform` via lookAt)
->   + a translate gizmo (3 axis-handle Pickable meshes parented to the selected entity; on
->   handle drag project pointer motion onto the axis → write the selected `LocalTransform`
->   translation, world-preserving M7-T1 math) — both pure ECS authoring; 2 example routes.
->   Full spec + Done-when: `docs/SOTA_ROADMAP.md` §`M7-T9`.
 >
 > **M7-T6 (runtime material mutation) is PARTIAL/BLOCKED — NOT done.** The authoring
 > surface landed (commit `30541c06`): `patchStandardMaterial`/`patchUnlitMaterial`/
