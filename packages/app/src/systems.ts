@@ -40,6 +40,7 @@ import type { CommandAccess } from "./systems/commands.js";
 import type { SystemAssetAccess } from "./systems/assets.js";
 import type { CameraAccess } from "./systems/cameras.js";
 import type { HierarchyAccess } from "./systems/hierarchy.js";
+import type { PrefabAccess } from "./systems/prefabs.js";
 import type { SignalStore } from "./systems/signals.js";
 import type { SpawnCommands } from "./systems/spawn/index.js";
 import {
@@ -126,6 +127,8 @@ export type {
   HierarchySetParentResult,
 } from "./systems/hierarchy.js";
 export { createHierarchyAccess } from "./systems/hierarchy.js";
+export type { PrefabAccess, PrefabRegisterOptions } from "./systems/prefabs.js";
+export { createPrefabAccess } from "./systems/prefabs.js";
 export { material, mesh, shader } from "./systems/spawn/index.js";
 export type {
   CustomWgslMaterialDescriptor,
@@ -213,6 +216,7 @@ export interface ApertureSystemInstance {
   readonly spatial: SpatialQueries;
   readonly cameras: CameraAccess;
   readonly hierarchy: HierarchyAccess;
+  readonly prefabs: PrefabAccess;
   readonly diagnostics: SystemDiagnostics;
   readonly effects: ScheduledEffects;
   createEntity(): Entity;
@@ -329,6 +333,10 @@ export function createSystem<
 
     get hierarchy(): HierarchyAccess {
       return this.#context.hierarchy;
+    }
+
+    get prefabs(): PrefabAccess {
+      return this.#context.prefabs;
     }
 
     get diagnostics(): SystemDiagnostics {

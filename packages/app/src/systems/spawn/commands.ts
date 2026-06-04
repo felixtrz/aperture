@@ -10,6 +10,9 @@ import {
 import {
   DebugMetadata,
   assetHandleKey,
+  componentRegistryFromWorld,
+  instantiatePrefab,
+  type ApertureSceneDocument,
   type AssetRegistry,
   type EcsWorld,
 } from "@aperture-engine/simulation";
@@ -139,6 +142,40 @@ export function createSpawnCommands(options: {
       }
 
       return root;
+    },
+    prefab(handle, input = {}) {
+      const entry = options.registry.get<"prefab", ApertureSceneDocument>(
+        handle,
+      );
+
+      if (entry?.status !== "ready" || entry.asset === null) {
+        throw new ApertureSystemError(
+          "aperture.spawn.prefabNotReady",
+          `Prefab asset '${handle.id}' is not registered and ready.`,
+          "Register the prefab via this.prefabs.register(document) before spawning it.",
+        );
+      }
+
+      const result = instantiatePrefab(options.world, entry.asset, {
+        registry: componentRegistryFromWorld(options.world),
+        ...(input.transform === undefined
+          ? {}
+          : { transform: input.transform }),
+        ...(input.overrides === undefined
+          ? {}
+          : { overrides: input.overrides }),
+      });
+
+      if (result.root === null) {
+        throw new ApertureSystemError(
+          "aperture.spawn.prefabEmpty",
+          `Prefab asset '${handle.id}' produced no root entity.`,
+          "Ensure the prefab document has at least one root entity (a record without a Parent).",
+        );
+      }
+
+      applySpawnMetadata(options.world, result.root, input, "prefab");
+      return result.root;
     },
     animation(entity) {
       return createAnimationAccess(entity);

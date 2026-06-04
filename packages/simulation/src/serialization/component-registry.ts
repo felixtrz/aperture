@@ -1,4 +1,4 @@
-import type { AnyEcsComponent } from "../ecs/index.js";
+import type { AnyEcsComponent, EcsWorld } from "../ecs/index.js";
 
 // A component.id -> component lookup used when reconstructing entities from a
 // serialized document (M7-T3 codec, M7-T4 scene load, M7-T5 prefab instantiate).
@@ -31,4 +31,22 @@ export function createComponentRegistry(
       return [...byId.keys()];
     },
   };
+}
+
+/**
+ * Build a registry from every component registered in `world` (scanned via the
+ * public getComponentByTypeId, typeIds are sequential). Convenient for
+ * instantiating documents into the SAME world that authored them — e.g. prefab
+ * instantiation — where every needed component is already registered.
+ */
+export function componentRegistryFromWorld(world: EcsWorld): ComponentRegistry {
+  const components: AnyEcsComponent[] = [];
+  for (let typeId = 0; ; typeId += 1) {
+    const component = world.componentManager.getComponentByTypeId(typeId);
+    if (component === null) {
+      break;
+    }
+    components.push(component);
+  }
+  return createComponentRegistry(components);
 }

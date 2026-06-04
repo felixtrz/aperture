@@ -5,6 +5,9 @@ import type {
   LocalTransformInput,
   MaterialHandle,
   MeshHandle,
+  PrefabFieldOverride,
+  PrefabHandle,
+  PrefabTransformOverride,
   SamplerHandle,
   ShaderHandle,
   TextureHandle,
@@ -136,11 +139,20 @@ export interface SpawnGltfOptions extends SpawnMetadata {
   readonly transform?: SystemTransformInput;
 }
 
+export interface SpawnPrefabOptions extends SpawnMetadata {
+  /** Per-field override of the instance root's local transform. */
+  readonly transform?: PrefabTransformOverride;
+  /** Per-instance component-field overrides addressed by prefab-local id. */
+  readonly overrides?: readonly PrefabFieldOverride[];
+}
+
 export interface SpawnCommands {
   camera(options?: SpawnCameraOptions): Entity;
   light(options?: SpawnLightOptions): Entity;
   mesh(options: SpawnMeshOptions): Entity;
   gltf(handle: SystemGltfAssetHandle, options?: SpawnGltfOptions): Entity;
+  /** Instantiate a registered prefab blueprint, returning the subtree root. */
+  prefab(handle: PrefabHandle, options?: SpawnPrefabOptions): Entity;
   /** Engine-owned animation controls for a spawned (e.g. glTF) entity. */
   animation(entity: Entity): AnimationAccess;
 }
