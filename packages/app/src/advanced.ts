@@ -17,6 +17,7 @@ import {
   createSpatialIndexPopulationState,
   populateSpatialIndexFromWorld,
 } from "./systems/spatial-index-population.js";
+import { runInteractionFrame } from "./interaction/system.js";
 import {
   defineApertureConfig,
   type ApertureConfig,
@@ -131,6 +132,9 @@ export async function createApertureApp(
     step(delta = 0, time = 0) {
       resolveWorldTransforms(lowLevel.world);
       refreshSpatialIndex();
+      // Synthesize pointer-on-object events from the freshly populated picking
+      // index before input effects + user systems run (M7-T8).
+      runInteractionFrame(context, time);
       flushApertureSystemEffects(lowLevel.world, "input");
       const result = lowLevel.step(delta, time);
       refreshSpatialIndex();

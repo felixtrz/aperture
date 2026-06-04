@@ -1519,7 +1519,12 @@ describe("developer-facing app API", () => {
     runner.app.context.input.pointer.primary.position.value = [0.25, 0.5];
     requireButtonAction(runner.app.context.input.actions.select).pressed.value =
       true;
-    const selected = runner.step(1 / 60, 1);
+    // select.system now reacts to a pointer click (interaction.onClick): drive a
+    // down+up over the crate to trigger the selection.
+    runner.app.context.input.pointer.primary.pressed.value = true;
+    runner.step(1 / 60, 1);
+    runner.app.context.input.pointer.primary.pressed.value = false;
+    const selected = runner.step(1 / 60, 1.05);
 
     expect(selected.status.input.actions.select).toMatchObject({
       kind: "button",
@@ -1640,7 +1645,11 @@ describe("developer-facing app API", () => {
     runner.app.context.input.pointer.primary.position.value = [0.25, 0.5];
     requireButtonAction(runner.app.context.input.actions.select).pressed.value =
       true;
+    // select.system reacts to a pointer click now: drive a down+up over the crate.
+    runner.app.context.input.pointer.primary.pressed.value = true;
     runner.step(1 / 60, 1);
+    runner.app.context.input.pointer.primary.pressed.value = false;
+    runner.step(1 / 60, 1.05);
     const afterSelect = runner.entities.snapshot({
       label: "after-select",
       key: "level.crate.primary",

@@ -40,6 +40,7 @@ import type { CommandAccess } from "./systems/commands.js";
 import type { SystemAssetAccess } from "./systems/assets.js";
 import type { CameraAccess } from "./systems/cameras.js";
 import type { HierarchyAccess } from "./systems/hierarchy.js";
+import type { InteractionAccess } from "./interaction/access.js";
 import type { MaterialAccess } from "./systems/materials.js";
 import type { PrefabAccess } from "./systems/prefabs.js";
 import type { SignalStore } from "./systems/signals.js";
@@ -136,6 +137,23 @@ export type {
   MaterialSetResult,
 } from "./systems/materials.js";
 export { createMaterialAccess } from "./systems/materials.js";
+export type {
+  InteractionAccess,
+  InteractionCallback,
+  InteractionFilter,
+  InteractionRuntime,
+  InteractionUnsubscribe,
+} from "./interaction/access.js";
+export type {
+  PointerFrameInput,
+  PointerInteractionEvent,
+  PointerInteractionEventType,
+} from "./interaction/pointer-events.js";
+export {
+  createInteractionAccess,
+  PointerInteractionState,
+  runInteractionFrame,
+} from "./interaction/index.js";
 export { material, mesh, shader } from "./systems/spawn/index.js";
 export type {
   CustomWgslMaterialDescriptor,
@@ -225,6 +243,7 @@ export interface ApertureSystemInstance {
   readonly hierarchy: HierarchyAccess;
   readonly prefabs: PrefabAccess;
   readonly materials: MaterialAccess;
+  readonly interaction: InteractionAccess;
   readonly diagnostics: SystemDiagnostics;
   readonly effects: ScheduledEffects;
   createEntity(): Entity;
@@ -349,6 +368,10 @@ export function createSystem<
 
     get materials(): MaterialAccess {
       return this.#context.materials;
+    }
+
+    get interaction(): InteractionAccess {
+      return this.#context.interaction;
     }
 
     get diagnostics(): SystemDiagnostics {

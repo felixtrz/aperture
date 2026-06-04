@@ -4,6 +4,10 @@ import {
   createSystem,
 } from "@aperture-engine/app/systems";
 
+// M7-T8: the public pointer-on-object ergonomics replace the manual
+// rayFromPointer + raycastFirst flow. A click on a crate (an entity in the
+// `crates` query) selects it — the interaction layer does the ray + pick + the
+// click-vs-drag discrimination; this system only reacts to the resulting event.
 export default class SelectSystem extends createSystem({
   priority: 50,
   queries: {
@@ -14,60 +18,46 @@ export default class SelectSystem extends createSystem({
   },
 }) {
   override init(): void {
-    const select = this.actions.select;
-    if (select === undefined) {
-      this.diagnostics.warn("select.actionMissing");
-      return;
-    }
+    this.interaction.onClick(
+      (ref) =>
+        [...this.queries.crates.entities].some(
+          (entity) =>
+            entity.index === ref.index && entity.generation === ref.generation,
+        ),
+      (event) => {
+        const selected = [...this.queries.crates.entities].find(
+          (entity) =>
+            entity.index === event.entity.index &&
+            entity.generation === event.entity.generation,
+        );
 
-    if (select.kind !== "button") {
-      this.diagnostics.warn("select.actionInvalidKind");
-      return;
-    }
+        if (selected === undefined) {
+          this.diagnostics.warn("select.noTarget");
+          return;
+        }
 
-    this.effects.watch(select.pressed, (pressed) => {
-      if (!pressed) {
-        return;
-      }
+        const selectedSignal = this.signals.selectedEntity;
+        if (selectedSignal !== undefined) {
+          selectedSignal.value = event.entity;
+        }
 
-      const [crate] = this.queries.crates.entities;
-      const ray = this.cameras.main.rayFromPointer(
-        this.input.pointer.primary.position.value,
-      );
-      const hit = this.spatial.raycastFirst(ray, {
-        query: this.queries.crates,
-        source: "bounds",
-        maxDistance: 5,
-      });
+        if (selected.hasComponent(DebugMetadata)) {
+          selected.setValue(DebugMetadata, "tag", "input");
+          selected.setValue(DebugMetadata, "note", "select.pressed");
+        } else {
+          selected.addComponent(DebugMetadata, {
+            tag: "input",
+            note: "select.pressed",
+          });
+        }
 
-      if (crate === undefined || hit === null) {
-        this.diagnostics.warn("select.noTarget");
-        return;
-      }
-
-      const selected = hit.entity.entity;
-      const selectedSignal = this.signals.selectedEntity;
-      if (selectedSignal !== undefined) {
-        selectedSignal.value = hit.entity.ref;
-      }
-
-      if (selected.hasComponent(DebugMetadata)) {
-        selected.setValue(DebugMetadata, "tag", "input");
-        selected.setValue(DebugMetadata, "note", "select.pressed");
-      } else {
-        selected.addComponent(DebugMetadata, {
-          tag: "input",
-          note: "select.pressed",
+        this.diagnostics.info("select.pressed", {
+          entity: selected.index,
+          selectedEntity: event.entity,
+          ...(event.point === undefined ? {} : { hitPoint: event.point }),
+          mutatedComponent: DebugMetadata.id,
         });
-      }
-
-      this.diagnostics.info("select.pressed", {
-        entity: selected.index,
-        selectedEntity: hit.entity.ref,
-        hitDistance: hit.distance,
-        hitPoint: hit.point,
-        mutatedComponent: DebugMetadata.id,
-      });
-    });
+      },
+    );
   }
 }
