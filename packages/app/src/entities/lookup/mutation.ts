@@ -1,6 +1,6 @@
 import type { EcsWorld, Entity } from "@aperture-engine/simulation";
-import type { EcsEntityRef } from "../../config.js";
-import { entitySummary, jsonSafeValue, validEntityRef } from "./summary.js";
+import { entitySummary, jsonSafeValue } from "./summary.js";
+import { resolveActiveEntity } from "./resolve.js";
 import type {
   ApertureEntityLookupDiagnostic,
   ApertureEntitySetComponentFieldReport,
@@ -120,64 +120,4 @@ function setDebugMetadataStringField(
     entity.setValue(DebugMetadata, field, request.value);
     return null;
   };
-}
-
-function resolveActiveEntity(
-  world: EcsWorld,
-  ref: EcsEntityRef,
-):
-  | { readonly ok: true; readonly entity: Entity }
-  | {
-      readonly ok: false;
-      readonly diagnostic: ApertureEntityLookupDiagnostic;
-    } {
-  if (!validEntityRef(ref)) {
-    return {
-      ok: false,
-      diagnostic: {
-        code: "aperture.entityLookup.invalidRef",
-        severity: "error",
-        message:
-          "Entity lookup requires a finite integer { index, generation } reference.",
-        data: { entity: ref },
-        suggestedFix:
-          "Re-run aperture_entity_find and pass the full returned { index, generation } pair.",
-      },
-    };
-  }
-
-  const entity = world.entityManager.getEntityByIndex(ref.index);
-
-  if (entity === null || !entity.active) {
-    return {
-      ok: false,
-      diagnostic: {
-        code: "aperture.entityLookup.notFound",
-        severity: "error",
-        message: `No active entity exists at index ${ref.index}.`,
-        data: { entity: ref },
-        suggestedFix:
-          "The entity may have been destroyed. Re-run aperture_entity_find before issuing a follow-up operation.",
-      },
-    };
-  }
-
-  if (entity.generation !== ref.generation) {
-    return {
-      ok: false,
-      diagnostic: {
-        code: "aperture.entityLookup.generationMismatch",
-        severity: "error",
-        message: `Entity index ${ref.index} is active with generation ${entity.generation}, not requested generation ${ref.generation}.`,
-        data: {
-          requested: ref,
-          active: { index: entity.index, generation: entity.generation },
-        },
-        suggestedFix:
-          "Re-run aperture_entity_find and use the current { index, generation } pair before mutating ECS state.",
-      },
-    };
-  }
-
-  return { ok: true, entity };
 }

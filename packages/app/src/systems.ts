@@ -10,6 +10,7 @@ import type {
   TypeValueToType,
 } from "elics";
 import {
+  Children,
   DebugMetadata,
   EcsType,
   Enabled,
@@ -38,6 +39,7 @@ import { ApertureSystemError } from "./systems/errors.js";
 import type { CommandAccess } from "./systems/commands.js";
 import type { SystemAssetAccess } from "./systems/assets.js";
 import type { CameraAccess } from "./systems/cameras.js";
+import type { HierarchyAccess } from "./systems/hierarchy.js";
 import type { SignalStore } from "./systems/signals.js";
 import type { SpawnCommands } from "./systems/spawn/index.js";
 import {
@@ -59,6 +61,7 @@ export type {
 } from "./spatial/index.js";
 
 export {
+  Children,
   DebugMetadata,
   Enabled,
   EcsType,
@@ -116,6 +119,13 @@ export {
   registerApertureAppComponents,
 } from "./systems/components.js";
 export type { CameraAccess, CameraHandle } from "./systems/cameras.js";
+export type {
+  HierarchyAccess,
+  HierarchyChildrenResult,
+  HierarchyDespawnResult,
+  HierarchySetParentResult,
+} from "./systems/hierarchy.js";
+export { createHierarchyAccess } from "./systems/hierarchy.js";
 export { material, mesh, shader } from "./systems/spawn/index.js";
 export type {
   CustomWgslMaterialDescriptor,
@@ -202,6 +212,7 @@ export interface ApertureSystemInstance {
   readonly spawn: SpawnCommands;
   readonly spatial: SpatialQueries;
   readonly cameras: CameraAccess;
+  readonly hierarchy: HierarchyAccess;
   readonly diagnostics: SystemDiagnostics;
   readonly effects: ScheduledEffects;
   createEntity(): Entity;
@@ -314,6 +325,10 @@ export function createSystem<
 
     get cameras(): CameraAccess {
       return this.#context.cameras;
+    }
+
+    get hierarchy(): HierarchyAccess {
+      return this.#context.hierarchy;
     }
 
     get diagnostics(): SystemDiagnostics {
