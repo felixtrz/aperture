@@ -66,6 +66,8 @@ REPOS=(
   "engine|https://github.com/playcanvas/engine.git|a4cdaf35cb4651809f829670a22778395da71dc6|PlayCanvas main @ ~v2.13.0-beta.1+512"
   "three-mesh-bvh|https://github.com/gkjohnson/three-mesh-bvh.git|30811dc01a8c58099873340d4a1f91d11a9aeb73|v0.9.10"
   "three.js|https://github.com/mrdoob/three.js.git|2654e309863f6f93e9c77c302521b00c85c89dc5|dev @ r184+148"
+  "uikit|https://github.com/pmndrs/uikit.git|3f7c958613a007f20d36b0c5bdafb6ce3e2a593a|v1.0.73 (M6 text/UI baseline)"
+  "three.quarks|https://github.com/Alchemist0823/three.quarks.git|de7c207f791c8b2260c43334a282976221688b1b|main @ v0.17.0+ (M6 particles baseline)"
 )
 
 ok=0; skipped=0; failed=0
