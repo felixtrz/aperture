@@ -1,10 +1,10 @@
 # Current Task
 
-> ## ▶ START HERE — M7 8/9 — M7-T6 is the LONE remaining task (🟡 BLOCKED, see `agent/HANDOFF.md`)
+> ## ▶ START HERE — M7 COMPLETE ✅ 9/9 — the /goal is satisfied (do not start another milestone)
 >
-> Active /goal: **Implement Milestone M7**. Gate-green (413 files / 2293 tests @
-> 6b53d00d), working tree clean. **T1 ✅ → T2 ✅ → T3 ✅ → T4 ✅ → T5 ✅ → T6 🟡 BLOCKED
-> → T7 ✅ → T8 ✅ → T9 ✅.** All non-blocked M7 tasks are done; only M7-T6 (#3/#4) remains.
+> Active /goal: **Implement Milestone M7** — **DONE**. Gate-green (413 files / 2293 tests @
+> 98a34acd), working tree clean. **T1 ✅ → T2 ✅ → T3 ✅ → T4 ✅ → T5 ✅ → T6 ✅ → T7 ✅ → T8 ✅ → T9 ✅.**
+> All 9 M7 tasks are done + committed + proven. Do NOT start another milestone without a new /goal.
 >
 > - **M7-T9 ✅ done (impl 097aba6a + routes 6b53d00d):** reusable orbit camera controller +
 >   translate gizmo (pure ECS authoring, `packages/app/src/controllers/`).
@@ -18,12 +18,16 @@
 >   `test/e2e/translate-gizmo.spec.ts`). RENDER NOTE: built-in standard materials render dark
 >   without IBL → the orbit route uses the low-level/unlit render path; the gizmo route proves the
 >   transform (X-only translation), not pixels.
-> - **NEXT — M7-T6** (`render-bridge`, M, 🟡 BLOCKED): the LONE remaining M7 task. #1/#2 (authoring
->   surface) ✅ (30541c06); #3 (E2E pixel green→red) + #4 (render-control action surfacing) BLOCKED
->   on the version-INDEPENDENT built-in-material `materialResourceKey` (the frame bind-group cache
->   reuses the prior version's bind group on a same-handle content change). Fix: thread the material
->   version through the unlit/standard/matcap GPU resource keys. Root cause + fix: `agent/HANDOFF.md`.
->   Alternative: descope #3/#4 to the headless proof.
+> - **M7-T6 ✅ done (98a34acd):** runtime material parameter mutation pixel proof. Built-in
+>   (unlit/standard/matcap/debug-normal) prepared-material resource keys now carry `@v<version>` —
+>   `preparedMaterialResourceKey` + `preparedMaterialBindGroupResourceKey` (`prepared-resource.ts`)
+>   thread the registry `entry.version` (the custom-WGSL precedent), so the buffer + bind-group +
+>   frame cache keys all become version-dependent and a same-handle `materials.set` re-creates the
+>   GPU resources instead of reusing the prior version's bind group. #1/#2 (30541c06) + #3 (real-GPU
+>   green→red, `test/e2e/material-mutation.spec.ts`) + #4 (`runtime-material-mutation.test.ts`,
+>   created→updated action). NOTE: a pre-existing `custom-material.spec.ts` WaterMaterial failure
+>   (stale `pipelineKey` 'shader:' assertion, line 114) is UNRELATED — custom-WGSL doesn't use the
+>   changed keys; matcap/standard/unlit E2E all pass.
 > - **M7-T8 ✅ done (impl 1d5dae76 + route 339f1b9b):** public pointer-on-object
 >   interaction layer — `packages/app/src/interaction/*`: a pure `PointerInteractionState`
 >   machine (enter/leave edge-triggered; down/up; click = down+up over the same entity
