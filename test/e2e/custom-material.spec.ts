@@ -111,7 +111,12 @@ test("visible WaterMaterial custom shader animates through WebGPU", async ({
     readback: { ok: true },
   });
   expect(status.rendering?.drawCommands).toBeGreaterThan(0);
-  expect(status.customMaterial?.pipelineKey).toContain("example/water|shader:");
+  // The custom-WGSL pipeline key is `<family>|<sorted features incl. bindings:…
+  // and specialization:…>|<render state>` — there is no `shader:` segment (the
+  // pipeline-key format reshaped since this spec was written; pinned by the gated
+  // test/materials/key-format-contract.test.ts).
+  expect(status.customMaterial?.pipelineKey).toContain("example/water|");
+  expect(status.customMaterial?.pipelineKey).toContain("specialization:");
   expect(status.customMaterial?.bindGroupResourceKey).toContain(
     "custom-wgsl-bind-group:material:custom-water-material",
   );

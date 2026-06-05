@@ -4,13 +4,14 @@ import {
   serializeSourceAssetRegistry,
 } from "/worker-modules/packages/app/dist/asset-mirror.js";
 
-// M7-T9 render-control route (orbit camera): a lit box sits at the orbit target.
-// The simulation runs the proven low-level extraction app + drives the reusable
-// createOrbitCameraController over the camera entity (the controller only writes
-// LocalTransform via the ECS component path, so it works with any world). The main
-// thread forwards a scripted pointer drag (orbit) and wheel (zoom) per frame; the
-// rendered image changes (orbit shows different lit faces; zoom scales the box) —
-// proven by the main-thread pixel readbacks + the published azimuth/distance.
+// M7-T9 render-control route (orbit camera): an unlit box sits at the orbit
+// target, with a distinct unlit side marker offset from it. The simulation runs the
+// proven low-level extraction app + drives the reusable createOrbitCameraController
+// over the camera entity (the controller only writes LocalTransform via the ECS
+// component path, so it works with any world). The main thread forwards a scripted
+// pointer drag (orbit) and wheel (zoom) per frame; the rendered image changes (orbit
+// sweeps the side marker across the view; zoom scales the box on screen) — proven by
+// the main-thread pixel readbacks + the published azimuth/distance.
 
 const clearColor = [0.02, 0.03, 0.05, 1];
 const ROTATE_SPEED = Math.PI;

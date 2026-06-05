@@ -27,8 +27,9 @@ interface OrbitStatus extends ExampleStatusBase {
   };
 }
 
-// M7-T9 Done-when #1/#2 (E2E pixel halves): the orbit route renders a lit box;
-// a scripted horizontal pointer drag orbits the camera (two readbacks differ +
+// M7-T9 Done-when #1/#2 (E2E pixel halves): the orbit route renders an unlit box
+// plus a distinct side marker; a scripted horizontal pointer drag orbits the
+// camera so the marker sweeps across the readback grid (two readbacks differ +
 // azimuth changes while the target distance stays constant), and a scripted wheel
 // zoom shrinks the camera-to-target distance and grows the box on screen.
 test("Playwright proves orbit drag rotates the camera and zoom changes distance", async ({

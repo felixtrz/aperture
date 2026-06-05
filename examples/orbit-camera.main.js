@@ -6,8 +6,8 @@ const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
 const clearColor = [0.02, 0.03, 0.05, 1];
 
-// A 3x3 readback grid over the orbit target. Orbiting changes the lit faces seen
-// at these points; zooming in grows the box so more grid points land on it.
+// A 3x3 readback grid over the orbit target. Orbiting sweeps the unlit side marker
+// across these points; zooming in grows the box so more grid points land on it.
 const samplePoints = [];
 for (const y of [0.36, 0.5, 0.64]) {
   for (const x of [0.36, 0.5, 0.64]) {

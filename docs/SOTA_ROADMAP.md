@@ -1837,7 +1837,7 @@ Add an `interaction` accessor to ApertureSystemContext plus a worker-side system
 - `packages/app/src/systems/context.ts (interaction accessor + types)`
 - `packages/app/src/advanced.ts (register interaction system)`
 - `examples/developer-api/src/systems/select.system.ts (migrate to interaction.onClick)`
-- `examples/pointer-events.worker.js + pointer-events.main.js + pointer-events.html (new render-control route)`
+- `examples/pointer-events.js + pointer-events.html (new single-file render-control route — the pointer is driven programmatically, domListeners: false, so no worker/main split shipped)`
 
 **Done when:**
 
