@@ -129,6 +129,16 @@ describe("camera system access", () => {
     expectVectorCloseTo(cornerRay.direction, [0, 0, -1]);
   });
 
+  it("throws a structured invalid-projection error for bad projection params", () => {
+    const { context, world } = createTestContext();
+    // far < near is invalid; the guard must surface the friendly camera error
+    // rather than a raw RangeError from makePerspective.
+    createCameraEntity(world, { near: 2, far: 1 });
+    expect(() => context.cameras.main.rayFromPointer([0.5, 0.5])).toThrowError(
+      /requires a valid projection/,
+    );
+  });
+
   it("feeds unprojected rays into spatial bounds picking", () => {
     const { context, world } = createTestContext();
     const target = world.createEntity();

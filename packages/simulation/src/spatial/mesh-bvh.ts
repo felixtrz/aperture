@@ -454,6 +454,7 @@ export class MeshBvhCache {
   private readonly entries = new Map<string, MeshBvh>();
   private readonly latestKeyByMesh = new Map<string, string>();
   private readonly keysByMesh = new Map<string, Set<string>>();
+  private readonly versionByMesh = new Map<string, number | string>();
 
   getOrBuild(input: MeshBvhCacheBuildInput): MeshBvhCacheReport {
     return this.finishGetOrBuild(input, (mesh, options) =>
@@ -472,6 +473,19 @@ export class MeshBvhCache {
 
     this.keysByMesh.delete(meshKey);
     this.latestKeyByMesh.delete(meshKey);
+    this.versionByMesh.delete(meshKey);
+  }
+
+  /**
+   * Drop cached BVH entries for any mesh key NOT in `liveMeshKeys` — called after a
+   * spatial-index population pass to reclaim BVHs for despawned/removed meshes.
+   */
+  prune(liveMeshKeys: ReadonlySet<string>): void {
+    for (const meshKey of [...this.keysByMesh.keys()]) {
+      if (!liveMeshKeys.has(meshKey)) {
+        this.invalidate(meshKey);
+      }
+    }
   }
 
   private finishGetOrBuild(
@@ -536,7 +550,7 @@ export class MeshBvhCache {
 
         stale.refit();
         this.entries.set(cacheKey, stale);
-        this.rememberKey(input.meshKey, cacheKey);
+        this.rememberKey(input.meshKey, cacheKey, input.version);
 
         return {
           cacheKey,
@@ -575,7 +589,7 @@ export class MeshBvhCache {
     diagnostics: SpatialDiagnostic[],
   ): MeshBvhCacheReport {
     this.entries.set(cacheKey, bvh);
-    this.rememberKey(input.meshKey, cacheKey);
+    this.rememberKey(input.meshKey, cacheKey, input.version);
 
     return {
       cacheKey,
@@ -621,7 +635,34 @@ export class MeshBvhCache {
     };
   }
 
-  private rememberKey(meshKey: string, cacheKey: string): void {
+  private rememberKey(
+    meshKey: string,
+    cacheKey: string,
+    version: number | string,
+  ): void {
+    const previousVersion = this.versionByMesh.get(meshKey);
+
+    // A new mesh version supersedes every prior-version BVH entry for this mesh
+    // (re-bake / LOD swap / repeated markReady). Under the static policy the old
+    // entries are never otherwise evicted — that is the cache leak. Drop them so
+    // dynamic meshes keep at most the current version's entries (one per options
+    // variant). Same-version option variants coexist and are not evicted.
+    if (previousVersion !== undefined && previousVersion !== version) {
+      const existingKeys = this.keysByMesh.get(meshKey);
+
+      if (existingKeys !== undefined) {
+        for (const key of existingKeys) {
+          if (key !== cacheKey) {
+            this.entries.delete(key);
+          }
+        }
+
+        existingKeys.clear();
+      }
+    }
+
+    this.versionByMesh.set(meshKey, version);
+
     let keys = this.keysByMesh.get(meshKey);
 
     if (keys === undefined) {

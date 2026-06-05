@@ -1,3 +1,4 @@
+import { Pickable, PickablePrecision } from "@aperture-engine/render";
 import type { ApertureSystemContext } from "../systems/context.js";
 import type { InteractionRuntime } from "./access.js";
 
@@ -18,6 +19,8 @@ export function runInteractionFrame(
   const position = pointer.position.value;
   const pressed = pointer.pressed.value;
 
+  const runtime = context.interaction as InteractionRuntime;
+
   let hitEntity = null;
   let worldPoint: readonly [number, number, number] | null = null;
 
@@ -26,14 +29,38 @@ export function runInteractionFrame(
     const hit = context.spatial.raycastFirst(ray, {
       source: "bounds",
       maxDistance: MAX_PICK_DISTANCE,
+      // Honor an app-configured interaction layer mask (e.g. to exclude a
+      // gizmo/overlay layer from the scene interaction). null = all layers.
+      ...(runtime.pickLayerMask === null
+        ? {}
+        : { layerMask: runtime.pickLayerMask }),
     });
     if (hit !== null) {
       hitEntity = hit.entity.ref;
       worldPoint = hit.point;
+
+      // The bounds hit point is the AABB entry, not the mesh surface. When the
+      // hit entity opts into visual-mesh precision, refine the reported world
+      // point against its triangle mesh (single-entity query, negligible cost).
+      const target = hit.entity.entity;
+      if (
+        target.hasComponent(Pickable) &&
+        target.getValue(Pickable, "precision") === PickablePrecision.VisualMesh
+      ) {
+        const refined = context.spatial.raycastFirst(ray, {
+          source: "visual-mesh",
+          query: { entities: new Set([target]) },
+          fallback: "bounds",
+          maxDistance: MAX_PICK_DISTANCE,
+        });
+        if (refined !== null) {
+          worldPoint = refined.point;
+        }
+      }
     }
   }
 
-  (context.interaction as InteractionRuntime).processFrame({
+  runtime.processFrame({
     position,
     pressed,
     time,

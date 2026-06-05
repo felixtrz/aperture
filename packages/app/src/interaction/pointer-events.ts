@@ -23,7 +23,11 @@ export interface PointerInteractionEvent {
   readonly type: PointerInteractionEventType;
   readonly entity: EcsEntityRef;
   readonly position: readonly [number, number];
-  /** World-space picking point for this frame (hit point, or plane projection). */
+  /**
+   * World-space picking point for this frame — the hit entity's bounding-box entry
+   * point, refined to the triangle-mesh surface when the entity uses
+   * `Pickable.precision: "visual-mesh"`.
+   */
   readonly point?: readonly [number, number, number];
   /** World-space delta from the drag origin (drag / dragEnd only). */
   readonly delta?: readonly [number, number, number];
@@ -35,7 +39,10 @@ export interface PointerFrameInput {
   readonly time: number;
   /** The entity under the pointer this frame (null when nothing is hit). */
   readonly hitEntity: EcsEntityRef | null;
-  /** World-space point for this frame (hit point, or the system's plane projection). */
+  /**
+   * World-space point for this frame — the hit entity's bounding-box entry point,
+   * refined to the mesh surface for `Pickable.precision: "visual-mesh"` entities.
+   */
   readonly worldPoint: readonly [number, number, number] | null;
 }
 

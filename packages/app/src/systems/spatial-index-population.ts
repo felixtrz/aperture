@@ -78,6 +78,7 @@ export function populateSpatialIndexFromWorld(
   const meshes: SpatialRaycastableMesh[] = [];
   const bvhReports: MeshBvhCacheReport[] = [];
   const diagnostics: SpatialIndexPopulationDiagnostic[] = [];
+  const liveMeshKeys = new Set<string>();
 
   for (const entity of [...query.entities].sort(compareEntities)) {
     const entry = spatialEntryFromEntity(context, state, entity, diagnostics);
@@ -91,8 +92,13 @@ export function populateSpatialIndexFromWorld(
 
     if (entry.bvhReport !== null) {
       bvhReports.push(entry.bvhReport);
+      liveMeshKeys.add(entry.meshKey);
     }
   }
+
+  // Reclaim BVH cache entries for meshes that are no longer indexed this pass
+  // (despawned entities, removed mesh assets) so the cache does not leak.
+  state.bvhCache.prune(liveMeshKeys);
 
   context.spatial.setBounds(bounds);
   context.spatial.setMeshes(meshes);
@@ -109,6 +115,7 @@ function spatialEntryFromEntity(
   readonly bounds: SpatialRaycastableBounds;
   readonly mesh: SpatialRaycastableMesh;
   readonly bvhReport: MeshBvhCacheReport | null;
+  readonly meshKey: string;
 } | null {
   if (!entityIsSpatiallyQueryable(entity)) {
     return null;
@@ -185,6 +192,7 @@ function spatialEntryFromEntity(
       ...(pickable === undefined ? {} : { pickable }),
     },
     bvhReport,
+    meshKey: meshId,
   };
 }
 

@@ -60,10 +60,20 @@ export interface InteractionAccess {
   ): InteractionUnsubscribe;
   /** The entity currently under the pointer (null when nothing is hit). */
   hoveredEntity(): EcsEntityRef | null;
+  /**
+   * Restrict the built-in per-frame interaction pick (runInteractionFrame) to a
+   * spatial layer mask — e.g. to exclude a gizmo/overlay layer from the scene
+   * interaction. `null` (the default) picks across all layers. NOTE: the gizmo's
+   * own handles must remain on a layer this mask includes for their drag events
+   * to fire; exclude the gizmo layer only when the app drives the gizmo itself.
+   */
+  setPickLayerMask(layerMask: number | null): void;
 }
 
 export interface InteractionRuntime extends InteractionAccess {
   processFrame(input: PointerFrameInput): readonly PointerInteractionEvent[];
+  /** The layer mask the interaction driver should apply to its scene pick. */
+  readonly pickLayerMask: number | null;
 }
 
 interface Registration {
@@ -118,6 +128,8 @@ export function createInteractionAccess(
     ): InteractionUnsubscribe =>
       register(types, a, b);
 
+  let pickLayerMask: number | null = null;
+
   const access: InteractionRuntime = {
     onEnter: on(["enter"]),
     onLeave: on(["leave"]),
@@ -126,6 +138,12 @@ export function createInteractionAccess(
     onClick: on(["click"]),
     onDrag: on(DRAG_TYPES),
     hoveredEntity: () => state.hoveredEntity,
+    setPickLayerMask(layerMask) {
+      pickLayerMask = layerMask;
+    },
+    get pickLayerMask() {
+      return pickLayerMask;
+    },
     processFrame(input) {
       const events = state.update(input);
       for (const event of events) {

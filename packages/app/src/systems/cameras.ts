@@ -115,6 +115,31 @@ function rayFromCamera(
   }
 
   const projection = entity.getValue(Camera, "projection");
+
+  // Validate the projection parameters before building the matrix so an invalid
+  // camera surfaces the structured camera error rather than a raw RangeError from
+  // makeOrthographic/makePerspective (which the inverse-matrix guard below would
+  // never reach).
+  const near = readCameraNumber(entity, "near");
+  const far = readCameraNumber(entity, "far");
+  const aspect = readCameraNumber(entity, "aspect");
+  const projectionValid =
+    near > 0 &&
+    far > near &&
+    aspect > 0 &&
+    (projection === CameraProjection.Orthographic
+      ? readCameraNumber(entity, "orthographicHeight") > 0
+      : readCameraNumber(entity, "fovYRadians") > 0 &&
+        readCameraNumber(entity, "fovYRadians") < Math.PI);
+
+  if (!projectionValid) {
+    throw new ApertureSystemError(
+      "aperture.camera.invalidProjection",
+      "Camera ray construction requires a valid projection (near > 0, far > near, positive aspect, and a valid fov / orthographic height).",
+      "Set the camera's near/far/aspect (and fovYDegrees or orthographicHeight) to valid positive values before calling rayFromPointer().",
+    );
+  }
+
   const projectionMatrix =
     projection === CameraProjection.Orthographic
       ? makeOrthographic(

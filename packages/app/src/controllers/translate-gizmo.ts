@@ -1,7 +1,16 @@
 import {
   LocalTransform,
+  Parent,
   WorldTransform,
+  composeTrsMatrix,
+  decomposeTrsMatrix,
+  identityMat4,
+  invertMat4,
+  multiplyMat4,
+  transformVector,
   type EcsWorld,
+  type Entity,
+  type Mat4,
   type Vec3Like,
 } from "@aperture-engine/simulation";
 import { Pickable, createPickable } from "@aperture-engine/render";
@@ -65,6 +74,14 @@ export interface TranslateGizmoHandles {
 export interface TranslateGizmo {
   readonly target: EcsEntityRef;
   readonly handles: TranslateGizmoHandles;
+  /**
+   * Re-align the axis handles to the WORLD axes at the target's current world
+   * position, so a rotated/scaled target keeps a world-aligned gizmo (the handles
+   * are children of the target and would otherwise inherit its rotation, making the
+   * visible handle disagree with the world-axis drag). Call once per frame after
+   * the target moves; it is a no-op for an unrotated, unit-scale target.
+   */
+  sync(world: EcsWorld): void;
   /** Unsubscribe the drag handlers and destroy the handle entities. */
   dispose(): void;
 }
@@ -152,12 +169,71 @@ export function createTranslateGizmo(
     );
   }
 
+  const half = size / 2;
+
   return {
     target,
     handles: {
       x: handleRefs.x as EcsEntityRef,
       y: handleRefs.y as EcsEntityRef,
       z: handleRefs.z as EcsEntityRef,
+    },
+    sync(world) {
+      const resolvedTarget = resolveActiveEntity(world, target);
+      if (
+        !resolvedTarget.ok ||
+        !resolvedTarget.entity.hasComponent(WorldTransform)
+      ) {
+        return;
+      }
+      const targetWorld = readWorldMatrix(resolvedTarget.entity);
+      const inverseTargetWorld = invertMat4(targetWorld);
+      if (inverseTargetWorld === null) {
+        return;
+      }
+      const col3 = resolvedTarget.entity.getVectorView(WorldTransform, "col3");
+
+      for (const spec of AXES) {
+        const ref = handleRefs[spec.name];
+        if (ref === undefined) {
+          continue;
+        }
+        const resolvedHandle = resolveActiveEntity(world, ref);
+        if (
+          !resolvedHandle.ok ||
+          !resolvedHandle.entity.hasComponent(LocalTransform)
+        ) {
+          continue;
+        }
+
+        // Desired WORLD placement: at the target's world position + a world-axis
+        // offset, world-axis-aligned (identity rotation, unit scale). Because the
+        // handle is a child of the target, its required local transform is
+        // inverse(targetWorld) * desiredWorld.
+        const desiredWorld = composeTrsMatrix(
+          [
+            (col3[0] ?? 0) + spec.axis[0] * half,
+            (col3[1] ?? 0) + spec.axis[1] * half,
+            (col3[2] ?? 0) + spec.axis[2] * half,
+          ],
+          [0, 0, 0, 1],
+          [1, 1, 1],
+        );
+        const handleLocal = decomposeTrsMatrix(
+          multiplyMat4(inverseTargetWorld, desiredWorld),
+        );
+        if (handleLocal === null) {
+          continue;
+        }
+        const entity = resolvedHandle.entity;
+        entity
+          .getVectorView(LocalTransform, "translation")
+          .set(handleLocal.translation);
+        entity
+          .getVectorView(LocalTransform, "rotation")
+          .set(handleLocal.rotation);
+        entity.getVectorView(LocalTransform, "scale").set(handleLocal.scale);
+      }
     },
     dispose() {
       for (const unsubscribe of unsubscribes) {
@@ -236,17 +312,60 @@ function handleDrag(
   }
 
   const delta = param - state.startParam;
-  const next: [number, number, number] = [
-    state.startTranslation[0] + state.axis[0] * delta,
-    state.startTranslation[1] + state.axis[1] * delta,
-    state.startTranslation[2] + state.axis[2] * delta,
+  const worldDelta: [number, number, number] = [
+    state.axis[0] * delta,
+    state.axis[1] * delta,
+    state.axis[2] * delta,
   ];
 
   const resolved = resolveActiveEntity(context.world, target);
   if (!resolved.ok || !resolved.entity.hasComponent(LocalTransform)) {
     return;
   }
+
+  // The drag delta is in WORLD space; LocalTransform.translation lives in the
+  // target's PARENT space. Convert the world delta through the parent's inverse so
+  // a parented (rotated/scaled) target still moves along the intended world axis.
+  const localDelta = worldDeltaToParentLocal(resolved.entity, worldDelta);
+  const next: [number, number, number] = [
+    state.startTranslation[0] + localDelta[0],
+    state.startTranslation[1] + localDelta[1],
+    state.startTranslation[2] + localDelta[2],
+  ];
   resolved.entity.getVectorView(LocalTransform, "translation").set(next);
+}
+
+function readWorldMatrix(entity: Entity): Mat4 {
+  const matrix = identityMat4();
+  matrix.set(entity.getVectorView(WorldTransform, "col0"), 0);
+  matrix.set(entity.getVectorView(WorldTransform, "col1"), 4);
+  matrix.set(entity.getVectorView(WorldTransform, "col2"), 8);
+  matrix.set(entity.getVectorView(WorldTransform, "col3"), 12);
+  return matrix;
+}
+
+function resolveParent(entity: Entity): Entity | null {
+  if (!entity.hasComponent(Parent)) {
+    return null;
+  }
+  const parent = entity.getValue(Parent, "entity");
+  return parent === null || parent === undefined ? null : parent;
+}
+
+function worldDeltaToParentLocal(
+  entity: Entity,
+  worldDelta: readonly [number, number, number],
+): [number, number, number] {
+  const parent = resolveParent(entity);
+  if (parent === null || !parent.hasComponent(WorldTransform)) {
+    return [worldDelta[0], worldDelta[1], worldDelta[2]];
+  }
+  const inverseParentWorld = invertMat4(readWorldMatrix(parent));
+  if (inverseParentWorld === null) {
+    return [worldDelta[0], worldDelta[1], worldDelta[2]];
+  }
+  const local = transformVector(inverseParentWorld, worldDelta);
+  return [local[0] ?? 0, local[1] ?? 0, local[2] ?? 0];
 }
 
 /**

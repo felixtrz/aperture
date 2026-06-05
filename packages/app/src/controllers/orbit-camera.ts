@@ -69,8 +69,20 @@ export function createOrbitCameraController(
   ];
   const rotateSpeed = options.rotateSpeed ?? DEFAULT_ROTATE_SPEED;
   const zoomSpeed = options.zoomSpeed ?? DEFAULT_ZOOM_SPEED;
-  const minElevation = options.minElevation ?? -(Math.PI / 2 - POLE_EPSILON);
-  const maxElevation = options.maxElevation ?? Math.PI / 2 - POLE_EPSILON;
+  // Clamp the elevation bounds (caller-supplied OR default) strictly inside the
+  // poles so the look-at basis never degenerates — a caller passing exactly ±π/2
+  // would otherwise place the eye on the target's vertical axis (gimbal flip).
+  const poleLimit = Math.PI / 2 - POLE_EPSILON;
+  const minElevation = clamp(
+    options.minElevation ?? -poleLimit,
+    -poleLimit,
+    poleLimit,
+  );
+  const maxElevation = clamp(
+    options.maxElevation ?? poleLimit,
+    -poleLimit,
+    poleLimit,
+  );
   const minDistance = options.minDistance ?? 0.01;
   const maxDistance = options.maxDistance ?? Number.POSITIVE_INFINITY;
 

@@ -97,4 +97,25 @@ describe("orbit camera controller math (M7-T9)", () => {
     controller.zoom(-100);
     expect(controller.distance).toBe(0.5);
   });
+
+  it("clamps caller-supplied elevation bounds strictly inside the poles", () => {
+    // A caller passing exactly ±π/2 must still be clamped inward so the eye
+    // never lands on the target's vertical axis (gimbal flip).
+    const controller = createOrbitCameraController({
+      camera: CAMERA,
+      target: [0, 0, 0],
+      distance: 5,
+      minElevation: -Math.PI / 2,
+      maxElevation: Math.PI / 2,
+      rotateSpeed: Math.PI,
+    });
+
+    controller.orbitFromDrag(0, -100); // slam toward the top pole
+    expect(controller.elevation).toBeLessThan(Math.PI / 2);
+    controller.orbitFromDrag(0, 100); // slam toward the bottom pole
+    expect(controller.elevation).toBeGreaterThan(-Math.PI / 2);
+
+    const eye = controller.eyePosition();
+    expect(Math.hypot(eye[0], eye[2])).toBeGreaterThan(0);
+  });
 });

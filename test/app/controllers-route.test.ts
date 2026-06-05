@@ -198,4 +198,102 @@ describe("translate gizmo route (M7-T9)", () => {
       4,
     );
   });
+
+  it("translates a target under a rotated parent along world X (parent-inverse) with world-aligned synced handles", async () => {
+    const refs: CapturedRefs = { camera: null, target: null };
+    const runner = await createRoute(refs, [0, 0, 8]);
+    const target = refs.target as Entity;
+    const ctx = runner.app.context;
+    const world = ctx.world as EcsWorld;
+
+    // Parent the target under a node rotated 90° about Y, at the origin. The
+    // world-preserving setParent keeps the target's world pose at the origin.
+    const parent = ctx.spawn.mesh({
+      key: "gizmo.parent",
+      mesh: mesh.box({ size: 0.2 }),
+      material: material.standard(),
+      transform: { translation: [0, 0, 0], rotationEulerDegrees: [0, 90, 0] },
+    });
+    ctx.hierarchy.setParent(ref(target), {
+      index: parent.index,
+      generation: parent.generation,
+    });
+
+    const gizmo = createTranslateGizmo(
+      {
+        world,
+        spawn: ctx.spawn,
+        hierarchy: ctx.hierarchy,
+        interaction: ctx.interaction,
+        cameras: ctx.cameras,
+      },
+      { target: ref(target), size: 3, thickness: 0.5 },
+    );
+    gizmo.sync(world);
+    runner.step(1 / 60, 0);
+    gizmo.sync(world);
+
+    // sync() world-aligned the handle at world +X despite the rotated parent.
+    const handleX = entityByRef(world, gizmo.handles.x);
+    const handleBefore = worldTranslation(handleX);
+    expect(handleBefore[0]).toBeCloseTo(1.5, 3);
+    expect(Math.abs(handleBefore[1])).toBeLessThan(1e-3);
+    expect(Math.abs(handleBefore[2])).toBeLessThan(1e-3);
+
+    const targetBefore = worldTranslation(target);
+    const pointer = ctx.input.pointer.primary;
+    const point = (x: number): void => {
+      pointer.position.value = [x, 0.5];
+    };
+
+    point(0.62);
+    pointer.pressed.value = false;
+    gizmo.sync(world);
+    runner.step(1 / 60, 0.1);
+    pointer.pressed.value = true;
+    gizmo.sync(world);
+    runner.step(1 / 60, 0.2);
+    point(0.7);
+    gizmo.sync(world);
+    runner.step(1 / 60, 0.3);
+    point(0.78);
+    gizmo.sync(world);
+    runner.step(1 / 60, 0.4);
+    pointer.pressed.value = false;
+    gizmo.sync(world);
+    runner.step(1 / 60, 0.5);
+
+    const targetAfter = worldTranslation(target);
+    // Despite the 90°-rotated parent, the target moved along WORLD X only — proving
+    // the world delta was converted through the parent inverse (without the fix the
+    // motion would land on world Z).
+    expect(targetAfter[0] - targetBefore[0]).toBeGreaterThan(0.2);
+    expect(Math.abs(targetAfter[1] - targetBefore[1])).toBeLessThan(1e-3);
+    expect(Math.abs(targetAfter[2] - targetBefore[2])).toBeLessThan(1e-3);
+  });
+});
+
+describe("interaction pick layer mask (M7-T8 audit A1)", () => {
+  it("scopes the built-in interaction pick via setPickLayerMask", async () => {
+    const refs: CapturedRefs = { camera: null, target: null };
+    const runner = await createRoute(refs, [0, 0, 5]);
+    const ctx = runner.app.context;
+
+    let entered = 0;
+    ctx.interaction.onEnter(() => {
+      entered += 1;
+    });
+    ctx.input.pointer.primary.position.value = [0.5, 0.5];
+
+    // The target box is Pickable on the default layer (mask 0b01). Restricting the
+    // interaction pick to bit 0b10 excludes it — no hover fires.
+    ctx.interaction.setPickLayerMask(0b10);
+    runner.step(1 / 60, 0);
+    expect(entered).toBe(0);
+
+    // Restoring the default (all layers) picks it again.
+    ctx.interaction.setPickLayerMask(null);
+    runner.step(1 / 60, 0.1);
+    expect(entered).toBe(1);
+  });
 });

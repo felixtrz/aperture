@@ -16,6 +16,14 @@ export type {
   SpatialRaycastableMesh,
 } from "./types.js";
 
+// PERF NOTE (audit B3): the bounds query uses a correct O(n) linear ray-AABB scan
+// (raycastBoundsHit/Hits). The exported simulation `EntityBoundsBvh` accelerator is
+// available for multi-pick / very-large-scene workloads, but it is intentionally NOT
+// wired into this default per-frame picker: the dominant path casts a single ray per
+// populated frame, where building/refitting the BVH (O(n) refit + O(log n) query) is
+// no cheaper than the linear O(n) scan, and a per-frame rebuild would regress it.
+// Wiring it for multi-pick batches requires membership-diffed refit — tracked as a
+// perf follow-up rather than a default change here.
 export function createSpatialQueries(): SpatialQueries {
   let bounds: readonly SpatialRaycastableBounds[] = [];
   let meshes: readonly SpatialRaycastableMesh[] = [];
