@@ -56,5 +56,31 @@ acceptable per the SOTA bar).
 `"example/water|bindings:…|specialization:…"` (the pipelineKey format drifted since commit
 `b58c4c96`). This E2E is not in the gate, so it went unnoticed. It is **unrelated** to the
 M7-T6 change — custom-WGSL does not use the keys this change touched, and the failing
-assertion is the `pipelineKey`, not a `prepared-material:`/`bind-group:` key. Left for a
-future custom-WGSL touch-up (out of M7 scope).
+assertion is the `pipelineKey`, not a `prepared-material:`/`bind-group:` key. The audit
+fixed this assertion (`test/e2e/custom-material.spec.ts`) and added a gated key-format
+contract test (`test/materials/key-format-contract.test.ts`) so the format drift cannot
+recur silently.
+
+## OPEN follow-up — custom-WGSL runtime mutation/animation staleness (audit #22)
+
+Fixing the stale `pipelineKey` assertion above unmasked a deeper, pre-existing bug in the
+SAME class as M7-T6, but on the **custom-WGSL** path. `examples/custom-material.worker.js`
+`updateWaterMaterial()` calls `assets.markReady(material, createWaterMaterial(time))` each
+frame (bumping the material version with new uniform `values`), yet the rendered center
+pixel never changes — the shader animates in `shaderTime` but not on the GPU.
+
+**Root cause:** the custom-WGSL bind-group/buffer key is keyed by the SHADER version, not
+the MATERIAL version. In `packages/render/src/assets/custom-wgsl-material-preparation.ts`
+(~line 207) the prepared source key is built as `shaderKey + ":v" + entry.version`, where
+that `entry.version` is the _shader_ entry's version. A `markReady` that changes only the
+material's uniform `values` (same shader source) leaves the shader version — and therefore
+the key — stable, so the frame bind-group cache reuses the stale bind group and the new
+`time` never reaches the GPU. This is exactly the M7-T6 built-in bug, one path over.
+
+**Fix path (analogous to M7-T6):** thread the MATERIAL registry `entry.version` into the
+custom-WGSL prepared resource + bind-group/buffer keys so a same-handle uniform-value
+change re-creates the GPU resources. Then un-`fixme` the WaterMaterial test
+(`test/e2e/custom-material.spec.ts`) and verify the center pixel animates on the real GPU.
+Out of the M7 / SOTA-audit scope (custom-WGSL is a separate feature); the WaterMaterial
+test is `test.fixme` with this note so the proof is an explicit known-blocker, not a
+silently-red dead spec.
