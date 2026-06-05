@@ -80,6 +80,13 @@ export interface CompiledFrameGraph {
   readonly ok: boolean;
   readonly orderedNodes: readonly PassNode[];
   readonly perNodeLoadStoreOps: ReadonlyMap<string, CompiledPassLoadStoreOps>;
+  /**
+   * Liveness-based transient aliasing assignments. ANALYSIS ONLY (audit L15): the
+   * executor does NOT consume these — every transient still allocates its own
+   * physical texture, so there is no memory aliasing yet. This report exposes which
+   * transients COULD share memory; realizing the saving requires a shared transient
+   * texture pool keyed by descriptor+slot (tracked follow-up).
+   */
   readonly aliasing: readonly FrameGraphAliasingAssignment[];
   readonly diagnostics: readonly FrameGraphCompileDiagnostic[];
   readonly report: FrameGraphCompileReportJsonValue;

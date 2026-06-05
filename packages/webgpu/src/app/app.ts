@@ -485,8 +485,10 @@ export interface WebGpuApp {
   // legacy for routes it does not yet cover, so this is a safe opt-in.
   readonly useFrameGraph: boolean;
   // M3-T7: registry backing the public addRenderPass/addComputePass/removePass
-  // API. The graph route reads it each frame to insert user passes (read here so
-  // post/forward route code can pull registered passes without new threading).
+  // API. Today only the single-encoder POST-effect graph path (useFrameGraph + at
+  // least one active post effect) reads it to insert user passes; the forward-only
+  // graph path and the legacy multi-submit path do NOT yet run registered passes
+  // (audit B4 — tracked follow-up to wire the forward path).
   readonly userPassRegistry: WebGpuAppUserPassRegistry;
   start(options?: WebGpuAppStartOptions): void;
   stop(): void;
@@ -496,8 +498,9 @@ export interface WebGpuApp {
     snapshot: RenderSnapshot,
     options?: Omit<WebGpuAppRenderOptions, "snapshot">,
   ): Promise<WebGpuAppRenderReport>;
-  // M3-T7: insert a user render/compute pass into the frame graph (signed-off
-  // D1 shape). Runs only on the single-encoder graph path (useFrameGraph).
+  // M3-T7: insert a user render/compute pass into the frame graph (signed-off D1
+  // shape). Runs only on the single-encoder post-effect graph path today
+  // (useFrameGraph + an active post effect); see userPassRegistry (audit B4).
   addRenderPass(descriptor: WebGpuAppRenderPassDescriptor): void;
   addComputePass(descriptor: WebGpuAppComputePassDescriptor): void;
   /** Remove a user pass by name; returns true if one was registered. */

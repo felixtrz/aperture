@@ -92,7 +92,13 @@ interface WebGpuAppPassDescriptorBase {
 
 export interface WebGpuAppRenderPassDescriptor extends WebGpuAppPassDescriptorBase {
   readonly kind?: "render";
-  /** Render targets written this pass (a transient, history, or the swapchain). */
+  /**
+   * Render targets declared by this pass. M3-T7 scope: a render pass is currently
+   * drawn over the `"scene-color"` overlay target with LOAD (depth-tested against
+   * scene depth); a declared write to a transient/history/swapchain is NOT yet
+   * honored for render passes and is reported as a diagnostic. Use a compute pass
+   * for arbitrary writable targets (those DO honor their declared writes).
+   */
   readonly writes: readonly WebGpuAppPassWriteInput[];
 }
 

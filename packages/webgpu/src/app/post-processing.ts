@@ -825,6 +825,21 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
         userPassNodeNames.push(built.name);
         plannedCommands += built.commands.length;
       } else {
+        // M3-T7 scope (audit B5): a user RENDER pass is drawn over scene-color with
+        // LOAD; a declared write to anything other than scene-color is not honored
+        // for render passes (compute passes do honor their declared transient
+        // writes). Surface the coercion instead of dropping it silently.
+        const coercedWrites = (descriptor.writes ?? [])
+          .map((write) => (typeof write === "string" ? write : write.handle))
+          .filter((handle) => handle !== "scene-color");
+        if (coercedWrites.length > 0) {
+          diagnostics.push({
+            code: "webgpu.userPass.renderWriteCoercedToSceneColor",
+            severity: "warning",
+            message: `User render pass '${built.name}' declared write target(s) ${JSON.stringify(coercedWrites)} that are not honored; it is drawn over scene-color (LOAD). Use a compute pass for arbitrary writable targets, or write to "scene-color".`,
+            data: { pass: built.name, coercedWrites },
+          });
+        }
         const plan = buildFrameBoundaryTargetPlan({
           context,
           colorTarget: {
