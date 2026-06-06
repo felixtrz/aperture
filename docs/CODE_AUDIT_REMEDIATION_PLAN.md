@@ -645,7 +645,7 @@ Suggested validation: `pnpm run check:examples`, `pnpm run check:progress`,
 
 ### DOC-05 - Add WebXR boundary decision or relax plan gate
 
-- Status: confirmed-open.
+- Status: completed 2026-06-06.
 - Files: `docs/WEBXR_IMPLEMENTATION_PLAN.md`, `docs/DECISIONS.md`.
 - Problem: WebXR plan Phase 0 requires a decision record that does not exist.
 - Action: add the WebXR boundary decision to `docs/DECISIONS.md`, or relax the
@@ -723,8 +723,8 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 16    |
-| Confirmed open / executable           | 21    |
+| Completed                             | 17    |
+| Confirmed open / executable           | 20    |
 | Needs refinement but actionable       | 11    |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |
