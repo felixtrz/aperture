@@ -47,11 +47,6 @@ export interface SimulationWorkerErrorMessage {
   readonly [key: string]: unknown;
 }
 
-export type SimulationWorkerInboundMessage =
-  | SimulationWorkerReadyMessage
-  | SimulationWorkerSnapshotMessage
-  | SimulationWorkerErrorMessage;
-
 export interface SimulationWorkerSnapshotEvent {
   readonly snapshot: RenderSnapshot;
   readonly frame: number;

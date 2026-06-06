@@ -427,7 +427,7 @@ Status: implemented
   access types through `systems.ts`.
 - App system diagnostics now live in
   `packages/app/src/systems-diagnostics.ts`, preserving diagnostic collector
-  types and `assetDiagnosticFromSystemDiagnostic()` through `systems.ts`.
+  types through `systems.ts`.
 - App system asset handles, asset access, and GLTF/GLB asset loading now live in
   `packages/app/src/systems-assets.ts`, preserving public asset access and
   loaded-scene types through `systems.ts`.

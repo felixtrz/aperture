@@ -1,5 +1,3 @@
-import type { AssetDiagnostic } from "@aperture-engine/simulation";
-
 export interface SystemDiagnostics {
   info(code: string, data?: Record<string, unknown>): void;
   warn(code: string, data?: Record<string, unknown>): void;
@@ -44,16 +42,6 @@ export function createDiagnostics(): SystemDiagnostics {
     list() {
       return diagnostics.map((diagnostic) => ({ ...diagnostic }));
     },
-  };
-}
-
-export function assetDiagnosticFromSystemDiagnostic(
-  diagnostic: ApertureSystemDiagnostic,
-): AssetDiagnostic {
-  return {
-    code: diagnostic.code,
-    message: diagnostic.message,
-    severity: diagnostic.severity,
   };
 }
 

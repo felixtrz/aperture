@@ -399,12 +399,6 @@ export function webGpuPreparedEnvironmentAssetSetToJsonValue(
   };
 }
 
-export function webGpuPreparedEnvironmentAssetSetToJson(
-  set: WebGpuPreparedEnvironmentAssetSet,
-): string {
-  return JSON.stringify(webGpuPreparedEnvironmentAssetSetToJsonValue(set));
-}
-
 function prepareWebGpuAppEnvironmentAsset(input: {
   readonly app: object;
   readonly device: TextureGpuDeviceLike;

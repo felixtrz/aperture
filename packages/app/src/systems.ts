@@ -87,7 +87,6 @@ export type {
   ApertureSystemDiagnostic,
   SystemDiagnostics,
 } from "./systems/diagnostics.js";
-export { assetDiagnosticFromSystemDiagnostic } from "./systems/diagnostics.js";
 
 export type {
   ApertureEffectHandle,

@@ -105,18 +105,6 @@ export async function runApertureCli(
       });
     }
 
-    if (isPlannedCommand(command)) {
-      if (rest.some(isHelpFlag)) {
-        io.stdout(plannedCommandHelp(command));
-        return 0;
-      }
-
-      throw new ApertureCliError(
-        "aperture.cli.notImplemented",
-        `The '${command}' command is planned for Aperture AI tooling but is not implemented yet.`,
-      );
-    }
-
     throw new ApertureCliError(
       "aperture.cli.unknownCommand",
       `Unknown Aperture command '${command}'. Run 'aperture --help' for available commands.`,
@@ -161,17 +149,6 @@ Options:
   -h, --help           Show help.
   -v, --version        Show the CLI version.
 `;
-}
-
-function plannedCommandHelp(command: string): string {
-  return `The '${command}' command is part of the Aperture AI tooling plan but is not implemented yet.
-
-Run 'aperture --help' to see the current command surface.
-`;
-}
-
-function isPlannedCommand(_command: string): boolean {
-  return false;
 }
 
 function isHelpFlag(value: string): boolean {

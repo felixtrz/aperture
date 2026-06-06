@@ -1,4 +1,5 @@
 import { createNoopSimulationWorker } from "./noop-simulation-worker.js";
+import { markReadbackClearOk } from "./webgpu-readback.js";
 import {
   renderToTextureCanvasPlaneColor as canvasPlaneColor,
   renderToTextureCanvasSample as canvasSample,
@@ -1005,7 +1006,7 @@ async function drawRenderTargetTexturesToCanvas({
     loadOp: current.target.loadOp,
     drawCalls: previewDraws.length,
     samples: sampleLabels,
-    readback: aperture.markReadbackClearOk?.(readback, true) ?? readback,
+    readback: markReadbackClearOk(readback, true),
   };
 }
 

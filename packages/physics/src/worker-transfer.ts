@@ -375,7 +375,7 @@ export function createPhysicsWorkerBackendEndpoint(
   };
 }
 
-export function executePhysicsWorkerAction(
+function executePhysicsWorkerAction(
   backend: PhysicsBackend,
   message: PhysicsWorkerActionMessage,
 ) {
@@ -438,7 +438,7 @@ export function executePhysicsWorkerAction(
   }
 }
 
-export function summarizePhysicsCommands(
+function summarizePhysicsCommands(
   buffer: PhysicsCommandBuffer,
 ): PhysicsWorkerTransferCommandReport {
   let upsertBodyCount = 0;
@@ -475,16 +475,6 @@ export function summarizePhysicsCommands(
     destroyJointCount,
     otherCommandCount,
   };
-}
-
-export function estimatePhysicsTransferableResultBytes(
-  packet: PhysicsTransferableResultPacket,
-): number {
-  return (
-    packet.bodyFloats.byteLength +
-    packet.bodySleeping.byteLength +
-    estimateStructuredCloneBytes(packet)
-  );
 }
 
 function createTransportReport(

@@ -255,33 +255,6 @@ export function readWebGpuAppSnapshotChangeSet(
     : null;
 }
 
-export function estimateSharedSnapshotTransportReduction(input: {
-  readonly snapshot: Pick<
-    RenderSnapshot,
-    "transforms" | "viewMatrices" | "bones" | "instanceTints" | "quads"
-  >;
-  readonly packetByteLength: number;
-}): {
-  readonly transferableBytes: number;
-  readonly sharedArrayBufferPerFrameBytes: number;
-  readonly reductionRatio: number;
-} {
-  const transferableBytes =
-    input.snapshot.transforms.byteLength +
-    input.snapshot.viewMatrices.byteLength +
-    (input.snapshot.bones?.byteLength ?? 0) +
-    (input.snapshot.instanceTints?.byteLength ?? 0) +
-    (input.snapshot.quads?.instanceFloats.byteLength ?? 0) +
-    (input.snapshot.quads?.instanceWords.byteLength ?? 0) +
-    input.packetByteLength;
-
-  return {
-    transferableBytes,
-    sharedArrayBufferPerFrameBytes: 0,
-    reductionRatio: transferableBytes === 0 ? 0 : 1,
-  };
-}
-
 function createSharedSnapshotTransportOptions(
   options: WebGpuAppSharedSnapshotTransportOptions = {},
 ): CreateSharedSnapshotTransportOptions {

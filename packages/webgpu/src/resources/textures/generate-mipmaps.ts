@@ -100,13 +100,6 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4f {
 }
 `;
 
-export function fullMipLevelCountForTextureSize(
-  width: number,
-  height: number,
-): number {
-  return Math.floor(Math.log2(Math.max(width, height))) + 1;
-}
-
 export function canGenerateTextureMipmaps(format: string): boolean {
   switch (format) {
     case "rgba8unorm":
