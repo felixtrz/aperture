@@ -17,10 +17,10 @@ The default route is:
    `ecs_pause` / `ecs_snapshot` / edit-or-command / `ecs_step` or
    `ecs_step_and_diff` / query / `ecs_diff`.
 
-The dedicated physics-worker route is now Rapier-first and transfer-based. It is
-not the default gameplay path until profiling shows the extra protocol is worth
-it for real scenes, but it now owns the same backend-side query/debug/control
-hooks needed by the browser worker-mode route.
+The dedicated physics-worker route is now Rapier-first and transfer-based. It
+owns backend-side query/debug/control hooks needed by the browser worker-mode
+route, but it is not the next product focus. Keep the generated simulation
+worker as the default gameplay and agent-proof route.
 
 ## Implemented
 
@@ -84,19 +84,29 @@ The current dedicated route is transfer-based, not shared-ECS mutation:
   geometry in a browser route.
 
 This preserves ECS ownership and keeps render extraction downstream of ECS
-state. Before making this route the default, it still needs profiling against
-the simulation-worker route and longer-running scene coverage.
+state. Do not promote this route by default without a future explicit decision.
+
+## Asset-Backed Collider Plan
+
+The next product slice is asset-backed collider cooking plus a large-scale
+simulation-worker example. See `docs/PHYSICS_ASSET_COLLIDER_PLAN.md`.
+
+The plan keeps `@aperture-engine/physics` backend-neutral, adapts render
+`MeshAsset` CPU geometry through a provider boundary, cooks Rapier
+`convexHull`, `trimesh`, and static `heightfield` colliders, and proves the path
+through generated-worker pause/step/query/diff plus a large-scale browser
+example.
 
 ## Remaining Work
 
-1. Mesh and heightfield collider cooking for Rapier asset-backed colliders.
+1. Mesh and heightfield collider cooking for Rapier asset-backed colliders,
+   including a large-scale simulation-worker browser example.
 2. Broader gameplay semantics around contact filtering, sensors, and controller
    edge cases.
 3. Generic joint descriptor design or explicit permanent exclusion.
 4. Native joint impulse readback, automatic break-force enforcement, motor force
    limits, and paired non-fixed body-B frame semantics.
-5. Dedicated worker profiling against the simulation-worker route.
-6. Longer-running E2E/benchmark coverage for larger physics scenes.
+5. Longer-running E2E/benchmark coverage for larger physics scenes.
 
 ## Verification Pattern
 

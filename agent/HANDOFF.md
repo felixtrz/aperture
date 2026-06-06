@@ -1,6 +1,6 @@
 # Handoff — Rapier Physics Worker Action Route
 
-**Updated:** 2026-06-06 09:49 PDT
+**Updated:** 2026-06-06 10:13 PDT
 
 This run kept the physics line Rapier-first, refactored oversized physics
 backend entrypoints, and moved the dedicated worker route from a body-packet
@@ -56,8 +56,8 @@ worker: ECS authoring produces backend-neutral commands, Rapier steps at the
 fixed-step boundary, and writeback mutates ECS state before render extraction.
 The dedicated physics-worker path is now a Rapier transferable route with
 off-thread step/writeback and worker-owned query/debug/control actions. It
-should still not become the default route until larger-scene profiling shows the
-extra protocol is worthwhile for Aperture.
+should remain a supported proof route rather than the next product focus unless
+a future explicit decision promotes it.
 
 ## Known Gaps
 
@@ -67,12 +67,13 @@ extra protocol is worthwhile for Aperture.
   readback, motor force limits, and paired non-fixed body-B frame semantics
   remain unsupported.
 - The dedicated physics worker now owns the core backend query/control/debug
-  hooks, but still needs larger-scene profiling and broader gameplay/E2E
-  coverage before it should displace the generated simulation-worker workflow.
+  hooks, but it is not the next focus and should not displace the generated
+  simulation-worker workflow without a future explicit decision.
 
 ## Recommended Next Task
 
-Add a larger-scene Rapier dedicated-worker benchmark/proof route that compares
-simulation-worker and dedicated-worker latency, transfer bytes, query timing,
-and debug-geometry costs under body-heavy, query-heavy, and character-heavy
-pressure.
+Implement the plan in `docs/PHYSICS_ASSET_COLLIDER_PLAN.md`: Rapier
+asset-backed collider cooking for `convexHull`, `trimesh`, and static
+`heightfield`, generated-worker pause/step/query/diff proof, and a large-scale
+simulation-worker browser example with asset-backed terrain plus hundreds of
+dynamic bodies.

@@ -1,12 +1,9 @@
 # Current Task
 
-## START HERE — Profile Rapier Dedicated Worker Route
+## START HERE — Rapier Asset-Backed Colliders And Large-Scale Physics
 
 Current source state:
 
-- `58df7607` committed the older M6 rendering/content work: sprites follow-up,
-  MSDF text, UI quads, GPU particles, content showcase, quad snapshot
-  transport, and focused tests.
 - `73c29a62` committed the Rapier-first M10 physics foundation: physics
   packages, fixed-step runtime/app scheduling, ECS physics authoring/devtools,
   Rapier simulation-worker examples, benchmark route, and the first transferable
@@ -16,35 +13,49 @@ Current source state:
 - `dc63a842` added the Rapier dedicated-worker action protocol, proxy methods,
   backend dispatch, real worker-owned raycast/debug example data, and focused
   worker route tests.
-- The current Rapier dedicated physics-worker route now supports transferable
-  step/writeback plus worker-owned raycast, overlap/shape/point query,
-  character movement, sleep/wake, and debug-geometry actions.
 - Havok implementation remains removed from the shipped package graph. Current
   concrete backends are deterministic test physics and Rapier.
+- The dedicated Rapier physics-worker route remains supported, but the next
+  product work should not benchmark against it or promote it. Keep the generated
+  simulation-worker route as the default developer/agent workflow.
 
 Next concrete work:
 
-1. Add a larger-scene browser benchmark/proof mode that compares the generated
-   simulation-worker route with the dedicated Rapier physics-worker route.
-2. Report fixed-step timing, transfer bytes, worker action latency, body/readback
-   counts, ECS writeback/diff or deterministic state signatures, and WebGPU
-   pixel proof for both modes.
-3. Cover body-heavy, query-heavy, and character-heavy pressure without silently
-   falling back to the deterministic test backend.
-4. Keep the generated simulation worker as the default developer workflow unless
-   profiling data clearly justifies promoting the dedicated worker route.
+1. Implement Rapier asset-backed collider cooking for ECS-authored `convexHull`,
+   `trimesh`, and static `heightfield` colliders.
+2. Add a backend-neutral collider geometry provider so `@aperture-engine/physics`
+   does not import render assets and `@aperture-engine/physics-rapier` does not
+   reach into the app asset registry directly.
+3. Reuse the existing render mesh spatial adapter to convert registered
+   `MeshAsset` CPU geometry into backend-neutral triangle mesh geometry.
+4. Prove generated-worker pause/snapshot/edit-or-command/step/query/diff over a
+   real asset-backed collider path.
+5. Add a large-scale simulation-worker browser example with asset-backed terrain
+   and hundreds of dynamic primitive bodies.
 
-Reference anchor: `references/bevy/crates/bevy_tasks/src/task_pool.rs` and
-`references/bevy/crates/bevy_ecs/src/schedule/executor/multi_threaded.rs` for
-task/schedule separation patterns.
+Plan document: `docs/PHYSICS_ASSET_COLLIDER_PLAN.md`.
+
+Reference anchors:
+
+- `references/bevy/crates/bevy_mesh/src/lib.rs`
+- `references/bevy/crates/bevy_mesh/src/index.rs`
+- `packages/render/src/mesh/spatial-adapter.ts`
+- `packages/physics-rapier/src/colliders.ts`
+
+Acceptance criteria:
+
+- Rapier cooks at least one `trimesh` or `heightfield` collider from ECS
+  asset-backed collider authoring in the simulation-worker route.
+- Missing/invalid collider assets remain structured diagnostics.
+- Dynamic non-convex asset colliders do not silently run.
+- `examples/physics-large-scale.html` proves a larger scene with asset-backed
+  terrain and hundreds of dynamic bodies.
+- Focused Rapier/generated-worker tests, the new large-scale Playwright test,
+  and `pnpm run check` pass.
 
 Follow-up visible-feature task:
 
-Add mesh/heightfield collider cooking for Rapier asset colliders, with ECS
-pause/edit/step/diff coverage and a browser route that proves a trimesh or
-heightfield collider affects physics queries and writeback.
-
-Reference anchor: `references/bevy/crates/bevy_mesh/src/primitives` and
-`references/bevy/crates/bevy_pbr/src/render/mesh.rs` for asset-to-runtime
-preparation boundaries, plus Rapier collider descriptor docs in the installed
-`@dimforge/rapier3d-compat` package.
+After asset-backed colliders and the large-scale example are green, continue the
+remaining M10 physics semantics: enforceable motor force caps, automatic
+`breakForce` / impulse-driven joint breaks, native joint impulse readback, and
+broader paired non-fixed joint frame semantics.

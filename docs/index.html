@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-06 16:49 UTC</dd>
+            <dd>2026-06-06 17:13 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -553,11 +553,12 @@
               step/writeback plus worker-owned raycast, overlap/shape/point
               query, character movement, sleep/wake, and debug-geometry actions;
               the simulation-worker route remains the primary
-              pause/snapshot/edit-or-command/step/diff workflow until profiling
-              shows the extra protocol is worthwhile. Generic joint descriptors
-              now report <code>physics.joint.unsupported</code> and clear stale
-              backend constraints instead of throwing or leaving old constraints
-              active. PHYS-11 now also exposes JSON-safe debug summaries:
+              pause/snapshot/edit-or-command/step/diff workflow while the next
+              product focus moves to asset-backed colliders and a large-scale
+              simulation example. Generic joint descriptors now report
+              <code>physics.joint.unsupported</code> and clear stale backend
+              constraints instead of throwing or leaving old constraints active.
+              PHYS-11 now also exposes JSON-safe debug summaries:
               <code>context.physics.debugSummary()</code> and generated-worker
               <code>physics_debug_summary</code> report line counts,
               finite/invalid counts, color buckets, and bounds over the same
@@ -957,8 +958,8 @@
               command, <code>ecs_step</code>, query the post-step backend state,
               then <code>ecs_diff</code>. The dedicated Rapier physics-worker
               browser transport now exists for transfer-based step/writeback and
-              backend-owned actions; larger-scene profiling remains pending
-              before it becomes the default gameplay route.
+              backend-owned actions, but it remains a supported proof route
+              pending a future explicit promotion decision.
               <code>docs/research/PHYSICS_BACKEND_COMPARISON.md</code> now
               records the partial PHYS-17 backend comparison: current package
               facts for Rapier and future Havok/Jolt candidates; implemented
@@ -1059,10 +1060,10 @@
               rotation writeback, or additional joint/gameplay semantics through
               that harness. Use the dedicated Rapier physics-worker route for
               transfer and worker-owned-action coverage, but keep the generated
-              simulation worker as the default developer route until
-              larger-scene profiling shows a third worker is worth the protocol
-              cost; resume <code>M10-T3</code> WebXR separately when physics no
-              longer needs this focus.
+              simulation worker as the default developer route. Next focus is
+              asset-backed collider cooking plus a large-scale physics example;
+              resume <code>M10-T3</code> WebXR separately when physics no longer
+              needs this focus.
             </dd>
           </dl>
         </aside>
@@ -4871,23 +4872,15 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Continue the active
-                physics plan inside the generated simulation worker: keep adding
-                gameplay physics semantics through
-                pause/snapshot/edit/step/query/diff coverage, with render
-                interpolation, body/collider/joint authoring edits, raycast and
-                shape-query tools, event-family summaries, and post-physics
-                interaction picking and compound child colliders now covered by
-                the same route. Next unresolved semantics are enforceable force
-                limits, automatic <code>breakForce</code>/impulse-driven joint
-                breaks, native joint impulse readback, broader paired
-                joint-frame semantics (now reported when unsupported), or
-                additional gameplay physics semantics beyond the current helper
-                surface. Keep the generated simulation-worker route as the
-                default developer workflow while profiling the dedicated Rapier
-                physics-worker action route before promoting the extra protocol;
-                resume <code>M10-T3</code> WebXR separately when physics no
-                longer needs this focus.
+                <span class="badge amber">next</span> Implement Rapier
+                asset-backed collider cooking for ECS-authored
+                <code>convexHull</code>, <code>trimesh</code>, and static
+                <code>heightfield</code> colliders, then prove the path through
+                generated-worker pause/snapshot/edit-or-command/step/query/diff
+                and a large-scale simulation-worker browser example with
+                asset-backed terrain plus hundreds of dynamic bodies. Keep the
+                dedicated Rapier physics-worker route supported, but do not make
+                route comparison the next product task.
               </li>
               <li>
                 <span class="badge green">done</span> Custom WGSL mixed

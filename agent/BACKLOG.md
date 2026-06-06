@@ -59,37 +59,37 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Add a larger-scene Rapier dedicated-worker benchmark/proof route that compares
-the generated simulation-worker path with the dedicated physics-worker path
-under body-heavy, query-heavy, and character-heavy pressure.
+Implement Rapier asset-backed collider cooking and prove it with a large-scale
+simulation-worker physics example.
 
-Category: `runtime-orchestration`
+Category: `simulation`
 
-Reference anchor: `references/bevy/crates/bevy_tasks/src/task_pool.rs` and
-`references/bevy/crates/bevy_ecs/src/schedule/executor/multi_threaded.rs` for
-task/schedule separation patterns that keep simulation authoritative while
-parallel work is profiled.
+Reference anchor: `references/bevy/crates/bevy_mesh/src/lib.rs`,
+`references/bevy/crates/bevy_mesh/src/index.rs`, existing
+`packages/render/src/mesh/spatial-adapter.ts`, and
+`packages/physics-rapier/src/colliders.ts`.
 
 Acceptance criteria:
 
-- A browser route or existing physics example mode publishes comparable JSON
-  status for simulation-worker and dedicated Rapier physics-worker execution.
-- The report includes fixed-step timing, transfer bytes, worker action latency
-  for raycast/debug/control calls, body/readback/writeback counts, and a
-  deterministic post-step ECS diff or equivalent state signature.
-- Playwright coverage proves both modes run, produce non-clear WebGPU pixels,
-  and report finite comparable metrics without silently falling back to the
-  deterministic test backend.
+- `@aperture-engine/physics` exposes a backend-neutral collider geometry
+  provider contract without importing render/app/Rapier packages.
+- Rapier cooks ECS-authored `convexHull`, `trimesh`, and static `heightfield`
+  colliders from provider geometry, while missing/invalid assets remain
+  structured diagnostics.
+- Generated-worker pause/snapshot/edit-or-command/step/query/diff proves at
+  least one real asset-backed collider path.
+- `examples/physics-large-scale.html` publishes JSON status for a larger
+  simulation-worker scene with asset-backed terrain and hundreds of dynamic
+  primitive bodies.
+- Playwright coverage proves the large-scale route renders non-clear WebGPU
+  pixels, reports Rapier simulation-worker execution, nonzero body/collider and
+  writeback counts, and zero asset-shape unsupported features.
 
 Follow-up visible-feature task:
 
-Add Rapier mesh/heightfield collider cooking for asset-backed colliders, with
-ECS pause/edit/step/diff coverage and a browser route proving a trimesh or
-heightfield collider affects physics queries and writeback.
-
-Reference anchor: `references/bevy/crates/bevy_mesh/src/primitives` and
-Rapier collider construction docs from the installed
-`@dimforge/rapier3d-compat` package.
+Continue remaining M10 physics semantics: enforceable motor force caps,
+automatic `breakForce` / impulse-driven joint breaks, native joint impulse
+readback, and broader paired non-fixed joint frame semantics.
 
 ## Historical M10 Physics Notes
 
@@ -448,9 +448,9 @@ and compound child-collider body/collider separation route;
 use the
 generated-worker pause/snapshot/command-or-edit/step/diff harness when adding
 those semantics.
-Concrete browser physics-worker transport/runtime modes are deferred until
-profiling shows useful headroom and the same pause/snapshot/edit/step/diff
-semantics can be preserved. The
+Concrete browser physics-worker transport/runtime modes are supported as a proof
+route, but they are not the next focus unless a future explicit decision
+promotes them. The
 older Wave 3 queue below remains valid when the active M10 goal is no longer
 steering the run.
 
