@@ -1,6 +1,7 @@
 # Unified Example Testing Infrastructure Plan
 
 Updated: 2026-05-24
+Status: implemented for render-control and reusable example validation.
 
 ## Purpose
 

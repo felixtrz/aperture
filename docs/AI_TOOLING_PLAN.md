@@ -1,5 +1,7 @@
 # Aperture AI Tooling Plan
 
+Status: plan
+
 ## Summary
 
 Aperture should offer first-class AI tooling for apps built with the runtime:

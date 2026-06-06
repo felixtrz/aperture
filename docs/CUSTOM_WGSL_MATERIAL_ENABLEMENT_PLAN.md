@@ -1,7 +1,7 @@
 # Custom WGSL Material Enablement Plan
 
 Date: 2026-05-27
-Status: v1 implemented; storage-buffer and shader-import follow-ups deferred
+Status: implemented for v1; storage-buffer and shader-import follow-ups deferred
 
 ## Purpose
 

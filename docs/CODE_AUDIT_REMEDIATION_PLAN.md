@@ -679,11 +679,15 @@ Suggested validation: `pnpm run check:examples`, `pnpm run check:progress`,
 
 ### DOC-08 - Add plan-doc status convention and freshness check
 
-- Status: confirmed-open.
+- Status: completed 2026-06-06.
 - Action: add a lightweight status convention such as
   `Status: plan|implemented|superseded`, then add a script or extend
   `check:progress` to catch drift.
 - Accept: stale plan docs are mechanically detectable.
+- Result: added `docs/DOC_STATUS_CONVENTION.md` and
+  `scripts/check-plan-doc-status.mjs`; `pnpm run check:progress` now verifies
+  top-level plan/proposal status lines plus explicit active/superseded research
+  plan naming.
 
 ### DOC-09 - Add dead-code tooling in CI
 
@@ -730,8 +734,8 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 23    |
-| Confirmed open / executable           | 14    |
+| Completed                             | 24    |
+| Confirmed open / executable           | 13    |
 | Needs refinement but actionable       | 11    |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |

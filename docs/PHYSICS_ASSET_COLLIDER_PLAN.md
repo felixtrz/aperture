@@ -1,6 +1,7 @@
 # Physics Asset-Backed Collider Plan
 
 Updated: 2026-06-06
+Status: implemented
 
 ## Direction
 

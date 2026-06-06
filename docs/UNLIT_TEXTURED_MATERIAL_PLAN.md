@@ -1,5 +1,7 @@
 # Texture-Backed Unlit Material Plan
 
+Status: implemented
+
 This document defines the smallest texture-backed unlit slice that preserves
 Aperture's ECS/render boundary.
 

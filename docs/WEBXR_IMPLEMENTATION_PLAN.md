@@ -1,6 +1,7 @@
 # WebXR Implementation Plan
 
 Last updated: 2026-06-06
+Status: plan
 
 This plan lays out how Aperture should add WebXR while preserving the project
 direction in `docs/NORTH_STAR.md`: ECS is the source of truth, rendering is a

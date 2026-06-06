@@ -1,5 +1,7 @@
 # Aperture RAG Reference Plan
 
+Status: plan
+
 ## Summary
 
 Aperture should replace the current lexical reference index with a full

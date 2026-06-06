@@ -1,6 +1,7 @@
 # Physics Implementation Plan
 
 Updated: 2026-06-06
+Status: implemented for the Rapier-first foundation; follow-ups remain below.
 
 ## Direction
 
