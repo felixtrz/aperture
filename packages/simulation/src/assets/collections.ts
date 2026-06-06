@@ -198,12 +198,6 @@ export class TypedAssetCollection<TKind extends AssetKind, TAsset> {
   }
 }
 
-export function createTypedAssetCollection<TKind extends AssetKind, TAsset>(
-  options: TypedAssetCollectionOptions<TKind, TAsset>,
-): TypedAssetCollection<TKind, TAsset> {
-  return new TypedAssetCollection(options);
-}
-
 function mergeAssetHandles(
   first: readonly AssetHandle[],
   second: readonly AssetHandle[],

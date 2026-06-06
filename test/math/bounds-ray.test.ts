@@ -4,8 +4,6 @@ import {
   composeTrsMatrix,
   intersectRayAabb,
   intersectRaySphere,
-  rayIntersectsAabb,
-  rayIntersectsSphere,
   transformAabb,
   unionAabb,
   type Aabb,
@@ -47,10 +45,10 @@ describe("Aperture bounds and ray math", () => {
       aabbHit?.point,
       wgpuVec3.addScaled(ray.origin, ray.direction, 1),
     );
-    expect(rayIntersectsAabb(ray, aabb)).toBe(true);
+    expect(intersectRayAabb(ray, aabb)).not.toBeNull();
     expect(
-      rayIntersectsAabb({ origin: [-1, 2, 0], direction: [1, 0, 0] }, aabb),
-    ).toBe(false);
+      intersectRayAabb({ origin: [-1, 2, 0], direction: [1, 0, 0] }, aabb),
+    ).toBeNull();
 
     const sphere: BoundingSphere = { center: [0, 0, 0], radius: 1 };
     const sphereHit = intersectRaySphere(
@@ -61,8 +59,8 @@ describe("Aperture bounds and ray math", () => {
     expect(sphereHit?.distance).toBeCloseTo(2, CLOSE_TO);
     expectVec3(sphereHit?.point, [0, 0, -1]);
     expect(
-      rayIntersectsSphere({ origin: [3, 0, 0], direction: [0, 0, 1] }, sphere),
-    ).toBe(false);
+      intersectRaySphere({ origin: [3, 0, 0], direction: [0, 0, 1] }, sphere),
+    ).toBeNull();
   });
 });
 

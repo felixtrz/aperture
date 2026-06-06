@@ -26,7 +26,23 @@ export * from "./glb-source-loader-output-summary.js";
 export * from "./glb-source-loader-status.js";
 export * from "./glb-uri-loader.js";
 export * from "./hdr-rgbe-loader.js";
-export * from "./ktx2-decoder.js";
+export {
+  createKtx2TextureCompressionSupportFromFeatures,
+  decodeKtx2TextureDataAsync,
+} from "./ktx2-decoder.js";
+export { parseKtx2Container } from "./ktx2-container.js";
+export { createBasisUniversalKtx2Transcoder } from "./ktx2-basis-transcoder.js";
+export type {
+  Ktx2BasisTranscodeOptions,
+  Ktx2BasisTranscoder,
+  Ktx2BasisTranscoderSource,
+  Ktx2ContainerInfo,
+  Ktx2DecodeOptions,
+  Ktx2FeatureSetLike,
+  Ktx2LevelIndex,
+  Ktx2TextureCompressionFeature,
+  Ktx2TextureCompressionSupport,
+} from "./ktx2-types.js";
 export * from "./draco-decoder.js";
 export * from "./meshopt-decoder.js";
 export * from "./gltf-source-loader-facade.js";

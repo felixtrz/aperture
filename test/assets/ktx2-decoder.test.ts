@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { readFile } from "node:fs/promises";
 import {
   createBasisUniversalKtx2Transcoder,
-  decodeKtx2TextureData,
   decodeKtx2TextureDataAsync,
   parseKtx2Container,
 } from "@aperture-engine/render";
+import { decodeKtx2TextureData } from "../../packages/render/src/assets/ktx2-decoder.js";
 
 describe("KTX2 decoder", () => {
   it("parses and decodes uncompressed RGBA8 KTX2 payloads", () => {

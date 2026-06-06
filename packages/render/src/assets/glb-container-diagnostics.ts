@@ -5,7 +5,7 @@ import type {
   GlbContainerDiagnosticSeverity,
 } from "./glb-container-types.js";
 
-export function createGlbContainerDiagnostic(
+function createGlbContainerDiagnostic(
   input: GlbContainerDiagnosticInput,
 ): GlbContainerDiagnostic {
   const diagnostic: {

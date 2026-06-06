@@ -147,7 +147,7 @@ tests for touched package, `pnpm run build`, `pnpm run typecheck`, and
 
 ### DC-08 - Remove or wire only the unused character-settings wrapper
 
-- Status: needs-refinement.
+- Status: completed 2026-06-06.
 - File: `packages/physics/src/validation.ts`.
 - Problem: public `validateCharacterControllerSettings()` wrapper has no
   callers, but the underlying validation logic is live through
@@ -185,7 +185,7 @@ tests for touched package, `pnpm run build`, `pnpm run typecheck`, and
 
 ### DC-12 - Relocate or rewrite test-only simulation helpers
 
-- Status: needs-refinement.
+- Status: completed 2026-06-06.
 - Files: `packages/simulation/src/math/ray.ts`,
   `packages/simulation/src/assets/collections.ts`.
 - Problem: `rayIntersectsAabb`, `rayIntersectsSphere`, and
@@ -198,7 +198,7 @@ tests for touched package, `pnpm run build`, `pnpm run typecheck`, and
 
 ### DC-13 - De-export render asset internals precisely
 
-- Status: needs-refinement.
+- Status: completed 2026-06-06.
 - Files: KTX2 decoder/transcoder and GLB container diagnostics modules.
 - Problem: cleanup is real, but body deletion is too broad.
 - Action:
@@ -723,9 +723,9 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 12    |
+| Completed                             | 15    |
 | Confirmed open / executable           | 22    |
-| Needs refinement but actionable       | 14    |
+| Needs refinement but actionable       | 11    |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |
 

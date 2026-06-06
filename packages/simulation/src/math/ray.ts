@@ -47,14 +47,6 @@ export function intersectRayAabb(
   return rayHitAt(ray, tmin);
 }
 
-export function rayIntersectsAabb(
-  ray: Ray,
-  aabb: Aabb,
-  maxDistance = Number.POSITIVE_INFINITY,
-): boolean {
-  return intersectRayAabb(ray, aabb, maxDistance) !== null;
-}
-
 export function intersectRaySphere(
   ray: Ray,
   sphere: BoundingSphere,
@@ -90,14 +82,6 @@ export function intersectRaySphere(
   }
 
   return rayHitAt(ray, distance);
-}
-
-export function rayIntersectsSphere(
-  ray: Ray,
-  sphere: BoundingSphere,
-  maxDistance = Number.POSITIVE_INFINITY,
-): boolean {
-  return intersectRaySphere(ray, sphere, maxDistance) !== null;
 }
 
 function rayHitAt(ray: Ray, distance: number): RayHit {

@@ -5,7 +5,7 @@ import {
   createMeshHandle,
   createSamplerHandle,
   createTextureHandle,
-  createTypedAssetCollection,
+  TypedAssetCollection,
   type AssetDiagnostic,
 } from "@aperture-engine/simulation";
 import {
@@ -150,7 +150,7 @@ describe("typed asset collections", () => {
 
   it("preserves optional source texel data on texture assets", () => {
     const assets = createRenderAssetCollections();
-    const textures = createTypedAssetCollection<"texture", TextureAsset>({
+    const textures = new TypedAssetCollection<"texture", TextureAsset>({
       registry: assets.registry,
       kind: "texture",
       createHandle: createTextureHandle,
@@ -217,7 +217,7 @@ describe("typed asset collections", () => {
     }
 
     const registry = new AssetRegistry();
-    const meshes = createTypedAssetCollection<"mesh", HeadlessMesh>({
+    const meshes = new TypedAssetCollection<"mesh", HeadlessMesh>({
       registry,
       kind: "mesh",
       createHandle: createMeshHandle,

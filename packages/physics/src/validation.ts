@@ -146,16 +146,6 @@ export function validatePhysicsCharacterMove(
   return diagnostics;
 }
 
-export function validateCharacterControllerSettings(
-  input: PhysicsCharacterControllerSettings | undefined,
-): PhysicsValidationDiagnostic[] {
-  const diagnostics: PhysicsValidationDiagnostic[] = [];
-
-  validateCharacterControllerSettingsInto(input, diagnostics);
-
-  return diagnostics;
-}
-
 function validateCharacterControllerSettingsInto(
   input:
     | PhysicsCharacterControllerSettings

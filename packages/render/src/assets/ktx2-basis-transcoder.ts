@@ -33,7 +33,7 @@ export async function createBasisUniversalKtx2Transcoder(
   };
 }
 
-export function transcodeBasisKtx2TextureData(
+function transcodeBasisKtx2TextureData(
   source: ArrayBuffer | ArrayBufferView,
   basisModule: BasisModule,
   options: Ktx2BasisTranscodeOptions,
