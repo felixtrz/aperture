@@ -24,9 +24,15 @@ import {
   type InteractionAccess,
 } from "../interaction/access.js";
 import { createMaterialAccess, type MaterialAccess } from "./materials.js";
+import { createPhysicsAccess, type PhysicsAccess } from "./physics.js";
 import { createPrefabAccess, type PrefabAccess } from "./prefabs.js";
 import { createSignalStore, type SignalStore } from "./signals.js";
 import { createSpawnCommands, type SpawnCommands } from "./spawn/index.js";
+import {
+  createFixedStepAccess,
+  type FixedStepAccess,
+  type FixedStepTaskRegistrar,
+} from "./fixed-step.js";
 
 // This interface is intentionally empty so generated app-local declarations can
 // augment it with kind-specific action properties.
@@ -53,6 +59,8 @@ export interface ApertureSystemContext {
   readonly hierarchy: HierarchyAccess;
   readonly prefabs: PrefabAccess;
   readonly materials: MaterialAccess;
+  readonly physics: PhysicsAccess;
+  readonly fixedStep: FixedStepAccess;
   readonly interaction: InteractionAccess;
   readonly diagnostics: SystemDiagnostics;
   readonly effects: ScheduledEffects;
@@ -64,6 +72,7 @@ export interface CreateApertureSystemContextOptions {
   readonly config?: ApertureConfig;
   readonly assetLoader?: ApertureAssetLoader;
   readonly gltfAssetDecoders?: SystemGltfAssetDecoderProvider;
+  readonly registerFixedStepTask?: FixedStepTaskRegistrar;
 }
 
 const APERTURE_SYSTEM_CONTEXT_KEY = "aperture.systemContext";
@@ -93,7 +102,13 @@ export function createApertureSystemContext(
       : { gltfAssetDecoders: options.gltfAssetDecoders }),
   });
   const commands = createCommandAccess(assets);
-  const spatial = createSpatialQueries();
+  const physics = createPhysicsAccess({ world: options.world });
+  const spatial = createSpatialQueries({
+    colliders: {
+      world: options.world,
+      getPhysicsBackend: () => physics.getBackend(),
+    },
+  });
   const spawn = createSpawnCommands({
     world: options.world,
     registry: options.assetsRegistry,
@@ -108,6 +123,7 @@ export function createApertureSystemContext(
   const hierarchy = createHierarchyAccess(options.world);
   const prefabs = createPrefabAccess(options.assetsRegistry);
   const materials = createMaterialAccess(options.assetsRegistry);
+  const fixedStep = createFixedStepAccess(options.registerFixedStepTask);
   const interaction = createInteractionAccess(options.world);
 
   const context: ApertureSystemContext = {
@@ -123,6 +139,8 @@ export function createApertureSystemContext(
     hierarchy,
     prefabs,
     materials,
+    physics,
+    fixedStep,
     interaction,
     diagnostics,
     effects: createScheduledEffects(),

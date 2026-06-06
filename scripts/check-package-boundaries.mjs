@@ -5,7 +5,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 
-export const DEFAULT_HEADLESS_PACKAGES = ["simulation", "render", "runtime"];
+export const DEFAULT_HEADLESS_PACKAGES = [
+  "simulation",
+  "physics",
+  "physics-rapier",
+  "render",
+  "runtime",
+];
 
 export const FORBIDDEN_WEBGPU_PACKAGE = "@aperture-engine/webgpu";
 

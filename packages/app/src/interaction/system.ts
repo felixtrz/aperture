@@ -1,10 +1,18 @@
-import { Pickable, PickablePrecision } from "@aperture-engine/render";
+import type { EcsWorld } from "@aperture-engine/simulation";
+import {
+  Pickable,
+  PickablePrecision,
+  extractUiLayout,
+  hitTestUiLayout,
+  type RenderDiagnostic,
+} from "@aperture-engine/render";
 import type { ApertureSystemContext } from "../systems/context.js";
 import type { InteractionRuntime } from "./access.js";
 
-// M7-T8: the per-frame interaction driver. The app frame loop (advanced.ts) invokes
-// this AFTER the spatial picking index is refreshed and BEFORE the user systems
-// update, so registered pointer handlers fire each frame in a deterministic order.
+// M7-T8: the per-frame interaction driver. The app frame loop (advanced.ts)
+// invokes this AFTER the spatial picking index is refreshed from same-frame
+// update + fixed-step physics writeback, so registered pointer handlers fire
+// each frame against the ECS state that will be extracted for rendering.
 // It consumes the already-forwarded primary pointer (no DOM listeners), casts the
 // camera ray (M7-T7) and the spatial picking ray (M1-T8), and feeds the result to
 // the interaction state machine. Headless/worker-safe.
@@ -23,8 +31,23 @@ export function runInteractionFrame(
 
   let hitEntity = null;
   let worldPoint: readonly [number, number, number] | null = null;
+  const uiDiagnostics: RenderDiagnostic[] = [];
+  const uiLayout = extractUiLayout(context.world as EcsWorld, uiDiagnostics, 0);
+  const uiHit = hitTestUiLayout({
+    nodes: uiLayout.nodes,
+    hitRegions: uiLayout.hitRegions,
+    position,
+  });
 
-  if (context.cameras.active.length > 0) {
+  if (uiHit !== null) {
+    hitEntity = uiHit.entity;
+    worldPoint = [uiHit.point.x, uiHit.point.y, 0];
+  }
+
+  if (
+    (uiHit === null || !uiHit.blocksInput) &&
+    context.cameras.active.length > 0
+  ) {
     const ray = context.cameras.main.rayFromPointer(position);
     const hit = context.spatial.raycastFirst(ray, {
       source: "bounds",

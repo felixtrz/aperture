@@ -6,7 +6,11 @@
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
   },
-  "references": [{ "path": "../simulation" }, { "path": "../render" }],
+  "references": [
+    { "path": "../simulation" },
+    { "path": "../physics" },
+    { "path": "../render" }
+  ],
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "node_modules"]
 }

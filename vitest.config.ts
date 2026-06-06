@@ -68,6 +68,25 @@ export default defineConfig({
           .pathname,
       },
       {
+        find: "@aperture-engine/physics/testing",
+        replacement: new URL(
+          "./packages/physics/src/testing.ts",
+          import.meta.url,
+        ).pathname,
+      },
+      {
+        find: "@aperture-engine/physics-rapier",
+        replacement: new URL(
+          "./packages/physics-rapier/src/index.ts",
+          import.meta.url,
+        ).pathname,
+      },
+      {
+        find: "@aperture-engine/physics",
+        replacement: new URL("./packages/physics/src/index.ts", import.meta.url)
+          .pathname,
+      },
+      {
         find: "@aperture-engine/render",
         replacement: new URL("./packages/render/src/index.ts", import.meta.url)
           .pathname,

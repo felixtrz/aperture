@@ -1,5 +1,11 @@
 import { updateSkeletonPalettes } from "./skinning-palette-system.js";
 import {
+  createSimulationFixedStepRunner,
+  type SimulationFixedStepCallback,
+  type SimulationFixedStepFrameReport,
+  type SimulationFixedStepOptions,
+} from "./fixed-step-schedule.js";
+import {
   Animation,
   createAnimationDriverState,
   updateAnimationDrivers,
@@ -51,6 +57,7 @@ import {
   Mesh,
   MorphTargetWeights,
   OcclusionQuery,
+  ParticleEmitter,
   RenderLayer,
   RenderOrder,
   ShadowCaster,
@@ -58,6 +65,13 @@ import {
   Skin,
   Sprite,
   Skybox,
+  UiHitTarget,
+  UiImage,
+  UiNode,
+  UiPanel,
+  UiScreen,
+  UiScroll,
+  UiText,
   Visibility,
   createCamera,
   createFog,
@@ -69,9 +83,17 @@ import {
   createMaterialSlots,
   createMorphTargetWeights,
   createOcclusionQuery,
+  createParticleEmitter,
   createSkin,
   createSprite,
   createSkybox,
+  createUiHitTarget,
+  createUiImage,
+  createUiNode,
+  createUiPanel,
+  createUiScreen,
+  createUiScroll,
+  createUiText,
   extractRenderSnapshot,
   replayGltfEcsAuthoringCommands,
   registerRenderAuthoringComponents,
@@ -86,11 +108,55 @@ import {
   type MaterialSlotsInput,
   type MorphTargetWeightsInput,
   type OcclusionQueryInput,
+  type ParticleEmitterInput,
   type RenderSnapshot,
   type SkinInput,
   type SpriteInput,
   type SkyboxInput,
+  type UiHitTargetInput,
+  type UiImageInput,
+  type UiNodeInput,
+  type UiPanelInput,
+  type UiScreenInput,
+  type UiScrollInput,
+  type UiTextInput,
 } from "@aperture-engine/render";
+import {
+  Collider,
+  ExternalForce,
+  ExternalImpulse,
+  KinematicTarget,
+  PhysicsCharacterController,
+  PhysicsDebug,
+  PhysicsGravity,
+  PhysicsJoint,
+  PhysicsMaterial,
+  PhysicsVelocity,
+  RigidBody,
+  createCollider,
+  createExternalForce,
+  createExternalImpulse,
+  createKinematicTarget,
+  createPhysicsCharacterController,
+  createPhysicsDebug,
+  createPhysicsGravity,
+  createPhysicsJoint,
+  createPhysicsMaterial,
+  createPhysicsVelocity,
+  createRigidBody,
+  registerPhysicsComponents,
+  type ColliderInput,
+  type ExternalForceInput,
+  type ExternalImpulseInput,
+  type KinematicTargetInput,
+  type PhysicsCharacterControllerInput,
+  type PhysicsDebugInput,
+  type PhysicsGravityInput,
+  type PhysicsJointInput,
+  type PhysicsMaterialInput,
+  type PhysicsVelocityInput,
+  type RigidBodyInput,
+} from "@aperture-engine/physics";
 
 export * from "./simulation-worker.js";
 export * from "./shared-snapshot-transport.js";
@@ -99,6 +165,8 @@ export * from "./animation-clip.js";
 export * from "./animation-mixer.js";
 export * from "./skinning-palette-system.js";
 export * from "./animation-driver-system.js";
+export * from "./fixed-step-schedule.js";
+export * from "@aperture-engine/physics";
 
 export interface SpawnContext {
   readonly app: SimulationApp;
@@ -152,12 +220,15 @@ export class SpinSystem extends SpinSystemBase {
 
 export interface SimulationStepResult {
   readonly transform: TransformResolutionReport;
+  readonly fixedStep: SimulationFixedStepFrameReport;
 }
 
 export interface SimulationApp {
   readonly world: EcsWorld;
   readonly assets: AssetRegistry;
   spawn(...initializers: SpawnEntityInitializer[]): Entity;
+  registerFixedStepTask(task: SimulationFixedStepCallback): () => void;
+  resetFixedStepClock(): void;
   registerSystem(
     system: Parameters<EcsWorld["registerSystem"]>[0],
   ): SimulationApp;
@@ -173,6 +244,7 @@ export interface CreateSimulationAppOptions {
   readonly world?: EcsWorld;
   readonly assets?: AssetRegistry;
   readonly worldOptions?: Partial<WorldOptions>;
+  readonly fixedStep?: SimulationFixedStepOptions | false;
 }
 
 export type CreateExtractionAppOptions = CreateSimulationAppOptions;
@@ -192,6 +264,10 @@ export function createSimulationApp(
   registerTransformComponents(world);
   registerMetadataComponents(world);
   registerRuntimeComponents(world);
+  const fixedStep = createSimulationFixedStepRunner(options.fixedStep, {
+    world,
+    assets,
+  });
 
   const app: SimulationApp = {
     world,
@@ -210,16 +286,26 @@ export function createSimulationApp(
       world.registerSystem(system);
       return this;
     },
+    registerFixedStepTask(task) {
+      return fixedStep.registerTask(task);
+    },
+    resetFixedStepClock() {
+      fixedStep.reset();
+    },
     step(delta = 0, time = 0) {
       world.update(delta, time);
       // Advance animation drivers (write joint/node LocalTransforms from the
       // mixer) AFTER user systems and BEFORE world-transform resolution (M2-T8).
       updateAnimationDrivers(world, delta);
+      // Fixed-step work runs after frame-rate ECS updates and animation writes,
+      // then before transform resolution so physics writeback can affect the
+      // extracted render snapshot in the same frame.
+      const fixedStepResult = fixedStep.step(delta, time);
       const transform = resolveWorldTransforms(world);
       // Compute skin joint palettes from same-frame resolved world transforms,
       // after resolution and before any extraction (M2-T6).
       updateSkeletonPalettes(world);
-      return { transform };
+      return { transform, fixedStep: fixedStepResult };
     },
   };
 
@@ -321,6 +407,70 @@ export function withSprite(
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(Sprite, createSprite(input));
+  };
+}
+
+export function withParticleEmitter(
+  input: ParticleEmitterInput,
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(ParticleEmitter, createParticleEmitter(input));
+  };
+}
+
+export function withUiScreen(
+  input: UiScreenInput = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(UiScreen, createUiScreen(input));
+  };
+}
+
+export function withUiNode(input: UiNodeInput = {}): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(UiNode, createUiNode(input));
+  };
+}
+
+export function withUiPanel(input: UiPanelInput = {}): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(UiPanel, createUiPanel(input));
+  };
+}
+
+export function withUiImage(input: UiImageInput): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(UiImage, createUiImage(input));
+  };
+}
+
+export function withUiText(input: UiTextInput): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(UiText, createUiText(input));
+  };
+}
+
+export function withUiHitTarget(
+  input: UiHitTargetInput = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(UiHitTarget, createUiHitTarget(input));
+  };
+}
+
+export function withUiScroll(
+  input: UiScrollInput = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(UiScroll, createUiScroll(input));
   };
 }
 
@@ -443,6 +593,108 @@ export function withRenderOrder(value = 0): SpawnEntityInitializer {
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(RenderOrder, { value });
+  };
+}
+
+export function withRigidBody(
+  input: RigidBodyInput = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerPhysicsComponents(context.world);
+    entity.addComponent(RigidBody, createRigidBody(input));
+  };
+}
+
+export function withCollider(
+  input: ColliderInput = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerPhysicsComponents(context.world);
+    entity.addComponent(Collider, createCollider(input));
+  };
+}
+
+export function withPhysicsVelocity(
+  input: PhysicsVelocityInput = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerPhysicsComponents(context.world);
+    entity.addComponent(PhysicsVelocity, createPhysicsVelocity(input));
+  };
+}
+
+export function withExternalForce(
+  input: ExternalForceInput = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerPhysicsComponents(context.world);
+    entity.addComponent(ExternalForce, createExternalForce(input));
+  };
+}
+
+export function withExternalImpulse(
+  input: ExternalImpulseInput = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerPhysicsComponents(context.world);
+    entity.addComponent(ExternalImpulse, createExternalImpulse(input));
+  };
+}
+
+export function withKinematicTarget(
+  input: KinematicTargetInput = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerPhysicsComponents(context.world);
+    entity.addComponent(KinematicTarget, createKinematicTarget(input));
+  };
+}
+
+export function withPhysicsGravity(
+  input: PhysicsGravityInput = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerPhysicsComponents(context.world);
+    entity.addComponent(PhysicsGravity, createPhysicsGravity(input));
+  };
+}
+
+export function withPhysicsCharacterController(
+  input: PhysicsCharacterControllerInput = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerPhysicsComponents(context.world);
+    entity.addComponent(
+      PhysicsCharacterController,
+      createPhysicsCharacterController(input),
+    );
+  };
+}
+
+export function withPhysicsMaterial(
+  input: PhysicsMaterialInput = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerPhysicsComponents(context.world);
+    entity.addComponent(PhysicsMaterial, createPhysicsMaterial(input));
+  };
+}
+
+export function withPhysicsJoint(
+  input: PhysicsJointInput = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerPhysicsComponents(context.world);
+    entity.addComponent(PhysicsJoint, createPhysicsJoint(input));
+  };
+}
+
+export function withPhysicsDebug(
+  input: PhysicsDebugInput = {},
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerPhysicsComponents(context.world);
+    entity.addComponent(PhysicsDebug, createPhysicsDebug(input));
   };
 }
 

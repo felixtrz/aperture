@@ -1,4 +1,5 @@
 import type { RenderSnapshot } from "@aperture-engine/render";
+import type { FixedStepClockOptions } from "@aperture-engine/physics";
 
 export const SIMULATION_WORKER_PROTOCOL = {
   connect: "aperture.simulation.connect",
@@ -11,7 +12,17 @@ export const SIMULATION_WORKER_PROTOCOL = {
 
 export interface SimulationWorkerStartOptions {
   readonly entityCapacity?: number;
+  readonly fixedStep?: false | SimulationWorkerFixedStepOptions;
+  readonly physicsInterpolation?: boolean | SimulationWorkerPhysicsInterpolationOptions;
   readonly [key: string]: unknown;
+}
+
+export interface SimulationWorkerFixedStepOptions extends FixedStepClockOptions {
+  readonly enabled?: boolean;
+}
+
+export interface SimulationWorkerPhysicsInterpolationOptions {
+  readonly enabled?: boolean;
 }
 
 export interface SimulationWorkerReadyMessage {
@@ -272,6 +283,8 @@ export interface RenderSnapshotBufferLease {
   readonly transforms: Float32Array;
   readonly viewMatrices: Float32Array;
   readonly instanceTints: Float32Array;
+  readonly quadInstanceFloats: Float32Array;
+  readonly quadInstanceWords: Uint32Array;
   readonly transfer: Transferable[];
 }
 
@@ -279,6 +292,8 @@ export interface RenderSnapshotBufferRequest {
   readonly transformFloats?: number;
   readonly viewMatrixFloats?: number;
   readonly instanceTintFloats?: number;
+  readonly quadInstanceFloats?: number;
+  readonly quadInstanceWords?: number;
 }
 
 export interface ReturnedRenderSnapshotBuffers {
@@ -286,6 +301,8 @@ export interface ReturnedRenderSnapshotBuffers {
   readonly transforms: Float32Array;
   readonly viewMatrices: Float32Array;
   readonly instanceTints?: Float32Array;
+  readonly quadInstanceFloats?: Float32Array;
+  readonly quadInstanceWords?: Uint32Array;
 }
 
 export interface RenderSnapshotBufferPoolStats {
@@ -318,6 +335,8 @@ export function createRenderSnapshotBufferPool(
       transformFloats: options.transformFloats ?? 0,
       viewMatrixFloats: options.viewMatrixFloats ?? 0,
       instanceTintFloats: options.instanceTintFloats ?? 0,
+      quadInstanceFloats: options.quadInstanceFloats ?? 0,
+      quadInstanceWords: options.quadInstanceWords ?? 0,
     }),
   );
 
@@ -326,7 +345,9 @@ export function createRenderSnapshotBufferPool(
       count +
       (slot.transformCapacity > 0 ? 1 : 0) +
       (slot.viewMatrixCapacity > 0 ? 1 : 0) +
-      (slot.instanceTintCapacity > 0 ? 1 : 0),
+      (slot.instanceTintCapacity > 0 ? 1 : 0) +
+      (slot.quadInstanceFloatCapacity > 0 ? 1 : 0) +
+      (slot.quadInstanceWordCapacity > 0 ? 1 : 0),
     0,
   );
 
@@ -344,11 +365,15 @@ export function createRenderSnapshotBufferPool(
       const transformFloats = request.transformFloats ?? 0;
       const viewMatrixFloats = request.viewMatrixFloats ?? 0;
       const instanceTintFloats = request.instanceTintFloats ?? 0;
+      const quadInstanceFloats = request.quadInstanceFloats ?? 0;
+      const quadInstanceWords = request.quadInstanceWords ?? 0;
 
       allocations += ensureSlotCapacity(slot, {
         transformFloats,
         viewMatrixFloats,
         instanceTintFloats,
+        quadInstanceFloats,
+        quadInstanceWords,
       });
       slot.inUse = true;
 
@@ -367,16 +392,30 @@ export function createRenderSnapshotBufferPool(
         0,
         instanceTintFloats,
       );
+      const quadInstanceFloatBuffer = new Float32Array(
+        slot.quadInstanceFloatBuffer,
+        0,
+        quadInstanceFloats,
+      );
+      const quadInstanceWordBuffer = new Uint32Array(
+        slot.quadInstanceWordBuffer,
+        0,
+        quadInstanceWords,
+      );
 
       return {
         id: slot.id,
         transforms,
         viewMatrices,
         instanceTints,
+        quadInstanceFloats: quadInstanceFloatBuffer,
+        quadInstanceWords: quadInstanceWordBuffer,
         transfer: renderSnapshotBufferTransferList({
           transforms,
           viewMatrices,
           instanceTints,
+          quadInstanceFloats: quadInstanceFloatBuffer,
+          quadInstanceWords: quadInstanceWordBuffer,
         }),
       };
     },
@@ -403,6 +442,20 @@ export function createRenderSnapshotBufferPool(
       if (buffers.instanceTints !== undefined) {
         slot.instanceTintBuffer = buffers.instanceTints.buffer as ArrayBuffer;
         slot.instanceTintCapacity = buffers.instanceTints.buffer.byteLength / 4;
+      }
+
+      if (buffers.quadInstanceFloats !== undefined) {
+        slot.quadInstanceFloatBuffer = buffers.quadInstanceFloats
+          .buffer as ArrayBuffer;
+        slot.quadInstanceFloatCapacity =
+          buffers.quadInstanceFloats.buffer.byteLength / 4;
+      }
+
+      if (buffers.quadInstanceWords !== undefined) {
+        slot.quadInstanceWordBuffer = buffers.quadInstanceWords
+          .buffer as ArrayBuffer;
+        slot.quadInstanceWordCapacity =
+          buffers.quadInstanceWords.buffer.byteLength / 4;
       }
 
       slot.inUse = false;
@@ -437,6 +490,7 @@ export function copyRenderSnapshotIntoBufferLease(
   }
 
   const instanceTints = snapshot.instanceTints;
+  const quads = snapshot.quads;
 
   if (
     instanceTints !== undefined &&
@@ -457,14 +511,52 @@ export function copyRenderSnapshotIntoBufferLease(
   };
 
   if (instanceTints === undefined) {
-    return next;
+    return copyQuadBuffersIfNeeded(next, lease, quads);
   }
 
   lease.instanceTints.set(instanceTints);
 
+  return copyQuadBuffersIfNeeded(
+    {
+      ...next,
+      instanceTints: lease.instanceTints,
+    },
+    lease,
+    quads,
+  );
+}
+
+function copyQuadBuffersIfNeeded(
+  snapshot: RenderSnapshot,
+  lease: RenderSnapshotBufferLease,
+  quads: RenderSnapshot["quads"],
+): RenderSnapshot {
+  if (quads === undefined) {
+    return snapshot;
+  }
+
+  if (lease.quadInstanceFloats.length < quads.instanceFloats.length) {
+    throw new RangeError(
+      "Render snapshot quad instance float buffer lease is too small.",
+    );
+  }
+
+  if (lease.quadInstanceWords.length < quads.instanceWords.length) {
+    throw new RangeError(
+      "Render snapshot quad instance word buffer lease is too small.",
+    );
+  }
+
+  lease.quadInstanceFloats.set(quads.instanceFloats);
+  lease.quadInstanceWords.set(quads.instanceWords);
+
   return {
-    ...next,
-    instanceTints: lease.instanceTints,
+    ...snapshot,
+    quads: {
+      ...quads,
+      instanceFloats: lease.quadInstanceFloats,
+      instanceWords: lease.quadInstanceWords,
+    },
   };
 }
 
@@ -479,6 +571,7 @@ export function renderSnapshotTransferList(
     | "morphInstanceDescriptors"
     | "instanceTints"
     | "instanceAttributes"
+    | "quads"
   >,
 ): Transferable[] {
   return renderSnapshotBufferTransferList(snapshot);
@@ -501,6 +594,7 @@ export function estimateRenderSnapshotTransportCost(
     | "morphInstanceDescriptors"
     | "instanceTints"
     | "instanceAttributes"
+    | "quads"
   >,
 ): RenderSnapshotTransportCostReport {
   const structuredCloneBytes =
@@ -511,7 +605,9 @@ export function estimateRenderSnapshotTransportCost(
     (snapshot.morphTargetDeltas?.byteLength ?? 0) +
     (snapshot.morphInstanceDescriptors?.byteLength ?? 0) +
     (snapshot.instanceTints?.byteLength ?? 0) +
-    (snapshot.instanceAttributes?.byteLength ?? 0);
+    (snapshot.instanceAttributes?.byteLength ?? 0) +
+    (snapshot.quads?.instanceFloats.byteLength ?? 0) +
+    (snapshot.quads?.instanceWords.byteLength ?? 0);
   const transferableBytes = 0;
 
   return {
@@ -533,6 +629,9 @@ function renderSnapshotBufferTransferList(input: {
   readonly morphInstanceDescriptors?: Uint32Array;
   readonly instanceTints?: Float32Array;
   readonly instanceAttributes?: Float32Array;
+  readonly quads?: RenderSnapshot["quads"];
+  readonly quadInstanceFloats?: Float32Array;
+  readonly quadInstanceWords?: Uint32Array;
 }): Transferable[] {
   const transfer: Transferable[] = [
     input.transforms.buffer as ArrayBuffer,
@@ -575,6 +674,30 @@ function renderSnapshotBufferTransferList(input: {
     transfer.push(input.instanceAttributes.buffer as ArrayBuffer);
   }
 
+  if (input.quads !== undefined) {
+    if (input.quads.instanceFloats.byteLength > 0) {
+      transfer.push(input.quads.instanceFloats.buffer as ArrayBuffer);
+    }
+
+    if (input.quads.instanceWords.byteLength > 0) {
+      transfer.push(input.quads.instanceWords.buffer as ArrayBuffer);
+    }
+  }
+
+  if (
+    input.quadInstanceFloats !== undefined &&
+    input.quadInstanceFloats.byteLength > 0
+  ) {
+    transfer.push(input.quadInstanceFloats.buffer as ArrayBuffer);
+  }
+
+  if (
+    input.quadInstanceWords !== undefined &&
+    input.quadInstanceWords.byteLength > 0
+  ) {
+    transfer.push(input.quadInstanceWords.buffer as ArrayBuffer);
+  }
+
   return transfer;
 }
 
@@ -587,6 +710,10 @@ interface RenderSnapshotBufferSlot {
   viewMatrixCapacity: number;
   instanceTintBuffer: ArrayBuffer;
   instanceTintCapacity: number;
+  quadInstanceFloatBuffer: ArrayBuffer;
+  quadInstanceFloatCapacity: number;
+  quadInstanceWordBuffer: ArrayBuffer;
+  quadInstanceWordCapacity: number;
 }
 
 function createBufferSlot(
@@ -602,6 +729,10 @@ function createBufferSlot(
     viewMatrixCapacity: request.viewMatrixFloats,
     instanceTintBuffer: new ArrayBuffer(request.instanceTintFloats * 4),
     instanceTintCapacity: request.instanceTintFloats,
+    quadInstanceFloatBuffer: new ArrayBuffer(request.quadInstanceFloats * 4),
+    quadInstanceFloatCapacity: request.quadInstanceFloats,
+    quadInstanceWordBuffer: new ArrayBuffer(request.quadInstanceWords * 4),
+    quadInstanceWordCapacity: request.quadInstanceWords,
   };
 }
 
@@ -626,6 +757,22 @@ function ensureSlotCapacity(
   if (slot.instanceTintCapacity < request.instanceTintFloats) {
     slot.instanceTintBuffer = new ArrayBuffer(request.instanceTintFloats * 4);
     slot.instanceTintCapacity = request.instanceTintFloats;
+    allocations += 1;
+  }
+
+  if (slot.quadInstanceFloatCapacity < request.quadInstanceFloats) {
+    slot.quadInstanceFloatBuffer = new ArrayBuffer(
+      request.quadInstanceFloats * 4,
+    );
+    slot.quadInstanceFloatCapacity = request.quadInstanceFloats;
+    allocations += 1;
+  }
+
+  if (slot.quadInstanceWordCapacity < request.quadInstanceWords) {
+    slot.quadInstanceWordBuffer = new ArrayBuffer(
+      request.quadInstanceWords * 4,
+    );
+    slot.quadInstanceWordCapacity = request.quadInstanceWords;
     allocations += 1;
   }
 

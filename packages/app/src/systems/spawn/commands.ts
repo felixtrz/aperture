@@ -22,6 +22,7 @@ import {
   createAnimationDriverState,
   registerRuntimeComponents,
 } from "@aperture-engine/runtime";
+import { PHYSICS_ENTITY_REF_STRING_FIELDS } from "@aperture-engine/physics";
 import type { SystemAssetAccess } from "../assets.js";
 import { AppEntitySource } from "../components.js";
 import type { SystemDiagnostics } from "../diagnostics.js";
@@ -37,6 +38,7 @@ import {
   createEntityWithMetadata,
   upsertDebugMetadata,
 } from "./metadata.js";
+import { applyPhysicsSpawnDescriptor } from "./physics.js";
 import { addTransform, writeTransform } from "./transforms.js";
 import type { SpawnCommands } from "./types.js";
 
@@ -86,6 +88,14 @@ export function createSpawnCommands(options: {
       entity.addComponent(Material, {
         materialId: assetHandleKey(materialHandle),
       });
+      applyPhysicsSpawnDescriptor(options.world, entity, input.physics);
+      return entity;
+    },
+    physics(input) {
+      const entity = createEntityWithMetadata(options.world, input, "physics");
+
+      addTransform(entity, input.transform);
+      applyPhysicsSpawnDescriptor(options.world, entity, input.physics);
       return entity;
     },
     gltf(handle, input = {}) {
@@ -157,7 +167,9 @@ export function createSpawnCommands(options: {
       }
 
       const result = instantiatePrefab(options.world, entry.asset, {
-        registry: componentRegistryFromWorld(options.world),
+        registry: componentRegistryFromWorld(options.world, {
+          entityRefStringFields: PHYSICS_ENTITY_REF_STRING_FIELDS,
+        }),
         ...(input.transform === undefined
           ? {}
           : { transform: input.transform }),

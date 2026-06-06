@@ -1,9 +1,43 @@
+import {
+  Collider,
+  ExternalForce,
+  ExternalImpulse,
+  KinematicTarget,
+  PhysicsGravity,
+  PhysicsColliderAxis,
+  PhysicsColliderShapeKind,
+  PhysicsBodyState,
+  PhysicsCharacterController,
+  PhysicsCharacterMassMode,
+  PhysicsDebug,
+  PhysicsJoint,
+  PhysicsJointKind,
+  PhysicsJointMotorMode,
+  PhysicsJointMotorModel,
+  PhysicsMaterial,
+  PhysicsMaterialCombineRule,
+  PhysicsVelocity,
+  RigidBody,
+  PhysicsRigidBodyType,
+} from "@aperture-engine/physics";
 import type { EcsWorld, Entity } from "@aperture-engine/simulation";
 import type { EcsEntityRef } from "../../config.js";
 import type {
   ApertureEntitySourceSummary,
   ApertureEntitySummary,
   ApertureLocalTransformSummary,
+  AperturePhysicsBodyStateSummary,
+  AperturePhysicsCharacterControllerSummary,
+  AperturePhysicsColliderSummary,
+  AperturePhysicsDebugSummary,
+  AperturePhysicsExternalForceSummary,
+  AperturePhysicsExternalImpulseSummary,
+  AperturePhysicsGravitySummary,
+  AperturePhysicsJointSummary,
+  AperturePhysicsKinematicTargetSummary,
+  AperturePhysicsMaterialSummary,
+  AperturePhysicsRigidBodySummary,
+  AperturePhysicsVelocitySummary,
   ApertureWorldTransformSummary,
 } from "./types.js";
 import {
@@ -38,6 +72,51 @@ export function entitySummary(entity: Entity): ApertureEntitySummary {
   const worldTransform = entity.hasComponent(WorldTransform)
     ? worldTransformSummary(entity)
     : null;
+  const physicsRigidBody = entityHasComponentId(entity, RigidBody.id)
+    ? physicsRigidBodySummary(entity)
+    : null;
+  const physicsCollider = entityHasComponentId(entity, Collider.id)
+    ? physicsColliderSummary(entity)
+    : null;
+  const physicsVelocity = entityHasComponentId(entity, PhysicsVelocity.id)
+    ? physicsVelocitySummary(entity)
+    : null;
+  const physicsExternalForce = entityHasComponentId(entity, ExternalForce.id)
+    ? physicsExternalForceSummary(entity)
+    : null;
+  const physicsExternalImpulse = entityHasComponentId(
+    entity,
+    ExternalImpulse.id,
+  )
+    ? physicsExternalImpulseSummary(entity)
+    : null;
+  const physicsKinematicTarget = entityHasComponentId(
+    entity,
+    KinematicTarget.id,
+  )
+    ? physicsKinematicTargetSummary(entity)
+    : null;
+  const physicsGravity = entityHasComponentId(entity, PhysicsGravity.id)
+    ? physicsGravitySummary(entity)
+    : null;
+  const physicsCharacterController = entityHasComponentId(
+    entity,
+    PhysicsCharacterController.id,
+  )
+    ? physicsCharacterControllerSummary(entity)
+    : null;
+  const physicsMaterial = entityHasComponentId(entity, PhysicsMaterial.id)
+    ? physicsMaterialSummary(entity)
+    : null;
+  const physicsDebug = entityHasComponentId(entity, PhysicsDebug.id)
+    ? physicsDebugSummary(entity)
+    : null;
+  const physicsJoint = entityHasComponentId(entity, PhysicsJoint.id)
+    ? physicsJointSummary(entity)
+    : null;
+  const physicsBodyState = entityHasComponentId(entity, PhysicsBodyState.id)
+    ? physicsBodyStateSummary(entity)
+    : null;
 
   return {
     entity: {
@@ -58,6 +137,20 @@ export function entitySummary(entity: Entity): ApertureEntitySummary {
     ...(parent === null ? {} : { parent }),
     ...(localTransform === null ? {} : { localTransform }),
     ...(worldTransform === null ? {} : { worldTransform }),
+    ...(physicsRigidBody === null ? {} : { physicsRigidBody }),
+    ...(physicsCollider === null ? {} : { physicsCollider }),
+    ...(physicsVelocity === null ? {} : { physicsVelocity }),
+    ...(physicsExternalForce === null ? {} : { physicsExternalForce }),
+    ...(physicsExternalImpulse === null ? {} : { physicsExternalImpulse }),
+    ...(physicsKinematicTarget === null ? {} : { physicsKinematicTarget }),
+    ...(physicsGravity === null ? {} : { physicsGravity }),
+    ...(physicsCharacterController === null
+      ? {}
+      : { physicsCharacterController }),
+    ...(physicsMaterial === null ? {} : { physicsMaterial }),
+    ...(physicsDebug === null ? {} : { physicsDebug }),
+    ...(physicsJoint === null ? {} : { physicsJoint }),
+    ...(physicsBodyState === null ? {} : { physicsBodyState }),
   };
 }
 
@@ -129,6 +222,323 @@ function worldTransformSummary(entity: Entity): ApertureWorldTransformSummary {
       ...tuple4FromView(entity.getVectorView(WorldTransform, "col2")),
       ...tuple4FromView(entity.getVectorView(WorldTransform, "col3")),
     ],
+  };
+}
+
+function physicsRigidBodySummary(
+  entity: Entity,
+): AperturePhysicsRigidBodySummary {
+  const type = entity.getValue(RigidBody, "type");
+
+  return {
+    enabled: entity.getValue(RigidBody, "enabled") === true,
+    type: isPhysicsRigidBodyType(type) ? type : PhysicsRigidBodyType.Dynamic,
+    gravityScale: entity.getValue(RigidBody, "gravityScale") ?? 1,
+    linearDamping: entity.getValue(RigidBody, "linearDamping") ?? 0,
+    angularDamping: entity.getValue(RigidBody, "angularDamping") ?? 0,
+    canSleep: entity.getValue(RigidBody, "canSleep") !== false,
+    ccdEnabled: entity.getValue(RigidBody, "ccdEnabled") === true,
+    lockTranslationX: entity.getValue(RigidBody, "lockTranslationX") === true,
+    lockTranslationY: entity.getValue(RigidBody, "lockTranslationY") === true,
+    lockTranslationZ: entity.getValue(RigidBody, "lockTranslationZ") === true,
+    lockRotationX: entity.getValue(RigidBody, "lockRotationX") === true,
+    lockRotationY: entity.getValue(RigidBody, "lockRotationY") === true,
+    lockRotationZ: entity.getValue(RigidBody, "lockRotationZ") === true,
+  };
+}
+
+function physicsColliderSummary(
+  entity: Entity,
+): AperturePhysicsColliderSummary {
+  const shapeKind = entity.getValue(Collider, "shapeKind");
+  const axis = entity.getValue(Collider, "axis");
+
+  return {
+    enabled: entity.getValue(Collider, "enabled") === true,
+    shapeKind: isPhysicsColliderShapeKind(shapeKind)
+      ? shapeKind
+      : PhysicsColliderShapeKind.Box,
+    halfExtents: tuple3FromView(entity.getVectorView(Collider, "halfExtents")),
+    radius: entity.getValue(Collider, "radius") ?? 0.5,
+    halfHeight: entity.getValue(Collider, "halfHeight") ?? 0.5,
+    axis: isPhysicsColliderAxis(axis) ? axis : PhysicsColliderAxis.Y,
+    meshId: entity.getValue(Collider, "meshId") ?? "",
+    heightfieldAssetId: entity.getValue(Collider, "heightfieldAssetId") ?? "",
+    offsetTranslation: tuple3FromView(
+      entity.getVectorView(Collider, "offsetTranslation"),
+    ),
+    offsetRotation: tuple4FromView(
+      entity.getVectorView(Collider, "offsetRotation"),
+    ),
+    sensor: entity.getValue(Collider, "sensor") === true,
+    density: entity.getValue(Collider, "density") ?? 1,
+    friction: entity.getValue(Collider, "friction") ?? 0.5,
+    restitution: entity.getValue(Collider, "restitution") ?? 0,
+    collisionGroups: entity.getValue(Collider, "collisionGroups") ?? -1,
+    solverGroups: entity.getValue(Collider, "solverGroups") ?? -1,
+  };
+}
+
+function entityHasComponentId(entity: Entity, componentId: string): boolean {
+  return entity
+    .getComponents()
+    .some((component) => component.id === componentId);
+}
+
+function physicsVelocitySummary(
+  entity: Entity,
+): AperturePhysicsVelocitySummary {
+  return {
+    linear: tuple3FromView(entity.getVectorView(PhysicsVelocity, "linear")),
+    angular: tuple3FromView(entity.getVectorView(PhysicsVelocity, "angular")),
+  };
+}
+
+function physicsExternalForceSummary(
+  entity: Entity,
+): AperturePhysicsExternalForceSummary {
+  return {
+    force: tuple3FromView(entity.getVectorView(ExternalForce, "force")),
+    torque: tuple3FromView(entity.getVectorView(ExternalForce, "torque")),
+  };
+}
+
+function physicsExternalImpulseSummary(
+  entity: Entity,
+): AperturePhysicsExternalImpulseSummary {
+  return {
+    impulse: tuple3FromView(entity.getVectorView(ExternalImpulse, "impulse")),
+    angularImpulse: tuple3FromView(
+      entity.getVectorView(ExternalImpulse, "angularImpulse"),
+    ),
+  };
+}
+
+function physicsKinematicTargetSummary(
+  entity: Entity,
+): AperturePhysicsKinematicTargetSummary {
+  return {
+    enabled: entity.getValue(KinematicTarget, "enabled") === true,
+    translation: tuple3FromView(
+      entity.getVectorView(KinematicTarget, "translation"),
+    ),
+    rotation: tuple4FromView(entity.getVectorView(KinematicTarget, "rotation")),
+  };
+}
+
+function physicsGravitySummary(entity: Entity): AperturePhysicsGravitySummary {
+  return {
+    gravity: tuple3FromView(entity.getVectorView(PhysicsGravity, "gravity")),
+  };
+}
+
+function physicsCharacterControllerSummary(
+  entity: Entity,
+): AperturePhysicsCharacterControllerSummary {
+  const characterMassMode = entity.getValue(
+    PhysicsCharacterController,
+    "characterMassMode",
+  );
+
+  return {
+    enabled: entity.getValue(PhysicsCharacterController, "enabled") === true,
+    offset: entity.getValue(PhysicsCharacterController, "offset") ?? 0.01,
+    up: tuple3FromView(entity.getVectorView(PhysicsCharacterController, "up")),
+    slide: entity.getValue(PhysicsCharacterController, "slide") !== false,
+    maxSlopeClimbAngleEnabled:
+      entity.getValue(
+        PhysicsCharacterController,
+        "maxSlopeClimbAngleEnabled",
+      ) === true,
+    maxSlopeClimbAngle:
+      entity.getValue(PhysicsCharacterController, "maxSlopeClimbAngle") ??
+      Math.PI / 4,
+    minSlopeSlideAngleEnabled:
+      entity.getValue(
+        PhysicsCharacterController,
+        "minSlopeSlideAngleEnabled",
+      ) === true,
+    minSlopeSlideAngle:
+      entity.getValue(PhysicsCharacterController, "minSlopeSlideAngle") ??
+      Math.PI / 3,
+    snapToGroundDistance:
+      entity.getValue(PhysicsCharacterController, "snapToGroundDistance") ?? 0,
+    autostepEnabled:
+      entity.getValue(PhysicsCharacterController, "autostepEnabled") === true,
+    autostepMaxHeight:
+      entity.getValue(PhysicsCharacterController, "autostepMaxHeight") ?? 0.1,
+    autostepMinWidth:
+      entity.getValue(PhysicsCharacterController, "autostepMinWidth") ?? 0.1,
+    autostepIncludeDynamicBodies:
+      entity.getValue(
+        PhysicsCharacterController,
+        "autostepIncludeDynamicBodies",
+      ) === true,
+    applyImpulsesToDynamicBodies:
+      entity.getValue(
+        PhysicsCharacterController,
+        "applyImpulsesToDynamicBodies",
+      ) === true,
+    characterMassMode: isPhysicsCharacterMassMode(characterMassMode)
+      ? characterMassMode
+      : PhysicsCharacterMassMode.BackendDefault,
+    characterMass:
+      entity.getValue(PhysicsCharacterController, "characterMass") ?? 0,
+  };
+}
+
+function physicsMaterialSummary(
+  entity: Entity,
+): AperturePhysicsMaterialSummary {
+  const frictionCombine = entity.getValue(PhysicsMaterial, "frictionCombine");
+  const restitutionCombine = entity.getValue(
+    PhysicsMaterial,
+    "restitutionCombine",
+  );
+
+  return {
+    friction: entity.getValue(PhysicsMaterial, "friction") ?? 0.5,
+    restitution: entity.getValue(PhysicsMaterial, "restitution") ?? 0,
+    density: entity.getValue(PhysicsMaterial, "density") ?? 1,
+    frictionCombine: isPhysicsMaterialCombineRule(frictionCombine)
+      ? frictionCombine
+      : PhysicsMaterialCombineRule.Average,
+    restitutionCombine: isPhysicsMaterialCombineRule(restitutionCombine)
+      ? restitutionCombine
+      : PhysicsMaterialCombineRule.Average,
+  };
+}
+
+function physicsDebugSummary(entity: Entity): AperturePhysicsDebugSummary {
+  return {
+    colliderWireframes:
+      entity.getValue(PhysicsDebug, "colliderWireframes") === true,
+    contactNormals: entity.getValue(PhysicsDebug, "contactNormals") === true,
+    bodyStateMarkers:
+      entity.getValue(PhysicsDebug, "bodyStateMarkers") === true,
+    broadphaseAabbs: entity.getValue(PhysicsDebug, "broadphaseAabbs") === true,
+    jointFrames: entity.getValue(PhysicsDebug, "jointFrames") === true,
+  };
+}
+
+function physicsJointSummary(entity: Entity): AperturePhysicsJointSummary {
+  const kind = entity.getValue(PhysicsJoint, "kind");
+  const motorMode = entity.getValue(PhysicsJoint, "motorMode");
+  const motorModel = entity.getValue(PhysicsJoint, "motorModel");
+
+  return {
+    enabled: entity.getValue(PhysicsJoint, "enabled") === true,
+    kind: isPhysicsJointKind(kind) ? kind : PhysicsJointKind.Fixed,
+    bodyARef: entity.getValue(PhysicsJoint, "bodyARef") ?? "",
+    bodyBRef: entity.getValue(PhysicsJoint, "bodyBRef") ?? "",
+    anchorA: tuple3FromView(entity.getVectorView(PhysicsJoint, "anchorA")),
+    anchorB: tuple3FromView(entity.getVectorView(PhysicsJoint, "anchorB")),
+    frameA: tuple4FromView(entity.getVectorView(PhysicsJoint, "frameA")),
+    frameB: tuple4FromView(entity.getVectorView(PhysicsJoint, "frameB")),
+    axis: tuple3FromView(entity.getVectorView(PhysicsJoint, "axis")),
+    minLimit: entity.getValue(PhysicsJoint, "minLimit") ?? 0,
+    maxLimit: entity.getValue(PhysicsJoint, "maxLimit") ?? 0,
+    motorMode: isPhysicsJointMotorMode(motorMode)
+      ? motorMode
+      : PhysicsJointMotorMode.Position,
+    motorModel: isPhysicsJointMotorModel(motorModel)
+      ? motorModel
+      : PhysicsJointMotorModel.Acceleration,
+    motorTarget: entity.getValue(PhysicsJoint, "motorTarget") ?? 0,
+    motorVelocity: entity.getValue(PhysicsJoint, "motorVelocity") ?? 0,
+    motorStiffness: entity.getValue(PhysicsJoint, "motorStiffness") ?? 0,
+    motorDamping: entity.getValue(PhysicsJoint, "motorDamping") ?? 0,
+    motorFactor: entity.getValue(PhysicsJoint, "motorFactor") ?? 0,
+    motorMaxForce: entity.getValue(PhysicsJoint, "motorMaxForce") ?? 0,
+    contactsEnabled: entity.getValue(PhysicsJoint, "contactsEnabled") === true,
+    breakForce: entity.getValue(PhysicsJoint, "breakForce") ?? 0,
+  };
+}
+
+function isPhysicsJointKind(value: unknown): value is PhysicsJointKind {
+  return typeof value === "string" && stringValueIn(value, PhysicsJointKind);
+}
+
+function isPhysicsCharacterMassMode(
+  value: unknown,
+): value is PhysicsCharacterMassMode {
+  return (
+    typeof value === "string" && stringValueIn(value, PhysicsCharacterMassMode)
+  );
+}
+
+function isPhysicsMaterialCombineRule(
+  value: unknown,
+): value is PhysicsMaterialCombineRule {
+  return (
+    typeof value === "string" &&
+    stringValueIn(value, PhysicsMaterialCombineRule)
+  );
+}
+
+function isPhysicsRigidBodyType(value: unknown): value is PhysicsRigidBodyType {
+  return (
+    typeof value === "string" && stringValueIn(value, PhysicsRigidBodyType)
+  );
+}
+
+function isPhysicsColliderShapeKind(
+  value: unknown,
+): value is PhysicsColliderShapeKind {
+  return (
+    typeof value === "string" && stringValueIn(value, PhysicsColliderShapeKind)
+  );
+}
+
+function isPhysicsColliderAxis(value: unknown): value is PhysicsColliderAxis {
+  return typeof value === "string" && stringValueIn(value, PhysicsColliderAxis);
+}
+
+function isPhysicsJointMotorMode(
+  value: unknown,
+): value is PhysicsJointMotorMode {
+  return (
+    typeof value === "string" && stringValueIn(value, PhysicsJointMotorMode)
+  );
+}
+
+function isPhysicsJointMotorModel(
+  value: unknown,
+): value is PhysicsJointMotorModel {
+  return (
+    typeof value === "string" && stringValueIn(value, PhysicsJointMotorModel)
+  );
+}
+
+function stringValueIn(
+  value: string,
+  allowed: Readonly<Record<string, string>>,
+): boolean {
+  return Object.values(allowed).includes(value);
+}
+
+function physicsBodyStateSummary(
+  entity: Entity,
+): AperturePhysicsBodyStateSummary {
+  const backendBodyId = entity.getValue(PhysicsBodyState, "backendBodyId");
+
+  return {
+    sleeping: entity.getValue(PhysicsBodyState, "sleeping") === true,
+    currentTranslation: tuple3FromView(
+      entity.getVectorView(PhysicsBodyState, "currentTranslation"),
+    ),
+    currentRotation: tuple4FromView(
+      entity.getVectorView(PhysicsBodyState, "currentRotation"),
+    ),
+    previousTranslation: tuple3FromView(
+      entity.getVectorView(PhysicsBodyState, "previousTranslation"),
+    ),
+    previousRotation: tuple4FromView(
+      entity.getVectorView(PhysicsBodyState, "previousRotation"),
+    ),
+    ...(typeof backendBodyId === "string" && backendBodyId.length > 0
+      ? { backendBodyId }
+      : {}),
   };
 }
 

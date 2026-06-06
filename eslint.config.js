@@ -14,6 +14,7 @@ export default tseslint.config(
       "node_modules/**",
       "coverage/**",
       "agent/logs/**",
+      ".claude/**",
       "**/.aperture/**",
       ".codex/**",
       "references/**",

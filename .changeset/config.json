@@ -7,6 +7,8 @@
   "fixed": [
     [
       "@aperture-engine/simulation",
+      "@aperture-engine/physics",
+      "@aperture-engine/physics-rapier",
       "@aperture-engine/render",
       "@aperture-engine/runtime",
       "@aperture-engine/webgpu",

@@ -9,6 +9,7 @@ import {
 import { resolveWorldTransforms } from "../transform/resolution.js";
 import {
   deserializeEntityComponents,
+  DERIVED_COMPONENT_IDS,
   serializeEntityComponents,
   serializeEntityRef,
   type ComponentCodecDiagnostic,
@@ -28,12 +29,13 @@ import type { ComponentRegistry } from "./component-registry.js";
 
 export const APERTURE_SCENE_FORMAT_VERSION = 1;
 
-// Components excluded from a scene document because they are derived: WorldTransform
-// is recomputed by the resolver, and Children is a derived index whose stored
-// index:generation refs would be stale in a reloaded world — it is rebuilt from the
-// authoritative Parent links on load instead.
+// Components excluded from a scene document because they are derived:
+// WorldTransform is recomputed by the resolver, physics body state is produced
+// by a backend/runtime, and Children is a derived index whose stored
+// index:generation refs would be stale in a reloaded world — it is rebuilt from
+// the authoritative Parent links on load instead.
 const SCENE_DERIVED_COMPONENT_IDS: readonly string[] = [
-  WorldTransform.id,
+  ...DERIVED_COMPONENT_IDS,
   Children.id,
 ];
 

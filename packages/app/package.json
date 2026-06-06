@@ -65,6 +65,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@aperture-engine/physics": "workspace:^",
     "@aperture-engine/render": "workspace:^",
     "@aperture-engine/runtime": "workspace:^",
     "@aperture-engine/simulation": "workspace:^",

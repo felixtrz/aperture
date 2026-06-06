@@ -18,6 +18,11 @@ import type { ApertureApp } from "../advanced.js";
 import { createAssetSummary } from "./assets.js";
 import type { GeneratedEntityToolBridge } from "./devtools/entities.js";
 
+export interface GeneratedWorkerSnapshotPublishReport {
+  readonly nextFrame: number;
+  readonly step: ReturnType<ApertureApp["step"]>;
+}
+
 export function publishGeneratedWorkerSnapshot(options: {
   readonly app: ApertureApp;
   readonly config: ApertureConfig;
@@ -28,17 +33,14 @@ export function publishGeneratedWorkerSnapshot(options: {
   readonly delta: number;
   readonly time: number;
   readonly frame: number;
-}): number {
+}): GeneratedWorkerSnapshotPublishReport {
   advanceGeneratedInputFrame({
     signals: options.app.context.input,
     config: options.config,
     events: options.pendingInput.splice(0).map((message) => message.event),
   });
-  const snapshot = options.app.stepAndExtract(
-    options.delta,
-    options.time,
-    options.frame,
-  );
+  const step = options.app.step(options.delta, options.time);
+  const snapshot = options.app.extract(options.frame);
 
   options.port.postMessage({
     type: SIMULATION_WORKER_PROTOCOL.snapshot,
@@ -52,6 +54,7 @@ export function publishGeneratedWorkerSnapshot(options: {
       assets: createAssetSummary(options.app.context.assets.list()),
       commands: options.app.context.commands.summary(),
       diagnostics: options.app.context.diagnostics.list(),
+      physics: options.app.context.physics.summary(),
       entities: createApertureEntityLookupSnapshot(options.app.lowLevel.world, {
         label: "generated-worker",
       }),
@@ -60,5 +63,8 @@ export function publishGeneratedWorkerSnapshot(options: {
     frame: options.frame,
   });
 
-  return options.frame + 1;
+  return {
+    nextFrame: options.frame + 1,
+    step,
+  };
 }

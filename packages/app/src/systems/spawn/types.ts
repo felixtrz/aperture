@@ -1,4 +1,17 @@
 import type { CameraInput, LightInput } from "@aperture-engine/render";
+import type {
+  ColliderInput,
+  ExternalForceInput,
+  ExternalImpulseInput,
+  KinematicTargetInput,
+  PhysicsCharacterControllerInput,
+  PhysicsDebugInput,
+  PhysicsGravityInput,
+  PhysicsJointInput,
+  PhysicsMaterialInput,
+  PhysicsVelocityInput,
+  RigidBodyInput,
+} from "@aperture-engine/physics";
 import type { AnimationAccess } from "@aperture-engine/runtime";
 import type {
   Entity,
@@ -105,6 +118,23 @@ export interface SpawnMeshOptions extends SpawnMetadata {
   readonly mesh: PrimitiveMeshDescriptor | MeshHandle;
   readonly material: MaterialDescriptor | MaterialHandle;
   readonly transform?: SystemTransformInput;
+  readonly physics?: PhysicsSpawnDescriptor;
+}
+
+export type PhysicsComponentDescriptor<TInput> = TInput | true;
+
+export interface PhysicsSpawnDescriptor {
+  readonly rigidBody?: PhysicsComponentDescriptor<RigidBodyInput>;
+  readonly collider?: PhysicsComponentDescriptor<ColliderInput>;
+  readonly velocity?: PhysicsComponentDescriptor<PhysicsVelocityInput>;
+  readonly externalForce?: PhysicsComponentDescriptor<ExternalForceInput>;
+  readonly externalImpulse?: PhysicsComponentDescriptor<ExternalImpulseInput>;
+  readonly kinematicTarget?: PhysicsComponentDescriptor<KinematicTargetInput>;
+  readonly gravity?: PhysicsComponentDescriptor<PhysicsGravityInput>;
+  readonly characterController?: PhysicsComponentDescriptor<PhysicsCharacterControllerInput>;
+  readonly material?: PhysicsComponentDescriptor<PhysicsMaterialInput>;
+  readonly joint?: PhysicsComponentDescriptor<PhysicsJointInput>;
+  readonly debug?: PhysicsComponentDescriptor<PhysicsDebugInput>;
 }
 
 export interface CustomWgslUniformBindingOptions {
@@ -146,10 +176,17 @@ export interface SpawnPrefabOptions extends SpawnMetadata {
   readonly overrides?: readonly PrefabFieldOverride[];
 }
 
+export interface SpawnPhysicsOptions extends SpawnMetadata {
+  readonly transform?: SystemTransformInput;
+  readonly physics: PhysicsSpawnDescriptor;
+}
+
 export interface SpawnCommands {
   camera(options?: SpawnCameraOptions): Entity;
   light(options?: SpawnLightOptions): Entity;
   mesh(options: SpawnMeshOptions): Entity;
+  /** Spawn a non-render physics entity, useful for joints, triggers, and pure colliders. */
+  physics(options: SpawnPhysicsOptions): Entity;
   gltf(handle: SystemGltfAssetHandle, options?: SpawnGltfOptions): Entity;
   /** Instantiate a registered prefab blueprint, returning the subtree root. */
   prefab(handle: PrefabHandle, options?: SpawnPrefabOptions): Entity;

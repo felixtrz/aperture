@@ -1,5 +1,5 @@
 export { createSpawnCommands } from "./commands.js";
-export { material, mesh, shader } from "./descriptors.js";
+export { material, mesh, physics, shader } from "./descriptors.js";
 export type {
   CustomWgslMaterialDescriptor,
   CustomWgslSamplerBindingOptions,
@@ -8,12 +8,15 @@ export type {
   CustomWgslUniformBindingOptions,
   MaterialDescriptor,
   PrimitiveMeshDescriptor,
+  PhysicsComponentDescriptor,
+  PhysicsSpawnDescriptor,
   SpawnCameraOptions,
   SpawnCommands,
   SpawnGltfOptions,
   SpawnLightOptions,
   SpawnMeshOptions,
   SpawnMetadata,
+  SpawnPhysicsOptions,
   StandardMaterialDescriptor,
   StandardMaterialOptions,
   SystemTransformInput,

@@ -1,3 +1,13 @@
+import type {
+  PhysicsColliderAxis,
+  PhysicsColliderShapeKind,
+  PhysicsCharacterMassMode,
+  PhysicsJointKind,
+  PhysicsJointMotorMode,
+  PhysicsJointMotorModel,
+  PhysicsMaterialCombineRule,
+  PhysicsRigidBodyType,
+} from "@aperture-engine/physics";
 import type { EcsEntityRef } from "../../config.js";
 
 export interface ApertureEntitySourceSummary {
@@ -16,6 +26,18 @@ export interface ApertureEntitySummary {
   readonly parent?: EcsEntityRef;
   readonly localTransform?: ApertureLocalTransformSummary;
   readonly worldTransform?: ApertureWorldTransformSummary;
+  readonly physicsRigidBody?: AperturePhysicsRigidBodySummary;
+  readonly physicsCollider?: AperturePhysicsColliderSummary;
+  readonly physicsVelocity?: AperturePhysicsVelocitySummary;
+  readonly physicsExternalForce?: AperturePhysicsExternalForceSummary;
+  readonly physicsExternalImpulse?: AperturePhysicsExternalImpulseSummary;
+  readonly physicsKinematicTarget?: AperturePhysicsKinematicTargetSummary;
+  readonly physicsGravity?: AperturePhysicsGravitySummary;
+  readonly physicsCharacterController?: AperturePhysicsCharacterControllerSummary;
+  readonly physicsMaterial?: AperturePhysicsMaterialSummary;
+  readonly physicsDebug?: AperturePhysicsDebugSummary;
+  readonly physicsJoint?: AperturePhysicsJointSummary;
+  readonly physicsBodyState?: AperturePhysicsBodyStateSummary;
 }
 
 export interface ApertureLocalTransformSummary {
@@ -43,6 +65,134 @@ export interface ApertureWorldTransformSummary {
     number,
     number,
   ];
+}
+
+export interface AperturePhysicsRigidBodySummary {
+  readonly enabled: boolean;
+  readonly type: PhysicsRigidBodyType;
+  readonly gravityScale: number;
+  readonly linearDamping: number;
+  readonly angularDamping: number;
+  readonly canSleep: boolean;
+  readonly ccdEnabled: boolean;
+  readonly lockTranslationX: boolean;
+  readonly lockTranslationY: boolean;
+  readonly lockTranslationZ: boolean;
+  readonly lockRotationX: boolean;
+  readonly lockRotationY: boolean;
+  readonly lockRotationZ: boolean;
+}
+
+export interface AperturePhysicsColliderSummary {
+  readonly enabled: boolean;
+  readonly shapeKind: PhysicsColliderShapeKind;
+  readonly halfExtents: readonly [number, number, number];
+  readonly radius: number;
+  readonly halfHeight: number;
+  readonly axis: PhysicsColliderAxis;
+  readonly meshId: string;
+  readonly heightfieldAssetId: string;
+  readonly offsetTranslation: readonly [number, number, number];
+  readonly offsetRotation: readonly [number, number, number, number];
+  readonly sensor: boolean;
+  readonly density: number;
+  readonly friction: number;
+  readonly restitution: number;
+  readonly collisionGroups: number;
+  readonly solverGroups: number;
+}
+
+export interface AperturePhysicsVelocitySummary {
+  readonly linear: readonly [number, number, number];
+  readonly angular: readonly [number, number, number];
+}
+
+export interface AperturePhysicsExternalForceSummary {
+  readonly force: readonly [number, number, number];
+  readonly torque: readonly [number, number, number];
+}
+
+export interface AperturePhysicsExternalImpulseSummary {
+  readonly impulse: readonly [number, number, number];
+  readonly angularImpulse: readonly [number, number, number];
+}
+
+export interface AperturePhysicsKinematicTargetSummary {
+  readonly enabled: boolean;
+  readonly translation: readonly [number, number, number];
+  readonly rotation: readonly [number, number, number, number];
+}
+
+export interface AperturePhysicsGravitySummary {
+  readonly gravity: readonly [number, number, number];
+}
+
+export interface AperturePhysicsCharacterControllerSummary {
+  readonly enabled: boolean;
+  readonly offset: number;
+  readonly up: readonly [number, number, number];
+  readonly slide: boolean;
+  readonly maxSlopeClimbAngleEnabled: boolean;
+  readonly maxSlopeClimbAngle: number;
+  readonly minSlopeSlideAngleEnabled: boolean;
+  readonly minSlopeSlideAngle: number;
+  readonly snapToGroundDistance: number;
+  readonly autostepEnabled: boolean;
+  readonly autostepMaxHeight: number;
+  readonly autostepMinWidth: number;
+  readonly autostepIncludeDynamicBodies: boolean;
+  readonly applyImpulsesToDynamicBodies: boolean;
+  readonly characterMassMode: PhysicsCharacterMassMode;
+  readonly characterMass: number;
+}
+
+export interface AperturePhysicsMaterialSummary {
+  readonly friction: number;
+  readonly restitution: number;
+  readonly density: number;
+  readonly frictionCombine: PhysicsMaterialCombineRule;
+  readonly restitutionCombine: PhysicsMaterialCombineRule;
+}
+
+export interface AperturePhysicsDebugSummary {
+  readonly colliderWireframes: boolean;
+  readonly contactNormals: boolean;
+  readonly bodyStateMarkers: boolean;
+  readonly broadphaseAabbs: boolean;
+  readonly jointFrames: boolean;
+}
+
+export interface AperturePhysicsJointSummary {
+  readonly enabled: boolean;
+  readonly kind: PhysicsJointKind;
+  readonly bodyARef: string;
+  readonly bodyBRef: string;
+  readonly anchorA: readonly [number, number, number];
+  readonly anchorB: readonly [number, number, number];
+  readonly frameA: readonly [number, number, number, number];
+  readonly frameB: readonly [number, number, number, number];
+  readonly axis: readonly [number, number, number];
+  readonly minLimit: number;
+  readonly maxLimit: number;
+  readonly motorMode: PhysicsJointMotorMode;
+  readonly motorModel: PhysicsJointMotorModel;
+  readonly motorTarget: number;
+  readonly motorVelocity: number;
+  readonly motorStiffness: number;
+  readonly motorDamping: number;
+  readonly motorFactor: number;
+  readonly motorMaxForce: number;
+  readonly contactsEnabled: boolean;
+  readonly breakForce: number;
+}
+
+export interface AperturePhysicsBodyStateSummary {
+  readonly sleeping: boolean;
+  readonly currentTranslation: readonly [number, number, number];
+  readonly currentRotation: readonly [number, number, number, number];
+  readonly previousTranslation: readonly [number, number, number];
+  readonly previousRotation: readonly [number, number, number, number];
+  readonly backendBodyId?: string;
 }
 
 export interface ApertureEntityHierarchyNode {

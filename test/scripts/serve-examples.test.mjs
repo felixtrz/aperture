@@ -88,6 +88,8 @@ describe("examples static server helpers", () => {
       'import * as render from "@aperture-engine/render";',
       'export * from "@aperture-engine/render";',
       'const runtime = await import("@aperture-engine/runtime");',
+      'const rapier = await import("@aperture-engine/physics-rapier");',
+      'import "@dimforge/rapier3d-compat";',
       'import "elics";',
     ].join("\n");
 
@@ -96,6 +98,8 @@ describe("examples static server helpers", () => {
         'import * as render from "/worker-modules/packages/render/dist/index.js";',
         'export * from "/worker-modules/packages/render/dist/index.js";',
         'const runtime = await import("/worker-modules/packages/runtime/dist/index.js");',
+        'const rapier = await import("/worker-modules/packages/physics-rapier/dist/index.js");',
+        'import "/worker-modules/packages/physics-rapier/node_modules/@dimforge/rapier3d-compat/rapier.mjs";',
         'import "/worker-modules/node_modules/elics/lib/index.js";',
       ].join("\n"),
     );

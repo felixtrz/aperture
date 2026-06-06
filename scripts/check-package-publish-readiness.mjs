@@ -16,6 +16,8 @@ const shouldPack = options.shouldPack;
 
 const publishablePackages = [
   "packages/simulation",
+  "packages/physics",
+  "packages/physics-rapier",
   "packages/render",
   "packages/runtime",
   "packages/webgpu",

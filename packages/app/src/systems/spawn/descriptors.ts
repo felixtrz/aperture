@@ -1,3 +1,15 @@
+import type {
+  ColliderInput,
+  ExternalForceInput,
+  ExternalImpulseInput,
+  KinematicTargetInput,
+  PhysicsCharacterControllerInput,
+  PhysicsDebugInput,
+  PhysicsJointInput,
+  PhysicsMaterialInput,
+  PhysicsVelocityInput,
+  RigidBodyInput,
+} from "@aperture-engine/physics";
 import type { ShaderHandle, Vec3Like } from "@aperture-engine/simulation";
 import type {
   CustomWgslMaterialDescriptor,
@@ -6,6 +18,7 @@ import type {
   CustomWgslTextureBindingOptions,
   CustomWgslUniformBindingOptions,
   PrimitiveMeshDescriptor,
+  PhysicsSpawnDescriptor,
   StandardMaterialDescriptor,
   StandardMaterialOptions,
   ShaderAssetDescriptorInput,
@@ -129,6 +142,44 @@ export const shader = Object.freeze({
         ? {}
         : { virtualPath: options.virtualPath }),
     });
+  },
+});
+
+export const physics = Object.freeze({
+  rigidBody(input: RigidBodyInput = {}): RigidBodyInput {
+    return Object.freeze({ ...input });
+  },
+  collider(input: ColliderInput = {}): ColliderInput {
+    return Object.freeze({ ...input });
+  },
+  velocity(input: PhysicsVelocityInput = {}): PhysicsVelocityInput {
+    return Object.freeze({ ...input });
+  },
+  externalForce(input: ExternalForceInput = {}): ExternalForceInput {
+    return Object.freeze({ ...input });
+  },
+  externalImpulse(input: ExternalImpulseInput = {}): ExternalImpulseInput {
+    return Object.freeze({ ...input });
+  },
+  kinematicTarget(input: KinematicTargetInput = {}): KinematicTargetInput {
+    return Object.freeze({ ...input });
+  },
+  characterController(
+    input: PhysicsCharacterControllerInput = {},
+  ): PhysicsCharacterControllerInput {
+    return Object.freeze({ ...input });
+  },
+  material(input: PhysicsMaterialInput = {}): PhysicsMaterialInput {
+    return Object.freeze({ ...input });
+  },
+  joint(input: PhysicsJointInput = {}): PhysicsJointInput {
+    return Object.freeze({ ...input });
+  },
+  debug(input: PhysicsDebugInput = {}): PhysicsDebugInput {
+    return Object.freeze({ ...input });
+  },
+  body(input: PhysicsSpawnDescriptor = {}): PhysicsSpawnDescriptor {
+    return Object.freeze({ ...input });
   },
 });
 

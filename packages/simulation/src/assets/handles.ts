@@ -2,9 +2,11 @@ import { ASSET_KINDS, type AssetHandle, type AssetKind } from "./types.js";
 import type {
   AnimationClipHandle,
   EnvironmentMapHandle,
+  FontAtlasHandle,
   MaterialHandle,
   MeshHandle,
   MorphTargetSetHandle,
+  ParticleEffectHandle,
   PrefabHandle,
   RenderTargetHandle,
   SamplerHandle,
@@ -76,6 +78,14 @@ export function createEnvironmentMapHandle(id: string): EnvironmentMapHandle {
 
 export function createShaderHandle(id: string): ShaderHandle {
   return createAssetHandle("shader", id);
+}
+
+export function createFontAtlasHandle(id: string): FontAtlasHandle {
+  return createAssetHandle("font-atlas", id);
+}
+
+export function createParticleEffectHandle(id: string): ParticleEffectHandle {
+  return createAssetHandle("particle-effect", id);
 }
 
 export function assetHandleKey(handle: AssetHandle): string {

@@ -32,6 +32,14 @@ const workerModuleImportMap = new Map([
     "/worker-modules/packages/runtime/dist/index.js",
   ],
   [
+    "@aperture-engine/physics",
+    "/worker-modules/packages/physics/dist/index.js",
+  ],
+  [
+    "@aperture-engine/physics-rapier",
+    "/worker-modules/packages/physics-rapier/dist/index.js",
+  ],
+  [
     "@aperture-engine/simulation",
     "/worker-modules/packages/simulation/dist/index.js",
   ],
@@ -44,6 +52,10 @@ const workerModuleImportMap = new Map([
   [
     "@preact/signals-core",
     "/worker-modules/node_modules/@preact/signals-core/dist/signals-core.mjs",
+  ],
+  [
+    "@dimforge/rapier3d-compat",
+    "/worker-modules/packages/physics-rapier/node_modules/@dimforge/rapier3d-compat/rapier.mjs",
   ],
 ]);
 

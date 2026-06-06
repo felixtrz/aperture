@@ -15,7 +15,10 @@ import type { ComponentRegistry } from "./component-registry.js";
 // package and worker-safe.
 
 /** Components excluded from serialization by default because they are derived. */
-export const DERIVED_COMPONENT_IDS: readonly string[] = [WorldTransform.id];
+export const DERIVED_COMPONENT_IDS: readonly string[] = [
+  WorldTransform.id,
+  "aperture.physics.bodyState",
+];
 
 export interface SerializedComponent {
   readonly id: string;
@@ -172,6 +175,20 @@ function buildInitialData(
       continue;
     }
 
+    if (
+      type === EcsType.String &&
+      isEntityRefStringField(options, component, key)
+    ) {
+      data[key] = resolveEntityRefStringField(
+        component,
+        key,
+        value,
+        options,
+        diagnostics,
+      );
+      continue;
+    }
+
     data[key] = value;
   }
 
@@ -199,6 +216,47 @@ function resolveEntityField(
     });
   }
   return resolved;
+}
+
+function isEntityRefStringField(
+  options: DeserializeEntityComponentsOptions,
+  component: AnyEcsComponent,
+  key: string,
+): boolean {
+  return options.registry.entityRefStringFields(component.id).includes(key);
+}
+
+function resolveEntityRefStringField(
+  component: AnyEcsComponent,
+  key: string,
+  value: unknown,
+  options: DeserializeEntityComponentsOptions,
+  diagnostics: ComponentCodecDiagnostic[],
+): string {
+  if (value === null || value === undefined || value === "") {
+    return "";
+  }
+
+  if (typeof value !== "string") {
+    diagnostics.push({
+      code: "aperture.serialization.invalidEntityRefString",
+      message: `Expected serialized entity ref string for ${component.id}.${key}; field cleared.`,
+      data: { id: component.id, field: key, value },
+    });
+    return "";
+  }
+
+  const resolved = options.resolveEntity?.(value) ?? null;
+  if (resolved === null) {
+    diagnostics.push({
+      code: "aperture.serialization.unresolvedEntityRefString",
+      message: `Could not resolve entity ref '${value}' for ${component.id}.${key}; field cleared.`,
+      data: { id: component.id, field: key, token: value },
+    });
+    return "";
+  }
+
+  return serializeEntityRef(resolved);
 }
 
 function schemaFields(

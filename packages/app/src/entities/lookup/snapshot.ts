@@ -139,6 +139,18 @@ function changedSummaryFields(
     "parent",
     "localTransform",
     "worldTransform",
+    "physicsRigidBody",
+    "physicsCollider",
+    "physicsVelocity",
+    "physicsExternalForce",
+    "physicsExternalImpulse",
+    "physicsKinematicTarget",
+    "physicsGravity",
+    "physicsCharacterController",
+    "physicsMaterial",
+    "physicsDebug",
+    "physicsJoint",
+    "physicsBodyState",
   ] as const) {
     if (stableJson(before[field]) !== stableJson(after[field])) {
       fields.push(field);

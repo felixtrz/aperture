@@ -9,16 +9,31 @@ import type { AnyEcsComponent, EcsWorld } from "../ecs/index.js";
 export interface ComponentRegistry {
   get(id: string): AnyEcsComponent | undefined;
   has(id: string): boolean;
+  entityRefStringFields(id: string): readonly string[];
   readonly ids: readonly string[];
+}
+
+export interface ComponentRegistryOptions {
+  /**
+   * String fields that should be treated as serialized `index:generation`
+   * entity-reference tokens during scene/prefab load. This keeps the generic
+   * codec independent of domain packages whose public authoring still stores
+   * refs as backend-friendly strings.
+   */
+  readonly entityRefStringFields?: Readonly<Record<string, readonly string[]>>;
 }
 
 export function createComponentRegistry(
   components: Iterable<AnyEcsComponent>,
+  options: ComponentRegistryOptions = {},
 ): ComponentRegistry {
   const byId = new Map<string, AnyEcsComponent>();
   for (const component of components) {
     byId.set(component.id, component);
   }
+  const entityRefStringFields = normalizeEntityRefStringFields(
+    options.entityRefStringFields,
+  );
 
   return {
     get(id) {
@@ -26,6 +41,9 @@ export function createComponentRegistry(
     },
     has(id) {
       return byId.has(id);
+    },
+    entityRefStringFields(id) {
+      return entityRefStringFields.get(id) ?? [];
     },
     get ids() {
       return [...byId.keys()];
@@ -39,7 +57,10 @@ export function createComponentRegistry(
  * instantiating documents into the SAME world that authored them — e.g. prefab
  * instantiation — where every needed component is already registered.
  */
-export function componentRegistryFromWorld(world: EcsWorld): ComponentRegistry {
+export function componentRegistryFromWorld(
+  world: EcsWorld,
+  options: ComponentRegistryOptions = {},
+): ComponentRegistry {
   const components: AnyEcsComponent[] = [];
   for (let typeId = 0; ; typeId += 1) {
     const component = world.componentManager.getComponentByTypeId(typeId);
@@ -48,5 +69,15 @@ export function componentRegistryFromWorld(world: EcsWorld): ComponentRegistry {
     }
     components.push(component);
   }
-  return createComponentRegistry(components);
+  return createComponentRegistry(components, options);
+}
+
+function normalizeEntityRefStringFields(
+  fields: Readonly<Record<string, readonly string[]>> | undefined,
+): Map<string, readonly string[]> {
+  const normalized = new Map<string, readonly string[]>();
+  for (const [id, names] of Object.entries(fields ?? {})) {
+    normalized.set(id, [...new Set(names)].sort());
+  }
+  return normalized;
 }

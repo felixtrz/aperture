@@ -1,4 +1,9 @@
 import { raycastBoundsHit, raycastBoundsHits } from "./bounds.js";
+import {
+  raycastColliderHit,
+  raycastColliderHits,
+  type SpatialColliderQueries,
+} from "./collider.js";
 import { raycastMeshHit, raycastMeshHits } from "./mesh.js";
 import type {
   SpatialQueries,
@@ -16,6 +21,10 @@ export type {
   SpatialRaycastableMesh,
 } from "./types.js";
 
+export interface CreateSpatialQueriesOptions {
+  readonly colliders?: SpatialColliderQueries;
+}
+
 // PERF NOTE (audit B3): the bounds query uses a correct O(n) linear ray-AABB scan
 // (raycastBoundsHit/Hits). The exported simulation `EntityBoundsBvh` accelerator is
 // available for multi-pick / very-large-scene workloads, but it is intentionally NOT
@@ -24,7 +33,9 @@ export type {
 // no cheaper than the linear O(n) scan, and a per-frame rebuild would regress it.
 // Wiring it for multi-pick batches requires membership-diffed refit — tracked as a
 // perf follow-up rather than a default change here.
-export function createSpatialQueries(): SpatialQueries {
+export function createSpatialQueries(
+  setup: CreateSpatialQueriesOptions = {},
+): SpatialQueries {
   let bounds: readonly SpatialRaycastableBounds[] = [];
   let meshes: readonly SpatialRaycastableMesh[] = [];
 
@@ -37,6 +48,12 @@ export function createSpatialQueries(): SpatialQueries {
       }
 
       if (source === "collider") {
+        const colliderHit = raycastColliderHit(setup.colliders, ray, options);
+
+        if (colliderHit !== null || options.fallback !== "bounds") {
+          return colliderHit;
+        }
+
         return options.fallback === "bounds"
           ? raycastBoundsHit(bounds, ray, options)
           : null;
@@ -60,6 +77,12 @@ export function createSpatialQueries(): SpatialQueries {
       }
 
       if (source === "collider") {
+        const colliderHits = raycastColliderHits(setup.colliders, ray, options);
+
+        if (colliderHits.length > 0 || options.fallback !== "bounds") {
+          return colliderHits;
+        }
+
         return options.fallback === "bounds"
           ? raycastBoundsHits(bounds, ray, options)
           : [];

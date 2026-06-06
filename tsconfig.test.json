@@ -20,6 +20,11 @@
       "@aperture-engine/app/browser": ["packages/app/src/browser.ts"],
       "@aperture-engine/app/worker": ["packages/app/src/worker.ts"],
       "@aperture-engine/cli": ["packages/cli/src/index.ts"],
+      "@aperture-engine/physics": ["packages/physics/src/index.ts"],
+      "@aperture-engine/physics-rapier": [
+        "packages/physics-rapier/src/index.ts"
+      ],
+      "@aperture-engine/physics/testing": ["packages/physics/src/testing.ts"],
       "@aperture-engine/render": ["packages/render/src/index.ts"],
       "@aperture-engine/runtime": ["packages/runtime/src/index.ts"],
       "@aperture-engine/simulation": ["packages/simulation/src/index.ts"],

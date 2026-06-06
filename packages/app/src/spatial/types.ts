@@ -24,6 +24,7 @@ export interface SpatialRaycastOptions {
   readonly includeBackfaces?: boolean;
   readonly includeUv?: boolean;
   readonly includeNormal?: boolean;
+  readonly includeSensors?: boolean;
   readonly filter?: (entity: Entity) => boolean;
 }
 

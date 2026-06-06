@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   SIMULATION_WORKER_PROTOCOL,
+  copyRenderSnapshotIntoBufferLease,
   createExtractionApp,
   createRenderSnapshotBufferPool,
   createSimulationWorker,
@@ -19,6 +20,7 @@ import {
 import {
   createBoxMeshAsset,
   createRenderAssetCollections,
+  createQuadSnapshotBuffers,
   createUnlitMaterialAsset,
   type RenderSnapshot,
 } from "@aperture-engine/render";
@@ -107,6 +109,74 @@ describe("createSimulationWorker", () => {
       available: 2,
       inUse: 0,
       allocations: 2,
+    });
+  });
+
+  it("reuses transferred quad snapshot buffers across repeated round trips", () => {
+    const pool = createRenderSnapshotBufferPool(1);
+    const snapshot: RenderSnapshot = {
+      frame: 1,
+      views: [],
+      meshDraws: [],
+      lights: [],
+      environments: [],
+      shadowRequests: [],
+      bounds: [],
+      transforms: new Float32Array(16).fill(1),
+      viewMatrices: new Float32Array(48).fill(2),
+      quads: createQuadSnapshotBuffers({
+        instanceFloats: new Float32Array(24).fill(3),
+        instanceWords: new Uint32Array(8).fill(4),
+      }),
+      diagnostics: [],
+      report: {
+        views: 0,
+        meshDraws: 0,
+        lights: 0,
+        environments: 0,
+        shadowRequests: 0,
+        bounds: 0,
+        quadInstances: 1,
+        quadBatches: 0,
+        diagnostics: 0,
+      },
+    };
+    const lease = pool.acquire({
+      transformFloats: snapshot.transforms.length,
+      viewMatrixFloats: snapshot.viewMatrices.length,
+      quadInstanceFloats: snapshot.quads?.instanceFloats.length ?? 0,
+      quadInstanceWords: snapshot.quads?.instanceWords.length ?? 0,
+    });
+    const leased = copyRenderSnapshotIntoBufferLease(snapshot, lease);
+
+    const sent = structuredClone(
+      {
+        id: lease.id,
+        transforms: leased.transforms,
+        viewMatrices: leased.viewMatrices,
+        quadInstanceFloats: leased.quads?.instanceFloats,
+        quadInstanceWords: leased.quads?.instanceWords,
+      },
+      { transfer: lease.transfer },
+    );
+
+    expect(leased.quads?.instanceFloats.byteLength).toBe(0);
+    expect(leased.quads?.instanceWords.byteLength).toBe(0);
+    expect(sent.quadInstanceFloats).toEqual(new Float32Array(24).fill(3));
+    expect(sent.quadInstanceWords).toEqual(new Uint32Array(8).fill(4));
+
+    pool.release({
+      id: sent.id,
+      transforms: sent.transforms,
+      viewMatrices: sent.viewMatrices,
+      quadInstanceFloats: sent.quadInstanceFloats as Float32Array,
+      quadInstanceWords: sent.quadInstanceWords as Uint32Array,
+    });
+    expect(pool.stats()).toEqual({
+      capacity: 1,
+      available: 1,
+      inUse: 0,
+      allocations: 4,
     });
   });
 

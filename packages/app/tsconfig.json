@@ -8,6 +8,7 @@
   },
   "references": [
     { "path": "../simulation" },
+    { "path": "../physics" },
     { "path": "../render" },
     { "path": "../runtime" },
     { "path": "../webgpu" },

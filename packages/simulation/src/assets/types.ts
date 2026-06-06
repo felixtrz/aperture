@@ -11,6 +11,8 @@ export const ASSET_KINDS = [
   "morph-target-set",
   "environment-map",
   "shader",
+  "font-atlas",
+  "particle-effect",
 ] as const;
 
 export type AssetKind = (typeof ASSET_KINDS)[number];
@@ -43,6 +45,8 @@ export type SkinHandle = AssetHandle<"skin">;
 export type MorphTargetSetHandle = AssetHandle<"morph-target-set">;
 export type EnvironmentMapHandle = AssetHandle<"environment-map">;
 export type ShaderHandle = AssetHandle<"shader">;
+export type FontAtlasHandle = AssetHandle<"font-atlas">;
+export type ParticleEffectHandle = AssetHandle<"particle-effect">;
 
 export interface SerializedAssetHandle<TKind extends AssetKind = AssetKind> {
   readonly kind: TKind;

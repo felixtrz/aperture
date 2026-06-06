@@ -1,5 +1,6 @@
 import {
   SIMULATION_WORKER_PROTOCOL,
+  type SimulationWorkerFixedStepOptions,
   type SimulationMessagePort,
   type SimulationWorkerStartOptions,
 } from "@aperture-engine/runtime";
@@ -19,7 +20,10 @@ import {
   type GeneratedDevtoolsBridge,
 } from "./devtools/bridge.js";
 import type { GeneratedEntityToolBridge } from "./devtools/entities.js";
-import { publishGeneratedWorkerSnapshot } from "./snapshot.js";
+import {
+  publishGeneratedWorkerSnapshot,
+  type GeneratedWorkerSnapshotPublishReport,
+} from "./snapshot.js";
 
 export async function runGeneratedWorkerLoop(options: {
   readonly port: SimulationMessagePort;
@@ -38,6 +42,10 @@ export async function runGeneratedWorkerLoop(options: {
 }): Promise<void> {
   try {
     const workerAssetDecoders = readWorkerAssetDecoderOptions(options.start);
+    const fixedStep = readWorkerFixedStepOptions(options.start);
+    const physicsInterpolation = readWorkerPhysicsInterpolationOption(
+      options.start,
+    );
     const decoderBaseUrl =
       workerAssetDecoders?.baseUrl ?? options.config.assetDecoders?.baseUrl;
     const app = await createApertureApp({
@@ -56,6 +64,10 @@ export async function runGeneratedWorkerLoop(options: {
         options.start.entityCapacity === undefined
           ? undefined
           : { entityCapacity: options.start.entityCapacity },
+      ...(fixedStep === undefined ? {} : { fixedStep }),
+      ...(physicsInterpolation === undefined
+        ? {}
+        : { physicsInterpolation }),
     });
     const entityTools = options.createEntityTools(app.lowLevel.world);
     const sourceAssetState = createSourceAssetSerializationState();
@@ -64,8 +76,11 @@ export async function runGeneratedWorkerLoop(options: {
     let paused = false;
     let previousTime = performance.now();
 
-    const publishSnapshot = (delta: number, time: number) => {
-      frame = publishGeneratedWorkerSnapshot({
+    const publishSnapshot = (
+      delta: number,
+      time: number,
+    ): GeneratedWorkerSnapshotPublishReport => {
+      const report = publishGeneratedWorkerSnapshot({
         app,
         config: options.config,
         port: options.port,
@@ -76,6 +91,9 @@ export async function runGeneratedWorkerLoop(options: {
         time,
         frame,
       });
+      frame = report.nextFrame;
+
+      return report;
     };
     const devtools = createGeneratedDevtoolsBridge({
       app,
@@ -88,11 +106,13 @@ export async function runGeneratedWorkerLoop(options: {
         paused = true;
         const now = performance.now();
         previousTime = now;
-        publishSnapshot(delta, now / 1000);
+        const report = publishSnapshot(delta, now / 1000);
 
         return {
           paused,
           frame,
+          fixedStep: report.step.fixedStep,
+          physics: app.context.physics.summary(),
         };
       },
       getSimulationState() {
@@ -147,6 +167,85 @@ export type GeneratedWorkerSourceAssetState = SourceAssetSerializationState;
 interface WorkerAssetDecoderOptions {
   readonly baseUrl?: string;
   readonly ktx2TextureCompression?: Ktx2TextureCompressionSupport;
+}
+
+type WorkerFixedStepOptions = false | SimulationWorkerFixedStepOptions;
+
+interface MutableWorkerFixedStepOptions {
+  enabled?: boolean;
+  fixedDelta?: number;
+  maxSubsteps?: number;
+  maxAccumulatedTime?: number;
+}
+
+function readWorkerFixedStepOptions(
+  start: SimulationWorkerStartOptions,
+): WorkerFixedStepOptions | undefined {
+  const value = start.fixedStep;
+
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value === false) {
+    return false;
+  }
+
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const record = value as Record<string, unknown>;
+  const fixedStep: MutableWorkerFixedStepOptions = {};
+
+  copyBooleanOption(record, fixedStep, "enabled");
+  copyNumberOption(record, fixedStep, "fixedDelta");
+  copyNumberOption(record, fixedStep, "maxSubsteps");
+  copyNumberOption(record, fixedStep, "maxAccumulatedTime");
+
+  return fixedStep;
+}
+
+function readWorkerPhysicsInterpolationOption(
+  start: SimulationWorkerStartOptions,
+): boolean | undefined {
+  const value = start.physicsInterpolation;
+
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const enabled = (value as Record<string, unknown>)["enabled"];
+
+  return typeof enabled === "boolean" ? enabled : undefined;
+}
+
+function copyBooleanOption(
+  source: Record<string, unknown>,
+  target: MutableWorkerFixedStepOptions,
+  key: "enabled",
+): void {
+  const value = source[key];
+
+  if (typeof value === "boolean") {
+    target[key] = value;
+  }
+}
+
+function copyNumberOption(
+  source: Record<string, unknown>,
+  target: MutableWorkerFixedStepOptions,
+  key: "fixedDelta" | "maxSubsteps" | "maxAccumulatedTime",
+): void {
+  const value = source[key];
+
+  if (typeof value === "number") {
+    target[key] = value;
+  }
 }
 
 function readWorkerAssetDecoderOptions(

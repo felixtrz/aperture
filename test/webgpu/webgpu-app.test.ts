@@ -121,6 +121,12 @@ async function createWebGpuApp(
       extraction.registerSystem(system);
       return legacyApp;
     },
+    registerFixedStepTask(task) {
+      return extraction.registerFixedStepTask(task);
+    },
+    resetFixedStepClock() {
+      extraction.resetFixedStepClock();
+    },
     step(delta = 0, time = 0) {
       return extraction.step(delta, time);
     },
@@ -237,6 +243,12 @@ function createSharedSnapshotManualSimulationWorker(
         ...(snapshot.instanceTints === undefined
           ? {}
           : { instanceTints: snapshot.instanceTints }),
+        ...(snapshot.quads === undefined
+          ? {}
+          : {
+              quadInstanceFloats: snapshot.quads.instanceFloats,
+              quadInstanceWords: snapshot.quads.instanceWords,
+            }),
         viewMatrices: snapshot.viewMatrices,
         packetWords: encoded.words,
       });
@@ -2529,6 +2541,8 @@ describe("WebGPU app facade", () => {
       views: 1,
       meshDraws: 1,
       spriteDraws: 1,
+      quadInstances: 1,
+      quadBatches: 1,
       drawCalls: 2,
       diagnostics: 0,
     });

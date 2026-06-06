@@ -130,6 +130,7 @@ const readbackHelperImport = 'from "./webgpu-readback.js"';
 const expectedImports = {
   "@aperture-engine/render": "/packages/render/dist/index.js",
   "@aperture-engine/runtime": "/packages/runtime/dist/index.js",
+  "@aperture-engine/physics": "/packages/physics/dist/index.js",
   "@aperture-engine/simulation": "/packages/simulation/dist/index.js",
   "@aperture-engine/webgpu": "/packages/webgpu/dist/index.js",
   elics: "/node_modules/elics/lib/index.js",

@@ -5,6 +5,7 @@ import {
   assetHandlesEqual,
   createAnimationClipHandle,
   createEnvironmentMapHandle,
+  createFontAtlasHandle,
   createMaterialHandle,
   createMeshHandle,
   createMorphTargetSetHandle,
@@ -34,6 +35,7 @@ describe("asset handles and registry", () => {
     expect(createEnvironmentMapHandle("environment").kind).toBe(
       "environment-map",
     );
+    expect(createFontAtlasHandle("font").kind).toBe("font-atlas");
   });
 
   it("compares and serializes handles without carrying asset objects", () => {

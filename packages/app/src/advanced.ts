@@ -17,6 +17,7 @@ import {
   createSpatialIndexPopulationState,
   populateSpatialIndexFromWorld,
 } from "./systems/spatial-index-population.js";
+import { applyPhysicsSnapshotInterpolation } from "./physics-interpolation.js";
 import { runInteractionFrame } from "./interaction/system.js";
 import {
   defineApertureConfig,
@@ -42,6 +43,8 @@ export interface CreateApertureAppOptions {
   readonly assetLoader?: ApertureAssetLoader;
   readonly gltfAssetDecoders?: SystemGltfAssetDecoderProvider;
   readonly worldOptions?: CreateExtractionAppOptions["worldOptions"];
+  readonly fixedStep?: CreateExtractionAppOptions["fixedStep"];
+  readonly physicsInterpolation?: boolean;
 }
 
 export interface AperturePreloadReport {
@@ -58,6 +61,10 @@ export interface ApertureApp {
   readonly preload: AperturePreloadReport;
   step(delta?: number, time?: number): ReturnType<ExtractionApp["step"]>;
   extract(frame?: number): ReturnType<ExtractionApp["extract"]>;
+  registerFixedStepTask(
+    task: Parameters<ExtractionApp["registerFixedStepTask"]>[0],
+  ): () => void;
+  resetFixedStepClock(): void;
   stepAndExtract(
     delta?: number,
     time?: number,
@@ -92,11 +99,15 @@ export async function createApertureApp(
     ...(options.worldOptions === undefined
       ? {}
       : { worldOptions: options.worldOptions }),
+    ...(options.fixedStep === undefined
+      ? {}
+      : { fixedStep: options.fixedStep }),
   });
   const context = createApertureSystemContext({
     world: lowLevel.world,
     assetsRegistry: lowLevel.assets,
     config,
+    registerFixedStepTask: (task) => lowLevel.registerFixedStepTask(task),
     ...(options.assetLoader === undefined
       ? {}
       : { assetLoader: options.assetLoader }),
@@ -106,6 +117,9 @@ export async function createApertureApp(
   });
   const preload = preloadReport(config);
   const spatialIndexPopulation = createSpatialIndexPopulationState();
+  const physicsInterpolation = options.physicsInterpolation === true;
+  let lastFixedStep: ReturnType<ExtractionApp["step"]>["fixedStep"] | null =
+    null;
   const refreshSpatialIndex = () =>
     populateSpatialIndexFromWorld(
       {
@@ -132,21 +146,38 @@ export async function createApertureApp(
     step(delta = 0, time = 0) {
       resolveWorldTransforms(lowLevel.world);
       refreshSpatialIndex();
-      // Synthesize pointer-on-object events from the freshly populated picking
-      // index before input effects + user systems run (M7-T8).
-      runInteractionFrame(context, time);
       flushApertureSystemEffects(lowLevel.world, "input");
       const result = lowLevel.step(delta, time);
+      lastFixedStep = result.fixedStep;
       refreshSpatialIndex();
+      // Synthesize pointer-on-object events from post-update world state, after
+      // fixed-step physics writeback has refreshed transforms and picking data.
+      runInteractionFrame(context, time);
       flushApertureSystemEffects(lowLevel.world, "postUpdate");
       return result;
     },
     extract(frame = 0) {
-      return lowLevel.extract(frame);
+      const snapshot = lowLevel.extract(frame);
+
+      if (physicsInterpolation && lastFixedStep !== null) {
+        applyPhysicsSnapshotInterpolation({
+          snapshot,
+          world: lowLevel.world,
+          alpha: lastFixedStep.overstepAlpha,
+        });
+      }
+
+      return snapshot;
+    },
+    registerFixedStepTask(task) {
+      return lowLevel.registerFixedStepTask(task);
+    },
+    resetFixedStepClock() {
+      lowLevel.resetFixedStepClock();
     },
     stepAndExtract(delta = 0, time = 0, frame = 0) {
       apertureApp.step(delta, time);
-      return lowLevel.extract(frame);
+      return apertureApp.extract(frame);
     },
   };
 

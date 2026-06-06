@@ -11,6 +11,8 @@ const rootDir = path.resolve(
 
 const publishablePackages = [
   { dir: "packages/simulation", name: "@aperture-engine/simulation" },
+  { dir: "packages/physics", name: "@aperture-engine/physics" },
+  { dir: "packages/physics-rapier", name: "@aperture-engine/physics-rapier" },
   { dir: "packages/render", name: "@aperture-engine/render" },
   { dir: "packages/runtime", name: "@aperture-engine/runtime" },
   { dir: "packages/webgpu", name: "@aperture-engine/webgpu" },
@@ -146,7 +148,16 @@ async function checkPublishReadinessRegression() {
       await writePackageFixture(fixtureRoot, pkg);
     }
 
-    await writePackageFixture(fixtureRoot, publishablePackages[1], {
+    const regressedPackage = publishablePackages.find(
+      (pkg) => pkg.dir === "packages/render",
+    );
+
+    if (regressedPackage === undefined) {
+      fail("release-config regression fixture could not find packages/render.");
+      return;
+    }
+
+    await writePackageFixture(fixtureRoot, regressedPackage, {
       private: true,
       version: "0.0.0",
     });

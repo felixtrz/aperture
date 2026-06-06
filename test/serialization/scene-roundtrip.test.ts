@@ -21,6 +21,10 @@ import {
   type ApertureSceneDocument,
   type Entity,
 } from "@aperture-engine/simulation";
+import {
+  PhysicsBodyState,
+  createPhysicsBodyState,
+} from "@aperture-engine/physics";
 
 // M7-T4: whole-world scene document save/load round-trip.
 
@@ -52,6 +56,7 @@ function buildSourceScene(): SourceScene {
   registerTransformComponents(world);
   registerMetadataComponents(world);
   world.registerComponent(CameraLens);
+  world.registerComponent(PhysicsBodyState);
 
   const make = (name: string): Entity => {
     const entity = world.createEntity();
@@ -74,6 +79,13 @@ function buildSourceScene(): SourceScene {
   });
 
   root.getVectorView(LocalTransform, "translation").set([5, 0, 0]);
+  root.addComponent(
+    PhysicsBodyState,
+    createPhysicsBodyState({
+      currentTranslation: [100, 100, 100],
+      backendBodyId: "derived-body",
+    }),
+  );
   camera.getVectorView(LocalTransform, "translation").set([0, 1, 10]);
   resolveWorldTransforms(world);
 
@@ -132,6 +144,7 @@ describe("scene document save/load round-trip (M7-T4)", () => {
       const ids = entity.components.map((component) => component.id);
       expect(ids).not.toContain(WorldTransform.id);
       expect(ids).not.toContain("aperture.transform.children");
+      expect(ids).not.toContain(PhysicsBodyState.id);
     }
 
     const json = JSON.parse(JSON.stringify(document)) as ApertureSceneDocument;
