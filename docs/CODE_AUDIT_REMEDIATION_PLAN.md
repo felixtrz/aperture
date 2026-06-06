@@ -626,7 +626,7 @@ Suggested validation: `pnpm run check:examples`, `pnpm run check:progress`,
 
 ### DOC-03 - Mark shipped plan/proposal docs implemented or superseded
 
-- Status: confirmed-open.
+- Status: completed 2026-06-06.
 - Files: `docs/INPUT_STATE_AND_ACTION_PLAN.md`,
   `docs/DEVELOPER_API_PROPOSAL.md`,
   `docs/CREATE_SYSTEM_DESCRIPTOR_MIGRATION_PLAN.md`.
@@ -636,8 +636,9 @@ Suggested validation: `pnpm run check:examples`, `pnpm run check:progress`,
 
 ### DOC-04 - Retire stale ACTIVE debug-normal research docs
 
-- Status: confirmed-open.
-- Files: `docs/research/ACTIVE_DEBUG_NORMAL_ROUTE_INTEGRATION_PLAN_2026_05_18.md`
+- Status: completed 2026-06-06.
+- Files:
+  `docs/research/SUPERSEDED_DEBUG_NORMAL_ROUTE_INTEGRATION_PLAN_2026_05_18.md`
   and audit sibling.
 - Action: rename/drop `ACTIVE_` and mark superseded, or delete if no longer
   useful.
@@ -723,8 +724,8 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 17    |
-| Confirmed open / executable           | 20    |
+| Completed                             | 19    |
+| Confirmed open / executable           | 18    |
 | Needs refinement but actionable       | 11    |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |

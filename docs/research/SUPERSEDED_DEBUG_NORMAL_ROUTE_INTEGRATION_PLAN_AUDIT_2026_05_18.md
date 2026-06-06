@@ -1,6 +1,8 @@
-# Active DebugNormal Route Integration Plan Audit
+# Superseded DebugNormal Route Integration Plan Audit
 
 Date: 2026-05-18
+Status: superseded by the implemented DebugNormal app route and browser pixel
+coverage slices. Retained as historical audit context.
 
 ## Scope
 
@@ -8,7 +10,7 @@ Audit the selected active DebugNormalMaterial app route integration plan.
 
 ## References Inspected
 
-- `docs/research/ACTIVE_DEBUG_NORMAL_ROUTE_INTEGRATION_PLAN_2026_05_18.md`
+- `docs/research/SUPERSEDED_DEBUG_NORMAL_ROUTE_INTEGRATION_PLAN_2026_05_18.md`
 - `docs/research/DEBUG_NORMAL_APP_FRAME_RESOURCE_AUDIT_2026_05_18.md`
 - `docs/ARCHITECTURE.md`
 - `packages/webgpu/src/webgpu/app.ts`

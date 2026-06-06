@@ -2,7 +2,8 @@
 
 Date: 2026-05-23
 
-Status: proposal
+Status: implemented for the default Vite metaframework path; retained as
+historical API design context. Broader editor/tooling ideas remain follow-ups.
 
 ## Purpose
 

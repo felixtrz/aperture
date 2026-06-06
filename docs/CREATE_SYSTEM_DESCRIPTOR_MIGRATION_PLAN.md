@@ -1,5 +1,9 @@
 # `createSystem` Descriptor Migration Plan
 
+Status: implemented. The descriptor-shaped `createSystem({ priority, queries,
+config })` API is the documented/default system authoring path; legacy split
+examples in this document are retained only as migration context.
+
 ## Goal
 
 Migrate Aperture app systems from the current split shape:

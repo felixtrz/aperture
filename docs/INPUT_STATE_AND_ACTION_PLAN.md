@@ -1,7 +1,9 @@
 # Input State And Action Plan
 
 Date: 2026-05-27
-Status: plan
+Status: implemented for the immediate input state/action layer; retained as
+historical design context. Advanced app-local generated action typings and
+broader CLI/gamepad tooling remain follow-ups.
 
 ## Purpose
 

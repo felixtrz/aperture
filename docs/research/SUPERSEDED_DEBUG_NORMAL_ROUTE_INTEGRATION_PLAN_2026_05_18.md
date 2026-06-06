@@ -1,6 +1,8 @@
-# Active DebugNormal Route Integration Plan
+# Superseded DebugNormal Route Integration Plan
 
 Date: 2026-05-18
+Status: superseded by the implemented DebugNormal app route and browser pixel
+coverage slices. Retained as historical task-selection context.
 
 ## Scope
 
@@ -67,7 +69,7 @@ Package/write-scope:
 targeted tests, and exports only if needed.
 
 Reference anchor:
-`docs/research/ACTIVE_DEBUG_NORMAL_ROUTE_INTEGRATION_PLAN_2026_05_18.md`,
+`docs/research/SUPERSEDED_DEBUG_NORMAL_ROUTE_INTEGRATION_PLAN_2026_05_18.md`,
 `packages/webgpu/src/webgpu/debug-normal-app-frame-resources.ts`,
 `packages/webgpu/src/webgpu/unlit-app-frame-resources.ts`,
 `packages/webgpu/src/webgpu/matcap-app-frame-resources.ts`,

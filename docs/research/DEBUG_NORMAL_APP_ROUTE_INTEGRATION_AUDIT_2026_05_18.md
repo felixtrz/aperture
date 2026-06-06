@@ -8,8 +8,8 @@ Audit the implemented DebugNormalMaterial app route resource integration.
 
 ## References Inspected
 
-- `docs/research/ACTIVE_DEBUG_NORMAL_ROUTE_INTEGRATION_PLAN_2026_05_18.md`
-- `docs/research/ACTIVE_DEBUG_NORMAL_ROUTE_INTEGRATION_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/SUPERSEDED_DEBUG_NORMAL_ROUTE_INTEGRATION_PLAN_2026_05_18.md`
+- `docs/research/SUPERSEDED_DEBUG_NORMAL_ROUTE_INTEGRATION_PLAN_AUDIT_2026_05_18.md`
 - `docs/research/DEBUG_NORMAL_APP_FRAME_RESOURCE_AUDIT_2026_05_18.md`
 - `docs/ARCHITECTURE.md`
 - `packages/webgpu/src/webgpu/app.ts`
