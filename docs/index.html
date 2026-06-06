@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-06 15:27 UTC</dd>
+            <dd>2026-06-06 16:49 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -409,9 +409,10 @@
               <code>snapToGroundDistance</code>, calls
               <code>physics_move_character</code> without inline settings, steps
               fixed physics, and diffs controller plus kinematic/body writeback
-              while the dedicated physics-worker route stays parked. The latest
-              simulation-worker hardening also makes durable
-              <code>PhysicsMaterial</code> and
+              while the Rapier dedicated physics-worker route now owns
+              transfer-based step/writeback plus worker-side query, debug, and
+              control actions. The latest simulation-worker hardening also makes
+              durable <code>PhysicsMaterial</code> and
               <code>PhysicsDebug</code> authoring visible in snapshots/diffs and
               mutable while paused. Material values now feed backend collider
               descriptors, Rapier maps material combine rules, and
@@ -472,8 +473,8 @@
               surface beside timing, memory, event, query, and signature data.
               The same route now also treats <code>RigidBody.ccdEnabled</code>
               honestly: Rapier reports
-              <code>continuousCollisionDetection: true</code>, deterministic and
-              Havok routes report
+              <code>continuousCollisionDetection: true</code>, and the
+              deterministic route reports
               <code>physics.rigidBody.ccd.unsupported</code> when CCD is
               authored, and the async Rapier generated-worker proof pauses,
               mutates CCD, steps physics, and diffs the authored flag plus
@@ -483,8 +484,8 @@
               <code>trimesh</code>, and <code>heightfield</code> colliders
               report
               <code>physics.collider.assetShape.unsupported</code> instead of
-              crashing Rapier/Havok or using fake deterministic fallback bounds,
-              and the generated-worker proof mutates a collider to
+              crashing Rapier or using fake deterministic fallback bounds, and
+              the generated-worker proof mutates a collider to
               <code>trimesh</code>, steps physics, sees the sync limitation, and
               diffs the durable <code>physicsCollider</code> authoring. Parented
               <code>RigidBody</code> authoring now works through the
@@ -509,10 +510,10 @@
               steps, observes a <code>sleep</code> event and
               <code>PhysicsBodyState.sleeping</code> diff, then wakes, steps,
               observes a <code>wake</code> event, and diffs back to awake while
-              the dedicated worker route stays parked. Stale derived body state
-              is now cleared on that same route: if a synced
-              <code>RigidBody</code> is disabled, collider-less, or skipped for
-              an unsupported collider shape, physics sync removes
+              the dedicated worker query/control route is covered separately.
+              Stale derived body state is now cleared on that same route: if a
+              synced <code>RigidBody</code> is disabled, collider-less, or
+              skipped for an unsupported collider shape, physics sync removes
               <code>PhysicsBodyState</code> before backend sync. The async
               Rapier proof pauses, snapshots a body with body state, disables
               <code>RigidBody.enabled</code>, steps fixed physics, sees backend
@@ -548,14 +549,15 @@
               the browser benchmark route publishes deterministic and Rapier
               reports across the same nine same-worker scenarios. Rapier remains
               the default concrete backend. The dedicated physics-worker path
-              exists as a Rapier transferable proof route, but the
-              simulation-worker route remains the primary
+              now exists as a Rapier transferable route with off-thread
+              step/writeback plus worker-owned raycast, overlap/shape/point
+              query, character movement, sleep/wake, and debug-geometry actions;
+              the simulation-worker route remains the primary
               pause/snapshot/edit-or-command/step/diff workflow until profiling
-              and gameplay query semantics justify the extra protocol. Generic
-              joint descriptors now report
-              <code>physics.joint.unsupported</code> and clear stale backend
-              constraints instead of throwing or leaving old constraints active.
-              PHYS-11 now also exposes JSON-safe debug summaries:
+              shows the extra protocol is worthwhile. Generic joint descriptors
+              now report <code>physics.joint.unsupported</code> and clear stale
+              backend constraints instead of throwing or leaving old constraints
+              active. PHYS-11 now also exposes JSON-safe debug summaries:
               <code>context.physics.debugSummary()</code> and generated-worker
               <code>physics_debug_summary</code> report line counts,
               finite/invalid counts, color buckets, and bounds over the same
@@ -741,8 +743,9 @@
               <code>pnpm run check</code> passed after this velocity-motor slice
               with 438 test files and 2363 tests. The first
               <code>physics-worker-transferable</code> foundation slice now
-              defines physics worker messages and a transferable body-result
-              packet for future third-worker writeback. Full
+              defines physics worker messages, transferable body-result packets,
+              and worker action/result requests for backend-owned queries,
+              controls, and debug geometry. Full
               <code>pnpm run check</code> passed after this worker-protocol
               slice with 439 test files and 2367 tests. Fixed-joint
               <code>frameA</code>/<code>frameB</code> authoring now flows
@@ -952,15 +955,17 @@
               <code>docs/PHYSICS_IMPLEMENTATION_PLAN.md</code> documents the
               simulation-worker query timing contract: pause, snapshot, edit or
               command, <code>ecs_step</code>, query the post-step backend state,
-              then <code>ecs_diff</code>. The concrete third-worker browser
-              transport remains parked until profiling justifies it.
+              then <code>ecs_diff</code>. The dedicated Rapier physics-worker
+              browser transport now exists for transfer-based step/writeback and
+              backend-owned actions; larger-scene profiling remains pending
+              before it becomes the default gameplay route.
               <code>docs/research/PHYSICS_BACKEND_COMPARISON.md</code> now
               records the partial PHYS-17 backend comparison: current package
-              facts for Rapier, Havok, and Jolt; implemented behavior for the
-              test/Rapier backends; simulation-worker suitability; and the
-              criteria that would justify an optional adapter. Rapier remains
-              the default because it is still the only backend with broad
-              generated simulation-worker gameplay coverage.
+              facts for Rapier and future Havok/Jolt candidates; implemented
+              behavior for the test/Rapier backends; simulation-worker
+              suitability; and the criteria that would justify an optional
+              adapter. Rapier remains the default because it is still the only
+              backend with broad generated simulation-worker gameplay coverage.
               <code>packages/physics/src/benchmark.ts</code> now exports
               <code>runPhysicsBackendBenchmark(...)</code>, with deterministic
               and Rapier tests plus
@@ -1026,9 +1031,9 @@
               missing or stale serialized collider <code>meshId</code> and
               <code>heightfieldAssetId</code> refs before backend sync, with
               focused serialization tests covering the diagnostic payloads. The
-              dedicated browser worker-mode route and shared-buffer transport
-              are parked until the simulation-worker physics path is stronger,
-              profiled, and still needs a third worker.
+              dedicated Rapier worker-mode route now covers transferable
+              step/writeback plus worker-owned query/debug/control actions; the
+              shared-buffer transport remains future work pending profiling.
             </dd>
             <dt>Next focus</dt>
             <dd>
@@ -1052,11 +1057,12 @@
               gameplay semantics beyond the now-covered axis locks, damping, and
               kinematic-velocity body motion, canSleep behavior, and angular
               rotation writeback, or additional joint/gameplay semantics through
-              that harness. Keep the dedicated physics-worker route parked until
-              this simulation-worker path is stronger and profiling shows a
-              third worker is worth the protocol cost; resume
-              <code>M10-T3</code> WebXR separately when physics no longer needs
-              this focus.
+              that harness. Use the dedicated Rapier physics-worker route for
+              transfer and worker-owned-action coverage, but keep the generated
+              simulation worker as the default developer route until
+              larger-scene profiling shows a third worker is worth the protocol
+              cost; resume <code>M10-T3</code> WebXR separately when physics no
+              longer needs this focus.
             </dd>
           </dl>
         </aside>
@@ -4877,8 +4883,9 @@
                 breaks, native joint impulse readback, broader paired
                 joint-frame semantics (now reported when unsupported), or
                 additional gameplay physics semantics beyond the current helper
-                surface. Keep dedicated physics-worker design parked until this
-                path is stronger and profiling justifies the extra protocol;
+                surface. Keep the generated simulation-worker route as the
+                default developer workflow while profiling the dedicated Rapier
+                physics-worker action route before promoting the extra protocol;
                 resume <code>M10-T3</code> WebXR separately when physics no
                 longer needs this focus.
               </li>

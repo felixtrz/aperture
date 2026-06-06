@@ -44,6 +44,21 @@ async function handleMessage(message) {
     return;
   }
 
+  if (message?.type === aperture.PHYSICS_WORKER_PROTOCOL.action) {
+    if (endpoint === null || typeof endpoint.action !== "function") {
+      postPhysicsError(
+        "physics-worker-not-initialized",
+        "Physics worker received an action before initialization.",
+        message.requestId,
+      );
+      return;
+    }
+
+    const response = await endpoint.action({ message, transfer: [] });
+    self.postMessage(response.message, response.transfer);
+    return;
+  }
+
   if (message?.type === aperture.PHYSICS_WORKER_PROTOCOL.dispose) {
     backend?.dispose();
     backend = null;
@@ -92,12 +107,13 @@ async function initializeBackend(aperture, message) {
   });
 }
 
-async function postPhysicsError(reason, message) {
+async function postPhysicsError(reason, message, requestId) {
   const aperture = await loadAperture();
   self.postMessage({
     type: aperture.PHYSICS_WORKER_PROTOCOL.error,
     reason,
     message,
+    ...(requestId === undefined ? {} : { requestId }),
   });
 }
 

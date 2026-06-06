@@ -1,22 +1,35 @@
 import type {
   PhysicsBackendBuild,
   PhysicsBackendKind,
+  PhysicsCharacterMove,
+  PhysicsCharacterMoveResult,
   PhysicsCommandBuffer,
+  PhysicsDebugGeometry,
+  PhysicsDebugOptions,
   PhysicsEvent,
   PhysicsExecutionMode,
+  PhysicsOverlapHit,
+  PhysicsPointProjection,
+  PhysicsQueryOptions,
+  PhysicsRay,
+  PhysicsRaycastHit,
   PhysicsReadbackReport,
   PhysicsResultBuffer,
+  PhysicsShapeCast,
+  PhysicsShapeCastHit,
   PhysicsStepReport,
   PhysicsTransform,
   PhysicsVelocityValue,
 } from "./backend.js";
 import { createPhysicsResultBuffer } from "./backend.js";
-import type { PhysicsVec3 } from "./components.js";
+import type { PhysicsShape, PhysicsVec3 } from "./components.js";
 
 export const PHYSICS_WORKER_PROTOCOL = {
   init: "aperture.physics.init",
   step: "aperture.physics.step",
+  action: "aperture.physics.action",
   result: "aperture.physics.result",
+  actionResult: "aperture.physics.actionResult",
   error: "aperture.physics.error",
   dispose: "aperture.physics.dispose",
 } as const;
@@ -43,6 +56,95 @@ export interface PhysicsWorkerStepMessage {
   readonly commands: PhysicsCommandBuffer;
 }
 
+export type PhysicsWorkerAction =
+  | {
+      readonly kind: "raycastFirst";
+      readonly ray: PhysicsRay;
+      readonly options?: PhysicsQueryOptions;
+    }
+  | {
+      readonly kind: "raycastAll";
+      readonly ray: PhysicsRay;
+      readonly options?: PhysicsQueryOptions;
+    }
+  | {
+      readonly kind: "overlapShape";
+      readonly shape: PhysicsShape;
+      readonly transform: PhysicsTransform;
+      readonly options?: PhysicsQueryOptions;
+    }
+  | {
+      readonly kind: "castShapeFirst";
+      readonly shape: PhysicsShape;
+      readonly cast: PhysicsShapeCast;
+      readonly options?: PhysicsQueryOptions;
+    }
+  | {
+      readonly kind: "projectPoint";
+      readonly point: PhysicsVec3;
+      readonly options?: PhysicsQueryOptions;
+    }
+  | {
+      readonly kind: "moveCharacter";
+      readonly move: PhysicsCharacterMove;
+    }
+  | {
+      readonly kind: "sleepBody";
+      readonly entity: string;
+    }
+  | {
+      readonly kind: "wakeBody";
+      readonly entity: string;
+    }
+  | {
+      readonly kind: "debugGeometry";
+      readonly options?: PhysicsDebugOptions;
+    };
+
+export interface PhysicsWorkerActionMessage {
+  readonly type: typeof PHYSICS_WORKER_PROTOCOL.action;
+  readonly requestId: number;
+  readonly action: PhysicsWorkerAction;
+}
+
+export type PhysicsWorkerActionResult =
+  | {
+      readonly kind: "raycastFirst";
+      readonly hit: PhysicsRaycastHit | null;
+    }
+  | {
+      readonly kind: "raycastAll";
+      readonly hits: readonly PhysicsRaycastHit[];
+    }
+  | {
+      readonly kind: "overlapShape";
+      readonly hits: readonly PhysicsOverlapHit[];
+    }
+  | {
+      readonly kind: "castShapeFirst";
+      readonly hit: PhysicsShapeCastHit | null;
+    }
+  | {
+      readonly kind: "projectPoint";
+      readonly projection: PhysicsPointProjection | null;
+    }
+  | {
+      readonly kind: "moveCharacter";
+      readonly result: PhysicsCharacterMoveResult | null;
+    }
+  | {
+      readonly kind: "sleepBody";
+      readonly changed: boolean;
+    }
+  | {
+      readonly kind: "wakeBody";
+      readonly changed: boolean;
+    }
+  | {
+      readonly kind: "debugGeometry";
+      readonly geometry: PhysicsDebugGeometry;
+    };
+
 export interface PhysicsTransferableResultPacket {
   readonly bodyEntities: readonly string[];
   readonly bodyFloats: Float32Array;
@@ -58,10 +160,17 @@ export interface PhysicsWorkerResultMessage {
   readonly results: PhysicsTransferableResultPacket;
 }
 
+export interface PhysicsWorkerActionResultMessage {
+  readonly type: typeof PHYSICS_WORKER_PROTOCOL.actionResult;
+  readonly requestId: number;
+  readonly result: PhysicsWorkerActionResult;
+}
+
 export interface PhysicsWorkerErrorMessage {
   readonly type: typeof PHYSICS_WORKER_PROTOCOL.error;
   readonly reason: string;
   readonly message: string;
+  readonly requestId?: number;
   readonly diagnostics?: readonly unknown[];
 }
 
@@ -72,10 +181,12 @@ export interface PhysicsWorkerDisposeMessage {
 export type PhysicsWorkerInboundMessage =
   | PhysicsWorkerInitMessage
   | PhysicsWorkerStepMessage
+  | PhysicsWorkerActionMessage
   | PhysicsWorkerDisposeMessage;
 
 export type PhysicsWorkerOutboundMessage =
   | PhysicsWorkerResultMessage
+  | PhysicsWorkerActionResultMessage
   | PhysicsWorkerErrorMessage;
 
 export interface PhysicsWorkerMessageWithTransfer<TMessage> {
@@ -99,6 +210,20 @@ export function createPhysicsWorkerStepMessage(input: {
   };
 }
 
+export function createPhysicsWorkerActionMessage(input: {
+  readonly requestId: number;
+  readonly action: PhysicsWorkerAction;
+}): PhysicsWorkerMessageWithTransfer<PhysicsWorkerActionMessage> {
+  return {
+    message: {
+      type: PHYSICS_WORKER_PROTOCOL.action,
+      requestId: input.requestId,
+      action: input.action,
+    },
+    transfer: [],
+  };
+}
+
 export function createPhysicsWorkerResultMessage(input: {
   readonly fixedStep: number;
   readonly step: PhysicsStepReport;
@@ -116,6 +241,20 @@ export function createPhysicsWorkerResultMessage(input: {
       results: packet,
     },
     transfer: collectPhysicsResultTransferables(packet),
+  };
+}
+
+export function createPhysicsWorkerActionResultMessage(input: {
+  readonly requestId: number;
+  readonly result: PhysicsWorkerActionResult;
+}): PhysicsWorkerMessageWithTransfer<PhysicsWorkerActionResultMessage> {
+  return {
+    message: {
+      type: PHYSICS_WORKER_PROTOCOL.actionResult,
+      requestId: input.requestId,
+      result: input.result,
+    },
+    transfer: [],
   };
 }
 

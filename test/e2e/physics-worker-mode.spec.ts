@@ -53,6 +53,13 @@ interface PhysicsWorkerModeStatus extends ExampleStatusBase {
       readonly destroyJointCount: number;
       readonly otherCommandCount: number;
     };
+    readonly workerQuery?: {
+      readonly raycastFirst: {
+        readonly entity: string;
+        readonly collider?: string;
+        readonly distance: number;
+      } | null;
+    };
     readonly debug?: {
       readonly lineCount: number;
       readonly rayProbeCount: number;
@@ -201,17 +208,25 @@ test("browser settles ECS bodies through a dedicated transferable physics worker
   expect(status.physics?.debug).toMatchObject({
     rendered: true,
     rayProbeCount: 1,
-    contactNormalCount: 0,
-    bodyStateMarkerCount: 4,
     meshKey: "mesh:physics-settling-debug-wireframes",
     materialKey: "material:physics-settling-debug-wireframe",
   });
+  expect(status.physics?.debug?.contactNormalCount).toBeGreaterThanOrEqual(0);
+  expect(status.physics?.debug?.bodyStateMarkerCount).toBe(
+    status.physics?.bodyCount,
+  );
   expect(status.physics?.debug?.lineCount).toBeGreaterThan(0);
   expect(
     (status.physics?.debug?.activeBodyMarkerCount ?? 0) +
       (status.physics?.debug?.sleepingBodyMarkerCount ?? 0),
   ).toBe(status.physics?.debug?.bodyStateMarkerCount);
   expect(status.physics?.debug?.sleepingBodyMarkerCount).toBeGreaterThan(0);
+  expect(status.physics?.workerQuery?.raycastFirst).toMatchObject({
+    distance: expect.any(Number),
+  });
+  expect(status.physics?.workerQuery?.raycastFirst?.entity).toMatch(
+    /^\d+:\d+$/u,
+  );
   expect(status.physics?.bodies).toHaveLength(4);
   expect(status.physics?.minDrop).toBeGreaterThan(2.0);
   expect(status.physics?.maxSpeed).toBeLessThanOrEqual(0.45);

@@ -17,9 +17,10 @@ The default route is:
    `ecs_pause` / `ecs_snapshot` / edit-or-command / `ecs_step` or
    `ecs_step_and_diff` / query / `ecs_diff`.
 
-The dedicated physics-worker route exists as a Rapier transferable proof, but it
-is not the default gameplay path until profiling and query semantics justify the
-extra protocol.
+The dedicated physics-worker route is now Rapier-first and transfer-based. It is
+not the default gameplay path until profiling shows the extra protocol is worth
+it for real scenes, but it now owns the same backend-side query/debug/control
+hooks needed by the browser worker-mode route.
 
 ## Implemented
 
@@ -30,6 +31,8 @@ extra protocol.
   - Backend-neutral command/result/event/query contracts.
   - Fixed-step helpers, validation, benchmark helpers, deterministic test
     backend, worker protocol, and transferable worker packet helpers.
+  - Dedicated worker action messages for raycasts, overlap/shape/point queries,
+    character movement, sleep/wake, and debug geometry.
   - ECS sync/writeback for body, collider, joint, character, event, query, and
     debug geometry workflows.
 - `@aperture-engine/physics-rapier`
@@ -73,11 +76,16 @@ The current dedicated route is transfer-based, not shared-ECS mutation:
   physics worker endpoint.
 - The physics worker runs Rapier and returns transferable body/result packets.
 - The simulation worker applies writeback at the fixed-step boundary.
+- The same proxy can send action requests for raycasts, overlap/shape/point
+  queries, character movement, sleep/wake, and debug geometry to the worker-owned
+  backend.
+- `examples/physics-worker-mode.html` proves off-thread Rapier stepping,
+  transferable writeback, worker-side raycast queries, and worker-side debug
+  geometry in a browser route.
 
 This preserves ECS ownership and keeps render extraction downstream of ECS
-state. Before promoting this route, it needs the same gameplay query/devtools
-surface as the simulation-worker route and benchmark evidence that the extra
-protocol is worth it for real scenes.
+state. Before making this route the default, it still needs profiling against
+the simulation-worker route and longer-running scene coverage.
 
 ## Remaining Work
 
@@ -87,8 +95,7 @@ protocol is worth it for real scenes.
 3. Generic joint descriptor design or explicit permanent exclusion.
 4. Native joint impulse readback, automatic break-force enforcement, motor force
    limits, and paired non-fixed body-B frame semantics.
-5. Dedicated worker query/devtools parity, followed by profiling against the
-   simulation-worker route.
+5. Dedicated worker profiling against the simulation-worker route.
 6. Longer-running E2E/benchmark coverage for larger physics scenes.
 
 ## Verification Pattern

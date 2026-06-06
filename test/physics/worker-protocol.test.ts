@@ -3,6 +3,8 @@ import {
   PHYSICS_TRANSFERABLE_BODY_FLOAT_STRIDE,
   PHYSICS_WORKER_PROTOCOL,
   collectPhysicsResultTransferables,
+  createPhysicsWorkerActionMessage,
+  createPhysicsWorkerActionResultMessage,
   createPhysicsWorkerResultMessage,
   createPhysicsWorkerStepMessage,
   decodePhysicsResultPacket,
@@ -77,6 +79,52 @@ describe("physics worker protocol", () => {
     expect(
       decodePhysicsResultPacket(result.message.results).bodies,
     ).toHaveLength(2);
+  });
+
+  it("builds explicit action/result messages for worker queries", () => {
+    const action = createPhysicsWorkerActionMessage({
+      requestId: 42,
+      action: {
+        kind: "raycastFirst",
+        ray: {
+          origin: [0, 2, 0],
+          direction: [0, -1, 0],
+          maxDistance: 4,
+        },
+      },
+    });
+    const result = createPhysicsWorkerActionResultMessage({
+      requestId: 42,
+      result: {
+        kind: "debugGeometry",
+        geometry: {
+          lines: [
+            {
+              from: [0, 0, 0],
+              to: [0, 1, 0],
+              color: [1, 0, 0, 1],
+            },
+          ],
+        },
+      },
+    });
+
+    expect(action).toMatchObject({
+      message: {
+        type: PHYSICS_WORKER_PROTOCOL.action,
+        requestId: 42,
+        action: { kind: "raycastFirst" },
+      },
+      transfer: [],
+    });
+    expect(result).toMatchObject({
+      message: {
+        type: PHYSICS_WORKER_PROTOCOL.actionResult,
+        requestId: 42,
+        result: { kind: "debugGeometry" },
+      },
+      transfer: [],
+    });
   });
 
   it("rejects malformed transferable result body buffers", () => {

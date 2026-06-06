@@ -1,12 +1,26 @@
-# Handoff — Rapier Physics + M6 Content Checkpoints
+# Handoff — Rapier Physics Worker Action Route
 
-**Updated:** 2026-06-06 09:05 PDT
+**Updated:** 2026-06-06 09:49 PDT
 
-This run committed the older M6 content/rendering work and the current M10
-Rapier-first physics work.
+This run kept the physics line Rapier-first, refactored oversized physics
+backend entrypoints, and moved the dedicated worker route from a body-packet
+proof toward a real backend-owned action surface.
 
 ## Completed
 
+- Commit `22e1df82` refactored `packages/physics-rapier/src/index.ts` into a
+  small public barrel plus focused backend modules, and split the deterministic
+  test backend the same way.
+- The dedicated Rapier worker protocol now has action/result messages for
+  backend-owned raycasts, overlap/shape/point queries, character movement,
+  sleep/wake controls, and debug geometry.
+- `createPhysicsWorkerTransferProxy(...)` exposes those actions as async
+  methods, while `createPhysicsWorkerBackendEndpoint(...)` dispatches them
+  against the worker-owned backend with unsupported-capability fallbacks.
+- `examples/physics-worker-mode.*` and the dedicated mode in
+  `examples/physics-settling.worker.js` now request real worker-side raycast and
+  debug-geometry data instead of deriving fake debug markers from transferred
+  ECS body state.
 - Commit `58df7607` adds the render/content slice: MSDF text atlas handling,
   UI quad extraction/rendering, GPU particle assets/pipeline, content showcase,
   UI interaction, sprite follow-up coverage, quad snapshot transport support,
@@ -26,33 +40,36 @@ Rapier-first physics work.
 
 ## Validation Run
 
-- `pnpm exec vitest run test/rendering/particle-emitter-extraction.test.ts test/webgpu/particle-frame-resources.test.ts test/webgpu/particle-pipeline.test.ts test/rendering/msdf-font-atlas.test.ts test/webgpu/msdf-text-frame-resources.test.ts test/webgpu/msdf-text-pipeline.test.ts test/rendering/ui-hit-test.test.ts test/rendering/ui-layout-extraction.test.ts test/webgpu/ui-frame-resources.test.ts test/webgpu/ui-quad-pipeline.test.ts test/app/ui-interaction-route.test.ts test/webgpu/app-snapshot-transport.test.ts`
-- `pnpm exec vitest run test/physics/components.test.ts test/physics/component-validation.test.ts test/physics/fixed-step-clock.test.ts test/physics/test-backend.test.ts test/physics/character-controller.test.ts test/physics/benchmark.test.ts test/physics/worker-protocol.test.ts test/physics-rapier/rapier-backend.test.ts test/physics-rapier/benchmark.test.ts test/runtime/fixed-step-schedule.test.ts test/runtime/physics-authoring-helpers.test.ts test/runtime/physics-worker-transfer.test.ts test/runtime/simulation-worker.test.ts test/app/fixed-step-app.test.ts test/app/physics-access.test.ts test/app/physics-authoring.test.ts test/app/physics-spatial-source.test.ts test/app/generated-worker-start.test.ts test/serialization/physics-scene-document.test.ts test/scripts/serve-examples.test.mjs`
-- `pnpm exec tsc -p tsconfig.test.json --noEmit --pretty false`
-- `pnpm run build`
+- `pnpm run check` passed with 444 test files and 2478 tests.
+- `pnpm exec playwright test test/e2e/physics-worker-mode.spec.ts` passed.
+- Focused checks also passed during the slice:
+  `pnpm exec vitest run test/physics/worker-protocol.test.ts test/runtime/physics-worker-transfer.test.ts`;
+  `node --check examples/physics-settling.worker.js && node --check examples/physics-worker-mode.physics-worker.js && node --check examples/physics-worker-mode.main.js`.
 
 ## Current State
 
 Physics is Rapier-first. The primary gameplay route is still the simulation
 worker: ECS authoring produces backend-neutral commands, Rapier steps at the
 fixed-step boundary, and writeback mutates ECS state before render extraction.
-The dedicated physics-worker path exists as a Rapier transferable proof
-(`examples/physics-worker-mode.*` and `packages/physics/src/worker-transfer.ts`)
-but should not be treated as the default route until profiling and gameplay
-query semantics justify the extra protocol.
+The dedicated physics-worker path is now a Rapier transferable route with
+off-thread step/writeback and worker-owned query/debug/control actions. It
+should still not become the default route until larger-scene profiling shows the
+extra protocol is worthwhile for Aperture.
 
 ## Known Gaps
 
-- Need to run the broader E2E suite after docs/status cleanup.
 - Mesh/heightfield collider cooking remains unsupported and is reported
   explicitly.
 - Generic joints, automatic break-force enforcement, native joint impulse
   readback, motor force limits, and paired non-fixed body-B frame semantics
   remain unsupported.
-- The dedicated physics worker does not yet own the full gameplay query surface
-  that the simulation-worker route exposes.
+- The dedicated physics worker now owns the core backend query/control/debug
+  hooks, but still needs larger-scene profiling and broader gameplay/E2E
+  coverage before it should displace the generated simulation-worker workflow.
 
 ## Recommended Next Task
 
-Run the full validation/check suite, update the public tracker/status files,
-then push the committed feature slices.
+Add a larger-scene Rapier dedicated-worker benchmark/proof route that compares
+simulation-worker and dedicated-worker latency, transfer bytes, query timing,
+and debug-geometry costs under body-heavy, query-heavy, and character-heavy
+pressure.

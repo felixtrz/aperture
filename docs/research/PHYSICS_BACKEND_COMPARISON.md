@@ -35,8 +35,10 @@ Implemented Rapier coverage includes:
 - Debug geometry and debug summaries.
 - Simulation-worker fixed-step writeback, browser examples, and generated-worker
   devtools proofs.
-- A transferable dedicated-worker proof route that returns body packets to the
-  simulation worker, while keeping simulation-worker physics as the default.
+- A transferable dedicated-worker route that returns body packets to the
+  simulation worker and supports worker-owned query/debug/control actions,
+  while keeping simulation-worker physics as the default until profiling says
+  otherwise.
 
 ## Current Gaps
 
@@ -45,8 +47,8 @@ Implemented Rapier coverage includes:
 - Generic joints report `physics.joint.unsupported`.
 - Automatic break-force enforcement, native joint impulse readback, motor force
   limits, and paired non-fixed body-B frame semantics remain unsupported.
-- The dedicated physics worker does not yet own the full gameplay query/devtools
-  surface available in the simulation-worker route.
+- The dedicated physics worker still needs broader long-running profiling and
+  larger-scene E2E coverage before it becomes the default route.
 
 ## Candidate Backends
 

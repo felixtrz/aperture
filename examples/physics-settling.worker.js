@@ -321,31 +321,22 @@ async function createSnapshotMessage(aperture, workerScene, data) {
       },
     },
   ];
-  const transferredDebugGeometry =
+  const debugRaycastHit =
     workerScene.physicsProxy !== null
-      ? createTransferredStateDebugGeometry(aperture, workerScene)
-      : null;
-  const debugGeometry = serializableDebugGeometry(
-    transferredDebugGeometry ??
-      workerScene.backend?.debugGeometry?.({
-        colliderWireframes: true,
-        contactNormals: true,
-        bodyStateMarkers: true,
-        rayProbes: debugRayProbes,
-      }) ??
-      emptyDebugGeometry(),
-  );
-  const contactNormalGeometry = serializableDebugGeometry(
-    transferredDebugGeometry === null
-      ? (workerScene.backend?.debugGeometry?.({ contactNormals: true }) ??
-          emptyDebugGeometry())
-      : emptyDebugGeometry(),
-  );
-  const bodyStateGeometry = serializableDebugGeometry(
-    transferredDebugGeometry ??
-      workerScene.backend?.debugGeometry?.({ bodyStateMarkers: true }) ??
-      emptyDebugGeometry(),
-  );
+      ? await workerScene.physicsProxy.raycastFirst(debugRayProbes[0].ray)
+      : (workerScene.backend?.raycastFirst(debugRayProbes[0].ray) ?? null);
+  const debugGeometry = await readPhysicsDebugGeometry(workerScene, {
+    colliderWireframes: true,
+    contactNormals: true,
+    bodyStateMarkers: true,
+    rayProbes: debugRayProbes,
+  });
+  const contactNormalGeometry = await readPhysicsDebugGeometry(workerScene, {
+    contactNormals: true,
+  });
+  const bodyStateGeometry = await readPhysicsDebugGeometry(workerScene, {
+    bodyStateMarkers: true,
+  });
   const bodyStateCounts = countPhysicsSettlingDebugLinesByCategory(
     bodyStateGeometry.lines,
   );
@@ -363,6 +354,7 @@ async function createSnapshotMessage(aperture, workerScene, data) {
     debugGeometry,
     physics: createPhysicsStatus(aperture, workerScene, debugGeometry, {
       rayProbeCount: debugRayProbes.length,
+      raycastHit: debugRaycastHit,
       contactNormalCount: contactNormalGeometry.lines.length,
       bodyStateMarkerCount: bodyStateGeometry.lines.length,
       activeBodyMarkerCount: bodyStateCounts.activeBody ?? 0,
@@ -377,6 +369,15 @@ async function createSnapshotMessage(aperture, workerScene, data) {
       diagnostics: snapshot.diagnostics.length,
     },
   };
+}
+
+async function readPhysicsDebugGeometry(workerScene, options) {
+  const geometry =
+    workerScene.physicsProxy !== null
+      ? await workerScene.physicsProxy.debugGeometry(options)
+      : (workerScene.backend?.debugGeometry?.(options) ?? emptyDebugGeometry());
+
+  return serializableDebugGeometry(geometry);
 }
 
 function createPhysicsStatus(aperture, workerScene, debugGeometry, debugInput) {
@@ -439,6 +440,9 @@ function createPhysicsStatus(aperture, workerScene, debugGeometry, debugInput) {
     settled,
     transport: report?.transport ?? null,
     commands: report?.commands ?? null,
+    workerQuery: {
+      raycastFirst: debugInput.raycastHit,
+    },
     debug: {
       lineCount: debugGeometry.lines.length,
       summary: aperture.summarizePhysicsDebugGeometry(debugGeometry),
@@ -492,29 +496,6 @@ function emptyDebugGeometry() {
   return { lines: [] };
 }
 
-function createTransferredStateDebugGeometry(aperture, workerScene) {
-  const lines = [];
-
-  for (const body of workerScene.dynamicBodies) {
-    const translation = vec3FromView(
-      body.entity.getVectorView(aperture.LocalTransform, "translation"),
-    );
-    const sleeping = body.entity.hasComponent(aperture.PhysicsBodyState)
-      ? body.entity.getValue(aperture.PhysicsBodyState, "sleeping")
-      : false;
-    const y = translation[1] + 0.6;
-    const z = translation[2] + 0.04;
-
-    lines.push({
-      from: [translation[0] - 0.46, y, z],
-      to: [translation[0] + 0.46, y, z],
-      color: sleeping ? [0.65, 0.7, 0.78, 1] : [0.2, 1, 0.45, 1],
-    });
-  }
-
-  return { lines };
-}
-
 async function createPhysicsWorkerTransport(aperture) {
   const worker = new Worker(
     "/worker-modules/examples/physics-worker-mode.physics-worker.js",
@@ -524,6 +505,7 @@ async function createPhysicsWorkerTransport(aperture) {
     },
   );
   const pendingSteps = new Map();
+  const pendingActions = new Map();
   let readyResolve = null;
   let readyReject = null;
   const ready = new Promise((resolve, reject) => {
@@ -546,12 +528,30 @@ async function createPhysicsWorkerTransport(aperture) {
       return;
     }
 
+    if (message?.type === aperture.PHYSICS_WORKER_PROTOCOL.actionResult) {
+      const pending = pendingActions.get(message.requestId);
+      pendingActions.delete(message.requestId);
+      pending?.resolve({ message, transfer: [] });
+      return;
+    }
+
     if (message?.type === aperture.PHYSICS_WORKER_PROTOCOL.error) {
-      if (pendingSteps.size > 0) {
+      if (message.requestId !== undefined) {
+        const pending = pendingActions.get(message.requestId);
+        pendingActions.delete(message.requestId);
+        pending?.resolve({ message, transfer: [] });
+        return;
+      }
+
+      if (pendingSteps.size > 0 || pendingActions.size > 0) {
         for (const pending of pendingSteps.values()) {
           pending.resolve({ message, transfer: [] });
         }
+        for (const pending of pendingActions.values()) {
+          pending.resolve({ message, transfer: [] });
+        }
         pendingSteps.clear();
+        pendingActions.clear();
       } else {
         readyReject?.(new Error(message.message ?? "Physics worker failed."));
       }
@@ -565,7 +565,11 @@ async function createPhysicsWorkerTransport(aperture) {
     for (const pending of pendingSteps.values()) {
       pending.reject(error);
     }
+    for (const pending of pendingActions.values()) {
+      pending.reject(error);
+    }
     pendingSteps.clear();
+    pendingActions.clear();
   });
   worker.postMessage({
     type: aperture.PHYSICS_WORKER_PROTOCOL.init,
@@ -584,6 +588,12 @@ async function createPhysicsWorkerTransport(aperture) {
       step(request) {
         return new Promise((resolve, reject) => {
           pendingSteps.set(request.message.fixedStep, { resolve, reject });
+          worker.postMessage(request.message, request.transfer);
+        });
+      },
+      action(request) {
+        return new Promise((resolve, reject) => {
+          pendingActions.set(request.message.requestId, { resolve, reject });
           worker.postMessage(request.message, request.transfer);
         });
       },

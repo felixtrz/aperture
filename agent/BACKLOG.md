@@ -59,24 +59,29 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Run the full validation and publish checkpoint for the committed Rapier-first
-physics and M6 content slices.
+Add a larger-scene Rapier dedicated-worker benchmark/proof route that compares
+the generated simulation-worker path with the dedicated physics-worker path
+under body-heavy, query-heavy, and character-heavy pressure.
 
-Category: `docs-tooling`
+Category: `runtime-orchestration`
 
-Reference anchor: existing `scripts/finalize-agent-status.mjs` and
-`scripts/check-progress-tracker.mjs`.
+Reference anchor: `references/bevy/crates/bevy_tasks/src/task_pool.rs` and
+`references/bevy/crates/bevy_ecs/src/schedule/executor/multi_threaded.rs` for
+task/schedule separation patterns that keep simulation authoritative while
+parallel work is profiled.
 
 Acceptance criteria:
 
-- `agent/HANDOFF.md`, `agent/CURRENT_TASK.md`, `agent/STATUS.json`, and the
-  public tracker describe the committed source state: content/rendering work in
-  `58df7607`, Rapier physics work in `73c29a62`, and no shipped Havok package.
-- Full validation, or the broadest practical equivalent, is recorded in
-  handoff.
-- Docs/status cleanup is committed and `main` is pushed.
+- A browser route or existing physics example mode publishes comparable JSON
+  status for simulation-worker and dedicated Rapier physics-worker execution.
+- The report includes fixed-step timing, transfer bytes, worker action latency
+  for raycast/debug/control calls, body/readback/writeback counts, and a
+  deterministic post-step ECS diff or equivalent state signature.
+- Playwright coverage proves both modes run, produce non-clear WebGPU pixels,
+  and report finite comparable metrics without silently falling back to the
+  deterministic test backend.
 
-Recommended next visible-feature task after validation:
+Follow-up visible-feature task:
 
 Add Rapier mesh/heightfield collider cooking for asset-backed colliders, with
 ECS pause/edit/step/diff coverage and a browser route proving a trimesh or
@@ -174,14 +179,14 @@ simulation-worker devtools route when the active backend capability remains
 `jointImpulseReadback: false`.
 `RigidBody.ccdEnabled` is now capability-visible on the same route: Rapier
 reports `continuousCollisionDetection: true` and accepts CCD body commands,
-while deterministic/Havok backends report
+while the deterministic backend reports
 `physics.rigidBody.ccd.unsupported` when CCD is authored; the async Rapier
 generated-worker proof mutates CCD while paused, steps fixed physics in the
 simulation worker, and diffs `physicsRigidBody.ccdEnabled` plus
 `PhysicsBodyState` writeback.
 Asset-backed collider authoring is now explicit on the same route:
 `convexHull`, `trimesh`, and `heightfield` colliders report
-`physics.collider.assetShape.unsupported`; current deterministic/Rapier/Havok
+`physics.collider.assetShape.unsupported`; current deterministic/Rapier
 backends remove stale backend bodies and skip unsupported asset colliders
 instead of throwing or using fake primitive bounds. The async Rapier
 generated-worker proof mutates a collider to `trimesh`, steps fixed physics,
@@ -230,27 +235,11 @@ and signature JSON. The route now also runs balanced, body-heavy,
 contact-heavy, query-heavy, character-heavy, debug-heavy, joint-heavy,
 churn-heavy, and allocation-heavy simulation-worker scenarios for both
 implemented backends.
-Rapier remains the default until a real Havok/Jolt adapter benchmarks better
-through the same simulation-worker proof route.
-`@aperture-engine/physics-havok` now provides the first bounded optional Havok
-prototype behind the same `PhysicsBackend` interface. It covers headless
-same-worker primitive body/collider sync, fixed stepping, ECS-style readback,
-raycast, overlap-shape, shape-cast, and point-projection queries, collision
-event accumulation, memory checkpoints, and sync/create/destroy churn through
-`runPhysicsBackendBenchmark(...)`. The browser benchmark route now also runs
-Havok across all nine same-worker benchmark scenarios and publishes
-deterministic/Rapier/Havok reports without changing the Rapier default. Havok
-now also has a minimal generated-worker gameplay smoke through the existing
-simulation-worker route: package-local WASM init, paused `ecs_step`,
-`physics_raycast_first` / `physics_overlap_shape`, and `ecs_diff` writeback.
-Havok joint-heavy benchmark pressure now reports `physics.joint.unsupported`
-instead of silently no-oping `upsertJoint` commands; implemented joints,
-character-heavy benchmark pressure now reports
-`physics.characterController.unsupported` when a backend lacks
-`moveCharacter(...)`; debug-heavy benchmark pressure now reports
-`physics.debugGeometry.unsupported` when a backend lacks `debugGeometry(...)`;
-implemented joints, character-controller/debug semantics, full gameplay
-examples, and Jolt remain future optional-adapter work.
+Rapier remains the default unless a future Havok/Jolt adapter benchmarks better
+through the same simulation-worker proof route. The previous bounded Havok
+prototype was removed from the shipped package graph before the Rapier-first
+physics checkpoint because it did not beat Rapier or reach parity for joints,
+character movement, debug geometry, and generated-worker gameplay proofs.
 Built-in app interaction picking now runs after fixed-step physics writeback
 and the second spatial-index refresh; the generated-worker proof uses
 pause/snapshot/pointer-input/`ecs_step`/`ecs_diff` to verify a physics-moved
@@ -323,13 +312,10 @@ balanced, body-heavy, contact-heavy, query-heavy, character-controller,
 constraint-heavy, command-churn/resync, and bounded allocation-pressure
 scenarios, with compact capability labels plus character-move, joint-count, and
 resync counts on browser summary cards.
-The optional-adapter comparison now has a Havok smoke path as well:
-`test/physics-havok/benchmark.test.ts` feeds package-local Havok WASM bytes into
-the same benchmark route and verifies startup, step, raycast, overlap,
-shape-cast, point-projection, event, memory, and resync reporting without
-changing the Rapier default. `test/e2e/physics-benchmark.spec.ts` now also
-proves the optional Havok adapter loads in the browser benchmark route and
-publishes query support/counts beside deterministic and Rapier reports.
+The previous optional-adapter comparison briefly had a Havok smoke path, but the
+adapter, tests, import-map entries, and browser benchmark route were removed
+before the Rapier-first checkpoint because they did not beat or complement
+Rapier enough to justify the package/WASM complexity.
 Generated-worker devtools now also expose `physics_apply_force`,
 `physics_apply_impulse`, `physics_set_linear_velocity`,
 `physics_set_angular_velocity`, and `physics_set_kinematic_target`, routing
@@ -341,9 +327,9 @@ Generated-worker devtools now also expose `physics_sleep_body` and
 through `context.physics.sleepBody(...)` / `wakeBody(...)`. Routine Rapier sync
 preserves explicit sleep/wake state instead of waking idle dynamic bodies every
 fixed step, and the async Rapier proof now observes `sleep` / `wake` events plus
-`PhysicsBodyState.sleeping` diffs through pause/snapshot/step/diff. The bounded
-Havok same-worker adapter now implements the same backend hooks with focused
-package-local WASM activation readback coverage.
+`PhysicsBodyState.sleeping` diffs through pause/snapshot/step/diff. The removed
+Havok prototype had matching sleep/wake smoke coverage, but it is no longer part
+of the shipped source graph.
 Disabled/skipped bodies now clear stale derived readback on that same route:
 `collectPhysicsCommands(...)` removes `PhysicsBodyState` when an active
 `RigidBody` is disabled, has no enabled colliders, or authors an unsupported
@@ -415,8 +401,7 @@ rotation lock masks in deterministic and Rapier backends.
 events from body sleeping-state readback transitions, and same-worker
 sleep/wake controls are exposed through `context.physics.sleepBody(...)` /
 `wakeBody(...)` plus generated-worker `physics_sleep_body` /
-`physics_wake_body`; Havok now implements those backend hooks in its bounded
-same-worker adapter. Rapier collision
+`physics_wake_body`. Rapier collision
 start/stay events now include contact point/normal data when a contact manifold
 is available, and focused Rapier coverage now explicitly proves
 `collisionStart`, `collisionStay`, and `collisionEnd` fixed-step ordering across
