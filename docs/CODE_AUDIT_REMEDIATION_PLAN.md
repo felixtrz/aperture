@@ -604,7 +604,7 @@ Suggested validation: `pnpm run check:examples`, `pnpm run check:progress`,
 
 ### DOC-01 - Close `check:examples` syntax-gate gap
 
-- Status: confirmed-open.
+- Status: completed 2026-06-06.
 - File: `package.json`.
 - Problem: `check:examples` is hand-maintained and currently omits
   `physics-character-{scene,main,worker}.js` and
@@ -723,8 +723,8 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 15    |
-| Confirmed open / executable           | 22    |
+| Completed                             | 16    |
+| Confirmed open / executable           | 21    |
 | Needs refinement but actionable       | 11    |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |
