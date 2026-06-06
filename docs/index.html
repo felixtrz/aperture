@@ -393,15 +393,17 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-06 18:52 UTC</dd>
+            <dd>2026-06-06 19:24 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: M10 physics remains focused on the existing
-              simulation worker. Durable ECS
-              <code>PhysicsCharacterController</code> authoring is now spawnable
-              through physics descriptors/runtime helpers, visible in
+              Latest update: the M10 WebXR implementation plan is now captured
+              in <code>docs/WEBXR_IMPLEMENTATION_PLAN.md</code> after reviewing
+              IWSDK, PlayCanvas, three.js, and the current Aperture source. M10
+              physics remains focused on the existing simulation worker. Durable
+              ECS <code>PhysicsCharacterController</code> authoring is now
+              spawnable through physics descriptors/runtime helpers, visible in
               <code>ecs_snapshot</code>/<code>ecs_diff</code>, mutable through
               paused <code>ecs_set_component_field</code>, and consumed as the
               default settings source by <code>physics_move_character</code>.
@@ -1066,8 +1068,9 @@
               simulation worker as the default developer route. Asset-backed
               collider cooking plus the large-scale physics example are covered;
               resume remaining joint/gameplay physics semantics next, and resume
-              <code>M10-T3</code> WebXR separately when physics no longer needs
-              that focus.
+              <code>M10-T3</code> WebXR separately from
+              <code>docs/WEBXR_IMPLEMENTATION_PLAN.md</code> when physics no
+              longer needs that focus.
             </dd>
           </dl>
         </aside>
@@ -4882,7 +4885,9 @@
                 joint impulse readback, and broader paired non-fixed joint-frame
                 semantics. Keep using the generated simulation-worker
                 pause/snapshot/edit-or-command/step/query/diff route as the
-                default proof harness.
+                default proof harness. When WebXR resumes, use
+                <code>docs/WEBXR_IMPLEMENTATION_PLAN.md</code> as the M10-T3/T4
+                implementation guide.
               </li>
               <li>
                 <span class="badge green">done</span> Custom WGSL mixed
