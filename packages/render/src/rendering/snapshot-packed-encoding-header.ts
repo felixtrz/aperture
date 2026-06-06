@@ -12,6 +12,7 @@ export interface SnapshotPacketHeaderCounts {
   readonly environments: number;
   readonly shadowRequests: number;
   readonly bounds: number;
+  readonly quadBatches: number;
 }
 
 export function writeSnapshotPacketHeader(
@@ -29,6 +30,7 @@ export function writeSnapshotPacketHeader(
   words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.ShadowRequests] =
     counts.shadowRequests;
   words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.Bounds] = counts.bounds;
+  words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.QuadBatches] = counts.quadBatches;
 }
 
 export function readSnapshotPacketHeaderCounts(
@@ -44,6 +46,7 @@ export function readSnapshotPacketHeaderCounts(
     shadowRequests:
       words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.ShadowRequests] ?? 0,
     bounds: words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.Bounds] ?? 0,
+    quadBatches: words[SNAPSHOT_PACKET_HEADER_WORD_INDEX.QuadBatches] ?? 0,
   };
 }
 

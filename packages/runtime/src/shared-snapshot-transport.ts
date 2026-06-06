@@ -1,6 +1,8 @@
 const TRANSFORM_FLOATS_PER_ENTITY = 16;
 const INSTANCE_TINT_FLOATS_PER_ENTITY = 4;
 const VIEW_MATRIX_FLOATS_PER_VIEW = 48;
+const QUAD_INSTANCE_FLOATS_PER_INSTANCE = 24;
+const QUAD_INSTANCE_WORDS_PER_INSTANCE = 8;
 const BUFFER_COUNT = 2;
 
 const enum HeaderIndex {
@@ -11,14 +13,17 @@ const enum HeaderIndex {
   ViewMatrixFloats = 4,
   InstanceTintFloats = 5,
   PacketWords = 6,
+  QuadInstanceFloats = 7,
+  QuadInstanceWords = 8,
 }
 
-const HEADER_INT32_COUNT = 8;
+const HEADER_INT32_COUNT = 9;
 
 export interface CreateSharedSnapshotTransportOptions {
   readonly maxEntities: number;
   readonly maxViews: number;
   readonly maxInstanceTints?: number;
+  readonly maxQuadInstances?: number;
   readonly maxPacketWords?: number;
   readonly requireCrossOriginIsolated?: boolean;
   readonly crossOriginIsolated?: boolean;
@@ -31,12 +36,17 @@ export interface SharedSnapshotTransportLayout {
   readonly transformFloatsPerEntity: number;
   readonly instanceTintFloatsPerTint: number;
   readonly viewMatrixFloatsPerView: number;
+  readonly quadInstanceFloatsPerInstance: number;
+  readonly quadInstanceWordsPerInstance: number;
   readonly maxEntities: number;
   readonly maxViews: number;
   readonly maxInstanceTints: number;
+  readonly maxQuadInstances: number;
   readonly transformFloatsPerBuffer: number;
   readonly instanceTintFloatsPerBuffer: number;
   readonly viewMatrixFloatsPerBuffer: number;
+  readonly quadInstanceFloatsPerBuffer: number;
+  readonly quadInstanceWordsPerBuffer: number;
   readonly packetWordsPerBuffer: number;
 }
 
@@ -45,6 +55,8 @@ export interface SharedSnapshotFrameInput {
   readonly transforms: ArrayLike<number>;
   readonly instanceTints?: ArrayLike<number>;
   readonly viewMatrices: ArrayLike<number>;
+  readonly quadInstanceFloats?: ArrayLike<number>;
+  readonly quadInstanceWords?: ArrayLike<number>;
   readonly packetWords?: ArrayLike<number>;
 }
 
@@ -55,6 +67,8 @@ export interface SharedSnapshotWriteReport {
   readonly transformFloats: number;
   readonly instanceTintFloats: number;
   readonly viewMatrixFloats: number;
+  readonly quadInstanceFloats: number;
+  readonly quadInstanceWords: number;
   readonly packetWords: number;
 }
 
@@ -65,6 +79,8 @@ export interface SharedSnapshotReadFrame {
   readonly transforms: Float32Array;
   readonly instanceTints: Float32Array;
   readonly viewMatrices: Float32Array;
+  readonly quadInstanceFloats: Float32Array;
+  readonly quadInstanceWords: Uint32Array;
   readonly packetWords: Uint32Array;
 }
 
@@ -73,6 +89,8 @@ export interface SharedSnapshotTransportWriter {
   readonly transforms: Float32Array;
   readonly instanceTints: Float32Array;
   readonly viewMatrices: Float32Array;
+  readonly quadInstanceFloats: Float32Array;
+  readonly quadInstanceWords: Uint32Array;
   readonly packetWords: Uint32Array;
   writeFrame(frame: SharedSnapshotFrameInput): SharedSnapshotWriteReport;
 }
@@ -82,6 +100,8 @@ export interface SharedSnapshotTransportReader {
   readonly transforms: Float32Array;
   readonly instanceTints: Float32Array;
   readonly viewMatrices: Float32Array;
+  readonly quadInstanceFloats: Float32Array;
+  readonly quadInstanceWords: Uint32Array;
   readonly packetWords: Uint32Array;
   readLatestFrame(): SharedSnapshotReadFrame | null;
 }
@@ -93,6 +113,8 @@ export interface SharedSnapshotTransport {
   readonly transformBuffer: SharedArrayBuffer;
   readonly instanceTintBuffer: SharedArrayBuffer;
   readonly viewMatrixBuffer: SharedArrayBuffer;
+  readonly quadInstanceFloatBuffer: SharedArrayBuffer;
+  readonly quadInstanceWordBuffer: SharedArrayBuffer;
   readonly packetBuffer: SharedArrayBuffer;
   readonly writer: SharedSnapshotTransportWriter;
   readonly reader: SharedSnapshotTransportReader;
@@ -104,6 +126,8 @@ export interface SharedSnapshotTransportBuffers {
   readonly transformBuffer: SharedArrayBuffer;
   readonly instanceTintBuffer: SharedArrayBuffer;
   readonly viewMatrixBuffer: SharedArrayBuffer;
+  readonly quadInstanceFloatBuffer: SharedArrayBuffer;
+  readonly quadInstanceWordBuffer: SharedArrayBuffer;
   readonly packetBuffer: SharedArrayBuffer;
 }
 
@@ -160,6 +184,7 @@ export function createSharedSnapshotTransport(
     maxEntities: options.maxEntities,
     maxViews: options.maxViews,
     maxInstanceTints: options.maxInstanceTints ?? options.maxEntities,
+    maxQuadInstances: options.maxQuadInstances ?? 0,
     maxPacketWords: options.maxPacketWords ?? 0,
   });
   const headerBuffer = new SharedArrayBufferCtor(
@@ -180,6 +205,16 @@ export function createSharedSnapshotTransport(
       BUFFER_COUNT *
       Float32Array.BYTES_PER_ELEMENT,
   );
+  const quadInstanceFloatBuffer = new SharedArrayBufferCtor(
+    layout.quadInstanceFloatsPerBuffer *
+      BUFFER_COUNT *
+      Float32Array.BYTES_PER_ELEMENT,
+  );
+  const quadInstanceWordBuffer = new SharedArrayBufferCtor(
+    layout.quadInstanceWordsPerBuffer *
+      BUFFER_COUNT *
+      Uint32Array.BYTES_PER_ELEMENT,
+  );
   const packetBuffer = new SharedArrayBufferCtor(
     layout.packetWordsPerBuffer * BUFFER_COUNT * Uint32Array.BYTES_PER_ELEMENT,
   );
@@ -187,6 +222,8 @@ export function createSharedSnapshotTransport(
   const transforms = new Float32Array(transformBuffer);
   const instanceTints = new Float32Array(instanceTintBuffer);
   const viewMatrices = new Float32Array(viewMatrixBuffer);
+  const quadInstanceFloats = new Float32Array(quadInstanceFloatBuffer);
+  const quadInstanceWords = new Uint32Array(quadInstanceWordBuffer);
   const packetWords = new Uint32Array(packetBuffer);
 
   return {
@@ -196,6 +233,8 @@ export function createSharedSnapshotTransport(
     transformBuffer,
     instanceTintBuffer,
     viewMatrixBuffer,
+    quadInstanceFloatBuffer,
+    quadInstanceWordBuffer,
     packetBuffer,
     writer: createWriter(
       layout,
@@ -203,6 +242,8 @@ export function createSharedSnapshotTransport(
       transforms,
       instanceTints,
       viewMatrices,
+      quadInstanceFloats,
+      quadInstanceWords,
       packetWords,
     ),
     reader: createReader(
@@ -211,6 +252,8 @@ export function createSharedSnapshotTransport(
       transforms,
       instanceTints,
       viewMatrices,
+      quadInstanceFloats,
+      quadInstanceWords,
       packetWords,
     ),
   };
@@ -223,6 +266,8 @@ export function createSharedSnapshotTransportViews(
   const transforms = new Float32Array(input.transformBuffer);
   const instanceTints = new Float32Array(input.instanceTintBuffer);
   const viewMatrices = new Float32Array(input.viewMatrixBuffer);
+  const quadInstanceFloats = new Float32Array(input.quadInstanceFloatBuffer);
+  const quadInstanceWords = new Uint32Array(input.quadInstanceWordBuffer);
   const packetWords = new Uint32Array(input.packetBuffer);
 
   return {
@@ -232,6 +277,8 @@ export function createSharedSnapshotTransportViews(
     transformBuffer: input.transformBuffer,
     instanceTintBuffer: input.instanceTintBuffer,
     viewMatrixBuffer: input.viewMatrixBuffer,
+    quadInstanceFloatBuffer: input.quadInstanceFloatBuffer,
+    quadInstanceWordBuffer: input.quadInstanceWordBuffer,
     packetBuffer: input.packetBuffer,
     writer: createWriter(
       input.layout,
@@ -239,6 +286,8 @@ export function createSharedSnapshotTransportViews(
       transforms,
       instanceTints,
       viewMatrices,
+      quadInstanceFloats,
+      quadInstanceWords,
       packetWords,
     ),
     reader: createReader(
@@ -247,6 +296,8 @@ export function createSharedSnapshotTransportViews(
       transforms,
       instanceTints,
       viewMatrices,
+      quadInstanceFloats,
+      quadInstanceWords,
       packetWords,
     ),
   };
@@ -256,9 +307,11 @@ function createLayout(options: {
   readonly maxEntities: number;
   readonly maxViews: number;
   readonly maxInstanceTints: number;
+  readonly maxQuadInstances: number;
   readonly maxPacketWords: number;
 }): SharedSnapshotTransportLayout {
   validateNonNegativeInteger(options.maxInstanceTints, "maxInstanceTints");
+  validateNonNegativeInteger(options.maxQuadInstances, "maxQuadInstances");
   validateNonNegativeInteger(options.maxPacketWords, "maxPacketWords");
 
   return {
@@ -267,13 +320,20 @@ function createLayout(options: {
     transformFloatsPerEntity: TRANSFORM_FLOATS_PER_ENTITY,
     instanceTintFloatsPerTint: INSTANCE_TINT_FLOATS_PER_ENTITY,
     viewMatrixFloatsPerView: VIEW_MATRIX_FLOATS_PER_VIEW,
+    quadInstanceFloatsPerInstance: QUAD_INSTANCE_FLOATS_PER_INSTANCE,
+    quadInstanceWordsPerInstance: QUAD_INSTANCE_WORDS_PER_INSTANCE,
     maxEntities: options.maxEntities,
     maxViews: options.maxViews,
     maxInstanceTints: options.maxInstanceTints,
+    maxQuadInstances: options.maxQuadInstances,
     transformFloatsPerBuffer: options.maxEntities * TRANSFORM_FLOATS_PER_ENTITY,
     instanceTintFloatsPerBuffer:
       options.maxInstanceTints * INSTANCE_TINT_FLOATS_PER_ENTITY,
     viewMatrixFloatsPerBuffer: options.maxViews * VIEW_MATRIX_FLOATS_PER_VIEW,
+    quadInstanceFloatsPerBuffer:
+      options.maxQuadInstances * QUAD_INSTANCE_FLOATS_PER_INSTANCE,
+    quadInstanceWordsPerBuffer:
+      options.maxQuadInstances * QUAD_INSTANCE_WORDS_PER_INSTANCE,
     packetWordsPerBuffer: options.maxPacketWords,
   };
 }
@@ -284,6 +344,8 @@ function createWriter(
   transforms: Float32Array,
   instanceTints: Float32Array,
   viewMatrices: Float32Array,
+  quadInstanceFloats: Float32Array,
+  quadInstanceWords: Uint32Array,
   packetWords: Uint32Array,
 ): SharedSnapshotTransportWriter {
   return {
@@ -291,6 +353,8 @@ function createWriter(
     transforms,
     instanceTints,
     viewMatrices,
+    quadInstanceFloats,
+    quadInstanceWords,
     packetWords,
     writeFrame(frame) {
       validateFrameInput(layout, frame);
@@ -306,6 +370,8 @@ function createWriter(
         transforms,
         instanceTints,
         viewMatrices,
+        quadInstanceFloats,
+        quadInstanceWords,
         packetWords,
         nextBuffer,
         frame,
@@ -332,6 +398,16 @@ function createWriter(
         HeaderIndex.PacketWords,
         frame.packetWords?.length ?? 0,
       );
+      Atomics.store(
+        header,
+        HeaderIndex.QuadInstanceFloats,
+        frame.quadInstanceFloats?.length ?? 0,
+      );
+      Atomics.store(
+        header,
+        HeaderIndex.QuadInstanceWords,
+        frame.quadInstanceWords?.length ?? 0,
+      );
 
       const completeSequence = writeSequence + 1;
 
@@ -345,6 +421,8 @@ function createWriter(
         transformFloats: frame.transforms.length,
         instanceTintFloats: frame.instanceTints?.length ?? 0,
         viewMatrixFloats: frame.viewMatrices.length,
+        quadInstanceFloats: frame.quadInstanceFloats?.length ?? 0,
+        quadInstanceWords: frame.quadInstanceWords?.length ?? 0,
         packetWords: frame.packetWords?.length ?? 0,
       };
     },
@@ -357,6 +435,8 @@ function createReader(
   transforms: Float32Array,
   instanceTints: Float32Array,
   viewMatrices: Float32Array,
+  quadInstanceFloats: Float32Array,
+  quadInstanceWords: Uint32Array,
   packetWords: Uint32Array,
 ): SharedSnapshotTransportReader {
   return {
@@ -364,6 +444,8 @@ function createReader(
     transforms,
     instanceTints,
     viewMatrices,
+    quadInstanceFloats,
+    quadInstanceWords,
     packetWords,
     readLatestFrame() {
       for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -388,10 +470,22 @@ function createReader(
           HeaderIndex.InstanceTintFloats,
         );
         const packetWordCount = Atomics.load(header, HeaderIndex.PacketWords);
+        const quadInstanceFloatCount = Atomics.load(
+          header,
+          HeaderIndex.QuadInstanceFloats,
+        );
+        const quadInstanceWordCount = Atomics.load(
+          header,
+          HeaderIndex.QuadInstanceWords,
+        );
         const transformOffset = bufferIndex * layout.transformFloatsPerBuffer;
         const instanceTintOffset =
           bufferIndex * layout.instanceTintFloatsPerBuffer;
         const viewMatrixOffset = bufferIndex * layout.viewMatrixFloatsPerBuffer;
+        const quadInstanceFloatOffset =
+          bufferIndex * layout.quadInstanceFloatsPerBuffer;
+        const quadInstanceWordOffset =
+          bufferIndex * layout.quadInstanceWordsPerBuffer;
         const packetOffset = bufferIndex * layout.packetWordsPerBuffer;
         const sequenceAfter = Atomics.load(header, HeaderIndex.Sequence);
 
@@ -415,6 +509,14 @@ function createReader(
             viewMatrixOffset,
             viewMatrixOffset + viewMatrixFloats,
           ),
+          quadInstanceFloats: quadInstanceFloats.subarray(
+            quadInstanceFloatOffset,
+            quadInstanceFloatOffset + quadInstanceFloatCount,
+          ),
+          quadInstanceWords: quadInstanceWords.subarray(
+            quadInstanceWordOffset,
+            quadInstanceWordOffset + quadInstanceWordCount,
+          ),
           packetWords: packetWords.subarray(
             packetOffset,
             packetOffset + packetWordCount,
@@ -432,6 +534,8 @@ function writeSharedFrameBuffers(
   transforms: Float32Array,
   instanceTints: Float32Array,
   viewMatrices: Float32Array,
+  quadInstanceFloats: Float32Array,
+  quadInstanceWords: Uint32Array,
   packetWords: Uint32Array,
   bufferIndex: number,
   frame: SharedSnapshotFrameInput,
@@ -439,6 +543,10 @@ function writeSharedFrameBuffers(
   const transformOffset = bufferIndex * layout.transformFloatsPerBuffer;
   const instanceTintOffset = bufferIndex * layout.instanceTintFloatsPerBuffer;
   const viewMatrixOffset = bufferIndex * layout.viewMatrixFloatsPerBuffer;
+  const quadInstanceFloatOffset =
+    bufferIndex * layout.quadInstanceFloatsPerBuffer;
+  const quadInstanceWordOffset =
+    bufferIndex * layout.quadInstanceWordsPerBuffer;
   const packetOffset = bufferIndex * layout.packetWordsPerBuffer;
 
   for (let index = 0; index < frame.transforms.length; index += 1) {
@@ -456,6 +564,24 @@ function writeSharedFrameBuffers(
 
   for (let index = 0; index < frame.viewMatrices.length; index += 1) {
     viewMatrices[viewMatrixOffset + index] = frame.viewMatrices[index] ?? 0;
+  }
+
+  const frameQuadInstanceFloats = frame.quadInstanceFloats;
+
+  if (frameQuadInstanceFloats !== undefined) {
+    for (let index = 0; index < frameQuadInstanceFloats.length; index += 1) {
+      quadInstanceFloats[quadInstanceFloatOffset + index] =
+        frameQuadInstanceFloats[index] ?? 0;
+    }
+  }
+
+  const frameQuadInstanceWords = frame.quadInstanceWords;
+
+  if (frameQuadInstanceWords !== undefined) {
+    for (let index = 0; index < frameQuadInstanceWords.length; index += 1) {
+      quadInstanceWords[quadInstanceWordOffset + index] =
+        frameQuadInstanceWords[index] ?? 0;
+    }
   }
 
   const framePacketWords = frame.packetWords;
@@ -491,6 +617,24 @@ function validateFrameInput(
   ) {
     throw new RangeError(
       `Shared snapshot instance-tint frame has ${frame.instanceTints.length} floats; capacity is ${layout.instanceTintFloatsPerBuffer}.`,
+    );
+  }
+
+  if (
+    frame.quadInstanceFloats !== undefined &&
+    frame.quadInstanceFloats.length > layout.quadInstanceFloatsPerBuffer
+  ) {
+    throw new RangeError(
+      `Shared snapshot quad instance float frame has ${frame.quadInstanceFloats.length} floats; capacity is ${layout.quadInstanceFloatsPerBuffer}.`,
+    );
+  }
+
+  if (
+    frame.quadInstanceWords !== undefined &&
+    frame.quadInstanceWords.length > layout.quadInstanceWordsPerBuffer
+  ) {
+    throw new RangeError(
+      `Shared snapshot quad instance word frame has ${frame.quadInstanceWords.length} words; capacity is ${layout.quadInstanceWordsPerBuffer}.`,
     );
   }
 

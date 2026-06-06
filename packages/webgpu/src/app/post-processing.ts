@@ -61,6 +61,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     { source: "swapchain" }
   >;
   readonly commands: readonly RenderPassCommand[];
+  readonly overlayCommands?: readonly RenderPassCommand[];
   readonly depthAttachment: CachedWebGpuDepthTextureResource;
   readonly effects: readonly WebGpuPostEffect[];
   readonly label: string;
@@ -445,7 +446,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
             },
           }),
       clearColor: [0, 0, 0, 1],
-      ...(isLast && options.readbackSamples !== undefined
+      ...(isLast &&
+      (options.overlayCommands ?? []).length === 0 &&
+      options.readbackSamples !== undefined
         ? {
             readback: {
               format: options.target.format,
@@ -483,6 +486,42 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
 
     if (!isLast && outputTexture !== null) {
       input = outputTexture;
+    }
+  }
+
+  const overlayCommands = options.overlayCommands ?? [];
+
+  if (overlayCommands.length > 0) {
+    const overlayBoundary = assembleFrameBoundary({
+      context,
+      device,
+      queue,
+      commands: overlayCommands,
+      label: `${options.label}:post:ui-overlay`,
+      colorLoadOp: "load",
+      ...(options.readbackSamples === undefined
+        ? {}
+        : {
+            readback: {
+              format: options.target.format,
+              width: options.target.width,
+              height: options.target.height,
+              samples: options.readbackSamples,
+            },
+          }),
+    });
+
+    boundaries.push(overlayBoundary);
+    appendFrameBoundaryDiagnostics(diagnostics, overlayBoundary);
+    plannedCommands += overlayCommands.length;
+    drawCalls += countDrawCommands(overlayCommands);
+    valid &&= overlayBoundary.valid;
+
+    if (
+      overlayBoundary.readback !== null &&
+      overlayBoundary.readback !== undefined
+    ) {
+      readbackBoundary = overlayBoundary;
     }
   }
 
@@ -550,6 +589,10 @@ interface PostGraphEffectMeta {
 export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
   options: PostProcessedSwapchainTargetOptions,
 ): WebGpuAppPostProcessedSwapchainTargetResult | null {
+  if ((options.overlayCommands ?? []).length > 0) {
+    return null;
+  }
+
   const requiresMotionVectors = options.effects.some(
     (effect) => effect.requiresMotionVectors === true,
   );

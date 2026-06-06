@@ -3,9 +3,12 @@ import {
   ENVIRONMENT_PACKET_WORDS,
   LIGHT_PACKET_WORDS,
   MESH_DRAW_PACKET_WORDS,
+  QUAD_BATCH_PACKET_WORDS,
+  QUAD_INSTANCE_FLOAT_STRIDE,
   SHADOW_REQUEST_PACKET_WORDS,
   SNAPSHOT_PACKET_HEADER_WORDS,
   VIEW_PACKET_WORDS,
+  createQuadSnapshotBuffers,
   createSnapshotPacketRegistry,
   decodeSnapshotPackets,
   type RenderDiagnostic,
@@ -72,6 +75,8 @@ export interface WebGpuAppSnapshotTransportStartPayload {
   readonly transformBuffer: SharedArrayBuffer;
   readonly instanceTintBuffer: SharedArrayBuffer;
   readonly viewMatrixBuffer: SharedArrayBuffer;
+  readonly quadInstanceFloatBuffer: SharedArrayBuffer;
+  readonly quadInstanceWordBuffer: SharedArrayBuffer;
   readonly packetBuffer: SharedArrayBuffer;
 }
 
@@ -155,6 +160,8 @@ export function createWebGpuAppSnapshotTransportStartPayload(
     transformBuffer: transport.shared.transformBuffer,
     instanceTintBuffer: transport.shared.instanceTintBuffer,
     viewMatrixBuffer: transport.shared.viewMatrixBuffer,
+    quadInstanceFloatBuffer: transport.shared.quadInstanceFloatBuffer,
+    quadInstanceWordBuffer: transport.shared.quadInstanceWordBuffer,
     packetBuffer: transport.shared.packetBuffer,
   };
 }
@@ -193,7 +200,18 @@ export function readWebGpuAppSharedSnapshot(
     environments: packets.environments,
     shadowRequests: packets.shadowRequests,
     bounds: packets.bounds,
+    ...(packets.quadBatches === undefined
+      ? {}
+      : { quadBatches: packets.quadBatches }),
     transforms: frame.transforms,
+    ...(frame.quadInstanceFloats.length === 0
+      ? {}
+      : {
+          quads: createQuadSnapshotBuffers({
+            instanceFloats: frame.quadInstanceFloats,
+            instanceWords: frame.quadInstanceWords,
+          }),
+        }),
     ...(frame.instanceTints.length === 0
       ? {}
       : { instanceTints: frame.instanceTints }),
@@ -206,6 +224,9 @@ export function readWebGpuAppSharedSnapshot(
       environments: packets.environments.length,
       shadowRequests: packets.shadowRequests.length,
       bounds: packets.bounds.length,
+      quadBatches: packets.quadBatches?.length ?? 0,
+      quadInstances:
+        frame.quadInstanceFloats.length / QUAD_INSTANCE_FLOAT_STRIDE,
       diagnostics: diagnostics.length,
     },
   };
@@ -237,7 +258,7 @@ export function readWebGpuAppSnapshotChangeSet(
 export function estimateSharedSnapshotTransportReduction(input: {
   readonly snapshot: Pick<
     RenderSnapshot,
-    "transforms" | "viewMatrices" | "bones" | "instanceTints"
+    "transforms" | "viewMatrices" | "bones" | "instanceTints" | "quads"
   >;
   readonly packetByteLength: number;
 }): {
@@ -250,6 +271,8 @@ export function estimateSharedSnapshotTransportReduction(input: {
     input.snapshot.viewMatrices.byteLength +
     (input.snapshot.bones?.byteLength ?? 0) +
     (input.snapshot.instanceTints?.byteLength ?? 0) +
+    (input.snapshot.quads?.instanceFloats.byteLength ?? 0) +
+    (input.snapshot.quads?.instanceWords.byteLength ?? 0) +
     input.packetByteLength;
 
   return {
@@ -265,6 +288,7 @@ function createSharedSnapshotTransportOptions(
   const maxEntities = options.maxEntities ?? 16_384;
   const maxViews = options.maxViews ?? 8;
   const maxInstanceTints = options.maxInstanceTints ?? maxEntities;
+  const maxQuadInstances = options.maxQuadInstances ?? maxEntities;
   const maxPacketWords =
     options.maxPacketWords ??
     defaultSharedSnapshotPacketWords({
@@ -276,6 +300,7 @@ function createSharedSnapshotTransportOptions(
     maxEntities,
     maxViews,
     maxInstanceTints,
+    maxQuadInstances,
     maxPacketWords,
     ...(options.requireCrossOriginIsolated === undefined
       ? {}
@@ -304,6 +329,7 @@ function defaultSharedSnapshotPacketWords(input: {
     SNAPSHOT_PACKET_HEADER_WORDS +
     input.maxViews * VIEW_PACKET_WORDS +
     input.maxEntities * MESH_DRAW_PACKET_WORDS +
+    input.maxEntities * QUAD_BATCH_PACKET_WORDS +
     maxLights * LIGHT_PACKET_WORDS +
     maxEnvironments * ENVIRONMENT_PACKET_WORDS +
     maxShadowRequests * SHADOW_REQUEST_PACKET_WORDS +

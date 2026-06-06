@@ -5,12 +5,17 @@ import type {
   InstanceAttributePacket,
   LightPacket,
   MeshDrawPacket,
+  ParticleEmitterPacket,
+  QuadBatchPacket,
   RenderQueue,
   ShadowRequestPacket,
   SkyboxPacket,
   SpriteDrawPacket,
+  UiHitRegionPacket,
+  UiNodePacket,
   ViewPacket,
 } from "./snapshot-packet-types.js";
+import type { QuadSnapshotBuffers } from "./quad-snapshot.js";
 import type {
   RenderDiagnostic,
   RenderSnapshotReport,
@@ -23,6 +28,11 @@ export interface RenderSnapshot {
   readonly views: readonly ViewPacket[];
   readonly meshDraws: readonly MeshDrawPacket[];
   readonly spriteDraws?: readonly SpriteDrawPacket[];
+  readonly particleEmitters?: readonly ParticleEmitterPacket[];
+  readonly quads?: QuadSnapshotBuffers;
+  readonly quadBatches?: readonly QuadBatchPacket[];
+  readonly uiNodes?: readonly UiNodePacket[];
+  readonly uiHitRegions?: readonly UiHitRegionPacket[];
   readonly skyboxes?: readonly SkyboxPacket[];
   readonly fogs?: readonly FogPacket[];
   readonly lights: readonly LightPacket[];

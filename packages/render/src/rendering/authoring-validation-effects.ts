@@ -1,12 +1,23 @@
 import {
   FogMode,
+  ParticleSimulationSpace,
+  SpriteBillboardMode,
+  SpriteBlendMode,
+  SpriteCoordinateMode,
+  SpriteSizeMode,
   type FogInput,
+  type ParticleEmitterInput,
   type RenderAuthoringDiagnostic,
   type RenderAuthoringValidationReport,
   type SkyboxInput,
   type SpriteInput,
 } from "./authoring-types.js";
-import { createFog, createSkybox, createSprite } from "./authoring-create.js";
+import {
+  createFog,
+  createParticleEmitter,
+  createSkybox,
+  createSprite,
+} from "./authoring-create.js";
 import { tuple4 } from "./authoring-utils.js";
 
 export function validateSpriteInput(
@@ -16,6 +27,14 @@ export function validateSpriteInput(
   const textureId = sprite.textureId ?? "";
   const width = sprite.width ?? 1;
   const height = sprite.height ?? 1;
+  const uvRect = sprite.uvRect ?? [0, 0, 1, 1];
+  const pivot = sprite.pivot ?? [0.5, 0.5];
+  const rotation = sprite.rotation ?? 0;
+  const atlasFrame = sprite.atlasFrame ?? 0;
+  const coordinateMode = sprite.coordinateMode ?? SpriteCoordinateMode.World;
+  const billboardMode = sprite.billboardMode ?? SpriteBillboardMode.Spherical;
+  const sizeMode = sprite.sizeMode ?? SpriteSizeMode.WorldUnits;
+  const blendMode = sprite.blendMode ?? SpriteBlendMode.Alpha;
   const diagnostics: RenderAuthoringDiagnostic[] = [];
 
   if (textureId.trim().length === 0) {
@@ -36,6 +55,159 @@ export function validateSpriteInput(
       code: "sprite.invalidSize",
       field: "size",
       message: "Sprites require finite positive width and height.",
+    });
+  }
+
+  if (
+    Array.from(uvRect).some((value) => !Number.isFinite(value)) ||
+    (uvRect[2] ?? 0) < 0 ||
+    (uvRect[3] ?? 0) < 0
+  ) {
+    diagnostics.push({
+      code: "sprite.invalidUvRect",
+      field: "uvRect",
+      message:
+        "Sprite uvRect values must be finite with non-negative width and height.",
+    });
+  }
+
+  if (Array.from(pivot).some((value) => !Number.isFinite(value))) {
+    diagnostics.push({
+      code: "sprite.invalidPivot",
+      field: "pivot",
+      message: "Sprite pivot values must be finite numbers.",
+    });
+  }
+
+  if (!Number.isFinite(rotation)) {
+    diagnostics.push({
+      code: "sprite.invalidRotation",
+      field: "rotation",
+      message: "Sprite rotation must be a finite number.",
+    });
+  }
+
+  if (!Number.isInteger(atlasFrame) || atlasFrame < 0) {
+    diagnostics.push({
+      code: "sprite.invalidAtlasFrame",
+      field: "atlasFrame",
+      message: "Sprite atlasFrame must be a non-negative integer.",
+    });
+  }
+
+  if (
+    !Object.values(SpriteCoordinateMode).includes(
+      coordinateMode as SpriteCoordinateMode,
+    )
+  ) {
+    diagnostics.push({
+      code: "sprite.invalidCoordinateMode",
+      field: "coordinateMode",
+      message: "Sprite coordinateMode must be 'world' or 'screen'.",
+    });
+  }
+
+  if (
+    !Object.values(SpriteBillboardMode).includes(
+      billboardMode as SpriteBillboardMode,
+    )
+  ) {
+    diagnostics.push({
+      code: "sprite.invalidBillboardMode",
+      field: "billboardMode",
+      message:
+        "Sprite billboardMode must be 'none', 'spherical', 'cylindrical', or 'axis-locked'.",
+    });
+  }
+
+  if (!Object.values(SpriteSizeMode).includes(sizeMode as SpriteSizeMode)) {
+    diagnostics.push({
+      code: "sprite.invalidSizeMode",
+      field: "sizeMode",
+      message: "Sprite sizeMode must be 'world-units' or 'screen-pixels'.",
+    });
+  }
+
+  if (!Object.values(SpriteBlendMode).includes(blendMode as SpriteBlendMode)) {
+    diagnostics.push({
+      code: "sprite.invalidBlendMode",
+      field: "blendMode",
+      message:
+        "Sprite blendMode must be 'opaque', 'alpha', 'additive', or 'multiply'.",
+    });
+  }
+
+  return { valid: diagnostics.length === 0, diagnostics };
+}
+
+export function validateParticleEmitterInput(
+  input: ParticleEmitterInput,
+): RenderAuthoringValidationReport {
+  const emitter = createParticleEmitter(input);
+  const diagnostics: RenderAuthoringDiagnostic[] = [];
+  const boundsCenter = emitter.boundsCenter ?? [0, 0, 0];
+  const capacity = emitter.capacity ?? 0;
+  const seed = emitter.seed ?? 1;
+  const resetEpoch = emitter.resetEpoch ?? 0;
+  const timeScale = emitter.timeScale ?? 1;
+  const boundsRadius = emitter.boundsRadius ?? 1;
+
+  if ((emitter.effectId ?? "").trim().length === 0) {
+    diagnostics.push({
+      code: "particle.invalidEffect",
+      field: "effect",
+      message: "Particle emitters require a particle-effect handle.",
+    });
+  }
+  if (capacity !== 0 && (!Number.isInteger(capacity) || capacity < 0)) {
+    diagnostics.push({
+      code: "particle.invalidCapacity",
+      field: "capacity",
+      message: "Particle emitter capacity must be zero or a positive integer.",
+    });
+  }
+  if (!Number.isInteger(seed)) {
+    diagnostics.push({
+      code: "particle.invalidSeed",
+      field: "seed",
+      message: "Particle emitter seed must be an integer.",
+    });
+  }
+  if (!Number.isInteger(resetEpoch) || resetEpoch < 0) {
+    diagnostics.push({
+      code: "particle.invalidResetEpoch",
+      field: "resetEpoch",
+      message: "Particle emitter resetEpoch must be a non-negative integer.",
+    });
+  }
+  if (!Number.isFinite(timeScale) || timeScale < 0) {
+    diagnostics.push({
+      code: "particle.invalidTimeScale",
+      field: "timeScale",
+      message: "Particle emitter timeScale must be a non-negative number.",
+    });
+  }
+  if (
+    !Object.values(ParticleSimulationSpace).includes(
+      emitter.simulationSpace as ParticleSimulationSpace,
+    )
+  ) {
+    diagnostics.push({
+      code: "particle.invalidSimulationSpace",
+      field: "simulationSpace",
+      message: "Particle emitter simulationSpace must be 'world' or 'local'.",
+    });
+  }
+  if (
+    !Array.from(boundsCenter).every(Number.isFinite) ||
+    !Number.isFinite(boundsRadius) ||
+    boundsRadius <= 0
+  ) {
+    diagnostics.push({
+      code: "particle.invalidBounds",
+      field: "bounds",
+      message:
+        "Particle emitter bounds require a finite center and positive radius.",
     });
   }
 

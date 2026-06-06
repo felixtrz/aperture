@@ -11,6 +11,9 @@ import {
   getOrCreateWebGpuAppSpritePipeline,
   type SpriteFrameResources,
 } from "./sprites.js";
+import { prepareMsdfTextFrameResourcesForSnapshot } from "./text.js";
+import { prepareParticleFrameResourcesForSnapshot } from "./particles.js";
+import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
 import {
   createWebGpuAppResourceReuseReport,
   renderReport,
@@ -35,6 +38,15 @@ export async function renderSpriteOnlyWebGpuAppFrame(
   const { app, sourceAssets } = context;
   const reuse = createWebGpuAppResourceReuseReport();
   const spriteDraws = options.snapshot.spriteDraws ?? [];
+  const hasQuadSpriteBatches = (options.snapshot.quadBatches ?? []).some(
+    (batch) => batch.kind === "sprite",
+  );
+  const hasGlyphBatches = (options.snapshot.quadBatches ?? []).some(
+    (batch) => batch.kind === "glyph",
+  );
+  const hasUiNodes = (options.snapshot.uiNodes ?? []).length > 0;
+  const hasParticleEmitters =
+    (options.snapshot.particleEmitters ?? []).length > 0;
   const packedViews = writePackedSnapshotViewUniforms(
     options.snapshot,
     resourceCache.frameScratch.viewUniforms,
@@ -50,7 +62,7 @@ export async function renderSpriteOnlyWebGpuAppFrame(
     diagnostics: [],
   };
 
-  if (spriteDraws.length > 0) {
+  if (spriteDraws.length > 0 || hasQuadSpriteBatches) {
     pipeline = await getOrCreateWebGpuAppSpritePipeline(app, resourceCache);
 
     if (!pipeline.valid || pipeline.resource === null) {
@@ -96,12 +108,117 @@ export async function renderSpriteOnlyWebGpuAppFrame(
     });
   }
 
+  const textFrame = await prepareMsdfTextFrameResourcesForSnapshot({
+    app,
+    assets: sourceAssets,
+    cache: resourceCache,
+    snapshot: options.snapshot,
+    viewUniforms: packedViews,
+    worldTransforms: packedTransforms,
+    reuse,
+  });
+
+  if (!textFrame.resources.valid) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      pipeline,
+      resourceReuse: reuse,
+      diagnostics: [
+        ...options.snapshot.diagnostics,
+        ...packedViews.diagnostics,
+        ...packedTransforms.diagnostics,
+        ...spriteResources.diagnostics,
+        ...textFrame.resources.diagnostics,
+      ],
+    });
+  }
+
+  const particleFrame = await prepareParticleFrameResourcesForSnapshot({
+    app,
+    assets: sourceAssets,
+    cache: resourceCache,
+    snapshot: options.snapshot,
+    viewUniforms: packedViews,
+    time: options.snapshot.frame / 60,
+  });
+
+  if (!particleFrame.valid) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      pipeline,
+      resourceReuse: reuse,
+      diagnostics: [
+        ...options.snapshot.diagnostics,
+        ...packedViews.diagnostics,
+        ...packedTransforms.diagnostics,
+        ...spriteResources.diagnostics,
+        ...textFrame.resources.diagnostics,
+        ...particleFrame.diagnostics,
+      ],
+    });
+  }
+
+  const uiFrame = await prepareUiFrameResourcesForSnapshot({
+    app,
+    assets: sourceAssets,
+    cache: resourceCache,
+    snapshot: options.snapshot,
+    viewUniforms: packedViews,
+    reuse,
+  });
+
+  if (!uiFrame.valid) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      pipeline,
+      resourceReuse: reuse,
+      diagnostics: [
+        ...options.snapshot.diagnostics,
+        ...packedViews.diagnostics,
+        ...packedTransforms.diagnostics,
+        ...spriteResources.diagnostics,
+        ...textFrame.resources.diagnostics,
+        ...uiFrame.diagnostics,
+      ],
+    });
+  }
+
+  if (
+    !hasQuadSpriteBatches &&
+    spriteDraws.length === 0 &&
+    !hasGlyphBatches &&
+    !hasUiNodes &&
+    !hasParticleEmitters
+  ) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      resourceReuse: reuse,
+      diagnostics: [
+        ...options.snapshot.diagnostics,
+        {
+          code: "webGpuApp.emptySpriteTextSnapshot",
+          message:
+            "WebGPU sprite/text render requires at least one sprite or glyph batch.",
+        },
+      ],
+    });
+  }
+
   const boundaries = await assembleWebGpuAppFrameBoundaries({
     app,
     assets: sourceAssets,
     cache: resourceCache,
     snapshot: options.snapshot,
-    commands: spriteResources.commands,
+    commands: [
+      ...spriteResources.commands,
+      ...textFrame.resources.commands,
+      ...particleFrame.commands,
+    ],
+    overlayCommands: uiFrame.commands,
     label: options.label ?? "aperture-webgpu-sprite-app",
     reuse,
     ...(options.clearColor === undefined
@@ -118,6 +235,9 @@ export async function renderSpriteOnlyWebGpuAppFrame(
     packedViews.diagnostics.length === 0 &&
     packedTransforms.diagnostics.length === 0 &&
     spriteResources.diagnostics.length === 0 &&
+    textFrame.resources.diagnostics.length === 0 &&
+    particleFrame.diagnostics.length === 0 &&
+    uiFrame.diagnostics.length === 0 &&
     boundaries.valid;
   const readback = await mapFrameBoundaryReadbackSamples(
     boundaries.readbackBoundary?.readback,
@@ -140,6 +260,7 @@ export async function renderSpriteOnlyWebGpuAppFrame(
       ? {}
       : { depthAttachment: boundaries.depthAttachment }),
     ...(readback === undefined ? {} : { readback }),
+    particles: particleFrame.report,
     resourceReuse: reuse,
     drawCommands: boundaries.plannedCommands,
     drawCalls: boundaries.drawCalls,
@@ -148,6 +269,9 @@ export async function renderSpriteOnlyWebGpuAppFrame(
       ...packedViews.diagnostics,
       ...packedTransforms.diagnostics,
       ...spriteResources.diagnostics,
+      ...textFrame.resources.diagnostics,
+      ...particleFrame.diagnostics,
+      ...uiFrame.diagnostics,
       ...boundaries.diagnostics,
     ],
   });

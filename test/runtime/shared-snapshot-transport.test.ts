@@ -22,6 +22,8 @@ describe("createSharedSnapshotTransport", () => {
       transformFloatsPerBuffer: 32,
       instanceTintFloatsPerBuffer: 8,
       viewMatrixFloatsPerBuffer: 48,
+      quadInstanceFloatsPerBuffer: 0,
+      quadInstanceWordsPerBuffer: 0,
       packetWordsPerBuffer: 0,
     });
     expect(transport.writer.transforms.buffer).toBe(transport.transformBuffer);
@@ -32,13 +34,20 @@ describe("createSharedSnapshotTransport", () => {
     expect(transport.writer.viewMatrices.buffer).toBe(
       transport.viewMatrixBuffer,
     );
+    expect(transport.writer.quadInstanceFloats.buffer).toBe(
+      transport.quadInstanceFloatBuffer,
+    );
+    expect(transport.writer.quadInstanceWords.buffer).toBe(
+      transport.quadInstanceWordBuffer,
+    );
     expect(transport.writer.packetWords.buffer).toBe(transport.packetBuffer);
   });
 
-  it("publishes optional instance tint and packet-word buffers", () => {
+  it("publishes optional instance tint, quad, and packet-word buffers", () => {
     const transport = createSharedSnapshotTransport({
       maxEntities: 2,
       maxViews: 1,
+      maxQuadInstances: 1,
       maxPacketWords: 8,
       requireCrossOriginIsolated: false,
     });
@@ -47,6 +56,8 @@ describe("createSharedSnapshotTransport", () => {
       transforms: new Float32Array(32).fill(1),
       instanceTints: new Float32Array([1, 0, 0, 1, 0, 1, 0, 1]),
       viewMatrices: new Float32Array(48).fill(2),
+      quadInstanceFloats: new Float32Array(24).fill(3),
+      quadInstanceWords: new Uint32Array(8).fill(4),
       packetWords: new Uint32Array([0x4150_5350, 1, 1, 2, 3, 4, 5, 6]),
     });
     const read = transport.reader.readLatestFrame();
@@ -56,6 +67,8 @@ describe("createSharedSnapshotTransport", () => {
       transformFloats: 32,
       instanceTintFloats: 8,
       viewMatrixFloats: 48,
+      quadInstanceFloats: 24,
+      quadInstanceWords: 8,
       packetWords: 8,
     });
     expect(read?.instanceTints).toEqual(
@@ -64,6 +77,8 @@ describe("createSharedSnapshotTransport", () => {
     expect(read?.packetWords).toEqual(
       new Uint32Array([0x4150_5350, 1, 1, 2, 3, 4, 5, 6]),
     );
+    expect(read?.quadInstanceFloats).toEqual(new Float32Array(24).fill(3));
+    expect(read?.quadInstanceWords).toEqual(new Uint32Array(8).fill(4));
   });
 
   it("reconstructs writer and reader views from transferred shared buffers", () => {
@@ -79,6 +94,8 @@ describe("createSharedSnapshotTransport", () => {
       transformBuffer: source.transformBuffer,
       instanceTintBuffer: source.instanceTintBuffer,
       viewMatrixBuffer: source.viewMatrixBuffer,
+      quadInstanceFloatBuffer: source.quadInstanceFloatBuffer,
+      quadInstanceWordBuffer: source.quadInstanceWordBuffer,
       packetBuffer: source.packetBuffer,
     });
 
@@ -215,6 +232,7 @@ describe("createSharedSnapshotTransport", () => {
     const transport = createSharedSnapshotTransport({
       maxEntities: 1,
       maxViews: 1,
+      maxQuadInstances: 1,
       maxPacketWords: 1,
       requireCrossOriginIsolated: false,
     });
@@ -234,6 +252,22 @@ describe("createSharedSnapshotTransport", () => {
         viewMatrices: new Float32Array(48),
       }),
     ).toThrow(/capacity is 4/);
+    expect(() =>
+      transport.writer.writeFrame({
+        frame: 1,
+        transforms: new Float32Array(16),
+        viewMatrices: new Float32Array(48),
+        quadInstanceFloats: new Float32Array(25),
+      }),
+    ).toThrow(/capacity is 24/);
+    expect(() =>
+      transport.writer.writeFrame({
+        frame: 1,
+        transforms: new Float32Array(16),
+        viewMatrices: new Float32Array(48),
+        quadInstanceWords: new Uint32Array(9),
+      }),
+    ).toThrow(/capacity is 8/);
     expect(() =>
       transport.writer.writeFrame({
         frame: 1,

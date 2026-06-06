@@ -1,7 +1,7 @@
 export const SNAPSHOT_PACKET_ENCODING_MAGIC = 0x4150_5350; // "APSP"
-export const SNAPSHOT_PACKET_ENCODING_VERSION = 6;
+export const SNAPSHOT_PACKET_ENCODING_VERSION = 7;
 
-export const SNAPSHOT_PACKET_HEADER_WORDS = 8;
+export const SNAPSHOT_PACKET_HEADER_WORDS = 9;
 export const VIEW_PACKET_WORDS = 36;
 export const MESH_DRAW_PACKET_WORDS = 34;
 export const LIGHT_PACKET_WORDS = 31;
@@ -10,6 +10,7 @@ export const ENVIRONMENT_PACKET_WORDS = 13;
 // slopeBias (M4-T3); 10-11: depthBias/normalBias (float32) (M4-T5).
 export const SHADOW_REQUEST_PACKET_WORDS = 12;
 export const BOUNDS_PACKET_WORDS = 43;
+export const QUAD_BATCH_PACKET_WORDS = 24;
 
 export const SNAPSHOT_PACKET_WORD_STRIDES = Object.freeze({
   header: SNAPSHOT_PACKET_HEADER_WORDS,
@@ -19,6 +20,7 @@ export const SNAPSHOT_PACKET_WORD_STRIDES = Object.freeze({
   environment: ENVIRONMENT_PACKET_WORDS,
   shadowRequest: SHADOW_REQUEST_PACKET_WORDS,
   bounds: BOUNDS_PACKET_WORDS,
+  quadBatch: QUAD_BATCH_PACKET_WORDS,
 });
 
 export const SNAPSHOT_PACKET_BYTE_STRIDES = Object.freeze({
@@ -29,6 +31,7 @@ export const SNAPSHOT_PACKET_BYTE_STRIDES = Object.freeze({
   environment: ENVIRONMENT_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
   shadowRequest: SHADOW_REQUEST_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
   bounds: BOUNDS_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+  quadBatch: QUAD_BATCH_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
 });
 
 export const SNAPSHOT_PACKET_DIAGNOSTIC_TRANSPORT_NOTE =
@@ -43,4 +46,5 @@ export const SNAPSHOT_PACKET_HEADER_WORD_INDEX = Object.freeze({
   Environments: 5,
   ShadowRequests: 6,
   Bounds: 7,
+  QuadBatches: 8,
 });

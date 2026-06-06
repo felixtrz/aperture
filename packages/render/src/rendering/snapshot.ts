@@ -7,6 +7,9 @@ export type {
   InstanceAttributePacket,
   LightPacket,
   MeshDrawPacket,
+  ParticleEmitterPacket,
+  ParticleSimulationSpacePacket,
+  QuadBatchPacket,
   RenderDiagnostic,
   RenderDiagnosticSeverity,
   RenderEntityRef,
@@ -18,9 +21,36 @@ export type {
   ShadowRequestPacket,
   SkyboxPacket,
   SpriteDrawPacket,
+  UiHitRegionPacket,
+  UiLayoutModePacket,
+  UiNodeKind,
+  UiNodePacket,
+  UiRectPacket,
+  UiTextAlignPacket,
   ViewCullStats,
   ViewPacket,
 } from "./snapshot-types.js";
+export type {
+  QuadBatchKind,
+  QuadBillboardMode,
+  QuadBlendMode,
+  QuadCoordinateMode,
+  QuadInstanceFlagsInput,
+  QuadPipelineVariant,
+  QuadSizeMode,
+  QuadSnapshotBuffers,
+} from "./quad-snapshot.js";
+export {
+  QUAD_INSTANCE_FLAG_MASKS,
+  QUAD_INSTANCE_FLOAT_STRIDE,
+  QUAD_INSTANCE_WORD_STRIDE,
+  QUAD_SNAPSHOT_ABI_VERSION,
+  assertQuadSnapshotBuffers,
+  createQuadSnapshotBuffers,
+  decodeQuadInstanceFlags,
+  encodeQuadInstanceFlags,
+  quadInstanceCount,
+} from "./quad-snapshot.js";
 export { createBatchCompatibilityKey } from "./snapshot-batch-key.js";
 export {
   compareRenderSortKeys,

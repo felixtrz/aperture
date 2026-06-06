@@ -2,8 +2,10 @@ import {
   AssetRegistry,
   TypedAssetCollection,
   assetHandleKey,
+  createFontAtlasHandle,
   createMaterialHandle,
   createMeshHandle,
+  createParticleEffectHandle,
   createShaderHandle,
   type AssetDiagnostic,
   type AssetHandle,
@@ -25,6 +27,14 @@ import type {
 } from "../materials/types.js";
 import { isCustomWgslMaterialAsset } from "../materials/family-key.js";
 import type { MeshAsset } from "../mesh/types.js";
+import {
+  msdfFontAtlasDependencies,
+  type MsdfFontAtlasAsset,
+} from "../text/index.js";
+import {
+  particleEffectDependencies,
+  type ParticleEffectAsset,
+} from "./particles.js";
 
 export interface RenderAssetCollectionsOptions {
   readonly registry?: AssetRegistry;
@@ -35,6 +45,11 @@ export interface RenderAssetCollections {
   readonly meshes: TypedAssetCollection<"mesh", MeshAsset>;
   readonly materials: MaterialAssetCollections;
   readonly shaders: TypedAssetCollection<"shader", WgslShaderAsset>;
+  readonly fontAtlases: TypedAssetCollection<"font-atlas", MsdfFontAtlasAsset>;
+  readonly particleEffects: TypedAssetCollection<
+    "particle-effect",
+    ParticleEffectAsset
+  >;
 }
 
 export class MaterialAssetCollections {
@@ -193,6 +208,25 @@ export function createRenderAssetCollections(
       createHandle: createShaderHandle,
       idPrefix: "shader",
       label: (asset) => asset.label,
+    }),
+    fontAtlases: new TypedAssetCollection<"font-atlas", MsdfFontAtlasAsset>({
+      registry,
+      kind: "font-atlas",
+      createHandle: createFontAtlasHandle,
+      idPrefix: "font-atlas",
+      label: (asset) => asset.label,
+      dependencies: msdfFontAtlasDependencies,
+    }),
+    particleEffects: new TypedAssetCollection<
+      "particle-effect",
+      ParticleEffectAsset
+    >({
+      registry,
+      kind: "particle-effect",
+      createHandle: createParticleEffectHandle,
+      idPrefix: "particle-effect",
+      label: (asset) => asset.label,
+      dependencies: particleEffectDependencies,
     }),
   };
 }

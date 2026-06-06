@@ -4,6 +4,7 @@ import {
   ENVIRONMENT_PACKET_WORDS,
   LIGHT_PACKET_WORDS,
   MESH_DRAW_PACKET_WORDS,
+  QUAD_BATCH_PACKET_WORDS,
   SHADOW_REQUEST_PACKET_WORDS,
   SNAPSHOT_PACKET_BYTE_STRIDES,
   SNAPSHOT_PACKET_DIAGNOSTIC_TRANSPORT_NOTE,
@@ -23,6 +24,8 @@ import {
   createMaterialHandle,
   createMeshHandle,
   createRenderTargetHandle,
+  createSamplerHandle,
+  createTextureHandle,
 } from "@aperture-engine/simulation";
 
 describe("snapshot packed packet encoding", () => {
@@ -39,7 +42,66 @@ describe("snapshot packed packet encoding", () => {
       environments: packets.environments.length,
       shadowRequests: packets.shadowRequests.length,
       bounds: packets.bounds.length,
+      quadBatches: 0,
     });
+  });
+
+  it("round-trips quad batch packets through the packed snapshot registry", () => {
+    const texture = createTextureHandle("sprite-atlas");
+    const sampler = createSamplerHandle("linear-clamp");
+    const bundle: SnapshotPacketBundle = {
+      views: [],
+      meshDraws: [],
+      lights: [],
+      environments: [],
+      shadowRequests: [],
+      bounds: [],
+      quadBatches: [
+        {
+          batchId: 7,
+          kind: "sprite",
+          texture,
+          sampler,
+          materialKey: "quad-material:sprite",
+          pipelineVariant: "sprite",
+          coordinateMode: "world",
+          billboardMode: "spherical",
+          sizeMode: "world-units",
+          blendMode: "alpha",
+          firstInstance: 4,
+          instanceCount: 2,
+          layerMask: 3,
+          sortKey: {
+            queue: "transparent",
+            viewId: 1,
+            layer: 0,
+            order: 12,
+            pipelineKey: "quad-pipeline:sprite",
+            materialKey: "quad-material:sprite",
+            meshKey: "quad-unit",
+            depth: 5.25,
+            stableId: 9001,
+          },
+        },
+      ],
+    };
+
+    const encoded = encodeSnapshotPackets(bundle);
+    const decoded = decodeSnapshotPackets(encoded.words, encoded.registry);
+
+    expect(decoded.quadBatches).toEqual(bundle.quadBatches);
+    expect(encoded.counts.quadBatches).toBe(1);
+    expect(encoded.registry.snapshot().handles).toContainEqual({
+      kind: "texture",
+      id: "sprite-atlas",
+    });
+    expect(encoded.registry.snapshot().handles).toContainEqual({
+      kind: "sampler",
+      id: "linear-clamp",
+    });
+    expect(encoded.registry.snapshot().strings).toContain(
+      "quad-pipeline:sprite",
+    );
   });
 
   it("round-trips authored M4-T3 shadow params through the worker codec", () => {
@@ -85,6 +147,7 @@ describe("snapshot packed packet encoding", () => {
       environment: ENVIRONMENT_PACKET_WORDS,
       shadowRequest: SHADOW_REQUEST_PACKET_WORDS,
       bounds: BOUNDS_PACKET_WORDS,
+      quadBatch: QUAD_BATCH_PACKET_WORDS,
     });
     expect(SNAPSHOT_PACKET_BYTE_STRIDES).toEqual({
       header: SNAPSHOT_PACKET_HEADER_WORDS * Uint32Array.BYTES_PER_ELEMENT,
@@ -95,6 +158,7 @@ describe("snapshot packed packet encoding", () => {
       shadowRequest:
         SHADOW_REQUEST_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
       bounds: BOUNDS_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+      quadBatch: QUAD_BATCH_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
     });
   });
 

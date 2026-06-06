@@ -33,6 +33,11 @@ export interface RenderSnapshotReport {
   readonly views: number;
   readonly meshDraws: number;
   readonly spriteDraws?: number;
+  readonly particleEmitters?: number;
+  readonly quadInstances?: number;
+  readonly quadBatches?: number;
+  readonly uiNodes?: number;
+  readonly uiHitRegions?: number;
   readonly skyboxes?: number;
   readonly fogs?: number;
   readonly lights: number;

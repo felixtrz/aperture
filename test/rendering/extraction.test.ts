@@ -52,8 +52,11 @@ import {
   createStableRenderId,
   createSprite,
   createSkybox,
+  decodeQuadInstanceFlags,
   createUnlitMaterialAsset,
   extractRenderSnapshot,
+  QUAD_INSTANCE_FLOAT_STRIDE,
+  QUAD_INSTANCE_WORD_STRIDE,
   packSnapshotInstanceTints,
   registerRenderAuthoringComponents,
   type LightInput,
@@ -270,6 +273,14 @@ describe("render extraction", () => {
         texture,
         size: [2, 3],
         color: [0.25, 0.5, 0.75, 1],
+        uvRect: [0.125, 0.25, 0.5, 0.25],
+        pivot: [0.25, 0.75],
+        rotation: Math.PI / 4,
+        atlasFrame: 3,
+        coordinateMode: "screen",
+        billboardMode: "cylindrical",
+        sizeMode: "screen-pixels",
+        blendMode: "additive",
       }),
     );
     entity.addComponent(RenderLayer, { mask: 0b01 });
@@ -291,10 +302,66 @@ describe("render extraction", () => {
       boundsIndex: 0,
     });
     expect(snapshot.spriteDraws?.[0]?.color).toEqual([0.25, 0.5, 0.75, 1]);
+    expect(snapshot.quads).toMatchObject({
+      version: 1,
+      instanceFloatStride: QUAD_INSTANCE_FLOAT_STRIDE,
+      instanceWordStride: QUAD_INSTANCE_WORD_STRIDE,
+    });
+    expect(snapshot.quads?.instanceFloats).toHaveLength(
+      QUAD_INSTANCE_FLOAT_STRIDE,
+    );
+    expect(snapshot.quads?.instanceWords).toHaveLength(
+      QUAD_INSTANCE_WORD_STRIDE,
+    );
+    const quadFloats = Array.from(snapshot.quads?.instanceFloats ?? []);
+
+    expect(quadFloats.slice(0, 6)).toEqual([0, 0, 0, expect.any(Number), 2, 3]);
+    expect(quadFloats[6]).toBeCloseTo(Math.PI / 4, 6);
+    expect(quadFloats.slice(7)).toEqual([
+      0.25, 0.75, 0.125, 0.25, 0.5, 0.25, 0.25, 0.5, 0.75, 1, 0, 0, 0, 0, 0, 0,
+      0,
+    ]);
+    expect(snapshot.quads?.instanceWords[0]).toBe(0);
+    expect(snapshot.quads?.instanceWords[1]).toBe(0xffff_ffff);
+    expect(snapshot.quads?.instanceWords[2]).toBe(3);
+    expect(
+      decodeQuadInstanceFlags(snapshot.quads?.instanceWords[3] ?? 0),
+    ).toEqual({
+      coordinateMode: "screen",
+      billboardMode: "cylindrical",
+      sizeMode: "screen-pixels",
+    });
+    expect(snapshot.quads?.instanceWords[4]).toBe(
+      createStableRenderId({
+        index: entity.index,
+        generation: entity.generation,
+      }),
+    );
+    expect(snapshot.quadBatches).toEqual([
+      expect.objectContaining({
+        batchId: createStableRenderId({
+          index: entity.index,
+          generation: entity.generation,
+        }),
+        kind: "sprite",
+        texture,
+        materialKey: "texture:marker",
+        pipelineVariant: "sprite",
+        coordinateMode: "screen",
+        billboardMode: "cylindrical",
+        sizeMode: "screen-pixels",
+        blendMode: "additive",
+        firstInstance: 0,
+        instanceCount: 1,
+        layerMask: 0b01,
+      }),
+    ]);
     expect(snapshot.report).toMatchObject({
       views: 1,
       meshDraws: 0,
       spriteDraws: 1,
+      quadInstances: 1,
+      quadBatches: 1,
       bounds: 1,
       diagnostics: 0,
     });

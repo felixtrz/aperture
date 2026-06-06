@@ -13,6 +13,7 @@ import {
   MeshQueryAcceleration,
   MorphTargetWeights,
   OcclusionQuery,
+  ParticleEmitter,
   Pickable,
   RenderLayer,
   RenderOrder,
@@ -21,6 +22,13 @@ import {
   Skin,
   Skybox,
   Sprite,
+  UiHitTarget,
+  UiImage,
+  UiNode,
+  UiPanel,
+  UiScreen,
+  UiScroll,
+  UiText,
   Visibility,
 } from "./authoring-components.js";
 
@@ -34,6 +42,14 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(Material);
   world.registerComponent(MaterialSlots);
   world.registerComponent(Sprite);
+  world.registerComponent(ParticleEmitter);
+  world.registerComponent(UiScreen);
+  world.registerComponent(UiNode);
+  world.registerComponent(UiPanel);
+  world.registerComponent(UiImage);
+  world.registerComponent(UiText);
+  world.registerComponent(UiHitTarget);
+  world.registerComponent(UiScroll);
   world.registerComponent(Skybox);
   world.registerComponent(Fog);
   world.registerComponent(Camera);

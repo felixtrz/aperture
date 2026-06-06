@@ -4,6 +4,7 @@ import {
   clearColor,
   readbackSamples,
   registerSpriteBillboardScene,
+  spriteProofs,
 } from "./sprite-billboard-scene.js";
 
 const canvas = document.querySelector("#aperture-canvas");
@@ -147,6 +148,10 @@ async function handleWorkerMessage(
       views: report.snapshot.views.length,
       meshDraws: report.snapshot.meshDraws.length,
       spriteDraws: report.snapshot.spriteDraws?.length ?? 0,
+      quadInstances:
+        (report.snapshot.quads?.instanceFloats.length ?? 0) /
+        (report.snapshot.quads?.instanceFloatStride ?? 1),
+      quadBatches: report.snapshot.quadBatches?.length ?? 0,
       bounds: report.snapshot.bounds.length,
       diagnostics: report.snapshot.diagnostics.length,
     },
@@ -177,7 +182,13 @@ function createSpriteBillboardStatus(scene, loop, diagnostics) {
 
   return {
     ...baseStatus,
-    ok: front?.counts?.drawCalls === 1 && orbit?.counts?.drawCalls === 1,
+    ok:
+      front?.counts?.spriteDraws === spriteProofs.length &&
+      orbit?.counts?.spriteDraws === spriteProofs.length &&
+      front?.counts?.quadInstances === spriteProofs.length &&
+      orbit?.counts?.quadInstances === spriteProofs.length &&
+      front?.counts?.drawCalls === spriteProofs.length &&
+      orbit?.counts?.drawCalls === spriteProofs.length,
     phase: "submit",
     renderingBackend: "webgpu-explicit",
     sprite: {
@@ -185,6 +196,7 @@ function createSpriteBillboardStatus(scene, loop, diagnostics) {
       samplerKey: scene.samplerKey,
       expectedDominantChannels: scene.expectedDominantChannels,
       samples: scene.samples,
+      proofs: spriteProofs,
     },
     worker: {
       running: loop.workerReady,

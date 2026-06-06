@@ -40,6 +40,12 @@ import {
   type RenderFramePlanScratch,
 } from "../render/frame/render-frame-plan.js";
 import type { CreateSpriteRenderPipelineResourceResult } from "../render/sprites/sprite-pipeline.js";
+import type { CreateMsdfTextRenderPipelineResourceResult } from "../render/text/msdf-text-pipeline.js";
+import type { CreateUiQuadRenderPipelineResourceResult } from "../render/ui/ui-quad-pipeline.js";
+import type {
+  CreateParticleComputePipelineResourceResult,
+  CreateParticleRenderPipelineResourceResult,
+} from "../render/particles/particle-pipeline.js";
 import type { CreateSkyboxRenderPipelineResourceResult } from "../render/skybox/skybox-pipeline.js";
 import type { RenderPassCommand } from "../render/passes/render-pass-commands.js";
 import {
@@ -110,6 +116,27 @@ export interface WebGpuAppResourceCache {
     string,
     CreateSpriteRenderPipelineResourceResult
   >;
+  readonly msdfTextPipelines: Map<
+    string,
+    CreateMsdfTextRenderPipelineResourceResult
+  >;
+  readonly uiPanelPipelines: Map<
+    string,
+    CreateUiQuadRenderPipelineResourceResult
+  >;
+  readonly uiImagePipelines: Map<
+    string,
+    CreateUiQuadRenderPipelineResourceResult
+  >;
+  readonly particleComputePipelines: Map<
+    string,
+    CreateParticleComputePipelineResourceResult
+  >;
+  readonly particleRenderPipelines: Map<
+    string,
+    CreateParticleRenderPipelineResourceResult
+  >;
+  readonly particleEmitterStates: Map<string, ParticleEmitterGpuStateResource>;
   readonly skyboxPipelines: Map<
     string,
     CreateSkyboxRenderPipelineResourceResult
@@ -146,6 +173,16 @@ export interface WebGpuAppResourceCache {
     string,
     WebGpuMsaaColorTextureCacheSlot
   >;
+}
+
+export interface ParticleEmitterGpuStateResource {
+  readonly key: string;
+  readonly emitterId: number;
+  readonly effectVersion: number;
+  readonly capacity: number;
+  readonly resetEpoch: number;
+  readonly particleBuffer: unknown;
+  readonly byteLength: number;
 }
 
 export interface WebGpuAppPostPassCache {
@@ -212,6 +249,12 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
   return {
     pipelines: new Map(),
     spritePipelines: new Map(),
+    msdfTextPipelines: new Map(),
+    uiPanelPipelines: new Map(),
+    uiImagePipelines: new Map(),
+    particleComputePipelines: new Map(),
+    particleRenderPipelines: new Map(),
+    particleEmitterStates: new Map(),
     skyboxPipelines: new Map(),
     layouts: new Map(),
     textures: new Map(),

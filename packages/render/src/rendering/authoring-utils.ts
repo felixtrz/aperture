@@ -35,6 +35,10 @@ export function tuple4(
   return [x, y, z, w];
 }
 
+export function tuple2(x: number, y: number): [number, number] {
+  return [x, y];
+}
+
 export function spriteSize(
   size: SpriteInput["size"],
 ): readonly [number, number] {

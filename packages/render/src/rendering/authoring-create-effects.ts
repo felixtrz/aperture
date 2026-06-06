@@ -4,6 +4,10 @@ import {
 } from "@aperture-engine/simulation";
 import {
   FogMode,
+  SpriteBillboardMode,
+  SpriteBlendMode,
+  SpriteCoordinateMode,
+  SpriteSizeMode,
   type FogInput,
   type SkyboxInput,
   type SpriteInput,
@@ -25,6 +29,14 @@ export function createSprite(
     color: toTuple4(input.color ?? [1, 1, 1, 1]),
     width: size[0],
     height: size[1],
+    uvRect: toTuple4(input.uvRect ?? [0, 0, 1, 1]),
+    pivot: [input.pivot?.[0] ?? 0.5, input.pivot?.[1] ?? 0.5],
+    rotation: input.rotation ?? 0,
+    atlasFrame: input.atlasFrame ?? 0,
+    coordinateMode: input.coordinateMode ?? SpriteCoordinateMode.World,
+    billboardMode: input.billboardMode ?? SpriteBillboardMode.Spherical,
+    sizeMode: input.sizeMode ?? SpriteSizeMode.WorldUnits,
+    blendMode: input.blendMode ?? SpriteBlendMode.Alpha,
   };
 }
 

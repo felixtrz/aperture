@@ -4,6 +4,7 @@ import type {
   EnvironmentPacket,
   LightPacket,
   MeshDrawPacket,
+  QuadBatchPacket,
   RenderSnapshot,
   ShadowRequestPacket,
   ViewPacket,
@@ -16,6 +17,7 @@ export interface SnapshotPacketBundle {
   readonly environments: readonly EnvironmentPacket[];
   readonly shadowRequests: readonly ShadowRequestPacket[];
   readonly bounds: readonly BoundsPacket[];
+  readonly quadBatches?: readonly QuadBatchPacket[];
 }
 
 export interface EncodeSnapshotPacketsOptions {
@@ -33,6 +35,7 @@ export interface EncodedSnapshotPackets {
     readonly environments: number;
     readonly shadowRequests: number;
     readonly bounds: number;
+    readonly quadBatches: number;
   };
   readonly wordLength: number;
   readonly byteLength: number;
@@ -48,4 +51,5 @@ export type SnapshotPacketEncodingInput =
       | "environments"
       | "shadowRequests"
       | "bounds"
+      | "quadBatches"
     >;

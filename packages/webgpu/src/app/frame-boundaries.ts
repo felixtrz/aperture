@@ -107,6 +107,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   readonly cache: WebGpuAppResourceCache;
   readonly snapshot: RenderSnapshot;
   readonly commands: readonly RenderPassCommand[];
+  readonly overlayCommands?: readonly RenderPassCommand[];
   readonly label: string;
   readonly reuse: WebGpuAppResourceReuseReport;
   readonly motionVectorColorFormat?: string | null;
@@ -369,6 +370,13 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       });
     }
 
+    const overlayCommands =
+      target.source === "swapchain" ? (options.overlayCommands ?? []) : [];
+    const commandsForBoundaryWithOverlay =
+      overlayCommands.length === 0
+        ? commandsForBoundary
+        : [...commandsForBoundary, ...overlayCommands];
+
     if (target.source === "swapchain" && activePostEffects.length > 0) {
       const postTarget = assembleWebGpuAppPostProcessedSwapchainTarget({
         app: options.app,
@@ -376,6 +384,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         snapshot: options.snapshot,
         target,
         commands: commandsForBoundary,
+        overlayCommands,
         depthAttachment,
         effects: activePostEffects,
         label: options.label,
@@ -548,7 +557,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     const renderBundleKey = createWebGpuAppRenderBundleCommandKey({
       target,
       descriptor: renderBundleDescriptor,
-      commands: commandsForBoundary,
+      commands: commandsForBoundaryWithOverlay,
       cache: options.cache.renderBundles,
     });
     const boundaryOptions: Parameters<typeof assembleFrameBoundary>[0] = {
@@ -560,7 +569,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       >[0]["device"],
       queue: (options.app.initialization.device as { readonly queue: unknown })
         .queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
-      commands: commandsForBoundary,
+      commands: commandsForBoundaryWithOverlay,
       label: `${options.label}:${target.renderTargetKey ?? "swapchain"}`,
       colorLoadOp,
       viewport: viewRectangles.viewport,
@@ -584,8 +593,9 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         depthLoadOp,
         depthStoreOp: "store",
       },
-      ...(commandsForBoundary.length === 0 ||
+      ...(commandsForBoundaryWithOverlay.length === 0 ||
       options.enableRenderBundles === false ||
+      overlayCommands.length > 0 ||
       occlusionRenderIds.length > 0
         ? {}
         : {
@@ -658,8 +668,8 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         options.snapshot,
         depthAttachment,
       );
-      plannedCommands += commandsForBoundary.length;
-      drawCalls += countDrawCommands(commandsForBoundary);
+      plannedCommands += commandsForBoundaryWithOverlay.length;
+      drawCalls += countDrawCommands(commandsForBoundaryWithOverlay);
       submittedTargetCounts.set(
         targetSubmissionKey,
         previousTargetSubmissions + 1,
@@ -717,8 +727,8 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         ? {}
         : { msaaSampleCount: msaaColorTarget.resource.sampleCount }),
     });
-    plannedCommands += commandsForBoundary.length;
-    drawCalls += countDrawCommands(commandsForBoundary);
+    plannedCommands += commandsForBoundaryWithOverlay.length;
+    drawCalls += countDrawCommands(commandsForBoundaryWithOverlay);
     diagnostics.push(
       ...boundary.texture.diagnostics,
       ...(boundary.attachments?.diagnostics ?? []),

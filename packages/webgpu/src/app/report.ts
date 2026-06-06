@@ -171,6 +171,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.occlusionQueries === undefined
       ? {}
       : { occlusionQueries: report.occlusionQueries }),
+    ...(report.particles === undefined
+      ? {}
+      : { particles: toWebGpuAppJsonValue(report.particles) }),
     ...(materialDependencyReadiness.length === 0
       ? {}
       : { materialDependencyReadiness }),
@@ -281,6 +284,7 @@ export function renderReport(input: {
     | null
     | undefined;
   readonly occlusionQueries?: WebGpuAppOcclusionQueryReport;
+  readonly particles?: WebGpuAppRenderReport["particles"];
   readonly drawPackages?: number;
   readonly drawCommands?: number;
   readonly drawCalls?: number;
@@ -310,6 +314,15 @@ export function renderReport(input: {
       views: input.snapshot.views.length,
       meshDraws: input.snapshot.meshDraws.length,
       spriteDraws: input.snapshot.spriteDraws?.length ?? 0,
+      particleEmitters: input.snapshot.particleEmitters?.length ?? 0,
+      quadInstances:
+        input.snapshot.quads === undefined
+          ? 0
+          : input.snapshot.quads.instanceFloats.length /
+            input.snapshot.quads.instanceFloatStride,
+      quadBatches: input.snapshot.quadBatches?.length ?? 0,
+      uiNodes: input.snapshot.uiNodes?.length ?? 0,
+      uiHitRegions: input.snapshot.uiHitRegions?.length ?? 0,
       skyboxes: input.snapshot.skyboxes?.length ?? 0,
       fogs: input.snapshot.fogs?.length ?? 0,
       drawPackages: input.drawPackages ?? 0,
@@ -362,6 +375,7 @@ export function renderReport(input: {
     ...(input.occlusionQueries === undefined
       ? {}
       : { occlusionQueries: input.occlusionQueries }),
+    ...(input.particles === undefined ? {} : { particles: input.particles }),
   };
 }
 

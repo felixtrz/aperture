@@ -42,6 +42,8 @@ import {
   snapshotUsesTransmission,
 } from "./queued-built-in-support.js";
 import { prepareSpriteFrameResourcesForSnapshot } from "./sprites.js";
+import { prepareMsdfTextFrameResourcesForSnapshot } from "./text.js";
+import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
 import { prepareQueuedBuiltInFrameResources } from "./queued-frame-resources.js";
 import { QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION } from "./queued-built-in-adapters.js";
 import { getWebGpuAppPipelineLayouts } from "./pipeline-layouts.js";
@@ -359,9 +361,30 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     worldTransforms: packedTransforms,
     reuse: options.reuse,
   });
+  const textFrame = await prepareMsdfTextFrameResourcesForSnapshot({
+    app: options.app,
+    assets: options.assets,
+    cache: options.cache,
+    snapshot: options.snapshot,
+    viewUniforms: packedViews,
+    worldTransforms: packedTransforms,
+    reuse: options.reuse,
+  });
+  const uiFrame = await prepareUiFrameResourcesForSnapshot({
+    app: options.app,
+    assets: options.assets,
+    cache: options.cache,
+    snapshot: options.snapshot,
+    viewUniforms: packedViews,
+    reuse: options.reuse,
+  });
   options.phaseTimer.finish("prepare");
 
-  if (!spriteFrame.resources.valid) {
+  if (
+    !spriteFrame.resources.valid ||
+    !textFrame.resources.valid ||
+    !uiFrame.valid
+  ) {
     return renderReport({
       ok: false,
       snapshot: options.snapshot,
@@ -380,14 +403,20 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
         ...packedTransforms.diagnostics,
         ...packedInstanceTints.diagnostics,
         ...spriteFrame.resources.diagnostics,
+        ...textFrame.resources.diagnostics,
+        ...uiFrame.diagnostics,
       ],
     });
   }
 
+  const overlayCommands = [
+    ...spriteFrame.resources.commands,
+    ...textFrame.resources.commands,
+  ];
   const frameCommands =
-    spriteFrame.resources.commands.length === 0
+    overlayCommands.length === 0
       ? framePlan.commandPlan.commands
-      : [...framePlan.commandPlan.commands, ...spriteFrame.resources.commands];
+      : [...framePlan.commandPlan.commands, ...overlayCommands];
   const indirectDraws = prepareWebGpuAppIndirectDrawCommands({
     app: options.app,
     cache: options.cache,
@@ -401,6 +430,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     cache: options.cache,
     snapshot: options.snapshot,
     commands: indirectDraws.commands,
+    overlayCommands: uiFrame.commands,
     label: options.label ?? "aperture-webgpu-app",
     reuse: options.reuse,
     motionVectorColorFormat,
@@ -466,6 +496,8 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     framePlan.resources.valid &&
     framePlan.commandPlan.valid &&
     spriteFrame.resources.diagnostics.length === 0 &&
+    textFrame.resources.diagnostics.length === 0 &&
+    uiFrame.diagnostics.length === 0 &&
     boundaries.valid &&
     (occlusionQueries === undefined ||
       occlusionQueries.status !== "unsupported");
@@ -526,6 +558,8 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
       ...framePlan.resources.diagnostics,
       ...framePlan.commandPlan.diagnostics,
       ...spriteFrame.resources.diagnostics,
+      ...textFrame.resources.diagnostics,
+      ...uiFrame.diagnostics,
       ...boundaries.diagnostics,
       ...newOcclusionQueryDiagnostics(
         occlusionQueries,

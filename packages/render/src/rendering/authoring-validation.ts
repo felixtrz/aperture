@@ -6,6 +6,7 @@ export {
 } from "./authoring-validation-lights.js";
 export {
   validateFogInput,
+  validateParticleEmitterInput,
   validateSkyboxInput,
   validateSpriteInput,
 } from "./authoring-validation-effects.js";

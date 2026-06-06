@@ -26,6 +26,7 @@ import {
   newOcclusionQueryDiagnostics,
   readWebGpuAppOcclusionQueries,
 } from "./gpu-readback.js";
+import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
 import {
   customWgslMaterialRenderPipelineCacheKey,
   type CreateCustomWgslMaterialRenderPipelineResourceResult,
@@ -271,6 +272,37 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     scratch: options.cache.frameScratch.framePlan,
   });
   options.phaseTimer.finish("queue");
+  options.phaseTimer.start("prepare");
+  const uiFrame = await prepareUiFrameResourcesForSnapshot({
+    app: options.app,
+    assets: options.assets,
+    cache: options.cache,
+    snapshot: options.snapshot,
+    viewUniforms: packedViews,
+    reuse: options.reuse,
+  });
+  options.phaseTimer.finish("prepare");
+
+  if (!uiFrame.valid) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      pipeline: resources.pipelineResult,
+      resources,
+      resourceReuse: options.reuse,
+      phaseTimings: options.phaseTimer.report(
+        options.cache.phaseTimingHistory,
+        options.snapshot.frame,
+      ),
+      diagnostics: [
+        ...options.snapshot.diagnostics,
+        ...packedViews.diagnostics,
+        ...packedTransforms.diagnostics,
+        ...resources.diagnostics,
+        ...uiFrame.diagnostics,
+      ],
+    });
+  }
 
   const indirectDraws = prepareWebGpuAppIndirectDrawCommands({
     app: options.app,
@@ -285,6 +317,7 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     cache: options.cache,
     snapshot: options.snapshot,
     commands: indirectDraws.commands,
+    overlayCommands: uiFrame.commands,
     label: options.label ?? "aperture-custom-wgsl-app",
     reuse: options.reuse,
     enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(
@@ -315,6 +348,7 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     framePlan.drawList.valid &&
     framePlan.resources.valid &&
     framePlan.commandPlan.valid &&
+    uiFrame.diagnostics.length === 0 &&
     boundaries.valid &&
     (occlusionQueries === undefined ||
       occlusionQueries.status !== "unsupported");
@@ -364,6 +398,7 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
       ...packedViews.diagnostics,
       ...packedTransforms.diagnostics,
       ...resources.diagnostics,
+      ...uiFrame.diagnostics,
       ...boundaries.diagnostics,
       ...newOcclusionQueryDiagnostics(
         occlusionQueries,

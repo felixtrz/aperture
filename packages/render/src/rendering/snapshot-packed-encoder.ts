@@ -4,6 +4,7 @@ import {
   writeEnvironmentPacket,
   writeLightPacket,
   writeMeshDrawPacket,
+  writeQuadBatchPacket,
   writeShadowRequestPacket,
   writeViewPacket,
 } from "./snapshot-packed-codecs.js";
@@ -12,6 +13,7 @@ import {
   ENVIRONMENT_PACKET_WORDS,
   LIGHT_PACKET_WORDS,
   MESH_DRAW_PACKET_WORDS,
+  QUAD_BATCH_PACKET_WORDS,
   SHADOW_REQUEST_PACKET_WORDS,
   SNAPSHOT_PACKET_HEADER_WORDS,
   VIEW_PACKET_WORDS,
@@ -26,6 +28,8 @@ import type {
 export function snapshotPacketWordLength(
   packets: SnapshotPacketBundle,
 ): number {
+  const quadBatches = packets.quadBatches ?? [];
+
   return (
     SNAPSHOT_PACKET_HEADER_WORDS +
     packets.views.length * VIEW_PACKET_WORDS +
@@ -33,7 +37,8 @@ export function snapshotPacketWordLength(
     packets.lights.length * LIGHT_PACKET_WORDS +
     packets.environments.length * ENVIRONMENT_PACKET_WORDS +
     packets.shadowRequests.length * SHADOW_REQUEST_PACKET_WORDS +
-    packets.bounds.length * BOUNDS_PACKET_WORDS
+    packets.bounds.length * BOUNDS_PACKET_WORDS +
+    quadBatches.length * QUAD_BATCH_PACKET_WORDS
   );
 }
 
@@ -42,6 +47,7 @@ export function encodeSnapshotPackets(
   options: EncodeSnapshotPacketsOptions = {},
 ): EncodedSnapshotPackets {
   const registry = options.registry ?? createSnapshotPacketRegistry();
+  const quadBatches = packets.quadBatches ?? [];
   const wordLength = snapshotPacketWordLength(packets);
   const buffer = options.buffer ?? new Uint32Array(wordLength);
 
@@ -61,6 +67,7 @@ export function encodeSnapshotPackets(
     environments: packets.environments.length,
     shadowRequests: packets.shadowRequests.length,
     bounds: packets.bounds.length,
+    quadBatches: quadBatches.length,
   });
 
   for (const packet of packets.views) {
@@ -93,6 +100,11 @@ export function encodeSnapshotPackets(
     offset += BOUNDS_PACKET_WORDS;
   }
 
+  for (const packet of quadBatches) {
+    writeQuadBatchPacket(words, offset, packet, registry);
+    offset += QUAD_BATCH_PACKET_WORDS;
+  }
+
   return {
     words,
     registry,
@@ -103,6 +115,7 @@ export function encodeSnapshotPackets(
       environments: packets.environments.length,
       shadowRequests: packets.shadowRequests.length,
       bounds: packets.bounds.length,
+      quadBatches: quadBatches.length,
     },
     wordLength,
     byteLength: wordLength * Uint32Array.BYTES_PER_ELEMENT,

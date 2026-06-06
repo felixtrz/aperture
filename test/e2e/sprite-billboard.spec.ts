@@ -15,6 +15,7 @@ interface SpriteBillboardStatus extends ExampleStatusBase {
     readonly textureKey: string;
     readonly samplerKey: string;
     readonly expectedDominantChannels: Record<string, string>;
+    readonly proofs?: readonly unknown[];
   };
   readonly frames?: readonly SpriteBillboardFrameStatus[];
 }
@@ -25,10 +26,14 @@ interface SpriteBillboardFrameStatus {
     readonly views: number;
     readonly meshDraws: number;
     readonly spriteDraws: number;
+    readonly quadInstances: number;
+    readonly quadBatches: number;
     readonly diagnostics: number;
   };
   readonly counts?: {
     readonly spriteDraws: number;
+    readonly quadInstances: number;
+    readonly quadBatches: number;
     readonly drawCalls: number;
     readonly diagnostics: number;
   };
@@ -84,12 +89,16 @@ test("browser renders ECS sprites as camera-facing billboards", async ({
     snapshot: {
       views: 1,
       meshDraws: 0,
-      spriteDraws: 1,
+      spriteDraws: 5,
+      quadInstances: 5,
+      quadBatches: 5,
       diagnostics: 0,
     },
     counts: {
-      spriteDraws: 1,
-      drawCalls: 1,
+      spriteDraws: 5,
+      quadInstances: 5,
+      quadBatches: 5,
+      drawCalls: 5,
       diagnostics: 0,
     },
   });
@@ -97,15 +106,20 @@ test("browser renders ECS sprites as camera-facing billboards", async ({
     snapshot: {
       views: 1,
       meshDraws: 0,
-      spriteDraws: 1,
+      spriteDraws: 5,
+      quadInstances: 5,
+      quadBatches: 5,
       diagnostics: 0,
     },
     counts: {
-      spriteDraws: 1,
-      drawCalls: 1,
+      spriteDraws: 5,
+      quadInstances: 5,
+      quadBatches: 5,
+      drawCalls: 5,
       diagnostics: 0,
     },
   });
+  expect(status.sprite?.proofs).toHaveLength(5);
 
   if (front.readback?.ok !== true || orbit.readback?.ok !== true) {
     test.skip(
@@ -116,8 +130,9 @@ test("browser renders ECS sprites as camera-facing billboards", async ({
     );
   }
 
-  assertSpriteSamples(front);
-  assertSpriteSamples(orbit);
+  assertCentralAtlasSamples(front);
+  assertCentralAtlasSamples(orbit);
+  assertQuadFeatureSamples(front);
   assertStableSamples(front, orbit);
   webGpuValidation.expectNoWarnings();
 });
@@ -133,7 +148,7 @@ function frameStatus(
   return frame as SpriteBillboardFrameStatus;
 }
 
-function assertSpriteSamples(frame: SpriteBillboardFrameStatus): void {
+function assertCentralAtlasSamples(frame: SpriteBillboardFrameStatus): void {
   const clear = rgbaColorToPixel({ r: 0.012, g: 0.018, b: 0.026, a: 1 });
   const samples = frame.readback?.samples ?? [];
   const upperLeft = requiredSample(samples, "upper-left");
@@ -153,6 +168,26 @@ function assertSpriteSamples(frame: SpriteBillboardFrameStatus): void {
   expect(lowerLeft.pixel.b).toBeGreaterThan(lowerLeft.pixel.g + 80);
   expect(lowerRight.pixel.r).toBeGreaterThan(lowerRight.pixel.b + 80);
   expect(lowerRight.pixel.g).toBeGreaterThan(lowerRight.pixel.b + 80);
+}
+
+function assertQuadFeatureSamples(frame: SpriteBillboardFrameStatus): void {
+  const clear = rgbaColorToPixel({ r: 0.012, g: 0.018, b: 0.026, a: 1 });
+  const samples = frame.readback?.samples ?? [];
+  const uvBlue = requiredSample(samples, "uv-blue-center");
+  const rotationPivot = requiredSample(samples, "rotation-pivot-green");
+  const screenSized = requiredSample(samples, "screen-size-yellow");
+  const screenOutside = requiredSample(samples, "screen-size-clear");
+  const cylindrical = requiredSample(samples, "cylindrical-red");
+
+  expect(uvBlue.pixel.b).toBeGreaterThan(uvBlue.pixel.r + 80);
+  expect(uvBlue.pixel.b).toBeGreaterThan(uvBlue.pixel.g + 80);
+  expect(rotationPivot.pixel.g).toBeGreaterThan(rotationPivot.pixel.r + 80);
+  expect(rotationPivot.pixel.g).toBeGreaterThan(rotationPivot.pixel.b + 80);
+  expect(screenSized.pixel.r).toBeGreaterThan(screenSized.pixel.b + 80);
+  expect(screenSized.pixel.g).toBeGreaterThan(screenSized.pixel.b + 80);
+  expect(pixelDistance(screenOutside.pixel, clear)).toBeLessThan(35);
+  expect(cylindrical.pixel.r).toBeGreaterThan(cylindrical.pixel.g + 80);
+  expect(cylindrical.pixel.r).toBeGreaterThan(cylindrical.pixel.b + 80);
 }
 
 function assertStableSamples(

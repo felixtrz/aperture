@@ -15,11 +15,14 @@ export const SPRITE_WGSL = `
 struct ViewProjectionUniform {
   viewProjection: mat4x4f,
   cameraPosition: vec4f,
+  viewport: vec4f,
 };
 
 struct SpriteData {
   color: vec4f,
-  size: vec4f,
+  sizePivot: vec4f,
+  uvRect: vec4f,
+  mode: vec4f,
 };
 
 struct VertexOutput {
@@ -35,8 +38,8 @@ struct VertexOutput {
 @group(2) @binding(2) var spriteSampler: sampler;
 
 fn quadPosition(vertexIndex: u32) -> vec2f {
-  let x = array<f32, 6>(-0.5, 0.5, 0.5, -0.5, 0.5, -0.5);
-  let y = array<f32, 6>(-0.5, -0.5, 0.5, -0.5, 0.5, 0.5);
+  let x = array<f32, 6>(0.0, 1.0, 1.0, 0.0, 1.0, 0.0);
+  let y = array<f32, 6>(0.0, 0.0, 1.0, 0.0, 1.0, 1.0);
   return vec2f(x[vertexIndex], y[vertexIndex]);
 }
 
@@ -44,6 +47,12 @@ fn quadUv(vertexIndex: u32) -> vec2f {
   let u = array<f32, 6>(0.0, 1.0, 1.0, 0.0, 1.0, 0.0);
   let v = array<f32, 6>(1.0, 1.0, 0.0, 1.0, 0.0, 0.0);
   return vec2f(u[vertexIndex], v[vertexIndex]);
+}
+
+fn rotate2(value: vec2f, radians: f32) -> vec2f {
+  let c = cos(radians);
+  let s = sin(radians);
+  return vec2f(value.x * c - value.y * s, value.x * s + value.y * c);
 }
 
 fn safeNormalize(value: vec3f, fallback: vec3f) -> vec3f {
@@ -61,22 +70,55 @@ fn vs_main(
   @builtin(vertex_index) vertexIndex: u32,
   @builtin(instance_index) instanceIndex: u32,
 ) -> VertexOutput {
-  let world = worldTransforms[instanceIndex];
   let sprite = sprites[instanceIndex];
-  let local = quadPosition(vertexIndex);
+  let flags = u32(sprite.mode.x);
+  let coordinateMode = flags & 3u;
+  let billboardMode = (flags >> 2u) & 15u;
+  let sizeMode = (flags >> 6u) & 3u;
+  let transformIndex = u32(sprite.mode.z);
+  let world = worldTransforms[transformIndex];
+  let local = rotate2(
+    (quadPosition(vertexIndex) - sprite.sizePivot.zw) * sprite.sizePivot.xy,
+    sprite.mode.w,
+  );
   let center = world[3].xyz;
-  let toCamera = safeNormalize(view.cameraPosition.xyz - center, vec3f(0.0, 0.0, 1.0));
+  let cameraDelta = view.cameraPosition.xyz - center;
+  var toCamera = safeNormalize(cameraDelta, vec3f(0.0, 0.0, 1.0));
+
+  if (billboardMode == 2u) {
+    toCamera = safeNormalize(vec3f(cameraDelta.x, 0.0, cameraDelta.z), vec3f(0.0, 0.0, 1.0));
+  }
+
   let worldUp = vec3f(0.0, 1.0, 0.0);
-  let right = safeNormalize(cross(worldUp, toCamera), vec3f(1.0, 0.0, 0.0));
-  let up = safeNormalize(cross(toCamera, right), worldUp);
-  let scale = vec2f(length(world[0].xyz), length(world[1].xyz));
-  let billboardOffset =
-    right * local.x * sprite.size.x * scale.x +
-    up * local.y * sprite.size.y * scale.y;
-  let worldPosition = center + billboardOffset;
+  var right = safeNormalize(cross(worldUp, toCamera), vec3f(1.0, 0.0, 0.0));
+  var up = safeNormalize(cross(toCamera, right), worldUp);
+
+  if (billboardMode == 0u || billboardMode == 3u) {
+    right = safeNormalize(world[0].xyz, vec3f(1.0, 0.0, 0.0));
+    up = safeNormalize(world[1].xyz, worldUp);
+  }
+
   var output: VertexOutput;
-  output.position = view.viewProjection * vec4f(worldPosition, 1.0);
-  output.uv = quadUv(vertexIndex);
+
+  if (sizeMode == 2u || coordinateMode == 2u) {
+    let viewportSize = max(view.viewport.xy, vec2f(1.0, 1.0));
+    let centerClip = view.viewProjection * vec4f(center, 1.0);
+    let clipOffset =
+      vec2f(local.x * 2.0 / viewportSize.x, local.y * 2.0 / viewportSize.y) *
+      centerClip.w;
+
+    output.position = centerClip + vec4f(clipOffset, 0.0, 0.0);
+  } else {
+    let scale = vec2f(length(world[0].xyz), length(world[1].xyz));
+    let billboardOffset =
+      right * local.x * scale.x +
+      up * local.y * scale.y;
+    let worldPosition = center + billboardOffset;
+
+    output.position = view.viewProjection * vec4f(worldPosition, 1.0);
+  }
+
+  output.uv = sprite.uvRect.xy + quadUv(vertexIndex) * sprite.uvRect.zw;
   output.color = sprite.color;
   return output;
 }

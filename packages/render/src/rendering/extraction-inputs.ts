@@ -2,12 +2,14 @@ import {
   createEnvironmentMapHandle,
   createMaterialHandle,
   createMeshHandle,
+  createParticleEffectHandle,
   createRenderTargetHandle,
   createSamplerHandle,
   createTextureHandle,
   type EnvironmentMapHandle,
   type MaterialHandle,
   type MeshHandle,
+  type ParticleEffectHandle,
   type RenderTargetHandle,
   type SamplerHandle,
   type TextureHandle,
@@ -173,6 +175,34 @@ export function spriteInput(entity: Entity): SpriteInput {
       number,
       number,
     ],
+    uvRect: Array.from(entity.getVectorView(Sprite, "uvRect")) as [
+      number,
+      number,
+      number,
+      number,
+    ],
+    pivot: Array.from(entity.getVectorView(Sprite, "pivot")) as [
+      number,
+      number,
+    ],
+    rotation: entity.getValue(Sprite, "rotation") ?? 0,
+    atlasFrame: entity.getValue(Sprite, "atlasFrame") ?? 0,
+    coordinateMode: (entity.getValue(Sprite, "coordinateMode") ?? "world") as
+      | "world"
+      | "screen",
+    billboardMode: (entity.getValue(Sprite, "billboardMode") ?? "spherical") as
+      | "none"
+      | "spherical"
+      | "cylindrical"
+      | "axis-locked",
+    sizeMode: (entity.getValue(Sprite, "sizeMode") ?? "world-units") as
+      | "world-units"
+      | "screen-pixels",
+    blendMode: (entity.getValue(Sprite, "blendMode") ?? "alpha") as
+      | "opaque"
+      | "alpha"
+      | "additive"
+      | "multiply",
   };
 }
 
@@ -227,6 +257,13 @@ export function parseTextureHandle(value: string): TextureHandle | null {
 export function parseSamplerHandle(value: string): SamplerHandle | null {
   const id = parseAssetId(value, "sampler");
   return id === null ? null : createSamplerHandle(id);
+}
+
+export function parseParticleEffectHandle(
+  value: string,
+): ParticleEffectHandle | null {
+  const id = parseAssetId(value, "particle-effect");
+  return id === null ? null : createParticleEffectHandle(id);
 }
 
 function parseAssetId(value: string, kind: string): string | null {

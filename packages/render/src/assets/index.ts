@@ -34,3 +34,4 @@ export * from "./gltf-uri-loader.js";
 export * from "./glb-container.js";
 export * from "./gltf-root.js";
 export * from "./preparation.js";
+export * from "./particles.js";

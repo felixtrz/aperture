@@ -1,8 +1,12 @@
 import type {
   EnvironmentMapHandle,
+  FontAtlasHandle,
   MaterialHandle,
+  ParticleEffectHandle,
   SamplerHandle,
   TextureHandle,
+  Vec2Like,
+  Vec3Like,
   Vec4Like,
 } from "@aperture-engine/simulation";
 import type { InstanceDataValues } from "../materials/index.js";
@@ -42,6 +46,74 @@ export const FogMode = {
 } as const;
 
 export type FogMode = (typeof FogMode)[keyof typeof FogMode];
+
+export const SpriteCoordinateMode = {
+  World: "world",
+  Screen: "screen",
+} as const;
+
+export type SpriteCoordinateMode =
+  (typeof SpriteCoordinateMode)[keyof typeof SpriteCoordinateMode];
+
+export const SpriteBillboardMode = {
+  None: "none",
+  Spherical: "spherical",
+  Cylindrical: "cylindrical",
+  AxisLocked: "axis-locked",
+} as const;
+
+export type SpriteBillboardMode =
+  (typeof SpriteBillboardMode)[keyof typeof SpriteBillboardMode];
+
+export const SpriteSizeMode = {
+  WorldUnits: "world-units",
+  ScreenPixels: "screen-pixels",
+} as const;
+
+export type SpriteSizeMode =
+  (typeof SpriteSizeMode)[keyof typeof SpriteSizeMode];
+
+export const SpriteBlendMode = {
+  Opaque: "opaque",
+  Alpha: "alpha",
+  Additive: "additive",
+  Multiply: "multiply",
+} as const;
+
+export type SpriteBlendMode =
+  (typeof SpriteBlendMode)[keyof typeof SpriteBlendMode];
+
+export const ParticleSimulationSpace = {
+  World: "world",
+  Local: "local",
+} as const;
+
+export type ParticleSimulationSpace =
+  (typeof ParticleSimulationSpace)[keyof typeof ParticleSimulationSpace];
+
+export const UiScreenScaleMode = {
+  Fixed: "fixed",
+  Viewport: "viewport",
+} as const;
+
+export type UiScreenScaleMode =
+  (typeof UiScreenScaleMode)[keyof typeof UiScreenScaleMode];
+
+export const UiLayoutMode = {
+  Absolute: "absolute",
+  Row: "row",
+  Column: "column",
+} as const;
+
+export type UiLayoutMode = (typeof UiLayoutMode)[keyof typeof UiLayoutMode];
+
+export const UiTextAlign = {
+  Left: "left",
+  Center: "center",
+  Right: "right",
+} as const;
+
+export type UiTextAlign = (typeof UiTextAlign)[keyof typeof UiTextAlign];
 
 export const PickablePrecision = {
   Bounds: "bounds",
@@ -143,6 +215,80 @@ export interface SpriteInput {
   readonly sampler?: SamplerHandle | null;
   readonly size?: number | readonly [number, number];
   readonly color?: Vec4Like;
+  readonly uvRect?: Vec4Like;
+  readonly pivot?: Vec2Like;
+  readonly rotation?: number;
+  readonly atlasFrame?: number;
+  readonly coordinateMode?: SpriteCoordinateMode;
+  readonly billboardMode?: SpriteBillboardMode;
+  readonly sizeMode?: SpriteSizeMode;
+  readonly blendMode?: SpriteBlendMode;
+}
+
+export interface ParticleEmitterInput {
+  readonly effect: ParticleEffectHandle;
+  readonly capacity?: number;
+  readonly seed?: number;
+  readonly resetEpoch?: number;
+  readonly timeScale?: number;
+  readonly simulationSpace?: ParticleSimulationSpace;
+  readonly boundsCenter?: Vec3Like;
+  readonly boundsRadius?: number;
+  readonly visible?: boolean;
+}
+
+export interface UiScreenInput {
+  readonly width?: number;
+  readonly height?: number;
+  readonly scaleMode?: UiScreenScaleMode;
+  readonly layerMask?: number;
+}
+
+export interface UiNodeInput {
+  readonly x?: number;
+  readonly y?: number;
+  readonly width?: number;
+  readonly height?: number;
+  readonly padding?: Vec4Like;
+  readonly gap?: number;
+  readonly layoutMode?: UiLayoutMode;
+  readonly zIndex?: number;
+  readonly opacity?: number;
+  readonly clip?: boolean;
+  readonly visible?: boolean;
+}
+
+export interface UiPanelInput {
+  readonly color?: Vec4Like;
+}
+
+export interface UiImageInput {
+  readonly texture: TextureHandle;
+  readonly sampler?: SamplerHandle | null;
+  readonly color?: Vec4Like;
+  readonly uvRect?: Vec4Like;
+}
+
+export interface UiTextInput {
+  readonly text: string;
+  readonly fontAtlas?: FontAtlasHandle | null;
+  readonly fontSize?: number;
+  readonly lineHeight?: number;
+  readonly maxWidth?: number;
+  readonly align?: UiTextAlign;
+  readonly color?: Vec4Like;
+}
+
+export interface UiHitTargetInput {
+  readonly enabled?: boolean;
+  readonly blocksInput?: boolean;
+  readonly cursor?: string;
+  readonly priority?: number;
+}
+
+export interface UiScrollInput {
+  readonly enabled?: boolean;
+  readonly offset?: Vec2Like;
 }
 
 export interface SkyboxInput {
@@ -221,6 +367,21 @@ export type RenderAuthoringDiagnosticCode =
   | "lightCookie.invalidIntensity"
   | "sprite.invalidTexture"
   | "sprite.invalidSize"
+  | "sprite.invalidUvRect"
+  | "sprite.invalidPivot"
+  | "sprite.invalidRotation"
+  | "sprite.invalidAtlasFrame"
+  | "sprite.invalidCoordinateMode"
+  | "sprite.invalidBillboardMode"
+  | "sprite.invalidSizeMode"
+  | "sprite.invalidBlendMode"
+  | "particle.invalidEffect"
+  | "particle.invalidCapacity"
+  | "particle.invalidSeed"
+  | "particle.invalidResetEpoch"
+  | "particle.invalidTimeScale"
+  | "particle.invalidSimulationSpace"
+  | "particle.invalidBounds"
   | "skybox.invalidTexture"
   | "skybox.invalidIntensity"
   | "fog.invalidMode"

@@ -4,8 +4,18 @@ import {
   type Entity,
 } from "@aperture-engine/simulation";
 
-import { FogMode } from "./authoring-types.js";
-import { tuple4 } from "./authoring-utils.js";
+import {
+  FogMode,
+  ParticleSimulationSpace,
+  SpriteBillboardMode,
+  SpriteBlendMode,
+  SpriteCoordinateMode,
+  SpriteSizeMode,
+  UiLayoutMode,
+  UiScreenScaleMode,
+  UiTextAlign,
+} from "./authoring-types.js";
+import { tuple2, tuple4 } from "./authoring-utils.js";
 
 /**
  * Engine-owned skeleton structure stored on the {@link Skin} component's
@@ -51,8 +61,146 @@ export const Sprite = defineComponent(
     color: { type: EcsType.Color, default: tuple4(1, 1, 1, 1) },
     width: { type: EcsType.Float32, default: 1 },
     height: { type: EcsType.Float32, default: 1 },
+    uvRect: { type: EcsType.Vec4, default: tuple4(0, 0, 1, 1) },
+    pivot: { type: EcsType.Vec2, default: tuple2(0.5, 0.5) },
+    rotation: { type: EcsType.Float32, default: 0 },
+    atlasFrame: { type: EcsType.Int32, default: 0 },
+    coordinateMode: {
+      type: EcsType.Enum,
+      enum: SpriteCoordinateMode,
+      default: SpriteCoordinateMode.World,
+    },
+    billboardMode: {
+      type: EcsType.Enum,
+      enum: SpriteBillboardMode,
+      default: SpriteBillboardMode.Spherical,
+    },
+    sizeMode: {
+      type: EcsType.Enum,
+      enum: SpriteSizeMode,
+      default: SpriteSizeMode.WorldUnits,
+    },
+    blendMode: {
+      type: EcsType.Enum,
+      enum: SpriteBlendMode,
+      default: SpriteBlendMode.Alpha,
+    },
   },
   "Renderer-independent sprite authoring component for camera-facing billboard quads.",
+);
+
+export const ParticleEmitter = defineComponent(
+  "aperture.render.particleEmitter",
+  {
+    effectId: { type: EcsType.String, default: "" },
+    capacity: { type: EcsType.Int32, default: 0 },
+    seed: { type: EcsType.Int32, default: 1 },
+    resetEpoch: { type: EcsType.Int32, default: 0 },
+    timeScale: { type: EcsType.Float32, default: 1 },
+    simulationSpace: {
+      type: EcsType.Enum,
+      enum: ParticleSimulationSpace,
+      default: ParticleSimulationSpace.World,
+    },
+    boundsCenter: { type: EcsType.Vec3, default: [0, 0, 0] },
+    boundsRadius: { type: EcsType.Float32, default: 1 },
+    visible: { type: EcsType.Boolean, default: true },
+  },
+  "Renderer-independent GPU particle emitter authoring. ECS owns playback intent, seeds, reset epochs, bounds, and effect handles; live particle buffers remain WebGPU-owned.",
+);
+
+export const UiScreen = defineComponent(
+  "aperture.render.ui.screen",
+  {
+    width: { type: EcsType.Float32, default: 960 },
+    height: { type: EcsType.Float32, default: 540 },
+    scaleMode: {
+      type: EcsType.Enum,
+      enum: UiScreenScaleMode,
+      default: UiScreenScaleMode.Fixed,
+    },
+    layerMask: { type: EcsType.Int32, default: 1 },
+  },
+  "Renderer-independent retained UI screen root. Child UiNode entities are laid out in screen pixels.",
+);
+
+export const UiNode = defineComponent(
+  "aperture.render.ui.node",
+  {
+    x: { type: EcsType.Float32, default: 0 },
+    y: { type: EcsType.Float32, default: 0 },
+    width: { type: EcsType.Float32, default: 0 },
+    height: { type: EcsType.Float32, default: 0 },
+    padding: { type: EcsType.Vec4, default: tuple4(0, 0, 0, 0) },
+    gap: { type: EcsType.Float32, default: 0 },
+    layoutMode: {
+      type: EcsType.Enum,
+      enum: UiLayoutMode,
+      default: UiLayoutMode.Absolute,
+    },
+    zIndex: { type: EcsType.Int32, default: 0 },
+    opacity: { type: EcsType.Float32, default: 1 },
+    clip: { type: EcsType.Boolean, default: false },
+    visible: { type: EcsType.Boolean, default: true },
+  },
+  "Retained UI node layout component. M6 starts with a worker-safe absolute/row/column fallback before a richer Taffy-compatible adapter.",
+);
+
+export const UiPanel = defineComponent(
+  "aperture.render.ui.panel",
+  {
+    color: { type: EcsType.Color, default: tuple4(0, 0, 0, 0.75) },
+  },
+  "UI panel visual metadata for extracted screen-space quads.",
+);
+
+export const UiImage = defineComponent(
+  "aperture.render.ui.image",
+  {
+    textureId: { type: EcsType.String, default: "" },
+    samplerId: { type: EcsType.String, default: "" },
+    color: { type: EcsType.Color, default: tuple4(1, 1, 1, 1) },
+    uvRect: { type: EcsType.Vec4, default: tuple4(0, 0, 1, 1) },
+  },
+  "UI image visual metadata using renderer-independent texture and sampler handle ids.",
+);
+
+export const UiText = defineComponent(
+  "aperture.render.ui.text",
+  {
+    text: { type: EcsType.String, default: "" },
+    fontAtlasId: { type: EcsType.String, default: "" },
+    fontSize: { type: EcsType.Float32, default: 16 },
+    lineHeight: { type: EcsType.Float32, default: 0 },
+    maxWidth: { type: EcsType.Float32, default: 0 },
+    align: {
+      type: EcsType.Enum,
+      enum: UiTextAlign,
+      default: UiTextAlign.Left,
+    },
+    color: { type: EcsType.Color, default: tuple4(1, 1, 1, 1) },
+  },
+  "UI text metadata for retained layout and later MSDF glyph extraction.",
+);
+
+export const UiHitTarget = defineComponent(
+  "aperture.render.ui.hitTarget",
+  {
+    enabled: { type: EcsType.Boolean, default: true },
+    blocksInput: { type: EcsType.Boolean, default: true },
+    cursor: { type: EcsType.String, default: "" },
+    priority: { type: EcsType.Int32, default: 0 },
+  },
+  "UI hit-test authoring component. Extraction mirrors computed rect/clip/stack data for worker-side interaction.",
+);
+
+export const UiScroll = defineComponent(
+  "aperture.render.ui.scroll",
+  {
+    enabled: { type: EcsType.Boolean, default: true },
+    offset: { type: EcsType.Vec2, default: tuple2(0, 0) },
+  },
+  "UI scroll offset metadata; M6-T4 uses it to shift child layout and force clipping.",
 );
 
 export const Skybox = defineComponent(

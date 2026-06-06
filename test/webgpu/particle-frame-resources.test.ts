@@ -1,0 +1,321 @@
+import { describe, expect, it } from "vitest";
+import {
+  AssetRegistry,
+  createPackedSnapshotViewUniformsScratch,
+  createParticleEffectAsset,
+  createParticleEffectHandle,
+  createRenderSortKey,
+  createWebGpuAppResourceCache,
+  prepareParticleFrameResourcesForSnapshot,
+  writePackedSnapshotViewUniforms,
+  type RenderSnapshot,
+} from "@aperture-engine/webgpu/test-support";
+
+describe("GPU particle app frame resources", () => {
+  it("creates, reuses, dispatches, and cleans particle emitter GPU state", async () => {
+    const effect = createParticleEffectHandle("spark-burst");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const snapshot = createParticleSnapshot(effect);
+    const viewUniforms = writePackedSnapshotViewUniforms(
+      snapshot,
+      createPackedSnapshotViewUniformsScratch(),
+    );
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        label: "SparkBurst",
+        capacity: 8,
+        startSpeed: { min: 0.5, max: 1.5 },
+        startSize: { min: 0.2, max: 0.4 },
+        startColor: [1, 0.25, 0.1, 0.8],
+        endColor: [0.1, 0.6, 1, 0.5],
+      }),
+    );
+
+    const first = await prepareParticleFrameResourcesForSnapshot({
+      app: {
+        canvas: { width: 320, height: 180 } as never,
+        initialization: { device: fixture.device, format: "bgra8unorm" },
+        msaa: { sampleCount: 1 },
+      },
+      assets,
+      cache,
+      snapshot,
+      viewUniforms,
+      time: 2.5,
+    });
+
+    expect(first.valid).toBe(true);
+    expect(first.diagnostics).toEqual([]);
+    expect(first.report).toEqual({
+      emitters: 1,
+      liveParticles: 4,
+      statesCreated: 1,
+      statesReused: 0,
+      staleStatesRemoved: 0,
+      dispatches: 1,
+    });
+    expect(first.commands).toEqual([
+      expect.objectContaining({
+        kind: "setPipeline",
+        renderId: 99,
+        pipelineKey:
+          "aperture/gpu-particles-render:bgra8unorm:depth24plus:samples-1",
+      }),
+      expect.objectContaining({
+        kind: "setBindGroup",
+        renderId: 99,
+        index: 0,
+      }),
+      expect.objectContaining({
+        kind: "setBindGroup",
+        renderId: 99,
+        index: 1,
+        resourceKey: "particle:99:effect-v1:capacity-4:reset-0",
+      }),
+      {
+        kind: "draw",
+        renderId: 99,
+        vertexCount: 6,
+        instanceCount: 4,
+        firstVertex: 0,
+        firstInstance: 0,
+      },
+    ]);
+    expect(fixture.dispatches).toEqual([[1, 1, 1]]);
+    expect(fixture.submissions).toHaveLength(1);
+    expect(cache.particleEmitterStates).toHaveLength(1);
+    expect(
+      fixture.writes.filter((write) => write.label === "Particle/State/99"),
+    ).toHaveLength(1);
+
+    const paramUpload = fixture.writes.find(
+      (write) => write.label === "Particle/Params/99",
+    );
+    const params = bytesUpload(paramUpload);
+    const words = new Uint32Array(params.buffer, params.byteOffset, 4);
+    const floats = new Float32Array(params.buffer, params.byteOffset + 16, 16);
+
+    expect(Array.from(words)).toEqual([3, 7, 4, 0]);
+    expect(roundFloats(Array.from(floats.slice(0, 16)))).toEqual([
+      2, 3, 5, 1.5, 1, 0.25, 0.1, 0.8, 0.1, 0.6, 1, 0.5, 0.2, 0.4, 1, 0,
+    ]);
+
+    const second = await prepareParticleFrameResourcesForSnapshot({
+      app: {
+        canvas: { width: 320, height: 180 } as never,
+        initialization: { device: fixture.device, format: "bgra8unorm" },
+        msaa: { sampleCount: 1 },
+      },
+      assets,
+      cache,
+      snapshot: { ...snapshot, frame: 4 },
+      viewUniforms,
+      time: 3,
+    });
+
+    expect(second.report.statesCreated).toBe(0);
+    expect(second.report.statesReused).toBe(1);
+    expect(second.report.dispatches).toBe(1);
+    expect(cache.particleEmitterStates).toHaveLength(1);
+    expect(
+      fixture.writes.filter((write) => write.label === "Particle/State/99"),
+    ).toHaveLength(1);
+
+    const empty = await prepareParticleFrameResourcesForSnapshot({
+      app: {
+        canvas: { width: 320, height: 180 } as never,
+        initialization: { device: fixture.device, format: "bgra8unorm" },
+        msaa: { sampleCount: 1 },
+      },
+      assets,
+      cache,
+      snapshot: { ...snapshot, frame: 5, particleEmitters: [] },
+      viewUniforms,
+    });
+
+    expect(empty.report.staleStatesRemoved).toBe(1);
+    expect(cache.particleEmitterStates).toHaveLength(0);
+  });
+});
+
+interface BufferWriteRecord {
+  readonly label: string;
+  readonly data: ArrayBufferLike | ArrayBufferView;
+  readonly dataOffset?: number;
+  readonly size?: number;
+}
+
+function createParticleDeviceFixture(): {
+  readonly device: unknown;
+  readonly writes: BufferWriteRecord[];
+  readonly dispatches: [number, number, number][];
+  readonly submissions: readonly unknown[][];
+} {
+  const writes: BufferWriteRecord[] = [];
+  const dispatches: [number, number, number][] = [];
+  const submissions: unknown[][] = [];
+  const device = {
+    createShaderModule: () => ({
+      compilationInfo: async () => ({ messages: [] }),
+    }),
+    createComputePipeline: (descriptor: unknown) => ({
+      descriptor,
+      getBindGroupLayout: (group: number) => ({ kind: "compute", group }),
+    }),
+    createRenderPipeline: (descriptor: unknown) => ({
+      descriptor,
+      getBindGroupLayout: (group: number) => ({ kind: "render", group }),
+    }),
+    createBuffer: (descriptor: { readonly label?: string }) => ({
+      label: descriptor.label ?? "buffer",
+      descriptor,
+    }),
+    createBindGroup: (descriptor: unknown) => ({ descriptor }),
+    createCommandEncoder: () => ({
+      beginComputePass: () => ({
+        setPipeline: () => undefined,
+        setBindGroup: () => undefined,
+        dispatchWorkgroups: (x: number, y: number, z: number) => {
+          dispatches.push([x, y, z]);
+        },
+        end: () => undefined,
+      }),
+      finish: () => ({ commandBuffer: true }),
+    }),
+    queue: {
+      writeBuffer: (
+        buffer: { readonly label: string },
+        _bufferOffset: number,
+        data: ArrayBufferLike | ArrayBufferView,
+        dataOffset?: number,
+        size?: number,
+      ) => {
+        writes.push({
+          label: buffer.label,
+          data,
+          ...(dataOffset === undefined ? {} : { dataOffset }),
+          ...(size === undefined ? {} : { size }),
+        });
+      },
+      submit: (buffers: readonly unknown[]) => {
+        submissions.push([...buffers]);
+      },
+    },
+  };
+
+  return { device, writes, dispatches, submissions };
+}
+
+function createParticleSnapshot(
+  effect: ReturnType<typeof createParticleEffectHandle>,
+): RenderSnapshot {
+  const transforms = identityMatrix();
+
+  transforms[12] = 2;
+  transforms[13] = 3;
+  transforms[14] = -1;
+
+  return {
+    frame: 3,
+    views: [
+      {
+        viewId: 1,
+        camera: { index: 1, generation: 1 },
+        priority: 0,
+        layerMask: 1,
+        viewMatrixOffset: 16,
+        projectionMatrixOffset: 0,
+        viewProjectionMatrixOffset: 0,
+        viewport: [0, 0, 1, 1],
+        scissor: [0, 0, 1, 1],
+        clearColor: [0, 0, 0, 1],
+        clearDepth: 1,
+        clearStencil: 0,
+        renderTarget: null,
+      },
+    ],
+    meshDraws: [],
+    particleEmitters: [
+      {
+        emitterId: 99,
+        entity: { index: 99, generation: 1 },
+        effect,
+        effectVersion: 1,
+        capacity: 4,
+        seed: 7,
+        resetEpoch: 0,
+        timeScale: 2,
+        simulationSpace: "world",
+        worldTransformOffset: 0,
+        boundsIndex: 0,
+        layerMask: 1,
+        sortKey: createRenderSortKey({
+          queue: "transparent",
+          viewId: 1,
+          layer: 1,
+          pipelineKey: "gpu-particles",
+          materialKey: "particle-effect:spark-burst",
+          meshKey: "particle-quad",
+          stableId: 99,
+        }),
+      },
+    ],
+    lights: [],
+    environments: [],
+    shadowRequests: [],
+    bounds: [],
+    transforms,
+    viewMatrices: matrixPair(),
+    diagnostics: [],
+    report: {
+      views: 1,
+      meshDraws: 0,
+      particleEmitters: 1,
+      lights: 0,
+      environments: 0,
+      shadowRequests: 0,
+      bounds: 0,
+      diagnostics: 0,
+    },
+  };
+}
+
+function identityMatrix(): Float32Array {
+  return new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+}
+
+function matrixPair(): Float32Array {
+  return new Float32Array([
+    1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0,
+    0, 1, 0, 0, 0, 0, 1,
+  ]);
+}
+
+function bytesUpload(upload: BufferWriteRecord | undefined): Uint8Array {
+  if (upload === undefined) {
+    return new Uint8Array(0);
+  }
+
+  if (ArrayBuffer.isView(upload.data)) {
+    return new Uint8Array(
+      upload.data.buffer,
+      upload.data.byteOffset + (upload.dataOffset ?? 0),
+      upload.size ?? upload.data.byteLength,
+    );
+  }
+
+  return new Uint8Array(
+    upload.data,
+    upload.dataOffset ?? 0,
+    upload.size ?? upload.data.byteLength,
+  );
+}
+
+function roundFloats(values: readonly number[]): number[] {
+  return values.map((value) => Math.round(value * 1000) / 1000);
+}

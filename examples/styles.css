@@ -42,6 +42,49 @@ body {
   background: #0b0d10;
 }
 
+.benchmark-panel {
+  align-content: center;
+  padding: 24px;
+}
+
+.benchmark-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 16px;
+  width: min(100%, 720px);
+}
+
+.benchmark-card {
+  display: grid;
+  gap: 14px;
+  min-height: 220px;
+  padding: 18px;
+  border: 1px solid rgb(255 255 255 / 14%);
+  background: #151a20;
+}
+
+.benchmark-card strong {
+  font-size: 16px;
+  font-weight: 720;
+}
+
+.benchmark-card dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 14px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.benchmark-card dt {
+  color: #9ca8b7;
+}
+
+.benchmark-card dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
 #aperture-canvas {
   display: block;
   width: min(100%, calc(100vh - 34px));
@@ -637,6 +680,10 @@ body {
 
   .status-panel {
     align-self: stretch;
+  }
+
+  .benchmark-summary {
+    grid-template-columns: 1fr;
   }
 
   #example-json {

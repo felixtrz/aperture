@@ -6,9 +6,12 @@ import {
 import { registerRenderAuthoringComponents } from "./index.js";
 import {
   compareRenderSortKeys,
+  createQuadSnapshotBuffers,
+  QUAD_INSTANCE_FLOAT_STRIDE,
   type BoundsPacket,
   type EnvironmentPacket,
   type InstanceAttributePacket,
+  type QuadBatchPacket,
   type RenderDiagnostic,
   type RenderSnapshot,
   type ShadowRequestPacket,
@@ -24,8 +27,10 @@ import {
   extractMeshDraws,
   type RenderExtractionCache,
 } from "./extraction-meshes.js";
+import { extractParticleEmitters } from "./extraction-particles.js";
 import { extractSkyboxes } from "./extraction-skyboxes.js";
 import { extractSpriteDraws } from "./extraction-sprites.js";
+import { extractUiLayout } from "./extraction-ui.js";
 import { extractViews } from "./extraction-views.js";
 
 export {
@@ -56,6 +61,9 @@ export function extractRenderSnapshot(
   const instanceTints: number[] = [];
   const instanceAttributes: number[] = [];
   const instanceAttributePackets: InstanceAttributePacket[] = [];
+  const quadInstanceFloats: number[] = [];
+  const quadInstanceWords: number[] = [];
+  const quadBatches: QuadBatchPacket[] = [];
   const viewMatrices: number[] = [];
   const bounds: BoundsPacket[] = [];
   const viewCullContexts: ViewCullContext[] = [];
@@ -108,14 +116,43 @@ export function extractRenderSnapshot(
     diagnostics,
     cameraLayerMask,
     viewCullContexts,
+    quadInstanceFloats,
+    quadInstanceWords,
+    quadBatches,
   ).sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
+  const particleEmitters = extractParticleEmitters(
+    world,
+    assets,
+    transforms,
+    bounds,
+    diagnostics,
+    cameraLayerMask,
+    viewCullContexts,
+  ).sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
+  const uiLayout = extractUiLayout(world, diagnostics, cameraLayerMask);
   const skyboxes = extractSkyboxes(world, assets, diagnostics, cameraLayerMask);
+
+  quadBatches.sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
 
   return {
     frame: options.frame ?? 0,
     views,
     meshDraws,
     spriteDraws,
+    ...(particleEmitters.length === 0 ? {} : { particleEmitters }),
+    ...(quadInstanceFloats.length === 0
+      ? {}
+      : {
+          quads: createQuadSnapshotBuffers({
+            instanceFloats: new Float32Array(quadInstanceFloats),
+            instanceWords: new Uint32Array(quadInstanceWords),
+          }),
+        }),
+    ...(quadBatches.length === 0 ? {} : { quadBatches }),
+    ...(uiLayout.nodes.length === 0 ? {} : { uiNodes: uiLayout.nodes }),
+    ...(uiLayout.hitRegions.length === 0
+      ? {}
+      : { uiHitRegions: uiLayout.hitRegions }),
     skyboxes,
     fogs,
     lights,
@@ -148,6 +185,11 @@ export function extractRenderSnapshot(
       views: views.length,
       meshDraws: meshDraws.length,
       spriteDraws: spriteDraws.length,
+      particleEmitters: particleEmitters.length,
+      quadInstances: quadInstanceFloats.length / QUAD_INSTANCE_FLOAT_STRIDE,
+      quadBatches: quadBatches.length,
+      uiNodes: uiLayout.nodes.length,
+      uiHitRegions: uiLayout.hitRegions.length,
       skyboxes: skyboxes.length,
       fogs: fogs.length,
       lights: lights.length,

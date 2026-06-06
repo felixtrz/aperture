@@ -18,3 +18,7 @@ export {
   readBoundsPacket,
   writeBoundsPacket,
 } from "./snapshot-packed-bounds-codec.js";
+export {
+  readQuadBatchPacket,
+  writeQuadBatchPacket,
+} from "./snapshot-packed-quad-codec.js";

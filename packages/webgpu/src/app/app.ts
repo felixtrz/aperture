@@ -71,6 +71,7 @@ import {
 import { type WebGpuAppPipelineResourceResult } from "./pipeline-resources.js";
 import { type WebGpuAppMsaaReport } from "./attachments.js";
 import type { RenderShadowFrameReport } from "../shadows/render-shadow-frame.js";
+import type { ParticleFrameReport } from "./particles.js";
 
 export type { WebGpuAppMsaaReport };
 
@@ -109,6 +110,11 @@ export interface WebGpuAppRenderCounts {
   readonly views: number;
   readonly meshDraws: number;
   readonly spriteDraws: number;
+  readonly particleEmitters: number;
+  readonly quadInstances: number;
+  readonly quadBatches: number;
+  readonly uiNodes: number;
+  readonly uiHitRegions: number;
   readonly skyboxes: number;
   readonly fogs: number;
   readonly drawPackages: number;
@@ -333,6 +339,7 @@ export interface WebGpuAppRenderReport {
   readonly localLightClusters?: LocalLightClusterReport;
   readonly localLightCookies?: WebGpuAppLocalLightCookieReport;
   readonly occlusionQueries?: WebGpuAppOcclusionQueryReport;
+  readonly particles?: ParticleFrameReport;
 }
 
 export type WebGpuAppMotionVectorStatus =
@@ -417,6 +424,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly localLightClusters?: LocalLightClusterReport;
   readonly localLightCookies?: WebGpuAppLocalLightCookieReport;
   readonly occlusionQueries?: WebGpuAppOcclusionQueryReport;
+  readonly particles?: WebGpuAppJsonValue;
   readonly materialDependencyReadiness?: readonly MaterialAssetDependencyReadinessReportJsonValue[];
 }
 

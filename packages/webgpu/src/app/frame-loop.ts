@@ -68,6 +68,9 @@ import {
   resolveStandardAreaLightLtcResources,
 } from "./queued-built-in-support.js";
 import { prepareSpriteFrameResourcesForSnapshot } from "./sprites.js";
+import { prepareMsdfTextFrameResourcesForSnapshot } from "./text.js";
+import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
+import { prepareParticleFrameResourcesForSnapshot } from "./particles.js";
 import {
   collectMultiUnlitAppResourceSet,
   createMultiUnlitAppFrameResources,
@@ -208,12 +211,21 @@ export async function renderWebGpuAppFrame(
   const firstView = snapshot.views[0];
   const spriteDraws = snapshot.spriteDraws ?? [];
   const skyboxes = snapshot.skyboxes ?? [];
+  const hasGlyphBatches = (snapshot.quadBatches ?? []).some(
+    (batch) => batch.kind === "glyph",
+  );
+  const hasUiNodes = (snapshot.uiNodes ?? []).length > 0;
+  const hasParticleEmitters = (snapshot.particleEmitters ?? []).length > 0;
   const resourceSetPlan = createWebGpuAppDrawResourceSetPlan(snapshot);
 
   if (
     firstDraw === undefined &&
     firstView !== undefined &&
-    (spriteDraws.length > 0 || skyboxes.length > 0)
+    (spriteDraws.length > 0 ||
+      skyboxes.length > 0 ||
+      hasGlyphBatches ||
+      hasUiNodes ||
+      hasParticleEmitters)
   ) {
     phaseTimer.finish("collect");
     phaseTimer.start("prepare");
@@ -833,9 +845,39 @@ export async function renderWebGpuAppFrame(
     worldTransforms: packedTransforms,
     reuse,
   });
+  const textFrame = await prepareMsdfTextFrameResourcesForSnapshot({
+    app,
+    assets: sourceAssets,
+    cache: resourceCache,
+    snapshot,
+    viewUniforms: packedViews,
+    worldTransforms: packedTransforms,
+    reuse,
+  });
+  const particleFrame = await prepareParticleFrameResourcesForSnapshot({
+    app,
+    assets: sourceAssets,
+    cache: resourceCache,
+    snapshot,
+    viewUniforms: packedViews,
+    time: snapshot.frame / 60,
+  });
+  const uiFrame = await prepareUiFrameResourcesForSnapshot({
+    app,
+    assets: sourceAssets,
+    cache: resourceCache,
+    snapshot,
+    viewUniforms: packedViews,
+    reuse,
+  });
   phaseTimer.finish("prepare");
 
-  if (!spriteFrame.resources.valid) {
+  if (
+    !spriteFrame.resources.valid ||
+    !textFrame.resources.valid ||
+    !particleFrame.valid ||
+    !uiFrame.valid
+  ) {
     return renderReport({
       ok: false,
       snapshot,
@@ -852,14 +894,22 @@ export async function renderWebGpuAppFrame(
         ...packedTransforms.diagnostics,
         ...packedInstanceTints.diagnostics,
         ...spriteFrame.resources.diagnostics,
+        ...textFrame.resources.diagnostics,
+        ...particleFrame.diagnostics,
+        ...uiFrame.diagnostics,
       ],
     });
   }
 
+  const overlayCommands = [
+    ...spriteFrame.resources.commands,
+    ...textFrame.resources.commands,
+    ...particleFrame.commands,
+  ];
   const frameCommands =
-    spriteFrame.resources.commands.length === 0
+    overlayCommands.length === 0
       ? framePlan.commandPlan.commands
-      : [...framePlan.commandPlan.commands, ...spriteFrame.resources.commands];
+      : [...framePlan.commandPlan.commands, ...overlayCommands];
   const indirectDraws = prepareWebGpuAppIndirectDrawCommands({
     app,
     cache: resourceCache,
@@ -873,6 +923,7 @@ export async function renderWebGpuAppFrame(
     cache: resourceCache,
     snapshot,
     commands: indirectDraws.commands,
+    overlayCommands: uiFrame.commands,
     label: options.label ?? "aperture-webgpu-app",
     reuse,
     enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(
@@ -904,6 +955,9 @@ export async function renderWebGpuAppFrame(
     framePlan.resources.valid &&
     framePlan.commandPlan.valid &&
     spriteFrame.resources.diagnostics.length === 0 &&
+    textFrame.resources.diagnostics.length === 0 &&
+    particleFrame.diagnostics.length === 0 &&
+    uiFrame.diagnostics.length === 0 &&
     boundaries.valid &&
     (occlusionQueries === undefined ||
       occlusionQueries.status !== "unsupported");
@@ -936,6 +990,7 @@ export async function renderWebGpuAppFrame(
       ? {}
       : { indirectDraws: indirectDraws.report }),
     localLightCookieResources: localLightCookieResources.resources,
+    particles: particleFrame.report,
     resourceReuse: reuse,
     phaseTimings: phaseTimer.report(
       resourceCache.phaseTimingHistory,
@@ -955,6 +1010,9 @@ export async function renderWebGpuAppFrame(
       ...framePlan.resources.diagnostics,
       ...framePlan.commandPlan.diagnostics,
       ...spriteFrame.resources.diagnostics,
+      ...textFrame.resources.diagnostics,
+      ...particleFrame.diagnostics,
+      ...uiFrame.diagnostics,
       ...boundaries.diagnostics,
       ...newOcclusionQueryDiagnostics(
         occlusionQueries,

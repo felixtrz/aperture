@@ -2,6 +2,7 @@ import {
   cameraStates,
   clearColor,
   registerSpriteBillboardScene,
+  spriteProofs,
 } from "./sprite-billboard-scene.js";
 
 let apertureModulePromise = null;
@@ -88,7 +89,7 @@ function loadAperture() {
 
 function createWorkerScene(aperture, canvasSize) {
   const app = aperture.createExtractionApp({
-    worldOptions: { entityCapacity: 4 },
+    worldOptions: { entityCapacity: 8 },
   });
   const registered = registerSpriteBillboardScene(aperture, app.assets);
   const cameraEntity = app.spawn(
@@ -104,23 +105,31 @@ function createWorkerScene(aperture, canvasSize) {
       frustumCulling: false,
     }),
   );
-  const spriteEntity = app.spawn(
-    aperture.withTransform(),
-    aperture.withSprite({
-      texture: registered.texture,
-      sampler: registered.sampler,
-      size: [1.15, 1.15],
-      color: [1, 1, 1, 1],
-    }),
-    aperture.withRenderLayer(1),
-    aperture.withVisibility(true),
+  const spriteEntities = spriteProofs.map((proof, index) =>
+    app.spawn(
+      aperture.withTransform({ translation: proof.translation }),
+      aperture.withSprite({
+        texture: registered.texture,
+        sampler: registered.sampler,
+        size: proof.size,
+        color: [1, 1, 1, 1],
+        uvRect: proof.uvRect,
+        pivot: proof.pivot,
+        rotation: proof.rotation,
+        billboardMode: proof.billboardMode,
+        sizeMode: proof.sizeMode,
+      }),
+      aperture.withRenderLayer(1),
+      aperture.withRenderOrder(index),
+      aperture.withVisibility(true),
+    ),
   );
 
   return {
     ...registered,
     app,
     cameraEntity,
-    spriteEntity,
+    spriteEntities,
     canvasSize,
   };
 }
@@ -144,6 +153,10 @@ function createSnapshotMessage(aperture, workerScene, data) {
       viewMatrices: snapshot.viewMatrices.length / 16,
       meshDraws: snapshot.meshDraws.length,
       spriteDraws: snapshot.spriteDraws?.length ?? 0,
+      quadInstances:
+        (snapshot.quads?.instanceFloats.length ?? 0) /
+        (snapshot.quads?.instanceFloatStride ?? 1),
+      quadBatches: snapshot.quadBatches?.length ?? 0,
       diagnostics: snapshot.diagnostics.length,
     },
   };

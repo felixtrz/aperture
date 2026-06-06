@@ -1,11 +1,14 @@
 import { type AssetRegistry } from "@aperture-engine/simulation";
 import {
   createSamplerAsset,
+  encodeQuadInstanceFlags,
   type PackedSnapshotTransforms,
   type PackedSnapshotViewUniforms,
+  type QuadBatchPacket,
   type RenderSnapshot,
   type SpriteDrawPacket,
 } from "@aperture-engine/render";
+import type { WebGpuCanvasLike } from "../gpu/initialize-webgpu.js";
 import { createWebGpuBuffer } from "../gpu/buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
 import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
@@ -26,8 +29,10 @@ import {
 } from "./app-texture-sampler-resources.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 import type { WebGpuAppResourceReuseReport } from "./app.js";
+import { webGpuAppCanvasDimensions } from "./canvas.js";
 
 interface WebGpuAppSpriteContext {
+  readonly canvas?: WebGpuCanvasLike;
   readonly initialization: {
     readonly device: unknown;
     readonly format: string;
@@ -48,6 +53,16 @@ interface PreparedSpriteFrameResources {
   readonly resources: SpriteFrameResources;
 }
 
+interface SpriteRenderBatch {
+  readonly renderId: number;
+  readonly texture: SpriteDrawPacket["texture"];
+  readonly sampler?: SpriteDrawPacket["sampler"];
+  readonly firstInstance: number;
+  readonly instanceCount: number;
+}
+
+const SPRITE_VIEWPORT_FLOAT_OFFSET = 20;
+
 export async function prepareSpriteFrameResourcesForSnapshot(options: {
   readonly app: WebGpuAppSpriteContext;
   readonly assets: AssetRegistry;
@@ -58,8 +73,9 @@ export async function prepareSpriteFrameResourcesForSnapshot(options: {
   readonly reuse: WebGpuAppResourceReuseReport;
 }): Promise<PreparedSpriteFrameResources> {
   const spriteDraws = options.snapshot.spriteDraws ?? [];
+  const quadSpriteBatches = spriteQuadBatches(options.snapshot);
 
-  if (spriteDraws.length === 0) {
+  if (spriteDraws.length === 0 && quadSpriteBatches.length === 0) {
     return {
       pipeline: null,
       resources: {
@@ -121,10 +137,16 @@ export function createSpriteFrameResources(options: {
   const pipeline = options.pipeline.pipeline as {
     readonly getBindGroupLayout?: (group: number) => unknown;
   };
-  const viewUniformData = options.viewUniforms.data.subarray(
+  const packedViewUniformData = options.viewUniforms.data.subarray(
     0,
     options.viewUniforms.floatCount ?? options.viewUniforms.data.length,
   );
+  const viewUniformData = createSpriteViewUniformData({
+    snapshot: options.snapshot,
+    viewUniforms: options.viewUniforms,
+    source: packedViewUniformData,
+    ...(options.app.canvas === undefined ? {} : { canvas: options.app.canvas }),
+  });
   const worldTransformData = options.worldTransforms.data.subarray(
     0,
     options.worldTransforms.floatCount ?? options.worldTransforms.data.length,
@@ -176,15 +198,19 @@ export function createSpriteFrameResources(options: {
       initialData: worldTransformData,
     },
   });
-  const spriteData = packSpriteData(options.snapshot, options.spriteDraws);
+  const spriteRenderInput = createSpriteRenderInput(
+    options.snapshot,
+    options.spriteDraws,
+    diagnostics,
+  );
   const spriteBuffer = createWebGpuBuffer({
     device,
     descriptor: {
       label: "Sprite/Data",
-      size: spriteData.byteLength,
+      size: spriteRenderInput.data.byteLength,
       usage:
         WEBGPU_BUFFER_USAGE_FLAGS.STORAGE | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
-      initialData: spriteData,
+      initialData: spriteRenderInput.data,
     },
   });
 
@@ -235,7 +261,7 @@ export function createSpriteFrameResources(options: {
     entries: [{ binding: 0, resource: { buffer: transformBuffer.buffer } }],
   });
 
-  for (const draw of options.spriteDraws) {
+  for (const draw of spriteRenderInput.batches) {
     const sampler =
       draw.sampler === undefined || draw.sampler === null
         ? {
@@ -314,9 +340,9 @@ export function createSpriteFrameResources(options: {
         kind: "draw",
         renderId: draw.renderId,
         vertexCount: 6,
-        instanceCount: 1,
+        instanceCount: draw.instanceCount,
         firstVertex: 0,
-        firstInstance: draw.worldTransformOffset / 16,
+        firstInstance: draw.firstInstance,
       },
     );
   }
@@ -356,26 +382,174 @@ export async function getOrCreateWebGpuAppSpritePipeline(
   return result;
 }
 
-function packSpriteData(
+function createSpriteRenderInput(
   snapshot: RenderSnapshot,
   spriteDraws: readonly SpriteDrawPacket[],
-): Float32Array {
+  diagnostics: unknown[],
+): {
+  readonly data: Float32Array;
+  readonly batches: readonly SpriteRenderBatch[];
+} {
+  const quadSpriteBatches = spriteQuadBatches(snapshot);
+
+  if (snapshot.quads !== undefined && quadSpriteBatches.length > 0) {
+    const batches: SpriteRenderBatch[] = [];
+
+    for (const batch of quadSpriteBatches) {
+      if (batch.texture === undefined || batch.texture === null) {
+        diagnostics.push({
+          code: "spriteFrame.quadBatchMissingTexture",
+          message: `Sprite quad batch ${batch.batchId} is missing its texture handle.`,
+        });
+        continue;
+      }
+
+      batches.push({
+        renderId: batch.batchId,
+        texture: batch.texture,
+        ...(batch.sampler === undefined ? {} : { sampler: batch.sampler }),
+        firstInstance: batch.firstInstance,
+        instanceCount: batch.instanceCount,
+      });
+    }
+
+    return {
+      data: packQuadSpriteData(snapshot),
+      batches,
+    };
+  }
+
+  return packLegacySpriteData(snapshot, spriteDraws);
+}
+
+function createSpriteViewUniformData(options: {
+  readonly snapshot: RenderSnapshot;
+  readonly viewUniforms: PackedSnapshotViewUniforms;
+  readonly source: Float32Array;
+  readonly canvas?: WebGpuCanvasLike;
+}): Float32Array {
+  const data = new Float32Array(options.source);
+  const dimensions =
+    options.canvas === undefined
+      ? { width: 1, height: 1 }
+      : webGpuAppCanvasDimensions(options.canvas);
+
+  // The sprite shader only reads view-projection, camera position, and this
+  // sprite-specific viewport vec4. It intentionally replaces the temporal matrix
+  // lanes from the shared packed-view record in this buffer only.
+  for (const record of options.viewUniforms.views) {
+    const view = options.snapshot.views.find(
+      (candidate) => candidate.viewId === record.viewId,
+    );
+    const viewport = view?.viewport ?? [0, 0, 1, 1];
+    const offset = record.packedOffset + SPRITE_VIEWPORT_FLOAT_OFFSET;
+
+    if (offset + 3 >= data.length) {
+      continue;
+    }
+
+    const width = Math.max(1, dimensions.width * (viewport[2] ?? 1));
+    const height = Math.max(1, dimensions.height * (viewport[3] ?? 1));
+
+    data[offset] = width;
+    data[offset + 1] = height;
+    data[offset + 2] = 1 / width;
+    data[offset + 3] = 1 / height;
+  }
+
+  return data;
+}
+
+function packLegacySpriteData(
+  snapshot: RenderSnapshot,
+  spriteDraws: readonly SpriteDrawPacket[],
+): {
+  readonly data: Float32Array;
+  readonly batches: readonly SpriteRenderBatch[];
+} {
   const transformCount = Math.max(
     1,
     Math.ceil(snapshot.transforms.length / 16),
   );
-  const data = new Float32Array(transformCount * 8);
+  const data = new Float32Array(transformCount * 16);
+  const batches: SpriteRenderBatch[] = [];
+  const defaultFlags = encodeQuadInstanceFlags({
+    coordinateMode: "world",
+    billboardMode: "spherical",
+    sizeMode: "world-units",
+  });
 
   for (const draw of spriteDraws) {
     const index = Math.floor(draw.worldTransformOffset / 16);
-    const offset = index * 8;
+    const offset = index * 16;
 
     data.set(draw.color, offset);
     data[offset + 4] = draw.width;
     data[offset + 5] = draw.height;
+    data[offset + 6] = 0.5;
+    data[offset + 7] = 0.5;
+    data[offset + 8] = 0;
+    data[offset + 9] = 0;
+    data[offset + 10] = 1;
+    data[offset + 11] = 1;
+    data[offset + 12] = defaultFlags;
+    data[offset + 13] = 0;
+    data[offset + 14] = index;
+    data[offset + 15] = 0;
+    batches.push({
+      renderId: draw.renderId,
+      texture: draw.texture,
+      ...(draw.sampler === undefined ? {} : { sampler: draw.sampler }),
+      firstInstance: index,
+      instanceCount: 1,
+    });
+  }
+
+  return { data, batches };
+}
+
+function packQuadSpriteData(snapshot: RenderSnapshot): Float32Array {
+  const quads = snapshot.quads;
+
+  if (quads === undefined) {
+    return new Float32Array(0);
+  }
+
+  const instanceCount = quads.instanceFloats.length / quads.instanceFloatStride;
+  const data = new Float32Array(instanceCount * 16);
+
+  for (let instance = 0; instance < instanceCount; instance += 1) {
+    const sourceFloat = instance * quads.instanceFloatStride;
+    const sourceWord = instance * quads.instanceWordStride;
+    const target = instance * 16;
+
+    data[target] = quads.instanceFloats[sourceFloat + 13] ?? 1;
+    data[target + 1] = quads.instanceFloats[sourceFloat + 14] ?? 1;
+    data[target + 2] = quads.instanceFloats[sourceFloat + 15] ?? 1;
+    data[target + 3] = quads.instanceFloats[sourceFloat + 16] ?? 1;
+    data[target + 4] = quads.instanceFloats[sourceFloat + 4] ?? 1;
+    data[target + 5] = quads.instanceFloats[sourceFloat + 5] ?? 1;
+    data[target + 6] = quads.instanceFloats[sourceFloat + 7] ?? 0.5;
+    data[target + 7] = quads.instanceFloats[sourceFloat + 8] ?? 0.5;
+    data[target + 8] = quads.instanceFloats[sourceFloat + 9] ?? 0;
+    data[target + 9] = quads.instanceFloats[sourceFloat + 10] ?? 0;
+    data[target + 10] = quads.instanceFloats[sourceFloat + 11] ?? 1;
+    data[target + 11] = quads.instanceFloats[sourceFloat + 12] ?? 1;
+    data[target + 12] = quads.instanceWords[sourceWord + 3] ?? 0;
+    data[target + 13] = quads.instanceWords[sourceWord + 2] ?? 0;
+    data[target + 14] = (quads.instanceWords[sourceWord] ?? 0) / 16;
+    data[target + 15] = quads.instanceFloats[sourceFloat + 6] ?? 0;
   }
 
   return data;
+}
+
+function spriteQuadBatches(
+  snapshot: RenderSnapshot,
+): readonly QuadBatchPacket[] {
+  return (snapshot.quadBatches ?? []).filter(
+    (batch) => batch.kind === "sprite",
+  );
 }
 
 function getOrCreateSpriteDefaultSampler(

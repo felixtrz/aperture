@@ -4,12 +4,21 @@ import type {
   EnvironmentMapHandle,
   MaterialHandle,
   MeshHandle,
+  ParticleEffectHandle,
   RenderTargetHandle,
   SamplerHandle,
   TextureHandle,
   Vec4Like,
 } from "@aperture-engine/simulation";
 import type { MeshTopology } from "../mesh/index.js";
+import type {
+  QuadBatchKind,
+  QuadBillboardMode,
+  QuadBlendMode,
+  QuadCoordinateMode,
+  QuadPipelineVariant,
+  QuadSizeMode,
+} from "./quad-snapshot.js";
 import type { AreaLightShape, FogMode, LightKind } from "./authoring.js";
 
 export type RenderQueue = "opaque" | "alpha-test" | "transparent";
@@ -80,6 +89,93 @@ export interface SpriteDrawPacket {
   readonly boundsIndex: number;
   readonly layerMask: number;
   readonly sortKey: RenderSortKey;
+}
+
+export interface QuadBatchPacket {
+  readonly batchId: number;
+  readonly kind: QuadBatchKind;
+  readonly texture?: TextureHandle | null;
+  readonly sampler?: SamplerHandle | null;
+  readonly materialKey: string;
+  readonly pipelineVariant: QuadPipelineVariant;
+  readonly coordinateMode: QuadCoordinateMode;
+  readonly billboardMode: QuadBillboardMode;
+  readonly sizeMode: QuadSizeMode;
+  readonly blendMode: QuadBlendMode;
+  readonly firstInstance: number;
+  readonly instanceCount: number;
+  readonly layerMask: number;
+  readonly sortKey: RenderSortKey;
+}
+
+export type ParticleSimulationSpacePacket = "world" | "local";
+
+export interface ParticleEmitterPacket {
+  readonly emitterId: number;
+  readonly entity: RenderEntityRef;
+  readonly effect: ParticleEffectHandle;
+  readonly effectVersion: number;
+  readonly capacity: number;
+  readonly seed: number;
+  readonly resetEpoch: number;
+  readonly timeScale: number;
+  readonly simulationSpace: ParticleSimulationSpacePacket;
+  readonly worldTransformOffset: number;
+  readonly boundsIndex: number;
+  readonly layerMask: number;
+  readonly sortKey: RenderSortKey;
+}
+
+export type UiNodeKind = "screen" | "node" | "panel" | "image" | "text";
+export type UiLayoutModePacket = "absolute" | "row" | "column";
+export type UiTextAlignPacket = "left" | "center" | "right";
+
+export interface UiRectPacket {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+export interface UiNodePacket {
+  readonly uiId: number;
+  readonly screenId: number;
+  readonly entity: RenderEntityRef;
+  readonly parentUiId: number | null;
+  readonly kind: UiNodeKind;
+  readonly rect: UiRectPacket;
+  readonly clip: UiRectPacket;
+  readonly layoutMode: UiLayoutModePacket;
+  readonly stackIndex: number;
+  readonly zIndex: number;
+  readonly layerMask: number;
+  readonly opacity: number;
+  readonly clipsChildren: boolean;
+  readonly scrollOffset: readonly [number, number];
+  readonly color?: Vec4Like;
+  readonly texture?: TextureHandle | null;
+  readonly sampler?: SamplerHandle | null;
+  readonly uvRect?: Vec4Like;
+  readonly text?: string;
+  readonly fontAtlasId?: string;
+  readonly fontSize?: number;
+  readonly lineHeight?: number;
+  readonly maxWidth?: number;
+  readonly textAlign?: UiTextAlignPacket;
+  readonly glyphCount?: number;
+}
+
+export interface UiHitRegionPacket {
+  readonly uiId: number;
+  readonly screenId: number;
+  readonly entity: RenderEntityRef;
+  readonly rect: UiRectPacket;
+  readonly clip: UiRectPacket;
+  readonly stackIndex: number;
+  readonly layerMask: number;
+  readonly blocksInput: boolean;
+  readonly cursor: string;
+  readonly priority: number;
 }
 
 export interface SkyboxPacket {
