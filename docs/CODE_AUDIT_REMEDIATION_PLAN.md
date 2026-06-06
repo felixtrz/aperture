@@ -655,12 +655,14 @@ Suggested validation: `pnpm run check:examples`, `pnpm run check:progress`,
 
 ### DOC-06 - Link or generate example gallery
 
-- Status: confirmed-open.
+- Status: completed 2026-06-06.
 - File: `examples/index.html`.
 - Problem: 122 example pages exist; 102 are linked. `render-control` can still
   enumerate unlinked pages, so this is discoverability, not dead code.
 - Action: link the 20 missing pages or auto-generate the gallery.
 - Accept: gallery covers all examples or documents the exclusion policy.
+- Result: linked all current example pages and added `check-example-gallery` to
+  keep the gallery in sync with `examples/*.html`.
 
 ### DOC-07 - Declare canonical render-frame-phase taxonomy
 
@@ -724,8 +726,8 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 20    |
-| Confirmed open / executable           | 17    |
+| Completed                             | 21    |
+| Confirmed open / executable           | 16    |
 | Needs refinement but actionable       | 11    |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |
