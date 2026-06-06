@@ -131,7 +131,7 @@ async function createWorkerScene(aperture, canvasSize, physicsExecution) {
   let physicsProxy = null;
   let physicsWorker = null;
   let physicsWorkerInfo = null;
-  let backendInfo = null;
+  let backendInfo;
 
   if (requestedPhysicsExecution === "physics-worker-transferable") {
     const transport = await createPhysicsWorkerTransport(aperture);

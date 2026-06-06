@@ -458,13 +458,13 @@ export async function runPhysicsBackendBenchmark(
   const initialize = options.initialize !== false;
   const shouldDispose = options.dispose !== false;
   let initMs = 0;
-  let syncMs = 0;
+  let syncMs: number;
   let stepMs = 0;
   let readbackMs = 0;
-  let queryMs = 0;
-  let sync: PhysicsSyncReport | null = null;
+  let queryMs: number;
+  let sync: PhysicsSyncReport;
   let readback: PhysicsReadbackReport | null = null;
-  let eventCount = 0;
+  let eventCount: number;
   const eventKindCounts = new Map<PhysicsEventKind, number>();
   let raycastFirstHitCount = 0;
   let sensorRaycastHitCount = 0;
@@ -477,8 +477,8 @@ export async function runPhysicsBackendBenchmark(
   let characterGroundedCount = 0;
   let debugGeometryCallCount = 0;
   let debugLineCount = 0;
-  let commandCount = 0;
-  let syncCount = 0;
+  let commandCount: number;
+  let syncCount: number;
   let resyncCommandCount = 0;
   let queryCount = 0;
   let lastRaycastFirst: PhysicsRaycastHit | null = null;
