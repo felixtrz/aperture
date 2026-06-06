@@ -13,7 +13,9 @@ export const SIMULATION_WORKER_PROTOCOL = {
 export interface SimulationWorkerStartOptions {
   readonly entityCapacity?: number;
   readonly fixedStep?: false | SimulationWorkerFixedStepOptions;
-  readonly physicsInterpolation?: boolean | SimulationWorkerPhysicsInterpolationOptions;
+  readonly physicsInterpolation?:
+    | boolean
+    | SimulationWorkerPhysicsInterpolationOptions;
   readonly [key: string]: unknown;
 }
 

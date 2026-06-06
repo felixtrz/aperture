@@ -65,9 +65,7 @@ export async function runGeneratedWorkerLoop(options: {
           ? undefined
           : { entityCapacity: options.start.entityCapacity },
       ...(fixedStep === undefined ? {} : { fixedStep }),
-      ...(physicsInterpolation === undefined
-        ? {}
-        : { physicsInterpolation }),
+      ...(physicsInterpolation === undefined ? {} : { physicsInterpolation }),
     });
     const entityTools = options.createEntityTools(app.lowLevel.world);
     const sourceAssetState = createSourceAssetSerializationState();

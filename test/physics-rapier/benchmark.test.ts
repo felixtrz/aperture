@@ -76,7 +76,9 @@ describe("rapier physics backend benchmark", () => {
     expect(report.memory.usedAfterBytes).toBeGreaterThanOrEqual(0);
     expect(Number.isFinite(report.memory.deltaBytes)).toBe(true);
     expect(report.memory.checkpointCount).toBeGreaterThanOrEqual(6);
-    expect(report.memory.checkpoints.map((checkpoint) => checkpoint.label)).toEqual(
+    expect(
+      report.memory.checkpoints.map((checkpoint) => checkpoint.label),
+    ).toEqual(
       expect.arrayContaining([
         "beforeInit",
         "afterInit",
@@ -154,9 +156,9 @@ describe("rapier physics backend benchmark", () => {
     expect(
       byScenario.get("debug-heavy")?.counts.debugLineCount,
     ).toBeGreaterThan(0);
-    expect(
-      byScenario.get("debug-heavy")?.counts.unsupportedFeatureCount,
-    ).toBe(0);
+    expect(byScenario.get("debug-heavy")?.counts.unsupportedFeatureCount).toBe(
+      0,
+    );
     expect(byScenario.get("joint-heavy")?.input.jointCount).toBe(16);
     expect(byScenario.get("joint-heavy")?.counts.jointCount).toBe(16);
     expect(byScenario.get("joint-heavy")?.counts.bodyCount).toBeGreaterThan(
@@ -175,9 +177,9 @@ describe("rapier physics backend benchmark", () => {
     ).toContain("afterResync");
     expect(byScenario.get("allocation-heavy")?.input.dynamicBodyCount).toBe(96);
     expect(byScenario.get("allocation-heavy")?.input.contactPairCount).toBe(24);
-    expect(byScenario.get("allocation-heavy")?.counts.bodyCount).toBeGreaterThan(
-      byScenario.get("body-heavy")?.counts.bodyCount ?? 0,
-    );
+    expect(
+      byScenario.get("allocation-heavy")?.counts.bodyCount,
+    ).toBeGreaterThan(byScenario.get("body-heavy")?.counts.bodyCount ?? 0);
     expect(
       byScenario.get("contact-heavy")?.events.byKind.map((entry) => entry.kind),
     ).toEqual(expect.arrayContaining(["contactForce"]));

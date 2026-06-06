@@ -281,7 +281,10 @@ function createPhysicsAssetCollider(
   const entity = world.createEntity();
   entity.addComponent(Name, { value: name });
   entity.addComponent(LocalTransform, createLocalTransform());
-  entity.addComponent(RigidBody, createRigidBody({ type: PhysicsRigidBodyType.Static }));
+  entity.addComponent(
+    RigidBody,
+    createRigidBody({ type: PhysicsRigidBodyType.Static }),
+  );
   entity.addComponent(Collider, createCollider({ shape }));
   return entity;
 }

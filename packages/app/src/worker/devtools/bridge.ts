@@ -277,7 +277,9 @@ function callStepAndDiffTool(
       step,
       diff: diff.result,
     },
-    ...(diff.diagnostics === undefined ? {} : { diagnostics: diff.diagnostics }),
+    ...(diff.diagnostics === undefined
+      ? {}
+      : { diagnostics: diff.diagnostics }),
   };
 }
 
@@ -814,8 +816,7 @@ function callPhysicsJointStatusTool(
     (feature) => feature.entity === ref,
   );
   const capabilities = backend?.capabilities ?? null;
-  const isUnitJoint =
-    joint?.kind === "revolute" || joint?.kind === "prismatic";
+  const isUnitJoint = joint?.kind === "revolute" || joint?.kind === "prismatic";
   const jointImpulseReadbackSupported =
     capabilities?.jointImpulseReadback === true;
   const jointImpulseReadbackUnsupportedFeature =

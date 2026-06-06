@@ -226,11 +226,12 @@ function hasDebugColor(
   color: readonly [number, number, number, number],
 ): boolean {
   return (
-    summary?.colors.some((entry) =>
-      Math.abs(entry.color[0] - color[0]) < 0.0001 &&
-      Math.abs(entry.color[1] - color[1]) < 0.0001 &&
-      Math.abs(entry.color[2] - color[2]) < 0.0001 &&
-      Math.abs(entry.color[3] - color[3]) < 0.0001,
+    summary?.colors.some(
+      (entry) =>
+        Math.abs(entry.color[0] - color[0]) < 0.0001 &&
+        Math.abs(entry.color[1] - color[1]) < 0.0001 &&
+        Math.abs(entry.color[2] - color[2]) < 0.0001 &&
+        Math.abs(entry.color[3] - color[3]) < 0.0001,
     ) ?? false
   );
 }

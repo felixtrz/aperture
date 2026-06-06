@@ -135,7 +135,11 @@ function resolveSnapshotEntity(
 
   const entity = world.entityManager.getEntityByIndex(ref.index);
 
-  if (entity === null || !entity.active || entity.generation !== ref.generation) {
+  if (
+    entity === null ||
+    !entity.active ||
+    entity.generation !== ref.generation
+  ) {
     return null;
   }
 

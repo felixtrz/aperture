@@ -50,11 +50,11 @@ Implemented Rapier coverage includes:
 
 ## Candidate Backends
 
-| Backend | Current status | Reason not shipped |
-| --- | --- | --- |
-| Rapier | Shipped concrete backend | Default path. |
-| Havok | Future candidate only | Previous prototype was removed; it did not beat Rapier and added package/WASM complexity without parity for joints, character movement, debug geometry, or generated-worker gameplay proofs. |
-| Jolt | Future candidate only | Larger browser payload and no Aperture adapter yet. |
+| Backend | Current status           | Reason not shipped                                                                                                                                                                           |
+| ------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rapier  | Shipped concrete backend | Default path.                                                                                                                                                                                |
+| Havok   | Future candidate only    | Previous prototype was removed; it did not beat Rapier and added package/WASM complexity without parity for joints, character movement, debug geometry, or generated-worker gameplay proofs. |
+| Jolt    | Future candidate only    | Larger browser payload and no Aperture adapter yet.                                                                                                                                          |
 
 ## Evidence To Revisit
 

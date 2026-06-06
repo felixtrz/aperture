@@ -88,7 +88,9 @@ describe("physics backend benchmark", () => {
     expect(first.memory.usedAfterBytes).toBeGreaterThanOrEqual(0);
     expect(Number.isFinite(first.memory.deltaBytes)).toBe(true);
     expect(first.memory.checkpointCount).toBeGreaterThanOrEqual(6);
-    expect(first.memory.checkpoints.map((checkpoint) => checkpoint.label)).toEqual(
+    expect(
+      first.memory.checkpoints.map((checkpoint) => checkpoint.label),
+    ).toEqual(
       expect.arrayContaining([
         "beforeInit",
         "afterInit",
@@ -178,9 +180,9 @@ describe("physics backend benchmark", () => {
     expect(
       byScenario.get("debug-heavy")?.counts.debugLineCount,
     ).toBeGreaterThan(0);
-    expect(
-      byScenario.get("debug-heavy")?.counts.unsupportedFeatureCount,
-    ).toBe(0);
+    expect(byScenario.get("debug-heavy")?.counts.unsupportedFeatureCount).toBe(
+      0,
+    );
     expect(byScenario.get("joint-heavy")?.input.jointCount).toBe(16);
     expect(byScenario.get("joint-heavy")?.counts.jointCount).toBe(16);
     expect(byScenario.get("joint-heavy")?.counts.bodyCount).toBeGreaterThan(
@@ -199,9 +201,9 @@ describe("physics backend benchmark", () => {
     ).toContain("afterResync");
     expect(byScenario.get("allocation-heavy")?.input.dynamicBodyCount).toBe(96);
     expect(byScenario.get("allocation-heavy")?.input.contactPairCount).toBe(24);
-    expect(byScenario.get("allocation-heavy")?.counts.bodyCount).toBeGreaterThan(
-      byScenario.get("body-heavy")?.counts.bodyCount ?? 0,
-    );
+    expect(
+      byScenario.get("allocation-heavy")?.counts.bodyCount,
+    ).toBeGreaterThan(byScenario.get("body-heavy")?.counts.bodyCount ?? 0);
     for (const scenario of suite.scenarios) {
       expect(scenario.report.backend.execution).toBe("simulation-worker");
       expect(scenario.report.memory.checkpointCount).toBeGreaterThanOrEqual(6);

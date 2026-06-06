@@ -311,9 +311,9 @@ test("browser publishes simulation-worker physics backend benchmark status", asy
   expect(
     byScenario.get("character-heavy:rapier")?.counts.characterGroundedCount,
   ).toBeGreaterThan(0);
-  expect(
-    byScenario.get("debug-heavy:rapier")?.input.debugGeometryRepeats,
-  ).toBe(12);
+  expect(byScenario.get("debug-heavy:rapier")?.input.debugGeometryRepeats).toBe(
+    12,
+  );
   expect(byScenario.get("debug-heavy:rapier")?.support.debugGeometry).toBe(
     true,
   );

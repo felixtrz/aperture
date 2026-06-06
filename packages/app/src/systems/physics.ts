@@ -243,7 +243,8 @@ export function createPhysicsAccess(
       stepReport = report?.step ?? null;
       readbackReport = report?.readback ?? null;
       writebackReport = report?.writeback ?? null;
-      backendFrameEvents = report?.events === undefined ? [] : [...report.events];
+      backendFrameEvents =
+        report?.events === undefined ? [] : [...report.events];
     },
     clearEvents() {
       backendFrameEvents = [];
@@ -326,11 +327,7 @@ export function createPhysicsAccess(
     setKinematicTarget(entity, transform) {
       ensureKinematicTarget(world, entity);
       entity.setValue(KinematicTarget, "enabled", true);
-      setKinematicTargetVec3Field(
-        entity,
-        "translation",
-        transform.translation,
-      );
+      setKinematicTargetVec3Field(entity, "translation", transform.translation);
       entity.getVectorView(KinematicTarget, "rotation").set(transform.rotation);
     },
     sleepBody(entity) {
@@ -391,7 +388,9 @@ export function createPhysicsAccess(
   };
 }
 
-function syncSummary(report: PhysicsSyncReport | null): PhysicsSyncSummary | null {
+function syncSummary(
+  report: PhysicsSyncReport | null,
+): PhysicsSyncSummary | null {
   return report === null
     ? null
     : {
@@ -406,7 +405,9 @@ function syncSummary(report: PhysicsSyncReport | null): PhysicsSyncSummary | nul
       };
 }
 
-function stepSummary(report: PhysicsStepReport | null): PhysicsStepSummary | null {
+function stepSummary(
+  report: PhysicsStepReport | null,
+): PhysicsStepSummary | null {
   return report === null
     ? null
     : {
@@ -529,8 +530,7 @@ function clonePhysicsBackendCapabilities(
     continuousCollisionDetection: capabilities.continuousCollisionDetection,
     characterController: capabilities.characterController,
     linkedBodyContacts: capabilities.linkedBodyContacts,
-    combinedPositionVelocityMotors:
-      capabilities.combinedPositionVelocityMotors,
+    combinedPositionVelocityMotors: capabilities.combinedPositionVelocityMotors,
     motorForceLimits: capabilities.motorForceLimits,
     automaticBreakForce: capabilities.automaticBreakForce,
     jointImpulseReadback: capabilities.jointImpulseReadback,
@@ -645,8 +645,14 @@ function jointBreakEvent(
   options: PhysicsBreakJointOptions,
 ): PhysicsEvent {
   const joint = serializeEntityRef(entity);
-  const bodyARef = stringValue(entity.getValue(PhysicsJoint, "bodyARef"), joint);
-  const bodyBRef = stringValue(entity.getValue(PhysicsJoint, "bodyBRef"), joint);
+  const bodyARef = stringValue(
+    entity.getValue(PhysicsJoint, "bodyARef"),
+    joint,
+  );
+  const bodyBRef = stringValue(
+    entity.getValue(PhysicsJoint, "bodyBRef"),
+    joint,
+  );
 
   return {
     kind: "jointBreak",
@@ -788,11 +794,7 @@ function entityCenter(entity: Entity): PhysicsVec3 {
 
   const translation = entity.getVectorView(LocalTransform, "translation");
 
-  return [
-    translation[0] ?? 0,
-    translation[1] ?? 0,
-    translation[2] ?? 0,
-  ];
+  return [translation[0] ?? 0, translation[1] ?? 0, translation[2] ?? 0];
 }
 
 function addVec3(left: PhysicsVec3, right: PhysicsVec3): PhysicsVec3 {

@@ -465,24 +465,23 @@
               compound colliders, character controllers, linked-body contacts,
               continuous collision detection, combined unit-joint motors, force
               limits, break thresholds, impulse readback, and paired non-fixed
-              <code>frameB</code>, and
-              <code>physics_joint_status</code> reads those flags instead of
-              hardcoded backend-kind checks. The PHYS-17 benchmark route now
-              includes those same backend capability flags in each report, so
-              same-worker backend comparisons publish support surface beside
-              timing, memory, event, query, and signature data. The same
-              route now also treats <code>RigidBody.ccdEnabled</code>
+              <code>frameB</code>, and <code>physics_joint_status</code> reads
+              those flags instead of hardcoded backend-kind checks. The PHYS-17
+              benchmark route now includes those same backend capability flags
+              in each report, so same-worker backend comparisons publish support
+              surface beside timing, memory, event, query, and signature data.
+              The same route now also treats <code>RigidBody.ccdEnabled</code>
               honestly: Rapier reports
-              <code>continuousCollisionDetection: true</code>, deterministic
-              and Havok routes report
+              <code>continuousCollisionDetection: true</code>, deterministic and
+              Havok routes report
               <code>physics.rigidBody.ccd.unsupported</code> when CCD is
               authored, and the async Rapier generated-worker proof pauses,
               mutates CCD, steps physics, and diffs the authored flag plus
               <code>PhysicsBodyState</code> writeback without resuming the
               dedicated third-worker route. Asset-backed collider authoring is
-              now honest on that route too:
-              <code>convexHull</code>, <code>trimesh</code>, and
-              <code>heightfield</code> colliders report
+              now honest on that route too: <code>convexHull</code>,
+              <code>trimesh</code>, and <code>heightfield</code> colliders
+              report
               <code>physics.collider.assetShape.unsupported</code> instead of
               crashing Rapier/Havok or using fake deterministic fallback bounds,
               and the generated-worker proof mutates a collider to
@@ -492,12 +491,13 @@
               simulation-worker ECS route too:
               <code>stepPhysicsWorld(...)</code> resolves transforms before
               sync, parented bodies send backend world poses from
-              <code>WorldTransform</code>, writeback converts backend world poses
-              back into parent-local <code>LocalTransform</code>, and the
+              <code>WorldTransform</code>, writeback converts backend world
+              poses back into parent-local <code>LocalTransform</code>, and the
               generated-worker proof diffs <code>LocalTransform</code>,
-              <code>WorldTransform</code>, and <code>PhysicsBodyState</code>
-              changes. Raw low-level backend commands marked parented still
-              report <code>physics.rigidBody.parentedBody.unsupported</code>.
+              <code>WorldTransform</code>, and
+              <code>PhysicsBodyState</code> changes. Raw low-level backend
+              commands marked parented still report
+              <code>physics.rigidBody.parentedBody.unsupported</code>.
               Same-worker sleep state is now controllable too:
               <code>context.physics.sleepBody(entity)</code> /
               <code>wakeBody(entity)</code> route to the active backend,
@@ -525,8 +525,8 @@
               <code>PhysicsVelocity.linear</code>, calls
               <code>ecs_step_and_diff</code>, and verifies changed
               <code>LocalTransform</code>, <code>PhysicsVelocity</code>, and
-              <code>PhysicsBodyState</code> summaries. The same
-              benchmark matrix now includes nine simulation-worker scenarios:
+              <code>PhysicsBodyState</code> summaries. The same benchmark matrix
+              now includes nine simulation-worker scenarios:
               <code>balanced</code>, <code>body-heavy</code>,
               <code>contact-heavy</code>, <code>query-heavy</code>,
               <code>character-heavy</code>, <code>debug-heavy</code>,
@@ -542,25 +542,24 @@
               commands and reports <code>syncCount</code>,
               <code>resyncCommandCount</code>, and an
               <code>afterResync</code> memory checkpoint. Summary cards display
-              compact capability, character-move, debug, joint-count, and
-              resync labels. PHYS-17 is now Rapier-first: the optional Havok
-              adapter implementation has been removed from the shipped source
-              graph, and the browser benchmark route publishes deterministic
-              and Rapier reports across the same nine same-worker scenarios.
-              Rapier remains the default concrete backend. The dedicated
-              physics-worker path exists as a Rapier transferable proof route,
-              but the simulation-worker route remains the primary
+              compact capability, character-move, debug, joint-count, and resync
+              labels. PHYS-17 is now Rapier-first: the optional Havok adapter
+              implementation has been removed from the shipped source graph, and
+              the browser benchmark route publishes deterministic and Rapier
+              reports across the same nine same-worker scenarios. Rapier remains
+              the default concrete backend. The dedicated physics-worker path
+              exists as a Rapier transferable proof route, but the
+              simulation-worker route remains the primary
               pause/snapshot/edit-or-command/step/diff workflow until profiling
               and gameplay query semantics justify the extra protocol. Generic
               joint descriptors now report
               <code>physics.joint.unsupported</code> and clear stale backend
               constraints instead of throwing or leaving old constraints active.
-              PHYS-11 now also exposes
-              JSON-safe
-              debug summaries: <code>context.physics.debugSummary()</code> and
-              generated-worker <code>physics_debug_summary</code> report line
-              counts, finite/invalid counts, color buckets, and bounds over the
-              same backend-neutral debug geometry path. Joint motor force-limit
+              PHYS-11 now also exposes JSON-safe debug summaries:
+              <code>context.physics.debugSummary()</code> and generated-worker
+              <code>physics_debug_summary</code> report line counts,
+              finite/invalid counts, color buckets, and bounds over the same
+              backend-neutral debug geometry path. Joint motor force-limit
               authoring is now honest too:
               <code>PhysicsJoint.motorMaxForce</code> is ECS-authored,
               validated, mutable while paused, synced into backend descriptors,
@@ -569,23 +568,24 @@
               <code>ecs_step</code> and <code>physics_joint_status</code> for
               the current Rapier/test backends instead of implying enforcement.
               Native joint impulse readback is now honest in the same status
-              shape: <code>physics_joint_status.readback.unsupportedFeature</code>
+              shape:
+              <code>physics_joint_status.readback.unsupportedFeature</code>
               returns the shared
               <code>physics.joint.impulseReadback.unsupported</code> feature for
               current same-worker routes, so agents can branch to explicit
               gameplay-owned joint breaks without assuming automatic
-              <code>breakForce</code> enforcement.
-              Rapier unit-joint motor mapping also now preserves more authored
-              data: position-mode joints with finite
-              <code>motorVelocity</code> call the backend's combined
-              <code>configureMotor</code> API, with focused backend coverage
-              proving a centered prismatic motor moves from its velocity target.
-              <code>physics_joint_status</code> now exposes this as
-              <code>combinedPositionVelocityMotors</code> for same-worker Rapier
-              revolute/prismatic joints so agents can distinguish supported
-              motor target combination from unsupported force caps. Linked-body
-              joint contact control is now real on the same-worker Rapier route
-              too: <code>PhysicsJoint.contactsEnabled</code>
+              <code>breakForce</code> enforcement. Rapier unit-joint motor
+              mapping also now preserves more authored data: position-mode
+              joints with finite <code>motorVelocity</code> call the backend's
+              combined <code>configureMotor</code> API, with focused backend
+              coverage proving a centered prismatic motor moves from its
+              velocity target. <code>physics_joint_status</code> now exposes
+              this as <code>combinedPositionVelocityMotors</code> for
+              same-worker Rapier revolute/prismatic joints so agents can
+              distinguish supported motor target combination from unsupported
+              force caps. Linked-body joint contact control is now real on the
+              same-worker Rapier route too:
+              <code>PhysicsJoint.contactsEnabled</code>
               defaults to true, can be edited while paused, is visible through
               <code>physics_joint_status</code>, and maps to
               <code>ImpulseJoint.setContactsEnabled</code>. Focused Rapier

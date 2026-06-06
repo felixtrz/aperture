@@ -138,38 +138,26 @@ describe("physics system access", () => {
     });
 
     expect(Array.from(body.getVectorView(ExternalForce, "force"))).toEqual([
-      1,
-      0,
-      0,
+      1, 0, 0,
     ]);
     expect(Array.from(body.getVectorView(ExternalForce, "torque"))).toEqual([
-      0,
-      0,
-      1,
+      0, 0, 1,
     ]);
     expect(Array.from(body.getVectorView(ExternalImpulse, "impulse"))).toEqual([
-      0,
-      2,
-      0,
+      0, 2, 0,
     ]);
     expect(
       Array.from(body.getVectorView(ExternalImpulse, "angularImpulse")),
     ).toEqual([0, 0, 3]);
     expect(Array.from(body.getVectorView(PhysicsVelocity, "linear"))).toEqual([
-      4,
-      0,
-      0,
+      4, 0, 0,
     ]);
     expect(Array.from(body.getVectorView(PhysicsVelocity, "angular"))).toEqual([
-      0,
-      5,
-      0,
+      0, 5, 0,
     ]);
-    expect(Array.from(body.getVectorView(KinematicTarget, "translation"))).toEqual([
-      6,
-      0,
-      0,
-    ]);
+    expect(
+      Array.from(body.getVectorView(KinematicTarget, "translation")),
+    ).toEqual([6, 0, 0]);
     expect(body.getValue(KinematicTarget, "enabled")).toBe(true);
   });
 
@@ -245,9 +233,14 @@ describe("physics system access", () => {
     expect(context.physics.events.byKind("triggerEnter")).toEqual([
       expect.objectContaining({ kind: "triggerEnter" }),
     ]);
-    expect(context.physics.events.contacts().map((event) => event.kind)).toEqual(
-      ["collisionEnd", "collisionStart", "collisionStay", "contactForce"],
-    );
+    expect(
+      context.physics.events.contacts().map((event) => event.kind),
+    ).toEqual([
+      "collisionEnd",
+      "collisionStart",
+      "collisionStay",
+      "contactForce",
+    ]);
     expect(context.physics.events.collisionStarted()).toEqual([
       expect.objectContaining({ kind: "collisionStart" }),
     ]);

@@ -168,7 +168,12 @@ export function createTestPhysicsBackend(
             destroyBody(command.entity);
             break;
           case "upsertJoint":
-            if (physicsJointCommandHasUnsupportedSyncFeature("test", command.joint)) {
+            if (
+              physicsJointCommandHasUnsupportedSyncFeature(
+                "test",
+                command.joint,
+              )
+            ) {
               joints.delete(command.entity);
               break;
             }

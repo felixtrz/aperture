@@ -478,7 +478,11 @@ export function collectUnsupportedPhysicsCommandFeatures(
   for (const command of buffer.commands) {
     if (command.kind === "upsertBody") {
       features.push(
-        ...collectUnsupportedPhysicsBodyFeatures(backend, command.entity, command),
+        ...collectUnsupportedPhysicsBodyFeatures(
+          backend,
+          command.entity,
+          command,
+        ),
       );
       continue;
     }

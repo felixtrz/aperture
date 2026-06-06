@@ -217,12 +217,8 @@ export function createDefaultPhysicsBackendBenchmarkScenarios(
         fixedSteps: options.fixedSteps ?? 60,
         queryRepeats: options.queryRepeats ?? 12,
         ...(jointCount === undefined ? {} : { jointCount }),
-        ...(characterMoveRepeats === undefined
-          ? {}
-          : { characterMoveRepeats }),
-        ...(debugGeometryRepeats === undefined
-          ? {}
-          : { debugGeometryRepeats }),
+        ...(characterMoveRepeats === undefined ? {} : { characterMoveRepeats }),
+        ...(debugGeometryRepeats === undefined ? {} : { debugGeometryRepeats }),
         ...(resyncRepeats === undefined ? {} : { resyncRepeats }),
         ...(gravity === undefined ? {} : { gravity }),
         ...(execution === undefined ? {} : { execution }),
@@ -239,12 +235,8 @@ export function createDefaultPhysicsBackendBenchmarkScenarios(
         fixedSteps: options.fixedSteps ?? 60,
         queryRepeats: Math.max(4, Math.floor((options.queryRepeats ?? 12) / 2)),
         ...(jointCount === undefined ? {} : { jointCount }),
-        ...(characterMoveRepeats === undefined
-          ? {}
-          : { characterMoveRepeats }),
-        ...(debugGeometryRepeats === undefined
-          ? {}
-          : { debugGeometryRepeats }),
+        ...(characterMoveRepeats === undefined ? {} : { characterMoveRepeats }),
+        ...(debugGeometryRepeats === undefined ? {} : { debugGeometryRepeats }),
         ...(resyncRepeats === undefined ? {} : { resyncRepeats }),
         ...(gravity === undefined ? {} : { gravity }),
         ...(execution === undefined ? {} : { execution }),
@@ -261,12 +253,8 @@ export function createDefaultPhysicsBackendBenchmarkScenarios(
         fixedSteps: options.fixedSteps ?? 60,
         queryRepeats: Math.max(4, Math.floor((options.queryRepeats ?? 12) / 2)),
         ...(jointCount === undefined ? {} : { jointCount }),
-        ...(characterMoveRepeats === undefined
-          ? {}
-          : { characterMoveRepeats }),
-        ...(debugGeometryRepeats === undefined
-          ? {}
-          : { debugGeometryRepeats }),
+        ...(characterMoveRepeats === undefined ? {} : { characterMoveRepeats }),
+        ...(debugGeometryRepeats === undefined ? {} : { debugGeometryRepeats }),
         ...(resyncRepeats === undefined ? {} : { resyncRepeats }),
         ...(gravity === undefined ? {} : { gravity }),
         ...(execution === undefined ? {} : { execution }),
@@ -283,12 +271,8 @@ export function createDefaultPhysicsBackendBenchmarkScenarios(
         fixedSteps: Math.max(12, Math.floor((options.fixedSteps ?? 60) / 2)),
         queryRepeats: Math.max(options.queryRepeats ?? 12, 40),
         ...(jointCount === undefined ? {} : { jointCount }),
-        ...(characterMoveRepeats === undefined
-          ? {}
-          : { characterMoveRepeats }),
-        ...(debugGeometryRepeats === undefined
-          ? {}
-          : { debugGeometryRepeats }),
+        ...(characterMoveRepeats === undefined ? {} : { characterMoveRepeats }),
+        ...(debugGeometryRepeats === undefined ? {} : { debugGeometryRepeats }),
         ...(resyncRepeats === undefined ? {} : { resyncRepeats }),
         ...(gravity === undefined ? {} : { gravity }),
         ...(execution === undefined ? {} : { execution }),
@@ -303,13 +287,8 @@ export function createDefaultPhysicsBackendBenchmarkScenarios(
         dynamicBodyCount: options.dynamicBodyCount ?? 16,
         contactPairCount: options.contactPairCount ?? 4,
         ...(jointCount === undefined ? {} : { jointCount }),
-        characterMoveRepeats: Math.max(
-          options.characterMoveRepeats ?? 0,
-          24,
-        ),
-        ...(debugGeometryRepeats === undefined
-          ? {}
-          : { debugGeometryRepeats }),
+        characterMoveRepeats: Math.max(options.characterMoveRepeats ?? 0, 24),
+        ...(debugGeometryRepeats === undefined ? {} : { debugGeometryRepeats }),
         fixedSteps: options.fixedSteps ?? 60,
         queryRepeats: Math.max(4, Math.floor((options.queryRepeats ?? 12) / 2)),
         ...(resyncRepeats === undefined ? {} : { resyncRepeats }),
@@ -326,9 +305,7 @@ export function createDefaultPhysicsBackendBenchmarkScenarios(
         dynamicBodyCount: options.dynamicBodyCount ?? 16,
         contactPairCount: options.contactPairCount ?? 4,
         ...(jointCount === undefined ? {} : { jointCount }),
-        ...(characterMoveRepeats === undefined
-          ? {}
-          : { characterMoveRepeats }),
+        ...(characterMoveRepeats === undefined ? {} : { characterMoveRepeats }),
         debugGeometryRepeats: Math.max(options.debugGeometryRepeats ?? 0, 12),
         fixedSteps: options.fixedSteps ?? 60,
         queryRepeats: Math.max(4, Math.floor((options.queryRepeats ?? 12) / 2)),
@@ -348,12 +325,8 @@ export function createDefaultPhysicsBackendBenchmarkScenarios(
         jointCount: Math.max(options.jointCount ?? 0, 16),
         fixedSteps: options.fixedSteps ?? 60,
         queryRepeats: Math.max(4, Math.floor((options.queryRepeats ?? 12) / 2)),
-        ...(characterMoveRepeats === undefined
-          ? {}
-          : { characterMoveRepeats }),
-        ...(debugGeometryRepeats === undefined
-          ? {}
-          : { debugGeometryRepeats }),
+        ...(characterMoveRepeats === undefined ? {} : { characterMoveRepeats }),
+        ...(debugGeometryRepeats === undefined ? {} : { debugGeometryRepeats }),
         ...(resyncRepeats === undefined ? {} : { resyncRepeats }),
         ...(gravity === undefined ? {} : { gravity }),
         ...(execution === undefined ? {} : { execution }),
@@ -368,12 +341,8 @@ export function createDefaultPhysicsBackendBenchmarkScenarios(
         dynamicBodyCount: options.dynamicBodyCount ?? 16,
         contactPairCount: options.contactPairCount ?? 4,
         ...(jointCount === undefined ? {} : { jointCount }),
-        ...(characterMoveRepeats === undefined
-          ? {}
-          : { characterMoveRepeats }),
-        ...(debugGeometryRepeats === undefined
-          ? {}
-          : { debugGeometryRepeats }),
+        ...(characterMoveRepeats === undefined ? {} : { characterMoveRepeats }),
+        ...(debugGeometryRepeats === undefined ? {} : { debugGeometryRepeats }),
         resyncRepeats: Math.max(options.resyncRepeats ?? 0, 12),
         ...(gravity === undefined ? {} : { gravity }),
         ...(execution === undefined ? {} : { execution }),
@@ -390,12 +359,8 @@ export function createDefaultPhysicsBackendBenchmarkScenarios(
         fixedSteps: Math.max(24, Math.floor((options.fixedSteps ?? 60) / 2)),
         queryRepeats: Math.max(4, Math.floor((options.queryRepeats ?? 12) / 2)),
         ...(jointCount === undefined ? {} : { jointCount }),
-        ...(characterMoveRepeats === undefined
-          ? {}
-          : { characterMoveRepeats }),
-        ...(debugGeometryRepeats === undefined
-          ? {}
-          : { debugGeometryRepeats }),
+        ...(characterMoveRepeats === undefined ? {} : { characterMoveRepeats }),
+        ...(debugGeometryRepeats === undefined ? {} : { debugGeometryRepeats }),
         ...(resyncRepeats === undefined ? {} : { resyncRepeats }),
         ...(gravity === undefined ? {} : { gravity }),
         ...(execution === undefined ? {} : { execution }),
@@ -407,8 +372,7 @@ export function createDefaultPhysicsBackendBenchmarkScenarios(
 
 export async function runPhysicsBackendBenchmarkScenarios(
   createBackend: () => PhysicsBackend | Promise<PhysicsBackend>,
-  scenarios: readonly PhysicsBackendBenchmarkScenario[] =
-    createDefaultPhysicsBackendBenchmarkScenarios(),
+  scenarios: readonly PhysicsBackendBenchmarkScenario[] = createDefaultPhysicsBackendBenchmarkScenarios(),
 ): Promise<PhysicsBackendBenchmarkSuiteReport> {
   const reports: PhysicsBackendBenchmarkScenarioReport[] = [];
 
@@ -813,8 +777,7 @@ function clonePhysicsBackendCapabilities(
     continuousCollisionDetection: capabilities.continuousCollisionDetection,
     characterController: capabilities.characterController,
     linkedBodyContacts: capabilities.linkedBodyContacts,
-    combinedPositionVelocityMotors:
-      capabilities.combinedPositionVelocityMotors,
+    combinedPositionVelocityMotors: capabilities.combinedPositionVelocityMotors,
     motorForceLimits: capabilities.motorForceLimits,
     automaticBreakForce: capabilities.automaticBreakForce,
     jointImpulseReadback: capabilities.jointImpulseReadback,
@@ -1307,11 +1270,7 @@ function createStepSamplePoints(fixedSteps: number): ReadonlySet<number> {
     return new Set();
   }
 
-  return new Set([
-    1,
-    Math.max(1, Math.floor(fixedSteps / 2)),
-    fixedSteps,
-  ]);
+  return new Set([1, Math.max(1, Math.floor(fixedSteps / 2)), fixedSteps]);
 }
 
 function sampleBenchmarkMemory(): BenchmarkMemorySample {
