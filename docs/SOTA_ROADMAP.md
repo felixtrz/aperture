@@ -14,7 +14,7 @@ _Generated 2026-05-28. Working execution guide; supersede freely as work lands._
     5. Use absolute dates (YYYY-MM-DD [HH:MM TZ]) everywhere — never "today"/"now".
 -->
 
-**Last updated:** `2026-06-06 12:24 PDT — codex/gpt-5 (M10 asset-backed Rapier collider cooking remains implemented and validated. docs/WEBXR_IMPLEMENTATION_PLAN.md now records the source-grounded WebXR implementation plan after reviewing IWSDK, PlayCanvas, three.js, and Aperture source. Pending product work: enforceable motor force caps, enforceable breakForce, native joint impulse readback, broader paired non-fixed frames, additional gameplay physics semantics, asset-collider V2 scale/dynamic policies, and WebXR implementation.)`
+**Last updated:** `2026-06-06 16:42 PDT — codex/gpt-5 (Code-audit remediation is in progress. Q0 public-surface cleanup is implemented and validated; check:examples now enumerates every examples/*.js file; WebXR has a boundary decision in docs/DECISIONS.md; shipped plan docs are marked historical. Pending remediation includes the remaining Q6 docs/tooling items, duplicate consolidation, render-fork cleanup, feature follow-ups, and physics facade/validation follow-ups.)`
 
 > _What to write:_ Absolute date + time + timezone, then `— <your agent/author id>` (e.g. `2026-06-02 14:30 PDT — claude/opus`). Update on every edit to this block.
 
@@ -154,27 +154,71 @@ This roadmap is the output of a deep, source-grounded audit of all 16 Aperture s
 
 ## 0. Where Aperture stands today
 
-> Aperture is a genuinely impressive rendering-research codebase with deep, real shading breadth (clustered Forward+, LTC area lights, PMREM, glTF PBR-next subset, a clean command-reified frame plan, world-class CPU mesh BVH, and best-in-class AI-agent tooling/diagnostics), but it is NOT close to being a SOTA web 3D engine you could ship a product on today. The gap is less about exotic features and more about foundational completeness: several headline subsystems are built but not wired into the live app (shadows are never encoded/submitted; Draco/Meshopt/KTX2 decoders are never connected so compressed glTF fails out of the box; CPU picking/raycast index is never populated), and entire pillars that define a usable 2026 engine are simply absent (no animation clip/skeleton import despite GPU skinning existing, no physics, no WebXR, no particles/text/UI, no scene serialization, no editor, no GPU-driven pipeline). The most defensible SOTA claim it could make right now is narrow and architectural: "the most AI-agent-controllable, most inspectable WebGPU ECS renderer" and "SOTA-competitive analytic lighting/area-light/clustering math for the web." A credible general-purpose "SOTA web 3D engine" claim is realistically 18-30 months of focused work away, and the first ~6 months of that is unglamorous wiring and publishing, not new rendering.
+> Aperture is now a broad ECS-first WebGPU runtime rather than only a rendering
+> research prototype. The live app path has shipped submitted shadows,
+> compressed glTF decoder wiring, populated CPU spatial queries, scene/prefab
+> serialization, animation playback, GPU particles, MSDF text, UI interaction,
+> orbit/gizmo controls, and Rapier-first physics through the generated
+> simulation-worker route. Its strongest SOTA claim remains architectural and
+> operational: worker-authoritative ECS state, render snapshots as an explicit
+> boundary, unusually rich diagnostics, and agent-operable tooling/proofs. It is
+> still not a finished general-purpose SOTA engine: WebXR is planned but
+> unimplemented, editor/human authoring surfaces are thin, physics still lacks
+> several advanced gameplay semantics, some render-pipeline quality/performance
+> follow-ups remain, and ongoing cleanup is still narrowing stale public/test
+> surfaces.
 
 ### Already SOTA-competitive (protect these)
 
-- AI-agent-native tooling and control surface: a ~55-tool MCP stdio server (ecs_query, render_explain_entity, render_get_packets, camera_orbit, browser_pick_pixel), self-driving Playwright dev session, auto-wired agent adapters (CLAUDE.md/.cursor/.codex/.mcp.json), and a reference RAG CLI. No mainstream web engine (three.js/Babylon/PlayCanvas) ships anything comparable.
-- Structured, machine-readable diagnostics with stable codes, severity, source location, and a mandatory suggestedFix on every diagnostic, plus render_explain_entity ('why did/didn't this entity render') - materially ahead of three.js's console.warn culture.
-- Analytic lighting math: full LTC area lights for rect AND disk AND sphere (ahead of three.js which only ships rect), correct Cook-Torrance GGX direct lighting, and clustered Forward+ froxel local-light binning with view-depth clusters, cookies (incl. cube + atlas) for point/spot, and clustered local shadows - architecturally on par with PlayCanvas.
-- CPU mesh BVH (mesh-bvh.ts, ~3000 lines): SAH/binned build, shapecast/raycast/closestPoint/bvhcast, serialize/deserialize, versioned cache with static/refit/rebuild policy - matches or exceeds three-mesh-bvh and exceeds three.js core (which has no BVH).
-- Frame architecture as inspectable data: a deterministic 6-phase frame plan with per-phase diagnostics, render commands reified as a flat serializable command list with record/replay split, render-bundle caching, redundant-state elision, indirect-draw plumbing, hardware occlusion-query feedback culling, and per-pass GPU timestamp timing - more inspectable and allocation-conscious than most engines' opaque draw loops.
-- Worker-authoritative ECS-vs-derived-render-snapshot split with typed transport, generational entity refs, cycle/stale-parent transform diagnostics, and incremental change detection - a clean Bevy-style architecture that is the correct foundation for the things still missing.
-- Tonemapping/output color management: none/linear/reinhard/aces/agx/neutral with correct AgX and Khronos PBR Neutral implementations and a piecewise-accurate sRGB OETF - matches three.js's modern defaults and many engines still lack AgX.
-- Asset format breadth on the decode side: correct KTX2/BasisU transcode target selection (ASTC/BC7/ETC2 with DFD transfer-function parsing), Draco and both EXT*/KHR* meshopt with all modes/filters, and an HDR/RGBE loader - SOTA-competitive transcoding (the gap is wiring, not the decoders).
+- AI-agent-native tooling and control surface: MCP/devtools routes can inspect
+  browser, ECS, input, render packets, cameras, physics, and worker snapshots;
+  the reference RAG CLI and generated coding-tool adapters remain a major
+  differentiator versus mainstream web engines.
+- Structured, machine-readable diagnostics with stable codes, severity,
+  JSON-safe payloads, and suggested fixes across rendering, assets, app systems,
+  physics, and worker tooling.
+- ECS/render boundary discipline: simulation owns authoritative state, render
+  extraction emits typed snapshots, WebGPU owns GPU resources, and examples prove
+  pause/step/diff workflows against worker-owned state.
+- Lighting/rendering breadth: clustered local lights, LTC area lights, IBL
+  diffuse/specular preparation, shadows, HDR/tonemap routes, transmission/SSAO
+  follow-ups, sprites, text, UI, particles, animation, and GLB viewer coverage
+  now exist as real browser routes.
+- CPU spatial and physics foundations: mesh BVH/spatial query infrastructure,
+  populated app spatial index, Rapier rigidbody/collider/query/character/joint
+  foundations, asset-backed collider cooking, and generated-worker physics
+  proofs are implemented.
+- Package/publish hygiene is materially better than the original audit state:
+  packages are MIT-licensed workspace packages with publish-readiness checks and
+  changesets; remaining work is polish and release operation, not basic package
+  viability.
 
 ### The cross-cutting themes that define the gap
 
-- **Built-but-unwired: several major live-app gaps were the highest-risk pattern, and M1 is closing them one by one** — Shadows now submit automatic StandardMaterial receiver resources from the live WebGPU app frame path, compressed glTF decoder factories and KTX2 texture compression are threaded through generated app loading, texture mip upload/generation is wired, and CPU picking now has both camera unprojection and an auto-populated BVH spatial index. The remaining M1 blocker is publishing/installability: packages still need real publish metadata, dry-run guards, CLI semver scaffolding, and release CI before the engine can make a credible "installable product" claim.
-- **No real render graph / no GPU-driven pipeline** — The frame is an if/else route dispatcher (renderWebGpuAppFrame, 994 lines) with pass order encoded in imperative call sites - no FrameGraph, PassNode, resource-dependency DAG, transient aliasing, or cross-pass command-buffer batching (each pass submits its own encoder). Culling, indirect-draw arg generation, and instance selection are all CPU-side; 'indirect draw' is CPU-authored so it gives no scalability win, and there is no compute culling, Hi-Z, multi-draw-indirect, bindless, or LOD. This caps both extensibility (users cannot insert custom geometry/compute passes - only fixed screen-space post effects) and scalability (draw submission is O(objects) on the JS thread). Modern engines (Bevy, Unreal-on-web aspirations, three.js WebGPU node graph) are increasingly GPU-driven; this is the deepest architectural distance from SOTA.
-- **Authoring/runtime abstractions missing on top of working low-level data paths** — Repeatedly, the GPU/data layer works but the user-facing authoring layer that makes it a 'engine' rather than a 'renderer' is absent. GPU skinning + morph shaders work, but there is no animation clip/keyframe sampler, no skeleton/skin import, no state machine/blend tree/IK - the glb-viewer EXAMPLE hand-rolls all of it. Materials are immutable frozen assets with no setters/uniform mutation. Joint/morph data is transported as re-parsed JSON strings. There is no scene serialization, no working prefab system (the type is a dead stub), no Children component, no setParent-preserving-world helper. The engine gives you primitives but not the ergonomic runtime layer users expect.
-- **No content-creation or human-in-the-loop surface (editor, UI, particles, text)** — Aperture is optimized for AI agents and headless verification, but a SOTA general engine needs human authoring and rich on-screen content. There is no visual scene editor, no human devtools/inspector panel (devtools are agent-gated), no on-screen stats overlay, no gizmos/orbit controls (every app hand-rolls camera control), no framework integration (React/R3F/Vue). On the content side there are no particles, no text/SDF, no 2D/3D UI/GUI, no decals, no volumetrics, and only spherical-billboard sprites. These are not feature-checklist trivia - they are what 90% of real apps need.
-- **Unconsumable as a dependency / no ecosystem** — All 7 packages are private:true, version 0.0.0, license UNLICENSED, with no LICENSE, no CI/release pipeline, no exports polish for publish, and the scaffolder emits workspace:\* deps that are non-installable externally. There is no npm presence, CDN, docs site, generated API reference, hosted example gallery (examples are an internal harness), or HMR for systems. No third party can currently consume or extend the engine at all - a hard precondition for any 'SOTA engine' positioning regardless of technical merit.
-- **Shading correctness shortcuts undercut the otherwise-strong PBR** — The lighting breadth is real but several core terms are admitted approximations rather than physically based: specular IBL is a hand-tuned 'iblSpecularProof' with no split-sum DFG/BRDF LUT and no energy conservation; diffuse IBL convolution is planned but inert (raw cube sampled by normal); transmission is a screen-space grab-blur hack with no IOR/thickness/Beer-Lambert; SSAO darkens direct light too; SSR is color-buffer-only with a hardcoded screen-Y receiver mask; shadows can never be fully dark (0.45-0.5 visibility floor) and use fixed bias with authored bias/normalBias as dead data. Individually minor-to-major, collectively they mean output is stylized-plausible, not reference-correct - a credibility gap for a SOTA claim.
+- **Render pipeline maturity is now the main rendering axis** — Many formerly
+  unwired features are live, but some systems still need cleaner cache lifetime,
+  phase taxonomy cleanup, feature polish, and broader frame-graph/GPU-driven
+  follow-through before Aperture can claim top-tier scalability.
+- **Authoring and product ergonomics still lag the technical core** — The
+  default Vite app path, descriptor systems, typed assets, input actions,
+  scene/prefab serialization, material mutation, controllers, UI, text, and
+  particles exist, but a polished editor, generated API reference, hosted docs,
+  richer examples gallery, HMR-quality app workflow, and human-centered
+  inspection surfaces remain incomplete.
+- **Physics is useful but not complete** — Rapier is the current production
+  backend, simulation-worker physics is the default proof path, and the
+  transferable dedicated-worker route is preserved as a proof route. Remaining
+  gaps are advanced semantics such as enforceable motor force caps, automatic
+  break-force behavior, native joint impulse readback, broader paired non-fixed
+  joint frame semantics, and asset-collider V2 scale/dynamic policies.
+- **WebXR is a planned boundary-preserving mode, not an implemented feature** —
+  `docs/WEBXR_IMPLEMENTATION_PLAN.md` and `docs/DECISIONS.md` now define the
+  WebXR direction, but there is no XR session shell, projection-layer target,
+  late per-eye view override, or XR input route yet.
+- **Ongoing cleanup still matters** — The codebase has accumulated historical
+  plans, test-only public helpers, duplicate utilities, and stale docs. The
+  remediation plan in `docs/CODE_AUDIT_REMEDIATION_PLAN.md` is the active source
+  for removing that drift without deleting live proof routes.
 
 ### Architectural invariants (do not violate while closing gaps)
 

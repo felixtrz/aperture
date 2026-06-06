@@ -615,7 +615,7 @@ Suggested validation: `pnpm run check:examples`, `pnpm run check:progress`,
 
 ### DOC-02 - Rewrite stale SOTA "stands today" blockquote
 
-- Status: confirmed-open.
+- Status: completed 2026-06-06.
 - File: `docs/SOTA_ROADMAP.md`.
 - Problem: blockquote still claims missing features that now exist, including
   submitted shadows, KTX2 wiring, populated spatial index, scene serialization,
@@ -724,8 +724,8 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 19    |
-| Confirmed open / executable           | 18    |
+| Completed                             | 20    |
+| Confirmed open / executable           | 17    |
 | Needs refinement but actionable       | 11    |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |
