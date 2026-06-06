@@ -33123,3 +33123,32 @@ Validation:
 - `pnpm exec tsc -p tsconfig.test.json --noEmit`
 - `pnpm exec vitest run test/physics-havok/benchmark.test.ts test/physics/benchmark.test.ts test/physics-rapier/benchmark.test.ts`
 - `pnpm exec playwright test test/e2e/physics-benchmark.spec.ts --reporter=list`
+
+## Rapier asset-backed colliders and large-scale physics
+
+Completed: 2026-06-06 11:52 PDT
+
+Summary:
+
+- Added backend-neutral collider geometry contracts in `@aperture-engine/physics`
+  for triangle meshes and heightfields.
+- Added an app-owned geometry provider that adapts ready render `MeshAsset` CPU
+  geometry through the render spatial adapter, caches by asset version, and
+  reports missing/not-ready/invalid diagnostics.
+- Extended the Rapier backend to cook provider-backed `convexHull`, static
+  `trimesh`, and static `heightfield` colliders.
+- Kept V1 unsupported semantics explicit for no-provider asset shapes,
+  missing/invalid assets, dynamic non-convex asset colliders, and non-unit
+  asset-collider scale.
+- Added generated-worker pause/snapshot/edit/`ecs_step_and_diff`/query/diff
+  proof coverage for a cooked asset-backed `trimesh` collider.
+- Added `examples/physics-large-scale.html` plus E2E coverage for asset-backed
+  terrain and 256 dynamic bodies in the simulation-worker route.
+- Updated the physics plan, implementation plan, backend comparison, SOTA
+  roadmap, public tracker, handoff, backlog, and current task.
+
+Validation:
+
+- `pnpm exec vitest run test/app/physics-collider-geometry.test.ts test/physics-rapier/rapier-backend.test.ts test/app/generated-worker-start.test.ts`
+- `pnpm exec playwright test test/e2e/physics-large-scale.spec.ts --reporter=line`
+- `pnpm run check`

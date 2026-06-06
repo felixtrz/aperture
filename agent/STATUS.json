@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "43d49e04",
   "activePid": null,
-  "notes": "Planned the asset-backed collider route, deprioritized dedicated-worker benchmarking, and updated the recommended next physics task toward a large-scale simulation-worker example.",
-  "lastRunFinishedAt": "2026-06-06T17:20:58Z"
+  "notes": "Completed Rapier asset-backed collider V1: backend-neutral geometry contracts, app-owned mesh/heightfield provider, Rapier convexHull/static trimesh/static heightfield cooking, generated-worker pause-step-query-diff proof, large-scale simulation-worker browser example, docs/tracker/handoff updates, focused Vitest, Playwright large-scale, and pnpm run check green.",
+  "lastRunFinishedAt": "2026-06-06T18:54:49Z"
 }

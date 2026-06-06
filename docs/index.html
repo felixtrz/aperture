@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-06 17:13 UTC</dd>
+            <dd>2026-06-06 18:52 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -479,15 +479,17 @@
               authored, and the async Rapier generated-worker proof pauses,
               mutates CCD, steps physics, and diffs the authored flag plus
               <code>PhysicsBodyState</code> writeback without resuming the
-              dedicated third-worker route. Asset-backed collider authoring is
-              now honest on that route too: <code>convexHull</code>,
-              <code>trimesh</code>, and <code>heightfield</code> colliders
-              report
-              <code>physics.collider.assetShape.unsupported</code> instead of
-              crashing Rapier or using fake deterministic fallback bounds, and
-              the generated-worker proof mutates a collider to
-              <code>trimesh</code>, steps physics, sees the sync limitation, and
-              diffs the durable <code>physicsCollider</code> authoring. Parented
+              dedicated third-worker route. Asset-backed collider authoring now
+              cooks real Rapier shapes on that route too:
+              <code>convexHull</code>, static <code>trimesh</code>, and static
+              <code>heightfield</code> colliders resolve through an app-owned
+              geometry provider, while no-provider, missing/not-ready/invalid
+              asset, dynamic non-convex, and non-unit scale cases remain
+              structured diagnostics. The generated-worker proof mutates a
+              paused collider to <code>trimesh</code>, steps physics, raycasts
+              the cooked terrain, and diffs durable
+              <code>physicsRigidBody</code>, <code>physicsCollider</code>, and
+              <code>physicsBodyState</code> authoring/writeback. Parented
               <code>RigidBody</code> authoring now works through the
               simulation-worker ECS route too:
               <code>stepPhysicsWorld(...)</code> resolves transforms before
@@ -553,12 +555,13 @@
               step/writeback plus worker-owned raycast, overlap/shape/point
               query, character movement, sleep/wake, and debug-geometry actions;
               the simulation-worker route remains the primary
-              pause/snapshot/edit-or-command/step/diff workflow while the next
-              product focus moves to asset-backed colliders and a large-scale
-              simulation example. Generic joint descriptors now report
-              <code>physics.joint.unsupported</code> and clear stale backend
-              constraints instead of throwing or leaving old constraints active.
-              PHYS-11 now also exposes JSON-safe debug summaries:
+              pause/snapshot/edit-or-command/step/diff workflow. Asset-backed
+              colliders and the large-scale simulation example are now covered
+              on that route; remaining physics product focus moves back to
+              enforceable joint/gameplay semantics. Generic joint descriptors
+              now report <code>physics.joint.unsupported</code> and clear stale
+              backend constraints instead of throwing or leaving old constraints
+              active. PHYS-11 now also exposes JSON-safe debug summaries:
               <code>context.physics.debugSummary()</code> and generated-worker
               <code>physics_debug_summary</code> report line counts,
               finite/invalid counts, color buckets, and bounds over the same
@@ -1060,10 +1063,11 @@
               rotation writeback, or additional joint/gameplay semantics through
               that harness. Use the dedicated Rapier physics-worker route for
               transfer and worker-owned-action coverage, but keep the generated
-              simulation worker as the default developer route. Next focus is
-              asset-backed collider cooking plus a large-scale physics example;
-              resume <code>M10-T3</code> WebXR separately when physics no longer
-              needs this focus.
+              simulation worker as the default developer route. Asset-backed
+              collider cooking plus the large-scale physics example are covered;
+              resume remaining joint/gameplay physics semantics next, and resume
+              <code>M10-T3</code> WebXR separately when physics no longer needs
+              that focus.
             </dd>
           </dl>
         </aside>
@@ -4872,15 +4876,13 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Implement Rapier
-                asset-backed collider cooking for ECS-authored
-                <code>convexHull</code>, <code>trimesh</code>, and static
-                <code>heightfield</code> colliders, then prove the path through
-                generated-worker pause/snapshot/edit-or-command/step/query/diff
-                and a large-scale simulation-worker browser example with
-                asset-backed terrain plus hundreds of dynamic bodies. Keep the
-                dedicated Rapier physics-worker route supported, but do not make
-                route comparison the next product task.
+                <span class="badge amber">next</span> Continue remaining M10
+                physics semantics: enforceable motor force caps, automatic
+                <code>breakForce</code>/impulse-driven joint breaks, native
+                joint impulse readback, and broader paired non-fixed joint-frame
+                semantics. Keep using the generated simulation-worker
+                pause/snapshot/edit-or-command/step/query/diff route as the
+                default proof harness.
               </li>
               <li>
                 <span class="badge green">done</span> Custom WGSL mixed

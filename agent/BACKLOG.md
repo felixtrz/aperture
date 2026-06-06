@@ -59,37 +59,28 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Implement Rapier asset-backed collider cooking and prove it with a large-scale
-simulation-worker physics example.
+Continue remaining M10 joint/gameplay semantics in the generated
+simulation-worker route.
 
 Category: `simulation`
 
-Reference anchor: `references/bevy/crates/bevy_mesh/src/lib.rs`,
-`references/bevy/crates/bevy_mesh/src/index.rs`, existing
-`packages/render/src/mesh/spatial-adapter.ts`, and
-`packages/physics-rapier/src/colliders.ts`.
+Reference anchor: `references/bevy/crates/bevy_app/src/main_schedule.rs`,
+`references/engine/src/framework/components/joint/component.js`,
+`references/engine/src/framework/components/rigid-body/system.js`, current
+`packages/physics/src/backend.ts`, and
+`packages/physics-rapier/src/joints.ts`.
 
 Acceptance criteria:
 
-- `@aperture-engine/physics` exposes a backend-neutral collider geometry
-  provider contract without importing render/app/Rapier packages.
-- Rapier cooks ECS-authored `convexHull`, `trimesh`, and static `heightfield`
-  colliders from provider geometry, while missing/invalid assets remain
-  structured diagnostics.
-- Generated-worker pause/snapshot/edit-or-command/step/query/diff proves at
-  least one real asset-backed collider path.
-- `examples/physics-large-scale.html` publishes JSON status for a larger
-  simulation-worker scene with asset-backed terrain and hundreds of dynamic
-  primitive bodies.
-- Playwright coverage proves the large-scale route renders non-clear WebGPU
-  pixels, reports Rapier simulation-worker execution, nonzero body/collider and
-  writeback counts, and zero asset-shape unsupported features.
-
-Follow-up visible-feature task:
-
-Continue remaining M10 physics semantics: enforceable motor force caps,
-automatic `breakForce` / impulse-driven joint breaks, native joint impulse
-readback, and broader paired non-fixed joint frame semantics.
+- Implement one remaining joint/gameplay semantic as a concrete vertical slice:
+  enforceable motor force caps, automatic `breakForce` / impulse-driven joint
+  breaks, native joint impulse readback, or broader paired non-fixed joint frame
+  semantics.
+- Keep unsupported backend limitations truthful through structured diagnostics
+  when enforcement/readback is not possible.
+- Generated-worker pause/snapshot/edit-or-command/`ecs_step` or
+  `ecs_step_and_diff`/query/`ecs_diff` proves the behavior from ECS state.
+- Focused backend/generated-worker tests and `pnpm run check` pass.
 
 ## Historical M10 Physics Notes
 
@@ -184,13 +175,14 @@ while the deterministic backend reports
 generated-worker proof mutates CCD while paused, steps fixed physics in the
 simulation worker, and diffs `physicsRigidBody.ccdEnabled` plus
 `PhysicsBodyState` writeback.
-Asset-backed collider authoring is now explicit on the same route:
-`convexHull`, `trimesh`, and `heightfield` colliders report
-`physics.collider.assetShape.unsupported`; current deterministic/Rapier
-backends remove stale backend bodies and skip unsupported asset colliders
-instead of throwing or using fake primitive bounds. The async Rapier
-generated-worker proof mutates a collider to `trimesh`, steps fixed physics,
-sees the sync limitation, and diffs the durable `physicsCollider` authoring.
+Asset-backed collider authoring now cooks real Rapier shapes on the same route:
+provider-backed `convexHull`, static `trimesh`, and static `heightfield`
+colliders sync through the app-owned geometry provider, while no-provider,
+missing/not-ready/invalid asset, dynamic non-convex, and non-unit scale cases
+remain structured diagnostics instead of fake primitive fallbacks. The async
+Rapier generated-worker proof mutates a collider to `trimesh`, steps fixed
+physics, raycasts the cooked terrain, and diffs durable `physicsRigidBody`,
+`physicsCollider`, and `PhysicsBodyState` authoring/writeback.
 Parented `RigidBody` authoring now works on the same simulation-worker ECS
 route: physics sync resolves `WorldTransform` before backend sync, sends
 backend world poses, and writes results back as parent-local `LocalTransform`

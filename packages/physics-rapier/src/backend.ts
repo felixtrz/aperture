@@ -10,6 +10,7 @@ import {
   type PhysicsCharacterMove,
   type PhysicsCharacterMoveResult,
   type PhysicsCommandBuffer,
+  type PhysicsColliderGeometryProvider,
   type PhysicsDebugGeometry,
   type PhysicsDebugLine,
   type PhysicsDebugOptions,
@@ -39,6 +40,7 @@ import {
 import {
   colliderCount,
   colliderMatchForCollider,
+  isRapierColliderSyncError,
   primaryCollider,
 } from "./colliders.js";
 import {
@@ -86,6 +88,7 @@ import {
 export interface RapierPhysicsBackendOptions {
   readonly gravity?: PhysicsVec3;
   readonly execution?: PhysicsExecutionMode;
+  readonly colliderGeometryProvider?: PhysicsColliderGeometryProvider;
 }
 
 export function createRapierPhysicsBackend(
@@ -97,6 +100,7 @@ export function createRapierPhysicsBackend(
   const joints = new Map<string, RapierJointEntry>();
   const activePairs = new Map<string, RapierEventPair>();
   let pendingEvents: PhysicsEvent[] = [];
+  let colliderGeometryProvider = options.colliderGeometryProvider;
   let world: RAPIER.World | null = null;
   let eventQueue: RAPIER.EventQueue | null = null;
   let initialized = false;
@@ -118,6 +122,8 @@ export function createRapierPhysicsBackend(
       await RAPIER.init({});
       const nextGravity = initOptions.gravity ?? gravity;
       execution = initOptions.execution ?? execution;
+      colliderGeometryProvider =
+        initOptions.colliderGeometryProvider ?? colliderGeometryProvider;
       world = new RAPIER.World(vec(nextGravity));
       eventQueue = new RAPIER.EventQueue(true);
       initialized = true;
@@ -138,9 +144,12 @@ export function createRapierPhysicsBackend(
     sync(buffer: PhysicsCommandBuffer): PhysicsSyncReport {
       const start = performanceNow();
       const rapierWorld = requireWorld(world, initialized);
+      const assetBackedColliders =
+        colliderGeometryProvider === undefined ? "unsupported" : "provider";
       const unsupportedFeatures = collectUnsupportedPhysicsCommandFeatures(
         "rapier",
         buffer,
+        { assetBackedColliders },
       );
 
       for (const command of buffer.commands) {
@@ -149,10 +158,27 @@ export function createRapierPhysicsBackend(
             rapierWorld.gravity = vec(command.gravity);
             break;
           case "upsertBody":
-            if (physicsBodyCommandHasUnsupportedSyncFeature(command)) {
+            if (
+              physicsBodyCommandHasUnsupportedSyncFeature(command, {
+                assetBackedColliders,
+              })
+            ) {
               destroyBody(rapierWorld, bodies, joints, command.entity);
             } else {
-              upsertBody(rapierWorld, bodies, joints, command);
+              try {
+                upsertBody(rapierWorld, bodies, joints, command, {
+                  ...(colliderGeometryProvider === undefined
+                    ? {}
+                    : { colliderGeometryProvider }),
+                });
+              } catch (error: unknown) {
+                if (!isRapierColliderSyncError(error)) {
+                  throw error;
+                }
+
+                unsupportedFeatures.push(error.feature);
+                destroyBody(rapierWorld, bodies, joints, command.entity);
+              }
             }
             break;
           case "destroyBody":

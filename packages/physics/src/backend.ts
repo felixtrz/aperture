@@ -1,13 +1,14 @@
+import { PhysicsRigidBodyType } from "./components.js";
 import type {
   PhysicsJointKind,
   PhysicsJointMotorMode,
   PhysicsJointMotorModel,
   PhysicsMaterialCombineRule,
   PhysicsQuat,
-  PhysicsRigidBodyType,
   PhysicsShape,
   PhysicsVec3,
 } from "./components.js";
+import type { PhysicsColliderGeometryProvider } from "./collider-geometry.js";
 
 export type PhysicsBackendKind = "rapier" | "test";
 
@@ -82,6 +83,7 @@ export interface PhysicsExternalImpulseValue {
 export interface PhysicsColliderDescriptor {
   readonly entity?: PhysicsEntityRef;
   readonly shape: PhysicsShape;
+  readonly scale?: PhysicsVec3;
   readonly offsetTranslation?: PhysicsVec3;
   readonly offsetRotation?: PhysicsQuat;
   readonly sensor?: boolean;
@@ -120,6 +122,7 @@ export interface PhysicsJointDescriptor {
 export interface PhysicsBackendInit {
   readonly gravity?: PhysicsVec3;
   readonly execution?: PhysicsExecutionMode;
+  readonly colliderGeometryProvider?: PhysicsColliderGeometryProvider;
 }
 
 export type PhysicsCommand =
@@ -218,6 +221,13 @@ export type PhysicsUnsupportedFeatureCode =
   | "physics.rigidBody.ccd.unsupported"
   | "physics.rigidBody.parentedBody.unsupported"
   | "physics.collider.assetShape.unsupported"
+  | "physics.collider.asset.missing"
+  | "physics.collider.asset.notReady"
+  | "physics.collider.asset.invalid"
+  | "physics.collider.asset.empty"
+  | "physics.collider.scale.unsupported"
+  | "physics.collider.dynamicAssetShape.unsupported"
+  | "physics.collider.cooking.failed"
   | "physics.joint.unsupported"
   | "physics.characterController.unsupported"
   | "physics.debugGeometry.unsupported"
@@ -232,6 +242,7 @@ export interface PhysicsUnsupportedFeature {
   readonly backend: PhysicsBackendKind;
   readonly entity: PhysicsEntityRef;
   readonly value?: number;
+  readonly details?: Readonly<Record<string, unknown>>;
   readonly message: string;
   readonly suggestedFix: string;
 }
@@ -469,9 +480,14 @@ export interface PhysicsBackend {
   debugGeometry?(options?: PhysicsDebugOptions): PhysicsDebugGeometry;
 }
 
+export interface PhysicsUnsupportedFeatureCollectionOptions {
+  readonly assetBackedColliders?: "unsupported" | "provider";
+}
+
 export function collectUnsupportedPhysicsCommandFeatures(
   backend: PhysicsBackendKind,
   buffer: PhysicsCommandBuffer,
+  options: PhysicsUnsupportedFeatureCollectionOptions = {},
 ): PhysicsUnsupportedFeature[] {
   const features: PhysicsUnsupportedFeature[] = [];
 
@@ -482,6 +498,7 @@ export function collectUnsupportedPhysicsCommandFeatures(
           backend,
           command.entity,
           command,
+          options,
         ),
       );
       continue;
@@ -505,6 +522,7 @@ export function collectUnsupportedPhysicsBodyFeatures(
   backend: PhysicsBackendKind,
   entity: PhysicsEntityRef,
   body: Extract<PhysicsCommand, { readonly kind: "upsertBody" }>,
+  options: PhysicsUnsupportedFeatureCollectionOptions = {},
 ): PhysicsUnsupportedFeature[] {
   const features: PhysicsUnsupportedFeature[] = [];
 
@@ -544,15 +562,49 @@ export function collectUnsupportedPhysicsBodyFeatures(
 
     const colliderEntity = collider.entity ?? entity;
 
-    features.push({
-      code: "physics.collider.assetShape.unsupported",
-      feature: `collider.${collider.shape.kind}`,
-      backend,
-      entity: colliderEntity,
-      message: `Collider shape '${collider.shape.kind}' is authored, but the active backend does not yet sync asset-backed collider geometry.`,
-      suggestedFix:
-        "Use primitive colliders for now, or keep this collider out of active physics scenes until mesh/heightfield collider cooking is implemented for the active backend.",
-    });
+    if (options.assetBackedColliders !== "provider") {
+      features.push({
+        code: "physics.collider.assetShape.unsupported",
+        feature: `collider.${collider.shape.kind}`,
+        backend,
+        entity: colliderEntity,
+        message: `Collider shape '${collider.shape.kind}' is authored, but the active backend does not yet sync asset-backed collider geometry.`,
+        suggestedFix:
+          "Use primitive colliders for now, or provide backend collider geometry cooking for the active backend.",
+      });
+      continue;
+    }
+
+    if (assetColliderHasUnsupportedScale(collider)) {
+      features.push({
+        code: "physics.collider.scale.unsupported",
+        feature: `collider.${collider.shape.kind}.scale`,
+        backend,
+        entity: colliderEntity,
+        message: `Collider shape '${collider.shape.kind}' is asset-backed and authored with non-unit ECS scale, but this V1 sync path does not silently bake scale into backend collider geometry.`,
+        suggestedFix:
+          "Bake scale into the source mesh or heightfield asset and keep the physics collider entity scale at [1, 1, 1].",
+        details: {
+          scale: collider.scale,
+        },
+      });
+    }
+
+    if (
+      (collider.shape.kind === "trimesh" ||
+        collider.shape.kind === "heightfield") &&
+      body.bodyType !== PhysicsRigidBodyType.Static
+    ) {
+      features.push({
+        code: "physics.collider.dynamicAssetShape.unsupported",
+        feature: `collider.${collider.shape.kind}.dynamicBody`,
+        backend,
+        entity: colliderEntity,
+        message: `Collider shape '${collider.shape.kind}' is only supported on static bodies in this V1 asset-backed collider path.`,
+        suggestedFix:
+          "Use a static body for trimesh/heightfield terrain, or use a convexHull collider for dynamic mesh-shaped bodies.",
+      });
+    }
   }
 
   return features;
@@ -650,10 +702,24 @@ function backendSupportsContinuousCollisionDetection(
 
 export function physicsBodyCommandHasUnsupportedAssetCollider(
   body: Extract<PhysicsCommand, { readonly kind: "upsertBody" }>,
+  options: PhysicsUnsupportedFeatureCollectionOptions = {},
 ): boolean {
-  return colliderDescriptorsForBodyCommand(body).some((collider) =>
-    isAssetBackedColliderShape(collider.shape),
-  );
+  return colliderDescriptorsForBodyCommand(body).some((collider) => {
+    if (!isAssetBackedColliderShape(collider.shape)) {
+      return false;
+    }
+
+    if (options.assetBackedColliders !== "provider") {
+      return true;
+    }
+
+    return (
+      assetColliderHasUnsupportedScale(collider) ||
+      ((collider.shape.kind === "trimesh" ||
+        collider.shape.kind === "heightfield") &&
+        body.bodyType !== PhysicsRigidBodyType.Static)
+    );
+  });
 }
 
 export function physicsBodyCommandHasUnsupportedParentedBody(
@@ -664,9 +730,10 @@ export function physicsBodyCommandHasUnsupportedParentedBody(
 
 export function physicsBodyCommandHasUnsupportedSyncFeature(
   body: Extract<PhysicsCommand, { readonly kind: "upsertBody" }>,
+  options: PhysicsUnsupportedFeatureCollectionOptions = {},
 ): boolean {
   return (
-    physicsBodyCommandHasUnsupportedAssetCollider(body) ||
+    physicsBodyCommandHasUnsupportedAssetCollider(body, options) ||
     physicsBodyCommandHasUnsupportedParentedBody(body)
   );
 }
@@ -706,6 +773,19 @@ function isAssetBackedColliderShape(shape: PhysicsShape): boolean {
     case "cone":
       return false;
   }
+}
+
+function assetColliderHasUnsupportedScale(
+  collider: PhysicsColliderDescriptor,
+): boolean {
+  const scale = collider.scale;
+
+  return (
+    scale !== undefined &&
+    (Math.abs(scale[0] - 1) > 0.000001 ||
+      Math.abs(scale[1] - 1) > 0.000001 ||
+      Math.abs(scale[2] - 1) > 0.000001)
+  );
 }
 
 export function createUnsupportedJointImpulseReadbackFeature(

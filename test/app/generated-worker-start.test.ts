@@ -32,6 +32,8 @@ import {
   stepPhysicsWorld,
   type PhysicsEvent,
   type PhysicsBackend,
+  type PhysicsColliderGeometryProvider,
+  type PhysicsTriangleMeshGeometry,
 } from "@aperture-engine/physics";
 import { createRapierPhysicsBackend } from "@aperture-engine/physics-rapier";
 import { createTestPhysicsBackend } from "@aperture-engine/physics/testing";
@@ -5659,12 +5661,12 @@ describe("generated simulation worker start messages", () => {
     });
   });
 
-  it("reports paused asset-backed collider edits in async Rapier generated workers", async () => {
+  it("steps, queries, and diffs paused asset-backed collider edits in async Rapier generated workers", async () => {
     const port = new TestGeneratedWorkerPort();
 
     startGeneratedSimulationWorker({
       config: defineApertureConfig({ mode: "headless", systems: [] }),
-      systems: [{ default: GeneratedWorkerRapierPhysicsProofSystem }],
+      systems: [{ default: GeneratedWorkerRapierAssetColliderProofSystem }],
       port,
     });
     port.dispatch({
@@ -5678,7 +5680,7 @@ describe("generated simulation worker start messages", () => {
     await port.nextPostedMessage(isSimulationWorkerSnapshotMessage);
     const query = {
       key: "physics.rapier.body",
-      withComponents: [RigidBody.id, Collider.id, PhysicsVelocity.id],
+      withComponents: [RigidBody.id, Collider.id],
     };
     const before = await waitForEntitySnapshot(port, {
       requestIdPrefix: "rapier-asset-collider-before",
@@ -5690,11 +5692,15 @@ describe("generated simulation worker start messages", () => {
       before.result as {
         readonly summaries: readonly [
           {
-            readonly entity: unknown;
+            readonly entity: {
+              readonly index: number;
+              readonly generation: number;
+            };
           },
         ];
       }
     ).summaries[0];
+    const bodyEntityRef = `${summary.entity.index}:${summary.entity.generation}`;
 
     expect(before).toMatchObject({
       ok: true,
@@ -5704,6 +5710,9 @@ describe("generated simulation worker start messages", () => {
         summaries: [
           {
             key: "physics.rapier.body",
+            physicsRigidBody: {
+              type: PhysicsRigidBodyType.Dynamic,
+            },
             physicsCollider: {
               shapeKind: PhysicsColliderShapeKind.Sphere,
               meshId: "",
@@ -5726,6 +5735,36 @@ describe("generated simulation worker start messages", () => {
     ).toMatchObject({
       ok: true,
       result: { paused: true },
+    });
+    port.dispatch(
+      createApertureDevtoolsRequest({
+        requestId: "rapier-asset-collider-static",
+        tool: "ecs_set_component_field",
+        payload: {
+          entity: summary.entity,
+          component: RigidBody.id,
+          field: "type",
+          value: PhysicsRigidBodyType.Static,
+        },
+      }),
+    );
+    expect(
+      await port.nextPostedMessage(
+        devtoolsResponseWithId("rapier-asset-collider-static"),
+      ),
+    ).toMatchObject({
+      ok: true,
+      result: {
+        component: RigidBody.id,
+        field: "type",
+        value: PhysicsRigidBodyType.Static,
+        summary: {
+          key: "physics.rapier.body",
+          physicsRigidBody: {
+            type: PhysicsRigidBodyType.Static,
+          },
+        },
+      },
     });
     port.dispatch(
       createApertureDevtoolsRequest({
@@ -5785,88 +5824,111 @@ describe("generated simulation worker start messages", () => {
 
     port.dispatch(
       createApertureDevtoolsRequest({
-        requestId: "rapier-asset-collider-step",
-        tool: "ecs_step",
-        payload: { delta: 0.1 },
+        requestId: "rapier-asset-collider-step-and-diff",
+        tool: "ecs_step_and_diff",
+        payload: {
+          delta: 0.1,
+          label: "rapier-asset-collider-after",
+          query,
+        },
       }),
     );
-    expect(
-      await port.nextPostedMessage(
-        devtoolsResponseWithId("rapier-asset-collider-step"),
-      ),
-    ).toMatchObject({
+    const stepAndDiff = (await port.nextPostedMessage(
+      devtoolsResponseWithId("rapier-asset-collider-step-and-diff"),
+    )) as DevtoolsStepAndDiffResponseMessage;
+
+    expect(stepAndDiff).toMatchObject({
       ok: true,
       result: {
-        fixedStep: {
-          substeps: 6,
-          fixedDelta: 1 / 60,
+        step: {
+          fixedStep: {
+            substeps: 6,
+            fixedDelta: 1 / 60,
+          },
+          physics: {
+            backend: {
+              kind: "rapier",
+              execution: "simulation-worker",
+            },
+            sync: {
+              bodyCount: 1,
+              colliderCount: 1,
+              unsupportedFeatureCount: 0,
+              unsupportedFeatures: [],
+            },
+            unsupportedFeatureCount: 0,
+            unsupportedFeatures: [],
+            writeback: {
+              missingEntities: 0,
+            },
+          },
         },
-        physics: {
-          backend: {
-            kind: "rapier",
-            execution: "simulation-worker",
+        diff: {
+          fromLabel: "rapier-asset-collider-before",
+          toLabel: "rapier-asset-collider-after",
+          counts: {
+            added: 0,
+            removed: 0,
+            changed: 1,
+            unchanged: 0,
           },
-          sync: {
-            unsupportedFeatureCount: 1,
-            unsupportedFeatures: [
-              {
-                code: "physics.collider.assetShape.unsupported",
-                feature: "collider.trimesh",
-                backend: "rapier",
-                entity: expect.any(String),
-              },
-            ],
-          },
-          unsupportedFeatureCount: 1,
-          unsupportedFeatures: [
+          changed: [
             {
-              code: "physics.collider.assetShape.unsupported",
-              feature: "collider.trimesh",
-              backend: "rapier",
-              entity: expect.any(String),
+              fields: expect.arrayContaining([
+                "componentIds",
+                "physicsRigidBody",
+                "physicsCollider",
+                "physicsBodyState",
+              ]),
+              after: {
+                key: "physics.rapier.body",
+                componentIds: expect.arrayContaining([PhysicsBodyState.id]),
+                physicsRigidBody: {
+                  type: PhysicsRigidBodyType.Static,
+                },
+                physicsCollider: {
+                  shapeKind: PhysicsColliderShapeKind.Trimesh,
+                  meshId: "mesh:level",
+                },
+                physicsBodyState: {
+                  backendBodyId: expect.any(String),
+                },
+              },
             },
           ],
-          writeback: {
-            missingEntities: 0,
-          },
         },
       },
     });
 
     port.dispatch(
       createApertureDevtoolsRequest({
-        requestId: "rapier-asset-collider-after",
-        tool: "ecs_diff",
-        payload: { label: "rapier-asset-collider-after", query },
+        requestId: "rapier-asset-collider-raycast",
+        tool: "physics_raycast_first",
+        payload: {
+          origin: [0, 5, 0],
+          direction: [0, -1, 0],
+          maxDistance: 8,
+        },
       }),
     );
     expect(
       await port.nextPostedMessage(
-        devtoolsResponseWithId("rapier-asset-collider-after"),
+        devtoolsResponseWithId("rapier-asset-collider-raycast"),
       ),
     ).toMatchObject({
       ok: true,
       result: {
-        fromLabel: "rapier-asset-collider-before",
-        toLabel: "rapier-asset-collider-after",
-        counts: {
-          added: 0,
-          removed: 0,
-          changed: 1,
-          unchanged: 0,
+        hit: {
+          entity: bodyEntityRef,
+          collider: bodyEntityRef,
+          distance: expect.closeTo(3, 5),
         },
-        changed: [
-          {
-            fields: expect.arrayContaining(["physicsCollider"]),
-            after: {
-              key: "physics.rapier.body",
-              physicsCollider: {
-                shapeKind: PhysicsColliderShapeKind.Trimesh,
-                meshId: "mesh:level",
-              },
-            },
+        physics: {
+          backend: {
+            kind: "rapier",
+            execution: "simulation-worker",
           },
-        ],
+        },
       },
     });
   });
@@ -7356,6 +7418,111 @@ class GeneratedWorkerRapierPhysicsProofSystem extends GeneratedWorkerRapierPhysi
     this.physics.setBackend(null);
     super.destroy();
   }
+}
+
+class GeneratedWorkerRapierAssetColliderProofSystem extends GeneratedWorkerRapierPhysicsProofBase {
+  private backend: PhysicsBackend | null = null;
+  private disposeFixedStep: (() => void) | null = null;
+
+  override init(): void {
+    const backend = createRapierPhysicsBackend({
+      gravity: [0, 0, 0],
+      colliderGeometryProvider: createGeneratedWorkerAssetColliderProvider(),
+    });
+    const syncState = createPhysicsWorldSyncState();
+
+    this.disposeFixedStep = this.fixedStep.register((context) => {
+      if (this.backend === null) {
+        return;
+      }
+
+      const report = stepPhysicsWorld({
+        world: context.world,
+        backend: this.backend,
+        fixedDelta: context.fixedDelta,
+        fixedStep: context.fixedStep,
+        state: syncState,
+      });
+
+      this.physics.setStepReport(report);
+    });
+    void Promise.resolve(backend.init({ execution: "simulation-worker" }))
+      .then(() => {
+        this.backend = backend;
+        this.physics.setBackend(backend);
+        this.spawn.physics({
+          key: "physics.rapier.body",
+          name: "Rapier Generated Worker Asset Collider Body",
+          transform: { translation: [0, 2, 0] },
+          physics: {
+            rigidBody: { type: PhysicsRigidBodyType.Dynamic, canSleep: false },
+            collider: { shape: { kind: "sphere", radius: 0.25 } },
+          },
+        });
+      })
+      .catch((error: unknown) => {
+        this.diagnostics.error("aperture.physics.rapierInitFailed", {
+          message: error instanceof Error ? error.message : String(error),
+        });
+      });
+  }
+
+  override destroy(): void {
+    this.disposeFixedStep?.();
+    this.backend?.dispose();
+    this.physics.setBackend(null);
+    super.destroy();
+  }
+}
+
+function createGeneratedWorkerAssetColliderProvider(): PhysicsColliderGeometryProvider {
+  return {
+    triangleMesh(meshId) {
+      if (meshId !== "mesh:level") {
+        return {
+          ok: false,
+          error: {
+            code: "physics.collider.asset.missing",
+            feature: "collider.triangleMesh",
+            message: `Generated-worker physics test mesh '${meshId}' is not registered.`,
+            suggestedFix:
+              "Use mesh:level in this generated-worker asset-collider proof.",
+            details: { assetId: meshId },
+          },
+        };
+      }
+
+      return {
+        ok: true,
+        geometry: generatedWorkerLevelGeometry(meshId),
+      };
+    },
+    heightfield(assetId) {
+      return {
+        ok: false,
+        error: {
+          code: "physics.collider.asset.missing",
+          feature: "collider.heightfield",
+          message: `Generated-worker physics test heightfield '${assetId}' is not registered.`,
+          suggestedFix:
+            "Use triangle-mesh geometry for this generated-worker proof.",
+          details: { assetId },
+        },
+      };
+    },
+  };
+}
+
+function generatedWorkerLevelGeometry(
+  key: string,
+): PhysicsTriangleMeshGeometry {
+  return {
+    key,
+    positions: new Float32Array([-2, 0, -2, 2, 0, -2, -2, 0, 2, 2, 0, 2]),
+    indices: new Uint32Array([0, 2, 1, 2, 3, 1]),
+    vertexCount: 4,
+    triangleCount: 2,
+  };
 }
 
 class GeneratedWorkerRapierSleepProofSystem extends GeneratedWorkerRapierPhysicsProofBase {

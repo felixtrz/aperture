@@ -4,10 +4,10 @@ Updated: 2026-06-06
 
 ## Direction
 
-Asset-backed colliders are the next physics product slice. The goal is to make
-ECS-authored `convexHull`, `trimesh`, and `heightfield` colliders produce real
-Rapier colliders through the generated simulation-worker route, then prove the
-result in a large-scale browser physics example.
+Asset-backed colliders are the current implemented physics product slice. The
+goal was to make ECS-authored `convexHull`, `trimesh`, and `heightfield`
+colliders produce real Rapier colliders through the generated simulation-worker
+route, then prove the result in a large-scale browser physics example.
 
 The dedicated Rapier physics-worker route remains supported, but it is not the
 next focus. Do not spend the next slice benchmarking simulation-worker physics
@@ -23,24 +23,40 @@ stays:
 
 ## Current Source State
 
-The ECS authoring surface already has asset-backed shape kinds:
+The ECS authoring surface and Rapier path now have a V1 asset-backed collider
+implementation:
 
 - `packages/physics/src/components.ts` defines `PhysicsShape` variants for
   `convexHull`, `trimesh`, and `heightfield`.
 - `packages/physics/src/ecs-sync.ts` reads `Collider.meshId` and
-  `Collider.heightfieldAssetId` into backend-neutral collider descriptors.
-- `packages/physics/src/backend.ts` currently reports
-  `physics.collider.assetShape.unsupported` for those descriptors and skips
-  backend sync instead of throwing or using fake primitive bounds.
-- `packages/physics-rapier/src/colliders.ts` still throws if an asset-backed
-  shape reaches `colliderDesc(...)`.
+  `Collider.heightfieldAssetId` into backend-neutral collider descriptors, and
+  includes ECS scale so non-unit V1 asset-collider scale can be diagnosed.
+- `packages/physics/src/collider-geometry.ts` defines backend-neutral
+  triangle-mesh and heightfield geometry contracts plus structured geometry
+  errors.
+- `packages/app/src/physics-collider-geometry.ts` adapts registered render
+  `MeshAsset` CPU geometry into packed physics geometry, caches by asset version,
+  and returns missing/not-ready/invalid diagnostics instead of approximating.
+- `packages/physics/src/backend.ts` keeps the no-provider path honest with
+  `physics.collider.assetShape.unsupported`, and in provider mode rejects
+  dynamic `trimesh`/`heightfield` and non-unit asset-collider scale with
+  specific diagnostics.
+- `packages/physics-rapier/src/colliders.ts` cooks provider-backed
+  `convexHull`, static `trimesh`, and static `heightfield` descriptors into
+  real Rapier colliders.
 - `packages/render/src/mesh/spatial-adapter.ts` already converts a
   `MeshAsset` into a triangle-list `SpatialTriangleMesh` for CPU spatial
-  queries. That adapter is the closest existing shape for physics mesh
+  queries. The app physics provider reuses that adapter for physics mesh
   extraction.
 - Rapier 0.19.3 exposes `ColliderDesc.trimesh(...)`,
   `ColliderDesc.convexHull(...)`, `ColliderDesc.convexMesh(...)`, and
   `ColliderDesc.heightfield(...)`.
+- `test/app/generated-worker-start.test.ts` proves pause/snapshot/edit/step/query
+  and diff against a provider-backed asset collider in an async generated Rapier
+  simulation worker.
+- `examples/physics-large-scale.html` and
+  `test/e2e/physics-large-scale.spec.ts` prove a larger simulation-worker scene
+  with asset-backed terrain and hundreds of dynamic primitive bodies.
 
 Reference anchors:
 
@@ -57,8 +73,8 @@ Reference anchors:
 ## Reference Check
 
 Bevy does not ship a built-in physics collider implementation in these
-references, so use it for ECS scheduling and mesh asset extraction boundaries,
-not as a collider-cooking source. The relevant lessons are:
+references, so it is a reference for ECS scheduling and mesh asset extraction
+boundaries, not for collider cooking parity. The relevant lessons are:
 
 - `MeshPlugin` registers `Mesh` as an asset and marks mesh components changed
   after asset events.
@@ -212,7 +228,10 @@ Then update `packages/physics-rapier/src/colliders.ts`:
 - `trimesh`: fetch triangle mesh geometry by `meshId`, call
   `RAPIER.ColliderDesc.trimesh(vertices, indices, flags)`.
 - `heightfield`: fetch heightfield geometry by `assetId`, call
-  `RAPIER.ColliderDesc.heightfield(rows, columns, heights, scale, flags)`.
+  `RAPIER.ColliderDesc.heightfield(rows - 1, columns - 1, heights, scale,
+flags)`. Aperture's backend-neutral contract stores sample rows/columns;
+  Rapier's JS path expects cell counts with `(rows + 1) * (columns + 1)` height
+  samples.
 - Apply the existing collider translation, rotation, sensor/material/group, and
   event setup exactly like primitive colliders.
 
@@ -315,52 +334,50 @@ Validation target:
 
 ## Implementation Slices
 
-1. Backend-neutral geometry provider contracts
+1. Backend-neutral geometry provider contracts — done
    - Add provider/geometry types to `@aperture-engine/physics`.
    - Extend Rapier backend options without changing default behavior.
    - Tests prove no-provider behavior still reports unsupported asset shapes.
 
-2. Mesh-to-physics geometry adapter
+2. Mesh-to-physics geometry adapter — done
    - Build an app/render adapter around `createSpatialTriangleMeshFromMeshAsset`.
    - Pack positions/indices into contiguous arrays.
    - Add diagnostics for missing asset, unsupported topology, unsupported
      POSITION/index format, empty mesh, and non-unit physics scale.
 
-3. Rapier convex hull and trimesh cooking
+3. Rapier convex hull and trimesh cooking — done
    - Implement `convexHull` and static `trimesh` in `colliderDesc(...)`.
    - Add collider metadata/debug status for cooked shape kind and source key.
    - Replace successful asset-backed colliders in sync with real Rapier
      colliders instead of unsupported features.
 
-4. Heightfield contract and cooking
+4. Heightfield contract and cooking — done
    - Add a small heightfield asset/source contract.
    - Cook with `ColliderDesc.heightfield(...)`.
    - Prove queries/collisions against a static heightfield.
 
-5. Generated-worker pause/step/diff proof
+5. Generated-worker pause/step/diff proof — done
    - Wire the geometry provider into generated Rapier backend construction.
    - Prove asset-backed collider mutation and post-step query/writeback through
      `ecs_step_and_diff`.
 
-6. Large-scale example
+6. Large-scale example — done
    - Add the example route and E2E proof.
    - Keep status JSON concise and agent-readable.
    - Use deterministic scene construction so failures are reproducible.
 
-7. Docs/tracker cleanup
+7. Docs/tracker cleanup — done
    - Update `docs/PHYSICS_IMPLEMENTATION_PLAN.md`,
      `docs/SOTA_ROADMAP.md`, `docs/index.html`, and agent handoff/backlog.
 
 ## Acceptance Criteria
 
-The slice is complete when:
-
-- A Rapier simulation-worker scene can use a real `trimesh` or `heightfield`
-  collider from ECS asset-backed collider authoring.
-- Generated-worker devtools can pause, step, query, and diff that asset-backed
-  collider path.
-- Missing or invalid collider assets remain structured diagnostics.
-- Dynamic non-convex asset colliders do not silently run.
-- `examples/physics-large-scale.html` proves a larger scene with asset-backed
-  terrain and hundreds of dynamic bodies.
-- The new E2E test and `pnpm run check` pass.
+- [x] A Rapier simulation-worker scene can use a real `trimesh` or `heightfield`
+      collider from ECS asset-backed collider authoring.
+- [x] Generated-worker devtools can pause, step, query, and diff that asset-backed
+      collider path.
+- [x] Missing or invalid collider assets remain structured diagnostics.
+- [x] Dynamic non-convex asset colliders do not silently run.
+- [x] `examples/physics-large-scale.html` proves a larger scene with asset-backed
+      terrain and hundreds of dynamic bodies.
+- [x] The new E2E test and `pnpm run check` pass.

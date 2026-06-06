@@ -463,6 +463,7 @@ function cloneUnsupportedFeature(
     backend: feature.backend,
     entity: feature.entity,
     ...(feature.value === undefined ? {} : { value: feature.value }),
+    ...(feature.details === undefined ? {} : { details: feature.details }),
     message: feature.message,
     suggestedFix: feature.suggestedFix,
   };

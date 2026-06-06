@@ -673,3 +673,50 @@ Consequences:
 - Gameplay physics queries should stay synchronous in the simulation context;
   third-worker mode may provide cached synchronous results and optional
   async/editor queries, but not default promise-based gameplay raycasts.
+
+## 0019 — Asset-Backed Physics Colliders Use App-Owned Geometry Providers
+
+Date: 2026-06-06 (M10 physics asset-collider slice)
+
+Status: accepted
+
+Context:
+
+Aperture needs ECS-authored `convexHull`, `trimesh`, and `heightfield`
+colliders to cook into real Rapier shapes while preserving package boundaries:
+`@aperture-engine/physics` must stay backend-neutral, `@aperture-engine/physics-rapier`
+must not import app/render asset registries, and render mesh assets remain source
+assets rather than physics-owned scene graph nodes. The local Bevy reference is
+useful for fixed-step scheduling and explicit mesh extraction errors, but it
+does not provide built-in collider cooking. PlayCanvas does provide a direct
+asset-backed mesh collider reference: render/model meshes can become Ammo
+convex hulls or static triangle meshes, missing assets defer shape recreation,
+and mesh triangle data is cached.
+
+Decision:
+
+Asset-backed physics collider cooking goes through an app-owned
+`PhysicsColliderGeometryProvider`. The physics package defines only
+backend-neutral triangle-mesh and heightfield geometry contracts plus structured
+geometry errors. The app package adapts ready render `MeshAsset` CPU geometry
+through the existing spatial mesh adapter and caches packed physics geometry by
+asset version. Rapier consumes only that provider contract to cook
+`convexHull`, static `trimesh`, and static `heightfield` colliders.
+
+The V1 route deliberately rejects dynamic `trimesh`/`heightfield` bodies and
+non-unit ECS scale for asset-backed colliders with explicit unsupported-feature
+diagnostics. No backend silently approximates asset-backed colliders with
+primitive bounds.
+
+Consequences:
+
+- ECS collider authoring remains the durable source of truth.
+- Physics and Rapier stay free of app/render package dependencies.
+- Missing, loading, invalid, degenerate, dynamically unsafe, or unsupported-scale
+  asset-collider cases remain visible as structured diagnostics.
+- The generated simulation-worker route can pause, edit, step, query, and diff
+  provider-backed asset colliders without promoting the dedicated physics-worker
+  route.
+- Future work can add scale baking, async/decimated cooking, compound
+  submesh-level metadata, or dedicated-worker provider transport without
+  changing the durable ECS authoring shape.

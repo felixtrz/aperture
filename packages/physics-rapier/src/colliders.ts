@@ -2,9 +2,12 @@ import RAPIER from "@dimforge/rapier3d-compat";
 import {
   PhysicsMaterialCombineRule,
   type PhysicsColliderDescriptor,
+  type PhysicsColliderGeometryError,
+  type PhysicsColliderGeometryProvider,
   type PhysicsCommand,
+  type PhysicsUnsupportedFeature,
 } from "@aperture-engine/physics";
-import { quat } from "./math.js";
+import { quat, vec } from "./math.js";
 import { colliderShapeRotation } from "./shapes.js";
 import type {
   RapierBodyEntry,
@@ -12,8 +15,29 @@ import type {
   RapierColliderMatch,
 } from "./types.js";
 
+export interface RapierColliderDescOptions {
+  readonly colliderGeometryProvider?: PhysicsColliderGeometryProvider;
+}
+
+export class RapierColliderSyncError extends Error {
+  readonly feature: PhysicsUnsupportedFeature;
+
+  constructor(feature: PhysicsUnsupportedFeature) {
+    super(feature.message);
+    this.name = "RapierColliderSyncError";
+    this.feature = feature;
+  }
+}
+
+export function isRapierColliderSyncError(
+  error: unknown,
+): error is RapierColliderSyncError {
+  return error instanceof RapierColliderSyncError;
+}
+
 export function colliderDesc(
   collider: PhysicsColliderDescriptor,
+  options: RapierColliderDescOptions = {},
 ): RAPIER.ColliderDesc {
   const shape = collider.shape;
   let desc: RAPIER.ColliderDesc;
@@ -35,11 +59,54 @@ export function colliderDesc(
       desc = RAPIER.ColliderDesc.cone(shape.halfHeight, shape.radius);
       break;
     case "convexHull":
+      {
+        const geometry = requireTriangleMeshGeometry(collider, options);
+        const convexHull = RAPIER.ColliderDesc.convexHull(geometry.positions);
+
+        if (convexHull === null) {
+          throw new RapierColliderSyncError(
+            colliderFeature(collider, {
+              code: "physics.collider.cooking.failed",
+              feature: "collider.convexHull",
+              message: `Rapier could not cook convex hull collider geometry '${geometry.key}'.`,
+              suggestedFix:
+                "Use a non-empty, non-degenerate mesh with enough unique 3D points for convex hull cooking.",
+              details: {
+                geometryKey: geometry.key,
+                vertexCount: geometry.vertexCount,
+                triangleCount: geometry.triangleCount,
+              },
+            }),
+          );
+        }
+
+        desc = convexHull;
+      }
+      break;
     case "trimesh":
+      {
+        const geometry = requireTriangleMeshGeometry(collider, options);
+
+        desc = RAPIER.ColliderDesc.trimesh(
+          geometry.positions,
+          geometry.indices,
+          rapierTrimeshFlags(),
+        );
+      }
+      break;
     case "heightfield":
-      throw new Error(
-        `Rapier backend does not support '${shape.kind}' colliders in this slice.`,
-      );
+      {
+        const geometry = requireHeightfieldGeometry(collider, options);
+
+        desc = RAPIER.ColliderDesc.heightfield(
+          geometry.rows - 1,
+          geometry.columns - 1,
+          geometry.heights,
+          vec(geometry.scale),
+          RAPIER.HeightFieldFlags.FIX_INTERNAL_EDGES,
+        );
+      }
+      break;
   }
 
   if (collider.offsetTranslation !== undefined) {
@@ -85,6 +152,97 @@ export function colliderDesc(
   desc.setContactForceEventThreshold(0);
 
   return desc;
+}
+
+function requireTriangleMeshGeometry(
+  collider: PhysicsColliderDescriptor,
+  options: RapierColliderDescOptions,
+) {
+  const shape = collider.shape;
+
+  if (shape.kind !== "convexHull" && shape.kind !== "trimesh") {
+    throw new Error(`Expected mesh-backed collider, received '${shape.kind}'.`);
+  }
+
+  const result = options.colliderGeometryProvider?.triangleMesh(shape.meshId);
+
+  if (result === undefined) {
+    throw new RapierColliderSyncError(
+      colliderFeature(collider, {
+        code: "physics.collider.assetShape.unsupported",
+        feature: `collider.${shape.kind}`,
+        message: `Collider shape '${shape.kind}' is authored, but the Rapier backend was created without a collider geometry provider.`,
+        suggestedFix:
+          "Create the Rapier backend with a PhysicsColliderGeometryProvider that can resolve Collider.meshId.",
+        details: { meshId: shape.meshId },
+      }),
+    );
+  }
+
+  if (!result.ok) {
+    throw new RapierColliderSyncError(colliderFeature(collider, result.error));
+  }
+
+  return result.geometry;
+}
+
+function requireHeightfieldGeometry(
+  collider: PhysicsColliderDescriptor,
+  options: RapierColliderDescOptions,
+) {
+  const shape = collider.shape;
+
+  if (shape.kind !== "heightfield") {
+    throw new Error(
+      `Expected heightfield-backed collider, received '${shape.kind}'.`,
+    );
+  }
+
+  const result = options.colliderGeometryProvider?.heightfield(shape.assetId);
+
+  if (result === undefined) {
+    throw new RapierColliderSyncError(
+      colliderFeature(collider, {
+        code: "physics.collider.assetShape.unsupported",
+        feature: "collider.heightfield",
+        message:
+          "Collider shape 'heightfield' is authored, but the Rapier backend was created without a collider geometry provider.",
+        suggestedFix:
+          "Create the Rapier backend with a PhysicsColliderGeometryProvider that can resolve Collider.heightfieldAssetId.",
+        details: { assetId: shape.assetId },
+      }),
+    );
+  }
+
+  if (!result.ok) {
+    throw new RapierColliderSyncError(colliderFeature(collider, result.error));
+  }
+
+  return result.geometry;
+}
+
+function colliderFeature(
+  collider: PhysicsColliderDescriptor,
+  error: PhysicsColliderGeometryError,
+): PhysicsUnsupportedFeature {
+  return {
+    code: error.code,
+    feature: error.feature,
+    backend: "rapier",
+    entity: collider.entity ?? "unknown",
+    ...(error.details === undefined ? {} : { details: error.details }),
+    message: error.message,
+    suggestedFix: error.suggestedFix,
+  };
+}
+
+function rapierTrimeshFlags(): RAPIER.TriMeshFlags {
+  return (
+    RAPIER.TriMeshFlags.DELETE_BAD_TOPOLOGY_TRIANGLES |
+    RAPIER.TriMeshFlags.DELETE_DEGENERATE_TRIANGLES |
+    RAPIER.TriMeshFlags.DELETE_DUPLICATE_TRIANGLES |
+    RAPIER.TriMeshFlags.FIX_INTERNAL_EDGES
+  );
 }
 
 export function coefficientCombineRule(

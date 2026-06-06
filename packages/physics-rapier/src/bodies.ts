@@ -10,6 +10,7 @@ import {
   colliderDesc,
   colliderKeyFor,
   collidersForCommand,
+  type RapierColliderDescOptions,
 } from "./colliders.js";
 import { destroyJointsForBody } from "./joints.js";
 import { quat, vec, vec3 } from "./math.js";
@@ -20,6 +21,7 @@ export function upsertBody(
   bodies: Map<string, RapierBodyEntry>,
   joints: Map<string, RapierJointEntry>,
   command: Extract<PhysicsCommand, { readonly kind: "upsertBody" }>,
+  options: RapierColliderDescOptions = {},
 ): void {
   const bodyType = command.bodyType ?? PhysicsRigidBodyType.Dynamic;
   const colliderDescriptors = collidersForCommand(command);
@@ -41,17 +43,23 @@ export function upsertBody(
     return;
   }
 
+  const colliderDescs = colliderDescriptors.map((descriptor, index) => ({
+    entity:
+      descriptor.entity ??
+      (index === 0 ? command.entity : `${command.entity}#${index}`),
+    desc: colliderDesc(descriptor, options),
+    descriptor,
+  }));
+
   if (existing !== undefined) {
     destroyBody(world, bodies, joints, command.entity);
   }
 
   const body = world.createRigidBody(bodyDesc(command, bodyType));
-  const colliders = colliderDescriptors.map((descriptor, index) => ({
-    entity:
-      descriptor.entity ??
-      (index === 0 ? command.entity : `${command.entity}#${index}`),
-    collider: world.createCollider(colliderDesc(descriptor), body),
-    descriptor,
+  const colliders = colliderDescs.map((entry) => ({
+    entity: entry.entity,
+    collider: world.createCollider(entry.desc, body),
+    descriptor: entry.descriptor,
   }));
 
   const entry: RapierBodyEntry = {

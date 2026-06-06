@@ -28,7 +28,6 @@ import {
   type PhysicsSyncReport,
   type PhysicsTransform,
   createPhysicsResultBuffer,
-  physicsBodyCommandHasUnsupportedSyncFeature,
 } from "./backend.js";
 import {
   Collider,
@@ -145,10 +144,6 @@ export function collectPhysicsCommands(
     }
 
     const command = createUpsertBodyCommand(world, entity, ref, colliders);
-
-    if (physicsBodyCommandHasUnsupportedSyncFeature(command)) {
-      clearPhysicsBodyState(entity);
-    }
 
     seen.add(ref);
     commands.push(command);
@@ -299,8 +294,10 @@ export function applyPhysicsResultsToWorld(
   let velocityWrites = 0;
   let bodyStateWrites = 0;
   let missingEntities = 0;
+  const seenBodies = new Set<string>();
 
   for (const body of results.bodies) {
+    seenBodies.add(body.entity);
     const entity =
       entities.get(body.entity) ?? resolveEntityRef(world, body.entity);
 
@@ -336,6 +333,7 @@ export function applyPhysicsResultsToWorld(
     writePhysicsBodyState(entity, body);
     bodyStateWrites += 1;
   }
+  clearMissingPhysicsBodyStates(world, seenBodies);
 
   return {
     bodyCount: results.bodies.length,
@@ -344,6 +342,27 @@ export function applyPhysicsResultsToWorld(
     bodyStateWrites,
     missingEntities,
   };
+}
+
+function clearMissingPhysicsBodyStates(
+  world: EcsWorld,
+  seenBodies: ReadonlySet<string>,
+): void {
+  if (!world.hasComponent(PhysicsBodyState)) {
+    return;
+  }
+
+  const query = world.queryManager.registerQuery({
+    required: [RigidBody, PhysicsBodyState],
+  });
+
+  for (const entity of query.entities) {
+    if (!entity.active || seenBodies.has(serializeEntityRef(entity))) {
+      continue;
+    }
+
+    clearPhysicsBodyState(entity);
+  }
 }
 
 function localTransformFromPhysicsResult(
@@ -605,10 +624,14 @@ function createColliderDescriptor(
     collider,
     "restitutionCombine",
   );
+  const shape = readColliderShape(collider);
 
   return {
     entity: serializeEntityRef(collider),
-    shape: readColliderShape(collider),
+    shape,
+    ...(isAssetBackedColliderShape(shape)
+      ? { scale: readVec3(collider, LocalTransform, "scale") }
+      : {}),
     offsetTranslation: colliderOffsetTranslation(source),
     offsetRotation: colliderOffsetRotation(source),
     sensor: readBoolean(collider, Collider, "sensor"),
@@ -620,6 +643,21 @@ function createColliderDescriptor(
     collisionGroups: readNumber(collider, Collider, "collisionGroups"),
     solverGroups: readNumber(collider, Collider, "solverGroups"),
   };
+}
+
+function isAssetBackedColliderShape(shape: PhysicsShape): boolean {
+  switch (shape.kind) {
+    case "convexHull":
+    case "trimesh":
+    case "heightfield":
+      return true;
+    case "box":
+    case "sphere":
+    case "capsule":
+    case "cylinder":
+    case "cone":
+      return false;
+  }
 }
 
 function colliderOffsetTranslation(source: PhysicsColliderSource): PhysicsVec3 {

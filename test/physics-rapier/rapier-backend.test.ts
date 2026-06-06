@@ -22,6 +22,9 @@ import {
   PhysicsColliderAxis,
   registerPhysicsComponents,
   stepPhysicsWorld,
+  type PhysicsColliderGeometryProvider,
+  type PhysicsHeightfieldGeometry,
+  type PhysicsTriangleMeshGeometry,
 } from "@aperture-engine/physics";
 import { createRapierPhysicsBackend } from "@aperture-engine/physics-rapier";
 import {
@@ -128,6 +131,309 @@ describe("rapier physics backend", () => {
         ],
       });
       expect(results.bodies).toEqual([]);
+    } finally {
+      backend.dispose();
+    }
+  });
+
+  it("cooks convex-hull collider geometry from a provider", async () => {
+    const backend = createRapierPhysicsBackend({
+      gravity: [0, 0, 0],
+      colliderGeometryProvider: createGeometryProvider({
+        triangleMeshes: new Map([
+          ["mesh:tetra", tetrahedronGeometry("mesh:tetra")],
+        ]),
+      }),
+    });
+
+    await backend.init();
+    try {
+      const report = backend.sync({
+        commands: [
+          {
+            kind: "upsertBody",
+            entity: "convex-body",
+            bodyType: PhysicsRigidBodyType.Static,
+            transform: {
+              translation: [0, 0, 0],
+              rotation: [0, 0, 0, 1],
+            },
+            collider: {
+              entity: "convex-collider",
+              shape: { kind: "convexHull", meshId: "mesh:tetra" },
+            },
+          },
+        ],
+      });
+      backend.step(1 / 60, 1);
+      const hit = backend.raycastFirst({
+        origin: [0, 0, 3],
+        direction: [0, 0, -1],
+        maxDistance: 6,
+      });
+
+      expect(report).toMatchObject({
+        bodyCount: 1,
+        colliderCount: 1,
+        unsupportedFeatureCount: 0,
+        unsupportedFeatures: [],
+      });
+      expect(hit).toMatchObject({
+        entity: "convex-body",
+        collider: "convex-collider",
+      });
+    } finally {
+      backend.dispose();
+    }
+  });
+
+  it("cooks static trimesh terrain and collides dynamic bodies with it", async () => {
+    const backend = createRapierPhysicsBackend({
+      gravity: [0, -9.81, 0],
+      colliderGeometryProvider: createGeometryProvider({
+        triangleMeshes: new Map([
+          ["mesh:level", flatQuadGeometry("mesh:level")],
+        ]),
+      }),
+    });
+
+    await backend.init();
+    try {
+      const report = backend.sync({
+        commands: [
+          {
+            kind: "upsertBody",
+            entity: "level",
+            bodyType: PhysicsRigidBodyType.Static,
+            transform: {
+              translation: [0, 0, 0],
+              rotation: [0, 0, 0, 1],
+            },
+            collider: {
+              entity: "level-collider",
+              shape: { kind: "trimesh", meshId: "mesh:level" },
+            },
+          },
+          {
+            kind: "upsertBody",
+            entity: "falling-ball",
+            bodyType: PhysicsRigidBodyType.Dynamic,
+            canSleep: false,
+            transform: {
+              translation: [0, 2, 0],
+              rotation: [0, 0, 0, 1],
+            },
+            velocity: {
+              linear: [0, 0, 0],
+              angular: [0, 0, 0],
+            },
+            collider: {
+              entity: "falling-ball-collider",
+              shape: { kind: "sphere", radius: 0.25 },
+              density: 1,
+            },
+          },
+        ],
+      });
+      backend.step(1 / 60, 1);
+      const rayHit = backend.raycastFirst({
+        origin: [1.5, 2, 1.5],
+        direction: [0, -1, 0],
+        maxDistance: 5,
+      });
+      const results = createPhysicsResultBuffer();
+
+      for (let step = 1; step <= 180; step += 1) {
+        backend.step(1 / 60, step);
+      }
+      backend.readResults(results);
+
+      const ball = results.bodies.find(
+        (body) => body.entity === "falling-ball",
+      );
+
+      expect(report).toMatchObject({
+        bodyCount: 2,
+        colliderCount: 2,
+        unsupportedFeatureCount: 0,
+        unsupportedFeatures: [],
+      });
+      expect(rayHit).toMatchObject({
+        entity: "level",
+        collider: "level-collider",
+      });
+      expect(ball?.transform.translation[1]).toBeGreaterThan(0.2);
+      expect(ball?.transform.translation[1]).toBeLessThan(0.5);
+    } finally {
+      backend.dispose();
+    }
+  });
+
+  it("cooks static heightfield collider geometry from a provider", async () => {
+    const backend = createRapierPhysicsBackend({
+      gravity: [0, 0, 0],
+      colliderGeometryProvider: createGeometryProvider({
+        heightfields: new Map([
+          ["terrain:height", flatHeightfield("terrain:height")],
+        ]),
+      }),
+    });
+
+    await backend.init();
+    try {
+      const report = backend.sync({
+        commands: [
+          {
+            kind: "upsertBody",
+            entity: "heightfield",
+            bodyType: PhysicsRigidBodyType.Static,
+            transform: {
+              translation: [0, 0, 0],
+              rotation: [0, 0, 0, 1],
+            },
+            collider: {
+              entity: "heightfield-collider",
+              shape: { kind: "heightfield", assetId: "terrain:height" },
+            },
+          },
+        ],
+      });
+      backend.step(1 / 60, 1);
+      const hit = backend.raycastFirst({
+        origin: [0, 2, 0],
+        direction: [0, -1, 0],
+        maxDistance: 5,
+      });
+
+      expect(report).toMatchObject({
+        bodyCount: 1,
+        colliderCount: 1,
+        unsupportedFeatureCount: 0,
+        unsupportedFeatures: [],
+      });
+      expect(hit).toMatchObject({
+        entity: "heightfield",
+        collider: "heightfield-collider",
+      });
+    } finally {
+      backend.dispose();
+    }
+  });
+
+  it("reports missing provider geometry as a structured sync diagnostic", async () => {
+    const backend = createRapierPhysicsBackend({
+      gravity: [0, 0, 0],
+      colliderGeometryProvider: createGeometryProvider(),
+    });
+
+    await backend.init();
+    try {
+      const report = backend.sync({
+        commands: [
+          {
+            kind: "upsertBody",
+            entity: "missing-mesh-body",
+            bodyType: PhysicsRigidBodyType.Static,
+            transform: {
+              translation: [0, 0, 0],
+              rotation: [0, 0, 0, 1],
+            },
+            collider: {
+              entity: "missing-mesh-collider",
+              shape: { kind: "trimesh", meshId: "mesh:missing" },
+            },
+          },
+        ],
+      });
+
+      expect(report).toMatchObject({
+        bodyCount: 0,
+        colliderCount: 0,
+        unsupportedFeatureCount: 1,
+        unsupportedFeatures: [
+          {
+            code: "physics.collider.asset.missing",
+            feature: "collider.triangleMesh",
+            backend: "rapier",
+            entity: "missing-mesh-collider",
+          },
+        ],
+      });
+    } finally {
+      backend.dispose();
+    }
+  });
+
+  it("rejects dynamic trimesh and non-unit asset collider scale without cooking", async () => {
+    const backend = createRapierPhysicsBackend({
+      gravity: [0, 0, 0],
+      colliderGeometryProvider: createGeometryProvider({
+        triangleMeshes: new Map([
+          ["mesh:level", flatQuadGeometry("mesh:level")],
+        ]),
+      }),
+    });
+
+    await backend.init();
+    try {
+      const dynamicReport = backend.sync({
+        commands: [
+          {
+            kind: "upsertBody",
+            entity: "dynamic-trimesh",
+            bodyType: PhysicsRigidBodyType.Dynamic,
+            transform: {
+              translation: [0, 0, 0],
+              rotation: [0, 0, 0, 1],
+            },
+            collider: {
+              entity: "dynamic-trimesh-collider",
+              shape: { kind: "trimesh", meshId: "mesh:level" },
+            },
+          },
+        ],
+      });
+      const scaleReport = backend.sync({
+        commands: [
+          {
+            kind: "upsertBody",
+            entity: "scaled-trimesh",
+            bodyType: PhysicsRigidBodyType.Static,
+            transform: {
+              translation: [0, 0, 0],
+              rotation: [0, 0, 0, 1],
+            },
+            collider: {
+              entity: "scaled-trimesh-collider",
+              shape: { kind: "trimesh", meshId: "mesh:level" },
+              scale: [2, 1, 1],
+            },
+          },
+        ],
+      });
+
+      expect(dynamicReport).toMatchObject({
+        bodyCount: 0,
+        colliderCount: 0,
+        unsupportedFeatures: [
+          {
+            code: "physics.collider.dynamicAssetShape.unsupported",
+            feature: "collider.trimesh.dynamicBody",
+            entity: "dynamic-trimesh-collider",
+          },
+        ],
+      });
+      expect(scaleReport).toMatchObject({
+        bodyCount: 0,
+        colliderCount: 0,
+        unsupportedFeatures: [
+          {
+            code: "physics.collider.scale.unsupported",
+            feature: "collider.trimesh.scale",
+            entity: "scaled-trimesh-collider",
+          },
+        ],
+      });
     } finally {
       backend.dispose();
     }
@@ -2885,6 +3191,89 @@ async function runPrismaticVelocityMotorPass(): Promise<PrismaticVelocityMotorPa
   } finally {
     backend.dispose();
   }
+}
+
+interface TestGeometryProviderOptions {
+  readonly triangleMeshes?: ReadonlyMap<string, PhysicsTriangleMeshGeometry>;
+  readonly heightfields?: ReadonlyMap<string, PhysicsHeightfieldGeometry>;
+}
+
+function createGeometryProvider(
+  options: TestGeometryProviderOptions = {},
+): PhysicsColliderGeometryProvider {
+  return {
+    triangleMesh(meshId) {
+      const geometry = options.triangleMeshes?.get(meshId);
+
+      if (geometry === undefined) {
+        return {
+          ok: false,
+          error: {
+            code: "physics.collider.asset.missing",
+            feature: "collider.triangleMesh",
+            message: `Test triangle mesh geometry '${meshId}' is not registered.`,
+            suggestedFix:
+              "Register triangle mesh geometry in the test provider before syncing asset-backed colliders.",
+            details: { assetId: meshId },
+          },
+        };
+      }
+
+      return { ok: true, geometry };
+    },
+    heightfield(assetId) {
+      const geometry = options.heightfields?.get(assetId);
+
+      if (geometry === undefined) {
+        return {
+          ok: false,
+          error: {
+            code: "physics.collider.asset.missing",
+            feature: "collider.heightfield",
+            message: `Test heightfield geometry '${assetId}' is not registered.`,
+            suggestedFix:
+              "Register heightfield geometry in the test provider before syncing asset-backed colliders.",
+            details: { assetId },
+          },
+        };
+      }
+
+      return { ok: true, geometry };
+    },
+  };
+}
+
+function tetrahedronGeometry(key: string): PhysicsTriangleMeshGeometry {
+  return {
+    key,
+    positions: new Float32Array([
+      0, 0, 1, 0.942809, 0, -0.333333, -0.471405, 0.816497, -0.333333,
+      -0.471405, -0.816497, -0.333333,
+    ]),
+    indices: new Uint32Array([0, 1, 2, 0, 3, 1, 0, 2, 3, 1, 3, 2]),
+    vertexCount: 4,
+    triangleCount: 4,
+  };
+}
+
+function flatQuadGeometry(key: string): PhysicsTriangleMeshGeometry {
+  return {
+    key,
+    positions: new Float32Array([-2, 0, -2, 2, 0, -2, -2, 0, 2, 2, 0, 2]),
+    indices: new Uint32Array([0, 2, 1, 2, 3, 1]),
+    vertexCount: 4,
+    triangleCount: 2,
+  };
+}
+
+function flatHeightfield(key: string): PhysicsHeightfieldGeometry {
+  return {
+    key,
+    rows: 2,
+    columns: 2,
+    heights: new Float32Array([0, 0, 0, 0]),
+    scale: [4, 1, 4],
+  };
 }
 
 function spawnGround(app: ReturnType<typeof createSimulationApp>): Entity {

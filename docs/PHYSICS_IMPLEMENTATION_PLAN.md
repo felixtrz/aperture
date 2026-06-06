@@ -35,9 +35,14 @@ worker as the default gameplay and agent-proof route.
     character movement, sleep/wake, and debug geometry.
   - ECS sync/writeback for body, collider, joint, character, event, query, and
     debug geometry workflows.
+  - Backend-neutral collider geometry provider contracts for asset-backed
+    triangle meshes and heightfields, with structured missing/not-ready/invalid
+    geometry diagnostics.
 - `@aperture-engine/physics-rapier`
   - Concrete Rapier backend with primitive colliders, events, queries,
     character movement, debug geometry, and supported impulse joints.
+  - Provider-backed `convexHull`, static `trimesh`, and static `heightfield`
+    collider cooking from backend-neutral geometry.
   - Structured unsupported-feature reporting for unsupported authored
     semantics.
 - Runtime/app integration
@@ -47,10 +52,14 @@ worker as the default gameplay and agent-proof route.
   - Scene/prefab serialization support, including entity-ref remapping for
     joint body refs and exclusion of derived body state.
   - Generated-worker devtools physics tools and `ecs_step_and_diff`.
+  - App-side asset-backed collider geometry provider that adapts registered
+    render `MeshAsset` CPU geometry through the render spatial adapter without
+    letting physics or Rapier import app/render packages.
 - Examples/tests
   - `physics-settling`, `physics-joints`, `physics-character`,
-    `physics-benchmark`, and `physics-worker-mode`.
-  - Focused unit, runtime, generated-worker, serialization, and E2E coverage.
+    `physics-benchmark`, `physics-worker-mode`, and `physics-large-scale`.
+  - Focused unit, runtime, generated-worker, serialization, Rapier asset-cooking,
+    and E2E coverage.
 
 ## Backend Policy
 
@@ -86,21 +95,23 @@ The current dedicated route is transfer-based, not shared-ECS mutation:
 This preserves ECS ownership and keeps render extraction downstream of ECS
 state. Do not promote this route by default without a future explicit decision.
 
-## Asset-Backed Collider Plan
+## Asset-Backed Collider Status
 
-The next product slice is asset-backed collider cooking plus a large-scale
-simulation-worker example. See `docs/PHYSICS_ASSET_COLLIDER_PLAN.md`.
+The asset-backed collider slice is implemented for the default
+simulation-worker route. See `docs/PHYSICS_ASSET_COLLIDER_PLAN.md`.
 
-The plan keeps `@aperture-engine/physics` backend-neutral, adapts render
-`MeshAsset` CPU geometry through a provider boundary, cooks Rapier
-`convexHull`, `trimesh`, and static `heightfield` colliders, and proves the path
-through generated-worker pause/step/query/diff plus a large-scale browser
-example.
+The implementation keeps `@aperture-engine/physics` backend-neutral, adapts
+render `MeshAsset` CPU geometry through an app-owned provider boundary, cooks
+Rapier `convexHull`, static `trimesh`, and static `heightfield` colliders, and
+proves the path through generated-worker pause/step/query/diff plus a
+large-scale browser example.
 
 ## Remaining Work
 
-1. Mesh and heightfield collider cooking for Rapier asset-backed colliders,
-   including a large-scale simulation-worker browser example.
+1. Asset-backed collider V2 semantics: non-unit scale baking/recreation,
+   compound multi-submesh cooking metadata, dynamic non-convex policy, optional
+   async/decimated cooking, and promotion of provider plumbing to any future
+   dedicated-worker route if that route becomes a product focus again.
 2. Broader gameplay semantics around contact filtering, sensors, and controller
    edge cases.
 3. Generic joint descriptor design or explicit permanent exclusion.

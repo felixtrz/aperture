@@ -32,6 +32,8 @@ Implemented Rapier coverage includes:
   collision diagnostics.
 - Fixed/spherical/revolute/prismatic/distance joints with limits, motors, and
   frameA-oriented unit axes.
+- Provider-backed `convexHull`, static `trimesh`, and static `heightfield`
+  collider cooking from app-owned render-mesh/heightfield geometry.
 - Debug geometry and debug summaries.
 - Simulation-worker fixed-step writeback, browser examples, and generated-worker
   devtools proofs.
@@ -42,13 +44,12 @@ Implemented Rapier coverage includes:
 
 ## Current Gaps
 
-- Mesh/heightfield collider cooking is not implemented; asset-backed collider
-  shapes report `physics.collider.assetShape.unsupported`.
+- Asset-backed collider V2 semantics are still deliberate follow-up work:
+  non-unit scale baking/recreation, dynamic non-convex policy, async/decimated
+  cooking, and provider plumbing for any future promoted dedicated-worker route.
 - Generic joints report `physics.joint.unsupported`.
 - Automatic break-force enforcement, native joint impulse readback, motor force
   limits, and paired non-fixed body-B frame semantics remain unsupported.
-- A large-scale simulation-worker physics example is still needed to prove
-  real-scene scale with the default route.
 
 ## Candidate Backends
 
