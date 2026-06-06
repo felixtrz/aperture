@@ -5,8 +5,14 @@ export const meta = {
   whenToUse:
     "Planning M6 (content layer: UI + particles) for aperture, grounded in 4 reference libraries and aperture's own architecture",
   phases: [
-    { title: "Study", detail: "parallel deep-reads of 4 references + 3 aperture subsystems" },
-    { title: "Design", detail: "independent UI and particles designs consuming all studies" },
+    {
+      title: "Study",
+      detail: "parallel deep-reads of 4 references + 3 aperture subsystems",
+    },
+    {
+      title: "Design",
+      detail: "independent UI and particles designs consuming all studies",
+    },
     { title: "Integrate", detail: "merge into one coherent M6 plan" },
     { title: "Critique", detail: "adversarial completeness review" },
     { title: "Finalize", detail: "revise the plan against the critique" },
@@ -41,7 +47,8 @@ const STUDY_SCHEMA = {
     keyMechanisms: {
       type: "array",
       items: { type: "string" },
-      description: "Layout engine, instancing, GPU/CPU sim, batching, z-order, text shaping, etc.",
+      description:
+        "Layout engine, instancing, GPU/CPU sim, batching, z-order, text shaping, etc.",
     },
     rendererAgnosticCore: {
       type: "string",
@@ -65,7 +72,8 @@ const STUDY_SCHEMA = {
     featureBaseline: {
       type: "array",
       items: { type: "string" },
-      description: "Concrete features this lib offers — the baseline bar aperture must meet",
+      description:
+        "Concrete features this lib offers — the baseline bar aperture must meet",
     },
     keyFiles: {
       type: "array",
@@ -97,7 +105,8 @@ const DESIGN_SCHEMA = {
     ecsComponents: {
       type: "array",
       items: { type: "string" },
-      description: "Proposed ECS authoring components + their fields (the user-facing API)",
+      description:
+        "Proposed ECS authoring components + their fields (the user-facing API)",
     },
     headlessCorePlan: {
       type: "string",
@@ -116,28 +125,33 @@ const DESIGN_SCHEMA = {
     },
     interactionPlan: {
       type: "string",
-      description: "UI: hit-testing via the M7 pointer-event/interaction layer. Particles: n/a or emitter triggers",
+      description:
+        "UI: hit-testing via the M7 pointer-event/interaction layer. Particles: n/a or emitter triggers",
     },
     packageBoundaries: {
       type: "array",
       items: { type: "string" },
-      description: "Which package each piece lives in (simulation vs render vs webgpu vs app) and why, respecting check:boundaries",
+      description:
+        "Which package each piece lives in (simulation vs render vs webgpu vs app) and why, respecting check:boundaries",
     },
     m6TaskMapping: {
       type: "array",
       items: { type: "string" },
-      description: "How this maps to the current M6-T1..T5 tasks; which change/split/merge",
+      description:
+        "How this maps to the current M6-T1..T5 tasks; which change/split/merge",
     },
     changesVsReferenceLibs: {
       type: "array",
       items: { type: "string" },
-      description: "The concrete ECS+WebGPU delta vs uikit/three.quarks/three.js",
+      description:
+        "The concrete ECS+WebGPU delta vs uikit/three.quarks/three.js",
     },
     risks: { type: "array", items: { type: "string" } },
     proofStrategy: {
       type: "array",
       items: { type: "string" },
-      description: "Worker-authored render-control routes + pixel/JSON assertions per the aperture proof convention",
+      description:
+        "Worker-authored render-control routes + pixel/JSON assertions per the aperture proof convention",
     },
     openQuestions: { type: "array", items: { type: "string" } },
   },
@@ -161,19 +175,29 @@ const INTEGRATION_SCHEMA = {
     executiveSummary: { type: "string" },
     isThisM6: {
       type: "string",
-      description: "Confirm/qualify whether this is M6 and how it revises the roadmap's M6 scope",
+      description:
+        "Confirm/qualify whether this is M6 and how it revises the roadmap's M6 scope",
     },
     sharedFoundation: {
       type: "array",
       items: { type: "string" },
-      description: "What the shared instanced-quad/2D foundation (M6-T1) must deliver for BOTH UI and particles",
+      description:
+        "What the shared instanced-quad/2D foundation (M6-T1) must deliver for BOTH UI and particles",
     },
     revisedTasks: {
       type: "array",
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["id", "title", "package", "effort", "dependsOn", "deliverable", "doneWhen"],
+        required: [
+          "id",
+          "title",
+          "package",
+          "effort",
+          "dependsOn",
+          "deliverable",
+          "doneWhen",
+        ],
         properties: {
           id: { type: "string" },
           title: { type: "string" },
@@ -189,14 +213,16 @@ const INTEGRATION_SCHEMA = {
     ecsWebgpuDelta: {
       type: "array",
       items: { type: "string" },
-      description: "The consolidated 'lots has to change because we are ECS-centric + WebGPU-only' list",
+      description:
+        "The consolidated 'lots has to change because we are ECS-centric + WebGPU-only' list",
     },
     risks: { type: "array", items: { type: "string" } },
     proofPlan: { type: "array", items: { type: "string" } },
     openDecisions: {
       type: "array",
       items: { type: "string" },
-      description: "Decisions for the user (e.g. retained vs immediate UI, Yoga-wasm vs hand-rolled flex, CPU-fallback particle path)",
+      description:
+        "Decisions for the user (e.g. retained vs immediate UI, Yoga-wasm vs hand-rolled flex, CPU-fallback particle path)",
     },
   },
 };
@@ -219,20 +245,26 @@ const CRITIQUE_SCHEMA = {
     missedConstraints: {
       type: "array",
       items: { type: "string" },
-      description: "ECS-authority / worker-safety / WebGPU / package-boundary constraints the plan glossed over",
+      description:
+        "ECS-authority / worker-safety / WebGPU / package-boundary constraints the plan glossed over",
     },
     missedReferenceFeatures: {
       type: "array",
       items: { type: "string" },
-      description: "Baseline features from uikit/three.quarks the plan failed to account for",
+      description:
+        "Baseline features from uikit/three.quarks the plan failed to account for",
     },
     taskGraphIssues: {
       type: "array",
       items: { type: "string" },
-      description: "Dependency cycles, mis-sequencing, effort mis-estimates, foundation gaps",
+      description:
+        "Dependency cycles, mis-sequencing, effort mis-estimates, foundation gaps",
     },
     recommendedRevisions: { type: "array", items: { type: "string" } },
-    readiness: { type: "string", enum: ["ready", "minor-revision", "major-revision"] },
+    readiness: {
+      type: "string",
+      enum: ["ready", "minor-revision", "major-revision"],
+    },
   },
 };
 
@@ -348,7 +380,14 @@ Return ONLY the StructuredOutput object (use area="aperture-interaction-ecs").`,
 
 const studies = (
   await parallel(
-    studySpecs.map((s) => () => agent(s.prompt, { label: s.label, phase: "Study", schema: STUDY_SCHEMA })),
+    studySpecs.map(
+      (s) => () =>
+        agent(s.prompt, {
+          label: s.label,
+          phase: "Study",
+          schema: STUDY_SCHEMA,
+        }),
+    ),
   )
 ).filter(Boolean);
 
@@ -392,7 +431,14 @@ Return ONLY the StructuredOutput object with domain="particles".`,
 
 const designs = (
   await parallel(
-    designPrompts.map((d) => () => agent(d.prompt, { label: d.label, phase: "Design", schema: DESIGN_SCHEMA })),
+    designPrompts.map(
+      (d) => () =>
+        agent(d.prompt, {
+          label: d.label,
+          phase: "Design",
+          schema: DESIGN_SCHEMA,
+        }),
+    ),
   )
 ).filter(Boolean);
 
@@ -426,7 +472,11 @@ Produce an integrated M6 plan. Specifically:
 - risks, proofPlan, openDecisions (decisions to surface to the user — e.g. retained vs immediate UI, WASM-Yoga vs hand-rolled flex, GPU vs CPU particle sim default, sorted vs additive particles).
 
 Return ONLY the StructuredOutput object.`,
-  { label: "integrate:m6-plan", phase: "Integrate", schema: INTEGRATION_SCHEMA },
+  {
+    label: "integrate:m6-plan",
+    phase: "Integrate",
+    schema: INTEGRATION_SCHEMA,
+  },
 );
 
 // ---------------------------------------------------------------------------

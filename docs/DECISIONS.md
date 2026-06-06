@@ -626,3 +626,50 @@ Consequences:
   `standard-material-ibl-bind-group-layout.ts` descriptor metadata is a clean,
   optional follow-up; the compute pass and resource builder already exist.
 - Multi-scatter energy compensation remains out of scope per the M5 SOTA bar.
+
+## 0018 — Physics Uses Backend-Neutral ECS Contracts First
+
+Date: 2026-06-05 (SOTA roadmap M10 foundation)
+
+Status: accepted
+
+Context:
+
+Aperture is beginning the M10 physics track. The physics plan calls for a
+comprehensive rigidbody/collider/event/query surface comparable to practical
+Bevy ecosystem usage and PlayCanvas ergonomics, but Aperture's architecture
+requires ECS authority, worker-safe snapshots, synchronous gameplay queries, and
+renderer-owned WebGPU resources. The existing `SharedArrayBuffer` transport is a
+render snapshot transport, not live ECS storage.
+
+Decision:
+
+Physics starts with a backend-neutral `@aperture-engine/physics` package that
+defines serializable ECS authoring components, validation helpers, fixed-step
+clock helpers, backend command/result contracts, event/query contracts, and a
+test backend. Concrete engines such as Rapier, Havok, or Jolt must be adapters
+behind those contracts; they must not shape durable ECS component storage or
+become dependencies of render/WebGPU packages.
+
+Rapier is the planned first production backend. The default production execution
+path is same-simulation-worker physics: ECS logic, fixed-step physics, physics
+writeback into ECS transforms/events, and render extraction occur in the worker
+that already owns simulation. A dedicated third physics worker remains an
+advanced backend mode. It must communicate with the simulation worker through
+explicit command/result buffers and must not directly mutate shared ECS or render
+snapshot memory.
+
+Consequences:
+
+- `@aperture-engine/physics` is a headless package and participates in package
+  boundary checks.
+- Physics authoring components stay schema-driven and JSON-safe.
+- Derived physics runtime state such as backend body handles is excluded from
+  default component serialization by stable component id.
+- Runtime integration must add fixed-step scheduling before claiming production
+  physics behavior.
+- A future `@aperture-engine/physics-rapier` package should depend on physics
+  contracts and Rapier, while render and WebGPU remain backend-agnostic.
+- Gameplay physics queries should stay synchronous in the simulation context;
+  third-worker mode may provide cached synchronous results and optional
+  async/editor queries, but not default promise-based gameplay raycasts.

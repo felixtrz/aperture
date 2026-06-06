@@ -28,6 +28,10 @@ the runtime architecture:
 - `@aperture-engine/simulation`: headless ECS, assets, diagnostics, math, and
   transform ownership. It must not import render, runtime, WebGPU, or browser
   globals.
+- `@aperture-engine/physics`: backend-neutral physics authoring components,
+  fixed-step clock helpers, backend command/result contracts, query/event
+  contracts, and test backends. It may import simulation, but not render,
+  runtime, WebGPU, browser globals, or concrete physics engine packages.
 - `@aperture-engine/render`: renderer-independent authoring components, mesh
   and material asset contracts, render extraction, snapshots, render world data,
   and diagnostics. It may import simulation, but not WebGPU.
@@ -37,7 +41,10 @@ the runtime architecture:
 - `@aperture-engine/app`: the default developer-facing app facade. Its
   `config`, `systems`, and `advanced` entry points are headless-safe app
   ergonomics over the lower layers. Browser-specific generated bootstrap lives
-  behind the `browser` and `worker` entry points, not the root export.
+  behind the `browser` and `worker` entry points, not the root export. App
+  systems may register deterministic fixed-step work through
+  `this.fixedStep.register(...)`; the app wires that to the runtime fixed-step
+  scheduler when systems are created through `createApertureApp()`.
 - `@aperture-engine/vite-plugin`: the default Vite integration. It discovers
   `aperture.config.ts`, system globs, system descriptor metadata, and generated
   browser/worker virtual modules. It is build-time code and is intentionally not
@@ -45,8 +52,8 @@ the runtime architecture:
   `@aperture-engine/app/vite` subpath re-exports it for projects that prefer the
   app namespace.
 - `@aperture-engine/runtime`: headless simulation and extraction app facades.
-  It composes simulation and render only; WebGPU app orchestration belongs in
-  `@aperture-engine/webgpu`.
+  It composes simulation, physics execution hooks, and render extraction only;
+  WebGPU app orchestration belongs in `@aperture-engine/webgpu`.
 
 Normal app authors start with `@aperture-engine/app/config`,
 `@aperture-engine/app/systems`, and `@aperture-engine/vite-plugin`. Users who
@@ -63,7 +70,8 @@ The default browser application shape is now a Vite metaframework path:
 - The generated main-thread bootstrap owns presentation, input forwarding,
   diagnostics, worker startup, WebGPU submission, and resize.
 - The generated worker registers discovered system modules in priority order,
-  owns ECS state, resolves transforms, and extracts `RenderSnapshot` data.
+  owns ECS state, runs registered fixed-step tasks before transform resolution,
+  resolves transforms, and extracts `RenderSnapshot` data.
 - The boundary is structured-clone/transferable snapshot data plus explicit
   command messages. Main-thread code does not receive live system classes and
   does not own authoritative simulation state.

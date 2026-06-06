@@ -1,5 +1,1815 @@
 # Completed Tasks
 
+## M10 — Rapier ECS physics runtime
+
+Completed: 2026-06-06 09:00 PDT
+Commit: `73c29a62`
+
+### Summary
+
+- Added `@aperture-engine/physics` and `@aperture-engine/physics-rapier`.
+- Added runtime/app fixed-step scheduling, ECS physics authoring, serialization
+  support, generated-worker physics tools, Rapier examples, benchmark route,
+  and Rapier transferable dedicated-worker proof route.
+- Removed the Havok package implementation, package graph wiring, source config,
+  benchmark route, and generated-worker proof usage before committing.
+- Hardened generic joint sync as a structured unsupported feature for the test
+  and Rapier backends.
+
+### Validation
+
+- `pnpm exec vitest run test/physics/components.test.ts test/physics/component-validation.test.ts test/physics/fixed-step-clock.test.ts test/physics/test-backend.test.ts test/physics/character-controller.test.ts test/physics/benchmark.test.ts test/physics/worker-protocol.test.ts test/physics-rapier/rapier-backend.test.ts test/physics-rapier/benchmark.test.ts test/runtime/fixed-step-schedule.test.ts test/runtime/physics-authoring-helpers.test.ts test/runtime/physics-worker-transfer.test.ts test/runtime/simulation-worker.test.ts test/app/fixed-step-app.test.ts test/app/physics-access.test.ts test/app/physics-authoring.test.ts test/app/physics-spatial-source.test.ts test/app/generated-worker-start.test.ts test/serialization/physics-scene-document.test.ts test/scripts/serve-examples.test.mjs`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit --pretty false`
+- `pnpm run build`
+
+## M6 — UI text particles and content showcase
+
+Completed: 2026-06-06 08:59 PDT
+Commit: `58df7607`
+
+### Summary
+
+- Added MSDF text atlas support, UI quad extraction/rendering, GPU particles,
+  content showcase, UI interaction route, and sprite follow-up coverage.
+- Added quad snapshot transport support and focused render/WebGPU/E2E tests.
+
+### Validation
+
+- `pnpm exec vitest run test/rendering/particle-emitter-extraction.test.ts test/webgpu/particle-frame-resources.test.ts test/webgpu/particle-pipeline.test.ts test/rendering/msdf-font-atlas.test.ts test/webgpu/msdf-text-frame-resources.test.ts test/webgpu/msdf-text-pipeline.test.ts test/rendering/ui-hit-test.test.ts test/rendering/ui-layout-extraction.test.ts test/webgpu/ui-frame-resources.test.ts test/webgpu/ui-quad-pipeline.test.ts test/app/ui-interaction-route.test.ts test/webgpu/app-snapshot-transport.test.ts`
+
+## SUPERSEDED — Havok same-worker sleep/wake backend hooks
+
+Completed: 2026-06-06 08:31 PDT
+Commit: pending
+
+### Summary
+
+- Kept the dedicated third-worker physics route parked and improved the active
+  simulation-worker backend path.
+- Implemented optional `PhysicsBackend.sleepBody(...)` / `wakeBody(...)` for
+  the bounded Havok adapter through Havok activation control/state calls.
+- Preserved each Havok body's authored auto-sleep policy when waking, while
+  still allowing explicit sleep commands to own the backend activation state.
+- Added package-local Havok WASM coverage proving wake, sleep across a fixed
+  step, wake-back-to-active readback, and missing-entity `false` semantics.
+- Updated PHYS/M10 docs, backend comparison, public tracker, and agent state.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics-havok build`
+- `pnpm exec vitest run test/physics-havok/benchmark.test.ts --testNamePattern "sleep|wake"`
+- `pnpm exec vitest run test/physics-havok/benchmark.test.ts`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `pnpm run check:publish`
+- `git diff --check`
+
+## PHYS — Generated-worker step-and-diff proof helper
+
+Completed: 2026-06-06 08:13 PDT
+Commit: pending
+
+### Summary
+
+- Kept the dedicated third-worker physics route parked and improved the active
+  generated simulation-worker proof workflow.
+- Added generated-worker `ecs_step_and_diff`, which requires a prior
+  `ecs_snapshot`, runs the normal paused `ecs_step` publication path, then
+  composes the existing ECS diff bridge.
+- Returned `{ step, diff }` so agents can verify fixed-step physics execution,
+  physics summary/writeback data, and changed ECS fields in one devtools
+  response.
+- Added focused generated-worker coverage that snapshots a physics body,
+  mutates `PhysicsVelocity.linear` while paused, calls `ecs_step_and_diff`, and
+  verifies changed `LocalTransform`, `PhysicsVelocity`, and
+  `PhysicsBodyState` summaries.
+- Updated PHYS/M10 docs, public tracker, backend comparison, and agent state.
+
+### Validation
+
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts --testNamePattern "step.*diff"`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `pnpm run check:publish`
+- `git diff --check`
+
+## PHYS — Simulation-worker stale body-state cleanup
+
+Completed: 2026-06-06 08:04 PDT
+Commit: pending
+
+### Summary
+
+- Kept the dedicated third-worker physics route parked and improved the active
+  generated simulation-worker route.
+- Updated `collectPhysicsCommands(...)` to remove derived
+  `PhysicsBodyState` from active ECS bodies that are disabled, collider-less,
+  or skipped for unsupported collider shapes before backend sync.
+- Prevented generated-worker snapshots, `physicsInterpolation`, and agent
+  diffs from reading stale last-known backend body poses after a body is
+  removed/skipped by sync.
+- Added deterministic and async Rapier generated-worker coverage proving a
+  disabled body drops backend readback and diffs removed `PhysicsBodyState`.
+- Updated PHYS/M10 docs, public tracker, backend comparison, and agent state.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts --testNamePattern "clears derived body state"`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts --testNamePattern "clears stale PhysicsBodyState"`
+
+## PHYS — Simulation-worker explicit body sleep/wake controls
+
+Completed: 2026-06-06 07:57 PDT
+Commit: pending
+
+### Summary
+
+- Kept the dedicated third-worker physics route parked and improved the active
+  generated simulation-worker route.
+- Added optional `PhysicsBackend.sleepBody(...)` / `wakeBody(...)` hooks and
+  implemented them for the deterministic and same-worker Rapier backends.
+- Tightened Rapier routine sync so transform, gravity-scale, lock-mask, and
+  zero-velocity writes preserve explicit sleeping/awake backend state instead
+  of waking idle dynamic bodies every fixed step.
+- Added `context.physics.sleepBody(entity)` / `wakeBody(entity)` and
+  generated-worker `physics_sleep_body` / `physics_wake_body` devtools tools.
+- Added deterministic, Rapier, and async generated-worker coverage proving
+  explicit sleep/wake state survives same-worker sync, emits `sleep` / `wake`
+  summaries, and is visible through `PhysicsBodyState.sleeping` diffs.
+- Updated PHYS/M10 docs, public tracker, and agent state.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/physics-havok build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts --testNamePattern "sleep|wake|canSleep"`
+- `pnpm exec vitest run test/physics-rapier/rapier-backend.test.ts --testNamePattern "sleep|wake|canSleep"`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts --testNamePattern "sleep and wake controls"`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts test/app/generated-worker-start.test.ts --testNamePattern "sleep|wake|canSleep"`
+
+## PHYS — Simulation-worker parented-body ECS writeback support
+
+Completed: 2026-06-06 07:39 PDT
+Commit: pending
+
+### Summary
+
+- Kept the dedicated third-worker physics route parked and improved the active
+  generated simulation-worker route instead.
+- Updated `stepPhysicsWorld(...)` to resolve ECS transforms before physics sync
+  so parent/child edits from user systems are reflected in the same fixed step.
+- Updated ECS sync to send parented `RigidBody` entities to the backend using
+  resolved `WorldTransform` world poses, while keeping raw low-level
+  `parented: true` backend commands unsupported.
+- Updated ECS writeback to convert backend world poses through the active
+  parent inverse into parent-local `LocalTransform` values, preserving
+  `PhysicsBodyState` as backend/world-space readback.
+- Added deterministic and generated-worker pause/step/diff coverage proving a
+  parented body syncs, steps, writes local transform data, refreshes world
+  transform data, and gains `PhysicsBodyState`.
+- Updated PHYS/M10 docs, public tracker, backend comparison, and agent state.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/physics-havok build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts --testNamePattern "parented"`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts --testNamePattern "parented rigid-body"`
+- `pnpm exec vitest run test/physics-rapier/rapier-backend.test.ts --testNamePattern "parented rigid bodies"`
+- `pnpm exec vitest run test/physics-havok/benchmark.test.ts --testNamePattern "parented rigid bodies"`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts test/physics-havok/benchmark.test.ts test/app/generated-worker-start.test.ts`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `pnpm run check:publish`
+- `git diff --check`
+
+## PHYS — Simulation-worker parented-body unsupported reporting
+
+Completed: 2026-06-06 07:27 PDT
+Commit: pending
+
+### Summary
+
+- Added shared `physics.rigidBody.parentedBody.unsupported` reporting for
+  `RigidBody` commands whose ECS entity has an active `Parent`.
+- Updated deterministic, Rapier, and Havok same-route backends to remove stale
+  backend bodies and skip parented rigid bodies instead of syncing parent-local
+  `LocalTransform` data as backend world poses.
+- Added focused deterministic/Rapier/Havok backend coverage proving the
+  unsupported feature leaves synced body/collider counts at zero.
+- Added a generated-worker proof that pauses a parented body, steps fixed
+  physics in the existing simulation worker, observes the unsupported sync
+  feature plus zero readback/writeback through `ecs_step`, and diffs unchanged
+  ECS authoring without a derived `PhysicsBodyState`.
+- Updated PHYS/M10 docs, public tracker, and agent state. Parent-local/world
+  pose conversion remains future work; dedicated third-worker physics remains
+  parked.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/physics-havok build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts --testNamePattern "parented bodies|asset-backed collider|CCD"`
+- `pnpm exec vitest run test/physics-rapier/rapier-backend.test.ts --testNamePattern "parented rigid bodies|asset-backed collider|CCD"`
+- `pnpm exec vitest run test/physics-havok/benchmark.test.ts --testNamePattern "parented rigid bodies|asset-backed collider"`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts --testNamePattern "parented rigid bodies|child collider"`
+
+## PHYS — Simulation-worker asset-collider unsupported reporting
+
+Completed: 2026-06-06 07:16 PDT
+Commit: pending
+
+### Summary
+
+- Added shared `physics.collider.assetShape.unsupported` reporting for authored
+  `convexHull`, `trimesh`, and `heightfield` collider shapes.
+- Updated deterministic, Rapier, and Havok same-route backends to remove stale
+  backend bodies and skip unsupported asset colliders instead of throwing or
+  using fake primitive bounds.
+- Added focused backend coverage proving asset-collider commands report the
+  unsupported feature and leave synced body/collider counts at zero.
+- Added an async Rapier generated-worker proof that pauses, mutates a collider
+  to `trimesh` plus `meshId`, steps fixed physics in the existing simulation
+  worker, observes the unsupported sync feature through `ecs_step`, and diffs
+  the durable `physicsCollider` authoring.
+- Updated PHYS/M10 docs, public tracker, and agent state. Mesh/heightfield
+  collider cooking remains future work; dedicated third-worker physics remains
+  parked.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/physics-havok build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts test/physics-havok/benchmark.test.ts test/app/generated-worker-start.test.ts test/physics/benchmark.test.ts test/physics-rapier/benchmark.test.ts test/app/physics-access.test.ts`
+- `pnpm exec playwright test test/e2e/physics-benchmark.spec.ts --reporter=list`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `pnpm run check:publish`
+- `git diff --check`
+
+## PHYS — Simulation-worker CCD capability proof
+
+Completed: 2026-06-06 07:06 PDT
+Commit: pending
+
+### Summary
+
+- Added `continuousCollisionDetection` to `PhysicsBackendCapabilities`.
+- Marked Rapier as CCD-capable and deterministic/Havok as not CCD-capable.
+- Added shared unsupported-feature reporting for authored
+  `RigidBody.ccdEnabled` on non-CCD backends as
+  `physics.rigidBody.ccd.unsupported`.
+- Proved Rapier accepts CCD body commands without unsupported sync features.
+- Added an async Rapier generated-worker proof that pauses, mutates
+  `ccdEnabled`, steps fixed physics in the existing simulation worker, verifies
+  capability/unsupported-feature status through `ecs_step`, and diffs
+  `physicsRigidBody.ccdEnabled` plus `PhysicsBodyState` writeback.
+- Updated PHYS/M10 docs, the public tracker, and agent state. Dedicated
+  third-worker physics remains parked.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/physics-havok build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- Focused Vitest checks for deterministic backend, Rapier backend, app
+  capability summary, generated-worker CCD proof, and backend benchmark
+  capability reports
+
+## PHYS-17 — Havok character-heavy unsupported reporting
+
+Completed: 2026-06-06 06:33 PDT
+Commit: pending
+
+### Summary
+
+- Added benchmark-level `physics.characterController.unsupported` reporting
+  when a workload requests character movement but the backend lacks
+  `PhysicsBackend.moveCharacter(...)`.
+- Proved Havok character-heavy benchmark pressure reports zero moves plus that
+  unsupported feature instead of looking like character movement was exercised.
+- Updated the browser benchmark status rule so the route remains green only for
+  expected Havok joint/character optional-adapter limitations.
+- Exposed the resulting unsupported-feature count through browser status and
+  summary rows.
+- Updated PHYS-17 docs, backend comparison, SOTA roadmap, public tracker, and
+  agent state. Rapier remains the default; implemented Havok character
+  controller semantics, joints, full gameplay examples, Jolt, and dedicated
+  third-worker physics remain future/parked work.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-havok build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics-havok/benchmark.test.ts test/physics/benchmark.test.ts test/physics-rapier/benchmark.test.ts`
+- `pnpm exec playwright test test/e2e/physics-benchmark.spec.ts --reporter=list`
+
+## PHYS-13 typed joint impulse-readback unsupported status
+
+Completed: 2026-06-06 06:56 PDT
+
+Summary:
+
+- Added `physics.joint.impulseReadback.unsupported` to the shared
+  `PhysicsUnsupportedFeatureCode` taxonomy.
+- Added `createUnsupportedJointImpulseReadbackFeature(...)` in
+  `@aperture-engine/physics` so native joint impulse-readback absence uses the
+  same structured unsupported-feature shape as break-force, motor-force, frameB,
+  Havok joint, character, and debug limitations.
+- Updated generated-worker `physics_joint_status` so
+  `readback.unsupportedFeature` carries that shared feature when the active
+  same-worker backend reports `jointImpulseReadback: false`, while keeping
+  compatibility `code` and `message` fields.
+- Updated PHYS/M10 docs, backend comparison, SOTA roadmap, public tracker, and
+  agent state. Native impulse readback and automatic `breakForce` enforcement
+  remain future work; the gap is now typed and agent-visible through the
+  simulation-worker route.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/app/generated-worker-start.test.ts --testNamePattern "joint"`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `pnpm run check:publish`
+- `git diff --check`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `pnpm run check:publish`
+- `git diff --check`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `pnpm run check:publish`
+- `git diff --check`
+
+## PHYS-17 — Havok joint-heavy unsupported reporting
+
+Completed: 2026-06-06 06:27 PDT
+Commit: pending
+
+### Summary
+
+- Added `physics.joint.unsupported` to the shared unsupported-feature report
+  path for Havok `upsertJoint` commands.
+- Proved Havok joint-heavy benchmark pressure reports unsupported features and
+  keeps synced Havok constraints at zero instead of silently treating joints as
+  active.
+- Updated the browser benchmark status rule so the route remains green only for
+  the expected Havok joint limitation, while still requiring default/test/Rapier
+  scenarios to avoid unsupported features.
+- Exposed unsupported-feature counts in benchmark summary/status rows.
+- Updated PHYS-17 docs, backend comparison, SOTA roadmap, public tracker, and
+  agent state. Rapier remains the default; implemented Havok joints,
+  character-controller parity, full gameplay examples, Jolt, and dedicated
+  third-worker physics remain future/parked work.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-havok build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics-havok/benchmark.test.ts test/physics/benchmark.test.ts test/physics-rapier/benchmark.test.ts`
+- `pnpm exec playwright test test/e2e/physics-benchmark.spec.ts --reporter=list`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `pnpm run check:publish`
+- `git diff --check`
+
+## PHYS-17 — Havok generated-worker simulation-worker smoke
+
+Completed: 2026-06-06 06:19 PDT
+Commit: pending
+
+### Summary
+
+- Added a minimal Havok generated-worker proof in
+  `test/app/generated-worker-start.test.ts` using the existing simulation-worker
+  route, not a dedicated physics worker.
+- Initialized `createHavokPhysicsBackend(...)` with package-local Havok WASM
+  bytes from a generated-worker fixed-step system.
+- Paused the worker, ran `ecs_step`, verified Havok backend capability metadata,
+  queried the post-step backend with `physics_raycast_first` and
+  `physics_overlap_shape`, and diffed ECS `LocalTransform`,
+  `PhysicsVelocity`, and `PhysicsBodyState` writeback.
+- Hardened `packages/physics-havok/src/index.ts` so Havok's empty
+  collision-event return is treated as a zero-event no-contact step instead of
+  failing app steps.
+- Updated PHYS-17 docs, backend comparison, SOTA roadmap, public tracker, and
+  agent state. Rapier remains the default; Havok joints, character-controller
+  parity, full gameplay examples, Jolt, and dedicated third-worker physics
+  remain future/parked work.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics-havok build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts test/physics-havok/benchmark.test.ts`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `pnpm run check:publish`
+- `git diff --check`
+
+## PHYS — Simulation-worker angular-velocity rotation writeback
+
+Completed: 2026-06-06
+Commit: pending
+
+### Summary
+
+- Updated the deterministic test backend so dynamic and
+  velocity-kinematic bodies integrate angular velocity into normalized
+  quaternion rotation writeback.
+- Kept authored rotation locks authoritative by masking angular velocity axes
+  before rotation integration.
+- Added focused deterministic and Rapier backend tests for angular rotation.
+- Added an async generated-worker proof that pauses the simulation worker,
+  mutates `PhysicsVelocity.angular`, steps fixed Rapier physics, and diffs
+  `LocalTransform.rotation`, `PhysicsVelocity.angular`, and
+  `PhysicsBodyState.currentRotation`.
+- Tightened the direct backend `setVelocity` command path so deterministic and
+  Rapier backends both mask stored locked translation/rotation axes.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts test/app/generated-worker-start.test.ts`
+
+## PHYS — Simulation-worker rigid-body canSleep behavior
+
+Completed: 2026-06-06
+Commit: pending
+
+### Summary
+
+- Made `RigidBody.canSleep` real in the deterministic test backend by carrying
+  it as body state and keeping still bodies awake when it is false.
+- Updated the same-worker Rapier adapter to treat `canSleep` as
+  descriptor-affecting state and recreate bodies when paused ECS edits change
+  the flag.
+- Added focused backend tests proving still bodies with `canSleep: false`
+  remain awake.
+- Added an async generated-worker proof that pauses the simulation worker,
+  mutates `canSleep`, steps fixed Rapier physics, and diffs awake
+  `PhysicsBodyState` writeback.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts test/app/generated-worker-start.test.ts`
+
+## PHYS — Simulation-worker kinematic-velocity body motion
+
+Completed: 2026-06-06
+Commit: pending
+
+### Summary
+
+- Updated the deterministic test backend so
+  `PhysicsRigidBodyType.KinematicVelocity` bodies advance from authored
+  velocity instead of being skipped with static/kinematic-position bodies.
+- Applied authored translation/rotation locks to the prescribed kinematic
+  velocity and kept gravity out of the kinematic-velocity path.
+- Added focused deterministic and Rapier backend coverage proving locked-axis
+  kinematic-velocity motion matches the same-worker Rapier route.
+- Added an async generated-worker proof that pauses the simulation worker,
+  mutates a body to `RigidBody.type = kinematicVelocity`, sets
+  `PhysicsVelocity.linear`, steps fixed Rapier physics, and diffs kinematic
+  translation plus `PhysicsBodyState` writeback.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts test/app/generated-worker-start.test.ts`
+
+## PHYS — Simulation-worker rigid-body damping
+
+Completed: 2026-06-06
+Commit: pending
+
+### Summary
+
+- Made `RigidBody.linearDamping` and `angularDamping` backend-real in the
+  deterministic test backend.
+- Applied damping after deterministic pose integration using
+  `1 / (1 + damping * dt)`, matching the Rapier JS readback velocity-decay shape
+  observed in the same-worker backend.
+- Added focused deterministic and Rapier backend tests proving damped readback
+  velocity.
+- Added an async generated-worker proof that pauses the simulation worker,
+  mutates per-body `gravityScale` and `linearDamping`, steps fixed Rapier
+  physics, and diffs damped velocity plus transform/body-state writeback.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts test/app/generated-worker-start.test.ts`
+
+## PHYS — Simulation-worker rigid-body axis locks
+
+Completed: 2026-06-06
+Commit: pending
+
+### Summary
+
+- Made authored `RigidBody.lockTranslationX/Y/Z` and
+  `lockRotationX/Y/Z` deterministic through the active simulation-worker
+  physics route.
+- Updated the deterministic test backend to apply lock masks during
+  force/impulse integration.
+- Updated the same-worker Rapier adapter to store current lock masks, apply
+  Rapier `enabledTranslations` / `enabledRotations`, mask explicit ECS
+  velocity, force/torque, and impulse commands on locked axes, and mask
+  locked-axis velocity readback.
+- Added focused async generated-worker coverage proving a paused
+  `lockTranslationY` edit steps through Rapier in the existing simulation worker
+  and diffs zero Y velocity plus unchanged Y transform/body-state writeback.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts test/app/generated-worker-start.test.ts`
+
+## PHYS — Simulation-worker linked-body joint contact control
+
+Completed: 2026-06-06
+Commit: pending
+
+### Summary
+
+- Added `PhysicsJoint.contactsEnabled` as ECS authoring data with a default of
+  true, matching Rapier's default impulse-joint behavior.
+- Synced the flag into backend joint descriptors and applied it in the
+  same-worker Rapier backend through `ImpulseJoint.setContactsEnabled(...)`.
+- Exposed the field through generated-worker entity summaries, paused
+  `ecs_set_component_field`, `physics_joint_status`, and the
+  `linkedBodyContacts` capability flag.
+- Added focused Rapier coverage proving overlapping linked bodies emit
+  collision/contact-force events when contacts are enabled and none when
+  disabled.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/components.test.ts test/runtime/physics-authoring-helpers.test.ts`
+- `pnpm exec vitest run test/physics-rapier/rapier-backend.test.ts`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts`
+
+## PHYS — Simulation-worker Rapier combined motor targets
+
+Completed: 2026-06-06
+Commit: pending
+
+### Summary
+
+- Updated the same-worker Rapier backend so position-mode revolute/prismatic unit
+  joints with finite `motorVelocity` call
+  `configureMotor(targetPos, targetVel, stiffness, damping)`.
+- Preserved the existing `configureMotorPosition(...)` route when no finite
+  velocity target is authored.
+- Added focused Rapier coverage proving a centered prismatic motor moves from
+  the authored velocity target.
+- Added generated-worker joint-status capability reporting for combined
+  position/velocity motor targets on same-worker Rapier revolute/prismatic
+  joints.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics-rapier/rapier-backend.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `git diff --check`
+- touched-file trailing-whitespace scan
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts`
+
+## PHYS — Simulation-worker joint motor force-limit reporting
+
+Completed: 2026-06-06
+Commit: pending
+
+### Summary
+
+- Added `PhysicsJoint.motorMaxForce` as ECS authoring data with validation,
+  runtime helper coverage, generated-worker snapshot/mutation/status exposure,
+  and backend descriptor sync.
+- Kept current behavior honest: positive motor force caps report
+  `physics.joint.motorMaxForce.unsupported` through Rapier/test backend sync,
+  generated-worker `ecs_step`, and `physics_joint_status`; no enforcement is
+  implied while current adapters lack public max-force/max-impulse support.
+- Extended the async Rapier generated-worker proof so agents can pause, mutate
+  `motorMaxForce`, step same-worker physics, inspect unsupported status, and diff
+  the authored ECS value afterward.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/component-validation.test.ts test/physics/components.test.ts test/runtime/physics-authoring-helpers.test.ts test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts test/app/generated-worker-start.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `git diff --check`
+- touched-file trailing-whitespace scan
+
+## PHYS — Simulation-worker deterministic collider offsets
+
+Completed: 2026-06-06
+Commit: pending
+
+### Summary
+
+- Updated the deterministic test backend to store `Collider.offsetTranslation`
+  and center conservative raycast, overlap, shape-cast, point-projection,
+  collider-wireframe, broadphase AABB, and character-probe bounds at
+  `LocalTransform * offsetTranslation`.
+- Kept body transform writeback authoritative; the offset only affects collider
+  query/debug bounds.
+- Extended generated-worker coverage so agents can pause, mutate
+  `offsetTranslation`, step same-worker physics, raycast the offset backend
+  bound, and diff `physicsCollider.offsetTranslation` /
+  `PhysicsBodyState` writeback.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/app/generated-worker-start.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `git diff --check`
+- touched-file trailing-whitespace scan
+
+## PHYS — Simulation-worker Rapier primitive axis geometry
+
+Completed: 2026-06-06
+Commit: pending
+
+### Summary
+
+- Updated the Rapier backend so authored capsule/cylinder/cone `axis` values
+  are composed into collider descriptor rotations, overlap/sweep query
+  rotations, and the per-collider shape-cast fallback used by `excludeEntity`.
+- Added Rapier backend coverage proving X-axis cylinder raycast distances,
+  query overlap behavior, filtered shape-cast behavior, and broadphase AABB
+  debug bounds.
+- Extended the async Rapier generated-worker proof with an X-axis cylinder plus
+  query target, post-`ecs_step` `physics_raycast_first` and filtered
+  `physics_cast_shape_first` verification, and the existing ECS writeback diff
+  flow.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics-rapier/rapier-backend.test.ts test/app/generated-worker-start.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `git diff --check`
+- touched-file trailing-whitespace scan
+
+## PHYS — Simulation-worker primitive collider query bounds
+
+Completed: 2026-06-06
+Commit: pending
+
+### Summary
+
+- Updated the deterministic test backend to derive conservative query bounds
+  from authored primitive collider dimensions instead of using a hardcoded
+  non-sphere radius.
+- Added backend coverage proving cylinder raycast, overlap, and point-projection
+  behavior from authored radius plus half-height.
+- Extended generated-worker coverage so agents can pause, mutate a collider to
+  a cylinder, step same-worker physics, query the post-step backend, and diff
+  `physicsCollider` / `PhysicsBodyState` writeback.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/app/generated-worker-start.test.ts`
+
+## PHYS — Simulation-worker step/readback/writeback summary
+
+Completed: 2026-06-06
+Commit: pending
+
+### Summary
+
+- Added `context.physics.setStepReport(report)` so fixed-step physics systems
+  can publish the full `stepPhysicsWorld(...)` result in one call.
+- `context.physics.summary()`, generated-worker snapshots, `ecs_step`, and
+  `physics_summary` now expose backend step details, readback counts, and ECS
+  writeback counts beside sync reports, events, and unsupported features.
+- Migrated generated-worker proof systems to `setStepReport(report)` and
+  asserted nonzero transform/velocity/`PhysicsBodyState` writes plus zero
+  missing ECS entities before continuing to `ecs_diff`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/physics-access.test.ts test/app/generated-worker-start.test.ts`
+
+## PHYS-9 — Rapier collision lifecycle replay proof
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added focused Rapier backend coverage for non-sensor collision lifecycle
+  events: `collisionStart`, `collisionStay`, and `collisionEnd`.
+- The proof starts an overlapping static/dynamic collider pair, steps once for
+  start, once for stay, syncs the mover away, then steps once for end.
+- The scenario runs twice and compares the simplified event stream, making
+  PHYS-9 deterministic replay acceptance explicit beside existing trigger and
+  contact-payload tests.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics-rapier/rapier-backend.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+
+## PHYS — Simulation-worker per-joint status diagnostics
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added reusable `collectUnsupportedPhysicsJointFeatures(...)` in
+  `@aperture-engine/physics`, and routed backend sync unsupported-feature
+  collection through it.
+- Added generated-worker devtools `physics_joint_status`, which resolves a
+  generation-checked joint entity and returns its authored `physicsJoint`
+  summary, latest sync unsupported features, authored unsupported features, and
+  capability flags for explicit breaks, automatic break-force thresholds,
+  native joint impulse readback, motor force limits, and paired non-fixed
+  `frameB`.
+- Extended the Rapier generated-worker proof so a paused worker mutates
+  `breakForce` and non-fixed `frameB`, steps fixed physics, verifies
+  `physics.joint.breakForce.unsupported` plus
+  `physics.joint.frameB.unsupported` through `ecs_step` and
+  `physics_joint_status`, then diffs ECS writeback.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts`
+
+## PHYS — Simulation-worker devtools gameplay command tools
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added generated-worker devtools `physics_apply_force`,
+  `physics_apply_impulse`, `physics_set_linear_velocity`,
+  `physics_set_angular_velocity`, and `physics_set_kinematic_target`.
+- The tools resolve generation-checked ECS refs, validate finite vec3/transform
+  payloads, and route through public `context.physics` helpers inside the
+  generated simulation worker.
+- Extended generated-worker coverage so agents can pause, snapshot, call
+  gameplay command tools, step fixed physics, and diff persistent force,
+  consumed impulse, velocity, kinematic target, transform writeback, and
+  `PhysicsBodyState`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts`
+
+## PHYS-12 — Physics scene asset-reference diagnostics
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added `validatePhysicsSceneAssetReferences(...)` to
+  `@aperture-engine/physics` so serialized physics scene documents can be
+  checked for collider asset refs before backend sync.
+- The validator diagnoses missing `meshId` / `heightfieldAssetId` fields and
+  stale mesh/heightfield refs when callers provide asset-existence predicates.
+- Extended PHYS-12 serialization coverage with trimesh, convex-hull, and
+  heightfield collider documents that prove missing/stale diagnostic codes and
+  payloads.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/serialization/physics-scene-document.test.ts test/physics/component-validation.test.ts`
+
+## PHYS — Simulation-worker devtools debug geometry AABBs
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added backend-neutral broadphase AABB debug options plus a shared
+  `createPhysicsAabbDebugLines(...)` helper in `@aperture-engine/physics`.
+- Test backend now emits deterministic spherical AABB lines; Rapier retains
+  collider descriptors and derives primitive AABBs from live collider
+  transforms.
+- Added generated-worker devtools `physics_debug_geometry`, so agents can
+  request debug line packets such as broadphase AABBs from the post-step
+  simulation-worker physics backend before continuing to `ecs_diff`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts test/app/generated-worker-start.test.ts`
+
+## PHYS — Simulation-worker devtools character movement
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added generated-worker devtools `physics_move_character`, routed through
+  `context.physics.moveCharacter(...)` in the simulation worker.
+- The tool parses generation-checked entity refs, finite desired translation,
+  character-controller settings, and query filters, then applies the returned
+  target as ECS `KinematicTarget` by default for generation-checked refs.
+- Extended the generated-worker proof so agents can pause, snapshot a
+  character, call the movement tool, step fixed physics, and diff
+  `KinematicTarget`, `LocalTransform`, and `PhysicsBodyState` writeback.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts`
+
+## PHYS — Simulation-worker devtools shape queries
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added generated-worker devtools `physics_overlap_shape`,
+  `physics_cast_shape_first`, and `physics_project_point`, routed through
+  `context.physics` in the simulation worker.
+- The tools parse finite primitive shape/transform/point payloads, pass through
+  narrow query filters, and return backend overlap, sweep, and projection
+  records or structured invalid-shape diagnostics.
+- Extended the generated-worker proof so agents can step physics, query
+  post-step backend state across ray/overlap/sweep/project-point tools, and
+  then continue to `ecs_diff`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts`
+
+## PHYS — Simulation-worker devtools raycast queries
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added generated-worker devtools `physics_raycast_first` and
+  `physics_raycast_all`, routed through `context.physics` in the simulation
+  worker.
+- The tools parse direct or nested ray payloads, normalize finite nonzero
+  directions, pass through narrow query filters, and return backend hit records
+  or structured invalid-ray diagnostics.
+- Extended the generated-worker proof so agents can step physics, raycast the
+  post-step backend state, and then continue to `ecs_diff`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts`
+
+## PHYS — Simulation-worker devtools joint break workflow
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added generated-worker devtools `physics_break_joint`, resolving a
+  generation-checked ECS entity ref and routing the request through
+  `context.physics.breakJoint(...)` inside the simulation worker.
+- Updated the generated-worker proof to pause, sync a joint, snapshot its
+  `physicsJoint` summary, call `physics_break_joint`, step fixed physics, and
+  diff the disabled ECS joint.
+- Kept the dedicated physics-worker route parked while strengthening the
+  simulation-worker pause/snapshot/mutate/step/diff workflow for agents.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts test/app/physics-access.test.ts`
+
+## PHYS — Simulation-worker explicit joint break helper
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added `context.physics.breakJoint(entity)` for explicit gameplay-owned joint
+  destruction semantics.
+- The helper disables the ECS-authored `PhysicsJoint`, emits a real
+  `jointBreak` event with the joint entity ref and body refs, and leaves
+  force-threshold `breakForce` enforcement honestly unsupported for current
+  backends.
+- Added focused proof coverage for the direct app helper and the generated
+  simulation-worker joint-break route.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/physics-access.test.ts test/app/generated-worker-start.test.ts test/physics/worker-protocol.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `agent/STATUS.json` parse
+- targeted `git diff --check`
+
+## PHYS — Simulation-worker sync-report summaries
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added frame-scoped sync-report data to `context.physics.summary()`, including
+  `sync`, top-level `unsupportedFeatureCount`, and cloned
+  `unsupportedFeatures`.
+- Published `stepPhysicsWorld(...).sync` from generated-worker fixed-step proof
+  systems alongside existing physics events.
+- Extended the Rapier generated-worker joint edit proof so a paused non-fixed
+  `PhysicsJoint.frameB` edit is visible as
+  `physics.joint.frameB.unsupported` through `ecs_step` physics summaries.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/physics-access.test.ts test/app/generated-worker-start.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `agent/STATUS.json` parse
+- targeted `git diff --check`
+
+## PHYS — Non-fixed joint frameB unsupported reporting
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added `physics.joint.frameB.unsupported` to backend-neutral unsupported
+  feature reporting for non-identity `PhysicsJoint.frameB` values on non-fixed
+  joints.
+- Kept current semantics honest: fixed joints still support paired frames, and
+  unit joints still support `frameA`-oriented axes, but current Rapier/test
+  backends now report that distinct body-B frames for non-fixed joints are not
+  enforceable.
+- Proved the report on both the deterministic test backend and Rapier backend.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `agent/STATUS.json` parse
+- targeted `git diff --check`
+
+## PHYS — Simulation-worker gameplay event-family access
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Preserved the existing callable `context.physics.events()` API while adding
+  filtered gameplay event views for contacts, collision start/stay/end, trigger
+  enter/stay/exit, sleep/wake, contact forces, grounded changes, and joint
+  breaks.
+- Added deterministic `eventFamilies` counts to `context.physics.summary()` so
+  generated-worker `ecs_step` and `physics_summary` can report grouped event
+  semantics beside raw event kind counts.
+- Proved the app event API in `test/app/physics-access.test.ts` and the
+  simulation-worker summary path in `test/app/generated-worker-start.test.ts`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/physics-access.test.ts test/app/generated-worker-start.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `agent/STATUS.json` parse
+- targeted `git diff --check`
+
+## PHYS — Simulation-worker body/collider authoring edit proof
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added JSON-safe `physicsRigidBody` and `physicsCollider` summaries and named
+  diff fields to generated-worker entity lookup.
+- Whitelisted paused `RigidBody` and primitive `Collider` authoring mutations
+  for body type/settings, primitive shape fields, offsets, sensor/material
+  scalars, and group masks.
+- Proved the simulation-worker path by mutating a dynamic sphere into a static
+  body with a larger collider, stepping fixed physics, and diffing the body,
+  collider, and body-state writeback.
+- Added a Rapier backend proof that body-type and collider-shape descriptor
+  changes resync by changing raycast behavior while the static body remains
+  unmoved.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts test/physics-rapier/rapier-backend.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `agent/STATUS.json` parse
+- targeted `git diff --check`
+
+## PHYS — Simulation-worker PhysicsJoint edit/diff proof
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added JSON-safe `physicsJoint` summaries and named diff support to the
+  generated-worker entity lookup path.
+- Whitelisted paused `PhysicsJoint` authoring mutations for body refs, anchors,
+  frames, axes, limits, motor fields, and break-force values.
+- Proved the active simulation-worker route by mutating a Rapier prismatic
+  joint's `axis` and `frameA` through `ecs_set_component_field`, then stepping
+  fixed physics and diffing both `physicsJoint` and constrained body writeback.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `agent/STATUS.json` parse
+- targeted `git diff --check`
+
+## PHYS — Simulation-worker unit-joint frame-axis semantics
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Rotated revolute/prismatic unit-joint axes by authored `frameA` in the
+  deterministic test backend and Rapier backend.
+- Kept the scope honest: this covers supported unit-joint axis orientation, not
+  paired body-frame alignment, enforceable break-force, or native joint impulse
+  readback.
+- Added generated-worker proof coverage that steps a Rapier prismatic joint
+  whose authored Y axis travels on X only because `frameA` rotates it there,
+  then verifies ECS writeback through `ecs_diff`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts test/app/generated-worker-start.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `agent/STATUS.json` parse
+- targeted `git diff --check`
+
+## PHYS — Simulation-worker contact-force impulse scalar
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added `PhysicsEvent.impulse` reporting for Rapier `contactForce` events as
+  `forceMagnitude * fixedDelta`.
+- Kept the scope to same-worker/generated-worker physics; this does not claim
+  enforceable joint break-force or native joint impulse support.
+- Added generated-worker proof coverage that steps an async Rapier floor/body
+  contact and verifies finite force plus impulse data through `ecs_step`
+  physics summaries.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/runtime build`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts test/app/physics-access.test.ts test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts test/physics/worker-protocol.test.ts`
+
+## PHYS — Simulation-worker physics render interpolation
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added opt-in generated/app physics render interpolation through
+  `physicsInterpolation`.
+- Rewrites only `RenderSnapshot.transforms` from
+  `PhysicsBodyState.previous/current` plus fixed-step `overstepAlpha`, so
+  gameplay `LocalTransform` and backend state remain exact fixed-step state.
+- Added generated-worker proof coverage that steps deterministic fixed physics
+  twice, verifies authoritative ECS writeback through `ecs_diff`, and checks the
+  published mesh matrix is halfway between previous/current physics poses.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/runtime build`
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts test/app/physics-access.test.ts test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+
+## PHYS — Simulation-worker gameplay physics helper APIs
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added app-system physics mutation helpers on `context.physics`:
+  `applyForce`, `applyImpulse`, `setLinearVelocity`, `setAngularVelocity`, and
+  `setKinematicTarget`.
+- Kept ECS as the authoring surface: helpers write `ExternalForce`,
+  `ExternalImpulse`, `PhysicsVelocity`, and `KinematicTarget` components before
+  fixed-step backend sync.
+- Added generated-worker proof coverage where a fixed-step app system calls the
+  helpers, steps physics in the simulation worker, and verifies ECS writeback
+  through `ecs_diff`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/physics-access.test.ts test/app/generated-worker-start.test.ts test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+
+## PHYS — Simulation-worker kinematic-target proof
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Wired enabled `KinematicTarget` poses for kinematic-position bodies through
+  ECS sync into deterministic and Rapier backend fixed-step writeback.
+- Exposed `physicsKinematicTarget` through devtools entity summaries, snapshot
+  diffs, and paused `ecs_set_component_field` mutation.
+- Added generated-worker pause/snapshot/edit/step/diff coverage proving a
+  kinematic target edit updates `LocalTransform` and `PhysicsBodyState` in the
+  simulation worker.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts test/app/generated-worker-start.test.ts`
+
+## PHYS-15 — Transferable worker proxy foundation
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added `packages/physics/src/worker-transfer.ts` with
+  `createPhysicsWorkerTransferProxy(...)` for simulation-side fixed-step
+  command submission and decoded ECS writeback from transferable worker result
+  packets.
+- Added `createPhysicsWorkerBackendEndpoint(...)` so a worker-owned
+  `PhysicsBackend` can consume step messages and return transferable result
+  messages through the existing worker protocol.
+- Added command summaries plus latency-frame, transfer-byte,
+  structured-clone-byte, readback, and writeback accounting for worker-mode
+  status surfaces.
+- Added focused runtime coverage proving transferred packet writeback mutates
+  ECS only on the simulation side.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/runtime/physics-worker-transfer.test.ts test/physics/worker-protocol.test.ts`
+- `pnpm run check` (441 test files / 2377 tests passed)
+
+## PHYS-14 — Character-controller same-worker slice
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added backend-neutral character movement contracts through
+  `PhysicsBackend.moveCharacter(...)` and app-level
+  `context.physics.moveCharacter(...)`.
+- Wrapped Rapier `KinematicCharacterController` for kinematic capsule movement
+  with grounded state, sliding, autostep, slope limits, snap-to-ground,
+  up-vector handling, collision filters, and collision diagnostics.
+- Added deterministic test-backend character movement coverage for app/system
+  tests.
+- Added `examples/physics-character.html` as a worker-authored WebGPU proof
+  route for walking/sliding character-controller behavior.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/character-controller.test.ts test/physics/component-validation.test.ts test/app/physics-access.test.ts`
+- `pnpm exec playwright test test/e2e/physics-character.spec.ts --timeout=60000 --reporter=line`
+- `pnpm run check` (440 test files / 2376 tests passed)
+
+## PHYS-13 — Fixed-joint local frame authoring slice
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added `PhysicsJoint.frameA` and `PhysicsJoint.frameB` quaternion authoring
+  fields with component/helper/runtime coverage.
+- Synced fixed-joint frames into backend descriptors and Rapier
+  `JointData.fixed`, normalizing frames before passing them to Rapier.
+- Updated Rapier joint-frame debug geometry to draw fixed-frame basis axes from
+  live `ImpulseJoint.frameX1()` / `frameX2()` readback.
+- Added joint validation diagnostics for invalid/non-unit frame quaternions,
+  invalid limit ranges, and invalid motor/break scalars.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/component-validation.test.ts test/physics/components.test.ts test/runtime/physics-authoring-helpers.test.ts test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts`
+- `pnpm run check` (439 test files / 2370 tests passed)
+
+## PHYS-15 — Worker protocol transferable result packet
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added `packages/physics/src/worker-protocol.ts` with physics worker
+  init/step/result/error/dispose message contracts.
+- Added a transferable body-result packet for worker writeback, packing entity
+  refs, transforms, velocities, sleeping flags, and cloned events.
+- Exported encode/decode helpers and transfer-list collection from
+  `@aperture-engine/physics`.
+- Added focused unit coverage for round-trip decoding, source immutability,
+  malformed packet rejection, and step/result message creation.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/worker-protocol.test.ts`
+- `pnpm run check` (439 test files / 2367 tests passed)
+
+## PHYS-13 — Unit-joint velocity motor slice
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added explicit joint motor mode/model authoring fields:
+  `motorMode`, `motorVelocity`, `motorFactor`, and `motorModel`.
+- Mapped Rapier revolute/prismatic unit joints to velocity motors when
+  `motorMode: "velocity"` is authored.
+- Added acceleration/force motor model selection for Rapier unit-joint motors.
+- Added component serialization, runtime helper, ECS sync, and focused Rapier
+  backend coverage for the new velocity-motor path.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/components.test.ts test/runtime/physics-authoring-helpers.test.ts test/physics-rapier/rapier-backend.test.ts`
+- `pnpm run check` (438 test files / 2363 tests passed)
+
+## PHYS-13 — Rendered hinge/prismatic joint route
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added `examples/physics-joints.html`, a worker-backed WebGPU route rendering
+  a Rapier revolute pendulum and prismatic motor slider from ECS-authored
+  `PhysicsJoint` components.
+- Added multi-material joint debug line rendering for collider wireframes,
+  anchor-to-anchor joint frames, and joint axes in the route.
+- Added focused Playwright coverage proving constrained hinge/prismatic motion,
+  backend joint counts, joint-frame debug counts, JSON-safe status, and
+  non-clear WebGPU pixels.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/examples/navigation.test.mjs`
+- `pnpm exec playwright test test/e2e/physics-joints.spec.ts --timeout=60000 --reporter=line`
+- `pnpm run check` (438 test files / 2362 tests passed)
+
+## PHYS-13 — Joint-frame debug geometry slice
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added `jointFrames` debug geometry options for backend-neutral physics debug
+  output.
+- Updated the deterministic test backend and Rapier backend to draw
+  anchor-to-anchor and joint-axis lines for live backend joints.
+- Added focused deterministic coverage for test-backend and Rapier joint-frame
+  line output.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts`
+- `pnpm run check` (438 test files / 2362 tests passed)
+
+## PHYS-13 — Unit-joint position motor slice
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Updated the Rapier backend to apply `motorTarget`, `motorStiffness`, and
+  `motorDamping` as position motors on revolute/prismatic unit joints.
+- Kept the mapping intentionally narrow: unit-joint position servo only, with
+  limits applied before motor configuration and no inferred non-position motor
+  behavior in that slice.
+- Added focused Rapier coverage proving an ECS-authored prismatic motor moves a
+  dynamic body toward the target within the authored limits.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics-rapier/rapier-backend.test.ts test/physics/test-backend.test.ts`
+- `pnpm --filter @aperture-engine/physics-rapier typecheck`
+- `pnpm run check` (438 test files / 2362 tests passed)
+
+## PHYS-13 — Joint lifecycle and prismatic limit slice
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Updated ECS physics sync so disabled `RigidBody`/`Collider` entities and
+  disabled `PhysicsJoint` entities are treated as absent from backend state,
+  causing previously-created backend bodies/joints to be removed.
+- Updated the deterministic test backend to ignore joint upserts whose body refs
+  are missing, matching Rapier's behavior for incomplete joint descriptors.
+- Updated the Rapier backend to apply finite `minLimit`/`maxLimit` values to
+  revolute/prismatic unit joints through Rapier's `UnitImpulseJoint.setLimits`.
+- Added focused backend coverage proving disabled ECS-authored distance joints
+  are removed from Rapier constraints and that a prismatic joint limit constrains
+  a dynamic body along the authored axis.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts`
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier typecheck`
+- `pnpm run check` (438 test files / 2361 tests passed)
+
+## PHYS-13 — First backend-executed distance joint slice
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added backend-neutral `PhysicsJointDescriptor` plus
+  `upsertJoint`/`destroyJoint` commands and `jointCount` sync reporting.
+- Extended ECS physics sync so active `PhysicsJoint` entities emit backend joint
+  commands and removed joint entities emit destroy commands.
+- Extended the deterministic test backend to track joint lifecycle/counts.
+- Extended the Rapier backend to reconcile ECS joint commands into Rapier
+  impulse joints for fixed, spherical, revolute, prismatic, and distance
+  descriptors. Distance joints map to Rapier rope constraints using `maxLimit`
+  as the rope length.
+- Added focused backend coverage proving joint lifecycle counts and a headless
+  ECS-sync Rapier distance joint that constrains a dynamic body under gravity.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts`
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics typecheck`
+- `pnpm --filter @aperture-engine/physics-rapier typecheck`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm run check` (438 test files / 2358 tests passed)
+
+## PHYS-8 — Synchronous shape-cast and project-point queries
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Corrected the backend shape-cast contract to
+  `castShapeFirst(shape, cast, options)` so the query shape is explicit.
+- Added backend-neutral `PhysicsPointProjection` and exposed
+  `context.physics.castShapeFirst(...)` / `context.physics.projectPoint(...)`
+  through the app system context with no-backend null fallbacks.
+- Implemented deterministic test-backend shape casts with conservative
+  bounding-sphere sweeps and point projection with stable distance/entity
+  ordering.
+- Implemented Rapier shape casts and point projection with default sensor
+  filtering, collision-group forwarding, and `excludeEntity` support. The
+  exclusion path scans mapped colliders with Rapier native per-collider query
+  methods to avoid a Rapier compat WASM borrow-lifetime failure in
+  `World.projectPoint` when passing owned exclusion objects.
+- Extended focused app, test-backend, and Rapier backend coverage for no-backend
+  fallbacks, forwarded query results, deterministic closest-hit ordering,
+  `excludeEntity`, and sensor include/default behavior.
+
+### Validation
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/physics-access.test.ts test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts`
+- `pnpm run check` (438 test files / 2356 tests passed)
+
+## PHYS-8 — Synchronous physics overlap-shape query
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Corrected the backend overlap API to
+  `overlapShape(shape, transform, options)`, matching the implementation plan's
+  `context.physics.overlapShape(shape, transform, options)` shape.
+- Added app-level `context.physics.overlapShape(...)`, returning an empty array
+  when no backend is installed.
+- Implemented deterministic overlap queries in the test backend and primitive
+  Rapier overlap queries through `world.intersectionsWithShape`, with
+  `excludeEntity` and default sensor filtering behavior.
+- Added focused app/Rapier coverage for overlap hits and sensor inclusion.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics typecheck`
+- `pnpm --filter @aperture-engine/physics-rapier typecheck`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/physics-access.test.ts test/physics-rapier/rapier-backend.test.ts test/physics/test-backend.test.ts`
+- `pnpm run check` (438 test files / 2355 tests passed)
+
+## PHYS-11 — Contact normals and sleeping-state debug overlay
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added backend-neutral `debugGeometry({ contactNormals: true })` and
+  `debugGeometry({ bodyStateMarkers: true })` support to the deterministic test
+  backend and Rapier backend.
+- Added `bodyStateMarkers` to `PhysicsDebug` authoring so
+  `withPhysicsDebug({ bodyStateMarkers: true })` and app descriptors can request
+  sleeping/active debug markers.
+- Updated `examples/physics-settling.html` to render collider wireframes,
+  contact/ray normals, ray/query probes, and active/sleeping body markers as
+  multi-material line-list submeshes.
+- Expanded physics-settling status with `contactNormalCount`,
+  `bodyStateMarkerCount`, `activeBodyMarkerCount`, `sleepingBodyMarkerCount`,
+  and per-category debug material keys.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics typecheck`
+- `pnpm --filter @aperture-engine/physics-rapier typecheck`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/app/physics-access.test.ts test/app/physics-authoring.test.ts test/runtime/physics-authoring-helpers.test.ts test/physics-rapier/rapier-backend.test.ts`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/physics-settling.spec.ts --timeout=60000 --reporter=line`
+  passed once during the slice. A later rerun and a direct one-off Chrome probe
+  both printed route status but left Chrome teardown processes hanging; the final
+  direct status after the public debug flag edit reported `ok=true`,
+  `meshDraws=10`, `drawCalls=10`, `contactNormalCount=16`,
+  `bodyStateMarkerCount=5`, `sleepingBodyMarkerCount=4`, and `diagnostics=0`.
+- `pnpm run check` (438 test files / 2355 tests passed)
+
+## PHYS-11 — Ray-probe debug overlay
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added `PhysicsDebugRayProbe` and
+  `debugGeometry({ rayProbes })` support so backend-neutral debug geometry can
+  draw ray/query hits, misses, and hit normals.
+- Wired Rapier and the deterministic test backend through the shared
+  ray-probe debug-line helper.
+- Updated `examples/physics-settling.html` to render a line-list ray probe and
+  publish `debug.rayProbeCount`.
+- Added a physics-route retry for first-frame all-transparent current-texture
+  readback before status publication, keeping the Playwright pixel proof stable.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics typecheck`
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier typecheck`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/app/physics-access.test.ts test/physics-rapier/rapier-backend.test.ts`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/physics-settling.spec.ts --timeout=60000 --reporter=line`
+- `pnpm run check` (438 test files / 2354 tests passed)
+
+## PHYS-10 — Runtime and app physics authoring helpers
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added runtime helper initializers for current physics authoring components:
+  `withRigidBody`, `withCollider`, `withPhysicsVelocity`, `withExternalForce`,
+  `withExternalImpulse`, `withKinematicTarget`, `withPhysicsMaterial`,
+  `withPhysicsJoint`, and `withPhysicsDebug`.
+- Re-exported `@aperture-engine/physics` from `@aperture-engine/runtime` so
+  component enums/types and helper functions are available from the runtime
+  barrel.
+- Updated `examples/physics-settling.worker.js` to author the static floor and
+  dynamic bodies with the new helpers.
+- Added app spawn descriptor support for `spawn.mesh({ physics })`,
+  `spawn.physics(...)`, and `physics.*` helper descriptors.
+- Added coverage proving descriptor-authored body/collider/velocity data
+  survives prefab serialization and `spawn.prefab` cloning.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/runtime typecheck`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec vitest run test/runtime/physics-authoring-helpers.test.ts`
+- `pnpm exec vitest run test/app/physics-authoring.test.ts test/runtime/physics-authoring-helpers.test.ts`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/physics-settling.spec.ts --timeout=120000`
+- `pnpm run check` (438 test files / 2353 tests passed)
+
+## PHYS-11 — Rendered physics debug overlay and status
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Updated `examples/physics-settling.html` so the worker converts
+  `backend.debugGeometry({ colliderWireframes: true })` into a shared
+  line-list mesh asset.
+- Registered the matching debug mesh/material on the main thread before
+  rendering the worker snapshot, producing a WebGPU collider-wireframe overlay.
+- Expanded physics route status with backend build, execution mode,
+  body/collider/event/query counts, timings, and debug line metadata.
+- Kept contact-normal/ray-probe debug styling as follow-up work.
+
+### Validation
+
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/physics-settling.spec.ts --timeout=120000`
+- `pnpm run check` (436 test files / 2349 tests passed)
+
+## PHYS-11 — Backend-neutral debug geometry primitive
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added `debugGeometry({ colliderWireframes: true })` support to the Rapier
+  backend by converting Rapier `world.debugRender()` vertex/color buffers into
+  backend-neutral `PhysicsDebugLine` primitives.
+- Added deterministic test-backend debug lines so app-level debug access can be
+  tested without WASM.
+- Exposed debug geometry through `context.physics.debugGeometry()`, returning an
+  empty line list when no backend is installed.
+- Kept rendered debug overlay, contact normals, sleeping-state visualization,
+  and ray/query probes as follow-up work.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/physics typecheck`
+- `pnpm --filter @aperture-engine/physics-rapier typecheck`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec vitest run test/app/physics-access.test.ts test/physics-rapier/rapier-backend.test.ts test/physics/test-backend.test.ts`
+- `pnpm run check` (436 test files / 2349 tests passed)
+
+## PHYS-8 — Spatial collider-source raycast routing
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added `packages/app/src/spatial/collider.ts`, a bridge from
+  `context.spatial` collider-source raycasts to the installed physics backend.
+- Resolved physics backend `index:generation` refs back to active ECS entities,
+  skipping stale or non-ECS backend hits.
+- Preserved existing behavior when no backend is installed:
+  `source: "collider"` returns no hits unless callers explicitly request
+  `fallback: "bounds"`.
+- Kept physics collider queries distinguishable from mesh and bounds picking by
+  returning `source: "collider"`.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec vitest run test/app/physics-spatial-source.test.ts test/app/spatial-queries.test.ts test/app/physics-access.test.ts`
+- `pnpm run check` (436 test files / 2348 tests passed)
+
+## M10-T2 — Collision/trigger events + physics raycast
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added Rapier EventQueue-backed collision capture to
+  `@aperture-engine/physics-rapier`, producing deterministic collision/trigger
+  start, stay, and end events through `PhysicsResultBuffer` and
+  `stepPhysicsWorld(...).events`.
+- Fixed Rapier raycasts to consume `RayColliderIntersection` hits directly and
+  preserve sensor filtering.
+- Added app-level `context.physics` access for synchronous
+  `raycastFirst/raycastAll` queries and per-frame physics event reads.
+- Proved trigger enter/stay/exit ordering and deterministic replay, physics
+  raycast hits, and app event/query forwarding with focused tests.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm --filter @aperture-engine/physics typecheck`
+- `pnpm --filter @aperture-engine/physics-rapier typecheck`
+- `pnpm exec vitest run test/app/physics-access.test.ts test/physics-rapier/rapier-backend.test.ts test/physics/test-backend.test.ts`
+- `pnpm run check` (435 test files / 2346 tests passed)
+
+## M10-T1 — Physics integration point + colliders/rigidbodies
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Added `@aperture-engine/physics` with backend-neutral rigidbody/collider
+  authoring, validation, fixed-step clock helpers, backend contracts, a test
+  backend, and generic ECS sync/writeback.
+- Added runtime/app fixed-step scheduling and generated-worker clock options.
+- Added `@aperture-engine/physics-rapier` as the first same-worker Rapier
+  backend using `@dimforge/rapier3d-compat@0.19.3`.
+- Proved dynamic body writeback through deterministic headless Rapier tests and
+  `examples/physics-settling.html`, where stacked ECS-authored bodies settle
+  under gravity and render through WebGPU readback.
+
+### Validation
+
+- `pnpm run check` (434 test files / 2343 tests passed after the Rapier slice)
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/physics-settling.spec.ts --timeout=120000`
+
+## M6 — Content layer required scope
+
+Completed: 2026-06-05
+Commit: pending
+
+### Summary
+
+- Implemented the required M6 content-layer scope from `docs/M6_UI_PARTICLES_NOTES.md`: richer sprites, MSDF text, retained ECS UI with hit regions, UI interaction blocking, GPU-compute particles, and a combined content showcase route.
+- Added JSON-safe status and browser readback coverage for the shipped content layers.
+- Mapped the result to `docs/SOTA_ROADMAP.md` as M6 complete for required scope, with decals and volumetrics deferred as stretch/future work.
+
+### Validation
+
+- `pnpm --filter @aperture-engine/webgpu typecheck`
+- `pnpm --filter @aperture-engine/webgpu build`
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- Focused sprite/text/UI/particle Vitest suites
+- `pnpm exec playwright test test/e2e/ui-hud.spec.ts`
+- `pnpm exec playwright test test/e2e/ui-interaction.spec.ts`
+- `pnpm exec playwright test test/e2e/gpu-particles.spec.ts --timeout=60000`
+- `pnpm exec playwright test test/e2e/content-showcase.spec.ts --timeout=60000`
+- `pnpm run check` (427 test files / 2323 tests passed)
+
 ## M1-T11 — Add CI and release pipeline gates
 
 Completed: 2026-05-29
@@ -30604,3 +32414,687 @@ true`, zero diagnostics, frame draw calls 6, bloom effect draw calls 4,
   `graph.topology: "downsample-upsample"`, pass count 4, resource count 3, two
   downsample levels at 480x270 and 240x135, and direct-vs-bloom readback max
   dark-sample brightening 250.185.
+
+## M10 PHYS-8/PHYS-15 — Simulation-worker query semantics hardening
+
+Completed: 2026-06-05 23:30 PDT
+
+Summary:
+
+- Updated the deterministic test physics backend so collider `sensor` and
+  `collisionGroups` authoring are retained on backend bodies.
+- Applied Rapier-compatible `includeSensors`, `collisionGroups`, and
+  `excludeEntity` filtering across deterministic raycasts, overlaps, shape
+  casts, point projection, and character movement probes.
+- Extended generated-worker devtools proof coverage so sensor hits require
+  explicit `includeSensors: true` before agents proceed to `ecs_diff`.
+- Added `context.physics.summary()` metadata to generated-worker raycast,
+  overlap, shape-cast, and point-projection tool results plus a normalized
+  option echo so agents can tie query hits to the post-step simulation-worker
+  backend state and inspect which filters applied.
+- Allowed generated-worker physics query filters to accept snapshot-returned
+  `{ index, generation }` refs for `excludeEntity` / `excludeEntityRef`,
+  avoiding manual backend ref string construction in agent workflows.
+- Documented the simulation-worker pause/snapshot/edit-or-command/`ecs_step`/
+  query/`ecs_diff` workflow and checked off the PHYS-15 query-latency semantics
+  documentation item while keeping concrete third-worker transport parked.
+- Added `docs/research/PHYSICS_BACKEND_COMPARISON.md` as a partial PHYS-17
+  report comparing current package facts, implemented test/Rapier behavior,
+  simulation-worker suitability, current Rapier gaps, and adapter decision
+  criteria. Rapier remains the default; Havok/Jolt adapters remained future
+  work at that point.
+- Updated the physics implementation plan, SOTA roadmap, public tracker,
+  backlog, current task, and handoff to keep the dedicated physics-worker route
+  parked and the simulation-worker route primary.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/app build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+
+## M10 PHYS-17 — Implemented-backend benchmark route
+
+Completed: 2026-06-06 00:15 PDT
+
+Summary:
+
+- Added `runPhysicsBackendBenchmark(...)` in
+  `packages/physics/src/benchmark.ts` and exported it from
+  `@aperture-engine/physics`.
+- The benchmark initializes supplied backends as `simulation-worker`, syncs a
+  shared static/sensor/grouped/event/contact/dynamic body workload, runs fixed steps,
+  reads results, exercises raycast/overlap/shape-cast/point-projection queries,
+  and reports timing, memory-source, heap before/after/delta, accumulated event
+  totals/kinds including Rapier contact-force, support, count,
+  unsupported-feature, and signature JSON.
+- Added deterministic and Rapier benchmark specs plus a browser
+  `examples/physics-benchmark.html` route that publishes implemented-backend
+  status while keeping the dedicated physics-worker route parked.
+- Updated the PHYS-17 comparison report, implementation plan, SOTA roadmap,
+  public tracker, backlog/current task, and handoff. Havok/Jolt adapters plus
+  deeper allocation scenarios remain future work.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/benchmark.test.ts test/physics-rapier/benchmark.test.ts`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `pnpm exec playwright test test/e2e/physics-benchmark.spec.ts --project=chrome-webgpu-headed`
+
+## M10 simulation-worker physics event filtering
+
+Completed: 2026-06-06 00:22 PDT
+
+Summary:
+
+- Added generated-worker devtools `physics_events` as a read-only filtered view
+  over current `context.physics.summary()` events.
+- The tool accepts event `kind`, event `family`, generation-checked `entity`
+  refs, generation-checked `joint` refs, and `limit`, then returns matching
+  event details plus the same simulation-worker physics summary metadata.
+- Focused generated-worker coverage proves agents can filter a backend
+  `triggerEnter` after `ecs_step` and filter an explicit `jointBreak` by the
+  snapshot-returned joint ref before continuing to `ecs_diff`.
+- Updated the physics implementation plan, SOTA roadmap, public tracker,
+  backlog/current task, and handoff while keeping the dedicated physics-worker
+  route parked.
+
+Validation:
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts`
+
+## M10 PHYS-17 — Benchmark memory checkpoints
+
+Completed: 2026-06-06 00:35 PDT
+
+Summary:
+
+- Extended `runPhysicsBackendBenchmark(...)` memory reporting with named
+  checkpoints across `beforeInit`, `afterInit`, `afterSync`, sampled
+  `afterStep:*`, `afterReadback`, and `afterQueries`.
+- Added `checkpointCount`, `peakUsedBytes`, `peakDeltaBytes`, and per-checkpoint
+  start/previous deltas while preserving the existing memory source,
+  before/after, and final delta fields.
+- Updated deterministic, Rapier, and browser benchmark assertions so both
+  implemented backends publish the same simulation-worker profiling surface.
+- Updated `examples/physics-benchmark.html`, the PHYS-17 comparison report,
+  implementation plan, SOTA roadmap, public tracker, backlog/current task, and
+  handoff. The dedicated physics-worker route remains parked until this data
+  shows a split is worth the protocol cost.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/benchmark.test.ts test/physics-rapier/benchmark.test.ts`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/physics-benchmark.spec.ts --project=chrome-webgpu-headed`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- Targeted `git diff --check`
+
+## M10 PHYS-17 — Benchmark scenario matrix
+
+Completed: 2026-06-06 00:45 PDT
+
+Summary:
+
+- Added `createDefaultPhysicsBackendBenchmarkScenarios(...)` and
+  `runPhysicsBackendBenchmarkScenarios(...)` in
+  `packages/physics/src/benchmark.ts`.
+- The implemented-backend benchmark route now runs balanced, body-heavy,
+  contact-heavy, and query-heavy simulation-worker workloads, creating a fresh
+  backend instance per scenario so init/sync/memory data stays isolated.
+- Updated `examples/physics-benchmark.html` status to publish eight
+  scenario/backend reports across deterministic and Rapier backends while
+  keeping `dedicatedPhysicsWorker = "parked"`.
+- Updated deterministic, Rapier, and browser benchmark coverage plus PHYS-17,
+  SOTA, tracker, backlog/current task, and handoff docs.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/benchmark.test.ts test/physics-rapier/benchmark.test.ts`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/physics-benchmark.spec.ts --project=chrome-webgpu-headed`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- Targeted `git diff --check`
+- Trailing-whitespace scan
+
+## M10 simulation-worker post-physics interaction picking
+
+Completed: 2026-06-06 00:53 PDT
+
+Summary:
+
+- Moved built-in app interaction picking to the post-update/post-fixed-step
+  state: `ApertureApp.step(...)` now refreshes the spatial index after low-level
+  update and fixed-step physics writeback before running `runInteractionFrame`.
+- Updated the interaction driver comment to state that callbacks see the same
+  ECS state that will be extracted for rendering.
+- Added a generated simulation-worker proof where a dynamic body starts off the
+  pointer ray, moves under the pointer during a paused `ecs_step`, fires an
+  interaction callback, and proves the callback's `PhysicsVelocity.angular`
+  mutation through `ecs_diff`.
+- Re-ran the existing interaction hover/click/drag route tests to verify the
+  ordering change did not regress normal pointer interactions.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts`
+- `pnpm exec vitest run test/app/interaction-route.test.ts test/app/ui-interaction-route.test.ts test/app/controllers-route.test.ts`
+
+## M10 simulation-worker durable character-controller authoring
+
+Completed: 2026-06-06 01:10 PDT
+
+Summary:
+
+- Added `PhysicsCharacterController` ECS authoring for durable character
+  controller offset/up/slide/slope/snap/autostep/mass settings, plus creator
+  and validation coverage in `@aperture-engine/physics`.
+- Wired controller authoring through app physics spawn descriptors,
+  `physics.characterController(...)`, runtime `withPhysicsCharacterController`,
+  entity summaries, paused field mutation, and `ecs_diff` field detection.
+- Updated generated-worker `physics_move_character` to merge ECS-authored
+  controller settings with optional per-call overrides before invoking
+  `context.physics.moveCharacter(...)`.
+- Strengthened the generated simulation-worker proof: pause, snapshot a
+  character, edit `PhysicsCharacterController.snapToGroundDistance`, call
+  `physics_move_character` without inline settings, step fixed physics, and
+  diff `physicsCharacterController`, `KinematicTarget`, `LocalTransform`, and
+  `PhysicsBodyState` writeback.
+- Updated the physics plan, SOTA roadmap, public tracker, backlog/current task,
+  and handoff. The dedicated third-worker physics route remains parked.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec vitest run test/physics/component-validation.test.ts test/runtime/physics-authoring-helpers.test.ts test/app/physics-authoring.test.ts`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts`
+
+## M10 simulation-worker material/debug authoring
+
+Completed: 2026-06-06 01:26 PDT
+
+Summary:
+
+- Wired `PhysicsMaterial` into ECS-to-backend collider descriptor sync so
+  authored density/friction/restitution override collider defaults, and carried
+  friction/restitution combine rules through backend descriptors.
+- Mapped `PhysicsMaterialCombineRule` to Rapier coefficient-combine rules in the
+  same-worker Rapier backend.
+- Exposed JSON-safe `physicsMaterial` and `physicsDebug` entity summaries,
+  added both fields to `ecs_diff`, and whitelisted paused material/debug field
+  edits through `ecs_set_component_field`.
+- Updated generated-worker `physics_debug_geometry` so an empty payload derives
+  default options from active ECS-authored `PhysicsDebug` flags while explicit
+  payload options still override them.
+- Strengthened the generated simulation-worker proof: pause, snapshot
+  material/debug authoring, mutate material friction and broadphase debug flags,
+  step fixed physics, request debug geometry, and diff the changed ECS
+  summaries. The dedicated third-worker physics route remains parked.
+- Updated the physics plan, SOTA roadmap, public tracker, backlog/current task,
+  and handoff.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/app/physics-authoring.test.ts test/app/generated-worker-start.test.ts`
+
+## M10 simulation-worker gravity authoring
+
+Completed: 2026-06-06 01:40 PDT
+
+Summary:
+
+- Added `PhysicsGravity` ECS authoring plus `createPhysicsGravity(...)` to the
+  backend-neutral physics package.
+- Added a backend-neutral `setGravity` sync command; ECS sync emits the first
+  active authored gravity before body commands, the deterministic test backend
+  applies it to dynamic-body velocity/transform writeback, and the Rapier
+  backend assigns it to `World.gravity`.
+- Exposed gravity through app physics spawn descriptors and runtime
+  `withPhysicsGravity(...)`.
+- Exposed JSON-safe `physicsGravity` entity summaries, added the field to
+  `ecs_diff`, and whitelisted paused gravity vector edits through
+  `ecs_set_component_field`.
+- Added a generated simulation-worker proof: pause, snapshot authored zero
+  gravity, mutate it to `[0, -1, 0]`, step fixed physics, and diff
+  `physicsGravity`, `PhysicsVelocity`, `LocalTransform`, and
+  `PhysicsBodyState` writeback. The dedicated third-worker physics route
+  remains parked.
+- Updated the physics plan, SOTA roadmap, public tracker, backlog/current task,
+  and handoff.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm --filter @aperture-engine/runtime build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/runtime/physics-authoring-helpers.test.ts test/app/generated-worker-start.test.ts`
+
+## M10 simulation-worker child collider entities
+
+Completed: 2026-06-06 03:59 PDT
+
+Summary:
+
+- Updated `collectPhysicsCommands(...)` so physics body sync no longer requires
+  `RigidBody` and `Collider` on the same entity.
+- Added support for one enabled child `Collider + LocalTransform` discovered
+  through authoritative `Parent` links. The child local transform composes with
+  `Collider.offsetTranslation` / `offsetRotation` for the backend descriptor,
+  while backend body identity and readback stay on the parent body entity.
+- Added deterministic backend coverage proving command collection, raycast
+  offset behavior, parent-body `PhysicsBodyState` writeback, and no derived
+  state written to the child collider entity.
+- Added a generated simulation-worker proof: pause a body with no `Collider`
+  plus child collider, step fixed physics, raycast the post-step child collider,
+  and diff parent `LocalTransform` / `PhysicsBodyState` writeback while
+  confirming the body still has no `Collider`.
+- Updated the physics plan, SOTA roadmap, public tracker, backlog/current task,
+  and handoff. At completion time, full compound/multiple child colliders were
+  still future work, and the dedicated third-worker physics route remained
+  parked.
+- Superseded by the 2026-06-06 04:16 PDT compound child-collider slice below,
+  which implements multiple child colliders per body for the active
+  simulation-worker route.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/app/generated-worker-start.test.ts`
+
+## M10 simulation-worker compound child colliders
+
+Completed: 2026-06-06 04:16 PDT
+
+Summary:
+
+- Added backend-neutral compound collider command support:
+  `PhysicsCommand.upsertBody` now accepts `colliders` while preserving the
+  primary `collider` field, and query hit records can include optional exact
+  child collider refs beside the parent body entity.
+- Updated ECS physics sync to gather one or more enabled child
+  `Collider + LocalTransform` entities through authoritative `Parent` links,
+  compose child local transforms with collider offsets, and keep body writeback
+  on the parent entity.
+- Updated the deterministic backend to store per-body collider lists, count
+  attached colliders, filter/query each collider independently, and return
+  stable child collider refs from raycast/overlap/shape-cast/projection hits.
+- Updated the Rapier adapter to attach multiple Rapier colliders to one rigid
+  body, count real attached colliders, resolve query/debug/event paths back to
+  child collider refs, and keep events body-oriented while naming exact
+  collider pairs.
+- Strengthened deterministic, Rapier, and generated-worker proofs: two child
+  colliders on one parent body are extracted, stepped in the simulation worker,
+  queried with raycast-all, and diffed back to parent `LocalTransform` /
+  `PhysicsBodyState`. The dedicated third-worker physics route remains parked.
+- Updated the physics plan, SOTA roadmap, public tracker, current task, handoff,
+  and status.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts`
+- `pnpm exec vitest run test/app/generated-worker-start.test.ts --testNamePattern "child collider"`
+
+## M10 simulation-worker backend capabilities
+
+Completed: 2026-06-06 04:29 PDT
+
+Summary:
+
+- Added first-class backend capability metadata to `PhysicsBackend`, covering
+  compound colliders, character controllers, linked-body contacts, combined
+  unit-joint motors, motor force limits, automatic break-force thresholds,
+  native joint impulse readback, and paired non-fixed `frameB`.
+- Published deterministic-test and same-worker Rapier capability constants from
+  their concrete backend factories.
+- Cloned capability metadata through `context.physics.summary()` and updated
+  generated-worker `physics_joint_status` to derive per-joint support flags
+  from the active backend metadata instead of hardcoded backend-kind checks.
+- Strengthened backend, app-summary, and generated-worker tests so agents can
+  inspect real same-worker backend support before relying on pause/step/diff
+  physics assertions. The dedicated third-worker route remains parked.
+- Updated the physics plan, SOTA roadmap, public tracker, handoff, current
+  task, completed log, and status.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/physics-rapier/rapier-backend.test.ts test/app/physics-access.test.ts test/app/generated-worker-start.test.ts`
+
+## PHYS-17 benchmark capability reporting
+
+Completed: 2026-06-06 04:36 PDT
+
+Summary:
+
+- Added cloned backend capability metadata to
+  `PhysicsBackendBenchmarkBackendReport`, so `runPhysicsBackendBenchmark(...)`
+  reports support surface beside backend kind/version/build/execution.
+- Strengthened deterministic and Rapier benchmark tests to assert capability
+  metadata through the same simulation-worker benchmark route.
+- Extended the browser benchmark status type/assertions so
+  `examples/physics-benchmark.html` status carries Rapier capability metadata
+  alongside timing, query, event, memory, and signature data.
+- Updated the PHYS-17 plan, backend comparison report, SOTA roadmap, public
+  tracker, handoff, current task, completed log, and status. Havok/Jolt adapter
+  work and the dedicated third-worker route remain parked.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/benchmark.test.ts test/physics-rapier/benchmark.test.ts`
+- `pnpm exec playwright test test/e2e/physics-benchmark.spec.ts --reporter=list`
+
+## PHYS-17 allocation-heavy benchmark scenario
+
+Completed: 2026-06-06 04:39 PDT
+
+Summary:
+
+- Added an `allocation-heavy` implemented-backend benchmark scenario with
+  higher body and contact-pair counts plus bounded fixed steps and query
+  repeats.
+- Updated deterministic/Rapier benchmark matrix tests to expect five scenarios
+  and assert the new scenario's body/contact pressure.
+- Updated the browser benchmark status spec to expect ten reports across both
+  implemented backends and verify the allocation-heavy Rapier report.
+- Added compact capability labels to benchmark summary rows/cards for quick
+  browser status scanning.
+- Updated the PHYS-17 plan, backend comparison report, SOTA roadmap, public
+  tracker, handoff, current task, completed log, and status. Havok/Jolt adapter
+  work and dedicated third-worker physics remain parked.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/benchmark.test.ts test/physics-rapier/benchmark.test.ts`
+- `pnpm exec playwright test test/e2e/physics-benchmark.spec.ts --reporter=list`
+
+## PHYS-17 joint-heavy benchmark scenario
+
+Completed: 2026-06-06 05:06 PDT
+
+Summary:
+
+- Added `jointCount` to `runPhysicsBackendBenchmark(...)` input/reporting.
+- Added a `joint-heavy` implemented-backend benchmark scenario that emits
+  bounded distance-joint body pairs for deterministic and Rapier backends.
+- Updated deterministic/Rapier benchmark matrix tests to expect six scenarios
+  and assert backend `jointCount` reporting for the new scenario.
+- Updated the browser benchmark status spec and summary cards to publish twelve
+  simulation-worker reports and display joint pressure beside contact/body/query
+  data.
+- Updated the PHYS-17 plan, backend comparison report, SOTA roadmap, public
+  tracker, handoff, current task, completed log, and status. Havok/Jolt adapter
+  work and dedicated third-worker physics remain parked.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/benchmark.test.ts test/physics-rapier/benchmark.test.ts`
+- `pnpm exec playwright test test/e2e/physics-benchmark.spec.ts --reporter=list`
+
+## PHYS-17 character-heavy benchmark scenario
+
+Completed: 2026-06-06 05:20 PDT
+
+Summary:
+
+- Added `characterMoveRepeats` to `runPhysicsBackendBenchmark(...)`
+  input/reporting.
+- Added a `character-heavy` implemented-backend benchmark scenario that syncs a
+  kinematic capsule plus floor/wall setup and repeatedly calls
+  `PhysicsBackend.moveCharacter(...)` for deterministic and Rapier backends.
+- Reported character move, collision, grounded, and signature data in benchmark
+  reports and browser summary cards.
+- Tightened Rapier character movement so default movement avoids an unnecessary
+  JS filter predicate, fixing the borrowed-collider disposal failure surfaced by
+  the benchmark route.
+- Updated deterministic/Rapier/browser benchmark tests to expect seven
+  scenarios and fourteen simulation-worker reports, and made Rapier
+  character-controller tests dispose the backend after assertions.
+- Updated the PHYS-17 plan, backend comparison report, SOTA roadmap, public
+  tracker, handoff, current task, completed log, and status. Havok/Jolt adapter
+  work and dedicated third-worker physics remain parked.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/character-controller.test.ts test/physics/benchmark.test.ts test/physics-rapier/benchmark.test.ts`
+- `pnpm exec playwright test test/e2e/physics-benchmark.spec.ts --reporter=list`
+
+## PHYS-17 churn-heavy benchmark scenario
+
+Completed: 2026-06-06 05:30 PDT
+
+Summary:
+
+- Added `resyncRepeats` to `runPhysicsBackendBenchmark(...)` input/reporting.
+- Added a `churn-heavy` implemented-backend benchmark scenario that repeatedly
+  resyncs create/destroy commands for deterministic and Rapier backends.
+- Reported total sync count, resync command count, and an `afterResync` memory
+  checkpoint in benchmark reports.
+- Updated the browser benchmark status spec and summary cards to publish
+  sixteen simulation-worker reports and display resync pressure beside
+  contact/body/query/character/joint data.
+- Updated the PHYS-17 plan, backend comparison report, SOTA roadmap, public
+  tracker, handoff, current task, completed log, and status. Havok/Jolt adapter
+  work and dedicated third-worker physics remain parked.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/benchmark.test.ts test/physics-rapier/benchmark.test.ts`
+- `pnpm exec playwright test test/e2e/physics-benchmark.spec.ts --reporter=list`
+
+## PHYS-17 Havok adapter prototype
+
+Completed: 2026-06-06 05:45 PDT
+
+Summary:
+
+- Added `@aperture-engine/physics-havok` with `@babylonjs/havok@1.3.12` as a
+  bounded optional same-worker backend dependency.
+- Implemented `createHavokPhysicsBackend(...)` behind the shared
+  `PhysicsBackend` interface for primitive body/collider sync, fixed stepping,
+  ECS-style readback, raycast queries, collision event accumulation, external
+  force impulse approximation, and resync create/destroy churn.
+- Added root workspace build/test path aliases and package-boundary coverage
+  for the new headless package.
+- Added `test/physics-havok/benchmark.test.ts`, which feeds package-local Havok
+  WASM bytes into `runPhysicsBackendBenchmark(...)` and verifies startup, step,
+  query, event, memory, and resync reporting.
+- Updated the PHYS-17 plan, backend comparison report, SOTA roadmap, public
+  tracker, handoff, current task, completed log, and status. Rapier remains the
+  default; Havok generated-worker gameplay routes, joints, character
+  controllers, Jolt, and dedicated third-worker physics remain parked/future
+  work.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics-havok build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/benchmark.test.ts test/physics-rapier/benchmark.test.ts test/physics-havok/benchmark.test.ts`
+- `pnpm run build`
+- `pnpm run check:boundaries`
+
+## PHYS-17 Havok query parity benchmark
+
+Completed: 2026-06-06 05:58 PDT
+
+Summary:
+
+- Extended `packages/physics-havok/src/index.ts` with bounded
+  `overlapShape(...)`, `castShapeFirst(...)`, and `projectPoint(...)` methods
+  behind the same simulation-worker-compatible `PhysicsBackend` interface.
+- Kept the adapter headless and optional: query methods create temporary Havok
+  primitive shapes, release them after each query, map Havok contacts back to
+  Aperture entity/collider refs, and leave Rapier as the default backend.
+- Updated `test/physics-havok/benchmark.test.ts` to assert overlap/shape/project
+  support flags, expanded query counts, overlap hit coverage, shape-cast entity
+  signature, and point-projection entity signature through
+  `runPhysicsBackendBenchmark(...)` with package-local Havok WASM bytes.
+- Updated the PHYS-17 plan, backend comparison report, SOTA roadmap, public
+  tracker, handoff, current task, completed log, and backlog. Havok
+  generated-worker gameplay routes, joints, character controllers, Jolt, and
+  dedicated third-worker physics remain parked/future work.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics-havok build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/benchmark.test.ts test/physics-rapier/benchmark.test.ts test/physics-havok/benchmark.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `pnpm run build`
+- `pnpm run check:publish`
+
+## PHYS-17 Havok browser benchmark route
+
+Completed: 2026-06-06 06:07 PDT
+
+Summary:
+
+- Added `@aperture-engine/physics-havok` and `@babylonjs/havok` import-map
+  entries to `examples/physics-benchmark.html`.
+- Updated `examples/physics-benchmark.main.js` to run the optional Havok backend
+  across the same eight browser benchmark scenarios as the deterministic and
+  Rapier backends, using a package-local `HavokPhysics.wasm` `locateFile`
+  callback.
+- Updated `scripts/serve-examples.mjs` and
+  `test/scripts/serve-examples.test.mjs` so worker-module import rewriting knows
+  the Havok package and Babylon Havok ESM path.
+- Updated `test/e2e/physics-benchmark.spec.ts` to expect twenty-four
+  deterministic/Rapier/Havok same-worker benchmark reports and assert Havok
+  capability flags, overlap/shape/project support, and nonzero query hit
+  counts.
+- Updated the PHYS-17 plan, backend comparison report, SOTA roadmap, public
+  tracker, handoff, current task, completed log, and backlog. Rapier remains the
+  default; Havok generated-worker gameplay routes, joints, character
+  controllers, Jolt, and dedicated third-worker physics remain parked/future
+  work.
+
+Validation:
+
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/scripts/serve-examples.test.mjs test/physics-havok/benchmark.test.ts`
+- `pnpm exec playwright test test/e2e/physics-benchmark.spec.ts --reporter=list`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `pnpm run check:publish`
+- `git diff --check`
+
+## PHYS-11 JSON-safe debug summaries
+
+Completed: 2026-06-06 04:48 PDT
+
+Summary:
+
+- Added `context.physics.debugSummary(...)`, summarizing existing
+  backend-neutral debug geometry into line counts, finite/invalid line counts,
+  color buckets, and finite bounds.
+- Added generated-worker `physics_debug_summary`, sharing option parsing and
+  ECS-authored `PhysicsDebug` defaults with `physics_debug_geometry`.
+- Strengthened app and generated-worker tests for exact collider/ray-probe
+  summary data and post-step broadphase AABB summary data.
+- Updated the PHYS-11 plan, SOTA roadmap, public tracker, handoff, current task,
+  completed log, and status. Dedicated third-worker physics remains parked.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/app/physics-access.test.ts test/app/generated-worker-start.test.ts`
+
+## PHYS-11 simulation-worker debug summary status
+
+Completed: 2026-06-06 04:58 PDT
+
+Summary:
+
+- Moved backend-neutral debug geometry summary logic into
+  `@aperture-engine/physics` as shared `summarizePhysicsDebugGeometry(...)`
+  types/API.
+- Kept `context.physics.debugSummary(...)` delegated to that shared helper.
+- Published `physics.debug.summary` from `examples/physics-settling.html` via
+  the active Rapier simulation-worker route, beside the rendered debug lines.
+- Strengthened unit/browser coverage for invalid-line accounting and finite
+  browser status line counts, color buckets, and bounds. Dedicated third-worker
+  physics remains parked.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/app typecheck`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics/test-backend.test.ts test/app/physics-access.test.ts`
+- `pnpm exec playwright test test/e2e/physics-settling.spec.ts --reporter=list`
+
+## PHYS-17 debug-heavy benchmark unsupported reporting
+
+Completed: 2026-06-06 06:47 PDT
+
+Summary:
+
+- Added `debugGeometryRepeats` to `runPhysicsBackendBenchmark(...)` input and
+  reports, plus debug geometry call/line counts.
+- Added a bounded `debug-heavy` same-worker benchmark scenario to the default
+  matrix so PHYS-17 covers diagnostic/debug readback pressure beside body,
+  query, character, joint, churn, and allocation pressure.
+- Reported `physics.debugGeometry.unsupported` when a benchmark requests debug
+  geometry from a backend without `PhysicsBackend.debugGeometry(...)`; Havok
+  now surfaces that limitation explicitly instead of looking like it exercised
+  debug diagnostics.
+- Updated browser benchmark summary/status rows to publish debug repeats,
+  debug calls, debug lines, and expected Havok joint/character/debug unsupported
+  counts across nine deterministic/Rapier/Havok same-worker scenarios.
+- Updated the PHYS-17 implementation plan, backend comparison report, public
+  tracker, handoff, current task, backlog, and SOTA roadmap. Rapier remains the
+  default, and the dedicated third-worker physics route stays parked.
+
+Validation:
+
+- `pnpm --filter @aperture-engine/physics build`
+- `pnpm --filter @aperture-engine/physics-rapier build`
+- `pnpm --filter @aperture-engine/physics-havok build`
+- `pnpm exec tsc -p tsconfig.test.json --noEmit`
+- `pnpm exec vitest run test/physics-havok/benchmark.test.ts test/physics/benchmark.test.ts test/physics-rapier/benchmark.test.ts`
+- `pnpm exec playwright test test/e2e/physics-benchmark.spec.ts --reporter=list`

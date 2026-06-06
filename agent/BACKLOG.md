@@ -59,232 +59,425 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-The active project direction is now `docs/SOTA_ROADMAP.md` wave 1. M1 is
-complete at 11/11: the reusable `createRenderShadowFrame()` shadow
-orchestrator is wired into `renderWebGpuAppFrame`, automatic StandardMaterial
-shadow receiver resources submit and bind, submitted shadow reports now publish
-truthful `shaderSampling` status, and `KHR_mesh_quantization` root/accessor
-decode support is in place for normalized quantized glTF geometry. App-level
-glTF loading now receives lazy Draco/Meshopt/Basis decoder factories plus
-device-derived KTX2 texture-compression support, proven by
-`examples/compressed-gltf.html`. Texture upload now preserves KTX2 mip chains,
-generates uncompressed material mips, and removes the missing-mip sampler
-fidelity warning for mip-filtered glTF textures. Camera handles now produce real
-screen-to-world rays for perspective and orthographic ECS cameras, and
-`context.spatial` is now auto-populated from live ECS Mesh + WorldTransform +
-Pickable state with mesh-BVH reuse. Package manifests are now publishable
-(`0.1.0`, MIT, package `LICENSE`, `files`, `publishConfig`) and
-`pnpm run publish:dry-run` pack-inspects all seven publishable packages. CLI
-scaffolds now emit installable `^0.1.0` Aperture deps by default, generated
-projects start at version `0.1.0`, and `APERTURE_LOCAL` preserves the explicit
-workspace escape. CI and release gates now run `pnpm run check`, build and
-pack-check all seven publishable packages, validate Changesets release metadata,
-and prove publish regressions fail the guard.
-Continue with one visible SOTA feature slice at a time.
+Run the full validation and publish checkpoint for the committed Rapier-first
+physics and M6 content slices.
+
+Category: `docs-tooling`
+
+Reference anchor: existing `scripts/finalize-agent-status.mjs` and
+`scripts/check-progress-tracker.mjs`.
+
+Acceptance criteria:
+
+- `agent/HANDOFF.md`, `agent/CURRENT_TASK.md`, `agent/STATUS.json`, and the
+  public tracker describe the committed source state: content/rendering work in
+  `58df7607`, Rapier physics work in `73c29a62`, and no shipped Havok package.
+- Full validation, or the broadest practical equivalent, is recorded in
+  handoff.
+- Docs/status cleanup is committed and `main` is pushed.
+
+Recommended next visible-feature task after validation:
+
+Add Rapier mesh/heightfield collider cooking for asset-backed colliders, with
+ECS pause/edit/step/diff coverage and a browser route proving a trimesh or
+heightfield collider affects physics queries and writeback.
+
+Reference anchor: `references/bevy/crates/bevy_mesh/src/primitives` and
+Rapier collider construction docs from the installed
+`@dimforge/rapier3d-compat` package.
+
+## Historical M10 Physics Notes
+
+Active goal override is currently pursuing M10 physics. `M10-T1` and `M10-T2`
+are done: the rigidbody/collider foundation, fixed-step scheduler, same-worker
+Rapier backend, deterministic settling route, trigger/collision event stream,
+Rapier collider raycasts, and app-level `context.physics` access are
+implemented; `context.physics.overlapShape(shape, transform, options)`,
+`context.physics.castShapeFirst(shape, cast, options)`, and
+`context.physics.projectPoint(point, options)` are now implemented for
+same-worker physics queries. The PHYS-8 spatial bridge is also implemented for
+`context.spatial` collider-source raycasts. The first PHYS-11 primitive is
+implemented: `context.physics.debugGeometry({ colliderWireframes: true })`
+exposes backend-neutral collider wireframe lines from Rapier/test backends, and
+`examples/physics-settling.html` renders those lines as a debug overlay with
+backend build/execution/count/timing status. PHYS-11 ray probes, contact
+normals, and active/sleeping body markers are also implemented and rendered in
+the settling route through multi-material debug line submeshes. The PHYS-10
+helper slice is also
+implemented: runtime re-exports the physics API and provides
+`withRigidBody`/`withCollider`/`withPhysicsVelocity` plus force/impulse,
+kinematic target, material, joint, and debug helpers; the settling route uses
+them for the floor and dynamic bodies. App spawn descriptors now support
+`spawn.mesh({ physics })`, `spawn.physics(...)`, and `physics.*` helper
+descriptors with prefab-safe component serialization. The first PHYS-13 joint
+execution slice is also implemented: ECS `PhysicsJoint` entities emit backend
+upsert/destroy commands, the test backend tracks joint lifecycle/counts, and
+Rapier creates impulse joints for fixed/spherical/revolute/prismatic/distance
+descriptors with a focused distance-joint constraint proof. The PHYS-13
+lifecycle/limit follow-up is also implemented: disabled bodies/joints are
+removed from backend state, missing-body joint handling is aligned between the
+test backend and Rapier, and finite revolute/prismatic limits plus position
+motors execute in Rapier. Joint authoring now also exposes explicit
+position/velocity motor modes and acceleration/force motor model selection for
+Rapier unit joints. Joint-frame debug output now draws deterministic
+anchor-to-anchor and joint-axis lines for Rapier/test backend joints. Fixed
+joint `frameA`/`frameB` local orientation authoring now flows through ECS
+components, backend descriptors, Rapier `JointData.fixed`, live Rapier
+`ImpulseJoint.frameX1()` / `frameX2()` debug readback, and validation
+diagnostics.
+`examples/physics-joints.html` now renders a revolute pendulum and prismatic
+motor slider from the simulation worker with a focused Playwright proof for
+constrained motion, joint counts, joint-frame debug lines, and WebGPU pixels.
+The first PHYS-15 worker-protocol slice now exports physics worker message
+contracts and a transferable body-result packet for future third-worker
+writeback. The first PHYS-15 transfer-proxy slice now exports a
+backend-neutral proxy/endpoint helper that applies transferred worker results
+to ECS and reports latency/transport bytes in focused tests. PHYS-14
+character-controller support is now implemented for the same-worker Rapier/test
+backend path. Generated app systems now expose `this.fixedStep.register(...)`,
+and `test/app/generated-worker-start.test.ts` proves generated-worker
+`ecs_pause` / `ecs_snapshot` / `ecs_step` / `ecs_diff` over concrete ECS
+physics writeback from a discovered fixed-step system. Devtools entity
+summaries now expose `physicsVelocity` and `physicsBodyState`, worker snapshots
+and `ecs_step` expose `context.physics.summary()` backend/event data, and
+`ecs_set_component_field` can mutate `PhysicsVelocity.linear` / `angular` vec3
+fields plus `LocalTransform.translation` / `rotation` / `scale` finite tuples
+plus `ExternalForce.force` / `torque` and `ExternalImpulse.impulse` /
+`angularImpulse` tuples plus `KinematicTarget.translation` while paused.
+`ExternalForce` now reaches the deterministic/Rapier backends every fixed step,
+`ExternalImpulse` is consumed and cleared at the fixed-step sync boundary, and
+`KinematicTarget` drives kinematic-position body targets through
+deterministic/Rapier sync/writeback. App systems can now author the same common
+commands through `context.physics.applyForce(...)`, `applyImpulse(...)`,
+`setLinearVelocity(...)`, `setAngularVelocity(...)`, and
+`setKinematicTarget(...)`, with focused app and generated-worker proof coverage.
+Generated/app routes can also opt into `physicsInterpolation`, which rewrites
+only render-snapshot transforms from `PhysicsBodyState.previous/current` plus
+fixed-step `overstepAlpha`; the generated-worker proof verifies the interpolated
+mesh matrix while `ecs_diff` still sees exact authoritative ECS state.
+The generated-worker proof asserts
+concrete velocity, backend body id, sleeping state, previous/current body poses,
+same-worker trigger event summaries, app-level `controllerGroundedChanged` event
+summaries from character grounded-state edges, and mutated
+velocity/transform/force/impulse/kinematic-target writeback after fixed-step
+physics. The same generated-worker proof style now also runs against an
+asynchronously initialized Rapier backend, and physics writeback resolves result
+body `index:generation` refs directly when broad active-entity queries miss
+async-spawned generated-worker entities. Authored
+`PhysicsJoint.breakForce > 0` now reports
+`physics.joint.breakForce.unsupported` through `PhysicsSyncReport` for
+Rapier/test backends, so missing break semantics are visible instead of silent.
+Native joint impulse-readback absence now has the same shared
+unsupported-feature shape: `physics_joint_status.readback.unsupportedFeature`
+reports `physics.joint.impulseReadback.unsupported` through the
+simulation-worker devtools route when the active backend capability remains
+`jointImpulseReadback: false`.
+`RigidBody.ccdEnabled` is now capability-visible on the same route: Rapier
+reports `continuousCollisionDetection: true` and accepts CCD body commands,
+while deterministic/Havok backends report
+`physics.rigidBody.ccd.unsupported` when CCD is authored; the async Rapier
+generated-worker proof mutates CCD while paused, steps fixed physics in the
+simulation worker, and diffs `physicsRigidBody.ccdEnabled` plus
+`PhysicsBodyState` writeback.
+Asset-backed collider authoring is now explicit on the same route:
+`convexHull`, `trimesh`, and `heightfield` colliders report
+`physics.collider.assetShape.unsupported`; current deterministic/Rapier/Havok
+backends remove stale backend bodies and skip unsupported asset colliders
+instead of throwing or using fake primitive bounds. The async Rapier
+generated-worker proof mutates a collider to `trimesh`, steps fixed physics,
+sees the sync limitation, and diffs the durable `physicsCollider` authoring.
+Parented `RigidBody` authoring now works on the same simulation-worker ECS
+route: physics sync resolves `WorldTransform` before backend sync, sends
+backend world poses, and writes results back as parent-local `LocalTransform`
+values. The generated-worker proof steps a parented body, sees real
+sync/readback/writeback, and diffs `LocalTransform`, `WorldTransform`, and
+`PhysicsBodyState`; raw low-level backend commands marked `parented: true`
+still report `physics.rigidBody.parentedBody.unsupported`.
+`context.physics.summary()` now carries the latest sync report and top-level
+unsupported-feature summaries through generated-worker `ecs_step` /
+`physics_summary`, and the Rapier generated-worker proof reports non-fixed
+`PhysicsJoint.frameB` limitations after a paused joint edit.
+`context.physics.breakJoint(entity)` now provides explicit gameplay-owned joint
+breaks: it disables the ECS joint and emits `jointBreak`. Generated-worker
+devtools now expose `physics_break_joint`, so agents can trigger that helper
+while paused, step fixed physics, and observe the event plus disabled
+`physicsJoint` diff through `ecs_step` / `ecs_diff`. Automatic force-threshold
+`breakForce` remains unsupported for current backends.
+Generated-worker devtools now also expose `physics_raycast_first` and
+`physics_raycast_all`, so the simulation-worker harness can query the post-step
+physics backend directly and assert deterministic hit records or invalid-ray
+diagnostics before diffing ECS state.
+Generated-worker devtools now also expose `physics_overlap_shape`,
+`physics_cast_shape_first`, and `physics_project_point`, covering overlap,
+sweep, and closest-point query proofs against the same post-step backend state.
+The deterministic test backend now also mirrors Rapier query filters for
+`includeSensors`, `collisionGroups`, and `excludeEntity` across raycasts,
+overlaps, shape casts, point projection, and character movement probes; the
+generated-worker proof verifies default sensor exclusion plus explicit
+`includeSensors` query results before `ecs_diff`. Generated-worker query tools
+now also include `context.physics.summary()` and normalized options beside hit
+data, and the physics plan documents the
+pause/snapshot/edit-or-command/`ecs_step`/query/`ecs_diff` workflow plus the
+latency contract any future third-worker route must preserve. Query filters
+accept snapshot-returned `{ index, generation }` refs for `excludeEntity` /
+`excludeEntityRef`, so agents can pass ECS refs directly.
+`docs/research/PHYSICS_BACKEND_COMPARISON.md` now records the partial PHYS-17
+backend comparison, and `runPhysicsBackendBenchmark(...)` plus
+`examples/physics-benchmark.html` provide the implemented-backend benchmark
+route with timing, memory-source, heap-delta, named memory checkpoints, peak
+heap delta, accumulated event-kind, Rapier contact-force, command/resync counts,
+and signature JSON. The route now also runs balanced, body-heavy,
+contact-heavy, query-heavy, character-heavy, debug-heavy, joint-heavy,
+churn-heavy, and allocation-heavy simulation-worker scenarios for both
+implemented backends.
+Rapier remains the default until a real Havok/Jolt adapter benchmarks better
+through the same simulation-worker proof route.
+`@aperture-engine/physics-havok` now provides the first bounded optional Havok
+prototype behind the same `PhysicsBackend` interface. It covers headless
+same-worker primitive body/collider sync, fixed stepping, ECS-style readback,
+raycast, overlap-shape, shape-cast, and point-projection queries, collision
+event accumulation, memory checkpoints, and sync/create/destroy churn through
+`runPhysicsBackendBenchmark(...)`. The browser benchmark route now also runs
+Havok across all nine same-worker benchmark scenarios and publishes
+deterministic/Rapier/Havok reports without changing the Rapier default. Havok
+now also has a minimal generated-worker gameplay smoke through the existing
+simulation-worker route: package-local WASM init, paused `ecs_step`,
+`physics_raycast_first` / `physics_overlap_shape`, and `ecs_diff` writeback.
+Havok joint-heavy benchmark pressure now reports `physics.joint.unsupported`
+instead of silently no-oping `upsertJoint` commands; implemented joints,
+character-heavy benchmark pressure now reports
+`physics.characterController.unsupported` when a backend lacks
+`moveCharacter(...)`; debug-heavy benchmark pressure now reports
+`physics.debugGeometry.unsupported` when a backend lacks `debugGeometry(...)`;
+implemented joints, character-controller/debug semantics, full gameplay
+examples, and Jolt remain future optional-adapter work.
+Built-in app interaction picking now runs after fixed-step physics writeback
+and the second spatial-index refresh; the generated-worker proof uses
+pause/snapshot/pointer-input/`ecs_step`/`ecs_diff` to verify a physics-moved
+body is picked in the same simulation-worker step.
+Generated-worker devtools now also expose `physics_move_character`, which calls
+the same simulation-worker `context.physics.moveCharacter(...)` path and
+applies the returned target as ECS `KinematicTarget` for generation-checked refs
+so agents can step and diff character-controller writeback.
+Generated-worker devtools now also expose `physics_debug_geometry`, and
+Rapier/test backends now emit backend-neutral broadphase AABB debug line
+packets, so agents can inspect post-step physics debug bounds before continuing
+to `ecs_diff`.
+`context.physics.debugSummary(...)` and generated-worker
+`physics_debug_summary` now expose JSON-safe line counts, finite/invalid
+counts, color buckets, and bounds over the same debug geometry path.
+The shared summary helper now lives in `@aperture-engine/physics` as
+`summarizePhysicsDebugGeometry(...)`, and `examples/physics-settling.html`
+publishes `physics.debug.summary` from the active Rapier simulation-worker
+route.
+Generated-worker entity tools now also expose `physicsMaterial` and
+`physicsDebug` summaries, allow paused material/debug field mutation, and can
+derive `physics_debug_geometry` options from ECS-authored `PhysicsDebug` flags
+when no explicit debug payload is supplied. `PhysicsMaterial` also now feeds
+backend collider descriptor material values and combine rules during sync.
+Generated-worker entity tools now also expose `physicsGravity` summaries, allow
+paused gravity vector mutation, and prove gravity-driven velocity/transform/body
+state writeback after `ecs_step`. App spawn descriptors and runtime helpers can
+now attach `PhysicsGravity`, and test/Rapier backends consume the sync
+`setGravity` command in the simulation-worker route.
+`context.physics.summary()` now also exposes backend `step`, `readback`, and
+ECS `writeback` reports when fixed-step systems publish the full
+`stepPhysicsWorld(...)` result through `setStepReport(report)`. Generated-worker
+`ecs_step` / `physics_summary` can now prove backend execution, body/event
+readback counts, nonzero transform/velocity/body-state writes, and missing-ECS
+entity counts before agents continue to `ecs_diff`.
+Primitive collider authoring is now stronger in the simulation-worker proof
+route: the deterministic backend derives conservative query bounds from authored
+primitive shape dimensions, and generated-worker coverage mutates a collider to
+a cylinder, raycasts the post-step backend against those bounds, then diffs
+`physicsCollider` plus `PhysicsBodyState` writeback.
+Rapier primitive axes are now backend-real in that same route:
+capsule/cylinder/cone `axis` values are composed into Rapier collider
+descriptors and query transforms, including filtered shape casts with
+`excludeEntity`, with backend tests and async Rapier generated-worker
+`physics_raycast_first` / `physics_cast_shape_first` proofs covering an X-axis
+cylinder and filtered query target.
+Deterministic same-worker collider offsets are also query-real:
+`Collider.offsetTranslation` now moves conservative
+raycast/overlap/sweep/projection/debug bounds in the test backend, and
+generated-worker coverage mutates the offset, raycasts the post-step backend,
+and diffs `physicsCollider.offsetTranslation`.
+Compound child-collider ECS authoring is also covered in the same
+simulation-worker path: a body entity can omit `Collider`, one or more enabled
+child `Collider + LocalTransform` entities are discovered through authoritative
+`Parent` links, and child local transforms plus collider offsets become
+body-local backend colliders while identity/readback stay on the body.
+Generated-worker coverage pauses a two-child setup, steps fixed physics,
+raycasts all post-step child colliders, and diffs parent `LocalTransform` /
+`PhysicsBodyState` writeback while the body still has no `Collider`.
+Backend capability metadata is now first-class on `PhysicsBackend`,
+same-worker test/Rapier backends publish it, `context.physics.summary()`
+clones it, and `physics_joint_status` derives per-joint support flags from the
+active backend instead of backend-kind hardcoding.
+The PHYS-17 benchmark route now also includes cloned backend capabilities in
+each implemented-backend report, so same-worker backend comparisons include
+support surface beside timing, memory, event, query, and signature data.
+The same route now includes `character-heavy`, `joint-heavy`, `churn-heavy`,
+and `allocation-heavy` workloads, so the implemented backend matrix covers
+balanced, body-heavy, contact-heavy, query-heavy, character-controller,
+constraint-heavy, command-churn/resync, and bounded allocation-pressure
+scenarios, with compact capability labels plus character-move, joint-count, and
+resync counts on browser summary cards.
+The optional-adapter comparison now has a Havok smoke path as well:
+`test/physics-havok/benchmark.test.ts` feeds package-local Havok WASM bytes into
+the same benchmark route and verifies startup, step, raycast, overlap,
+shape-cast, point-projection, event, memory, and resync reporting without
+changing the Rapier default. `test/e2e/physics-benchmark.spec.ts` now also
+proves the optional Havok adapter loads in the browser benchmark route and
+publishes query support/counts beside deterministic and Rapier reports.
+Generated-worker devtools now also expose `physics_apply_force`,
+`physics_apply_impulse`, `physics_set_linear_velocity`,
+`physics_set_angular_velocity`, and `physics_set_kinematic_target`, routing
+through `context.physics` inside the simulation worker so agents can issue
+gameplay physics commands while paused, step fixed physics, and diff the ECS
+writeback.
+Generated-worker devtools now also expose `physics_sleep_body` and
+`physics_wake_body`, routing explicit same-worker backend sleep-state control
+through `context.physics.sleepBody(...)` / `wakeBody(...)`. Routine Rapier sync
+preserves explicit sleep/wake state instead of waking idle dynamic bodies every
+fixed step, and the async Rapier proof now observes `sleep` / `wake` events plus
+`PhysicsBodyState.sleeping` diffs through pause/snapshot/step/diff. The bounded
+Havok same-worker adapter now implements the same backend hooks with focused
+package-local WASM activation readback coverage.
+Disabled/skipped bodies now clear stale derived readback on that same route:
+`collectPhysicsCommands(...)` removes `PhysicsBodyState` when an active
+`RigidBody` is disabled, has no enabled colliders, or authors an unsupported
+collider shape before backend sync. The async Rapier proof disables a synced
+body while paused, steps fixed physics, sees backend body/readback counts drop,
+and diffs the removed `PhysicsBodyState` instead of stale backend pose data.
+Generated-worker devtools now also expose `ecs_step_and_diff`, which requires
+a baseline `ecs_snapshot`, runs the normal paused `ecs_step`, and returns the
+fixed-step/physics summary plus post-step ECS diff in one response. The focused
+proof snapshots a physics body, mutates `PhysicsVelocity.linear`, and verifies
+changed `LocalTransform`, `PhysicsVelocity`, and `PhysicsBodyState` summaries.
+Generated-worker devtools now also expose `physics_events`, a read-only filter
+over current `context.physics.summary()` events by kind, family, entity ref,
+joint ref, and limit. Agents can inspect concrete trigger/contact/joint events
+after `ecs_step` before continuing to query/status/`ecs_diff`.
+Generated-worker devtools now also expose `physics_joint_status`, which reports
+one joint's authored descriptor, latest sync unsupported features, authored
+unsupported features, and current support flags for native joint impulse
+readback, automatic break-force thresholds, motor force limits, and paired
+non-fixed `frameB` after a paused edit and fixed step.
+Authored `PhysicsJoint.motorMaxForce` now flows through validation,
+snapshot/mutation summaries, backend sync, generated-worker `ecs_step`, and
+`physics_joint_status`; current Rapier/test backends report positive values as
+`physics.joint.motorMaxForce.unsupported` instead of implying enforceable caps.
+Rapier position-mode unit joints with finite `motorVelocity` now use the
+backend's combined `configureMotor(...)` API, so authored position and velocity
+targets are both represented in same-worker Rapier motor execution.
+Generated-worker `physics_joint_status` now reports this as
+`combinedPositionVelocityMotors` for same-worker Rapier revolute/prismatic
+joints, keeping the agent-facing capability surface aligned with backend
+behavior.
+`PhysicsJoint.contactsEnabled` now defaults true and is authored/mutated/status
+checked through ECS and generated-worker tools; same-worker Rapier maps it to
+`ImpulseJoint.setContactsEnabled(...)`, and focused backend coverage proves it
+enables or suppresses linked-body collision/contact-force events as authored.
+Rigid-body axis locks are now covered in the same route: deterministic physics
+honors `lockTranslations`/`lockRotations` during integration, and same-worker
+Rapier masks explicit ECS velocity/force/impulse command data plus readback
+velocity on locked axes while applying Rapier translation/rotation locks.
+The async generated-worker proof pauses, mutates
+`RigidBody.lockTranslationY`, steps fixed Rapier physics, and diffs zero Y
+velocity plus unchanged Y transform/body-state writeback.
+Rigid-body damping is now covered too: deterministic physics applies
+`linearDamping` / `angularDamping` after pose integration with the same
+velocity-decay shape observed from Rapier JS, and the async generated-worker
+proof pauses, mutates `gravityScale` / `linearDamping`, steps fixed Rapier
+physics, and diffs damped velocity plus transform/body-state writeback.
+Velocity-based kinematic bodies now move in the deterministic backend too:
+`PhysicsRigidBodyType.KinematicVelocity` integrates from authored velocity,
+respects translation/rotation locks, ignores gravity, and matches same-worker
+Rapier in focused backend tests.
+The async Rapier generated-worker proof now mutates a body to
+`RigidBody.type = kinematicVelocity`, sets `PhysicsVelocity.linear`, steps
+fixed physics, and diffs kinematic translation plus `PhysicsBodyState`
+writeback.
+`RigidBody.canSleep` now behaves consistently in same-worker proofs too: the
+deterministic backend keeps still bodies awake when false, and same-worker
+Rapier recreates bodies when paused ECS edits change this descriptor-level flag.
+The generated-worker proof mutates `canSleep`, steps fixed Rapier physics, and
+diffs awake `PhysicsBodyState` writeback.
+Angular velocity now produces deterministic rotation writeback too: dynamic and
+velocity-kinematic bodies integrate normalized quaternion deltas, rotation locks
+mask angular axes, and the generated-worker proof mutates
+`PhysicsVelocity.angular`, steps fixed Rapier physics, and diffs
+`LocalTransform.rotation` plus `PhysicsBodyState.currentRotation`.
+Direct backend `setVelocity` commands also respect stored translation and
+rotation lock masks in deterministic and Rapier backends.
+`stepPhysicsWorld(...)` now also synthesizes deterministic `sleep` / `wake`
+events from body sleeping-state readback transitions, and same-worker
+sleep/wake controls are exposed through `context.physics.sleepBody(...)` /
+`wakeBody(...)` plus generated-worker `physics_sleep_body` /
+`physics_wake_body`; Havok now implements those backend hooks in its bounded
+same-worker adapter. Rapier collision
+start/stay events now include contact point/normal data when a contact manifold
+is available, and focused Rapier coverage now explicitly proves
+`collisionStart`, `collisionStay`, and `collisionEnd` fixed-step ordering across
+two replayed runs. Rapier `contactForce` events now include finite total-force
+vector/magnitude plus fixed-step impulse scalar payloads. Revolute/prismatic
+unit joints now orient their backend/debug axis from authored `axis` rotated by
+`frameA`, and the generated Rapier worker proof verifies frame-oriented
+prismatic writeback through `ecs_step`/`ecs_diff`.
+`context.physics.moveCharacter(...)` now
+synthesizes `controllerGroundedChanged` events after observed grounded-state
+edges, and the generated-worker proof reports them through `ecs_step` /
+`physics_summary` beside backend trigger events. PHYS-12 scene/prefab
+persistence now remaps
+`PhysicsJoint.bodyARef` / `bodyBRef` string tokens on scene load and prefab
+instantiation, excludes derived `PhysicsBodyState`, and proves loaded/cloned
+scenes rebuild independent backend bodies/joints. It now also exposes
+`validatePhysicsSceneAssetReferences(...)` so serialized collider mesh and
+heightfield asset refs can be diagnosed as missing or stale before backend sync.
+Generated-worker devtools now
+also expose `physicsJoint` summaries and paused `PhysicsJoint` authoring edits;
+the Rapier proof mutates a prismatic joint's `axis` / `frameA`, steps physics in
+the simulation worker, and diffs constrained body writeback. Generated-worker
+devtools now also expose `physicsRigidBody` / `physicsCollider` summaries and
+paused body/collider authoring edits; focused tests mutate a dynamic sphere into
+a static body with a larger collider radius and prove writeback through
+`ecs_diff`, while Rapier backend coverage proves body/collider descriptor resync
+through changed raycast behavior. `context.physics.events()` now also exposes
+filtered gameplay event helpers while preserving the callable event surface, and
+generated-worker `ecs_step` / `physics_summary` report deterministic
+event-family counts. Non-identity `PhysicsJoint.frameB` on non-fixed joints now
+reports `physics.joint.frameB.unsupported` through `PhysicsSyncReport` for both
+current backends. Next physics
+follow-ups are enforceable motor force-limit execution, automatic
+`breakForce`/impulse-driven
+joint breaks, native joint impulse readback, broader paired non-fixed joint
+frame semantics beyond frameA-oriented unit axes, now reported when
+unsupported and inspectable through `physics_joint_status`, and additional gameplay physics semantics beyond the current
+force/impulse, velocity, kinematic-target, command-tool, query/devtools-query,
+gravity/material/debug authoring, character-controller/devtools-move, durable
+character-controller authoring, explicit joint-break, and filtered event-helper
+surface plus the now-covered rigid-body axis locks, damping,
+kinematic-velocity body motion, canSleep behavior, angular rotation writeback,
+and compound child-collider body/collider separation route;
+use the
+generated-worker pause/snapshot/command-or-edit/step/diff harness when adding
+those semantics.
+Concrete browser physics-worker transport/runtime modes are deferred until
+profiling shows useful headroom and the same pause/snapshot/edit/step/diff
+semantics can be preserved. The
+older Wave 3 queue below remains valid when the active M10 goal is no longer
+steering the run.
+
+M6 is complete for the required content-layer scope from `docs/M6_UI_PARTICLES_NOTES.md`: richer sprites, MSDF text, retained ECS UI + hit testing, GPU-compute particles, and `examples/content-showcase.html` are implemented and browser-proven. Decals and volumetrics are deferred stretch work, not blockers for M6 completion.
 
 The next ready visible-feature queue is:
 
-- `M2-T1` — add the headless AnimationClip asset and keyframe sampler core.
-  Reference anchor: `references/three.js/src/animation/KeyframeTrack.js`.
-  Done when runtime tests cover LINEAR, STEP, CUBICSPLINE, endpoint clamping,
-  and shortest-path quaternion interpolation.
-- `M2-T3` — import glTF skins into engine skeleton/Skin data.
-  Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
-  Done when glTF skin inverse-bind matrices and joint entity keys import through
-  the engine loader instead of example-only code.
-- `M2-T5` — replace JSON joint/morph transport with typed deformation data.
-  Reference anchor: `references/bevy/crates/bevy_render/src/mesh/morph.rs`.
-  Done when extraction no longer parses `jointMatricesJson` or `weightsJson`
-  per frame and tests cover typed transport.
+- `M8-T1` — pack per-instance GPU cull bounds into snapshot transport and WebGPU storage. Reference anchor: `references/bevy/crates/bevy_pbr/src/render/mesh_preprocess.wgsl`. Done when a focused test proves packed bounds match extracted instance order, the buffer survives snapshot transport, and a render-control status field reports nonzero packed bounds for the instancing route without changing pixels.
+- `M8-T2` — add a compute-pass node kind and identity GPU indirect-arg compute path. Reference anchor: `references/bevy/crates/bevy_pbr/src/render/build_indirect_params.wgsl`. Done when a render-control route draws the instancing scene from a STORAGE|INDIRECT arg buffer written by compute and reports zero WebGPU validation warnings.
+- `M8-T3` — implement GPU frustum culling + compaction feeding indirect draws. Reference anchor: `references/bevy/crates/bevy_pbr/src/render/mesh_preprocess.wgsl`. Done when visible instance counts originate from GPU buffers, CPU cull stats drop for the opted-in route, and pixel/readback coverage proves off-frustum instances are absent.
 
-Keep the earlier camera/render-target visible route queue as later backlog
-after the active SOTA wave tasks above.
-
-Baseline Tier 20 SSAO, SSR, and DOF have shipped as depth-readable post effects
-with square raw-vs-effect browser proofs. The stricter reference-parity
-follow-ups are also complete: SSAO now follows the PlayCanvas spiral AO shape,
-SSR follows the three.js `SSRPass` normal/fresnel/attenuation shape, DOF follows
-the PlayCanvas/Bevy circle-of-confusion quality shape, and depth-fed post
-effects can sample multisampled scene depth in MSAA scenes without
-example-specific depth plumbing.
-
-Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
-use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
-files, with transferable snapshot status assertions. `debug-normal-app`,
-`depth-app-overlap`, `standard-queue-phases`, `instancing`, and `instance-tint`
-have also been migrated as the first bulk examples. Later slices migrated
-`batching`, `render-to-texture`, `gpu-profiler`, `matcap-app`,
-`materials-showcase`, `point-shadow`, `spot-shadow`,
-`standard-texture-control`, `standard-gltf-texture`, `app-diagnostics`,
-`gltf-scene`, `triangle`, `custom-material`, and `multi-entity`. The temporary
-main-thread compatibility helper has been deleted, and the README plus
-`docs/AUTHORING.md` now document the worker-by-default authoring shape.
-`createSharedSnapshotTransport({ maxEntities, maxViews })` now provides
-worker/main writer and reader views backed by double-buffered `SharedArrayBuffer`
-storage, typed unsupported diagnostics, and monotonic no-tear read coverage.
-`encodeSnapshotPackets()` now packs view, mesh, light, environment, shadow, and
-bounds packets into fixed-stride `Uint32Array` records with handle/string
-registry ids and round-trip tests.
-`createWebGpuApp({ transport: "shared-array-buffer" })` now allocates shared
-transport storage, passes it to workers, decodes shared packet metadata, reports
-typed fallback diagnostics, and is proven by `examples/sab-cube.html`.
-`explainRenderSnapshotEntity(snapshot, entity)` now reports rendered/skipped
-status and stable reason strings, and the disabled visible peer scenario
-publishes explanations for both the rendered and skipped entities.
-`createRenderSnapshotChangeSet(previous, next)` now reports changed, unchanged,
-and removed counts plus stable packet keys for views, mesh draws, lights,
-environments, shadow requests, and bounds; `createRenderSnapshotUpdateSchedule()`
-classifies refresh/reuse/remove/mixed/skip packet-family work; the WebGPU app
-report and `examples/worker-cube.html` publish render-update schedules; and
-`RenderWorld.applySnapshot()` can preserve unchanged draw resource bindings
-from keyed change sets while keeping current snapshot packet offsets.
-`examples/standard-queue-phases.html` now proves deterministic transparent
-depth/order/stable-id sorting with overlapping StandardMaterial surfaces, while
-queue/app diagnostics publish the applied transparent sort policy.
-`examples/transmission.html` now proves roughness-aware renderer-owned
-scene-color filtering with glossy and rough transmitted StandardMaterial
-objects over high-contrast background stripes. `examples/sheen.html` now proves
-texture-backed sheen color and roughness sampling with shared-material panels
-whose high and low texels produce visibly different fabric response.
-`examples/iridescence.html` now proves texture-backed iridescence factor
-sampling with a shared-material tilted panel whose high and low texels produce
-visibly different thin-film response, and texture-backed iridescence thickness
-sampling with a second shared-material panel whose low and high thickness texels
-produce distinct thin-film color response. `examples/clearcoat.html` now proves
-texture-backed clearcoat roughness sampling with a shared-material panel whose
-low and high roughness texels produce sharper vs broader coating highlights.
-`examples/render-packet-inspector.html` now renders worker-authored packets and
-publishes JSON-safe views, draws, bounds, queue keys, handles, skipped-entity
-explanations, and culling stats. Extraction now builds camera frustum planes
-from view-projection matrices, skips renderables outside all matching camera
-frustums, reports per-view `cullStats`, and supports camera opt-out with
-`frustumCulling: false`.
-Custom WGSL material sources can now declare typed per-instance attribute
-layouts with `defineInstanceAttributes(...)`, runtime entities can attach data
-with `withInstanceData(materialKind, values)`, extraction carries named
-attribute packets, and WebGPU can create/bind the resulting instance-rate
-vertex buffer. `examples/instance-attributes.html` now proves that contract with
-576 ECS-authored entities sharing one mesh and one custom WGSL material, browser
-readbacks at three sample points changing across frames, and one indexed draw
-after draw-list coalescing. `createWebGpuApp({ tonemap })` now supports the
-output-stage operators, StandardMaterial output defaults through sRGB display
-encoding, texture metadata carries explicit color-space/semantic information,
-`loadHdrFromUri()` parses Radiance RGBE `.hdr` data into linear floats, and
-`examples/tonemap-showcase.html` compares four operators over the same
-worker-authored HDR scene. StandardMaterial now has a `skinned` shader variant
-with JOINTS_0/WEIGHTS_0 vertex attributes, browser-safe group-1 joint matrix
-metadata, ECS `Skin` palette extraction into snapshot `bones`, draw-scoped
-skinning joint storage buffers, a `morphed` shader variant with two
-position/normal delta target streams, visible GLB viewer skinning and morph
-imports, live morph weight controls, and targeted
-shader/pipeline/resource/importer tests.
-
-The post-Tier-20 audit found Aperture is close on covered feature breadth but
-not yet SOTA on submit efficiency. `task-3111` now elides redundant main forward
-pipeline, bind-group, vertex-buffer, and index-buffer state commands and exposes
-planned-vs-emitted pressure in browser status. `task-3112` now reuses static
-WebGPU render bundles for unchanged command plans. `task-3113` now submits
-compatible grouped draws through an indirect argument buffer when supported.
-`task-3114` now sorts opaque/alpha-test queue records by prepared pipeline,
-material-resource, mesh-layout, and mesh-resource state inside authored
-render-order buckets. `task-3115` now reuses shared queued built-in bind groups
-across compatible frame-resource routes and exposes creation-vs-reuse pressure
-in app/browser status. `task-3116` now preserves previous per-object transform
-history for TAA motion vectors and proves moving-geometry history in
-`examples/taa.html`. `task-3117` now runs bloom through a two-level
-renderer-owned downsample/upsample graph and reports pass/resource counts in
-`examples/post-effects.html`. `task-3118` now broadens environment asset
-preparation to multiple versioned renderer-owned diffuse/specular IBL assets
-with warm/cool browser proof. `task-3119` re-audited the post-environment
-pipeline and found the next SOTA efficiency gap is many-light local-light
-shading: Aperture still evaluated every packed StandardMaterial light per
-fragment, while PlayCanvas clusters local lights per view/light set and shades
-only the lights affecting the fragment's cluster. `task-3120` now adds
-renderer-owned clustered local-light buffers for StandardMaterial and a
-64-point-light browser proof. `task-3121` now adds renderer-owned GPU
-occlusion-query feedback for opted-in ECS mesh draws, with a browser proof that
-reports one hidden queried draw with zero samples and one visible queried draw
-with non-zero samples. `task-3122` now renders one source mesh through separate
-material-slot primitive ranges from ECS extraction through queue records and
-WebGPU draw commands, with a browser proof that reports the two distinct
-material/range records. `task-3123` now derives view/depth-space clustered
-local-light bins from the active camera, samples those bins in StandardMaterial,
-and proves camera movement changes reported cluster occupancy. `task-3124` now
-uses renderer-owned occlusion feedback to skip eligible previously hidden
-opt-in draws on later frames, reports query/culling pressure, and proves the
-worker still authors all ECS mesh draws while the renderer submits fewer draw
-calls. `task-3125` now splits clustered local-light resources by active
-view/light-set route, preserves state commands when filtering render passes per
-view, uses fixed-capacity cluster index buffers so moving cameras can reuse GPU
-buffers, and proves two active cluster routes in
-`examples/clustered-lights.html`. `task-3126` now replaces placeholder
-RectAreaLight LTC data with production RGBA16F table payloads, samples the
-matrix/fresnel terms through the existing group-3 route, and proves
-roughness/view-angle response for rect, disk, and sphere area lights in
-`examples/area-light-shapes.html`. `task-3127` re-audited the covered pipeline
-after those slices and found the next SOTA blocker is CPU-side clustered-light
-build efficiency: Aperture now shades from per-view clusters, but the cluster
-builder still scans every local light for every cell, while PlayCanvas fills
-only the cell range touched by each light. `task-3128` now replaces that build
-shape with light-driven cell-range fill and browser-visible pressure telemetry.
-`task-3129` now combines CSM plus IBL in one StandardMaterial route and proves
-the outdoor scene can bind a cascaded 2D-array shadow map alongside
-diffuse/specular IBL resources. `task-3130` now carries clustered local-light
-shadow/cookie metadata through renderer-owned cluster resources and proves the
-metadata-only local-shadow fallback honestly while keeping clustered direct
-lighting visible. `task-3131` now renders supported clustered local point-light
-shadows from renderer-owned cube depth resources while preserving direct
-clustered lighting for unsupported metadata-only lights. `task-3132` now
-renders supported clustered local spot-light shadows from renderer-owned 2D
-depth resources. `task-3133` now renders supported clustered spot-light cookies
-through ECS-authored texture/sampler handles and StandardMaterial clustered
-resources. `task-3134` now gives clustered spot cookies renderer-owned
-projection matrices that do not depend on shadow depth resources. `task-3135`
-now adds clustered point-light cube cookie sampling through cube texture views.
-`task-3136` now supports multiple ready clustered spot cookies in one frame
-through a renderer-owned 2D texture array and per-light metadata indices.
-`task-3137` now supports mixed clustered spot cookies and point cube cookies in
-one frame by flattening point cube faces into the same renderer-owned 2D-array
-path. `task-3138` now proves mixed clustered point and spot local shadows in one
-StandardMaterial clustered route with compact duplicate spot-shadow bindings
-and a browser proof. `task-3139` now packs transform-derived light positions,
-directions, and area axes into the StandardMaterial light buffer so the mixed
-point/spot local-shadow fragment path no longer reads `worldTransforms` and no
-longer requests a higher-than-minimum WebGPU storage-buffer limit. `task-3140`
-now adds a renderer-owned 2D cookie atlas for nonuniform clustered spot cookies,
-uploads each source texture into an atlas tile, and adjusts each light's cookie
-projection matrix into atlas UV space. `task-3141` now supports multiple
-compatible clustered spot shadows through one renderer-owned 2D depth array,
-and `task-3142` now supports nonuniform clustered spot shadows through one
-renderer-owned 2D atlas with atlas-adjusted matrix metadata. `task-3143` now
-combines one supported point cube shadow with packed spot-shadow array and
-atlas metadata routes in one WebGPU-minimum StandardMaterial frame.
-`task-3144` now adds metadata-indexed hard/soft local-shadow filter radii with
-array and atlas browser proof. `task-3145` now packs two clustered point
-shadows through flattened cube-face layers in one renderer-owned 2D depth array
-while preserving the packed spot-shadow-array route. `task-3146` now combines
-one supported point shadow, two packed spot shadows, and a clustered local
-cookie in one WebGPU-minimum StandardMaterial route by reusing spot-shadow
-matrices for the matching spot-cookie projection. The same pressure now carries
-through the flattened multi-point-shadow array route: `task-3147` proves two
-point shadows through 12 flattened layers, two packed spot shadows, and one
-clustered cookie. `task-3148` combines nonuniform atlas-backed spot shadows
-with nonuniform atlas-backed spot cookies in one route, and `task-3149`
-re-audited that pressure lane against PlayCanvas and three.js. `task-3150` now
-closes the remaining static atlas invariant by making clustered spot-cookie
-atlas preparation shadow-aligned before the compact route reuses spot-shadow
-matrices. `task-3151` now adds dynamic, stable local-shadow/cookie atlas slot
-allocation, and `task-3152` now updates changed clustered cookie-atlas tiles via
-renderer-owned GPU blits while caching unchanged atlas tiles. `task-3153` now
-caches unchanged clustered local shadow maps across frames, and `task-3154` now
-skips unchanged clustered local-light buffer writes across stable frames. The
-next SOTA gap is visible render-pipeline phase timing and pressure history.
-
-Reference anchors for the next visible slice (read before writing):
-
-- `references/engine/src/extras/mini-stats/gpu-timer.js`.
-- `references/engine/src/framework/stats.js`.
-- `docs/render-pipeline-comparison.html`.
+Keep work vertical and preserve ECS authority: extraction may pack GPU-friendly data, but renderer-owned buffers must remain derived from snapshots rather than becoming a hidden scene graph.
 
 ## Ready Tasks — Post-Tier-20 Reference-Parity Queue
 
