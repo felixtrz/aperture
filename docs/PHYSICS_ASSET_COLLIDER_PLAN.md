@@ -46,8 +46,50 @@ Reference anchors:
 
 - `references/bevy/crates/bevy_mesh/src/lib.rs`
 - `references/bevy/crates/bevy_mesh/src/index.rs`
+- `references/bevy/crates/bevy_mesh/src/mesh.rs`
+- `references/bevy/crates/bevy_app/src/main_schedule.rs`
+- `references/engine/src/framework/components/collision/system.js`
+- `references/engine/src/framework/components/collision/component.js`
+- `references/engine/src/framework/components/rigid-body/system.js`
 - `packages/render/src/mesh/spatial-adapter.ts`
 - `packages/physics-rapier/src/colliders.ts`
+
+## Reference Check
+
+Bevy does not ship a built-in physics collider implementation in these
+references, so use it for ECS scheduling and mesh asset extraction boundaries,
+not as a collider-cooking source. The relevant lessons are:
+
+- `MeshPlugin` registers `Mesh` as an asset and marks mesh components changed
+  after asset events.
+- `Mesh::triangles()` accepts only triangle-list or triangle-strip topology,
+  requires `Float32x3` positions, handles indexed and unindexed meshes, and
+  returns explicit topology/position/index errors.
+- `FixedUpdate` and `RunFixedMainLoopSystems::AfterFixedMainLoop` are the right
+  conceptual match for Aperture's fixed physics step followed by transform
+  interpolation/extraction.
+
+PlayCanvas does have an asset-backed mesh collider path in
+`CollisionMeshSystemImpl`, and it supports the direction of this plan:
+
+- `CollisionComponent` exposes `type: "mesh"`, `asset`, `renderAsset`,
+  `convexHull`, and `checkVertexDuplicates` authoring fields.
+- Mesh colliders are built from render/model assets once those assets are ready;
+  missing or not-yet-ready assets defer shape recreation instead of falling back
+  to fake primitive bounds.
+- `convexHull` creates an Ammo `btConvexHullShape` from mesh positions.
+- Non-convex mesh mode builds a cached `btTriangleMesh` and wraps it in
+  `btBvhTriangleMeshShape`.
+- Compound shapes are used to combine multiple meshes/submeshes with per-node
+  transforms.
+- Scale changes recreate the mesh shape or apply local scaling.
+- Physics steps before dynamic entity transforms are written back.
+
+Aperture should borrow the asset-backed cooking, cache, and explicit
+recreation/invalidation ideas, but not PlayCanvas's mutable scene-graph
+ownership model. Aperture's provider boundary is still the right dependency
+shape because ECS stays authoritative and the Rapier backend must not reach into
+render/app assets directly.
 
 ## Architectural Constraints
 
@@ -84,7 +126,9 @@ Keep these out of V1:
 - Non-unit ECS scale for asset-backed colliders. Current physics transforms use
   translation and rotation; V1 should either require baked geometry at physics
   scale or report a clear diagnostic for non-unit scale instead of silently
-  diverging from rendering.
+  diverging from rendering. PlayCanvas bakes or reapplies mesh scale and
+  recreates shapes on scale changes; Aperture can add that later, but V1 should
+  not hide scale semantics behind implicit backend cooking.
 - Runtime mesh decimation or expensive async cooking. V1 should cook from the
   CPU mesh data already present in registered assets.
 - Dedicated physics-worker promotion or comparative benchmarking.
@@ -140,6 +184,10 @@ Add an app/render-side adapter that reuses the existing mesh spatial adapter:
    - respect submesh `indexStart` / `indexCount` and `vertexStart` /
      `vertexCount`.
 5. Cache by mesh asset key plus source version or content signature.
+6. Invalidate cached geometry when the source mesh asset version changes.
+7. Preserve structured adapter errors for wrong topology, missing `POSITION`,
+   bad indices, or unsupported vertex formats, matching Bevy's explicit mesh
+   extraction failure style.
 
 Do not put this adapter inside `@aperture-engine/physics-rapier`; it would
 create the wrong dependency direction.
