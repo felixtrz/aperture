@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "43d49e04",
+  "lastCommit": "ff39884c",
   "activePid": null,
-  "notes": "Completed Rapier asset-backed collider V1: backend-neutral geometry contracts, app-owned mesh/heightfield provider, Rapier convexHull/static trimesh/static heightfield cooking, generated-worker pause-step-query-diff proof, large-scale simulation-worker browser example, docs/tracker/handoff updates, focused Vitest, Playwright large-scale, and pnpm run check green.",
-  "lastRunFinishedAt": "2026-06-06T18:54:49Z"
+  "notes": "Completed and committed Rapier asset-backed collider V1: backend-neutral geometry contracts, app-owned mesh/heightfield provider, Rapier convexHull/static trimesh/static heightfield cooking, generated-worker pause-step-query-diff proof, large-scale simulation-worker browser example, docs/tracker/handoff updates, focused Vitest, Playwright large-scale, and pnpm run check green.",
+  "lastRunFinishedAt": "2026-06-06T18:55:31Z"
 }
