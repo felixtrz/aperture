@@ -8,7 +8,6 @@ export * from "./mesh-merge.js";
 export * from "./package-inspection.js";
 export * from "./prepared-mesh-queue-resolver.js";
 export * from "./prepared-material-queue-resolver.js";
-export * from "./render-frame-phases.js";
 export * from "./render-queue.js";
 export * from "./render-state-sort.js";
 export * from "./render-world.js";

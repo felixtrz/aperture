@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  RENDER_FRAME_PHASES,
   RenderWorld,
   createRenderFrameQueueDiagnosticsSummary,
   createRenderFramePlanScratch,
+  describeRenderFramePhases,
   planRenderFrameFromSnapshot,
   writeRenderFramePlanFromSnapshot,
   type BatchCompatibilityKey,
@@ -34,6 +36,23 @@ const STANDARD_BATCH: BatchCompatibilityKey = {
 };
 
 describe("render frame snapshot planning helper", () => {
+  it("documents the canonical WebGPU render-frame phase taxonomy", () => {
+    expect(RENDER_FRAME_PHASES).toEqual([
+      "apply",
+      "prepare",
+      "queue",
+      "resolve",
+      "command",
+      "submit",
+    ]);
+    expect(describeRenderFramePhases().map((phase) => phase.phase)).toEqual(
+      RENDER_FRAME_PHASES,
+    );
+    expect(describeRenderFramePhases().map((phase) => phase.summary)).toContain(
+      "Resolve draw packages into draw descriptors, draw lists, and pass resources.",
+    );
+  });
+
   it("plans from snapshot through render pass commands", () => {
     const result = planRenderFrameFromSnapshot({
       snapshot: snapshot(),

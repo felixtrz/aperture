@@ -423,6 +423,18 @@ Main:
   7. Render via WebGPU
 ```
 
+The canonical submitted-frame diagnostics taxonomy lives in
+`packages/webgpu/src/render/frame/render-frame-phases.ts` and is:
+
+```text
+apply -> prepare -> queue -> resolve -> command -> submit
+```
+
+This taxonomy starts after the ECS worker has published a `RenderSnapshot`.
+Extraction, asset change collection, and renderer-owned resource preparation
+remain first-class architecture boundaries, but they are broader app/render
+pipeline stages rather than the canonical WebGPU frame-summary phase names.
+
 ## Multithreading Design Direction
 
 The renderer must never require direct access to the authoritative ECS world.

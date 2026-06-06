@@ -313,13 +313,15 @@ refuted by source evidence.
 
 ### RF-02 - Delete orphan render-package frame taxonomy
 
-- Status: confirmed-open.
+- Status: completed 2026-06-06.
 - File: `packages/render/src/rendering/render-frame-phases.ts`.
 - Problem: public render-package taxonomy is consumed only by its own test.
   WebGPU has the live canonical phase model.
 - Action: delete the render-package taxonomy and its test after `DOC-07`
   documents the WebGPU taxonomy as canonical.
 - Accept: webgpu render-frame phase tests still pass; render typecheck passes.
+- Result: WebGPU now owns `RENDER_FRAME_PHASES` and descriptor metadata; the
+  render-package taxonomy and self-only test were removed.
 
 ### RF-03 - Split prepared-resource binding cleanup
 
@@ -666,12 +668,14 @@ Suggested validation: `pnpm run check:examples`, `pnpm run check:progress`,
 
 ### DOC-07 - Declare canonical render-frame-phase taxonomy
 
-- Status: confirmed-open.
+- Status: completed 2026-06-06.
 - Files: `docs/ARCHITECTURE.md`,
   `packages/webgpu/src/render/frame/render-frame-phases.ts`,
   `packages/render/src/rendering/render-frame-phases.ts`.
 - Action: document the WebGPU taxonomy as canonical and then execute `RF-02`.
 - Accept: only one live taxonomy remains.
+- Result: `apply -> prepare -> queue -> resolve -> command -> submit` is the
+  canonical WebGPU submitted-frame diagnostics taxonomy.
 
 ### DOC-08 - Add plan-doc status convention and freshness check
 
@@ -726,8 +730,8 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 21    |
-| Confirmed open / executable           | 16    |
+| Completed                             | 23    |
+| Confirmed open / executable           | 14    |
 | Needs refinement but actionable       | 11    |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |

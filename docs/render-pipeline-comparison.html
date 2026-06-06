@@ -472,12 +472,13 @@
 <header class="page">
   <h1>Render Pipeline · Aperture's 6 phases vs three.js &amp; PlayCanvas (WebGPU)</h1>
   <p class="lede">
-    Aperture organizes its render pipeline into six explicit, named phases —
-    <b>extract → asset-change-collection → prepare → queue → sort → submit</b> —
-    each with a typed input/output contract and pooled scratch state. This document maps
-    those six phases against the equivalent work in three.js's <code>WebGPURenderer</code>
-    and PlayCanvas's WebGPU graphics backend, showing where the other engines
-    <b>bundle, interleave, or skip</b> the same conceptual stages.
+    Aperture's canonical WebGPU submitted-frame diagnostics use six explicit,
+    named phases —
+    <b>apply → prepare → queue → resolve → command → submit</b> —
+    each with a typed report contract and pooled scratch state. These phases
+    begin after ECS extraction has published a <code>RenderSnapshot</code>. The
+    comparison sections below still discuss the broader render pipeline work that
+    other engines bundle, interleave, or skip.
   </p>
   <nav>
     JUMP TO:
@@ -492,44 +493,44 @@
 </header>
 
 <div class="framing">
-  <h2>★ APERTURE'S 6-PHASE CONTRACT &nbsp; <span style="color:#888;font-weight:400">— packages/render/src/rendering/render-frame-phases.ts</span></h2>
+  <h2>★ APERTURE'S WEBGPU 6-PHASE CONTRACT &nbsp; <span style="color:#888;font-weight:400">— packages/webgpu/src/render/frame/render-frame-phases.ts</span></h2>
   <div class="phase-strip">
     <div class="ps">
       <div class="n">PHASE 01</div>
-      <div class="nm">extract</div>
-      <div class="io"><b>in</b>: EcsWorld, AssetRegistry<br><b>out</b>: RenderSnapshot</div>
+      <div class="nm">apply</div>
+      <div class="io"><b>in</b>: RenderSnapshot, change set<br><b>out</b>: render world apply result</div>
     </div>
     <div class="ps">
       <div class="n">PHASE 02</div>
-      <div class="nm">asset-change-collection</div>
-      <div class="io"><b>in</b>: RenderSnapshot, AssetRegistry<br><b>out</b>: source asset change set</div>
+      <div class="nm">prepare</div>
+      <div class="io"><b>in</b>: render world, prepared GPU resources<br><b>out</b>: resource binding results</div>
     </div>
     <div class="ps">
       <div class="n">PHASE 03</div>
-      <div class="nm">prepare</div>
-      <div class="io"><b>in</b>: change set, RenderSnapshot<br><b>out</b>: prepared render resources</div>
+      <div class="nm">queue</div>
+      <div class="io"><b>in</b>: draw readiness, packed transforms<br><b>out</b>: draw packages</div>
     </div>
     <div class="ps">
       <div class="n">PHASE 04</div>
-      <div class="nm">queue</div>
-      <div class="io"><b>in</b>: draw readiness, packed transforms<br><b>out</b>: unsorted queue records</div>
+      <div class="nm">resolve</div>
+      <div class="io"><b>in</b>: packages, pipelines, resources<br><b>out</b>: draw list and pass resources</div>
     </div>
     <div class="ps">
       <div class="n">PHASE 05</div>
-      <div class="nm">sort</div>
-      <div class="io"><b>in</b>: unsorted queue records<br><b>out</b>: sorted queue records</div>
+      <div class="nm">command</div>
+      <div class="io"><b>in</b>: resolved pass resources<br><b>out</b>: render-pass command plan</div>
     </div>
     <div class="ps">
       <div class="n">PHASE 06</div>
       <div class="nm">submit</div>
-      <div class="io"><b>in</b>: sorted records, prepared resources<br><b>out</b>: GPU command submission</div>
+      <div class="io"><b>in</b>: render-pass commands<br><b>out</b>: GPU command submission</div>
     </div>
   </div>
 </div>
 
 <section class="progress-status" aria-label="Aperture render pipeline status">
   <div class="status-head">
-  <h2>Current Aperture Render Pipeline Status · Updated 2026-06-05 · M6 content layer complete</h2>
+  <h2>Current Aperture Render Pipeline Status · Updated 2026-06-06 · WebGPU phase taxonomy canonical</h2>
     <a href="index.html">Back to project tracker</a>
   </div>
   <p>SOTA roadmap M6 update: the content layer now extends the six-phase pipeline with extracted quad/text/UI/particle packets, renderer-owned MSDF/UI/particle pipelines, and JSON-safe reports for UI nodes, hit regions, glyphs, and GPU particle dispatches. <code>examples/content-showcase.html</code> proves sprites, MSDF text, retained UI, and GPU-compute particles compose in one mesh-free app route with representative readback samples and UI hit testing that blocks a behind-UI sprite pick. Decals and volumetrics remain future/stretch work.</p>
@@ -1331,7 +1332,7 @@ device.draw(primitive, indexBuffer, numInstances, drawCommands);
   <div class="div-grid">
     <div class="div-card">
       <h3><span class="num">1.</span>&nbsp; Explicit, named phases with typed I/O</h3>
-      <p><span class="who">APERTURE</span>Six phases declared in code (<code>RENDER_FRAME_PHASE_ORDER</code>), each with a <code>RenderFramePhaseDescriptor</code> stating what it consumes and produces. The pipeline is data, not just a call sequence.</p>
+      <p><span class="who">APERTURE</span>Six WebGPU frame-summary phases declared in code (<code>RENDER_FRAME_PHASES</code>), each with a <code>RenderFramePhaseDescriptor</code> stating what it consumes and produces. The pipeline is data, not just a call sequence.</p>
       <p><span class="who tjs">THREE.JS</span>Phases are call-site conventions inside <code>_renderScene()</code> — not addressable from outside the renderer. You can't ask &ldquo;what's the queue look like right now?&rdquo;</p>
       <p><span class="who pc">PLAYCANVAS</span><code>FrameGraph</code> + <code>RenderPass</code> abstractions exist, but the inner work (prepare / queue / sort) is bundled inside <code>renderForwardPrepareMaterials</code> + <code>renderForwardInternal</code>.</p>
     </div>
