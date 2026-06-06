@@ -691,11 +691,14 @@ Suggested validation: `pnpm run check:examples`, `pnpm run check:progress`,
 
 ### DOC-09 - Add dead-code tooling in CI
 
-- Status: confirmed-open.
+- Status: completed 2026-06-06.
 - Current state: no `knip`, `ts-prune`, `depcheck`, or `check:deadcode` script.
 - Action: add `knip` with workspace-aware config. Start non-blocking; promote
   to blocking after Q0-Q3 cleanup.
 - Accept: `pnpm run check:deadcode` exists and reports actionable output.
+- Result: added `knip`, `knip.json`, `pnpm run check:deadcode`, and a
+  non-blocking CI reporting step. The first report surfaces playground files,
+  one root dependency, one unlisted binary, and unused exports/types.
 
 ## Parked Or Rejected Items
 
@@ -734,8 +737,8 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 24    |
-| Confirmed open / executable           | 13    |
+| Completed                             | 25    |
+| Confirmed open / executable           | 12    |
 | Needs refinement but actionable       | 11    |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |

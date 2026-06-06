@@ -1,0 +1,31 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "eslint.config.js",
+    "playwright.config.ts",
+    "playwright.ci.config.ts",
+    "playwright.local.config.ts",
+    "vitest.config.ts",
+    "packages/*/src/index.ts",
+    "packages/*/src/test-support.ts",
+    "packages/*/src/{advanced,browser,commands,config,diagnostics,entity-lookup,headless,systems,testing,vite,worker}.ts",
+    "packages/cli/src/bin/aperture.ts",
+    "scripts/*.mjs",
+    "examples/*.js",
+    "test/**/*.{ts,mjs}"
+  ],
+  "project": [
+    "packages/*/src/**/*.ts",
+    "scripts/**/*.mjs",
+    "examples/**/*.js",
+    "test/**/*.{ts,mjs}",
+    "*.config.{js,ts}",
+    "playwright*.config.ts"
+  ],
+  "ignore": [
+    "packages/*/dist/**",
+    "references/**",
+    "playwright-report/**",
+    "test-results/**"
+  ]
+}

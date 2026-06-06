@@ -42,6 +42,10 @@ jobs:
       - name: Run workspace check
         run: pnpm run check
 
+      - name: Run dead-code report (non-blocking)
+        continue-on-error: true
+        run: pnpm run check:deadcode
+
   e2e:
     name: WebGPU E2E regression (SwiftShader)
     runs-on: ubuntu-latest
