@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-06-05T02:00:00Z",
   "lastResult": "success",
-  "lastCommit": "73c29a62",
+  "lastCommit": "dc63a842",
   "activePid": null,
-  "notes": "Committed M6 content/render pipelines in 58df7607 and Rapier-first physics/runtime integration in 73c29a62; Havok package implementation is removed from the shipped source graph.",
-  "lastRunFinishedAt": "2026-06-06T15:32:24Z"
+  "notes": "Committed Rapier backend refactor and dedicated physics-worker action protocol; full pnpm run check passed (444 files / 2478 tests) and physics-worker-mode Playwright passed.",
+  "lastRunFinishedAt": "2026-06-06T16:50:54Z"
 }

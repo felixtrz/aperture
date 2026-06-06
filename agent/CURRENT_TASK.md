@@ -13,6 +13,9 @@ Current source state:
   dedicated-worker proof route.
 - `22e1df82` refactored oversized physics backend entrypoints into package-style
   modules.
+- `dc63a842` added the Rapier dedicated-worker action protocol, proxy methods,
+  backend dispatch, real worker-owned raycast/debug example data, and focused
+  worker route tests.
 - The current Rapier dedicated physics-worker route now supports transferable
   step/writeback plus worker-owned raycast, overlap/shape/point query,
   character movement, sleep/wake, and debug-geometry actions.

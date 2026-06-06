@@ -1,5 +1,30 @@
 # Completed Tasks
 
+## PHYS — Rapier backend refactor and worker action route
+
+Completed: 2026-06-06 09:50 PDT
+Commits: `22e1df82`, `dc63a842`
+
+### Summary
+
+- Split oversized Rapier and deterministic test backend entrypoints into
+  package-style modules with small public barrels.
+- Added Rapier dedicated-worker action/result protocol messages for worker-owned
+  raycasts, overlap/shape/point queries, character movement, sleep/wake, and
+  debug geometry.
+- Extended the worker transfer proxy/backend endpoint, dedicated worker example,
+  and settling worker mode to use real backend-owned actions instead of fake
+  ECS-derived debug markers.
+- Updated the public tracker, roadmap, implementation plan, backend comparison,
+  and agent handoff/backlog to reflect the Rapier-first, Havok-free shipped
+  graph.
+
+### Validation
+
+- `pnpm run check` passed with 444 test files and 2478 tests.
+- `pnpm exec playwright test test/e2e/physics-worker-mode.spec.ts`
+- `pnpm exec vitest run test/physics/worker-protocol.test.ts test/runtime/physics-worker-transfer.test.ts`
+
 ## M10 — Rapier ECS physics runtime
 
 Completed: 2026-06-06 09:00 PDT

@@ -8,6 +8,9 @@ proof toward a real backend-owned action surface.
 
 ## Completed
 
+- Commit `dc63a842` adds the Rapier dedicated-worker action protocol, proxy
+  methods, backend endpoint dispatch, dedicated-worker example handling, focused
+  protocol/proxy tests, and browser worker-mode proof updates.
 - Commit `22e1df82` refactored `packages/physics-rapier/src/index.ts` into a
   small public barrel plus focused backend modules, and split the deterministic
   test backend the same way.
