@@ -6,6 +6,7 @@ import {
   type ApertureGeneratedCommand,
 } from "../commands.js";
 import { createApertureGeneratedDiagnosticsStatus } from "../diagnostics.js";
+import { jsonSafeValue } from "../internal/json-safe.js";
 import type { GeneratedBrowserAppStatus } from "./status.js";
 
 export function installGeneratedCommandForwarding(
@@ -59,16 +60,4 @@ function invalidGeneratedCommandDiagnostic(detail: unknown): {
     suggestedFix:
       "Dispatch aperture:command with detail { channel: 'your.channel', payload: { ... } }.",
   };
-}
-
-function jsonSafeValue(value: unknown): unknown {
-  if (value === undefined) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(JSON.stringify(value)) as unknown;
-  } catch {
-    return String(value);
-  }
 }

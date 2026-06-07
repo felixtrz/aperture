@@ -411,7 +411,7 @@ the whole queue.
 
 ### DUP-02 - Consolidate `jsonSafeValue`
 
-- Status: confirmed-open.
+- Status: completed 2026-06-06.
 - Files: `packages/app/src/systems/json.ts`,
   `packages/app/src/entities/lookup/summary.ts`,
   `packages/app/src/worker/payload.ts`,
@@ -420,6 +420,10 @@ the whole queue.
 - Problem: same JSON-safe conversion is copied in several app modules.
 - Action: create one shared app utility and route all callers through it.
 - Accept: no duplicate local implementations remain.
+- Result: `packages/app/src/internal/json-safe.ts` now owns the implementation.
+  Existing systems, entity-summary, and worker-payload import points re-export
+  that function for compatibility, while diagnostics and browser command
+  forwarding import it directly.
 
 ### DUP-03 - Canonicalize example shadow caster helpers only
 
@@ -768,8 +772,8 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 31    |
-| Confirmed open / executable           | 9     |
+| Completed                             | 32    |
+| Confirmed open / executable           | 8     |
 | Needs refinement but actionable       | 8     |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |

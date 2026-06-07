@@ -22,6 +22,7 @@ import {
 } from "@aperture-engine/physics";
 import type { EcsWorld, Entity } from "@aperture-engine/simulation";
 import type { EcsEntityRef } from "../../config.js";
+import { jsonSafeValue } from "../../internal/json-safe.js";
 import type {
   ApertureEntitySourceSummary,
   ApertureEntitySummary,
@@ -49,6 +50,8 @@ import {
   Parent,
   WorldTransform,
 } from "../../systems.js";
+
+export { jsonSafeValue } from "../../internal/json-safe.js";
 
 export function entitySummary(entity: Entity): ApertureEntitySummary {
   const key = entity.hasComponent(AppEntityKey)
@@ -190,18 +193,6 @@ export function validEntityRef(ref: EcsEntityRef): boolean {
     ref.index >= 0 &&
     ref.generation >= 0
   );
-}
-
-export function jsonSafeValue(value: unknown): unknown {
-  if (value === undefined) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(JSON.stringify(value)) as unknown;
-  } catch {
-    return String(value);
-  }
 }
 
 function localTransformSummary(entity: Entity): ApertureLocalTransformSummary {

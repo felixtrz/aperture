@@ -1,3 +1,5 @@
+import { jsonSafeValue } from "./internal/json-safe.js";
+
 export interface ApertureGeneratedDiagnosticSource {
   readonly file?: string;
   readonly module?: string;
@@ -206,18 +208,6 @@ function readRecord(
   value: unknown,
 ): Readonly<Record<string, unknown>> | undefined {
   return isRecord(value) ? value : undefined;
-}
-
-function jsonSafeValue(value: unknown): unknown {
-  if (value === undefined) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(JSON.stringify(value)) as unknown;
-  } catch {
-    return String(value);
-  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

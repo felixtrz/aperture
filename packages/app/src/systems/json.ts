@@ -1,11 +1,1 @@
-export function jsonSafeValue(value: unknown): unknown {
-  if (value === undefined) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(JSON.stringify(value)) as unknown;
-  } catch {
-    return String(value);
-  }
-}
+export { jsonSafeValue } from "../internal/json-safe.js";

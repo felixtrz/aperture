@@ -1,3 +1,7 @@
+import { jsonSafeValue } from "../internal/json-safe.js";
+
+export { jsonSafeValue } from "../internal/json-safe.js";
+
 export function tuple3FromValue(
   value: unknown,
 ): readonly [number, number, number] | null {
@@ -136,18 +140,6 @@ export function numberFromValue(value: unknown): number | undefined {
 
 export function booleanFromValue(value: unknown): boolean | undefined {
   return typeof value === "boolean" ? value : undefined;
-}
-
-export function jsonSafeValue(value: unknown): unknown {
-  if (value === undefined) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(JSON.stringify(value)) as unknown;
-  } catch {
-    return String(value);
-  }
 }
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
