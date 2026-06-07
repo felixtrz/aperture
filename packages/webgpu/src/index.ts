@@ -54,7 +54,16 @@ export * from "./shadows/spot-shadow-view-projection-plan.js";
 export * from "./resources/core/prepared-resource-app-reuse-alignment-summary.js";
 export * from "./resources/core/prepared-resource-lifetime-alignment-summary.js";
 export * from "./render/queues/queue-submit.js";
-export * from "./render/frame/renderer-frame-summary.js";
+export {
+  createInjectedRenderFrameSnapshotResourceBindingPlanScratch,
+  planInjectedRenderFrameSnapshotResourceBindings,
+  writeInjectedRenderFrameSnapshotResourceBindings,
+  type InjectedRenderFrameSnapshotResourceBinding,
+  type InjectedRenderFrameSnapshotResourceBindingPlan,
+  type InjectedRenderFrameSnapshotResourceBindingPlanInput,
+  type InjectedRenderFrameSnapshotResourceBindingPlanScratch,
+  type InjectedRenderFrameSnapshotResourceKeyResolver,
+} from "./render/frame/renderer-frame-summary.js";
 export * from "./render/passes/render-pass-attachments.js";
 export * from "./render/passes/render-pass-command-executor.js";
 export * from "./render/passes/render-pass-draw-list.js";

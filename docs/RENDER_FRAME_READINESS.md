@@ -2,6 +2,20 @@
 
 The MVP renderer path uses small data-only reports to explain whether an extracted frame is ready to become WebGPU work. These reports are diagnostics and orchestration data. They are not ECS state, and they do not make the renderer authoritative for gameplay or transforms.
 
+## Public Export Boundary
+
+`@aperture-engine/webgpu` exposes only the snapshot resource-binding planner and
+scratch writer from the renderer-frame summary module:
+
+- `planInjectedRenderFrameSnapshotResourceBindings`
+- `writeInjectedRenderFrameSnapshotResourceBindings`
+- `createInjectedRenderFrameSnapshotResourceBindingPlanScratch`
+
+The injected frame runner chain and renderer-frame summary JSON/grouping helpers
+described below are diagnostic/test fixture surfaces exported through
+`@aperture-engine/webgpu/test-support`. They are useful for focused renderer
+tests, but they are not part of the public app-facing WebGPU barrel.
+
 ## Report Chain
 
 Renderer assembly smoke report:
@@ -42,6 +56,7 @@ Renderer frame summary report:
 
 - Combines renderer assembly, render-pass assembly, frame submission, frame-boundary validation, MVP readiness, and command-submission metrics.
 - Reports overall readiness, section presence/readiness, planned draw counts, executed command counts, submitted command-buffer counts, and a diagnostic summary.
+- Renderer-frame summary builders, JSON serializers, and injected frame runners are test-support diagnostics. The public WebGPU barrel keeps only the snapshot resource-binding planner/writer that examples use before normal frame planning.
 - `createRendererFrameSummaryFromExecutionReport` derives the frame-submission, frame-boundary, MVP readiness, and command-submission inputs from an existing `FrameExecutionReport`, while keeping renderer assembly and render-pass assembly as explicit caller-provided inputs.
 - `runInjectedRendererFrameSummary` combines explicit renderer and render-pass assembly reports with injected frame execution inputs, then returns the boundary assembly, frame execution report, renderer frame summary, and JSON summary.
 - `runInjectedRenderFrame` composes `runInjectedRenderPassAssembly` with `runInjectedRendererFrameSummary`: callers provide renderer assembly, render-pass resources/pass encoder, and frame execution context/device/queue inputs, and the helper uses the render-pass command plan as the frame execution command input.
@@ -66,7 +81,7 @@ Frame-boundary assembly derived helpers:
 - `frameExecutionReportToJsonValue` and `frameExecutionReportToJson` serialize only readiness, section statuses, counts, and diagnostic summaries.
 - `summarizeFrameExecutionDiagnosticsBySection` groups execution diagnostics into boundary smoke, clear compatibility, source diagnostic summary, boundary validation, submission smoke, and command-submission metrics sections.
 
-Renderer summary helpers:
+Renderer summary helpers (`@aperture-engine/webgpu/test-support`):
 
 - `createRendererFrameSummaryReport` remains summary-only: callers provide renderer assembly, render-pass assembly, frame submission, frame-boundary validation, MVP readiness, and command-submission metrics reports explicitly.
 - `createRendererFrameSummaryFromExecutionReport` is the bridge from execution aggregates to renderer summaries. It uses a `FrameExecutionReport` to fill the frame-submission, frame-boundary, MVP readiness, and command-submission parts of the summary.
@@ -94,12 +109,12 @@ Use the smallest helper that matches the question:
 - Renderer assembly: `rendererAssemblySmokeReportToJsonValue` for data, `summarizeRendererAssemblyDiagnosticsBySection` for snapshot, package, resource, or frame issues.
 - Renderer resource summary: `renderResourceSummaryReportToJsonValue` for resource counts and stable diagnostic resource keys without buffers, textures, samplers, pipelines, or shader modules.
 - Light shader readiness: `lightShaderResourceReadinessReportToJsonValue` for readiness sections and stable diagnostics, `lightShaderReadinessToResourceSummaryDiagnostics` when those readiness diagnostics should surface as renderer resource-summary warnings without changing resource counts.
-- Renderer frame summary: `rendererFrameSummaryReportToJsonValue` for data, `summarizeRendererFrameSummaryDiagnosticsBySection` for summary sections.
-- Full injected frame runner: `injectedRenderFrameRunnerReportToJsonValue` for a JSON-safe cross-phase snapshot, `summarizeInjectedRenderFrameDiagnosticsByPhase` for phase grouping.
-- Draw-command injected frame runner: `injectedRenderFrameDrawCommandRunnerReportToJsonValue` for draw-list plus full-frame data, `summarizeInjectedRenderFrameDrawCommandDiagnosticsByPhase` for draw-list plus full-frame phase grouping.
-- Draw-package injected frame runner: `injectedRenderFrameDrawPackageRunnerReportToJsonValue` for descriptor plus draw-list plus full-frame data, `summarizeInjectedRenderFrameDrawPackageDiagnosticsByPhase` for descriptor plus downstream phase grouping.
-- Render-world package injected frame runner: `injectedRenderFrameRenderWorldPackageRunnerReportToJsonValue` for package plus descriptor plus draw-list plus full-frame data, `summarizeInjectedRenderFrameRenderWorldPackageDiagnosticsByPhase` for package plus downstream phase grouping.
-- Snapshot injected frame runner: `injectedRenderFrameSnapshotRunnerReportToJsonValue` for snapshot apply through full-frame data, `summarizeInjectedRenderFrameSnapshotDiagnosticsByPhase` for snapshot apply, binding, transform packing, readiness, and downstream phase grouping.
+- Renderer frame summary: `rendererFrameSummaryReportToJsonValue` for data, `summarizeRendererFrameSummaryDiagnosticsBySection` for summary sections. Test-support only.
+- Full injected frame runner: `injectedRenderFrameRunnerReportToJsonValue` for a JSON-safe cross-phase snapshot, `summarizeInjectedRenderFrameDiagnosticsByPhase` for phase grouping. Test-support only.
+- Draw-command injected frame runner: `injectedRenderFrameDrawCommandRunnerReportToJsonValue` for draw-list plus full-frame data, `summarizeInjectedRenderFrameDrawCommandDiagnosticsByPhase` for draw-list plus full-frame phase grouping. Test-support only.
+- Draw-package injected frame runner: `injectedRenderFrameDrawPackageRunnerReportToJsonValue` for descriptor plus draw-list plus full-frame data, `summarizeInjectedRenderFrameDrawPackageDiagnosticsByPhase` for descriptor plus downstream phase grouping. Test-support only.
+- Render-world package injected frame runner: `injectedRenderFrameRenderWorldPackageRunnerReportToJsonValue` for package plus descriptor plus draw-list plus full-frame data, `summarizeInjectedRenderFrameRenderWorldPackageDiagnosticsByPhase` for package plus downstream phase grouping. Test-support only.
+- Snapshot injected frame runner: `injectedRenderFrameSnapshotRunnerReportToJsonValue` for snapshot apply through full-frame data, `summarizeInjectedRenderFrameSnapshotDiagnosticsByPhase` for snapshot apply, binding, transform packing, readiness, and downstream phase grouping. Test-support only.
 
 These JSON and diagnostic helpers are derived inspection surfaces. They do not store ECS/game state, do not become renderer-owned source of truth, and should remain serializable across future worker/main-thread boundaries.
 
@@ -191,7 +206,7 @@ Test-only fixture chain:
 
 ## Draw Data Boundaries
 
-The current runner chain has five useful entry points:
+The test-support runner chain has five useful entry points:
 
 - Render snapshots: use `runInjectedRenderFrameFromSnapshot` when the caller has the extracted snapshot and wants the helper to apply it to a `RenderWorld`, update explicit resource bindings, pack transforms, derive readiness, and continue into the renderer-side frame path.
 - Render-world draw readiness plus packed transforms: use `runInjectedRenderFrameFromRenderWorldPackages` when render-world state has already been updated and checked for resource bindings, but draw-package planning has not.

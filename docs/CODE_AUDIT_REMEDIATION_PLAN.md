@@ -229,7 +229,7 @@ packages, and an `rg` scan for moved symbols.
 
 ### BH-01 - Split injected-frame runner/summary exports
 
-- Status: confirmed-open.
+- Status: completed 2026-06-06.
 - Files: `packages/webgpu/src/render/frame/renderer-frame-summary.ts`,
   `packages/webgpu/src/index.ts`, `packages/webgpu/src/test-support.ts`,
   `docs/RENDER_FRAME_READINESS.md`.
@@ -243,6 +243,11 @@ packages, and an `rg` scan for moved symbols.
   render-frame readiness docs in the same change so docs do not promise removed
   public APIs.
 - Accept: tests import helpers from test-support; public barrel is narrower.
+- Result: the public WebGPU barrel now keeps the snapshot binding planner,
+  scratch writer, and their signature types; injected frame runners and
+  renderer-frame summary JSON/grouping helpers remain available through
+  `@aperture-engine/webgpu/test-support`. The planner stays public because
+  examples call it directly.
 
 ### BH-02 - No action: render-frame smoke/report leaks already fixed
 
@@ -737,8 +742,8 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 25    |
-| Confirmed open / executable           | 12    |
+| Completed                             | 26    |
+| Confirmed open / executable           | 11    |
 | Needs refinement but actionable       | 11    |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |
