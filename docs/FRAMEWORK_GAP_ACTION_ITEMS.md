@@ -49,6 +49,10 @@ Deferred this round:
 
 - **AI-5 (cont.) — complete the `overlapShape` family: `overlapBox` + `overlapCapsule`.** Refactored `overlap.ts` to a shared `collectOverlaps` core and added box (via `MeshBvh.intersectsBox` with the `boxToMesh` transform — localized exactly including rotation) and capsule (via `intersectsCapsule` with endpoints transformed into mesh space) overlap queries. The facade now exposes `overlapSphere`/`overlapBox`/`overlapCapsule`. Tests: `test/app/spatial-overlap-shapes.test.ts` (8, analytically verified: box straddle/above/outside, capsule segment-cross/radius-reach/clear, no-BVH skip). **AI-5 `overlapShape` is now complete**; the remaining piece is shapecast/`castShape` (sweep) on top of `bvhcast`, deferred as a focused follow-on (swept-volume math).
 
+### 2026-06-07 — batch 6 (branch `gap-fixes-batch-1`)
+
+- **AI-31 — reusable fly / first-person camera controller.** Only an orbit controller was barrel-exported; added `createFlyCameraController` (`packages/app/src/controllers/fly-camera.ts`, exported from the controllers barrel → `@aperture-engine/app`), mirroring the orbit controller's ECS-authoritative, input-agnostic, headless-safe design. Holds eye position + yaw/pitch; `look`/`lookFromDrag` map pointer drag to orientation (pitch clamped inside the poles), `move(forward, right, up)` translates along the pitched view basis, and `applyTo(world)` writes the camera `LocalTransform` via the component path. Tests: `test/app/fly-camera-controller.test.ts` (7: drag→yaw/pitch, pole clamp, forward/right basis, view-basis move, pitched-fly altitude gain, real-world `applyTo`, stale-ref → false). A runnable e2e example is a nice-to-have follow-on (the orbit controller's e2e covers the harness pattern).
+
 ---
 
 ## 1. Executive Summary
