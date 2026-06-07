@@ -473,13 +473,16 @@ the whole queue.
 
 ### DUP-06 - Migrate unlit layout to `*Plan` pattern
 
-- Status: confirmed-open.
+- Status: completed 2026-06-06.
 - Files: `packages/webgpu/src/materials/unlit/unlit-bind-group-layout.ts`,
   `packages/webgpu/src/app/pipeline-layouts.ts`.
 - Problem: unlit has a plan helper used only by tests/test-support while live
   code builds inline metadata; sibling materials use plan helpers live.
 - Action: use `createUnlitBindGroupLayoutPlan` in the live pipeline-layout path.
 - Accept: unlit pipeline layout tests and examples pass.
+- Result: the unlit app pipeline layout builder now derives its shared layout
+  groups and metadata from `createUnlitBindGroupLayoutPlan()`, while preserving
+  the existing app-specific auto-layout keys.
 
 ## Queue Q4 - Physics Follow-Ups
 
@@ -786,8 +789,8 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 35    |
-| Confirmed open / executable           | 6     |
+| Completed                             | 36    |
+| Confirmed open / executable           | 5     |
 | Needs refinement but actionable       | 7     |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |

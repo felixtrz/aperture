@@ -26,6 +26,7 @@ import {
   createUnlitBindGroupLayoutMetadata,
   type UnlitBindGroupLayoutResource,
 } from "../materials/unlit/unlit-bind-group.js";
+import { createUnlitBindGroupLayoutPlan } from "../materials/unlit/unlit-bind-group-layout.js";
 import type { WebGpuAppPipelineResourceResult } from "./app.js";
 
 export type WebGpuAppMaterialKind = BuiltInMaterialQueueFamily;
@@ -91,14 +92,19 @@ function createUnlitAppPipelineLayouts(
   getBindGroupLayout: (group: number) => unknown,
 ): WebGpuAppPipelineLayouts {
   const autoLayoutKeySuffix = `/pipeline:${pipelineResourceKey}`;
+  const unlitLayoutPlan = createUnlitBindGroupLayoutPlan();
 
   return {
     kind: "unlit",
     pipelineResourceKey,
-    sharedLayouts: [0, 1, 2].map((group) => ({
-      group,
-      layoutKey: `webgpu-app/unlit/group-${group}${autoLayoutKeySuffix}`,
-      layout: getBindGroupLayout(group),
+    sharedLayouts: unlitLayoutPlan.layouts.map((descriptor) => ({
+      group: descriptor.group,
+      layoutKey: `webgpu-app/${descriptor.label}${autoLayoutKeySuffix}`,
+      layout: getBindGroupLayout(descriptor.group),
+      metadata: {
+        ...descriptor.metadata,
+        layoutKey: `webgpu-app/${descriptor.label}${autoLayoutKeySuffix}`,
+      },
     })),
     materialLayout: null,
     lightLayout: null,
