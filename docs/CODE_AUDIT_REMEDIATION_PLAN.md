@@ -501,7 +501,7 @@ default developer path.
 
 ### PHY-02 - Add high-level physics facade/config
 
-- Status: partially-fixed, still open.
+- Status: completed 2026-06-06.
 - Files: `packages/app/src/advanced.ts`,
   `packages/app/src/systems/physics.ts`, generated-worker app system patterns.
 - Current state: fixed-step integration exists and generated-worker systems can
@@ -512,6 +512,10 @@ default developer path.
   Rapier backend without example-local glue.
 - Accept: a non-example app/headless test steps Rapier physics through the
   facade and reproduces settling/joint/character behavior.
+- Result: `createApertureApp({ physics: true })` now creates and initializes
+  Rapier, enables the default fixed-step clock when needed, registers
+  `stepPhysicsWorld(...)`, and publishes reports through `context.physics`.
+  The facade also accepts custom backend factories for deterministic tests.
 
 ### PHY-03 - Rejected unless re-decided: purge worker-transfer protocol
 
@@ -535,7 +539,7 @@ default developer path.
 
 ### PHY-05 - Add facade seam for asset-backed collider provider
 
-- Status: mostly-fixed low-level, still open high-level.
+- Status: completed 2026-06-06.
 - Files: `packages/app/src/physics-collider-geometry.ts`,
   `packages/physics/src/backend.ts`,
   `packages/physics-rapier/src/backend.ts`.
@@ -545,6 +549,12 @@ default developer path.
   facade/config from `PHY-02`.
 - Accept: an app uses asset-backed colliders through the facade without calling
   `createRapierPhysicsBackend(...)` directly.
+- Result: the app physics facade accepts
+  `physics: { backend: "rapier", colliderGeometry: { kind: "assets" } }` and
+  constructs `createAssetBackedPhysicsColliderGeometryProvider(...)` from the
+  app asset registry before backend initialization. A headless test verifies a
+  ready mesh asset-backed collider syncs without unsupported-feature
+  diagnostics.
 
 ### PHY-06 - Fold physics quaternion copies into `DUP-01`
 
@@ -789,10 +799,10 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 36    |
+| Completed                             | 38    |
 | Confirmed open / executable           | 5     |
 | Needs refinement but actionable       | 7     |
-| Partially complete / docs-update only | 5     |
+| Partially complete / docs-update only | 3     |
 | Already fixed, rejected, or stale     | 8     |
 
 The counts are orientation only. Re-run local symbol checks before editing any

@@ -24,6 +24,11 @@ import {
   type ApertureConfig,
   type AssetPreloadPolicy,
 } from "./config.js";
+import {
+  installApertureAppPhysics,
+  type AperturePhysicsConfig,
+  type AperturePhysicsFacade,
+} from "./physics-facade.js";
 
 export interface ApertureSystemModule {
   readonly default?: ApertureSystemConstructor;
@@ -44,6 +49,7 @@ export interface CreateApertureAppOptions {
   readonly gltfAssetDecoders?: SystemGltfAssetDecoderProvider;
   readonly worldOptions?: CreateExtractionAppOptions["worldOptions"];
   readonly fixedStep?: CreateExtractionAppOptions["fixedStep"];
+  readonly physics?: boolean | AperturePhysicsConfig;
   readonly physicsInterpolation?: boolean;
 }
 
@@ -58,6 +64,7 @@ export interface ApertureApp {
   readonly config: ApertureConfig;
   readonly lowLevel: ExtractionApp;
   readonly context: ApertureSystemContext;
+  readonly physics: AperturePhysicsFacade | null;
   readonly preload: AperturePreloadReport;
   step(delta?: number, time?: number): ReturnType<ExtractionApp["step"]>;
   extract(frame?: number): ReturnType<ExtractionApp["extract"]>;
@@ -95,13 +102,26 @@ export async function createApertureApp(
   options: CreateApertureAppOptions,
 ): Promise<ApertureApp> {
   const config = defineApertureConfig(options.config);
+  const physicsConfig = normalizePhysicsConfig(options.physics);
+
+  if (physicsConfig !== null && options.fixedStep === false) {
+    throw new ApertureAppError({
+      code: "aperture.physics.fixedStepDisabled",
+      message: "Aperture physics requires an enabled fixed-step clock.",
+      suggestedFix:
+        "Omit fixedStep to use the default clock, pass fixedStep options, or disable the physics config.",
+    });
+  }
+
+  const fixedStep =
+    options.fixedStep === undefined && physicsConfig !== null
+      ? {}
+      : options.fixedStep;
   const lowLevel = createExtractionApp({
     ...(options.worldOptions === undefined
       ? {}
       : { worldOptions: options.worldOptions }),
-    ...(options.fixedStep === undefined
-      ? {}
-      : { fixedStep: options.fixedStep }),
+    ...(fixedStep === undefined ? {} : { fixedStep }),
   });
   const context = createApertureSystemContext({
     world: lowLevel.world,
@@ -118,6 +138,16 @@ export async function createApertureApp(
   const preload = preloadReport(config);
   const spatialIndexPopulation = createSpatialIndexPopulationState();
   const physicsInterpolation = options.physicsInterpolation === true;
+  const physicsFacade =
+    physicsConfig === null
+      ? null
+      : await installApertureAppPhysics({
+          world: lowLevel.world,
+          assets: lowLevel.assets,
+          physics: context.physics,
+          config: physicsConfig,
+          registerFixedStepTask: (task) => lowLevel.registerFixedStepTask(task),
+        });
   let lastFixedStep: ReturnType<ExtractionApp["step"]>["fixedStep"] | null =
     null;
   const refreshSpatialIndex = () =>
@@ -142,6 +172,7 @@ export async function createApertureApp(
     config,
     lowLevel,
     context,
+    physics: physicsFacade,
     preload,
     step(delta = 0, time = 0) {
       resolveWorldTransforms(lowLevel.world);
@@ -182,6 +213,16 @@ export async function createApertureApp(
   };
 
   return apertureApp;
+}
+
+function normalizePhysicsConfig(
+  config: CreateApertureAppOptions["physics"],
+): AperturePhysicsConfig | null {
+  if (config === undefined || config === false) {
+    return null;
+  }
+
+  return config === true ? {} : config;
 }
 
 export function resolveApertureSystemModules(

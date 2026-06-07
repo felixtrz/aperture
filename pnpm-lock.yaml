@@ -71,6 +71,9 @@ importers:
       "@aperture-engine/physics":
         specifier: workspace:^
         version: link:../physics
+      "@aperture-engine/physics-rapier":
+        specifier: workspace:^
+        version: link:../physics-rapier
       "@aperture-engine/render":
         specifier: workspace:^
         version: link:../render
