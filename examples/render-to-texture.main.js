@@ -855,7 +855,6 @@ async function drawCroppedSecondaryRenderTargetTexturesToCanvas({
 }
 
 async function drawRenderTargetTexturesToCanvas({
-  aperture,
   app,
   readbackUsage,
   previews,
