@@ -4,10 +4,14 @@ import type {
   PhysicsEventKind,
   PhysicsVec3,
 } from "@aperture-engine/physics";
-import { colliderMatchForHandle, compareColliderMatches } from "./colliders.js";
+import {
+  buildColliderHandleIndex,
+  compareColliderMatches,
+} from "./colliders.js";
 import { normalizeVec3, vec3 } from "./math.js";
 import type {
   RapierBodyEntry,
+  RapierColliderMatch,
   RapierContactEventData,
   RapierContactManifold,
   RapierEventPair,
@@ -23,14 +27,13 @@ export function collectRapierEvents(options: {
 }): PhysicsEvent[] {
   const events: PhysicsEvent[] = [];
   const changedPairs = new Set<string>();
+  // Index the body store once per step so each collider-handle lookup below is
+  // O(1) instead of an O(bodies x colliders) scan repeated per contact pair.
+  const handleIndex = buildColliderHandleIndex(options.bodies);
 
   options.eventQueue.drainCollisionEvents(
     (handle1: number, handle2: number, started: boolean) => {
-      const pair = eventPairForColliderHandles(
-        options.bodies,
-        handle1,
-        handle2,
-      );
+      const pair = eventPairForColliderHandles(handleIndex, handle1, handle2);
 
       if (pair === null) {
         return;
@@ -47,7 +50,7 @@ export function collectRapierEvents(options: {
             options.fixedStep,
             pair.trigger
               ? undefined
-              : contactEventData(options.world, options.bodies, pair),
+              : contactEventData(options.world, handleIndex, pair),
           ),
         );
         return;
@@ -69,7 +72,7 @@ export function collectRapierEvents(options: {
     (forceEvent: RAPIER.TempContactForceEvent) => {
       const event = contactForcePhysicsEvent(
         forceEvent,
-        options.bodies,
+        handleIndex,
         options.fixedStep,
         options.fixedDelta,
       );
@@ -89,7 +92,7 @@ export function collectRapierEvents(options: {
           options.fixedStep,
           pair.trigger
             ? undefined
-            : contactEventData(options.world, options.bodies, pair),
+            : contactEventData(options.world, handleIndex, pair),
         ),
       );
     }
@@ -99,12 +102,12 @@ export function collectRapierEvents(options: {
 }
 
 export function eventPairForColliderHandles(
-  bodies: ReadonlyMap<string, RapierBodyEntry>,
+  handleIndex: ReadonlyMap<number, RapierColliderMatch>,
   handle1: number,
   handle2: number,
 ): RapierEventPair | null {
-  const first = colliderMatchForHandle(bodies, handle1);
-  const second = colliderMatchForHandle(bodies, handle2);
+  const first = handleIndex.get(handle1) ?? null;
+  const second = handleIndex.get(handle2) ?? null;
 
   if (first === null || second === null) {
     return null;
@@ -153,12 +156,12 @@ export function physicsEvent(
 
 export function contactForcePhysicsEvent(
   event: RAPIER.TempContactForceEvent,
-  bodies: ReadonlyMap<string, RapierBodyEntry>,
+  handleIndex: ReadonlyMap<number, RapierColliderMatch>,
   fixedStep: number,
   fixedDelta: number,
 ): PhysicsEvent | null {
   const pair = eventPairForColliderHandles(
-    bodies,
+    handleIndex,
     event.collider1(),
     event.collider2(),
   );
@@ -195,11 +198,11 @@ export function contactForcePhysicsEvent(
 
 export function contactEventData(
   world: RAPIER.World,
-  bodies: ReadonlyMap<string, RapierBodyEntry>,
+  handleIndex: ReadonlyMap<number, RapierColliderMatch>,
   pair: RapierEventPair,
 ): RapierContactEventData | undefined {
-  const colliderA = colliderMatchForHandle(bodies, pair.colliderAHandle);
-  const colliderB = colliderMatchForHandle(bodies, pair.colliderBHandle);
+  const colliderA = handleIndex.get(pair.colliderAHandle) ?? null;
+  const colliderB = handleIndex.get(pair.colliderBHandle) ?? null;
 
   if (colliderA === null || colliderB === null) {
     return undefined;

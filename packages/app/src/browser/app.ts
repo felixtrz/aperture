@@ -17,6 +17,7 @@ import { resolveCanvas, installCanvasResizeSync } from "./canvas.js";
 import { installGeneratedCommandForwarding } from "./commands.js";
 import { syncGeneratedDiagnostics } from "./diagnostics.js";
 import { installGeneratedDevtoolsRuntime } from "./devtools/index.js";
+import { resolveUseFrameGraph } from "./frame-graph-route.js";
 import { installGeneratedInputForwarding } from "./input.js";
 import { resolveGeneratedRenderSettings } from "./render.js";
 import {
@@ -80,11 +81,14 @@ export async function startGeneratedBrowserApp(
     sourceAssets,
     status,
   );
-  // M3-T4: ?graph=1 opts the generated app into the single-encoder FrameGraph
-  // forward-route path (default OFF). Browser-only harness, so window is present.
-  const useFrameGraph =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("graph") === "1";
+  // M3-T4 / AI-25: the single-encoder FrameGraph forward route (default OFF) is
+  // opted into via render.frameGraph config or the legacy ?graph=1 URL override.
+  const useFrameGraph = resolveUseFrameGraph(
+    config.render,
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search)
+      : null,
+  );
   const webgpu = await createWebGpuApp({
     canvas: canvas as unknown as WebGpuCanvasLike,
     simulationWorker: mirroredWorker,

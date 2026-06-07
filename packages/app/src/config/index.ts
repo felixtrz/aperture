@@ -233,6 +233,13 @@ export interface ApertureRenderDefaults {
   readonly sampleCount?: number;
   readonly pixelRatio?: number;
   readonly maxPixelRatio?: number;
+  /**
+   * Opt the generated app into the single-encoder FrameGraph forward route
+   * (default off). Previously reachable only via the `?graph=1` URL flag, which
+   * still works as a per-load override; this config option makes the choice
+   * reproducible without a query string.
+   */
+  readonly frameGraph?: boolean;
 }
 
 export interface ApertureDiagnosticsConfig {

@@ -26,6 +26,17 @@ Deferred after investigation (regression risk vs the stated one-liner):
 - **AI-28 (MSAA widen to 2|8):** WebGPU core only permits `sampleCount` 1 or 4 — widening would emit invalid configs that throw at texture creation. Needs a capability-query design, not a constant widen.
 - **AI-1 (primitive-collider scale diagnostic):** the Rapier recreation signature is `colliderKeyFor = JSON.stringify(colliders)`, so adding `scale` to primitive descriptors (required to reach the diagnostic) would recreate the collider every frame for animated-scale entities — a perf regression. Needs the signature to exclude scale first.
 
+### 2026-06-07 — batch 2 (branch `gap-fixes-batch-1`)
+
+- **AI-9 — O(1) collision-event collider-handle lookup.** `events.ts` resolved every contact pair via a nested O(bodies×colliders) `colliderMatchForHandle` scan (up to 4× per pair, per step). Added `buildColliderHandleIndex(bodies)` (`packages/physics-rapier/src/colliders.ts`), built **once per step** in `collectRapierEvents` and looked up O(1) in `eventPairForColliderHandles` / `contactEventData` / `contactForcePhysicsEvent`. Rebuilt each step from the live body store, so it can never go stale across upsert/destroy (no manual lifecycle bookkeeping). Typecheck caught a missed stay-event call site that would otherwise have silently broken stay-event contact data. Tests: `test/physics-rapier/collider-handle-index.test.ts` (3, incl. parity with the scan); existing 120 physics tests green.
+- **AI-25 — FrameGraph route via config, not just a URL flag.** Added `render.frameGraph` to `ApertureRenderDefaults` and a pure `resolveUseFrameGraph(render, search)` (`packages/app/src/browser/frame-graph-route.ts`) used by the browser harness; the legacy `?graph=1` flag still works as a per-load override. Tests: `test/app/frame-graph-route.test.ts` (4). (CI-gating of the graph route + default-flip remain follow-ups.)
+
+Deferred this round:
+
+- **AI-30 (extraction scratch buffers):** reuse-across-frames aliases with the extraction cache and transfer/SAB paths; safer as a benchmarked perf pass (like FEAT-03), not an unscoped hoist.
+- **AI-82 (RAG "embedding"→"lexical"):** the honest version renames the on-disk index format/model contract (breaking) or is docs-only (untestable); not a clean tested win.
+- **AI-86 (portable doc paths):** mixes in-repo `references/`, external libs needing upstream URLs, and a separate private project (`immersive-web-sdk`) with no public equivalent — needs per-doc curation/input.
+
 ---
 
 ## 1. Executive Summary

@@ -332,6 +332,28 @@ export function colliderMatchForHandle(
   return null;
 }
 
+/**
+ * Build a Rapier-collider-handle -> match index in a single pass over the body
+ * store. Per-step event resolution previously ran a nested O(bodies x colliders)
+ * scan (`colliderMatchForHandle`) up to four times per contact pair; building
+ * this index once per step and looking up O(1) collapses that to one pass plus
+ * O(1) per handle. Rebuilt every step from the live body store, so it can never
+ * go stale across upsert/destroy.
+ */
+export function buildColliderHandleIndex(
+  bodies: ReadonlyMap<string, RapierBodyEntry>,
+): Map<number, RapierColliderMatch> {
+  const index = new Map<number, RapierColliderMatch>();
+
+  for (const entry of bodies.values()) {
+    for (const collider of entry.colliders) {
+      index.set(collider.collider.handle, { body: entry, collider });
+    }
+  }
+
+  return index;
+}
+
 export function compareColliderMatches(
   left: RapierColliderMatch,
   right: RapierColliderMatch,
