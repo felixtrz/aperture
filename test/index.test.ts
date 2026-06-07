@@ -12,6 +12,7 @@ import * as systems from "@aperture-engine/app/systems";
 import * as vite from "@aperture-engine/app/vite";
 import * as worker from "@aperture-engine/app/worker";
 import * as render from "@aperture-engine/render";
+import * as renderTestSupport from "@aperture-engine/render/test-support";
 import * as runtime from "@aperture-engine/runtime";
 import * as simulation from "@aperture-engine/simulation";
 
@@ -69,6 +70,22 @@ describe("Aperture package entrypoints", () => {
     expect("createWorld" in simulation).toBe(true);
     expect("extractRenderSnapshot" in render).toBe(true);
     expect("createExtractionApp" in runtime).toBe(true);
+  });
+
+  it("keeps render inspection diagnostics behind test support", () => {
+    expect("inspectRenderSnapshot" in render).toBe(true);
+    expect("explainRenderSnapshotEntity" in render).toBe(true);
+    expect("inspectRenderPackages" in render).toBe(false);
+    expect("validateRenderSnapshotCloneability" in render).toBe(false);
+    expect("summarizeRenderSnapshotDiagnostics" in render).toBe(false);
+
+    expect("inspectRenderPackages" in renderTestSupport).toBe(true);
+    expect("validateRenderSnapshotCloneability" in renderTestSupport).toBe(
+      true,
+    );
+    expect("summarizeRenderSnapshotDiagnostics" in renderTestSupport).toBe(
+      true,
+    );
   });
 
   it("keeps CLI root exports intentional", () => {

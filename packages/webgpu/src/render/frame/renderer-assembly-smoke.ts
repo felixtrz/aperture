@@ -2,11 +2,11 @@ import {
   summarizeDiagnostics,
   type DiagnosticSummary,
 } from "@aperture-engine/simulation";
+import type { RenderSnapshotInspectionReport } from "@aperture-engine/render";
 import type {
   RenderPackageInspectionReport,
   RenderSnapshotCloneabilityResult,
-  RenderSnapshotInspectionReport,
-} from "@aperture-engine/render";
+} from "@aperture-engine/render/test-support";
 import type { FrameReport } from "./frame-report.js";
 import type { RenderResourceSummaryReport } from "../../resources/core/resource-summary.js";
 

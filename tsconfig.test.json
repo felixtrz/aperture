@@ -26,6 +26,9 @@
       ],
       "@aperture-engine/physics/testing": ["packages/physics/src/testing.ts"],
       "@aperture-engine/render": ["packages/render/src/index.ts"],
+      "@aperture-engine/render/test-support": [
+        "packages/render/src/test-support.ts"
+      ],
       "@aperture-engine/runtime": ["packages/runtime/src/index.ts"],
       "@aperture-engine/simulation": ["packages/simulation/src/index.ts"],
       "@aperture-engine/vite-plugin": ["packages/vite-plugin/src/index.ts"],

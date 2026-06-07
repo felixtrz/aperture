@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import {
-  inspectRenderPackages,
-  type BatchCompatibilityKey,
-  type RenderWorldDrawPackage,
+import type {
+  BatchCompatibilityKey,
+  RenderWorldDrawPackage,
 } from "@aperture-engine/render";
+import { inspectRenderPackages } from "@aperture-engine/render/test-support";
 
 const BATCH: BatchCompatibilityKey = {
   pipelineKey: "unlit",

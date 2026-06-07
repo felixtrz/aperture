@@ -300,7 +300,7 @@ packages, and an `rg` scan for moved symbols.
 
 ### BH-06 - Split render package test-only exports by symbol
 
-- Status: needs-refinement.
+- Status: completed 2026-06-06.
 - Problem: original item grouped live inspectors with test-only inspectors.
 - Action:
   - Keep `inspectRenderSnapshot` and `explainRenderSnapshotEntity`; examples use
@@ -309,6 +309,12 @@ packages, and an `rg` scan for moved symbols.
   - Move or de-export test-only package inspection, cloneability, snapshot
     diagnostics, and string serializer helpers.
 - Accept: render packet inspector and multi-entity examples still build.
+- Result: `@aperture-engine/render` now keeps the live snapshot inspectors and
+  batching report types public, while `inspectRenderPackages`,
+  `validateRenderSnapshotCloneability`, and
+  `summarizeRenderSnapshotDiagnostics` are exposed through the new
+  `@aperture-engine/render/test-support` subpath. No current public string
+  serializer helper matched the source search for this item.
 
 ## Queue Q2 - Render-Fork Cleanup
 
@@ -748,9 +754,9 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 27    |
+| Completed                             | 28    |
 | Confirmed open / executable           | 11    |
-| Needs refinement but actionable       | 10    |
+| Needs refinement but actionable       | 9     |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |
 

@@ -1,5 +1,9 @@
 export * from "@aperture-engine/simulation";
 export * from "@aperture-engine/render";
+export type {
+  RenderPackageInspectionReport,
+  RenderSnapshotCloneabilityResult,
+} from "@aperture-engine/render/test-support";
 export * from "./gpu/initialize-webgpu.js";
 export * from "./app/app.js";
 export * from "./app/app-diagnostics-summary.js";

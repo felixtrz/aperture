@@ -16,6 +16,12 @@ described below are diagnostic/test fixture surfaces exported through
 `@aperture-engine/webgpu/test-support`. They are useful for focused renderer
 tests, but they are not part of the public app-facing WebGPU barrel.
 
+`@aperture-engine/render` keeps the app-facing snapshot inspectors
+`inspectRenderSnapshot` and `explainRenderSnapshotEntity` public for examples.
+Render package inspection, snapshot cloneability, and snapshot diagnostic
+summary helpers are white-box diagnostics exported through
+`@aperture-engine/render/test-support`.
+
 ## Report Chain
 
 Renderer assembly smoke report:

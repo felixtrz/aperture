@@ -87,6 +87,13 @@ export default defineConfig({
           .pathname,
       },
       {
+        find: "@aperture-engine/render/test-support",
+        replacement: new URL(
+          "./packages/render/src/test-support.ts",
+          import.meta.url,
+        ).pathname,
+      },
+      {
         find: "@aperture-engine/render",
         replacement: new URL("./packages/render/src/index.ts", import.meta.url)
           .pathname,
