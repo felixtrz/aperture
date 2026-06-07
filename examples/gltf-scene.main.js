@@ -675,11 +675,13 @@ async function publishFrameStatus(
     aperture.shadowCasterMatrixBindGroupResourceReportToJsonValue(
       shadowCasterMatrixBindGroupResourceReport,
     );
+  const shadowCasterMeshViews =
+    aperture.createShadowCasterMeshViewsFromAppReport(report);
   const shadowCasterFrameResources =
     aperture.shadowCasterFrameResourceReadinessReportToJsonValue(
       aperture.createShadowCasterFrameResourceReadinessReport({
         casterDrawList: shadowCasterDrawList,
-        preparedMeshes: createShadowCasterPreparedMeshViews(report),
+        preparedMeshes: shadowCasterMeshViews.preparedMeshes,
         matrixBufferResource: shadowMatrixBufferResourceReport,
         pipelineDescriptor: shadowCasterPipelineDescriptor,
       }),
@@ -711,7 +713,7 @@ async function publishFrameStatus(
                   shadowCasterMatrixBindGroupResourceReport.resource.bindGroup,
               },
             ],
-      meshes: createShadowCasterExecutableMeshViews(report),
+      meshes: shadowCasterMeshViews.executableMeshes,
     });
   const shadowCasterCommandRecords =
     aperture.shadowCasterCommandRecordPlanReportToJsonValue(
@@ -1385,74 +1387,6 @@ function familyBuckets(report) {
     routedItems: bucket.routedItems,
     frameResources: bucket.frameResources,
   }));
-}
-
-function createShadowCasterPreparedMeshViews(report) {
-  const meshResources = report.resources?.resources?.meshResources ?? [];
-  const preparedMeshEntries =
-    report.resourceReuse?.preparedMeshFacade?.entries ?? [];
-  const meshResourceByLabel = new Map(
-    meshResources.map((resource) => [resource.resourceKey, resource]),
-  );
-  const meshResourceByKey = new Map();
-
-  for (const entry of preparedMeshEntries) {
-    const resource = meshResourceByLabel.get(`mesh-buffer:${entry.label}`);
-
-    if (resource === undefined) {
-      continue;
-    }
-
-    meshResourceByKey.set(entry.assetKey, {
-      meshKey: entry.assetKey,
-      meshResourceKey: resource.resourceKey,
-      vertexBufferResourceKeys: resource.vertexBuffers.map(
-        (buffer) => buffer.resourceKey,
-      ),
-      indexBufferResourceKey: resource.indexBuffer?.resourceKey ?? null,
-    });
-  }
-
-  return [...meshResourceByKey.values()];
-}
-
-function createShadowCasterExecutableMeshViews(report) {
-  const meshResources = report.resources?.resources?.meshResources ?? [];
-  const preparedMeshEntries =
-    report.resourceReuse?.preparedMeshFacade?.entries ?? [];
-  const meshResourceByLabel = new Map(
-    meshResources.map((resource) => [resource.resourceKey, resource]),
-  );
-  const meshResourceByKey = new Map();
-
-  for (const entry of preparedMeshEntries) {
-    const resource = meshResourceByLabel.get(`mesh-buffer:${entry.label}`);
-
-    if (resource === undefined) {
-      continue;
-    }
-
-    meshResourceByKey.set(entry.assetKey, {
-      meshKey: entry.assetKey,
-      meshResourceKey: resource.resourceKey,
-      vertexBuffers: resource.vertexBuffers.map((buffer) => ({
-        resourceKey: buffer.resourceKey,
-        buffer: buffer.buffer,
-        vertexCount: buffer.vertexCount,
-      })),
-      indexBuffer:
-        resource.indexBuffer === undefined
-          ? null
-          : {
-              resourceKey: resource.indexBuffer.resourceKey,
-              buffer: resource.indexBuffer.buffer,
-              format: resource.indexBuffer.format,
-              indexCount: resource.indexBuffer.indexCount,
-            },
-    });
-  }
-
-  return [...meshResourceByKey.values()];
 }
 
 function resolveShadowDepthView(depthTextureResources, attachment) {

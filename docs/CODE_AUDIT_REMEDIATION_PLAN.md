@@ -427,7 +427,7 @@ the whole queue.
 
 ### DUP-03 - Canonicalize example shadow caster helpers only
 
-- Status: needs-refinement.
+- Status: completed 2026-06-06.
 - Files: `packages/webgpu/src/shadows/render-shadow-frame-caster-meshes.ts`
   plus shadow examples.
 - Problem: local example copies remain. The app auto-shadow path is related but
@@ -436,6 +436,12 @@ the whole queue.
   matches. Do not blindly rewrite `packages/webgpu/src/app/auto-shadow-frame.ts`
   unless a lower-level shared helper is extracted.
 - Accept: example copies are gone; shadow examples and E2E specs pass.
+- Result: all matching shadow examples now call
+  `createShadowCasterMeshViewsFromAppReport(report)` and the local
+  `createShadowCasterPreparedMeshViews` /
+  `createShadowCasterExecutableMeshViews` copies were removed. The auto-shadow
+  app path was left unchanged because it does not consume the app extraction
+  report shape.
 
 ### DUP-04 - Delete `TransformResolutionSystem` wrapper
 
@@ -772,9 +778,9 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 32    |
+| Completed                             | 33    |
 | Confirmed open / executable           | 8     |
-| Needs refinement but actionable       | 8     |
+| Needs refinement but actionable       | 7     |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |
 
