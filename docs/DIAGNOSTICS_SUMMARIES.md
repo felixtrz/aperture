@@ -175,11 +175,10 @@ for prepared facade state. It is useful when comparing source-side prepared mesh
 and material entries with render-world resource-key binding readiness before
 looking at WebGPU backend cache summaries.
 
-`createRenderWorldPreparedResourceSummaryFromReport()` is the matching consumer
-helper for the standard render-package
-`prepareAndBindSnapshotPreparedResourcesToRenderWorld()` report shape. It
-delegates to the same compact summary while counting apply/preparation,
-binding, draw-readiness, and caller diagnostics once.
+`@aperture-engine/render/test-support` also exposes
+`createRenderWorldPreparedResourceSummaryFromReport()` for tests that start from
+the combined `prepareAndBindSnapshotPreparedResourcesToRenderWorld()` report
+shape. The public app-facing summary path does not depend on that report shape.
 
 The helper reports compact counts only: prepared mesh entries, prepared material
 entries by family, optional binding updated/missing counts, optional

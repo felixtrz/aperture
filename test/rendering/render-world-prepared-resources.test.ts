@@ -10,10 +10,10 @@ import {
   createRenderSortKey,
   createStableRenderId,
   createStandardMaterialAsset,
-  prepareAndBindSnapshotPreparedResourcesToRenderWorld,
   type MeshDrawPacket,
   type RenderSnapshot,
 } from "@aperture-engine/render";
+import { prepareAndBindSnapshotPreparedResourcesToRenderWorld } from "@aperture-engine/render/test-support";
 import {
   assetHandleKey,
   createMaterialHandle,

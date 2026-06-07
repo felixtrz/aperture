@@ -342,12 +342,18 @@ refuted by source evidence.
 
 ### RF-03 - Split prepared-resource binding cleanup
 
-- Status: needs-refinement.
+- Status: completed 2026-06-06.
 - Problem: `prepareAndBindSnapshotPreparedResourcesToRenderWorld` is test-only,
   but `createRenderWorldPreparedResourceSummary` is live in app diagnostics.
 - Action: delete or relocate the binding orchestrator and its tests. Keep the
   summary path if diagnostics still imports it.
 - Accept: `examples/app-diagnostics-scene.js` still builds.
+- Result: `@aperture-engine/render` keeps the live
+  `createRenderWorldPreparedResourceSummary` and JSON helper public, while the
+  combined `prepareAndBindSnapshotPreparedResourcesToRenderWorld` orchestrator
+  and `createRenderWorldPreparedResourceSummaryFromReport` adapter moved to
+  `@aperture-engine/render/test-support`. The app diagnostics example still uses
+  the public summary helper directly.
 
 ### RF-04 - Rejected: `mesh-merge` is live
 
@@ -754,9 +760,9 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 28    |
+| Completed                             | 29    |
 | Confirmed open / executable           | 11    |
-| Needs refinement but actionable       | 9     |
+| Needs refinement but actionable       | 8     |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |
 

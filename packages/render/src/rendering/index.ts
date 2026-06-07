@@ -12,7 +12,6 @@ export * from "./render-state-sort.js";
 export * from "./render-world.js";
 export * from "./render-world-prepared-meshes.js";
 export * from "./render-world-prepared-materials.js";
-export * from "./render-world-prepared-resources.js";
 export * from "./render-world-prepared-resource-summary.js";
 export * from "./snapshot.js";
 export * from "./snapshot-change-set.js";

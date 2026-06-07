@@ -11,15 +11,17 @@ import {
   createRenderAssetCollections,
   createRenderSortKey,
   createRenderWorldPreparedResourceSummary,
-  createRenderWorldPreparedResourceSummaryFromReport,
   createStableRenderId,
   createStandardMaterialAsset,
   createUnlitMaterialAsset,
-  prepareAndBindSnapshotPreparedResourcesToRenderWorld,
   renderWorldPreparedResourceSummaryToJsonValue,
   type MeshDrawPacket,
   type RenderSnapshot,
 } from "@aperture-engine/render";
+import {
+  createRenderWorldPreparedResourceSummaryFromReport,
+  prepareAndBindSnapshotPreparedResourcesToRenderWorld,
+} from "@aperture-engine/render/test-support";
 import {
   assetHandleKey,
   createMaterialHandle,

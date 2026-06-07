@@ -78,6 +78,13 @@ describe("Aperture package entrypoints", () => {
     expect("inspectRenderPackages" in render).toBe(false);
     expect("validateRenderSnapshotCloneability" in render).toBe(false);
     expect("summarizeRenderSnapshotDiagnostics" in render).toBe(false);
+    expect("createRenderWorldPreparedResourceSummary" in render).toBe(true);
+    expect("createRenderWorldPreparedResourceSummaryFromReport" in render).toBe(
+      false,
+    );
+    expect(
+      "prepareAndBindSnapshotPreparedResourcesToRenderWorld" in render,
+    ).toBe(false);
 
     expect("inspectRenderPackages" in renderTestSupport).toBe(true);
     expect("validateRenderSnapshotCloneability" in renderTestSupport).toBe(
@@ -86,6 +93,13 @@ describe("Aperture package entrypoints", () => {
     expect("summarizeRenderSnapshotDiagnostics" in renderTestSupport).toBe(
       true,
     );
+    expect(
+      "createRenderWorldPreparedResourceSummaryFromReport" in renderTestSupport,
+    ).toBe(true);
+    expect(
+      "prepareAndBindSnapshotPreparedResourcesToRenderWorld" in
+        renderTestSupport,
+    ).toBe(true);
   });
 
   it("keeps CLI root exports intentional", () => {
