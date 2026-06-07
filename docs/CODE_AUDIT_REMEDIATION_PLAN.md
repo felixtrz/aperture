@@ -445,13 +445,17 @@ the whole queue.
 
 ### DUP-04 - Delete `TransformResolutionSystem` wrapper
 
-- Status: confirmed-open.
+- Status: completed 2026-06-06.
 - File: `packages/simulation/src/transform/resolution.ts`.
 - Problem: `TransformResolutionSystem`, report key, and getter are not
   registered by production code. Live code calls `resolveWorldTransforms(world)`
   imperatively.
 - Action: delete wrapper/report plumbing and its self-only tests.
 - Accept: transform, runtime, and physics sync tests pass.
+- Result: `resolution.ts` now exposes the imperative resolver and report type
+  only. The root-resolution test calls `resolveWorldTransforms(world)`
+  directly, and the removed public wrapper/report getter are documented in a
+  simulation patch changeset.
 
 ### DUP-05 - Delete render-side material preparation plan factories
 
@@ -778,8 +782,8 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 33    |
-| Confirmed open / executable           | 8     |
+| Completed                             | 34    |
+| Confirmed open / executable           | 7     |
 | Needs refinement but actionable       | 7     |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |

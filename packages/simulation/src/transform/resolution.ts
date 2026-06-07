@@ -1,5 +1,3 @@
-import { createSystem } from "elics";
-
 import type { EcsWorld, Entity } from "../ecs/index.js";
 import {
   composeTrsMatrix,
@@ -33,31 +31,6 @@ export interface TransformResolutionReport {
   readonly resolved: number;
   readonly skipped: number;
   readonly diagnostics: readonly TransformDiagnostic[];
-}
-
-export const TRANSFORM_RESOLUTION_REPORT_KEY =
-  "aperture.transform.resolutionReport";
-
-const TransformResolutionSystemBase = createSystem({
-  transforms: {
-    required: [LocalTransform, WorldTransform],
-  },
-});
-
-export class TransformResolutionSystem extends TransformResolutionSystemBase {
-  override update(_delta: number, _time: number): void {
-    this.globals[TRANSFORM_RESOLUTION_REPORT_KEY] = resolveWorldTransforms(
-      this.world as EcsWorld,
-    );
-  }
-}
-
-export function getLastTransformResolutionReport(
-  world: EcsWorld,
-): TransformResolutionReport | null {
-  const report = world.globals[TRANSFORM_RESOLUTION_REPORT_KEY];
-
-  return isTransformResolutionReport(report) ? report : null;
 }
 
 export function resolveWorldTransforms(
@@ -293,16 +266,4 @@ function compareEntities(a: Entity, b: Entity): number {
 
 function entityKey(entity: Entity): string {
   return `${entity.index}:${entity.generation}`;
-}
-
-function isTransformResolutionReport(
-  value: unknown,
-): value is TransformResolutionReport {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "resolved" in value &&
-    "skipped" in value &&
-    "diagnostics" in value
-  );
 }

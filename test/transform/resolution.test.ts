@@ -2,12 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   LocalTransform,
   Parent,
-  TransformResolutionSystem,
   WorldTransform,
   createLocalTransform,
   createParent,
   createWorld,
-  getLastTransformResolutionReport,
   quatFromAxisAngle,
   registerTransformComponents,
   resolveWorldTransforms,
@@ -16,19 +14,16 @@ import {
 } from "@aperture-engine/simulation";
 
 describe("transform resolution", () => {
-  it("resolves root world transforms from local transforms on system update", () => {
+  it("resolves root world transforms from local transforms", () => {
     const world = createWorld({ entityCapacity: 8 });
     registerTransformComponents(world);
-    world.registerSystem(TransformResolutionSystem);
 
     const root = createTransformEntity(world, { translation: [1, 2, 3] });
 
-    world.update(1 / 60, 1);
-
-    const report = getLastTransformResolutionReport(world);
+    const report = resolveWorldTransforms(world);
 
     expect(report).toMatchObject({ resolved: 1, skipped: 0 });
-    expect(report?.diagnostics).toEqual([]);
+    expect(report.diagnostics).toEqual([]);
     expectWorldTranslation(root, [1, 2, 3]);
   });
 
