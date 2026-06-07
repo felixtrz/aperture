@@ -393,13 +393,19 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-06 19:24 UTC</dd>
+            <dd>2026-06-07 01:10 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: the M10 WebXR implementation plan is now captured
-              in <code>docs/WEBXR_IMPLEMENTATION_PLAN.md</code> after reviewing
+              Latest update: GPU particle over-lifetime curves now reach the
+              WebGPU particle parameter upload as fixed LUT data, and the
+              compute shader samples authored size/color curves instead of
+              falling back to two-point start/end interpolation. The
+              <code>gpu-particles</code> browser proof publishes curve metadata
+              and still passes pixel readback. The M10 WebXR implementation plan
+              is captured in
+              <code>docs/WEBXR_IMPLEMENTATION_PLAN.md</code> after reviewing
               IWSDK, PlayCanvas, three.js, and the current Aperture source. M10
               physics remains focused on the existing simulation worker. Durable
               ECS <code>PhysicsCharacterController</code> authoring is now
@@ -1969,6 +1975,13 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">M6</span> Finished the GPU particle
+                over-lifetime curve follow-up. Particle effect size/color curves
+                are packed into WebGPU parameter LUTs, sampled in the compute
+                shader, surfaced in <code>gpu-particles</code> status, and
+                covered by focused WebGPU tests plus the browser particle E2E.
+              </li>
               <li>
                 <span class="badge green">M6</span> Completed the required
                 content-layer scope: richer sprite quads, MSDF text, retained UI
@@ -5319,8 +5332,9 @@
               <span>
                 Sprites, MSDF text, retained UI, UI hit testing, GPU particles,
                 and <code>content-showcase</code> are implemented and
-                browser-proven; decals and volumetrics stay deferred stretch
-                work.
+                browser-proven. GPU particle over-lifetime size/color curves now
+                feed the WebGPU compute path through packed LUTs; decals and
+                volumetrics stay deferred stretch work.
               </span>
             </div>
           </div>

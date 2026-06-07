@@ -65,7 +65,13 @@ export interface ParticleFrameReport {
 
 const PARTICLE_VIEWPORT_FLOAT_OFFSET = 20;
 const PARTICLE_DATA_FLOAT_STRIDE = 8;
-const PARTICLE_PARAM_BYTE_LENGTH = 80;
+const PARTICLE_CURVE_SAMPLE_COUNT = 16;
+const PARTICLE_SIZE_CURVE_FLOAT_OFFSET = 16;
+const PARTICLE_COLOR_CURVE_FLOAT_OFFSET =
+  PARTICLE_SIZE_CURVE_FLOAT_OFFSET + PARTICLE_CURVE_SAMPLE_COUNT;
+const PARTICLE_PARAM_BYTE_LENGTH =
+  16 +
+  (PARTICLE_COLOR_CURVE_FLOAT_OFFSET + PARTICLE_CURVE_SAMPLE_COUNT * 4) * 4;
 
 export async function prepareParticleFrameResourcesForSnapshot(options: {
   readonly app: WebGpuAppParticleContext;
@@ -561,7 +567,7 @@ function createParticleParamData(options: {
   words[0] = options.frame >>> 0;
   words[1] = options.emitter.seed >>> 0;
   words[2] = options.emitter.capacity >>> 0;
-  words[3] = 0;
+  words[3] = PARTICLE_CURVE_SAMPLE_COUNT;
   floats[0] = origin[0];
   floats[1] = origin[1];
   floats[2] = options.time * options.emitter.timeScale;
@@ -578,8 +584,100 @@ function createParticleParamData(options: {
   floats[13] = options.effect.startSize.max;
   floats[14] = options.effect.lifetime.max;
   floats[15] = 0;
+  writeParticleCurveData(floats, options.effect);
 
   return bytes;
+}
+
+function writeParticleCurveData(
+  floats: Float32Array,
+  effect: ParticleEffectAsset,
+): void {
+  for (let index = 0; index < PARTICLE_CURVE_SAMPLE_COUNT; index += 1) {
+    const t = index / (PARTICLE_CURVE_SAMPLE_COUNT - 1);
+    const color = samplePackedParticleColorCurve(effect, t);
+
+    floats[PARTICLE_SIZE_CURVE_FLOAT_OFFSET + index] =
+      samplePackedParticleSizeCurve(effect, t);
+    floats[PARTICLE_COLOR_CURVE_FLOAT_OFFSET + index * 4] = color[0];
+    floats[PARTICLE_COLOR_CURVE_FLOAT_OFFSET + index * 4 + 1] = color[1];
+    floats[PARTICLE_COLOR_CURVE_FLOAT_OFFSET + index * 4 + 2] = color[2];
+    floats[PARTICLE_COLOR_CURVE_FLOAT_OFFSET + index * 4 + 3] = color[3];
+  }
+}
+
+function samplePackedParticleSizeCurve(
+  effect: ParticleEffectAsset,
+  t: number,
+): number {
+  return samplePackedScalarTable(effect.curves.sizeOverLifetime, t);
+}
+
+function samplePackedParticleColorCurve(
+  effect: ParticleEffectAsset,
+  t: number,
+): readonly [number, number, number, number] {
+  const color = effect.curves.colorOverLifetime;
+  const sampleCount = effect.curves.sampleCount;
+
+  if (sampleCount <= 1) {
+    return [
+      color[0] ?? effect.startColor[0],
+      color[1] ?? effect.startColor[1],
+      color[2] ?? effect.startColor[2],
+      color[3] ?? effect.startColor[3],
+    ];
+  }
+
+  const scaled = clamp01(t) * (sampleCount - 1);
+  const lower = Math.floor(scaled);
+  const upper = Math.min(sampleCount - 1, lower + 1);
+  const blend = scaled - lower;
+  const lowerOffset = lower * 4;
+  const upperOffset = upper * 4;
+
+  return [
+    lerp(
+      color[lowerOffset] ?? effect.startColor[0],
+      color[upperOffset] ?? effect.endColor[0],
+      blend,
+    ),
+    lerp(
+      color[lowerOffset + 1] ?? effect.startColor[1],
+      color[upperOffset + 1] ?? effect.endColor[1],
+      blend,
+    ),
+    lerp(
+      color[lowerOffset + 2] ?? effect.startColor[2],
+      color[upperOffset + 2] ?? effect.endColor[2],
+      blend,
+    ),
+    lerp(
+      color[lowerOffset + 3] ?? effect.startColor[3],
+      color[upperOffset + 3] ?? effect.endColor[3],
+      blend,
+    ),
+  ];
+}
+
+function samplePackedScalarTable(values: Float32Array, t: number): number {
+  if (values.length <= 1) {
+    return values[0] ?? 1;
+  }
+
+  const scaled = clamp01(t) * (values.length - 1);
+  const lower = Math.floor(scaled);
+  const upper = Math.min(values.length - 1, lower + 1);
+
+  return lerp(values[lower] ?? 1, values[upper] ?? 1, scaled - lower);
+}
+
+function clamp01(value: number): number {
+  return Math.min(1, Math.max(0, value));
+}
+
+function lerp(start: number, end: number, t: number): number {
+  return start + (end - start) * t;
 }
 
 function viewUniformData(options: {

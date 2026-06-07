@@ -13,6 +13,19 @@ import type { ExampleStatusBase } from "./example-status-types.js";
 interface GpuParticlesStatus extends ExampleStatusBase {
   readonly particles?: {
     readonly effectKey: string;
+    readonly curves: {
+      readonly sampleCount: number;
+      readonly size: {
+        readonly first: number;
+        readonly middle: number;
+        readonly last: number;
+      };
+      readonly color: {
+        readonly first: readonly number[];
+        readonly middle: readonly number[];
+        readonly last: readonly number[];
+      };
+    };
     readonly expected: {
       readonly particleEmitters: number;
       readonly liveParticles: number;
@@ -81,6 +94,19 @@ test("browser renders worker-authored GPU particle emitter", async ({
     renderingBackend: "webgpu-explicit",
     particles: {
       effectKey: "particle-effect:gpu-particles-sparks",
+      curves: {
+        sampleCount: 16,
+        size: {
+          first: expect.any(Number),
+          middle: expect.any(Number),
+          last: expect.any(Number),
+        },
+        color: {
+          first: expect.any(Array),
+          middle: expect.any(Array),
+          last: expect.any(Array),
+        },
+      },
       expected: {
         particleEmitters: 1,
         liveParticles: 384,
@@ -110,6 +136,24 @@ test("browser renders worker-authored GPU particle emitter", async ({
       },
     },
   });
+  const curves = status.particles?.curves;
+
+  expect(curves).toBeDefined();
+
+  if (curves !== undefined) {
+    expect(curves.size.first).toBeCloseTo(0.8);
+    expect(curves.size.middle).toBeGreaterThan(curves.size.first);
+    expect(curves.size.last).toBeCloseTo(0.2);
+    expect(curves.color.first[0]).toBeCloseTo(1);
+    expect(curves.color.first[1]).toBeCloseTo(0.34);
+    expect(curves.color.first[2]).toBeCloseTo(0.08);
+    expect(curves.color.first[3]).toBeCloseTo(0.92);
+    expect(curves.color.middle[1]).toBeGreaterThan(curves.color.first[1] ?? 0);
+    expect(curves.color.last[0]).toBeCloseTo(0.08);
+    expect(curves.color.last[1]).toBeCloseTo(0.18);
+    expect(curves.color.last[2]).toBeCloseTo(1);
+    expect(curves.color.last[3]).toBe(0);
+  }
 
   const readback = status.frame?.readback;
 

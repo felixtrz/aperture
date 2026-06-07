@@ -33,6 +33,16 @@ describe("GPU particle app frame resources", () => {
         startSize: { min: 0.2, max: 0.4 },
         startColor: [1, 0.25, 0.1, 0.8],
         endColor: [0.1, 0.6, 1, 0.5],
+        sizeOverLifetime: [
+          { t: 0, value: 0.5 },
+          { t: 0.5, value: 2 },
+          { t: 1, value: 0.25 },
+        ],
+        colorOverLifetime: [
+          { t: 0, color: [1, 0, 0, 1] },
+          { t: 0.5, color: [0, 1, 0.5, 0.75] },
+          { t: 1, color: [0, 0, 1, 0] },
+        ],
       }),
     );
 
@@ -98,12 +108,22 @@ describe("GPU particle app frame resources", () => {
     );
     const params = bytesUpload(paramUpload);
     const words = new Uint32Array(params.buffer, params.byteOffset, 4);
-    const floats = new Float32Array(params.buffer, params.byteOffset + 16, 16);
+    const floats = new Float32Array(
+      params.buffer,
+      params.byteOffset + 16,
+      (params.byteLength - 16) / 4,
+    );
 
-    expect(Array.from(words)).toEqual([3, 7, 4, 0]);
+    expect(params.byteLength).toBe(400);
+    expect(Array.from(words)).toEqual([3, 7, 4, 16]);
     expect(roundFloats(Array.from(floats.slice(0, 16)))).toEqual([
       2, 3, 5, 1.5, 1, 0.25, 0.1, 0.8, 0.1, 0.6, 1, 0.5, 0.2, 0.4, 1, 0,
     ]);
+    expect(roundFloats(Array.from(floats.slice(16, 20)))).toEqual([
+      0.5, 0.7, 0.9, 1.1,
+    ]);
+    expect(roundFloats(Array.from(floats.slice(32, 36)))).toEqual([1, 0, 0, 1]);
+    expect(roundFloats(Array.from(floats.slice(92, 96)))).toEqual([0, 0, 1, 0]);
 
     const second = await prepareParticleFrameResourcesForSnapshot({
       app: {

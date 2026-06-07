@@ -45,6 +45,12 @@ describe("GPU particle WebGPU pipelines", () => {
       "var<storage, read_write> particles",
     );
     expect(PARTICLE_COMPUTE_WGSL).toContain("index == 0u");
+    expect(PARTICLE_COMPUTE_WGSL).toContain("fn sampleSizeCurve");
+    expect(PARTICLE_COMPUTE_WGSL).toContain("fn sampleColorCurve");
+    expect(PARTICLE_COMPUTE_WGSL).toContain("colorCurve: array<vec4f, 16>");
+    expect(PARTICLE_COMPUTE_WGSL).not.toContain(
+      "let color = mix(params.colorA, params.colorB, c);",
+    );
     expect(PARTICLE_RENDER_WGSL).toContain("var<storage, read> particles");
     expect(PARTICLE_RENDER_WGSL).toContain("@builtin(instance_index)");
     expect(computeDescriptors).toEqual([

@@ -1625,6 +1625,8 @@ Expose the user-facing insertion API on WebGpuApp (and surface it through packag
 
 **Completion note (2026-06-05).** The implementation followed `docs/M6_UI_PARTICLES_NOTES.md` rather than the older design-level task split below. The shipped M6 scope includes the shared quad/sprite foundation, packed sprite atlas/rotation/screen-size data, MSDF font atlas/layout extraction, retained screen-space UI components and layout packets, UI panel/image/text WebGPU pipelines, UI hit testing integrated before 3D picking, particle effect assets and ECS emitter authoring, extracted particle emitter packets, persistent WebGPU compute particle state, additive instanced particle rendering, JSON-safe particle status, and the combined `examples/content-showcase.html` proof route.
 
+**Latest GPU particle curve source state (2026-06-06).** Particle effect assets already authored and CPU-packed size/color over-lifetime curves; the WebGPU path now uploads a fixed 16-sample size/color LUT in the particle parameter buffer and samples it in the compute shader by normalized particle lifetime. `examples/gpu-particles.html` publishes curve metadata and keeps pixel readback proof, while focused WebGPU tests cover the 400-byte parameter upload and the WGSL curve-sampling path.
+
 ### Completed Scope
 
 - [x] M6-T1 richer sprites/billboards: `Sprite` authoring now covers billboard mode, screen-space sizing, rotation, UV atlas frames, packed quad transport, and browser proofs in `examples/sprite-billboard.html`.

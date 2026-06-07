@@ -179,6 +179,7 @@ function createGpuParticlesStatus(scene, loop, diagnostics) {
     renderingBackend: "webgpu-explicit",
     particles: {
       effectKey: scene.effectKey,
+      curves: scene.curves,
       expected: scene.expected,
       samples: scene.samples,
     },

@@ -44,19 +44,17 @@ The latest ultracode verification changed the plan materially:
 
 ## Recommended Remaining Order
 
-Q0, Q1, Q2, Q3, Q6, PHY-04, and PHY-08 have been executed or
+Q0, Q1, Q2, Q3, Q6, PHY-04, PHY-08, and FEAT-01 have been executed or
 source-verified. The remaining queue is now intentionally small and concrete:
 
-1. **FEAT-01 - Particle over-lifetime curves**: carry authored curves through
-   snapshots, GPU buffers, WGSL, example, and E2E proof.
-2. **FEAT-02 - SharedArrayBuffer snapshot producer**: make the generic
+1. **FEAT-02 - SharedArrayBuffer snapshot producer**: make the generic
    generated/default worker route use SAB when available with transfer-list
    fallback.
-3. **FEAT-03 - Buffer-pool benchmark decision**: run the benchmark-gated choice
+2. **FEAT-03 - Buffer-pool benchmark decision**: run the benchmark-gated choice
    and either wire the pool or delete the dormant protocol.
-4. **FEAT-05 - Prepared mesh/material cache eviction**: add bounded eviction
+3. **FEAT-05 - Prepared mesh/material cache eviction**: add bounded eviction
    that respects in-use resources.
-5. **FEAT-06 - Generic equirect environment input**: expose direct app-level
+4. **FEAT-06 - Generic equirect environment input**: expose direct app-level
    equirect input or mark the proof route complete with explicit docs. The
    execution default is to implement the direct input path.
 
@@ -616,7 +614,7 @@ slice with example/E2E proof.
 
 ### FEAT-01 - Finish particle over-lifetime curves
 
-- Status: confirmed-open.
+- Status: completed 2026-06-06.
 - Files: `packages/render/src/assets/particles.ts`,
   `packages/render/src/rendering/snapshot-packet-types.ts`,
   `packages/webgpu/src/app/particles.ts`,
@@ -628,6 +626,12 @@ slice with example/E2E proof.
   WGSL. Update example to show a non-linear size/color curve.
 - Accept: gpu-particles E2E proves the curve is visible and no silent fallback
   remains.
+- Result: particle effect curves are packed into a fixed 16-sample WebGPU
+  parameter LUT, the particle compute shader samples size/color curves by
+  normalized particle lifetime, and `examples/gpu-particles.html` publishes
+  curve metadata while retaining pixel readback proof. Focused WebGPU tests
+  verify the 400-byte parameter upload and WGSL curve-sampling path; the
+  `gpu-particles` Playwright route passed.
 
 ### FEAT-02 - Generalize SharedArrayBuffer snapshot producer
 
@@ -831,8 +835,8 @@ Executable status after this refinement:
 
 | Status                                     | Items |
 | ------------------------------------------ | ----- |
-| Completed, verified, or accepted alternate | 45    |
-| Remaining executable tickets               | 5     |
+| Completed, verified, or accepted alternate | 46    |
+| Remaining executable tickets               | 4     |
 | Rejected or stale no-action items          | 5     |
 
 The counts are orientation only. Re-run local symbol checks before editing any

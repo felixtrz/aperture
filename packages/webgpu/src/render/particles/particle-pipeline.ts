@@ -13,12 +13,16 @@ export const PARTICLE_COMPUTE_PIPELINE_KEY = "aperture/gpu-particles-compute";
 export const PARTICLE_RENDER_PIPELINE_KEY = "aperture/gpu-particles-render";
 
 export const PARTICLE_COMPUTE_WGSL = `
+const PARTICLE_CURVE_SAMPLE_COUNT: u32 = 16u;
+
 struct ParticleParams {
   frameSeedCapacityFlags: vec4u,
   originRadiusTime: vec4f,
   colorA: vec4f,
   colorB: vec4f,
   sizeSpeedLife: vec4f,
+  sizeCurve: array<vec4f, 4>,
+  colorCurve: array<vec4f, 16>,
 };
 
 struct ParticleData {
@@ -37,6 +41,42 @@ fn hash(value: u32) -> f32 {
   return f32(x & 0x00ffffffu) / f32(0x01000000u);
 }
 
+fn sizeCurveValue(index: u32) -> f32 {
+  let packed = params.sizeCurve[index / 4u];
+  let component = index % 4u;
+
+  if (component == 0u) {
+    return packed.x;
+  }
+  if (component == 1u) {
+    return packed.y;
+  }
+  if (component == 2u) {
+    return packed.z;
+  }
+  return packed.w;
+}
+
+fn sampleSizeCurve(life: f32) -> f32 {
+  let maxIndex = PARTICLE_CURVE_SAMPLE_COUNT - 1u;
+  let scaled = clamp(life, 0.0, 1.0) * f32(maxIndex);
+  let lower = u32(floor(scaled));
+  let upper = min(lower + 1u, maxIndex);
+  return mix(sizeCurveValue(lower), sizeCurveValue(upper), fract(scaled));
+}
+
+fn sampleColorCurve(life: f32) -> vec4f {
+  let maxIndex = PARTICLE_CURVE_SAMPLE_COUNT - 1u;
+  let scaled = clamp(life, 0.0, 1.0) * f32(maxIndex);
+  let lower = u32(floor(scaled));
+  let upper = min(lower + 1u, maxIndex);
+  return mix(params.colorCurve[lower], params.colorCurve[upper], fract(scaled));
+}
+
+fn particleLife(offset: f32) -> f32 {
+  return fract(params.originRadiusTime.z / max(params.sizeSpeedLife.z, 0.001) + offset);
+}
+
 @compute @workgroup_size(64)
 fn cs_main(@builtin(global_invocation_id) id: vec3u) {
   let index = id.x;
@@ -47,13 +87,14 @@ fn cs_main(@builtin(global_invocation_id) id: vec3u) {
   }
 
   if (index == 0u) {
+    let life = particleLife(0.0);
     particles[index].positionSize = vec4f(
       params.originRadiusTime.x,
       params.originRadiusTime.y,
       0.0,
-      max(params.sizeSpeedLife.x, params.sizeSpeedLife.y)
+      max(0.001, max(params.sizeSpeedLife.x, params.sizeSpeedLife.y) * sampleSizeCurve(life))
     );
-    particles[index].color = params.colorA;
+    particles[index].color = sampleColorCurve(life);
     return;
   }
 
@@ -65,8 +106,10 @@ fn cs_main(@builtin(global_invocation_id) id: vec3u) {
   let angle = a * 6.2831853;
   let radius = sqrt(b) * params.originRadiusTime.w;
   let drift = sin(params.originRadiusTime.z + f32(index) * 0.073) * 0.18;
-  let size = mix(params.sizeSpeedLife.x, params.sizeSpeedLife.y, c);
-  let color = mix(params.colorA, params.colorB, c);
+  let life = particleLife(c);
+  let baseSize = mix(params.sizeSpeedLife.x, params.sizeSpeedLife.y, c);
+  let size = max(0.001, baseSize * sampleSizeCurve(life));
+  let color = sampleColorCurve(life);
 
   particles[index].positionSize = vec4f(
     params.originRadiusTime.x + cos(angle) * radius,
