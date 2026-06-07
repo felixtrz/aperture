@@ -52,6 +52,7 @@ import {
   type PhysicsShape,
   type PhysicsVec3,
 } from "./components.js";
+import { multiplyQuat, normalizeQuat, rotateVec3ByQuat } from "./math.js";
 
 export interface PhysicsWorldSyncState {
   readonly knownEntities: Set<string>;
@@ -674,7 +675,10 @@ function colliderOffsetTranslation(source: PhysicsColliderSource): PhysicsVec3 {
   );
   const childRotation = readQuat(source.entity, LocalTransform, "rotation");
 
-  return addVec3(childTranslation, rotateVec3(childRotation, colliderOffset));
+  return addVec3(
+    childTranslation,
+    rotateVec3ByQuat(colliderOffset, childRotation),
+  );
 }
 
 function colliderOffsetRotation(source: PhysicsColliderSource): PhysicsQuat {
@@ -1057,45 +1061,6 @@ function readColliderAxis(entity: Entity): PhysicsColliderAxis {
 
 function addVec3(left: PhysicsVec3, right: PhysicsVec3): PhysicsVec3 {
   return [left[0] + right[0], left[1] + right[1], left[2] + right[2]];
-}
-
-function rotateVec3(rotation: PhysicsQuat, value: PhysicsVec3): PhysicsVec3 {
-  const [qx, qy, qz, qw] = normalizeQuat(rotation);
-  const [x, y, z] = value;
-  const tx = 2 * (qy * z - qz * y);
-  const ty = 2 * (qz * x - qx * z);
-  const tz = 2 * (qx * y - qy * x);
-
-  return [
-    x + qw * tx + (qy * tz - qz * ty),
-    y + qw * ty + (qz * tx - qx * tz),
-    z + qw * tz + (qx * ty - qy * tx),
-  ];
-}
-
-function multiplyQuat(left: PhysicsQuat, right: PhysicsQuat): PhysicsQuat {
-  const [ax, ay, az, aw] = normalizeQuat(left);
-  const [bx, by, bz, bw] = normalizeQuat(right);
-
-  return [
-    aw * bx + ax * bw + ay * bz - az * by,
-    aw * by - ax * bz + ay * bw + az * bx,
-    aw * bz + ax * by - ay * bx + az * bw,
-    aw * bw - ax * bx - ay * by - az * bz,
-  ];
-}
-
-function normalizeQuat(value: PhysicsQuat): PhysicsQuat {
-  const length = Math.hypot(value[0], value[1], value[2], value[3]);
-
-  return length <= Number.EPSILON
-    ? [0, 0, 0, 1]
-    : [
-        value[0] / length,
-        value[1] / length,
-        value[2] / length,
-        value[3] / length,
-      ];
 }
 
 function read(values: ArrayLike<number>, index: number): number {

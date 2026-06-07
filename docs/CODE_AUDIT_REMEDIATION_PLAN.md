@@ -388,7 +388,7 @@ the whole queue.
 
 ### DUP-01 - Centralize quaternion math
 
-- Status: confirmed-open.
+- Status: completed 2026-06-06.
 - Files: `packages/physics-rapier/src/math.ts`,
   `packages/physics/src/test-backend/math.ts`,
   `packages/physics/src/ecs-sync.ts`,
@@ -403,6 +403,11 @@ the whole queue.
   through `@aperture-engine/physics`.
 - Accept: local reimplementations are gone or narrowed; physics, Rapier, and
   interpolation tests pass.
+- Result: `@aperture-engine/physics` now owns `normalizeQuat`,
+  `multiplyQuat`, `rotateVec3ByQuat`, and `slerpQuat` with a documented
+  `!finite || length <= 1e-8 -> identity` policy. ECS sync, the test backend,
+  Rapier wrappers, and app physics interpolation route through those helpers.
+  Rapier keeps same-name local exports as compatibility wrappers.
 
 ### DUP-02 - Consolidate `jsonSafeValue`
 
@@ -763,8 +768,8 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 30    |
-| Confirmed open / executable           | 10    |
+| Completed                             | 31    |
+| Confirmed open / executable           | 9     |
 | Needs refinement but actionable       | 8     |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |

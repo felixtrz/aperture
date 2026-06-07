@@ -6,10 +6,9 @@ import {
   type EcsWorld,
   type Entity,
   type Mat4Like,
-  type QuatLike,
   type Vec3Like,
 } from "@aperture-engine/simulation";
-import { PhysicsBodyState } from "@aperture-engine/physics";
+import { PhysicsBodyState, slerpQuat } from "@aperture-engine/physics";
 
 export interface PhysicsSnapshotInterpolationReport {
   readonly enabled: boolean;
@@ -158,70 +157,6 @@ function lerpVec3(
   ];
 }
 
-function slerpQuat(
-  previous: QuatLike,
-  current: QuatLike,
-  alpha: number,
-): [number, number, number, number] {
-  let x1 = read(current, 0);
-  let y1 = read(current, 1);
-  let z1 = read(current, 2);
-  let w1 = read(current, 3);
-  let dot =
-    read(previous, 0) * x1 +
-    read(previous, 1) * y1 +
-    read(previous, 2) * z1 +
-    read(previous, 3) * w1;
-
-  if (dot < 0) {
-    dot = -dot;
-    x1 = -x1;
-    y1 = -y1;
-    z1 = -z1;
-    w1 = -w1;
-  }
-
-  if (dot > 0.9995) {
-    return normalizeQuat([
-      lerp(read(previous, 0), x1, alpha),
-      lerp(read(previous, 1), y1, alpha),
-      lerp(read(previous, 2), z1, alpha),
-      lerp(read(previous, 3), w1, alpha),
-    ]);
-  }
-
-  const theta0 = Math.acos(Math.min(1, Math.max(-1, dot)));
-  const theta = theta0 * alpha;
-  const sinTheta = Math.sin(theta);
-  const sinTheta0 = Math.sin(theta0);
-  const s0 = Math.cos(theta) - (dot * sinTheta) / sinTheta0;
-  const s1 = sinTheta / sinTheta0;
-
-  return [
-    read(previous, 0) * s0 + x1 * s1,
-    read(previous, 1) * s0 + y1 * s1,
-    read(previous, 2) * s0 + z1 * s1,
-    read(previous, 3) * s0 + w1 * s1,
-  ];
-}
-
-function normalizeQuat(
-  value: [number, number, number, number],
-): [number, number, number, number] {
-  const length = Math.hypot(value[0], value[1], value[2], value[3]);
-
-  if (length === 0) {
-    return [0, 0, 0, 1];
-  }
-
-  return [
-    value[0] / length,
-    value[1] / length,
-    value[2] / length,
-    value[3] / length,
-  ];
-}
-
 function lerp(left: number, right: number, alpha: number): number {
   return left + (right - left) * alpha;
 }
@@ -234,6 +169,6 @@ function clampAlpha(value: number): number {
   return Math.min(1, Math.max(0, value));
 }
 
-function read(values: Mat4Like | Vec3Like | QuatLike, index: number): number {
+function read(values: Mat4Like | Vec3Like, index: number): number {
   return values[index] ?? 0;
 }
