@@ -44,21 +44,19 @@ The latest ultracode verification changed the plan materially:
 
 ## Recommended Remaining Order
 
-Q0, Q1, Q2, Q3, Q6, and PHY-04 have been executed or source-verified. The
-remaining queue is now intentionally small and concrete:
+Q0, Q1, Q2, Q3, Q6, PHY-04, and PHY-08 have been executed or
+source-verified. The remaining queue is now intentionally small and concrete:
 
-1. **PHY-08 - Historical Havok docs cleanup**: make SOTA/docs match the
-   Rapier-only shipped package graph.
-2. **FEAT-01 - Particle over-lifetime curves**: carry authored curves through
+1. **FEAT-01 - Particle over-lifetime curves**: carry authored curves through
    snapshots, GPU buffers, WGSL, example, and E2E proof.
-3. **FEAT-02 - SharedArrayBuffer snapshot producer**: make the generic
+2. **FEAT-02 - SharedArrayBuffer snapshot producer**: make the generic
    generated/default worker route use SAB when available with transfer-list
    fallback.
-4. **FEAT-03 - Buffer-pool benchmark decision**: run the benchmark-gated choice
+3. **FEAT-03 - Buffer-pool benchmark decision**: run the benchmark-gated choice
    and either wire the pool or delete the dormant protocol.
-5. **FEAT-05 - Prepared mesh/material cache eviction**: add bounded eviction
+4. **FEAT-05 - Prepared mesh/material cache eviction**: add bounded eviction
    that respects in-use resources.
-6. **FEAT-06 - Generic equirect environment input**: expose direct app-level
+5. **FEAT-06 - Generic equirect environment input**: expose direct app-level
    equirect input or mark the proof route complete with explicit docs. The
    execution default is to implement the direct input path.
 
@@ -591,9 +589,10 @@ default developer path.
 
 ### PHY-08 - Docs cleanup for historical Havok references
 
-- Status: confirmed-open docs-only ticket.
-- Current state: packages contain only `physics` and `physics-rapier`; Havok is
-  docs-only/historical. Some SOTA roadmap entries still describe removed Havok
+- Status: completed 2026-06-06.
+- Verified package state: packages contain only `physics` and `physics-rapier`;
+  Havok is docs-only/historical.
+- Prior docs problem: some SOTA roadmap entries described removed Havok
   prototype files as current.
 - Action: update docs so Havok/Jolt are historical/future candidates only and
   no removed `packages/physics-havok` path is described as current.
@@ -604,6 +603,11 @@ default developer path.
   ```sh
   rg -ni "physics-havok|createHavok|@babylonjs/havok" packages package.json pnpm-lock.yaml
   ```
+
+- Result: `docs/SOTA_ROADMAP.md` now treats the removed Havok prototype as
+  historical decision evidence only, removes current-state wording that implied
+  a live Havok adapter, and keeps Havok/Jolt references limited to future
+  candidate or upstream-reference contexts.
 
 ## Queue Q5 - Feature Follow-Ups
 
@@ -827,8 +831,8 @@ Executable status after this refinement:
 
 | Status                                     | Items |
 | ------------------------------------------ | ----- |
-| Completed, verified, or accepted alternate | 44    |
-| Remaining executable tickets               | 6     |
+| Completed, verified, or accepted alternate | 45    |
+| Remaining executable tickets               | 5     |
 | Rejected or stale no-action items          | 5     |
 
 The counts are orientation only. Re-run local symbol checks before editing any
