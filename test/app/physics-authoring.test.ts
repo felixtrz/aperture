@@ -189,6 +189,99 @@ describe("app physics authoring descriptors", () => {
     expect(joint.getValue(PhysicsDebug, "bodyStateMarkers")).toBe(false);
   });
 
+  it("diagnoses invalid spawn physics descriptors and skips only invalid components", async () => {
+    const runner = await createApertureHeadlessRunner({
+      config: defineApertureConfig({
+        mode: "headless",
+        systems: [],
+        render: { defaultCamera: false, defaultLight: false },
+      }),
+      systems: [SetupSystem],
+    });
+    const context = runner.app.context;
+    const entity = context.spawn.physics({
+      key: "physics.invalid.descriptors",
+      physics: {
+        rigidBody: physicsDescriptor.rigidBody({
+          type: PhysicsRigidBodyType.Dynamic,
+        }),
+        collider: physicsDescriptor.collider({
+          shape: { kind: "sphere", radius: 0 },
+          density: -1,
+        }),
+        characterController: physicsDescriptor.characterController({
+          offset: 0,
+          autostep: { maxHeight: -1, minWidth: 0 },
+          characterMass: -1,
+        }),
+        material: physicsDescriptor.material({ density: 2 }),
+        joint: physicsDescriptor.joint({
+          kind: PhysicsJointKind.Distance,
+          anchorA: [0, Number.NaN, 0],
+          frameA: [0, 0, 0, 0],
+          minLimit: 2,
+          maxLimit: 1,
+        }),
+        debug: true,
+      },
+    });
+
+    expect(entity.hasComponent(RigidBody)).toBe(true);
+    expect(entity.hasComponent(Collider)).toBe(false);
+    expect(entity.hasComponent(PhysicsCharacterController)).toBe(false);
+    expect(entity.hasComponent(PhysicsJoint)).toBe(false);
+    expect(entity.hasComponent(PhysicsMaterial)).toBe(true);
+    expect(entity.hasComponent(PhysicsDebug)).toBe(true);
+
+    expect(context.diagnostics.list()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: "error",
+          code: "aperture.physics.invalid.radius",
+          data: expect.objectContaining({
+            component: "collider",
+            message: "radius must be a positive finite number.",
+          }),
+        }),
+        expect.objectContaining({
+          severity: "error",
+          code: "aperture.physics.invalid.density",
+          data: expect.objectContaining({
+            component: "collider",
+          }),
+        }),
+        expect.objectContaining({
+          severity: "error",
+          code: "aperture.physics.invalid.offset",
+          data: expect.objectContaining({
+            component: "characterController",
+          }),
+        }),
+        expect.objectContaining({
+          severity: "error",
+          code: "aperture.physics.invalid.autostep.maxHeight",
+          data: expect.objectContaining({
+            component: "characterController",
+          }),
+        }),
+        expect.objectContaining({
+          severity: "error",
+          code: "aperture.physics.invalid.anchorA",
+          data: expect.objectContaining({
+            component: "joint",
+          }),
+        }),
+        expect.objectContaining({
+          severity: "error",
+          code: "aperture.physics.joint.invalidLimitRange",
+          data: expect.objectContaining({
+            component: "joint",
+          }),
+        }),
+      ]),
+    );
+  });
+
   it("remaps physics joint body refs when spawning prefab clones", async () => {
     const runner = await createApertureHeadlessRunner({
       config: defineApertureConfig({

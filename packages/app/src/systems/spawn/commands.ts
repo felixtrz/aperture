@@ -88,14 +88,24 @@ export function createSpawnCommands(options: {
       entity.addComponent(Material, {
         materialId: assetHandleKey(materialHandle),
       });
-      applyPhysicsSpawnDescriptor(options.world, entity, input.physics);
+      applyPhysicsSpawnDescriptor({
+        world: options.world,
+        entity,
+        input: input.physics,
+        diagnostics: options.diagnostics,
+      });
       return entity;
     },
     physics(input) {
       const entity = createEntityWithMetadata(options.world, input, "physics");
 
       addTransform(entity, input.transform);
-      applyPhysicsSpawnDescriptor(options.world, entity, input.physics);
+      applyPhysicsSpawnDescriptor({
+        world: options.world,
+        entity,
+        input: input.physics,
+        diagnostics: options.diagnostics,
+      });
       return entity;
     },
     gltf(handle, input = {}) {

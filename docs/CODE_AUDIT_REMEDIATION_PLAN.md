@@ -44,23 +44,21 @@ The latest ultracode verification changed the plan materially:
 
 ## Recommended Remaining Order
 
-Q0, Q1, Q2, Q3, and Q6 have been executed or source-verified. The remaining
-queue is now intentionally small and concrete:
+Q0, Q1, Q2, Q3, Q6, and PHY-04 have been executed or source-verified. The
+remaining queue is now intentionally small and concrete:
 
-1. **PHY-04 - Physics spawn validation**: wire existing validators into app
-   authoring and surface diagnostics.
-2. **PHY-08 - Historical Havok docs cleanup**: make SOTA/docs match the
+1. **PHY-08 - Historical Havok docs cleanup**: make SOTA/docs match the
    Rapier-only shipped package graph.
-3. **FEAT-01 - Particle over-lifetime curves**: carry authored curves through
+2. **FEAT-01 - Particle over-lifetime curves**: carry authored curves through
    snapshots, GPU buffers, WGSL, example, and E2E proof.
-4. **FEAT-02 - SharedArrayBuffer snapshot producer**: make the generic
+3. **FEAT-02 - SharedArrayBuffer snapshot producer**: make the generic
    generated/default worker route use SAB when available with transfer-list
    fallback.
-5. **FEAT-03 - Buffer-pool benchmark decision**: run the benchmark-gated choice
+4. **FEAT-03 - Buffer-pool benchmark decision**: run the benchmark-gated choice
    and either wire the pool or delete the dormant protocol.
-6. **FEAT-05 - Prepared mesh/material cache eviction**: add bounded eviction
+5. **FEAT-05 - Prepared mesh/material cache eviction**: add bounded eviction
    that respects in-use resources.
-7. **FEAT-06 - Generic equirect environment input**: expose direct app-level
+6. **FEAT-06 - Generic equirect environment input**: expose direct app-level
    equirect input or mark the proof route complete with explicit docs. The
    execution default is to implement the direct input path.
 
@@ -538,7 +536,7 @@ default developer path.
 
 ### PHY-04 - Wire validators into authoring/spawn
 
-- Status: confirmed-open.
+- Status: completed 2026-06-06.
 - Files: `packages/physics/src/validation.ts`,
   `packages/app/src/systems/spawn/physics.ts`.
 - Problem: validators exist, but authoring/spawn path creates components
@@ -547,6 +545,12 @@ default developer path.
 - Action: call rigid-body/collider/joint/character-controller validators on real
   app authoring paths and return structured diagnostics for invalid input.
 - Accept: tests spawn invalid physics descriptors and observe diagnostics.
+- Result: `applyPhysicsSpawnDescriptor(...)` now accepts app diagnostics,
+  validates rigid body, collider, character-controller, and joint descriptors,
+  skips only invalid components, and emits the original physics validation code
+  with component/message/details data. `test/app/physics-authoring.test.ts`
+  proves invalid spawn descriptors produce diagnostics while valid sibling
+  components still attach.
 
 ### PHY-05 - Add facade seam for asset-backed collider provider
 
@@ -823,8 +827,8 @@ Executable status after this refinement:
 
 | Status                                     | Items |
 | ------------------------------------------ | ----- |
-| Completed, verified, or accepted alternate | 43    |
-| Remaining executable tickets               | 7     |
+| Completed, verified, or accepted alternate | 44    |
+| Remaining executable tickets               | 6     |
 | Rejected or stale no-action items          | 5     |
 
 The counts are orientation only. Re-run local symbol checks before editing any
