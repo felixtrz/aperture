@@ -265,7 +265,7 @@ packages, and an `rg` scan for moved symbols.
 
 ### BH-04 - Split webgpu serializer cleanup by symbol
 
-- Status: needs-refinement.
+- Status: completed 2026-06-06 by source verification.
 - Problem: original item grouped live and test-only symbols together.
 - Action:
   - Keep `createPreparedResourceAppReuseAlignmentSummary`; it is used by
@@ -276,6 +276,12 @@ packages, and an `rg` scan for moved symbols.
     test-only.
   - Move `createOffscreenColorTargets` to test/e2e support if still e2e-only.
 - Accept: no live app diagnostics imports break.
+- Result: no code change was needed. `packages/webgpu/src/index.ts` already
+  keeps only `createPreparedResourceAppReuseAlignmentSummary` public from this
+  set. `createLightShaderResourceReadinessReport`,
+  `commandSubmissionMetricsReportToJson*`, and `createOffscreenColorTargets`
+  are internal/test-support surfaces; tests import them from
+  `@aperture-engine/webgpu/test-support`.
 
 ### BH-05 - Narrow physics public barrel
 
@@ -742,9 +748,9 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 26    |
+| Completed                             | 27    |
 | Confirmed open / executable           | 11    |
-| Needs refinement but actionable       | 11    |
+| Needs refinement but actionable       | 10    |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |
 
