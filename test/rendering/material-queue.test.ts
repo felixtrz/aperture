@@ -5,7 +5,6 @@ import {
   createMeshHandle,
 } from "@aperture-engine/simulation";
 import {
-  buildMaterialQueueFromSnapshot,
   createBoxMeshAsset,
   createMaterialQueuePhaseSummary,
   createMaterialQueueScratch,
@@ -23,6 +22,7 @@ import {
   type RenderQueue,
   type RenderSnapshot,
 } from "@aperture-engine/render";
+import { buildMaterialQueueFromSnapshot } from "@aperture-engine/render/test-support";
 
 describe("material family render queue", () => {
   it("builds JSON-safe queue items for mixed built-in material families", () => {

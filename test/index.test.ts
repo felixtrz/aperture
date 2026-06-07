@@ -79,6 +79,8 @@ describe("Aperture package entrypoints", () => {
     expect("validateRenderSnapshotCloneability" in render).toBe(false);
     expect("summarizeRenderSnapshotDiagnostics" in render).toBe(false);
     expect("createRenderWorldPreparedResourceSummary" in render).toBe(true);
+    expect("writeMaterialQueueFromSnapshot" in render).toBe(true);
+    expect("buildMaterialQueueFromSnapshot" in render).toBe(false);
     expect("createRenderWorldPreparedResourceSummaryFromReport" in render).toBe(
       false,
     );
@@ -100,6 +102,7 @@ describe("Aperture package entrypoints", () => {
       "prepareAndBindSnapshotPreparedResourcesToRenderWorld" in
         renderTestSupport,
     ).toBe(true);
+    expect("buildMaterialQueueFromSnapshot" in renderTestSupport).toBe(true);
   });
 
   it("keeps CLI root exports intentional", () => {

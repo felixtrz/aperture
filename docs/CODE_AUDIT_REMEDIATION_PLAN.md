@@ -370,13 +370,16 @@ refuted by source evidence.
 
 ### RF-06 - Delete allocating material queue builder
 
-- Status: confirmed-open.
+- Status: completed 2026-06-06.
 - File: `packages/render/src/rendering/material-queue.ts`.
 - Problem: `buildMaterialQueueFromSnapshot` is public and test-only; live app
   paths use `writeMaterialQueueFromSnapshot`.
 - Action: delete or move behind test-support and update tests.
 - Accept: material queue tests still cover the writer path; app queueing tests
   pass.
+- Result: `writeMaterialQueueFromSnapshot`, material queue scratch, and phase
+  summaries remain public. The allocating `buildMaterialQueueFromSnapshot`
+  convenience helper moved to `@aperture-engine/render/test-support` for tests.
 
 ## Queue Q3 - Confirmed Duplicate Consolidation
 
@@ -760,8 +763,8 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 29    |
-| Confirmed open / executable           | 11    |
+| Completed                             | 30    |
+| Confirmed open / executable           | 10    |
 | Needs refinement but actionable       | 8     |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |

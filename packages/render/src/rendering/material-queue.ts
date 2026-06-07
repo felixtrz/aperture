@@ -1,9 +1,6 @@
 import { assetHandleKey } from "@aperture-engine/simulation";
 import type { MeshDrawPacket, RenderSnapshot } from "./snapshot.js";
-import {
-  createMaterialQueueScratch,
-  materialQueueItemAt,
-} from "./material-queue-scratch.js";
+import { materialQueueItemAt } from "./material-queue-scratch.js";
 import {
   materialQueueFamilyFromPipelineKey,
   sortMaterialQueueItems,
@@ -38,17 +35,6 @@ export type {
   MaterialQueueResourceKeyResolvers,
   MaterialQueueScratch,
 } from "./material-queue-types.js";
-
-export function buildMaterialQueueFromSnapshot(
-  snapshot: Pick<RenderSnapshot, "meshDraws" | "diagnostics">,
-  resolvers: MaterialQueueResourceKeyResolvers,
-): MaterialQueuePlan {
-  const scratch = createMaterialQueueScratch();
-
-  writeMaterialQueueFromSnapshot(snapshot, resolvers, scratch);
-
-  return scratch.plan;
-}
 
 export function writeMaterialQueueFromSnapshot(
   snapshot: Pick<RenderSnapshot, "meshDraws" | "diagnostics">,
