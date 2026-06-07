@@ -44,17 +44,14 @@ The latest ultracode verification changed the plan materially:
 
 ## Recommended Remaining Order
 
-Q0, Q1, Q2, Q3, Q6, PHY-04, PHY-08, and FEAT-01 have been executed or
+Q0, Q1, Q2, Q3, Q6, PHY-04, PHY-08, FEAT-01, and FEAT-02 have been executed or
 source-verified. The remaining queue is now intentionally small and concrete:
 
-1. **FEAT-02 - SharedArrayBuffer snapshot producer**: make the generic
-   generated/default worker route use SAB when available with transfer-list
-   fallback.
-2. **FEAT-03 - Buffer-pool benchmark decision**: run the benchmark-gated choice
+1. **FEAT-03 - Buffer-pool benchmark decision**: run the benchmark-gated choice
    and either wire the pool or delete the dormant protocol.
-3. **FEAT-05 - Prepared mesh/material cache eviction**: add bounded eviction
+2. **FEAT-05 - Prepared mesh/material cache eviction**: add bounded eviction
    that respects in-use resources.
-4. **FEAT-06 - Generic equirect environment input**: expose direct app-level
+3. **FEAT-06 - Generic equirect environment input**: expose direct app-level
    equirect input or mark the proof route complete with explicit docs. The
    execution default is to implement the direct input path.
 
@@ -635,17 +632,19 @@ slice with example/E2E proof.
 
 ### FEAT-02 - Generalize SharedArrayBuffer snapshot producer
 
-- Status: confirmed-open implementation ticket.
-- Current state: SAB writer exists and `sab-cube.worker.js` uses it; most
-  generated/example workers still use `renderSnapshotTransferList`.
-- Action: implement a config-selected transport whose default is `auto`: use
-  SAB for generated/default worker snapshots when `crossOriginIsolated` and
-  required browser support are present, and fall back to transfer-list transport
-  otherwise. Keep the explicit transfer-list route available for hosts that
-  cannot satisfy cross-origin isolation.
-- Accept: a generated-worker or default app route uses SAB end to end under the
-  supported host conditions, the same route falls back cleanly on
-  non-cross-origin-isolated hosts, and tests cover both branches.
+- Status: completed 2026-06-07.
+- Result: `createWebGpuApp()` snapshot transport now defaults to `auto`,
+  selects SharedArrayBuffer only when host isolation/support checks pass, and
+  keeps `transport: "transferable"` as an explicit escape hatch. Generated
+  simulation workers attach to the supplied shared snapshot buffers, encode
+  supported render packets into the shared writer, post lightweight snapshot
+  messages for the renderer to reconstruct, and fall back to transfer-list
+  snapshots when SAB is unavailable, a frame exceeds capacity, or the snapshot
+  uses packet families not yet represented by the shared packet encoder.
+- Coverage: runtime transport tests cover frame zero, WebGPU transport tests
+  cover auto support/fallback plus explicit transferable mode, generated-worker
+  tests read back a published SAB frame, and WebGPU app facade tests prove
+  default auto end-to-end consumption and non-isolated fallback diagnostics.
 
 ### FEAT-03 - Decide buffer pool by benchmark
 
@@ -835,8 +834,8 @@ Executable status after this refinement:
 
 | Status                                     | Items |
 | ------------------------------------------ | ----- |
-| Completed, verified, or accepted alternate | 46    |
-| Remaining executable tickets               | 4     |
+| Completed, verified, or accepted alternate | 47    |
+| Remaining executable tickets               | 3     |
 | Rejected or stale no-action items          | 5     |
 
 The counts are orientation only. Re-run local symbol checks before editing any

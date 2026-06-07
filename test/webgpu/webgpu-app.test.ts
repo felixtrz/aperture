@@ -474,6 +474,79 @@ describe("WebGPU app facade", () => {
     app.stop();
   });
 
+  it("uses SharedArrayBuffer snapshots by default when auto transport is supported", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const simulation = createExtractionApp({
+      worldOptions: { entityCapacity: 8 },
+    });
+    const sourceAssets = createRenderAssetCollections({
+      registry: simulation.assets,
+    });
+    const mesh = sourceAssets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const material = sourceAssets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "White" }),
+    );
+
+    simulation.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    simulation.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const worker = createSharedSnapshotManualSimulationWorker(
+      simulation.stepAndExtract(1 / 60, 1, 13),
+    );
+    const created = await createRendererOnlyWebGpuApp({
+      canvas,
+      environment,
+      simulationWorker: worker,
+      sourceAssets: simulation.assets,
+      sharedSnapshotTransport: {
+        maxEntities: 8,
+        maxViews: 2,
+        maxPacketWords: 2048,
+        crossOriginIsolated: true,
+      },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+
+    app.start();
+    await waitForCondition(() => app.getDiagnostics().lastFrame !== null);
+
+    const diagnostics = app.getDiagnostics();
+
+    expect(worker.startedTransportMode).toBe("shared-array-buffer");
+    expect(diagnostics.transport).toMatchObject({
+      requested: "auto",
+      active: "shared-array-buffer",
+      fallback: null,
+      sharedArrayBuffer: {
+        supported: true,
+      },
+    });
+    expect(diagnostics.lastFrame?.frame).toBe(13);
+    expect(diagnostics.lastFrame?.counts).toMatchObject({
+      views: 1,
+      meshDraws: 1,
+      drawCalls: 1,
+    });
+    app.stop();
+  });
+
   it("falls back to transferable diagnostics when SAB is unavailable", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
@@ -505,6 +578,39 @@ describe("WebGPU app facade", () => {
         diagnostic: {
           code: "webGpuApp.sharedSnapshotTransportUnsupported",
           reason: "shared-array-buffer-unavailable",
+        },
+      },
+    });
+  });
+
+  it("falls back to transferable snapshots by default when auto transport is not isolated", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createRendererOnlyWebGpuApp({
+      canvas,
+      environment,
+      simulationWorker: createManualSimulationWorker(),
+      sharedSnapshotTransport: {
+        maxEntities: 1,
+        maxViews: 1,
+        crossOriginIsolated: false,
+      },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    expect(created.app.getDiagnostics().transport).toMatchObject({
+      requested: "auto",
+      active: "transferable",
+      fallback: "transferable",
+      sharedArrayBuffer: {
+        supported: false,
+        diagnostic: {
+          reason: "cross-origin-isolation-required",
         },
       },
     });

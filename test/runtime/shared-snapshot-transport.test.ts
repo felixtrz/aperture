@@ -81,6 +81,26 @@ describe("createSharedSnapshotTransport", () => {
     expect(read?.quadInstanceWords).toEqual(new Uint32Array(8).fill(4));
   });
 
+  it("publishes frame zero", () => {
+    const transport = createSharedSnapshotTransport({
+      maxEntities: 1,
+      maxViews: 1,
+      requireCrossOriginIsolated: false,
+    });
+
+    transport.writer.writeFrame({
+      frame: 0,
+      transforms: new Float32Array(0),
+      viewMatrices: new Float32Array(0),
+    });
+
+    expect(transport.reader.readLatestFrame()).toMatchObject({
+      frame: 0,
+      transforms: new Float32Array(0),
+      viewMatrices: new Float32Array(0),
+    });
+  });
+
   it("reconstructs writer and reader views from transferred shared buffers", () => {
     const source = createSharedSnapshotTransport({
       maxEntities: 1,

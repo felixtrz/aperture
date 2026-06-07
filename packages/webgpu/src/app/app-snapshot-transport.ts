@@ -27,6 +27,7 @@ import {
 } from "@aperture-engine/runtime";
 
 export type WebGpuAppSnapshotTransportMode =
+  | "auto"
   | "transferable"
   | "shared-array-buffer";
 
@@ -90,9 +91,9 @@ export function createWebGpuAppSnapshotTransport(options: {
   readonly mode?: WebGpuAppSnapshotTransportMode;
   readonly sharedSnapshotTransport?: WebGpuAppSharedSnapshotTransportOptions;
 }): WebGpuAppSnapshotTransport {
-  const requested = options.mode ?? "transferable";
+  const requested = options.mode ?? "auto";
 
-  if (requested !== "shared-array-buffer") {
+  if (requested === "transferable") {
     return {
       mode: "transferable",
       diagnostics: {
@@ -106,7 +107,10 @@ export function createWebGpuAppSnapshotTransport(options: {
 
   try {
     const shared = createSharedSnapshotTransport(
-      createSharedSnapshotTransportOptions(options.sharedSnapshotTransport),
+      createSharedSnapshotTransportOptions(
+        options.sharedSnapshotTransport,
+        requested,
+      ),
     );
 
     return {
@@ -257,6 +261,7 @@ export function readWebGpuAppSnapshotChangeSet(
 
 function createSharedSnapshotTransportOptions(
   options: WebGpuAppSharedSnapshotTransportOptions = {},
+  mode: WebGpuAppSnapshotTransportMode,
 ): CreateSharedSnapshotTransportOptions {
   const maxEntities = options.maxEntities ?? 16_384;
   const maxViews = options.maxViews ?? 8;
@@ -275,18 +280,44 @@ function createSharedSnapshotTransportOptions(
     maxInstanceTints,
     maxQuadInstances,
     maxPacketWords,
-    ...(options.requireCrossOriginIsolated === undefined
-      ? {}
-      : { requireCrossOriginIsolated: options.requireCrossOriginIsolated }),
-    ...(options.crossOriginIsolated === undefined
-      ? {}
-      : { crossOriginIsolated: options.crossOriginIsolated }),
+    ...createCrossOriginIsolationOptions(options, mode),
     ...(options.sharedArrayBufferConstructor === undefined
       ? {}
       : {
           sharedArrayBufferConstructor:
             options.sharedArrayBufferConstructor ?? null,
         }),
+  };
+}
+
+function createCrossOriginIsolationOptions(
+  options: WebGpuAppSharedSnapshotTransportOptions,
+  mode: WebGpuAppSnapshotTransportMode,
+): Pick<
+  CreateSharedSnapshotTransportOptions,
+  "requireCrossOriginIsolated" | "crossOriginIsolated"
+> {
+  if (mode !== "auto") {
+    return {
+      ...(options.requireCrossOriginIsolated === undefined
+        ? {}
+        : { requireCrossOriginIsolated: options.requireCrossOriginIsolated }),
+      ...(options.crossOriginIsolated === undefined
+        ? {}
+        : { crossOriginIsolated: options.crossOriginIsolated }),
+    };
+  }
+
+  const requireCrossOriginIsolated = options.requireCrossOriginIsolated ?? true;
+  const crossOriginIsolated =
+    options.crossOriginIsolated ??
+    (typeof globalThis.crossOriginIsolated === "boolean"
+      ? globalThis.crossOriginIsolated
+      : false);
+
+  return {
+    requireCrossOriginIsolated,
+    crossOriginIsolated,
   };
 }
 

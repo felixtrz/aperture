@@ -393,15 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-07 01:10 UTC</dd>
+            <dd>2026-06-07 01:22 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Latest update: GPU particle over-lifetime curves now reach the
-              WebGPU particle parameter upload as fixed LUT data, and the
-              compute shader samples authored size/color curves instead of
-              falling back to two-point start/end interpolation. The
+              Latest update: generated/default app snapshot transport now
+              defaults to <code>auto</code>: isolated hosts receive
+              SharedArrayBuffer start payloads, generated simulation workers
+              write supported render packets and typed buffers through the
+              shared snapshot writer, and non-isolated or unsupported frames
+              keep using transfer-list snapshots. GPU particle over-lifetime
+              curves now reach the WebGPU particle parameter upload as fixed LUT
+              data, and the compute shader samples authored size/color curves
+              instead of falling back to two-point start/end interpolation. The
               <code>gpu-particles</code> browser proof publishes curve metadata
               and still passes pixel readback. The M10 WebXR implementation plan
               is captured in

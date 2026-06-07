@@ -597,7 +597,7 @@ function validateFrameInput(
   layout: SharedSnapshotTransportLayout,
   frame: SharedSnapshotFrameInput,
 ): void {
-  validatePositiveInteger(frame.frame, "frame");
+  validateNonNegativeInteger(frame.frame, "frame");
 
   if (frame.transforms.length > layout.transformFloatsPerBuffer) {
     throw new RangeError(

@@ -21,6 +21,7 @@ import {
 } from "./devtools/bridge.js";
 import type { GeneratedEntityToolBridge } from "./devtools/entities.js";
 import {
+  createGeneratedWorkerSnapshotTransport,
   publishGeneratedWorkerSnapshot,
   type GeneratedWorkerSnapshotPublishReport,
 } from "./snapshot.js";
@@ -44,6 +45,9 @@ export async function runGeneratedWorkerLoop(options: {
     const workerAssetDecoders = readWorkerAssetDecoderOptions(options.start);
     const fixedStep = readWorkerFixedStepOptions(options.start);
     const physicsInterpolation = readWorkerPhysicsInterpolationOption(
+      options.start,
+    );
+    const snapshotTransport = createGeneratedWorkerSnapshotTransport(
       options.start,
     );
     const decoderBaseUrl =
@@ -82,6 +86,7 @@ export async function runGeneratedWorkerLoop(options: {
         app,
         config: options.config,
         port: options.port,
+        transport: snapshotTransport,
         pendingInput: options.pendingInput,
         sourceAssetState,
         entityTools,

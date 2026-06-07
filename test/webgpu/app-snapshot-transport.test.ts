@@ -15,6 +15,73 @@ import {
 } from "@aperture-engine/webgpu/test-support";
 
 describe("WebGPU app snapshot transport", () => {
+  it("selects SharedArrayBuffer in auto mode when host isolation is available", () => {
+    const transport = createWebGpuAppSnapshotTransport({
+      sharedSnapshotTransport: {
+        maxEntities: 1,
+        maxViews: 1,
+        maxPacketWords: 32,
+        crossOriginIsolated: true,
+      },
+    });
+
+    expect(transport.mode).toBe("shared-array-buffer");
+    expect(transport.diagnostics).toMatchObject({
+      requested: "auto",
+      active: "shared-array-buffer",
+      fallback: null,
+      sharedArrayBuffer: {
+        supported: true,
+      },
+    });
+  });
+
+  it("falls back in auto mode when host isolation is unavailable", () => {
+    const transport = createWebGpuAppSnapshotTransport({
+      sharedSnapshotTransport: {
+        maxEntities: 1,
+        maxViews: 1,
+        maxPacketWords: 32,
+        crossOriginIsolated: false,
+      },
+    });
+
+    expect(transport.mode).toBe("transferable");
+    expect(transport.diagnostics).toMatchObject({
+      requested: "auto",
+      active: "transferable",
+      fallback: "transferable",
+      sharedArrayBuffer: {
+        supported: false,
+        diagnostic: {
+          reason: "cross-origin-isolation-required",
+        },
+      },
+    });
+  });
+
+  it("keeps the explicit transferable route available", () => {
+    const transport = createWebGpuAppSnapshotTransport({
+      mode: "transferable",
+      sharedSnapshotTransport: {
+        maxEntities: 1,
+        maxViews: 1,
+        maxPacketWords: 32,
+        crossOriginIsolated: true,
+      },
+    });
+
+    expect(transport).toMatchObject({
+      mode: "transferable",
+      diagnostics: {
+        requested: "transferable",
+        active: "transferable",
+        fallback: null,
+        sharedArrayBuffer: null,
+      },
+    });
+  });
+
   it("reconstructs shared quad buffers and quad batch packets", () => {
     const transport = createWebGpuAppSnapshotTransport({
       mode: "shared-array-buffer",

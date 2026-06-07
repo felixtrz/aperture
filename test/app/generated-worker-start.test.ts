@@ -37,7 +37,10 @@ import {
 } from "@aperture-engine/physics";
 import { createRapierPhysicsBackend } from "@aperture-engine/physics-rapier";
 import { createTestPhysicsBackend } from "@aperture-engine/physics/testing";
-import { SIMULATION_WORKER_PROTOCOL } from "@aperture-engine/runtime";
+import {
+  SIMULATION_WORKER_PROTOCOL,
+  createSharedSnapshotTransport,
+} from "@aperture-engine/runtime";
 import { createGeneratedInputEventMessage } from "../../packages/app/src/input.js";
 
 describe("generated simulation worker start messages", () => {
@@ -84,6 +87,66 @@ describe("generated simulation worker start messages", () => {
     expect(port.posted.filter(isSimulationWorkerSnapshotMessage)).toHaveLength(
       1,
     );
+  });
+
+  it("publishes generated-worker snapshots into supplied SharedArrayBuffer transport", async () => {
+    const port = new TestGeneratedWorkerPort();
+    const transport = createSharedSnapshotTransport({
+      maxEntities: 1,
+      maxViews: 1,
+      maxPacketWords: 32,
+      requireCrossOriginIsolated: false,
+    });
+
+    startGeneratedSimulationWorker({
+      config: defineApertureConfig({ mode: "headless", systems: [] }),
+      systems: [],
+      port,
+    });
+    port.dispatch({
+      type: SIMULATION_WORKER_PROTOCOL.start,
+      options: {
+        stop: true,
+        transport: {
+          mode: "shared-array-buffer",
+          layout: transport.layout,
+          headerBuffer: transport.headerBuffer,
+          transformBuffer: transport.transformBuffer,
+          instanceTintBuffer: transport.instanceTintBuffer,
+          viewMatrixBuffer: transport.viewMatrixBuffer,
+          quadInstanceFloatBuffer: transport.quadInstanceFloatBuffer,
+          quadInstanceWordBuffer: transport.quadInstanceWordBuffer,
+          packetBuffer: transport.packetBuffer,
+        },
+      },
+    });
+
+    const message = (await port.nextPostedMessage(
+      isSimulationWorkerSnapshotMessage,
+    )) as SimulationWorkerSnapshotMessage;
+    const sharedFrame = transport.reader.readLatestFrame();
+
+    expect(message).toMatchObject({
+      type: SIMULATION_WORKER_PROTOCOL.snapshot,
+      frame: 0,
+      transport: {
+        mode: "shared-array-buffer",
+        registry: {
+          strings: [],
+          handles: [],
+        },
+      },
+      snapshot: {
+        frame: 0,
+        transforms: new Float32Array(0),
+      },
+    });
+    expect(sharedFrame).toMatchObject({
+      frame: 0,
+      transforms: new Float32Array(0),
+      viewMatrices: new Float32Array(0),
+    });
+    expect(sharedFrame?.packetWords.length).toBeGreaterThan(0);
   });
 
   it("returns fixed-step execution details from devtools ecs_step", async () => {
