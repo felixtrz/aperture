@@ -53,6 +53,10 @@ Deferred this round:
 
 - **AI-31 — reusable fly / first-person camera controller.** Only an orbit controller was barrel-exported; added `createFlyCameraController` (`packages/app/src/controllers/fly-camera.ts`, exported from the controllers barrel → `@aperture-engine/app`), mirroring the orbit controller's ECS-authoritative, input-agnostic, headless-safe design. Holds eye position + yaw/pitch; `look`/`lookFromDrag` map pointer drag to orientation (pitch clamped inside the poles), `move(forward, right, up)` translates along the pitched view basis, and `applyTo(world)` writes the camera `LocalTransform` via the component path. Tests: `test/app/fly-camera-controller.test.ts` (7: drag→yaw/pitch, pole clamp, forward/right basis, view-basis move, pitched-fly altitude gain, real-world `applyTo`, stale-ref → false). A runnable e2e example is a nice-to-have follow-on (the orbit controller's e2e covers the harness pattern).
 
+### 2026-06-07 — batch 7 (branch `gap-fixes-batch-1`)
+
+- **AI-34 (reader half) — apply KHR sparse accessor overrides.** `decodeGltfFloatAccessor` (the shared skin/animation float-accessor reader) silently returned zero-filled values for sparse accessors. Restructured it to read the base values (optional bufferView; zeros if absent) and then apply a `applyGltfSparseOverride` pass that reads the `sparse.indices`/`sparse.values` bufferViews and overwrites the addressed elements; malformed/out-of-range sparse data fails the decode. Files: `packages/render/src/assets/gltf-accessor-float-reader.ts`. Tests: `test/assets/gltf-accessor-sparse.test.ts` (4, hand-constructed bytes: base+override, pure-sparse, absent-bufferView-no-sparse still zero-fills, out-of-range→null). Follow-on: the _primitive-attribute_ validator still emits `gltfAccessor.sparseAccessorDeferred` for vertex attributes (a separate path); upgrading that to apply sparse on vertex attributes is the remaining AI-34 slice.
+
 ---
 
 ## 1. Executive Summary

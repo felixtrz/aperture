@@ -157,9 +157,83 @@ export function decodeGltfFloatAccessor(input: {
 
   const values = new Float32Array(count * componentCount);
 
-  // A sparse-or-absent bufferView yields the zero-initialized default values.
-  if (bufferViewIndex === null) {
-    return { values, count, componentCount };
+  // Base values come from the (optional) bufferView. An absent bufferView leaves
+  // the zero-initialized defaults — valid for a pure-sparse accessor, whose
+  // entries are supplied entirely by the sparse override applied below.
+  if (bufferViewIndex !== null) {
+    const bufferView = bufferViews[bufferViewIndex];
+    if (!isRecord(bufferView)) {
+      return null;
+    }
+
+    const bufferIndex =
+      typeof bufferView.buffer === "number" ? bufferView.buffer : null;
+    if (bufferIndex === null) {
+      return null;
+    }
+
+    const bytes = bytesView(input.resolveBufferBytes(bufferIndex));
+    if (bytes === null) {
+      return null;
+    }
+
+    const bufferViewByteOffset =
+      typeof bufferView.byteOffset === "number" ? bufferView.byteOffset : 0;
+    const byteStride =
+      typeof bufferView.byteStride === "number" && bufferView.byteStride > 0
+        ? bufferView.byteStride
+        : elementByteSize;
+
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const baseOffset = bufferViewByteOffset + accessorByteOffset;
+
+    for (let element = 0; element < count; element += 1) {
+      const elementOffset = baseOffset + element * byteStride;
+      for (let component = 0; component < componentCount; component += 1) {
+        const byteOffset = elementOffset + component * componentBytes;
+        if (byteOffset + componentBytes > bytes.byteLength) {
+          return null;
+        }
+        values[element * componentCount + component] = readComponentAsFloat(
+          view,
+          byteOffset,
+          componentType,
+          normalized,
+        );
+      }
+    }
+  }
+
+  // KHR sparse accessors: substitute the listed elements on top of the base
+  // values. A malformed sparse block fails the whole decode (returns null).
+  if (isRecord(accessor.sparse)) {
+    const applied = applyGltfSparseOverride({
+      sparse: accessor.sparse,
+      values,
+      count,
+      componentCount,
+      componentType,
+      componentBytes,
+      normalized,
+      bufferViews,
+      resolveBufferBytes: input.resolveBufferBytes,
+    });
+    if (!applied) {
+      return null;
+    }
+  }
+
+  return { values, count, componentCount };
+}
+
+/** Resolve a bufferView index to a DataView over its buffer + its base byte offset. */
+function resolveBufferViewDataView(
+  bufferViews: readonly unknown[],
+  bufferViewIndex: unknown,
+  resolveBufferBytes: GltfBufferResolver,
+): { readonly view: DataView; readonly base: number } | null {
+  if (typeof bufferViewIndex !== "number") {
+    return null;
   }
 
   const bufferView = bufferViews[bufferViewIndex];
@@ -173,36 +247,115 @@ export function decodeGltfFloatAccessor(input: {
     return null;
   }
 
-  const bytes = bytesView(input.resolveBufferBytes(bufferIndex));
+  const bytes = bytesView(resolveBufferBytes(bufferIndex));
   if (bytes === null) {
     return null;
   }
 
-  const bufferViewByteOffset =
-    typeof bufferView.byteOffset === "number" ? bufferView.byteOffset : 0;
-  const byteStride =
-    typeof bufferView.byteStride === "number" && bufferView.byteStride > 0
-      ? bufferView.byteStride
-      : elementByteSize;
+  return {
+    view: new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength),
+    base: typeof bufferView.byteOffset === "number" ? bufferView.byteOffset : 0,
+  };
+}
 
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  const baseOffset = bufferViewByteOffset + accessorByteOffset;
+/**
+ * Apply a KHR sparse accessor override onto already-decoded base `values`.
+ * Reads `sparse.count` (index, value-tuple) pairs and overwrites the addressed
+ * elements. Returns false on any malformed/out-of-range sparse data.
+ */
+function applyGltfSparseOverride(input: {
+  readonly sparse: Record<string, unknown>;
+  readonly values: Float32Array;
+  readonly count: number;
+  readonly componentCount: number;
+  readonly componentType: number;
+  readonly componentBytes: number;
+  readonly normalized: boolean;
+  readonly bufferViews: readonly unknown[];
+  readonly resolveBufferBytes: GltfBufferResolver;
+}): boolean {
+  const { sparse } = input;
+  const sparseCount = typeof sparse.count === "number" ? sparse.count : null;
+  if (sparseCount === null || sparseCount < 0 || sparseCount > input.count) {
+    return false;
+  }
+  if (sparseCount === 0) {
+    return true;
+  }
 
-  for (let element = 0; element < count; element += 1) {
-    const elementOffset = baseOffset + element * byteStride;
-    for (let component = 0; component < componentCount; component += 1) {
-      const byteOffset = elementOffset + component * componentBytes;
-      if (byteOffset + componentBytes > bytes.byteLength) {
-        return null;
+  const indices = isRecord(sparse.indices) ? sparse.indices : null;
+  const sparseValues = isRecord(sparse.values) ? sparse.values : null;
+  if (indices === null || sparseValues === null) {
+    return false;
+  }
+
+  const indexComponentType =
+    typeof indices.componentType === "number" ? indices.componentType : null;
+  if (
+    indexComponentType !== GLTF_COMPONENT_UNSIGNED_BYTE &&
+    indexComponentType !== GLTF_COMPONENT_UNSIGNED_SHORT &&
+    indexComponentType !== GLTF_COMPONENT_UNSIGNED_INT
+  ) {
+    // Per spec the sparse index component type must be an unsigned int type.
+    return false;
+  }
+  const indexBytes = componentByteSize(indexComponentType) as number;
+
+  const indexData = resolveBufferViewDataView(
+    input.bufferViews,
+    indices.bufferView,
+    input.resolveBufferBytes,
+  );
+  const valueData = resolveBufferViewDataView(
+    input.bufferViews,
+    sparseValues.bufferView,
+    input.resolveBufferBytes,
+  );
+  if (indexData === null || valueData === null) {
+    return false;
+  }
+
+  const indexByteOffset =
+    typeof indices.byteOffset === "number" ? indices.byteOffset : 0;
+  const valueByteOffset =
+    typeof sparseValues.byteOffset === "number" ? sparseValues.byteOffset : 0;
+
+  for (let entry = 0; entry < sparseCount; entry += 1) {
+    const indexOffset = indexData.base + indexByteOffset + entry * indexBytes;
+    if (indexOffset + indexBytes > indexData.view.byteLength) {
+      return false;
+    }
+    const targetIndex = readComponentAsFloat(
+      indexData.view,
+      indexOffset,
+      indexComponentType,
+      false,
+    );
+    if (
+      !Number.isInteger(targetIndex) ||
+      targetIndex < 0 ||
+      targetIndex >= input.count
+    ) {
+      return false;
+    }
+
+    for (let component = 0; component < input.componentCount; component += 1) {
+      const valueOffset =
+        valueData.base +
+        valueByteOffset +
+        (entry * input.componentCount + component) * input.componentBytes;
+      if (valueOffset + input.componentBytes > valueData.view.byteLength) {
+        return false;
       }
-      values[element * componentCount + component] = readComponentAsFloat(
-        view,
-        byteOffset,
-        componentType,
-        normalized,
-      );
+      input.values[targetIndex * input.componentCount + component] =
+        readComponentAsFloat(
+          valueData.view,
+          valueOffset,
+          input.componentType,
+          input.normalized,
+        );
     }
   }
 
-  return { values, count, componentCount };
+  return true;
 }
