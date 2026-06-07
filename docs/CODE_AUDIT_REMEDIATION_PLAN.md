@@ -1,6 +1,6 @@
 # Code Audit Remediation Execution Plan
 
-**Status:** ready-for-execution
+**Status:** ready-for-execution; remaining work is fully ticketed
 **Created:** 2026-06-06
 **Refined:** 2026-06-06
 **Source:** Original multi-agent dead/experimental/unfinished-code audit, plus
@@ -42,15 +42,27 @@ The latest ultracode verification changed the plan materially:
 6. After each queue, run the listed validation. Run `pnpm run check` before a
    final commit or before marking a larger phase done.
 
-## Recommended Order
+## Recommended Remaining Order
 
-1. **Q0 - Immediate safe cleanup**: mostly dead exports and one example bug.
-2. **Q6 - Docs/tooling freshness**: low-risk, high signal.
-3. **Q1 - Public-surface hygiene**: narrow barrels and move test-only helpers.
-4. **Q3 - Confirmed duplicate consolidation**: shared utilities and wrappers.
-5. **Q5 - Feature follow-ups**: actual implementation work.
-6. **Q4 - Physics facade and validation follow-ups**: do not purge the dedicated
-   worker route unless a future decision says so.
+Q0, Q1, Q2, Q3, and Q6 have been executed or source-verified. The remaining
+queue is now intentionally small and concrete:
+
+1. **PHY-04 - Physics spawn validation**: wire existing validators into app
+   authoring and surface diagnostics.
+2. **PHY-08 - Historical Havok docs cleanup**: make SOTA/docs match the
+   Rapier-only shipped package graph.
+3. **FEAT-01 - Particle over-lifetime curves**: carry authored curves through
+   snapshots, GPU buffers, WGSL, example, and E2E proof.
+4. **FEAT-02 - SharedArrayBuffer snapshot producer**: make the generic
+   generated/default worker route use SAB when available with transfer-list
+   fallback.
+5. **FEAT-03 - Buffer-pool benchmark decision**: run the benchmark-gated choice
+   and either wire the pool or delete the dormant protocol.
+6. **FEAT-05 - Prepared mesh/material cache eviction**: add bounded eviction
+   that respects in-use resources.
+7. **FEAT-06 - Generic equirect environment input**: expose direct app-level
+   equirect input or mark the proof route complete with explicit docs. The
+   execution default is to implement the direct input path.
 
 ## Validation Shortcuts
 
@@ -74,10 +86,9 @@ large queue done.
 ## Queue Q0 - Immediate Safe Cleanup
 
 Most items in this queue are source-verified and independently executable.
-Items marked `needs-refinement` are still small, but require the narrower action
-written under that item before implementation. Suggested validation: targeted
-tests for touched package, `pnpm run build`, `pnpm run typecheck`, and
-`pnpm run check:examples` when examples change.
+All remaining Q0 actions are complete. Suggested validation for future edits:
+targeted tests for the touched package, `pnpm run build`,
+`pnpm run typecheck`, and `pnpm run check:examples` when examples change.
 
 ### DC-01 - Fix `markReadbackClearOk` no-op
 
@@ -251,14 +262,14 @@ packages, and an `rg` scan for moved symbols.
 
 ### BH-02 - No action: render-frame smoke/report leaks already fixed
 
-- Status: already-fixed/stale.
+- Status: verified-no-action 2026-06-06.
 - Current state: listed smoke/report/validation modules are already only in
   `packages/webgpu/src/test-support.ts`, not the public webgpu index.
 - Action: do nothing unless a new leak is found.
 
 ### BH-03 - No action: queue/material inspection leaks already fixed
 
-- Status: already-fixed/stale.
+- Status: verified-no-action 2026-06-06.
 - Current state: listed queue/material inspection helpers are test-support only.
   Fidelity summary siblings remain public because app diagnostics uses them.
 - Action: do nothing unless a new leak is found.
@@ -492,7 +503,7 @@ default developer path.
 
 ### PHY-01 - Update audit decision text only
 
-- Status: stale-as-written.
+- Status: verified-no-action 2026-06-06.
 - Current state: `docs/DECISIONS.md` records backend-neutral physics contracts
   and keeps a dedicated third physics worker as an advanced/proof route.
 - Action: if this remediation doc is committed, keep this queue wording aligned
@@ -519,7 +530,7 @@ default developer path.
 
 ### PHY-03 - Rejected unless re-decided: purge worker-transfer protocol
 
-- Status: stale-as-written.
+- Status: rejected/stale-as-written.
 - Current state: worker-transfer protocol is public and used by the supported
   Rapier transferable proof route.
 - Action: do not delete. Only trim internal leaks per `DC-06`, `DC-07`, and
@@ -558,12 +569,17 @@ default developer path.
 
 ### PHY-06 - Fold physics quaternion copies into `DUP-01`
 
-- Status: confirmed-open.
-- Action: implement as part of `DUP-01`.
+- Status: completed by `DUP-01` 2026-06-06.
+- Result: `@aperture-engine/physics` owns the shared quaternion helpers.
+  Rapier keeps compatibility wrapper exports, but the local reimplementations
+  have been removed or narrowed to wrappers.
+- Verification: `rg -n "function (normalizeQuat|multiplyQuat|rotateVec3ByQuat|slerpQuat)|const (normalizeQuat|multiplyQuat|rotateVec3ByQuat|slerpQuat)" packages/physics packages/physics-rapier packages/app/src packages/simulation/src`
+  shows the shared physics implementation plus Rapier compatibility wrappers,
+  not divergent copies.
 
 ### PHY-07 - Rejected unless re-decided: purge physics-worker-mode example
 
-- Status: stale-as-written.
+- Status: rejected/stale-as-written.
 - Current state: `examples/physics-worker-mode.*` and its E2E spec are still the
   supported proof route for transferable dedicated-worker physics.
 - Action: do not delete unless the project lead explicitly changes the current
@@ -571,7 +587,7 @@ default developer path.
 
 ### PHY-08 - Docs cleanup for historical Havok references
 
-- Status: code-fixed, docs-partially-stale.
+- Status: confirmed-open docs-only ticket.
 - Current state: packages contain only `physics` and `physics-rapier`; Havok is
   docs-only/historical. Some SOTA roadmap entries still describe removed Havok
   prototype files as current.
@@ -607,26 +623,32 @@ slice with example/E2E proof.
 
 ### FEAT-02 - Generalize SharedArrayBuffer snapshot producer
 
-- Status: partially-complete.
+- Status: confirmed-open implementation ticket.
 - Current state: SAB writer exists and `sab-cube.worker.js` uses it; most
   generated/example workers still use `renderSnapshotTransferList`.
-- Action: decide whether SAB is default with transfer-list fallback or a
-  config-selected transport. Then wire the generic producer route, not just the
-  opt-in example.
-- Accept: at least one generated-worker or default app route uses SAB end to
-  end, with a fallback for non-cross-origin-isolated hosts.
+- Action: implement a config-selected transport whose default is `auto`: use
+  SAB for generated/default worker snapshots when `crossOriginIsolated` and
+  required browser support are present, and fall back to transfer-list transport
+  otherwise. Keep the explicit transfer-list route available for hosts that
+  cannot satisfy cross-origin isolation.
+- Accept: a generated-worker or default app route uses SAB end to end under the
+  supported host conditions, the same route falls back cleanly on
+  non-cross-origin-isolated hosts, and tests cover both branches.
 
 ### FEAT-03 - Decide buffer pool by benchmark
 
-- Status: confirmed-open, benchmark-gated.
+- Status: confirmed-open benchmark-decision ticket.
 - Files: `packages/runtime/src/simulation-worker.ts`.
 - Problem: pool helpers and protocol fields exist, but live path still uses
   transfer-list and no recycle handler was found.
-- Action: benchmark pool vs transfer-list under a high-churn scene. If
-  net-positive, wire `bufferLeaseId` and `recycleSnapshotBuffers`; otherwise
-  delete the dormant pool/protocol fields and record the benchmark result.
-- Accept: either live pooling plus benchmark evidence, or deletion plus recorded
-  non-adoption evidence.
+- Action: add or run a high-churn simulation-worker benchmark that compares
+  transfer-list snapshots against pooled buffers. Adopt the pool only if it
+  improves median snapshot publish latency by at least 10% or reduces allocated
+  snapshot bytes by at least 25% without worsening p95 publish latency. If it
+  misses that bar, delete `bufferLeaseId`, `recycleSnapshotBuffers`, and related
+  dormant protocol fields, then record the non-adoption result.
+- Accept: either live pooling plus benchmark evidence and tests, or deletion
+  plus recorded benchmark evidence explaining why pooling was not adopted.
 
 ### FEAT-04 - No implementation action: specular IBL design changed
 
@@ -650,16 +672,18 @@ slice with example/E2E proof.
 
 ### FEAT-06 - Polish generic equirect environment asset API
 
-- Status: mostly-complete.
+- Status: confirmed-open implementation ticket.
 - Current state: `ibl-equirect` proves equirect-to-cube compute projection and
   E2E asserts `projection: "equirect-to-cube"` plus specular prefiltering.
   Generic `WebGpuAppEnvironmentAssetInput` still accepts cube sources, not a
   direct equirect source.
-- Action: add a generic equirect environment asset input path if product API
-  wants it. Otherwise mark the original feature complete and keep the example
-  route as proof.
-- Accept: app-level environment input can take an equirect source, or docs
-  explicitly say equirect projection is example/helper-level for now.
+- Action: implement direct app-level equirect environment input on
+  `WebGpuAppEnvironmentAssetInput`, routing it through the existing
+  equirect-to-cube compute projection and prefilter path. Keep the existing
+  example route as the proof fixture.
+- Accept: an app-level environment input can take an equirect source, the
+  equirect example uses the generic path, and E2E still asserts
+  `projection: "equirect-to-cube"` plus specular prefiltering.
 
 ## Queue Q6 - Docs And Tooling
 
@@ -795,15 +819,13 @@ turn them into cleanup work without a separate decision.
 
 ## Appendix - Refined Verification Counts
 
-Approximate executable status after refinement:
+Executable status after this refinement:
 
-| Status                                | Items |
-| ------------------------------------- | ----- |
-| Completed                             | 38    |
-| Confirmed open / executable           | 5     |
-| Needs refinement but actionable       | 7     |
-| Partially complete / docs-update only | 3     |
-| Already fixed, rejected, or stale     | 8     |
+| Status                                     | Items |
+| ------------------------------------------ | ----- |
+| Completed, verified, or accepted alternate | 43    |
+| Remaining executable tickets               | 7     |
+| Rejected or stale no-action items          | 5     |
 
 The counts are orientation only. Re-run local symbol checks before editing any
 specific item.
