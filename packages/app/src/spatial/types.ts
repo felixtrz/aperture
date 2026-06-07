@@ -90,6 +90,19 @@ export interface SpatialClosestPointHit {
   readonly materialSlot: number;
 }
 
+export interface SpatialOverlapOptions {
+  readonly query?: ApertureQuery;
+  readonly layerMask?: number;
+  readonly filter?: (entity: Entity) => boolean;
+}
+
+export interface SpatialOverlapHit {
+  readonly entity: {
+    readonly entity: Entity;
+    readonly ref: EcsEntityRef;
+  };
+}
+
 export interface SpatialQueries {
   raycastFirst(
     ray: RayInput,
@@ -107,6 +120,16 @@ export interface SpatialQueries {
     point: readonly [number, number, number],
     options?: SpatialClosestPointOptions,
   ): SpatialClosestPointHit | null;
+  /**
+   * Entities whose BVH-backed visual mesh overlaps a world-space sphere. Meshes
+   * without a BVH are skipped; the radius is treated as world-space (exact for
+   * rigid mesh transforms).
+   */
+  overlapSphere(
+    center: readonly [number, number, number],
+    radius: number,
+    options?: SpatialOverlapOptions,
+  ): readonly SpatialOverlapHit[];
   setBounds(bounds: readonly SpatialRaycastableBounds[]): void;
   setMeshes(meshes: readonly SpatialRaycastableMesh[]): void;
 }
