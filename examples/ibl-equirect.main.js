@@ -1,6 +1,6 @@
 import { createNoopSimulationWorker } from "./noop-simulation-worker.js";
 import {
-  createIblEquirectIblResources,
+  createIblEquirectEnvironmentAssetInput,
   loadIblEquirectEnvironment,
 } from "./ibl-equirect-environment.js";
 
@@ -158,13 +158,27 @@ async function createScene(aperture, app, sourceAssets) {
   });
 
   const environment = await loadIblEquirectEnvironment(aperture);
-  const iblResources = await createIblEquirectIblResources(
+  const environmentAssetInput = createIblEquirectEnvironmentAssetInput(
     aperture,
-    app,
     environment.image,
   );
+  const environmentAssets = aperture.prepareWebGpuAppEnvironmentAssets({
+    app,
+    assets: [environmentAssetInput],
+    activeHandle: environmentMap,
+  });
+  const activeEnvironment = environmentAssets.active;
 
-  return { environmentMap, environment, iblResources };
+  if (activeEnvironment === null || !activeEnvironment.ready) {
+    throw new Error("Generic equirect environment asset preparation failed.");
+  }
+
+  return {
+    environmentMap,
+    environment,
+    environmentAssets,
+    iblResources: activeEnvironment.standardMaterialIblResources,
+  };
 }
 
 function startWorkerSnapshotLoop(
@@ -297,7 +311,8 @@ function createFrameStatus(aperture, app, scene, report, loop, readbackUsage) {
   const snapshot = report.snapshot;
   const firstDraw = snapshot.meshDraws[0];
   const diagnostics = report.diagnostics.map(diagnosticToJson);
-  const ibl = scene.iblResources;
+  const activeEnvironment = scene.environmentAssets.active;
+  const equirectProjection = activeEnvironment?.equirectProjection ?? null;
 
   return {
     ...baseStatus,
@@ -323,16 +338,21 @@ function createFrameStatus(aperture, app, scene, report, loop, readbackUsage) {
     environment: {
       source: {
         loader: scene.environment.loader,
-        projection: ibl.projection,
-        faceCount: ibl.faceCount,
+        projection: equirectProjection?.projection ?? null,
+        faceCount: equirectProjection?.faceCount ?? 0,
         width: scene.environment.width,
         height: scene.environment.height,
       },
-      specularPrefiltering: ibl.specularPrefiltering,
-      diffuseConvolved: ibl.diffuseConvolved,
-      specularDiagnosticCodes: ibl.specularTextureResource.diagnostics.map(
-        (diagnostic) => diagnostic.code,
-      ),
+      genericAssetInput: true,
+      specularPrefiltering:
+        activeEnvironment?.specularTextureResource.sections.prefiltering ??
+        false,
+      diffuseConvolved:
+        activeEnvironment?.diffuseTextureResource.convolved === true,
+      specularDiagnosticCodes:
+        activeEnvironment?.specularTextureResource.diagnostics.map(
+          (diagnostic) => diagnostic.code,
+        ) ?? [],
     },
     pipeline: {
       key: firstDraw?.batchKey.pipelineKey ?? null,

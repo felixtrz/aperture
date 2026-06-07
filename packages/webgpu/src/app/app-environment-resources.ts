@@ -13,6 +13,12 @@ import {
   type SpecularIblPmremSource,
   type SpecularIblTextureResourceReport,
 } from "../lighting/ibl-texture-resource.js";
+import type { EquirectToCubeStorageFormat } from "../lighting/equirect-to-cube-compute-pipeline.js";
+import {
+  createEquirectToCubeResource,
+  type EquirectSource,
+  type EquirectToCubeResourceReport,
+} from "../lighting/equirect-to-cube-resource.js";
 import {
   createIblSamplerResourceReport,
   iblSamplerResourceReportToJsonValue,
@@ -115,6 +121,14 @@ export interface WebGpuAppIblResourceReports {
   readonly cacheSummary: WebGpuEnvironmentResourceCacheSummary;
 }
 
+export interface WebGpuAppEnvironmentEquirectSource extends EquirectSource {
+  readonly faceSize?: number;
+  readonly format?: EquirectToCubeStorageFormat;
+  readonly resourceKey?: string;
+  readonly label?: string;
+  readonly mipLevelCount?: number;
+}
+
 export interface PrepareWebGpuAppIblResourceReportsOptions {
   readonly app: object;
   readonly device?: TextureGpuDeviceLike;
@@ -130,6 +144,7 @@ export interface WebGpuAppEnvironmentAssetInput {
   readonly version?: string | number;
   readonly diffuseResourceKey: string;
   readonly specularResourceKey: string;
+  readonly equirectSource?: WebGpuAppEnvironmentEquirectSource;
   readonly diffuseSource?: DiffuseIblCubeSource;
   readonly specularPmremSource?: SpecularIblPmremSource;
   readonly standardMaterialCount?: number;
@@ -163,6 +178,7 @@ export interface WebGpuPreparedEnvironmentAsset {
   readonly descriptorReport: IblResourceDescriptorReport;
   readonly texturePreparation: IblTexturePreparationReport;
   readonly samplerDescriptors: IblSamplerDescriptorReadinessReport;
+  readonly equirectProjection?: EquirectToCubeResourceReport;
   readonly diffuseTextureResource: DiffuseIblTextureResourceReport;
   readonly specularTextureResource: SpecularIblTextureResourceReport;
   readonly samplerResources: IblSamplerResourceReport;
@@ -435,15 +451,23 @@ function prepareWebGpuAppEnvironmentAsset(input: {
     textures: texturePreparation,
     allocation: "ready",
   });
+  const equirectProjection = equirectProjectionForAsset({
+    asset: input.asset,
+    device: input.device,
+    environmentMapResourceKey,
+    version,
+  });
   const diffuseSources = diffuseSourcesForAsset({
     asset: input.asset,
     environmentMapResourceKey,
     diffuseResourceKey,
+    ...(equirectProjection === undefined ? {} : { equirectProjection }),
   });
   const specularPmremSources = specularSourcesForAsset({
     asset: input.asset,
     environmentMapResourceKey,
     specularResourceKey,
+    ...(equirectProjection === undefined ? {} : { equirectProjection }),
   });
   const resources = prepareWebGpuAppIblResourceReports({
     app: input.app,
@@ -486,6 +510,7 @@ function prepareWebGpuAppEnvironmentAsset(input: {
     environmentMapResourceKey,
     version,
     ready:
+      (equirectProjection?.ready ?? true) &&
       resources.diffuseTextureResource.ready &&
       resources.specularTextureResource.ready &&
       resources.samplerResources.ready &&
@@ -499,6 +524,7 @@ function prepareWebGpuAppEnvironmentAsset(input: {
     descriptorReport,
     texturePreparation,
     samplerDescriptors,
+    ...(equirectProjection === undefined ? {} : { equirectProjection }),
     diffuseTextureResource: resources.diffuseTextureResource,
     specularTextureResource: resources.specularTextureResource,
     samplerResources: resources.samplerResources,
@@ -551,6 +577,13 @@ function webGpuPreparedEnvironmentAssetToJsonValue(
       samplerDescriptors: iblSamplerDescriptorReadinessReportToJsonValue(
         asset.samplerDescriptors,
       ),
+      ...(asset.equirectProjection === undefined
+        ? {}
+        : {
+            equirectProjection: equirectToCubeResourceReportToJsonValue(
+              asset.equirectProjection,
+            ),
+          }),
       diffuseTexture: diffuseIblTextureResourceReportToJsonValue(
         asset.diffuseTextureResource,
       ),
@@ -568,6 +601,45 @@ function webGpuPreparedEnvironmentAssetToJsonValue(
         asset.bindGroupResource,
       ),
     },
+  };
+}
+
+function equirectProjectionForAsset(input: {
+  readonly asset: WebGpuAppEnvironmentAssetInput;
+  readonly device: TextureGpuDeviceLike;
+  readonly environmentMapResourceKey: string;
+  readonly version: string | null;
+}): EquirectToCubeResourceReport | undefined {
+  const source = input.asset.equirectSource;
+
+  if (source === undefined) {
+    return undefined;
+  }
+
+  return createEquirectToCubeResource({
+    device: input.device,
+    equirect: source,
+    ...(source.faceSize === undefined ? {} : { faceSize: source.faceSize }),
+    ...(source.format === undefined ? {} : { format: source.format }),
+    resourceKey: versionedEnvironmentResourceKey(
+      source.resourceKey ?? `${input.environmentMapResourceKey}:equirect-cube`,
+      input.version,
+    ),
+    label: source.label ?? input.asset.label ?? input.environmentMapResourceKey,
+  });
+}
+
+function equirectToCubeResourceReportToJsonValue(
+  report: EquirectToCubeResourceReport,
+) {
+  return {
+    ready: report.ready,
+    faceSize: report.faceSize,
+    faceCount: report.faceCount,
+    format: report.format,
+    projection: report.projection,
+    resourceKey: report.resource?.resourceKey ?? null,
+    diagnostics: report.diagnostics.map((diagnostic) => ({ ...diagnostic })),
   };
 }
 
@@ -633,21 +705,42 @@ function diffuseSourcesForAsset(input: {
   readonly asset: WebGpuAppEnvironmentAssetInput;
   readonly environmentMapResourceKey: string;
   readonly diffuseResourceKey: string;
+  readonly equirectProjection?: EquirectToCubeResourceReport;
 }): readonly DiffuseIblCubeSource[] | undefined {
-  if (input.asset.diffuseSource === undefined) {
+  const source = input.asset.diffuseSource;
+
+  if (source !== undefined) {
+    return [
+      {
+        ...source,
+        resourceKey: `${input.diffuseResourceKey}:texture`,
+        sourceResourceKey: input.diffuseResourceKey,
+        environmentMapResourceKey: input.environmentMapResourceKey,
+        label:
+          source.label ?? input.asset.label ?? input.environmentMapResourceKey,
+      },
+    ];
+  }
+
+  if (
+    input.equirectProjection?.ready !== true ||
+    input.equirectProjection.resource === null
+  ) {
     return undefined;
   }
 
   return [
     {
-      ...input.asset.diffuseSource,
       resourceKey: `${input.diffuseResourceKey}:texture`,
       sourceResourceKey: input.diffuseResourceKey,
       environmentMapResourceKey: input.environmentMapResourceKey,
       label:
-        input.asset.diffuseSource.label ??
+        input.asset.equirectSource?.label ??
         input.asset.label ??
         input.environmentMapResourceKey,
+      faceSize: input.equirectProjection.faceSize,
+      format: input.equirectProjection.format,
+      sourceTexture: input.equirectProjection.resource,
     },
   ];
 }
@@ -656,21 +749,45 @@ function specularSourcesForAsset(input: {
   readonly asset: WebGpuAppEnvironmentAssetInput;
   readonly environmentMapResourceKey: string;
   readonly specularResourceKey: string;
+  readonly equirectProjection?: EquirectToCubeResourceReport;
 }): readonly SpecularIblPmremSource[] | undefined {
-  if (input.asset.specularPmremSource === undefined) {
+  const source = input.asset.specularPmremSource;
+
+  if (source !== undefined) {
+    return [
+      {
+        ...source,
+        resourceKey: `${input.specularResourceKey}:texture`,
+        sourceResourceKey: input.specularResourceKey,
+        environmentMapResourceKey: input.environmentMapResourceKey,
+        label:
+          source.label ?? input.asset.label ?? input.environmentMapResourceKey,
+      },
+    ];
+  }
+
+  if (
+    input.equirectProjection?.ready !== true ||
+    input.equirectProjection.resource === null
+  ) {
     return undefined;
   }
 
   return [
     {
-      ...input.asset.specularPmremSource,
       resourceKey: `${input.specularResourceKey}:texture`,
       sourceResourceKey: input.specularResourceKey,
       environmentMapResourceKey: input.environmentMapResourceKey,
       label:
-        input.asset.specularPmremSource.label ??
+        input.asset.equirectSource?.label ??
         input.asset.label ??
         input.environmentMapResourceKey,
+      faceSize: input.equirectProjection.faceSize,
+      format: input.equirectProjection.format,
+      sourceTexture: input.equirectProjection.resource,
+      ...(input.asset.equirectSource?.mipLevelCount === undefined
+        ? {}
+        : { mipLevelCount: input.asset.equirectSource.mipLevelCount }),
     },
   ];
 }

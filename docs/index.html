@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-06-07 01:39 UTC</dd>
+            <dd>2026-06-07 01:49 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -410,13 +410,17 @@
               fallback. Prepared mesh/material backend caches now run bounded
               post-frame eviction through the app render path, report JSON-safe
               eviction counters, and keep current-frame resources stamped as
-              in-use even on the StandardMaterial route. GPU particle
-              over-lifetime curves now reach the WebGPU particle parameter
-              upload as fixed LUT data, and the compute shader samples authored
-              size/color curves instead of falling back to two-point start/end
-              interpolation. The <code>gpu-particles</code> browser proof
-              publishes curve metadata and still passes pixel readback. The M10
-              WebXR implementation plan is captured in
+              in-use even on the StandardMaterial route. Generic app environment
+              assets now accept direct equirect sources: the app projects to a
+              renderer-owned cube texture, feeds PMREM and irradiance
+              convolution without CPU readback, and the
+              <code>ibl-equirect</code> browser proof asserts the generic route.
+              GPU particle over-lifetime curves now reach the WebGPU particle
+              parameter upload as fixed LUT data, and the compute shader samples
+              authored size/color curves instead of falling back to two-point
+              start/end interpolation. The <code>gpu-particles</code> browser
+              proof publishes curve metadata and still passes pixel readback.
+              The M10 WebXR implementation plan is captured in
               <code>docs/WEBXR_IMPLEMENTATION_PLAN.md</code> after reviewing
               IWSDK, PlayCanvas, three.js, and the current Aperture source. M10
               physics remains focused on the existing simulation worker. Durable

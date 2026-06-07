@@ -208,6 +208,68 @@ describe("WebGPU app environment resource cache", () => {
       /GPUTexture|GPUTextureView|GPUSampler|GPUBindGroup|"raw"/,
     );
   });
+
+  it("projects equirect environment asset input through generic app preparation", () => {
+    const calls: string[] = [];
+    const app = {
+      initialization: {
+        device: pmremDevice(calls),
+      },
+    };
+    const handle = createEnvironmentMapHandle("equirect-studio");
+    const prepared = prepareWebGpuAppEnvironmentAssets({
+      app,
+      assets: [
+        {
+          handle,
+          label: "equirect-studio",
+          version: "v1",
+          diffuseResourceKey: "texture:equirect-studio:diffuse",
+          specularResourceKey: "texture:equirect-studio:specular",
+          equirectSource: {
+            label: "equirect-studio",
+            resourceKey: "texture:equirect-studio:projected-cube",
+            width: 8,
+            height: 4,
+            data: new Uint8Array(8 * 4 * 4),
+            faceSize: 4,
+            format: "rgba8unorm",
+            mipLevelCount: 3,
+          },
+        },
+      ],
+      activeHandle: handle,
+    });
+    const json = webGpuPreparedEnvironmentAssetSetToJsonValue(prepared);
+
+    expect(prepared.active?.ready).toBe(true);
+    expect(prepared.active?.equirectProjection).toMatchObject({
+      ready: true,
+      projection: "equirect-to-cube",
+      faceCount: 6,
+      faceSize: 4,
+      format: "rgba8unorm",
+    });
+    expect(prepared.active?.diffuseTextureResource.convolved).toBe(true);
+    expect(prepared.active?.specularTextureResource.sections.prefiltering).toBe(
+      true,
+    );
+    expect(calls.filter((call) => call === "dispatch")).toHaveLength(5);
+    expect(json.assets[0]?.reports.equirectProjection).toMatchObject({
+      ready: true,
+      projection: "equirect-to-cube",
+      resourceKey: "texture:equirect-studio:projected-cube@v1",
+    });
+    expect(json.assets[0]?.reports.diffuseTexture).toMatchObject({
+      convolved: true,
+    });
+    expect(json.assets[0]?.reports.specularTexture.sections).toMatchObject({
+      prefiltering: true,
+    });
+    expect(JSON.stringify(json)).not.toMatch(
+      /GPUTexture|GPUTextureView|GPUSampler|GPUBindGroup|"raw"/,
+    );
+  });
 });
 
 function textures() {

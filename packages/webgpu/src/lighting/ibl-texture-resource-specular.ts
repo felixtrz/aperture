@@ -146,14 +146,7 @@ function createSpecularIblPmremTextureResource(input: {
   }
 
   try {
-    const sourceTexture = device.createTexture({
-      label: `${label}:specular-ibl-source`,
-      size: [faceSize, faceSize, 6],
-      format,
-      usage:
-        WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING |
-        WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST,
-    });
+    let sourceView = input.source.sourceTexture?.view;
     const texture = device.createTexture({
       label: `${label}:specular-ibl-pmrem-mip-chain`,
       size: [faceSize, faceSize, 6],
@@ -165,16 +158,38 @@ function createSpecularIblPmremTextureResource(input: {
       mipLevelCount,
     });
 
-    input.source.faces.forEach((face, layer) => {
-      const upload = createPaddedCubeFaceUpload(face, faceSize, format);
+    if (sourceView === undefined) {
+      if (input.source.faces === undefined) {
+        throw new Error(
+          "PMREM source requires cube faces or a projected source texture.",
+        );
+      }
 
-      device.queue.writeTexture(
-        { texture: sourceTexture, origin: [0, 0, layer] },
-        upload.data,
-        { bytesPerRow: upload.bytesPerRow, rowsPerImage: faceSize },
-        [faceSize, faceSize, 1],
-      );
-    });
+      const sourceTexture = device.createTexture({
+        label: `${label}:specular-ibl-source`,
+        size: [faceSize, faceSize, 6],
+        format,
+        usage:
+          WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING |
+          WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST,
+      });
+
+      input.source.faces.forEach((face, layer) => {
+        const upload = createPaddedCubeFaceUpload(face, faceSize, format);
+
+        device.queue.writeTexture(
+          { texture: sourceTexture, origin: [0, 0, layer] },
+          upload.data,
+          { bytesPerRow: upload.bytesPerRow, rowsPerImage: faceSize },
+          [faceSize, faceSize, 1],
+        );
+      });
+
+      sourceView = sourceTexture.createView?.({
+        label: `${label}:pmrem-source-view`,
+        dimension: "cube",
+      });
+    }
 
     const sampler = device.createSampler({
       label: `${label}:pmrem-source-sampler`,
@@ -184,11 +199,6 @@ function createSpecularIblPmremTextureResource(input: {
       magFilter: "nearest",
       minFilter: "nearest",
     });
-    const sourceView = sourceTexture.createView?.({
-      label: `${label}:pmrem-source-view`,
-      dimension: "cube",
-    });
-
     if (sourceView === undefined) {
       throw new Error("PMREM source texture cannot create a cube view.");
     }
@@ -332,6 +342,17 @@ function validateSpecularPmremSource(
     return invalidSpecularPmremSource(
       resourceKey,
       `Specular IBL PMREM source format '${format}' is unsupported.`,
+    );
+  }
+
+  if (source.sourceTexture !== undefined && source.faces === undefined) {
+    return null;
+  }
+
+  if (source.faces === undefined) {
+    return invalidSpecularPmremSource(
+      resourceKey,
+      "Specular IBL PMREM source must provide cube faces or a sourceTexture.",
     );
   }
 

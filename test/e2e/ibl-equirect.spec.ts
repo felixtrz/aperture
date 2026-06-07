@@ -33,6 +33,7 @@ interface IblEquirectStatus extends ExampleStatusBase {
     };
     readonly specularPrefiltering?: boolean;
     readonly diffuseConvolved?: boolean;
+    readonly genericAssetInput?: boolean;
   };
   readonly pipeline?: {
     readonly key: string | null;
@@ -96,6 +97,7 @@ test("ibl-equirect auto-derives IBL from one equirect HDR and reflects it", asyn
         projection: "equirect-to-cube",
         faceCount: 6,
       },
+      genericAssetInput: true,
       specularPrefiltering: true,
     },
   });

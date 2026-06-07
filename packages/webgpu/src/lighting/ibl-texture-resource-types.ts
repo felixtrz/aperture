@@ -38,7 +38,8 @@ export interface DiffuseIblCubeSource {
   readonly environmentMapResourceKey?: string;
   readonly label?: string;
   readonly faceSize: number;
-  readonly faces: readonly Uint8Array[];
+  readonly faces?: readonly Uint8Array[];
+  readonly sourceTexture?: TextureGpuResource;
   readonly format?: PmremComputeStorageFormat;
 }
 
@@ -48,7 +49,8 @@ export interface SpecularIblPmremSource {
   readonly environmentMapResourceKey?: string;
   readonly label?: string;
   readonly faceSize: number;
-  readonly faces: readonly Uint8Array[];
+  readonly faces?: readonly Uint8Array[];
+  readonly sourceTexture?: TextureGpuResource;
   readonly format?: PmremComputeStorageFormat;
   readonly mipLevelCount?: number;
 }

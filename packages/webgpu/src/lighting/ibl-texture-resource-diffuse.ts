@@ -24,6 +24,7 @@ import {
   WEBGPU_TEXTURE_USAGE_FLAGS,
   type CreateTextureGpuResourceResult,
   type TextureGpuDeviceLike,
+  type TextureGpuResource,
 } from "../resources/textures/texture-resources.js";
 
 export function createDiffuseIblTextureResourceReport(
@@ -250,7 +251,8 @@ function convolveDiffuseIrradiance(input: {
   readonly resourceKey: string;
   readonly label: string;
   readonly sourceFaceSize: number;
-  readonly faces: readonly Uint8Array[];
+  readonly faces?: readonly Uint8Array[];
+  readonly sourceTexture?: TextureGpuResource;
   readonly format: "rgba8unorm" | "rgba16float";
   readonly targetFaceSize: number;
 }): CreateTextureGpuResourceResult {
@@ -269,25 +271,40 @@ function convolveDiffuseIrradiance(input: {
     );
   }
 
-  const sourceTexture = device.createTexture({
-    label: `${label}:diffuse-ibl-source`,
-    size: [sourceFaceSize, sourceFaceSize, 6],
-    format,
-    usage:
-      WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING |
-      WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST,
-  });
+  let sourceView = input.sourceTexture?.view;
 
-  input.faces.forEach((face, layer) => {
-    const upload = createPaddedCubeFaceUpload(face, sourceFaceSize, format);
+  if (sourceView === undefined) {
+    if (input.faces === undefined) {
+      throw new Error(
+        "Irradiance source requires cube faces or a projected source texture.",
+      );
+    }
 
-    device.queue.writeTexture(
-      { texture: sourceTexture, origin: [0, 0, layer] },
-      upload.data,
-      { bytesPerRow: upload.bytesPerRow, rowsPerImage: sourceFaceSize },
-      [sourceFaceSize, sourceFaceSize, 1],
-    );
-  });
+    const sourceTexture = device.createTexture({
+      label: `${label}:diffuse-ibl-source`,
+      size: [sourceFaceSize, sourceFaceSize, 6],
+      format,
+      usage:
+        WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING |
+        WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST,
+    });
+
+    input.faces.forEach((face, layer) => {
+      const upload = createPaddedCubeFaceUpload(face, sourceFaceSize, format);
+
+      device.queue.writeTexture(
+        { texture: sourceTexture, origin: [0, 0, layer] },
+        upload.data,
+        { bytesPerRow: upload.bytesPerRow, rowsPerImage: sourceFaceSize },
+        [sourceFaceSize, sourceFaceSize, 1],
+      );
+    });
+
+    sourceView = sourceTexture.createView?.({
+      label: `${label}:irradiance-source-view`,
+      dimension: "cube",
+    });
+  }
 
   const texture = device.createTexture({
     label: `${label}:diffuse-ibl-irradiance`,
@@ -307,11 +324,6 @@ function convolveDiffuseIrradiance(input: {
     magFilter: "linear",
     minFilter: "linear",
   });
-  const sourceView = sourceTexture.createView?.({
-    label: `${label}:irradiance-source-view`,
-    dimension: "cube",
-  });
-
   if (sourceView === undefined) {
     throw new Error("Irradiance source texture cannot create a cube view.");
   }
@@ -467,7 +479,12 @@ function createDiffuseIblCubeTextureResource(input: {
           resourceKey: input.resourceKey,
           label,
           sourceFaceSize: faceSize,
-          faces: input.source.faces,
+          ...(input.source.faces === undefined
+            ? {}
+            : { faces: input.source.faces }),
+          ...(input.source.sourceTexture === undefined
+            ? {}
+            : { sourceTexture: input.source.sourceTexture }),
           format,
           targetFaceSize: input.irradianceFaceSize,
         }),
@@ -476,6 +493,24 @@ function createDiffuseIblCubeTextureResource(input: {
       };
     } catch (error) {
       // Fall through to verbatim upload, but record why convolution did not run.
+      if (input.source.faces === undefined) {
+        return {
+          result: missingTextureResult(),
+          diagnostics: [
+            {
+              code: "iblTextureResource.diffuseIrradianceConvolutionDispatchFailed",
+              severity: "warning",
+              resourceKey: input.resourceKey,
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Diffuse IBL irradiance convolution dispatch failed.",
+            },
+          ],
+          convolved: false,
+        };
+      }
+
       return {
         result: createTextureGpuResource({
           device: input.device,
@@ -506,6 +541,22 @@ function createDiffuseIblCubeTextureResource(input: {
         convolved: false,
       };
     }
+  }
+
+  if (input.source.faces === undefined) {
+    return {
+      result: missingTextureResult(),
+      diagnostics: [
+        {
+          code: "iblTextureResource.diffuseIrradianceConvolutionDeferred",
+          severity: "warning",
+          resourceKey: input.resourceKey,
+          message:
+            "Diffuse IBL source texture requires compute irradiance convolution; no cube faces were provided for verbatim upload.",
+        },
+      ],
+      convolved: false,
+    };
   }
 
   // No compute support (or explicitly disabled): upload the source faces
@@ -559,6 +610,17 @@ function validateDiffuseCubeSource(
     return invalidDiffuseCubeSource(
       resourceKey,
       `Diffuse IBL cube source format '${format}' is unsupported.`,
+    );
+  }
+
+  if (source.sourceTexture !== undefined && source.faces === undefined) {
+    return null;
+  }
+
+  if (source.faces === undefined) {
+    return invalidDiffuseCubeSource(
+      resourceKey,
+      "Diffuse IBL cube source must provide cube faces or a sourceTexture.",
     );
   }
 

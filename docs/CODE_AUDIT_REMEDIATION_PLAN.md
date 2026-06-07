@@ -1,6 +1,7 @@
 # Code Audit Remediation Execution Plan
 
-**Status:** ready-for-execution; remaining work is fully ticketed
+**Status:** implemented
+All executable remediation tickets are implemented or source-verified.
 **Created:** 2026-06-06
 **Refined:** 2026-06-06
 **Source:** Original multi-agent dead/experimental/unfinished-code audit, plus
@@ -44,13 +45,9 @@ The latest ultracode verification changed the plan materially:
 
 ## Recommended Remaining Order
 
-Q0, Q1, Q2, Q3, Q6, PHY-04, PHY-08, FEAT-01, FEAT-02, FEAT-03, and FEAT-05
-have been executed or source-verified. The remaining queue is now intentionally
-small and concrete:
-
-1. **FEAT-06 - Generic equirect environment input**: expose direct app-level
-   equirect input or mark the proof route complete with explicit docs. The
-   execution default is to implement the direct input path.
+Q0, Q1, Q2, Q3, Q6, PHY-04, PHY-08, and FEAT-01 through FEAT-06 have been
+executed or source-verified. There are no remaining executable remediation
+tickets in this plan.
 
 ## Validation Shortcuts
 
@@ -690,7 +687,7 @@ slice with example/E2E proof.
 
 ### FEAT-06 - Polish generic equirect environment asset API
 
-- Status: confirmed-open implementation ticket.
+- Status: completed 2026-06-07.
 - Current state: `ibl-equirect` proves equirect-to-cube compute projection and
   E2E asserts `projection: "equirect-to-cube"` plus specular prefiltering.
   Generic `WebGpuAppEnvironmentAssetInput` still accepts cube sources, not a
@@ -699,6 +696,12 @@ slice with example/E2E proof.
   `WebGpuAppEnvironmentAssetInput`, routing it through the existing
   equirect-to-cube compute projection and prefilter path. Keep the existing
   example route as the proof fixture.
+- Result: `WebGpuAppEnvironmentAssetInput` now accepts `equirectSource`.
+  `prepareWebGpuAppEnvironmentAssets()` projects that source to a renderer-owned
+  cube texture, feeds it directly into diffuse irradiance convolution and
+  specular PMREM without CPU readback, reports the projection through the
+  JSON-safe environment asset report, and `examples/ibl-equirect.html` now uses
+  this generic path.
 - Accept: an app-level environment input can take an equirect source, the
   equirect example uses the generic path, and E2E still asserts
   `projection: "equirect-to-cube"` plus specular prefiltering.
@@ -837,12 +840,12 @@ turn them into cleanup work without a separate decision.
 
 ## Appendix - Refined Verification Counts
 
-Executable status after this refinement:
+Executable status after implementation:
 
 | Status                                     | Items |
 | ------------------------------------------ | ----- |
-| Completed, verified, or accepted alternate | 49    |
-| Remaining executable tickets               | 1     |
+| Completed, verified, or accepted alternate | 50    |
+| Remaining executable tickets               | 0     |
 | Rejected or stale no-action items          | 5     |
 
 The counts are orientation only. Re-run local symbol checks before editing any
