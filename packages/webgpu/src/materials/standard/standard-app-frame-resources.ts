@@ -472,7 +472,10 @@ export function createOrReuseStandardAppFrameResources(options: {
 
   const preparedMaterialFallbackDiagnostics: PreparedAppMaterialFallbackDiagnostic[] =
     [];
-  const preparedMesh = preparePreparedStandardMesh(options);
+  const preparedMesh = preparePreparedStandardMesh({
+    ...options,
+    frame: options.snapshot.frame,
+  });
   const preparedMaterial = preparePreparedStandardMaterial(
     { ...options, frame: options.snapshot.frame },
     preparedMaterialFallbackDiagnostics,

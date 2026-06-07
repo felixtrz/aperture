@@ -846,6 +846,125 @@ describe("WebGPU app facade", () => {
     expectPreparedMeshFacadeSummary(sourceVersionFrame, { totalEntries: 1 });
   });
 
+  it("evicts stale prepared mesh and material cache entries after asset churn", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({ canvas, environment });
+
+    if (!created.ok) {
+      expect(created.ok).toBe(true);
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "EvictionMesh1" }),
+    );
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "EvictionMaterial1" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const firstFrame = await app.stepAndRender(1 / 60, 1, 1);
+    let latestFrame = firstFrame;
+
+    for (let frame = 2; frame <= 6; frame += 1) {
+      assets.meshes.markReady(
+        mesh,
+        createBoxMeshAsset({ label: `EvictionMesh${frame}` }),
+      );
+      assets.materials.unlit.markReady(
+        material,
+        createUnlitMaterialAsset({
+          label: `EvictionMaterial${frame}`,
+          baseColorFactor: [1, 1 - frame * 0.05, 1, 1],
+        }),
+      );
+      latestFrame = await app.stepAndRender(1 / 60, frame, frame);
+    }
+
+    expect(firstFrame.ok).toBe(true);
+    expect(firstFrame.resourceReuse.preparedMeshCacheEviction).toEqual({
+      checked: 1,
+      retained: 0,
+      evicted: 0,
+      skippedInUse: 1,
+    });
+    expect(
+      firstFrame.resourceReuse.preparedMaterialCacheEviction,
+    ).toMatchObject({
+      checked: 1,
+      retained: 0,
+      evicted: 0,
+      skippedInUse: 1,
+      families: {
+        unlit: { checked: 1, retained: 0, evicted: 0, skippedInUse: 1 },
+      },
+    });
+
+    expect(latestFrame.ok).toBe(true);
+    expectPreparedMeshCacheSummary(latestFrame, {
+      totalEntries: 4,
+      layoutEntryCounts: [4],
+    });
+    expectPreparedMeshFacadeSummary(latestFrame, { totalEntries: 1 });
+    expectPreparedMaterialCacheSummary(latestFrame, {
+      unlit: 4,
+      matcap: 0,
+      standard: 0,
+    });
+    expectPreparedMaterialFacadeSummary(latestFrame, {
+      unlit: 1,
+      matcap: 0,
+      standard: 0,
+    });
+
+    const resourceReuse =
+      webGpuAppRenderReportToJsonValue(latestFrame).resourceReuse;
+
+    expect(resourceReuse.preparedMeshCacheEviction).toEqual({
+      checked: 5,
+      retained: 3,
+      evicted: 1,
+      skippedInUse: 1,
+    });
+    expect(resourceReuse.preparedMaterialCacheEviction).toEqual({
+      checked: 5,
+      retained: 3,
+      evicted: 1,
+      skippedInUse: 1,
+      families: {
+        unlit: { checked: 5, retained: 3, evicted: 1, skippedInUse: 1 },
+        matcap: { checked: 0, retained: 0, evicted: 0, skippedInUse: 0 },
+        standard: { checked: 0, retained: 0, evicted: 0, skippedInUse: 0 },
+        "debug-normal": {
+          checked: 0,
+          retained: 0,
+          evicted: 0,
+          skippedInUse: 0,
+        },
+      },
+    });
+    expect(
+      JSON.stringify({
+        mesh: resourceReuse.preparedMeshCacheEviction,
+        material: resourceReuse.preparedMaterialCacheEviction,
+      }),
+    ).not.toContain("GPU");
+  });
+
   it("runs a no-op post effect chain after rendering the swapchain scene", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);

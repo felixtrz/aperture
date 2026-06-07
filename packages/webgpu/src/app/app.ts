@@ -11,7 +11,11 @@ import type {
 } from "@aperture-engine/render";
 import { type AppTextureSamplerResourceCacheSummary } from "./app-texture-sampler-resources.js";
 import type { PreparedAppMaterialCacheSummary } from "../materials/core/prepared-app-material-resource.js";
-import type { PreparedMeshGpuResourceCacheSummary } from "../resources/meshes/prepared-mesh-cache.js";
+import type { PreparedBuiltInMaterialCacheEvictionReport } from "../materials/core/prepared-built-in-material-store.js";
+import type {
+  PreparedMeshGpuResourceCacheEvictionReport,
+  PreparedMeshGpuResourceCacheSummary,
+} from "../resources/meshes/prepared-mesh-cache.js";
 import {
   type FrameBoundaryAssemblyReport,
   type FrameBoundaryReadbackResult,
@@ -206,6 +210,7 @@ export interface WebGpuAppResourceReuseReport {
   preparedMeshBuffersCreated: number;
   preparedMeshBuffersReused: number;
   preparedMeshCache: PreparedMeshGpuResourceCacheSummary;
+  preparedMeshCacheEviction: PreparedMeshGpuResourceCacheEvictionReport;
   preparedMeshFacade: PreparedMeshStoreJsonValue;
   materialBuffersCreated: number;
   materialBuffersReused: number;
@@ -214,6 +219,7 @@ export interface WebGpuAppResourceReuseReport {
   preparedMaterialBindGroupsCreated: number;
   preparedMaterialBindGroupsReused: number;
   preparedMaterialCache: PreparedAppMaterialCacheSummary;
+  preparedMaterialCacheEviction: PreparedBuiltInMaterialCacheEvictionReport;
   preparedMaterialFacade: PreparedMaterialStoreJsonValue;
   textureResourcesCreated: number;
   textureResourcesReused: number;

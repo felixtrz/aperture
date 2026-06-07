@@ -44,13 +44,11 @@ The latest ultracode verification changed the plan materially:
 
 ## Recommended Remaining Order
 
-Q0, Q1, Q2, Q3, Q6, PHY-04, PHY-08, FEAT-01, FEAT-02, and FEAT-03 have been
-executed or source-verified. The remaining queue is now intentionally small and
-concrete:
+Q0, Q1, Q2, Q3, Q6, PHY-04, PHY-08, FEAT-01, FEAT-02, FEAT-03, and FEAT-05
+have been executed or source-verified. The remaining queue is now intentionally
+small and concrete:
 
-1. **FEAT-05 - Prepared mesh/material cache eviction**: add bounded eviction
-   that respects in-use resources.
-2. **FEAT-06 - Generic equirect environment input**: expose direct app-level
+1. **FEAT-06 - Generic equirect environment input**: expose direct app-level
    equirect input or mark the proof route complete with explicit docs. The
    execution default is to implement the direct input path.
 
@@ -677,12 +675,17 @@ slice with example/E2E proof.
 
 ### FEAT-05 - Wire prepared mesh/material cache eviction
 
-- Status: confirmed-open.
+- Status: completed 2026-06-07.
 - Files: `packages/webgpu/src/resources/meshes/prepared-mesh-cache.ts`,
   `packages/webgpu/src/materials/core/prepared-built-in-material-store.ts`.
 - Problem: eviction helpers exist but no app/frame-path caller was found.
 - Action: add bounded cache eviction policy and tests that prove resources are
   not evicted while in use.
+- Result: `createWebGpuApp().renderSnapshot()` now runs bounded prepared
+  mesh/material backend-cache eviction after successful frames, reports
+  JSON-safe eviction counters, refreshes retained cache summaries after
+  eviction, and forwards the snapshot frame through StandardMaterial prepared
+  mesh reuse so in-use entries are stamped consistently.
 - Accept: cache size is bounded under asset churn and regression tests pass.
 
 ### FEAT-06 - Polish generic equirect environment asset API
@@ -838,8 +841,8 @@ Executable status after this refinement:
 
 | Status                                     | Items |
 | ------------------------------------------ | ----- |
-| Completed, verified, or accepted alternate | 48    |
-| Remaining executable tickets               | 2     |
+| Completed, verified, or accepted alternate | 49    |
+| Remaining executable tickets               | 1     |
 | Rejected or stale no-action items          | 5     |
 
 The counts are orientation only. Re-run local symbol checks before editing any

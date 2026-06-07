@@ -19,6 +19,10 @@ import {
   type AppTextureSamplerResourceCacheSummary,
 } from "./app-texture-sampler-resources.js";
 import {
+  createPreparedBuiltInMaterialCacheEvictionReport,
+  createPreparedMeshGpuResourceCacheEvictionReport,
+} from "./prepared-resource-cache-eviction.js";
+import {
   createPreparedAppMaterialCacheSummary,
   type PreparedAppMaterialCacheSummary,
 } from "../materials/core/prepared-app-material-resource.js";
@@ -525,6 +529,8 @@ export function createWebGpuAppResourceReuseReport(): WebGpuAppResourceReuseRepo
     preparedMeshBuffersCreated: 0,
     preparedMeshBuffersReused: 0,
     preparedMeshCache: createPreparedMeshGpuResourceCacheSummary(),
+    preparedMeshCacheEviction:
+      createPreparedMeshGpuResourceCacheEvictionReport(),
     preparedMeshFacade: preparedMeshStoreSummaryToJsonValue(
       createPreparedMeshStore(),
     ),
@@ -535,6 +541,8 @@ export function createWebGpuAppResourceReuseReport(): WebGpuAppResourceReuseRepo
     preparedMaterialBindGroupsCreated: 0,
     preparedMaterialBindGroupsReused: 0,
     preparedMaterialCache: createPreparedAppMaterialCacheSummary(),
+    preparedMaterialCacheEviction:
+      createPreparedBuiltInMaterialCacheEvictionReport(),
     preparedMaterialFacade: preparedMaterialStoreSummaryToJsonValue(
       createPreparedMaterialStore(),
     ),

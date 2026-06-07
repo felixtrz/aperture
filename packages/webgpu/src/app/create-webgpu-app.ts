@@ -21,6 +21,7 @@ import {
   webGpuAppRenderReportToJsonValue,
 } from "./report.js";
 import { prepareWebGpuAppSourceAssetFacades } from "./source-assets.js";
+import { evictWebGpuAppPreparedResourceCaches } from "./prepared-resource-cache-eviction.js";
 import { getWebGpuAppPipelineLayouts } from "./pipeline-layouts.js";
 import { createWebGpuAppResourceCache } from "./resource-cache.js";
 import { createWebGpuAppUserPassRegistry } from "./user-pass.js";
@@ -245,6 +246,13 @@ export async function createWebGpuApp(
         pruneUnreferenced: true,
         resourceReuse: report.resourceReuse,
       });
+      if (report.ok) {
+        evictWebGpuAppPreparedResourceCaches({
+          cache: resourceCache,
+          frame: report.frame,
+          resourceReuse: report.resourceReuse,
+        });
+      }
 
       latestReport = report;
       previousSnapshotForUpdate = report.snapshot;
