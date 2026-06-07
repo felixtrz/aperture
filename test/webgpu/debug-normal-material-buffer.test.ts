@@ -135,6 +135,40 @@ describe("debug-normal material WebGPU uniform packing", () => {
       ],
     });
   });
+
+  it("rejects invalid debug-normal render state before planning a GPU buffer", () => {
+    const result = createDebugNormalMaterialGpuPreparationPlan(
+      createDebugNormalMaterialAsset({
+        renderState: {
+          alphaMode: "blend",
+          depth: { test: true, write: true, compare: "less" },
+          blend: { preset: "none" },
+        },
+      }),
+    );
+
+    expect(result.valid).toBe(false);
+    expect(result.plan).toBeNull();
+    expect(
+      result.diagnostics.map((diagnostic) => ({
+        code: diagnostic.code,
+        field: diagnostic.field,
+      })),
+    ).toEqual([
+      {
+        code: "material.incompatibleRenderState",
+        field: "renderState.depth.write",
+      },
+      {
+        code: "material.incompatibleRenderState",
+        field: "renderState.blend",
+      },
+      {
+        code: "debugNormalMaterialBuffer.nullPackedMaterial",
+        field: undefined,
+      },
+    ]);
+  });
 });
 
 function required<T>(value: T | null): T {

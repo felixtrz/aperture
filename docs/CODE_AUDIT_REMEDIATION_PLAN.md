@@ -459,13 +459,17 @@ the whole queue.
 
 ### DUP-05 - Delete render-side material preparation plan factories
 
-- Status: confirmed-open.
+- Status: completed 2026-06-06.
 - Files: `packages/render/src/materials/debug-normal-preparation.ts`,
   `packages/render/src/materials/matcap-preparation.ts`.
 - Problem: render-side factories are test-only; WebGPU material preparation is
   live elsewhere.
 - Action: delete factories and tests, or move test value to WebGPU prep tests.
 - Accept: matcap/debug-normal WebGPU prep tests and examples pass.
+- Result: the render-side debug-normal/matcap preparation factory modules and
+  self-only tests were deleted, their render barrel exports were removed, and
+  invalid debug-normal render-state coverage moved to the live WebGPU material
+  GPU preparation test.
 
 ### DUP-06 - Migrate unlit layout to `*Plan` pattern
 
@@ -782,8 +786,8 @@ Approximate executable status after refinement:
 
 | Status                                | Items |
 | ------------------------------------- | ----- |
-| Completed                             | 34    |
-| Confirmed open / executable           | 7     |
+| Completed                             | 35    |
+| Confirmed open / executable           | 6     |
 | Needs refinement but actionable       | 7     |
 | Partially complete / docs-update only | 5     |
 | Already fixed, rejected, or stale     | 8     |
