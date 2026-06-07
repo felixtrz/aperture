@@ -68,6 +68,28 @@ export interface SpatialRaycastableMesh {
   readonly pickable?: SpatialPickableState;
 }
 
+export interface SpatialClosestPointOptions {
+  readonly query?: ApertureQuery;
+  /** World-space cap; results farther than this from the query point are dropped. */
+  readonly maxDistance?: number;
+  readonly layerMask?: number;
+  readonly filter?: (entity: Entity) => boolean;
+}
+
+export interface SpatialClosestPointHit {
+  readonly entity: {
+    readonly entity: Entity;
+    readonly ref: EcsEntityRef;
+  };
+  /** Closest surface point, in world space. */
+  readonly point: readonly [number, number, number];
+  /** World-space distance from the query point to {@link point}. */
+  readonly distance: number;
+  readonly faceIndex: number;
+  readonly submeshIndex: number;
+  readonly materialSlot: number;
+}
+
 export interface SpatialQueries {
   raycastFirst(
     ray: RayInput,
@@ -77,6 +99,14 @@ export interface SpatialQueries {
     ray: RayInput,
     options?: SpatialRaycastOptions,
   ): readonly SpatialRaycastHit[];
+  /**
+   * Closest point on any registered BVH-backed visual mesh to a world-space
+   * point, or null if none is in range. Meshes without a BVH are skipped.
+   */
+  closestPoint(
+    point: readonly [number, number, number],
+    options?: SpatialClosestPointOptions,
+  ): SpatialClosestPointHit | null;
   setBounds(bounds: readonly SpatialRaycastableBounds[]): void;
   setMeshes(meshes: readonly SpatialRaycastableMesh[]): void;
 }

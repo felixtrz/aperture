@@ -154,7 +154,7 @@ export function raycastMeshHits(
   return { hits: sortSpatialHits(hits), queryableMeshCount };
 }
 
-function meshQueryTransforms(entry: SpatialRaycastableMesh): {
+export function meshQueryTransforms(entry: SpatialRaycastableMesh): {
   readonly meshFromWorld?: Mat4Like;
   readonly worldFromMesh?: Mat4Like;
 } | null {

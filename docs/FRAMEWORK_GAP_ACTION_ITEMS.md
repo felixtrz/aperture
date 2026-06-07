@@ -37,6 +37,10 @@ Deferred this round:
 - **AI-82 (RAG "embedding"→"lexical"):** the honest version renames the on-disk index format/model contract (breaking) or is docs-only (untestable); not a clean tested win.
 - **AI-86 (portable doc paths):** mixes in-repo `references/`, external libs needing upstream URLs, and a separate private project (`immersive-web-sdk`) with no public equivalent — needs per-doc curation/input.
 
+### 2026-06-07 — batch 3 (branch `gap-fixes-batch-1`)
+
+- **AI-5 (partial) — surface BVH closest-point through the spatial facade.** The gameplay `SpatialQueries` facade exposed only raycasts; `MeshBvh.closestPointToPoint` existed but was unreachable. Added `closestPoint(point, options?)` (`packages/app/src/spatial/closest.ts`, wired in `spatial/index.ts`) that transforms the world point into each BVH-backed mesh's local space, resolves the closest surface point, transforms it back, and picks the global nearest by world distance (with a world-space `maxDistance` filter and entity/layer filtering). Exported `meshQueryTransforms` for reuse. Tests: `test/app/spatial-closest-point.test.ts` (6, analytically verified against a known plane: interior projection, edge-clamp, world-from-mesh transform, maxDistance, no-BVH skip). The `overlapShape`/`castShape` (sphere/box/capsule overlap + shapecast) halves of AI-5 remain — they need world↔mesh shape-transform handling (radius under scale) and are deferred as a focused follow-on.
+
 ---
 
 ## 1. Executive Summary

@@ -1,4 +1,5 @@
 import { raycastBoundsHit, raycastBoundsHits } from "./bounds.js";
+import { closestPointOnMeshes } from "./closest.js";
 import {
   raycastColliderHit,
   raycastColliderHits,
@@ -13,6 +14,8 @@ import type {
 
 export type {
   RayInput,
+  SpatialClosestPointHit,
+  SpatialClosestPointOptions,
   SpatialPickableState,
   SpatialQueries,
   SpatialRaycastHit,
@@ -97,6 +100,9 @@ export function createSpatialQueries(
       return meshResult.queryableMeshCount === 0
         ? raycastBoundsHits(bounds, ray, options)
         : [];
+    },
+    closestPoint(point, options = {}) {
+      return closestPointOnMeshes(meshes, point, options).hit;
     },
     setBounds(nextBounds) {
       bounds = [...nextBounds];
