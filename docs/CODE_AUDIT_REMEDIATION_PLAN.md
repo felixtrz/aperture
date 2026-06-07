@@ -44,14 +44,13 @@ The latest ultracode verification changed the plan materially:
 
 ## Recommended Remaining Order
 
-Q0, Q1, Q2, Q3, Q6, PHY-04, PHY-08, FEAT-01, and FEAT-02 have been executed or
-source-verified. The remaining queue is now intentionally small and concrete:
+Q0, Q1, Q2, Q3, Q6, PHY-04, PHY-08, FEAT-01, FEAT-02, and FEAT-03 have been
+executed or source-verified. The remaining queue is now intentionally small and
+concrete:
 
-1. **FEAT-03 - Buffer-pool benchmark decision**: run the benchmark-gated choice
-   and either wire the pool or delete the dormant protocol.
-2. **FEAT-05 - Prepared mesh/material cache eviction**: add bounded eviction
+1. **FEAT-05 - Prepared mesh/material cache eviction**: add bounded eviction
    that respects in-use resources.
-3. **FEAT-06 - Generic equirect environment input**: expose direct app-level
+2. **FEAT-06 - Generic equirect environment input**: expose direct app-level
    equirect input or mark the proof route complete with explicit docs. The
    execution default is to implement the direct input path.
 
@@ -648,16 +647,21 @@ slice with example/E2E proof.
 
 ### FEAT-03 - Decide buffer pool by benchmark
 
-- Status: confirmed-open benchmark-decision ticket.
-- Files: `packages/runtime/src/simulation-worker.ts`.
-- Problem: pool helpers and protocol fields exist, but live path still uses
-  transfer-list and no recycle handler was found.
-- Action: add or run a high-churn simulation-worker benchmark that compares
-  transfer-list snapshots against pooled buffers. Adopt the pool only if it
-  improves median snapshot publish latency by at least 10% or reduces allocated
-  snapshot bytes by at least 25% without worsening p95 publish latency. If it
-  misses that bar, delete `bufferLeaseId`, `recycleSnapshotBuffers`, and related
-  dormant protocol fields, then record the non-adoption result.
+- Status: completed 2026-06-07; pool not adopted.
+- Files: `packages/runtime/src/simulation-worker.ts`,
+  `test/runtime/simulation-worker.test.ts`.
+- Benchmark result: local Node structured-clone benchmark over 400 measured
+  iterations, 50 warmups, 10,000 entities, and 800,192 typed-array bytes per
+  snapshot measured direct transfer-list snapshots at 0.0054 ms median /
+  0.0340 ms p95. The existing pool-helper route, as implemented, had to copy an
+  already-extracted snapshot into a lease and recycle the buffers; it measured
+  0.0207 ms median / 0.0777 ms p95. That is roughly 3.9x slower at median and
+  2.3x slower at p95, so it missed the adoption bar.
+- Result: deleted `bufferLeaseId`, `recycleSnapshotBuffers`, the public
+  render-snapshot buffer pool helpers, the copy-into-lease helper, and the
+  test-only transport cost estimator. `renderSnapshotTransferList` remains the
+  live public fallback path and now has focused transfer coverage for core and
+  quad buffers. A runtime patch changeset records the public-surface narrowing.
 - Accept: either live pooling plus benchmark evidence and tests, or deletion
   plus recorded benchmark evidence explaining why pooling was not adopted.
 
@@ -834,8 +838,8 @@ Executable status after this refinement:
 
 | Status                                     | Items |
 | ------------------------------------------ | ----- |
-| Completed, verified, or accepted alternate | 47    |
-| Remaining executable tickets               | 3     |
+| Completed, verified, or accepted alternate | 48    |
+| Remaining executable tickets               | 2     |
 | Rejected or stale no-action items          | 5     |
 
 The counts are orientation only. Re-run local symbol checks before editing any
