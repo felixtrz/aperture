@@ -6,7 +6,11 @@ import {
   type SpatialColliderQueries,
 } from "./collider.js";
 import { raycastMeshHit, raycastMeshHits } from "./mesh.js";
-import { overlapSphereOnMeshes } from "./overlap.js";
+import {
+  overlapBoxOnMeshes,
+  overlapCapsuleOnMeshes,
+  overlapSphereOnMeshes,
+} from "./overlap.js";
 import type {
   SpatialQueries,
   SpatialRaycastableBounds,
@@ -109,6 +113,12 @@ export function createSpatialQueries(
     },
     overlapSphere(center, radius, options = {}) {
       return overlapSphereOnMeshes(meshes, center, radius, options);
+    },
+    overlapBox(min, max, options = {}) {
+      return overlapBoxOnMeshes(meshes, min, max, options);
+    },
+    overlapCapsule(start, end, radius, options = {}) {
+      return overlapCapsuleOnMeshes(meshes, start, end, radius, options);
     },
     setBounds(nextBounds) {
       bounds = [...nextBounds];

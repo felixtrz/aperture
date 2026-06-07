@@ -130,6 +130,26 @@ export interface SpatialQueries {
     radius: number,
     options?: SpatialOverlapOptions,
   ): readonly SpatialOverlapHit[];
+  /**
+   * Entities whose BVH-backed visual mesh overlaps a world-space axis-aligned
+   * box. Meshes without a BVH are skipped.
+   */
+  overlapBox(
+    min: readonly [number, number, number],
+    max: readonly [number, number, number],
+    options?: SpatialOverlapOptions,
+  ): readonly SpatialOverlapHit[];
+  /**
+   * Entities whose BVH-backed visual mesh overlaps a world-space capsule
+   * (segment + radius). Meshes without a BVH are skipped; the radius is
+   * world-space (exact for rigid mesh transforms).
+   */
+  overlapCapsule(
+    start: readonly [number, number, number],
+    end: readonly [number, number, number],
+    radius: number,
+    options?: SpatialOverlapOptions,
+  ): readonly SpatialOverlapHit[];
   setBounds(bounds: readonly SpatialRaycastableBounds[]): void;
   setMeshes(meshes: readonly SpatialRaycastableMesh[]): void;
 }

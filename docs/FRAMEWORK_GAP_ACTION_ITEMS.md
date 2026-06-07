@@ -43,7 +43,11 @@ Deferred this round:
 
 ### 2026-06-07 — batch 4 (branch `gap-fixes-batch-1`)
 
-- **AI-5 (cont.) — `overlapSphere` on the spatial facade.** Added `overlapSphere(center, radius, options?)` (`packages/app/src/spatial/overlap.ts`) returning the entities whose BVH-backed mesh overlaps a world-space sphere, via `MeshBvh.intersectsSphere` with the center transformed into mesh space (radius world-space, exact for rigid transforms). Tests: `test/app/spatial-overlap-sphere.test.ts` (6, analytically verified: surface-reaching sphere, near-miss, radius-bridges-edge, world-from-mesh transform, no-BVH skip). Remaining AI-5 follow-on: box/capsule overlap and shapecast (`castShape`) — `intersectsBox`/`intersectsCapsule`/`bvhcast` exist; box needs `boxToMesh` plumbing and capsule needs endpoint transforms.
+- **AI-5 (cont.) — `overlapSphere` on the spatial facade.** Added `overlapSphere(center, radius, options?)` (`packages/app/src/spatial/overlap.ts`) returning the entities whose BVH-backed mesh overlaps a world-space sphere, via `MeshBvh.intersectsSphere` with the center transformed into mesh space (radius world-space, exact for rigid transforms). Tests: `test/app/spatial-overlap-sphere.test.ts` (6, analytically verified: surface-reaching sphere, near-miss, radius-bridges-edge, world-from-mesh transform, no-BVH skip).
+
+### 2026-06-07 — batch 5 (branch `gap-fixes-batch-1`)
+
+- **AI-5 (cont.) — complete the `overlapShape` family: `overlapBox` + `overlapCapsule`.** Refactored `overlap.ts` to a shared `collectOverlaps` core and added box (via `MeshBvh.intersectsBox` with the `boxToMesh` transform — localized exactly including rotation) and capsule (via `intersectsCapsule` with endpoints transformed into mesh space) overlap queries. The facade now exposes `overlapSphere`/`overlapBox`/`overlapCapsule`. Tests: `test/app/spatial-overlap-shapes.test.ts` (8, analytically verified: box straddle/above/outside, capsule segment-cross/radius-reach/clear, no-BVH skip). **AI-5 `overlapShape` is now complete**; the remaining piece is shapecast/`castShape` (sweep) on top of `bvhcast`, deferred as a focused follow-on (swept-volume math).
 
 ---
 
