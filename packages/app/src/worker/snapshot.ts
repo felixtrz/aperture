@@ -84,6 +84,12 @@ export function publishGeneratedWorkerSnapshot(options: {
       state: options.sourceAssetState,
     },
   );
+  // The source-asset registry is version-gated, so steady-state frames produce
+  // zero entries. Only attach the field when something actually changed —
+  // mirrorSourceAssetRegistryFromMessage treats an absent field as a no-op, so
+  // this drops a per-frame postMessage payload on both transport paths (AI-70).
+  const sourceAssetsMessage =
+    sourceAssets.entries.length > 0 ? { sourceAssets } : {};
   const workerSummary = {
     signals: createSignalSummary(options.app.context.signals),
     input: createInputSummary(options.app.context.input),
@@ -105,7 +111,7 @@ export function publishGeneratedWorkerSnapshot(options: {
     options.port.postMessage({
       type: SIMULATION_WORKER_PROTOCOL.snapshot,
       snapshot: createSharedSnapshotPlaceholder(snapshot.frame),
-      sourceAssets,
+      ...sourceAssetsMessage,
       workerSummary,
       frame: options.frame,
       transport: sharedSnapshot,
@@ -115,7 +121,7 @@ export function publishGeneratedWorkerSnapshot(options: {
       {
         type: SIMULATION_WORKER_PROTOCOL.snapshot,
         snapshot,
-        sourceAssets,
+        ...sourceAssetsMessage,
         workerSummary,
         frame: options.frame,
       },

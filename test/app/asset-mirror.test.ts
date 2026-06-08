@@ -100,4 +100,25 @@ describe("generated app source asset mirroring", () => {
       serializeSourceAssetRegistry(workerRegistry, { state }).entries,
     ).toEqual([]);
   });
+
+  it("treats an absent or empty sourceAssets field as a no-op (AI-70 send-on-change contract)", () => {
+    const registry = new AssetRegistry();
+
+    // The worker omits the sourceAssets field entirely on steady-state frames;
+    // the receiver must no-op rather than throw or clear existing state.
+    expect(
+      mirrorSourceAssetRegistryFromMessage(registry, {
+        type: "snapshot",
+        frame: 7,
+      }),
+    ).toEqual({ mirrored: 0, skipped: 0 });
+
+    expect(
+      mirrorSourceAssetRegistryFromMessage(registry, {
+        type: "snapshot",
+        frame: 7,
+        sourceAssets: { entries: [] },
+      }),
+    ).toEqual({ mirrored: 0, skipped: 0 });
+  });
 });
