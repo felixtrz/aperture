@@ -12,18 +12,18 @@ It follows the accepted math decision in `docs/DECISIONS.md#0007--webgpu-first-a
 
 three.js:
 
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/core/Object3D.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/math/Vector2.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/math/Vector3.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/math/Vector4.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/math/Quaternion.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/math/Matrix3.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/math/Matrix4.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/math/Ray.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/math/Box3.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/math/Sphere.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/math/Plane.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/math/Frustum.js`
+- `references/three.js/src/core/Object3D.js`
+- `references/three.js/src/math/Vector2.js`
+- `references/three.js/src/math/Vector3.js`
+- `references/three.js/src/math/Vector4.js`
+- `references/three.js/src/math/Quaternion.js`
+- `references/three.js/src/math/Matrix3.js`
+- `references/three.js/src/math/Matrix4.js`
+- `references/three.js/src/math/Ray.js`
+- `references/three.js/src/math/Box3.js`
+- `references/three.js/src/math/Sphere.js`
+- `references/three.js/src/math/Plane.js`
+- `references/three.js/src/math/Frustum.js`
 
 Babylon.js:
 
@@ -38,18 +38,18 @@ Babylon.js:
 
 PlayCanvas:
 
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/graph-node.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/core/math/vec2.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/core/math/vec3.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/core/math/vec4.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/core/math/quat.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/core/math/mat3.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/core/math/mat4.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/core/shape/ray.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/core/shape/bounding-box.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/core/shape/bounding-sphere.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/core/shape/plane.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/core/shape/frustum.js`
+- `references/engine/src/scene/graph-node.js`
+- `references/engine/src/core/math/vec2.js`
+- `references/engine/src/core/math/vec3.js`
+- `references/engine/src/core/math/vec4.js`
+- `references/engine/src/core/math/quat.js`
+- `references/engine/src/core/math/mat3.js`
+- `references/engine/src/core/math/mat4.js`
+- `references/engine/src/core/shape/ray.js`
+- `references/engine/src/core/shape/bounding-box.js`
+- `references/engine/src/core/shape/bounding-sphere.js`
+- `references/engine/src/core/shape/plane.js`
+- `references/engine/src/core/shape/frustum.js`
 
 Math kernel:
 
@@ -64,10 +64,10 @@ Math kernel:
 
 EliCS storage references:
 
-- `/Users/felixz/Projects/aperture/node_modules/elics/lib/types.d.ts`
-- `/Users/felixz/Projects/aperture/node_modules/elics/lib/entity.d.ts`
-- `/Users/felixz/Projects/aperture/node_modules/elics/lib/component.js`
-- `/Users/felixz/Projects/aperture/node_modules/elics/lib/entity.js`
+- `./node_modules/elics/lib/types.d.ts`
+- `./node_modules/elics/lib/entity.d.ts`
+- `./node_modules/elics/lib/component.js`
+- `./node_modules/elics/lib/entity.js`
 
 ## Reference Coverage Summary
 

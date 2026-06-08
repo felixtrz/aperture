@@ -918,21 +918,21 @@ Author a new worker-authored example route + Playwright spec that imports a skin
 
 ### Key entry points
 
-| File / symbol                                                                                               | Role                                                                                                                                                                                                                                                                                                                                                 |
-| ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/Users/felixz/Projects/aperture/packages/webgpu/src/shadows/directional-shadow-matrix-computation.ts`      | Computes per-cascade ortho view/projection matrices. The frustum-fit hook: replace DEFAULT_CENTER=[0,0,0] (line 85) + global orthographicSize scaled by cascadeFar (lines 258-260) with camera-frustum-corner fit + texel snapping. Input interface (lines 75-83) must gain camera view/projection + per-cascade near/far.                           |
-| `/Users/felixz/Projects/aperture/packages/webgpu/src/shadows/directional-shadow-view-projection-plan.ts`    | Plans per-cascade keys and cascadeNear/cascadeFar via linear cascadeSplit() (lines 279-288). Must switch to a practical (linear/log blended) split matching light-packing.ts directionalCascadeFarBounds, and carry world-space near/far distances for the matrix computation to consume.                                                            |
-| `/Users/felixz/Projects/aperture/packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts` | All shadow WGSL. Holds the MIN_VISIBILITY floor consts (lines 10,144,396,508,510), fixed bias consts (11,145,397,509,511), the 3x3 PCF (cascaded path line 49 has NO filterRadius), single-cascade selection (lines 32-47,76-131). Hook site for: strength uniform, real bias from descriptor, cascade blend, PCSS variant, normal-offset.           |
-| `/Users/felixz/Projects/aperture/packages/webgpu/src/shadows/shadow-caster-pipeline-resource.ts`            | SHADOW_CASTER_DEPTH_ONLY_WGSL (lines 26-46): empty fs_main, POSITION-only vertex. createBrowserShadowCasterPipelineDescriptor (lines 298-329) builds the GPU pipeline with depthStencil missing depthBias/depthBiasSlopeScale. Hook site for alpha-test caster shader + slope-scaled bias.                                                           |
-| `/Users/felixz/Projects/aperture/packages/webgpu/src/shadows/shadow-caster-pipeline-descriptor.ts`          | Caster pipeline metadata: vertex.buffers ['POSITION'] (line 38,222), cullMode 'none' (line 48,233), depthStencil (51-55,236-240). Must add optional alphaTest variant (TEXCOORD_0+baseColor binding) and depthBias fields.                                                                                                                           |
-| `/Users/felixz/Projects/aperture/packages/webgpu/src/shadows/shadow-map-descriptor.ts`                      | ShadowMapDescriptor carries depthBias/normalBias/filterRadiusTexels (lines 42-44) but they are dead beyond JSON. The carrier to thread authored params into the shadow uniform buffer that the shader reads. normalizeFilterRadiusTexels clamps 0..16 (line 226). ShadowAtlasRegion + normalizeAtlasRegion (lines 257-285) is the atlas-packer seed. |
-| `/Users/felixz/Projects/aperture/packages/render/src/rendering/authoring-types.ts`                          | LightShadowSettingsInput (lines 123-131) — the public authoring surface. Add shadowType ('hard'\|'pcf'\|'pcss'), strength, filterRadius, slopeBias fields here.                                                                                                                                                                                      |
-| `/Users/felixz/Projects/aperture/packages/render/src/rendering/authoring-components-camera-light.ts`        | LightShadowSettings ECS component (lines 92-104) — add matching EcsType fields (Int32 shadowType enum, Float32 strength/filterRadius/slopeBias). Source of truth per invariants.                                                                                                                                                                     |
-| `/Users/felixz/Projects/aperture/packages/render/src/rendering/extraction-light-settings.ts`                | readShadowSettings (lines 27-56) reads component->LightShadowSettingsInput; appendShadowRequest (lines 115-143) builds ShadowRequestPacket. Must extract + validate the new fields and put them on the ShadowRequestPacket so the renderer descriptor can consume them.                                                                              |
-| `/Users/felixz/Projects/aperture/packages/webgpu/src/lighting/light-packing.ts`                             | Packs per-light floats incl. cascade far-bounds at offset+6 via directionalCascadeFarBounds (lines 270-290,728-752) and matrixBaseIndex at offset+10 (line 291). The slot to also pack shadow strength/bias/filterRadius/shadowType so the shader reads them per-light without a new binding.                                                        |
-| `/Users/felixz/Projects/aperture/examples/csm-directional-shadow.main.js`                                   | createCsmShadowFrame() (lines 336+) — the render-thread orchestration that calls createDirectionalShadowMatrixComputationReport with center:shadowIntent.center (lines 413-417). Where frustum-fit input (camera view/proj from snapshot.transforms) gets threaded; where new descriptor fields get passed.                                          |
-| `/Users/felixz/Projects/aperture/test/e2e/csm-directional-shadow.spec.ts`                                   | The existing CSM proof spec — asserts status JSON shape + pixel deltas vs baseline (expectCsmShadowActivation, lines 370-405). The template all M4 pixel/JSON proofs extend (add full-darkness, stability-under-camera-motion, soft-vs-hard, alpha-test silhouette assertions).                                                                      |
-| `/Users/felixz/Projects/aperture/references/bevy/crates/bevy_light/src/cascade.rs`                          | SOTA reference: calculate_cascade (lines 263-329) frustum-corner light-space AABB fit + cascade_texel_size texel snapping (lines 286-299); calculate_cascade_bounds (lines 41-56) exponential split. Study, do not copy.                                                                                                                             |
+| File / symbol                                                                 | Role                                                                                                                                                                                                                                                                                                                                                 |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `./packages/webgpu/src/shadows/directional-shadow-matrix-computation.ts`      | Computes per-cascade ortho view/projection matrices. The frustum-fit hook: replace DEFAULT_CENTER=[0,0,0] (line 85) + global orthographicSize scaled by cascadeFar (lines 258-260) with camera-frustum-corner fit + texel snapping. Input interface (lines 75-83) must gain camera view/projection + per-cascade near/far.                           |
+| `./packages/webgpu/src/shadows/directional-shadow-view-projection-plan.ts`    | Plans per-cascade keys and cascadeNear/cascadeFar via linear cascadeSplit() (lines 279-288). Must switch to a practical (linear/log blended) split matching light-packing.ts directionalCascadeFarBounds, and carry world-space near/far distances for the matrix computation to consume.                                                            |
+| `./packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts` | All shadow WGSL. Holds the MIN_VISIBILITY floor consts (lines 10,144,396,508,510), fixed bias consts (11,145,397,509,511), the 3x3 PCF (cascaded path line 49 has NO filterRadius), single-cascade selection (lines 32-47,76-131). Hook site for: strength uniform, real bias from descriptor, cascade blend, PCSS variant, normal-offset.           |
+| `./packages/webgpu/src/shadows/shadow-caster-pipeline-resource.ts`            | SHADOW_CASTER_DEPTH_ONLY_WGSL (lines 26-46): empty fs_main, POSITION-only vertex. createBrowserShadowCasterPipelineDescriptor (lines 298-329) builds the GPU pipeline with depthStencil missing depthBias/depthBiasSlopeScale. Hook site for alpha-test caster shader + slope-scaled bias.                                                           |
+| `./packages/webgpu/src/shadows/shadow-caster-pipeline-descriptor.ts`          | Caster pipeline metadata: vertex.buffers ['POSITION'] (line 38,222), cullMode 'none' (line 48,233), depthStencil (51-55,236-240). Must add optional alphaTest variant (TEXCOORD_0+baseColor binding) and depthBias fields.                                                                                                                           |
+| `./packages/webgpu/src/shadows/shadow-map-descriptor.ts`                      | ShadowMapDescriptor carries depthBias/normalBias/filterRadiusTexels (lines 42-44) but they are dead beyond JSON. The carrier to thread authored params into the shadow uniform buffer that the shader reads. normalizeFilterRadiusTexels clamps 0..16 (line 226). ShadowAtlasRegion + normalizeAtlasRegion (lines 257-285) is the atlas-packer seed. |
+| `./packages/render/src/rendering/authoring-types.ts`                          | LightShadowSettingsInput (lines 123-131) — the public authoring surface. Add shadowType ('hard'\|'pcf'\|'pcss'), strength, filterRadius, slopeBias fields here.                                                                                                                                                                                      |
+| `./packages/render/src/rendering/authoring-components-camera-light.ts`        | LightShadowSettings ECS component (lines 92-104) — add matching EcsType fields (Int32 shadowType enum, Float32 strength/filterRadius/slopeBias). Source of truth per invariants.                                                                                                                                                                     |
+| `./packages/render/src/rendering/extraction-light-settings.ts`                | readShadowSettings (lines 27-56) reads component->LightShadowSettingsInput; appendShadowRequest (lines 115-143) builds ShadowRequestPacket. Must extract + validate the new fields and put them on the ShadowRequestPacket so the renderer descriptor can consume them.                                                                              |
+| `./packages/webgpu/src/lighting/light-packing.ts`                             | Packs per-light floats incl. cascade far-bounds at offset+6 via directionalCascadeFarBounds (lines 270-290,728-752) and matrixBaseIndex at offset+10 (line 291). The slot to also pack shadow strength/bias/filterRadius/shadowType so the shader reads them per-light without a new binding.                                                        |
+| `./examples/csm-directional-shadow.main.js`                                   | createCsmShadowFrame() (lines 336+) — the render-thread orchestration that calls createDirectionalShadowMatrixComputationReport with center:shadowIntent.center (lines 413-417). Where frustum-fit input (camera view/proj from snapshot.transforms) gets threaded; where new descriptor fields get passed.                                          |
+| `./test/e2e/csm-directional-shadow.spec.ts`                                   | The existing CSM proof spec — asserts status JSON shape + pixel deltas vs baseline (expectCsmShadowActivation, lines 370-405). The template all M4 pixel/JSON proofs extend (add full-darkness, stability-under-camera-motion, soft-vs-hard, alpha-test silhouette assertions).                                                                      |
+| `./references/bevy/crates/bevy_light/src/cascade.rs`                          | SOTA reference: calculate_cascade (lines 263-329) frustum-corner light-space AABB fit + cascade_texel_size texel snapping (lines 286-299); calculate_cascade_bounds (lines 41-56) exponential split. Study, do not copy.                                                                                                                             |
 
 ### Tasks
 
@@ -944,7 +944,7 @@ Replace the fixed-center / globally-scaled ortho fit in directional-shadow-matri
 
 **Touch:**
 
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/shadows/directional-shadow-matrix-computation.ts (extend input interface lines 75-83; rewrite center/size derivation lines 251-273; add frustum-corner + texel-snap helpers)`
+- `./packages/webgpu/src/shadows/directional-shadow-matrix-computation.ts (extend input interface lines 75-83; rewrite center/size derivation lines 251-273; add frustum-corner + texel-snap helpers)`
 
 **Done when:**
 
@@ -953,7 +953,7 @@ Replace the fixed-center / globally-scaled ortho fit in directional-shadow-matri
 - [x] When no camera frustum is supplied, output matrices are byte-identical to current behavior (existing csm matrixComputation unit tests unchanged)
 - [x] matrixComputation.status stays 'ready' and matrixCount equals cascadeCount in the csm-directional-shadow render-control route
 
-**Study:** /Users/felixz/Projects/aperture/references/bevy/crates/bevy_light/src/cascade.rs (calculate_cascade lines 263-329)
+**Study:** ./references/bevy/crates/bevy_light/src/cascade.rs (calculate_cascade lines 263-329)
 
 **Watch out:** Frustum corners must be reconstructed in the SAME coordinate convention as makeOrthographic/makeLookAt already used here (right-handed, z into screen); the existing shader does shadowClip.z\*0.5+0.5 remap (sampling lines 97-101) so do not silently switch to reverse-Z. Texel snapping must use the FINAL ortho diameter and the actual mapSize or shadows will swim. The light up-vector degeneracy fallback (makeLookAt lines 333-335) must be preserved when light dir is near-vertical.
 
@@ -965,7 +965,7 @@ Replace the pure-linear cascadeSplit() in directional-shadow-view-projection-pla
 
 **Touch:**
 
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/shadows/directional-shadow-view-projection-plan.ts (cascadeSplit lines 279-288; add absolute near/far to DirectionalShadowViewProjectionPlan interface lines 23-42; thread new input fields lines 72-77)`
+- `./packages/webgpu/src/shadows/directional-shadow-view-projection-plan.ts (cascadeSplit lines 279-288; add absolute near/far to DirectionalShadowViewProjectionPlan interface lines 23-42; thread new input fields lines 72-77)`
 
 **Done when:**
 
@@ -973,7 +973,7 @@ Replace the pure-linear cascadeSplit() in directional-shadow-view-projection-pla
 - [x] A Vitest unit asserts the per-cascade absolute near of cascade N equals (or overlaps) the absolute far of cascade N-1 (contiguous coverage)
 - [x] The csm-directional-shadow render-control route's viewProjection.plans still report cascadeIndex [0,1,2,3] and status 'ready' (existing spec assertion lines 274-275 unchanged)
 
-**Study:** /Users/felixz/Projects/aperture/references/bevy/crates/bevy_light/src/cascade.rs (calculate_cascade_bounds lines 41-56)
+**Study:** ./references/bevy/crates/bevy_light/src/cascade.rs (calculate_cascade_bounds lines 41-56)
 
 **Watch out:** The shader-side selection bounds (light-packing.ts directionalCascadeFarBounds) and these matrix-side splits MUST use the same minimum_distance and maximum_distance or selection picks a cascade whose matrix doesn't cover the fragment, producing black/edge artifacts. Keep both reading the same shadowMaxDistance source.
 
@@ -985,11 +985,11 @@ Extend the authoring surface so the dead/missing knobs become real authored data
 
 **Touch:**
 
-- `/Users/felixz/Projects/aperture/packages/render/src/rendering/authoring-components-camera-light.ts (LightShadowSettings lines 92-104)`
-- `/Users/felixz/Projects/aperture/packages/render/src/rendering/authoring-types.ts (LightShadowSettingsInput lines 123-131)`
-- `/Users/felixz/Projects/aperture/packages/render/src/rendering/extraction-light-settings.ts (readShadowSettings lines 35-45; appendShadowRequest lines 133-142)`
-- `/Users/felixz/Projects/aperture/packages/render/src/rendering/authoring-validation-lights.ts (validateLightShadowSettingsInput lines 106-152)`
-- `/Users/felixz/Projects/aperture/packages/render/src/rendering/snapshot.ts (ShadowRequestPacket type — add optional shadowType/strength/filterRadius/slopeBias)`
+- `./packages/render/src/rendering/authoring-components-camera-light.ts (LightShadowSettings lines 92-104)`
+- `./packages/render/src/rendering/authoring-types.ts (LightShadowSettingsInput lines 123-131)`
+- `./packages/render/src/rendering/extraction-light-settings.ts (readShadowSettings lines 35-45; appendShadowRequest lines 133-142)`
+- `./packages/render/src/rendering/authoring-validation-lights.ts (validateLightShadowSettingsInput lines 106-152)`
+- `./packages/render/src/rendering/snapshot.ts (ShadowRequestPacket type — add optional shadowType/strength/filterRadius/slopeBias)`
 
 **Done when:**
 
@@ -998,7 +998,7 @@ Extend the authoring surface so the dead/missing knobs become real authored data
 - [x] The csm-directional-shadow render-control status (shadow.requests[]) reports the authored shadowType/strength when set on the light, JSON-safe
 - [x] Existing extraction tests guarding LightShadowSettings public surface still pass (no breaking of default-omitted fields)
 
-**Study:** /Users/felixz/Projects/aperture/references/three.js/docs/pages/CSMShadowNode.html.md
+**Study:** ./references/three.js/docs/pages/CSMShadowNode.html.md
 
 **Watch out:** This is the ECS-is-source-of-truth boundary — values must round-trip through the worker snapshot codec. ShadowRequestPacket is encoded in snapshot-packed codecs for cross-worker transport; if shadowType/strength are added to the packet they must be added to the packed encoder/decoder or they will be dropped across the worker boundary. Confirm whether ShadowRequestPacket is packed-codec'd or change-set only before adding fields.
 
@@ -1010,8 +1010,8 @@ Make shadows reach full darkness and obey authored strength. Pack per-light shad
 
 **Touch:**
 
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts (remove MIN_VISIBILITY consts; rewrite 6 mix sites; add shadowStrength helper)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/lighting/light-packing.ts (pack strength into a light float slot; thread from ShadowRequestPacket via directionalShadows map lines 266-291)`
+- `./packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts (remove MIN_VISIBILITY consts; rewrite 6 mix sites; add shadowStrength helper)`
+- `./packages/webgpu/src/lighting/light-packing.ts (pack strength into a light float slot; thread from ShadowRequestPacket via directionalShadows map lines 266-291)`
 
 **Done when:**
 
@@ -1020,7 +1020,7 @@ Make shadows reach full darkness and obey authored strength. Pack per-light shad
 - [x] A Vitest WGSL-generation unit asserts the emitted shader no longer contains the literal 0.45 / 0.5 MIN_VISIBILITY constants and instead references a shadowStrength(...) read
 - [x] Existing csm spek expectCsmShadowActivation maxDelta>10 assertion still passes (shadow still visibly changes pixels)
 
-**Study:** /Users/felixz/Projects/aperture/references/bevy/crates/bevy_light/src/cascade.rs
+**Study:** ./references/bevy/crates/bevy_light/src/cascade.rs
 
 **Watch out:** Picking a float-buffer slot that collides with directional cascade far-bounds (offset+6..+9) or matrixBaseIndex (offset+10) will silently corrupt CSM selection. Audit PACKED_LIGHT_FLOAT_STRIDE first. The multi-shadow shader (applyStandardMultiShadowMapSampling) and single/point shaders each declare their own copies of the const — all must be updated consistently or the variants diverge.
 
@@ -1032,10 +1032,10 @@ Make authored bias/normalBias/slopeBias actually affect sampling and the caster 
 
 **Touch:**
 
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/shadows/shadow-caster-pipeline-descriptor.ts (depthStencil metadata lines 51-55,236-240)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/shadows/shadow-caster-pipeline-resource.ts (createBrowserShadowCasterPipelineDescriptor depthStencil lines 323-327)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts (replace fixed bias consts; add normal-offset to receiver position before projection)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/lighting/light-packing.ts (pack depthBias/normalBias into light floats)`
+- `./packages/webgpu/src/shadows/shadow-caster-pipeline-descriptor.ts (depthStencil metadata lines 51-55,236-240)`
+- `./packages/webgpu/src/shadows/shadow-caster-pipeline-resource.ts (createBrowserShadowCasterPipelineDescriptor depthStencil lines 323-327)`
+- `./packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts (replace fixed bias consts; add normal-offset to receiver position before projection)`
+- `./packages/webgpu/src/lighting/light-packing.ts (pack depthBias/normalBias into light floats)`
 
 **Done when:**
 
@@ -1044,7 +1044,7 @@ Make authored bias/normalBias/slopeBias actually affect sampling and the caster 
 - [x] A pipeline-descriptor Vitest unit asserts the produced GPU pipeline depthStencil includes depthBias and depthBiasSlopeScale matching the descriptor
 - [x] Peter-panning check: with very large bias the spec asserts the contact shadow detaches (caster base region brightens) — proven in `test/e2e/shadow-bias.spec.ts`: the authored bias detaches the over-occluding self-shadow so the floor brightens (avg +20). Note: an extreme bias (~0.35) over-detaches to full self-occlusion under SwiftShader, so the proof uses the authored-bias brightening (the peter-panning direction). — proving bias is live, not dead
 
-**Study:** /Users/felixz/Projects/aperture/references/three.js/src/renderers/webgl/WebGLShadowMap.js
+**Study:** ./references/three.js/src/renderers/webgl/WebGLShadowMap.js
 
 **Watch out:** WebGPU depthBias is in depth-buffer units (depth24plus) and slope scale interacts with the existing 'less-equal' depthCompare; over-biasing causes peter-panning, which the test must distinguish from correct behavior. Normal-offset must use the GEOMETRIC normal in world space and a texel-world-size derived from the cascade extent (mapSize-dependent) or it will be cascade-inconsistent. Do not double-apply bias (pipeline slope bias + shader receiver bias are complementary, keep magnitudes small).
 
@@ -1056,7 +1056,7 @@ Eliminate hard cascade seams. In standard-shader-shadow-sampling.ts cascaded pat
 
 **Touch:**
 
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts (selectDirectionalShadowCascade lines 32-47; sampleDirectionalShadowFactor lines 76-131; extract a sampleSingleCascade(lightIndex,cascadeIndex,worldPosition) helper)`
+- `./packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts (selectDirectionalShadowCascade lines 32-47; sampleDirectionalShadowFactor lines 76-131; extract a sampleSingleCascade(lightIndex,cascadeIndex,worldPosition) helper)`
 
 **Done when:**
 
@@ -1065,7 +1065,7 @@ Eliminate hard cascade seams. In standard-shader-shadow-sampling.ts cascaded pat
 - [x] The csm-directional-shadow spec's existing 4-cascade assertions (cascadeIndex [0,1,2,3], matrixCount 4) still pass
 - [x] Performance guard: blending only doubles taps inside the band (one extra cascade sample only when blend>0); csm + shadow-bias specs report rendering.supported true with no WebGPU validation warnings
 
-**Study:** /Users/felixz/Projects/aperture/references/three.js/docs/pages/module-CSMShader.html.md
+**Study:** ./references/three.js/docs/pages/module-CSMShader.html.md
 
 **Watch out:** The two blended cascades have DIFFERENT projection matrices and resolutions (post M4-T1), so the blend must sample each cascade with its own matrix/layer and only mix the resulting factors, never the UVs. The blend band must lie inside both cascades' coverage; using disagreeing select vs matrix bounds (the bug M4-T2 fixes) will make the far cascade sample land out of frustum and early-out to 1.0, producing a bright seam instead of smooth — hence the dependency on M4-T2.
 
@@ -1077,9 +1077,9 @@ Add a PCSS (percentage-closer soft shadows) path selectable via authored shadowT
 
 **Touch:**
 
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts (add PCSS blocker-search + variable-radius PCF; make cascaded sampleDirectionalShadowPcf3x3 honor filterRadiusTexels, line 49)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/materials/standard/standard-shader.ts (thread shadowType->feature flag at the apply* call sites lines 674-688)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/lighting/light-packing.ts (pack filterRadius + shadowType + lightSize into light floats for the shader to branch on)`
+- `./packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts (add PCSS blocker-search + variable-radius PCF; make cascaded sampleDirectionalShadowPcf3x3 honor filterRadiusTexels, line 49)`
+- `./packages/webgpu/src/materials/standard/standard-shader.ts (thread shadowType->feature flag at the apply* call sites lines 674-688)`
+- `./packages/webgpu/src/lighting/light-packing.ts (pack filterRadius + shadowType + lightSize into light floats for the shader to branch on)`
 
 **Done when:**
 
@@ -1088,7 +1088,7 @@ Add a PCSS (percentage-closer soft shadows) path selectable via authored shadowT
 - [x] A Vitest WGSL-generation unit asserts the PCSS variant emits a blocker-search loop and a penumbra-width computation, and that the cascaded PCF now multiplies the kernel offset by filterRadiusTexels — `test/webgpu/standard-shader.test.ts`: asserts sampleDirectionalShadowPcss (textureLoad blocker search + penumbraWidth) and the cascaded PCF multiplies the offset by filterRadius.
 - [x] No WebGPU validation warnings; rendering.supported true in status — csm-directional + shadow-bias e2e (PCSS active) report rendering.supported with no validation warnings.
 
-**Study:** /Users/felixz/Projects/aperture/references/three.js/src/nodes/lighting (PCSS-style soft shadow node patterns)
+**Study:** ./references/three.js/src/nodes/lighting (PCSS-style soft shadow node patterns)
 
 **Watch out:** WGSL comparison samplers (textureSampleCompareLevel) cannot directly return raw depth for a blocker search; the blocker search needs either a second non-comparison sampler/view of the same depth texture or a manual compare against multiple taps. This may require a second sampler binding or a depth-as-texture view — verify the shadow-depth-texture-resource binding layout supports it before designing the WGSL. Variable-radius PCF inside a dynamic loop can hit WGSL uniform-control-flow constraints with textureSampleCompareLevel (must use Level, already the case). Keep sample counts bounded to avoid perf cliffs; gate PCSS behind the explicit shadowType so default scenes stay cheap.
 
@@ -1100,9 +1100,9 @@ Replace the position-only depth caster with an alpha-test-capable variant. Add a
 
 **Touch:**
 
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/shadows/shadow-caster-pipeline-resource.ts (add SHADOW_CASTER_ALPHA_TEST_WGSL; bind baseColor texture/sampler/cutoff; variant pipeline creation around lines 235-264)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/shadows/shadow-caster-pipeline-descriptor.ts (alpha-test descriptor variant: vertex.buffers add TEXCOORD_0, colorTargets stays [], add alphaTest metadata; createDescriptor lines 206-243)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/shadows/shadow-caster-draw-list-plan.ts (select alpha-test vs opaque pipeline per draw based on material alphaMode)`
+- `./packages/webgpu/src/shadows/shadow-caster-pipeline-resource.ts (add SHADOW_CASTER_ALPHA_TEST_WGSL; bind baseColor texture/sampler/cutoff; variant pipeline creation around lines 235-264)`
+- `./packages/webgpu/src/shadows/shadow-caster-pipeline-descriptor.ts (alpha-test descriptor variant: vertex.buffers add TEXCOORD_0, colorTargets stays [], add alphaTest metadata; createDescriptor lines 206-243)`
+- `./packages/webgpu/src/shadows/shadow-caster-draw-list-plan.ts (select alpha-test vs opaque pipeline per draw based on material alphaMode)`
 
 **Done when:**
 
@@ -1111,7 +1111,7 @@ Replace the position-only depth caster with an alpha-test-capable variant. Add a
 - [x] An opaque caster in the same scene still uses the position-only pipeline (descriptor pipelineKey differs); spec asserts both pipeline variants coexist without WebGPU validation warnings — descriptor unit asserts both variants coexist with distinct pipelineKeys (the GPU-pass coexistence/no-warnings assertion lands with the pixel route, below).
 - [x] commandBufferSubmission.status stays 'submitted' and depth pass still produces a valid shadow map (existing csm spec passes) — the alpha-shadow route submits its depth pass and reads back a valid depth map; the existing csm/auto/point/spot/multi shadow specs all still pass (alpha-test is purely additive — opaque casters are untouched).
 
-**Study:** /Users/felixz/Projects/aperture/references/bevy (prepass / alpha-mask shadow caster patterns in bevy_pbr)
+**Study:** ./references/bevy (prepass / alpha-mask shadow caster patterns in bevy_pbr)
 
 **Watch out:** The caster bind group currently has only group(0)=shadow matrices (shadow-caster-matrix-bind-group-resource.ts); an alpha-test variant needs a SECOND bind group for the material baseColor texture+sampler+cutoff, which changes the pipeline layout — must not break the existing position-only pipeline's explicit layout. The vertex stride parser (parseShadowCasterPositionLayout lines 432-501) currently extracts only POSITION; the alpha variant must extract TEXCOORD_0 offset too. Material alphaCutoff/baseColor must reach the shadow pass without the renderer owning material state (read from the snapshot material handle resolution, not a cached mutable material).
 
@@ -1123,10 +1123,10 @@ Turn the inert ShadowAtlasRegion descriptor field into a real packer + update sc
 
 **Touch:**
 
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/shadows/ (new shadow-atlas-packer.ts producing ShadowAtlasRegion assignments)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/shadows/shadow-map-descriptor.ts (consume packer-assigned atlasRegion; lines 144-148,172)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/shadows/shadow-pass-attachment-descriptor.ts (apply atlasRegion as render-pass viewport/scissor)`
-- `/Users/felixz/Projects/aperture/packages/render/src/rendering/authoring-components-camera-light.ts (add updateMode to LightShadowSettings)`
+- `./packages/webgpu/src/shadows/ (new shadow-atlas-packer.ts producing ShadowAtlasRegion assignments)`
+- `./packages/webgpu/src/shadows/shadow-map-descriptor.ts (consume packer-assigned atlasRegion; lines 144-148,172)`
+- `./packages/webgpu/src/shadows/shadow-pass-attachment-descriptor.ts (apply atlasRegion as render-pass viewport/scissor)`
+- `./packages/render/src/rendering/authoring-components-camera-light.ts (add updateMode to LightShadowSettings)`
 
 **Done when:**
 
@@ -1135,7 +1135,7 @@ Turn the inert ShadowAtlasRegion descriptor field into a real packer + update sc
 - [x] An 'once' (static) light's caster pass is encoded on the first frame and SKIPPED on subsequent frames — the spec asserts commandEncoding.records count for that light drops to 0 after the first ready frame while its shadow remains visible (served from cache) — atlas-shadow.spec.ts: the per-frame scheduler (realtime/once/interval) returns [1,2] on frame 1 and [1] on frame 2, so the static light's draw count is 0 after the first frame while its atlas region stays written.
 - [x] The multi-light-shadow.spec.ts existing assertions still pass (no regression for the non-atlas path) — re-run green; the atlas route is purely additive (new files only).
 
-**Study:** /Users/felixz/Projects/aperture/references/engine (PlayCanvas clustered lighting + shadow atlas allocation)
+**Study:** ./references/engine (PlayCanvas clustered lighting + shadow atlas allocation)
 
 **Watch out:** Rendering multiple lights into atlas sub-rects requires viewport/scissor per pass within ONE render pass OR separate passes targeting sub-views; depth24plus does not support arbitrary sub-view rendering the way color does — verify whether the existing shadow-pass-encoder writes full-texture or supports viewport. The 'once' skip must invalidate the cache when the light transform or scene casters change, or static shadows go stale; tie invalidation to a content hash. This task is the largest and most independent — sequence it last and keep it behind the new authoring fields so default single-light scenes are unaffected.
 
@@ -1413,20 +1413,20 @@ Stop SSAO from darkening direct lighting and emissive. Currently post-ssao.ts:56
 
 ### Key entry points
 
-| File / symbol                                                                               | Role                                                                                                                                                                                                                                                                                    |
-| ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/Users/felixz/Projects/aperture/packages/webgpu/src/app/frame-loop.ts`                     | The 994-line route dispatcher (renderWebGpuAppFrame). The 5 route branches (211/362/406/497/529-952) and the command-concatenation at 847-850 are what the graph builder replaces as the single frame entry point.                                                                      |
-| `/Users/felixz/Projects/aperture/packages/webgpu/src/render/frame/frame-boundary.ts`        | assembleFrameBoundary (line 287): the ONE place that creates an encoder, begins/ends a render pass, finishes and submits. Must be refactored so it can encode INTO a shared encoder without finishing/submitting — this is the keystone single-encoder change.                          |
-| `/Users/felixz/Projects/aperture/packages/webgpu/src/app/frame-boundaries.ts`               | Multi-target loop (assembleWebGpuAppFrameBoundaries). Owns submittedTargetCounts local load/store inference (153,261-274), MSAA resolve, occlusion-query feedback, render-bundle keys, per-target boundary at 419. The graph compiler subsumes this loop's ordering + load/store logic. |
-| `/Users/felixz/Projects/aperture/packages/webgpu/src/app/post-processing.ts`                | Post-effect orchestrator. 5 assembleFrameBoundary calls (158/212/347/504/516) for scene/motion/effect/graph-pass. Each becomes a render PassNode; the ping/pong slot heuristic (254-257) becomes graph transient resources.                                                             |
-| `/Users/felixz/Projects/aperture/packages/webgpu/src/post/post-pass.ts`                     | WebGpuPostEffect.prepare() contract (120-129) — today's only user hook. The new addRenderPass/addComputePass API generalizes this; PassNode read/write declarations replace requiresMotionVectors/requiresDepthTexture booleans.                                                        |
-| `/Users/felixz/Projects/aperture/packages/webgpu/src/render/passes/render-pass-commands.ts` | RenderPassCommand union (119-129) — draw-level commands executed inside a pass. Needs a sibling ComputePassCommand union (setComputePipeline/setBindGroup/dispatchWorkgroups) for first-class compute nodes.                                                                            |
-| `/Users/felixz/Projects/aperture/packages/webgpu/src/gpu/command-encoder.ts`                | createCommandEncoderResource — the per-frame encoder factory. The graph executor calls this ONCE per frame instead of per boundary.                                                                                                                                                     |
-| `/Users/felixz/Projects/aperture/packages/webgpu/src/render/queues/queue-submit.ts`         | submitCommandBuffers — invoked once per frame after the graph finishes its single encoder, accepting the multi-element array (it already supports arrays).                                                                                                                              |
-| `/Users/felixz/Projects/aperture/packages/webgpu/src/app/resource-cache.ts`                 | WebGpuAppResourceCache.postPasses (147-161) holds the transient slots + hand-managed history maps. New graph transient-resource pool + history-resource lifecycle live here.                                                                                                            |
-| `/Users/felixz/Projects/aperture/references/engine/src/scene/frame-graph.js`                | SOTA reference to STUDY: renderTargetMap, compile() store-on-no-clear inference, pass merging, addRenderPass + beforePasses/afterPasses. Mirror its semantics, do not copy.                                                                                                             |
-| `/Users/felixz/Projects/aperture/references/three.js/src/nodes/display/PassNode.js`         | SOTA reference to STUDY: \_previousTextures/getPreviousTexture history-resource model (610-686) for multi-frame graph resources (TAA history).                                                                                                                                          |
-| `/Users/felixz/Projects/aperture/scripts/render-control.mjs`                                | Proof harness: status/pixels/screenshot/scenario commands read globalThis.**APERTURE_EXAMPLE_STATUS**. New graph examples publish JSON-safe graph reports asserted here and in E2E specs.                                                                                               |
+| File / symbol                                                 | Role                                                                                                                                                                                                                                                                                    |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `./packages/webgpu/src/app/frame-loop.ts`                     | The 994-line route dispatcher (renderWebGpuAppFrame). The 5 route branches (211/362/406/497/529-952) and the command-concatenation at 847-850 are what the graph builder replaces as the single frame entry point.                                                                      |
+| `./packages/webgpu/src/render/frame/frame-boundary.ts`        | assembleFrameBoundary (line 287): the ONE place that creates an encoder, begins/ends a render pass, finishes and submits. Must be refactored so it can encode INTO a shared encoder without finishing/submitting — this is the keystone single-encoder change.                          |
+| `./packages/webgpu/src/app/frame-boundaries.ts`               | Multi-target loop (assembleWebGpuAppFrameBoundaries). Owns submittedTargetCounts local load/store inference (153,261-274), MSAA resolve, occlusion-query feedback, render-bundle keys, per-target boundary at 419. The graph compiler subsumes this loop's ordering + load/store logic. |
+| `./packages/webgpu/src/app/post-processing.ts`                | Post-effect orchestrator. 5 assembleFrameBoundary calls (158/212/347/504/516) for scene/motion/effect/graph-pass. Each becomes a render PassNode; the ping/pong slot heuristic (254-257) becomes graph transient resources.                                                             |
+| `./packages/webgpu/src/post/post-pass.ts`                     | WebGpuPostEffect.prepare() contract (120-129) — today's only user hook. The new addRenderPass/addComputePass API generalizes this; PassNode read/write declarations replace requiresMotionVectors/requiresDepthTexture booleans.                                                        |
+| `./packages/webgpu/src/render/passes/render-pass-commands.ts` | RenderPassCommand union (119-129) — draw-level commands executed inside a pass. Needs a sibling ComputePassCommand union (setComputePipeline/setBindGroup/dispatchWorkgroups) for first-class compute nodes.                                                                            |
+| `./packages/webgpu/src/gpu/command-encoder.ts`                | createCommandEncoderResource — the per-frame encoder factory. The graph executor calls this ONCE per frame instead of per boundary.                                                                                                                                                     |
+| `./packages/webgpu/src/render/queues/queue-submit.ts`         | submitCommandBuffers — invoked once per frame after the graph finishes its single encoder, accepting the multi-element array (it already supports arrays).                                                                                                                              |
+| `./packages/webgpu/src/app/resource-cache.ts`                 | WebGpuAppResourceCache.postPasses (147-161) holds the transient slots + hand-managed history maps. New graph transient-resource pool + history-resource lifecycle live here.                                                                                                            |
+| `./references/engine/src/scene/frame-graph.js`                | SOTA reference to STUDY: renderTargetMap, compile() store-on-no-clear inference, pass merging, addRenderPass + beforePasses/afterPasses. Mirror its semantics, do not copy.                                                                                                             |
+| `./references/three.js/src/nodes/display/PassNode.js`         | SOTA reference to STUDY: \_previousTextures/getPreviousTexture history-resource model (610-686) for multi-frame graph resources (TAA history).                                                                                                                                          |
+| `./scripts/render-control.mjs`                                | Proof harness: status/pixels/screenshot/scenario commands read globalThis.**APERTURE_EXAMPLE_STATUS**. New graph examples publish JSON-safe graph reports asserted here and in E2E specs.                                                                                               |
 
 ### Tasks
 
@@ -1438,11 +1438,11 @@ Create the pure, headless-safe graph data model with NO GPU side effects. Define
 
 **Touch:**
 
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/render/graph/frame-graph.ts (new: FrameGraph builder + handle/PassNode types)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/render/graph/frame-graph-compile.ts (new: pure topo-sort + renderTargetMap load/store inference + report)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/render/passes/compute-pass-commands.ts (new: ComputePassCommand union mirroring render-pass-commands.ts)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/index.ts (export graph barrel)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/test-support.ts (export graph types for vitest)`
+- `./packages/webgpu/src/render/graph/frame-graph.ts (new: FrameGraph builder + handle/PassNode types)`
+- `./packages/webgpu/src/render/graph/frame-graph-compile.ts (new: pure topo-sort + renderTargetMap load/store inference + report)`
+- `./packages/webgpu/src/render/passes/compute-pass-commands.ts (new: ComputePassCommand union mirroring render-pass-commands.ts)`
+- `./packages/webgpu/src/index.ts (export graph barrel)`
+- `./packages/webgpu/src/test-support.ts (export graph types for vitest)`
 
 **Done when:**
 
@@ -1452,7 +1452,7 @@ Create the pure, headless-safe graph data model with NO GPU side effects. Define
 - [x] FrameGraphCompileReportJsonValue round-trips through JSON.stringify with no functions/GPU handles (JSON-safe), verified by a test asserting JSON.parse(JSON.stringify(report)) deep-equals report
 - [x] compileFrameGraph is a pure function: calling it twice on the same graph yields deep-equal reports, and it runs with no WebGPU device present (headless-safe)
 
-**Study:** /Users/felixz/Projects/aperture/references/engine/src/scene/frame-graph.js
+**Study:** ./references/engine/src/scene/frame-graph.js
 
 **Watch out:** Keep this layer 100% GPU-free and synchronous so it stays worker/headless-safe (an architectural invariant). Do NOT import device/encoder types here. The handle id scheme must be stable across frames so history/aliasing decisions are deterministic for golden-file tests. Resist over-generalizing buffers in v1 — color/depth/history/swapchain textures are the load-bearing cases.
 
@@ -1464,10 +1464,10 @@ Build executeFrameGraph(device, queue, compiled, resources) that creates exactly
 
 **Touch:**
 
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/render/graph/frame-graph-execute.ts (new: one-encoder walk + submit-once)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/render/frame/frame-boundary.ts (refactor: extract encodeFrameBoundaryInto; assembleFrameBoundary becomes wrapper)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/render/passes/render-pass-command-executor.ts (reuse as-is for bundle caching/elision)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/gpu/command-submission-metrics.ts (extend to count multi-pass single-buffer frames)`
+- `./packages/webgpu/src/render/graph/frame-graph-execute.ts (new: one-encoder walk + submit-once)`
+- `./packages/webgpu/src/render/frame/frame-boundary.ts (refactor: extract encodeFrameBoundaryInto; assembleFrameBoundary becomes wrapper)`
+- `./packages/webgpu/src/render/passes/render-pass-command-executor.ts (reuse as-is for bundle caching/elision)`
+- `./packages/webgpu/src/gpu/command-submission-metrics.ts (extend to count multi-pass single-buffer frames)`
 
 **Done when:**
 
@@ -1476,7 +1476,7 @@ Build executeFrameGraph(device, queue, compiled, resources) that creates exactly
 - [x] CommandSubmissionMetricsReport.counts.commandBuffers === 1 and submittedCommandBuffers === 1 for a multi-pass frame; executedCommands/drawCalls sum across all nodes
 - [x] Compute node path executes setComputePipeline+dispatchWorkgroups against the fake device with a recorded 'beginComputePass'/'dispatchWorkgroups'/'end' sequence inside the same encoder
 
-**Study:** /Users/felixz/Projects/aperture/references/engine/src/platform/graphics/render-pass.js
+**Study:** ./references/engine/src/platform/graphics/render-pass.js
 
 **Watch out:** WebGPU forbids beginning a new pass while one is open — the executor MUST end each pass before beginning the next on the shared encoder. Readback copyTextureToBuffer must be encoded AFTER the producing pass ends but BEFORE finish. Do not break the occlusion-query resolve ordering (resolveQuerySet must run outside any render pass). The wrapper-preserves-legacy invariant is the safety net for the whole migration — get it green before touching any route.
 
@@ -1490,10 +1490,10 @@ Convert assembleWebGpuAppPostProcessedSwapchainTarget (post-processing.ts) to BU
 
 **Touch:**
 
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/app/post-processing.ts (build graph; emit identical postEffects/renderTarget reports)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/app/frame-boundaries.ts (thread useFrameGraph; route post target through executeFrameGraph)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/app/resource-cache.ts (transient texture pool keyed by graph handle, replacing fixed ping/pong slots)`
-- `/Users/felixz/Projects/aperture/examples/dof.worker.js (opt into useFrameGraph for proof)`
+- `./packages/webgpu/src/app/post-processing.ts (build graph; emit identical postEffects/renderTarget reports)`
+- `./packages/webgpu/src/app/frame-boundaries.ts (thread useFrameGraph; route post target through executeFrameGraph)`
+- `./packages/webgpu/src/app/resource-cache.ts (transient texture pool keyed by graph handle, replacing fixed ping/pong slots)`
+- `./examples/dof.worker.js (opt into useFrameGraph for proof)`
 
 **Done when:**
 
@@ -1503,7 +1503,7 @@ Convert assembleWebGpuAppPostProcessedSwapchainTarget (post-processing.ts) to BU
 - [x] examples/post-effects FXAA+bloom toggle still produces correct pixels via render-control pixels assertion at the published readback grid points _(test/e2e/post-effects.spec.ts "FrameGraph path matches…", 1f6721f: fxaa+bloom via ?graph=1 vs legacy ⇒ deep-equal report + readback pixels match at every shared sample (pixelDistance ≤ 2); passes on chrome-webgpu-swiftshader in 7.8s)_
 - [~] webgpu validation console guard reports no warnings (attachWebGpuValidationConsoleGuard) for the graph-path **dof** run — dof can't run (timeout); the post-effects graph-path E2E (#4) runs the same single-encoder machinery through the example's validation/status guards with zero warnings (the spec asserts ok:true + expectStatusJsonSafeForGpu), which is the equivalent verification on a runnable route.
 
-**Study:** /Users/felixz/Projects/aperture/packages/webgpu/src/app/post-processing.ts
+**Study:** ./packages/webgpu/src/app/post-processing.ts
 
 **Watch out:** The motion-vector attachment is sometimes a SECOND color target on the scene pass (useSceneMotionVectorAttachment) and sometimes a separate clear pass — both must map to graph writes or TAA breaks. The last-effect-to-swapchain detection (isLast) becomes 'write handle == swapchain handle'; getting this wrong double-renders or drops the final blit. Readback must still attach to the last swapchain-writing node. Keep the flag default OFF until E2E is green so main stays shippable.
 
@@ -1517,10 +1517,10 @@ Make assembleWebGpuAppFrameBoundaries (frame-boundaries.ts) build ONE FrameGraph
 
 **Touch:**
 
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/app/frame-boundaries.ts (build multi-target graph; delete local load/store loop in favor of compiler)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/app/view-commands.ts (keep skybox+opaque+sprite merge inside a node)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/app/transmission-grab.ts (becomes a declared graph node, not a boolean branch)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/app/frame-loop.ts (queued-built-in + single-built-in routes feed the graph builder)`
+- `./packages/webgpu/src/app/frame-boundaries.ts (build multi-target graph; delete local load/store loop in favor of compiler)`
+- `./packages/webgpu/src/app/view-commands.ts (keep skybox+opaque+sprite merge inside a node)`
+- `./packages/webgpu/src/app/transmission-grab.ts (becomes a declared graph node, not a boolean branch)`
+- `./packages/webgpu/src/app/frame-loop.ts (queued-built-in + single-built-in routes feed the graph builder)`
 
 **Done when:**
 
@@ -1530,7 +1530,7 @@ Make assembleWebGpuAppFrameBoundaries (frame-boundaries.ts) build ONE FrameGraph
 - [x] clustered-lights, csm-directional-shadow, transmission/glb-viewer E2E specs pass with graph ON — **clustered-lights ✅** (5ad6d3f: lit forward scene byte-correct through the graph, luminanceRange > 12, zero warnings) + **csm-directional-shadow ✅** (16ef314: the shadow-receiver forward frame renders through ONE encoder, sampling shadow maps from the separate caster passes, zero warnings) + **transmission ✅** (6aa330a: grab pass + main forward pass that samples it fold into ONE command buffer, through-glass pixels byte-correct, zero warnings). glb-viewer is the identical content-agnostic forward code path as clustered-lights (not separately re-run).
 - [x] Frame submits ONE command buffer for a multi-target + transmission-grab frame (CommandSubmissionMetricsReport.commandBuffers===1) — **multi-target ✅** (8e9df63 vitest: a 3-target frame ⇒ commandBuffers===1 via executeFrameGraph using the compiler load ops; + the camera-viewport-grid/split-screen graph E2E merge four/two camera submissions into one buffer on real GPU) + **transmission-grab ✅** (6aa330a: the grab pass is registered as a render node that clears+writes a transient "transmission-grab:<key>" handle BEFORE the main target node, so insertion order encodes grab→main into ONE shared encoder; the grab stores its scene-color texture, the main forward pass samples it via the existing transmission resources, and the transmissionGrabPass report + grab boundary are synthesized from the per-node encode results). Proof: test/e2e/transmission.spec.ts "transmission renders through the single-encoder FrameGraph (M3-T4)" PASSES on SwiftShader (4.5s), zero warnings.
 
-**Study:** /Users/felixz/Projects/aperture/packages/webgpu/src/app/frame-boundaries.ts
+**Study:** ./packages/webgpu/src/app/frame-boundaries.ts
 
 **Watch out:** submittedTargetCounts is keyed by webGpuAppFrameBoundaryTargetSubmissionKey including render-target identity — the graph handle ids must encode the same identity or load/clear flips and a camera overlay clears the previous camera's pixels. occlusionRenderIds>0 disables render bundles (frame-boundaries.ts:452-454) — preserve that node-attribute gate. Sprites are appended to opaque commands (frame-loop.ts:847-850); keeping them in one node avoids a transparency-ordering regression. Do not reorder shadow-prep relative to opaque.
 
@@ -1542,10 +1542,10 @@ Today shadow-pass-plan.ts marks submission 'deferred' and shadow caster command 
 
 **Touch:**
 
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/shadows/shadow-pass-plan.ts (submission 'ready'; expose per-pass graph node descriptors)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/shadows/shadow-caster-command-record-plan.ts (RenderPassCommand lists feed shadow render nodes)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/app/frame-boundaries.ts (add shadow nodes + declare opaque reads shadow handles)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/app/app-environment-resources.ts (shadow depth resources become imported/transient graph handles)`
+- `./packages/webgpu/src/shadows/shadow-pass-plan.ts (submission 'ready'; expose per-pass graph node descriptors)`
+- `./packages/webgpu/src/shadows/shadow-caster-command-record-plan.ts (RenderPassCommand lists feed shadow render nodes)`
+- `./packages/webgpu/src/app/frame-boundaries.ts (add shadow nodes + declare opaque reads shadow handles)`
+- `./packages/webgpu/src/app/app-environment-resources.ts (shadow depth resources become imported/transient graph handles)`
 
 **Done when:**
 
@@ -1555,7 +1555,7 @@ Today shadow-pass-plan.ts marks submission 'deferred' and shadow caster command 
 - [x] ShadowPassPlanReport.status === 'ready' and sections.passSubmission === true for a shadow-casting snapshot under the graph path _(shadow-pass-plan.test.ts: ready.status==='ready', sections.passSubmission===true, sections.gpuCommands===true)_
 - [x] No WebGPU validation warnings for shadow depth-texture read-after-write within the single encoder (validation console guard clean) _(all four fold E2E proofs call webGpuValidation.expectNoWarnings() and pass)_
 
-**Study:** /Users/felixz/Projects/aperture/references/engine/src/scene/renderer/render-pass-shadow-directional.js
+**Study:** ./references/engine/src/scene/renderer/render-pass-shadow-directional.js
 
 **Watch out:** Sampling a depth texture in the opaque pass that was written earlier in the SAME encoder requires the shadow pass's depthStoreOp='store' and a usage including TEXTURE_BINDING — the compiler must set store on the shadow node because opaque reads it (this is exactly the renderTargetMap store-on-no-clear rule). Cube/point shadows render 6 faces (faceCount) — each face is a node; do not regress the per-face depthLoadOp from shadow-pass-plan.ts:135-141. Keep the legacy deferred path behind the flag until all four shadow specs are green.
 
@@ -1567,10 +1567,10 @@ Replace the hand-threaded history state (resource-cache.ts WebGpuAppPostPassCach
 
 **Touch:**
 
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/render/graph/frame-graph.ts (declareHistory + per-frame double-buffer swap)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/post/post-taa.ts (declare history read 'previous' + write 'current' instead of fixed ping/pong)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/app/resource-cache.ts (history-resource pool replaces per-effect previous* maps for TAA color)`
-- `/Users/felixz/Projects/aperture/examples/taa.worker.js or post-effects.worker.js (enable TAA over graph history for proof)`
+- `./packages/webgpu/src/render/graph/frame-graph.ts (declareHistory + per-frame double-buffer swap)`
+- `./packages/webgpu/src/post/post-taa.ts (declare history read 'previous' + write 'current' instead of fixed ping/pong)`
+- `./packages/webgpu/src/app/resource-cache.ts (history-resource pool replaces per-effect previous* maps for TAA color)`
+- `./examples/taa.worker.js or post-effects.worker.js (enable TAA over graph history for proof)`
 
 **Done when:**
 
@@ -1579,7 +1579,7 @@ Replace the hand-threaded history state (resource-cache.ts WebGpuAppPostPassCach
 - [x] TAA still correctly falls back (motion-vectors.ts msaa/sprite/skybox reasons) under the graph path — status reports the same WebGpuAppMotionVectorFallbackReason values _(the motion-vector plan + report are computed UPSTREAM in queued-built-in-frame.ts, independent of the post path; the graph path declines to legacy when motionVectorColorFormat is null — post-history-graph.test.ts asserts the decline + no history pool alloc — so the legacy path runs the fallback-clear and reports the identical reason; the ?graph=1 E2E asserts motionVectors.status===scene-attachment under the graph; d598e59f)_
 - [x] No leaked/duplicated history textures across N frames: history pool size is stable (asserted via resource-reuse report counts over 10 frames) _(test/webgpu/frame-graph-history.test.ts, 11b9518: the history pool stays exactly two buffers — seen.size===2 — over 10 swap frames, current()/previous() always one of the two backing textures; reinforced at the route level in post-history-graph.test.ts: seen.size===2 + swapCount===frames across the real via-graph post path, d598e59f)_
 
-**Study:** /Users/felixz/Projects/aperture/references/three.js/src/nodes/display/PassNode.js
+**Study:** ./references/three.js/src/nodes/display/PassNode.js
 
 **Watch out:** History double-buffering must survive canvas resize (reallocate both buffers, drop stale history that frame) — a resize that reuses stale history shows ghosting. The swap must happen exactly once per frame at end-of-execute, not per node, or a frame that references history twice reads inconsistent data. Do not change motion-vector geometry-history wiring in this task; scope it to TAA color history to keep the slice small and provable.
 
@@ -1591,11 +1591,11 @@ Expose the user-facing insertion API on WebGpuApp (and surface it through packag
 
 **Touch:**
 
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/app/app.ts (WebGpuApp.addRenderPass/addComputePass/removePass on the interface)`
-- `/Users/felixz/Projects/aperture/packages/webgpu/src/app/create-webgpu-app.ts (store user passes; feed graph builder each frame)`
-- `/Users/felixz/Projects/aperture/packages/app/src/browser/app.ts (surface addRenderPass/addComputePass through createApertureApp)`
-- `/Users/felixz/Projects/aperture/examples/custom-graph-pass.worker.js + .main.js + .html (new: compute histogram read + wireframe overlay node)`
-- `/Users/felixz/Projects/aperture/test/e2e/custom-graph-pass.spec.ts (new: assert pixels + graph report)`
+- `./packages/webgpu/src/app/app.ts (WebGpuApp.addRenderPass/addComputePass/removePass on the interface)`
+- `./packages/webgpu/src/app/create-webgpu-app.ts (store user passes; feed graph builder each frame)`
+- `./packages/app/src/browser/app.ts (surface addRenderPass/addComputePass through createApertureApp)`
+- `./examples/custom-graph-pass.worker.js + .main.js + .html (new: compute histogram read + wireframe overlay node)`
+- `./test/e2e/custom-graph-pass.spec.ts (new: assert pixels + graph report)`
 
 **Done when:**
 
@@ -1605,7 +1605,7 @@ Expose the user-facing insertion API on WebGpuApp (and surface it through packag
 - [x] Existing WebGpuPostEffect[] passed to createWebGpuApp({postEffects}) still work via the auto-wrap adapter (examples/post-effects E2E unchanged), proving back-compat _(the graph post path already folds each WebGpuPostEffect into a render node — the via-graph effect loop in post-processing.ts IS the adapter; the user-pass insertion is additive and a no-op when none are registered, so test/e2e/post-effects.spec.ts "FrameGraph path matches…" (M3-T3) is unchanged-green and the custom-graph-pass example uses a stock createWebGpuCopyPostEffect as its present pass alongside the user passes)_
 - [x] createApertureApp (packages/app) can register a custom pass end-to-end (a developer-api E2E or the new example launched through the app package), closing the 'users cannot insert custom passes' blocker _(2a12985b: packages/app startGeneratedBrowserApp surfaces addRenderPass/addComputePass/removePass forwarding to the WebGpuApp; the underlying WebGpuApp.addRenderPass/addComputePass path is proven end-to-end on the real GPU by the custom-graph-pass example)_
 
-**Study:** /Users/felixz/Projects/aperture/references/engine/src/platform/graphics/frame-pass.js
+**Study:** ./references/engine/src/platform/graphics/frame-pass.js
 
 **Watch out:** A user node that writes the swapchain mid-frame must not clobber the final post output — validate that user writes target transient handles unless explicitly inserted last; emit a diagnostic on conflicting swapchain writes. Compute nodes need their own bind-group/pipeline layout path (none exists per the compute-not-first-class gap) — the example must create its compute pipeline via device.createComputePipeline guarded by capability. Keep the node API JSON-describable enough that the graph report stays JSON-safe (commands carry opaque GPU handles but the REPORT must not serialize them — only names/counts). This is the keystone deliverable; the public API shape is SIGNED OFF — implement exactly the shape in §Design decisions D1 at the top of M3 (declarative node + `encode` callback, string-named handles, edges drive order), do not improvise it.
 

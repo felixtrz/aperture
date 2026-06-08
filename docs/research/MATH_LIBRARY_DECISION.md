@@ -22,7 +22,7 @@ Prescriptive policy:
 
 Reference path:
 
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/math`
+- `references/three.js/src/math`
 
 Useful traits:
 

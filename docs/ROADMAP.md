@@ -63,7 +63,7 @@ Reason:
 
 Current Bevy reference checkout:
 
-- Bevy: `/Users/felixz/Projects/aperture/references/bevy`, branch `main`,
+- Bevy: `./references/bevy`, branch `main`,
   commit `370be1b02`
 
 Alignment gate exit criteria:
@@ -90,10 +90,10 @@ Reason:
 
 Current reference checkouts:
 
-- three.js: `/Users/felixz/Projects/aperture-reference-libs/three.js`
+- three.js: `references/three.js`
 - Babylon.js: `/Users/felixz/Projects/aperture-reference-libs/Babylon.js`
-- PlayCanvas engine: `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine`
-- Bevy: `/Users/felixz/Projects/aperture/references/bevy`
+- PlayCanvas engine: `references/engine`
+- Bevy: `./references/bevy`
 - gl-matrix: `/Users/felixz/Projects/aperture-reference-libs/gl-matrix`
 - wgpu-matrix: `/Users/felixz/Projects/aperture-reference-libs/wgpu-matrix`
 
