@@ -53,6 +53,7 @@ import {
   type PhysicsVec3,
 } from "./components.js";
 import { multiplyQuat, normalizeQuat, rotateVec3ByQuat } from "./math.js";
+import { isNonUnitScale, scaleColliderShape } from "./collider-scale.js";
 
 export interface PhysicsWorldSyncState {
   readonly knownEntities: Set<string>;
@@ -625,13 +626,25 @@ function createColliderDescriptor(
     collider,
     "restitutionCombine",
   );
-  const shape = readColliderShape(collider);
+  const rawShape = readColliderShape(collider);
+  const colliderScale = readColliderScale(collider);
+  const assetBacked = isAssetBackedColliderShape(rawShape);
+  // Bake the entity scale into primitive shape dimensions so the collider matches
+  // the scaled render geometry (PlayCanvas applies world scale to its shapes the
+  // same way). Asset shapes are left unscaled — their scale is rejected/handled by
+  // the asset cooking path. `scale` is attached for asset shapes (as before) and
+  // for non-unit primitive scale (so the backend can diagnose inexact scale and the
+  // descriptor stays self-describing); unit-scale primitives are left untouched so
+  // their descriptor is unchanged.
+  const shape = assetBacked
+    ? rawShape
+    : scaleColliderShape(rawShape, colliderScale);
 
   return {
     entity: serializeEntityRef(collider),
     shape,
-    ...(isAssetBackedColliderShape(shape)
-      ? { scale: readVec3(collider, LocalTransform, "scale") }
+    ...(assetBacked || isNonUnitScale(colliderScale)
+      ? { scale: colliderScale }
       : {}),
     offsetTranslation: colliderOffsetTranslation(source),
     offsetRotation: colliderOffsetRotation(source),
@@ -853,6 +866,12 @@ function readColliderShape(entity: Entity): PhysicsShape {
   }
 
   throw new Error(`Unsupported physics collider shape kind '${String(kind)}'.`);
+}
+
+function readColliderScale(entity: Entity): PhysicsVec3 {
+  return entity.hasComponent(LocalTransform)
+    ? readVec3(entity, LocalTransform, "scale")
+    : [1, 1, 1];
 }
 
 function writePhysicsBodyState(
