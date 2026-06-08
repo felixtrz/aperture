@@ -50,13 +50,22 @@ export interface CreateOrReuseWebGpuMsaaColorTextureResult {
   readonly diagnostics: readonly WebGpuMsaaColorTextureDiagnostic[];
 }
 
+// WebGPU core only guarantees sampleCount 1 and 4 (other counts are not exposed
+// by any runtime capability query; three.js and PlayCanvas likewise use only 1/4
+// on WebGPU). The real device check is texture-creation validation, handled by the
+// try/catch in createOrReuseWebGpuMsaaColorTexture. Selection is data-driven from
+// this set so a future device feature can widen it by editing the array + type
+// without touching the selection logic.
 const WEBGPU_SUPPORTED_MSAA_SAMPLE_COUNTS = [1, 4] as const;
 
 export function resolveWebGpuMsaaConfig(
   requestedSampleCount: number | undefined,
 ): WebGpuMsaaConfig {
   const requested = sanitizeRequestedSampleCount(requestedSampleCount);
-  const sampleCount: WebGpuMsaaSampleCount = requested > 1 ? 4 : 1;
+  const sampleCount = nearestSupportedSampleCount(
+    requested,
+    WEBGPU_SUPPORTED_MSAA_SAMPLE_COUNTS,
+  );
 
   return {
     requestedSampleCount: requested,
@@ -65,6 +74,24 @@ export function resolveWebGpuMsaaConfig(
     clamped: requested !== sampleCount,
     supportedSampleCounts: WEBGPU_SUPPORTED_MSAA_SAMPLE_COUNTS,
   };
+}
+
+/**
+ * Picks the supported sample count for a requested count: the smallest supported
+ * value &gt;= the request (round up to the next supported quality so e.g. a request
+ * of 2 enables 4x MSAA rather than disabling it), capped at the largest supported
+ * value. With the current `[1, 4]` set this yields 1->1, 2..4->4, &gt;4->4.
+ */
+function nearestSupportedSampleCount(
+  requested: number,
+  supported: readonly WebGpuMsaaSampleCount[],
+): WebGpuMsaaSampleCount {
+  const ascending = [...supported].sort((a, b) => a - b);
+  const atLeastRequested = ascending.find((count) => count >= requested);
+
+  // 1x (no MSAA) is always supported, so it is the safe fallback if the request
+  // exceeds the largest supported count or the set is somehow empty.
+  return atLeastRequested ?? ascending[ascending.length - 1] ?? 1;
 }
 
 export function createWebGpuMsaaColorTextureCacheSlot(): WebGpuMsaaColorTextureCacheSlot {
