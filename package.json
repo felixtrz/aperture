@@ -11,6 +11,7 @@
     "typecheck": "pnpm run build",
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
     "check:boundaries": "node scripts/check-package-boundaries.mjs",
+    "check:doc-paths": "node scripts/check-doc-paths.mjs",
     "check:progress": "node scripts/check-progress-tracker.mjs && node scripts/check-plan-doc-status.mjs",
     "check:plan-docs": "node scripts/check-plan-doc-status.mjs",
     "check:publish": "node scripts/check-package-publish-readiness.mjs",
@@ -39,7 +40,7 @@
     "version-packages": "changeset version",
     "release:dry-run": "pnpm run publish:dry-run",
     "release:publish": "pnpm run build && pnpm run check:publish:pack && changeset publish",
-    "check": "pnpm run check:boundaries && pnpm run check:progress && pnpm run check:release-config && pnpm run typecheck && pnpm run check:publish && pnpm run typecheck:test && pnpm run check:examples && pnpm run check:diagnostics && pnpm run lint && pnpm run format:check && pnpm test",
+    "check": "pnpm run check:boundaries && pnpm run check:doc-paths && pnpm run check:progress && pnpm run check:release-config && pnpm run typecheck && pnpm run check:publish && pnpm run typecheck:test && pnpm run check:examples && pnpm run check:diagnostics && pnpm run lint && pnpm run format:check && pnpm test",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

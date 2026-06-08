@@ -40,21 +40,21 @@ The important patterns to copy are architectural, not package names.
 
 The IWSDK implementation worth using as the concrete reference is:
 
-- `/Users/felixz/Projects/immersive-web-sdk/packages/reference-assets/README.md`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/reference-assets/package.json`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/reference-assets/tools/ingest.ts`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/reference-assets/tools/ingestion/parser.ts`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/reference-assets/tools/ingestion/chunker.ts`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/reference-assets/tools/generate-embeddings.ts`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/reference-assets/scripts/build-payload.mjs`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/reference-assets/scripts/build-model.mjs`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/reference/src/assets.ts`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/reference/src/embeddings.ts`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/reference/src/search.ts`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/reference/src/contract.ts`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/reference/src/query-handlers.ts`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/reference/src/files.ts`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/reference/src/cli.ts`
+- `immersive-web-sdk/packages/reference-assets/README.md`
+- `immersive-web-sdk/packages/reference-assets/package.json`
+- `immersive-web-sdk/packages/reference-assets/tools/ingest.ts`
+- `immersive-web-sdk/packages/reference-assets/tools/ingestion/parser.ts`
+- `immersive-web-sdk/packages/reference-assets/tools/ingestion/chunker.ts`
+- `immersive-web-sdk/packages/reference-assets/tools/generate-embeddings.ts`
+- `immersive-web-sdk/packages/reference-assets/scripts/build-payload.mjs`
+- `immersive-web-sdk/packages/reference-assets/scripts/build-model.mjs`
+- `immersive-web-sdk/packages/reference/src/assets.ts`
+- `immersive-web-sdk/packages/reference/src/embeddings.ts`
+- `immersive-web-sdk/packages/reference/src/search.ts`
+- `immersive-web-sdk/packages/reference/src/contract.ts`
+- `immersive-web-sdk/packages/reference/src/query-handlers.ts`
+- `immersive-web-sdk/packages/reference/src/files.ts`
+- `immersive-web-sdk/packages/reference/src/cli.ts`
 
 The useful separation is clear:
 

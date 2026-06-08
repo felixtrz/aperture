@@ -22,22 +22,22 @@ agent-friendly XR tooling.
 
 Useful source landmarks:
 
-- `/Users/felixz/Projects/immersive-web-sdk/packages/core/src/init/xr.ts`
+- `immersive-web-sdk/packages/core/src/init/xr.ts`
   defines structured session feature flags, required/optional negotiation,
   depth preferences, request/offer session flows, and reference-space fallback.
-- `/Users/felixz/Projects/immersive-web-sdk/packages/core/src/ecs/world.ts`
+- `immersive-web-sdk/packages/core/src/ecs/world.ts`
   centralizes world creation and persistent XR-space entities such as player,
   camera, left/right ray, grip, and index-tip entities.
-- `/Users/felixz/Projects/immersive-web-sdk/packages/xr-input/src/xr-input-manager.ts`
+- `immersive-web-sdk/packages/xr-input/src/xr-input-manager.ts`
   maps `XRInputSource` objects into stable ray, grip, hand, gamepad, and pointer
   state.
-- `/Users/felixz/Projects/immersive-web-sdk/packages/core/src/environment-raycast/environment-raycast.ts`
+- `immersive-web-sdk/packages/core/src/environment-raycast/environment-raycast.ts`
   implements WebXR hit-test sources and results.
-- `/Users/felixz/Projects/immersive-web-sdk/packages/core/src/scene-understanding/scene-understanding-system.ts`
+- `immersive-web-sdk/packages/core/src/scene-understanding/scene-understanding-system.ts`
   handles planes, meshes, and cleanup on session end.
-- `/Users/felixz/Projects/immersive-web-sdk/packages/core/src/depth/depth-sensing-system.ts`
+- `immersive-web-sdk/packages/core/src/depth/depth-sensing-system.ts`
   shows the breadth and complexity of depth sensing and occlusion.
-- `/Users/felixz/Projects/immersive-web-sdk/docs/ai/mcp-tools.md` is a strong
+- `immersive-web-sdk/docs/ai/mcp-tools.md` is a strong
   model for agent-driven XR development and test tooling.
 
 What Aperture should borrow:

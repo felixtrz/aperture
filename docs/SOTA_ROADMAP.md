@@ -2278,7 +2278,7 @@ Import baked lightmaps + a UV2 channel from glTF and apply in the standard mater
 
 > **Goal.** Two large, well-isolated pillars the architecture was deliberately reserved for. Physics: a worker-side physics engine (Rapier/Jolt) driving rigidbodies/colliders with contact/trigger events on a fixed-timestep substep, feeding ECS transforms. WebXR: enter VR/AR, render stereo through the already-view-indexed snapshot, and route controller/hand input — the load-bearing capability for the IWSDK-replacement North Star.
 
-**WebXR implementation plan (2026-06-06 12:24 PDT).** `docs/WEBXR_IMPLEMENTATION_PLAN.md` is the current source-grounded plan for M10-T3/T4 and follow-on XR work. It reviews `/Users/felixz/Projects/immersive-web-sdk`, PlayCanvas `references/engine`, three.js `references/three.js`, and the current Aperture source. Recommendation: use IWSDK as the API/developer-tooling reference, PlayCanvas as the feature breadth and WebGPU bridge reference, three.js as the compact session/render lifecycle reference, and implement the Aperture path as WebXR view/input mode over ECS render snapshots with frame-local main-thread XR view overrides.
+**WebXR implementation plan (2026-06-06 12:24 PDT).** `docs/WEBXR_IMPLEMENTATION_PLAN.md` is the current source-grounded plan for M10-T3/T4 and follow-on XR work. It reviews `immersive-web-sdk`, PlayCanvas `references/engine`, three.js `references/three.js`, and the current Aperture source. Recommendation: use IWSDK as the API/developer-tooling reference, PlayCanvas as the feature breadth and WebGPU bridge reference, three.js as the compact session/render lifecycle reference, and implement the Aperture path as WebXR view/input mode over ECS render snapshots with frame-local main-thread XR view overrides.
 
 **Latest force/impulse source state (2026-06-05 19:13 PDT).** `packages/physics/src/ecs-sync.ts` now sends `ExternalForce` and `ExternalImpulse` body command data to the deterministic and Rapier backends, and clears one-shot `ExternalImpulse` vectors at the fixed-step sync boundary. `packages/physics/src/test-backend.ts` applies deterministic force/impulse velocity deltas; `packages/physics-rapier/src/index.ts` maps them to Rapier dynamic-body force/impulse APIs. `packages/app/src/entities/lookup/mutation.ts`, `summary.ts`, and `snapshot.ts` now expose paused devtools mutation, JSON-safe summaries, and named `ecs_diff` fields for external force/impulse data. `test/app/generated-worker-start.test.ts` proves the simulation-worker pause/snapshot/edit/step/diff route mutates force/impulse commands, steps fixed physics, and observes persistent force plus consumed one-shot impulse through ECS writeback. This is gameplay force/impulse execution, not enforceable force-limit or joint-break semantics.
 
@@ -2462,7 +2462,7 @@ XR session lifecycle (enter/exit VR & AR), an XR frame loop driving the existing
 - [ ] An XR route enters an immersive session and renders correct stereo (verified via the XR emulator / device)
 - [ ] Per-eye matrices flow from XRView, not authored cameras
 
-**Study:** `docs/WEBXR_IMPLEMENTATION_PLAN.md`; `references/three.js/src/renderers/common/XRManager.js`; `references/three.js/src/renderers/webxr/WebXRManager.js`; `references/engine/src/platform/graphics/webgpu/webgpu-xr-bridge.js`; `/Users/felixz/Projects/immersive-web-sdk/packages/core/src/init/xr.ts`
+**Study:** `docs/WEBXR_IMPLEMENTATION_PLAN.md`; `references/three.js/src/renderers/common/XRManager.js`; `references/three.js/src/renderers/webxr/WebXRManager.js`; `references/engine/src/platform/graphics/webgpu/webgpu-xr-bridge.js`; `immersive-web-sdk/packages/core/src/init/xr.ts`
 
 **Watch out:** Late head-pose application for low latency; the render-graph (M3) should own the per-eye pass structure.
 
@@ -2481,7 +2481,7 @@ Stop dropping xr-standard gamepads; expose controller poses/buttons and hand-tra
 
 - [ ] An XR route shows tracked controllers/hands and a select-driven interaction
 
-**Study:** `docs/WEBXR_IMPLEMENTATION_PLAN.md`; `references/three.js/src/renderers/webxr/WebXRController.js`; `references/engine/src/framework/xr/xr-input.js`; `references/engine/src/framework/xr/xr-hand.js`; `/Users/felixz/Projects/immersive-web-sdk/packages/xr-input/src/xr-input-manager.ts`
+**Study:** `docs/WEBXR_IMPLEMENTATION_PLAN.md`; `references/three.js/src/renderers/webxr/WebXRController.js`; `references/engine/src/framework/xr/xr-input.js`; `references/engine/src/framework/xr/xr-hand.js`; `immersive-web-sdk/packages/xr-input/src/xr-input-manager.ts`
 
 **Watch out:** Hand-tracking joint volume is large — keep it snapshot-packed.
 

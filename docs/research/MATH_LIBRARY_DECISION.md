@@ -46,7 +46,7 @@ Conclusion:
 
 Reference path:
 
-- `/Users/felixz/Projects/aperture-reference-libs/gl-matrix`, commit `accefb6`
+- `gl-matrix`, commit `accefb6`
 
 NPM metadata checked:
 
@@ -80,7 +80,7 @@ Conclusion:
 
 Reference path:
 
-- `/Users/felixz/Projects/aperture-reference-libs/wgpu-matrix`, commit `3dba901`
+- `wgpu-matrix`, commit `3dba901`
 
 NPM metadata checked:
 

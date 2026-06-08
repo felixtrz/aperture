@@ -40,32 +40,32 @@ three.js:
 
 Babylon.js:
 
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/geometry.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/mesh.vertexData.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/mesh.vertexData.functions.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/mesh.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/subMesh.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/meshBuilder.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/Builders/boxBuilder.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/Builders/sphereBuilder.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/Builders/planeBuilder.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/Builders/cylinderBuilder.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/Builders/capsuleBuilder.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/Builders/torusBuilder.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/Builders/linesBuilder.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/Builders/tubeBuilder.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/Builders/ribbonBuilder.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/Builders/groundBuilder.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/Builders/torusKnotBuilder.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/Builders/polyhedronBuilder.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/Builders/polygonBuilder.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/thinInstanceMesh.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/instancedMesh.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/meshLODLevel.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Morph/morphTarget.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Morph/morphTargetManager.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Bones/skeleton.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Bones/bone.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/geometry.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/mesh.vertexData.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/mesh.vertexData.functions.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/mesh.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/subMesh.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/meshBuilder.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/Builders/boxBuilder.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/Builders/sphereBuilder.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/Builders/planeBuilder.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/Builders/cylinderBuilder.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/Builders/capsuleBuilder.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/Builders/torusBuilder.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/Builders/linesBuilder.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/Builders/tubeBuilder.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/Builders/ribbonBuilder.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/Builders/groundBuilder.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/Builders/torusKnotBuilder.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/Builders/polyhedronBuilder.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/Builders/polygonBuilder.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/thinInstanceMesh.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/instancedMesh.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/meshLODLevel.ts`
+- `Babylon.js/packages/dev/core/src/Morph/morphTarget.ts`
+- `Babylon.js/packages/dev/core/src/Morph/morphTargetManager.ts`
+- `Babylon.js/packages/dev/core/src/Bones/skeleton.ts`
+- `Babylon.js/packages/dev/core/src/Bones/bone.ts`
 
 PlayCanvas:
 

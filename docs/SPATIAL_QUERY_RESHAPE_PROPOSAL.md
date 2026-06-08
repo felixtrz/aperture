@@ -50,7 +50,7 @@ Local reference libraries point to a clear pattern:
 - Babylon physics raycasts are synchronous wrappers over the physics plugin:
   `raycast`, `raycastMulti`, and `raycastToRef` return/fill results immediately.
   See
-  `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Physics/v2/physicsEngine.ts`.
+  `Babylon.js/packages/dev/core/src/Physics/v2/physicsEngine.ts`.
 - PlayCanvas rigid-body raycasts are also synchronous; `raycastFirst` returns a
   `RaycastResult | null` directly. See
   `references/engine/src/framework/components/rigid-body/system.js`.
