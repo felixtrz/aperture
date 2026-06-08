@@ -10,6 +10,7 @@ import {
   LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE,
   createLocalLightClusterDescriptor,
   createLocalLightClusterGpuResource,
+  localLightClusterDeferredSamplingDiagnostics,
   localLightClusterReportFromDescriptor,
   snapshotShouldUseClusteredLocalLights,
   type LightPacket,
@@ -859,3 +860,81 @@ function deviceWithBuffers(
     },
   };
 }
+
+describe("clustered local shadow/cookie deferred-sampling diagnostics (AI-18)", () => {
+  const clusterOptions = {
+    dimensions: { x: 4, y: 1, z: 4 },
+    maxLightsPerCell: 8,
+  };
+
+  it("warns when a clustered shadow request cannot be sampled by the variant", () => {
+    const report = localLightClusterReportFromDescriptor(
+      createLocalLightClusterDescriptor(
+        snapshotWithPointLights(16, { shadowedLightCount: 3 }),
+        clusterOptions,
+      ),
+    );
+    const diagnostics = localLightClusterDeferredSamplingDiagnostics(report);
+
+    expect(diagnostics).toHaveLength(1);
+    expect(diagnostics[0]).toMatchObject({
+      code: "webGpuApp.clusteredLocalShadowSamplingDeferred",
+      severity: "warning",
+      deferredLightCount: 3,
+      fallbackReason: "clustered-local-shadow-sampling-not-implemented",
+    });
+    expect(diagnostics[0]?.message).toContain(
+      "clustered-local-shadow-sampling-not-implemented",
+    );
+  });
+
+  it("warns when a clustered cookie request cannot be sampled by the variant", () => {
+    const report = localLightClusterReportFromDescriptor(
+      createLocalLightClusterDescriptor(
+        snapshotWithPointLights(16, { cookieLightCount: 2 }),
+        clusterOptions,
+      ),
+    );
+    const diagnostics = localLightClusterDeferredSamplingDiagnostics(report);
+
+    expect(diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+      "webGpuApp.clusteredLocalCookieSamplingDeferred",
+    );
+    const cookie = diagnostics.find(
+      (diagnostic) =>
+        diagnostic.code === "webGpuApp.clusteredLocalCookieSamplingDeferred",
+    );
+    expect(cookie?.deferredLightCount).toBe(2);
+    expect(cookie?.message).toContain(
+      "clustered-local-cookie-sampling-not-implemented",
+    );
+  });
+
+  it("does not warn when the shadow request is sampling-ready", () => {
+    const report = localLightClusterReportFromDescriptor(
+      createLocalLightClusterDescriptor(
+        snapshotWithPointLights(16, { shadowedLightCount: 3 }),
+        {
+          ...clusterOptions,
+          supportedPointShadowResources: [
+            { shadowId: 1000, lightId: 100, matrixBaseIndex: 0 },
+          ],
+        },
+      ),
+    );
+
+    expect(localLightClusterDeferredSamplingDiagnostics(report)).toEqual([]);
+  });
+
+  it("emits no diagnostics when no shadow/cookie is requested", () => {
+    const report = localLightClusterReportFromDescriptor(
+      createLocalLightClusterDescriptor(
+        snapshotWithPointLights(16),
+        clusterOptions,
+      ),
+    );
+
+    expect(localLightClusterDeferredSamplingDiagnostics(report)).toEqual([]);
+    expect(localLightClusterDeferredSamplingDiagnostics(undefined)).toEqual([]);
+  });
+});

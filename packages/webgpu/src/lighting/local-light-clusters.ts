@@ -10,7 +10,11 @@ import {
   lightMatchesLayer,
 } from "./local-light-cluster-layer.js";
 import { createLocalLightClusterShadowCookieMetadata } from "./local-light-cluster-metadata.js";
-export { localLightClusterReportFromDescriptor } from "./local-light-cluster-report.js";
+export {
+  localLightClusterDeferredSamplingDiagnostics,
+  localLightClusterReportFromDescriptor,
+  type LocalLightClusterDeferredSamplingDiagnostic,
+} from "./local-light-cluster-report.js";
 import type {
   LocalLightClusterBounds,
   LocalLightClusterCellRange,

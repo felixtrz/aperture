@@ -38,6 +38,7 @@ import {
 } from "../resources/meshes/prepared-mesh-cache.js";
 import {
   createLocalLightClusterDescriptor,
+  localLightClusterDeferredSamplingDiagnostics,
   localLightClusterReportFromDescriptor,
   snapshotShouldUseClusteredLocalLights,
   type LocalLightClusterGpuResource,
@@ -303,6 +304,10 @@ export function renderReport(input: {
   const localLightCookies = createWebGpuAppLocalLightCookieReport(
     input.localLightCookieResources ?? null,
   );
+  const diagnostics = [
+    ...input.diagnostics,
+    ...localLightClusterDeferredSamplingDiagnostics(localLightClusters),
+  ];
 
   return {
     ok: input.ok,
@@ -332,9 +337,9 @@ export function renderReport(input: {
       drawPackages: input.drawPackages ?? 0,
       drawCommands: input.drawCommands ?? 0,
       drawCalls: input.drawCalls ?? 0,
-      diagnostics: input.diagnostics.length,
+      diagnostics: diagnostics.length,
     },
-    diagnostics: input.diagnostics,
+    diagnostics,
     ...(input.diagnosticsSummary === undefined
       ? {}
       : { diagnosticsSummary: input.diagnosticsSummary }),

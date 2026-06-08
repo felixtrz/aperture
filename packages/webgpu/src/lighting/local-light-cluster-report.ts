@@ -5,6 +5,62 @@ import type {
   LocalLightClusterReport,
 } from "./local-light-cluster-types.js";
 
+export interface LocalLightClusterDeferredSamplingDiagnostic {
+  readonly code:
+    | "webGpuApp.clusteredLocalShadowSamplingDeferred"
+    | "webGpuApp.clusteredLocalCookieSamplingDeferred";
+  readonly severity: "warning";
+  readonly deferredLightCount: number;
+  readonly fallbackReason: string | null;
+  readonly message: string;
+}
+
+/**
+ * AI-18: make the silent clustered shadow/cookie fallback loud. When a shadow or
+ * cookie was requested for clustered local lights but the selected pipeline variant
+ * cannot sample it, the cluster summary reports `status:'metadata-only'` and the
+ * shader emits a near-1.0 sentinel (host-undetectable). Derive a structured warning
+ * so the host can observe the deferral instead of only seeing the sentinel.
+ */
+export function localLightClusterDeferredSamplingDiagnostics(
+  report: LocalLightClusterReport | undefined,
+): readonly LocalLightClusterDeferredSamplingDiagnostic[] {
+  if (report === undefined) {
+    return [];
+  }
+
+  const { shadow, cookie } = report.shadowCookieMetadata;
+  const diagnostics: LocalLightClusterDeferredSamplingDiagnostic[] = [];
+
+  if (shadow.status === "metadata-only") {
+    const reason =
+      shadow.fallbackReason ??
+      "clustered-local-shadow-sampling-not-implemented";
+    diagnostics.push({
+      code: "webGpuApp.clusteredLocalShadowSamplingDeferred",
+      severity: "warning",
+      deferredLightCount: shadow.clusteredLightCount,
+      fallbackReason: shadow.fallbackReason,
+      message: `Clustered local shadow sampling is deferred for ${shadow.clusteredLightCount} light(s) (${reason}); those lights render unshadowed (in-shader sentinel) until the variant supports clustered shadow sampling.`,
+    });
+  }
+
+  if (cookie.status === "metadata-only") {
+    const reason =
+      cookie.fallbackReason ??
+      "clustered-local-cookie-sampling-not-implemented";
+    diagnostics.push({
+      code: "webGpuApp.clusteredLocalCookieSamplingDeferred",
+      severity: "warning",
+      deferredLightCount: cookie.clusteredLightCount,
+      fallbackReason: cookie.fallbackReason,
+      message: `Clustered local cookie sampling is deferred for ${cookie.clusteredLightCount} light(s) (${reason}); those lights render without their cookie texture (in-shader sentinel) until the variant supports clustered cookie sampling.`,
+    });
+  }
+
+  return diagnostics;
+}
+
 export function localLightClusterReportFromDescriptor(
   descriptor: LocalLightClusterDescriptor,
   options: {
