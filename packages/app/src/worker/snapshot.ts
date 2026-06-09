@@ -22,6 +22,7 @@ import { createApertureEntityLookupSnapshot } from "../entity-lookup.js";
 import {
   advanceGeneratedInputFrame,
   createInputSummary,
+  drainGeneratedInputEventMessagesForFrame,
   type ApertureGeneratedInputEventMessage,
 } from "../input.js";
 import { createSignalSummary } from "../systems.js";
@@ -72,10 +73,16 @@ export function publishGeneratedWorkerSnapshot(options: {
   readonly time: number;
   readonly frame: number;
 }): GeneratedWorkerSnapshotPublishReport {
+  // Deterministic per-frame drain (AI-56 frame-stamping half): unstamped live
+  // events apply now; frame-stamped events apply at exactly their frame, so a
+  // recorded sequence replays identically.
   advanceGeneratedInputFrame({
     signals: options.app.context.input,
     config: options.config,
-    events: options.pendingInput.splice(0).map((message) => message.event),
+    events: drainGeneratedInputEventMessagesForFrame(
+      options.pendingInput,
+      options.frame,
+    ),
   });
   const step = options.app.step(options.delta, options.time);
   const snapshot = options.app.extract(options.frame);
