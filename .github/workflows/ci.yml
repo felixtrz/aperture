@@ -94,6 +94,11 @@ jobs:
             --config=playwright.ci.config.ts \
             --shard=${{ matrix.shard }}/8
 
+      # AI-75: every skipped test must carry a documented environment-capability
+      # reason; an unexplained skip fails the shard naming the spec.
+      - name: Gate unexpected skips
+        run: node scripts/check-e2e-skips.mjs test-results/playwright-ci-report.json
+
       - name: Upload E2E artifacts on failure
         if: failure()
         uses: actions/upload-artifact@v4

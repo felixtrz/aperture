@@ -47,7 +47,13 @@ export default defineConfig({
   // beyond Playwright's 30s default, and the heavier shadow/post suites need
   // more again now that the full suite runs in CI.
   timeout: 240000,
-  reporter: [["list"], ["github"]],
+  // The JSON report feeds scripts/check-e2e-skips.mjs (AI-75): every skipped
+  // test must match a documented environment-capability reason.
+  reporter: [
+    ["list"],
+    ["github"],
+    ["json", { outputFile: "test-results/playwright-ci-report.json" }],
+  ],
   use: {
     baseURL: "http://127.0.0.1:4173",
     trace: "retain-on-failure",
