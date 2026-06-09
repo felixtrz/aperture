@@ -47,9 +47,13 @@ jobs:
         run: pnpm run check:deadcode
 
   e2e:
-    name: WebGPU E2E regression (SwiftShader)
+    name: WebGPU E2E (SwiftShader, shard ${{ matrix.shard }}/8)
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
 
     steps:
       - name: Checkout
@@ -81,26 +85,19 @@ jobs:
       - name: Install xvfb
         run: sudo apt-get update && sudo apt-get install -y xvfb
 
-      # Pixel/report regression for the single-encoder render graph (M3), run on
-      # software SwiftShader under xvfb. Scoped to lighter render-graph routes
-      # that stay well under the 150s/test budget — the heavy clustered-lights
-      # and multi-cascade-shadow suites take 2-3 min/test under SwiftShader, so
-      # their headless logic is covered by vitest in the Workspace check job
-      # instead. dof.spec.ts is excluded (documented SwiftShader timeout) via the
-      # config's testIgnore.
+      # The FULL e2e suite, sharded across the job matrix (AI-71). Environment
+      # exclusions live in ONE place: playwright.ci.config.ts testIgnore, each
+      # with a documented reason. Do not re-introduce per-spec lists here.
       - name: Run WebGPU E2E (SwiftShader under xvfb)
         run: |
           xvfb-run -a pnpm exec playwright test \
             --config=playwright.ci.config.ts \
-            test/e2e/post-effects.spec.ts \
-            test/e2e/taa.spec.ts \
-            test/e2e/custom-graph-pass.spec.ts \
-            test/e2e/camera-clear-load-matrix.spec.ts
+            --shard=${{ matrix.shard }}/8
 
       - name: Upload E2E artifacts on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: webgpu-e2e-results
+          name: webgpu-e2e-results-shard-${{ matrix.shard }}
           path: test-results/playwright-ci
           retention-days: 7
