@@ -20,6 +20,7 @@
     "check:deadcode": "knip --config knip.json --reporter compact --no-exit-code",
     "lint": "eslint .",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "bench": "vitest bench --run",
     "agent:finalize": "node scripts/finalize-agent-status.mjs",
     "test:watch": "vitest",
