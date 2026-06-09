@@ -10,6 +10,7 @@
   ],
   "workspaces": {
     ".": {
+      "ignoreDependencies": ["elics"],
       "entry": [
         "eslint.config.js",
         "playwright.config.ts",

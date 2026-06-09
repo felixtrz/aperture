@@ -45,6 +45,7 @@
   },
   "dependencies": {
     "@preact/signals-core": "^1.8.0",
+    "elics": "^3.4.2",
     "wgpu-matrix": "^3.4.2"
   },
   "devDependencies": {
