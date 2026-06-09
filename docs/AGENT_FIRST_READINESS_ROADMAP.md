@@ -91,7 +91,9 @@ Follow the pattern used for `worker/devtools/camera.ts` (0% → covered via `tes
 
 ## Phase R2 — Provable determinism
 
-_The North Star promises "same inputs → same snapshots". Make that a CI-enforced contract instead of an intention._
+**Status: ✅ CORE COMPLETE (2026-06-09)** — R2.1 (frame-stamped input drain) and R2.3 (the replay + snapshot-hash CI gate, `test/determinism/replay.test.ts`) are in, plus the AI-55 clock-half equivalence proof (`test/determinism/fixed-clock.test.ts`). The worker-loop residuals (frame-stamped snapshot messages, configurable publish cadence, renderer backpressure) remain open under AI-55/AI-61 in `ACTIONABLE_ROADMAP.md`.
+
+_The North Star promises "same inputs → same snapshots". That is now a CI-enforced contract for the headless simulation path._
 
 ### R2.1 · AI-56 · Frame-stamped input ring with deterministic per-frame drain
 
