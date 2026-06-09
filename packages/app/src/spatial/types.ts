@@ -68,6 +68,41 @@ export interface SpatialRaycastableMesh {
   readonly pickable?: SpatialPickableState;
 }
 
+export interface SpatialClosestPointOptions {
+  readonly query?: ApertureQuery;
+  /** World-space cap; results farther than this from the query point are dropped. */
+  readonly maxDistance?: number;
+  readonly layerMask?: number;
+  readonly filter?: (entity: Entity) => boolean;
+}
+
+export interface SpatialClosestPointHit {
+  readonly entity: {
+    readonly entity: Entity;
+    readonly ref: EcsEntityRef;
+  };
+  /** Closest surface point, in world space. */
+  readonly point: readonly [number, number, number];
+  /** World-space distance from the query point to {@link point}. */
+  readonly distance: number;
+  readonly faceIndex: number;
+  readonly submeshIndex: number;
+  readonly materialSlot: number;
+}
+
+export interface SpatialOverlapOptions {
+  readonly query?: ApertureQuery;
+  readonly layerMask?: number;
+  readonly filter?: (entity: Entity) => boolean;
+}
+
+export interface SpatialOverlapHit {
+  readonly entity: {
+    readonly entity: Entity;
+    readonly ref: EcsEntityRef;
+  };
+}
+
 export interface SpatialQueries {
   raycastFirst(
     ray: RayInput,
@@ -77,6 +112,44 @@ export interface SpatialQueries {
     ray: RayInput,
     options?: SpatialRaycastOptions,
   ): readonly SpatialRaycastHit[];
+  /**
+   * Closest point on any registered BVH-backed visual mesh to a world-space
+   * point, or null if none is in range. Meshes without a BVH are skipped.
+   */
+  closestPoint(
+    point: readonly [number, number, number],
+    options?: SpatialClosestPointOptions,
+  ): SpatialClosestPointHit | null;
+  /**
+   * Entities whose BVH-backed visual mesh overlaps a world-space sphere. Meshes
+   * without a BVH are skipped; the radius is treated as world-space (exact for
+   * rigid mesh transforms).
+   */
+  overlapSphere(
+    center: readonly [number, number, number],
+    radius: number,
+    options?: SpatialOverlapOptions,
+  ): readonly SpatialOverlapHit[];
+  /**
+   * Entities whose BVH-backed visual mesh overlaps a world-space axis-aligned
+   * box. Meshes without a BVH are skipped.
+   */
+  overlapBox(
+    min: readonly [number, number, number],
+    max: readonly [number, number, number],
+    options?: SpatialOverlapOptions,
+  ): readonly SpatialOverlapHit[];
+  /**
+   * Entities whose BVH-backed visual mesh overlaps a world-space capsule
+   * (segment + radius). Meshes without a BVH are skipped; the radius is
+   * world-space (exact for rigid mesh transforms).
+   */
+  overlapCapsule(
+    start: readonly [number, number, number],
+    end: readonly [number, number, number],
+    radius: number,
+    options?: SpatialOverlapOptions,
+  ): readonly SpatialOverlapHit[];
   setBounds(bounds: readonly SpatialRaycastableBounds[]): void;
   setMeshes(meshes: readonly SpatialRaycastableMesh[]): void;
 }

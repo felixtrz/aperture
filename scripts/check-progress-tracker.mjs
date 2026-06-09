@@ -1,9 +1,6 @@
 import fs from "node:fs";
+import { fileURLToPath } from "node:url";
 
-const MAX_AGE_DAYS = Number.parseInt(
-  process.env.APERTURE_PROGRESS_TRACKER_MAX_AGE_DAYS ?? "7",
-  10,
-);
 const PHASES = [
   ["1", "extract"],
   ["2", "collect"],
@@ -13,48 +10,67 @@ const PHASES = [
   ["6", "submit"],
 ];
 
-const failures = [];
-const indexHtml = read("docs/index.html");
-const comparisonHtml = read("docs/render-pipeline-comparison.html");
+/**
+ * Evaluate the progress-tracker docs for structural correctness and freshness.
+ *
+ * Structural problems (missing phase board, missing/future dates) are always
+ * fatal `failures`. Date *staleness* is reported as a non-fatal `warning` by
+ * default so long-lived branches and external contributors don't get spurious
+ * red CI; pass `enforceFreshness: true` (CLI: `APERTURE_PROGRESS_TRACKER_ENFORCE_FRESHNESS=1`)
+ * to promote staleness back to a `failure` for an opt-in scheduled freshness job.
+ *
+ * @returns {{ failures: string[], warnings: string[] }}
+ */
+export function evaluateProgressTracker({
+  indexHtml,
+  comparisonHtml,
+  now = new Date(),
+  maxAgeDays = 7,
+  enforceFreshness = false,
+}) {
+  const failures = [];
+  const warnings = [];
+  const today = startOfUtcDay(now);
 
-checkRecentDate({
-  label: "docs/index.html Updated field",
-  match: indexHtml.match(/<dt>Updated<\/dt>\s*<dd>(\d{4}-\d{2}-\d{2})\b/),
-});
-checkRecentDate({
-  label: "docs/render-pipeline-comparison.html status heading",
-  match: comparisonHtml.match(/Updated\s+(\d{4}-\d{2}-\d{2})\b/),
-});
-checkIndexPhaseBoard(indexHtml);
-checkComparisonPhaseStatus(comparisonHtml);
+  checkRecentDate({
+    label: "docs/index.html Updated field",
+    match: indexHtml.match(/<dt>Updated<\/dt>\s*<dd>(\d{4}-\d{2}-\d{2})\b/),
+    failures,
+    warnings,
+    today,
+    maxAgeDays,
+    enforceFreshness,
+  });
+  checkRecentDate({
+    label: "docs/render-pipeline-comparison.html status heading",
+    match: comparisonHtml.match(/Updated\s+(\d{4}-\d{2}-\d{2})\b/),
+    failures,
+    warnings,
+    today,
+    maxAgeDays,
+    enforceFreshness,
+  });
+  checkIndexPhaseBoard(indexHtml, failures);
+  checkComparisonPhaseStatus(comparisonHtml, failures);
 
-if (failures.length > 0) {
-  console.error("Progress tracker check failed:");
-  for (const failure of failures) {
-    console.error(`- ${failure}`);
-  }
-  process.exit(1);
+  return { failures, warnings };
 }
 
-console.log("Progress tracker check passed.");
-
-function read(path) {
-  try {
-    return fs.readFileSync(path, "utf8");
-  } catch (error) {
-    failures.push(`Cannot read ${path}: ${error.message}`);
-    return "";
-  }
-}
-
-function checkRecentDate({ label, match }) {
+function checkRecentDate({
+  label,
+  match,
+  failures,
+  warnings,
+  today,
+  maxAgeDays,
+  enforceFreshness,
+}) {
   if (match === null) {
     failures.push(`${label} is missing an ISO date.`);
     return;
   }
 
   const date = parseDateOnly(match[1]);
-  const today = startOfUtcDay(new Date());
   const ageDays = Math.floor((today.getTime() - date.getTime()) / 86_400_000);
 
   if (ageDays < 0) {
@@ -62,14 +78,20 @@ function checkRecentDate({ label, match }) {
     return;
   }
 
-  if (ageDays > MAX_AGE_DAYS) {
-    failures.push(
-      `${label} date ${match[1]} is ${ageDays} days old; expected ${MAX_AGE_DAYS} days or newer.`,
-    );
+  if (ageDays > maxAgeDays) {
+    const message = `${label} date ${match[1]} is ${ageDays} days old; expected ${maxAgeDays} days or newer.`;
+
+    if (enforceFreshness) {
+      failures.push(message);
+    } else {
+      warnings.push(
+        `${message} (non-fatal; set APERTURE_PROGRESS_TRACKER_ENFORCE_FRESHNESS=1 to enforce)`,
+      );
+    }
   }
 }
 
-function checkIndexPhaseBoard(html) {
+function checkIndexPhaseBoard(html, failures) {
   for (const [number, name] of PHASES) {
     const heading = new RegExp(`<h3>${number}\\. ${name}</h3>`);
 
@@ -90,7 +112,7 @@ function checkIndexPhaseBoard(html) {
   }
 }
 
-function checkComparisonPhaseStatus(html) {
+function checkComparisonPhaseStatus(html, failures) {
   for (const [number, name] of PHASES) {
     const phase = new RegExp(
       `<b>${number}\\s+[^<]+\\s+${name}</b><span class="pct">\\d+%</span>`,
@@ -116,4 +138,58 @@ function startOfUtcDay(date) {
 
 function countMatches(value, regex) {
   return [...value.matchAll(regex)].length;
+}
+
+function runCli() {
+  const maxAgeDays = Number.parseInt(
+    process.env.APERTURE_PROGRESS_TRACKER_MAX_AGE_DAYS ?? "7",
+    10,
+  );
+  const enforceFreshness =
+    process.env.APERTURE_PROGRESS_TRACKER_ENFORCE_FRESHNESS === "1";
+
+  const readFailures = [];
+  const indexHtml = read("docs/index.html", readFailures);
+  const comparisonHtml = read(
+    "docs/render-pipeline-comparison.html",
+    readFailures,
+  );
+
+  const { failures, warnings } = evaluateProgressTracker({
+    indexHtml,
+    comparisonHtml,
+    maxAgeDays,
+    enforceFreshness,
+  });
+  const allFailures = [...readFailures, ...failures];
+
+  for (const warning of warnings) {
+    console.warn(`Progress tracker warning: ${warning}`);
+  }
+
+  if (allFailures.length > 0) {
+    console.error("Progress tracker check failed:");
+    for (const failure of allFailures) {
+      console.error(`- ${failure}`);
+    }
+    process.exit(1);
+  }
+
+  console.log("Progress tracker check passed.");
+}
+
+function read(path, failures) {
+  try {
+    return fs.readFileSync(path, "utf8");
+  } catch (error) {
+    failures.push(`Cannot read ${path}: ${error.message}`);
+    return "";
+  }
+}
+
+if (
+  process.argv[1] &&
+  fileURLToPath(import.meta.url) === fs.realpathSync(process.argv[1])
+) {
+  runCli();
 }

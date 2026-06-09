@@ -53,7 +53,7 @@ Local reference libraries point to a clear pattern:
   `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Physics/v2/physicsEngine.ts`.
 - PlayCanvas rigid-body raycasts are also synchronous; `raycastFirst` returns a
   `RaycastResult | null` directly. See
-  `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/framework/components/rigid-body/system.js`.
+  `references/engine/src/framework/components/rigid-body/system.js`.
 
 The pattern is not that BVH construction can never be asynchronous in other
 engines. The pattern is that query calls used by game logic are synchronous. If

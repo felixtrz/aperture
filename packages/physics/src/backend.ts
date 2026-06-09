@@ -9,6 +9,7 @@ import type {
   PhysicsVec3,
 } from "./components.js";
 import type { PhysicsColliderGeometryProvider } from "./collider-geometry.js";
+import { isColliderScaleApproximated } from "./collider-scale.js";
 
 export type PhysicsBackendKind = "rapier" | "test";
 
@@ -226,6 +227,7 @@ export type PhysicsUnsupportedFeatureCode =
   | "physics.collider.asset.invalid"
   | "physics.collider.asset.empty"
   | "physics.collider.scale.unsupported"
+  | "physics.collider.scale.approximated"
   | "physics.collider.dynamicAssetShape.unsupported"
   | "physics.collider.cooking.failed"
   | "physics.joint.unsupported"
@@ -556,11 +558,34 @@ export function collectUnsupportedPhysicsBodyFeatures(
   }
 
   for (const collider of colliderDescriptorsForBodyCommand(body)) {
+    const colliderEntity = collider.entity ?? entity;
+
     if (!isAssetBackedColliderShape(collider.shape)) {
+      // Primitive colliders now bake the entity scale into their dimensions
+      // (see collider-scale.ts). Surface a diagnostic only when the authored
+      // scale cannot be represented exactly (non-uniform sphere, or non-uniform
+      // radial scale on capsule/cylinder/cone): those use an enclosing
+      // (largest-axis) approximation that may not match the rendered geometry.
+      if (
+        collider.scale !== undefined &&
+        isColliderScaleApproximated(collider.shape, collider.scale)
+      ) {
+        features.push({
+          code: "physics.collider.scale.approximated",
+          feature: `collider.${collider.shape.kind}.scale`,
+          backend,
+          entity: colliderEntity,
+          message: `Collider shape '${collider.shape.kind}' has a non-uniform ECS scale that a ${collider.shape.kind} cannot represent exactly; the collider uses an enclosing (largest-axis) approximation that may not match the rendered geometry.`,
+          suggestedFix:
+            "Use a box collider for non-uniform scale, author the primitive at the intended proportions, or keep the scale uniform across the shape's radial axes.",
+          details: {
+            scale: collider.scale,
+          },
+        });
+      }
+
       continue;
     }
-
-    const colliderEntity = collider.entity ?? entity;
 
     if (options.assetBackedColliders !== "provider") {
       features.push({

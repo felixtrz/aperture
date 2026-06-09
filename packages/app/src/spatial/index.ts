@@ -1,10 +1,16 @@
 import { raycastBoundsHit, raycastBoundsHits } from "./bounds.js";
+import { closestPointOnMeshes } from "./closest.js";
 import {
   raycastColliderHit,
   raycastColliderHits,
   type SpatialColliderQueries,
 } from "./collider.js";
 import { raycastMeshHit, raycastMeshHits } from "./mesh.js";
+import {
+  overlapBoxOnMeshes,
+  overlapCapsuleOnMeshes,
+  overlapSphereOnMeshes,
+} from "./overlap.js";
 import type {
   SpatialQueries,
   SpatialRaycastableBounds,
@@ -13,6 +19,10 @@ import type {
 
 export type {
   RayInput,
+  SpatialClosestPointHit,
+  SpatialClosestPointOptions,
+  SpatialOverlapHit,
+  SpatialOverlapOptions,
   SpatialPickableState,
   SpatialQueries,
   SpatialRaycastHit,
@@ -97,6 +107,18 @@ export function createSpatialQueries(
       return meshResult.queryableMeshCount === 0
         ? raycastBoundsHits(bounds, ray, options)
         : [];
+    },
+    closestPoint(point, options = {}) {
+      return closestPointOnMeshes(meshes, point, options).hit;
+    },
+    overlapSphere(center, radius, options = {}) {
+      return overlapSphereOnMeshes(meshes, center, radius, options);
+    },
+    overlapBox(min, max, options = {}) {
+      return overlapBoxOnMeshes(meshes, min, max, options);
+    },
+    overlapCapsule(start, end, radius, options = {}) {
+      return overlapCapsuleOnMeshes(meshes, start, end, radius, options);
     },
     setBounds(nextBounds) {
       bounds = [...nextBounds];

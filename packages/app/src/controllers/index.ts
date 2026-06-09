@@ -1,4 +1,9 @@
 export {
+  createFlyCameraController,
+  type FlyCameraController,
+  type FlyCameraControllerOptions,
+} from "./fly-camera.js";
+export {
   createOrbitCameraController,
   type OrbitCameraController,
   type OrbitCameraControllerOptions,

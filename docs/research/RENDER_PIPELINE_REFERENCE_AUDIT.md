@@ -11,8 +11,8 @@ fallback, or renderer-owned ECS state.
 
 Canonical references:
 
-- Three.js: `/Users/felixz/Projects/aperture/references/three.js`
-- PlayCanvas: `/Users/felixz/Projects/aperture/references/engine`
+- Three.js: `./references/three.js`
+- PlayCanvas: `./references/engine`
 
 Representative reference files inspected:
 

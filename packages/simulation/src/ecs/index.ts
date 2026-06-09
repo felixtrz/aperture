@@ -30,6 +30,12 @@ export type EcsComponent<
 export interface EntityVersionTracking {
   entityVersion(entity: Entity): number;
   markEntityChanged(entity: Entity): number;
+  /**
+   * Number of entity keys currently retained by change tracking. Diagnostic:
+   * under correct bookkeeping this stays proportional to the live entity set,
+   * not to the total number of entities ever created.
+   */
+  entityVersionTrackingSize(): number;
 }
 
 export type VersionedEcsWorld = World & EntityVersionTracking;
@@ -55,6 +61,7 @@ function installEntityVersionTracking(world: World): EcsWorld {
   versionedWorld.entityVersion = (entity) =>
     versionByEntityKey.get(entityVersionKey(entity)) ?? 0;
   versionedWorld.markEntityChanged = (entity) => bumpEntityVersion(entity);
+  versionedWorld.entityVersionTrackingSize = () => versionByEntityKey.size;
   versionedWorld.createEntity = () => {
     const entity = createEntity();
 
@@ -132,11 +139,16 @@ function installEntityVersionTracking(world: World): EcsWorld {
 
     entity.destroy = function patchedDestroy(this: Entity) {
       const wasActive = this.active;
+      const key = entityVersionKey(this);
 
       destroy.call(this);
 
       if (wasActive) {
-        bumpEntityVersion(this);
+        // Bound the tracking map under spawn/despawn churn. A recycled slot is
+        // re-keyed by its incremented generation and restarts at version 0 via
+        // createEntity, so retaining a destroyed entity's key only leaks memory;
+        // no consumer reads entityVersion() of a destroyed (unqueried) entity.
+        versionByEntityKey.delete(key);
       }
     };
   }

@@ -71,4 +71,35 @@ describe("ECS entity version tracking", () => {
     expect(second.generation).not.toBe(firstGeneration);
     expect(world.entityVersion(second)).toBe(0);
   });
+
+  it("bounds the version-tracking map under spawn/despawn churn", () => {
+    const world = createWorld({ entityCapacity: 4 });
+    registerMetadataComponents(world);
+
+    // Each destroyed slot is recycled with a fresh generation (a new key), so a
+    // naive map would grow by one entry per cycle and leak unbounded.
+    const cycles = 500;
+    for (let i = 0; i < cycles; i += 1) {
+      const entity = world.createEntity();
+      entity.addComponent(Name, { value: `entity-${i}` });
+      entity.destroy();
+    }
+
+    // With per-destroy key removal the map tracks only the (empty) live set,
+    // never the cumulative churn count.
+    expect(world.entityVersionTrackingSize()).toBeLessThanOrEqual(4);
+    expect(world.entityVersionTrackingSize()).toBeLessThan(cycles);
+  });
+
+  it("drops a destroyed entity's tracking key", () => {
+    const world = createWorld({ entityCapacity: 4 });
+    registerMetadataComponents(world);
+
+    const entity = world.createEntity();
+    entity.addComponent(Name, { value: "Cube" });
+    expect(world.entityVersionTrackingSize()).toBe(1);
+
+    entity.destroy();
+    expect(world.entityVersionTrackingSize()).toBe(0);
+  });
 });

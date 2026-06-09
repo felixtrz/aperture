@@ -3795,7 +3795,12 @@ describe("generated simulation worker start messages", () => {
       result: {
         fixedStep: {
           substeps: 1,
-          overstepAlpha: expect.closeTo(0, 4),
+          // 3-digit tolerance: the free-running wall-clock worker loop leaks a
+          // few microseconds of real time into the fixed-step accumulator
+          // between the injected step and the awaited snapshot, so the overstep
+          // is ~0 but not bit-exact. At 4 digits (5e-5) this flaked on slower CI
+          // runners (~5.4e-5). See AI-55/AI-61 (deterministic sim clock).
+          overstepAlpha: expect.closeTo(0, 3),
         },
       },
     });
@@ -3857,7 +3862,9 @@ describe("generated simulation worker start messages", () => {
       result: {
         fixedStep: {
           substeps: 1,
-          overstepAlpha: expect.closeTo(0.5, 4),
+          // 3-digit tolerance for the same wall-clock-jitter reason as the
+          // overstepAlpha ~0 assertion above (see AI-55/AI-61).
+          overstepAlpha: expect.closeTo(0.5, 3),
         },
       },
     });
@@ -3877,7 +3884,11 @@ describe("generated simulation worker start messages", () => {
       ),
     );
 
-    expect(renderMatrix[12]).toBeCloseTo(1.5, 4);
+    // X is the interpolated axis (1 -> 2 blended by overstepAlpha ~0.5), so it
+    // inherits the same wall-clock alpha jitter as overstepAlpha above; 3-digit
+    // tolerance (4 digits flaked at ~6e-5 on slower CI). Y/Z don't move and stay
+    // bit-exact at 6 digits.
+    expect(renderMatrix[12]).toBeCloseTo(1.5, 3);
     expect(renderMatrix[13]).toBeCloseTo(0, 6);
     expect(renderMatrix[14]).toBeCloseTo(-5, 6);
 

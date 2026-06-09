@@ -21,7 +21,7 @@ TypeScript, WebGPU-only, and worker-snapshot constraints.
 
 ## Reference Checkout
 
-- Bevy: `/Users/felixz/Projects/aperture/references/bevy`, branch `main`,
+- Bevy: `./references/bevy`, branch `main`,
   commit `370be1b02`
 
 Representative files inspected:

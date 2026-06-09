@@ -51,9 +51,13 @@ The tools do not introduce a scene graph. ECS remains the source of truth,
 rendering remains a derived view of ECS snapshots, and browser/WebGPU logic
 stays in dev tooling paths.
 
-Reference tools are read-only, embedding-backed, and work without a running app
-after `aperture reference warmup` has prepared the curated developer-facing
-corpus. Browser, ECS, input, camera, and render tools require an active managed
+Reference tools are read-only, backed by lexical (hashed bag-of-words) keyword
+search — not learned/semantic embeddings — and work without a running app after
+`aperture reference warmup` has prepared the curated developer-facing corpus. The
+on-disk index records this honestly as the `aperture-reference-hash-embedding`
+model (`hashed-token-sum` pooling) compared by cosine similarity; swapping in a
+real local ONNX/transformers.js embedding model behind the same `cosineSimilarity`
+interface is a tracked follow-up (AI-82). Browser, ECS, input, camera, and render tools require an active managed
 dev session.
 
 Useful inspection tools include:

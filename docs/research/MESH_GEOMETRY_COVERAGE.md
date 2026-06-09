@@ -12,31 +12,31 @@ The goal is not to copy any reference engine's object model. Mesh assets should 
 
 three.js:
 
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/core/BufferGeometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/core/BufferAttribute.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/core/InstancedBufferAttribute.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/core/InstancedBufferGeometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/objects/Mesh.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/objects/Line.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/objects/Points.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/objects/InstancedMesh.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/objects/BatchedMesh.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/objects/LOD.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/objects/SkinnedMesh.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/geometries/BoxGeometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/geometries/SphereGeometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/geometries/PlaneGeometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/geometries/CylinderGeometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/geometries/ConeGeometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/geometries/CapsuleGeometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/geometries/TorusGeometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/geometries/TubeGeometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/geometries/EdgesGeometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/geometries/WireframeGeometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/geometries/ShapeGeometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/geometries/ExtrudeGeometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/geometries/LatheGeometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/three.js/src/geometries/PolyhedronGeometry.js`
+- `references/three.js/src/core/BufferGeometry.js`
+- `references/three.js/src/core/BufferAttribute.js`
+- `references/three.js/src/core/InstancedBufferAttribute.js`
+- `references/three.js/src/core/InstancedBufferGeometry.js`
+- `references/three.js/src/objects/Mesh.js`
+- `references/three.js/src/objects/Line.js`
+- `references/three.js/src/objects/Points.js`
+- `references/three.js/src/objects/InstancedMesh.js`
+- `references/three.js/src/objects/BatchedMesh.js`
+- `references/three.js/src/objects/LOD.js`
+- `references/three.js/src/objects/SkinnedMesh.js`
+- `references/three.js/src/geometries/BoxGeometry.js`
+- `references/three.js/src/geometries/SphereGeometry.js`
+- `references/three.js/src/geometries/PlaneGeometry.js`
+- `references/three.js/src/geometries/CylinderGeometry.js`
+- `references/three.js/src/geometries/ConeGeometry.js`
+- `references/three.js/src/geometries/CapsuleGeometry.js`
+- `references/three.js/src/geometries/TorusGeometry.js`
+- `references/three.js/src/geometries/TubeGeometry.js`
+- `references/three.js/src/geometries/EdgesGeometry.js`
+- `references/three.js/src/geometries/WireframeGeometry.js`
+- `references/three.js/src/geometries/ShapeGeometry.js`
+- `references/three.js/src/geometries/ExtrudeGeometry.js`
+- `references/three.js/src/geometries/LatheGeometry.js`
+- `references/three.js/src/geometries/PolyhedronGeometry.js`
 
 Babylon.js:
 
@@ -69,29 +69,29 @@ Babylon.js:
 
 PlayCanvas:
 
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/mesh.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/mesh-instance.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/model.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/geometry/geometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/geometry/geometry-utils.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/geometry/box-geometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/geometry/sphere-geometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/geometry/plane-geometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/geometry/cylinder-geometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/geometry/cone-geometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/geometry/capsule-geometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/geometry/torus-geometry.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/framework/components/render/component.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/framework/components/render/system.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/framework/components/render/data.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/batching/batch.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/batching/batch-group.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/batching/batch-manager.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/skin.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/skin-instance.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/morph.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/morph-target.js`
-- `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine/src/scene/morph-instance.js`
+- `references/engine/src/scene/mesh.js`
+- `references/engine/src/scene/mesh-instance.js`
+- `references/engine/src/scene/model.js`
+- `references/engine/src/scene/geometry/geometry.js`
+- `references/engine/src/scene/geometry/geometry-utils.js`
+- `references/engine/src/scene/geometry/box-geometry.js`
+- `references/engine/src/scene/geometry/sphere-geometry.js`
+- `references/engine/src/scene/geometry/plane-geometry.js`
+- `references/engine/src/scene/geometry/cylinder-geometry.js`
+- `references/engine/src/scene/geometry/cone-geometry.js`
+- `references/engine/src/scene/geometry/capsule-geometry.js`
+- `references/engine/src/scene/geometry/torus-geometry.js`
+- `references/engine/src/framework/components/render/component.js`
+- `references/engine/src/framework/components/render/system.js`
+- `references/engine/src/framework/components/render/data.js`
+- `references/engine/src/scene/batching/batch.js`
+- `references/engine/src/scene/batching/batch-group.js`
+- `references/engine/src/scene/batching/batch-manager.js`
+- `references/engine/src/scene/skin.js`
+- `references/engine/src/scene/skin-instance.js`
+- `references/engine/src/scene/morph.js`
+- `references/engine/src/scene/morph-target.js`
+- `references/engine/src/scene/morph-instance.js`
 
 ## Reference Coverage Summary
 

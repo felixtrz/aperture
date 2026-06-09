@@ -22,7 +22,6 @@ import {
 } from "@aperture-engine/physics";
 import type { EcsWorld, Entity } from "@aperture-engine/simulation";
 import type { EcsEntityRef } from "../../config.js";
-import { jsonSafeValue } from "../../internal/json-safe.js";
 import type {
   ApertureEntitySourceSummary,
   ApertureEntitySummary,

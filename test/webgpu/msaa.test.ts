@@ -35,6 +35,28 @@ describe("WebGPU MSAA helpers", () => {
     });
   });
 
+  it("rounds a request up to the nearest supported count and caps at the maximum", () => {
+    // 1 is supported exactly (no clamp); anything in (1, 4] rounds up to 4;
+    // anything above the max caps at 4. The resolved value is always a member of
+    // the supported set, so widening the set is a one-line change.
+    expect(resolveWebGpuMsaaConfig(1)).toMatchObject({
+      sampleCount: 1,
+      clamped: false,
+    });
+    expect(resolveWebGpuMsaaConfig(3)).toMatchObject({
+      sampleCount: 4,
+      clamped: true,
+    });
+    expect(resolveWebGpuMsaaConfig(16)).toMatchObject({
+      sampleCount: 4,
+      clamped: true,
+    });
+
+    for (const requested of [1, 2, 3, 4, 8, 16]) {
+      expect([1, 4]).toContain(resolveWebGpuMsaaConfig(requested).sampleCount);
+    }
+  });
+
   it("creates and reuses multisampled color textures by dimensions and sample count", () => {
     const descriptors: unknown[] = [];
     const slot = createWebGpuMsaaColorTextureCacheSlot();
