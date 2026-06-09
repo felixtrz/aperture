@@ -13,8 +13,7 @@ import {
   type InputResourceBase,
 } from "./state.js";
 
-const APERTURE_GENERATED_INPUT_EVENT =
-  "aperture.generated.inputEvent" as const;
+const APERTURE_GENERATED_INPUT_EVENT = "aperture.generated.inputEvent" as const;
 
 export type { ApertureGeneratedInputEvent, ApertureInputSummary };
 

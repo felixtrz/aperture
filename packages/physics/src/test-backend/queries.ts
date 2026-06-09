@@ -233,9 +233,6 @@ export function queryAllowsCollider(
   return true;
 }
 
-function interactionGroupsCompatible(
-  query: number,
-  collider: number,
-): boolean {
+function interactionGroupsCompatible(query: number, collider: number): boolean {
   return ((query >>> 16) & collider) !== 0 && ((collider >>> 16) & query) !== 0;
 }

@@ -246,10 +246,7 @@ function contactEventData(
   return contact;
 }
 
-function comparePhysicsEvents(
-  left: PhysicsEvent,
-  right: PhysicsEvent,
-): number {
+function comparePhysicsEvents(left: PhysicsEvent, right: PhysicsEvent): number {
   return (
     left.fixedStep - right.fixedStep ||
     left.substep - right.substep ||

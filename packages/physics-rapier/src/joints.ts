@@ -86,9 +86,7 @@ export function destroyJointsForBody(
   }
 }
 
-function jointData(
-  descriptor: PhysicsJointDescriptor,
-): RAPIER.JointData {
+function jointData(descriptor: PhysicsJointDescriptor): RAPIER.JointData {
   switch (descriptor.kind) {
     case "fixed":
       return RAPIER.JointData.fixed(

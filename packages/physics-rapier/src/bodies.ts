@@ -188,9 +188,7 @@ function updateBodyLocks(
   entry.lockRotations = locksOrDefault(command.lockRotations);
 }
 
-function bodyDescForType(
-  bodyType: PhysicsRigidBodyType,
-): RAPIER.RigidBodyDesc {
+function bodyDescForType(bodyType: PhysicsRigidBodyType): RAPIER.RigidBodyDesc {
   switch (bodyType) {
     case PhysicsRigidBodyType.Static:
       return RAPIER.RigidBodyDesc.fixed();

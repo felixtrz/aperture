@@ -97,9 +97,7 @@ function colliderAabb(
   };
 }
 
-function colliderLocalHalfExtents(
-  shape: PhysicsShape,
-): PhysicsVec3 | null {
+function colliderLocalHalfExtents(shape: PhysicsShape): PhysicsVec3 | null {
   switch (shape.kind) {
     case "box":
       return cloneVec3(shape.halfExtents);
