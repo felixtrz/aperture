@@ -16,7 +16,9 @@
 
 ## Phase R1 — Verification you can trust
 
-_An agent-first engine's core promise is that the harness reports breakage. Today CI gates 4 of 145 e2e specs and no coverage thresholds; close that first so every later phase lands on a trustworthy gate._
+**Status: ✅ COMPLETE (2026-06-09)** — all six items landed on `claude/nice-franklin-5sray8`; see `docs/FRAMEWORK_GAP_ACTION_ITEMS.md` batch 10 for the per-item record. Coverage rose 82.99% → 85.45% statements (thresholds now gate CI), the full e2e suite runs sharded 8 ways with skip gating and seven golden baselines, and the bench harness + frame budget are in.
+
+_An agent-first engine's core promise is that the harness reports breakage. When this phase started, CI gated 4 of 145 e2e specs with no coverage thresholds._
 
 ### R1.1 · AF-1 · Lift the verified floor of the weakest-covered runtime modules
 
