@@ -245,7 +245,7 @@ function rapierTrimeshFlags(): RAPIER.TriMeshFlags {
   );
 }
 
-export function coefficientCombineRule(
+function coefficientCombineRule(
   rule: PhysicsMaterialCombineRule,
 ): RAPIER.CoefficientCombineRule {
   switch (rule) {

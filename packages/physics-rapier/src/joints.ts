@@ -86,7 +86,7 @@ export function destroyJointsForBody(
   }
 }
 
-export function jointData(
+function jointData(
   descriptor: PhysicsJointDescriptor,
 ): RAPIER.JointData {
   switch (descriptor.kind) {
@@ -136,7 +136,7 @@ export function jointAxis(descriptor: PhysicsJointDescriptor): PhysicsVec3 {
   );
 }
 
-export function applyJointParameters(
+function applyJointParameters(
   joint: RAPIER.ImpulseJoint,
   descriptor: PhysicsJointDescriptor,
 ): void {
@@ -211,7 +211,7 @@ export function applyJointParameters(
   }
 }
 
-export function isUnitImpulseJoint(
+function isUnitImpulseJoint(
   joint: RAPIER.ImpulseJoint,
 ): joint is RAPIER.UnitImpulseJoint {
   return (

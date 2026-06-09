@@ -1,6 +1,6 @@
-export type PreparedAppMaterialResourceStatus = "created" | "reused";
+type PreparedAppMaterialResourceStatus = "created" | "reused";
 
-export type PreparedAppMaterialCacheSummaryFamily =
+type PreparedAppMaterialCacheSummaryFamily =
   | "unlit"
   | "matcap"
   | "standard"
@@ -22,11 +22,11 @@ export interface PreparedAppMaterialResourceReuseCounters {
   bindGroupsReused: number;
 }
 
-export interface PreparedAppMaterialCacheLike {
+interface PreparedAppMaterialCacheLike {
   readonly resources: ReadonlyMap<string, unknown>;
 }
 
-export interface PreparedAppMaterialCacheSummaryFamilyReport {
+interface PreparedAppMaterialCacheSummaryFamilyReport {
   entries: number;
 }
 
@@ -45,13 +45,13 @@ export interface PreparedAppMaterialCacheSummaryInput {
   readonly debugNormal: PreparedAppMaterialCacheLike;
 }
 
-export type PreparedAppMaterialFallbackReason =
+type PreparedAppMaterialFallbackReason =
   | "missing-layout"
   | "missing-prepared-dependency"
   | "helper-failed"
   | "adapter-mismatch";
 
-export type PreparedAppMaterialFallbackJsonValue =
+type PreparedAppMaterialFallbackJsonValue =
   | null
   | boolean
   | number

@@ -225,7 +225,7 @@ interface DiffuseConvolutionDeviceLike
   };
 }
 
-export function hasIrradianceConvolutionDeviceSupport(
+function hasIrradianceConvolutionDeviceSupport(
   device: TextureGpuDeviceLike,
 ): device is DiffuseConvolutionDeviceLike {
   const maybeDevice = device as DiffuseConvolutionDeviceLike;

@@ -21,7 +21,7 @@ export const STANDARD_DIFFUSE_IBL_SHADER_VARIANT =
   "direct-lit-metallic-roughness-diffuse-ibl";
 export const STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT =
   "direct-lit-metallic-roughness-diffuse-specular-ibl-proof";
-export const STANDARD_SPECULAR_IBL_BRDF_SHADER_VARIANT =
+const STANDARD_SPECULAR_IBL_BRDF_SHADER_VARIANT =
   "direct-lit-metallic-roughness-diffuse-specular-ibl-brdf";
 export const STANDARD_CLEARCOAT_SHADER_VARIANT =
   "direct-lit-metallic-roughness-clearcoat";
@@ -696,7 +696,7 @@ export function standardTextureFeatureNames(
   return names;
 }
 
-export function appendStandardFogFeatureName(
+function appendStandardFogFeatureName(
   names: string[],
   features: StandardTextureShaderFeatures,
 ): void {

@@ -2,12 +2,12 @@ import { WEBGPU_TEXTURE_USAGE_FLAGS } from "./texture-resources.js";
 
 export const WEBGPU_APP_DEPTH_FORMAT = "depth24plus";
 
-export interface WebGpuDepthTextureLike {
+interface WebGpuDepthTextureLike {
   createView(): unknown;
   destroy?(): void;
 }
 
-export interface WebGpuDepthTextureDeviceLike {
+interface WebGpuDepthTextureDeviceLike {
   createTexture(descriptor: {
     readonly label?: string;
     readonly size: readonly [number, number, number];

@@ -162,7 +162,7 @@ export function queryAllowsCollider(
   return true;
 }
 
-export function interactionGroupsCompatible(
+function interactionGroupsCompatible(
   query: number,
   collider: number,
 ): boolean {

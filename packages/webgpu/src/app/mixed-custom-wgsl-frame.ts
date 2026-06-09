@@ -74,7 +74,7 @@ import type {
   WebGpuAppResourceCache,
 } from "./resource-cache.js";
 
-export interface MixedCustomWgslAppFrameResources {
+interface MixedCustomWgslAppFrameResources {
   readonly mesh: NonNullable<
     CreateQueuedBuiltInFrameResourcesResult["resources"]
   >["mesh"];

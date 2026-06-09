@@ -26,7 +26,6 @@ export { createInputResourceSummary } from "./summary.js";
 export type {
   ApertureGeneratedGamepadInputEvent,
   ApertureGeneratedGamepadSnapshot,
-  ApertureGeneratedInputBatchEvent,
   ApertureGeneratedInputEvent,
   ApertureGeneratedInputResetEvent,
   ApertureGeneratedKeyboardInputEvent,

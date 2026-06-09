@@ -7,10 +7,7 @@ import {
 import type { Ktx2TextureCompressionSupport } from "@aperture-engine/render";
 import { createApertureApp, type ApertureApp } from "../advanced.js";
 import { createDefaultSystemGltfAssetDecoderProvider } from "../systems.js";
-import {
-  createSourceAssetSerializationState,
-  type SourceAssetSerializationState,
-} from "../asset-mirror.js";
+import { createSourceAssetSerializationState } from "../asset-mirror.js";
 import type { ApertureConfig } from "../config.js";
 import { errorToApertureDiagnostic } from "../diagnostics.js";
 import type { ApertureGeneratedInputEventMessage } from "../input.js";
@@ -164,8 +161,6 @@ export async function runGeneratedWorkerLoop(options: {
     });
   }
 }
-
-export type GeneratedWorkerSourceAssetState = SourceAssetSerializationState;
 
 interface WorkerAssetDecoderOptions {
   readonly baseUrl?: string;

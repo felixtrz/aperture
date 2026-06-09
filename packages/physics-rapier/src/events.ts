@@ -101,7 +101,7 @@ export function collectRapierEvents(options: {
   return events.sort(comparePhysicsEvents);
 }
 
-export function eventPairForColliderHandles(
+function eventPairForColliderHandles(
   handleIndex: ReadonlyMap<number, RapierColliderMatch>,
   handle1: number,
   handle2: number,
@@ -130,7 +130,7 @@ export function eventPairForColliderHandles(
   };
 }
 
-export function physicsEvent(
+function physicsEvent(
   pair: RapierEventPair,
   kind: PhysicsEventKind,
   fixedStep: number,
@@ -154,7 +154,7 @@ export function physicsEvent(
   };
 }
 
-export function contactForcePhysicsEvent(
+function contactForcePhysicsEvent(
   event: RAPIER.TempContactForceEvent,
   handleIndex: ReadonlyMap<number, RapierColliderMatch>,
   fixedStep: number,
@@ -196,7 +196,7 @@ export function contactForcePhysicsEvent(
   };
 }
 
-export function contactEventData(
+function contactEventData(
   world: RAPIER.World,
   handleIndex: ReadonlyMap<number, RapierColliderMatch>,
   pair: RapierEventPair,
@@ -246,7 +246,7 @@ export function contactEventData(
   return contact;
 }
 
-export function comparePhysicsEvents(
+function comparePhysicsEvents(
   left: PhysicsEvent,
   right: PhysicsEvent,
 ): number {

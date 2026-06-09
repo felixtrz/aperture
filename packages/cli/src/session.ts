@@ -4,7 +4,7 @@ import path from "node:path";
 export const APERTURE_DEVTOOLS_PROTOCOL_VERSION = 1;
 export const APERTURE_RUNTIME_DIRECTORY = ".aperture/runtime";
 export const APERTURE_SESSION_FILE = "session.json";
-export const APERTURE_DEVTOOLS_WS_CHANNEL = "aperture:devtools";
+const APERTURE_DEVTOOLS_WS_CHANNEL = "aperture:devtools";
 export const APERTURE_STATUS_GLOBAL = "__APERTURE_GENERATED_APP__";
 export const APERTURE_MCP_MANAGED_GLOBAL = "__APERTURE_MCP_MANAGED__";
 export const APERTURE_MCP_RUNTIME_GLOBAL = "__APERTURE_MCP_RUNTIME__";

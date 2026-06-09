@@ -11,7 +11,7 @@ import {
   type SerializedAssetHandle,
 } from "@aperture-engine/simulation";
 
-export interface SerializedSourceAssetEntry {
+interface SerializedSourceAssetEntry {
   readonly handle: SerializedAssetHandle;
   readonly label: string;
   readonly status: AssetStatus;
@@ -215,10 +215,4 @@ function writeEntryStatus(
   }
 
   registry.markReady(handle, entry.asset);
-}
-
-export function sourceAssetMirrorKey(
-  entry: SerializedSourceAssetEntry,
-): string {
-  return assetHandleKey(deserializeAssetHandle(entry.handle));
 }

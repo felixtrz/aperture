@@ -30,7 +30,7 @@ export function writeBufferData(
   return true;
 }
 
-export interface QueueWriteBufferDeviceLike {
+interface QueueWriteBufferDeviceLike {
   readonly queue?: {
     writeBuffer?: (
       buffer: unknown,

@@ -17,6 +17,7 @@ export type {
   SpawnMeshOptions,
   SpawnMetadata,
   SpawnPhysicsOptions,
+  SpawnPrefabOptions,
   StandardMaterialDescriptor,
   StandardMaterialOptions,
   SystemTransformInput,

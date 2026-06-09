@@ -67,11 +67,9 @@ export function quatIdentity(): Quat {
   return wgpuQuat.identity();
 }
 
-export function mat4Identity(out: Mat4 = mat4()): Mat4 {
+export function identityMat4(out: Mat4 = mat4()): Mat4 {
   return wgpuMat4.identity(out);
 }
-
-export const identityMat4 = mat4Identity;
 
 export function identityTransformValues(): TransformValues {
   return {

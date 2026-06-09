@@ -45,9 +45,6 @@ export function isSupportedImageMimeType(mimeType: string): boolean {
   );
 }
 
-export function byteLengthOf(bytes: ArrayBuffer | ArrayBufferView): number {
-  return bytes instanceof ArrayBuffer ? bytes.byteLength : bytes.byteLength;
-}
 
 export function bytesView(bytes: ArrayBuffer | ArrayBufferView): Uint8Array {
   return bytes instanceof ArrayBuffer

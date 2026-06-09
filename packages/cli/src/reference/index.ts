@@ -6,12 +6,10 @@ export type {
   ApertureReferenceEntry,
   ApertureReferenceIndex,
   ApertureReferenceManifest,
-  ApertureReferenceManifestFile,
   ApertureReferenceModelContract,
   ApertureReferenceSearchReport,
   ApertureReferenceSearchResult,
   ApertureReferenceSource,
-  ApertureReferenceStatusDiagnostic,
   ApertureReferenceStatusReport,
   BuildApertureReferenceIndexOptions,
   BuildApertureReferenceIndexReport,
@@ -24,7 +22,6 @@ export {
   apertureReferenceArchiveFile,
   apertureReferenceIndexFile,
   apertureReferenceManifestFile,
-  apertureReferenceRuntimeDir,
   apertureReferenceStateFile,
 } from "./paths.js";
 export {
@@ -38,9 +35,6 @@ export {
 } from "./read.js";
 export type { ApertureReferenceSourceCategory } from "./source-filter.js";
 export { apertureReferenceSharedCacheDir } from "./state.js";
-export {
-  APERTURE_REFERENCE_TOOL_CONTRACT,
-  type ApertureReferenceToolContract,
-} from "./tools.js";
+export { APERTURE_REFERENCE_TOOL_CONTRACT } from "./tools.js";
 export { readApertureReferenceStatus } from "./status.js";
 export { warmApertureReferences } from "./warm.js";

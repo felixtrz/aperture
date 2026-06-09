@@ -65,7 +65,7 @@ export interface ApertureGeneratedInputResetEvent {
   readonly reason?: string;
 }
 
-export interface ApertureGeneratedInputBatchEvent {
+interface ApertureGeneratedInputBatchEvent {
   readonly kind: "batch";
   readonly events: readonly ApertureGeneratedInputEvent[];
 }

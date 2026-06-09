@@ -5,7 +5,6 @@ import {
   type ApertureGeneratedGamepadInputEvent,
   type ApertureGeneratedGamepadSnapshot,
   type ApertureGeneratedInputEvent,
-  type ApertureGeneratedInputResetEvent,
   type ApertureGeneratedKeyboardInputEvent,
   type ApertureGeneratedPointerInputEvent,
   type ApertureGeneratedPointerName,
@@ -14,20 +13,10 @@ import {
   type InputResourceBase,
 } from "./state.js";
 
-export const APERTURE_GENERATED_INPUT_EVENT =
+const APERTURE_GENERATED_INPUT_EVENT =
   "aperture.generated.inputEvent" as const;
 
-export type {
-  ApertureGeneratedGamepadInputEvent,
-  ApertureGeneratedGamepadSnapshot,
-  ApertureGeneratedInputEvent,
-  ApertureGeneratedInputResetEvent,
-  ApertureGeneratedKeyboardInputEvent,
-  ApertureGeneratedPointerInputEvent,
-  ApertureGeneratedPointerName,
-  ApertureGeneratedVirtualActionInputEvent,
-  ApertureInputSummary,
-};
+export type { ApertureGeneratedInputEvent, ApertureInputSummary };
 
 export interface ApertureGeneratedInputEventMessage {
   readonly type: typeof APERTURE_GENERATED_INPUT_EVENT;

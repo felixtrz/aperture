@@ -18,16 +18,10 @@ import type {
 } from "./ktx2-types.js";
 import { bytesView, featureSetHas } from "./ktx2-utils.js";
 
-export { parseKtx2Container } from "./ktx2-container.js";
-export { createBasisUniversalKtx2Transcoder } from "./ktx2-basis-transcoder.js";
 export type {
-  Ktx2BasisTranscodeOptions,
   Ktx2BasisTranscoder,
-  Ktx2BasisTranscoderSource,
-  Ktx2ContainerInfo,
   Ktx2DecodeOptions,
   Ktx2FeatureSetLike,
-  Ktx2LevelIndex,
   Ktx2TextureCompressionFeature,
   Ktx2TextureCompressionSupport,
 } from "./ktx2-types.js";

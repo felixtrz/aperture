@@ -1,7 +1,4 @@
-import type {
-  RenderWorldDrawReadinessReport,
-  RenderWorldReadyDraw,
-} from "./render-world.js";
+import type { RenderWorldReadyDraw } from "./render-world.js";
 import type { RenderDiagnostic } from "./snapshot.js";
 import type { OPAQUE_STATE_SORT_POLICY_NAME } from "./render-state-sort.js";
 
@@ -125,6 +122,4 @@ export interface MutableRenderQueueRecord {
   readonly sourceMeshResourceKeys: string[];
 }
 
-export type ReadyDrawPacket = RenderWorldReadyDraw["packet"];
 export type ReadyDrawBatchKey = RenderWorldReadyDraw["batchKey"];
-export type DrawReadinessReport = RenderWorldDrawReadinessReport;

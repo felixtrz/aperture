@@ -9,11 +9,11 @@ import { WEBGPU_BUFFER_USAGE_FLAGS } from "../meshes/mesh-buffer-descriptors.js"
 import { morphInstanceDescriptorBufferResourceKey } from "../core/resource-keys.js";
 
 /** Four `u32` per instance: (weightOffset, targetCount, deltaOffset, vertexCount). */
-export const MORPH_INSTANCE_DESCRIPTOR_U32 = 4;
-export const DEFAULT_MORPH_INSTANCE_DESCRIPTOR_BUFFER_USAGE =
+const MORPH_INSTANCE_DESCRIPTOR_U32 = 4;
+const DEFAULT_MORPH_INSTANCE_DESCRIPTOR_BUFFER_USAGE =
   WEBGPU_BUFFER_USAGE_FLAGS.STORAGE | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST;
 
-export type MorphInstanceDescriptorBufferDescriptorDiagnosticCode =
+type MorphInstanceDescriptorBufferDescriptorDiagnosticCode =
   | "morphInstanceDescriptorBuffer.notMorphed"
   | "morphInstanceDescriptorBuffer.missingData"
   | "morphInstanceDescriptorBuffer.invalidUsageFlags";
@@ -25,7 +25,7 @@ export interface MorphInstanceDescriptorBufferDescriptorDiagnostic {
   readonly field?: string;
 }
 
-export interface MorphInstanceDescriptorBufferDescriptorPlan {
+interface MorphInstanceDescriptorBufferDescriptorPlan {
   readonly descriptor: WebGpuBufferDescriptor;
   readonly source: Uint32Array;
   readonly renderId: number;
@@ -43,7 +43,7 @@ export interface MorphInstanceDescriptorBufferDescriptorResult {
   readonly diagnostics: readonly MorphInstanceDescriptorBufferDescriptorDiagnostic[];
 }
 
-export type MorphInstanceDescriptorGpuBufferDiagnosticCode =
+type MorphInstanceDescriptorGpuBufferDiagnosticCode =
   | "morphInstanceDescriptorGpuBuffer.nullDescriptorPlan"
   | "morphInstanceDescriptorGpuBuffer.creationFailed";
 
@@ -72,7 +72,7 @@ export interface CreateMorphInstanceDescriptorGpuBufferResult {
   readonly diagnostics: readonly MorphInstanceDescriptorGpuBufferDiagnostic[];
 }
 
-export function morphInstanceDescriptorBufferResourceKeyForRenderId(
+function morphInstanceDescriptorBufferResourceKeyForRenderId(
   renderId: number,
 ): string {
   return morphInstanceDescriptorBufferResourceKey(`render:${renderId}`);

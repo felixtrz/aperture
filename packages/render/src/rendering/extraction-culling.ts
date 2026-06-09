@@ -8,7 +8,7 @@ export interface FrustumPlane {
   readonly constant: number;
 }
 
-export interface MutableViewCullStats {
+interface MutableViewCullStats {
   viewId: number;
   camera: RenderEntityRef;
   tested: number;

@@ -57,7 +57,7 @@ export function queryShapeRotation(
     : multiplyQuat(normalized, axisRotation);
 }
 
-export function primitiveAxisRotation(shape: PhysicsShape): PhysicsQuat | null {
+function primitiveAxisRotation(shape: PhysicsShape): PhysicsQuat | null {
   switch (shape.kind) {
     case "capsule":
     case "cylinder":
