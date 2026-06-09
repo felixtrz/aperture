@@ -32,6 +32,8 @@ _High-leverage, low-coupling fixes with no prerequisites — frame-time, release
 
 ### AI-3 · Guarantee parented rigid bodies resolve a world pose and drop the parented rejection
 
+**Status: ✅ DONE (2026-06-09)** — see `docs/FRAMEWORK_GAP_ACTION_ITEMS.md` batch 9.
+
 **Priority** P3 · **Effort** S · **Depends on** none
 
 **Change.** The forward (parent-local -> world) and reverse (world -> parent-local) pose conversions already exist (ecs-sync.ts physicsTransformForEntity ~515-540 and localTransformFromPhysicsResult ~370-418), and stepPhysicsWorld already calls resolveWorldTransforms(world) before collecting commands (ecs-sync.ts:213). The only residual is the fallback: resolveWorldTransforms (simulation transform/resolution.ts) only processes entities that ALREADY have WorldTransform (query required:[LocalTransform,WorldTransform]), so a parented RigidBody lacking a WorldTransform still hits source:'local' and is flagged parented:true and rejected (ecs-sync.ts:466-467; backend.ts physicsBodyCommandHasUnsupportedParentedBody ~750-753 and the unsupported feature at ~547-557). Ensure parented RigidBody/Collider entities are guaranteed a WorldTransform before physics sync (register/add WorldTransform in collectPhysicsCommands or its setup so resolveWorldTransforms resolves them), then remove the parented:true branch in ecs-sync.ts and the physics.rigidBody.parentedBody.unsupported feature path in backend.ts.
@@ -48,6 +50,8 @@ _High-leverage, low-coupling fixes with no prerequisites — frame-time, release
 **Invariants.** Invariant 1/3 (ECS is source of truth; backend is a derived view): the world pose is derived from ECS WorldTransform, no hidden scene graph. Invariant 4 (determinism): conversion is pure matrix math, no wall-clock/RNG. Invariant 5 (loud): removing the rejection must not silently swallow genuinely non-invertible parent matrices — keep a structured diagnostic for the truly non-decomposable case rather than dropping the body.
 
 ### AI-11 · Skip the per-frame GPU drain when no readback is pending
+
+**Status: ✅ DONE (2026-06-09)** — see `docs/FRAMEWORK_GAP_ACTION_ITEMS.md` batch 9.
 
 **Priority** P1 · **Effort** M · **Depends on** none
 

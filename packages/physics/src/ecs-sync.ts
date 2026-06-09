@@ -7,6 +7,7 @@ import {
   invertMat4,
   mat4,
   multiplyMat4,
+  registerTransformComponents,
   resolveWorldTransforms,
   serializeEntityRef,
   type AnyEcsComponent,
@@ -206,10 +207,41 @@ function firstAuthoredGravity(
     : readVec3(active, PhysicsGravity, "gravity");
 }
 
+/**
+ * Add WorldTransform to parented RigidBody entities authored with only a
+ * LocalTransform, so the following resolveWorldTransforms pass produces the
+ * world pose physics sync needs (AI-3). Without this, a parented body would
+ * fall back to its parent-local pose and be rejected as unsupported.
+ */
+export function ensureParentedPhysicsBodyWorldTransforms(
+  world: EcsWorld,
+): number {
+  registerTransformComponents(world);
+
+  const query = world.queryManager.registerQuery({
+    required: [RigidBody, LocalTransform, Parent],
+  });
+  let added = 0;
+
+  for (const entity of query.entities) {
+    if (
+      entity.active &&
+      !entity.hasComponent(WorldTransform) &&
+      activeParentForEntity(entity) !== null
+    ) {
+      entity.addComponent(WorldTransform);
+      added += 1;
+    }
+  }
+
+  return added;
+}
+
 export function stepPhysicsWorld(
   options: PhysicsWorldStepOptions,
 ): PhysicsWorldStepReport {
   const state = options.state ?? createPhysicsWorldSyncState();
+  ensureParentedPhysicsBodyWorldTransforms(options.world);
   resolveWorldTransforms(options.world);
   const sync = options.backend.sync(
     collectPhysicsCommands(options.world, state),

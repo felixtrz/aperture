@@ -241,6 +241,86 @@ describe("test physics backend", () => {
     expect(results.bodies).toEqual([]);
   });
 
+  it("auto-resolves world poses for parented bodies authored without WorldTransform (AI-3)", () => {
+    const world = createWorld({ entityCapacity: 3 });
+    registerPhysicsComponents(world);
+    world.registerComponent(LocalTransform);
+    world.registerComponent(Parent);
+    world.registerComponent(WorldTransform);
+    const parent = world.createEntity();
+    const body = world.createEntity();
+    const backend = createTestPhysicsBackend();
+    const state = createPhysicsWorldSyncState();
+
+    backend.init();
+
+    // Translated + rotated parent (90° about Y).
+    const parentRoot = createRootTransform({
+      translation: [10, 0, 0],
+      rotation: [0, Math.SQRT1_2, 0, Math.SQRT1_2],
+    });
+    parent.addComponent(LocalTransform, parentRoot.local);
+    parent.addComponent(Parent, parentRoot.parent);
+    parent.addComponent(WorldTransform, parentRoot.world);
+
+    // The body authors only LocalTransform — no pre-added WorldTransform.
+    body.addComponent(
+      LocalTransform,
+      createLocalTransform({ translation: [1, 0, 0] }),
+    );
+    body.addComponent(Parent, createParent(parent));
+    body.addComponent(
+      RigidBody,
+      createRigidBody({ type: PhysicsRigidBodyType.Dynamic }),
+    );
+    body.addComponent(Collider, createCollider());
+
+    const report = stepPhysicsWorld({
+      world,
+      backend,
+      state,
+      fixedDelta: 1,
+      fixedStep: 1,
+    });
+
+    // The body is synced (not rejected as parented) at the composed world
+    // pose: parent translation + 90°-Y rotation maps local (1,0,0) to (0,0,-1).
+    expect(report.sync).toMatchObject({
+      bodyCount: 1,
+      colliderCount: 1,
+      unsupportedFeatureCount: 0,
+      unsupportedFeatures: [],
+    });
+    expect(body.hasComponent(WorldTransform)).toBe(true);
+    expect(body.hasComponent(PhysicsBodyState)).toBe(true);
+
+    const worldPose = Array.from(
+      body.getVectorView(PhysicsBodyState, "currentTranslation"),
+    );
+    expect(worldPose[0]).toBeCloseTo(10, 4);
+    expect(worldPose[1]).toBeCloseTo(0, 4);
+    expect(worldPose[2]).toBeCloseTo(-1, 4);
+
+    // Writeback round-trips the backend world pose into the parent-local
+    // frame: with no velocity the local translation is preserved.
+    const localPose = Array.from(
+      body.getVectorView(LocalTransform, "translation"),
+    );
+    expect(localPose[0]).toBeCloseTo(1, 4);
+    expect(localPose[1]).toBeCloseTo(0, 4);
+    expect(localPose[2]).toBeCloseTo(0, 4);
+
+    // Re-collecting after the step emits no parented rejection flag.
+    const buffer = collectPhysicsCommands(world, state);
+    const upsert = buffer.commands.find(
+      (command) => command.kind === "upsertBody",
+    );
+    expect(upsert).toBeDefined();
+    expect(
+      (upsert as { readonly parented?: boolean } | undefined)?.parented,
+    ).toBeUndefined();
+  });
+
   it("syncs parented ECS bodies as backend world poses and writes parent-local results", () => {
     const world = createWorld({ entityCapacity: 3 });
     registerPhysicsComponents(world);
