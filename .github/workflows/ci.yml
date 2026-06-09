@@ -46,6 +46,12 @@ jobs:
         continue-on-error: true
         run: pnpm run check:deadcode
 
+      # AI-76: report per-scale render-pipeline timings; the gating budget
+      # assertions run inside `pnpm test` (extraction-budget.test.ts).
+      - name: Run bench report (non-blocking)
+        continue-on-error: true
+        run: pnpm run bench
+
   e2e:
     name: WebGPU E2E (SwiftShader, shard ${{ matrix.shard }}/8)
     runs-on: ubuntu-latest
