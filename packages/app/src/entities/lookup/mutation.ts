@@ -1301,7 +1301,7 @@ function missingPhysicsGravityDiagnostic(
   request: ApertureEntitySetComponentFieldRequest,
 ): ApertureEntityLookupDiagnostic {
   return {
-    code: "aperture.entity.componentField.missingComponent",
+    code: "aperture.entityLookup.componentMissing",
     severity: "error",
     message: `Entity ${entity.index} does not have component '${PhysicsGravity.id}'.`,
     data: {

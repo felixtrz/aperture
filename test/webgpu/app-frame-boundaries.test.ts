@@ -144,7 +144,9 @@ describe("WebGPU app frame boundary assembly", () => {
       reuse: resourceReuseReport(),
     });
 
-    expect(result.valid).toBe(false);
+    // The fallback degrades deliberately (commands stripped, culling report
+    // records it, warning diagnostic surfaces it) — the frame stays valid.
+    expect(result.valid).toBe(true);
     expect(result.occlusionCulling.fallbackReason).toBe("unsupported");
     expect(result.occlusionQueryDiagnostics).toMatchObject([
       { code: "gpuOcclusion.missingDeviceSupport" },

@@ -293,21 +293,27 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
             target,
             queryCount: occlusionRenderIds.length,
           });
-    const commandsForBoundary =
-      occlusionRenderIds.length > 0 && occlusionQueries?.resources === null
-        ? commandsWithoutOcclusionQueryCommands(
-            commands,
-            options.cache.frameScratch.occlusionFallbackCommands,
-          )
-        : commands;
+    const occlusionFallback =
+      occlusionRenderIds.length > 0 && occlusionQueries?.resources === null;
+    const commandsForBoundary = occlusionFallback
+      ? commandsWithoutOcclusionQueryCommands(
+          commands,
+          options.cache.frameScratch.occlusionFallbackCommands,
+        )
+      : commands;
 
-    if (occlusionRenderIds.length > 0 && occlusionQueries?.resources === null) {
+    if (occlusionFallback) {
       recordWebGpuAppOcclusionCullingFallback(occlusionCulling, "unsupported");
     }
     occlusionQueryCount += occlusionRenderIds.length;
     occlusionQueryDiagnostics.push(...(occlusionQueries?.diagnostics ?? []));
     diagnostics.push(...(occlusionQueries?.diagnostics ?? []));
-    allTargetsValid &&= occlusionQueries === null || occlusionQueries.valid;
+    // The unsupported-query-set fallback degrades deliberately: occlusion
+    // commands are stripped, the culling report records the fallback, and a
+    // warning diagnostic surfaces it — the frame itself still renders and
+    // must stay valid.
+    allTargetsValid &&=
+      occlusionQueries === null || occlusionQueries.valid || occlusionFallback;
     diagnostics.push(...skybox.diagnostics);
     allTargetsValid &&= skybox.valid;
     const depthAttachment = createWebGpuAppDepthAttachmentForTarget(

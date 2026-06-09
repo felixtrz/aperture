@@ -911,12 +911,7 @@ const missingComponentCases: readonly MissingComponentCase[] = [
   { component: KinematicTarget.id, field: "enabled", value: true },
   { component: KinematicTarget.id, field: "translation", value: [0, 0, 0] },
   { component: KinematicTarget.id, field: "rotation", value: [0, 0, 0, 1] },
-  {
-    component: PhysicsGravity.id,
-    field: "gravity",
-    value: [0, -9.81, 0],
-    code: "aperture.entity.componentField.missingComponent",
-  },
+  { component: PhysicsGravity.id, field: "gravity", value: [0, -9.81, 0] },
   { component: PhysicsCharacterController.id, field: "enabled", value: true },
   { component: PhysicsCharacterController.id, field: "offset", value: 0.5 },
   { component: PhysicsCharacterController.id, field: "up", value: [0, 1, 0] },
