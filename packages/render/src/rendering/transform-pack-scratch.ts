@@ -45,7 +45,6 @@ export function createPackedSnapshotTransformsScratch(
     offsets,
     diagnostics,
     offsetPool,
-    sourceToPackedOffset: new Map(),
     result: { data, floatCount: 0, offsets, diagnostics },
   };
 }

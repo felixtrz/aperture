@@ -54,6 +54,27 @@ export function serializeSourceAssetRegistry(
   };
 }
 
+/**
+ * Record the serialized entry versions as successfully delivered. Callers must
+ * invoke this only after the message containing the entries was posted; if
+ * posting throws (for example a structured-clone failure on an asset payload),
+ * skipping the commit keeps the entries eligible for the next snapshot instead
+ * of silently dropping them from the mirror forever.
+ */
+export function commitSerializedSourceAssets(
+  state: SourceAssetSerializationState,
+  serialized: SerializedSourceAssetRegistry,
+): void {
+  for (const entry of serialized.entries) {
+    const key = assetHandleKey(deserializeAssetHandle(entry.handle));
+    const sentVersion = state.versionsByHandle.get(key);
+
+    if (sentVersion === undefined || entry.version > sentVersion) {
+      state.versionsByHandle.set(key, entry.version);
+    }
+  }
+}
+
 export function mirrorSourceAssetRegistryFromMessage(
   registry: AssetRegistry,
   message: unknown,
@@ -106,15 +127,9 @@ function shouldSerializeSourceAssetEntry(
     return true;
   }
 
-  const key = assetHandleKey(entry.handle);
-  const sentVersion = state.versionsByHandle.get(key);
+  const sentVersion = state.versionsByHandle.get(assetHandleKey(entry.handle));
 
-  if (sentVersion !== undefined && sentVersion >= entry.version) {
-    return false;
-  }
-
-  state.versionsByHandle.set(key, entry.version);
-  return true;
+  return sentVersion === undefined || entry.version > sentVersion;
 }
 
 function readSourceAssetRegistry(

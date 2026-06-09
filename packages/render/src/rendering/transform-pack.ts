@@ -71,7 +71,6 @@ export function writePackedSnapshotTransforms(
 
   scratch.offsets.length = 0;
   scratch.diagnostics.length = 0;
-  scratch.sourceToPackedOffset.clear();
   result.floatCount = snapshot.transforms.length;
   ensureTransformDataCapacity(scratch, snapshot.transforms.length);
   scratch.data.set(snapshot.transforms);

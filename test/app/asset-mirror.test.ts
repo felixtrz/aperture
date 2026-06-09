@@ -6,33 +6,35 @@ import {
 } from "@aperture-engine/simulation";
 import { createWgslShaderAsset } from "@aperture-engine/render";
 import {
+  commitSerializedSourceAssets,
   mirrorSourceAssetRegistryFromMessage,
   createSourceAssetSerializationState,
   serializeSourceAssetRegistry,
 } from "../../packages/app/src/asset-mirror.js";
 
 describe("generated app source asset mirroring", () => {
-  it("serializes only asset entries that changed since the last snapshot", () => {
+  it("serializes only asset entries that changed since the last committed snapshot", () => {
     const registry = new AssetRegistry();
     const state = createSourceAssetSerializationState();
     const mesh = createMeshHandle("cube");
 
     registry.register(mesh, { label: "Cube Mesh" });
 
-    expect(
-      serializeSourceAssetRegistry(registry, { state }).entries.map(
-        (entry) => entry.label,
-      ),
-    ).toEqual(["Cube Mesh"]);
+    const registered = serializeSourceAssetRegistry(registry, { state });
+    expect(registered.entries.map((entry) => entry.label)).toEqual([
+      "Cube Mesh",
+    ]);
+    commitSerializedSourceAssets(state, registered);
     expect(serializeSourceAssetRegistry(registry, { state }).entries).toEqual(
       [],
     );
 
     registry.markLoading(mesh);
 
-    const loading = serializeSourceAssetRegistry(registry, { state }).entries;
-    expect(loading).toHaveLength(1);
-    expect(loading[0]?.status).toBe("loading");
+    const loading = serializeSourceAssetRegistry(registry, { state });
+    expect(loading.entries).toHaveLength(1);
+    expect(loading.entries[0]?.status).toBe("loading");
+    commitSerializedSourceAssets(state, loading);
     expect(serializeSourceAssetRegistry(registry, { state }).entries).toEqual(
       [],
     );
@@ -47,6 +49,38 @@ describe("generated app source asset mirroring", () => {
       version: 2,
       asset: { vertexCount: 36 },
     });
+  });
+
+  it("re-serializes entries when the previous snapshot was never committed (failed postMessage)", () => {
+    const registry = new AssetRegistry();
+    const state = createSourceAssetSerializationState();
+    const mesh = createMeshHandle("cube");
+
+    registry.register(mesh, { label: "Cube Mesh" });
+
+    // Simulates a postMessage that threw after serialization: without a
+    // commit, the same entries must remain eligible for the next frame.
+    const attempt = serializeSourceAssetRegistry(registry, { state });
+    expect(attempt.entries).toHaveLength(1);
+
+    const retry = serializeSourceAssetRegistry(registry, { state });
+    expect(retry.entries).toHaveLength(1);
+
+    commitSerializedSourceAssets(state, retry);
+    expect(serializeSourceAssetRegistry(registry, { state }).entries).toEqual(
+      [],
+    );
+
+    // A stale commit (from an out-of-order older snapshot) must not regress
+    // the recorded version.
+    registry.markLoading(mesh);
+    const newer = serializeSourceAssetRegistry(registry, { state });
+    expect(newer.entries).toHaveLength(1);
+    commitSerializedSourceAssets(state, newer);
+    commitSerializedSourceAssets(state, attempt);
+    expect(serializeSourceAssetRegistry(registry, { state }).entries).toEqual(
+      [],
+    );
   });
 
   it("keeps full serialization available when no delta state is provided", () => {
@@ -75,9 +109,11 @@ describe("generated app source asset mirroring", () => {
       }),
     );
 
-    const firstMessage = {
-      sourceAssets: serializeSourceAssetRegistry(workerRegistry, { state }),
-    };
+    const firstSerialized = serializeSourceAssetRegistry(workerRegistry, {
+      state,
+    });
+    commitSerializedSourceAssets(state, firstSerialized);
+    const firstMessage = { sourceAssets: firstSerialized };
     const firstMirror = mirrorSourceAssetRegistryFromMessage(
       mainRegistry,
       firstMessage,

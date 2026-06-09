@@ -62,7 +62,6 @@ export interface PackedSnapshotTransformsScratch {
   readonly offsets: PackedTransformOffset[];
   readonly diagnostics: RenderDiagnostic[];
   readonly offsetPool: PackedTransformOffset[];
-  readonly sourceToPackedOffset: Map<number, number>;
   readonly result: PackedSnapshotTransforms;
 }
 

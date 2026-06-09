@@ -13,6 +13,7 @@ import {
   type SnapshotPacketEncodingRegistry,
 } from "@aperture-engine/render";
 import {
+  commitSerializedSourceAssets,
   serializeSourceAssetRegistry,
   type SourceAssetSerializationState,
 } from "../asset-mirror.js";
@@ -128,6 +129,11 @@ export function publishGeneratedWorkerSnapshot(options: {
       renderSnapshotTransferList(snapshot),
     );
   }
+
+  // Commit only after postMessage returned: if posting threw (for example a
+  // structured-clone failure on an asset payload), the uncommitted versions
+  // stay eligible and the entries are re-sent with the next snapshot.
+  commitSerializedSourceAssets(options.sourceAssetState, sourceAssets);
 
   return {
     nextFrame: options.frame + 1,
