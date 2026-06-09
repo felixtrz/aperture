@@ -17,6 +17,7 @@ import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
 import {
   createWebGpuAppResourceReuseReport,
   renderReport,
+  frameBoundariesNeedGpuDrain,
   waitForSubmittedWork,
 } from "./report.js";
 import { assembleWebGpuAppFrameBoundaries } from "./frame-boundaries.js";
@@ -229,7 +230,9 @@ export async function renderSpriteOnlyWebGpuAppFrame(
       : { readbackSamples: options.readbackSamples }),
   });
 
-  await waitForSubmittedWork(app.initialization.device);
+  if (frameBoundariesNeedGpuDrain(boundaries)) {
+    await waitForSubmittedWork(app.initialization.device);
+  }
 
   const frameOk =
     packedViews.diagnostics.length === 0 &&

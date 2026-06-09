@@ -89,6 +89,10 @@ See §7 for the re-prioritized do-next sequence.
 - **AI-86 (most) — portable doc paths.** Converted 183/269 machine-specific `/Users/felixz` citations across the planning/research docs to portable paths (repo-own → `./`-relative; `aperture-reference-libs/three.js` → `references/three.js`; `.../playcanvas-engine` → `references/engine`) and re-aligned SOTA_ROADMAP tables. Residual (external libs not cloned + private `immersive-web-sdk`) needs upstream URLs — mapping recorded on the AI-86 item.
 - **AI-30 — sequenced behind AI-76.** Left unimplemented by design: FEAT-03 showed naive buffer reuse ~3.9× slower, so this is now an explicit measure-then-hoist item gated on the AI-76 benchmark harness (recorded on the AI-30 item) rather than a blind change.
 
+### 2026-06-09 — batch 9 (branch `claude/nice-franklin-5sray8`)
+
+- **AI-11 — gate the per-frame GPU drain on a real readback need.** All five frame paths (`frame-loop.ts`, `sprite-frame.ts`, `custom-wgsl-frame.ts`, `mixed-custom-wgsl-frame.ts`, `queued-built-in-frame.ts`) awaited `waitForSubmittedWork` (`queue.onSubmittedWorkDone`, a full GPU flush) unconditionally every frame. Added a pure `frameBoundariesNeedGpuDrain(boundaries)` predicate (`app/report.ts`) that is true only when the assembled frame produced something a CPU read actually consumes this frame — a requested readback boundary, pending GPU-timing readbacks, or occlusion-query readbacks/queries — and gated all five drains on it. `picking-frame.ts:342` left as-is per the item. Readback-carrying frames (e2e canvas probes, occlusion feedback, GPU timings) keep the exact prior ordering. Tests: `test/webgpu/frame-boundary-drain.test.ts` (5); full webgpu suite (1404) green. Residual: consuming occlusion readbacks N frames later (latency hiding) remains a follow-on.
+
 ---
 
 ## 1. Executive Summary
@@ -187,7 +191,7 @@ Open and partial gaps. Grouped by theme; ordered by priority within each group. 
 
 ### Rendering & GPU perf
 
-- **AI-11** · **Gate the per-frame GPU drain on a pending GPU→CPU readback** · **P1** · **M** · `waitForSubmittedWork` (`queue.onSubmittedWorkDone`, a full GPU flush) is awaited **unconditionally** every frame in five frame paths, serializing CPU/GPU even when no readback is consumed. Only call it when occlusion feedback (`queryCount>0`) or picking actually needs a readback; consume occlusion readbacks N frames later. Leave `picking-frame.ts:342` as-is. · Files: `packages/webgpu/src/app/frame-loop.ts:940`, `sprite-frame.ts:232`, `custom-wgsl-frame.ts:334`, `mixed-custom-wgsl-frame.ts:493`, `queued-built-in-frame.ts:470` · **NEW**
+- **AI-11** · **Gate the per-frame GPU drain on a pending GPU→CPU readback** · **P1** · **M** · ~~`waitForSubmittedWork` is awaited unconditionally every frame in five frame paths~~ **DONE (batch 9, 2026-06-09):** all five drains now gated on `frameBoundariesNeedGpuDrain` (readback boundary, GPU-timing readbacks, or occlusion readbacks/queries pending); `picking-frame.ts:342` left as-is. Residual follow-on: consume occlusion readbacks N frames later instead of same-frame. · Files: `packages/webgpu/src/app/report.ts`, `frame-loop.ts`, `sprite-frame.ts`, `custom-wgsl-frame.ts`, `mixed-custom-wgsl-frame.ts`, `queued-built-in-frame.ts` · **DONE**
 
 - **AI-12** · **Route the forward + legacy scene paths through the frame graph and read userPassRegistry there (audit B4)** · **P1** · **L** · The public `addRenderPass`/`addComputePass` API executes **only** on the single-encoder post-effect graph path — it silently no-ops on the default forward render (`useFrameGraph` defaults false). Wire the forward-only and legacy multi-submit paths to read `userPassRegistry`. · Files: `packages/webgpu/src/app/app.ts:501-521`, `frame-loop.ts`, `user-pass.ts` · **already tracked: inline "audit B4" follow-up**
 
@@ -414,7 +418,7 @@ _(No other rows were flagged `corrected`; all remaining verdicts were `confirmed
 
 The 2026-06-07 list's cheap wins (AI-79, AI-63, AI-48) have **landed** and are dropped here. Remaining open/partial items, ordered by leverage × tractability:
 
-1. **AI-11 — Gate the per-frame GPU drain on a real readback need** _(P1/M)_. Pure frame-loop win across five frame paths; the `boundaries` flags are already exposed, no dependencies. Highest leverage-per-effort P1.
+1. ~~**AI-11 — Gate the per-frame GPU drain on a real readback need**~~ **DONE (batch 9, 2026-06-09)** — see the Implementation Log; the occlusion N-frame-latency follow-on remains open.
 2. **AI-72 — Cut the first real `v*` release + changelog** _(P1/M)_. Unblocks external adoption; the machinery exists and 14 changesets are staged. No code deps.
 3. **AI-66 — Add the dirty-range-aware buffer-upload primitive (`writeBufferSubData`)** _(P3/L)_. The 5-arg `queue.writeBuffer` shape is already declared; this is the enabling primitive for AI-64/AI-65. Bumped early despite P3 because it unblocks the whole upload chain.
 4. **AI-19 — Emit a normal G-buffer + thread the live view uniform into post `prepare()`** _(P2/XL)_. Hard prerequisite for AI-20 and a building block toward deferred. Do before AI-20.

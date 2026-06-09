@@ -761,6 +761,8 @@ describe("WebGPU app facade", () => {
     expect(events).toContain("textureResource:view:aperture/webgpu-app/depth");
     expect(events).toContain("queue:submit:1");
     expect(events.some((event) => event.startsWith("pass:draw"))).toBe(true);
+    // AI-11: a frame with no pending readbacks must not drain the GPU queue.
+    expect(events).not.toContain("queue:done");
     expect(webGpuAppRenderReportToJsonValue(frame).depthAttachment).toEqual(
       frame.depthAttachment,
     );

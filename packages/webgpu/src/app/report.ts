@@ -602,3 +602,23 @@ export async function waitForSubmittedWork(device: unknown): Promise<void> {
     await queue.onSubmittedWorkDone();
   }
 }
+
+/**
+ * Whether the assembled frame produced GPU→CPU readbacks that require a full
+ * queue drain before they can be consumed this frame. Frames without pending
+ * readbacks must skip `waitForSubmittedWork` — draining unconditionally
+ * serializes the CPU against the GPU and defeats frame pipelining (AI-11).
+ */
+export function frameBoundariesNeedGpuDrain(boundaries: {
+  readonly readbackBoundary: object | null;
+  readonly gpuTimingReadbacks?: readonly unknown[];
+  readonly occlusionQueryReadbacks?: readonly unknown[];
+  readonly occlusionQueryCount?: number;
+}): boolean {
+  return (
+    boundaries.readbackBoundary !== null ||
+    (boundaries.gpuTimingReadbacks?.length ?? 0) > 0 ||
+    (boundaries.occlusionQueryReadbacks?.length ?? 0) > 0 ||
+    (boundaries.occlusionQueryCount ?? 0) > 0
+  );
+}

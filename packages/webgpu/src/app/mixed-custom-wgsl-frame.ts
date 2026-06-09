@@ -60,7 +60,11 @@ import {
   readWebGpuAppGpuTimings,
   readWebGpuAppOcclusionQueries,
 } from "./gpu-readback.js";
-import { renderReport, waitForSubmittedWork } from "./report.js";
+import {
+  renderReport,
+  frameBoundariesNeedGpuDrain,
+  waitForSubmittedWork,
+} from "./report.js";
 import { createWebGpuAppAutoShadowFrame } from "./auto-shadow-frame.js";
 import type { WebGpuAppRenderPhaseTimer } from "./app-phase-timing.js";
 import type {
@@ -490,7 +494,9 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
       : { readbackSamples: options.readbackSamples }),
   });
 
-  await waitForSubmittedWork(options.app.initialization.device);
+  if (frameBoundariesNeedGpuDrain(boundaries)) {
+    await waitForSubmittedWork(options.app.initialization.device);
+  }
   const gpuTimings = await readWebGpuAppGpuTimings({
     readbacks: boundaries.gpuTimingReadbacks,
     diagnostics: boundaries.gpuTimingDiagnostics,
