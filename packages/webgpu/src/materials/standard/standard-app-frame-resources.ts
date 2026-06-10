@@ -15,6 +15,8 @@ import type {
 import {
   sameStringList,
   writeBufferData,
+  writeWorldTransformBufferVersioned,
+  type WorldTransformUploadOutcome,
 } from "../../app/app-frame-resource-utils.js";
 import type { BindGroupResourceCache } from "../../gpu/bind-group-resource-cache.js";
 import {
@@ -104,6 +106,8 @@ export interface CachedStandardAppFrameResources {
   readonly worldTransformDescriptorScratch: WorldTransformBufferDescriptorScratch;
   readonly lightBufferDescriptorScratch: LightBufferDescriptorScratch;
   readonly lightBufferDescriptorPlanScratch: LightBufferDescriptorPlanScratch;
+  /** Packed-transform contentVersion last uploaded to this route's buffer. */
+  worldTransformContentVersion?: number | undefined;
   result: CreateStandardFrameGpuResourcesResult;
 }
 
@@ -303,6 +307,32 @@ export function createOrReuseStandardAppFrameResources(options: {
     );
   let localLightClusterBufferWrites = 0;
   let localLightClusterBufferWritesSkipped = 0;
+  // AI-64: dirty-range/skip world-transform upload outcome for accounting.
+  // Holder object: TS flow analysis cannot see the closure assignment
+  // ordering, so a plain let narrows back to "full" at the use site.
+  const worldTransformUpload: { value: WorldTransformUploadOutcome } = {
+    value: "full",
+  };
+  const writeCachedWorldTransformBuffer = (): boolean => {
+    if (cached === null || cached.result.resources === null) {
+      return false;
+    }
+
+    const outcome = writeWorldTransformBufferVersioned(
+      options.device,
+      cached.result.resources.worldTransforms.buffer,
+      transformDescriptor.plan?.source ?? options.worldTransforms.data,
+      options.worldTransforms,
+      cached,
+    );
+
+    if (outcome === false) {
+      return false;
+    }
+
+    worldTransformUpload.value = outcome;
+    return true;
+  };
   const writeCachedLocalLightClusterBuffers = (): boolean => {
     if (localLightClusterDescriptor === null) {
       return true;
@@ -403,11 +433,7 @@ export function createOrReuseStandardAppFrameResources(options: {
       cached.result.resources.viewUniform.buffer,
       viewDescriptor.plan.source,
     ) &&
-    writeBufferData(
-      options.device,
-      cached.result.resources.worldTransforms.buffer,
-      transformDescriptor.plan.source,
-    ) &&
+    writeCachedWorldTransformBuffer() &&
     writeBufferData(
       options.device,
       cached.result.resources.lightGpuBuffers.resource.floatBuffer,
@@ -424,7 +450,8 @@ export function createOrReuseStandardAppFrameResources(options: {
     options.reuse.materialBuffersReused += 1;
     options.reuse.bindGroupsReused += cached.result.resources.bindGroups.length;
     options.reuse.lightBuffersReused += 1;
-    options.reuse.dynamicBufferWrites += 4;
+    options.reuse.dynamicBufferWrites +=
+      worldTransformUpload.value === "skipped" ? 3 : 4;
     if (
       localLightClusterDescriptor !== null &&
       cachedLocalLightClusters !== null
@@ -612,6 +639,9 @@ export function createOrReuseStandardAppFrameResources(options: {
       worldTransformDescriptorScratch,
       lightBufferDescriptorScratch,
       lightBufferDescriptorPlanScratch,
+      // Creation wrote the full initialData, so the buffer holds exactly this
+      // packed content version (AI-64).
+      worldTransformContentVersion: options.worldTransforms.contentVersion,
       result,
     };
     options.cache.current = cacheEntry;

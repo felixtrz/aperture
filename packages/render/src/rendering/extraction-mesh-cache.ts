@@ -21,7 +21,7 @@ export interface RenderExtractionCache {
   clear(): void;
 }
 
-export interface RenderExtractionScratch {
+interface RenderExtractionScratch {
   readonly transforms: number[];
   readonly bones: number[];
   readonly morphTargetWeights: number[];

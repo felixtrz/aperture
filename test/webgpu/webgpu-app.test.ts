@@ -818,7 +818,7 @@ describe("WebGPU app facade", () => {
         },
       },
       bindGroupsReused: 3,
-      dynamicBufferWrites: 2,
+      dynamicBufferWrites: 1,
     });
     expectPreparedMaterialFacadeSummary(secondFrame, {
       unlit: 1,
@@ -840,7 +840,11 @@ describe("WebGPU app facade", () => {
     expect(secondEvents.some((event) => event.startsWith("pass:draw"))).toBe(
       true,
     );
-    expect(secondEvents).toContain("queue:writeBuffer:WorldTransforms/storage");
+    // AI-64: a static second frame issues zero world-transform bytes — the
+    // version-gated upload skips the unchanged buffer entirely.
+    expect(secondEvents).not.toContain(
+      "queue:writeBuffer:WorldTransforms/storage",
+    );
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
 
     app.assets.markReady(
@@ -2514,7 +2518,7 @@ describe("WebGPU app facade", () => {
       materialBuffersReused: 2,
       bindGroupsReused: 7,
       lightBuffersReused: 1,
-      dynamicBufferWrites: 6,
+      dynamicBufferWrites: 4,
     });
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
@@ -3428,7 +3432,7 @@ describe("WebGPU app facade", () => {
       samplerResourcesCreated: 0,
       samplerResourcesReused: 1,
       bindGroupsReused: 3,
-      dynamicBufferWrites: 2,
+      dynamicBufferWrites: 1,
     });
     expect(secondResources?.mesh).toBe(firstResources?.mesh);
     expect(singleMaterialResource(secondResources)).toBe(
@@ -3868,7 +3872,7 @@ describe("WebGPU app facade", () => {
       textureResourcesReused: 1,
       samplerResourcesCreated: 0,
       samplerResourcesReused: 1,
-      dynamicBufferWrites: 4,
+      dynamicBufferWrites: 2,
     });
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
@@ -4019,7 +4023,7 @@ describe("WebGPU app facade", () => {
       textureResourcesReused: 2,
       samplerResourcesCreated: 0,
       samplerResourcesReused: 2,
-      dynamicBufferWrites: 4,
+      dynamicBufferWrites: 2,
     });
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
@@ -4827,7 +4831,7 @@ describe("WebGPU app facade", () => {
       samplerResourcesReused: 1,
       bindGroupsReused: 10,
       lightBuffersReused: 1,
-      dynamicBufferWrites: 8,
+      dynamicBufferWrites: 5,
     });
     expectPreparedMaterialCacheSummary(secondFrame, {
       unlit: 1,
@@ -6726,7 +6730,7 @@ describe("WebGPU app facade", () => {
       materialBuffersReused: 1,
       bindGroupsReused: 4,
       lightBuffersReused: 1,
-      dynamicBufferWrites: 4,
+      dynamicBufferWrites: 3,
     });
     expect(secondResources?.mesh).toBe(firstResources?.mesh);
     expect(singleMaterialResource(secondResources)).toBe(
@@ -6761,7 +6765,11 @@ describe("WebGPU app facade", () => {
     expect(secondEvents.some((event) => event.startsWith("pass:draw"))).toBe(
       true,
     );
-    expect(secondEvents).toContain("queue:writeBuffer:WorldTransforms/storage");
+    // AI-64: a static second frame issues zero world-transform bytes — the
+    // version-gated upload skips the unchanged buffer entirely.
+    expect(secondEvents).not.toContain(
+      "queue:writeBuffer:WorldTransforms/storage",
+    );
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
 
@@ -7729,7 +7737,7 @@ describe("WebGPU app facade", () => {
       samplerResourcesReused: 1,
       bindGroupsReused: 4,
       lightBuffersReused: 1,
-      dynamicBufferWrites: 4,
+      dynamicBufferWrites: 3,
     });
     expectPreparedMaterialFacadeSummary(secondFrame, {
       unlit: 0,
@@ -8074,7 +8082,7 @@ describe("WebGPU app facade", () => {
       samplerResourcesReused: 1,
       bindGroupsReused: 4,
       lightBuffersReused: 1,
-      dynamicBufferWrites: 4,
+      dynamicBufferWrites: 3,
     });
     expect(secondResources?.bindGroups).toBe(firstResources?.bindGroups);
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
@@ -8401,7 +8409,7 @@ describe("WebGPU app facade", () => {
       samplerResourcesReused: 2,
       bindGroupsReused: 4,
       lightBuffersReused: 1,
-      dynamicBufferWrites: 4,
+      dynamicBufferWrites: 3,
     });
     expect(secondResources?.bindGroups).toBe(firstResources?.bindGroups);
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
@@ -8674,7 +8682,7 @@ describe("WebGPU app facade", () => {
       samplerResourcesReused: 1,
       bindGroupsReused: 4,
       lightBuffersReused: 1,
-      dynamicBufferWrites: 4,
+      dynamicBufferWrites: 3,
     });
     expect(secondResources?.bindGroups).toBe(firstResources?.bindGroups);
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);

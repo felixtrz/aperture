@@ -13,6 +13,8 @@ import type {
 import {
   sameStringList,
   writeBufferData,
+  writeWorldTransformBufferVersioned,
+  type WorldTransformUploadOutcome,
 } from "../../app/app-frame-resource-utils.js";
 import type { BindGroupResourceCache } from "../../gpu/bind-group-resource-cache.js";
 import {
@@ -61,6 +63,8 @@ export interface CachedMatcapAppFrameResources {
   readonly worldTransformByteLength: number;
   readonly viewDescriptorScratch: ViewUniformBufferDescriptorScratch;
   readonly worldTransformDescriptorScratch: WorldTransformBufferDescriptorScratch;
+  /** Packed-transform contentVersion last uploaded to this buffer. */
+  worldTransformContentVersion?: number | undefined;
   result: CreateMatcapFrameGpuResourcesResult;
 }
 
@@ -135,6 +139,33 @@ export function createOrReuseMatcapAppFrameResources(options: {
     worldTransformDescriptorScratch,
   );
 
+  // AI-64: dirty-range/skip world-transform upload outcome for accounting.
+  // Holder object: TS flow analysis cannot see the closure assignment
+  // ordering, so a plain let narrows back to "full" at the use site.
+  const worldTransformUpload: { value: WorldTransformUploadOutcome } = {
+    value: "full",
+  };
+  const writeCachedWorldTransformBuffer = (): boolean => {
+    if (cached === null || cached.result.resources === null) {
+      return false;
+    }
+
+    const outcome = writeWorldTransformBufferVersioned(
+      options.device,
+      cached.result.resources.worldTransforms.buffer,
+      transformDescriptor.plan?.source ?? options.worldTransforms.data,
+      options.worldTransforms,
+      cached,
+    );
+
+    if (outcome === false) {
+      return false;
+    }
+
+    worldTransformUpload.value = outcome;
+    return true;
+  };
+
   if (
     cached !== null &&
     cached.meshKey === options.meshKey &&
@@ -160,16 +191,13 @@ export function createOrReuseMatcapAppFrameResources(options: {
       cached.result.resources.viewUniform.buffer,
       viewDescriptor.plan.source,
     ) &&
-    writeBufferData(
-      options.device,
-      cached.result.resources.worldTransforms.buffer,
-      transformDescriptor.plan.source,
-    )
+    writeCachedWorldTransformBuffer()
   ) {
     options.reuse.meshBuffersReused += 1;
     options.reuse.materialBuffersReused += 1;
     options.reuse.bindGroupsReused += cached.result.resources.bindGroups.length;
-    options.reuse.dynamicBufferWrites += 2;
+    options.reuse.dynamicBufferWrites +=
+      worldTransformUpload.value === "skipped" ? 1 : 2;
 
     const resources = cached.result.resources;
 
@@ -255,6 +283,7 @@ export function createOrReuseMatcapAppFrameResources(options: {
         options.worldTransforms.data.byteLength,
       viewDescriptorScratch,
       worldTransformDescriptorScratch,
+      worldTransformContentVersion: options.worldTransforms.contentVersion,
       result,
     };
   }

@@ -2,10 +2,12 @@ import { bench, describe } from "vitest";
 import { mat4 } from "wgpu-matrix";
 import type { Mat4 } from "@aperture-engine/simulation";
 import {
+  createPackedSnapshotTransformsScratch,
   createSnapshotPacketRegistry,
   encodeSnapshotPackets,
   extractRenderSnapshot,
   packSnapshotTransforms,
+  writePackedSnapshotTransforms,
   planRenderWorldDrawPackages,
   type RenderWorldDrawReadinessReport,
   type RenderWorldReadyDraw,
@@ -71,6 +73,15 @@ for (const entityCount of SCALES) {
 
     bench("packSnapshotTransforms", () => {
       packSnapshotTransforms(snapshot);
+    });
+
+    // AI-64: the per-frame steady-state cost — a persistent scratch sees an
+    // unchanged snapshot, so packing degenerates to one O(n) compare with no
+    // copy and (downstream) no GPU upload.
+    const persistentScratch = createPackedSnapshotTransformsScratch();
+    writePackedSnapshotTransforms(snapshot, persistentScratch);
+    bench("writePackedSnapshotTransforms (static frame)", () => {
+      writePackedSnapshotTransforms(snapshot, persistentScratch);
     });
 
     bench("frustum cull world AABBs", () => {

@@ -1,3 +1,72 @@
+import type { PackedSnapshotTransforms } from "@aperture-engine/render";
+
+const FLOAT32_BYTES = Float32Array.BYTES_PER_ELEMENT;
+
+export type WorldTransformUploadOutcome = "full" | "sub-range" | "skipped";
+
+/**
+ * AI-64: version-gated world-transform upload. The packed transforms carry a
+ * monotonic contentVersion plus the dirty window that produced it; the cached
+ * GPU buffer remembers which version it last received:
+ *
+ * - same version            → nothing to upload (zero GPU bytes),
+ * - exactly one behind with a non-full dirty window → one writeBufferSubData
+ *   of that window,
+ * - anything else (stale route, full-fallback window, no version history)
+ *   → one whole-buffer write.
+ *
+ * Returns the outcome taken, or `false` when the device write failed so the
+ * caller's reuse chain falls through to resource recreation. The version
+ * stamp only advances after a successful write — a failed upload never
+ * records content the GPU does not have.
+ */
+export function writeWorldTransformBufferVersioned(
+  device: unknown,
+  buffer: unknown,
+  source: ArrayBufferView,
+  packed: Pick<PackedSnapshotTransforms, "contentVersion" | "dirtyRange">,
+  target: { worldTransformContentVersion?: number | undefined },
+): WorldTransformUploadOutcome | false {
+  const version = packed.contentVersion;
+
+  if (version === undefined) {
+    return writeBufferData(device, buffer, source) ? "full" : false;
+  }
+
+  if (target.worldTransformContentVersion === version) {
+    return "skipped";
+  }
+
+  const range = packed.dirtyRange;
+
+  if (
+    range !== null &&
+    range !== undefined &&
+    !range.full &&
+    target.worldTransformContentVersion === version - 1
+  ) {
+    const written = writeBufferSubData(device, buffer, source, {
+      bufferByteOffset: range.floatOffset * FLOAT32_BYTES,
+      dataByteOffset: range.floatOffset * FLOAT32_BYTES,
+      byteLength: range.floatCount * FLOAT32_BYTES,
+    });
+
+    if (!written) {
+      return false;
+    }
+
+    target.worldTransformContentVersion = version;
+    return "sub-range";
+  }
+
+  if (!writeBufferData(device, buffer, source)) {
+    return false;
+  }
+
+  target.worldTransformContentVersion = version;
+  return "full";
+}
+
 export function sameStringList(
   first: readonly string[],
   second: readonly string[],
