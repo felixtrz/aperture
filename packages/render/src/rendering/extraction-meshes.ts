@@ -18,10 +18,12 @@ import { diagnostic } from "./extraction-diagnostics.js";
 import { sortedEntities } from "./extraction-entities.js";
 import { readMeshDrawExtractionInputs } from "./extraction-mesh-draw-inputs.js";
 import { readMeshEntityExtractionState } from "./extraction-mesh-entity-state.js";
+import { readWorldMatrix } from "./extraction-matrices.js";
 import { readMaterialSlots } from "./extraction-mesh-materials.js";
 import {
   appendCachedMeshDrawEntity,
   entityCacheKey,
+  refreshCachedMeshDrawEntityTransform,
   type RenderExtractionCache,
 } from "./extraction-mesh-cache.js";
 import { writeMeshDrawEntityCache } from "./extraction-mesh-cache-writeback.js";
@@ -60,6 +62,7 @@ export function extractMeshDraws(
   for (const entity of sortedEntities(query.entities)) {
     const cacheKey = entityCacheKey(entity);
     const entityVersion = world.entityVersion(entity);
+    const transformVersion = world.entityTransformVersion(entity);
     const cached = cache?.meshDrawEntities.get(cacheKey);
 
     if (
@@ -68,10 +71,24 @@ export function extractMeshDraws(
       cached.cameraLayerMask === cameraLayerMask &&
       cached.viewCullSignature === viewCullSignature
     ) {
+      // Structural state unchanged. A transform-version drift takes the
+      // matrix-only fast path (AI-67): keep the packet templates, refresh the
+      // world matrix and derived bounds from the entity's current transform.
+      let entry = cached;
+
+      if (cached.transformVersion !== transformVersion) {
+        entry = refreshCachedMeshDrawEntityTransform(
+          cached,
+          readWorldMatrix(entity),
+          transformVersion,
+        );
+        cache?.meshDrawEntities.set(cacheKey, entry);
+      }
+
       if (
         !isVisibleInAnyMatchingView(
-          cached.bounds.worldAabb,
-          cached.layerMask,
+          entry.bounds.worldAabb,
+          entry.layerMask,
           viewCullContexts,
         )
       ) {
@@ -79,7 +96,7 @@ export function extractMeshDraws(
       }
 
       appendCachedMeshDrawEntity(
-        cached,
+        entry,
         transforms,
         instanceTints,
         bounds,
@@ -219,6 +236,7 @@ export function extractMeshDraws(
       cacheKey,
       entity,
       entityVersion,
+      transformVersion,
       cameraLayerMask,
       viewCullSignature,
       layerMask: entityState.layerMask,

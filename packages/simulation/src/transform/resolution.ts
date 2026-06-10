@@ -218,7 +218,10 @@ function writeWorldTransform(
   const changed = col0Changed || col1Changed || col2Changed || col3Changed;
 
   if (changed) {
-    world.markEntityChanged(entity);
+    // Matrix-only output change (AI-67): bump the transform version so render
+    // extraction can refresh the cached packet's transform + bounds without a
+    // structural rebuild.
+    world.markEntityTransformChanged(entity);
   }
 }
 

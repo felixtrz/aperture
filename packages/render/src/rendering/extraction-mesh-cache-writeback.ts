@@ -12,6 +12,7 @@ export interface WriteMeshDrawEntityCacheInput {
   readonly cacheKey: string;
   readonly entity: Entity;
   readonly entityVersion: number;
+  readonly transformVersion: number;
   readonly cameraLayerMask: number;
   readonly viewCullSignature: number;
   readonly layerMask: number;
@@ -48,6 +49,7 @@ export function writeMeshDrawEntityCache(
 
   input.cache.meshDrawEntities.set(input.cacheKey, {
     entityVersion: input.entityVersion,
+    transformVersion: input.transformVersion,
     cameraLayerMask: input.cameraLayerMask,
     viewCullSignature: input.viewCullSignature,
     layerMask: input.layerMask,
