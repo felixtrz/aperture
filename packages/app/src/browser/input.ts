@@ -88,6 +88,21 @@ export function installGeneratedInputForwarding(
   canvas.addEventListener("pointerleave", releasePointer);
   canvas.addEventListener("lostpointercapture", releasePointer);
 
+  canvas.addEventListener(
+    "wheel",
+    (event) => {
+      // The wheel drives in-app scroll/zoom (worker-side UiScroll mapping),
+      // so keep the page from scrolling underneath the canvas.
+      event.preventDefault();
+      forwardInput(worker, status, {
+        kind: "wheel",
+        deltaX: wheelDeltaPixels(event.deltaX, event.deltaMode),
+        deltaY: wheelDeltaPixels(event.deltaY, event.deltaMode),
+      });
+    },
+    { passive: false },
+  );
+
   window.addEventListener("keydown", (event) => {
     if (event.repeat) {
       return;
@@ -268,6 +283,28 @@ function configUsesGamepads(config: ApertureConfig): boolean {
   }
 
   return false;
+}
+
+// Browsers report wheel travel in pixels, lines, or pages depending on the
+// device/platform (WheelEvent.deltaMode). The worker only ever sees pixel
+// deltas, so normalize the unit here — the sample values stay raw otherwise.
+const WHEEL_LINE_DELTA_PIXELS = 16;
+const WHEEL_PAGE_DELTA_PIXELS = 800;
+
+function wheelDeltaPixels(delta: number, deltaMode: number): number {
+  if (!Number.isFinite(delta)) {
+    return 0;
+  }
+
+  if (deltaMode === WheelEvent.DOM_DELTA_LINE) {
+    return delta * WHEEL_LINE_DELTA_PIXELS;
+  }
+
+  if (deltaMode === WheelEvent.DOM_DELTA_PAGE) {
+    return delta * WHEEL_PAGE_DELTA_PIXELS;
+  }
+
+  return delta;
 }
 
 function pointerPosition(

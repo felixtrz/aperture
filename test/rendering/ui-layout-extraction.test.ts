@@ -3,6 +3,7 @@ import {
   createSamplerHandle,
   createTextureHandle,
 } from "@aperture-engine/simulation";
+import { UiScroll } from "@aperture-engine/render";
 import {
   createExtractionApp,
   withTransform,
@@ -157,5 +158,62 @@ describe("retained UI layout extraction", () => {
       }),
     ]);
     expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it("shifts child layout by a runtime-mutated UiScroll offset (renderer consumes live ECS scroll state)", () => {
+    const app = createExtractionApp();
+    const screen = app.spawn(withUiScreen({ width: 400, height: 240 }));
+    const panel = app.spawn(
+      withTransform({ parent: screen }),
+      withUiNode({
+        x: 10,
+        y: 20,
+        width: 180,
+        height: 100,
+        layoutMode: "column",
+      }),
+      withUiPanel(),
+      // Authored at rest: enabled with a zero offset.
+      withUiScroll(),
+    );
+    const item = app.spawn(
+      withTransform({ parent: panel }),
+      withUiNode({ height: 40 }),
+      withUiPanel(),
+    );
+
+    const before = app.extract(1);
+    const beforeByEntity = new Map(
+      (before.uiNodes ?? []).map((node) => [node.entity.index, node]),
+    );
+
+    expect(beforeByEntity.get(panel.index)).toMatchObject({
+      scrollOffset: [0, 0],
+      clipsChildren: true,
+    });
+    expect(beforeByEntity.get(item.index)).toMatchObject({
+      rect: { x: 10, y: 20, width: 180, height: 40 },
+    });
+
+    // A worker-side system (AI-47 wheel/drag mapping) mutates the live ECS
+    // component to a non-authored runtime value.
+    panel.getVectorView(UiScroll, "offset").set([7, 33]);
+
+    const after = app.extract(2);
+    const afterByEntity = new Map(
+      (after.uiNodes ?? []).map((node) => [node.entity.index, node]),
+    );
+
+    expect(afterByEntity.get(panel.index)).toMatchObject({
+      scrollOffset: [7, 33],
+      rect: { x: 10, y: 20, width: 180, height: 100 },
+    });
+    // The child layout shifts by exactly the mutated offset and stays clipped
+    // to the scroll node's rect.
+    expect(afterByEntity.get(item.index)).toMatchObject({
+      rect: { x: 3, y: -13, width: 180, height: 40 },
+      clip: { x: 10, y: 20, width: 173, height: 7 },
+    });
+    expect(after.diagnostics).toEqual([]);
   });
 });

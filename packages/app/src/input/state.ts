@@ -32,6 +32,7 @@ export type {
   ApertureGeneratedPointerInputEvent,
   ApertureGeneratedPointerName,
   ApertureGeneratedVirtualActionInputEvent,
+  ApertureGeneratedWheelInputEvent,
   ApertureInputDiagnostic,
   ApertureInputSummary,
   GamepadButtonState,
@@ -74,6 +75,10 @@ class InputResourceImpl implements InputResourceBase {
       pressed: createSignal(false),
     },
   };
+  readonly wheel = {
+    deltaX: createSignal(0),
+    deltaY: createSignal(0),
+  };
   readonly keyboard = createStatefulKeyboardState();
   readonly gamepads = createStatefulGamepadsState();
   readonly gamepad: Record<string, Signal<number>> = {};
@@ -94,6 +99,10 @@ class InputResourceImpl implements InputResourceBase {
   advanceFrame(events: readonly ApertureGeneratedInputEvent[] = []): void {
     this.keyboard.advanceFrame();
     this.gamepads.advanceFrame();
+    // The wheel delta is reset-frame state (like keyboard edges): it holds
+    // only the travel accumulated from this frame's events.
+    this.wheel.deltaX.value = 0;
+    this.wheel.deltaY.value = 0;
     this.#diagnostics = [];
 
     for (const action of Object.values(this.actions)) {
@@ -143,6 +152,14 @@ class InputResourceImpl implements InputResourceBase {
       if (typeof code === "string" && code.length > 0) {
         this.keyboard.applyKey(code, event.pressed);
       }
+      return;
+    }
+
+    if (event.kind === "wheel") {
+      // Multiple wheel samples within one frame sum into a single per-frame
+      // delta (PlayCanvas-style); non-finite samples contribute nothing.
+      this.wheel.deltaX.value += finiteOrZero(event.deltaX);
+      this.wheel.deltaY.value += finiteOrZero(event.deltaY);
       return;
     }
 
@@ -226,6 +243,8 @@ class InputResourceImpl implements InputResourceBase {
     this.keyboard.releaseAll();
     this.gamepads.releaseAll();
     this.pointer.primary.pressed.value = false;
+    this.wheel.deltaX.value = 0;
+    this.wheel.deltaY.value = 0;
     this.#virtualActions.clear();
   }
 
@@ -336,6 +355,10 @@ function isInputActionBindingArray(
 
 function clamp01(value: number): number {
   return clamp(value, 0, 1);
+}
+
+function finiteOrZero(value: number): number {
+  return Number.isFinite(value) ? value : 0;
 }
 
 function clamp(value: number, min: number, max: number): number {

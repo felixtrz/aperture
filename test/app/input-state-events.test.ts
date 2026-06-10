@@ -134,6 +134,48 @@ describe("input state event handling", () => {
     expect(resource.keyboard.pressedCodes()).toEqual(["KeyZ"]);
   });
 
+  it("sums wheel samples within a frame and ignores non-finite deltas", () => {
+    const resource = createResource();
+
+    advanceInputResource(resource, [
+      { kind: "wheel", deltaX: 2, deltaY: 30 },
+      { kind: "wheel", deltaX: -1, deltaY: 12 },
+      { kind: "wheel", deltaX: Number.NaN, deltaY: Number.POSITIVE_INFINITY },
+    ]);
+
+    expect(resource.wheel.deltaX.value).toBe(1);
+    expect(resource.wheel.deltaY.value).toBe(42);
+  });
+
+  it("clears the accumulated wheel delta on reset events", () => {
+    const resource = createResource();
+
+    advanceInputResource(resource, [
+      { kind: "wheel", deltaX: 5, deltaY: 9 },
+      { kind: "reset", reason: "blur" },
+    ]);
+
+    expect(resource.wheel.deltaX.value).toBe(0);
+    expect(resource.wheel.deltaY.value).toBe(0);
+  });
+
+  it("applies wheel events nested inside batches", () => {
+    const resource = createResource();
+
+    advanceInputResource(resource, [
+      {
+        kind: "batch",
+        events: [
+          { kind: "wheel", deltaX: 0, deltaY: 7 },
+          { kind: "batch", events: [{ kind: "wheel", deltaX: 3, deltaY: 1 }] },
+        ],
+      },
+    ]);
+
+    expect(resource.wheel.deltaX.value).toBe(3);
+    expect(resource.wheel.deltaY.value).toBe(8);
+  });
+
   it("merges gamepad snapshots when replace is false and replaces by default", () => {
     const resource = createResource();
     const pad = (index: number, x: number) => ({

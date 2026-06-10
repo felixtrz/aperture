@@ -8,6 +8,7 @@ import {
 } from "@aperture-engine/render";
 import type { ApertureSystemContext } from "../systems/context.js";
 import type { InteractionRuntime } from "./access.js";
+import { runUiScrollFrame } from "./ui-scroll.js";
 
 // M7-T8: the per-frame interaction driver. The app frame loop (advanced.ts)
 // invokes this AFTER the spatial picking index is refreshed from same-frame
@@ -15,7 +16,9 @@ import type { InteractionRuntime } from "./access.js";
 // each frame against the ECS state that will be extracted for rendering.
 // It consumes the already-forwarded primary pointer (no DOM listeners), casts the
 // camera ray (M7-T7) and the spatial picking ray (M1-T8), and feeds the result to
-// the interaction state machine. Headless/worker-safe.
+// the interaction state machine. It also drives the AI-47 UiScroll wheel/drag
+// mapping against the same extracted UI layout, so this frame's scroll
+// mutation lands in ECS before the renderer extracts. Headless/worker-safe.
 
 const MAX_PICK_DISTANCE = 1000;
 
@@ -33,6 +36,11 @@ export function runInteractionFrame(
   let worldPoint: readonly [number, number, number] | null = null;
   const uiDiagnostics: RenderDiagnostic[] = [];
   const uiLayout = extractUiLayout(context.world as EcsWorld, uiDiagnostics, 0);
+
+  // AI-47: map this frame's wheel delta + active pointer drag onto the
+  // hovered UiScroll node (clamped, worker-side ECS mutation only).
+  runUiScrollFrame(context, uiLayout.nodes);
+
   const uiHit = hitTestUiLayout({
     nodes: uiLayout.nodes,
     hitRegions: uiLayout.hitRegions,

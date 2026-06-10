@@ -63,6 +63,71 @@ describe("frame-stamped input messages", () => {
     );
   });
 
+  it("validates wheel events through the same stamped-message path", () => {
+    const wheel: ApertureGeneratedInputEvent = {
+      kind: "wheel",
+      deltaX: 2,
+      deltaY: -3.5,
+    };
+    const unstamped = message(wheel);
+    const stamped = message(wheel, 4);
+
+    expect(isGeneratedInputEventMessage(unstamped)).toBe(true);
+    expect(isGeneratedInputEventMessage(stamped)).toBe(true);
+    expect(stamped.frame).toBe(4);
+
+    // The frame-stamp validation applies to wheel messages unchanged.
+    expect(isGeneratedInputEventMessage({ ...stamped, frame: -1 })).toBe(false);
+    expect(isGeneratedInputEventMessage({ ...stamped, frame: 2.5 })).toBe(
+      false,
+    );
+
+    // Wheel payloads must carry finite numeric deltas.
+    expect(
+      isGeneratedInputEventMessage({
+        ...stamped,
+        event: { kind: "wheel", deltaX: Number.NaN, deltaY: 0 },
+      }),
+    ).toBe(false);
+    expect(
+      isGeneratedInputEventMessage({
+        ...stamped,
+        event: { kind: "wheel", deltaY: 1 },
+      }),
+    ).toBe(false);
+    expect(
+      isGeneratedInputEventMessage({
+        ...stamped,
+        event: { kind: "wheel", deltaX: "2", deltaY: 1 },
+      }),
+    ).toBe(false);
+  });
+
+  it("drains a stamped wheel event at exactly its frame into the per-frame delta", () => {
+    const resource = createResource();
+    const pending = [message({ kind: "wheel", deltaX: 0, deltaY: 24 }, 2)];
+
+    advanceInputResource(
+      resource,
+      drainGeneratedInputEventMessagesForFrame(pending, 1),
+    );
+    expect(resource.wheel.deltaY.value).toBe(0);
+    expect(pending).toHaveLength(1);
+
+    advanceInputResource(
+      resource,
+      drainGeneratedInputEventMessagesForFrame(pending, 2),
+    );
+    expect(resource.wheel.deltaY.value).toBe(24);
+    expect(pending).toHaveLength(0);
+
+    advanceInputResource(
+      resource,
+      drainGeneratedInputEventMessagesForFrame(pending, 3),
+    );
+    expect(resource.wheel.deltaY.value).toBe(0);
+  });
+
   it("drains unstamped and due events in arrival order, keeping future events queued", () => {
     const pending = [
       message(key("KeyA", true)),

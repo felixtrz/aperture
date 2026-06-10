@@ -180,6 +180,8 @@ export {
   createInteractionAccess,
   PointerInteractionState,
   runInteractionFrame,
+  runUiScrollFrame,
+  UI_SCROLL_DISABLED_DIAGNOSTIC,
 } from "./interaction/index.js";
 export { material, mesh, physics, shader } from "./systems/spawn/index.js";
 export type {
@@ -236,6 +238,7 @@ export type {
   ApertureGeneratedPointerInputEvent,
   ApertureGeneratedPointerName,
   ApertureGeneratedVirtualActionInputEvent,
+  ApertureGeneratedWheelInputEvent,
   ApertureInputDiagnostic,
   ApertureInputSummary,
   GamepadButtonState,

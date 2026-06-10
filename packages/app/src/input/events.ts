@@ -9,6 +9,7 @@ import {
   type ApertureGeneratedPointerInputEvent,
   type ApertureGeneratedPointerName,
   type ApertureGeneratedVirtualActionInputEvent,
+  type ApertureGeneratedWheelInputEvent,
   type ApertureInputSummary,
   type InputResourceBase,
 } from "./state.js";
@@ -121,6 +122,8 @@ function isGeneratedInputEvent(
       return isGeneratedPointerInputEvent(value);
     case "keyboard":
       return isGeneratedKeyboardInputEvent(value);
+    case "wheel":
+      return isGeneratedWheelInputEvent(value);
     case "gamepad":
       return isGeneratedGamepadInputEvent(value);
     case "virtualAction":
@@ -169,6 +172,16 @@ function isGeneratedKeyboardInputEvent(
     (typeof value.key === "string" || typeof value.code === "string") &&
     typeof value.pressed === "boolean"
   );
+}
+
+function isGeneratedWheelInputEvent(
+  value: unknown,
+): value is ApertureGeneratedWheelInputEvent {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return isFiniteNumber(value.deltaX) && isFiniteNumber(value.deltaY);
 }
 
 function isGeneratedGamepadInputEvent(
