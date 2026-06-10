@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1209
+Every structured diagnostic code the engine can emit (1211
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -6436,11 +6436,13 @@ suggestedFix accompanies it, and where it is emitted.
 | ----------------------------------------- | -------------------------------------------------------------------- | ---- | --------------------------------------------------------------------- |
 | `viewUniformGpuBuffer.nullDescriptorPlan` | Cannot create a view uniform GPU buffer from a null descriptor plan. | —    | `packages/webgpu/src/resources/views/view-uniform-buffer-resource.ts` |
 
-## webgpu.userPass (1)
+## webgpu.userPass (3)
 
-| Code                                             | Message                                                                                                                                                                                  | Fix? | Emitted from                                 |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------- |
-| `webgpu.userPass.renderWriteCoercedToSceneColor` | User render pass '…' declared write target(s) … that are not honored; it is drawn over scene-color (LOAD). Use a compute pass for arbitrary writable targets, or write to "scene-color". | —    | `packages/webgpu/src/app/post-processing.ts` |
+| Code                                             | Message                                                                                                                                                                                  | Fix? | Emitted from                                                                                  |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------- |
+| `webgpu.userPass.forwardTargetUnavailable`       | Registered user passes were skipped: the forward FrameGraph route rendered no swapchain target this frame to host them.                                                                  | —    | `packages/webgpu/src/app/frame-boundaries.ts`                                                 |
+| `webgpu.userPass.renderWriteCoercedToSceneColor` | User render pass '…' declared write target(s) … that are not honored; it is drawn over scene-color (LOAD). Use a compute pass for arbitrary writable targets, or write to "scene-color". | —    | `packages/webgpu/src/app/frame-boundaries.ts`<br>`packages/webgpu/src/app/post-processing.ts` |
+| `webgpu.userPass.skippedOnLegacyRoute`           | Registered user passes … run only on the FrameGraph routes (forward graph or post-effect graph); the legacy multi-submit route skipped them. Enable useFrameGraph to run them.           | —    | `packages/webgpu/src/app/user-pass.ts`                                                        |
 
 ## webGpuApp.customWgslBindingNotPrepared (1)
 

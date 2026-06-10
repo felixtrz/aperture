@@ -494,15 +494,20 @@ export interface WebGpuApp {
   readonly sceneRenderFormat: string;
   readonly msaa: WebGpuMsaaConfig;
   readonly postEffects: readonly WebGpuPostEffect[];
-  // M3-T3: route the swapchain post target through the single-encoder FrameGraph
-  // path. False by default (legacy N-submit path); the graph path falls back to
-  // legacy for routes it does not yet cover, so this is a safe opt-in.
+  // M3-T3 + AI-25: route frames through the single-encoder FrameGraph path.
+  // TRUE by default at parity — the forward graph covers the no-post / shadow /
+  // transmission-grab / user-pass routes and the post graph falls back to
+  // legacy per-route for anything it does not yet cover. Explicit false forces
+  // the legacy multi-submit path.
   readonly useFrameGraph: boolean;
-  // M3-T7: registry backing the public addRenderPass/addComputePass/removePass
-  // API. Today only the single-encoder POST-effect graph path (useFrameGraph + at
-  // least one active post effect) reads it to insert user passes; the forward-only
-  // graph path and the legacy multi-submit path do NOT yet run registered passes
-  // (audit B4 — tracked follow-up to wire the forward path).
+  // M3-T7 + AI-12 (audit B4 resolved): registry backing the public
+  // addRenderPass/addComputePass/removePass API. BOTH single-encoder graph
+  // paths read it — the post-effect graph (useFrameGraph + at least one active
+  // post effect) and the forward no-post graph (frame-boundaries.ts). The
+  // legacy multi-submit route is graph-only by design: it cannot fold user
+  // nodes into its per-target encoders, so registered passes there emit the
+  // structured webgpu.userPass.skippedOnLegacyRoute diagnostic instead of
+  // silently no-oping.
   readonly userPassRegistry: WebGpuAppUserPassRegistry;
   start(options?: WebGpuAppStartOptions): void;
   stop(): void;
@@ -512,9 +517,9 @@ export interface WebGpuApp {
     snapshot: RenderSnapshot,
     options?: Omit<WebGpuAppRenderOptions, "snapshot">,
   ): Promise<WebGpuAppRenderReport>;
-  // M3-T7: insert a user render/compute pass into the frame graph (signed-off D1
-  // shape). Runs only on the single-encoder post-effect graph path today
-  // (useFrameGraph + an active post effect); see userPassRegistry (audit B4).
+  // M3-T7 + AI-12: insert a user render/compute pass into the frame graph
+  // (signed-off D1 shape). Runs on the single-encoder graph routes — the
+  // forward (no-post) graph and the post-effect graph; see userPassRegistry.
   addRenderPass(descriptor: WebGpuAppRenderPassDescriptor): void;
   addComputePass(descriptor: WebGpuAppComputePassDescriptor): void;
   /** Remove a user pass by name; returns true if one was registered. */
@@ -542,7 +547,8 @@ export interface CreateWebGpuAppOptions extends Omit<
   // omitted the legacy 8-bit-swapchain in-material tonemap path is unchanged.
   readonly exposure?: number;
   readonly postEffects?: readonly WebGpuPostEffect[];
-  // M3-T3: opt the swapchain post target into the single-encoder FrameGraph path.
+  // M3-T3 + AI-25: the single-encoder FrameGraph path, ON by default at parity.
+  // Set false to force the legacy multi-submit path.
   readonly useFrameGraph?: boolean;
 }
 

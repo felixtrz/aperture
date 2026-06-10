@@ -662,6 +662,32 @@ describe("WebGPU app facade", () => {
     expect(created.app.outputColorSpace).toBe("srgb");
   });
 
+  it("defaults useFrameGraph to ON and lets an explicit false force the legacy route (AI-25)", async () => {
+    const { canvas, environment } = webGpuHarness([]);
+    const defaulted = await createRendererOnlyWebGpuApp({
+      canvas,
+      environment,
+      simulationWorker: createManualSimulationWorker(),
+    });
+
+    expect(defaulted.ok).toBe(true);
+    if (defaulted.ok) {
+      expect(defaulted.app.useFrameGraph).toBe(true);
+    }
+
+    const legacy = await createRendererOnlyWebGpuApp({
+      canvas,
+      environment,
+      simulationWorker: createManualSimulationWorker(),
+      useFrameGraph: false,
+    });
+
+    expect(legacy.ok).toBe(true);
+    if (legacy.ok) {
+      expect(legacy.app.useFrameGraph).toBe(false);
+    }
+  });
+
   it("initializes WebGPU and renders the unlit queue path from ECS-authored entities", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
@@ -1034,8 +1060,10 @@ describe("WebGPU app facade", () => {
     expect(events).toContain(
       "device:pipeline:aperture-webgpu-app:post:noop:noop:pipeline",
     );
+    // AI-25: the FrameGraph route is the default — the scene + post chain fold
+    // into ONE single-encoder submit (the legacy route submitted 2).
     expect(events.filter((event) => event === "queue:submit:1")).toHaveLength(
-      2,
+      1,
     );
     expect(webGpuAppRenderReportToJsonValue(frame).postEffects).toEqual(
       frame.postEffects,
@@ -1384,8 +1412,10 @@ describe("WebGPU app facade", () => {
     expect(json.renderTargets).toEqual(frame.renderTargets);
     expect(events).toContain("offscreen:view");
     expect(events).toContain("texture:view");
+    // AI-25: the FrameGraph route is the default — both targets fold into ONE
+    // single-encoder submit (the legacy route submitted one per target).
     expect(events.filter((event) => event === "queue:submit:1")).toHaveLength(
-      2,
+      1,
     );
     expect(
       events.filter((event) => event.startsWith("pass:draw")),
