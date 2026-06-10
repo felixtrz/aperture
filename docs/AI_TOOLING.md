@@ -93,6 +93,15 @@ state:
   devtools session.
 - `browser_reload`: reloads the managed page but does not directly mutate ECS.
 
+## Diagnostics Lookup
+
+Every structured diagnostic the tools return carries a stable `code`. The
+generated catalog `docs/DIAGNOSTICS_CATALOG.md` lists all engine diagnostic
+codes with their message contracts, whether a `suggestedFix` accompanies them,
+and the emitting source files. Regenerate it with
+`node scripts/generate-diagnostics-catalog.mjs`; `pnpm run check:diagnostics`
+fails CI when the committed catalog drifts from the source.
+
 ## Restoring State
 
 For camera inspection, call `camera_save` before changing a camera and
