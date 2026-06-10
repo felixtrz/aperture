@@ -175,7 +175,7 @@ export async function pickWebGpuAppEntity(
     app: context.app,
     cache: resourceCache,
     snapshot,
-    pipelineResults: prepared.pipelineResults,
+    pipelineKeysByRenderId: prepared.pipelineKeysByRenderId,
   });
 
   if (!pipelines.valid) {
@@ -435,6 +435,7 @@ async function prepareWebGpuAppPickFrameResources(
   > | null;
   readonly resources: QueuedBuiltInFrameResources | null;
   readonly pipelineResults: readonly WebGpuAppPipelinePlanResult[];
+  readonly pipelineKeysByRenderId: ReadonlyMap<number, string>;
   readonly diagnostics: readonly unknown[];
 }> {
   const firstDraw = snapshot.meshDraws[0];
@@ -446,6 +447,7 @@ async function prepareWebGpuAppPickFrameResources(
       framePlan: null,
       resources: null,
       pipelineResults: [],
+      pipelineKeysByRenderId: new Map(),
       diagnostics: [
         {
           code: "webGpuApp.pickEmptySnapshot",
@@ -478,6 +480,7 @@ async function prepareWebGpuAppPickFrameResources(
       framePlan: null,
       resources: null,
       pipelineResults: [],
+      pipelineKeysByRenderId: new Map(),
       diagnostics: queuedBuiltIn.diagnostics,
     };
   }
@@ -509,6 +512,7 @@ async function prepareWebGpuAppPickFrameResources(
       framePlan: null,
       resources: null,
       pipelineResults: [],
+      pipelineKeysByRenderId: new Map(),
       diagnostics: [
         ...packedViews.diagnostics,
         ...packedTransforms.diagnostics,
@@ -544,6 +548,7 @@ async function prepareWebGpuAppPickFrameResources(
       framePlan: null,
       resources: null,
       pipelineResults: prepared.pipelineResults,
+      pipelineKeysByRenderId: prepared.pipelineKeysByRenderId,
       diagnostics: [
         ...packedViews.diagnostics,
         ...packedTransforms.diagnostics,
@@ -590,6 +595,7 @@ async function prepareWebGpuAppPickFrameResources(
     framePlan,
     resources: prepared.resources,
     pipelineResults: prepared.pipelineResults,
+    pipelineKeysByRenderId: prepared.pipelineKeysByRenderId,
     diagnostics,
   };
 }
