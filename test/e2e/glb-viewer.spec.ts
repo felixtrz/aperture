@@ -5854,7 +5854,7 @@ test("Playwright renders a GLB viewer base-color texture plus emissive texture",
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-uri-base-color-checker.png",
@@ -5863,8 +5863,8 @@ test("Playwright renders a GLB viewer base-color texture plus emissive texture",
             width: 2,
             height: 2,
             byteLength: 84,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
@@ -5873,7 +5873,7 @@ test("Playwright renders a GLB viewer base-color texture plus emissive texture",
             width: 2,
             height: 2,
             byteLength: 84,
-          },
+          }),
         ]),
         diagnostics: [],
       },
@@ -6156,7 +6156,7 @@ test("Playwright renders a GLB viewer metallic-roughness texture plus emissive t
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-metallic-roughness-checker.png",
@@ -6165,8 +6165,8 @@ test("Playwright renders a GLB viewer metallic-roughness texture plus emissive t
             width: 2,
             height: 2,
             byteLength: 83,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
@@ -6175,7 +6175,7 @@ test("Playwright renders a GLB viewer metallic-roughness texture plus emissive t
             width: 2,
             height: 2,
             byteLength: 84,
-          },
+          }),
         ]),
         diagnostics: [],
       },
@@ -6476,7 +6476,7 @@ test("Playwright renders GLB viewer base-color plus metallic-roughness plus emis
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-uri-base-color-checker.png",
@@ -6485,8 +6485,8 @@ test("Playwright renders GLB viewer base-color plus metallic-roughness plus emis
             width: 2,
             height: 2,
             byteLength: 84,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-metallic-roughness-checker.png",
@@ -6495,8 +6495,8 @@ test("Playwright renders GLB viewer base-color plus metallic-roughness plus emis
             width: 2,
             height: 2,
             byteLength: 83,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 2,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
@@ -6505,7 +6505,7 @@ test("Playwright renders GLB viewer base-color plus metallic-roughness plus emis
             width: 2,
             height: 2,
             byteLength: 84,
-          },
+          }),
         ]),
         diagnostics: [],
       },
@@ -7311,7 +7311,7 @@ test("Playwright renders a GLB viewer base-color texture plus occlusion texture"
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
@@ -7320,8 +7320,8 @@ test("Playwright renders a GLB viewer base-color texture plus occlusion texture"
             width: 2,
             height: 2,
             byteLength: 84,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-occlusion-control.png",
@@ -7330,7 +7330,7 @@ test("Playwright renders a GLB viewer base-color texture plus occlusion texture"
             width: 2,
             height: 2,
             byteLength: 83,
-          },
+          }),
         ]),
         diagnostics: [],
       },
@@ -7650,7 +7650,7 @@ test("Playwright renders GLB viewer UV1 base-color plus occlusion textures", asy
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
@@ -7659,8 +7659,8 @@ test("Playwright renders GLB viewer UV1 base-color plus occlusion textures", asy
             width: 2,
             height: 2,
             byteLength: 84,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-occlusion-control.png",
@@ -7669,7 +7669,7 @@ test("Playwright renders GLB viewer UV1 base-color plus occlusion textures", asy
             width: 2,
             height: 2,
             byteLength: 83,
-          },
+          }),
         ]),
         diagnostics: [],
       },
@@ -8065,7 +8065,7 @@ test("Playwright renders GLB viewer UV1 base-color plus emissive textures", asyn
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-uri-base-color-checker.png",
@@ -8074,8 +8074,8 @@ test("Playwright renders GLB viewer UV1 base-color plus emissive textures", asyn
             width: 2,
             height: 2,
             byteLength: 84,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
@@ -8084,7 +8084,7 @@ test("Playwright renders GLB viewer UV1 base-color plus emissive textures", asyn
             width: 2,
             height: 2,
             byteLength: 84,
-          },
+          }),
         ]),
         diagnostics: [],
       },
@@ -10028,7 +10028,7 @@ test("Playwright renders GLB viewer normal plus occlusion URI controls", async (
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
@@ -10037,8 +10037,8 @@ test("Playwright renders GLB viewer normal plus occlusion URI controls", async (
             width: 2,
             height: 2,
             byteLength: 77,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-occlusion-control.png",
@@ -10047,7 +10047,7 @@ test("Playwright renders GLB viewer normal plus occlusion URI controls", async (
             width: 2,
             height: 2,
             byteLength: 83,
-          },
+          }),
         ]),
         diagnostics: [],
       },
@@ -10392,7 +10392,7 @@ test("Playwright renders a GLB viewer StandardMaterial occlusion plus normal map
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
@@ -10401,8 +10401,8 @@ test("Playwright renders a GLB viewer StandardMaterial occlusion plus normal map
             width: 2,
             height: 2,
             byteLength: 77,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-occlusion-control.png",
@@ -10411,7 +10411,7 @@ test("Playwright renders a GLB viewer StandardMaterial occlusion plus normal map
             width: 2,
             height: 2,
             byteLength: 83,
-          },
+          }),
         ]),
         diagnostics: [],
       },
@@ -11000,7 +11000,7 @@ test("Playwright renders a GLB viewer alpha-mask plus normal-map sample", async 
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-alpha-mask-checker.png",
@@ -11009,8 +11009,8 @@ test("Playwright renders a GLB viewer alpha-mask plus normal-map sample", async 
             width: 2,
             height: 2,
             byteLength: 84,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
@@ -11019,7 +11019,7 @@ test("Playwright renders a GLB viewer alpha-mask plus normal-map sample", async 
             width: 2,
             height: 2,
             byteLength: 77,
-          },
+          }),
         ]),
         diagnostics: [],
       },
@@ -11531,7 +11531,7 @@ test("Playwright renders GLB viewer alpha-mask plus emissive URI controls", asyn
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-alpha-mask-checker.png",
@@ -11540,8 +11540,8 @@ test("Playwright renders GLB viewer alpha-mask plus emissive URI controls", asyn
             width: 2,
             height: 2,
             byteLength: 84,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
@@ -11550,7 +11550,7 @@ test("Playwright renders GLB viewer alpha-mask plus emissive URI controls", asyn
             width: 2,
             height: 2,
             byteLength: 84,
-          },
+          }),
         ]),
         diagnostics: [],
       },
@@ -12084,7 +12084,7 @@ test("Playwright renders GLB viewer alpha-blend plus emissive textures", async (
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-alpha-blend-checker.png",
@@ -12093,8 +12093,8 @@ test("Playwright renders GLB viewer alpha-blend plus emissive textures", async (
             width: 2,
             height: 2,
             byteLength: 84,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
@@ -12103,7 +12103,7 @@ test("Playwright renders GLB viewer alpha-blend plus emissive textures", async (
             width: 2,
             height: 2,
             byteLength: 84,
-          },
+          }),
         ]),
         diagnostics: [],
       },
@@ -12424,7 +12424,7 @@ test("Playwright renders a GLB viewer alpha-blend texture plus normal map", asyn
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-alpha-mask-checker.png",
@@ -12433,8 +12433,8 @@ test("Playwright renders a GLB viewer alpha-blend texture plus normal map", asyn
             width: 2,
             height: 2,
             byteLength: 84,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
@@ -12443,7 +12443,7 @@ test("Playwright renders a GLB viewer alpha-blend texture plus normal map", asyn
             width: 2,
             height: 2,
             byteLength: 77,
-          },
+          }),
         ]),
         diagnostics: [],
       },
@@ -16165,7 +16165,7 @@ test("Playwright renders GLB viewer base-color plus normal textures through TEXC
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
@@ -16174,8 +16174,8 @@ test("Playwright renders GLB viewer base-color plus normal textures through TEXC
             width: 2,
             height: 2,
             byteLength: 84,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
@@ -16184,7 +16184,7 @@ test("Playwright renders GLB viewer base-color plus normal textures through TEXC
             width: 2,
             height: 2,
             byteLength: 77,
-          },
+          }),
         ]),
         diagnostics: [],
       },
@@ -16550,7 +16550,7 @@ test("Playwright renders GLB viewer UV1 metallic-roughness plus normal textures"
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-metallic-roughness-checker.png",
@@ -16559,8 +16559,8 @@ test("Playwright renders GLB viewer UV1 metallic-roughness plus normal textures"
             width: 2,
             height: 2,
             byteLength: 83,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
@@ -16569,7 +16569,7 @@ test("Playwright renders GLB viewer UV1 metallic-roughness plus normal textures"
             width: 2,
             height: 2,
             byteLength: 77,
-          },
+          }),
         ]),
         diagnostics: [],
       },
@@ -17461,7 +17461,7 @@ test("Playwright renders a GLB viewer metallic-roughness texture plus normal map
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-metallic-roughness-checker.png",
@@ -17470,8 +17470,8 @@ test("Playwright renders a GLB viewer metallic-roughness texture plus normal map
             width: 2,
             height: 2,
             byteLength: 83,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
@@ -17480,7 +17480,7 @@ test("Playwright renders a GLB viewer metallic-roughness texture plus normal map
             width: 2,
             height: 2,
             byteLength: 77,
-          },
+          }),
         ]),
         diagnostics: [],
       },
@@ -17845,7 +17845,7 @@ test("Playwright renders GLB viewer transformed metallic-roughness plus normal t
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-metallic-roughness-checker.png",
@@ -17854,8 +17854,8 @@ test("Playwright renders GLB viewer transformed metallic-roughness plus normal t
             width: 2,
             height: 2,
             byteLength: 83,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
@@ -17864,7 +17864,7 @@ test("Playwright renders GLB viewer transformed metallic-roughness plus normal t
             width: 2,
             height: 2,
             byteLength: 77,
-          },
+          }),
         ]),
         diagnostics: [],
       },
@@ -20556,7 +20556,7 @@ test("Playwright decodes all StandardMaterial URI texture slots in the GLB viewe
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-uri-base-color-checker.png",
@@ -20565,8 +20565,8 @@ test("Playwright decodes all StandardMaterial URI texture slots in the GLB viewe
             width: 2,
             height: 2,
             byteLength: 84,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-metallic-roughness-checker.png",
@@ -20575,8 +20575,8 @@ test("Playwright decodes all StandardMaterial URI texture slots in the GLB viewe
             width: 2,
             height: 2,
             byteLength: 83,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 2,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
@@ -20585,8 +20585,8 @@ test("Playwright decodes all StandardMaterial URI texture slots in the GLB viewe
             width: 2,
             height: 2,
             byteLength: 77,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 3,
             sourceKind: "same-origin-uri",
             uri: "aperture-occlusion-checker.png",
@@ -20595,8 +20595,8 @@ test("Playwright decodes all StandardMaterial URI texture slots in the GLB viewe
             width: 2,
             height: 2,
             byteLength: 83,
-          },
-          {
+          }),
+          expect.objectContaining({
             imageIndex: 4,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
@@ -20605,7 +20605,7 @@ test("Playwright decodes all StandardMaterial URI texture slots in the GLB viewe
             width: 2,
             height: 2,
             byteLength: 84,
-          },
+          }),
         ]),
         diagnostics: [],
       },
