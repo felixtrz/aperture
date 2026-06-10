@@ -3656,7 +3656,7 @@ test("standard glTF texture fixture reports alpha-blend render state", async ({
     },
     extraction: { views: 1, meshDraws: 1, lights: 2, diagnostics: 0 },
     diagnosticsSummary: {
-      sectionCount: 6,
+      sectionCount: 7,
       materialQueue: {
         itemCount: 1,
         byPhase: [{ phase: "transparent", itemCount: 1 }],
@@ -5224,7 +5224,7 @@ test("standard glTF texture fixture reports multiple unsupported optional materi
         textureCount: 1,
         samplerCount: 1,
         materialCount: 1,
-        diagnostics: 2,
+        diagnostics: 1,
       },
       registration: {
         valid: true,
@@ -5244,20 +5244,14 @@ test("standard glTF texture fixture reports multiple unsupported optional materi
     },
     draw: { packages: 1, drawCalls: 1 },
   });
+  // KHR_materials_volume is consumed by the standard mapper since the M5-T5
+  // refractive-transmission work, so of the two optional extensions in this
+  // scenario only KHR_materials_specular still warns as unsupported.
   expect(status.gltf?.assetMapping.diagnosticCodes).toEqual([
-    "gltfMaterial.unsupportedOptionalExtension",
     "gltfMaterial.unsupportedOptionalExtension",
   ]);
   expect(status.gltf?.assetMapping.diagnosticDetails).toEqual(
     expect.arrayContaining([
-      expect.objectContaining({
-        layer: "material",
-        code: "gltfMaterial.unsupportedOptionalExtension",
-        severity: "warning",
-        materialIndex: 0,
-        field: "extensions.KHR_materials_volume",
-        extensionName: "KHR_materials_volume",
-      }),
       expect.objectContaining({
         layer: "material",
         code: "gltfMaterial.unsupportedOptionalExtension",
@@ -6539,7 +6533,7 @@ function expectRenderedGltfTextureStatus(
     },
     extraction: { views: 1, meshDraws: 1, lights: 2, diagnostics: 0 },
     diagnosticsSummary: {
-      sectionCount: 6,
+      sectionCount: 7,
       materialQueue: {
         itemCount: 1,
         byPhase: [{ phase: "opaque", itemCount: 1 }],
