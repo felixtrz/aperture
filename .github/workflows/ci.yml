@@ -112,8 +112,10 @@ jobs:
 
       # Google Chrome + its system libs (channel "chrome" → real Chrome, which
       # exposes navigator.gpu under SwiftShader Vulkan; headless Chromium hides it).
+      # The chromium headless shell is additionally required by the CLI dev
+      # daemon (`aperture dev up --headless`) exercised in cli-ai-tools.spec.ts.
       - name: Install Chrome + system deps
-        run: pnpm exec playwright install --with-deps chrome
+        run: pnpm exec playwright install --with-deps chrome chromium
 
       # xvfb provides the display a non-headless Chrome needs for a GPU context.
       - name: Install xvfb

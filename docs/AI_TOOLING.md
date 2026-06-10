@@ -45,6 +45,14 @@ input, camera, render, and reference tool contracts exposed over MCP. Browser
 backed tools require an active managed dev session. Reference tools can run
 after the reference corpus has been warmed.
 
+## Cold-Start Proof
+
+The whole loop above is CI-gated from a clean scaffold:
+`scripts/cold-start-proof.sh` creates a fresh app in a temp directory from the
+workspace-linked CLI, installs, typechecks, builds, starts a headless managed
+dev session, exercises the MCP browser/ECS tools, and tears down. CI runs the
+underlying spec (`test/e2e/cli-ai-tools.spec.ts`) in the sharded e2e matrix.
+
 ## State Ownership
 
 The tools do not introduce a scene graph. ECS remains the source of truth,
