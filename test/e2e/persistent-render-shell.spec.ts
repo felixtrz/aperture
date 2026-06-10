@@ -117,7 +117,11 @@ interface PersistentScenarioStatus {
 test("persistent render shell swaps scenario producers without recreating WebGPU app", async ({
   page,
 }) => {
-  test.setTimeout(120000);
+  // Two SwiftShader-rendered scenarios run back to back; the clustered
+  // pressure history alone budgets 12 required frames at software-rendering
+  // rates (see persistent-render-shell.main.js scenarioTimeoutBudget), so the
+  // test budget must exceed the sum of both page-side scenario budgets.
+  test.setTimeout(300000);
 
   const controller = createRenderControlPage(page);
 

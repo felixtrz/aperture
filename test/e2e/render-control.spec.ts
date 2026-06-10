@@ -18,7 +18,10 @@ interface PilotSummary {
 test.use({ screenshot: "off", trace: "off", video: "off" });
 
 test("render control drives the five pilot routes from one persistent page", async () => {
-  test.setTimeout(120000);
+  // The pilot's browser renders on SwiftShader Vulkan (render-control.mjs
+  // default launch args), so five routes plus the persistent shell's two
+  // scenario runs take minutes, not seconds, on GPU-less runners.
+  test.setTimeout(420000);
 
   const { stdout } = await execFileAsync(
     process.execPath,
@@ -30,7 +33,7 @@ test("render control drives the five pilot routes from one persistent page", asy
         APERTURE_RENDER_CONTROL_CHANNEL: "chromium",
       },
       maxBuffer: 16 * 1024 * 1024,
-      timeout: 120000,
+      timeout: 400000,
     },
   );
   const summary = JSON.parse(stdout) as PilotSummary;
