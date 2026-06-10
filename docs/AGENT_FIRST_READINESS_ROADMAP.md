@@ -1,6 +1,6 @@
 # Agent-First Readiness Roadmap
 
-**Status:** ready-for-execution · created 2026-06-09 · branch `claude/nice-franklin-5sray8`
+**Status:** implemented · created 2026-06-09 · completed 2026-06-10 on branch `claude/nice-franklin-5sray8` — R1–R4 (the readiness gate) and R5–R6 are done; the only open residuals are explicitly deferred or tracked follow-ons (AI-82 dependency decision; AI-55/56/61 worker-loop halves; AI-60 XL half; AI-71 real-GPU OS matrix)
 **Purpose:** the dependency-ordered execution plan that takes Aperture from "agent-first in architecture" to "agent-first as a claimable, verifiable property". Derived from the 2026-06-09 holistic review of the engine against `docs/NORTH_STAR.md`'s own agent-first bar (strong schemas, determinism, clear diagnostics, inspectable state, agent-readable APIs).
 **Scope rule:** everything here is fix/polish/hardening of existing feature areas. **Shipping is explicitly out of scope** — no npm publish (AI-72), no public docs-site deployment (AI-80), no framework bindings (AI-81). The in-repo cold-start gate (AF-6) deliberately stops short of publishing.
 **Id conventions:** `AI-N` items are canonical in `docs/ACTIONABLE_ROADMAP.md` (full acceptance criteria live there; this doc sequences them and adds readiness-level done-when checks). `AF-N` items are new to this initiative and carry their full acceptance criteria here. `docs/FRAMEWORK_GAP_ACTION_ITEMS.md` remains the status ledger — record completions in its Implementation Log as usual.
@@ -209,7 +209,7 @@ _Inspection is excellent; writing and self-serve feedback lag. Close the loop ag
 
 ## Phase R5 — Performance floor at scale
 
-**Status: 5/7 COMPLETE (2026-06-10)** — AI-13 ✅, AI-60 cheap half ✅, AI-66 ✅, AI-67 ✅ (transform-only fast path on the split `entityTransformVersion`), AI-30 ✅ (persistent scratch, golden-verified). Open: AI-64 (wire `RenderSnapshotUpdateSchedule` + the now-available transform versions into dirty-range uploads via `writeBufferSubData`) and AI-65 (generalize to view/light/material buffers) — both XL items with every prerequisite now landed.
+**Status: ✅ COMPLETE (2026-06-10)** — all seven items. AI-13 ✅, AI-60 cheap half ✅, AI-66 ✅, AI-67 ✅, AI-30 ✅, AI-64 ✅ (content-versioned dirty-range transform uploads: static frames issue zero transform bytes, single-entity moves upload one matrix window, threshold fallback + byte-equivalence proven), AI-65 ✅ (the same contract on view uniforms via versioned stamps and light float/metadata buffers via per-route double-buffered windows — fully static frames issue **zero dynamic-uniform bytes** through the real app facade; golden baselines pixel-identical). The AI-60 XL half (dirty-subtree propagation + incremental spatial index) remains tracked in `ACTIONABLE_ROADMAP.md` as the next perf frontier beyond this roadmap's scope.
 
 _Sequenced per `docs/ACTIONABLE_ROADMAP.md` Phase 3; listed here because scene-scale perf is part of the agent-first promise ("performance transparency" means acceptable performance plus honest reports). Execute in this order; cite AI-76 bench deltas (R1.6) for each._
 
