@@ -91,6 +91,7 @@ import {
   createUiImage,
   createUiNode,
   createUiPanel,
+  createRenderExtractionCache,
   createUiScreen,
   createUiScroll,
   createUiText,
@@ -319,14 +320,20 @@ export function createExtractionApp(
 
   registerRenderAuthoringComponents(app.world);
 
+  // AI-13: one persistent extraction cache per app instance, threaded into
+  // every extraction so unchanged entities are served from cached packets.
+  // Output stays byte-identical to a cold extraction (writeback tracks entity
+  // versions); the cache stores derived packet data only, never live ECS refs.
+  const cache = createRenderExtractionCache();
+
   return {
     ...app,
     extract(frame = 0) {
-      return extractRenderSnapshot(app.world, app.assets, { frame });
+      return extractRenderSnapshot(app.world, app.assets, { frame, cache });
     },
     stepAndExtract(delta = 0, time = 0, frame = 0) {
       app.step(delta, time);
-      return extractRenderSnapshot(app.world, app.assets, { frame });
+      return extractRenderSnapshot(app.world, app.assets, { frame, cache });
     },
   };
 }
