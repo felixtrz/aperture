@@ -36,6 +36,13 @@ export interface EntityVersionTracking {
    * not to the total number of entities ever created.
    */
   entityVersionTrackingSize(): number;
+  /**
+   * Monotonic counter bumped on every tracked world mutation (entity create/
+   * destroy, component add/remove, setValue, vector-view set). Consumers can
+   * compare it across phases to skip work when nothing changed (AI-60).
+   * Indexed vector-view writes (view[i] = x) are NOT tracked (AI-62).
+   */
+  worldChangeVersion(): number;
 }
 
 export type VersionedEcsWorld = World & EntityVersionTracking;
@@ -52,6 +59,7 @@ type VectorView = {
 
 function installEntityVersionTracking(world: World): EcsWorld {
   const versionByEntityKey = new Map<string, number>();
+  let worldChangeVersion = 0;
   const patchedEntities = new WeakSet<Entity>();
   const patchedVectorViews = new WeakSet<object>();
   const createEntity = world.createEntity.bind(world);
@@ -62,11 +70,13 @@ function installEntityVersionTracking(world: World): EcsWorld {
     versionByEntityKey.get(entityVersionKey(entity)) ?? 0;
   versionedWorld.markEntityChanged = (entity) => bumpEntityVersion(entity);
   versionedWorld.entityVersionTrackingSize = () => versionByEntityKey.size;
+  versionedWorld.worldChangeVersion = () => worldChangeVersion;
   versionedWorld.createEntity = () => {
     const entity = createEntity();
 
     versionByEntityKey.set(entityVersionKey(entity), 0);
     patchEntity(entity);
+    worldChangeVersion += 1;
 
     return entity;
   };
@@ -149,6 +159,7 @@ function installEntityVersionTracking(world: World): EcsWorld {
         // createEntity, so retaining a destroyed entity's key only leaks memory;
         // no consumer reads entityVersion() of a destroyed (unqueried) entity.
         versionByEntityKey.delete(key);
+        worldChangeVersion += 1;
       }
     };
   }
@@ -177,6 +188,7 @@ function installEntityVersionTracking(world: World): EcsWorld {
     const next = (versionByEntityKey.get(key) ?? 0) + 1;
 
     versionByEntityKey.set(key, next);
+    worldChangeVersion += 1;
 
     return next;
   }

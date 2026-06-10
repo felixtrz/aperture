@@ -96,8 +96,8 @@ export function createIblTexturePreparationReport(
   );
   const unsupportedSlotDiagnostics = input.descriptors.diagnostics.filter(
     (diagnostic) =>
-      diagnostic.code === "iblResourceDescriptor.diffuseUnsupported" ||
-      diagnostic.code === "iblResourceDescriptor.specularUnsupported",
+      diagnostic.code === "iblResourceDescriptor.diffuseSourceNotPrepared" ||
+      diagnostic.code === "iblResourceDescriptor.specularSourceNotPrepared",
   );
 
   if (missingDescriptorDiagnostics.length > 0) {

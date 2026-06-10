@@ -24,7 +24,8 @@ export interface ApertureEffects {
     callback: (entity: Entity) => void,
     options?: ApertureEffectOptions,
   ): ApertureEffectHandle;
-  flush(phase?: ApertureEffectPhase): void;
+  /** Runs pending effect callbacks; returns how many values were flushed. */
+  flush(phase?: ApertureEffectPhase): number;
   dispose(): void;
 }
 
@@ -44,11 +45,15 @@ const APERTURE_EFFECTS = Symbol("aperture.effects");
 export function flushApertureSystemEffects(
   world: EcsWorld,
   phase: ApertureEffectPhase = "update",
-): void {
+): number {
+  let flushed = 0;
+
   for (const system of world.getSystems()) {
     const effects = readRegisteredEffects(system);
-    effects?.flush(phase);
+    flushed += effects?.flush(phase) ?? 0;
   }
+
+  return flushed;
 }
 
 export function createScheduledEffects(): ScheduledEffects {
@@ -121,14 +126,18 @@ export function createScheduledEffects(): ScheduledEffects {
       const ready = [...entries]
         .filter((entry) => entry.phase === phase && entry.pending.length > 0)
         .sort((a, b) => a.priority - b.priority);
+      let flushed = 0;
 
       for (const entry of ready) {
         const pending = entry.pending.splice(0);
+        flushed += pending.length;
 
         for (const value of pending) {
           entry.callback(value as never);
         }
       }
+
+      return flushed;
     },
     dispose() {
       for (const entry of entries) {

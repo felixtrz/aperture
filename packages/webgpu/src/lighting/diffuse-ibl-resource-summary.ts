@@ -12,10 +12,7 @@ export interface DiffuseIblResourceSummaryDiagnostic {
   readonly code:
     | "diffuseIblResourceSummary.textureResourceMissing"
     | "diffuseIblResourceSummary.samplerResourceMissing"
-    | "diffuseIblResourceSummary.resourceUnsupported"
-    | "diffuseIblResourceSummary.specularPrefilteringDeferred"
-    | "diffuseIblResourceSummary.bindGroupLayoutDeferred"
-    | "diffuseIblResourceSummary.shaderSamplingDeferred";
+    | "diffuseIblResourceSummary.resourceUnsupported";
   readonly severity: "warning" | "error";
   readonly message: string;
 }
@@ -194,28 +191,8 @@ function createDiagnostics(
     });
   }
 
-  if (status === "deferred") {
-    diagnostics.push(
-      {
-        code: "diffuseIblResourceSummary.specularPrefilteringDeferred",
-        severity: "warning",
-        message:
-          "Diffuse IBL resources are available, but specular prefiltering remains deferred.",
-      },
-      {
-        code: "diffuseIblResourceSummary.bindGroupLayoutDeferred",
-        severity: "warning",
-        message:
-          "Diffuse IBL resources are available, but StandardMaterial bind-group layout changes remain deferred.",
-      },
-      {
-        code: "diffuseIblResourceSummary.shaderSamplingDeferred",
-        severity: "warning",
-        message:
-          "Diffuse IBL resources are available, but StandardMaterial shader sampling remains deferred.",
-      },
-    );
-  }
-
+  // status === "deferred" means every summarized resource is available;
+  // specular prefiltering, bind-group layouts, and shader sampling are real,
+  // so no stale "deferred" diagnostics are emitted for it.
   return diagnostics;
 }

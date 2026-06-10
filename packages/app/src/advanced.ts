@@ -166,6 +166,12 @@ export async function createApertureApp(
   registerApertureSystemModules(lowLevel, options.systems ?? []);
   resolveWorldTransforms(lowLevel.world);
   refreshSpatialIndex();
+  // AI-60 (cheap half): the pre-step resolve + spatial refresh only repeat
+  // when the world actually changed since the post-step refresh (between-step
+  // spawns, devtools writes, interaction or postUpdate effects). Steady-state
+  // frames run exactly one resolve (inside lowLevel.step, after fixed-step
+  // physics writeback) and one spatial refresh per step.
+  let worldVersionAtRefresh = lowLevel.world.worldChangeVersion();
 
   const apertureApp: ApertureApp = {
     mode: config.mode,
@@ -175,12 +181,15 @@ export async function createApertureApp(
     physics: physicsFacade,
     preload,
     step(delta = 0, time = 0) {
-      resolveWorldTransforms(lowLevel.world);
-      refreshSpatialIndex();
+      if (lowLevel.world.worldChangeVersion() !== worldVersionAtRefresh) {
+        resolveWorldTransforms(lowLevel.world);
+        refreshSpatialIndex();
+      }
       flushApertureSystemEffects(lowLevel.world, "input");
       const result = lowLevel.step(delta, time);
       lastFixedStep = result.fixedStep;
       refreshSpatialIndex();
+      worldVersionAtRefresh = lowLevel.world.worldChangeVersion();
       // Synthesize pointer-on-object events from post-update world state, after
       // fixed-step physics writeback has refreshed transforms and picking data.
       runInteractionFrame(context, time);
