@@ -161,6 +161,33 @@ describe("pointer interaction route (M7-T8)", () => {
     expect(counts.clickPoint).not.toBeNull();
   });
 
+  it("fires one click when a press+release pair collapses into a single frame", async () => {
+    const counts = createCounts();
+    const runner = await createRoute(counts);
+
+    point(runner, [0.5, 0.5]);
+    runner.step(1 / 60, 0);
+
+    // A slow frame drains the full down+up pair in one advance: the
+    // end-of-frame pressed sample stays false and only the reset-frame edge
+    // signals witness the press. The interaction frame must still click.
+    runner.app.context.input.advanceFrame([
+      { kind: "pointer", pointer: "primary", pressed: true },
+      { kind: "pointer", pointer: "primary", pressed: false },
+    ]);
+    expect(runner.app.context.input.pointer.primary.pressed.value).toBe(false);
+    expect(
+      runner.app.context.input.pointer.primary.pressedThisFrame.value,
+    ).toBe(true);
+    runner.step(1 / 60, 0.1);
+
+    expect(counts.down).toBe(1);
+    expect(counts.up).toBe(1);
+    expect(counts.click).toBe(1);
+    expect(counts.dragStart).toBe(0);
+    expect(counts.clickEntity).toEqual(counts.targetRef);
+  });
+
   it("fires dragStart/drag/dragEnd (and NOT click) for a press+drag+release", async () => {
     const counts = createCounts();
     const runner = await createRoute(counts);

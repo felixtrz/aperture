@@ -206,6 +206,15 @@ export interface InputResourceBase {
     readonly primary: {
       readonly position: Signal<readonly [number, number]>;
       readonly pressed: Signal<boolean>;
+      /**
+       * Reset-frame edges: true when this frame's events contained a press /
+       * release for the primary pointer. A slow frame can drain a full
+       * down+up pair at once — `pressed` then never samples true — so edge
+       * consumers (the interaction click state machine) read these instead
+       * of relying on the end-of-frame sample.
+       */
+      readonly pressedThisFrame: Signal<boolean>;
+      readonly releasedThisFrame: Signal<boolean>;
     };
   };
   /**
