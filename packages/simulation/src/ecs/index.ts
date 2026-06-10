@@ -36,6 +36,21 @@ export interface EntityVersionTracking {
    * not to the total number of entities ever created.
    */
   entityVersionTrackingSize(): number;
+  /**
+   * Monotonic counter bumped on every tracked world mutation (entity create/
+   * destroy, component add/remove, setValue, vector-view set). Consumers can
+   * compare it across phases to skip work when nothing changed (AI-60).
+   * Indexed vector-view writes (view[i] = x) are NOT tracked (AI-62).
+   */
+  worldChangeVersion(): number;
+  /**
+   * Transform-only change counter (AI-67): bumped for LocalTransform /
+   * WorldTransform value writes and by transform resolution, separately from
+   * the structural entityVersion, so consumers (render extraction) can take a
+   * matrix-only fast path without rebuilding cached packets.
+   */
+  entityTransformVersion(entity: Entity): number;
+  markEntityTransformChanged(entity: Entity): number;
 }
 
 export type VersionedEcsWorld = World & EntityVersionTracking;
@@ -50,8 +65,15 @@ type VectorView = {
   set(values: ArrayLike<number>, offset?: number): void;
 };
 
+const TRANSFORM_COMPONENT_IDS = new Set([
+  "aperture.transform.local",
+  "aperture.transform.world",
+]);
+
 function installEntityVersionTracking(world: World): EcsWorld {
   const versionByEntityKey = new Map<string, number>();
+  const transformVersionByEntityKey = new Map<string, number>();
+  let worldChangeVersion = 0;
   const patchedEntities = new WeakSet<Entity>();
   const patchedVectorViews = new WeakSet<object>();
   const createEntity = world.createEntity.bind(world);
@@ -62,11 +84,17 @@ function installEntityVersionTracking(world: World): EcsWorld {
     versionByEntityKey.get(entityVersionKey(entity)) ?? 0;
   versionedWorld.markEntityChanged = (entity) => bumpEntityVersion(entity);
   versionedWorld.entityVersionTrackingSize = () => versionByEntityKey.size;
+  versionedWorld.worldChangeVersion = () => worldChangeVersion;
+  versionedWorld.entityTransformVersion = (entity) =>
+    transformVersionByEntityKey.get(entityVersionKey(entity)) ?? 0;
+  versionedWorld.markEntityTransformChanged = (entity) =>
+    bumpEntityTransformVersion(entity);
   versionedWorld.createEntity = () => {
     const entity = createEntity();
 
     versionByEntityKey.set(entityVersionKey(entity), 0);
     patchEntity(entity);
+    worldChangeVersion += 1;
 
     return entity;
   };
@@ -124,7 +152,12 @@ function installEntityVersionTracking(world: World): EcsWorld {
       value: unknown,
     ) {
       setValue.call(this, component, key as never, value as never);
-      bumpEntityVersion(this);
+
+      if (isTransformComponent(component)) {
+        bumpEntityTransformVersion(this);
+      } else {
+        bumpEntityVersion(this);
+      }
     } as Entity["setValue"];
 
     entity.getVectorView = function patchedGetVectorView(
@@ -134,7 +167,7 @@ function installEntityVersionTracking(world: World): EcsWorld {
     ) {
       const view = getVectorView.call(this, component, key as never);
 
-      return patchVectorView(this, view as VectorView);
+      return patchVectorView(this, view as VectorView, component);
     } as Entity["getVectorView"];
 
     entity.destroy = function patchedDestroy(this: Entity) {
@@ -149,22 +182,34 @@ function installEntityVersionTracking(world: World): EcsWorld {
         // createEntity, so retaining a destroyed entity's key only leaks memory;
         // no consumer reads entityVersion() of a destroyed (unqueried) entity.
         versionByEntityKey.delete(key);
+        transformVersionByEntityKey.delete(key);
+        worldChangeVersion += 1;
       }
     };
   }
 
-  function patchVectorView(entity: Entity, view: VectorView): VectorView {
+  function patchVectorView(
+    entity: Entity,
+    view: VectorView,
+    component: AnyComponent,
+  ): VectorView {
     if (patchedVectorViews.has(view)) {
       return view;
     }
 
     const set = view.set;
+    const transform = isTransformComponent(component);
 
     Object.defineProperty(view, "set", {
       configurable: true,
       value(values: ArrayLike<number>, offset?: number) {
         set.call(this, values, offset);
-        bumpEntityVersion(entity);
+
+        if (transform) {
+          bumpEntityTransformVersion(entity);
+        } else {
+          bumpEntityVersion(entity);
+        }
       },
     });
     patchedVectorViews.add(view);
@@ -172,11 +217,28 @@ function installEntityVersionTracking(world: World): EcsWorld {
     return view;
   }
 
+  function isTransformComponent(component: AnyComponent): boolean {
+    return TRANSFORM_COMPONENT_IDS.has(
+      (component as { readonly id?: string }).id ?? "",
+    );
+  }
+
   function bumpEntityVersion(entity: Entity): number {
     const key = entityVersionKey(entity);
     const next = (versionByEntityKey.get(key) ?? 0) + 1;
 
     versionByEntityKey.set(key, next);
+    worldChangeVersion += 1;
+
+    return next;
+  }
+
+  function bumpEntityTransformVersion(entity: Entity): number {
+    const key = entityVersionKey(entity);
+    const next = (transformVersionByEntityKey.get(key) ?? 0) + 1;
+
+    transformVersionByEntityKey.set(key, next);
+    worldChangeVersion += 1;
 
     return next;
   }

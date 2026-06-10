@@ -10,6 +10,7 @@ import {
   webGpuPreparedEnvironmentAssetSetToJsonValue,
   type EnvironmentPacket,
   type TextureGpuDeviceLike,
+  type TextureGpuResource,
 } from "@aperture-engine/webgpu/test-support";
 
 describe("WebGPU app environment resource cache", () => {
@@ -270,6 +271,156 @@ describe("WebGPU app environment resource cache", () => {
       /GPUTexture|GPUTextureView|GPUSampler|GPUBindGroup|"raw"/,
     );
   });
+
+  it("prefilters direct-cubemap environment assets without an explicit specular source", () => {
+    const calls: string[] = [];
+    const app = {
+      initialization: {
+        device: pmremDevice(calls),
+      },
+    };
+    const handle = createEnvironmentMapHandle("cubemap-direct-studio");
+    const prepared = prepareWebGpuAppEnvironmentAssets({
+      app,
+      assets: [cubemapDirectAsset(handle, "cubemap-direct-studio")],
+      activeHandle: handle,
+    });
+    const specular = prepared.active?.specularTextureResource;
+    const codes =
+      specular?.diagnostics.map((diagnostic) => diagnostic.code) ?? [];
+
+    expect(prepared.active?.ready).toBe(true);
+    expect(specular?.sections.prefiltering).toBe(true);
+    expect(specular?.sections.proofUpload).toBe(false);
+    expect(specular?.resources[0]?.resource?.prefiltered).toBe(true);
+    expect(specular?.diagnostics).toEqual([]);
+    expect(codes).not.toContain(
+      "iblTextureResource.specularProofUploadPlaceholder",
+    );
+    expect(codes).not.toContain(
+      "iblTextureResource.specularPrefilteringDeferred",
+    );
+    expect(prepared.active?.diffuseTextureResource.convolved).toBe(true);
+    // One diffuse irradiance dispatch plus three PMREM mip dispatches.
+    expect(calls.filter((call) => call === "dispatch")).toHaveLength(4);
+  });
+
+  it("prefilters specular IBL for every authored source kind", () => {
+    const calls: string[] = [];
+    const device = pmremDevice(calls);
+    const app = {
+      initialization: {
+        device,
+      },
+    };
+    const sourceTexture: TextureGpuResource = {
+      resourceKey: "texture:kinds-cube-texture:source",
+      texture: device.createTexture({ label: "kinds-cube-texture:source" }),
+      view: { label: "kinds-cube-texture:source-view" },
+      descriptor: {
+        size: [4, 4, 6],
+        format: "rgba8unorm",
+        usage: 22,
+      },
+    };
+    const equirect = createEnvironmentMapHandle("kinds-equirect");
+    const explicitPmrem = createEnvironmentMapHandle("kinds-explicit-pmrem");
+    const cubeFacesDirect = createEnvironmentMapHandle("kinds-cube-faces");
+    const cubeTextureDirect = createEnvironmentMapHandle("kinds-cube-texture");
+    const prepared = prepareWebGpuAppEnvironmentAssets({
+      app,
+      assets: [
+        {
+          handle: equirect,
+          label: "kinds-equirect",
+          version: "v1",
+          diffuseResourceKey: "texture:kinds-equirect:diffuse",
+          specularResourceKey: "texture:kinds-equirect:specular",
+          equirectSource: {
+            label: "kinds-equirect",
+            width: 8,
+            height: 4,
+            data: new Uint8Array(8 * 4 * 4),
+            faceSize: 4,
+            format: "rgba8unorm",
+            mipLevelCount: 3,
+          },
+        },
+        environmentAsset(explicitPmrem, "kinds-explicit-pmrem", "v1"),
+        cubemapDirectAsset(cubeFacesDirect, "kinds-cube-faces"),
+        {
+          handle: cubeTextureDirect,
+          label: "kinds-cube-texture",
+          version: "v1",
+          diffuseResourceKey: "texture:kinds-cube-texture:diffuse",
+          specularResourceKey: "texture:kinds-cube-texture:specular",
+          diffuseSource: {
+            label: "kinds-cube-texture",
+            faceSize: 4,
+            sourceTexture,
+            format: "rgba8unorm" as const,
+          },
+        },
+      ],
+      activeHandle: equirect,
+    });
+
+    expect(prepared.assets).toHaveLength(4);
+    expect(prepared.totals.readyAssetCount).toBe(4);
+
+    for (const asset of prepared.assets) {
+      expect(asset.ready, asset.environmentMapResourceKey).toBe(true);
+      expect(
+        asset.specularTextureResource.sections.prefiltering,
+        asset.environmentMapResourceKey,
+      ).toBe(true);
+      expect(
+        asset.specularTextureResource.resources[0]?.resource?.prefiltered,
+        asset.environmentMapResourceKey,
+      ).toBe(true);
+      expect(
+        asset.specularTextureResource.diagnostics,
+        asset.environmentMapResourceKey,
+      ).toEqual([]);
+    }
+  });
+
+  it("emits a single truthful source-not-prepared diagnostic for sourceless assets", () => {
+    const calls: string[] = [];
+    const app = {
+      initialization: {
+        device: pmremDevice(calls),
+      },
+    };
+    const handle = createEnvironmentMapHandle("sourceless-studio");
+    const prepared = prepareWebGpuAppEnvironmentAssets({
+      app,
+      assets: [
+        {
+          handle,
+          label: "sourceless-studio",
+          diffuseResourceKey: "texture:sourceless-studio:diffuse",
+          specularResourceKey: "texture:sourceless-studio:specular",
+        },
+      ],
+      activeHandle: handle,
+    });
+    const specular = prepared.active?.specularTextureResource;
+    const codes =
+      specular?.diagnostics.map((diagnostic) => diagnostic.code) ?? [];
+
+    expect(specular?.sections.prefiltering).toBe(false);
+    expect(specular?.sections.proofUpload).toBe(true);
+    expect(codes).toEqual(["iblTextureResource.specularSourceNotPrepared"]);
+    expect(codes).not.toContain(
+      "iblTextureResource.specularPrefilteringDeferred",
+    );
+    expect(codes).not.toContain(
+      "iblTextureResource.specularProofUploadPlaceholder",
+    );
+    expect(specular?.diagnostics[0]?.message).toMatch(/no prepared source/);
+    expect(calls.filter((call) => call === "dispatch")).toHaveLength(0);
+  });
 });
 
 function textures() {
@@ -360,6 +511,26 @@ function environmentAsset(
       faces,
       format: "rgba8unorm" as const,
       mipLevelCount: 3,
+    },
+    standardMaterialCount: 1,
+  };
+}
+
+function cubemapDirectAsset(
+  handle: ReturnType<typeof createEnvironmentMapHandle>,
+  label: string,
+) {
+  return {
+    handle,
+    label,
+    version: "v1",
+    diffuseResourceKey: `texture:${label}:diffuse`,
+    specularResourceKey: `texture:${label}:specular`,
+    diffuseSource: {
+      label: `${label}:cube`,
+      faceSize: 4,
+      faces: cubeFaces(4),
+      format: "rgba8unorm" as const,
     },
     standardMaterialCount: 1,
   };

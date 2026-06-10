@@ -12,6 +12,29 @@ export function unionAabb(a: Aabb, b: Aabb): Aabb {
   };
 }
 
+/**
+ * Largest scale factor the matrix applies along any basis axis. Multiplying a
+ * bounding-sphere radius by this keeps the sphere conservative under rotation
+ * and non-uniform scale (matches three.js `Matrix4.getMaxScaleOnAxis`).
+ */
+export function maxScaleOnAxis(matrix: Mat4Like): number {
+  const m = matrix;
+  const x =
+    Number(m[0]) * Number(m[0]) +
+    Number(m[1]) * Number(m[1]) +
+    Number(m[2]) * Number(m[2]);
+  const y =
+    Number(m[4]) * Number(m[4]) +
+    Number(m[5]) * Number(m[5]) +
+    Number(m[6]) * Number(m[6]);
+  const z =
+    Number(m[8]) * Number(m[8]) +
+    Number(m[9]) * Number(m[9]) +
+    Number(m[10]) * Number(m[10]);
+
+  return Math.sqrt(Math.max(x, y, z));
+}
+
 export function transformAabb(aabb: Aabb, matrix: Mat4Like): Aabb {
   const min = vec3(
     Number.POSITIVE_INFINITY,

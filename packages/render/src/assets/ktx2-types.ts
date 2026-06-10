@@ -79,7 +79,7 @@ export interface BasisKtx2TranscodeTarget {
   readonly blockByteLength: number;
 }
 
-export interface BasisModuleFactoryInput {
+interface BasisModuleFactoryInput {
   readonly wasmBinary: ArrayBuffer;
 }
 

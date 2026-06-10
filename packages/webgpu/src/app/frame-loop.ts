@@ -41,6 +41,7 @@ import { writeRenderFramePlanFromSnapshot } from "../render/frame/render-frame-p
 import {
   createWebGpuAppResourceReuseReport,
   renderReport,
+  frameBoundariesNeedGpuDrain,
   waitForSubmittedWork,
 } from "./report.js";
 import { prepareWebGpuAppSourceAssetFacades } from "./source-assets.js";
@@ -937,7 +938,9 @@ export async function renderWebGpuAppFrame(
       : { readbackSamples: options.readbackSamples }),
   });
 
-  await waitForSubmittedWork(app.initialization.device);
+  if (frameBoundariesNeedGpuDrain(boundaries)) {
+    await waitForSubmittedWork(app.initialization.device);
+  }
   const occlusionQueries = await readWebGpuAppOcclusionQueries({
     readbacks: boundaries.occlusionQueryReadbacks,
     diagnostics: boundaries.occlusionQueryDiagnostics,

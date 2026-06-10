@@ -10,20 +10,9 @@ import type {
 import type { InstanceAttributeLayout } from "../materials/instance-attributes.js";
 
 export type {
-  CustomMaterialDependencyDeclaration,
   CustomWgslBindingDeclaration,
   CustomWgslBindingKind,
-  CustomWgslMaterialAsset,
-  CustomWgslMaterialEntryPoints,
-  CustomWgslMaterialPipelineKeyInput,
-  CustomWgslSamplerBindingDeclaration,
-  CustomWgslShaderRef,
   CustomWgslShaderStage,
-  CustomWgslStorageBindingDeclaration,
-  CustomWgslTextureBindingDeclaration,
-  CustomWgslUniformBindingDeclaration,
-  CustomWgslUniformField,
-  CustomWgslUniformFieldType,
   WgslShaderAsset,
 } from "../materials/index.js";
 

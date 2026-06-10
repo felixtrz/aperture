@@ -40,7 +40,7 @@ import {
   type CustomWgslMaterialRenderResources,
 } from "./custom-wgsl-material.js";
 
-export interface CustomWgslAppFrameResources {
+interface CustomWgslAppFrameResources {
   readonly mesh: MeshGpuBufferResource;
   readonly viewUniform: ViewUniformGpuBufferResource;
   readonly worldTransforms: WorldTransformGpuBufferResource;

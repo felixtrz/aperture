@@ -8,8 +8,8 @@ export type IblResourceDescriptorSlotStatus = "ready" | "unsupported";
 
 export type IblResourceDescriptorDiagnosticCode =
   | "iblResourceDescriptor.missingDescriptor"
-  | "iblResourceDescriptor.diffuseUnsupported"
-  | "iblResourceDescriptor.specularUnsupported";
+  | "iblResourceDescriptor.diffuseSourceNotPrepared"
+  | "iblResourceDescriptor.specularSourceNotPrepared";
 
 export interface IblResourceDescriptorSlot {
   readonly status: IblResourceDescriptorSlotStatus;
@@ -181,12 +181,12 @@ function createSlot(input: {
   input.diagnostics.push({
     code:
       input.kind === "diffuse"
-        ? "iblResourceDescriptor.diffuseUnsupported"
-        : "iblResourceDescriptor.specularUnsupported",
+        ? "iblResourceDescriptor.diffuseSourceNotPrepared"
+        : "iblResourceDescriptor.specularSourceNotPrepared",
     severity: "warning",
     environmentMapResourceKey: input.environmentMapResourceKey,
     environmentIds: [...input.environmentIds],
-    message: `IBL ${input.kind} resource for '${input.environmentMapResourceKey}' is not prepared yet; reporting an unsupported placeholder without enabling shader sampling.`,
+    message: `IBL ${input.kind} resource for '${input.environmentMapResourceKey}' has no prepared source from renderer resource state; the slot is planned as a placeholder until a source is provided.`,
   });
 
   return {

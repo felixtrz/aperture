@@ -171,7 +171,7 @@ export function jointFrameDebugLines(
   return lines;
 }
 
-export function fixedJointFrameBasisDebugLines(
+function fixedJointFrameBasisDebugLines(
   transform: PhysicsTransform,
   anchor: PhysicsVec3,
   frame: PhysicsQuat,
@@ -196,7 +196,7 @@ export function fixedJointFrameBasisDebugLines(
   });
 }
 
-export function fixedJointFrameBasisColors(): readonly PhysicsDebugLine["color"][] {
+function fixedJointFrameBasisColors(): readonly PhysicsDebugLine["color"][] {
   return [
     [1, 0.25, 0.25, 1],
     [0.35, 1, 0.35, 1],
@@ -204,7 +204,7 @@ export function fixedJointFrameBasisColors(): readonly PhysicsDebugLine["color"]
   ];
 }
 
-export function jointAxis(descriptor: PhysicsJointDescriptor): PhysicsVec3 {
+function jointAxis(descriptor: PhysicsJointDescriptor): PhysicsVec3 {
   return normalize(
     rotateVec3ByQuat(
       descriptor.axis,

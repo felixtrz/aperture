@@ -54,7 +54,7 @@ export interface GltfMeshAssetConstructionIndexBufferJsonSummary extends Omit<
   readonly data: GltfMeshAssetConstructionArrayJsonSummary;
 }
 
-export interface GltfMeshAssetConstructionMorphTargetDataJsonSummary extends Omit<
+interface GltfMeshAssetConstructionMorphTargetDataJsonSummary extends Omit<
   MeshMorphTargetData,
   "positionDeltas" | "normalDeltas"
 > {

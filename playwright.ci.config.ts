@@ -7,6 +7,8 @@ import { defineConfig, devices } from "@playwright/test";
 // this runs headed (under xvfb in CI) against Google Chrome + SwiftShader Vulkan
 // — software rendering that needs no GPU. Run with:
 //   xvfb-run -a pnpm exec playwright test --config=playwright.ci.config.ts
+// CI shards the whole suite across a job matrix (see .github/workflows/ci.yml):
+//   xvfb-run -a pnpm exec playwright test --config=playwright.ci.config.ts --shard=1/8
 const swiftShaderArgs = [
   "--enable-unsafe-webgpu",
   "--use-vulkan=swiftshader",
@@ -18,17 +20,40 @@ const isCi = process.env.CI === "true";
 
 export default defineConfig({
   testDir: "./test/e2e",
-  // dof.spec.ts is a documented pre-existing SwiftShader timeout — exclude it.
-  testIgnore: ["**/dof.spec.ts"],
+  // The ONLY home for environment-capability exclusions (AI-71/AI-75): specs
+  // listed here cannot run on the SwiftShader software rasterizer. Every other
+  // spec runs in CI via the sharded matrix. Each entry needs a reason; remove
+  // entries when a real-GPU runner lands.
+  testIgnore: [
+    // Documented pre-existing SwiftShader timeout (DOF blur never converges
+    // inside any reasonable budget under software rendering).
+    "**/dof.spec.ts",
+    // 2-3 minutes per test under SwiftShader (documented in ci.yml since the
+    // 4-spec era); the headless logic of both routes is covered by vitest in
+    // the Workspace check job.
+    "**/clustered-lights.spec.ts",
+    "**/csm-directional-shadow.spec.ts",
+  ],
   outputDir: "./test-results/playwright-ci",
-  fullyParallel: false,
+  // fullyParallel makes each test an independent shard unit so --shard=k/8
+  // splits the suite evenly (with workers:1 execution inside a shard is still
+  // strictly serial; fullyParallel:false clumped 40% of tests into one shard
+  // and left others empty).
+  fullyParallel: true,
   forbidOnly: isCi,
   retries: isCi ? 1 : 0,
   workers: 1,
   // SwiftShader renders ~10s/load; specs that load several routes need headroom
-  // beyond Playwright's 30s default.
-  timeout: 150000,
-  reporter: [["list"], ["github"]],
+  // beyond Playwright's 30s default, and the heavier shadow/post suites need
+  // more again now that the full suite runs in CI.
+  timeout: 240000,
+  // The JSON report feeds scripts/check-e2e-skips.mjs (AI-75): every skipped
+  // test must match a documented environment-capability reason.
+  reporter: [
+    ["list"],
+    ["github"],
+    ["json", { outputFile: "test-results/playwright-ci-report.json" }],
+  ],
   use: {
     baseURL: "http://127.0.0.1:4173",
     trace: "retain-on-failure",

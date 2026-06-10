@@ -32,6 +32,8 @@ _High-leverage, low-coupling fixes with no prerequisites — frame-time, release
 
 ### AI-3 · Guarantee parented rigid bodies resolve a world pose and drop the parented rejection
 
+**Status: ✅ DONE (2026-06-09)** — see `docs/FRAMEWORK_GAP_ACTION_ITEMS.md` batch 9.
+
 **Priority** P3 · **Effort** S · **Depends on** none
 
 **Change.** The forward (parent-local -> world) and reverse (world -> parent-local) pose conversions already exist (ecs-sync.ts physicsTransformForEntity ~515-540 and localTransformFromPhysicsResult ~370-418), and stepPhysicsWorld already calls resolveWorldTransforms(world) before collecting commands (ecs-sync.ts:213). The only residual is the fallback: resolveWorldTransforms (simulation transform/resolution.ts) only processes entities that ALREADY have WorldTransform (query required:[LocalTransform,WorldTransform]), so a parented RigidBody lacking a WorldTransform still hits source:'local' and is flagged parented:true and rejected (ecs-sync.ts:466-467; backend.ts physicsBodyCommandHasUnsupportedParentedBody ~750-753 and the unsupported feature at ~547-557). Ensure parented RigidBody/Collider entities are guaranteed a WorldTransform before physics sync (register/add WorldTransform in collectPhysicsCommands or its setup so resolveWorldTransforms resolves them), then remove the parented:true branch in ecs-sync.ts and the physics.rigidBody.parentedBody.unsupported feature path in backend.ts.
@@ -48,6 +50,8 @@ _High-leverage, low-coupling fixes with no prerequisites — frame-time, release
 **Invariants.** Invariant 1/3 (ECS is source of truth; backend is a derived view): the world pose is derived from ECS WorldTransform, no hidden scene graph. Invariant 4 (determinism): conversion is pure matrix math, no wall-clock/RNG. Invariant 5 (loud): removing the rejection must not silently swallow genuinely non-invertible parent matrices — keep a structured diagnostic for the truly non-decomposable case rather than dropping the body.
 
 ### AI-11 · Skip the per-frame GPU drain when no readback is pending
+
+**Status: ✅ DONE (2026-06-09)** — see `docs/FRAMEWORK_GAP_ACTION_ITEMS.md` batch 9.
 
 **Priority** P1 · **Effort** M · **Depends on** none
 
@@ -86,7 +90,7 @@ _High-leverage, low-coupling fixes with no prerequisites — frame-time, release
 
 **Priority** P2 · **Effort** M · **Depends on** none
 
-**Change.** Make the silent clustered-shadow/cookie fallback loud. When SHADOW_REQUEST/COOKIE_REQUEST is set but the selected pipeline variant cannot sample, local-light-cluster-metadata.ts:117-118,167-168 sets the _\_SAMPLING_DEFERRED flag and standard-shader-light-sampling.ts:392-410 emits only the near-1.0 sentinel (0.99999994) — host-undetectable. The cluster summary already classifies this: shadow/cookie `status:'metadata-only'` with `fallbackReason:'clustered-local-shadow-sampling-not-implemented'`/`'clustered-local-cookie-sampling-not-implemented'` (local-light-cluster-metadata.ts:209-260). Surface it as a structured RenderDiagnostic: in the local-light-cluster report path that consumes the descriptor's `shadowCookieMetadata` summary (packages/webgpu/src/app/report.ts:410-452 createWebGpuAppLocalLightClusterReport, building from createLocalLightClusterDescriptor), emit `webGpuApp.clusteredLocalShadowSamplingDeferred` / `webGpuApp.clusteredLocalCookieSamplingDeferred` warning diagnostics (with the light count and fallbackReason) whenever shadow/cookie status is `metadata-only`, threading them into the WebGpuApp frame report.diagnostics array alongside the existing `webGpuApp._` codes. Keep the sentinel as the in-shader visual cue but stop it being the only signal.
+**Change.** Make the silent clustered-shadow/cookie fallback loud. When SHADOW*REQUEST/COOKIE_REQUEST is set but the selected pipeline variant cannot sample, local-light-cluster-metadata.ts:117-118,167-168 sets the *\_SAMPLING*DEFERRED flag and standard-shader-light-sampling.ts:392-410 emits only the near-1.0 sentinel (0.99999994) — host-undetectable. The cluster summary already classifies this: shadow/cookie `status:'metadata-only'` with `fallbackReason:'clustered-local-shadow-sampling-not-implemented'`/`'clustered-local-cookie-sampling-not-implemented'` (local-light-cluster-metadata.ts:209-260). Surface it as a structured RenderDiagnostic: in the local-light-cluster report path that consumes the descriptor's `shadowCookieMetadata` summary (packages/webgpu/src/app/report.ts:410-452 createWebGpuAppLocalLightClusterReport, building from createLocalLightClusterDescriptor), emit `webGpuApp.clusteredLocalShadowSamplingDeferred` / `webGpuApp.clusteredLocalCookieSamplingDeferred` warning diagnostics (with the light count and fallbackReason) whenever shadow/cookie status is `metadata-only`, threading them into the WebGpuApp frame report.diagnostics array alongside the existing `webGpuApp.*` codes. Keep the sentinel as the in-shader visual cue but stop it being the only signal.
 
 **Acceptance criteria:**
 
@@ -1463,7 +1467,7 @@ _Real-GPU CI matrix, golden images, coverage/security gates, API docs/site, fram
 
 **Acceptance criteria:**
 
-- A test drives the SDK-backed server over an in-memory/stdio transport and asserts tools/list returns the same tool name+inputSchema set as the current toolDefinitions() (browser*\*, ecs*_, input\__, camera*\*, render*\*, and the reference contract tools) — proving the contract surface is unchanged after the SDK swap.
+- A test drives the SDK-backed server over an in-memory/stdio transport and asserts tools/list returns the same tool name+inputSchema set as the current toolDefinitions() (browser*\*, ecs*\_, input\_\_, camera*\*, render*\*, and the reference contract tools) — proving the contract surface is unchanged after the SDK swap.
 - A tools/call test for a representative tool (e.g. ecs_find_entities) returns the same { content:[{type:'text'}], structuredContent } payload produced by callApertureTool, proving the bridge behavior is preserved.
 - An initialize request through the SDK reports the aperture serverInfo (name + APERTURE_CLI_VERSION) and tools capability, proving the server identity/capabilities are intact.
 - A malformed/unknown-method request returns a well-formed JSON-RPC error from the SDK rather than crashing the process, proven by a test; `pnpm run check` (including check:boundaries and the cli tests) stays green with the new dependency.

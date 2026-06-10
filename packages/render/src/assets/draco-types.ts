@@ -76,7 +76,7 @@ export interface DracoGltfPrimitiveAccessorsInput {
   readonly decoded: DracoDecodedMeshData;
 }
 
-export interface DracoModuleFactoryInput {
+interface DracoModuleFactoryInput {
   readonly wasmBinary: ArrayBuffer;
 }
 
@@ -149,7 +149,7 @@ export interface DracoMesh {
   readonly num_faces: () => number;
 }
 
-export interface DracoStatus {
+interface DracoStatus {
   readonly ok: () => boolean;
   readonly error_msg: () => string;
 }

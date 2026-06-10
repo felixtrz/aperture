@@ -86,6 +86,39 @@ describe("input state resource", () => {
     expect(jump?.kind === "button" ? jump.up() : true).toBe(false);
   });
 
+  it("reports the wheel delta for exactly the frame it was applied (per-frame reset, not accumulation)", () => {
+    const resource = createInputResource(
+      defineApertureConfig({
+        mode: "headless",
+        input: {
+          actions: {
+            jump: input.button([input.key("Space")]),
+          },
+        },
+      }),
+    );
+
+    advanceInputResource(resource, [
+      { kind: "wheel", deltaX: 4, deltaY: -12.5 },
+    ]);
+
+    expect(resource.wheel.deltaX.value).toBe(4);
+    expect(resource.wheel.deltaY.value).toBe(-12.5);
+    expect(createInputResourceSummary(resource).wheel).toEqual({
+      deltaX: 4,
+      deltaY: -12.5,
+    });
+
+    advanceInputResource(resource);
+
+    expect(resource.wheel.deltaX.value).toBe(0);
+    expect(resource.wheel.deltaY.value).toBe(0);
+    expect(createInputResourceSummary(resource).wheel).toEqual({
+      deltaX: 0,
+      deltaY: 0,
+    });
+  });
+
   it("composes keyboard and standard gamepad state into typed actions", () => {
     const resource = createInputResource(
       defineApertureConfig({

@@ -15,7 +15,7 @@ import {
 } from "@aperture-engine/webgpu/test-support";
 
 describe("diffuse IBL resource summary", () => {
-  it("summarizes live diffuse texture and sampler resources with deferred shader work", () => {
+  it("summarizes live diffuse texture and sampler resources without stale deferred diagnostics", () => {
     const texturesReport = textures();
     const textureResource = createDiffuseIblTextureResourceReport({
       device: deviceWithResources(),
@@ -61,26 +61,7 @@ describe("diffuse IBL resource summary", () => {
         ],
         deferredSpecularTextures: ["texture:studio:specular-prefilter:texture"],
       },
-      diagnostics: [
-        {
-          code: "diffuseIblResourceSummary.specularPrefilteringDeferred",
-          severity: "warning",
-          message:
-            "Diffuse IBL resources are available, but specular prefiltering remains deferred.",
-        },
-        {
-          code: "diffuseIblResourceSummary.bindGroupLayoutDeferred",
-          severity: "warning",
-          message:
-            "Diffuse IBL resources are available, but StandardMaterial bind-group layout changes remain deferred.",
-        },
-        {
-          code: "diffuseIblResourceSummary.shaderSamplingDeferred",
-          severity: "warning",
-          message:
-            "Diffuse IBL resources are available, but StandardMaterial shader sampling remains deferred.",
-        },
-      ],
+      diagnostics: [],
     });
     expect(JSON.parse(diffuseIblResourceSummaryReportToJson(report))).toEqual(
       json,

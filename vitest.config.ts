@@ -139,5 +139,21 @@ export default defineConfig({
       "packages/*/dist/**",
       "references/**",
     ],
+    // AI-77: coverage thresholds gate CI (the dedicated coverage job runs
+    // `pnpm run test:coverage`). Thresholds sit just below measured reality
+    // (2026-06-09: 85.45% statements / 73.91% branches / 90.74% functions /
+    // 85.36% lines) so regressions fail while routine churn does not.
+    // Ratchet them upward when coverage rises meaningfully; never lower them
+    // to make a PR pass.
+    coverage: {
+      provider: "v8",
+      include: ["packages/*/src/**"],
+      thresholds: {
+        statements: 85,
+        branches: 73.5,
+        functions: 90,
+        lines: 85,
+      },
+    },
   },
 });

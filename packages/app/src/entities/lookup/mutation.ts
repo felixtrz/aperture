@@ -1,8 +1,17 @@
 import {
   LocalTransform,
+  Name,
+  type AnyEcsComponent,
   type EcsWorld,
   type Entity,
 } from "@aperture-engine/simulation";
+import {
+  Camera,
+  InstanceTint,
+  Light,
+  RenderLayer,
+  Visibility,
+} from "@aperture-engine/render";
 import {
   Collider,
   ExternalForce,
@@ -265,7 +274,239 @@ const componentFieldMutations: Readonly<
       nonNegative: true,
     }),
   },
+  // Render-side authoring components (AF-3): the agent write path covers the
+  // fields an inspect→mutate→verify loop most needs. Material parameters do
+  // NOT go through this registry — they flow through the versioned
+  // materials.set patch path (systems/materials.ts).
+  [Name.id]: {
+    value: setComponentStringField(Name, "value"),
+  },
+  [Visibility.id]: {
+    visible: setComponentBooleanField(Visibility, "visible"),
+  },
+  [RenderLayer.id]: {
+    mask: setComponentIntegerField(RenderLayer, "mask"),
+  },
+  [InstanceTint.id]: {
+    color: setComponentColorField(InstanceTint, "color"),
+  },
+  [Light.id]: {
+    color: setComponentColorField(Light, "color"),
+    intensity: setComponentNumberField(Light, "intensity", {
+      nonNegative: true,
+    }),
+    range: setComponentNumberField(Light, "range", { positive: true }),
+    innerConeAngle: setComponentNumberField(Light, "innerConeAngle", {
+      nonNegative: true,
+    }),
+    outerConeAngle: setComponentNumberField(Light, "outerConeAngle", {
+      nonNegative: true,
+    }),
+    width: setComponentNumberField(Light, "width", { positive: true }),
+    height: setComponentNumberField(Light, "height", { positive: true }),
+    layerMask: setComponentIntegerField(Light, "layerMask"),
+  },
+  [Camera.id]: {
+    priority: setComponentIntegerField(Camera, "priority"),
+    layerMask: setComponentIntegerField(Camera, "layerMask"),
+    near: setComponentNumberField(Camera, "near", { positive: true }),
+    far: setComponentNumberField(Camera, "far", { positive: true }),
+    fovYRadians: setComponentNumberField(Camera, "fovYRadians", {
+      positive: true,
+    }),
+    aspect: setComponentNumberField(Camera, "aspect", { positive: true }),
+    orthographicHeight: setComponentNumberField(Camera, "orthographicHeight", {
+      positive: true,
+    }),
+    frustumCulling: setComponentBooleanField(Camera, "frustumCulling"),
+    renderTargetId: setComponentStringField(Camera, "renderTargetId"),
+    clearColor: setComponentColorField(Camera, "clearColor"),
+  },
 };
+
+/**
+ * The mutable component/field whitelist, derived from the registry itself so
+ * docs and tools can stay in lockstep (a test asserts docs/AI_TOOLING.md lists
+ * exactly these entries).
+ */
+export function listMutableComponentFields(): Readonly<
+  Record<string, readonly string[]>
+> {
+  return Object.fromEntries(
+    Object.entries(componentFieldMutations).map(([component, fields]) => [
+      component,
+      Object.keys(fields),
+    ]),
+  );
+}
+
+function missingComponentDiagnostic(
+  component: AnyEcsComponent,
+  field: string,
+  request: ApertureEntitySetComponentFieldRequest,
+  entity: Entity,
+): ApertureEntityLookupDiagnostic {
+  return {
+    code: "aperture.entityLookup.componentMissing",
+    severity: "error",
+    message: `Entity ${entity.index} does not have component '${component.id}'.`,
+    data: { entity: request.entity, component: component.id, field },
+    suggestedFix:
+      "Find an entity with the requested component, or add the component from an app system before mutating its field.",
+  };
+}
+
+function invalidComponentValueDiagnostic(
+  component: AnyEcsComponent,
+  field: string,
+  request: ApertureEntitySetComponentFieldRequest,
+  requirement: string,
+): ApertureEntityLookupDiagnostic {
+  return {
+    code: "aperture.entityLookup.invalidComponentFieldValue",
+    severity: "error",
+    message: `Field '${field}' on component '${component.id}' requires ${requirement}.`,
+    data: {
+      entity: request.entity,
+      component: component.id,
+      field,
+      valueType: typeof request.value,
+    },
+    suggestedFix: `Pass ${requirement} for this component field.`,
+  };
+}
+
+function setComponentBooleanField(
+  component: AnyEcsComponent,
+  field: string,
+): ComponentFieldMutation {
+  return (entity, request) => {
+    if (!entity.hasComponent(component)) {
+      return missingComponentDiagnostic(component, field, request, entity);
+    }
+
+    if (typeof request.value !== "boolean") {
+      return invalidComponentValueDiagnostic(
+        component,
+        field,
+        request,
+        "a boolean value",
+      );
+    }
+
+    entity.setValue(component, field as never, request.value as never);
+    return null;
+  };
+}
+
+function setComponentStringField(
+  component: AnyEcsComponent,
+  field: string,
+): ComponentFieldMutation {
+  return (entity, request) => {
+    if (!entity.hasComponent(component)) {
+      return missingComponentDiagnostic(component, field, request, entity);
+    }
+
+    if (typeof request.value !== "string") {
+      return invalidComponentValueDiagnostic(
+        component,
+        field,
+        request,
+        "a string value",
+      );
+    }
+
+    entity.setValue(component, field as never, request.value as never);
+    return null;
+  };
+}
+
+function setComponentNumberField(
+  component: AnyEcsComponent,
+  field: string,
+  options: { readonly positive?: boolean; readonly nonNegative?: boolean } = {},
+): ComponentFieldMutation {
+  return (entity, request) => {
+    if (!entity.hasComponent(component)) {
+      return missingComponentDiagnostic(component, field, request, entity);
+    }
+
+    const requirement =
+      options.positive === true
+        ? "a finite number greater than zero"
+        : options.nonNegative === true
+          ? "a finite number greater than or equal to zero"
+          : "a finite number";
+
+    if (
+      typeof request.value !== "number" ||
+      !Number.isFinite(request.value) ||
+      (options.positive === true && request.value <= 0) ||
+      (options.nonNegative === true && request.value < 0)
+    ) {
+      return invalidComponentValueDiagnostic(
+        component,
+        field,
+        request,
+        requirement,
+      );
+    }
+
+    entity.setValue(component, field as never, request.value as never);
+    return null;
+  };
+}
+
+function setComponentIntegerField(
+  component: AnyEcsComponent,
+  field: string,
+): ComponentFieldMutation {
+  return (entity, request) => {
+    if (!entity.hasComponent(component)) {
+      return missingComponentDiagnostic(component, field, request, entity);
+    }
+
+    if (typeof request.value !== "number" || !Number.isInteger(request.value)) {
+      return invalidComponentValueDiagnostic(
+        component,
+        field,
+        request,
+        "an integer value",
+      );
+    }
+
+    entity.setValue(component, field as never, request.value as never);
+    return null;
+  };
+}
+
+function setComponentColorField(
+  component: AnyEcsComponent,
+  field: string,
+): ComponentFieldMutation {
+  return (entity, request) => {
+    if (!entity.hasComponent(component)) {
+      return missingComponentDiagnostic(component, field, request, entity);
+    }
+
+    const color = tuple4FromValue(request.value);
+
+    if (color === null || color.some((channel) => !Number.isFinite(channel))) {
+      return invalidComponentValueDiagnostic(
+        component,
+        field,
+        request,
+        "an [r, g, b, a] tuple of finite numbers",
+      );
+    }
+
+    (
+      entity.getVectorView(component, field as never) as unknown as Float32Array
+    ).set(color);
+    return null;
+  };
+}
 
 function setDebugMetadataStringField(
   field: "tag" | "note",
@@ -1301,7 +1542,7 @@ function missingPhysicsGravityDiagnostic(
   request: ApertureEntitySetComponentFieldRequest,
 ): ApertureEntityLookupDiagnostic {
   return {
-    code: "aperture.entity.componentField.missingComponent",
+    code: "aperture.entityLookup.componentMissing",
     severity: "error",
     message: `Entity ${entity.index} does not have component '${PhysicsGravity.id}'.`,
     data: {

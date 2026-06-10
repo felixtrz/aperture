@@ -234,10 +234,11 @@ export interface ApertureRenderDefaults {
   readonly pixelRatio?: number;
   readonly maxPixelRatio?: number;
   /**
-   * Opt the generated app into the single-encoder FrameGraph forward route
-   * (default off). Previously reachable only via the `?graph=1` URL flag, which
-   * still works as a per-load override; this config option makes the choice
-   * reproducible without a query string.
+   * Route the generated app through the single-encoder FrameGraph (AI-25:
+   * default ON at parity). Set `false` to force the legacy multi-submit route.
+   * The `?graph=1` / `?graph=0` URL flag remains a per-load override on top of
+   * this option; the config option makes the choice reproducible without a
+   * query string.
    */
   readonly frameGraph?: boolean;
 }

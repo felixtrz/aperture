@@ -126,7 +126,7 @@ export function gamepadAxesFromPayload(
   return axes;
 }
 
-export function nestedRecord(
+function nestedRecord(
   record: Record<string, unknown>,
   key: string,
 ): Record<string, unknown> | null {

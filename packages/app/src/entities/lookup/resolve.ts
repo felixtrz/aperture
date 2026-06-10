@@ -14,7 +14,7 @@ export type ResolveActiveEntityResult =
       readonly diagnostic: ApertureEntityLookupDiagnostic;
     };
 
-export function isValidEntityRef(ref: EcsEntityRef): boolean {
+function isValidEntityRef(ref: EcsEntityRef): boolean {
   return (
     Number.isInteger(ref.index) &&
     Number.isInteger(ref.generation) &&

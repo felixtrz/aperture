@@ -129,7 +129,7 @@ export function decodeQuadInstanceFlags(flags: number): QuadInstanceFlagsInput {
   };
 }
 
-export function coordinateModeId(mode: QuadCoordinateMode): number {
+function coordinateModeId(mode: QuadCoordinateMode): number {
   switch (mode) {
     case "world":
       return 1;
@@ -138,7 +138,7 @@ export function coordinateModeId(mode: QuadCoordinateMode): number {
   }
 }
 
-export function coordinateModeValue(id: number): QuadCoordinateMode {
+function coordinateModeValue(id: number): QuadCoordinateMode {
   switch (id) {
     case 1:
       return "world";
@@ -149,7 +149,7 @@ export function coordinateModeValue(id: number): QuadCoordinateMode {
   }
 }
 
-export function billboardModeId(mode: QuadBillboardMode): number {
+function billboardModeId(mode: QuadBillboardMode): number {
   switch (mode) {
     case "none":
       return 0;
@@ -162,7 +162,7 @@ export function billboardModeId(mode: QuadBillboardMode): number {
   }
 }
 
-export function billboardModeValue(id: number): QuadBillboardMode {
+function billboardModeValue(id: number): QuadBillboardMode {
   switch (id) {
     case 0:
       return "none";
@@ -177,7 +177,7 @@ export function billboardModeValue(id: number): QuadBillboardMode {
   }
 }
 
-export function sizeModeId(mode: QuadSizeMode): number {
+function sizeModeId(mode: QuadSizeMode): number {
   switch (mode) {
     case "world-units":
       return 1;
@@ -186,7 +186,7 @@ export function sizeModeId(mode: QuadSizeMode): number {
   }
 }
 
-export function sizeModeValue(id: number): QuadSizeMode {
+function sizeModeValue(id: number): QuadSizeMode {
   switch (id) {
     case 1:
       return "world-units";

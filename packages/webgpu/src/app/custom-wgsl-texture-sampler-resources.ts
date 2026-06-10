@@ -23,7 +23,7 @@ export interface CustomWgslAppTextureSamplerBindingResources {
   )[];
 }
 
-export interface CustomWgslAppTextureSamplerBindingDiagnostic {
+interface CustomWgslAppTextureSamplerBindingDiagnostic {
   readonly code: "webGpuApp.customWgslBindingNotPrepared";
   readonly message: string;
   readonly binding: number;

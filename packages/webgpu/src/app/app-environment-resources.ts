@@ -767,9 +767,34 @@ function specularSourcesForAsset(input: {
   }
 
   if (
-    input.equirectProjection?.ready !== true ||
-    input.equirectProjection.resource === null
+    input.equirectProjection?.ready === true &&
+    input.equirectProjection.resource !== null
   ) {
+    return [
+      {
+        resourceKey: `${input.specularResourceKey}:texture`,
+        sourceResourceKey: input.specularResourceKey,
+        environmentMapResourceKey: input.environmentMapResourceKey,
+        label:
+          input.asset.equirectSource?.label ??
+          input.asset.label ??
+          input.environmentMapResourceKey,
+        faceSize: input.equirectProjection.faceSize,
+        format: input.equirectProjection.format,
+        sourceTexture: input.equirectProjection.resource,
+        ...(input.asset.equirectSource?.mipLevelCount === undefined
+          ? {}
+          : { mipLevelCount: input.asset.equirectSource.mipLevelCount }),
+      },
+    ];
+  }
+
+  // Direct-cubemap assets (a cube diffuseSource with no equirect projection
+  // and no explicit specular PMREM source) prefilter the authored cube so the
+  // specular slot never falls back to the placeholder upload.
+  const cube = input.asset.diffuseSource;
+
+  if (cube === undefined) {
     return undefined;
   }
 
@@ -778,16 +803,13 @@ function specularSourcesForAsset(input: {
       resourceKey: `${input.specularResourceKey}:texture`,
       sourceResourceKey: input.specularResourceKey,
       environmentMapResourceKey: input.environmentMapResourceKey,
-      label:
-        input.asset.equirectSource?.label ??
-        input.asset.label ??
-        input.environmentMapResourceKey,
-      faceSize: input.equirectProjection.faceSize,
-      format: input.equirectProjection.format,
-      sourceTexture: input.equirectProjection.resource,
-      ...(input.asset.equirectSource?.mipLevelCount === undefined
+      label: cube.label ?? input.asset.label ?? input.environmentMapResourceKey,
+      faceSize: cube.faceSize,
+      ...(cube.format === undefined ? {} : { format: cube.format }),
+      ...(cube.faces === undefined ? {} : { faces: cube.faces }),
+      ...(cube.sourceTexture === undefined
         ? {}
-        : { mipLevelCount: input.asset.equirectSource.mipLevelCount }),
+        : { sourceTexture: cube.sourceTexture }),
     },
   ];
 }

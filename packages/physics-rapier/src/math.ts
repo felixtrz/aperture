@@ -94,7 +94,7 @@ export function bodyLocalVectorToWorld(
   return rotateVec3(value, body.rotation());
 }
 
-export function rotateVec3(
+function rotateVec3(
   value: PhysicsVec3,
   rotation: RAPIER.Rotation,
 ): PhysicsVec3 {

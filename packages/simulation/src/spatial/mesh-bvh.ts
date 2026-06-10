@@ -2817,9 +2817,14 @@ function closestPointOnTriangle(
   const vc = d1 * d4 - d3 * d2;
 
   if (vc <= 0 && d1 >= 0 && d3 <= 0) {
-    const v = d1 / (d1 - d3);
+    // d1 - d3 === |ab|²; it is zero only for a degenerate (a === b) triangle,
+    // where dividing would produce NaN. Fall through so the AC/BC regions
+    // below resolve the query against the surviving edges.
+    const div = d1 - d3;
 
-    return addScaled(a, ab, v);
+    if (div > 0) {
+      return addScaled(a, ab, d1 / div);
+    }
   }
 
   const cp = subtract(point, c);
@@ -2833,20 +2838,41 @@ function closestPointOnTriangle(
   const vb = d5 * d2 - d1 * d6;
 
   if (vb <= 0 && d2 >= 0 && d6 <= 0) {
-    const w = d2 / (d2 - d6);
+    // d2 - d6 === |ac|²; zero only when a === c. Fall through on degeneracy.
+    const div = d2 - d6;
 
-    return addScaled(a, ac, w);
+    if (div > 0) {
+      return addScaled(a, ac, d2 / div);
+    }
   }
 
   const va = d3 * d6 - d5 * d4;
 
   if (va <= 0 && d4 - d3 >= 0 && d5 - d6 >= 0) {
-    const w = (d4 - d3) / (d4 - d3 + d5 - d6);
+    // (d4 - d3) + (d5 - d6) === |bc|²; zero only when b === c. Fall through
+    // on degeneracy so the interior fallback below resolves against AB.
+    const div = d4 - d3 + (d5 - d6);
 
-    return addScaled(b, subtract(c, b), w);
+    if (div > 0) {
+      return addScaled(b, subtract(c, b), (d4 - d3) / div);
+    }
   }
 
-  const denom = 1 / (va + vb + vc);
+  const sum = va + vb + vc;
+
+  if (sum <= 0) {
+    // va + vb + vc is proportional to the squared triangle area, so only
+    // zero-area triangles (collinear vertices, or a degenerate edge deferred
+    // by the region checks above) reach this point with sum === 0. Dividing
+    // would produce NaN; clamp to the nearest point on edge AB so callers
+    // always receive a finite point on the degenerate triangle.
+    const div = d1 - d3;
+    const v = div > 0 ? Math.min(1, Math.max(0, d1 / div)) : 0;
+
+    return addScaled(a, ab, v);
+  }
+
+  const denom = 1 / sum;
   const v = vb * denom;
   const w = vc * denom;
 

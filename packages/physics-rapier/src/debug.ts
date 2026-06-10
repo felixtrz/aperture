@@ -75,7 +75,7 @@ export function broadphaseAabbDebugLines(
   ).filter(isFiniteLine);
 }
 
-export function colliderAabb(
+function colliderAabb(
   _entry: RapierBodyEntry,
   colliderEntry: RapierColliderEntry,
 ): PhysicsAabb | null {
@@ -97,9 +97,7 @@ export function colliderAabb(
   };
 }
 
-export function colliderLocalHalfExtents(
-  shape: PhysicsShape,
-): PhysicsVec3 | null {
+function colliderLocalHalfExtents(shape: PhysicsShape): PhysicsVec3 | null {
   switch (shape.kind) {
     case "box":
       return cloneVec3(shape.halfExtents);
@@ -117,7 +115,7 @@ export function colliderLocalHalfExtents(
   }
 }
 
-export function rotatedAabbHalfExtents(
+function rotatedAabbHalfExtents(
   localHalfExtents: PhysicsVec3,
   rotation: PhysicsQuat,
 ): PhysicsVec3 {
@@ -280,7 +278,7 @@ export function jointFrameDebugLines(
   return lines.filter(isFiniteLine);
 }
 
-export function fixedJointFrameBasisDebugLines(
+function fixedJointFrameBasisDebugLines(
   body: RAPIER.RigidBody,
   anchor: PhysicsVec3,
   frame: PhysicsQuat,
@@ -305,7 +303,7 @@ export function fixedJointFrameBasisDebugLines(
   });
 }
 
-export function fixedJointFrameBasisColors(): readonly PhysicsDebugLine["color"][] {
+function fixedJointFrameBasisColors(): readonly PhysicsDebugLine["color"][] {
   return [
     [1, 0.25, 0.25, 1],
     [0.35, 1, 0.35, 1],
@@ -313,7 +311,7 @@ export function fixedJointFrameBasisColors(): readonly PhysicsDebugLine["color"]
   ];
 }
 
-export function isFiniteLine(line: PhysicsDebugLine): boolean {
+function isFiniteLine(line: PhysicsDebugLine): boolean {
   return (
     line.from.every(Number.isFinite) &&
     line.to.every(Number.isFinite) &&
@@ -321,7 +319,7 @@ export function isFiniteLine(line: PhysicsDebugLine): boolean {
   );
 }
 
-export function colorForDebugVertex(
+function colorForDebugVertex(
   colors: Float32Array,
   vertexIndex: number,
 ): PhysicsDebugLine["color"] {

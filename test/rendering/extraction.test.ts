@@ -96,6 +96,34 @@ describe("render extraction", () => {
     });
   });
 
+  it("scales world bounds spheres with the entity transform", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    createCameraEntity(world, { priority: 0, layerMask: 0b01 });
+
+    const entity = world.createEntity();
+    const root = createRootTransform({ scale: [3, 3, 3] });
+
+    entity.addComponent(WorldTransform, root.world);
+    entity.addComponent(Mesh, { meshId: "mesh:cube" });
+    entity.addComponent(Material, { materialId: "material:unlit" });
+    entity.addComponent(RenderLayer, { mask: 0b01 });
+    entity.addComponent(Visibility);
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 1 });
+    const bounds = snapshot.bounds[0];
+
+    expect(bounds).toBeDefined();
+    // Raycast candidate rejection uses worldSphere, so the radius must track
+    // the world scale (local unit cube sphere radius is hypot(.5,.5,.5)).
+    expect(bounds?.worldSphere.radius).toBeCloseTo(
+      Math.hypot(0.5, 0.5, 0.5) * 3,
+      5,
+    );
+    expect(bounds?.worldAabb.min[0]).toBeCloseTo(-1.5, 5);
+    expect(bounds?.worldAabb.max[0]).toBeCloseTo(1.5, 5);
+  });
+
   it("extracts mesh draw occlusion-query opt-in without renderer-owned state", () => {
     const world = createRuntimeWorld();
     const assets = createReadyAssets();

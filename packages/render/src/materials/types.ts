@@ -226,6 +226,7 @@ export type CustomWgslShaderRef =
       readonly virtualPath?: string;
     };
 
+/** @public */
 export type CustomWgslUniformFieldType =
   | "float32"
   | "Float32"
@@ -242,6 +243,7 @@ export type CustomWgslUniformFieldType =
   | "Color"
   | "mat4x4";
 
+/** @public */
 export interface CustomWgslUniformField {
   readonly type: CustomWgslUniformFieldType;
   readonly default?: JsonPrimitive | readonly number[];
@@ -261,12 +263,14 @@ export interface CustomWgslUniformBindingDeclaration extends BaseCustomWgslBindi
   readonly values?: Readonly<Record<string, JsonPrimitive | readonly number[]>>;
 }
 
+/** @public */
 export interface CustomWgslStorageBindingDeclaration extends BaseCustomWgslBindingDeclaration {
   readonly kind: "storage-buffer";
   readonly access?: "read" | "read-write";
   readonly resourceKey?: string;
 }
 
+/** @public */
 export interface CustomWgslTextureBindingDeclaration extends BaseCustomWgslBindingDeclaration {
   readonly kind: "texture";
   readonly texture: TextureHandle;
@@ -280,6 +284,7 @@ export interface CustomWgslTextureBindingDeclaration extends BaseCustomWgslBindi
   readonly multisampled?: boolean;
 }
 
+/** @public */
 export interface CustomWgslSamplerBindingDeclaration extends BaseCustomWgslBindingDeclaration {
   readonly kind: "sampler";
   readonly sampler: SamplerHandle;
@@ -311,6 +316,7 @@ export interface CustomWgslMaterialPipelineKeyInput {
   readonly specialization: Readonly<Record<string, string | number | boolean>>;
 }
 
+/** @public */
 export interface CustomWgslMaterialEntryPoints {
   readonly vertex: string;
   readonly fragment: string;

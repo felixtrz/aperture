@@ -30,9 +30,10 @@ describe("ECS entity version tracking", () => {
     expect(world.entityVersion(entity)).toBe(3);
   });
 
-  it("tracks vector writes and marks resolved transforms only when output changes", () => {
+  it("tracks vector writes and marks resolved transforms on the transform version (AI-67)", () => {
     const world = createWorld({ entityCapacity: 4 });
     registerTransformComponents(world);
+    registerMetadataComponents(world);
     const root = createRootTransform();
     const entity = world.createEntity();
 
@@ -41,18 +42,34 @@ describe("ECS entity version tracking", () => {
     entity.addComponent(WorldTransform, root.world);
 
     const versionAfterAuthoring = world.entityVersion(entity);
+    const transformAfterAuthoring = world.entityTransformVersion(entity);
 
     resolveWorldTransforms(world);
     expect(world.entityVersion(entity)).toBe(versionAfterAuthoring);
+    expect(world.entityTransformVersion(entity)).toBe(transformAfterAuthoring);
 
+    // Transform-component writes bump the transform version, leaving the
+    // structural entityVersion untouched so cached render packets survive.
     entity.getVectorView(LocalTransform, "translation").set([2, 3, 4], 0);
+    expect(world.entityVersion(entity)).toBe(versionAfterAuthoring);
+    expect(world.entityTransformVersion(entity)).toBe(
+      transformAfterAuthoring + 1,
+    );
+
+    resolveWorldTransforms(world);
+    expect(world.entityVersion(entity)).toBe(versionAfterAuthoring);
+    expect(world.entityTransformVersion(entity)).toBe(
+      transformAfterAuthoring + 2,
+    );
+
+    resolveWorldTransforms(world);
+    expect(world.entityTransformVersion(entity)).toBe(
+      transformAfterAuthoring + 2,
+    );
+
+    // Non-transform writes stay structural.
+    entity.setValue(Name, "value", "moved");
     expect(world.entityVersion(entity)).toBe(versionAfterAuthoring + 1);
-
-    resolveWorldTransforms(world);
-    expect(world.entityVersion(entity)).toBe(versionAfterAuthoring + 2);
-
-    resolveWorldTransforms(world);
-    expect(world.entityVersion(entity)).toBe(versionAfterAuthoring + 2);
   });
 
   it("starts a recycled entity generation at version zero", () => {

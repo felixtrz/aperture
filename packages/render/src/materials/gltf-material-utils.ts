@@ -107,7 +107,7 @@ export function isSupportedTextureTransform(
   );
 }
 
-export function isFiniteTextureTransform(
+function isFiniteTextureTransform(
   transform: MaterialTextureTransform,
 ): boolean {
   const offset = transform.offset ?? [0, 0];

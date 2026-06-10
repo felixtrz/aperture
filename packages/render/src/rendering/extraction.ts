@@ -53,18 +53,26 @@ export function extractRenderSnapshot(
   registerRenderAuthoringComponents(world);
 
   const diagnostics: RenderDiagnostic[] = [];
-  const transforms: number[] = [];
-  const bones: number[] = [];
-  const morphTargetWeights: number[] = [];
-  const morphTargetDeltas: number[] = [];
-  const morphInstanceDescriptors: number[] = [];
-  const instanceTints: number[] = [];
-  const instanceAttributes: number[] = [];
+  // Numeric accumulators come from the persistent cache scratch when one is
+  // provided (AI-30) — reset per frame, copied into fresh typed arrays below,
+  // so the returned snapshot never aliases the next frame's scratch. Object
+  // accumulators (bounds, packets, batches) are returned by reference and
+  // must stay per-frame allocations.
+  const scratch = options.cache?.scratch;
+  const transforms = resetScratch(scratch?.transforms);
+  const bones = resetScratch(scratch?.bones);
+  const morphTargetWeights = resetScratch(scratch?.morphTargetWeights);
+  const morphTargetDeltas = resetScratch(scratch?.morphTargetDeltas);
+  const morphInstanceDescriptors = resetScratch(
+    scratch?.morphInstanceDescriptors,
+  );
+  const instanceTints = resetScratch(scratch?.instanceTints);
+  const instanceAttributes = resetScratch(scratch?.instanceAttributes);
   const instanceAttributePackets: InstanceAttributePacket[] = [];
-  const quadInstanceFloats: number[] = [];
-  const quadInstanceWords: number[] = [];
+  const quadInstanceFloats = resetScratch(scratch?.quadInstanceFloats);
+  const quadInstanceWords = resetScratch(scratch?.quadInstanceWords);
   const quadBatches: QuadBatchPacket[] = [];
-  const viewMatrices: number[] = [];
+  const viewMatrices = resetScratch(scratch?.viewMatrices);
   const bounds: BoundsPacket[] = [];
   const viewCullContexts: ViewCullContext[] = [];
   const views = extractViews(
@@ -202,4 +210,13 @@ export function extractRenderSnapshot(
       ),
     },
   };
+}
+
+function resetScratch(scratch: number[] | undefined): number[] {
+  if (scratch === undefined) {
+    return [];
+  }
+
+  scratch.length = 0;
+  return scratch;
 }

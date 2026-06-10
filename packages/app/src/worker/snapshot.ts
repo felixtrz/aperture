@@ -13,6 +13,7 @@ import {
   type SnapshotPacketEncodingRegistry,
 } from "@aperture-engine/render";
 import {
+  commitSerializedSourceAssets,
   serializeSourceAssetRegistry,
   type SourceAssetSerializationState,
 } from "../asset-mirror.js";
@@ -21,6 +22,7 @@ import { createApertureEntityLookupSnapshot } from "../entity-lookup.js";
 import {
   advanceGeneratedInputFrame,
   createInputSummary,
+  drainGeneratedInputEventMessagesForFrame,
   type ApertureGeneratedInputEventMessage,
 } from "../input.js";
 import { createSignalSummary } from "../systems.js";
@@ -71,10 +73,16 @@ export function publishGeneratedWorkerSnapshot(options: {
   readonly time: number;
   readonly frame: number;
 }): GeneratedWorkerSnapshotPublishReport {
+  // Deterministic per-frame drain (AI-56 frame-stamping half): unstamped live
+  // events apply now; frame-stamped events apply at exactly their frame, so a
+  // recorded sequence replays identically.
   advanceGeneratedInputFrame({
     signals: options.app.context.input,
     config: options.config,
-    events: options.pendingInput.splice(0).map((message) => message.event),
+    events: drainGeneratedInputEventMessagesForFrame(
+      options.pendingInput,
+      options.frame,
+    ),
   });
   const step = options.app.step(options.delta, options.time);
   const snapshot = options.app.extract(options.frame);
@@ -128,6 +136,11 @@ export function publishGeneratedWorkerSnapshot(options: {
       renderSnapshotTransferList(snapshot),
     );
   }
+
+  // Commit only after postMessage returned: if posting threw (for example a
+  // structured-clone failure on an asset payload), the uncommitted versions
+  // stay eligible and the entries are re-sent with the next snapshot.
+  commitSerializedSourceAssets(options.sourceAssetState, sourceAssets);
 
   return {
     nextFrame: options.frame + 1,

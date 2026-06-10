@@ -106,7 +106,12 @@ export async function createWebGpuApp(
     sceneRenderFormat,
     msaa,
     postEffects,
-    useFrameGraph: options.useFrameGraph ?? false,
+    // AI-25: the single-encoder FrameGraph route is the DEFAULT at parity (the
+    // forward graph covers no-post / shadow / transmission-grab / user passes,
+    // and the post graph falls back to legacy per-route for anything it does
+    // not cover). Pass useFrameGraph: false to force the legacy multi-submit
+    // route.
+    useFrameGraph: options.useFrameGraph ?? true,
     userPassRegistry,
     addRenderPass(descriptor) {
       userPassRegistry.addRenderPass(descriptor);

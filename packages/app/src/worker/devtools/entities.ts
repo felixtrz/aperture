@@ -36,12 +36,12 @@ import {
 } from "../payload.js";
 import type { GeneratedDevtoolsToolResult } from "./types.js";
 
-export interface GeneratedEntityToolRequest {
+interface GeneratedEntityToolRequest {
   readonly channel: string;
   readonly payload: unknown;
 }
 
-export interface GeneratedEntityToolStatus {
+interface GeneratedEntityToolStatus {
   readonly finds: number;
   readonly gets: number;
   readonly mutations: number;

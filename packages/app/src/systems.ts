@@ -57,6 +57,10 @@ import {
 export { createSpatialQueries } from "./spatial/index.js";
 export type {
   RayInput,
+  SpatialClosestPointHit,
+  SpatialClosestPointOptions,
+  SpatialOverlapHit,
+  SpatialOverlapOptions,
   SpatialPickableState,
   SpatialQueries,
   SpatialRaycastHit,
@@ -110,6 +114,7 @@ export type {
   SystemAssetAccess,
   SystemAssetHandle,
   SystemAssetKind,
+  SystemGltfAnimationClip,
   SystemGltfAssetHandle,
   SystemGltfLoadedScene,
   SystemShaderAssetHandle,
@@ -135,6 +140,7 @@ export { createPrefabAccess } from "./systems/prefabs.js";
 export type {
   MaterialAccess,
   MaterialPatch,
+  MaterialSetDiagnostic,
   MaterialSetResult,
 } from "./systems/materials.js";
 export { createMaterialAccess } from "./systems/materials.js";
@@ -144,6 +150,13 @@ export type {
   PhysicsAccess,
   PhysicsAccessSummary,
   PhysicsBackendSummary,
+  PhysicsBreakJointOptions,
+  PhysicsEventAccess,
+  PhysicsEventFamilySummary,
+  PhysicsReadbackSummary,
+  PhysicsStepSummary,
+  PhysicsSyncSummary,
+  PhysicsWritebackSummary,
 } from "./systems/physics.js";
 export { createPhysicsAccess } from "./systems/physics.js";
 export type {
@@ -167,6 +180,8 @@ export {
   createInteractionAccess,
   PointerInteractionState,
   runInteractionFrame,
+  runUiScrollFrame,
+  UI_SCROLL_DISABLED_DIAGNOSTIC,
 } from "./interaction/index.js";
 export { material, mesh, physics, shader } from "./systems/spawn/index.js";
 export type {
@@ -186,6 +201,7 @@ export type {
   SpawnMeshOptions,
   SpawnMetadata,
   SpawnPhysicsOptions,
+  SpawnPrefabOptions,
   StandardMaterialDescriptor,
   StandardMaterialOptions,
   SystemTransformInput,
@@ -222,6 +238,7 @@ export type {
   ApertureGeneratedPointerInputEvent,
   ApertureGeneratedPointerName,
   ApertureGeneratedVirtualActionInputEvent,
+  ApertureGeneratedWheelInputEvent,
   ApertureInputDiagnostic,
   ApertureInputSummary,
   GamepadButtonState,

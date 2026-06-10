@@ -31,7 +31,11 @@ import {
   customWgslMaterialRenderPipelineCacheKey,
   type CreateCustomWgslMaterialRenderPipelineResourceResult,
 } from "../materials/custom-wgsl/custom-wgsl-material.js";
-import { renderReport, waitForSubmittedWork } from "./report.js";
+import {
+  renderReport,
+  frameBoundariesNeedGpuDrain,
+  waitForSubmittedWork,
+} from "./report.js";
 import type { WebGpuAppRenderPhaseTimer } from "./app-phase-timing.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 import type {
@@ -331,7 +335,9 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
       : { readbackSamples: options.readbackSamples }),
   });
 
-  await waitForSubmittedWork(options.app.initialization.device);
+  if (frameBoundariesNeedGpuDrain(boundaries)) {
+    await waitForSubmittedWork(options.app.initialization.device);
+  }
   const occlusionQueries = await readWebGpuAppOcclusionQueries({
     readbacks: boundaries.occlusionQueryReadbacks,
     diagnostics: boundaries.occlusionQueryDiagnostics,

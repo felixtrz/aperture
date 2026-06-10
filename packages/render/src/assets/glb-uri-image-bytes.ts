@@ -68,7 +68,7 @@ export function byteLengthOf(bytes: ArrayBuffer | ArrayBufferView): number {
   return bytes instanceof ArrayBuffer ? bytes.byteLength : bytes.byteLength;
 }
 
-export function bytesView(bytes: ArrayBuffer | ArrayBufferView): Uint8Array {
+function bytesView(bytes: ArrayBuffer | ArrayBufferView): Uint8Array {
   return bytes instanceof ArrayBuffer
     ? new Uint8Array(bytes)
     : new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength);

@@ -5,41 +5,39 @@ import {
   type ApertureGeneratedGamepadInputEvent,
   type ApertureGeneratedGamepadSnapshot,
   type ApertureGeneratedInputEvent,
-  type ApertureGeneratedInputResetEvent,
   type ApertureGeneratedKeyboardInputEvent,
   type ApertureGeneratedPointerInputEvent,
   type ApertureGeneratedPointerName,
   type ApertureGeneratedVirtualActionInputEvent,
+  type ApertureGeneratedWheelInputEvent,
   type ApertureInputSummary,
   type InputResourceBase,
 } from "./state.js";
 
-export const APERTURE_GENERATED_INPUT_EVENT =
-  "aperture.generated.inputEvent" as const;
+const APERTURE_GENERATED_INPUT_EVENT = "aperture.generated.inputEvent" as const;
 
-export type {
-  ApertureGeneratedGamepadInputEvent,
-  ApertureGeneratedGamepadSnapshot,
-  ApertureGeneratedInputEvent,
-  ApertureGeneratedInputResetEvent,
-  ApertureGeneratedKeyboardInputEvent,
-  ApertureGeneratedPointerInputEvent,
-  ApertureGeneratedPointerName,
-  ApertureGeneratedVirtualActionInputEvent,
-  ApertureInputSummary,
-};
+export type { ApertureGeneratedInputEvent, ApertureInputSummary };
 
 export interface ApertureGeneratedInputEventMessage {
   readonly type: typeof APERTURE_GENERATED_INPUT_EVENT;
   readonly event: ApertureGeneratedInputEvent;
+  /**
+   * Simulation frame the event applies to (AI-56 frame-stamping half).
+   * Live browser forwarding leaves it unset — the event applies to the next
+   * stepped frame, exactly as before. Replay/recording producers stamp it so
+   * the worker drains the identical event sequence at the identical frames.
+   */
+  readonly frame?: number;
 }
 
 export function createGeneratedInputEventMessage(
   event: ApertureGeneratedInputEvent,
+  frame?: number,
 ): ApertureGeneratedInputEventMessage {
   return {
     type: APERTURE_GENERATED_INPUT_EVENT,
     event,
+    ...(frame === undefined ? {} : { frame }),
   };
 }
 
@@ -50,7 +48,42 @@ export function isGeneratedInputEventMessage(
     return false;
   }
 
+  if (
+    value.frame !== undefined &&
+    (typeof value.frame !== "number" ||
+      !Number.isInteger(value.frame) ||
+      value.frame < 0)
+  ) {
+    return false;
+  }
+
   return isGeneratedInputEvent(value.event);
+}
+
+/**
+ * Deterministic per-frame drain: removes and returns (in arrival order) the
+ * queued events that apply to `frame` — unstamped live events plus events
+ * stamped with `frame <= current`. Future-stamped events stay queued so a
+ * replay applies each event at exactly its recorded frame.
+ */
+export function drainGeneratedInputEventMessagesForFrame(
+  pending: ApertureGeneratedInputEventMessage[],
+  frame: number,
+): ApertureGeneratedInputEvent[] {
+  const drained: ApertureGeneratedInputEvent[] = [];
+  let writeIndex = 0;
+
+  for (const message of pending) {
+    if (message.frame === undefined || message.frame <= frame) {
+      drained.push(message.event);
+    } else {
+      pending[writeIndex] = message;
+      writeIndex += 1;
+    }
+  }
+
+  pending.length = writeIndex;
+  return drained;
 }
 
 export function applyGeneratedInputEvent(input: {
@@ -89,6 +122,8 @@ function isGeneratedInputEvent(
       return isGeneratedPointerInputEvent(value);
     case "keyboard":
       return isGeneratedKeyboardInputEvent(value);
+    case "wheel":
+      return isGeneratedWheelInputEvent(value);
     case "gamepad":
       return isGeneratedGamepadInputEvent(value);
     case "virtualAction":
@@ -137,6 +172,16 @@ function isGeneratedKeyboardInputEvent(
     (typeof value.key === "string" || typeof value.code === "string") &&
     typeof value.pressed === "boolean"
   );
+}
+
+function isGeneratedWheelInputEvent(
+  value: unknown,
+): value is ApertureGeneratedWheelInputEvent {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return isFiniteNumber(value.deltaX) && isFiniteNumber(value.deltaY);
 }
 
 function isGeneratedGamepadInputEvent(

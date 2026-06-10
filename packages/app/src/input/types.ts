@@ -50,6 +50,17 @@ export interface ApertureGeneratedGamepadInputEvent {
   readonly replace?: boolean;
 }
 
+export interface ApertureGeneratedWheelInputEvent {
+  readonly kind: "wheel";
+  /** Horizontal wheel travel for this sample, in canvas pixels. */
+  readonly deltaX: number;
+  /**
+   * Vertical wheel travel for this sample, in canvas pixels. Positive values
+   * scroll content down (the DOM `WheelEvent.deltaY` convention).
+   */
+  readonly deltaY: number;
+}
+
 export interface ApertureGeneratedVirtualActionInputEvent {
   readonly kind: "virtualAction";
   readonly action: string;
@@ -65,7 +76,7 @@ export interface ApertureGeneratedInputResetEvent {
   readonly reason?: string;
 }
 
-export interface ApertureGeneratedInputBatchEvent {
+interface ApertureGeneratedInputBatchEvent {
   readonly kind: "batch";
   readonly events: readonly ApertureGeneratedInputEvent[];
 }
@@ -73,6 +84,7 @@ export interface ApertureGeneratedInputBatchEvent {
 export type ApertureGeneratedInputEvent =
   | ApertureGeneratedPointerInputEvent
   | ApertureGeneratedKeyboardInputEvent
+  | ApertureGeneratedWheelInputEvent
   | ApertureGeneratedGamepadInputEvent
   | ApertureGeneratedVirtualActionInputEvent
   | ApertureGeneratedInputResetEvent
@@ -196,6 +208,16 @@ export interface InputResourceBase {
       readonly pressed: Signal<boolean>;
     };
   };
+  /**
+   * Per-frame wheel travel in canvas pixels, accumulated from the wheel
+   * events applied this frame and reset to zero by the next advanceFrame()
+   * (reset-frame state, like keyboard edges). Consumers such as the UiScroll
+   * mapping system or an orbit-camera dolly read it inside the same frame.
+   */
+  readonly wheel: {
+    readonly deltaX: Signal<number>;
+    readonly deltaY: Signal<number>;
+  };
   readonly keyboard: StatefulKeyboardState;
   readonly gamepads: StatefulGamepadsState;
   readonly gamepad: Record<string, Signal<number>>;
@@ -233,6 +255,10 @@ export interface ApertureInputSummary {
       readonly position: readonly [number, number];
       readonly pressed: boolean;
     };
+  };
+  readonly wheel: {
+    readonly deltaX: number;
+    readonly deltaY: number;
   };
   readonly keyboard: StatefulKeyboardSummary;
   readonly gamepads: StatefulGamepadsSummary;

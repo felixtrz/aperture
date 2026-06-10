@@ -1,4 +1,7 @@
-import type { EcsWorld } from "@aperture-engine/simulation";
+import {
+  resolveWorldTransforms,
+  type EcsWorld,
+} from "@aperture-engine/simulation";
 import {
   type PhysicsBackend,
   type PhysicsCharacterMove,
@@ -22,6 +25,7 @@ import {
   applyPhysicsResultsToWorld,
   collectPhysicsCommands,
   createPhysicsWorldSyncState,
+  ensureParentedPhysicsBodyWorldTransforms,
   type PhysicsWorldSyncState,
   type PhysicsWorldWritebackReport,
 } from "./ecs-sync.js";
@@ -189,6 +193,10 @@ export function createPhysicsWorkerTransferProxy(
     execution: "physics-worker-transferable",
     async stepWorld(options) {
       const state = options.state ?? defaultState;
+      // Match stepPhysicsWorld's contract: parented bodies are guaranteed a
+      // resolved WorldTransform before commands are collected (AI-3).
+      ensureParentedPhysicsBodyWorldTransforms(options.world);
+      resolveWorldTransforms(options.world);
       const commands = collectPhysicsCommands(options.world, state);
       const request = createPhysicsWorkerStepMessage({
         fixedDelta: options.fixedDelta,

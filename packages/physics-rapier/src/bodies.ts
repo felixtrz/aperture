@@ -97,7 +97,7 @@ export function destroyBody(
   bodies.delete(entity);
 }
 
-export function bodyDesc(
+function bodyDesc(
   command: Extract<PhysicsCommand, { readonly kind: "upsertBody" }>,
   bodyType: PhysicsRigidBodyType,
 ): RAPIER.RigidBodyDesc {
@@ -146,7 +146,7 @@ export function bodyDesc(
   return desc;
 }
 
-export function configureBody(
+function configureBody(
   body: RAPIER.RigidBody,
   command: Extract<PhysicsCommand, { readonly kind: "upsertBody" }>,
 ): void {
@@ -180,7 +180,7 @@ export function configureBody(
   }
 }
 
-export function updateBodyLocks(
+function updateBodyLocks(
   entry: RapierBodyEntry,
   command: Extract<PhysicsCommand, { readonly kind: "upsertBody" }>,
 ): void {
@@ -188,9 +188,7 @@ export function updateBodyLocks(
   entry.lockRotations = locksOrDefault(command.lockRotations);
 }
 
-export function bodyDescForType(
-  bodyType: PhysicsRigidBodyType,
-): RAPIER.RigidBodyDesc {
+function bodyDescForType(bodyType: PhysicsRigidBodyType): RAPIER.RigidBodyDesc {
   switch (bodyType) {
     case PhysicsRigidBodyType.Static:
       return RAPIER.RigidBodyDesc.fixed();
@@ -203,7 +201,7 @@ export function bodyDescForType(
   }
 }
 
-export function updateBody(
+function updateBody(
   body: RAPIER.RigidBody,
   command: Extract<PhysicsCommand, { readonly kind: "upsertBody" }>,
 ): void {
@@ -240,7 +238,7 @@ export function setVelocity(
   entry.body.setAngvel(vec(maskedVelocity.angular), wakeUp);
 }
 
-export function applyExternalEffects(
+function applyExternalEffects(
   entry: RapierBodyEntry | undefined,
   command: Extract<PhysicsCommand, { readonly kind: "upsertBody" }>,
 ): void {
@@ -277,7 +275,7 @@ export function applyExternalEffects(
   }
 }
 
-export function maskedVelocityForCommand(
+function maskedVelocityForCommand(
   velocity: PhysicsVelocityValue,
   command: Extract<PhysicsCommand, { readonly kind: "upsertBody" }>,
 ): PhysicsVelocityValue {
@@ -287,13 +285,13 @@ export function maskedVelocityForCommand(
   };
 }
 
-export function locksOrDefault(
+function locksOrDefault(
   locks: readonly [boolean, boolean, boolean] | undefined,
 ): readonly [boolean, boolean, boolean] {
   return locks ?? [false, false, false];
 }
 
-export function maskLockedAxes(
+function maskLockedAxes(
   value: PhysicsVec3,
   locks: readonly [boolean, boolean, boolean] | undefined,
 ): PhysicsVec3 {
@@ -308,7 +306,7 @@ export function maskLockedAxes(
   ];
 }
 
-export function velocityMagnitude(velocity: PhysicsVelocityValue): number {
+function velocityMagnitude(velocity: PhysicsVelocityValue): number {
   return Math.hypot(
     velocity.linear[0],
     velocity.linear[1],

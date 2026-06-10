@@ -131,16 +131,13 @@ describe("specular IBL texture resource", () => {
         prefiltering: false,
         shaderSampling: false,
       },
-      diagnostics: expect.arrayContaining([
+      diagnostics: [
         expect.objectContaining({
-          code: "iblTextureResource.specularProofUploadPlaceholder",
+          code: "iblTextureResource.specularSourceNotPrepared",
           severity: "warning",
+          resourceKey: "texture:studio:specular-prefilter:texture",
         }),
-        expect.objectContaining({
-          code: "iblTextureResource.specularPrefilteringDeferred",
-          severity: "warning",
-        }),
-      ]),
+      ],
     });
     expect(uploads).toEqual([{ byteLength: 12288, size: [16, 16, 6] }]);
     expect(JSON.stringify(json)).not.toMatch(/GPUTexture|GPUTextureView|"raw"/);
@@ -162,10 +159,9 @@ describe("specular IBL texture resource", () => {
       },
       diagnostics: [
         {
-          code: "iblTextureResource.specularPrefilteringDeferred",
+          code: "iblTextureResource.specularSourceNotPrepared",
           severity: "warning",
-          message:
-            "Specular IBL texture resources are allocated, but prefilter pass execution remains deferred.",
+          resourceKey: "texture:studio:specular-prefilter:texture",
         },
       ],
     });

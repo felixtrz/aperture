@@ -551,9 +551,9 @@ export function collectUnsupportedPhysicsBodyFeatures(
       backend,
       entity,
       message:
-        "RigidBody is authored on a parented entity, but the current physics sync path cannot yet convert parent-local ECS transforms to backend world poses and back.",
+        "RigidBody is authored on a parented entity whose world pose was not resolvable this step (no resolved WorldTransform, or a degenerate/non-decomposable world matrix), so the body cannot be synced to a backend world pose.",
       suggestedFix:
-        "Keep RigidBody entities at the transform root for now, or use child Collider entities under a root body until parent-local physics sync/writeback is implemented.",
+        "Step through stepPhysicsWorld (which guarantees and resolves WorldTransform for parented bodies), and ensure the parent chain has finite, non-zero-scale transforms so the world pose decomposes.",
     });
   }
 

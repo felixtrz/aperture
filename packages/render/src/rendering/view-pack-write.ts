@@ -42,6 +42,7 @@ export function writePackedSnapshotViewUniforms(
       message: "Render snapshot has no views to pack.",
     });
     result.data = scratch.data;
+    finishViewUniformDirtyTracking(scratch, result);
     return scratch.result;
   }
 
@@ -131,5 +132,74 @@ export function writePackedSnapshotViewUniforms(
   }
 
   result.data = scratch.data;
+  finishViewUniformDirtyTracking(scratch, result);
   return scratch.result;
+}
+
+/**
+ * AI-65: diff the freshly packed view-uniform floats against the previous
+ * frame's copy held on the scratch, publishing the same contentVersion /
+ * dirtyRange contract as the transform packer (null = byte-identical, full
+ * when there is no comparable history), then refresh the previous copy.
+ */
+function finishViewUniformDirtyTracking(
+  scratch: PackedSnapshotViewUniformsScratch,
+  result: MutablePackedSnapshotViewUniforms,
+): void {
+  const floatCount = result.floatCount;
+  const comparable =
+    scratch.lastFloatCount === floatCount &&
+    scratch.previous.length >= floatCount;
+  let dirtyRange: MutablePackedSnapshotViewUniforms["dirtyRange"];
+
+  if (!comparable) {
+    dirtyRange =
+      floatCount === 0 && scratch.lastFloatCount === 0
+        ? null
+        : floatCount === 0
+          ? null
+          : { floatOffset: 0, floatCount, full: true };
+  } else {
+    let first = -1;
+
+    for (let index = 0; index < floatCount; index += 1) {
+      if (scratch.previous[index] !== scratch.data[index]) {
+        first = index;
+        break;
+      }
+    }
+
+    if (first === -1) {
+      dirtyRange = null;
+    } else {
+      let last = first;
+
+      for (let index = floatCount - 1; index > first; index -= 1) {
+        if (scratch.previous[index] !== scratch.data[index]) {
+          last = index;
+          break;
+        }
+      }
+
+      dirtyRange = {
+        floatOffset: first,
+        floatCount: last - first + 1,
+        full: false,
+      };
+    }
+  }
+
+  if (scratch.previous.length < floatCount) {
+    scratch.previous = new Float32Array(scratch.data.length);
+  }
+
+  scratch.previous.set(scratch.data.subarray(0, floatCount));
+  scratch.lastFloatCount = floatCount;
+
+  if (dirtyRange !== null) {
+    scratch.contentVersion += 1;
+  }
+
+  result.dirtyRange = dirtyRange;
+  result.contentVersion = scratch.contentVersion;
 }

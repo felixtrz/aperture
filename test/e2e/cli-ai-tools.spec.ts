@@ -1089,6 +1089,13 @@ test("aperture create produces an installable app that works with CLI AI tools",
       ].join("\n"),
       "utf8",
     );
+    // The created app depends on @aperture-engine/* by semver; they are
+    // unpublished, so the temp workspace must link them from packages/*.
+    await writeFile(
+      path.join(root, ".npmrc"),
+      "link-workspace-packages=true\n",
+      "utf8",
+    );
     await writeFile(
       path.join(root, "package.json"),
       `${JSON.stringify(
@@ -1632,6 +1639,11 @@ test("aperture create templates typecheck, build, and pass browser smoke checks"
       });
     }
 
+    await writeFile(
+      path.join(root, ".npmrc"),
+      "link-workspace-packages=true\n",
+      "utf8",
+    );
     await writeFile(
       path.join(root, "pnpm-workspace.yaml"),
       [

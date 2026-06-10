@@ -34,6 +34,7 @@ import {
   type WebGpuApp,
   type WebGpuAppDepthAttachmentReport,
   type WebGpuAppPostEffectSubmissionReport,
+  type WebGpuAppPostGraphReport,
   type WebGpuAppRenderBundleReport,
   type WebGpuAppRenderTargetSubmissionReport,
   type WebGpuAppResourceReuseReport,
@@ -77,6 +78,11 @@ import {
 import { countDrawCommands, writeCommandsForView } from "./view-commands.js";
 import { writeSkyboxCommandsForView } from "./skybox.js";
 import { assembleWebGpuAppPostProcessedSwapchainTarget } from "./post-processing.js";
+import {
+  buildUserPassNode,
+  createUserPassSkippedOnLegacyRouteDiagnostic,
+  type WebGpuAppPassResolvers,
+} from "./user-pass.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 
 export interface WebGpuAppFrameBoundaryAssemblyResult {
@@ -185,6 +191,24 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   const forwardGraphEligible =
     options.app.useFrameGraph === true && activePostEffects.length === 0;
   const forwardGraph = forwardGraphEligible ? createFrameGraph() : null;
+  // AI-12: the public user-pass API (app.addRenderPass / app.addComputePass)
+  // runs on the FrameGraph routes only — the forward (no-post) graph below and
+  // the post-effect graph in post-processing.ts. The legacy multi-submit
+  // forward route cannot fold user nodes into its per-target encoders, so
+  // registered passes there surface a structured diagnostic instead of
+  // silently no-oping (the post legacy fallback reports its own).
+  const enabledUserPassNames = (options.app.userPassRegistry?.list() ?? [])
+    .filter((descriptor) => descriptor.enabled !== false)
+    .map((descriptor) => descriptor.name);
+  if (
+    forwardGraph === null &&
+    activePostEffects.length === 0 &&
+    enabledUserPassNames.length > 0
+  ) {
+    diagnostics.push(
+      createUserPassSkippedOnLegacyRouteDiagnostic(enabledUserPassNames),
+    );
+  }
   const forwardGraphPayloads = new Map<string, FrameGraphRenderNodeBoundary>();
   const forwardGraphEntries: ForwardGraphTargetEntry[] = [];
   // M3-T4: transmission-grab passes collected as graph nodes (they render the
@@ -293,21 +317,27 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
             target,
             queryCount: occlusionRenderIds.length,
           });
-    const commandsForBoundary =
-      occlusionRenderIds.length > 0 && occlusionQueries?.resources === null
-        ? commandsWithoutOcclusionQueryCommands(
-            commands,
-            options.cache.frameScratch.occlusionFallbackCommands,
-          )
-        : commands;
+    const occlusionFallback =
+      occlusionRenderIds.length > 0 && occlusionQueries?.resources === null;
+    const commandsForBoundary = occlusionFallback
+      ? commandsWithoutOcclusionQueryCommands(
+          commands,
+          options.cache.frameScratch.occlusionFallbackCommands,
+        )
+      : commands;
 
-    if (occlusionRenderIds.length > 0 && occlusionQueries?.resources === null) {
+    if (occlusionFallback) {
       recordWebGpuAppOcclusionCullingFallback(occlusionCulling, "unsupported");
     }
     occlusionQueryCount += occlusionRenderIds.length;
     occlusionQueryDiagnostics.push(...(occlusionQueries?.diagnostics ?? []));
     diagnostics.push(...(occlusionQueries?.diagnostics ?? []));
-    allTargetsValid &&= occlusionQueries === null || occlusionQueries.valid;
+    // The unsupported-query-set fallback degrades deliberately: occlusion
+    // commands are stripped, the culling report records the fallback, and a
+    // warning diagnostic surfaces it — the frame itself still renders and
+    // must stay valid.
+    allTargetsValid &&=
+      occlusionQueries === null || occlusionQueries.valid || occlusionFallback;
     diagnostics.push(...skybox.diagnostics);
     allTargetsValid &&= skybox.valid;
     const depthAttachment = createWebGpuAppDepthAttachmentForTarget(
@@ -744,6 +774,25 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     );
   }
 
+  // AI-12: append the registered user passes (app.addRenderPass /
+  // app.addComputePass) as forward-graph nodes drawn over the presented
+  // swapchain target — the forward-route mirror of the post path's user-pass
+  // wiring (post-processing.ts). A frame with no registered passes is untouched.
+  const forwardUserPasses =
+    forwardGraph === null
+      ? null
+      : registerForwardGraphUserPasses({
+          app: options.app,
+          graph: forwardGraph,
+          payloads: forwardGraphPayloads,
+          entries: forwardGraphEntries,
+          diagnostics,
+        });
+  if (forwardUserPasses !== null) {
+    plannedCommands += forwardUserPasses.plannedCommands;
+    drawCalls += forwardUserPasses.drawCalls;
+  }
+
   // M3-T4: execute the collected forward targets in ONE encoder, then rebuild
   // the legacy-compatible per-target boundaries + reports from the node results.
   if (
@@ -758,10 +807,11 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     const queue = (
       options.app.initialization.device as { readonly queue: unknown }
     ).queue as Parameters<typeof assembleFrameBoundary>[0]["queue"];
+    const compiled = compileFrameGraph(forwardGraph);
     const exec = executeFrameGraph({
       device,
       queue,
-      compiled: compileFrameGraph(forwardGraph),
+      compiled,
       resources: {
         resolveAttachment: () => null,
         resolveRenderBoundary: (node) =>
@@ -769,6 +819,9 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       } satisfies FrameGraphResources,
       label: options.label,
     });
+    // Loud-over-silent: executor-level failures (compile not ok, unresolved
+    // writes, missing compute support) surface as frame diagnostics.
+    diagnostics.push(...exec.diagnostics);
     const frameOk = exec.finish?.valid === true && exec.submit?.valid === true;
     const encodeByName = new Map<string, FrameBoundaryEncodeReport>();
     for (const node of exec.nodes) {
@@ -776,6 +829,34 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         encodeByName.set(node.name, node.encode);
       }
     }
+
+    // AI-12: additive graph sub-report (compiled order + per-user-pass
+    // execution), mirroring the post route's renderTarget.graph shape. Present
+    // only when user passes are registered so a no-user-pass frame's report is
+    // byte-identical to before.
+    const userPassGraphReport: WebGpuAppPostGraphReport | null =
+      forwardUserPasses === null
+        ? null
+        : {
+            order: compiled.orderedNodes.map((node) => node.name),
+            userPasses: forwardUserPasses.nodes.map((userNode) => {
+              const node = exec.nodes.find(
+                (entry) => entry.name === userNode.nodeName,
+              );
+              const executedCommands =
+                node === undefined
+                  ? 0
+                  : node.kind === "compute"
+                    ? (node.execution?.executedCommands ?? 0)
+                    : (node.encode.execution?.executedCommands ?? 0);
+              return {
+                name: userNode.nodeName,
+                kind: userNode.kind,
+                ran: (node?.valid ?? false) && executedCommands > 0,
+                executedCommands,
+              };
+            }),
+          };
 
     // M3-T5: shadow caster nodes are ordered first (the forward nodes read their
     // depth handles). They are depth-only (no color boundary), so they fold their
@@ -882,6 +963,12 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         ...(entry.msaaSampleCount === null
           ? {}
           : { msaaSampleCount: entry.msaaSampleCount }),
+        // AI-12: the presented target that hosts the user passes carries the
+        // graph order/user-pass report (same field the post route reports on).
+        ...(userPassGraphReport !== null &&
+        entry.nodeName === forwardUserPasses?.hostNodeName
+          ? { graph: userPassGraphReport }
+          : {}),
       });
       diagnostics.push(
         ...boundary.texture.diagnostics,
@@ -895,6 +982,47 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         ...(boundary.rectangle?.diagnostics ?? []),
         ...(boundary.finish?.diagnostics ?? []),
         ...(boundary.submit?.diagnostics ?? []),
+      );
+    }
+
+    // AI-12: user render passes synthesize legacy-compatible boundaries (their
+    // encode validity + diagnostics fold into the frame exactly like target
+    // nodes); user compute passes have no render boundary, so only their node
+    // validity folds in. ran/executedCommands live in the graph report above.
+    for (const userNode of forwardUserPasses?.nodes ?? []) {
+      if (userNode.kind === "compute") {
+        const computeNode = exec.nodes.find(
+          (node) => node.name === userNode.nodeName,
+        );
+        allTargetsValid &&= (computeNode?.valid ?? false) && frameOk;
+        continue;
+      }
+      const encode = encodeByName.get(userNode.nodeName);
+      const boundary: FrameBoundaryAssemblyReport = {
+        valid: (encode?.valid ?? false) && frameOk,
+        texture: userNode.texture,
+        attachments: userNode.attachments,
+        encoder: exec.encoder,
+        begin: encode?.begin ?? null,
+        rectangle: encode?.rectangle ?? null,
+        execution: encode?.execution ?? null,
+        renderBundle: encode?.renderBundle ?? null,
+        end: encode?.end ?? null,
+        finish: exec.finish,
+        submit: exec.submit,
+        readback: encode?.readback ?? null,
+        gpuTiming: encode?.gpuTiming ?? null,
+        occlusionQueries: encode?.occlusionQueries ?? null,
+      };
+      boundaries.push(boundary);
+      allTargetsValid &&= boundary.valid;
+      diagnostics.push(
+        ...boundary.texture.diagnostics,
+        ...(boundary.attachments?.diagnostics ?? []),
+        ...(boundary.begin?.diagnostics ?? []),
+        ...(boundary.execution?.diagnostics ?? []),
+        ...(boundary.end?.diagnostics ?? []),
+        ...(boundary.rectangle?.diagnostics ?? []),
       );
     }
   }
@@ -974,6 +1102,14 @@ interface ForwardGraphTargetEntry {
   > | null;
   readonly occlusionRenderIds: readonly number[];
   readonly gpuTimingPassName: string;
+  // AI-12: what a user pass needs to draw over this target — its graph handle,
+  // its color target (undefined ⇒ swapchain current-texture), and the depth
+  // view its boundary attached (user overlays LOAD it for depth testing).
+  readonly handle: string;
+  readonly colorTarget: Parameters<
+    typeof assembleFrameBoundary
+  >[0]["colorTarget"];
+  readonly depthView: unknown;
 }
 
 // M3-T4: convert one per-target assembleFrameBoundary options object into a
@@ -1076,5 +1212,204 @@ function registerForwardGraphTarget(args: {
     occlusionQueries: args.occlusionQueries,
     occlusionRenderIds: args.occlusionRenderIds,
     gpuTimingPassName: args.gpuTimingPassName,
+    handle,
+    colorTarget: opts.colorTarget,
+    depthView: opts.depthTarget?.view ?? null,
   });
+}
+
+type ForwardGraphUserPassNodeEntry =
+  | {
+      readonly kind: "render";
+      readonly nodeName: string;
+      readonly texture: ReturnType<
+        typeof buildFrameBoundaryTargetPlan
+      >["texture"];
+      readonly attachments: ReturnType<
+        typeof buildFrameBoundaryTargetPlan
+      >["attachments"];
+    }
+  | {
+      readonly kind: "compute";
+      readonly nodeName: string;
+    };
+
+interface ForwardGraphUserPassRegistration {
+  readonly nodes: readonly ForwardGraphUserPassNodeEntry[];
+  /** The forward target node whose renderTarget report carries the graph. */
+  readonly hostNodeName: string;
+  readonly plannedCommands: number;
+  readonly drawCalls: number;
+}
+
+// AI-12: user passes (app.addRenderPass / app.addComputePass) on the FORWARD
+// (no-post) graph route, mirroring the post route's wiring
+// (post-processing.ts user-pass block). The presented swapchain target is the
+// forward route's "scene-color": user RENDER passes draw over it with LOAD
+// (depth-tested against the target's depth attachment, also LOADed) and user
+// COMPUTE passes run on the same shared encoder, declaring transient buffers
+// for their writes. Resolvers map the public handle ids ("scene-color" /
+// "depth") to this route's GPU resources; user pipelines/buffers/bind groups
+// are owned by the encode closure.
+function registerForwardGraphUserPasses(args: {
+  readonly app: WebGpuApp;
+  readonly graph: ReturnType<typeof createFrameGraph>;
+  readonly payloads: Map<string, FrameGraphRenderNodeBoundary>;
+  readonly entries: readonly ForwardGraphTargetEntry[];
+  readonly diagnostics: unknown[];
+}): ForwardGraphUserPassRegistration | null {
+  // Optional chaining: the real app always has a registry, but lightweight
+  // callers/tests may omit it — treat a missing registry as no user passes.
+  const userPasses = (args.app.userPassRegistry?.list() ?? []).filter(
+    (descriptor) => descriptor.enabled !== false,
+  );
+  if (userPasses.length === 0) {
+    return null;
+  }
+
+  // The LAST swapchain submission is the presented image the user passes draw
+  // over (mirrors the post route, which runs user passes on the swapchain post
+  // target only). No swapchain target this frame ⇒ loud skip, not a silent one.
+  let host: ForwardGraphTargetEntry | undefined;
+  for (const entry of args.entries) {
+    if (entry.target.source === "swapchain") {
+      host = entry;
+    }
+  }
+  if (host === undefined) {
+    args.diagnostics.push({
+      code: "webgpu.userPass.forwardTargetUnavailable",
+      severity: "warning",
+      message:
+        "Registered user passes were skipped: the forward FrameGraph route rendered no swapchain target this frame to host them.",
+      data: { passes: userPasses.map((descriptor) => descriptor.name) },
+    });
+    return null;
+  }
+
+  const device = args.app.initialization.device as Parameters<
+    typeof assembleFrameBoundary
+  >[0]["device"];
+  const context = args.app.initialization.context as Parameters<
+    typeof buildFrameBoundaryTargetPlan
+  >[0]["context"];
+  // Declare the public handle ids the descriptors reference so the compiled
+  // report carries no unknown-handle diagnostics: both resolve to route-owned
+  // imported resources (the forward color target + its depth attachment).
+  if (args.graph.handle("scene-color") === undefined) {
+    args.graph.declareResource({
+      id: "scene-color",
+      descriptor: { kind: "color-texture", lifetime: "imported" },
+    });
+  }
+  if (args.graph.handle("depth") === undefined) {
+    args.graph.importDepth("depth");
+  }
+  const sceneColorView = (
+    host.texture.texture as { createView?: () => unknown } | undefined
+  )?.createView?.();
+  const resolvers: WebGpuAppPassResolvers = {
+    view: (handle) =>
+      handle === "scene-color"
+        ? sceneColorView
+        : handle === "depth"
+          ? host.depthView
+          : undefined,
+    buffer: () => undefined,
+    createBindGroup: (entries) =>
+      (
+        device as { createBindGroup?: (descriptor: unknown) => unknown }
+      ).createBindGroup?.(entries),
+  };
+
+  const nodes: ForwardGraphUserPassNodeEntry[] = [];
+  let plannedCommands = 0;
+  let drawCalls = 0;
+
+  for (const descriptor of userPasses) {
+    const built = buildUserPassNode(descriptor, resolvers);
+    if (built.kind === "compute") {
+      for (const write of built.writes) {
+        if (args.graph.handle(write.handle) === undefined) {
+          args.graph.declareResource({
+            id: write.handle,
+            descriptor: { kind: "buffer", lifetime: "transient" },
+          });
+        }
+      }
+      args.graph.addComputePass(built);
+      nodes.push({ kind: "compute", nodeName: built.name });
+      plannedCommands += built.commands.length;
+      continue;
+    }
+
+    // M3-T7 scope (audit B5): a user RENDER pass is drawn over scene-color with
+    // LOAD; a declared write to anything other than scene-color is not honored
+    // for render passes (compute passes do honor their declared transient
+    // writes). Surface the coercion instead of dropping it silently — the same
+    // diagnostic the post route emits.
+    const coercedWrites = (descriptor.writes ?? [])
+      .map((write) => (typeof write === "string" ? write : write.handle))
+      .filter((handle) => handle !== "scene-color");
+    if (coercedWrites.length > 0) {
+      args.diagnostics.push({
+        code: "webgpu.userPass.renderWriteCoercedToSceneColor",
+        severity: "warning",
+        message: `User render pass '${built.name}' declared write target(s) ${JSON.stringify(coercedWrites)} that are not honored; it is drawn over scene-color (LOAD). Use a compute pass for arbitrary writable targets, or write to "scene-color".`,
+        data: { pass: built.name, coercedWrites },
+      });
+    }
+
+    const plan = buildFrameBoundaryTargetPlan({
+      context,
+      ...(host.colorTarget === undefined
+        ? {}
+        : { colorTarget: host.colorTarget }),
+      colorLoadOp: "load",
+      depthTarget: {
+        view: host.depthView,
+        depthLoadOp: "load",
+        depthStoreOp: "store",
+      },
+    });
+    args.graph.addRenderPass({
+      name: built.name,
+      reads: [...built.reads],
+      // The LOAD write of the forward color orders this node after the forward
+      // target node(s) (write-after-write keeps insertion order) and forces
+      // them to store the contents the overlay loads (store-on-no-clear).
+      // Deliberately NOT also a read: a read edge from every writer would put
+      // two load-writing user overlays in a cycle.
+      writes: [{ handle: host.handle, attachment: "load" }],
+      commands: built.commands,
+      ...(built.before === undefined ? {} : { before: built.before }),
+      ...(built.after === undefined ? {} : { after: built.after }),
+    });
+    args.payloads.set(built.name, {
+      device,
+      attachments: plan.attachments,
+      commands: built.commands,
+      label: built.name,
+      colorTargetSource:
+        host.colorTarget?.source === "offscreen-target"
+          ? "offscreen-target"
+          : "current-texture",
+      readbackTexture: plan.texture.texture,
+    });
+    nodes.push({
+      kind: "render",
+      nodeName: built.name,
+      texture: plan.texture,
+      attachments: plan.attachments,
+    });
+    plannedCommands += built.commands.length;
+    drawCalls += countDrawCommands(built.commands);
+  }
+
+  return {
+    nodes,
+    hostNodeName: host.nodeName,
+    plannedCommands,
+    drawCalls,
+  };
 }

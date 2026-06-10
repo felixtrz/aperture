@@ -60,7 +60,7 @@ export function collidersForCommand(
   ];
 }
 
-export function testColliderForDescriptor(
+function testColliderForDescriptor(
   body: string,
   descriptor: PhysicsColliderDescriptor,
   index: number,
@@ -257,7 +257,7 @@ export function applyDamping(body: TestBody, fixedDelta: number): void {
   };
 }
 
-export function dampingFactor(damping: number, fixedDelta: number): number {
+function dampingFactor(damping: number, fixedDelta: number): number {
   if (!Number.isFinite(damping) || damping <= 0) {
     return 1;
   }

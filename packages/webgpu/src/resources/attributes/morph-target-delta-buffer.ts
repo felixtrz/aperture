@@ -8,12 +8,12 @@ import {
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../meshes/mesh-buffer-descriptors.js";
 import { morphTargetDeltaBufferResourceKey } from "../core/resource-keys.js";
 
-export const DEFAULT_MORPH_TARGET_DELTA_BUFFER_USAGE =
+const DEFAULT_MORPH_TARGET_DELTA_BUFFER_USAGE =
   WEBGPU_BUFFER_USAGE_FLAGS.STORAGE | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST;
 
 const VEC3 = 3;
 
-export type MorphTargetDeltaBufferDescriptorDiagnosticCode =
+type MorphTargetDeltaBufferDescriptorDiagnosticCode =
   | "morphTargetDeltaBuffer.notMorphed"
   | "morphTargetDeltaBuffer.missingData"
   | "morphTargetDeltaBuffer.invalidUsageFlags";
@@ -25,7 +25,7 @@ export interface MorphTargetDeltaBufferDescriptorDiagnostic {
   readonly field?: string;
 }
 
-export interface MorphTargetDeltaBufferDescriptorPlan {
+interface MorphTargetDeltaBufferDescriptorPlan {
   readonly descriptor: WebGpuBufferDescriptor;
   readonly source: Float32Array;
   readonly renderId: number;
@@ -43,7 +43,7 @@ export interface MorphTargetDeltaBufferDescriptorResult {
   readonly diagnostics: readonly MorphTargetDeltaBufferDescriptorDiagnostic[];
 }
 
-export type MorphTargetDeltaGpuBufferDiagnosticCode =
+type MorphTargetDeltaGpuBufferDiagnosticCode =
   | "morphTargetDeltaGpuBuffer.nullDescriptorPlan"
   | "morphTargetDeltaGpuBuffer.creationFailed";
 
@@ -72,7 +72,7 @@ export interface CreateMorphTargetDeltaGpuBufferResult {
   readonly diagnostics: readonly MorphTargetDeltaGpuBufferDiagnostic[];
 }
 
-export function morphTargetDeltaBufferResourceKeyForRenderId(
+function morphTargetDeltaBufferResourceKeyForRenderId(
   renderId: number,
 ): string {
   return morphTargetDeltaBufferResourceKey(`render:${renderId}`);

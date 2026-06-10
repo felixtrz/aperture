@@ -30,7 +30,10 @@ export type {
   ApertureWorldTransformSummary,
 } from "./types.js";
 export { createApertureEntityHierarchy } from "./hierarchy.js";
-export { setApertureEntityComponentField } from "./mutation.js";
+export {
+  listMutableComponentFields,
+  setApertureEntityComponentField,
+} from "./mutation.js";
 export { findApertureEntities, getApertureEntitySummary } from "./query.js";
 export {
   createApertureEntityLookupSnapshot,

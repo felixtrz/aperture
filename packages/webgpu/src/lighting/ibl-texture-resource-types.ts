@@ -25,8 +25,7 @@ export type IblTextureResourceDiagnostic =
         | "iblTextureResource.invalidSpecularPmremSource"
         | "iblTextureResource.specularPmremDeviceUnsupported"
         | "iblTextureResource.specularPmremDispatchFailed"
-        | "iblTextureResource.specularProofUploadPlaceholder"
-        | "iblTextureResource.specularPrefilteringDeferred";
+        | "iblTextureResource.specularSourceNotPrepared";
       readonly severity: "warning" | "error";
       readonly message: string;
       readonly resourceKey?: string;

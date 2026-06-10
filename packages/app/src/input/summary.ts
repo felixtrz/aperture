@@ -44,6 +44,10 @@ export function createInputResourceSummary(
         pressed: input.pointer.primary.pressed.value,
       },
     },
+    wheel: {
+      deltaX: input.wheel.deltaX.value,
+      deltaY: input.wheel.deltaY.value,
+    },
     keyboard: input.keyboard.summary(),
     gamepads: input.gamepads.summary(),
     diagnostics: input.diagnostics(),

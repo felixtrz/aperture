@@ -26,7 +26,11 @@ import {
   resolveWebGpuAppPostPassColorHistory,
   type WebGpuAppPostPassColorHistory,
 } from "../post/post-color-history.js";
-import { buildUserPassNode, type WebGpuAppPassResolvers } from "./user-pass.js";
+import {
+  buildUserPassNode,
+  createUserPassSkippedOnLegacyRouteDiagnostic,
+  type WebGpuAppPassResolvers,
+} from "./user-pass.js";
 import type { WebGpuAppFrameBoundaryTarget } from "./frame-target.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 import { encodePostPassMotionVectorClearColor } from "./motion-vectors.js";
@@ -94,6 +98,17 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   const boundaries: FrameBoundaryAssemblyReport[] = [];
   const postEffects: WebGpuAppPostEffectSubmissionReport[] = [];
   const diagnostics: unknown[] = [];
+  // AI-12: only the graph paths run registered user passes; the legacy
+  // multi-submit post path (graph off, or the graph path declined this route)
+  // skips them — loudly, never as a silent no-op.
+  const skippedUserPasses = (options.app.userPassRegistry?.list() ?? [])
+    .filter((descriptor) => descriptor.enabled !== false)
+    .map((descriptor) => descriptor.name);
+  if (skippedUserPasses.length > 0) {
+    diagnostics.push(
+      createUserPassSkippedOnLegacyRouteDiagnostic(skippedUserPasses),
+    );
+  }
   const device = options.app.initialization.device as Parameters<
     typeof assembleFrameBoundary
   >[0]["device"];

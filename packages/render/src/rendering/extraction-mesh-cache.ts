@@ -1,11 +1,37 @@
-import type { Entity } from "@aperture-engine/simulation";
+import {
+  maxScaleOnAxis,
+  transformAabb,
+  transformPoint,
+  type Entity,
+  type Mat4,
+} from "@aperture-engine/simulation";
 import type { BoundsPacket, MeshDrawPacket } from "./snapshot.js";
 import { pushMatrix } from "./extraction-matrices.js";
 import { pushVec4 } from "./extraction-packing.js";
 
 export interface RenderExtractionCache {
   readonly meshDrawEntities: Map<string, CachedMeshDrawEntity>;
+  /**
+   * Persistent numeric accumulators reused across frames (AI-30): reset to
+   * length 0 at the start of each extraction and copied into fresh per-frame
+   * typed arrays before the snapshot is returned, so reuse can never alias a
+   * previously returned snapshot.
+   */
+  readonly scratch: RenderExtractionScratch;
   clear(): void;
+}
+
+interface RenderExtractionScratch {
+  readonly transforms: number[];
+  readonly bones: number[];
+  readonly morphTargetWeights: number[];
+  readonly morphTargetDeltas: number[];
+  readonly morphInstanceDescriptors: number[];
+  readonly instanceTints: number[];
+  readonly instanceAttributes: number[];
+  readonly quadInstanceFloats: number[];
+  readonly quadInstanceWords: number[];
+  readonly viewMatrices: number[];
 }
 
 type MeshDrawPacketTemplate = Omit<
@@ -15,6 +41,7 @@ type MeshDrawPacketTemplate = Omit<
 
 interface CachedMeshDrawEntity {
   readonly entityVersion: number;
+  readonly transformVersion: number;
   readonly cameraLayerMask: number;
   readonly viewCullSignature: number;
   readonly layerMask: number;
@@ -29,6 +56,18 @@ export function createRenderExtractionCache(): RenderExtractionCache {
 
   return {
     meshDrawEntities,
+    scratch: {
+      transforms: [],
+      bones: [],
+      morphTargetWeights: [],
+      morphTargetDeltas: [],
+      morphInstanceDescriptors: [],
+      instanceTints: [],
+      instanceAttributes: [],
+      quadInstanceFloats: [],
+      quadInstanceWords: [],
+      viewMatrices: [],
+    },
     clear() {
       meshDrawEntities.clear();
     },
@@ -97,6 +136,35 @@ export function createMeshDrawPacketTemplate(
       : { occlusionQuery: draw.occlusionQuery }),
     sortKey: draw.sortKey,
     batchKey: draw.batchKey,
+  };
+}
+
+/**
+ * Transform-only fast path (AI-67): rebuild a cached entry's world matrix and
+ * derived bounds from the entity's current transform without touching the
+ * packet templates. Yields bounds byte-identical to a cold createBoundsPacket
+ * run (same transformAabb/transformPoint/maxScaleOnAxis math), so the fast
+ * path cannot perturb deterministic snapshots.
+ */
+export function refreshCachedMeshDrawEntityTransform(
+  cached: CachedMeshDrawEntity,
+  worldMatrix: Mat4,
+  transformVersion: number,
+): CachedMeshDrawEntity {
+  const center = transformPoint(worldMatrix, cached.bounds.localSphere.center);
+
+  return {
+    ...cached,
+    transformVersion,
+    worldMatrix: Array.from(worldMatrix),
+    bounds: {
+      ...cached.bounds,
+      worldAabb: transformAabb(cached.bounds.localAabb, worldMatrix),
+      worldSphere: {
+        center,
+        radius: cached.bounds.localSphere.radius * maxScaleOnAxis(worldMatrix),
+      },
+    },
   };
 }
 

@@ -81,8 +81,10 @@ export async function startGeneratedBrowserApp(
     sourceAssets,
     status,
   );
-  // M3-T4 / AI-25: the single-encoder FrameGraph forward route (default OFF) is
-  // opted into via render.frameGraph config or the legacy ?graph=1 URL override.
+  // M3-T4 / AI-25: the single-encoder FrameGraph route is the DEFAULT at
+  // parity. render.frameGraph: false (or the ?graph=0 per-load override)
+  // forces the legacy multi-submit route; the flag is passed explicitly so
+  // `false` really forces legacy instead of deferring to the renderer default.
   const useFrameGraph = resolveUseFrameGraph(
     config.render,
     typeof window !== "undefined"
@@ -95,7 +97,7 @@ export async function startGeneratedBrowserApp(
     sourceAssets,
     autoStart: true,
     msaaSampleCount: status.render.requestedSampleCount,
-    ...(useFrameGraph ? { useFrameGraph: true } : {}),
+    useFrameGraph,
   });
   webgpuResult = webgpu;
 

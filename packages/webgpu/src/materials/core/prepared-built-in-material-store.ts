@@ -31,7 +31,7 @@ export interface PreparedBuiltInMaterialCacheEvictionOptions {
   readonly maxUnusedFrames: number;
 }
 
-export interface PreparedBuiltInMaterialCacheEvictionFamilyReport {
+interface PreparedBuiltInMaterialCacheEvictionFamilyReport {
   readonly checked: number;
   readonly retained: number;
   readonly evicted: number;

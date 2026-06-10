@@ -1,5 +1,6 @@
 import {
   type Entity,
+  maxScaleOnAxis,
   transformAabb,
   transformPoint,
   type Aabb,
@@ -26,6 +27,12 @@ export function createBoundsPacket(
     localAabb,
     worldAabb: transformAabb(localAabb, worldMatrix),
     localSphere,
-    worldSphere: { center, radius: localSphere.radius },
+    // The radius must follow the world transform's scale: raycast and BVH
+    // candidate rejection use this sphere, so an unscaled radius would cull
+    // hits near the edges of scaled-up meshes.
+    worldSphere: {
+      center,
+      radius: localSphere.radius * maxScaleOnAxis(worldMatrix),
+    },
   };
 }

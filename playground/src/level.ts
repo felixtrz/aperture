@@ -1,4 +1,4 @@
-export type Vec3 = readonly [number, number, number];
+type Vec3 = readonly [number, number, number];
 
 export interface Rect {
   readonly x: number;
@@ -7,7 +7,7 @@ export interface Rect {
   readonly height: number;
 }
 
-export type LevelAssetId =
+type LevelAssetId =
   | "block"
   | "blockLong"
   | "blockLowLong"

@@ -128,8 +128,30 @@ post effects, and GLB viewer.
 `index.html` in one browser session and writes status plus warning artifacts.
 
 `pnpm run check:examples` statically verifies that every renderer-backed HTML
-example loads `example-control.js` and that `index.html` remains static
-navigation content.
+example loads `example-control.js`, that `index.html` remains static
+navigation content, and that every import-map target in the example pages
+resolves to a real file through the example server's own path resolution.
+
+## Golden Baselines
+
+`test/e2e/golden-baselines.spec.ts` compares seven deterministic (frame-stable)
+example routes against committed full-canvas screenshots under the CI
+SwiftShader configuration: `auto-shadow`, `multi-light-shadow`,
+`area-light-shapes`, `ibl-irradiance`, `standard-gltf-texture`, `msdf-text`,
+and `ui-interaction`. A change of more than ~0.3% of canvas pixels in any of
+those scenes fails CI.
+
+After an intentional rendering change (or a documented SwiftShader/Chrome
+update), refresh the baselines with:
+
+```sh
+CI=true xvfb-run -a pnpm exec playwright test \
+  --config=playwright.ci.config.ts test/e2e/golden-baselines.spec.ts \
+  --update-snapshots
+```
+
+Review the regenerated PNGs like any other diff before committing. Animated
+routes cannot be goldens; their behavior is asserted by their own specs.
 
 ## Troubleshooting
 

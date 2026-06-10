@@ -764,6 +764,101 @@ describe("spatial query reports", () => {
   });
 });
 
+describe("degenerate triangle robustness", () => {
+  function meshFromTriangles(
+    positions: readonly number[],
+  ): SpatialTriangleMesh {
+    return {
+      positions: {
+        data: new Float32Array(positions),
+        stride: 3,
+      },
+      vertexCount: positions.length / 3,
+      submeshes: [
+        {
+          topology: "triangle-list",
+          vertexStart: 0,
+          vertexCount: positions.length / 3,
+          materialSlot: 0,
+        },
+      ],
+    };
+  }
+
+  it("returns finite closest points for zero-length-edge triangles", () => {
+    // Triangle with a == b collapses edge AB to a point; the sliver is the
+    // segment from (1,0,0) to (1,4,0).
+    const mesh = meshFromTriangles([1, 0, 0, 1, 0, 0, 1, 4, 0]);
+    const bvh = createMeshBvh(mesh);
+
+    const atVertex = bvh.closestPointToPoint([0, 0, 0]);
+    expect(atVertex).not.toBeNull();
+    expect(Number.isFinite(atVertex?.distance ?? Number.NaN)).toBe(true);
+    expect(atVertex?.distance).toBeCloseTo(1, CLOSE_TO);
+    expectVec3(atVertex?.point, [1, 0, 0]);
+
+    // This query enters the degenerate AB edge region (d1 === d3 === 0) and
+    // must fall through to the AC edge instead of dividing 0/0.
+    const alongSurvivingEdge = bvh.closestPointToPoint([1, 2, 0]);
+    expect(alongSurvivingEdge).not.toBeNull();
+    expect(Number.isFinite(alongSurvivingEdge?.distance ?? Number.NaN)).toBe(
+      true,
+    );
+    expect(alongSurvivingEdge?.distance).toBeCloseTo(0, CLOSE_TO);
+    expectVec3(alongSurvivingEdge?.point, [1, 2, 0]);
+  });
+
+  it("returns finite closest points when edge BC collapses (b == c)", () => {
+    const mesh = meshFromTriangles([0, 0, 0, 2, 0, 0, 2, 0, 0]);
+    const bvh = createMeshBvh(mesh);
+
+    // Enters the degenerate BC region (d3 === d4) and must resolve against
+    // the AB span instead of dividing 0/0.
+    const closest = bvh.closestPointToPoint([1, 1, 0]);
+    expect(closest).not.toBeNull();
+    expect(Number.isFinite(closest?.distance ?? Number.NaN)).toBe(true);
+    expect(closest?.distance).toBeCloseTo(1, CLOSE_TO);
+    expectVec3(closest?.point, [1, 0, 0]);
+  });
+
+  it("returns finite closest points for collinear zero-area triangles", () => {
+    // All three vertices on the x axis: zero area, non-zero edges.
+    const mesh = meshFromTriangles([0, 0, 0, 2, 0, 0, 1, 0, 0]);
+    const bvh = createMeshBvh(mesh);
+
+    const above = bvh.closestPointToPoint([1, 3, 0]);
+    expect(above).not.toBeNull();
+    expect(Number.isFinite(above?.distance ?? Number.NaN)).toBe(true);
+    expect(above?.distance).toBeCloseTo(3, CLOSE_TO);
+    expectVec3(above?.point, [1, 0, 0]);
+
+    const beyond = bvh.closestPointToPoint([5, 1, 0]);
+    expect(beyond).not.toBeNull();
+    expect(Number.isFinite(beyond?.distance ?? Number.NaN)).toBe(true);
+    expectVec3(beyond?.point, [2, 0, 0]);
+  });
+
+  it("ignores fully collapsed triangles without poisoning nearby results", () => {
+    // One real triangle plus a fully collapsed one (all vertices identical).
+    const mesh = meshFromTriangles([
+      -1, -1, 0, 1, -1, 0, 0, 1, 0, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+    ]);
+    const bvh = createMeshBvh(mesh);
+    const closest = bvh.closestPointToPoint([0, 0, 1]);
+
+    expect(closest).not.toBeNull();
+    expect(Number.isFinite(closest?.distance ?? Number.NaN)).toBe(true);
+    expect(closest?.distance).toBeCloseTo(1, CLOSE_TO);
+    expectVec3(closest?.point, [0, 0, 0]);
+
+    const nearCollapsed = bvh.closestPointToPoint([5, 5, 6]);
+    expect(nearCollapsed).not.toBeNull();
+    expect(Number.isFinite(nearCollapsed?.distance ?? Number.NaN)).toBe(true);
+    expect(nearCollapsed?.distance).toBeCloseTo(1, CLOSE_TO);
+    expectVec3(nearCollapsed?.point, [5, 5, 5]);
+  });
+});
+
 function spatialMesh(
   mesh: Parameters<typeof createSpatialTriangleMeshFromMeshAsset>[0],
 ): SpatialTriangleMesh {

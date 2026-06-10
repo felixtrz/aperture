@@ -71,8 +71,8 @@ export function createStandardMaterialIblReadinessReport(
   );
   const unsupportedSlotDiagnostics = input.iblDescriptors.diagnostics.filter(
     (diagnostic) =>
-      diagnostic.code === "iblResourceDescriptor.diffuseUnsupported" ||
-      diagnostic.code === "iblResourceDescriptor.specularUnsupported",
+      diagnostic.code === "iblResourceDescriptor.diffuseSourceNotPrepared" ||
+      diagnostic.code === "iblResourceDescriptor.specularSourceNotPrepared",
   );
   const diffuseReady = input.iblDescriptors.descriptors.every(
     (descriptor) => descriptor.diffuse.status === "ready",

@@ -662,6 +662,32 @@ describe("WebGPU app facade", () => {
     expect(created.app.outputColorSpace).toBe("srgb");
   });
 
+  it("defaults useFrameGraph to ON and lets an explicit false force the legacy route (AI-25)", async () => {
+    const { canvas, environment } = webGpuHarness([]);
+    const defaulted = await createRendererOnlyWebGpuApp({
+      canvas,
+      environment,
+      simulationWorker: createManualSimulationWorker(),
+    });
+
+    expect(defaulted.ok).toBe(true);
+    if (defaulted.ok) {
+      expect(defaulted.app.useFrameGraph).toBe(true);
+    }
+
+    const legacy = await createRendererOnlyWebGpuApp({
+      canvas,
+      environment,
+      simulationWorker: createManualSimulationWorker(),
+      useFrameGraph: false,
+    });
+
+    expect(legacy.ok).toBe(true);
+    if (legacy.ok) {
+      expect(legacy.app.useFrameGraph).toBe(false);
+    }
+  });
+
   it("initializes WebGPU and renders the unlit queue path from ECS-authored entities", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
@@ -761,6 +787,8 @@ describe("WebGPU app facade", () => {
     expect(events).toContain("textureResource:view:aperture/webgpu-app/depth");
     expect(events).toContain("queue:submit:1");
     expect(events.some((event) => event.startsWith("pass:draw"))).toBe(true);
+    // AI-11: a frame with no pending readbacks must not drain the GPU queue.
+    expect(events).not.toContain("queue:done");
     expect(webGpuAppRenderReportToJsonValue(frame).depthAttachment).toEqual(
       frame.depthAttachment,
     );
@@ -790,7 +818,7 @@ describe("WebGPU app facade", () => {
         },
       },
       bindGroupsReused: 3,
-      dynamicBufferWrites: 2,
+      dynamicBufferWrites: 0,
     });
     expectPreparedMaterialFacadeSummary(secondFrame, {
       unlit: 1,
@@ -812,7 +840,11 @@ describe("WebGPU app facade", () => {
     expect(secondEvents.some((event) => event.startsWith("pass:draw"))).toBe(
       true,
     );
-    expect(secondEvents).toContain("queue:writeBuffer:WorldTransforms/storage");
+    // AI-64: a static second frame issues zero world-transform bytes — the
+    // version-gated upload skips the unchanged buffer entirely.
+    expect(secondEvents).not.toContain(
+      "queue:writeBuffer:WorldTransforms/storage",
+    );
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
 
     app.assets.markReady(
@@ -1032,8 +1064,10 @@ describe("WebGPU app facade", () => {
     expect(events).toContain(
       "device:pipeline:aperture-webgpu-app:post:noop:noop:pipeline",
     );
+    // AI-25: the FrameGraph route is the default — the scene + post chain fold
+    // into ONE single-encoder submit (the legacy route submitted 2).
     expect(events.filter((event) => event === "queue:submit:1")).toHaveLength(
-      2,
+      1,
     );
     expect(webGpuAppRenderReportToJsonValue(frame).postEffects).toEqual(
       frame.postEffects,
@@ -1382,8 +1416,10 @@ describe("WebGPU app facade", () => {
     expect(json.renderTargets).toEqual(frame.renderTargets);
     expect(events).toContain("offscreen:view");
     expect(events).toContain("texture:view");
+    // AI-25: the FrameGraph route is the default — both targets fold into ONE
+    // single-encoder submit (the legacy route submitted one per target).
     expect(events.filter((event) => event === "queue:submit:1")).toHaveLength(
-      2,
+      1,
     );
     expect(
       events.filter((event) => event.startsWith("pass:draw")),
@@ -2482,7 +2518,7 @@ describe("WebGPU app facade", () => {
       materialBuffersReused: 2,
       bindGroupsReused: 7,
       lightBuffersReused: 1,
-      dynamicBufferWrites: 6,
+      dynamicBufferWrites: 0,
     });
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
@@ -3396,7 +3432,7 @@ describe("WebGPU app facade", () => {
       samplerResourcesCreated: 0,
       samplerResourcesReused: 1,
       bindGroupsReused: 3,
-      dynamicBufferWrites: 2,
+      dynamicBufferWrites: 0,
     });
     expect(secondResources?.mesh).toBe(firstResources?.mesh);
     expect(singleMaterialResource(secondResources)).toBe(
@@ -3836,7 +3872,7 @@ describe("WebGPU app facade", () => {
       textureResourcesReused: 1,
       samplerResourcesCreated: 0,
       samplerResourcesReused: 1,
-      dynamicBufferWrites: 4,
+      dynamicBufferWrites: 0,
     });
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
@@ -3987,7 +4023,7 @@ describe("WebGPU app facade", () => {
       textureResourcesReused: 2,
       samplerResourcesCreated: 0,
       samplerResourcesReused: 2,
-      dynamicBufferWrites: 4,
+      dynamicBufferWrites: 0,
     });
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
@@ -4795,7 +4831,7 @@ describe("WebGPU app facade", () => {
       samplerResourcesReused: 1,
       bindGroupsReused: 10,
       lightBuffersReused: 1,
-      dynamicBufferWrites: 8,
+      dynamicBufferWrites: 0,
     });
     expectPreparedMaterialCacheSummary(secondFrame, {
       unlit: 1,
@@ -6694,7 +6730,7 @@ describe("WebGPU app facade", () => {
       materialBuffersReused: 1,
       bindGroupsReused: 4,
       lightBuffersReused: 1,
-      dynamicBufferWrites: 4,
+      dynamicBufferWrites: 0,
     });
     expect(secondResources?.mesh).toBe(firstResources?.mesh);
     expect(singleMaterialResource(secondResources)).toBe(
@@ -6729,8 +6765,104 @@ describe("WebGPU app facade", () => {
     expect(secondEvents.some((event) => event.startsWith("pass:draw"))).toBe(
       true,
     );
-    expect(secondEvents).toContain("queue:writeBuffer:WorldTransforms/storage");
+    // AI-64: a static second frame issues zero world-transform bytes — the
+    // version-gated upload skips the unchanged buffer entirely.
+    expect(secondEvents).not.toContain(
+      "queue:writeBuffer:WorldTransforms/storage",
+    );
+    // AI-65: ... and zero view/light bytes either — fully static frames skip
+    // every dynamic uniform upload.
+    expect(secondEvents).not.toContain(
+      "queue:writeBuffer:ViewUniforms/uniform",
+    );
+    expect(secondEvents).not.toContain(
+      "queue:writeBuffer:light-buffer:main/floats",
+    );
+    expect(secondEvents).not.toContain(
+      "queue:writeBuffer:light-buffer:main/metadata",
+    );
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
+  });
+
+  it("uploads only the changed dynamic uniform family (AI-65 selective writes)", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const material = assets.materials.standard.add(
+      createStandardMaterialAsset({ label: "Lit" }),
+    );
+
+    const cameraEntity = app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    // A point light: its packed float row depends only on its own transform
+    // and properties, never on the camera (unlike directional cascade data).
+    const pointLight = app.spawn(
+      withTransform({ translation: [2, 2, 2] }),
+      withLight({ kind: LightKind.Point, intensity: 1.5, layerMask: 1 }),
+    );
+
+    await app.stepAndRender(1 / 60, 1, 1);
+    await app.stepAndRender(1 / 60, 2, 2);
+
+    // Camera-only move: the view uniform uploads; light and transform
+    // buffers skip (zero bytes).
+    cameraEntity.getVectorView(LocalTransform, "translation").set([0, 1, 5]);
+    const cameraEventStart = events.length;
+    const cameraFrame = await app.stepAndRender(1 / 60, 3, 3);
+    const cameraEvents = events.slice(cameraEventStart);
+
+    expect(cameraFrame.ok).toBe(true);
+    expect(cameraEvents).toContain("queue:writeBuffer:ViewUniforms/uniform");
+    expect(cameraEvents).not.toContain(
+      "queue:writeBuffer:light-buffer:main/floats",
+    );
+    expect(cameraEvents).not.toContain(
+      "queue:writeBuffer:light-buffer:main/metadata",
+    );
+    expect(cameraEvents).not.toContain(
+      "queue:writeBuffer:WorldTransforms/storage",
+    );
+
+    // Settle one frame: the packed view uniforms include the previous frame's
+    // view-projection (TAA history), which trails a camera move by one frame.
+    await app.stepAndRender(1 / 60, 4, 4);
+
+    // Light-only change: the light float buffer uploads; the view uniform and
+    // the untouched light metadata skip.
+    pointLight.setValue(Light, "intensity", 2.25);
+    const lightEventStart = events.length;
+    const lightFrame = await app.stepAndRender(1 / 60, 5, 5);
+    const lightEvents = events.slice(lightEventStart);
+
+    expect(lightFrame.ok).toBe(true);
+    expect(lightEvents).toContain("queue:writeBuffer:light-buffer:main/floats");
+    expect(lightEvents).not.toContain(
+      "queue:writeBuffer:light-buffer:main/metadata",
+    );
+    expect(lightEvents).not.toContain("queue:writeBuffer:ViewUniforms/uniform");
   });
 
   it("auto-renders directional shadow resources for standard material frames", async () => {
@@ -7172,7 +7304,7 @@ describe("WebGPU app facade", () => {
       bindGroupsReused: 4,
       lightBuffersCreated: 0,
       lightBuffersReused: 1,
-      dynamicBufferWrites: 4,
+      dynamicBufferWrites: 2,
     });
     expectPreparedMaterialCacheSummary(cacheHitFrame, {
       unlit: 0,
@@ -7697,7 +7829,7 @@ describe("WebGPU app facade", () => {
       samplerResourcesReused: 1,
       bindGroupsReused: 4,
       lightBuffersReused: 1,
-      dynamicBufferWrites: 4,
+      dynamicBufferWrites: 0,
     });
     expectPreparedMaterialFacadeSummary(secondFrame, {
       unlit: 0,
@@ -8042,7 +8174,7 @@ describe("WebGPU app facade", () => {
       samplerResourcesReused: 1,
       bindGroupsReused: 4,
       lightBuffersReused: 1,
-      dynamicBufferWrites: 4,
+      dynamicBufferWrites: 0,
     });
     expect(secondResources?.bindGroups).toBe(firstResources?.bindGroups);
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
@@ -8369,7 +8501,7 @@ describe("WebGPU app facade", () => {
       samplerResourcesReused: 2,
       bindGroupsReused: 4,
       lightBuffersReused: 1,
-      dynamicBufferWrites: 4,
+      dynamicBufferWrites: 0,
     });
     expect(secondResources?.bindGroups).toBe(firstResources?.bindGroups);
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
@@ -8642,7 +8774,7 @@ describe("WebGPU app facade", () => {
       samplerResourcesReused: 1,
       bindGroupsReused: 4,
       lightBuffersReused: 1,
-      dynamicBufferWrites: 4,
+      dynamicBufferWrites: 0,
     });
     expect(secondResources?.bindGroups).toBe(firstResources?.bindGroups);
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);

@@ -471,67 +471,107 @@ export function createSpecularIblTextureResourceReport(
   );
   let createdTextureCount = 0;
   let reusedTextureCount = 0;
-  const resources = specularSlots.map((slot) => {
-    const resourceKey = slot.textureKey ?? `${slot.sourceResourceKey}:texture`;
-    const cached = options.cache?.get(resourceKey);
+  let placeholderSlotCount = 0;
+  const resources = specularSlots.map(
+    (slot): CreateTextureGpuResourceResult => {
+      const resourceKey =
+        slot.textureKey ?? `${slot.sourceResourceKey}:texture`;
+      const cached = options.cache?.get(resourceKey);
+      const pmremSource = findSpecularPmremSource(
+        options.pmremSources,
+        resourceKey,
+        slot,
+      );
 
-    if (cached !== undefined) {
-      reusedTextureCount += 1;
-      return {
-        valid: true,
-        resource: cached,
-        diagnostics: [],
-      };
-    }
+      // Reuse a cached resource unless it is a non-prefiltered placeholder and a
+      // PMREM source is now available, in which case the prefilter replaces it.
+      if (
+        cached !== undefined &&
+        (cached.prefiltered === true || pmremSource === undefined)
+      ) {
+        reusedTextureCount += 1;
 
-    const pmremSource = findSpecularPmremSource(
-      options.pmremSources,
-      resourceKey,
-      slot,
-    );
-    const pmremResult =
-      pmremSource === undefined
-        ? null
-        : createSpecularIblPmremTextureResource({
-            device: options.device,
-            resourceKey,
-            slot,
-            source: pmremSource,
-          });
+        if (cached.prefiltered !== true) {
+          placeholderSlotCount += 1;
+          diagnostics.push(specularSourceNotPreparedDiagnostic(resourceKey));
+        }
 
-    if (pmremResult !== null) {
-      diagnostics.push(...pmremResult.diagnostics);
-    }
+        return {
+          valid: true,
+          resource: cached,
+          diagnostics: [],
+        };
+      }
 
-    const result =
-      pmremResult?.result.valid === true
-        ? pmremResult.result
-        : createTextureGpuResource({
-            device: options.device,
-            resourceKey,
-            descriptor: {
-              label: `${slot.environmentMapResourceKey}:specular-ibl`,
-              size: [size, size, 6],
-              format: slot.format,
-              usage:
-                WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING |
-                WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST |
-                WEBGPU_TEXTURE_USAGE_FLAGS.RENDER_ATTACHMENT,
-              mipLevelCount: mipLevelCountForSize(size),
-            },
-            ...(options.device.queue?.writeTexture === undefined
-              ? {}
-              : { upload: createDefaultSpecularIblUpload(size, slot.format) }),
-            viewDescriptor: { dimension: "cube" },
-          });
+      const pmremResult =
+        pmremSource === undefined
+          ? null
+          : createSpecularIblPmremTextureResource({
+              device: options.device,
+              resourceKey,
+              slot,
+              source: pmremSource,
+            });
 
-    if (result.valid && result.resource !== null) {
-      options.cache?.set(resourceKey, result.resource);
-      createdTextureCount += 1;
-    }
+      if (pmremResult !== null) {
+        diagnostics.push(...pmremResult.diagnostics);
+      }
 
-    return result;
-  });
+      if (
+        pmremResult?.result.valid === true &&
+        pmremResult.result.resource !== null
+      ) {
+        options.cache?.set(resourceKey, pmremResult.result.resource);
+        createdTextureCount += 1;
+        return pmremResult.result;
+      }
+
+      // The prefilter did not produce a texture (the slot has no source, or the
+      // dispatch failed with its own diagnostic): bind the neutral placeholder
+      // cube, preferring an already-cached one over a fresh allocation.
+      if (cached !== undefined) {
+        reusedTextureCount += 1;
+        placeholderSlotCount += 1;
+
+        return {
+          valid: true,
+          resource: cached,
+          diagnostics: [],
+        };
+      }
+
+      const result = createTextureGpuResource({
+        device: options.device,
+        resourceKey,
+        descriptor: {
+          label: `${slot.environmentMapResourceKey}:specular-ibl`,
+          size: [size, size, 6],
+          format: slot.format,
+          usage:
+            WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING |
+            WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST |
+            WEBGPU_TEXTURE_USAGE_FLAGS.RENDER_ATTACHMENT,
+          mipLevelCount: mipLevelCountForSize(size),
+        },
+        ...(options.device.queue?.writeTexture === undefined
+          ? {}
+          : { upload: createDefaultSpecularIblUpload(size, slot.format) }),
+        viewDescriptor: { dimension: "cube" },
+      });
+
+      if (result.valid && result.resource !== null) {
+        options.cache?.set(resourceKey, result.resource);
+        createdTextureCount += 1;
+        placeholderSlotCount += 1;
+
+        if (pmremSource === undefined) {
+          diagnostics.push(specularSourceNotPreparedDiagnostic(resourceKey));
+        }
+      }
+
+      return result;
+    },
+  );
 
   for (const resource of resources) {
     diagnostics.push(
@@ -542,30 +582,6 @@ export function createSpecularIblTextureResourceReport(
     );
   }
 
-  if (resources.some((resource) => resource.valid)) {
-    const prefiltered = resources.some(
-      (resource) => resource.resource?.prefiltered === true,
-    );
-
-    if (!prefiltered && options.device.queue?.writeTexture !== undefined) {
-      diagnostics.push({
-        code: "iblTextureResource.specularProofUploadPlaceholder",
-        severity: "warning",
-        message:
-          "Specular IBL texture resource uses a deterministic proof-upload placeholder; full PMREM/GGX prefiltering remains deferred.",
-      });
-    }
-
-    if (!prefiltered) {
-      diagnostics.push({
-        code: "iblTextureResource.specularPrefilteringDeferred",
-        severity: "warning",
-        message:
-          "Specular IBL texture resources are allocated, but prefilter pass execution remains deferred.",
-      });
-    }
-  }
-
   return specularReport({
     status: resources.every((resource) => resource.valid)
       ? "available"
@@ -574,9 +590,23 @@ export function createSpecularIblTextureResourceReport(
     specularSlotCount: specularSlots.length,
     createdTextureCount,
     reusedTextureCount,
+    proofUpload:
+      placeholderSlotCount > 0 &&
+      options.device.queue?.writeTexture !== undefined,
     resources,
     diagnostics,
   });
+}
+
+function specularSourceNotPreparedDiagnostic(
+  resourceKey: string,
+): IblTextureResourceDiagnostic {
+  return {
+    code: "iblTextureResource.specularSourceNotPrepared",
+    severity: "warning",
+    resourceKey,
+    message: `Specular IBL slot '${resourceKey}' has no prepared source (cube faces, source texture, or equirect projection); a neutral placeholder cube is bound until a source is provided.`,
+  };
 }
 
 function specularReport(input: {
@@ -585,6 +615,7 @@ function specularReport(input: {
   readonly specularSlotCount: number;
   readonly createdTextureCount?: number;
   readonly reusedTextureCount?: number;
+  readonly proofUpload?: boolean;
   readonly resources: readonly CreateTextureGpuResourceResult[];
   readonly diagnostics: readonly IblTextureResourceDiagnostic[];
 }): SpecularIblTextureResourceReport {
@@ -605,11 +636,7 @@ function specularReport(input: {
         input.status !== "missing" && input.status !== "unsupported",
       specularTextureResource: input.status === "available",
       gpuAllocation: input.status === "available",
-      proofUpload: input.diagnostics.some(
-        (diagnostic) =>
-          diagnostic.code ===
-          "iblTextureResource.specularProofUploadPlaceholder",
-      ),
+      proofUpload: input.proofUpload ?? false,
       prefiltering: input.resources.some(
         (resource) => resource.resource?.prefiltered === true,
       ),

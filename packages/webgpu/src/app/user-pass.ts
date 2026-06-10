@@ -381,3 +381,27 @@ export function buildUserPassNodes(
     .filter((descriptor) => descriptor.enabled !== false)
     .map((descriptor) => buildUserPassNode(descriptor, resolvers));
 }
+
+/**
+ * AI-12: the shared "registered user passes cannot run on the legacy
+ * multi-submit route" diagnostic — emitted by the legacy forward route
+ * (frame-boundaries.ts) and the legacy post fallback (post-processing.ts) so a
+ * pass that does not run is loud rather than a silent no-op. The FrameGraph
+ * routes (forward no-post graph + post-effect graph) are the only routes that
+ * execute user passes.
+ */
+export function createUserPassSkippedOnLegacyRouteDiagnostic(
+  passes: readonly string[],
+): {
+  readonly code: "webgpu.userPass.skippedOnLegacyRoute";
+  readonly severity: "warning";
+  readonly message: string;
+  readonly data: { readonly passes: readonly string[] };
+} {
+  return {
+    code: "webgpu.userPass.skippedOnLegacyRoute",
+    severity: "warning",
+    message: `Registered user passes ${JSON.stringify(passes)} run only on the FrameGraph routes (forward graph or post-effect graph); the legacy multi-submit route skipped them. Enable useFrameGraph to run them.`,
+    data: { passes },
+  };
+}

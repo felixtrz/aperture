@@ -2566,14 +2566,7 @@ function createGlbViewerIblResources(aperture, app) {
             resources: [
               { valid: true, resource: specularTexture, diagnostics: [] },
             ],
-            diagnostics: [
-              {
-                code: "iblTextureResource.specularPrefilteringDeferred",
-                severity: "warning",
-                message:
-                  "Specular IBL texture resource uses a deterministic minimal mip chain; full PMREM/GGX prefiltering remains deferred.",
-              },
-            ],
+            diagnostics: [],
           },
         }),
     samplerResource: {

@@ -1,4 +1,4 @@
-import type { Vec3Like, Vec4Like } from "./types.js";
+import type { Vec3Like } from "./types.js";
 
 export function read(
   values: ArrayLike<number>,
@@ -18,10 +18,6 @@ export function read(
 
 export function v3(values: Vec3Like, index: number): number {
   return read(values, index, "Vec3Like");
-}
-
-export function v4(values: Vec4Like, index: number): number {
-  return read(values, index, "Vec4Like");
 }
 
 export function assertFinitePositive(value: number, label: string): void {
