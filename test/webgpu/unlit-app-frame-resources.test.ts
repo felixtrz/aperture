@@ -539,7 +539,9 @@ describe("unlit app frame-resource fallback diagnostics", () => {
     expect(secondReuse.localLightClusterBuffersReused).toBe(4);
     expect(secondReuse.localLightClusterBufferWrites).toBe(0);
     expect(secondReuse.localLightClusterBufferWritesSkipped).toBe(4);
-    expect(secondReuse.dynamicBufferWrites).toBe(4);
+    // AI-65: identical light content skips both light buffer writes; view +
+    // transforms still full-write here (allocating packs carry no history).
+    expect(secondReuse.dynamicBufferWrites).toBe(2);
 
     const changedReuse = standardReuseCounters();
     const changed = createOrReuseStandardAppFrameResources({
@@ -552,7 +554,9 @@ describe("unlit app frame-resource fallback diagnostics", () => {
     expect(changedReuse.localLightClusterBuffersReused).toBe(4);
     expect(changedReuse.localLightClusterBufferWrites).toBe(4);
     expect(changedReuse.localLightClusterBufferWritesSkipped).toBe(0);
-    expect(changedReuse.dynamicBufferWrites).toBe(8);
+    // AI-65: the range change dirties the light float buffer (sub-range
+    // write) while the unchanged metadata buffer is skipped.
+    expect(changedReuse.dynamicBufferWrites).toBe(7);
   });
 
   it("does not reuse cached Standard frame resources across pipeline keys", () => {

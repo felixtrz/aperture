@@ -1,3 +1,5 @@
+import type { PackedTransformDirtyRange } from "./transform-pack-types.js";
+
 export const VIEW_PROJECTION_FLOAT_COUNT = 16;
 export const VIEW_CAMERA_POSITION_FLOAT_OFFSET = 16;
 export const VIEW_PREVIOUS_VIEW_PROJECTION_FLOAT_OFFSET = 20;
@@ -29,6 +31,13 @@ export interface PackedSnapshotViewUniforms {
   readonly floatCount?: number;
   readonly views: readonly PackedSnapshotViewUniformRecord[];
   readonly diagnostics: readonly SnapshotViewUniformPackDiagnostic[];
+  /** Monotonic content version of the persistent scratch (AI-65). */
+  readonly contentVersion?: number;
+  /**
+   * Changed float window vs the previous frame written through the same
+   * scratch: null when byte-identical, full when history is unavailable.
+   */
+  readonly dirtyRange?: PackedTransformDirtyRange | null;
 }
 
 export interface SnapshotViewUniformPackOptions {
@@ -42,6 +51,12 @@ export interface PackedSnapshotViewUniformsScratch {
   readonly viewPool: PackedSnapshotViewUniformRecord[];
   readonly seenViewIds: Set<number>;
   readonly result: PackedSnapshotViewUniforms;
+  /** Copy of the previous frame's packed floats for dirty diffing (AI-65). */
+  previous: Float32Array;
+  /** Float count written on the previous frame (-1 before the first write). */
+  lastFloatCount: number;
+  /** Monotonic version of the scratch content; bumps on every byte change. */
+  contentVersion: number;
 }
 
 export interface MutablePackedSnapshotViewUniformRecord {
@@ -55,4 +70,6 @@ export interface MutablePackedSnapshotViewUniforms {
   floatCount: number;
   views: readonly PackedSnapshotViewUniformRecord[];
   diagnostics: readonly SnapshotViewUniformPackDiagnostic[];
+  contentVersion: number | undefined;
+  dirtyRange: PackedTransformDirtyRange | null | undefined;
 }

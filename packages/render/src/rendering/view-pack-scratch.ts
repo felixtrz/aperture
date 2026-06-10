@@ -24,7 +24,10 @@ export function createPackedSnapshotViewUniformsScratch(
     diagnostics,
     viewPool,
     seenViewIds: new Set(),
-    result: { data, floatCount: 0, views, diagnostics },
+    result: { data, floatCount: 0, views, diagnostics, contentVersion: 0 },
+    previous: new Float32Array(0),
+    lastFloatCount: -1,
+    contentVersion: 0,
   };
 }
 

@@ -7,7 +7,7 @@ import {
 } from "@aperture-engine/render";
 import {
   writeBufferData,
-  writeWorldTransformBufferVersioned,
+  writeVersionedBufferData,
 } from "../../packages/webgpu/src/app/app-frame-resource-utils.js";
 
 // AI-64 (readiness roadmap R5): dirty-range transform packing + the
@@ -207,7 +207,7 @@ function fakeDevice(backing: Uint8Array): {
   };
 }
 
-describe("writeWorldTransformBufferVersioned protocol", () => {
+describe("writeVersionedBufferData protocol", () => {
   it("skips, sub-ranges, and falls back exactly per the version protocol — with byte-identical results", () => {
     const scratch = createPackedSnapshotTransformsScratch();
     const transforms = identityGrid(6);
@@ -223,8 +223,8 @@ describe("writeWorldTransformBufferVersioned protocol", () => {
     expect(
       writeBufferData(gpu.device, buffer, packed.data.subarray(0, 96)),
     ).toBe(true);
-    const target: { worldTransformContentVersion?: number | undefined } = {
-      worldTransformContentVersion: packed.contentVersion,
+    const target: { version?: number | undefined } = {
+      version: packed.contentVersion,
     };
     gpu.writes.length = 0;
 
@@ -234,7 +234,7 @@ describe("writeWorldTransformBufferVersioned protocol", () => {
       scratch,
     );
     expect(
-      writeWorldTransformBufferVersioned(
+      writeVersionedBufferData(
         gpu.device,
         buffer,
         packed.data.subarray(0, 96),
@@ -250,7 +250,7 @@ describe("writeWorldTransformBufferVersioned protocol", () => {
     moved[4 * MATRIX_FLOATS + 13] = 12;
     packed = writePackedSnapshotTransforms(snapshotWith(moved, 6), scratch);
     expect(
-      writeWorldTransformBufferVersioned(
+      writeVersionedBufferData(
         gpu.device,
         buffer,
         packed.data.subarray(0, 96),
@@ -267,12 +267,12 @@ describe("writeWorldTransformBufferVersioned protocol", () => {
 
     // A second route that never saw frame 3 (stale by one version with a
     // non-full range applies the window; stale by more falls back to full).
-    const staleTarget: { worldTransformContentVersion?: number | undefined } = {
-      worldTransformContentVersion: (packed.contentVersion ?? 0) - 2,
+    const staleTarget: { version?: number | undefined } = {
+      version: (packed.contentVersion ?? 0) - 2,
     };
     gpu.writes.length = 0;
     expect(
-      writeWorldTransformBufferVersioned(
+      writeVersionedBufferData(
         gpu.device,
         buffer,
         packed.data.subarray(0, 96),
@@ -281,15 +281,13 @@ describe("writeWorldTransformBufferVersioned protocol", () => {
       ),
     ).toBe("full");
     expect(gpu.writes).toEqual([{ bufferOffset: 0, size: 96 * 4 }]);
-    expect(staleTarget.worldTransformContentVersion).toBe(
-      packed.contentVersion,
-    );
+    expect(staleTarget.version).toBe(packed.contentVersion);
 
     // No version history (allocating pack) — always a full write.
     gpu.writes.length = 0;
     const allocPacked = packSnapshotTransforms(snapshotWith(moved, 6));
     expect(
-      writeWorldTransformBufferVersioned(
+      writeVersionedBufferData(
         gpu.device,
         buffer,
         allocPacked.data,
@@ -306,22 +304,14 @@ describe("writeWorldTransformBufferVersioned protocol", () => {
       snapshotWith(identityGrid(2), 2),
       scratch,
     );
-    const target: { worldTransformContentVersion?: number | undefined } = {
-      worldTransformContentVersion: (packed.contentVersion ?? 0) - 1,
+    const target: { version?: number | undefined } = {
+      version: (packed.contentVersion ?? 0) - 1,
     };
 
     expect(
-      writeWorldTransformBufferVersioned(
-        { queue: {} },
-        {},
-        packed.data,
-        packed,
-        target,
-      ),
+      writeVersionedBufferData({ queue: {} }, {}, packed.data, packed, target),
     ).toBe(false);
-    expect(target.worldTransformContentVersion).toBe(
-      (packed.contentVersion ?? 0) - 1,
-    );
+    expect(target.version).toBe((packed.contentVersion ?? 0) - 1);
   });
 });
 
@@ -390,10 +380,10 @@ describe("dirty-range upload driven by a real ECS world", () => {
     const backing = new Uint8Array(floatCount * 4);
     const gpu = fakeDevice(backing);
     const buffer = {};
-    const target: { worldTransformContentVersion?: number | undefined } = {};
+    const target: { version?: number | undefined } = {};
 
     expect(
-      writeWorldTransformBufferVersioned(
+      writeVersionedBufferData(
         gpu.device,
         buffer,
         packed.data.subarray(0, floatCount),
@@ -409,7 +399,7 @@ describe("dirty-range upload driven by a real ECS world", () => {
       scratch,
     );
     expect(
-      writeWorldTransformBufferVersioned(
+      writeVersionedBufferData(
         gpu.device,
         buffer,
         packed.data.subarray(0, floatCount),
@@ -436,7 +426,7 @@ describe("dirty-range upload driven by a real ECS world", () => {
     packed = writePackedSnapshotTransforms(third, scratch);
     gpu.writes.length = 0;
     expect(
-      writeWorldTransformBufferVersioned(
+      writeVersionedBufferData(
         gpu.device,
         buffer,
         packed.data.subarray(0, floatCount),

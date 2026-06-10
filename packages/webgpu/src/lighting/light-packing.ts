@@ -5,6 +5,7 @@ import type {
   RenderSnapshot,
   ShadowRequestPacket,
 } from "@aperture-engine/render";
+import type { PackedTransformDirtyRange } from "@aperture-engine/render";
 import type { WebGpuBufferDescriptor } from "../gpu/buffer.js";
 import {
   createWebGpuBuffer,
@@ -64,6 +65,12 @@ export interface LightPacketPackingScratch {
     floats: Float32Array;
     metadata: Int32Array;
   };
+  /** Previous frame's packed content for dirty diffing (AI-65). */
+  previousFloats: Float32Array;
+  previousMetadata: Int32Array;
+  /** Element counts written on the previous frame (-1 before first write). */
+  lastFloatCount: number;
+  lastMetadataCount: number;
 }
 
 export const DEFAULT_LIGHT_BUFFER_RESOURCE_KEY = "light-buffer:main";
@@ -78,6 +85,14 @@ export interface LightBufferDescriptor {
   readonly floatByteLength: number;
   readonly metadataByteLength: number;
   readonly packed: PackedLightPackets;
+  /**
+   * Changed 4-byte-element windows vs the previous descriptor write through
+   * the same scratch (AI-65): null = byte-identical (skip the upload), full =
+   * no comparable history. Offsets/counts are elements of the corresponding
+   * packed array (floats are f32, metadata is i32 — both 4 bytes).
+   */
+  readonly floatsDirty?: PackedTransformDirtyRange | null | undefined;
+  readonly metadataDirty?: PackedTransformDirtyRange | null | undefined;
 }
 
 export interface LightBufferDescriptorScratch {
@@ -90,6 +105,8 @@ export interface LightBufferDescriptorScratch {
     floatByteLength: number;
     metadataByteLength: number;
     packed: PackedLightPackets;
+    floatsDirty?: PackedTransformDirtyRange | null | undefined;
+    metadataDirty?: PackedTransformDirtyRange | null | undefined;
   };
 }
 
@@ -246,6 +263,10 @@ export function createLightPacketPackingScratch(
     floatView: floats,
     metadataView: metadata,
     packed,
+    previousFloats: new Float32Array(0),
+    previousMetadata: new Int32Array(0),
+    lastFloatCount: -1,
+    lastMetadataCount: -1,
   };
 }
 
@@ -484,6 +505,7 @@ export function writeLightBufferDescriptor(
   scratch: LightBufferDescriptorScratch,
   options: CreateLightBufferDescriptorOptions = {},
 ): LightBufferDescriptor {
+  const throughScratch = !isPackedLightPackets(input);
   const packed = isPackedLightPackets(input)
     ? input
     : writePackedLightPackets(input, scratch.packing);
@@ -498,7 +520,79 @@ export function writeLightBufferDescriptor(
   scratch.descriptor.metadataByteLength = metadataByteLength;
   scratch.descriptor.packed = packed;
 
+  if (throughScratch) {
+    const packing = scratch.packing;
+    scratch.descriptor.floatsDirty = diffPackedElements(
+      packing.previousFloats,
+      packed.floats,
+      packing.lastFloatCount,
+    );
+    scratch.descriptor.metadataDirty = diffPackedElements(
+      packing.previousMetadata,
+      packed.metadata,
+      packing.lastMetadataCount,
+    );
+
+    if (packing.previousFloats.length < packed.floats.length) {
+      packing.previousFloats = new Float32Array(packed.floats.length);
+    }
+    if (packing.previousMetadata.length < packed.metadata.length) {
+      packing.previousMetadata = new Int32Array(packed.metadata.length);
+    }
+    packing.previousFloats.set(packed.floats);
+    packing.previousMetadata.set(packed.metadata);
+    packing.lastFloatCount = packed.floats.length;
+    packing.lastMetadataCount = packed.metadata.length;
+  } else {
+    // Pre-packed inputs carry no scratch history — consumers full-write.
+    scratch.descriptor.floatsDirty = undefined;
+    scratch.descriptor.metadataDirty = undefined;
+  }
+
   return scratch.descriptor;
+}
+
+/**
+ * AI-65: contiguous changed window of a packed light array vs its previous
+ * frame copy. Null = byte-identical; full when the element count changed or
+ * no history exists yet.
+ */
+function diffPackedElements(
+  previous: Float32Array | Int32Array,
+  next: Float32Array | Int32Array,
+  lastCount: number,
+): PackedTransformDirtyRange | null {
+  const count = next.length;
+
+  if (lastCount !== count || previous.length < count) {
+    return count === 0
+      ? null
+      : { floatOffset: 0, floatCount: count, full: true };
+  }
+
+  let first = -1;
+
+  for (let index = 0; index < count; index += 1) {
+    if (previous[index] !== next[index]) {
+      first = index;
+      break;
+    }
+  }
+
+  if (first === -1) {
+    return null;
+  }
+
+  let last = first;
+
+  for (let index = count - 1; index > first; index -= 1) {
+    if (previous[index] !== next[index]) {
+      last = index;
+      break;
+    }
+  }
+
+  return { floatOffset: first, floatCount: last - first + 1, full: false };
 }
 
 export function createLightBufferDescriptorPlan(

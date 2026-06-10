@@ -11,9 +11,9 @@ import type {
   PackedSnapshotViewUniforms,
 } from "@aperture-engine/render";
 import {
-  writeBufferData,
-  writeWorldTransformBufferVersioned,
-  type WorldTransformUploadOutcome,
+  writeVersionedBufferData,
+  type DirtyUploadOutcome,
+  type VersionedUploadStamp,
 } from "../../app/app-frame-resource-utils.js";
 import type { BindGroupResourceCache } from "../../gpu/bind-group-resource-cache.js";
 import type { DebugNormalMaterialBindGroupLayoutResource } from "./debug-normal-bind-group.js";
@@ -61,8 +61,9 @@ export interface CachedDebugNormalAppFrameResources {
   readonly worldTransformByteLength: number;
   readonly viewDescriptorScratch: ViewUniformBufferDescriptorScratch;
   readonly worldTransformDescriptorScratch: WorldTransformBufferDescriptorScratch;
-  /** Packed-transform contentVersion last uploaded to this buffer. */
-  worldTransformContentVersion?: number | undefined;
+  /** Last uploaded contentVersion per dynamic buffer (AI-64/AI-65). */
+  readonly worldTransformUploadStamp: VersionedUploadStamp;
+  readonly viewUploadStamp: VersionedUploadStamp;
   result: CreateDebugNormalFrameGpuResourcesResult;
 }
 
@@ -136,23 +137,24 @@ export function createOrReuseDebugNormalAppFrameResources(options: {
     worldTransformDescriptorScratch,
   );
 
-  // AI-64: dirty-range/skip world-transform upload outcome for accounting.
-  // Holder object: TS flow analysis cannot see the closure assignment
-  // ordering, so a plain let narrows back to "full" at the use site.
-  const worldTransformUpload: { value: WorldTransformUploadOutcome } = {
+  // AI-64/AI-65: dirty-range/skip upload outcomes for accounting. Holder
+  // objects: TS flow analysis cannot see the closure assignment ordering, so
+  // plain lets would narrow back to "full" at the use sites.
+  const worldTransformUpload: { value: DirtyUploadOutcome } = {
     value: "full",
   };
+  const viewUniformUpload: { value: DirtyUploadOutcome } = { value: "full" };
   const writeCachedWorldTransformBuffer = (): boolean => {
     if (cached === null || cached.result.resources === null) {
       return false;
     }
 
-    const outcome = writeWorldTransformBufferVersioned(
+    const outcome = writeVersionedBufferData(
       options.device,
       cached.result.resources.worldTransforms.buffer,
       transformDescriptor.plan?.source ?? options.worldTransforms.data,
       options.worldTransforms,
-      cached,
+      cached.worldTransformUploadStamp,
     );
 
     if (outcome === false) {
@@ -160,6 +162,26 @@ export function createOrReuseDebugNormalAppFrameResources(options: {
     }
 
     worldTransformUpload.value = outcome;
+    return true;
+  };
+  const writeCachedViewUniformBuffer = (): boolean => {
+    if (cached === null || cached.result.resources === null) {
+      return false;
+    }
+
+    const outcome = writeVersionedBufferData(
+      options.device,
+      cached.result.resources.viewUniform.buffer,
+      viewDescriptor.plan?.source ?? options.viewUniforms.data,
+      options.viewUniforms,
+      cached.viewUploadStamp,
+    );
+
+    if (outcome === false) {
+      return false;
+    }
+
+    viewUniformUpload.value = outcome;
     return true;
   };
 
@@ -175,18 +197,16 @@ export function createOrReuseDebugNormalAppFrameResources(options: {
     cached.viewByteLength === viewDescriptor.plan.source.byteLength &&
     cached.worldTransformByteLength ===
       transformDescriptor.plan.source.byteLength &&
-    writeBufferData(
-      options.device,
-      cached.result.resources.viewUniform.buffer,
-      viewDescriptor.plan.source,
-    ) &&
+    writeCachedViewUniformBuffer() &&
     writeCachedWorldTransformBuffer()
   ) {
     options.reuse.meshBuffersReused += 1;
     options.reuse.materialBuffersReused += 1;
     options.reuse.bindGroupsReused += cached.result.resources.bindGroups.length;
     options.reuse.dynamicBufferWrites +=
-      worldTransformUpload.value === "skipped" ? 1 : 2;
+      2 -
+      (worldTransformUpload.value === "skipped" ? 1 : 0) -
+      (viewUniformUpload.value === "skipped" ? 1 : 0);
 
     const resources = cached.result.resources;
 
@@ -268,7 +288,10 @@ export function createOrReuseDebugNormalAppFrameResources(options: {
         options.worldTransforms.data.byteLength,
       viewDescriptorScratch,
       worldTransformDescriptorScratch,
-      worldTransformContentVersion: options.worldTransforms.contentVersion,
+      worldTransformUploadStamp: {
+        version: options.worldTransforms.contentVersion,
+      },
+      viewUploadStamp: { version: options.viewUniforms.contentVersion },
       result,
     };
   }

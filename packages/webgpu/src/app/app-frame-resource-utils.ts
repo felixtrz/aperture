@@ -1,13 +1,24 @@
-import type { PackedSnapshotTransforms } from "@aperture-engine/render";
+import type { PackedTransformDirtyRange } from "@aperture-engine/render";
 
 const FLOAT32_BYTES = Float32Array.BYTES_PER_ELEMENT;
 
-export type WorldTransformUploadOutcome = "full" | "sub-range" | "skipped";
+export type DirtyUploadOutcome = "full" | "sub-range" | "skipped";
+
+/** Mutable per-buffer stamp of the last successfully uploaded contentVersion. */
+export interface VersionedUploadStamp {
+  version?: number | undefined;
+}
+
+interface DirtyUploadContent {
+  readonly contentVersion?: number | undefined;
+  readonly dirtyRange?: PackedTransformDirtyRange | null | undefined;
+}
 
 /**
- * AI-64: version-gated world-transform upload. The packed transforms carry a
- * monotonic contentVersion plus the dirty window that produced it; the cached
- * GPU buffer remembers which version it last received:
+ * AI-64/AI-65: version-gated dynamic-buffer upload shared by the transform and
+ * view uniform paths. The packed content carries a monotonic contentVersion
+ * plus the dirty window that produced it; the cached GPU buffer remembers
+ * which version it last received:
  *
  * - same version            → nothing to upload (zero GPU bytes),
  * - exactly one behind with a non-full dirty window → one writeBufferSubData
@@ -16,34 +27,34 @@ export type WorldTransformUploadOutcome = "full" | "sub-range" | "skipped";
  *   → one whole-buffer write.
  *
  * Returns the outcome taken, or `false` when the device write failed so the
- * caller's reuse chain falls through to resource recreation. The version
- * stamp only advances after a successful write — a failed upload never
- * records content the GPU does not have.
+ * caller's reuse chain falls through to resource recreation. The stamp only
+ * advances after a successful write — a failed upload never records content
+ * the GPU does not have.
  */
-export function writeWorldTransformBufferVersioned(
+export function writeVersionedBufferData(
   device: unknown,
   buffer: unknown,
   source: ArrayBufferView,
-  packed: Pick<PackedSnapshotTransforms, "contentVersion" | "dirtyRange">,
-  target: { worldTransformContentVersion?: number | undefined },
-): WorldTransformUploadOutcome | false {
-  const version = packed.contentVersion;
+  content: DirtyUploadContent,
+  stamp: VersionedUploadStamp,
+): DirtyUploadOutcome | false {
+  const version = content.contentVersion;
 
   if (version === undefined) {
     return writeBufferData(device, buffer, source) ? "full" : false;
   }
 
-  if (target.worldTransformContentVersion === version) {
+  if (stamp.version === version) {
     return "skipped";
   }
 
-  const range = packed.dirtyRange;
+  const range = content.dirtyRange;
 
   if (
     range !== null &&
     range !== undefined &&
     !range.full &&
-    target.worldTransformContentVersion === version - 1
+    stamp.version === version - 1
   ) {
     const written = writeBufferSubData(device, buffer, source, {
       bufferByteOffset: range.floatOffset * FLOAT32_BYTES,
@@ -55,7 +66,7 @@ export function writeWorldTransformBufferVersioned(
       return false;
     }
 
-    target.worldTransformContentVersion = version;
+    stamp.version = version;
     return "sub-range";
   }
 
@@ -63,8 +74,37 @@ export function writeWorldTransformBufferVersioned(
     return false;
   }
 
-  target.worldTransformContentVersion = version;
+  stamp.version = version;
   return "full";
+}
+
+/**
+ * AI-65: dirty-range upload for buffers whose dirty window pairs 1:1 with one
+ * GPU buffer (per-route light packing): `null` means byte-identical content
+ * (zero GPU bytes), a non-full window writes just that 4-byte-element span,
+ * anything else writes the whole source. Returns `false` on device failure.
+ */
+export function writeBufferDataDirtyRange(
+  device: unknown,
+  buffer: unknown,
+  source: ArrayBufferView,
+  range: PackedTransformDirtyRange | null | undefined,
+): DirtyUploadOutcome | false {
+  if (range === null) {
+    return "skipped";
+  }
+
+  if (range === undefined || range.full) {
+    return writeBufferData(device, buffer, source) ? "full" : false;
+  }
+
+  return writeBufferSubData(device, buffer, source, {
+    bufferByteOffset: range.floatOffset * FLOAT32_BYTES,
+    dataByteOffset: range.floatOffset * FLOAT32_BYTES,
+    byteLength: range.floatCount * FLOAT32_BYTES,
+  })
+    ? "sub-range"
+    : false;
 }
 
 export function sameStringList(
