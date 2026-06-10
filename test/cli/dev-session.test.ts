@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { PassThrough } from "node:stream";
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import net from "node:net";
 import os from "node:os";
 import path from "node:path";
@@ -103,6 +103,44 @@ describe("Aperture CLI dev session and MCP command surface", () => {
     expect(logs.stdout).toContain("browser two");
     expect(down.exitCode).toBe(0);
     expect(await readApertureDevSession(root)).toBeNull();
+  });
+
+  it("replaces session.json atomically without leaving temp files", async () => {
+    const root = await tempRoot();
+    const session = createApertureDevSession({
+      appRoot: root,
+      url: "http://127.0.0.1:5173/",
+      host: "127.0.0.1",
+      port: 5173,
+      daemonPid: null,
+      serverPid: null,
+      browserPid: null,
+      browserCdpPort: null,
+      browserHeadless: true,
+      daemonState: "running",
+      serverState: "running",
+      browserState: "starting",
+      logs: {
+        daemon: "daemon.log",
+        server: "server.log",
+        browser: "browser.log",
+      },
+    });
+
+    // The daemon rewrites the session file while other CLI processes read it;
+    // both the initial write and an overwrite must land via rename so readers
+    // never observe partial JSON, and must not leave temp files behind.
+    await writeApertureDevSession(session);
+    await writeApertureDevSession({
+      ...session,
+      browser: { ...session.browser, state: "running" },
+    });
+
+    expect(await readdir(apertureRuntimeDir(root))).toEqual(["session.json"]);
+    expect(await readApertureDevSession(root)).toMatchObject({
+      port: 5173,
+      browser: { state: "running" },
+    });
   });
 
   it("serves MCP initialize, tools/list, and missing-session tool diagnostics over stdio", async () => {

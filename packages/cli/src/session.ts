@@ -1,4 +1,4 @@
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 export const APERTURE_DEVTOOLS_PROTOCOL_VERSION = 1;
@@ -94,9 +94,24 @@ export async function writeApertureDevSession(
   session: ApertureDevSession,
 ): Promise<void> {
   const sessionFile = apertureSessionFile(session.appRoot);
+  // The daemon rewrites this file while `aperture dev`/MCP commands read it;
+  // write-then-rename keeps every read a complete JSON document instead of
+  // surfacing "Unexpected end of JSON input" from a half-flushed write.
+  const temporaryFile = `${sessionFile}.${process.pid}.tmp`;
 
   await mkdir(path.dirname(sessionFile), { recursive: true });
-  await writeFile(sessionFile, `${JSON.stringify(session, null, 2)}\n`, "utf8");
+  await writeFile(
+    temporaryFile,
+    `${JSON.stringify(session, null, 2)}\n`,
+    "utf8",
+  );
+
+  try {
+    await rename(temporaryFile, sessionFile);
+  } catch (error: unknown) {
+    await rm(temporaryFile, { force: true });
+    throw error;
+  }
 }
 
 export async function clearApertureDevSession(appRoot: string): Promise<void> {
