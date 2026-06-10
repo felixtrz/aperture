@@ -11,7 +11,27 @@ import { pushVec4 } from "./extraction-packing.js";
 
 export interface RenderExtractionCache {
   readonly meshDrawEntities: Map<string, CachedMeshDrawEntity>;
+  /**
+   * Persistent numeric accumulators reused across frames (AI-30): reset to
+   * length 0 at the start of each extraction and copied into fresh per-frame
+   * typed arrays before the snapshot is returned, so reuse can never alias a
+   * previously returned snapshot.
+   */
+  readonly scratch: RenderExtractionScratch;
   clear(): void;
+}
+
+export interface RenderExtractionScratch {
+  readonly transforms: number[];
+  readonly bones: number[];
+  readonly morphTargetWeights: number[];
+  readonly morphTargetDeltas: number[];
+  readonly morphInstanceDescriptors: number[];
+  readonly instanceTints: number[];
+  readonly instanceAttributes: number[];
+  readonly quadInstanceFloats: number[];
+  readonly quadInstanceWords: number[];
+  readonly viewMatrices: number[];
 }
 
 type MeshDrawPacketTemplate = Omit<
@@ -36,6 +56,18 @@ export function createRenderExtractionCache(): RenderExtractionCache {
 
   return {
     meshDrawEntities,
+    scratch: {
+      transforms: [],
+      bones: [],
+      morphTargetWeights: [],
+      morphTargetDeltas: [],
+      morphInstanceDescriptors: [],
+      instanceTints: [],
+      instanceAttributes: [],
+      quadInstanceFloats: [],
+      quadInstanceWords: [],
+      viewMatrices: [],
+    },
     clear() {
       meshDrawEntities.clear();
     },
