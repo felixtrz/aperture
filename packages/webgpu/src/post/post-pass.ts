@@ -86,6 +86,7 @@ export interface WebGpuPostEffectPrepareOptions {
 }
 
 export type WebGpuPreparedPostEffectGraphPassKind =
+  | "brightpass"
   | "downsample"
   | "upsample"
   | "composite"
@@ -104,9 +105,13 @@ export interface WebGpuPreparedPostEffectGraphPass {
 }
 
 export interface WebGpuPreparedPostEffectGraphReport {
-  readonly topology: "single-pass" | "downsample-upsample";
+  readonly topology:
+    | "single-pass"
+    | "downsample-upsample"
+    | "brightpass-downsample-upsample";
   readonly passCount: number;
   readonly resourceCount: number;
+  readonly brightpassPasses?: number;
   readonly downsamplePasses: number;
   readonly upsamplePasses: number;
   readonly compositePasses: number;

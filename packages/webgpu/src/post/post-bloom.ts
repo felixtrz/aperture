@@ -22,7 +22,11 @@ export interface CreateWebGpuBloomPostEffectOptions {
   readonly levels?: number;
 }
 
-type BloomPostPipelineKind = "downsample" | "upsample" | "composite";
+type BloomPostPipelineKind =
+  | "brightpass"
+  | "downsample"
+  | "upsample"
+  | "composite";
 
 interface CachedBloomPostPipeline {
   readonly key: string;
@@ -40,6 +44,7 @@ export function createWebGpuBloomPostEffect(
   const radiusPixels = clampFinite(options.radiusPixels ?? 1.5, 0.25, 16);
   const levelCount = clampInteger(options.levels ?? 2, 2, 6);
   const pipelines = new Map<string, CachedBloomPostPipeline>();
+  const brightpassSlot = createWebGpuPostPassTextureCacheSlot();
   const downsampleSlots = Array.from({ length: levelCount }, () =>
     createWebGpuPostPassTextureCacheSlot(),
   );
@@ -67,10 +72,29 @@ export function createWebGpuBloomPostEffect(
         return preparedBloomPass(id, label, [], diagnostics);
       }
 
+      // Canonical bloom: threshold at FULL resolution first (a half-res
+      // bilinear fetch averages small bright features with their dark
+      // neighbours before the threshold sees them, cutting them to black),
+      // then blur down the chain without re-thresholding.
+      const brightpassTexture = createOrReuseWebGpuPostPassTexture({
+        device: prepareOptions.device,
+        slot: brightpassSlot,
+        width: prepareOptions.input.width,
+        height: prepareOptions.input.height,
+        format: prepareOptions.outputFormat,
+        label: `${prepareOptions.label}:${id}:brightpass`,
+      });
+
+      diagnostics.push(...brightpassTexture.diagnostics);
+
+      if (!brightpassTexture.valid || brightpassTexture.resource === null) {
+        return preparedBloomPass(id, label, [], diagnostics);
+      }
+
       const downsampleResources = prepareBloomTextureChain({
         device: prepareOptions.device,
         slots: downsampleSlots,
-        source: prepareOptions.input,
+        source: brightpassTexture.resource,
         format: prepareOptions.outputFormat,
         label: `${prepareOptions.label}:${id}:downsample`,
         diagnostics,
@@ -106,6 +130,7 @@ export function createWebGpuBloomPostEffect(
         threshold,
         intensity,
         radiusPixels,
+        brightpassResource: brightpassTexture.resource,
         downsampleResources,
         upsampleResources,
         ...(prepareOptions.output === undefined
@@ -213,11 +238,31 @@ function prepareBloomGraph(options: {
   readonly threshold: number;
   readonly intensity: number;
   readonly radiusPixels: number;
+  readonly brightpassResource: WebGpuPostPassTextureResource;
   readonly downsampleResources: readonly WebGpuPostPassTextureResource[];
   readonly upsampleResources: readonly WebGpuPostPassTextureResource[];
 }): WebGpuPreparedPostEffectGraph {
   const passes: WebGpuPreparedPostEffectGraphPass[] = [];
-  let input = options.input;
+
+  // Full-resolution bright extraction before any downsampling.
+  passes.push(
+    prepareSingleInputBloomGraphPass({
+      device: options.device,
+      pipelines: options.pipelines,
+      sampler: options.sampler,
+      effectId: options.effectId,
+      label: `${options.frameLabel}:${options.effectId}:brightpass`,
+      kind: "brightpass",
+      input: options.input,
+      output: options.brightpassResource,
+      outputFormat: options.outputFormat,
+      threshold: options.threshold,
+      intensity: options.intensity,
+      radiusPixels: options.radiusPixels,
+    }),
+  );
+
+  let input = options.brightpassResource;
 
   for (let level = 0; level < options.downsampleResources.length; level += 1) {
     const output = options.downsampleResources[level];
@@ -255,20 +300,24 @@ function prepareBloomGraph(options: {
     level -= 1
   ) {
     const output = options.upsampleResources[level];
+    const skip = options.downsampleResources[level];
 
-    if (output === undefined) {
+    if (output === undefined || skip === undefined) {
       continue;
     }
 
+    // Progressive upsample with the canonical skip-add: blur the coarser
+    // level up AND add the same-level downsample, so each level's extracted
+    // energy survives to the composite instead of only the coarsest level's.
     passes.push(
-      prepareSingleInputBloomGraphPass({
+      prepareUpsampleBloomGraphPass({
         device: options.device,
         pipelines: options.pipelines,
         sampler: options.sampler,
         effectId: options.effectId,
         label: `${options.frameLabel}:${options.effectId}:upsample:${level}`,
-        kind: "upsample",
-        input: bloomInput,
+        coarse: bloomInput,
+        skip,
         output,
         outputFormat: options.outputFormat,
         threshold: options.threshold,
@@ -300,10 +349,13 @@ function prepareBloomGraph(options: {
   return {
     passes,
     report: {
-      topology: "downsample-upsample",
+      topology: "brightpass-downsample-upsample",
       passCount: passes.length,
       resourceCount:
-        options.downsampleResources.length + options.upsampleResources.length,
+        1 +
+        options.downsampleResources.length +
+        options.upsampleResources.length,
+      brightpassPasses: 1,
       downsamplePasses: options.downsampleResources.length,
       upsamplePasses: options.upsampleResources.length,
       compositePasses: 1,
@@ -321,7 +373,7 @@ function prepareSingleInputBloomGraphPass(options: {
   readonly sampler: unknown;
   readonly effectId: string;
   readonly label: string;
-  readonly kind: Extract<BloomPostPipelineKind, "downsample" | "upsample">;
+  readonly kind: Extract<BloomPostPipelineKind, "brightpass" | "downsample">;
   readonly input: WebGpuPostPassTextureResource;
   readonly output: WebGpuPostPassTextureResource;
   readonly outputFormat: string;
@@ -361,6 +413,63 @@ function prepareSingleInputBloomGraphPass(options: {
     label: options.label,
     kind: options.kind,
     input: options.input.label,
+    output: "offscreen",
+    outputResource: options.output,
+    width: options.output.width,
+    height: options.output.height,
+    commands,
+    diagnostics,
+  };
+}
+
+function prepareUpsampleBloomGraphPass(options: {
+  readonly device: WebGpuPostPassDeviceLike;
+  readonly pipelines: Map<string, CachedBloomPostPipeline>;
+  readonly sampler: unknown;
+  readonly effectId: string;
+  readonly label: string;
+  readonly coarse: WebGpuPostPassTextureResource;
+  readonly skip: WebGpuPostPassTextureResource;
+  readonly output: WebGpuPostPassTextureResource;
+  readonly outputFormat: string;
+  readonly threshold: number;
+  readonly intensity: number;
+  readonly radiusPixels: number;
+}): WebGpuPreparedPostEffectGraphPass {
+  const diagnostics: WebGpuPostPassDiagnostic[] = [];
+  const pipelineResult = getOrCreateBloomPostPipeline({
+    device: options.device,
+    pipelines: options.pipelines,
+    outputFormat: options.outputFormat,
+    label: `${options.label}:pipeline`,
+    effectId: options.effectId,
+    kind: "upsample",
+    threshold: options.threshold,
+    intensity: options.intensity,
+    radiusPixels: options.radiusPixels,
+    diagnostics,
+  });
+
+  const commands =
+    pipelineResult === null
+      ? []
+      : createTwoInputBloomCommands({
+          device: options.device,
+          sampler: options.sampler,
+          pipeline: pipelineResult.pipeline,
+          pipelineKey: pipelineResult.key,
+          effectId: options.effectId,
+          label: options.label,
+          first: options.coarse,
+          second: options.skip,
+          resourceKey: `${options.effectId}:upsample:${options.coarse.label}:${options.skip.label}`,
+          diagnostics,
+        });
+
+  return {
+    label: options.label,
+    kind: "upsample",
+    input: options.coarse.label,
     output: "offscreen",
     outputResource: options.output,
     width: options.output.width,
@@ -546,14 +655,40 @@ function createCompositeBloomCommands(options: {
   readonly bloom: WebGpuPostPassTextureResource;
   readonly diagnostics: WebGpuPostPassDiagnostic[];
 }): readonly RenderPassCommand[] {
-  const baseView = options.base.texture.createView?.();
-  const bloomView = options.bloom.texture.createView?.();
+  return createTwoInputBloomCommands({
+    device: options.device,
+    sampler: options.sampler,
+    pipeline: options.pipeline,
+    pipelineKey: options.pipelineKey,
+    effectId: options.effectId,
+    label: options.label,
+    first: options.base,
+    second: options.bloom,
+    resourceKey: `${options.effectId}:composite:${options.base.label}:${options.bloom.label}`,
+    diagnostics: options.diagnostics,
+  });
+}
+
+function createTwoInputBloomCommands(options: {
+  readonly device: WebGpuPostPassDeviceLike;
+  readonly sampler: unknown;
+  readonly pipeline: unknown;
+  readonly pipelineKey: string;
+  readonly effectId: string;
+  readonly label: string;
+  readonly first: WebGpuPostPassTextureResource;
+  readonly second: WebGpuPostPassTextureResource;
+  readonly resourceKey: string;
+  readonly diagnostics: WebGpuPostPassDiagnostic[];
+}): readonly RenderPassCommand[] {
+  const baseView = options.first.texture.createView?.();
+  const bloomView = options.second.texture.createView?.();
 
   if (baseView === undefined || bloomView === undefined) {
     options.diagnostics.push({
       code: "webGpuPostPass.inputTextureViewUnavailable",
       effectId: options.effectId,
-      message: `Bloom post effect '${options.effectId}' cannot sample composite textures '${options.base.label}' and '${options.bloom.label}'.`,
+      message: `Bloom post effect '${options.effectId}' cannot sample textures '${options.first.label}' and '${options.second.label}'.`,
     });
     return [];
   }
@@ -595,7 +730,7 @@ function createCompositeBloomCommands(options: {
   return bloomDrawCommands({
     pipelineKey: options.pipelineKey,
     pipeline: options.pipeline,
-    resourceKey: `${options.effectId}:composite:${options.base.label}:${options.bloom.label}`,
+    resourceKey: options.resourceKey,
     bindGroup,
   });
 }
@@ -758,11 +893,13 @@ function bloomPostEffectWgsl(options: {
   const fragment =
     options.kind === "composite"
       ? bloomCompositeFragmentWgsl(options)
-      : bloomSingleInputFragmentWgsl({
-          kind: options.kind,
-          threshold: options.threshold,
-          radiusPixels: options.radiusPixels,
-        });
+      : options.kind === "brightpass"
+        ? bloomBrightpassFragmentWgsl({ threshold: options.threshold })
+        : options.kind === "upsample"
+          ? bloomUpsampleFragmentWgsl({ radiusPixels: options.radiusPixels })
+          : bloomSingleInputFragmentWgsl({
+              radiusPixels: options.radiusPixels,
+            });
 
   return `
 struct VertexOutput {
@@ -792,32 +929,42 @@ ${fragment}
 `;
 }
 
-function bloomSingleInputFragmentWgsl(options: {
-  readonly kind: Extract<BloomPostPipelineKind, "downsample" | "upsample">;
+function bloomBrightpassFragmentWgsl(options: {
   readonly threshold: number;
+}): string {
+  // Threshold at FULL resolution with a single tap: the uv lands exactly on
+  // the matching input texel center, so the linear sampler returns the texel
+  // value untouched and small bright features survive the extraction.
+  return `
+@group(0) @binding(0) var inputSampler: sampler;
+@group(0) @binding(1) var inputTexture: texture_2d<f32>;
+
+const BLOOM_THRESHOLD = ${wgslNumber(options.threshold)};
+const LUMA = vec3f(0.299, 0.587, 0.114);
+
+@fragment
+fn fs(input: VertexOutput) -> @location(0) vec4f {
+  let color = textureSample(inputTexture, inputSampler, clamp(input.uv, vec2f(0.0), vec2f(1.0))).rgb;
+  let luminance = dot(color, LUMA);
+  let amount = smoothstep(BLOOM_THRESHOLD, 1.0, luminance);
+  return vec4f(color * amount, 1.0);
+}
+`;
+}
+
+function bloomSingleInputFragmentWgsl(options: {
   readonly radiusPixels: number;
 }): string {
-  const threshold = wgslNumber(options.threshold);
   const radius = wgslNumber(options.radiusPixels);
-  const thresholdExpression =
-    options.kind === "downsample" ? "brightContribution(color)" : "color";
 
   return `
 @group(0) @binding(0) var inputSampler: sampler;
 @group(0) @binding(1) var inputTexture: texture_2d<f32>;
 
-const BLOOM_THRESHOLD = ${threshold};
 const BLOOM_RADIUS_PIXELS = ${radius};
-const LUMA = vec3f(0.299, 0.587, 0.114);
 
 fn sampleColor(uv: vec2f) -> vec3f {
   return textureSample(inputTexture, inputSampler, clamp(uv, vec2f(0.0), vec2f(1.0))).rgb;
-}
-
-fn brightContribution(color: vec3f) -> vec3f {
-  let luminance = dot(color, LUMA);
-  let amount = smoothstep(BLOOM_THRESHOLD, 1.0, luminance);
-  return color * amount;
 }
 
 @fragment
@@ -834,7 +981,43 @@ fn fs(input: VertexOutput) -> @location(0) vec4f {
   color += sampleColor(uv + texel * vec2f(-1.0, 1.0) * BLOOM_RADIUS_PIXELS) * 0.02;
   color += sampleColor(uv + texel * vec2f(1.0, -1.0) * BLOOM_RADIUS_PIXELS) * 0.02;
   color += sampleColor(uv + texel * vec2f(-1.0, -1.0) * BLOOM_RADIUS_PIXELS) * 0.02;
-  return vec4f(${thresholdExpression}, 1.0);
+  return vec4f(color, 1.0);
+}
+`;
+}
+
+function bloomUpsampleFragmentWgsl(options: {
+  readonly radiusPixels: number;
+}): string {
+  // Progressive upsample: blur the coarser level up and ADD the same-level
+  // downsample (skip connection), preserving each level's extracted energy.
+  return `
+@group(0) @binding(0) var inputSampler: sampler;
+@group(0) @binding(1) var coarseTexture: texture_2d<f32>;
+@group(0) @binding(2) var skipTexture: texture_2d<f32>;
+
+const BLOOM_RADIUS_PIXELS = ${wgslNumber(options.radiusPixels)};
+
+fn sampleCoarse(uv: vec2f) -> vec3f {
+  return textureSample(coarseTexture, inputSampler, clamp(uv, vec2f(0.0), vec2f(1.0))).rgb;
+}
+
+@fragment
+fn fs(input: VertexOutput) -> @location(0) vec4f {
+  let dimensions = vec2f(textureDimensions(coarseTexture, 0));
+  let texel = 1.0 / max(dimensions, vec2f(1.0));
+  let uv = input.uv;
+  var color = sampleCoarse(uv) * 0.36;
+  color += sampleCoarse(uv + texel * vec2f(1.0, 0.0) * BLOOM_RADIUS_PIXELS) * 0.14;
+  color += sampleCoarse(uv + texel * vec2f(-1.0, 0.0) * BLOOM_RADIUS_PIXELS) * 0.14;
+  color += sampleCoarse(uv + texel * vec2f(0.0, 1.0) * BLOOM_RADIUS_PIXELS) * 0.14;
+  color += sampleCoarse(uv + texel * vec2f(0.0, -1.0) * BLOOM_RADIUS_PIXELS) * 0.14;
+  color += sampleCoarse(uv + texel * vec2f(1.0, 1.0) * BLOOM_RADIUS_PIXELS) * 0.02;
+  color += sampleCoarse(uv + texel * vec2f(-1.0, 1.0) * BLOOM_RADIUS_PIXELS) * 0.02;
+  color += sampleCoarse(uv + texel * vec2f(1.0, -1.0) * BLOOM_RADIUS_PIXELS) * 0.02;
+  color += sampleCoarse(uv + texel * vec2f(-1.0, -1.0) * BLOOM_RADIUS_PIXELS) * 0.02;
+  let skip = textureSample(skipTexture, inputSampler, clamp(uv, vec2f(0.0), vec2f(1.0))).rgb;
+  return vec4f(color + skip, 1.0);
 }
 `;
 }

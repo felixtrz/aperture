@@ -432,40 +432,78 @@ test("bloom post effect adds glow around bright pixels", async ({ page }) => {
         isLast: true,
         label: `bloom-${effect.id}`,
       });
-      const boundary = assembleFrameBoundary({
-        context: { getCurrentTexture: () => null },
-        device: device as unknown as Parameters<
-          typeof assembleFrameBoundary
-        >[0]["device"],
-        queue: device.queue as unknown as Parameters<
-          typeof assembleFrameBoundary
-        >[0]["queue"],
-        commands: prepared.commands,
-        label: `bloom-${effect.id}`,
-        colorTarget: {
-          source: "offscreen-target",
-          texture: outputTexture,
-        },
-        clearColor: [0, 0, 0, 1],
-        readback: {
-          format,
-          width,
-          height,
-          samples,
-        },
-      });
+      // Graph-based effects (bloom's downsample/upsample/composite topology)
+      // carry their work in prepared.graph.passes with empty flat commands;
+      // execute each pass into its own output texture, directing the final
+      // (composite) pass at the probe's output target. Flat effects (copy)
+      // keep the single-boundary path.
+      const graphPasses = prepared.graph?.passes ?? null;
+      const passPlans =
+        graphPasses === null
+          ? [
+              {
+                commands: prepared.commands,
+                texture: outputTexture,
+                last: true,
+              },
+            ]
+          : graphPasses.map((pass, index) => ({
+              commands: pass.commands,
+              texture:
+                index === graphPasses.length - 1
+                  ? outputTexture
+                  : (pass.outputResource?.texture ?? outputTexture),
+              last: index === graphPasses.length - 1,
+            }));
+      let boundary: ReturnType<typeof assembleFrameBoundary> | null = null;
+      let allValid = true;
+
+      for (const plan of passPlans) {
+        const passBoundary = assembleFrameBoundary({
+          context: { getCurrentTexture: () => null },
+          device: device as unknown as Parameters<
+            typeof assembleFrameBoundary
+          >[0]["device"],
+          queue: device.queue as unknown as Parameters<
+            typeof assembleFrameBoundary
+          >[0]["queue"],
+          commands: plan.commands,
+          label: `bloom-${effect.id}`,
+          colorTarget: {
+            source: "offscreen-target",
+            texture: plan.texture,
+          },
+          clearColor: [0, 0, 0, 1],
+          ...(plan.last
+            ? {
+                readback: {
+                  format,
+                  width,
+                  height,
+                  samples,
+                },
+              }
+            : {}),
+        });
+
+        allValid = allValid && passBoundary.valid;
+        boundary = passBoundary;
+      }
 
       await device.queue.onSubmittedWorkDone();
 
       const readback = await mapFrameBoundaryReadbackSamples(
-        boundary.readback,
-        boundary.valid && prepared.diagnostics.length === 0,
+        boundary?.readback ?? null,
+        allValid && prepared.diagnostics.length === 0,
       );
 
       outputTexture.destroy();
       return {
-        ok: boundary.valid && prepared.diagnostics.length === 0,
-        diagnostics: [...prepared.diagnostics, ...boundary.texture.diagnostics],
+        ok: allValid && prepared.diagnostics.length === 0,
+        diagnostics: [
+          ...prepared.diagnostics,
+          ...(boundary?.texture.diagnostics ?? []),
+        ],
         readback,
       };
     }

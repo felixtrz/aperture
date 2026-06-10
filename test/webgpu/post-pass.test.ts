@@ -164,9 +164,10 @@ describe("WebGPU post-pass helpers", () => {
       commands: [],
       graph: {
         report: {
-          topology: "downsample-upsample",
-          passCount: 4,
-          resourceCount: 3,
+          topology: "brightpass-downsample-upsample",
+          passCount: 5,
+          resourceCount: 4,
+          brightpassPasses: 1,
           downsamplePasses: 2,
           upsamplePasses: 1,
           compositePasses: 1,
@@ -178,15 +179,25 @@ describe("WebGPU post-pass helpers", () => {
       },
     });
     expect(prepared.graph?.passes.map((pass) => pass.kind)).toEqual([
+      "brightpass",
       "downsample",
       "downsample",
       "upsample",
       "composite",
     ]);
     expect(prepared.graph?.passes.map((pass) => pass.commands.length)).toEqual([
-      3, 3, 3, 3,
+      3, 3, 3, 3, 3,
     ]);
     expect(prepared.graph?.passes[0]?.commands).toMatchObject([
+      {
+        kind: "setPipeline",
+        pipelineKey:
+          "webgpu-post-bloom|brightpass|rgba8unorm|0.7000|1.2500|2.0000",
+      },
+      { kind: "setBindGroup", index: 0 },
+      { kind: "draw", vertexCount: 3 },
+    ]);
+    expect(prepared.graph?.passes[1]?.commands).toMatchObject([
       {
         kind: "setPipeline",
         pipelineKey:
@@ -195,7 +206,7 @@ describe("WebGPU post-pass helpers", () => {
       { kind: "setBindGroup", index: 0 },
       { kind: "draw", vertexCount: 3 },
     ]);
-    expect(prepared.graph?.passes[3]?.commands).toMatchObject([
+    expect(prepared.graph?.passes[4]?.commands).toMatchObject([
       {
         kind: "setPipeline",
         pipelineKey:
