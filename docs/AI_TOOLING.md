@@ -77,10 +77,38 @@ Most tools only inspect state. These tools intentionally change development
 state:
 
 - `ecs_set_component_field`: mutates allowlisted ECS component fields only.
-  The initial allowlist is `aperture.metadata.debug.tag` and
-  `aperture.metadata.debug.note`. Unsupported components, unsupported fields,
-  stale entity refs, missing components, and invalid value types return
-  structured diagnostics.
+  Unsupported components, unsupported fields, stale entity refs, missing
+  components, and invalid value types return structured diagnostics. The
+  allowlist below is generated from the registry
+  (`listMutableComponentFields()` in
+  `packages/app/src/entities/lookup/mutation.ts`); a unit test fails when this
+  doc and the registry diverge:
+  - `aperture.metadata.debug`: `tag`, `note`
+  - `aperture.transform.local`: `translation`, `rotation`, `scale`
+  - `aperture.physics.rigidBody`: `enabled`, `type`, `gravityScale`, `linearDamping`, `angularDamping`, `canSleep`, `ccdEnabled`, `lockTranslationX`, `lockTranslationY`, `lockTranslationZ`, `lockRotationX`, `lockRotationY`, `lockRotationZ`
+  - `aperture.physics.collider`: `enabled`, `shapeKind`, `halfExtents`, `radius`, `halfHeight`, `axis`, `meshId`, `heightfieldAssetId`, `offsetTranslation`, `offsetRotation`, `sensor`, `density`, `friction`, `restitution`, `collisionGroups`, `solverGroups`
+  - `aperture.physics.velocity`: `linear`, `angular`
+  - `aperture.physics.externalForce`: `force`, `torque`
+  - `aperture.physics.externalImpulse`: `impulse`, `angularImpulse`
+  - `aperture.physics.kinematicTarget`: `enabled`, `translation`, `rotation`
+  - `aperture.physics.gravity`: `gravity`
+  - `aperture.physics.characterController`: `enabled`, `offset`, `up`, `slide`, `maxSlopeClimbAngleEnabled`, `maxSlopeClimbAngle`, `minSlopeSlideAngleEnabled`, `minSlopeSlideAngle`, `snapToGroundDistance`, `autostepEnabled`, `autostepMaxHeight`, `autostepMinWidth`, `autostepIncludeDynamicBodies`, `applyImpulsesToDynamicBodies`, `characterMassMode`, `characterMass`
+  - `aperture.physics.material`: `friction`, `restitution`, `density`, `frictionCombine`, `restitutionCombine`
+  - `aperture.physics.debug`: `colliderWireframes`, `contactNormals`, `bodyStateMarkers`, `broadphaseAabbs`, `jointFrames`
+  - `aperture.physics.joint`: `enabled`, `kind`, `bodyARef`, `bodyBRef`, `anchorA`, `anchorB`, `frameA`, `frameB`, `axis`, `minLimit`, `maxLimit`, `motorMode`, `motorModel`, `motorTarget`, `motorVelocity`, `motorStiffness`, `motorDamping`, `motorFactor`, `motorMaxForce`, `contactsEnabled`, `breakForce`
+  - `aperture.metadata.name`: `value`
+  - `aperture.render.visibility`: `visible`
+  - `aperture.render.layer`: `mask`
+  - `aperture.render.instanceTint`: `color`
+  - `aperture.render.light`: `color`, `intensity`, `range`, `innerConeAngle`, `outerConeAngle`, `width`, `height`, `layerMask`
+  - `aperture.render.camera`: `priority`, `layerMask`, `near`, `far`, `fovYRadians`, `aspect`, `orthographicHeight`, `frustumCulling`, `renderTargetId`, `clearColor`
+
+  Material parameters are deliberately NOT in this registry: material edits
+  flow through the versioned `materials.set` patch path
+  (`this.materials.set(handle, patch)` from app systems), which re-registers
+  the asset so the GPU material is re-prepared. A `material_set` devtools tool
+  over that path is a tracked follow-up.
+
 - `ecs_pause`, `ecs_resume`, `ecs_step`: change simulation control state in the
   generated worker.
 - `input_key`, `input_pointer_move`, `input_pointer_click`, `input_drag`,
