@@ -133,6 +133,8 @@ const expectedImports = {
   "@aperture-engine/physics": "/packages/physics/dist/index.js",
   "@aperture-engine/simulation": "/packages/simulation/dist/index.js",
   "@aperture-engine/webgpu": "/packages/webgpu/dist/index.js",
+  "@aperture-engine/webgpu/test-support":
+    "/packages/webgpu/dist/test-support.js",
   elics: "/node_modules/elics/lib/index.js",
   "wgpu-matrix": "/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
   "@preact/signals-core":
