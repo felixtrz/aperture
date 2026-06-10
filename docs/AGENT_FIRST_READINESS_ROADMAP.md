@@ -209,7 +209,7 @@ _Inspection is excellent; writing and self-serve feedback lag. Close the loop ag
 
 ## Phase R5 — Performance floor at scale
 
-**Status: IN PROGRESS (2026-06-10)** — AI-13 ✅ (per-app persistent extraction cache, byte-identical + determinism-fixture-verified), AI-60 cheap half ✅ (one resolve/refresh per steady-state step via `worldChangeVersion()`), AI-66 ✅ (`writeBufferSubData`). Open: AI-64 (dirty-range transform uploads; depends on AI-67's transform-version split), AI-30 (bench-gated scratch reuse — harness now exists), AI-65/AI-67.
+**Status: 5/7 COMPLETE (2026-06-10)** — AI-13 ✅, AI-60 cheap half ✅, AI-66 ✅, AI-67 ✅ (transform-only fast path on the split `entityTransformVersion`), AI-30 ✅ (persistent scratch, golden-verified). Open: AI-64 (wire `RenderSnapshotUpdateSchedule` + the now-available transform versions into dirty-range uploads via `writeBufferSubData`) and AI-65 (generalize to view/light/material buffers) — both XL items with every prerequisite now landed.
 
 _Sequenced per `docs/ACTIONABLE_ROADMAP.md` Phase 3; listed here because scene-scale perf is part of the agent-first promise ("performance transparency" means acceptable performance plus honest reports). Execute in this order; cite AI-76 bench deltas (R1.6) for each._
 
@@ -226,7 +226,7 @@ Canonical ACs for all six: `docs/ACTIONABLE_ROADMAP.md` Phase 3.
 
 ## Phase R6 — Platform stubs that undermine the claim
 
-**Status: IN PROGRESS (2026-06-10)** — AI-87 ✅ (every authored env map prefilters; placeholders retired). AI-12/AI-25 and AI-47 in flight. AI-82 deferred with rationale: the real-embedding swap needs an ONNX/transformers.js-class dependency — a repo-owner decision per AGENTS.md's no-large-dependencies rule; the index format is versioned and ready.
+**Status: ✅ COMPLETE except deferred AI-82 (2026-06-10)** — AI-87 ✅, AI-12 ✅ (user passes on the forward graph route; legacy route diagnoses loudly), AI-25 ✅ (FrameGraph default ON at parity + e2e gating spec), AI-47 ✅ (wheel input + UiScroll mapping). AI-82 deferred with rationale: the real-embedding swap needs an ONNX/transformers.js-class dependency — a repo-owner decision per AGENTS.md's no-large-dependencies rule; the index format is versioned and ready.
 
 _Each is an existing-feature-area completion whose absence makes a public API silently lie — worse than a missing feature for an agent that trusts contracts._
 

@@ -1,5 +1,14 @@
 # North Star
 
+> **Agent-first readiness status (2026-06-10):** the agent-first loop is now
+> CI-verified end to end — the full e2e suite runs sharded with golden-image
+> baselines and skip gating, coverage thresholds gate CI, determinism is
+> enforced by a committed replay/snapshot-hash fixture, the agent
+> read→write→verify→revert loop is documented and registry-synced, and the
+> cold-start path (scaffold → dev up → MCP tools → pixels) is exercised by CI
+> from a clean workspace. See `docs/AGENT_FIRST_READINESS_ROADMAP.md` (R1–R4
+> complete; R5 5/7; R6 complete except the deferred AI-82).
+
 ## Project Vision
 
 Build a WebGPU-only, ECS-native 3D runtime for the web that can eventually replace three.js inside an IWSDK-style stack.
