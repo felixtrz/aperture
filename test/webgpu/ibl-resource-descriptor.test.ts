@@ -56,7 +56,7 @@ describe("IBL resource descriptors", () => {
     expect(JSON.stringify(json)).not.toContain("GPU");
   });
 
-  it("reports unsupported placeholders without claiming shader sampling", () => {
+  it("reports source-not-prepared placeholders for descriptors without resource keys", () => {
     const report = createIblResourceDescriptorReport({
       snapshot: [environment(1, "studio")],
       descriptors: [
@@ -90,9 +90,12 @@ describe("IBL resource descriptors", () => {
       },
     ]);
     expect(json.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
-      "iblResourceDescriptor.diffuseUnsupported",
-      "iblResourceDescriptor.specularUnsupported",
+      "iblResourceDescriptor.diffuseSourceNotPrepared",
+      "iblResourceDescriptor.specularSourceNotPrepared",
     ]);
+    expect(
+      json.diagnostics.map((diagnostic) => diagnostic.message),
+    ).not.toContainEqual(expect.stringContaining("without enabling"));
   });
 
   it("diagnoses missing descriptors for required environment resources", () => {
@@ -107,8 +110,8 @@ describe("IBL resource descriptors", () => {
     expect(json.sections.iblDescriptors).toBe(false);
     expect(json.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
       "iblResourceDescriptor.missingDescriptor",
-      "iblResourceDescriptor.diffuseUnsupported",
-      "iblResourceDescriptor.specularUnsupported",
+      "iblResourceDescriptor.diffuseSourceNotPrepared",
+      "iblResourceDescriptor.specularSourceNotPrepared",
     ]);
   });
 

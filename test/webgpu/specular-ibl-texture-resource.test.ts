@@ -9,6 +9,7 @@ import {
   specularIblTextureResourceReportToJsonValue,
   type EnvironmentPacket,
   type TextureGpuDeviceLike,
+  type TextureGpuResource,
 } from "@aperture-engine/webgpu/test-support";
 
 describe("specular IBL texture resource", () => {
@@ -52,10 +53,11 @@ describe("specular IBL texture resource", () => {
       ],
       diagnostics: [
         {
-          code: "iblTextureResource.specularPrefilteringDeferred",
+          code: "iblTextureResource.specularSourceNotPrepared",
           severity: "warning",
+          resourceKey: "texture:studio:specular-prefilter:texture",
           message:
-            "Specular IBL texture resources are allocated, but prefilter pass execution remains deferred.",
+            "Specular IBL slot 'texture:studio:specular-prefilter:texture' has no prepared source (cube faces, source texture, or equirect projection); a neutral placeholder cube is bound until a source is provided.",
         },
       ],
     });
@@ -114,6 +116,89 @@ describe("specular IBL texture resource", () => {
     expect(JSON.stringify(json)).not.toMatch(
       /specularProofUploadPlaceholder|GPUTexture|GPUTextureView|"raw"/,
     );
+  });
+
+  it("prefilters a cube source texture without emitting placeholder diagnostics", () => {
+    const calls: string[] = [];
+    const device = pmremDevice(calls);
+    const sourceTexture: TextureGpuResource = {
+      resourceKey: "texture:studio:projected-cube",
+      texture: device.createTexture({ label: "projected-cube" }),
+      view: { label: "projected-cube-view" },
+      descriptor: {
+        size: [4, 4, 6],
+        format: "rgba8unorm",
+        usage: 22,
+      },
+    };
+    const report = createSpecularIblTextureResourceReport({
+      device,
+      textures: textures("ready"),
+      pmremSources: [
+        {
+          sourceResourceKey: "texture:studio:specular-prefilter",
+          label: "studio",
+          faceSize: 4,
+          sourceTexture,
+          format: "rgba8unorm",
+          mipLevelCount: 3,
+        },
+      ],
+    });
+    const json = specularIblTextureResourceReportToJsonValue(report);
+
+    expect(json).toMatchObject({
+      ready: true,
+      status: "available",
+      sections: {
+        proofUpload: false,
+        prefiltering: true,
+      },
+      diagnostics: [],
+    });
+    expect(report.resources[0]?.resource?.prefiltered).toBe(true);
+    expect(calls.filter((call) => call === "writeTexture")).toHaveLength(0);
+    expect(calls.filter((call) => call === "dispatch")).toHaveLength(3);
+    expect(JSON.stringify(json)).not.toMatch(
+      /specularSourceNotPrepared|specularProofUploadPlaceholder|specularPrefilteringDeferred/,
+    );
+  });
+
+  it("replaces a cached placeholder cube once a PMREM source becomes available", () => {
+    const calls: string[] = [];
+    const cache = new Map<string, TextureGpuResource>();
+    const placeholder = createSpecularIblTextureResourceReport({
+      device: pmremDevice(calls),
+      textures: textures("ready"),
+      cache,
+    });
+    const prefiltered = createSpecularIblTextureResourceReport({
+      device: pmremDevice(calls),
+      textures: textures("ready"),
+      cache,
+      pmremSources: [
+        {
+          sourceResourceKey: "texture:studio:specular-prefilter",
+          label: "studio",
+          faceSize: 4,
+          faces: cubeFaces(4),
+          format: "rgba8unorm",
+          mipLevelCount: 3,
+        },
+      ],
+    });
+
+    expect(placeholder.sections.prefiltering).toBe(false);
+    expect(
+      placeholder.diagnostics.map((diagnostic) => diagnostic.code),
+    ).toEqual(["iblTextureResource.specularSourceNotPrepared"]);
+    expect(prefiltered.sections.prefiltering).toBe(true);
+    expect(prefiltered.createdTextureCount).toBe(1);
+    expect(prefiltered.reusedTextureCount).toBe(0);
+    expect(prefiltered.diagnostics).toEqual([]);
+    expect(
+      cache.get("texture:studio:specular-prefilter:texture")?.prefiltered,
+    ).toBe(true);
   });
 });
 

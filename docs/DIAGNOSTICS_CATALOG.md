@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1213
+Every structured diagnostic code the engine can emit (1209
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -729,12 +729,6 @@ suggestedFix accompanies it, and where it is emitted.
 | -------------------------------------------- | ----------------------------- | ---- | --------------------------------------------------------------------- |
 | `debugNormalRenderPipeline.shaderDiagnostic` | (message composed at runtime) | —    | `packages/webgpu/src/materials/debug-normal/debug-normal-pipeline.ts` |
 
-## diffuseIblResourceSummary.bindGroupLayoutDeferred (1)
-
-| Code                                                | Message                                                                                              | Fix? | Emitted from                                                   |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------- |
-| `diffuseIblResourceSummary.bindGroupLayoutDeferred` | Diffuse IBL resources are available, but StandardMaterial bind-group layout changes remain deferred. | —    | `packages/webgpu/src/lighting/diffuse-ibl-resource-summary.ts` |
-
 ## diffuseIblResourceSummary.resourceUnsupported (1)
 
 | Code                                            | Message                                                                                 | Fix? | Emitted from                                                   |
@@ -746,18 +740,6 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                               | Message                                                                | Fix? | Emitted from                                                   |
 | -------------------------------------------------- | ---------------------------------------------------------------------- | ---- | -------------------------------------------------------------- |
 | `diffuseIblResourceSummary.samplerResourceMissing` | Diffuse IBL resource summary requires available IBL sampler resources. | —    | `packages/webgpu/src/lighting/diffuse-ibl-resource-summary.ts` |
-
-## diffuseIblResourceSummary.shaderSamplingDeferred (1)
-
-| Code                                               | Message                                                                                     | Fix? | Emitted from                                                   |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------- |
-| `diffuseIblResourceSummary.shaderSamplingDeferred` | Diffuse IBL resources are available, but StandardMaterial shader sampling remains deferred. | —    | `packages/webgpu/src/lighting/diffuse-ibl-resource-summary.ts` |
-
-## diffuseIblResourceSummary.specularPrefilteringDeferred (1)
-
-| Code                                                     | Message                                                                          | Fix? | Emitted from                                                   |
-| -------------------------------------------------------- | -------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------- |
-| `diffuseIblResourceSummary.specularPrefilteringDeferred` | Diffuse IBL resources are available, but specular prefiltering remains deferred. | —    | `packages/webgpu/src/lighting/diffuse-ibl-resource-summary.ts` |
 
 ## diffuseIblResourceSummary.textureResourceMissing (1)
 
@@ -2121,17 +2103,11 @@ suggestedFix accompanies it, and where it is emitted.
 | ------------------------------------------------ | ----------------------------- | ---- | --------------------------------------------------------------- |
 | `iblTextureResource.specularPmremDispatchFailed` | (message composed at runtime) | —    | `packages/webgpu/src/lighting/ibl-texture-resource-specular.ts` |
 
-## iblTextureResource.specularPrefilteringDeferred (1)
+## iblTextureResource.specularSourceNotPrepared (1)
 
-| Code                                              | Message                                                                                      | Fix? | Emitted from                                                    |
-| ------------------------------------------------- | -------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
-| `iblTextureResource.specularPrefilteringDeferred` | Specular IBL texture resources are allocated, but prefilter pass execution remains deferred. | —    | `packages/webgpu/src/lighting/ibl-texture-resource-specular.ts` |
-
-## iblTextureResource.specularProofUploadPlaceholder (1)
-
-| Code                                                | Message                                                                                                                    | Fix? | Emitted from                                                    |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
-| `iblTextureResource.specularProofUploadPlaceholder` | Specular IBL texture resource uses a deterministic proof-upload placeholder; full PMREM/GGX prefiltering remains deferred. | —    | `packages/webgpu/src/lighting/ibl-texture-resource-specular.ts` |
+| Code                                           | Message                                                                                                                                                            | Fix? | Emitted from                                                    |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | --------------------------------------------------------------- |
+| `iblTextureResource.specularSourceNotPrepared` | Specular IBL slot '…' has no prepared source (cube faces, source texture, or equirect projection); a neutral placeholder cube is bound until a source is provided. | —    | `packages/webgpu/src/lighting/ibl-texture-resource-specular.ts` |
 
 ## iblTextureResource.unsupportedTextureSlots (1)
 

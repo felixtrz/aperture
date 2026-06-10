@@ -13,9 +13,10 @@ const resolveCalls = vi.hoisted(() => ({ count: 0 }));
 
 vi.mock("@aperture-engine/simulation", async (importOriginal) => {
   // vi.mock's importOriginal generic requires an inline import() type.
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  /* eslint-disable @typescript-eslint/consistent-type-imports */
   const actual =
     await importOriginal<typeof import("@aperture-engine/simulation")>();
+  /* eslint-enable @typescript-eslint/consistent-type-imports */
 
   return {
     ...actual,
