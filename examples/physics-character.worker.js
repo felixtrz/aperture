@@ -157,8 +157,10 @@ async function createWorkerScene(aperture, canvasSize) {
     aperture.withRenderLayer(1),
     aperture.withVisibility(true),
     aperture.withRigidBody({ type: aperture.PhysicsRigidBodyType.Static }),
+    // Collider shapes are authored in LOCAL space (AI-1): the unit box mesh
+    // has 0.5 half-extents and the entity scale bakes in the world size.
     aperture.withCollider({
-      shape: { kind: "box", halfExtents: [2.7, 0.05, 1.4] },
+      shape: { kind: "box", halfExtents: [0.5, 0.5, 0.5] },
       friction: 0.8,
     }),
   );
@@ -173,7 +175,7 @@ async function createWorkerScene(aperture, canvasSize) {
     aperture.withVisibility(true),
     aperture.withRigidBody({ type: aperture.PhysicsRigidBodyType.Static }),
     aperture.withCollider({
-      shape: { kind: "box", halfExtents: [0.05, 0.75, 0.5] },
+      shape: { kind: "box", halfExtents: [0.5, 0.5, 0.5] },
     }),
   );
   app.spawn(
@@ -187,7 +189,7 @@ async function createWorkerScene(aperture, canvasSize) {
     aperture.withVisibility(true),
     aperture.withRigidBody({ type: aperture.PhysicsRigidBodyType.Static }),
     aperture.withCollider({
-      shape: { kind: "box", halfExtents: [0.15, 0.1, 0.35] },
+      shape: { kind: "box", halfExtents: [0.5, 0.5, 0.5] },
     }),
   );
   app.spawn(
@@ -202,7 +204,7 @@ async function createWorkerScene(aperture, canvasSize) {
     aperture.withVisibility(true),
     aperture.withRigidBody({ type: aperture.PhysicsRigidBodyType.Static }),
     aperture.withCollider({
-      shape: { kind: "box", halfExtents: [0.6, 0.04, 0.35] },
+      shape: { kind: "box", halfExtents: [0.5, 0.5, 0.5] },
     }),
   );
   const character = app.spawn(
@@ -218,8 +220,10 @@ async function createWorkerScene(aperture, canvasSize) {
       type: aperture.PhysicsRigidBodyType.KinematicPosition,
       canSleep: false,
     }),
+    // World-space capsule of radius 0.25 / half-height 0.5 under the visual
+    // scale: its bottom sits exactly on the floor plane at y = 0.
     aperture.withCollider({
-      shape: { kind: "capsule", radius: 0.25, halfHeight: 0.5 },
+      shape: { kind: "capsule", radius: 0.25 / 0.42, halfHeight: 0.5 / 1.1 },
       friction: 0.2,
     }),
     aperture.withPhysicsVelocity(),
