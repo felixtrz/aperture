@@ -134,6 +134,8 @@ _The North Star promises "same inputs → same snapshots". That is now a CI-enfo
 
 ## Phase R3 — The agent read→write→verify loop
 
+**Status: ✅ COMPLETE (2026-06-10)** — AF-3 (render-side mutation registry + doc-sync test), AF-4 (generated diagnostics catalog, CI-gated), AF-5 (`docs/recipes/`, all code lifted from committed sources). Residual: a `material_set` devtools tool over the documented `materials.set` path.
+
 _Inspection is excellent; writing and self-serve feedback lag. Close the loop agents actually run: find → mutate → verify → revert._
 
 ### R3.1 · AF-3 · Extend `ecs_set_component_field` to render-side authoring and make the docs match reality
@@ -187,6 +189,8 @@ _Inspection is excellent; writing and self-serve feedback lag. Close the loop ag
 
 ## Phase R4 — The in-repo cold-start gate
 
+**Status: ✅ COMPLETE (2026-06-10)** — the cold-start e2e spec passes under the CI config (two real breakages fixed: workspace linking, chromium headless shell) and is gated by the sharded matrix; `scripts/cold-start-proof.sh` is the local repro.
+
 ### R4.1 · AF-6 · CI job: scaffold → dev up → MCP tools → pixels, from a clean directory
 
 **Priority** P1 · **Effort** M · **Depends on** R1.3 (shares the e2e runner setup)
@@ -205,6 +209,8 @@ _Inspection is excellent; writing and self-serve feedback lag. Close the loop ag
 
 ## Phase R5 — Performance floor at scale
 
+**Status: IN PROGRESS (2026-06-10)** — AI-13 ✅ (per-app persistent extraction cache, byte-identical + determinism-fixture-verified), AI-60 cheap half ✅ (one resolve/refresh per steady-state step via `worldChangeVersion()`), AI-66 ✅ (`writeBufferSubData`). Open: AI-64 (dirty-range transform uploads; depends on AI-67's transform-version split), AI-30 (bench-gated scratch reuse — harness now exists), AI-65/AI-67.
+
 _Sequenced per `docs/ACTIONABLE_ROADMAP.md` Phase 3; listed here because scene-scale perf is part of the agent-first promise ("performance transparency" means acceptable performance plus honest reports). Execute in this order; cite AI-76 bench deltas (R1.6) for each._
 
 1. **AI-13** — own and thread the persistent `RenderExtractionCache` per app instance (the plumbing exists and is currently unreachable). _Depends on R1.6 for the before/after numbers._
@@ -219,6 +225,8 @@ Canonical ACs for all six: `docs/ACTIONABLE_ROADMAP.md` Phase 3.
 ---
 
 ## Phase R6 — Platform stubs that undermine the claim
+
+**Status: IN PROGRESS (2026-06-10)** — AI-87 ✅ (every authored env map prefilters; placeholders retired). AI-12/AI-25 and AI-47 in flight. AI-82 deferred with rationale: the real-embedding swap needs an ONNX/transformers.js-class dependency — a repo-owner decision per AGENTS.md's no-large-dependencies rule; the index format is versioned and ready.
 
 _Each is an existing-feature-area completion whose absence makes a public API silently lie — worse than a missing feature for an agent that trusts contracts._
 
