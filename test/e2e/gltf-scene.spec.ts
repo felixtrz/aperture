@@ -1626,11 +1626,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         ],
         diagnostics: [
           {
-            code: "iblTextureResource.specularProofUploadPlaceholder",
-            severity: "warning",
-          },
-          {
-            code: "iblTextureResource.specularPrefilteringDeferred",
+            code: "iblTextureResource.specularSourceNotPrepared",
             severity: "warning",
           },
         ],
@@ -1749,9 +1745,11 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         standardIblBindGroupEntries: 1,
         shadowSamplerEntries: 1,
         standardShadowBindGroupEntries: 1,
-        shadowCasterPipelineEntries: 1,
+        shadowCasterPipelineEntries: 3,
         shadowCasterMatrixBindGroupEntries: 1,
-        totalEntries: 9,
+        shadowDepthTextureEntries: 1,
+        shadowMatrixBufferEntries: 1,
+        totalEntries: 13,
       },
       diffuseResourceSummary: {
         ready: false,
@@ -1780,20 +1778,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
             "texture:gltf:environment:studio:specular:texture",
           ],
         },
-        diagnostics: [
-          {
-            code: "diffuseIblResourceSummary.specularPrefilteringDeferred",
-            severity: "warning",
-          },
-          {
-            code: "diffuseIblResourceSummary.bindGroupLayoutDeferred",
-            severity: "warning",
-          },
-          {
-            code: "diffuseIblResourceSummary.shaderSamplingDeferred",
-            severity: "warning",
-          },
-        ],
+        diagnostics: [],
       },
       passPlan: {
         ready: false,
@@ -2942,7 +2927,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         ready: false,
         status: "deferred",
         commandRecordCount: 1,
-        descriptorCount: 1,
+        descriptorCount: 2,
         sections: {
           commandEncoding: true,
           vertexBufferLayout: true,
@@ -2956,8 +2941,8 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         },
         descriptor: {
           pipelineKey:
-            "shadow-caster/depth-only/depth24plus/triangle-list/none",
-          label: "shadow-caster-depth-only:depth24plus:triangle-list",
+            "shadow-caster/depth-only/depth24plus/triangle-list/none/mesh-layout:POSITION",
+          label: "shadow-caster-depth-only:depth24plus:triangle-list:POSITION",
           shader: {
             family: "shadow-caster",
             label: "shadow-caster-depth-only",
@@ -2968,6 +2953,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           },
           vertex: {
             buffers: ["POSITION"],
+            meshLayoutKey: "POSITION",
             matrixBufferLayoutKey:
               "shadow-caster/group-0:directional-shadow-matrices@0",
           },
@@ -3001,9 +2987,9 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
       pipelineResource: {
         ready: true,
         status: "available",
-        descriptorCount: 1,
+        descriptorCount: 2,
         createdPipelineCount: 0,
-        reusedPipelineCount: 1,
+        reusedPipelineCount: 2,
         sections: {
           pipelineDescriptor: true,
           shaderModule: true,
@@ -3013,11 +2999,11 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         },
         resource: {
           pipelineKey:
-            "shadow-caster/depth-only/depth24plus/triangle-list/none",
+            "shadow-caster/depth-only/depth24plus/triangle-list/none/mesh-layout:POSITION",
           resourceKey:
-            "render-pipeline:shadow-caster/depth-only/depth24plus/triangle-list/none",
+            "render-pipeline:shadow-caster/depth-only/depth24plus/triangle-list/none/mesh-layout:POSITION",
           shaderModuleKey: "shader-module:shadow-caster-depth-only",
-          label: "shadow-caster-depth-only:depth24plus:triangle-list",
+          label: "shadow-caster-depth-only:depth24plus:triangle-list:POSITION",
         },
         diagnostics: [
           {
@@ -3069,7 +3055,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           casterDraws: 4,
           readyDraws: 4,
           missingMeshBuffers: 0,
-          pipelineDescriptors: 1,
+          pipelineDescriptors: 2,
           matrixBuffers: 1,
         },
         sections: {
@@ -3085,6 +3071,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           {
             renderId: expect.any(Number),
             meshKey: "mesh:gltf:mesh:0:primitive:0",
+            meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0",
             passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
             meshResourceKey: expect.stringMatching(/^mesh-buffer:/),
             vertexBufferResourceKeys: [
@@ -3094,12 +3081,13 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
               expect.stringMatching(/^mesh-index-buffer:/),
             matrixResourceKey: "shadow-matrix-buffer:directional",
             pipelineKey:
-              "shadow-caster/depth-only/depth24plus/triangle-list/none",
+              "shadow-caster/depth-only/depth24plus/triangle-list/none/mesh-layout:POSITION%2CNORMAL%2CTEXCOORD_0",
             ready: true,
           },
           {
             renderId: expect.any(Number),
             meshKey: "mesh:gltf:mesh:1:primitive:0",
+            meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0",
             passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
             meshResourceKey: expect.stringMatching(/^mesh-buffer:/),
             vertexBufferResourceKeys: [
@@ -3109,12 +3097,13 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
               expect.stringMatching(/^mesh-index-buffer:/),
             matrixResourceKey: "shadow-matrix-buffer:directional",
             pipelineKey:
-              "shadow-caster/depth-only/depth24plus/triangle-list/none",
+              "shadow-caster/depth-only/depth24plus/triangle-list/none/mesh-layout:POSITION%2CNORMAL%2CTEXCOORD_0",
             ready: true,
           },
           {
             renderId: expect.any(Number),
             meshKey: "mesh:gltf:mesh:2:primitive:0",
+            meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0",
             passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
             meshResourceKey: expect.stringMatching(/^mesh-buffer:/),
             vertexBufferResourceKeys: [
@@ -3124,12 +3113,13 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
               expect.stringMatching(/^mesh-index-buffer:/),
             matrixResourceKey: "shadow-matrix-buffer:directional",
             pipelineKey:
-              "shadow-caster/depth-only/depth24plus/triangle-list/none",
+              "shadow-caster/depth-only/depth24plus/triangle-list/none/mesh-layout:POSITION%2CNORMAL%2CTEXCOORD_0",
             ready: true,
           },
           {
             renderId: expect.any(Number),
             meshKey: "mesh:gltf:buffer-backed:mesh:0:primitive:0",
+            meshLayoutKey: "POSITION",
             passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
             meshResourceKey: expect.stringMatching(/^mesh-buffer:/),
             vertexBufferResourceKeys: [
@@ -3139,7 +3129,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
               expect.stringMatching(/^mesh-index-buffer:/),
             matrixResourceKey: "shadow-matrix-buffer:directional",
             pipelineKey:
-              "shadow-caster/depth-only/depth24plus/triangle-list/none",
+              "shadow-caster/depth-only/depth24plus/triangle-list/none/mesh-layout:POSITION",
             ready: true,
           },
         ]),
@@ -3160,11 +3150,11 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         counts: {
           frameResourceDraws: 4,
           readyFrameResourceDraws: 4,
-          pipelineResources: 1,
+          pipelineResources: 2,
           matrixBindGroups: 1,
           meshResources: 4,
           commandRecords: 1,
-          commandCount: 20,
+          commandCount: 15,
           drawCalls: 4,
           indexedDrawCalls: 4,
         },
@@ -3191,14 +3181,16 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
               expect.any(Number),
               expect.any(Number),
             ],
-            commandCount: 20,
+            commandCount: 15,
             drawCalls: 4,
             indexedDrawCalls: 4,
             pipelineKeys: [
-              "shadow-caster/depth-only/depth24plus/triangle-list/none",
+              "shadow-caster/depth-only/depth24plus/triangle-list/none/mesh-layout:POSITION",
+              "shadow-caster/depth-only/depth24plus/triangle-list/none/mesh-layout:POSITION%2CNORMAL%2CTEXCOORD_0",
             ],
             pipelineResourceKeys: [
-              "shadow-caster/depth-only/depth24plus/triangle-list/none",
+              "shadow-caster/depth-only/depth24plus/triangle-list/none/mesh-layout:POSITION",
+              "shadow-caster/depth-only/depth24plus/triangle-list/none/mesh-layout:POSITION%2CNORMAL%2CTEXCOORD_0",
             ],
             bindGroupResourceKeys: [
               "bind-group:shadow-caster/group-0/shadow-matrix-buffer:directional",
@@ -3229,7 +3221,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
             commandKey: expect.stringMatching(
               /^shadow-pass:\d+:light:\d+:caster-commands$/,
             ),
-            commandCount: 20,
+            commandCount: 15,
           },
         ],
         diagnostics: [
@@ -3252,8 +3244,8 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           frameResourceDraws: 4,
           commandRecords: 1,
           assembledPasses: 1,
-          commandCount: 20,
-          executedCommands: 20,
+          commandCount: 15,
+          executedCommands: 15,
           drawCalls: 4,
         },
         sections: {
@@ -3278,8 +3270,8 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
             depthViewKey: expect.stringMatching(
               /^shadow-map:\d+:light:\d+:view$/,
             ),
-            commandCount: 20,
-            executedCommands: 20,
+            commandCount: 15,
+            executedCommands: 15,
             drawCalls: 4,
             indexedDrawCalls: 4,
             begun: true,
@@ -3295,10 +3287,6 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
             code: "shadowPassEncoderAssembly.commandBufferSubmissionDeferred",
             severity: "warning",
           },
-          {
-            code: "shadowPassEncoderAssembly.shaderSamplingDeferred",
-            severity: "warning",
-          },
         ],
       },
       commandBufferSubmission: {
@@ -3306,7 +3294,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         status: "submitted",
         counts: {
           assembledPasses: 1,
-          commandCount: 20,
+          commandCount: 15,
           drawCalls: 4,
           commandBuffers: 1,
           submittedCommandBuffers: 1,
@@ -3316,15 +3304,10 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           encoderAssembly: true,
           commandBufferFinish: true,
           queueSubmission: true,
-          shaderSampling: false,
+          shaderSampling: true,
         },
         commandBufferKeys: ["command-buffer:shadow-pass:directional"],
-        diagnostics: [
-          {
-            code: "shadowPassCommandBufferSubmission.shaderSamplingDeferred",
-            severity: "warning",
-          },
-        ],
+        diagnostics: [],
       },
       receiverBinding: {
         ready: true,
@@ -3653,7 +3636,11 @@ function expectVisibleSceneRegions(
       : rgbaColorToPixel(status.clearColor);
   const samples = {
     plane: strongestRegionSample(screenshot, clear, 0.57, 0.5, 0.63, 0.63),
-    box: strongestRegionSample(screenshot, clear, 0.42, 0.35, 0.58, 0.65),
+    // The box probe stops at 0.56/0.6 so its strongest sample stays on the
+    // orange box: with real specular IBL prefiltering the blue standard
+    // material that spills past x=0.57 (plane sliver and cone flank) sits
+    // marginally farther from the clear color than the box does.
+    box: strongestRegionSample(screenshot, clear, 0.42, 0.35, 0.56, 0.6),
     cone: strongestRegionSample(screenshot, clear, 0.58, 0.38, 0.75, 0.67),
   };
 
