@@ -41,7 +41,7 @@ test("ECS browser example reports invalid texture upload diagnostics", async ({
         code: "textureResource.invalidBytesPerRow",
         resourceKey: "texture:checker-albedo",
         message:
-          "Texture upload bytesPerRow for resource 'texture:checker-albedo' must be at least 8 bytes for 2 texel(s) of 'rgba8unorm'.",
+          "Texture upload bytesPerRow for resource 'texture:checker-albedo' mip level 0 must be at least 8 bytes for 2 texel(s) of 'rgba8unorm'.",
       },
     ],
     diagnosticCounts: expectedDiagnosticCounts({ resources: 1 }),
@@ -87,7 +87,7 @@ test("ECS browser example reports short texture upload diagnostics", async ({
         code: "textureResource.uploadDataTooSmall",
         resourceKey: "texture:checker-albedo",
         message:
-          "Texture upload data for resource 'texture:checker-albedo' must contain at least 16 byte(s); received 15.",
+          "Texture upload data for resource 'texture:checker-albedo' mip level 0 must contain at least 16 byte(s); received 15.",
       },
     ],
     diagnosticCounts: expectedDiagnosticCounts({ resources: 1 }),
@@ -133,7 +133,7 @@ test("ECS browser example reports invalid rows-per-image texture upload diagnost
         code: "textureResource.invalidRowsPerImage",
         resourceKey: "texture:checker-albedo",
         message:
-          "Texture upload rowsPerImage for resource 'texture:checker-albedo' must be an integer at least 2 row(s).",
+          "Texture upload rowsPerImage for resource 'texture:checker-albedo' mip level 0 must be an integer at least 2 row(s).",
       },
     ],
     diagnosticCounts: expectedDiagnosticCounts({ resources: 1 }),

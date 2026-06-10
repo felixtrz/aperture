@@ -28,7 +28,7 @@ test("ECS browser example routes directional-light-extraction to light submit st
     lightingResources: {
       lightBuffer: {
         count: 1,
-        byteLength: 56,
+        byteLength: 140,
       },
       environments: {
         environmentCount: 0,
