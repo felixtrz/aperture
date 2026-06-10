@@ -142,7 +142,7 @@ test("custom WGSL consumes per-instance attributes in a visible instanced swarm"
     phase: "animate",
     renderingBackend: "webgpu-explicit",
     customMaterial: {
-      family: "custom-wind",
+      family: "example/wind",
       sourceMaterialKey: "material:instance-attributes-wind-material",
       materialResourceKey: "material:instance-attributes-wind-material",
       validationDiagnostics: 0,
@@ -154,7 +154,7 @@ test("custom WGSL consumes per-instance attributes in a visible instanced swarm"
         grid: { columns: 24, rows: 24 },
         meshKey: "mesh:instance-attributes-blade",
         materialKey: "material:instance-attributes-wind-material",
-        materialFamily: "custom-wind",
+        materialFamily: "example/wind",
       },
     },
     extraction: {
@@ -185,7 +185,7 @@ test("custom WGSL consumes per-instance attributes in a visible instanced swarm"
     submission: { commandBuffers: 1, drawCalls: 1, indexedDrawCalls: 1 },
     readback: { ok: true },
   });
-  expect(status.customMaterial?.pipelineKey).toContain("custom-wind|shader:");
+  expect(status.customMaterial?.pipelineKey).toContain("example/wind|shader:");
   expect(status.customMaterial?.pipelineKey).toContain("instance-attributes:");
   expect(status.submission?.drawCalls ?? 999).toBeLessThanOrEqual(
     (status.worker?.scene?.instanceCount ?? 0) / 16,
