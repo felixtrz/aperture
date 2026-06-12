@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1211
+Every structured diagnostic code the engine can emit (1213
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -6443,6 +6443,18 @@ suggestedFix accompanies it, and where it is emitted.
 | `webgpu.userPass.forwardTargetUnavailable`       | Registered user passes were skipped: the forward FrameGraph route rendered no swapchain target this frame to host them.                                                                  | —    | `packages/webgpu/src/app/frame-boundaries.ts`                                                 |
 | `webgpu.userPass.renderWriteCoercedToSceneColor` | User render pass '…' declared write target(s) … that are not honored; it is drawn over scene-color (LOAD). Use a compute pass for arbitrary writable targets, or write to "scene-color". | —    | `packages/webgpu/src/app/frame-boundaries.ts`<br>`packages/webgpu/src/app/post-processing.ts` |
 | `webgpu.userPass.skippedOnLegacyRoute`           | Registered user passes … run only on the FrameGraph routes (forward graph or post-effect graph); the legacy multi-submit route skipped them. Enable useFrameGraph to run them.           | —    | `packages/webgpu/src/app/user-pass.ts`                                                        |
+
+## webGpuApp.clusteredLocalCookieSamplingDeferred (1)
+
+| Code                                             | Message                                                                                                                                                                                     | Fix? | Emitted from                                                 |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------ |
+| `webGpuApp.clusteredLocalCookieSamplingDeferred` | Clustered local cookie sampling is deferred for … light(s) (…); those lights render without their cookie texture (in-shader sentinel) until the variant supports clustered cookie sampling. | —    | `packages/webgpu/src/lighting/local-light-cluster-report.ts` |
+
+## webGpuApp.clusteredLocalShadowSamplingDeferred (1)
+
+| Code                                             | Message                                                                                                                                                                   | Fix? | Emitted from                                                 |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------ |
+| `webGpuApp.clusteredLocalShadowSamplingDeferred` | Clustered local shadow sampling is deferred for … light(s) (…); those lights render unshadowed (in-shader sentinel) until the variant supports clustered shadow sampling. | —    | `packages/webgpu/src/lighting/local-light-cluster-report.ts` |
 
 ## webGpuApp.customWgslBindingNotPrepared (1)
 
