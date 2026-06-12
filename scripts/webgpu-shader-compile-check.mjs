@@ -107,7 +107,10 @@ async function launchBrowser() {
   let chromium;
   try {
     ({ chromium } = await import("playwright"));
-  } catch {
+  } catch (error) {
+    console.error(
+      `[webgpu-shader-compile-check] playwright import failed: ${error?.message ?? error}`,
+    );
     return null;
   }
   try {
@@ -132,7 +135,10 @@ async function launchBrowser() {
         "--use-angle=swiftshader",
       ],
     });
-  } catch {
+  } catch (error) {
+    console.error(
+      `[webgpu-shader-compile-check] Chrome launch failed (channel=${WEBGPU_CHANNEL ?? "bundled"}): ${error?.message ?? error}`,
+    );
     return null;
   }
 }
