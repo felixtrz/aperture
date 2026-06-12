@@ -126,6 +126,51 @@ function offsetOf(refs: ScrollSceneRefs): readonly number[] {
   return Array.from(panel.getVectorView(UiScroll, "offset"));
 }
 
+interface TwoScreenRefs {
+  firstPanel: Entity | null;
+  secondPanel: Entity | null;
+}
+
+/**
+ * Two stacked screens, each with an overflowing scroll panel occupying the
+ * same normalized region, so a single pointer position lies over both.
+ */
+function twoScreenScrollScene(refs: TwoScreenRefs): ApertureSystemModule {
+  return {
+    default: class TwoScreenScrollSceneSystem extends createSystem({
+      priority: 0,
+    }) {
+      private buildScreen(): Entity {
+        const screen = this.createEntity();
+        screen.addComponent(UiScreen, createUiScreen(SCREEN));
+
+        const panel = this.createEntity();
+        panel.addComponent(Parent, createParent(screen));
+        panel.addComponent(
+          UiNode,
+          createUiNode({ ...PANEL, layoutMode: "column" }),
+        );
+        panel.addComponent(UiPanel, createUiPanel());
+        panel.addComponent(UiScroll, createUiScroll());
+
+        for (let index = 0; index < ITEM_COUNT; index += 1) {
+          const item = this.createEntity();
+          item.addComponent(Parent, createParent(panel));
+          item.addComponent(UiNode, createUiNode({ height: ITEM_HEIGHT }));
+          item.addComponent(UiPanel, createUiPanel());
+        }
+
+        return panel;
+      }
+
+      override init(): void {
+        refs.firstPanel = this.buildScreen();
+        refs.secondPanel = this.buildScreen();
+      }
+    },
+  };
+}
+
 describe("UiScroll wheel/drag mapping system (AI-47)", () => {
   it("advances the hovered scroll node's offset by the wheel delta and clamps to the content bound", async () => {
     const { runner, refs } = await createScrollRunner();
@@ -213,5 +258,36 @@ describe("UiScroll wheel/drag mapping system (AI-47)", () => {
     stepWithInput(runner, [pointerAt(OFF_PANEL, true)]);
     stepWithInput(runner, [pointerAt(OVER_PANEL)]);
     expect(offsetOf(refs)).toEqual([0, MAX_SCROLL_Y]);
+  });
+
+  it("holds the offset across a frame with no input events", async () => {
+    const { runner, refs } = await createScrollRunner();
+
+    stepWithInput(runner, [pointerAt(OVER_PANEL), wheel(0, 30)]);
+    expect(offsetOf(refs)).toEqual([0, 30]);
+
+    // The steady-state early-return must not drift the offset when a frame
+    // drains zero events (the generated worker loop's common case).
+    stepWithInput(runner, []);
+    expect(offsetOf(refs)).toEqual([0, 30]);
+  });
+
+  it("scrolls only the topmost panel when screens overlap under the pointer", async () => {
+    const refs: TwoScreenRefs = { firstPanel: null, secondPanel: null };
+    const runner = await createApertureHeadlessRunner({
+      config: defineApertureConfig({
+        mode: "headless",
+        systems: [],
+        render: { defaultCamera: false, defaultLight: false },
+      }),
+      systems: [twoScreenScrollScene(refs)],
+    });
+
+    stepWithInput(runner, [pointerAt(OVER_PANEL), wheel(0, 30)]);
+
+    // Stack indices are assigned by one global extraction counter, so the
+    // second screen's panel is topmost; exactly one panel may move.
+    expect(offsetOf({ panel: refs.secondPanel })).toEqual([0, 30]);
+    expect(offsetOf({ panel: refs.firstPanel })).toEqual([0, 0]);
   });
 });
