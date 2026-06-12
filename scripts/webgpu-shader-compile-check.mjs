@@ -106,10 +106,13 @@ const WEBGPU_CHANNEL = process.env.APERTURE_WEBGPU_CHANNEL;
 async function launchBrowser() {
   let chromium;
   try {
-    ({ chromium } = await import("playwright"));
+    // Import through @playwright/test (the declared devDependency, which
+    // re-exports chromium) — a bare "playwright" import only resolves in
+    // lenient local layouts, not under CI's strict frozen-lockfile install.
+    ({ chromium } = await import("@playwright/test"));
   } catch (error) {
     console.error(
-      `[webgpu-shader-compile-check] playwright import failed: ${error?.message ?? error}`,
+      `[webgpu-shader-compile-check] @playwright/test import failed: ${error?.message ?? error}`,
     );
     return null;
   }
