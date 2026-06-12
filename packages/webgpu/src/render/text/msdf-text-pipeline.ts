@@ -8,6 +8,15 @@ import type {
   WebGpuRenderPipelineCreateDescriptor,
   WebGpuRenderPipelineDeviceLike,
 } from "../../gpu/pipeline-cache.js";
+import {
+  applyOutputStageToFragmentWgsl,
+  createTonemapPipelineKey,
+  type TonemapOperator,
+} from "../../output/output-stage-tonemap.js";
+import {
+  createOutputColorSpacePipelineKey,
+  type OutputColorSpace,
+} from "../../output/output-stage-color-space.js";
 
 export const MSDF_TEXT_PIPELINE_KEY = "aperture/msdf-text";
 
@@ -115,6 +124,8 @@ export interface CreateMsdfTextRenderPipelineResourceOptions {
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
+  readonly tonemap?: TonemapOperator;
+  readonly outputColorSpace?: OutputColorSpace;
 }
 
 export type MsdfTextRenderPipelineDiagnosticCode =
@@ -149,11 +160,20 @@ export interface MsdfTextRenderPipelineDeviceLike
 export async function createMsdfTextRenderPipelineResource(
   options: CreateMsdfTextRenderPipelineResourceOptions,
 ): Promise<CreateMsdfTextRenderPipelineResourceResult> {
+  // AI-17: no-op default (none + linear) → byte-identical unless the output stage
+  // is requested.
+  const tonemap = options.tonemap ?? "none";
+  const outputColorSpace = options.outputColorSpace ?? "linear";
   const shaderModule = await createWebGpuShaderModule({
     device: options.device,
     descriptor: {
       label: MSDF_TEXT_PIPELINE_KEY,
-      code: MSDF_TEXT_WGSL,
+      code: applyOutputStageToFragmentWgsl(
+        MSDF_TEXT_WGSL,
+        tonemap,
+        outputColorSpace,
+        MSDF_TEXT_PIPELINE_KEY,
+      ),
     },
   });
   const shaderDiagnostics = shaderModule.diagnostics.map(mapShaderDiagnostic);
@@ -206,6 +226,8 @@ export async function createMsdfTextRenderPipelineResource(
           options.colorFormat,
           options.depthFormat ?? null,
           options.sampleCount ?? 1,
+          tonemap,
+          outputColorSpace,
         ),
         shaderModule: shaderModule.module,
         pipeline: options.device.createRenderPipeline(descriptor),
@@ -235,8 +257,14 @@ export function msdfTextPipelineCacheKey(
   colorFormat: string,
   depthFormat: string | null = null,
   sampleCount = 1,
+  tonemap: TonemapOperator = "none",
+  outputColorSpace: OutputColorSpace = "linear",
 ): string {
-  return `${MSDF_TEXT_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "nodepth"}:${sampleCount}`;
+  const outputStage =
+    tonemap === "none" && outputColorSpace === "linear"
+      ? ""
+      : `:${createTonemapPipelineKey(tonemap)}:${createOutputColorSpacePipelineKey(outputColorSpace)}`;
+  return `${MSDF_TEXT_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "nodepth"}:${sampleCount}${outputStage}`;
 }
 
 export function createBrowserMsdfTextRenderPipelineDescriptor(input: {

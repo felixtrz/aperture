@@ -100,3 +100,63 @@ describe("GPU particle WebGPU pipelines", () => {
     ]);
   });
 });
+
+describe("particle render pipeline output-stage tonemap/encode (AI-17)", () => {
+  function recordingDevice(): {
+    device: ParticlePipelineDeviceLike;
+    shaderCodes: string[];
+  } {
+    const shaderCodes: string[] = [];
+    const device: ParticlePipelineDeviceLike = {
+      createShaderModule: (descriptor: { readonly code?: string }) => {
+        shaderCodes.push(descriptor.code ?? "");
+        return { compilationInfo: async () => ({ messages: [] }) };
+      },
+      createComputePipeline: () => ({
+        getBindGroupLayout: (group: number) => ({ group }),
+      }),
+      createRenderPipeline: () => ({
+        getBindGroupLayout: (group: number) => ({ group }),
+      }),
+    };
+    return { device, shaderCodes };
+  }
+
+  it("wraps the particle render fragment with the output stage when requested", async () => {
+    const { device, shaderCodes } = recordingDevice();
+    const render = await createParticleRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      tonemap: "aces",
+      outputColorSpace: "srgb",
+    });
+
+    expect(render.valid).toBe(true);
+    expect(shaderCodes[0]).toContain(
+      "fn apertureOutputStageInner(input: VertexOutput) -> vec4f",
+    );
+    expect(shaderCodes[0]).toContain(
+      "apertureOutputColorSpace(apertureOutputTonemap(apertureFragment.rgb))",
+    );
+    expect(shaderCodes[0]?.match(/@fragment/g)).toHaveLength(1);
+    expect(render.resource?.cacheKey).toContain("tonemap:aces");
+    expect(render.resource?.cacheKey).toContain("output-color:srgb");
+  });
+
+  it("leaves the particle render shader + cache key byte-identical on none + linear", async () => {
+    const { device, shaderCodes } = recordingDevice();
+    const render = await createParticleRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      tonemap: "none",
+      outputColorSpace: "linear",
+    });
+
+    expect(shaderCodes[0]).toBe(PARTICLE_RENDER_WGSL);
+    expect(render.resource?.cacheKey).toBe(
+      particleRenderPipelineCacheKey("bgra8unorm", "depth24plus"),
+    );
+  });
+});

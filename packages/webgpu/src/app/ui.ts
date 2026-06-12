@@ -39,6 +39,8 @@ import type { WebGpuAppResourceCache } from "./resource-cache.js";
 import type { WebGpuAppResourceReuseReport } from "./app.js";
 import { webGpuAppCanvasDimensions } from "./canvas.js";
 import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
+import type { TonemapOperator } from "../output/output-stage-tonemap.js";
+import type { OutputColorSpace } from "../output/output-stage-color-space.js";
 
 interface WebGpuAppUiContext {
   readonly canvas?: WebGpuCanvasLike;
@@ -48,6 +50,26 @@ interface WebGpuAppUiContext {
   };
   readonly msaa: {
     readonly sampleCount: number;
+  };
+  // AI-17: output-stage config (the full app supplies these). Optional so minimal
+  // UI contexts still build a byte-identical (no-op) pipeline.
+  readonly tonemap?: TonemapOperator;
+  readonly outputColorSpace?: OutputColorSpace;
+  readonly sceneRenderFormat?: string;
+}
+
+// AI-17: resolve the HDR-aware output stage for a UI pipeline — none/linear on the
+// rgba16float scene-buffer path (post stage encodes), else the app's configured stage.
+function resolveUiOutputStage(app: WebGpuAppUiContext): {
+  readonly tonemap: TonemapOperator;
+  readonly outputColorSpace: OutputColorSpace;
+} {
+  const isHdr =
+    app.sceneRenderFormat !== undefined &&
+    app.sceneRenderFormat !== app.initialization.format;
+  return {
+    tonemap: isHdr ? "none" : (app.tonemap ?? "none"),
+    outputColorSpace: isHdr ? "linear" : (app.outputColorSpace ?? "linear"),
   };
 }
 
@@ -265,10 +287,13 @@ export async function getOrCreateWebGpuAppUiPanelPipeline(
   app: WebGpuAppUiContext,
   cache: WebGpuAppResourceCache,
 ): Promise<CreateUiQuadRenderPipelineResourceResult> {
+  const { tonemap, outputColorSpace } = resolveUiOutputStage(app);
   const key = uiPanelPipelineCacheKey(
     app.initialization.format,
     WEBGPU_APP_DEPTH_FORMAT,
     app.msaa.sampleCount,
+    tonemap,
+    outputColorSpace,
   );
   const cached = cache.uiPanelPipelines.get(key);
 
@@ -283,6 +308,8 @@ export async function getOrCreateWebGpuAppUiPanelPipeline(
     colorFormat: app.initialization.format,
     depthFormat: WEBGPU_APP_DEPTH_FORMAT,
     sampleCount: app.msaa.sampleCount,
+    tonemap,
+    outputColorSpace,
   });
 
   cache.uiPanelPipelines.set(key, result);
@@ -293,10 +320,13 @@ export async function getOrCreateWebGpuAppUiImagePipeline(
   app: WebGpuAppUiContext,
   cache: WebGpuAppResourceCache,
 ): Promise<CreateUiQuadRenderPipelineResourceResult> {
+  const { tonemap, outputColorSpace } = resolveUiOutputStage(app);
   const key = uiImagePipelineCacheKey(
     app.initialization.format,
     WEBGPU_APP_DEPTH_FORMAT,
     app.msaa.sampleCount,
+    tonemap,
+    outputColorSpace,
   );
   const cached = cache.uiImagePipelines.get(key);
 
@@ -311,6 +341,8 @@ export async function getOrCreateWebGpuAppUiImagePipeline(
     colorFormat: app.initialization.format,
     depthFormat: WEBGPU_APP_DEPTH_FORMAT,
     sampleCount: app.msaa.sampleCount,
+    tonemap,
+    outputColorSpace,
   });
 
   cache.uiImagePipelines.set(key, result);

@@ -8,6 +8,15 @@ import type {
   WebGpuRenderPipelineCreateDescriptor,
   WebGpuRenderPipelineDeviceLike,
 } from "../../gpu/pipeline-cache.js";
+import {
+  applyOutputStageToFragmentWgsl,
+  createTonemapPipelineKey,
+  type TonemapOperator,
+} from "../../output/output-stage-tonemap.js";
+import {
+  createOutputColorSpacePipelineKey,
+  type OutputColorSpace,
+} from "../../output/output-stage-color-space.js";
 
 export const SPRITE_PIPELINE_KEY = "aperture/sprite-billboard";
 
@@ -134,6 +143,8 @@ export interface CreateSpriteRenderPipelineResourceOptions {
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
+  readonly tonemap?: TonemapOperator;
+  readonly outputColorSpace?: OutputColorSpace;
 }
 
 export type SpriteRenderPipelineDiagnosticCode =
@@ -168,11 +179,23 @@ export interface SpriteRenderPipelineDeviceLike
 export async function createSpriteRenderPipelineResource(
   options: CreateSpriteRenderPipelineResourceOptions,
 ): Promise<CreateSpriteRenderPipelineResourceResult> {
+  // Default to the no-op (none + linear) so a sprite pipeline is byte-identical to
+  // before unless the caller opts into the output stage (e.g. app.tonemap on the
+  // non-HDR path).
+  const tonemap = options.tonemap ?? "none";
+  const outputColorSpace = options.outputColorSpace ?? "linear";
   const shaderModule = await createWebGpuShaderModule({
     device: options.device,
     descriptor: {
       label: "aperture/sprite-billboard",
-      code: SPRITE_WGSL,
+      // AI-17: apply the shared output color-space + tonemap stage (no-op on the
+      // HDR-scene-buffer path, where the post stage encodes instead).
+      code: applyOutputStageToFragmentWgsl(
+        SPRITE_WGSL,
+        tonemap,
+        outputColorSpace,
+        "aperture/sprite-billboard",
+      ),
     },
   });
   const shaderDiagnostics = shaderModule.diagnostics.map(mapShaderDiagnostic);
@@ -225,6 +248,8 @@ export async function createSpriteRenderPipelineResource(
           options.colorFormat,
           options.depthFormat ?? null,
           options.sampleCount ?? 1,
+          tonemap,
+          outputColorSpace,
         ),
         shaderModule: shaderModule.module,
         pipeline: options.device.createRenderPipeline(descriptor),
@@ -254,8 +279,18 @@ export function spritePipelineCacheKey(
   colorFormat: string,
   depthFormat: string | null,
   sampleCount = 1,
+  tonemap: TonemapOperator = "none",
+  outputColorSpace: OutputColorSpace = "linear",
 ): string {
-  return `${SPRITE_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}`;
+  // Only differentiate the key when the output stage is actually applied. none +
+  // linear is the no-op (HDR-scene-buffer) path — matching applyOutputStageToFragmentWgsl
+  // — so it keeps the same key + shader as before this change.
+  const outputStage =
+    tonemap === "none" && outputColorSpace === "linear"
+      ? ""
+      : `:${createTonemapPipelineKey(tonemap)}:${createOutputColorSpacePipelineKey(outputColorSpace)}`;
+
+  return `${SPRITE_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}${outputStage}`;
 }
 
 function createBrowserSpriteRenderPipelineDescriptor(input: {

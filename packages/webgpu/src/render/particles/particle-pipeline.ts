@@ -8,6 +8,15 @@ import type {
   WebGpuRenderPipelineCreateDescriptor,
   WebGpuRenderPipelineDeviceLike,
 } from "../../gpu/pipeline-cache.js";
+import {
+  applyOutputStageToFragmentWgsl,
+  createTonemapPipelineKey,
+  type TonemapOperator,
+} from "../../output/output-stage-tonemap.js";
+import {
+  createOutputColorSpacePipelineKey,
+  type OutputColorSpace,
+} from "../../output/output-stage-color-space.js";
 
 export const PARTICLE_COMPUTE_PIPELINE_KEY = "aperture/gpu-particles-compute";
 export const PARTICLE_RENDER_PIPELINE_KEY = "aperture/gpu-particles-render";
@@ -221,8 +230,15 @@ export function particleRenderPipelineCacheKey(
   colorFormat: string,
   depthFormat: string | null = null,
   sampleCount = 1,
+  tonemap: TonemapOperator = "none",
+  outputColorSpace: OutputColorSpace = "linear",
 ): string {
-  return `${PARTICLE_RENDER_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}`;
+  const outputStage =
+    tonemap === "none" && outputColorSpace === "linear"
+      ? ""
+      : `:${createTonemapPipelineKey(tonemap)}:${createOutputColorSpacePipelineKey(outputColorSpace)}`;
+
+  return `${PARTICLE_RENDER_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}${outputStage}`;
 }
 
 export async function createParticleComputePipelineResource(options: {
@@ -309,12 +325,23 @@ export async function createParticleRenderPipelineResource(options: {
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
+  readonly tonemap?: TonemapOperator;
+  readonly outputColorSpace?: OutputColorSpace;
 }): Promise<CreateParticleRenderPipelineResourceResult> {
+  // AI-17: no-op by default (none + linear) so the pipeline is byte-identical
+  // unless the caller opts into the output stage.
+  const tonemap = options.tonemap ?? "none";
+  const outputColorSpace = options.outputColorSpace ?? "linear";
   const shaderModule = await createWebGpuShaderModule({
     device: options.device,
     descriptor: {
       label: PARTICLE_RENDER_PIPELINE_KEY,
-      code: PARTICLE_RENDER_WGSL,
+      code: applyOutputStageToFragmentWgsl(
+        PARTICLE_RENDER_WGSL,
+        tonemap,
+        outputColorSpace,
+        PARTICLE_RENDER_PIPELINE_KEY,
+      ),
     },
   });
   const shaderDiagnostics = shaderModule.diagnostics.map(mapShaderDiagnostic);
@@ -367,6 +394,8 @@ export async function createParticleRenderPipelineResource(options: {
           options.colorFormat,
           options.depthFormat ?? null,
           options.sampleCount ?? 1,
+          tonemap,
+          outputColorSpace,
         ),
         shaderModule: shaderModule.module,
         pipeline: options.device.createRenderPipeline(descriptor),

@@ -79,3 +79,62 @@ describe("sprite billboard WebGPU pipeline", () => {
     ]);
   });
 });
+
+describe("sprite pipeline output-stage tonemap/encode (AI-17)", () => {
+  function recordingDevice(): {
+    device: SpriteRenderPipelineDeviceLike;
+    shaderCodes: string[];
+  } {
+    const shaderCodes: string[] = [];
+    const device: SpriteRenderPipelineDeviceLike = {
+      createShaderModule: (descriptor: { readonly code?: string }) => {
+        shaderCodes.push(descriptor.code ?? "");
+        return { compilationInfo: async () => ({ messages: [] }) };
+      },
+      createRenderPipeline: () => ({
+        getBindGroupLayout: (group: number) => ({ group }),
+      }),
+    };
+    return { device, shaderCodes };
+  }
+
+  it("wraps the sprite fragment with the output stage when a non-default operator/color space is requested", async () => {
+    const { device, shaderCodes } = recordingDevice();
+    const result = await createSpriteRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      tonemap: "aces",
+      outputColorSpace: "srgb",
+    });
+
+    expect(result.valid).toBe(true);
+    expect(shaderCodes[0]).toContain(
+      "fn apertureOutputStageInner(input: VertexOutput) -> vec4f",
+    );
+    expect(shaderCodes[0]).toContain(
+      "apertureOutputColorSpace(apertureOutputTonemap(apertureFragment.rgb))",
+    );
+    // alpha forwarded untouched; exactly one @fragment entry remains.
+    expect(shaderCodes[0]).toContain("apertureFragment.a)");
+    expect(shaderCodes[0]?.match(/@fragment/g)).toHaveLength(1);
+    expect(result.resource?.cacheKey).toContain("tonemap:aces");
+    expect(result.resource?.cacheKey).toContain("output-color:srgb");
+  });
+
+  it("leaves the sprite shader and cache key byte-identical on the HDR path (none + linear)", async () => {
+    const { device, shaderCodes } = recordingDevice();
+    const result = await createSpriteRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      tonemap: "none",
+      outputColorSpace: "linear",
+    });
+
+    expect(shaderCodes[0]).toBe(SPRITE_WGSL);
+    expect(result.resource?.cacheKey).toBe(
+      spritePipelineCacheKey("bgra8unorm", "depth24plus"),
+    );
+  });
+});

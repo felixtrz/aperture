@@ -76,3 +76,55 @@ describe("MSDF text WebGPU pipeline", () => {
     ]);
   });
 });
+
+describe("MSDF text pipeline output-stage tonemap/encode (AI-17)", () => {
+  function recordingDevice(): {
+    device: MsdfTextRenderPipelineDeviceLike;
+    shaderCodes: string[];
+  } {
+    const shaderCodes: string[] = [];
+    const device: MsdfTextRenderPipelineDeviceLike = {
+      createShaderModule: (descriptor: { readonly code?: string }) => {
+        shaderCodes.push(descriptor.code ?? "");
+        return { compilationInfo: async () => ({ messages: [] }) };
+      },
+      createRenderPipeline: () => ({
+        getBindGroupLayout: (group: number) => ({ group }),
+      }),
+    };
+    return { device, shaderCodes };
+  }
+
+  it("wraps the text fragment with the output stage when requested", async () => {
+    const { device, shaderCodes } = recordingDevice();
+    const result = await createMsdfTextRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      tonemap: "aces",
+      outputColorSpace: "srgb",
+    });
+    expect(result.valid).toBe(true);
+    expect(shaderCodes[0]).toContain(
+      "apertureOutputColorSpace(apertureOutputTonemap(apertureFragment.rgb))",
+    );
+    expect(shaderCodes[0]?.match(/@fragment/g)).toHaveLength(1);
+    expect(result.resource?.cacheKey).toContain("tonemap:aces");
+    expect(result.resource?.cacheKey).toContain("output-color:srgb");
+  });
+
+  it("leaves the text shader + cache key byte-identical on none + linear", async () => {
+    const { device, shaderCodes } = recordingDevice();
+    const result = await createMsdfTextRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      tonemap: "none",
+      outputColorSpace: "linear",
+    });
+    expect(shaderCodes[0]).toBe(MSDF_TEXT_WGSL);
+    expect(result.resource?.cacheKey).toBe(
+      msdfTextPipelineCacheKey("bgra8unorm", "depth24plus"),
+    );
+  });
+});
