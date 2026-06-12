@@ -59,12 +59,11 @@ export async function getOrCreateWebGpuAppPipeline(options: {
     WEBGPU_APP_DEPTH_FORMAT,
     `samples:${options.app.msaa.sampleCount}`,
     options.pipelineKey,
-    options.kind === "standard"
-      ? createTonemapPipelineKey(standardTonemap)
-      : "tonemap:none",
-    options.kind === "standard"
-      ? createOutputColorSpacePipelineKey(standardOutputColorSpace)
-      : createOutputColorSpacePipelineKey("linear"),
+    // AI-17: every built-in mesh family (standard / unlit / matcap / debug-normal)
+    // now composes the shared output stage, so the resolved tonemap + output color
+    // space must key the pipeline cache for all of them, not just standard.
+    createTonemapPipelineKey(standardTonemap),
+    createOutputColorSpacePipelineKey(standardOutputColorSpace),
   ].join("|");
   const cached = options.cache.pipelines.get(key);
 
@@ -107,6 +106,8 @@ export async function getOrCreateWebGpuAppPipeline(options: {
             depthFormat: WEBGPU_APP_DEPTH_FORMAT,
             sampleCount: options.app.msaa.sampleCount,
             batchKey: options.batchKey,
+            tonemap: standardTonemap,
+            outputColorSpace: standardOutputColorSpace,
           })
         : options.kind === "matcap"
           ? await createMatcapRenderPipelineResource({
@@ -120,6 +121,8 @@ export async function getOrCreateWebGpuAppPipeline(options: {
               depthFormat: WEBGPU_APP_DEPTH_FORMAT,
               sampleCount: options.app.msaa.sampleCount,
               batchKey: options.batchKey,
+              tonemap: standardTonemap,
+              outputColorSpace: standardOutputColorSpace,
             })
           : await createUnlitRenderPipelineResource({
               device: options.app.initialization.device as Parameters<
@@ -132,6 +135,8 @@ export async function getOrCreateWebGpuAppPipeline(options: {
               depthFormat: WEBGPU_APP_DEPTH_FORMAT,
               sampleCount: options.app.msaa.sampleCount,
               batchKey: options.batchKey,
+              tonemap: standardTonemap,
+              outputColorSpace: standardOutputColorSpace,
             });
 
   if (pipeline.valid && pipeline.resource !== null) {

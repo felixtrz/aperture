@@ -26,6 +26,7 @@
     "bench": "vitest bench --run",
     "agent:finalize": "node scripts/finalize-agent-status.mjs",
     "test:watch": "vitest",
+    "test:shaders": "node scripts/webgpu-shader-compile-check.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:install": "playwright install chrome",
