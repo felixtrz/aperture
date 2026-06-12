@@ -27,13 +27,19 @@ import { mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-const repoRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+const repoRoot = path.resolve(
+  path.dirname(new URL(import.meta.url).pathname),
+  "..",
+);
 const args = process.argv.slice(2);
 const configArg =
-  args.find((a) => a.startsWith("--config=")) ?? "--config=playwright.macos.config.ts";
+  args.find((a) => a.startsWith("--config=")) ??
+  "--config=playwright.macos.config.ts";
 const attemptsArg = args.find((a) => a.startsWith("--attempts="));
 const maxAttempts = attemptsArg ? Number(attemptsArg.split("=")[1]) : 4;
-const specArgs = args.filter((a) => !a.startsWith("--config=") && !a.startsWith("--attempts="));
+const specArgs = args.filter(
+  (a) => !a.startsWith("--config=") && !a.startsWith("--attempts="),
+);
 
 function listSpecFiles() {
   return readdirSync(path.join(repoRoot, "test/e2e"))
@@ -48,13 +54,18 @@ const verdicts = new Map();
 function preClean() {
   // Narrow patterns only: playwright's worker entry and the bundled test
   // chromium. NEVER match the user's own browsers.
-  for (const pattern of ["workerProcessEntry", "ms-playwright/chromium", "playwright_chromiumdev_profile"]) {
+  for (const pattern of [
+    "workerProcessEntry",
+    "ms-playwright/chromium",
+    "playwright_chromiumdev_profile",
+  ]) {
     spawnSync("pkill", ["-9", "-f", pattern], { stdio: "ignore" });
   }
 }
 
 function collect(suite, file, out) {
-  for (const child of suite.suites ?? []) collect(child, child.file ?? file, out);
+  for (const child of suite.suites ?? [])
+    collect(child, child.file ?? file, out);
   for (const spec of suite.specs ?? []) {
     const specFile = spec.file ?? file;
     for (const test of spec.tests ?? []) {
@@ -62,13 +73,20 @@ function collect(suite, file, out) {
       const last = results[results.length - 1];
       if (!last) continue;
       // "interrupted"/"didNotRun" => no verdict; everything else is final.
-      if (last.status === "interrupted" || last.status === "didNotRun") continue;
-      const status = test.status === "expected" || last.status === "passed"
-        ? "passed"
-        : last.status === "skipped"
-          ? "skipped"
-          : "failed";
-      out.push({ id: `${specFile} :: ${spec.title}`, file: specFile, title: spec.title, status });
+      if (last.status === "interrupted" || last.status === "didNotRun")
+        continue;
+      const status =
+        test.status === "expected" || last.status === "passed"
+          ? "passed"
+          : last.status === "skipped"
+            ? "skipped"
+            : "failed";
+      out.push({
+        id: `${specFile} :: ${spec.title}`,
+        file: specFile,
+        title: spec.title,
+        status,
+      });
     }
   }
 }
@@ -76,8 +94,11 @@ function collect(suite, file, out) {
 function runAttempt(files, attempt) {
   const jsonDir = mkdtempSync(path.join(tmpdir(), "aperture-e2e-"));
   const jsonPath = path.join(jsonDir, "results.json");
-  const perFileBudgetMs = 60_000;
-  const globalTimeout = Math.min(600_000, 120_000 + files.length * perFileBudgetMs);
+  const perFileBudgetMs = 90_000;
+  const globalTimeout = Math.min(
+    1_800_000,
+    240_000 + files.length * perFileBudgetMs,
+  );
   console.log(
     `\n[attempt ${attempt}/${maxAttempts}] ${files.length} spec file(s), global timeout ${Math.round(globalTimeout / 1000)}s`,
   );
@@ -96,7 +117,16 @@ function runAttempt(files, attempt) {
     {
       cwd: repoRoot,
       stdio: ["ignore", "ignore", "inherit"],
-      env: { ...process.env, PLAYWRIGHT_JSON_OUTPUT_NAME: jsonPath },
+      env: {
+        ...process.env,
+        PLAYWRIGHT_JSON_OUTPUT_NAME: jsonPath,
+        // Workers on this platform intermittently hang on exit (event loop
+        // pinned after stop); playwright's default grace is 5 MINUTES per
+        // worker. Cap it so a hang costs seconds and the run still finalizes
+        // its report (passed verdicts survive the force-kill).
+        PWTEST_CHILD_PROCESS_TIMEOUT:
+          process.env.PWTEST_CHILD_PROCESS_TIMEOUT ?? "10000",
+      },
       timeout: globalTimeout + 60_000,
       killSignal: "SIGKILL",
     },
@@ -106,17 +136,24 @@ function runAttempt(files, attempt) {
   try {
     report = JSON.parse(readFileSync(jsonPath, "utf8"));
   } catch {
-    console.log("[attempt] no JSON report produced (runner wedged before reporting)");
+    console.log(
+      "[attempt] no JSON report produced (runner wedged before reporting)",
+    );
   }
   rmSync(jsonDir, { recursive: true, force: true });
   const found = [];
   if (report) {
-    for (const suite of report.suites ?? []) collect(suite, suite.file ?? "", found);
+    for (const suite of report.suites ?? [])
+      collect(suite, suite.file ?? "", found);
   }
   return found;
 }
 
-for (let attempt = 1; attempt <= maxAttempts && queue.length > 0; attempt += 1) {
+for (
+  let attempt = 1;
+  attempt <= maxAttempts && queue.length > 0;
+  attempt += 1
+) {
   const results = runAttempt(queue, attempt);
   let newVerdicts = 0;
   for (const r of results) {
@@ -151,7 +188,9 @@ const skipped = [...verdicts.values()].filter((v) => v.status === "skipped");
 const failed = [...verdicts.values()].filter((v) => v.status === "failed");
 
 console.log(`\n=== webgpu-e2e-local summary ===`);
-console.log(`passed: ${passed.length}  skipped: ${skipped.length}  failed: ${failed.length}  unresolved spec files: ${queue.length}`);
+console.log(
+  `passed: ${passed.length}  skipped: ${skipped.length}  failed: ${failed.length}  unresolved spec files: ${queue.length}`,
+);
 for (const f of failed) console.log(`  ✘ ${f.id}`);
 for (const f of queue) console.log(`  ? never produced a verdict: ${f}`);
 process.exit(failed.length === 0 && queue.length === 0 ? 0 : 1);
