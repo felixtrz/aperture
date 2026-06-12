@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1213
+Every structured diagnostic code the engine can emit (1214
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -6545,6 +6545,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                       | Message                                                                       | Fix? | Emitted from                         |
 | ------------------------------------------ | ----------------------------------------------------------------------------- | ---- | ------------------------------------ |
 | `webGpuApp.pickCreateBindGroupUnavailable` | WebGPU app picking requires createBindGroup for view and transform resources. | —    | `packages/webgpu/src/app/picking.ts` |
+
+## webGpuApp.pickDeviceUnavailable (1)
+
+| Code                              | Message                                      | Fix? | Emitted from                               |
+| --------------------------------- | -------------------------------------------- | ---- | ------------------------------------------ |
+| `webGpuApp.pickDeviceUnavailable` | Entity pick could not drain the GPU queue: … | —    | `packages/webgpu/src/app/picking-frame.ts` |
 
 ## webGpuApp.pickEmptySnapshot (1)
 

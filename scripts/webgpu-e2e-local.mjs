@@ -22,7 +22,7 @@
 //   node scripts/webgpu-e2e-local.mjs [--config=playwright.macos.config.ts]
 //     [--attempts=4] [spec files or -g style filters...]
 //   node scripts/webgpu-e2e-local.mjs            # whole test/e2e suite
-import { execFileSync, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
