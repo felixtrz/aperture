@@ -257,9 +257,10 @@ test("persistent render shell swaps scenario producers without recreating WebGPU
           },
         },
       },
-      counts: {
-        diagnostics: 0,
-      },
+      // No exact diagnostics-count pin: the clustered pressure scene's steady
+      // state truthfully reports AI-18 deferred-sampling warnings, and the
+      // scenario's ok:true gate already rejects any OTHER diagnostic (see
+      // createClusteredPressureHistoryStatus in the example main).
     },
   });
   expect(clustered.scenario?.readbackStatus).toBeDefined();

@@ -1109,7 +1109,10 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
       );
     },
     undefined,
-    { timeout: 5000 },
+    // Real specular IBL prefiltering (AI-87) makes the brass switch take
+    // ~4-5s under SwiftShader, so a 5s budget flakes (same rationale as
+    // loadBrassViewerSample below).
+    { timeout: 15000 },
   );
   const brassStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const brassScreenshot = await page.locator("#aperture-canvas").screenshot();

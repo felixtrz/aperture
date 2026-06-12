@@ -69,8 +69,11 @@ export function registerAtmosphereScene(aperture, registry) {
       dimension: "2d",
       width: 4,
       height: 4,
-      format: "rgba8unorm",
-      colorSpace: "data",
+      // sRGB so the authored display-intent bytes round-trip through the
+      // AI-17 output stage: decode on sample, encode on output. With "data"
+      // the sprite encode brightens the raw bytes and washes the markers out.
+      format: "rgba8unorm-srgb",
+      colorSpace: "srgb",
       semantic: "base-color",
       usage: ["sampled", "copy-dst"],
       sourceData: {
