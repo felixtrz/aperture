@@ -91,6 +91,24 @@ export function runInteractionFrame(
     }
   }
 
+  // A slow frame can drain a complete press+release pair at once (the
+  // end-of-frame `pressed` sample never reads true). Replay it as a down then
+  // an up at the same position so the click still fires; the state machine's
+  // zero-movement discrimination keeps it a click, never a drag.
+  if (
+    !pressed &&
+    pointer.pressedThisFrame.value &&
+    pointer.releasedThisFrame.value
+  ) {
+    runtime.processFrame({
+      position,
+      pressed: true,
+      time,
+      hitEntity,
+      worldPoint,
+    });
+  }
+
   runtime.processFrame({
     position,
     pressed,

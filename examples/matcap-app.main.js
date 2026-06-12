@@ -177,6 +177,13 @@ async function handleWorkerMessage(
     return;
   }
 
+  // A snapshot already in flight when pause() ran is dropped before rendering:
+  // pause freezes the published status AND the presented frame together, so
+  // the paused state stays deterministic. play() requests a fresh frame.
+  if (!loop.running) {
+    return;
+  }
+
   loop.receivedSnapshots += 1;
 
   const typedSnapshot = inspectStructuredCloneSnapshot(message.snapshot);
@@ -195,10 +202,17 @@ async function handleWorkerMessage(
     typedSnapshot,
   );
 
+  // pause() may have fired during the async render above; the paused status
+  // it published stays the last word and this straggler's status is dropped,
+  // keeping the paused state deterministic.
+  if (!loop.running) {
+    return;
+  }
+
   loop.latestStatus = status;
   publishStatus(status);
 
-  if (!status.ok || !loop.running) {
+  if (!status.ok) {
     return;
   }
 

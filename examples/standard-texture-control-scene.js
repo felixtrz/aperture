@@ -3,7 +3,10 @@ const scalarColor = [0.95, 0.1, 0.08, 1];
 const textureColor = [0.09375, 0.5, 1, 1];
 const uv1Coordinate = { u: 0.25, v: 0.25 };
 const repeatSamplerCoordinate = { u: 1.25, v: 0.25 };
-const textureTransform = { offset: [0.25, 0] };
+// Finite offset/scale/rotation transforms on TEXCOORD_0/1 now render; a
+// non-finite component is the remaining unsupported-transform input, so the
+// control scenario uses a NaN rotation to exercise that failure path.
+const textureTransform = { offset: [0.25, 0], rotation: Number.NaN };
 const uv1TextureBytes = [
   24, 128, 255, 255, 255, 32, 32, 255, 255, 255, 0, 255, 0, 255, 0, 255,
 ];
@@ -354,19 +357,11 @@ function createScenarioMaterialInput(flags, texture, sampler) {
   if (flags.usesBaseColorTransform) {
     return {
       scalarTextureBinding: {
-        baseColorTexture: {
-          ...binding,
-          texCoord: 1,
-          transform: textureTransform,
-        },
+        baseColorTexture: { ...binding, transform: textureTransform },
       },
       texturedBaseColorFactor: [1, 1, 1, 1],
       texturedTextureBinding: {
-        baseColorTexture: {
-          ...binding,
-          texCoord: 1,
-          transform: textureTransform,
-        },
+        baseColorTexture: { ...binding, transform: textureTransform },
       },
     };
   }

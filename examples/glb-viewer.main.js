@@ -1730,6 +1730,17 @@ function updateMainControlsFromStatus(status) {
   setInputValue(animationClipSelect, status.animation?.activeClipIndex);
   setInputValue(animationLoopSelect, status.animation?.loopMode);
   setInputValue(animationDirectionSelect, status.animation?.direction);
+  // The scrub range must learn the clip duration from the worker status
+  // before its value is set: in worker mode the main thread has no local
+  // clip, leaving max at 0 — and a range input clamps assigned values to
+  // [min, max], so every scrub would collapse to 0.
+  if (
+    animationScrubInput instanceof HTMLInputElement &&
+    Number.isFinite(status.animation?.duration) &&
+    status.animation.duration > 0
+  ) {
+    animationScrubInput.max = String(status.animation.duration);
+  }
   setInputValue(animationScrubInput, status.animation?.time);
   setInputValue(animationSpeedInput, status.animation?.speed);
   updateMainMorphInputs(status);
@@ -6624,11 +6635,7 @@ function readInitialCustomUrl() {
   const rawUrl = exampleParams.get("url");
 
   if (rawUrl === null || rawUrl.trim().length === 0) {
-    if (exampleParams.has("asset")) {
-      return null;
-    }
-
-    return new URL("./assets/hard_table.glb", globalThis.location.href);
+    return null;
   }
 
   const url = new URL(rawUrl.trim(), globalThis.location.href);

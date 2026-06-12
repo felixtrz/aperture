@@ -21,6 +21,7 @@ import {
   waitForSubmittedWork,
 } from "./report.js";
 import { assembleWebGpuAppFrameBoundaries } from "./frame-boundaries.js";
+import { releaseWebGpuAppGpuTimingReadbacks } from "./gpu-readback.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 import type {
   WebGpuApp,
@@ -233,6 +234,9 @@ export async function renderSpriteOnlyWebGpuAppFrame(
   if (frameBoundariesNeedGpuDrain(boundaries)) {
     await waitForSubmittedWork(app.initialization.device);
   }
+  // The sprite route never maps its GPU-timing readbacks, so return the leased
+  // readback buffers to the rotation ring for later frames.
+  releaseWebGpuAppGpuTimingReadbacks(boundaries.gpuTimingReadbacks);
 
   const frameOk =
     packedViews.diagnostics.length === 0 &&

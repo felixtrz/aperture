@@ -1,11 +1,13 @@
 import {
   createGpuPassTimingReport,
   createGpuTimestampQueryResourcesChecked,
+  createGpuTimestampReadbackBuffer,
   readGpuTimestampQueryResults,
   type GpuPassTimingReport,
   type GpuTimestampQueryDeviceLike,
   type GpuTimestampQueryDiagnostic,
   type GpuTimestampQueryResources,
+  type GpuTimestampReadbackResult,
 } from "../gpu/gpu-timing.js";
 import {
   readGpuOcclusionQueryResults,
@@ -21,7 +23,10 @@ import {
   type WebGpuAppDiagnosticsSummary,
 } from "./app-diagnostics-summary.js";
 import type { WebGpuAppFrameBoundaryTarget } from "./frame-target.js";
-import type { WebGpuAppResourceCache } from "./resource-cache.js";
+import type {
+  WebGpuAppGpuTimingCacheEntry,
+  WebGpuAppResourceCache,
+} from "./resource-cache.js";
 import type { WebGpuAppOcclusionQueryReport } from "./app.js";
 
 interface WebGpuAppGpuDeviceContext {
@@ -43,6 +48,12 @@ interface WebGpuAppOcclusionCullingState {
 export interface WebGpuAppGpuTimingReadback {
   readonly passName: string;
   readonly resources: GpuTimestampQueryResources;
+  /**
+   * Returns the frame's readback buffer to the pass's rotation ring once the
+   * CPU read unmapped it (or once the owner knows it will never map it).
+   * Until then the buffer must not be reused by another frame's submit.
+   */
+  readonly release?: () => void;
 }
 
 export interface WebGpuAppOcclusionQueryReadback {
@@ -52,38 +63,140 @@ export interface WebGpuAppOcclusionQueryReadback {
   readonly renderIds: readonly number[];
 }
 
+/**
+ * How many readback buffers a pass rotates through before a frame skips GPU
+ * timing instead of reusing a buffer an in-flight frame still owns. Two covers
+ * one overlapped frame (map pending while the next frame submits); three adds
+ * slack for a second overlap without growing per-pass GPU memory meaningfully.
+ */
+const WEBGPU_APP_GPU_TIMING_READBACK_RING_CAPACITY = 3;
+
+export interface WebGpuAppGpuTimingFrameLease {
+  readonly passName: string;
+  readonly resources: GpuTimestampQueryResources | null;
+  readonly diagnostics: readonly GpuTimestampQueryDiagnostic[];
+  readonly release?: () => void;
+}
+
 export async function createWebGpuAppGpuTimingForTarget(
   app: WebGpuAppGpuDeviceContext,
   cache: WebGpuAppResourceCache,
   label: string,
   target: WebGpuAppFrameBoundaryTarget,
-): Promise<{
-  readonly passName: string;
-  readonly resources: GpuTimestampQueryResources | null;
-  readonly diagnostics: readonly GpuTimestampQueryDiagnostic[];
-}> {
+): Promise<WebGpuAppGpuTimingFrameLease> {
   const passName =
     target.renderTargetKey === null ? "main" : `main:${target.renderTargetKey}`;
   const cacheKey = `${passName}:2`;
-  const cached = cache.gpuTimings.get(cacheKey);
+  let entry = cache.gpuTimings.get(cacheKey);
 
-  if (cached !== undefined) {
-    return cached;
+  if (entry === undefined) {
+    const created = await createGpuTimestampQueryResourcesChecked({
+      device: app.initialization.device as GpuTimestampQueryDeviceLike,
+      label: `${label}:${passName}:gpu-timing`,
+      queryCount: 2,
+    });
+
+    entry = {
+      passName,
+      resources: created.resources,
+      diagnostics: created.diagnostics,
+      readbackRing:
+        created.resources === null ? [] : [created.resources.readbackBuffer],
+      busyReadbacks: new Set(),
+    };
+    cache.gpuTimings.set(cacheKey, entry);
   }
 
-  const created = await createGpuTimestampQueryResourcesChecked({
-    device: app.initialization.device as GpuTimestampQueryDeviceLike,
-    label: `${label}:${passName}:gpu-timing`,
-    queryCount: 2,
-  });
-  const entry = {
-    passName,
-    resources: created.resources,
-    diagnostics: created.diagnostics,
-  };
+  if (entry.resources === null) {
+    return {
+      passName: entry.passName,
+      resources: null,
+      diagnostics: entry.diagnostics,
+    };
+  }
 
-  cache.gpuTimings.set(cacheKey, entry);
-  return entry;
+  // AI-11 keeps frames pipelined, so a previous frame's timing readback can
+  // still be mapped (or pending map) while this frame encodes its submit.
+  // Lease a readback buffer that no in-flight frame owns; submitting a copy
+  // into a mapped buffer is a WebGPU validation error ("used in submit while
+  // mapped"). When the ring is exhausted, skip timing for this frame rather
+  // than reuse a busy buffer or grow without bound.
+  const readbackBuffer = leaseGpuTimingReadbackBuffer(
+    app,
+    entry,
+    entry.resources,
+  );
+
+  if (readbackBuffer === null) {
+    return {
+      passName: entry.passName,
+      resources: null,
+      diagnostics: entry.diagnostics,
+    };
+  }
+
+  const busyReadbacks = entry.busyReadbacks;
+  const resources =
+    readbackBuffer === entry.resources.readbackBuffer
+      ? entry.resources
+      : { ...entry.resources, readbackBuffer };
+
+  return {
+    passName: entry.passName,
+    resources,
+    diagnostics: entry.diagnostics,
+    release: () => {
+      busyReadbacks.delete(readbackBuffer);
+    },
+  };
+}
+
+function leaseGpuTimingReadbackBuffer(
+  app: WebGpuAppGpuDeviceContext,
+  entry: WebGpuAppGpuTimingCacheEntry,
+  resources: GpuTimestampQueryResources,
+): GpuTimestampQueryResources["readbackBuffer"] | null {
+  let leased = entry.readbackRing.find(
+    (buffer) => !entry.busyReadbacks.has(buffer),
+  );
+
+  if (leased === undefined) {
+    if (
+      entry.readbackRing.length >= WEBGPU_APP_GPU_TIMING_READBACK_RING_CAPACITY
+    ) {
+      return null;
+    }
+
+    const created = createGpuTimestampReadbackBuffer({
+      device: app.initialization.device as GpuTimestampQueryDeviceLike,
+      label: `${resources.label}/readback#${entry.readbackRing.length}`,
+      byteLength: resources.byteLength,
+    });
+
+    if (created === null) {
+      return null;
+    }
+
+    entry.readbackRing.push(created);
+    leased = created;
+  }
+
+  entry.busyReadbacks.add(leased);
+  return leased;
+}
+
+/**
+ * Returns leased timing readback buffers without reading them. Frame paths
+ * that encode GPU timestamps but never map the readback (no timing report on
+ * their route) must release their leases or the rotation ring would saturate
+ * and silently disable timing.
+ */
+export function releaseWebGpuAppGpuTimingReadbacks(
+  readbacks: readonly WebGpuAppGpuTimingReadback[],
+): void {
+  for (const readback of readbacks) {
+    readback.release?.();
+  }
 }
 
 export async function readWebGpuAppGpuTimings(input: {
@@ -103,7 +216,7 @@ export async function readWebGpuAppGpuTimings(input: {
 
     return createGpuPassTimingReport({
       passNames: [readback.passName],
-      readback: await readGpuTimestampQueryResults(readback.resources),
+      readback: await readWebGpuAppGpuTimingReadback(readback),
       diagnostics: input.diagnostics,
     });
   }
@@ -114,7 +227,7 @@ export async function readWebGpuAppGpuTimings(input: {
     passReports.push(
       createGpuPassTimingReport({
         passNames: [readback.passName],
-        readback: await readGpuTimestampQueryResults(readback.resources),
+        readback: await readWebGpuAppGpuTimingReadback(readback),
       }),
     );
   }
@@ -131,6 +244,18 @@ export async function readWebGpuAppGpuTimings(input: {
       ...passReports.flatMap((report) => report.diagnostics),
     ],
   };
+}
+
+async function readWebGpuAppGpuTimingReadback(
+  readback: WebGpuAppGpuTimingReadback,
+): Promise<GpuTimestampReadbackResult> {
+  try {
+    return await readGpuTimestampQueryResults(readback.resources);
+  } finally {
+    // The read unmaps the buffer (even on failure), so the lease can return to
+    // the pass's rotation ring for a later frame.
+    readback.release?.();
+  }
 }
 
 export async function readWebGpuAppOcclusionQueries(input: {

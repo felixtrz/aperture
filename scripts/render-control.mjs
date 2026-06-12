@@ -11,10 +11,24 @@ const baseURL =
 const artifactDir =
   process.env.APERTURE_RENDER_CONTROL_ARTIFACT_DIR ??
   path.join("test-results", "render-control-cli");
+// Default browser flags mirror playwright.ci.config.ts (and the generated
+// playwright.local.config.ts): WebGPU on SwiftShader Vulkan. On GPU-less
+// machines Chromium otherwise reports a usable adapter but has no
+// SharedImageBackingFactory for the WebGPU canvas swap chain, so the first
+// rendered frame destroys the device and every pending WebGPU operation
+// rejects with "A valid external Instance reference no longer exists.".
+// Override with APERTURE_RENDER_CONTROL_BROWSER_ARGS (space-separated) to
+// probe a real GPU, e.g. APERTURE_RENDER_CONTROL_BROWSER_ARGS="--enable-unsafe-webgpu".
+const defaultBrowserArgs = [
+  "--enable-unsafe-webgpu",
+  "--use-vulkan=swiftshader",
+  "--enable-features=Vulkan",
+  "--enable-unsafe-swiftshader",
+];
 const launchOptions = {
   channel: process.env.APERTURE_RENDER_CONTROL_CHANNEL ?? "chrome",
   headless: process.env.APERTURE_RENDER_CONTROL_HEADLESS === "1",
-  args: ["--enable-unsafe-webgpu"],
+  args: parseBrowserArgs(process.env.APERTURE_RENDER_CONTROL_BROWSER_ARGS),
 };
 const defaultVolatilePathPatterns = [
   /^capturedAt$/u,
@@ -1360,6 +1374,14 @@ function summarizeValue(value) {
   } catch {
     return '"<non-json-safe>"';
   }
+}
+
+function parseBrowserArgs(raw) {
+  if (typeof raw !== "string" || raw.trim() === "") {
+    return [...defaultBrowserArgs];
+  }
+
+  return raw.trim().split(/\s+/u);
 }
 
 function messageFromError(error) {

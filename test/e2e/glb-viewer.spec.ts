@@ -714,10 +714,39 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     "Roughness IBL",
     "Normal map",
     "Normal map generated tangents",
+    "Normal map UV1",
+    "Normal map UV1 transform",
+    "Base + normal texture",
+    "UV1 base + normal",
+    "MR + normal texture",
+    "Base + emissive texture",
+    "Alpha mask + normal",
+    "Alpha mask + MR",
+    "Occlusion + normal texture",
+    "MR + emissive texture",
+    "Base + MR + emissive",
+    "Transformed base + MR",
+    "Alpha blend + normal",
+    "Alpha blend + emissive",
+    "UV1 MR + normal",
+    "UV1 MR + emissive",
+    "Base + occlusion texture",
+    "UV1 base + occlusion",
+    "UV1 base + emissive",
+    "Transformed MR + normal",
+    "Transformed base + emissive",
     "Normal scale",
     "Normal transform",
     "Normal transform controls",
     "Textured standard",
+    "Basis KTX2 texture",
+    "Draco heart",
+    "Meshopt cube",
+    "A Beautiful Game KTX2 + Draco",
+    "Khronos Flight Helmet glTF",
+    "Khronos Damaged Helmet GLB",
+    "Khronos Cesium Man GLB",
+    "Khronos Morph Primitives GLB",
     "Embedded texture",
     "URI PNG texture",
     "URI JPEG texture",
@@ -733,6 +762,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     "Vertex color",
     "Textured vertex color",
     "Standard vertex color",
+    "Standard textured vertex color",
     "Imported camera",
     "Imported cameras",
     "Morph target",
@@ -3224,8 +3254,9 @@ test("Playwright renders GLB viewer vertex colors through the unlit route", asyn
           };
         }
       ).__APERTURE_EXAMPLE_STATUS__;
-      const attributes =
-        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes ?? [];
+      const attributes = (
+        status?.gltf?.meshAttributes?.[0]?.streams ?? []
+      ).flatMap((stream) => stream.attributes ?? []);
 
       return (
         (status?.frame ?? 0) >= 3 &&
@@ -3238,10 +3269,10 @@ test("Playwright renders GLB viewer vertex colors through the unlit route", asyn
           (attribute) =>
             attribute.semantic === "COLOR_0" &&
             attribute.format === "float32x4" &&
-            attribute.offset === 32,
+            attribute.offset === 0,
         ) &&
         status.renderState?.draws?.[0]?.meshLayoutKey ===
-          "POSITION,NORMAL,TEXCOORD_0,COLOR_0" &&
+          "POSITION|NORMAL|TEXCOORD_0|COLOR_0" &&
         status.extraction?.meshDraws === 1 &&
         status.draw?.drawCalls === 1
       );
@@ -3318,14 +3349,32 @@ test("Playwright renders GLB viewer vertex colors through the unlit route", asyn
           primitiveIndex: 0,
           streams: [
             {
-              arrayStride: 48,
+              arrayStride: 12,
               vertexCount: 4,
-              attributes: expect.arrayContaining([
+              attributes: [
                 { semantic: "POSITION", format: "float32x3", offset: 0 },
-                { semantic: "NORMAL", format: "float32x3", offset: 12 },
-                { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
-                { semantic: "COLOR_0", format: "float32x4", offset: 32 },
-              ]),
+              ],
+            },
+            {
+              arrayStride: 12,
+              vertexCount: 4,
+              attributes: [
+                { semantic: "NORMAL", format: "float32x3", offset: 0 },
+              ],
+            },
+            {
+              arrayStride: 8,
+              vertexCount: 4,
+              attributes: [
+                { semantic: "TEXCOORD_0", format: "float32x2", offset: 0 },
+              ],
+            },
+            {
+              arrayStride: 16,
+              vertexCount: 4,
+              attributes: [
+                { semantic: "COLOR_0", format: "float32x4", offset: 0 },
+              ],
             },
           ],
           indexBuffer: {
@@ -3341,7 +3390,7 @@ test("Playwright renders GLB viewer vertex colors through the unlit route", asyn
       draws: [
         {
           pipelineKey: "unlit|opaque|none|less|none",
-          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0",
+          meshLayoutKey: "POSITION|NORMAL|TEXCOORD_0|COLOR_0",
         },
       ],
     },
@@ -3466,8 +3515,9 @@ test("Playwright renders GLB viewer textured vertex colors through the unlit rou
           };
         }
       ).__APERTURE_EXAMPLE_STATUS__;
-      const attributes =
-        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes ?? [];
+      const attributes = (
+        status?.gltf?.meshAttributes?.[0]?.streams ?? []
+      ).flatMap((stream) => stream.attributes ?? []);
       const resolution = status?.gltf?.primitiveMaterials?.resolutions?.[0];
 
       return (
@@ -3482,16 +3532,16 @@ test("Playwright renders GLB viewer textured vertex colors through the unlit rou
           (attribute) =>
             attribute.semantic === "COLOR_0" &&
             attribute.format === "float32x4" &&
-            attribute.offset === 32,
+            attribute.offset === 0,
         ) &&
-        status.gltf?.meshAttributes?.[0]?.streams?.[0]?.arrayStride === 48 &&
+        status.gltf?.meshAttributes?.[0]?.streams?.length === 4 &&
         resolution?.pipelineKey ===
           "unlit|baseColorTexture|opaque|none|less|none" &&
         resolution?.textureSlots?.baseColorTexture?.texCoord === 0 &&
         status.renderState?.draws?.[0]?.pipelineKey ===
           "unlit|baseColorTexture|opaque|none|less|none" &&
         status.renderState?.draws?.[0]?.meshLayoutKey ===
-          "POSITION,NORMAL,TEXCOORD_0,COLOR_0" &&
+          "POSITION|NORMAL|TEXCOORD_0|COLOR_0" &&
         status.extraction?.meshDraws === 1 &&
         status.draw?.drawCalls === 1
       );
@@ -3544,13 +3594,28 @@ test("Playwright renders GLB viewer textured vertex colors through the unlit rou
         {
           streams: [
             {
-              arrayStride: 48,
-              attributes: expect.arrayContaining([
+              arrayStride: 12,
+              attributes: [
                 { semantic: "POSITION", format: "float32x3", offset: 0 },
-                { semantic: "NORMAL", format: "float32x3", offset: 12 },
-                { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
-                { semantic: "COLOR_0", format: "float32x4", offset: 32 },
-              ]),
+              ],
+            },
+            {
+              arrayStride: 12,
+              attributes: [
+                { semantic: "NORMAL", format: "float32x3", offset: 0 },
+              ],
+            },
+            {
+              arrayStride: 8,
+              attributes: [
+                { semantic: "TEXCOORD_0", format: "float32x2", offset: 0 },
+              ],
+            },
+            {
+              arrayStride: 16,
+              attributes: [
+                { semantic: "COLOR_0", format: "float32x4", offset: 0 },
+              ],
             },
           ],
         },
@@ -3561,7 +3626,7 @@ test("Playwright renders GLB viewer textured vertex colors through the unlit rou
       draws: [
         {
           pipelineKey: "unlit|baseColorTexture|opaque|none|less|none",
-          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0",
+          meshLayoutKey: "POSITION|NORMAL|TEXCOORD_0|COLOR_0",
         },
       ],
     },
@@ -3669,8 +3734,9 @@ test("Playwright renders GLB viewer vertex colors through the StandardMaterial r
           };
         }
       ).__APERTURE_EXAMPLE_STATUS__;
-      const attributes =
-        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes ?? [];
+      const attributes = (
+        status?.gltf?.meshAttributes?.[0]?.streams ?? []
+      ).flatMap((stream) => stream.attributes ?? []);
       const resolution = status?.gltf?.primitiveMaterials?.resolutions?.[0];
 
       return (
@@ -3681,15 +3747,15 @@ test("Playwright renders GLB viewer vertex colors through the StandardMaterial r
           (attribute) =>
             attribute.semantic === "COLOR_0" &&
             attribute.format === "float32x4" &&
-            attribute.offset === 32,
+            attribute.offset === 0,
         ) &&
-        status.gltf?.meshAttributes?.[0]?.streams?.[0]?.arrayStride === 48 &&
+        status.gltf?.meshAttributes?.[0]?.streams?.length === 4 &&
         resolution?.family === "standard" &&
         resolution?.pipelineKey === "standard|opaque|none|less|none" &&
         status.renderState?.draws?.[0]?.pipelineKey ===
           "standard|opaque|none|less|none" &&
         status.renderState?.draws?.[0]?.meshLayoutKey ===
-          "POSITION,NORMAL,TEXCOORD_0,COLOR_0" &&
+          "POSITION|NORMAL|TEXCOORD_0|COLOR_0" &&
         status.extraction?.meshDraws === 1 &&
         status.draw?.drawCalls === 1
       );
@@ -3724,13 +3790,28 @@ test("Playwright renders GLB viewer vertex colors through the StandardMaterial r
         {
           streams: [
             {
-              arrayStride: 48,
-              attributes: expect.arrayContaining([
+              arrayStride: 12,
+              attributes: [
                 { semantic: "POSITION", format: "float32x3", offset: 0 },
-                { semantic: "NORMAL", format: "float32x3", offset: 12 },
-                { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
-                { semantic: "COLOR_0", format: "float32x4", offset: 32 },
-              ]),
+              ],
+            },
+            {
+              arrayStride: 12,
+              attributes: [
+                { semantic: "NORMAL", format: "float32x3", offset: 0 },
+              ],
+            },
+            {
+              arrayStride: 8,
+              attributes: [
+                { semantic: "TEXCOORD_0", format: "float32x2", offset: 0 },
+              ],
+            },
+            {
+              arrayStride: 16,
+              attributes: [
+                { semantic: "COLOR_0", format: "float32x4", offset: 0 },
+              ],
             },
           ],
         },
@@ -3741,7 +3822,7 @@ test("Playwright renders GLB viewer vertex colors through the StandardMaterial r
       draws: [
         {
           pipelineKey: "standard|opaque|none|less|none",
-          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0",
+          meshLayoutKey: "POSITION|NORMAL|TEXCOORD_0|COLOR_0",
         },
       ],
     },
@@ -3864,8 +3945,9 @@ test("Playwright renders GLB viewer textured vertex colors through the StandardM
           };
         }
       ).__APERTURE_EXAMPLE_STATUS__;
-      const attributes =
-        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes ?? [];
+      const attributes = (
+        status?.gltf?.meshAttributes?.[0]?.streams ?? []
+      ).flatMap((stream) => stream.attributes ?? []);
       const textured =
         status?.gltf?.primitiveMaterials?.resolutions?.[0] ?? null;
       const scalar = status?.gltf?.primitiveMaterials?.resolutions?.[1] ?? null;
@@ -3887,14 +3969,14 @@ test("Playwright renders GLB viewer textured vertex colors through the StandardM
           (attribute) =>
             attribute.semantic === "COLOR_0" &&
             attribute.format === "float32x4" &&
-            attribute.offset === 32,
+            attribute.offset === 0,
         ) &&
-        status.gltf?.meshAttributes?.[0]?.streams?.[0]?.arrayStride === 48 &&
+        status.gltf?.meshAttributes?.[0]?.streams?.length === 4 &&
         draws.some(
           (draw) =>
             draw.pipelineKey ===
               "standard|baseColorTexture|opaque|none|less|none" &&
-            draw.meshLayoutKey === "POSITION,NORMAL,TEXCOORD_0,COLOR_0",
+            draw.meshLayoutKey === "POSITION|NORMAL|TEXCOORD_0|COLOR_0",
         ) &&
         status.extraction?.meshDraws === 2 &&
         status.extraction.diagnostics === 0 &&
@@ -3960,7 +4042,7 @@ test("Playwright renders GLB viewer textured vertex colors through the StandardM
       draws: expect.arrayContaining([
         expect.objectContaining({
           pipelineKey: "standard|baseColorTexture|opaque|none|less|none",
-          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0",
+          meshLayoutKey: "POSITION|NORMAL|TEXCOORD_0|COLOR_0",
         }),
       ]),
     },
@@ -3974,13 +4056,28 @@ test("Playwright renders GLB viewer textured vertex colors through the StandardM
         primitiveIndex: 0,
         streams: expect.arrayContaining([
           expect.objectContaining({
-            arrayStride: 48,
-            attributes: expect.arrayContaining([
+            arrayStride: 12,
+            attributes: [
               { semantic: "POSITION", format: "float32x3", offset: 0 },
-              { semantic: "NORMAL", format: "float32x3", offset: 12 },
-              { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
-              { semantic: "COLOR_0", format: "float32x4", offset: 32 },
-            ]),
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 12,
+            attributes: [
+              { semantic: "NORMAL", format: "float32x3", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 8,
+            attributes: [
+              { semantic: "TEXCOORD_0", format: "float32x2", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 16,
+            attributes: [
+              { semantic: "COLOR_0", format: "float32x4", offset: 0 },
+            ],
           }),
         ]),
       }),
@@ -4588,10 +4685,9 @@ test("Playwright renders visible morph target weights from the GLB viewer", asyn
           };
         }
       ).__APERTURE_EXAMPLE_STATUS__;
-      const semantics =
-        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes?.map(
-          (attribute) => attribute.semantic,
-        ) ?? [];
+      const semantics = (status?.gltf?.meshAttributes?.[0]?.streams ?? [])
+        .flatMap((stream) => stream.attributes ?? [])
+        .map((attribute) => attribute.semantic);
 
       return (
         (status?.frame ?? 0) >= 3 &&
@@ -4600,7 +4696,7 @@ test("Playwright renders visible morph target weights from the GLB viewer", asyn
         status.source?.ok === true &&
         status.gltf?.primitiveMaterials?.resolved === 1 &&
         status.gltf?.metadata?.unsupportedFeatureDiagnostics?.length === 0 &&
-        status.gltf?.meshAttributes?.[0]?.streams?.[0]?.arrayStride === 80 &&
+        status.gltf?.meshAttributes?.[0]?.streams?.length === 7 &&
         semantics.includes("MORPH_POSITION_0") &&
         semantics.includes("MORPH_NORMAL_0") &&
         semantics.includes("MORPH_POSITION_1") &&
@@ -4674,16 +4770,32 @@ test("Playwright renders visible morph target weights from the GLB viewer", asyn
         {
           streams: [
             {
-              arrayStride: 80,
-              attributes: [
-                { semantic: "POSITION", offset: 0 },
-                { semantic: "NORMAL", offset: 12 },
-                { semantic: "TEXCOORD_0", offset: 24 },
-                { semantic: "MORPH_POSITION_0", offset: 32 },
-                { semantic: "MORPH_NORMAL_0", offset: 44 },
-                { semantic: "MORPH_POSITION_1", offset: 56 },
-                { semantic: "MORPH_NORMAL_1", offset: 68 },
-              ],
+              arrayStride: 12,
+              attributes: [{ semantic: "POSITION", offset: 0 }],
+            },
+            {
+              arrayStride: 12,
+              attributes: [{ semantic: "NORMAL", offset: 0 }],
+            },
+            {
+              arrayStride: 8,
+              attributes: [{ semantic: "TEXCOORD_0", offset: 0 }],
+            },
+            {
+              arrayStride: 12,
+              attributes: [{ semantic: "MORPH_POSITION_0", offset: 0 }],
+            },
+            {
+              arrayStride: 12,
+              attributes: [{ semantic: "MORPH_NORMAL_0", offset: 0 }],
+            },
+            {
+              arrayStride: 12,
+              attributes: [{ semantic: "MORPH_POSITION_1", offset: 0 }],
+            },
+            {
+              arrayStride: 12,
+              attributes: [{ semantic: "MORPH_NORMAL_1", offset: 0 }],
             },
           ],
           indexBuffer: {
@@ -4822,8 +4934,9 @@ test("Playwright renders and animates a skinned GLB mesh", async ({ page }) => {
           };
         }
       ).__APERTURE_EXAMPLE_STATUS__;
-      const attributes =
-        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes ?? [];
+      const attributes = (
+        status?.gltf?.meshAttributes?.[0]?.streams ?? []
+      ).flatMap((stream) => stream.attributes ?? []);
 
       return (
         (status?.frame ?? 0) >= 3 &&
@@ -4832,18 +4945,18 @@ test("Playwright renders and animates a skinned GLB mesh", async ({ page }) => {
         status.source?.ok === true &&
         status.gltf?.primitiveMaterials?.resolved === 1 &&
         status.gltf?.metadata?.unsupportedFeatureDiagnostics?.length === 0 &&
-        status.gltf?.meshAttributes?.[0]?.streams?.[0]?.arrayStride === 56 &&
+        status.gltf?.meshAttributes?.[0]?.streams?.length === 5 &&
         attributes.some(
           (attribute) =>
             attribute.semantic === "JOINTS_0" &&
             attribute.format === "uint16x4" &&
-            attribute.offset === 32,
+            attribute.offset === 0,
         ) &&
         attributes.some(
           (attribute) =>
             attribute.semantic === "WEIGHTS_0" &&
             attribute.format === "float32x4" &&
-            attribute.offset === 40,
+            attribute.offset === 0,
         ) &&
         status.skinning?.status === "ready" &&
         status.skinning.skinCount === 1 &&
@@ -4920,15 +5033,39 @@ test("Playwright renders and animates a skinned GLB mesh", async ({ page }) => {
           primitiveIndex: 0,
           streams: [
             {
-              arrayStride: 56,
+              arrayStride: 12,
               vertexCount: 4,
-              attributes: expect.arrayContaining([
+              attributes: [
                 { semantic: "POSITION", format: "float32x3", offset: 0 },
-                { semantic: "NORMAL", format: "float32x3", offset: 12 },
-                { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
-                { semantic: "JOINTS_0", format: "uint16x4", offset: 32 },
-                { semantic: "WEIGHTS_0", format: "float32x4", offset: 40 },
-              ]),
+              ],
+            },
+            {
+              arrayStride: 12,
+              vertexCount: 4,
+              attributes: [
+                { semantic: "NORMAL", format: "float32x3", offset: 0 },
+              ],
+            },
+            {
+              arrayStride: 8,
+              vertexCount: 4,
+              attributes: [
+                { semantic: "TEXCOORD_0", format: "float32x2", offset: 0 },
+              ],
+            },
+            {
+              arrayStride: 8,
+              vertexCount: 4,
+              attributes: [
+                { semantic: "JOINTS_0", format: "uint16x4", offset: 0 },
+              ],
+            },
+            {
+              arrayStride: 16,
+              vertexCount: 4,
+              attributes: [
+                { semantic: "WEIGHTS_0", format: "float32x4", offset: 0 },
+              ],
             },
           ],
           indexBuffer: {
@@ -5717,26 +5854,26 @@ test("Playwright renders a GLB viewer base-color texture plus emissive texture",
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-uri-base-color-checker.png",
-            url: "/examples/assets/aperture-uri-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-uri-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 84,
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
-            url: "/examples/assets/aperture-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
+            byteLength: 84,
+          }),
         ]),
         diagnostics: [],
       },
@@ -6019,26 +6156,26 @@ test("Playwright renders a GLB viewer metallic-roughness texture plus emissive t
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-metallic-roughness-checker.png",
-            url: "/examples/assets/aperture-metallic-roughness-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-metallic-roughness-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 83,
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
-            url: "/examples/assets/aperture-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
+            byteLength: 84,
+          }),
         ]),
         diagnostics: [],
       },
@@ -6339,36 +6476,36 @@ test("Playwright renders GLB viewer base-color plus metallic-roughness plus emis
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-uri-base-color-checker.png",
-            url: "/examples/assets/aperture-uri-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-uri-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 84,
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-metallic-roughness-checker.png",
-            url: "/examples/assets/aperture-metallic-roughness-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-metallic-roughness-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 83,
+          }),
+          expect.objectContaining({
             imageIndex: 2,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
-            url: "/examples/assets/aperture-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
+            byteLength: 84,
+          }),
         ]),
         diagnostics: [],
       },
@@ -7174,26 +7311,26 @@ test("Playwright renders a GLB viewer base-color texture plus occlusion texture"
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
-            url: "/examples/assets/aperture-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 84,
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-occlusion-control.png",
-            url: "/examples/assets/aperture-occlusion-control.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-occlusion-control.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
+            byteLength: 83,
+          }),
         ]),
         diagnostics: [],
       },
@@ -7382,8 +7519,9 @@ test("Playwright renders GLB viewer UV1 base-color plus occlusion textures", asy
       );
       const uv1PipelineKey =
         "standard|baseColorTexture|occlusionTexture|uv1|opaque|back|less|none";
-      const attributes =
-        status?.gltf?.meshAttributes?.[1]?.streams?.[0]?.attributes ?? [];
+      const attributes = (
+        status?.gltf?.meshAttributes?.[1]?.streams ?? []
+      ).flatMap((stream) => stream.attributes ?? []);
 
       return (
         (status?.frame ?? 0) >= 3 &&
@@ -7407,9 +7545,9 @@ test("Playwright renders GLB viewer UV1 base-color plus occlusion textures", asy
         scalar.occlusionTexture === null &&
         attributes.some(
           (attribute) =>
-            attribute.semantic === "TEXCOORD_1" && attribute.offset === 32,
+            attribute.semantic === "TEXCOORD_1" && attribute.offset === 0,
         ) &&
-        status.gltf?.meshAttributes?.[1]?.streams?.[0]?.arrayStride === 40 &&
+        status.gltf?.meshAttributes?.[1]?.streams?.length === 4 &&
         status.extraction?.meshDraws === 3 &&
         status.extraction.diagnostics === 0 &&
         status.extraction.diagnosticsList?.some(
@@ -7421,7 +7559,7 @@ test("Playwright renders GLB viewer UV1 base-color plus occlusion textures", asy
         status.renderState.draws?.some(
           (draw) =>
             draw.pipelineKey === uv1PipelineKey &&
-            draw.meshLayoutKey === "POSITION,NORMAL,TEXCOORD_0,TEXCOORD_1",
+            draw.meshLayoutKey === "POSITION|NORMAL|TEXCOORD_0|TEXCOORD_1",
         ) === true &&
         status.draw?.drawCalls === 3
       );
@@ -7512,26 +7650,26 @@ test("Playwright renders GLB viewer UV1 base-color plus occlusion textures", asy
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
-            url: "/examples/assets/aperture-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 84,
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-occlusion-control.png",
-            url: "/examples/assets/aperture-occlusion-control.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-occlusion-control.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
+            byteLength: 83,
+          }),
         ]),
         diagnostics: [],
       },
@@ -7631,7 +7769,7 @@ test("Playwright renders GLB viewer UV1 base-color plus occlusion textures", asy
       draws: expect.arrayContaining([
         expect.objectContaining({
           pipelineKey: uv1PipelineKey,
-          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TEXCOORD_1",
+          meshLayoutKey: "POSITION|NORMAL|TEXCOORD_0|TEXCOORD_1",
         }),
       ]),
     },
@@ -7647,14 +7785,32 @@ test("Playwright renders GLB viewer UV1 base-color plus occlusion textures", asy
         primitiveIndex: 1,
         streams: expect.arrayContaining([
           expect.objectContaining({
-            arrayStride: 40,
+            arrayStride: 12,
             vertexCount: 4,
-            attributes: expect.arrayContaining([
+            attributes: [
               { semantic: "POSITION", format: "float32x3", offset: 0 },
-              { semantic: "NORMAL", format: "float32x3", offset: 12 },
-              { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
-              { semantic: "TEXCOORD_1", format: "float32x2", offset: 32 },
-            ]),
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 12,
+            vertexCount: 4,
+            attributes: [
+              { semantic: "NORMAL", format: "float32x3", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 8,
+            vertexCount: 4,
+            attributes: [
+              { semantic: "TEXCOORD_0", format: "float32x2", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 8,
+            vertexCount: 4,
+            attributes: [
+              { semantic: "TEXCOORD_1", format: "float32x2", offset: 0 },
+            ],
           }),
         ]),
       }),
@@ -7771,8 +7927,9 @@ test("Playwright renders GLB viewer UV1 base-color plus emissive textures", asyn
       );
       const uv1PipelineKey =
         "standard|baseColorTexture|emissiveTexture|uv1|opaque|back|less|none";
-      const attributes =
-        status?.gltf?.meshAttributes?.[1]?.streams?.[0]?.attributes ?? [];
+      const attributes = (
+        status?.gltf?.meshAttributes?.[1]?.streams ?? []
+      ).flatMap((stream) => stream.attributes ?? []);
 
       return (
         (status?.frame ?? 0) >= 3 &&
@@ -7797,9 +7954,9 @@ test("Playwright renders GLB viewer UV1 base-color plus emissive textures", asyn
         scalar.emissiveTexture === null &&
         attributes.some(
           (attribute) =>
-            attribute.semantic === "TEXCOORD_1" && attribute.offset === 32,
+            attribute.semantic === "TEXCOORD_1" && attribute.offset === 0,
         ) &&
-        status.gltf?.meshAttributes?.[1]?.streams?.[0]?.arrayStride === 40 &&
+        status.gltf?.meshAttributes?.[1]?.streams?.length === 4 &&
         status.extraction?.meshDraws === 3 &&
         status.extraction.diagnostics === 0 &&
         status.extraction.diagnosticsList?.some(
@@ -7811,7 +7968,7 @@ test("Playwright renders GLB viewer UV1 base-color plus emissive textures", asyn
         status.renderState.draws?.some(
           (draw) =>
             draw.pipelineKey === uv1PipelineKey &&
-            draw.meshLayoutKey === "POSITION,NORMAL,TEXCOORD_0,TEXCOORD_1",
+            draw.meshLayoutKey === "POSITION|NORMAL|TEXCOORD_0|TEXCOORD_1",
         ) === true &&
         status.draw?.drawCalls === 3
       );
@@ -7908,26 +8065,26 @@ test("Playwright renders GLB viewer UV1 base-color plus emissive textures", asyn
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-uri-base-color-checker.png",
-            url: "/examples/assets/aperture-uri-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-uri-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 84,
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
-            url: "/examples/assets/aperture-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
+            byteLength: 84,
+          }),
         ]),
         diagnostics: [],
       },
@@ -8039,7 +8196,7 @@ test("Playwright renders GLB viewer UV1 base-color plus emissive textures", asyn
       draws: expect.arrayContaining([
         expect.objectContaining({
           pipelineKey: uv1PipelineKey,
-          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TEXCOORD_1",
+          meshLayoutKey: "POSITION|NORMAL|TEXCOORD_0|TEXCOORD_1",
         }),
       ]),
     },
@@ -8055,14 +8212,32 @@ test("Playwright renders GLB viewer UV1 base-color plus emissive textures", asyn
         primitiveIndex: 1,
         streams: expect.arrayContaining([
           expect.objectContaining({
-            arrayStride: 40,
+            arrayStride: 12,
             vertexCount: 4,
-            attributes: expect.arrayContaining([
+            attributes: [
               { semantic: "POSITION", format: "float32x3", offset: 0 },
-              { semantic: "NORMAL", format: "float32x3", offset: 12 },
-              { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
-              { semantic: "TEXCOORD_1", format: "float32x2", offset: 32 },
-            ]),
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 12,
+            vertexCount: 4,
+            attributes: [
+              { semantic: "NORMAL", format: "float32x3", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 8,
+            vertexCount: 4,
+            attributes: [
+              { semantic: "TEXCOORD_0", format: "float32x2", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 8,
+            vertexCount: 4,
+            attributes: [
+              { semantic: "TEXCOORD_1", format: "float32x2", offset: 0 },
+            ],
           }),
         ]),
       }),
@@ -8183,8 +8358,9 @@ test("Playwright renders GLB viewer UV1 metallic-roughness plus emissive texture
       );
       const uv1PipelineKey =
         "standard|emissiveTexture|metallicRoughnessTexture|uv1|opaque|back|less|none";
-      const attributes =
-        status?.gltf?.meshAttributes?.[1]?.streams?.[0]?.attributes ?? [];
+      const attributes = (
+        status?.gltf?.meshAttributes?.[1]?.streams ?? []
+      ).flatMap((stream) => stream.attributes ?? []);
 
       return (
         (status?.frame ?? 0) >= 3 &&
@@ -8209,9 +8385,9 @@ test("Playwright renders GLB viewer UV1 metallic-roughness plus emissive texture
         scalar.emissiveTexture === null &&
         attributes.some(
           (attribute) =>
-            attribute.semantic === "TEXCOORD_1" && attribute.offset === 32,
+            attribute.semantic === "TEXCOORD_1" && attribute.offset === 0,
         ) &&
-        status.gltf?.meshAttributes?.[1]?.streams?.[0]?.arrayStride === 40 &&
+        status.gltf?.meshAttributes?.[1]?.streams?.length === 4 &&
         status.extraction?.meshDraws === 3 &&
         status.extraction.diagnostics === 0 &&
         status.extraction.diagnosticsList?.some(
@@ -8223,7 +8399,7 @@ test("Playwright renders GLB viewer UV1 metallic-roughness plus emissive texture
         status.renderState.draws?.some(
           (draw) =>
             draw.pipelineKey === uv1PipelineKey &&
-            draw.meshLayoutKey === "POSITION,NORMAL,TEXCOORD_0,TEXCOORD_1",
+            draw.meshLayoutKey === "POSITION|NORMAL|TEXCOORD_0|TEXCOORD_1",
         ) === true &&
         status.draw?.drawCalls === 3
       );
@@ -8371,7 +8547,7 @@ test("Playwright renders GLB viewer UV1 metallic-roughness plus emissive texture
       draws: expect.arrayContaining([
         expect.objectContaining({
           pipelineKey: uv1PipelineKey,
-          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TEXCOORD_1",
+          meshLayoutKey: "POSITION|NORMAL|TEXCOORD_0|TEXCOORD_1",
         }),
       ]),
     },
@@ -8742,11 +8918,11 @@ test("Playwright reports an emissive texture transform in the GLB viewer", async
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
-            url: "/examples/assets/aperture-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
+            byteLength: 84,
           },
         ],
         diagnostics: [],
@@ -9268,11 +9444,11 @@ test("Playwright renders a GLB viewer occlusion texture transform sample", async
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-occlusion-checker.png",
-            url: "/examples/assets/aperture-occlusion-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-occlusion-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
+            byteLength: 83,
           },
         ],
         diagnostics: [],
@@ -9546,11 +9722,11 @@ test("Playwright compares transformed and untransformed occlusion texture contro
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-occlusion-checker.png",
-            url: "/examples/assets/aperture-occlusion-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-occlusion-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
+            byteLength: 83,
           },
         ],
         diagnostics: [],
@@ -9852,26 +10028,26 @@ test("Playwright renders GLB viewer normal plus occlusion URI controls", async (
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
-            url: "/examples/assets/aperture-normal-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-normal-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 77,
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-occlusion-control.png",
-            url: "/examples/assets/aperture-occlusion-control.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-occlusion-control.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
+            byteLength: 83,
+          }),
         ]),
         diagnostics: [],
       },
@@ -10090,8 +10266,9 @@ test("Playwright renders a GLB viewer StandardMaterial occlusion plus normal map
       const combined = resolutions[0] ?? null;
       const normalOnly = resolutions[1] ?? null;
       const scalar = resolutions[2] ?? null;
-      const attributes =
-        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes ?? [];
+      const attributes = (
+        status?.gltf?.meshAttributes?.[0]?.streams ?? []
+      ).flatMap((stream) => stream.attributes ?? []);
       const combinedPipelineKey =
         "standard|normalTexture|occlusionTexture|opaque|back|less|none";
 
@@ -10116,15 +10293,15 @@ test("Playwright renders a GLB viewer StandardMaterial occlusion plus normal map
         scalar?.pipelineKey === "standard|opaque|back|less|none" &&
         attributes.some(
           (attribute) =>
-            attribute.semantic === "TANGENT" && attribute.offset === 32,
+            attribute.semantic === "TANGENT" && attribute.offset === 0,
         ) &&
-        status.gltf?.meshAttributes?.[0]?.streams?.[0]?.arrayStride === 48 &&
+        status.gltf?.meshAttributes?.[0]?.streams?.length === 4 &&
         status.renderState?.pipelineKeys?.includes(combinedPipelineKey) ===
           true &&
         status.renderState.draws?.some(
           (draw) =>
             draw.pipelineKey === combinedPipelineKey &&
-            draw.meshLayoutKey === "POSITION,NORMAL,TEXCOORD_0,TANGENT",
+            draw.meshLayoutKey === "POSITION|NORMAL|TEXCOORD_0|TANGENT",
         ) === true &&
         status.extraction?.meshDraws === 3 &&
         status.extraction.diagnostics === 0 &&
@@ -10215,26 +10392,26 @@ test("Playwright renders a GLB viewer StandardMaterial occlusion plus normal map
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
-            url: "/examples/assets/aperture-normal-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-normal-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 77,
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-occlusion-control.png",
-            url: "/examples/assets/aperture-occlusion-control.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-occlusion-control.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
+            byteLength: 83,
+          }),
         ]),
         diagnostics: [],
       },
@@ -10356,13 +10533,28 @@ test("Playwright renders a GLB viewer StandardMaterial occlusion plus normal map
         primitiveIndex: 0,
         streams: expect.arrayContaining([
           expect.objectContaining({
-            arrayStride: 48,
-            attributes: expect.arrayContaining([
+            arrayStride: 12,
+            attributes: [
               { semantic: "POSITION", format: "float32x3", offset: 0 },
-              { semantic: "NORMAL", format: "float32x3", offset: 12 },
-              { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
-              { semantic: "TANGENT", format: "float32x4", offset: 32 },
-            ]),
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 12,
+            attributes: [
+              { semantic: "NORMAL", format: "float32x3", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 8,
+            attributes: [
+              { semantic: "TEXCOORD_0", format: "float32x2", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 16,
+            attributes: [
+              { semantic: "TANGENT", format: "float32x4", offset: 0 },
+            ],
           }),
         ]),
       }),
@@ -10511,11 +10703,11 @@ test("Playwright renders a GLB viewer alpha-mask texture sample", async ({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-alpha-mask-checker.png",
-            url: "/examples/assets/aperture-alpha-mask-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-alpha-mask-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
+            byteLength: 84,
           },
         ],
         diagnostics: [],
@@ -10704,8 +10896,9 @@ test("Playwright renders a GLB viewer alpha-mask plus normal-map sample", async 
       const scalar = status?.gltf?.primitiveMaterials?.resolutions?.[2] ?? null;
       const combinedPipelineKey =
         "standard|baseColorTexture|normalTexture|mask|none|less|none";
-      const attributes =
-        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes ?? [];
+      const attributes = (
+        status?.gltf?.meshAttributes?.[0]?.streams ?? []
+      ).flatMap((stream) => stream.attributes ?? []);
 
       return (
         (status?.frame ?? 0) >= 3 &&
@@ -10730,15 +10923,15 @@ test("Playwright renders a GLB viewer alpha-mask plus normal-map sample", async 
         scalar?.pipelineKey === "standard|opaque|none|less|none" &&
         attributes.some(
           (attribute) =>
-            attribute.semantic === "TANGENT" && attribute.offset === 32,
+            attribute.semantic === "TANGENT" && attribute.offset === 0,
         ) &&
-        status.gltf?.meshAttributes?.[0]?.streams?.[0]?.arrayStride === 48 &&
+        status.gltf?.meshAttributes?.[0]?.streams?.length === 4 &&
         status.renderState?.pipelineKeys?.includes(combinedPipelineKey) ===
           true &&
         status.renderState.draws?.some(
           (draw) =>
             draw.pipelineKey === combinedPipelineKey &&
-            draw.meshLayoutKey === "POSITION,NORMAL,TEXCOORD_0,TANGENT",
+            draw.meshLayoutKey === "POSITION|NORMAL|TEXCOORD_0|TANGENT",
         ) === true &&
         status.extraction?.meshDraws === 3 &&
         status.extraction.diagnostics === 0 &&
@@ -10807,26 +11000,26 @@ test("Playwright renders a GLB viewer alpha-mask plus normal-map sample", async 
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-alpha-mask-checker.png",
-            url: "/examples/assets/aperture-alpha-mask-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-alpha-mask-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 84,
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
-            url: "/examples/assets/aperture-normal-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-normal-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
+            byteLength: 77,
+          }),
         ]),
         diagnostics: [],
       },
@@ -11338,26 +11531,26 @@ test("Playwright renders GLB viewer alpha-mask plus emissive URI controls", asyn
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-alpha-mask-checker.png",
-            url: "/examples/assets/aperture-alpha-mask-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-alpha-mask-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 84,
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
-            url: "/examples/assets/aperture-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
+            byteLength: 84,
+          }),
         ]),
         diagnostics: [],
       },
@@ -11625,11 +11818,11 @@ test("Playwright renders a GLB viewer alpha-blend texture sample", async ({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-alpha-blend-checker.png",
-            url: "/examples/assets/aperture-alpha-blend-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-alpha-blend-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
+            byteLength: 84,
           },
         ],
         diagnostics: [],
@@ -11891,26 +12084,26 @@ test("Playwright renders GLB viewer alpha-blend plus emissive textures", async (
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-alpha-blend-checker.png",
-            url: "/examples/assets/aperture-alpha-blend-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-alpha-blend-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 84,
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
-            url: "/examples/assets/aperture-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
+            byteLength: 84,
+          }),
         ]),
         diagnostics: [],
       },
@@ -12121,8 +12314,9 @@ test("Playwright renders a GLB viewer alpha-blend texture plus normal map", asyn
       const combined = resolutions[0] ?? null;
       const opaqueBase = resolutions[1] ?? null;
       const scalar = resolutions[2] ?? null;
-      const attributes =
-        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes ?? [];
+      const attributes = (
+        status?.gltf?.meshAttributes?.[0]?.streams ?? []
+      ).flatMap((stream) => stream.attributes ?? []);
       const combinedPipelineKey =
         "standard|baseColorTexture|normalTexture|blend|none|less|alpha";
 
@@ -12151,16 +12345,16 @@ test("Playwright renders a GLB viewer alpha-blend texture plus normal map", asyn
         scalar?.pipelineKey === "standard|opaque|none|less|none" &&
         attributes.some(
           (attribute) =>
-            attribute.semantic === "TANGENT" && attribute.offset === 32,
+            attribute.semantic === "TANGENT" && attribute.offset === 0,
         ) &&
-        status.gltf?.meshAttributes?.[0]?.streams?.[0]?.arrayStride === 48 &&
+        status.gltf?.meshAttributes?.[0]?.streams?.length === 4 &&
         status.renderState?.queues?.includes("transparent") === true &&
         status.renderState.pipelineKeys?.includes(combinedPipelineKey) ===
           true &&
         status.renderState.draws?.some(
           (draw) =>
             draw.pipelineKey === combinedPipelineKey &&
-            draw.meshLayoutKey === "POSITION,NORMAL,TEXCOORD_0,TANGENT",
+            draw.meshLayoutKey === "POSITION|NORMAL|TEXCOORD_0|TANGENT",
         ) === true &&
         status.extraction?.meshDraws === 3 &&
         status.extraction.diagnostics === 0 &&
@@ -12230,26 +12424,26 @@ test("Playwright renders a GLB viewer alpha-blend texture plus normal map", asyn
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-alpha-mask-checker.png",
-            url: "/examples/assets/aperture-alpha-mask-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-alpha-mask-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 84,
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
-            url: "/examples/assets/aperture-normal-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-normal-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
+            byteLength: 77,
+          }),
         ]),
         diagnostics: [],
       },
@@ -12694,11 +12888,11 @@ test("Playwright compares repeat and clamp sampler wrap controls in the GLB view
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
-            url: "/examples/assets/aperture-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
+            byteLength: 84,
           },
         ],
         diagnostics: [],
@@ -13521,11 +13715,11 @@ test("Playwright compares UV0 and UV1 image-decode controls in the GLB viewer", 
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
-            url: "/examples/assets/aperture-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
+            byteLength: 84,
           },
         ],
         diagnostics: [],
@@ -13969,11 +14163,11 @@ test("Playwright reports a rotated metallic-roughness texture transform in the G
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-metallic-roughness-checker.png",
-            url: "/examples/assets/aperture-metallic-roughness-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-metallic-roughness-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
+            byteLength: 83,
           },
         ],
         diagnostics: [],
@@ -14239,11 +14433,11 @@ test("Playwright compares transformed and untransformed metallic-roughness textu
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-metallic-roughness-checker.png",
-            url: "/examples/assets/aperture-metallic-roughness-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-metallic-roughness-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
+            byteLength: 83,
           },
         ],
         diagnostics: [],
@@ -15181,11 +15375,11 @@ test("Playwright renders the GLB viewer normal-mapped sample", async ({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
-            url: "/examples/assets/aperture-normal-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-normal-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
+            byteLength: 77,
           },
         ],
         diagnostics: [],
@@ -15394,7 +15588,21 @@ test("Playwright renders GLB viewer normal maps with generated tangents", async 
           },
           streams: [
             {
-              arrayStride: 32,
+              arrayStride: 12,
+              vertexCount: 4,
+              attributes: expect.not.arrayContaining([
+                expect.objectContaining({ semantic: "TANGENT" }),
+              ]),
+            },
+            {
+              arrayStride: 12,
+              vertexCount: 4,
+              attributes: expect.not.arrayContaining([
+                expect.objectContaining({ semantic: "TANGENT" }),
+              ]),
+            },
+            {
+              arrayStride: 8,
               vertexCount: 4,
               attributes: expect.not.arrayContaining([
                 expect.objectContaining({ semantic: "TANGENT" }),
@@ -15421,7 +15629,7 @@ test("Playwright renders GLB viewer normal maps with generated tangents", async 
         }),
         expect.objectContaining({
           pipelineKey: "standard|opaque|back|less|none",
-          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0",
+          meshLayoutKey: "POSITION|NORMAL|TEXCOORD_0",
         }),
       ]),
     },
@@ -15604,11 +15812,11 @@ test("Playwright renders a GLB viewer normal map through TEXCOORD_1", async ({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
-            url: "/examples/assets/aperture-normal-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-normal-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
+            byteLength: 77,
           },
         ],
         diagnostics: [],
@@ -15687,7 +15895,7 @@ test("Playwright renders a GLB viewer normal map through TEXCOORD_1", async ({
       draws: expect.arrayContaining([
         expect.objectContaining({
           pipelineKey: "standard|normalTexture|uv1|opaque|back|less|none",
-          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TANGENT,TEXCOORD_1",
+          meshLayoutKey: "POSITION|NORMAL|TEXCOORD_0|TANGENT|TEXCOORD_1",
         }),
       ]),
     },
@@ -15708,15 +15916,39 @@ test("Playwright renders a GLB viewer normal map through TEXCOORD_1", async ({
         }),
         streams: expect.arrayContaining([
           expect.objectContaining({
-            arrayStride: 56,
+            arrayStride: 12,
             vertexCount: 4,
-            attributes: expect.arrayContaining([
+            attributes: [
               { semantic: "POSITION", format: "float32x3", offset: 0 },
-              { semantic: "NORMAL", format: "float32x3", offset: 12 },
-              { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
-              { semantic: "TANGENT", format: "float32x4", offset: 32 },
-              { semantic: "TEXCOORD_1", format: "float32x2", offset: 48 },
-            ]),
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 12,
+            vertexCount: 4,
+            attributes: [
+              { semantic: "NORMAL", format: "float32x3", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 8,
+            vertexCount: 4,
+            attributes: [
+              { semantic: "TEXCOORD_0", format: "float32x2", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 16,
+            vertexCount: 4,
+            attributes: [
+              { semantic: "TANGENT", format: "float32x4", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 8,
+            vertexCount: 4,
+            attributes: [
+              { semantic: "TEXCOORD_1", format: "float32x2", offset: 0 },
+            ],
           }),
         ]),
       }),
@@ -15830,8 +16062,9 @@ test("Playwright renders GLB viewer base-color plus normal textures through TEXC
       );
       const uv1PipelineKey =
         "standard|baseColorTexture|normalTexture|uv1|opaque|back|less|none";
-      const attributes =
-        status?.gltf?.meshAttributes?.[1]?.streams?.[0]?.attributes ?? [];
+      const attributes = (
+        status?.gltf?.meshAttributes?.[1]?.streams ?? []
+      ).flatMap((stream) => stream.attributes ?? []);
 
       return (
         (status?.frame ?? 0) >= 3 &&
@@ -15855,9 +16088,9 @@ test("Playwright renders GLB viewer base-color plus normal textures through TEXC
         scalar.normalTexture === null &&
         attributes.some(
           (attribute) =>
-            attribute.semantic === "TEXCOORD_1" && attribute.offset === 48,
+            attribute.semantic === "TEXCOORD_1" && attribute.offset === 0,
         ) &&
-        status.gltf?.meshAttributes?.[1]?.streams?.[0]?.arrayStride === 56 &&
+        status.gltf?.meshAttributes?.[1]?.streams?.length === 5 &&
         status.extraction?.meshDraws === 3 &&
         status.extraction.diagnostics === 0 &&
         status.extraction.diagnosticsList?.some(
@@ -15870,7 +16103,7 @@ test("Playwright renders GLB viewer base-color plus normal textures through TEXC
           (draw) =>
             draw.pipelineKey === uv1PipelineKey &&
             draw.meshLayoutKey ===
-              "POSITION,NORMAL,TEXCOORD_0,TANGENT,TEXCOORD_1",
+              "POSITION|NORMAL|TEXCOORD_0|TANGENT|TEXCOORD_1",
         ) === true &&
         status.draw?.drawCalls === 3
       );
@@ -15932,26 +16165,26 @@ test("Playwright renders GLB viewer base-color plus normal textures through TEXC
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
-            url: "/examples/assets/aperture-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 84,
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
-            url: "/examples/assets/aperture-normal-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-normal-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
+            byteLength: 77,
+          }),
         ]),
         diagnostics: [],
       },
@@ -16051,7 +16284,7 @@ test("Playwright renders GLB viewer base-color plus normal textures through TEXC
       draws: expect.arrayContaining([
         expect.objectContaining({
           pipelineKey: uv1PipelineKey,
-          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TANGENT,TEXCOORD_1",
+          meshLayoutKey: "POSITION|NORMAL|TEXCOORD_0|TANGENT|TEXCOORD_1",
         }),
       ]),
     },
@@ -16067,15 +16300,39 @@ test("Playwright renders GLB viewer base-color plus normal textures through TEXC
         primitiveIndex: 1,
         streams: expect.arrayContaining([
           expect.objectContaining({
-            arrayStride: 56,
+            arrayStride: 12,
             vertexCount: 4,
-            attributes: expect.arrayContaining([
+            attributes: [
               { semantic: "POSITION", format: "float32x3", offset: 0 },
-              { semantic: "NORMAL", format: "float32x3", offset: 12 },
-              { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
-              { semantic: "TANGENT", format: "float32x4", offset: 32 },
-              { semantic: "TEXCOORD_1", format: "float32x2", offset: 48 },
-            ]),
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 12,
+            vertexCount: 4,
+            attributes: [
+              { semantic: "NORMAL", format: "float32x3", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 8,
+            vertexCount: 4,
+            attributes: [
+              { semantic: "TEXCOORD_0", format: "float32x2", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 16,
+            vertexCount: 4,
+            attributes: [
+              { semantic: "TANGENT", format: "float32x4", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 8,
+            vertexCount: 4,
+            attributes: [
+              { semantic: "TEXCOORD_1", format: "float32x2", offset: 0 },
+            ],
           }),
         ]),
       }),
@@ -16187,8 +16444,9 @@ test("Playwright renders GLB viewer UV1 metallic-roughness plus normal textures"
       );
       const uv1PipelineKey =
         "standard|metallicRoughnessTexture|normalTexture|uv1|opaque|back|less|none";
-      const attributes =
-        status?.gltf?.meshAttributes?.[1]?.streams?.[0]?.attributes ?? [];
+      const attributes = (
+        status?.gltf?.meshAttributes?.[1]?.streams ?? []
+      ).flatMap((stream) => stream.attributes ?? []);
 
       return (
         (status?.frame ?? 0) >= 3 &&
@@ -16212,9 +16470,9 @@ test("Playwright renders GLB viewer UV1 metallic-roughness plus normal textures"
         scalar.normalTexture === null &&
         attributes.some(
           (attribute) =>
-            attribute.semantic === "TEXCOORD_1" && attribute.offset === 48,
+            attribute.semantic === "TEXCOORD_1" && attribute.offset === 0,
         ) &&
-        status.gltf?.meshAttributes?.[1]?.streams?.[0]?.arrayStride === 56 &&
+        status.gltf?.meshAttributes?.[1]?.streams?.length === 5 &&
         status.extraction?.meshDraws === 3 &&
         status.extraction.diagnostics === 0 &&
         status.extraction.diagnosticsList?.some(
@@ -16227,7 +16485,7 @@ test("Playwright renders GLB viewer UV1 metallic-roughness plus normal textures"
           (draw) =>
             draw.pipelineKey === uv1PipelineKey &&
             draw.meshLayoutKey ===
-              "POSITION,NORMAL,TEXCOORD_0,TANGENT,TEXCOORD_1",
+              "POSITION|NORMAL|TEXCOORD_0|TANGENT|TEXCOORD_1",
         ) === true &&
         status.draw?.drawCalls === 3
       );
@@ -16292,26 +16550,26 @@ test("Playwright renders GLB viewer UV1 metallic-roughness plus normal textures"
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-metallic-roughness-checker.png",
-            url: "/examples/assets/aperture-metallic-roughness-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-metallic-roughness-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 83,
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
-            url: "/examples/assets/aperture-normal-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-normal-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
+            byteLength: 77,
+          }),
         ]),
         diagnostics: [],
       },
@@ -16402,7 +16660,7 @@ test("Playwright renders GLB viewer UV1 metallic-roughness plus normal textures"
       draws: expect.arrayContaining([
         expect.objectContaining({
           pipelineKey: uv1PipelineKey,
-          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TANGENT,TEXCOORD_1",
+          meshLayoutKey: "POSITION|NORMAL|TEXCOORD_0|TANGENT|TEXCOORD_1",
         }),
       ]),
     },
@@ -16418,15 +16676,39 @@ test("Playwright renders GLB viewer UV1 metallic-roughness plus normal textures"
         primitiveIndex: 1,
         streams: expect.arrayContaining([
           expect.objectContaining({
-            arrayStride: 56,
+            arrayStride: 12,
             vertexCount: 4,
-            attributes: expect.arrayContaining([
+            attributes: [
               { semantic: "POSITION", format: "float32x3", offset: 0 },
-              { semantic: "NORMAL", format: "float32x3", offset: 12 },
-              { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
-              { semantic: "TANGENT", format: "float32x4", offset: 32 },
-              { semantic: "TEXCOORD_1", format: "float32x2", offset: 48 },
-            ]),
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 12,
+            vertexCount: 4,
+            attributes: [
+              { semantic: "NORMAL", format: "float32x3", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 8,
+            vertexCount: 4,
+            attributes: [
+              { semantic: "TEXCOORD_0", format: "float32x2", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 16,
+            vertexCount: 4,
+            attributes: [
+              { semantic: "TANGENT", format: "float32x4", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 8,
+            vertexCount: 4,
+            attributes: [
+              { semantic: "TEXCOORD_1", format: "float32x2", offset: 0 },
+            ],
           }),
         ]),
       }),
@@ -16522,8 +16804,9 @@ test("Playwright renders a GLB viewer transformed UV1 normal map", async ({
       const transformed = resolutions[0]?.textureSlots?.normalTexture ?? null;
       const untransformed = resolutions[1]?.textureSlots?.normalTexture ?? null;
       const scalar = resolutions[2]?.textureSlots?.normalTexture ?? null;
-      const attributes =
-        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes ?? [];
+      const attributes = (
+        status?.gltf?.meshAttributes?.[0]?.streams ?? []
+      ).flatMap((stream) => stream.attributes ?? []);
 
       return (
         (status?.frame ?? 0) >= 3 &&
@@ -16545,9 +16828,9 @@ test("Playwright renders a GLB viewer transformed UV1 normal map", async ({
         scalar === null &&
         attributes.some(
           (attribute) =>
-            attribute.semantic === "TEXCOORD_1" && attribute.offset === 48,
+            attribute.semantic === "TEXCOORD_1" && attribute.offset === 0,
         ) &&
-        status.gltf?.meshAttributes?.[0]?.streams?.[0]?.arrayStride === 56 &&
+        status.gltf?.meshAttributes?.[0]?.streams?.length === 5 &&
         status.extraction?.meshDraws === 3 &&
         status.extraction.diagnostics === 0 &&
         status.extraction.diagnosticsList?.some(
@@ -16656,11 +16939,16 @@ test("Playwright renders a GLB viewer transformed UV1 normal map", async ({
         primitiveIndex: 0,
         streams: expect.arrayContaining([
           expect.objectContaining({
-            arrayStride: 56,
-            attributes: expect.arrayContaining([
-              { semantic: "TANGENT", format: "float32x4", offset: 32 },
-              { semantic: "TEXCOORD_1", format: "float32x2", offset: 48 },
-            ]),
+            arrayStride: 16,
+            attributes: [
+              { semantic: "TANGENT", format: "float32x4", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 8,
+            attributes: [
+              { semantic: "TEXCOORD_1", format: "float32x2", offset: 0 },
+            ],
           }),
         ]),
       }),
@@ -16770,8 +17058,9 @@ test("Playwright renders a GLB viewer base-color texture plus normal map", async
       const combined = resolutions[0] ?? null;
       const baseOnly = resolutions[1] ?? null;
       const scalar = resolutions[2] ?? null;
-      const attributes =
-        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes ?? [];
+      const attributes = (
+        status?.gltf?.meshAttributes?.[0]?.streams ?? []
+      ).flatMap((stream) => stream.attributes ?? []);
 
       return (
         (status?.frame ?? 0) >= 3 &&
@@ -16792,9 +17081,9 @@ test("Playwright renders a GLB viewer base-color texture plus normal map", async
         scalar?.pipelineKey === "standard|opaque|back|less|none" &&
         attributes.some(
           (attribute) =>
-            attribute.semantic === "TANGENT" && attribute.offset === 32,
+            attribute.semantic === "TANGENT" && attribute.offset === 0,
         ) &&
-        status.gltf?.meshAttributes?.[0]?.streams?.[0]?.arrayStride === 48 &&
+        status.gltf?.meshAttributes?.[0]?.streams?.length === 4 &&
         status.renderState?.pipelineKeys?.includes(
           "standard|baseColorTexture|normalTexture|opaque|back|less|none",
         ) === true &&
@@ -16802,7 +17091,7 @@ test("Playwright renders a GLB viewer base-color texture plus normal map", async
           (draw) =>
             draw.pipelineKey ===
               "standard|baseColorTexture|normalTexture|opaque|back|less|none" &&
-            draw.meshLayoutKey === "POSITION,NORMAL,TEXCOORD_0,TANGENT",
+            draw.meshLayoutKey === "POSITION|NORMAL|TEXCOORD_0|TANGENT",
         ) === true &&
         status.extraction?.meshDraws === 3 &&
         status.extraction.diagnostics === 0 &&
@@ -16912,13 +17201,28 @@ test("Playwright renders a GLB viewer base-color texture plus normal map", async
         primitiveIndex: 0,
         streams: expect.arrayContaining([
           expect.objectContaining({
-            arrayStride: 48,
-            attributes: expect.arrayContaining([
+            arrayStride: 12,
+            attributes: [
               { semantic: "POSITION", format: "float32x3", offset: 0 },
-              { semantic: "NORMAL", format: "float32x3", offset: 12 },
-              { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
-              { semantic: "TANGENT", format: "float32x4", offset: 32 },
-            ]),
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 12,
+            attributes: [
+              { semantic: "NORMAL", format: "float32x3", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 8,
+            attributes: [
+              { semantic: "TEXCOORD_0", format: "float32x2", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 16,
+            attributes: [
+              { semantic: "TANGENT", format: "float32x4", offset: 0 },
+            ],
           }),
         ]),
       }),
@@ -17031,8 +17335,9 @@ test("Playwright renders a GLB viewer metallic-roughness texture plus normal map
       const combined = resolutions[0] ?? null;
       const metallicOnly = resolutions[1] ?? null;
       const scalar = resolutions[2] ?? null;
-      const attributes =
-        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes ?? [];
+      const attributes = (
+        status?.gltf?.meshAttributes?.[0]?.streams ?? []
+      ).flatMap((stream) => stream.attributes ?? []);
       const combinedPipelineKey =
         "standard|metallicRoughnessTexture|normalTexture|opaque|back|less|none";
 
@@ -17056,15 +17361,15 @@ test("Playwright renders a GLB viewer metallic-roughness texture plus normal map
         scalar?.pipelineKey === "standard|opaque|back|less|none" &&
         attributes.some(
           (attribute) =>
-            attribute.semantic === "TANGENT" && attribute.offset === 32,
+            attribute.semantic === "TANGENT" && attribute.offset === 0,
         ) &&
-        status.gltf?.meshAttributes?.[0]?.streams?.[0]?.arrayStride === 48 &&
+        status.gltf?.meshAttributes?.[0]?.streams?.length === 4 &&
         status.renderState?.pipelineKeys?.includes(combinedPipelineKey) ===
           true &&
         status.renderState.draws?.some(
           (draw) =>
             draw.pipelineKey === combinedPipelineKey &&
-            draw.meshLayoutKey === "POSITION,NORMAL,TEXCOORD_0,TANGENT",
+            draw.meshLayoutKey === "POSITION|NORMAL|TEXCOORD_0|TANGENT",
         ) === true &&
         status.extraction?.meshDraws === 3 &&
         status.extraction.diagnostics === 0 &&
@@ -17156,26 +17461,26 @@ test("Playwright renders a GLB viewer metallic-roughness texture plus normal map
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-metallic-roughness-checker.png",
-            url: "/examples/assets/aperture-metallic-roughness-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-metallic-roughness-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 83,
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
-            url: "/examples/assets/aperture-normal-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-normal-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
+            byteLength: 77,
+          }),
         ]),
         diagnostics: [],
       },
@@ -17269,13 +17574,28 @@ test("Playwright renders a GLB viewer metallic-roughness texture plus normal map
         primitiveIndex: 0,
         streams: expect.arrayContaining([
           expect.objectContaining({
-            arrayStride: 48,
-            attributes: expect.arrayContaining([
+            arrayStride: 12,
+            attributes: [
               { semantic: "POSITION", format: "float32x3", offset: 0 },
-              { semantic: "NORMAL", format: "float32x3", offset: 12 },
-              { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
-              { semantic: "TANGENT", format: "float32x4", offset: 32 },
-            ]),
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 12,
+            attributes: [
+              { semantic: "NORMAL", format: "float32x3", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 8,
+            attributes: [
+              { semantic: "TEXCOORD_0", format: "float32x2", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 16,
+            attributes: [
+              { semantic: "TANGENT", format: "float32x4", offset: 0 },
+            ],
           }),
         ]),
       }),
@@ -17393,8 +17713,9 @@ test("Playwright renders GLB viewer transformed metallic-roughness plus normal t
       const transformed = resolutions[0]?.textureSlots ?? null;
       const untransformed = resolutions[1]?.textureSlots ?? null;
       const scalar = resolutions[2]?.textureSlots ?? null;
-      const attributes =
-        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes ?? [];
+      const attributes = (
+        status?.gltf?.meshAttributes?.[0]?.streams ?? []
+      ).flatMap((stream) => stream.attributes ?? []);
       const combinedPipelineKey =
         "standard|metallicRoughnessTexture|normalTexture|opaque|back|less|none";
       const transform = transformed?.metallicRoughnessTexture?.transform;
@@ -17429,15 +17750,15 @@ test("Playwright renders GLB viewer transformed metallic-roughness plus normal t
         scalar.normalTexture === null &&
         attributes.some(
           (attribute) =>
-            attribute.semantic === "TANGENT" && attribute.offset === 32,
+            attribute.semantic === "TANGENT" && attribute.offset === 0,
         ) &&
-        status.gltf?.meshAttributes?.[0]?.streams?.[0]?.arrayStride === 48 &&
+        status.gltf?.meshAttributes?.[0]?.streams?.length === 4 &&
         status.renderState?.pipelineKeys?.includes(combinedPipelineKey) ===
           true &&
         status.renderState.draws?.some(
           (draw) =>
             draw.pipelineKey === combinedPipelineKey &&
-            draw.meshLayoutKey === "POSITION,NORMAL,TEXCOORD_0,TANGENT",
+            draw.meshLayoutKey === "POSITION|NORMAL|TEXCOORD_0|TANGENT",
         ) === true &&
         status.extraction?.meshDraws === 3 &&
         status.extraction.diagnostics === 0 &&
@@ -17524,26 +17845,26 @@ test("Playwright renders GLB viewer transformed metallic-roughness plus normal t
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-metallic-roughness-checker.png",
-            url: "/examples/assets/aperture-metallic-roughness-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-metallic-roughness-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 83,
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
-            url: "/examples/assets/aperture-normal-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-normal-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
+            byteLength: 77,
+          }),
         ]),
         diagnostics: [],
       },
@@ -17636,7 +17957,7 @@ test("Playwright renders GLB viewer transformed metallic-roughness plus normal t
       draws: expect.arrayContaining([
         expect.objectContaining({
           pipelineKey: combinedPipelineKey,
-          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TANGENT",
+          meshLayoutKey: "POSITION|NORMAL|TEXCOORD_0|TANGENT",
         }),
       ]),
     },
@@ -17649,13 +17970,28 @@ test("Playwright renders GLB viewer transformed metallic-roughness plus normal t
         primitiveIndex: 0,
         streams: expect.arrayContaining([
           expect.objectContaining({
-            arrayStride: 48,
-            attributes: expect.arrayContaining([
+            arrayStride: 12,
+            attributes: [
               { semantic: "POSITION", format: "float32x3", offset: 0 },
-              { semantic: "NORMAL", format: "float32x3", offset: 12 },
-              { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
-              { semantic: "TANGENT", format: "float32x4", offset: 32 },
-            ]),
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 12,
+            attributes: [
+              { semantic: "NORMAL", format: "float32x3", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 8,
+            attributes: [
+              { semantic: "TEXCOORD_0", format: "float32x2", offset: 0 },
+            ],
+          }),
+          expect.objectContaining({
+            arrayStride: 16,
+            attributes: [
+              { semantic: "TANGENT", format: "float32x4", offset: 0 },
+            ],
           }),
         ]),
       }),
@@ -19213,11 +19549,10 @@ test("Playwright renders an embedded-image GLB texture sample", async ({
             registryStatusBeforeRegistration: "loading",
             registryStatusAfterRegistration: "ready",
             uri: "bufferView:8",
-            url: "/examples/assets/embedded-texture.glb#bufferView=8",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
+            byteLength: 84,
           },
         ],
         diagnostics: [],
@@ -19431,11 +19766,11 @@ test("Playwright decodes a same-origin PNG URI texture for the GLB viewer", asyn
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-uri-base-color-checker.png",
-            url: "/examples/assets/aperture-uri-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-uri-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
+            byteLength: 84,
           },
         ],
         diagnostics: [],
@@ -19983,11 +20318,11 @@ test("Playwright decodes a same-origin JPEG URI texture for the GLB viewer", asy
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-jpeg-base-color-checker.jpg",
-            url: "/examples/assets/aperture-jpeg-base-color-checker.jpg",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-jpeg-base-color-checker.jpg",
             mimeType: "image/jpeg",
             width: 2,
             height: 2,
-            byteLength: 16,
+            byteLength: 822,
           },
         ],
         diagnostics: [],
@@ -20221,56 +20556,56 @@ test("Playwright decodes all StandardMaterial URI texture slots in the GLB viewe
       ok: true,
       imageDecode: {
         decoded: expect.arrayContaining([
-          {
+          expect.objectContaining({
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-uri-base-color-checker.png",
-            url: "/examples/assets/aperture-uri-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-uri-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 84,
+          }),
+          expect.objectContaining({
             imageIndex: 1,
             sourceKind: "same-origin-uri",
             uri: "aperture-metallic-roughness-checker.png",
-            url: "/examples/assets/aperture-metallic-roughness-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-metallic-roughness-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 83,
+          }),
+          expect.objectContaining({
             imageIndex: 2,
             sourceKind: "same-origin-uri",
             uri: "aperture-normal-checker.png",
-            url: "/examples/assets/aperture-normal-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-normal-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 77,
+          }),
+          expect.objectContaining({
             imageIndex: 3,
             sourceKind: "same-origin-uri",
             uri: "aperture-occlusion-checker.png",
-            url: "/examples/assets/aperture-occlusion-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-occlusion-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
-          {
+            byteLength: 83,
+          }),
+          expect.objectContaining({
             imageIndex: 4,
             sourceKind: "same-origin-uri",
             uri: "aperture-base-color-checker.png",
-            url: "/examples/assets/aperture-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
-          },
+            byteLength: 84,
+          }),
         ]),
         diagnostics: [],
       },
@@ -20801,7 +21136,7 @@ test("Playwright renders GLB viewer decoded-image summary rows", async ({
   });
   await expect(summaryPanel.locator("[data-image-decode-row]")).toHaveCount(1);
   await expect(imageRow("aperture-uri-base-color-checker.png")).toContainText(
-    "same-origin-uri, aperture-uri-base-color-checker.png, image/png, 2x2, 16 bytes",
+    "same-origin-uri, aperture-uri-base-color-checker.png, image/png, 2x2, 84 bytes",
   );
 
   await waitForDecodedImageRows({
@@ -20812,7 +21147,7 @@ test("Playwright renders GLB viewer decoded-image summary rows", async ({
   await expect(summaryPanel.locator("[data-image-decode-row]")).toHaveCount(1);
   await expect(imageRow("bufferView:8")).toContainText("image 0");
   await expect(imageRow("bufferView:8")).toContainText(
-    "buffer-view, bufferView:8, image/png, 2x2, 16 bytes",
+    "buffer-view, bufferView:8, image/png, 2x2, 84 bytes",
   );
 
   await page.goto("/examples/glb-viewer.html?asset=cube");
@@ -26586,11 +26921,11 @@ test("Playwright decodes a same-origin URI texture from a custom GLB URL", async
             imageIndex: 0,
             sourceKind: "same-origin-uri",
             uri: "aperture-uri-base-color-checker.png",
-            url: "/examples/assets/aperture-uri-base-color-checker.png",
+            url: "http://127.0.0.1:4173/examples/assets/aperture-uri-base-color-checker.png",
             mimeType: "image/png",
             width: 2,
             height: 2,
-            byteLength: 16,
+            byteLength: 84,
           },
         ],
         diagnostics: [],
@@ -27240,7 +27575,9 @@ async function loadBrassViewerSample(
       );
     },
     { shadowRequired: requireShadow, iblRequired: requireIbl },
-    { timeout: 5000 },
+    // Real specular IBL prefiltering (AI-87) makes the brass switch take ~4-5s
+    // under SwiftShader, so the old 5s budget flaked; conditions verified live.
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -27315,7 +27652,9 @@ async function loadRoughnessIblViewerSample(
       );
     },
     requireIbl,
-    { timeout: 5000 },
+    // Real specular IBL prefiltering (AI-87) extends the load under
+    // SwiftShader past the old 5s budget; conditions verified live.
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);
@@ -27951,7 +28290,9 @@ async function waitForIblControlStatus(
       );
     },
     expected,
-    { timeout: 5000 },
+    // IBL toggles re-run the real specular prefilter (AI-87); allow the same
+    // SwiftShader headroom as the brass/roughness loaders.
+    { timeout: 15000 },
   );
 
   const status = await waitForExampleStatus<GlbViewerStatus>(page);

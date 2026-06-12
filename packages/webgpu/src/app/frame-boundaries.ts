@@ -397,6 +397,9 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       gpuTimingReadbacks.push({
         passName: gpuTiming.passName,
         resources: gpuTiming.resources,
+        ...(gpuTiming.release === undefined
+          ? {}
+          : { release: gpuTiming.release }),
       });
     }
 
@@ -520,6 +523,13 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         // pass samples it — one shared encoder, grab encoded first (insertion).
         const grab =
           buildWebGpuAppTransmissionGrabBoundaryOptions(grabPassOptions);
+        // The grab builder passes the per-view command scratch through when it
+        // has nothing to strip, so its deferred node needs a snapshot too.
+        const grabCommands = snapshotForwardGraphCommands(
+          options.cache.frameScratch.forwardGraphCommandLists,
+          forwardGraphPayloads.size,
+          grab.boundaryOptions.commands,
+        );
         const grabHandle = `transmission-grab:${targetSubmissionKey}`;
         if (forwardGraph.handle(grabHandle) === undefined) {
           forwardGraph.declareTransient(grabHandle, {
@@ -547,12 +557,12 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
           name: grabNodeName,
           reads: [],
           writes: [{ handle: grabHandle, attachment: "clear" }],
-          commands: grab.boundaryOptions.commands,
+          commands: grabCommands,
         });
         forwardGraphPayloads.set(grabNodeName, {
           device: grab.boundaryOptions.device,
           attachments: grabPlan.attachments,
-          commands: grab.boundaryOptions.commands,
+          commands: grabCommands,
           label: grab.boundaryOptions.label,
           colorTargetSource: "offscreen-target",
           readbackTexture: grabPlan.texture.texture,
@@ -685,7 +695,14 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         graph: forwardGraph,
         payloads: forwardGraphPayloads,
         entries: forwardGraphEntries,
-        boundaryOptions,
+        boundaryOptions: {
+          ...boundaryOptions,
+          commands: snapshotForwardGraphCommands(
+            options.cache.frameScratch.forwardGraphCommandLists,
+            forwardGraphPayloads.size,
+            commandsForBoundaryWithOverlay,
+          ),
+        },
         target,
         targetSubmissionKey,
         msaaSampleCount: msaaColorTarget.resource?.sampleCount ?? null,
@@ -1216,6 +1233,29 @@ function registerForwardGraphTarget(args: {
     colorTarget: opts.colorTarget,
     depthView: opts.depthTarget?.view ?? null,
   });
+}
+
+/**
+ * Snapshot a forward-graph node's commands out of the per-target assembly
+ * scratch. The graph route encodes nodes AFTER the assembly loop, so a payload
+ * holding `frameScratch.viewCommands` (or the occlusion/grab derivatives of
+ * it) would replay whichever target was assembled LAST into every attachment.
+ * Lists are persistent and reused across frames, indexed by the node's
+ * registration order, so steady-state frames allocate nothing.
+ */
+function snapshotForwardGraphCommands(
+  lists: RenderPassCommand[][],
+  index: number,
+  commands: readonly RenderPassCommand[],
+): readonly RenderPassCommand[] {
+  const target = (lists[index] ??= []);
+  target.length = 0;
+
+  for (const command of commands) {
+    target.push(command);
+  }
+
+  return target;
 }
 
 type ForwardGraphUserPassNodeEntry =

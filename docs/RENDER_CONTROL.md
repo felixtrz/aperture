@@ -76,6 +76,16 @@ APERTURE_RENDER_CONTROL_ARTIFACT_DIR=test-results/my-run pnpm render-control sta
 Use `APERTURE_RENDER_CONTROL_BASE_URL` when the examples server is not
 `http://127.0.0.1:4173`.
 
+The CLI browser launches with the same SwiftShader Vulkan WebGPU flags as
+`playwright.ci.config.ts`, so GPU-less machines render deterministically
+instead of losing the WebGPU device on the first presented frame. Override the
+flags with `APERTURE_RENDER_CONTROL_BROWSER_ARGS` (space-separated), e.g. to
+probe a real GPU:
+
+```sh
+APERTURE_RENDER_CONTROL_BROWSER_ARGS="--enable-unsafe-webgpu" pnpm render-control start
+```
+
 ## Writing Tests
 
 Use `createRenderControlPage(page)` when a Playwright test should reuse the

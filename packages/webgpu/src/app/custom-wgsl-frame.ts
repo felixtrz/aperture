@@ -25,6 +25,7 @@ import { assembleWebGpuAppFrameBoundaries } from "./frame-boundaries.js";
 import {
   newOcclusionQueryDiagnostics,
   readWebGpuAppOcclusionQueries,
+  releaseWebGpuAppGpuTimingReadbacks,
 } from "./gpu-readback.js";
 import { prepareUiFrameResourcesForSnapshot } from "./ui.js";
 import {
@@ -338,6 +339,9 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
   if (frameBoundariesNeedGpuDrain(boundaries)) {
     await waitForSubmittedWork(options.app.initialization.device);
   }
+  // The custom-WGSL route never maps its GPU-timing readbacks, so return the
+  // leased readback buffers to the rotation ring for later frames.
+  releaseWebGpuAppGpuTimingReadbacks(boundaries.gpuTimingReadbacks);
   const occlusionQueries = await readWebGpuAppOcclusionQueries({
     readbacks: boundaries.occlusionQueryReadbacks,
     diagnostics: boundaries.occlusionQueryDiagnostics,

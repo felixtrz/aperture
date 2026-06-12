@@ -10,9 +10,10 @@ import { readGeneratedBrowserAppStatus } from "@aperture-engine/app/browser";
 
 type JsonRecord = Record<string, unknown>;
 
-const SELECT_KEY = "Enter";
 const ASSET_REQUEST_CHANNEL = "asset.request";
-const SELECT_POINTER = [0.25, 0.5] as const;
+// The crate's screen position for the example camera (eye [0,1.5,5] looking
+// at [0,0.75,0], fovY 60, 16:9 canvas): world [-1,0.5,0] projects to ~[0.40,0.54].
+const SELECT_POINTER = [0.4, 0.54] as const;
 const DEBUG_METADATA_COMPONENT = "aperture.metadata.debug";
 let snapshotRequestId = 0;
 let mutationRequestId = 0;
@@ -49,9 +50,15 @@ const statusOutput = document.querySelector<HTMLElement>(
 );
 
 selectButton?.addEventListener("click", () => {
+  // Drive the pointer-interaction state machine directly (move + down + up at
+  // the crate's screen position = click); the interaction layer owns the ray,
+  // pick, and click-vs-drag discrimination.
   dispatchPointerMove(SELECT_POINTER);
-  dispatchSelectKey("keydown");
-  window.setTimeout(() => dispatchSelectKey("keyup"), 80);
+  dispatchPointerButton("pointerdown", SELECT_POINTER);
+  window.setTimeout(
+    () => dispatchPointerButton("pointerup", SELECT_POINTER),
+    80,
+  );
 });
 
 requestDecalButton?.addEventListener("click", () => {
@@ -274,12 +281,26 @@ function dispatchPointerMove(position: readonly [number, number]): void {
   );
 }
 
-function dispatchSelectKey(type: "keydown" | "keyup"): void {
-  window.dispatchEvent(
-    new KeyboardEvent(type, {
+function dispatchPointerButton(
+  type: "pointerdown" | "pointerup",
+  position: readonly [number, number],
+): void {
+  const canvas = document.querySelector<HTMLCanvasElement>("#aperture");
+  const rect = canvas?.getBoundingClientRect();
+
+  if (canvas === null || rect === undefined) {
+    return;
+  }
+
+  canvas.dispatchEvent(
+    new PointerEvent(type, {
       bubbles: true,
-      code: SELECT_KEY,
-      key: SELECT_KEY,
+      clientX: rect.left + rect.width * position[0],
+      clientY: rect.top + rect.height * position[1],
+      button: 0,
+      buttons: type === "pointerdown" ? 1 : 0,
+      pointerId: 1,
+      pointerType: "mouse",
     }),
   );
 }

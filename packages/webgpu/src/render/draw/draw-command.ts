@@ -71,6 +71,22 @@ interface MutableDrawCommandDescriptor {
   occlusionQuery?: boolean;
 }
 
+/**
+ * The canonical pipeline key carried by a draw's render-pass commands. When a
+ * prepared GPU pipeline exists for the draw, frame preparation records its
+ * resolved cache key in `pipelineKeysByRenderId`; otherwise commands fall back
+ * to the authored batch pipeline key. Every consumer that needs to match a
+ * draw's `setPipeline` command key (e.g. ID-buffer pick pipeline preparation)
+ * must derive it through this helper so creation and lookup cannot drift.
+ */
+export function resolveDrawCommandPipelineKey(
+  renderId: number,
+  authoredPipelineKey: string,
+  pipelineKeysByRenderId?: ReadonlyMap<number, string>,
+): string {
+  return pipelineKeysByRenderId?.get(renderId) ?? authoredPipelineKey;
+}
+
 export function createDrawCommandDescriptors(
   packages: readonly RenderWorldDrawPackage[],
   meshResources: readonly MeshGpuBufferResource[],
@@ -132,9 +148,11 @@ export function writeDrawCommandDescriptors(
 
     const descriptor = descriptorAt(scratch, scratch.descriptors.length);
     const authoredPipelineKey = drawPackage.batchKey.pipelineKey;
-    const resolvedPipelineKey =
-      options.pipelineKeysByRenderId?.get(drawPackage.renderId) ??
-      authoredPipelineKey;
+    const resolvedPipelineKey = resolveDrawCommandPipelineKey(
+      drawPackage.renderId,
+      authoredPipelineKey,
+      options.pipelineKeysByRenderId,
+    );
 
     descriptor.renderId = drawPackage.renderId;
     descriptor.pipelineKey = resolvedPipelineKey;

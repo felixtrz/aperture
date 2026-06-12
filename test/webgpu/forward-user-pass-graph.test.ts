@@ -370,6 +370,83 @@ describe("forward-route user passes (AI-12)", () => {
   });
 });
 
+describe("forward graph multi-target command isolation", () => {
+  it("encodes each target's own view-filtered commands, not the last view's", async () => {
+    const events: string[] = [];
+    const harness = appHarness(events);
+
+    const renderTarget = createRenderTargetHandle("offscreen");
+    const assets = new AssetRegistry();
+    assets.register(renderTarget);
+    assets.markReady(renderTarget, {
+      texture: { createView: () => ({ label: "offscreen-view" }) },
+      width: 16,
+      height: 8,
+      format: "bgra8unorm",
+    });
+
+    // Two views on disjoint layers: view 1 renders layer-1 into the off-screen
+    // target, view 2 renders layer-2 onto the swapchain.
+    const snapshot = {
+      ...appSnapshot([
+        { ...appView({ viewId: 1, renderTarget }), layerMask: 1 },
+        { ...appView({ viewId: 2 }), layerMask: 2 },
+      ]),
+      meshDraws: [
+        { renderId: 1, layerMask: 1, batchKey: { pipelineKey: "" } },
+        { renderId: 2, layerMask: 2, batchKey: { pipelineKey: "" } },
+      ],
+    } as unknown as RenderSnapshot;
+
+    const result = await assembleWebGpuAppFrameBoundaries({
+      app: harness.app,
+      assets,
+      cache: createWebGpuAppResourceCache(),
+      snapshot,
+      commands: [
+        {
+          kind: "draw",
+          renderId: 1,
+          vertexCount: 3,
+          instanceCount: 1,
+          firstVertex: 0,
+          firstInstance: 0,
+        },
+        {
+          kind: "draw",
+          renderId: 2,
+          vertexCount: 6,
+          instanceCount: 1,
+          firstVertex: 0,
+          firstInstance: 0,
+        },
+      ],
+      label: "frame",
+      reuse: resourceReuseReport(),
+    });
+
+    expect(result.valid).toBe(true);
+
+    const offscreenPass = harness.passes.find(
+      (pass) =>
+        pass.descriptor.colorAttachments?.[0]?.view?.label === "offscreen-view",
+    );
+    const swapchainPass = harness.passes.find(
+      (pass) =>
+        pass.descriptor.colorAttachments?.[0]?.view?.label === "swapchain-view",
+    );
+    expect(offscreenPass).toBeDefined();
+    expect(swapchainPass).toBeDefined();
+
+    // Graph nodes encode AFTER the per-target assembly loop, so each node's
+    // payload must snapshot its view-filtered commands instead of aliasing the
+    // shared frame scratch — aliasing replays the LAST view's commands into
+    // every attachment (the render-to-texture mixed-target regression).
+    expect(offscreenPass?.draws).toEqual([3]);
+    expect(swapchainPass?.draws).toEqual([6]);
+  });
+});
+
 function appHarness(
   events: string[],
   options: {
@@ -379,8 +456,16 @@ function appHarness(
   readonly app: WebGpuApp;
   readonly registry: ReturnType<typeof createWebGpuAppUserPassRegistry>;
   readonly passDescriptors: RenderPassDescriptorLike[];
+  readonly passes: {
+    readonly descriptor: RenderPassDescriptorLike;
+    readonly draws: number[];
+  }[];
 } {
   const passDescriptors: RenderPassDescriptorLike[] = [];
+  const passes: {
+    readonly descriptor: RenderPassDescriptorLike;
+    readonly draws: number[];
+  }[] = [];
   const registry = createWebGpuAppUserPassRegistry();
   const device = {
     features: { has: () => false },
@@ -400,13 +485,21 @@ function appHarness(
         beginRenderPass: (descriptor: unknown) => {
           events.push("begin");
           passDescriptors.push(descriptor as RenderPassDescriptorLike);
+          const pass = {
+            descriptor: descriptor as RenderPassDescriptorLike,
+            draws: [] as number[],
+          };
+          passes.push(pass);
           return {
             setViewport: () => {},
             setScissorRect: () => {},
             setPipeline: () => events.push("setPipeline"),
             setBindGroup: () => events.push("setBindGroup"),
             setVertexBuffer: () => events.push("setVertexBuffer"),
-            draw: () => events.push("draw"),
+            draw: (vertexCount?: number) => {
+              events.push("draw");
+              pass.draws.push(vertexCount ?? 0);
+            },
             end: () => events.push("end"),
           };
         },
@@ -452,7 +545,7 @@ function appHarness(
     sceneRenderFormat: "bgra8unorm",
   } as unknown as WebGpuApp;
 
-  return { app, registry, passDescriptors };
+  return { app, registry, passDescriptors, passes };
 }
 
 function appSnapshot(views: RenderSnapshot["views"]): RenderSnapshot {

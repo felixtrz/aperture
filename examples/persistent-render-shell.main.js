@@ -15,6 +15,13 @@ const shellReadbackSamples = [
 const clusterPressureHistoryFrameCount = 12;
 const clusterPressureStableFrameStart = 4;
 const transparentPressureMinimumFrame = 4;
+// Scenario budgets assume the repo's GPU-less e2e baseline: SwiftShader
+// rasterizes these scenes in seconds per frame (not milliseconds), and shared
+// runners can roughly double that under load. Budget the frames a scenario
+// REQUIRES at a generous software-rendering rate instead of deriving the
+// budget from the caller's maxFrames cap alone.
+const scenarioFrameBudgetMs = 10000;
+const scenarioBudgetSlackMs = 30000;
 const scenarioDefinitions = new Set([
   "transparent-pressure",
   "clustered-pressure-history",
@@ -27,6 +34,8 @@ let appCreatedCount = 0;
 let scenarioRunCounter = 0;
 let workerCreatedCount = 0;
 let activeScenario = null;
+let deviceLostFailure = null;
+let shellDisposed = false;
 const completedRuns = [];
 let currentStatus = createBaseStatus({
   ok: false,
@@ -128,6 +137,7 @@ async function initializeShell() {
     webGpuApp = created.app;
     appCreatedCount += 1;
 
+    trackDeviceLoss(created.app);
     registerQueuePhaseAssets(aperture, sourceAssets);
     registerClusteredLightAssets(aperture, sourceAssets);
 
@@ -170,6 +180,17 @@ async function runScenario(id, options) {
       phase: "scenario-rejected",
       reason: currentStatus.reason ?? "renderer-unavailable",
       message: currentStatus.message ?? "Persistent renderer is unavailable.",
+    });
+  }
+
+  if (deviceLostFailure !== null) {
+    return createBaseStatus({
+      ok: false,
+      phase: "scenario-rejected",
+      reason: "device-lost",
+      message: deviceLostDiagnosticMessage(
+        `Scenario '${id}' cannot run because the persistent renderer lost its WebGPU device.`,
+      ),
     });
   }
 
@@ -223,14 +244,14 @@ async function runScenario(id, options) {
     const status = createBaseStatus({
       ok: false,
       phase: "scenario-failed",
-      reason: "scenario-runtime-error",
-      message: messageFromError(error),
+      reason: scenarioFailureReason(),
+      message: scenarioFailureMessage(error),
       scenario: {
         ...createScenarioPendingStatus(run),
         ok: false,
         phase: "failed",
-        reason: "scenario-runtime-error",
-        message: messageFromError(error),
+        reason: scenarioFailureReason(),
+        message: scenarioFailureMessage(error),
         elapsedMs: Math.round(performance.now() - run.startedAt),
       },
     });
@@ -242,11 +263,75 @@ async function runScenario(id, options) {
   }
 }
 
+function trackDeviceLoss(app) {
+  void app.initialization.deviceLost?.then((failure) => {
+    if (shellDisposed) {
+      // disposeShell() destroys the device on purpose; that loss is expected
+      // and the "stopped" status must remain authoritative.
+      return;
+    }
+
+    deviceLostFailure = failure;
+
+    // A scenario that is mid-flight reports the loss through its own failure
+    // path (with the scenario context attached). Only an idle shell publishes
+    // the structured failure directly.
+    if (activeScenario === null) {
+      publishStatus(
+        createBaseStatus({
+          ok: false,
+          phase: "failed",
+          reason: "device-lost",
+          message: deviceLostDiagnosticMessage(
+            "The persistent render shell can no longer render scenarios.",
+          ),
+        }),
+      );
+    }
+  });
+}
+
+function scenarioFailureReason() {
+  return deviceLostFailure === null ? "scenario-runtime-error" : "device-lost";
+}
+
+function scenarioFailureMessage(error) {
+  const base = messageFromError(error);
+
+  if (deviceLostFailure === null) {
+    return base;
+  }
+
+  return deviceLostDiagnosticMessage(base);
+}
+
+function deviceLostDiagnosticMessage(context) {
+  const lostMessage = deviceLostFailure?.message ?? "no loss message";
+
+  return (
+    `${context} The persistent WebGPU device was lost (${lostMessage}). ` +
+    "Suggested fix: reload the shell to recreate the renderer; on machines " +
+    "without a usable GPU, launch the browser with the SwiftShader Vulkan " +
+    "flags the repo's WebGPU test configs use (--enable-unsafe-webgpu " +
+    "--use-vulkan=swiftshader --enable-features=Vulkan " +
+    "--enable-unsafe-swiftshader)."
+  );
+}
+
+function scenarioTimeoutBudget(maxFrames, requiredFrames) {
+  return Math.max(
+    30000,
+    maxFrames * 1000,
+    requiredFrames * scenarioFrameBudgetMs + scenarioBudgetSlackMs,
+  );
+}
+
 function disposeShell() {
   const app = webGpuApp;
 
   webGpuApp = null;
   activeScenario = null;
+  shellDisposed = true;
 
   if (app !== null) {
     app.stop();
@@ -279,7 +364,7 @@ async function runTransparentPressureScenario(aperture, app, run, options) {
   const maxFrames = finiteInteger(options.maxFrames, 18);
   const timeoutMs = finiteInteger(
     options.timeoutMs,
-    Math.max(30000, maxFrames * 1000),
+    scenarioTimeoutBudget(maxFrames, transparentPressureMinimumFrame),
   );
   const requireReadback = options.requireReadback !== false;
 
@@ -337,9 +422,11 @@ async function runClusteredPressureHistoryScenario(
     "aperture-persistent-shell-clustered-pressure",
   );
   const maxFrames = finiteInteger(options.maxFrames, 50);
+  // The cluster pressure history needs 12 OBSERVED frames before it can report
+  // ready; under software rasterization each of those frames takes seconds.
   const timeoutMs = finiteInteger(
     options.timeoutMs,
-    Math.max(30000, maxFrames * 1000),
+    scenarioTimeoutBudget(maxFrames, clusterPressureHistoryFrameCount),
   );
   const requireReadback = options.requireReadback !== false;
 
@@ -446,14 +533,14 @@ function runWorkerScenario({
           createBaseStatus({
             ok: false,
             phase: "scenario-failed",
-            reason: "scenario-runtime-error",
-            message: messageFromError(error),
+            reason: scenarioFailureReason(),
+            message: scenarioFailureMessage(error),
             scenario: {
               ...createScenarioPendingStatus(run),
               ok: false,
               phase: "failed",
-              reason: "scenario-runtime-error",
-              message: messageFromError(error),
+              reason: scenarioFailureReason(),
+              message: scenarioFailureMessage(error),
               elapsedMs: Math.round(performance.now() - run.startedAt),
               frameCount: loop.frame,
             },

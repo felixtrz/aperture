@@ -75,6 +75,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # test/index.test.ts asserts package export targets resolve to built
+      # dist files, so the suite needs a build even under coverage.
+      - name: Build packages
+        run: pnpm run build
+
       # AI-77: fails when coverage drops below the thresholds documented in
       # vitest.config.ts (set just below measured reality; ratchet up only).
       - name: Run tests with coverage thresholds

@@ -5,7 +5,7 @@ const instanceCount = columns * rows;
 const spacing = 0.28;
 const bladeScale = 0.18;
 const orthographicHeight = 7.2;
-const materialFamily = "custom-wind";
+const materialFamily = "example/wind";
 
 let apertureModulePromise = null;
 

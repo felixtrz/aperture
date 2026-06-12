@@ -137,7 +137,10 @@ test("DebugNormalMaterial browser app renders the active route", async ({
       routedResourceFamilies: [{ family: "debug-normal", itemCount: 1 }],
     },
     diagnosticsSummary: {
-      sectionCount: 2,
+      // The forward FrameGraph default (AI-25) keeps a frame plan on every
+      // route, so the summary carries the queued-built-in sections (frame
+      // queue, pipelines, ...) alongside the two material-queue sections.
+      sectionCount: 6,
       materialQueue: {
         itemCount: 1,
         byFamily: [{ family: "debug-normal", itemCount: 1 }],

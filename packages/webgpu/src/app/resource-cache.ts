@@ -24,6 +24,7 @@ import {
   type GpuOcclusionQueryResources,
 } from "../gpu/occlusion-query.js";
 import type {
+  GpuTimestampBufferLike,
   GpuTimestampQueryDiagnostic,
   GpuTimestampQueryResources,
 } from "../gpu/gpu-timing.js";
@@ -225,12 +226,30 @@ export interface WebGpuAppFrameScratch {
   readonly skyboxCommands: RenderPassCommand[];
   readonly occlusionFallbackCommands: RenderPassCommand[];
   readonly occlusionCulledCommands: RenderPassCommand[];
+  /**
+   * Per-node command snapshots for the forward FrameGraph route. Graph nodes
+   * encode AFTER the per-target assembly loop, so their payloads cannot alias
+   * the per-view scratch above (every node would replay the last target's
+   * commands); each registered node snapshots into its own reused list,
+   * indexed by registration order.
+   */
+  readonly forwardGraphCommandLists: RenderPassCommand[][];
 }
 
 export interface WebGpuAppGpuTimingCacheEntry {
   readonly passName: string;
   readonly resources: GpuTimestampQueryResources | null;
   readonly diagnostics: readonly GpuTimestampQueryDiagnostic[];
+  /**
+   * Rotating readback buffers for the pass (slot 0 is
+   * `resources.readbackBuffer`). A slot stays busy from the frame that encodes
+   * a copy into it until that frame's CPU read unmaps it, so a later frame
+   * never submits a copy into a buffer that is still mapped or pending map
+   * ("used in submit while mapped"). Kept small — overlap deeper than the ring
+   * skips GPU timing for that frame instead of growing unbounded.
+   */
+  readonly readbackRing: GpuTimestampBufferLike[];
+  readonly busyReadbacks: Set<GpuTimestampBufferLike>;
 }
 
 export interface WebGpuAppFrameResourceCacheSlot<TCachedFrameResources> {
@@ -324,5 +343,6 @@ function createWebGpuAppFrameScratch(): WebGpuAppFrameScratch {
     skyboxCommands: [],
     occlusionFallbackCommands: [],
     occlusionCulledCommands: [],
+    forwardGraphCommandLists: [],
   };
 }

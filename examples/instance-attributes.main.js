@@ -11,7 +11,8 @@ const canvas = document.querySelector("#aperture-canvas");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
 const clearColor = { r: 0.012, g: 0.018, b: 0.03, a: 1 };
-const materialFamily = "custom-wind";
+// Custom material family keys must be namespaced (custom-wgsl validation).
+const materialFamily = "example/wind";
 const sampleHistory = [];
 
 const baseStatus = {
@@ -146,7 +147,7 @@ async function createInstanceAttributeScene(aperture, initialized, canvasSize) {
   const customPreparation = aperture.prepareRenderAsset({
     registry: assets,
     adapter: aperture.createCustomWgslMaterialRenderAssetAdapter(
-      customSource.family,
+      customSource.familyKey,
     ),
     store: customStore,
     handle: materialHandle,
@@ -779,13 +780,13 @@ function createBladeMesh() {
 }
 
 function createWindMaterialSource(aperture) {
-  return {
-    family: materialFamily,
+  return aperture.createCustomWgslMaterialAsset({
+    familyKey: materialFamily,
     label: "Custom Wind Instance Attribute Material",
-    renderState: aperture.createDefaultRenderState({
-      cullMode: "none",
-    }),
+    renderState: { cullMode: "none" },
+    entryPoints: { vertex: "vs_main", fragment: "fs_main" },
     shader: {
+      kind: "inline-wgsl",
       code: `
 struct ViewProjectionUniform {
   viewProjection: mat4x4f,
@@ -846,8 +847,6 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   return vec4f(color * (0.42 + rim * 0.58), 1.0);
 }
       `.trim(),
-      vertexEntryPoint: "vs_main",
-      fragmentEntryPoint: "fs_main",
     },
     instanceAttributes: aperture.defineInstanceAttributes([
       { name: "phase", format: "float32" },
@@ -855,13 +854,18 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
     ]),
     bindings: [
       {
+        name: "wind",
         binding: 0,
         kind: "uniform-buffer",
         visibility: ["vertex", "fragment"],
         label: "windMaterialUniform",
+        fields: {
+          params: { type: "vec4", default: [0, 0, 0, 0] },
+        },
+        values: { params: [0, 0, 0, 0] },
       },
     ],
-  };
+  });
 }
 
 function createWindUniformResource({ aperture, device, material, time }) {

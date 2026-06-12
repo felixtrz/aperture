@@ -6,6 +6,7 @@ import {
   type WebGpuIdBufferPickBindGroupResource,
   type WebGpuIdBufferPickPipelineResource,
 } from "../picking/id-buffer-pick.js";
+import { resolveDrawCommandPipelineKey } from "../render/draw/draw-command.js";
 
 export function webGpuAppPickPixel(
   dimensions: { readonly width: number; readonly height: number },
@@ -137,8 +138,15 @@ export async function getOrCreateWebGpuIdBufferPickPipelines(options: {
   readonly cache: {
     readonly idPickPipelines: Map<string, WebGpuIdBufferPickPipelineResource>;
   };
-  readonly snapshot: RenderSnapshot;
-  readonly pipelineResults: readonly unknown[];
+  readonly snapshot: Pick<RenderSnapshot, "meshDraws">;
+  /**
+   * The frame plan's renderId → resolved pipeline cache key map. Draw commands
+   * carry the resolved key (not the authored batch key), so the returned pick
+   * pipeline map must be keyed by the exact same derivation
+   * (resolveDrawCommandPipelineKey) or pick command rewriting reports
+   * idBufferPick.missingPickPipeline.
+   */
+  readonly pipelineKeysByRenderId?: ReadonlyMap<number, string>;
 }): Promise<{
   readonly valid: boolean;
   readonly pipelines: ReadonlyMap<string, WebGpuIdBufferPickPipelineResource>;
@@ -148,7 +156,13 @@ export async function getOrCreateWebGpuIdBufferPickPipelines(options: {
   const diagnostics: unknown[] = [];
 
   for (const draw of options.snapshot.meshDraws) {
-    if (pipelines.has(draw.batchKey.pipelineKey)) {
+    const commandPipelineKey = resolveDrawCommandPipelineKey(
+      draw.renderId,
+      draw.batchKey.pipelineKey,
+      options.pipelineKeysByRenderId,
+    );
+
+    if (pipelines.has(commandPipelineKey)) {
       continue;
     }
 
@@ -156,7 +170,7 @@ export async function getOrCreateWebGpuIdBufferPickPipelines(options: {
     const cached = options.cache.idPickPipelines.get(cacheKey);
 
     if (cached !== undefined) {
-      pipelines.set(draw.batchKey.pipelineKey, cached);
+      pipelines.set(commandPipelineKey, cached);
       continue;
     }
 
@@ -172,7 +186,7 @@ export async function getOrCreateWebGpuIdBufferPickPipelines(options: {
 
     if (created.valid && created.resource !== null) {
       options.cache.idPickPipelines.set(cacheKey, created.resource);
-      pipelines.set(draw.batchKey.pipelineKey, created.resource);
+      pipelines.set(commandPipelineKey, created.resource);
     }
   }
 

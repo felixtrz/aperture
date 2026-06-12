@@ -328,17 +328,48 @@ export async function readGpuTimestampQueryResults(
     byteLength,
   );
 
-  const mapped = resources.readbackBuffer.getMappedRange(0, byteLength);
-  const values = Array.from(new BigUint64Array(mapped, 0, queryCount));
+  try {
+    const mapped = resources.readbackBuffer.getMappedRange(0, byteLength);
+    const values = Array.from(new BigUint64Array(mapped, 0, queryCount));
 
-  resources.readbackBuffer.unmap?.();
+    return {
+      valid: true,
+      timestamps: values,
+      durations: timestampPairDurations(values),
+      diagnostics: [],
+    };
+  } finally {
+    // A readback buffer left mapped poisons every later frame that submits a
+    // copy into it ("used in submit while mapped"), so unmap even when the
+    // mapped-range read throws.
+    resources.readbackBuffer.unmap?.();
+  }
+}
 
-  return {
-    valid: true,
-    timestamps: values,
-    durations: timestampPairDurations(values),
-    diagnostics: [],
-  };
+/**
+ * Creates one additional MAP_READ readback buffer compatible with
+ * `resolveGpuTimestampQueries` copies for the given query resources. Frame
+ * paths rotate these so a frame never submits a copy into a readback buffer
+ * that an earlier in-flight frame still has mapped (or pending map).
+ */
+export function createGpuTimestampReadbackBuffer(options: {
+  readonly device: GpuTimestampQueryDeviceLike;
+  readonly label: string;
+  readonly byteLength: number;
+}): GpuTimestampBufferLike | null {
+  if (options.device.createBuffer === undefined) {
+    return null;
+  }
+
+  try {
+    return options.device.createBuffer({
+      label: options.label,
+      size: options.byteLength,
+      usage: GPU_BUFFER_USAGE_MAP_READ | GPU_BUFFER_USAGE_COPY_DST,
+    });
+  } catch {
+    return null;
+  }
 }
 
 export function createGpuPassTimingReport(options: {

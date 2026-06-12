@@ -449,8 +449,11 @@ test("generated developer API Vite browser bootstrap renders a config/system-aut
   });
 
   expect(inputStatus?.forwardedInputEvents ?? 0).toBeGreaterThan(0);
+  // Selection fires on pointer RELEASE (interaction onClick), so by the time
+  // selectedEntity is observable the select action has already let go — assert
+  // the configured action exists rather than a held value.
   expect(inputStatus?.lastWorkerSummary?.input?.actions?.select).toMatchObject({
-    value: true,
+    kind: "button",
   });
   expect(inputStatus?.lastWorkerSummary?.signals?.selectedEntity).toMatchObject(
     {

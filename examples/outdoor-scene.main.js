@@ -375,7 +375,11 @@ async function publishFrameStatus(
     },
     report: reportJson,
   });
-  if (stopAfterReady && renderingSupported) {
+  // Stop only once the published status satisfies the probe contract
+  // (frame >= 2 with shadow rendering supported): under the FrameGraph
+  // default route shadow submission reports supported on the first frame,
+  // and stopping there would freeze the status before frame 2.
+  if (stopAfterReady && renderingSupported && frame >= 2) {
     globalThis.__APERTURE_STOP_EXAMPLE__?.();
   }
 

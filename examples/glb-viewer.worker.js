@@ -6923,11 +6923,7 @@ function readInitialCustomUrl() {
   const rawUrl = exampleParams.get("url");
 
   if (rawUrl === null || rawUrl.trim().length === 0) {
-    if (exampleParams.has("asset")) {
-      return null;
-    }
-
-    return new URL("./assets/hard_table.glb", globalThis.location.href);
+    return null;
   }
 
   const url = new URL(rawUrl.trim(), globalThis.location.href);

@@ -59,6 +59,7 @@ import {
 import {
   newOcclusionQueryDiagnostics,
   readWebGpuAppOcclusionQueries,
+  releaseWebGpuAppGpuTimingReadbacks,
 } from "./gpu-readback.js";
 import {
   prepareWebGpuAppIndirectDrawCommands,
@@ -941,6 +942,9 @@ export async function renderWebGpuAppFrame(
   if (frameBoundariesNeedGpuDrain(boundaries)) {
     await waitForSubmittedWork(app.initialization.device);
   }
+  // This route never maps its GPU-timing readbacks, so return the leased
+  // readback buffers to the rotation ring for later frames.
+  releaseWebGpuAppGpuTimingReadbacks(boundaries.gpuTimingReadbacks);
   const occlusionQueries = await readWebGpuAppOcclusionQueries({
     readbacks: boundaries.occlusionQueryReadbacks,
     diagnostics: boundaries.occlusionQueryDiagnostics,
