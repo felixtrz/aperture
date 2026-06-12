@@ -10,6 +10,8 @@ import type { WebGpuCanvasLike } from "../gpu/initialize-webgpu.js";
 import { createWebGpuBuffer } from "../gpu/buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
 import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
+import type { TonemapOperator } from "../output/output-stage-tonemap.js";
+import type { OutputColorSpace } from "../output/output-stage-color-space.js";
 import {
   createSamplerGpuResource,
   type SamplerGpuResource,
@@ -38,6 +40,11 @@ interface WebGpuAppTextContext {
   readonly msaa: {
     readonly sampleCount: number;
   };
+  // AI-17: output-stage config (the full app supplies these). Optional so minimal
+  // text contexts still build a byte-identical (no-op) pipeline.
+  readonly tonemap?: TonemapOperator;
+  readonly outputColorSpace?: OutputColorSpace;
+  readonly sceneRenderFormat?: string;
 }
 
 export interface MsdfTextFrameResources {
@@ -350,10 +357,19 @@ export async function getOrCreateWebGpuAppMsdfTextPipeline(
   app: WebGpuAppTextContext,
   cache: WebGpuAppResourceCache,
 ): Promise<CreateMsdfTextRenderPipelineResourceResult> {
+  const isHdr =
+    app.sceneRenderFormat !== undefined &&
+    app.sceneRenderFormat !== app.initialization.format;
+  const tonemap: TonemapOperator = isHdr ? "none" : (app.tonemap ?? "none");
+  const outputColorSpace: OutputColorSpace = isHdr
+    ? "linear"
+    : (app.outputColorSpace ?? "linear");
   const key = msdfTextPipelineCacheKey(
     app.initialization.format,
     WEBGPU_APP_DEPTH_FORMAT,
     app.msaa.sampleCount,
+    tonemap,
+    outputColorSpace,
   );
   const cached = cache.msdfTextPipelines.get(key);
 
@@ -368,6 +384,8 @@ export async function getOrCreateWebGpuAppMsdfTextPipeline(
     colorFormat: app.initialization.format,
     depthFormat: WEBGPU_APP_DEPTH_FORMAT,
     sampleCount: app.msaa.sampleCount,
+    tonemap,
+    outputColorSpace,
   });
 
   cache.msdfTextPipelines.set(key, result);

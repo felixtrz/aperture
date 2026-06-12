@@ -59,11 +59,11 @@ The platformer works, but it exposes the current input gaps:
 
 ### IWSDK
 
-- `/Users/felixz/Projects/immersive-web-sdk/packages/core/src/input/stateful-keyboard.ts`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/core/src/input/stateful-browser-gamepad.ts`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/xr-input/src/gamepad/stateful-button-axes-device.ts`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/core/src/input/input-actions.ts`
-- `/Users/felixz/Projects/immersive-web-sdk/packages/core/src/input/input-manager.ts`
+- `immersive-web-sdk/packages/core/src/input/stateful-keyboard.ts`
+- `immersive-web-sdk/packages/core/src/input/stateful-browser-gamepad.ts`
+- `immersive-web-sdk/packages/xr-input/src/gamepad/stateful-button-axes-device.ts`
+- `immersive-web-sdk/packages/core/src/input/input-actions.ts`
+- `immersive-web-sdk/packages/core/src/input/input-manager.ts`
 
 ### Bevy
 

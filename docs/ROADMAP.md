@@ -91,11 +91,11 @@ Reason:
 Current reference checkouts:
 
 - three.js: `references/three.js`
-- Babylon.js: `/Users/felixz/Projects/aperture-reference-libs/Babylon.js`
+- Babylon.js: `Babylon.js`
 - PlayCanvas engine: `references/engine`
 - Bevy: `./references/bevy`
-- gl-matrix: `/Users/felixz/Projects/aperture-reference-libs/gl-matrix`
-- wgpu-matrix: `/Users/felixz/Projects/aperture-reference-libs/wgpu-matrix`
+- gl-matrix: `gl-matrix`
+- wgpu-matrix: `wgpu-matrix`
 
 Planning gate exit criteria:
 

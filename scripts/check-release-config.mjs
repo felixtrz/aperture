@@ -101,6 +101,23 @@ async function checkChangesetConfig() {
     fail(".changeset/config.json must use main as baseBranch.");
   }
 
+  // AI-72: a real release must generate a changelog. Reject the `false` (no
+  // changelog) setting and require a generator (a module string, or [module, opts]).
+  const changelog = config.changelog;
+  const changelogGenerator =
+    typeof changelog === "string"
+      ? changelog
+      : Array.isArray(changelog) && typeof changelog[0] === "string"
+        ? changelog[0]
+        : null;
+
+  if (!changelogGenerator) {
+    fail(
+      '.changeset/config.json must set changelog to a generator (e.g. "@changesets/cli/changelog") so releases produce a CHANGELOG; got ' +
+        JSON.stringify(changelog),
+    );
+  }
+
   if (!sameMembers(fixedNames, publishableNames)) {
     fail(
       `.changeset/config.json fixed group must list exactly ${publishableNames.join(

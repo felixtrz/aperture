@@ -8,9 +8,29 @@ import type {
   WebGpuRenderPipelineCreateDescriptor,
   WebGpuRenderPipelineDeviceLike,
 } from "../../gpu/pipeline-cache.js";
+import {
+  applyOutputStageToFragmentWgsl,
+  createTonemapPipelineKey,
+  type TonemapOperator,
+} from "../../output/output-stage-tonemap.js";
+import {
+  createOutputColorSpacePipelineKey,
+  type OutputColorSpace,
+} from "../../output/output-stage-color-space.js";
 
 export const UI_PANEL_PIPELINE_KEY = "aperture/ui-panel";
 export const UI_IMAGE_PIPELINE_KEY = "aperture/ui-image";
+
+// AI-17: a non-default-only output-stage cache-key suffix shared by the ui quad
+// pipeline variants, so none + linear keeps the pre-existing key + shader.
+function uiOutputStageKeySuffix(
+  tonemap: TonemapOperator,
+  outputColorSpace: OutputColorSpace,
+): string {
+  return tonemap === "none" && outputColorSpace === "linear"
+    ? ""
+    : `:${createTonemapPipelineKey(tonemap)}:${createOutputColorSpacePipelineKey(outputColorSpace)}`;
+}
 
 const UI_QUAD_COMMON_WGSL = `
 struct UiViewUniform {
@@ -149,16 +169,20 @@ export function uiPanelPipelineCacheKey(
   colorFormat: string,
   depthFormat: string | null = null,
   sampleCount = 1,
+  tonemap: TonemapOperator = "none",
+  outputColorSpace: OutputColorSpace = "linear",
 ): string {
-  return `${UI_PANEL_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}`;
+  return `${UI_PANEL_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}${uiOutputStageKeySuffix(tonemap, outputColorSpace)}`;
 }
 
 export function uiImagePipelineCacheKey(
   colorFormat: string,
   depthFormat: string | null = null,
   sampleCount = 1,
+  tonemap: TonemapOperator = "none",
+  outputColorSpace: OutputColorSpace = "linear",
 ): string {
-  return `${UI_IMAGE_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}`;
+  return `${UI_IMAGE_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}${uiOutputStageKeySuffix(tonemap, outputColorSpace)}`;
 }
 
 export async function createUiPanelRenderPipelineResource(options: {
@@ -166,15 +190,23 @@ export async function createUiPanelRenderPipelineResource(options: {
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
+  readonly tonemap?: TonemapOperator;
+  readonly outputColorSpace?: OutputColorSpace;
 }): Promise<CreateUiQuadRenderPipelineResourceResult> {
+  const tonemap = options.tonemap ?? "none";
+  const outputColorSpace = options.outputColorSpace ?? "linear";
   return createUiQuadRenderPipelineResource({
     ...options,
     label: UI_PANEL_PIPELINE_KEY,
     code: UI_PANEL_WGSL,
+    tonemap,
+    outputColorSpace,
     cacheKey: uiPanelPipelineCacheKey(
       options.colorFormat,
       options.depthFormat ?? null,
       options.sampleCount ?? 1,
+      tonemap,
+      outputColorSpace,
     ),
   });
 }
@@ -184,15 +216,23 @@ export async function createUiImageRenderPipelineResource(options: {
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
+  readonly tonemap?: TonemapOperator;
+  readonly outputColorSpace?: OutputColorSpace;
 }): Promise<CreateUiQuadRenderPipelineResourceResult> {
+  const tonemap = options.tonemap ?? "none";
+  const outputColorSpace = options.outputColorSpace ?? "linear";
   return createUiQuadRenderPipelineResource({
     ...options,
     label: UI_IMAGE_PIPELINE_KEY,
     code: UI_IMAGE_WGSL,
+    tonemap,
+    outputColorSpace,
     cacheKey: uiImagePipelineCacheKey(
       options.colorFormat,
       options.depthFormat ?? null,
       options.sampleCount ?? 1,
+      tonemap,
+      outputColorSpace,
     ),
   });
 }
@@ -205,12 +245,19 @@ async function createUiQuadRenderPipelineResource(options: {
   readonly label: string;
   readonly code: string;
   readonly cacheKey: string;
+  readonly tonemap?: TonemapOperator;
+  readonly outputColorSpace?: OutputColorSpace;
 }): Promise<CreateUiQuadRenderPipelineResourceResult> {
   const shaderModule = await createWebGpuShaderModule({
     device: options.device,
     descriptor: {
       label: options.label,
-      code: options.code,
+      code: applyOutputStageToFragmentWgsl(
+        options.code,
+        options.tonemap ?? "none",
+        options.outputColorSpace ?? "linear",
+        options.label,
+      ),
     },
   });
   const shaderDiagnostics = shaderModule.diagnostics.map(mapShaderDiagnostic);

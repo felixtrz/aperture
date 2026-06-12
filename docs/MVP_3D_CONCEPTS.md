@@ -9,11 +9,11 @@ The goal is not to clone three.js, Babylon.js, or PlayCanvas. The goal is to und
 Local reference clones are persisted outside this repository to avoid vendoring large external codebases:
 
 - three.js: `references/three.js`, branch `dev`, commit `2ccd00a`
-- Babylon.js: `/Users/felixz/Projects/aperture-reference-libs/Babylon.js`, branch `master`, commit `67395c0`
+- Babylon.js: `Babylon.js`, branch `master`, commit `67395c0`
 - PlayCanvas engine: `references/engine`, branch `main`, commit `c3cd1f9`
 - Bevy: `./references/bevy`, branch `main`, commit `370be1b02`
-- gl-matrix: `/Users/felixz/Projects/aperture-reference-libs/gl-matrix`, commit `accefb6`
-- wgpu-matrix: `/Users/felixz/Projects/aperture-reference-libs/wgpu-matrix`, commit `3dba901`
+- gl-matrix: `gl-matrix`, commit `accefb6`
+- wgpu-matrix: `wgpu-matrix`, commit `3dba901`
 
 Primary inspected areas:
 

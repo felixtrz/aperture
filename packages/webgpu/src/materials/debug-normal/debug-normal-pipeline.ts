@@ -23,6 +23,11 @@ import {
   type WebGpuShaderFailureReason,
 } from "../../gpu/shader.js";
 import { createMotionVectorBuiltInShaderVariant } from "../../render/motion/motion-vector-shader.js";
+import {
+  applyOutputStageToBuiltInShader,
+  type TonemapOperator,
+} from "../../output/output-stage-tonemap.js";
+import type { OutputColorSpace } from "../../output/output-stage-color-space.js";
 import { resolveUnlitVertexBufferLayouts } from "../unlit/unlit-pipeline.js";
 import type { BuiltInShaderSourceModule } from "../unlit/unlit-shader.js";
 
@@ -59,6 +64,8 @@ export interface CreateDebugNormalRenderPipelineResourceOptions {
   readonly sampleCount?: number;
   readonly batchKey: BatchCompatibilityKey;
   readonly shader?: BuiltInShaderSourceModule;
+  readonly tonemap?: TonemapOperator;
+  readonly outputColorSpace?: OutputColorSpace;
 }
 
 export interface DebugNormalRenderPipelineResource {
@@ -80,7 +87,13 @@ export interface DebugNormalRenderPipelineDeviceLike
 export async function createDebugNormalRenderPipelineResource(
   options: CreateDebugNormalRenderPipelineResourceOptions,
 ): Promise<CreateDebugNormalRenderPipelineResourceResult> {
-  const baseShader = options.shader ?? DEBUG_NORMAL_MESH_SHADER;
+  // AI-17: apply the shared output stage to the base color shader before the MV
+  // variant (no-op on none + linear). See unlit-pipeline.ts for the rationale.
+  const baseShader = applyOutputStageToBuiltInShader(
+    options.shader ?? DEBUG_NORMAL_MESH_SHADER,
+    options.tonemap ?? "none",
+    options.outputColorSpace ?? "linear",
+  );
   const shader =
     options.motionVectorColorFormat === undefined ||
     options.motionVectorColorFormat === null

@@ -181,3 +181,87 @@ export function applyOutputTonemapToStandardShader(
     ),
   };
 }
+
+const BUILT_IN_FRAGMENT_ENTRY =
+  "@fragment\nfn fs_main(input: VertexOutput) -> @location(0) vec4f";
+// The inner helper is NOT an entry point, so its return type must NOT carry the
+// `@location(0)` IO attribute — Dawn/naga reject `@location` on non-entry-point
+// return types ("'@location' is not valid for non-entry point function return
+// types"). The wrapping `@fragment fn fs_main` below keeps `@location(0)`.
+const BUILT_IN_INNER_ENTRY =
+  "fn apertureOutputStageInner(input: VertexOutput) -> vec4f";
+
+/**
+ * AI-17: apply the output color-space + tonemap stage to any built-in material
+ * family, not just StandardMaterial. Unlike `applyOutputTonemapToStandardShader`
+ * (which keys off StandardMaterial's `return vec4f(color, alpha);` marker), this
+ * is family-agnostic: it renames the shader's `@fragment fn fs_main` entry to a
+ * plain inner function and emits a thin wrapping entry that calls
+ * `apertureOutputColorSpace(apertureOutputTonemap(rgb))` while preserving alpha.
+ * Every built-in family (unlit/matcap/debug-normal/sprite/msdf-text/ui-quad/
+ * particle) shares the `fs_main(input: VertexOutput) -> @location(0) vec4f` entry
+ * signature, so the wrapper forwards the single struct input unchanged.
+ *
+ * On the HDR-scene-buffer path (`operator === "none"` + `outputColorSpace ===
+ * "linear"`) it is a no-op, leaving the single post-stage encode authoritative.
+ */
+/**
+ * String-level core of {@link applyOutputStageToBuiltInShader}: wraps a built-in
+ * fragment WGSL string's `@fragment fn fs_main(input: VertexOutput) -> @location(0)
+ * vec4f` entry with the output color-space + tonemap stage. Returned unchanged on
+ * the HDR-scene-buffer path (none + linear). Used directly by the string-based
+ * family pipelines (sprite/particle/ui/text), which build raw WGSL rather than a
+ * `BuiltInShaderSourceModule`.
+ */
+export function applyOutputStageToFragmentWgsl(
+  code: string,
+  operator: TonemapOperator,
+  outputColorSpace: OutputColorSpace = "linear",
+  label = "built-in shader",
+): string {
+  if (operator === "none" && outputColorSpace === "linear") {
+    return code;
+  }
+
+  if (!code.includes(BUILT_IN_FRAGMENT_ENTRY)) {
+    throw new Error(
+      `Cannot apply ${createTonemapPipelineKey(operator)} and ${createOutputColorSpacePipelineKey(outputColorSpace)} to '${label}' because the built-in fragment entry '${BUILT_IN_FRAGMENT_ENTRY}' was not found.`,
+    );
+  }
+
+  const outputWgsl = [
+    createOutputTonemapWgsl(operator),
+    createOutputColorSpaceWgsl(outputColorSpace),
+  ].join("\n\n");
+  const wrapperEntry = `@fragment\nfn fs_main(input: VertexOutput) -> @location(0) vec4f {\n  let apertureFragment = apertureOutputStageInner(input);\n  return vec4f(apertureOutputColorSpace(apertureOutputTonemap(apertureFragment.rgb)), apertureFragment.a);\n}`;
+  const innerCode = code.replace(BUILT_IN_FRAGMENT_ENTRY, BUILT_IN_INNER_ENTRY);
+
+  return `${outputWgsl}\n\n${innerCode}\n\n${wrapperEntry}`;
+}
+
+export function applyOutputStageToBuiltInShader(
+  shader: BuiltInShaderSourceModule,
+  operator: TonemapOperator,
+  outputColorSpace: OutputColorSpace = "linear",
+): BuiltInShaderSourceModule {
+  const code = applyOutputStageToFragmentWgsl(
+    shader.code,
+    operator,
+    outputColorSpace,
+    shader.label,
+  );
+
+  if (code === shader.code) {
+    return shader;
+  }
+
+  return {
+    ...shader,
+    label: [
+      shader.label,
+      createTonemapPipelineKey(operator),
+      createOutputColorSpacePipelineKey(outputColorSpace),
+    ].join("|"),
+    code,
+  };
+}

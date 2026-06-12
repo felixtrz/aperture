@@ -23,6 +23,8 @@ import {
   type SpriteRenderPipelineResource,
 } from "../render/sprites/sprite-pipeline.js";
 import type { RenderPassCommand } from "../render/passes/render-pass-commands.js";
+import type { TonemapOperator } from "../output/output-stage-tonemap.js";
+import type { OutputColorSpace } from "../output/output-stage-color-space.js";
 import {
   prepareAppSamplerResource,
   prepareAppTextureResource,
@@ -40,6 +42,11 @@ interface WebGpuAppSpriteContext {
   readonly msaa: {
     readonly sampleCount: number;
   };
+  // AI-17: output-stage config (the full app supplies these). Optional so minimal
+  // sprite contexts still build a byte-identical (no-op) pipeline.
+  readonly tonemap?: TonemapOperator;
+  readonly outputColorSpace?: OutputColorSpace;
+  readonly sceneRenderFormat?: string;
 }
 
 export interface SpriteFrameResources {
@@ -358,10 +365,21 @@ export async function getOrCreateWebGpuAppSpritePipeline(
   app: WebGpuAppSpriteContext,
   cache: WebGpuAppResourceCache,
 ): Promise<CreateSpriteRenderPipelineResourceResult> {
+  // On the HDR scene-buffer path the sprite renders into rgba16float and the post
+  // stage encodes; otherwise the sprite encodes in-material via the output stage.
+  const isHdr =
+    app.sceneRenderFormat !== undefined &&
+    app.sceneRenderFormat !== app.initialization.format;
+  const tonemap: TonemapOperator = isHdr ? "none" : (app.tonemap ?? "none");
+  const outputColorSpace: OutputColorSpace = isHdr
+    ? "linear"
+    : (app.outputColorSpace ?? "linear");
   const key = spritePipelineCacheKey(
     app.initialization.format,
     WEBGPU_APP_DEPTH_FORMAT,
     app.msaa.sampleCount,
+    tonemap,
+    outputColorSpace,
   );
   const cached = cache.spritePipelines.get(key);
 
@@ -376,6 +394,8 @@ export async function getOrCreateWebGpuAppSpritePipeline(
     colorFormat: app.initialization.format,
     depthFormat: WEBGPU_APP_DEPTH_FORMAT,
     sampleCount: app.msaa.sampleCount,
+    tonemap,
+    outputColorSpace,
   });
 
   cache.spritePipelines.set(key, result);

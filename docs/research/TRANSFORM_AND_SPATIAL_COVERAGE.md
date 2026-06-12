@@ -27,14 +27,14 @@ three.js:
 
 Babylon.js:
 
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Meshes/transformNode.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Maths/math.vector.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Maths/math.plane.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Maths/math.frustum.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Culling/ray.core.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Culling/boundingInfo.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Culling/boundingBox.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/Babylon.js/packages/dev/core/src/Culling/boundingSphere.ts`
+- `Babylon.js/packages/dev/core/src/Meshes/transformNode.ts`
+- `Babylon.js/packages/dev/core/src/Maths/math.vector.ts`
+- `Babylon.js/packages/dev/core/src/Maths/math.plane.ts`
+- `Babylon.js/packages/dev/core/src/Maths/math.frustum.ts`
+- `Babylon.js/packages/dev/core/src/Culling/ray.core.ts`
+- `Babylon.js/packages/dev/core/src/Culling/boundingInfo.ts`
+- `Babylon.js/packages/dev/core/src/Culling/boundingBox.ts`
+- `Babylon.js/packages/dev/core/src/Culling/boundingSphere.ts`
 
 PlayCanvas:
 
@@ -53,14 +53,14 @@ PlayCanvas:
 
 Math kernel:
 
-- `/Users/felixz/Projects/aperture-reference-libs/wgpu-matrix/src/wgpu-matrix.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/wgpu-matrix/src/types.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/wgpu-matrix/src/vec2-impl.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/wgpu-matrix/src/vec3-impl.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/wgpu-matrix/src/vec4-impl.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/wgpu-matrix/src/quat-impl.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/wgpu-matrix/src/mat3-impl.ts`
-- `/Users/felixz/Projects/aperture-reference-libs/wgpu-matrix/src/mat4-impl.ts`
+- `wgpu-matrix/src/wgpu-matrix.ts`
+- `wgpu-matrix/src/types.ts`
+- `wgpu-matrix/src/vec2-impl.ts`
+- `wgpu-matrix/src/vec3-impl.ts`
+- `wgpu-matrix/src/vec4-impl.ts`
+- `wgpu-matrix/src/quat-impl.ts`
+- `wgpu-matrix/src/mat3-impl.ts`
+- `wgpu-matrix/src/mat4-impl.ts`
 
 EliCS storage references:
 

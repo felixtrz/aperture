@@ -5,6 +5,8 @@ import {
   createOutputColorSpaceWgsl,
   STANDARD_MESH_SHADER,
   TONEMAP_OPERATORS,
+  UNLIT_MESH_SHADER,
+  applyOutputStageToBuiltInShader,
   applyOutputTonemapToStandardShader,
   createOutputTonemapWgsl,
   createTonemapPipelineKey,
@@ -104,5 +106,73 @@ describe("output-stage tonemap operators", () => {
     expect(shader.label).toContain(createOutputColorSpacePipelineKey("srgb"));
     expect(shader.code).toContain("return color;");
     expect(shader.code).toContain("apertureLinearToSrgbChannel");
+  });
+});
+
+describe("applyOutputStageToBuiltInShader (family-agnostic output stage, AI-17)", () => {
+  it("is identity on the HDR-scene-buffer path (none + linear)", () => {
+    expect(
+      applyOutputStageToBuiltInShader(UNLIT_MESH_SHADER, "none", "linear"),
+    ).toBe(UNLIT_MESH_SHADER);
+  });
+
+  it("wraps the fragment entry with the tonemap + color-space output stage", () => {
+    const wrapped = applyOutputStageToBuiltInShader(
+      UNLIT_MESH_SHADER,
+      "aces",
+      "srgb",
+    );
+
+    // The original entry is renamed to a plain inner fn; a thin @fragment wrapper
+    // applies the output stage, so exactly one @fragment entry remains.
+    expect(wrapped.code).toContain(
+      "fn apertureOutputStageInner(input: VertexOutput) -> vec4f",
+    );
+    expect(wrapped.code).toContain(
+      "apertureOutputColorSpace(apertureOutputTonemap(apertureFragment.rgb))",
+    );
+    expect(wrapped.code.match(/@fragment/g)).toHaveLength(1);
+    expect(wrapped.label).toContain(createTonemapPipelineKey("aces"));
+    expect(wrapped.label).toContain(createOutputColorSpacePipelineKey("srgb"));
+  });
+
+  it("does not put @location on the non-entry inner helper return type", () => {
+    // Dawn/naga reject "'@location' is not valid for non-entry point function
+    // return types" — the inner helper must return a plain vec4f and only the
+    // @fragment wrapper may carry @location(0). Verified against real Dawn via
+    // headless Chrome; this guards the string contract without a browser.
+    const wrapped = applyOutputStageToBuiltInShader(
+      UNLIT_MESH_SHADER,
+      "aces",
+      "srgb",
+    );
+
+    expect(wrapped.code).not.toContain(
+      "fn apertureOutputStageInner(input: VertexOutput) -> @location(0) vec4f",
+    );
+    expect(wrapped.code).toMatch(
+      /fn apertureOutputStageInner\(input: VertexOutput\) -> vec4f \{/,
+    );
+  });
+
+  it("preserves the fragment alpha channel through the wrapper", () => {
+    const wrapped = applyOutputStageToBuiltInShader(
+      UNLIT_MESH_SHADER,
+      "aces",
+      "srgb",
+    );
+
+    // alpha forwarded untouched (only rgb is tonemapped/encoded).
+    expect(wrapped.code).toContain("apertureFragment.a)");
+  });
+
+  it("throws when the built-in fragment entry signature is absent", () => {
+    expect(() =>
+      applyOutputStageToBuiltInShader(
+        { ...UNLIT_MESH_SHADER, code: "fn other() -> f32 { return 1.0; }" },
+        "aces",
+        "srgb",
+      ),
+    ).toThrow();
   });
 });

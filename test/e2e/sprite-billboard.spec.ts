@@ -160,14 +160,18 @@ function assertCentralAtlasSamples(frame: SpriteBillboardFrameStatus): void {
     expect(pixelDistance(sample.pixel, clear)).toBeGreaterThan(45);
   }
 
-  expect(upperLeft.pixel.r).toBeGreaterThan(upperLeft.pixel.g + 80);
-  expect(upperLeft.pixel.r).toBeGreaterThan(upperLeft.pixel.b + 80);
-  expect(upperRight.pixel.g).toBeGreaterThan(upperRight.pixel.r + 80);
-  expect(upperRight.pixel.g).toBeGreaterThan(upperRight.pixel.b + 80);
-  expect(lowerLeft.pixel.b).toBeGreaterThan(lowerLeft.pixel.r + 80);
-  expect(lowerLeft.pixel.b).toBeGreaterThan(lowerLeft.pixel.g + 80);
-  expect(lowerRight.pixel.r).toBeGreaterThan(lowerRight.pixel.b + 80);
-  expect(lowerRight.pixel.g).toBeGreaterThan(lowerRight.pixel.b + 80);
+  // AI-17: the sprite family sRGB-encodes in-shader on the LDR path, which
+  // lifts secondary channels more than saturated ones and compresses the
+  // dominant-vs-secondary separation (observed margin shrank from ~100 to
+  // ~79). 60 still proves the quadrant's channel is clearly dominant.
+  expect(upperLeft.pixel.r).toBeGreaterThan(upperLeft.pixel.g + 60);
+  expect(upperLeft.pixel.r).toBeGreaterThan(upperLeft.pixel.b + 60);
+  expect(upperRight.pixel.g).toBeGreaterThan(upperRight.pixel.r + 60);
+  expect(upperRight.pixel.g).toBeGreaterThan(upperRight.pixel.b + 60);
+  expect(lowerLeft.pixel.b).toBeGreaterThan(lowerLeft.pixel.r + 60);
+  expect(lowerLeft.pixel.b).toBeGreaterThan(lowerLeft.pixel.g + 60);
+  expect(lowerRight.pixel.r).toBeGreaterThan(lowerRight.pixel.b + 60);
+  expect(lowerRight.pixel.g).toBeGreaterThan(lowerRight.pixel.b + 60);
 }
 
 function assertQuadFeatureSamples(frame: SpriteBillboardFrameStatus): void {
@@ -179,15 +183,17 @@ function assertQuadFeatureSamples(frame: SpriteBillboardFrameStatus): void {
   const screenOutside = requiredSample(samples, "screen-size-clear");
   const cylindrical = requiredSample(samples, "cylindrical-red");
 
-  expect(uvBlue.pixel.b).toBeGreaterThan(uvBlue.pixel.r + 80);
-  expect(uvBlue.pixel.b).toBeGreaterThan(uvBlue.pixel.g + 80);
-  expect(rotationPivot.pixel.g).toBeGreaterThan(rotationPivot.pixel.r + 80);
-  expect(rotationPivot.pixel.g).toBeGreaterThan(rotationPivot.pixel.b + 80);
-  expect(screenSized.pixel.r).toBeGreaterThan(screenSized.pixel.b + 80);
-  expect(screenSized.pixel.g).toBeGreaterThan(screenSized.pixel.b + 80);
+  // AI-17: sRGB encode compresses dominant-vs-secondary channel separation
+  // (see assertCentralAtlasSamples); 60 still proves clear dominance.
+  expect(uvBlue.pixel.b).toBeGreaterThan(uvBlue.pixel.r + 60);
+  expect(uvBlue.pixel.b).toBeGreaterThan(uvBlue.pixel.g + 60);
+  expect(rotationPivot.pixel.g).toBeGreaterThan(rotationPivot.pixel.r + 60);
+  expect(rotationPivot.pixel.g).toBeGreaterThan(rotationPivot.pixel.b + 60);
+  expect(screenSized.pixel.r).toBeGreaterThan(screenSized.pixel.b + 60);
+  expect(screenSized.pixel.g).toBeGreaterThan(screenSized.pixel.b + 60);
   expect(pixelDistance(screenOutside.pixel, clear)).toBeLessThan(35);
-  expect(cylindrical.pixel.r).toBeGreaterThan(cylindrical.pixel.g + 80);
-  expect(cylindrical.pixel.r).toBeGreaterThan(cylindrical.pixel.b + 80);
+  expect(cylindrical.pixel.r).toBeGreaterThan(cylindrical.pixel.g + 60);
+  expect(cylindrical.pixel.r).toBeGreaterThan(cylindrical.pixel.b + 60);
 }
 
 function assertStableSamples(

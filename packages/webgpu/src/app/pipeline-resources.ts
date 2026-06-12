@@ -51,6 +51,16 @@ export async function getOrCreateWebGpuAppPipeline(options: {
   const standardOutputColorSpace = isHdr
     ? "linear"
     : options.app.outputColorSpace;
+  // AI-17 / AI-91: mesh pipelines are created once per app and reused by every
+  // pass, including render-to-texture previews and the transmission scene-color
+  // copy, whose contents must stay LINEAR (they are sampled as scene content
+  // and encoded once at the final output; three.js likewise only tonemaps when
+  // no render target is bound). Until pipeline selection is per-render-target
+  // (AI-91), the non-standard mesh families therefore resolve the no-op pair by
+  // default; the wrap capability itself stays wired, keyed, and Dawn-verified.
+  const meshTonemap = options.kind === "standard" ? standardTonemap : "none";
+  const meshOutputColorSpace =
+    options.kind === "standard" ? standardOutputColorSpace : "linear";
   const key = [
     options.kind,
     options.app.sceneRenderFormat,
@@ -59,12 +69,10 @@ export async function getOrCreateWebGpuAppPipeline(options: {
     WEBGPU_APP_DEPTH_FORMAT,
     `samples:${options.app.msaa.sampleCount}`,
     options.pipelineKey,
-    options.kind === "standard"
-      ? createTonemapPipelineKey(standardTonemap)
-      : "tonemap:none",
-    options.kind === "standard"
-      ? createOutputColorSpacePipelineKey(standardOutputColorSpace)
-      : createOutputColorSpacePipelineKey("linear"),
+    // The resolved pair keys the cache for every kind so a future per-target
+    // resolution (AI-91) cannot collide cached variants.
+    createTonemapPipelineKey(meshTonemap),
+    createOutputColorSpacePipelineKey(meshOutputColorSpace),
   ].join("|");
   const cached = options.cache.pipelines.get(key);
 
@@ -92,8 +100,8 @@ export async function getOrCreateWebGpuAppPipeline(options: {
           depthFormat: WEBGPU_APP_DEPTH_FORMAT,
           sampleCount: options.app.msaa.sampleCount,
           batchKey: options.batchKey,
-          tonemap: standardTonemap,
-          outputColorSpace: standardOutputColorSpace,
+          tonemap: meshTonemap,
+          outputColorSpace: meshOutputColorSpace,
         })
       : options.kind === "debug-normal"
         ? await createDebugNormalRenderPipelineResource({
@@ -107,6 +115,8 @@ export async function getOrCreateWebGpuAppPipeline(options: {
             depthFormat: WEBGPU_APP_DEPTH_FORMAT,
             sampleCount: options.app.msaa.sampleCount,
             batchKey: options.batchKey,
+            tonemap: meshTonemap,
+            outputColorSpace: meshOutputColorSpace,
           })
         : options.kind === "matcap"
           ? await createMatcapRenderPipelineResource({
@@ -120,6 +130,8 @@ export async function getOrCreateWebGpuAppPipeline(options: {
               depthFormat: WEBGPU_APP_DEPTH_FORMAT,
               sampleCount: options.app.msaa.sampleCount,
               batchKey: options.batchKey,
+              tonemap: meshTonemap,
+              outputColorSpace: meshOutputColorSpace,
             })
           : await createUnlitRenderPipelineResource({
               device: options.app.initialization.device as Parameters<
@@ -132,6 +144,8 @@ export async function getOrCreateWebGpuAppPipeline(options: {
               depthFormat: WEBGPU_APP_DEPTH_FORMAT,
               sampleCount: options.app.msaa.sampleCount,
               batchKey: options.batchKey,
+              tonemap: meshTonemap,
+              outputColorSpace: meshOutputColorSpace,
             });
 
   if (pipeline.valid && pipeline.resource !== null) {

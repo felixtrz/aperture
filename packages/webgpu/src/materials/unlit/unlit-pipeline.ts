@@ -23,6 +23,11 @@ import {
   resolveWebGpuPipelineRenderState,
 } from "../core/material-render-state.js";
 import { createMotionVectorBuiltInShaderVariant } from "../../render/motion/motion-vector-shader.js";
+import {
+  applyOutputStageToBuiltInShader,
+  type TonemapOperator,
+} from "../../output/output-stage-tonemap.js";
+import type { OutputColorSpace } from "../../output/output-stage-color-space.js";
 import type {
   WebGpuRenderPipelineCreateDescriptor,
   WebGpuRenderPipelineDeviceLike,
@@ -138,6 +143,8 @@ export interface CreateUnlitRenderPipelineResourceOptions {
   readonly sampleCount?: number;
   readonly batchKey: BatchCompatibilityKey;
   readonly shader?: BuiltInShaderSourceModule;
+  readonly tonemap?: TonemapOperator;
+  readonly outputColorSpace?: OutputColorSpace;
 }
 
 export interface UnlitRenderPipelineResource {
@@ -159,9 +166,14 @@ export interface UnlitRenderPipelineDeviceLike
 export async function createUnlitRenderPipelineResource(
   options: CreateUnlitRenderPipelineResourceOptions,
 ): Promise<CreateUnlitRenderPipelineResourceResult> {
-  const baseShader = resolveUnlitShaderForBatchKey(
-    options.batchKey,
-    options.shader,
+  // AI-17: apply the shared output stage to the base color shader BEFORE the
+  // motion-vector variant, so the MV path (which renames fs_main -> fs_main_color
+  // and adds the motion output) wraps the tonemapped color. No-op on none + linear
+  // (HDR-scene-buffer path), so it stays byte-identical there.
+  const baseShader = applyOutputStageToBuiltInShader(
+    resolveUnlitShaderForBatchKey(options.batchKey, options.shader),
+    options.tonemap ?? "none",
+    options.outputColorSpace ?? "linear",
   );
   const shader =
     options.motionVectorColorFormat === undefined ||

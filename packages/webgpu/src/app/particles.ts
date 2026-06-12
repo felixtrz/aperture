@@ -14,6 +14,8 @@ import { createCommandEncoderResource } from "../gpu/command-encoder.js";
 import { finishCommandEncoder } from "../gpu/command-buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
 import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
+import type { TonemapOperator } from "../output/output-stage-tonemap.js";
+import type { OutputColorSpace } from "../output/output-stage-color-space.js";
 import { submitCommandBuffers } from "../render/queues/queue-submit.js";
 import {
   executeComputePassCommands,
@@ -45,6 +47,11 @@ interface WebGpuAppParticleContext {
   readonly msaa: {
     readonly sampleCount: number;
   };
+  // AI-17: output-stage config (the full app supplies these). Optional so minimal
+  // particle contexts still build a byte-identical (no-op) pipeline.
+  readonly tonemap?: TonemapOperator;
+  readonly outputColorSpace?: OutputColorSpace;
+  readonly sceneRenderFormat?: string;
 }
 
 export interface ParticleFrameResources {
@@ -161,10 +168,19 @@ export async function getOrCreateWebGpuAppParticleRenderPipeline(
   app: WebGpuAppParticleContext,
   cache: WebGpuAppResourceCache,
 ): Promise<CreateParticleRenderPipelineResourceResult> {
+  const isHdr =
+    app.sceneRenderFormat !== undefined &&
+    app.sceneRenderFormat !== app.initialization.format;
+  const tonemap: TonemapOperator = isHdr ? "none" : (app.tonemap ?? "none");
+  const outputColorSpace: OutputColorSpace = isHdr
+    ? "linear"
+    : (app.outputColorSpace ?? "linear");
   const key = particleRenderPipelineCacheKey(
     app.initialization.format,
     WEBGPU_APP_DEPTH_FORMAT,
     app.msaa.sampleCount,
+    tonemap,
+    outputColorSpace,
   );
   const cached = cache.particleRenderPipelines.get(key);
 
@@ -179,6 +195,8 @@ export async function getOrCreateWebGpuAppParticleRenderPipeline(
     colorFormat: app.initialization.format,
     depthFormat: WEBGPU_APP_DEPTH_FORMAT,
     sampleCount: app.msaa.sampleCount,
+    tonemap,
+    outputColorSpace,
   });
 
   cache.particleRenderPipelines.set(key, result);

@@ -82,4 +82,26 @@ describe("extraction frame budget (AI-76)", () => {
 
     expect(median(largeSamples)).toBeGreaterThan(median(smallSamples));
   });
+
+  it("scales sub-quadratically with entity count", () => {
+    // Upper bound on growth: a 10x entity step may cost at most 40x time
+    // (linear would be ~10x; an accidental O(n²) lands at ~100x). The 0.05ms
+    // floor keeps the ratio meaningful when the small scene is noise-level.
+    const small = buildExtractionScene(200);
+    const large = buildExtractionScene(2_000);
+
+    timeExtractAndPack(small, 0);
+    timeExtractAndPack(large, 0);
+
+    const smallSamples: number[] = [];
+    const largeSamples: number[] = [];
+    for (let frame = 1; frame <= FRAMES; frame += 1) {
+      smallSamples.push(timeExtractAndPack(small, frame));
+      largeSamples.push(timeExtractAndPack(large, frame));
+    }
+
+    expect(median(largeSamples)).toBeLessThan(
+      Math.max(median(smallSamples), 0.05) * 40,
+    );
+  });
 });

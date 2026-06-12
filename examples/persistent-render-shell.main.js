@@ -764,10 +764,20 @@ function createClusteredPressureHistoryStatus({
     readbackStatus,
     requireReadback,
   });
-  const counts = reportJson.counts ?? {};
+  // AI-18: the clustered pressure scene requests shadows/cookies on variants
+  // that defer clustered sampling, which now (truthfully) reports per-frame
+  // warning diagnostics instead of staying silent. Those exact codes are the
+  // scene's expected steady state; anything else still blocks readiness.
+  const expectedDeferredSamplingCodes = new Set([
+    "webGpuApp.clusteredLocalShadowSamplingDeferred",
+    "webGpuApp.clusteredLocalCookieSamplingDeferred",
+  ]);
+  const unexpectedDiagnostics = (reportJson.diagnostics ?? []).filter(
+    (diagnostic) => !expectedDeferredSamplingCodes.has(diagnostic.code),
+  );
   const ok =
     report.ok === true &&
-    (counts.diagnostics ?? 0) === 0 &&
+    unexpectedDiagnostics.length === 0 &&
     (requireReadback ? readbackStatus.ok === true : true) &&
     pressureHistory.ready === true;
   const scenario = createScenarioStatus({

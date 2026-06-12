@@ -129,9 +129,13 @@ function assertUiHudPixels(status: UiHudStatus): void {
   expect(pixelDistance(background.pixel, clear)).toBeLessThan(35);
   expect(pixelDistance(clipped.pixel, clear)).toBeLessThan(35);
   expect(pixelDistance(panel.pixel, clear)).toBeGreaterThan(25);
-  expect(top.pixel.r).toBeGreaterThan(180);
-  expect(top.pixel.g).toBeLessThan(80);
-  expect(top.pixel.b).toBeLessThan(100);
+  // AI-17: UI quads now sRGB-encode in-shader on the LDR path (consistent
+  // with the standard family), lifting mid-tone channels: the linear
+  // (0.9, 0.1, 0.25) bar reads ~(243, 84, 133) instead of ~(230, 26, 64).
+  // Bounds assert red dominance with encode-aware margins.
+  expect(top.pixel.r).toBeGreaterThan(200);
+  expect(top.pixel.g).toBeLessThan(120);
+  expect(top.pixel.b).toBeLessThan(170);
   expect(image.pixel.g).toBeGreaterThan(130);
   expect(image.pixel.b).toBeGreaterThan(150);
   expect(text.pixel.r).toBeGreaterThan(150);

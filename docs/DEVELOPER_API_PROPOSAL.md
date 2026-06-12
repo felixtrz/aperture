@@ -76,11 +76,11 @@ Constraint for Aperture:
 
 Reference files:
 
-- `/Users/felixz/Projects/immersive-web-sdk/README.md`
-- `/Users/felixz/Projects/immersive-web-sdk/docs/index.md`
+- `immersive-web-sdk/README.md`
+- `immersive-web-sdk/docs/index.md`
 - Immersive Web SDK core package README and ECS/world initializer files.
-- `/Users/felixz/Projects/immersive-web-sdk/docs/guides/04-external-assets.md`
-- `/Users/felixz/Projects/immersive-web-sdk/docs/concepts/ecs/world.md`
+- `immersive-web-sdk/docs/guides/04-external-assets.md`
+- `immersive-web-sdk/docs/concepts/ecs/world.md`
 
 IWSDK's strongest reference value is the browser-facing facade:
 

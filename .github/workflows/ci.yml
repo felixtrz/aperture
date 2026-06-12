@@ -85,6 +85,49 @@ jobs:
       - name: Run tests with coverage thresholds
         run: pnpm run test:coverage
 
+  shader-compile-gate:
+    name: WebGPU shader-compile gate (Dawn)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.12.1 --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The check script imports composed family shaders from built dist.
+      - name: Build packages
+        run: pnpm run build
+
+      - name: Install Chrome + system deps
+        run: pnpm exec playwright install --with-deps chrome
+
+      - name: Install xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
+      # AI-17: compiles all 37 composed output-stage family shaders in real
+      # Dawn and pins the none+linear byte-identity invariant.
+      # APERTURE_REQUIRE_WEBGPU=1 makes a missing adapter a hard failure (no
+      # silent skip in CI).
+      - name: WebGPU shader-compile gate (Dawn)
+        run: xvfb-run -a pnpm run test:shaders
+        env:
+          APERTURE_REQUIRE_WEBGPU: "1"
+          APERTURE_WEBGPU_CHANNEL: chrome
+
   e2e:
     name: WebGPU E2E (SwiftShader, shard ${{ matrix.shard }}/8)
     runs-on: ubuntu-latest
