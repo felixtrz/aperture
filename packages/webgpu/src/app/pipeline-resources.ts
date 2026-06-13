@@ -69,6 +69,13 @@ export async function getOrCreateWebGpuAppPipeline(options: {
     WEBGPU_APP_DEPTH_FORMAT,
     `samples:${options.app.msaa.sampleCount}`,
     options.pipelineKey,
+    // The created resource bakes its vertex buffer layout from batchKey, so
+    // the cache must be at least as fine as the mesh layout: two meshes with
+    // colliding material variants but different stream layouts (e.g. an
+    // interleaved primitive floor vs a multi-stream glTF mesh) otherwise
+    // share one pipeline and the second draw fails Dawn validation with
+    // "Vertex buffer slot N required ... was not set".
+    `layout:${options.batchKey.meshLayoutKey}`,
     // The resolved pair keys the cache for every kind so a future per-target
     // resolution (AI-91) cannot collide cached variants.
     createTonemapPipelineKey(meshTonemap),

@@ -15,3 +15,10 @@ Release-readiness fixes from the e2e hardening pass:
 - `pick` reports a structured `webGpuApp.pickDeviceUnavailable` diagnostic
   when the GPU device dies mid-pick instead of throwing an unhandled
   `OperationError` past the report boundary.
+- The app render-pipeline cache key now includes the mesh vertex layout. Two
+  meshes sharing a material variant but with different vertex stream layouts
+  (e.g. an interleaved primitive floor and a multi-stream glTF mesh in the
+  same scene) previously collided on one cached pipeline; the second draw
+  then failed Dawn validation with "Vertex buffer slot N required … was not
+  set", producing an invalid command buffer and a blank frame. Pipelines are
+  now keyed per layout.
